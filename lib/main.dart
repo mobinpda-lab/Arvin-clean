@@ -1,6 +1,9 @@
 // ignore_for_file: curly_braces_in_flow_control_structures, deprecated_member_use, unused_field
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'arvin_colors.dart';
 
@@ -49,6 +52,7 @@ import 'services/widget_task_bridge.dart';
 import 'services/widget_task_selection_service.dart';
 import 'settings_page.dart';
 import 'task_detail_page.dart';
+import 'services/reminder_notification_payload.dart';
 import 'task_editor_dialog.dart';
 import 'task_next_action_page.dart';
 import 'task_report_page.dart';
@@ -101,7 +105,68 @@ class _SettingsTextScaler extends TextScaler {
   int get hashCode => Object.hash(systemScaler, userScale);
 }
 
-void main() => runApp(const ArvinApp());
+final GlobalKey<NavigatorState> _arvinNavigatorKey =
+    GlobalKey<NavigatorState>();
+ReminderNotificationPayload? _pendingReminderNotificationPayload;
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final notifications = FlutterLocalNotificationsPlugin();
+  await notifications.initialize(
+    settings: const InitializationSettings(
+      android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+    ),
+    onDidReceiveNotificationResponse: _handleNotificationResponse,
+  );
+  final launchDetails = await notifications.getNotificationAppLaunchDetails();
+  if (launchDetails?.didNotificationLaunchApp ?? false) {
+    _pendingReminderNotificationPayload = ReminderNotificationPayload.decode(
+      launchDetails?.notificationResponse?.payload,
+    );
+  }
+  runApp(const ArvinApp());
+}
+
+void _handleNotificationResponse(NotificationResponse response) {
+  final payload = ReminderNotificationPayload.decode(response.payload);
+  if (payload != null) {
+    unawaited(_openTaskFromReminderNotification(payload));
+  }
+}
+
+Future<void> _openTaskFromReminderNotification(
+  ReminderNotificationPayload payload,
+) async {
+  final navigator = _arvinNavigatorKey.currentState;
+  if (navigator == null) {
+    _pendingReminderNotificationPayload = payload;
+    return;
+  }
+
+  try {
+    final tasks = await TaskStore().load();
+    Task? parentTask;
+    for (final task in tasks) {
+      if (task.id == payload.taskId) {
+        parentTask = task;
+        break;
+      }
+    }
+    if (parentTask == null || !navigator.mounted) return;
+
+    navigator.popUntil((route) => route.isFirst);
+    await navigator.push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => TaskDetailPage(
+          task: parentTask!,
+          initialFollowUpId: payload.followUpId,
+        ),
+      ),
+    );
+  } catch (_) {
+    // A stale notification must not crash startup or mutate canonical data.
+  }
+}
 
 class ArvinApp extends StatefulWidget {
   const ArvinApp({super.key});
@@ -124,6 +189,11 @@ class _ArvinAppState extends State<ArvinApp> {
     super.initState();
     _loadSettings();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final pending = _pendingReminderNotificationPayload;
+      _pendingReminderNotificationPayload = null;
+      if (pending != null) {
+        unawaited(_openTaskFromReminderNotification(pending));
+      }
       StartupPermissionService().requestOnStartup();
     });
   }
@@ -170,6 +240,7 @@ class _ArvinAppState extends State<ArvinApp> {
       labelLarge: darkBaseTextTheme.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w700),
     );
     return MaterialApp(
+      navigatorKey: _arvinNavigatorKey,
       debugShowCheckedModeBanner: false,
       navigatorObservers: [arvinRouteObserver],
       title: 'مدیریت کارها و پیگیری آروین',
@@ -463,13 +534,13 @@ class _HomePageState extends State<HomePage> {
       .map((task) => task.id)
       .toSet();
 
-  Future<void> _save() async {
+  Future<void> _save({List<Task>? snapshotOverride}) async {
     if (loadFailure != null) {
       throw StateError(
         'Canonical task storage is unreadable; refusing Home write.',
       );
     }
-    final snapshot = List<Task>.of(tasks);
+    final snapshot = snapshotOverride ?? List<Task>.of(tasks);
     await taskStore.save(snapshot);
     try {
       await AndroidFollowUpReminderScheduler().reschedule();
@@ -1371,10 +1442,20 @@ class _HomePageState extends State<HomePage> {
       ),
     );
     if (edited == null) return;
-    setState(() => taskEditApplyService.apply(old, edited));
-    await _save();
+
+    // Build the edit on a detached copy and persist it before publishing it to
+    // Home state. A failed SQL transaction must not leave an in-memory half-edit.
+    final candidate = Task.fromJson(old.toJson());
+    taskEditApplyService.apply(candidate, edited);
+    final nextTasks = List<Task>.of(tasks);
+    final taskIndex = nextTasks.indexWhere((task) => task.id == old.id);
+    if (taskIndex < 0) throw StateError('Task not found while applying edit: ${old.id}');
+    nextTasks[taskIndex] = candidate;
+    await _save(snapshotOverride: nextTasks);
+    if (!mounted) return;
+    setState(() => tasks = nextTasks);
     await wave2ProductFastTrack.persistProjectSelection(
-      taskId: edited.id,
+      taskId: candidate.id,
       projectId: selectedProjectId,
     );
   }
@@ -1405,11 +1486,13 @@ class _HomePageState extends State<HomePage> {
   Future<Task?> _editFromDetail(Task task) async {
     await _edit(task);
     if (!mounted) return task;
+    final updatedIndex = tasks.indexWhere((item) => item.id == task.id);
+    final updated = updatedIndex >= 0 ? tasks[updatedIndex] : task;
     // Ordinary auto-sync may be disabled even though this Task was explicitly
     // linked to the phone calendar earlier. Reconcile only existing links so
     // editing one Task cannot create events for unrelated Tasks.
     await _syncLinkedCalendarAfterTaskEdit(List<Task>.of(tasks));
-    return task;
+    return updated;
   }
 
   Future<Task?> _checklistChangedFromDetail(
@@ -2352,15 +2435,9 @@ class _HomePageState extends State<HomePage> {
         Navigator.of(context).popUntil((route) => route.isFirst);
         return;
       case ArvinPrimaryDestination.calendar:
-        Navigator.of(context).pushReplacement<void, void>(
-          MaterialPageRoute<void>(
-            builder: (_) => CanonicalCalendarLauncher(
-              tasks: _searchSource,
-              onCreateTaskForDate: _addForDate,
-              onCreateTaskFromCalendarEvent: _addFromCalendarEvent,
-            ),
-          ),
-        );
+        // Use the canonical entry point: reload SQL before opening so the
+        // Calendar cannot capture an empty/stale Home snapshot during startup.
+        unawaited(_openPrimaryCalendar());
         return;
       case ArvinPrimaryDestination.notebook:
         Navigator.of(context).pushReplacement<void, void>(
@@ -2779,6 +2856,7 @@ class _HomePageState extends State<HomePage> {
         ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
+          key: ValueKey('task-card-open-${task.id}'),
           borderRadius: BorderRadius.circular(16),
           onLongPress: () => setState(() {
             selectionMode = true;

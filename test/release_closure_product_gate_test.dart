@@ -7,7 +7,7 @@ void main() {
     final workflow = File('.github/workflows/release-closure.yml')
         .readAsStringSync();
 
-    const internalBuild = 'name: Test and build release APK from locked inputs';
+    const internalBuild = 'name: Build production-signed Release APK';
     const storeEvidence = 'name: Store release evidence';
     const uploadInternalArtifact = 'name: Upload internal Release APK artifact';
     const gate = 'name: Require explicit product release approval';

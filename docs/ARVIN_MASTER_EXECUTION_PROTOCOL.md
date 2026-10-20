@@ -1,3 +1,38 @@
+# ARVIN MASTER AUTONOMOUS EXECUTION PROTOCOL — VERSION 12.0
+**Canonical authority:** this file. **Repository:** `mobinpda-lab/Arvin-clean`. **Project memory:** `docs/arvin-memory/`.
+**Mode:** autonomous, evidence-driven product completion. **Release status defaults to NO-GO until gates are evidenced.**
+
+## V12.0 authoritative operating contract (2026-10-19)
+This header is the current governing addendum. Preserve all historical material below; do not create a parallel master command.
+
+### Authority and execution loop
+Resolve conflicts in this order: user/data safety; live repository state; exact-SHA evidence; accepted product/architecture decisions; runtime behavior; data integrity; test/UX quality; maintainability; delivery speed. Live GitHub outranks historical reports and chat memory.
+For every run: `RECOVER → INSPECT → SEARCH → UNDERSTAND → DECIDE → REGISTER → EXECUTE → TEST → VALIDATE → RECORD → CONTINUE`.
+Do not report writes, commits, tests, runs, or releases unless the connected system confirms them. If a capability is unavailable, state the precise blocker and continue independent work.
+
+### Canonical memory and anti-duplication
+Update existing canonical files first: `ARVIN_EXECUTION_STATE.md`, `ARVIN_EVIDENCE_MAP.md`, `ARVIN_DECISION_LOG.md`, `ARVIN_PROJECT_KNOWLEDGE.md`, `ARVIN_USER_EXPERIENCE_LOG.md`, and `ARVIN_PROBLEM_REGISTER.md` under `docs/arvin-memory/`. Search code, tests, issues, PRs, branches, workflows, decisions and evidence before creating anything. Reuse healthy work; complete incomplete work; validate evidence gaps; repair broken work; create only when absence is proven. Preserve historical records and decisions.
+
+### Product invariants
+Task is the source of truth; Quick Add and Full Form share one task engine and persistence path. Checklist and Repeat belong to Task; Category acts as Group; Home owns no independent storage; Calendar is a projection; Report owns no data; Tracking is not a CRM; Reminder is distinct from Follow-up; Person has stable identity. Preserve referential integrity across migration, backup and restore. Do not introduce parallel models, storage, settings, reporting, workflows or tests without a documented gap.
+
+### Evidence and release discipline
+Every meaningful result must name the exact SHA and, where applicable, workflow/run/job, test scope, artifacts and limitations. Evidence from an earlier or synthetic merge SHA does not prove a later PR-head SHA. `success` only proves the specific run; `queued`, `in_progress`, `skipped`, `cancelled` and `unknown` are not passes. A feature is not accepted merely because code or tests exist.
+Track independent release gates for architecture/data ownership, task flows, checklist/repeat, reminders/follow-ups, people/report, calendar/provider sync, backup/restore/migration, tests, builds, device smoke, golden flow, documentation, exact-SHA evidence and signing where required. Any critical open, blocked, failed or unknown gate means `BLOCKED — RELEASE: NO-GO`.
+
+### Safe execution and continuation
+Do not work directly on `main`. Inspect current PR/branch and in-flight CI before changes. Register material architecture/data/UX/CI changes with goal, proven gap, protected behavior, affected areas, risk, tests, rollback and acceptance criteria. Never perform destructive migration without a valid backup and recovery path. If a blocker affects one area, continue independent safe work. After three independent failed attempts at the same blocker, stop repeating that path and document the evidence.
+At each run end, reconcile live SHA, branch, PR, CI, evidence map, execution state, blockers and next action. Do not create commits merely to show activity.
+
+### Required reporting
+User report: actual product status, user impact, gates, blockers and next action.
+Execution record: exact SHA, branch, PR/issue, changed paths, diff, tests, run/job links, gate status, data risk, release status and remaining work. Unknown means unknown; do not invent progress percentages.
+
+### Immediate continuity rule
+Resume from the live repository and current project memory. Keep PR #2833 draft and unmerged unless all required evidence and authorization permit otherwise. Do not merge, tag, sign or release without the appropriate authorization and verified gates.
+
+---
+## Preserved historical protocol content
 # ARVIN MASTER EXECUTION PROTOCOL (AMEP)
 
 Repository: mobinpda-lab/Arvin-clean

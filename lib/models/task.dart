@@ -87,6 +87,7 @@ class TaskReminder {
     this.isAllDay = false,
     required this.sequence,
     this.isLegacyTaskReminder = false,
+    this.followUpId,
   });
 
   final String id;
@@ -99,6 +100,11 @@ class TaskReminder {
   /// It retains the old Calendar identity during migration.
   final bool isLegacyTaskReminder;
 
+  /// Stable link to the FollowUp record that owns this reminder, when the
+  /// reminder is a follow-up reminder. Null keeps legacy/task reminders
+  /// backward-compatible and distinguishable from follow-up reminders.
+  final String? followUpId;
+
   TaskReminder copyWith({
     String? title,
     DateTime? date,
@@ -110,6 +116,7 @@ class TaskReminder {
         isAllDay: isAllDay ?? this.isAllDay,
         sequence: sequence,
         isLegacyTaskReminder: isLegacyTaskReminder,
+        followUpId: followUpId,
       );
 
   Map<String, dynamic> toJson() => {
@@ -119,6 +126,8 @@ class TaskReminder {
         'isAllDay': isAllDay,
         'sequence': sequence,
         if (isLegacyTaskReminder) 'isLegacyTaskReminder': true,
+        if (followUpId != null && followUpId!.trim().isNotEmpty)
+          'followUpId': followUpId!.trim(),
       };
 
   factory TaskReminder.fromJson(Map<String, dynamic> json) => TaskReminder(
@@ -128,6 +137,9 @@ class TaskReminder {
         isAllDay: json['isAllDay'] as bool? ?? false,
         sequence: (json['sequence'] as num?)?.toInt() ?? 1,
         isLegacyTaskReminder: json['isLegacyTaskReminder'] as bool? ?? false,
+        followUpId: (json['followUpId'] as String?)?.trim().isEmpty == true
+            ? null
+            : (json['followUpId'] as String?)?.trim(),
       );
 }
 

@@ -1,6 +1,10 @@
+import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/task_edit_apply_service.dart';
+import 'package:arvin/services/task_recurrence_repository.dart';
+import 'package:arvin/services/task_store.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   final appliedAt = DateTime(2026, 8, 28, 17);
@@ -87,28 +91,167 @@ void main() {
     expect(target.checklist, const ['[ ] کیف', '[x] کتاب']);
   });
 
-  test('preserves recurring checklist occurrence state while editing template', () {
-    final occurrence = DateTime(2026, 10, 3, 6);
+  test('rebuilds current and future recurring checklist while preserving past snapshots and lifecycle', () {
+    final effectiveAt = DateTime(2026, 10, 5, 12);
+    final dates = List<DateTime>.generate(
+      7,
+      (index) => DateTime(2026, 10, index + 1, 6),
+    );
+    final originalChecklists = <String, List<String>>{
+      dates[0].toIso8601String(): const ['[x] A', '[ ] B', '[x] C'],
+      dates[1].toIso8601String(): const ['[ ] A', '[x] B', '[ ] C'],
+      dates[2].toIso8601String(): const ['[x] A', '[x] B', '[ ] C'],
+      dates[3].toIso8601String(): const ['[ ] A', '[ ] B', '[x] C'],
+      dates[4].toIso8601String(): const ['[x] A', '[x] B', '[x] C'],
+      dates[5].toIso8601String(): const ['[ ] A', '[x] B', '[ ] C'],
+      dates[6].toIso8601String(): const ['[x] A', '[ ] B', '[ ] C'],
+    };
+    final originalHistory = <String, Map<String, dynamic>>{
+      dates[4].toIso8601String(): {
+        'scheduledDate': dates[4].toIso8601String(),
+        'status': 'completed',
+        'completionDate': DateTime(2026, 10, 5, 7).toIso8601String(),
+      },
+      dates[5].toIso8601String(): {
+        'scheduledDate': dates[5].toIso8601String(),
+        'status': 'cancelled',
+        'result': 'owner cancelled',
+      },
+    };
     final target = Task(
       id: 'recurring-task',
       title: 'آماده‌سازی مدرسه',
-      checklist: const ['[ ] کیف', '[ ] خوراکی'],
+      checklist: const ['[ ] A', '[ ] B', '[ ] C'],
+      recurrence: const RecurrenceRule(frequency: RecurrenceFrequency.daily),
       checklistOccurrences: {
-        occurrence.toIso8601String(): const ['[x] کیف', '[ ] خوراکی'],
+        for (final entry in originalChecklists.entries)
+          entry.key: List<String>.of(entry.value),
+      },
+      occurrenceHistory: {
+        for (final entry in originalHistory.entries)
+          entry.key: Map<String, dynamic>.from(entry.value),
       },
     );
     final edited = Task(
-      id: 'recurring-task',
+      id: 'editor-copy-id-is-not-canonical',
       title: 'آماده‌سازی مدرسه',
-      checklist: const ['[ ] کیف', '[ ] خوراکی', '[ ] لباس'],
+      checklist: const ['[ ] A', '[ ] B', '[ ] D'],
+      recurrence: const RecurrenceRule(frequency: RecurrenceFrequency.daily),
     );
+    final service = TaskEditApplyService(now: () => effectiveAt);
 
     service.apply(target, edited);
 
-    expect(target.checklist, const ['[ ] کیف', '[ ] خوراکی', '[ ] لباس']);
-    expect(target.checklistOccurrences, {
-      occurrence.toIso8601String(): const ['[x] کیف', '[ ] خوراکی'],
+    expect(target.id, 'recurring-task');
+    expect(target.checklist, const ['[ ] A', '[ ] B', '[ ] D']);
+    expect(target.checklistOccurrences.keys.toSet(), originalChecklists.keys.toSet());
+    for (var index = 0; index < 4; index++) {
+      expect(
+        target.checklistOccurrences[dates[index].toIso8601String()],
+        originalChecklists[dates[index].toIso8601String()],
+        reason: 'Past occurrence ${dates[index]} must be immutable.',
+      );
+    }
+    for (var index = 4; index < 7; index++) {
+      expect(
+        target.checklistOccurrences[dates[index].toIso8601String()],
+        const ['[ ] A', '[ ] B', '[ ] D'],
+        reason: 'Current/future occurrence ${dates[index]} must be rebuilt unchecked.',
+      );
+    }
+    expect(target.occurrenceHistory, originalHistory);
+
+    // Retrying the same template edit must not create keys or duplicate items.
+    service.apply(target, edited);
+    expect(target.checklistOccurrences.keys.toSet(), originalChecklists.keys.toSet());
+    for (var index = 4; index < 7; index++) {
+      expect(
+        target.checklistOccurrences[dates[index].toIso8601String()],
+        const ['[ ] A', '[ ] B', '[ ] D'],
+      );
+    }
+    expect(target.occurrenceHistory, originalHistory);
+  });
+
+  test('canonical TaskStore persists checklist evolution with unchanged occurrence keys', () async {
+    SharedPreferences.setMockInitialValues({});
+    await TaskStore.resetTestDatabase();
+    final store = TaskStore();
+    final effectiveAt = DateTime(2026, 10, 5, 12);
+    final dates = List<DateTime>.generate(
+      7,
+      (index) => DateTime(2026, 10, index + 1, 6),
+    );
+    final target = Task(
+      id: 'storage-checklist-evolution',
+      title: 'Storage checklist evolution',
+      checklist: const ['[ ] A', '[ ] B', '[ ] C'],
+      recurrence: const RecurrenceRule(frequency: RecurrenceFrequency.daily),
+      checklistOccurrences: {
+        for (var index = 0; index < dates.length; index++)
+          dates[index].toIso8601String(): index < 4
+              ? const ['[x] A', '[ ] B', '[x] C']
+              : const ['[x] A', '[x] B', '[x] C'],
+      },
+      occurrenceHistory: {
+        dates[4].toIso8601String(): {
+          'scheduledDate': dates[4].toIso8601String(),
+          'status': 'completed',
+        },
+        dates[5].toIso8601String(): {
+          'scheduledDate': dates[5].toIso8601String(),
+          'status': 'cancelled',
+        },
+      },
+    );
+    await store.save([target]);
+    final edited = Task(
+      id: target.id,
+      title: target.title,
+      checklist: const ['[ ] A', '[ ] B', '[ ] D'],
+      recurrence: target.recurrence,
+    );
+
+    await store.mutate<void>((tasks) {
+      TaskEditApplyService(now: () => effectiveAt).apply(tasks.single, edited);
     });
+
+    final reloaded = (await TaskStore().load()).single;
+    expect(reloaded.id, target.id);
+    expect(reloaded.checklistOccurrences.keys.toSet(), dates.map((date) => date.toIso8601String()).toSet());
+    for (var index = 0; index < 4; index++) {
+      expect(
+        reloaded.checklistOccurrences[dates[index].toIso8601String()],
+        const ['[x] A', '[ ] B', '[x] C'],
+      );
+    }
+    for (var index = 4; index < 7; index++) {
+      expect(
+        reloaded.checklistOccurrences[dates[index].toIso8601String()],
+        const ['[ ] A', '[ ] B', '[ ] D'],
+      );
+    }
+    expect(reloaded.occurrenceHistory[dates[4].toIso8601String()]?['status'], 'completed');
+    expect(reloaded.occurrenceHistory[dates[5].toIso8601String()]?['status'], 'cancelled');
+
+    final recurrenceRepository = TaskRecurrenceRepository(
+      store: store,
+      now: () => effectiveAt,
+    );
+    expect(
+      await recurrenceRepository.checklistForOccurrence(target.id, dates[4]),
+      const ['[ ] A', '[ ] B', '[ ] D'],
+    );
+    expect(
+      await recurrenceRepository.checklistForOccurrence(target.id, dates[6]),
+      const ['[ ] A', '[ ] B', '[ ] D'],
+    );
+    final notMaterialized = DateTime(2026, 10, 8, 6);
+    expect(
+      await recurrenceRepository.checklistForOccurrence(target.id, notMaterialized),
+      const ['[ ] A', '[ ] B', '[ ] D'],
+    );
+    expect((await store.load()).single.checklistOccurrences, hasLength(7));
   });
 
   test('preserves identity history and non-editor lifecycle flags', () {
@@ -187,4 +330,41 @@ void main() {
     expect(target.taskReminders.single.id, 'r1');
     expect(target.nextReminderSequence, 2);
   });
+
+  test('preserves unclassifiable occurrence keys while rebuilding valid current and future snapshots', () {
+    final effectiveAt = DateTime(2026, 10, 5, 12);
+    final malformedKey = 'legacy-occurrence-key';
+    final past = DateTime(2026, 10, 4, 6).toIso8601String();
+    final current = DateTime(2026, 10, 5, 6).toIso8601String();
+    final future = DateTime(2026, 10, 6, 6).toIso8601String();
+    const malformedSnapshot = <String>['[x] legacy'];
+    const pastSnapshot = <String>['[x] A', '[ ] B', '[x] C'];
+    final target = Task(
+      id: 'malformed-key-task',
+      title: 'Malformed key boundary',
+      recurrence: const RecurrenceRule(frequency: RecurrenceFrequency.daily),
+      checklist: const ['[ ] A', '[ ] B', '[ ] C'],
+      checklistOccurrences: <String, List<String>>{
+        malformedKey: malformedSnapshot,
+        past: pastSnapshot,
+        current: const ['[x] A', '[x] B', '[x] C'],
+        future: const ['[x] A', '[ ] B', '[x] C'],
+      },
+    );
+    final edited = Task(
+      id: 'editor-copy',
+      title: 'Malformed key boundary',
+      recurrence: const RecurrenceRule(frequency: RecurrenceFrequency.daily),
+      checklist: const ['[ ] A', '[ ] B', '[ ] D'],
+    );
+
+    TaskEditApplyService(now: () => effectiveAt).apply(target, edited);
+
+    expect(target.checklistOccurrences.keys.toSet(), {malformedKey, past, current, future});
+    expect(target.checklistOccurrences[malformedKey], malformedSnapshot);
+    expect(target.checklistOccurrences[past], pastSnapshot);
+    expect(target.checklistOccurrences[current], const ['[ ] A', '[ ] B', '[ ] D']);
+    expect(target.checklistOccurrences[future], const ['[ ] A', '[ ] B', '[ ] D']);
+  });
+
 }

@@ -448,6 +448,62 @@ void main() {
 
 
 
+  testWidgets('Follow-up Reminder parent Task action resolves canonical Task',
+      (tester) async {
+    final now = IranClock.now();
+    final reminderAt = now.add(const Duration(minutes: 30));
+    final task = Task(
+      id: 'followup-parent-task',
+      title: 'کار مادر پیگیری',
+      createdAt: now,
+      updatedAt: now,
+      followUpEnabled: true,
+      followUps: [
+        FollowUp(
+          id: 'followup-parent-record',
+          dateTime: now,
+          title: 'پیگیری قرارداد',
+          reminderDate: reminderAt,
+        ),
+      ],
+    );
+    Task? edited;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CanonicalCalendarLauncher(
+          tasks: [task],
+          onEditTask: (value) async => edited = value,
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.text('تقویم'));
+    await tester.pump();
+    await _pumpRouteTransition(tester);
+
+    const reminderId =
+        'followup:followup-parent-task:followup-parent-record';
+    final card = find.byKey(const ValueKey('reminder-card-$reminderId'));
+    for (var i = 0; i < 30 && card.evaluate().isEmpty; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(card, findsOneWidget);
+
+    await tester.ensureVisible(card);
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.longPress(card);
+    await _pumpRouteTransition(tester);
+
+    final parentTaskAction =
+        find.byKey(const ValueKey('task-due-edit-$reminderId'));
+    expect(parentTaskAction, findsOneWidget);
+    await tester.tap(parentTaskAction);
+    await tester.pump();
+
+    expect(edited?.id, task.id);
+  });
+
   testWidgets('repeat occurrence actions resolve back to the canonical Task', (
     tester,
   ) async {

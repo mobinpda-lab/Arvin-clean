@@ -1,26 +1,32 @@
-name: Arvin Release
+name: Arvin Release (legacy shortcut disabled)
 
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Release version tag'
+      target_sha:
+        description: 'Exact main SHA requested for release; use Arvin Release Closure for gated signing'
         required: true
-        default: 'v1.0.0'
+        type: string
+      version:
+        description: 'Requested release version (informational only; this workflow does not publish)'
+        required: true
+        type: string
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  release:
+  refuse-ungated-release:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Create Release Tag
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ inputs.version }}
-          name: Arvin ${{ inputs.version }}
-          generate_release_notes: true
+      - name: Refuse unverified release shortcut
+        env:
+          TARGET_SHA: ${{ inputs.target_sha }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          echo "::error::This legacy workflow is disabled because it could create a release without a verified production-signed APK."
+          echo "Use the existing Arvin Release Closure workflow from refs/heads/main with target_sha matching the current main tip, configured owner-approved signing secrets, apksigner v2/v3 evidence, and product release gates."
+          echo "REQUESTED_TARGET_SHA=$TARGET_SHA"
+          echo "REQUESTED_VERSION=$VERSION"
+          exit 1

@@ -5,3 +5,14 @@
 /assets/fonts/IRANSansX*.woff
 /assets/fonts/IRANSansX*.woff2
 /assets/fonts/FontLicense.txt
+
+# Android production signing material must never be committed.
+/android/key.properties
+/android/*.jks
+/android/*.keystore
+/android/app/*.jks
+/android/app/*.keystore
+/android/.signing/
+/android/app/.signing/
+*.jks
+*.keystore

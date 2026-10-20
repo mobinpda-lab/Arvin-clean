@@ -12,6 +12,9 @@ void main() {
         File('lib/services/follow_up_reminder_alarm_planner.dart').readAsStringSync();
     final notification = File('lib/follow_up_reminder_notification_service.dart')
         .readAsStringSync();
+    final main = File('lib/main.dart').readAsStringSync();
+    final payload = File('lib/services/reminder_notification_payload.dart')
+        .readAsStringSync();
 
     expect(scheduler, contains('followUpReminderAlarmId = 42002'));
     expect(scheduler, contains('rescheduleOnReboot: true'));
@@ -21,7 +24,11 @@ void main() {
     expect(runner, contains('stateService.markDelivered(state, candidate)'));
     expect(notification, contains('candidate.label'));
     expect(notification, contains('candidate.taskTitle'));
-    expect(notification, contains('payload: candidate.taskId'));
+    expect(notification, contains('ReminderNotificationPayload.encode'));
+    expect(payload, contains("'followUpId': followUpId"));
+    expect(main, contains('onDidReceiveNotificationResponse: _handleNotificationResponse'));
+    expect(main, contains('_openTaskFromReminderNotification(payload)'));
+    expect(main, contains('initialFollowUpId: payload.followUpId'));
     expect(planner, contains("'task:"));
     expect(runner, contains('FollowUpReminderDeliveryService'));
   });

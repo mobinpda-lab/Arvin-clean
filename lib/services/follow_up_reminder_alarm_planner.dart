@@ -32,6 +32,9 @@ class FollowUpReminderAlarmPlanner {
       }
 
       for (final reminder in task.taskReminders) {
+        // Follow-up-linked reminders keep the canonical FollowUp delivery
+        // identity below; do not enqueue the mirrored TaskReminder twice.
+        if (reminder.followUpId != null) continue;
         final scheduledAt = reminder.isAllDay
             ? DateTime(reminder.date.year, reminder.date.month, reminder.date.day, 9)
             : reminder.date;

@@ -37,6 +37,9 @@ class FollowUpReminderDeliveryService {
       }
 
       for (final reminder in task.taskReminders) {
+        // A linked TaskReminder is the persisted mirror of FollowUp.reminderDate.
+        // Preserve the established FollowUp delivery identity and avoid duplicates.
+        if (reminder.followUpId != null) continue;
         final scheduledAt = reminder.isAllDay
             ? DateTime(reminder.date.year, reminder.date.month, reminder.date.day, 9)
             : reminder.date;
@@ -56,6 +59,8 @@ class FollowUpReminderDeliveryService {
       }
 
       for (final followUp in task.followUps) {
+        // Completed FollowUps retain their history but must not deliver reminders.
+        if (followUp.completed) continue;
         final reminderDate = followUp.reminderDate;
         if (reminderDate == null || reminderDate.isAfter(now)) continue;
 
