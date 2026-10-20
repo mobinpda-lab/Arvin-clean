@@ -588,3 +588,13 @@ Open blockers: (1) Exact-SHA dispatch needs authorized Actions write/dispatch ac
 
 - Live `main` workflow `.github/workflows/release.yml` (blob `c5f45b9b1d66db22a585b0637a24537aeb95d098`) still has `contents: write` and invokes `softprops/action-gh-release@v2` with caller-provided `inputs.version`. The fail-closed replacement exists only in draft PR #2817 head `5b5d83e75499cd3b890c06835d1c90220c2b65de`; it is not merged. This legacy mainline path is an independent release-governance blocker.
 - Do not run or promote the legacy release workflow. Keep PR #2817 draft/unmerged until its hardening and independent owner approval are reviewed. **RELEASE: NO-GO.**
+
+## ARVIN WAVE 5.11 — open problem register (2026-10-20)
+1. **P0 — Checklist UI/Storage integration: IN PROGRESS / NOT PROVEN.** Shared component is present in Task Details and Repeat and uses existing TaskRecurrenceRepository/TaskStore. Repeating Task template mutation from the legacy detail callback is guarded. Current-head tests have not run.
+2. **P0 — Seven occurrence template migration: NOT RUN.** Need four past snapshots exactly preserved and three current/future snapshots rebuilt from A/B/D with all options unchecked; retain Task ID, occurrence keys, history, completed/cancelled lifecycle and record counts; rerun must be idempotent.
+3. **P0 — Current-head CI: BLOCKED / NOT RETURNED.** PR #2833 head `08f610f5442aa9c822e0645458d0ef438f7321ef` has no Actions run/status returned through the current connector. Direct workflow_dispatch is unavailable here. Prior run `39422835185` failed compiling test source on another SHA and has SKIPPED exact-revision verification.
+4. **P0 — Android restart and Backup/Restore: NOT RUN.** Need real process PID change, launcher restart, actual app backup and supported restore of the same accepted Task, followed by TaskStore comparison.
+5. **P1 — timezone/day-boundary and invalid occurrence keys: NOT PROVEN.** Test local calendar day at midnight and timezone offsets; retain malformed/ambiguous legacy keys pending a documented migration decision.
+6. **P1 — Release controls: BLOCKED.** PR #2817, Issue #2102 and PR #1901 remain open until freshly audited; Exact-SHA, official certificate/fingerprint, apksigner verification, extracted APK SHA-256 and artifact/revision binding are not proven. Calendar Provider, notification cold-start, Persian PDF, Golden Flow and P0/P1 regression closure are also open.
+7. **P1 — external design references only.** Joplin's scheduling/reset behavior and TimeJot's export/restore approach inform design, not acceptance evidence. No third-party code was copied.
+No item above is closed by commits alone. **BLOCKED — RELEASE: NO-GO**.
