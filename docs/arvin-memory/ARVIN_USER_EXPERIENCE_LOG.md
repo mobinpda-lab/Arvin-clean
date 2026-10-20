@@ -1,3 +1,12 @@
+## 2026-10-20 — Product concept reference drafted
+
+- **Context:** Product owner supplied a comprehensive Persian contract describing expected Task, Reminder, Checklist, Recurrence, Occurrence, Follow-up, History, Calendar, Jalali date and persistence semantics.
+- **Documentation action:** drafted [ARVIN_PRODUCT_CONCEPTS.md](../product/ARVIN_PRODUCT_CONCEPTS.md), including 15 acceptance scenarios and unresolved product decisions.
+- **Evidence boundary:** this entry records the owner's product expectations and a documentation action; it is not a new observed user test, device reproduction, usability result or acceptance sign-off.
+- **Status:** PROPOSED / REVIEW REQUIRED. No UI or application behavior changed; device acceptance remains governed by the existing evidence requirements.
+
+---
+
 # Arvin User Experience Log
 
 ## 2026-10-09 — Calendar task actions reported missing
