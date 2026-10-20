@@ -1520,3 +1520,19 @@ The GitHub Actions API identifies Runs 39416899830 and 39416899883 as `pull_requ
 - Important workflow provenance: this Run was dispatched by the default-branch recovery dispatcher, so its workflow definition came from main SHA `d9fb7a247037762216662a20fb32028ecc8a0f6b`, while its source checkout was exact target `b15b0c0...`. The PR branch's `.github/workflows/build.yml` contains an additional fail-closed signing test and non-official artifact naming not present in the main workflow version. Therefore the branch's own workflow definition still needs a manual branch-selected Build dispatch with `target_sha` equal to the live PR HEAD.
 - At this update, Run [39433741028](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39433741028) for previous docs HEAD `266b2a58...` was still QUEUED. The Recovery Dispatcher job `118667403566` was QUEUED to scan live PR heads. No terminal Build result for the then-live docs HEAD `bfc499fc...` was confirmed.
 - The code/source validation at `b15b0c0...` is PASS; current-head Device Smoke, Calendar Provider, official SAF Backup/Restore, official signing/fingerprint/apksigner, and release approval remain open.
+
+
+## Wave 5.17 — live execution checkpoint (2026-10-20)
+
+### Live revision and execution safety
+- PR #2833 was re-read from GitHub: OPEN / DRAFT / UNMERGED; source branch wave-4-10/follow-up-reminder-contract; HEAD 036dc407d54aea5fd7f7ed1fa54adf924651647f; base fix/follow-up-record-authority-20261019 at 49910e585ee73afcf56a7f8d927b9c69e763c5c5.
+- Commit 036dc407d54aea5fd7f7ed1fa54adf924651647f has direct parent bfc499fcc6fd037d209d01bc67d56ebaf16acfe1.
+- GitHub Actions API query for runs on exact HEAD returned zero runs. Branch-filtered history shows the latest Build/Device Smoke pair is from older source SHA 6d78b1cba4d0ec829fe26325c9233cd30100d766; Build run [39416899830](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39416899830) succeeded, while Device Smoke [39416899883](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39416899883) was cancelled. Neither proves current HEAD.
+- Branch-scoped Actions API filters returned zero queued and zero in-progress runs immediately before this documentation update. The unfiltered status summary was inconsistent, so no global claim that every repository run is inactive is made.
+- Workflow contracts read from the PR branch: Build triggers on PR opened/synchronize/reopened and supports workflow_dispatch.target_sha; exact-SHA assertion only runs for a non-empty target SHA. Build and Device Smoke use cancel-in-progress: true. Device Smoke covers task lifecycle, checklist evolution, SQL persistence/migration, Backup/Restore and calendar. Calendar Provider Acceptance is path-filtered on PRs targeting main or fix/follow-up-record-authority-20261019. The recovery dispatcher is scheduled every six hours and can dispatch Build with target_sha, but this session has no direct workflow-dispatch action.
+- Wave 5.11 ancestry check: compare API reports 938bb05cf7e6337ad244a3cca16e482a242aea22 as merge-base/ancestor of this HEAD (588 commits ahead, 0 behind). This proves ancestry for that commit only; it does not independently prove the complete seven-commit Wave 5.11 set or each parent link.
+
+### Wave 5.17 execution result
+- GitHub read access: PASS. Push capability is tested by the single atomic documentation commit for this checkpoint; no code fix is claimed.
+- No Flutter/ADB device environment is exposed in this execution session. Analyze, unit/widget tests, integration tests, emulator runs, seven-Occurrence UI acceptance, process/PID Restart, and real Backup/Restore were not executed here. Keep those gates BLOCKED/NOT RUN, not PASS.
+- Current source-code behavior remains unaccepted until exact-head CI and behavioral tests provide evidence. Release remains BLOCKED — RELEASE: NO-GO.

@@ -843,3 +843,26 @@ Run 39416899830 and Device Smoke Run 39416899883 are `pull_request` events whose
 - Important workflow provenance: this Run was dispatched by the default-branch recovery dispatcher, so its workflow definition came from main SHA `d9fb7a247037762216662a20fb32028ecc8a0f6b`, while its source checkout was exact target `b15b0c0...`. The PR branch's `.github/workflows/build.yml` contains an additional fail-closed signing test and non-official artifact naming not present in the main workflow version. Therefore the branch's own workflow definition still needs a manual branch-selected Build dispatch with `target_sha` equal to the live PR HEAD.
 - At this update, Run [39433741028](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39433741028) for previous docs HEAD `266b2a58...` was still QUEUED. The Recovery Dispatcher job `118667403566` was QUEUED to scan live PR heads. No terminal Build result for the then-live docs HEAD `bfc499fc...` was confirmed.
 - The code/source validation at `b15b0c0...` is PASS; current-head Device Smoke, Calendar Provider, official SAF Backup/Restore, official signing/fingerprint/apksigner, and release approval remain open.
+
+
+## Wave 5.17 — evidence map refresh (2026-10-20)
+
+| Gate | Current evidence | Status |
+|---|---|---|
+| Exact source HEAD | PR #2833 HEAD 036dc407d54aea5fd7f7ed1fa54adf924651647f; Actions API exact-head query returned zero runs before this docs commit | BLOCKED |
+| Prior Build | Run [39416899830](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39416899830), source 6d78b1cba4d0ec829fe26325c9233cd30100d766, conclusion success | NOT CURRENT SHA |
+| Prior Device Smoke | Run [39416899883](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39416899883), same old source SHA, conclusion cancelled | BLOCKED |
+| Current PR active/queued runs | Branch-filtered API queries returned zero queued and zero in-progress immediately before docs update; the unfiltered endpoint summary is inconsistent | NOT VERIFIED globally |
+| Direct workflow dispatch | No dispatch operation exposed by the connected tool surface; the repository recovery dispatcher supports scheduled/manual execution and exact target SHA | BLOCKED pending dispatcher execution |
+| Checklist/Repeat code | Static files inspected in earlier wave; no behavioral test executed in this wave | NOT RUN |
+| Seven-occurrence storage snapshot | No live UI/storage snapshot captured | BLOCKED |
+| Restart and real Backup/Restore | No Android/ADB device available | BLOCKED — DEVICE EXECUTION REQUIRED |
+| Persian calendar | Repository source shows GPL-3.0; design reference only, no code copied | REVIEWED, NO ADOPTION |
+| Calendar Provider lifecycle | No writable provider/device run tied to current HEAD; workflow presence is not acceptance | BLOCKED |
+| Official signing/APK | No official certificate fingerprint, apksigner output or official APK verified in this wave | NOT VERIFIED |
+| Five canonical documents | Appended Wave 5.17 status; post-commit re-read is required | PENDING RE-READ |
+
+External design review:
+- [Persian Calendar](https://github.com/persian-calendar/persian-calendar) describes itself as an Android Persian Calendar and is GPL-3.0. Reuse/copying code into Arvin is not authorized by this checkpoint; keep as behavior/UX reference unless legal compatibility is explicitly approved.
+- [Joplin Repeating To-Dos](https://github.com/TheScriptingGuy/Joplin-Repeating-Todos-Plugin) documents repeat intervals, weekday/month-day rules, stop conditions, overdue handling and a startup safety sweep. Its completion behavior resets the same to-do and sub-tasks, so it must not be copied blindly into Arvin's independent-occurrence contract. The repository identifies GPL-3.0.
+- [TimeJot Help](https://timejot.app/help/) distinguishes Android device backup (with limitations such as omitted entry photos) from daily export/import intended to preserve data and photos. [TimeJot changelog](https://timejot.app/changelog/) notes ZIP export with database/photos and backup/restore improvements. This is a useful UX distinction, not proof of Arvin's restore correctness.

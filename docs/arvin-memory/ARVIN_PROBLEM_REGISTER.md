@@ -638,3 +638,24 @@ Run 39416899830 and Run 39416899883 used source commit `6d78b1cba4d0ec829fe26325
 - Important workflow provenance: this Run was dispatched by the default-branch recovery dispatcher, so its workflow definition came from main SHA `d9fb7a247037762216662a20fb32028ecc8a0f6b`, while its source checkout was exact target `b15b0c0...`. The PR branch's `.github/workflows/build.yml` contains an additional fail-closed signing test and non-official artifact naming not present in the main workflow version. Therefore the branch's own workflow definition still needs a manual branch-selected Build dispatch with `target_sha` equal to the live PR HEAD.
 - At this update, Run [39433741028](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39433741028) for previous docs HEAD `266b2a58...` was still QUEUED. The Recovery Dispatcher job `118667403566` was QUEUED to scan live PR heads. No terminal Build result for the then-live docs HEAD `bfc499fc...` was confirmed.
 - The code/source validation at `b15b0c0...` is PASS; current-head Device Smoke, Calendar Provider, official SAF Backup/Restore, official signing/fingerprint/apksigner, and release approval remain open.
+
+
+## Wave 5.17 — active problem register refresh (2026-10-20)
+
+| Problem / gate | Status | Required next action |
+|---|---|---|
+| Exact-SHA Build for PR #2833 HEAD | BLOCKED | Run the existing pr-ci-recovery-dispatcher.yml from authorized default-branch Actions context; require target_sha=036dc407d54aea5fd7f7ed1fa54adf924651647f (or the new HEAD after this docs commit), and verify checkout assertions in all jobs. |
+| Device Smoke on current head | BLOCKED | Complete all lanes on one stable SHA; review artifacts and prevent another synchronize event from cancelling the useful run. |
+| Seven-Occurrence Checklist/Repeat acceptance | NOT RUN | Create the A/B/C baseline, capture canonical storage, change template to A/B/D, then compare four past vs current/future occurrences and verify no duplicates. |
+| Task recurrence/editor/store regression tests | NOT RUN | Run existing focused tests and all six shards; inspect failing logs before changing assertions or behavior. |
+| Restart same task | BLOCKED — DEVICE EXECUTION REQUIRED | Use real Android package/launcher activity; record old/new PID and compare all seven occurrence keys and checkmarks. |
+| Backup/Restore same task | BLOCKED — DEVICE EXECUTION REQUIRED | Use official app backup/export and supported restore; compare identity mapping, occurrence state, history, links and record counts. |
+| Calendar Provider CREATE/NO-OP/UPDATE/transfer/DELETE | BLOCKED | Run on writable provider; record event/calendar IDs, query results and unrelated sentinel preservation. |
+| Persian calendar boundary/time-zone tests | NOT RUN | Test both-direction conversions, leap year, Esfand 29/30, month boundaries, local-day transitions, digit/month formatting and recurrence integration. |
+| Official signing and APK identity | NOT VERIFIED | Obtain approved release certificate/fingerprint; verify apksigner --verbose --print-certs, APK SHA-256, run/job/artifact provenance, and temporary keystore cleanup. |
+| PR #2817 security closure | OPEN / DRAFT | Validate required authorization and telemetry independently; no secret exposure and no release side effects. |
+| PR #1901 P0/P1 regressions | OPEN | Reconcile product regressions against current base; real-device screenshots and owner acceptance remain required. |
+| Issue #2102 | OPEN | Keep release gate open until P0/P1 evidence and product-owner acceptance are complete. |
+| Wave 5.11 seven-commit ancestry | NOT VERIFIED | Enumerate all seven expected SHAs and verify each is in current HEAD ancestry, not merely present in search results. |
+
+No problem in this table is closed by static code inspection or workflow-file presence alone.

@@ -246,3 +246,17 @@ The previous Build and Device Smoke run used an old PR source commit `6d78b1cba4
 - Important workflow provenance: this Run was dispatched by the default-branch recovery dispatcher, so its workflow definition came from main SHA `d9fb7a247037762216662a20fb32028ecc8a0f6b`, while its source checkout was exact target `b15b0c0...`. The PR branch's `.github/workflows/build.yml` contains an additional fail-closed signing test and non-official artifact naming not present in the main workflow version. Therefore the branch's own workflow definition still needs a manual branch-selected Build dispatch with `target_sha` equal to the live PR HEAD.
 - At this update, Run [39433741028](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39433741028) for previous docs HEAD `266b2a58...` was still QUEUED. The Recovery Dispatcher job `118667403566` was QUEUED to scan live PR heads. No terminal Build result for the then-live docs HEAD `bfc499fc...` was confirmed.
 - The code/source validation at `b15b0c0...` is PASS; current-head Device Smoke, Calendar Provider, official SAF Backup/Restore, official signing/fingerprint/apksigner, and release approval remain open.
+
+
+## Wave 5.17 — user experience / design reference note (2026-10-20)
+
+### Repeat and occurrence semantics
+- The seven-occurrence UI scenario (four past, one current, two future; baseline A/B/C and updated A/B/D) was **not executed**. No Task ID, seven actual occurrence keys, checklist state, history rows or record counts were captured. Product acceptance remains BLOCKED.
+- Joplin Repeating To-Dos documents configurable intervals (minute/hour/day/week/month/year), weekday and month-day selection, stop conditions, overdue policies, and a startup sweep to recover missed alarms. Its completion flow advances the same to-do, unmarks it complete and resets subtasks; this differs from Arvin's requirement to retain separate occurrence history/checklists. Treat only as a UX reference.
+- TimeJot's help page explains that OS-level device backup can omit photos and recommends daily export/import for a more complete, user-controlled backup. Its changelog describes ZIP export containing the database and photos. Arvin should distinguish device backup from an independently exportable, restorable archive and prove that restore retains Task/Occurrence identity and relationships.
+- Persian Calendar is an Android app under GPL-3.0. Use it only to compare Persian calendar UX and boundary behavior; do not copy implementation code without a license-compatibility review.
+
+### Calendar and local-time acceptance
+- No real writable Calendar Provider CREATE → NO-OP → UPDATE → calendar transfer → DELETE sequence was executed on this HEAD. Mock/provider harness success is not user-facing acceptance.
+- No Restart/PID test or real Backup/Restore of the same Task was executed because this environment has no attached Android/ADB device.
+- No new UX behavior is accepted in Wave 5.17. Do not change the product contract or mark the release ready based on these reference comparisons.
