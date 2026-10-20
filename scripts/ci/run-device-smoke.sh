@@ -22,15 +22,15 @@ echo "ANDROID_API=$(adb -s "$device" shell getprop ro.build.version.sdk | tr -d 
 echo "ANDROID_BOOT_COMPLETED=$(adb -s "$device" shell getprop sys.boot_completed | tr -d '\r')"
 test "$(adb -s "$device" shell getprop sys.boot_completed | tr -d '\r')" = "1"
 
-if [[ "$scenario" == "task-lifecycle" ]]; then
-  # Flutter drive normally stops the app on completion; keep it installed and running
-  # so the next steps can prove a real force-stop/restart against the same data.
+if [[ "$scenario" == "task-lifecycle" || "$scenario" == "checklist-evolution" ]]; then
+  # Flutter drive normally stops the app on completion; keep it running so the
+  # next steps can prove a real force-stop/restart against the same data.
   flutter drive --driver=test_driver/integration_test.dart --target="$test_file" -d "$device" --keep-app-running
 else
   flutter drive --driver=test_driver/integration_test.dart --target="$test_file" -d "$device"
 fi
 
-if [[ "$scenario" == "task-lifecycle" ]]; then
+if [[ "$scenario" == "task-lifecycle" || "$scenario" == "checklist-evolution" ]]; then
   echo "ARVIN_LIFECYCLE_RESTART_BEGIN"
   package_id="$(adb -s "$device" shell pm list packages | tr -d '\r' | sed -n 's/^package://p' | grep -Fx 'com.example.arvin' || true)"
   test "$package_id" = "com.example.arvin" || { dump_android_diagnostics; echo "Expected installed package com.example.arvin" >&2; exit 1; }
@@ -73,5 +73,9 @@ if [[ "$scenario" == "task-lifecycle" ]]; then
   test "$before_pid" != "$after_pid" || { echo "Process ID unchanged across force-stop/restart: $before_pid" >&2; dump_android_diagnostics; exit 1; }
   echo "ARVIN_LIFECYCLE_RESTART_VERIFIED old_pid=$before_pid new_pid=$after_pid"
 
-  flutter drive --driver=test_driver/integration_test.dart --target=integration_test/android_task_lifecycle_restart_verify_test.dart -d "$device"
+  if [[ "$scenario" == "checklist-evolution" ]]; then
+    flutter drive --driver=test_driver/integration_test.dart --target=integration_test/android_checklist_evolution_restart_verify_test.dart -d "$device"
+  else
+    flutter drive --driver=test_driver/integration_test.dart --target=integration_test/android_task_lifecycle_restart_verify_test.dart -d "$device"
+  fi
 fi

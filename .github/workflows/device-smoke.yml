@@ -35,6 +35,8 @@ jobs:
             test_file: integration_test/android_quick_capture_smoke_test.dart
           - scenario: task-lifecycle
             test_file: integration_test/android_task_lifecycle_smoke_test.dart
+          - scenario: checklist-evolution
+            test_file: integration_test/android_checklist_evolution_smoke_test.dart
           - scenario: sql-persistence
             test_file: integration_test/android_sql_persistence_smoke_test.dart
           - scenario: sql-migration
@@ -141,6 +143,16 @@ jobs:
             artifacts/device-smoke/task-lifecycle.png
             artifacts/device-smoke/task-lifecycle-restarted.png
             artifacts/device-smoke/task-lifecycle-reopened.png
+          if-no-files-found: warn
+
+      - name: Upload Checklist evolution restart evidence
+        if: always() && matrix.scenario == 'checklist-evolution'
+        uses: actions/upload-artifact@v5
+        with:
+          name: arvin-checklist-evolution-${{ github.sha }}
+          path: |
+            artifacts/device-smoke/checklist-evolution-after-edit.png
+            artifacts/device-smoke/checklist-evolution-restarted.png
           if-no-files-found: warn
 
       - name: Upload Persian time picker screenshot evidence
