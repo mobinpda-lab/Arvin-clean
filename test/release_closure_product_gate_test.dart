@@ -108,6 +108,10 @@ void main() {
     expect(legacy, isNot(contains('softprops/action-gh-release')));
     expect(legacy, isNot(contains('contents: write')));
     expect(legacy, isNot(contains('tag_name:')));
+    // Existing releases must fail closed unless artifact bytes, provenance,
+    // and the trusted signing certificate can be independently verified.
+    expect(workflow, contains('requires independent provenance, APK SHA-256, and signing-certificate verification'));
+    expect(workflow, contains("core.setOutput('already_released', 'false');"));
   });
 
 }
