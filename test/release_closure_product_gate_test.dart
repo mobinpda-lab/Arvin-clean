@@ -70,6 +70,19 @@ void main() {
       contains("if: steps.release_state.outputs.already_released != 'true'"),
     );
 
+    // Existing tag/asset names must not bypass build, signing, or product gates.
+    expect(
+      workflow,
+      contains('existing release ${tag} requires independent provenance'),
+    );
+    expect(workflow, contains('asset filenames are not proof'));
+    expect(workflow, contains('if (error.status !== 404) throw error;'));
+    expect(workflow, contains("core.setOutput('already_released', 'false')"));
+    expect(
+      workflow,
+      isNot(contains('complete = [`arvin-${appVersion}-build${buildNumber}.apk`')),
+    );
+
     // Evidence is explicit and verifiable.
     expect(workflow, contains('BUILD_RESULT=success'));
     expect(workflow, contains('TEST_RESULT=success'));
