@@ -145,6 +145,8 @@ void main() {
       final createdId = matches.single.id;
       expect(createdId, isNotEmpty);
       expect(matches.single.checklist, const ['[ ] A', '[ ] B', '[ ] C']);
+      expect(matches.single.checklistEnabled, isTrue,
+          reason: 'Checklist enabled state must persist from the creation UI.');
 
       final today = DateTime.now();
       final localToday = DateTime(today.year, today.month, today.day);
@@ -152,6 +154,7 @@ void main() {
       expect(beforeRule.recurrence, isNotNull);
       expect(beforeRule.recurrence!.frequency, RecurrenceFrequency.daily);
       expect(beforeRule.recurrence!.active, isTrue);
+      expect(beforeRule.checklistEnabled, isTrue);
 
       // Generate the seven scheduled dates with the canonical recurrence
       // rule, not with hand-created occurrence records.
@@ -266,6 +269,7 @@ void main() {
       }
       expect(after.occurrenceHistory, occurrenceHistory);
       expect(after.completed, isFalse);
+      expect(after.checklistEnabled, isTrue);
       _logOccurrenceSnapshots('post-edit', after, dates);
       debugPrint(
         'ARVIN_CHECKLIST_POST_EDIT task_id=${after.id} occurrence_keys=${after.checklistOccurrences.keys.toList()..sort()} count=${matches.length}',
