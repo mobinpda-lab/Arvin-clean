@@ -49,28 +49,18 @@ class _ChecklistFileBackedBackupService extends ArvinBackupService {
   }
 }
 
-void _logOccurrenceSnapshots(String phase, Task task, List<DateTime> dates) {
+void _logOccurrenceStates(String phase, Task task, List<DateTime> dates) {
   for (var index = 0; index < dates.length; index++) {
     final key = dates[index].toIso8601String();
     final snapshot = task.checklistOccurrences[key];
     final lifecycle = task.occurrenceHistory[key]?['status'] ?? 'unset';
     debugPrint(
-      'ARVIN_CHECKLIST_OCCURRENCE phase=$phase day=${index + 1} task_id=${task.id} key=$key snapshot=$snapshot lifecycle=$lifecycle task_completed=${task.completed} occurrence_count=${task.checklistOccurrences.length}',
+      'ARVIN_CHECKLIST_OCCURRENCE_STATE phase=$phase day=${index + 1} task_id=${task.id} key=$key stored_snapshot_present=${snapshot != null} stored_snapshot=$snapshot lifecycle=$lifecycle task_completed=${task.completed} stored_occurrence_count=${task.checklistOccurrences.length}',
     );
   }
 }
 
-const _prefix = 'ARVIN-CHECKLIST-WAVE-5-00-';
-
-List<List<String>> _initialSnapshots() => <List<String>>[
-  const ['[x] A', '[ ] B', '[x] C'],
-  const ['[ ] A', '[x] B', '[ ] C'],
-  const ['[x] A', '[x] B', '[ ] C'],
-  const ['[ ] A', '[ ] B', '[x] C'],
-  const ['[x] A', '[x] B', '[x] C'],
-  const ['[ ] A', '[x] B', '[ ] C'],
-  const ['[x] A', '[ ] B', '[ ] C'],
-];
+const _prefix = 'ARVIN-CHECKLIST-WAVE-5-01-';
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -159,19 +149,21 @@ void main() {
           reason: 'Checklist enabled state must persist from the creation UI.');
 
       final today = DateTime.now();
-      final localToday = DateTime(today.year, today.month, today.day);
       final beforeRule = (await store.load()).singleWhere((task) => task.id == createdId);
       expect(beforeRule.recurrence, isNotNull);
       expect(beforeRule.recurrence!.frequency, RecurrenceFrequency.daily);
       expect(beforeRule.recurrence!.active, isTrue);
       expect(beforeRule.checklistEnabled, isTrue);
 
-      // Generate the seven scheduled dates with the canonical recurrence
-      // rule, not with hand-created occurrence records.
-      final anchor = DateTime(localToday.year, localToday.month, localToday.day - 4, 6);
+      // Observe the schedule produced by the persisted UI-created rule.
+      // This end-to-end test deliberately does not fabricate seven stored
+      // snapshots; snapshot/history preservation belongs to storage tests.
       final rule = beforeRule.recurrence!;
+      final anchor = rule.startDate ?? beforeRule.reminderDate;
+      expect(anchor, isNotNull,
+          reason: 'The real Repeat setup must persist a canonical schedule anchor.');
       final dates = rule.occurrencesBetween(
-        anchor: anchor,
+        anchor: anchor!,
         from: anchor,
         to: anchor.add(const Duration(days: 7)),
       );
@@ -183,41 +175,26 @@ void main() {
           to: anchor.add(const Duration(days: 7)),
         ),
         dates,
-        reason: 'Repeat generation must be idempotent.',
+        reason: 'Repeat schedule calculation must be idempotent.',
       );
 
-      final initial = _initialSnapshots();
       final recurrence = TaskRecurrenceRepository(store: store, now: () => today);
-
-      // Use the existing canonical repository API to record pre-existing
-      // execution snapshots and lifecycle states, without a parallel store.
-      for (var index = 0; index < dates.length; index++) {
-        await recurrence.setChecklistForOccurrence(createdId, dates[index], initial[index]);
-      }
-      await recurrence.setOccurrenceStatus(
-        createdId,
-        dates[4],
-        RecurrenceOccurrenceStatus.completed,
-        completedAt: dates[4].add(const Duration(hours: 1)),
-      );
-      await recurrence.setOccurrenceStatus(
-        createdId,
-        dates[5],
-        RecurrenceOccurrenceStatus.cancelled,
-        result: 'Wave 5.00 lifecycle fixture',
-      );
-
       final before = (await store.load()).singleWhere((task) => task.id == createdId);
-      final occurrenceHistory = <String, Map<String, dynamic>>{
-        for (final entry in before.occurrenceHistory.entries)
-          entry.key: Map<String, dynamic>.from(entry.value),
-      };
-      expect(before.checklistOccurrences, hasLength(7));
-      debugPrint('ARVIN_CHECKLIST_PRE_EDIT task_id=${before.id} checklist_enabled=${before.checklistEnabled}');
-      _logOccurrenceSnapshots('pre-edit', before, dates);
+      expect(before.checklistOccurrences, isEmpty,
+          reason: 'The UI setup must not be replaced by test-seeded snapshots.');
+      expect(before.occurrenceHistory, isEmpty,
+          reason: 'The UI setup must not be replaced by test-seeded lifecycle records.');
+      for (var index = 0; index < dates.length; index++) {
+        expect(
+          await recurrence.checklistForOccurrence(createdId, dates[index]),
+          const ['[ ] A', '[ ] B', '[ ] C'],
+          reason: 'Unrecorded occurrence ${dates[index]} must use the unchecked template.',
+        );
+      }
       debugPrint(
-        'ARVIN_CHECKLIST_PRE_EDIT task_id=${before.id} occurrence_keys=${before.checklistOccurrences.keys.toList()..sort()}',
+        'ARVIN_CHECKLIST_PRE_EDIT task_id=${before.id} schedule_count=${dates.length} stored_snapshot_count=${before.checklistOccurrences.length} history_count=${before.occurrenceHistory.length}',
       );
+      _logOccurrenceStates('pre-edit', before, dates);
 
       // Rebuild Home from canonical storage so the real editor receives the
       // persisted Repeat state rather than a stale in-memory Task copy.
@@ -272,21 +249,31 @@ void main() {
       final after = matches.single;
       expect(after.id, createdId);
       expect(after.checklist, const ['[ ] A', '[ ] B', '[ ] D']);
-      expect(after.checklistOccurrences.keys.toSet(),
-          dates.map((date) => date.toIso8601String()).toSet());
-      for (var index = 0; index < 4; index++) {
-        expect(after.checklistOccurrences[dates[index].toIso8601String()], initial[index]);
+      expect(after.recurrence, isNotNull);
+      expect(after.recurrence!.frequency, RecurrenceFrequency.daily);
+      expect(after.checklistOccurrences, isEmpty,
+          reason: 'Editing the template must not materialize test-created occurrence snapshots.');
+      expect(after.occurrenceHistory, isEmpty,
+          reason: 'Editing the template must not fabricate lifecycle history.');
+      for (final date in dates) {
+        expect(
+          await recurrence.checklistForOccurrence(createdId, date),
+          const ['[ ] A', '[ ] B', '[ ] D'],
+          reason: 'Current/future computed occurrence $date must use the new unchecked template.',
+        );
       }
-      for (var index = 4; index < 7; index++) {
-        expect(after.checklistOccurrences[dates[index].toIso8601String()],
-            const ['[ ] A', '[ ] B', '[ ] D']);
-      }
-      expect(after.occurrenceHistory, occurrenceHistory);
       expect(after.completed, isFalse);
       expect(after.checklistEnabled, isTrue);
-      _logOccurrenceSnapshots('post-edit', after, dates);
+      _logOccurrenceStates('post-edit', after, dates);
+      final repeatedDates = after.recurrence!.occurrencesBetween(
+        anchor: anchor,
+        from: anchor,
+        to: anchor.add(const Duration(days: 7)),
+      );
+      expect(repeatedDates, dates,
+          reason: 'Re-evaluating Repeat after edit must not add duplicate occurrences.');
       debugPrint(
-        'ARVIN_CHECKLIST_POST_EDIT task_id=${after.id} occurrence_keys=${after.checklistOccurrences.keys.toList()..sort()} count=${matches.length}',
+        'ARVIN_CHECKLIST_POST_EDIT task_id=${after.id} schedule_count=${repeatedDates.length} stored_snapshot_count=${after.checklistOccurrences.length} history_count=${after.occurrenceHistory.length} task_count=${matches.length}',
       );
       await binding.convertFlutterSurfaceToImage();
       await tester.pumpAndSettle();
@@ -345,11 +332,11 @@ void main() {
       expect(backedUp.id, createdId);
       expect(backedUp.checklist, after.checklist);
       expect(backedUp.checklistOccurrences, after.checklistOccurrences);
-      expect(backedUp.occurrenceHistory, occurrenceHistory);
-      _logOccurrenceSnapshots('pre-backup', backedUp, dates);
+      expect(backedUp.occurrenceHistory, after.occurrenceHistory);
+      _logOccurrenceStates('pre-backup', backedUp, dates);
 
-      // Deliberately change only this test Task after backup so Restore must
-      // recover the exact seven-occurrence snapshot rather than re-read memory.
+      // Deliberately corrupt only this Task after backup so Restore must
+      // recover the saved canonical Task rather than re-read the live value.
       await store.mutate<void>((tasks) {
         final task = tasks.singleWhere((item) => item.id == createdId);
         task.title = '$_prefix corrupted-after-backup';
@@ -371,7 +358,7 @@ void main() {
       expect(restored.title, after.title);
       expect(restored.checklist, const ['[ ] A', '[ ] B', '[ ] D']);
       expect(restored.checklistOccurrences, after.checklistOccurrences);
-      expect(restored.occurrenceHistory, occurrenceHistory);
+      expect(restored.occurrenceHistory, after.occurrenceHistory);
       expect(restored.completed, isFalse);
       expect(
         (await store.load()).where((task) => task.title.startsWith(_prefix)),
@@ -379,9 +366,9 @@ void main() {
       );
       expect(backupService.writes, greaterThanOrEqualTo(2),
           reason: 'Restore must create its emergency pre-restore backup.');
-      _logOccurrenceSnapshots('post-restore', restored, dates);
+      _logOccurrenceStates('post-restore', restored, dates);
       debugPrint(
-        'ARVIN_CHECKLIST_BACKUP_RESTORE task_id=${restored.id} occurrence_keys=${restored.checklistOccurrences.keys.toList()..sort()} backup_writes=${backupService.writes}',
+        'ARVIN_CHECKLIST_BACKUP_RESTORE task_id=${restored.id} schedule_count=${dates.length} stored_snapshot_count=${restored.checklistOccurrences.length} history_count=${restored.occurrenceHistory.length} backup_writes=${backupService.writes}',
       );
     },
   );
