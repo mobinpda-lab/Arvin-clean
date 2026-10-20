@@ -398,7 +398,7 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$INTERNAL_ARTIFACT_ID"
-          printf 'INTERNAL_ARTIFACT_ID=%s\\n' "$INTERNAL_ARTIFACT_ID" >> "$RELEASE_EVIDENCE/release-evidence.txt"
+          printf '%s\n' "INTERNAL_ARTIFACT_ID=$INTERNAL_ARTIFACT_ID" >> "$RELEASE_EVIDENCE/release-evidence.txt"
 
       - name: Require explicit product release approval
         if: steps.release_state.outputs.already_released != 'true'

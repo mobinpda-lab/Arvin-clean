@@ -117,7 +117,7 @@ if [[ "${FAKE_SIGNER_FAIL:-false}" == "true" ]]; then
   echo "simulated signature verification failure" >&2
   exit 1
 fi
-printf 'Signer #1 certificate SHA-256 digest: %s\\n' "${FAKE_CERT_SHA256:-}"
+echo "Signer #1 certificate SHA-256 digest: ${FAKE_CERT_SHA256:-}"
 ''');
     final chmod = Process.runSync('chmod', <String>['+x', signer.path]);
     expect(chmod.exitCode, 0);
