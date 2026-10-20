@@ -2856,6 +2856,7 @@ class _HomePageState extends State<HomePage> {
         ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
+          key: ValueKey('task-card-open-${task.id}'),
           borderRadius: BorderRadius.circular(16),
           onLongPress: () => setState(() {
             selectionMode = true;
