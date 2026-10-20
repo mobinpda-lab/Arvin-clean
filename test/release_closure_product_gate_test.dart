@@ -186,8 +186,8 @@ echo "Signer #1 certificate SHA-256 digest: ${FAKE_CERT_SHA256:-}"
     expect(workflow, contains('base64 --decode'));
     expect(workflow, contains('name: Cleanup temporary release signing keystore'));
     expect(workflow, contains('if: always()'));
-    expect(workflow, contains('rm -f "$KEYSTORE_PATH"'));
-    expect(workflow, contains('test ! -e "$KEYSTORE_PATH"'));
+    expect(workflow, contains(r'rm -f "$KEYSTORE_PATH"'));
+    expect(workflow, contains(r'test ! -e "$KEYSTORE_PATH"'));
 
     expect(gradle, contains('val officialReleaseRequested = System.getenv("ARVIN_OFFICIAL_RELEASE") == "true"'));
     expect(gradle, contains('require(!releaseStoreFile.isNullOrBlank())'));
