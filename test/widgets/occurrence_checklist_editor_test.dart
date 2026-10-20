@@ -2,6 +2,7 @@ import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/task_recurrence_repository.dart';
 import 'package:arvin/services/task_store.dart';
+import 'package:arvin/services/persian_date_formatter.dart';
 import 'package:arvin/widgets/occurrence_checklist_editor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -49,11 +50,7 @@ void main() {
         const ValueKey('occurrence-checklist-picker-occurrence-editor-test'),
       ));
       await tester.pumpAndSettle();
-      final label = '${date.year.toString().padLeft(4, '0')}/'
-          '${date.month.toString().padLeft(2, '0')}/'
-          '${date.day.toString().padLeft(2, '0')} '
-          '${date.hour.toString().padLeft(2, '0')}:'
-          '${date.minute.toString().padLeft(2, '0')}';
+      final label = '${const PersianDateFormatter().format(date, usePersianDate: true)}';
       await tester.tap(find.text(label).last);
       await tester.pumpAndSettle();
     }
