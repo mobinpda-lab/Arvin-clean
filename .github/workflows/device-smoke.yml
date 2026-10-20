@@ -7,6 +7,11 @@ on:
     # Validate PRs targeting integration branches too; product code can live there before main integration.
     types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
+    inputs:
+      target_sha:
+        description: 'Exact commit SHA to validate; every scenario checks out this revision'
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -49,6 +54,23 @@ jobs:
             test_file: integration_test/calendar_card_interaction_test.dart
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.sha }}
+      - name: Report and verify checkout revision
+        env:
+          TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.sha }}
+          IS_DISPATCH: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          echo "EXPECTED_CHECKOUT_SHA=$TARGET_SHA"
+          echo "ACTUAL_CHECKOUT_SHA=$actual"
+          if [[ "$IS_DISPATCH" == "true" ]]; then
+            test "$actual" = "$TARGET_SHA"
+            echo "EXACT_TARGET_SHA=PASS"
+          else
+            echo "EXACT_TARGET_SHA=NOT_APPLICABLE_NON_DISPATCH"
+          fi
       - name: Cache pinned VazirHarf
         uses: actions/cache@v5
         with:
