@@ -580,3 +580,13 @@ The old Device Smoke / Build run used PR source commit `6d78b1cba4d0ec829fe26325
 - The previously green Calendar Provider run #39416899861 was not accepted blindly: artifact #12262580173 was downloaded and inspected. Its result file says `PASS_REAL_PROVIDER_CREATE_NOOP_UPDATE_DELETE`; logs record NO-OP preserving event ID 3, UPDATE preserving event ID 3, migration from calendar 1 to 2, DELETE removing the target, and unrelated sentinel rows retained.
 - Artifact provenance is checkout SHA `2494062c1a1219276a3d97c799d1996990506716`, PR head `6d78b1cba4d0ec829fe26325c9233cd30100d766`. This is valid historical integration evidence, not proof for the current Wave 5.21 head.
 - Current-head Device Smoke, Checklist seven-occurrence UI, Restart, real Backup/Restore and official signing remain open. No merge, tag or release.
+
+
+## Wave 5.22 — Canonical product-concept governance decision (2026-10-20)
+
+- **Decision:** establish `docs/product/ARVIN_PRODUCT_CONCEPTS.md` as the canonical vocabulary and behavioral reference for Arvin, linked here: [ARVIN_PRODUCT_CONCEPTS.md](../product/ARVIN_PRODUCT_CONCEPTS.md).
+- **Scope:** documentation and product governance only. No runtime behavior, schema, recurrence/checklist logic, notification scheduling, calendar behavior, backup/restore implementation, or signing configuration was changed.
+- **Required governance:** future product PRs and code reviews must consult the concept reference; a proposal that changes behavior must record rationale, affected data, compatibility/migration/rollback, decision owner, and acceptance criteria. Historical decisions remain intact.
+- **Open decisions intentionally not guessed:** stable checklist item IDs and edit semantics; occurrence-key timezone canonicalization; missed-occurrence policy; follow-up date precedence; notification standalone/Snooze/tap lifecycle; restore replace/merge and ID conflict policy; reopen transitions; calendar partial-failure policy; and whether independent subtasks/multi-step tasks are needed.
+- **Status distinction:** document establishment is not implementation acceptance and does not satisfy release gates. Final commit/read-back status must be taken from the final GitHub state.
+- Release remains **BLOCKED — RELEASE: NO-GO**. No merge, tag or release.
