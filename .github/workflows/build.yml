@@ -10,7 +10,7 @@ on:
     inputs:
       target_sha:
         description: 'Exact commit SHA to validate (used by the recovery dispatcher)'
-        required: false
+        required: true
         type: string
 
 permissions:
@@ -37,15 +37,21 @@ jobs:
       - uses: actions/checkout@v5
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.sha }}
-      - name: Verify exact requested revision
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' }}
+      - name: Report and verify checkout revision
         env:
-          TARGET_SHA: ${{ inputs.target_sha }}
+          TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.sha }}
+          IS_DISPATCH: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
           set -euo pipefail
           actual="$(git rev-parse HEAD)"
-          test "$actual" = "$TARGET_SHA"
-          echo "EXACT_TARGET_SHA=$actual"
+          echo "EXPECTED_CHECKOUT_SHA=$TARGET_SHA"
+          echo "ACTUAL_CHECKOUT_SHA=$actual"
+          if [[ "$IS_DISPATCH" == "true" ]]; then
+            test "$actual" = "$TARGET_SHA"
+            echo "EXACT_TARGET_SHA=PASS"
+          else
+            echo "EXACT_TARGET_SHA=NOT_APPLICABLE_NON_DISPATCH"
+          fi
       - name: Cache pinned VazirHarf
         uses: actions/cache@v5
         with:
@@ -131,15 +137,21 @@ jobs:
       - uses: actions/checkout@v5
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.sha }}
-      - name: Verify exact requested revision
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' }}
+      - name: Report and verify checkout revision
         env:
-          TARGET_SHA: ${{ inputs.target_sha }}
+          TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.sha }}
+          IS_DISPATCH: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
           set -euo pipefail
           actual="$(git rev-parse HEAD)"
-          test "$actual" = "$TARGET_SHA"
-          echo "EXACT_TARGET_SHA=$actual"
+          echo "EXPECTED_CHECKOUT_SHA=$TARGET_SHA"
+          echo "ACTUAL_CHECKOUT_SHA=$actual"
+          if [[ "$IS_DISPATCH" == "true" ]]; then
+            test "$actual" = "$TARGET_SHA"
+            echo "EXACT_TARGET_SHA=PASS"
+          else
+            echo "EXACT_TARGET_SHA=NOT_APPLICABLE_NON_DISPATCH"
+          fi
 
       - name: Cache pinned VazirHarf
         uses: actions/cache@v5
