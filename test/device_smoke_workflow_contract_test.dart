@@ -23,6 +23,13 @@ void main() {
     );
 
     expect(workflow, contains('reactivecircus/android-emulator-runner@v2'));
+    // Restart must resolve the launcher activity rather than rely on a
+    // hard-coded component name that failed on the API 35 emulator.
+    expect(
+      workflow,
+      contains('am start -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -p com.example.arvin'),
+    );
+    expect(workflow, isNot(contains('am start -n com.example.arvin/.MainActivity')));
     expect(workflow, contains('max-parallel: 2'));
     expect(workflow, contains('timeout-minutes: 30'));
 
