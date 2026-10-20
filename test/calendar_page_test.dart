@@ -22,15 +22,15 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      (tester.widget<Card>(find.byKey(const ValueKey('calendar-pastel-card-planned'))).color),
+      (tester.widget<Card>(find.byKey(const ValueKey('reminder-card-planned'))).color),
       const Color(0xFFEFF6FF),
     );
     expect(
-      tester.widget<Card>(find.byKey(const ValueKey('calendar-pastel-card-task-followup:waiting'))).color,
+      tester.widget<Card>(find.byKey(const ValueKey('reminder-card-task-followup:waiting'))).color,
       const Color(0xFFFEFCE8),
     );
     expect(
-      tester.widget<Card>(find.byKey(const ValueKey('calendar-pastel-card-completed'))).color,
+      tester.widget<Card>(find.byKey(const ValueKey('reminder-card-completed'))).color,
       const Color(0xFFECFDF5),
     );
     expect(find.byIcon(Icons.hourglass_bottom_rounded), findsOneWidget);
@@ -50,7 +50,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      tester.widget<Card>(find.byKey(const ValueKey('calendar-pastel-card-overdue'))).color,
+      tester.widget<Card>(find.byKey(const ValueKey('reminder-card-overdue'))).color,
       const Color(0xFFFEF2F2),
     );
     expect(find.byIcon(Icons.warning_rounded), findsOneWidget);

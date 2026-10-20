@@ -60,10 +60,35 @@ void main() {
         'reminder-card-followup:calendar-smoke-task:calendar-smoke-follow-up',
       );
       final card = find.byKey(cardKey);
+      // The selected-day ListView is lazy: an off-screen Card may not have
+      // built its keyed subtree yet. First allow the asynchronous TaskStore
+      // reload/projection to settle, then scroll the canonical list if needed.
       for (var attempt = 0; attempt < 80 && card.evaluate().isEmpty; attempt++) {
         await tester.pump(const Duration(milliseconds: 100));
       }
-      expect(card, findsOneWidget);
+      if (card.evaluate().isEmpty) {
+        final calendarList = find.byKey(
+          const ValueKey('calendar-selected-day-list'),
+        );
+        final scrollable = find.descendant(
+          of: calendarList,
+          matching: find.byType(Scrollable),
+        );
+        if (calendarList.evaluate().isNotEmpty &&
+            scrollable.evaluate().isNotEmpty) {
+          await tester.scrollUntilVisible(
+            card,
+            240,
+            scrollable: scrollable,
+            maxScrolls: 12,
+          );
+        }
+      }
+      expect(
+        card,
+        findsOneWidget,
+        reason: 'Expected the canonical follow-up Card to be projected and built in the selected calendar day list',
+      );
       expect(find.text('پیگیری آزمایشی'), findsOneWidget);
       expect(Directionality.of(tester.element(card)), TextDirection.rtl);
       expect(
@@ -76,8 +101,15 @@ void main() {
 
       // A short tap must open the Follow-up editor, not expand the card.
       await tester.tap(card);
+      // The canonical launcher awaits storage/route work before the editor is
+      // mounted. Poll frames with a bounded deadline rather than assuming one
+      // pumpAndSettle observes asynchronous repository work.
+      final timeButton = find.byKey(const ValueKey('follow-up-entry-time'));
+      for (var attempt = 0; attempt < 40 && timeButton.evaluate().isEmpty; attempt++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
       await tester.pumpAndSettle();
-      expect(find.byKey(const ValueKey('follow-up-entry-time')), findsOneWidget);
+      expect(timeButton, findsOneWidget);
       expect(find.text('ویرایش پیگیری'), findsOneWidget);
       expect(tester.takeException(), isNull);
       await tester.pumpAndSettle();
