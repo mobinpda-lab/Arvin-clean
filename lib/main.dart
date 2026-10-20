@@ -1500,6 +1500,11 @@ class _HomePageState extends State<HomePage> {
     List<String> checklist,
   ) async {
     final target = tasks.firstWhere((item) => item.id == task.id);
+    // A recurring Task's checklist is only its default template. The detail
+    // page uses TaskRecurrenceRepository for an explicit occurrence instead.
+    if (target.recurrence != null) {
+      return null;
+    }
     target.checklist = List<String>.of(checklist);
     target.updatedAt = DateTime.now();
     await taskStore.save(List<Task>.of(tasks));
