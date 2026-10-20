@@ -281,3 +281,13 @@ The previous Build and Device Smoke run used an old PR source commit `6d78b1cba4
 - Provenance is old: checkout SHA `2494062c1a1219276a3d97c799d1996990506716`, PR head `6d78b1cba4d0ec829fe26325c9233cd30100d766`. This is a positive historical integration result only; it does not close the final current-head Calendar Provider gate.
 - Joplin's repeat model remains a reference only because it resets the same todo/subtasks; Arvin must preserve independent occurrence state. TimeJot's Help distinguishes OS backup from export/import. Persian Calendar declares GPL-3.0-or-later; do not copy code without license compatibility approval.
 - Current-head acceptance and release remain blocked.
+
+
+## Wave 5.22 — Canonical product vocabulary and UX contract (2026-10-20)
+
+- Canonical product concept and acceptance reference: [ARVIN_PRODUCT_CONCEPTS.md](../product/ARVIN_PRODUCT_CONCEPTS.md).
+- The reference distinguishes Task, occurrence, checklist template, occurrence checklist state, FollowUp action, reminder scheduling and notification delivery, external Calendar Event, and Backup versus Export/Restore. UX and copy must not collapse these concepts into one status.
+- Persian UI expectations include Jalali display, Persian digits where configured, RTL, readable large text, explicit validation/error recovery, and safe date-only/all-day presentation. These are acceptance targets, not claims that all screens passed visual testing.
+- Reference review notes: Joplin recurrence behavior is not to be copied because it reopens the same todo and resets subtasks; TimeJot documents a distinction between device backup and daily export/import; Persian Calendar is a behavioral reference only and no code/assets were copied. See the canonical document for access date and license caveats.
+- No product UI/runtime change was made in this documentation task. RTL/device acceptance, notification routing, seven-occurrence checklist behavior, restore, PDF visual quality and Golden Flow remain NOT VERIFIED unless separate SHA-bound artifacts prove them.
+- Release remains **BLOCKED — RELEASE: NO-GO**.
