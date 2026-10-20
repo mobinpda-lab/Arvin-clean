@@ -23,7 +23,7 @@ void main() {
 
     expect(manualGateIndex, greaterThanOrEqualTo(0));
     const signerGate = 'name: Verify official APK signer against trusted fingerprint';
-    const signerGateIndex = workflow.indexOf(signerGate);
+    final signerGateIndex = workflow.indexOf(signerGate);
     expect(manualGateIndex, lessThan(internalBuildIndex));
     expect(internalBuildIndex, greaterThanOrEqualTo(0));
     expect(signerGateIndex, greaterThan(internalBuildIndex));
@@ -126,18 +126,20 @@ echo "Signer #1 certificate SHA-256 digest: ${FAKE_CERT_SHA256:-}"
     final untrusted = List<String>.filled(64, 'B').join();
 
     ProcessResult runGate({
-      String expected = trusted,
-      String actual = trusted,
+      String? expected,
+      String? actual,
       bool signerFails = false,
     }) {
+      final expectedFingerprint = expected ?? trusted;
+      final actualFingerprint = actual ?? trusted;
       final log = File('${temp.path}/verify.log');
       final evidence = File('${temp.path}/evidence.txt');
       return Process.runSync(
         'bash',
-        <String>[helper, apk.path, expected, signer.path, log.path, evidence.path],
+        <String>[helper, apk.path, expectedFingerprint, signer.path, log.path, evidence.path],
         environment: <String, String>{
           ...Platform.environment,
-          'FAKE_CERT_SHA256': actual,
+          'FAKE_CERT_SHA256': actualFingerprint,
           'FAKE_SIGNER_FAIL': signerFails ? 'true' : 'false',
         },
       );
