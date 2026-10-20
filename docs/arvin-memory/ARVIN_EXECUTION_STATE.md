@@ -1556,3 +1556,13 @@ The GitHub Actions API identifies Runs 39416899830 and 39416899883 as `pull_requ
 - Artifact says `RESULT=PASS_REAL_PROVIDER_CREATE_NOOP_UPDATE_DELETE`; `test-output.txt` records CREATE event ID 3, NO-OP retaining event ID 3, UPDATE retaining event ID 3, migration from calendar ID 1 to destination calendar ID 2 (new event ID 4), DELETE leaving target absent, and unrelated sentinel events retained in both calendars. Job log confirms `CALENDAR_PROVIDER_ACCEPTANCE=PASS calendarId=1`.
 - Provenance boundary: `environment.txt` records checkout/synthetic merge SHA `2494062c1a1219276a3d97c799d1996990506716` and PR head SHA `6d78b1cba4d0ec829fe26325c9233cd30100d766`. This is real writable-provider evidence for that older PR integration revision, not the current Wave 5.21 documentation head. Current-head Calendar Provider remains NOT VERIFIED until rerun against the final SHA.
 - At the start of this update, PR #2833 HEAD was `4316fb59d39a5a3277147d9e973f9842c6f758b4`; this documentation commit will change HEAD again. The current final SHA must receive fresh Build and Device Smoke evidence; no run is assumed to start from an API ref update.
+
+
+## Wave 5.22 — Canonical product-concept reference (2026-10-20)
+
+- Canonical product vocabulary and behavioral contract: [ARVIN_PRODUCT_CONCEPTS.md](../product/ARVIN_PRODUCT_CONCEPTS.md). This reference separates code-confirmed behavior, intended invariants, open product decisions, and unverified acceptance.
+- Live code anchors reviewed for this documentation update: `Task` / `TaskReminder` / `FollowUp` in `lib/models/task.dart`; recurrence enum/rule in `lib/models/recurrence.dart`; `TaskStore`; `TaskRecurrenceRepository`; `TaskEditApplyService`; `OccurrenceChecklistEditor`; and `PersianDateFormatter`. The current model has recurrence and occurrence state on the existing Task; no parallel recurrence engine or storage was introduced.
+- Product-concept document added on the existing PR branch. The five memory-document links and final GitHub read-back are pending until all edits complete; this is not yet the completed governance gate.
+- Open decisions include checklist item identity for rename/reorder/delete, canonical occurrence key/timezone semantics, missed-occurrence policy, precedence of Task.followUpDate vs FollowUp.nextFollowUp, notification tap/Snooze behavior, and restore conflict policy.
+- Documentation-only change: no production code, schema, recurrence, checklist, notification, calendar, or signing configuration changed. Product acceptance remains NOT VERIFIED where current-head empirical evidence is missing.
+- Release remains **BLOCKED — RELEASE: NO-GO**. No merge, tag or release.
