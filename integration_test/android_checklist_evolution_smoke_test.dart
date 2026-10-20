@@ -253,8 +253,8 @@ void main() {
       final tickPatterns = <Set<int>>[
         <int>{0, 2},
         <int>{1},
-        <int>{2},
         <int>{0, 1},
+        <int>{2},
         <int>{},
         <int>{},
         <int>{},
@@ -284,12 +284,12 @@ void main() {
 
       await recurrence.completeOccurrence(
         createdId,
-        dates[1],
+        dates[4],
         completedAt: DateTime.now(),
       );
       await recurrence.cancelOccurrence(
         createdId,
-        dates[2],
+        dates[5],
         result: 'Wave 5.14 preservation sentinel',
       );
 
@@ -297,8 +297,8 @@ void main() {
       final expectedBefore = <List<String>>[
         const ['[x] A', '[ ] B', '[x] C'],
         const ['[ ] A', '[x] B', '[ ] C'],
-        const ['[ ] A', '[ ] B', '[x] C'],
         const ['[x] A', '[x] B', '[ ] C'],
+        const ['[ ] A', '[ ] B', '[x] C'],
         const ['[ ] A', '[ ] B', '[ ] C'],
         const ['[ ] A', '[ ] B', '[ ] C'],
         const ['[ ] A', '[ ] B', '[ ] C'],
@@ -326,8 +326,8 @@ void main() {
         );
       }
       expect(originalHistory.keys.toSet(), {
-        dates[1].toIso8601String(),
-        dates[2].toIso8601String(),
+        dates[4].toIso8601String(),
+        dates[5].toIso8601String(),
       });
       debugPrint(
         'ARVIN_CHECKLIST_PRE_EDIT task_id=${before.id} schedule_count=${dates.length} stored_snapshot_count=${before.checklistOccurrences.length} history_count=${before.occurrenceHistory.length}',
