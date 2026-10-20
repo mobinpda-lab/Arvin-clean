@@ -94,8 +94,13 @@ void main() {
       final createdCard = find.byKey(ValueKey(created.id));
       await waitForFinder(createdCard);
       expect(createdCard, findsOneWidget);
-      await tester.ensureVisible(createdCard);
-      await tester.tap(createdCard);
+      final createdCardTapTarget = find.descendant(
+        of: createdCard,
+        matching: find.byType(InkWell),
+      );
+      expect(createdCardTapTarget, findsOneWidget);
+      await tester.ensureVisible(createdCardTapTarget);
+      await tester.tap(createdCardTapTarget);
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('task-detail-page')), findsOneWidget);
       await binding.convertFlutterSurfaceToImage();
