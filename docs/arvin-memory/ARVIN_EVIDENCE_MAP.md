@@ -1,3 +1,16 @@
+## 2026-10-20 — Product concept reference evidence
+
+| Area | Revision / artifact | Result | Limit |
+|---|---|---|---|
+| Canonical concept draft | [ARVIN_PRODUCT_CONCEPTS.md](../product/ARVIN_PRODUCT_CONCEPTS.md) on `docs/canonical-product-concept-20261020` | Documentation committed on proposal branch | Not yet merged/approved as mainline policy |
+| Acceptance contract | 15 scenario definitions in the concept document | Criteria specified | These are acceptance criteria, not successful test runs |
+| Product behavior / implementation | No code changes in this documentation operation | Not tested or changed | Existing implementation status must be derived from code and current SHA-specific evidence |
+| Release | Current release policy | `BLOCKED — RELEASE: NO-GO` | No release gate is satisfied by this document alone |
+
+This entry records a product-contract artifact, not execution evidence. Do not change any feature to Accepted without revision-specific tests and relevant device/storage/external-system proof.
+
+---
+
 ## 2026-10-14 — CI recovery dispatcher evidence
 
 | Feature / Gate | SHA / Run | Result | Evidence / limitation |
