@@ -1486,7 +1486,8 @@ class _HomePageState extends State<HomePage> {
   Future<Task?> _editFromDetail(Task task) async {
     await _edit(task);
     if (!mounted) return task;
-    final updated = tasks.where((item) => item.id == task.id).firstOrNull ?? task;
+    final updatedIndex = tasks.indexWhere((item) => item.id == task.id);
+    final updated = updatedIndex >= 0 ? tasks[updatedIndex] : task;
     // Ordinary auto-sync may be disabled even though this Task was explicitly
     // linked to the phone calendar earlier. Reconcile only existing links so
     // editing one Task cannot create events for unrelated Tasks.

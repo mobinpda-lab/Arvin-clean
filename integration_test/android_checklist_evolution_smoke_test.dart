@@ -28,7 +28,11 @@ class _ChecklistRuntimeBackupService extends ArvinBackupService {
     String? encryptionPassphrase,
   }) async {
     writes += 1;
-    document = Map<String, dynamic>.from(payload);
+    document = <String, dynamic>{
+      'type': ArvinBackupService.backupType,
+      'formatVersion': ArvinBackupService.backupFormatVersion,
+      ...Map<String, dynamic>.from(payload),
+    };
   }
 
   @override
