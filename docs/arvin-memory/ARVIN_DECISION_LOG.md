@@ -534,3 +534,7 @@ No Merge, Tag, official APK publication, or security-PR promotion. The Release A
 
 ### D-W514-07 — Do not conflate queued and completed Build evidence
 Build Run `39432745217` targets `b15b0c0...` and was QUEUED. The subsequent docs-only commit moved PR HEAD to `49f69caf...`; no result for that new HEAD was confirmed at this checkpoint. The recovery dispatcher must select the live PR HEAD and its Build must pass the exact-checkout gate before the current revision can be marked validated.
+
+
+## Wave 5.14 final documentation checkpoint — 2026-10-20 13:47 UTC
+Immediately before this documentation-only append, live PR HEAD was `7828b825d8e9fb50b0fe0b41a239c140454b3dd0`; base SHA remained `49910e585ee73afcf56a7f8d927b9c69e763c5c5`. Build Run `39432745217` for prior source SHA `b15b0c0...` was QUEUED, and Run `39432344723` for `0b42e588...` was IN PROGRESS. Recovery Dispatcher job `118663216037` was QUEUED; no exact-SHA result for the live HEAD was confirmed. Treat these as separate revisions and do not convert any queued/in-progress run into PASS. The resulting documentation-only HEAD also requires its own exact-SHA Build if exact revision closure is claimed.

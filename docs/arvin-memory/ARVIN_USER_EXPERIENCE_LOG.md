@@ -229,3 +229,7 @@ Do not mark Checklist/Repeat as accepted until the current-head Device Smoke run
 
 ### Checkpoint correction
 The full snapshot/restart-verifier code is present in the source chain through `b15b0c0...`. A Build Run for that prior source SHA exists but is only QUEUED. The live PR HEAD is now the docs-only commit `49f69caf...`; no exact-head Build or Device Smoke acceptance is confirmed. The user-visible Checklist/Repeat behavior remains NOT VERIFIED until current-head Device Smoke passes.
+
+
+## Wave 5.14 final documentation checkpoint — 2026-10-20 13:47 UTC
+Immediately before this documentation-only append, live PR HEAD was `7828b825d8e9fb50b0fe0b41a239c140454b3dd0`; base SHA remained `49910e585ee73afcf56a7f8d927b9c69e763c5c5`. Build Run `39432745217` for prior source SHA `b15b0c0...` was QUEUED, and Run `39432344723` for `0b42e588...` was IN PROGRESS. Recovery Dispatcher job `118663216037` was QUEUED; no exact-SHA result for the live HEAD was confirmed. Treat these as separate revisions and do not convert any queued/in-progress run into PASS. The resulting documentation-only HEAD also requires its own exact-SHA Build if exact revision closure is claimed.
