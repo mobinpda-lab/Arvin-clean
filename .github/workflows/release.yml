@@ -1,26 +1,22 @@
-name: Arvin Release
+name: Arvin Release (disabled legacy path)
 
+# The historical workflow could create a public release from a caller-supplied tag
+# without building/verifying an APK, checking its signer, or enforcing product gates.
+# Keep the dispatch endpoint explicit but fail closed; use the guarded Release Closure
+# only after its official-signing and product-acceptance prerequisites are validated.
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Release version tag'
-        required: true
-        default: 'v1.0.0'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Create Release Tag
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ inputs.version }}
-          name: Arvin ${{ inputs.version }}
-          generate_release_notes: true
+      - name: Block unsafe legacy release path
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "::error::Legacy Arvin Release workflow is disabled. Use the guarded Release Closure only after exact-SHA, official signing, certificate verification, and product approval gates are satisfied."
+          exit 1

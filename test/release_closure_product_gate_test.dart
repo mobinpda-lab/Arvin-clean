@@ -83,4 +83,18 @@ void main() {
     expect(productGateIndex, lessThan(workflow.indexOf(createRelease)));
     expect(productGateIndex, lessThan(workflow.indexOf(uploadAssets)));
   });
+
+  test('legacy release workflow fails closed and cannot publish releases', () {
+    final legacy = File('.github/workflows/release.yml').readAsStringSync();
+
+    expect(legacy, contains('name: Arvin Release (disabled legacy path)'));
+    expect(legacy, contains('contents: read'));
+    expect(legacy, contains('name: Block unsafe legacy release path'));
+    expect(legacy, contains('exit 1'));
+    expect(legacy, contains('official signing'));
+    expect(legacy, isNot(contains('softprops/action-gh-release')));
+    expect(legacy, isNot(contains('contents: write')));
+    expect(legacy, isNot(contains('tag_name:')));
+  });
+
 }
