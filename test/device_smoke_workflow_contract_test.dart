@@ -23,13 +23,22 @@ void main() {
     );
 
     expect(workflow, contains('reactivecircus/android-emulator-runner@v2'));
-    // Restart must resolve the launcher activity rather than rely on a
-    // hard-coded component name that failed on the API 35 emulator.
+    // Keep the emulator runner script in one process: its input is executed
+    // line-by-line by separate shells, so multiline conditionals cannot span lines.
+    expect(workflow, contains("script: bash scripts/ci/run-device-smoke.sh"));
+    final deviceSmokeScript =
+        File('scripts/ci/run-device-smoke.sh').readAsStringSync();
+    // Restart must discover the installed launcher and prove process replacement.
+    expect(deviceSmokeScript, contains('cmd package resolve-activity'));
+    expect(deviceSmokeScript, contains('am force-stop'));
+    expect(deviceSmokeScript, contains('pidof'));
+    expect(deviceSmokeScript, contains('am start -W -n'));
+    expect(deviceSmokeScript, contains('ARVIN_LIFECYCLE_RESTART_VERIFIED'));
     expect(
-      workflow,
-      contains('am start -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -p com.example.arvin'),
+      deviceSmokeScript,
+      contains('integration_test/android_task_lifecycle_restart_verify_test.dart'),
     );
-    expect(workflow, isNot(contains('am start -n com.example.arvin/.MainActivity')));
+    expect(deviceSmokeScript, isNot(contains('am start -n com.example.arvin/.MainActivity')));
     expect(workflow, contains('max-parallel: 2'));
     expect(workflow, contains('timeout-minutes: 30'));
 
