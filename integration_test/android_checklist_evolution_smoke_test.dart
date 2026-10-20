@@ -59,7 +59,7 @@ void main() {
       expect(quickCapture, findsOneWidget);
       await tester.enterText(
         find.byKey(const ValueKey('quick-capture-input')),
-        '${_prefix} مدرسه',
+        '$_prefix مدرسه',
       );
       await tester.tap(find.byKey(const ValueKey('quick-capture-full-form')));
       await tester.pumpAndSettle();
