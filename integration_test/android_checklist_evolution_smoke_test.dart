@@ -300,7 +300,9 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('create_backup_button')));
+      final createBackupButton = find.byKey(const Key('create_backup_button'));
+      await tester.ensureVisible(createBackupButton);
+      await tester.tap(createBackupButton);
       await tester.pumpAndSettle();
       expect(backupService.writes, 1);
       expect(backupService.document, isNotNull);
@@ -321,7 +323,7 @@ void main() {
       // recover the exact seven-occurrence snapshot rather than re-read memory.
       await store.mutate<void>((tasks) {
         final task = tasks.singleWhere((item) => item.id == createdId);
-        task.title = '${_prefix} corrupted-after-backup';
+        task.title = '$_prefix corrupted-after-backup';
         task.checklist = const ['[ ] CORRUPTED'];
         task.checklistOccurrences = <String, List<String>>{};
         task.occurrenceHistory = <String, Map<String, dynamic>>{};
