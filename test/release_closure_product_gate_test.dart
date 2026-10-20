@@ -172,4 +172,27 @@ echo "Signer #1 certificate SHA-256 digest: ${FAKE_CERT_SHA256:-}"
     expect(workflow, contains("core.setOutput('already_released', 'false');"));
   });
 
+
+  test('official signing is configured from Actions secrets and the temporary keystore is always cleaned', () {
+    final workflow = File('.github/workflows/release-closure.yml').readAsStringSync();
+    final gradle = File('android/app/build.gradle.kts').readAsStringSync();
+
+    expect(workflow, contains('name: Prepare official release signing keystore'));
+    expect(workflow, contains(r'ARVIN_RELEASE_KEYSTORE_BASE64: ${{ secrets.ARVIN_RELEASE_KEYSTORE_BASE64 }}'));
+    expect(workflow, contains(r'ARVIN_RELEASE_STORE_PASSWORD: ${{ secrets.ARVIN_RELEASE_STORE_PASSWORD }}'));
+    expect(workflow, contains(r'ARVIN_RELEASE_KEY_ALIAS: ${{ secrets.ARVIN_RELEASE_KEY_ALIAS }}'));
+    expect(workflow, contains(r'ARVIN_RELEASE_KEY_PASSWORD: ${{ secrets.ARVIN_RELEASE_KEY_PASSWORD }}'));
+    expect(workflow, contains('echo "ARVIN_OFFICIAL_RELEASE=true"'));
+    expect(workflow, contains('base64 --decode'));
+    expect(workflow, contains('name: Cleanup temporary release signing keystore'));
+    expect(workflow, contains('if: always()'));
+    expect(workflow, contains('rm -f "$KEYSTORE_PATH"'));
+    expect(workflow, contains('test ! -e "$KEYSTORE_PATH"'));
+
+    expect(gradle, contains('val officialReleaseRequested = System.getenv("ARVIN_OFFICIAL_RELEASE") == "true"'));
+    expect(gradle, contains('require(!releaseStoreFile.isNullOrBlank())'));
+    expect(gradle, contains('signingConfig = signingConfigs.getByName("arvinProduction")'));
+    expect(gradle, contains('signingConfig = signingConfigs.getByName("debug")'));
+  });
+
 }

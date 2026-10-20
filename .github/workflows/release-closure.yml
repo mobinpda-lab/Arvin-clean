@@ -321,6 +321,33 @@ jobs:
           print(f'Android V2 audit passed: {activities[0]}')
           PY
 
+      - name: Prepare official release signing keystore
+        if: steps.release_state.outputs.already_released != 'true'
+        env:
+          ARVIN_RELEASE_KEYSTORE_BASE64: ${{ secrets.ARVIN_RELEASE_KEYSTORE_BASE64 }}
+          ARVIN_RELEASE_STORE_PASSWORD: ${{ secrets.ARVIN_RELEASE_STORE_PASSWORD }}
+          ARVIN_RELEASE_KEY_ALIAS: ${{ secrets.ARVIN_RELEASE_KEY_ALIAS }}
+          ARVIN_RELEASE_KEY_PASSWORD: ${{ secrets.ARVIN_RELEASE_KEY_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${ARVIN_RELEASE_KEYSTORE_BASE64:-}" || { echo "::error::ARVIN_RELEASE_KEYSTORE_BASE64 is missing."; exit 1; }
+          test -n "${ARVIN_RELEASE_STORE_PASSWORD:-}" || { echo "::error::ARVIN_RELEASE_STORE_PASSWORD is missing."; exit 1; }
+          test -n "${ARVIN_RELEASE_KEY_ALIAS:-}" || { echo "::error::ARVIN_RELEASE_KEY_ALIAS is missing."; exit 1; }
+          test -n "${ARVIN_RELEASE_KEY_PASSWORD:-}" || { echo "::error::ARVIN_RELEASE_KEY_PASSWORD is missing."; exit 1; }
+          key_store_path="$RUNNER_TEMP/arvin-release-signing.keystore"
+          printf '%s' "$ARVIN_RELEASE_KEYSTORE_BASE64" | base64 --decode > "$key_store_path"
+          chmod 600 "$key_store_path"
+          test -s "$key_store_path"
+          {
+            echo "ARVIN_OFFICIAL_RELEASE=true"
+            echo "ARVIN_RELEASE_STORE_FILE=$key_store_path"
+            echo "ARVIN_RELEASE_STORE_PASSWORD=$ARVIN_RELEASE_STORE_PASSWORD"
+            echo "ARVIN_RELEASE_KEY_ALIAS=$ARVIN_RELEASE_KEY_ALIAS"
+            echo "ARVIN_RELEASE_KEY_PASSWORD=$ARVIN_RELEASE_KEY_PASSWORD"
+          } >> "$GITHUB_ENV"
+          echo "OFFICIAL_SIGNING_KEYSTORE_READY=true"
+
       - name: Test and build release APK from locked inputs
         if: steps.release_state.outputs.already_released != 'true'
         run: |
@@ -345,6 +372,17 @@ jobs:
           apksigner="$(find "$sdk_root/build-tools" -type f -name apksigner -perm -u+x | sort -V | tail -n 1)"
           test -n "$apksigner" || { echo "::error::apksigner was not found in Android SDK build-tools."; exit 1; }
           bash scripts/ci/verify-official-apk-signature.sh "$RELEASE_EVIDENCE/arvin-${{ steps.release_state.outputs.app_version }}-build${{ steps.release_state.outputs.build_number }}.apk" "$TRUSTED_CERT_SHA256" "$apksigner" "$RELEASE_EVIDENCE/apksigner-verify.txt" "$RELEASE_EVIDENCE/signing-evidence.txt"
+
+      - name: Cleanup temporary release signing keystore
+        if: always()
+        env:
+          KEYSTORE_PATH: ${{ runner.temp }}/arvin-release-signing.keystore
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f "$KEYSTORE_PATH"
+          test ! -e "$KEYSTORE_PATH"
+          echo "TEMP_SIGNING_KEYSTORE_CLEANUP=verified"
 
       - name: Store release evidence
         if: steps.release_state.outputs.already_released != 'true'
