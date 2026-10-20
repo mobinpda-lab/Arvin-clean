@@ -1,3 +1,14 @@
+## 2026-10-20 — Canonical product concept contract proposed
+
+- **Problem:** Product terms and behavioral expectations need one durable reference so implementation, tests and release decisions use consistent meanings.
+- **Proposal:** Add [ARVIN_PRODUCT_CONCEPTS.md](../product/ARVIN_PRODUCT_CONCEPTS.md) as the candidate canonical reference. It defines the Task, due date, reminder, checklist template, per-occurrence checklist, recurrence rule, occurrence, follow-up, history, calendar and persistence concepts; includes 15 acceptance scenarios and explicit open decisions.
+- **Decision status:** PROPOSED / REVIEW REQUIRED. This entry does not approve the ten open decisions listed in the document and does not authorize production behavior or schema changes.
+- **Constraints:** preserve prior decision history, existing Task/Repeat/Follow-up separation, data identity and backup compatibility. Resolve conflicts by explicit owner decision, not inferred implementation convenience.
+- **Evidence:** documentation-only commit on branch `docs/canonical-product-concept-20261020`; no product tests or release gates were run as part of this change.
+- **Next:** review wording and consistency against live code and existing decisions; approve/merge the document through the normal governance path before treating it as official mainline policy.
+
+---
+
 ## 2026-10-14 — Exact-head CI evidence must prove checkout
 
 - **Problem:** A normal `pull_request` run may report the PR head in metadata while checking out GitHub's synthetic merge ref. Using metadata alone can incorrectly suppress exact-head recovery.
