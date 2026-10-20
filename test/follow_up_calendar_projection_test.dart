@@ -46,7 +46,7 @@ void main() {
 
     expect(reminders, hasLength(2));
     expect(reminders.first.id, 'followup:task-1:fu-1');
-    expect(reminders.first.title, 'پیگیری تماس با مشتری');
+    expect(reminders.first.title, 'پیگیری — تماس با مشتری');
     expect(reminders.first.date, DateTime(2026, 8, 27, 9));
     expect(reminders.last.title, 'تماس مجدد');
     expect(reminders.last.description, 'پیگیری: تماس با مشتری');
@@ -542,5 +542,27 @@ void main() {
     expect(reminders.single.title, 'یادآوری: کار قدیمی');
     expect(reminders.single.date, DateTime(2026, 12, 5, 9, 30));
     expect(reminders.single.isAllDay, isFalse);
+  });
+
+  test('migrated linked Follow-up Reminder keeps its existing Calendar identity once', () {
+    final task = Task.fromJson({
+      'id': 'calendar-linked-owner',
+      'title': 'کار مادر',
+      'followUps': [
+        {
+          'id': 'calendar-linked-followup',
+          'dateTime': '2026-10-20T10:00:00.000',
+          'title': 'تماس مشتری',
+          'reminderDate': '2026-10-21T11:00:00.000',
+        }
+      ],
+    });
+    final projected = projection.project([task]);
+    final followUpEvents = projected.where(
+      (item) => item.id == 'followup:calendar-linked-owner:calendar-linked-followup',
+    ).toList();
+    expect(followUpEvents, hasLength(1));
+    expect(followUpEvents.single.title, 'تماس مشتری');
+    expect(followUpEvents.single.date, DateTime(2026, 10, 21, 11));
   });
 }

@@ -112,17 +112,21 @@ void main() {
     expect(restored.category, 'فروش');
     expect(restored.checklist, ['تماس', 'ارسال فایل']);
     expect(restored.reminderDate, DateTime(2026, 8, 28, 10, 30));
-    expect(restored.taskReminders, hasLength(3));
+    expect(restored.taskReminders, hasLength(4));
     expect(restored.taskReminders.map((item) => item.id), [
       'backup-r1',
       'backup-r2',
+      'follow-up:task-full:fu-1',
       'legacy-task-reminder',
     ]);
+    expect(restored.taskReminders[2].followUpId, 'fu-1');
+    expect(restored.taskReminders[2].title, 'پیگیری — کار کامل');
+    expect(restored.taskReminders[2].date, DateTime(2026, 8, 28, 10, 15));
     expect(restored.taskReminders[1].isAllDay, isTrue);
     expect(restored.taskReminders.last.isLegacyTaskReminder, isTrue);
     expect(restored.taskReminders.last.date, restored.reminderDate);
     expect(restored.legacyTaskReminderMigrationVersion, 1);
-    expect(restored.nextReminderSequence, 4);
+    expect(restored.nextReminderSequence, 5);
     expect(restored.followUps, hasLength(1));
     expect(restored.followUps.single.note, 'تماس اول');
     expect(restored.followUps.single.result, 'منتظر پاسخ');

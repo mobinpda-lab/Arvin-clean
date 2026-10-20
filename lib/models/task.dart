@@ -87,6 +87,7 @@ class TaskReminder {
     this.isAllDay = false,
     required this.sequence,
     this.isLegacyTaskReminder = false,
+    this.followUpId,
   });
 
   final String id;
@@ -99,6 +100,10 @@ class TaskReminder {
   /// It retains the old Calendar identity during migration.
   final bool isLegacyTaskReminder;
 
+  /// Non-null only for a Reminder explicitly owned by one Follow-up.
+  /// The Reminder remains in the canonical Task reminder collection.
+  final String? followUpId;
+
   TaskReminder copyWith({
     String? title,
     DateTime? date,
@@ -110,6 +115,7 @@ class TaskReminder {
         isAllDay: isAllDay ?? this.isAllDay,
         sequence: sequence,
         isLegacyTaskReminder: isLegacyTaskReminder,
+        followUpId: followUpId,
       );
 
   Map<String, dynamic> toJson() => {
@@ -119,6 +125,7 @@ class TaskReminder {
         'isAllDay': isAllDay,
         'sequence': sequence,
         if (isLegacyTaskReminder) 'isLegacyTaskReminder': true,
+        if (followUpId != null) 'followUpId': followUpId,
       };
 
   factory TaskReminder.fromJson(Map<String, dynamic> json) => TaskReminder(
@@ -128,6 +135,9 @@ class TaskReminder {
         isAllDay: json['isAllDay'] as bool? ?? false,
         sequence: (json['sequence'] as num?)?.toInt() ?? 1,
         isLegacyTaskReminder: json['isLegacyTaskReminder'] as bool? ?? false,
+        followUpId: (json['followUpId'] as String?)?.trim().isNotEmpty == true
+            ? (json['followUpId'] as String).trim()
+            : null,
       );
 }
 
@@ -205,6 +215,51 @@ class Task {
   List<FollowUp> followUps;
   RecurrenceRule? recurrence;
   final List<PersonReference> people;
+
+  /// Reconciles the explicitly configured Follow-up reminder into the
+  /// canonical independent Reminder collection. The legacy FollowUp field is
+  /// retained as a compatibility mirror until old backups/installations have
+  /// been migrated; projections must prefer this linked record to avoid double
+  /// delivery or duplicate Calendar events.
+  void syncFollowUpReminder(FollowUp followUp) {
+    final index = taskReminders.indexWhere(
+      (item) => item.followUpId == followUp.id,
+    );
+    final date = followUp.reminderDate;
+    if (date == null) {
+      if (index >= 0) taskReminders.removeAt(index);
+      return;
+    }
+    final followUpTitle = followUp.title?.trim() ?? '';
+    final parentTitle = title.trim();
+    final reminderTitle = followUpTitle.isNotEmpty
+        ? followUpTitle
+        : parentTitle.isNotEmpty
+            ? 'پیگیری — $parentTitle'
+            : 'پیگیری';
+    final existing = index >= 0 ? taskReminders[index] : null;
+    final highestSequence = taskReminders.isEmpty
+        ? 0
+        : taskReminders.map((item) => item.sequence).reduce((a, b) => a > b ? a : b);
+    final allocatedSequence = nextReminderSequence > highestSequence
+        ? nextReminderSequence
+        : highestSequence + 1;
+    final reminder = TaskReminder(
+      id: existing?.id ?? 'follow-up:$id:${followUp.id}',
+      title: reminderTitle,
+      date: date,
+      isAllDay: false,
+      sequence: existing?.sequence ?? allocatedSequence,
+      isLegacyTaskReminder: false,
+      followUpId: followUp.id,
+    );
+    if (index >= 0) {
+      taskReminders[index] = reminder;
+    } else {
+      taskReminders.add(reminder);
+      nextReminderSequence = allocatedSequence + 1;
+    }
+  }
 
   /// True only for an item explicitly created as a Notebook simple note.
   /// Notebook membership is independent from follow-up state: adding a
@@ -359,6 +414,49 @@ class Task {
           );
         }
       }
+    }
+
+    // Backward-compatible migration: old backups stored the explicitly
+    // configured Follow-up reminder only on FollowUp.reminderDate. Materialize
+    // a linked TaskReminder deterministically on read; keep the legacy field
+    // intact until the user edits/clears it, so retries and old backups never
+    // lose the original date. Existing linked records always win.
+    final parentTaskId = json['id'] as String? ?? '';
+    final parentTaskTitle = (json['title'] as String? ?? '').trim();
+    final storedNextFollowUpSequence =
+        (json['nextReminderSequence'] as num?)?.toInt() ?? 1;
+    final safeNextFollowUpSequence =
+        storedNextFollowUpSequence < 1 ? 1 : storedNextFollowUpSequence;
+    final highestExistingReminderSequence = loadedTaskReminders.isEmpty
+        ? 0
+        : loadedTaskReminders
+            .map((item) => item.sequence)
+            .reduce((a, b) => a > b ? a : b);
+    var nextFollowUpReminderSequence =
+        safeNextFollowUpSequence > highestExistingReminderSequence
+            ? safeNextFollowUpSequence
+            : highestExistingReminderSequence + 1;
+    for (final followUp in loadedFollowUps) {
+      if (followUp.reminderDate == null) continue;
+      final existing = loadedTaskReminders.where(
+        (item) => item.followUpId == followUp.id,
+      ).toList(growable: false);
+      if (existing.isNotEmpty) continue;
+      final followUpTitle = followUp.title?.trim() ?? '';
+      final reminderTitle = followUpTitle.isNotEmpty
+          ? followUpTitle
+          : parentTaskTitle.isNotEmpty
+              ? 'پیگیری — $parentTaskTitle'
+              : 'پیگیری';
+      loadedTaskReminders.add(
+        TaskReminder(
+          id: 'follow-up:$parentTaskId:${followUp.id}',
+          title: reminderTitle,
+          date: followUp.reminderDate!,
+          sequence: nextFollowUpReminderSequence++,
+          followUpId: followUp.id,
+        ),
+      );
     }
 
     final rawLegacyReminderDate = json['reminderDate'];

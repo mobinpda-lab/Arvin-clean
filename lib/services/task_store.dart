@@ -277,6 +277,7 @@ class TaskStore {
       final index = tasks.indexWhere((task) => task.id == taskId);
       if (index < 0) throw StateError('Task not found: $taskId');
       final task = tasks[index];
+      task.syncFollowUpReminder(followUp);
       task.followUps = [...task.followUps, followUp];
       task.followUpEnabled = true;
       task.updatedAt = DateTime.now();

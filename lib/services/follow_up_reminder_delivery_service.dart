@@ -37,6 +37,7 @@ class FollowUpReminderDeliveryService {
       }
 
       for (final reminder in task.taskReminders) {
+        if (reminder.followUpId != null) continue;
         final scheduledAt = reminder.isAllDay
             ? DateTime(reminder.date.year, reminder.date.month, reminder.date.day, 9)
             : reminder.date;
@@ -56,17 +57,24 @@ class FollowUpReminderDeliveryService {
       }
 
       for (final followUp in task.followUps) {
-        final reminderDate = followUp.reminderDate;
+        if (followUp.completed) continue;
+        final linkedReminders = task.taskReminders.where(
+          (reminder) => reminder.followUpId == followUp.id,
+        ).toList(growable: false);
+        final linkedReminder = linkedReminders.isEmpty ? null : linkedReminders.first;
+        final reminderDate = linkedReminder?.date ?? followUp.reminderDate;
         if (reminderDate == null || reminderDate.isAfter(now)) continue;
 
         final candidate = FollowUpReminderCandidate(
           taskId: task.id,
           taskTitle: task.title,
           followUpId: followUp.id,
-          label: FollowUpReminderCandidate.followUpLabel(
-            title: followUp.title,
-            taskTitle: task.title,
-          ),
+          label: linkedReminder?.title.trim().isNotEmpty == true
+              ? linkedReminder!.title
+              : FollowUpReminderCandidate.followUpLabel(
+                  title: followUp.title,
+                  taskTitle: task.title,
+                ),
           scheduledAt: reminderDate,
         );
 

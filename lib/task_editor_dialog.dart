@@ -116,7 +116,12 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _initialReminderDateTime = task?.legacyTaskReminderMigrationVersion == 1
         ? null
         : task?.reminderDate;
-    _taskReminders = List<TaskReminder>.of(task?.taskReminders ?? const []);
+    // Follow-up-owned Reminder records are edited only in the Follow-up form.
+    // Keeping them out of the generic Reminder editor prevents accidental
+    // unlinking or stale legacy-date resurrection.
+    _taskReminders = List<TaskReminder>.of(
+      task?.taskReminders.where((item) => item.followUpId == null) ?? const [],
+    );
     _followUps = List<FollowUp>.of(task?.followUps ?? const []);
     _nextReminderSequence = task?.nextReminderSequence ?? 1;
     if (_nextReminderSequence < 1) {
@@ -910,8 +915,7 @@ Future<void> _pickDueDate() async {
     }
     final id = existing?.id ?? now.microsecondsSinceEpoch.toString();
     widget.onProjectChanged?.call(_selectedProjectId);
-    Navigator.of(context).pop(
-      Task(
+    final savedTask = Task(
         id: id,
         title: _titleController.text.trim().isEmpty
             ? 'بدون عنوان'
@@ -929,7 +933,10 @@ Future<void> _pickDueDate() async {
                 existing.legacyTaskReminderMigrationVersion >= 1
             ? migratedLegacyReminderDate
             : reminderDate,
-        taskReminders: List<TaskReminder>.of(_taskReminders),
+        taskReminders: <TaskReminder>[
+          ..._taskReminders,
+          ...?existing?.taskReminders.where((item) => item.followUpId != null),
+        ],
         nextReminderSequence: _nextReminderSequence,
         legacyTaskReminderMigrationVersion:
             existing?.legacyTaskReminderMigrationVersion ?? 0,
@@ -942,8 +949,13 @@ Future<void> _pickDueDate() async {
         people: existing?.people ?? const [],
         createdAt: existing?.createdAt ?? now,
         updatedAt: now,
-      ),
-    );
+      );
+    for (final followUp in savedTask.followUps) {
+      if (followUp.reminderDate != null) {
+        savedTask.syncFollowUpReminder(followUp);
+      }
+    }
+    Navigator.of(context).pop(savedTask);
   }
 
   String _dateText(DateTime value) =>

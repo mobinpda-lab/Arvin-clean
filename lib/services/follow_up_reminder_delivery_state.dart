@@ -80,10 +80,17 @@ class FollowUpReminderDeliveryState {
         liveKeys.add('task:${task.id}');
       }
       for (final reminder in task.taskReminders) {
-        liveKeys.add('task:${task.id}:reminder:${reminder.id}');
+        if (reminder.followUpId != null) {
+          liveKeys.add('${task.id}:${reminder.followUpId}');
+        } else {
+          liveKeys.add('task:${task.id}:reminder:${reminder.id}');
+        }
       }
       for (final followUp in task.followUps) {
-        if (followUp.reminderDate != null) {
+        final hasLinkedReminder = task.taskReminders.any(
+          (reminder) => reminder.followUpId == followUp.id,
+        );
+        if (followUp.reminderDate != null || hasLinkedReminder) {
           liveKeys.add('${task.id}:${followUp.id}');
         }
       }

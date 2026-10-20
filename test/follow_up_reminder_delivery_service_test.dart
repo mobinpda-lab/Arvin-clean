@@ -203,4 +203,50 @@ void main() {
     expect(result, hasLength(1));
     expect(result.single.scheduledAt, DateTime(2026, 8, 28, 9));
   });
+  test('linked Follow-up Reminder delivers once under the existing Follow-up identity', () {
+    final at = DateTime(2026, 10, 21, 11, 30);
+    final linkedTask = Task.fromJson({
+      'id': 'linked-delivery',
+      'title': 'کار مادر',
+      'followUps': [
+        {
+          'id': 'linked-fu',
+          'dateTime': '2026-10-20T10:00:00.000',
+          'title': 'تماس مشتری',
+          'reminderDate': at.toIso8601String(),
+        }
+      ],
+    });
+    final result = service.due([linkedTask], now: at);
+    expect(result, hasLength(1));
+    expect(result.single.stableKey, 'linked-delivery:linked-fu');
+    expect(result.single.label, 'تماس مشتری');
+    expect(
+      service.due(
+        [linkedTask],
+        now: at,
+        deliveredIdentities: {service.deliveryIdentity(result.single)},
+      ),
+      isEmpty,
+    );
+  });
+
+  test('completed Follow-up linked Reminder is not delivered', () {
+    final at = DateTime(2026, 10, 21, 11, 30);
+    final completedTask = Task.fromJson({
+      'id': 'completed-linked-delivery',
+      'title': 'کار مادر',
+      'followUps': [
+        {
+          'id': 'completed-linked-fu',
+          'dateTime': '2026-10-20T10:00:00.000',
+          'title': 'تماس انجام‌شده',
+          'reminderDate': at.toIso8601String(),
+          'completed': true,
+        }
+      ],
+    });
+    expect(service.due([completedTask], now: at), isEmpty);
+  });
+
 }

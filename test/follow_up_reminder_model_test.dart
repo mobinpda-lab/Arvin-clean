@@ -24,6 +24,106 @@ void main() {
     expect(restored.nextFollowUp, followUp.nextFollowUp);
   });
 
+  test('linked Follow-up Reminder persists identity and survives legacy migration retries', () {
+    final original = Task.fromJson({
+      'id': 'task-followup-owner',
+      'title': 'ارسال قرارداد',
+      'followUps': [
+        {
+          'id': 'followup-9',
+          'dateTime': '2026-10-20T10:00:00.000',
+          'title': 'تماس با مشتری',
+          'note': 'نتیجه مستقل',
+          'result': 'در انتظار پاسخ',
+          'reminderDate': '2026-10-21T11:30:00.000',
+          'nextFollowUp': '2026-10-22T09:00:00.000',
+          'waitingForResponse': true,
+          'personIds': ['person-1'],
+        }
+      ],
+    });
+
+    expect(original.taskReminders, hasLength(1));
+    final reminder = original.taskReminders.single;
+    expect(reminder.followUpId, 'followup-9');
+    expect(reminder.id, 'follow-up:task-followup-owner:followup-9');
+    expect(reminder.title, 'تماس با مشتری');
+    expect(reminder.date, DateTime(2026, 10, 21, 11, 30));
+
+    final restored = Task.fromJson(original.toJson());
+    expect(restored.taskReminders, hasLength(1));
+    expect(restored.taskReminders.single.id, reminder.id);
+    expect(restored.taskReminders.single.followUpId, 'followup-9');
+    expect(restored.followUps.single.personIds, ['person-1']);
+    expect(restored.followUps.single.waitingForResponse, isTrue);
+    expect(restored.followUps.single.result, 'در انتظار پاسخ');
+    expect(restored.followUps.single.nextFollowUp, DateTime(2026, 10, 22, 9));
+  });
+
+  test('linked Follow-up Reminder uses safe title fallbacks', () {
+    final parentFallback = Task.fromJson({
+      'id': 'parent-fallback',
+      'title': 'پیگیری فاکتور',
+      'followUps': [
+        {
+          'id': 'empty-title',
+          'dateTime': '2026-10-20T10:00:00.000',
+          'title': '   ',
+          'reminderDate': '2026-10-21T11:30:00.000',
+        }
+      ],
+    });
+    expect(parentFallback.taskReminders.single.title, 'پیگیری — پیگیری فاکتور');
+
+    final emptyFallback = Task.fromJson({
+      'id': 'empty-parent',
+      'title': '  ',
+      'followUps': [
+        {
+          'id': 'empty-both',
+          'dateTime': '2026-10-20T10:00:00.000',
+          'reminderDate': '2026-10-21T11:30:00.000',
+        }
+      ],
+    });
+    expect(emptyFallback.taskReminders.single.title, 'پیگیری');
+  });
+
+  test('editing only Follow-up title preserves linked Reminder identity and time', () {
+    final task = Task(
+      id: 'stable-owner',
+      title: 'کار مادر',
+      followUps: [
+        FollowUp(
+          id: 'stable-followup',
+          dateTime: DateTime(2026, 10, 20, 10),
+          title: 'عنوان اول',
+          reminderDate: DateTime(2026, 10, 21, 11),
+        ),
+      ],
+    );
+    final followUp = task.followUps.single;
+    task.syncFollowUpReminder(followUp);
+    final before = task.taskReminders.single;
+    final edited = FollowUp(
+      id: followUp.id,
+      dateTime: followUp.dateTime,
+      title: 'عنوان جدید',
+      reminderDate: followUp.reminderDate,
+      note: followUp.note,
+      result: followUp.result,
+      nextFollowUp: followUp.nextFollowUp,
+      waitingForResponse: followUp.waitingForResponse,
+      personIds: followUp.personIds,
+    );
+    task.syncFollowUpReminder(edited);
+    final after = task.taskReminders.single;
+    expect(after.id, before.id);
+    expect(after.date, before.date);
+    expect(after.title, 'عنوان جدید');
+    expect(after.followUpId, followUp.id);
+  });
+
   test('legacy FollowUp JSON without reminder remains valid', () {
     final restored = FollowUp.fromJson({
       'id': 'legacy',
@@ -191,4 +291,72 @@ void main() {
     expect(restored.taskReminders.single.date, DateTime(2026, 10, 20));
     expect(restored.taskReminders.single.isAllDay, isFalse);
   });
+
+  test('clearing linked Reminder removes only the Reminder record', () {
+    final task = Task(
+      id: 'clear-owner',
+      title: 'کار مادر',
+      followUps: [
+        FollowUp(
+          id: 'keep-followup',
+          dateTime: DateTime(2026, 10, 20, 10),
+          title: 'تماس',
+          result: 'نتیجه حفظ شود',
+          reminderDate: DateTime(2026, 10, 21, 11),
+          waitingForResponse: true,
+          personIds: ['person-keep'],
+        ),
+      ],
+      taskReminders: [
+        TaskReminder(
+          id: 'unrelated-reminder',
+          title: 'یادآور دیگر',
+          date: DateTime(2026, 10, 22, 9),
+          sequence: 1,
+        ),
+      ],
+      nextReminderSequence: 2,
+    );
+    final existing = task.followUps.single;
+    task.syncFollowUpReminder(existing);
+    final cleared = FollowUp(
+      id: existing.id,
+      dateTime: existing.dateTime,
+      title: existing.title,
+      note: existing.note,
+      result: existing.result,
+      reminderDate: null,
+      nextFollowUp: existing.nextFollowUp,
+      completed: existing.completed,
+      waitingForResponse: existing.waitingForResponse,
+      personIds: existing.personIds,
+    );
+    task.syncFollowUpReminder(cleared);
+    task.followUps = [cleared];
+
+    expect(task.id, 'clear-owner');
+    expect(task.followUps, hasLength(1));
+    expect(task.followUps.single.id, 'keep-followup');
+    expect(task.followUps.single.result, 'نتیجه حفظ شود');
+    expect(task.followUps.single.waitingForResponse, isTrue);
+    expect(task.followUps.single.personIds, ['person-keep']);
+    expect(task.taskReminders.map((item) => item.id), ['unrelated-reminder']);
+  });
+  test('legacy Follow-up Reminder migration respects the monotonic sequence counter', () {
+    final restored = Task.fromJson({
+      'id': 'sequence-owner',
+      'title': 'کار',
+      'nextReminderSequence': 9,
+      'followUps': [
+        {
+          'id': 'sequence-followup',
+          'dateTime': '2026-10-20T10:00:00.000',
+          'reminderDate': '2026-10-21T11:00:00.000',
+        }
+      ],
+    });
+    expect(restored.taskReminders.single.sequence, 9);
+    expect(restored.nextReminderSequence, 10);
+  });
+
 }
