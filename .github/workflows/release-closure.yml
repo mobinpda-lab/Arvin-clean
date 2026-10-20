@@ -334,6 +334,18 @@ jobs:
           cp build/app/outputs/flutter-apk/app-release.apk "$RELEASE_EVIDENCE/arvin-${{ steps.release_state.outputs.app_version }}-build${{ steps.release_state.outputs.build_number }}.apk"
           sha256sum "$RELEASE_EVIDENCE/arvin-${{ steps.release_state.outputs.app_version }}-build${{ steps.release_state.outputs.build_number }}.apk" | tee "$RELEASE_EVIDENCE/artifact.sha256"
 
+      - name: Verify official APK signer against trusted fingerprint
+        if: steps.release_state.outputs.already_released != 'true'
+        env:
+          TRUSTED_CERT_SHA256: ${{ vars.ARVIN_RELEASE_CERT_SHA256 }}
+        run: |
+          set -euo pipefail
+          sdk_root="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          test -n "$sdk_root" || { echo "::error::ANDROID_HOME/ANDROID_SDK_ROOT is missing."; exit 1; }
+          apksigner="$(find "$sdk_root/build-tools" -type f -name apksigner -perm -u+x | sort -V | tail -n 1)"
+          test -n "$apksigner" || { echo "::error::apksigner was not found in Android SDK build-tools."; exit 1; }
+          bash scripts/ci/verify-official-apk-signature.sh "$RELEASE_EVIDENCE/arvin-${{ steps.release_state.outputs.app_version }}-build${{ steps.release_state.outputs.build_number }}.apk" "$TRUSTED_CERT_SHA256" "$apksigner" "$RELEASE_EVIDENCE/apksigner-verify.txt" "$RELEASE_EVIDENCE/signing-evidence.txt"
+
       - name: Store release evidence
         if: steps.release_state.outputs.already_released != 'true'
         env:
@@ -356,11 +368,18 @@ jobs:
           APP_VERSION=${{ steps.release_state.outputs.app_version }}
           BUILD_NUMBER=${{ steps.release_state.outputs.build_number }}
           ARTIFACT_SHA256=$(cut -d' ' -f1 "$RELEASE_EVIDENCE/artifact.sha256")
+          SOURCE_SHA=${{ steps.verify.outputs.main_sha }}
+          RUN_ID=${GITHUB_RUN_ID}
+          RUN_ATTEMPT=${GITHUB_RUN_ATTEMPT}
+          JOB_ID=release-closure
+          SIGNATURE_VERIFICATION=apksigner-verified
+          SIGNING_CERT_SHA256=$(cut -d'=' -f2 "$RELEASE_EVIDENCE/signing-evidence.txt")
           EOF
 
 
       - name: Upload internal Release APK artifact
         if: steps.release_state.outputs.already_released != 'true'
+        id: internal_artifact
         uses: actions/upload-artifact@v4
         with:
           name: arvin-internal-build-${{ steps.verify.outputs.main_sha }}
@@ -368,7 +387,18 @@ jobs:
             .github/release-evidence/*.apk
             .github/release-evidence/artifact.sha256
             .github/release-evidence/release-evidence.txt
+            .github/release-evidence/apksigner-verify.txt
+            .github/release-evidence/signing-evidence.txt
           if-no-files-found: error
+
+      - name: Bind release evidence to internal artifact identity
+        if: steps.release_state.outputs.already_released != 'true'
+        env:
+          INTERNAL_ARTIFACT_ID: ${{ steps.internal_artifact.outputs.artifact-id }}
+        run: |
+          set -euo pipefail
+          test -n "$INTERNAL_ARTIFACT_ID"
+          printf 'INTERNAL_ARTIFACT_ID=%s\\n' "$INTERNAL_ARTIFACT_ID" >> "$RELEASE_EVIDENCE/release-evidence.txt"
 
       - name: Require explicit product release approval
         if: steps.release_state.outputs.already_released != 'true'
@@ -438,7 +468,7 @@ jobs:
           TAG: ${{ steps.release.outputs.tag }}
         run: |
           set -euo pipefail
-          gh release upload "$TAG" "$RELEASE_EVIDENCE/arvin-${{ steps.release_state.outputs.app_version }}-build${{ steps.release_state.outputs.build_number }}.apk" "$RELEASE_EVIDENCE/artifact.sha256" "$RELEASE_EVIDENCE/release-evidence.txt" --clobber
+          gh release upload "$TAG" "$RELEASE_EVIDENCE/arvin-${{ steps.release_state.outputs.app_version }}-build${{ steps.release_state.outputs.build_number }}.apk" "$RELEASE_EVIDENCE/artifact.sha256" "$RELEASE_EVIDENCE/release-evidence.txt" "$RELEASE_EVIDENCE/apksigner-verify.txt" "$RELEASE_EVIDENCE/signing-evidence.txt" --clobber
 
       - name: Verify delivery
         if: steps.release_state.outputs.already_released != 'true'
@@ -457,7 +487,7 @@ jobs:
             const rel = await github.rest.repos.getReleaseByTag({owner, repo, tag});
             const assets = await github.rest.repos.listReleaseAssets({owner, repo, release_id: rel.data.id});
             const names = new Set(assets.data.map(a => a.name));
-            for (const n of [`arvin-${{ steps.release_state.outputs.app_version }}-build${{ steps.release_state.outputs.build_number }}.apk`,'artifact.sha256','release-evidence.txt']) if (!names.has(n)) core.setFailed(`Missing release asset: ${n}`);
+            for (const n of [`arvin-${{ steps.release_state.outputs.app_version }}-build${{ steps.release_state.outputs.build_number }}.apk`,'artifact.sha256','release-evidence.txt','apksigner-verify.txt','signing-evidence.txt']) if (!names.has(n)) core.setFailed(`Missing release asset: ${n}`);
             core.info(`DELIVERY_CHECK=success TAG=${tag}`);
 
       - name: Recovery and resume validation

@@ -22,11 +22,15 @@ void main() {
     final productGateIndex = workflow.indexOf(productGate);
 
     expect(manualGateIndex, greaterThanOrEqualTo(0));
+    const signerGate = 'name: Verify official APK signer against trusted fingerprint';
+    const signerGateIndex = workflow.indexOf(signerGate);
     expect(manualGateIndex, lessThan(internalBuildIndex));
     expect(internalBuildIndex, greaterThanOrEqualTo(0));
-    expect(evidenceIndex, greaterThan(internalBuildIndex));
+    expect(signerGateIndex, greaterThan(internalBuildIndex));
+    expect(evidenceIndex, greaterThan(signerGateIndex));
     expect(internalUploadIndex, greaterThan(evidenceIndex));
-    expect(productGateIndex, greaterThan(internalUploadIndex));
+    expect(workflow.indexOf('name: Bind release evidence to internal artifact identity'), greaterThan(internalUploadIndex));
+    expect(productGateIndex, greaterThan(workflow.indexOf('name: Bind release evidence to internal artifact identity')));
 
     // Product acceptance gates remain mandatory and fail closed.
     expect(workflow, contains('issue_number: 2102'));
@@ -91,14 +95,64 @@ void main() {
     expect(workflow, contains('ARTIFACT_SHA256='));
     expect(workflow, contains('sha256sum'));
     expect(workflow, contains('artifact.sha256'));
+    expect(workflow, contains('ARVIN_RELEASE_CERT_SHA256'));
+    expect(workflow, contains('SIGNATURE_VERIFICATION=apksigner-verified'));
+    expect(workflow, contains('INTERNAL_ARTIFACT_ID'));
+    expect(workflow, contains('apksigner-verify.txt'));
+    expect(workflow, contains('signing-evidence.txt'));
 
     // Product gate must precede every external release side effect.
     expect(productGateIndex, lessThan(workflow.indexOf(createRelease)));
     expect(productGateIndex, lessThan(workflow.indexOf(uploadAssets)));
   });
 
+  test('official APK signer gate rejects missing, failed, and untrusted signatures', () {
+    final temp = Directory.systemTemp.createTempSync('arvin-signature-gate-');
+    addTearDown(() => temp.deleteSync(recursive: true));
+    final apk = File('${temp.path}/fixture.apk')..writeAsBytesSync(<int>[1, 2, 3, 4]);
+    final signer = File('${temp.path}/fake-apksigner.sh')
+      ..writeAsStringSync(r'''#!/usr/bin/env bash
+set -euo pipefail
+if [[ "${FAKE_SIGNER_FAIL:-false}" == "true" ]]; then
+  echo "simulated signature verification failure" >&2
+  exit 1
+fi
+printf 'Signer #1 certificate SHA-256 digest: %s\\n' "${FAKE_CERT_SHA256:-}"
+''');
+    final chmod = Process.runSync('chmod', <String>['+x', signer.path]);
+    expect(chmod.exitCode, 0);
+    final helper = File('scripts/ci/verify-official-apk-signature.sh').absolute.path;
+    const trusted = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+
+    ProcessResult runGate({
+      String expected = trusted,
+      String actual = trusted,
+      bool signerFails = false,
+    }) {
+      final log = File('${temp.path}/verify-${DateTime.now().microsecondsSinceEpoch}.log');
+      final evidence = File('${temp.path}/evidence-${DateTime.now().microsecondsSinceEpoch}.txt');
+      return Process.runSync(
+        'bash',
+        <String>[helper, apk.path, expected, signer.path, log.path, evidence.path],
+        environment: <String, String>{
+          ...Platform.environment,
+          'FAKE_CERT_SHA256': actual,
+          'FAKE_SIGNER_FAIL': signerFails ? 'true' : 'false',
+        },
+      );
+    }
+
+    final valid = runGate();
+    expect(valid.exitCode, 0, reason: valid.stderr.toString());
+    expect(Directory(temp.path).listSync().whereType<File>().any((f) => f.path.endsWith('.txt')), isTrue);
+    expect(runGate(expected: '').exitCode, isNot(0));
+    expect(runGate(actual: 'BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB').exitCode, isNot(0));
+    expect(runGate(signerFails: true).exitCode, isNot(0));
+  });
+
   test('legacy release workflow fails closed and cannot publish releases', () {
     final legacy = File('.github/workflows/release.yml').readAsStringSync();
+    final workflow = File('.github/workflows/release-closure.yml').readAsStringSync();
 
     expect(legacy, contains('name: Arvin Release (disabled legacy path)'));
     expect(legacy, contains('contents: read'));
