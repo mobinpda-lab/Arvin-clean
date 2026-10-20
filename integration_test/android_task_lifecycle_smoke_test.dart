@@ -89,9 +89,13 @@ void main() {
         'ARVIN_LIFECYCLE_CREATED id=${created.id} title=${created.title} count=${matching.length}',
       );
 
-      final initialTitleFinder = find.text(initialTitle);
-      await tester.ensureVisible(initialTitleFinder);
-      await tester.tap(initialTitleFinder);
+      // Tap the keyed card surface, not the title Text itself: the title's
+      // glyph bounds can miss the enclosing InkWell hit target on compact API 35.
+      final createdCard = find.byKey(ValueKey(created.id));
+      await waitForFinder(createdCard);
+      expect(createdCard, findsOneWidget);
+      await tester.ensureVisible(createdCard);
+      await tester.tap(createdCard);
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('task-detail-page')), findsOneWidget);
       await binding.convertFlutterSurfaceToImage();

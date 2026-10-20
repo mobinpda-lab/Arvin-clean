@@ -64,21 +64,33 @@ void main() {
       r'\s+- scenario: ([^\n]+)\n\s+test_file: ([^\n]+)',
     ).allMatches(workflow).toList();
 
-    expect(
-      matrixScenarios.length,
-      7,
-      reason:
-          'Home, Quick Capture, SQL persistence, Upgrade Migration, Backup/Restore, People, and Calendar must run as separate matrix smoke scenarios',
-    );
-
+    final scenarioNames =
+        matrixScenarios.map((match) => match.group(1)!).toSet();
     final testFiles =
         matrixScenarios.map((match) => match.group(2)!).toSet();
 
+    // Assert both the current lane count and the complete inventory so an
+    // accidental duplicate cannot hide a missing product scenario.
+    expect(matrixScenarios, hasLength(8));
+    expect(
+      scenarioNames,
+      containsAll(<String>[
+        'home',
+        'quick-capture',
+        'task-lifecycle',
+        'sql-persistence',
+        'sql-migration',
+        'backup-restore',
+        'people',
+        'calendar',
+      ]),
+    );
     expect(
       testFiles,
       containsAll(<String>[
         'integration_test/android_home_smoke_test.dart',
         'integration_test/android_quick_capture_smoke_test.dart',
+        'integration_test/android_task_lifecycle_smoke_test.dart',
         'integration_test/android_sql_persistence_smoke_test.dart',
         'integration_test/android_upgrade_migration_smoke_test.dart',
         'integration_test/android_backup_restore_sql_smoke_test.dart',
