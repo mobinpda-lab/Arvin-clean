@@ -886,6 +886,11 @@ External design review:
 | Official APK signing | No `apksigner verify --verbose --print-certs`, trusted fingerprint comparison or APK-file SHA-256 bound to approved certificate | NOT VERIFIED |
 | PR #2817 / Issue #2102 / PR #1901 | #2817 OPEN/DRAFT; #2102 OPEN; #1901 OPEN and not mergeable | OPEN / BLOCKED |
 | Wave 5.20 | No issue search hit and no Wave 5.20 commit in recent branch history | NOT VERIFIED / no execution record found |
-| Five canonical docs | This atomic checkpoint commit; must re-read from GitHub after ref update | PENDING RE-READ |
+| Five canonical docs | Atomic checkpoint commit `42bdfd048d248793d574f05beed58e44b95b2602`; all five files re-read from GitHub and Wave 5.21 marker confirmed | PASS — read-back verified |
 
 No gate is closed by workflow presence, stale PR runs, or APK file existence alone.
+
+
+## Wave 5.21 post-write read-back correction
+
+After commit [42bdfd0](https://github.com/mobinpda-lab/Arvin-clean/commit/42bdfd048d248793d574f05beed58e44b95b2602), all five canonical documents were fetched again from the live branch and the Wave 5.21 marker was confirmed in each. The documentation read-back gate is therefore PASS. This confirms only the documentation write/read cycle; it does not change any product acceptance gate. The branch head at the time of this correction was `42bdfd048d248793d574f05beed58e44b95b2602`; the correction itself creates a new source SHA, for which fresh exact-SHA Build and Device Smoke evidence is required. No merge, tag, or release.
