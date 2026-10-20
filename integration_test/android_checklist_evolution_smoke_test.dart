@@ -233,9 +233,8 @@ void main() {
       final card = find.byKey(ValueKey(createdId));
       await waitForFinder(card);
       expect(card, findsOneWidget);
-      final cardTapTarget = find.descendant(
-        of: card,
-        matching: find.byType(InkWell),
+      final cardTapTarget = find.byKey(
+        ValueKey('task-card-open-${createdId}'),
       );
       expect(cardTapTarget, findsOneWidget);
       await tester.ensureVisible(cardTapTarget);
