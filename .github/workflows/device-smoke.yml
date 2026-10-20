@@ -123,7 +123,24 @@ jobs:
           script: |
             # android-emulator-runner executes script lines in separate /usr/bin/sh processes.
             # Discover the ready device instead of relying on EMULATOR_PORT being exported.
-            adb devices -l && device="$(adb devices | awk '$1 ~ /^emulator-/ && $2 == "device" {print $1; exit}')" && test -n "$device" && echo "ADB_DEVICE=$device" && adb -s "$device" shell getprop sys.boot_completed && adb -s "$device" shell getprop ro.build.version.sdk && flutter drive --driver=test_driver/integration_test.dart --target=${{ matrix.test_file }} -d "$device" && { if [ "${{ matrix.scenario }}" = "task-lifecycle" ]; then echo "ARVIN_LIFECYCLE_RESTART_BEGIN"; adb -s "$device" shell am force-stop com.example.arvin && adb -s "$device" shell monkey -p com.example.arvin 1 && sleep 3 && flutter drive --driver=test_driver/integration_test.dart --target=integration_test/android_task_lifecycle_restart_verify_test.dart -d "$device"; fi; }
+            adb devices -l && device="$(adb devices | awk '$1 ~ /^emulator-/ && $2 == "device" {print $1; exit}')" && test -n "$device" && echo "ADB_DEVICE=$device" && adb -s "$device" shell getprop sys.boot_completed && adb -s "$device" shell getprop ro.build.version.sdk && flutter drive --driver=test_driver/integration_test.dart --target=${{ matrix.test_file }} -d "$device" && { if [ "${{ matrix.scenario }}" = "task-lifecycle" ]; then echo "ARVIN_LIFECYCLE_RESTART_BEGIN"; adb -s "$device" shell am force-stop com.example.arvin
+              package_id="$(adb -s "$device" shell pm list packages | tr -d '\\r' | sed -n 's/^package://p' | grep -Fx 'com.example.arvin' || true)"
+              test "$package_id" = 'com.example.arvin' || { adb -s "$device" shell pm list packages -3; adb -s "$device" shell dumpsys activity activities; exit 1; }
+              launcher_output="$(adb -s "$device" shell cmd package resolve-activity --brief --user 0 -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -p "$package_id" 2>&1)" || { printf '%s\\n' "$launcher_output"; adb -s "$device" shell dumpsys package "$package_id"; exit 1; }
+              launcher_component="$(printf '%s\\n' "$launcher_output" | tr -d '\\r' | grep -E "^$package_id/" | tail -n 1)"
+              test -n "$launcher_component" || { printf '%s\\n' "$launcher_output"; adb -s "$device" shell dumpsys package "$package_id"; exit 1; }
+              case "$launcher_component" in "$package_id/"*) ;; *) printf '%s\\n' "$launcher_output"; exit 1 ;; esac
+              echo "ARVIN_LIFECYCLE_PACKAGE=$package_id"
+              echo "ARVIN_LIFECYCLE_LAUNCHER=$launcher_component"
+              adb -s "$device" shell am force-stop "$package_id"
+              before_pid="$(adb -s "$device" shell pidof "$package_id" 2>/dev/null | tr -d '\\r' || true)"
+              test -z "$before_pid" || { echo "Expected process stopped but pid remains: $before_pid"; exit 1; }
+              adb -s "$device" shell am start -W -n "$launcher_component" || { adb -s "$device" shell dumpsys activity activities; adb -s "$device" logcat -d -t 300; exit 1; }
+              sleep 3
+              after_pid="$(adb -s "$device" shell pidof "$package_id" 2>/dev/null | tr -d '\\r' || true)"
+              test -n "$after_pid" || { echo "Launcher returned but app process is absent"; adb -s "$device" logcat -d -t 300; exit 1; }
+              echo "ARVIN_LIFECYCLE_RESTART_VERIFIED new_pid=$after_pid"
+              flutter drive --driver=test_driver/integration_test.dart --target=integration_test/android_task_lifecycle_restart_verify_test.dart -d "$device"; fi; }
 
       - name: Upload Android smoke screenshot evidence
         if: always() && (matrix.scenario == 'home' || matrix.scenario == 'quick-capture' || matrix.scenario == 'people')
