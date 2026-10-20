@@ -617,3 +617,7 @@ No item above is closed by commits alone. **BLOCKED — RELEASE: NO-GO**.
 
 ### Current execution constraint
 GitHub read and push were verified. The repository API reports read/push/admin permission; an actual push succeeded. The connector does not expose a direct manual workflow-dispatch operation for Device Smoke or Calendar Provider. The existing PR CI Recovery Dispatcher can dispatch exact-SHA Build only; manual owner action is required to run the other two workflows on the current branch.
+
+
+### W514-P12 — Current docs HEAD exact Build
+The prior source HEAD `b15b0c0...` has Run `39432745217` in QUEUED state. The live PR HEAD then moved to docs-only commit `49f69caf...`; no exact-SHA terminal Build result for that HEAD was confirmed. Recovery Dispatcher job `118663216037` was QUEUED. Do not report either queued run as PASS.

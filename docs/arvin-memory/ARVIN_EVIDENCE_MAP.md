@@ -822,3 +822,7 @@ GitHub compare on 2026-10-20 shows the Wave 5.10 commits are **not ancestors of 
 
 ### Artifact provenance
 Artifact `12268044570` (`arvin-release-apk`) belongs to Run `39431510949`, target `c16d234...`; it is not a current-head official release. `apksigner` is not installed in this execution environment and the workflow has no `apksigner verify --verbose --print-certs` step.
+
+
+### Post-checkpoint correction
+Run [39432745217](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39432745217) exists for prior source HEAD `b15b0c0...` and is QUEUED; it is not a terminal result. The live HEAD after the docs-only commit is `49f69caf16968bf0d22291cabb9f06011de002d0`; no exact Build result for that HEAD was confirmed at this update. The Recovery Dispatcher job `118663216037` was QUEUED.

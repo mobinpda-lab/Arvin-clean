@@ -1499,3 +1499,7 @@ Status: **IN PROGRESS — BLOCKED — RELEASE: NO-GO**. This note records implem
 
 ### Release/security state
 No Merge, Tag, official APK publication, or security-PR promotion. PR #2817 remains OPEN/DRAFT; PR #1901 remains OPEN; Issue #2102 remains OPEN. Exact current-head Build, current-head Device Smoke, real SAF Backup/Restore of the accepted Task, official signing/fingerprint verification, and `apksigner verify --verbose --print-certs` remain unverified.
+
+
+### Post-checkpoint run creation correction
+After the preceding checkpoint, GitHub created Build Run [39432745217](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39432745217) with exact target `b15b0c09ec718459b3702e63b2c38701f0291293`; it was QUEUED, not completed. The docs-only commit `49f69caf16968bf0d22291cabb9f06011de002d0` then became the live PR HEAD. No exact-SHA Build result for `49f69caf...` was confirmed. Recovery Dispatcher job `118663216037` was queued to process the live PR head. Keep both statuses distinct.

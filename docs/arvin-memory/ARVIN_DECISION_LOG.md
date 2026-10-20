@@ -530,3 +530,7 @@ No external code was copied. Joplin's recurrence/subtask completion behavior is 
 
 ### D-W514-06 — Release remains NO-GO
 No Merge, Tag, official APK publication, or security-PR promotion. The Release APK artifact from Run 39431510949 is Debug-key signed, and no trusted official fingerprint or apksigner evidence exists. NDK archive failure in Run 39431989516 is treated as environment/toolchain evidence, not a reason to change the pinned NDK without further reproduction.
+
+
+### D-W514-07 — Do not conflate queued and completed Build evidence
+Build Run `39432745217` targets `b15b0c0...` and was QUEUED. The subsequent docs-only commit moved PR HEAD to `49f69caf...`; no result for that new HEAD was confirmed at this checkpoint. The recovery dispatcher must select the live PR HEAD and its Build must pass the exact-checkout gate before the current revision can be marked validated.

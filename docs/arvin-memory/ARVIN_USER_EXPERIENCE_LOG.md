@@ -225,3 +225,7 @@ The new scenario and restart-snapshot comparison are committed, but they are NOT
 
 ### User-facing outcome
 Do not mark Checklist/Repeat as accepted until the current-head Device Smoke run passes, all seven occurrence rows show the expected before/after data, no duplicate records appear, and the real restart verifier proves the same Task ID and full store snapshot survived. Do not describe the temporary-file backup harness as official backup/restore.
+
+
+### Checkpoint correction
+The full snapshot/restart-verifier code is present in the source chain through `b15b0c0...`. A Build Run for that prior source SHA exists but is only QUEUED. The live PR HEAD is now the docs-only commit `49f69caf...`; no exact-head Build or Device Smoke acceptance is confirmed. The user-visible Checklist/Repeat behavior remains NOT VERIFIED until current-head Device Smoke passes.
