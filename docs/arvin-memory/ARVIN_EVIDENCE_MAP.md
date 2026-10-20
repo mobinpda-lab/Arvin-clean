@@ -894,3 +894,13 @@ No gate is closed by workflow presence, stale PR runs, or APK file existence alo
 ## Wave 5.21 post-write read-back correction
 
 After commit [42bdfd0](https://github.com/mobinpda-lab/Arvin-clean/commit/42bdfd048d248793d574f05beed58e44b95b2602), all five canonical documents were fetched again from the live branch and the Wave 5.21 marker was confirmed in each. The documentation read-back gate is therefore PASS. This confirms only the documentation write/read cycle; it does not change any product acceptance gate. The branch head at the time of this correction was `42bdfd048d248793d574f05beed58e44b95b2602`; the correction itself creates a new source SHA, for which fresh exact-SHA Build and Device Smoke evidence is required. No merge, tag, or release.
+
+
+## Wave 5.21 — Calendar Provider artifact evidence refinement (2026-10-20)
+
+| Gate | Evidence | Status |
+|---|---|---|
+| Calendar Provider lifecycle (historical) | Run [39416899861](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39416899861), artifact [12262580173](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39416899861/artifacts/12262580173), artifact contents inspected. CREATE event 3; NO-OP retains event 3; UPDATE retains event 3; transfer calendar 1→2 creates destination event 4; DELETE removes target; unrelated sentinel events remain in both calendars. | PASS on older integration revision only |
+| Calendar Provider on final Wave 5.21 HEAD | Historical artifact provenance is checkout `2494062c1a1219276a3d97c799d1996990506716`, PR head `6d78b1cba4d0ec829fe26325c9233cd30100d766`; not current HEAD | NOT VERIFIED |
+
+The artifact proves a real writable-provider lifecycle for the older PR integration revision, not the current documentation head. Re-run on the final SHA before closing the current-head gate.

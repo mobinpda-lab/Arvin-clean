@@ -273,3 +273,11 @@ The previous Build and Device Smoke run used an old PR source commit `6d78b1cba4
 - Design reference review: [Persian Calendar](https://github.com/persian-calendar/persian-calendar) declares GPL-3.0-or-later, so use only as behavior/UX reference unless license compatibility is approved. [Joplin Repeating To-Dos](https://joplinapp.org/plugins/plugin/com.github.TheScriptingGuy.joplin-plugin-repeating-todos/) resets the same to-do on completion and clears subtasks, unlike Arvin's independent occurrence history; do not copy that state model. [TimeJot Help](https://timejot.app/help/) distinguishes OS device backup from daily export/import that includes entry photos; Arvin's own restore still requires empirical acceptance.
 - Wave 5.20: no corresponding issue or commit record found in queried GitHub surfaces. No external execution is inferred.
 - Release remains **BLOCKED — RELEASE: NO-GO**.
+
+
+## Wave 5.21 — Calendar Provider artifact review (2026-10-20)
+
+- Artifact [12262580173](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39416899861/artifacts/12262580173) was downloaded and its three files read. It confirms real Provider CREATE, NO-OP, UPDATE, calendar migration (source ID 1 to destination ID 2), DELETE, and retention of unrelated sentinel events in both calendars.
+- Provenance is old: checkout SHA `2494062c1a1219276a3d97c799d1996990506716`, PR head `6d78b1cba4d0ec829fe26325c9233cd30100d766`. This is a positive historical integration result only; it does not close the final current-head Calendar Provider gate.
+- Joplin's repeat model remains a reference only because it resets the same todo/subtasks; Arvin must preserve independent occurrence state. TimeJot's Help distinguishes OS backup from export/import. Persian Calendar declares GPL-3.0-or-later; do not copy code without license compatibility approval.
+- Current-head acceptance and release remain blocked.

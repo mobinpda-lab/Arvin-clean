@@ -573,3 +573,10 @@ The old Device Smoke / Build run used PR source commit `6d78b1cba4d0ec829fe26325
 5. No code patch was made because there is no reproducible current-head Device Smoke failure log. Do not weaken tests or guess at a root cause.
 6. Do not claim seven-occurrence UI acceptance, same-task Restart, real Backup/Restore, writable Calendar Provider lifecycle, official signing, or release readiness without empirical evidence.
 7. No merge, tag, or release. **BLOCKED — RELEASE: NO-GO.**
+
+
+## Wave 5.21 — Calendar Provider evidence refinement (2026-10-20)
+
+- The previously green Calendar Provider run #39416899861 was not accepted blindly: artifact #12262580173 was downloaded and inspected. Its result file says `PASS_REAL_PROVIDER_CREATE_NOOP_UPDATE_DELETE`; logs record NO-OP preserving event ID 3, UPDATE preserving event ID 3, migration from calendar 1 to 2, DELETE removing the target, and unrelated sentinel rows retained.
+- Artifact provenance is checkout SHA `2494062c1a1219276a3d97c799d1996990506716`, PR head `6d78b1cba4d0ec829fe26325c9233cd30100d766`. This is valid historical integration evidence, not proof for the current Wave 5.21 head.
+- Current-head Device Smoke, Checklist seven-occurrence UI, Restart, real Backup/Restore and official signing remain open. No merge, tag or release.

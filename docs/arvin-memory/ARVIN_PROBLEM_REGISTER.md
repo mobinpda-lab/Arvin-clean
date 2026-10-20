@@ -680,3 +680,11 @@ No problem in this table is closed by static code inspection or workflow-file pr
 | Wave 5.20 | NOT VERIFIED | No issue or commit execution record found in the queried GitHub surfaces. |
 
 Do not mark any row PASS based solely on static inspection or generic CI success.
+
+
+## Wave 5.21 — Calendar Provider problem status refinement (2026-10-20)
+
+| Problem | Status | Next required evidence |
+|---|---|---|
+| Calendar Provider lifecycle on historical integration revision | PASS — artifact inspected | Keep historical provenance bound to checkout SHA `2494062c1a1219276a3d97c799d1996990506716` / PR head `6d78b1cba4d0ec829fe26325c9233cd30100d766`; do not transfer this PASS to current HEAD. |
+| Calendar Provider lifecycle on final Wave 5.21 HEAD | NOT VERIFIED | Rerun current-head workflow, inspect artifact, prove CREATE → NO-OP → UPDATE → calendar transfer → DELETE and unrelated sentinel retention. |
