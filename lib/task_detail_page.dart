@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'arvin_colors.dart';
+import 'widgets/occurrence_checklist_editor.dart';
 
 import 'android_automatic_follow_up_scheduler.dart';
 import 'android_follow_up_reminder_scheduler.dart';
@@ -301,6 +302,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   Widget _checklistCard() {
+    // Repeating Tasks expose occurrence execution state, never the shared template.
+    if (_task.recurrence != null) {
+      return OccurrenceChecklistEditor(task: _task);
+    }
     if (!_task.checklistEnabled || _task.checklist.isEmpty) {
       return const SizedBox.shrink();
     }
