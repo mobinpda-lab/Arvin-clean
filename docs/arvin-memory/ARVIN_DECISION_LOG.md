@@ -538,3 +538,7 @@ Build Run `39432745217` targets `b15b0c0...` and was QUEUED. The subsequent docs
 
 ## Wave 5.14 final documentation checkpoint — 2026-10-20 13:47 UTC
 Immediately before this documentation-only append, live PR HEAD was `7828b825d8e9fb50b0fe0b41a239c140454b3dd0`; base SHA remained `49910e585ee73afcf56a7f8d927b9c69e763c5c5`. Build Run `39432745217` for prior source SHA `b15b0c0...` was QUEUED, and Run `39432344723` for `0b42e588...` was IN PROGRESS. Recovery Dispatcher job `118663216037` was QUEUED; no exact-SHA result for the live HEAD was confirmed. Treat these as separate revisions and do not convert any queued/in-progress run into PASS. The resulting documentation-only HEAD also requires its own exact-SHA Build if exact revision closure is claimed.
+
+
+### D-W514-08 — Preserve accurate workflow revision identity
+The old Device Smoke / Build run used PR source commit `6d78b1cba4d0ec829fe26325c9233cd30100d766` on the PR branch. GitHub API metadata shows a single parent, so do not label it a synthetic merge commit. It was 23 commits behind source HEAD `266b2a58...` at this correction checkpoint. The acceptance limitation is unchanged: the run does not validate current source HEAD.

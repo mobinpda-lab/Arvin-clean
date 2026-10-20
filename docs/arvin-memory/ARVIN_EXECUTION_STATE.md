@@ -1494,8 +1494,8 @@ Status: **IN PROGRESS — BLOCKED — RELEASE: NO-GO**. This note records implem
 - Build Run [39431989516](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39431989516), exact target `c7a60da...`: Analyze and all six Test shards passed; Release APK job failed while downloading NDK with `Error on ZipFile unknown archive`; Debug APK was still IN PROGRESS at this checkpoint. This is an environment/toolchain failure, not evidence of a product-code failure.
 - Build Run [39432344723](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39432344723), target `0b42e588...`: queued; it is not the current source HEAD.
 - The recovery-dispatcher rerun is queued. No exact-SHA Build result for `b15b0c0...` was confirmed at this checkpoint.
-- Device Smoke Run [39416899883](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39416899883) checked out synthetic Merge Candidate `6d78b1cba4d0ec829fe26325c9233cd30100d766`, which predates the Wave 5.11 source commits. Checklist Evolution was CANCELLED; Task Lifecycle was still running at this checkpoint. It is not current-HEAD acceptance evidence.
-- Calendar Provider Run [39416899861](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39416899861) passed CREATE / NO-OP / UPDATE / DELETE / destination migration on that same stale Merge Candidate only. Artifact ID: `12262580173`.
+- Device Smoke Run [39416899883](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39416899883) checked out stale PR head commit `6d78b1cba4d0ec829fe26325c9233cd30100d766`, which predates the Wave 5.11 source commits. Checklist Evolution was CANCELLED; Task Lifecycle was still running at this checkpoint. It is not current-HEAD acceptance evidence.
+- Calendar Provider Run [39416899861](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39416899861) passed CREATE / NO-OP / UPDATE / DELETE / destination migration on that same stale PR head commit only. Artifact ID: `12262580173`.
 
 ### Release/security state
 No Merge, Tag, official APK publication, or security-PR promotion. PR #2817 remains OPEN/DRAFT; PR #1901 remains OPEN; Issue #2102 remains OPEN. Exact current-head Build, current-head Device Smoke, real SAF Backup/Restore of the accepted Task, official signing/fingerprint verification, and `apksigner verify --verbose --print-certs` remain unverified.
@@ -1507,3 +1507,7 @@ After the preceding checkpoint, GitHub created Build Run [39432745217](https://g
 
 ## Wave 5.14 final documentation checkpoint — 2026-10-20 13:47 UTC
 Immediately before this documentation-only append, live PR HEAD was `7828b825d8e9fb50b0fe0b41a239c140454b3dd0`; base SHA remained `49910e585ee73afcf56a7f8d927b9c69e763c5c5`. Build Run `39432745217` for prior source SHA `b15b0c0...` was QUEUED, and Run `39432344723` for `0b42e588...` was IN PROGRESS. Recovery Dispatcher job `118663216037` was QUEUED; no exact-SHA result for the live HEAD was confirmed. Treat these as separate revisions and do not convert any queued/in-progress run into PASS. The resulting documentation-only HEAD also requires its own exact-SHA Build if exact revision closure is claimed.
+
+
+### Revision identity correction — 2026-10-20
+The GitHub Actions API identifies Runs 39416899830 and 39416899883 as `pull_request` events on branch `wave-4-10/follow-up-reminder-contract`, with `head_sha=6d78b1cba4d0ec829fe26325c9233cd30100d766`. That commit has one parent (`2219b92b59435e23abc0725a4d331d8796adce2c`); it is an old PR source commit, not a synthetic merge commit. It was 23 commits behind source HEAD `266b2a58...` at the time of this correction. The old run results remain stale for current-head acceptance.

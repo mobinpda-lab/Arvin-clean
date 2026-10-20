@@ -830,3 +830,7 @@ Run [39432745217](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39432
 
 ## Wave 5.14 final documentation checkpoint — 2026-10-20 13:47 UTC
 Immediately before this documentation-only append, live PR HEAD was `7828b825d8e9fb50b0fe0b41a239c140454b3dd0`; base SHA remained `49910e585ee73afcf56a7f8d927b9c69e763c5c5`. Build Run `39432745217` for prior source SHA `b15b0c0...` was QUEUED, and Run `39432344723` for `0b42e588...` was IN PROGRESS. Recovery Dispatcher job `118663216037` was QUEUED; no exact-SHA result for the live HEAD was confirmed. Treat these as separate revisions and do not convert any queued/in-progress run into PASS. The resulting documentation-only HEAD also requires its own exact-SHA Build if exact revision closure is claimed.
+
+
+### Revision identity correction
+Run 39416899830 and Device Smoke Run 39416899883 are `pull_request` events whose `head_sha` is the actual source commit `6d78b1cba4d0ec829fe26325c9233cd30100d766` (single parent `2219b92...`), not a synthetic merge SHA. At this correction checkpoint it was 23 commits behind source HEAD `266b2a58...`; therefore the run remains stale for current-head acceptance.

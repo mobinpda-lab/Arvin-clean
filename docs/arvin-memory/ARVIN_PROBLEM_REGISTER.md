@@ -609,7 +609,7 @@ No item above is closed by commits alone. **BLOCKED — RELEASE: NO-GO**.
 | W514-P4 | Seven-occurrence UI acceptance | NOT RUN | Dispatch Arvin Device Smoke on `wave-4-10/follow-up-reminder-contract`; inspect artifact/logs for the seven real keys, before/after snapshots, tick preservation, no duplicates, Task ID and history. |
 | W514-P5 | Real Android process restart of the same Task | BLOCKED | Existing script uses force-stop, PID absence, Launcher Activity, new PID and a separate verifier. Run it on current HEAD; compare saved full store snapshot and Task ID. |
 | W514-P6 | Official Backup/Restore of the same accepted Task | NOT VERIFIED | Current test injects a file-backed fake service. Use the official in-app export/restore path and a real SAF/provider file; compare full canonical store snapshot and record counts. |
-| W514-P7 | Calendar Provider current-head acceptance | NOT VERIFIED | Prior CREATE/NO-OP/UPDATE/DELETE/destination migration pass is from stale Merge Candidate `6d78b1...`. Run Calendar Provider Acceptance on current branch SHA. |
+| W514-P7 | Calendar Provider current-head acceptance | NOT VERIFIED | Prior CREATE/NO-OP/UPDATE/DELETE/destination migration pass is from stale PR head commit `6d78b1...`. Run Calendar Provider Acceptance on current branch SHA. |
 | W514-P8 | SQL Persistence and Migration current-head acceptance | NOT VERIFIED | Existing smoke jobs passed only on stale checkout; rerun current-head Device Smoke. |
 | W514-P9 | Official signing / fingerprint / APK verification | BLOCKED | No official signing env was used. APK `12268044570` SHA-256 is `c7d58816a6b822080e11c4e846c2d60ac2eae81c52573d839769fab128a623b1` but it is Debug-key signed. Verify official APK with `apksigner verify --verbose --print-certs` and trusted fingerprint only after authorized signing. |
 | W514-P10 | Notification tap/cold-start, Persian multi-page PDF, Golden Flow, P0/P1 regression suite | NOT VERIFIED | No current-head artifacts. PR #1901 remains OPEN; collect exact-SHA logs and device evidence. |
@@ -625,3 +625,7 @@ The prior source HEAD `b15b0c0...` has Run `39432745217` in QUEUED state. The li
 
 ## Wave 5.14 final documentation checkpoint — 2026-10-20 13:47 UTC
 Immediately before this documentation-only append, live PR HEAD was `7828b825d8e9fb50b0fe0b41a239c140454b3dd0`; base SHA remained `49910e585ee73afcf56a7f8d927b9c69e763c5c5`. Build Run `39432745217` for prior source SHA `b15b0c0...` was QUEUED, and Run `39432344723` for `0b42e588...` was IN PROGRESS. Recovery Dispatcher job `118663216037` was QUEUED; no exact-SHA result for the live HEAD was confirmed. Treat these as separate revisions and do not convert any queued/in-progress run into PASS. The resulting documentation-only HEAD also requires its own exact-SHA Build if exact revision closure is claimed.
+
+
+### W514-P13 — Stale workflow evidence is an old PR head, not a merge SHA
+Run 39416899830 and Run 39416899883 used source commit `6d78b1cba4d0ec829fe26325c9233cd30100d766`, parent `2219b92...`; the Actions API reports `event=pull_request` and `head_branch=wave-4-10/follow-up-reminder-contract`. It was 23 commits behind `266b2a58...` at this correction checkpoint. Continue to classify it as stale evidence, without calling it a synthetic merge candidate.

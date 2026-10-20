@@ -221,7 +221,7 @@ User-facing contract status: Follow-up Reminder Repository/Projection/model/migr
 - Lifecycle history is tested separately from checklist state; the same Task ID, full Task JSON, relationships, record count and occurrence history are saved before process restart and compared by the second integration test after force-stop and relaunch.
 
 ### Evidence state
-The new scenario and restart-snapshot comparison are committed, but they are NOT RUN on the current HEAD. Existing Device Smoke evidence belongs to a stale Merge Candidate and cannot be used as current product acceptance. The official backup/restore test is still NOT VERIFIED because the current harness injects a file-backed service rather than using the real SAF/provider path.
+The new scenario and restart-snapshot comparison are committed, but they are NOT RUN on the current HEAD. Existing Device Smoke evidence belongs to a stale PR head commit and cannot be used as current product acceptance. The official backup/restore test is still NOT VERIFIED because the current harness injects a file-backed service rather than using the real SAF/provider path.
 
 ### User-facing outcome
 Do not mark Checklist/Repeat as accepted until the current-head Device Smoke run passes, all seven occurrence rows show the expected before/after data, no duplicate records appear, and the real restart verifier proves the same Task ID and full store snapshot survived. Do not describe the temporary-file backup harness as official backup/restore.
@@ -233,3 +233,7 @@ The full snapshot/restart-verifier code is present in the source chain through `
 
 ## Wave 5.14 final documentation checkpoint — 2026-10-20 13:47 UTC
 Immediately before this documentation-only append, live PR HEAD was `7828b825d8e9fb50b0fe0b41a239c140454b3dd0`; base SHA remained `49910e585ee73afcf56a7f8d927b9c69e763c5c5`. Build Run `39432745217` for prior source SHA `b15b0c0...` was QUEUED, and Run `39432344723` for `0b42e588...` was IN PROGRESS. Recovery Dispatcher job `118663216037` was QUEUED; no exact-SHA result for the live HEAD was confirmed. Treat these as separate revisions and do not convert any queued/in-progress run into PASS. The resulting documentation-only HEAD also requires its own exact-SHA Build if exact revision closure is claimed.
+
+
+### Revision provenance correction
+The previous Build and Device Smoke run used an old PR source commit `6d78b1cba4d0ec829fe26325c9233cd30100d766`, not a synthetic merge commit. It was 23 commits behind `266b2a58...` at this correction checkpoint; none of its device results prove the updated Checklist/Repeat flow.
