@@ -162,17 +162,20 @@ void main() {
       // The real UI defaults Repeat to "from Task time" when no explicit start
       // date is chosen. Use that canonical Task timestamp as the schedule anchor.
       final anchor = rule.startDate ?? beforeRule.reminderDate ?? beforeRule.createdAt;
+      expect(anchor, isNotNull,
+          reason: 'The UI-created Repeat rule must expose a canonical schedule anchor.');
+      final scheduleAnchor = anchor!;
       final dates = rule.occurrencesBetween(
-        anchor: anchor,
-        from: anchor,
-        to: anchor.add(const Duration(days: 7)),
+        anchor: scheduleAnchor,
+        from: scheduleAnchor,
+        to: scheduleAnchor.add(const Duration(days: 7)),
       );
       expect(dates, hasLength(7));
       expect(
         rule.occurrencesBetween(
-          anchor: anchor,
-          from: anchor,
-          to: anchor.add(const Duration(days: 7)),
+          anchor: scheduleAnchor,
+          from: scheduleAnchor,
+          to: scheduleAnchor.add(const Duration(days: 7)),
         ),
         dates,
         reason: 'Repeat schedule calculation must be idempotent.',
@@ -266,9 +269,9 @@ void main() {
       expect(after.checklistEnabled, isTrue);
       _logOccurrenceStates('post-edit', after, dates);
       final repeatedDates = after.recurrence!.occurrencesBetween(
-        anchor: anchor,
-        from: anchor,
-        to: anchor.add(const Duration(days: 7)),
+        anchor: scheduleAnchor,
+        from: scheduleAnchor,
+        to: scheduleAnchor.add(const Duration(days: 7)),
       );
       expect(repeatedDates, dates,
           reason: 'Re-evaluating Repeat after edit must not add duplicate occurrences.');
