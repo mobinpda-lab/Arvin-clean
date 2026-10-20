@@ -132,14 +132,17 @@ jobs:
               case "$launcher_component" in "$package_id/"*) ;; *) printf '%s\\n' "$launcher_output"; exit 1 ;; esac
               echo "ARVIN_LIFECYCLE_PACKAGE=$package_id"
               echo "ARVIN_LIFECYCLE_LAUNCHER=$launcher_component"
-              adb -s "$device" shell am force-stop "$package_id"
               before_pid="$(adb -s "$device" shell pidof "$package_id" 2>/dev/null | tr -d '\\r' || true)"
-              test -z "$before_pid" || { echo "Expected process stopped but pid remains: $before_pid"; exit 1; }
+              test -n "$before_pid" || { echo "Expected running app before force-stop"; adb -s "$device" shell dumpsys activity activities; exit 1; }
+              adb -s "$device" shell am force-stop "$package_id"
+              stopped_pid="$(adb -s "$device" shell pidof "$package_id" 2>/dev/null | tr -d '\\r' || true)"
+              test -z "$stopped_pid" || { echo "Expected process terminated but pid remains: $stopped_pid"; exit 1; }
               adb -s "$device" shell am start -W -n "$launcher_component" || { adb -s "$device" shell dumpsys activity activities; adb -s "$device" logcat -d -t 300; exit 1; }
               sleep 3
               after_pid="$(adb -s "$device" shell pidof "$package_id" 2>/dev/null | tr -d '\\r' || true)"
               test -n "$after_pid" || { echo "Launcher returned but app process is absent"; adb -s "$device" logcat -d -t 300; exit 1; }
-              echo "ARVIN_LIFECYCLE_RESTART_VERIFIED new_pid=$after_pid"
+              test "$before_pid" != "$after_pid" || { echo "Process ID unchanged across force-stop/restart: $before_pid"; adb -s "$device" logcat -d -t 300; exit 1; }
+              echo "ARVIN_LIFECYCLE_RESTART_VERIFIED old_pid=$before_pid new_pid=$after_pid"
               flutter drive --driver=test_driver/integration_test.dart --target=integration_test/android_task_lifecycle_restart_verify_test.dart -d "$device"; fi; }
 
       - name: Upload Android smoke screenshot evidence
