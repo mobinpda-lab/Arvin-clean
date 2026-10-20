@@ -6,6 +6,7 @@ import 'package:arvin/backup_page.dart';
 import 'package:arvin/backup_service.dart';
 import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/models/task.dart';
+import 'package:arvin/services/persian_date_formatter.dart';
 import 'package:arvin/services/task_recurrence_repository.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:flutter/material.dart';
@@ -108,6 +109,43 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('arvin-task-editor-dialog')), findsOneWidget);
 
+      // Start four local calendar days in the past so the seven real Repeat
+      // occurrences cover four historical days, today, and two future days.
+      final reminderDateRollbox =
+          find.byKey(const ValueKey('task-editor-reminder-date-rollbox'));
+      await tester.ensureVisible(reminderDateRollbox);
+      await tester.tap(reminderDateRollbox);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('تاریخ سفارشی').last);
+      await tester.pumpAndSettle();
+      const formatter = PersianDateFormatter();
+      final pastAnchor = DateTime.now().subtract(const Duration(days: 4));
+      final pastJalali = formatter.toJalali(pastAnchor);
+      for (var attempt = 0; attempt < 3; attempt++) {
+        final visibleYear = tester
+            .widget<DropdownButton<int>>(
+              find.byKey(const ValueKey('persian-date-year')),
+            )
+            .value;
+        final visibleMonth = tester
+            .widget<Text>(
+              find.byKey(const ValueKey('persian-date-month-name')),
+            )
+            .data;
+        if (visibleYear == pastJalali.year &&
+            visibleMonth == formatter.monthName(pastJalali.month)) {
+          break;
+        }
+        await tester.tap(find.byTooltip('ماه قبل'));
+        await tester.pumpAndSettle();
+      }
+      await tester.tap(
+        find.byKey(ValueKey('persian-date-day-${pastJalali.day}')),
+      );
+      await tester.pump();
+      await tester.tap(find.text('تأیید').last);
+      await tester.pumpAndSettle();
+
       final checklistToggle = find.byKey(const ValueKey('task-editor-checklist-toggle'));
       await tester.ensureVisible(checklistToggle);
       await tester.tap(checklistToggle);
@@ -182,22 +220,6 @@ void main() {
       );
 
       final recurrence = TaskRecurrenceRepository(store: store, now: () => today);
-      final before = (await store.load()).singleWhere((task) => task.id == createdId);
-      expect(before.checklistOccurrences, isEmpty,
-          reason: 'The UI setup must not be replaced by test-seeded snapshots.');
-      expect(before.occurrenceHistory, isEmpty,
-          reason: 'The UI setup must not be replaced by test-seeded lifecycle records.');
-      for (var index = 0; index < dates.length; index++) {
-        expect(
-          await recurrence.checklistForOccurrence(createdId, dates[index]),
-          const ['[ ] A', '[ ] B', '[ ] C'],
-          reason: 'Unrecorded occurrence ${dates[index]} must use the unchecked template.',
-        );
-      }
-      debugPrint(
-        'ARVIN_CHECKLIST_PRE_EDIT task_id=${before.id} schedule_count=${dates.length} stored_snapshot_count=${before.checklistOccurrences.length} history_count=${before.occurrenceHistory.length}',
-      );
-      _logOccurrenceStates('pre-edit', before, dates);
 
       // Rebuild Home from canonical storage so the real editor receives the
       // persisted Repeat state rather than a stale in-memory Task copy.
@@ -220,6 +242,98 @@ void main() {
       await tester.ensureVisible(cardTapTarget);
       await tester.tap(cardTapTarget);
       await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey('occurrence-checklist-card')),
+        findsOneWidget,
+        reason: 'Recurring Task Details must show the occurrence-scoped Checklist editor.',
+      );
+      final occurrencePicker =
+          find.byKey(ValueKey('occurrence-checklist-picker-$createdId'));
+      final tickPatterns = <Set<int>>[
+        <int>{0, 2},
+        <int>{1},
+        <int>{2},
+        <int>{0, 1},
+        <int>{},
+        <int>{},
+        <int>{},
+      ];
+      for (var index = 0; index < dates.length; index++) {
+        await tester.tap(occurrencePicker);
+        await tester.pumpAndSettle();
+        final occurrenceLabel = formatter.format(
+          dates[index],
+          usePersianDate: true,
+        );
+        await tester.tap(find.text(occurrenceLabel).last);
+        await tester.pumpAndSettle();
+        for (final itemIndex in tickPatterns[index]) {
+          await tester.tap(
+            find.byKey(
+              ValueKey(
+                'occurrence-checklist-item-$createdId-${dates[index].toIso8601String()}-$itemIndex',
+              ),
+            ),
+          );
+          await tester.pump();
+        }
+        await tester.tap(find.byKey(const ValueKey('occurrence-checklist-save')));
+        await tester.pumpAndSettle();
+      }
+
+      await recurrence.completeOccurrence(
+        createdId,
+        dates[1],
+        completedAt: DateTime.now(),
+      );
+      await recurrence.cancelOccurrence(
+        createdId,
+        dates[2],
+        result: 'Wave 5.14 preservation sentinel',
+      );
+
+      final before = (await store.load()).singleWhere((task) => task.id == createdId);
+      final expectedBefore = <List<String>>[
+        const ['[x] A', '[ ] B', '[x] C'],
+        const ['[ ] A', '[x] B', '[ ] C'],
+        const ['[ ] A', '[ ] B', '[x] C'],
+        const ['[x] A', '[x] B', '[ ] C'],
+        const ['[ ] A', '[ ] B', '[ ] C'],
+        const ['[ ] A', '[ ] B', '[ ] C'],
+        const ['[ ] A', '[ ] B', '[ ] C'],
+      ];
+      final originalSnapshots = <String, List<String>>{
+        for (final entry in before.checklistOccurrences.entries)
+          entry.key: List<String>.of(entry.value),
+      };
+      final originalHistory = <String, Map<String, dynamic>>{
+        for (final entry in before.occurrenceHistory.entries)
+          entry.key: Map<String, dynamic>.from(entry.value),
+      };
+      expect(before.id, createdId);
+      expect(
+        before.checklistOccurrences.keys.toSet(),
+        dates.map((date) => date.toIso8601String()).toSet(),
+        reason: 'All seven snapshots must be created by the real occurrence UI.',
+      );
+      expect(before.checklistOccurrences.length, 7);
+      for (var index = 0; index < dates.length; index++) {
+        expect(
+          before.checklistOccurrences[dates[index].toIso8601String()],
+          expectedBefore[index],
+          reason: 'Occurrence ${dates[index]} must retain its own UI-saved ticks.',
+        );
+      }
+      expect(originalHistory.keys.toSet(), {
+        dates[1].toIso8601String(),
+        dates[2].toIso8601String(),
+      });
+      debugPrint(
+        'ARVIN_CHECKLIST_PRE_EDIT task_id=${before.id} schedule_count=${dates.length} stored_snapshot_count=${before.checklistOccurrences.length} history_count=${before.occurrenceHistory.length}',
+      );
+      _logOccurrenceStates('pre-edit', before, dates);
+
       await tester.tap(find.byKey(const ValueKey('task-detail-edit')));
       await tester.pumpAndSettle();
       // The detail callback awaits canonical editor preparation before showing
@@ -274,19 +388,46 @@ void main() {
       expect(after.checklist, const ['[ ] A', '[ ] B', '[ ] D']);
       expect(after.recurrence, isNotNull);
       expect(after.recurrence!.frequency, RecurrenceFrequency.daily);
-      expect(after.checklistOccurrences, isEmpty,
-          reason: 'Editing the template must not materialize test-created occurrence snapshots.');
-      expect(after.occurrenceHistory, isEmpty,
-          reason: 'Editing the template must not fabricate lifecycle history.');
-      for (final date in dates) {
+      expect(
+        after.checklistOccurrences.keys.toSet(),
+        originalSnapshots.keys.toSet(),
+        reason: 'Template edit must preserve the exact set of real occurrence keys.',
+      );
+      expect(after.checklistOccurrences.length, 7);
+      for (var index = 0; index < 4; index++) {
         expect(
-          await recurrence.checklistForOccurrence(createdId, date),
-          const ['[ ] A', '[ ] B', '[ ] D'],
-          reason: 'Current/future computed occurrence $date must use the new unchecked template.',
+          after.checklistOccurrences[dates[index].toIso8601String()],
+          originalSnapshots[dates[index].toIso8601String()],
+          reason: 'Past occurrence ${dates[index]} must preserve its checklist and ticks.',
         );
       }
+      for (var index = 4; index < 7; index++) {
+        expect(
+          after.checklistOccurrences[dates[index].toIso8601String()],
+          const ['[ ] A', '[ ] B', '[ ] D'],
+          reason: 'Current/future occurrence ${dates[index]} must rebuild unchecked.',
+        );
+      }
+      expect(after.occurrenceHistory, originalHistory);
       expect(after.completed, isFalse);
       expect(after.checklistEnabled, isTrue);
+      for (var index = 0; index < dates.length; index++) {
+        expect(
+          await recurrence.checklistForOccurrence(createdId, dates[index]),
+          index < 4
+              ? originalSnapshots[dates[index].toIso8601String()]
+              : const ['[ ] A', '[ ] B', '[ ] D'],
+        );
+      }
+      final refreshedLastItem = tester.widget<CheckboxListTile>(
+        find.byKey(
+          ValueKey(
+            'occurrence-checklist-item-$createdId-${dates.last.toIso8601String()}-2',
+          ),
+        ),
+      );
+      expect((refreshedLastItem.title as Text).data, 'D');
+      expect(refreshedLastItem.value, isFalse);
       _logOccurrenceStates('post-edit', after, dates);
       final repeatedDates = after.recurrence!.occurrencesBetween(
         anchor: scheduleAnchor,

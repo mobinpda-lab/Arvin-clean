@@ -25,6 +25,7 @@ class TaskDetailPage extends StatefulWidget {
     this.onEditFollowUp,
     this.onComplete,
     this.onChecklistChanged,
+    this.onOccurrenceChecklistSaved,
     this.now,
     this.initialFollowUpId,
   });
@@ -36,6 +37,7 @@ class TaskDetailPage extends StatefulWidget {
   final Future<FollowUp> Function(Task task, FollowUp followUp)? onEditFollowUp;
   final Future<Task?> Function(Task task)? onComplete;
   final Future<Task?> Function(Task task, List<String> checklist)? onChecklistChanged;
+  final Future<void> Function(Task task)? onOccurrenceChecklistSaved;
   final DateTime? now;
   final String? initialFollowUpId;
 
@@ -301,10 +303,19 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     setState(() => _task = updated);
   }
 
+  Future<void> _occurrenceChecklistSaved(Task updated) async {
+    if (!mounted) return;
+    setState(() => _task = updated);
+    await widget.onOccurrenceChecklistSaved?.call(updated);
+  }
+
   Widget _checklistCard() {
     // Repeating Tasks expose occurrence execution state, never the shared template.
     if (_task.recurrence != null) {
-      return OccurrenceChecklistEditor(task: _task);
+      return OccurrenceChecklistEditor(
+        task: _task,
+        onTaskUpdated: _occurrenceChecklistSaved,
+      );
     }
     if (!_task.checklistEnabled || _task.checklist.isEmpty) {
       return const SizedBox.shrink();

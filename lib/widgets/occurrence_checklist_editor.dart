@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../models/task.dart';
@@ -11,10 +13,12 @@ class OccurrenceChecklistEditor extends StatefulWidget {
     super.key,
     required this.task,
     TaskRecurrenceRepository? repository,
+    this.onTaskUpdated,
   }) : repository = repository ?? TaskRecurrenceRepository();
 
   final Task task;
   final TaskRecurrenceRepository repository;
+  final Future<void> Function(Task task)? onTaskUpdated;
 
   @override
   State<OccurrenceChecklistEditor> createState() =>
@@ -26,6 +30,21 @@ class _OccurrenceChecklistEditorState extends State<OccurrenceChecklistEditor> {
   List<String> _items = const [];
   bool _busy = false;
   String? _error;
+
+  @override
+  void didUpdateWidget(covariant OccurrenceChecklistEditor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.task, widget.task)) {
+      final selected = _selectedKey;
+      if (selected != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _selectedKey == selected) {
+            unawaited(_selectOccurrence(selected));
+          }
+        });
+      }
+    }
+  }
 
   List<DateTime> _choices() {
     final task = widget.task;
@@ -108,7 +127,7 @@ class _OccurrenceChecklistEditorState extends State<OccurrenceChecklistEditor> {
       _error = null;
     });
     try {
-      await widget.repository.setChecklistForOccurrence(
+      final updated = await widget.repository.setChecklistForOccurrence(
         widget.task.id,
         occurrence,
         _items,
@@ -119,6 +138,7 @@ class _OccurrenceChecklistEditorState extends State<OccurrenceChecklistEditor> {
       );
       if (!mounted) return;
       setState(() => _items = List<String>.of(persisted));
+      await widget.onTaskUpdated?.call(updated);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('چک‌لیست همین نوبت ذخیره شد')),
       );

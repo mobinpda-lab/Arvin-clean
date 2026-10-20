@@ -1495,6 +1495,17 @@ class _HomePageState extends State<HomePage> {
     return updated;
   }
 
+  Future<void> _occurrenceChecklistSaved(Task updated) async {
+    final index = tasks.indexWhere((item) => item.id == updated.id);
+    if (index < 0) {
+      throw StateError('Task not found after occurrence checklist save: ${updated.id}');
+    }
+    final nextTasks = List<Task>.of(tasks);
+    nextTasks[index] = updated;
+    if (!mounted) return;
+    setState(() => tasks = nextTasks);
+  }
+
   Future<Task?> _checklistChangedFromDetail(
     Task task,
     List<String> checklist,
@@ -1621,6 +1632,7 @@ class _HomePageState extends State<HomePage> {
           onAddFollowUp: _addFollowUpFromDetail,
           onComplete: _completeFromDetail,
           onChecklistChanged: _checklistChangedFromDetail,
+          onOccurrenceChecklistSaved: _occurrenceChecklistSaved,
         ),
       ),
     );
