@@ -50,7 +50,7 @@ jobs:
           actual="$(git rev-parse HEAD)"
           echo "EXPECTED_CHECKOUT_SHA=$TARGET_SHA"
           echo "ACTUAL_CHECKOUT_SHA=$actual"
-          if [[ "$actual" != "$TARGET_SHA" ]]; then
+          if ! test "$actual" = "$TARGET_SHA"; then
             echo "::error::Preflight checkout does not match expected revision"
             exit 1
           fi
@@ -88,7 +88,7 @@ jobs:
           actual="$(git rev-parse HEAD)"
           echo "EXPECTED_CHECKOUT_SHA=$TARGET_SHA"
           echo "ACTUAL_CHECKOUT_SHA=$actual"
-          if [[ "$actual" != "$TARGET_SHA" ]]; then
+          if ! test "$actual" = "$TARGET_SHA"; then
             echo "::error::Checked-out revision does not match expected revision"
             exit 1
           fi
@@ -196,7 +196,7 @@ jobs:
           actual="$(git rev-parse HEAD)"
           echo "EXPECTED_CHECKOUT_SHA=$TARGET_SHA"
           echo "ACTUAL_CHECKOUT_SHA=$actual"
-          if [[ "$actual" != "$TARGET_SHA" ]]; then
+          if ! test "$actual" = "$TARGET_SHA"; then
             echo "::error::Checked-out revision does not match expected revision"
             exit 1
           fi
@@ -244,12 +244,14 @@ jobs:
           flutter pub get --enforce-lockfile
           git diff --exit-code -- pubspec.lock
       - name: Build APK
+        env:
+          ARVIN_OFFICIAL_RELEASE: 'false'
         run: flutter build apk --${{ matrix.variant }} -t lib/main.dart
       - name: Verify APK
         run: test -s "build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk"
       - name: Upload APK
         uses: actions/upload-artifact@v5
         with:
-          name: arvin-${{ matrix.variant }}-apk
+          name: arvin-ci-${{ matrix.variant }}-apk-${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.sha }}-nonproduction
           path: build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk
           if-no-files-found: error

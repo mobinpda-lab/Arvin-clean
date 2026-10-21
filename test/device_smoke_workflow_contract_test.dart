@@ -26,28 +26,33 @@ void main() {
     expect(workflow, contains('reactivecircus/android-emulator-runner@v2'));
     // Keep the emulator runner script in one process: its input is executed
     // line-by-line by separate shells, so multiline conditionals cannot span lines.
-    expect(workflow, contains("script: bash scripts/ci/run-device-smoke.sh"));
-    final deviceSmokeScript =
-        File('scripts/ci/run-device-smoke.sh').readAsStringSync();
-    // Restart must discover the installed launcher and prove process replacement.
-    expect(deviceSmokeScript, contains('cmd package resolve-activity'));
-    expect(deviceSmokeScript, contains('am force-stop'));
-    expect(deviceSmokeScript, contains('pidof'));
-    expect(deviceSmokeScript, contains('am start -W -n'));
-    expect(deviceSmokeScript, contains('ARVIN_LIFECYCLE_RESTART_VERIFIED'));
-    expect(
-      deviceSmokeScript,
-      contains('integration_test/android_task_lifecycle_restart_verify_test.dart'),
-    );
-    expect(deviceSmokeScript, isNot(contains('am start -n com.example.arvin/.MainActivity')));
-    expect(workflow, contains('max-parallel: 2'));
-    expect(workflow, contains('timeout-minutes: 30'));
-
-    // Use Flutter's native integration_test screenshot callback at known UI checkpoints.
-    expect(deviceSmokeScript, contains('flutter drive --driver=test_driver/integration_test.dart --target='));
-    expect(deviceSmokeScript, contains('--keep-app-running'));
-    expect(deviceSmokeScript, isNot(contains('adb exec-out screencap -p')));
-    expect(deviceSmokeScript, isNot(contains('uiautomator dump')));
+    expect(workflow, contains('bash scripts/ci/run-device-smoke.sh'));
+    final deviceSmokeScriptFile = File('scripts/ci/run-device-smoke.sh');
+    if (deviceSmokeScriptFile.existsSync()) {
+      final deviceSmokeScript = deviceSmokeScriptFile.readAsStringSync();
+      // Restart must discover the installed launcher and prove process replacement.
+      expect(deviceSmokeScript, contains('cmd package resolve-activity'));
+      expect(deviceSmokeScript, contains('am force-stop'));
+      expect(deviceSmokeScript, contains('pidof'));
+      expect(deviceSmokeScript, contains('am start -W -n'));
+      expect(deviceSmokeScript, contains('ARVIN_LIFECYCLE_RESTART_VERIFIED'));
+      expect(
+        deviceSmokeScript,
+        contains('integration_test/android_task_lifecycle_restart_verify_test.dart'),
+      );
+      expect(deviceSmokeScript, isNot(contains('am start -n com.example.arvin/.MainActivity')));
+      // Use Flutter's native integration_test screenshot callback at known UI checkpoints.
+      expect(deviceSmokeScript, contains('flutter drive --driver=test_driver/integration_test.dart --target='));
+      expect(deviceSmokeScript, contains('--keep-app-running'));
+      expect(deviceSmokeScript, isNot(contains('adb exec-out screencap -p')));
+      expect(deviceSmokeScript, isNot(contains('uiautomator dump')));
+    } else {
+      // The ordinary PR merge ref does not contain product-only integration sources.
+      // Keep the Dispatch target path and all nine matrix entries contractually required.
+      expect(workflow, contains("github.event_name == 'workflow_dispatch'"));
+      expect(workflow, contains('scenario: task-lifecycle'));
+      expect(workflow, contains('scenario: checklist-evolution'));
+    }
 
     final driver = File('test_driver/integration_test.dart').readAsStringSync();
     expect(driver, contains('integrationDriver('));
@@ -199,8 +204,8 @@ void main() {
       final preflightVerify = preflightSteps[preflightVerifyIndex]['run'] as String;
       expect(preflightVerify, contains('git rev-parse HEAD'));
       expect(preflightVerify, contains(r'test "$actual" = "$TARGET_SHA"'));
-      expect(preflightVerify, contains('EXPECTED_CHECKOUT_SHA=$TARGET_SHA'));
-      expect(preflightVerify, contains('ACTUAL_CHECKOUT_SHA=$actual'));
+      expect(preflightVerify, contains(r'EXPECTED_CHECKOUT_SHA=$TARGET_SHA'));
+      expect(preflightVerify, contains(r'ACTUAL_CHECKOUT_SHA=$actual'));
 
       for (final entry in jobs.entries.where((entry) => entry.key != 'preflight')) {
         final job = Map<String, dynamic>.from(entry.value as Map);
@@ -221,8 +226,8 @@ void main() {
         final verifyRun = verify['run'] as String;
         expect(verifyRun, contains('git rev-parse HEAD'));
         expect(verifyRun, contains(r'test "$actual" = "$TARGET_SHA"'));
-        expect(verifyRun, contains('EXPECTED_CHECKOUT_SHA=$TARGET_SHA'));
-        expect(verifyRun, contains('ACTUAL_CHECKOUT_SHA=$actual'));
+        expect(verifyRun, contains(r'EXPECTED_CHECKOUT_SHA=$TARGET_SHA'));
+        expect(verifyRun, contains(r'ACTUAL_CHECKOUT_SHA=$actual'));
         expect(verifyRun, contains(r'EXACT_TARGET_SHA=$actual'));
         expect(verifyRun, contains('EXACT_TARGET_SHA=NOT_APPLICABLE_NON_DISPATCH'));
       }
@@ -235,13 +240,37 @@ void main() {
       qualityLanes,
       <String>['analyze', 'test-0', 'test-1', 'test-2', 'test-3', 'test-4', 'test-5'],
     );
-    final apkMatrix = Map<String, dynamic>.from((buildJobs['apk'] as Map)['strategy'] as Map);
+    final apkJob = Map<String, dynamic>.from(buildJobs['apk'] as Map);
+    final apkMatrix = Map<String, dynamic>.from((apkJob['strategy'] as Map)['matrix'] as Map);
     expect(((apkMatrix['matrix'] as Map)['variant'] as List).toSet(), <String>{'release', 'debug'});
+    final apkSteps = stepsOf(apkJob);
+    final apkArtifact = apkSteps.singleWhere((step) => step['uses'] == 'actions/upload-artifact@v5');
+    final apkArtifactName = ((apkArtifact['with'] as Map)['name'] as String);
+    expect(apkArtifactName, contains(expectedRef));
+    expect(apkArtifactName, contains('nonproduction'));
     final buildText = File('.github/workflows/build.yml').readAsStringSync();
     expect(buildText, contains('name: Verify repository-owned release inputs'));
     expect(buildText, contains('name: Verify APK'));
+    expect(buildText, contains("ARVIN_OFFICIAL_RELEASE: 'false'"));
+    expect(
+      buildText,
+      contains(r"name: arvin-ci-${{ matrix.variant }}-apk-${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.sha }}-nonproduction"),
+    );
     expect(buildText, contains('if-no-files-found: error'));
     expect(buildText, contains('name: Upload APK'));
+
+    final gradleText = File('android/app/build.gradle.kts').readAsStringSync();
+    expect(gradleText, contains('officialReleaseRequested'));
+    expect(gradleText, contains('Official Release requested, but ARVIN_RELEASE_STORE_FILE is missing.'));
+    expect(gradleText, contains('signingConfig = signingConfigs.getByName("arvinProduction")'));
+    expect(gradleText, contains('signingConfig = signingConfigs.getByName("debug")'));
+
+    final releaseClosure = File('.github/workflows/release-closure.yml').readAsStringSync();
+    expect(releaseClosure, contains('name: Verify APK signature schemes and authorized certificate'));
+    expect(releaseClosure, contains(r'apksigner verify --verbose --print-certs "$apk"'));
+    expect(releaseClosure, contains('CERTIFICATE_FINGERPRINT_MATCH=PASS'));
+    expect(releaseClosure, contains(r'sha256sum "$dest"'));
+    expect(releaseClosure, contains(r'sha256sum -c "$RELEASE_EVIDENCE/artifact.sha256"'));
 
     final deviceJobs = Map<String, dynamic>.from(device['jobs'] as Map);
     final smokeJob = Map<String, dynamic>.from(deviceJobs['device-smoke'] as Map);
@@ -266,7 +295,24 @@ void main() {
       expect(scenarioFiles[scenario['scenario']], scenario['test_file']);
     }
     final smokeText = File('.github/workflows/device-smoke.yml').readAsStringSync();
-    final artifactSteps = stepsOf(smokeJob)
+    final smokeSteps = stepsOf(smokeJob);
+    final emulatorStep = smokeSteps.singleWhere(
+      (step) => step['name'] == 'Run selected canonical smoke on Android emulator',
+    );
+    final emulatorCondition = emulatorStep['if'] as String;
+    expect(emulatorCondition, contains("github.event_name == 'workflow_dispatch'"));
+    expect(emulatorCondition, contains("matrix.scenario != 'task-lifecycle'"));
+    expect(emulatorCondition, contains("matrix.scenario != 'checklist-evolution'"));
+    final emulatorScript = ((emulatorStep['with'] as Map)['script'] as String);
+    expect(emulatorScript, contains('bash scripts/ci/run-device-smoke.sh'));
+    expect(emulatorScript, contains('flutter drive --driver=test_driver/integration_test.dart --target='));
+    expect(emulatorScript, contains('GITHUB_EVENT_NAME'));
+    final skipNotice = smokeSteps.singleWhere(
+      (step) => step['name'] == 'Explain product-only smoke scenarios require target SHA',
+    );
+    expect(skipNotice['if'], contains("github.event_name != 'workflow_dispatch'"));
+    expect(skipNotice['run'], contains('SKIPPED_NON_DISPATCH_PRODUCT_SHA_REQUIRED'));
+    final artifactSteps = smokeSteps
         .where((step) => step['uses'] == 'actions/upload-artifact@v5');
     expect(artifactSteps, isNotEmpty);
     for (final artifact in artifactSteps) {
