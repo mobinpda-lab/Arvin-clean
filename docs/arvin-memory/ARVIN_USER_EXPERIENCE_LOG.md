@@ -335,3 +335,9 @@ The previous Build and Device Smoke run used an old PR source commit `6d78b1cba4
 - Task Lifecycle source uses the actual Arvin UI and checks a single identifiable Task through creation, edit and completion. The runner's restart path force-stops the app, records the old PID, verifies process absence, launches the package, requires a different new PID, and starts a separate persistence verifier. These runtime steps have not been observed in a successful device run yet.
 - Checklist Evolution source exercises the actual UI and checks A/B/C → A/B/D, seven occurrence snapshots, history preservation, idempotent Repeat evaluation, backup/restore and a saved pre-restart snapshot. The after-restart verifier has not run in an accepted exact-SHA dispatch.
 - Preserve existing capabilities; mark these scenarios `IMPLEMENTED — ACCEPTANCE BLOCKED`, not removed and not PASS. Fresh CI Build/Device Smoke remained in progress at the time of this note. No product capability inventory is implied by these two scenarios.
+
+
+## WAVE 5.55 — Acceptance Notes
+- Build and Fast Lane passed. Seven device smoke scenarios passed their main emulator step on merge SHA `6040ca631cd3ed9dab9dcdafb55816bddc01990a`.
+- Task Lifecycle and Checklist Evolution remain `IMPLEMENTED IN SOURCE — ACCEPTANCE BLOCKED`; their primary emulator steps were skipped. No actual PID values, post-restart Task state, or checklist occurrence snapshot comparisons were produced.
+- Do not infer product regression or removal. Preserve current product implementation; exact-SHA authorized dispatch is the next acceptance action.

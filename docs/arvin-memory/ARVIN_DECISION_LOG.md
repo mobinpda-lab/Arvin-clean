@@ -637,3 +637,10 @@ The old Device Smoke / Build run used PR source commit `6d78b1cba4d0ec829fe26325
 - Corrected a stale CI contract rather than changing the smoke assertions: commit [`237c713`](https://github.com/mobinpda-lab/Arvin-clean/commit/237c71301d8528845e703dfc737a667bcce7f170) updates `tool/validate_fast_lane.py` to validate the delegated runner and all nine scenarios. Fresh contract run `39555184967` passed; full Build `39555184948` and Device Smoke `39555184902` were still running when recorded.
 - CI APK is nonproduction. Extracted SHA-256 `12aa351e573d70b0a079db06fc7c3df9880d9c313db502d703424673e2d78f41`; `apksigner` and independently trusted fingerprint matching were unavailable here. Decision: `NOT VERIFIED`; do not approve APK for release.
 - Keep release fail-closed; no merge, tag, or release. Final status: `BLOCKED — RELEASE: NO-GO`.
+
+
+## WAVE 5.55 — Decisions
+- Build Run `39555184948` and Fast Lane Run `39555184967` completed successfully. Device Smoke Run `39555184902` is green overall but only seven primary scenario steps passed; Task Lifecycle and Checklist Evolution were explicitly skipped and remain unaccepted.
+- Device run logs prove the checkout matched merge SHA `6040ca631cd3ed9dab9dcdafb55816bddc01990a`; the event is `pull_request`, not `workflow_dispatch`, and no explicit authorized dispatch was initiated. Do not call this Exact-SHA acceptance.
+- Downloaded only the nonproduction APK. SHA-256 is recorded in the evidence map; no `apksigner` and no trusted official fingerprint match means signature gate remains `NOT VERIFIED`.
+- Preserve all nine smoke scenarios and existing product code. No merge/tag/release; release stays `BLOCKED — RELEASE: NO-GO`.

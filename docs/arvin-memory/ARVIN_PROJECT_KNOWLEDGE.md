@@ -347,3 +347,10 @@ Implementation note: event UPDATE/DELETE verify event ID and calendar ownership 
 - Extracted nonproduction APK SHA-256: `12aa351e573d70b0a079db06fc7c3df9880d9c313db502d703424673e2d78f41`; `apksigner` unavailable locally, official fingerprint not independently matched. Status `NOT VERIFIED`.
 - Fast Lane contract validator now follows the actual shell runner (commit `237c713`); contract Run `39555184967` passed while full Build `39555184948` and Device Smoke `39555184902` were in progress.
 - Exact-SHA Dispatch remains `BLOCKED — DISPATCH UNAVAILABLE`; no PR-run substitution, merge, tag or release. `BLOCKED — RELEASE: NO-GO`.
+
+
+## WAVE 5.55 — Technical Facts
+- Build Run `39555184948`: all 10 jobs successful; PR head `237c71301d8528845e703dfc737a667bcce7f170`. Device Smoke Run `39555184902`: PR event, actual checkout merge SHA `6040ca631cd3ed9dab9dcdafb55816bddc01990a`, seven primary scenario passes and two skips. Fast Lane Run `39555184967` passed.
+- Device logs explicitly record `DEVICE_SMOKE_STATUS=SKIPPED_NON_DISPATCH_PRODUCT_SHA_REQUIRED` for Task Lifecycle and Checklist Evolution. Existing product tests contain restart/PID and checklist history/idempotency assertions, but these have no runtime PASS.
+- Nonproduction APK artifact `12325292193`: ZIP digest `361e7b86265c230fd6f942b65d15ca733610648dd9932194f57872199c29c96f`; APK digest `a6341364ffbaff51417e14d7cc5c68d5f61cbdfca2c29fcb8cce27043273690c`. No `apksigner` locally; no trusted official fingerprint match. `NOT VERIFIED`.
+- Exact-SHA dispatch unavailable; no release/merge/tag. `BLOCKED — RELEASE: NO-GO`.

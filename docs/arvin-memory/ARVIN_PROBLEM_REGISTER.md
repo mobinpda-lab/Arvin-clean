@@ -764,3 +764,10 @@ Do not mark any row PASS because the concept is documented or a model class exis
 5. **Fast Lane contract fixed; full rerun pending at checkpoint.** Run `39547647969` failed because validator expected inline `flutter drive`; CI-only commit [`237c713`](https://github.com/mobinpda-lab/Arvin-clean/commit/237c71301d8528845e703dfc737a667bcce7f170) checks the delegated script. Contract Run `39555184967` passed; Build `39555184948` and Device Smoke `39555184902` were still running when recorded.
 
 Do not close these blockers based on source inspection or overall green workflow status. Release: `BLOCKED — RELEASE: NO-GO`.
+
+
+## WAVE 5.55 — Open Blockers
+1. **Task Lifecycle / Checklist Evolution:** Device Smoke Run `39555184902`, Jobs `119073235009` and `119073234891`, main emulator step `SKIPPED`, reason `SKIPPED_NON_DISPATCH_PRODUCT_SHA_REQUIRED`. Next: use authorized Actions dispatch on a revision containing both the workflow and product tests; inspect Task ID/status, old PID, process termination, new PID, post-restart state and checklist snapshots/occurrences.
+2. **Exact-SHA Dispatch:** `BLOCKED — DISPATCH UNAVAILABLE`; the connected tool surface exposes no dispatch operation. Next: run Build and Device Smoke through an authorized GitHub Actions interface with one explicit identical `target_sha`; preserve target/actual SHA and run/job/event evidence.
+3. **Official APK signature:** nonproduction artifact `12325292193`, APK SHA-256 `a6341364ffbaff51417e14d7cc5c68d5f61cbdfca2c29fcb8cce27043273690c`. Local `apksigner` absent and trusted official fingerprint unavailable. Next: verify in authorized Android SDK environment and compare signer digest with separately approved reference; do not expose secrets.
+4. No comprehensive product audit performed; absence of test evidence is not evidence of feature removal. Release remains `BLOCKED — RELEASE: NO-GO`.

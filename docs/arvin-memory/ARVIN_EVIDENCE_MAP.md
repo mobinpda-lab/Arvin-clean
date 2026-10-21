@@ -981,3 +981,11 @@ The artifact proves a real writable-provider lifecycle for the older PR integrat
 - Artifact: Run `39547647963`, artifact `12322955907`, nonproduction Release-variant APK; ZIP digest `sha256:1b891d63c74c9da4ed4e5f2ffc59693c118f85ef90889bbc9c217c99ff378ac8`; extracted APK SHA-256 `12aa351e573d70b0a079db06fc7c3df9880d9c313db502d703424673e2d78f41`. `apksigner` unavailable locally and no trusted production fingerprint match was verified: `NOT VERIFIED`.
 - The CI PR's `.github/workflows/release-closure.yml` contains a fail-closed keystore/credential check, `apksigner verify --verbose --print-certs`, SHA-256 fingerprint comparison to `ARVIN_RELEASE_CERT_SHA256`, and artifact hash verification. Source contract presence is not proof that this specific APK passed those release-closure steps.
 - Exact-SHA: `BLOCKED — DISPATCH UNAVAILABLE`. No official release or tag; `BLOCKED — RELEASE: NO-GO`.
+ 
+
+## WAVE 5.55 — Evidence Map
+- Build Run `39555184948`: SUCCESS on PR event/head `237c71301d8528845e703dfc737a667bcce7f170`; all 10 Jobs succeeded. [Run](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39555184948)
+- Device Smoke Run `39555184902`: SUCCESS overall, but actual checkout was merge SHA `6040ca631cd3ed9dab9dcdafb55816bddc01990a`. Primary steps PASS: Home `119073234793`, Backup/Restore `119073234874`, People `119073234886`, SQL Migration `119073234892`, SQL Persistence `119073234925`, Quick Capture `119073234993`, Calendar `119073235000`. Primary steps SKIPPED: Task Lifecycle `119073235009`, Checklist Evolution `119073234891`. [Run](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39555184902)
+- Fast Lane Run `39555184967`: SUCCESS, contract Job `119073200025`. [Run](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39555184967)
+- Nonproduction APK artifact `12325292193`: ZIP SHA-256 `361e7b86265c230fd6f942b65d15ca733610648dd9932194f57872199c29c96f`; extracted APK SHA-256 `a6341364ffbaff51417e14d7cc5c68d5f61cbdfca2c29fcb8cce27043273690c`. No `apksigner` locally; official fingerprint not independently confirmed; `NOT VERIFIED`.
+- Exact-SHA Dispatch `BLOCKED — DISPATCH UNAVAILABLE`. Release `BLOCKED — RELEASE: NO-GO`.

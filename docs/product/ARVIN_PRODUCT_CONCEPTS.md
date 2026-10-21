@@ -424,3 +424,10 @@ This note records only the Task Lifecycle and recurring Checklist evidence bound
 - **Next acceptance action:** authorized Exact-SHA Build and Device Smoke dispatch with the same explicit product SHA, then inspect each scenario's primary step, logs, Task identity/state, old/new PID and occurrence/tick snapshots. Keep other existing features intact; this note does not classify unexamined capabilities as removed or fully accepted.
 
 Release remains `BLOCKED — RELEASE: NO-GO`.
+
+
+## WAVE 5.55 — Capability Acceptance Boundary
+- **Implemented in source; acceptance blocked:** Task create/edit/complete and post-restart verifier with PID checks; recurring checklist edit A/B/C → A/B/D with occurrence/history/tick/idempotency and restart-snapshot assertions.
+- **Runtime result:** Task Lifecycle Job `119073235009` and Checklist Evolution Job `119073234891` in Device Smoke Run `39555184902` skipped their primary emulator step. Do not classify as PASS or as removed.
+- **Other smoke evidence:** seven primary scenario steps passed on merge SHA `6040ca631cd3ed9dab9dcdafb55816bddc01990a`; this is not a full product capability audit.
+- **Release gate:** nonproduction APK SHA-256 `a6341364ffbaff51417e14d7cc5c68d5f61cbdfca2c29fcb8cce27043273690c`; signature and official fingerprint `NOT VERIFIED`. Exact-SHA dispatch unavailable. Release remains `BLOCKED — RELEASE: NO-GO`.
