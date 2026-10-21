@@ -175,7 +175,7 @@ void main() {
         concurrency['group'],
         contains('github.event.pull_request.number || github.ref_name'),
       );
-      expect(concurrency['cancel-in-progress'], isTrue);
+      expect(concurrency['cancel-in-progress'], r"${{ github.event_name != 'workflow_dispatch' }}");
 
       final jobs = Map<String, dynamic>.from(workflow['jobs'] as Map);
       final preflight = Map<String, dynamic>.from(jobs['preflight'] as Map);
