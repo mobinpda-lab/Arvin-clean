@@ -206,10 +206,25 @@ jobs:
           apksigner="$(find "$ANDROID_HOME/build-tools" -mindepth 2 -maxdepth 2 -name apksigner -type f | sort -V | tail -n 1)"
           test -n "$apksigner"
           "$apksigner" verify --verbose --print-certs "$apk"
+          aapt="$(find "$ANDROID_HOME/build-tools" -mindepth 2 -maxdepth 2 -name aapt -type f | sort -V | tail -n 1)"
+          test -n "$aapt"
+          badging="$("$aapt" dump badging "$apk")"
+          application_id="$(printf '%s\n' "$badging" | sed -n "s/^package: name='\([^']*\)'.*/\1/p" | head -n 1)"
+          version_code="$(printf '%s\n' "$badging" | sed -n "s/^package: .*versionCode='\([^']*\)'.*/\1/p" | head -n 1)"
+          version_name="$(printf '%s\n' "$badging" | sed -n "s/^package: .*versionName='\([^']*\)'.*/\1/p" | head -n 1)"
+          test -n "$application_id"
+          test -n "$version_code"
+          test -n "$version_name"
+          if [ "$application_id" = "com.example.arvin" ]; then
+            echo "::error::Release APK blocked: applicationId is still the placeholder com.example.arvin; approve and configure the production application ID first."
+            exit 1
+          fi
           apk_sha256="$(sha256sum "$apk" | awk '{print $1}')"
           {
             echo "### Release APK integrity"
             echo "- Built checkout SHA: `$GITHUB_SHA`"
+            echo "- Application ID: `$application_id`"
+            echo "- Version: `$version_name` (code `$version_code`)"
             echo "- APK path: `$apk`"
             echo "- APK SHA-256: `$apk_sha256`"
             echo "- Signature: `apksigner verify` passed"
