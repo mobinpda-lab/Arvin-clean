@@ -196,7 +196,7 @@ jobs:
           keystore="$RUNNER_TEMP/arvin-release-keystore.jks"
           printf '%s' "$ARVIN_RELEASE_KEYSTORE_BASE64" | base64 --decode > "$keystore"
           test -s "$keystore"
-          keytool -list -keystore "$keystore" -storepass "$ARVIN_RELEASE_STORE_PASSWORD" -alias "$ARVIN_RELEASE_KEY_ALIAS" >/dev/null
+          keytool -list -keystore "$keystore" -storepass:env ARVIN_RELEASE_STORE_PASSWORD -alias "$ARVIN_RELEASE_KEY_ALIAS" >/dev/null
           echo "ARVIN_RELEASE_STORE_FILE=$keystore" >> "$GITHUB_ENV"
           echo "Trusted release keystore and alias validated; sensitive values were not logged."
       - name: Build APK
