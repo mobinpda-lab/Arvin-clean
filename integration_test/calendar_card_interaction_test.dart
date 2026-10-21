@@ -41,10 +41,10 @@ void main() {
         ],
       );
       await store.save([seed]);
-      final persisted = await store.load();
-      final persistedSeed = persisted.where((task) => task.id == taskId).toList();
+      final roundTripTasks = await store.load();
+      final persistedSeed = roundTripTasks.where((task) => task.id == taskId).toList();
       debugPrint(
-        'CALENDAR_SMOKE_DIAGNOSTIC: persistedTasks=${persisted.length}; '
+        'CALENDAR_SMOKE_DIAGNOSTIC: persistedTasks=${roundTripTasks.length}; '
         'seedMatches=${persistedSeed.length}; '
         'followUpCount=${persistedSeed.isEmpty ? 0 : persistedSeed.single.followUps.length}; '
         'reminderPresent=${persistedSeed.isNotEmpty && persistedSeed.single.followUps.any((item) => item.id == followUpId && item.reminderDate == reminderAt)}',
