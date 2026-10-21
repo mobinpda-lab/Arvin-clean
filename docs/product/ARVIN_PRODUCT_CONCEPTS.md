@@ -1,3 +1,16 @@
+
+## Wave 5.48 — live execution and acceptance boundary (2026-10-21)
+
+- **Product source SHA:** `4214101dd9a93542783fb97eb0d4a5cb34643950`; current product branch contains a separate documentation-only update. Application code was not changed by the Wave 5.48 documentation commit.
+- **CI candidate:** [`2b80a874115e060d3af8cc581044497eaae9684a`](https://github.com/mobinpda-lab/Arvin-clean/commit/2b80a874115e060d3af8cc581044497eaae9684a). Build [39541308357](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39541308357) was `in_progress`; Device Smoke [39541308381](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39541308381) was `queued` at the snapshot. Neither result is PASS until all relevant jobs are terminal.
+- The previous candidate Build [39539888519](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39539888519) failed Analyze and test compilation; Device Smoke [39539888499](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39539888499) failed because the PR merge revision lacked the product-only smoke script. The Fast Lane contract [39541308355](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39541308355) failed because the CI artifact name was changed away from its explicit contract. The correction must preserve that contract and add provenance separately.
+- **Dispatch gate:** `BLOCKED — DISPATCH UNAVAILABLE`. A PR-triggered workflow is not an exact-SHA Dispatch. The product matrix still must include all nine scenarios, with Task lifecycle and Checklist evolution actually run when Dispatch checks out this product SHA.
+- **Product invariants remain unchanged:** one canonical Task identity; Repeat rules and Occurrences do not create parallel Task sources of truth; Checklist evolution preserves historical snapshots; Calendar uses a stable provider link; Backup/Restore must preserve the same Task; notification routing must open the intended Task; Persian PDF/RTL requires visual acceptance; official signing must fail closed.
+- The evidence inventory and A–G status classification live in [`docs/PRODUCT_CONTRACT_MATRIX.md`](https://github.com/mobinpda-lab/Arvin-clean/blob/87bd965ec41eeb3d67e00778a9fce79b1c6e5b14/docs/PRODUCT_CONTRACT_MATRIX.md). Use that ledger for implementation status, acceptance state, source SHA, unresolved defect, next action and evidence limitations.
+- Product PR #2833 is still `OPEN / DRAFT / UNMERGED` and `mergeable_state=dirty`. Its base branch advanced from recorded base `49910e585ee73afcf56a7f8d927b9c69e763c5c5` to `4dded4d7618d8c83fc3757f913ac2a87e15e777b`; comparison reports 9 commits behind and 205 ahead. Likely overlapping paths include the five canonical memory logs and `lib/task_recurrence_page.dart`; exact conflict-file enumeration was not exposed by the read-only API. Do not rebase or merge blindly.
+- **Release:** `BLOCKED — RELEASE: NO-GO`.
+
+
 # قرارداد مفاهیم محصول آروین (Arvin Product Concept Contract)
 
 - **وضعیت سند:** مرجع مفهومی و رفتاری؛ تاریخ بازبینی ۲۰۲۶-۱۰-۲۰
