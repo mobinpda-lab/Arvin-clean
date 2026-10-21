@@ -1,3 +1,19 @@
+
+## WAVE 5.48 — live CI recovery evidence (snapshot 2026-10-21)
+
+| Gate | Revision / Run / Job | Result | Evidence / limitation |
+|---|---|---|---|
+| CI recovery commit | [52781290a159f1836ebe23d719a8856408c3e52f](https://github.com/mobinpda-lab/Arvin-clean/commit/52781290a159f1836ebe23d719a8856408c3e52f) | Pushed to PR #2868 branch | CI/test-only change; results are separate rows |
+| Previous Build | [39530698487](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39530698487), head `d898a0d1bcbac5c463de7bdcdff906037ffd0dbd` | FAILURE | Job `118995654319` failed literal concurrency assertion; Job `118995654311` failed artifact-string and SHA-log assertions. PR event, not Dispatch |
+| Previous Device Smoke | [39530698590](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39530698590), same head | SUCCESS, 7/9 only | Home, Quick Capture, SQL Persistence, SQL Migration, Backup/Restore, People, Calendar succeeded. Task lifecycle and Checklist evolution absent |
+| New Build | [39539888519](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39539888519), head `52781290a159f1836ebe23d719a8856408c3e52f` | IN PROGRESS at snapshot | Inspect all jobs after terminal completion: Analyze, six test shards, Debug and Release |
+| New Device Smoke | [39539888499](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39539888499), head `52781290a159f1836ebe23d719a8856408c3e52f` | QUEUED at snapshot | Must prove all nine scenario jobs terminal |
+| Exact-SHA Dispatch | No run ID | BLOCKED — DISPATCH UNAVAILABLE | No dispatch action exposed; PR CI is not a substitute |
+| Historical pending runs | [37642397607](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/37642397607), [37642397606](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/37642397606), [37642397605](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/37642397605) | QUEUED | SHA `d4efd86485113a711e0e0009dda266e051860ece`; preserved, not cancelled |
+
+**Evidence rule:** source code SHA `4214101dd9a93542783fb97eb0d4a5cb34643950` and CI candidate SHA `52781290a159f1836ebe23d719a8856408c3e52f` are distinct. Historical PASS, PR-triggered success, artifact existence or a queued/in-progress job cannot satisfy current exact-SHA/product acceptance.
+
+
 ## 2026-10-14 — CI recovery dispatcher evidence
 
 | Feature / Gate | SHA / Run | Result | Evidence / limitation |

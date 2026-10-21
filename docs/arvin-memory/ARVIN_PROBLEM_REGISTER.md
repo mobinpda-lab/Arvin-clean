@@ -1,3 +1,15 @@
+
+## AUTHORITATIVE UPDATE — WAVE 5.48 — 2026-10-21
+
+- **CI contract defect confirmed from live logs:** PR #2868 head `d898a0d1bcbac5c463de7bdcdff906037ffd0dbd` failed test assertions, not product tests: Job `118995654319` expected literal `cancel-in-progress: true`; Job `118995654311` expected the old Device Smoke artifact name and `EXACT_TARGET_SHA=$actual`.
+- **Mitigation pushed:** [`52781290a159f1836ebe23d719a8856408c3e52f`](https://github.com/mobinpda-lab/Arvin-clean/commit/52781290a159f1836ebe23d719a8856408c3e52f) restores literal concurrency, unique Dispatch groups, Preflight, per-runner checkout verification, Ruby/Psych YAML parsing and all nine scenarios. Build [39539888519](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39539888519) and Device Smoke [39539888499](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39539888499) were not terminal at the snapshot.
+- **Review risk:** the new contract's shell-comparison assertions must be checked against the actual shell code; fix a mismatch by testing the actual unconditional fail path, never by deleting a meaningful assertion.
+- **Calendar Provider:** remains blocked until a writable provider completes CREATE → NO-OP → UPDATE → DELETE with stable external event identity and no duplicates.
+- **Restart/Checklist:** actual force-stop/PID checks exist in [the script](https://github.com/mobinpda-lab/Arvin-clean/blob/4214101dd9a93542783fb97eb0d4a5cb34643950/scripts/ci/run-device-smoke.sh), but the previous seven-lane run did not execute those scenarios.
+- **APK security:** [Gradle signing guard](https://github.com/mobinpda-lab/Arvin-clean/blob/4214101dd9a93542783fb97eb0d4a5cb34643950/android/app/build.gradle.kts) fails closed when `ARVIN_OFFICIAL_RELEASE=true` and required secrets are absent. The current CI `Verify APK` step only checks file existence; SHA-256 and `apksigner` evidence on the actual APK still need explicit validation.
+- **Release:** `BLOCKED — RELEASE: NO-GO`.
+
+
 ## AUTHORITATIVE UPDATE — 2026-10-14 — Exact-head CI false-positive
 
 - **Problem:** The recovery dispatcher could treat a normal PR-triggered Build as exact-head evidence when run metadata named the PR head, even though the Build checkout uses the synthetic merge SHA for `pull_request`.

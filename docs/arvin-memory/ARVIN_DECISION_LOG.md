@@ -1,3 +1,15 @@
+
+## 2026-10-21 — Wave 5.48 Exact-SHA recovery and product preservation
+
+- **Decision:** continue PR #2868 as the CI recovery path while it remains OPEN and mergeable; do not merge it in this wave. CI fix commit: `52781290a159f1836ebe23d719a8856408c3e52f`; product/docs are separate.
+- **Exact-SHA contract:** validate the full 40-hex target before checkout in Preflight, verify the preflight checkout, then compare each real Build/Device runner's `git rev-parse HEAD` with its expected SHA immediately after checkout. Non-Dispatch events log `NOT_APPLICABLE_NON_DISPATCH`, never a Dispatch PASS.
+- **Concurrency:** retain literal `cancel-in-progress: true`. Dispatch groups include `github.run_id`, separating independent manual runs; this does not guarantee every pending workflow survives GitHub queue replacement semantics.
+- **Product preservation:** restore all nine real smoke scenarios and [the existing Restart/PID script](https://github.com/mobinpda-lab/Arvin-clean/blob/4214101dd9a93542783fb97eb0d4a5cb34643950/scripts/ci/run-device-smoke.sh). Do not weaken or remove `test/ci_concurrency_contract_test.dart` assertions.
+- **Parser dependency:** contract-test lanes explicitly set up Ruby 3.3 through `ruby/setup-ruby@v1`; the Dart contract checks the version and parses workflows using Psych. Parser and tests remain unverified until the new run is terminal.
+- **Execution boundary:** exact-SHA Dispatch was not sent because the connected tool surface lacks a dispatch action. Keep that gate BLOCKED.
+- **Release:** `BLOCKED — RELEASE: NO-GO`.
+
+
 ## 2026-10-14 — Exact-head CI evidence must prove checkout
 
 - **Problem:** A normal `pull_request` run may report the PR head in metadata while checking out GitHub's synthetic merge ref. Using metadata alone can incorrectly suppress exact-head recovery.

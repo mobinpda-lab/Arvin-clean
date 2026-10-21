@@ -98,6 +98,69 @@ If an accepted behavior is deferred to a later slice, the row must remain **Miss
 
 User-facing help, onboarding, illustrations and coach-marks are product surfaces. When a binding UI/navigation contract changes, their copy/visuals/tests must be reconciled in the same acceptance wave or remain explicitly **Partial**. A stale guide must never teach a superseded workflow.
 
+
+## Wave 5.48 — Capability inventory and acceptance state
+
+**Product source baseline:** `4214101dd9a93542783fb97eb0d4a5cb34643950`. **Separate CI candidate:** `52781290a159f1836ebe23d719a8856408c3e52f` ([Build workflow](https://github.com/mobinpda-lab/Arvin-clean/blob/52781290a159f1836ebe23d719a8856408c3e52f/.github/workflows/build.yml), [Device Smoke workflow](https://github.com/mobinpda-lab/Arvin-clean/blob/52781290a159f1836ebe23d719a8856408c3e52f/.github/workflows/device-smoke.yml)). Code presence and acceptance are separate; this inventory is not release approval.
+
+### A. Implemented and has historical acceptance evidence
+
+| Capability | Source / implementation | Acceptance evidence | Open gap / next action | Evidence limit |
+|---|---|---|---|---|
+| Core Task create/edit and FollowUp append-only history | [Task model](https://github.com/mobinpda-lab/Arvin-clean/blob/4214101dd9a93542783fb97eb0d4a5cb34643950/lib/models/task.dart) | Existing matrix rows record historical validation for canonical Task/FollowUp paths | Revalidate same Task ID, append-only history, persistence and restore on integrated candidate | Prior acceptance is not current-head integrated acceptance |
+| Canonical Task ownership for Notes/Checklist | [Task model](https://github.com/mobinpda-lab/Arvin-clean/blob/4214101dd9a93542783fb97eb0d4a5cb34643950/lib/models/task.dart); existing Notebook/Task rows above | Historical repository/widget regressions are recorded in the matrix | Preserve identity and complete current nine-lane Device Smoke | No claim of current full smoke acceptance |
+
+### B. Implemented but not fully accepted
+
+| Capability | Direct source | Current acceptance state | Next action | Limitation |
+|---|---|---|---|---|
+| SQL Persistence | [TaskStore / Drift](https://github.com/mobinpda-lab/Arvin-clean/blob/4214101dd9a93542783fb97eb0d4a5cb34643950/lib/services/task_store.dart) | IMPLEMENTED_NOT_VERIFIED for integrated candidate | Run all required tests; prove same Task reload after process restart | Code/unit tests do not prove installed-device durability |
+| SQL Migration | [Migration writer](https://github.com/mobinpda-lab/Arvin-clean/blob/4214101dd9a93542783fb97eb0d4a5cb34643950/lib/services/sql_task_migration_writer.dart) and [focused test](https://github.com/mobinpda-lab/Arvin-clean/blob/4214101dd9a93542783fb97eb0d4a5cb34643950/test/services/sql_task_migration_writer_test.dart) | IMPLEMENTED_NOT_VERIFIED on current candidate | Verify legacy-to-SQL migration, idempotence and no data loss | No new migration test result claimed here |
+| Repeat / Occurrence model | [Recurrence model](https://github.com/mobinpda-lab/Arvin-clean/blob/4214101dd9a93542783fb97eb0d4a5cb34643950/lib/models/recurrence.dart) and [repository](https://github.com/mobinpda-lab/Arvin-clean/blob/4214101dd9a93542783fb97eb0d4a5cb34643950/lib/services/task_recurrence_repository.dart) | Model/history exists; complete UI/report acceptance incomplete | Verify seven planned occurrences, immutable past history and per-occurrence checklist state | Source alone does not prove installed UI renders every planned occurrence |
+| Restart / PID replacement | [Restart script](https://github.com/mobinpda-lab/Arvin-clean/blob/4214101dd9a93542783fb97eb0d4a5cb34643950/scripts/ci/run-device-smoke.sh) and [Task lifecycle test](https://github.com/mobinpda-lab/Arvin-clean/blob/4214101dd9a93542783fb97eb0d4a5cb34643950/integration_test/android_task_lifecycle_smoke_test.dart) | Mechanism implemented; new nine-lane run not terminal | Require old PID absent, new PID differs, launcher status OK and same Task data after restart | Previous run 39530698590 omitted Task lifecycle |
+| Backup / Restore | [Backup manager](https://github.com/mobinpda-lab/Arvin-clean/blob/4214101dd9a93542783fb97eb0d4a5cb34643950/lib/backup_manager.dart) and [Backup UI](https://github.com/mobinpda-lab/Arvin-clean/blob/4214101dd9a93542783fb97eb0d4a5cb34643950/lib/backup_page.dart) | Code/rollback regressions exist; physical acceptance blocked | Real file-picker export/import; compare same Task ID, checklist/history, settings and Calendar-link metadata | Emulator/test doubles are not physical provider evidence |
+| Notifications | [Scheduler](https://github.com/mobinpda-lab/Arvin-clean/blob/4214101dd9a93542783fb97eb0d4a5cb34643950/lib/android_automatic_follow_up_scheduler.dart) and [notification sink](https://github.com/mobinpda-lab/Arvin-clean/blob/4214101dd9a93542783fb97eb0d4a5cb34643950/lib/follow_up_reminder_notification_service.dart) | Implemented; OS delivery/tap/cold-start not fully accepted | Verify permissions, delivery, tap target, cold start and duplicate delivery on device | Service initialization is not end-to-end acceptance |
+| Persian PDF / RTL | [PDF renderer](https://github.com/mobinpda-lab/Arvin-clean/blob/4214101dd9a93542783fb97eb0d4a5cb34643950/lib/services/task_report_pdf_renderer.dart) and [renderer test](https://github.com/mobinpda-lab/Arvin-clean/blob/4214101dd9a93542783fb97eb0d4a5cb34643950/test/task_report_pdf_renderer_test.dart) | Renderer exists; visual acceptance NOT VERIFIED | Review a multi-page Persian RTL PDF generated through the actual APK path | Byte tests/substitute fonts do not prove visual correctness |
+
+### C. Partially implemented or defective
+
+| Capability | Source | Open defect / next action | Limitation |
+|---|---|---|---|
+| Repeat Tracking Level (RTLC) | [Recurrence model](https://github.com/mobinpda-lab/Arvin-clean/blob/4214101dd9a93542783fb97eb0d4a5cb34643950/lib/models/recurrence.dart) | Complete form integration, Home cue, Report Center filters/metrics and historical-state acceptance | Model enum alone is not complete user-facing delivery |
+| Checklist evolution | [Checklist integration test](https://github.com/mobinpda-lab/Arvin-clean/blob/4214101dd9a93542783fb97eb0d4a5cb34643950/integration_test/android_checklist_evolution_smoke_test.dart) | Prove A/B/C → A/B/D edit, preserve historical snapshots/checkmarks, apply intended future template and prevent duplicate occurrences | Previous 7-lane run omitted this test |
+
+### D. Planned / future integration
+
+| Capability | Current plan | Next action | Limitation |
+|---|---|---|---|
+| RTLC Home and Report Center integration | Existing product decisions call for simple-first selection and metrics derived only from canonical occurrence/history | Complete only through existing Task/Repeat paths; do not add a parallel model/store | Requirements do not prove delivery |
+
+### E. Blocked
+
+| Gate | Source / record | Blocker | Next action |
+|---|---|---|---|
+| Exact-SHA Dispatch | [Build](https://github.com/mobinpda-lab/Arvin-clean/blob/52781290a159f1836ebe23d719a8856408c3e52f/.github/workflows/build.yml) and [Device Smoke](https://github.com/mobinpda-lab/Arvin-clean/blob/52781290a159f1836ebe23d719a8856408c3e52f/.github/workflows/device-smoke.yml) at `52781290a159f1836ebe23d719a8856408c3e52f` | `BLOCKED — DISPATCH UNAVAILABLE`; connected tool has no dispatch operation | Dispatch both workflows on the same full SHA through an authorized path; verify every runner and artifact |
+| Real Calendar Provider | [Provider executor](https://github.com/mobinpda-lab/Arvin-clean/blob/4214101dd9a93542783fb97eb0d4a5cb34643950/lib/services/calendar_provider_sync_executor.dart); [acceptance script](https://github.com/mobinpda-lab/Arvin-clean/blob/d9fb7a247037762216662a20fb32028ecc8a0f6b/.github/scripts/calendar-provider-acceptance.sh) | No demonstrated writable-provider CREATE → NO-OP → UPDATE → DELETE on current candidate | Prove same external event ID and no duplicates |
+| Official APK certificate acceptance | [Gradle signing guard](https://github.com/mobinpda-lab/Arvin-clean/blob/4214101dd9a93542783fb97eb0d4a5cb34643950/android/app/build.gradle.kts) | Approved certificate/fingerprint not supplied; current Build `Verify APK` checks only file existence | Obtain authorized secrets/fingerprint; hash actual APK and run `apksigner verify --verbose --print-certs` |
+| Physical-device Golden Flow | [Acceptance criteria](https://github.com/mobinpda-lab/Arvin-clean/blob/4214101dd9a93542783fb97eb0d4a5cb34643950/docs/arvin-memory/ARVIN_ACCEPTANCE_CRITERIA.md) | No current installed-device end-to-end evidence | Run create → edit → Repeat/Checklist → Calendar → notification → Backup/Restore on one identified Task |
+
+### F. Unknown / insufficient current evidence
+
+| Capability | Known state | Next action | Limitation |
+|---|---|---|---|
+| Duplicate prevention across Task, Repeat and Calendar | Stable-identity guards exist in [CalendarProviderSyncExecutor](https://github.com/mobinpda-lab/Arvin-clean/blob/4214101dd9a93542783fb97eb0d4a5cb34643950/lib/services/calendar_provider_sync_executor.dart) | Run duplicate create/edit/retry/restore tests and verify one canonical Task and one linked event | No complete current-SHA 9-lane/provider acceptance is attached |
+| APK digest and certificate evidence in current Build | Workflow has `Verify APK`, but it only checks file existence | Add/verify a separately reviewed digest/certificate step before release | Do not infer digest or trust from artifact upload |
+
+### G. Possible regressions or signs of missing behavior
+
+| Capability | Direct record | Signal | Next action |
+|---|---|---|---|
+| Calendar edit / register in phone Calendar | [UX log](https://github.com/mobinpda-lab/Arvin-clean/blob/4214101dd9a93542783fb97eb0d4a5cb34643950/docs/arvin-memory/ARVIN_USER_EXPERIENCE_LOG.md) and [provider executor](https://github.com/mobinpda-lab/Arvin-clean/blob/4214101dd9a93542783fb97eb0d4a5cb34643950/lib/services/calendar_provider_sync_executor.dart) | Owner reported missing actions; acceptance remains open | Verify visible actions in installed APK and real provider lifecycle |
+| Repeat planned-occurrence rendering | [Recurrence model](https://github.com/mobinpda-lab/Arvin-clean/blob/4214101dd9a93542783fb97eb0d4a5cb34643950/lib/models/recurrence.dart) and [UX log](https://github.com/mobinpda-lab/Arvin-clean/blob/4214101dd9a93542783fb97eb0d4a5cb34643950/docs/arvin-memory/ARVIN_USER_EXPERIENCE_LOG.md) | Owner reported recurring Tasks show only current day instead of all promised planned occurrences | Reproduce on installed build; verify seven dates and stable occurrence identity |
+| Checklist UI interaction/labels | [Checklist integration test](https://github.com/mobinpda-lab/Arvin-clean/blob/4214101dd9a93542783fb97eb0d4a5cb34643950/integration_test/android_checklist_evolution_smoke_test.dart) and UX log | Reported clipped labels / checkbox interaction issue remains unaccepted | Validate create/toggle/edit/reopen on compact and normal Android viewports |
+
+**Needs Mobin's decision:** approved official certificate/fingerprint and signing credentials; acceptable writable Calendar Provider/device; whether RTLC Home/Report Center scope is mandatory for this release; final physical-device/visual acceptance. Missing evidence is not a product cancellation.
+
 ## Historical-document rule
 
 Older snapshots and superseded design/architecture proposals remain useful evidence, but they cannot override this matrix, a newer explicit product decision, current canonical contracts or verified GitHub reality.

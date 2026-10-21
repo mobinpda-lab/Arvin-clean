@@ -1,3 +1,17 @@
+
+# AUTHORITATIVE LIVE UPDATE — ARVIN WAVE 5.48 — 2026-10-21
+
+- **Main HEAD:** GitHub ref `main` re-read at `d9fb7a247037762216662a20fb32028ecc8a0f6b`.
+- **Product PR #2833:** product-code HEAD before this docs-only commit was `4214101dd9a93542783fb97eb0d4a5cb34643950`; PR remains OPEN / DRAFT / UNMERGED with `mergeable=false`, base `fix/follow-up-record-authority-20261019` at `49910e585ee73afcf56a7f8d927b9c69e763c5c5`. Do not merge or rebase blindly.
+- **CI PR #2868:** CI-only commit [52781290a159f1836ebe23d719a8856408c3e52f](https://github.com/mobinpda-lab/Arvin-clean/commit/52781290a159f1836ebe23d719a8856408c3e52f) is separate from product and documentation changes. It restores the nine-scenario matrix and adds Preflight plus per-runner checkout verification.
+- **Build run [39530698487](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39530698487)** on PR event/head `d898a0d1bcbac5c463de7bdcdff906037ffd0dbd` ended FAILURE. Job `118995654319` (`quality (test-0)`) failed the literal `cancel-in-progress: true` contract; Job `118995654311` (`quality (test-2)`) failed the old artifact-name assertion and `EXACT_TARGET_SHA=$actual` assertion. Analyze, test shards 1/3/4/5 and both APK jobs succeeded, but overall Build failed.
+- **Device Smoke run [39530698590](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39530698590)** on the same head ended SUCCESS for only seven scenarios. It omitted `task-lifecycle` and `checklist-evolution`; this is not complete nine-scenario evidence.
+- **New candidate CI at this snapshot:** Build [39539888519](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39539888519) was `in_progress`; Device Smoke [39539888499](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39539888499) was `queued`. Re-read after terminal completion. This documentation commit does not alter code under test.
+- **Queue preservation:** runs [37642397607](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/37642397607), [37642397606](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/37642397606) and [37642397605](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/37642397605) remained queued on `d4efd86485113a711e0e0009dda266e051860ece`; none was cancelled. Status-filtered queries are point-in-time, not a full history inventory.
+- **Exact-SHA Dispatch:** `BLOCKED — DISPATCH UNAVAILABLE`. The connected GitHub tool surface has no workflow-dispatch operation. PR-triggered CI is not Dispatch evidence.
+- **Release:** `BLOCKED — RELEASE: NO-GO`. No current exact-SHA Dispatch, complete nine-scenario terminal result, physical-device Golden Flow, writable Calendar Provider lifecycle, or trusted APK certificate acceptance is claimed.
+
+
 # V12.0 LIVE EXECUTION CHECKPOINT — 2026-10-19T22:17+03:30
 
 - **Canonical command:** `docs/ARVIN_MASTER_EXECUTION_PROTOCOL.md`; V12.0 governing addendum committed at `eddcc9cb91b244408ae9e73e3635802dbe7d1ec7`. Historical protocol content preserved.
