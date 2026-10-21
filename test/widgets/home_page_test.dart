@@ -135,7 +135,7 @@ void main() {
     expect(find.text('کار انجام‌نشده'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('home-menu')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('home-more-task-filters')));
+    await tester.tap(find.byKey(const ValueKey('home-drawer-task-filters')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('home-my-tasks-completed')));
     await tester.pumpAndSettle();

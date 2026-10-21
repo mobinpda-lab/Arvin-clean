@@ -45,16 +45,24 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('home-menu')));
     await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('home-drawer-task-filters')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-drawer-settings')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-more-task-filters')), findsNothing);
 
-    final moreSheet = find.byType(Scrollable).last;
-    await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('home-more-report')),
-      300,
-      scrollable: moreSheet,
-    );
-    expect(find.byKey(const ValueKey('home-more-report')), findsOneWidget);
-    expect(find.text('گزارش‌ها'), findsWidgets);
+    await tester.tap(find.byKey(const ValueKey('home-drawer-task-filters')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('home-my-tasks-today')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-my-tasks-undated')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-more-undated')), findsNothing);
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('home-more-quick-capture')), findsOneWidget);
     expect(find.text('پشتیبان‌گیری'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-more-task-filters')), findsNothing);
+    expect(find.byKey(const ValueKey('home-more-undated')), findsNothing);
   });
 
   testWidgets('HomePage loads legacy storage through the unified reader',
