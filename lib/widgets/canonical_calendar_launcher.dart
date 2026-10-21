@@ -12,7 +12,6 @@ import '../services/calendar_reschedule_apply_service.dart';
 import '../services/calendar_rescheduling_advisor.dart';
 import '../services/calendar_inbound_sync_service.dart';
 import '../services/follow_up_calendar_projection.dart';
-import '../services/follow_up_internal_calendar_projection.dart';
 import '../services/follow_up_write_coordinator.dart';
 import '../services/system_calendar_bridge.dart';
 import '../task_next_action_page.dart';
@@ -61,9 +60,6 @@ class CanonicalCalendarLauncher extends StatefulWidget {
 
 class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
   late List<Task> _tasks;
-  final FollowUpInternalCalendarProjection _internalFollowUpProjection =
-      const FollowUpInternalCalendarProjection();
-
   FollowUpWriteCoordinator get _followUpWriter => FollowUpWriteCoordinator(
     repository: const FollowUpRepository(),
     scheduler: AndroidAutomaticFollowUpScheduler(),
@@ -906,22 +902,16 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
 
   @override
   Widget build(BuildContext context) {
+    // Calendar displays explicit reminders and dated Tasks only. A planned
+    // nextFollowUp is internal follow-up workflow state, not a Calendar card.
     final reminders = <CalendarReminder>[
       ...widget.projection.project(
-        _tasks.where((task) => task.recurrence == null),
-      ),
-      ..._internalFollowUpProjection.project(
         _tasks.where((task) => task.recurrence == null),
       ),
     ]..sort((a, b) => a.date.compareTo(b.date));
     List<CalendarReminder> projectVisible(DateTime from, DateTime to) {
       final items = <CalendarReminder>[
         ...widget.projection.project(
-          _tasks,
-          visibleFrom: from,
-          visibleTo: to,
-        ),
-        ..._internalFollowUpProjection.project(
           _tasks,
           visibleFrom: from,
           visibleTo: to,
