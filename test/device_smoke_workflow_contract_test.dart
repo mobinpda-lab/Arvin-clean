@@ -242,7 +242,7 @@ void main() {
     );
     final apkJob = Map<String, dynamic>.from(buildJobs['apk'] as Map);
     final apkMatrix = Map<String, dynamic>.from((apkJob['strategy'] as Map)['matrix'] as Map);
-    expect(((apkMatrix['matrix'] as Map)['variant'] as List).toSet(), <String>{'release', 'debug'});
+    expect((apkMatrix['variant'] as List).toSet(), <String>{'release', 'debug'});
     final apkSteps = stepsOf(apkJob);
     final apkArtifact = apkSteps.singleWhere((step) => step['uses'] == 'actions/upload-artifact@v5');
     final apkArtifactName = ((apkArtifact['with'] as Map)['name'] as String);
