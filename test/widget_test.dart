@@ -54,7 +54,7 @@ void main() {
     expect(find.byKey(const ValueKey('home-my-tasks-today')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-my-tasks-undated')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-more-undated')), findsNothing);
-    await tester.pageBack();
+    await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
