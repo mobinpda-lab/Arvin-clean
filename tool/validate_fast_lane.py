@@ -63,15 +63,41 @@ forbid(device, "if: github.event_name != 'pull_request' || github.event.pull_req
 for scenario in [
     'home',
     'quick-capture',
+    'task-lifecycle',
+    'checklist-evolution',
     'sql-persistence',
     'sql-migration',
     'backup-restore',
     'people',
+    'calendar',
 ]:
     require(device, f'scenario: {scenario}', str(device_path))
 require(device, 'max-parallel: 2', str(device_path))
-require(device, 'flutter drive --driver=test_driver/integration_test.dart', str(device_path))
+require(
+    device,
+    "script: bash scripts/ci/run-device-smoke.sh '${{ matrix.test_file }}' '${{ matrix.scenario }}'",
+    str(device_path),
+)
 forbid(device, 'adb exec-out screencap -p', str(device_path))
+
+# The emulator runner delegates execution to the canonical shell script.
+# Keep validating the actual Flutter drive, restart, PID, and post-restart
+# verifier contract rather than requiring the command to be in YAML inline.
+smoke_script_path = Path('scripts/ci/run-device-smoke.sh')
+if not smoke_script_path.is_file():
+    raise SystemExit(f'Fast Lane device runner missing: {smoke_script_path}')
+smoke_script = smoke_script_path.read_text(encoding='utf-8')
+for token in [
+    'flutter drive --driver=test_driver/integration_test.dart',
+    '--keep-app-running',
+    'am force-stop "$package_id"',
+    'ARVIN_LIFECYCLE_OLD_PID=$before_pid',
+    'ARVIN_LIFECYCLE_RESTART_VERIFIED old_pid=$before_pid new_pid=$after_pid',
+    'integration_test/android_task_lifecycle_restart_verify_test.dart',
+    'integration_test/android_checklist_evolution_restart_verify_test.dart',
+]:
+    require(smoke_script, token, str(smoke_script_path))
+
 driver_path = Path('test_driver/integration_test.dart')
 if not driver_path.is_file():
     raise SystemExit(f'Fast Lane screenshot driver missing: {driver_path}')
