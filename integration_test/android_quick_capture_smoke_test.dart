@@ -43,7 +43,7 @@ void main() {
     }
 
     Future<void> openQuickCapture() async {
-      final homeMenu = find.byKey(const ValueKey('home-menu'));
+      final homeMenu = find.byKey(const ValueKey('primary-nav-more'));
       await tester.ensureVisible(homeMenu);
       await tester.tap(homeMenu);
       await tester.pumpAndSettle();
