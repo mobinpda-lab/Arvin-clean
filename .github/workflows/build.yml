@@ -226,8 +226,8 @@ jobs:
             cat "$RUNNER_TEMP/apksigner-output.txt"
             exit "$verify_status"
           fi
-          signer_lines="$(grep -E 'Signer #[0-9]+ certificate SHA-256 digest:' "$RUNNER_TEMP/apksigner-output.txt" || true)"
-          signer_count="$(printf '%s\n' "$signer_lines" | grep -c 'Signer #' || true)"
+          signer_lines="$(grep -E '(Signer #[0-9]+ certificate|V[23]([.][0-9]+)? Signer: certificate) SHA-256 digest:' "$RUNNER_TEMP/apksigner-output.txt" || true)"
+          signer_count="$(printf '%s\n' "$signer_lines" | grep -Ec '(Signer #[0-9]+ certificate|V[23]([.][0-9]+)? Signer: certificate) SHA-256 digest:' || true)"
           if [[ "$signer_count" -ne 1 ]]; then
             echo "::error::Expected exactly one signer certificate digest; found $signer_count. apksigner output follows."
             cat "$RUNNER_TEMP/apksigner-output.txt"
