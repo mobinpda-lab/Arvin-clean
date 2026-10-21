@@ -10,7 +10,7 @@ on:
     inputs:
       target_sha:
         description: 'Exact commit SHA to validate (used by the recovery dispatcher)'
-        required: false
+        required: true
         type: string
 
 permissions:
@@ -43,8 +43,11 @@ jobs:
           TARGET_SHA: ${{ inputs.target_sha }}
         run: |
           set -euo pipefail
+          [[ "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]
           actual="$(git rev-parse HEAD)"
           test "$actual" = "$TARGET_SHA"
+          echo "EXPECTED_CHECKOUT_SHA=$TARGET_SHA"
+          echo "ACTUAL_CHECKOUT_SHA=$actual"
           echo "EXACT_TARGET_SHA=$actual"
       - name: Cache pinned VazirHarf
         uses: actions/cache@v5
@@ -124,15 +127,17 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.sha }}
-      - name: Verify exact requested revision
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.event.pull_request.head.sha || github.sha }}
+      - name: Verify APK source revision
         env:
-          TARGET_SHA: ${{ inputs.target_sha }}
+          TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
+          [[ "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]
           actual="$(git rev-parse HEAD)"
           test "$actual" = "$TARGET_SHA"
+          echo "EXPECTED_CHECKOUT_SHA=$TARGET_SHA"
+          echo "ACTUAL_CHECKOUT_SHA=$actual"
           echo "EXACT_TARGET_SHA=$actual"
 
       - name: Cache pinned VazirHarf
@@ -171,13 +176,98 @@ jobs:
           set -euo pipefail
           flutter pub get --enforce-lockfile
           git diff --exit-code -- pubspec.lock
+      - name: Prepare trusted release signing material
+        if: matrix.variant == 'release'
+        env:
+          ARVIN_RELEASE_KEYSTORE_BASE64: ${{ secrets.ARVIN_RELEASE_KEYSTORE_BASE64 }}
+          ARVIN_RELEASE_STORE_PASSWORD: ${{ secrets.ARVIN_RELEASE_STORE_PASSWORD }}
+          ARVIN_RELEASE_KEY_ALIAS: ${{ secrets.ARVIN_RELEASE_KEY_ALIAS }}
+          ARVIN_RELEASE_KEY_PASSWORD: ${{ secrets.ARVIN_RELEASE_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$ARVIN_RELEASE_KEYSTORE_BASE64" ||
+                -z "$ARVIN_RELEASE_STORE_PASSWORD" ||
+                -z "$ARVIN_RELEASE_KEY_ALIAS" ||
+                -z "$ARVIN_RELEASE_KEY_PASSWORD" ]]; then
+            echo "::error::Release APK blocked: configure the trusted ARVIN_RELEASE_* repository Actions secrets. No debug-signing fallback is allowed."
+            exit 1
+          fi
+          keystore="$RUNNER_TEMP/arvin-release-keystore.jks"
+          printf '%s' "$ARVIN_RELEASE_KEYSTORE_BASE64" | base64 --decode > "$keystore"
+          test -s "$keystore"
+          keytool -list -keystore "$keystore" -storepass:env ARVIN_RELEASE_STORE_PASSWORD -alias "$ARVIN_RELEASE_KEY_ALIAS" >/dev/null
+          echo "ARVIN_RELEASE_STORE_FILE=$keystore" >> "$GITHUB_ENV"
+          echo "Trusted release keystore and alias validated; sensitive values were not logged."
       - name: Build APK
+        env:
+          ARVIN_RELEASE_STORE_PASSWORD: ${{ secrets.ARVIN_RELEASE_STORE_PASSWORD }}
+          ARVIN_RELEASE_KEY_ALIAS: ${{ secrets.ARVIN_RELEASE_KEY_ALIAS }}
+          ARVIN_RELEASE_KEY_PASSWORD: ${{ secrets.ARVIN_RELEASE_KEY_PASSWORD }}
         run: flutter build apk --${{ matrix.variant }} -t lib/main.dart
-      - name: Verify APK
-        run: test -s "build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk"
-      - name: Upload APK
+      - name: Verify APK signature and trusted release certificate
+        env:
+          ARVIN_RELEASE_CERT_SHA256: ${{ secrets.ARVIN_RELEASE_CERT_SHA256 }}
+        run: |
+          set -euo pipefail
+          apk="build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk"
+          test -s "$apk"
+          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+          test -n "$sdk_root"
+          apksigner="$(find "$sdk_root/build-tools" -type f -name apksigner -print | sort -V | tail -n 1)"
+          test -n "$apksigner"
+          echo "APKSIGNER_PATH=$apksigner"
+          "$apksigner" version
+          set +e
+          "$apksigner" verify --verbose --print-certs "$apk" > "$RUNNER_TEMP/apksigner-output.txt" 2>&1
+          verify_status=$?
+          set -e
+          if [[ "$verify_status" -ne 0 ]]; then
+            echo "::error::apksigner verification failed (exit=$verify_status); sanitized diagnostic output follows."
+            cat "$RUNNER_TEMP/apksigner-output.txt"
+            exit "$verify_status"
+          fi
+          signer_lines="$(grep -E '(Signer #[0-9]+ certificate|V[23]([.][0-9]+)? Signer: certificate) SHA-256 digest:' "$RUNNER_TEMP/apksigner-output.txt" || true)"
+          signer_count="$(printf '%s\n' "$signer_lines" | grep -Ec '(Signer #[0-9]+ certificate|V[23]([.][0-9]+)? Signer: certificate) SHA-256 digest:' || true)"
+          if [[ "$signer_count" -ne 1 ]]; then
+            echo "::error::Expected exactly one signer certificate digest; found $signer_count. apksigner output follows."
+            cat "$RUNNER_TEMP/apksigner-output.txt"
+            exit 1
+          fi
+          actual_cert="$(printf '%s\n' "$signer_lines" | sed -E 's/.*digest: ([[:xdigit:]:[:space:]]+).*/\1/' | tr -d ' :\r\n' | tr '[:upper:]' '[:lower:]')"
+          if [[ ! "$actual_cert" =~ ^[0-9a-f]{64}$ ]]; then
+            echo "::error::Signer certificate SHA-256 digest was not parsed as 64 hexadecimal characters. apksigner output follows."
+            cat "$RUNNER_TEMP/apksigner-output.txt"
+            exit 1
+          fi
+          if [[ "${{ matrix.variant }}" == "release" ]]; then
+            expected_cert="$(printf '%s' "$ARVIN_RELEASE_CERT_SHA256" | tr -d ' :\r\n' | tr '[:upper:]' '[:lower:]')"
+            if [[ ! "$expected_cert" =~ ^[0-9a-f]{64}$ ]]; then
+              echo "::error::Release APK blocked: configure ARVIN_RELEASE_CERT_SHA256 from the independent trusted project certificate record."
+              exit 1
+            fi
+            if [[ "$actual_cert" != "$expected_cert" ]]; then
+              echo "::error::Release APK certificate does not match the trusted project fingerprint."
+              exit 1
+            fi
+            trusted_match="PASS"
+          else
+            trusted_match="NOT_APPLICABLE_DEBUG"
+          fi
+          apk_sha="$(sha256sum "$apk" | awk '{print $1}')"
+          {
+            echo "CHECKOUT_SHA=$(git rev-parse HEAD)"
+            echo "VARIANT=${{ matrix.variant }}"
+            echo "APK_SHA256=$apk_sha"
+            echo "APK_SIGNATURE=VERIFIED"
+            echo "CERT_SHA256=$actual_cert"
+            echo "TRUSTED_CERT_MATCH=$trusted_match"
+          } > build/apk-evidence.txt
+          echo "APK signature verified; sensitive signing inputs were not logged."
+      - name: Upload APK and evidence
         uses: actions/upload-artifact@v5
         with:
-          name: arvin-${{ matrix.variant }}-apk
-          path: build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk
+          name: arvin-${{ matrix.variant == 'debug' && 'personal-debug' || 'release' }}-apk
+          path: |
+            build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk
+            build/apk-evidence.txt
           if-no-files-found: error

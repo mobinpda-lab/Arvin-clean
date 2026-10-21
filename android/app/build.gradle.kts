@@ -4,6 +4,36 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Release signing is enabled only when a trusted keystore and all credentials are
+// supplied by the build environment. The debug certificate is never a release fallback.
+val releaseStoreFile = System.getenv("ARVIN_RELEASE_STORE_FILE")?.takeIf { it.isNotBlank() }
+val releaseStorePassword = System.getenv("ARVIN_RELEASE_STORE_PASSWORD")?.takeIf { it.isNotBlank() }
+val releaseKeyAlias = System.getenv("ARVIN_RELEASE_KEY_ALIAS")?.takeIf { it.isNotBlank() }
+val releaseKeyPassword = System.getenv("ARVIN_RELEASE_KEY_PASSWORD")?.takeIf { it.isNotBlank() }
+val hasTrustedReleaseSigning =
+    releaseStoreFile != null &&
+    releaseStorePassword != null &&
+    releaseKeyAlias != null &&
+    releaseKeyPassword != null &&
+    project.file(releaseStoreFile).isFile
+
+gradle.taskGraph.whenReady {
+    val releasePackagingRequested = allTasks.any { task ->
+        task.name.endsWith("Release") &&
+            (task.name.startsWith("assemble") ||
+                task.name.startsWith("bundle") ||
+                task.name.startsWith("package"))
+    }
+    if (releasePackagingRequested && !hasTrustedReleaseSigning) {
+        throw GradleException(
+            "Release build blocked: trusted release signing inputs are missing. Supply " +
+                "ARVIN_RELEASE_STORE_FILE, ARVIN_RELEASE_STORE_PASSWORD, " +
+                "ARVIN_RELEASE_KEY_ALIAS, and ARVIN_RELEASE_KEY_PASSWORD. " +
+                "Debug signing is not permitted for release builds."
+        )
+    }
+}
+
 android {
     namespace = "com.example.arvin"
     compileSdk = flutter.compileSdkVersion
@@ -30,11 +60,28 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        if (hasTrustedReleaseSigning) {
+            create("release") {
+                storeFile = file(requireNotNull(releaseStoreFile))
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
     buildTypes {
-        release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+        debug {
             signingConfig = signingConfigs.getByName("debug")
+        }
+        release {
+            // Never fall back to the debug certificate for a release build.
+            signingConfig = if (hasTrustedReleaseSigning) {
+                signingConfigs.getByName("release")
+            } else {
+                null
+            }
         }
     }
 }

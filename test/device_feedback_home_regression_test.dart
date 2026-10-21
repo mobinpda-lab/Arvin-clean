@@ -19,7 +19,7 @@ void main() {
     expect(find.byTooltip('پشتیبان'), findsNothing);
     expect(find.byIcon(Icons.backup_outlined), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
 
     expect(find.byIcon(Icons.backup_outlined), findsOneWidget);
@@ -136,7 +136,7 @@ void main() {
     expect(find.text('برای بایگانی'), findsNothing);
     expect(find.text('برای حذف'), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ListTile, 'بایگانی'));
     await tester.pumpAndSettle();

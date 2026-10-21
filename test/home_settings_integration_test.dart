@@ -82,19 +82,10 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byIcon(Icons.menu_rounded));
+    await tester.tap(find.byKey(const ValueKey('home-menu')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('home-more-task-filters')), findsOneWidget);
-
-    await tester.scrollUntilVisible(
-      find.text('تنظیمات'),
-      300,
-      scrollable: find.byType(Scrollable).last,
-    );
-    await tester.pumpAndSettle();
-    expect(find.text('تنظیمات'), findsOneWidget);
-
-    await tester.tap(find.text('تنظیمات'));
+    expect(find.byKey(const ValueKey('home-drawer-settings')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('home-drawer-settings')));
     await tester.pumpAndSettle();
 
     expect(find.text('تنظیمات'), findsOneWidget);

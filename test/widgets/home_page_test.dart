@@ -135,7 +135,7 @@ void main() {
     expect(find.text('کار انجام‌نشده'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('home-menu')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('home-more-task-filters')));
+    await tester.tap(find.byKey(const ValueKey('home-drawer-task-filters')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('home-my-tasks-completed')));
     await tester.pumpAndSettle();
@@ -264,7 +264,7 @@ void main() {
     expect(result, isTrue);
     expect(find.text('کار فعال'), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ListTile, 'سطل زباله'));
     await tester.pumpAndSettle();
@@ -280,7 +280,7 @@ void main() {
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ListTile, 'سطل زباله'));
     await tester.pumpAndSettle();
@@ -322,7 +322,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('کار بایگانی'), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ListTile, 'بایگانی'));
     await tester.pumpAndSettle();
@@ -347,7 +347,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('کار سطل'), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ListTile, 'سطل زباله'));
     await tester.pumpAndSettle();
@@ -376,7 +376,7 @@ void main() {
     expect(find.byKey(const ValueKey('home-storage-retry')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-add')), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('home-more-quick-capture')));
     await tester.pumpAndSettle();

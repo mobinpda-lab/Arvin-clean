@@ -12,15 +12,11 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
 
-    final moreSheet = find.byType(Scrollable).last;
-    await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('home-more-report')),
-      300,
-      scrollable: moreSheet,
-    );
+    final reportEntry = find.byKey(const ValueKey('home-more-report'));
+    await tester.ensureVisible(reportEntry);
     expect(find.byKey(const ValueKey('home-more-report')), findsOneWidget);
     expect(find.text('گزارش‌ها'), findsWidgets);
   });

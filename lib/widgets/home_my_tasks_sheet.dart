@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 enum HomeTaskFilterKind {
   all,
   today,
+  undated,
   followUp,
   withoutFollowUp,
   completed,
@@ -59,6 +60,12 @@ Future<HomeTaskFilterSelection?> showHomeMyTasksSheet({
               icon: Icons.today_outlined,
               title: 'کار امروز',
               selection: const HomeTaskFilterSelection(HomeTaskFilterKind.today),
+            ),
+            _FilterTile(
+              key: const ValueKey('home-my-tasks-undated'),
+              icon: Icons.event_busy_outlined,
+              title: 'کارهای فاقد زمان',
+              selection: const HomeTaskFilterSelection(HomeTaskFilterKind.undated),
             ),
             _FilterTile(
               key: const ValueKey('home-my-tasks-followup'),

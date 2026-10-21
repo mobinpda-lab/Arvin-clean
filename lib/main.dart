@@ -321,6 +321,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final GlobalKey<ScaffoldState> _homeScaffoldKey = GlobalKey<ScaffoldState>();
   final TaskEditApplyService taskEditApplyService = TaskEditApplyService();
   final TaskStore taskStore = TaskStore();
   final ProjectStore projectStore = ProjectStore();
@@ -640,6 +641,16 @@ class _HomePageState extends State<HomePage> {
     if (matchingIds != null) scoped = scoped.where((task) => matchingIds.contains(task.id));
 
     if (filter != 'بایگانی' && filter != 'سطل زباله') {
+      // Apply the canonical due-date scope to the actual visible task pipeline.
+      // This keeps status/search/category/project/tag filters composable while
+      // ensuring HomeTaskFilterKind.today/undated affect the rendered list.
+      if (_dueScope != null) {
+        scoped = taskDueScopeService.project(
+          scoped,
+          now: IranClock.now(),
+          scope: _dueScope!,
+        );
+      }
       scoped = scoped.where(_matchesTimeFilter);
       if (_categoryFilter != null) scoped = scoped.where((task) => task.category?.trim() == _categoryFilter);
       if (_projectFilter != null) {
@@ -1048,7 +1059,7 @@ class _HomePageState extends State<HomePage> {
           Text(
             (filter == 'سطل زباله' || filter == 'بایگانی')
                 ? _emptyVisibleLabel
-                : (_timeFilter == 'today' && filter == 'فعال'
+                : (_dueScope == TaskDueScope.today
                     ? 'کاری برای امروز وجود ندارد'
                     : (_homeFilterActive ? 'کاری با این فیلترها پیدا نشد' : 'کاری برای نمایش وجود ندارد')),
             style: const TextStyle(fontWeight: FontWeight.w700),
@@ -2437,6 +2448,9 @@ class _HomePageState extends State<HomePage> {
       case HomeTaskFilterKind.today:
         _selectDueScope(TaskDueScope.today);
         return;
+      case HomeTaskFilterKind.undated:
+        _selectDueScope(TaskDueScope.undated);
+        return;
       case HomeTaskFilterKind.followUp:
         _selectListScope(TaskListScope.followUpEnabled);
         return;
@@ -2470,6 +2484,13 @@ class _HomePageState extends State<HomePage> {
             shrinkWrap: true,
             padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
             children: [
+              const Padding(
+                padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+                child: Text(
+                  'بیشتر',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                ),
+              ),
               ListTile(
                 key: const ValueKey('home-more-quick-capture'),
                 leading: const Icon(Icons.bolt_outlined),
@@ -2479,26 +2500,6 @@ class _HomePageState extends State<HomePage> {
                         .pop(_HomeMoreAction.quickCapture),
               ),
               const Divider(),
-              ListTile(
-                key: const ValueKey('home-more-task-filters'),
-                leading: const Icon(Icons.filter_list_outlined),
-                title: const Text('فیلتر کارها'),
-                subtitle: const Text('امروز، پیگیری، وضعیت و دسته‌ها'),
-                onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.myTasks),
-              ),
-              ListTile(
-                leading: const Icon(Icons.today_outlined),
-                title: const Text('امروز'),
-                onTap: () =>
-                    Navigator.of(sheetContext).pop(_HomeMoreAction.today),
-              ),
-              ListTile(
-                key: const ValueKey('home-more-undated'),
-                leading: const Icon(Icons.event_busy_outlined),
-                title: const Text('کارهای فاقد زمان'),
-                onTap: () =>
-                    Navigator.of(sheetContext).pop(_HomeMoreAction.undated),
-              ),
               ListTile(
                 leading: const Icon(Icons.archive_outlined),
                 title: const Text('بایگانی'),
@@ -2519,32 +2520,12 @@ class _HomePageState extends State<HomePage> {
                     Navigator.of(sheetContext).pop(_HomeMoreAction.backup),
               ),
               ListTile(
-                key: const ValueKey('home-more-next-action'),
-                leading: const Icon(Icons.next_plan_outlined),
-                title: const Text('اقدام بعدی'),
-                subtitle: const Text('پیشنهاد بهترین کار بعدی'),
-                onTap: () =>
-                    Navigator.of(sheetContext).pop(_HomeMoreAction.nextAction),
-              ),
-              ListTile(
                 key: const ValueKey('home-more-report'),
                 leading: const Icon(Icons.assessment_outlined),
                 title: const Text('گزارش‌ها'),
-                subtitle: const Text('فیلتر، تحلیل و اشتراک‌گذاری کارها'),
-                onTap: () => Navigator.of(sheetContext)
-                    .pop(_HomeMoreAction.report),
-              ),
-              ListTile(
-                leading: const Icon(Icons.settings_outlined),
-                title: const Text('تنظیمات'),
+                subtitle: const Text('مرکز گزارش‌ها و تحلیل کارها'),
                 onTap: () =>
-                    Navigator.of(sheetContext).pop(_HomeMoreAction.settings),
-              ),
-              ListTile(
-                leading: const Icon(Icons.info_outline),
-                title: const Text('درباره آروین'),
-                onTap: () =>
-                    Navigator.of(sheetContext).pop(_HomeMoreAction.about),
+                    Navigator.of(sheetContext).pop(_HomeMoreAction.report),
               ),
             ],
           ),
@@ -2557,17 +2538,6 @@ class _HomePageState extends State<HomePage> {
       case _HomeMoreAction.quickCapture:
         await _quickCapture();
         return;
-      case _HomeMoreAction.myTasks:
-        await _openMyTasks();
-        return;
-      case _HomeMoreAction.today:
-        Navigator.of(context).popUntil((route) => route.isFirst);
-        _selectHomeStat('امروز');
-        return;
-      case _HomeMoreAction.undated:
-        Navigator.of(context).popUntil((route) => route.isFirst);
-        _selectDueScope(TaskDueScope.undated);
-        return;
       case _HomeMoreAction.archive:
         Navigator.of(context).popUntil((route) => route.isFirst);
         _selectHomeStat('بایگانی');
@@ -2579,17 +2549,8 @@ class _HomePageState extends State<HomePage> {
       case _HomeMoreAction.backup:
         await _backupMenu();
         return;
-      case _HomeMoreAction.settings:
-        await _openPrimarySettings();
-        return;
-      case _HomeMoreAction.nextAction:
-        await _openPrimaryNextAction();
-        return;
       case _HomeMoreAction.report:
         await _openPrimaryReports();
-        return;
-      case _HomeMoreAction.about:
-        _showAbout();
         return;
     }
   }
@@ -3021,19 +2982,84 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final compactHome = MediaQuery.sizeOf(context).height < 700;
     return Scaffold(
+      key: _homeScaffoldKey,
       backgroundColor: ArvinColors.background,
+      drawer: Drawer(
+        child: SafeArea(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              const Padding(
+                padding: EdgeInsets.fromLTRB(20, 20, 20, 16),
+                child: Text(
+                  'ناوبری آروین',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+                ),
+              ),
+              ListTile(
+                key: const ValueKey('home-drawer-task-filters'),
+                leading: const Icon(Icons.filter_list_outlined),
+                title: const Text('فیلتر کارها'),
+                subtitle: const Text('امروز، فاقد زمان، پیگیری و وضعیت'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _openMyTasks();
+                },
+              ),
+              const Divider(),
+              ListTile(
+                key: const ValueKey('home-drawer-next-action'),
+                leading: const Icon(Icons.next_plan_outlined),
+                title: const Text('اقدام بعدی'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _openPrimaryNextAction();
+                },
+              ),
+              ListTile(
+                key: const ValueKey('home-drawer-settings'),
+                leading: const Icon(Icons.settings_outlined),
+                title: const Text('تنظیمات'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _openPrimarySettings();
+                },
+              ),
+              ListTile(
+                key: const ValueKey('home-drawer-about'),
+                leading: const Icon(Icons.info_outline),
+                title: const Text('درباره آروین'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _showAbout();
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
       body: SafeArea(
         child: Column(children: [
           Padding(
             padding: EdgeInsets.fromLTRB(16, compactHome ? 4 : 8, 16, 5),
             child: Row(children: [
-              IconButton(key: const ValueKey('home-notifications'), tooltip: 'اعلان‌ها', onPressed: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('اعلان‌ها در بخش اعلان‌های برنامه مدیریت می‌شوند'))), icon: const Icon(Icons.notifications_none_rounded)),
+              IconButton(
+                key: const ValueKey('home-notifications'),
+                tooltip: 'یادآورها و تقویم',
+                onPressed: _openPrimaryCalendar,
+                icon: const Icon(Icons.notifications_none_rounded),
+              ),
               Expanded(child: Column(children: const [
                 Text('بسم الله الرحمن الرحیم', key: ValueKey('home-bismillah'), style: TextStyle(color: ArvinColors.primary, fontSize: 17, fontWeight: FontWeight.w800)),
                 SizedBox(height: 2),
                 Text('مدیریت کارها و پیگیری آروین', key: ValueKey('home-title-block'), textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.textSecondary, fontSize: 11.5, fontWeight: FontWeight.w600)),
               ])),
-              IconButton(key: const ValueKey('home-menu'), tooltip: 'منو', onPressed: _openPrimaryMore, icon: const Icon(Icons.menu_rounded)),
+              IconButton(
+                key: const ValueKey('home-menu'),
+                tooltip: 'ناوبری',
+                onPressed: () => _homeScaffoldKey.currentState?.openDrawer(),
+                icon: const Icon(Icons.menu_rounded),
+              ),
             ]),
           ),
           Padding(
@@ -3100,17 +3126,11 @@ class _HomePageState extends State<HomePage> {
 }
 
 enum _HomeMoreAction {
-  report,
   quickCapture,
-  myTasks,
-  today,
-  undated,
   archive,
   trash,
   backup,
-  settings,
-  nextAction,
-  about,
+  report,
 }
 
 /// Backward-compatible public entry retained for existing callers/tests.
