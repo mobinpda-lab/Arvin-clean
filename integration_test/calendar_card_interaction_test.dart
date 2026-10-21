@@ -98,11 +98,37 @@ void main() {
       await binding.takeScreenshot('calendar-persian-time-picker');
       debugPrint('CALENDAR_SMOKE: Persian time picker rendered without framework exception');
 
+      // Capture the canonical SQLite reminder while the time picker is open,
+      // then prove cancelling the picker and returning from the editor preserves
+      // the same Follow-up identity and exact reminder instant.
+      final beforeCancel = await store.load();
+      expect(beforeCancel, hasLength(1));
+      expect(beforeCancel.single.followUps, hasLength(1));
+      expect(beforeCancel.single.followUps.single.id, followUpId);
+      expect(beforeCancel.single.followUps.single.reminderDate, isNotNull);
+      expect(
+        beforeCancel.single.followUps.single.reminderDate!.isAtSameMomentAs(reminderAt),
+        isTrue,
+        reason: 'SQLite reminderDate must match the originally saved instant before cancel',
+      );
+
       await tester.tap(find.byKey(const ValueKey('universal-time-cancel')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('follow-up-entry-back')));
       await tester.pumpAndSettle();
       expect(card, findsOneWidget);
+      expect(find.byKey(cardKey), findsOneWidget);
+
+      final afterCancel = await store.load();
+      expect(afterCancel, hasLength(1));
+      expect(afterCancel.single.followUps, hasLength(1));
+      expect(afterCancel.single.followUps.single.id, followUpId);
+      expect(afterCancel.single.followUps.single.reminderDate, isNotNull);
+      expect(
+        afterCancel.single.followUps.single.reminderDate!.isAtSameMomentAs(reminderAt),
+        isTrue,
+        reason: 'Cancelling the time picker must preserve SQLite reminderDate exactly',
+      );
 
       // Long press must expose contextual actions. Completing the Follow-up
       // must update the canonical SQLite record, not a parallel UI-only state.
