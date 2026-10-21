@@ -28,6 +28,7 @@ For Release, the workflow must:
 
 These checks prove artifact creation and cryptographic signature verification only. Device installation, update/upgrade behavior, application identity/version acceptance, and end-user rollout remain separate acceptance gates.
 
-## Current limitation
+## Current limitations
 
-This change defines the secret contract and fails closed. It does not create a signing key and does not prove that the repository already has the four secrets configured. Until a trusted release key is provisioned and the Release job passes the independent signature audit, official release remains NO-GO.
+- The current Gradle file still declares `applicationId = "com.example.arvin"` with a TODO to choose a unique application ID. The Release workflow records package identity/version and blocks artifact upload while this placeholder remains. The owner must approve the production package ID before a distributable APK can pass.
+- This change defines the secret contract and fails closed. It does not create a signing key and does not prove that the repository already has the four secrets configured. Until a trusted release key is provisioned, the application ID is approved, and the Release job passes the independent signature audit, official release remains NO-GO.
