@@ -431,3 +431,14 @@ Release remains `BLOCKED — RELEASE: NO-GO`.
 - **Runtime result:** Task Lifecycle Job `119073235009` and Checklist Evolution Job `119073234891` in Device Smoke Run `39555184902` skipped their primary emulator step. Do not classify as PASS or as removed.
 - **Other smoke evidence:** seven primary scenario steps passed on merge SHA `6040ca631cd3ed9dab9dcdafb55816bddc01990a`; this is not a full product capability audit.
 - **Release gate:** nonproduction APK SHA-256 `a6341364ffbaff51417e14d7cc5c68d5f61cbdfca2c29fcb8cce27043273690c`; signature and official fingerprint `NOT VERIFIED`. Exact-SHA dispatch unavailable. Release remains `BLOCKED — RELEASE: NO-GO`.
+
+
+## WAVE 5.57 — capability status delta (2026-10-21)
+This is a status delta, not the completed capability ledger. For the current evidence snapshot, use the following provisional classifications:
+- **A — implemented with acceptance evidence (bounded to Run 39555184902 / checkout `6040ca631cd3ed9dab9dcdafb55816bddc01990a`):** Home smoke, Quick Capture smoke, SQL Persistence smoke, SQL Migration smoke, Backup/Restore smoke, People smoke, Calendar smoke. These results do not imply complete feature acceptance.
+- **B — implemented, acceptance incomplete:** Task lifecycle/restart test source and checklist occurrence-edit test source exist, but the primary device steps were skipped; no runtime acceptance is proven.
+- **E — blocked:** exact-target Device Smoke for the current target due to unavailable dispatch action; official APK signer verification due to missing `apksigner` and trusted reference fingerprint.
+- **F — evidence incomplete:** broad capability status for Repeat/Occurrence, notifications and task navigation, Calendar Provider, Persian RTL PDF, Golden Flow and P0/P1 regression set. No removal claim is justified.
+- **D / C / G:** do not assign comprehensively without a feature-by-feature source, test, issue, and history audit. Open decisions remain **نیازمند تصمیم مبین**.
+
+Stable IDs, source requirements, implementation/test evidence, last valid SHA, open gaps, next action, and evidence limits must be completed in the full capability audit; Wave 5.57 does not claim that audit is complete.

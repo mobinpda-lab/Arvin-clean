@@ -341,3 +341,9 @@ The previous Build and Device Smoke run used an old PR source commit `6d78b1cba4
 - Build and Fast Lane passed. Seven device smoke scenarios passed their main emulator step on merge SHA `6040ca631cd3ed9dab9dcdafb55816bddc01990a`.
 - Task Lifecycle and Checklist Evolution remain `IMPLEMENTED IN SOURCE — ACCEPTANCE BLOCKED`; their primary emulator steps were skipped. No actual PID values, post-restart Task state, or checklist occurrence snapshot comparisons were produced.
 - Do not infer product regression or removal. Preserve current product implementation; exact-SHA authorized dispatch is the next acceptance action.
+
+
+## WAVE 5.57 — user-visible acceptance status (2026-10-21)
+- Product acceptance remains unproven for Task Lifecycle across process restart and Checklist Evolution history preservation. Do not tell users these paths have passed device acceptance.
+- Seven other device smoke scenarios have successful primary steps in Run 39555184902 on checkout `6040ca631cd3ed9dab9dcdafb55816bddc01990a`; this is bounded evidence for that run/revision only.
+- No product feature was declared removed. User-visible regressions remain unknown where evidence is missing; continue with targeted device acceptance before release.

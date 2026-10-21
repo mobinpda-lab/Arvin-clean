@@ -354,3 +354,10 @@ Implementation note: event UPDATE/DELETE verify event ID and calendar ownership 
 - Device logs explicitly record `DEVICE_SMOKE_STATUS=SKIPPED_NON_DISPATCH_PRODUCT_SHA_REQUIRED` for Task Lifecycle and Checklist Evolution. Existing product tests contain restart/PID and checklist history/idempotency assertions, but these have no runtime PASS.
 - Nonproduction APK artifact `12325292193`: ZIP digest `361e7b86265c230fd6f942b65d15ca733610648dd9932194f57872199c29c96f`; APK digest `a6341364ffbaff51417e14d7cc5c68d5f61cbdfca2c29fcb8cce27043273690c`. No `apksigner` locally; no trusted official fingerprint match. `NOT VERIFIED`.
 - Exact-SHA dispatch unavailable; no release/merge/tag. `BLOCKED — RELEASE: NO-GO`.
+
+
+## WAVE 5.57 — execution knowledge (2026-10-21)
+- PR workflow revisions use GitHub PR merge checkout SHA `6040ca631cd3ed9dab9dcdafb55816bddc01990a` for the latest Build and Device Smoke; the PR head is `237c71301d8528845e703dfc737a667bcce7f170`. These values are not interchangeable.
+- Current CI workflow files on PR #2868 declare required `target_sha`, pre-checkout SHA validation, and checkout SHA comparisons; each of the nine smoke scenarios remains in the matrix. Runtime acceptance still depends on the canonical emulator steps actually running.
+- Earlier manual Build attempts on older commits show test failures, including a syntax failure in `test/task_recurrence_page_test.dart` on checkout `4dded4d7618d8c83fc3757f913ac2a87e15e777b`. Do not attribute that result to current HEAD without a new run.
+- Signature verification requires an Android SDK `apksigner` and trusted official fingerprint. APK hashes alone do not establish signer identity.

@@ -771,3 +771,11 @@ Do not close these blockers based on source inspection or overall green workflow
 2. **Exact-SHA Dispatch:** `BLOCKED — DISPATCH UNAVAILABLE`; the connected tool surface exposes no dispatch operation. Next: run Build and Device Smoke through an authorized GitHub Actions interface with one explicit identical `target_sha`; preserve target/actual SHA and run/job/event evidence.
 3. **Official APK signature:** nonproduction artifact `12325292193`, APK SHA-256 `a6341364ffbaff51417e14d7cc5c68d5f61cbdfca2c29fcb8cce27043273690c`. Local `apksigner` absent and trusted official fingerprint unavailable. Next: verify in authorized Android SDK environment and compare signer digest with separately approved reference; do not expose secrets.
 4. No comprehensive product audit performed; absence of test evidence is not evidence of feature removal. Release remains `BLOCKED — RELEASE: NO-GO`.
+
+
+## WAVE 5.57 — open blockers (2026-10-21)
+- **BLOCKED — Device Task Lifecycle:** actual Task identity/status before and after process restart, old/new PID, and persistence evidence are missing because the canonical emulator step was skipped.
+- **BLOCKED — Checklist Evolution:** no runtime evidence for A/B/C → A/B/D, four historical occurrences/ticks, current/future occurrence set, duplicate prevention, before/after restart snapshots, or required screenshots. Workflow logs report `SKIPPED_NON_DISPATCH_PRODUCT_SHA_REQUIRED`; expected screenshots were not produced.
+- **BLOCKED — DISPATCH UNAVAILABLE:** the current connected GitHub toolset has no workflow-dispatch mutation action. Historical workflow_dispatch Build runs are stale and failed on older revisions; they cannot close the current gate.
+- **NOT VERIFIED — official APK signature:** `apksigner` and an independently verified official certificate fingerprint were unavailable.
+- **INCOMPLETE — product capability audit:** inventory across repeat/occurrence, notifications/task opening, Calendar Provider, Persian RTL PDF, Golden Flow and P0/P1 regressions needs source/test/history review. Do not classify absent tests as regressions or removals.

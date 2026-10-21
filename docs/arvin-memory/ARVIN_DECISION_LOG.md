@@ -644,3 +644,12 @@ The old Device Smoke / Build run used PR source commit `6d78b1cba4d0ec829fe26325
 - Device run logs prove the checkout matched merge SHA `6040ca631cd3ed9dab9dcdafb55816bddc01990a`; the event is `pull_request`, not `workflow_dispatch`, and no explicit authorized dispatch was initiated. Do not call this Exact-SHA acceptance.
 - Downloaded only the nonproduction APK. SHA-256 is recorded in the evidence map; no `apksigner` and no trusted official fingerprint match means signature gate remains `NOT VERIFIED`.
 - Preserve all nine smoke scenarios and existing product code. No merge/tag/release; release stays `BLOCKED — RELEASE: NO-GO`.
+
+
+## WAVE 5.57 — decisions and constraints (2026-10-21)
+- Preserve PR #2833 product work and PR #2868 CI changes separately; neither PR was merged.
+- A successful PR workflow does not close Task Lifecycle or Checklist Evolution when their main test steps are skipped.
+- Current connected GitHub actions expose read operations and rerun operations but no authorized workflow-dispatch invocation; therefore do not represent a PR run as exact-SHA dispatch. Status: `BLOCKED — DISPATCH UNAVAILABLE`.
+- Keep all nine Device Smoke scenarios and all Analyze/six shard/Debug/Release jobs. No assertions, security checks, or scenarios were removed in this wave.
+- Official APK signing remains unverified until the exact APK is verified with `apksigner verify --verbose --print-certs` and its signer fingerprint matches an independently trusted official reference.
+- Full capability ledger and regressions audit remain unfinished. Any unresolved product behavior/priority is `نیازمند تصمیم مبین`; missing evidence must not be interpreted as feature deletion.
