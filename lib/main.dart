@@ -1049,7 +1049,7 @@ class _HomePageState extends State<HomePage> {
           Text(
             (filter == 'سطل زباله' || filter == 'بایگانی')
                 ? _emptyVisibleLabel
-                : (_timeFilter == 'today' && filter == 'فعال'
+                : (_dueScope == TaskDueScope.today
                     ? 'کاری برای امروز وجود ندارد'
                     : (_homeFilterActive ? 'کاری با این فیلترها پیدا نشد' : 'کاری برای نمایش وجود ندارد')),
             style: const TextStyle(fontWeight: FontWeight.w700),
@@ -2509,7 +2509,14 @@ class _HomePageState extends State<HomePage> {
                 onTap: () =>
                     Navigator.of(sheetContext).pop(_HomeMoreAction.backup),
               ),
-
+              ListTile(
+                key: const ValueKey('home-more-report'),
+                leading: const Icon(Icons.assessment_outlined),
+                title: const Text('گزارش‌ها'),
+                subtitle: const Text('مرکز گزارش‌ها و تحلیل کارها'),
+                onTap: () =>
+                    Navigator.of(sheetContext).pop(_HomeMoreAction.report),
+              ),
             ],
           ),
         ),
@@ -2531,6 +2538,9 @@ class _HomePageState extends State<HomePage> {
         return;
       case _HomeMoreAction.backup:
         await _backupMenu();
+        return;
+      case _HomeMoreAction.report:
+        await _openPrimaryReports();
         return;
     }
   }
@@ -3110,6 +3120,7 @@ enum _HomeMoreAction {
   archive,
   trash,
   backup,
+  report,
 }
 
 /// Backward-compatible public entry retained for existing callers/tests.
