@@ -631,4 +631,35 @@ void main() {
     );
   });
 
+  testWidgets('follow-up with next action but no reminder is not shown in Calendar',
+      (tester) async {
+    final now = IranClock.now();
+    final task = Task(
+      id: 'followup-without-reminder',
+      title: 'پیگیری داخلی بدون یادآور',
+      followUps: <FollowUp>[
+        FollowUp(
+          id: 'followup-no-reminder',
+          dateTime: now,
+          nextFollowUp: now.add(const Duration(minutes: 30)),
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(home: CanonicalCalendarLauncher(tasks: <Task>[task])),
+    );
+    await tester.tap(find.text('تقویم'));
+    await tester.pump();
+    await _pumpRouteTransition(tester);
+
+    expect(
+      find.byKey(const ValueKey(
+        'reminder-card-task-followup-action:followup-without-reminder:followup-no-reminder',
+      )),
+      findsNothing,
+    );
+    expect(find.text('پیگیری داخلی بدون یادآور'), findsNothing);
+  });
+
 }
