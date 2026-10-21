@@ -10,7 +10,7 @@ on:
     inputs:
       target_sha:
         description: 'Exact commit SHA to validate (used by the recovery dispatcher)'
-        required: false
+        required: true
         type: string
 
 permissions:
@@ -43,8 +43,11 @@ jobs:
           TARGET_SHA: ${{ inputs.target_sha }}
         run: |
           set -euo pipefail
+          [[ "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]
           actual="$(git rev-parse HEAD)"
           test "$actual" = "$TARGET_SHA"
+          echo "EXPECTED_CHECKOUT_SHA=$TARGET_SHA"
+          echo "ACTUAL_CHECKOUT_SHA=$actual"
           echo "EXACT_TARGET_SHA=$actual"
       - name: Cache pinned VazirHarf
         uses: actions/cache@v5
@@ -131,8 +134,11 @@ jobs:
           TARGET_SHA: ${{ inputs.target_sha }}
         run: |
           set -euo pipefail
+          [[ "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]
           actual="$(git rev-parse HEAD)"
           test "$actual" = "$TARGET_SHA"
+          echo "EXPECTED_CHECKOUT_SHA=$TARGET_SHA"
+          echo "ACTUAL_CHECKOUT_SHA=$actual"
           echo "EXACT_TARGET_SHA=$actual"
 
       - name: Cache pinned VazirHarf
