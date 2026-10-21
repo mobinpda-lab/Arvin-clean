@@ -17,6 +17,8 @@ void main() {
   Future<void> openMore(WidgetTester tester) async {
     await tester.tap(find.byKey(const ValueKey('home-menu')));
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('home-drawer-task-filters')));
+    await tester.pumpAndSettle();
   }
 
   testWidgets('Today menu action shows only active canonical tasks due today',
@@ -50,7 +52,7 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
     await openMore(tester);
-    await tester.tap(find.widgetWithText(ListTile, 'امروز'));
+    await tester.tap(find.widgetWithText(ListTile, 'کار امروز'));
     await tester.pumpAndSettle();
 
     expect(find.text('کار امروز'), findsOneWidget);
@@ -62,7 +64,7 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
     await openMore(tester);
-    await tester.tap(find.widgetWithText(ListTile, 'امروز'));
+    await tester.tap(find.widgetWithText(ListTile, 'کار امروز'));
     await tester.pumpAndSettle();
 
     expect(find.text('کاری برای امروز وجود ندارد'), findsOneWidget);
@@ -72,7 +74,8 @@ void main() {
       (tester) async {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
-    await openMore(tester);
+    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.pumpAndSettle();
     final about = find.text('درباره آروین');
     if (about.evaluate().isEmpty) {
       final scrollable = find.byType(Scrollable).last;
