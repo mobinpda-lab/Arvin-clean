@@ -653,3 +653,9 @@ The old Device Smoke / Build run used PR source commit `6d78b1cba4d0ec829fe26325
 - Keep all nine Device Smoke scenarios and all Analyze/six shard/Debug/Release jobs. No assertions, security checks, or scenarios were removed in this wave.
 - Official APK signing remains unverified until the exact APK is verified with `apksigner verify --verbose --print-certs` and its signer fingerprint matches an independently trusted official reference.
 - Full capability ledger and regressions audit remain unfinished. Any unresolved product behavior/priority is `نیازمند تصمیم مبین`; missing evidence must not be interpreted as feature deletion.
+
+
+## WAVE 5.58 — decision record
+- Confirmed the current workflow files contradicted the intended protection against cancelling a useful manual dispatch: both `build.yml` and `device-smoke.yml` had `cancel-in-progress: true`. Corrected both to `github.event_name != 'workflow_dispatch'` and updated the existing contract test in one atomic CI commit `7f416e1b5f5ebf2e0c3581b1822b85e65be5aa9c`. This preserves normal push/PR cancellation while protecting manual dispatch runs; no jobs, scenarios, dependencies or assertions were removed.
+- The product capability ledger is recorded in the existing `ARVIN_PROJECT_KNOWLEDGE.md`; no parallel contradictory ledger was created. Runtime gates remain distinct from documentation coverage.
+- No PR merged, no branch protection bypass, no tag/release created. Exact-SHA dispatch remains `BLOCKED — DISPATCH UNAVAILABLE`; official signing remains `NOT VERIFIED`; release remains `BLOCKED — RELEASE: NO-GO`.

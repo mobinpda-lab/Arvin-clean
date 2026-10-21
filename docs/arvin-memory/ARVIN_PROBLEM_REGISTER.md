@@ -779,3 +779,12 @@ Do not close these blockers based on source inspection or overall green workflow
 - **BLOCKED — DISPATCH UNAVAILABLE:** the current connected GitHub toolset has no workflow-dispatch mutation action. Historical workflow_dispatch Build runs are stale and failed on older revisions; they cannot close the current gate.
 - **NOT VERIFIED — official APK signature:** `apksigner` and an independently verified official certificate fingerprint were unavailable.
 - **INCOMPLETE — product capability audit:** inventory across repeat/occurrence, notifications/task opening, Calendar Provider, Persian RTL PDF, Golden Flow and P0/P1 regressions needs source/test/history review. Do not classify absent tests as regressions or removals.
+
+
+## WAVE 5.58 — problem register delta
+- The first structured capability ledger is now recorded in `ARVIN_PROJECT_KNOWLEDGE.md` (docs commit `a4e66d735736085f7b16e04e000899960066c3f3`). This closes the documentation-inventory gap for the listed domains, not the product acceptance gaps themselves.
+- Still BLOCKED: actual Task Lifecycle and Checklist Evolution emulator acceptance; both primary steps skipped in PR Device Smoke Run `39555184902`. Required Task ID/state, old/new PID, four historical checklist snapshots, current/future occurrences, duplicate count and pre/post-restart snapshot comparison remain without runtime proof.
+- Still BLOCKED: exact-SHA workflow_dispatch because no connected dispatch mutation action is available; do not substitute PR runs.
+- Still NOT VERIFIED: official APK signature because apksigner and an independently trusted official fingerprint have not been run/compared against the candidate artifact.
+- Still BLOCKED: Calendar Provider lifecycle until a writable provider proves CREATE → NO-OP → UPDATE → DELETE. Calendar UI smoke is not equivalent.
+- The audit records notifications/task navigation, PDF RTL, Golden Flow/P0/P1, widgets, time picker, search and sync foundations as incomplete/partial where appropriate. Missing evidence does not imply feature deletion; unresolved trade-offs remain **نیازمند تصمیم مبین**.

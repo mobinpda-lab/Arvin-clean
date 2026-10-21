@@ -1643,3 +1643,10 @@ The GitHub Actions API identifies Runs 39416899830 and 39416899883 as `pull_requ
 - Exact-SHA Dispatch in the currently connected toolset: `BLOCKED — DISPATCH UNAVAILABLE`. Historical dispatch runs exist but do not satisfy a new run for the current target revision.
 - APK signature gate: `NOT VERIFIED`; no local `apksigner` and no independently trusted official fingerprint available. Release remains `BLOCKED — RELEASE: NO-GO`.
 - Comprehensive product capability inventory is still incomplete; this status addendum is not a claim that the audit is complete.
+
+
+## WAVE 5.58 — execution state delta
+- Capability ledger recorded at product docs commit `a4e66d735736085f7b16e04e000899960066c3f3`; see `ARVIN_PROJECT_KNOWLEDGE.md` section “WAVE 5.58 — Capability Ledger / Product Acceptance Audit”. The ledger is an initial structured audit and explicitly distinguishes bounded smoke acceptance from full feature acceptance.
+- CI contract correction committed separately on PR #2868 as `7f416e1b5f5ebf2e0c3581b1822b85e65be5aa9c`: manual workflow_dispatch runs are not cancelled by newer runs; ordinary PR/push cancellation remains enabled. Fresh PR Build/Device Smoke were still running at the latest check, so no result is claimed here.
+- Next executable gate: wait for Runs `39563307421` and `39563307203` to reach terminal states; inspect all nine Device Smoke primary steps. This does not replace the missing authorized exact-SHA dispatch.
+- Task Lifecycle and Checklist Evolution remain NOT VERIFIED until their actual test steps run and emit the specified identity/PID/snapshot evidence. Official APK signature remains NOT VERIFIED. Release remains `BLOCKED — RELEASE: NO-GO`.
