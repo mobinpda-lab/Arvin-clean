@@ -10,15 +10,15 @@ on:
     inputs:
       target_sha:
         description: 'Exact commit SHA to validate (used by the recovery dispatcher)'
-        required: false
+        required: true
         type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: arvin-build-${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.event.pull_request.number || github.ref_name }}
-  cancel-in-progress: true
+  group: arvin-build-${{ github.event_name == 'workflow_dispatch' && format('dispatch-{0}', github.run_id) || github.event.pull_request.number || github.ref_name }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
 
 env:
   FLUTTER_VERSION: '3.47.0'
@@ -36,16 +36,19 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.sha }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.sha }}
       - name: Verify exact requested revision
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' }}
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         env:
           TARGET_SHA: ${{ inputs.target_sha }}
         run: |
           set -euo pipefail
+          [[ "$TARGET_SHA" =~ ^[0-9a-fA-F]{40}$ ]]
           actual="$(git rev-parse HEAD)"
           test "$actual" = "$TARGET_SHA"
-          echo "EXACT_TARGET_SHA=$actual"
+          echo "EXPECTED_CHECKOUT_SHA=$TARGET_SHA"
+          echo "ACTUAL_CHECKOUT_SHA=$actual"
+          echo "EXACT_TARGET_SHA=PASS"
       - name: Cache pinned VazirHarf
         uses: actions/cache@v5
         with:
@@ -124,16 +127,19 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.sha }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.sha }}
       - name: Verify exact requested revision
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' }}
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         env:
           TARGET_SHA: ${{ inputs.target_sha }}
         run: |
           set -euo pipefail
+          [[ "$TARGET_SHA" =~ ^[0-9a-fA-F]{40}$ ]]
           actual="$(git rev-parse HEAD)"
           test "$actual" = "$TARGET_SHA"
-          echo "EXACT_TARGET_SHA=$actual"
+          echo "EXPECTED_CHECKOUT_SHA=$TARGET_SHA"
+          echo "ACTUAL_CHECKOUT_SHA=$actual"
+          echo "EXACT_TARGET_SHA=PASS"
 
       - name: Cache pinned VazirHarf
         uses: actions/cache@v5
