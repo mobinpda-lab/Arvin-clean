@@ -413,3 +413,14 @@ Task/Reminder موجودیت آروین است؛ occurrence اجرای برنا�
 - Current Device Smoke run [39547648453](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39547648453) had successful main emulator steps for `home`, `quick-capture`, `sql-persistence`, `sql-migration`, `backup-restore`, `people`, and `calendar`. The main steps for `task-lifecycle` and `checklist-evolution` were `SKIPPED`; their acceptance remains BLOCKED. Calendar smoke does not prove independent Calendar Provider lifecycle acceptance.
 - Exact-SHA Dispatch remains `BLOCKED — DISPATCH UNAVAILABLE`: the connected GitHub tools expose no workflow_dispatch action. PR CI must not be represented as exact-SHA dispatch evidence. APK signature verification and independent certificate fingerprint matching remain `NOT VERIFIED`. Release remains `BLOCKED — RELEASE: NO-GO`.
 - Product capability rule: code existence and successful unit/device smoke are distinct from acceptance. Preserve Task/Repeat/Occurrence, Checklist history, SQL persistence/migration, Restart, Backup/Restore, notifications, Calendar Provider, Persian PDF/RTL, Golden Flow and P0/P1 regressions; do not infer removal from missing evidence. Unknown acceptance and product trade-offs remain **نیازمند تصمیم مبین**.
+
+
+## WAVE 5.54 — Capability Acceptance Boundary (2026-10-21)
+This note records only the Task Lifecycle and recurring Checklist evidence boundary; it is not a complete product-capability audit.
+
+- **Implemented in source; device acceptance still blocked:** Task creation/edit/completion through the Arvin UI with stable Task identity; restart runner with process termination, old/new PID checks and a dedicated post-restart verifier; recurring Checklist edit A/B/C → A/B/D; seven occurrence snapshots/history checks; repeat idempotency and backup/restore verification.
+- **Not accepted in this wave:** no runtime PASS for Task Lifecycle or Checklist Evolution because Device Smoke Run `39547648453` skipped the primary emulator steps in Jobs `119049389724` and `119049389708`. No observed PID values or after-restart result may be inferred from source code.
+- **APK/release:** downloaded artifact `12322955907` is explicitly nonproduction. Extracted SHA-256 `12aa351e573d70b0a079db06fc7c3df9880d9c313db502d703424673e2d78f41`. Independent `apksigner` verification and approved fingerprint comparison are `NOT VERIFIED`.
+- **Next acceptance action:** authorized Exact-SHA Build and Device Smoke dispatch with the same explicit product SHA, then inspect each scenario's primary step, logs, Task identity/state, old/new PID and occurrence/tick snapshots. Keep other existing features intact; this note does not classify unexamined capabilities as removed or fully accepted.
+
+Release remains `BLOCKED — RELEASE: NO-GO`.
