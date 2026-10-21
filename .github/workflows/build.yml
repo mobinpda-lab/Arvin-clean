@@ -205,11 +205,51 @@ jobs:
           ARVIN_RELEASE_KEY_ALIAS: ${{ secrets.ARVIN_RELEASE_KEY_ALIAS }}
           ARVIN_RELEASE_KEY_PASSWORD: ${{ secrets.ARVIN_RELEASE_KEY_PASSWORD }}
         run: flutter build apk --${{ matrix.variant }} -t lib/main.dart
-      - name: Verify APK
-        run: test -s "build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk"
-      - name: Upload APK
+      - name: Verify APK signature and trusted release certificate
+        env:
+          ARVIN_RELEASE_CERT_SHA256: ${{ secrets.ARVIN_RELEASE_CERT_SHA256 }}
+        run: |
+          set -euo pipefail
+          apk="build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk"
+          test -s "$apk"
+          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+          test -n "$sdk_root"
+          apksigner="$(find "$sdk_root/build-tools" -type f -name apksigner -print | sort -V | tail -n 1)"
+          test -n "$apksigner"
+          "$apksigner" verify --verbose --print-certs "$apk" > "$RUNNER_TEMP/apksigner-output.txt" 2>&1
+          signer_lines="$(grep -E 'Signer #[0-9]+ certificate SHA-256 digest:' "$RUNNER_TEMP/apksigner-output.txt" || true)"
+          test "$(printf '%s\n' "$signer_lines" | grep -c 'Signer #' || true)" -eq 1
+          actual_cert="$(printf '%s\n' "$signer_lines" | sed -E 's/.*digest: ([[:xdigit:]]+).*/\1/' | tr '[:upper:]' '[:lower:]')"
+          test "${#actual_cert}" -eq 64
+          if [[ "${{ matrix.variant }}" == "release" ]]; then
+            expected_cert="$(printf '%s' "$ARVIN_RELEASE_CERT_SHA256" | tr -d ' :\r\n' | tr '[:upper:]' '[:lower:]')"
+            if [[ ! "$expected_cert" =~ ^[0-9a-f]{64}$ ]]; then
+              echo "::error::Release APK blocked: configure ARVIN_RELEASE_CERT_SHA256 from the independent trusted project certificate record."
+              exit 1
+            fi
+            if [[ "$actual_cert" != "$expected_cert" ]]; then
+              echo "::error::Release APK certificate does not match the trusted project fingerprint."
+              exit 1
+            fi
+            trusted_match="PASS"
+          else
+            trusted_match="NOT_APPLICABLE_DEBUG"
+          fi
+          apk_sha="$(sha256sum "$apk" | awk '{print $1}')"
+          {
+            echo "CHECKOUT_SHA=$(git rev-parse HEAD)"
+            echo "VARIANT=${{ matrix.variant }}"
+            echo "APK_SHA256=$apk_sha"
+            echo "APK_SIGNATURE=VERIFIED"
+            echo "CERT_SHA256=$actual_cert"
+            echo "TRUSTED_CERT_MATCH=$trusted_match"
+          } > build/apk-evidence.txt
+          echo "APK signature verified; sensitive signing inputs were not logged."
+      - name: Upload APK and evidence
         uses: actions/upload-artifact@v5
         with:
           name: arvin-${{ matrix.variant }}-apk
-          path: build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk
+          path: |
+            build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk
+            build/apk-evidence.txt
           if-no-files-found: error
