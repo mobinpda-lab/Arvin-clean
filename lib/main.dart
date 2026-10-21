@@ -641,6 +641,16 @@ class _HomePageState extends State<HomePage> {
     if (matchingIds != null) scoped = scoped.where((task) => matchingIds.contains(task.id));
 
     if (filter != 'بایگانی' && filter != 'سطل زباله') {
+      // Apply the canonical due-date scope to the actual visible task pipeline.
+      // This keeps status/search/category/project/tag filters composable while
+      // ensuring HomeTaskFilterKind.today/undated affect the rendered list.
+      if (_dueScope != null) {
+        scoped = taskDueScopeService.project(
+          scoped,
+          now: IranClock.now(),
+          scope: _dueScope!,
+        );
+      }
       scoped = scoped.where(_matchesTimeFilter);
       if (_categoryFilter != null) scoped = scoped.where((task) => task.category?.trim() == _categoryFilter);
       if (_projectFilter != null) {

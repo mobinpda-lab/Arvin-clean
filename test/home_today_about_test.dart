@@ -26,6 +26,8 @@ void main() {
     final now = IranClock.now();
     final today = DateTime(now.year, now.month, now.day, 12);
     final tomorrow = today.add(const Duration(days: 1));
+    final todayLastMinute = DateTime(now.year, now.month, now.day, 23, 59);
+    final tomorrowFirstMinute = DateTime(now.year, now.month, now.day + 1);
 
     await TaskStore().save([
       Task(
@@ -40,6 +42,19 @@ void main() {
         followUpEnabled: true,
         dueDate: tomorrow,
       ),
+      Task(
+        id: 'today-last-minute',
+        title: 'کار آخرین دقیقه امروز',
+        followUpEnabled: true,
+        dueDate: todayLastMinute,
+      ),
+      Task(
+        id: 'tomorrow-first-minute',
+        title: 'کار اولین دقیقه فردا',
+        followUpEnabled: true,
+        dueDate: tomorrowFirstMinute,
+      ),
+      Task(id: 'undated', title: 'کار بدون زمان', followUpEnabled: true),
       Task(
         id: 'completed',
         title: 'کار انجام‌شده امروز',
@@ -56,7 +71,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('کار امروز'), findsOneWidget);
+    expect(find.text('کار آخرین دقیقه امروز'), findsOneWidget);
     expect(find.text('کار فردا'), findsNothing);
+    expect(find.text('کار اولین دقیقه فردا'), findsNothing);
+    expect(find.text('کار بدون زمان'), findsNothing);
     expect(find.text('کار انجام‌شده امروز'), findsNothing);
   });
 
@@ -68,6 +86,30 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('کاری برای امروز وجود ندارد'), findsOneWidget);
+  });
+
+  testWidgets('Undated menu action shows only active tasks without a due date',
+      (tester) async {
+    final now = IranClock.now();
+    await TaskStore().save([
+      Task(id: 'undated', title: 'کار بدون زمان', followUpEnabled: true),
+      Task(
+        id: 'dated',
+        title: 'کار زمان‌دار',
+        followUpEnabled: true,
+        dueDate: DateTime(now.year, now.month, now.day, 12),
+      ),
+    ]);
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+    await openMore(tester);
+    await tester.tap(find.byKey(const ValueKey('home-my-tasks-undated')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('کار بدون زمان'), findsOneWidget);
+    expect(find.text('کار زمان‌دار'), findsNothing);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('About menu action opens the built-in Arvin about dialog',

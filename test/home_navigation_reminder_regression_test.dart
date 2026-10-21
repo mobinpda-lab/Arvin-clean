@@ -41,14 +41,34 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('home-my-tasks-today')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-my-tasks-undated')), findsOneWidget);
-    await tester.pageBack();
+
+    // HomeFilterSheet is a modal bottom-sheet route, not a Cupertino page
+    // with a navigation-bar back button. Send the platform back event and
+    // assert the sheet is dismissed before exercising the independent menu.
+    await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('home-my-tasks-today')), findsNothing);
+    expect(find.byKey(const ValueKey('home-my-tasks-undated')), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('home-more-quick-capture')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-drawer-task-filters')), findsNothing);
     expect(find.byKey(const ValueKey('home-my-tasks-undated')), findsNothing);
+
+    // Close More, reopen the hamburger, and prove its filter entry still
+    // opens the canonical filter sheet instead of aliasing the More menu.
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('home-more-quick-capture')), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('home-drawer-task-filters')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-more-quick-capture')), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('home-drawer-task-filters')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('home-my-tasks-today')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-my-tasks-undated')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }
