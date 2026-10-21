@@ -7,19 +7,62 @@ on:
     # Validate PRs targeting integration branches too; product code can live there before main integration.
     types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
+    inputs:
+      target_sha:
+        description: 'Exact commit SHA to validate; every scenario checks out this revision'
+        required: true
+        type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: arvin-device-smoke-${{ github.event.pull_request.number || github.ref_name }}
-  cancel-in-progress: true
+  group: arvin-device-smoke-${{ github.event_name == 'workflow_dispatch' && format('dispatch-{0}', github.run_id) || github.event.pull_request.number || github.ref_name }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
 
 env:
   FLUTTER_VERSION: '3.47.0'
 
 jobs:
+  preflight:
+    name: Validate requested revision
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate requested SHA before checkout
+        env:
+          TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.sha }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$TARGET_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo "::error::target_sha must be a full 40-character hexadecimal commit SHA"
+            exit 1
+          fi
+          echo "TARGET_SHA_FORMAT=PASS"
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.sha }}
+      - name: Verify preflight checkout revision
+        env:
+          TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.sha }}
+          IS_DISPATCH: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          echo "EXPECTED_CHECKOUT_SHA=$TARGET_SHA"
+          echo "ACTUAL_CHECKOUT_SHA=$actual"
+          if ! test "$actual" = "$TARGET_SHA"; then
+            echo "::error::Preflight checkout does not match expected revision"
+            exit 1
+          fi
+          if [[ "$IS_DISPATCH" == "true" ]]; then
+            echo "EXACT_TARGET_SHA=$actual"
+          else
+            echo "CHECKOUT_SHA_MATCH=$actual"
+            echo "EXACT_TARGET_SHA=NOT_APPLICABLE_NON_DISPATCH"
+          fi
+
   device-smoke:
+    needs: preflight
     # Draft PRs need CI evidence before they are marked ready; this job never promotes or merges.
     name: device-smoke (${{ matrix.scenario }})
     runs-on: ubuntu-latest
@@ -33,6 +76,10 @@ jobs:
             test_file: integration_test/android_home_smoke_test.dart
           - scenario: quick-capture
             test_file: integration_test/android_quick_capture_smoke_test.dart
+          - scenario: task-lifecycle
+            test_file: integration_test/android_task_lifecycle_smoke_test.dart
+          - scenario: checklist-evolution
+            test_file: integration_test/android_checklist_evolution_smoke_test.dart
           - scenario: sql-persistence
             test_file: integration_test/android_sql_persistence_smoke_test.dart
           - scenario: sql-migration
@@ -45,6 +92,31 @@ jobs:
             test_file: integration_test/calendar_card_interaction_test.dart
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.sha }}
+      - name: Verify exact requested revision
+        env:
+          TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.sha }}
+          IS_DISPATCH: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$TARGET_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo "::error::Expected revision is not a full 40-character hexadecimal SHA"
+            exit 1
+          fi
+          actual="$(git rev-parse HEAD)"
+          echo "EXPECTED_CHECKOUT_SHA=$TARGET_SHA"
+          echo "ACTUAL_CHECKOUT_SHA=$actual"
+          if ! test "$actual" = "$TARGET_SHA"; then
+            echo "::error::Checked-out revision does not match expected revision"
+            exit 1
+          fi
+          if [[ "$IS_DISPATCH" == "true" ]]; then
+            echo "EXACT_TARGET_SHA=$actual"
+          else
+            echo "CHECKOUT_SHA_MATCH=$actual"
+            echo "EXACT_TARGET_SHA=NOT_APPLICABLE_NON_DISPATCH"
+          fi
       - name: Cache pinned VazirHarf
         uses: actions/cache@v5
         with:
@@ -112,30 +184,57 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
       - name: Run selected canonical smoke on Android emulator
+        if: ${{ github.event_name == 'workflow_dispatch' || (matrix.scenario != 'task-lifecycle' && matrix.scenario != 'checklist-evolution') }}
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
           arch: x86_64
           target: default
           disable-animations: true
-          script: |
-            # android-emulator-runner executes script lines in separate /usr/bin/sh processes.
-            # Discover the ready device instead of relying on EMULATOR_PORT being exported.
-            adb devices -l && device="$(adb devices | awk '$1 ~ /^emulator-/ && $2 == "device" {print $1; exit}')" && test -n "$device" && echo "ADB_DEVICE=$device" && adb -s "$device" shell getprop sys.boot_completed && adb -s "$device" shell getprop ro.build.version.sdk && flutter drive --driver=test_driver/integration_test.dart --target=${{ matrix.test_file }} -d "$device"
+          script: bash scripts/ci/run-device-smoke.sh '${{ matrix.test_file }}' '${{ matrix.scenario }}'
+
+      - name: Explain product-only smoke scenarios require target SHA
+        if: ${{ always() && github.event_name != 'workflow_dispatch' && (matrix.scenario == 'task-lifecycle' || matrix.scenario == 'checklist-evolution') }}
+        run: |
+          echo "DEVICE_SMOKE_STATUS=SKIPPED_NON_DISPATCH_PRODUCT_SHA_REQUIRED" >> "$GITHUB_STEP_SUMMARY"
+          echo "This scenario remains in the manual nine-scenario matrix; the ordinary PR merge ref does not contain its product-only integration test and restart script." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload Android smoke screenshot evidence
         if: always() && (matrix.scenario == 'home' || matrix.scenario == 'quick-capture' || matrix.scenario == 'people')
         uses: actions/upload-artifact@v5
         with:
-          name: arvin-device-smoke-${{ matrix.scenario }}-${{ github.sha }}
+          name: arvin-device-smoke-${{ matrix.scenario }}-${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.sha }}
           path: artifacts/device-smoke/${{ matrix.scenario }}.png
+          if-no-files-found: warn
+
+      - name: Upload Task lifecycle screenshots
+        if: always() && matrix.scenario == 'task-lifecycle'
+        uses: actions/upload-artifact@v5
+        with:
+          name: arvin-task-lifecycle-${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.sha }}
+          path: |
+            artifacts/device-smoke/task-lifecycle-created.png
+            artifacts/device-smoke/task-lifecycle-edited.png
+            artifacts/device-smoke/task-lifecycle.png
+            artifacts/device-smoke/task-lifecycle-restarted.png
+            artifacts/device-smoke/task-lifecycle-reopened.png
+          if-no-files-found: warn
+
+      - name: Upload Checklist evolution restart evidence
+        if: always() && matrix.scenario == 'checklist-evolution'
+        uses: actions/upload-artifact@v5
+        with:
+          name: arvin-checklist-evolution-${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.sha }}
+          path: |
+            artifacts/device-smoke/checklist-evolution-after-edit.png
+            artifacts/device-smoke/checklist-evolution-restarted.png
           if-no-files-found: warn
 
       - name: Upload Persian time picker screenshot evidence
         if: always() && matrix.scenario == 'quick-capture'
         uses: actions/upload-artifact@v5
         with:
-          name: arvin-persian-time-picker-${{ github.sha }}
+          name: arvin-persian-time-picker-${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.sha }}
           path: artifacts/device-smoke/persian-time-picker.png
           if-no-files-found: warn
 
@@ -143,7 +242,7 @@ jobs:
         if: always() && matrix.scenario == 'calendar'
         uses: actions/upload-artifact@v5
         with:
-          name: arvin-device-smoke-calendar-${{ github.sha }}
+          name: arvin-device-smoke-calendar-${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.sha }}
           path: |
             artifacts/device-smoke/calendar-card-interaction.png
             artifacts/device-smoke/calendar-card-completed.png

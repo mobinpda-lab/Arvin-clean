@@ -4,6 +4,27 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+val officialReleaseRequested = System.getenv("ARVIN_OFFICIAL_RELEASE") == "true"
+val releaseStoreFile = System.getenv("ARVIN_RELEASE_STORE_FILE")
+val releaseStorePassword = System.getenv("ARVIN_RELEASE_STORE_PASSWORD")
+val releaseKeyAlias = System.getenv("ARVIN_RELEASE_KEY_ALIAS")
+val releaseKeyPassword = System.getenv("ARVIN_RELEASE_KEY_PASSWORD")
+
+if (officialReleaseRequested) {
+    require(!releaseStoreFile.isNullOrBlank()) {
+        "Official Release requested, but ARVIN_RELEASE_STORE_FILE is missing."
+    }
+    require(!releaseStorePassword.isNullOrBlank()) {
+        "Official Release requested, but ARVIN_RELEASE_STORE_PASSWORD is missing."
+    }
+    require(!releaseKeyAlias.isNullOrBlank()) {
+        "Official Release requested, but ARVIN_RELEASE_KEY_ALIAS is missing."
+    }
+    require(!releaseKeyPassword.isNullOrBlank()) {
+        "Official Release requested, but ARVIN_RELEASE_KEY_PASSWORD is missing."
+    }
+}
+
 android {
     namespace = "com.example.arvin"
     compileSdk = flutter.compileSdkVersion
@@ -30,11 +51,29 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        if (officialReleaseRequested) {
+            create("arvinProduction") {
+                storeFile = file(requireNotNull(releaseStoreFile))
+                storePassword = requireNotNull(releaseStorePassword)
+                keyAlias = requireNotNull(releaseKeyAlias)
+                keyPassword = requireNotNull(releaseKeyPassword)
+                enableV2Signing = true
+                enableV3Signing = true
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            if (officialReleaseRequested) {
+                // Fail closed: official signing cannot fall back to the Debug certificate.
+                signingConfig = signingConfigs.getByName("arvinProduction")
+            } else {
+                // Development/PR-only Release-variant builds are explicitly non-production.
+                // The workflow labels these artifacts as Debug-key-signed; never publish them.
+                signingConfig = signingConfigs.getByName("debug")
+            }
         }
     }
 }

@@ -67,7 +67,13 @@ jobs:
               const rel = await github.rest.repos.getReleaseByTag({owner, repo, tag});
               const assets = await github.rest.repos.listReleaseAssets({owner, repo, release_id: rel.data.id});
               const names = new Set(assets.data.map(a => a.name));
-              complete = [`arvin-${appVersion}-build${buildNumber}.apk`,'artifact.sha256','release-evidence.txt'].every(n => names.has(n));
+              const body = rel.data.body || '';
+              complete =
+                [`arvin-${appVersion}-build${buildNumber}.apk`,'artifact.sha256','release-evidence.txt'].every(n => names.has(n)) &&
+                body.includes('ARVIN_SIGNED_RELEASE_VERIFIED=true') &&
+                body.includes('APK_SIGNATURE_V2=PASS') &&
+                body.includes('APK_SIGNATURE_V3=PASS') &&
+                body.includes('CERTIFICATE_FINGERPRINT_MATCH=PASS');
             } catch (_) {}
             core.setOutput('already_released', complete ? 'true' : 'false');
             core.setOutput('app_version', version);
@@ -292,7 +298,7 @@ jobs:
           print(f'Android V2 audit passed: {activities[0]}')
           PY
 
-      - name: Test and build release APK from locked inputs
+      - name: Test locked inputs
         if: steps.release_state.outputs.already_released != 'true'
         run: |
           set -euo pipefail
@@ -300,10 +306,80 @@ jobs:
           git diff --exit-code -- pubspec.lock
           flutter analyze
           flutter test
+
+      - name: Decode authorized production keystore
+        if: steps.release_state.outputs.already_released != 'true'
+        env:
+          ARVIN_RELEASE_KEYSTORE_BASE64: ${{ secrets.ARVIN_RELEASE_KEYSTORE_BASE64 }}
+          ARVIN_RELEASE_STORE_PASSWORD: ${{ secrets.ARVIN_RELEASE_STORE_PASSWORD }}
+          ARVIN_RELEASE_KEY_ALIAS: ${{ secrets.ARVIN_RELEASE_KEY_ALIAS }}
+          ARVIN_RELEASE_KEY_PASSWORD: ${{ secrets.ARVIN_RELEASE_KEY_PASSWORD }}
+          ARVIN_RELEASE_CERT_SHA256: ${{ secrets.ARVIN_RELEASE_CERT_SHA256 }}
+        run: |
+          set -euo pipefail
+          if [ -z "${ARVIN_RELEASE_KEYSTORE_BASE64:-}" ]; then echo "Required secret missing: ARVIN_RELEASE_KEYSTORE_BASE64"; exit 1; fi
+          if [ -z "${ARVIN_RELEASE_STORE_PASSWORD:-}" ]; then echo "Required secret missing: ARVIN_RELEASE_STORE_PASSWORD"; exit 1; fi
+          if [ -z "${ARVIN_RELEASE_KEY_ALIAS:-}" ]; then echo "Required secret missing: ARVIN_RELEASE_KEY_ALIAS"; exit 1; fi
+          if [ -z "${ARVIN_RELEASE_KEY_PASSWORD:-}" ]; then echo "Required secret missing: ARVIN_RELEASE_KEY_PASSWORD"; exit 1; fi
+          if [ -z "${ARVIN_RELEASE_CERT_SHA256:-}" ]; then echo "Required secret missing: ARVIN_RELEASE_CERT_SHA256"; exit 1; fi
+          key_file="$RUNNER_TEMP/arvin-release-keystore.jks"
+          umask 077
+          printf '%s' "$ARVIN_RELEASE_KEYSTORE_BASE64" | base64 --decode > "$key_file"
+          chmod 600 "$key_file"
+          test -s "$key_file"
+          echo "KEYSTORE_DECODE=PASS (contents withheld)"
+
+
+      - name: Build production-signed Release APK
+        if: steps.release_state.outputs.already_released != 'true'
+        env:
+          ARVIN_OFFICIAL_RELEASE: 'true'
+          ARVIN_RELEASE_STORE_FILE: ${{ runner.temp }}/arvin-release-keystore.jks
+          ARVIN_RELEASE_STORE_PASSWORD: ${{ secrets.ARVIN_RELEASE_STORE_PASSWORD }}
+          ARVIN_RELEASE_KEY_ALIAS: ${{ secrets.ARVIN_RELEASE_KEY_ALIAS }}
+          ARVIN_RELEASE_KEY_PASSWORD: ${{ secrets.ARVIN_RELEASE_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
           flutter build apk --release -t lib/main.dart
+          test -s build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Verify APK signature schemes and authorized certificate
+        if: steps.release_state.outputs.already_released != 'true'
+        env:
+          ARVIN_RELEASE_CERT_SHA256: ${{ secrets.ARVIN_RELEASE_CERT_SHA256 }}
+        run: |
+          set -euo pipefail
+          apk="build/app/outputs/flutter-apk/app-release.apk"
+          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+          test -n "$sdk_root"
+          apksigner="$(find "$sdk_root/build-tools" -type f -name apksigner -print | sort -V | tail -n 1)"
+          test -n "$apksigner"
+          verify_log="$RUNNER_TEMP/apksigner-verify.txt"
+          export PATH="$(dirname "$apksigner"):$PATH"
+          apksigner verify --verbose --print-certs "$apk" 2>&1 | tee "$verify_log"
+          grep -Eiq '^Verified using v2 scheme .*: true$' "$verify_log"
+          grep -Eiq '^Verified using v3 scheme .*: true$' "$verify_log"
+          actual_fp="$(sed -nE 's/.*Signer #1 certificate SHA-256 digest: ([0-9A-Fa-f:]+).*/\1/p' "$verify_log" | head -n 1 | tr -d ':' | tr '[:lower:]' '[:upper:]')"
+          expected_fp="$(printf '%s' "$ARVIN_RELEASE_CERT_SHA256" | tr -d ' :\t\r\n' | tr '[:lower:]' '[:upper:]')"
+          [[ "$actual_fp" =~ ^[0-9A-F]{64}$ ]]
+          [[ "$expected_fp" =~ ^[0-9A-F]{64}$ ]]
+          test "$actual_fp" = "$expected_fp"
+          echo "ARVIN_VERIFIED_CERT_SHA256=$actual_fp" >> "$GITHUB_ENV"
+          echo "ARVIN_APK_V2_VERIFIED=PASS" >> "$GITHUB_ENV"
+          echo "ARVIN_APK_V3_VERIFIED=PASS" >> "$GITHUB_ENV"
+          echo "CERTIFICATE_FINGERPRINT_MATCH=PASS"
+          echo "APKSIGNER_VERIFICATION=PASS"
+
+
+      - name: Record APK checksum
+        if: steps.release_state.outputs.already_released != 'true'
+        run: |
+          set -euo pipefail
           mkdir -p "$RELEASE_EVIDENCE"
-          cp build/app/outputs/flutter-apk/app-release.apk "$RELEASE_EVIDENCE/arvin-${{ steps.release_state.outputs.app_version }}-build${{ steps.release_state.outputs.build_number }}.apk"
-          sha256sum "$RELEASE_EVIDENCE/arvin-${{ steps.release_state.outputs.app_version }}-build${{ steps.release_state.outputs.build_number }}.apk" | tee "$RELEASE_EVIDENCE/artifact.sha256"
+          dest="$RELEASE_EVIDENCE/arvin-${{ steps.release_state.outputs.app_version }}-build${{ steps.release_state.outputs.build_number }}.apk"
+          cp build/app/outputs/flutter-apk/app-release.apk "$dest"
+          sha256sum "$dest" | tee "$RELEASE_EVIDENCE/artifact.sha256"
+          sha256sum -c "$RELEASE_EVIDENCE/artifact.sha256"
 
       - name: Store release evidence
         if: steps.release_state.outputs.already_released != 'true'
@@ -327,6 +403,12 @@ jobs:
           APP_VERSION=${{ steps.release_state.outputs.app_version }}
           BUILD_NUMBER=${{ steps.release_state.outputs.build_number }}
           ARTIFACT_SHA256=$(cut -d' ' -f1 "$RELEASE_EVIDENCE/artifact.sha256")
+          CHECKED_OUT_SHA=$(git rev-parse HEAD)
+          CERTIFICATE_SHA256=${ARVIN_VERIFIED_CERT_SHA256}
+          APK_SIGNATURE_V2=${ARVIN_APK_V2_VERIFIED}
+          APK_SIGNATURE_V3=${ARVIN_APK_V3_VERIFIED}
+          CERTIFICATE_FINGERPRINT_MATCH=PASS
+          ARVIN_SIGNED_RELEASE_VERIFIED=true
           EOF
 
 
@@ -414,6 +496,7 @@ jobs:
           PR_NUMBER: ${{ steps.verify.outputs.candidate_pr }}
           APP_VERSION: ${{ steps.release_state.outputs.app_version }}
           BUILD_NUMBER: ${{ steps.release_state.outputs.build_number }}
+          CERT_SHA256: ${{ env.ARVIN_VERIFIED_CERT_SHA256 }}
         with:
           script: |
             const owner = context.repo.owner;
@@ -427,6 +510,22 @@ jobs:
             let rel;
             try { rel = await github.rest.repos.getReleaseByTag({owner, repo, tag}); }
             catch (_) { rel = await github.rest.repos.createRelease({owner, repo, tag_name: tag, target_commitish: sha, name: `Arvin ${process.env.APP_VERSION} (build ${process.env.BUILD_NUMBER})`, body: `Autonomous release closure for PR #${process.env.PR_NUMBER}; verified main ${sha}.`, draft: false, prerelease: true}); }
+            const verificationMarker = [
+              'ARVIN_SIGNED_RELEASE_VERIFIED=true',
+              'SOURCE_SHA=' + sha,
+              'CERTIFICATE_SHA256=' + process.env.CERT_SHA256,
+              'APK_SIGNATURE_V2=PASS',
+              'APK_SIGNATURE_V3=PASS',
+              'CERTIFICATE_FINGERPRINT_MATCH=PASS'
+            ].join('\\n');
+            const existingBody = rel.data.body || '';
+            if (!existingBody.includes('CERTIFICATE_FINGERPRINT_MATCH=PASS')) {
+              const updated = await github.rest.repos.updateRelease({
+                owner, repo, release_id: rel.data.id,
+                body: existingBody + '\\n\\n' + verificationMarker
+              });
+              rel = {data: updated.data};
+            }
             core.setOutput('tag', tag);
             core.setOutput('release_id', String(rel.data.id));
             core.info(`TAG=${tag}`);
@@ -458,6 +557,10 @@ jobs:
             const assets = await github.rest.repos.listReleaseAssets({owner, repo, release_id: rel.data.id});
             const names = new Set(assets.data.map(a => a.name));
             for (const n of [`arvin-${{ steps.release_state.outputs.app_version }}-build${{ steps.release_state.outputs.build_number }}.apk`,'artifact.sha256','release-evidence.txt']) if (!names.has(n)) core.setFailed(`Missing release asset: ${n}`);
+            const body = rel.data.body || '';
+            for (const marker of ['ARVIN_SIGNED_RELEASE_VERIFIED=true','SOURCE_SHA=' + sha,'APK_SIGNATURE_V2=PASS','APK_SIGNATURE_V3=PASS','CERTIFICATE_FINGERPRINT_MATCH=PASS']) {
+              if (!body.includes(marker)) core.setFailed(`Missing signed-release evidence marker: ${marker}`);
+            }
             core.info(`DELIVERY_CHECK=success TAG=${tag}`);
 
       - name: Recovery and resume validation
@@ -505,3 +608,9 @@ jobs:
           name: arvin-release-closure-${{ steps.verify.outputs.main_sha }}
           path: ${{ env.RELEASE_EVIDENCE }}
           if-no-files-found: error
+
+      - name: Remove temporary production signing material
+        if: ${{ always() }}
+        run: |
+          rm -f "$RUNNER_TEMP/arvin-release-keystore.jks"
+          test ! -e "$RUNNER_TEMP/arvin-release-keystore.jks"
