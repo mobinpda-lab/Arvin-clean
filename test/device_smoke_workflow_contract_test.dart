@@ -305,8 +305,8 @@ void main() {
     expect(emulatorCondition, contains("matrix.scenario != 'checklist-evolution'"));
     final emulatorScript = ((emulatorStep['with'] as Map)['script'] as String);
     expect(emulatorScript, contains('bash scripts/ci/run-device-smoke.sh'));
-    expect(emulatorScript, contains('flutter drive --driver=test_driver/integration_test.dart --target='));
-    expect(emulatorScript, contains('GITHUB_EVENT_NAME'));
+    expect(emulatorScript, contains(r"${{ matrix.test_file }}"));
+    expect(emulatorScript, contains(r"${{ matrix.scenario }}"));
     final skipNotice = smokeSteps.singleWhere(
       (step) => step['name'] == 'Explain product-only smoke scenarios require target SHA',
     );
@@ -325,6 +325,8 @@ void main() {
     }
     expect(smokeText, contains('script: bash scripts/ci/run-device-smoke.sh'));
     final script = File('scripts/ci/run-device-smoke.sh').readAsStringSync();
+    expect(script, contains('flutter drive --driver=test_driver/integration_test.dart --target='));
+    expect(script, contains('ARVIN_LIFECYCLE_RESTART_VERIFIED'));
     for (final requiredEvidence in <String>[
       'cmd package resolve-activity',
       'am force-stop',

@@ -7,7 +7,8 @@ void main() {
     final workflow = File('.github/workflows/release-closure.yml')
         .readAsStringSync();
 
-    const internalBuild = 'name: Test and build release APK from locked inputs';
+    const testInputs = 'name: Test locked inputs';
+    const buildOfficial = 'name: Build production-signed Release APK';
     const storeEvidence = 'name: Store release evidence';
     const uploadInternalArtifact = 'name: Upload internal Release APK artifact';
     const gate = 'name: Require explicit product release approval';
@@ -15,12 +16,14 @@ void main() {
     const uploadAssets = 'name: Upload release assets';
     const removeStale = 'name: Remove stale Arvin prereleases';
 
-    final internalBuildIndex = workflow.indexOf(internalBuild);
+    final testInputsIndex = workflow.indexOf(testInputs);
+    final buildOfficialIndex = workflow.indexOf(buildOfficial);
     final evidenceIndex = workflow.indexOf(storeEvidence);
     final internalUploadIndex = workflow.indexOf(uploadInternalArtifact);
     final gateIndex = workflow.indexOf(gate);
-    expect(internalBuildIndex, greaterThanOrEqualTo(0));
-    expect(evidenceIndex, greaterThan(internalBuildIndex));
+    expect(testInputsIndex, greaterThanOrEqualTo(0));
+    expect(buildOfficialIndex, greaterThan(testInputsIndex));
+    expect(evidenceIndex, greaterThan(buildOfficialIndex));
     expect(internalUploadIndex, greaterThan(evidenceIndex));
     expect(gateIndex, greaterThan(internalUploadIndex));
 
