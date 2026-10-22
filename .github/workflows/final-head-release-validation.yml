@@ -82,16 +82,6 @@ jobs:
         run: |
           printf '{"final_head":"%s","internal_build_validated":true,"release_validation":"blocked"}\n' "$FINAL_SHA" > release.json
 
-      - name: Fetch pinned VazirHarf for manual validation
-        if: github.event_name == 'workflow_dispatch'
-        run: |
-          set -euo pipefail
-          git clone --no-tags --depth 1 https://github.com/nadalaba/vazirharf.git "$RUNNER_TEMP/vazirharf"
-          git -C "$RUNNER_TEMP/vazirharf" fetch --depth 1 origin 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
-          git -C "$RUNNER_TEMP/vazirharf" checkout --detach 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
-          test -s "$RUNNER_TEMP/vazirharf/fonts/ttf/Vazirharf-Regular.ttf"
-          test -s "$RUNNER_TEMP/vazirharf/fonts/ttf/Vazirharf-Bold.ttf"
-
       - name: Setup exact Flutter for manual validation
         if: github.event_name == 'workflow_dispatch'
         uses: subosito/flutter-action@v2
@@ -116,10 +106,20 @@ jobs:
           grep -q 'VERSION_17' android/app/build.gradle.kts
           grep -q 'desugar_jdk_libs:2.1.5' android/app/build.gradle.kts
 
-      - name: Restore VazirHarf assets for manual validation
-        if: github.event_name == 'workflow_dispatch'
-        run: mkdir -p assets/fonts && rm -rf assets/fonts/vazirharf && cp -a "$RUNNER_TEMP/vazirharf/." assets/fonts/vazirharf/
-
+      - name: Verify tracked Vazirmatn assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf
+          test -s assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf
+          test -s assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf
+          cat <<'EOF' | sha256sum --check -
+          b69fd4c680b8f3f225feabcc655a2c585d97627b8f5f5c0f9985e894069f3a56  assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf
+          b986623e4ddef10755e04be39f8ea7bcb1dc08bfe8dd0aa6af395736f256ad4a  assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf
+          f635fdbea28f265de395ba83b4b1570dcf2f58d13c65469e61903b1c2d2ae723  assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf
+          EOF
+          grep -q 'family: Vazirmatn' pubspec.yaml
+          ! grep -q 'family: VazirHarf' pubspec.yaml
       - name: Analyze from locked dependency graph for manual validation
         if: github.event_name == 'workflow_dispatch'
         run: |
@@ -136,6 +136,19 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         run: flutter build apk --release -t lib/main.dart
 
+      - name: Verify packaged Vazirmatn font identity
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk="build/app/outputs/flutter-apk/app-release.apk"
+          test -s "$apk"
+          manifest="$(unzip -p "$apk" assets/flutter_assets/FontManifest.json)"
+          printf '%s\n' "$manifest"
+          grep -q '"family":"Vazirmatn"' <<<"$manifest"
+          ! grep -q '"family":"VazirHarf"' <<<"$manifest"
+          grep -q 'assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf' <<<"$manifest"
+          sha256sum "$apk"
       - name: Record internal build artifact for manual validation
         if: github.event_name == 'workflow_dispatch'
         env:
