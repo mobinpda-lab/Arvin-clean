@@ -60,31 +60,41 @@ void main() {
     expect(workflow, contains('actions/upload-artifact@v5'));
     expect(workflow, contains(r'arvin-device-smoke-${{ matrix.scenario }}-${{ github.sha }}'));
 
+    // The workflow builds a JSON matrix in prepare-matrix and exposes it
+    // through the job output. Validate that contract instead of expecting a
+    // literal YAML list under strategy.matrix.
+    expect(
+      workflow,
+      contains(r'matrix: ${{ fromJSON(needs.prepare-matrix.outputs.matrix) }}'),
+    );
+    expect(
+      workflow,
+      contains(r'matrix: ${{ steps.set-matrix.outputs.matrix }}'),
+    );
+    expect(workflow, contains(r"'{include:$scenarios}'"));
+    expect(workflow, contains(r'echo "matrix=$matrix" >> "$GITHUB_OUTPUT"'));
+
     final matrixScenarios = RegExp(
-      r'\s+- scenario: ([^\n]+)\n\s+test_file: ([^\n]+)',
+      r'\{"scenario":"([^"]+)","test_file":"([^"]+)"\}',
     ).allMatches(workflow).toList();
 
+    final scenarioMappings = matrixScenarios
+        .map((match) => '${match.group(1)}:${match.group(2)}')
+        .toSet();
+
     expect(
-      matrixScenarios.length,
-      7,
+      scenarioMappings,
+      equals(<String>{
+        'home:integration_test/android_home_smoke_test.dart',
+        'quick-capture:integration_test/android_quick_capture_smoke_test.dart',
+        'sql-persistence:integration_test/android_sql_persistence_smoke_test.dart',
+        'sql-migration:integration_test/android_upgrade_migration_smoke_test.dart',
+        'backup-restore:integration_test/android_backup_restore_sql_smoke_test.dart',
+        'people:integration_test/android_people_smoke_test.dart',
+        'calendar:integration_test/calendar_card_interaction_test.dart',
+      }),
       reason:
-          'Home, Quick Capture, SQL persistence, Upgrade Migration, Backup/Restore, People, and Calendar must run as separate matrix smoke scenarios',
-    );
-
-    final testFiles =
-        matrixScenarios.map((match) => match.group(2)!).toSet();
-
-    expect(
-      testFiles,
-      containsAll(<String>[
-        'integration_test/android_home_smoke_test.dart',
-        'integration_test/android_quick_capture_smoke_test.dart',
-        'integration_test/android_sql_persistence_smoke_test.dart',
-        'integration_test/android_upgrade_migration_smoke_test.dart',
-        'integration_test/android_backup_restore_sql_smoke_test.dart',
-        'integration_test/android_people_smoke_test.dart',
-        'integration_test/calendar_card_interaction_test.dart',
-      ]),
+          'All seven canonical smoke scenarios must map to their corresponding integration test files',
     );
   });
 }
