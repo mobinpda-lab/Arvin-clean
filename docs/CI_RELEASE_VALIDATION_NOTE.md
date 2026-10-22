@@ -192,3 +192,42 @@ Gate status:
 - Release decision remains `BLOCKED — RELEASE: NO-GO`.
 
 Next action: allow Device Smoke run 39775673103 to finish without creating a replacement. Once final, append a reconciliation of its final result. In parallel, an authorized human maintainer must review PR #2916; after any authorized merge, re-read main's workflow before any single exact-target SQL Migration dispatch.
+
+
+## Wave 6.44 — Final CI reconciliation and official APK blockers (2026-10-22)
+
+Product target SHA: `1fb3f47e76b3fd093eba8b108b745fadb35b3c69`.
+
+### Existing GitHub Actions runs
+
+- Build [39775672945](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39775672945): `completed / success`, PR-triggered at `16f73f515bd645f0a4d299df9f441d10f4d1279c`, not the Product target SHA. The seven quality jobs and both APK jobs succeeded. Existing artifacts remain downloadable: Release APK artifact [12425066173](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12425066173/zip), 32,463,351 bytes; Debug APK artifact [12424547910](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12424547910/zip). They are not official release evidence because the run is not on the target SHA and Release still uses Debug signing.
+- Device Smoke [39775673103](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39775673103): now `completed / success`, at the same PR-triggered SHA `16f73f515bd645f0a4d299df9f441d10f4d1279c`, not the Product target SHA. All jobs completed successfully: prepare matrix, Home, Quick Capture, SQL Persistence, SQL Migration, Backup/Restore, People, and Calendar. SQL Migration job [119814398271](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39775673103/job/119814398271) succeeded; this remains PR-head evidence, not exact-target acceptance. Calendar artifact [12425727081](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12425727081/zip) and People artifact [12425222502](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12425222502/zip) exist, alongside Home, Quick Capture, and Persian time picker evidence.
+- Neither existing run checked out Product target SHA `1fb3f47e76b3fd093eba8b108b745fadb35b3c69`. Do not repeat the successful Build or mislabel either run as exact-target acceptance.
+
+### PR #2916 and SQL Migration dispatch
+
+- PR [#2916](https://github.com/mobinpda-lab/Arvin-clean/pull/2916) remains OPEN, DRAFT, and unmerged. Current head after documentation update: `74618caa425c198dc2a1776073406eb855278dd0`. Submitted reviews: none; requested reviewers: none. No human approval or merge authorization is evidenced.
+- The PR diff adds independent `run_sql_migration` (default false), maps it to `RUN_SQL_MIGRATION`, and adds scenario `sql-migration` wired to `integration_test/android_upgrade_migration_smoke_test.dart`. The contract test and Fast Lane validator are updated. Existing `target_sha` checkout/mismatch guard, Calendar input, and SQL Persistence input are retained in the reviewed diff.
+- The CI runs above were started before the current documentation-only head `74618caa...`; no workflow run was returned for that exact current head. Therefore CI on the latest PR head: NOT VERIFIED.
+- Live main [device-smoke.yml](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/device-smoke.yml), blob `f9c79cd182e242beeec01aa8ffdf3e8e4d2fbf21`, still lacks `run_sql_migration` and its dispatch mapping. Exact-target migration acceptance remains NOT VERIFIED. Do not dispatch until an authorized human reviews/merges the PR and main is reread to verify the final input mapping. If eligible, perform only one dispatch with target SHA `1fb3f47e76b3fd093eba8b108b745fadb35b3c69`, migration true, Calendar false, SQL Persistence false, then verify checkout SHA, exact-SHA guard, Android test, successful Job, and successful whole Run.
+
+### Official application identity and APK acceptance
+
+- Live [build.gradle.kts](https://github.com/mobinpda-lab/Arvin-clean/blob/main/android/app/build.gradle.kts), blob `aaeea7506885814cc4c4a65ac6559872a80146a8`: application ID is `com.example.arvin`; Release still uses `signingConfigs.getByName("debug")`.
+- Product-owner approval of the official application ID: NOT VERIFIED. Do not change or assume it is official until approved.
+- Live [pubspec.yaml](https://github.com/mobinpda-lab/Arvin-clean/blob/main/pubspec.yaml), blob `b8d5ca0c31405fe14a5d3c9126eab507725bf6c5`: version `1.0.1+2`.
+- Live [build.yml](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/build.yml), blob `a49cc2ff35e1dad0bb434ebe31a2593ca6a510ce`, checks APK existence and uploads it but does not implement Android SDK signature verification or final APK SHA-256 recording. Live [release.yml](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/release.yml), blob `c5f45b9b1d66db22a585b0637a24537aeb95d098`, creates a GitHub Release/tag and does not build/sign/verify the APK.
+- Production signing: BLOCKED. Release owner must configure protected signing inputs such as `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, and `ANDROID_KEY_PASSWORD` only if these are the agreed secret names; confirm actual names in the approved workflow. Store values only in repository/environment secrets or the authorized secret manager, never in logs, source, or documentation. No secret or private key was read or exposed.
+- Acceptance still NOT VERIFIED for: target-SHA APK build; `apksigner verify --print-certs` on the final APK; SHA-256 of that exact APK; install and launch of that exact APK; upgrade from the prior installed version; and re-opening/retention of existing user data. Do not reset real user data; use a dedicated acceptance device or a verified backup and explicit release-owner authorization. Automated migration tests do not replace real APK upgrade/data-retention acceptance.
+
+### Gate decision and smallest next action
+
+- Device Smoke run 39775673103: PASS for its PR-head SHA only.
+- Build run 39775672945: PASS for its PR-head SHA only.
+- PR review/merge authorization: BLOCKED.
+- SQL Migration on exact Product target: NOT VERIFIED.
+- Official application ID approval: NOT VERIFIED.
+- Production signing and official APK acceptance: BLOCKED / NOT VERIFIED.
+- Release decision remains `BLOCKED — RELEASE: NO-GO`.
+
+Smallest next action: an authorized human reviewer/maintainer must review PR #2916 and explicitly decide whether to approve and merge it. No new run is needed before that decision. After an authorized merge, reread main's workflow and perform at most one exact-target SQL Migration dispatch if its live contract supports the requested inputs.
