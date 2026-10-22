@@ -25,7 +25,7 @@ void main() {
     expect(workflow, contains(r'echo "EXACT_TARGET_SHA=$actual"'));
     expect(
       workflow,
-      contains(r'CHECKOUT SHA mismatch: expected $TARGET_SHA, got $actual'),
+      contains(r'CHECKOUT SHA mismatch: expected length=${#TARGET_SHA}, got length=${#actual}; values differ.'),
     );
     expect(workflow, contains(r'if [ "$actual" != "$TARGET_SHA" ]; then'));
     expect(workflow, contains(r'[[ ! "$TARGET_SHA" =~ ^[0-9a-fA-F]{40}$ ]]'));
@@ -33,6 +33,7 @@ void main() {
     expect(workflow, contains('length=${#TARGET_SHA}'));
     expect(workflow, contains('length=${#actual}'));
     expect(workflow, contains('Reject malformed input instead of silently trimming or normalizing it.'));
+    expect(workflow, isNot(contains('TARGET_SHA="$(echo "$TARGET_SHA" | xargs)"')));
 
     // Pull requests targeting integration branches must receive smoke coverage.
     // Keep the main/master restriction for push events, but not for pull_request.
