@@ -61,3 +61,55 @@ This release-engineering contract does not change Task, Reminder, FollowUp, Cale
 - Inspected live PRs #2903, #2911, #2906, #2898, and #2895; inspected `main` workflow definitions and target-SHA build configuration; fetched job logs for all nine Build jobs and all seven Device Smoke jobs.
 - No new workflow run was dispatched because the connected GitHub tools expose no workflow-dispatch operation. No PR was merged, promoted from Draft, or otherwise modified. No production code or secrets were changed.
 - This section records the actual evidence and limitations of Wave 6.14. It does not replace or rewrite prior historical evidence.
+
+
+## Wave 6.15 execution attempt and live status
+
+**Reviewed:** 2026-10-22  
+**Product Target SHA:** `1fb3f47e76b3fd093eba8b108b745fadb35b3c69`  
+**Decision:** `BLOCKED — RELEASE: NO-GO`
+
+### Fresh preflight
+
+- Confirmed Product Target SHA remains `1fb3f47e76b3fd093eba8b108b745fadb35b3c69` using the commit endpoint.
+- PR [#2914](https://github.com/mobinpda-lab/Arvin-clean/pull/2914) remains open, Draft, and unmerged. Its Wave 6.14 documentation commit remains `b2220826aa25e883bdebdf45287d0a4d142ff025`; no merge or PR-state change was performed.
+- Re-read `.github/workflows/build.yml` on `main`. The workflow file blob SHA remains `a49cc2ff35e1dad0bb434ebe31a2593ca6a510ce`; it defines `workflow_dispatch` and a `target_sha` input.
+- Re-read `.github/workflows/device-smoke.yml` on `main`. The workflow file blob SHA remains `e5cd465a7d5a83be21a55535f7a0b3071ceeec45`; it does not define `target_sha`, `run_calendar`, or `run_sql_persistence`.
+- The available commit-associated workflow-run query returns the known historical runs, including Build `39674729732` and Device Smoke `39674729325`. This endpoint is documented as PR-triggered-run-only and first-page-only, so it cannot prove the absence of every other run.
+
+### Wave 6.15 Build execution result
+
+- A new `workflow_dispatch` could not be initiated: the connected GitHub tools available in this session do not expose a workflow-dispatch operation. No new Run ID exists for this attempt.
+- Build execution status: `NOT RUN`.
+- Dispatch blocker: `BLOCKED`.
+- Exact-SHA acceptance: `NOT VERIFIED`.
+- Historical Build run `39674729732` is not accepted as the Wave 6.15 exact-SHA run. Its nine required job logs show checkout of merge commit `ee013f003f9c2fac9b78590d0ffa153f8a20cedf`, not `1fb3f47e76b3fd093eba8b108b745fadb35b3c69`; `Verify exact requested revision` was `SKIPPED` in the inspected Analyze and APK jobs.
+- No new job IDs, run-specific artifacts, or exact-SHA checkout evidence can be reported because no new run was created.
+
+### Device Smoke and product acceptance
+
+- Device Smoke remains `BLOCKED` because the current `main` workflow lacks the three required dispatch inputs and strict exact-checkout gate.
+- PRs [#2911](https://github.com/mobinpda-lab/Arvin-clean/pull/2911) and [#2906](https://github.com/mobinpda-lab/Arvin-clean/pull/2906) were checked; both remain open Draft proposals and neither was merged or changed.
+- Calendar criteria 1–7 and SQL criterion 8 remain `NOT VERIFIED` on the exact Product Target SHA. Existing tests and historical PR-merge CI are not substitutes for an exact-SHA run.
+- No Calendar/SQL production code, workflow, secret, signing configuration, application ID, or release artifact was changed.
+
+### Required operator action
+
+From an authorized environment with GitHub Actions write permission, run:
+
+```bash
+gh workflow run build.yml --repo mobinpda-lab/Arvin-clean \
+  --ref main \
+  -f target_sha=1fb3f47e76b3fd093eba8b108b745fadb35b3c69
+
+gh run list --repo mobinpda-lab/Arvin-clean \
+  --workflow build.yml --branch main --limit 10
+```
+
+Record the newly returned Run ID, watch that exact run to completion, then inspect every required job log. Accept only if the requested input, Product Target SHA, and each required job's actual checkout SHA match exactly and `Verify exact requested revision` ran successfully. Do not reuse a historical run ID.
+
+For Device Smoke, first review and authorize the minimal workflow change in PR #2911 or #2906; do not merge or change Draft status without explicit approval.
+
+### Change record
+
+This section was appended to the existing Wave 6.14 documentation on the same review branch. It preserves the prior record and adds the Wave 6.15 preflight and execution limitation. No production code or workflow definition was modified.
