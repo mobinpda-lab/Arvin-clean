@@ -159,3 +159,64 @@ This section was appended to the existing Wave 6.14 documentation on the same re
 - Checked live `main` ref (`d9fb7a247037762216662a20fb32028ecc8a0f6b`) and the Product Target commit metadata.
 - Queried recent Actions runs, then inspected Run `39681652761` metadata, all nine jobs, all nine job logs, and the run's artifact list.
 - Appended this evidence to the existing documentation review branch only. PR [#2914](https://github.com/mobinpda-lab/Arvin-clean/pull/2914) remains open, Draft, and unmerged. No new Build was dispatched because qualifying evidence already existed.
+
+## Wave 6.19 — Exact-SHA Device Smoke path and Calendar/SQL evidence
+
+**Reviewed:** 2026-10-22  
+**Product Target SHA:** `1fb3f47e76b3fd093eba8b108b745fadb35b3c69`  
+**Release decision:** `BLOCKED — RELEASE: NO-GO`
+
+### Preserve Wave 6.18 Build acceptance
+
+- Exact-SHA Build remains `PASS` based on completed Run [`39681652761`](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39681652761), event `workflow_dispatch`, conclusion `success`, and direct logs for all nine required jobs. No duplicate Build was launched.
+- The Build's two artifacts remain associated with that same Run: release ID `12384962220`, debug ID `12384217697`.
+
+### Live workflow and PR review
+
+- Default-branch Device Smoke file: [`.github/workflows/device-smoke.yml`](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/device-smoke.yml), blob SHA `e5cd465a7d5a83be21a55535f7a0b3071ceeec45`. It has a bare `workflow_dispatch` trigger, but does **not** declare `target_sha`, `run_calendar`, or `run_sql_persistence`, and does not enforce an exact-SHA checkout for manual runs. The requested exact-SHA dispatch cannot safely be run against this current default-branch definition.
+- PR [#2911](https://github.com/mobinpda-lab/Arvin-clean/pull/2911) is the best existing path and is still **open, Draft, and unmerged**. Head branch: `ci/device-smoke-exact-sha-dispatch-wave-6-08`; latest head at review: `18389a26dc62838993469a59537ea1c5b7e3c373`. Its workflow proposal blob SHA is `f9c79cd182e242beeec01aa8ffdf3e8e4d2fbf21`; it adds the required three inputs, generated selective matrix, requested-SHA checkout, and fail-closed checkout verification. No duplicate PR was created.
+- PR [#2906](https://github.com/mobinpda-lab/Arvin-clean/pull/2906) is also open, Draft, and unmerged, and proposes a similar workflow-only change. Its scope overlaps PR #2911; keep one reviewed implementation path rather than duplicating or merging both.
+- PR [#2914](https://github.com/mobinpda-lab/Arvin-clean/pull/2914) remains open, Draft, and unmerged for documentation.
+
+### Minimal correction to PR #2911
+
+The earlier PR validation exposed a real contract mismatch: Run [`39742261852`](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39742261852), Job `119702108783`, failed because `tool/validate_fast_lane.py` required literal YAML entries such as `scenario: home`, while the proposed workflow correctly builds a JSON `include` matrix. The dynamic matrix was not a product-code failure.
+
+- Updated `tool/validate_fast_lane.py` on the existing PR #2911 branch to validate all seven canonical scenario-to-test mappings for either static YAML or generated JSON, and to require the manual-dispatch inputs and fail-closed exact-checkout gate. Commit: `8034faaa0e873753ff6874ea5c4a38d8af044f99`; blob SHA `fc5b6aafbbb138a09fd4c5daca8732646b7ad520`.
+- Updated `test/device_smoke_workflow_contract_test.dart` on the same branch to assert the dispatch inputs, checkout ref, logged SHA, and mismatch failure. Commit/head after that change: `18389a26dc62838993469a59537ea1c5b7e3c373`; blob SHA `28e7fc6df5293cda3e5d704e3ce7d92e6005df31`.
+- Validation of the Fast Lane workflow contract passed in Run [`39757680039`](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39757680039), Job `119753756210`. The job log ends with `Arvin Fast Lane workflow contract: OK`.
+- At the latest check, the Build and Device Smoke PR checks for head `18389a26dc62838993469a59537ea1c5b7e3c373` were still pending without jobs listed: Build Run [`39757680043`](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39757680043), Device Smoke Run [`39757680037`](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39757680037). Their final conclusions are therefore `NOT VERIFIED` at this record's time.
+
+### Existing PR-merge Device Smoke evidence, not exact-target acceptance
+
+Run [`39742261790`](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39742261790) ran Calendar and SQL Persistence successfully, but on merge checkout SHA `128aaa042f669098ea5829b9e4ebf6c0ee77d5d5`, not Product Target SHA `1fb3f47e76b3fd093eba8b108b745fadb35b3c69`.
+
+- Calendar Job `119702142521`: `success`; log includes card/editor/time-picker flow, SQLite reminder preservation around cancel, completion persistence, and `All tests passed`.
+- SQL Persistence Job `119702142585`: `success`; log includes `All tests passed`.
+- Calendar screenshot artifact ID `12411215373`: [open artifact](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39742261790/artifacts/12411215373).
+- These are useful PR integration diagnostics only. The workflow was triggered by `pull_request`, checked out merge SHA `128aaa...`, and did not execute the manual-dispatch exact-target guard. Neither job is accepted as exact-SHA product validation.
+
+### Calendar acceptance criteria on Product Target SHA
+
+The source test at [`integration_test/calendar_card_interaction_test.dart`](https://github.com/mobinpda-lab/Arvin-clean/blob/1fb3f47e76b3fd093eba8b108b745fadb35b3c69/integration_test/calendar_card_interaction_test.dart) covers a valid reminder's canonical card key `reminder-card-followup:calendar-smoke-task:calendar-smoke-follow-up`, editor opening, cancel preserving the exact stored reminder instant, return/back behavior with the card still present, and persisted completion. Because no valid exact-SHA Device Smoke has run, all product-level criteria remain `NOT VERIFIED` pending that run; source coverage gaps are:
+
+1. Follow-up without `reminderDate` creates no independent card: explicit test missing.
+2. `nextFollowUp` alone creates no independent reminder card: explicit test missing.
+3. A valid reminder creates exactly one card with the contractual key: assertion exists (`findsOneWidget`), but exact-SHA execution remains `NOT VERIFIED`.
+4. Cancelling the time picker preserves the saved reminder value: assertion exists, but exact-SHA execution remains `NOT VERIFIED`.
+5. Returning from the editor does not remove the card: a return/back assertion exists, but exact-SHA execution remains `NOT VERIFIED`.
+6. A task with its own independent date is preserved: explicit test missing.
+7. Duplicate reminder cards are not created: explicit duplicate-count scenario missing.
+
+No Calendar or SQL production code was changed. Add only targeted test cases for criteria 1, 2, 6, and 7 after reviewing the product's intended card-generation contract.
+
+### SQL persistence and next action
+
+- SQL smoke source at [`integration_test/android_sql_persistence_smoke_test.dart`](https://github.com/mobinpda-lab/Arvin-clean/blob/1fb3f47e76b3fd093eba8b108b745fadb35b3c69/integration_test/android_sql_persistence_smoke_test.dart) checks a second `TaskStore` reading saved title, description, tags, category, checklist, Follow-up identity/note, and `completed=true`. Exact-target device execution remains `NOT VERIFIED`.
+- **No exact-SHA Device Smoke run was dispatched in Wave 6.19.** The connected GitHub tools do not expose a workflow-dispatch action, and the current `main` workflow lacks the required inputs. No attempt was made to bypass branch protection or treat PR CI as product acceptance.
+- Required human approval: review PR #2911 and explicitly authorize its promotion/merge to `main`. This wave deliberately leaves it Draft and unmerged. Once authorized and the workflow definition is present on the default branch, an authorized operator must dispatch Device Smoke with `target_sha=1fb3f47e76b3fd093eba8b108b745fadb35b3c69`, `run_calendar=true`, and `run_sql_persistence=true`, then inspect each Job's actual `CHECKOUT_SHA`, `EXACT_TARGET_SHA`, test result, and artifacts.
+- Official release signing, final application ID, final APK signature/SHA-256, installation, upgrade, and full data-retention acceptance remain `NOT VERIFIED`.
+
+### Wave 6.19 change safety
+
+Only CI contract validation and test assertions were updated on existing Draft PR #2911, plus this documentation record on the existing Draft documentation PR #2914. No PR was merged or promoted from Draft; no secrets, signing settings, application ID, release configuration, or production Calendar/SQL code were changed.
