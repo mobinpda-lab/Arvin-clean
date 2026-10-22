@@ -1,3 +1,9 @@
+# Wave 6.69 Superseding Font Status — 2026-10-23
+
+The font-status row in this evidence map records an earlier checkpoint and is now superseded for the corrective branch. Baseline main SHA 18cbeecc95a03a3b301359ca5b96cfef175a3b15 declared VazirHarf and did not wire the tracked Vazirmatn assets. PR #2918 now registers the four matching Vazirmatn v33.003 static TTF weights, removes CI-time VazirHarf injection, and adds asset-hash plus packaged FontManifest checks. Exact-head Build/test/device acceptance is still governed by the live checks for the current PR head; visual device acceptance must not be inferred from this note.
+
+---
+
 ## 2026-10-14 — CI recovery dispatcher evidence
 
 | Feature / Gate | SHA / Run | Result | Evidence / limitation |
