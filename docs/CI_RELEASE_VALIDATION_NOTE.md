@@ -46,3 +46,14 @@ The live HEAD of PR #2903 was checked and still equals this target SHA. PRs #289
 - Release remains `BLOCKED — RELEASE: NO-GO`. No signing secrets were changed and no official APK was published.
 
 Next action: allow Run 39735174265 to reach a terminal result, then use an authorized GitHub Actions workflow-dispatch capability to run Build with `target_sha=1fb3f47e76b3fd093eba8b108b745fadb35b3c69`. Before exact-SHA Device Smoke can be dispatched, the `target_sha`-capable workflow definition must be available to the dispatch mechanism without merging protected PR #2906. Keep all four PRs Draft and unmerged.
+
+
+### Wave 6.04 follow-up after the initial snapshot
+
+- The initial Device Smoke Run [39735174265](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39735174265) later ended `cancelled` after the PR branch advanced. Home Job 119679101782 and quick-capture Job 119679101914 had passed; Calendar Job 119679101774 was cancelled, and SQL Persistence Job 119679101807 had not produced a final result. Do not report this Run as a pass.
+- The first documentation commit on the workflow PR triggered Fast Lane contract Run [39735871183](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39735871183), which failed because `tool/validate_fast_lane.py` required literal `scenario: home` syntax and did not recognize the new JSON `include` matrix. This was a stale CI contract check, not a product test failure.
+- Minimal CI-contract fix committed as [f84f6882711ee0eeafe95a9c0fd2d39edc036da3](https://github.com/mobinpda-lab/Arvin-clean/commit/f84f6882711ee0eeafe95a9c0fd2d39edc036da3). The validator now accepts the selectable JSON include matrix and verifies the declared scenarios.
+- Validation after that fix: [Arvin Parallel Wave Run 39736040443](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39736040443) completed successfully; contract Job [119681841430](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39736040443/job/119681841430) passed.
+- PR-head Build Run [39736040552](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39736040552) and Device Smoke Run [39736040456](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39736040456) were pending at the follow-up check. Both are `pull_request` runs on workflow PR head `f84f6882711ee0eeafe95a9c0fd2d39edc036da3`, not runs with `target_sha=1fb3f47e76b3fd093eba8b108b745fadb35b3c69`.
+- PR #2906 now has HEAD `f84f6882711ee0eeafe95a9c0fd2d39edc036da3`; it remains OPEN, Draft, and unmerged. All protected PRs remain OPEN, Draft, and unmerged.
+- The exact-SHA Build and Device Smoke limitation remains unchanged: the connected GitHub tools expose no workflow-dispatch action. The main-branch Device Smoke workflow still lacks a `target_sha` input, so its existing manual-dispatch interface cannot perform the requested exact-SHA smoke without a workflow-definition change becoming available to dispatch. Do not merge PR #2906 to bypass this constraint.
