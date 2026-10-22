@@ -50,7 +50,7 @@ Restore reads Tasks and optional Settings from one file selection. Settings are 
 ## Font canonicalization
 
 - The canonical public/default Arvin font is **Vazirmatn v33.003**.
-- Portable `fontFamily` values use the canonical Flutter family name `Vazirmatn` when an explicit family is stored.
+- Portable `fontFamily` values use the canonical settings id `vazirmatn`, which maps to the Flutter family name `Vazirmatn`.
 - Legacy VazirHarf values remain readable and normalize to the canonical vazirmatn id on typed settings decode.
 - Backward compatibility for older task-only backups remains unchanged because the font field is optional.
 
