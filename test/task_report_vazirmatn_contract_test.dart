@@ -8,6 +8,7 @@ void main() {
     final source = File('lib/services/task_report_pdf_renderer.dart').readAsStringSync();
 
     expect(source, contains('assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf'));
+    expect(source, contains('assets/fonts/ui/vazirmatn/Vazirmatn-SemiBold.ttf'));
     expect(source, contains('assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf'));
     expect(source, contains('rootBundle.load(_regularFontAsset)'));
     expect(source, contains('rootBundle.load(_boldFontAsset)'));
@@ -23,11 +24,12 @@ void main() {
     expect(arvinFontById('VazirHarf').id, 'vazirmatn');
   });
 
-  test('pubspec registers the three tracked Vazirmatn weights', () {
+  test('pubspec registers the four tracked Vazirmatn weights', () {
     final source = File('pubspec.yaml').readAsStringSync();
     expect(source, contains('family: Vazirmatn'));
     expect(source, contains('Vazirmatn-Regular.ttf'));
     expect(source, contains('Vazirmatn-Medium.ttf'));
+    expect(source, contains('Vazirmatn-SemiBold.ttf'));
     expect(source, contains('Vazirmatn-Bold.ttf'));
     expect(source, isNot(contains('Vazirharf-Regular.ttf')));
   });
