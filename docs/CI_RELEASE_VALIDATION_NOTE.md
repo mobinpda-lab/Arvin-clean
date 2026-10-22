@@ -497,3 +497,43 @@ Three source-level criteria are directly asserted without qualification; one mor
 - Required maintainer action: review PR #2915 and wait for CI on its exact head; do not merge without authorization. Follow-up acceptance on any changed/new product SHA must be rerun against that exact SHA.
 - Full real-device upgrade, release signing identity, final APK cryptographic verification, installation, and owner release authorization remain `NOT VERIFIED` or `BLOCKED` as applicable.
 - Final release decision remains **`BLOCKED — RELEASE: NO-GO`**.
+
+
+## Wave 6.29 — PR #2915 CI status and exact-target acceptance
+
+**Reviewed:** 2026-10-22  
+**Product Target SHA:** `1fb3f47e76b3fd093eba8b108b745fadb35b3c69`  
+**Release decision:** `BLOCKED — RELEASE: NO-GO`
+
+### PR #2915: live CI reconciliation
+
+- PR: [#2915](https://github.com/mobinpda-lab/Arvin-clean/pull/2915), `[DRAFT] test(calendar): cover Follow-up reminder projection gaps`; remains open, Draft, and unmerged.
+- PR head used by the runs: `110d33b7c859fb55a444022af87ae45f08bc5db3`.
+- Build Run [39765328108](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39765328108): `IN PROGRESS` at the last live poll. Debug APK job `119779230445` concluded success; quality test jobs `119779230765`, `119779230922`, `119779230958`, `119779231063`, `119779231088`, and `119779231106` concluded success; Analyze job `119779231093` concluded success. Release APK job `119779230846` was still `IN PROGRESS`. Therefore the overall Build run was not terminal at this checkpoint.
+- Device Smoke Run [39765328178](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39765328178): `IN PROGRESS` at the last live poll. Prepare matrix job `119779230866` succeeded; Quick Capture job `119779262606` and Home job `119779263136` succeeded. SQL Migration job `119779262633` and SQL Persistence job `119779263255` were `IN PROGRESS`; Backup Restore `119779262649`, People `119779262677`, and, critically, Calendar job `119779262745` were `QUEUED`. Thus the three added Calendar integration tests had not yet been shown to execute in the Calendar job at the last poll.
+- Step evidence from successful quality jobs shows the generic `Test` step succeeded, but `integration_test/calendar_card_interaction_test.dart` is exercised by the Android Device Smoke Calendar job. Generic quality tests do not replace that integration job.
+- The workflow-job API exposed job/step summaries; direct decoded log retrieval returned a 404 for the attempted log query, so no log contents are claimed for those jobs. The real run links and job IDs above are available for continued review. No duplicate CI run was created.
+
+### Three proposed Calendar tests
+
+The PR head source was re-read from GitHub at [the PR branch test file](https://github.com/mobinpda-lab/Arvin-clean/blob/test/calendar-followup-reminder-gaps-wave-6-28/integration_test/calendar_card_interaction_test.dart), blob `ab69b72ce3dc7f3a524875dc1707fd8aef809b1b`. All three named tests are present:
+1. Follow-up without `reminderDate` does not project an independent reminder card.
+2. `nextFollowUp` alone remains an internal action, not a reminder card.
+3. Follow-up reminder projection preserves the independent Task date.
+
+The Product Target version of the same test file remains blob `528aa30b6ebdf4e15bafa6a0cc59424b4277d6b6`; the new tests exist only on the proposed PR branch. No production code change was made in this PR update. The proposed tests' runtime result is `NOT VERIFIED` until Device Smoke Calendar job `119779262745` completes successfully and its final logs are reviewed. The PR-wide CI result remains `IN PROGRESS`, not `PASS`.
+
+### Exact-target Calendar / SQL acceptance
+
+- Live workflow on `main`: [device-smoke.yml](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/device-smoke.yml), blob `f9c79cd182e242beeec01aa8ffdf3e8e4d2fbf21`. The three inputs `target_sha`, `run_calendar`, and `run_sql_persistence` are present, with a dispatch-only exact-checkout guard.
+- Existing target-associated Device Smoke Run [39674729325](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39674729325) is `pull_request`, not `workflow_dispatch`. Calendar Job `119662166787`, SQL Persistence Job `119662117335`, and SQL Migration Job `119662118286` all concluded success, but this run does not meet the required event, selected matrix, and exact-SHA evidence conditions.
+- No qualifying prior `workflow_dispatch` run was identified in the connected evidence. Available GitHub connector actions do not include workflow dispatch or authenticated shell execution, so no new dispatch was started. Exact-target Calendar `NOT VERIFIED`; exact-target SQL Persistence `NOT VERIFIED`; exact-target migration runtime `NOT VERIFIED`. No new Run ID is claimed.
+- Previously accepted Build Run [39681652761](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39681652761) was not repeated.
+- Independent SQL Migration source coverage remains present. Real install/upgrade of the app and preservation of prior-version user data remain `NOT VERIFIED`.
+
+### Required next actions
+
+1. A workflow-authorized operator must dispatch `.github/workflows/device-smoke.yml` from `main` with target SHA `1fb3f47e76b3fd093eba8b108b745fadb35b3c69`, `run_calendar=true`, and `run_sql_persistence=true`; then verify event, inputs, two-entry matrix, checkout SHA, successful non-skipped Exact-SHA guard, Android tests, final jobs, logs and artifacts.
+2. Continue polling the existing PR #2915 Build and Device Smoke runs, especially Release APK job `119779230846`, SQL Migration `119779262633`, SQL Persistence `119779263255`, and Calendar `119779262745`. Do not start duplicate runs while these are active.
+3. Review the exact final Calendar job logs to confirm the new tests actually ran. A successful PR run applies only to PR head `110d33b7c859fb55a444022af87ae45f08bc5db3`, not the Product Target SHA.
+4. Keep PR #2915 unmerged until review and explicit authorization. Release remains **`BLOCKED — RELEASE: NO-GO`**.
