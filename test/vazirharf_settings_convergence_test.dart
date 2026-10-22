@@ -24,6 +24,7 @@ void main() {
     expect(arvinFontById('unknown-font').id, 'vazirmatn');
     expect(pubspec, contains('family: Vazirmatn'));
     expect(pubspec, contains('assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf'));
+    expect(pubspec, contains('assets/fonts/ui/vazirmatn/Vazirmatn-SemiBold.ttf'));
     expect(pubspec, isNot(contains('family: VazirHarf')));
     expect(mainSource, contains("settings.fontFamily ?? 'vazirmatn'"));
     expect(settingsSource, contains("current.fontFamily ?? 'vazirmatn'"));
