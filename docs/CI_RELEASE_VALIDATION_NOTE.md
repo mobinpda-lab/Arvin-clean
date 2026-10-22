@@ -220,3 +220,11 @@ No Calendar or SQL production code was changed. Add only targeted test cases for
 ### Wave 6.19 change safety
 
 Only CI contract validation and test assertions were updated on existing Draft PR #2911, plus this documentation record on the existing Draft documentation PR #2914. No PR was merged or promoted from Draft; no secrets, signing settings, application ID, release configuration, or production Calendar/SQL code were changed.
+
+### Wave 6.19 CI status refresh
+
+At the latest live query on 2026-10-22 at approximately 09:45 UTC, the PR validation runs had advanced beyond their initial queue state but had not completed:
+
+- [Device Smoke PR Run `39757680037`](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39757680037): overall `IN PROGRESS`/queued. Matrix preparation Job `119754299800` passed and generated all seven scenarios. Jobs `119754340995` (quick-capture) and `119754341005` (home) were `IN PROGRESS`; jobs `119754340922` (people), `119754340929` (sql-persistence), `119754341027` (backup-restore), `119754341045` (calendar), and `119754341050` (sql-migration) were queued. These are PR integration checks, not a manually dispatched exact-SHA acceptance run.
+- [Build PR Run `39757680043`](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39757680043): `IN PROGRESS`, with nine required jobs listed and still executing. Its PR event does not request the Product Target SHA; Exact-SHA verification is skipped by design for this PR event, so this run cannot replace Wave 6.18 Build acceptance or establish exact-SHA Device Smoke.
+- Final conclusions for these two PR runs remain `NOT VERIFIED` until their respective Actions runs complete and the completed results are inspected.
