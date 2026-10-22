@@ -908,3 +908,53 @@ No workflow dispatch, merge, signing-secret change, application-ID change, user-
 No PR state change, merge, manual dispatch, duplicate run, secret/signing change, application-ID change, or destructive data operation was performed in Wave 6.35.
 
 **Final decision: `BLOCKED — RELEASE: NO-GO`.** Wave 6.35 is not complete while Device Smoke remains active and the exact-target migration, official ID/signing, and device acceptance gates remain open.
+
+## Wave 6.36 — Final CI status and exact-target migration gate
+
+**Review date:** 2026-10-22  
+**Product Target SHA:** `1fb3f47e76b3fd093eba8b108b745fadb35b3c69`  
+**Decision:** `BLOCKED — RELEASE: NO-GO`
+
+### 1. Final status of existing CI runs
+
+- Build Run [39769361490](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39769361490): GitHub run metadata confirms `status=completed`, `conclusion=success`, event `pull_request`, head SHA `57a23d6cc8c11cb6502314984fbd5c0c280f7dce`. All nine listed jobs are completed/success. This validates the PR head, not the Product Target SHA.
+- Device Smoke Run [39769360693](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39769360693): GitHub run metadata confirms `status=completed`, `conclusion=success`, event `pull_request`, the same PR head SHA `57a23d6cc8c11cb6502314984fbd5c0c280f7dce`. All eight jobs are completed/success: Prepare `119793254338`, Home `119793285899`, Quick Capture `119793285942`, Backup/Restore `119793285963`, People `119793285987`, SQL Persistence `119793286034`, SQL Migration `119793286039`, and Calendar `119793286040`.
+- SQL Migration job log `119793286039` reports the Android integration test `legacy storage upgrades into canonical SQL and survives a fresh store` and `All tests passed!`. This is a successful PR-triggered test, not exact-target `workflow_dispatch` acceptance.
+
+### 2. PR #2916 review, diff, and authorization
+
+- [PR #2916](https://github.com/mobinpda-lab/Arvin-clean/pull/2916) remains `OPEN`, `DRAFT`, and `UNMERGED`, head `57a23d6cc8c11cb6502314984fbd5c0c280f7dce`; base `main` at `264bc7cb31ed19b15254d48926ef9c15f9a67f08`. No submitted reviews were returned by GitHub at this check.
+- The reviewed diff adds `run_sql_migration` with default `false`, maps it to `RUN_SQL_MIGRATION`, and appends scenario `sql-migration` with test file `integration_test/android_upgrade_migration_smoke_test.dart`. The workflow contract test and Fast Lane validator also require the new input/mapping.
+- The same workflow diff retains the target-SHA checkout expression and the existing Calendar and SQL Persistence inputs/mappings. No prior scenario was removed in the reviewed patch. The Build and Device Smoke runs for the corrected head are now both terminal-success.
+- CI is complete, but no human review approval was present in the review list and the PR is still Draft. It was not marked ready or merged. Human review/authorization remains required.
+
+### 3. Exact-target SQL Migration
+
+- Re-read live `main` workflow [`.github/workflows/device-smoke.yml`](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/device-smoke.yml), blob `f9c79cd182e242beeec01aa8ffdf3e8e4d2fbf21`. It still lacks `run_sql_migration`; the live workflow lists Calendar and SQL Persistence but not the Migration input.
+- No manual dispatch was made because the workflow input is not available on `main` and PR #2916 has not been authorized/merged.
+- SQL Migration on Product Target SHA remains **`NOT VERIFIED`**. Acceptance requires a real `workflow_dispatch`, matrix containing the independent `sql-migration` scenario, actual Checkout and `EXACT_TARGET_SHA` equal to `1fb3f47e76b3fd093eba8b108b745fadb35b3c69`, successful Android test, and final successful Job and Run with inspectable logs.
+
+### 4. Release identity and device acceptance
+
+- Current application ID is `com.example.arvin`, but owner-approved official production ID remains **`NOT VERIFIED`**. No ID was changed.
+- Release configuration remains Debug-signed. Official Release signing is **`BLOCKED`** until the product owner approves the application ID and an authorized release owner configures signing through the approved secret-management path. No secrets or private keys were read or changed.
+- APK signature verification with Android SDK for an officially signed candidate remains **`NOT VERIFIED`**. No approved APK was installed/launched for acceptance; previous-version upgrade and before/after data-retention evidence also remain **`NOT VERIFIED`**. No user data was reset.
+
+### 5. Wave 6.36 gate table
+
+| Gate | Status | Direct evidence / next owner action |
+|---|---|---|
+| Build Run 39769361490 | `PASS` | GitHub run metadata: completed/success; PR head SHA only |
+| Device Smoke Run 39769360693 | `PASS` | GitHub run metadata: completed/success; all eight jobs success |
+| PR SQL Migration test | `PASS` | Job `119793286039`, integration test passed on PR CI |
+| PR #2916 review/authorization | `BLOCKED` | Still Draft/unmerged, no submitted reviews returned; authorized human review needed |
+| `run_sql_migration` on `main` | `BLOCKED` | Live workflow blob `f9c79cd182e242beeec01aa8ffdf3e8e4d2fbf21` lacks input |
+| SQL Migration on Product Target SHA | `NOT VERIFIED` | No exact-target manual dispatch; do not count PR CI as target evidence |
+| Official production application ID | `NOT VERIFIED` | Product owner approval needed |
+| Official Release signing and SDK verification | `BLOCKED` | Release currently uses Debug signing; authorized signing and APK verification required |
+| Install/launch, upgrade, data retention | `NOT VERIFIED` | Needs approved signed APK, suitable acceptance device, prior version, and non-destructive before/after evidence |
+| Documentation | `PASS` | Updated this existing documentation branch and reread the saved file from GitHub after commit |
+
+No duplicate CI run, manual dispatch, PR state change, merge, secret/signing change, application-ID change, or destructive data operation was performed in Wave 6.36.
+
+**Final decision: `BLOCKED — RELEASE: NO-GO`.** CI for the PR is now complete and green, but the PR awaits human authorization and exact-target migration plus official Release/device acceptance gates remain open.
