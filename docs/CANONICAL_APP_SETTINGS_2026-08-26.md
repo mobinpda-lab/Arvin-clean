@@ -40,7 +40,7 @@ Joplin is useful as an architecture reference for future offline-first sync, rev
 
 ## Typography convergence
 
-- **Vazirmatn v34.003** is the canonical public/default Arvin font.
+- **Vazirmatn v33.003** is the canonical public/default Arvin font.
 - `fontFamily == null` means use the Arvin default Vazirmatn.
 - Any licensed/private or additional public font picker must extend `AppSettingsService`; it must not create a parallel settings store/controller.
 - Legacy persisted or portable VazirHarf selections normalize to the canonical vazirmatn id.
