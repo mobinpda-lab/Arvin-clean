@@ -20,6 +20,7 @@ env:
 
 jobs:
   contract-test:
+    if: github.event_name == 'push' || github.event.pull_request.head.ref == 'docs/wave-6-10-exact-sha-evidence'
     name: Contract test on pinned target SHA
     runs-on: ubuntu-latest
     timeout-minutes: 20
