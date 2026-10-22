@@ -32,7 +32,17 @@ void main() {
     expect(workflow, contains(r'[[ ! "$actual" =~ ^[0-9a-f]{40}$ ]]'));
     expect(workflow, contains('length=${#TARGET_SHA}'));
     expect(workflow, contains('length=${#actual}'));
-    expect(workflow, contains('Reject malformed input instead of silently trimming or normalizing it.'));
+    expect(workflow, contains('Keep validation after checkout as defense in depth.'));
+    expect(workflow, contains('whitespace and extra characters are not allowed'));
+    expect(workflow, contains('quoted=%q'));
+    expect(workflow, contains('od -An -v -tx1c'));
+
+    final prepareValidationIndex = workflow.indexOf(r'if [[ ! "$TARGET_SHA" =~ ^[0-9a-fA-F]{40}$ ]]');
+    final checkoutIndex = workflow.indexOf('uses: actions/checkout@v5');
+    expect(prepareValidationIndex, greaterThanOrEqualTo(0));
+    expect(checkoutIndex, greaterThan(prepareValidationIndex),
+        reason: 'Dispatch SHA must be rejected in prepare-matrix before any checkout.');
+    expect(workflow, contains(r'if [ "$actual" != "$TARGET_SHA" ]; then'));
     expect(workflow, isNot(contains('TARGET_SHA="$(echo "$TARGET_SHA" | xargs)"')));
 
     // Pull requests targeting integration branches must receive smoke coverage.
@@ -123,4 +133,20 @@ void main() {
           'All seven canonical smoke scenarios must map to their corresponding integration test files',
     );
   });
+  test('target SHA validation accepts only exactly 40 hex characters and preserves exact comparison', () {
+    final shaPattern = RegExp(r'^[0-9a-fA-F]{40}$');
+    const valid = '1fb3f47e76b3fd093eba8b108b745fadb35b3c69';
+    const different = '2fb3f47e76b3fd093eba8b108b745fadb35b3c69';
+
+    expect(shaPattern.hasMatch(valid), isTrue, reason: 'valid 40-character SHA');
+    expect(shaPattern.hasMatch(valid.substring(0, 36)), isFalse, reason: 'incomplete SHA');
+    expect(shaPattern.hasMatch(''), isFalse, reason: 'empty input');
+    expect(shaPattern.hasMatch(' $valid'), isFalse, reason: 'leading whitespace');
+    expect(shaPattern.hasMatch('$valid '), isFalse, reason: 'trailing whitespace');
+    expect(shaPattern.hasMatch('${valid}x'), isFalse, reason: 'extra character');
+    expect(shaPattern.hasMatch(different), isTrue, reason: 'different but well-formed SHA');
+    expect(valid == valid, isTrue, reason: 'identical SHA passes exact comparison');
+    expect(valid == different, isFalse, reason: 'different SHA fails exact comparison');
+  });
+
 }
