@@ -65,3 +65,28 @@ Gate status:
 - Release decision remains `BLOCKED — RELEASE: NO-GO`.
 
 Next minimal action: an authorized human must review PR #2916 and decide whether to approve/merge it. Until that happens, do not dispatch a new run and do not produce or publish a new official APK.
+
+
+## Wave 6.39 — Run reconciliation and release gate status (2026-10-22)
+
+Product target SHA: `1fb3f47e76b3fd093eba8b108b745fadb35b3c69`.
+
+Live GitHub findings at this check:
+- PR #2916 remains open and Draft; it is not merged. The latest known branch commit is `8bdb087b3ae0de9577a4c5073a63b587f9c0c99d` (documentation reconciliation commit). Submitted review list returned empty. No merge or Draft-state change was performed.
+- PR #2916 diff was inspected for `.github/workflows/device-smoke.yml`, `test/device_smoke_workflow_contract_test.dart`, and `tool/validate_fast_lane.py`. The proposed `run_sql_migration` input defaults to false, maps to `RUN_SQL_MIGRATION`, and adds `sql-migration` wired to `integration_test/android_upgrade_migration_smoke_test.dart`. Contract test and Fast Lane validator assert the input/mapping. Existing Calendar and SQL Persistence input/mapping and exact-target checkout guard remain present in the reviewed diff; no weakening/removal was observed in these patch hunks.
+- Build run [39773114803](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39773114803) is now completed with conclusion `cancelled`. The Release APK job [119805291482](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39773114803/job/119805291482) is also cancelled overall, although its Build APK, Verify APK, and Upload APK steps report success. A non-expired `arvin-release-apk` artifact exists (32,463,342 bytes). This is not accepted as an official deliverable: the run is cancelled, exact requested revision verification was skipped, and the live release build configuration still signs with the Debug signing config. No APK was installed or accepted as the final release in this check.
+- Device Smoke run [39773114876](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39773114876) is now completed with conclusion `cancelled`. Home and Quick Capture jobs report success; SQL Migration, SQL Persistence, Calendar, Backup/Restore, and People jobs were cancelled. Artifacts for Home, Quick Capture, and Persian time picker exist, but they do not turn the overall run into a pass. These were PR-triggered jobs at PR head `6505e26484bf5d8772c91bf78a4e0b98cda75eb0`, not an exact-target workflow_dispatch acceptance run.
+- Live main workflow `.github/workflows/device-smoke.yml` blob remains `f9c79cd182e242beeec01aa8ffdf3e8e4d2fbf21` and still has no independent `run_sql_migration` manual-dispatch input or dispatch mapping. It does retain `inputs.target_sha` checkout and a mismatch-failing exact-SHA guard. Do not dispatch SQL Migration until authorized merge and a fresh main reread confirm the input and mapping.
+- Live `android/app/build.gradle.kts` still sets `applicationId = "com.example.arvin"` and `release.signingConfig = signingConfigs.getByName("debug")`. Product-owner approval of the official application ID is not evidenced. Production signing setup, Android SDK signature verification, SHA-256 of the approved final APK, installation/launch, previous-version upgrade, and data retention/restore remain blocked or not verified. No secrets or private keys were read or changed.
+- No `workflow_dispatch` run targeting `1fb3f47e76b3fd093eba8b108b745fadb35b3c69` was created. Exact-target SQL Migration acceptance remains NOT VERIFIED.
+
+Gate status:
+- PR #2916 human review and merge authorization: BLOCKED (authorized human reviewer/maintainer).
+- SQL Migration input present on main: FAIL (review and authorized merge of PR #2916 required, followed by reread).
+- SQL Migration on exact product target: NOT VERIFIED.
+- Official application ID approval: NOT VERIFIED (product owner).
+- Production signing, SDK signature validation, final APK SHA-256, install/launch, upgrade, and data retention: BLOCKED / NOT VERIFIED (release owner/operator after identity and signing are approved).
+- Official APK delivery: NO-GO. The existing artifact is not accepted as official evidence.
+- Release decision remains `BLOCKED — RELEASE: NO-GO`.
+
+Next minimal action: an authorized human reviewer/maintainer must review PR #2916 and explicitly decide whether to approve and merge under repository policy. Until then, keep it open and Draft, do not dispatch a new exact-target run, and do not label the existing APK artifact official.
