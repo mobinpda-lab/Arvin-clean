@@ -92,25 +92,64 @@ Gate status:
 Next minimal action: an authorized human reviewer/maintainer must review PR #2916 and explicitly decide whether to approve and merge under repository policy. Until then, keep it open and Draft, do not dispatch a new exact-target run, and do not label the existing APK artifact official.
 
 
-## Wave 6.40 — Current run and PR gate check (2026-10-22)
+## Wave 6.40 — Run status reconciled by Wave 6.41 (2026-10-22)
 
 Product target SHA: `1fb3f47e76b3fd093eba8b108b745fadb35b3c69`.
 
-Fresh GitHub evidence:
-- PR #2916 is OPEN, DRAFT, unmerged; latest head `e78289cf21de7266d2c8712bbc89b197c4bbb5ba`. Submitted review list is empty. No merge or Draft transition performed.
-- Diff inspection confirms `run_sql_migration` defaults false, maps to `RUN_SQL_MIGRATION`, and adds `sql-migration` with `integration_test/android_upgrade_migration_smoke_test.dart`. Contract test and Fast Lane validator assert it. Calendar and SQL Persistence inputs/mappings and exact-SHA checkout guard are retained in the patch.
-- Device Smoke run [39774623094](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39774623094): run-level metadata still reports `queued` while the latest jobs snapshot reports Prepare success, Home and Quick Capture in progress, and SQL Migration, SQL Persistence, Calendar, Backup/Restore and People queued. Therefore the run has no final conclusion at this check. Existing SQL Migration job [119810446742](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39774623094/job/119810446742) is queued; do not create a replacement run.
-- Build run [39774623123](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39774623123): `in_progress` at the latest run snapshot. Debug and Release APK jobs are still in progress; Release Build APK is in progress and Verify/Upload are pending. No final run conclusion or artifact was returned by the latest artifact check.
-- These runs are PR-triggered at commit `e78289cf21de7266d2c8712bbc89b197c4bbb5ba`, not exact-target acceptance. Prior runs [39773114803](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39773114803) and [39773114876](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39773114876) remain cancelled historical evidence only, not PASS.
-- Live `main/.github/workflows/device-smoke.yml` blob `f9c79cd182e242beeec01aa8ffdf3e8e4d2fbf21` does not contain `run_sql_migration`; existing Calendar, SQL Persistence and exact-SHA checkout guard are present. No manual dispatch was attempted.
-- Live `android/app/build.gradle.kts` blob `aaeea7506885814cc4c4a65ac6559872a80146a8` still sets `applicationId = "com.example.arvin"` and `release.signingConfig = signingConfigs.getByName("debug")`. Official ID approval, secure production signing, SDK signature verification, final APK SHA-256, installation/launch, upgrade and data retention remain NOT VERIFIED or BLOCKED. No secret/private key read or changed.
-- No `workflow_dispatch` acceptance run for target SHA `1fb3f47e76b3fd093eba8b108b745fadb35b3c69` exists in the inspected evidence.
+The earlier Wave 6.40 entry was a point-in-time snapshot. The later authoritative GitHub run metadata is reconciled below in Wave 6.41: both runs have since completed with conclusion `cancelled`, so neither run is a passing acceptance result.
 
-Gate status:
-- PR review/merge authorization: BLOCKED (authorized human reviewer/maintainer).
-- Migration input on main: FAIL.
+- PR #2916 remains OPEN, DRAFT, and unmerged. Current head is `d736b483acbce9156e757263ec001f38d63c76ca`; submitted reviews are empty and no reviewer request is pending.
+- Main's live Device Smoke workflow still has no independent `run_sql_migration` dispatch input. Exact-target SQL Migration dispatch was not attempted.
+- `android/app/build.gradle.kts` still uses application ID `com.example.arvin` and Debug signing for Release. These do not establish official identity or production signing.
+
+## Wave 6.41 — Existing run finalization and SQL Migration gate (2026-10-22)
+
+Product target SHA: `1fb3f47e76b3fd093eba8b108b745fadb35b3c69`.
+
+### Final run outcomes from GitHub
+
+- Device Smoke [39774623094](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39774623094): status `completed`, conclusion `cancelled`; event is `pull_request`, head SHA `e78289cf21de7266d2c8712bbc89b197c4bbb5ba`, not the Product target SHA.
+  - `Prepare selected smoke scenarios`: success.
+  - `device-smoke (home)`: success.
+  - `device-smoke (quick-capture)`: cancelled.
+  - `device-smoke (sql-migration)`: cancelled.
+  - `device-smoke (sql-persistence)`: cancelled.
+  - `device-smoke (calendar)`: cancelled.
+  - `device-smoke (backup-restore)`: cancelled.
+  - `device-smoke (people)`: cancelled.
+  - Overall result is CANCELLED, not PASS. The SQL Migration job is not accepted evidence.
+- Build [39774623123](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39774623123): status `completed`, conclusion `cancelled`; event is `pull_request`, head SHA `e78289cf21de7266d2c8712bbc89b197c4bbb5ba`, not the Product target SHA.
+  - `quality (analyze)`, `quality (test-0)`, `quality (test-1)`, `quality (test-2)`, `quality (test-3)`, `quality (test-4)`, `quality (test-5)`: success.
+  - `apk (debug)`: cancelled.
+  - `apk (release)`: cancelled.
+  - Artifact query returned no artifacts. The successful quality jobs do not make the overall Build run pass or prove an APK deliverable.
+- No replacement run was created. The existing runs are now final, so there is no further polling needed for these run IDs.
+
+### PR #2916 and SQL Migration dispatch
+
+- PR [#2916](https://github.com/mobinpda-lab/Arvin-clean/pull/2916) remains OPEN, DRAFT, and unmerged; latest head `d736b483acbce9156e757263ec001f38d63c76ca`. Review submissions are empty; GitHub reports no requested individual or team reviewers. No merge or Draft transition was performed.
+- The proposed PR workflow adds `run_sql_migration` defaulting to false, maps it to `RUN_SQL_MIGRATION`, and selects `integration_test/android_upgrade_migration_smoke_test.dart`; related contract and Fast Lane checks are included in the PR diff. This proposal is not yet present on main.
+- Live main workflow [device-smoke.yml](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/device-smoke.yml) blob SHA: `f9c79cd182e242beeec01aa8ffdf3e8e4d2fbf21`. It contains Calendar and SQL Persistence inputs and an exact-SHA checkout guard, but no independent `run_sql_migration` input. The migration test file name appearing elsewhere in the workflow does not replace the missing dispatch input/mapping.
+- No `workflow_dispatch` was attempted. Exact-target SQL Migration acceptance remains NOT VERIFIED until an authorized merge, a fresh main reread confirming the input and mapping, and one eligible dispatch with target SHA `1fb3f47e76b3fd093eba8b108b745fadb35b3c69`, SQL Migration enabled, Calendar disabled, SQL Persistence disabled, exact checkout evidence, successful Android test, and successful final job/run conclusions.
+
+### Official APK gates
+
+- Live [build.gradle.kts](https://github.com/mobinpda-lab/Arvin-clean/blob/main/android/app/build.gradle.kts) blob SHA `aaeea7506885814cc4c4a65ac6559872a80146a8` sets `applicationId = "com.example.arvin"` and `release.signingConfig = signingConfigs.getByName("debug")`.
+- Product-owner approval of the official application ID: NOT VERIFIED.
+- Production signing configuration: BLOCKED.
+- Android SDK signature validation for a final APK: NOT VERIFIED.
+- SHA-256 of the approved final APK: NOT VERIFIED.
+- Installation and launch of that same APK: NOT VERIFIED.
+- Upgrade from the previous version and proof that user data remains intact: NOT VERIFIED.
+- No secrets or private keys were read or exposed; no user data was reset. No artifact from the cancelled Build run is accepted as an official APK.
+
+### Gate summary and next action
+
+- PR review and merge authorization: BLOCKED; responsible party is an authorized human reviewer/maintainer. No known authorized reviewer was available from the current GitHub review-request data, so no speculative reviewer request was sent.
+- SQL Migration input on main: FAIL.
 - Exact-target SQL Migration acceptance: NOT VERIFIED.
-- Official APK delivery: NO-GO; current run is not final and existing Debug signing config blocks official release acceptance.
+- Official APK release gates: BLOCKED / NOT VERIFIED.
 - Release decision remains `BLOCKED — RELEASE: NO-GO`.
 
-Next minimal action: authorized human reviewer/maintainer must review PR #2916 and decide whether to approve/merge under repository policy. Keep PR open and Draft until then; continue monitoring only the existing runs. After authorized merge, reread main workflow before any one-time exact-target dispatch.
+Smallest next action: an authorized human reviewer/maintainer must review PR #2916 and explicitly decide whether it may be approved and merged under repository policy. Until then, keep the PR open and Draft and do not dispatch SQL Migration. After authorized merge, re-read main before a single exact-target dispatch.
+
