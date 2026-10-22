@@ -382,3 +382,29 @@ This Wave 6.24 record was appended to the existing documentation branch for PR #
 The product/repository owner should name or authorize a reviewer/team for PR #2911 and clarify whether the PR should enter the normal review process while remaining Draft or be explicitly approved for a later ready-for-review transition. Only after a verified reviewer is identified should an authorized actor request that review. A maintainer with adequate permissions should separately determine why GitHub reports `unstable`. After the approved workflow is present on `main`, an authorized Actions operator can dispatch only `calendar` and `sql-persistence` with the exact target SHA and verify both jobs' checkout and test logs.
 
 This Wave 6.25 record was appended to the existing documentation branch for PR #2914. The file was re-read from GitHub after writing to verify the record. No duplicate documentation PR, production code change, PR state change, merge, dispatch, secret/signing change, or protection change was made.
+
+
+## Wave 6.26 — Live state after PR #2911 changed (2026-10-22)
+
+**Product Target SHA:** `1fb3f47e76b3fd093eba8b108b745fadb35b3c69`  
+**Release decision:** `BLOCKED — RELEASE: NO-GO`
+
+### New live evidence
+
+- PR [#2911](https://github.com/mobinpda-lab/Arvin-clean/pull/2911) changed since Wave 6.25: GitHub now reports `state=closed`, `merged=true`, merged at `2026-10-22T10:30:49Z`. Merge commit: `264bc7cb31ed19b15254d48926ef9c15f9a67f08`, now the `main` commit. This was an observed external repository change; this wave did not merge the PR or change its Draft state.
+- PR #2911 review endpoint returned zero reviews; requested individual and team reviewers are empty. The merge therefore does not provide evidence of a formal human review. Do not infer reviewer authorization from the PR author or repository-owner account.
+- GitHub's visible active ruleset `main-protection` still requires pull-request-based changes, prohibits branch deletion and non-fast-forward updates, shows zero minimum approving reviews and no named required reviewer identities, and enables `require_extra_approval_for_unattributed_changes`. The separate branch-protection endpoint remains inaccessible to this integration (HTTP 403). Collaborator and team membership endpoints were not available through the connected fetch capability; authorized reviewer identity remains `NOT VERIFIED`.
+- The PR's prior `mergeable_state=unstable` is no longer a current actionable PR state because PR #2911 is closed and merged. Its earlier cause remains `NOT DETERMINED`; the latest API response does not explain the prior value.
+- The live `main` workflow [`.github/workflows/device-smoke.yml`](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/device-smoke.yml) now has blob SHA `f9c79cd182e242beeec01aa8ffdf3e8e4d2fbf21`. It visibly defines `target_sha`, `run_calendar`, and `run_sql_persistence`, dynamically selects requested scenarios, checks the actual checkout against `target_sha`, and logs `CHECKOUT_SHA` and `EXACT_TARGET_SHA`. Workflow input readiness on `main`: `PASS`.
+- PR #2914 remains open, Draft, and unmerged at head `a668d1b806b00753ab1a09f4cb7ec10ab151730d`. The documentation branch was updated in place for this record; no duplicate documentation PR was created.
+- Current check-run inspection for former PR head `18389a26dc62838993469a59537ea1c5b7e3c373` returned 37 entries. A newer PR-triggered Device Smoke run [`39763638138`](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39763638138) was still queued/in progress when checked; Calendar and SQL Persistence jobs were queued. The previous completed PR Device Smoke run `39757680037`, Fast Lane Contract `39757680039`, and Build `39757680043` were successful, but none constitutes the required manual exact-target acceptance run.
+- The most recent general `workflow_dispatch` run inspected, [`39763648725`](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39763648725), belongs to `Arvin Production Orchestrator`, not `device-smoke.yml`. It is not Calendar/SQL exact-SHA acceptance evidence.
+- The connected GitHub tool set exposes no operation to dispatch a workflow. Therefore no new Device Smoke dispatch was initiated in this wave. Exact-SHA Calendar/SQL run: `NOT RUN`; Calendar target-SHA acceptance: `NOT VERIFIED`; SQL Persistence target-SHA acceptance: `NOT VERIFIED`.
+- Exact-SHA Build Run [`39681652761`](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39681652761) remains the previously verified successful Build and was not repeated.
+
+### Required next action and release boundary
+
+- An authorized Actions operator with workflow-dispatch capability should now run the documented command from Wave 6.25 against `main`, because the required inputs are present there. Accept only a completed `workflow_dispatch` run with exactly the Calendar and SQL Persistence scenarios, exact matching `CHECKOUT_SHA` and `EXACT_TARGET_SHA` in both jobs, successful Android tests, and inspectable logs/artifacts from that same run.
+- The product/repository owner or authorized maintainer should clarify the review/governance record for PR #2911 because it was merged without any review recorded by the PR reviews endpoint. Do not attempt to reverse the merge or change protection as part of this wave.
+- This wave changed only the existing documentation review branch. No new workflow run was started, no product code or secret/signing configuration was changed, and PR #2906 was not merged or combined with #2911.
+- Release remains `BLOCKED — RELEASE: NO-GO` until exact-SHA Calendar and SQL acceptance and all other release gates are satisfied.
