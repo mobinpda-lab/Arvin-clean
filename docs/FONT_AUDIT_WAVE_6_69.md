@@ -14,9 +14,9 @@ The recursive Git tree at baseline SHA contained exactly these project-owned TTF
 | assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf | 122,656 | Vazirmatn | Medium / 500 | 33.003 | b986623e4ddef10755e04be39f8ea7bcb1dc08bfe8dd0aa6af395736f256ad4a |
 | assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf | 123,036 | Vazirmatn | Bold / 700 | 33.003 | f635fdbea28f265de395ba83b4b1570dcf2f58d13c65469e61903b1c2d2ae723 |
 
-The three repository files were compared byte-for-byte with the archive's standard static files fonts/ttf/Vazirmatn-Regular.ttf, fonts/ttf/Vazirmatn-Medium.ttf, and fonts/ttf/Vazirmatn-Bold.ttf. Each pair matched both SHA-256 and Git blob SHA. They are **not** the archive's separately named misc/UI-Farsi-Digits files.
+The three baseline repository files were compared byte-for-byte with the archive's standard static files fonts/ttf/Vazirmatn-Regular.ttf, fonts/ttf/Vazirmatn-Medium.ttf, and fonts/ttf/Vazirmatn-Bold.ttf. Each pair matched both SHA-256 and Git blob SHA. The corrective branch then added the matching standard SemiBold 600 file, also byte-identical to the supplied archive and upstream commit 6e553e33489a8f9dfaccc76860a2e3f3c1e66de7. These are **not** the archive's separately named misc/UI-Farsi-Digits files.
 
-The archive contains 296 font files: 148 TTF and 148 WOFF2, with no OTF or WOFF entries. It includes standard static and variable fonts plus UI, Farsi-Digits, UI-Farsi-Digits, Non-Latin, Farsi-Digits-Non-Latin, and Round-Dots variants. Internal names identify Vazirmatn version 33.003; weights range from 100 through 900 depending on variant. The standard archive's SemiBold 600 file is 122,920 bytes with SHA-256 3f239d8364c14ee32c46b6839fa197c28958358b82a9673d2c6acc8506d78bc5, but that binary was not tracked in the baseline repository. It must not be referenced until added and verified. No font files were deleted or replaced by this audit.
+The archive contains 296 font files: 148 TTF and 148 WOFF2, with no OTF or WOFF entries. It includes standard static and variable fonts plus UI, Farsi-Digits, UI-Farsi-Digits, Non-Latin, Farsi-Digits-Non-Latin, and Round-Dots variants. Internal names identify Vazirmatn version 33.003; weights range from 100 through 900 depending on variant. The standard archive's SemiBold 600 file is 122,920 bytes with SHA-256 3f239d8364c14ee32c46b6839fa197c28958358b82a9673d2c6acc8506d78bc5. It was absent at baseline and is now added on the corrective branch after matching the upstream Git blob SHA 6b3842aca6055c8258404b1758133b81c961a13f. No existing font files were deleted or replaced.
 
 ## Baseline runtime references and CI behavior
 
@@ -53,7 +53,7 @@ The APK also contains Flutter's MaterialIcons-Regular.otf; that is an icon font,
 
 ## Wave 6.69 corrective changes
 
-- Re-register the three tracked Vazirmatn weights in pubspec.yaml.
+- Register the four tracked Vazirmatn weights in pubspec.yaml.
 - Set Vazirmatn as the runtime default and locally available font.
 - Normalize persisted and portable legacy VazirHarf values to the canonical vazirmatn id.
 - Point PDF output and Calendar typography at Vazirmatn.
