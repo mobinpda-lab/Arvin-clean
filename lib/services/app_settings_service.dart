@@ -497,7 +497,12 @@ class AppSettingsService {
 
   String? _normalizeFontFamily(String? family) {
     final value = family?.trim();
-    return value == null || value.isEmpty ? null : value;
+    if (value == null || value.isEmpty) return null;
+    final normalized = value.toLowerCase();
+    if (normalized == 'vazirharf' || normalized == 'vazirmatn') {
+      return 'vazirmatn';
+    }
+    return value;
   }
 
   String? _normalizeCalendarId(String? id) {
