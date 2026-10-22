@@ -8,6 +8,23 @@ void main() {
         File('.github/workflows/device-smoke.yml').readAsStringSync();
 
     expect(workflow, contains('name: Arvin Device Smoke'));
+    expect(workflow, contains('workflow_dispatch:'));
+    expect(workflow, contains('target_sha:'));
+    expect(workflow, contains('run_calendar:'));
+    expect(workflow, contains('run_sql_persistence:'));
+    expect(
+      workflow,
+      contains(r"ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.sha }}"),
+    );
+    expect(workflow, contains('name: Record and verify checkout revision'));
+    expect(workflow, contains(r'actual="$(git rev-parse HEAD)"'));
+    expect(workflow, contains(r'echo "CHECKOUT_SHA=$actual"'));
+    expect(workflow, contains(r'echo "EXACT_TARGET_SHA=$actual"'));
+    expect(
+      workflow,
+      contains(r'CHECKOUT SHA mismatch: expected $TARGET_SHA, got $actual'),
+    );
+    expect(workflow, contains(r'if [ "$actual" != "$TARGET_SHA" ]; then'));
 
     // Pull requests targeting integration branches must receive smoke coverage.
     // Keep the main/master restriction for push events, but not for pull_request.
