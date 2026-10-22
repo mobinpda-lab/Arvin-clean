@@ -73,7 +73,8 @@ jobs:
             fi
           fi
           echo "Selected scenario matrix: $scenarios"
-          echo "matrix=$(jq -c . <<< "$scenarios")" >> "$GITHUB_OUTPUT"
+          matrix="$(jq -cn --argjson scenarios "$scenarios" '{include:$scenarios}')"
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
 
   device-smoke:
     needs: prepare-matrix
