@@ -265,3 +265,47 @@ Product target SHA: `1fb3f47e76b3fd093eba8b108b745fadb35b3c69`.
 - Exact Product target SQL Migration dispatch acceptance: `NOT VERIFIED`.
 - Official APK signing and install/upgrade/data-retention acceptance: `BLOCKED / NOT VERIFIED`.
 - Release remains `BLOCKED — RELEASE: NO-GO`.
+
+
+## Wave 6.47 — Final Run reconciliation and documentation review (2026-10-22)
+
+Product target SHA: `1fb3f47e76b3fd093eba8b108b745fadb35b3c69`.
+
+### Final live Run status
+
+- Device Smoke [39785332878](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39785332878) is now `completed / success` on merge SHA `18cbeecc95a03a3b301359ca5b96cfef175a3b15`. Its final Jobs list shows successful Prepare, SQL Migration, SQL Persistence, People, Home, Calendar, Backup/Restore, and Quick Capture jobs. This closes the Run-level status question for the merge SHA only.
+- SQL Migration Job [119846930708](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39785332878/job/119846930708) is `completed / success`. The Android emulator smoke step and exact test are recorded in the job logs. Checkout was `18cbeecc95a03a3b301359ca5b96cfef175a3b15`, not Product target SHA.
+- Build [39785332668](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39785332668) is `completed / success` on the same merge SHA. The workflow's APK verification step checks only that the expected APK file exists; it does not establish production signing, certificate identity, or APK SHA-256.
+- The existing target-SHA Device Smoke [39674729325](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39674729325) is `completed / success`, but its event is `pull_request`, not `workflow_dispatch`. It does not prove the isolated manual-dispatch contract or that Calendar and SQL Persistence were excluded. No qualifying manual-dispatch acceptance run for the Product target was found during this check.
+
+### Workflow and exact-target gate
+
+- Live [device-smoke.yml](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/device-smoke.yml), blob `4a14c77f228df5c1511fd87cd06def2d19e1a3a3`, now contains `target_sha`, `run_sql_migration` (default `false`), `run_calendar`, and `run_sql_persistence` workflow-dispatch inputs. The SQL Migration input maps to `integration_test/android_upgrade_migration_smoke_test.dart`; manual dispatch selects Calendar and SQL Persistence only when their inputs are true. Checkout verifies `CHECKOUT_SHA` against `TARGET_SHA` and emits `EXACT_TARGET_SHA` after a match.
+- The connected GitHub tools available for this task do not provide a workflow-dispatch action. No run was dispatched, retried, or replaced. Exact-target SQL Migration gate remains `NOT VERIFIED`.
+- Required single operator action: from Actions > Arvin Device Smoke, select branch `main`, set `target_sha=1fb3f47e76b3fd093eba8b108b745fadb35b3c69`, `run_sql_migration=true`, `run_calendar=false`, and `run_sql_persistence=false`. Then verify exact checkout SHA, the Android migration test result, Migration Job success, whole Run `completed / success`, and absence of Calendar and SQL Persistence Jobs.
+
+### Documentation PR review state
+
+- Existing documentation-only [PR #2913](https://github.com/mobinpda-lab/Arvin-clean/pull/2913) remains OPEN and DRAFT, unmerged. No duplicate PR was created.
+- At this inspection, requested reviewers/teams were empty and the submitted review list was empty. A specifically assigned authorized reviewer is therefore `NOT VERIFIED`; human review and merge authorization are still required.
+- GitHub currently reports the PR as not mergeable. Before merge, an authorized maintainer must refresh/reconcile its branch against current `main`, resolve any conflict if present, and inspect the resulting diff and CI. Do not mark ready or merge without human authorization.
+- This Wave section was appended on the existing documentation PR branch to preserve earlier Wave history. Main's document remains behind until PR #2913 is reviewed and merged.
+
+### Official APK gates
+
+- [android/app/build.gradle.kts](https://github.com/mobinpda-lab/Arvin-clean/blob/main/android/app/build.gradle.kts), blob `aaeea7506885814cc4c4a65ac6559872a80146a8`: application ID remains `com.example.arvin`; Release uses the Debug signing config. Product-owner approval of the official ID is `NOT VERIFIED`.
+- [pubspec.yaml](https://github.com/mobinpda-lab/Arvin-clean/blob/main/pubspec.yaml), blob `b8d5ca0c31405fe14a5d3c9126eab507725bf6c5`: version `1.0.1+2`.
+- [build.yml](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/build.yml), blob `a49cc2ff35e1dad0bb434ebe31a2593ca6a510ce`, builds APKs and checks file existence only. It does not run `apksigner verify --print-certs` or record a final APK SHA-256.
+- [release.yml](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/release.yml), blob `c5f45b9b1d66db22a585b0637a24537aeb95d098`, creates a GitHub Release/tag; this is not proof of a production-signed APK.
+- Production signing, signature verification, final APK SHA-256, install/launch of the same approved APK, upgrade from the previous version, and existing-data retention/reopen remain `BLOCKED / NOT VERIFIED`. Do not change the application ID without explicit product-owner approval, expose secrets/private keys, alter signing configuration without authorization, or generate a new official APK before ID/signing approval.
+
+### Gate decision and smallest next action
+
+- Device Smoke Run 39785332878: `PASS` on merge SHA only.
+- SQL Migration Job 119846930708: `PASS` on merge SHA only.
+- SQL Migration on exact Product target SHA: `NOT VERIFIED`.
+- Documentation PR #2913: `OPEN / DRAFT`; authorized reviewer not assigned; mergeability currently false.
+- Official APK acceptance: `BLOCKED / NOT VERIFIED`.
+- Release remains `BLOCKED — RELEASE: NO-GO`.
+
+Smallest next action: an authorized Actions operator must perform the one manual SQL Migration dispatch described above. In parallel, an authorized human reviewer must review PR #2913, reconcile the branch, and decide whether to approve/merge it. No duplicate Run or PR is needed.
