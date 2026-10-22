@@ -64,14 +64,14 @@ The target-SHA test source was inspected, but source inspection is not execution
 
 | Acceptance criterion | Current evidence in test source | Product status |
 |---|---|---|
-| Follow-up without `reminderDate` creates no standalone card | Not exercised by the current Calendar integration test | NOT VERIFIED |
-| `nextFollowUp` alone creates no card | Not exercised by the current Calendar integration test | NOT VERIFIED |
-| Valid reminder creates exactly one card with ID `reminder-card-followup:calendar-smoke-task:calendar-smoke-follow-up` | Test seeds a valid reminder and expects one keyed card | NOT VERIFIED until valid target-SHA execution |
-| Cancelling the time picker preserves stored `reminderDate` | Test compares SQLite reminder timestamp before and after cancellation | NOT VERIFIED until valid target-SHA execution |
-| Returning from the edit form does not remove the card | Test expects the card after return | NOT VERIFIED until valid target-SHA execution |
-| Independently dated Task remains present | Not exercised by the current Calendar integration test | NOT VERIFIED |
-| No duplicate card is created | One keyed card is expected in the seeded reminder-present case; broader cases are not covered | NOT VERIFIED |
-| SQL persistence succeeds | Dedicated Android SQL persistence test exists | NOT VERIFIED until valid target-SHA execution |
+| Follow-up without `reminderDate` creates no standalone card | Projection unit test asserts history-only Follow-up produces no projection; UI/device behavior is not separately asserted there | NOT VERIFIED until valid target-SHA execution |
+| `nextFollowUp` alone creates no card | Unit test proves `nextFollowUp` is not separately projected alongside a valid reminder; the nextFollowUp-only/no-reminder case is not explicit | NOT VERIFIED |
+| Valid reminder creates exactly one card with ID `reminder-card-followup:calendar-smoke-task:calendar-smoke-follow-up` | Calendar integration test seeds a valid reminder and expects one keyed card | NOT VERIFIED until valid target-SHA execution |
+| Cancelling the time picker preserves stored `reminderDate` | Calendar integration test compares SQLite reminder timestamp before and after cancellation | NOT VERIFIED until valid target-SHA execution |
+| Returning from the edit form does not remove the card | Calendar integration test expects the card after return | NOT VERIFIED until valid target-SHA execution |
+| Independently dated Task remains present | Projection unit tests assert independent due-date projection and coexistence with a separately dated Follow-up; UI/device persistence is not asserted there | NOT VERIFIED until valid target-SHA execution |
+| No duplicate card is created | Projection unit test checks equivalent task/follow-up timestamps deduplicate; Calendar integration test expects one card for the seeded case | NOT VERIFIED until valid target-SHA execution |
+| SQL persistence succeeds | Dedicated Android SQL persistence test exists and checks save/load cycle | NOT VERIFIED until valid target-SHA execution |
 
 Sources:
 - [Calendar interaction test at target SHA](https://github.com/mobinpda-lab/Arvin-clean/blob/1fb3f47e76b3fd093eba8b108b745fadb35b3c69/integration_test/calendar_card_interaction_test.dart)
