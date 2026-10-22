@@ -57,10 +57,12 @@ jobs:
           test -s assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf
           test -s assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf
           test -s assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf
+          test -s assets/fonts/ui/vazirmatn/Vazirmatn-SemiBold.ttf
           cat <<'EOF' | sha256sum --check -
           b69fd4c680b8f3f225feabcc655a2c585d97627b8f5f5c0f9985e894069f3a56  assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf
           b986623e4ddef10755e04be39f8ea7bcb1dc08bfe8dd0aa6af395736f256ad4a  assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf
           f635fdbea28f265de395ba83b4b1570dcf2f58d13c65469e61903b1c2d2ae723  assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf
+          3f239d8364c14ee32c46b6839fa197c28958358b82a9673d2c6acc8506d78bc5  assets/fonts/ui/vazirmatn/Vazirmatn-SemiBold.ttf
           EOF
           grep -q 'family: Vazirmatn' pubspec.yaml
           ! grep -q 'family: VazirHarf' pubspec.yaml
