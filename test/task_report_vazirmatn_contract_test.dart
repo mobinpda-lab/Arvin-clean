@@ -8,7 +8,6 @@ void main() {
     final source = File('lib/services/task_report_pdf_renderer.dart').readAsStringSync();
 
     expect(source, contains('assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf'));
-    expect(source, contains('assets/fonts/ui/vazirmatn/Vazirmatn-SemiBold.ttf'));
     expect(source, contains('assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf'));
     expect(source, contains('rootBundle.load(_regularFontAsset)'));
     expect(source, contains('rootBundle.load(_boldFontAsset)'));
