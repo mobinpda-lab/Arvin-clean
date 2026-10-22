@@ -34,7 +34,49 @@ env:
   FLUTTER_VERSION: '3.47.0'
 
 jobs:
+  prepare-matrix:
+    name: Prepare selected smoke scenarios
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Build scenario matrix
+        id: set-matrix
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          RUN_CALENDAR: ${{ inputs.run_calendar }}
+          RUN_SQL_PERSISTENCE: ${{ inputs.run_sql_persistence }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          scenarios='[]'
+          if [ "$EVENT_NAME" != "workflow_dispatch" ]; then
+            scenarios='[
+              {"scenario":"home","test_file":"integration_test/android_home_smoke_test.dart"},
+              {"scenario":"quick-capture","test_file":"integration_test/android_quick_capture_smoke_test.dart"},
+              {"scenario":"sql-persistence","test_file":"integration_test/android_sql_persistence_smoke_test.dart"},
+              {"scenario":"sql-migration","test_file":"integration_test/android_upgrade_migration_smoke_test.dart"},
+              {"scenario":"backup-restore","test_file":"integration_test/android_backup_restore_sql_smoke_test.dart"},
+              {"scenario":"people","test_file":"integration_test/android_people_smoke_test.dart"},
+              {"scenario":"calendar","test_file":"integration_test/calendar_card_interaction_test.dart"}
+            ]'
+          else
+            if [ "$RUN_CALENDAR" = "true" ]; then
+              scenarios="$(jq -c '. + [{"scenario":"calendar","test_file":"integration_test/calendar_card_interaction_test.dart"}]' <<< "$scenarios")"
+            fi
+            if [ "$RUN_SQL_PERSISTENCE" = "true" ]; then
+              scenarios="$(jq -c '. + [{"scenario":"sql-persistence","test_file":"integration_test/android_sql_persistence_smoke_test.dart"}]' <<< "$scenarios")"
+            fi
+            if [ "$scenarios" = "[]" ]; then
+              echo "At least one smoke scenario must be selected for workflow_dispatch." >&2
+              exit 1
+            fi
+          fi
+          echo "Selected scenario matrix: $scenarios"
+          echo "matrix=$(jq -c . <<< "$scenarios")" >> "$GITHUB_OUTPUT"
+
   device-smoke:
+    needs: prepare-matrix
     # Draft PRs need CI evidence before they are marked ready; this job never promotes or merges.
     name: device-smoke (${{ matrix.scenario }})
     runs-on: ubuntu-latest
@@ -42,23 +84,7 @@ jobs:
     strategy:
       fail-fast: false
       max-parallel: 2
-      matrix:
-        include:
-          - scenario: home
-            test_file: integration_test/android_home_smoke_test.dart
-          - scenario: quick-capture
-            test_file: integration_test/android_quick_capture_smoke_test.dart
-          - scenario: sql-persistence
-            test_file: integration_test/android_sql_persistence_smoke_test.dart
-          - scenario: sql-migration
-            test_file: integration_test/android_upgrade_migration_smoke_test.dart
-          - scenario: backup-restore
-            test_file: integration_test/android_backup_restore_sql_smoke_test.dart
-          - scenario: people
-            test_file: integration_test/android_people_smoke_test.dart
-          - scenario: calendar
-            test_file: integration_test/calendar_card_interaction_test.dart
-    if: ${{ github.event_name != 'workflow_dispatch' || (matrix.scenario == 'calendar' && inputs.run_calendar) || (matrix.scenario == 'sql-persistence' && inputs.run_sql_persistence) }}
+      matrix: ${{ fromJSON(needs.prepare-matrix.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v5
         with:
