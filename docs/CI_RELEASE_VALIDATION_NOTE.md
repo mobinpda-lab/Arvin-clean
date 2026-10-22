@@ -379,3 +379,15 @@ Product target SHA: `1fb3f47e76b3fd093eba8b108b745fadb35b3c69`.
 - PR #2913 branch reconciliation, CI review, and approval decision: `BLOCKED`. Owner: authorized human maintainer/reviewer.
 - Official APK acceptance: `BLOCKED / NOT VERIFIED`. Owner: product owner for application ID approval, then authorized release owner for signing and device acceptance.
 - Release remains `BLOCKED — RELEASE: NO-GO`.
+
+
+### Wave 6.50.1 — Exact-SHA guard failure (2026-10-22)
+
+- Failed Run [39795918879](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39795918879), run number #5642, event `workflow_dispatch`, terminal result `failure`.
+- Migration Job [119883096495](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39795918879/job/119883096495) checked out the requested commit successfully. Checkout logs show `git rev-parse HEAD` and `CHECKOUT_SHA` equal `1fb3f47e76b3fd093eba8b108b745fadb35b3c69`.
+- Root cause is proven by the raw Actions log: environment `TARGET_SHA` contains leading whitespace; the mismatch message prints that whitespace before the expected SHA. The previous strict string comparison behaved correctly; this was malformed dispatch input, not a Git checkout failure. Android Migration did not run because the guard failed first.
+- Proposed guard hardening in this PR branch: require exactly 40 hexadecimal characters for `TARGET_SHA` and `git rev-parse HEAD`; reject whitespace/extra characters rather than trimming or normalizing; keep exact full-string equality and the `EXACT_TARGET_SHA` success marker. Invalid-input diagnostics report lengths only and do not echo malformed values.
+- Added workflow contract assertions for strict format checks and non-normalizing behavior. The tests have been authored but **not yet executed**; CI confirmation remains pending.
+- No replacement acceptance run was created. Do not dispatch until the PR change is reviewed and the updated workflow is present on `main`. Supply the target SHA exactly, without leading/trailing whitespace.
+- PR [#2913](https://github.com/mobinpda-lab/Arvin-clean/pull/2913) remains Draft and unmerged; no merge was performed. Exact-target SQL Migration acceptance remains `NOT VERIFIED`; official APK gates remain blocked.
+- Release decision: `BLOCKED — RELEASE: NO-GO`.
