@@ -408,3 +408,46 @@ This Wave 6.25 record was appended to the existing documentation branch for PR #
 - The product/repository owner or authorized maintainer should clarify the review/governance record for PR #2911 because it was merged without any review recorded by the PR reviews endpoint. Do not attempt to reverse the merge or change protection as part of this wave.
 - This wave changed only the existing documentation review branch. No new workflow run was started, no product code or secret/signing configuration was changed, and PR #2906 was not merged or combined with #2911.
 - Release remains `BLOCKED — RELEASE: NO-GO` until exact-SHA Calendar and SQL acceptance and all other release gates are satisfied.
+
+
+## Wave 6.27 — Exact-SHA Calendar and SQL acceptance status (2026-10-22)
+
+**Product Target SHA:** `1fb3f47e76b3fd093eba8b108b745fadb35b3c69`  
+**Release decision:** `BLOCKED — RELEASE: NO-GO`
+
+### Live workflow and existing-run reconciliation
+
+- Live `main` workflow [`.github/workflows/device-smoke.yml`](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/device-smoke.yml), blob `f9c79cd182e242beeec01aa8ffdf3e8e4d2fbf21`, defines all required inputs: `target_sha`, `run_calendar`, and `run_sql_persistence`. Its dispatch matrix selects Calendar and SQL Persistence independently, and the checkout-verification step compares `git rev-parse HEAD` to `target_sha` and emits `EXACT_TARGET_SHA` only on a match.
+- The target commit's own workflow blob `e5cd465a7d5a83be21a55535f7a0b3071ceeec45` does not contain these inputs or exact-SHA controls. The planned command explicitly uses `--ref main`, so dispatch would use the live main workflow and check out the target SHA.
+- Run [`39763638138`](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39763638138) remains reported as event `pull_request`, head `18389a26dc62838993469a59537ea1c5b7e3c373`, branch `ci/device-smoke-exact-sha-dispatch-wave-6-08`. Its job listing contains the standard seven-scenario matrix; it is not the required two-scenario manual dispatch. The run API still reported it queued when queried, although the jobs endpoint showed some jobs completed and others in progress/queued. It is not acceptance evidence.
+- Existing run [`39674729325`](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39674729325) is `event=pull_request`, `status=completed`, `conclusion=success`, with API `head_sha=1fb3f47e76b3fd093eba8b108b745fadb35b3c69` and attempt 2. Calendar Job [`119662166787`](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39674729325/job/119662166787) and SQL Persistence Job [`119662117335`](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39674729325/job/119662117335) both concluded `success`; their Android integration logs contain “All tests passed.” Calendar screenshots were uploaded as artifact [`arvin-device-smoke-calendar-ee013f003f9c2fac9b78590d0ffa153f8a20cedf`](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39674729325). This run's event is still `pull_request`, the old workflow has no exact-SHA checkout control, and the artifact suffix is not the target SHA. Therefore these are useful prior CI results but do not satisfy Wave 6.27's exact-SHA acceptance contract.
+- Run-list inspection of recent `workflow_dispatch` executions returned Production Orchestrator and other workflows, but no `.github/workflows/device-smoke.yml` dispatch for the target SHA. The existing successful Build Run `39681652761` was not repeated.
+- The connected GitHub tools support read operations and selected file edits but expose no workflow-dispatch action or local authenticated GitHub CLI. No new Device Smoke dispatch was started. Exact-SHA run: `NOT RUN`; Calendar exact-SHA acceptance: `NOT VERIFIED`; SQL Persistence exact-SHA acceptance: `NOT VERIFIED`.
+
+### Calendar test-source review at the target SHA
+
+Source: [`integration_test/calendar_card_interaction_test.dart`](https://github.com/mobinpda-lab/Arvin-clean/blob/1fb3f47e76b3fd093eba8b108b745fadb35b3c69/integration_test/calendar_card_interaction_test.dart), blob `528aa30b6ebdf4e15bafa6a0cc59424b4277d6b6`.
+
+| Acceptance criterion | Source coverage | Assessment |
+|---|---|---|
+| Follow-up without `reminderDate` creates no separate card | No negative fixture/assertion | `NOT VERIFIED` |
+| `nextFollowUp` alone creates no card | No fixture/assertion | `NOT VERIFIED` |
+| Valid reminder creates exactly one card with contractual ID | Seeded reminder; `findsOneWidget` for `reminder-card-followup:calendar-smoke-task:calendar-smoke-follow-up` | `PASS` for source assertion; runtime exact-SHA acceptance `NOT VERIFIED` |
+| Cancelling time picker preserves stored value | Reads SQLite before and after cancel; checks same reminder instant | `PASS` for source assertion; runtime exact-SHA acceptance `NOT VERIFIED` |
+| Returning from edit form does not remove card | After cancel/back, checks canonical card remains | `PASS` for source assertion; runtime exact-SHA acceptance `NOT VERIFIED` |
+| Independent Task date remains intact | No independent task-date fixture/assertion | `NOT VERIFIED` |
+| Duplicate card is not created | `findsOneWidget` detects more than one matching contractual key for the seeded valid reminder | `PASS` for this fixture only; broader duplicate-generation cases `NOT VERIFIED` |
+
+Three source-level criteria are directly asserted without qualification; one more duplicate assertion applies only to the single valid-reminder fixture. No Calendar test source was modified in this wave because the required exact-SHA dispatch could not be launched and any new test change would need normal review and its own revision/acceptance evidence. The three uncovered cases must be added as isolated, non-weakened tests through the normal repository review path before claiming full seven-case coverage.
+
+### SQL persistence and upgrade-data review
+
+- Target-SHA source [`integration_test/android_sql_persistence_smoke_test.dart`](https://github.com/mobinpda-lab/Arvin-clean/blob/1fb3f47e76b3fd093eba8b108b745fadb35b3c69/integration_test/android_sql_persistence_smoke_test.dart), blob `689e9f7f3c28487c9eef2b06d64be431068687e4`, writes a task with description, tags, category, follow-up, completion state and checklist; loads through a fresh `TaskStore` and asserts those values. This tests ordinary SQL save/load persistence, not upgrade preservation.
+- The existing [`integration_test/android_upgrade_migration_smoke_test.dart`](https://github.com/mobinpda-lab/Arvin-clean/blob/1fb3f47e76b3fd093eba8b108b745fadb35b3c69/integration_test/android_upgrade_migration_smoke_test.dart), blob `3f7d169a13f1546629e8e5cbaec0c9c9c0766c0b`, seeds legacy preferences, reads through `TaskStore`, mutates the legacy preferences after cutover, then verifies a fresh store still returns migrated SQL data. Source coverage for legacy-to-SQL migration is present.
+- In prior PR run `39674729325`, SQL Persistence Job `119662117335` and SQL Migration Job `119662118286` both concluded `success`; the former log says “All tests passed.” This is PR-triggered evidence, not a manual exact-target run with explicit checkout confirmation. Upgrade migration acceptance on the exact target: `NOT VERIFIED`. Full real-device install/upgrade lifecycle beyond this migration smoke: `NOT VERIFIED`.
+
+### Next action
+
+- An authorized GitHub Actions operator with workflow-dispatch capability must run the documented `gh workflow run` command against `main` with target SHA `1fb3f47e76b3fd093eba8b108b745fadb35b3c69` and both booleans true, then inspect the real run, both jobs, checkout logs, Exact-SHA control, Android test output and artifacts.
+- The maintainer should add isolated Calendar tests for (1) missing `reminderDate`, (2) `nextFollowUp` without a reminder, and (3) preservation of a Task's independent date, via the normal review process. Do not weaken existing assertions or treat a PR CI result as exact-SHA acceptance.
+- Release remains `BLOCKED — RELEASE: NO-GO` until exact-SHA runtime acceptance and the remaining release gates are supported by inspectable evidence.
