@@ -22,6 +22,11 @@ on:
         required: true
         default: true
         type: boolean
+      run_sql_migration:
+        description: 'Run SQL legacy-storage migration scenario'
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -46,6 +51,7 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           RUN_CALENDAR: ${{ inputs.run_calendar }}
           RUN_SQL_PERSISTENCE: ${{ inputs.run_sql_persistence }}
+          RUN_SQL_MIGRATION: ${{ inputs.run_sql_migration }}
         shell: bash
         run: |
           set -euo pipefail
@@ -66,6 +72,9 @@ jobs:
             fi
             if [ "$RUN_SQL_PERSISTENCE" = "true" ]; then
               scenarios="$(jq -c '. + [{"scenario":"sql-persistence","test_file":"integration_test/android_sql_persistence_smoke_test.dart"}]' <<< "$scenarios")"
+            fi
+            if [ "$RUN_SQL_MIGRATION" = "true" ]; then
+              scenarios="$(jq -c '. + [{"scenario":"sql-migration","test_file":"integration_test/android_upgrade_migration_smoke_test.dart"}]' <<< "$scenarios")"
             fi
             if [ "$scenarios" = "[]" ]; then
               echo "At least one smoke scenario must be selected for workflow_dispatch." >&2

@@ -12,6 +12,9 @@ void main() {
     expect(workflow, contains('target_sha:'));
     expect(workflow, contains('run_calendar:'));
     expect(workflow, contains('run_sql_persistence:'));
+    expect(workflow, contains('run_sql_migration:'));
+    expect(workflow, contains(r'RUN_SQL_MIGRATION: ${{ inputs.run_sql_migration }}'));
+    expect(workflow, contains('"scenario":"sql-migration","test_file":"integration_test/android_upgrade_migration_smoke_test.dart"'));
     expect(
       workflow,
       contains(r"ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.sha }}"),

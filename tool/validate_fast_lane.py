@@ -82,6 +82,8 @@ for token in (
     'target_sha:',
     'run_calendar:',
     'run_sql_persistence:',
+    'run_sql_migration:',
+    'RUN_SQL_MIGRATION: ${{ inputs.run_sql_migration }}',
     'ref: ${{ github.event_name == \'workflow_dispatch\' && inputs.target_sha || github.sha }}',
     'name: Record and verify checkout revision',
     'actual="$(git rev-parse HEAD)"',
