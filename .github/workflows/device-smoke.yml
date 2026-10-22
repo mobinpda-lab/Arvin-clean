@@ -7,6 +7,21 @@ on:
     # Validate PRs targeting integration branches too; product code can live there before main integration.
     types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
+    inputs:
+      target_sha:
+        description: 'Exact product commit SHA to validate'
+        required: true
+        type: string
+      run_calendar:
+        description: 'Run Calendar interaction scenario'
+        required: true
+        default: true
+        type: boolean
+      run_sql_persistence:
+        description: 'Run SQL persistence scenario'
+        required: true
+        default: true
+        type: boolean
 
 permissions:
   contents: read
@@ -43,8 +58,26 @@ jobs:
             test_file: integration_test/android_people_smoke_test.dart
           - scenario: calendar
             test_file: integration_test/calendar_card_interaction_test.dart
+    if: ${{ github.event_name != 'workflow_dispatch' || (matrix.scenario == 'calendar' && inputs.run_calendar) || (matrix.scenario == 'sql-persistence' && inputs.run_sql_persistence) }}
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.sha }}
+      - name: Record and verify checkout revision
+        env:
+          TARGET_SHA: ${{ inputs.target_sha }}
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          echo "CHECKOUT_SHA=$actual"
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            test -n "$TARGET_SHA"
+            if [ "$actual" != "$TARGET_SHA" ]; then
+              echo "CHECKOUT SHA mismatch: expected $TARGET_SHA, got $actual" >&2
+              exit 1
+            fi
+            echo "EXACT_TARGET_SHA=$actual"
+          fi
       - name: Cache pinned VazirHarf
         uses: actions/cache@v5
         with:
