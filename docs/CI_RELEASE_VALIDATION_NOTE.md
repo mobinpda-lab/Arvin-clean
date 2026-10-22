@@ -306,11 +306,11 @@ The next action is for the product owner/repository owner to review PR #2911 and
 Only after the approved workflow definition is actually present on `main`, and an authorized operator has the required Actions permission, run:
 
 ```bash
-gh workflow run .github/workflows/device-smoke.yml \\
-  --repo mobinpda-lab/Arvin-clean \\
-  --ref main \\
-  -f target_sha=1fb3f47e76b3fd093eba8b108b745fadb35b3c69 \\
-  -f run_calendar=true \\
+gh workflow run .github/workflows/device-smoke.yml \
+  --repo mobinpda-lab/Arvin-clean \
+  --ref main \
+  -f target_sha=1fb3f47e76b3fd093eba8b108b745fadb35b3c69 \
+  -f run_calendar=true \
   -f run_sql_persistence=true
 ```
 
