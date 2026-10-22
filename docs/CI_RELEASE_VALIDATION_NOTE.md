@@ -345,3 +345,37 @@ Product target SHA: `1fb3f47e76b3fd093eba8b108b745fadb35b3c69`.
 - Documentation in main: `NOT VERIFIED / STALE`. Owner: authorized human reviewer/maintainer; action: inspect PR #2913, resolve any confirmed branch issue, review CI and approve/merge if authorized.
 - Official APK: `BLOCKED / NOT VERIFIED`. Owners: product owner for official ID approval, then authorized release maintainer for production signing and APK acceptance.
 - Release decision remains `BLOCKED — RELEASE: NO-GO`.
+
+
+## Wave 6.49 — Exact-SHA gate, PR divergence, and release review (2026-10-22)
+
+Product target SHA: `1fb3f47e76b3fd093eba8b108b745fadb35b3c69`.
+
+### SQL Migration exact-target gate
+
+- Live [Device Smoke workflow](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/device-smoke.yml), blob `4a14c77f228df5c1511fd87cd06def2d19e1a3a3`, contains the `target_sha`, `run_sql_migration`, `run_calendar`, and `run_sql_persistence` manual inputs. SQL Migration maps to `integration_test/android_upgrade_migration_smoke_test.dart`; the checkout guard compares the actual SHA with the requested target and emits `EXACT_TARGET_SHA` only after a match.
+- The connected GitHub toolset has no workflow-dispatch action. Its commit-run lookup is limited to pull-request-triggered runs, so it cannot conclusively enumerate every event type and establish whether a qualifying manual dispatch already exists. No dispatch was created, no existing run was rerun, and no result was simulated.
+- The previously verified Device Smoke [39785332878](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39785332878) and Migration Job [119846930708](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39785332878/job/119846930708) succeeded on merge SHA `18cbeecc95a03a3b301359ca5b96cfef175a3b15`, not the Product target. Target-SHA run [39674729325](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39674729325) was PR-triggered, not manual dispatch. Exact-target isolated migration acceptance remains `NOT VERIFIED`.
+- Required operator action: open [Arvin Device Smoke](https://github.com/mobinpda-lab/Arvin-clean/actions/workflows/device-smoke.yml) on `main` and first inspect the workflow run history for an existing qualifying run. If none exists, dispatch exactly once with `target_sha=1fb3f47e76b3fd093eba8b108b745fadb35b3c69`, `run_sql_migration=true`, `run_calendar=false`, `run_sql_persistence=false`. Record the `workflow_dispatch` event, exact checkout SHA and guard, Android migration test result, Migration Job conclusion, whole Run conclusion, and absence of Calendar/SQL Persistence jobs.
+
+### PR #2913 and documentation branch
+
+- Existing [PR #2913](https://github.com/mobinpda-lab/Arvin-clean/pull/2913) remains `OPEN / DRAFT`, unmerged, with head `a0d058127fe7c099657d6bf7b0994968b2e82ebb`. No requested reviewers or submitted reviews were present. The latest-head combined status returned no statuses, and the associated commit-run lookup returned no PR-triggered runs; CI is `NOT VERIFIED`, not PASS.
+- Live compare `main...docs/wave-6-10-exact-sha-evidence` reports `diverged`, `ahead_by=5`, `behind_by=18`; the merge base is `d9fb7a247037762216662a20fb32028ecc8a0f6b`. The PR diff is limited to `docs/CI_RELEASE_VALIDATION_NOTE.md`. This proves branch divergence, but does not by itself prove a textual conflict in the document or the precise internal reason GitHub reports `mergeable=false`.
+- Wave 6.49 was appended to this same PR branch only, preserving prior Wave entries. The file was reread from GitHub after the commit. Main's document remains unchanged until an authorized human review and merge.
+- Required maintainer action: update/reconcile the existing branch against current `main` without force-pushing over unreviewed work; inspect the document conflict result and final diff; ensure checks run on the resulting head; then request/perform human review. Do not exit Draft or merge without authorization.
+
+### Official APK gates
+
+- Live [android/app/build.gradle.kts](https://github.com/mobinpda-lab/Arvin-clean/blob/main/android/app/build.gradle.kts), blob `aaeea7506885814cc4c4a65ac6559872a80146a8`: application ID is `com.example.arvin`; Release uses Debug signing. Product-owner approval of the official ID remains `NOT VERIFIED`.
+- Live [pubspec.yaml](https://github.com/mobinpda-lab/Arvin-clean/blob/main/pubspec.yaml), blob `b8d5ca0c31405fe14a5d3c9126eab507725bf6c5`: version `1.0.1+2`.
+- Live [build.yml](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/build.yml), blob `a49cc2ff35e1dad0bb434ebe31a2593ca6a510ce`, checks APK file existence but contains no `apksigner verify --print-certs` or final APK SHA-256 step.
+- Live [release.yml](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/release.yml), blob `c5f45b9b1d66db22a585b0637a24537aeb95d098`, creates a tag/GitHub Release and is not a production APK signing/verification pipeline.
+- Official ID approval: `NOT VERIFIED`. Production signing and certificate verification: `BLOCKED / NOT VERIFIED`. Final APK SHA-256, installation/launch of that same APK, upgrade from prior version, and existing-data retention/reopen: `NOT VERIFIED`. No ID, signing configuration, or secret was changed; no new official APK was built.
+
+### Decision and owners
+
+- Exact-target SQL Migration: `NOT VERIFIED`. Owner: authorized Actions operator.
+- PR #2913 branch reconciliation, CI review, and approval decision: `BLOCKED`. Owner: authorized human maintainer/reviewer.
+- Official APK acceptance: `BLOCKED / NOT VERIFIED`. Owner: product owner for application ID approval, then authorized release owner for signing and device acceptance.
+- Release remains `BLOCKED — RELEASE: NO-GO`.
