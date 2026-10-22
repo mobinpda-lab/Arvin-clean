@@ -1,33 +1,62 @@
 import 'dart:io';
 
-import 'package:flutter_test/flutter_test.dart';
+import 'package:arvin/services/app_settings_service.dart';
+import 'package:arvin/theme/app_fonts.dart';
 import 'package:arvin/theme/font_registry.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  test('canonical Settings keeps legacy VazirHarf as a safe fallback option', () {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
+  test('Vazirmatn is the canonical bundled app font', () {
+    final pubspec = File('pubspec.yaml').readAsStringSync();
     final mainSource = File('lib/main.dart').readAsStringSync();
-    final fontsSource = File('lib/theme/app_fonts.dart').readAsStringSync();
     final settingsSource = File('lib/settings_page.dart').readAsStringSync();
 
-    expect(mainSource, contains("import 'theme/font_registry.dart';"));
-    expect(fontsSource, contains("static const String vazirharfFamily = 'VazirHarf';"));
-    expect(arvinFontById('vazirharf').effectiveFontFamily, 'VazirHarf');
-    expect(settingsSource, contains("ValueKey('font-settings-entry')"));
+    expect(AppFonts.vazirmatnFamily, 'Vazirmatn');
+    expect(arvinFontById('vazirmatn').effectiveFontFamily, 'Vazirmatn');
+    expect(arvinFontById('VazirHarf').id, 'vazirmatn');
+    expect(arvinFontById('unknown-font').id, 'vazirmatn');
+    expect(pubspec, contains('family: Vazirmatn'));
+    expect(pubspec, contains('assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf'));
+    expect(pubspec, isNot(contains('family: VazirHarf')));
+    expect(mainSource, contains("settings.fontFamily ?? 'vazirmatn'"));
+    expect(settingsSource, contains("current.fontFamily ?? 'vazirmatn'"));
   });
 
-  test('font catalog contains supported choices and safe fallback behavior', () {
-    expect(kAvailableArvinFonts.map((font) => font.id).toSet(), containsAll(<String>{'vazirmatn','estedad','sahel','shabnam','samim','tanha','gandom','parastoo','mikhak','lalezar','vazir-code','system','vazirharf'}));
+  test('legacy VazirHarf preferences converge to Vazirmatn', () async {
+    final service = AppSettingsService();
+
+    await service.saveFontFamily('  VazirHarf  ');
+    expect((await service.load()).fontFamily, 'vazirmatn');
+
+    final restored = service.decodePortableJson({'fontFamily': 'VazirHarf'});
+    expect(restored.fontFamily, 'vazirmatn');
+  });
+
+  test('all selectable public font ids retain one canonical settings path', () {
+    expect(
+      kAvailableArvinFonts.map((font) => font.id).toSet(),
+      containsAll(<String>{
+        'vazirmatn', 'estedad', 'sahel', 'shabnam', 'samim', 'tanha',
+        'gandom', 'parastoo', 'mikhak', 'lalezar', 'vazir-code', 'system',
+      }),
+    );
+    expect(kAvailableArvinFonts.map((font) => font.id), isNot(contains('vazirharf')));
     expect(arvinFontById('system').effectiveFontFamily, isNull);
-    expect(arvinFontById('vazirmatn').effectiveFontFamily, isNull);
-    expect(arvinFontById('unknown-font').id, 'vazirharf');
   });
 
-  test('release APK builds the canonical VazirHarf app entrypoint', () {
-    final workflow = File('.github/workflows/build.yml').readAsStringSync();
-
-    expect(workflow, contains('flutter build apk --\${{ matrix.variant }} -t lib/main.dart'));
-    expect(workflow, isNot(contains('-t lib/main_iransans.dart')));
-    expect(workflow, isNot(contains('IRANSANSX_FANUM_REGULAR_B64')));
-    expect(workflow, isNot(contains('IRANSANSX_FANUM_BOLD_B64')));
+  test('Build uses tracked fonts and verifies the packaged family', () {
+    final build = File('.github/workflows/build.yml').readAsStringSync();
+    expect(build, contains('Verify tracked Vazirmatn assets'));
+    expect(build, contains('Verify packaged Vazirmatn font identity'));
+    expect(build, contains('flutter build apk --'));
+    expect(build, isNot(contains('github.com/nadalaba/vazirharf.git')));
+    expect(build, isNot(contains('Restore VazirHarf assets')));
   });
 }
