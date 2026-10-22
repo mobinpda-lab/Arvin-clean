@@ -646,3 +646,32 @@ The Product Target version of the same test file remains blob `528aa30b6ebdf4e15
 2. **Workflow-authorized GitHub Actions operator:** start the `device-smoke.yml` workflow from `main` with `target_sha=1fb3f47e76b3fd093eba8b108b745fadb35b3c69`, `run_calendar=true`, and `run_sql_persistence=true`. Record the actual Run ID/URL, then verify event, two-scenario matrix, checkout SHA, successful non-skipped exact-SHA check, Android tests, logs, and final conclusions.
 3. **Android/release owner:** independently prove real APK installation, previous-version upgrade/data retention, approved application ID, approved Release signing, and SHA-256 of the final APK.
 4. Keep PR #2915 unmerged absent explicit authorization. Final decision remains **`BLOCKED — RELEASE: NO-GO`**.
+
+
+## Wave 6.31 live recheck addendum — 2026-10-22 11:02 UTC
+
+This addendum supersedes earlier *poll-time* descriptions only where newer live evidence below is available. It does not change the release decision.
+
+### Existing PR Device Smoke Run
+
+- Run [39765328178](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39765328178) was re-read from GitHub. Event remains `pull_request`, head SHA `110d33b7c859fb55a444022af87ae45f08bc5db3`; the Run is still `in_progress` with no final conclusion.
+- Latest job listing: Prepare selected smoke scenarios `success`; Quick Capture `success`; SQL Migration `success`; Backup Restore `success`; People `success`; Home `success`; SQL Persistence `success`; Calendar `in_progress`.
+- Calendar job `119779262745` step listing confirms the Android emulator test step is still `in_progress`; screenshot evidence steps are pending. Attempts to retrieve its job log again returned HTTP 404 / BlobNotFound. Therefore the three new Calendar tests are present in source, but runtime execution/result remains `NOT VERIFIED` until the job log and final result become available.
+- The PR SQL Persistence and SQL Migration successes remain evidence for their recorded PR merge checkout, not the Product Target SHA. This Run is not exact-target acceptance.
+
+### Newly discovered manual-dispatch Run
+
+- A live search of the returned Actions run listing identified Run [39767200300](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39767200300), event `workflow_dispatch`, currently `in_progress`. Its workflow head SHA is `264bc7cb31ed19b15254d48926ef9c15f9a67f08` (the workflow revision on `main`); this head SHA alone does **not** prove the requested product checkout SHA.
+- Prepare job `119785506180` succeeded. Its retrieved log explicitly records `RUN_CALENDAR=true`, `RUN_SQL_PERSISTENCE=true`, and selected matrix exactly `calendar` plus `sql-persistence`.
+- The only scenario jobs are Calendar `119785537501` and SQL Persistence `119785537406`; both were `in_progress` at this poll. Their step listings show the checkout and “Record and verify checkout revision” steps succeeded, but the active job logs were not downloadable (HTTP 404 / BlobNotFound). The actual checkout SHA and explicit Exact-SHA output are therefore not yet independently verified from available log text. Do not mark either scenario `PASS` until the run reaches a terminal result and the checkout/test logs establish the requested Product Target SHA and successful non-skipped equality guard.
+- No additional dispatch was created during this recheck. Continue polling Run `39767200300`; do not create a replacement while it is active.
+
+### Current gate status after this poll
+
+- Existing PR Device Smoke Run `39765328178`: `IN PROGRESS`; Calendar remains active.
+- Three new Calendar tests on PR SHA: source `PASS`; runtime/result `NOT VERIFIED`.
+- Exact-target Calendar and SQL Persistence: Run `39767200300` is active, but acceptance remains `NOT VERIFIED` until actual checkout SHA, non-skipped exact-SHA check, Android test results, and terminal Run/Job conclusions are confirmed.
+- Exact-target SQL Migration: `NOT VERIFIED`; no target-SHA migration scenario is included in the selected dispatch matrix.
+- APK installation, real upgrade/data retention, approved application ID, approved Release signing, and final APK SHA-256: `NOT VERIFIED`.
+- Next owner action: CI maintainer/operator should continue polling both existing Runs and capture terminal logs; do not start duplicate runs. Android/release owner still owns device install/upgrade and release identity/signing/hash evidence.
+- Release decision remains **`BLOCKED — RELEASE: NO-GO`**.
