@@ -137,8 +137,8 @@ Reference accent intent:
 ## 9. Typography
 
 - Persian/RTL first.
-- **VazirHarf v34.003 is the only canonical public/default Persian UI font for Arvin.**
-- No Vazirmatn family, asset, path, or fallback is permitted in the canonical typography contract.
+- **Vazirmatn v33.003 is the canonical public/default Persian UI font for Arvin.**
+- Use the tracked Vazirmatn assets and do not implicitly substitute the distinct VazirHarf family.
 - Licensed/private fonts such as IRANSansX remain opt-in only when their legitimate assets are available and must never replace the public/default font implicitly.
 - App title: bold/semibold.
 - Section title: semibold.
@@ -158,7 +158,7 @@ The following are explicitly not acceptable without a new user-approved UI decis
 - random accent colors on ordinary controls;
 - removing bottom navigation solely because a drawer exists;
 - replacing the approved Home with an AI-generated redesign because it is easier to implement;
-- reintroducing Vazirmatn as a default or fallback font.
+- reintroducing an unapproved font as a default or fallback.
 
 ## 11. Validation gate
 
