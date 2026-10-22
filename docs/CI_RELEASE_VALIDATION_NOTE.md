@@ -876,7 +876,7 @@ No workflow dispatch, merge, signing-secret change, application-ID change, user-
 - PR [#2916](https://github.com/mobinpda-lab/Arvin-clean/pull/2916) is still **OPEN, DRAFT, and UNMERGED** at head `57a23d6cc8c11cb6502314984fbd5c0c280f7dce`. It was not promoted or merged.
 - Build Run [39769361490](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39769361490): all nine listed jobs reached `completed / success`, including Release APK build `119793307994`, Debug APK build `119793308296`, all six test shards, and Analyze `119793308664`. Analyze log: `No issues found!`. This is PR CI, not a new build of the Product Target SHA.
 - Device Smoke Run [39769360693](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39769360693): Prepare `119793254338`, Home `119793285899`, Quick Capture `119793285942`, SQL Persistence `119793286034`, and SQL Migration `119793286039` reached `completed / success`. The SQL Migration job log contains the test `legacy storage upgrades into canonical SQL and survives a fresh store` and `All tests passed!`.
-- At the latest poll, Backup/Restore job `119793285963` and People job `119793285987` were still `in_progress`; Calendar job `119793286040` was `queued`. Therefore the Device Smoke Run was **not yet terminal**, and no overall successful conclusion is claimed. Recheck this same run rather than starting a duplicate.
+- At the latest poll, Backup/Restore job `119793285963` reached `completed / success`; People job `119793285987` and Calendar job `119793286040` remained `in_progress`. Therefore the Device Smoke Run was **not yet terminal**, and no overall successful conclusion is claimed. Recheck this same run rather than starting a duplicate.
 - The successful SQL Migration job is from the PR-triggered Device Smoke run. It is not an exact-target manual dispatch and must not be counted as acceptance evidence for Product Target SHA `1fb3f47e76b3fd093eba8b108b745fadb35b3c69`.
 
 ### 2. Exact-target SQL Migration dispatch remains gated
@@ -896,7 +896,7 @@ No workflow dispatch, merge, signing-secret change, application-ID change, user-
 | Gate | Status | Evidence / owner / next action |
 |---|---|---|
 | PR Build CI | `PASS` | [Run 39769361490](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39769361490), all listed jobs successful; CI maintainer to review |
-| PR Device Smoke overall | `IN PROGRESS` | [Run 39769360693](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39769360693); wait on Backup/Restore, People, Calendar; do not duplicate |
+| PR Device Smoke overall | `IN PROGRESS` | [Run 39769360693](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39769360693); Backup/Restore passed; People and Calendar remain active; do not duplicate |
 | SQL Migration on PR CI | `PASS` | Job `119793286039`, test output says `All tests passed!`; this is not Product Target SHA acceptance |
 | PR #2916 review/merge | `BLOCKED` | Still Draft/unmerged; authorized human reviewer/maintainer required |
 | SQL Migration input on `main` | `BLOCKED` | Live workflow blob above lacks `run_sql_migration` |
