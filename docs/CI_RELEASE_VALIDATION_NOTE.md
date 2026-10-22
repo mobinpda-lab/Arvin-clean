@@ -270,3 +270,48 @@ gh workflow run .github/workflows/device-smoke.yml \
 ```
 
 That command has not been run in Wave 6.20–6.21. Exact-SHA acceptance requires a `workflow_dispatch` run whose matrix contains only `calendar` and `sql-persistence`, whose two jobs each log matching `CHECKOUT_SHA` and `EXACT_TARGET_SHA`, and whose real Android tests and artifacts are inspectable and successful. Calendar and SQL acceptance remain `NOT VERIFIED`; final release decision remains `BLOCKED — RELEASE: NO-GO`.
+
+
+## Wave 6.22 — Final preflight for exact-SHA Calendar and SQL (2026-10-22)
+
+**Product Target SHA:** `1fb3f47e76b3fd093eba8b108b745fadb35b3c69`  
+**Release decision:** `BLOCKED — RELEASE: NO-GO`
+
+### Fresh run evidence
+
+- Exact-target Build [Run `39681652761`](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39681652761) was re-read and remains completed with event `workflow_dispatch`, conclusion `success`. Its nine jobs are complete and successful, including the exact-revision verification step. It was not re-run.
+- Device Smoke PR [Run `39757680037`](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39757680037) is complete with conclusion `success`, event `pull_request`, and PR head SHA `18389a26dc62838993469a59537ea1c5b7e3c373`. Matrix preparation and all seven canonical scenario jobs passed. Calendar and SQL Persistence logs report passing tests, but their checkout is merge SHA `aae14883d6be96eb09aef701b71c24d14d9f9ec9`, not the Product Target SHA.
+- Fast Lane Contract [Run `39757680039`](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39757680039) is complete and successful for PR head `18389a26dc62838993469a59537ea1c5b7e3c373`; contract log reports `Arvin Fast Lane workflow contract: OK`.
+- Build PR [Run `39757680043`](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39757680043) is complete and successful across all nine jobs. It is a `pull_request` run; exact-target verification was skipped by design and this run is not target-SHA acceptance.
+- Current check-run inspection found 24 check runs attached to PR head SHA: the latest Device Smoke, Fast Lane Contract, and Build runs have final successful conclusions. One older contract run (`39757672563`) is cancelled; it is not a replacement for the later successful contract run. The combined legacy commit-status endpoint reports `pending` with zero legacy status entries, so do not treat that endpoint alone as proof that every repository-required merge check is satisfied.
+
+### PR #2911 implementation and safety review
+
+- [PR #2911](https://github.com/mobinpda-lab/Arvin-clean/pull/2911) is still open, Draft, and unmerged. Head: `18389a26dc62838993469a59537ea1c5b7e3c373`; base `main` at `d9fb7a247037762216662a20fb32028ecc8a0f6b`. GitHub reports `mergeable=true` but `mergeable_state=unstable`. There are no submitted reviews, no requested reviewers, and no review threads. Draft status and the unstable merge state mean it is not confirmed as authorized or merge-ready.
+- The full three-file diff was inspected: `.github/workflows/device-smoke.yml`, `test/device_smoke_workflow_contract_test.dart`, and `tool/validate_fast_lane.py`. No production Calendar/SQL code, secrets, signing keys, or release settings are changed.
+- The workflow defines required `target_sha`, `run_calendar`, and `run_sql_persistence` inputs; dispatch selection adds only the selected Calendar and/or SQL Persistence scenario and rejects an empty selection; non-dispatch events retain all seven canonical scenario mappings. Checkout uses the requested SHA on `workflow_dispatch`; the verification step logs `CHECKOUT_SHA`, rejects a mismatch with a nonzero exit, and logs `EXACT_TARGET_SHA` only after equality. The successful contract run validates this source contract, but does not prove that a real manual dispatch has occurred.
+- The contract test and Fast Lane validator still enumerate all seven canonical mappings. The reviewed diff does not remove test assertions, emulator execution, screenshot assertions, or artifact checks. The three relevant latest CI runs all have final results. Source/diff review does not replace a runtime dispatch or a formal human review.
+- PR [#2906](https://github.com/mobinpda-lab/Arvin-clean/pull/2906) remains open, Draft, and unmerged. It overlaps the same workflow scope; do not merge both alternatives.
+
+### Default branch and repository governance
+
+- The live `main` workflow [`.github/workflows/device-smoke.yml`](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/device-smoke.yml) remains blob `e5cd465a7d5a83be21a55535f7a0b3071ceeec45`. It has a bare `workflow_dispatch:` and does not declare `target_sha`, `run_calendar`, or `run_sql_persistence`. Exact-SHA selective dispatch using the requested arguments is therefore `BLOCKED`.
+- The branch-protection endpoint returned HTTP 403 `Resource not accessible by integration`. Consequently, exact required-review rules, required-check rules, and the full branch-protection configuration could not be independently verified with the connected GitHub permission. Do not infer that branch protection is absent or bypassable. PR metadata alone reports mergeable but does not grant merge authorization.
+- Documentation PR [#2914](https://github.com/mobinpda-lab/Arvin-clean/pull/2914) remains open, Draft, and unmerged. This Wave 6.22 record is appended to its existing documentation branch; no duplicate documentation PR was created.
+
+### Remaining blocker and authorized next action
+
+The next action is for the product owner/repository owner to review PR #2911 and explicitly decide whether to authorize this workflow-only change for the normal protected-branch review and merge process. Before that decision is acted on, the authorized reviewer must verify the repository's required checks/review rules through an account with sufficient permission and ensure the latest head checks are satisfied. No merge, Draft promotion, protection bypass, or PR #2906 merge was performed here.
+
+Only after the approved workflow definition is actually present on `main`, and an authorized operator has the required Actions permission, run:
+
+```bash
+gh workflow run .github/workflows/device-smoke.yml \\
+  --repo mobinpda-lab/Arvin-clean \\
+  --ref main \\
+  -f target_sha=1fb3f47e76b3fd093eba8b108b745fadb35b3c69 \\
+  -f run_calendar=true \\
+  -f run_sql_persistence=true
+```
+
+This dispatch was **not run** in Wave 6.22. Product acceptance remains `NOT VERIFIED` until one completed `workflow_dispatch` run shows exactly `calendar` and `sql-persistence`, matching `CHECKOUT_SHA` and `EXACT_TARGET_SHA` in both jobs, passing Android integration tests, and inspectable logs/artifacts. Exact-target Build remains `PASS`; this does not change the overall release decision: `BLOCKED — RELEASE: NO-GO`.
