@@ -309,3 +309,39 @@ Product target SHA: `1fb3f47e76b3fd093eba8b108b745fadb35b3c69`.
 - Release remains `BLOCKED — RELEASE: NO-GO`.
 
 Smallest next action: an authorized Actions operator must perform the one manual SQL Migration dispatch described above. In parallel, an authorized human reviewer must review PR #2913, reconcile the branch, and decide whether to approve/merge it. No duplicate Run or PR is needed.
+
+
+## Wave 6.48 — Exact-target acceptance and release blockers (2026-10-22)
+
+Product target SHA: `1fb3f47e76b3fd093eba8b108b745fadb35b3c69`.
+
+### Exact-target SQL Migration
+
+- Live [Device Smoke workflow](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/device-smoke.yml), blob `4a14c77f228df5c1511fd87cd06def2d19e1a3a3`, has the real manual-dispatch inputs `target_sha`, `run_sql_migration`, `run_calendar`, and `run_sql_persistence`. The Migration input selects `integration_test/android_upgrade_migration_smoke_test.dart`; the workflow verifies the checked-out SHA against the requested target.
+- Device Smoke [39785332878](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39785332878) is `completed / success`, event `push`, on SHA `18cbeecc95a03a3b301359ca5b96cfef175a3b15`. All eight jobs passed, including Migration Job [119846930708](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39785332878/job/119846930708). This is not exact-target acceptance.
+- Build [39785332668](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39785332668) is `completed / success`, event `push`, on the same merge SHA.
+- Target-SHA Device Smoke [39674729325](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39674729325) is `completed / success`, but its event is `pull_request`, not `workflow_dispatch`. It does not establish the requested isolated-dispatch scenario selection.
+- The available connected GitHub toolset exposes no workflow-dispatch action. No dispatch was simulated, and no replacement Run was created. The exact-target SQL Migration gate remains `NOT VERIFIED`.
+- Required action: an authorized Actions operator must dispatch the existing workflow from branch `main` with `target_sha=1fb3f47e76b3fd093eba8b108b745fadb35b3c69`, `run_sql_migration=true`, `run_calendar=false`, and `run_sql_persistence=false`. Verify the dispatch event, exact checkout and guard, Android migration test, successful Migration Job, successful whole Run, and absence of Calendar and SQL Persistence jobs.
+
+### Documentation PR #2913
+
+- [PR #2913](https://github.com/mobinpda-lab/Arvin-clean/pull/2913) remains `OPEN / DRAFT`, unmerged. Current head/commit is `dbd960416e317bcaf8b38cb40430f6d58ccb63cb`; the Wave 6.47 documentation commit is included in this same PR branch.
+- The live review list is empty and no reviewer is requested. The latest commit's GitHub commit-status and check-runs endpoints returned no status checks. Thus CI on the current PR head is `NOT VERIFIED`, not PASS.
+- GitHub reports `mergeable=false`. The available PR metadata and file-diff endpoint do not establish the precise reason; a base-branch conflict or branch divergence is possible but `NOT VERIFIED`. An authorized maintainer must inspect/update the branch against current `main`, resolve any confirmed conflict, and inspect CI before deciding whether to approve and merge. Do not exit Draft or merge without human authorization.
+- The live [main document](https://github.com/mobinpda-lab/Arvin-clean/blob/main/docs/CI_RELEASE_VALIDATION_NOTE.md), blob `6532febab98c5d7fc4f5fb5122974134c20615b1`, remains stale and does not contain Wave 6.47/6.48. The Wave 6.48 section is recorded on the existing PR branch only; no duplicate PR was created.
+
+### Official APK release gates
+
+- [Gradle app config](https://github.com/mobinpda-lab/Arvin-clean/blob/main/android/app/build.gradle.kts), blob `aaeea7506885814cc4c4a65ac6559872a80146a8`: application ID is `com.example.arvin`; Release uses Debug signing. Owner approval of the official ID is `NOT VERIFIED`.
+- [pubspec.yaml](https://github.com/mobinpda-lab/Arvin-clean/blob/main/pubspec.yaml), blob `b8d5ca0c31405fe14a5d3c9126eab507725bf6c5`: version `1.0.1+2`.
+- [build.yml](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/build.yml), blob `a49cc2ff35e1dad0bb434ebe31a2593ca6a510ce`, builds/uploads APKs and checks for the output file but does not verify the production certificate with `apksigner verify --print-certs` or record final APK SHA-256.
+- [release.yml](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/release.yml), blob `c5f45b9b1d66db22a585b0637a24537aeb95d098`, creates a release tag/GitHub Release and is not an APK production-signing pipeline.
+- Owner-approved application identity, independent production signing, permitted signing-secret configuration, exact approved-SHA APK build, certificate verification, final APK SHA-256, installation/launch of that same APK, upgrade from the previous version, and existing-data retention/reopen remain `NOT VERIFIED` or `BLOCKED`. No secrets were read, exposed, or changed; no signing config or application ID was changed; no new official APK build was started.
+
+### Wave 6.48 gate result and owners
+
+- Exact-target SQL Migration: `NOT VERIFIED`. Owner: authorized Actions operator; action: one manual dispatch and evidence capture.
+- Documentation in main: `NOT VERIFIED / STALE`. Owner: authorized human reviewer/maintainer; action: inspect PR #2913, resolve any confirmed branch issue, review CI and approve/merge if authorized.
+- Official APK: `BLOCKED / NOT VERIFIED`. Owners: product owner for official ID approval, then authorized release maintainer for production signing and APK acceptance.
+- Release decision remains `BLOCKED — RELEASE: NO-GO`.
