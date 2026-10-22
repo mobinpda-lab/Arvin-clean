@@ -1,0 +1,112 @@
+name: Arvin Contract Test
+
+on:
+  push:
+    branches:
+      - docs/wave-6-10-exact-sha-evidence
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: arvin-contract-test-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  TARGET_SHA: 35d445ea1bcf9a1bfd3e9999d495284db0753cf3
+  FLUTTER_VERSION: '3.47.0'
+
+jobs:
+  contract-test:
+    name: Contract test on pinned target SHA
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout exact target commit
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ env.TARGET_SHA }}
+          persist-credentials: false
+
+      - name: Record and verify tested SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          echo "EVENT_SHA=${{ github.sha }}"
+          echo "CHECKOUT_SHA=$actual"
+          echo "EXPECTED_SHA=$TARGET_SHA"
+          if [[ ! "$actual" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "FAIL: git rev-parse did not return a full commit SHA." >&2
+            exit 1
+          fi
+          if [[ "$actual" != "$TARGET_SHA" ]]; then
+            echo "FAIL: checked-out SHA does not match the required target." >&2
+            exit 1
+          fi
+          echo "SHA_VERIFICATION=PASS"
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Record toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter --version
+          dart --version
+
+      - name: Resolve dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter pub get --enforce-lockfile
+
+      - name: Run workflow contract test and record exit code
+        id: contract
+        shell: bash
+        run: |
+          set -uo pipefail
+          mkdir -p artifacts/contract-test
+          actual="$(git rev-parse HEAD)"
+          echo "TESTED_SHA=$actual" | tee artifacts/contract-test/result.txt
+          echo "TEST_COMMAND=flutter test test/device_smoke_workflow_contract_test.dart" | tee -a artifacts/contract-test/result.txt
+          set +e
+          flutter test test/device_smoke_workflow_contract_test.dart 2>&1 | tee artifacts/contract-test/flutter-test.log
+          test_exit=${PIPESTATUS[0]}
+          set -e
+          echo "TEST_EXIT_CODE=$test_exit" | tee -a artifacts/contract-test/result.txt
+          if [[ "$test_exit" -eq 0 ]]; then
+            echo "TEST_RESULT=PASS" | tee -a artifacts/contract-test/result.txt
+          else
+            echo "TEST_RESULT=FAIL" | tee -a artifacts/contract-test/result.txt
+          fi
+          echo "exit_code=$test_exit" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Arvin contract test"
+            echo "- Event SHA: ${{ github.sha }}"
+            echo "- Tested SHA: $actual"
+            echo "- Flutter: $FLUTTER_VERSION"
+            echo "- Test exit code: $test_exit"
+            if [[ "$test_exit" -eq 0 ]]; then
+              echo "- Result: PASS"
+            else
+              echo "- Result: FAIL"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit "$test_exit"
+
+      - name: Upload contract test evidence
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: arvin-contract-test-evidence-${{ github.run_id }}
+          path: artifacts/contract-test/
+          if-no-files-found: warn
+          retention-days: 14
