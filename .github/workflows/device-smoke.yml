@@ -118,11 +118,11 @@ jobs:
           echo "CHECKOUT_SHA=$actual"
           if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
             # Record safe representations and exact bytes before strict comparison.
-            printf 'TARGET_SHA length=%d quoted=%q\\n' "${#TARGET_SHA}" "$TARGET_SHA"
-            printf 'TARGET_SHA bytes (hex/char):\\n'
+            printf 'TARGET_SHA length=%d quoted=%q\n' "${#TARGET_SHA}" "$TARGET_SHA"
+            printf 'TARGET_SHA bytes (hex/char):\n'
             printf '%s' "$TARGET_SHA" | od -An -v -tx1c
-            printf 'CHECKOUT_SHA length=%d quoted=%q\\n' "${#actual}" "$actual"
-            printf 'CHECKOUT_SHA bytes (hex/char):\\n'
+            printf 'CHECKOUT_SHA length=%d quoted=%q\n' "${#actual}" "$actual"
+            printf 'CHECKOUT_SHA bytes (hex/char):\n'
             printf '%s' "$actual" | od -An -v -tx1c
             # Keep validation after checkout as defense in depth.
             if [[ ! "$TARGET_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
