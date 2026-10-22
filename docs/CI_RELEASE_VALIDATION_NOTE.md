@@ -113,3 +113,49 @@ For Device Smoke, first review and authorize the minimal workflow change in PR #
 ### Change record
 
 This section was appended to the existing Wave 6.14 documentation on the same review branch. It preserves the prior record and adds the Wave 6.15 preflight and execution limitation. No production code or workflow definition was modified.
+
+## Wave 6.18 exact-SHA Build evidence
+
+**Reviewed:** 2026-10-22  
+**Product Target SHA:** `1fb3f47e76b3fd093eba8b108b745fadb35b3c69`  
+**Decision:** `BLOCKED — RELEASE: NO-GO`
+
+### Existing exact-SHA Build run found and evaluated
+
+- Build was **not dispatched again in Wave 6.18** because a completed, successful `workflow_dispatch` run for the exact requested target already exists: [Run 39681652761](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39681652761).
+- Run metadata: workflow `.github/workflows/build.yml`, workflow ID `332566923`, event `workflow_dispatch`, status `completed`, conclusion `success`, branch `main`, created/started `2026-10-21T21:47:55Z`, completed/updated `2026-10-21T21:54:22Z`.
+- The run display title is `Arvin Build (1fb3f47e76b3fd093eba8b108b745fadb35b3c69)`. The run-level `head_sha` is the dispatch ref commit `d9fb7a247037762216662a20fb32028ecc8a0f6b`; this metadata field is **not** treated as the job checkout SHA.
+- Direct logs for all nine required jobs show checkout ref and `git checkout` of `1fb3f47e76b3fd093eba8b108b745fadb35b3c69`. In each job, `TARGET_SHA` matches that value, `Verify exact requested revision` completed successfully, and the log emitted `EXACT_TARGET_SHA=1fb3f47e76b3fd093eba8b108b745fadb35b3c69`.
+
+### Required jobs and direct evidence
+
+| Job | Job ID | Result |
+|---|---:|---|
+| `quality (analyze)` | `119505357652` | `PASS` |
+| `quality (test-0)` | `119505357487` | `PASS` |
+| `quality (test-1)` | `119505357527` | `PASS` |
+| `quality (test-2)` | `119505357741` | `PASS` |
+| `quality (test-3)` | `119505357888` | `PASS` |
+| `quality (test-4)` | `119505357660` | `PASS` |
+| `quality (test-5)` | `119505357629` | `PASS` |
+| `apk (debug)` | `119505357573` | `PASS` |
+| `apk (release)` | `119505358327` | `PASS` |
+
+- Analyze, all six test shards, both APK build/verify/upload jobs, and all nine exact-revision verification steps completed successfully. No required job or Exact-SHA gate was `SKIPPED`.
+- Artifacts attached to this same Run: [`arvin-release-apk`, artifact ID `12384962220`](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39681652761) (32,460,982 bytes) and [`arvin-debug-apk`, artifact ID `12384217697`](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39681652761) (92,593,902 bytes). Both were reported unexpired and linked to Run `39681652761`.
+- Build exact-SHA gate: `PASS` for the Product Target SHA, based on the completed run's direct job logs, successful required jobs, and same-run artifacts. This is a test-build result, not authorization or evidence of an official release.
+
+### Wave 6.18 limitations and next product gates
+
+- No new Run was created during Wave 6.18; the existing qualifying Run was reused, avoiding unnecessary duplicate execution.
+- Exact-SHA Device Smoke for Calendar and SQL remains `NOT VERIFIED`. The current `main` Device Smoke workflow lacks the required `target_sha`, `run_calendar`, `run_sql_persistence`, and exact-checkout verification gate.
+- Calendar acceptance criteria not established by dedicated assertions and a valid exact-SHA device run remain `NOT VERIFIED`; SQL persistence on an Android device at the exact target remains `NOT VERIFIED`.
+- Official release signing, approved final application ID, final APK signature and SHA-256, installation, upgrade, and data retention remain `NOT VERIFIED`.
+- No PR was merged or promoted from Draft. No production code, workflow definition, secrets, signing configuration, or application ID was changed in this wave.
+
+### Wave 6.18 action record
+
+- Re-read `.github/workflows/build.yml` on `main` (blob SHA `a49cc2ff35e1dad0bb434ebe31a2593ca6a510ce`); confirmed `workflow_dispatch` and `target_sha` input.
+- Checked live `main` ref (`d9fb7a247037762216662a20fb32028ecc8a0f6b`) and the Product Target commit metadata.
+- Queried recent Actions runs, then inspected Run `39681652761` metadata, all nine jobs, all nine job logs, and the run's artifact list.
+- Appended this evidence to the existing documentation review branch only. PR [#2914](https://github.com/mobinpda-lab/Arvin-clean/pull/2914) remains open, Draft, and unmerged. No new Build was dispatched because qualifying evidence already existed.
