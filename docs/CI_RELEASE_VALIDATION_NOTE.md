@@ -583,3 +583,66 @@ The Product Target version of the same test file remains blob `528aa30b6ebdf4e15
 2. **Workflow-authorized operator:** dispatch `.github/workflows/device-smoke.yml` from `main` with `target_sha=1fb3f47e76b3fd093eba8b108b745fadb35b3c69`, `run_calendar=true`, `run_sql_persistence=true`; then record the real Run ID/URL and verify every exact-target acceptance condition. If no authorized Actions UI/CLI is available, keep both gates `BLOCKED`.
 3. **Android/release owner:** separately prove real installation/upgrade and previous user-data retention.
 4. Keep PR #2915 unmerged absent explicit authorization. Final release decision remains **`BLOCKED — RELEASE: NO-GO`**.
+
+
+## Wave 6.31 — existing Device Smoke follow-up and exact-SHA gate
+
+**Reviewed:** 2026-10-22  
+**Product Target SHA:** `1fb3f47e76b3fd093eba8b108b745fadb35b3c69`  
+**PR #2915 head SHA:** `110d33b7c859fb55a444022af87ae45f08bc5db3`  
+**Release decision:** `BLOCKED — RELEASE: NO-GO`
+
+### Existing Device Smoke Run 39765328178
+
+- Run: [39765328178](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39765328178)
+- Latest run-level API read still reported event `pull_request`, head SHA `110d33b7c859fb55a444022af87ae45f08bc5db3`, status `queued`, and no conclusion. Job state had progressed since Wave 6.30; therefore the run is **`IN PROGRESS` and not terminal**, not a final success or failure.
+- Job `119779230866` Prepare selected smoke scenarios: `success`.
+- Job `119779262606` Quick Capture: `success`; checkout guard step succeeded; scenario step succeeded.
+- Job `119779263136` Home: `success`; checkout guard step succeeded; scenario step succeeded.
+- Job `119779263255` SQL Persistence: `success`; checkout guard step succeeded; Android scenario step succeeded. The retrieved log proves checkout SHA `c23af6b187522574374f08d2eca83c7fc85d8d08` and contains `canonical SQL persists a full task cycle on Android` followed by `All tests passed!`.
+- Job `119779262633` SQL Migration: `success`; checkout guard step succeeded; Android scenario step succeeded. The retrieved log proves checkout SHA `c23af6b187522574374f08d2eca83c7fc85d8d08` and contains `legacy storage upgrades into canonical SQL and survives a fresh store` followed by `All tests passed!`.
+- Job `119779262649` Backup Restore: `in_progress` at the latest poll.
+- Job `119779262677` People: `in_progress` at the latest poll.
+- Job `119779262745` Calendar: `queued`, no conclusion. Its job-log request returned HTTP 404 / BlobNotFound because logs were not available. Do not infer test execution from this missing log.
+- Actual checkout SHA for the SQL jobs is the PR merge checkout `c23af6b187522574374f08d2eca83c7fc85d8d08`, not Product Target SHA. Since the event is `pull_request`, the workflow's target-SHA equality check is conditional and is not the exact-product-SHA guard required for acceptance. These successful scenarios are PR-run evidence only.
+
+### Three additional Calendar tests
+
+- Test source was fetched from PR head `110d33b7c859fb55a444022af87ae45f08bc5db3`, blob `ab69b72ce3dc7f3a524875dc1707fd8aef809b1b`: [integration_test/calendar_card_interaction_test.dart](https://github.com/mobinpda-lab/Arvin-clean/blob/110d33b7c859fb55a444022af87ae45f08bc5db3/integration_test/calendar_card_interaction_test.dart).
+- Test 1, `Follow-up without reminderDate does not project an independent reminder card`: source present `PASS`; runtime execution/result `NOT VERIFIED`; no Calendar job log available.
+- Test 2, `nextFollowUp alone remains an internal action, not a reminder card`: source present `PASS`; runtime execution/result `NOT VERIFIED`; no Calendar job log available.
+- Test 3, `Follow-up reminder projection preserves the independent Task date`: source present `PASS`; runtime execution/result `NOT VERIFIED`; no Calendar job log available.
+- The job has not started according to the latest job data, so none of these three tests may be called runtime-`PASS`. Their runtime SHA is therefore `NOT VERIFIED`. If the Calendar job starts and completes, inspect its actual log and record each test's result independently.
+
+### Live workflow contract and exact-dispatch search
+
+- Re-read [`.github/workflows/device-smoke.yml` on `main`](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/device-smoke.yml), blob `f9c79cd182e242beeec01aa8ffdf3e8e4d2fbf21`.
+- Inputs `target_sha`, `run_calendar`, and `run_sql_persistence` exist. For `workflow_dispatch`, the matrix builder adds only `calendar` when `run_calendar=true` and only `sql-persistence` when `run_sql_persistence=true`; the source does not add other scenarios in that event. If neither is selected, preparation fails.
+- Each scenario checks out `inputs.target_sha` for `workflow_dispatch`, records `git rev-parse HEAD`, and fails when actual SHA differs from requested target. The exact-target equality branch is conditional on `GITHUB_EVENT_NAME=workflow_dispatch`.
+- A live repository Actions run listing was queried (first 100 entries returned). No qualifying `workflow_dispatch` for the Product Target SHA was found in the returned evidence. This is not proof that every historical page was exhaustively searched; no valid existing target run has been identified.
+- Connected GitHub tools in this session expose read operations for workflow runs/jobs and log retrieval but no workflow-dispatch action or authenticated shell/CLI. No dispatch was attempted, no run was fabricated, and no duplicate run was created.
+- Exact-target Calendar: `BLOCKED` / acceptance `NOT VERIFIED`.
+- Exact-target SQL Persistence: `BLOCKED` / acceptance `NOT VERIFIED`.
+- Exact-target SQL Migration: `NOT VERIFIED`; the current migration success belongs to checkout `c23af6b187522574374f08d2eca83c7fc85d8d08`, not the Product Target SHA.
+
+### Independent release gates
+
+| Gate | Status | Evidence / owner |
+|---|---|---|
+| Exact Product Target Build | `PASS` | Previously accepted Run [39681652761](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39681652761); not repeated |
+| Three additional Calendar tests on PR branch | `NOT VERIFIED` | Test source exists; CI maintainer must inspect the Calendar job after it actually runs |
+| Calendar on Product Target SHA | `BLOCKED` | Workflow-authorized operator must dispatch and verify exact SHA |
+| SQL Persistence on Product Target SHA | `BLOCKED` | Same exact-SHA dispatch; independent acceptance |
+| SQL Migration on Product Target SHA | `NOT VERIFIED` | Current PR merge-checkout test is not target-SHA evidence |
+| Actual APK installation on a device | `NOT VERIFIED` | Android/release owner must install and record the candidate APK |
+| Real upgrade from previous version and user-data retention | `NOT VERIFIED` | Android/release owner must test the real upgrade lifecycle; migration smoke is not sufficient |
+| Final application ID approval | `NOT VERIFIED` | Target source previously showed `com.example.arvin`; approved production ID evidence remains outstanding |
+| Approved release signing | `NOT VERIFIED` | Target source previously configured debug signing for Release; approved signing evidence remains outstanding. No secret was accessed or changed |
+| Final APK SHA-256 | `NOT VERIFIED` | Must hash the actual approved final APK artifact after build/signing acceptance |
+
+### Smallest next actions
+
+1. **CI maintainer:** continue polling existing Run `39765328178` without starting a replacement; wait for Calendar job `119779262745` and inspect its real log for all three test cases. Also record terminal Backup Restore and People results.
+2. **Workflow-authorized GitHub Actions operator:** start the `device-smoke.yml` workflow from `main` with `target_sha=1fb3f47e76b3fd093eba8b108b745fadb35b3c69`, `run_calendar=true`, and `run_sql_persistence=true`. Record the actual Run ID/URL, then verify event, two-scenario matrix, checkout SHA, successful non-skipped exact-SHA check, Android tests, logs, and final conclusions.
+3. **Android/release owner:** independently prove real APK installation, previous-version upgrade/data retention, approved application ID, approved Release signing, and SHA-256 of the final APK.
+4. Keep PR #2915 unmerged absent explicit authorization. Final decision remains **`BLOCKED — RELEASE: NO-GO`**.
