@@ -675,3 +675,54 @@ This addendum supersedes earlier *poll-time* descriptions only where newer live 
 - APK installation, real upgrade/data retention, approved application ID, approved Release signing, and final APK SHA-256: `NOT VERIFIED`.
 - Next owner action: CI maintainer/operator should continue polling both existing Runs and capture terminal logs; do not start duplicate runs. Android/release owner still owns device install/upgrade and release identity/signing/hash evidence.
 - Release decision remains **`BLOCKED — RELEASE: NO-GO`**.
+
+
+## Wave 6.32 — final evidence for existing runs (2026-10-22)
+
+This section records the terminal results obtained by re-polling GitHub Actions and retrieving the complete job logs. Earlier Wave 6.31 statements that these runs were still active are historical and are superseded by this section.
+
+### 1. PR #2915 Device Smoke — terminal result
+
+- Run: [39765328178](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39765328178)
+- Event: `pull_request`
+- Run head SHA: `110d33b7c859fb55a444022af87ae45f08bc5db3`
+- Final Run conclusion: `success`
+- All eight listed jobs concluded `success`: Prepare selected smoke scenarios (`119779230866`), Quick Capture (`119779262606`), SQL Migration (`119779262633`), Backup Restore (`119779262649`), People (`119779262677`), Calendar (`119779262745`), Home (`119779263136`), SQL Persistence (`119779263255`).
+- Calendar job log confirms actual checkout SHA `c23af6b187522574374f08d2eca83c7fc85d8d08`, the PR merge checkout, not the PR head SHA and not the Product Target SHA.
+- The Calendar Android integration log explicitly reports all three new tests passing:
+  1. `Follow-up without reminderDate does not project an independent reminder card`
+  2. `nextFollowUp alone remains an internal action, not a reminder card`
+  3. `Follow-up reminder projection preserves the independent Task date`
+  The log ends with `All tests passed`; Calendar job conclusion is `success`. Thus source presence and runtime success are both confirmed, but the runtime SHA is the merge checkout `c23af6...`.
+- Calendar screenshot evidence upload step concluded `success`; artifact [arvin-device-smoke-calendar-c23af6b187522574374f08d2eca83c7fc85d8d08](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39765328178/artifacts/12420971356) was uploaded (artifact ID `12420971356`, SHA-256 digest `9291398eccf1d0a8d23c594543f357b52aba6451c427ef3b48cfc8cbe32c1b35`). The separate generic screenshot and Persian time-picker upload steps were skipped for Calendar by workflow conditions; this is not a test failure.
+- PR SQL Persistence and SQL Migration both concluded `success` on this PR merge checkout. They are not target-SHA acceptance.
+
+### 2. Exact Product Target acceptance — terminal result
+
+- Run: [39767200300](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39767200300)
+- Event: `workflow_dispatch`
+- Workflow revision/head SHA: `264bc7cb31ed19b15254d48926ef9c15f9a67f08` (this is the workflow revision, not the product checkout).
+- Final Run conclusion: `success`.
+- Prepare job `119785506180` concluded `success`; its log recorded both inputs as true and the selected matrix exactly `calendar` and `sql-persistence`.
+- Both scenario jobs concluded `success`: Calendar `119785537501`; SQL Persistence `119785537406`.
+- Both complete job logs explicitly record `CHECKOUT_SHA=1fb3f47e76b3fd093eba8b108b745fadb35b3c69` and `EXACT_TARGET_SHA=1fb3f47e76b3fd093eba8b108b745fadb35b3c69`. The “Record and verify checkout revision” step concluded `success` in both jobs; it was not skipped.
+- Calendar ran `integration_test/calendar_card_interaction_test.dart` on Android emulator and logged `00:07 +2: All tests passed`; job conclusion `success`. This target SHA's Calendar test file reported two tests passing. The three newer follow-up regression tests are not present in this target checkout and were instead executed successfully in the PR merge checkout documented above.
+- SQL Persistence ran `integration_test/android_sql_persistence_smoke_test.dart` on Android emulator and logged `canonical SQL persists a full task cycle on Android` followed by `00:01 +2: All tests passed`; job conclusion `success`.
+- The Calendar evidence artifact [arvin-device-smoke-calendar-264bc7cb31ed19b15254d48926ef9c15f9a67f08](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39767200300/artifacts/12421051690) was uploaded successfully (artifact ID `12421051690`, SHA-256 digest `d346428b073e7969f60a7ec5b8ea2eeb1b75c076e9db3ed021f4bd2ba535a17e`). The generic screenshot and Persian time-picker upload steps were skipped by their workflow conditions; SQL Persistence had no matching scenario-specific screenshot artifact upload.
+- Exact-target Calendar and SQL Persistence acceptance: `PASS` for these two CI Android smoke scenarios, with Run ID, URLs, checkout SHA, non-skipped equality check, test output, and final conclusions recorded above.
+
+### 3. Workflow and independent release gates
+
+- The live `main` workflow was re-read; current blob SHA remains `f9c79cd182e242beeec01aa8ffdf3e8e4d2fbf21`. It defines `target_sha`, `run_calendar`, and `run_sql_persistence`; the manual matrix selects only requested Calendar and SQL Persistence scenarios, and checkout verification fails on target mismatch. No workflow change was needed.
+- Exact Product Target Build: `PASS`, existing Run `39681652761`; no duplicate build was created.
+- Three new Calendar regression tests: `PASS` on PR merge checkout `c23af6b187522574374f08d2eca83c7fc85d8d08`; they are not evidence that those three tests ran on Product Target SHA.
+- Calendar on Product Target SHA: `PASS` for the target's existing Calendar Android smoke test.
+- SQL Persistence on Product Target SHA: `PASS`.
+- SQL Migration on Product Target SHA: `NOT VERIFIED`; the exact-target manual matrix intentionally contained only Calendar and SQL Persistence. The PR run's SQL Migration success is not a substitute.
+- Actual installation of the approved final APK on a physical user device: `NOT VERIFIED`.
+- Real upgrade from the prior installed version and preservation of existing user data: `NOT VERIFIED`.
+- Final approved application ID: `NOT VERIFIED`.
+- Approved Release signing: `NOT VERIFIED`.
+- SHA-256 of the final approved APK: `NOT VERIFIED`.
+- Next owners: CI maintainer to decide whether exact-target SQL Migration is required and arrange it only if needed; Android/release owner to supply physical-device install/upgrade, app-ID, signing, and final APK hash evidence. No secrets, signing settings, app ID, protected PRs, or branch protections were changed.
+- Overall release decision remains **`BLOCKED — RELEASE: NO-GO`** until all required release gates have valid evidence.
