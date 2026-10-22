@@ -57,15 +57,29 @@ require(device, 'workflow_dispatch:', str(device_path))
 require(device, '# Validate PRs targeting integration branches too; product code can live there before main integration.', str(device_path))
 require(device, '# Draft PRs need CI evidence before they are marked ready; this job never promotes or merges.', str(device_path))
 forbid(device, "if: github.event_name != 'pull_request' || github.event.pull_request.draft == false", str(device_path))
-for scenario in [
-    'home',
-    'quick-capture',
-    'sql-persistence',
-    'sql-migration',
-    'backup-restore',
-    'people',
-]:
-    require(device, f'scenario: {scenario}', str(device_path))
+# Support both the legacy literal matrix and the selectable JSON include matrix.
+if 'matrix: ${{ fromJSON(needs.prepare-matrix.outputs.matrix) }}' in device:
+    require(device, "'{include:$scenarios}'", str(device_path))
+    for scenario in [
+        'home',
+        'quick-capture',
+        'sql-persistence',
+        'sql-migration',
+        'backup-restore',
+        'people',
+        'calendar',
+    ]:
+        require(device, f'"scenario":"{scenario}"', str(device_path))
+else:
+    for scenario in [
+        'home',
+        'quick-capture',
+        'sql-persistence',
+        'sql-migration',
+        'backup-restore',
+        'people',
+    ]:
+        require(device, f'scenario: {scenario}', str(device_path))
 require(device, 'max-parallel: 2', str(device_path))
 require(device, 'flutter drive --driver=test_driver/integration_test.dart', str(device_path))
 forbid(device, 'adb exec-out screencap -p', str(device_path))
