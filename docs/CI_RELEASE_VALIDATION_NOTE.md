@@ -348,3 +348,37 @@ Before approval, a reviewer should verify the workflow expression and matrix beh
 The product/repository owner must explicitly authorize the normal review path for PR #2911 and identify an authorized reviewer; no reviewer was guessed or requested. Once approved through the repository's normal process and the updated workflow definition is actually present on `main`, an authorized operator with Actions write permission may run the exact dispatch documented above in Wave 6.22. This dispatch must not run before the three inputs are verified on `main`.
 
 This Wave 6.24 record was appended to the existing documentation branch for PR #2914. No duplicate documentation PR was created. No product code, secrets, signing settings, protected branch, or release configuration was changed.
+
+
+## Wave 6.25 — Final review-path determination for PR #2911 (2026-10-22)
+
+**Product Target SHA:** `1fb3f47e76b3fd093eba8b108b745fadb35b3c69`  
+**Release decision:** `BLOCKED — RELEASE: NO-GO`
+
+### Current PR head, checks, and review state
+
+- Live PR [#2911](https://github.com/mobinpda-lab/Arvin-clean/pull/2911) is `open`, `draft=true`, and unmerged. Head SHA remains `18389a26dc62838993469a59537ea1c5b7e3c373`; base SHA is `d9fb7a247037762216662a20fb32028ecc8a0f6b`. GitHub still reports `mergeable=true`, `mergeable_state=unstable`. The API evidence does not expose a causal explanation for `unstable`; root cause remains `NOT DETERMINED`.
+- The current check-run endpoint returns 24 entries. Latest Device Smoke [Run `39757680037`](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39757680037) completed successfully, including Calendar Job [`119754341045`](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39757680037/job/119754341045) and SQL Persistence Job [`119754340929`](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39757680037/job/119754340929). Fast Lane Contract [Run `39757680039`](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39757680039) and Build [Run `39757680043`](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39757680043) also completed successfully. The older Contract Run `39757672563` is cancelled and is superseded by the later successful run.
+- Reviews API: zero submitted reviews. Requested reviewers and teams: empty. PR remains Draft. These facts show no review is underway, but do not establish a failed required check.
+- The visible active ruleset [`main-protection`](https://github.com/mobinpda-lab/Arvin-clean/rules/20952260) applies to `refs/heads/main`, requires pull-request-based changes, prohibits deletion/non-fast-forward updates, shows `required_approving_review_count=0`, no named required reviewers, and no bypass actors; `require_extra_approval_for_unattributed_changes` is enabled. The current user cannot bypass this ruleset (`current_user_can_bypass=never`). The separate branch-protection endpoint returns HTTP 403, so any other settings available only through that endpoint are `NOT VERIFIED`.
+- Common CODEOWNERS locations `CODEOWNERS`, `.github/CODEOWNERS`, and `docs/CODEOWNERS` returned 404. The default-branch search for CODEOWNERS found no result. Common contribution-guide locations `CONTRIBUTING.md` and `.github/CONTRIBUTING.md` also returned 404. These checks do not prove that no governance guidance exists elsewhere in the repository or organization.
+- No verified evidence identifies a human reviewer authorized to take ownership of this PR. Recent commit authors or the repository owner account are not treated as proof of review authority. No review request was sent.
+
+### Review-path determination
+
+- Formal reviewer assignment: `BLOCKED` until the product/repository owner identifies an authorized reviewer or team and confirms the intended review path.
+- Draft promotion: not performed. Merge: not performed. Branch rules/protection: not changed. PR #2906 was not merged or combined with #2911.
+- `mergeable_state=unstable` cause: `NOT DETERMINED`. Successful visible CI checks do not, by themselves, reveal the cause. An authorized maintainer with sufficient repository access should inspect the PR mergeability details and any repository-level policy/status information unavailable to the current integration.
+
+### Exact-SHA product test readiness
+
+- Exact-target Build [Run `39681652761`](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39681652761) remains completed `success`, event `workflow_dispatch`; it was not repeated.
+- Current `main` workflow [`.github/workflows/device-smoke.yml`](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/device-smoke.yml), blob SHA `e5cd465a7d5a83be21a55535f7a0b3071ceeec45`, defines a bare `workflow_dispatch` and has none of the required inputs `target_sha`, `run_calendar`, `run_sql_persistence`. Exact-SHA selective dispatch remains `BLOCKED`; no dispatch was run.
+- The latest PR Device Smoke jobs passed on merge checkout SHA `aae14883d6be96eb09aef701b71c24d14d9f9ec9`, not Product Target SHA `1fb3f47e76b3fd093eba8b108b745fadb35b3c69`. They are not accepted as target-SHA product evidence.
+- Calendar target-SHA acceptance: `NOT VERIFIED`. SQL Persistence target-SHA acceptance: `NOT VERIFIED`. New exact-SHA Device Smoke execution: `NOT RUN`.
+
+### Smallest next action
+
+The product/repository owner should name or authorize a reviewer/team for PR #2911 and clarify whether the PR should enter the normal review process while remaining Draft or be explicitly approved for a later ready-for-review transition. Only after a verified reviewer is identified should an authorized actor request that review. A maintainer with adequate permissions should separately determine why GitHub reports `unstable`. After the approved workflow is present on `main`, an authorized Actions operator can dispatch only `calendar` and `sql-persistence` with the exact target SHA and verify both jobs' checkout and test logs.
+
+This Wave 6.25 record was appended to the existing documentation branch for PR #2914. The file was re-read from GitHub after writing to verify the record. No duplicate documentation PR, production code change, PR state change, merge, dispatch, secret/signing change, or protection change was made.
