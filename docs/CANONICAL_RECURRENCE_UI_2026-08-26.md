@@ -44,6 +44,7 @@ Refs #208 #195 #92 #153.
 - Recurrence projection uses `IranClock.now()` for Home's date boundary, reusing the existing Iran-time clock. The projection remains read-only and creates no occurrence records.
 
 ### Wave 7.14 validation status
-- Added a projection test for hiding past items without changing Task reminder/history.
-- Added a repository test proving completing one occurrence does not change neighboring occurrence statuses.
-- The Home widget interaction, timezone/device boundary, checklist/follow-up/taxonomy regressions, Analyze, Quality shards, Debug/Release builds and Device Smoke must be confirmed by exact-head CI before this feature can be accepted. No CI result should be inferred from source changes alone.
+- Home widget test uses an injected clock to assert overdue/today/tomorrow windows and verifies that Resume advances the persisted reminder anchor while retaining today's/future occurrences when the scheduled time is still ahead.
+- Repository tests verify repeated Resume at the same target does not drift the schedule or duplicate Tasks and preserves occurrence history, checklist state, FollowUp history, category, tags and recurrence rule.
+- Repository tests also prove completing one occurrence does not change neighboring occurrence statuses; checklist state is stored per occurrence through the canonical repository.
+- The Home widget interaction, timezone/device boundary, checklist/follow-up/taxonomy regressions, Analyze, Quality shards, Debug/Release builds and Device Smoke must be confirmed by the current-head CI before this feature can be accepted. No CI result should be inferred from source changes alone.
