@@ -135,7 +135,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || inputs.target_sha || github.sha }}
       - name: Verify exact requested revision
         if: ${{ (github.event_name == 'workflow_dispatch' && inputs.target_sha != '') || github.event_name == 'pull_request' }}
         env:
