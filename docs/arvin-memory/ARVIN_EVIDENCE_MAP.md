@@ -463,3 +463,14 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Prior exact-head Build | Run [38859380955](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38859380955), SHA `2d04631dd9d1939bd3feafa12aa7d68bec349b58` | Debug/Release APK jobs succeeded; multiple test shards failed | Re-run on final SHA; old success is not release evidence |
 | Final head Build / Device Smoke / Calendar Provider | Runs are regenerated when the branch head changes | Pending validation | All six device-smoke lanes, Calendar Provider Acceptance, artifacts and screenshot review |
 | Font / physical device | VazirHarf declared; Vazirmatn asset not found in project assets; no new physical-device evidence | OPEN / NO-GO | Add licensed font asset if Vazirmatn is mandatory; separate physical-device acceptance |
+
+
+## Wave 7.10 — owner-reported defects / Quick Entry decision update (2026-10-23)
+
+| Feature / gate | Evidence | Current status | Limitation / next proof |
+|---|---|---|---|
+| Quick Entry Follow-up toggle removal | Branch `fix/wave-7-10-remove-quick-followup-toggle`; code commit `17f2266255fc67b66a63c192f384bbbf28b849ed`; test commit `6151901a4a4cf77b62b964be15137d45a463b2fe` | IMPLEMENTED IN BRANCH; TEST NOT YET VERIFIED | Exact-head CI must confirm the new absence/Checklist regression test and all existing tests; confirm full-form Follow-up tests remain green. |
+| Superseding Quick Entry owner decision | `docs/arvin-memory/ARVIN_FOLLOW_UP_AND_QUICK_ENTRY_DECISION.md`, commit `9868d23e6c0e4aa66076f07ff77f41bee4b4d15d` | RECORDED IN BRANCH; HISTORICAL PROPOSAL PRESERVED | Must be included in the same PR and validated/read back at final head. |
+| Ten owner-reported installed-app defects | [Issue #1139](https://github.com/mobinpda-lab/Arvin-clean/issues/1139), register commit `b99ed4fcf9c48aa17c85db3033cb5873c5c01e98` | ONE CODE CHANGE IN PROGRESS; NINE OTHER ITEMS NOT VERIFIED | Each item requires implementation trace, appropriate regression test and exact-SHA evidence. APK origin and physical-device acceptance remain separate gates. |
+| Release/signing gate | [PR #2934](https://github.com/mobinpda-lab/Arvin-clean/pull/2934) | OPEN DRAFT / OWNER SIGNING SETUP REQUIRED | No signed deliverable is claimed until owner-managed keystore, certificate fingerprint and exact-head workflow evidence are verified. |
+
