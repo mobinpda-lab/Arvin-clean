@@ -1,6 +1,8 @@
 import 'package:arvin/main.dart' as app;
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/iran_clock.dart';
+import 'package:arvin/services/follow_up_calendar_projection.dart';
+import 'package:arvin/services/follow_up_internal_calendar_projection.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:arvin/theme/app_fonts.dart';
 import 'package:arvin/widgets/arvin_primary_navigation.dart';
@@ -137,4 +139,119 @@ void main() {
       debugPrint('CALENDAR_SMOKE: no Flutter framework exception observed');
     },
   );
+
+  testWidgets(
+    'Follow-up without reminderDate does not project an independent reminder card',
+    (tester) async {
+      final followUpAt = DateTime(2026, 10, 22, 10);
+      final task = Task(
+        id: 'calendar-no-reminder-date',
+        title: 'پیگیری بدون یادآور',
+        followUpEnabled: true,
+        followUps: <FollowUp>[
+          FollowUp(
+            id: 'follow-up-no-reminder-date',
+            dateTime: followUpAt,
+            title: 'پیگیری بدون زمان یادآور',
+          ),
+        ],
+      );
+
+      final before = task.toJson();
+      final reminders = const FollowUpCalendarProjection().project([task]);
+      final actions = const FollowUpInternalCalendarProjection().project([task]);
+
+      expect(reminders, isEmpty,
+          reason: 'A Follow-up without reminderDate must not become a reminder card');
+      expect(
+        actions,
+        isEmpty,
+        reason: 'No nextFollowUp was configured for this Follow-up',
+      );
+      expect(task.toJson(), equals(before),
+          reason: 'Projection must not mutate the canonical Task or Follow-up');
+    },
+  );
+
+  testWidgets(
+    'nextFollowUp alone remains an internal action, not a reminder card',
+    (tester) async {
+      final nextActionAt = DateTime(2026, 10, 23, 14, 30);
+      final task = Task(
+        id: 'calendar-next-action-only',
+        title: 'پیگیری بعدی بدون یادآور',
+        followUpEnabled: true,
+        followUps: <FollowUp>[
+          FollowUp(
+            id: 'follow-up-next-action-only',
+            dateTime: DateTime(2026, 10, 20, 9),
+            title: 'اقدام بعدی',
+            nextFollowUp: nextActionAt,
+          ),
+        ],
+      );
+
+      final before = task.toJson();
+      final reminders = const FollowUpCalendarProjection().project([task]);
+      final actions = const FollowUpInternalCalendarProjection().project([task]);
+
+      expect(reminders, isEmpty,
+          reason: 'nextFollowUp alone must not create a reminder/calendar-sync item');
+      expect(actions, hasLength(1),
+          reason: 'The planned action remains visible in the internal Calendar projection');
+      expect(actions.single.id,
+          'task-followup-action:calendar-next-action-only:follow-up-next-action-only');
+      expect(actions.single.date, nextActionAt);
+      expect(task.followUps.single.reminderDate, isNull);
+      expect(task.followUps.single.nextFollowUp, nextActionAt);
+      expect(task.toJson(), equals(before),
+          reason: 'Projection must preserve the two independent canonical fields');
+    },
+  );
+
+  testWidgets(
+    'Follow-up reminder projection preserves the independent Task date',
+    (tester) async {
+      final taskDate = DateTime(2026, 11, 5, 8, 15);
+      final reminderDate = DateTime(2026, 10, 25, 11, 45);
+      final nextActionAt = DateTime(2026, 10, 27, 16);
+      final task = Task(
+        id: 'calendar-independent-task-date',
+        title: 'کار با تاریخ مستقل',
+        dueDate: taskDate,
+        followUpEnabled: true,
+        followUps: <FollowUp>[
+          FollowUp(
+            id: 'follow-up-independent-date',
+            dateTime: DateTime(2026, 10, 21, 9),
+            title: 'یادآور پیگیری',
+            reminderDate: reminderDate,
+            nextFollowUp: nextActionAt,
+          ),
+        ],
+      );
+
+      final before = task.toJson();
+      final reminders = const FollowUpCalendarProjection().project([task]);
+      final actions = const FollowUpInternalCalendarProjection().project([task]);
+
+      expect(reminders.map((item) => item.id), containsAll(<String>[
+        'followup:calendar-independent-task-date:follow-up-independent-date',
+        'task-due:calendar-independent-task-date',
+      ]));
+      expect(reminders, hasLength(2));
+      expect(
+        reminders.singleWhere((item) => item.id == 'task-due:calendar-independent-task-date').date,
+        taskDate,
+      );
+      expect(actions, hasLength(0),
+          reason: 'An explicit Follow-up reminder takes precedence over its internal next-action fallback');
+      expect(task.dueDate, taskDate);
+      expect(task.followUps.single.reminderDate, reminderDate);
+      expect(task.followUps.single.nextFollowUp, nextActionAt);
+      expect(task.toJson(), equals(before),
+          reason: 'Calendar projections must not replace or clear the independent Task date');
+    },
+  );
+
 }
