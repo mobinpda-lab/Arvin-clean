@@ -5,6 +5,12 @@ on:
     workflows: ['Arvin Device Smoke']
     types: [completed]
   workflow_dispatch:
+    inputs:
+      authorized_by_product_owner:
+        description: 'Explicit product-owner authorization to enter release closure (does not itself authorize publication)'
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -34,6 +40,26 @@ jobs:
           ref: main
           fetch-depth: 0
 
+      - name: Require explicit manual product-owner authorization
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          AUTHORIZED_BY_PRODUCT_OWNER: ${{ inputs.authorized_by_product_owner }}
+          ACTOR: ${{ github.actor }}
+          PRODUCT_OWNER_GITHUB: ${{ vars.ARVIN_PRODUCT_OWNER_GITHUB }}
+          REPOSITORY_OWNER: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT_NAME" != "workflow_dispatch" || "$AUTHORIZED_BY_PRODUCT_OWNER" != "true" ]]; then
+            echo "::error::RELEASE BLOCKED: manual dispatch and authorized_by_product_owner=true are required."
+            exit 1
+          fi
+          if [[ -z "$PRODUCT_OWNER_GITHUB" || "$ACTOR" != "$PRODUCT_OWNER_GITHUB" || "$REPOSITORY_OWNER" != "mobinpda-lab" ]]; then
+            echo "::error::RELEASE BLOCKED: caller must match the trusted ARVIN_PRODUCT_OWNER_GITHUB repository variable and repository owner boundary."
+            exit 1
+          fi
+          echo "MANUAL_PRODUCT_OWNER_GATE=passed"
+          echo "PRODUCT_OWNER_ACTOR=$ACTOR"
+
       - name: Fetch pinned VazirHarf
         run: |
           set -euo pipefail
@@ -62,19 +88,22 @@ jobs:
             const [appVersion, buildNumber] = version.split('+');
             if (!appVersion || !buildNumber) core.setFailed(`Invalid semantic Flutter version: ${version}`);
             const tag = `v${appVersion}-build${buildNumber}-arvin-${sha.slice(0,7)}`;
-            let complete = false;
+            // Never let tag/asset names bypass the release build, signing,
+            // product gates, or provenance checks. We currently have no trusted
+            // immutable artifact identity contract to independently verify reuse.
             try {
-              const rel = await github.rest.repos.getReleaseByTag({owner, repo, tag});
-              const assets = await github.rest.repos.listReleaseAssets({owner, repo, release_id: rel.data.id});
-              const names = new Set(assets.data.map(a => a.name));
-              complete = [`arvin-${appVersion}-build${buildNumber}.apk`,'artifact.sha256','release-evidence.txt'].every(n => names.has(n));
-            } catch (_) {}
-            core.setOutput('already_released', complete ? 'true' : 'false');
+              await github.rest.repos.getReleaseByTag({owner, repo, tag});
+              core.setFailed(`RELEASE BLOCKED: existing release ${tag} requires independent provenance, APK SHA-256, and signing-certificate verification; asset filenames are not proof.`);
+              return;
+            } catch (error) {
+              if (error.status !== 404) throw error;
+            }
+            core.setOutput('already_released', 'false');
             core.setOutput('app_version', version);
             core.setOutput('build_number', buildNumber);
             core.info(`MAIN_SHA=${sha}`);
             core.info(`RELEASE_TAG=${tag}`);
-            core.info(`ALREADY_RELEASED=${complete}`);
+            core.info('ALREADY_RELEASED=false');
 
       - name: Validate candidate and exact main
         if: steps.release_state.outputs.already_released != 'true'
@@ -292,6 +321,33 @@ jobs:
           print(f'Android V2 audit passed: {activities[0]}')
           PY
 
+      - name: Prepare official release signing keystore
+        if: steps.release_state.outputs.already_released != 'true'
+        env:
+          ARVIN_RELEASE_KEYSTORE_BASE64: ${{ secrets.ARVIN_RELEASE_KEYSTORE_BASE64 }}
+          ARVIN_RELEASE_STORE_PASSWORD: ${{ secrets.ARVIN_RELEASE_STORE_PASSWORD }}
+          ARVIN_RELEASE_KEY_ALIAS: ${{ secrets.ARVIN_RELEASE_KEY_ALIAS }}
+          ARVIN_RELEASE_KEY_PASSWORD: ${{ secrets.ARVIN_RELEASE_KEY_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${ARVIN_RELEASE_KEYSTORE_BASE64:-}" || { echo "::error::ARVIN_RELEASE_KEYSTORE_BASE64 is missing."; exit 1; }
+          test -n "${ARVIN_RELEASE_STORE_PASSWORD:-}" || { echo "::error::ARVIN_RELEASE_STORE_PASSWORD is missing."; exit 1; }
+          test -n "${ARVIN_RELEASE_KEY_ALIAS:-}" || { echo "::error::ARVIN_RELEASE_KEY_ALIAS is missing."; exit 1; }
+          test -n "${ARVIN_RELEASE_KEY_PASSWORD:-}" || { echo "::error::ARVIN_RELEASE_KEY_PASSWORD is missing."; exit 1; }
+          key_store_path="$RUNNER_TEMP/arvin-release-signing.keystore"
+          printf '%s' "$ARVIN_RELEASE_KEYSTORE_BASE64" | base64 --decode > "$key_store_path"
+          chmod 600 "$key_store_path"
+          test -s "$key_store_path"
+          {
+            echo "ARVIN_OFFICIAL_RELEASE=true"
+            echo "ARVIN_RELEASE_STORE_FILE=$key_store_path"
+            echo "ARVIN_RELEASE_STORE_PASSWORD=$ARVIN_RELEASE_STORE_PASSWORD"
+            echo "ARVIN_RELEASE_KEY_ALIAS=$ARVIN_RELEASE_KEY_ALIAS"
+            echo "ARVIN_RELEASE_KEY_PASSWORD=$ARVIN_RELEASE_KEY_PASSWORD"
+          } >> "$GITHUB_ENV"
+          echo "OFFICIAL_SIGNING_KEYSTORE_READY=true"
+
       - name: Test and build release APK from locked inputs
         if: steps.release_state.outputs.already_released != 'true'
         run: |
@@ -304,6 +360,29 @@ jobs:
           mkdir -p "$RELEASE_EVIDENCE"
           cp build/app/outputs/flutter-apk/app-release.apk "$RELEASE_EVIDENCE/arvin-${{ steps.release_state.outputs.app_version }}-build${{ steps.release_state.outputs.build_number }}.apk"
           sha256sum "$RELEASE_EVIDENCE/arvin-${{ steps.release_state.outputs.app_version }}-build${{ steps.release_state.outputs.build_number }}.apk" | tee "$RELEASE_EVIDENCE/artifact.sha256"
+
+      - name: Verify official APK signer against trusted fingerprint
+        if: steps.release_state.outputs.already_released != 'true'
+        env:
+          TRUSTED_CERT_SHA256: ${{ vars.ARVIN_RELEASE_CERT_SHA256 }}
+        run: |
+          set -euo pipefail
+          sdk_root="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          test -n "$sdk_root" || { echo "::error::ANDROID_HOME/ANDROID_SDK_ROOT is missing."; exit 1; }
+          apksigner="$(find "$sdk_root/build-tools" -type f -name apksigner -perm -u+x | sort -V | tail -n 1)"
+          test -n "$apksigner" || { echo "::error::apksigner was not found in Android SDK build-tools."; exit 1; }
+          bash scripts/ci/verify-official-apk-signature.sh "$RELEASE_EVIDENCE/arvin-${{ steps.release_state.outputs.app_version }}-build${{ steps.release_state.outputs.build_number }}.apk" "$TRUSTED_CERT_SHA256" "$apksigner" "$RELEASE_EVIDENCE/apksigner-verify.txt" "$RELEASE_EVIDENCE/signing-evidence.txt"
+
+      - name: Cleanup temporary release signing keystore
+        if: always()
+        env:
+          KEYSTORE_PATH: ${{ runner.temp }}/arvin-release-signing.keystore
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f "$KEYSTORE_PATH"
+          test ! -e "$KEYSTORE_PATH"
+          echo "TEMP_SIGNING_KEYSTORE_CLEANUP=verified"
 
       - name: Store release evidence
         if: steps.release_state.outputs.already_released != 'true'
@@ -327,11 +406,18 @@ jobs:
           APP_VERSION=${{ steps.release_state.outputs.app_version }}
           BUILD_NUMBER=${{ steps.release_state.outputs.build_number }}
           ARTIFACT_SHA256=$(cut -d' ' -f1 "$RELEASE_EVIDENCE/artifact.sha256")
+          SOURCE_SHA=${{ steps.verify.outputs.main_sha }}
+          RUN_ID=${GITHUB_RUN_ID}
+          RUN_ATTEMPT=${GITHUB_RUN_ATTEMPT}
+          JOB_ID=release-closure
+          SIGNATURE_VERIFICATION=apksigner-verified
+          SIGNING_CERT_SHA256=$(cut -d'=' -f2 "$RELEASE_EVIDENCE/signing-evidence.txt")
           EOF
 
 
       - name: Upload internal Release APK artifact
         if: steps.release_state.outputs.already_released != 'true'
+        id: internal_artifact
         uses: actions/upload-artifact@v4
         with:
           name: arvin-internal-build-${{ steps.verify.outputs.main_sha }}
@@ -339,7 +425,18 @@ jobs:
             .github/release-evidence/*.apk
             .github/release-evidence/artifact.sha256
             .github/release-evidence/release-evidence.txt
+            .github/release-evidence/apksigner-verify.txt
+            .github/release-evidence/signing-evidence.txt
           if-no-files-found: error
+
+      - name: Bind release evidence to internal artifact identity
+        if: steps.release_state.outputs.already_released != 'true'
+        env:
+          INTERNAL_ARTIFACT_ID: ${{ steps.internal_artifact.outputs.artifact-id }}
+        run: |
+          set -euo pipefail
+          test -n "$INTERNAL_ARTIFACT_ID"
+          printf '%s\n' "INTERNAL_ARTIFACT_ID=$INTERNAL_ARTIFACT_ID" >> "$RELEASE_EVIDENCE/release-evidence.txt"
 
       - name: Require explicit product release approval
         if: steps.release_state.outputs.already_released != 'true'
@@ -352,40 +449,12 @@ jobs:
 
             // A green build is not product acceptance. Publication stays blocked
             // until the existing release gate and the known regression lane are closed.
-            // Hide already-published Arvin prereleases while blocked; preserve their
-            // tags/assets so this containment is reversible rather than destructive.
-            async function hideUnapprovedPrereleases() {
-              const releases = await github.paginate(github.rest.repos.listReleases, {
-                owner,
-                repo,
-                per_page: 100
-              });
-              for (const release of releases) {
-                if (release.draft || !release.prerelease || !release.tag_name.includes('-arvin-')) {
-                  continue;
-                }
-                try {
-                  await github.rest.repos.updateRelease({
-                    owner,
-                    repo,
-                    release_id: release.id,
-                    draft: true,
-                    body: `${release.body || ''}\n\n**UNAPPROVED — NOT A RELEASE CANDIDATE.** Product release gate #2102 and regression lane #1901 must both be closed after acceptance before publication.`
-                  });
-                  core.warning(`HIDDEN_UNAPPROVED_PRERELEASE=${release.tag_name}`);
-                } catch (error) {
-                  core.warning(`FAILED_TO_HIDE_UNAPPROVED_PRERELEASE=${release.tag_name}: ${error.message}`);
-                }
-              }
-            }
-
             const gate = await github.rest.issues.get({
               owner,
               repo,
               issue_number: 2102
             });
             if (gate.data.state !== 'closed') {
-              await hideUnapprovedPrereleases();
               core.setFailed('RELEASE BLOCKED: issue #2102 must be closed only after exact-main CI, device evidence, and product acceptance are complete.');
               return;
             }
@@ -396,7 +465,6 @@ jobs:
               pull_number: 1901
             });
             if (regression.data.state !== 'closed') {
-              await hideUnapprovedPrereleases();
               core.setFailed('RELEASE BLOCKED: existing P0/P1 regression PR #1901 is still open; reconcile/resolve its findings before publishing.');
               return;
             }
@@ -438,7 +506,7 @@ jobs:
           TAG: ${{ steps.release.outputs.tag }}
         run: |
           set -euo pipefail
-          gh release upload "$TAG" "$RELEASE_EVIDENCE/arvin-${{ steps.release_state.outputs.app_version }}-build${{ steps.release_state.outputs.build_number }}.apk" "$RELEASE_EVIDENCE/artifact.sha256" "$RELEASE_EVIDENCE/release-evidence.txt" --clobber
+          gh release upload "$TAG" "$RELEASE_EVIDENCE/arvin-${{ steps.release_state.outputs.app_version }}-build${{ steps.release_state.outputs.build_number }}.apk" "$RELEASE_EVIDENCE/artifact.sha256" "$RELEASE_EVIDENCE/release-evidence.txt" "$RELEASE_EVIDENCE/apksigner-verify.txt" "$RELEASE_EVIDENCE/signing-evidence.txt" --clobber
 
       - name: Verify delivery
         if: steps.release_state.outputs.already_released != 'true'
@@ -457,7 +525,7 @@ jobs:
             const rel = await github.rest.repos.getReleaseByTag({owner, repo, tag});
             const assets = await github.rest.repos.listReleaseAssets({owner, repo, release_id: rel.data.id});
             const names = new Set(assets.data.map(a => a.name));
-            for (const n of [`arvin-${{ steps.release_state.outputs.app_version }}-build${{ steps.release_state.outputs.build_number }}.apk`,'artifact.sha256','release-evidence.txt']) if (!names.has(n)) core.setFailed(`Missing release asset: ${n}`);
+            for (const n of [`arvin-${{ steps.release_state.outputs.app_version }}-build${{ steps.release_state.outputs.build_number }}.apk`,'artifact.sha256','release-evidence.txt','apksigner-verify.txt','signing-evidence.txt']) if (!names.has(n)) core.setFailed(`Missing release asset: ${n}`);
             core.info(`DELIVERY_CHECK=success TAG=${tag}`);
 
       - name: Recovery and resume validation
@@ -471,32 +539,8 @@ jobs:
           echo "RECOVERY_RESULT=success"
           echo "RESUME_VALIDATION=success"
 
-      - name: Remove stale Arvin prereleases
-        if: steps.release_state.outputs.already_released != 'true'
-        uses: actions/github-script@v7
-        env:
-          KEEP_TAG: ${{ steps.release.outputs.tag }}
-        with:
-          script: |
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-            const keepTag = process.env.KEEP_TAG;
-            const releases = await github.paginate(
-              github.rest.repos.listReleases,
-              { owner, repo, per_page: 100 }
-            );
-            for (const release of releases) {
-              if (release.draft || !release.prerelease) continue;
-              if (!release.tag_name.startsWith('v') || !release.tag_name.includes('-arvin-')) continue;
-              if (release.tag_name === keepTag) continue;
-              await github.rest.repos.deleteRelease({ owner, repo, release_id: release.id });
-              try {
-                await github.rest.git.deleteRef({ owner, repo, ref: 'tags/' + release.tag_name });
-              } catch (error) {
-                if (error.status !== 422 && error.status !== 404) throw error;
-              }
-              core.info('REMOVED_STALE_RELEASE=' + release.tag_name);
-            }
+      # V5.09: stale release/tag deletion intentionally removed.
+      # Existing tags and releases are preserved; cleanup requires a separate approved change.
 
       - name: Publish final evidence
         if: steps.release_state.outputs.already_released != 'true'

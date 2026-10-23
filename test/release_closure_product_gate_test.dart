@@ -3,30 +3,40 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('release publication is guarded by the existing product acceptance gates', () {
+  test('release publication enforces product gates and trusted manual authorization', () {
     final workflow = File('.github/workflows/release-closure.yml')
         .readAsStringSync();
 
+    const manualGate = 'name: Require explicit manual product-owner authorization';
     const internalBuild = 'name: Test and build release APK from locked inputs';
     const storeEvidence = 'name: Store release evidence';
     const uploadInternalArtifact = 'name: Upload internal Release APK artifact';
-    const gate = 'name: Require explicit product release approval';
+    const productGate = 'name: Require explicit product release approval';
     const createRelease = 'name: Create exact-head tag and prerelease';
     const uploadAssets = 'name: Upload release assets';
-    const removeStale = 'name: Remove stale Arvin prereleases';
 
+    final manualGateIndex = workflow.indexOf(manualGate);
     final internalBuildIndex = workflow.indexOf(internalBuild);
     final evidenceIndex = workflow.indexOf(storeEvidence);
     final internalUploadIndex = workflow.indexOf(uploadInternalArtifact);
-    final gateIndex = workflow.indexOf(gate);
-    expect(internalBuildIndex, greaterThanOrEqualTo(0));
-    expect(evidenceIndex, greaterThan(internalBuildIndex));
-    expect(internalUploadIndex, greaterThan(evidenceIndex));
-    expect(gateIndex, greaterThan(internalUploadIndex));
+    final productGateIndex = workflow.indexOf(productGate);
 
-    // Internal build evidence may be produced before approval. Publication must
-    // remain fail-closed until the existing product acceptance gates are closed.
+    expect(manualGateIndex, greaterThanOrEqualTo(0));
+    const signerGate = 'name: Verify official APK signer against trusted fingerprint';
+    final signerGateIndex = workflow.indexOf(signerGate);
+    expect(manualGateIndex, lessThan(internalBuildIndex));
+    expect(internalBuildIndex, greaterThanOrEqualTo(0));
+    expect(signerGateIndex, greaterThan(internalBuildIndex));
+    expect(evidenceIndex, greaterThan(signerGateIndex));
+    expect(internalUploadIndex, greaterThan(evidenceIndex));
+    expect(workflow.indexOf('name: Bind release evidence to internal artifact identity'), greaterThan(internalUploadIndex));
+    expect(productGateIndex, greaterThan(workflow.indexOf('name: Bind release evidence to internal artifact identity')));
+
+    // Product acceptance gates remain mandatory and fail closed.
     expect(workflow, contains('issue_number: 2102'));
+    expect(workflow, contains("gate.data.state !== 'closed'"));
+    expect(workflow, contains('pull_number: 1901'));
+    expect(workflow, contains("regression.data.state !== 'closed'"));
     expect(workflow, contains('  issues: read'));
     expect(workflow, contains('  cancel-in-progress: false'));
     expect(workflow, contains("workflows: ['Arvin Device Smoke']"));
@@ -35,21 +45,49 @@ void main() {
     expect(workflow, contains("github.event.workflow_run.head_branch == 'main'"));
     expect(workflow, contains("github.event_name == 'workflow_dispatch'"));
     expect(workflow, isNot(contains("workflows: ['Arvin Production Orchestrator']")));
+
+    // Manual dispatch requires the true boolean plus a trusted, configured actor.
+    expect(workflow, contains(r'AUTHORIZED_BY_PRODUCT_OWNER: ${{ inputs.authorized_by_product_owner }}'));
+    expect(workflow, contains('AUTHORIZED_BY_PRODUCT_OWNER" != "true"'));
+    expect(workflow, contains(r'ACTOR: ${{ github.actor }}'));
+    expect(workflow, contains(r'PRODUCT_OWNER_GITHUB: ${{ vars.ARVIN_PRODUCT_OWNER_GITHUB }}'));
+    expect(workflow, contains(r'REPOSITORY_OWNER: ${{ github.repository_owner }}'));
+    expect(workflow, contains(r'"$ACTOR" != "$PRODUCT_OWNER_GITHUB"'));
+    expect(workflow, contains(r'"$REPOSITORY_OWNER" != "mobinpda-lab"'));
+    expect(workflow, contains('MANUAL_PRODUCT_OWNER_GATE=passed'));
+
+    // Existing releases/tags must never be automatically purged or mutated.
+    expect(workflow, isNot(contains('hideUnapprovedPrereleases')));
+    expect(workflow, isNot(contains('HIDDEN_UNAPPROVED_PRERELEASE')));
+    expect(workflow, isNot(contains('FAILED_TO_HIDE_UNAPPROVED_PRERELEASE')));
+    expect(workflow, isNot(contains('github.rest.repos.updateRelease')));
+    expect(workflow, isNot(contains('deleteRef')));
+    expect(workflow, isNot(contains('deleteRelease')));
+    expect(workflow, isNot(contains('Remove stale Arvin prereleases')));
+
     expect(
       workflow,
-      contains('const tag = `v\${appVersion}-build\${buildNumber}-arvin-\${sha.slice(0,7)}`;'),
+      contains(r'const tag = `v${appVersion}-build${buildNumber}-arvin-${sha.slice(0,7)}`;'),
     );
-    expect(workflow, contains('pull_number: 1901'));
-    expect(workflow, contains('await hideUnapprovedPrereleases();'));
-    expect(workflow, contains('draft: true'));
-    expect(workflow, contains('HIDDEN_UNAPPROVED_PRERELEASE='));
     expect(
       workflow,
       contains("if: steps.release_state.outputs.already_released != 'true'"),
     );
 
-    // Evidence is explicit and verifiable; don't pin the test to file offsets
-    // or byte/line counts that change when workflow documentation evolves.
+    // Existing tag/asset names must not bypass build, signing, or product gates.
+    expect(
+      workflow,
+      contains(r'existing release ${tag} requires independent provenance'),
+    );
+    expect(workflow, contains('asset filenames are not proof'));
+    expect(workflow, contains('if (error.status !== 404) throw error;'));
+    expect(workflow, contains("core.setOutput('already_released', 'false')"));
+    expect(
+      workflow,
+      isNot(contains(r'complete = [`arvin-${appVersion}-build${buildNumber}.apk`')),
+    );
+
+    // Evidence is explicit and verifiable.
     expect(workflow, contains('BUILD_RESULT=success'));
     expect(workflow, contains('TEST_RESULT=success'));
     expect(workflow, contains('MAIN_SHA='));
@@ -57,10 +95,104 @@ void main() {
     expect(workflow, contains('ARTIFACT_SHA256='));
     expect(workflow, contains('sha256sum'));
     expect(workflow, contains('artifact.sha256'));
+    expect(workflow, contains('ARVIN_RELEASE_CERT_SHA256'));
+    expect(workflow, contains('SIGNATURE_VERIFICATION=apksigner-verified'));
+    expect(workflow, contains('INTERNAL_ARTIFACT_ID'));
+    expect(workflow, contains('apksigner-verify.txt'));
+    expect(workflow, contains('signing-evidence.txt'));
 
-    // Fail closed before every external release side effect.
-    expect(gateIndex, lessThan(workflow.indexOf(createRelease)));
-    expect(gateIndex, lessThan(workflow.indexOf(uploadAssets)));
-    expect(gateIndex, lessThan(workflow.indexOf(removeStale)));
+    // Product gate must precede every external release side effect.
+    expect(productGateIndex, lessThan(workflow.indexOf(createRelease)));
+    expect(productGateIndex, lessThan(workflow.indexOf(uploadAssets)));
   });
+
+  test('official APK signer gate rejects missing, failed, and untrusted signatures', () {
+    final temp = Directory.systemTemp.createTempSync('arvin-signature-gate-');
+    addTearDown(() => temp.deleteSync(recursive: true));
+    final apk = File('${temp.path}/fixture.apk')..writeAsBytesSync(<int>[1, 2, 3, 4]);
+    final signer = File('${temp.path}/fake-apksigner.sh')
+      ..writeAsStringSync(r'''#!/usr/bin/env bash
+set -euo pipefail
+if [[ "${FAKE_SIGNER_FAIL:-false}" == "true" ]]; then
+  echo "simulated signature verification failure" >&2
+  exit 1
+fi
+echo "Signer #1 certificate SHA-256 digest: ${FAKE_CERT_SHA256:-}"
+''');
+    final chmod = Process.runSync('chmod', <String>['+x', signer.path]);
+    expect(chmod.exitCode, 0);
+    final helper = File('scripts/ci/verify-official-apk-signature.sh').absolute.path;
+    final trusted = List<String>.filled(64, 'A').join();
+    final untrusted = List<String>.filled(64, 'B').join();
+
+    ProcessResult runGate({
+      String? expected,
+      String? actual,
+      bool signerFails = false,
+    }) {
+      final expectedFingerprint = expected ?? trusted;
+      final actualFingerprint = actual ?? trusted;
+      final log = File('${temp.path}/verify.log');
+      final evidence = File('${temp.path}/evidence.txt');
+      return Process.runSync(
+        'bash',
+        <String>[helper, apk.path, expectedFingerprint, signer.path, log.path, evidence.path],
+        environment: <String, String>{
+          ...Platform.environment,
+          'FAKE_CERT_SHA256': actualFingerprint,
+          'FAKE_SIGNER_FAIL': signerFails ? 'true' : 'false',
+        },
+      );
+    }
+
+    final valid = runGate();
+    expect(valid.exitCode, 0, reason: valid.stderr.toString());
+    expect(File('${temp.path}/evidence.txt').readAsStringSync(), contains('SIGNATURE_VERIFICATION=apksigner-verified'));
+    expect(File('${temp.path}/evidence.txt').readAsStringSync(), contains('SIGNING_CERT_SHA256=$trusted'));
+    expect(runGate(expected: '').exitCode, isNot(0));
+    expect(runGate(actual: untrusted).exitCode, isNot(0));
+    expect(runGate(signerFails: true).exitCode, isNot(0));
+  });
+
+  test('legacy release workflow fails closed and cannot publish releases', () {
+    final legacy = File('.github/workflows/release.yml').readAsStringSync();
+    final workflow = File('.github/workflows/release-closure.yml').readAsStringSync();
+
+    expect(legacy, contains('name: Arvin Release (disabled legacy path)'));
+    expect(legacy, contains('contents: read'));
+    expect(legacy, contains('name: Block unsafe legacy release path'));
+    expect(legacy, contains('exit 1'));
+    expect(legacy, contains('official signing'));
+    expect(legacy, isNot(contains('softprops/action-gh-release')));
+    expect(legacy, isNot(contains('contents: write')));
+    expect(legacy, isNot(contains('tag_name:')));
+    // Existing releases must fail closed unless artifact bytes, provenance,
+    // and the trusted signing certificate can be independently verified.
+    expect(workflow, contains('requires independent provenance, APK SHA-256, and signing-certificate verification'));
+    expect(workflow, contains("core.setOutput('already_released', 'false');"));
+  });
+
+
+  test('official signing is configured from Actions secrets and the temporary keystore is always cleaned', () {
+    final workflow = File('.github/workflows/release-closure.yml').readAsStringSync();
+    final gradle = File('android/app/build.gradle.kts').readAsStringSync();
+
+    expect(workflow, contains('name: Prepare official release signing keystore'));
+    expect(workflow, contains(r'ARVIN_RELEASE_KEYSTORE_BASE64: ${{ secrets.ARVIN_RELEASE_KEYSTORE_BASE64 }}'));
+    expect(workflow, contains(r'ARVIN_RELEASE_STORE_PASSWORD: ${{ secrets.ARVIN_RELEASE_STORE_PASSWORD }}'));
+    expect(workflow, contains(r'ARVIN_RELEASE_KEY_ALIAS: ${{ secrets.ARVIN_RELEASE_KEY_ALIAS }}'));
+    expect(workflow, contains(r'ARVIN_RELEASE_KEY_PASSWORD: ${{ secrets.ARVIN_RELEASE_KEY_PASSWORD }}'));
+    expect(workflow, contains('echo "ARVIN_OFFICIAL_RELEASE=true"'));
+    expect(workflow, contains('base64 --decode'));
+    expect(workflow, contains('name: Cleanup temporary release signing keystore'));
+    expect(workflow, contains('if: always()'));
+    expect(workflow, contains(r'rm -f "$KEYSTORE_PATH"'));
+    expect(workflow, contains(r'test ! -e "$KEYSTORE_PATH"'));
+
+    expect(gradle, contains('val officialReleaseRequested = System.getenv("ARVIN_OFFICIAL_RELEASE") == "true"'));
+    expect(gradle, contains('require(!releaseStoreFile.isNullOrBlank())'));
+    expect(gradle, contains('signingConfig = signingConfigs.getByName("arvinProduction")'));
+    expect(gradle, contains('signingConfig = signingConfigs.getByName("debug")'));
+  });
+
 }
