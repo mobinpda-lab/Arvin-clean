@@ -499,10 +499,10 @@ class AppSettingsService {
     final value = family?.trim();
     if (value == null || value.isEmpty) return null;
     final normalized = value.toLowerCase();
-    if (normalized == 'vazirharf' || normalized == 'vazirmatn') {
-      return 'vazirmatn';
-    }
-    return value;
+    if (normalized == 'system') return 'system';
+    // Unsupported legacy font IDs must not persist as selectable preferences.
+    // Keep the preference on the canonical bundled font until that font is shipped.
+    return 'vazirmatn';
   }
 
   String? _normalizeCalendarId(String? id) {
