@@ -317,6 +317,7 @@ class HomePage extends StatefulWidget {
     this.restoreStageHook,
     this.taskStore,
     this.projectStore,
+    this.taskReminderReschedule,
   });
 
   final AppSettings settings;
@@ -329,6 +330,7 @@ class HomePage extends StatefulWidget {
   final Future<void> Function(String stage)? restoreStageHook;
   final TaskStore? taskStore;
   final ProjectStore? projectStore;
+  final Future<void> Function()? taskReminderReschedule;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -477,6 +479,19 @@ class _HomePageState extends State<HomePage> {
       .map((task) => task.id)
       .toSet();
 
+  Future<void> _rescheduleTaskRemindersBestEffort() async {
+    try {
+      final injectedReschedule = widget.taskReminderReschedule;
+      if (injectedReschedule != null) {
+        await injectedReschedule();
+      } else {
+        await AndroidFollowUpReminderScheduler().reschedule();
+      }
+    } catch (_) {
+      // The Task is already persisted. A later lifecycle/scheduler trigger can retry.
+    }
+  }
+
   Future<void> _save() async {
     if (loadFailure != null) {
       throw StateError(
@@ -485,12 +500,7 @@ class _HomePageState extends State<HomePage> {
     }
     final snapshot = List<Task>.of(tasks);
     await taskStore.save(snapshot);
-    try {
-      await AndroidFollowUpReminderScheduler().reschedule();
-    } catch (_) {
-      // Canonical Task storage already succeeded; the existing alarm foundation
-      // can retry on the next lifecycle/scheduler trigger.
-    }
+    await _rescheduleTaskRemindersBestEffort();
     try {
       await calendarOutboundSyncService.sync(
         calendarProjection.project(snapshot),
@@ -1318,6 +1328,7 @@ class _HomePageState extends State<HomePage> {
             }
             stored.add(edited);
           });
+          await _rescheduleTaskRemindersBestEffort();
           await wave2ProductFastTrack.persistProjectSelection(
             taskId: edited.id,
             projectId: selectedProjectId,
@@ -1339,6 +1350,7 @@ class _HomePageState extends State<HomePage> {
             }
             stored.add(captured);
           });
+          await _rescheduleTaskRemindersBestEffort();
           await wave2ProductFastTrack.persistProjectSelection(
             taskId: captured.id,
             projectId: selectedProjectId,
