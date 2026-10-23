@@ -117,4 +117,26 @@ void main() {
           'All seven canonical smoke scenarios must map to their corresponding integration test files',
     );
   });
+
+  test('Build and Device Smoke reject malformed target SHAs before checkout', () {
+    final buildWorkflow =
+        File('.github/workflows/build.yml').readAsStringSync();
+    final smokeWorkflow =
+        File('.github/workflows/device-smoke.yml').readAsStringSync();
+
+    expect(buildWorkflow, contains('target_sha:'));
+    expect(buildWorkflow, contains('        required: true'));
+    expect(buildWorkflow, contains('name: Validate requested target SHA'));
+    expect(buildWorkflow, contains(r'[[ ! "$TARGET_SHA" =~ ^[0-9a-fA-F]{40}$ ]]'));
+    expect(buildWorkflow.indexOf('name: Validate requested target SHA'),
+        lessThan(buildWorkflow.indexOf('  quality:')));
+    expect(buildWorkflow, contains('needs: validate-target-sha'));
+
+    expect(smokeWorkflow, contains('name: Validate requested target SHA'));
+    expect(smokeWorkflow, contains(r'[[ ! "$TARGET_SHA" =~ ^[0-9a-fA-F]{40}$ ]]'));
+    expect(smokeWorkflow.indexOf('name: Validate requested target SHA'),
+        lessThan(smokeWorkflow.indexOf('  prepare-matrix:')));
+    expect(smokeWorkflow, contains('submodules: recursive'));
+    expect(smokeWorkflow, isNot(contains('Verify tracked Vazirmatn assets')));
+  });
 }
