@@ -521,4 +521,40 @@ void main() {
     expect(result!.reminderDate, DateTime(2026, 8, 27, 9));
   });
 
+
+  testWidgets('Task editor avoids horizontal overflow at 320 and 360 logical pixels',
+      (tester) async {
+    for (final width in [320.0, 360.0]) {
+      tester.view.physicalSize = Size(width, 760);
+      tester.view.devicePixelRatio = 1;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Directionality(
+            textDirection: TextDirection.rtl,
+            child: Builder(
+              builder: (context) => Scaffold(
+                body: TextButton(
+                  onPressed: () => showDialog<Task>(
+                    context: context,
+                    builder: (_) => const ArvinTaskEditorDialog(
+                      knownTags: ['برچسب بسیار طولانی برای آزمون عرض صفحه'],
+                    ),
+                  ),
+                  child: const Text('باز کردن'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('باز کردن'));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull, reason: 'width=$width');
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+    }
+    tester.view.resetPhysicalSize();
+    tester.view.resetDevicePixelRatio();
+  });
+
 }

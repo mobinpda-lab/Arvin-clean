@@ -748,7 +748,7 @@ Future<DateTime?> _pickCustomDue() async {
                         key: const ValueKey('quick-capture-follow-up-enabled'),
                         selected: _followUpEnabled,
                         avatar: const Icon(Icons.follow_the_signs_outlined, size: 18),
-                        label: const Text('دارای پیگیری'),
+                        label: const FittedBox(fit: BoxFit.scaleDown, child: Text('دارای پیگیری')),
                         onSelected: _saving
                             ? null
                             : (value) => setState(() {
@@ -760,7 +760,7 @@ Future<DateTime?> _pickCustomDue() async {
                         key: const ValueKey('quick-capture-checklist-enabled'),
                         selected: _checklistEnabled,
                         avatar: const Icon(Icons.checklist_outlined, size: 18),
-                        label: const Text('دارای چک‌لیست'),
+                        label: const FittedBox(fit: BoxFit.scaleDown, child: Text('دارای چک‌لیست')),
                         onSelected: _saving
                             ? null
                             : (value) => setState(() => _checklistEnabled = value),
@@ -827,7 +827,7 @@ Future<DateTime?> _pickCustomDue() async {
                     child: TextButton(
                       key: const ValueKey('quick-capture-cancel'),
                       onPressed: _saving ? null : () => Navigator.of(context).pop(),
-                      child: const Text('لغو'),
+                      child: const FittedBox(fit: BoxFit.scaleDown, child: Text('لغو')),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -835,7 +835,7 @@ Future<DateTime?> _pickCustomDue() async {
                     child: OutlinedButton(
                       key: const ValueKey('quick-capture-full-form'),
                       onPressed: _saving ? null : _openFullForm,
-                      child: const Text('فرم کامل'),
+                      child: const FittedBox(fit: BoxFit.scaleDown, child: Text('فرم کامل')),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -843,7 +843,7 @@ Future<DateTime?> _pickCustomDue() async {
                     child: FilledButton(
                       key: const ValueKey('quick-capture-submit'),
                       onPressed: _saving ? null : _submit,
-                      child: Text(_saving ? 'در حال ثبت…' : 'ثبت کار'),
+                      child: FittedBox(fit: BoxFit.scaleDown, child: Text(_saving ? 'در حال ثبت…' : 'ثبت کار')),
                     ),
                   ),                ],
               ),
