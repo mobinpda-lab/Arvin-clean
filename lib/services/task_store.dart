@@ -288,9 +288,17 @@ class TaskStore {
       final index = tasks.indexWhere((task) => task.id == taskId);
       if (index < 0) throw StateError('Task not found: $taskId');
       final task = tasks[index];
-      if (task.followUpEnabled) return;
-      task.followUpEnabled = true;
-      task.updatedAt = DateTime.now();
+      if (task.followUps.isNotEmpty || task.followUpDate != null) return;
+      final now = DateTime.now();
+      task.followUps = [
+        ...task.followUps,
+        FollowUp(
+          id: 'follow-up-conversion:${task.id}:${now.microsecondsSinceEpoch}',
+          dateTime: now,
+        ),
+      ];
+      task.followUpEnabled = true; // Compatibility mirror only.
+      task.updatedAt = now;
     });
   }
 
@@ -319,6 +327,7 @@ class TaskStore {
   Future<void> _ensureReady() async {
     final executor = _database;
     await G1DriftSchema.install(executor);
+    await G1DriftSchema.migrateFollowUpMetadata(executor);
     if (await G1DriftSchema.isLegacyMigrationComplete(executor)) {
       await G1DriftSchema.migrateTaskPeople(executor);
       return;

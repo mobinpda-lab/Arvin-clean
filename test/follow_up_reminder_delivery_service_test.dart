@@ -30,10 +30,12 @@ void main() {
     String id,
     DateTime? reminder, {
     String note = '',
+    String? title,
   }) =>
       FollowUp(
         id: id,
         dateTime: DateTime(2026, 8, 28, 10),
+        title: title,
         note: note,
         reminderDate: reminder,
       );
@@ -45,7 +47,7 @@ void main() {
           'one',
           followUps: [
             followUp('past', now.subtract(const Duration(minutes: 5))),
-            followUp('now', now, note: 'تماس'),
+            followUp('now', now, title: 'پیگیری تماس', note: 'نتیجه تماس'),
             followUp('future', now.add(const Duration(minutes: 1))),
           ],
         ),
@@ -54,7 +56,7 @@ void main() {
     );
 
     expect(result.map((item) => item.followUpId), ['past', 'now']);
-    expect(result.last.label, 'تماس');
+    expect(result.last.label, 'پیگیری تماس');
   });
 
   test('exact delivered identity is skipped while a changed time is new work', () {
@@ -153,7 +155,7 @@ void main() {
       'a:y',
       'b:z',
     ]);
-    expect(result.first.label, 'پیگیری');
+    expect(result.first.label, 'پیگیری — Task early');
   });
 
   test('delivers multiple Task reminders with distinct stable identities', () {

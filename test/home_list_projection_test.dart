@@ -37,7 +37,7 @@ void main() {
 
   test('all notes and follow-up scopes reuse canonical items', () {
     final note = task('note', notebookKind: NotebookItemKind.note);
-    final tracked = task('tracked', followUpEnabled: true);
+    final tracked = task('tracked', followUpEnabled: true); // Legacy flag without a record.
     final history = task(
       'history',
       followUps: [FollowUp(id: 'fu', dateTime: now)],
@@ -72,7 +72,7 @@ void main() {
             sort: HomeListSort.title,
           )
           .map((item) => item.id),
-      ['history', 'tracked'],
+      ['history'],
     );
   });
 
@@ -203,21 +203,24 @@ void main() {
     expect(tasks, hasLength(3));
   });
 
-  test('home reminder projection prefers same-time follow-ups and keeps first duplicate reminder', () {
+  test('home reminder projection shows only earliest eligible reminder and preserves records', () {
     final followUpAt = now.add(const Duration(hours: 2));
-    final duplicateAt = now.add(const Duration(hours: 1));
+    final earliestAt = now.add(const Duration(hours: 1));
+    final laterAt = now.add(const Duration(hours: 3));
     final reminders = <TaskReminder>[
+      TaskReminder(id: 'later', title: 'یادآور دیرتر', date: laterAt, sequence: 4),
       TaskReminder(id: 'same-as-follow-up', title: 'پیگیری هم‌زمان', date: followUpAt, sequence: 1),
-      TaskReminder(id: 'first-at-time', title: 'یادآور اول', date: duplicateAt, sequence: 2),
-      TaskReminder(id: 'second-at-time', title: 'یادآور دوم', date: duplicateAt, sequence: 3),
-      TaskReminder(id: 'unique-time', title: 'یادآور دیگر', date: now.add(const Duration(hours: 3)), sequence: 4),
+      TaskReminder(id: 'second-at-time', title: 'یادآور دوم', date: earliestAt, sequence: 3),
+      TaskReminder(id: 'first-at-time', title: 'یادآور اول', date: earliestAt, sequence: 2),
     ];
 
     final projected = projection.projectReminders(reminders, followUpDate: followUpAt);
 
-    expect(projected.map((item) => item.id), ['first-at-time', 'unique-time']);
+    expect(projected.map((item) => item.id), ['first-at-time']);
     expect(reminders, hasLength(4));
-    expect(identical(projected.first, reminders[1]), isTrue);
+    expect(reminders.map((item) => item.id), containsAll([
+      'later', 'same-as-follow-up', 'second-at-time', 'first-at-time',
+    ]));
 
     final coincident = task(
       'coincident',

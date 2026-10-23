@@ -14,7 +14,8 @@ void main() {
         FollowUp(
           id: 'fu-1',
           dateTime: DateTime(2026, 8, 28, 12),
-          note: 'تماس با مشتری',
+          title: 'پیگیری قرارداد',
+          note: 'نتیجه تماس با مشتری',
           reminderDate: DateTime(2026, 8, 28, 17, 30),
         ),
       ],
@@ -26,7 +27,7 @@ void main() {
     expect(result.single.taskId, 'task-1');
     expect(result.single.taskTitle, 'قرارداد');
     expect(result.single.followUpId, 'fu-1');
-    expect(result.single.label, 'تماس با مشتری');
+    expect(result.single.label, 'پیگیری قرارداد');
     expect(result.single.scheduledAt, DateTime(2026, 8, 28, 17, 30));
     expect(result.single.stableKey, 'task-1:fu-1');
   });
@@ -40,6 +41,8 @@ void main() {
         FollowUp(
           id: 'fu-1',
           dateTime: DateTime(2026, 8, 28, 15),
+          title: '   ',
+          note: 'نتیجه پیگیری؛ نباید عنوان Reminder شود',
           reminderDate: DateTime(2026, 8, 28, 18),
         ),
       ],
@@ -72,7 +75,7 @@ void main() {
     expect(result, hasLength(2));
     final followUpReminder = result.singleWhere((item) => item.isTaskReminder == false);
     expect(followUpReminder.scheduledAt, DateTime(2026, 8, 28, 18));
-    expect(followUpReminder.label, 'پیگیری');
+    expect(followUpReminder.label, 'پیگیری — کار');
   });
 
   test('ignores disabled, expired, completed, archived, and trashed work', () {
@@ -196,4 +199,53 @@ void main() {
     expect(result.single.taskReminderId, isNull);
     expect(result.single.scheduledAt, DateTime(2026, 10, 20, 9, 30));
   });
+
+  test('title-only edit preserves FollowUp reminder delivery identity', () {
+    Task withTitle(String title) => Task(
+          id: 'task-stable',
+          title: 'کار مادر',
+          followUps: [
+            FollowUp(
+              id: 'fu-stable',
+              dateTime: now,
+              title: title,
+              note: 'نتیجه نباید عنوان شود',
+              reminderDate: now.add(const Duration(hours: 1)),
+            ),
+          ],
+        );
+
+    final before = projection.pending([withTitle('عنوان قبلی')], now: now).single;
+    final after = projection.pending([withTitle('عنوان جدید')], now: now).single;
+
+    expect(before.label, 'عنوان قبلی');
+    expect(after.label, 'عنوان جدید');
+    expect(after.stableKey, before.stableKey);
+    expect(after.scheduledAt, before.scheduledAt);
+    expect(after.followUpId, before.followUpId);
+  });
+
+  test('blank parent Task title uses safe generic Persian fallback', () {
+    final task = Task(
+      id: 'task-no-title',
+      title: '   ',
+      followUps: [
+        FollowUp(
+          id: 'fu-no-title',
+          dateTime: now,
+          title: '  ',
+          note: 'نتیجه پیگیری',
+          reminderDate: now.add(const Duration(hours: 1)),
+        ),
+      ],
+    );
+
+    final result = projection.pending([task], now: now);
+
+    expect(result, hasLength(1));
+    expect(result.single.label, 'پیگیری');
+    expect(result.single.stableKey, 'task-no-title:fu-no-title');
+    expect(result.single.scheduledAt, now.add(const Duration(hours: 1)));
+  });
+
 }

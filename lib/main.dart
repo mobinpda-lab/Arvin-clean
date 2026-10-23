@@ -2662,7 +2662,7 @@ class _HomePageState extends State<HomePage> {
         }
         return false;
       case TaskSwipeAction.convertToFollowUp:
-        if (task.followUpEnabled) return false;
+        if (task.followUps.isNotEmpty || task.followUpDate != null) return false;
         await taskStore.convertToFollowUp(task.id);
         await _load();
         if (mounted) {

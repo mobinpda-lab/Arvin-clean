@@ -311,3 +311,71 @@ void main() {
     expect(task.recurrence?.interval, 2);
   });
 }
+
+
+  testWidgets('per-occurrence checklist UI saves only selected occurrence and survives remount', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final store = TaskStore();
+    final occurrence = DateTime(2026, 10, 8, 9);
+    await store.save([
+      Task(
+        id: 'occurrence-checklist-ui',
+        title: 'آماده‌سازی مدرسه',
+        reminderDate: occurrence,
+        checklist: const ['[ ] کیف', '[ ] تکالیف', '[ ] بطری آب'],
+        recurrence: const RecurrenceRule(frequency: RecurrenceFrequency.daily),
+      ),
+    ]);
+    final repository = TaskRecurrenceRepository(
+      store: store,
+      now: () => DateTime(2026, 10, 8, 8),
+    );
+
+    await tester.pumpWidget(MaterialApp(
+      home: TaskRecurrencePage(initialTaskId: 'occurrence-checklist-ui', repository: repository),
+    ));
+    await tester.pumpAndSettle();
+    final card = find.byKey(const ValueKey('occurrence-checklist-card'));
+    await tester.scrollUntilVisible(card, 400, scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
+    expect(card, findsOneWidget);
+
+    final picker = find.byKey(const ValueKey('occurrence-checklist-picker-occurrence-checklist-ui'));
+    await tester.ensureVisible(picker);
+    await tester.tap(picker);
+    await tester.pumpAndSettle();
+    await tester.tap(find.textContaining('۱۴۰۵').first);
+    await tester.pumpAndSettle();
+
+    final bag = find.byKey(ValueKey('occurrence-checklist-item-occurrence-checklist-ui-${occurrence.toIso8601String()}-0'));
+    await tester.ensureVisible(bag);
+    await tester.tap(bag);
+    await tester.pumpAndSettle();
+    final save = find.byKey(const ValueKey('occurrence-checklist-save'));
+    await tester.ensureVisible(save);
+    await tester.tap(save);
+    await tester.pumpAndSettle();
+
+    final persisted = (await store.load()).single;
+    expect(persisted.checklist, ['[ ] کیف', '[ ] تکالیف', '[ ] بطری آب']);
+    expect(persisted.checklistOccurrences[occurrence.toIso8601String()]?.first, '[x] کیف');
+    expect(persisted.checklistOccurrences.length, 1);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(MaterialApp(
+      home: TaskRecurrencePage(initialTaskId: 'occurrence-checklist-ui', repository: repository),
+    ));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(card, 400, scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
+    final reopenedPicker = find.byKey(const ValueKey('occurrence-checklist-picker-occurrence-checklist-ui'));
+    await tester.ensureVisible(reopenedPicker);
+    await tester.tap(reopenedPicker);
+    await tester.pumpAndSettle();
+    await tester.tap(find.textContaining('۱۴۰۵').first);
+    await tester.pumpAndSettle();
+    expect(find.text('کیف'), findsOneWidget);
+    final reloaded = (await store.load()).single;
+    expect(reloaded.checklistOccurrences[occurrence.toIso8601String()]?.first, '[x] کیف');
+  });

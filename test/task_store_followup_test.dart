@@ -30,6 +30,24 @@ void main() {
     expect(task.updatedAt, isNotNull);
   });
 
+  test('legacy followUpEnabled serialization mirrors records and legacy date', () {
+    final recorded = Task(
+      id: 'recorded',
+      title: 'رکورد واقعی',
+      followUps: [
+        FollowUp(id: 'fu-recorded', dateTime: DateTime(2026, 10, 15, 10)),
+      ],
+    );
+    final legacyDate = Task(
+      id: 'legacy-date',
+      title: 'تاریخ قدیمی',
+      followUpDate: DateTime(2026, 10, 15, 10),
+    );
+
+    expect(recorded.toJson()['followUpEnabled'], isTrue);
+    expect(legacyDate.toJson()['followUpEnabled'], isTrue);
+  });
+
   test('converts a normal Task to FollowUp without changing identity', () async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks': '[{"id":"t-convert","title":"کار معمولی","description":"متن","category":"مشتریان","tags":["فوری"]}]',
@@ -43,7 +61,23 @@ void main() {
     expect(task.category, 'مشتریان');
     expect(task.tags, ['فوری']);
     expect(task.followUpEnabled, isTrue);
-    expect(task.followUps, isEmpty);
+    expect(task.followUps, hasLength(1));
+    expect(task.followUps.single.id, startsWith('follow-up-conversion:t-convert:'));
+    expect(task.followUps.single.note, isEmpty);
+  });
+
+  test('legacy enablement flag alone does not block canonical conversion', () async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': '[{"id":"t-legacy-flag","title":"پرچم قدیمی","followUpEnabled":true}]',
+    });
+    final store = TaskStore();
+
+    await store.convertToFollowUp('t-legacy-flag');
+    final task = (await store.load()).single;
+
+    expect(task.followUpEnabled, isTrue);
+    expect(task.followUps, hasLength(1));
+    expect(task.followUps.single.id, startsWith('follow-up-conversion:t-legacy-flag:'));
   });
 
   test('converting an existing FollowUp task is idempotent', () async {

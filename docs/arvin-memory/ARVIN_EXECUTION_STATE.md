@@ -1097,3 +1097,21 @@ This entry supersedes older statements that the owner decision is pending or tha
 - Prior exact-head build `2d04631dd9d1939bd3feafa12aa7d68bec349b58` produced Debug and Release APK artifacts but multiple test shards failed. Affected tests were updated; exact-head validation is still required. Do not infer success from old runs.
 - Current release status: **NO-GO / NOT VALIDATED** until the final resulting SHA has passing analyzer, all test shards with zero skipped tests, Debug/Release artifacts, all six Device Smoke lanes, Calendar Provider Acceptance, and artifact inspection.
 - Font gap remains open: project bundles VazirHarf; Vazirmatn is not present in declared assets and is not claimed applied. Physical-device acceptance is still separate.
+
+
+
+## ARVIN WAVE 5.10 — partial implementation record (2026-10-20)
+
+Status: **IN PROGRESS — RELEASE: NO-GO**. This entry records code changes without claiming validation that has not run.
+
+- Live PR identified by repository search: #2833, Draft, branch `fix/follow-up-record-authority-20261019`; repository is `mobinpda-lab/Arvin-clean`. Repository metadata reports push permission, but this connector exposes no direct workflow-dispatch operation and no local Flutter/Android execution environment was used.
+- New code commit: `7c4b2c5b0d64aa0a9852f650e1ddb24cd6712361` adds an occurrence-specific Checklist editor to `lib/task_recurrence_page.dart`, using existing `TaskRecurrenceRepository.checklistForOccurrence` and `setChecklistForOccurrence` against canonical TaskStore.
+- Follow-up correction: `776e672ff93ed1825c1f621a121aafb5f8afb13d` corrects the checklist marker parsing expression.
+- UI test commit: `80154c45b8be73739acc8d172bb3b38899fb3884` adds a widget test for per-occurrence checklist isolation and persistence; `708fa0840a11e5f71cc751414d8166cc612a8100` adjusts the test to reselect the occurrence after remount.
+- Latest source/test commits have **not** been validated by `flutter analyze`, Flutter tests, CI, Android process restart, or Android Backup/Restore. Do not infer PASS from commits existing.
+- The existing generic detail callback `_checklistChangedFromDetail` in `lib/main.dart` still writes `target.checklist`; the new per-occurrence editor is available in the Repeat editor. Full replacement of the generic detail callback with an occurrence-aware detail flow remains open.
+- Seven-occurrence A/B/C → A/B/D acceptance, preservation of past snapshots and lifecycle history, no-duplicate repeat, timezone/invalid-key migration, real Android restart, Backup/Restore, Exact-SHA, official signing, Calendar Provider, Notification cold-start, PDF and Golden Flow remain **NOT PROVEN / NOT RUN**.
+- External pattern check: Joplin Repeating To-Dos plugin provides a separate recurrence configuration and scheduling model, but the originally referenced BeatLink repository is archived; no code was copied. The currently listed Joplin plugin page documents its recurrence UI and next-date scheduling. TimeJot Help explicitly distinguishes device backup from recommended daily export/import, including attachment caveats; TimeJot changelog mentions timezone-related fixes. These are design references only, not Arvin test evidence.
+- References: https://joplinapp.org/plugins/plugin/com.github.TheScriptingGuy.joplin-plugin-repeating-todos/ ; https://github.com/BeatLink/Joplin-Repeating-Todos-Plugin ; https://timejot.app/help/ ; https://timejot.app/changelog/ .
+- Run evidence previously inspected: Build run `39416899830` had Analyze, test shards 0–5, Debug APK and Release test APK jobs successful, but each `Verify exact requested revision` step was skipped. Device Smoke run `39416899883` had cancelled Task Lifecycle and Checklist Evolution lanes and was not a full pass. This evidence is historical and does not validate the new commits.
+- Release decision remains **BLOCKED — RELEASE: NO-GO**. No merge, tag, or release was performed.
