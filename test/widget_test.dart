@@ -115,9 +115,10 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('home-filter-card-tags')));
     await tester.pumpAndSettle();
     expect(find.text('برچسب بدون کار'), findsOneWidget);
-    await tester.tap(find.text('برچسب بدون کار'));
+    await tester.tap(find.text('برچسب بدون کار').last);
     await tester.pumpAndSettle();
-    expect(find.text('برچسب بدون کار'), findsOneWidget);
+    // The selected Home filter card and the still-open option both show this label.
+    expect(find.text('برچسب بدون کار'), findsNWidgets(2));
   });
 
 }
