@@ -58,7 +58,7 @@ jobs:
           RUN_SQL_PERSISTENCE: ${{ inputs.run_sql_persistence }}
           RUN_SQL_MIGRATION: ${{ inputs.run_sql_migration }}
           RUN_BACKUP_RESTORE: ${{ inputs.run_backup_restore }}
-          TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.event.pull_request.head.sha }}
+          TARGET_SHA: ${{ github.event.pull_request.head.sha || inputs.target_sha }}
         shell: bash
         run: |
           set -euo pipefail
@@ -115,10 +115,10 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || inputs.target_sha || github.sha }}
       - name: Record and verify checkout revision
         env:
-          TARGET_SHA: ${{ inputs.target_sha }}
+          TARGET_SHA: ${{ github.event.pull_request.head.sha || inputs.target_sha }}
         run: |
           set -euo pipefail
           actual="$(git rev-parse HEAD)"
