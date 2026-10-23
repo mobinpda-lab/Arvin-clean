@@ -1097,3 +1097,17 @@ This entry supersedes older statements that the owner decision is pending or tha
 - Prior exact-head build `2d04631dd9d1939bd3feafa12aa7d68bec349b58` produced Debug and Release APK artifacts but multiple test shards failed. Affected tests were updated; exact-head validation is still required. Do not infer success from old runs.
 - Current release status: **NO-GO / NOT VALIDATED** until the final resulting SHA has passing analyzer, all test shards with zero skipped tests, Debug/Release artifacts, all six Device Smoke lanes, Calendar Provider Acceptance, and artifact inspection.
 - Font gap remains open: project bundles VazirHarf; Vazirmatn is not present in declared assets and is not claimed applied. Physical-device acceptance is still separate.
+
+
+## Live continuation — ARVIN Wave 7.10 (2026-10-23)
+
+- Started from the observed main baseline `18cbeecc95a03a3b301359ca5b96cfef175a3b15`; no direct main write.
+- Created working branch `fix/wave-7-10-remove-quick-followup-toggle`.
+- Owner decision applied: remove «دارای پیگیری» and its inline Follow-up Roll Box from Quick Entry. Follow-up remains available in canonical full Task/Follow-up flows; existing stored follow-up values and the independent `nextFollowUp` / `reminderDate` contract are protected. Checklist Quick Entry control remains.
+- Code commit: `17f2266255fc67b66a63c192f384bbbf28b849ed`.
+- Regression test commit: `6151901a4a4cf77b62b964be15137d45a463b2fe`; replaces tests that required the now-forbidden Quick Entry Follow-up toggle with an absence assertion and Checklist persistence coverage. Exact-head execution is still pending.
+- Decision record commit: `9868d23e6c0e4aa66076f07ff77f41bee4b4d15d`; explicitly preserves the 2026-10-12 proposal as historical and marks the 2026-10-23 owner decision as superseding it.
+- Problem register commit: `b99ed4fcf9c48aa17c85db3033cb5873c5c01e98`; all ten owner-reported items remain in the existing acceptance set #1139. Only item 8 has a code change in this branch; it is not accepted until tests pass.
+- Evidence map commit: `4b24010555ff1abf4c72111c72aabd9355026cd1`.
+- No APK build, merge, release, device test or passing CI is claimed at this checkpoint.
+- Next: open/complete one PR for this existing branch; inspect exact-head workflow results and fix any test/analyzer failures. Continue separate audits for Projects, font selection, Notebook routing, Follow-up persistence, taxonomy filters, Home menus, repeat Checklist identity and Calendar tap navigation. Keep release NO-GO until exact-SHA automated gates, signed APK evidence, backup/restore and installed-device acceptance are proven.
