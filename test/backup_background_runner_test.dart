@@ -61,7 +61,7 @@ void main() {
     );
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getString(BackupBackgroundRunner.directoryUriKey), 'content://arvin/backups');
-    expect(prefs.getString(BackupBackgroundRunner.payloadKey), contains('Task 1'));
+    expect(prefs.getString(BackupBackgroundRunner.payloadKey), isNull);
   });
 
   test('returns false when background configuration is missing', () async {
