@@ -31,6 +31,11 @@ class BackupBackgroundRunner {
   static const String directoryUriKey = 'arvin.backup.directoryUri';
   static const String payloadKey = 'arvin.backup.payload';
 
+  static Future<void> clearLegacySnapshot() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(payloadKey);
+  }
+
   static Future<void> saveConfiguration({
     required String directoryUri,
     required Map<String, dynamic> payload,
