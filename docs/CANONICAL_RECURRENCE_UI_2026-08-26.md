@@ -31,10 +31,22 @@ Issue: #208
 Refs #208 #195 #92 #153.
 
 
-## Wave 7.16 — Follow-up / Calendar separation contract (2026-10-23)
+## Wave 7.18-R2 — Next Follow-up / independent Follow-up Reminder contract (2026-10-23)
 
-- Follow-up records, Follow-up dates, history, and a Follow-up's own reminder date remain in canonical Task data and are not projected as Arvin Calendar cards merely because a date exists.
-- Calendar projection may include canonical Task due dates, independent Task reminders, recurrence occurrences, prayer content, and permitted external-calendar events. A separately configured Task Reminder remains visible even when the same Task has Follow-up history.
-- A normal tap on a permitted Task calendar event opens that exact Task's detail page; long-press actions remain separate.
-- Regression acceptance must prove: Follow-up is absent from Calendar; its source fields survive SQLite reload and Calendar interaction; independent Reminder and due-date events remain visible; exact Task detail opens with one tap.
-- This is a product contract change only for Calendar projection/navigation. It must not delete, rewrite, or migrate Follow-up records or couple Follow-up to Reminder.
+Owner decision:
+- A Task's Next Follow-up date/time is Home-facing scheduling data. It must not create a phone Calendar card by itself.
+- A Follow-up may have its own independent reminder. If configured and active, that reminder is eligible for Calendar synchronization; the Calendar event time comes from the independent reminder, not from Next Follow-up.
+- Changing Next Follow-up must not change the independent reminder. Changing/deleting a reminder must not delete the Follow-up record, result, or history.
+- Task due date, Task-level reminders, Follow-up next-action date, and Follow-up reminder are distinct concepts.
+- A notification alone is not a Calendar event. Calendar Provider denial/failure must not be reported as successful synchronization.
+- Current model cardinality: each Follow-up has one optional `reminderDate` field; a Task can hold multiple Follow-up records and separately has a `taskReminders` collection. Multiple reminders per single Follow-up are not established and remain an owner decision.
+
+Calendar eligibility:
+- Next Follow-up / legacy `followUpDate`: never project solely because the date exists.
+- `FollowUp.reminderDate`: project as the Follow-up's independently configured reminder with stable source identity.
+- `Task.dueDate`, Task-level reminders, and recurrence occurrences: retain their existing permitted projection behavior.
+- Reprocessing must update/reconcile the same linked event and must not create duplicates.
+
+Acceptance must prove: Next Follow-up without a reminder remains visible in Home but absent from Calendar; an independent Follow-up reminder appears at its own time even when different from Next Follow-up; editing either time does not mutate the other; deleting the reminder preserves Follow-up history; SQLite reload/Restart preserves both values; cancellation is a no-op; Provider permission/failure is not PASS; permitted event tap opens the exact source Task.
+
+This contract does not authorize a parallel model/store, data deletion, schema migration, or support for multiple reminders per one Follow-up.
