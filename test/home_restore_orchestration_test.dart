@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:arvin/backup_manager.dart';
 import 'package:arvin/backup_schedule.dart';
 import 'package:arvin/backup_service.dart';
+import 'package:arvin/backup_scheduler_adapter.dart';
 import 'package:arvin/main.dart';
 import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/models/task.dart';
@@ -183,6 +184,7 @@ void main() {
             backupManager: manager,
             taskStore: taskStore,
             projectStore: projectStore,
+            backupScheduler: NoopBackupSchedulerAdapter(),
             restoreCompletionHook: () async {
               if (!restoreFinished.isCompleted) restoreFinished.complete();
             },
