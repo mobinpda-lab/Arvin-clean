@@ -181,7 +181,7 @@ void main() {
             taskStore: taskStore,
             projectStore: projectStore,
             restoreStageHook: (stage) async {
-              await sqliteSnapshot('apply-$stage');
+              await sqliteSnapshot(stage);
               if (stage == 'catalogs') {
                 throw StateError('injected after catalogs');
               }
