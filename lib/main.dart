@@ -2265,6 +2265,7 @@ class _HomePageState extends State<HomePage> {
           ) async {
             try {
               await action();
+              await widget.restoreStageHook?.call('rollback-$stage');
             } catch (error, stackTrace) {
               // Do not log payloads, setting values, or backup contents.
               rollbackFailures.add('$stage:${error.runtimeType}');
@@ -2280,6 +2281,7 @@ class _HomePageState extends State<HomePage> {
           // this first, but still attempt the independent Task restoration if
           // the project stage fails. One compensation failure must not silently
           // prevent all later recovery work.
+          await attemptRollbackStage('rollback-start', () async {});
           await attemptRollbackStage(
             'projects',
             () => projectStore.save(previousProjects!),
