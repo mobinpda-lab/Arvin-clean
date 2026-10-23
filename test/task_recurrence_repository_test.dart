@@ -54,18 +54,34 @@ void main() {
       note: 'تاریخچه باید حفظ شود',
       result: 'منتظر پاسخ',
     );
+    final reminderAnchor = DateTime(2026, 8, 20, 9);
+    final pastOccurrence = DateTime(2026, 8, 18, 9);
+    final storedHistory = <String, Map<String, dynamic>>{
+      pastOccurrence.toIso8601String(): {
+        'scheduledDate': pastOccurrence.toIso8601String(),
+        'status': 'missed',
+      },
+    };
+    final storedChecklist = <String, List<String>>{
+      pastOccurrence.toIso8601String(): const ['[x] کیف', '[ ] خوراکی'],
+    };
     final store = TaskStore();
     await store.save([
       Task(
         id: 'task-2',
         title: 'کار روزانه',
-        reminderDate: DateTime(2026, 8, 20, 9),
+        reminderDate: reminderAnchor,
         recurrence: const RecurrenceRule(
           frequency: RecurrenceFrequency.daily,
           interval: 2,
         ),
         followUpEnabled: true,
         followUps: [originalFollowUp],
+        category: 'مدرسه',
+        tags: ['صبح'],
+        checklist: const ['[ ] کیف', '[ ] خوراکی'],
+        occurrenceHistory: storedHistory,
+        checklistOccurrences: storedChecklist,
       ),
     ]);
     final repository = TaskRecurrenceRepository(
@@ -73,17 +89,26 @@ void main() {
       now: () => DateTime(2026, 8, 26, 8),
     );
 
-    await repository.resumeFromToday(
-      'task-2',
-      target: DateTime(2026, 8, 26, 8),
-    );
+    final target = DateTime(2026, 8, 26, 8);
+    await repository.resumeFromToday('task-2', target: target);
+    // Retrying the same action against the same target must not duplicate or
+    // drift the schedule, Task, occurrence history, or checklist state.
+    await repository.resumeFromToday('task-2', target: target);
 
-    final task = (await store.load()).single;
+    final task = (await TaskStore().load()).single;
     expect(task.reminderDate, DateTime(2026, 8, 26, 9));
+    expect(task.recurrence?.frequency, RecurrenceFrequency.daily);
+    expect(task.recurrence?.interval, 2);
+    expect(task.category, 'مدرسه');
+    expect(task.tags, ['صبح']);
+    expect(task.checklist, const ['[ ] کیف', '[ ] خوراکی']);
+    expect(task.occurrenceHistory, storedHistory);
+    expect(task.checklistOccurrences, storedChecklist);
     expect(task.followUps, hasLength(1));
     expect(task.followUps.single.id, originalFollowUp.id);
     expect(task.followUps.single.note, originalFollowUp.note);
     expect(task.followUps.single.result, originalFollowUp.result);
+    expect((await TaskStore().load()), hasLength(1));
   });
 
   test('recurring checklist occurrences keep independent tick state', () async {
