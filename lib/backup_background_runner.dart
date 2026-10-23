@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'backup_notification_service.dart';
 import 'backup_schedule.dart';
 import 'backup_service.dart';
@@ -39,7 +37,9 @@ class BackupBackgroundRunner {
   }) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(directoryUriKey, directoryUri);
-    await prefs.setString(payloadKey, jsonEncode(payload));
+    // The runner always reads current canonical stores. Never persist a stale
+    // task snapshot in SharedPreferences, where it would remain plaintext.
+    await prefs.remove(payloadKey);
   }
 
   static Future<void> clearConfiguration() async {
@@ -59,8 +59,17 @@ class BackupBackgroundRunner {
 
   Future<bool> run() async {
     final prefs = await SharedPreferences.getInstance();
+    // Remove legacy snapshots created by older versions before doing any work.
+    await prefs.remove(payloadKey);
     final directoryUri = prefs.getString(directoryUriKey);
     if (directoryUri == null || directoryUri.isEmpty) return false;
+    final parsedDirectory = Uri.tryParse(directoryUri);
+    if (parsedDirectory == null ||
+        parsedDirectory.scheme != 'content' ||
+        parsedDirectory.host.isEmpty) {
+      await _notifyFailure('پیکربندی پوشه پشتیبان نامعتبر است');
+      return false;
+    }
 
     try {
       final taskStore = _taskStore ?? TaskStore();
