@@ -171,13 +171,67 @@ jobs:
           set -euo pipefail
           flutter pub get --enforce-lockfile
           git diff --exit-code -- pubspec.lock
+      - name: Configure release signing
+        if: matrix.variant == 'release'
+        env:
+          ARVIN_RELEASE_KEYSTORE_BASE64: ${{ secrets.ARVIN_RELEASE_KEYSTORE_BASE64 }}
+          ARVIN_RELEASE_KEYSTORE_PASSWORD: ${{ secrets.ARVIN_RELEASE_KEYSTORE_PASSWORD }}
+          ARVIN_RELEASE_KEY_ALIAS: ${{ secrets.ARVIN_RELEASE_KEY_ALIAS }}
+          ARVIN_RELEASE_KEY_PASSWORD: ${{ secrets.ARVIN_RELEASE_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for name in ARVIN_RELEASE_KEYSTORE_BASE64 ARVIN_RELEASE_KEYSTORE_PASSWORD ARVIN_RELEASE_KEY_ALIAS ARVIN_RELEASE_KEY_PASSWORD; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::Release APK blocked: required GitHub Actions secret '$name' is missing."
+              exit 1
+            fi
+          done
+          printf '%s' "$ARVIN_RELEASE_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/arvin-release.keystore"
+          test -s "$RUNNER_TEMP/arvin-release.keystore"
+          chmod 600 "$RUNNER_TEMP/arvin-release.keystore"
+          echo "ARVIN_RELEASE_KEYSTORE_PATH=$RUNNER_TEMP/arvin-release.keystore" >> "$GITHUB_ENV"
       - name: Build APK
+        env:
+          ARVIN_RELEASE_KEYSTORE_PASSWORD: ${{ secrets.ARVIN_RELEASE_KEYSTORE_PASSWORD }}
+          ARVIN_RELEASE_KEY_ALIAS: ${{ secrets.ARVIN_RELEASE_KEY_ALIAS }}
+          ARVIN_RELEASE_KEY_PASSWORD: ${{ secrets.ARVIN_RELEASE_KEY_PASSWORD }}
         run: flutter build apk --${{ matrix.variant }} -t lib/main.dart
-      - name: Verify APK
+      - name: Verify APK exists
         run: test -s "build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk"
+      - name: Verify Release APK signature and SHA-256
+        if: matrix.variant == 'release'
+        run: |
+          set -euo pipefail
+          apk="build/app/outputs/flutter-apk/app-release.apk"
+          apksigner="$(find "$ANDROID_HOME/build-tools" -mindepth 2 -maxdepth 2 -name apksigner -type f | sort -V | tail -n 1)"
+          test -n "$apksigner"
+          "$apksigner" verify --verbose --print-certs "$apk"
+          aapt="$(find "$ANDROID_HOME/build-tools" -mindepth 2 -maxdepth 2 -name aapt -type f | sort -V | tail -n 1)"
+          test -n "$aapt"
+          badging="$("$aapt" dump badging "$apk")"
+          application_id="$(printf '%s\n' "$badging" | sed -n "s/^package: name='\([^']*\)'.*/\1/p" | head -n 1)"
+          version_code="$(printf '%s\n' "$badging" | sed -n "s/^package: .*versionCode='\([^']*\)'.*/\1/p" | head -n 1)"
+          version_name="$(printf '%s\n' "$badging" | sed -n "s/^package: .*versionName='\([^']*\)'.*/\1/p" | head -n 1)"
+          test -n "$application_id"
+          test -n "$version_code"
+          test -n "$version_name"
+          if [ "$application_id" = "com.example.arvin" ]; then
+            echo "::error::Release APK blocked: applicationId is still the placeholder com.example.arvin; approve and configure the production application ID first."
+            exit 1
+          fi
+          apk_sha256="$(sha256sum "$apk" | awk '{print $1}')"
+          {
+            echo "### Release APK integrity"
+            echo "- Built checkout SHA: `$GITHUB_SHA`"
+            echo "- Application ID: `$application_id`"
+            echo "- Version: `$version_name` (code `$version_code`)"
+            echo "- APK path: `$apk`"
+            echo "- APK SHA-256: `$apk_sha256`"
+            echo "- Signature: `apksigner verify` passed"
+          } >> "$GITHUB_STEP_SUMMARY"
       - name: Upload APK
         uses: actions/upload-artifact@v5
         with:
-          name: arvin-${{ matrix.variant }}-apk
+          name: arvin-${{ matrix.variant }}-apk-${{ github.sha }}
           path: build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk
           if-no-files-found: error

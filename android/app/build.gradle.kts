@@ -4,6 +4,32 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+val releaseStoreFilePath = providers.environmentVariable("ARVIN_RELEASE_KEYSTORE_PATH").orNull
+val releaseStorePasswordValue = providers.environmentVariable("ARVIN_RELEASE_KEYSTORE_PASSWORD").orNull
+val releaseKeyAliasValue = providers.environmentVariable("ARVIN_RELEASE_KEY_ALIAS").orNull
+val releaseKeyPasswordValue = providers.environmentVariable("ARVIN_RELEASE_KEY_PASSWORD").orNull
+
+// A Release variant must never fall back to the debug certificate. The workflow
+// supplies these values from GitHub Actions secrets and validates the keystore.
+gradle.taskGraph.whenReady {
+    if (allTasks.any { it.name.contains("Release", ignoreCase = true) }) {
+        val missing = buildList {
+            if (releaseStoreFilePath.isNullOrBlank()) add("ARVIN_RELEASE_KEYSTORE_PATH")
+            if (releaseStorePasswordValue.isNullOrBlank()) add("ARVIN_RELEASE_KEYSTORE_PASSWORD")
+            if (releaseKeyAliasValue.isNullOrBlank()) add("ARVIN_RELEASE_KEY_ALIAS")
+            if (releaseKeyPasswordValue.isNullOrBlank()) add("ARVIN_RELEASE_KEY_PASSWORD")
+        }
+        if (missing.isNotEmpty()) {
+            throw GradleException(
+                "Release signing blocked. Configure required environment values: ${missing.joinToString()}."
+            )
+        }
+        if (!file(releaseStoreFilePath!!).isFile) {
+            throw GradleException("Release signing blocked: ARVIN_RELEASE_KEYSTORE_PATH does not point to a file.")
+        }
+    }
+}
+
 android {
     namespace = "com.example.arvin"
     compileSdk = flutter.compileSdkVersion
@@ -30,11 +56,18 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            if (!releaseStoreFilePath.isNullOrBlank()) storeFile = file(releaseStoreFilePath)
+            if (!releaseStorePasswordValue.isNullOrBlank()) storePassword = releaseStorePasswordValue
+            if (!releaseKeyAliasValue.isNullOrBlank()) keyAlias = releaseKeyAliasValue
+            if (!releaseKeyPasswordValue.isNullOrBlank()) keyPassword = releaseKeyPasswordValue
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }
