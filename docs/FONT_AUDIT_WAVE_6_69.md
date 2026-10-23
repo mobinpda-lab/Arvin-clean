@@ -118,3 +118,32 @@ The four standard static Vazirmatn v33.003 files remain verified against the sup
 ### Remaining acceptance limits
 
 Automated exact-head tests/build and APK asset identity are distinct from manual visual acceptance. Pixel-level Persian shaping/kerning, physical-device typography, exhaustive fallback behavior, and visual review of an actual PDF remain **NOT VERIFIED** by the evidence listed above. No SQL migration or release action is authorized by this audit. Release remains **BLOCKED — RELEASE: NO-GO**.
+
+
+## Wave 6.71 — Owner decision and repository contradiction cleanup
+
+### Binding product decision
+The owner has explicitly superseded every prior conflicting instruction: **Vazirmatn v33.003 is the only canonical/default public UI font for Arvin.** VazirHarf is a distinct legacy family, not an alias. It may appear only in compatibility normalization or clearly labelled historical records; no active theme, UI, PDF, asset declaration, build workflow, or product contract may select it as the default.
+
+### Confirmed code contract on the audited branch
+- `pubspec.yaml` declares `Vazirmatn` and the four tracked files under `assets/fonts/ui/vazirmatn/`.
+- `lib/theme/font_registry.dart` marks the `vazirmatn` option locally available; other public font options without bundled assets remain unavailable locally and resolve to no explicit family rather than being falsely presented as bundled.
+- `lib/services/app_settings_service.dart` normalizes legacy `VazirHarf` values to the canonical `vazirmatn` id for persisted and portable settings.
+- The PDF renderer points to the tracked Vazirmatn Regular and Bold files.
+- Build/release/device-smoke workflows verify the tracked font hashes and packaged Flutter `FontManifest.json`; the old CI-time VazirHarf injection has been removed from PR #2918.
+
+### Historical/document contradictions found in Wave 6.71
+The audit found outdated font-default statements in the live remaining-work ledger, report-filter decision, decision log, project evaluation, evidence map, old Stage 2 validation record, conversation decision/continuity records, and exact-main recovery audit. Current-contract documents already updated by PR #2918 include `docs/HOME_STYLE_LOCK.md`, `docs/CANONICAL_APP_SETTINGS_2026-08-26.md`, `docs/UI/ARVIN_UI_CANONICAL.md`, `docs/UI/ARVIN_UI_REFERENCE_IMAGES_CONTRACT.md`, `docs/FOLLOWUP_FINAL_OWNER_CONTRACT_2026-08-28.md`, `docs/AI_HANDOFF_CURRENT_FA.md`, `docs/CI_RELEASE_VALIDATION_NOTE.md`, and `docs/BACKUP_SETTINGS_PORTABILITY_2026-08-26.md`.
+
+Wave 6.71 updates the active/current references to Vazirmatn and explicitly labels old snapshots/decision history as superseded or historical. The historical entries themselves are retained where needed to preserve provenance. The evidence-map row is updated to distinguish the previously green exact-head evidence from the currently pending CI after subsequent PDF-test changes.
+
+### SHA-256 reference set — Vazirmatn v33.003 static TTF
+- Regular 400: `b69fd4c680b8f3f225feabcc655a2c585d97627b8f5f5c0f9985e894069f3a56`
+- Medium 500: `b986623e4ddef10755e04be39f8ea7bcb1dc08bfe8dd0aa6af395736f256ad4a`
+- SemiBold 600: `3f239d8364c14ee32c46b6839fa197c28958358b82a9673d2c6acc8506d78bc5`
+- Bold 700: `f635fdbea28f265de395ba83b4b1570dcf2f58d13c65469e61903b1c2d2ae723`
+
+These are the tracked reference hashes already checked by CI against the pinned upstream snapshot/supplied v33.003 archive; they are not a claim that a new APK has passed the current Wave 6.71 SHA.
+
+### Current acceptance state
+Exact-head Build, test shards, PDF production-loader test, APK packaging, and Device Smoke must be re-evaluated after the Wave 6.71 cleanup commit. Manual visual acceptance of Persian joining, half-space, actual rendered PDF, and all used weights remains **NOT VERIFIED** until supported by current artifacts/device evidence. Release remains **BLOCKED — RELEASE: NO-GO**.

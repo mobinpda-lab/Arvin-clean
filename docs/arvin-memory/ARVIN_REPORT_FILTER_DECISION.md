@@ -30,7 +30,7 @@ All user-facing report date/time filters must use Arvin's Persian/Jalali present
 Project, Category, Tag, task status and note type must support selecting multiple values simultaneously. Show removable selected chips and counts. A single selection remains valid but must not be the only supported mode. Time, Tracking and Follow-up filters must also allow meaningful combinations wherever their domain semantics support it.
 
 ## Color and visual system
-Extend the approved Home/Calendar pastel visual language to Reports and all other existing Arvin screens, including Notebook, forms, settings and details. Use semantic/domain identity colors (Project, Category, Tag, Note, Status), restrained backgrounds, rounded surfaces, subtle elevation and compact spacing. Color supports fast recognition, not decoration. Preserve Persian RTL, VazirHarf v34.003, the existing approved palette and current product identity.
+Extend the approved Home/Calendar pastel visual language to Reports and all other existing Arvin screens, including Notebook, forms, settings and details. Use semantic/domain identity colors (Project, Category, Tag, Note, Status), restrained backgrounds, rounded surfaces, subtle elevation and compact spacing. Color supports fast recognition, not decoration. Preserve Persian RTL and **Vazirmatn v33.003** as the canonical app font, along with the existing approved palette and current product identity. Older VazirHarf references are superseded by the Wave 6.71 owner decision.
 
 ## Note reporting
 Where the canonical Notebook data makes it available, support filtering/reporting by:

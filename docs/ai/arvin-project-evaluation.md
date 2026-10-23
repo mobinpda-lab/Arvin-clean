@@ -34,15 +34,15 @@ Live GitHub shows substantial product progress. The remaining gap is product int
 ### Typography — #1860 / canonical settings path
 **Status: IMPLEMENTATION RECONCILED — DEVICE/UX ACCEPTANCE STILL OPEN**
 
-PR #2413 (`fix(settings): reconcile device font selection with current main`) merged on 2026-10-07 as `d4efd86485113a711e0e0009dda266e051860ece`. It reconciles the existing system-font selection with current main: explicit `system` selection, Flutter system font at the ThemeData boundary, and legacy/unset preference remaining on VazirHarf. PR #2408 is historical implementation context, not the active unmerged lane.
+Historical baseline note: PR #2413 (`fix(settings): reconcile device font selection with current main`) merged on 2026-10-07 as `d4efd86485113a711e0e0009dda266e051860ece`. At that checkpoint, an unset preference used VazirHarf. **This font-default behavior is superseded by the Wave 6.71 owner decision:** Vazirmatn v33.003 is the canonical public/default app font. PR #2408 remains historical implementation context, not the active unmerged lane.
 
 Protected:
 - no new storage/model/controller;
 - no new font engine;
-- VazirHarf remains the legacy/unset default;
+- Historical checkpoint only: VazirHarf was described as the legacy/unset default; the current default is Vazirmatn (`vazirmatn`).
 - existing canonical AppSettingsService/AppSettings path is reused.
 
-**Still not accepted:** On the installed current-main APK, verify system font visibly applies in light and dark themes, selection persists after restart, switching back to VazirHarf persists after restart, and font-size control/behavior matches #1860. No claim of full Typography completion without this evidence.
+**Still not accepted:** On the installed current-main APK, verify system font visibly applies in light and dark themes, selection persists after restart, legacy VazirHarf preferences normalize to Vazirmatn and persist after restart, and font-size control/behavior matches #1860. No claim of full Typography completion without this evidence.
 
 ## P0/P1 remaining product work
 
