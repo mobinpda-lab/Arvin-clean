@@ -65,23 +65,23 @@ Calendar display must not hide a planned follow-up merely because no reminder wa
 
 ## 6. Quick Entry
 
-Add two compact options:
-- **«دارای پیگیری»**
-- **«دارای چک‌لیست»**
+### Historical proposal — superseded 2026-10-23
 
-These options must use the same visual language and icon scale as the existing date, time, repeat and reminder controls. Do not create a large, separate panel.
+The original 2026-10-12 proposal listed compact «دارای پیگیری» and «دارای چک‌لیست» controls and a Quick Entry Follow-up Roll Box. Preserve this record as decision history; it is no longer the active Quick Entry requirement.
 
-Preferred balanced arrangement:
-- Row 1: Date | Time | Repeat | Reminder
-- Row 2: Follow-up enabled | Checklist enabled | More options
+### Current owner decision — 2026-10-23
 
-An equivalent compact two-row arrangement is acceptable if it preserves clear labels, touch targets, RTL alignment and responsive behavior.
+- Remove the **«دارای پیگیری»** control and its inline Follow-up Roll Box from Quick Entry.
+- Keep Quick Entry compact and fast. Do not replace the removed control with another toggle or panel.
+- Keep **«دارای چک‌لیست»** and its existing Task-owned Checklist Roll Box.
+- Follow-up remains available through the canonical full Task / Follow-up flows. This UI change must not delete or rewrite existing Follow-up records, `nextFollowUp`, or explicit `reminderDate` values.
+- Reminder and Follow-up remain independent. Quick Entry must not create an automatic follow-up timestamp or copy Follow-up time into Reminder.
+- Quick Entry and Full Task Form continue to use the same canonical Task identity and storage path.
 
-Behavior:
-- Enabling **«دارای پیگیری»** expands/activates the follow-up Roll Box.
-- Enabling **«دارای چک‌لیست»** expands/activates the checklist Roll Box.
-- Keep the main Quick Entry form short. Do not show the full detail editors permanently when their options are disabled.
-- Quick Entry and Full Task Form create/edit the same canonical Task.
+Validation:
+- The Quick Entry widget test must assert that the Follow-up toggle and Roll Box are absent.
+- The same test must verify Checklist remains usable and the captured Task does not receive an implicit Follow-up or Reminder.
+- Existing full-form Follow-up, persistence and backup/restore tests remain required; Quick Entry UI removal does not replace them.
 
 ## 7. Checklist
 
@@ -107,7 +107,7 @@ Do not introduce:
 - [ ] Full Task form retains «کار پیگیری‌دار» and creates no automatic follow-up timestamp.
 - [ ] Follow-up creation screen has separate next-action and optional reminder controls.
 - [ ] Quick Entry remains compact and visually balanced in Persian RTL and narrow screens.
-- [ ] «دارای پیگیری» activates the follow-up Roll Box.
+- [x] Owner decision 2026-10-23: Quick Entry does not expose «دارای پیگیری»; canonical full-form/Follow-up paths remain available. Exact-head automated validation is tracked separately.
 - [ ] «دارای چک‌لیست» activates the checklist Roll Box.
 - [ ] Checklist remains owned by Task and survives edit/save/reopen.
 - [ ] Calendar shows `reminderDate` when configured; otherwise it shows `nextFollowUp` as an action item when available.
