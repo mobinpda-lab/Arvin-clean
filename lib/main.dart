@@ -12,10 +12,13 @@ import 'calendar_page.dart';
 import 'calendar_integration_settings_page.dart';
 import 'models/goal_project.dart';
 import 'models/person_reference.dart';
+import 'models/recurrence.dart';
 import 'models/task.dart';
 import 'home/grouping/home_group.dart';
 import 'home/home_filter_ui.dart';
 import 'services/iran_clock.dart';
+import 'services/recurring_triple_window_projection.dart';
+import 'services/task_recurrence_repository.dart';
 import 'notebook_page.dart';
 import 'quick_capture_dialog.dart';
 import 'report_center_page.dart';
@@ -353,6 +356,8 @@ class _HomePageState extends State<HomePage> {
   bool loading = true;
   Object? loadFailure;
   bool selectionMode = false;
+  // Session-only Home presentation state. Never persisted to TaskStore.
+  bool _resumeFromToday = false;
   String query = '';
   String filter = 'کل';
   TaskListScope _listScope = TaskListScope.all;
@@ -433,6 +438,228 @@ class _HomePageState extends State<HomePage> {
   }
 
   List<Task> get _searchSource => List<Task>.of(tasks);
+
+  /// Recurring occurrences have their own Home projection. They remain backed
+  /// by the canonical Task and its occurrenceHistory; no occurrence Tasks are
+  /// created or persisted by this view.
+  List<Task> get _homeRecurringTasks {
+    if (_timeFilter != 'all' ||
+        _listScope != TaskListScope.all ||
+        (filter != 'کل' && filter != 'فعال')) {
+      return const <Task>[];
+    }
+    final searchActive = query.trim().isNotEmpty;
+    final matchingIds = searchActive
+        ? homeSearchProjection.matchingIds(_searchSource, query)
+        : null;
+    final assigned = projects.expand((item) => item.itemIds).toSet();
+    ProjectPlan? selectedProject;
+    if (_projectFilter != null && _projectFilter != '__no_project__') {
+      for (final project in projects) {
+        if (project.id == _projectFilter) {
+          selectedProject = project;
+          break;
+        }
+      }
+    }
+    return tasks.where((task) {
+      final rule = task.recurrence;
+      if (task.archived || task.trashed || rule == null || !rule.active) {
+        return false;
+      }
+      if (filter == 'فعال' && task.completed) return false;
+      if (matchingIds != null && !matchingIds.contains(task.id)) return false;
+      if (_categoryFilter != null && task.category?.trim() != _categoryFilter) {
+        return false;
+      }
+      if (_projectFilter == '__no_project__' && assigned.contains(task.id)) {
+        return false;
+      }
+      if (selectedProject != null &&
+          !selectedProject.itemIds.contains(task.id)) {
+        return false;
+      }
+      if (_tagFilters.isNotEmpty &&
+          !_tagFilters.every((tag) => task.tags.map((value) => value.trim()).contains(tag))) {
+        return false;
+      }
+      return true;
+    }).toList(growable: false);
+  }
+
+  RecurringTripleWindowProjectionResult get _homeRecurringProjection =>
+      const RecurringTripleWindowProjection().project(
+        _homeRecurringTasks,
+        localAnchorDate: IranClock.now(),
+      );
+
+  List<RecurringTaskOccurrence> get _homeUpcomingPreview {
+    final seenTaskIds = <String>{};
+    return _homeRecurringProjection.upcoming.where((occurrence) {
+      return seenTaskIds.add(occurrence.task.id);
+    }).toList(growable: false);
+  }
+
+  Future<void> _completeRecurringOccurrence(
+    RecurringTaskOccurrence occurrence,
+  ) async {
+    await TaskRecurrenceRepository(
+      store: taskStore,
+      now: IranClock.now,
+    ).completeOccurrence(
+      occurrence.task.id,
+      occurrence.scheduledDate,
+      completedAt: IranClock.now(),
+    );
+    await _load();
+  }
+
+  void _resumeHomeFromToday() {
+    if (_resumeFromToday) return;
+    setState(() => _resumeFromToday = true);
+  }
+
+  Widget _recurringOccurrenceRow(RecurringTaskOccurrence occurrence) {
+    final now = IranClock.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final occurrenceDay = DateTime(
+      occurrence.scheduledDate.year,
+      occurrence.scheduledDate.month,
+      occurrence.scheduledDate.day,
+    );
+    final canComplete = !occurrenceDay.isAfter(today) &&
+        occurrence.status != RecurrenceOccurrenceStatus.completed &&
+        occurrence.status != RecurrenceOccurrenceStatus.skipped &&
+        occurrence.status != RecurrenceOccurrenceStatus.cancelled;
+    final statusLabel = switch (occurrence.status) {
+      RecurrenceOccurrenceStatus.completed => 'انجام‌شده',
+      RecurrenceOccurrenceStatus.missed => 'معوق',
+      RecurrenceOccurrenceStatus.skipped => 'ردشده',
+      RecurrenceOccurrenceStatus.cancelled => 'لغوشده',
+      RecurrenceOccurrenceStatus.pending =>
+        occurrenceDay.isBefore(today) ? 'معوق' : 'در انتظار',
+    };
+    return ListTile(
+      key: ValueKey(
+        'home-recurring-occurrence-${occurrence.task.id}-${occurrence.scheduledDate.toIso8601String()}',
+      ),
+      dense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+      title: Text(
+        occurrence.task.title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+      ),
+      subtitle: Text(
+        '${_date(occurrence.scheduledDate)} • $statusLabel',
+        style: TextStyle(
+          color: statusLabel == 'معوق' ? ArvinColors.error : ArvinColors.textSecondary,
+          fontSize: 11,
+        ),
+      ),
+      onTap: () => _openTaskDetail(occurrence.task),
+      trailing: canComplete
+          ? IconButton(
+              key: ValueKey(
+                'home-recurring-complete-${occurrence.task.id}-${occurrence.scheduledDate.toIso8601String()}',
+              ),
+              tooltip: 'تکمیل این نوبت',
+              icon: const Icon(Icons.check_circle_outline_rounded, color: ArvinColors.primary),
+              onPressed: () => _completeRecurringOccurrence(occurrence),
+            )
+          : const SizedBox(width: 8),
+    );
+  }
+
+  Widget _recurringWindowSection(
+    String title,
+    List<RecurringTaskOccurrence> occurrences,
+    Color color,
+  ) {
+    if (occurrences.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(10, 8, 10, 2),
+          child: Text(
+            '$title • ${persianDateFormatter.toPersianDigits('${occurrences.length}')}',
+            style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w800),
+          ),
+        ),
+        for (var index = 0; index < occurrences.length; index++) ...[
+          _recurringOccurrenceRow(occurrences[index]),
+          if (index < occurrences.length - 1)
+            const Divider(height: 1, indent: 12, endIndent: 12),
+        ],
+      ],
+    );
+  }
+
+  Widget _homeRecurringPanel() {
+    final projection = _homeRecurringProjection;
+    final past = projection.pastForHome(resumeFromToday: _resumeFromToday);
+    final today = projection.today;
+    final upcoming = _homeUpcomingPreview;
+    final compact = MediaQuery.sizeOf(context).height < 700;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 6),
+      child: Card(
+        margin: EdgeInsets.zero,
+        color: ArvinColors.surface,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: const BorderSide(color: ArvinColors.border),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 8, 2),
+              child: Row(
+                children: [
+                  const Icon(Icons.repeat_rounded, color: ArvinColors.primary, size: 19),
+                  const SizedBox(width: 6),
+                  const Expanded(
+                    child: Text(
+                      'کارهای تکرارشونده',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
+                    ),
+                  ),
+                  TextButton(
+                    key: const ValueKey('home-resume-from-today'),
+                    onPressed: _resumeFromToday || projection.past.isEmpty
+                        ? null
+                        : _resumeHomeFromToday,
+                    child: const Text('پرش به روز جاری', style: TextStyle(fontSize: 11)),
+                  ),
+                ],
+              ),
+            ),
+            ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: compact ? 130 : 190),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    _recurringWindowSection('معوق', past, ArvinColors.error),
+                    _recurringWindowSection('کارهای امروز', today, ArvinColors.project),
+                    _recurringWindowSection('پیش‌نمایش آینده', upcoming, ArvinColors.groupingTomorrow),
+                    if (past.isEmpty && today.isEmpty && upcoming.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: Text('نوبت تکرارشونده‌ای برای نمایش وجود ندارد'),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   List<String> get _homeCategories {
     final values =
@@ -679,7 +906,9 @@ class _HomePageState extends State<HomePage> {
     final grouped = <String, List<Task>>{
       'overdue': <Task>[], 'today': <Task>[], 'tomorrow': <Task>[], 'future': <Task>[], 'no_date': <Task>[],
     };
+    final recurringPanelIds = _homeRecurringTasks.map((task) => task.id).toSet();
     for (final task in visible) {
+      if (recurringPanelIds.contains(task.id)) continue;
       final due = task.dueDate;
       if (due == null) {
         grouped['no_date']!.add(task);
@@ -2595,6 +2824,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _onPrimaryDestinationSelected(ArvinPrimaryDestination destination) {
+    if (destination != ArvinPrimaryDestination.home && _resumeFromToday) {
+      setState(() => _resumeFromToday = false);
+    }
     switch (destination) {
       case ArvinPrimaryDestination.home:
         return;
@@ -3055,6 +3287,8 @@ class _HomePageState extends State<HomePage> {
           ),
           _homeFilterCards(),
           _homeActiveFilterChips(),
+          if (!loading && loadFailure == null && _homeRecurringTasks.isNotEmpty)
+            _homeRecurringPanel(),
           Expanded(child: SizedBox.expand(key: const ValueKey('home-task-list-viewport'), child: loading ? Center(child: CircularProgressIndicator(color: ArvinColors.primary)) : loadFailure != null
             ? SingleChildScrollView(padding: const EdgeInsets.all(24), child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
                 Icon(Icons.storage_outlined, size: 40), SizedBox(height: 12),
