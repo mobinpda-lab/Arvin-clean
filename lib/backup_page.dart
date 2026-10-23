@@ -461,8 +461,10 @@ class _BackupPageState extends State<BackupPage> {
           await widget.restoreStageHook?.call('people-directory');
         },
         rollback: () async {
-          await widget.replaceTasks(previousTasks!);
+          // ProjectStore owns project_items, which references Tasks. Restore
+          // Projects first so the Task replacement preserves only prior links.
           await ProjectStore().save(previousProjects!);
+          await widget.replaceTasks(previousTasks!);
           await ExternalCalendarLinkStore().save(previousCalendarLinks!);
           await settingsService.restorePortableJson(previousSettings!);
           final oldSchedule = previousSettings!['backupSchedule'];
