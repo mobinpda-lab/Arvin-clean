@@ -16,7 +16,7 @@ Existing task-only documents remain valid. New documents may include an optional
 "settings": {
   "themeMode": "dark",
   "usePersianDate": true,
-  "fontFamily": "VazirHarf"
+  "fontFamily": "Vazirmatn"
 }
 ```
 
@@ -49,9 +49,9 @@ Restore reads Tasks and optional Settings from one file selection. Settings are 
 
 ## Font canonicalization
 
-- The canonical public/default Arvin font is **VazirHarf v34.003**.
-- Portable `fontFamily` values use the canonical Flutter family name `VazirHarf` when an explicit family is stored.
-- No legacy Vazirmatn value/path is part of the current backup contract.
+- The canonical public/default Arvin font is **Vazirmatn v33.003**.
+- Portable `fontFamily` values use the canonical settings id `vazirmatn`, which maps to the Flutter family name `Vazirmatn`.
+- Legacy VazirHarf values remain readable and normalize to the canonical vazirmatn id on typed settings decode.
 - Backward compatibility for older task-only backups remains unchanged because the font field is optional.
 
 ## Guardrails

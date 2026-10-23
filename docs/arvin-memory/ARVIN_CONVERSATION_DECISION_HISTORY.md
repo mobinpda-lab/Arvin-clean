@@ -1,5 +1,7 @@
 # Arvin Conversation Decision History
 
+> **Historical record, not an active contract:** Earlier owner/development decisions preserved below may mention VazirHarf. Wave 6.71 explicitly supersedes those font choices; the current canonical/default font is Vazirmatn v33.003.
+
 Repository: https://github.com/mobinpda-lab/Arvin-clean
 Updated: 2026-10-11
 Purpose: durable index of owner requirements, decisions, reported installed-app findings and unresolved acceptance. This is not proof that implementation passed.

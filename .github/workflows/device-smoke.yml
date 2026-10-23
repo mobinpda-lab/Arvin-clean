@@ -131,26 +131,27 @@ jobs:
             fi
             echo "EXACT_TARGET_SHA=$actual"
           fi
-      - name: Cache pinned VazirHarf
-        uses: actions/cache@v5
-        with:
-          path: ${{ runner.temp }}/vazirharf
-          key: arvin-vazirharf-${{ runner.os }}-3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
-      - name: Fetch pinned VazirHarf on cache miss
-        run: |
-          set -euo pipefail
-          if [ ! -d "$RUNNER_TEMP/vazirharf/.git" ]; then
-            git clone --no-tags --depth 1 https://github.com/nadalaba/vazirharf.git "$RUNNER_TEMP/vazirharf"
-            git -C "$RUNNER_TEMP/vazirharf" fetch --depth 1 origin 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
-            git -C "$RUNNER_TEMP/vazirharf" checkout --detach 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
-          fi
-          test "$(git -C "$RUNNER_TEMP/vazirharf" rev-parse HEAD)" = "3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8"
-          test -s "$RUNNER_TEMP/vazirharf/fonts/ttf/Vazirharf-Regular.ttf"
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
+      - name: Verify tracked Vazirmatn assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf
+          test -s assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf
+          test -s assets/fonts/ui/vazirmatn/Vazirmatn-SemiBold.ttf
+          test -s assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf
+          cat <<'EOF' | sha256sum --check -
+          b69fd4c680b8f3f225feabcc655a2c585d97627b8f5f5c0f9985e894069f3a56  assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf
+          b986623e4ddef10755e04be39f8ea7bcb1dc08bfe8dd0aa6af395736f256ad4a  assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf
+          3f239d8364c14ee32c46b6839fa197c28958358b82a9673d2c6acc8506d78bc5  assets/fonts/ui/vazirmatn/Vazirmatn-SemiBold.ttf
+          f635fdbea28f265de395ba83b4b1570dcf2f58d13c65469e61903b1c2d2ae723  assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf
+          EOF
+          grep -q 'family: Vazirmatn' pubspec.yaml
+          ! grep -q 'family: VazirHarf' pubspec.yaml
       - name: Verify repository-owned Android inputs
         run: |
           set -euo pipefail
@@ -160,8 +161,6 @@ jobs:
           test -s android/gradle/wrapper/gradle-wrapper.jar
           test -s android/gradlew
           grep -q 'desugar_jdk_libs:2.1.5' android/app/build.gradle.kts
-      - name: Restore VazirHarf assets
-        run: mkdir -p assets/fonts && rm -rf assets/fonts/vazirharf && cp -a "$RUNNER_TEMP/vazirharf/." assets/fonts/vazirharf/
       - name: Cache Gradle
         uses: actions/cache@v5
         with:
