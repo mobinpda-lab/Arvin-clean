@@ -30,8 +30,8 @@ void main() {
     final home = File('lib/main.dart').readAsStringSync();
 
     expect(home, contains('await taskStore.save(snapshot);'));
-    // Five canonical save call sites plus one restore rollback save/reschedule path.
-    expect(home.split('await taskStore.save(').length - 1, 6);
+    // Five canonical save call sites remain; restore rollback reuses one of them.
+    expect(home.split('await taskStore.save(').length - 1, 5);
     expect(
       home.split('AndroidFollowUpReminderScheduler().reschedule()').length - 1,
       6,
