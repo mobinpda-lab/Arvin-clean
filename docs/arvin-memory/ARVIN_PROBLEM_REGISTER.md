@@ -286,3 +286,27 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **Candidate mitigation:** Task JSON decode creates one stable legacy TaskReminder with a persisted marker; Calendar and scheduler projections retain old identity; editor and inbound Calendar paths preserve independent reminder behavior.
 - **Remaining risk:** no terminal exact-head CI result yet. SQL persistence, real backup/restore, rollback/retry, Calendar no-duplicate and physical-device acceptance remain unproven.
 - **Status:** Candidate implementation; validation blocked/pending. Release NO-GO.
+
+
+## Wave 7.10 — owner-reported installed-app defects (2026-10-23)
+
+The ten items below remain one acceptance set under existing ledger [#1139](https://github.com/mobinpda-lab/Arvin-clean/issues/1139). Statuses describe this branch only; no item is closed by a code diff alone.
+
+| # | Owner-reported problem | Status on Wave 7.10 branch | Evidence / next action |
+|---|---|---|---|
+| 1 | New Project does not persist/reappear reliably | NOT VERIFIED | Trace canonical Project repository, save/reload, app restart and duplicate prevention; run persistence regression. |
+| 2 | Font picker should show only «وزیر متن» and «فونت پیش‌فرض» while preserving PDF font and selection | NOT VERIFIED | Audit active font PRs/settings serialization and PDF font path; verify options and restart persistence on exact candidate. |
+| 3 | Tapping a Note opens Task detail instead of the same Note | NOT VERIFIED | Trace Note identity/route and canonical notebook repository; test view/edit ownership without Task regressions. |
+| 4 | Follow-up behavior and Reminder independence | NOT VERIFIED | Preserve the accepted independent `nextFollowUp` / `reminderDate` contract; verify create/edit/reopen, calendar and backup/restore. |
+| 5 | Previously available behavior may have been lost or may not be in installed APK | NOT VERIFIED | Compare live main, relevant PR heads/merge history and installed APK provenance; do not infer source from old reports. |
+| 6 | Custom Categories/Tags absent or incorrect in Home/Report filters | NOT VERIFIED | Trace canonical catalogs, IDs and AND-combined Home/Report filters; test create → select → filter → report. |
+| 7 | Approved Home menus and controls do not match behavior/specification | NOT VERIFIED | Compare current UI to canonical UI contract and newer owner decisions; add interaction/visual evidence. |
+| 8 | Quick Entry shows unwanted «دارای پیگیری» toggle | CODE CHANGED; EXACT-HEAD TEST PENDING | Branch removes the toggle and inline Follow-up Roll Box while retaining Checklist. New widget test asserts absence and no implicit Follow-up/Reminder. Must pass on exact PR head before acceptance. |
+| 9 | Checklist entries duplicate across repeated Task occurrences | NOT VERIFIED | Trace occurrence key generation, serialization, edit/reopen and repeat projection; verify independent occurrence state and backup/restore. |
+| 10 | Calendar single tap fails to open the correct Task/Reminder detail | NOT VERIFIED | Independently test event kind + stable record ID + short/long tap routes; Calendar Provider acceptance does not substitute for interaction acceptance. |
+
+### Wave 7.10 change boundary
+- Branch: `fix/wave-7-10-remove-quick-followup-toggle`
+- Base SHA: `18cbeecc95a03a3b301359ca5b96cfef175a3b15`
+- Code commits currently recorded: `17f2266255fc67b66a63c192f384bbbf28b849ed` (Quick Entry UI), `6151901a4a4cf77b62b964be15137d45a463b2fe` (regression test), `9868d23e6c0e4aa66076f07ff77f41bee4b4d15d` (decision record).
+- No merge, release or APK build is claimed. Re-evaluate these commits against the final PR head after all docs and CI changes.
