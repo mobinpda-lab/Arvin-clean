@@ -2241,13 +2241,16 @@ class _HomePageState extends State<HomePage> {
           await widget.restoreStageHook?.call('people-directory');
         },
         rollback: () async {
+          // ProjectStore owns project_items, which references Tasks. Restore
+          // Projects first so TaskStore.save cannot carry candidate memberships
+          // into the rollback snapshot or reinsert links to candidate-only Tasks.
+          await ProjectStore().save(previousProjects!);
           await taskStore.save(previousTasks!);
           try {
             await AndroidFollowUpReminderScheduler().reschedule();
           } catch (_) {
             reminderRescheduleFailed = true;
           }
-          await ProjectStore().save(previousProjects!);
           await ExternalCalendarLinkStore().save(previousCalendarLinks!);
           await appSettingsService.restorePortableJson(previousSettings!);
           final oldSchedule = previousSettings!['backupSchedule'];
