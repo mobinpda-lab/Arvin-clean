@@ -11,7 +11,7 @@ void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets(
-    'Calendar excludes Follow-ups, preserves them, and opens the exact Task from a permitted event',
+    'Calendar excludes next-action dates, projects independent Follow-up reminders, and opens the exact Task',
     (tester) async {
       final store = TaskStore();
       final existing = await store.load();
@@ -88,7 +88,6 @@ void main() {
       expect(independentReminderCard, findsOneWidget);
       expect(followUpCard, findsOneWidget);
       expect(find.text('پیگیری آزمایشی'), findsOneWidget);
-      expect(find.text('50'), findsNothing, reason: 'Next Follow-up is not a Calendar event');
       expect(tester.takeException(), isNull);
       await binding.convertFlutterSurfaceToImage();
 
