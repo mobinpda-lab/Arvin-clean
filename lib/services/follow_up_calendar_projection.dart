@@ -36,67 +36,9 @@ class FollowUpCalendarProjection {
   ) {
     for (final task in tasks) {
       if (task.trashed) continue;
-      for (final followUp in task.followUps) {
-        if (followUp.reminderDate != null &&
-            reminderIdFor(task, followUp) == reminderId) {
-          return FollowUpCalendarTarget(
-            taskId: task.id,
-            followUp: followUp,
-          );
-        }
-      }
-    }
-    return null;
-  }
-
-  bool _sameInstant(DateTime a, DateTime b) =>
-      a.toUtc().isAtSameMomentAs(b.toUtc());
-
-  bool _isDateOnly(DateTime value) =>
-      value.hour == 0 &&
-      value.minute == 0 &&
-      value.second == 0 &&
-      value.millisecond == 0 &&
-      value.microsecond == 0;
-
-  List<CalendarReminder> project(
-    Iterable<Task> tasks, {
-    DateTime? visibleFrom,
-    DateTime? visibleTo,
-    DateTime? now,
-  }) {
-    final reminders = <CalendarReminder>[];
-
-    for (final task in tasks) {
-      if (task.trashed) continue;
-
-      final taskDatesAlreadyProjected = <DateTime>[];
-
-      for (final followUp in task.followUps) {
-        final customTitle = followUp.title?.trim();
-        final hasCustomTitle = customTitle != null && customTitle.isNotEmpty;
-        final calendarTitle = hasCustomTitle
-            ? customTitle
-            : 'پیگیری ${task.title}';
-        final parentSubtitle = hasCustomTitle ? 'پیگیری: ${task.title}' : null;
-        final isCompleted = followUp.completed || task.completed;
-
-        // nextFollowUp is an internal planned action, not a calendar event.
-        // Only the explicitly configured reminderDate is projected.
-        final reminderDate = followUp.reminderDate;
-        if (reminderDate != null) {
-          reminders.add(
-            CalendarReminder(
-              id: reminderIdFor(task, followUp),
-              title: calendarTitle,
-              date: reminderDate,
-              completed: isCompleted,
-              description: parentSubtitle,
-            ),
-          );
-          taskDatesAlreadyProjected.add(reminderDate);
-        }
-      }
+      // Follow-up records and their own dates remain in canonical Task data.
+      // They are not Calendar events; only explicit Task reminders, Task due
+      // dates and recurrence occurrences are projected below.
 
       for (final reminder in task.taskReminders) {
         reminders.add(
