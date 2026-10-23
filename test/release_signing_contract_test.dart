@@ -38,7 +38,7 @@ void main() {
       expect(result.exitCode, 0, reason: '${result.stdout}\n${result.stderr}');
       final output = '${result.stdout}\n${result.stderr}';
       final releaseSection = RegExp(
-        r'Variant: release([\\s\\S]*?)(?=Variant:|$)',
+        r'Variant: release([\s\S]*?)(?=Variant:|$)',
       ).firstMatch(output);
 
       expect(releaseSection, isNotNull, reason: output);
