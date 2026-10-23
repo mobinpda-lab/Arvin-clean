@@ -30,7 +30,7 @@ void main() {
 
   test('invalid background backup configuration reports failure', () async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(BackupBackgroundRunner.directoryUriKey, 'content://backup');
+    await prefs.setString(BackupBackgroundRunner.directoryUriKey, 'not-a-content-uri');
     await prefs.setString(BackupBackgroundRunner.payloadKey, '{invalid');
 
     final notifications = _FakeNotificationSink();
