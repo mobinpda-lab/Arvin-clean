@@ -75,6 +75,7 @@ class BackupBackgroundRunner {
       final calendarLinks = await ExternalCalendarLinkStore().load();
       final categories = await taskStore.loadCategories();
       final tags = await taskStore.loadTags();
+      final people = await taskStore.loadPeopleDirectory();
       final codec = const ProjectPlanCodec();
       final payload = <String, dynamic>{
         'tasks': tasks.map((task) => task.toJson()).toList(growable: false),
@@ -90,6 +91,7 @@ class BackupBackgroundRunner {
             ),
         'categories': categories,
         'tags': tags,
+        'peopleDirectory': people.map((person) => person.toJson()).toList(growable: false),
       };
 
       final service = _backupService ?? ArvinBackupService();
