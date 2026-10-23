@@ -7,7 +7,7 @@ void main() {
     final source = File('lib/main.dart').readAsStringSync();
 
     expect(source, contains("import 'services/task_store.dart';"));
-    expect(source, contains('final TaskStore taskStore = TaskStore();'));
+    expect(source, contains('late final TaskStore taskStore = widget.taskStore ?? TaskStore();'));
     expect(source, contains('backupManager.backupCanonicalTasks('));
     expect(source, contains('backupManager.backupCanonicalTasks('));
     expect(source, contains('await taskStore.load(),'));
