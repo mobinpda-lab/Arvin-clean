@@ -147,3 +147,16 @@ These are the tracked reference hashes already checked by CI against the pinned 
 
 ### Current acceptance state
 Exact-head Build, test shards, PDF production-loader test, APK packaging, and Device Smoke must be re-evaluated after the Wave 6.71 cleanup commit. Manual visual acceptance of Persian joining, half-space, actual rendered PDF, and all used weights remains **NOT VERIFIED** until supported by current artifacts/device evidence. Release remains **BLOCKED — RELEASE: NO-GO**.
+
+
+### Direct upstream tag identity check
+The official repository tag `rastikerdar/vazirmatn:v33.003` resolves to commit `83629f877e8f084cc07b47030b5d3a0ff06c76ec`. The Git blob SHA-1 and byte size for each tracked app font exactly match the corresponding file at that official tag, proving the tracked TTF bytes are identical to the tagged upstream binaries:
+
+| Weight | Official path | Git blob SHA-1 | Size (bytes) | SHA-256 reference |
+|---|---|---|---:|---|
+| Regular 400 | `fonts/ttf/Vazirmatn-Regular.ttf` | `64e4a8189557a17b63fd7a77794207483e592972` | 122752 | `b69fd4c680b8f3f225feabcc655a2c585d97627b8f5f5c0f9985e894069f3a56` |
+| Medium 500 | `fonts/ttf/Vazirmatn-Medium.ttf` | `1e08dd54d90a4879451ef0f80fe0d8068fb7462f` | 122656 | `b986623e4ddef10755e04be39f8ea7bcb1dc08bfe8dd0aa6af395736f256ad4a` |
+| SemiBold 600 | `fonts/ttf/Vazirmatn-SemiBold.ttf` | `6b3842aca6055c8258404b1758133b81c961a13f` | 122920 | `3f239d8364c14ee32c46b6839fa197c28958358b82a9673d2c6acc8506d78bc5` |
+| Bold 700 | `fonts/ttf/Vazirmatn-Bold.ttf` | `efa9b095da01d299310bdcae293e24e657fe6da9` | 123036 | `f635fdbea28f265de395ba83b4b1570dcf2f58d13c65469e61903b1c2d2ae723` |
+
+Source: [official Vazirmatn v33.003 tag](https://github.com/rastikerdar/vazirmatn/tree/v33.003). The identical Git blob IDs prove byte identity with those upstream TTF files; SHA-256 values are the separate file-hash values used by the repository CI contract.
