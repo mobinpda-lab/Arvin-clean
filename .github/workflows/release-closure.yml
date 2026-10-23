@@ -287,6 +287,14 @@ jobs:
           print(f'Android V2 audit passed: {activities[0]}')
           PY
 
+      - name: Block legacy unsigned release publication
+        if: steps.release_state.outputs.already_released != 'true'
+        run: |
+          set -euo pipefail
+          echo "RELEASE_BLOCKED: legacy release-closure does not load an owner keystore or verify the APK certificate."
+          echo "Use the owner-gated signed-release-apk workflow after configuring protected environment secrets."
+          exit 1
+
       - name: Test and build release APK from locked inputs
         if: steps.release_state.outputs.already_released != 'true'
         run: |
