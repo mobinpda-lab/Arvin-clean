@@ -51,6 +51,13 @@ void main() {
     await service.saveFontFamily('  VazirHarf  ');
     expect((await service.load()).fontFamily, 'vazirmatn');
 
+    await service.saveFontFamily('Estedad');
+    expect((await service.load()).fontFamily, 'vazirmatn');
+    await service.saveFontFamily('Sahel');
+    expect((await service.load()).fontFamily, 'vazirmatn');
+    await service.saveFontFamily('system');
+    expect((await service.load()).fontFamily, 'system');
+
     await service.saveFontFamily('   ');
     expect((await service.load()).fontFamily, isNull);
   });
