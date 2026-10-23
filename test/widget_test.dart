@@ -135,6 +135,17 @@ void main() {
     expect(find.byKey(todayKey), findsOneWidget);
     expect(find.byKey(tomorrowKey), findsOneWidget);
 
+    // Opening task details and returning must preserve the current Home view.
+    await tester.ensureVisible(find.byKey(todayKey));
+    await tester.tap(find.byKey(todayKey));
+    await tester.pumpAndSettle();
+    expect(find.text('آماده‌سازی روزانه'), findsOneWidget);
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(find.byKey(yesterdayKey), findsNothing);
+    expect(find.byKey(todayKey), findsOneWidget);
+    expect(find.byKey(tomorrowKey), findsOneWidget);
+
     final beforeCompletion = (await TaskStore().load()).single;
     expect(beforeCompletion.reminderDate, anchor);
     expect(beforeCompletion.occurrenceHistory, isEmpty);
@@ -161,6 +172,25 @@ void main() {
     expect(afterCompletion.completed, isFalse);
     expect(afterCompletion.checklistOccurrences, beforeCompletion.checklistOccurrences);
     expect((await TaskStore().load()), hasLength(1));
+
+    // A fresh Home route resets only the in-memory Resume choice.
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: HomePage(clock: () => fixedNow),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(yesterdayKey), findsOneWidget);
+    expect(find.byKey(todayKey), findsOneWidget);
+    expect(find.byKey(tomorrowKey), findsOneWidget);
+    final afterReentry = (await TaskStore().load()).single;
+    expect(afterReentry.occurrenceHistory, afterCompletion.occurrenceHistory);
+    expect(afterReentry.reminderDate, anchor);
   });
 
   testWidgets('HomePage shows the empty-state message after loading',
