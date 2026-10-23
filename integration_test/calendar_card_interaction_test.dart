@@ -57,6 +57,15 @@ void main() {
       app.main();
       await tester.pumpAndSettle();
 
+      // Separate Home's canonical Task load from the subsequent Home -> Calendar
+      // route. If this assertion fails, the defect is upstream of Calendar UI.
+      expect(
+        find.text('کار آزمون تعامل تقویم'),
+        findsOneWidget,
+        reason: 'Home did not render the canonical Task persisted before app launch',
+      );
+      debugPrint('CALENDAR_SMOKE: Home rendered the seeded canonical Task');
+
       final skipGuide = find.text('رد کردن');
       if (skipGuide.evaluate().isNotEmpty) {
         await tester.tap(skipGuide);
