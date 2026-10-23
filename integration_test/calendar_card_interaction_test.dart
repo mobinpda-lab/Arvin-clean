@@ -21,6 +21,8 @@ void main() {
       final dueAt = now.add(const Duration(minutes: 10));
       final reminderAt = now.add(const Duration(minutes: 20));
       final followUpAt = now.add(const Duration(minutes: 30));
+      final followUpReminderAt = now.add(const Duration(minutes: 40));
+      final nextFollowUpAt = now.add(const Duration(minutes: 50));
       const taskId = 'calendar-smoke-task';
       const followUpId = 'calendar-smoke-follow-up';
       final seed = Task(
@@ -37,7 +39,8 @@ void main() {
             dateTime: followUpAt,
             title: 'پیگیری آزمایشی',
             note: 'این سابقه باید حفظ شود',
-            reminderDate: followUpAt,
+            reminderDate: followUpReminderAt,
+            nextFollowUp: nextFollowUpAt,
           ),
         ],
         taskReminders: [
@@ -53,7 +56,8 @@ void main() {
       final persistedSeed = (await store.load()).single;
       expect(persistedSeed.followUps, hasLength(1));
       expect(persistedSeed.followUps.single.id, followUpId);
-      expect(persistedSeed.followUps.single.reminderDate, followUpAt);
+      expect(persistedSeed.followUps.single.reminderDate, followUpReminderAt);
+      expect(persistedSeed.followUps.single.nextFollowUp, nextFollowUpAt);
       expect(persistedSeed.taskReminders, hasLength(1));
       debugPrint('CALENDAR_SMOKE: canonical Follow-up and independent Reminder persisted in SQLite');
 
@@ -82,8 +86,9 @@ void main() {
       }
       expect(dueCard, findsOneWidget);
       expect(independentReminderCard, findsOneWidget);
-      expect(followUpCard, findsNothing);
-      expect(find.text('پیگیری آزمایشی'), findsNothing);
+      expect(followUpCard, findsOneWidget);
+      expect(find.text('پیگیری آزمایشی'), findsOneWidget);
+      expect(find.text('50'), findsNothing, reason: 'Next Follow-up is not a Calendar event');
       expect(tester.takeException(), isNull);
       await binding.convertFlutterSurfaceToImage();
 
@@ -102,7 +107,8 @@ void main() {
       expect(afterInteraction.followUps, hasLength(1));
       expect(afterInteraction.followUps.single.id, followUpId);
       expect(afterInteraction.followUps.single.dateTime, followUpAt);
-      expect(afterInteraction.followUps.single.reminderDate, followUpAt);
+      expect(afterInteraction.followUps.single.reminderDate, followUpReminderAt);
+      expect(afterInteraction.followUps.single.nextFollowUp, nextFollowUpAt);
       expect(afterInteraction.taskReminders, hasLength(1));
       expect(afterInteraction.taskReminders.single.id, 'calendar-smoke-reminder');
       debugPrint('CALENDAR_SMOKE: Follow-up history and independent Reminder survived Calendar interaction');
