@@ -1,5 +1,5 @@
 # Proprietary licensed IRANSansX build assets only.
-# Open-source Vazirmatn assets under assets/fonts/vazirmatn/ are tracked.
+# Open-source Vazirmatn assets under assets/fonts/ui/vazirmatn/ are tracked.
 /assets/fonts/IRANSansX*.ttf
 /assets/fonts/IRANSansX*.otf
 /assets/fonts/IRANSansX*.woff

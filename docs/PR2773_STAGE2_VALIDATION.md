@@ -5,7 +5,7 @@
 **Release:** `RELEASE: NO-GO` until fresh CI and emulator evidence is reviewed.
 
 ## Scope in this commit
-- Add an Android integration scenario for short tap, long press, canonical SQLite completion, RTL direction, VazirHarf theme and the Persian time picker.
+- Add an Android integration scenario for short tap, long press, canonical SQLite completion, RTL direction, legacy font/theme scenario (historical baseline; canonical font is now Vazirmatn) and the Persian time picker.
 - Add a dedicated calendar scenario to Device Smoke and require its three screenshot files as an artifact.
 - Add explicit ADB device/boot readiness checks before running the selected integration scenario.
 - Upgrade the checkout, cache and artifact actions used by Build and Device Smoke to their Node 24-compatible major versions.

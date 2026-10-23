@@ -1,4 +1,6 @@
-# Arvin Conversation Continuity Checkpoint — 2026-10-11
+# Arvin Conversation Continuity
+
+> **Superseded checkpoint:** This 2026-10-11 handoff contains an older VazirHarf instruction. Wave 6.71 owner decision overrides it; use Vazirmatn v33.003 as the canonical/default font. Checkpoint — 2026-10-11
 
 **Purpose:** Durable handoff so owner requirements from the current conversation and recent Arvin work are not lost between sessions. This is a requirement ledger, not a claim that features are implemented.
 
@@ -7,7 +9,7 @@
 - Before changes: audit the whole relevant flow and overlapping PRs; make a focused change; add regression coverage; validate exact head; document evidence and blockers.
 - Do not claim solved, complete, release-ready, tests green or device-verified without matching evidence. Orchestration-only success is not product validation.
 - Product first; keep existing canonical models and interactions. No parallel Task, Note, Calendar, Tracking, Follow-up or report stores. Run independent lanes in parallel only where they do not conflict.
-- Preserve Persian RTL, VazirHarf v34.003 (do not replace with Vazirmatn), approved Arvin colors and visual identity. Root Task.description remains the only root Task text field; no root Task.note. Existing FollowUp.note and Notebook notes stay unchanged.
+- Historical checkpoint only: the then-current note preserved VazirHarf v34.003. This is superseded; preserve Persian RTL and approved Arvin colors with Vazirmatn v33.003. Root Task.description remains the only root Task text field; no root Task.note. Existing FollowUp.note and Notebook notes stay unchanged.
 
 ## Current conversation requirements and open acceptance items
 

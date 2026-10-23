@@ -1,7 +1,7 @@
 import 'package:flutter/services.dart';
 
 abstract final class AppFonts {
-  static const String vazirharfFamily = 'VazirHarf';
+  static const String vazirmatnFamily = 'Vazirmatn';
   static const String iranSansXFamily = 'IRANSansXFaNum';
 
   static const String iranSansXRegularAsset =
@@ -17,7 +17,7 @@ abstract final class AppFonts {
       await loader.load();
       return true;
     } catch (_) {
-      // VazirHarf is bundled and is the public/default project font.
+      // Vazirmatn is tracked and bundled as the public/default project font.
       // Licensed IRANSansX takes precedence only when private assets exist.
       return false;
     }

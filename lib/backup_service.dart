@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:saf/saf.dart';
 
 import 'cloud_backup_provider.dart';
+import 'services/g1_drift_schema.dart';
 import 'services/encrypted_backup_envelope.dart';
 
 typedef BackupLocalWriter = Future<void> Function(
@@ -39,6 +40,12 @@ class ArvinBackupService {
 
   static const int backupFormatVersion = 1;
   static const String backupType = 'arvin_backup';
+  static const int maxBackupBytes = 64 * 1024 * 1024;
+  static const String appVersion = String.fromEnvironment(
+    'ARVIN_APP_VERSION',
+    defaultValue: '1.0.1+2',
+  );
+  static const int schemaVersion = G1DriftSchema.version;
 
   final Saf saf;
   final CloudBackupProvider? cloudProvider;
@@ -69,6 +76,9 @@ class ArvinBackupService {
     Uint8List bytes, {
     String? passphrase,
   }) async {
+    if (bytes.length > maxBackupBytes) {
+      throw const FormatException('Arvin backup exceeds the maximum supported size');
+    }
     final plainBytes = await encryptedEnvelope.decodeForRestore(
       bytes,
       passphrase: passphrase,
@@ -135,12 +145,45 @@ class ArvinBackupService {
     return decodeBackupBytes(bytes, passphrase: passphrase);
   }
 
+  /// Reads a selected backup and prompts only when the selected file is encrypted.
+  /// Plaintext legacy backups remain readable without a passphrase prompt.
+  Future<Map<String, dynamic>?> readBackupWithPassphrasePrompt({
+    required Future<String?> Function() requestPassphrase,
+  }) async {
+    final file = await saf.pickFile();
+    if (file == null) return null;
+
+    final bytes = await saf.readFileBytes(file.uri);
+    final encrypted = isEncryptedBackupBytes(bytes);
+    final passphrase = encrypted ? await requestPassphrase() : null;
+    if (encrypted && passphrase == null) return null;
+    return decodeBackupBytes(bytes, passphrase: passphrase);
+  }
+
+  static bool isEncryptedBackupBytes(Uint8List bytes) {
+    if (bytes.length > maxBackupBytes) {
+      throw const FormatException('Arvin backup exceeds the maximum supported size');
+    }
+    try {
+      final decoded = jsonDecode(utf8.decode(bytes));
+      return decoded is Map &&
+          decoded['type'] == ArvinEncryptedBackupEnvelope.envelopeType;
+    } on FormatException {
+      return false;
+    }
+  }
+
   static Uint8List encodeBackupDocument(Map<String, dynamic> payload) {
     final rawSettings = payload['settings'];
     final rawProjects = payload['projects'];
     final rawCalendarLinks = payload['calendarLinks'];
     final rawCategories = payload['categories'];
     final rawTags = payload['tags'];
+    final rawPeopleDirectory = payload['peopleDirectory'];
+    final rawTasks = payload['tasks'] ?? const <dynamic>[];
+    if (rawTasks is! List) {
+      throw const FormatException('Arvin backup tasks are invalid');
+    }
     if (rawSettings != null && rawSettings is! Map) {
       throw const FormatException('Arvin backup settings are invalid');
     }
@@ -156,12 +199,17 @@ class ArvinBackupService {
     if (rawTags != null && rawTags is! List) {
       throw const FormatException('Arvin backup Tag catalog is invalid');
     }
+    if (rawPeopleDirectory != null && rawPeopleDirectory is! List) {
+      throw const FormatException('Arvin backup People directory is invalid');
+    }
 
     final document = <String, dynamic>{
       'type': backupType,
       'formatVersion': backupFormatVersion,
+      'appVersion': appVersion,
+      'schemaVersion': schemaVersion,
       'createdAt': DateTime.now().toIso8601String(),
-      'tasks': payload['tasks'] ?? const <dynamic>[],
+      'tasks': List<dynamic>.from(rawTasks),
       if (rawSettings is Map)
         'settings': Map<String, dynamic>.from(rawSettings),
       if (rawProjects is List)
@@ -171,11 +219,17 @@ class ArvinBackupService {
       if (rawCategories is List)
         'categories': List<dynamic>.from(rawCategories),
       if (rawTags is List) 'tags': List<dynamic>.from(rawTags),
+      if (rawPeopleDirectory is List)
+        'peopleDirectory': List<dynamic>.from(rawPeopleDirectory),
     };
 
-    return Uint8List.fromList(
+    final bytes = Uint8List.fromList(
       utf8.encode(const JsonEncoder.withIndent('  ').convert(document)),
     );
+    if (bytes.length > maxBackupBytes) {
+      throw const FormatException('Arvin backup exceeds the maximum supported size');
+    }
+    return bytes;
   }
 
   static Map<String, dynamic> validateBackupDocument(Object? decoded) {
@@ -189,6 +243,18 @@ class ArvinBackupService {
     }
     if (document['formatVersion'] != backupFormatVersion) {
       throw const FormatException('Unsupported Arvin backup version');
+    }
+    final rawAppVersion = document['appVersion'];
+    if (rawAppVersion != null &&
+        (rawAppVersion is! String || rawAppVersion.trim().isEmpty)) {
+      throw const FormatException('Arvin backup app version is invalid');
+    }
+    final rawSchemaVersion = document['schemaVersion'];
+    if (rawSchemaVersion != null && rawSchemaVersion is! int) {
+      throw const FormatException('Arvin backup schema version is invalid');
+    }
+    if (rawSchemaVersion is int && rawSchemaVersion > schemaVersion) {
+      throw const FormatException('Arvin backup requires a newer storage schema');
     }
     if (document['tasks'] is! List) {
       throw const FormatException('Arvin backup tasks are invalid');
@@ -228,6 +294,13 @@ class ArvinBackupService {
     }
     if (rawTags is List) {
       document['tags'] = List<dynamic>.from(rawTags);
+    }
+    final rawPeopleDirectory = document['peopleDirectory'];
+    if (rawPeopleDirectory != null && rawPeopleDirectory is! List) {
+      throw const FormatException('Arvin backup People directory is invalid');
+    }
+    if (rawPeopleDirectory is List) {
+      document['peopleDirectory'] = List<dynamic>.from(rawPeopleDirectory);
     }
 
     return document;

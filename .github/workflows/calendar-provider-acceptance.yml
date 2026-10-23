@@ -43,15 +43,21 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Pull-request workflows otherwise check out refs/pull/<n>/merge, which
+          # is a synthetic merge commit rather than the product head under review.
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
-      - name: Fetch pinned VazirHarf
+      - name: Verify exact target revision
+        env:
+          TARGET_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        shell: bash
         run: |
           set -euo pipefail
-          git clone --no-tags --depth 1 https://github.com/nadalaba/vazirharf.git "$RUNNER_TEMP/vazirharf"
-          git -C "$RUNNER_TEMP/vazirharf" fetch --depth 1 origin 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
-          git -C "$RUNNER_TEMP/vazirharf" checkout --detach 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
-          mkdir -p assets/fonts
-          cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
+          actual="$(git rev-parse HEAD)"
+          echo "CHECKOUT_SHA=$actual"
+          test "$actual" = "$TARGET_SHA"
+          echo "EXACT_TARGET_SHA=$actual"
 
       - uses: subosito/flutter-action@v2
         with:
@@ -59,6 +65,22 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Verify tracked Vazirmatn assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf
+          test -s assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf
+          test -s assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf
+          test -s assets/fonts/ui/vazirmatn/Vazirmatn-SemiBold.ttf
+          cat <<'EOF' | sha256sum --check -
+          b69fd4c680b8f3f225feabcc655a2c585d97627b8f5f5c0f9985e894069f3a56  assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf
+          b986623e4ddef10755e04be39f8ea7bcb1dc08bfe8dd0aa6af395736f256ad4a  assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf
+          f635fdbea28f265de395ba83b4b1570dcf2f58d13c65469e61903b1c2d2ae723  assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf
+          3f239d8364c14ee32c46b6839fa197c28958358b82a9673d2c6acc8506d78bc5  assets/fonts/ui/vazirmatn/Vazirmatn-SemiBold.ttf
+          EOF
+          grep -q 'family: Vazirmatn' pubspec.yaml
+          ! grep -q 'family: VazirHarf' pubspec.yaml
       - name: Resolve locked dependencies
         run: |
           set -euo pipefail

@@ -26,6 +26,18 @@ void main() {
     });
   }
 
+  test('detects encrypted portable files without exposing their contents', () async {
+    final envelope = fastEnvelope();
+    final plaintext = canonicalBackup();
+    final encrypted = await envelope.encrypt(
+      plaintext,
+      passphrase: 'synthetic-detection-passphrase',
+    );
+
+    expect(ArvinBackupService.isEncryptedBackupBytes(encrypted), isTrue);
+    expect(ArvinBackupService.isEncryptedBackupBytes(plaintext), isFalse);
+  });
+
   test('encrypted envelope round-trips canonical backup bytes', () async {
     final envelope = fastEnvelope();
     final original = canonicalBackup();
