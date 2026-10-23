@@ -43,6 +43,21 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Pull-request workflows otherwise check out refs/pull/<n>/merge, which
+          # is a synthetic merge commit rather than the product head under review.
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Verify exact target revision
+        env:
+          TARGET_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          echo "CHECKOUT_SHA=$actual"
+          test "$actual" = "$TARGET_SHA"
+          echo "EXACT_TARGET_SHA=$actual"
 
       - uses: subosito/flutter-action@v2
         with:
