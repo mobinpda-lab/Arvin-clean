@@ -126,7 +126,7 @@ void main() {
 
     expect(buildWorkflow, contains('Verify tracked Vazirmatn assets'));
     expect(buildWorkflow, contains('Vazirmatn-SemiBold.ttf'));
-    expect(buildWorkflow, contains('Verify APK FontManifest'));
+    expect(buildWorkflow, contains('Verify packaged Vazirmatn font identity'));
     expect(buildWorkflow, contains('FontManifest.json'));
     expect(buildWorkflow, isNot(contains('Fetch pinned VazirHarf')));
     expect(buildWorkflow, isNot(contains('Restore VazirHarf assets')));
