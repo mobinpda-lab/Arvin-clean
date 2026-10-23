@@ -72,7 +72,7 @@ class BackupBackgroundRunner {
     if (parsedDirectory == null ||
         parsedDirectory.scheme != 'content' ||
         parsedDirectory.host.isEmpty) {
-      await _notifyFailure('پیکربندی پوشه پشتیبان نامعتبر است');
+      await _notifyFailure('پشتیبان‌گیری ناموفق است: پوشه مقصد نامعتبر است');
       return false;
     }
 
