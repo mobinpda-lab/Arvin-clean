@@ -520,9 +520,36 @@ class _HomePageState extends State<HomePage> {
     await _load();
   }
 
-  void _resumeHomeFromToday() {
+  Future<void> _resumeHomeFromToday() async {
     if (_resumeFromToday) return;
+    final overdueTaskIds = _homeRecurringProjection.past
+        .map((occurrence) => occurrence.task.id)
+        .toSet();
+    if (overdueTaskIds.isEmpty) return;
+
     setState(() => _resumeFromToday = true);
+    final repository = TaskRecurrenceRepository(
+      store: taskStore,
+      now: _now,
+    );
+    try {
+      // Resume only Tasks with overdue occurrences. The canonical repository
+      // advances reminderDate using the existing recurrence rule; no occurrence
+      // Tasks are created and occurrence/checklist/follow-up history is retained.
+      for (final task in _homeRecurringTasks) {
+        if (overdueTaskIds.contains(task.id) && task.reminderDate != null) {
+          await repository.resumeFromToday(task.id, target: _now());
+        }
+      }
+      await _load();
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _resumeFromToday = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('پرش به روز جاری انجام نشد: $error')),
+      );
+      await _load();
+    }
   }
 
   Widget _recurringOccurrenceRow(RecurringTaskOccurrence occurrence) {
@@ -605,7 +632,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _homeRecurringPanel() {
     final projection = _homeRecurringProjection;
-    final past = projection.pastForHome(resumeFromToday: _resumeFromToday);
+    final past = projection.past;
     final today = projection.today;
     final upcoming = _homeUpcomingPreview;
     final compact = MediaQuery.sizeOf(context).height < 700;
