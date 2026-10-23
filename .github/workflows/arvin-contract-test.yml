@@ -63,11 +63,21 @@ jobs:
           flutter --version
           dart --version
 
-      - name: Resolve dependencies
+      - name: Resolve dependencies and record exit code
         shell: bash
         run: |
-          set -euo pipefail
-          flutter pub get --enforce-lockfile
+          set -uo pipefail
+          mkdir -p artifacts/contract-test
+          set +e
+          flutter pub get --enforce-lockfile 2>&1 | tee artifacts/contract-test/pub-get.log
+          pub_exit=${PIPESTATUS[0]}
+          set -e
+          echo "PUB_GET_EXIT_CODE=$pub_exit" | tee artifacts/contract-test/pub-get-result.txt
+          if [[ "$pub_exit" -ne 0 ]]; then
+            echo "PUB_GET_RESULT=FAIL" | tee -a artifacts/contract-test/pub-get-result.txt
+            exit "$pub_exit"
+          fi
+          echo "PUB_GET_RESULT=PASS" | tee -a artifacts/contract-test/pub-get-result.txt
 
       - name: Run workflow contract test and record exit code
         id: contract
@@ -94,6 +104,7 @@ jobs:
             echo "- Event SHA: ${{ github.sha }}"
             echo "- Tested SHA: $actual"
             echo "- Flutter: $FLUTTER_VERSION"
+            echo "- Dependency resolution exit code: $([[ "$pub_exit" -eq 0 ]] && echo 0 || echo "$pub_exit")"
             echo "- Test exit code: $test_exit"
             if [[ "$test_exit" -eq 0 ]]; then
               echo "- Result: PASS"
