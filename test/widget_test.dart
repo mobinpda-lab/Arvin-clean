@@ -91,4 +91,31 @@ void main() {
     expect(find.text('دسته'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
   });
+
+
+  testWidgets('Home filters include unused canonical Category and Tag catalog entries',
+      (tester) async {
+    final store = TaskStore();
+    await store.createCategory('دسته بدون کار');
+    await store.createTag('برچسب بدون کار');
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('home-filter-card-category')));
+    await tester.pumpAndSettle();
+    expect(find.text('دسته بدون کار'), findsOneWidget);
+    await tester.tap(find.text('دسته بدون کار'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('دسته بدون کار'), findsWidgets);
+
+    await tester.tap(find.byKey(const ValueKey('home-filter-card-tags')));
+    await tester.pumpAndSettle();
+    expect(find.text('برچسب بدون کار'), findsOneWidget);
+    await tester.tap(find.text('برچسب بدون کار'));
+    await tester.pumpAndSettle();
+    expect(find.text('برچسب بدون کار'), findsOneWidget);
+  });
+
 }
