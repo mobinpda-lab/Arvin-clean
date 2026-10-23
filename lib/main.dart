@@ -989,9 +989,16 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _showCategoryFilterSheet() async {
+    final storedCategories = await taskStore.loadCategories();
+    final categories = <String>{
+      ...categoryCatalog.map((value) => value.trim()).where((value) => value.isNotEmpty),
+      ...storedCategories.map((value) => value.trim()).where((value) => value.isNotEmpty),
+      ...tasks.map((task) => task.category?.trim()).whereType<String>().where((value) => value.isNotEmpty),
+    }.toList()..sort();
+    if (!mounted) return;
     final result = await HomeFilterSheet.show<String?>(context, title: 'انتخاب دسته', accent: ArvinColors.category, child: ListView(shrinkWrap: true, children: [
       ListTile(leading: const Icon(Icons.layers_rounded, color: ArvinColors.category), title: const Text('همه دسته‌ها'), trailing: Icon(_categoryFilter == null ? Icons.radio_button_checked : Icons.radio_button_off, color: ArvinColors.category), onTap: () => Navigator.of(context).pop('__all__')),
-      for (final category in _homeCategories)
+      for (final category in categories)
         RadioListTile<String?>(value: category, groupValue: _categoryFilter, activeColor: ArvinColors.category, title: Text(category), secondary: const Icon(Icons.layers_rounded), onChanged: (value) => Navigator.of(context).pop(value)),
     ]));
     if (!mounted) return;
@@ -999,10 +1006,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _showTagFilterSheet() async {
+    final storedTags = await taskStore.loadTags();
     final tags = <String>{
       ...tagCatalog.map((tag) => tag.trim()).where((tag) => tag.isNotEmpty),
+      ...storedTags.map((tag) => tag.trim()).where((tag) => tag.isNotEmpty),
       ...tasks.expand((task) => task.tags).map((tag) => tag.trim()).where((tag) => tag.isNotEmpty),
     }.toList()..sort();
+    if (!mounted) return;
     final selectedTags = <String>{..._tagFilters};
     String search = '';
     await HomeFilterSheet.show<void>(context, title: 'انتخاب برچسب‌ها', accent: ArvinColors.tag, child: StatefulBuilder(
