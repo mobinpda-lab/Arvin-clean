@@ -991,9 +991,8 @@ class _HomePageState extends State<HomePage> {
   Future<void> _showCategoryFilterSheet() async {
     final storedCategories = await taskStore.loadCategories();
     final categories = <String>{
-      ...categoryCatalog.map((value) => value.trim()).where((value) => value.isNotEmpty),
+      ..._homeCategories,
       ...storedCategories.map((value) => value.trim()).where((value) => value.isNotEmpty),
-      ...tasks.map((task) => task.category?.trim()).whereType<String>().where((value) => value.isNotEmpty),
     }.toList()..sort();
     if (!mounted) return;
     final result = await HomeFilterSheet.show<String?>(context, title: 'انتخاب دسته', accent: ArvinColors.category, child: ListView(shrinkWrap: true, children: [
