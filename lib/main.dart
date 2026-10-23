@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'arvin_colors.dart';
 
 import 'android_follow_up_reminder_scheduler.dart';
+import 'android_backup_scheduler.dart';
 import 'backup_manager.dart';
 import 'backup_schedule_page.dart';
 import 'backup_schedule.dart';
@@ -1840,6 +1841,159 @@ class _HomePageState extends State<HomePage> {
     };
   }
 
+  Future<bool?> _requestBackupEncryptionChoice() {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('حفاظت از فایل پشتیبان'),
+        content: const Text(
+          'فایل بدون رمزگذاری قابل خواندن است. برای انتقال امن به گوشی دیگر، رمزگذاری را انتخاب کنید و رمز را جداگانه در جای امن نگه دارید.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('انصراف'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('بدون رمزگذاری'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('رمزگذاری'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<String?> _requestNewBackupPassphrase() {
+    var passphrase = '';
+    var confirmation = '';
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        String? errorText;
+        return StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            title: const Text('رمز پشتیبان'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'آروین این رمز را ذخیره نمی‌کند. اگر آن را گم کنید، بازیابی این فایل ممکن نخواهد بود.',
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    obscureText: true,
+                    autocorrect: false,
+                    enableSuggestions: false,
+                    onChanged: (value) => passphrase = value,
+                    decoration: const InputDecoration(labelText: 'رمز'),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    obscureText: true,
+                    autocorrect: false,
+                    enableSuggestions: false,
+                    onChanged: (value) => confirmation = value,
+                    decoration: const InputDecoration(labelText: 'تکرار رمز'),
+                  ),
+                  if (errorText != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        errorText!,
+                        style: TextStyle(color: Theme.of(context).colorScheme.error),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text('انصراف'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  if (passphrase.trim().isEmpty) {
+                    setDialogState(() => errorText = 'رمز نمی‌تواند خالی باشد');
+                    return;
+                  }
+                  if (passphrase != confirmation) {
+                    setDialogState(() => errorText = 'دو رمز یکسان نیستند');
+                    return;
+                  }
+                  Navigator.of(dialogContext).pop(passphrase);
+                },
+                child: const Text('ادامه'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<String?> _requestRestorePassphrase() {
+    var passphrase = '';
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        String? errorText;
+        return StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            title: const Text('رمز فایل پشتیبان'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('رمز هنگام ساخت فایل انتخاب شده است و در آروین ذخیره نمی‌شود.'),
+                const SizedBox(height: 12),
+                TextField(
+                  autofocus: true,
+                  obscureText: true,
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  onChanged: (value) => passphrase = value,
+                  decoration: const InputDecoration(labelText: 'رمز بازیابی'),
+                ),
+                if (errorText != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      errorText!,
+                      style: TextStyle(color: Theme.of(context).colorScheme.error),
+                    ),
+                  ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text('انصراف'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  if (passphrase.trim().isEmpty) {
+                    setDialogState(() => errorText = 'رمز نمی‌تواند خالی باشد');
+                    return;
+                  }
+                  Navigator.of(dialogContext).pop(passphrase);
+                },
+                child: const Text('بازیابی'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _backupToFolder() async {
     try {
       var directory = await backupManager.getDirectory();
@@ -1857,6 +2011,11 @@ class _HomePageState extends State<HomePage> {
         return;
       }
 
+      final encryptBackup = await _requestBackupEncryptionChoice();
+      if (encryptBackup == null || !mounted) return;
+      final passphrase = encryptBackup ? await _requestNewBackupPassphrase() : null;
+      if (encryptBackup && passphrase == null || !mounted) return;
+
       final fileName = await backupManager.backupCanonicalTasks(
         await taskStore.load(),
         settings: await _portableBackupSettings(),
@@ -1865,6 +2024,7 @@ class _HomePageState extends State<HomePage> {
         categories: await taskStore.loadCategories(),
         tags: await taskStore.loadTags(),
         people: await taskStore.loadPeopleDirectory(),
+        encryptionPassphrase: passphrase,
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1886,6 +2046,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _restoreFromFile() async {
+    String? restorePassphrase;
+    var reminderRescheduleFailed = false;
+    var backupScheduleRescheduleFailed = false;
     List<Task>? previousTasks;
     List<ProjectPlan>? previousProjects;
     List<ExternalCalendarEventLink>? previousCalendarLinks;
@@ -1894,7 +2057,13 @@ class _HomePageState extends State<HomePage> {
     List<PersonReference>? previousPeople;
     Map<String, dynamic>? previousSettings;
     try {
-      final candidate = await backupManager.restoreCanonicalBackup();
+      final candidate = await backupManager.restoreCanonicalBackup(
+        requestPassphrase: () async {
+          final entered = await _requestRestorePassphrase();
+          restorePassphrase = entered;
+          return entered;
+        },
+      );
       if (candidate == null) return;
 
       final list = candidate.tasks;
@@ -1940,6 +2109,7 @@ class _HomePageState extends State<HomePage> {
         categories: previousCategories,
         tags: previousTags,
         people: previousPeople,
+        encryptionPassphrase: restorePassphrase,
       );
       if (emergencyBackup == null) {
         if (mounted) {
@@ -2010,8 +2180,7 @@ class _HomePageState extends State<HomePage> {
           try {
             await AndroidFollowUpReminderScheduler().reschedule();
           } catch (_) {
-            // Canonical Task storage already succeeded; the existing alarm foundation
-            // can retry on the next lifecycle/scheduler trigger.
+            reminderRescheduleFailed = true;
           }
           if (candidate.hasProjects) {
             await ProjectStore().save(reconciledProjects);
@@ -2035,6 +2204,11 @@ class _HomePageState extends State<HomePage> {
                 Map<String, dynamic>.from(rawSchedule),
               );
               await restoredSchedule.save();
+              try {
+                await AndroidBackupScheduler().schedule(restoredSchedule);
+              } catch (_) {
+                backupScheduleRescheduleFailed = true;
+              }
             }
             final rawDailyContent = mergedSettings['dailyContentPreferences'];
             if (rawDailyContent is Map) {
@@ -2059,14 +2233,25 @@ class _HomePageState extends State<HomePage> {
         },
         rollback: () async {
           await taskStore.save(previousTasks!);
+          try {
+            await AndroidFollowUpReminderScheduler().reschedule();
+          } catch (_) {
+            reminderRescheduleFailed = true;
+          }
           await ProjectStore().save(previousProjects!);
           await ExternalCalendarLinkStore().save(previousCalendarLinks!);
           await appSettingsService.restorePortableJson(previousSettings!);
           final oldSchedule = previousSettings!['backupSchedule'];
           if (oldSchedule is Map) {
-            await BackupSchedule.decodePortableJson(
+            final restoredOldSchedule = BackupSchedule.decodePortableJson(
               Map<String, dynamic>.from(oldSchedule),
-            ).save();
+            );
+            await restoredOldSchedule.save();
+            try {
+              await AndroidBackupScheduler().schedule(restoredOldSchedule);
+            } catch (_) {
+              backupScheduleRescheduleFailed = true;
+            }
           }
           final oldDailyContent = previousSettings!['dailyContentPreferences'];
           if (oldDailyContent is Map) {
@@ -2097,7 +2282,7 @@ class _HomePageState extends State<HomePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '${list.length} کار${restoredSettings == null ? '' : ' و تنظیمات برنامه'} با همه جزئیات بازیابی شد${candidate.calendarLinks == null ? '؛ پیوندهای فعلیِ کارهای بازیابی‌شده حفظ شدند' : '؛ پیوندهای تقویم ادغام شدند و پیش از همگام‌سازی بررسی می‌شوند'}${candidate.hasPeople ? '؛ فهرست افراد بازیابی شد' : '؛ فهرست افراد فعلی حفظ شد'}',
+              '${list.length} کار${restoredSettings == null ? '' : ' و تنظیمات برنامه'} با همه جزئیات بازیابی شد${candidate.calendarLinks == null ? '؛ پیوندهای فعلیِ کارهای بازیابی‌شده حفظ شدند' : '؛ پیوندهای تقویم ادغام شدند و پیش از همگام‌سازی بررسی می‌شوند'}${candidate.hasPeople ? '؛ فهرست افراد بازیابی شد' : '؛ فهرست افراد فعلی حفظ شد'}${reminderRescheduleFailed ? '؛ زمان‌بندی یادآورها تأیید نشد' : ''}${backupScheduleRescheduleFailed ? '؛ زمان‌بندی خودکار پشتیبان دوباره فعال نشد' : ''}',
             ),
           ),
         );
