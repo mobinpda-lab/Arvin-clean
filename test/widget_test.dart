@@ -86,7 +86,7 @@ void main() {
   testWidgets('Home renders independent recurring past, today and next occurrence windows',
       (tester) async {
     const taskId = 'home-recurring-window-task';
-    final anchor = DateTime(2026, 10, 21, 9);
+    final anchor = DateTime(2026, 10, 21, 15);
     final fixedNow = DateTime(2026, 10, 23, 12);
     await TaskStore().save([
       Task(
@@ -114,13 +114,13 @@ void main() {
     await tester.pumpAndSettle();
 
     final yesterdayKey = ValueKey(
-      'home-recurring-occurrence-$taskId-${DateTime(2026, 10, 22, 9).toIso8601String()}',
+      'home-recurring-occurrence-$taskId-${DateTime(2026, 10, 22, 15).toIso8601String()}',
     );
     final todayKey = ValueKey(
-      'home-recurring-occurrence-$taskId-${DateTime(2026, 10, 23, 9).toIso8601String()}',
+      'home-recurring-occurrence-$taskId-${DateTime(2026, 10, 23, 15).toIso8601String()}',
     );
     final tomorrowKey = ValueKey(
-      'home-recurring-occurrence-$taskId-${DateTime(2026, 10, 24, 9).toIso8601String()}',
+      'home-recurring-occurrence-$taskId-${DateTime(2026, 10, 24, 15).toIso8601String()}',
     );
     expect(find.byKey(yesterdayKey), findsOneWidget);
     expect(find.byKey(todayKey), findsOneWidget);
@@ -135,7 +135,7 @@ void main() {
     expect(find.byKey(todayKey), findsOneWidget);
     expect(find.byKey(tomorrowKey), findsOneWidget);
     final afterResume = (await TaskStore().load()).single;
-    expect(afterResume.reminderDate, DateTime(2026, 10, 23, 9));
+    expect(afterResume.reminderDate, DateTime(2026, 10, 23, 15));
     expect(afterResume.occurrenceHistory, isEmpty);
     expect(afterResume.checklistOccurrences, {
       anchor.toIso8601String(): const ['[x] کیف', '[ ] خوراکی'],
@@ -153,14 +153,14 @@ void main() {
     expect(find.byKey(tomorrowKey), findsOneWidget);
 
     final beforeCompletion = (await TaskStore().load()).single;
-    expect(beforeCompletion.reminderDate, DateTime(2026, 10, 23, 9));
+    expect(beforeCompletion.reminderDate, DateTime(2026, 10, 23, 15));
     expect(beforeCompletion.occurrenceHistory, isEmpty);
     expect(beforeCompletion.checklistOccurrences, {
       anchor.toIso8601String(): const ['[x] کیف', '[ ] خوراکی'],
     });
 
     final todayCompleteKey = ValueKey(
-      'home-recurring-complete-$taskId-${DateTime(2026, 10, 23, 9).toIso8601String()}',
+      'home-recurring-complete-$taskId-${DateTime(2026, 10, 23, 15).toIso8601String()}',
     );
     await tester.ensureVisible(find.byKey(todayCompleteKey));
     await tester.tap(find.byKey(todayCompleteKey));
@@ -168,13 +168,13 @@ void main() {
 
     final afterCompletion = (await TaskStore().load()).single;
     expect(afterCompletion.occurrenceHistory, {
-      DateTime(2026, 10, 23, 9).toIso8601String(): {
-        'scheduledDate': DateTime(2026, 10, 23, 9).toIso8601String(),
+      DateTime(2026, 10, 23, 15).toIso8601String(): {
+        'scheduledDate': DateTime(2026, 10, 23, 15).toIso8601String(),
         'status': 'completed',
         'completionDate': fixedNow.toIso8601String(),
       },
     });
-    expect(afterCompletion.reminderDate, DateTime(2026, 10, 23, 9));
+    expect(afterCompletion.reminderDate, DateTime(2026, 10, 23, 15));
     expect(afterCompletion.completed, isFalse);
     expect(afterCompletion.checklistOccurrences, beforeCompletion.checklistOccurrences);
     expect((await TaskStore().load()), hasLength(1));
@@ -197,7 +197,7 @@ void main() {
     final afterReentry = (await TaskStore().load()).single;
     expect(afterReentry.occurrenceHistory, afterCompletion.occurrenceHistory);
     expect(afterReentry.checklistOccurrences, afterCompletion.checklistOccurrences);
-    expect(afterReentry.reminderDate, DateTime(2026, 10, 23, 9));
+    expect(afterReentry.reminderDate, DateTime(2026, 10, 23, 15));
   });
 
   testWidgets('HomePage shows the empty-state message after loading',
