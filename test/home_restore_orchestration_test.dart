@@ -183,7 +183,7 @@ void main() {
             backupManager: manager,
             taskStore: taskStore,
             projectStore: projectStore,
-            restoreCompletionHook: () {
+            restoreCompletionHook: () async {
               if (!restoreFinished.isCompleted) restoreFinished.complete();
             },
             restoreStageHook: (stage) async {
