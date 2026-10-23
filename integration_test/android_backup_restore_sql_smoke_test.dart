@@ -14,6 +14,7 @@ import 'package:arvin/services/calendar_sync_plan_service.dart';
 import 'package:arvin/services/external_calendar_link_store.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:flutter/material.dart';
+import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -406,6 +407,8 @@ void main() {
         final task = Task(
           id: 'file-task',
           title: 'کار در پشتیبان واقعی',
+          category: 'دسته انتقال مصنوعی',
+          tags: const <String>['برچسب انتقال مصنوعی'],
           checklist: const <String>['مرحله ذخیره‌شده'],
           followUps: <FollowUp>[
             FollowUp(
@@ -422,7 +425,18 @@ void main() {
 
         final backupName = await manager.backupCanonicalTasks(
           [task],
+          settings: <String, dynamic>{'themeMode': 'dark', 'usePersianDate': true},
+          projects: <ProjectPlan>[
+            ProjectPlan(
+              id: 'project-file-synthetic',
+              title: 'پروژه انتقال آزمایشی',
+              isArchived: true,
+              itemIds: <String>['file-task'],
+            ),
+          ],
           calendarLinks: [link],
+          categories: const <String>['دسته انتقال مصنوعی'],
+          tags: const <String>['برچسب انتقال مصنوعی'],
           people: [person],
           encryptionPassphrase: 'synthetic-transfer-passphrase',
         );
@@ -452,6 +466,38 @@ void main() {
         expect(candidate.calendarLinks, hasLength(1));
         expect(candidate.calendarLinks!.single.eventId, 'event-file');
         expect(await linkStore.load(), isEmpty);
+
+        // Apply the validated candidate to an independent clean SQLite database,
+        // simulating the data side of a fresh Android installation on this emulator.
+        final destinationExecutor = NativeDatabase.memory();
+        try {
+          final destinationStore = TaskStore(executor: destinationExecutor);
+          await destinationStore.save(candidate.tasks);
+          await destinationStore.savePeopleDirectory(candidate.people!);
+          await destinationStore.mergeCatalogs(
+            categories: candidate.categories ?? const <String>[],
+            tags: candidate.tags ?? const <String>[],
+          );
+          final destinationProjects = ProjectStore(executor: destinationExecutor);
+          await destinationProjects.save(candidate.projects);
+
+          final reopenedTasks = await TaskStore(executor: destinationExecutor).load();
+          expect(reopenedTasks, hasLength(1));
+          expect(reopenedTasks.single.id, 'file-task');
+          expect(reopenedTasks.single.checklist, <String>['مرحله ذخیره‌شده']);
+          expect(reopenedTasks.single.followUps.single.personIds, <String>[person.id]);
+          expect((await destinationStore.loadPeopleDirectory()).single.id, person.id);
+          expect(await destinationStore.loadCategories(), contains('دسته انتقال مصنوعی'));
+          expect(await destinationStore.loadTags(), contains('برچسب انتقال مصنوعی'));
+          final reopenedProjects = await destinationProjects.load();
+          expect(reopenedProjects, hasLength(1));
+          expect(reopenedProjects.single.id, 'project-file-synthetic');
+          expect(reopenedProjects.single.isArchived, isTrue);
+          expect(reopenedProjects.single.itemIds, contains('file-task'));
+          expect(candidate.settings?['themeMode'], 'dark');
+        } finally {
+          await destinationExecutor.close();
+        }
 
         await expectLater(
           manager.restoreCanonicalBackup(passphrase: 'wrong-synthetic-passphrase'),
