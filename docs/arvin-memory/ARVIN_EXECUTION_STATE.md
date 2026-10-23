@@ -3,7 +3,7 @@
 This is a documentation-only proposal on branch `docs/canonical-product-concept-20261020`; it does not change application code or authorize product behavior changes.
 
 - Canonical candidate: [ARVIN_PRODUCT_CONCEPTS.md](../product/ARVIN_PRODUCT_CONCEPTS.md).
-- Scope: define product vocabulary, 15 acceptance scenarios, evidence semantics, governance and open product decisions; connect this reference to the five project memory documents.
+- Scope: define product vocabulary, 20 acceptance scenarios, evidence semantics, governance and open product decisions; connect this reference to the five project memory documents.
 - The new document is a proposal until reviewed and merged through the repository's approved path. Do not claim it is official mainline policy before that point.
 - No application tests, Build, Device Smoke, physical-device acceptance, Restart or Backup/Restore test was run by this documentation update.
 - Release remains `BLOCKED — RELEASE: NO-GO`; product and release gates are unaffected by documentation presence.
