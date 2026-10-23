@@ -36,14 +36,15 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.sha }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
       - name: Verify exact requested revision
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' }}
+        if: ${{ (github.event_name == 'workflow_dispatch' && inputs.target_sha != '') || github.event_name == 'pull_request' }}
         env:
-          TARGET_SHA: ${{ inputs.target_sha }}
+          TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
           actual="$(git rev-parse HEAD)"
+          echo "CHECKOUT_SHA=$actual"
           test "$actual" = "$TARGET_SHA"
           echo "EXACT_TARGET_SHA=$actual"
       - name: Cache pinned VazirHarf
@@ -126,12 +127,13 @@ jobs:
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.sha }}
       - name: Verify exact requested revision
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' }}
+        if: ${{ (github.event_name == 'workflow_dispatch' && inputs.target_sha != '') || github.event_name == 'pull_request' }}
         env:
-          TARGET_SHA: ${{ inputs.target_sha }}
+          TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
           actual="$(git rev-parse HEAD)"
+          echo "CHECKOUT_SHA=$actual"
           test "$actual" = "$TARGET_SHA"
           echo "EXACT_TARGET_SHA=$actual"
 
