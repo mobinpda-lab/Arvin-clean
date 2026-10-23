@@ -375,6 +375,8 @@ class _HomePageState extends State<HomePage> {
 
   List<Task> tasks = [];
   List<ProjectPlan> projects = [];
+  List<String> categoryCatalog = <String>[];
+  List<String> tagCatalog = <String>[];
   final Set<String> selected = <String>{};
   bool loading = true;
   Object? loadFailure;
@@ -442,10 +444,14 @@ class _HomePageState extends State<HomePage> {
     try {
       final value = await taskStore.load();
       final loadedProjects = await projectStore.load();
+      final loadedCategories = await taskStore.loadCategories();
+      final loadedTags = await taskStore.loadTags();
       if (!mounted) return;
       setState(() {
         tasks = List<Task>.of(value);
         projects = List<ProjectPlan>.of(loadedProjects);
+        categoryCatalog = List<String>.of(loadedCategories);
+        tagCatalog = List<String>.of(loadedTags);
         loadFailure = null;
         loading = false;
       });
@@ -461,14 +467,10 @@ class _HomePageState extends State<HomePage> {
   List<Task> get _searchSource => List<Task>.of(tasks);
 
   List<String> get _homeCategories {
-    final values =
-        tasks
-            .map((task) => task.category?.trim())
-            .whereType<String>()
-            .where((value) => value.isNotEmpty)
-            .toSet()
-            .toList()
-          ..sort();
+    final values = <String>{
+      ...categoryCatalog.map((value) => value.trim()).where((value) => value.isNotEmpty),
+      ...tasks.map((task) => task.category?.trim()).whereType<String>().where((value) => value.isNotEmpty),
+    }.toList()..sort();
     return values;
   }
 
@@ -997,7 +999,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _showTagFilterSheet() async {
-    final tags = tasks.expand((task) => task.tags).map((tag) => tag.trim()).where((tag) => tag.isNotEmpty).toSet().toList()..sort();
+    final tags = <String>{
+      ...tagCatalog.map((tag) => tag.trim()).where((tag) => tag.isNotEmpty),
+      ...tasks.expand((task) => task.tags).map((tag) => tag.trim()).where((tag) => tag.isNotEmpty),
+    }.toList()..sort();
     final selectedTags = <String>{..._tagFilters};
     String search = '';
     await HomeFilterSheet.show<void>(context, title: 'انتخاب برچسب‌ها', accent: ArvinColors.tag, child: StatefulBuilder(
@@ -2698,6 +2703,8 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _openPrimaryReports() async {
     final people = await taskStore.loadPeopleDirectory();
+    final categories = await taskStore.loadCategories();
+    final tags = await taskStore.loadTags();
     if (!mounted) return;
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
@@ -2705,6 +2712,8 @@ class _HomePageState extends State<HomePage> {
           tasks: List<Task>.of(tasks),
           projects: List<ProjectPlan>.of(projects),
           people: people,
+          categories: categories,
+          tags: tags,
         ),
       ),
     );
