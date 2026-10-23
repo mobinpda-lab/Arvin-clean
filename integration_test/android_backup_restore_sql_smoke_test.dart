@@ -7,6 +7,7 @@ import 'package:arvin/backup_service.dart';
 import 'package:arvin/backup_schedule.dart';
 import 'package:arvin/services/app_settings_service.dart';
 import 'package:arvin/models/task.dart';
+import 'package:arvin/models/person_reference.dart';
 import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/calendar_sync_plan_service.dart';
@@ -378,7 +379,7 @@ void main() {
   });
 
   test(
-    'portable backup file round-trips Task and Calendar link metadata',
+    'encrypted portable file round-trips synthetic Task, People and Calendar metadata',
     () async {
       SharedPreferences.setMockInitialValues(<String, Object>{
         ArvinBackupManager.directoryKey: 'file-backed-runtime-smoke',
@@ -398,10 +399,22 @@ void main() {
         );
         final linkStore = ExternalCalendarLinkStore();
         await linkStore.save([link]);
+        final person = PersonReference(
+          id: 'person-file-synthetic',
+          displayName: 'شخص آزمایشی انتقال',
+        );
         final task = Task(
           id: 'file-task',
           title: 'کار در پشتیبان واقعی',
           checklist: const <String>['مرحله ذخیره‌شده'],
+          followUps: <FollowUp>[
+            FollowUp(
+              id: 'file-follow-up',
+              dateTime: DateTime(2026, 10, 23, 9),
+              note: 'پیگیری مصنوعی',
+              personIds: <String>[person.id],
+            ),
+          ],
         );
         final manager = ArvinBackupManager(
           service: _FileBackedBackupService(file),
@@ -410,24 +423,49 @@ void main() {
         final backupName = await manager.backupCanonicalTasks(
           [task],
           calendarLinks: [link],
+          people: [person],
+          encryptionPassphrase: 'synthetic-transfer-passphrase',
         );
         expect(backupName, file.uri.pathSegments.last);
         expect(await file.exists(), isTrue);
         expect(await file.length(), greaterThan(0));
+        final encryptedBytes = await file.readAsBytes();
+        expect(utf8.decode(encryptedBytes), isNot(contains('کار در پشتیبان واقعی')));
 
         // Simulate a fresh installation's empty local link store, then read
-        // the actual file bytes through the existing backup document decoder.
+        // the actual encrypted file bytes through the existing backup decoder.
         await linkStore.save(const <ExternalCalendarEventLink>[]);
-        final candidate = await manager.restoreCanonicalBackup();
+        final candidate = await manager.restoreCanonicalBackup(
+          passphrase: 'synthetic-transfer-passphrase',
+        );
         expect(candidate, isNotNull);
         expect(candidate!.tasks.single.id, 'file-task');
         expect(
           candidate.tasks.single.checklist,
           <String>['مرحله ذخیره‌شده'],
         );
+        expect(candidate.tasks.single.followUps.single.id, 'file-follow-up');
+        expect(candidate.tasks.single.followUps.single.personIds, <String>[person.id]);
+        expect(candidate.people, hasLength(1));
+        expect(candidate.people!.single.id, person.id);
+        expect(candidate.people!.single.displayName, person.displayName);
         expect(candidate.calendarLinks, hasLength(1));
         expect(candidate.calendarLinks!.single.eventId, 'event-file');
         expect(await linkStore.load(), isEmpty);
+
+        await expectLater(
+          manager.restoreCanonicalBackup(passphrase: 'wrong-synthetic-passphrase'),
+          throwsA(isA<FormatException>()),
+        );
+        await file.writeAsBytes(
+          encryptedBytes.sublist(0, encryptedBytes.length ~/ 2),
+          flush: true,
+        );
+        await expectLater(
+          manager.restoreCanonicalBackup(passphrase: 'synthetic-transfer-passphrase'),
+          throwsA(isA<FormatException>()),
+        );
+        await file.writeAsBytes(encryptedBytes, flush: true);
 
         await linkStore.restoreForTasks(
           restoredTaskIds: candidate.tasks.map((item) => item.id),
