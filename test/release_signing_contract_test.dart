@@ -4,30 +4,46 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('Release signing configuration contract', () {
-    late String gradle;
+    test('required release signing fails during real Gradle configuration without owner inputs', () {
+      final environment = Map<String, String>.from(Platform.environment)
+        ..remove('ARVIN_RELEASE_KEYSTORE_PATH')
+        ..remove('ARVIN_RELEASE_STORE_PASSWORD')
+        ..remove('ARVIN_RELEASE_KEY_ALIAS')
+        ..remove('ARVIN_RELEASE_KEY_PASSWORD');
 
-    setUpAll(() {
-      gradle = File('android/app/build.gradle.kts').readAsStringSync();
+      final result = Process.runSync(
+        './gradlew',
+        <String>[':app:tasks', '-ParvinReleaseSigningRequired=true'],
+        workingDirectory: 'android',
+        environment: environment,
+        includeParentEnvironment: false,
+        runInShell: true,
+      );
+
+      expect(result.exitCode, isNot(0), reason: 'Gradle must fail closed when signing is mandatory.');
+      expect(
+        '${result.stdout}\n${result.stderr}',
+        contains('Release signing was required'),
+      );
     });
 
-    test('never signs release builds with the debug key', () {
-      expect(gradle, isNot(contains('signingConfigs.getByName("debug")')));
-      expect(gradle, isNot(contains('signingConfig = signingConfigs.getByName("debug")')));
-    });
+    test('release signing report does not bind Release to the Debug signing config', () {
+      final result = Process.runSync(
+        './gradlew',
+        <String>[':app:signingReport'],
+        workingDirectory: 'android',
+        runInShell: true,
+      );
 
-    test('requires complete owner-provided signing inputs for distribution builds', () {
-      expect(gradle, contains('arvinReleaseSigningRequired'));
-      expect(gradle, contains('ARVIN_RELEASE_KEYSTORE_PATH'));
-      expect(gradle, contains('ARVIN_RELEASE_STORE_PASSWORD'));
-      expect(gradle, contains('ARVIN_RELEASE_KEY_ALIAS'));
-      expect(gradle, contains('ARVIN_RELEASE_KEY_PASSWORD'));
-      expect(gradle, contains('Release signing was required'));
-      expect(gradle, contains('signingConfigs.getByName("ownerRelease")'));
-    });
+      expect(result.exitCode, 0, reason: '${result.stdout}\n${result.stderr}');
+      final output = '${result.stdout}\n${result.stderr}';
+      final releaseSection = RegExp(
+        r'Variant: release([\\s\\S]*?)(?=Variant:|$)',
+      ).firstMatch(output);
 
-    test('allows unsigned release validation only when signing is not required', () {
-      expect(gradle, contains('Ordinary CI may build an unsigned validation APK'));
-      expect(gradle, contains('if (hasCompleteReleaseSigning)'));
+      expect(releaseSection, isNotNull, reason: output);
+      expect(releaseSection!.group(1), isNot(contains('Config: debug')));
+      expect(releaseSection.group(1), isNot(contains('Config: debugSigning')));
     });
   });
 }
