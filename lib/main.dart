@@ -315,6 +315,8 @@ class HomePage extends StatefulWidget {
     this.enableFirstRunGuide = false,
     this.backupManager,
     this.restoreStageHook,
+    this.taskStore,
+    this.projectStore,
   });
 
   final AppSettings settings;
@@ -325,6 +327,8 @@ class HomePage extends StatefulWidget {
   /// Production callers continue to use the canonical default manager.
   final ArvinBackupManager? backupManager;
   final Future<void> Function(String stage)? restoreStageHook;
+  final TaskStore? taskStore;
+  final ProjectStore? projectStore;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -332,8 +336,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final TaskEditApplyService taskEditApplyService = TaskEditApplyService();
-  final TaskStore taskStore = TaskStore();
-  final ProjectStore projectStore = ProjectStore();
+  late final TaskStore taskStore = widget.taskStore ?? TaskStore();
+  late final ProjectStore projectStore = widget.projectStore ?? ProjectStore();
   final Wave2ProductFastTrack wave2ProductFastTrack = Wave2ProductFastTrack();
   late final ArvinBackupManager backupManager =
       widget.backupManager ?? ArvinBackupManager();
@@ -2028,7 +2032,7 @@ class _HomePageState extends State<HomePage> {
       final fileName = await backupManager.backupCanonicalTasks(
         await taskStore.load(),
         settings: await _portableBackupSettings(),
-        projects: await ProjectStore().load(),
+        projects: await projectStore.load(),
         calendarLinks: await ExternalCalendarLinkStore().load(),
         categories: await taskStore.loadCategories(),
         tags: await taskStore.loadTags(),
@@ -2101,7 +2105,7 @@ class _HomePageState extends State<HomePage> {
       }
       final tasksBeforeRestore = await taskStore.load();
       previousTasks = tasksBeforeRestore;
-      final projectsBeforeRestore = await ProjectStore().load();
+      final projectsBeforeRestore = await projectStore.load();
       previousProjects = projectsBeforeRestore;
       final calendarLinksBeforeRestore = await ExternalCalendarLinkStore().load();
       previousCalendarLinks = calendarLinksBeforeRestore;
@@ -2192,7 +2196,7 @@ class _HomePageState extends State<HomePage> {
             reminderRescheduleFailed = true;
           }
           if (candidate.hasProjects) {
-            await ProjectStore().save(reconciledProjects);
+            await projectStore.save(reconciledProjects);
           }
           await widget.restoreStageHook?.call('projects');
           await ExternalCalendarLinkStore().restoreForTasks(
@@ -2266,7 +2270,7 @@ class _HomePageState extends State<HomePage> {
           // prevent all later recovery work.
           await attemptRollbackStage(
             'projects',
-            () => ProjectStore().save(previousProjects!),
+            () => projectStore.save(previousProjects!),
           );
           await attemptRollbackStage(
             'tasks',
