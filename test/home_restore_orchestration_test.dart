@@ -72,7 +72,7 @@ void main() {
       final executor = NativeDatabase.memory();
       final taskStore = TaskStore(executor: executor);
       final projectStore = ProjectStore(executor: executor);
-      const operationId = 'restore-forensics-synthetic-691';
+      final operationId = 'restore-forensics-${DateTime.now().microsecondsSinceEpoch}';
       Future<Map<String, Object>> sqliteSnapshot(String stage) async {
         final taskRows = await executor.runSelect(
           'SELECT id FROM tasks ORDER BY id',
