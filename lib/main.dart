@@ -2241,52 +2241,118 @@ class _HomePageState extends State<HomePage> {
           await widget.restoreStageHook?.call('people-directory');
         },
         rollback: () async {
-          // ProjectStore owns project_items, which references Tasks. Restore
-          // Projects first so TaskStore.save cannot carry candidate memberships
-          // into the rollback snapshot or reinsert links to candidate-only Tasks.
-          await ProjectStore().save(previousProjects!);
-          await taskStore.save(previousTasks!);
-          try {
-            await AndroidFollowUpReminderScheduler().reschedule();
-          } catch (_) {
-            reminderRescheduleFailed = true;
-          }
-          await ExternalCalendarLinkStore().save(previousCalendarLinks!);
-          await appSettingsService.restorePortableJson(previousSettings!);
-          final oldSchedule = previousSettings!['backupSchedule'];
-          if (oldSchedule is Map) {
-            final restoredOldSchedule = BackupSchedule.decodePortableJson(
-              Map<String, dynamic>.from(oldSchedule),
-            );
-            await restoredOldSchedule.save();
+          final rollbackFailures = <String>[];
+
+          Future<void> attemptRollbackStage(
+            String stage,
+            Future<void> Function() action,
+          ) async {
             try {
-              await AndroidBackupScheduler().schedule(restoredOldSchedule);
-            } catch (_) {
-              backupScheduleRescheduleFailed = true;
+              await action();
+            } catch (error, stackTrace) {
+              // Do not log payloads, setting values, or backup contents.
+              rollbackFailures.add('$stage:${error.runtimeType}');
+              debugPrint(
+                'ARVIN_RESTORE_ROLLBACK_STAGE_FAILED stage=$stage '
+                'error=${error.runtimeType}',
+              );
+              debugPrintStack(stackTrace: stackTrace);
             }
           }
+
+          // ProjectStore owns project_items, which references Tasks. Attempt
+          // this first, but still attempt the independent Task restoration if
+          // the project stage fails. One compensation failure must not silently
+          // prevent all later recovery work.
+          await attemptRollbackStage(
+            'projects',
+            () => ProjectStore().save(previousProjects!),
+          );
+          await attemptRollbackStage(
+            'tasks',
+            () => taskStore.save(previousTasks!),
+          );
+          await attemptRollbackStage('follow-up-scheduler', () async {
+            try {
+              await AndroidFollowUpReminderScheduler().reschedule();
+            } catch (_) {
+              reminderRescheduleFailed = true;
+              rethrow;
+            }
+          });
+          await attemptRollbackStage(
+            'calendar-links',
+            () => ExternalCalendarLinkStore().save(previousCalendarLinks!),
+          );
+          await attemptRollbackStage(
+            'settings',
+            () => appSettingsService.restorePortableJson(previousSettings!),
+          );
+
+          final oldSchedule = previousSettings!['backupSchedule'];
+          if (oldSchedule is Map) {
+            await attemptRollbackStage('backup-schedule-storage', () async {
+              await BackupSchedule.decodePortableJson(
+                Map<String, dynamic>.from(oldSchedule),
+              ).save();
+            });
+            await attemptRollbackStage('backup-scheduler', () async {
+              try {
+                await AndroidBackupScheduler().schedule(
+                  BackupSchedule.decodePortableJson(
+                    Map<String, dynamic>.from(oldSchedule),
+                  ),
+                );
+              } catch (_) {
+                backupScheduleRescheduleFailed = true;
+                rethrow;
+              }
+            });
+          }
+
           final oldDailyContent = previousSettings!['dailyContentPreferences'];
           if (oldDailyContent is Map) {
-            await DailyContentPreferencesService().restorePortableJson(
-              Map<String, dynamic>.from(oldDailyContent),
-            );
+            await attemptRollbackStage('daily-content-preferences', () =>
+                DailyContentPreferencesService().restorePortableJson(
+                  Map<String, dynamic>.from(oldDailyContent),
+                ));
           }
+
           for (final category in (candidate.categories ?? const <String>[])
               .map((value) => value.trim()).toSet()) {
             if (!previousCategories!.contains(category)) {
-              await taskStore.deleteCategoryCatalog(category);
+              await attemptRollbackStage(
+                'category:$category',
+                () => taskStore.deleteCategoryCatalog(category),
+              );
             }
           }
           for (final tag in (candidate.tags ?? const <String>[])
               .map((value) => value.trim()).toSet()) {
             if (!previousTags!.contains(tag)) {
-              await taskStore.deleteTagCatalog(tag);
+              await attemptRollbackStage(
+                'tag:$tag',
+                () => taskStore.deleteTagCatalog(tag),
+              );
             }
           }
-          await taskStore.savePeopleDirectory(previousPeople ?? const <PersonReference>[]);
-          final appliedSettings = await appSettingsService.load();
-          if (mounted) widget.onSettingsChanged?.call(appliedSettings);
-          await _load();
+          await attemptRollbackStage(
+            'people-directory',
+            () => taskStore.savePeopleDirectory(
+              previousPeople ?? const <PersonReference>[],
+            ),
+          );
+          await attemptRollbackStage('settings-notification', () async {
+            final appliedSettings = await appSettingsService.load();
+            if (mounted) widget.onSettingsChanged?.call(appliedSettings);
+          });
+          await attemptRollbackStage('home-refresh', _load);
+
+          if (rollbackFailures.isNotEmpty) {
+            throw StateError(
+              'Restore rollback stages failed: ${rollbackFailures.join(', ')}',
+            );
+          }
         },
       );
       await _load();
