@@ -102,6 +102,11 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('follow-up-entry-back')));
       await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('follow-up-exit-discard')),
+        findsNothing,
+        reason: 'Cancelling the time picker must not leave the Follow-up form dirty',
+      );
       expect(card, findsOneWidget);
 
       // Long press must expose contextual actions. Completing the Follow-up
