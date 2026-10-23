@@ -2281,7 +2281,7 @@ class _HomePageState extends State<HomePage> {
           // this first, but still attempt the independent Task restoration if
           // the project stage fails. One compensation failure must not silently
           // prevent all later recovery work.
-          await attemptRollbackStage('rollback-start', () async {});
+          await attemptRollbackStage('start', () async {});
           await attemptRollbackStage(
             'projects',
             () => projectStore.save(previousProjects!),
