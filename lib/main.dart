@@ -10,6 +10,7 @@ import 'backup_manager.dart';
 import 'backup_background_runner.dart';
 import 'backup_schedule_page.dart';
 import 'backup_schedule.dart';
+import 'backup_scheduler_adapter.dart';
 import 'calendar_page.dart';
 import 'calendar_integration_settings_page.dart';
 import 'models/goal_project.dart';
@@ -319,6 +320,7 @@ class HomePage extends StatefulWidget {
     this.taskStore,
     this.projectStore,
     this.taskReminderReschedule,
+    this.backupScheduler,
   });
 
   final AppSettings settings;
@@ -334,6 +336,10 @@ class HomePage extends StatefulWidget {
   final ProjectStore? projectStore;
   final Future<void> Function()? taskReminderReschedule;
 
+  /// Allows restore orchestration tests to avoid invoking Android platform
+  /// channels while still exercising backup schedule persistence and rollback.
+  final BackupSchedulerAdapter? backupScheduler;
+
   @override
   State<HomePage> createState() => _HomePageState();
 }
@@ -345,6 +351,8 @@ class _HomePageState extends State<HomePage> {
   final Wave2ProductFastTrack wave2ProductFastTrack = Wave2ProductFastTrack();
   late final ArvinBackupManager backupManager =
       widget.backupManager ?? ArvinBackupManager();
+  late final BackupSchedulerAdapter backupScheduler =
+      widget.backupScheduler ?? AndroidBackupScheduler();
   final AppSettingsService appSettingsService = AppSettingsService();
   final FollowUpCalendarProjection calendarProjection =
       const FollowUpCalendarProjection();
@@ -2297,7 +2305,7 @@ class _HomePageState extends State<HomePage> {
               try {
                 await traceRestoreOperation<void>(
                   'settings.backup-scheduler',
-                  () => AndroidBackupScheduler().schedule(restoredSchedule),
+                  () => backupScheduler.schedule(restoredSchedule),
                 );
               } catch (_) {
                 backupScheduleRescheduleFailed = true;
@@ -2395,7 +2403,7 @@ class _HomePageState extends State<HomePage> {
             });
             await attemptRollbackStage('backup-scheduler', () async {
               try {
-                await AndroidBackupScheduler().schedule(
+                await backupScheduler.schedule(
                   BackupSchedule.decodePortableJson(
                     Map<String, dynamic>.from(oldSchedule),
                   ),
