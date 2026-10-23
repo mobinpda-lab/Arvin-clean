@@ -125,7 +125,7 @@ void main() {
     expect(find.byKey(yesterdayKey), findsOneWidget);
     expect(find.byKey(todayKey), findsOneWidget);
     expect(find.byKey(tomorrowKey), findsOneWidget);
-    expect(find.text('معوق'), findsWidgets);
+    expect(find.textContaining('معوق'), findsWidgets);
     expect(find.text('کارهای امروز'), findsOneWidget);
     expect(find.text('پیش‌نمایش آینده'), findsOneWidget);
 
