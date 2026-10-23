@@ -2,6 +2,7 @@ import 'package:arvin/backup_background_runner.dart';
 import 'package:arvin/backup_service.dart';
 import 'package:arvin/backup_notification_service.dart';
 import 'package:arvin/models/task.dart';
+import 'package:arvin/models/person_reference.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -87,6 +88,9 @@ void main() {
       tags: <String>['کار'],
     );
     await taskStore.save(<Task>[task]);
+    await taskStore.savePeopleDirectory(<PersonReference>[
+      PersonReference(id: 'person-scheduled-synthetic', displayName: 'شخص زمان‌بندی آزمایشی'),
+    ]);
     await BackupBackgroundRunner.saveConfiguration(
       directoryUri: 'content://arvin/backups',
       payload: <String, dynamic>{
@@ -120,6 +124,9 @@ void main() {
     expect(service.writtenPayload?['calendarLinks'], isA<List>());
     expect(service.writtenPayload?['categories'], isA<List>());
     expect(service.writtenPayload?['tags'], isA<List>());
+    expect(service.writtenPayload?['peopleDirectory'], <Map<String, dynamic>>[
+      <String, dynamic>{'id': 'person-scheduled-synthetic', 'displayName': 'شخص زمان‌بندی آزمایشی'},
+    ]);
     expect(notifications.successes, ['test-backup.json']);
   });
 
