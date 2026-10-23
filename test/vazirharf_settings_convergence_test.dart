@@ -15,11 +15,34 @@ void main() {
     expect(settingsSource, contains("ValueKey('font-settings-entry')"));
   });
 
-  test('font catalog contains supported choices and safe fallback behavior', () {
-    expect(kAvailableArvinFonts.map((font) => font.id).toSet(), containsAll(<String>{'vazirmatn','estedad','sahel','shabnam','samim','tanha','gandom','parastoo','mikhak','lalezar','vazir-code','system','vazirharf'}));
+  test('font catalog exposes only supported local choices with safe fallback', () {
+    expect(
+      kAvailableArvinFonts.map((font) => font.id).toSet(),
+      <String>{'vazirmatn', 'system', 'vazirharf'},
+    );
     expect(arvinFontById('system').effectiveFontFamily, isNull);
-    expect(arvinFontById('vazirmatn').effectiveFontFamily, isNull);
+    expect(arvinFontById('vazirmatn').effectiveFontFamily, 'Vazirmatn');
     expect(arvinFontById('unknown-font').id, 'vazirharf');
+    expect(arvinFontById('sahel').id, 'vazirharf');
+    expect(arvinFontById('shabnam').id, 'vazirharf');
+  });
+
+  test('Vazirmatn UI v33.003 assets and all four weights are bundled', () {
+    final pubspec = File('pubspec.yaml').readAsStringSync();
+    final weights = <String>[
+      'Vazirmatn-Regular.ttf',
+      'Vazirmatn-Medium.ttf',
+      'Vazirmatn-SemiBold.ttf',
+      'Vazirmatn-Bold.ttf',
+    ];
+    for (final weight in weights) {
+      final asset = 'assets/fonts/ui/vazirmatn/$weight';
+      expect(pubspec, contains('asset: $asset'));
+      expect(File(asset).lengthSync(), greaterThan(1000));
+    }
+    expect(pubspec, contains('weight: 600'));
+    final license = File('assets/fonts/ui/vazirmatn/LICENSE.txt').readAsStringSync();
+    expect(license, contains('SIL OPEN FONT LICENSE Version 1.1'));
   });
 
   test('release APK builds the canonical VazirHarf app entrypoint', () {

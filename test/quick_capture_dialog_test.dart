@@ -5,6 +5,33 @@ import 'package:arvin/models/task.dart';
 import 'package:arvin/quick_capture_dialog.dart';
 
 void main() {
+  testWidgets('quick capture exposes follow-ups without a follow-up-enabled switch',
+      (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(body: QuickCaptureDialog()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('دارای پیگیری'), findsNothing);
+    expect(
+      find.byKey(const ValueKey('quick-capture-follow-up-enabled')),
+      findsNothing,
+    );
+    final followUpRollBox =
+        find.byKey(const ValueKey('quick-capture-follow-up-rollbox'));
+    expect(followUpRollBox, findsOneWidget);
+
+    await tester.ensureVisible(followUpRollBox);
+    await tester.tap(followUpRollBox);
+    await tester.pumpAndSettle();
+    expect(find.text('ثبت جزئیات پیگیری'), findsOneWidget);
+  });
+
   testWidgets('quick capture returns canonical Task with Persian title and tags',
       (tester) async {
     Task? captured;
@@ -671,17 +698,20 @@ void main() {
       'خرید فرش اتاق',
     );
 
-    final followUpToggle = find.byKey(
-      const ValueKey('quick-capture-follow-up-enabled'),
-    );
-    await tester.ensureVisible(followUpToggle);
-    await tester.tap(followUpToggle);
-    await tester.pumpAndSettle();
     expect(
-      find.byKey(const ValueKey('quick-capture-follow-up-rollbox')),
-      findsOneWidget,
+      find.byKey(const ValueKey('quick-capture-follow-up-enabled')),
+      findsNothing,
     );
-
+    final followUpRollBox = find.byKey(
+      const ValueKey('quick-capture-follow-up-rollbox'),
+    );
+    expect(followUpRollBox, findsOneWidget);
+    await tester.ensureVisible(followUpRollBox);
+    await tester.tap(followUpRollBox);
+    await tester.pumpAndSettle();
+    expect(find.text('ثبت جزئیات پیگیری'), findsOneWidget);
+    await tester.tapAt(const Offset(12, 12));
+    await tester.pumpAndSettle();
     final checklistToggle = find.byKey(
       const ValueKey('quick-capture-checklist-enabled'),
     );
@@ -713,7 +743,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(captured, isNotNull);
-    expect(captured!.followUpEnabled, isTrue);
+    // Opening the Follow-up Roll Box does not create a FollowUp or set the
+    // legacy compatibility mirror. Only an actual saved FollowUp does that.
+    expect(captured!.followUpEnabled, isFalse);
     expect(captured!.followUpDate, isNull);
     expect(captured!.checklistEnabled, isTrue);
     expect(captured!.checklist, ['[ ] تماس با فروشنده']);
@@ -754,15 +786,14 @@ void main() {
       find.byKey(const ValueKey('quick-capture-input')),
       'خرید فرش اتاق',
     );
-    final toggle = find.byKey(
-      const ValueKey('quick-capture-follow-up-enabled'),
+    expect(
+      find.byKey(const ValueKey('quick-capture-follow-up-enabled')),
+      findsNothing,
     );
-    await tester.ensureVisible(toggle);
-    await tester.tap(toggle);
-    await tester.pumpAndSettle();
     final rollBox = find.byKey(
       const ValueKey('quick-capture-follow-up-rollbox'),
     );
+    expect(rollBox, findsOneWidget);
     await tester.ensureVisible(rollBox);
     await tester.tap(rollBox);
     await tester.pumpAndSettle();
