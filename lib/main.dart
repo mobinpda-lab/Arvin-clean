@@ -308,6 +308,7 @@ class HomePage extends StatefulWidget {
     this.enableFirstRunGuide = false,
     this.backupManager,
     this.restoreStageHook,
+    this.clock,
   });
 
   final AppSettings settings;
@@ -318,6 +319,9 @@ class HomePage extends StatefulWidget {
   /// Production callers continue to use the canonical default manager.
   final ArvinBackupManager? backupManager;
   final Future<void> Function(String stage)? restoreStageHook;
+
+  /// Injectable clock seam for deterministic Home recurrence boundaries.
+  final DateTime Function()? clock;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -375,6 +379,8 @@ class _HomePageState extends State<HomePage> {
   final Map<String, DateTime> _dismissedOverdueWarnings = <String, DateTime>{};
   final TaskListSort _listSort = TaskListSort.date;
   final bool _sortDescending = false;
+
+  DateTime _now() => widget.clock?.call() ?? IranClock.now();
 
   String get _emptyVisibleLabel => filter == 'سطل زباله'
       ? 'سطل زباله خالی است'
@@ -490,7 +496,7 @@ class _HomePageState extends State<HomePage> {
   RecurringTripleWindowProjectionResult get _homeRecurringProjection =>
       const RecurringTripleWindowProjection().project(
         _homeRecurringTasks,
-        localAnchorDate: IranClock.now(),
+        localAnchorDate: _now(),
       );
 
   List<RecurringTaskOccurrence> get _homeUpcomingPreview {
@@ -505,11 +511,11 @@ class _HomePageState extends State<HomePage> {
   ) async {
     await TaskRecurrenceRepository(
       store: taskStore,
-      now: IranClock.now,
+      now: _now,
     ).completeOccurrence(
       occurrence.task.id,
       occurrence.scheduledDate,
-      completedAt: IranClock.now(),
+      completedAt: _now(),
     );
     await _load();
   }
@@ -520,7 +526,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _recurringOccurrenceRow(RecurringTaskOccurrence occurrence) {
-    final now = IranClock.now();
+    final now = _now();
     final today = DateTime(now.year, now.month, now.day);
     final occurrenceDay = DateTime(
       occurrence.scheduledDate.year,
@@ -906,7 +912,12 @@ class _HomePageState extends State<HomePage> {
     final grouped = <String, List<Task>>{
       'overdue': <Task>[], 'today': <Task>[], 'tomorrow': <Task>[], 'future': <Task>[], 'no_date': <Task>[],
     };
-    final recurringPanelIds = _homeRecurringTasks.map((task) => task.id).toSet();
+    final recurrenceProjection = _homeRecurringProjection;
+    final recurringPanelIds = <String>{
+      for (final occurrence in recurrenceProjection.past) occurrence.task.id,
+      for (final occurrence in recurrenceProjection.today) occurrence.task.id,
+      for (final occurrence in recurrenceProjection.upcoming) occurrence.task.id,
+    };
     for (final task in visible) {
       if (recurringPanelIds.contains(task.id)) continue;
       final due = task.dueDate;
@@ -2496,7 +2507,8 @@ class _HomePageState extends State<HomePage> {
 
 
 
-  Future<void> _openPrimaryCalendar() async {
+    Future<void> _openPrimaryCalendar() async {
+    if (_resumeFromToday && mounted) setState(() => _resumeFromToday = false);
     if (!mounted) return;
     // Re-read canonical SQL before opening calendar/timeline so navigation never
     // depends on a stale in-memory Home snapshot after a write/migration.
@@ -2542,14 +2554,16 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Future<void> _openPrimaryNotebook() async {
+    Future<void> _openPrimaryNotebook() async {
+    if (_resumeFromToday && mounted) setState(() => _resumeFromToday = false);
     if (!mounted) return;
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(builder: (_) => _primaryNotebookShell()),
     );
   }
 
-  Future<void> _openPrimaryReports() async {
+    Future<void> _openPrimaryReports() async {
+    if (_resumeFromToday && mounted) setState(() => _resumeFromToday = false);
     final people = await taskStore.loadPeopleDirectory();
     if (!mounted) return;
     await Navigator.of(context).push<void>(
@@ -2563,7 +2577,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Future<void> _openPrimaryNextAction() async {
+    Future<void> _openPrimaryNextAction() async {
+    if (_resumeFromToday && mounted) setState(() => _resumeFromToday = false);
     if (!mounted) return;
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(builder: (_) => _primaryNextActionShell()),
@@ -3287,7 +3302,10 @@ class _HomePageState extends State<HomePage> {
           ),
           _homeFilterCards(),
           _homeActiveFilterChips(),
-          if (!loading && loadFailure == null && _homeRecurringTasks.isNotEmpty)
+          if (!loading && loadFailure == null &&
+              (_homeRecurringProjection.past.isNotEmpty ||
+                  _homeRecurringProjection.today.isNotEmpty ||
+                  _homeRecurringProjection.upcoming.isNotEmpty))
             _homeRecurringPanel(),
           Expanded(child: SizedBox.expand(key: const ValueKey('home-task-list-viewport'), child: loading ? Center(child: CircularProgressIndicator(color: ArvinColors.primary)) : loadFailure != null
             ? SingleChildScrollView(padding: const EdgeInsets.all(24), child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
