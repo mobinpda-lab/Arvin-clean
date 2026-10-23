@@ -17,7 +17,8 @@ void main() {
     expect(source, contains('settings: await _portableBackupSettings()'));
     expect(source, contains('calendarLinks: await ExternalCalendarLinkStore().load()'));
     expect(source, contains('BackupSchedule.decodePortableJson('));
-    expect(source, contains('backupManager.restoreCanonicalBackup()'));
+    expect(source, contains('backupManager.restoreCanonicalBackup('));
+    expect(source, contains('requestPassphrase: () async'));
     expect(source, contains('await taskStore.save(List<Task>.of(reconciledTasks));'));
     expect(source, contains('appSettingsService.restorePortableJson(mergedSettings)'));
 
