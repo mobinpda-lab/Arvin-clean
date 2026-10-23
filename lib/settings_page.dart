@@ -52,10 +52,9 @@ class _SettingsPageState extends State<SettingsPage> {
                   RadioListTile<String>(
                     key: ValueKey('font-option-${option.id}'),
                     value: option.id,
-                    title: Text(option.nameFa),
-                    subtitle: Text(option.isAvailableLocally
-                      ? option.description
-                      : '${option.description} • فایل فونت همراه برنامه نیست؛ بازگشت امن به فونت سیستم'),
+                    title: Text(
+                      option.id == 'vazirmatn' ? 'وزیر متن' : 'فونت پیش‌فرض',
+                    ),
                     secondary: selected == option.id
                       ? const Icon(Icons.check_circle, color: Colors.green)
                       : const Icon(Icons.text_fields),
