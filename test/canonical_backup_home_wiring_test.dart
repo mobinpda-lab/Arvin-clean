@@ -7,7 +7,7 @@ void main() {
     final source = File('lib/main.dart').readAsStringSync();
 
     expect(source, contains("import 'services/task_store.dart';"));
-    expect(source, contains('final TaskStore taskStore = TaskStore();'));
+    expect(source, contains('late final TaskStore taskStore = widget.taskStore ?? TaskStore();'));
     expect(source, contains('backupManager.backupCanonicalTasks('));
     expect(source, contains('backupManager.backupCanonicalTasks('));
     expect(source, contains('await taskStore.load(),'));
@@ -17,7 +17,8 @@ void main() {
     expect(source, contains('settings: await _portableBackupSettings()'));
     expect(source, contains('calendarLinks: await ExternalCalendarLinkStore().load()'));
     expect(source, contains('BackupSchedule.decodePortableJson('));
-    expect(source, contains('backupManager.restoreCanonicalBackup()'));
+    expect(source, contains('backupManager.restoreCanonicalBackup('));
+    expect(source, contains('requestPassphrase: () async'));
     expect(source, contains('await taskStore.save(List<Task>.of(reconciledTasks));'));
     expect(source, contains('appSettingsService.restorePortableJson(mergedSettings)'));
 

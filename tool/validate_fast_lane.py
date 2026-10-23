@@ -32,7 +32,7 @@ require(build, 'variant: [release, debug]', str(build_path))
 require(build, '- name: Android V2 audit', str(build_path))
 require(build, '- name: Build APK', str(build_path))
 require(build, 'flutter build apk --${{ matrix.variant }}', str(build_path))
-require(build, 'arvin-${{ matrix.variant }}-apk', str(build_path))
+require(build, 'arvin-${{ matrix.variant }}-validation-apk', str(build_path))
 forbid(build, '- name: Build release APK', str(build_path))
 forbid(build, '- name: Build debug APK', str(build_path))
 
@@ -84,7 +84,7 @@ for token in (
     'run_sql_persistence:',
     'run_sql_migration:',
     'RUN_SQL_MIGRATION: ${{ inputs.run_sql_migration }}',
-    'ref: ${{ github.event_name == \'workflow_dispatch\' && inputs.target_sha || github.sha }}',
+    'ref: ${{ github.event.pull_request.head.sha || inputs.target_sha || github.sha }}',
     'name: Record and verify checkout revision',
     'actual="$(git rev-parse HEAD)"',
     'echo "CHECKOUT_SHA=$actual"',

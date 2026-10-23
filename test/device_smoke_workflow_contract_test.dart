@@ -17,7 +17,7 @@ void main() {
     expect(workflow, contains('"scenario":"sql-migration","test_file":"integration_test/android_upgrade_migration_smoke_test.dart"'));
     expect(
       workflow,
-      contains(r"ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.sha }}"),
+      contains(r"ref: ${{ github.event.pull_request.head.sha || inputs.target_sha || github.sha }}"),
     );
     expect(workflow, contains('name: Record and verify checkout revision'));
     expect(workflow, contains(r'actual="$(git rev-parse HEAD)"'));
@@ -117,4 +117,22 @@ void main() {
           'All seven canonical smoke scenarios must map to their corresponding integration test files',
     );
   });
+
+  test('build and smoke workflows enforce the official Vazirmatn font', () {
+    final buildWorkflow =
+        File('.github/workflows/build.yml').readAsStringSync();
+    final smokeWorkflow =
+        File('.github/workflows/device-smoke.yml').readAsStringSync();
+
+    expect(buildWorkflow, contains('Verify tracked Vazirmatn assets'));
+    expect(buildWorkflow, contains('Vazirmatn-SemiBold.ttf'));
+    expect(buildWorkflow, contains('Verify packaged Vazirmatn font identity'));
+    expect(buildWorkflow, contains('FontManifest.json'));
+    expect(buildWorkflow, isNot(contains('Fetch pinned VazirHarf')));
+    expect(buildWorkflow, isNot(contains('Restore VazirHarf assets')));
+    expect(smokeWorkflow, contains('Verify tracked Vazirmatn assets'));
+    expect(smokeWorkflow, isNot(contains('Fetch pinned VazirHarf')));
+    expect(smokeWorkflow, isNot(contains('Restore VazirHarf assets')));
+  });
+
 }

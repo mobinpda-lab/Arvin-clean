@@ -1,0 +1,114 @@
+name: Arvin Signed Release APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_sha:
+        description: Exact commit SHA to sign (must be current main)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: arvin-owner-signed-release
+  cancel-in-progress: false
+
+jobs:
+  signed-release:
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    environment: arvin-release
+    timeout-minutes: 45
+    steps:
+      - name: Checkout exact main target
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.target_sha }}
+          fetch-depth: 0
+
+      - name: Verify target is current main
+        env:
+          TARGET_SHA: ${{ inputs.target_sha }}
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          test "$TARGET_SHA" = "$(git rev-parse HEAD)"
+          test "$TARGET_SHA" = "$(git rev-parse origin/main)"
+          echo "SIGNED_TARGET_SHA=$TARGET_SHA"
+
+      - name: Prepare owner keystore securely
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ARVIN_RELEASE_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.ARVIN_RELEASE_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ARVIN_RELEASE_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ARVIN_RELEASE_KEY_PASSWORD }}
+          EXPECTED_CERT_SHA256: ${{ secrets.ARVIN_RELEASE_CERT_SHA256 }}
+        run: |
+          set -euo pipefail
+          test -n "$KEYSTORE_BASE64" || { echo "Missing ARVIN_RELEASE_KEYSTORE_BASE64"; exit 1; }
+          test -n "$STORE_PASSWORD" || { echo "Missing ARVIN_RELEASE_STORE_PASSWORD"; exit 1; }
+          test -n "$KEY_ALIAS" || { echo "Missing ARVIN_RELEASE_KEY_ALIAS"; exit 1; }
+          test -n "$KEY_PASSWORD" || { echo "Missing ARVIN_RELEASE_KEY_PASSWORD"; exit 1; }
+          test -n "$EXPECTED_CERT_SHA256" || { echo "Missing ARVIN_RELEASE_CERT_SHA256"; exit 1; }
+          umask 077
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/arvin-release.jks"
+          test -s "$RUNNER_TEMP/arvin-release.jks"
+          echo "ARVIN_RELEASE_KEYSTORE_PATH=$RUNNER_TEMP/arvin-release.jks" >> "$GITHUB_ENV"
+          echo "ARVIN_RELEASE_STORE_PASSWORD=$STORE_PASSWORD" >> "$GITHUB_ENV"
+          echo "ARVIN_RELEASE_KEY_ALIAS=$KEY_ALIAS" >> "$GITHUB_ENV"
+          echo "ARVIN_RELEASE_KEY_PASSWORD=$KEY_PASSWORD" >> "$GITHUB_ENV"
+          echo "ARVIN_EXPECTED_CERT_SHA256=$EXPECTED_CERT_SHA256" >> "$GITHUB_ENV"
+          echo "KEYSTORE_READY=true"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.0'
+          channel: stable
+          cache: true
+
+      - name: Resolve locked dependencies and analyze
+        run: |
+          set -euo pipefail
+          flutter pub get --enforce-lockfile
+          git diff --exit-code -- pubspec.lock
+          flutter analyze
+          flutter test
+
+      - name: Build with required owner release signing
+        run: flutter build apk --release -t lib/main.dart -ParvinReleaseSigningRequired=true
+
+      - name: Verify real APK signature and expected certificate
+        env:
+          EXPECTED_CERT_SHA256: ${{ secrets.ARVIN_RELEASE_CERT_SHA256 }}
+        run: |
+          set -euo pipefail
+          apk=build/app/outputs/flutter-apk/app-release.apk
+          test -s "$apk"
+          apksigner verify --verbose --print-certs "$apk" | tee "$RUNNER_TEMP/apksigner-verification.txt"
+          actual="$(sed -n 's/.*certificate SHA-256 digest: *//p' "$RUNNER_TEMP/apksigner-verification.txt" | head -n1 | tr -d ': ' | tr '[:lower:]' '[:upper:]')"
+          expected="$(printf '%s' "$EXPECTED_CERT_SHA256" | tr -d ': ' | tr '[:lower:]' '[:upper:]')"
+          test -n "$actual"
+          test "$actual" = "$expected"
+          echo "CERTIFICATE_SHA256=$actual"
+          sha256sum "$apk" | tee "$RUNNER_TEMP/artifact.sha256"
+
+      - name: Upload verified signed APK privately to Actions
+        uses: actions/upload-artifact@v5
+        with:
+          name: arvin-signed-release-${{ inputs.target_sha }}
+          path: |
+            build/app/outputs/flutter-apk/app-release.apk
+            ${{ runner.temp }}/artifact.sha256
+            ${{ runner.temp }}/apksigner-verification.txt
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Remove temporary keystore
+        if: always()
+        run: |
+          set -euo pipefail
+          if [ -n "${ARVIN_RELEASE_KEYSTORE_PATH:-}" ]; then
+            shred -u "$ARVIN_RELEASE_KEYSTORE_PATH" || rm -f "$ARVIN_RELEASE_KEYSTORE_PATH"
+          fi

@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'backup_notification_service.dart';
 import 'backup_schedule.dart';
 import 'backup_service.dart';
@@ -33,13 +31,20 @@ class BackupBackgroundRunner {
   static const String directoryUriKey = 'arvin.backup.directoryUri';
   static const String payloadKey = 'arvin.backup.payload';
 
+  static Future<void> clearLegacySnapshot() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(payloadKey);
+  }
+
   static Future<void> saveConfiguration({
     required String directoryUri,
     required Map<String, dynamic> payload,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(directoryUriKey, directoryUri);
-    await prefs.setString(payloadKey, jsonEncode(payload));
+    // The runner always reads current canonical stores. Never persist a stale
+    // task snapshot in SharedPreferences, where it would remain plaintext.
+    await prefs.remove(payloadKey);
   }
 
   static Future<void> clearConfiguration() async {
@@ -59,8 +64,17 @@ class BackupBackgroundRunner {
 
   Future<bool> run() async {
     final prefs = await SharedPreferences.getInstance();
+    // Remove legacy snapshots created by older versions before doing any work.
+    await prefs.remove(payloadKey);
     final directoryUri = prefs.getString(directoryUriKey);
     if (directoryUri == null || directoryUri.isEmpty) return false;
+    final parsedDirectory = Uri.tryParse(directoryUri);
+    if (parsedDirectory == null ||
+        parsedDirectory.scheme != 'content' ||
+        parsedDirectory.host.isEmpty) {
+      await _notifyFailure('پشتیبان‌گیری ناموفق است: پوشه مقصد نامعتبر است');
+      return false;
+    }
 
     try {
       final taskStore = _taskStore ?? TaskStore();
@@ -75,6 +89,7 @@ class BackupBackgroundRunner {
       final calendarLinks = await ExternalCalendarLinkStore().load();
       final categories = await taskStore.loadCategories();
       final tags = await taskStore.loadTags();
+      final people = await taskStore.loadPeopleDirectory();
       final codec = const ProjectPlanCodec();
       final payload = <String, dynamic>{
         'tasks': tasks.map((task) => task.toJson()).toList(growable: false),
@@ -90,6 +105,7 @@ class BackupBackgroundRunner {
             ),
         'categories': categories,
         'tags': tags,
+        'peopleDirectory': people.map((person) => person.toJson()).toList(growable: false),
       };
 
       final service = _backupService ?? ArvinBackupService();

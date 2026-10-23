@@ -1,5 +1,6 @@
 import 'package:arvin/main.dart' as app;
 import 'package:arvin/models/task.dart';
+import 'package:arvin/services/follow_up_calendar_projection.dart';
 import 'package:arvin/services/iran_clock.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:arvin/theme/app_fonts.dart';
@@ -41,10 +42,29 @@ void main() {
         ],
       );
       await store.save([seed]);
-      debugPrint('CALENDAR_SMOKE: seeded one canonical record in SQLite');
+      final persistedSeed = (await store.load()).single;
+      expect(persistedSeed.followUps, hasLength(1));
+      expect(persistedSeed.followUps.single.reminderDate, reminderAt);
+      final projectedFollowUps = const FollowUpCalendarProjection().project(
+        [persistedSeed],
+      );
+      expect(projectedFollowUps, hasLength(1));
+      expect(projectedFollowUps.single.id, 'followup:$taskId:$followUpId');
+      debugPrint(
+        'CALENDAR_SMOKE: SQLite reload and canonical Follow-up reminder projection passed',
+      );
 
       app.main();
       await tester.pumpAndSettle();
+
+      // Separate Home's canonical Task load from the subsequent Home -> Calendar
+      // route. If this assertion fails, the defect is upstream of Calendar UI.
+      expect(
+        find.text('کار آزمون تعامل تقویم'),
+        findsOneWidget,
+        reason: 'Home did not render the canonical Task persisted before app launch',
+      );
+      debugPrint('CALENDAR_SMOKE: Home rendered the seeded canonical Task');
 
       final skipGuide = find.text('رد کردن');
       if (skipGuide.evaluate().isNotEmpty) {
@@ -68,7 +88,7 @@ void main() {
       expect(Directionality.of(tester.element(card)), TextDirection.rtl);
       expect(
         Theme.of(tester.element(card)).textTheme.bodyMedium?.fontFamily,
-        AppFonts.vazirharfFamily,
+        AppFonts.vazirmatnFamily,
       );
       expect(tester.takeException(), isNull);
 
