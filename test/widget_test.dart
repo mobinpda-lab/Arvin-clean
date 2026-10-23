@@ -134,8 +134,14 @@ void main() {
     expect(find.byKey(yesterdayKey), findsNothing);
     expect(find.byKey(todayKey), findsOneWidget);
     expect(find.byKey(tomorrowKey), findsOneWidget);
+    final afterResume = (await TaskStore().load()).single;
+    expect(afterResume.reminderDate, DateTime(2026, 10, 23, 9));
+    expect(afterResume.occurrenceHistory, isEmpty);
+    expect(afterResume.checklistOccurrences, {
+      anchor.toIso8601String(): const ['[x] کیف', '[ ] خوراکی'],
+    });
 
-    // Opening task details and returning must preserve the current Home view.
+    // Opening task details and returning must preserve the advanced schedule.
     await tester.ensureVisible(find.byKey(todayKey));
     await tester.tap(find.byKey(todayKey));
     await tester.pumpAndSettle();
@@ -147,7 +153,7 @@ void main() {
     expect(find.byKey(tomorrowKey), findsOneWidget);
 
     final beforeCompletion = (await TaskStore().load()).single;
-    expect(beforeCompletion.reminderDate, anchor);
+    expect(beforeCompletion.reminderDate, DateTime(2026, 10, 23, 9));
     expect(beforeCompletion.occurrenceHistory, isEmpty);
     expect(beforeCompletion.checklistOccurrences, {
       anchor.toIso8601String(): const ['[x] کیف', '[ ] خوراکی'],
@@ -168,12 +174,12 @@ void main() {
         'completionDate': fixedNow.toIso8601String(),
       },
     });
-    expect(afterCompletion.reminderDate, anchor);
+    expect(afterCompletion.reminderDate, DateTime(2026, 10, 23, 9));
     expect(afterCompletion.completed, isFalse);
     expect(afterCompletion.checklistOccurrences, beforeCompletion.checklistOccurrences);
     expect((await TaskStore().load()), hasLength(1));
 
-    // A fresh Home route resets only the in-memory Resume choice.
+    // A fresh Home route resets only button state; the persisted anchor stays advanced.
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpAndSettle();
     await tester.pumpWidget(
@@ -185,12 +191,13 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.byKey(yesterdayKey), findsOneWidget);
+    expect(find.byKey(yesterdayKey), findsNothing);
     expect(find.byKey(todayKey), findsOneWidget);
     expect(find.byKey(tomorrowKey), findsOneWidget);
     final afterReentry = (await TaskStore().load()).single;
     expect(afterReentry.occurrenceHistory, afterCompletion.occurrenceHistory);
-    expect(afterReentry.reminderDate, anchor);
+    expect(afterReentry.checklistOccurrences, afterCompletion.checklistOccurrences);
+    expect(afterReentry.reminderDate, DateTime(2026, 10, 23, 9));
   });
 
   testWidgets('HomePage shows the empty-state message after loading',
