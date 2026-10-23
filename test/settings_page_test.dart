@@ -54,6 +54,12 @@ void main() {
     expect(find.text('انتخاب فونت'), findsOneWidget);
     expect((await service.load()).fontFamily, isNull);
     expect(find.byKey(const ValueKey('font-option-vazirmatn')), findsOneWidget);
+    expect(find.byKey(const ValueKey('font-option-system')), findsOneWidget);
+    expect(find.byType(RadioListTile<String>), findsNWidgets(2));
+    expect(find.text('وزیر متن'), findsWidgets);
+    expect(find.text('فونت پیش‌فرض'), findsOneWidget);
+    expect(find.text('فونت اصلی و پیش‌فرض آروین؛ فایل‌های آن همراه برنامه بسته‌بندی می‌شوند'), findsNothing);
+    expect(find.text('فونت پیش‌فرض سیستم؛ بدون نیاز به فایل اضافی'), findsNothing);
 
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('font-option-system')),
@@ -80,6 +86,23 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('انتخاب فونت'), findsNothing);
     expect((await service.load()).fontFamily, 'vazirmatn');
+
+    // Recreate the Settings page to prove the selected font is reloaded from
+    // persistent settings rather than retained only in widget state.
+    await tester.pumpWidget(const MaterialApp(home: SizedBox.shrink()));
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SettingsPage(
+          service: AppSettingsService(),
+          onSettingsChanged: (value) => changed = value,
+          onOpenBackup: () => backupOpened = true,
+          onOpenBackupSchedule: () {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('وزیر متن'), findsOneWidget);
+    expect((await AppSettingsService().load()).fontFamily, 'vazirmatn');
 
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('projects-settings-entry')),
