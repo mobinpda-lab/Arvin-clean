@@ -1111,3 +1111,14 @@ This entry supersedes older statements that the owner decision is pending or tha
 - Prior exact-head build `2d04631dd9d1939bd3feafa12aa7d68bec349b58` produced Debug and Release APK artifacts but multiple test shards failed. Affected tests were updated; exact-head validation is still required. Do not infer success from old runs.
 - Current release status: **NO-GO / NOT VALIDATED** until the final resulting SHA has passing analyzer, all test shards with zero skipped tests, Debug/Release artifacts, all six Device Smoke lanes, Calendar Provider Acceptance, and artifact inspection.
 - Font gap remains open: project bundles VazirHarf; Vazirmatn is not present in declared assets and is not claimed applied. Physical-device acceptance is still separate.
+
+## Wave 7.18-R2 — live audit checkpoint (2026-10-23)
+
+- Main/base SHA: `18cbeecc95a03a3b301359ca5b96cfef175a3b15`.
+- Calendar PR #2951: Draft, branch `fix/calendar-exclude-followups-wave-7-16`, current code/test head at checkpoint `f15842f8b1fcca9f14bdd332b8c78cbbc6636f58`; later documentation commit on this PR may advance the head, so re-fetch before any acceptance claim.
+- Recurrence PR #2947: Draft at `cc0eb8b3f2b28ddc49449cdfec8e1f0363193710`. Build/Quality run 40004452843 passed on synthetic merge checkout, but Device Smoke 40004452844 failed Calendar. Neither is final product acceptance.
+- Earlier Calendar branch head `c23ad14658076a7d4787a0a5c425dbb18135988c` failed Build/Analyze/Quality because the projection class was malformed; run 40014182743. Corrective commits are present on PR #2951, but the current-head Build run 40020128713 and Device Smoke 40020128711 were still pending, and Provider run 40020128550 was in progress at the last poll.
+- Current main model separates `FollowUp.nextFollowUp` from `FollowUp.reminderDate`, and has Task-level `taskReminders`. Home currently derives its visible date from `task.lastFollowUp?.dateTime`, not `nextFollowUp`; this is a product mismatch requiring a focused fix and acceptance test.
+- `ARVIN_PRODUCT_CONCEPTS.md` exists only on proposal PR #2866, not main. It remains Proposed / Review Required. Two source ZIPs could not be identified from current conversation files; ZIP comparison is NOT VERIFIED.
+- Release: `BLOCKED — RELEASE: NO-GO`; no merge, main edit, owner-signed APK, or physical-device acceptance.
+
