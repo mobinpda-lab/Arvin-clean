@@ -2083,6 +2083,60 @@ class _HomePageState extends State<HomePage> {
     List<String>? previousTags;
     List<PersonReference>? previousPeople;
     Map<String, dynamic>? previousSettings;
+    final restoreOperationId = DateTime.now().microsecondsSinceEpoch;
+    Future<T> traceRestoreOperation<T>(
+      String stage,
+      Future<T> Function() action,
+    ) async {
+      final watch = Stopwatch()..start();
+      debugPrint(
+        'ARVIN_RESTORE_TRACE op=$restoreOperationId stage=$stage event=start',
+      );
+      try {
+        final value = await action();
+        watch.stop();
+        debugPrint(
+          'ARVIN_RESTORE_TRACE op=$restoreOperationId stage=$stage '
+          'event=complete duration_ms=${watch.elapsedMilliseconds}',
+        );
+        return value;
+      } catch (error, stackTrace) {
+        watch.stop();
+        debugPrint(
+          'ARVIN_RESTORE_TRACE op=$restoreOperationId stage=$stage '
+          'event=error duration_ms=${watch.elapsedMilliseconds} '
+          'error_type=${error.runtimeType}',
+        );
+        debugPrintStack(stackTrace: stackTrace);
+        rethrow;
+      }
+    }
+
+    T traceRestoreSync<T>(String stage, T Function() action) {
+      final watch = Stopwatch()..start();
+      debugPrint(
+        'ARVIN_RESTORE_TRACE op=$restoreOperationId stage=$stage event=start',
+      );
+      try {
+        final value = action();
+        watch.stop();
+        debugPrint(
+          'ARVIN_RESTORE_TRACE op=$restoreOperationId stage=$stage '
+          'event=complete duration_ms=${watch.elapsedMilliseconds}',
+        );
+        return value;
+      } catch (error, stackTrace) {
+        watch.stop();
+        debugPrint(
+          'ARVIN_RESTORE_TRACE op=$restoreOperationId stage=$stage '
+          'event=error duration_ms=${watch.elapsedMilliseconds} '
+          'error_type=${error.runtimeType}',
+        );
+        debugPrintStack(stackTrace: stackTrace);
+        rethrow;
+      }
+    }
+
     try {
       final candidate = await backupManager.restoreCanonicalBackup(
         requestPassphrase: () async {
@@ -2224,29 +2278,50 @@ class _HomePageState extends State<HomePage> {
               current: settingsBeforeRestore,
               incoming: candidate.settings!,
             );
-            await appSettingsService.restorePortableJson(mergedSettings);
+            await traceRestoreOperation<void>(
+              'settings.restore-portable-json',
+              () => appSettingsService.restorePortableJson(mergedSettings),
+            );
             final rawSchedule = mergedSettings['backupSchedule'];
             if (rawSchedule is Map) {
-              final restoredSchedule = BackupSchedule.decodePortableJson(
-                Map<String, dynamic>.from(rawSchedule),
+              final restoredSchedule = traceRestoreSync(
+                'settings.decode-backup-schedule',
+                () => BackupSchedule.decodePortableJson(
+                  Map<String, dynamic>.from(rawSchedule),
+                ),
               );
-              await restoredSchedule.save();
+              await traceRestoreOperation<void>(
+                'settings.backup-schedule-save',
+                () => restoredSchedule.save(),
+              );
               try {
-                await AndroidBackupScheduler().schedule(restoredSchedule);
+                await traceRestoreOperation<void>(
+                  'settings.backup-scheduler',
+                  () => AndroidBackupScheduler().schedule(restoredSchedule),
+                );
               } catch (_) {
                 backupScheduleRescheduleFailed = true;
               }
             }
             final rawDailyContent = mergedSettings['dailyContentPreferences'];
             if (rawDailyContent is Map) {
-              await DailyContentPreferencesService().restorePortableJson(
-                Map<String, dynamic>.from(rawDailyContent),
+              await traceRestoreOperation<void>(
+                'settings.daily-content-preferences',
+                () => DailyContentPreferencesService().restorePortableJson(
+                  Map<String, dynamic>.from(rawDailyContent),
+                ),
               );
             }
-            final appliedSettings = await appSettingsService.load();
+            final appliedSettings = await traceRestoreOperation(
+              'settings.reload',
+              () => appSettingsService.load(),
+            );
             if (mounted) widget.onSettingsChanged?.call(appliedSettings);
           }
-          await widget.restoreStageHook?.call('settings');
+          await traceRestoreOperation<void>(
+            'settings-stage-hook',
+            () async => widget.restoreStageHook?.call('settings'),
+          );
           // Catalog writes are last and transactional within TaskStore.
           await taskStore.mergeCatalogs(
             categories: candidate.categories ?? const <String>[],
