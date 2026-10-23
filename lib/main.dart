@@ -7,6 +7,7 @@ import 'arvin_colors.dart';
 import 'android_follow_up_reminder_scheduler.dart';
 import 'android_backup_scheduler.dart';
 import 'backup_manager.dart';
+import 'backup_background_runner.dart';
 import 'backup_schedule_page.dart';
 import 'backup_schedule.dart';
 import 'calendar_page.dart';
@@ -102,7 +103,15 @@ class _SettingsTextScaler extends TextScaler {
   int get hashCode => Object.hash(systemScaler, userScale);
 }
 
-void main() => runApp(const ArvinApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await BackupBackgroundRunner.clearLegacySnapshot();
+  } catch (_) {
+    // Keep startup available if preferences are temporarily inaccessible.
+  }
+  runApp(const ArvinApp());
+}
 
 class ArvinApp extends StatefulWidget {
   const ArvinApp({super.key});
