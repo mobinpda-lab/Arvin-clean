@@ -87,6 +87,17 @@ void main() {
     expect(noOpResult.noOp, 1);
     expect(noOpResult.created, 0);
 
+    events = await bridge.listDeviceCalendarEvents(
+      calendarIds: [calendar.id],
+      start: start.subtract(const Duration(hours: 1)),
+      end: start.add(const Duration(hours: 4)),
+    );
+    expect(
+      events.where((event) => event.title == reminder.title),
+      hasLength(1),
+      reason: 'no-op provider sync must not create a duplicate event',
+    );
+
     final updatedReminder = CalendarReminder(
       id: reminder.id,
       title: 'ARVIN calendar provider acceptance updated',
