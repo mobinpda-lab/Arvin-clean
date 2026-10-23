@@ -319,5 +319,86 @@ void main() {
   });
 
 
-}
 
+
+  testWidgets('Report filters include unused canonical Category and Tag catalogs',
+      (tester) async {
+    final now = DateTime(2026, 10, 7, 10);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReportCenterPage(
+          now: now,
+          categories: const ['دسته بدون کار'],
+          tags: const ['برچسب بدون کار'],
+          tasks: [
+            Task(
+              id: 'catalog-filter-match',
+              title: 'کار با دسته و برچسب',
+              category: 'کاری',
+              tags: const ['مهم'],
+              dueDate: DateTime(2026, 10, 7, 15),
+            ),
+            Task(
+              id: 'catalog-filter-wrong-tag',
+              title: 'کار با برچسب دیگر',
+              category: 'کاری',
+              tags: const ['فوری'],
+              dueDate: DateTime(2026, 10, 7, 15),
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('report-center-filters')));
+    await tester.pumpAndSettle();
+
+    final categorySection = find.byKey(
+      const ValueKey('report-filter-section-دسته'),
+    );
+    await tester.scrollUntilVisible(
+      categorySection,
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(categorySection);
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('report-filter-category-دسته بدون کار')),
+      findsOneWidget,
+    );
+    await tester.tap(find.byKey(const ValueKey('report-filter-category-کاری')));
+    await tester.pumpAndSettle();
+
+    final tagSection = find.byKey(
+      const ValueKey('report-filter-section-برچسب'),
+    );
+    await tester.scrollUntilVisible(
+      tagSection,
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(tagSection);
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('report-filter-tag-برچسب بدون کار')),
+      findsOneWidget,
+    );
+    await tester.tap(find.byKey(const ValueKey('report-filter-tag-مهم')));
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('report-filter-apply')),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(find.byKey(const ValueKey('report-filter-apply')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('نتیجه: 1 کار'), findsOneWidget);
+    expect(find.text('کار با دسته و برچسب'), findsOneWidget);
+    expect(find.text('کار با برچسب دیگر'), findsNothing);
+  });
+
+}
