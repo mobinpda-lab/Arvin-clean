@@ -645,7 +645,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             ConstrainedBox(
-              constraints: BoxConstraints(maxHeight: compact ? 130 : 190),
+              constraints: BoxConstraints(maxHeight: compact ? 90 : 170),
               child: SingleChildScrollView(
                 child: Column(
                   children: [
