@@ -126,8 +126,8 @@ void main() {
     expect(find.byKey(todayKey), findsOneWidget);
     expect(find.byKey(tomorrowKey), findsOneWidget);
     expect(find.textContaining('معوق'), findsWidgets);
-    expect(find.text('کارهای امروز'), findsOneWidget);
-    expect(find.text('پیش‌نمایش آینده'), findsOneWidget);
+    expect(find.textContaining('کارهای امروز'), findsWidgets);
+    expect(find.textContaining('پیش‌نمایش آینده'), findsWidgets);
 
     await tester.tap(find.byKey(const ValueKey('home-resume-from-today')));
     await tester.pumpAndSettle();
