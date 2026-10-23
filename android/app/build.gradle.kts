@@ -1,10 +1,10 @@
+import java.io.File
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
-
-import java.io.File
 
 val releaseSigningRequired = providers.gradleProperty("arvinReleaseSigningRequired")
     .map { it.toBoolean() }
