@@ -87,3 +87,12 @@ Current implementation pointer: PR #2607. Automated validation, small-screen RTL
 
 ## Live checkpoint 2026-10-12
 No new owner installation, physical-device result, screenshot, or acceptance was supplied in this execution. Do not fabricate an installation/version/device record. Exact-main emulator runs are stale/incomplete; Calendar, Backup/Restore, RTL/compact-screen and golden-flow acceptance remain open.
+
+## 2026-10-23 — Next Follow-up and independent reminder must behave separately
+
+- **Owner decision (Wave 7.18-R2):** Next Follow-up is shown on Home and must not create a phone Calendar card by itself. A configured independent reminder for a Follow-up may create a Calendar event at the reminder's own time.
+- **Required interaction:** changing Next Follow-up does not move the reminder; changing/deleting the reminder preserves Follow-up history. Calendar reprocessing must not duplicate events, and a provider/permission failure is not a successful result.
+- **Live code mismatch:** main `lib/main.dart` currently derives the Home follow-up date from `task.lastFollowUp?.dateTime`, which is the record's date, not the `nextFollowUp` field. Home acceptance for the actual next-action date/time is therefore not verified and requires correction.
+- **Evidence boundary:** PR #2951 contains corrective code/test commits but remains Draft; latest Build/Device Smoke/Provider checks were not terminal at the last poll. Do not mark this experience accepted until the exact head passes and the installed APK is reviewed.
+- **Date-only behavior:** the current FollowUp model has no explicit date-only flag for `nextFollowUp`; midnight may mean either date-only or a real midnight time. This needs backward-compatible design and tests.
+
