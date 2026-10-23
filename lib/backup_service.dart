@@ -145,6 +145,34 @@ class ArvinBackupService {
     return decodeBackupBytes(bytes, passphrase: passphrase);
   }
 
+  /// Reads a selected backup and prompts only when the selected file is encrypted.
+  /// Plaintext legacy backups remain readable without a passphrase prompt.
+  Future<Map<String, dynamic>?> readBackupWithPassphrasePrompt({
+    required Future<String?> Function() requestPassphrase,
+  }) async {
+    final file = await saf.pickFile();
+    if (file == null) return null;
+
+    final bytes = await saf.readFileBytes(file.uri);
+    final encrypted = isEncryptedBackupBytes(bytes);
+    final passphrase = encrypted ? await requestPassphrase() : null;
+    if (encrypted && passphrase == null) return null;
+    return decodeBackupBytes(bytes, passphrase: passphrase);
+  }
+
+  static bool isEncryptedBackupBytes(Uint8List bytes) {
+    if (bytes.length > maxBackupBytes) {
+      throw const FormatException('Arvin backup exceeds the maximum supported size');
+    }
+    try {
+      final decoded = jsonDecode(utf8.decode(bytes));
+      return decoded is Map &&
+          decoded['type'] == ArvinEncryptedBackupEnvelope.envelopeType;
+    } on FormatException {
+      return false;
+    }
+  }
+
   static Uint8List encodeBackupDocument(Map<String, dynamic> payload) {
     final rawSettings = payload['settings'];
     final rawProjects = payload['projects'];
