@@ -181,3 +181,57 @@ jobs:
           name: arvin-${{ matrix.variant }}-apk
           path: build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk
           if-no-files-found: error
+
+  # Generate a real PDF through the production renderer so typography can be reviewed
+  # independently from unit-test assertions and APK packaging.
+  pdf-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.sha }}
+      - name: Verify exact requested revision
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' }}
+        env:
+          TARGET_SHA: ${{ inputs.target_sha }}
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "$TARGET_SHA"
+          echo "EXACT_TARGET_SHA=$actual"
+      - name: Cache pinned VazirHarf
+        uses: actions/cache@v5
+        with:
+          path: ${{ runner.temp }}/vazirharf
+          key: arvin-vazirharf-${{ runner.os }}-3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
+      - name: Fetch pinned VazirHarf on cache miss
+        run: |
+          set -euo pipefail
+          if [ ! -d "$RUNNER_TEMP/vazirharf/.git" ]; then
+            git clone --no-tags --depth 1 https://github.com/nadalaba/vazirharf.git "$RUNNER_TEMP/vazirharf"
+            git -C "$RUNNER_TEMP/vazirharf" fetch --depth 1 origin 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
+            git -C "$RUNNER_TEMP/vazirharf" checkout --detach 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
+          fi
+          test "$(git -C "$RUNNER_TEMP/vazirharf" rev-parse HEAD)" = "3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8"
+          mkdir -p assets/fonts
+          cp -a "$RUNNER_TEMP/vazirharf/." assets/fonts/vazirharf/
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - name: Resolve locked dependencies
+        run: |
+          set -euo pipefail
+          flutter pub get --enforce-lockfile
+          git diff --exit-code -- pubspec.lock
+      - name: Generate production PDF preview
+        env:
+          ARVIN_PDF_PREVIEW_OUTPUT: build/arvin-report-preview.pdf
+        run: flutter test test/task_report_pdf_renderer_test.dart --plain-name "default PDF renderer embeds bundled Vazirmatn UI FD font"
+      - name: Upload PDF preview
+        uses: actions/upload-artifact@v5
+        with:
+          name: arvin-persian-report-pdf-preview
+          path: build/arvin-report-preview.pdf
+          if-no-files-found: error
