@@ -10,7 +10,7 @@ on:
     inputs:
       target_sha:
         description: 'Exact commit SHA to validate (used by the recovery dispatcher)'
-        required: false
+        required: true
         type: string
 
 permissions:
@@ -24,7 +24,24 @@ env:
   FLUTTER_VERSION: '3.47.0'
 
 jobs:
+  validate-target-sha:
+    name: Validate requested target SHA
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate target SHA before checkout
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        env:
+          TARGET_SHA: ${{ inputs.target_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "$TARGET_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo "target_sha must be exactly 40 hexadecimal characters." >&2
+            exit 1
+          fi
+
   quality:
+    needs: validate-target-sha
     # Draft PRs are valid product work and must receive real quality/build evidence.
     # Test execution is sharded across independent runners to reduce wall-clock time
     # without reducing coverage: every test shard is required by the quality gate.
@@ -112,6 +129,7 @@ jobs:
 
   # APK builds are independent of Analyze/Test and run in parallel with the quality matrix.
   apk:
+    needs: validate-target-sha
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
