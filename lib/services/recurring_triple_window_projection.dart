@@ -38,6 +38,11 @@ class RecurringTripleWindowProjectionResult {
 
   /// Occurrences in [local midnight tomorrow, horizon end).
   final List<RecurringTaskOccurrence> upcoming;
+
+  /// Hides overdue occurrences from the current Home view only. The canonical
+  /// projection and Task occurrence history remain untouched.
+  List<RecurringTaskOccurrence> pastForHome({required bool resumeFromToday}) =>
+      resumeFromToday ? const <RecurringTaskOccurrence>[] : past;
 }
 
 /// Pure, read-only projection for recurring occurrences across three windows.
