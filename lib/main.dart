@@ -315,6 +315,7 @@ class HomePage extends StatefulWidget {
     this.enableFirstRunGuide = false,
     this.backupManager,
     this.restoreStageHook,
+    this.restoreCompletionHook,
     this.taskStore,
     this.projectStore,
     this.taskReminderReschedule,
@@ -328,6 +329,7 @@ class HomePage extends StatefulWidget {
   /// Production callers continue to use the canonical default manager.
   final ArvinBackupManager? backupManager;
   final Future<void> Function(String stage)? restoreStageHook;
+  final Future<void> Function()? restoreCompletionHook;
   final TaskStore? taskStore;
   final ProjectStore? projectStore;
   final Future<void> Function()? taskReminderReschedule;
@@ -2393,6 +2395,14 @@ class _HomePageState extends State<HomePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(message)),
         );
+      }
+    } finally {
+      // Test-only synchronization seam: callers can await completion of all
+      // apply/rollback futures before reading persistent SQLite state.
+      try {
+        await widget.restoreCompletionHook?.call();
+      } catch (_) {
+        // A diagnostic callback must never change Restore's outcome.
       }
     }
   }
