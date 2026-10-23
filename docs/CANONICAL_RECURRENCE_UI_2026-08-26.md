@@ -29,3 +29,12 @@ Issue: #208
 - Exact-head Fast Lane + full APK validation remain mandatory before merge, followed by post-merge main Build.
 
 Refs #208 #195 #92 #153.
+
+
+## Wave 7.16 — Follow-up / Calendar separation contract (2026-10-23)
+
+- Follow-up records, Follow-up dates, history, and a Follow-up's own reminder date remain in canonical Task data and are not projected as Arvin Calendar cards merely because a date exists.
+- Calendar projection may include canonical Task due dates, independent Task reminders, recurrence occurrences, prayer content, and permitted external-calendar events. A separately configured Task Reminder remains visible even when the same Task has Follow-up history.
+- A normal tap on a permitted Task calendar event opens that exact Task's detail page; long-press actions remain separate.
+- Regression acceptance must prove: Follow-up is absent from Calendar; its source fields survive SQLite reload and Calendar interaction; independent Reminder and due-date events remain visible; exact Task detail opens with one tap.
+- This is a product contract change only for Calendar projection/navigation. It must not delete, rewrite, or migrate Follow-up records or couple Follow-up to Reminder.
