@@ -43,12 +43,11 @@ void main() {
   test('all selectable public font ids retain one canonical settings path', () {
     expect(
       kAvailableArvinFonts.map((font) => font.id).toSet(),
-      containsAll(<String>{
-        'vazirmatn', 'estedad', 'sahel', 'shabnam', 'samim', 'tanha',
-        'gandom', 'parastoo', 'mikhak', 'lalezar', 'vazir-code', 'system',
-      }),
+      <String>{'vazirmatn', 'system'},
     );
     expect(kAvailableArvinFonts.map((font) => font.id), isNot(contains('vazirharf')));
+    expect(arvinFontById('estedad').id, 'vazirmatn');
+    expect(arvinFontById('sahel').id, 'vazirmatn');
     expect(arvinFontById('system').effectiveFontFamily, isNull);
   });
 
