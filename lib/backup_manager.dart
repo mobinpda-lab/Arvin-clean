@@ -213,16 +213,29 @@ class ArvinBackupManager {
     );
   }
 
-  Future<Map<String, dynamic>?> restoreBackup({String? passphrase}) =>
-      service.readBackup(passphrase: passphrase);
+  Future<Map<String, dynamic>?> restoreBackup({
+    String? passphrase,
+    Future<String?> Function()? requestPassphrase,
+  }) {
+    if (passphrase == null && requestPassphrase != null) {
+      return service.readBackupWithPassphrasePrompt(
+        requestPassphrase: requestPassphrase,
+      );
+    }
+    return service.readBackup(passphrase: passphrase);
+  }
 
   /// Decodes one portable backup selection into a candidate without mutating
   /// local storage. The same read yields canonical tasks, optional settings,
   /// and canonical Projects so the UI can validate and confirm restore once.
   Future<CanonicalBackupCandidate?> restoreCanonicalBackup({
     String? passphrase,
+    Future<String?> Function()? requestPassphrase,
   }) async {
-    final document = await restoreBackup(passphrase: passphrase);
+    final document = await restoreBackup(
+      passphrase: passphrase,
+      requestPassphrase: requestPassphrase,
+    );
     if (document == null) return null;
 
     final tasks = _decodeCanonicalTasks(document);
@@ -253,8 +266,14 @@ class ArvinBackupManager {
   }
 
   /// Compatibility helper for callers that only need tasks.
-  Future<List<Task>?> restoreCanonicalTasks({String? passphrase}) async {
-    final candidate = await restoreCanonicalBackup(passphrase: passphrase);
+  Future<List<Task>?> restoreCanonicalTasks({
+    String? passphrase,
+    Future<String?> Function()? requestPassphrase,
+  }) async {
+    final candidate = await restoreCanonicalBackup(
+      passphrase: passphrase,
+      requestPassphrase: requestPassphrase,
+    );
     return candidate?.tasks;
   }
 
