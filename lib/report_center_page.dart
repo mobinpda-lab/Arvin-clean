@@ -31,12 +31,16 @@ class ReportCenterPage extends StatefulWidget {
     required this.tasks,
     this.projects = const [],
     this.people = const [],
+    this.categories = const <String>[],
+    this.tags = const <String>[],
     this.now,
   });
 
   final List<Task> tasks;
   final List<ProjectPlan> projects;
   final List<PersonReference> people;
+  final List<String> categories;
+  final List<String> tags;
   final DateTime? now;
 
   @override
@@ -158,6 +162,8 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
         projects: widget.projects,
         tasks: widget.tasks,
         people: _peopleDirectory,
+        categories: widget.categories,
+        tags: widget.tags,
         now: _now,
       ),
     );
@@ -531,6 +537,8 @@ class _ReportFilterSheet extends StatefulWidget {
     required this.projects,
     required this.tasks,
     required this.people,
+    required this.categories,
+    required this.tags,
     required this.now,
   });
 
@@ -538,6 +546,8 @@ class _ReportFilterSheet extends StatefulWidget {
   final List<ProjectPlan> projects;
   final List<Task> tasks;
   final List<PersonReference> people;
+  final List<String> categories;
+  final List<String> tags;
   final DateTime now;
 
   @override
@@ -699,18 +709,14 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final categories = widget.tasks
-        .map((task) => task.category?.trim())
-        .whereType<String>()
-        .where((value) => value.isNotEmpty)
-        .toSet()
-        .toList()..sort();
-    final tags = widget.tasks
-        .expand((task) => task.tags)
-        .map((value) => value.trim())
-        .where((value) => value.isNotEmpty)
-        .toSet()
-        .toList()..sort();
+    final categories = <String>{
+      ...widget.categories.map((value) => value.trim()).where((value) => value.isNotEmpty),
+      ...widget.tasks.map((task) => task.category?.trim()).whereType<String>().where((value) => value.isNotEmpty),
+    }.toList()..sort();
+    final tags = <String>{
+      ...widget.tags.map((value) => value.trim()).where((value) => value.isNotEmpty),
+      ...widget.tasks.expand((task) => task.tags).map((value) => value.trim()).where((value) => value.isNotEmpty),
+    }.toList()..sort();
     return SafeArea(
       child: Container(
         constraints: BoxConstraints(
