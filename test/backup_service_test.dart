@@ -66,6 +66,54 @@ void main() {
       });
     });
 
+    test('round-trips People directory and records producer/schema versions', () {
+      final bytes = ArvinBackupService.encodeBackupDocument({
+        'tasks': <dynamic>[],
+        'peopleDirectory': <Map<String, dynamic>>[
+          <String, dynamic>{'id': 'person-synthetic-1', 'displayName': 'شخص آزمایشی'},
+        ],
+      });
+      final document = ArvinBackupService.validateBackupDocument(
+        jsonDecode(utf8.decode(bytes)),
+      );
+      expect(document['appVersion'], ArvinBackupService.appVersion);
+      expect(document['schemaVersion'], ArvinBackupService.schemaVersion);
+      expect(document['peopleDirectory'], <Map<String, dynamic>>[
+        <String, dynamic>{'id': 'person-synthetic-1', 'displayName': 'شخص آزمایشی'},
+      ]);
+    });
+
+    test('rejects malformed People directory containers', () {
+      expect(
+        () => ArvinBackupService.encodeBackupDocument({
+          'tasks': <dynamic>[],
+          'peopleDirectory': 'not-a-list',
+        }),
+        throwsA(isA<FormatException>()),
+      );
+      expect(
+        () => ArvinBackupService.validateBackupDocument({
+          'type': 'arvin_backup',
+          'formatVersion': 1,
+          'tasks': <dynamic>[],
+          'peopleDirectory': 'not-a-list',
+        }),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
+    test('rejects backups claiming a future schema version', () {
+      expect(
+        () => ArvinBackupService.validateBackupDocument({
+          'type': 'arvin_backup',
+          'formatVersion': 1,
+          'schemaVersion': ArvinBackupService.schemaVersion + 1,
+          'tasks': <dynamic>[],
+        }),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
     test('round-trips optional Calendar links and Category/Tag catalogs', () {
       final bytes = ArvinBackupService.encodeBackupDocument({
         'tasks': <dynamic>[
