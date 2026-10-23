@@ -41,7 +41,22 @@ void main() {
         ],
       );
       await store.save([seed]);
-      debugPrint('CALENDAR_SMOKE: seeded one canonical record in SQLite');
+      final roundTripTasks = await store.load();
+      final persistedSeed = roundTripTasks.where((task) => task.id == taskId).toList();
+      debugPrint(
+        'CALENDAR_SMOKE_DIAGNOSTIC: persistedTasks=${roundTripTasks.length}; '
+        'seedMatches=${persistedSeed.length}; '
+        'followUpCount=${persistedSeed.isEmpty ? 0 : persistedSeed.single.followUps.length}; '
+        'reminderPresent=${persistedSeed.isNotEmpty && persistedSeed.single.followUps.any((item) => item.id == followUpId && item.reminderDate == reminderAt)}',
+      );
+      expect(persistedSeed, hasLength(1), reason: 'Canonical Task must round-trip before app startup');
+      expect(
+        persistedSeed.single.followUps.any(
+          (item) => item.id == followUpId && item.reminderDate == reminderAt,
+        ),
+        isTrue,
+        reason: 'Canonical Follow-up reminder must survive SQL save/reload before Calendar projection',
+      );
 
       app.main();
       await tester.pumpAndSettle();
