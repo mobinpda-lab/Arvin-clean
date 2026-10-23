@@ -2320,7 +2320,9 @@ class _HomePageState extends State<HomePage> {
           }
           await traceRestoreOperation<void>(
             'settings-stage-hook',
-            () async => widget.restoreStageHook?.call('settings'),
+            () async {
+              await widget.restoreStageHook?.call('settings');
+            },
           );
           // Catalog writes are last and transactional within TaskStore.
           await taskStore.mergeCatalogs(
