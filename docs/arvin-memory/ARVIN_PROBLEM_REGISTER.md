@@ -310,3 +310,28 @@ The ten items below remain one acceptance set under existing ledger [#1139](http
 - Base SHA: `18cbeecc95a03a3b301359ca5b96cfef175a3b15`
 - Code commits currently recorded: `17f2266255fc67b66a63c192f384bbbf28b849ed` (Quick Entry UI), `6151901a4a4cf77b62b964be15137d45a463b2fe` (regression test), `9868d23e6c0e4aa66076f07ff77f41bee4b4d15d` (decision record).
 - No merge, release or APK build is claimed. Re-evaluate these commits against the final PR head after all docs and CI changes.
+
+
+## LIVE CONTINUATION — ARVIN Wave 7.12 checkpoint (2026-10-23)
+
+Evidence is tied to the PR #2940 head `24e0d333ea3255c9c957af7b9c4b3819458beb76`; it must not be reused for a later head.
+
+- Build / Quality run [39977629989](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39977629989): terminal success on the recorded PR head. Analyze, six test shards, Debug APK and Release APK jobs all report success.
+- Debug artifact: [arvin-debug-apk](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12512755645), SHA-256 digest `7daf753da4212f3f53ae76359420886787216f02f923d638a8093611d45b5da6`, generated from the same head.
+- Release validation artifact: [arvin-release-apk](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12511709354), SHA-256 digest `b1d775c5ce145da90b67c272f5e8645de197733b353d0519847ac56c96515019`, generated from the same head. This is not evidence of owner-certificate signing; release remains NO-GO.
+- Device Smoke run [39977629956](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39977629956): home, quick-capture, people, backup/restore, SQL persistence and SQL migration passed. Calendar job `120496313603` remained in progress at the last live poll, at the canonical Android emulator smoke step; full Device Smoke is therefore not terminal.
+- Quick Entry removal remains present at the validated head. The exact-head Quality suite passed, including the regression asserting the unwanted Follow-up toggle is absent and Checklist remains available.
+- Project path audit found the canonical `ProjectStore`, awaited persistence in `ProjectsLauncher`, and a widget regression covering create/edit/reopen against storage. This is positive code/test evidence, but it does not identify the SHA of the previously installed owner APK or reproduce the reported installed-device failure.
+- Font picker audit on this branch found more than the two approved choices and extra descriptions. Do not duplicate that change here: active PRs #2918 and #2932 both touch `settings_page.dart`, `font_registry.dart`, `main.dart`, PDF typography and validation workflows. Reconcile their latest heads first; PDF font and selected-font persistence must remain covered.
+- The Notebook page itself has a canonical note-opening path (`NotebookPage._open` to `NotebookEditorPage`). The reported wrong destination is not yet traced to a reproducible Home interaction; `main.dart` is also touched by active typography/backup/signing PRs, so avoid a blind route edit.
+- The accepted Follow-up contract in `ARVIN_FOLLOW_UP_AND_QUICK_ENTRY_DECISION.md` explicitly separates `nextFollowUp` from `reminderDate`. This checkpoint does not prove every legacy-data, Calendar and backup/restore scenario; no model migration was attempted.
+- Remaining custom taxonomy filters, Home control conformance, repeated-checklist identity and Calendar short/long-tap identity are not accepted by a green Build alone. The Calendar emulator smoke is not equivalent to a targeted tap-routing assertion.
+- No installed APK provenance was found in the evidence reviewed. Do not attribute the reported mismatch to a specific source commit without the installed APK's version/SHA or a reproducible current-code failure.
+- No main changes, merge, force-push or release were performed.
+
+### Wave 7.12 acceptance status
+- #8 Quick Entry toggle: **PASS** for the specific absence/Checklist regression and automated suite on the exact head above; full product acceptance remains subject to the other independent Follow-up checks.
+- Build/Quality: **PASS** on the exact head above.
+- Device Smoke: **IN PROGRESS** until Calendar job terminates.
+- #1, #2, #3, #4, #5, #6, #7, #9, #10: **NOT VERIFIED** as end-to-end product defects; blockers and evidence boundaries are recorded above. Font UI mismatch is confirmed in this branch but the safe change is blocked by overlapping active PRs.
+- Release: **BLOCKED — RELEASE: NO-GO** until the required gates, owner signing evidence and product/device acceptance are complete.
