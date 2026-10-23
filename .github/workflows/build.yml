@@ -182,7 +182,7 @@ jobs:
         run: flutter build apk --${{ matrix.variant }} -t lib/main.dart
       - name: Verify APK
         run: test -s "build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk"
-      - name: Verify APK FontManifest
+      - name: Verify packaged Vazirmatn font identity
         shell: bash
         run: |
           set -euo pipefail
