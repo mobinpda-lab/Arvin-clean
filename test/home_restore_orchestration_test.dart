@@ -39,6 +39,14 @@ class _HomeRestoreBackupService extends ArvinBackupService {
     readCount += 1;
     return document;
   }
+
+  @override
+  Future<Map<String, dynamic>?> readBackupWithPassphrasePrompt({
+    required Future<String?> Function() requestPassphrase,
+  }) async {
+    readCount += 1;
+    return document;
+  }
 }
 
 void main() {
