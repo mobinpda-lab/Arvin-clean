@@ -137,3 +137,18 @@ Current main is `cea76673d871ce52b84dacf69f355c4282802baa`. Documentation cleanu
 - Preserve the legacy timestamp; midnight is not evidence of all-day intent. The migrated reminder keeps Calendar identity task-reminder:<taskId> and the existing scheduler key; the old field remains for compatibility but is not emitted/scheduled a second time after migration.
 - The owner reports that the current app DB is empty. Do not assume all backups, test fixtures or other installations are empty.
 - SQL, backup/restore, rollback/retry, Calendar no-duplicate, exact-head CI and physical-device acceptance remain required.
+
+
+## 2026-10-19 — Build and Device Smoke evidence boundary
+
+Latest verified PR #2828 head is `49910e585ee73afcf56a7f8d927b9c69e763c5c5`. Build run [39220016817](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39220016817) completed successfully with Analyze, all six test shards, and Debug/Release APK builds. Device Smoke run [39220016763](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39220016763) completed successfully across seven lanes: Home, Quick Capture, People, SQL Persistence, SQL Migration, Backup/Restore and Calendar.
+
+Artifact IDs include Release APK `12171622074` and Debug APK `12171039370`; provenance points to the same branch/head SHA. These are CI outputs, not official signed-release evidence. The Release build config currently selects Debug signing. The PR workflow results also do not replace a controlled `workflow_dispatch` exact-SHA checkout assertion or a physical-device test. Real Calendar Provider acceptance remains blocked by lack of writable provider evidence. Do not generalize a passing smoke lane into full feature acceptance beyond the scenario executed.
+
+## WAVE 4.9 — Follow-up Reminder architecture note — 2026-10-19
+
+Proposed code uses the existing Task-nested `TaskReminder` infrastructure: optional `TaskReminder.followUpId` links an independent record to a Follow-up, and the parent Task remains the enclosing Task. Legacy `FollowUp.reminderDate` remains for compatibility and form round-tripping, and is materialized into a linked record on read if none exists. Projections skip linked records in the generic Task Reminder path and use the Follow-up stable key, preventing double delivery/projection. Calendar preserves `followup:<taskId>:<followUpId>`. Proposed implementation: [PR #2832](https://github.com/mobinpda-lab/Arvin-clean/pull/2832), head `e12fa27dd5044ffd85c6a7d3d42c17e48fe286d5`; CI pending. Do not mark this architecture accepted until persistence, notification and Calendar gates pass.
+
+## WAVE 4.9 CHECKPOINT — 2026-10-19
+
+Follow-up reminder records are proposed to use the existing Task-nested TaskReminder collection with optional followUpId. Legacy FollowUp.reminderDate remains for compatibility and is deterministically materialized only when no linked record exists. Notification/alarm and Calendar paths prefer the linked record while preserving the prior Follow-up delivery key and external Calendar ID. Current PR #2832 head acb06279e766142cc9cbc886259d6ab951df2036; Build 39226858516 IN_PROGRESS and Device Smoke 39226858634 QUEUED. Do not mark this architecture accepted before terminal CI and end-to-end acceptance.

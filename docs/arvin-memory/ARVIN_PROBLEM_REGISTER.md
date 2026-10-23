@@ -286,3 +286,51 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **Candidate mitigation:** Task JSON decode creates one stable legacy TaskReminder with a persisted marker; Calendar and scheduler projections retain old identity; editor and inbound Calendar paths preserve independent reminder behavior.
 - **Remaining risk:** no terminal exact-head CI result yet. SQL persistence, real backup/restore, rollback/retry, Calendar no-duplicate and physical-device acceptance remain unproven.
 - **Status:** Candidate implementation; validation blocked/pending. Release NO-GO.
+
+
+## LIVE STATUS UPDATE — 2026-10-19 — CI terminal results and remaining P0 blockers
+
+| Problem / gate | Evidence | Current status | Next action |
+|---|---|---|---|
+| Latest Follow-up/Reminder PR-head Build was pending | [Run 39220016817](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39220016817), head `49910e585ee73afcf56a7f8d927b9c69e763c5c5` | RESOLVED for this run: SUCCESS, all Analyze/test/APK jobs passed | Keep SHA/run association explicit; do not treat as official release candidate. |
+| Latest PR-head Device Smoke was pending | [Run 39220016763](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39220016763), same SHA | RESOLVED for this run: SUCCESS, all seven lanes passed | Emulator CI only; physical-device and real-provider gates remain open. |
+| Official Release signing | `android/app/build.gradle.kts` on main | BLOCKED: Release uses Debug signing config | Follow authorized signing design; obtain owner-provided protected credential and independent certificate fingerprint approval. |
+| Real Calendar Provider acceptance | [Historical run 39211706224](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706224) | BLOCKED: stock emulator had no writable calendar; no real operation PASS marker | Use an authorized writable-provider environment and record create/no-op/update/delete with exact SHA. |
+| Exact-SHA controlled dispatch | Current passing runs are PR workflow runs | NOT VERIFIED as a manual `workflow_dispatch` acceptance | Inspect/verify the dispatch workflow and obtain a run asserting requested SHA equals checked-out SHA in each required job. |
+| Integrated product acceptance and handover | Current green Build/Smoke are limited to PR #2828 head | IN_PROGRESS | Complete remaining Person/report, recurrence, migration, backup, RTL/PDF, physical install and handover gates on one candidate SHA. |
+
+Overall release remains `BLOCKED — RELEASE: NO-GO`. No merge, tag or release action was performed.
+
+
+## LIVE SOURCE AUDIT — 2026-10-19 — Follow-up reminder record/UI contract gap
+
+- **Observed source on main SHA** `d9fb7a247037762216662a20fb32028ecc8a0f6b`: `lib/models/task.dart` defines `TaskReminder` records nested under Task and separately retains `FollowUp.reminderDate` as a nullable timestamp. `lib/services/follow_up_reminder_projection.dart` emits TaskReminder candidates and also directly emits candidates from each Follow-up's `reminderDate`; the latter uses the Follow-up ID as its stable key, but it is not itself a persisted TaskReminder record.
+- **UI evidence:** `lib/follow_up_entry_page.dart` currently presents a separate `پیگیری بعدی` action control and a `یادآور این پیگیری` date/time block with clear action. This differs from V10.0's required single coherent `یادآور پیگیری بعدی` input.
+- **Impact:** the latest PR #2828 passing projection regressions prove title selection and stable projected identity, not that the user-created follow-up reminder is an independently persisted TaskReminder linked to its parent Task. Full persistence/migration, notification, Calendar, history and Backup/Restore acceptance remains unproven.
+- **Compatibility boundary:** existing accepted decision docs require `nextFollowUp` and reminder timestamps to remain semantically independent and prohibit silent auto-creation or silent data loss. Preserve legacy `FollowUp.reminderDate` data during any transition; avoid double-scheduling when a persisted TaskReminder and legacy projection coexist.
+- **Status:** `IMPLEMENTED_NOT_VERIFIED` for current projection behavior; `BLOCKED` for the independent-record/UI unification contract pending a narrow, backward-compatible design and regression tests. Do not report the full Follow-up Reminder contract as complete.
+- **Next action:** define a single source-of-truth transition for explicit user opt-in, stable reminder ID, title refresh on Follow-up-title edits, legacy-field compatibility, clear/delete semantics and duplicate suppression. Then test JSON/SQL/backup round-trip, notification delivery, Calendar update/no-op/delete and history independence on the resulting exact SHA.
+
+
+## LIVE CI ORCHESTRATION BLOCKER — 2026-10-19 — exact-SHA Device Smoke
+
+- **Observed main SHA:** `d9fb7a247037762216662a20fb32028ecc8a0f6b`.
+- **Source evidence:** main `.github/workflows/device-smoke.yml` has a `workflow_dispatch` trigger but no `target_sha` input. Main `.github/workflows/build.yml` does have `target_sha` support.
+- **Existing fix lane:** PR [#2827](https://github.com/mobinpda-lab/Arvin-clean/pull/2827), head `d437dbf6cc76bbb216916b94145a8ddae897e52b`, adds the Device Smoke target-SHA input and checkout assertion. It is OPEN/DRAFT, unmerged; no manual run proves the new behavior yet.
+- **Classification:** infrastructure/governance integration gap, not a product-code failure. Passing PR run [39220016763](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39220016763) on `49910e585ee73afcf56a7f8d927b9c69e763c5c5` remains valid PR-head emulator evidence, but does not satisfy the explicit exact-SHA dispatch gate.
+- **Action:** review/integrate PR #2827 through approved governance, then run the updated workflow against a fixed target SHA and verify checked-out SHA in all seven lanes. This session's GitHub connector exposes no workflow-dispatch operation, so the dispatch itself cannot be initiated here. No bypass or unapproved merge was attempted.
+
+## WAVE 4.9 LIVE STATUS — 2026-10-19 — Linked Follow-up Reminder
+
+- **Requirement status:** `IMPLEMENTED_NOT_VERIFIED` for proposed linked-record implementation; overall release remains `BLOCKED`.
+- **PR/head:** [#2832](https://github.com/mobinpda-lab/Arvin-clean/pull/2832), `e12fa27dd5044ffd85c6a7d3d42c17e48fe286d5`, stacked onto PR #2828 head `49910e585ee73afcf56a7f8d927b9c69e763c5c5`.
+- **Changes:** optional `TaskReminder.followUpId`; stable linked Reminder ID; title fallback `Follow-up title → پیگیری — parent Task title → پیگیری`; deterministic legacy materialization; linked-record-first delivery/alarm/Calendar; generic projection suppression; delivery-state reconciliation using the Follow-up stable key; Follow-up-owned records excluded from generic Task Reminder editing.
+- **CI:** Build [39225465707](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39225465707) was IN_PROGRESS and Device Smoke [39225465835](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39225465835) QUEUED when recorded. Do not claim current-head tests pass until terminal evidence exists.
+- **Residual gates:** SQL envelope round-trip, migration retry, title-only edit, clear date/time, unrelated Reminder preservation, notification idempotency, Calendar create/no-op/update/delete, Backup/Restore, Person/waiting-response/history preservation, real writable Provider, exact-SHA dispatch and official signing.
+
+## WAVE 4.9 CHECKPOINT — 2026-10-19 — current CI
+
+- Requirement status: IMPLEMENTED_NOT_VERIFIED for linked Follow-up Reminder; release remains BLOCKED.
+- PR #2832 current head: acb06279e766142cc9cbc886259d6ab951df2036, stacked on PR #2828 head 49910e585ee73afcf56a7f8d927b9c69e763c5c5.
+- Current Build 39226858516 is IN_PROGRESS; current Device Smoke 39226858634 is QUEUED. Earlier run 39225465707 failed on analyzer findings and outdated backup/Calendar assertions; targeted corrections were made and subsequent runs were cancelled by later commits.
+- Still required: current-head full tests, SQL/backup round-trip, notification cancellation/idempotency, real Calendar Provider create/no-op/update/delete, exact-SHA dispatch, authorized official signing, and remaining People/Reports/recurrence/PDF acceptance.

@@ -78,3 +78,23 @@ Current implementation pointer: PR #2607. Automated validation, small-screen RTL
 
 ## Live checkpoint 2026-10-12
 No new owner installation, physical-device result, screenshot, or acceptance was supplied in this execution. Do not fabricate an installation/version/device record. Exact-main emulator runs are stale/incomplete; Calendar, Backup/Restore, RTL/compact-screen and golden-flow acceptance remain open.
+
+
+## 2026-10-19 — Follow-up reminder title regression validation
+
+On PR #2828 head `49910e585ee73afcf56a7f8d927b9c69e763c5c5`, two focused tests cover reminder label behavior: title-only Follow-up edits update the visible label without changing stable reminder identity or scheduled time; blank Follow-up and parent Task titles fall back safely to Persian `پیگیری` while preserving identity/time. Build [39220016817](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39220016817) passed all six test shards, and Device Smoke [39220016763](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39220016763) passed all seven lanes.
+
+**UX validation boundary:** this establishes the targeted regression under CI, not a complete usability review of the Follow-up form, visible parent-task navigation, clearable date/time, notifications, calendar synchronization, multiple-reminder independence, Persian RTL on physical devices, or end-to-end Backup/Restore. Keep those as open acceptance items until direct evidence exists.
+
+
+## 2026-10-19 — Follow-up form consistency gap against V10.0
+
+A source read of main `d9fb7a247037762216662a20fb32028ecc8a0f6b` confirms `lib/follow_up_entry_page.dart` still presents `انتخاب پیگیری بعدی` separately from a card labeled `یادآور این پیگیری` with independent date/time and clear controls. V10.0 requires one coherent `یادآور پیگیری بعدی` input. The current form preserves independent stored values, which must remain true; a UI unification must not silently turn `nextFollowUp` into a notification or destroy legacy `reminderDate` data. The independent Reminder record relationship and duplicate-scheduling behavior are not proven by the passing projection tests. Mark the UI/data contract as open until a focused implementation and end-to-end regressions exist.
+
+## 2026-10-19 — Wave 4.9 Follow-up Reminder form
+
+The Follow-up editor now labels the notification controls `یادآور پیگیری بعدی` and describes the notification as independent. The next-action date remains a separate concept and must never automatically create a notification. The generic Task Reminder editor excludes Follow-up-owned Reminder records so generic editing cannot silently unlink a Follow-up; the Follow-up form remains the control for clearing its notification date/time. UI and persistence changes are in Draft [PR #2832](https://github.com/mobinpda-lab/Arvin-clean/pull/2832) and await current-head CI/device evidence.
+
+## 2026-10-19 — Wave 4.9 checkpoint
+
+The Follow-up form labels its notification controls «یادآور پیگیری بعدی». The next-action time remains semantically separate and must not auto-create a notification. Follow-up-owned Reminder records are excluded from the generic Task Reminder editor; clearing the Follow-up reminder preserves the Follow-up and its history. PR #2832 head acb06279e766142cc9cbc886259d6ab951df2036; Build 39226858516 IN_PROGRESS and Device Smoke 39226858634 QUEUED.

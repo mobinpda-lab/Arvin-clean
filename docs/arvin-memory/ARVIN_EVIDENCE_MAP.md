@@ -463,3 +463,448 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Prior exact-head Build | Run [38859380955](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38859380955), SHA `2d04631dd9d1939bd3feafa12aa7d68bec349b58` | Debug/Release APK jobs succeeded; multiple test shards failed | Re-run on final SHA; old success is not release evidence |
 | Final head Build / Device Smoke / Calendar Provider | Runs are regenerated when the branch head changes | Pending validation | All six device-smoke lanes, Calendar Provider Acceptance, artifacts and screenshot review |
 | Font / physical device | VazirHarf declared; Vazirmatn asset not found in project assets; no new physical-device evidence | OPEN / NO-GO | Add licensed font asset if Vazirmatn is mandatory; separate physical-device acceptance |
+
+
+## LIVE EXECUTION WAVE 1 — 2026-10-19 — Fresh baseline and P0 evidence recovery
+
+**Governance:** RELEASE: NO-GO. This entry records observed evidence and limitations only. No merge, tag, or release action was performed.
+
+### Baseline and recent main history
+
+- Main SHA observed: `d9fb7a247037762216662a20fb32028ecc8a0f6b`.
+- Latest five commits observed through GitHub commit search:
+  - [`d9fb7a2`](https://github.com/mobinpda-lab/Arvin-clean/commit/d9fb7a247037762216662a20fb32028ecc8a0f6b) — recurring-task triple-window projection.
+  - [`2999e40`](https://github.com/mobinpda-lab/Arvin-clean/commit/2999e40562834fa6b034fe1cefe0688ede21a076) — calendar registration icon.
+  - [`6c3e79b`](https://github.com/mobinpda-lab/Arvin-clean/commit/6c3e79bb3540adf13799034406b3d274c35a4f9e) — Calendar/Home projection polish.
+  - [`5bc882b`](https://github.com/mobinpda-lab/Arvin-clean/commit/5bc882bea115d09ec4b77d2f790ee7b0b4352bf9) — Person/waiting-response Report Center filters.
+  - [`445d075`](https://github.com/mobinpda-lab/Arvin-clean/commit/445d0754b465cbd6c507ce28ca17a150881b9b37) — Home reminder deduplication test.
+- Local working tree: NOT INSPECTABLE in this GitHub-only execution environment.
+
+### Current PR topology observed
+
+| PR | Head SHA | Base / base SHA | Live state | Integration note |
+|---|---|---|---|---|
+| [#2817](https://github.com/mobinpda-lab/Arvin-clean/pull/2817) | `77a6a1bec2d6d5e99d4eef0a737abc4d24130469` | `main` / `d9fb7a247037762216662a20fb32028ecc8a0f6b` | OPEN, DRAFT, mergeable=true | Release hardening parent; telemetry acceptance remains a release concern. |
+| [#2821](https://github.com/mobinpda-lab/Arvin-clean/pull/2821) | `e80be91f4f461d0387d3b5b9349c217715bdba2e` | `hardening/v5.09-release-approval-and-telemetry` / `77a6a1bec2d6d5e99d4eef0a737abc4d24130469` | OPEN, DRAFT, mergeable=true | Stacked on #2817; do not integrate directly to main without dependency reconciliation. |
+| [#2824](https://github.com/mobinpda-lab/Arvin-clean/pull/2824) | `5c76d3f1f00804f15668c6d80c65c02e9abe05b9` | `main` / `d9fb7a247037762216662a20fb32028ecc8a0f6b` | OPEN, DRAFT, mergeable=true | Signature workflow exists only on branch; not on default branch. |
+| [#2666](https://github.com/mobinpda-lab/Arvin-clean/pull/2666) | `b75e2427f5e06c49553f064f26376a9e70fcbd7c` | `main` / `3f4b7299dca68afb31c9ad1c2c48b60dd8410a2d` | OPEN, non-mergeable | Base is behind current main; broad 277-commit / 90-file integration branch. |
+| [#2681](https://github.com/mobinpda-lab/Arvin-clean/pull/2681) | `4c2795e92d70cee208f38a150a28b1f63f31c7f2` | #2666 branch / `c9d244d7ec45d18e5a8c89159a2eeac1c68ae9e1` | OPEN, non-mergeable | Stacked child; base does not equal current #2666 head. |
+| [#2695](https://github.com/mobinpda-lab/Arvin-clean/pull/2695) | `44810fcf5bb96db8c028a1574889e3f2d45af75f` | #2666 branch / `ad762774009e5b5c7ee341146a8160c52e2b9bb2` | OPEN, DRAFT, metadata mergeable=true | Stale parent base; must be reconciled even though metadata currently says mergeable. |
+| [#2790](https://github.com/mobinpda-lab/Arvin-clean/pull/2790) | `6ff42e4b48bdfd7410d621a4b9407324ce9980c3` | `main` / `824ca8f17c92e76b3887001891d7d5b6f17974a6` | OPEN, DRAFT | Test-only full backup/restore integrity; base is stale. |
+| [#2791](https://github.com/mobinpda-lab/Arvin-clean/pull/2791) | `ae3a4b7a6dfec72b7b5d271a9a544f33256df341` | `main` / `824ca8f17c92e76b3887001891d7d5b6f17974a6` | OPEN, DRAFT | PDF-only Vazirmatn font embedding proposal; exact-head PDF test/build evidence pending. |
+| [#2796](https://github.com/mobinpda-lab/Arvin-clean/pull/2796) | `12d5322619ce6c21d03b418595cfdedd92db2861` | `main` / `824ca8f17c92e76b3887001891d7d5b6f17974a6` | OPEN, DRAFT | Follow-up UI/model compatibility work; base stale. UI font proposal must be reconciled with current canonical typography contract. |
+| [#2798](https://github.com/mobinpda-lab/Arvin-clean/pull/2798) | `95d2f70f263d5d75ac0cbd7ef3efeb93f40e3c09` | `main` / `824ca8f17c92e76b3887001891d7d5b6f17974a6` | OPEN, DRAFT | Compatibility spike only; do not merge. |
+| [#2755](https://github.com/mobinpda-lab/Arvin-clean/pull/2755) | `6aca28916068a6a21fe0a1a85e1e510bb743a60d` | `main` / `e04467a38b92121cfb3b635f39c4c5e8fd0569ba` | OPEN, DRAFT, non-mergeable | Overlaps with report-filter work already visible on main. |
+| [#2745](https://github.com/mobinpda-lab/Arvin-clean/pull/2745) | `01a905ed6543bdd6f73cd0e4044b65fc6cf0bc29` | `main` / `d2267190ee83b7e462483f5d114395626c55e150` | OPEN, DRAFT | Person directory branch; base stale and some foundation already exists on main. |
+| [#2679](https://github.com/mobinpda-lab/Arvin-clean/pull/2679) | `349350cb74c423816685a25c36f5cd782b13aac4` | `main` / `3f4b7299dca68afb31c9ad1c2c48b60dd8410a2d` | OPEN, DRAFT, non-mergeable | Waiting-response navigation; exact-head validation absent in PR notes. |
+| [#2762](https://github.com/mobinpda-lab/Arvin-clean/pull/2762) | `777e4d573f3901d1b94b1b0d9289608993270384` | `main` / `e04467a38b92121cfb3b635f39c4c5e8fd0569ba` | OPEN, DRAFT, non-mergeable | Overlapping form/calendar/report changes; stale base. |
+
+### Existing canonical implementation found on current main
+
+- `lib/models/task.dart` already contains `TaskReminder`, structured FollowUp waiting state and Person IDs.
+- `lib/services/person_follow_up_report_projection.dart` already contains the shared Person/Follow-up report projection, referenced by `lib/report_center_page.dart`.
+- `lib/backup_manager.dart` and existing BackupPage are the canonical backup foundation; extend rather than create another engine.
+- `lib/services/task_report_pdf_renderer.dart` is the existing PDF renderer. Current UI canonical documents state VazirHarf v34.003 is the only default Persian UI font and prohibit Vazirmatn as the canonical UI font. Keep the PDF-only font proposal separate from UI typography decisions.
+- Issues [#2682](https://github.com/mobinpda-lab/Arvin-clean/issues/2682) and [#2683](https://github.com/mobinpda-lab/Arvin-clean/issues/2683) currently report CLOSED in live issue metadata; their closure is not substitute for exact-head and end-to-end evidence.
+
+### P0 — Calendar Provider Acceptance
+
+- Workflow file exists on default branch: [calendar-provider-acceptance.yml](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/calendar-provider-acceptance.yml); it declares `workflow_dispatch`.
+- The available GitHub connector exposes GET/read and selected rerun operations, but no workflow-dispatch/create-run action. Attempt to query full workflow run history through the generic GET connector was rejected as an unsupported URL (`HTTP 400: GitHub Fetch URL is not an allowed public GitHub repository or search endpoint`). The commit-run wrapper only returns pull-request-triggered runs and cannot establish exhaustive dispatch history.
+- `CALENDAR_DISPATCH_CAPABILITY: UNAVAILABLE` in this connection; no new dispatch is claimed.
+- No qualifying Calendar Provider Acceptance run or its three official files was retrieved in this wave.
+- `result.txt`: NOT RECEIVED.
+- `test-output.txt`: NOT RECEIVED.
+- `environment.txt`: NOT RECEIVED.
+- Gate: BLOCKED until successful run SHA equals the intended candidate SHA and all three files prove `RESULT=PASS_REAL_PROVIDER_CREATE_NOOP_UPDATE_DELETE`.
+
+### P0 — Build / Device Smoke
+
+- Build [Run 39148486792](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39148486792): completed/success; run metadata head SHA is `e80be91f4f461d0387d3b5b9349c217715bdba2e`. All 9 jobs returned success: Analyze, six test shards, Debug APK and Release APK.
+- Device Smoke [Run 39148486773](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39148486773): completed/success; run metadata head SHA is the same candidate. All seven lanes returned success: People, Backup/Restore, Calendar, SQL persistence, Home, Quick Capture, SQL migration.
+- Important qualification: both runs were triggered by `pull_request`; the Build's “Verify exact requested revision” step was skipped in all jobs. Device Smoke artifact names include synthetic merge SHA `76189b7a0b2b873b7f7d1477dc2cc4233edf30a4`. Therefore these are successful PR/synthetic-merge runs, **not proven exact-head checkout validation** under the project's exact-head policy.
+- Artifact listing for Build Run 39148486792:
+  - Release APK artifact [12144700746](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12144700746), `arvin-release-apk`, not expired, expires 2027-01-16; originating run head SHA matches the candidate.
+  - Debug APK artifact [12144461948](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12144461948), `arvin-debug-apk`, not expired, expires 2027-01-16.
+- Device Smoke artifacts visible from the first-page listing include Calendar [12144936225](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12144936225), People [12144961248](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12144961248), Home [12144282705](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12144282705), Quick Capture [12144178175](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12144178175), and Persian time picker [12144486950](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12144461948). Several screenshot steps were skipped by lane design; no claim is made that three required screenshots were all inspected.
+
+### P0 — APK checksum / signature
+
+- Source artifact `arvin-release-apk` / artifact ID `12144700746` was downloaded from Build Run `39148486792`; ZIP contained `app-release.apk`.
+- Actual APK SHA-256 computed in this execution environment: `ceb696e84819549be5ccfd534bb773f842961800bd0436bc371b2a1c42242896`, matching the expected hash encoded in PR #2824's workflow.
+- Local Android SDK / `apksigner` is unavailable in this environment (`ANDROID_HOME` unset; no executable `apksigner` found). The hash match proves byte identity only; it does not prove signature validity or certificate identity.
+- [PR #2824](https://github.com/mobinpda-lab/Arvin-clean/pull/2824) keeps `.github/workflows/verify-apk-signature.yml` only on its unmerged branch; fetching that path from `main` returned 404. It is not yet a normally dispatchable default-branch workflow.
+- Prior failed runs: [39153178383](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39153178383) failed at “Setup Android SDK”; [39153221573](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39153221573) failed at “Install Android Build Tools 34.0.0”. [Device Smoke 39153251028](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39153251028) failed on the signature branch's Calendar lane. Signature gate remains BLOCKED.
+
+### P1 — Independent work status
+
+- Backup/Restore: canonical implementation exists on main; PR #2790 adds a valuable full clear-and-restore integrity test, but it is Draft and has no accepted exact-head evidence in this wave. Status: NOT VERIFIED.
+- PDF font: PR #2791 proposes embedding Vazirmatn UI-FD only in the official PDF renderer; exact-head targeted PDF tests/build and rendered-artifact inspection were not retrieved. Status: NOT VERIFIED.
+- Follow-up UI: PR #2796 removes the Quick Capture switch and preserves the legacy JSON field, but exact-head tests are pending and its UI-font proposal conflicts with the current canonical UI font lock if it changes the default font. Status: NOT VERIFIED.
+- Multiple reminders and Person/reporting: foundational code and projection are already present on main, while broad stacked branches are stale or non-mergeable. Do not merge or port duplicate models. Reconcile each narrow diff against current main and current canonical tests.
+
+### Actions actually performed in this wave
+
+1. Read the live repository metadata, latest five commits, required governance documents and live metadata for all requested PRs.
+2. Inspected Build and Device Smoke job/step summaries and first-page artifact inventories.
+3. Retrieved the Calendar Provider Acceptance workflow from default branch and verified its `workflow_dispatch` declaration.
+4. Retrieved PR #2824's workflow patch and confirmed the signature workflow is branch-only.
+5. Downloaded the original Release APK artifact and independently computed its SHA-256. It matches the expected value; cryptographic signature verification was not performed.
+6. No repository code was changed, no workflow was dispatched, no PR was merged, no tag was created and no Release was created or published.
+
+### Next executable action
+
+Use an authorized GitHub Actions dispatch-capable executor (or authenticated REST `POST /repos/mobinpda-lab/Arvin-clean/actions/workflows/calendar-provider-acceptance.yml/dispatches`) against `fix/v5.19-calendar-smoke-overflow-navigation`, then verify exact run SHA and download all three evidence files. Separately make the signature-audit workflow available on default branch only through a reviewed, authorized change, then execute it against source Run `39148486792` and expected SHA above. Do not bypass release governance.
+
+**Release decision: NO-GO.**
+
+
+### Failure-log detail recovered after initial checkpoint — 2026-10-19
+
+- Signature audit Run [39153178383](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39153178383), job [117750860500](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39153178383): Android SDK setup emitted `Warning: Failed to find package 'tools'`; `sdkmanager` exited 1.
+- Signature audit Run [39153221573](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39153221573), job [117750993883](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39153221573): `yes: standard output: Broken pipe`; shell exited 1 before artifact checksum/signature verification.
+- Signature-branch Device Smoke Run [39153251028](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39153251028), Calendar job [117751102395](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39153251028): test `Android calendar card tap, long press, SQLite completion and Persian time picker` failed at `integration_test/calendar_card_interaction_test.dart:66`; expected key `reminder-card-followup:calendar-smoke-task:calendar-smoke-follow-up`, found zero widgets. This is failure evidence for SHA `5c76d3f1f00804f15668c6d80c65c02e9abe05b9`, not the Calendar candidate SHA `e80be91f4f461d0387d3b5b9349c217715bdba2e`.
+- The corrected Persian time-picker artifact ID from Device Smoke Run `39148486773` is `12144486950`; the Debug APK artifact from Build Run `39148486792` is separately `12144461948`.
+
+
+---
+
+## 2026-10-19 — ARVIN Wave 2 live evidence and blocker classification
+
+Baseline recheck: `main` remains `d9fb7a247037762216662a20fb32028ecc8a0f6b` ([commit](https://github.com/mobinpda-lab/Arvin-clean/commit/d9fb7a247037762216662a20fb32028ecc8a0f6b)). The working tree is not available through the connected tools. No merge, tag, or release was performed.
+
+| Gate | Status | Verified evidence | Remaining limitation |
+|---|---|---|---|
+| Calendar Provider Acceptance for PR #2821 head `e80be91f4f461d0387d3b5b9349c217715bdba2e` | BLOCKED | Main workflow [calendar-provider-acceptance.yml](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/calendar-provider-acceptance.yml) has `workflow_dispatch`; existing [Device Smoke run 39148486773](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39148486773) is a PR-triggered run, not accepted provider evidence | No Calendar Provider Acceptance run or three evidence files were returned for the candidate SHA. Connected GitHub actions expose no workflow-dispatch operation. The existing PR #2821 targets the hardening branch, not main, so its ordinary PR event does not match the provider workflow's `pull_request.branches: [main]` filter. |
+| APK checksum | PASS (artifact integrity only) | [Signature audit run 39200518146](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39200518146), workflow commit `c832480b0655f13a749ecf845b067276e54cf204`, downloaded APK from [Build run 39148486792](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39148486792), artifact [12144700746](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12144700746). Expected and actual APK SHA-256 both equal `ceb696e84819549be5ccfd534bb773f842961800bd0436bc371b2a1c42242896`. | APK SHA proves bytes match the expected artifact, not release-signing identity. |
+| APK cryptographic signature | PASS (signature validity only) | Run 39200518146: `apksigner verify --verbose --print-certs` exited successfully; APK Signature Scheme v2 = true; one signer. | Signer certificate DN is `C=US, O=Android, CN=Android Debug`; certificate SHA-256 is `b6f35a1f55f5e2d0c3bc25ab0df5b4c7853eabada3e1ab43e7af1284069a5f16`. This is not evidence of an approved release certificate. |
+| Release signer identity | FAIL | Same audit run and certificate output above. | Build artifact named `app-release.apk` is signed with Android Debug certificate. Obtain/rebuild with the approved release signing identity and re-run checksum + apksigner; do not accept debug signing as release proof. |
+| Signature workflow infrastructure | PARTIALLY RESOLVED; latest SHA NOT VERIFIED | PR [#2824](https://github.com/mobinpda-lab/Arvin-clean/pull/2824). The earlier failures were: [run 39153178383](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39153178383), obsolete `tools` package request; [run 39153221573](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39153221573), `yes: standard output: Broken pipe`. Workflow setup was updated to install current `platform-tools` and `build-tools;34.0.0`, suppress expected `yes` SIGPIPE output and preserve sdkmanager failure status. | Successful audit run 39200518146 checked workflow SHA `c832480b0655f13a749ecf845b067276e54cf204`; current PR head is `4c8f7bf29382d05a2ed1b1fe8fa36c5c7fc43219`. Do not imply the later workflow commit was separately executed. |
+| Build exact SHA | NOT VERIFIED for target `e80be91f4f461d0387d3b5b9349c217715bdba2e` | [build.yml](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/build.yml) already supports `workflow_dispatch.inputs.target_sha`, checks out the supplied SHA and asserts `git rev-parse HEAD`. Prior [Build run 39148486792](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39148486792) passed its build/test jobs, but the exact-target verification step was skipped for the PR event. | Direct workflow dispatch is not exposed by the connected GitHub action interface. Prior PR run/artifact names refer to synthetic merge SHA `76189b7a0b2b873b7f7d1477dc2cc4233edf30a4`, not independent exact-head checkout proof. |
+| Device Smoke exact SHA | NOT VERIFIED for target `e80be91f4f461d0387d3b5b9349c217715bdba2e` | Prior [Device Smoke run 39148486773](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39148486773) completed 7/7 lanes on its PR merge checkout. | Main `device-smoke.yml` had no target-SHA input or exact-checkout assertion. Draft [PR #2827](https://github.com/mobinpda-lab/Arvin-clean/pull/2827), head `6603dd84c5d4036fc52957c1fab6f9831d42ad05`, adds exact-SHA dispatch/check-out support. No exact-SHA dispatch has been run. |
+| Backup/Restore full-cycle test | NOT VERIFIED on exact head; partial PR CI evidence | [PR #2790](https://github.com/mobinpda-lab/Arvin-clean/pull/2790), head `6ff42e4b48bdfd7410d621a4b9407324ce9980c3`. [Build run 39060931997](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39060931997) passed Analyze, all six test shards, Debug and Release APK jobs; the exact-revision step was skipped because this was a PR event. Device Smoke [run 39060932020](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39060932020) passed Backup/Restore, People, Home, Quick Capture, SQL Persistence and SQL Migration. | Overall Device Smoke failed Calendar lane at `integration_test/calendar_card_interaction_test.dart:105`: expected key `reminder-card-followup:calendar-smoke-task:calendar-smoke-follow-up`, found zero widgets. Root cause remains Unknown (test assertion vs product behavior). PR #2790 base is stale (`824ca8f...`) relative to current main. No physical file-provider/rollback test evidence. |
+| PDF font | NOT VERIFIED for production rendering; PR CI partial PASS | [PR #2791](https://github.com/mobinpda-lab/Arvin-clean/pull/2791), head `ae3a4b7a6dfec72b7b5d271a9a544f33256df341`; [Build run 39067627239](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39067627239) passed Analyze, all six test shards and Debug/Release APK jobs; [Device Smoke run 39067627152](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39067627152) passed all seven emulator lanes. Release APK artifact [12114221385](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12114221385); screenshot artifacts are linked from the Device Smoke run. | Runs were PR-triggered and exact-revision step was skipped. No produced/inspected official PDF artifact or visual proof for RTL shaping, Persian digits, line wrapping, tables and embedded Regular/Medium/SemiBold/Bold variants. PR bundles Regular and Bold only. Source/license are declared as Vazirmatn v33.003 + SIL OFL. |
+| Follow-up / Reminder / Person / Report | NOT VERIFIED as an integrated exact-head gate | Current main includes report-filter fix commit `5bc882bea115d09ec4b77d2f790ee7b0b4352bf9`. Open branches [#2666](https://github.com/mobinpda-lab/Arvin-clean/pull/2666), [#2681](https://github.com/mobinpda-lab/Arvin-clean/pull/2681), [#2695](https://github.com/mobinpda-lab/Arvin-clean/pull/2695), [#2679](https://github.com/mobinpda-lab/Arvin-clean/pull/2679), [#2755](https://github.com/mobinpda-lab/Arvin-clean/pull/2755) and [#2762](https://github.com/mobinpda-lab/Arvin-clean/pull/2762) have overlapping/stale bases; #2666, #2681, #2679, #2755 and #2762 report non-mergeable states. | No blind merges. Need targeted current-head tests for independent Reminder deletion, Person association, waiting-response report projection, legacy JSON and migrations. |
+| UI font contract | REVIEW REQUIRED before PR #2796 merge | [PR #2796](https://github.com/mobinpda-lab/Arvin-clean/pull/2796), head `12d5322619ce6c21d03b418595cfdedd92db2861`, removes the legacy Follow-up switch and retains JSON compatibility, but also registers Vazirmatn as a selectable UI font. | Keep PDF font work isolated from UI typography. The canonical UI default remains VazirHarf; explicitly review the additional UI font option independently rather than treating PDF acceptance as approval for UI font changes. |
+
+### New safe code/workflow change
+- Updated the APK signature audit workflow on PR #2824. Latest branch commit: `4c8f7bf29382d05a2ed1b1fe8fa36c5c7fc43219`. The actual successful audit was on the prior workflow commit `c832480b0655f13a749ecf845b067276e54cf204`; the cryptographic result and Android Debug signer finding are recorded above.
+- Opened Draft [PR #2827](https://github.com/mobinpda-lab/Arvin-clean/pull/2827) to add exact-SHA dispatch and checkout verification to Device Smoke. It is based on current main SHA `d9fb7a247037762216662a20fb32028ecc8a0f6b` and remains unmerged/unvalidated for dispatch.
+
+**Release decision: NO-GO.** No Calendar Provider Acceptance PASS, no exact-target Build/Device Smoke evidence for `e80be91...`, and the inspected APK has an Android Debug certificate. No merge, tag or release occurred.
+
+
+## 2026-10-19 — Wave 2 addendum: Follow-up authority/data preservation and queued workflow fixes
+
+- **Confirmed mainline behavior defect:** on main SHA `d9fb7a247037762216662a20fb32028ecc8a0f6b`, `followUpEnabled` still influences Home/list scopes, report `hasFollowUp`, Task Detail status/badge/action, and the swipe-conversion guard. `TaskStore.convertToFollowUp` only set that boolean and created no FollowUp record. These are behavioral consumers, not merely serialization compatibility.
+- **Confirmed metadata-loss defect:** `FollowUpRepository.setCompleted` reconstructed a FollowUp but omitted `title`, `waitingForResponse`, and `personIds`. Completing a record could therefore drop Person associations and waiting-state metadata.
+- **Narrow repair PR:** [#2828](https://github.com/mobinpda-lab/Arvin-clean/pull/2828), latest head `98fa7a7dc4c493dc7e67336b5a639b072fd67b0f`. It makes FollowUp records/legacy date authoritative, creates a real record on conversion when only the old flag exists, mirrors record existence into the legacy serialization flag, and preserves completion metadata. Tests cover Home/list/report filters, Task Detail, conversion/idempotence, serialization compatibility and completion preservation. Build [run 39201513099](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39201513099) and Device Smoke [run 39201513050](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39201513050) are QUEUED at latest poll; no PASS claim. This is an isolated slice, not a merge of broad/non-mergeable PR #2666.
+- **Device Smoke exact-target support:** [PR #2827](https://github.com/mobinpda-lab/Arvin-clean/pull/2827), latest head `a4c4f0fc05c83e9a1bb92534335d3745de9d1c8b`. Initial Build [run 39200699495](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39200699495) failed because the workflow contract test expected the old artifact-name expression. Build [run 39201358367](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39201358367) then failed Analyze because the new assertion interpolated literal `$actual`; the test was corrected to use a raw string. New-head Build [run 39201576910](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39201576910) is PENDING and Device Smoke [run 39201576924](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39201576924) QUEUED. Exact-target dispatch itself remains NOT RUN.
+- **Backup/Restore test evidence refined:** [Build run 39060931997](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39060931997), PR #2790 head `6ff42e4b48bdfd7410d621a4b9407324ce9980c3`, has a passing test-shard output for `canonical_backup_manager_test.dart: full export clear database import cycle preserves Task, reminders, follow-up history and person IDs`. The Build exact-revision step was skipped for the PR event, so this is merge-checkout evidence, not exact-head proof. Device Smoke [run 39060932020](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39060932020) passed the Backup/Restore lane but failed Calendar at [job log](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39060932020); failure detail is the missing follow-up card key recorded above.
+- **PDF evidence at Wave2 poll (superseded by Wave3 below):** [Build run 39067627239](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39067627239), PR #2791 head `ae3a4b7a6dfec72b7b5d271a9a544f33256df341`, passed font-embedding and local-asset tests, but no PDF artifact was yet uploaded. Wave3 subsequently produced and visually inspected artifacts [12164826241](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12164826241) and [12164731659](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12164731659); see the Wave3 PDF section below.
+- **Signature guard at Wave2 poll:** [run 39200526227](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39200526227) verified workflow SHA `4c8f7bf29382d05a2ed1b1fe8fa36c5c7fc43219` but found Android Debug signer. The newer fail-closed workflow commit `ccc9f9b122420ef999828088f70a7aa950c5b979` adds debug-cert rejection and requires `ARVIN_RELEASE_CERT_SHA256`; no signature-audit run for that newest workflow head was available. Build [39200813493](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39200813493) succeeded on the PR checkout with exact-revision check skipped; Device Smoke [39200813437](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39200813437) was still queued at that poll.
+- **Calendar Provider Acceptance at Wave2 poll (superseded by Wave3 below):** no candidate-SHA run or result files were available then. Wave3 now has a real Provider run on PR #2831 head that emitted `RESULT=LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR`; candidate `e80be91f...` remains untested because direct dispatch is unavailable. See Wave3 Provider evidence below.
+
+**Wave2 snapshot (superseded by the Wave3 live evidence below):** APK byte checksum PASS; APK cryptographic signature PASS; release signer identity FAIL; Calendar Provider Acceptance BLOCKED; exact-target Build/Device Smoke NOT VERIFIED; Backup/Restore PASS only on older PR checkout; PDF visual artifact not yet available; Follow-up fix CI PENDING. `RELEASE: NO-GO`.
+
+
+## 2026-10-19 — Wave 3 live evidence addendum
+
+### Baseline and candidate
+- Live `main` remains `d9fb7a247037762216662a20fb32028ecc8a0f6b`; no direct-main writes.
+- Release candidate `e80be91f4f461d0387d3b5b9349c217715bdba2e` is still the head of Draft PR [#2821](https://github.com/mobinpda-lab/Arvin-clean/pull/2821), stacked on Draft [#2817](https://github.com/mobinpda-lab/Arvin-clean/pull/2817) (base head `77a6a1bec2d6d5e99d4eef0a737abc4d24130469)). It remains a candidate, not an accepted release SHA.
+- Direct workflow dispatch and the repository Actions variable endpoint are not exposed by the connected GitHub interface; attempts to inspect the variable endpoint were rejected with HTTP 400. Do not infer that `ARVIN_RELEASE_CERT_SHA256` exists or has an approved value.
+
+### P0 — Follow-up / Person data integrity
+- [PR #2828](https://github.com/mobinpda-lab/Arvin-clean/pull/2828), current head `50f1d26a8e4102f078e2f184771f98d521152dc4`, addresses the old-flag behavior and a newly confirmed SQL migration defect.
+- Build [run 39201513099](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39201513099) failed on test shard 4 because the completion round-trip returned null for Follow-up title. Root cause: `SqlTaskMigrationWriter` omitted title, `waiting_for_response`, and `follow_up_people` rows; `TaskStore` then reconstructed FollowUps from those incomplete SQL rows.
+- The current branch fixes the writer and adds an idempotent one-time backfill from the retained Task envelope for title, true waiting state, and missing Person links. Regression tests cover both new-import persistence and backfill. Latest Build [39203068667](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39203068667) completed SUCCESS on head `50f1d26a8e4102f078e2f184771f98d521152dc4`: Analyze, six test shards, Debug APK and Release APK all passed, including migration/backfill regression tests. Device Smoke [39203068653](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39203068653) completed SUCCESS with all seven lanes (Home, Backup/Restore, Quick Capture, Calendar, SQL persistence, People, SQL migration). These PR-triggered runs still skip the exact-target assertion and do not prove candidate `e80be91f...`.
+
+### P0 — Build / Device Smoke exact SHA
+- [PR #2827](https://github.com/mobinpda-lab/Arvin-clean/pull/2827), head `a4c4f0fc05c83e9a1bb92534335d3745de9d1c8b`, adds `target_sha` support, explicit checkout and fail-closed SHA assertion.
+- Build [run 39201576910](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39201576910) completed SUCCESS with Analyze, six test shards, Debug APK and Release APK all successful on the PR run. The exact-target assertion was SKIPPED because this was a pull-request event.
+- Build [run 39201576910](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39201576910) completed SUCCESS and produced [Release APK artifact 12164156756](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12164156756) and [Debug APK artifact 12163794225](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12163794225).
+- Device Smoke [run 39201576924](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39201576924) completed SUCCESS on PR head `a4c4f0fc05c83e9a1bb92534335d3745de9d1c8b` with all seven lanes successful. Its artifacts include [Calendar lane 12164816854](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12164816854), [People lane 12163659164](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12163659164), [Home lane 12163689415](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12163689415), [Quick Capture lane 12163878541](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12163878541), and [Persian Time Picker 12164042873](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12164042873). The Device Smoke artifact names use synthetic merge SHA `944701c8820132bae120a8a4da69880453099029`; exact-target assertion was SKIPPED. No dispatch against candidate `e80be91f...` has occurred.
+
+### P0 — Calendar Provider
+- [PR #2831](https://github.com/mobinpda-lab/Arvin-clean/pull/2831), head `78781ce52339e10b978dd4ee57a4ce3d6e9a07aa`, adds exact-SHA checkout/assertion to the Provider workflow and an explicit no-op duplicate-event assertion.
+- Provider run [39203189292](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39203189292) completed SUCCESS as a workflow on exact head `78781ce52339e10b978dd4ee57a4ce3d6e9a07aa`, but its actual result is `RESULT=LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR`, not PASS. Artifact [12165156149](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12165156149) contains all three files. `environment.txt` confirms `HEAD_SHA=78781ce...`, API 35, and Calendar Provider discovery; `test-output.txt` shows the test intentionally emitted the limitation after finding no writable calendar.
+- Seed attempt [run 39204160911](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39204160911), head `569c2dec41682ff81cb9afafed62bdb99f5fa7d6`, completed with the limitation result; logs show `adb shell content insert` printed usage because the binding separators were malformed, so no successful seed was established.
+- [Run 39204991082](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39204991082), head `a2f706b47d638fb63d15b946326fba4156e70611`, failed before seed/test because POSIX `sh` rejected `set -o pipefail`.
+- Current run [39205227469](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39205227469), head `196eff68ce2c2db09eb37cad86b69435428d285c`, emitted the same Provider limitation, then failed because the emulator runner split the multiline script into separate shell invocations; the final `if` had no matching `fi`, so no evidence artifact was published.
+- Three independent seed/script corrections did not establish a writable calendar. Per the Wave3 stop rule, no further edits to this seed path are made in this wave. Provider remains BLOCKED; candidate `e80be91f...` is still untested. The same PR head's Build [39205227454](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39205227454) completed SUCCESS, while Device Smoke [39205227448](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39205227448) remains QUEUED; neither is Provider acceptance.
+- Acceptance still requires `RESULT=PASS_REAL_PROVIDER_CREATE_NOOP_UPDATE_DELETE` in `result.txt`, with matching `test-output.txt` and `environment.txt`. A stock-emulator limitation is not PASS.
+
+### P0 — APK signature
+- [PR #2824](https://github.com/mobinpda-lab/Arvin-clean/pull/2824), current workflow head `ccc9f9b122420ef999828088f70a7aa950c5b979`, now fails closed for Android Debug signing and requires `ARVIN_RELEASE_CERT_SHA256`. The mainline `android/app/build.gradle.kts` explicitly sets Release signing to `signingConfigs.getByName("debug")` (lines 34–37); the official release keystore is not wired into the current Gradle configuration.
+- Build [39200813493](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39200813493) and Device Smoke [39200813437](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39200813437) completed SUCCESS, but these are general PR CI, not a signature-gate run on the latest workflow head.
+- The source APK artifact [12144700746](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12144700746) from [Build 39148486792](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39148486792) was re-downloaded and independently hashed in this wave: `ceb696e84819549be5ccfd534bb773f842961800bd0436bc371b2a1c42242896`, matching expected.
+- Signature audit [39200526227](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39200526227) verified APK cryptography but found signer `C=US, O=Android, CN=Android Debug`, certificate SHA-256 `b6f35a1f55f5e2d0c3bc25ab0df5b4c7853eabada3e1ab43e7af1284069a5f16`. Release signer identity remains FAIL; no approved fingerprint has been verified.
+
+### P1 — PDF font and actual rendering
+- Uploaded ZIP was opened and verified as Vazirmatn v33.003; `OFL.txt` states SIL Open Font License 1.1. The PDF PR [#2791](https://github.com/mobinpda-lab/Arvin-clean/pull/2791) now bundles the exact upstream UI-FD Regular, Medium, SemiBold and Bold TTF blobs, loads all four in the report renderer, and documents source/version/license in `assets/fonts/vazirmatn/README.md`.
+- A real PDF artifact was produced by the production renderer: [artifact 12164826241](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12164826241) from older head `03b105b26f502b257ac28e796a875e1ea711b3e4`, and richer artifact [12164731659](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12164731659) from Build [39203354122](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39203354122), PR head `9cf025b5a9678373d6b5a89a8a043ba49bf53243`. Latest Build completed SUCCESS: Analyze, all six test shards, Debug APK, Release APK, and PDF-preview job all passed.
+- Local inspection of the richer artifact: one A4 page; `pdffonts` confirmed embedded `Vazirmatn-UI-FD-Regular`, `Medium`, `SemiBold`, and `Bold`; raster preview showed connected Persian glyphs, RTL layout, Persian digits, date/time, tags, checklist, reminder, Follow-up metadata and long-text wrapping without obvious clipping. The renderer does not use a table layout, so table rendering is not applicable to this report format. Comparing against an app Preview screenshot remains NOT VERIFIED because no UI preview screenshot artifact was available. Device Smoke [39203354193](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39203354193) completed SUCCESS with all seven lanes. Exact-target assertion was skipped on the PR event.
+- [PR #2796](https://github.com/mobinpda-lab/Arvin-clean/pull/2796), current head `3ba0499403a405d92fc0440164b8c6ccc864eb5a`, exposes only locally supported choices (Vazirmatn, System, VazirHarf), maps legacy unsupported IDs safely to VazirHarf, and registers Regular/Medium/SemiBold/Bold weights from the ZIP's v33.003 standard TTF files. Git blob SHAs for all four weights match the ZIP; OFL 1.1 is present, and `assets/fonts/ui/vazirmatn/README.md` documents source/version/license. The default remains VazirHarf. Prior code head `a85bd3ec...` passed Build [39203982600](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39203982600) and Device Smoke [39203982579](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39203982579) with all seven lanes. Latest docs-only head Build [39206323906](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39206323906) and Device Smoke [39206323907](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39206323907) are QUEUED. This remains PR-checkout evidence, not exact-candidate acceptance.
+
+### P1 — Backup/Restore
+- [PR #2790](https://github.com/mobinpda-lab/Arvin-clean/pull/2790), latest head `6ca1cff18f6631352995241b783b7b3bfcec55d5`, extends the full-cycle test to assert checklist and external Calendar-link metadata in addition to multiple reminders, Follow-up history/next action and Person IDs. Build [39204622671](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39204622671) completed SUCCESS: Analyze, six shards, Debug/Release APK and expanded full-cycle test passed. Device Smoke [39204622845](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39204622845) completed SUCCESS with all seven lanes, including Backup/Restore and Calendar. Exact-target proof is still pending; no destructive test was run against real user data.
+
+**Wave 3 gate status at this poll:** Follow-up/Person migration fix CI IN PROGRESS; Calendar Provider on candidate `e80be91f...` BLOCKED (dispatch unavailable); candidate exact-SHA Build/Device Smoke NOT VERIFIED; APK checksum and cryptographic signature PASS but Release signer identity FAIL; PDF four-weight embedding and basic visual render PASS on earlier PR head, richer wrapping fixture NOT RUN to completion; Backup/Restore PASS only on older PR checkout; UI font PR remains separate. `RELEASE: NO-GO`.
+
+
+## Wave 3 PR dependency / SHA baseline (live check 2026-10-19)
+
+| PR | State | Base ref / SHA | Head SHA | Dependency / caution |
+|---|---|---|---|---|
+| [#2817](https://github.com/mobinpda-lab/Arvin-clean/pull/2817) | OPEN / DRAFT | `main` / `d9fb7a247037762216662a20fb32028ecc8a0f6b` | `77a6a1bec2d6d5e99d4eef0a737abc4d24130469` | Parent hardening gate; not merged |
+| [#2821](https://github.com/mobinpda-lab/Arvin-clean/pull/2821) | OPEN / DRAFT | `hardening/v5.09-release-approval-and-telemetry` / `77a6a1bec2d6d5e99d4eef0a737abc4d24130469` | `e80be91f4f461d0387d3b5b9349c217715bdba2e` | Stacked on #2817; current release candidate, exact-head gates not yet proven |
+| [#2824](https://github.com/mobinpda-lab/Arvin-clean/pull/2824) | OPEN / DRAFT | `main` / `d9fb7a247037762216662a20fb32028ecc8a0f6b` | `ccc9f9b122420ef999828088f70a7aa950c5b979` | Signature workflow; release identity still FAIL |
+| [#2826](https://github.com/mobinpda-lab/Arvin-clean/pull/2826) | OPEN / DRAFT | `main` / `d9fb7a247037762216662a20fb32028ecc8a0f6b` | Self-updating docs branch; see live PR page | Evidence-only PR; its head advances with each evidence-map update |
+| [#2827](https://github.com/mobinpda-lab/Arvin-clean/pull/2827) | OPEN / DRAFT | `main` / `d9fb7a247037762216662a20fb32028ecc8a0f6b` | `a4c4f0fc05c83e9a1bb92534335d3745de9d1c8b` | Exact-SHA Device Smoke workflow support; dispatch itself not run |
+| [#2828](https://github.com/mobinpda-lab/Arvin-clean/pull/2828) | OPEN / DRAFT | `main` / `d9fb7a247037762216662a20fb32028ecc8a0f6b` | `50f1d26a8e4102f078e2f184771f98d521152dc4` | Follow-up / SQL migration integrity fix; Build + Device Smoke pass on PR checkout |
+| [#2790](https://github.com/mobinpda-lab/Arvin-clean/pull/2790) | OPEN / DRAFT | `main` / `824ca8f17c92e76b3887001891d7d5b6f17974a6` | `6ca1cff18f6631352995241b783b7b3bfcec55d5` | Base snapshot is older than current main; reconcile before merge |
+| [#2791](https://github.com/mobinpda-lab/Arvin-clean/pull/2791) | OPEN / DRAFT | `main` / `824ca8f17c92e76b3887001891d7d5b6f17974a6` | `9cf025b5a9678373d6b5a89a8a043ba49bf53243` | PDF font + artifact; base snapshot older than current main |
+| [#2796](https://github.com/mobinpda-lab/Arvin-clean/pull/2796) | OPEN / DRAFT | `main` / `824ca8f17c92e76b3887001891d7d5b6f17974a6` | `3ba0499403a405d92fc0440164b8c6ccc864eb5a` | UI font picker/provenance; base snapshot older than current main |
+| [#2831](https://github.com/mobinpda-lab/Arvin-clean/pull/2831) | OPEN / DRAFT | `main` / `d9fb7a247037762216662a20fb32028ecc8a0f6b` | `196eff68ce2c2db09eb37cad86b69435428d285c` | Provider exact-head workflow/test; latest run in progress |
+
+**Base warning:** PRs #2790, #2791 and #2796 still report base snapshot `824ca8f17c92e76b3887001891d7d5b6f17974a6`, older than current `main` `d9fb7a247037762216662a20fb32028ecc8a0f6b`. Their successful CI is useful PR-checkout evidence, but it must not be treated as proof of integration against current main until the branches are reconciled. No base changes, merges or force pushes were performed.
+
+
+## LIVE RECHECK — 2026-10-19 — V4.0 Wave 3 gate state
+
+| Gate | Live evidence | Result | Remaining closure |
+|---|---|---|---|
+| Main baseline | `d9fb7a247037762216662a20fb32028ecc8a0f6b` ([commit](https://github.com/mobinpda-lab/Arvin-clean/commit/d9fb7a247037762216662a20fb32028ecc8a0f6b)) | VERIFIED | Recheck if main advances |
+| Official APK signature | Current main `android/app/build.gradle.kts` still signs Release with debug config; PR #2824 reports Debug DN and fingerprint `b6f35a1f55f5e2d0c3bc25ab0df5b4c7853eabada3e1ab43e7af1284069a5f16` | **FAIL / NO-GO** | Owner-authorized release keystore/secret and approved fingerprint; exact-candidate build and audit |
+| Calendar Provider | [39203189292](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39203189292) emitted stock-emulator no-writable-calendar limitation; [39205227469](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39205227469) failed shell flow | **BLOCKED** | Fix emulator/provider test environment and obtain explicit real CRUD + no-op uniqueness evidence on exact SHA |
+| Exact-SHA Build/Smoke | [39206323906](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39206323906) Build SUCCESS; [39206323907](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39206323907) all seven Device Smoke lanes SUCCESS | PR branch CI PASS only | These runs do not prove manual target-SHA dispatch for release candidate `e80be91f4f461d0387d3b5b9349c217715bdba2e` |
+| Backup/Restore | [39204622671](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39204622671) Build SUCCESS; [39204622845](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39204622845) all seven smoke lanes SUCCESS | PR checkout PASS | Exact-target validation and current-main base reconciliation |
+| PDF / UI font | PR #2791 reports real PDF artifact and four embedded UI-FD weights; PR #2796 registers UI Vazirmatn while preserving VazirHarf default | PARTIAL | Latest-base reconciliation, final candidate exact-SHA validation; app-preview comparison remains unverified |
+| Canonical final-status document | `docs/arvin-memory/ARVIN_GO_RELEASE_FINAL_STATUS.md` returned 404 on main | MISSING on main | Keep this change in existing documentation PR; create canonical document on reviewed branch if still absent |
+| Release decision | Combined critical gates above | **RELEASE: NO-GO** | Do not merge, tag, or publish until critical gates close |
+
+
+
+## WAVE 4 EXECUTION — 2026-10-19
+
+| Gate | Latest source / change | Status | Next proof required |
+|---|---|---|---|
+| Live main baseline | `d9fb7a247037762216662a20fb32028ecc8a0f6b`; prior candidate `e80be91f4f461d0387d3b5b9349c217715bdba2e` is historical | Baseline verified; no qualified candidate declared | Select one candidate after reviewed integration |
+| Release signing | Main still sets Release signing config to Debug; official keystore/fingerprint/secrets are not inspectable via current connector | **BLOCKED — RELEASE CREDENTIAL REQUIRED** | Owner-authorized keystore mechanism + independently approved SHA-256 fingerprint; then exact-candidate APK audit |
+| Calendar Provider shell flow | PR #2831 branch commits [`fe43711`](https://github.com/mobinpda-lab/Arvin-clean/commit/fe437117fe020bac7d0641e300958582c71415de) and [`6ff5b3c`](https://github.com/mobinpda-lab/Arvin-clean/commit/6ff5b3c70cb4bf4fe9f7c72bacfefefaf555e9da) | Code updated; CI not yet verified | Terminal workflow run, valid evidence artifacts, actual provider CRUD |
+| Exact-SHA Device Smoke | PR #2827 branch commits [`23c3250`](https://github.com/mobinpda-lab/Arvin-clean/commit/23c325006b746e0137676546f6b97c16e1df96c1), [`967407b`](https://github.com/mobinpda-lab/Arvin-clean/commit/967407bb3b9350e239c6111b14c0e69dc2a15137) | Revision evidence added; CI/dispatch unverified | All seven lanes on requested SHA, uploaded revision marker per lane |
+| Exact-SHA Build/APK artifact | PR #2827 branch commits [`126d94c`](https://github.com/mobinpda-lab/Arvin-clean/commit/126d94c7e68d989bfc92d3efa87a97dcfbe209f5), [`d437dbf`](https://github.com/mobinpda-lab/Arvin-clean/commit/d437dbf6cc76bbb216916b94145a8ddae897e52b) | Metadata and SHA-qualified artifact names added; CI/dispatch unverified | Build all quality shards and both APK variants on exact target; verify artifact source metadata |
+| Prior Build / Device Smoke | [39206323906](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39206323906) / [39206323907](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39206323907) | Successful on prior PR/documentation checkout only | Must not substitute for Wave 4 exact candidate |
+| Final status document | Added on this documentation branch | Not merged to main | Review PR #2826 and require CI on final doc head |
+| Overall | Multiple critical gates remain open | **RELEASE: NO-GO** | No tag or release until all critical gates close |
+
+
+
+## WAVE 4 CI POLL — 2026-10-19 (live status at latest query)
+
+- Calendar Provider workflow [Run 39211706224](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706224), triggered by workflow commit `6ff5b3c70cb4bf4fe9f7c72bacfefefaf555e9da): exact requested revision check **SUCCESS**; emulator acceptance step **IN_PROGRESS** at latest poll; no artifact published yet. This is not PASS.
+- Build [Run 39211706034](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706034), commit `6ff5b3c...`: Analyze SUCCESS; six test shards and Debug/Release APK jobs were still IN_PROGRESS at latest poll.
+- Device Smoke [Run 39211706094](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706094), commit `6ff5b3c...`: two lanes IN_PROGRESS and five QUEUED at latest poll. No lane is yet a terminal pass.
+- Build [Run 39211789523](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211789523), commit `d437dbf6cc76bbb216916b94145a8ddae897e52b`: jobs QUEUED/IN_PROGRESS; no terminal conclusions at latest poll.
+- The above are PR-triggered runs. No `workflow_dispatch` exact-target run was performed. The available GitHub tools do not expose workflow dispatch or repository Actions secret/variable inspection.
+
+---
+
+## LIVE WAVE 4.3 EVIDENCE OVERRIDE — 2026-10-19
+
+This update supersedes prior pending-state descriptions for the run IDs below. Evidence applies only to the named run/head.
+
+| Gate | Run / PR head | Latest result | Evidence and limitation |
+|---|---|---|---|
+| Main baseline | d9fb7a247037762216662a20fb32028ecc8a0f6b | Confirmed live | [Main commit](https://github.com/mobinpda-lab/Arvin-clean/commit/d9fb7a247037762216662a20fb32028ecc8a0f6b). |
+| Release signing | Main SHA above | BLOCKED | [build.gradle.kts](https://github.com/mobinpda-lab/Arvin-clean/blob/main/android/app/build.gradle.kts) uses Debug signing for release. Approved fingerprint/keystore not inspectable through current connector. |
+| Calendar Provider | [39211706224](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706224), head 6ff5b3c70cb4bf4fe9f7c72bacfefefaf555e9da | FAILURE | Marker LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR; evidence publication skipped; no artifacts. |
+| Build / tests | [39211706034](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706034), head 6ff5b3c70cb4bf4fe9f7c72bacfefefaf555e9da | SUCCESS | Analyze, test-0 through test-5, Debug APK and Release APK completed. Exact-target assertion skipped on PR event. |
+| Device Smoke | [39211706094](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706094), head 6ff5b3c70cb4bf4fe9f7c72bacfefefaf555e9da | IN PROGRESS / QUEUED | Home, Quick Capture, SQL Persistence succeeded; Backup/Restore and SQL Migration in progress; Calendar and People queued at last query. |
+| Build / tests | [39211789523](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211789523), head d437dbf6cc76bbb216916b94145a8ddae897e52b | SUCCESS | Analyze, six test shards and Debug/Release APK jobs succeeded. Exact-target assertion skipped on PR event. |
+| Release APK archive | [Artifact 12168605271](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12168605271) | Produced, not release-qualified | Archive digest sha256:13f615a9d0905ed56616e08237cfbe8a0aa1b22612afb83fd2732894c88f1ee2; not APK-file SHA-256. |
+| Release APK archive | [Artifact 12167844011](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12167844011) | Produced, not release-qualified | Archive digest sha256:9eedddf1c8bbafb7f01df2a19bf6cc1004299838fee98354f80b83aad044979f; not APK-file SHA-256. |
+| Backup/Restore | [PR #2790](https://github.com/mobinpda-lab/Arvin-clean/pull/2790), head 6ca1cff18f6631352995241b783b7b3bfcec55d5 | Implemented; exact candidate not verified | Build 39204622671 and Device Smoke 39204622845 succeeded on PR checkout; checklist and external-calendar-link assertions included. Base stale. |
+| PDF / font | [PR #2791](https://github.com/mobinpda-lab/Arvin-clean/pull/2791), head 9cf025b5a9678373d6b5a89a8a043ba49bf53243 | Earlier preview inspected; candidate not verified | Run 39203354122 passed; artifact 12164731659 embeds UI-FD Regular/Medium/SemiBold/Bold and Persian RTL shaping was visually inspected. In-app preview comparison unavailable; base stale. |
+| Follow-up / UI font | [PR #2796](https://github.com/mobinpda-lab/Arvin-clean/pull/2796), head 3ba0499403a405d92fc0440164b8c6ccc864eb5a | Implemented; latest head not verified | Earlier Build/Device Smoke passed on prior head a85bd3ec...; current head needs fresh validation and base reconciliation. |
+| Follow-up / Person / migration | [PR #2828](https://github.com/mobinpda-lab/Arvin-clean/pull/2828), head 50f1d26a8e4102f078e2f184771f98d521152dc4 | Implemented on PR; not exact-target verified | Build 39203068667 and Device Smoke 39203068653 succeeded on PR checkout; migration/backfill regression tests passed there. |
+| Exact-SHA workflow contract | [PR #2827](https://github.com/mobinpda-lab/Arvin-clean/pull/2827), head d437dbf6cc76bbb216916b94145a8ddae897e52b | Implemented; dispatch not run | Target-SHA checkout/assertion and SHA-qualified artifact metadata exist on branch; current Build is PR-triggered. |
+| Signature audit workflow | [PR #2824](https://github.com/mobinpda-lab/Arvin-clean/pull/2824), head ccc9f9b122420ef999828088f70a7aa950c5b979 | Gate exists; latest-head signature audit not observed | Earlier audit found Android Debug certificate SHA-256 b6f35a1f55f5e2d0c3bc25ab0df5b4c7853eabada3e1ab43e7af1284069a5f16; explicitly not an approved release signer. |
+| Documentation | [PR #2826](https://github.com/mobinpda-lab/Arvin-clean/pull/2826), head a96780af144b6912f4d7d00d88816e6da411b5d1 | Updated on Draft branch | Final status, evidence map, execution state and traceability matrix remain unmerged from main. |
+
+No result above authorizes public release. All listed PRs remain Draft/unmerged. PR-triggered CI is not equivalent to exact-target dispatch, physical-device acceptance, approved release signing, or real writable-provider CRUD evidence. Release remains NO-GO.
+
+
+## APK artifact inspection addendum — 2026-10-19
+- Downloaded the Release APK artifact archive [12168605271](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12168605271) from Build run [39211706034](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706034), PR head 6ff5b3c70cb4bf4fe9f7c72bacfefefaf555e9da.
+- Archive contained app-release.apk, size 70,056,469 bytes. Independently calculated APK-file SHA-256: d1bf6ba6ed05b4cd5546dd4dc10de8c5e6016efda8d682d28466fda3102a38f7.
+- This is an observed artifact from a successful PR-triggered Release build, not a qualified official release. The exact-target verification step was skipped. The local inspection environment has no apksigner executable, so the APK certificate was not independently re-verified in this inspection. Main build.gradle.kts explicitly uses the Debug signing config; therefore the APK must not be distributed or presented as officially signed.
+- Artifact archive digest and APK-file SHA-256 are different values. Do not substitute one for the other. Official signing remains BLOCKED pending owner-authorized release credentials/fingerprint and apksigner verification on the qualified candidate.
+
+
+## Independent PDF artifact inspection — 2026-10-19
+- Downloaded [PDF preview artifact 12164731659](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12164731659) from Build run 39203354122 and extracted arvin-report-preview.pdf (22,614 bytes).
+- PDF structural inspection: one page, A4, PDF 1.7, not encrypted. pdffonts confirms all four embedded fonts: Vazirmatn-UI-FD-Regular, Medium, SemiBold and Bold.
+- Raster inspection of page 1 shows Persian glyph shaping, right-to-left alignment, Persian numerals/dates, checklist bullets, tags, Reminder and Follow-up content, and long-text wrapping without visible clipping on this sample.
+- Limitations: this artifact represents a one-page sample with substantial unused whitespace; it does not demonstrate multi-page pagination or table layout, and there is no matching in-app preview screenshot available for visual comparison. Treat PDF/font acceptance as PARTIAL, not complete release acceptance. Artifact belongs to an older PR-triggered run/head, not the qualified candidate.
+
+
+## Device Smoke latest poll — 2026-10-19
+Run [39211706094](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706094) remains IN_PROGRESS on PR head 6ff5b3c70cb4bf4fe9f7c72bacfefefaf555e9da. Backup/Restore, SQL Persistence, Home, Quick Capture, SQL Migration and People lanes have completed SUCCESS; Calendar lane remains IN_PROGRESS. The run is not terminal and the full suite is not PASS. This remains a pull_request run, not exact-target dispatch.
+
+
+## WAVE 4.4 LIVE RECONCILIATION — 2026-10-19 (latest authoritative poll)
+
+- Current main remains `d9fb7a247037762216662a20fb32028ecc8a0f6b`; no qualified release candidate is declared.
+- Relevant PRs #2824, #2826, #2827, #2828, #2831, #2790, #2791 and #2796 are open, Draft, and unmerged. PRs #2790/#2791/#2796 retain stale base SHA `824ca8f17c92e76b3887001891d7d5b6f17974a6`; reconcile before integration.
+- Build run [39211706034](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706034): terminal SUCCESS for Analyze, six test shards, Debug APK and Release APK. Trigger was pull_request against PR #2831 head `6ff5b3c70cb4bf4fe9f7c72bacfefefaf555e9da`; exact-target verification was SKIPPED.
+- Device Smoke run [39211706094](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706094): latest query shows all seven lanes terminal SUCCESS (Backup/Restore, SQL Persistence, Home, Quick Capture, SQL Migration, Calendar, People). This is PR-head evidence only; no workflow_dispatch/exact-target execution occurred, so it does not qualify a release candidate.
+- Calendar Provider run [39211706224](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706224): terminal FAILURE at real acceptance; output `CALENDAR_PROVIDER_ACCEPTANCE=LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR`. No evidence artifact was published because the acceptance job failed before the artifact-publication step. This is not a product pass and not proof of provider CRUD.
+- Release build config on main still sets `signingConfig = signingConfigs.getByName("debug")`. The inspected APK from artifact 12168605271 has SHA-256 `d1bf6ba6ed05b4cd5546dd4dc10de8c5e6016efda8d682d28466fda3102a38f7`, but apksigner verification and approved certificate fingerprint comparison were not performed; it is not an authorized release APK.
+- PDF artifact 12164731659 was independently inspected: one-page A4 sample with four embedded Vazirmatn UI-FD weights and plausible Persian RTL shaping. Multi-page/table acceptance and in-app preview comparison remain unverified; artifact is from an older PR run, not a qualified candidate.
+- Connector limitations remain: no authorized workflow_dispatch operation and no repository Actions Secret/Variable inspection are exposed. No secrets, keys, tags, merges or public release were created.
+- Final decision remains **BLOCKED — RELEASE: NO-GO**.
+
+
+## Wave 4.5 live revalidation — 2026-10-19
+
+| Gate | Live evidence | Status | Next required proof |
+|---|---|---|---|
+| Main baseline | `main` ref: `d9fb7a247037762216662a20fb32028ecc8a0f6b` | Revalidated baseline; not a candidate qualification | Requalify final integrated SHA |
+| Release signing configuration | [`android/app/build.gradle.kts`](https://github.com/mobinpda-lab/Arvin-clean/blob/main/android/app/build.gradle.kts), blob `aaeea7506885814cc4c4a65ac6559872a80146a8`; Release selects Debug signing | **BLOCKED** | Owner-authorized keystore and approved certificate fingerprint; `apksigner verify --verbose --print-certs` against candidate APK |
+| Calendar Provider workflow | [workflow](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/calendar-provider-acceptance.yml), blob `0c30d5f9183bd4edea5a40a6c4705aca2585e6cc`; API 35 default emulator; artifact upload lacks `if: always()` | **BLOCKED / NOT VERIFIED** | Provision real writable provider; verify provider state for create/no-op/update/delete; unconditional evidence upload; explicit `PASS_REAL_PROVIDER_CREATE_NOOP_UPDATE_DELETE` |
+| Device Smoke workflow | [workflow](https://github.com/mobinpda-lab/Arvin-clean/blob/main/.github/workflows/device-smoke.yml), blob `e5cd465a7d5a83be21a55535f7a0b3071ceeec45`; seven lanes, no exact target input/assertion in main | **IMPLEMENTED_NOT_VERIFIED** via PR #2827 proposal | Final PR-head CI and exact-SHA run for the selected candidate |
+| Follow-up canonical-record work | [PR #2828](https://github.com/mobinpda-lab/Arvin-clean/pull/2828), head `50f1d26a8e4102f078e2f184771f98d521152dc4` | **IN_PROGRESS** | Review complete diff; run migration, persistence, reminder, notification, calendar and backup/restore tests on final SHA |
+| Legacy-base PR reconciliation | #2790 head `6ca1cff18f6631352995241b783b7b3bfcec55d5`; #2791 `9cf025b5a9678373d6b5a89a8a043ba49bf53243`; #2796 `3ba0499403a405d92fc0440164b8c6ccc864eb5a`; each base `824ca8f17c92e76b3887001891d7d5b6f17974a6` | **IN_PROGRESS** | Inspect full diffs and merge-base against current main before safe update/rebase |
+
+Evidence limitations: latest observed mainline orchestrator/production-loop successes do not establish Build, all seven Device Smoke lanes, real-provider acceptance, or authorized Release signing on one candidate SHA. This entry supersedes no newer owner decision.
+
+
+## Wave 4.5 evidence delta — 2026-10-19
+
+| Gate / requirement | Freshly observed evidence | Status | Required closure |
+|---|---|---|---|
+| Main baseline | `refs/heads/main` returned `d9fb7a247037762216662a20fb32028ecc8a0f6b` | `IMPLEMENTED_NOT_VERIFIED` for release qualification | Select and qualify one integrated candidate SHA |
+| Release signing | Main `android/app/build.gradle.kts`, blob `aaeea7506885814cc4c4a65ac6559872a80146a8`, Release still selects Debug signing | `BLOCKED` | Owner-authorized keystore plus approved certificate fingerprint; independently verify APK with apksigner |
+| Calendar Provider | Main workflow blob `0c30d5f9183bd4edea5a40a6c4705aca2585e6cc`; PR #2831 head `6ff5b3c70cb4bf4fe9f7c72bacfefefaf555e9da` | `BLOCKED` | Demonstrate real writable provider and actual create/no-op/update/delete; retain failure artifacts; require explicit success marker |
+| Exact-SHA Device Smoke | Main workflow blob `e5cd465a7d5a83be21a55535f7a0b3071ceeec45` includes seven lanes; PR #2827 head `d437dbf6cc76bbb216916b94145a8ddae897e52b` adds target SHA controls | `IMPLEMENTED_NOT_VERIFIED` | Complete PR-head CI and authorized dispatch against exact candidate SHA |
+| Follow-up record integrity | PR #2828 head `50f1d26a8e4102f078e2f184771f98d521152dc4` changes repository, migration, projections, and tests | `IN_PROGRESS` | Verify reminder independence, SQL round-trip, notifications/calendar, reports and Backup/Restore on candidate SHA |
+| Backup/Restore | PR #2790 head `6ca1cff18f6631352995241b783b7b3bfcec55d5`; older-base branch | `IMPLEMENTED_NOT_VERIFIED` | Reconcile base safely and rerun isolated round-trip on candidate SHA |
+| PDF/font | PR #2791 head `9cf025b5a9678373d6b5a89a8a043ba49bf53243`; prior PDF artifact is historical | `IMPLEMENTED_NOT_VERIFIED` | Candidate-bound PDF, embedded-font and in-app preview comparison |
+| Legacy-base PRs | #2790, #2791, #2796 target main but base snapshot is `824ca8f17c92e76b3887001891d7d5b6f17974a6` | `IN_PROGRESS` | Review full diffs/merge-bases/dependencies before updating branches |
+
+Latest observed mainline Release Closure [39214476013](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39214476013) and Final Head Release Validation [39214481131](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39214481131) were skipped. Orchestrator/production-loop success does not replace mandatory gates. No qualified candidate SHA, no official APK, no release.
+
+
+## Wave 4.6 live revalidation — 2026-10-19
+
+| Gate / surface | Current live evidence | Result | Next action |
+|---|---|---|---|
+| Main baseline | GitHub refs/heads/main → d9fb7a247037762216662a20fb32028ecc8a0f6b | Revalidated | Do not treat docs PR head as candidate |
+| PR #2826 docs CI | Build [39214701152](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39214701152), source 3f39b29df51aaa077b90938af74528644c0ea7f8 | IN PROGRESS; Analyze and six shards success, Debug APK success, Release APK running at last poll | Poll terminal result; inspect artifacts and exact job outcomes |
+| Device Smoke | [39214701198](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39214701198), same source SHA | QUEUED overall; Home and Quick Capture passed; SQL Persistence and SQL Migration running; People, Calendar and Backup/Restore queued | Poll all seven lane conclusions and artifact uploads |
+| Release signing | android/app/build.gradle.kts on inspected signing branch still binds Release to debug | BLOCKED | Owner must supply approved secret mechanism and independently approved fingerprint |
+| Calendar Provider | PR #2831 latest head 6ff5b3c70cb4bf4fe9f7c72bacfefefaf555e9da; historical run 39203189292 records no writable stock-emulator provider | BLOCKED / NOT VERIFIED | Use legitimate writable provider environment; retain result/test/environment logs |
+| Product integration | PR #2828 head 50f1d26a8e4102f078e2f184771f98d521152dc4; code diff includes Follow-up metadata preservation and SQL backfill | IMPLEMENTED_NOT_VERIFIED | Run focused lifecycle/migration/Reminder tests on a qualified integrated SHA |
+| PR governance | #2824, #2826, #2827, #2828, #2831, #2790, #2791, #2796 remain open Draft in latest metadata read | IN PROGRESS | Preserve PRs; no blind rebase or merge |
+
+No qualified release candidate has been selected. Pending/queued runs and historical artifacts do not satisfy release gates.
+
+
+## Wave 4.6 execution delta — 2026-10-19 (supersedes earlier pending-state snapshot)
+
+- Documentation-head Build [39214701152](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39214701152) completed SUCCESS on source SHA 3f39b29df51aaa077b90938af74528644c0ea7f8. Analyze, all six test shards, Debug APK and Release APK jobs succeeded. Exact-target verification was SKIPPED because this was a pull_request event, so it is not exact-SHA candidate acceptance. Artifacts: Debug APK ID 12169626405 (archive digest sha256:f1063e15a9a8a0c67e283130d20fd161f8091bec82aa3ade6ad548b49b9f9a07); Release APK ID 12169556790 (archive digest sha256:b8632cb4cd250fa30a9adb57994cbc02cb1608e01fa98bc3d0a61c7456f2b120). These are documentation-branch build artifacts, not designated release candidates; official signing was not established.
+- Device Smoke [39214701198](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39214701198) ended CANCELLED, not PASS. It did not provide all seven terminal-success lanes.
+- Product fix added to existing PR #2828, without creating a duplicate PR: commit 85cf250dfb14953f3a91e0c7b59a0704cdeed73c changes lib/services/home_list_projection.dart to show only the earliest eligible Reminder in Home, deterministically sorted by date, sequence, then ID, while leaving all stored reminders untouched; commit 754fe797b63cd6462db2dc726142ffc7083e8a12 adds the regression test for unsorted reminders, same-time Follow-up suppression, and record preservation. Latest PR #2828 head is 754fe797b63cd6462db2dc726142ffc7083e8a12.
+- Build [39215641618](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39215641618) for the latest PR #2828 head was PENDING at the last poll; Device Smoke [39215641723](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39215641723) was QUEUED with some lanes starting. Neither result is a pass; the older run for 85cf250dfb14953f3a91e0c7b59a0704cdeed73c is not evidence for the newer head.
+- Current main remains d9fb7a247037762216662a20fb32028ecc8a0f6b. No candidate SHA selected. Official signing and real Calendar Provider acceptance remain BLOCKED. No merge, tag, or release. Final decision: BLOCKED — RELEASE: NO-GO.
+
+
+## Wave 4.7 authoritative execution update — 2026-10-19
+
+### Live source and CI evidence
+- Latest observed `main` SHA remains `d9fb7a247037762216662a20fb32028ecc8a0f6b` (current PR base SHA). No direct-main write, merge, tag, or release was performed.
+- PR #2828 remains OPEN/DRAFT, head `754fe797b63cd6462db2dc726142ffc7083e8a12`. Build [39215641618](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39215641618) completed SUCCESS: Analyze, test shards 0–5, Debug APK and Release APK all passed. Artifacts: Debug ID `12169478623`, archive digest `sha256:d60d924aaab11e4c7e3377d651f2ae9112ebc54c02cd23940af2f9cf34c843cc`; Release ID `12169598349`, archive digest `sha256:3c5f19ea3203e070ea3ef90bd8534430c152eb79c669e66f02cf58e4ab96da3b`.
+- Device Smoke [39215641723](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39215641723) completed SUCCESS across all seven lanes: Home, Quick Capture, Calendar, People, SQL Persistence, SQL Migration, Backup/Restore. Artifacts include Calendar ID `12170795256` (`sha256:e1492dd56c6bcd5b6a9d76ceb2ad468836e19320ccae758b0221b223c498f6f4`), People ID `12169019987`, Home ID `12168759579`, Quick Capture ID `12169353920`, and Persian time-picker ID `12169039995`.
+- **Exact-SHA qualification remains OPEN:** the `Verify exact requested revision` step was SKIPPED in these pull-request runs. Device-smoke artifacts are named with merge checkout SHA `5b13c0052c576f3eee84a42c5ca637ba678b5452`, not the PR head SHA. This is strong PR CI evidence, not proof that `workflow_dispatch(target_sha=754fe797...)` ran.
+- PR #2826 documentation head `f5cd4718ac352013b10fa8db7d4cb24e0ef0fe3d`: Build [39215815637](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39215815637) and Device Smoke [39215815610](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39215815610) both completed SUCCESS; all six test shards/build lanes and all seven smoke lanes passed. Exact-SHA verification was skipped on the PR event. This Wave 4.7 documentation commit creates a new head; these results do not validate the new documentation SHA.
+
+### Product changes and acceptance boundaries
+- The existing PR #2828 contains the canonical-record Follow-up/SQL backfill fixes plus Home Reminder projection fix. The projection deterministically sorts by date, sequence, then ID; suppresses a Reminder exactly coincident with the displayed Follow-up; shows only the earliest eligible Reminder; and leaves source records intact. Build and all seven Device Smoke lanes passed on its PR merge checkout. Status: `IMPLEMENTED_NOT_VERIFIED` for exact-candidate acceptance.
+- PR #2824 head `ccc9f9b122420ef999828088f70a7aa950c5b979` has successful general Build/Smoke, but no signature-audit run for that newest head is evidenced. Live `android/app/build.gradle.kts` still uses `signingConfig = signingConfigs.getByName("debug")` for Release. Official signing is BLOCKED pending owner-authorized keystore/secret setup and an independently approved certificate SHA-256 fingerprint. Never treat a Debug-signed APK as official.
+- PR #2827 head `d437dbf6cc76bbb216916b94145a8ddae897e52b` has PR-triggered Build success [39211789523](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211789523); the latest Device Smoke PR run also has successful lanes, but exact-target verification is skipped. No `workflow_dispatch` was executed through the connected interface. Exact-SHA candidate validation remains BLOCKED.
+- PR #2831 head `6ff5b3c70cb4bf4fe9f7c72bacfefefaf555e9da`: Calendar Provider Acceptance [39211706224](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706224) failed with `LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR`. The existing branch records three independent unsuccessful provisioning attempts; do not repeat the same seed path without new evidence. No valid artifact with `PASS_REAL_PROVIDER_CREATE_NOOP_UPDATE_DELETE` exists. Provider acceptance remains BLOCKED by a demonstrably writable provider environment.
+- PR #2790 head `6ca1cff18f6631352995241b783b7b3bfcec55d5`: Build [39204622671](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39204622671) and seven-lane Device Smoke [39204622845](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39204622845) passed, but its recorded base SHA `824ca8f17c92e76b3887001891d7d5b6f17974a6` is stale versus current main. Backup/Restore is implemented but not qualified on a current exact candidate.
+- PR #2791 head `9cf025b5a9678373d6b5a89a8a043ba49bf53243`: Build [39203354122](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39203354122) and seven-lane Smoke [39203354193](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39203354193) passed. PDF preview artifact `12164731659` was inspected and embeds four Vazirmatn UI-FD weights with Persian shaping/RTL and no obvious clipping; comparison against an app Preview screenshot and current-candidate exact-SHA acceptance remain open.
+- PR #2796 head `3ba0499403a405d92fc0440164b8c6ccc864eb5a`: latest-head Build [39206323906](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39206323906) and seven-lane Smoke [39206323907](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39206323907) passed. These remain PR-event evidence; physical-device UX and exact-candidate acceptance are not established.
+
+### Confirmed remaining product gaps / conflicts
+- Recurrence: `lib/task_recurrence_page.dart` currently presents the next occurrence and latest recorded history; it does not render a bounded list of overdue, uncompleted occurrences or a distinct current-day occurrence. Its scan also starts from `rule.startDate ?? task.reminderDate`; a non-null old `startDate` may cause the UI projection not to reflect a later `reminderDate` written by Resume from Today. Preserve occurrence history; implement a narrow projection fix with daily/weekly/monthly/yearly, end/count, and resume regressions. No recurrence code was changed in this execution.
+- Follow-up reminder form: live `lib/follow_up_entry_page.dart` still holds separate `_reminderDate` and `_nextFollowUp` values and saves them into FollowUp metadata. The Wave 4.7 one-input contract and creation of a stable, independent Task Reminder linked to the parent Task are not yet evidenced. Before changing scheduler behavior, trace the existing Follow-up notification path and prevent duplicate delivery; clearing one reminder must not delete other reminders or history.
+- Report-row behavior: current `lib/report_center_page.dart` navigates to Task Detail on task-card tap, and `test/report_center_page_test.dart` explicitly asserts that behavior. The canonical `ARVIN_REPORT_FILTER_DECISION.md` does not define row-tap behavior, while Wave 4.7 says a report-row tap must not unexpectedly navigate. Record as `CONFLICT_REQUIRES_PRODUCT_DECISION` until the authoritative prior decision is located; do not silently change code/tests or invent a replacement interaction.
+- PR #2762 (Repeat/Calendar/Reports) and #2755 (Reports/People) remain OPEN/DRAFT and diverged from current main: their recorded base is `e04467a38b92121cfb3b635f39c4c5e8fd0569ba`; compare reports #2762 as 33 commits ahead / 15 behind with `mergeable=false`. Reconcile overlap before reusing their changes; do not merge or blindly rebase.
+
+### Release decision and next actions
+- `BLOCKED — RELEASE: NO-GO`. No candidate SHA selected. No merge, tag, release, or physical-device acceptance claimed.
+- P0: obtain owner-authorized release keystore and approved certificate fingerprint; run signature audit on the resulting APK; arrange an authorized exact-SHA workflow dispatch for one candidate; provide a writable Calendar Provider environment and publish real create/no-op/update/delete evidence.
+- P1: reconcile stale Repeat/Reports/Backup/PDF/UI-font branches; implement and test recurrence overdue/current/next projection; implement the Follow-up-to-TaskReminder linkage without duplicate notifications; resolve the Report row-tap decision from its authoritative source; complete isolated Backup→Delete test data→Restore→Integrity Check and PDF-vs-app-preview comparison on the same candidate.
+
+
+## Wave 4.7 execution delta — Follow-up Reminder title correction — 2026-10-19
+
+- Existing PR #2828 was extended by commit `4cdb6449f7b007e66e71b784738ffa5207ea3e26` (no new product PR). `FollowUpReminderCandidate.followUpLabel` now uses the explicit Follow-up title; when blank, it falls back to `پیگیری — <parent Task title>`. The future-reminder projection and due-delivery projection use the same rule. Notes/results remain metadata and are no longer used as the reminder label. Stable Follow-up ID, parent Task identity, scheduled timestamp and existing scheduler path are preserved; no second scheduler/store was introduced.
+- Regression expectations were updated in `test/follow_up_reminder_projection_test.dart` and `test/follow_up_reminder_delivery_service_test.dart` for explicit title and blank-title fallback.
+- Exact-head Build [39218125822](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39218125822): latest observation has Analyze SUCCESS; test shards 0–5 and Debug/Release APK jobs are still IN_PROGRESS. Device Smoke [39218125814](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39218125814) is QUEUED overall, with Home and Quick Capture lanes in progress and other lanes queued. **No final test verdict yet.** Do not mark this fix accepted until all jobs reach terminal status.
+- This entry is a live status checkpoint, not release acceptance. PR #2828 remains OPEN/DRAFT, no merge/tag/release occurred, exact-target verification remains skipped for PR-triggered workflows, and official signing / real Calendar Provider gates remain BLOCKED. Release decision remains `BLOCKED — RELEASE: NO-GO`.
+
+
+## Wave 4.8 — Exact Follow-up Reminder title verification checkpoint — 2026-10-19
+
+- Live PR #2828 is OPEN/DRAFT, base `d9fb7a247037762216662a20fb32028ecc8a0f6b`, head exactly `4cdb6449f7b007e66e71b784738ffa5207ea3e26`; commit `fix(reminder): label Follow-up reminders from their title` is still the latest head commit. Source: https://github.com/mobinpda-lab/Arvin-clean/pull/2828 and https://github.com/mobinpda-lab/Arvin-clean/commit/4cdb6449f7b007e66e71b784738ffa5207ea3e26
+- Exact-head Build run [39218125822](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39218125822) COMPLETED SUCCESS on the same SHA. Analyze and all six test shards passed; test shard logs explicitly include `follow_up_reminder_projection_test.dart` coverage for explicit title, parent Task identity, reminder time, stable key, blank-title fallback `پیگیری — کار`, and independent Task/Follow-up reminders; `follow_up_reminder_delivery_service_test.dart` coverage includes explicit title despite a result note, fallback when title/note are blank, stable delivery identity suppression, changed reminder time as new work, coexistence without duplicate identity, and due-time handling. Debug and Release APK jobs built and uploaded.
+- Build artifacts for that exact SHA: Debug artifact ID `12170432382`, archive digest `sha256:e99db2f5cd4fbcdc84b4d76594a9d6b721d5274e8b8198cb83f367fbfe6aaa43`; Release artifact ID `12170353835`, archive digest `sha256:14654ffb439af1f148ae7a2febf35bdc8ce351cb633c21ee10290df218127c1f`. These are CI artifacts, not proof of official release signing.
+- Device Smoke [39218125814](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39218125814) still IN_PROGRESS at checkpoint. Home, SQL Persistence, Quick Capture, People, SQL Migration, Backup/Restore lanes SUCCESS; Calendar lane still IN_PROGRESS. Therefore the complete seven-lane Smoke gate is not yet closed.
+- Current canonical `android/app/build.gradle.kts` on `main` still uses `signingConfig = signingConfigs.getByName("debug")`. Official signing remains BLOCKED. Calendar Provider acceptance [39211706224](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706224) failed with `LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR`; no real-provider acceptance marker is present. Exact-SHA verification has not been run as an authorized dispatch.
+- Regression limitation to track: existing tests prove stable delivery identity across duplicate delivery and changed time, but do not yet directly assert title-only edits retain the same delivery identity or the empty-parent-title fallback. Code inspection shows identity is keyed by stable Task/Follow-up IDs and empty parent title returns `پیگیری`; add a narrow regression only if this gap is required before the next accepted SHA, and then rerun CI on the new SHA.
+- Release remains `BLOCKED — RELEASE: NO-GO`. No merge, tag, or release performed. This is a checkpoint; final Device Smoke and official signing are still open.
+
+
+## Wave 4.8 follow-up test coverage delta — 2026-10-19
+
+- After verifying Build [39218125822](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39218125822) SUCCESS for the previous product commit `4cdb6449f7b007e66e71b784738ffa5207ea3e26`, two narrow regression tests were added to the existing PR #2828 in commit `49910e585ee73afcf56a7f8d927b9c69e763c5c5` (`test/follow_up_reminder_projection_test.dart`): title-only edits preserve stable Follow-up reminder identity/time while updating the visible label, and a blank parent Task title safely falls back to `پیگیری` without changing stable identity/time.
+- The new head is `49910e585ee73afcf56a7f8d927b9c69e763c5c5`. As of this checkpoint, no Actions run for that exact SHA was returned yet; do not inherit the prior SHA's green Build result or pending Device Smoke status as acceptance of this new test commit. Wait for exact-head CI and verify it.
+- Prior exact-SHA Build evidence for `4cdb6449f7b007e66e71b784738ffa5207ea3e26` remains historical and valid only for that SHA. Its Device Smoke [39218125814](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39218125814) remains IN_PROGRESS at last observation; Calendar lane has not produced a terminal result.
+- Documentation commit `a41ec7ba196f06891f8716bd3bce1d8769fb3877` already recorded the verified prior Build, artifact IDs/digests, passing test-shard evidence, official signing blocker, Calendar Provider limitation, and remaining regression gaps. This delta supersedes only the test-coverage status and current product SHA.
+- Current `main` release build still uses debug signing config. Calendar Provider real-writable acceptance, Exact-SHA dispatch, and final seven-lane Device Smoke remain open. Release remains `BLOCKED — RELEASE: NO-GO`; no merge/tag/release occurred.
+
+
+## LIVE EVIDENCE — 2026-10-19 — V10.0 PR #2828 final runs
+
+| Gate | Exact SHA / run | Result | Evidence boundary / next action |
+|---|---|---|---|
+| Build (Analyze, six test shards, Debug + Release APK) | [39220016817](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39220016817); `49910e585ee73afcf56a7f8d927b9c69e763c5c5` | PASS | Workflow/artifact metadata head SHA matches PR head. PR run evidence, not proof of manual exact-SHA dispatch or official signing. |
+| Device Smoke: Home, Quick Capture, People, SQL Persistence, SQL Migration, Backup/Restore, Calendar | [39220016763](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39220016763); same SHA | PASS | All seven jobs terminal success. Emulator CI, not physical-device acceptance or real-provider acceptance. |
+| Release APK artifact | Run 39220016817, artifact ID `12171622074` | Built, NOT release-qualified | Debug artifact ID `12171039370`. APK signature/certificate authorization has not been established; current Gradle Release config still uses Debug signing. |
+| Follow-up reminder regression | PR #2828 head `49910e585ee73afcf56a7f8d927b9c69e763c5c5` | Tests included in passing Build | Title-only edit preserves reminder identity/schedule; blank title fallback test preserves identity/time. Broader persistence/notifications/calendar/backup acceptance still requires integrated evidence. |
+| Exact-SHA manual dispatch | Candidate `49910e585ee73afcf56a7f8d927b9c69e763c5c5` | NOT VERIFIED | PR runs report this head SHA, but no controlled workflow_dispatch proof is established here. |
+| Official signing | Current main source `android/app/build.gradle.kts` | BLOCKED | Release uses `signingConfigs.getByName("debug")`; owner-authorized credential and approved certificate fingerprint are absent. |
+| Real Calendar Provider | [Historical attempt 39211706224](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39211706224) | BLOCKED / not accepted | Reported `LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR`; do not invent create/no-op/update/delete PASS. |
+
+PR #2828 remains OPEN/DRAFT at the tested SHA; docs PR #2826 remains OPEN/DRAFT. Overall release decision stays `BLOCKED — RELEASE: NO-GO`.
+
+## WAVE 4.9 EVIDENCE — Follow-up Reminder linked record
+
+- Baseline `main`: `d9fb7a247037762216662a20fb32028ecc8a0f6b`.
+- Existing label/id regression candidate PR #2828 head: `49910e585ee73afcf56a7f8d927b9c69e763c5c5`; Build [39220016817](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39220016817) and Device Smoke [39220016763](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39220016763) succeeded for that SHA only.
+- New contract implementation PR [#2832](https://github.com/mobinpda-lab/Arvin-clean/pull/2832), head `e12fa27dd5044ffd85c6a7d3d42c17e48fe286d5`; Build [39225465707](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39225465707) IN_PROGRESS and Device Smoke [39225465835](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39225465835) QUEUED at documentation time. New-head tests remain unverified until these runs finish.
+- Migration strategy: add optional `followUpId` to existing Task-nested `TaskReminder`; materialize legacy `FollowUp.reminderDate` deterministically on read only when no linked record exists; retain legacy date/data; linked record wins for projection; preserve the existing Follow-up Calendar external identity and delivery stable key.
+- No real Calendar Provider operations, official signing certificate, or exact-SHA Device Smoke acceptance are established by this PR.
+
+## WAVE 4.9 CHECKPOINT — current SHA and CI state — 2026-10-19
+
+- Main baseline: d9fb7a247037762216662a20fb32028ecc8a0f6b.
+- Current linked Follow-up Reminder PR #2832: head acb06279e766142cc9cbc886259d6ab951df2036, stacked on PR #2828 head 49910e585ee73afcf56a7f8d927b9c69e763c5c5.
+- Current Build 39226858516 is IN_PROGRESS. Current Device Smoke 39226858634 is QUEUED.
+- Earlier implementation run 39225465707 failed because analyzer reported unused/format findings and legacy assertions expected the previous backup shape and calendar fallback title. Focused fixes updated assertions for linked Reminder migration and canonical title behavior; no valid assertions were deleted. Intermediate runs cancelled by subsequent commits do not count as passes.
+- Existing prior-SHA Build 39220016817 and Device Smoke 39220016763 remain successful only for 49910e585ee73afcf56a7f8d927b9c69e763c5c5.

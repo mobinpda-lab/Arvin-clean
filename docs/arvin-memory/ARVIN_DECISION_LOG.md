@@ -213,3 +213,24 @@
 ## 2026-10-15 — Decision record: PR #2725 validated
 
 Both required exact-head gates for `ba2306cfc66ad982f8e8ab73b838a4a8d6ed6b55` are terminal `success`: Build `38752957837` and Device Smoke `38752957813` (all six lanes). Proceed with the authorized squash merge of PR #2725 only while its head remains unchanged. After confirmed merge, create `feat/person-reports-followup-issue-2683` from fresh `main` and begin Issue #2683. Do not conflate CI success with physical-device release acceptance.
+
+
+## 2026-10-19 — V10.0 evidence-based release decision
+
+- **Decision:** Release remains `BLOCKED — RELEASE: NO-GO`. No owner approval or protected credential was inferred.
+- **New evidence:** PR #2828 head `49910e585ee73afcf56a7f8d927b9c69e763c5c5` passed Build run [39220016817](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39220016817) and all seven Device Smoke lanes in [39220016763](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39220016763).
+- **Interpretation:** These runs validate the tested PR head in the current workflow context; they do not by themselves prove controlled exact-SHA dispatch, physical-device acceptance, official signing or real-provider acceptance.
+- **Unchanged constraints:** Do not merge/tag/release on the basis of CI alone. Release signing must follow the authorized repository design; do not generate fake keys or invent certificate fingerprints. Calendar Provider acceptance requires actual create/no-op/update/delete on a writable provider.
+- **Next action:** maintain the new run evidence in the evidence map and execution state; prove exact-SHA dispatch and continue independent acceptance work before any promotion decision.
+
+## DECISION ADDENDUM — WAVE 4.9 — 2026-10-19
+
+**Decision:** use the existing canonical `TaskReminder` collection for explicitly configured Follow-up reminders by adding optional `followUpId`, rather than creating a parallel model/scheduler or deleting legacy fields immediately.
+
+**Compatibility rationale:** legacy `FollowUp.reminderDate` remains intact and is mirrored on writes while legacy backups/installations are supported. `Task.fromJson` deterministically materializes a linked Reminder only when none exists; retries reuse the existing relation. Projection, alarm planning and Calendar use the linked record first and preserve the existing Follow-up stable key/external Calendar ID. This is an implementation proposal, not accepted behavior until current-head CI and end-to-end tests pass.
+
+PR [#2832](https://github.com/mobinpda-lab/Arvin-clean/pull/2832), head `e12fa27dd5044ffd85c6a7d3d42c17e48fe286d5`; Build [39225465707](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39225465707) and Device Smoke [39225465835](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39225465835) were not terminal when authored. Preserve ambiguous data if tests reveal unclear legacy associations.
+
+## WAVE 4.9 CHECKPOINT — 2026-10-19
+
+Decision remains to extend the existing TaskReminder record with optional followUpId and retain legacy FollowUp.reminderDate during compatibility transition. PR #2832 current head acb06279e766142cc9cbc886259d6ab951df2036 includes deterministic materialization, stable IDs, sequence preservation, and linked-record-first projections. Current Build 39226858516 is IN_PROGRESS and Device Smoke 39226858634 is QUEUED. This is not an accepted release decision until current-head tests and provider acceptance pass.
