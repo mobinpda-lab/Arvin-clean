@@ -5,9 +5,12 @@ import 'package:flutter/material.dart';
 import 'arvin_colors.dart';
 
 import 'android_follow_up_reminder_scheduler.dart';
+import 'android_backup_scheduler.dart';
 import 'backup_manager.dart';
+import 'backup_background_runner.dart';
 import 'backup_schedule_page.dart';
 import 'backup_schedule.dart';
+import 'backup_scheduler_adapter.dart';
 import 'calendar_page.dart';
 import 'calendar_integration_settings_page.dart';
 import 'models/goal_project.dart';
@@ -101,7 +104,15 @@ class _SettingsTextScaler extends TextScaler {
   int get hashCode => Object.hash(systemScaler, userScale);
 }
 
-void main() => runApp(const ArvinApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await BackupBackgroundRunner.clearLegacySnapshot();
+  } catch (_) {
+    // Keep startup available if preferences are temporarily inaccessible.
+  }
+  runApp(const ArvinApp());
+}
 
 class ArvinApp extends StatefulWidget {
   const ArvinApp({super.key});
@@ -305,6 +316,11 @@ class HomePage extends StatefulWidget {
     this.enableFirstRunGuide = false,
     this.backupManager,
     this.restoreStageHook,
+    this.restoreCompletionHook,
+    this.taskStore,
+    this.projectStore,
+    this.taskReminderReschedule,
+    this.backupScheduler,
   });
 
   final AppSettings settings;
@@ -315,6 +331,14 @@ class HomePage extends StatefulWidget {
   /// Production callers continue to use the canonical default manager.
   final ArvinBackupManager? backupManager;
   final Future<void> Function(String stage)? restoreStageHook;
+  final Future<void> Function()? restoreCompletionHook;
+  final TaskStore? taskStore;
+  final ProjectStore? projectStore;
+  final Future<void> Function()? taskReminderReschedule;
+
+  /// Allows restore orchestration tests to avoid invoking Android platform
+  /// channels while still exercising backup schedule persistence and rollback.
+  final BackupSchedulerAdapter? backupScheduler;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -322,11 +346,13 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final TaskEditApplyService taskEditApplyService = TaskEditApplyService();
-  final TaskStore taskStore = TaskStore();
-  final ProjectStore projectStore = ProjectStore();
+  late final TaskStore taskStore = widget.taskStore ?? TaskStore();
+  late final ProjectStore projectStore = widget.projectStore ?? ProjectStore();
   final Wave2ProductFastTrack wave2ProductFastTrack = Wave2ProductFastTrack();
   late final ArvinBackupManager backupManager =
       widget.backupManager ?? ArvinBackupManager();
+  late final BackupSchedulerAdapter backupScheduler =
+      widget.backupScheduler ?? AndroidBackupScheduler();
   final AppSettingsService appSettingsService = AppSettingsService();
   final FollowUpCalendarProjection calendarProjection =
       const FollowUpCalendarProjection();
@@ -463,6 +489,19 @@ class _HomePageState extends State<HomePage> {
       .map((task) => task.id)
       .toSet();
 
+  Future<void> _rescheduleTaskRemindersBestEffort() async {
+    try {
+      final injectedReschedule = widget.taskReminderReschedule;
+      if (injectedReschedule != null) {
+        await injectedReschedule();
+      } else {
+        await AndroidFollowUpReminderScheduler().reschedule();
+      }
+    } catch (_) {
+      // The Task is already persisted. A later lifecycle/scheduler trigger can retry.
+    }
+  }
+
   Future<void> _save() async {
     if (loadFailure != null) {
       throw StateError(
@@ -471,12 +510,7 @@ class _HomePageState extends State<HomePage> {
     }
     final snapshot = List<Task>.of(tasks);
     await taskStore.save(snapshot);
-    try {
-      await AndroidFollowUpReminderScheduler().reschedule();
-    } catch (_) {
-      // Canonical Task storage already succeeded; the existing alarm foundation
-      // can retry on the next lifecycle/scheduler trigger.
-    }
+    await _rescheduleTaskRemindersBestEffort();
     try {
       await calendarOutboundSyncService.sync(
         calendarProjection.project(snapshot),
@@ -1304,6 +1338,7 @@ class _HomePageState extends State<HomePage> {
             }
             stored.add(edited);
           });
+          await _rescheduleTaskRemindersBestEffort();
           await wave2ProductFastTrack.persistProjectSelection(
             taskId: edited.id,
             projectId: selectedProjectId,
@@ -1325,6 +1360,7 @@ class _HomePageState extends State<HomePage> {
             }
             stored.add(captured);
           });
+          await _rescheduleTaskRemindersBestEffort();
           await wave2ProductFastTrack.persistProjectSelection(
             taskId: captured.id,
             projectId: selectedProjectId,
@@ -1840,6 +1876,159 @@ class _HomePageState extends State<HomePage> {
     };
   }
 
+  Future<bool?> _requestBackupEncryptionChoice() {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('حفاظت از فایل پشتیبان'),
+        content: const Text(
+          'فایل بدون رمزگذاری قابل خواندن است. برای انتقال امن به گوشی دیگر، رمزگذاری را انتخاب کنید و رمز را جداگانه در جای امن نگه دارید.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('انصراف'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('بدون رمزگذاری'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('رمزگذاری'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<String?> _requestNewBackupPassphrase() {
+    var passphrase = '';
+    var confirmation = '';
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        String? errorText;
+        return StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            title: const Text('رمز پشتیبان'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'آروین این رمز را ذخیره نمی‌کند. اگر آن را گم کنید، بازیابی این فایل ممکن نخواهد بود.',
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    obscureText: true,
+                    autocorrect: false,
+                    enableSuggestions: false,
+                    onChanged: (value) => passphrase = value,
+                    decoration: const InputDecoration(labelText: 'رمز'),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    obscureText: true,
+                    autocorrect: false,
+                    enableSuggestions: false,
+                    onChanged: (value) => confirmation = value,
+                    decoration: const InputDecoration(labelText: 'تکرار رمز'),
+                  ),
+                  if (errorText != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        errorText!,
+                        style: TextStyle(color: Theme.of(context).colorScheme.error),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text('انصراف'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  if (passphrase.trim().isEmpty) {
+                    setDialogState(() => errorText = 'رمز نمی‌تواند خالی باشد');
+                    return;
+                  }
+                  if (passphrase != confirmation) {
+                    setDialogState(() => errorText = 'دو رمز یکسان نیستند');
+                    return;
+                  }
+                  Navigator.of(dialogContext).pop(passphrase);
+                },
+                child: const Text('ادامه'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<String?> _requestRestorePassphrase() {
+    var passphrase = '';
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        String? errorText;
+        return StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            title: const Text('رمز فایل پشتیبان'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('رمز هنگام ساخت فایل انتخاب شده است و در آروین ذخیره نمی‌شود.'),
+                const SizedBox(height: 12),
+                TextField(
+                  autofocus: true,
+                  obscureText: true,
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  onChanged: (value) => passphrase = value,
+                  decoration: const InputDecoration(labelText: 'رمز بازیابی'),
+                ),
+                if (errorText != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      errorText!,
+                      style: TextStyle(color: Theme.of(context).colorScheme.error),
+                    ),
+                  ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text('انصراف'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  if (passphrase.trim().isEmpty) {
+                    setDialogState(() => errorText = 'رمز نمی‌تواند خالی باشد');
+                    return;
+                  }
+                  Navigator.of(dialogContext).pop(passphrase);
+                },
+                child: const Text('بازیابی'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _backupToFolder() async {
     try {
       var directory = await backupManager.getDirectory();
@@ -1857,14 +2046,20 @@ class _HomePageState extends State<HomePage> {
         return;
       }
 
+      final encryptBackup = await _requestBackupEncryptionChoice();
+      if (encryptBackup == null || !mounted) return;
+      final passphrase = encryptBackup ? await _requestNewBackupPassphrase() : null;
+      if (encryptBackup && passphrase == null || !mounted) return;
+
       final fileName = await backupManager.backupCanonicalTasks(
         await taskStore.load(),
         settings: await _portableBackupSettings(),
-        projects: await ProjectStore().load(),
+        projects: await projectStore.load(),
         calendarLinks: await ExternalCalendarLinkStore().load(),
         categories: await taskStore.loadCategories(),
         tags: await taskStore.loadTags(),
         people: await taskStore.loadPeopleDirectory(),
+        encryptionPassphrase: passphrase,
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1886,6 +2081,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _restoreFromFile() async {
+    String? restorePassphrase;
+    var reminderRescheduleFailed = false;
+    var backupScheduleRescheduleFailed = false;
     List<Task>? previousTasks;
     List<ProjectPlan>? previousProjects;
     List<ExternalCalendarEventLink>? previousCalendarLinks;
@@ -1893,8 +2091,68 @@ class _HomePageState extends State<HomePage> {
     List<String>? previousTags;
     List<PersonReference>? previousPeople;
     Map<String, dynamic>? previousSettings;
+    final restoreOperationId = DateTime.now().microsecondsSinceEpoch;
+    Future<T> traceRestoreOperation<T>(
+      String stage,
+      Future<T> Function() action,
+    ) async {
+      final watch = Stopwatch()..start();
+      debugPrint(
+        'ARVIN_RESTORE_TRACE op=$restoreOperationId stage=$stage event=start',
+      );
+      try {
+        final value = await action();
+        watch.stop();
+        debugPrint(
+          'ARVIN_RESTORE_TRACE op=$restoreOperationId stage=$stage '
+          'event=complete duration_ms=${watch.elapsedMilliseconds}',
+        );
+        return value;
+      } catch (error, stackTrace) {
+        watch.stop();
+        debugPrint(
+          'ARVIN_RESTORE_TRACE op=$restoreOperationId stage=$stage '
+          'event=error duration_ms=${watch.elapsedMilliseconds} '
+          'error_type=${error.runtimeType}',
+        );
+        debugPrintStack(stackTrace: stackTrace);
+        rethrow;
+      }
+    }
+
+    T traceRestoreSync<T>(String stage, T Function() action) {
+      final watch = Stopwatch()..start();
+      debugPrint(
+        'ARVIN_RESTORE_TRACE op=$restoreOperationId stage=$stage event=start',
+      );
+      try {
+        final value = action();
+        watch.stop();
+        debugPrint(
+          'ARVIN_RESTORE_TRACE op=$restoreOperationId stage=$stage '
+          'event=complete duration_ms=${watch.elapsedMilliseconds}',
+        );
+        return value;
+      } catch (error, stackTrace) {
+        watch.stop();
+        debugPrint(
+          'ARVIN_RESTORE_TRACE op=$restoreOperationId stage=$stage '
+          'event=error duration_ms=${watch.elapsedMilliseconds} '
+          'error_type=${error.runtimeType}',
+        );
+        debugPrintStack(stackTrace: stackTrace);
+        rethrow;
+      }
+    }
+
     try {
-      final candidate = await backupManager.restoreCanonicalBackup();
+      final candidate = await backupManager.restoreCanonicalBackup(
+        requestPassphrase: () async {
+          final entered = await _requestRestorePassphrase();
+          restorePassphrase = entered;
+          return entered;
+        },
+      );
       if (candidate == null) return;
 
       final list = candidate.tasks;
@@ -1923,7 +2181,7 @@ class _HomePageState extends State<HomePage> {
       }
       final tasksBeforeRestore = await taskStore.load();
       previousTasks = tasksBeforeRestore;
-      final projectsBeforeRestore = await ProjectStore().load();
+      final projectsBeforeRestore = await projectStore.load();
       previousProjects = projectsBeforeRestore;
       final calendarLinksBeforeRestore = await ExternalCalendarLinkStore().load();
       previousCalendarLinks = calendarLinksBeforeRestore;
@@ -1940,6 +2198,7 @@ class _HomePageState extends State<HomePage> {
         categories: previousCategories,
         tags: previousTags,
         people: previousPeople,
+        encryptionPassphrase: restorePassphrase,
       );
       if (emergencyBackup == null) {
         if (mounted) {
@@ -2010,11 +2269,10 @@ class _HomePageState extends State<HomePage> {
           try {
             await AndroidFollowUpReminderScheduler().reschedule();
           } catch (_) {
-            // Canonical Task storage already succeeded; the existing alarm foundation
-            // can retry on the next lifecycle/scheduler trigger.
+            reminderRescheduleFailed = true;
           }
           if (candidate.hasProjects) {
-            await ProjectStore().save(reconciledProjects);
+            await projectStore.save(reconciledProjects);
           }
           await widget.restoreStageHook?.call('projects');
           await ExternalCalendarLinkStore().restoreForTasks(
@@ -2028,24 +2286,52 @@ class _HomePageState extends State<HomePage> {
               current: settingsBeforeRestore,
               incoming: candidate.settings!,
             );
-            await appSettingsService.restorePortableJson(mergedSettings);
+            await traceRestoreOperation<void>(
+              'settings.restore-portable-json',
+              () => appSettingsService.restorePortableJson(mergedSettings),
+            );
             final rawSchedule = mergedSettings['backupSchedule'];
             if (rawSchedule is Map) {
-              final restoredSchedule = BackupSchedule.decodePortableJson(
-                Map<String, dynamic>.from(rawSchedule),
+              final restoredSchedule = traceRestoreSync(
+                'settings.decode-backup-schedule',
+                () => BackupSchedule.decodePortableJson(
+                  Map<String, dynamic>.from(rawSchedule),
+                ),
               );
-              await restoredSchedule.save();
+              await traceRestoreOperation<void>(
+                'settings.backup-schedule-save',
+                () => restoredSchedule.save(),
+              );
+              try {
+                await traceRestoreOperation<void>(
+                  'settings.backup-scheduler',
+                  () => backupScheduler.schedule(restoredSchedule),
+                );
+              } catch (_) {
+                backupScheduleRescheduleFailed = true;
+              }
             }
             final rawDailyContent = mergedSettings['dailyContentPreferences'];
             if (rawDailyContent is Map) {
-              await DailyContentPreferencesService().restorePortableJson(
-                Map<String, dynamic>.from(rawDailyContent),
+              await traceRestoreOperation<void>(
+                'settings.daily-content-preferences',
+                () => DailyContentPreferencesService().restorePortableJson(
+                  Map<String, dynamic>.from(rawDailyContent),
+                ),
               );
             }
-            final appliedSettings = await appSettingsService.load();
+            final appliedSettings = await traceRestoreOperation(
+              'settings.reload',
+              () => appSettingsService.load(),
+            );
             if (mounted) widget.onSettingsChanged?.call(appliedSettings);
           }
-          await widget.restoreStageHook?.call('settings');
+          await traceRestoreOperation<void>(
+            'settings-stage-hook',
+            () async {
+              await widget.restoreStageHook?.call('settings');
+            },
+          );
           // Catalog writes are last and transactional within TaskStore.
           await taskStore.mergeCatalogs(
             categories: candidate.categories ?? const <String>[],
@@ -2058,38 +2344,120 @@ class _HomePageState extends State<HomePage> {
           await widget.restoreStageHook?.call('people-directory');
         },
         rollback: () async {
-          await taskStore.save(previousTasks!);
-          await ProjectStore().save(previousProjects!);
-          await ExternalCalendarLinkStore().save(previousCalendarLinks!);
-          await appSettingsService.restorePortableJson(previousSettings!);
+          final rollbackFailures = <String>[];
+
+          Future<void> attemptRollbackStage(
+            String stage,
+            Future<void> Function() action,
+          ) async {
+            try {
+              await action();
+              await widget.restoreStageHook?.call('rollback-$stage');
+            } catch (error, stackTrace) {
+              // Do not log payloads, setting values, or backup contents.
+              rollbackFailures.add('$stage:${error.runtimeType}');
+              debugPrint(
+                'ARVIN_RESTORE_ROLLBACK_STAGE_FAILED stage=$stage '
+                'error=${error.runtimeType}',
+              );
+              debugPrintStack(stackTrace: stackTrace);
+            }
+          }
+
+          // ProjectStore owns project_items, which references Tasks. Attempt
+          // this first, but still attempt the independent Task restoration if
+          // the project stage fails. One compensation failure must not silently
+          // prevent all later recovery work.
+          await attemptRollbackStage('start', () async {});
+          await attemptRollbackStage(
+            'projects',
+            () => projectStore.save(previousProjects!),
+          );
+          await attemptRollbackStage(
+            'tasks',
+            () => taskStore.save(previousTasks!),
+          );
+          await attemptRollbackStage('follow-up-scheduler', () async {
+            try {
+              await AndroidFollowUpReminderScheduler().reschedule();
+            } catch (_) {
+              reminderRescheduleFailed = true;
+              rethrow;
+            }
+          });
+          await attemptRollbackStage(
+            'calendar-links',
+            () => ExternalCalendarLinkStore().save(previousCalendarLinks!),
+          );
+          await attemptRollbackStage(
+            'settings',
+            () => appSettingsService.restorePortableJson(previousSettings!),
+          );
+
           final oldSchedule = previousSettings!['backupSchedule'];
           if (oldSchedule is Map) {
-            await BackupSchedule.decodePortableJson(
-              Map<String, dynamic>.from(oldSchedule),
-            ).save();
+            await attemptRollbackStage('backup-schedule-storage', () async {
+              await BackupSchedule.decodePortableJson(
+                Map<String, dynamic>.from(oldSchedule),
+              ).save();
+            });
+            await attemptRollbackStage('backup-scheduler', () async {
+              try {
+                await backupScheduler.schedule(
+                  BackupSchedule.decodePortableJson(
+                    Map<String, dynamic>.from(oldSchedule),
+                  ),
+                );
+              } catch (_) {
+                backupScheduleRescheduleFailed = true;
+                rethrow;
+              }
+            });
           }
+
           final oldDailyContent = previousSettings!['dailyContentPreferences'];
           if (oldDailyContent is Map) {
-            await DailyContentPreferencesService().restorePortableJson(
-              Map<String, dynamic>.from(oldDailyContent),
-            );
+            await attemptRollbackStage('daily-content-preferences', () =>
+                DailyContentPreferencesService().restorePortableJson(
+                  Map<String, dynamic>.from(oldDailyContent),
+                ));
           }
+
           for (final category in (candidate.categories ?? const <String>[])
               .map((value) => value.trim()).toSet()) {
             if (!previousCategories!.contains(category)) {
-              await taskStore.deleteCategoryCatalog(category);
+              await attemptRollbackStage(
+                'category:$category',
+                () => taskStore.deleteCategoryCatalog(category),
+              );
             }
           }
           for (final tag in (candidate.tags ?? const <String>[])
               .map((value) => value.trim()).toSet()) {
             if (!previousTags!.contains(tag)) {
-              await taskStore.deleteTagCatalog(tag);
+              await attemptRollbackStage(
+                'tag:$tag',
+                () => taskStore.deleteTagCatalog(tag),
+              );
             }
           }
-          await taskStore.savePeopleDirectory(previousPeople ?? const <PersonReference>[]);
-          final appliedSettings = await appSettingsService.load();
-          if (mounted) widget.onSettingsChanged?.call(appliedSettings);
-          await _load();
+          await attemptRollbackStage(
+            'people-directory',
+            () => taskStore.savePeopleDirectory(
+              previousPeople ?? const <PersonReference>[],
+            ),
+          );
+          await attemptRollbackStage('settings-notification', () async {
+            final appliedSettings = await appSettingsService.load();
+            if (mounted) widget.onSettingsChanged?.call(appliedSettings);
+          });
+          await attemptRollbackStage('home-refresh', _load);
+
+          if (rollbackFailures.isNotEmpty) {
+            throw StateError(
+              'Restore rollback stages failed: ${rollbackFailures.join(', ')}',
+            );
+          }
         },
       );
       await _load();
@@ -2097,7 +2465,7 @@ class _HomePageState extends State<HomePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '${list.length} کار${restoredSettings == null ? '' : ' و تنظیمات برنامه'} با همه جزئیات بازیابی شد${candidate.calendarLinks == null ? '؛ پیوندهای فعلیِ کارهای بازیابی‌شده حفظ شدند' : '؛ پیوندهای تقویم ادغام شدند و پیش از همگام‌سازی بررسی می‌شوند'}${candidate.hasPeople ? '؛ فهرست افراد بازیابی شد' : '؛ فهرست افراد فعلی حفظ شد'}',
+              '${list.length} کار${restoredSettings == null ? '' : ' و تنظیمات برنامه'} با همه جزئیات بازیابی شد${candidate.calendarLinks == null ? '؛ پیوندهای فعلیِ کارهای بازیابی‌شده حفظ شدند' : '؛ پیوندهای تقویم ادغام شدند و پیش از همگام‌سازی بررسی می‌شوند'}${candidate.hasPeople ? '؛ فهرست افراد بازیابی شد' : '؛ فهرست افراد فعلی حفظ شد'}${reminderRescheduleFailed ? '؛ زمان‌بندی یادآورها تأیید نشد' : ''}${backupScheduleRescheduleFailed ? '؛ زمان‌بندی خودکار پشتیبان دوباره فعال نشد' : ''}',
             ),
           ),
         );
@@ -2112,6 +2480,14 @@ class _HomePageState extends State<HomePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(message)),
         );
+      }
+    } finally {
+      // Test-only synchronization seam: callers can await completion of all
+      // apply/rollback futures before reading persistent SQLite state.
+      try {
+        await widget.restoreCompletionHook?.call();
+      } catch (_) {
+        // A diagnostic callback must never change Restore's outcome.
       }
     }
   }

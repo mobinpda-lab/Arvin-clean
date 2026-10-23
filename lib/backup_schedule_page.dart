@@ -87,22 +87,10 @@ class _BackupSchedulePageState extends State<BackupSchedulePage> {
           return;
         }
 
-        final loadTasks = widget.loadTasks;
-        if (loadTasks == null) {
-          if (mounted) {
-            setState(() => _saving = false);
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('داده پشتیبان‌گیری در دسترس نیست')),
-            );
-          }
-          return;
-        }
-
-        final tasks = await loadTasks();
         await schedule.save();
         await BackupBackgroundRunner.saveConfiguration(
           directoryUri: directory,
-          payload: <String, dynamic>{'tasks': tasks},
+          payload: const <String, dynamic>{},
         );
         await _scheduler.schedule(schedule);
       }
@@ -174,7 +162,14 @@ class _BackupSchedulePageState extends State<BackupSchedulePage> {
               ),
               onTap: schedule.enabled ? _pickTime : null,
             ),
-            const SizedBox(height: 12),
+            if (schedule.enabled) ...[
+              const SizedBox(height: 12),
+              const Text(
+                'توجه: پشتیبان‌گیری خودکار فعلاً بدون رمزگذاری فایل می‌سازد. برای انتقال امن اطلاعات حساس، از پشتیبان دستیِ رمزگذاری‌شده استفاده کنید.',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+            ],
             if (schedule.enabled)
               Text(
                 'اجرای بعدی: ${_formatDateTime(schedule.nextRun())}',

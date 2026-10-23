@@ -36,14 +36,15 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || inputs.target_sha || github.sha }}
       - name: Verify exact requested revision
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' }}
+        if: ${{ (github.event_name == 'workflow_dispatch' && inputs.target_sha != '') || github.event_name == 'pull_request' }}
         env:
-          TARGET_SHA: ${{ inputs.target_sha }}
+          TARGET_SHA: ${{ github.event.pull_request.head.sha || inputs.target_sha }}
         run: |
           set -euo pipefail
           actual="$(git rev-parse HEAD)"
+          echo "CHECKOUT_SHA=$actual"
           test "$actual" = "$TARGET_SHA"
           echo "EXACT_TARGET_SHA=$actual"
       - name: Cache pinned VazirHarf
@@ -107,6 +108,16 @@ jobs:
       - name: Analyze
         if: matrix.lane == 'analyze'
         run: flutter analyze
+      - name: Focused Restore and persistence regression gate
+        if: matrix.lane == 'test-2'
+        run: |
+          set -euo pipefail
+          flutter test test/home_restore_orchestration_test.dart
+          flutter test test/home_restore_orchestration_test.dart
+          flutter test test/task_store_test.dart
+          flutter test test/core/task_store_test.dart
+          flutter test test/project_store_test.dart
+          flutter test test/follow_up_reminder_runtime_contract_test.dart
       - name: Test
         if: startsWith(matrix.lane, 'test-')
         env:
@@ -124,14 +135,15 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || inputs.target_sha || github.sha }}
       - name: Verify exact requested revision
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' }}
+        if: ${{ (github.event_name == 'workflow_dispatch' && inputs.target_sha != '') || github.event_name == 'pull_request' }}
         env:
-          TARGET_SHA: ${{ inputs.target_sha }}
+          TARGET_SHA: ${{ github.event.pull_request.head.sha || inputs.target_sha }}
         run: |
           set -euo pipefail
           actual="$(git rev-parse HEAD)"
+          echo "CHECKOUT_SHA=$actual"
           test "$actual" = "$TARGET_SHA"
           echo "EXACT_TARGET_SHA=$actual"
 

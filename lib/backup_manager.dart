@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show debugPrint, debugPrintStack;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'backup_service.dart';
@@ -31,12 +32,16 @@ class RestoreExecutionFailure implements Exception {
   const RestoreExecutionFailure({
     required this.recoveryBackup,
     required this.restoreError,
+    this.restoreStackTrace,
     this.rollbackError,
+    this.rollbackStackTrace,
   });
 
   final String recoveryBackup;
   final Object restoreError;
+  final StackTrace? restoreStackTrace;
   final Object? rollbackError;
+  final StackTrace? rollbackStackTrace;
 
   bool get rolledBack => rollbackError == null;
 
@@ -53,19 +58,27 @@ Future<T> runRestoreWithRollback<T>({
 }) async {
   try {
     return await apply();
-  } catch (restoreError) {
+  } catch (restoreError, restoreStackTrace) {
+    // Log type and stack only. Never emit backup contents or settings.
+    debugPrint('ARVIN_RESTORE_PRIMARY_FAILURE error=${restoreError.runtimeType}');
+    debugPrintStack(stackTrace: restoreStackTrace);
     try {
       await rollback();
-    } catch (rollbackError) {
+    } catch (rollbackError, rollbackStackTrace) {
+      debugPrint('ARVIN_RESTORE_COMPENSATION_FAILURE error=${rollbackError.runtimeType}');
+      debugPrintStack(stackTrace: rollbackStackTrace);
       throw RestoreExecutionFailure(
         recoveryBackup: recoveryBackup,
         restoreError: restoreError,
+        restoreStackTrace: restoreStackTrace,
         rollbackError: rollbackError,
+        rollbackStackTrace: rollbackStackTrace,
       );
     }
     throw RestoreExecutionFailure(
       recoveryBackup: recoveryBackup,
       restoreError: restoreError,
+      restoreStackTrace: restoreStackTrace,
     );
   }
 }
@@ -213,16 +226,29 @@ class ArvinBackupManager {
     );
   }
 
-  Future<Map<String, dynamic>?> restoreBackup({String? passphrase}) =>
-      service.readBackup(passphrase: passphrase);
+  Future<Map<String, dynamic>?> restoreBackup({
+    String? passphrase,
+    Future<String?> Function()? requestPassphrase,
+  }) {
+    if (passphrase == null && requestPassphrase != null) {
+      return service.readBackupWithPassphrasePrompt(
+        requestPassphrase: requestPassphrase,
+      );
+    }
+    return service.readBackup(passphrase: passphrase);
+  }
 
   /// Decodes one portable backup selection into a candidate without mutating
   /// local storage. The same read yields canonical tasks, optional settings,
   /// and canonical Projects so the UI can validate and confirm restore once.
   Future<CanonicalBackupCandidate?> restoreCanonicalBackup({
     String? passphrase,
+    Future<String?> Function()? requestPassphrase,
   }) async {
-    final document = await restoreBackup(passphrase: passphrase);
+    final document = await restoreBackup(
+      passphrase: passphrase,
+      requestPassphrase: requestPassphrase,
+    );
     if (document == null) return null;
 
     final tasks = _decodeCanonicalTasks(document);
@@ -253,8 +279,14 @@ class ArvinBackupManager {
   }
 
   /// Compatibility helper for callers that only need tasks.
-  Future<List<Task>?> restoreCanonicalTasks({String? passphrase}) async {
-    final candidate = await restoreCanonicalBackup(passphrase: passphrase);
+  Future<List<Task>?> restoreCanonicalTasks({
+    String? passphrase,
+    Future<String?> Function()? requestPassphrase,
+  }) async {
+    final candidate = await restoreCanonicalBackup(
+      passphrase: passphrase,
+      requestPassphrase: requestPassphrase,
+    );
     return candidate?.tasks;
   }
 

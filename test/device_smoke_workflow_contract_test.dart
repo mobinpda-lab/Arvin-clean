@@ -17,7 +17,7 @@ void main() {
     expect(workflow, contains('"scenario":"sql-migration","test_file":"integration_test/android_upgrade_migration_smoke_test.dart"'));
     expect(
       workflow,
-      contains(r"ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.sha }}"),
+      contains(r"ref: ${{ github.event.pull_request.head.sha || inputs.target_sha || github.sha }}"),
     );
     expect(workflow, contains('name: Record and verify checkout revision'));
     expect(workflow, contains(r'actual="$(git rev-parse HEAD)"'));
