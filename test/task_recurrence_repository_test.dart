@@ -185,6 +185,38 @@ void main() {
     );
   });
 
+  test('completing one occurrence does not change adjacent occurrence states', () async {
+    final yesterday = DateTime(2026, 10, 22, 9);
+    final today = DateTime(2026, 10, 23, 9);
+    final tomorrow = DateTime(2026, 10, 24, 9);
+    final store = TaskStore();
+    await store.save([
+      Task(
+        id: 'independent-occurrences',
+        title: 'تکرار مستقل',
+        reminderDate: yesterday,
+        recurrence: const RecurrenceRule(frequency: RecurrenceFrequency.daily),
+      ),
+    ]);
+    final repository = TaskRecurrenceRepository(
+      store: store,
+      now: () => DateTime(2026, 10, 23, 12),
+    );
+
+    await repository.completeOccurrence('independent-occurrences', today);
+    var task = (await store.load()).single;
+    expect(task.occurrenceHistory[yesterday.toIso8601String()], isNull);
+    expect(task.occurrenceHistory[today.toIso8601String()]?['status'], 'completed');
+    expect(task.occurrenceHistory[tomorrow.toIso8601String()], isNull);
+
+    await repository.completeOccurrence('independent-occurrences', yesterday);
+    task = (await TaskStore().load()).single;
+    expect(task.occurrenceHistory[yesterday.toIso8601String()]?['status'], 'completed');
+    expect(task.occurrenceHistory[today.toIso8601String()]?['status'], 'completed');
+    expect(task.occurrenceHistory[tomorrow.toIso8601String()], isNull);
+    expect(task.completed, isFalse);
+  });
+
   test('turning Repeat off keeps Task and occurrence history', () async {
     final store = TaskStore();
     final occurrence = DateTime(2026, 10, 8, 9);
