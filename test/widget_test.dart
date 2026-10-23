@@ -91,4 +91,34 @@ void main() {
     expect(find.text('دسته'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
   });
+
+
+  testWidgets('Home filters include unused canonical Category and Tag catalog entries',
+      (tester) async {
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    // Add catalog values after Home has loaded, then prove opening each filter
+    // refreshes from canonical storage rather than relying on a stale snapshot.
+    final store = TaskStore();
+    await store.createCategory('دسته بدون کار');
+    await store.createTag('برچسب بدون کار');
+
+    await tester.tap(find.byKey(const ValueKey('home-filter-card-category')));
+    await tester.pumpAndSettle();
+    expect(find.text('دسته بدون کار'), findsOneWidget);
+    await tester.tap(find.text('دسته بدون کار'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('دسته بدون کار'), findsWidgets);
+
+    await tester.tap(find.byKey(const ValueKey('home-filter-card-tags')));
+    await tester.pumpAndSettle();
+    expect(find.text('برچسب بدون کار'), findsOneWidget);
+    await tester.tap(find.text('برچسب بدون کار').last);
+    await tester.pumpAndSettle();
+    // The selected Home filter card and the still-open option both show this label.
+    expect(find.text('برچسب بدون کار'), findsNWidgets(2));
+  });
+
 }

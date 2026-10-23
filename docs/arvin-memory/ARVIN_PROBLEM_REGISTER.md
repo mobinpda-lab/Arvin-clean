@@ -286,3 +286,13 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **Candidate mitigation:** Task JSON decode creates one stable legacy TaskReminder with a persisted marker; Calendar and scheduler projections retain old identity; editor and inbound Calendar paths preserve independent reminder behavior.
 - **Remaining risk:** no terminal exact-head CI result yet. SQL persistence, real backup/restore, rollback/retry, Calendar no-duplicate and physical-device acceptance remain unproven.
 - **Status:** Candidate implementation; validation blocked/pending. Release NO-GO.
+
+
+## Wave 7.12 — confirmed Home/Report Category and Tag filter omission (2026-10-23)
+
+- **Observed behavior in source:** Home's `_homeCategories` and tag filter originally derived options only from assigned Tasks; Report Center's filter sheet also built options only from `widget.tasks`.
+- **Root cause:** valid canonical Category/Tag catalog entries not yet assigned to a Task were omitted from both filter menus. This is a current-code logic defect, not yet evidence about the owner's previously installed APK.
+- **Implementation:** stacked Draft PR [#2941](https://github.com/mobinpda-lab/Arvin-clean/pull/2941), branch `fix/home-taxonomy-catalog-filters-wave-7-12`. Home loads/refreshes catalogs through the existing TaskStore; Report Center receives the catalogs from the canonical Home entry point. Both filter surfaces union catalog values with assigned Task values. No new store, entity, schema or migration was introduced.
+- **Regression coverage:** `test/widget_test.dart` creates unused Category/Tag catalog entries after Home has already loaded and verifies the filter sheets refresh and display them; `test/report_center_page_test.dart` verifies unused catalog entries appear and that combined Category + Tag filtering returns the correct Task.
+- **Validation:** exact-head Build and Device Smoke are pending on the final branch head. Do not mark PASS until Analyze, all six Quality shards, Debug/Release Build and relevant Device Smoke are terminal and checkout SHA is verified.
+- **Dependency:** PR #2941 targets the existing integration branch for PR #2932 to avoid overlapping direct edits to `main.dart` with the active font/backup/signing PRs. Do not merge the child PR directly to `main`; keep both Draft until their stacked validation and review are complete.
