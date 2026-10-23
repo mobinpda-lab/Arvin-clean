@@ -377,6 +377,7 @@ class _BackupPageState extends State<BackupPage> {
         categories: previousCategories,
         tags: previousTags,
         people: previousPeople,
+        encryptionPassphrase: passphrase,
       );
       if (emergencyBackup == null) {
         if (mounted) {
