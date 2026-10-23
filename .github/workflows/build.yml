@@ -108,6 +108,16 @@ jobs:
       - name: Analyze
         if: matrix.lane == 'analyze'
         run: flutter analyze
+      - name: Focused Restore and persistence regression gate
+        if: matrix.lane == 'test-2'
+        run: |
+          set -euo pipefail
+          flutter test test/home_restore_orchestration_test.dart
+          flutter test test/home_restore_orchestration_test.dart
+          flutter test test/task_store_test.dart
+          flutter test test/core/task_store_test.dart
+          flutter test test/project_store_test.dart
+          flutter test test/follow_up_reminder_runtime_contract_test.dart
       - name: Test
         if: startsWith(matrix.lane, 'test-')
         env:
