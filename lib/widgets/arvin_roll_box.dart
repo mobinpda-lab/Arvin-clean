@@ -84,7 +84,7 @@ class ArvinTagRollBox extends StatefulWidget {
 
 class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
   Future<void> _openSelector() async {
-    final tags = widget.tags.map((e) => e.trim()).where((e) => e.isNotEmpty).toSet().toList()..sort();
+    var availableTags = widget.tags.map((e) => e.trim()).where((e) => e.isNotEmpty).toSet().toList()..sort();
     final working = <String>{...widget.selectedTags};
     final applied = await showDialog<List<String>>(
       context: context,
@@ -95,7 +95,7 @@ class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
             constraints: const BoxConstraints(maxHeight: 360),
             child: SingleChildScrollView(
               child: Column(mainAxisSize: MainAxisSize.min, children: [
-                for (final tag in tags)
+                for (final tag in availableTags)
                   CheckboxListTile(
                     dense: true,
                     value: working.contains(tag),
@@ -112,7 +112,13 @@ class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
                     onTap: () async {
                       final created = await widget.onCreate!.call();
                       if (created == null || created.trim().isEmpty) return;
-                      setDialogState(() => working.add(created.trim()));
+                      final normalized = created.trim();
+                      setDialogState(() {
+                        if (!availableTags.contains(normalized)) {
+                          availableTags = [...availableTags, normalized]..sort();
+                        }
+                        working.add(normalized);
+                      });
                     },
                   ),
               ]),

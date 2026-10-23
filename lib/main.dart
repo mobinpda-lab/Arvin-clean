@@ -1,6 +1,7 @@
 // ignore_for_file: curly_braces_in_flow_control_structures, deprecated_member_use, unused_field
 
 import 'package:flutter/material.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'arvin_colors.dart';
 
@@ -110,7 +111,7 @@ class ArvinApp extends StatefulWidget {
   State<ArvinApp> createState() => _ArvinAppState();
 }
 
-class _ArvinAppState extends State<ArvinApp> {
+class _ArvinAppState extends State<ArvinApp> with WidgetsBindingObserver {
   final AppSettingsService settingsService = AppSettingsService();
   AppSettings settings = const AppSettings(
     themeMode: ThemeMode.system,
@@ -122,6 +123,7 @@ class _ArvinAppState extends State<ArvinApp> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadSettings();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       StartupPermissionService().requestOnStartup();
@@ -132,6 +134,32 @@ class _ArvinAppState extends State<ArvinApp> {
     final value = await settingsService.load();
     if (!mounted) return;
     setState(() => settings = value);
+    await _applyKeepScreenOn(
+      enable: value.keepScreenOn &&
+          WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed,
+    );
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _applyKeepScreenOn(
+      enable: state == AppLifecycleState.resumed && settings.keepScreenOn,
+    );
+  }
+
+  Future<void> _applyKeepScreenOn({required bool enable}) async {
+    try {
+      await WakelockPlus.toggle(enable: enable);
+    } catch (_) {
+      // Keep-screen-on is an optional display preference; never block app use.
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _applyKeepScreenOn(enable: false);
+    super.dispose();
   }
 
   void _updateSettings(AppSettings value) {
@@ -1349,12 +1377,12 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Future<void> _edit(Task old) async {
+  Future<Task?> _edit(Task old) async {
     final editorContext = await wave2ProductFastTrack.prepareEditor(
       tasks: tasks,
       task: old,
     );
-    if (!mounted) return;
+    if (!mounted) return null;
     String? selectedProjectId = editorContext.selectedProjectId;
     final edited = await showDialog<Task>(
       context: context,
@@ -1370,13 +1398,17 @@ class _HomePageState extends State<HomePage> {
         onCreateTag: _createTag,
       ),
     );
-    if (edited == null) return;
+    if (edited == null) return null;
     setState(() => taskEditApplyService.apply(old, edited));
     await _save();
     await wave2ProductFastTrack.persistProjectSelection(
       taskId: edited.id,
       projectId: selectedProjectId,
     );
+    final refreshedTasks = await taskStore.load();
+    if (!mounted) return null;
+    setState(() => tasks = List<Task>.of(refreshedTasks));
+    return refreshedTasks.firstWhere((item) => item.id == edited.id);
   }
 
   Future<void> _trashTaskFromCalendar(Task task) async {
@@ -1403,13 +1435,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<Task?> _editFromDetail(Task task) async {
-    await _edit(task);
-    if (!mounted) return task;
+    final updated = await _edit(task);
+    if (!mounted || updated == null) return null;
     // Ordinary auto-sync may be disabled even though this Task was explicitly
     // linked to the phone calendar earlier. Reconcile only existing links so
     // editing one Task cannot create events for unrelated Tasks.
     await _syncLinkedCalendarAfterTaskEdit(List<Task>.of(tasks));
-    return task;
+    return updated;
   }
 
   Future<Task?> _checklistChangedFromDetail(
@@ -1529,6 +1561,13 @@ class _HomePageState extends State<HomePage> {
         builder: (_) => TaskDetailPage(
           task: task,
           projectTitle: _projectTitleForTask(task),
+          onResolveProjectTitle: (updated) async {
+            final currentProjects = await ProjectStore().load();
+            for (final project in currentProjects) {
+              if (project.itemIds.contains(updated.id)) return project.title.trim();
+            }
+            return null;
+          },
           onEdit: _editFromDetail,
           onAddFollowUp: _addFollowUpFromDetail,
           onComplete: _completeFromDetail,

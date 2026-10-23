@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'backup_schedule_page.dart';
 import 'calendar_integration_settings_page.dart';
@@ -30,6 +31,20 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _load() async { final value = await widget.service.load(); if (!mounted) return; setState(() => settings = value); }
   Future<void> _setTheme(ThemeMode mode) async { final current = settings; if (current == null) return; await widget.service.saveThemeMode(mode); final next = current.copyWith(themeMode: mode); if (!mounted) return; setState(() => settings = next); widget.onSettingsChanged(next); }
   Future<void> _setPersianDate(bool value) async { final current = settings; if (current == null) return; await widget.service.saveUsePersianDate(value); final next = current.copyWith(usePersianDate: value); if (!mounted) return; setState(() => settings = next); widget.onSettingsChanged(next); }
+  Future<void> _setKeepScreenOn(bool value) async {
+    final current = settings;
+    if (current == null) return;
+    await widget.service.saveKeepScreenOn(value);
+    try {
+      await WakelockPlus.toggle(enable: value);
+    } catch (_) {
+      // Persist the preference even when the platform wakelock is unavailable.
+    }
+    final next = current.copyWith(keepScreenOn: value);
+    if (!mounted) return;
+    setState(() => settings = next);
+    widget.onSettingsChanged(next);
+  }
   Future<void> _setFontSize(double size) async { final current = settings; if (current == null) return; await widget.service.saveFontSize(size); final next = current.copyWith(fontSize: size); if (!mounted) return; setState(() => settings = next); widget.onSettingsChanged(next); }
   Future<void> _setFontFamily(String? family) async { final current = settings; if (current == null) return; await widget.service.saveFontFamily(family); final next = current.copyWith(fontFamily: family, clearFontFamily: family == null); if (!mounted) return; setState(() => settings = next); widget.onSettingsChanged(next); }
   Future<void> _showFontPicker() async {
@@ -84,6 +99,7 @@ class _SettingsPageState extends State<SettingsPage> {
       const Text('ظاهر و نمایش', style: TextStyle(fontWeight: FontWeight.bold)), const SizedBox(height: 8),
       SegmentedButton<ThemeMode>(segments: const [ButtonSegment(value: ThemeMode.system, label: Text('سیستم'), icon: Icon(Icons.settings_suggest_outlined)), ButtonSegment(value: ThemeMode.light, label: Text('روشن'), icon: Icon(Icons.light_mode_outlined)), ButtonSegment(value: ThemeMode.dark, label: Text('تیره'), icon: Icon(Icons.dark_mode_outlined))], selected: {current.themeMode}, onSelectionChanged: (selection) => _setTheme(selection.first)),
       const SizedBox(height: 16), SwitchListTile(contentPadding: EdgeInsets.zero, title: const Text('نمایش تاریخ فارسی'), subtitle: const Text('تاریخ فارسی پیش‌فرض آروین است؛ انتخاب تاریخ پیگیری همیشه با تقویم شمسی انجام می‌شود.'), value: current.usePersianDate, onChanged: _setPersianDate),
+      SwitchListTile(key: const ValueKey('keep-screen-on-setting'), contentPadding: EdgeInsets.zero, title: const Text('روشن ماندن صفحه هنگام استفاده از برنامه'), subtitle: const Text('در زمان استفاده از آروین، صفحه خاموش نمی‌شود.'), secondary: const Icon(Icons.screen_lock_portrait_outlined), value: current.keepScreenOn, onChanged: _setKeepScreenOn),
       const SizedBox(height: 20), const Divider(height: 32), const Text('کارها و حرکت کارت‌ها', key: ValueKey('swipe-settings-title'), style: TextStyle(fontWeight: FontWeight.bold)), const SizedBox(height: 6), const Text('عمل کشیدن کارت به راست و چپ را جداگانه تعیین کنید.'), const SizedBox(height: 12),
       DropdownButtonFormField<TaskSwipeAction>(key: const ValueKey('swipe-right-action'), initialValue: current.swipeRightAction, decoration: const InputDecoration(labelText: 'کشیدن به راست', prefixIcon: Icon(Icons.swipe_right_outlined), border: OutlineInputBorder()), items: _swipeItems(), onChanged: (action) { if (action != null) _setSwipeAction(rightSide: true, action: action); }),
       const SizedBox(height: 12), DropdownButtonFormField<TaskSwipeAction>(key: const ValueKey('swipe-left-action'), initialValue: current.swipeLeftAction, decoration: const InputDecoration(labelText: 'کشیدن به چپ', prefixIcon: Icon(Icons.swipe_left_outlined), border: OutlineInputBorder()), items: _swipeItems(), onChanged: (action) { if (action != null) _setSwipeAction(rightSide: false, action: action); }),

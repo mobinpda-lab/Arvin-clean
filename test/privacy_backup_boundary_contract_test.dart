@@ -25,6 +25,7 @@ void main() {
         'usePersianDate',
         'fontFamily',
         'fontSize',
+        'keepScreenOn',
         'swipeRightAction',
         'swipeLeftAction',
         'calendarIntegration',
@@ -62,6 +63,7 @@ void main() {
       'usePersianDate': false,
       'fontFamily': null,
       'fontSize': 16.0,
+      'keepScreenOn': false,
       'swipeRightAction': 'trash',
       'swipeLeftAction': 'archive',
       'calendarIntegration': {

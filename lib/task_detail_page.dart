@@ -19,6 +19,7 @@ class TaskDetailPage extends StatefulWidget {
     super.key,
     required this.task,
     this.projectTitle,
+    this.onResolveProjectTitle,
     this.onEdit,
     this.onAddFollowUp,
     this.onEditFollowUp,
@@ -29,6 +30,7 @@ class TaskDetailPage extends StatefulWidget {
 
   final Task task;
   final String? projectTitle;
+  final Future<String?> Function(Task task)? onResolveProjectTitle;
   final Future<Task?> Function(Task task)? onEdit;
   final Future<Task> Function(Task task, FollowUp followUp)? onAddFollowUp;
   final Future<FollowUp> Function(Task task, FollowUp followUp)? onEditFollowUp;
@@ -51,11 +53,21 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   static const _waitingService = WaitingForResponseService();
 
   late Task _task;
+  String? _currentProjectTitle;
 
   @override
   void initState() {
     super.initState();
     _task = widget.task;
+    _currentProjectTitle = widget.projectTitle;
+  }
+
+  @override
+  void didUpdateWidget(covariant TaskDetailPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.projectTitle != widget.projectTitle) {
+      _currentProjectTitle = widget.projectTitle;
+    }
   }
 
   String _date(DateTime value) => _formatter.format(value, usePersianDate: true);
@@ -96,6 +108,12 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     final updated = await edit(_task);
     if (!mounted || updated == null) return;
     setState(() => _task = updated);
+    final resolveProjectTitle = widget.onResolveProjectTitle;
+    if (resolveProjectTitle != null) {
+      final title = await resolveProjectTitle(updated);
+      if (!mounted) return;
+      setState(() => _currentProjectTitle = title);
+    }
   }
 
   Future<void> _openReport() async {
@@ -221,9 +239,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             Text(_task.description.trim(), key: const ValueKey('task-detail-description'), style: const TextStyle(color: Color(0xFF55566B), height: 1.55)),
           ],
           const SizedBox(height: 12),
-          if (_task.category?.trim().isNotEmpty == true || _task.tags.isNotEmpty || widget.projectTitle?.trim().isNotEmpty == true) ...[
+          if (_task.category?.trim().isNotEmpty == true || _task.tags.isNotEmpty || _currentProjectTitle?.trim().isNotEmpty == true) ...[
             TaxonomyIconRow(
-              project: widget.projectTitle,
+              project: _currentProjectTitle,
               category: _task.category,
               tags: _task.tags,
               maxTags: 3,
