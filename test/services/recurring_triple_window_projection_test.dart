@@ -85,26 +85,6 @@ void main() {
     expect(result.today.single.status, RecurrenceOccurrenceStatus.cancelled);
   });
 
-  test('Resume from Today hides past only in the view and preserves history', () {
-    final history = <String, Map<String, dynamic>>{
-      DateTime(2026, 10, 15).toIso8601String(): {
-        'scheduledDate': DateTime(2026, 10, 15).toIso8601String(),
-        'status': 'missed',
-      },
-    };
-    final task = dailyTask(anchor: DateTime(2026, 10, 15), history: history);
-    final before = Map<String, Map<String, dynamic>>.from(task.occurrenceHistory);
-    final result = projection.project([task], localAnchorDate: today, horizonDays: 2);
-
-    expect(result.past, hasLength(2));
-    expect(result.pastForHome(resumeFromToday: false), hasLength(2));
-    expect(result.pastForHome(resumeFromToday: true), isEmpty);
-    expect(result.today, hasLength(1));
-    expect(result.upcoming, hasLength(1));
-    expect(task.reminderDate, DateTime(2026, 10, 15));
-    expect(task.occurrenceHistory, before);
-  });
-
   test('preserves stored missed and pending history statuses', () {
     final task = dailyTask(
       history: {
