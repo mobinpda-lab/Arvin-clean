@@ -1,3 +1,9 @@
+# Wave 6.69 Superseding Font Status — 2026-10-23
+
+The font-status row in this evidence map records an earlier checkpoint and is now superseded for the corrective branch. Baseline main SHA 18cbeecc95a03a3b301359ca5b96cfef175a3b15 declared VazirHarf and did not wire the tracked Vazirmatn assets. PR #2918 now registers the four matching Vazirmatn v33.003 static TTF weights, removes CI-time VazirHarf injection, and adds asset-hash plus packaged FontManifest checks. Exact-head Build/test/device acceptance is still governed by the live checks for the current PR head; visual device acceptance must not be inferred from this note.
+
+---
+
 ## 2026-10-14 — CI recovery dispatcher evidence
 
 | Feature / Gate | SHA / Run | Result | Evidence / limitation |
@@ -462,4 +468,4 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Calendar follow-up interaction | `lib/calendar_page.dart`; regression tests updated to require long press for follow-up actions and keep short tap for parent Task | Implemented, awaiting exact-head test result | All test shards green; inspect device screenshots |
 | Prior exact-head Build | Run [38859380955](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38859380955), SHA `2d04631dd9d1939bd3feafa12aa7d68bec349b58` | Debug/Release APK jobs succeeded; multiple test shards failed | Re-run on final SHA; old success is not release evidence |
 | Final head Build / Device Smoke / Calendar Provider | Runs are regenerated when the branch head changes | Pending validation | All six device-smoke lanes, Calendar Provider Acceptance, artifacts and screenshot review |
-| Font / physical device | VazirHarf declared; Vazirmatn asset not found in project assets; no new physical-device evidence | OPEN / NO-GO | Add licensed font asset if Vazirmatn is mandatory; separate physical-device acceptance |
+| Font / physical device | PR #2918 tracks Vazirmatn v33.003 Regular 400, Medium 500, SemiBold 600 and Bold 700; hash and packaged FontManifest checks passed on SHA `6582f4bdb522aa3e4bda9a70123133e59af1712f`; later PDF-loader test commit is under exact-head CI validation | PARTIAL / NO-GO | Confirm current exact-head Build/test/Device Smoke and visually inspect Persian shaping, half-space, all used weights and generated PDF |

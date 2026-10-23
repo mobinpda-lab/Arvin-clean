@@ -106,7 +106,7 @@
 ### 4.8 Typography / Appearance
 - font picker واقعی + preview.
 - font size واقعی و app-wide.
-- VazirHarf v34.003 پیش‌فرض.
+- **Historical snapshot, superseded by Wave 6.71:** این سند قدیمی VazirHarf v34.003 را پیش‌فرض ثبت کرده بود. قرارداد رسمی فعلی آروین Vazirmatn v33.003 است؛ این خط دیگر دستور اجرایی نیست.
 - font اضافی فقط با source/license قابل اثبات.
 - canonical AppSettingsService؛ settings store موازی ممنوع.
 - رنگ‌ها semantic و دسترسی‌پذیر؛ رنگ تنها نشانه وضعیت نباشد.

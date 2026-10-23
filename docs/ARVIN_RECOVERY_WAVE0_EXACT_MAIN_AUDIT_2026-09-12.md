@@ -1,3 +1,5 @@
+> **Historical exact-main audit from 2026-09-12:** Font-default statements in this snapshot reflect the repository at that checkpoint and are not the current product contract. Wave 6.71 supersedes them: Vazirmatn v33.003 is the canonical/default font.
+
 # Arvin Recovery Wave 0 — Exact-main audit
 
 Date: 2026-09-12  

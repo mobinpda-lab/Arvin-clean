@@ -141,7 +141,7 @@ class _ArvinAppState extends State<ArvinApp> {
 
   @override
   Widget build(BuildContext context) {
-    final selectedOption = arvinFontById(settings.fontFamily ?? 'vazirharf');
+    final selectedOption = arvinFontById(settings.fontFamily ?? 'vazirmatn');
     final selectedFontFamily = selectedOption.effectiveFontFamily;
     final lightBaseTextTheme = ThemeData.light().textTheme.apply(
       fontFamily: selectedFontFamily,

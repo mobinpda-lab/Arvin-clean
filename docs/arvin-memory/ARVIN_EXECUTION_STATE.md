@@ -1,3 +1,14 @@
+# AUTHORITATIVE TYPOGRAPHY UPDATE — Wave 6.69 (2026-10-23)
+
+This product decision supersedes older font decisions recorded below: **Vazirmatn v33.003 is Arvin's canonical public/default UI font.** VazirHarf is a distinct family, not an alias for Vazirmatn. Historical entries below are preserved as history and must not be treated as the current typography contract.
+
+- Tracked assets: assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf, Vazirmatn-Medium.ttf, and Vazirmatn-Bold.ttf.
+- Legacy VazirHarf settings and portable-backup values normalize to the canonical vazirmatn id.
+- Build and smoke workflows must use tracked assets and verify the packaged Flutter FontManifest.json; they must not download or inject VazirHarf.
+- APK/device visual acceptance must be recorded against the exact tested SHA. Release remains BLOCKED — RELEASE: NO-GO.
+
+---
+
 # AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Exact-head CI recovery correction
 
 This entry supersedes prior claims that the exact-head recovery root cause was wholly unknown.
