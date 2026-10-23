@@ -34,7 +34,8 @@ void main() {
     expect(task.followUps, hasLength(1));
     expect(task.followUps.single, same(followUp));
     expect(task.followUps.single.dateTime, DateTime(2026, 8, 26, 9));
-    expect(task.followUps.single.reminderDate, DateTime(2026, 8, 27, 9));
+    expect(task.followUps.single.nextFollowUp, DateTime(2026, 8, 27, 9));
+    expect(task.followUps.single.reminderDate, isNull);
   });
 
   test('projects the independent Follow-up reminder but never the next-action date', () {
