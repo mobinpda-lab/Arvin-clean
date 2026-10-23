@@ -476,3 +476,15 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Prior exact-head Build | Run [38859380955](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38859380955), SHA `2d04631dd9d1939bd3feafa12aa7d68bec349b58` | Debug/Release APK jobs succeeded; multiple test shards failed | Re-run on final SHA; old success is not release evidence |
 | Final head Build / Device Smoke / Calendar Provider | Runs are regenerated when the branch head changes | Pending validation | All six device-smoke lanes, Calendar Provider Acceptance, artifacts and screenshot review |
 | Font / physical device | VazirHarf declared; Vazirmatn asset not found in project assets; no new physical-device evidence | OPEN / NO-GO | Add licensed font asset if Vazirmatn is mandatory; separate physical-device acceptance |
+
+## Wave 7.18-R2 — evidence additions (2026-10-23)
+
+| Claim / gate | Revision / evidence | Result | Limitation / next step |
+|---|---|---|---|
+| Current Task/Follow-up model | Main `lib/models/task.dart`, blob SHA `c0ce878b88bb6fe4ede1c98da8a889b9edab8893` | Fields identified: `nextFollowUp`, `reminderDate`, Task `taskReminders`, multiple `followUps` | No date-only marker for Follow-up fields; cardinality is one optional reminderDate per Follow-up. |
+| Calendar projection repair | PR #2951, old failing head `c23ad14658076a7d4787a0a5c425dbb18135988c`, Build [40014182743](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40014182743) | FAIL: projection compile errors; 175 tests passed, 20 failed | Later corrective commits restore projection and assert Follow-up reminder visibility. |
+| Current post-fix validation | PR #2951 head `f15842f8b1fcca9f14bdd332b8c78cbbc6636f58`; Build [40020128713](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40020128713), Smoke [40020128711](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40020128711), Provider [40020128550](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40020128550) | IN PROGRESS / NOT VERIFIED at last poll | Recheck current PR head, actual checkout SHA, and terminal job conclusions. |
+| Home shows Next Follow-up | Main `lib/main.dart`, `_homeFollowUpDate` | FAIL: currently returns `task.lastFollowUp?.dateTime` | Must show the planned next-follow-up date/time and keep it independent from reminder time. |
+| Product concept | Proposal PR #2866, branch `docs/canonical-product-concept-20261020` | Proposed; not in main | Review, approve and merge through normal governance before treating as official policy. |
+| Source ZIP comparison | No identifiable pair of source ZIPs in current conversation attachments | NOT VERIFIED | Obtain exact ZIP names/files and compare archive contents to branch/main SHA. |
+
