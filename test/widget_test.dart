@@ -95,12 +95,14 @@ void main() {
 
   testWidgets('Home filters include unused canonical Category and Tag catalog entries',
       (tester) async {
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    // Add catalog values after Home has loaded, then prove opening each filter
+    // refreshes from canonical storage rather than relying on a stale snapshot.
     final store = TaskStore();
     await store.createCategory('دسته بدون کار');
     await store.createTag('برچسب بدون کار');
-
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('home-filter-card-category')));
     await tester.pumpAndSettle();
