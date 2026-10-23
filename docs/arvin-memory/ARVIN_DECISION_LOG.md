@@ -224,3 +224,13 @@
 ## 2026-10-15 — Decision record: PR #2725 validated
 
 Both required exact-head gates for `ba2306cfc66ad982f8e8ab73b838a4a8d6ed6b55` are terminal `success`: Build `38752957837` and Device Smoke `38752957813` (all six lanes). Proceed with the authorized squash merge of PR #2725 only while its head remains unchanged. After confirmed merge, create `feat/person-reports-followup-issue-2683` from fresh `main` and begin Issue #2683. Do not conflate CI success with physical-device release acceptance.
+
+## 2026-10-23 — Owner decision: Next Follow-up vs independent reminder (Wave 7.18-R2)
+
+- **Decision:** Next Follow-up is Home-facing scheduling data; it must not create a phone Calendar event by itself. A separately configured Follow-up reminder is eligible for Calendar sync and its event time comes from the reminder, not the Next Follow-up value.
+- **Independence:** changing Next Follow-up must not alter reminder time; changing/deleting a reminder must not delete Follow-up, result, or history. Reprocessing must not create duplicate Calendar events.
+- **Current model boundary:** one optional `FollowUp.reminderDate` per Follow-up record; multiple Follow-up records per Task are modeled. Task-level reminders live in `Task.taskReminders`. Multiple reminders for one Follow-up are not established and remain an owner decision.
+- **Compatibility guard:** `Task.dueDate`, legacy `Task.followUpDate`, `FollowUp.nextFollowUp`, `FollowUp.reminderDate`, `Task.reminderDate` and `Task.taskReminders` must not be treated as interchangeable. Do not perform schema migration until legacy mapping and data preservation are tested.
+- **Evidence:** current main model blob `c0ce878b88bb6fe4ede1c98da8a889b9edab8893`; Home implementation mismatch recorded in Issue #1139. Calendar corrective work remains Draft in [PR #2951](https://github.com/mobinpda-lab/Arvin-clean/pull/2951); concept wording remains proposed in [PR #2866](https://github.com/mobinpda-lab/Arvin-clean/pull/2866).
+- **Still open:** explicit date-only representation for Next Follow-up (midnight cannot safely distinguish date-only from midnight time), multiple reminders per one Follow-up, and current-head terminal validation. No decision authorizes unlimited reminders.
+
