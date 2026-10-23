@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:arvin/backup_manager.dart';
 import 'package:arvin/backup_schedule.dart';
 import 'package:arvin/backup_service.dart';
@@ -70,6 +72,7 @@ void main() {
       // Exercise the production topology: both stores share one SQLite executor.
       // All IDs in these snapshots are synthetic; no payload/settings are logged.
       final executor = NativeDatabase.memory();
+      final restoreFinished = Completer<void>();
       final taskStore = TaskStore(executor: executor);
       final projectStore = ProjectStore(executor: executor);
       final operationId = 'restore-forensics-${DateTime.now().microsecondsSinceEpoch}';
@@ -180,6 +183,9 @@ void main() {
             backupManager: manager,
             taskStore: taskStore,
             projectStore: projectStore,
+            restoreCompletionHook: () {
+              if (!restoreFinished.isCompleted) restoreFinished.complete();
+            },
             restoreStageHook: (stage) async {
               await sqliteSnapshot(stage);
               if (stage == 'catalogs') {
@@ -201,6 +207,7 @@ void main() {
       expect(find.text('بازیابی اطلاعات'), findsOneWidget);
       await tester.tap(find.widgetWithText(FilledButton, 'بازیابی'));
       await tester.pumpAndSettle();
+      await restoreFinished.future;
 
       final finalSnapshot = await sqliteSnapshot('after-all-async-work');
       expect(finalSnapshot['taskIds'], <String>['local-task']);
