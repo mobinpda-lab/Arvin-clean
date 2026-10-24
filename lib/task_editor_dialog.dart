@@ -177,8 +177,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     return InputDecoration(
       labelText: label,
       hintText: hint,
-      labelStyle: const TextStyle(color: ArvinColors.textPrimary, fontWeight: FontWeight.w600),
-      floatingLabelStyle: const TextStyle(color: ArvinColors.textPrimary, fontWeight: FontWeight.w700),
+      labelStyle: const TextStyle(color: ArvinColors.textPrimary, fontWeight: FontWeight.w500),
+      floatingLabelStyle: const TextStyle(color: ArvinColors.textPrimary, fontWeight: FontWeight.w500),
       hintStyle: const TextStyle(color: ArvinColors.textSecondary),
       filled: true,
       fillColor: _fieldSurface,
