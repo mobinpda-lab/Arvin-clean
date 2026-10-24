@@ -311,21 +311,6 @@ class _CalendarIntegrationSettingsPageState
                         current.copyWith(syncTaskReminders: value),
                   ),
                   _switch(
-                    key: const ValueKey('calendar-sync-followups'),
-                    title: 'پیگیری‌ها',
-                    subtitle: 'تاریخ خود پیگیری‌ها',
-                    value: current.syncFollowUps,
-                    update: (value) => current.copyWith(syncFollowUps: value),
-                  ),
-                  _switch(
-                    key: const ValueKey('calendar-sync-followup-reminders'),
-                    title: 'یادآور پیگیری‌ها',
-                    subtitle: 'Reminder مستقل هر پیگیری',
-                    value: current.syncFollowUpReminders,
-                    update: (value) =>
-                        current.copyWith(syncFollowUpReminders: value),
-                  ),
-                  _switch(
                     key: const ValueKey('calendar-sync-recurrence'),
                     title: 'تکرار کارها',
                     subtitle:
