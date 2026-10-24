@@ -385,7 +385,7 @@ class _TaskTaxonomyManagementPageState
                       const SizedBox(height: 12),
                       const Text(
                         'دسته‌ها',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                        style: TextStyle(fontWeight: FontWeight.w700),
                       ),
                       if (categories.isEmpty)
                         const ListTile(
@@ -406,7 +406,7 @@ class _TaskTaxonomyManagementPageState
                       const Divider(height: 32),
                       const Text(
                         'برچسب‌ها',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                        style: TextStyle(fontWeight: FontWeight.w700),
                       ),
                       if (tags.isEmpty)
                         const ListTile(
