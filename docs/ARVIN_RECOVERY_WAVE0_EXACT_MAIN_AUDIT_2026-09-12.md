@@ -1,3 +1,7 @@
+> **Typography authority update (2026-10-24):** This dated audit's statement that VazirHarf is canonical is superseded by [`docs/TYPOGRAPHY_CANONICAL.md`](TYPOGRAPHY_CANONICAL.md) and Issue #2974. Retain it only as evidence of the old baseline.
+
+---
+
 # Arvin Recovery Wave 0 — Exact-main audit
 
 Date: 2026-09-12  
