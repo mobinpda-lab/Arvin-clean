@@ -164,6 +164,17 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
   bool _canMutateReminder(CalendarReminder reminder) =>
       _taskForReminder(reminder) != null;
 
+  Future<void> _editReminder(CalendarReminder reminder) async {
+    final task = _taskForReminder(reminder);
+    final editTask = widget.onEditTask;
+    if (task == null || editTask == null) return;
+    await editTask(task);
+    final refreshed = await widget.onRefreshTasks?.call();
+    if (refreshed != null && mounted) {
+      setState(() => _tasks = List<Task>.of(refreshed));
+    }
+  }
+
   Future<void> _createTaskForDate(DateTime date) async {
     final task = await widget.onCreateTaskForDate?.call(date);
     if (task == null || !mounted || _tasks.any((item) => item.id == task.id)) {
