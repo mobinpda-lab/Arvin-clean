@@ -1,3 +1,15 @@
+# AUTHORITATIVE LIVE UPDATE — 2026-10-24 — Wave 7.32 baseline and Reminder contract
+
+- Observed main SHA: `18cbeecc95a03a3b301359ca5b96cfef175a3b15`. No direct-main changes were made in Wave 7.32.
+- Live baseline: [ARVIN_WAVE_7_32_BASELINE.md](ARVIN_WAVE_7_31_reminder_contract/docs/arvin-memory/ARVIN_WAVE_7_32_BASELINE.md). (See the docs branch link in the current PR for the canonical path.)
+- Current owner decision: Next Follow-up and independent Follow-up reminder scheduling were removed and replaced by canonical TaskReminder. Historical FollowUp interaction records remain history. Older entries below are historical where they conflict with this decision.
+- PR #2963 is open/Draft and unmerged. The documentation Build succeeded on a prior head, but Device Smoke Calendar failed. PR #2965 has been updated to seed canonical TaskReminder and assert the canonical Calendar card/editor/time-picker path; its new exact-head CI was still in progress at the last check. Do not claim acceptance until terminal exact-head evidence is reviewed.
+- Issue #1139 was corrected to remove the conflicting old invariant; Issue #2966 tracks the code/data migration and full consumer audit.
+- Product Reference v1.4 was not found at the checked path/searches; do not invent it. Local Working Tree and physical-device/APK acceptance remain NOT VERIFIED. Release remains BLOCKED — RELEASE: NO-GO.
+- Current contract: [ARVIN_REMINDER_CONTRACT.md](ARVIN_REMINDER_CONTRACT.md). Decision register: [ARVIN_OWNER_DECISION_REMINDER_ONLY.md](ARVIN_OWNER_DECISION_REMINDER_ONLY.md). Baseline: [ARVIN_WAVE_7_32_BASELINE.md](ARVIN_WAVE_7_32_BASELINE.md).
+
+---
+
 # AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Exact-head CI recovery correction
 
 This entry supersedes prior claims that the exact-head recovery root cause was wholly unknown.
