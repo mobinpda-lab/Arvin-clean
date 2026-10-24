@@ -78,10 +78,10 @@ void main() {
 
     final result = const TaskListScopeService().project(
       <Task>[plain, enabled, legacyDate, historyOnly],
-      scope: TaskListScope.followUpEnabled,
+      scope: TaskListScope.followUpHistory,
     );
 
-    expect(result, <Task>[enabled, legacyDate, historyOnly]);
+    expect(result, <Task>[historyOnly]);
   });
 
   test('projection never mutates or reorders the source list', () {
