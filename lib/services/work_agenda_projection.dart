@@ -10,14 +10,16 @@ class WorkAgendaEvent {
     required this.kind,
     required this.at,
     this.reminderId,
+    this.isAllDay = false,
   });
 
   final WorkAgendaEventKind kind;
   final DateTime at;
   final String? reminderId;
+  final bool isAllDay;
 
   String get stableKey =>
-      '${kind.name}:${reminderId ?? ''}:${at.toIso8601String()}';
+      '${kind.name}:${reminderId ?? ''}:${at.toIso8601String()}:$isAllDay';
 }
 
 class WorkAgendaItem {
@@ -94,6 +96,7 @@ class WorkAgendaProjection {
         DateTime? value,
         WorkAgendaEventKind kind, {
         String? reminderId,
+        bool isAllDay = false,
       }) {
         if (value == null) return;
         final local = value.toLocal();
@@ -117,16 +120,18 @@ class WorkAgendaProjection {
             kind: kind,
             at: value,
             reminderId: reminderId,
+            isAllDay: isAllDay,
           ),
         );
       }
 
-      addEvent(task.dueDate, WorkAgendaEventKind.taskDue);
+      addEvent(task.dueDate, WorkAgendaEventKind.taskDue, isAllDay: task.allDay);
       for (final reminder in task.taskReminders) {
         addEvent(
           reminder.date,
           WorkAgendaEventKind.taskReminder,
           reminderId: reminder.id,
+          isAllDay: reminder.isAllDay,
         );
       }
     }
