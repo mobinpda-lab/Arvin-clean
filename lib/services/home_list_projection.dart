@@ -95,14 +95,9 @@ class HomeListProjection {
     return List<TaskReminder>.unmodifiable(result);
   }
 
-  /// The due-date row is suppressed when a follow-up occupies the same instant.
-  bool shouldProjectDueDate(Task task) {
-    final dueDate = task.dueDate;
-    if (dueDate == null) return false;
-    final followUpDate = task.lastFollowUp?.dateTime;
-    return followUpDate == null ||
-        dueDate.microsecondsSinceEpoch != followUpDate.microsecondsSinceEpoch;
-  }
+  /// The Task due date is independent from the next Follow-up date.
+  /// Keep the due-date row even when both timestamps happen to match.
+  bool shouldProjectDueDate(Task task) => task.dueDate != null;
 
   DateTime? _effectiveDate(Task task) =>
       task.dueDate ?? task.legacyHomeFollowUpDate;
