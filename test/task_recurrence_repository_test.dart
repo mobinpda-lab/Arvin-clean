@@ -19,7 +19,7 @@ void main() {
       Task(
         id: 'task-1',
         title: 'کار تکرارشونده',
-        reminderDate: DateTime(2026, 8, 20, 9),
+        dueDate: DateTime(2026, 8, 20, 9),
       ),
     ]);
     final repository = TaskRecurrenceRepository(
@@ -59,7 +59,7 @@ void main() {
       Task(
         id: 'task-2',
         title: 'کار روزانه',
-        reminderDate: DateTime(2026, 8, 20, 9),
+        dueDate: DateTime(2026, 8, 20, 9),
         recurrence: const RecurrenceRule(
           frequency: RecurrenceFrequency.daily,
           interval: 2,
@@ -79,7 +79,7 @@ void main() {
     );
 
     final task = (await store.load()).single;
-    expect(task.reminderDate, DateTime(2026, 8, 26, 9));
+    expect(task.dueDate, DateTime(2026, 8, 26, 9));
     expect(task.followUps, hasLength(1));
     expect(task.followUps.single.id, originalFollowUp.id);
     expect(task.followUps.single.note, originalFollowUp.note);
@@ -93,7 +93,7 @@ void main() {
         id: 'checklist-recurring',
         title: 'آماده‌سازی مدرسه',
         checklist: const ['[ ] کیف', '[ ] خوراکی', '[ ] لباس'],
-        reminderDate: DateTime(2026, 10, 3, 6),
+        dueDate: DateTime(2026, 10, 3, 6),
         recurrence: const RecurrenceRule(frequency: RecurrenceFrequency.daily),
       ),
     ]);
@@ -129,7 +129,7 @@ void main() {
   test('resume requires both recurrence and reminder schedule', () async {
     final store = TaskStore();
     await store.save([
-      Task(id: 'no-rule', title: 'بدون تکرار', reminderDate: DateTime(2026, 8, 20)),
+      Task(id: 'no-rule', title: 'بدون تکرار', dueDate: DateTime(2026, 8, 20)),
       Task(
         id: 'no-reminder',
         title: 'بدون یادآوری',
@@ -159,7 +159,7 @@ void main() {
       Task(
         id: 'complete-occurrence',
         title: 'Recurring',
-        reminderDate: occurrence,
+        dueDate: occurrence,
         recurrence: const RecurrenceRule(
           frequency: RecurrenceFrequency.weekly,
           interval: 1,
@@ -192,7 +192,7 @@ void main() {
       Task(
         id: 'disable-repeat',
         title: 'Recurring',
-        reminderDate: occurrence,
+        dueDate: occurrence,
         recurrence: const RecurrenceRule(frequency: RecurrenceFrequency.daily),
         occurrenceHistory: {
           occurrence.toIso8601String(): {
@@ -284,7 +284,7 @@ void main() {
       Task(
         id: 'history-adjustment',
         title: 'تکرار با تاریخچه',
-        reminderDate: past,
+        dueDate: past,
         recurrence: const RecurrenceRule(
           frequency: RecurrenceFrequency.daily,
           interval: 1,
@@ -325,7 +325,7 @@ void main() {
         id: 'checklist-evidence',
         title: 'تکرار با چک‌لیست',
         checklist: const ['[ ] اول', '[ ] دوم'],
-        reminderDate: start,
+        dueDate: start,
         recurrence: const RecurrenceRule(frequency: RecurrenceFrequency.daily),
       ),
     ]);
