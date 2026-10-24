@@ -71,8 +71,6 @@ void main() {
         'targetCalendarId': null,
         'syncDueDates': true,
         'syncTaskReminders': true,
-        'syncFollowUps': true,
-        'syncFollowUpReminders': true,
         'syncRecurrence': false,
         'autoSync': false,
         'deleteLinkedEventWithTask': false,
