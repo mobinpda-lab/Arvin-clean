@@ -167,7 +167,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[Icon(icon, size: 14, color: color), const SizedBox(width: 4)],
-          Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w800)),
+          Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700)),
         ],
       ),
     );
@@ -191,7 +191,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       children: [
         Icon(icon, size: 19, color: _brand),
         const SizedBox(width: 7),
-        Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+        Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
       ],
     );
   }
@@ -210,7 +210,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 child: Text(
                   _task.title,
                   key: const ValueKey('task-detail-title'),
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, height: 1.25),
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, height: 1.25),
                 ),
               ),
               _badge(_statusLabel(), statusColor, icon: _task.completed ? Icons.check_circle_outline : Icons.track_changes_outlined),
@@ -313,7 +313,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               Text(
                 '$completed/${items.length}',
                 key: const ValueKey('task-detail-checklist-progress'),
-                style: const TextStyle(color: _muted, fontSize: 12, fontWeight: FontWeight.w800),
+                style: const TextStyle(color: _muted, fontSize: 12, fontWeight: FontWeight.w700),
               ),
             ],
           ),
@@ -351,7 +351,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           else ...[
             Text(
               latest.note.trim().isEmpty ? 'پیگیری' : latest.note.trim(),
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 5),
             Text(_dateTime(latest.dateTime), style: const TextStyle(color: _muted, fontSize: 12, fontWeight: FontWeight.w700)),
@@ -432,7 +432,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               children: [
                 Text(
                   followUp.note.trim().isEmpty ? 'پیگیری' : followUp.note.trim(),
-                  style: const TextStyle(fontWeight: FontWeight.w800),
+                  style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 3),
                 Text(_dateTime(followUp.dateTime), style: const TextStyle(color: _muted, fontSize: 11, fontWeight: FontWeight.w700)),
@@ -485,7 +485,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               children: [
                 const Text('اقدام بعدی', style: TextStyle(color: _muted, fontSize: 12, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 3),
-                Text(_dateTime(next), style: const TextStyle(fontWeight: FontWeight.w800)),
+                Text(_dateTime(next), style: const TextStyle(fontWeight: FontWeight.w700)),
               ],
             ),
           ),
@@ -600,7 +600,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                     const SizedBox(width: 9),
                     const Text('یادآور', style: TextStyle(color: _muted, fontWeight: FontWeight.w700)),
                     const Spacer(),
-                    Text(_dateTime(_task.reminderDate!), style: const TextStyle(fontWeight: FontWeight.w800)),
+                    Text(_dateTime(_task.reminderDate!), style: const TextStyle(fontWeight: FontWeight.w700)),
                   ],
                 ),
               ),
