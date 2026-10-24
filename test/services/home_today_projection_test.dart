@@ -40,17 +40,19 @@ void main() {
     expect(result.map((item) => item.id), ['today']);
   });
 
-  test('uses latest canonical FollowUp history instead of stale legacy date', () {
+  test('uses latest canonical Next Follow-up instead of stale legacy date', () {
     final item = task('history', DateTime(2026, 8, 27, 8));
     item.followUps = [
       FollowUp(
         id: 'old',
         dateTime: DateTime(2026, 8, 27, 8),
+        nextFollowUp: DateTime(2026, 8, 27, 8),
         note: 'old',
       ),
       FollowUp(
         id: 'latest',
         dateTime: DateTime(2026, 8, 28, 8),
+        nextFollowUp: DateTime(2026, 8, 28, 8),
         note: 'latest',
       ),
     ];
