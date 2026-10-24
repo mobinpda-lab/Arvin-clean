@@ -136,7 +136,7 @@ void main() {
       themeMode: ThemeMode.light,
       usePersianDate: true,
       fontFamily: null,
-      swipeRightAction: TaskSwipeAction.convertToFollowUp,
+      swipeRightAction: TaskSwipeAction.archive,
       swipeLeftAction: TaskSwipeAction.none,
     );
 
@@ -181,7 +181,7 @@ void main() {
       usePersianDate: true,
       fontFamily: null,
       swipeRightAction: TaskSwipeAction.none,
-      swipeLeftAction: TaskSwipeAction.convertToFollowUp,
+      swipeLeftAction: TaskSwipeAction.archive,
     );
 
     SharedPreferences.setMockInitialValues({
