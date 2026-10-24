@@ -81,6 +81,7 @@ class CalendarOutboundSyncService {
       // An explicit edit of an already-linked Task is a direct reconciliation
       // request, not a new/background sync. Per-source toggles still gate normal
       // sync and unlinked reminders, but must not strand an existing link.
+      if (!reminder.syncToDevice) continue;
       if (!linkedOnly && !_enabledForReminder(integration, reminder)) continue;
       try {
         revisions.add(await revisionService.fromReminder(reminder));
@@ -112,7 +113,7 @@ class CalendarOutboundSyncService {
                     preserveUnprojectedTaskIds.contains(taskId);
               });
     final plan = planService.plan(
-      revisions: revisions.where((item) => item.syncToDevice).toList(growable: false),
+      revisions: revisions,
       links: linksForPlan,
       targetCalendarId: targetCalendarId,
     );
