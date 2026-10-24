@@ -115,7 +115,12 @@ void main() {
     );
     final rows = projection.project([task]);
     expect(rows, hasLength(4));
-    expect(rows.map((row) => row.syncToDevice), [false, true, false, true]);
+    expect({for (final row in rows) row.id: row.syncToDevice}, {
+      'task-reminder-item:four-modes:00': false,
+      'task-reminder-item:four-modes:01': true,
+      'task-reminder-item:four-modes:10': false,
+      'task-reminder-item:four-modes:11': true,
+    });
     expect(task.taskReminders.map((item) => [item.alarmEnabled, item.calendarSyncEnabled]).toList(), [
       [false, false], [false, true], [true, false], [true, true],
     ]);
