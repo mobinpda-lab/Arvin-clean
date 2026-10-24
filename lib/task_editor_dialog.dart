@@ -64,17 +64,11 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   late final TextEditingController _checklistController;
   late final FocusNode _tagFocusNode;
   late final FocusNode _titleFocusNode;
-  DateTime? _followUpDateTime;
   DateTime? _dueDateTime;
   late bool _dueAllDay;
-  DateTime? _reminderDateTime;
-  bool _reminderFollowsDueTime = true;
-  bool _reminderExplicitlyCleared = false;
-  DateTime? _initialReminderDateTime;
   late List<TaskReminder> _taskReminders;
   late List<FollowUp> _followUps;
   late int _nextReminderSequence;
-  late bool _followUpEnabled;
   late bool _completed;
   late List<String> _tags;
   late List<String> _checklist;
@@ -107,15 +101,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _checklistController = TextEditingController();
     _tagFocusNode = FocusNode();
     _titleFocusNode = FocusNode();
-    _followUpDateTime = task?.followUpDate;
     _dueDateTime = task?.dueDate ?? widget.initialDueDate;
     _dueAllDay = task?.allDay ?? false;
-    _reminderDateTime = task?.legacyTaskReminderMigrationVersion == 1
-        ? null
-        : task?.reminderDate;
-    _initialReminderDateTime = task?.legacyTaskReminderMigrationVersion == 1
-        ? null
-        : task?.reminderDate;
     _taskReminders = List<TaskReminder>.of(task?.taskReminders ?? const []);
     _followUps = List<FollowUp>.of(task?.followUps ?? const []);
     _nextReminderSequence = task?.nextReminderSequence ?? 1;
@@ -128,16 +115,6 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         _nextReminderSequence = highest + 1;
       }
     }
-    _reminderFollowsDueTime = task == null ||
-        (task.legacyTaskReminderMigrationVersion < 1 &&
-            (task.reminderDate == null ||
-                (task.dueDate != null &&
-                    !task.allDay &&
-                    task.reminderDate == task.dueDate)));
-    _followUpEnabled =
-        task?.followUpEnabled == true ||
-        (task?.followUps.isNotEmpty ?? false) ||
-        task?.followUpDate != null;
     _completed = task?.completed ?? false;
     _tags = List<String>.of(task?.tags ?? const []);
     _checklist = List<String>.of(task?.checklist ?? const []);
@@ -442,7 +419,6 @@ Future<void> _pickDueDate() async {
             ? DateTime(value.year, value.month, value.day)
             : DateTime(value.year, value.month, value.day, _dueDateTime!.hour, _dueDateTime!.minute);
         if (_dueDateTime != null && widget.task == null) _dueAllDay = true;
-        _syncAutomaticReminder();
       });
     }
   }
@@ -456,54 +432,13 @@ Future<void> _pickDueDate() async {
       setState(() {
         _dueDateTime = value;
         _dueAllDay = false;
-        _syncAutomaticReminder();
       });
-    }
-  }
-
-  Future<void> _pickReminderDate() async {
-    final value = await _chooseDate(
-      _reminderDateTime,
-      helpText: 'انتخاب تاریخ یادآوری',
-    );
-    if (value != null && mounted) {
-      setState(() {
-        _reminderDateTime = value;
-        _reminderFollowsDueTime = false;
-        _reminderExplicitlyCleared = false;
-      });
-    }
-  }
-
-  Future<void> _pickReminderTime() async {
-    final value = await _chooseTime(
-      _reminderDateTime,
-      helpText: 'انتخاب ساعت یادآوری',
-    );
-    if (value != null && mounted) {
-      setState(() {
-        _reminderDateTime = value;
-        _reminderFollowsDueTime = false;
-        _reminderExplicitlyCleared = false;
-      });
-    }
-  }
-
-  void _syncAutomaticReminder() {
-    if (!_reminderFollowsDueTime) {
-      return;
-    }
-    if (_dueDateTime == null || _dueAllDay) {
-      _reminderDateTime = null;
-    } else {
-      _reminderDateTime = _dueDateTime;
     }
   }
 
   void _clearDueTime() => setState(() {
     _dueDateTime = null;
     _dueAllDay = false;
-    _syncAutomaticReminder();
   });
 
   void _toggleDueAllDay(bool value) {
@@ -513,15 +448,8 @@ Future<void> _pickDueDate() async {
       if (value) {
         _dueDateTime = DateTime(_dueDateTime!.year, _dueDateTime!.month, _dueDateTime!.day);
       }
-      _syncAutomaticReminder();
     });
   }
-  void _clearReminderTime() => setState(() {
-    _reminderDateTime = null;
-    _reminderFollowsDueTime = false;
-    _reminderExplicitlyCleared = true;
-  });
-
   Future<String?> _promptNewName(String title) async {
     final controller = TextEditingController();
     final result = await showModalBottomSheet<String>(
@@ -615,7 +543,6 @@ Future<void> _pickDueDate() async {
       } else {
         _followUps = List<FollowUp>.of(_followUps)..[index] = updated;
       }
-      if (_followUps.isNotEmpty) _followUpEnabled = true;
     });
   }
 
@@ -634,11 +561,8 @@ Future<void> _pickDueDate() async {
           _checklistEnabled ||
           _category != null ||
           _selectedProjectId != widget.selectedProjectId ||
-          _followUpEnabled ||
-          _followUpDateTime != null ||
           _dueDateTime != null ||
           _dueAllDay ||
-          _reminderDateTime != null ||
           _taskReminders.isNotEmpty ||
           _followUps.isNotEmpty ||
           _recurrence != null ||
@@ -646,10 +570,6 @@ Future<void> _pickDueDate() async {
           _completed;
     }
 
-    final initialFollowUpEnabled =
-        existing.followUpEnabled ||
-        existing.followUps.isNotEmpty ||
-        existing.followUpDate != null;
     return title != existing.title ||
         description != existing.description ||
         pendingTag.isNotEmpty ||
@@ -658,11 +578,8 @@ Future<void> _pickDueDate() async {
         _checklistEnabled != existing.checklistEnabled ||
         _category != existing.category ||
         _selectedProjectId != widget.selectedProjectId ||
-        _followUpEnabled != initialFollowUpEnabled ||
-        _followUpDateTime != existing.followUpDate ||
         _dueDateTime != existing.dueDate ||
         _dueAllDay != existing.allDay ||
-        _reminderDateTime != existing.reminderDate ||
         !_sameTaskReminders(_taskReminders, existing.taskReminders) ||
         !_sameFollowUps(_followUps, existing.followUps) ||
         !_sameRecurrence(_recurrence, existing.recurrence) ||
@@ -896,11 +813,6 @@ Future<void> _pickDueDate() async {
     }
     final now = DateTime.now();
     final existing = widget.task;
-    _syncAutomaticReminder();
-    final reminderDate = _reminderFollowsDueTime && _dueDateTime != null && !_dueAllDay
-        ? _dueDateTime
-        : (_reminderDateTime ??
-            (!_reminderExplicitlyCleared ? _initialReminderDateTime : null));
     DateTime? migratedLegacyReminderDate;
     for (final reminder in _taskReminders) {
       if (reminder.isLegacyTaskReminder) {
@@ -919,16 +831,15 @@ Future<void> _pickDueDate() async {
         description: _descriptionController.text.trim(),
         dueDate: _dueDateTime,
         allDay: _dueDateTime != null && _dueAllDay,
-        followUpEnabled: _followUpEnabled,
-        followUpDate: existing?.followUpDate ?? _followUpDateTime,
+        followUpEnabled: existing?.followUpEnabled ?? false,
+        followUpDate: existing?.followUpDate,
         tags: List<String>.of(_tags),
         category: _category,
         checklist: List<String>.of(_checklist),
         checklistEnabled: _checklistEnabled,
-        reminderDate: existing != null &&
-                existing.legacyTaskReminderMigrationVersion >= 1
+        reminderDate: existing?.legacyTaskReminderMigrationVersion == 1
             ? migratedLegacyReminderDate
-            : reminderDate,
+            : existing?.reminderDate,
         taskReminders: List<TaskReminder>.of(_taskReminders),
         nextReminderSequence: _nextReminderSequence,
         legacyTaskReminderMigrationVersion:
@@ -969,11 +880,11 @@ Future<void> _pickDueDate() async {
     RecurrenceFrequency.hours => 'ساعتی',
   };
 
-  Widget _dateTimeRollBox({    required String keyPrefix,
+  Widget _dateTimeRollBox({
+    required String keyPrefix,
     required String label,
     required DateTime? value,
     required bool isDate,
-    required String target,
     required VoidCallback onCustom,
     required Color accent,
   }) {
@@ -1005,35 +916,20 @@ Future<void> _pickDueDate() async {
         onSelected: (selection) {
           if (selection == null) return;
           if (isDate) {
-            final picked = selection == 'today' ? now : DateTime(now.year, now.month, now.day + 1, now.hour, now.minute);
+            final picked = selection == 'today'
+                ? now
+                : DateTime(now.year, now.month, now.day + 1, now.hour, now.minute);
             setState(() {
-              if (target.contains('reminder')) {
-                _reminderDateTime = DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
-                _reminderFollowsDueTime = false;
-              } else if (target.contains('follow-up') || target.contains('followup')) {
-                _followUpDateTime = DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
-              } else {
-                _dueDateTime = _dueAllDay || value == null
-                    ? DateTime(picked.year, picked.month, picked.day)
-                    : DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
-                if (value == null || _dueAllDay) _dueAllDay = true;
-                _syncAutomaticReminder();
-              }
+              _dueDateTime = _dueAllDay || value == null
+                  ? DateTime(picked.year, picked.month, picked.day)
+                  : DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
+              if (value == null || _dueAllDay) _dueAllDay = true;
             });
           } else {
             final minutes = int.tryParse(selection) ?? 0;
             setState(() {
-              final next = DateTime(base.year, base.month, base.day, minutes ~/ 60, minutes % 60);
-              if (target.contains('reminder')) {
-                _reminderDateTime = next;
-                _reminderFollowsDueTime = false;
-              } else if (target.contains('follow-up')) {
-                _followUpDateTime = next;
-              } else {
-                _dueDateTime = next;
-                _dueAllDay = false;
-                _syncAutomaticReminder();
-              }
+              _dueDateTime = DateTime(base.year, base.month, base.day, minutes ~/ 60, minutes % 60);
+              _dueAllDay = false;
             });
           }
         },
@@ -1046,7 +942,7 @@ Future<void> _pickDueDate() async {
     );
   }
 
-  Widget _dateTimeEditor({
+    Widget _dateTimeEditor({
     required String keyPrefix,
     required String title,
     required DateTime? value,
@@ -1083,9 +979,9 @@ Future<void> _pickDueDate() async {
           const SizedBox(height: 6),
           Row(
             children: [
-              Expanded(child: _dateTimeRollBox(keyPrefix: '$keyPrefix-date', label: 'تاریخ', value: value, isDate: true, target: keyPrefix, onCustom: onPickDate, accent: accent)),
+              Expanded(child: _dateTimeRollBox(keyPrefix: '$keyPrefix-date', label: 'تاریخ', value: value, isDate: true, onCustom: onPickDate, accent: accent)),
               const SizedBox(width: 10),
-              Expanded(child: _dateTimeRollBox(keyPrefix: '$keyPrefix-time', label: 'ساعت', value: allDay ? null : value, isDate: false, target: keyPrefix, onCustom: onPickTime, accent: accent)),
+              Expanded(child: _dateTimeRollBox(keyPrefix: '$keyPrefix-time', label: 'ساعت', value: allDay ? null : value, isDate: false, onCustom: onPickTime, accent: accent)),
             ],
           ),
           if (onToggleAllDay != null && value != null) ...[
@@ -1312,18 +1208,6 @@ Future<void> _pickDueDate() async {
                         onToggleAllDay: _toggleDueAllDay,
                       ),
                       const SizedBox(height: 10),
-                      if (widget.task?.legacyTaskReminderMigrationVersion != 1) ...[
-                        _dateTimeEditor(
-                          keyPrefix: 'task-editor-reminder',
-                          title: 'یادآوری',
-                          value: _reminderDateTime,
-                          onPickDate: _pickReminderDate,
-                          onPickTime: _pickReminderTime,
-                          onClear: _clearReminderTime,
-                          accent: ArvinColors.reminder,
-                        ),
-                        const SizedBox(height: 10),
-                      ],
                       _taskRemindersEditor(),
                       const SizedBox(height: 10),
                       LayoutBuilder(
