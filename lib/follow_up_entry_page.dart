@@ -185,14 +185,19 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
       helpText: 'انتخاب پیگیری بعدی',
     );
     if (picked == null || !mounted) return;
+    final nextFollowUp = DateTime(
+      picked.year,
+      picked.month,
+      picked.day,
+      _dateTime.hour,
+      _dateTime.minute,
+    );
+    // The first explicit Next Follow-up initializes a matching reminder once.
+    // Existing reminders and later Next Follow-up edits remain independent.
+    final initializeReminder = _nextFollowUp == null && _reminderDate == null;
     setState(() {
-      _nextFollowUp = DateTime(
-        picked.year,
-        picked.month,
-        picked.day,
-        _dateTime.hour,
-        _dateTime.minute,
-      );
+      _nextFollowUp = nextFollowUp;
+      if (initializeReminder) _reminderDate = nextFollowUp;
     });
   }
 
