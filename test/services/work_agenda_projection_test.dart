@@ -40,10 +40,10 @@ void main() {
     expect(
       item.events.map((event) => event.kind),
       [
-        WorkAgendaEventKind.followUpReminder,
+        WorkAgendaEventKind.taskReminder,
         WorkAgendaEventKind.taskReminder,
         WorkAgendaEventKind.taskDue,
-        WorkAgendaEventKind.followUpSchedule,
+        WorkAgendaEventKind.taskReminder,
         WorkAgendaEventKind.followUpReminder,
       ],
     );
