@@ -54,8 +54,10 @@ void main() {
     ]);
     final result = projection.pending([task], now: now);
     expect(result, hasLength(2));
-    expect(result[0].scheduledAt, DateTime(2026, 8, 29, 9));
-    expect(result[1].scheduledAt, DateTime(2026, 8, 29));
+    expect({for (final item in result) item.taskReminderId: item.scheduledAt}, {
+      'r1': DateTime(2026, 8, 29, 9),
+      'r2': DateTime(2026, 8, 29),
+    });
     expect(result.map((item) => item.stableKey).toSet(), {'task:multi:reminder:r1', 'task:multi:reminder:r2'});
   });
 
