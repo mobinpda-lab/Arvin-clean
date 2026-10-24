@@ -71,6 +71,8 @@ void main() {
           id: 'reminder-a',
           title: 'خرید فرش — یادآور 1',
           date: DateTime(2026, 10, 20, 10),
+          alarmEnabled: false,
+          calendarSyncEnabled: true,
           sequence: 1,
         ),
         TaskReminder(
@@ -78,6 +80,8 @@ void main() {
           title: 'خرید فرش — یادآور 3',
           date: DateTime(2026, 10, 22),
           isAllDay: true,
+          alarmEnabled: true,
+          calendarSyncEnabled: false,
           sequence: 3,
         ),
       ],
@@ -95,8 +99,12 @@ void main() {
       (item) => item.id == 'reminder-c',
     );
     expect(independentAllDay.isAllDay, isTrue);
+    expect(independentAllDay.alarmEnabled, isTrue);
+    expect(independentAllDay.calendarSyncEnabled, isFalse);
     expect(independentAllDay.date, DateTime(2026, 10, 22));
     expect(restored.taskReminders.last.isLegacyTaskReminder, isTrue);
+    expect(restored.taskReminders.first.alarmEnabled, isFalse);
+    expect(restored.taskReminders.first.calendarSyncEnabled, isTrue);
     expect(restored.taskReminders.last.date, task.reminderDate);
     expect(restored.nextReminderSequence, 5);
   });
