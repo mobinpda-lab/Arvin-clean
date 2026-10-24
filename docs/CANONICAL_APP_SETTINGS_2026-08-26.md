@@ -41,6 +41,6 @@ Joplin is useful as an architecture reference for future offline-first sync, rev
 ## Typography convergence
 
 - **Vazirmatn (وزیرمتن)** is the canonical public/default Arvin UI font.
-- `fontFamily == null` means use the Arvin default VazirHarf.
+- `fontFamily == null` must resolve to the canonical Vazirmatn UI family once the runtime migration in Issue #2974 is implemented; until then, baseline behavior is explicitly nonconforming.
 - Any licensed/private or additional public font picker must extend `AppSettingsService`; it must not create a parallel settings store/controller.
 - Legacy `VazirHarf` setting values must be migrated compatibly to the canonical `Vazirmatn` default; do not break old Settings or backups.
