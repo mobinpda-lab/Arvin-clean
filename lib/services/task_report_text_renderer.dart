@@ -64,6 +64,9 @@ class TaskReportTextRenderer {
     return buffer.toString().trimRight();
   }
 
+  static String formatDay(DateTime value) =>
+      _dateFormatter.format(value, usePersianDate: true);
+
   static String formatDateTime(DateTime value) {
     final date = _dateFormatter.format(value, usePersianDate: true);
     final time = _dateFormatter.toPersianDigits(
