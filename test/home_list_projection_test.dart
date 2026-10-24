@@ -238,7 +238,7 @@ void main() {
     expect(tasks, hasLength(3));
   });
 
-  test('home reminder projection prefers same-time follow-ups and keeps first duplicate reminder', () {
+  test('home reminder projection keeps Task reminders independent and deduplicates reminder timestamps', () {
     final followUpAt = now.add(const Duration(hours: 2));
     final duplicateAt = now.add(const Duration(hours: 1));
     final reminders = <TaskReminder>[
@@ -250,7 +250,7 @@ void main() {
 
     final projected = projection.projectReminders(reminders, followUpDate: followUpAt);
 
-    expect(projected.map((item) => item.id), ['first-at-time', 'unique-time']);
+    expect(projected.map((item) => item.id), ['same-as-follow-up', 'first-at-time', 'unique-time']);
     expect(reminders, hasLength(4));
     expect(identical(projected.first, reminders[1]), isTrue);
 
