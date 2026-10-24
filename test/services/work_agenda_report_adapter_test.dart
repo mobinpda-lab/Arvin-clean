@@ -13,7 +13,10 @@ void main() {
       description: 'شرح کامل',
       tags: ['مهم'],
       dueDate: DateTime(2026, 8, 28, 9),
-      reminderDate: DateTime(2026, 8, 28, 8),
+      taskReminders: [
+        TaskReminder(id: 'r1', title: 'یادآور صبح', date: DateTime(2026, 8, 28, 8), sequence: 1),
+        TaskReminder(id: 'r2', title: 'یادآور دوم', date: DateTime(2026, 8, 28, 10), sequence: 2),
+      ],
       followUpEnabled: true,
       followUps: [
         FollowUp(
@@ -42,7 +45,7 @@ void main() {
       [
         WorkAgendaEventKind.taskReminder,
         WorkAgendaEventKind.taskDue,
-        WorkAgendaEventKind.followUpSchedule,
+        WorkAgendaEventKind.taskReminder,
       ],
     );
   });
@@ -52,7 +55,7 @@ void main() {
       id: 'task',
       title: 'چندروزه',
       dueDate: DateTime(2026, 8, 28, 9),
-      reminderDate: DateTime(2026, 8, 29, 8),
+      taskReminders: [TaskReminder(id: 'r1', title: 'فردا', date: DateTime(2026, 8, 29, 8), sequence: 1)],
     );
 
     final report = adapter.forRange(
