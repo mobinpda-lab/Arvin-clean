@@ -42,6 +42,22 @@ void main() {
     expect(find.text('توضیح'), findsNothing);
   });
 
+  testWidgets('Home card displays next follow-up instead of action history', (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"next-follow-up-home","title":"تماس پیگیری","followUpDate":"2026-08-30T09:00:00.000","followUps":[{"id":"fu-home","dateTime":"2026-08-25T09:15:00.000","nextFollowUp":"2026-08-28T10:30:00.000"}]}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    final followUpLabel = tester.widgetList<Text>(
+      find.textContaining('پیگیری:'),
+    ).map((widget) => widget.data ?? '').single;
+    expect(followUpLabel, contains('۱۰:۳۰'));
+    expect(followUpLabel, isNot(contains('۰۹:۱۵')));
+  });
+
   testWidgets('home task card uses compact controls without shrinking readable text', (tester) async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
