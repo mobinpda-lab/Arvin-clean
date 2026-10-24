@@ -20,7 +20,7 @@ Task, FollowUp, Reminder, Calendar, Notebook and Backup domain data are not stor
 
 ## Font guard
 
-**VazirHarf v34.003** is bundled and registered on current `main` and is the canonical public/default Arvin font. `fontFamily == null` therefore means “use the Arvin default (VazirHarf)”, not “create another font/settings controller”. Licensed/private fonts such as IRANSansX may be used only when their assets are legitimately available; additional public fonts must extend this same `AppSettingsService` contract rather than create a parallel settings system.
+**Vazirmatn is the only canonical and mandatory default UI font family for Arvin**, per `docs/TYPOGRAPHY_CANONICAL.md` and Issue #2974. A missing or null `fontFamily` means Vazirmatn, never VazirHarf or the device/system font. Legacy persisted or backed-up `VazirHarf` values must migrate explicitly to `vazirmatn`; restoring such a backup must not fail. Settings must not create a parallel font-preference store.
 
 ## Backup guard
 
@@ -40,7 +40,7 @@ Joplin is useful as an architecture reference for future offline-first sync, rev
 
 ## Typography convergence
 
-- **VazirHarf v34.003** is the canonical public/default Arvin font.
-- `fontFamily == null` means use the Arvin default VazirHarf.
-- Any licensed/private or additional public font picker must extend `AppSettingsService`; it must not create a parallel settings store/controller.
-- No legacy Vazirmatn asset, family, path, or documentation is part of the canonical Arvin typography contract.
+- The current authority is `docs/TYPOGRAPHY_CANONICAL.md`; this document is historical for its original date and is subordinate where it conflicts with that contract.
+- Vazirmatn is the only canonical default UI family. VazirHarf is not a default, fallback, or active alternative.
+- `fontFamily == null`, an absent key, an unknown legacy value, and a legacy `VazirHarf` value all resolve explicitly to `vazirmatn` without breaking restore.
+- Font selection continues through the existing `AppSettingsService`; no parallel settings store/controller is permitted.
