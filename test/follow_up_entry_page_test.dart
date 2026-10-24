@@ -101,7 +101,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final nextButton = find.text('انتخاب پیگیری بعدی');
-    await tester.ensureVisible(nextButton);
+    await revealReminder(tester);
     await tester.tap(nextButton);
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('persian-date-picker')), findsOneWidget);
