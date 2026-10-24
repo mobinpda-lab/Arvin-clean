@@ -60,7 +60,7 @@ void main() {
     expect(document['settings'], {
       'themeMode': 'system',
       'usePersianDate': false,
-      'fontFamily': null,
+      'fontFamily': 'Vazirmatn',
       'fontSize': 16.0,
       'swipeRightAction': 'trash',
       'swipeLeftAction': 'archive',

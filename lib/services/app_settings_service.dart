@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../theme/app_fonts.dart';
+
 enum TaskSwipeAction { archive, trash, moveToToday, convertToFollowUp, none }
 
 class CalendarIntegrationSettings {
@@ -145,10 +147,16 @@ class AppSettingsService {
 
   Future<AppSettings> load() async {
     final preferences = await SharedPreferences.getInstance();
+    final storedFontFamily = preferences.getString(_fontFamilyKey);
+    final fontFamily = _normalizeFontFamily(storedFontFamily);
+    if (storedFontFamily != fontFamily) {
+      // One-time compatibility migration for unset and legacy font values.
+      await preferences.setString(_fontFamilyKey, fontFamily);
+    }
     return AppSettings(
       themeMode: _decodeThemeMode(preferences.getString(_themeModeKey)),
       usePersianDate: preferences.getBool(_persianDateKey) ?? true,
-      fontFamily: _normalizeFontFamily(preferences.getString(_fontFamilyKey)),
+      fontFamily: fontFamily,
       fontSize: _normalizeFontSize(preferences.getDouble(_fontSizeKey)),
       swipeRightAction: _decodeSwipeAction(
         preferences.getString(_swipeRightKey),
@@ -180,10 +188,6 @@ class AppSettingsService {
   Future<void> saveFontFamily(String? family) async {
     final preferences = await SharedPreferences.getInstance();
     final normalized = _normalizeFontFamily(family);
-    if (normalized == null) {
-      await preferences.remove(_fontFamilyKey);
-      return;
-    }
     await preferences.setString(_fontFamilyKey, normalized);
   }
 
@@ -417,11 +421,7 @@ class AppSettingsService {
     await preferences.setString(_swipeLeftKey, settings.swipeLeftAction.name);
 
     final family = _normalizeFontFamily(settings.fontFamily);
-    if (family == null) {
-      await preferences.remove(_fontFamilyKey);
-    } else {
-      await preferences.setString(_fontFamilyKey, family);
-    }
+    await preferences.setString(_fontFamilyKey, family);
   }
 
   Future<AppSettings> restorePortableJson(Map<String, dynamic> json) async {
@@ -495,9 +495,10 @@ class AppSettingsService {
     return size.clamp(12.0, 24.0).toDouble();
   }
 
-  String? _normalizeFontFamily(String? family) {
-    final value = family?.trim();
-    return value == null || value.isEmpty ? null : value;
+  String _normalizeFontFamily(String? family) {
+    // The owner-approved UI font is fixed. Normalize unset, legacy, and
+    // unknown family values to Vazirmatn while preserving backup compatibility.
+    return AppFonts.vazirmatnFamily;
   }
 
   String? _normalizeCalendarId(String? id) {

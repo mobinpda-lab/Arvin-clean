@@ -16,9 +16,19 @@ void main() {
 
     expect(settings.themeMode, ThemeMode.system);
     expect(settings.usePersianDate, isTrue);
-    expect(settings.fontFamily, isNull);
+    expect(settings.fontFamily, 'Vazirmatn');
+    expect((await SharedPreferences.getInstance()).getString('arvin.settings.fontFamily'), 'Vazirmatn');
     expect(settings.swipeRightAction, TaskSwipeAction.trash);
     expect(settings.swipeLeftAction, TaskSwipeAction.archive);
+  });
+
+  test('migrates a stored legacy font value to Vazirmatn', () async {
+    SharedPreferences.setMockInitialValues({'arvin.settings.fontFamily': 'VazirHarf'});
+    final service = AppSettingsService();
+
+    final settings = await service.load();
+    expect(settings.fontFamily, 'Vazirmatn');
+    expect((await SharedPreferences.getInstance()).getString('arvin.settings.fontFamily'), 'Vazirmatn');
   });
 
   test('persists theme and Persian-date preferences without a second store', () async {
@@ -49,10 +59,10 @@ void main() {
     final service = AppSettingsService();
 
     await service.saveFontFamily('  VazirHarf  ');
-    expect((await service.load()).fontFamily, 'VazirHarf');
+    expect((await service.load()).fontFamily, 'Vazirmatn');
 
     await service.saveFontFamily('   ');
-    expect((await service.load()).fontFamily, isNull);
+    expect((await service.load()).fontFamily, 'Vazirmatn');
   });
 
   test('portable settings round-trip theme date font and swipe preferences',
@@ -71,13 +81,13 @@ void main() {
     expect(json['usePersianDate'], isTrue);
     expect(json['swipeRightAction'], 'archive');
     expect(json['swipeLeftAction'], 'trash');
-    expect(json['fontFamily'], 'VazirHarf');
+    expect(json['fontFamily'], 'Vazirmatn');
     expect(json['calendarIntegration'], isA<Map<String, dynamic>>());
 
     final decoded = service.decodePortableJson(json);
     expect(decoded.themeMode, ThemeMode.dark);
     expect(decoded.usePersianDate, isTrue);
-    expect(decoded.fontFamily, 'VazirHarf');
+    expect(decoded.fontFamily, 'Vazirmatn');
     expect(decoded.swipeRightAction, TaskSwipeAction.archive);
     expect(decoded.swipeLeftAction, TaskSwipeAction.trash);
   });
@@ -95,14 +105,14 @@ void main() {
 
     expect(restored.themeMode, ThemeMode.light);
     expect(restored.usePersianDate, isTrue);
-    expect(restored.fontFamily, 'VazirHarf');
+    expect(restored.fontFamily, 'Vazirmatn');
     expect(restored.swipeRightAction, TaskSwipeAction.archive);
     expect(restored.swipeLeftAction, TaskSwipeAction.none);
 
     final loaded = await service.load();
     expect(loaded.themeMode, ThemeMode.light);
     expect(loaded.usePersianDate, isTrue);
-    expect(loaded.fontFamily, 'VazirHarf');
+    expect(loaded.fontFamily, 'Vazirmatn');
     expect(loaded.swipeRightAction, TaskSwipeAction.archive);
     expect(loaded.swipeLeftAction, TaskSwipeAction.none);
   });
@@ -141,7 +151,7 @@ void main() {
 
     expect(settings.themeMode, ThemeMode.system);
     expect(settings.usePersianDate, isTrue);
-    expect(settings.fontFamily, isNull);
+    expect(settings.fontFamily, 'Vazirmatn');
     expect(settings.swipeRightAction, TaskSwipeAction.trash);
     expect(settings.swipeLeftAction, TaskSwipeAction.archive);
   });

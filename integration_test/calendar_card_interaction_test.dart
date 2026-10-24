@@ -21,7 +21,8 @@ void main() {
       expect(existing, isEmpty, reason: 'Calendar smoke expects a fresh emulator database');
 
       final now = IranClock.now();
-      final reminderAt = now.add(const Duration(minutes: 10));
+      // Keep the reminder on the selected Iran-calendar day, including midnight-boundary runs.
+      final reminderAt = now;
       const taskId = 'calendar-smoke-task';
       const followUpId = 'calendar-smoke-follow-up';
       final seed = Task(
@@ -68,7 +69,7 @@ void main() {
       expect(Directionality.of(tester.element(card)), TextDirection.rtl);
       expect(
         Theme.of(tester.element(card)).textTheme.bodyMedium?.fontFamily,
-        AppFonts.vazirharfFamily,
+        AppFonts.vazirmatnFamily,
       );
       expect(tester.takeException(), isNull);
 

@@ -249,7 +249,7 @@ Project memory is not present on main and PR #2614 exact-head Build is still run
 - Repeat chain: Task → Repeat Definition → Occurrence → Execution State → History; past immutable, future adjustable.
 - Calendar is a projection; update by Task ID / External Event ID, never by title/date matching.
 - Tracking does not replace CRM; Home has no independent storage; Report is a read-only consumer.
-- Preserve user data, stable IDs, Persian RTL and VazirHarf v34.003.
+- **Historical/superseded:** an older execution note named VazirHarf v34.003. Current UI typography follows `docs/TYPOGRAPHY_CANONICAL.md` and Issue #2974.
 - Mark work complete only with relevant code, tests, build, validation and evidence.
 
 ---
@@ -308,7 +308,7 @@ The owner explicitly asked for a meticulous review of this conversation so no re
 5. **Backup/restore P0:** #2585 is merged at current main SHA, and #2587 is merged at `c57606c...`. Still unverified: physical Android system file-picker/provider, export/restore round-trip, late-stage rollback, preservation of IDs/relations/settings/notebook checklists/catalogs/calendar links, and before/after integrity.
 6. **Reports:** #2385 remains open. Extend existing canonical report/filter/print/share/PDF paths; do not create a second report model/engine. RTLC report filtering/metrics are an additional acceptance gate.
 7. **Taxonomy:** Project, Category, Tag are canonical; Category = Group synonym, no fourth Group entity/store. Verify actual schema; do not infer a Project foreign key. RTL selector order and width must be genuinely usable at target phone viewport.
-8. **Visual/product contract:** preserve Persian RTL and VazirHarf v34.003 (do not replace with Vazirmatn), approved palette (#4A4CAB, #E9EAFF, #F8F8FB, #FDFDFE, #232433, #80829C), Home's four axes Time/Project/Category/Tag, no obsolete stats cards/title/dropdown, clock + calendar icons side-by-side in every create/edit form, and approved reminder widget/lock-screen actions. Color-only changes do not satisfy redesign acceptance.
+8. **Visual/product contract:** preserve Persian RTL and the owner-approved Vazirmatn typography contract (`docs/TYPOGRAPHY_CANONICAL.md`: body 400, secondary 300, menus/buttons 500, headings 700, emphasis 600), approved palette (#4A4CAB, #E9EAFF, #F8F8FB, #FDFDFE, #232433, #80829C), Home's four axes Time/Project/Category/Tag, no obsolete stats cards/title/dropdown, clock + calendar icons side-by-side in every create/edit form, and approved reminder widget/lock-screen actions. Color-only changes do not satisfy redesign acceptance.
 9. **Checklist requirement:** checklist remains part of Task. The owner requested a high-priority checklist directly under the full/edit Task form, generic for all Tasks (example: daily school checklist active at 06:00 with کیف/خوراکی/لباس). Recurrence occurrence state must remain independent; do not create a separate checklist subsystem.
 10. **Release handover:** before final handover, require release notes, installation guide, user guide, known issues, architecture summary and evidence report, tied to an exact candidate artifact and explicit owner acceptance.
 
@@ -1096,4 +1096,4 @@ This entry supersedes older statements that the owner decision is pending or tha
 - Anti-regression: hard-coded hex colors in Home, Calendar, Reports, Notebook, and Task editor were routed through `ArvinColors`; Calendar obtains its declared font via `AppFonts.vazirharfFamily`. Follow-up card interactions use normal tap for parent Task editor and long press for follow-up actions; narrow date-ribbon count bubbles use scale-down to prevent overflow.
 - Prior exact-head build `2d04631dd9d1939bd3feafa12aa7d68bec349b58` produced Debug and Release APK artifacts but multiple test shards failed. Affected tests were updated; exact-head validation is still required. Do not infer success from old runs.
 - Current release status: **NO-GO / NOT VALIDATED** until the final resulting SHA has passing analyzer, all test shards with zero skipped tests, Debug/Release artifacts, all six Device Smoke lanes, Calendar Provider Acceptance, and artifact inspection.
-- Font gap remains open: project bundles VazirHarf; Vazirmatn is not present in declared assets and is not claimed applied. Physical-device acceptance is still separate.
+- Typography gap remains open per Issue #2974: the initial main baseline had only Regular/Medium/Bold. The current PR branch adds all nine official weights and the manifest; runtime/settings changes still require exact-head CI and device/visual acceptance.

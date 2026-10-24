@@ -1,3 +1,7 @@
+> **Typography authority update (2026-10-24):** This is historical build evidence and its VazirHarf revision must not be read as the current UI font decision. The current requirement is in [`docs/TYPOGRAPHY_CANONICAL.md`](TYPOGRAPHY_CANONICAL.md); runtime implementation and validation are tracked in Issue #2974.
+
+---
+
 # CI Release Validation Note
 
 **Updated:** 2026-09-08

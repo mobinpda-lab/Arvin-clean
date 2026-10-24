@@ -59,7 +59,7 @@ class ArvinRollBox<T> extends StatelessWidget {
         decoration: BoxDecoration(color: color.withValues(alpha: .08), borderRadius: BorderRadius.circular(14), border: Border.all(color: color.withValues(alpha: .42))),
         child: Row(children: [
           Icon(icon, size: 19, color: color), const SizedBox(width: 7),
-          Expanded(child: Text(valueLabel.isEmpty ? label : valueLabel, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w800))),
+          Expanded(child: Text(valueLabel.isEmpty ? label : valueLabel, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w500))),
           Icon(Icons.keyboard_arrow_down_rounded, size: 19, color: color),
         ]),
       ),
@@ -143,7 +143,7 @@ class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
           decoration: BoxDecoration(color: ArvinColors.tagSoft, borderRadius: BorderRadius.circular(14), border: Border.all(color: ArvinColors.tag.withValues(alpha: .42))),
           child: Row(children: [
             const Icon(Icons.sell_outlined, size: 19, color: ArvinColors.tag), const SizedBox(width: 7),
-            Expanded(child: Text(selected.isEmpty ? 'برچسب' : '${selected.length} برچسب', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: ArvinColors.tagDark, fontSize: 12, fontWeight: FontWeight.w800))),
+            Expanded(child: Text(selected.isEmpty ? 'برچسب' : '${selected.length} برچسب', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: ArvinColors.tagDark, fontSize: 12, fontWeight: FontWeight.w500))),
             const Icon(Icons.keyboard_arrow_down_rounded, size: 19, color: ArvinColors.tag),
           ]),
         ),

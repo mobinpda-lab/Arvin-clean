@@ -106,7 +106,7 @@
 ### 4.8 Typography / Appearance
 - font picker واقعی + preview.
 - font size واقعی و app-wide.
-- VazirHarf v34.003 پیش‌فرض.
+- قرارداد جاری تایپوگرافی: Vazirmatn با خانوادهٔ کامل ۹وزنی و نگاشت اصلی نقش‌ها 300/400/500/600/700؛ جزئیات و گیت‌ها در `docs/TYPOGRAPHY_CANONICAL.md` و Issue #2974. وضعیت baseline runtime هنوز حل نشده است.
 - font اضافی فقط با source/license قابل اثبات.
 - canonical AppSettingsService؛ settings store موازی ممنوع.
 - رنگ‌ها semantic و دسترسی‌پذیر؛ رنگ تنها نشانه وضعیت نباشد.

@@ -1,3 +1,7 @@
+> **CURRENT TYPOGRAPHY AUTHORITY — 2026-10-24:** The current UI font is **Vazirmatn (وزیرمتن)** with body 400, secondary 300, menus/buttons 500, headings 700 and emphasis 600. This supersedes older entries in this file that prohibit Vazirmatn or prescribe VazirHarf as the default. Canonical contract: [`docs/TYPOGRAPHY_CANONICAL.md`](../TYPOGRAPHY_CANONICAL.md); implementation tracked in Issue #2974. Older entries below remain historical only where they conflict.
+
+---
+
 ## 2026-10-14 — CI recovery learning
 
 - A queued workflow is not a pass. Evidence must name the exact commit SHA and reach a terminal result.

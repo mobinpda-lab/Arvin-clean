@@ -1,3 +1,6 @@
+
+> **Typography authority update (2026-10-24):** Older entries in this historical log that name VazirHarf as the default or prohibit Vazirmatn are superseded by [`docs/TYPOGRAPHY_CANONICAL.md`](../TYPOGRAPHY_CANONICAL.md) and Issue #2974. Preserve the old text as history only; it is not the current UI contract.
+
 # Arvin Conversation Decision History
 
 Repository: https://github.com/mobinpda-lab/Arvin-clean
@@ -22,7 +25,7 @@ Purpose: durable index of owner requirements, decisions, reported installed-app 
 
 ## Product and visual contract
 - Persian-first, RTL, calm, minimal, fast, clear Personal Assistant experience with progressive disclosure.
-- Preserve VazirHarf v34.003; do not replace it with Vazirmatn.
+- **Historical/superseded decision:** Preserve VazirHarf v34.003; do not replace it with Vazirmatn. Current law is Vazirmatn per Issue #2974 and `docs/TYPOGRAPHY_CANONICAL.md`.
 - Approved palette: primary #4A4CAB, light #E9EAFF, background #F8F8FB, card #FDFDFE, text #232433, secondary #80829C.
 - Home: centered small «بسم الله الرحمن الرحیم», centered title «مدیریت کارها و پیگیری آروین», notification icon physically left and menu physically right, search, and four equal axes in RTL order زمان / پروژه‌ها / دسته‌ها / برچسب‌ها. No counters, old کل/فعال/انجام‌شده/عقب‌افتاده cards, «کارهای من» title or old dropdown.
 - Keep clock and calendar icons side-by-side on every create/edit form. Lock-screen/widget reminder states: simple, multiple, expanded; actions done, snooze, edit, convert-to-task.

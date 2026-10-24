@@ -1,6 +1,10 @@
 import 'package:flutter/services.dart';
 
 abstract final class AppFonts {
+  /// Canonical UI family. Keep role weights aligned with docs/TYPOGRAPHY_CANONICAL.md.
+  static const String vazirmatnFamily = 'Vazirmatn';
+
+  /// PDF/report-only family; it must not be used as a UI fallback.
   static const String vazirharfFamily = 'VazirHarf';
   static const String iranSansXFamily = 'IRANSansXFaNum';
 
@@ -17,8 +21,8 @@ abstract final class AppFonts {
       await loader.load();
       return true;
     } catch (_) {
-      // VazirHarf is bundled and is the public/default project font.
-      // Licensed IRANSansX takes precedence only when private assets exist.
+      // This optional private font loader is not part of the canonical UI font.
+      // The UI always uses the bundled Vazirmatn family.
       return false;
     }
   }

@@ -283,7 +283,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('وضعیت تکرار', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
+            const Text('وضعیت تکرار', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 17)),
             const SizedBox(height: 12),
             if (lifecycleTask?.recurrence?.trackingLevel == RecurrenceTrackingLevel.tracking) ...[
               const SizedBox(height: 12),
@@ -321,7 +321,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
               ),
             if (_history.isNotEmpty) ...[
               const SizedBox(height: 12),
-              const Text('سوابق اجرا', style: TextStyle(fontWeight: FontWeight.w800)),
+              const Text('سوابق اجرا', style: TextStyle(fontWeight: FontWeight.w700)),
               const SizedBox(height: 6),
               for (final entry in _history.take(10))
                 ListTile(

@@ -264,7 +264,7 @@ class _CalendarIntegrationSettingsPageState
                   const Divider(height: 32),
                   const Text(
                     'تقویم‌های دستگاه',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 8),
                   ListTile(
@@ -293,7 +293,7 @@ class _CalendarIntegrationSettingsPageState
                   const Divider(height: 32),
                   const Text(
                     'موارد قابل همگام‌سازی',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(fontWeight: FontWeight.w700),
                   ),
                   _switch(
                     key: const ValueKey('calendar-sync-due-dates'),
@@ -355,7 +355,7 @@ class _CalendarIntegrationSettingsPageState
                               Expanded(
                                 child: Text(
                                   'حذف رویداد متصل همراه با حذف کار، گزینه‌ای حساس است و به‌صورت پیش‌فرض خاموش می‌ماند.',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                  style: TextStyle(fontWeight: FontWeight.w700),
                                 ),
                               ),
                             ],

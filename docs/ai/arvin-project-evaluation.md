@@ -1,3 +1,7 @@
+> **Typography authority update (2026-10-24):** This evaluation records historical Settings behavior. Current UI font is Vazirmatn with role weights 300/400/500/600/700 under [`docs/TYPOGRAPHY_CANONICAL.md`](../TYPOGRAPHY_CANONICAL.md). Old statements about VazirHarf defaults are superseded; runtime migration is tracked by Issue #2974.
+
+---
+
 # Arvin — Project Evaluation Snapshot & Remaining Work
 
 Date: 2026-10-09
@@ -34,15 +38,15 @@ Live GitHub shows substantial product progress. The remaining gap is product int
 ### Typography — #1860 / canonical settings path
 **Status: IMPLEMENTATION RECONCILED — DEVICE/UX ACCEPTANCE STILL OPEN**
 
-PR #2413 (`fix(settings): reconcile device font selection with current main`) merged on 2026-10-07 as `d4efd86485113a711e0e0009dda266e051860ece`. It reconciles the existing system-font selection with current main: explicit `system` selection, Flutter system font at the ThemeData boundary, and legacy/unset preference remaining on VazirHarf. PR #2408 is historical implementation context, not the active unmerged lane.
+**Historical Settings record, superseded by Issue #2974:** PR #2413 (`fix(settings): reconcile device font selection with current main`) merged on 2026-10-07 as `d4efd86485113a711e0e0009dda266e051860ece`. Its system-font selection and legacy/unset VazirHarf behavior are not the current product contract. PR #2408 is historical implementation context, not the active unmerged lane.
 
 Protected:
 - no new storage/model/controller;
 - no new font engine;
-- VazirHarf remains the legacy/unset default;
+- **Historical/superseded:** VazirHarf remained the legacy/unset default in the build evaluated at that time.
 - existing canonical AppSettingsService/AppSettings path is reused.
 
-**Still not accepted:** On the installed current-main APK, verify system font visibly applies in light and dark themes, selection persists after restart, switching back to VazirHarf persists after restart, and font-size control/behavior matches #1860. No claim of full Typography completion without this evidence.
+**Historical acceptance gap:** That evaluation asked to verify the then-existing system-font picker and VazirHarf selection. Those are superseded by the fixed Vazirmatn contract. Current acceptance gates are tracked by Issue #2974 and `docs/TYPOGRAPHY_CANONICAL.md`.
 
 ## P0/P1 remaining product work
 

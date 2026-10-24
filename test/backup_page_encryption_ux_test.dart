@@ -483,7 +483,11 @@ void main() {
     await tester.pumpAndSettle();
 
     final prefs = await SharedPreferences.getInstance();
-    expect(prefs.getKeys(), <String>{ArvinBackupManager.directoryKey});
+    expect(prefs.getKeys(), <String>{
+      ArvinBackupManager.directoryKey,
+      'arvin.settings.fontFamily',
+    });
+    expect(prefs.getString('arvin.settings.fontFamily'), 'Vazirmatn');
     expect(service.lastEncryptionPassphrase, 'memory-only-secret');
   });
 }

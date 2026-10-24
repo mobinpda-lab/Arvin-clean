@@ -138,7 +138,7 @@ class UserGuidePage extends StatelessWidget {
     return Text(
       text,
       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w700,
           ),
     );
   }
@@ -163,7 +163,7 @@ class UserGuidePage extends StatelessWidget {
                   child: Text(
                     'آروین خیلی ساده است',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w700,
                           color: colors.onPrimaryContainer,
                         ),
                   ),
@@ -550,7 +550,7 @@ class _SafetyCard extends StatelessWidget {
                 SizedBox(width: 8),
                 Text(
                   'سه نکته مهم',
-                  style: TextStyle(fontWeight: FontWeight.w800),
+                  style: TextStyle(fontWeight: FontWeight.w700),
                 ),
               ],
             ),
@@ -588,7 +588,7 @@ class _NumberBadge extends StatelessWidget {
         style: TextStyle(
           color: colors.onPrimary,
           fontSize: 10,
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );
