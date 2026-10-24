@@ -147,7 +147,7 @@ class _NavigationItem extends StatelessWidget {
                 style: TextStyle(
                   color: selected ? primary : muted,
                   fontSize: 10.5,
-                  fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
