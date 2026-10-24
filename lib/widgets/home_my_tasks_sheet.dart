@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 enum HomeTaskFilterKind {
   all,
   today,
-  followUp,
-  withoutFollowUp,
+  followUpHistory,
+  withoutFollowUpHistory,
   completed,
   incomplete,
   category,
@@ -61,18 +61,18 @@ Future<HomeTaskFilterSelection?> showHomeMyTasksSheet({
               selection: const HomeTaskFilterSelection(HomeTaskFilterKind.today),
             ),
             _FilterTile(
-              key: const ValueKey('home-my-tasks-followup'),
+              key: const ValueKey('home-my-tasks-followup-history'),
               icon: Icons.follow_the_signs_outlined,
-              title: 'پیگیری‌دار',
+              title: 'دارای سابقه پیگیری',
               selection:
-                  const HomeTaskFilterSelection(HomeTaskFilterKind.followUp),
+                  const HomeTaskFilterSelection(HomeTaskFilterKind.followUpHistory),
             ),
             _FilterTile(
-              key: const ValueKey('home-my-tasks-without-followup'),
+              key: const ValueKey('home-my-tasks-without-followup-history'),
               icon: Icons.playlist_remove_outlined,
-              title: 'بدون پیگیری',
+              title: 'بدون سابقه پیگیری',
               selection: const HomeTaskFilterSelection(
-                HomeTaskFilterKind.withoutFollowUp,
+                HomeTaskFilterKind.withoutFollowUpHistory,
               ),
             ),
             _FilterTile(
