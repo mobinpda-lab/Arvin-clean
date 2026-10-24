@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:arvin/automatic_follow_up_scheduler_adapter.dart';
 import 'package:arvin/follow_up_office_page.dart';
 import 'package:arvin/follow_up_repository.dart';
 import 'package:arvin/services/follow_up_write_coordinator.dart';
@@ -9,39 +8,20 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:arvin/services/task_store.dart';
 
-class _RecordingScheduler implements AutomaticFollowUpSchedulerAdapter {
-  int rescheduleCalls = 0;
-
-  @override
-  Future<void> reschedule() async {
-    rescheduleCalls += 1;
-  }
-
-  @override
-  Future<void> cancel() async {}
-}
-
 void main() {
   setUp(() async {
     await TaskStore.resetTestDatabase();
   });
-  testWidgets('real FollowUp office add write requests alarm rescheduling',
+
+  testWidgets('Follow-up office records history without scheduling legacy dates',
       (tester) async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks': jsonEncode([
-        {
-          'id': 't1',
-          'title': 'مشتری',
-          'followUps': <Object>[],
-        },
+        {'id': 't1', 'title': 'مشتری', 'followUps': <Object>[]},
       ]),
     });
-    final scheduler = _RecordingScheduler();
     final repository = const FollowUpRepository();
-    final coordinator = FollowUpWriteCoordinator(
-      repository: repository,
-      scheduler: scheduler,
-    );
+    final coordinator = FollowUpWriteCoordinator(repository: repository);
 
     await tester.pumpWidget(
       MaterialApp(
@@ -52,17 +32,13 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-
     await tester.tap(find.text('ثبت پیگیری'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byKey(const ValueKey('follow-up-entry-note')), 'تماس فردا');
-
-    final save = find.byKey(const ValueKey('follow-up-entry-save'));
-    expect(save, findsOneWidget);
-    await tester.tap(save);
+    await tester.enterText(find.byKey(const ValueKey('follow-up-entry-note')), 'تماس ثبت‌شده');
+    await tester.tap(find.byKey(const ValueKey('follow-up-entry-save')));
     await tester.pumpAndSettle();
 
-    expect(scheduler.rescheduleCalls, 1);
-    expect(find.text('تماس فردا'), findsOneWidget);
+    expect(find.text('تماس ثبت‌شده'), findsOneWidget);
+    expect(find.text('فقط پیگیری‌های موعدرسیده'), findsNothing);
   });
 }
