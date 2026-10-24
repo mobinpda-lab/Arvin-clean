@@ -1,79 +1,79 @@
 # ARVIN Reminder Contract
-**Status:** Current owner-directed product contract  
+
+**Status:** Current, owner-directed and normative  
 **Decision date:** 2026-10-24  
-**Scope:** Task reminders, Task due dates, recorded Follow-up history, Calendar projection, alarms, recurrence, reporting and backup/restore  
-**Authority:** Explicit owner instruction in Wave 7.31. This contract supersedes conflicting earlier follow-up decision notes for current behavior.
+**Scope:** Task scheduling, reminders, Calendar projection/sync, alarms, recurrence, persistence, migration, backup/restore and regression prevention  
+**Authority:** Explicit product-owner clarification. This decision supersedes older documents and PR descriptions that treated “Next Follow-up” or “independent Follow-up” as current product concepts.
 
-## 1. Canonical concepts
-- **Task:** The canonical work item owned by Arvin.
-- **Due Date:** The Task's original due date. It is independent of all reminders.
-- **Reminder:** Zero or more independently identifiable notification/calendar intents belonging to a Task. Each has a stable ID, date and either a meaningful time or explicit all-day intent.
-- **Follow-up record:** An immutable/history-preserving record of an action, result, note, waiting-for-response state and parent Task relationship. It is not a reminder.
-- **Next Follow-up:** The legacy/current UI concept for a future action date. It is not a parallel current scheduling source. Current user-facing behavior must be redesigned around Reminder where that is the explicitly specified behavior; historical values remain readable until consumers and migration are audited.
+## 1. Non-negotiable product vocabulary
 
-## 2. Reminder data and isolation
-Each reminder must have a stable identity and independent lifecycle. Editing, rescheduling, disabling, or deleting one reminder must not mutate the Task Due Date, another reminder, or a Follow-up history record.
+The current user-facing product concepts are:
+- **Task**
+- **Task due date**
+- **Reminder** (zero or more independently identifiable reminders attached to a Task)
 
-Reminder settings are independent:
-- date and either an actual time or explicit all-day mode;
-- Calendar synchronization enabled/disabled;
-- Arvin alarm enabled/disabled;
-- stable reminder ID;
-- external Calendar event ID only when Arvin created/owns a corresponding event;
-- scheduled notification ID only when an Arvin alarm is enabled;
-- synchronization state/error when supported by the architecture.
+**“پیگیری بعدی”, “پیگیری مستقل”, “Next Follow-up” and “Follow-up Reminder” are not current product concepts. They must not be brought back through UI, domain behavior, Calendar cards, filters, reports, notifications, acceptance criteria or new product documentation.** Do not reopen this product decision or ask the owner to decide it again.
 
-Do not introduce duplicate fields or a parallel Task store before auditing existing canonical models and consumers. If a required setting has no safe representation, document the gap and propose the smallest compatible model migration before implementation.
+A Reminder is the current concept for scheduling a future notification/calendar intent. A Task due date remains separate from its reminders. Arvin's own alarm and phone-calendar synchronization are separate delivery channels for a Reminder, not separate product concepts.
 
-## 3. Date and all-day semantics
-- An all-day reminder is explicitly represented as all-day; display-time midnight (00:00) alone never implies all-day.
-- All-day reminders must not schedule an unintended midnight alarm.
-- A timed reminder uses its real stored time, not a UI placeholder such as 00:00.
-- Preserve legacy date/time values during decoding and migration. Do not silently infer user intent from incomplete data.
+## 2. Legacy names and stored data
 
-## 4. Calendar and Arvin alarms are separate channels
-The Calendar-sync setting controls whether Arvin creates or updates an event it owns in the phone calendar. The Arvin-alarm setting controls whether Arvin schedules its own notification. All four combinations are valid and must be tested independently:
-1. Calendar ON, Arvin alarm ON: Calendar event plus Arvin notification.
-2. Calendar ON, Arvin alarm OFF: Calendar event, no Arvin notification.
-3. Calendar OFF, Arvin alarm ON: Arvin notification, no new Arvin-owned Calendar event.
-4. Calendar OFF, Arvin alarm OFF: retain the Reminder internally, with neither new Calendar event nor Arvin notification.
+The repository currently contains legacy symbols/fields such as `FollowUp`, `followUps`, `followUpEnabled`, `followUpDate`, `nextFollowUp`, and legacy `reminderDate` fields. Their existence in source, database schemas, JSON or old PRs is **implementation history/compatibility debt, not authority to revive the old product concepts**.
 
-Turning off Arvin alarms must not delete the Reminder. Turning off Calendar sync may delete/update only an event proven to be owned by Arvin; never delete unrelated phone-calendar events. Permission denial and provider errors must be surfaced as failures or blocked outcomes, not false success. Repeated startup, rescheduling, or restore must not duplicate events or notifications.
+Rules:
+- Do not create new user-facing behavior based on legacy “Next Follow-up” or “independent Follow-up” fields.
+- Do not render legacy-only planned-action records as current Reminder cards or as a separate current scheduling concept.
+- Do not create a Reminder from a legacy next-action date by inference or automatically.
+- Preserve user data during the transition. Do not delete or rewrite legacy data until every reader/writer, SQLite migration, JSON import/export, backup/restore, Calendar sync, notification scheduler, report, filter and UI consumer has been audited and a safe, idempotent migration is implemented and tested.
+- Legacy types/files may remain temporarily for decoding, migration or compatibility only. New code must not expand their product role. Prefer names that match the current Reminder model when safely refactoring.
+- Any migration from legacy data to Reminder requires an explicit mapping rule, stable identity, duplicate prevention, idempotence, and regression tests. Ambiguous values must be preserved for explicit handling, not silently guessed.
 
-Completing a Task stops its future Arvin alarms and future owned Calendar reminders while retaining the Reminder and Follow-up history according to the data-retention rules.
+## 3. Reminder behavior
 
-## 5. Follow-up history and legacy migration
-- Follow-up records remain separate historical entries and retain their parent Task relationship, action timestamp, result, note and waiting-for-response state.
-- Do not treat Next Follow-up as the whole Follow-up history or as a Reminder.
-- Do not continuously link reminder fields to Next Follow-up.
-- Do not automatically create a reminder merely because a legacy Next Follow-up value exists, unless a specifically approved one-time migration is separately documented. The current owner contract in Wave 7.31 replaces the older conflicting decision; implementation must not preserve an automatic or bidirectional link by inertia.
-- Historical fields and records are retained until a full consumer audit proves a safe migration/removal path. Any migration must be bounded, idempotent, documented, reversible where feasible, and tested against existing JSON, SQLite, Backup/Restore and report consumers.
+Each Reminder has a stable identity, date, explicit timed/all-day semantics, and independent lifecycle. Editing, moving, disabling or deleting one Reminder must not mutate the Task due date or another Reminder.
 
-## 6. Recurrence, Home and Calendar projections
-- Each recurrence occurrence has independent completion state.
-- A new occurrence's checklist is initialized from the valid recurrence template, not by mutating completed historical occurrences.
-- Resume, restart and restore must not create duplicate occurrences.
-- Calendar shows at most the next five future occurrences per recurring Task.
-- Home places all-day tasks above timed tasks and summarizes the nearest reminder per Task for each day. This summary must not hide additional reminders from Task details or Calendar.
-- Reminder edits/deletes and recurrence generation must be identity-based and idempotent.
+Calendar synchronization and Arvin alarm delivery are independent settings:
+1. Calendar ON, alarm ON: owned Calendar event plus Arvin notification.
+2. Calendar ON, alarm OFF: owned Calendar event only.
+3. Calendar OFF, alarm ON: Arvin notification only.
+4. Calendar OFF, alarm OFF: Reminder remains stored; neither channel is scheduled.
 
-## 7. Reports and filters
-Reports must preserve action history and show completed and remaining recurrence counts plus action dates where the underlying data supports them. A filter may be enabled only when implemented and backed by actual data. Combined people, project, category, tag, date range, title, description, status, recurrence, follow-up and checklist filters must not silently pretend to filter dimensions that are unsupported.
+Turning off Calendar sync may remove/update only a provider event proven to be owned by Arvin. Never delete unrelated phone-calendar events. Permission/provider failures must not be reported as success. Repeated startup, rescheduling and restore must not duplicate events or notifications.
 
-## 8. Required verification
-Before accepting implementation:
-- exact-SHA source audit of all legacy Next Follow-up/reminder references;
-- JSON round-trip, SQLite file-backed close/reopen, CRUD isolation, migration idempotence and Backup/Restore identity/relationship preservation;
-- all four Calendar/Arvin-alarm combinations through create/edit/reschedule/delete;
-- permission/provider error handling, restart/restore idempotence, and ownership-safe event deletion;
-- all-day/no-midnight-alarm and timed 00:00 display-vs-value tests;
-- recurrence occurrence/checklist/history tests and Home/Calendar projection limits;
-- exact-head Analyze, relevant test shards, Build and CI review;
-- separate installed-device owner acceptance.
+All-day is explicit. Midnight alone does not prove all-day intent. All-day reminders must not produce unintended midnight alarms. Timed reminders preserve their actual time. Completing a Task must stop future delivery according to the approved lifecycle without silently deleting reminder records or unrelated Calendar events.
 
-A passing unit test, PR existence, or successful build alone does not mean product acceptance. Release remains `BLOCKED — RELEASE: NO-GO` until all mandatory gates pass.
+## 4. Canonical storage and migration
 
-## 9. Superseded decision history and Product Reference v1.3
-The former document [ARVIN_FOLLOW_UP_CONCEPT_DECISION.md](ARVIN_FOLLOW_UP_CONCEPT_DECISION.md) is retained as history and marked superseded for current behavior. Its older statement that Next Follow-up must remain a parallel current concept is not normative for new behavior.
+- Keep one canonical Task source of truth and the existing canonical storage path. Do not introduce a parallel Task store, Reminder engine or Calendar projection.
+- Reminder IDs and relationships must survive JSON round-trip, file-backed SQLite close/reopen, CRUD, migration and backup/restore.
+- Deleting or editing one Reminder must leave sibling Reminders and the Task due date unchanged.
+- Migration must be bounded, idempotent, versioned, and tested on legacy data. A stale legacy field must not resurrect a deleted Reminder.
+- Preserve recurrence occurrence identity/history and per-occurrence checklist state.
 
-Product Reference v1.3 was searched for in the inspected repository, but no matching artifact was found in the available search results. This contract does not fabricate, reconstruct, or claim approval by a missing v1.3 document. If the official artifact is supplied or located, reconcile its version and authority explicitly without silently weakening this owner-directed contract.
+## 5. Required code and PR audit
+
+Before marking this decision implemented, audit the **entire repository and every open/relevant PR**, not only the files changed by the latest wave:
+- Search source, tests, docs, fixtures, CI workflows and PR descriptions for `FollowUp`, `followUp`, `nextFollowUp`, `followUpEnabled`, `followUpDate`, and legacy `reminderDate`.
+- Classify each match as: (a) current Reminder behavior, (b) data compatibility/migration, (c) historical documentation, or (d) prohibited active legacy behavior.
+- Check editors/forms, Home, Calendar and its internal/external projections, alarm planners, notifications, repositories/stores, SQLite writers/migrations, JSON, backup/restore, reports/filters, recurrence, navigation and all tests.
+- Reconcile conflicting open PRs before accepting any of them. A passing test that encodes the retired product concept is not valid acceptance evidence.
+- Never weaken or delete a failing assertion merely to get CI green. First determine whether the assertion, fixture, projection, persisted data or UI route is wrong against this contract.
+
+## 6. Mandatory regression gates
+
+- Static repository-wide search with reviewed disposition for every relevant legacy match.
+- Reminder create/edit/reschedule/delete and sibling-isolation tests.
+- JSON round-trip, file-backed SQLite close/reopen, migration idempotence and backup/restore identity/relationship tests.
+- All four Calendar/alarm combinations, including permission/provider failure and ownership-safe cleanup.
+- All-day/no-midnight-alarm and timed reminder semantics.
+- Restart/restore idempotence, recurrence and Home/Calendar projection tests.
+- Analyze, relevant test shards, Debug/Release builds and Device Smoke on the exact candidate SHA.
+- Installed-device and owner acceptance remain separate gates.
+
+A documentation PR, an open PR, a passing unit test, or a successful build alone does not prove the product refactor complete. Keep release `BLOCKED — RELEASE: NO-GO` until all mandatory gates pass on the accepted revision.
+
+## 7. Decision precedence and anti-forget rule
+
+This file is the current normative product contract. Older decision documents, comments, PR titles/descriptions, tests and model names are historical evidence only where they conflict with this decision. Preserve history, but do not treat it as current requirements.
+
+Every new task or conversation must read this contract and Issue #1139 before changing Reminder, Calendar, notification, migration or related behavior. Do not ask the owner to re-explain or re-approve the already settled removal of the old Follow-up concepts.
