@@ -249,7 +249,7 @@ Project memory is not present on main and PR #2614 exact-head Build is still run
 - Repeat chain: Task → Repeat Definition → Occurrence → Execution State → History; past immutable, future adjustable.
 - Calendar is a projection; update by Task ID / External Event ID, never by title/date matching.
 - Tracking does not replace CRM; Home has no independent storage; Report is a read-only consumer.
-- Preserve user data, stable IDs, Persian RTL and VazirHarf v34.003.
+- **Historical/superseded:** an older execution note named VazirHarf v34.003. Current UI typography follows `docs/TYPOGRAPHY_CANONICAL.md` and Issue #2974.
 - Mark work complete only with relevant code, tests, build, validation and evidence.
 
 ---
@@ -1096,4 +1096,4 @@ This entry supersedes older statements that the owner decision is pending or tha
 - Anti-regression: hard-coded hex colors in Home, Calendar, Reports, Notebook, and Task editor were routed through `ArvinColors`; Calendar obtains its declared font via `AppFonts.vazirharfFamily`. Follow-up card interactions use normal tap for parent Task editor and long press for follow-up actions; narrow date-ribbon count bubbles use scale-down to prevent overflow.
 - Prior exact-head build `2d04631dd9d1939bd3feafa12aa7d68bec349b58` produced Debug and Release APK artifacts but multiple test shards failed. Affected tests were updated; exact-head validation is still required. Do not infer success from old runs.
 - Current release status: **NO-GO / NOT VALIDATED** until the final resulting SHA has passing analyzer, all test shards with zero skipped tests, Debug/Release artifacts, all six Device Smoke lanes, Calendar Provider Acceptance, and artifact inspection.
-- Typography gap remains open per Issue #2974: Vazirmatn exists only in Regular/Medium/Bold assets on baseline; Light 300 and SemiBold 600 are missing from the active manifest, and runtime/settings migration plus exact-head/device acceptance are not complete.
+- Typography gap remains open per Issue #2974: the initial main baseline had only Regular/Medium/Bold. The current PR branch adds all nine official weights and the manifest; runtime/settings changes still require exact-head CI and device/visual acceptance.
