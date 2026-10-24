@@ -25,6 +25,7 @@
 
 - خانوادهٔ ثبت‌شده در Flutter: `Vazirmatn`.
 - پنج فایل واقعی وزن‌های 300، 400، 500، 600 و 700 باید در APK بسته‌بندی شوند و از منبع رسمی دارای مجوز و provenance قابل‌ردیابی باشند.
+- منبع پیشنهادی برای یکسان‌بودن شکل حروف و ارقام: مخزن رسمی `rastikerdar/vazirmatn`، snapshot `6e553e33489a8f9dfaccc76860a2e3f3c1e66de7`، variant `misc/UI-Farsi-Digits/fonts/ttf/Vazirmatn-UI-FD-{Light,Regular,Medium,SemiBold,Bold}.ttf` و مجوز `OFL.txt`. هنگام انتقال assetها باید hash/منبع واقعی هر فایل و مجوز در مخزن ثبت شود؛ فایل‌های baseline فعلی نباید به‌عنوان این پنج فایل کامل معرفی شوند.
 - هر وزن در `pubspec.yaml` با فایل متناظر خودش ثبت شود؛ فایل Regular نباید به‌عنوان Light یا SemiBold جا زده شود.
 - `ThemeData` روشن و تیره، همهٔ صفحات، dialogها، bottom sheetها، navigation، فرم‌ها، کارت‌ها و تنظیمات باید از یک مرجع تایپوگرافی استفاده کنند.
 - نقش‌های پایهٔ `TextTheme` باید با جدول بالا هم‌راستا شوند. استفادهٔ مستقیم از `TextStyle` یا `FontWeight.w*` فقط وقتی مجاز است که با نقش این قرارداد سازگار باشد.
