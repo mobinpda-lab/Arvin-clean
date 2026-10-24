@@ -35,7 +35,9 @@ void main() {
     expect(text, contains('چک‌لیست:'));
     expect(text, contains('• تماس'));
     expect(text, contains('• ثبت نتیجه'));
+    expect(text, contains('یادآورها:'));
     expect(text, contains('یادآوری:'));
+    expect(text, contains('r1')).isFalse;
     expect(text, isNot(contains('2026')));
   });
 
@@ -65,6 +67,7 @@ void main() {
           checklist: [],
           followUps: [],
           completed: true,
+          reminders: [],
         ),
       ],
     );
