@@ -126,7 +126,7 @@ Repository reality always overrides conversation memory.
 - آخرین FollowUp باید از `Task.followUps[]` و `lastFollowUp` canonical بیاید؛ تاریخ legacy نباید به‌عنوان تاریخ واقعی پیگیری نمایش داده شود.
 - Task Detail باید یک داشبورد مسیر پیگیری باشد: خلاصه، وضعیت، آخرین پیگیری، Timeline، فاصله بین پیگیری‌ها، اقدام بعدی، یادآوری و دو اقدام روشن «افزودن پیگیری» و «انجام کار».
 - Task Editor باید Full Screen و lifecycle-oriented باشد؛ هدر ثابت، عنوان در ابتدا، توضیحات مستقل، پروژه/دسته/برچسب، موعد/یادآوری/تکرار/اهمیت، سپس پیگیری، چک‌لیست و قابلیت‌های موجود.
-- فونت رابط کاربری نهایی: Vazirmatn (وزیرمتن) با وزن‌های نقش‌محور 300/400/500/600/700 مطابق `docs/TYPOGRAPHY_CANONICAL.md`. تصمیم‌های قدیمی دربارهٔ VazirHarf منسوخ‌اند.
+- فونت رابط کاربری نهایی: Vazirmatn (وزیرمتن) با خانوادهٔ کامل ۹وزنی و نگاشت اصلی نقش‌ها 300/400/500/600/700 مطابق `docs/TYPOGRAPHY_CANONICAL.md`. تصمیم‌های قدیمی دربارهٔ VazirHarf منسوخ‌اند.
 - هیچ Storage/Model/Repository موازی برای Project، FollowUp یا Search ساخته نشود.
 - داده‌های کاربر نباید حذف یا مهاجرت مخرب شوند.
 
