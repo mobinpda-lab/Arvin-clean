@@ -5,6 +5,26 @@ import 'package:arvin/follow_up_entry_page.dart';
 import 'package:arvin/models/task.dart';
 
 void main() {
+  Future<void> openEditor(
+    WidgetTester tester, {
+    required Future<void> Function(BuildContext context) open,
+  }) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: ElevatedButton(
+              onPressed: () => open(context),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+  }
+
   Future<void> saveEditor(WidgetTester tester) async {
     final save = find.byKey(const ValueKey('follow-up-entry-save'));
     expect(save, findsOneWidget);
@@ -12,57 +32,19 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Future<void> revealReminder(WidgetTester tester) async {
-    final reminder = find.byKey(const ValueKey('follow-up-reminder-block'));
-    await tester.scrollUntilVisible(
-      reminder,
-      260,
-      scrollable: find.byType(Scrollable).last,
-    );
-    await tester.pumpAndSettle();
-    expect(reminder, findsOneWidget);
-  }
-
-  testWidgets('saves entered follow-up title and preserves prefilled date time',
-      (tester) async {
+  testWidgets('new Follow-up records capture history but do not create schedule fields', (tester) async {
     FollowUp? result;
     final initial = DateTime(2026, 8, 14, 9, 30);
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Builder(
-          builder: (context) => Scaffold(
-            body: ElevatedButton(
-              onPressed: () async {
-                result = await Navigator.of(context).push<FollowUp>(
-                  MaterialPageRoute(
-                    builder: (_) => FollowUpEntryPage(initialDateTime: initial),
-                  ),
-                );
-              },
-              child: const Text('open'),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    await tester.tap(find.text('open'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('۱۴۰۵/۰۵/۲۳'), findsOneWidget);
-    expect(find.text('۰۹:۳۰'), findsOneWidget);
-    expect(find.text('عنوان پیگیری (اختیاری)'), findsOneWidget);
-    await tester.enterText(
-      find.byKey(const ValueKey('follow-up-entry-title')),
-      'تماس مجدد',
-    );
-    final noteField = find.byKey(const ValueKey('follow-up-entry-note'));
-    await tester.ensureVisible(noteField);
-    await tester.enterText(noteField, 'شرح تماس');
-    final resultField = find.byKey(const ValueKey('follow-up-entry-result'));
-    await tester.ensureVisible(resultField);
-    await tester.enterText(resultField, 'پاسخ دریافت شد');
+    await openEditor(tester, open: (context) async {
+      result = await Navigator.of(context).push<FollowUp>(
+        MaterialPageRoute(builder: (_) => FollowUpEntryPage(initialDateTime: initial)),
+      );
+    });
+    expect(find.byKey(const ValueKey('follow-up-reminder-block')), findsNothing);
+    expect(find.text('انتخاب پیگیری بعدی'), findsNothing);
+    await tester.enterText(find.byKey(const ValueKey('follow-up-entry-title')), 'تماس مجدد');
+    await tester.enterText(find.byKey(const ValueKey('follow-up-entry-note')), 'شرح تماس');
+    await tester.enterText(find.byKey(const ValueKey('follow-up-entry-result')), 'پاسخ دریافت شد');
     await saveEditor(tester);
 
     expect(result, isNotNull);
@@ -71,213 +53,35 @@ void main() {
     expect(result!.result, 'پاسخ دریافت شد');
     expect(result!.dateTime, initial);
     expect(result!.reminderDate, isNull);
+    expect(result!.nextFollowUp, isNull);
   });
 
-  testWidgets('blank optional title remains absent in the model', (tester) async {
-    FollowUp? result;
-    final initial = DateTime(2026, 8, 28, 0, 5);
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Builder(
-          builder: (context) => Scaffold(
-            body: ElevatedButton(
-              onPressed: () async {
-                result = await Navigator.of(context).push<FollowUp>(
-                  MaterialPageRoute(
-                    builder: (_) => FollowUpEntryPage(initialDateTime: initial),
-                  ),
-                );
-              },
-              child: const Text('open'),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    await tester.tap(find.text('open'));
-    await tester.pumpAndSettle();
-
-    expect(
-      tester
-          .widget<TextField>(find.byKey(const ValueKey('follow-up-entry-title')))
-          .controller
-          ?.text,
-      isEmpty,
-    );
-
-    await saveEditor(tester);
-
-    expect(result, isNotNull);
-    expect(result!.title, isNull);
-    expect(result!.note, isEmpty);
-    expect(result!.dateTime, initial);
-  });
-
-  testWidgets('editing preserves the exact independent reminder timestamp',
-      (tester) async {
+  testWidgets('editing a history record preserves retired schedule data without exposing controls', (tester) async {
     FollowUp? result;
     final reminder = DateTime(2026, 9, 2, 7, 45);
+    final next = DateTime(2026, 9, 3, 10, 15);
     final initial = FollowUp(
-      id: 'fu-reminder',
+      id: 'fu-history',
       dateTime: DateTime(2026, 8, 28, 10, 15),
       note: 'تماس',
       result: 'انجام شد',
       reminderDate: reminder,
-      nextFollowUp: DateTime(2026, 9, 3, 10, 15),
+      nextFollowUp: next,
     );
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Builder(
-          builder: (context) => Scaffold(
-            body: ElevatedButton(
-              onPressed: () async {
-                result = await Navigator.of(context).push<FollowUp>(
-                  MaterialPageRoute(
-                    builder: (_) => FollowUpEntryPage(initialFollowUp: initial),
-                  ),
-                );
-              },
-              child: const Text('open'),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    await tester.tap(find.text('open'));
-    await tester.pumpAndSettle();
-
-    await revealReminder(tester);
-    expect(find.text('۱۴۰۵/۰۶/۱۱'), findsOneWidget);
-    expect(find.text('۰۷:۴۵'), findsOneWidget);
-    expect(find.byKey(const ValueKey('follow-up-reminder-clear')), findsOneWidget);
-
+    await openEditor(tester, open: (context) async {
+      result = await Navigator.of(context).push<FollowUp>(
+        MaterialPageRoute(builder: (_) => FollowUpEntryPage(initialFollowUp: initial)),
+      );
+    });
+    expect(find.byKey(const ValueKey('follow-up-reminder-block')), findsNothing);
+    expect(find.text('انتخاب پیگیری بعدی'), findsNothing);
     await saveEditor(tester);
 
     expect(result, isNotNull);
     expect(result!.id, initial.id);
     expect(result!.reminderDate, reminder);
-    expect(result!.nextFollowUp, initial.nextFollowUp);
+    expect(result!.nextFollowUp, next);
+    expect(result!.note, initial.note);
+    expect(result!.result, initial.result);
   });
-
-  testWidgets('existing reminder can be cleared without changing FollowUp identity',
-      (tester) async {
-    FollowUp? result;
-    final initial = FollowUp(
-      id: 'fu-clear',
-      dateTime: DateTime(2026, 8, 28, 12),
-      reminderDate: DateTime(2026, 8, 29, 8, 30),
-    );
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Builder(
-          builder: (context) => Scaffold(
-            body: ElevatedButton(
-              onPressed: () async {
-                result = await Navigator.of(context).push<FollowUp>(
-                  MaterialPageRoute(
-                    builder: (_) => FollowUpEntryPage(initialFollowUp: initial),
-                  ),
-                );
-              },
-              child: const Text('open'),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    await tester.tap(find.text('open'));
-    await tester.pumpAndSettle();
-
-    await revealReminder(tester);
-    final clear = find.byKey(const ValueKey('follow-up-reminder-clear'));
-    expect(clear, findsOneWidget);
-    await tester.tap(clear);
-    await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('follow-up-reminder-clear')), findsNothing);
-
-    await saveEditor(tester);
-
-    expect(result, isNotNull);
-    expect(result!.id, initial.id);
-    expect(result!.reminderDate, isNull);
-  });
-  testWidgets('FollowUp Back prompts and save preserves entered changes',
-      (tester) async {
-    FollowUp? result;
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Builder(
-          builder: (context) => Scaffold(
-            body: ElevatedButton(
-              onPressed: () async {
-                result = await Navigator.of(context).push<FollowUp>(
-                  MaterialPageRoute(
-                    builder: (_) => FollowUpEntryPage(
-                      initialDateTime: DateTime(2026, 9, 8, 9, 15),
-                    ),
-                  ),
-                );
-              },
-              child: const Text('open-safe-exit'),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    await tester.tap(find.text('open-safe-exit'));
-    await tester.pumpAndSettle();
-    await tester.enterText(
-      find.byKey(const ValueKey('follow-up-entry-title')),
-      'پیگیری ذخیره‌شده',
-    );
-
-    await tester.tap(find.byKey(const ValueKey('follow-up-entry-back')));
-    await tester.pumpAndSettle();
-
-    expect(find.text('تغییرات ذخیره نشده'), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('follow-up-exit-save')));
-    await tester.pumpAndSettle();
-
-    expect(result, isNotNull);
-    expect(result!.title, 'پیگیری ذخیره‌شده');
-    expect(result!.dateTime, DateTime(2026, 9, 8, 9, 15));
-  });
-
-  testWidgets('unchanged FollowUp Back exits without a confirmation dialog',
-      (tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Builder(
-          builder: (context) => Scaffold(
-            body: ElevatedButton(
-              onPressed: () => Navigator.of(context).push<void>(
-                MaterialPageRoute(
-                  builder: (_) => FollowUpEntryPage(
-                    initialDateTime: DateTime(2026, 9, 8, 9, 15),
-                  ),
-                ),
-              ),
-              child: const Text('open-unchanged'),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    await tester.tap(find.text('open-unchanged'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('follow-up-entry-back')));
-    await tester.pumpAndSettle();
-
-    expect(find.text('تغییرات ذخیره نشده'), findsNothing);
-    expect(find.text('open-unchanged'), findsOneWidget);
-  });
-
 }
