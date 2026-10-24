@@ -1,3 +1,6 @@
+
+> **Typography authority update (2026-10-24):** Older entries in this historical log that name VazirHarf as the default or prohibit Vazirmatn are superseded by [`docs/TYPOGRAPHY_CANONICAL.md`](../TYPOGRAPHY_CANONICAL.md) and Issue #2974. Preserve the old text as history only; it is not the current UI contract.
+
 # Arvin Conversation Decision History
 
 Repository: https://github.com/mobinpda-lab/Arvin-clean
