@@ -53,7 +53,9 @@ class TaskReportPdfRenderer {
       WorkAgendaEventKind.taskDue => 'موعد کار',
       WorkAgendaEventKind.taskReminder => 'یادآوری کار',
     };
-    return '$label: ${formatDateTime(event.at)}';
+    return event.isAllDay
+        ? '$label: تمام‌روز ${formatDay(event.at)}'
+        : '$label: ${formatDateTime(event.at)}';
   }
 
   Future<Uint8List> build(
