@@ -1122,3 +1122,12 @@ This entry supersedes older statements that the owner decision is pending or tha
 - `ARVIN_PRODUCT_CONCEPTS.md` exists only on proposal PR #2866, not main. It remains Proposed / Review Required. Two source ZIPs could not be identified from current conversation files; ZIP comparison is NOT VERIFIED.
 - Release: `BLOCKED — RELEASE: NO-GO`; no merge, main edit, owner-signed APK, or physical-device acceptance.
 
+
+## Wave 7.18-R3 — exact-head follow-up checkpoint (2026-10-24)
+
+- PR #2951 Calendar head: `9cd8c88a257297717e5c02a9b9ae140c8be9c159`, Draft. Build [40058724793](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058724793) has Analyze PASS while test shards and Debug/Release are still IN PROGRESS at this checkpoint; Provider [40058724849](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058724849) IN PROGRESS; Device Smoke [40058724794](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058724794) QUEUED.
+- PR #2947 Home/recurrence head: `94e3cb17ddf16158b414834d2d81bf4ca73e653e`, Draft. Build [40058784437](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058784437) pending; Device Smoke [40058784508](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058784508) queued/in progress as jobs become available. Earlier run [40058738017](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058738017) was cancelled after a newer commit; do not use it as validation.
+- Home now prefers `lastFollowUp.nextFollowUp` and falls back to legacy `Task.followUpDate`; the Task due date remains a separate Home row. Commits: `5b4ae818`, `d0470b9f`, `ca526ace`, `f78ccdd1`, `a4dfdf3a`, `94e3cb17`. Current-head tests are not yet terminal.
+- Calendar test [9cd8c88a](https://github.com/mobinpda-lab/Arvin-clean/commit/9cd8c88a257297717e5c02a9b9ae140c8be9c159) corrects the stale assertion: a Follow-up with nextFollowUp but no reminderDate must not create a Calendar event; the Task due event must remain.
+- Date-only is still a model gap: `FollowUp.nextFollowUp` has no explicit all-day/date-only flag. Do not infer all-day from midnight. Two requested source ZIPs remain unidentified; ZIP comparison is NOT VERIFIED.
+- Concept document remains Proposed / Review Required on PR #2866, not accepted mainline policy. No merge, main write, or release. Status remains `BLOCKED — RELEASE: NO-GO`.
