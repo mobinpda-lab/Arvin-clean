@@ -11,8 +11,6 @@ class CalendarIntegrationSettings {
     this.targetCalendarId,
     this.syncDueDates = true,
     this.syncTaskReminders = true,
-    this.syncFollowUps = true,
-    this.syncFollowUpReminders = true,
     this.syncRecurrence = false,
     this.autoSync = false,
     this.deleteLinkedEventWithTask = false,
@@ -26,8 +24,6 @@ class CalendarIntegrationSettings {
   final String? targetCalendarId;
   final bool syncDueDates;
   final bool syncTaskReminders;
-  final bool syncFollowUps;
-  final bool syncFollowUpReminders;
   final bool syncRecurrence;
   final bool autoSync;
   final bool deleteLinkedEventWithTask;
@@ -40,8 +36,6 @@ class CalendarIntegrationSettings {
     bool clearTargetCalendarId = false,
     bool? syncDueDates,
     bool? syncTaskReminders,
-    bool? syncFollowUps,
-    bool? syncFollowUpReminders,
     bool? syncRecurrence,
     bool? autoSync,
     bool? deleteLinkedEventWithTask,
@@ -57,9 +51,6 @@ class CalendarIntegrationSettings {
           : _normalizeOptionalId(targetCalendarId) ?? this.targetCalendarId,
       syncDueDates: syncDueDates ?? this.syncDueDates,
       syncTaskReminders: syncTaskReminders ?? this.syncTaskReminders,
-      syncFollowUps: syncFollowUps ?? this.syncFollowUps,
-      syncFollowUpReminders:
-          syncFollowUpReminders ?? this.syncFollowUpReminders,
       syncRecurrence: syncRecurrence ?? this.syncRecurrence,
       autoSync: autoSync ?? this.autoSync,
       deleteLinkedEventWithTask:
@@ -133,10 +124,6 @@ class AppSettingsService {
   static const _calendarSyncDueKey = 'arvin.settings.calendar.syncDueDates';
   static const _calendarSyncTaskReminderKey =
       'arvin.settings.calendar.syncTaskReminders';
-  static const _calendarSyncFollowUpKey =
-      'arvin.settings.calendar.syncFollowUps';
-  static const _calendarSyncFollowUpReminderKey =
-      'arvin.settings.calendar.syncFollowUpReminders';
   static const _calendarSyncRecurrenceKey =
       'arvin.settings.calendar.syncRecurrence';
   static const _calendarAutoSyncKey = 'arvin.settings.calendar.autoSync';
@@ -228,14 +215,6 @@ class AppSettingsService {
       settings.syncTaskReminders,
     );
     await preferences.setBool(
-      _calendarSyncFollowUpKey,
-      settings.syncFollowUps,
-    );
-    await preferences.setBool(
-      _calendarSyncFollowUpReminderKey,
-      settings.syncFollowUpReminders,
-    );
-    await preferences.setBool(
       _calendarSyncRecurrenceKey,
       settings.syncRecurrence,
     );
@@ -264,8 +243,6 @@ class AppSettingsService {
         'targetCalendarId': calendar.targetCalendarId,
         'syncDueDates': calendar.syncDueDates,
         'syncTaskReminders': calendar.syncTaskReminders,
-        'syncFollowUps': calendar.syncFollowUps,
-        'syncFollowUpReminders': calendar.syncFollowUpReminders,
         'syncRecurrence': calendar.syncRecurrence,
         'autoSync': calendar.autoSync,
         'deleteLinkedEventWithTask': calendar.deleteLinkedEventWithTask,
@@ -345,8 +322,6 @@ class AppSettingsService {
       'showExternalEvents',
       'syncDueDates',
       'syncTaskReminders',
-      'syncFollowUps',
-      'syncFollowUpReminders',
       'syncRecurrence',
       'autoSync',
       'deleteLinkedEventWithTask',
@@ -396,9 +371,6 @@ class AppSettingsService {
         targetCalendarId: _normalizeCalendarId(targetCalendarId as String?),
         syncDueDates: calendarMap['syncDueDates'] as bool? ?? true,
         syncTaskReminders: calendarMap['syncTaskReminders'] as bool? ?? true,
-        syncFollowUps: calendarMap['syncFollowUps'] as bool? ?? true,
-        syncFollowUpReminders:
-            calendarMap['syncFollowUpReminders'] as bool? ?? true,
         syncRecurrence: calendarMap['syncRecurrence'] as bool? ?? false,
         autoSync: calendarMap['autoSync'] as bool? ??
             calendarMap['syncArvinToDevice'] as bool? ?? false,
@@ -453,9 +425,6 @@ class AppSettingsService {
       syncDueDates: preferences.getBool(_calendarSyncDueKey) ?? true,
       syncTaskReminders:
           preferences.getBool(_calendarSyncTaskReminderKey) ?? true,
-      syncFollowUps: preferences.getBool(_calendarSyncFollowUpKey) ?? true,
-      syncFollowUpReminders:
-          preferences.getBool(_calendarSyncFollowUpReminderKey) ?? true,
       syncRecurrence: preferences.getBool(_calendarSyncRecurrenceKey) ?? false,
       deleteLinkedEventWithTask:
           preferences.getBool(_calendarDeleteLinkedKey) ?? false,
