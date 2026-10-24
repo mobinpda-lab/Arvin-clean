@@ -1,5 +1,7 @@
 # Canonical App Settings — 2026-08-26
 
+> **DEPRECATED AS A TYPOGRAPHY AUTHORITY.** Historical settings design record only. Current font contract: `docs/TYPOGRAPHY_CANONICAL.md`; where any wording conflicts, the canonical typography contract prevails.
+
 Issue #231. Refs #8 #15 #195.
 
 ## Purpose
