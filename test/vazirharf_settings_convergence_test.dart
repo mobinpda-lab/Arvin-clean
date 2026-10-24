@@ -14,22 +14,43 @@ void main() {
     expect(arvinFontById('unknown-font').effectiveFontFamily, AppFonts.vazirmatnFamily);
   });
 
-  test('canonical manifest registers all five Vazirmatn role weights', () {
+  test('canonical manifest registers the complete nine-weight Vazirmatn family', () {
     final pubspec = File('pubspec.yaml').readAsStringSync();
     for (final declaration in <String>[
       'family: Vazirmatn',
+      'Vazirmatn-Thin.ttf',
+      'Vazirmatn-ExtraLight.ttf',
       'Vazirmatn-Light.ttf',
       'Vazirmatn-Regular.ttf',
       'Vazirmatn-Medium.ttf',
       'Vazirmatn-SemiBold.ttf',
       'Vazirmatn-Bold.ttf',
+      'Vazirmatn-ExtraBold.ttf',
+      'Vazirmatn-Black.ttf',
+      'weight: 100',
+      'weight: 200',
       'weight: 300',
       'weight: 400',
       'weight: 500',
       'weight: 600',
       'weight: 700',
+      'weight: 800',
+      'weight: 900',
     ]) {
       expect(pubspec, contains(declaration));
+    }
+    for (final file in <String>[
+      'Vazirmatn-Thin.ttf',
+      'Vazirmatn-ExtraLight.ttf',
+      'Vazirmatn-Light.ttf',
+      'Vazirmatn-Regular.ttf',
+      'Vazirmatn-Medium.ttf',
+      'Vazirmatn-SemiBold.ttf',
+      'Vazirmatn-Bold.ttf',
+      'Vazirmatn-ExtraBold.ttf',
+      'Vazirmatn-Black.ttf'
+    ]) {
+      expect(File('assets/fonts/ui/vazirmatn/$file').existsSync(), isTrue, reason: file);
     }
   });
 
