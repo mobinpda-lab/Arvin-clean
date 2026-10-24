@@ -90,6 +90,8 @@ void main() {
       expect(find.text('پیگیری آزمایشی'), findsOneWidget);
       expect(tester.takeException(), isNull);
       await binding.convertFlutterSurfaceToImage();
+      await tester.pumpAndSettle();
+      await binding.takeScreenshot('calendar-card-interaction');
 
       // A permitted Task event opens the exact canonical Task detail in one tap.
       await tester.tap(dueCard);
@@ -98,19 +100,67 @@ void main() {
       expect(find.byKey(const ValueKey('task-detail-title')), findsOneWidget);
       expect(find.text('کار آزمون تعامل تقویم'), findsOneWidget);
       expect(tester.takeException(), isNull);
+      await tester.pageBack();
       await tester.pumpAndSettle();
-      await binding.takeScreenshot('calendar-permitted-task-detail');
+      expect(dueCard, findsOneWidget);
       debugPrint('CALENDAR_SMOKE: one tap opened the matching Task detail');
 
-      final afterInteraction = (await store.load()).single;
-      expect(afterInteraction.followUps, hasLength(1));
-      expect(afterInteraction.followUps.single.id, followUpId);
-      expect(afterInteraction.followUps.single.dateTime, followUpAt);
-      expect(afterInteraction.followUps.single.reminderDate, followUpReminderAt);
-      expect(afterInteraction.followUps.single.nextFollowUp, nextFollowUpAt);
-      expect(afterInteraction.taskReminders, hasLength(1));
-      expect(afterInteraction.taskReminders.single.id, 'calendar-smoke-reminder');
-      debugPrint('CALENDAR_SMOKE: Follow-up history and independent Reminder survived Calendar interaction');
+      // An explicit Follow-up reminder opens its own editor; cancelling the
+      // Persian time picker must not mutate either independent timestamp.
+      await tester.tap(followUpCard);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('follow-up-entry-time')), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('follow-up-entry-time')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
+      expect(find.byKey(const ValueKey('universal-time-cancel')), findsOneWidget);
+      expect(find.byKey(const ValueKey('universal-time-save')), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.pumpAndSettle();
+      await binding.takeScreenshot('calendar-persian-time-picker');
+      await tester.tap(find.byKey(const ValueKey('universal-time-cancel')));
+      await tester.pumpAndSettle();
+
+      var afterCancel = (await store.load()).single;
+      expect(afterCancel.followUps.single.reminderDate, followUpReminderAt);
+      expect(afterCancel.followUps.single.nextFollowUp, nextFollowUpAt);
+      await tester.tap(find.byKey(const ValueKey('follow-up-entry-back')));
+      await tester.pumpAndSettle();
+      expect(followUpCard, findsOneWidget);
+
+      // Long press exposes allowed actions. Completing the Follow-up changes
+      // only that history record and persists to the canonical TaskStore.
+      await tester.longPress(followUpCard);
+      await tester.pumpAndSettle();
+      final completeAction = find.byKey(const ValueKey(
+        'reminder-complete-followup:calendar-smoke-task:calendar-smoke-follow-up',
+      ));
+      expect(completeAction, findsOneWidget);
+      expect(find.byKey(const ValueKey(
+        'reminder-edit-followup:calendar-smoke-task:calendar-smoke-follow-up',
+      )), findsOneWidget);
+      await tester.tap(completeAction);
+      await tester.pumpAndSettle();
+
+      Task? completedTask;
+      for (var attempt = 0; attempt < 50; attempt++) {
+        final current = await store.load();
+        if (current.isNotEmpty && current.single.followUps.single.completed) {
+          completedTask = current.single;
+          break;
+        }
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(completedTask, isNotNull);
+      expect(completedTask!.followUps.single.completed, isTrue);
+      expect(completedTask.followUps.single.reminderDate, followUpReminderAt);
+      expect(completedTask.followUps.single.nextFollowUp, nextFollowUpAt);
+      expect(completedTask.taskReminders.single.id, 'calendar-smoke-reminder');
+      expect(tester.takeException(), isNull);
+      await tester.pumpAndSettle();
+      await binding.takeScreenshot('calendar-card-completed');
+      debugPrint('CALENDAR_SMOKE: Follow-up completion persisted independently of Next Follow-up and Reminder');
     },
   );
 }
