@@ -52,8 +52,6 @@ class TaskReportPdfRenderer {
     final label = switch (event.kind) {
       WorkAgendaEventKind.taskDue => 'موعد کار',
       WorkAgendaEventKind.taskReminder => 'یادآوری کار',
-      WorkAgendaEventKind.followUpSchedule => 'زمان پیگیری',
-      WorkAgendaEventKind.followUpReminder => 'یادآوری پیگیری',
     };
     return '$label: ${formatDateTime(event.at)}';
   }
