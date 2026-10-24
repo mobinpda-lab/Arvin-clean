@@ -18,6 +18,18 @@ void main() {
     expect(result.first.scheduledAt, DateTime(2026, 8, 28, 17, 30));
   });
 
+  test('only alarm-enabled Reminders schedule, independent of calendar sync', () {
+    final at = DateTime(2026, 8, 28, 17);
+    final task = Task(id: 'four-modes', title: 'چهار حالت', taskReminders: [
+      TaskReminder(id: '00', title: 'خاموش/خاموش', date: at, alarmEnabled: false, calendarSyncEnabled: false, sequence: 1),
+      TaskReminder(id: '01', title: 'خاموش/روشن', date: at, alarmEnabled: false, calendarSyncEnabled: true, sequence: 2),
+      TaskReminder(id: '10', title: 'روشن/خاموش', date: at, alarmEnabled: true, calendarSyncEnabled: false, sequence: 3),
+      TaskReminder(id: '11', title: 'روشن/روشن', date: at, alarmEnabled: true, calendarSyncEnabled: true, sequence: 4),
+    ]);
+    final result = projection.pending([task], now: now);
+    expect(result.map((item) => item.taskReminderId), ['10', '11']);
+  });
+
   test('legacy Next Follow-up and nested Follow-up reminders never schedule', () {
     final task = Task(id: 'legacy', title: 'قدیمی', reminderDate: DateTime(2026, 8, 28, 17),
       followUps: [FollowUp(id: 'fu-1', dateTime: DateTime(2026, 8, 28, 15),
