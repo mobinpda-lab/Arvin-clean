@@ -20,7 +20,7 @@ Task, FollowUp, Reminder, Calendar, Notebook and Backup domain data are not stor
 
 ## Font guard
 
-**VazirHarf v34.003** is bundled and registered on current `main` and is the canonical public/default Arvin font. `fontFamily == null` therefore means “use the Arvin default (VazirHarf)”, not “create another font/settings controller”. Licensed/private fonts such as IRANSansX may be used only when their assets are legitimately available; additional public fonts must extend this same `AppSettingsService` contract rather than create a parallel settings system.
+**Vazirmatn (وزیرمتن)** is the canonical/default Arvin UI font. The mandatory weights are body Regular 400, secondary Light 300, menus/buttons Medium 500, headings Bold 700, and important emphasis SemiBold 600. `fontFamily == null` must resolve to Vazirmatn after the runtime migration is implemented. Preserve the existing `AppSettingsService` and storage key; do not create a parallel settings system. See [`docs/TYPOGRAPHY_CANONICAL.md`](TYPOGRAPHY_CANONICAL.md).
 
 ## Backup guard
 
@@ -40,7 +40,7 @@ Joplin is useful as an architecture reference for future offline-first sync, rev
 
 ## Typography convergence
 
-- **VazirHarf v34.003** is the canonical public/default Arvin font.
+- **Vazirmatn (وزیرمتن)** is the canonical public/default Arvin UI font.
 - `fontFamily == null` means use the Arvin default VazirHarf.
 - Any licensed/private or additional public font picker must extend `AppSettingsService`; it must not create a parallel settings store/controller.
-- No legacy Vazirmatn asset, family, path, or documentation is part of the canonical Arvin typography contract.
+- Legacy `VazirHarf` setting values must be migrated compatibly to the canonical `Vazirmatn` default; do not break old Settings or backups.
