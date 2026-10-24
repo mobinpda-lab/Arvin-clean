@@ -98,7 +98,7 @@ class _WorkAgendaPageState extends State<WorkAgendaPage> {
       WorkAgendaEventKind.taskDue => 'موعد کار',
       WorkAgendaEventKind.taskReminder => 'یادآوری کار',
     };
-    return '$label • ${_time(event.at)}';
+    return event.isAllDay ? '$label • تمام‌روز' : '$label • ${_time(event.at)}';
   }
 
   @override
