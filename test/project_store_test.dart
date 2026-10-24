@@ -1,4 +1,6 @@
 // G1 current-main validation checkpoint: this test must run against the live main base before merge.
+import 'dart:io';
+
 import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -40,6 +42,47 @@ void main() {
     expect(restored.single.title, 'کاری');
     expect(restored.single.colorValue, 0xFF2F80ED);
     expect(restored.single.itemIds, ['task-1', 'task-2']);
+  });
+
+  test('file-backed database preserves Project and Task membership after a fresh reopen', () async {
+    final directory = await Directory.systemTemp.createTemp('arvin-project-persistence-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/arvin.sqlite');
+
+    final firstDatabase = NativeDatabase(file);
+    final firstTasks = TaskStore(executor: firstDatabase);
+    final firstProjects = ProjectStore(executor: firstDatabase);
+    await firstTasks.save([
+      Task(id: 'durable-task-1', title: 'کار پایدار یک'),
+      Task(id: 'durable-task-2', title: 'کار پایدار دو'),
+    ]);
+    await firstProjects.save([
+      ProjectPlan(
+        id: 'durable-project',
+        title: 'پروژه پایدار',
+        colorValue: 0xFF2F80ED,
+        isArchived: true,
+        itemIds: const ['durable-task-1', 'durable-task-2'],
+      ),
+    ]);
+
+    await firstDatabase.close();
+
+    // A new executor and new Store instances must recover the same file-backed
+    // records. Reusing the first executor would only prove in-process state.
+    final reopenedDatabase = NativeDatabase(file);
+    addTearDown(reopenedDatabase.close);
+    final reopenedTasks = await TaskStore(executor: reopenedDatabase).load();
+    final reopenedProjects = await ProjectStore(executor: reopenedDatabase).load();
+
+    expect(reopenedTasks.map((task) => task.id),
+        containsAll(['durable-task-1', 'durable-task-2']));
+    expect(reopenedProjects, hasLength(1));
+    expect(reopenedProjects.single.id, 'durable-project');
+    expect(reopenedProjects.single.title, 'پروژه پایدار');
+    expect(reopenedProjects.single.colorValue, 0xFF2F80ED);
+    expect(reopenedProjects.single.isArchived, isTrue);
+    expect(reopenedProjects.single.itemIds, ['durable-task-1', 'durable-task-2']);
   });
 
   test('empty storage loads safely and clear removes project collection', () async {
