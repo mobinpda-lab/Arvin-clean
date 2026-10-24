@@ -234,3 +234,13 @@ Both required exact-head gates for `ba2306cfc66ad982f8e8ab73b838a4a8d6ed6b55` ar
 - **Evidence:** current main model blob `c0ce878b88bb6fe4ede1c98da8a889b9edab8893`; Home implementation mismatch recorded in Issue #1139. Calendar corrective work remains Draft in [PR #2951](https://github.com/mobinpda-lab/Arvin-clean/pull/2951); concept wording remains proposed in [PR #2866](https://github.com/mobinpda-lab/Arvin-clean/pull/2866).
 - **Still open:** explicit date-only representation for Next Follow-up (midnight cannot safely distinguish date-only from midnight time), multiple reminders per one Follow-up, and current-head terminal validation. No decision authorizes unlimited reminders.
 
+
+## 2026-10-24 — Wave 7.18-R3: Home next-follow-up and due-date independence
+
+- **Reaffirmed owner contract:** Home displays the planned next action from `FollowUp.nextFollowUp`; the historical action timestamp `FollowUp.dateTime` is not a substitute. Legacy `Task.followUpDate` remains a compatibility fallback when no canonical next-follow-up value is available.
+- **Due date separation:** `Task.dueDate` is semantically independent and must remain visible even when its timestamp equals a next-follow-up timestamp. Do not deduplicate distinct concepts merely because their DateTime values match.
+- **Calendar separation:** a Follow-up with no `reminderDate` must not create a Calendar event; an independent Follow-up reminder uses its own `reminderDate`. PR #2951 commit `9cd8c88a257297717e5c02a9b9ae140c8be9c159` updates the contradictory assertion.
+- **Implementation commits:** PR #2947 contains `5b4ae818`, `d0470b9f`, `ca526ace`, `f78ccdd1`, `a4dfdf3a`, and `94e3cb17`; current-head validation is still pending and must be tied to SHA `94e3cb17ddf16158b414834d2d81bf4ca73e653e`.
+- **Open model decision:** `nextFollowUp` has no explicit date-only flag. Midnight is not enough to infer all-day intent. Preserve legacy data and do not change serialization until a backward-compatible model/UI/migration plan and tests exist.
+- **Release:** no merge or release; `BLOCKED — RELEASE: NO-GO`.
+
