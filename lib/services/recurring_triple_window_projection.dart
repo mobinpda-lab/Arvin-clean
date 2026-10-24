@@ -42,7 +42,7 @@ class RecurringTripleWindowProjectionResult {
 
 /// Pure, read-only projection for recurring occurrences across three windows.
 ///
-/// The canonical recurrence anchor is [Task.reminderDate], matching
+/// The canonical recurrence anchor is [Task.dueDate], matching
 /// TaskRecurrenceRepository. The recurrence model remains responsible for
 /// interval/count/endDate/inactive semantics; this class never generates
 /// recurrence dates independently or persists occurrence state.
@@ -76,7 +76,7 @@ class RecurringTripleWindowProjection {
     for (final task in tasks) {
       if (task.archived || task.trashed) continue;
       final rule = task.recurrence;
-      final anchor = task.reminderDate;
+      final anchor = task.dueDate;
       if (rule == null || anchor == null || !rule.active) continue;
 
       // RecurrenceRule owns the canonical cycle start and all rule constraints.
