@@ -33,7 +33,6 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
   bool _saving = false;
   bool _showFutureOnly = false;
   bool _showWaitingOnly = false;
-  List<Task> _canonicalTasks = const [];
   List<_TaskOption> _tasks = const [];
   List<_FollowUpRow> _rows = const [];
 
@@ -65,17 +64,6 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
             followUp: followUp,
           ));
         }
-      } else if (task.followUpDate != null) {
-        final legacy = task.followUpDate!;
-        rows.add(_FollowUpRow(
-          taskId: id,
-          taskTitle: task.title,
-          followUp: FollowUp(
-            id: legacy.microsecondsSinceEpoch.toString(),
-            dateTime: legacy,
-            note: 'پیگیری قدیمی مهاجرت‌شده',
-          ),
-        ));
       }
     }
     rows.sort((a, b) => b.dateTime.compareTo(a.dateTime));
@@ -243,7 +231,6 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
             onPressed: () => setState(() {
               _showFutureOnly = !_showFutureOnly;
               if (_showFutureOnly) {
-                _showAutomaticDueOnly = false;
               }
             }),
             icon: Icon(
