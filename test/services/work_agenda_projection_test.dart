@@ -44,12 +44,12 @@ void main() {
         WorkAgendaEventKind.taskReminder,
         WorkAgendaEventKind.taskDue,
         WorkAgendaEventKind.taskReminder,
-        WorkAgendaEventKind.followUpReminder,
+        WorkAgendaEventKind.taskReminder,
       ],
     );
     expect(
       item.events
-          .where((event) => event.kind == WorkAgendaEventKind.followUpSchedule)
+          .where((event) => event.kind == WorkAgendaEventKind.taskReminder)
           .single
           .followUpId,
       'fu-latest',
