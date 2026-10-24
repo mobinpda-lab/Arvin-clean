@@ -1,33 +1,48 @@
 import 'dart:io';
 
-import 'package:flutter_test/flutter_test.dart';
+import 'package:arvin/theme/app_fonts.dart';
 import 'package:arvin/theme/font_registry.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('canonical Settings keeps legacy VazirHarf as a safe fallback option', () {
-    final mainSource = File('lib/main.dart').readAsStringSync();
-    final fontsSource = File('lib/theme/app_fonts.dart').readAsStringSync();
+  test('canonical UI font registry exposes only Vazirmatn', () {
+    expect(kAvailableArvinFonts, hasLength(1));
+    expect(kCanonicalArvinFont.id, 'vazirmatn');
+    expect(kCanonicalArvinFont.effectiveFontFamily, AppFonts.vazirmatnFamily);
+    expect(arvinFontById('VazirHarf').effectiveFontFamily, AppFonts.vazirmatnFamily);
+    expect(arvinFontById('system').effectiveFontFamily, AppFonts.vazirmatnFamily);
+    expect(arvinFontById('unknown-font').effectiveFontFamily, AppFonts.vazirmatnFamily);
+  });
+
+  test('canonical manifest registers all five Vazirmatn role weights', () {
+    final pubspec = File('pubspec.yaml').readAsStringSync();
+    for (final declaration in <String>[
+      'family: Vazirmatn',
+      'Vazirmatn-Light.ttf',
+      'Vazirmatn-Regular.ttf',
+      'Vazirmatn-Medium.ttf',
+      'Vazirmatn-SemiBold.ttf',
+      'Vazirmatn-Bold.ttf',
+      'weight: 300',
+      'weight: 400',
+      'weight: 500',
+      'weight: 600',
+      'weight: 700',
+    ]) {
+      expect(pubspec, contains(declaration));
+    }
+  });
+
+  test('Settings no longer exposes an alternate font picker', () {
     final settingsSource = File('lib/settings_page.dart').readAsStringSync();
-
-    expect(mainSource, contains("import 'theme/font_registry.dart';"));
-    expect(fontsSource, contains("static const String vazirharfFamily = 'VazirHarf';"));
-    expect(arvinFontById('vazirharf').effectiveFontFamily, 'VazirHarf');
-    expect(settingsSource, contains("ValueKey('font-settings-entry')"));
+    expect(settingsSource, contains('وزیرمتن (Vazirmatn)'));
+    expect(settingsSource, isNot(contains('_showFontPicker')));
+    expect(settingsSource, isNot(contains('انتخاب فونت')));
   });
 
-  test('font catalog contains supported choices and safe fallback behavior', () {
-    expect(kAvailableArvinFonts.map((font) => font.id).toSet(), containsAll(<String>{'vazirmatn','estedad','sahel','shabnam','samim','tanha','gandom','parastoo','mikhak','lalezar','vazir-code','system','vazirharf'}));
-    expect(arvinFontById('system').effectiveFontFamily, isNull);
-    expect(arvinFontById('vazirmatn').effectiveFontFamily, isNull);
-    expect(arvinFontById('unknown-font').id, 'vazirharf');
-  });
-
-  test('release APK builds the canonical VazirHarf app entrypoint', () {
-    final workflow = File('.github/workflows/build.yml').readAsStringSync();
-
-    expect(workflow, contains('flutter build apk --\${{ matrix.variant }} -t lib/main.dart'));
-    expect(workflow, isNot(contains('-t lib/main_iransans.dart')));
-    expect(workflow, isNot(contains('IRANSANSX_FANUM_REGULAR_B64')));
-    expect(workflow, isNot(contains('IRANSANSX_FANUM_BOLD_B64')));
+  test('PDF remains explicitly separate from the canonical UI family', () {
+    final renderer = File('lib/services/task_report_pdf_renderer.dart').readAsStringSync();
+    expect(renderer, contains('assets/fonts/vazirharf/fonts/ttf/Vazirharf-Regular.ttf'));
+    expect(renderer, contains('assets/fonts/vazirharf/fonts/ttf/Vazirharf-Bold.ttf'));
   });
 }
