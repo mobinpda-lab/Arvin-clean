@@ -77,19 +77,18 @@ class HomeListProjection {
     return List<Task>.unmodifiable(result);
   }
 
-  /// Returns the first reminder at each exact timestamp, preserving canonical order.
-  /// A follow-up at the same timestamp takes display precedence over reminders.
-  /// This is a read-only UI projection; the source Task and reminder list are untouched.
+  /// Returns the first Task reminder at each exact timestamp, preserving canonical order.
+  /// A Task reminder remains independent when its timestamp equals Next Follow-up.
+  /// [followUpDate] is retained for source compatibility and intentionally does not
+  /// suppress a Task reminder. This projection never mutates the source list.
   List<TaskReminder> projectReminders(
     Iterable<TaskReminder> reminders, {
     DateTime? followUpDate,
   }) {
     final seenTimestamps = <int>{};
     final result = <TaskReminder>[];
-    final followUpTimestamp = followUpDate?.microsecondsSinceEpoch;
     for (final reminder in reminders) {
       final timestamp = reminder.date.microsecondsSinceEpoch;
-      if (followUpTimestamp != null && timestamp == followUpTimestamp) continue;
       if (seenTimestamps.add(timestamp)) result.add(reminder);
     }
     return List<TaskReminder>.unmodifiable(result);
