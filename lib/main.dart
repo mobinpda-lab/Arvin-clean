@@ -1082,7 +1082,7 @@ class _HomePageState extends State<HomePage> {
                     constraints: const BoxConstraints(minWidth: 28),
                     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                     decoration: BoxDecoration(color: ArvinColors.surface.withAlpha(190), borderRadius: BorderRadius.circular(12)),
-                    child: Text(persianDateFormatter.toPersianDigits('${group.items.length}'), textAlign: TextAlign.center, style: TextStyle(color: accent, fontSize: 11.5, fontWeight: FontWeight.w700)),
+                    child: Text(persianDateFormatter.toPersianDigits('${group.items.length}'), textAlign: TextAlign.center, style: TextStyle(color: accent, fontSize: 11.5, fontWeight: FontWeight.w600)),
                   ),
                 ]),
               ),
@@ -2735,7 +2735,7 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(width: 4),
             Text(
               'چک‌لیست: ${persianDateFormatter.toPersianDigits('$completed از $total')}',
-              style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w600),
+              style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w300),
             ),
           ],
         ),
@@ -2895,7 +2895,7 @@ class _HomePageState extends State<HomePage> {
                                 TaskPriority.low => 'اهمیت کم',
                                 TaskPriority.none => '',
                               },
-                              style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 10.5, fontWeight: FontWeight.w600),
+                              style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 10.5, fontWeight: FontWeight.w300),
                             ),
                           ],
                         ),
@@ -2918,7 +2918,7 @@ class _HomePageState extends State<HomePage> {
                                 style: TextStyle(
                                   color: late ? ArvinColors.error : ArvinColors.textSecondary,
                                   fontSize: 11,
-                                  fontWeight: late ? FontWeight.w700 : FontWeight.w500,
+                                  fontWeight: late ? FontWeight.w600 : FontWeight.w500,
                                 ),
                               ),
                             ),
@@ -3028,9 +3028,9 @@ class _HomePageState extends State<HomePage> {
             child: Row(children: [
               IconButton(key: const ValueKey('home-notifications'), tooltip: 'اعلان‌ها', onPressed: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('اعلان‌ها در بخش اعلان‌های برنامه مدیریت می‌شوند'))), icon: const Icon(Icons.notifications_none_rounded)),
               Expanded(child: Column(children: const [
-                Text('بسم الله الرحمن الرحیم', key: ValueKey('home-bismillah'), style: TextStyle(color: ArvinColors.primary, fontSize: 17, fontWeight: FontWeight.w700)),
+                Text('بسم الله الرحمن الرحیم', key: ValueKey('home-bismillah'), style: TextStyle(color: ArvinColors.primary, fontSize: 17, fontWeight: FontWeight.w300)),
                 SizedBox(height: 2),
-                Text('مدیریت کارها و پیگیری آروین', key: ValueKey('home-title-block'), textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.textSecondary, fontSize: 11.5, fontWeight: FontWeight.w600)),
+                Text('مدیریت کارها و پیگیری آروین', key: ValueKey('home-title-block'), textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.textSecondary, fontSize: 11.5, fontWeight: FontWeight.w700)),
               ])),
               IconButton(key: const ValueKey('home-menu'), tooltip: 'منو', onPressed: _openPrimaryMore, icon: const Icon(Icons.menu_rounded)),
             ]),
