@@ -1,6 +1,8 @@
 import 'package:arvin/main.dart' as app;
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/iran_clock.dart';
+import 'package:arvin/services/follow_up_calendar_projection.dart';
+import 'package:arvin/widgets/canonical_calendar_launcher.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:arvin/theme/app_fonts.dart';
 import 'package:arvin/widgets/arvin_primary_navigation.dart';
@@ -41,10 +43,16 @@ void main() {
         ],
       );
       await store.save([seed]);
+      final seededReadback = await store.load();
+      debugPrint('CALENDAR_SMOKE_TRACE: after_seed taskCount=${seededReadback.length} taskIds=${seededReadback.map((task) => task.id).toList()} followUpIds=${seededReadback.expand((task) => task.followUps.map((item) => item.id)).toList()} reminderDates=${seededReadback.expand((task) => task.followUps.map((item) => item.reminderDate?.toIso8601String())).toList()}');
       debugPrint('CALENDAR_SMOKE: seeded one canonical record in SQLite');
 
       app.main();
       await tester.pumpAndSettle();
+      final startupReadback = await TaskStore().load();
+      final startupProjection = const FollowUpCalendarProjection().project(startupReadback);
+      debugPrint('CALENDAR_SMOKE_TRACE: after_app_start taskCount=${startupReadback.length} taskIds=${startupReadback.map((task) => task.id).toList()} followUpIds=${startupReadback.expand((task) => task.followUps.map((item) => item.id)).toList()} reminderDates=${startupReadback.expand((task) => task.followUps.map((item) => item.reminderDate?.toIso8601String())).toList()}');
+      debugPrint('CALENDAR_SMOKE_TRACE: standaloneProjection count=${startupProjection.length} ids=${startupProjection.map((item) => item.id).toList()} dates=${startupProjection.map((item) => item.date.toIso8601String()).toList()}');
 
       final skipGuide = find.text('رد کردن');
       if (skipGuide.evaluate().isNotEmpty) {
@@ -55,6 +63,7 @@ void main() {
       expect(find.byType(ArvinPrimaryNavigation), findsOneWidget);
       await tester.tap(find.text('تقویم').last);
       await tester.pumpAndSettle();
+      debugPrint('CALENDAR_SMOKE_TRACE: launcherCount=${find.byType(CanonicalCalendarLauncher).evaluate().length} selectedDayListCount=${find.byKey(const ValueKey('calendar-selected-day-list')).evaluate().length}');
 
       final cardKey = const ValueKey(
         'reminder-card-followup:calendar-smoke-task:calendar-smoke-follow-up',
