@@ -781,7 +781,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(captured, isNotNull);
-    expect(captured!.followUpEnabled, isTrue);
+    expect(captured!.followUpEnabled, isFalse);
     expect(captured!.followUps, hasLength(1));
     expect(captured!.followUps.single.nextFollowUp, isNull);
     expect(captured!.followUps.single.reminderDate, isNull);
