@@ -535,8 +535,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  DateTime? _homeFollowUpDate(Task task) => task.lastFollowUp?.dateTime;
-
   String? _projectTitleForTask(Task task) {
     for (final project in projects) {
       if (project.itemIds.contains(task.id)) return project.title.trim();
@@ -2437,10 +2435,10 @@ class _HomePageState extends State<HomePage> {
       case HomeTaskFilterKind.today:
         _selectDueScope(TaskDueScope.today);
         return;
-      case HomeTaskFilterKind.followUp:
-        _selectListScope(TaskListScope.followUpEnabled);
+      case HomeTaskFilterKind.followUpHistory:
+        _selectListScope(TaskListScope.followUpHistory);
         return;
-      case HomeTaskFilterKind.withoutFollowUp:
+      case HomeTaskFilterKind.withoutFollowUpHistory:
         _selectListScope(TaskListScope.simpleNotes);
         return;
       case HomeTaskFilterKind.completed:
@@ -2749,11 +2747,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
   Widget _taskCard(Task task) {
-    final followUpDate = _homeFollowUpDate(task);
-    final projectedReminders = const HomeListProjection().projectReminders(
-      task.taskReminders,
-      followUpDate: followUpDate,
-    );
+    final projectedReminders =
+        const HomeListProjection().projectReminders(task.taskReminders);
     final late = _overdue(task);
     final colors = Theme.of(context).colorScheme;
     final preview = _latestFollowUpPreview(task);
@@ -2943,35 +2938,6 @@ class _HomePageState extends State<HomePage> {
                                 icon: const Icon(Icons.close_rounded, size: 17),
                                 color: late ? ArvinColors.error : ArvinColors.textSecondary,
                               ),
-                          ],
-                        ),
-                      ],
-                      if (followUpDate != null) ...[
-                        const SizedBox(height: 7),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.event_outlined,
-                              size: 15,
-                              color: late
-                                  ? ArvinColors.taskStatusAmber
-                                  : ArvinColors.textSecondary,
-                            ),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                'پیگیری: ${_date(followUpDate)} • ${_time(followUpDate)}',
-                                style: TextStyle(
-                                  color: late
-                                      ? ArvinColors.taskStatusAmber
-                                      : ArvinColors.textSecondary,
-                                  fontSize: 11,
-                                  fontWeight: late
-                                      ? FontWeight.w600
-                                      : FontWeight.w400,
-                                ),
-                              ),
-                            ),
                           ],
                         ),
                       ],
