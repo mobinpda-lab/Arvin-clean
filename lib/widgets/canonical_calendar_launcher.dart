@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../android_automatic_follow_up_scheduler.dart';
-import '../android_follow_up_reminder_scheduler.dart';
 import '../calendar_page.dart';
 import '../follow_up_entry_page.dart';
 import '../follow_up_repository.dart';
@@ -60,11 +58,8 @@ class CanonicalCalendarLauncher extends StatefulWidget {
 
 class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
   late List<Task> _tasks;
-  FollowUpWriteCoordinator get _followUpWriter => FollowUpWriteCoordinator(
-    repository: const FollowUpRepository(),
-    scheduler: AndroidAutomaticFollowUpScheduler(),
-    reminderReschedule: AndroidFollowUpReminderScheduler().reschedule,
-  );
+  FollowUpWriteCoordinator get _followUpWriter =>
+      FollowUpWriteCoordinator(repository: const FollowUpRepository());
 
   CalendarInboundSyncService get _inboundSync => CalendarInboundSyncService();
 
