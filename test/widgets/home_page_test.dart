@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:arvin/main.dart';
+import 'package:arvin/notebook_page.dart';
+import 'package:arvin/task_detail_page.dart';
 import 'package:arvin/services/app_settings_service.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:arvin/services/iran_clock.dart';
@@ -525,4 +527,22 @@ void main() {
     expect(find.text(description), findsNothing);
   });
 
+
+
+  testWidgets('Home tap opens the canonical Notebook detail for a note', (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"note-home-route","title":"یادداشت از خانه","description":"متن یادداشت","notebookKind":"note"}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('یادداشت از خانه').first);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(NotebookEditorPage), findsOneWidget);
+    expect(find.byType(TaskDetailPage), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
 }
