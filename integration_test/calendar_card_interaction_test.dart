@@ -69,7 +69,7 @@ void main() {
       } else {
         debugPrint('CALENDAR_DIAG_SNAPSHOT launcherCount=0');
       }
-      debugPrint('CALENDAR_DIAG_EXPECTED_DAY=${DateTime(now.year, now.month, now.day).toIso8601String()}')
+      debugPrint('CALENDAR_DIAG_EXPECTED_DAY=${DateTime(now.year, now.month, now.day).toIso8601String()}');
 
       final cardKey = const ValueKey(
         'reminder-card-followup:calendar-smoke-task:calendar-smoke-follow-up',
