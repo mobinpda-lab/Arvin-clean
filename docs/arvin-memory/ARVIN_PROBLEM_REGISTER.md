@@ -308,3 +308,15 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 | W718-05 | Concept document is not mainline canonical yet | `docs/product/ARVIN_PRODUCT_CONCEPTS.md` absent from main; proposal PR #2866 open/Draft | IN PROGRESS | Keep Proposed status; review conflicts and secure explicit approval before merging. |
 | W718-06 | Two requested source ZIPs not identifiable | Current conversation attachment listing has no pair matching source snapshots | NOT VERIFIED | Locate the exact two archives before comparing their file trees/hashes with GitHub. |
 
+
+## Wave 7.18-R3 — current correction state (2026-10-24)
+
+| ID | Updated finding | Evidence | Status | Remaining action |
+|---|---|---|---|---|
+| W718-01 | Home used the historical Follow-up action timestamp instead of the planned next action | PR #2947 commits `5b4ae818` and `d0470b9f`; current head `94e3cb17ddf16158b414834d2d81bf4ca73e653e` | IN PROGRESS | Pass Home projection and Widget tests on exact head; confirm scopes/sort/restart. |
+| W718-02 | Task due date and next Follow-up date were conflated in Home deduplication | PR #2947 commits `a4dfdf3a`, `94e3cb17` | IN PROGRESS | Confirm due-date row and next-action row both survive on current-head tests. |
+| W718-03 | Calendar test expected a Follow-up event without independent reminderDate | PR #2951 commit `9cd8c88a257297717e5c02a9b9ae140c8be9c159` | IN PROGRESS | Verify Build/Quality, Device Smoke, and Provider acceptance on exact head. |
+| W718-04 | Follow-up date-only intent has no explicit model flag | Main Task model blob `c0ce878b88bb6fe4ede1c98da8a889b9edab8893` | NOT VERIFIED | Backward-compatible model/UI design; never infer date-only from midnight alone. |
+| W718-05 | Current-head validation still pending | Calendar Build [40058724793](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058724793), Provider [40058724849](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058724849), Smoke [40058724794](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058724794); Home Build [40058784437](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058784437), Smoke [40058784508](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058784508) | IN PROGRESS | Wait for terminal runs, record checkout SHA, inspect failed-job logs only. |
+| W718-06 | Two requested source ZIPs still unidentified | No verified pair of source snapshots | NOT VERIFIED | Obtain the exact archives before comparing files. |
+
