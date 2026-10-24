@@ -9,6 +9,7 @@ import 'services/follow_up_reminder_delivery_state.dart';
 import 'services/task_store.dart';
 
 const int followUpReminderAlarmId = 42002;
+const int retiredAutomaticFollowUpAlarmId = 42001;
 
 // Task reminder identities use the shared `task:` namespace in the canonical planner.
 // The canonical task reminder namespace is 'task:'.
@@ -45,6 +46,9 @@ class AndroidFollowUpReminderScheduler {
   Future<void> reschedule() async {
     if (!supportsAutomaticFollowUpScheduling) return;
     await _ensureInitialized();
+    // Cancel the retired Next Follow-up alarm identity during migration. This
+    // affects only Arvin's own AlarmManager ID, never user data or Calendar rows.
+    await AndroidAlarmManager.cancel(retiredAutomaticFollowUpAlarmId);
     await AndroidAlarmManager.cancel(followUpReminderAlarmId);
 
     final tasks = await (_taskStore ?? TaskStore()).load();
