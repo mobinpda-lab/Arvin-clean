@@ -62,7 +62,7 @@ Status vocabulary:
 | 14. Notebook full-screen/top-category UX | Canonical Notebook exists and same-ID category reassignment is already delivered. The new owner requirement for content-first full-screen/near-full-screen editing, top category/actions and immediately reachable delete/move is not complete. | **Existing + partial** | `lib/notebook_page.dart`, `CanonicalNotebookRepository.updateCategory`, same-ID tests | **W4 #850** |
 | 15. Notebook capabilities | Simple Note/Checklist, autosave/edit and canonical persistence exist. Project association, complete bulk operations, final global-search/convert behavior and the newest editor layout require reconciliation. | **Partial** | `CanonicalNotebookRepository`, `Task.isSimpleNote`, `Task.checklist`, Notebook tests, bulk foundations | **W4 #850** |
 | 16. Backup/Restore + automatic backup | Backup/restore foundations, schedule page, notification channel and tests exist. The installed product did not expose the complete previously requested settings, so this is primarily recovery/wiring/completion rather than a new backup architecture. | **Existing + hidden/partial** | `lib/backup_schedule_page.dart`, backup manager/services, backup notification service/tests | **W6 #852** |
-| 17. Font/appearance selection | `AppSettingsService.fontFamily` and global theme consumption exist; VazirHarf is the current canonical default. A user-facing multi-font picker with preview/size and persistence is not fully exposed in the installed product. | **Existing foundation + missing/partial UX** | `AppSettingsService`, `theme/app_fonts.dart`, app ThemeData; requested open-source font set is owned by W6 | **W6 #852** |
+| 17. Font/appearance selection (HISTORICAL, SUPERSEDED by Issue #2974) | `AppSettingsService.fontFamily` and global theme consumption existed; at that time VazirHarf was recorded as canonical. This is not the current UI font rule. | **Historical baseline only** | `AppSettingsService`, `theme/app_fonts.dart`, app ThemeData; requested open-source font set is owned by W6 | **W6 #852** |
 | 18. Owner UI reference | Canonical Home/Notebook/Reminder UI contracts exist, but newer #845 placement/editor decisions supersede parts of older wording. Final acceptance must compare actual user paths, not merely classes or screenshots. | **Partial** | `ARVIN_UI_CANONICAL.md`, owner UI decision docs, Home Style Lock plus this recovery overlay | **W2/W4/W7** |
 | 19. Anti-forgetting / recovery governance | Requirement-loss rules, Product Contract Matrix, autonomous queue, production loop and the new 5-minute Recovery Wave Controller exist. This becomes complete only when #845 has a final state/evidence for every requirement. | **Existing + active** | #845, #846–#853, Recovery Wave Controller, Product Contract Matrix | **W0 + W7 #853** |
 
@@ -91,7 +91,7 @@ Status vocabulary:
 
 ### Settings / fonts
 - Extend `AppSettingsService`; do not add feature-specific settings stores.
-- VazirHarf remains the public/default fallback unless a newer explicit owner decision changes it.
+- **Historical/superseded:** VazirHarf was recorded as the public/default fallback at the time of this audit. Current authority is `docs/TYPOGRAPHY_CANONICAL.md` and Issue #2974.
 - Additional font assets/downloads require license/packaging review.
 
 ### Backup
