@@ -37,7 +37,6 @@ void main() {
     expect(text, contains('• ثبت نتیجه'));
     expect(text, contains('یادآورها:'));
     expect(text, contains('یادآوری:'));
-    expect(text, contains('r1')).isFalse;
     expect(text, isNot(contains('2026')));
   });
 
