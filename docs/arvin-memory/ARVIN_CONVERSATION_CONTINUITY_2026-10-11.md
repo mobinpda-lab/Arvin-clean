@@ -1,3 +1,6 @@
+
+> **Typography authority update (2026-10-24):** This dated continuity record contains a superseded font decision. Current UI font is Vazirmatn with role weights 300/400/500/600/700 as defined in [`docs/TYPOGRAPHY_CANONICAL.md`](../TYPOGRAPHY_CANONICAL.md); follow Issue #2974 for implementation status. The old entry is retained as historical context only.
+
 # Arvin Conversation Continuity Checkpoint — 2026-10-11
 
 **Purpose:** Durable handoff so owner requirements from the current conversation and recent Arvin work are not lost between sessions. This is a requirement ledger, not a claim that features are implemented.
