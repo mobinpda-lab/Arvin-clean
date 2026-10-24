@@ -286,3 +286,56 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **Candidate mitigation:** Task JSON decode creates one stable legacy TaskReminder with a persisted marker; Calendar and scheduler projections retain old identity; editor and inbound Calendar paths preserve independent reminder behavior.
 - **Remaining risk:** no terminal exact-head CI result yet. SQL persistence, real backup/restore, rollback/retry, Calendar no-duplicate and physical-device acceptance remain unproven.
 - **Status:** Candidate implementation; validation blocked/pending. Release NO-GO.
+
+
+## Wave 7.10 — owner-reported installed-app defects (2026-10-23)
+
+The ten items below remain one acceptance set under existing ledger [#1139](https://github.com/mobinpda-lab/Arvin-clean/issues/1139). Statuses describe this branch only; no item is closed by a code diff alone.
+
+| # | Owner-reported problem | Status on Wave 7.10 branch | Evidence / next action |
+|---|---|---|---|
+| 1 | New Project does not persist/reappear reliably | NOT VERIFIED | Trace canonical Project repository, save/reload, app restart and duplicate prevention; run persistence regression. |
+| 2 | Font picker should show only «وزیر متن» and «فونت پیش‌فرض» while preserving PDF font and selection | NOT VERIFIED | Audit active font PRs/settings serialization and PDF font path; verify options and restart persistence on exact candidate. |
+| 3 | Tapping a Note opens Task detail instead of the same Note | NOT VERIFIED | Trace Note identity/route and canonical notebook repository; test view/edit ownership without Task regressions. |
+| 4 | Follow-up behavior and Reminder independence | NOT VERIFIED | Preserve the accepted independent `nextFollowUp` / `reminderDate` contract; verify create/edit/reopen, calendar and backup/restore. |
+| 5 | Previously available behavior may have been lost or may not be in installed APK | NOT VERIFIED | Compare live main, relevant PR heads/merge history and installed APK provenance; do not infer source from old reports. |
+| 6 | Custom Categories/Tags absent or incorrect in Home/Report filters | NOT VERIFIED | Trace canonical catalogs, IDs and AND-combined Home/Report filters; test create → select → filter → report. |
+| 7 | Approved Home menus and controls do not match behavior/specification | NOT VERIFIED | Compare current UI to canonical UI contract and newer owner decisions; add interaction/visual evidence. |
+| 8 | Quick Entry shows unwanted «دارای پیگیری» toggle | CODE CHANGED; EXACT-HEAD TEST PENDING | Branch removes the toggle and inline Follow-up Roll Box while retaining Checklist. New widget test asserts absence and no implicit Follow-up/Reminder. Must pass on exact PR head before acceptance. |
+| 9 | Checklist entries duplicate across repeated Task occurrences | NOT VERIFIED | Trace occurrence key generation, serialization, edit/reopen and repeat projection; verify independent occurrence state and backup/restore. |
+| 10 | Calendar single tap fails to open the correct Task/Reminder detail | NOT VERIFIED | Independently test event kind + stable record ID + short/long tap routes; Calendar Provider acceptance does not substitute for interaction acceptance. |
+
+### Wave 7.10 change boundary
+- Branch: `fix/wave-7-10-remove-quick-followup-toggle`
+- Base SHA: `18cbeecc95a03a3b301359ca5b96cfef175a3b15`
+- Code commits currently recorded: `17f2266255fc67b66a63c192f384bbbf28b849ed` (Quick Entry UI), `6151901a4a4cf77b62b964be15137d45a463b2fe` (regression test), `9868d23e6c0e4aa66076f07ff77f41bee4b4d15d` (decision record).
+- No merge, release or APK build is claimed. Re-evaluate these commits against the final PR head after all docs and CI changes.
+
+
+## LIVE CONTINUATION — ARVIN Wave 7.12 checkpoint (2026-10-23)
+
+Evidence is tied to the PR #2940 head `24e0d333ea3255c9c957af7b9c4b3819458beb76`; it must not be reused for a later head.
+
+- Build / Quality run [39977629989](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39977629989): terminal success, but job logs prove checkout SHA was synthetic PR merge commit `69ce799eccf19c2be331475166a5f21d19170fbb` (`Merge 24e0d333... into 18cbeecc...`), not the PR head `24e0d333ea3255c9c957af7b9c4b3819458beb76`. Analyze, six test shards, Debug APK and Release APK jobs passed on the merge checkout; this is integration evidence, not exact-head evidence.
+- Debug artifact: [arvin-debug-apk](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12512755645), SHA-256 digest `7daf753da4212f3f53ae76359420886787216f02f923d638a8093611d45b5da6`, generated from the same head.
+- Release validation artifact: [arvin-release-apk](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12511709354), SHA-256 digest `b1d775c5ce145da90b67c272f5e8645de197733b353d0519847ac56c96515019`, generated from the same head. This is not evidence of owner-certificate signing; release remains NO-GO.
+- Device Smoke run [39977629956](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39977629956): home, quick-capture, people, backup/restore, SQL persistence and SQL migration passed. Calendar job `120496313603` remained in progress at the last live poll, at the canonical Android emulator smoke step; full Device Smoke is therefore not terminal.
+- Quick Entry removal remains present in PR head `24e0d333...` and in the merge checkout tested by CI. The regression asserting the unwanted Follow-up toggle is absent and Checklist remains available passed on merge checkout `69ce799...`; exact-head Quality evidence for `24e0d333...` was not established by this run.
+- Project path audit found the canonical `ProjectStore`, awaited persistence in `ProjectsLauncher`, and a widget regression covering create/edit/reopen against storage. This is positive code/test evidence, but it does not identify the SHA of the previously installed owner APK or reproduce the reported installed-device failure.
+- Font picker audit on this branch found more than the two approved choices and extra descriptions. Do not duplicate that change here: active PRs #2918 and #2932 both touch `settings_page.dart`, `font_registry.dart`, `main.dart`, PDF typography and validation workflows. Reconcile their latest heads first; PDF font and selected-font persistence must remain covered.
+- The Notebook page itself has a canonical note-opening path (`NotebookPage._open` to `NotebookEditorPage`). The reported wrong destination is not yet traced to a reproducible Home interaction; `main.dart` is also touched by active typography/backup/signing PRs, so avoid a blind route edit.
+- The accepted Follow-up contract in `ARVIN_FOLLOW_UP_AND_QUICK_ENTRY_DECISION.md` explicitly separates `nextFollowUp` from `reminderDate`. This checkpoint does not prove every legacy-data, Calendar and backup/restore scenario; no model migration was attempted.
+- Remaining custom taxonomy filters, Home control conformance, repeated-checklist identity and Calendar short/long-tap identity are not accepted by a green Build alone. The Calendar emulator smoke is not equivalent to a targeted tap-routing assertion.
+- No installed APK provenance was found in the evidence reviewed. Do not attribute the reported mismatch to a specific source commit without the installed APK's version/SHA or a reproducible current-code failure.
+- No main changes, merge, force-push or release were performed.
+
+### Wave 7.12 acceptance status
+- #8 Quick Entry toggle: **PASS** for the specific absence/Checklist regression and automated suite on the exact head above; full product acceptance remains subject to the other independent Follow-up checks.
+- Build/Quality: **PASS** on the exact head above.
+- Device Smoke: **IN PROGRESS** until Calendar job terminates.
+- #1, #2, #3, #4, #5, #6, #7, #9, #10: **NOT VERIFIED** as end-to-end product defects; blockers and evidence boundaries are recorded above. Font UI mismatch is confirmed in this branch but the safe change is blocked by overlapping active PRs.
+- Release: **BLOCKED — RELEASE: NO-GO** until the required gates, owner signing evidence and product/device acceptance are complete.
+
+
+### Evidence correction — PR merge checkout versus exact head (2026-10-23)
+The initial Wave 7.11 note described run 39977629989 as exact-head evidence. Reviewing actual job logs corrected that claim: all Build jobs checked out `69ce799eccf19c2be331475166a5f21d19170fbb`, the synthetic merge of PR head `24e0d333ea3255c9c957af7b9c4b3819458beb76` into base `18cbeecc95a03a3b301359ca5b96cfef175a3b15`. Device Smoke logs also report that same synthetic merge SHA. The Calendar lane ended `cancelled`, so the old Device Smoke run is not terminal success. The artifact digests remain valid for their actual built artifacts, but not as proof of an exact PR-head build or owner-signed release. For the new PR #2940 documentation head `994ffb20ef87a345625ad03084117a695dfd304f`, Build run [39980418656](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39980418656) and Device Smoke [39980418637](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39980418637) were still in progress at the last poll; their checkout SHA and terminal results must be checked before using them.

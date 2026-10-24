@@ -1,4 +1,6 @@
 import 'package:arvin/main.dart' as app;
+import 'package:arvin/services/follow_up_calendar_projection.dart';
+import 'package:arvin/widgets/canonical_calendar_launcher.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/iran_clock.dart';
 import 'package:arvin/services/task_store.dart';
@@ -40,8 +42,12 @@ void main() {
           ),
         ],
       );
+      debugPrint('CALENDAR_DIAG_INPUT taskId=$taskId followUpId=$followUpId followUpDateTime=${seed.followUps.single.dateTime.toIso8601String()} reminderDate=${seed.followUps.single.reminderDate?.toIso8601String()} nextFollowUp=${seed.followUps.single.nextFollowUp?.toIso8601String()}');
       await store.save([seed]);
-      debugPrint('CALENDAR_SMOKE: seeded one canonical record in SQLite');
+      final persistedSeed = (await store.load()).single;
+      debugPrint('CALENDAR_DIAG_SQL taskCount=1 taskId=${persistedSeed.id} followUpCount=${persistedSeed.followUps.length} followUpId=${persistedSeed.followUps.single.id} reminderDate=${persistedSeed.followUps.single.reminderDate?.toIso8601String()} nextFollowUp=${persistedSeed.followUps.single.nextFollowUp?.toIso8601String()}');
+      final projected = const FollowUpCalendarProjection().project([persistedSeed]);
+      debugPrint('CALENDAR_DIAG_PROJECTION count=${projected.length} items=${projected.map((item) => '${item.id}@${item.date.toIso8601String()}').join(',')}');
 
       app.main();
       await tester.pumpAndSettle();
@@ -56,6 +62,15 @@ void main() {
       await tester.tap(find.text('تقویم').last);
       await tester.pumpAndSettle();
 
+      final launcherFinder = find.byType(CanonicalCalendarLauncher);
+      if (launcherFinder.evaluate().isNotEmpty) {
+        final launcher = tester.widget<CanonicalCalendarLauncher>(launcherFinder);
+        debugPrint('CALENDAR_DIAG_SNAPSHOT taskCount=${launcher.tasks.length} tasks=${launcher.tasks.map((task) => '${task.id}[followUps=${task.followUps.length}]').join(',')}');
+      } else {
+        debugPrint('CALENDAR_DIAG_SNAPSHOT launcherCount=0');
+      }
+      debugPrint('CALENDAR_DIAG_EXPECTED_DAY=${DateTime(now.year, now.month, now.day).toIso8601String()}');
+
       final cardKey = const ValueKey(
         'reminder-card-followup:calendar-smoke-task:calendar-smoke-follow-up',
       );
@@ -63,6 +78,7 @@ void main() {
       for (var attempt = 0; attempt < 80 && card.evaluate().isEmpty; attempt++) {
         await tester.pump(const Duration(milliseconds: 100));
       }
+      debugPrint('CALENDAR_DIAG_UI expectedCard=${cardKey.value} foundCount=${card.evaluate().length} iranNow=${IranClock.now().toIso8601String()}');
       expect(card, findsOneWidget);
       expect(find.text('پیگیری آزمایشی'), findsOneWidget);
       expect(Directionality.of(tester.element(card)), TextDirection.rtl);
@@ -102,6 +118,11 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('follow-up-entry-back')));
       await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('follow-up-exit-discard')),
+        findsNothing,
+        reason: 'Cancelling the time picker must not leave the Follow-up form dirty',
+      );
       expect(card, findsOneWidget);
 
       // Long press must expose contextual actions. Completing the Follow-up
