@@ -495,7 +495,7 @@ class AppSettingsService {
     return size.clamp(12.0, 24.0).toDouble();
   }
 
-  String _normalizeFontFamily(String? family) {
+  String _normalizeFontFamily(String? _family) {
     // The owner-approved UI font is fixed. Normalize unset, legacy, and
     // unknown family values to Vazirmatn while preserving backup compatibility.
     return AppFonts.vazirmatnFamily;
