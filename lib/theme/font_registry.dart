@@ -21,7 +21,7 @@ class ArvinFontOption {
 const ArvinFontOption kCanonicalArvinFont = ArvinFontOption(
   id: 'vazirmatn',
   nameFa: 'وزیرمتن',
-  description: 'فونت ثابت رابط کاربری آروین با پنج وزن مصوب',
+  description: 'خانوادهٔ کامل ۹وزنی وزیرمتن با پنج نگاشت اصلی نقش‌محور',
   category: 'عمومی',
   fontFamily: AppFonts.vazirmatnFamily,
 );
