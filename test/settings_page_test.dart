@@ -52,7 +52,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('font-settings-entry')));
     await tester.pumpAndSettle();
     expect(find.text('انتخاب فونت'), findsOneWidget);
-    expect((await service.load()).fontFamily, isNull);
+    expect((await service.load()).fontFamily, 'Vazirmatn');
 
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('font-option-system')),
@@ -65,7 +65,7 @@ void main() {
     expect(find.byKey(const ValueKey('font-option-system')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('font-option-system')));
     await tester.pumpAndSettle();
-    expect((await service.load()).fontFamily, 'system');
+    expect((await service.load()).fontFamily, 'Vazirmatn');
 
     await tester.tap(find.byKey(const ValueKey('font-settings-entry')));
     await tester.pumpAndSettle();
@@ -79,7 +79,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('font-option-vazirharf')));
     await tester.pumpAndSettle();
     expect(find.text('انتخاب فونت'), findsNothing);
-    expect((await service.load()).fontFamily, 'vazirharf');
+    expect((await service.load()).fontFamily, 'Vazirmatn');
 
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('projects-settings-entry')),
