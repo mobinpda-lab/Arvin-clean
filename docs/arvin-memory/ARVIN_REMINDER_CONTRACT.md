@@ -23,16 +23,17 @@ The repository contains historical FollowUp records as well as legacy scheduling
 - FollowUp records and the followUps collection may hold historical interaction data and must be preserved where used by accepted history, people or report flows.
 - nextFollowUp, legacy enable/date fields, and a nested FollowUp.reminderDate are old scheduling concepts to audit and retire or migrate; they do not define current Reminder behavior.
 - Their existence in source, database schemas, JSON or old PRs is not authority to revive the removed Next Follow-up or independent Follow-up Reminder workflows.
+- Compatibility with old serialized fields is not a product requirement. Fields may be retired from the active code model where safe, but the absence of a compatibility requirement is not permission to erase real owner data.
 
 Rules:
 - Do not create new user-facing scheduling behavior based on legacy Next Follow-up or nested legacy reminder fields.
-- Do not render legacy-only planned-action or nested FollowUp reminder records as current Task Reminder cards without a safe, explicit migration into the canonical Task Reminder collection.
-- Do not create a Reminder by inference from a legacy next-action date. An explicit old reminder timestamp may be mapped only by a documented, stable-ID, duplicate-safe migration.
-- Preserve historical FollowUp records and user data during the transition. Do not delete or rewrite legacy data until every reader/writer, SQLite migration, JSON import/export, backup/restore, Calendar sync, notification scheduler, report, filter and UI consumer has been audited and a safe, idempotent migration is implemented and tested.
+- Do not render legacy-only planned-action or nested FollowUp reminder records as current Task Reminder cards. Only an explicit, documented, stable-ID and duplicate-safe conversion of a real reminder timestamp into the canonical TaskReminder collection is permitted.
+- Do not create a Reminder by inference from a legacy next-action date.
+- Preserve FollowUp history records as historical records. Do not delete or rewrite a real owner database, installed-app database or owner Backup without explicit approval for that exact operation. Development tests must use a provably separate temporary database and must never seed the owner's raw database.
 
 ## 3. Reminder behavior
 
-Each Reminder has a stable identity, date, explicit timed/all-day semantics, and independent lifecycle. Editing, moving, disabling or deleting one Reminder must not mutate the Task due date or another Reminder.
+Each Reminder has a stable identity, date, explicit timed/all-day semantics, and independent lifecycle. It has separate `alarmEnabled` and `calendarSyncEnabled` settings. Editing, moving, disabling or deleting one Reminder must not mutate the Task due date or another Reminder.
 
 Calendar synchronization and Arvin alarm delivery are independent settings:
 1. Calendar ON, alarm ON: owned Calendar event plus Arvin notification.
@@ -45,6 +46,8 @@ Turning off Calendar sync may remove/update only a provider event proven to be o
 All-day is explicit. Midnight alone does not prove all-day intent. All-day reminders must not produce unintended midnight alarms. Timed reminders preserve their actual time. Completing a Task must stop future delivery according to the approved lifecycle without silently deleting reminder records or unrelated Calendar events.
 
 ## 4. Canonical storage and migration
+
+A local alarm toggle controls only notification delivery; a device-calendar sync toggle controls only Arvin-owned provider events. Neither toggle deletes the Reminder record. The four combinations must be tested independently.
 
 - Keep one canonical Task source of truth and the existing canonical storage path. Do not introduce a parallel Task store, Reminder engine or Calendar projection.
 - Reminder IDs and relationships must survive JSON round-trip, file-backed SQLite close/reopen, CRUD, migration and backup/restore.
