@@ -180,8 +180,15 @@ class TaskReportPdfRenderer {
       pw.SizedBox(height: 6),
       ...leadingRows,
       pw.Text('وضعیت: ${entry.completed ? 'انجام‌شده' : 'باز'}'),
-      if (entry.reminderDate != null)
-        pw.Text('یادآوری: ${formatDateTime(entry.reminderDate!)}'),
+      if (entry.reminders.isNotEmpty) ...[
+        pw.SizedBox(height: 4),
+        pw.Text('یادآورها:', style: pw.TextStyle(font: fonts.bold)),
+        ...entry.reminders.map(
+          (reminder) => pw.Text(
+            '• ${reminder.title}: ${reminder.isAllDay ? 'تمام‌روز ${formatDay(reminder.date)}' : formatDateTime(reminder.date)}',
+          ),
+        ),
+      ],
       if (entry.tags.isNotEmpty) pw.Text('برچسب‌ها: ${entry.tags.join('، ')}'),
       if (entry.checklist.isNotEmpty) ...[
         pw.SizedBox(height: 4),
