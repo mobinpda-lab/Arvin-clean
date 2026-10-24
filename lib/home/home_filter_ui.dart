@@ -75,7 +75,7 @@ class HomeFilterCard extends StatelessWidget {
                     style: TextStyle(
                       color: accent.withAlpha(235),
                       fontSize: compact ? 10 : 11,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                   SizedBox(height: compact ? 1 : 2),
@@ -88,7 +88,7 @@ class HomeFilterCard extends StatelessWidget {
                       style: TextStyle(
                         color: accent,
                         fontSize: compact ? 10.5 : 11.5,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
@@ -138,7 +138,7 @@ class HomeFilterChip extends StatelessWidget {
             style: TextStyle(
               color: accent,
               fontSize: 11.5,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(width: 2),
