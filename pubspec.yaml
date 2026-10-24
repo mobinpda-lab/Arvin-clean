@@ -40,6 +40,10 @@ flutter:
   fonts:
     - family: Vazirmatn
       fonts:
+        - asset: assets/fonts/ui/vazirmatn/Vazirmatn-Thin.ttf
+          weight: 100
+        - asset: assets/fonts/ui/vazirmatn/Vazirmatn-ExtraLight.ttf
+          weight: 200
         - asset: assets/fonts/ui/vazirmatn/Vazirmatn-Light.ttf
           weight: 300
         - asset: assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf
@@ -50,6 +54,10 @@ flutter:
           weight: 600
         - asset: assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf
           weight: 700
+        - asset: assets/fonts/ui/vazirmatn/Vazirmatn-ExtraBold.ttf
+          weight: 800
+        - asset: assets/fonts/ui/vazirmatn/Vazirmatn-Black.ttf
+          weight: 900
     # VazirHarf remains registered only for the separate PDF/report renderer.
     - family: VazirHarf
       fonts:
