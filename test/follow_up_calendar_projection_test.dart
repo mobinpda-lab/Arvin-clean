@@ -6,12 +6,24 @@ import 'package:arvin/services/follow_up_calendar_projection.dart';
 void main() {
   const projection = FollowUpCalendarProjection();
 
-  test('projects a date-only Task due date as all-day', () {
-    final task = Task(id: 'date-only', title: 'کار روزانه', dueDate: DateTime(2026, 10, 8));
+  test('projects all-day Task due date only when the explicit flag is set', () {
+    final task = Task(id: 'date-only', title: 'کار روزانه', dueDate: DateTime(2026, 10, 8), allDay: true);
     final items = projection.project([task]);
     expect(items, hasLength(1));
     expect(items.single.id, 'task-due:date-only');
     expect(items.single.isAllDay, isTrue);
+  });
+
+
+  test('midnight timed due date is not inferred to be all-day', () {
+    final task = Task(
+      id: 'timed-midnight',
+      title: 'موعد ساعت‌دار',
+      dueDate: DateTime(2026, 10, 8, 0, 0),
+      allDay: false,
+    );
+    final item = projection.project([task]).single;
+    expect(item.isAllDay, isFalse);
   });
 
   test('legacy FollowUp scheduling fields never create active Calendar events', () {
