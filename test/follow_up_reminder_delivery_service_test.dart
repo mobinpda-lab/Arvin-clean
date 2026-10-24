@@ -5,7 +5,6 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   const service = FollowUpReminderDeliveryService();
   final now = DateTime(2026, 8, 28, 18, 15);
-
   Task task(String id, {bool completed = false, bool archived = false, bool trashed = false, List<TaskReminder> reminders = const []}) =>
       Task(id: id, title: 'Task $id', completed: completed, archived: archived, trashed: trashed, taskReminders: reminders);
 
