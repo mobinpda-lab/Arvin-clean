@@ -1,3 +1,7 @@
+> **Authority update — 2026-10-24: SUPERSEDED for current scheduling semantics.** This document preserves the older split between a FollowUp reminder date and an internal Next Follow-up action. The owner has since removed the Next Follow-up schedule and the separate reminder nested under FollowUp, replacing scheduled intent with canonical TaskReminder. Historical FollowUp records remain valid history and must be preserved. Do not use this document to justify active Calendar rows or alarms from nextFollowUp or nested FollowUp.reminderDate. Current authority: [ARVIN_REMINDER_CONTRACT.md](ARVIN_REMINDER_CONTRACT.md) and [ARVIN_OWNER_DECISION_REMINDER_ONLY.md](ARVIN_OWNER_DECISION_REMINDER_ONLY.md). The legacy data migration and provider-identity preservation are still open work, not claimed complete.
+
+---
+
 # ARVIN Calendar Projection Separation Decision
 
 **Date:** 2026-10-13  

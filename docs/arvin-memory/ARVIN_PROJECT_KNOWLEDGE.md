@@ -1,3 +1,7 @@
+> **LATEST AUTHORITY UPDATE — 2026-10-24 (Wave 7.32).** This knowledge file contains historical notes, including older 2026-10-13 statements treating Next Follow-up and independent Follow-up reminders as current independent concepts. Those scheduling semantics are superseded. Current model: canonical Task + separate due date + zero or more stable-ID TaskReminders. Historical FollowUp interaction records may remain as history; the retired scheduling fields nextFollowUp and nested FollowUp.reminderDate must not drive current Calendar/notification behavior. Read [ARVIN_REMINDER_CONTRACT.md](ARVIN_REMINDER_CONTRACT.md), [ARVIN_OWNER_DECISION_REMINDER_ONLY.md](ARVIN_OWNER_DECISION_REMINDER_ONLY.md), and [ARVIN_WAVE_7_32_BASELINE.md](ARVIN_WAVE_7_32_BASELINE.md) before future changes. Preserve older entries as history, not as current authority.
+
+---
+
 ## 2026-10-14 — CI recovery learning
 
 - A queued workflow is not a pass. Evidence must name the exact commit SHA and reach a terminal result.
