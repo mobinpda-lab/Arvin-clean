@@ -1,13 +1,7 @@
-import 'dart:convert';
-
-import 'package:arvin/automatic_follow_up_scheduler_adapter.dart';
 import 'package:arvin/calendar_page.dart';
-import 'package:arvin/follow_up_repository.dart';
 import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/models/task.dart';
-import 'package:arvin/services/calendar_reschedule_apply_service.dart';
 import 'package:arvin/services/follow_up_calendar_projection.dart';
-import 'package:arvin/services/follow_up_write_coordinator.dart';
 import 'package:arvin/task_next_action_page.dart';
 import 'package:arvin/task_timeline_page.dart';
 import 'package:arvin/widgets/canonical_calendar_launcher.dart';
@@ -16,20 +10,6 @@ import 'package:arvin/services/iran_clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:arvin/widgets/arvin_primary_navigation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-class _FakeScheduler implements AutomaticFollowUpSchedulerAdapter {
-  int rescheduleCalls = 0;
-
-  @override
-  Future<void> cancel() async {}
-
-  @override
-  Future<void> reschedule() async {
-    rescheduleCalls += 1;
-  }
-}
-
 
 Future<void> _pumpRouteTransition(WidgetTester tester) async {
   // Calendar keeps an active ticker, so pumpAndSettle can wait forever.
@@ -80,7 +60,7 @@ void main() {
   });
 
 
-  testWidgets('launcher accepts canonical follow-ups without parallel storage',
+  testWidgets('launcher keeps Follow-up history out of active Calendar schedules',
       (tester) async {
     final task = Task(
       id: 'task-1',
@@ -144,190 +124,6 @@ void main() {
 
     expect(find.byType(TaskTimelinePage), findsOneWidget);
     expect(find.byKey(const ValueKey('timeline-open-people')), findsOneWidget);
-  });
-
-  testWidgets('real calendar conflict button shows safe replacement suggestions',
-      (tester) async {
-    final when = DateTime(2026, 8, 27, 9);
-    final tasks = [
-      Task(
-        id: 'conflict-a',
-        title: 'جلسه مشتری',
-        followUps: [
-          FollowUp(id: 'follow-a', dateTime: when, reminderDate: when, note: 'پیگیری قرارداد'),
-        ],
-      ),
-      Task(
-        id: 'conflict-b',
-        title: 'جلسه داخلی',
-        followUps: [
-          FollowUp(id: 'follow-b', dateTime: when, reminderDate: when, note: 'هماهنگی تیم'),
-        ],
-      ),
-    ];
-
-    await tester.pumpWidget(
-      MaterialApp(home: CanonicalCalendarLauncher(tasks: tasks)),
-    );
-    await tester.pump();
-
-    await _openMoreMenu(tester);
-    await tester.scrollUntilVisible(
-      find.text('تداخل‌ها', skipOffstage: false),
-      300,
-      scrollable: find.byType(Scrollable).last,
-    );
-    await tester.tap(find.text('تداخل‌ها'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-
-    expect(find.text('تداخل‌های زمانی'), findsOneWidget);
-    expect(find.text('پیگیری جلسه مشتری'), findsWidgets);
-    expect(find.text('پیگیری جلسه داخلی'), findsWidgets);
-    expect(find.textContaining('اعمال ۰۹:۳۰'), findsWidgets);
-    expect(
-      find.textContaining('هیچ زمانی بدون تأیید شما تغییر نمی‌کند'),
-      findsOneWidget,
-    );
-  });
-
-  testWidgets('suggested reschedule requires confirmation before canonical write',
-      (tester) async {
-    const repository = FollowUpRepository();
-    final when = DateTime(2026, 8, 27, 9);
-    final tasks = [
-      Task(
-        id: 'conflict-a',
-        title: 'جلسه مشتری',
-        followUps: [
-          FollowUp(
-            id: 'follow-a',
-            dateTime: when,
-            reminderDate: when,
-            note: 'پیگیری قرارداد',
-            result: 'منتظر تأیید',
-            nextFollowUp: DateTime(2026, 8, 29, 9),
-          ),
-        ],
-      ),
-      Task(
-        id: 'conflict-b',
-        title: 'جلسه داخلی',
-        followUps: [
-          FollowUp(id: 'follow-b', dateTime: when, reminderDate: when, note: 'هماهنگی تیم'),
-        ],
-      ),
-    ];
-    SharedPreferences.setMockInitialValues({
-      'arvin.tasks': jsonEncode(tasks.map((task) => task.toJson()).toList()),
-    });
-    final scheduler = _FakeScheduler();
-    final service = CalendarRescheduleApplyService(
-      writer: FollowUpWriteCoordinator(
-        repository: repository,
-        scheduler: scheduler,
-      ),
-    );
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: CanonicalCalendarLauncher(
-          tasks: tasks,
-          rescheduleApplyService: service,
-        ),
-      ),
-    );
-    await tester.pump();
-
-    await _openMoreMenu(tester);
-    await tester.scrollUntilVisible(
-      find.text('تداخل‌ها', skipOffstage: false),
-      300,
-      scrollable: find.byType(Scrollable).last,
-    );
-    await tester.tap(find.text('تداخل‌ها'));
-    await tester.pumpAndSettle();
-    final apply = find.textContaining('اعمال ۰۹:۳۰').first;
-    await tester.tap(apply);
-    await tester.pumpAndSettle();
-
-    expect(find.text('تأیید تغییر زمان'), findsOneWidget);
-    expect(find.text('زمان فعلی: ۰۹:۰۰'), findsOneWidget);
-    expect(find.text('زمان پیشنهادی: ۰۹:۳۰'), findsOneWidget);
-
-    await tester.tap(find.text('لغو'));
-    await tester.pumpAndSettle();
-    expect(scheduler.rescheduleCalls, 0);
-    final afterCancelA = await repository.loadForTask('conflict-a');
-    final afterCancelB = await repository.loadForTask('conflict-b');
-    expect(afterCancelA.single.dateTime, when);
-    expect(afterCancelB.single.dateTime, when);
-
-    await tester.tap(find.textContaining('اعمال ۰۹:۳۰').first);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('اعمال زمان پیشنهادی'));
-    await tester.pumpAndSettle();
-
-    expect(scheduler.rescheduleCalls, 1);
-    expect(find.text('زمان پیگیری با موفقیت تغییر کرد'), findsOneWidget);
-    final savedA = await repository.loadForTask('conflict-a');
-    final savedB = await repository.loadForTask('conflict-b');
-    final moved = [savedA.single, savedB.single]
-        .where((item) => item.dateTime == DateTime(2026, 8, 27, 9, 30))
-        .toList();
-    expect(moved, hasLength(1));
-  });
-
-  testWidgets('failed confirmed write is surfaced without scheduler request',
-      (tester) async {
-    const repository = FollowUpRepository();
-    final when = DateTime(2026, 8, 27, 9);
-    final tasks = [
-      Task(
-        id: 'conflict-a',
-        title: 'جلسه مشتری',
-        followUps: [FollowUp(id: 'follow-a', dateTime: when, reminderDate: when)],
-      ),
-      Task(
-        id: 'conflict-b',
-        title: 'جلسه داخلی',
-        followUps: [FollowUp(id: 'follow-b', dateTime: when, reminderDate: when)],
-      ),
-    ];
-    SharedPreferences.setMockInitialValues({'arvin.tasks': '[]'});
-    final scheduler = _FakeScheduler();
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: CanonicalCalendarLauncher(
-          tasks: tasks,
-          rescheduleApplyService: CalendarRescheduleApplyService(
-            writer: FollowUpWriteCoordinator(
-              repository: repository,
-              scheduler: scheduler,
-            ),
-          ),
-        ),
-      ),
-    );
-    await tester.pump();
-
-    await _openMoreMenu(tester);
-    await tester.scrollUntilVisible(
-      find.text('تداخل‌ها'),
-      250,
-      scrollable: find.byType(Scrollable).last,
-      maxScrolls: 10,
-    );
-    await tester.tap(find.text('تداخل‌ها'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.textContaining('اعمال ۰۹:۳۰').first);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('اعمال زمان پیشنهادی'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('تغییر زمان انجام نشد؛ دوباره تلاش کنید'), findsOneWidget);
-    expect(scheduler.rescheduleCalls, 0);
   });
 
   testWidgets('next action opens canonical ranked suggestion page',
