@@ -914,6 +914,10 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
         _tasks.where((task) => task.recurrence == null),
       ),
     ]..sort((a, b) => a.date.compareTo(b.date));
+    if (_tasks.any((task) => task.id == 'calendar-smoke-task')) {
+      debugPrint('WAVE_7_33_CALENDAR_TRACE: launcherTasks=${_tasks.map((task) => '${task.id}:${task.taskReminders.map((item) => '${item.id}@${item.date.toIso8601String()}').join(',')}').toList()}');
+      debugPrint('WAVE_7_33_CALENDAR_TRACE: launcherRows=${reminders.map((item) => '${item.id}@${item.date.toIso8601String()}#${item.title}').toList()}');
+    }
     List<CalendarReminder> projectVisible(DateTime from, DateTime to) {
       final items = <CalendarReminder>[
         ...widget.projection.project(

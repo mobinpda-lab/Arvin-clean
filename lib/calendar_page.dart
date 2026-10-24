@@ -158,9 +158,14 @@ class _CalendarPageState extends State<CalendarPage> {
   bool _sameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
 
-  List<CalendarReminder> _forDay(DateTime day) => _calendarReminders()
-      .where((item) => _sameDay(item.date, day))
-      .toList(growable: false);
+  List<CalendarReminder> _forDay(DateTime day) {
+    final all = _calendarReminders();
+    final selected = all.where((item) => _sameDay(item.date, day)).toList(growable: false);
+    if (all.any((item) => item.id.contains('calendar-smoke'))) {
+      debugPrint('WAVE_7_33_CALENDAR_TRACE: dayFilter selected=${day.toIso8601String()} all=${all.map((item) => '${item.id}@${item.date.toIso8601String()}#${item.title}').toList()} visible=${selected.map((item) => item.id).toList()}');
+    }
+    return selected;
+  }
 
   Map<int, int> _countsForMonth() {
     final counts = <int, int>{};
