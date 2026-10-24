@@ -30,4 +30,13 @@ const List<ArvinFontOption> kAvailableArvinFonts = <ArvinFontOption>[
   kCanonicalArvinFont,
 ];
 
-ArvinFontOption arvinFontById(String? id) => kCanonicalArvinFont;
+ArvinFontOption arvinFontById(String? id) {
+  switch (id?.toLowerCase()) {
+    case 'vazirmatn':
+    case 'vazirharf':
+    case 'system':
+    default:
+      // Legacy and unsupported selections converge on the owner-approved font.
+      return kCanonicalArvinFont;
+  }
+}
