@@ -23,7 +23,6 @@ class FollowUpRepository {
     await _store.mutate<void>((tasks) {
       final task = _requiredTask(tasks, taskId);
       task.followUps = [..._decodeFollowUps(task), followUp];
-      task.followUpEnabled = true;
       task.updatedAt = DateTime.now();
     });
   }
@@ -86,14 +85,6 @@ class FollowUpRepository {
       return List<FollowUp>.of(task.followUps);
     }
 
-    final legacy = task.followUpDate;
-    if (legacy == null) return const [];
-    return <FollowUp>[
-      FollowUp(
-        id: legacy.microsecondsSinceEpoch.toString(),
-        dateTime: legacy,
-        note: 'مهاجرت خودکار از تاریخ پیگیری قبلی',
-      ),
-    ];
+    return const [];
   }
 }
