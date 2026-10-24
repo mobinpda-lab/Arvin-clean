@@ -1,3 +1,7 @@
+> **Scoped authority update — 2026-10-24.** This document remains historical for Quick Entry decisions, but its old scheduling rule that Calendar displays nextFollowUp as an action item when no reminder exists is superseded. Current scheduled items use canonical TaskReminder / Task due-date behavior. Historical FollowUp interaction records remain history; nextFollowUp and nested FollowUp.reminderDate are retired scheduling fields to migrate safely, not active product concepts. See [ARVIN_REMINDER_CONTRACT.md](ARVIN_REMINDER_CONTRACT.md). Do not delete historical data as part of this documentation correction.
+
+---
+
 # ARVIN FOLLOW-UP AND QUICK ENTRY DECISION
 
 - **Date:** 2026-10-12
