@@ -1,3 +1,7 @@
+> **Authority update — 2026-10-24.** The canonical TaskReminder design, stable IDs, per-Task sequence, explicit all-day semantics, existing Task JSON/SQL envelope, and backup/restore reuse remain relevant. Any text below that treats nextFollowUp or a reminder nested under a FollowUp record as a current scheduling concept is superseded by the Reminder-only contract. Historical FollowUp entries must be preserved. Migration of explicit nested legacy FollowUp.reminderDate values and provider identity is not yet proven complete; preserve data until a deterministic, idempotent migration is tested. Current authority: [ARVIN_REMINDER_CONTRACT.md](ARVIN_REMINDER_CONTRACT.md).
+
+---
+
 # Multiple independent Task reminders — approved implementation design
 
 Date: 2026-10-13
