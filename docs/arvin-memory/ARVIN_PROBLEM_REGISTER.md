@@ -1,3 +1,13 @@
+## 2026-10-20 — Product concept / implementation status separation
+
+- **Problem:** A concept document can be mistaken for evidence that a feature exists or has passed acceptance.
+- **Risk:** Proposed behaviors could be implemented without owner approval; CI or documentation could be misreported as product acceptance.
+- **Mitigation proposal:** Link [ARVIN_PRODUCT_CONCEPTS.md](../product/ARVIN_PRODUCT_CONCEPTS.md) as the candidate vocabulary and acceptance reference. Keep `Implemented`, `Partially implemented`, `Not verified`, `Not implemented`, `Proposed` and `Accepted` distinct.
+- **Status:** DOCUMENTATION PROPOSAL; review/merge pending. No product code, test result or release status is changed by this entry.
+- **Closure criteria:** reread all six documents from GitHub; confirm links; review conflicts/open decisions; approve and merge the reference; then map each capability to current code and SHA-specific test/device evidence. Release remains NO-GO until independent gates pass.
+
+---
+
 ## AUTHORITATIVE UPDATE — 2026-10-14 — Exact-head CI false-positive
 
 - **Problem:** The recovery dispatcher could treat a normal PR-triggered Build as exact-head evidence when run metadata named the PR head, even though the Build checkout uses the synthetic merge SHA for `pull_request`.
@@ -286,3 +296,27 @@ Test-only correction commit: [9ae99714](https://github.com/mobinpda-lab/Arvin-cl
 - **Candidate mitigation:** Task JSON decode creates one stable legacy TaskReminder with a persisted marker; Calendar and scheduler projections retain old identity; editor and inbound Calendar paths preserve independent reminder behavior.
 - **Remaining risk:** no terminal exact-head CI result yet. SQL persistence, real backup/restore, rollback/retry, Calendar no-duplicate and physical-device acceptance remain unproven.
 - **Status:** Candidate implementation; validation blocked/pending. Release NO-GO.
+
+## Wave 7.18-R2 — live product defects and evidence gaps (2026-10-23)
+
+| ID | Problem | Evidence | Status | Action |
+|---|---|---|---|---|
+| W718-01 | Home date is not Next Follow-up | Main `lib/main.dart`: `_homeFollowUpDate(Task task) => task.lastFollowUp?.dateTime` | FAIL | Derive the Home display from the canonical next-action value (with a documented legacy fallback if needed); add Home test. |
+| W718-02 | Follow-up date-only vs timed value is not explicit | Main `lib/models/task.dart`: `FollowUp.nextFollowUp` and `reminderDate` are nullable DateTime fields with no corresponding all-day/date-only flag | NOT VERIFIED / model gap | Design backward-compatible representation; do not infer date-only solely from midnight. Add serialization and migration compatibility tests before changing model. |
+| W718-03 | Calendar projection was broken on earlier PR head | PR #2951 old head `c23ad14658076a7d4787a0a5c425dbb18135988c`; Build [40014182743](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40014182743) | FAIL on old head | Corrective commits restore the complete projection and tests; validate the current head before closure. |
+| W718-04 | Current Calendar fix not yet accepted | PR #2951 current test head at checkpoint `f15842f8b1fcca9f14bdd332b8c78cbbc6636f58`; Build [40020128713](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40020128713), Smoke [40020128711](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40020128711), Provider [40020128550](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40020128550) | IN PROGRESS | Inspect terminal jobs and verify checkout SHA. |
+| W718-05 | Concept document is not mainline canonical yet | `docs/product/ARVIN_PRODUCT_CONCEPTS.md` absent from main; proposal PR #2866 open/Draft | IN PROGRESS | Keep Proposed status; review conflicts and secure explicit approval before merging. |
+| W718-06 | Two requested source ZIPs not identifiable | Current conversation attachment listing has no pair matching source snapshots | NOT VERIFIED | Locate the exact two archives before comparing their file trees/hashes with GitHub. |
+
+
+## Wave 7.18-R3 — current correction state (2026-10-24)
+
+| ID | Updated finding | Evidence | Status | Remaining action |
+|---|---|---|---|---|
+| W718-01 | Home used the historical Follow-up action timestamp instead of the planned next action | PR #2947 commits `5b4ae818` and `d0470b9f`; current head `94e3cb17ddf16158b414834d2d81bf4ca73e653e` | IN PROGRESS | Pass Home projection and Widget tests on exact head; confirm scopes/sort/restart. |
+| W718-02 | Task due date and next Follow-up date were conflated in Home deduplication | PR #2947 commits `a4dfdf3a`, `94e3cb17` | IN PROGRESS | Confirm due-date row and next-action row both survive on current-head tests. |
+| W718-03 | Calendar test expected a Follow-up event without independent reminderDate | PR #2951 commit `9cd8c88a257297717e5c02a9b9ae140c8be9c159` | IN PROGRESS | Verify Build/Quality, Device Smoke, and Provider acceptance on exact head. |
+| W718-04 | Follow-up date-only intent has no explicit model flag | Main Task model blob `c0ce878b88bb6fe4ede1c98da8a889b9edab8893` | NOT VERIFIED | Backward-compatible model/UI design; never infer date-only from midnight alone. |
+| W718-05 | Current-head validation still pending | Calendar Build [40058724793](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058724793), Provider [40058724849](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058724849), Smoke [40058724794](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058724794); Home Build [40058784437](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058784437), Smoke [40058784508](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058784508) | IN PROGRESS | Wait for terminal runs, record checkout SHA, inspect failed-job logs only. |
+| W718-06 | Two requested source ZIPs still unidentified | No verified pair of source snapshots | NOT VERIFIED | Obtain the exact archives before comparing files. |
+

@@ -1,3 +1,14 @@
+## 2026-10-20 — Canonical product concept contract proposed
+
+- **Problem:** Product terms and behavioral expectations need one durable reference so implementation, tests and release decisions use consistent meanings.
+- **Proposal:** Add [ARVIN_PRODUCT_CONCEPTS.md](../product/ARVIN_PRODUCT_CONCEPTS.md) as the candidate canonical reference. It defines the Task, due date, reminder, checklist template, per-occurrence checklist, recurrence rule, occurrence, follow-up, history, calendar and persistence concepts; includes 20 acceptance scenarios and explicit open decisions.
+- **Decision status:** PROPOSED / REVIEW REQUIRED. This entry does not approve the ten open decisions listed in the document and does not authorize production behavior or schema changes.
+- **Constraints:** preserve prior decision history, existing Task/Repeat/Follow-up separation, data identity and backup compatibility. Resolve conflicts by explicit owner decision, not inferred implementation convenience.
+- **Evidence:** documentation-only commit on branch `docs/canonical-product-concept-20261020`; no product tests or release gates were run as part of this change.
+- **Next:** review wording and consistency against live code and existing decisions; approve/merge the document through the normal governance path before treating it as official mainline policy.
+
+---
+
 ## 2026-10-14 — Exact-head CI evidence must prove checkout
 
 - **Problem:** A normal `pull_request` run may report the PR head in metadata while checking out GitHub's synthetic merge ref. Using metadata alone can incorrectly suppress exact-head recovery.
@@ -213,3 +224,23 @@
 ## 2026-10-15 — Decision record: PR #2725 validated
 
 Both required exact-head gates for `ba2306cfc66ad982f8e8ab73b838a4a8d6ed6b55` are terminal `success`: Build `38752957837` and Device Smoke `38752957813` (all six lanes). Proceed with the authorized squash merge of PR #2725 only while its head remains unchanged. After confirmed merge, create `feat/person-reports-followup-issue-2683` from fresh `main` and begin Issue #2683. Do not conflate CI success with physical-device release acceptance.
+
+## 2026-10-23 — Owner decision: Next Follow-up vs independent reminder (Wave 7.18-R2)
+
+- **Decision:** Next Follow-up is Home-facing scheduling data; it must not create a phone Calendar event by itself. A separately configured Follow-up reminder is eligible for Calendar sync and its event time comes from the reminder, not the Next Follow-up value.
+- **Independence:** changing Next Follow-up must not alter reminder time; changing/deleting a reminder must not delete Follow-up, result, or history. Reprocessing must not create duplicate Calendar events.
+- **Current model boundary:** one optional `FollowUp.reminderDate` per Follow-up record; multiple Follow-up records per Task are modeled. Task-level reminders live in `Task.taskReminders`. Multiple reminders for one Follow-up are not established and remain an owner decision.
+- **Compatibility guard:** `Task.dueDate`, legacy `Task.followUpDate`, `FollowUp.nextFollowUp`, `FollowUp.reminderDate`, `Task.reminderDate` and `Task.taskReminders` must not be treated as interchangeable. Do not perform schema migration until legacy mapping and data preservation are tested.
+- **Evidence:** current main model blob `c0ce878b88bb6fe4ede1c98da8a889b9edab8893`; Home implementation mismatch recorded in Issue #1139. Calendar corrective work remains Draft in [PR #2951](https://github.com/mobinpda-lab/Arvin-clean/pull/2951); concept wording remains proposed in [PR #2866](https://github.com/mobinpda-lab/Arvin-clean/pull/2866).
+- **Still open:** explicit date-only representation for Next Follow-up (midnight cannot safely distinguish date-only from midnight time), multiple reminders per one Follow-up, and current-head terminal validation. No decision authorizes unlimited reminders.
+
+
+## 2026-10-24 — Wave 7.18-R3: Home next-follow-up and due-date independence
+
+- **Reaffirmed owner contract:** Home displays the planned next action from `FollowUp.nextFollowUp`; the historical action timestamp `FollowUp.dateTime` is not a substitute. Legacy `Task.followUpDate` remains a compatibility fallback when no canonical next-follow-up value is available.
+- **Due date separation:** `Task.dueDate` is semantically independent and must remain visible even when its timestamp equals a next-follow-up timestamp. Do not deduplicate distinct concepts merely because their DateTime values match.
+- **Calendar separation:** a Follow-up with no `reminderDate` must not create a Calendar event; an independent Follow-up reminder uses its own `reminderDate`. PR #2951 commit `9cd8c88a257297717e5c02a9b9ae140c8be9c159` updates the contradictory assertion.
+- **Implementation commits:** PR #2947 contains `5b4ae818`, `d0470b9f`, `ca526ace`, `f78ccdd1`, `a4dfdf3a`, and `94e3cb17`; current-head validation is still pending and must be tied to SHA `94e3cb17ddf16158b414834d2d81bf4ca73e653e`.
+- **Open model decision:** `nextFollowUp` has no explicit date-only flag. Midnight is not enough to infer all-day intent. Preserve legacy data and do not change serialization until a backward-compatible model/UI/migration plan and tests exist.
+- **Release:** no merge or release; `BLOCKED — RELEASE: NO-GO`.
+

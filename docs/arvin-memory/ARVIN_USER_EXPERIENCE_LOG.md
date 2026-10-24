@@ -1,3 +1,12 @@
+## 2026-10-20 — Product concept reference drafted
+
+- **Context:** Product owner supplied a comprehensive Persian contract describing expected Task, Reminder, Checklist, Recurrence, Occurrence, Follow-up, History, Calendar, Jalali date and persistence semantics.
+- **Documentation action:** drafted [ARVIN_PRODUCT_CONCEPTS.md](../product/ARVIN_PRODUCT_CONCEPTS.md), including 20 acceptance scenarios and unresolved product decisions.
+- **Evidence boundary:** this entry records the owner's product expectations and a documentation action; it is not a new observed user test, device reproduction, usability result or acceptance sign-off.
+- **Status:** PROPOSED / REVIEW REQUIRED. No UI or application behavior changed; device acceptance remains governed by the existing evidence requirements.
+
+---
+
 # Arvin User Experience Log
 
 ## 2026-10-09 — Calendar task actions reported missing
@@ -78,3 +87,21 @@ Current implementation pointer: PR #2607. Automated validation, small-screen RTL
 
 ## Live checkpoint 2026-10-12
 No new owner installation, physical-device result, screenshot, or acceptance was supplied in this execution. Do not fabricate an installation/version/device record. Exact-main emulator runs are stale/incomplete; Calendar, Backup/Restore, RTL/compact-screen and golden-flow acceptance remain open.
+
+## 2026-10-23 — Next Follow-up and independent reminder must behave separately
+
+- **Owner decision (Wave 7.18-R2):** Next Follow-up is shown on Home and must not create a phone Calendar card by itself. A configured independent reminder for a Follow-up may create a Calendar event at the reminder's own time.
+- **Required interaction:** changing Next Follow-up does not move the reminder; changing/deleting the reminder preserves Follow-up history. Calendar reprocessing must not duplicate events, and a provider/permission failure is not a successful result.
+- **Live code mismatch:** main `lib/main.dart` currently derives the Home follow-up date from `task.lastFollowUp?.dateTime`, which is the record's date, not the `nextFollowUp` field. Home acceptance for the actual next-action date/time is therefore not verified and requires correction.
+- **Evidence boundary:** PR #2951 contains corrective code/test commits but remains Draft; latest Build/Device Smoke/Provider checks were not terminal at the last poll. Do not mark this experience accepted until the exact head passes and the installed APK is reviewed.
+- **Date-only behavior:** the current FollowUp model has no explicit date-only flag for `nextFollowUp`; midnight may mean either date-only or a real midnight time. This needs backward-compatible design and tests.
+
+
+## 2026-10-24 — Wave 7.18-R3 Home / Calendar interaction checkpoint
+
+- **Expected experience:** Home shows the planned Next Follow-up timestamp, not the historical action time. Task due date remains a distinct concept even when timestamps coincide. Next Follow-up alone creates no Calendar card; an independent Follow-up reminder can create a Calendar event at its own time.
+- **Code change:** PR #2947 head `94e3cb17ddf16158b414834d2d81bf4ca73e653e` contains the Home source correction, legacy `Task.followUpDate` fallback, due-date separation, and projection/widget tests. This is not accepted until the current-head Build and Device Smoke finish successfully.
+- **Calendar evidence:** prior Device Smoke [40020128711](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40020128711) logged passing interaction assertions and SQLite persistence, but the job failed screenshot upload. Provider [40020128550](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40020128550) only proved a limitation path because the stock emulator had no writable calendar.
+- **Current gates:** Calendar Build [40058724793](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058724793), Provider [40058724849](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058724849), Calendar Smoke [40058724794](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058724794), Home Build [40058784437](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058784437), and Home Smoke [40058784508](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058784508) are not all terminally accepted at this checkpoint.
+- **Model limitation:** date-only Next Follow-up remains NOT VERIFIED because there is no explicit all-day flag. No owner physical-device acceptance or release approval is inferred from emulator logs.
+

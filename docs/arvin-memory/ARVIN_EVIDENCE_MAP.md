@@ -1,3 +1,16 @@
+## 2026-10-20 — Product concept reference evidence
+
+| Area | Revision / artifact | Result | Limit |
+|---|---|---|---|
+| Canonical concept draft | [ARVIN_PRODUCT_CONCEPTS.md](../product/ARVIN_PRODUCT_CONCEPTS.md) on `docs/canonical-product-concept-20261020` | Documentation committed on proposal branch | Not yet merged/approved as mainline policy |
+| Acceptance contract | 20 scenario definitions in the concept document | Criteria specified | These are acceptance criteria, not successful test runs |
+| Product behavior / implementation | No code changes in this documentation operation | Not tested or changed | Existing implementation status must be derived from code and current SHA-specific evidence |
+| Release | Current release policy | `BLOCKED — RELEASE: NO-GO` | No release gate is satisfied by this document alone |
+
+This entry records a product-contract artifact, not execution evidence. Do not change any feature to Accepted without revision-specific tests and relevant device/storage/external-system proof.
+
+---
+
 ## 2026-10-14 — CI recovery dispatcher evidence
 
 | Feature / Gate | SHA / Run | Result | Evidence / limitation |
@@ -463,3 +476,29 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Prior exact-head Build | Run [38859380955](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38859380955), SHA `2d04631dd9d1939bd3feafa12aa7d68bec349b58` | Debug/Release APK jobs succeeded; multiple test shards failed | Re-run on final SHA; old success is not release evidence |
 | Final head Build / Device Smoke / Calendar Provider | Runs are regenerated when the branch head changes | Pending validation | All six device-smoke lanes, Calendar Provider Acceptance, artifacts and screenshot review |
 | Font / physical device | VazirHarf declared; Vazirmatn asset not found in project assets; no new physical-device evidence | OPEN / NO-GO | Add licensed font asset if Vazirmatn is mandatory; separate physical-device acceptance |
+
+## Wave 7.18-R2 — evidence additions (2026-10-23)
+
+| Claim / gate | Revision / evidence | Result | Limitation / next step |
+|---|---|---|---|
+| Current Task/Follow-up model | Main `lib/models/task.dart`, blob SHA `c0ce878b88bb6fe4ede1c98da8a889b9edab8893` | Fields identified: `nextFollowUp`, `reminderDate`, Task `taskReminders`, multiple `followUps` | No date-only marker for Follow-up fields; cardinality is one optional reminderDate per Follow-up. |
+| Calendar projection repair | PR #2951, old failing head `c23ad14658076a7d4787a0a5c425dbb18135988c`, Build [40014182743](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40014182743) | FAIL: projection compile errors; 175 tests passed, 20 failed | Later corrective commits restore projection and assert Follow-up reminder visibility. |
+| Current post-fix validation | PR #2951 head `f15842f8b1fcca9f14bdd332b8c78cbbc6636f58`; Build [40020128713](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40020128713), Smoke [40020128711](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40020128711), Provider [40020128550](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40020128550) | IN PROGRESS / NOT VERIFIED at last poll | Recheck current PR head, actual checkout SHA, and terminal job conclusions. |
+| Home shows Next Follow-up | Main `lib/main.dart`, `_homeFollowUpDate` | FAIL: currently returns `task.lastFollowUp?.dateTime` | Must show the planned next-follow-up date/time and keep it independent from reminder time. |
+| Product concept | Proposal PR #2866, branch `docs/canonical-product-concept-20261020` | Proposed; not in main | Review, approve and merge through normal governance before treating as official policy. |
+| Source ZIP comparison | No identifiable pair of source ZIPs in current conversation attachments | NOT VERIFIED | Obtain exact ZIP names/files and compare archive contents to branch/main SHA. |
+
+
+## Wave 7.18-R3 — updated exact-head evidence (2026-10-24)
+
+| Claim / gate | Revision / evidence | Result | Limitation / next step |
+|---|---|---|---|
+| Calendar assertion corrected | PR #2951 commit [9cd8c88a](https://github.com/mobinpda-lab/Arvin-clean/commit/9cd8c88a257297717e5c02a9b9ae140c8be9c159) | Correction committed | Current-head Build and Device Smoke must finish before acceptance. |
+| Calendar current-head Build | SHA `9cd8c88a257297717e5c02a9b9ae140c8be9c159`; [40058724793](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058724793) | Analyze PASS; test shards and Debug/Release IN PROGRESS at checkpoint | Recheck terminal jobs and actual checkout SHA. |
+| Calendar Provider | [40058724849](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058724849) | IN PROGRESS | Prior run [40020128550](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40020128550) passed only a narrow no-writable-calendar limitation test; it did not prove a writable real provider. |
+| Calendar Device Smoke | [40058724794](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058724794) | QUEUED at checkpoint | Prior [40020128711](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40020128711) logged Calendar interaction assertions as passing, but failed screenshot artifact upload; Backup/Restore failed during Android SDK emulator package download. |
+| Home next-follow-up correction | PR #2947 head `94e3cb17ddf16158b414834d2d81bf4ca73e653e`; commits `5b4ae818`, `d0470b9f`, `ca526ace`, `f78ccdd1`, `a4dfdf3a`, `94e3cb17` | Code/tests committed; current-head validation pending | Legacy `Task.followUpDate` retained as fallback. Task due date no longer deduplicated against Follow-up timestamp. |
+| Home current-head Build/Smoke | Build [40058784437](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058784437); Smoke [40058784508](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058784508) | Pending/queued at checkpoint | The prior Smoke [40058738017](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058738017) was cancelled after a newer commit; not evidence for final head. |
+| Follow-up date-only | Main model blob `c0ce878b88bb6fe4ede1c98da8a889b9edab8893` | NOT VERIFIED | No explicit date-only flag; midnight is ambiguous. |
+| Source ZIP comparison | Exact requested pair not identified | NOT VERIFIED | Do not substitute unrelated evidence/font ZIPs. |
+

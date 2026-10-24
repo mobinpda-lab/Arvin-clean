@@ -1,3 +1,17 @@
+## 2026-10-20 — Canonical product concept contract (documentation-only proposal)
+
+This is a documentation-only proposal on branch `docs/canonical-product-concept-20261020`; it does not change application code or authorize product behavior changes.
+
+- Canonical candidate: [ARVIN_PRODUCT_CONCEPTS.md](../product/ARVIN_PRODUCT_CONCEPTS.md).
+- Scope: define product vocabulary, 20 acceptance scenarios, evidence semantics, governance and open product decisions; connect this reference to the five project memory documents.
+- The new document is a proposal until reviewed and merged through the repository's approved path. Do not claim it is official mainline policy before that point.
+- No application tests, Build, Device Smoke, physical-device acceptance, Restart or Backup/Restore test was run by this documentation update.
+- Release remains `BLOCKED — RELEASE: NO-GO`; product and release gates are unaffected by documentation presence.
+
+Next: reread all six changed documents from GitHub, verify links and content, open a documentation-only Draft PR, and refresh CI evidence on the resulting PR head.
+
+---
+
 # AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Exact-head CI recovery correction
 
 This entry supersedes prior claims that the exact-head recovery root cause was wholly unknown.
@@ -1097,3 +1111,23 @@ This entry supersedes older statements that the owner decision is pending or tha
 - Prior exact-head build `2d04631dd9d1939bd3feafa12aa7d68bec349b58` produced Debug and Release APK artifacts but multiple test shards failed. Affected tests were updated; exact-head validation is still required. Do not infer success from old runs.
 - Current release status: **NO-GO / NOT VALIDATED** until the final resulting SHA has passing analyzer, all test shards with zero skipped tests, Debug/Release artifacts, all six Device Smoke lanes, Calendar Provider Acceptance, and artifact inspection.
 - Font gap remains open: project bundles VazirHarf; Vazirmatn is not present in declared assets and is not claimed applied. Physical-device acceptance is still separate.
+
+## Wave 7.18-R2 — live audit checkpoint (2026-10-23)
+
+- Main/base SHA: `18cbeecc95a03a3b301359ca5b96cfef175a3b15`.
+- Calendar PR #2951: Draft, branch `fix/calendar-exclude-followups-wave-7-16`, current code/test head at checkpoint `f15842f8b1fcca9f14bdd332b8c78cbbc6636f58`; later documentation commit on this PR may advance the head, so re-fetch before any acceptance claim.
+- Recurrence PR #2947: Draft at `cc0eb8b3f2b28ddc49449cdfec8e1f0363193710`. Build/Quality run 40004452843 passed on synthetic merge checkout, but Device Smoke 40004452844 failed Calendar. Neither is final product acceptance.
+- Earlier Calendar branch head `c23ad14658076a7d4787a0a5c425dbb18135988c` failed Build/Analyze/Quality because the projection class was malformed; run 40014182743. Corrective commits are present on PR #2951, but the current-head Build run 40020128713 and Device Smoke 40020128711 were still pending, and Provider run 40020128550 was in progress at the last poll.
+- Current main model separates `FollowUp.nextFollowUp` from `FollowUp.reminderDate`, and has Task-level `taskReminders`. Home currently derives its visible date from `task.lastFollowUp?.dateTime`, not `nextFollowUp`; this is a product mismatch requiring a focused fix and acceptance test.
+- `ARVIN_PRODUCT_CONCEPTS.md` exists only on proposal PR #2866, not main. It remains Proposed / Review Required. Two source ZIPs could not be identified from current conversation files; ZIP comparison is NOT VERIFIED.
+- Release: `BLOCKED — RELEASE: NO-GO`; no merge, main edit, owner-signed APK, or physical-device acceptance.
+
+
+## Wave 7.18-R3 — exact-head follow-up checkpoint (2026-10-24)
+
+- PR #2951 Calendar head: `9cd8c88a257297717e5c02a9b9ae140c8be9c159`, Draft. Build [40058724793](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058724793) has Analyze PASS while test shards and Debug/Release are still IN PROGRESS at this checkpoint; Provider [40058724849](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058724849) IN PROGRESS; Device Smoke [40058724794](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058724794) QUEUED.
+- PR #2947 Home/recurrence head: `94e3cb17ddf16158b414834d2d81bf4ca73e653e`, Draft. Build [40058784437](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058784437) pending; Device Smoke [40058784508](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058784508) queued/in progress as jobs become available. Earlier run [40058738017](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058738017) was cancelled after a newer commit; do not use it as validation.
+- Home now prefers `lastFollowUp.nextFollowUp` and falls back to legacy `Task.followUpDate`; the Task due date remains a separate Home row. Commits: `5b4ae818`, `d0470b9f`, `ca526ace`, `f78ccdd1`, `a4dfdf3a`, `94e3cb17`. Current-head tests are not yet terminal.
+- Calendar test [9cd8c88a](https://github.com/mobinpda-lab/Arvin-clean/commit/9cd8c88a257297717e5c02a9b9ae140c8be9c159) corrects the stale assertion: a Follow-up with nextFollowUp but no reminderDate must not create a Calendar event; the Task due event must remain.
+- Date-only is still a model gap: `FollowUp.nextFollowUp` has no explicit all-day/date-only flag. Do not infer all-day from midnight. Two requested source ZIPs remain unidentified; ZIP comparison is NOT VERIFIED.
+- Concept document remains Proposed / Review Required on PR #2866, not accepted mainline policy. No merge, main write, or release. Status remains `BLOCKED — RELEASE: NO-GO`.
