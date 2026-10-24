@@ -69,6 +69,26 @@ void main() {
         date: DateTime(2026, 9, 16, 10),
       );
 
+  test('per-Reminder calendar sync setting is independent of local alarm setting', () async {
+    final executor = _Executor();
+    final service = CalendarOutboundSyncService(
+      settingsService: _Settings(const CalendarIntegrationSettings(
+        enabled: true,
+        autoSync: true,
+        syncTaskReminders: true,
+        targetCalendarId: 'primary',
+      )),
+      executor: executor,
+      linkStore: _Links(),
+    );
+    final rows = [
+      CalendarReminder(id: 'task-reminder-item:task-1:no-sync', title: 'فقط آلارم', date: DateTime(2026, 9, 16, 10), syncToDevice: false),
+      CalendarReminder(id: 'task-reminder-item:task-1:sync', title: 'فقط تقویم', date: DateTime(2026, 9, 16, 10), syncToDevice: true),
+    ];
+    await service.sync(rows, force: true);
+    expect(executor.receivedPlan?.items.map((item) => item.reminderId), ['task-reminder-item:task-1:sync']);
+  });
+
   test('does nothing while outbound sync is disabled', () async {
     final executor = _Executor();
     final service = CalendarOutboundSyncService(
