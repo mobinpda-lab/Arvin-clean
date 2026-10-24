@@ -16,6 +16,7 @@ class CalendarReminder {
     required this.date,
     this.completed = false,
     this.isAllDay = false,
+    this.syncToDevice = true,
     this.description,
     this.end,
     this.externalCalendarId,
@@ -26,6 +27,7 @@ class CalendarReminder {
   final DateTime date;
   final bool completed;
   final bool isAllDay;
+  final bool syncToDevice;
   final String? description;
   final DateTime? end;
   final String? externalCalendarId;
