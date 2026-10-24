@@ -2187,23 +2187,11 @@ class _HomePageState extends State<HomePage> {
     }
 
     Task? task;
-    final followUpTarget = reminder.id.startsWith('followup:')
-        ? calendarProjection.resolveTarget(_searchSource, reminder.id)
-        : null;
-    if (followUpTarget != null) {
-      for (final candidate in _searchSource) {
-        if (candidate.id == followUpTarget.taskId) {
-          task = candidate;
-          break;
-        }
-      }
-    }
     if (task == null) {
       for (final prefix in const <String>[
         'task-reminder-item:',
         'task-due:',
         'task-reminder:',
-        'task-followup:',
       ]) {
         if (!reminder.id.startsWith(prefix)) continue;
         final suffix = reminder.id.substring(prefix.length);
@@ -2223,7 +2211,7 @@ class _HomePageState extends State<HomePage> {
 
     final canonical = CalendarReminder(
       id: reminder.id,
-      title: task.title,
+      title: reminder.title,
       // Keep the selected calendar row's date. For recurrence, this is the
       // occurrence date, not the Task's original anchor date.
       date: reminder.date,
