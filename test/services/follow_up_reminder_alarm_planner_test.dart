@@ -43,7 +43,7 @@ void main() {
     expect(
       planner.nextAlarmAt(
         [task],
-        deliveredState: {'task:task-1:reminder:r1': 'task:task-1:reminder:r1@\${old.toIso8601String()}'},
+        deliveredState: {'task:task-1:reminder:r1': 'task:task-1:reminder:r1@${old.toIso8601String()}'},
         now: now,
       ),
       later,
