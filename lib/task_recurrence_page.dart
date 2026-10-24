@@ -463,7 +463,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
                       ),
                       if (task?.dueDate != null) ...[
                         const SizedBox(height: 12),
-                        Text('موعد اصلی فعلی Task: ${_date(task!.reminderDate!)}'),
+                        Text('موعد اصلی فعلی Task: ${_date(task!.dueDate!)}'),
                       ],
                       if (_enabled && task?.dueDate != null) ...[
                         const SizedBox(height: 12),
