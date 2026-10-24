@@ -1,3 +1,7 @@
+> **Typography authority update (2026-10-24):** This evaluation records historical Settings behavior. Current UI font is Vazirmatn with role weights 300/400/500/600/700 under [`docs/TYPOGRAPHY_CANONICAL.md`](../TYPOGRAPHY_CANONICAL.md). Old statements about VazirHarf defaults are superseded; runtime migration is tracked by Issue #2974.
+
+---
+
 # Arvin — Project Evaluation Snapshot & Remaining Work
 
 Date: 2026-10-09
