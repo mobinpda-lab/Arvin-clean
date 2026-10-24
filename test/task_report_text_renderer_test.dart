@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:arvin/models/task.dart';
 
 import 'package:arvin/services/task_report_projection.dart';
 import 'package:arvin/services/task_report_text_renderer.dart';
@@ -38,6 +39,36 @@ void main() {
     expect(text, contains('یادآورها:'));
     expect(text, contains('یادآوری:'));
     expect(text, isNot(contains('2026')));
+  });
+
+  test('report projection includes canonical Reminders but not legacy schedule fields', () {
+    final task = Task(
+      id: 'report-task',
+      title: 'گزارش',
+      reminderDate: DateTime(2026, 8, 30, 8),
+      followUpEnabled: true,
+      followUpDate: DateTime(2026, 8, 30, 9),
+      taskReminders: [
+        TaskReminder(id: 'canonical-r1', title: 'یادآور معتبر', date: DateTime(2026, 8, 30, 10), sequence: 1),
+      ],
+      followUps: [
+        FollowUp(
+          id: 'history-f1',
+          dateTime: DateTime(2026, 8, 29, 10),
+          nextFollowUp: DateTime(2026, 8, 30, 11),
+          reminderDate: DateTime(2026, 8, 30, 12),
+          note: 'سابقه تاریخی',
+        ),
+      ],
+    );
+    final report = const TaskReportProjection().project([task]);
+    expect(report.entries.single.reminders.map((item) => item.id), ['canonical-r1']);
+    final rendered = renderer.render(report);
+    expect(rendered, contains('یادآور معتبر'));
+    expect(rendered, isNot(contains('08:00')));
+    expect(rendered, isNot(contains('11:00')));
+    expect(rendered, isNot(contains('12:00')));
+    expect(rendered, contains('سابقه تاریخی'));
   });
 
   test('renders an explicit empty-report message', () {
