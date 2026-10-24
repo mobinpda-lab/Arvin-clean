@@ -2281,7 +2281,7 @@ class _HomePageState extends State<HomePage> {
           onRefreshTasks: _refreshCanonicalTasksForCalendar,
           onCreateTaskForDate: _addForDate,
           onCreateTaskFromCalendarEvent: _addFromCalendarEvent,
-          onEditTask: (task) async { await _editFromDetail(task); },
+          onEditTask: _openTaskDetail,
           onDeleteTask: _trashTaskFromCalendar,
           onRegisterTaskToDeviceCalendar: _registerTaskInDeviceCalendar,
           onRetryCalendarSync: () => _retryCalendarSync(tasks),

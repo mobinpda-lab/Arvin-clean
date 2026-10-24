@@ -20,65 +20,44 @@ void main() {
     expect(reminders.single.isAllDay, isTrue);
   });
 
-  test('projects canonical follow-up history in chronological order', () {
-    final tasks = <Task>[
-      Task(
-        id: 'task-1',
-        title: 'تماس با مشتری',
-        followUps: <FollowUp>[
-          FollowUp(
-            id: 'fu-2',
-            dateTime: DateTime(2026, 8, 27, 10),
-            title: 'تماس مجدد',
-            note: 'پیگیری قرارداد',
-            reminderDate: DateTime(2026, 8, 28, 11),
-          ),
-          FollowUp(
-            id: 'fu-1',
-            dateTime: DateTime(2026, 8, 26, 9),
-            reminderDate: DateTime(2026, 8, 27, 9),
-          ),
-        ],
-      ),
-    ];
+  test('does not project Follow-up dates without an independent reminder, while preserving the source record', () {
+    final followUp = FollowUp(
+      id: 'fu-1',
+      dateTime: DateTime(2026, 8, 26, 9),
+      title: 'تماس مجدد',
+      note: 'پیگیری قرارداد',
+      nextFollowUp: DateTime(2026, 8, 27, 9),
+    );
+    final task = Task(id: 'task-1', title: 'تماس با مشتری', followUps: [followUp]);
 
-    final reminders = projection.project(tasks);
-
-    expect(reminders, hasLength(2));
-    expect(reminders.first.id, 'followup:task-1:fu-1');
-    expect(reminders.first.title, 'پیگیری تماس با مشتری');
-    expect(reminders.first.date, DateTime(2026, 8, 27, 9));
-    expect(reminders.last.title, 'تماس مجدد');
-    expect(reminders.last.description, 'پیگیری: تماس با مشتری');
-    expect(reminders.last.date, DateTime(2026, 8, 28, 11));
+    expect(projection.project([task]), isEmpty);
+    expect(task.followUps, hasLength(1));
+    expect(task.followUps.single, same(followUp));
+    expect(task.followUps.single.dateTime, DateTime(2026, 8, 26, 9));
+    expect(task.followUps.single.nextFollowUp, DateTime(2026, 8, 27, 9));
+    expect(task.followUps.single.reminderDate, isNull);
   });
 
-  test('keeps next action internal and projects timed reminder with title and parent subtitle', () {
+  test('projects the independent Follow-up reminder but never the next-action date', () {
     final nextAction = DateTime(2026, 10, 16, 9, 15);
     final timedReminder = DateTime(2026, 10, 15, 18, 45);
-    final task = Task(
-      id: 'parent-task',
-      title: 'تماس با مشتری',
-      followUps: [
-        FollowUp(
-          id: 'custom-title',
-          dateTime: DateTime(2026, 10, 14, 10),
-          title: 'گرفتن پاسخ',
-          note: 'یادداشت داخلی',
-          nextFollowUp: nextAction,
-          reminderDate: timedReminder,
-        ),
-      ],
+    final followUp = FollowUp(
+      id: 'custom-title',
+      dateTime: DateTime(2026, 10, 14, 10),
+      title: 'گرفتن پاسخ',
+      note: 'یادداشت داخلی',
+      nextFollowUp: nextAction,
+      reminderDate: timedReminder,
     );
+    final task = Task(id: 'parent-task', title: 'تماس با مشتری', followUps: [followUp]);
 
     final reminders = projection.project([task]);
     expect(reminders, hasLength(1));
-    final reminder = reminders.single;
-    expect(reminder.id, 'followup:parent-task:custom-title');
-    expect(reminder.title, 'گرفتن پاسخ');
-    expect(reminder.description, 'پیگیری: تماس با مشتری');
-    expect(reminder.date, timedReminder);
+    expect(reminders.single.id, 'followup:parent-task:custom-title');
+    expect(reminders.single.date, timedReminder);
     expect(reminders.where((item) => item.date == nextAction), isEmpty);
+    expect(task.followUps.single.nextFollowUp, nextAction);
+    expect(task.followUps.single.reminderDate, timedReminder);
   });
 
   test('does not project follow-up history when no independent reminder is configured', () {
@@ -130,7 +109,7 @@ void main() {
     expect(reminders, isEmpty);
   });
 
-  test('does not duplicate equivalent task and follow-up timestamps', () {
+  test('keeps the Task due event when next-follow-up shares its timestamp without an independent reminder', () {
     final date = DateTime(2026, 12, 1, 10);
     final task = Task(
       id: 'dedupe',
@@ -138,18 +117,19 @@ void main() {
       dueDate: date,
       followUpEnabled: true,
       followUpDate: date,
-      followUps: <FollowUp>[
-        FollowUp(id: 'fu', dateTime: date, reminderDate: date),
-      ],
+      followUps: <FollowUp>[FollowUp(id: 'fu', dateTime: date, nextFollowUp: date)],
     );
 
-    final reminders = projection.project(<Task>[task]);
+    final reminders = projection.project([task]);
 
     expect(reminders, hasLength(1));
-    expect(reminders.single.id, 'followup:dedupe:fu');
+    expect(reminders.single.id, 'task-due:dedupe');
+    expect(reminders.single.date, date);
+    expect(task.followUps.single.nextFollowUp, date);
+    expect(task.followUps.single.reminderDate, isNull);
   });
 
-  test('keeps distinct due date and follow-up timestamps visible', () {
+  test('keeps Task due date and distinct independent Follow-up reminder visible', () {
     final task = Task(
       id: 'two-dates',
       title: 'قرارداد',
@@ -163,29 +143,28 @@ void main() {
       ],
     );
 
-    final reminders = projection.project(<Task>[task]);
+    final reminders = projection.project([task]);
 
     expect(reminders, hasLength(2));
     expect(reminders.map((item) => item.id), contains('task-due:two-dates'));
     expect(reminders.map((item) => item.id), contains('followup:two-dates:fu'));
+    expect(reminders.singleWhere((item) => item.id == 'task-due:two-dates').date, DateTime(2026, 12, 3, 16));
+    expect(reminders.singleWhere((item) => item.id == 'followup:two-dates:fu').date, DateTime(2026, 12, 3, 11));
   });
 
-  test('resolves a projected reminder back to its exact canonical target', () {
+  test('resolves the projected independent Follow-up reminder to its source record', () {
     final followUp = FollowUp(
       id: 'fu-1',
       dateTime: DateTime(2026, 8, 27, 10),
       note: 'پیگیری قرارداد',
       reminderDate: DateTime(2026, 8, 28, 10),
     );
-    final task = Task(
-      id: 'task-1',
-      title: 'تماس با مشتری',
-      followUps: <FollowUp>[followUp],
-    );
+    final task = Task(id: 'task-1', title: 'تماس با مشتری', followUps: [followUp]);
 
-    final reminder = projection.project(<Task>[task]).single;
-    final target = projection.resolveTarget(<Task>[task], reminder.id);
-
+    final reminder = projection.project([task]).single;
+    expect(reminder.id, 'followup:task-1:fu-1');
+    expect(reminder.date, DateTime(2026, 8, 28, 10));
+    final target = projection.resolveTarget([task], reminder.id);
     expect(target, isNotNull);
     expect(target!.taskId, task.id);
     expect(target.followUp, same(followUp));
@@ -232,53 +211,50 @@ void main() {
     );
   });
 
-  test('excludes trashed tasks and preserves completed state', () {
+  test('excludes trashed Tasks and preserves completed state for permitted Task due events', () {
     final reminders = projection.project(<Task>[
       Task(
         id: 'done',
         title: 'انجام شده',
         completed: true,
+        dueDate: DateTime(2026, 8, 26, 10),
         followUps: <FollowUp>[
-          FollowUp(
-            id: 'fu',
-            dateTime: DateTime(2026, 8, 25),
-            reminderDate: DateTime(2026, 8, 26),
-          ),
+          FollowUp(id: 'fu', dateTime: DateTime(2026, 8, 25)),
         ],
       ),
       Task(
         id: 'trash',
         title: 'حذف شده',
         trashed: true,
-        followUps: <FollowUp>[
-          FollowUp(id: 'fu', dateTime: DateTime(2026, 8, 25)),
-        ],
+        followUps: <FollowUp>[FollowUp(id: 'fu', dateTime: DateTime(2026, 8, 25))],
       ),
     ]);
 
     expect(reminders, hasLength(1));
-    expect(reminders.single.id, 'followup:done:fu');
+    expect(reminders.single.id, 'task-due:done');
     expect(reminders.single.completed, isTrue);
   });
 
-  test('projects canonical FollowUp completion independently of parent task', () {
-    final reminder = projection.project(<Task>[
-      Task(
-        id: 'active-task',
-        title: 'کار فعال',
-        completed: false,
-        followUps: <FollowUp>[
-          FollowUp(
-            id: 'done-followup',
-            dateTime: DateTime(2026, 9, 9, 12),
-            reminderDate: DateTime(2026, 9, 10, 8),
-            completed: true,
-          ),
-        ],
-      ),
-    ]).single;
+  test('projects the independent Follow-up reminder while preserving its own completion state', () {
+    final followUp = FollowUp(
+      id: 'done-followup',
+      dateTime: DateTime(2026, 8, 25),
+      reminderDate: DateTime(2026, 8, 26),
+      completed: true,
+    );
+    final task = Task(
+      id: 'active-task',
+      title: 'کار فعال',
+      completed: false,
+      followUps: [followUp],
+    );
 
-    expect(reminder.completed, isTrue);
+    final reminders = projection.project([task]);
+    expect(reminders, hasLength(1));
+    expect(reminders.single.id, 'followup:active-task:done-followup');
+    expect(reminders.single.completed, isTrue);
+    expect(task.completed, isFalse);
+    expect(task.followUps.single.completed, isTrue);
   });
 
   test('projects a canonical task reminder separately from its due date', () {

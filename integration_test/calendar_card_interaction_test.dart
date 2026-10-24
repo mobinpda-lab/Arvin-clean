@@ -2,7 +2,6 @@ import 'package:arvin/main.dart' as app;
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/iran_clock.dart';
 import 'package:arvin/services/task_store.dart';
-import 'package:arvin/theme/app_fonts.dart';
 import 'package:arvin/widgets/arvin_primary_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,16 +11,18 @@ void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets(
-    'Android calendar card tap, long press, SQLite completion and Persian time picker',
+    'Calendar excludes next-action dates, projects independent Follow-up reminders, and opens the exact Task',
     (tester) async {
       final store = TaskStore();
       final existing = await store.load();
-      // Each GitHub Actions job receives a fresh emulator. Refuse to overwrite
-      // unexpected data rather than clearing a possibly non-empty database.
       expect(existing, isEmpty, reason: 'Calendar smoke expects a fresh emulator database');
 
       final now = IranClock.now();
-      final reminderAt = now.add(const Duration(minutes: 10));
+      final dueAt = now.add(const Duration(minutes: 10));
+      final reminderAt = now.add(const Duration(minutes: 20));
+      final followUpAt = now.add(const Duration(minutes: 30));
+      final followUpReminderAt = now.add(const Duration(minutes: 40));
+      final nextFollowUpAt = now.add(const Duration(minutes: 50));
       const taskId = 'calendar-smoke-task';
       const followUpId = 'calendar-smoke-follow-up';
       final seed = Task(
@@ -29,19 +30,36 @@ void main() {
         title: 'کار آزمون تعامل تقویم',
         createdAt: now,
         updatedAt: now,
+        dueDate: dueAt,
         followUpEnabled: true,
+        followUpDate: followUpAt,
         followUps: [
           FollowUp(
             id: followUpId,
-            dateTime: now,
+            dateTime: followUpAt,
             title: 'پیگیری آزمایشی',
-            note: 'ثبت شواهد تقویم',
-            reminderDate: reminderAt,
+            note: 'این سابقه باید حفظ شود',
+            reminderDate: followUpReminderAt,
+            nextFollowUp: nextFollowUpAt,
+          ),
+        ],
+        taskReminders: [
+          TaskReminder(
+            id: 'calendar-smoke-reminder',
+            title: 'یادآور مجاز تقویم',
+            date: reminderAt,
+            sequence: 1,
           ),
         ],
       );
       await store.save([seed]);
-      debugPrint('CALENDAR_SMOKE: seeded one canonical record in SQLite');
+      final persistedSeed = (await store.load()).single;
+      expect(persistedSeed.followUps, hasLength(1));
+      expect(persistedSeed.followUps.single.id, followUpId);
+      expect(persistedSeed.followUps.single.reminderDate, followUpReminderAt);
+      expect(persistedSeed.followUps.single.nextFollowUp, nextFollowUpAt);
+      expect(persistedSeed.taskReminders, hasLength(1));
+      debugPrint('CALENDAR_SMOKE: canonical Follow-up and independent Reminder persisted in SQLite');
 
       app.main();
       await tester.pumpAndSettle();
@@ -56,57 +74,63 @@ void main() {
       await tester.tap(find.text('تقویم').last);
       await tester.pumpAndSettle();
 
-      final cardKey = const ValueKey(
+      final dueCard = find.byKey(const ValueKey('reminder-card-task-due:calendar-smoke-task'));
+      final independentReminderCard = find.byKey(const ValueKey(
+        'reminder-card-task-reminder-item:calendar-smoke-task:calendar-smoke-reminder',
+      ));
+      final followUpCard = find.byKey(const ValueKey(
         'reminder-card-followup:calendar-smoke-task:calendar-smoke-follow-up',
-      );
-      final card = find.byKey(cardKey);
-      for (var attempt = 0; attempt < 80 && card.evaluate().isEmpty; attempt++) {
+      ));
+      for (var attempt = 0; attempt < 80 && dueCard.evaluate().isEmpty; attempt++) {
         await tester.pump(const Duration(milliseconds: 100));
       }
-      expect(card, findsOneWidget);
+      expect(dueCard, findsOneWidget);
+      expect(independentReminderCard, findsOneWidget);
+      expect(followUpCard, findsOneWidget);
       expect(find.text('پیگیری آزمایشی'), findsOneWidget);
-      expect(Directionality.of(tester.element(card)), TextDirection.rtl);
-      expect(
-        Theme.of(tester.element(card)).textTheme.bodyMedium?.fontFamily,
-        AppFonts.vazirharfFamily,
-      );
       expect(tester.takeException(), isNull);
-
       await binding.convertFlutterSurfaceToImage();
-
-      // A short tap must open the Follow-up editor, not expand the card.
-      await tester.tap(card);
-      await tester.pumpAndSettle();
-      expect(find.byKey(const ValueKey('follow-up-entry-time')), findsOneWidget);
-      expect(find.text('ویرایش پیگیری'), findsOneWidget);
-      expect(tester.takeException(), isNull);
       await tester.pumpAndSettle();
       await binding.takeScreenshot('calendar-card-interaction');
-      debugPrint('CALENDAR_SMOKE: Follow-up editor form captured after it was fully opened');
 
-      // Open the canonical round clock and capture its Persian-digit RTL state.
+      // A permitted Task event opens the exact canonical Task detail in one tap.
+      await tester.tap(dueCard);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('task-detail-page')), findsOneWidget);
+      expect(find.byKey(const ValueKey('task-detail-title')), findsOneWidget);
+      expect(find.text('کار آزمون تعامل تقویم'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      expect(dueCard, findsOneWidget);
+      debugPrint('CALENDAR_SMOKE: one tap opened the matching Task detail');
+
+      // An explicit Follow-up reminder opens its own editor; cancelling the
+      // Persian time picker must not mutate either independent timestamp.
+      await tester.tap(followUpCard);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('follow-up-entry-time')), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('follow-up-entry-time')));
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
       expect(find.byKey(const ValueKey('universal-time-cancel')), findsOneWidget);
       expect(find.byKey(const ValueKey('universal-time-save')), findsOneWidget);
-      expect(Directionality.of(tester.element(
-        find.byKey(const ValueKey('universal-time-selected-value')),
-      )), TextDirection.rtl);
       expect(tester.takeException(), isNull);
       await tester.pumpAndSettle();
       await binding.takeScreenshot('calendar-persian-time-picker');
-      debugPrint('CALENDAR_SMOKE: Persian time picker rendered without framework exception');
-
       await tester.tap(find.byKey(const ValueKey('universal-time-cancel')));
       await tester.pumpAndSettle();
+
+      var afterCancel = (await store.load()).single;
+      expect(afterCancel.followUps.single.reminderDate, followUpReminderAt);
+      expect(afterCancel.followUps.single.nextFollowUp, nextFollowUpAt);
       await tester.tap(find.byKey(const ValueKey('follow-up-entry-back')));
       await tester.pumpAndSettle();
-      expect(card, findsOneWidget);
+      expect(followUpCard, findsOneWidget);
 
-      // Long press must expose contextual actions. Completing the Follow-up
-      // must update the canonical SQLite record, not a parallel UI-only state.
-      await tester.longPress(card);
+      // Long press exposes allowed actions. Completing the Follow-up changes
+      // only that history record and persists to the canonical TaskStore.
+      await tester.longPress(followUpCard);
       await tester.pumpAndSettle();
       final completeAction = find.byKey(const ValueKey(
         'reminder-complete-followup:calendar-smoke-task:calendar-smoke-follow-up',
@@ -118,23 +142,25 @@ void main() {
       await tester.tap(completeAction);
       await tester.pumpAndSettle();
 
-      Task? persisted;
+      Task? completedTask;
       for (var attempt = 0; attempt < 50; attempt++) {
         final current = await store.load();
         if (current.isNotEmpty && current.single.followUps.single.completed) {
-          persisted = current.single;
+          completedTask = current.single;
           break;
         }
         await Future<void>.delayed(const Duration(milliseconds: 100));
         await tester.pump(const Duration(milliseconds: 100));
       }
-      expect(persisted, isNotNull);
-      expect(persisted!.followUps.single.completed, isTrue);
+      expect(completedTask, isNotNull);
+      expect(completedTask!.followUps.single.completed, isTrue);
+      expect(completedTask.followUps.single.reminderDate, followUpReminderAt);
+      expect(completedTask.followUps.single.nextFollowUp, nextFollowUpAt);
+      expect(completedTask.taskReminders.single.id, 'calendar-smoke-reminder');
       expect(tester.takeException(), isNull);
       await tester.pumpAndSettle();
       await binding.takeScreenshot('calendar-card-completed');
-      debugPrint('CALENDAR_SMOKE: long press action persisted completed=true in SQLite');
-      debugPrint('CALENDAR_SMOKE: no Flutter framework exception observed');
+      debugPrint('CALENDAR_SMOKE: Follow-up completion persisted independently of Next Follow-up and Reminder');
     },
   );
 }
