@@ -60,9 +60,20 @@ void main() {
         'reminder-card-followup:calendar-smoke-task:calendar-smoke-follow-up',
       );
       final card = find.byKey(cardKey);
-      for (var attempt = 0; attempt < 80 && card.evaluate().isEmpty; attempt++) {
-        await tester.pump(const Duration(milliseconds: 100));
-      }
+      final selectedDayList = find.byKey(
+        const ValueKey('calendar-selected-day-list'),
+      );
+      expect(selectedDayList, findsOneWidget);
+      // The selected day may also contain Daily Content above the Reminder.
+      // Scroll the actual calendar list so the lazy child is built and visible
+      // before asserting or interacting with its stable Reminder identity.
+      await tester.scrollUntilVisible(
+        card,
+        240,
+        scrollable: selectedDayList,
+        maxScrolls: 12,
+      );
+      await tester.pumpAndSettle();
       expect(card, findsOneWidget);
       expect(find.text('پیگیری آزمایشی'), findsOneWidget);
       expect(Directionality.of(tester.element(card)), TextDirection.rtl);
