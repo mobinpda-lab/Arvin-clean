@@ -76,16 +76,8 @@ class FollowUpReminderDeliveryState {
   ) {
     final liveKeys = <String>{};
     for (final task in tasks) {
-      if (task.reminderDate != null) {
-        liveKeys.add('task:${task.id}');
-      }
       for (final reminder in task.taskReminders) {
         liveKeys.add('task:${task.id}:reminder:${reminder.id}');
-      }
-      for (final followUp in task.followUps) {
-        if (followUp.reminderDate != null) {
-          liveKeys.add('${task.id}:${followUp.id}');
-        }
       }
     }
 
