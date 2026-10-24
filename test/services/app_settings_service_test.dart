@@ -141,7 +141,7 @@ void main() {
 
     expect(settings.themeMode, ThemeMode.system);
     expect(settings.usePersianDate, isTrue);
-    expect(settings.fontFamily, isNull);
+    expect(settings.fontFamily, 'Vazirmatn');
     expect(settings.swipeRightAction, TaskSwipeAction.trash);
     expect(settings.swipeLeftAction, TaskSwipeAction.archive);
   });
