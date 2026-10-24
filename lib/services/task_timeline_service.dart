@@ -45,12 +45,13 @@ class TaskTimelineService {
       );
     }
 
-    if (task.reminderDate != null) {
+    for (final reminder in task.taskReminders) {
       entries.add(
         TaskTimelineEntry(
-          id: 'task:${task.id}:reminder',
+          id: 'task:${task.id}:reminder:${reminder.id}',
           kind: TaskTimelineEntryKind.reminder,
-          dateTime: task.reminderDate!,
+          dateTime: reminder.date,
+          note: reminder.title,
         ),
       );
     }
@@ -67,19 +68,6 @@ class TaskTimelineService {
           ),
         );
       }
-    } else if (task.followUpDate != null) {
-      // Compatibility for transitional in-memory Tasks that still carry only
-      // the legacy single followUpDate. Persisted legacy JSON is already
-      // migrated into FollowUps[] by Task.fromJson.
-      entries.add(
-        TaskTimelineEntry(
-          id: 'task:${task.id}:legacy-followup',
-          kind: TaskTimelineEntryKind.followUp,
-          dateTime: task.followUpDate!,
-        ),
-      );
-    }
-
     if (task.updatedAt != null) {
       entries.add(
         TaskTimelineEntry(
