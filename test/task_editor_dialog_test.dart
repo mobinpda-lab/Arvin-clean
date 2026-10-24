@@ -532,4 +532,44 @@ void main() {
     expect(result!.reminderDate, isNull);
   });
 
+  testWidgets('local alarm and device-calendar sync toggles save independently', (tester) async {
+    Task? result;
+    var task = Task(
+      id: 'independent-reminder',
+      title: 'کار مستقل',
+      taskReminders: [
+        TaskReminder(
+          id: 'r1',
+          title: 'یادآور مستقل',
+          date: DateTime(2026, 9, 10, 10),
+          alarmEnabled: true,
+          calendarSyncEnabled: true,
+          sequence: 1,
+        ),
+      ],
+    );
+
+    await pumpEditor(tester, task: task, onResult: (value) => result = value);
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-reminder-alarm-r1')));
+    await tester.tap(find.byKey(const ValueKey('task-editor-reminder-alarm-r1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result!.taskReminders.single.alarmEnabled, isFalse);
+    expect(result!.taskReminders.single.calendarSyncEnabled, isTrue);
+    task = result!;
+
+    result = null;
+    await pumpEditor(tester, task: task, onResult: (value) => result = value);
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-reminder-calendar-sync-r1')));
+    await tester.tap(find.byKey(const ValueKey('task-editor-reminder-calendar-sync-r1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result!.taskReminders.single.alarmEnabled, isFalse);
+    expect(result!.taskReminders.single.calendarSyncEnabled, isFalse);
+  });
+
 }
