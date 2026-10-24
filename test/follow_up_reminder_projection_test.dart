@@ -7,14 +7,10 @@ void main() {
   final now = DateTime(2026, 8, 28, 16);
 
   test('projects future canonical TaskReminders with stable identity and labels', () {
-    final task = Task(
-      id: 'task-1',
-      title: 'قرارداد',
-      taskReminders: [
-        TaskReminder(id: 'r1', title: 'تماس با مشتری', date: DateTime(2026, 8, 28, 17, 30), sequence: 1),
-        TaskReminder(id: 'r2', title: 'یادآور دوم', date: DateTime(2026, 8, 28, 18), sequence: 2),
-      ],
-    );
+    final task = Task(id: 'task-1', title: 'قرارداد', taskReminders: [
+      TaskReminder(id: 'r1', title: 'تماس با مشتری', date: DateTime(2026, 8, 28, 17, 30), sequence: 1),
+      TaskReminder(id: 'r2', title: 'یادآور دوم', date: DateTime(2026, 8, 28, 18), sequence: 2),
+    ]);
     final result = projection.pending([task], now: now);
     expect(result, hasLength(2));
     expect(result.map((item) => item.stableKey), ['task:task-1:reminder:r1', 'task:task-1:reminder:r2']);
@@ -23,14 +19,9 @@ void main() {
   });
 
   test('legacy Next Follow-up and nested Follow-up reminders never schedule', () {
-    final task = Task(
-      id: 'legacy',
-      title: 'قدیمی',
-      reminderDate: DateTime(2026, 8, 28, 17),
-      followUps: [
-        FollowUp(id: 'fu-1', dateTime: DateTime(2026, 8, 28, 15), nextFollowUp: DateTime(2026, 8, 28, 18), reminderDate: DateTime(2026, 8, 28, 19)),
-      ],
-    );
+    final task = Task(id: 'legacy', title: 'قدیمی', reminderDate: DateTime(2026, 8, 28, 17),
+      followUps: [FollowUp(id: 'fu-1', dateTime: DateTime(2026, 8, 28, 15),
+        nextFollowUp: DateTime(2026, 8, 28, 18), reminderDate: DateTime(2026, 8, 28, 19))]);
     expect(projection.pending([task], now: now), isEmpty);
   });
 
@@ -45,14 +36,10 @@ void main() {
   });
 
   test('all-day Reminder uses explicit morning time and preserves siblings', () {
-    final task = Task(
-      id: 'multi',
-      title: 'کار',
-      taskReminders: [
-        TaskReminder(id: 'r1', title: 'تمام‌روز', date: DateTime(2026, 8, 29), isAllDay: true, sequence: 1),
-        TaskReminder(id: 'r2', title: 'ساعت‌دار نیمه‌شب', date: DateTime(2026, 8, 29), isAllDay: false, sequence: 2),
-      ],
-    );
+    final task = Task(id: 'multi', title: 'کار', taskReminders: [
+      TaskReminder(id: 'r1', title: 'تمام‌روز', date: DateTime(2026, 8, 29), isAllDay: true, sequence: 1),
+      TaskReminder(id: 'r2', title: 'ساعت‌دار نیمه‌شب', date: DateTime(2026, 8, 29), isAllDay: false, sequence: 2),
+    ]);
     final result = projection.pending([task], now: now);
     expect(result, hasLength(2));
     expect(result[0].scheduledAt, DateTime(2026, 8, 29, 9));
