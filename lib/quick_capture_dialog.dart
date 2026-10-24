@@ -461,7 +461,7 @@ Future<DateTime?> _pickCustomDue() async {
                 style: TextStyle(
                   color: ArvinColors.textPrimary,
                   fontSize: 18,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
               const SizedBox(height: 14),
