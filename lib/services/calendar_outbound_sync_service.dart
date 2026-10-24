@@ -112,7 +112,7 @@ class CalendarOutboundSyncService {
                     preserveUnprojectedTaskIds.contains(taskId);
               });
     final plan = planService.plan(
-      revisions: revisions,
+      revisions: revisions.where((item) => item.syncToDevice).toList(growable: false),
       links: linksForPlan,
       targetCalendarId: targetCalendarId,
     );
