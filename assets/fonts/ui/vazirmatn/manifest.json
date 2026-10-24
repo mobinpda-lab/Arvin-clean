@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "status": "source_verified_pending_repository_transfer",
+  "source": {
+    "repository": "https://github.com/rastikerdar/vazirmatn",
+    "snapshot": "6e553e33489a8f9dfaccc76860a2e3f3c1e66de7",
+    "uploadedArchive": "vazirmatn-v33.003 (2).zip",
+    "archiveSha256": "not_recorded",
+    "licenseSource": "OFL.txt",
+    "licenseSha256": "17e355067c8284f47743a1ee3b1ef7ff684ff0601eda357f9353b10b3016ab31",
+    "license": "SIL Open Font License 1.1"
+  },
+  "files": [
+    {
+      "weight": "Thin",
+      "flutterWeight": 100,
+      "sourcePath": "misc/UI-Farsi-Digits/fonts/ttf/Vazirmatn-UI-FD-Thin.ttf",
+      "targetPath": "assets/fonts/ui/vazirmatn/Vazirmatn-UI-FD-Thin.ttf",
+      "sizeBytes": 120360,
+      "sha256": "627207d0f5ba6fbfcd0f3503dcf4b2c5543cd9c430eed27a92068e8a99709c8e",
+      "repositoryStatus": "not_yet_transferred"
+    },
+    {
+      "weight": "ExtraLight",
+      "flutterWeight": 200,
+      "sourcePath": "misc/UI-Farsi-Digits/fonts/ttf/Vazirmatn-UI-FD-ExtraLight.ttf",
+      "targetPath": "assets/fonts/ui/vazirmatn/Vazirmatn-UI-FD-ExtraLight.ttf",
+      "sizeBytes": 119480,
+      "sha256": "2b5df969ec415f1a1410911a08ae2e4b4c67bf19c07e9624c101caaf565fb117",
+      "repositoryStatus": "not_yet_transferred"
+    },
+    {
+      "weight": "Light",
+      "flutterWeight": 300,
+      "sourcePath": "misc/UI-Farsi-Digits/fonts/ttf/Vazirmatn-UI-FD-Light.ttf",
+      "targetPath": "assets/fonts/ui/vazirmatn/Vazirmatn-UI-FD-Light.ttf",
+      "sizeBytes": 119140,
+      "sha256": "903ba290379f1866b98a0bbcd43d16ab2738ae03b8714cbb71d57a0fbde6878f",
+      "repositoryStatus": "not_yet_transferred"
+    },
+    {
+      "weight": "Regular",
+      "flutterWeight": 400,
+      "sourcePath": "misc/UI-Farsi-Digits/fonts/ttf/Vazirmatn-UI-FD-Regular.ttf",
+      "targetPath": "assets/fonts/ui/vazirmatn/Vazirmatn-UI-FD-Regular.ttf",
+      "sizeBytes": 118984,
+      "sha256": "6aa9500a3a8277e5ee92bff773e63a37ed3532661e0bcb721aefa863b8d10814",
+      "repositoryStatus": "not_yet_transferred"
+    },
+    {
+      "weight": "Medium",
+      "flutterWeight": 500,
+      "sourcePath": "misc/UI-Farsi-Digits/fonts/ttf/Vazirmatn-UI-FD-Medium.ttf",
+      "targetPath": "assets/fonts/ui/vazirmatn/Vazirmatn-UI-FD-Medium.ttf",
+      "sizeBytes": 118880,
+      "sha256": "29ba579992b9b8fdf77d99acc36ad7ac34407d74d0412f6a7974bd3412d4fa06",
+      "repositoryStatus": "not_yet_transferred"
+    },
+    {
+      "weight": "SemiBold",
+      "flutterWeight": 600,
+      "sourcePath": "misc/UI-Farsi-Digits/fonts/ttf/Vazirmatn-UI-FD-SemiBold.ttf",
+      "targetPath": "assets/fonts/ui/vazirmatn/Vazirmatn-UI-FD-SemiBold.ttf",
+      "sizeBytes": 119128,
+      "sha256": "cab10cbb4b518b34e2e3768d566c00966c4aa92f093e1ed9a4c00291a7bc6ecf",
+      "repositoryStatus": "not_yet_transferred"
+    },
+    {
+      "weight": "Bold",
+      "flutterWeight": 700,
+      "sourcePath": "misc/UI-Farsi-Digits/fonts/ttf/Vazirmatn-UI-FD-Bold.ttf",
+      "targetPath": "assets/fonts/ui/vazirmatn/Vazirmatn-UI-FD-Bold.ttf",
+      "sizeBytes": 119276,
+      "sha256": "d0c8d728d939df28a64fca2ea184a148f40779a59e31d7cd03b5ec59ee2b9b58",
+      "repositoryStatus": "not_yet_transferred"
+    },
+    {
+      "weight": "ExtraBold",
+      "flutterWeight": 800,
+      "sourcePath": "misc/UI-Farsi-Digits/fonts/ttf/Vazirmatn-UI-FD-ExtraBold.ttf",
+      "targetPath": "assets/fonts/ui/vazirmatn/Vazirmatn-UI-FD-ExtraBold.ttf",
+      "sizeBytes": 119540,
+      "sha256": "a92c2a3c27483764e64e3ec64a1a16d3fb8a81ac2579426fd7ade07d5fb941d9",
+      "repositoryStatus": "not_yet_transferred"
+    },
+    {
+      "weight": "Black",
+      "flutterWeight": 900,
+      "sourcePath": "misc/UI-Farsi-Digits/fonts/ttf/Vazirmatn-UI-FD-Black.ttf",
+      "targetPath": "assets/fonts/ui/vazirmatn/Vazirmatn-UI-FD-Black.ttf",
+      "sizeBytes": 119572,
+      "sha256": "7307d3a0c3564c7db2128702242a5e19886b5eebbe9b0607ecf7f7e39c99fe09",
+      "repositoryStatus": "not_yet_transferred"
+    }
+  ]
+}
