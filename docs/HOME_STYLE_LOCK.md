@@ -137,14 +137,12 @@ Reference accent intent:
 ## 9. Typography
 
 - Persian/RTL first.
-- **VazirHarf v34.003 is the only canonical public/default Persian UI font for Arvin.**
-- No Vazirmatn family, asset, path, or fallback is permitted in the canonical typography contract.
-- Licensed/private fonts such as IRANSansX remain opt-in only when their legitimate assets are available and must never replace the public/default font implicitly.
-- App title: bold/semibold.
-- Section title: semibold.
-- Task title: semibold.
-- Metadata: regular, smaller, secondary color.
-- Bismillah: lighter/smaller than the product title, but clearly legible.
+- **Vazirmatn is the only canonical and mandatory default UI font family for Arvin.** Current authority: `docs/TYPOGRAPHY_CANONICAL.md`, owned by product decision in Issue #2974.
+- VazirHarf is prohibited as the default, automatic substitute, or UI fallback. Device/system font selection must not silently replace Vazirmatn on the default path.
+- Canonical role mapping: body/content Regular 400; helper text/metadata Light 300; menus/controls/buttons Medium 500; titles/section headings Bold 700; important emphasis SemiBold 600.
+- Full family weights are Thin 100, ExtraLight 200, Light 300, Regular 400, Medium 500, SemiBold 600, Bold 700, ExtraBold 800, Black 900. A weight must never be registered using another weight's file.
+- Font sizes, colors, spacing, line heights and existing hierarchy must not change without a separate product decision.
+- PDF/report typography is a separately documented exception and must not change UI typography.
 
 ## 10. Prohibited drift
 
@@ -158,7 +156,7 @@ The following are explicitly not acceptable without a new user-approved UI decis
 - random accent colors on ordinary controls;
 - removing bottom navigation solely because a drawer exists;
 - replacing the approved Home with an AI-generated redesign because it is easier to implement;
-- reintroducing Vazirmatn as a default or fallback font.
+- reintroducing VazirHarf or a system/device font as the default or fallback instead of Vazirmatn.
 
 ## 11. Validation gate
 
