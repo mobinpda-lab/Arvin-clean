@@ -413,7 +413,7 @@ class _CalendarPageState extends State<CalendarPage> {
           Text(
             _dateFormatter.toPersianDigits('${jalali.day}'),
             style: Theme.of(context).textTheme.titleLarge
-                ?.copyWith(fontWeight: FontWeight.w800),
+                ?.copyWith(fontWeight: FontWeight.w700),
           ),
           const Spacer(),
           Container(
@@ -611,7 +611,7 @@ class _CalendarPageState extends State<CalendarPage> {
                             style: TextStyle(
                               fontSize: 10,
                               height: 1,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w700,
                               color: Theme.of(context).colorScheme.primary,
                             ),
                           ),
@@ -1413,7 +1413,7 @@ class _Weekday extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Expanded(
     child: Center(
-      child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+      child: Text(label, style: const TextStyle(fontWeight: FontWeight.w700)),
     ),
   );
 }
