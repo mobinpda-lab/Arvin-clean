@@ -488,3 +488,17 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Product concept | Proposal PR #2866, branch `docs/canonical-product-concept-20261020` | Proposed; not in main | Review, approve and merge through normal governance before treating as official policy. |
 | Source ZIP comparison | No identifiable pair of source ZIPs in current conversation attachments | NOT VERIFIED | Obtain exact ZIP names/files and compare archive contents to branch/main SHA. |
 
+
+## Wave 7.18-R3 — updated exact-head evidence (2026-10-24)
+
+| Claim / gate | Revision / evidence | Result | Limitation / next step |
+|---|---|---|---|
+| Calendar assertion corrected | PR #2951 commit [9cd8c88a](https://github.com/mobinpda-lab/Arvin-clean/commit/9cd8c88a257297717e5c02a9b9ae140c8be9c159) | Correction committed | Current-head Build and Device Smoke must finish before acceptance. |
+| Calendar current-head Build | SHA `9cd8c88a257297717e5c02a9b9ae140c8be9c159`; [40058724793](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058724793) | Analyze PASS; test shards and Debug/Release IN PROGRESS at checkpoint | Recheck terminal jobs and actual checkout SHA. |
+| Calendar Provider | [40058724849](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058724849) | IN PROGRESS | Prior run [40020128550](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40020128550) passed only a narrow no-writable-calendar limitation test; it did not prove a writable real provider. |
+| Calendar Device Smoke | [40058724794](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058724794) | QUEUED at checkpoint | Prior [40020128711](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40020128711) logged Calendar interaction assertions as passing, but failed screenshot artifact upload; Backup/Restore failed during Android SDK emulator package download. |
+| Home next-follow-up correction | PR #2947 head `94e3cb17ddf16158b414834d2d81bf4ca73e653e`; commits `5b4ae818`, `d0470b9f`, `ca526ace`, `f78ccdd1`, `a4dfdf3a`, `94e3cb17` | Code/tests committed; current-head validation pending | Legacy `Task.followUpDate` retained as fallback. Task due date no longer deduplicated against Follow-up timestamp. |
+| Home current-head Build/Smoke | Build [40058784437](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058784437); Smoke [40058784508](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058784508) | Pending/queued at checkpoint | The prior Smoke [40058738017](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/40058738017) was cancelled after a newer commit; not evidence for final head. |
+| Follow-up date-only | Main model blob `c0ce878b88bb6fe4ede1c98da8a889b9edab8893` | NOT VERIFIED | No explicit date-only flag; midnight is ambiguous. |
+| Source ZIP comparison | Exact requested pair not identified | NOT VERIFIED | Do not substitute unrelated evidence/font ZIPs. |
+
