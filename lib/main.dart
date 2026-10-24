@@ -795,7 +795,8 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  DateTime? _homeFollowUpDate(Task task) => task.lastFollowUp?.dateTime;
+  DateTime? _homeFollowUpDate(Task task) =>
+      task.lastFollowUp?.nextFollowUp ?? task.followUpDate;
 
   String? _projectTitleForTask(Task task) {
     for (final project in projects) {
