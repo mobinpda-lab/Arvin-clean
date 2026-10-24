@@ -33,6 +33,17 @@ void main() {
     }
   });
 
+  test('global ThemeData uses the approved five role weights', () {
+    final mainSource = File('lib/main.dart').readAsStringSync();
+    expect(mainSource, contains('AppFonts.vazirmatnFamily'));
+    expect(mainSource, contains('bodyLarge: lightBaseTextTheme.bodyLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w400)'));
+    expect(mainSource, contains('bodySmall: lightBaseTextTheme.bodySmall?.copyWith(fontSize: 14, fontWeight: FontWeight.w300)'));
+    expect(mainSource, contains('labelLarge: lightBaseTextTheme.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w500)'));
+    expect(mainSource, contains('titleLarge: lightBaseTextTheme.titleLarge?.copyWith(fontSize: 22, fontWeight: FontWeight.w700)'));
+    expect(mainSource, isNot(contains('FontWeight.w800')));
+    expect(mainSource, isNot(contains('FontWeight.w900')));
+  });
+
   test('Settings no longer exposes an alternate font picker', () {
     final settingsSource = File('lib/settings_page.dart').readAsStringSync();
     expect(settingsSource, contains('وزیرمتن (Vazirmatn)'));
