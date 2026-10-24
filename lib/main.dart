@@ -53,7 +53,7 @@ import 'task_editor_dialog.dart';
 import 'task_next_action_page.dart';
 import 'task_report_page.dart';
 import 'widgets/persian_date_picker.dart';
-import 'theme/font_registry.dart';
+import 'theme/app_fonts.dart';
 import 'widgets/arvin_primary_navigation.dart';
 import 'widgets/arvin_home_primary_add_button.dart';
 import 'widgets/canonical_calendar_launcher.dart';
@@ -141,8 +141,7 @@ class _ArvinAppState extends State<ArvinApp> {
 
   @override
   Widget build(BuildContext context) {
-    final selectedOption = arvinFontById(settings.fontFamily ?? 'vazirharf');
-    final selectedFontFamily = selectedOption.effectiveFontFamily;
+    const selectedFontFamily = AppFonts.vazirmatnFamily;
     final lightBaseTextTheme = ThemeData.light().textTheme.apply(
       fontFamily: selectedFontFamily,
       bodyColor: ArvinColors.textPrimary,
@@ -152,22 +151,22 @@ class _ArvinAppState extends State<ArvinApp> {
       fontFamily: selectedFontFamily,
     );
     final readableLightTextTheme = lightBaseTextTheme.copyWith(
-      bodyLarge: lightBaseTextTheme.bodyLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w600),
-      bodyMedium: lightBaseTextTheme.bodyMedium?.copyWith(fontSize: 16, fontWeight: FontWeight.w500),
-      bodySmall: lightBaseTextTheme.bodySmall?.copyWith(fontSize: 14, fontWeight: FontWeight.w500),
+      bodyLarge: lightBaseTextTheme.bodyLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w400),
+      bodyMedium: lightBaseTextTheme.bodyMedium?.copyWith(fontSize: 16, fontWeight: FontWeight.w400),
+      bodySmall: lightBaseTextTheme.bodySmall?.copyWith(fontSize: 14, fontWeight: FontWeight.w300),
       titleLarge: lightBaseTextTheme.titleLarge?.copyWith(fontSize: 22, fontWeight: FontWeight.w700),
       titleMedium: lightBaseTextTheme.titleMedium?.copyWith(fontSize: 18, fontWeight: FontWeight.w700),
       titleSmall: lightBaseTextTheme.titleSmall?.copyWith(fontSize: 16, fontWeight: FontWeight.w700),
-      labelLarge: lightBaseTextTheme.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w700),
+      labelLarge: lightBaseTextTheme.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w500),
     );
     final readableDarkTextTheme = darkBaseTextTheme.copyWith(
-      bodyLarge: darkBaseTextTheme.bodyLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w600),
-      bodyMedium: darkBaseTextTheme.bodyMedium?.copyWith(fontSize: 16, fontWeight: FontWeight.w500),
-      bodySmall: darkBaseTextTheme.bodySmall?.copyWith(fontSize: 14, fontWeight: FontWeight.w500),
+      bodyLarge: darkBaseTextTheme.bodyLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w400),
+      bodyMedium: darkBaseTextTheme.bodyMedium?.copyWith(fontSize: 16, fontWeight: FontWeight.w400),
+      bodySmall: darkBaseTextTheme.bodySmall?.copyWith(fontSize: 14, fontWeight: FontWeight.w300),
       titleLarge: darkBaseTextTheme.titleLarge?.copyWith(fontSize: 22, fontWeight: FontWeight.w700),
       titleMedium: darkBaseTextTheme.titleMedium?.copyWith(fontSize: 18, fontWeight: FontWeight.w700),
       titleSmall: darkBaseTextTheme.titleSmall?.copyWith(fontSize: 16, fontWeight: FontWeight.w700),
-      labelLarge: darkBaseTextTheme.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w700),
+      labelLarge: darkBaseTextTheme.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w500),
     );
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -223,8 +222,8 @@ class _ArvinAppState extends State<ArvinApp> {
         inputDecorationTheme: const InputDecorationTheme(
           filled: true,
           fillColor: ArvinColors.surface,
-          labelStyle: TextStyle(color: ArvinColors.textSecondary, fontWeight: FontWeight.w600),
-          hintStyle: TextStyle(color: ArvinColors.textSecondary),
+          labelStyle: TextStyle(color: ArvinColors.textSecondary, fontWeight: FontWeight.w500),
+          hintStyle: TextStyle(color: ArvinColors.textSecondary, fontWeight: FontWeight.w300),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(14)),
             borderSide: BorderSide(color: ArvinColors.border, width: 1.2),
