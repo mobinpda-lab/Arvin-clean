@@ -7,26 +7,28 @@
 
 ## 1. Non-negotiable product vocabulary
 
-The current user-facing product concepts are:
+The current scheduling model is:
 - **Task**
-- **Task due date**
-- **Reminder** (zero or more independently identifiable reminders attached to a Task)
+- **Task due date**, independent from reminders
+- **Reminder**, zero or more independently identifiable scheduled reminders attached to a Task
 
-**“پیگیری بعدی”, “پیگیری مستقل”, “Next Follow-up” and “Follow-up Reminder” are not current product concepts. They must not be brought back through UI, domain behavior, Calendar cards, filters, reports, notifications, acceptance criteria or new product documentation.** Do not reopen this product decision or ask the owner to decide it again.
+The settled owner decision removed the scheduling concepts **“پیگیری بعدی” (Next Follow-up)** and **“پیگیری مستقل” (independent Follow-up Reminder)** and replaced them with canonical Task Reminders. Do not reintroduce those retired scheduling concepts in UI, active schedule behavior, Calendar cards, filters, reports, notifications, acceptance criteria or new product documentation. Do not reopen this decision.
 
-A Reminder is the current concept for scheduling a future notification/calendar intent. A Task due date remains separate from its reminders. Arvin's own alarm and phone-calendar synchronization are separate delivery channels for a Reminder, not separate product concepts.
+**Important distinction:** a dated FollowUp/history record may still represent a real past interaction (for example, a call, result, note, completion state or linked person) where that history is part of the accepted product. Do not delete or rename that historical record merely because the old scheduling fields are retired. What must not remain active is the old nextFollowUp future-action schedule or a separate reminder schedule nested under a FollowUp record. The current scheduled notification/calendar intent belongs to a canonical Task Reminder.
 
+Arvin's own alarm and phone-calendar synchronization are separate delivery channels for a Reminder, not separate product concepts.
 ## 2. Legacy names and stored data
 
-The repository currently contains legacy symbols/fields such as `FollowUp`, `followUps`, `followUpEnabled`, `followUpDate`, `nextFollowUp`, and legacy `reminderDate` fields. Their existence in source, database schemas, JSON or old PRs is **implementation history/compatibility debt, not authority to revive the old product concepts**.
+The repository contains historical FollowUp records as well as legacy scheduling fields. The record type/history and the retired scheduling concepts must not be conflated:
+- FollowUp records and the followUps collection may hold historical interaction data and must be preserved where used by accepted history, people or report flows.
+- nextFollowUp, legacy enable/date fields, and a nested FollowUp.reminderDate are old scheduling concepts to audit and retire or migrate; they do not define current Reminder behavior.
+- Their existence in source, database schemas, JSON or old PRs is not authority to revive the removed Next Follow-up or independent Follow-up Reminder workflows.
 
 Rules:
-- Do not create new user-facing behavior based on legacy “Next Follow-up” or “independent Follow-up” fields.
-- Do not render legacy-only planned-action records as current Reminder cards or as a separate current scheduling concept.
-- Do not create a Reminder from a legacy next-action date by inference or automatically.
-- Preserve user data during the transition. Do not delete or rewrite legacy data until every reader/writer, SQLite migration, JSON import/export, backup/restore, Calendar sync, notification scheduler, report, filter and UI consumer has been audited and a safe, idempotent migration is implemented and tested.
-- Legacy types/files may remain temporarily for decoding, migration or compatibility only. New code must not expand their product role. Prefer names that match the current Reminder model when safely refactoring.
-- Any migration from legacy data to Reminder requires an explicit mapping rule, stable identity, duplicate prevention, idempotence, and regression tests. Ambiguous values must be preserved for explicit handling, not silently guessed.
+- Do not create new user-facing scheduling behavior based on legacy Next Follow-up or nested legacy reminder fields.
+- Do not render legacy-only planned-action or nested FollowUp reminder records as current Task Reminder cards without a safe, explicit migration into the canonical Task Reminder collection.
+- Do not create a Reminder by inference from a legacy next-action date. An explicit old reminder timestamp may be mapped only by a documented, stable-ID, duplicate-safe migration.
+- Preserve historical FollowUp records and user data during the transition. Do not delete or rewrite legacy data until every reader/writer, SQLite migration, JSON import/export, backup/restore, Calendar sync, notification scheduler, report, filter and UI consumer has been audited and a safe, idempotent migration is implemented and tested.
 
 ## 3. Reminder behavior
 
