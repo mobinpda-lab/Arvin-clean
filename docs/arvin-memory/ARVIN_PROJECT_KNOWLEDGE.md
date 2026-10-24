@@ -137,3 +137,7 @@ Current main is `cea76673d871ce52b84dacf69f355c4282802baa`. Documentation cleanu
 - Preserve the legacy timestamp; midnight is not evidence of all-day intent. The migrated reminder keeps Calendar identity task-reminder:<taskId> and the existing scheduler key; the old field remains for compatibility but is not emitted/scheduled a second time after migration.
 - The owner reports that the current app DB is empty. Do not assume all backups, test fixtures or other installations are empty.
 - SQL, backup/restore, rollback/retry, Calendar no-duplicate, exact-head CI and physical-device acceptance remain required.
+
+
+## Owner directive update — 2026-10-24
+The latest explicit owner instruction supersedes the 2026-10-13 opt-in rule for initial creation only: setting Next Follow-up for the first time initializes a matching reminder if none exists. This is a one-time bridge, not ongoing coupling. Existing reminders are preserved; later edits/deletions remain independent. Date-only/all-day remains NOT VERIFIED because the current model lacks explicit all-day intent fields for both values.

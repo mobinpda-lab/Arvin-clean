@@ -73,6 +73,144 @@ void main() {
     expect(result!.reminderDate, isNull);
   });
 
+  testWidgets('first Next Follow-up initializes a matching independent reminder once',
+      (tester) async {
+    FollowUp? result;
+    final initial = DateTime(2026, 8, 27, 9, 30);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: ElevatedButton(
+              onPressed: () async {
+                result = await Navigator.of(context).push<FollowUp>(
+                  MaterialPageRoute(
+                    builder: (_) => FollowUpEntryPage(initialDateTime: initial),
+                  ),
+                );
+              },
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    final nextButton = find.text('انتخاب پیگیری بعدی');
+    await revealReminder(tester);
+    await tester.tap(nextButton);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('persian-date-picker')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('persian-date-day-6')));
+    await tester.pump();
+    await tester.tap(find.widgetWithText(FilledButton, 'تأیید'));
+    await tester.pumpAndSettle();
+
+    await saveEditor(tester);
+
+    final expected = DateTime(2026, 8, 28, 9, 30);
+    expect(result, isNotNull);
+    expect(result!.nextFollowUp, expected);
+    expect(result!.reminderDate, expected);
+  });
+
+  testWidgets('first Next Follow-up preserves an existing reminder', (tester) async {
+    FollowUp? result;
+    final reminder = DateTime(2026, 9, 2, 7, 45);
+    final initial = FollowUp(
+      id: 'fu-existing-reminder',
+      dateTime: DateTime(2026, 8, 27, 9, 30),
+      reminderDate: reminder,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: ElevatedButton(
+              onPressed: () async {
+                result = await Navigator.of(context).push<FollowUp>(
+                  MaterialPageRoute(
+                    builder: (_) => FollowUpEntryPage(initialFollowUp: initial),
+                  ),
+                );
+              },
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await revealReminder(tester);
+    await tester.tap(find.text('انتخاب پیگیری بعدی'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('persian-date-picker')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('persian-date-day-6')));
+    await tester.pump();
+    await tester.tap(find.widgetWithText(FilledButton, 'تأیید'));
+    await tester.pumpAndSettle();
+    await saveEditor(tester);
+
+    expect(result, isNotNull);
+    expect(result!.id, initial.id);
+    expect(result!.nextFollowUp, DateTime(2026, 8, 28, 9, 30));
+    expect(result!.reminderDate, reminder);
+  });
+
+  testWidgets('editing reminder date does not change Next Follow-up', (tester) async {
+    FollowUp? result;
+    final reminder = DateTime(2026, 9, 2, 7, 45);
+    final nextFollowUp = DateTime(2026, 9, 5, 10, 15);
+    final initial = FollowUp(
+      id: 'fu-independent-edit',
+      dateTime: DateTime(2026, 8, 27, 9, 30),
+      reminderDate: reminder,
+      nextFollowUp: nextFollowUp,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: ElevatedButton(
+              onPressed: () async {
+                result = await Navigator.of(context).push<FollowUp>(
+                  MaterialPageRoute(
+                    builder: (_) => FollowUpEntryPage(initialFollowUp: initial),
+                  ),
+                );
+              },
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await revealReminder(tester);
+    await tester.tap(find.byKey(const ValueKey('follow-up-reminder-date')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('persian-date-picker')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('persian-date-day-12')));
+    await tester.pump();
+    await tester.tap(find.widgetWithText(FilledButton, 'تأیید'));
+    await tester.pumpAndSettle();
+    await saveEditor(tester);
+
+    expect(result, isNotNull);
+    expect(result!.reminderDate, DateTime(2026, 9, 3, 7, 45));
+    expect(result!.nextFollowUp, nextFollowUp);
+  });
+
   testWidgets('blank optional title remains absent in the model', (tester) async {
     FollowUp? result;
     final initial = DateTime(2026, 8, 28, 0, 5);
@@ -166,10 +304,12 @@ void main() {
   testWidgets('existing reminder can be cleared without changing FollowUp identity',
       (tester) async {
     FollowUp? result;
+    final nextFollowUp = DateTime(2026, 9, 1, 14, 15);
     final initial = FollowUp(
       id: 'fu-clear',
       dateTime: DateTime(2026, 8, 28, 12),
       reminderDate: DateTime(2026, 8, 29, 8, 30),
+      nextFollowUp: nextFollowUp,
     );
 
     await tester.pumpWidget(
@@ -206,6 +346,7 @@ void main() {
     expect(result, isNotNull);
     expect(result!.id, initial.id);
     expect(result!.reminderDate, isNull);
+    expect(result!.nextFollowUp, nextFollowUp);
   });
   testWidgets('FollowUp Back prompts and save preserves entered changes',
       (tester) async {

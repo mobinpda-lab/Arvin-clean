@@ -213,3 +213,10 @@
 ## 2026-10-15 — Decision record: PR #2725 validated
 
 Both required exact-head gates for `ba2306cfc66ad982f8e8ab73b838a4a8d6ed6b55` are terminal `success`: Build `38752957837` and Device Smoke `38752957813` (all six lanes). Proceed with the authorized squash merge of PR #2725 only while its head remains unchanged. After confirmed merge, create `feat/person-reports-followup-issue-2683` from fresh `main` and begin Issue #2683. Do not conflate CI success with physical-device release acceptance.
+
+
+## 2026-10-24 — Latest owner directive: one-time initial reminder from Next Follow-up
+- This directive supersedes the 2026-10-13 “creation is opt-in” rule specifically for the first activation of Next Follow-up: when Next Follow-up is set for the first time, initialize the associated Follow-up reminder at the same date/time if no reminder already exists.
+- Never overwrite an already configured reminder. After this one-time initialization, Next Follow-up and reminder remain independent: changing either must not mutate the other; deleting the reminder preserves Follow-up history and Next Follow-up.
+- Date-only/all-day behavior remains unresolved in implementation: the current FollowUp model does not persist explicit all-day intent independently for Next Follow-up and reminder. Do not infer all-day solely from midnight; complete a backward-compatible model/persistence/backup plan before claiming date-only acceptance.
+- Implementation candidate: PR #2960. Do not mark accepted until exact-head tests and persistence/Calendar checks pass.
