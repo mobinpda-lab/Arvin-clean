@@ -101,6 +101,26 @@ void main() {
     expect(items.single.id, 'task-reminder-item:task%3Awith%3Acolons:reminder%3Aone');
   });
 
+  test('all four alarm/calendar-sync combinations remain independent', () {
+    final at = DateTime(2026, 12, 9, 9);
+    final task = Task(
+      id: 'four-modes',
+      title: 'چهار حالت',
+      taskReminders: [
+        TaskReminder(id: '00', title: 'خاموش/خاموش', date: at, alarmEnabled: false, calendarSyncEnabled: false, sequence: 1),
+        TaskReminder(id: '01', title: 'خاموش/روشن', date: at, alarmEnabled: false, calendarSyncEnabled: true, sequence: 2),
+        TaskReminder(id: '10', title: 'روشن/خاموش', date: at, alarmEnabled: true, calendarSyncEnabled: false, sequence: 3),
+        TaskReminder(id: '11', title: 'روشن/روشن', date: at, alarmEnabled: true, calendarSyncEnabled: true, sequence: 4),
+      ],
+    );
+    final rows = projection.project([task]);
+    expect(rows, hasLength(4));
+    expect(rows.map((row) => row.syncToDevice), [false, true, false, true]);
+    expect(task.taskReminders.map((item) => [item.alarmEnabled, item.calendarSyncEnabled]).toList(), [
+      [false, false], [false, true], [true, false], [true, true],
+    ]);
+  });
+
   test('legacy Task.reminderDate alone is not an active Reminder source', () {
     final task = Task(
       id: 'legacy',
