@@ -312,7 +312,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
             ],
           ),
           const SizedBox(height: 4),
-          const Text('هر یادآور مستقل است و می‌تواند عنوان و زمان جداگانه داشته باشد.'),
+          const Text('هر یادآور مستقل است؛ آلارم محلی و همگام‌سازی تقویم جداگانه کنترل می‌شوند.'),
           if (_taskReminders.isEmpty)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 10),
@@ -398,6 +398,29 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       },
                       title: const Text('تمام‌روز (بدون ساعت)'),
                       ),
+                    ),
+                    CheckboxListTile(
+                      key: ValueKey('task-editor-reminder-alarm-$reminderKey'),
+                      contentPadding: EdgeInsets.zero,
+                      controlAffinity: ListTileControlAffinity.leading,
+                      value: reminder.alarmEnabled,
+                      onChanged: (value) => _updateTaskReminder(
+                        index,
+                        reminder.copyWith(alarmEnabled: value ?? false),
+                      ),
+                      title: const Text('آلارم محلی'),
+                      subtitle: const Text('خاموش‌کردن آلارم یادآور را حذف نمی‌کند.'),
+                    ),
+                    CheckboxListTile(
+                      key: ValueKey('task-editor-reminder-calendar-sync-$reminderKey'),
+                      contentPadding: EdgeInsets.zero,
+                      controlAffinity: ListTileControlAffinity.leading,
+                      value: reminder.calendarSyncEnabled,
+                      onChanged: (value) => _updateTaskReminder(
+                        index,
+                        reminder.copyWith(calendarSyncEnabled: value ?? false),
+                      ),
+                      title: const Text('همگام‌سازی با تقویم دستگاه'),
                     ),
                   ],
                 ),
