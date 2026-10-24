@@ -77,7 +77,7 @@ class FollowUpReminderDeliveryState {
     final liveKeys = <String>{};
     for (final task in tasks) {
       for (final reminder in task.taskReminders) {
-        liveKeys.add('task:${task.id}:reminder:${reminder.id}');
+        liveKeys.add(reminder.isLegacyTaskReminder ? 'task:${task.id}' : 'task:${task.id}:reminder:${reminder.id}');
       }
     }
 
