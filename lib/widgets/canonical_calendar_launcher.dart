@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../calendar_page.dart';
-import '../follow_up_entry_page.dart';
-import '../follow_up_repository.dart';
 import '../models/task.dart';
 import '../notebook_page.dart';
 import '../official_calendar_page.dart';
-import '../services/calendar_reschedule_apply_service.dart';
-import '../services/calendar_rescheduling_advisor.dart';
 import '../services/calendar_inbound_sync_service.dart';
 import '../services/follow_up_calendar_projection.dart';
-import '../services/follow_up_write_coordinator.dart';
 import '../services/system_calendar_bridge.dart';
 import '../task_next_action_page.dart';
 import '../task_timeline_page.dart';
@@ -24,8 +19,6 @@ class CanonicalCalendarLauncher extends StatefulWidget {
     super.key,
     required this.tasks,
     this.projection = const FollowUpCalendarProjection(),
-    this.reschedulingAdvisor = const CalendarReschedulingAdvisor(),
-    this.rescheduleApplyService,
     this.onRefreshTasks,
     this.onCreateTaskForDate,
     this.onCreateTaskFromCalendarEvent,
@@ -38,8 +31,6 @@ class CanonicalCalendarLauncher extends StatefulWidget {
 
   final List<Task> tasks;
   final FollowUpCalendarProjection projection;
-  final CalendarReschedulingAdvisor reschedulingAdvisor;
-  final CalendarRescheduleApplyService? rescheduleApplyService;
   /// Reloads canonical Tasks before timeline access so the launcher never
   /// relies on a stale snapshot after another route writes to SQL.
   final Future<List<Task>> Function()? onRefreshTasks;
@@ -58,14 +49,7 @@ class CanonicalCalendarLauncher extends StatefulWidget {
 
 class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
   late List<Task> _tasks;
-  FollowUpWriteCoordinator get _followUpWriter =>
-      FollowUpWriteCoordinator(repository: const FollowUpRepository());
-
   CalendarInboundSyncService get _inboundSync => CalendarInboundSyncService();
-
-  CalendarRescheduleApplyService get _applyService =>
-      widget.rescheduleApplyService ??
-      CalendarRescheduleApplyService(writer: _followUpWriter);
 
   static const _calendarHelpSteps = <ContextualHelpStep>[
     ContextualHelpStep(
@@ -90,13 +74,11 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     ),
     ContextualHelpStep(
       icon: Icons.warning_amber_outlined,
-      title: 'بررسی تداخل‌ها',
-      body: 'از «بیشتر» و سپس «تداخل‌ها» پیگیری‌های زمان‌دار را بررسی کنید؛ هیچ تغییری بدون تأیید شما اعمال نمی‌شود.',
     ),
     ContextualHelpStep(
       icon: Icons.event_available_outlined,
       title: 'تقویم دستگاه',
-      body: 'از «بیشتر» و سپس «تقویم دستگاه» می‌توانید یک پیگیری فعال را به تقویم گوشی منتقل کنید.',
+      body: 'از «بیشتر» و سپس «تقویم دستگاه» می‌توانید Task و Reminderهای آروین را با تقویم گوشی همگام کنید.'
     ),
   ];
 
@@ -165,118 +147,22 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     }
   }
 
-  void _replaceFollowUp(FollowUpCalendarTarget target, FollowUp updated) {
-    final taskIndex = _tasks.indexWhere((task) => task.id == target.taskId);
-    if (taskIndex < 0) return;
-    final task = _tasks[taskIndex];
-    final followUpIndex = task.followUps.indexWhere(
-      (item) => item.id == updated.id,
-    );
-    if (followUpIndex < 0) return;
-    setState(() {
-      final next = List<FollowUp>.of(task.followUps);
-      next[followUpIndex] = updated;
-      task.followUps = next;
-      task.followUpEnabled = true;
-      task.updatedAt = DateTime.now();
-    });
-  }
-
-  Future<void> _editTaskFromCalendar(CalendarReminder reminder) async {
-    if (widget.onEditTask == null) return;
-    Task? task;
-    for (final prefix in const <String>[
-      'task-due:',
-      'task-reminder-item:',
-      'task-reminder:',
-      'task-followup:',
-    ]) {
-      if (!reminder.id.startsWith(prefix)) continue;
-      final suffix = reminder.id.substring(prefix.length);
-      final separator = suffix.indexOf(':');
-      final taskId = prefix == 'task-reminder-item:' && separator > 0
-          ? Uri.decodeComponent(suffix.substring(0, separator))
-          : suffix;
-      for (final candidate in _tasks) {
-        if (candidate.trashed) continue;
-        // Reminder item IDs encode Task IDs before appending the Reminder ID;
-        // recurrence IDs instead append an occurrence timestamp.
-        final matches = prefix == 'task-reminder-item:'
-            ? taskId == candidate.id
-            : suffix == candidate.id || suffix.startsWith('${candidate.id}:');
-        if (matches) {
-          task = candidate;
-          break;
-        }
+  Task? _taskForReminder(CalendarReminder reminder) {
+    for (final task in _tasks) {
+      if (task.trashed) continue;
+      final id = reminder.id;
+      if (id == widget.projection.dueDateReminderIdFor(task) ||
+          id.startsWith('task-due:${task.id}:') ||
+          id == widget.projection.taskReminderIdFor(task) ||
+          id.startsWith('task-reminder-item:${Uri.encodeComponent(task.id)}:')) {
+        return task;
       }
-      if (task != null) break;
     }
-    if (task == null) return;
-    await widget.onEditTask!(task);
-    if (!mounted) return;
-    final refreshed = await widget.onRefreshTasks?.call();
-    if (refreshed != null) setState(() => _tasks = List<Task>.of(refreshed));
+    return null;
   }
-
-  Future<void> _deleteTaskFromCalendar(CalendarReminder reminder) async {
-    if (widget.onDeleteTask == null) return;
-    Task? task;
-    for (final prefix in const <String>[
-      'task-due:',
-      'task-reminder-item:',
-      'task-reminder:',
-      'task-followup:',
-    ]) {
-      if (!reminder.id.startsWith(prefix)) continue;
-      final suffix = reminder.id.substring(prefix.length);
-      final separator = suffix.indexOf(':');
-      final taskId = prefix == 'task-reminder-item:' && separator > 0
-          ? Uri.decodeComponent(suffix.substring(0, separator))
-          : suffix;
-      for (final candidate in _tasks) {
-        if (candidate.trashed) continue;
-        final matches = prefix == 'task-reminder-item:'
-            ? taskId == candidate.id
-            : suffix == candidate.id || suffix.startsWith('${candidate.id}:');
-        if (matches) {
-          task = candidate;
-          break;
-        }
-      }
-      if (task != null) break;
-    }
-    if (task == null) return;
-    final approved = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('انتقال کار به سطل زباله؟'),
-        content: Text('«${task!.title}» به سطل زباله منتقل می‌شود. اطلاعات و سابقهٔ کار حفظ می‌شود.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('لغو'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('انتقال به سطل زباله'),
-          ),
-        ],
-      ),
-    );
-    if (approved != true || !mounted) return;
-    await widget.onDeleteTask!(task);
-    if (!mounted) return;
-    final refreshed = await widget.onRefreshTasks?.call();
-    if (refreshed != null && mounted) {
-      setState(() => _tasks = List<Task>.of(refreshed));
-    }
-  }
-
-  FollowUpCalendarTarget? _targetFor(CalendarReminder reminder) =>
-      widget.projection.resolveTarget(_tasks, reminder.id);
 
   bool _canMutateReminder(CalendarReminder reminder) =>
-      _targetFor(reminder) != null;
+      _taskForReminder(reminder) != null;
 
   Future<void> _createTaskForDate(DateTime date) async {
     final task = await widget.onCreateTaskForDate?.call(date);
@@ -284,32 +170,6 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
       return;
     }
     setState(() => _tasks.add(task));
-  }
-
-  Future<void> _completeReminder(CalendarReminder reminder) async {
-    final target = _targetFor(reminder);
-    if (target == null) return;
-    final updated = await _followUpWriter.setCompleted(
-      target.taskId,
-      target.followUp.id,
-      true,
-    );
-    if (!mounted) return;
-    _replaceFollowUp(target, updated);
-  }
-
-  Future<void> _editReminder(CalendarReminder reminder) async {
-    final target = _targetFor(reminder);
-    if (target == null) return;
-    final updated = await Navigator.of(context).push<FollowUp>(
-      MaterialPageRoute<FollowUp>(
-        builder: (_) => FollowUpEntryPage(initialFollowUp: target.followUp),
-      ),
-    );
-    if (updated == null) return;
-    await _followUpWriter.update(target.taskId, updated);
-    if (!mounted) return;
-    _replaceFollowUp(target, updated);
   }
 
   Future<void> _createTaskFromCalendarEvent(CalendarReminder reminder) async {
@@ -493,293 +353,6 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     }
   }
 
-  Future<bool> _confirmAndApplyReschedule(
-    BuildContext context,
-    _CalendarConflictAdviceEntry entry,
-    DateTime proposed,
-  ) async {
-    final target = widget.projection.resolveTarget(_tasks, entry.reminder.id);
-    if (target == null) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(content: Text('پیگیری اصلی برای تغییر پیدا نشد')),
-        );
-      return false;
-    }
-
-    final approved = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('تأیید تغییر زمان'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(entry.reminder.title),
-            const SizedBox(height: 12),
-            Text('زمان فعلی: ${_time(target.followUp.dateTime)}'),
-            Text('زمان پیشنهادی: ${_time(proposed)}'),
-            const SizedBox(height: 12),
-            const Text('این تغییر فقط با تأیید شما ثبت می‌شود.'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('لغو'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('اعمال زمان پیشنهادی'),
-          ),
-        ],
-      ),
-    );
-
-    if (approved != true || !context.mounted) return false;
-
-    try {
-      final updated = await _applyService.applyConfirmed(
-        target: target,
-        dateTime: proposed,
-      );
-      if (!mounted) return false;
-
-      final taskIndex = _tasks.indexWhere((task) => task.id == target.taskId);
-      if (taskIndex >= 0) {
-        final task = _tasks[taskIndex];
-        final followUpIndex = task.followUps.indexWhere(
-          (item) => item.id == updated.id,
-        );
-        if (followUpIndex >= 0) {
-          setState(() {
-            final next = List<FollowUp>.of(task.followUps);
-            next[followUpIndex] = updated;
-            task.followUps = next;
-          });
-        }
-      }
-      return true;
-    } catch (_) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(
-            const SnackBar(
-              content: Text('تغییر زمان انجام نشد؛ دوباره تلاش کنید'),
-            ),
-          );
-      }
-      return false;
-    }
-  }
-
-  Future<void> _openConflictAdvice(
-    BuildContext context,
-    List<CalendarReminder> reminders,
-  ) async {
-    final entries = <_CalendarConflictAdviceEntry>[];
-
-    for (final reminder in reminders) {
-      if (reminder.completed || reminder.isAllDay) continue;
-      final dayEnd = DateTime(
-        reminder.date.year,
-        reminder.date.month,
-        reminder.date.day,
-      ).add(const Duration(days: 1));
-      final advice = widget.reschedulingAdvisor.advise(
-        reminders: reminders,
-        reminderId: reminder.id,
-        windowStart: reminder.date,
-        windowEnd: dayEnd,
-        limit: 3,
-      );
-      if (!advice.hasConflict) continue;
-      entries.add(
-        _CalendarConflictAdviceEntry(reminder: reminder, advice: advice),
-      );
-    }
-
-    if (!context.mounted) return;
-    final applied = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (sheetContext) {
-        return SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  entries.isEmpty ? 'تداخل زمانی پیدا نشد' : 'تداخل‌های زمانی',
-                  style: Theme.of(sheetContext).textTheme.titleLarge
-                      ?.copyWith(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 12),
-                if (entries.isEmpty)
-                  const Text('بین پیگیری‌های زمان‌دار فعلی تداخلی دیده نشد.')
-                else
-                  for (final entry in entries) ...[
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(
-                              entry.reminder.title,
-                              style: Theme.of(sheetContext)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.w700),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              '${_digits('${entry.advice.conflicts.length}')} تداخل در این زمان پیدا شد.',
-                            ),
-                            const SizedBox(height: 10),
-                            if (entry.advice.suggestions.isEmpty)
-                              const Text(
-                                'تا پایان همین روز زمان خالی پیشنهادی پیدا نشد.',
-                              )
-                            else ...[
-                              const Text('زمان‌های پیشنهادی:'),
-                              const SizedBox(height: 8),
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: [
-                                  for (final suggestion
-                                      in entry.advice.suggestions)
-                                    ActionChip(
-                                      label: Text(
-                                        'اعمال ${_time(suggestion.start)}',
-                                      ),
-                                      onPressed: () async {
-                                        final changed =
-                                            await _confirmAndApplyReschedule(
-                                              sheetContext,
-                                              entry,
-                                              suggestion.start,
-                                            );
-                                        if (changed && sheetContext.mounted) {
-                                          Navigator.of(sheetContext).pop(true);
-                                        }
-                                      },
-                                    ),
-                                ],
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                  ],
-                const SizedBox(height: 8),
-                const Text('هیچ زمانی بدون تأیید شما تغییر نمی‌کند.'),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-
-    if (applied == true && context.mounted) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(content: Text('زمان پیگیری با موفقیت تغییر کرد')),
-        );
-    }
-  }
-
-  Future<void> _exportToSystemCalendar(BuildContext context) async {
-    final eligible = widget.projection
-        .project(_tasks)
-        .where(SystemCalendarBridge.isEligible)
-        .toList(growable: false);
-
-    if (eligible.isEmpty) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(
-            content: Text('پیگیری فعالی برای افزودن به تقویم دستگاه نیست'),
-          ),
-        );
-      return;
-    }
-
-    CalendarReminder? selected;
-    if (eligible.length == 1) {
-      selected = eligible.single;
-    } else {
-      selected = await showDialog<CalendarReminder>(
-        context: context,
-        builder: (dialogContext) => SimpleDialog(
-          title: const Text('انتخاب پیگیری برای تقویم دستگاه'),
-          children: [
-            for (final reminder in eligible)
-              SimpleDialogOption(
-                onPressed: () => Navigator.of(dialogContext).pop(reminder),
-                child: Text(reminder.title),
-              ),
-          ],
-        ),
-      );
-    }
-
-    if (selected == null || !context.mounted) return;
-
-    try {
-      final opened = await SystemCalendarBridge().insert(selected);
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Text(
-              opened
-                  ? 'فرم افزودن رویداد در تقویم دستگاه باز شد'
-                  : 'برنامه تقویم سازگار روی دستگاه پیدا نشد',
-            ),
-          ),
-        );
-    } catch (error) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(content: Text('باز کردن تقویم دستگاه ناموفق بود: $error')),
-        );
-    }
-  }
-
-  Future<void> _retryCalendarSync(BuildContext context) async {
-    final retry = widget.onRetryCalendarSync;
-    if (retry == null) return;
-    try {
-      await retry();
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(content: Text('همگام‌سازی تقویم دوباره انجام شد. تغییرات آروین و تقویم گوشی نیز بررسی شد.')),
-        );
-    } catch (error) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(content: Text('همگام‌سازی انجام نشد: $error')),
-        );
-    }
-  }
-
   Future<void> _openMore(
     BuildContext context,
     List<CalendarReminder> reminders,
@@ -832,14 +405,6 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
                     Navigator.of(sheetContext)
                         .pop(_CalendarMoreAction.timeline),
               ),
-              ListTile(
-                leading: const Icon(Icons.warning_amber_outlined),
-                title: const Text('تداخل‌ها'),
-                subtitle: const Text('بررسی تداخل پیگیری‌های زمان‌دار'),
-                onTap: () =>
-                    Navigator.of(sheetContext)
-                        .pop(_CalendarMoreAction.conflicts),
-              ),
                 ],
               ),
             ),
@@ -862,9 +427,6 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
         return;
       case _CalendarMoreAction.timeline:
         await _openTimeline(context);
-        return;
-      case _CalendarMoreAction.conflicts:
-        await _openConflictAdvice(context, reminders);
         return;
     }
   }
@@ -922,8 +484,7 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
           child: IranianOfficialCalendarPage(
             reminders: reminders,
             visibleReminderProjection: projectVisible,
-            onCompleteReminder: _completeReminder,
-            onEditReminder: _editReminder,
+              onEditReminder: _editReminder,
             onEditTask: _editTaskFromCalendar,
             onDeleteTask: _deleteTaskFromCalendar,
             onRegisterTaskToDeviceCalendar: widget.onRegisterTaskToDeviceCalendar,
@@ -947,23 +508,7 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
   }
 }
 
-enum _CalendarMoreAction {
-  systemCalendar,
-  retrySync,
-  nextAction,
-  timeline,
-  conflicts,
-}
-
-class _CalendarConflictAdviceEntry {
-  const _CalendarConflictAdviceEntry({
-    required this.reminder,
-    required this.advice,
-  });
-
-  final CalendarReminder reminder;
-  final CalendarReschedulingAdvice advice;
-}
+enum _CalendarMoreAction { systemCalendar, retrySync, nextAction, timeline }
 
 String _digits(String value) {
   const western = '0123456789';
