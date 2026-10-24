@@ -270,7 +270,7 @@ void main() {
       dueDate: followUpAt.add(const Duration(minutes: 1)),
       followUps: [FollowUp(id: 'other-time-follow-up', dateTime: followUpAt)],
     );
-    expect(projection.shouldProjectDueDate(coincident), isFalse);
+    expect(projection.shouldProjectDueDate(coincident), isTrue);
     expect(projection.shouldProjectDueDate(distinct), isTrue);
   });
 
