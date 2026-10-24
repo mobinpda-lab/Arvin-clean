@@ -147,10 +147,16 @@ class AppSettingsService {
 
   Future<AppSettings> load() async {
     final preferences = await SharedPreferences.getInstance();
+    final storedFontFamily = preferences.getString(_fontFamilyKey);
+    final fontFamily = _normalizeFontFamily(storedFontFamily);
+    if (storedFontFamily != fontFamily) {
+      // One-time compatibility migration for unset and legacy font values.
+      await preferences.setString(_fontFamilyKey, fontFamily);
+    }
     return AppSettings(
       themeMode: _decodeThemeMode(preferences.getString(_themeModeKey)),
       usePersianDate: preferences.getBool(_persianDateKey) ?? true,
-      fontFamily: _normalizeFontFamily(preferences.getString(_fontFamilyKey)),
+      fontFamily: fontFamily,
       fontSize: _normalizeFontSize(preferences.getDouble(_fontSizeKey)),
       swipeRightAction: _decodeSwipeAction(
         preferences.getString(_swipeRightKey),
