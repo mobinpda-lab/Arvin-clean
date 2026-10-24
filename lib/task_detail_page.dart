@@ -259,7 +259,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  _task.dueDate == null ? 'بدون موعد انجام' : _dateTime(_task.dueDate!),
+                  _task.dueDate == null ? 'بدون موعد' : _dateTime(_task.dueDate!),
                   key: const ValueKey('task-detail-due-date'),
                   style: const TextStyle(color: _muted, fontSize: 12, fontWeight: FontWeight.w700),
                 ),
