@@ -76,17 +76,13 @@ class TaskNextActionService {
   DateTime? _dueAt(Task task) {
     final candidates = <DateTime>[];
 
-    if (task.reminderDate != null) {
-      candidates.add(task.reminderDate!);
-    }
-
-    final nextFollowUp = task.lastFollowUp?.nextFollowUp;
-    if (nextFollowUp != null) {
-      candidates.add(nextFollowUp);
-    } else if (task.followUps.isEmpty && task.followUpDate != null) {
-      // Transitional compatibility: persisted legacy JSON is migrated into
-      // FollowUps[], but an in-memory legacy-only Task may still carry this.
-      candidates.add(task.followUpDate!);
+    if (task.dueDate != null) candidates.add(task.dueDate!);
+    for (final reminder in task.taskReminders) {
+      candidates.add(
+        reminder.isAllDay
+            ? DateTime(reminder.date.year, reminder.date.month, reminder.date.day, 9)
+            : reminder.date,
+      );
     }
 
     if (candidates.isEmpty) return null;
