@@ -1,5 +1,4 @@
 import 'package:arvin/main.dart' as app;
-import 'package:arvin/calendar_page.dart';
 import 'package:arvin/services/follow_up_calendar_projection.dart';
 import 'package:arvin/widgets/canonical_calendar_launcher.dart';
 import 'package:arvin/models/task.dart';
@@ -45,9 +44,9 @@ void main() {
       );
       debugPrint('CALENDAR_DIAG_INPUT taskId=$taskId followUpId=$followUpId followUpDateTime=${seed.followUps.single.dateTime.toIso8601String()} reminderDate=${seed.followUps.single.reminderDate?.toIso8601String()} nextFollowUp=${seed.followUps.single.nextFollowUp?.toIso8601String()}');
       await store.save([seed]);
-      final persisted = (await store.load()).single;
-      debugPrint('CALENDAR_DIAG_SQL taskCount=1 taskId=${persisted.id} followUpCount=${persisted.followUps.length} followUpId=${persisted.followUps.single.id} reminderDate=${persisted.followUps.single.reminderDate?.toIso8601String()} nextFollowUp=${persisted.followUps.single.nextFollowUp?.toIso8601String()}');
-      final projected = const FollowUpCalendarProjection().project([persisted]);
+      final persistedSeed = (await store.load()).single;
+      debugPrint('CALENDAR_DIAG_SQL taskCount=1 taskId=${persistedSeed.id} followUpCount=${persistedSeed.followUps.length} followUpId=${persistedSeed.followUps.single.id} reminderDate=${persistedSeed.followUps.single.reminderDate?.toIso8601String()} nextFollowUp=${persistedSeed.followUps.single.nextFollowUp?.toIso8601String()}');
+      final projected = const FollowUpCalendarProjection().project([persistedSeed]);
       debugPrint('CALENDAR_DIAG_PROJECTION count=${projected.length} items=${projected.map((item) => '${item.id}@${item.date.toIso8601String()}').join(',')}');
 
       app.main();
@@ -70,13 +69,7 @@ void main() {
       } else {
         debugPrint('CALENDAR_DIAG_SNAPSHOT launcherCount=0');
       }
-      final pageFinder = find.byType(IranianOfficialCalendarPage);
-      if (pageFinder.evaluate().isNotEmpty) {
-        final page = tester.widget<IranianOfficialCalendarPage>(pageFinder);
-        debugPrint('CALENDAR_DIAG_PAGE reminderCount=${page.reminders.length} reminders=${page.reminders.map((item) => '${item.id}@${item.date.toIso8601String()}').join(',')} initialSelectedDay=${page.initialSelectedDay?.toIso8601String()}');
-      } else {
-        debugPrint('CALENDAR_DIAG_PAGE pageCount=0');
-      }
+      debugPrint('CALENDAR_DIAG_EXPECTED_DAY=${DateTime(now.year, now.month, now.day).toIso8601String()}')
 
       final cardKey = const ValueKey(
         'reminder-card-followup:calendar-smoke-task:calendar-smoke-follow-up',
