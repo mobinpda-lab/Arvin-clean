@@ -73,3 +73,13 @@ The owner explicitly reconfirms:
 - Next Follow-up remains a distinct next-action value, not the whole Follow-up history and not a reminder. Setting it does not automatically create a reminder.
 - If the user explicitly chooses to create a reminder for a Next Follow-up, prefill the reminder title from the Task title and its initial date/time from Next Follow-up; these are initial values only.
 - Data model, UI, persistence, backup/restore, Calendar projection and tests must support multiple entries without overwriting, collapsing or duplicating them. Preserve canonical Task ownership and stable reminder/calendar identities; no parallel Task store.
+
+
+## Owner directive update — 2026-10-24 (Wave 7.26)
+
+This addendum records the latest explicit owner directive and supersedes the 2026-10-13 “creation is opt-in” rule **for first activation only**:
+- When the user sets \`nextFollowUp\` for the first time, initialize \`reminderDate\` to the same date/time only if no reminder already exists.
+- This is a **one-time, cancellable initial default**, not continuous coupling. The user may edit or clear the reminder independently. Later changes/deletion of \`nextFollowUp\` must not move/delete the reminder; reminder edits/deletion must not mutate \`nextFollowUp\`, recorded Follow-up history, or Task identity.
+- A Follow-up without a reminder remains a valid state, including legacy records and after the user clears the initial reminder. Preserve an existing reminder on first activation; never overwrite or duplicate it.
+- Date-only/All-Day remains unresolved: \`FollowUp\` stores nullable \`DateTime\` values but no independent All-Day marker for \`nextFollowUp\` and \`reminderDate\`. Midnight must not be inferred as All-Day. Do not change schema/model/backup semantics until the owner-approved data contract and backward-compatible migration/test plan are available.
+- The requested approved \`ARVIN_Product_Reference_v1_3_FA.docx\` was not found on current \`main\` or in the searched Library during Wave 7.26. This addendum records the latest owner directive; it does **not** claim that the unavailable v1.3 sections 1.3, 3.4 and 11.2 were reconciled. Locate and compare that exact approved artifact before closing document reconciliation.
