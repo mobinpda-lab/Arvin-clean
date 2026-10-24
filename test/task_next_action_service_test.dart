@@ -19,9 +19,7 @@ void main() {
     final result = service.rank(tasks, now: now);
     expect(result.map((item) => item.task.id).toList(), ['overdue', 'future', 'plain']);
     expect(result.map((item) => item.reason).toList(), [
-      TaskNextActionReason.overdue,
-      TaskNextActionReason.scheduled,
-      TaskNextActionReason.unscheduled,
+      TaskNextActionReason.overdue, TaskNextActionReason.scheduled, TaskNextActionReason.unscheduled,
     ]);
   });
 
@@ -36,32 +34,21 @@ void main() {
   });
 
   test('Next Follow-up history fields do not create scheduled next actions', () {
-    final task = Task(
-      id: 'followup',
-      title: 'پیگیری تاریخی',
-      followUpDate: DateTime(2026, 8, 20),
+    final task = Task(id: 'followup', title: 'پیگیری تاریخی', followUpDate: DateTime(2026, 8, 20),
       followUps: [
         FollowUp(id: 'old', dateTime: DateTime(2026, 8, 20), nextFollowUp: DateTime(2026, 8, 27, 10)),
         FollowUp(id: 'latest', dateTime: DateTime(2026, 8, 25), nextFollowUp: DateTime(2026, 8, 26, 16)),
-      ],
-    );
+      ]);
     final result = service.rank([task], now: now).single;
     expect(result.dueAt, isNull);
     expect(result.reason, TaskNextActionReason.unscheduled);
   });
 
   test('chooses earliest canonical due or Reminder time without cross-coupling', () {
-    final task = Task(
-      id: 'both',
-      title: 'دو موعد مستقل',
+    final task = Task(id: 'both', title: 'دو موعد مستقل',
       dueDate: DateTime(2026, 8, 26, 15),
-      taskReminders: [
-        TaskReminder(id: 'r1', title: 'یادآوری', date: DateTime(2026, 8, 26, 14), sequence: 1),
-      ],
-      followUps: [
-        FollowUp(id: 'f1', dateTime: DateTime(2026, 8, 25), nextFollowUp: DateTime(2026, 8, 26, 13)),
-      ],
-    );
+      taskReminders: [TaskReminder(id: 'r1', title: 'یادآوری', date: DateTime(2026, 8, 26, 14), sequence: 1)],
+      followUps: [FollowUp(id: 'f1', dateTime: DateTime(2026, 8, 25), nextFollowUp: DateTime(2026, 8, 26, 13))]);
     expect(service.rank([task], now: now).single.dueAt, DateTime(2026, 8, 26, 14));
   });
 
@@ -80,8 +67,7 @@ void main() {
     final tasks = [
       Task(id: 'older', title: 'قدیمی‌تر', updatedAt: DateTime(2026, 8, 24)),
       Task(id: 'newer', title: 'جدیدتر', createdAt: DateTime(2026, 8, 25)),
-      Task(id: 'b', title: 'B'),
-      Task(id: 'a', title: 'A'),
+      Task(id: 'b', title: 'B'), Task(id: 'a', title: 'A'),
     ];
     expect(service.rank(tasks, now: now).map((item) => item.task.id).toList(), ['newer', 'older', 'a', 'b']);
   });
