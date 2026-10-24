@@ -115,7 +115,7 @@ void main() {
     expect(result!.followUps, hasLength(1));
     expect(result!.followUps.single.title, 'تماس مجدد');
     expect(result!.followUps.single.note, 'در انتظار ارسال پاسخ');
-    expect(result!.followUpEnabled, isTrue);
+    expect(result!.followUpEnabled, isFalse);
     expect(result!.followUpDate, isNull);
   });
 
@@ -458,7 +458,7 @@ void main() {
     expect(result!.recurrence!.active, isFalse);
   });
 
-  testWidgets('timed task automatically gets one reminder at the same time',
+  testWidgets('setting a Task due time does not create a Reminder',
       (tester) async {
     Task? result;
     await pumpEditor(tester, onResult: (value) => result = value);
@@ -485,7 +485,8 @@ void main() {
     expect(result, isNotNull);
     expect(result!.dueDate, isNotNull);
     expect(result!.allDay, isFalse);
-    expect(result!.reminderDate, result!.dueDate);
+    expect(result!.reminderDate, isNull);
+    expect(result!.taskReminders, isEmpty);
   });
 
   testWidgets('manual reminder is not overwritten when due time changes',
@@ -495,7 +496,14 @@ void main() {
       id: 'manual-reminder',
       title: 'کار با یادآوری دستی',
       dueDate: DateTime(2026, 8, 27, 10),
-      reminderDate: DateTime(2026, 8, 27, 9),
+      taskReminders: [
+        TaskReminder(
+          id: 'reminder-1',
+          title: 'یادآوری دستی',
+          date: DateTime(2026, 8, 27, 9),
+          sequence: 1,
+        ),
+      ],
       allDay: false,
     );
 
@@ -518,7 +526,10 @@ void main() {
 
     expect(result, isNotNull);
     expect(result!.dueDate, DateTime(2026, 8, 27, 11));
-    expect(result!.reminderDate, DateTime(2026, 8, 27, 9));
+    expect(result!.taskReminders, hasLength(1));
+    expect(result!.taskReminders.single.id, 'reminder-1');
+    expect(result!.taskReminders.single.date, DateTime(2026, 8, 27, 9));
+    expect(result!.reminderDate, isNull);
   });
 
 }
