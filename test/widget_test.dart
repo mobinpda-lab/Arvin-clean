@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:arvin/main.dart';
+import 'package:arvin/models/recurrence.dart';
+import 'package:arvin/models/task.dart';
 import 'package:arvin/services/task_store.dart';
 
 void main() {
@@ -78,6 +80,124 @@ void main() {
 
     expect(find.text('کار مهاجرتی'), findsOneWidget);
     expect(find.text('داده قدیمی باید در Home دیده شود'), findsNothing);
+  });
+
+
+  testWidgets('Home renders independent recurring past, today and next occurrence windows',
+      (tester) async {
+    const taskId = 'home-recurring-window-task';
+    final anchor = DateTime(2026, 10, 21, 15);
+    final fixedNow = DateTime(2026, 10, 23, 12);
+    await TaskStore().save([
+      Task(
+        id: taskId,
+        title: 'آماده‌سازی روزانه',
+        reminderDate: anchor,
+        recurrence: const RecurrenceRule(frequency: RecurrenceFrequency.daily),
+        category: 'مدرسه',
+        tags: ['صبح'],
+        checklist: const ['[ ] کیف', '[ ] خوراکی'],
+        checklistOccurrences: {
+          anchor.toIso8601String(): const ['[x] کیف', '[ ] خوراکی'],
+        },
+      ),
+    ]);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: HomePage(clock: () => fixedNow),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final yesterdayKey = ValueKey(
+      'home-recurring-occurrence-$taskId-${DateTime(2026, 10, 22, 15).toIso8601String()}',
+    );
+    final todayKey = ValueKey(
+      'home-recurring-occurrence-$taskId-${DateTime(2026, 10, 23, 15).toIso8601String()}',
+    );
+    final tomorrowKey = ValueKey(
+      'home-recurring-occurrence-$taskId-${DateTime(2026, 10, 24, 15).toIso8601String()}',
+    );
+    expect(find.byKey(yesterdayKey), findsOneWidget);
+    expect(find.byKey(todayKey), findsOneWidget);
+    expect(find.byKey(tomorrowKey), findsOneWidget);
+    expect(find.textContaining('معوق'), findsWidgets);
+    expect(find.textContaining('کارهای امروز'), findsWidgets);
+    expect(find.textContaining('پیش‌نمایش آینده'), findsWidgets);
+
+    await tester.tap(find.byKey(const ValueKey('home-resume-from-today')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(yesterdayKey), findsNothing);
+    expect(find.byKey(todayKey), findsOneWidget);
+    expect(find.byKey(tomorrowKey), findsOneWidget);
+    final afterResume = (await TaskStore().load()).single;
+    expect(afterResume.reminderDate, DateTime(2026, 10, 23, 15));
+    expect(afterResume.occurrenceHistory, isEmpty);
+    expect(afterResume.checklistOccurrences, {
+      anchor.toIso8601String(): const ['[x] کیف', '[ ] خوراکی'],
+    });
+
+    // Opening task details and returning must preserve the advanced schedule.
+    await tester.ensureVisible(find.byKey(todayKey));
+    await tester.tap(find.byKey(todayKey));
+    await tester.pumpAndSettle();
+    expect(find.text('آماده‌سازی روزانه'), findsOneWidget);
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(find.byKey(yesterdayKey), findsNothing);
+    expect(find.byKey(todayKey), findsOneWidget);
+    expect(find.byKey(tomorrowKey), findsOneWidget);
+
+    final beforeCompletion = (await TaskStore().load()).single;
+    expect(beforeCompletion.reminderDate, DateTime(2026, 10, 23, 15));
+    expect(beforeCompletion.occurrenceHistory, isEmpty);
+    expect(beforeCompletion.checklistOccurrences, {
+      anchor.toIso8601String(): const ['[x] کیف', '[ ] خوراکی'],
+    });
+
+    final todayCompleteKey = ValueKey(
+      'home-recurring-complete-$taskId-${DateTime(2026, 10, 23, 15).toIso8601String()}',
+    );
+    await tester.ensureVisible(find.byKey(todayCompleteKey));
+    await tester.tap(find.byKey(todayCompleteKey));
+    await tester.pumpAndSettle();
+
+    final afterCompletion = (await TaskStore().load()).single;
+    expect(afterCompletion.occurrenceHistory, {
+      DateTime(2026, 10, 23, 15).toIso8601String(): {
+        'scheduledDate': DateTime(2026, 10, 23, 15).toIso8601String(),
+        'status': 'completed',
+        'completionDate': fixedNow.toIso8601String(),
+      },
+    });
+    expect(afterCompletion.reminderDate, DateTime(2026, 10, 23, 15));
+    expect(afterCompletion.completed, isFalse);
+    expect(afterCompletion.checklistOccurrences, beforeCompletion.checklistOccurrences);
+    expect((await TaskStore().load()), hasLength(1));
+
+    // A fresh Home route resets only button state; the persisted anchor stays advanced.
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: HomePage(clock: () => fixedNow),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(yesterdayKey), findsNothing);
+    expect(find.byKey(todayKey), findsOneWidget);
+    expect(find.byKey(tomorrowKey), findsOneWidget);
+    final afterReentry = (await TaskStore().load()).single;
+    expect(afterReentry.occurrenceHistory, afterCompletion.occurrenceHistory);
+    expect(afterReentry.checklistOccurrences, afterCompletion.checklistOccurrences);
+    expect(afterReentry.reminderDate, DateTime(2026, 10, 23, 15));
   });
 
   testWidgets('HomePage shows the empty-state message after loading',

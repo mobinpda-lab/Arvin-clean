@@ -35,6 +35,41 @@ void main() {
         notebookKind: notebookKind,
       );
 
+  test('Home date scopes use nextFollowUp, not historical action time', () {
+    final next = DateTime(2026, 8, 28, 10, 30);
+    final taskWithNext = task(
+      'canonical-next',
+      followUpDate: DateTime(2026, 8, 30, 9),
+      followUps: [
+        FollowUp(
+          id: 'fu-next',
+          dateTime: DateTime(2026, 8, 25, 9, 15),
+          nextFollowUp: next,
+        ),
+      ],
+    );
+    final historyOnly = task(
+      'history-only',
+      followUps: [
+        FollowUp(id: 'fu-history', dateTime: DateTime(2026, 8, 28, 12)),
+      ],
+    );
+
+    expect(taskWithNext.legacyHomeFollowUpDate, next);
+    expect(
+      projection
+          .project(
+            [taskWithNext, historyOnly],
+            scope: HomeListScope.today,
+            sort: HomeListSort.title,
+            now: now,
+          )
+          .map((item) => item.id),
+      ['canonical-next'],
+    );
+    expect(historyOnly.legacyHomeFollowUpDate, isNull);
+  });
+
   test('all notes and follow-up scopes reuse canonical items', () {
     final note = task('note', notebookKind: NotebookItemKind.note);
     final tracked = task('tracked', followUpEnabled: true);
@@ -203,7 +238,7 @@ void main() {
     expect(tasks, hasLength(3));
   });
 
-  test('home reminder projection prefers same-time follow-ups and keeps first duplicate reminder', () {
+  test('home reminder projection keeps Task reminders independent and deduplicates reminder timestamps', () {
     final followUpAt = now.add(const Duration(hours: 2));
     final duplicateAt = now.add(const Duration(hours: 1));
     final reminders = <TaskReminder>[
@@ -215,21 +250,27 @@ void main() {
 
     final projected = projection.projectReminders(reminders, followUpDate: followUpAt);
 
-    expect(projected.map((item) => item.id), ['first-at-time', 'unique-time']);
+    expect(projected.map((item) => item.id), ['same-as-follow-up', 'first-at-time', 'unique-time']);
     expect(reminders, hasLength(4));
-    expect(identical(projected.first, reminders[1]), isTrue);
+    expect(identical(projected.first, reminders[0]), isTrue);
 
     final coincident = task(
       'coincident',
       dueDate: followUpAt,
-      followUps: [FollowUp(id: 'same-time-follow-up', dateTime: followUpAt)],
+      followUps: [
+        FollowUp(
+          id: 'same-time-follow-up',
+          dateTime: followUpAt.subtract(const Duration(days: 2)),
+          nextFollowUp: followUpAt,
+        ),
+      ],
     );
     final distinct = task(
       'distinct',
       dueDate: followUpAt.add(const Duration(minutes: 1)),
       followUps: [FollowUp(id: 'other-time-follow-up', dateTime: followUpAt)],
     );
-    expect(projection.shouldProjectDueDate(coincident), isFalse);
+    expect(projection.shouldProjectDueDate(coincident), isTrue);
     expect(projection.shouldProjectDueDate(distinct), isTrue);
   });
 

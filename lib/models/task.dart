@@ -472,6 +472,9 @@ class Task {
 
   DateTime? get lastFollowUpDate => lastFollowUp?.dateTime;
 
+  /// Home's next-action date prefers the canonical nextFollowUp timestamp.
+  /// Keep Task.followUpDate as a backward-compatible fallback for legacy items;
+  /// never substitute the historical action dateTime for the next action.
   DateTime? get legacyHomeFollowUpDate =>
-      followUps.isEmpty ? followUpDate : lastFollowUpDate;
+      lastFollowUp?.nextFollowUp ?? followUpDate;
 }

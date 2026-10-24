@@ -38,6 +38,7 @@ class RecurringTripleWindowProjectionResult {
 
   /// Occurrences in [local midnight tomorrow, horizon end).
   final List<RecurringTaskOccurrence> upcoming;
+
 }
 
 /// Pure, read-only projection for recurring occurrences across three windows.
