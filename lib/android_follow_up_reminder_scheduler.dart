@@ -77,6 +77,7 @@ class AndroidFollowUpReminderScheduler {
   Future<void> cancel() async {
     if (!supportsAutomaticFollowUpScheduling) return;
     await _ensureInitialized();
+    await AndroidAlarmManager.cancel(retiredAutomaticFollowUpAlarmId);
     await AndroidAlarmManager.cancel(followUpReminderAlarmId);
   }
 }
