@@ -2,23 +2,10 @@ import '../calendar_page.dart';
 import '../models/recurrence.dart';
 import '../models/task.dart';
 
-class FollowUpCalendarTarget {
-  const FollowUpCalendarTarget({
-    required this.taskId,
-    required this.followUp,
-  });
-
-  final String taskId;
-  final FollowUp followUp;
-}
-
 /// Read-only projection of canonical Task due dates and TaskReminder records.
 /// It owns no storage and does not mutate Tasks or Reminder history.
 class FollowUpCalendarProjection {
   const FollowUpCalendarProjection();
-
-  String reminderIdFor(Task task, FollowUp followUp) =>
-      'followup:${task.id}:${followUp.id}';
 
   String dueDateReminderIdFor(Task task) => 'task-due:${task.id}';
 
@@ -26,25 +13,6 @@ class FollowUpCalendarProjection {
 
   String independentTaskReminderIdFor(Task task, TaskReminder reminder) =>
       'task-reminder-item:${Uri.encodeComponent(task.id)}:${Uri.encodeComponent(reminder.id)}';
-
-  FollowUpCalendarTarget? resolveTarget(
-    Iterable<Task> tasks,
-    String reminderId,
-  ) {
-    for (final task in tasks) {
-      if (task.trashed) continue;
-      for (final followUp in task.followUps) {
-        if (followUp.reminderDate != null &&
-            reminderIdFor(task, followUp) == reminderId) {
-          return FollowUpCalendarTarget(
-            taskId: task.id,
-            followUp: followUp,
-          );
-        }
-      }
-    }
-    return null;
-  }
 
   List<CalendarReminder> project(
     Iterable<Task> tasks, {
