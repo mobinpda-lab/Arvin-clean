@@ -31,6 +31,7 @@ void main() {
           checklist: [],
           followUps: [],
           completed: false,
+          reminders: [],
         ),
       ],
     );
