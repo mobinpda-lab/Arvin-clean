@@ -22,6 +22,8 @@ class FollowUpCalendarProjection {
 
   String dueDateReminderIdFor(Task task) => 'task-due:${task.id}';
 
+  String taskReminderIdFor(Task task) => 'task-reminder:${task.id}';
+
   String independentTaskReminderIdFor(Task task, TaskReminder reminder) =>
       'task-reminder-item:${Uri.encodeComponent(task.id)}:${Uri.encodeComponent(reminder.id)}';
 
@@ -43,9 +45,6 @@ class FollowUpCalendarProjection {
     }
     return null;
   }
-
-  bool _sameInstant(DateTime a, DateTime b) =>
-      a.toUtc().isAtSameMomentAs(b.toUtc());
 
   bool _isDateOnly(DateTime value) =>
       value.hour == 0 &&
@@ -71,10 +70,12 @@ class FollowUpCalendarProjection {
       for (final reminder in task.taskReminders) {
         reminders.add(
           CalendarReminder(
-            // The migrated legacy reminder keeps its old external identity so
-            // provider sync updates the existing event instead of creating a
-            // second event under the new collection namespace.
-            id: independentTaskReminderIdFor(task, reminder),
+            // A previously migrated singular Task reminder retains its
+            // provider identity. All newly created reminders use their own
+            // stable Task + Reminder identity.
+            id: reminder.isLegacyTaskReminder
+                ? taskReminderIdFor(task)
+                : independentTaskReminderIdFor(task, reminder),
             title: reminder.title,
             date: reminder.date,
             completed: task.completed,
