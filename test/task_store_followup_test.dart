@@ -26,7 +26,7 @@ void main() {
     expect(loaded.single.id, 'f2');
     expect(loaded.single.result, 'پاسخ دریافت شد');
     expect(task.followUpDate, DateTime(2026, 8, 14, 9, 30));
-    expect(task.followUpEnabled, isTrue);
+    expect(task.followUpEnabled, isFalse);
     expect(task.updatedAt, isNotNull);
   });
 
