@@ -46,6 +46,16 @@ void main() {
     expect(item.events.map((event) => event.stableKey).toSet(), hasLength(4));
   });
 
+  test('all-day is explicit and midnight alone is not all-day', () {
+    final day = DateTime(2026, 8, 28);
+    final tasks = [
+      Task(id: 'all-day', title: 'تمام‌روز', dueDate: day, allDay: true),
+      Task(id: 'timed-midnight', title: 'نیمه‌شب ساعت‌دار', dueDate: day, allDay: false),
+    ];
+    final events = projection.forDay(tasks, day: day).expand((item) => item.items).expand((item) => item.events).toList();
+    expect(events.map((event) => event.isAllDay), [true, false]);
+  });
+
   test('inclusive range groups canonical due and Reminder events by local day', () {
     final task = Task(
       id: 'task',
