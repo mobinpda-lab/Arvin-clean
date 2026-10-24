@@ -17,8 +17,18 @@ void main() {
     expect(settings.themeMode, ThemeMode.system);
     expect(settings.usePersianDate, isTrue);
     expect(settings.fontFamily, 'Vazirmatn');
+    expect((await SharedPreferences.getInstance()).getString('arvin.settings.fontFamily'), 'Vazirmatn');
     expect(settings.swipeRightAction, TaskSwipeAction.trash);
     expect(settings.swipeLeftAction, TaskSwipeAction.archive);
+  });
+
+  test('migrates a stored legacy font value to Vazirmatn', () async {
+    SharedPreferences.setMockInitialValues({'arvin.settings.fontFamily': 'VazirHarf'});
+    final service = AppSettingsService();
+
+    final settings = await service.load();
+    expect(settings.fontFamily, 'Vazirmatn');
+    expect((await SharedPreferences.getInstance()).getString('arvin.settings.fontFamily'), 'Vazirmatn');
   });
 
   test('persists theme and Persian-date preferences without a second store', () async {
