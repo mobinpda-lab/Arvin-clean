@@ -215,6 +215,5 @@ jobs:
           name: arvin-device-smoke-calendar-${{ github.sha }}
           path: |
             artifacts/device-smoke/calendar-card-interaction.png
-            artifacts/device-smoke/calendar-card-completed.png
             artifacts/device-smoke/calendar-persian-time-picker.png
           if-no-files-found: error
