@@ -149,11 +149,11 @@ void main() {
   test('persists Convert to FollowUp as a swipe action', () async {
     final service = AppSettingsService();
     await service.saveSwipeActions(
-      right: TaskSwipeAction.convertToFollowUp,
+      right: TaskSwipeAction.moveToToday,
       left: TaskSwipeAction.archive,
     );
     final settings = await service.load();
-    expect(settings.swipeRightAction, TaskSwipeAction.convertToFollowUp);
+    expect(settings.swipeRightAction, TaskSwipeAction.moveToToday);
     expect(settings.swipeLeftAction, TaskSwipeAction.archive);
   });
 
@@ -161,11 +161,11 @@ void main() {
     final service = AppSettingsService();
     await service.saveSwipeActions(
       right: TaskSwipeAction.trash,
-      left: TaskSwipeAction.convertToFollowUp,
+      left: TaskSwipeAction.moveToToday,
     );
     final settings = await service.load();
     expect(settings.swipeRightAction, TaskSwipeAction.trash);
-    expect(settings.swipeLeftAction, TaskSwipeAction.convertToFollowUp);
+    expect(settings.swipeLeftAction, TaskSwipeAction.moveToToday);
   });
 
   test('persists Move to Today as a swipe action', () async {
