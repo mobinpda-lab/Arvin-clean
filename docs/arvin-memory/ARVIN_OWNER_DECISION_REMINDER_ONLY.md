@@ -19,9 +19,11 @@ Current product scheduling model:
 
 ## What legacy code means
 
-Names such as `FollowUp`, `nextFollowUp`, `followUpEnabled`, `followUpDate`, `followUps`, and nested legacy `reminderDate` are present in older implementation/data. Their presence does not mean the removed concepts are still supported product behavior.
+Historical FollowUp records and their followUps collection may still represent dated interaction history (notes, outcomes, completion and people) where the accepted product uses that history. Do not delete that history or treat the entire record type as removed.
 
-They may remain temporarily only where needed to read, migrate or preserve existing user data. They must not create new UI flows, active scheduling semantics, separate Calendar cards, notification behavior, report/filter dimensions or product requirements. Preserve old records until a complete consumer audit and safe migration is proven; do not perform a blind delete/rename.
+The retired concepts are the **Next Follow-up schedule** (nextFollowUp and related legacy enable/date behavior) and a separate reminder schedule nested under a FollowUp record (FollowUp.reminderDate). These fields are migration/compatibility debt, not authority to revive the old scheduling workflow.
+
+They must not create new active schedule behavior, separate Calendar cards, notification behavior, report/filter dimensions or product requirements. Preserve historical records and explicit timestamps until a complete consumer audit and safe, idempotent migration is proven; do not perform a blind delete/rename.
 
 ## Required rule for every future wave
 
