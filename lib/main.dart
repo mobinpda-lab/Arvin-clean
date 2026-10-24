@@ -2186,6 +2186,13 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
+    if (!reminder.syncToDevice) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('همگام‌سازی تقویم برای این یادآور خاموش است.')),
+      );
+      return;
+    }
     Task? task;
     if (task == null) {
       for (final prefix in const <String>[
@@ -2199,7 +2206,10 @@ class _HomePageState extends State<HomePage> {
           // Repeat occurrences append an ISO timestamp to the canonical Task
           // ID (which itself is stable). Match the Task prefix, not the entire
           // occurrence ID, so each occurrence can still edit/register its Task.
-          if (suffix == candidate.id || suffix.startsWith('${candidate.id}:')) {
+          final taskKey = prefix == 'task-reminder-item:'
+              ? Uri.encodeComponent(candidate.id)
+              : candidate.id;
+          if (suffix == taskKey || suffix.startsWith('$taskKey:')) {
             task = candidate;
             break;
           }
