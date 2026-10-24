@@ -8,7 +8,7 @@ import 'package:pdf/widgets.dart' as pw;
 void main() {
   test('agenda reason labels stay explicit and Jalali/Persian', () {
     final event = WorkAgendaEvent(
-      kind: WorkAgendaEventKind.followUpReminder,
+      kind: WorkAgendaEventKind.taskReminder,
       at: DateTime(2026, 8, 29, 9, 15),
       followUpId: 'fu-1',
     );
