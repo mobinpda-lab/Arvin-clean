@@ -17,6 +17,7 @@ import 'home/grouping/home_group.dart';
 import 'home/home_filter_ui.dart';
 import 'services/iran_clock.dart';
 import 'notebook_page.dart';
+import 'services/canonical_notebook_repository.dart';
 import 'quick_capture_dialog.dart';
 import 'report_center_page.dart';
 import 'widgets/universal_arvin_time_picker.dart';
@@ -1524,6 +1525,21 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _openTaskDetail(Task task) async {
     if (!mounted) return;
+    if (task.isNotebookItem) {
+      await Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(
+          builder: (_) => Directionality(
+            textDirection: TextDirection.rtl,
+            child: NotebookEditorPage(
+              noteId: task.id,
+              repository: CanonicalNotebookRepository(store: taskStore),
+            ),
+          ),
+        ),
+      );
+      if (mounted) await _load();
+      return;
+    }
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
         builder: (_) => TaskDetailPage(
