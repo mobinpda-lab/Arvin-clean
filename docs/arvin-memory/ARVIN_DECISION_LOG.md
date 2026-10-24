@@ -1,3 +1,11 @@
+# Latest owner decision — 2026-10-24 (Wave 7.32)
+
+The owner confirmed that “پیگیری بعدی” and “پیگیری مستقل” scheduling concepts were removed and replaced by canonical Task Reminder. Historical FollowUp interaction records may remain as history. The retired future-action schedule (nextFollowUp) and nested FollowUp reminder schedule must not be treated as current product behavior. Preserve old data and provider identity until all consumers are audited and a safe, idempotent migration is tested. This decision supersedes older entries below only where they conflict; historical decision records remain unchanged.
+
+Normative contract: [ARVIN_REMINDER_CONTRACT.md](ARVIN_REMINDER_CONTRACT.md). Permanent decision register: [ARVIN_OWNER_DECISION_REMINDER_ONLY.md](ARVIN_OWNER_DECISION_REMINDER_ONLY.md). Wave 7.32 baseline: [ARVIN_WAVE_7_32_BASELINE.md](ARVIN_WAVE_7_32_BASELINE.md).
+
+---
+
 ## 2026-10-14 — Exact-head CI evidence must prove checkout
 
 - **Problem:** A normal `pull_request` run may report the PR head in metadata while checking out GitHub's synthetic merge ref. Using metadata alone can incorrectly suppress exact-head recovery.
