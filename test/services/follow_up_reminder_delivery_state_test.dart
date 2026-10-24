@@ -6,7 +6,6 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   const stateService = FollowUpReminderDeliveryState();
   const deliveryService = FollowUpReminderDeliveryService();
-
   Task task(String id, {List<TaskReminder> reminders = const [], bool completed = false}) =>
       Task(id: id, title: 'Task $id', completed: completed, taskReminders: reminders);
 
