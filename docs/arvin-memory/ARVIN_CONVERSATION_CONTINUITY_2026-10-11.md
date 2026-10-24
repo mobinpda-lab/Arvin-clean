@@ -10,7 +10,7 @@
 - Before changes: audit the whole relevant flow and overlapping PRs; make a focused change; add regression coverage; validate exact head; document evidence and blockers.
 - Do not claim solved, complete, release-ready, tests green or device-verified without matching evidence. Orchestration-only success is not product validation.
 - Product first; keep existing canonical models and interactions. No parallel Task, Note, Calendar, Tracking, Follow-up or report stores. Run independent lanes in parallel only where they do not conflict.
-- Preserve Persian RTL, VazirHarf v34.003 (do not replace with Vazirmatn), approved Arvin colors and visual identity. Root Task.description remains the only root Task text field; no root Task.note. Existing FollowUp.note and Notebook notes stay unchanged.
+- **Historical/superseded font instruction:** preserve Persian RTL, approved Arvin colors and visual identity; the old VazirHarf v34.003 restriction is cancelled by the current owner decision in `docs/TYPOGRAPHY_CANONICAL.md` and Issue #2974. Root Task.description remains the only root Task text field; no root Task.note. Existing FollowUp.note and Notebook notes stay unchanged.
 
 ## Current conversation requirements and open acceptance items
 
