@@ -46,13 +46,6 @@ class FollowUpCalendarProjection {
     return null;
   }
 
-  bool _isDateOnly(DateTime value) =>
-      value.hour == 0 &&
-      value.minute == 0 &&
-      value.second == 0 &&
-      value.millisecond == 0 &&
-      value.microsecond == 0;
-
   List<CalendarReminder> project(
     Iterable<Task> tasks, {
     DateTime? visibleFrom,
@@ -107,6 +100,7 @@ class FollowUpCalendarProjection {
             title: task.title,
             date: occurrence,
             completed: completed,
+            isAllDay: task.allDay,
           ));
         }
       } else if (dueDate != null) {
@@ -116,7 +110,7 @@ class FollowUpCalendarProjection {
             title: task.title,
             date: dueDate,
             completed: task.completed,
-            isAllDay: _isDateOnly(dueDate),
+            isAllDay: task.allDay,
           ),
         );
       }
