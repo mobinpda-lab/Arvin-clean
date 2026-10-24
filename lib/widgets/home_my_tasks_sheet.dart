@@ -45,7 +45,7 @@ Future<HomeTaskFilterSelection?> showHomeMyTasksSheet({
               padding: EdgeInsets.fromLTRB(16, 4, 16, 10),
               child: Text(
                 'فیلتر کارها',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
               ),
             ),
             _FilterTile(
@@ -95,7 +95,7 @@ Future<HomeTaskFilterSelection?> showHomeMyTasksSheet({
                 padding: EdgeInsets.fromLTRB(16, 8, 16, 6),
                 child: Text(
                   'دسته‌ها',
-                  style: TextStyle(fontWeight: FontWeight.w800),
+                  style: TextStyle(fontWeight: FontWeight.w700),
                 ),
               ),
               for (final category in normalizedCategories)
