@@ -115,7 +115,7 @@ class _ArvinAppState extends State<ArvinApp> {
   AppSettings settings = const AppSettings(
     themeMode: ThemeMode.system,
     usePersianDate: true,
-    fontFamily: null,
+    fontFamily: AppFonts.vazirmatnFamily,
     fontSize: 16.0,
   );
 
@@ -298,7 +298,7 @@ class HomePage extends StatefulWidget {
     this.settings = const AppSettings(
       themeMode: ThemeMode.system,
       usePersianDate: true,
-      fontFamily: null,
+      fontFamily: AppFonts.vazirmatnFamily,
     ),
     this.onSettingsChanged,
     this.enableFirstRunGuide = false,
