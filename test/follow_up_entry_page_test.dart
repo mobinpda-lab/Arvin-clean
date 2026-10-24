@@ -73,6 +73,51 @@ void main() {
     expect(result!.reminderDate, isNull);
   });
 
+  testWidgets('first Next Follow-up initializes a matching independent reminder once',
+      (tester) async {
+    FollowUp? result;
+    final initial = DateTime(2026, 8, 27, 9, 30);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: ElevatedButton(
+              onPressed: () async {
+                result = await Navigator.of(context).push<FollowUp>(
+                  MaterialPageRoute(
+                    builder: (_) => FollowUpEntryPage(initialDateTime: initial),
+                  ),
+                );
+              },
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    final nextButton = find.text('انتخاب پیگیری بعدی');
+    await tester.ensureVisible(nextButton);
+    await tester.tap(nextButton);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('persian-date-picker')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('persian-date-day-6')));
+    await tester.pump();
+    await tester.tap(find.widgetWithText(FilledButton, 'تأیید'));
+    await tester.pumpAndSettle();
+
+    await saveEditor(tester);
+
+    final expected = DateTime(2026, 8, 28, 9, 30);
+    expect(result, isNotNull);
+    expect(result!.nextFollowUp, expected);
+    expect(result!.reminderDate, expected);
+  });
+
   testWidgets('blank optional title remains absent in the model', (tester) async {
     FollowUp? result;
     final initial = DateTime(2026, 8, 28, 0, 5);
