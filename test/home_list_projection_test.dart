@@ -35,6 +35,41 @@ void main() {
         notebookKind: notebookKind,
       );
 
+  test('Home date scopes use nextFollowUp, not historical action time', () {
+    final next = DateTime(2026, 8, 28, 10, 30);
+    final taskWithNext = task(
+      'canonical-next',
+      followUpDate: DateTime(2026, 8, 30, 9),
+      followUps: [
+        FollowUp(
+          id: 'fu-next',
+          dateTime: DateTime(2026, 8, 25, 9, 15),
+          nextFollowUp: next,
+        ),
+      ],
+    );
+    final historyOnly = task(
+      'history-only',
+      followUps: [
+        FollowUp(id: 'fu-history', dateTime: DateTime(2026, 8, 28, 12)),
+      ],
+    );
+
+    expect(taskWithNext.legacyHomeFollowUpDate, next);
+    expect(
+      projection
+          .project(
+            [taskWithNext, historyOnly],
+            scope: HomeListScope.today,
+            sort: HomeListSort.title,
+            now: now,
+          )
+          .map((item) => item.id),
+      ['canonical-next'],
+    );
+    expect(historyOnly.legacyHomeFollowUpDate, isNull);
+  });
+
   test('all notes and follow-up scopes reuse canonical items', () {
     final note = task('note', notebookKind: NotebookItemKind.note);
     final tracked = task('tracked', followUpEnabled: true);
@@ -222,7 +257,13 @@ void main() {
     final coincident = task(
       'coincident',
       dueDate: followUpAt,
-      followUps: [FollowUp(id: 'same-time-follow-up', dateTime: followUpAt)],
+      followUps: [
+        FollowUp(
+          id: 'same-time-follow-up',
+          dateTime: followUpAt.subtract(const Duration(days: 2)),
+          nextFollowUp: followUpAt,
+        ),
+      ],
     );
     final distinct = task(
       'distinct',
