@@ -309,7 +309,7 @@ class CalendarInboundSyncService {
       return true;
     }
 
-    return false;    return false;
+    return false;
   }
 
   Future<bool> _clearCanonical(
@@ -355,7 +355,7 @@ class CalendarInboundSyncService {
       return true;
     }
 
-    return false;    return false;
+    return false;
   }
 
   Task? _taskForId(List<Task> tasks, String id) {
