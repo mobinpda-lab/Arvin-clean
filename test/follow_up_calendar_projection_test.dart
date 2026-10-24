@@ -109,7 +109,7 @@ void main() {
     expect(reminders, isEmpty);
   });
 
-  test('projects a Task due date once even when a Follow-up shares the same timestamp', () {
+  test('keeps the Task due event when next-follow-up shares its timestamp without an independent reminder', () {
     final date = DateTime(2026, 12, 1, 10);
     final task = Task(
       id: 'dedupe',
@@ -123,9 +123,10 @@ void main() {
     final reminders = projection.project([task]);
 
     expect(reminders, hasLength(1));
-    expect(reminders.single.id, 'followup:dedupe:fu');
+    expect(reminders.single.id, 'task-due:dedupe');
     expect(reminders.single.date, date);
-    expect(task.followUps.single.reminderDate, date);
+    expect(task.followUps.single.nextFollowUp, date);
+    expect(task.followUps.single.reminderDate, isNull);
   });
 
   test('keeps Task due date and distinct independent Follow-up reminder visible', () {
