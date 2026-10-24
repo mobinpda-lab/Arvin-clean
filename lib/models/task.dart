@@ -85,6 +85,8 @@ class TaskReminder {
     required this.title,
     required this.date,
     this.isAllDay = false,
+    this.alarmEnabled = true,
+    this.calendarSyncEnabled = true,
     required this.sequence,
     this.isLegacyTaskReminder = false,
   });
@@ -93,6 +95,8 @@ class TaskReminder {
   final String title;
   final DateTime date;
   final bool isAllDay;
+  final bool alarmEnabled;
+  final bool calendarSyncEnabled;
   final int sequence;
 
   /// True when this reminder represents the legacy singular Task.reminderDate.
@@ -103,11 +107,15 @@ class TaskReminder {
     String? title,
     DateTime? date,
     bool? isAllDay,
+    bool? alarmEnabled,
+    bool? calendarSyncEnabled,
   }) => TaskReminder(
         id: id,
         title: title ?? this.title,
         date: date ?? this.date,
         isAllDay: isAllDay ?? this.isAllDay,
+        alarmEnabled: alarmEnabled ?? this.alarmEnabled,
+        calendarSyncEnabled: calendarSyncEnabled ?? this.calendarSyncEnabled,
         sequence: sequence,
         isLegacyTaskReminder: isLegacyTaskReminder,
       );
@@ -117,6 +125,8 @@ class TaskReminder {
         'title': title,
         'date': date.toIso8601String(),
         'isAllDay': isAllDay,
+        'alarmEnabled': alarmEnabled,
+        'calendarSyncEnabled': calendarSyncEnabled,
         'sequence': sequence,
         if (isLegacyTaskReminder) 'isLegacyTaskReminder': true,
       };
@@ -126,6 +136,8 @@ class TaskReminder {
         title: json['title'] as String? ?? '',
         date: DateTime.parse(json['date'] as String),
         isAllDay: json['isAllDay'] as bool? ?? false,
+        alarmEnabled: json['alarmEnabled'] as bool? ?? true,
+        calendarSyncEnabled: json['calendarSyncEnabled'] as bool? ?? true,
         sequence: (json['sequence'] as num?)?.toInt() ?? 1,
         isLegacyTaskReminder: json['isLegacyTaskReminder'] as bool? ?? false,
       );
