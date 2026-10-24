@@ -41,6 +41,7 @@ class FollowUpCalendarProjection {
             date: reminder.date,
             completed: task.completed,
             isAllDay: reminder.isAllDay,
+            syncToDevice: reminder.calendarSyncEnabled,
           ),
         );
       }
