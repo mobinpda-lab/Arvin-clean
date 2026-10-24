@@ -1,3 +1,7 @@
+> **Typography authority update (2026-10-24):** This is a dated validation record. Any mention of VazirHarf describes the historical tested build, not the current requirement. Current contract: [`docs/TYPOGRAPHY_CANONICAL.md`](TYPOGRAPHY_CANONICAL.md), Issue #2974.
+
+---
+
 # PR #2773 — Stage 2 Validation Ledger
 
 **Command:** `CMD-20261017-PR2773-STG2`  
