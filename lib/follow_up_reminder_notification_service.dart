@@ -18,8 +18,8 @@ class FollowUpReminderNotificationService
   static const AndroidNotificationChannel _channel =
       AndroidNotificationChannel(
     'arvin_followup_reminder',
-    'یادآور پیگیری‌های آروین',
-    description: 'یادآور مستقل هر پیگیری آروین',
+    'یادآورهای آروین',
+    description: 'اعلان محلی برای Reminderهای مستقل',
     importance: Importance.high,
   );
 
@@ -54,8 +54,8 @@ class FollowUpReminderNotificationService
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           'arvin_followup_reminder',
-          'یادآور پیگیری‌های آروین',
-          channelDescription: 'یادآور مستقل هر پیگیری آروین',
+          'یادآورهای آروین',
+          channelDescription: 'اعلان محلی برای Reminderهای مستقل',
           importance: Importance.high,
           priority: Priority.high,
         ),
