@@ -396,12 +396,6 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
                               const SizedBox(height: 6),
                               Text('نتیجه: $resultLabel'),
                             ],
-                            if (row.nextFollowUp != null) ...[
-                              const SizedBox(height: 8),
-                              Text(
-                                'پیگیری بعدی: ${_dateTime(row.nextFollowUp!)}',
-                              ),
-                            ],
                           ],
                         ),
                       ),
