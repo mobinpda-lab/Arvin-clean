@@ -490,21 +490,29 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
   Future<void> _openConflictAdvice(BuildContext context, List<CalendarReminder> reminders) async {
     final links = await ExternalCalendarLinkStore().load();
     final linksById = <String, dynamic>{for (final link in links) link.reminderId: link};
-    final eligible = reminders.where((reminder) =>
-      !reminder.completed && !reminder.isAllDay &&
-      linksById.containsKey(reminder.id) &&
-      widget.projection.resolveTaskReminderTarget(_tasks, reminder.id) != null
-    ).toList(growable: false);
-    if (eligible.isEmpty) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('یادآور مستقلی با همگام‌سازی فعال برای بررسی تداخل تقویم گوشی وجود ندارد.')));
-      return;
-    }
     final bridge = SystemCalendarBridge();
     final canRead = await bridge.hasReadPermission() || await bridge.requestReadPermission();
     if (!canRead) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تقویم گوشی قابل خواندن نیست؛ بررسی تداخل انجام نشد.')));
+      return;
+    }
+    final calendars = await bridge.listDeviceCalendars();
+    final syncEnabledCalendarIds = calendars
+        .where((calendar) => calendar.syncEvents)
+        .map((calendar) => calendar.id)
+        .toSet();
+    final eligible = reminders.where((reminder) {
+      final link = linksById[reminder.id];
+      return !reminder.completed &&
+          !reminder.isAllDay &&
+          link != null &&
+          syncEnabledCalendarIds.contains(link.calendarId) &&
+          widget.projection.resolveTaskReminderTarget(_tasks, reminder.id) != null;
+    }).toList(growable: false);
+    if (eligible.isEmpty) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('یادآور مستقلی با پیوند معتبر به تقویم همگام‌شونده وجود ندارد؛ تداخل بررسی نشد.')));
       return;
     }
     final ownedEvents = <String>{for (final link in links) '${link.calendarId}:${link.eventId}'};

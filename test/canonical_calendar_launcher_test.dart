@@ -90,6 +90,7 @@ List<Map<String, Object>> _conflictLinks() => [
 
 Future<void> _mockCalendarProvider({
   List<Map<String, Object?>> events = const [],
+  bool syncEvents = true,
 }) async {
   TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
       .setMockMethodCallHandler(_calendarChannel, (call) async {
@@ -98,9 +99,23 @@ Future<void> _mockCalendarProvider({
       case 'requestCalendarReadPermission':
         return true;
       case 'listDeviceCalendars':
-        return <Object?>[];
+        return <Object?>[
+          {
+            'id': 'calendar-1',
+            'displayName': 'تقویم آزمایشی',
+            'accessLevel': 700,
+            'visible': true,
+            'syncEvents': syncEvents,
+            'isPrimary': true,
+          },
+        ];
       case 'listDeviceCalendarEvents':
-        return events;
+        final args = Map<Object?, Object?>.from(call.arguments as Map);
+        if (args['startMillis'] == DateTime(2026, 8, 27).millisecondsSinceEpoch &&
+            args['endMillis'] == DateTime(2026, 8, 28).millisecondsSinceEpoch) {
+          return events;
+        }
+        return <Object?>[];
       default:
         return null;
     }
@@ -219,6 +234,36 @@ void main() {
     expect(find.text('یادآور جلسه مشتری'), findsWidgets);
     expect(find.textContaining('اعمال ۰۹:۳۰'), findsWidgets);
     expect(find.textContaining('هیچ زمانی بدون تأیید شما تغییر نمی‌کند'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Reminder linked to a calendar with sync disabled is not conflict-checked', (tester) async {
+    final tasks = await _seedConflictTasks();
+    await _mockCalendarProvider(events: [
+      {
+        'instanceId': 'provider-instance-1',
+        'eventId': 'provider-event-1',
+        'calendarId': 'calendar-1',
+        'title': 'جلسه خارج از آروین',
+        'startMillis': DateTime(2026, 8, 27, 9).millisecondsSinceEpoch,
+        'endMillis': DateTime(2026, 8, 27, 9, 30).millisecondsSinceEpoch,
+        'allDay': false,
+      },
+    ], syncEvents: false);
+    await tester.pumpWidget(MaterialApp(
+      home: CanonicalCalendarLauncher(
+        tasks: tasks,
+        onRefreshTasks: () => TaskStore().load(),
+        onRetryCalendarSync: () async {},
+      ),
+    ));
+    await tester.pump();
+    await _openMoreMenu(tester);
+    await tester.scrollUntilVisible(find.text('تداخل‌ها', skipOffstage: false), 300, scrollable: find.byType(Scrollable).last);
+    await tester.tap(find.text('تداخل‌ها'));
+    await tester.pumpAndSettle();
+    expect(find.text('یادآور مستقلی با پیوند معتبر به تقویم همگام‌شونده وجود ندارد؛ تداخل بررسی نشد.'), findsOneWidget);
+    expect(find.text('تداخل‌های زمانی'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
