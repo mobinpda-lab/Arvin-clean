@@ -116,7 +116,7 @@ void main() {
 
       await binding.convertFlutterSurfaceToImage();
       await tester.pumpAndSettle();
-      await binding.takeScreenshot('calendar-canonical-reminder-card');
+      await binding.takeScreenshot('calendar-card-interaction');
 
       await tester.longPress(card);
       await tester.pumpAndSettle();
@@ -146,7 +146,7 @@ void main() {
         TextDirection.rtl,
       );
       expect(tester.takeException(), isNull);
-      await binding.takeScreenshot('calendar-vazirmatn-persian-time-picker');
+      await binding.takeScreenshot('calendar-persian-time-picker');
 
       await tester.tap(find.byKey(const ValueKey('universal-time-cancel')));
       await tester.pumpAndSettle();
