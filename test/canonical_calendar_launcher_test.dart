@@ -60,20 +60,45 @@ class _RecordingCalendarProjection extends FollowUpCalendarProjection {
 
 const _calendarChannel = MethodChannel('arvin/system_calendar');
 
+DateTime _conflictWhen() {
+  final now = DateTime.now();
+  return DateTime(now.year, now.month, now.day + 1, 9);
+}
+
+DateTime _conflictDayStart() {
+  final when = _conflictWhen();
+  return DateTime(when.year, when.month, when.day);
+}
+
+List<Map<String, Object?>> _providerConflictEvents() {
+  final when = _conflictWhen();
+  return [
+    {
+      'instanceId': 'provider-instance-1',
+      'eventId': 'provider-event-1',
+      'calendarId': 'calendar-1',
+      'title': 'جلسه خارج از آروین',
+      'startMillis': when.millisecondsSinceEpoch,
+      'endMillis': when.add(const Duration(minutes: 30)).millisecondsSinceEpoch,
+      'allDay': false,
+    },
+  ];
+}
+
 List<Task> _conflictTasks() {
-  final when = DateTime(2026, 8, 27, 9);
+  final when = _conflictWhen();
   return [
     Task(
       id: 'conflict-a',
       title: 'جلسه مشتری',
-      dueDate: DateTime(2026, 8, 27, 12),
-      followUps: [FollowUp(id: 'history-a', dateTime: DateTime(2026, 8, 27, 8), note: 'سابقه واقعی A')],
+      dueDate: DateTime(when.year, when.month, when.day, 12),
+      followUps: [FollowUp(id: 'history-a', dateTime: DateTime(when.year, when.month, when.day, 8), note: 'سابقه واقعی A')],
       taskReminders: [TaskReminder(id: 'reminder-a', title: 'یادآور جلسه مشتری', date: when, sequence: 1)],
     ),
     Task(
       id: 'conflict-b',
       title: 'جلسه داخلی',
-      followUps: [FollowUp(id: 'history-b', dateTime: DateTime(2026, 8, 27, 8, 15), note: 'سابقه واقعی B')],
+      followUps: [FollowUp(id: 'history-b', dateTime: DateTime(when.year, when.month, when.day, 8, 15), note: 'سابقه واقعی B')],
       taskReminders: [TaskReminder(id: 'reminder-b', title: 'یادآور جلسه داخلی', date: when, sequence: 1)],
     ),
   ];
@@ -111,8 +136,8 @@ Future<void> _mockCalendarProvider({
         ];
       case 'listDeviceCalendarEvents':
         final args = Map<Object?, Object?>.from(call.arguments as Map);
-        if (args['startMillis'] == DateTime(2026, 8, 27).millisecondsSinceEpoch &&
-            args['endMillis'] == DateTime(2026, 8, 28).millisecondsSinceEpoch) {
+        if (args['startMillis'] == _conflictDayStart().millisecondsSinceEpoch &&
+            args['endMillis'] == _conflictDayStart().add(const Duration(days: 1)).millisecondsSinceEpoch) {
           return events;
         }
         return <Object?>[];
@@ -129,17 +154,7 @@ Future<List<Task>> _seedConflictTasks({bool persist = true}) async {
     'arvin.calendar.externalLinks': jsonEncode(_conflictLinks()),
   });
   if (persist) await TaskStore().save(tasks);
-  await _mockCalendarProvider(events: [
-    {
-      'instanceId': 'provider-instance-1',
-      'eventId': 'provider-event-1',
-      'calendarId': 'calendar-1',
-      'title': 'جلسه خارج از آروین',
-      'startMillis': DateTime(2026, 8, 27, 9).millisecondsSinceEpoch,
-      'endMillis': DateTime(2026, 8, 27, 9, 30).millisecondsSinceEpoch,
-      'allDay': false,
-    },
-  ]);
+  await _mockCalendarProvider(events: _providerConflictEvents());
   return tasks;
 }
 
@@ -239,17 +254,7 @@ void main() {
 
   testWidgets('Reminder linked to a calendar with sync disabled is not conflict-checked', (tester) async {
     final tasks = await _seedConflictTasks();
-    await _mockCalendarProvider(events: [
-      {
-        'instanceId': 'provider-instance-1',
-        'eventId': 'provider-event-1',
-        'calendarId': 'calendar-1',
-        'title': 'جلسه خارج از آروین',
-        'startMillis': DateTime(2026, 8, 27, 9).millisecondsSinceEpoch,
-        'endMillis': DateTime(2026, 8, 27, 9, 30).millisecondsSinceEpoch,
-        'allDay': false,
-      },
-    ], syncEvents: false);
+    await _mockCalendarProvider(events: _providerConflictEvents(), syncEvents: false);
     await tester.pumpWidget(MaterialApp(
       home: CanonicalCalendarLauncher(
         tasks: tasks,
@@ -288,6 +293,7 @@ void main() {
   });
 
   testWidgets('confirmed reschedule changes only one independent Reminder and requests sync', (tester) async {
+    final when = _conflictWhen();
     final tasks = await _seedConflictTasks();
     var syncCalls = 0;
     await tester.pumpWidget(MaterialApp(
@@ -310,9 +316,9 @@ void main() {
     await tester.pumpAndSettle();
 
     var saved = await TaskStore().load();
-    expect(saved.firstWhere((task) => task.id == 'conflict-a').taskReminders.single.date, DateTime(2026, 8, 27, 9));
-    expect(saved.firstWhere((task) => task.id == 'conflict-a').followUps.single.dateTime, DateTime(2026, 8, 27, 8));
-    expect(saved.firstWhere((task) => task.id == 'conflict-a').dueDate, DateTime(2026, 8, 27, 12));
+    expect(saved.firstWhere((task) => task.id == 'conflict-a').taskReminders.single.date, when);
+    expect(saved.firstWhere((task) => task.id == 'conflict-a').followUps.single.dateTime, DateTime(when.year, when.month, when.day, 8));
+    expect(saved.firstWhere((task) => task.id == 'conflict-a').dueDate, DateTime(when.year, when.month, when.day, 12));
     expect(syncCalls, 0);
 
     await tester.tap(find.textContaining('اعمال ۰۹:۳۰').first);
@@ -324,7 +330,7 @@ void main() {
     final taskA = saved.firstWhere((task) => task.id == 'conflict-a');
     final taskB = saved.firstWhere((task) => task.id == 'conflict-b');
     expect(taskA.taskReminders.single.id, 'reminder-a');
-    expect(taskA.taskReminders.single.date, DateTime(2026, 8, 27, 9, 30));
+    expect(taskA.taskReminders.single.date, when.add(const Duration(minutes: 30)));
     expect(taskA.followUps.single.dateTime, DateTime(2026, 8, 27, 8));
     expect(taskA.dueDate, DateTime(2026, 8, 27, 12));
     expect(taskB.taskReminders.single.date, DateTime(2026, 8, 27, 9));
@@ -338,17 +344,7 @@ void main() {
       'arvin.tasks': '[]',
       'arvin.calendar.externalLinks': jsonEncode(_conflictLinks()),
     });
-    await _mockCalendarProvider(events: [
-      {
-        'instanceId': 'provider-instance-1',
-        'eventId': 'provider-event-1',
-        'calendarId': 'calendar-1',
-        'title': 'جلسه خارج از آروین',
-        'startMillis': DateTime(2026, 8, 27, 9).millisecondsSinceEpoch,
-        'endMillis': DateTime(2026, 8, 27, 9, 30).millisecondsSinceEpoch,
-        'allDay': false,
-      },
-    ]);
+    await _mockCalendarProvider(events: _providerConflictEvents());
     var syncCalls = 0;
     await tester.pumpWidget(MaterialApp(
       home: CanonicalCalendarLauncher(
