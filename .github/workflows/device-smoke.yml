@@ -116,6 +116,18 @@ jobs:
           fi
       - name: Fetch official Vazirmatn assets
         run: bash tool/fetch_vazirmatn.sh
+
+      - name: Verify packaged font contract
+        run: |
+          set -euo pipefail
+          test -s assets/fonts/vazirmatn/Vazirmatn-Light.ttf
+          test -s assets/fonts/vazirmatn/Vazirmatn-Regular.ttf
+          test -s assets/fonts/vazirmatn/Vazirmatn-Medium.ttf
+          test -s assets/fonts/vazirmatn/Vazirmatn-SemiBold.ttf
+          test -s assets/fonts/vazirmatn/Vazirmatn-Bold.ttf
+          test -s assets/fonts/vazirmatn/OFL.txt
+          grep -q 'family: Vazirmatn' pubspec.yaml
+          grep -q 'vazirmatnFamily' lib/theme/app_fonts.dart
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
