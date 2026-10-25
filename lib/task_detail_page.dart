@@ -72,7 +72,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     if (latest != null && _waitingService.isWaitingResult(latest.result)) {
       return 'در انتظار پاسخ';
     }
-    return _task.followUpEnabled ? 'کار پیگیری‌دار' : 'در انتظار انجام';
+    return 'در انتظار انجام';
   }
 
   Color _statusColor() {
@@ -247,7 +247,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   _task.priority == TaskPriority.high ? _danger : _waiting,
                   icon: Icons.flag_outlined,
                 ),
-              if (_task.followUpEnabled) _badge('پیگیری‌دار', _brand, icon: Icons.timeline_outlined),
               for (final tag in _task.tags.take(4))
                 _badge('#${tag.trim()}', ArvinColors.tag, icon: Icons.sell_outlined),
             ],
@@ -465,34 +464,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     );
   }
 
-  Widget _nextAction(FollowUp? latest) {
-    final next = latest?.nextFollowUp;
-    if (next == null) return const SizedBox.shrink();
-    return _card(
-      key: const ValueKey('task-detail-next-action'),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(color: _brand.withValues(alpha: .10), borderRadius: BorderRadius.circular(12)),
-            child: const Icon(Icons.next_plan_outlined, color: _brand),
-          ),
-          const SizedBox(width: 11),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('اقدام بعدی', style: TextStyle(color: _muted, fontSize: 12, fontWeight: FontWeight.w700)),
-                const SizedBox(height: 3),
-                Text(_dateTime(next), style: const TextStyle(fontWeight: FontWeight.w800)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -538,7 +509,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
           child: Row(
             children: [
-              if (_task.followUpEnabled && !(_task.completed))
+              if (!(_task.completed))
                 Expanded(
                   child: FilledButton.icon(
                     key: const ValueKey('task-detail-add-followup'),
@@ -547,7 +518,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                     label: const Text('افزودن پیگیری'),
                   ),
                 ),
-              if (_task.followUpEnabled && !_task.completed) const SizedBox(width: 10),
+              if (!_task.completed) const SizedBox(width: 10),
               Expanded(
                 child: OutlinedButton.icon(
                   key: const ValueKey('task-detail-complete'),
@@ -585,10 +556,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             if (history.isNotEmpty) ...[
               const SizedBox(height: 10),
               _timeline(history),
-            ],
-            if (latest?.nextFollowUp != null) ...[
-              const SizedBox(height: 10),
-              _nextAction(latest),
             ],
             if (_task.reminderDate != null) ...[
               const SizedBox(height: 10),
