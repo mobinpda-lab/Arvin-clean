@@ -20,6 +20,7 @@ void main() {
       Task(
         id: id,
         title: id,
+        dueDate: anchor ?? DateTime(2026, 10, 15),
         reminderDate: anchor ?? DateTime(2026, 10, 15),
         recurrence: rule ?? const RecurrenceRule(frequency: RecurrenceFrequency.daily),
         completed: completed,
