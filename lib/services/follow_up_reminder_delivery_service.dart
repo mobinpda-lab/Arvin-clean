@@ -55,22 +55,6 @@ class FollowUpReminderDeliveryService {
         }
       }
 
-      for (final followUp in task.followUps) {
-        final reminderDate = followUp.reminderDate;
-        if (reminderDate == null || reminderDate.isAfter(now)) continue;
-
-        final note = followUp.note.trim();
-        final candidate = FollowUpReminderCandidate(
-          taskId: task.id,
-          taskTitle: task.title,
-          followUpId: followUp.id,
-          label: note.isEmpty ? 'پیگیری' : note,
-          scheduledAt: reminderDate,
-        );
-
-        if (deliveredIdentities.contains(deliveryIdentity(candidate))) continue;
-        result.add(candidate);
-      }
     }
 
     result.sort((a, b) {
