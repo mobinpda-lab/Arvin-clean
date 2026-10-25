@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../models/goal_project.dart';
 import '../models/task.dart';
 import 'task_project_assignment_service.dart';
