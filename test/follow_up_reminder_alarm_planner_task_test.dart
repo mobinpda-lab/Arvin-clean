@@ -1,5 +1,6 @@
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/follow_up_reminder_alarm_planner.dart';
+import 'package:arvin/services/follow_up_reminder_delivery_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -19,6 +20,27 @@ void main() {
       Task(id: 'trashed', title: 'سطل', trashed: true, taskReminders: [TaskReminder(id: 'r3', title: 'x', date: at, sequence: 1)]),
     ];
     expect(planner.nextAlarmAt(tasks, deliveredState: const {}, now: now), isNull);
+  });
+
+  test('alarm and delivery honor alarmEnabled independently from calendar sync', () {
+    final tasks = [
+      Task(id: 'channels', title: 'کانال‌ها', taskReminders: [
+        TaskReminder(id: 'alarm-off-calendar-on', title: 'تقویم فقط', date: now.add(const Duration(hours: 1)), alarmEnabled: false, calendarSyncEnabled: true, sequence: 1),
+        TaskReminder(id: 'alarm-on-calendar-off', title: 'آلارم فقط', date: now.add(const Duration(hours: 2)), alarmEnabled: true, calendarSyncEnabled: false, sequence: 2),
+        TaskReminder(id: 'both-off', title: 'خاموش', date: now.add(const Duration(hours: 3)), alarmEnabled: false, calendarSyncEnabled: false, sequence: 3),
+        TaskReminder(id: 'both-on', title: 'هر دو', date: now.add(const Duration(hours: 4)), alarmEnabled: true, calendarSyncEnabled: true, sequence: 4),
+      ]),
+    ];
+
+    expect(
+      planner.nextAlarmAt(tasks, deliveredState: const {}, now: now),
+      now.add(const Duration(hours: 2)),
+    );
+    final due = const FollowUpReminderDeliveryService().due(
+      tasks,
+      now: now.add(const Duration(hours: 5)),
+    );
+    expect(due.map((item) => item.taskReminderId), ['alarm-on-calendar-off', 'both-on']);
   });
 
   test('migrated legacy Task reminder uses canonical collection identity once', () {
