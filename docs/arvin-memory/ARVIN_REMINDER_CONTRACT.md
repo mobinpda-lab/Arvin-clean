@@ -82,3 +82,8 @@ A documentation PR, an open PR, a passing unit test, or a successful build alone
 This file is the current normative product contract. Older decision documents, comments, PR titles/descriptions, tests and model names are historical evidence only where they conflict with this decision. Preserve history, but do not treat it as current requirements.
 
 Every new task or conversation must read this contract and Issue #1139 before changing Reminder, Calendar, notification, migration or related behavior. Do not ask the owner to re-explain or re-approve the already settled removal of the old Follow-up concepts.
+
+
+## 8. Official app typography
+
+The current owner instruction makes **Vazirmatn v33.003** the official Arvin UI font. This newer explicit decision supersedes older typography references in historical documents and PR descriptions. The app must use the pinned official Regular, Medium, SemiBold and Bold TTF files in the global Flutter theme, Calendar and supported PDF outputs. The SIL Open Font License is retained under `assets/fonts/vazirmatn/OFL.txt`; the build helper fetches the same pinned upstream revision and verifies each file before compilation. Tests must verify actual font assets, RTL and mixed Persian/English rendering. Merely mentioning the family name is not acceptance evidence.
