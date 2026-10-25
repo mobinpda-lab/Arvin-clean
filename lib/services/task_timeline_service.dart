@@ -2,6 +2,7 @@ import '../models/task.dart';
 
 enum TaskTimelineEntryKind {
   created,
+  due,
   reminder,
   followUp,
   updated,
@@ -41,6 +42,16 @@ class TaskTimelineService {
           id: 'task:${task.id}:created',
           kind: TaskTimelineEntryKind.created,
           dateTime: task.createdAt!,
+        ),
+      );
+    }
+
+    if (task.dueDate != null) {
+      entries.add(
+        TaskTimelineEntry(
+          id: 'task:${task.id}:due',
+          kind: TaskTimelineEntryKind.due,
+          dateTime: task.dueDate!,
         ),
       );
     }
