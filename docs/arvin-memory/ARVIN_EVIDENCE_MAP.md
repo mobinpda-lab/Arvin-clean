@@ -463,3 +463,5 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Prior exact-head Build | Run [38859380955](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38859380955), SHA `2d04631dd9d1939bd3feafa12aa7d68bec349b58` | Debug/Release APK jobs succeeded; multiple test shards failed | Re-run on final SHA; old success is not release evidence |
 | Final head Build / Device Smoke / Calendar Provider | Runs are regenerated when the branch head changes | Pending validation | All six device-smoke lanes, Calendar Provider Acceptance, artifacts and screenshot review |
 | Font / physical device | VazirHarf declared; Vazirmatn asset not found in project assets; no new physical-device evidence | OPEN / NO-GO | Add licensed font asset if Vazirmatn is mandatory; separate physical-device acceptance |
+
+| Wave 7.35 typography | `pubspec.yaml`, `assets/fonts/vazirmatn/`, `lib/theme/app_fonts.dart`, `lib/main.dart`, PDF renderer | Official Vazirmatn v33.003 fetch is pinned; exact-head build, RTL, visual and physical-device evidence pending | Exact-head CI, APK asset verification, PDF and physical-device checks |
