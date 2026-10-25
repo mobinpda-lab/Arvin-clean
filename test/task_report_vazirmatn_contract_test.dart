@@ -6,6 +6,7 @@ void main() {
   test('Task PDF renderer loads the bundled official Vazirmatn files', () {
     final source = File('lib/services/task_report_pdf_renderer.dart').readAsStringSync();
     expect(source, contains('assets/fonts/vazirmatn/Vazirmatn-Regular.ttf'));
+    expect(File('pubspec.yaml').readAsStringSync(), contains('assets/fonts/vazirmatn/Vazirmatn-Light.ttf'));
     expect(source, contains('assets/fonts/vazirmatn/Vazirmatn-Bold.ttf'));
     expect(source, contains('rootBundle.load(_regularFontAsset)'));
     expect(source, contains('rootBundle.load(_boldFontAsset)'));
