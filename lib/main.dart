@@ -1348,12 +1348,25 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _edit(Task old) async {
+    debugPrint('CALENDAR_EDIT_TRACE: main_edit_start taskId=${old.id} mounted=$mounted');
     final editorContext = await wave2ProductFastTrack.prepareEditor(
       tasks: tasks,
       task: old,
     );
-    if (!mounted) return;
+    debugPrint(
+      'CALENDAR_EDIT_TRACE: prepare_editor_complete taskId=${old.id} '
+      'mounted=$mounted projects=${editorContext.projects.length}',
+    );
+    if (!mounted) {
+      debugPrint('CALENDAR_EDIT_TRACE: main_edit_aborted_unmounted taskId=${old.id}');
+      return;
+    }
     String? selectedProjectId = editorContext.selectedProjectId;
+    debugPrint(
+      'CALENDAR_EDIT_TRACE: show_dialog_begin taskId=${old.id} '
+      'navigatorCanPop=${Navigator.of(context).canPop()} '
+      'navigatorRoute=${ModalRoute.of(context)?.settings.name}',
+    );
     final edited = await showDialog<Task>(
       context: context,
       builder: (_) => ArvinTaskEditorDialog(
@@ -1367,6 +1380,10 @@ class _HomePageState extends State<HomePage> {
         onCreateCategory: _createCategory,
         onCreateTag: _createTag,
       ),
+    );
+    debugPrint(
+      'CALENDAR_EDIT_TRACE: show_dialog_complete taskId=${old.id} '
+      'editedNull=${edited == null} mounted=$mounted',
     );
     if (edited == null) return;
     setState(() => taskEditApplyService.apply(old, edited));
