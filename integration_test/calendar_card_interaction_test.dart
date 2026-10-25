@@ -12,40 +12,44 @@ void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets(
-    'Android calendar card tap, long press, SQLite completion and Persian time picker',
+    'canonical TaskReminder card opens Task editor and cancels without mutation',
     (tester) async {
       final store = TaskStore();
       final existing = await store.load();
-      // Each GitHub Actions job receives a fresh emulator. Refuse to overwrite
-      // unexpected data rather than clearing a possibly non-empty database.
       expect(existing, isEmpty, reason: 'Calendar smoke expects a fresh emulator database');
 
       final now = IranClock.now();
-      final reminderAt = now.add(const Duration(minutes: 10));
+      final reminderAt = DateTime(now.year, now.month, now.day, 12, 30);
       const taskId = 'calendar-smoke-task';
-      const followUpId = 'calendar-smoke-follow-up';
+      const reminderId = 'calendar-smoke-reminder';
+      const reminderTitle = 'یادآوری استاندارد آزمون';
       final seed = Task(
         id: taskId,
         title: 'کار آزمون تعامل تقویم',
         createdAt: now,
         updatedAt: now,
-        followUpEnabled: true,
-        followUps: [
-          FollowUp(
-            id: followUpId,
-            dateTime: now,
-            title: 'پیگیری آزمایشی',
-            note: 'ثبت شواهد تقویم',
-            reminderDate: reminderAt,
+        dueDate: DateTime(now.year, now.month, now.day, 17),
+        taskReminders: [
+          TaskReminder(
+            id: reminderId,
+            title: reminderTitle,
+            date: reminderAt,
+            sequence: 1,
+            alarmEnabled: false,
+            calendarSyncEnabled: false,
           ),
         ],
+        nextReminderSequence: 2,
       );
       await store.save([seed]);
-      debugPrint('CALENDAR_SMOKE: seeded one canonical record in SQLite');
+      final persistedBeforeLaunch = await store.load();
+      expect(persistedBeforeLaunch, hasLength(1));
+      expect(persistedBeforeLaunch.single.taskReminders, hasLength(1));
+      expect(persistedBeforeLaunch.single.taskReminders.single.id, reminderId);
+      expect(persistedBeforeLaunch.single.dueDate, seed.dueDate);
 
       app.main();
       await tester.pumpAndSettle();
-
       final skipGuide = find.text('رد کردن');
       if (skipGuide.evaluate().isNotEmpty) {
         await tester.tap(skipGuide);
@@ -56,17 +60,13 @@ void main() {
       await tester.tap(find.text('تقویم').last);
       await tester.pumpAndSettle();
 
-      final cardKey = const ValueKey(
-        'reminder-card-followup:calendar-smoke-task:calendar-smoke-follow-up',
-      );
-      final card = find.byKey(cardKey);
+      final card = find.byKey(const ValueKey(
+        'reminder-card-task-reminder-item:calendar-smoke-task:calendar-smoke-reminder',
+      ));
       final selectedDayList = find.byKey(
         const ValueKey('calendar-selected-day-list'),
       );
       expect(selectedDayList, findsOneWidget);
-      // The selected day may also contain Daily Content above the Reminder.
-      // Scroll the actual calendar list so the lazy child is built and visible
-      // before asserting or interacting with its stable Reminder identity.
       await tester.scrollUntilVisible(
         card,
         240,
@@ -75,77 +75,41 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(card, findsOneWidget);
-      expect(find.text('پیگیری آزمایشی'), findsOneWidget);
+      expect(find.text(reminderTitle), findsOneWidget);
       expect(Directionality.of(tester.element(card)), TextDirection.rtl);
       expect(
         Theme.of(tester.element(card)).textTheme.bodyMedium?.fontFamily,
-        AppFonts.vazirharfFamily,
+        AppFonts.vazirmatnFamily,
       );
       expect(tester.takeException(), isNull);
 
       await binding.convertFlutterSurfaceToImage();
-
-      // A short tap must open the Follow-up editor, not expand the card.
       await tester.tap(card);
       await tester.pumpAndSettle();
-      expect(find.byKey(const ValueKey('follow-up-entry-time')), findsOneWidget);
-      expect(find.text('ویرایش پیگیری'), findsOneWidget);
+      expect(find.byKey(const ValueKey('arvin-task-editor-dialog')), findsOneWidget);
+      expect(find.byKey(const ValueKey('task-editor-title')), findsOneWidget);
+      await binding.takeScreenshot('calendar-canonical-task-editor');
+
+      await tester.enterText(
+        find.byKey(const ValueKey('task-editor-title')),
+        'عنوانی که نباید ذخیره شود',
+      );
+      await tester.tap(find.byKey(const ValueKey('task-editor-close')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('task-editor-exit-discard')), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('task-editor-exit-discard')));
+      await tester.pumpAndSettle();
+
+      final persistedAfterCancel = await store.load();
+      expect(persistedAfterCancel, hasLength(1));
+      expect(persistedAfterCancel.single.title, 'کار آزمون تعامل تقویم');
+      expect(persistedAfterCancel.single.dueDate, seed.dueDate);
+      expect(persistedAfterCancel.single.taskReminders, hasLength(1));
+      expect(persistedAfterCancel.single.taskReminders.single.id, reminderId);
+      expect(persistedAfterCancel.single.taskReminders.single.date, reminderAt);
+      expect(find.text(reminderTitle), findsOneWidget);
       expect(tester.takeException(), isNull);
-      await tester.pumpAndSettle();
-      await binding.takeScreenshot('calendar-card-interaction');
-      debugPrint('CALENDAR_SMOKE: Follow-up editor form captured after it was fully opened');
-
-      // Open the canonical round clock and capture its Persian-digit RTL state.
-      await tester.tap(find.byKey(const ValueKey('follow-up-entry-time')));
-      await tester.pumpAndSettle();
-      expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
-      expect(find.byKey(const ValueKey('universal-time-cancel')), findsOneWidget);
-      expect(find.byKey(const ValueKey('universal-time-save')), findsOneWidget);
-      expect(Directionality.of(tester.element(
-        find.byKey(const ValueKey('universal-time-selected-value')),
-      )), TextDirection.rtl);
-      expect(tester.takeException(), isNull);
-      await tester.pumpAndSettle();
-      await binding.takeScreenshot('calendar-persian-time-picker');
-      debugPrint('CALENDAR_SMOKE: Persian time picker rendered without framework exception');
-
-      await tester.tap(find.byKey(const ValueKey('universal-time-cancel')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('follow-up-entry-back')));
-      await tester.pumpAndSettle();
-      expect(card, findsOneWidget);
-
-      // Long press must expose contextual actions. Completing the Follow-up
-      // must update the canonical SQLite record, not a parallel UI-only state.
-      await tester.longPress(card);
-      await tester.pumpAndSettle();
-      final completeAction = find.byKey(const ValueKey(
-        'reminder-complete-followup:calendar-smoke-task:calendar-smoke-follow-up',
-      ));
-      expect(completeAction, findsOneWidget);
-      expect(find.byKey(const ValueKey(
-        'reminder-edit-followup:calendar-smoke-task:calendar-smoke-follow-up',
-      )), findsOneWidget);
-      await tester.tap(completeAction);
-      await tester.pumpAndSettle();
-
-      Task? persisted;
-      for (var attempt = 0; attempt < 50; attempt++) {
-        final current = await store.load();
-        if (current.isNotEmpty && current.single.followUps.single.completed) {
-          persisted = current.single;
-          break;
-        }
-        await Future<void>.delayed(const Duration(milliseconds: 100));
-        await tester.pump(const Duration(milliseconds: 100));
-      }
-      expect(persisted, isNotNull);
-      expect(persisted!.followUps.single.completed, isTrue);
-      expect(tester.takeException(), isNull);
-      await tester.pumpAndSettle();
-      await binding.takeScreenshot('calendar-card-completed');
-      debugPrint('CALENDAR_SMOKE: long press action persisted completed=true in SQLite');
-      debugPrint('CALENDAR_SMOKE: no Flutter framework exception observed');
+      await binding.takeScreenshot('calendar-canonical-reminder-after-cancel');
     },
   );
 }
