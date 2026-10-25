@@ -8,6 +8,10 @@ import 'package:arvin/models/task.dart';
 import 'package:arvin/services/task_store.dart';
 
 void main() {
+  setUp(() async {
+    await TaskStore.resetTestDatabase();
+  });
+
   test('legacy followUpDate alone never fabricates a FollowUp history record', () async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks': '[{"id":"t1","title":"کار","followUpDate":"2026-08-14T09:30:00.000"}]',
@@ -97,6 +101,45 @@ void main() {
     final task = Map<String, dynamic>.from(stored.single as Map);
     expect(task['title'], 'کار');
     expect(task['category'], 'فروش');
+  });
+
+  test('completing a FollowUp preserves its full historical record', () async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': jsonEncode([
+        {
+          'id': 't1',
+          'title': 'کار',
+          'followUps': [
+            {
+              'id': 'f1',
+              'dateTime': '2026-08-15T10:15:00.000',
+              'title': 'پیگیری قرارداد',
+              'note': 'شرح کامل',
+              'result': 'پاسخ دریافت شد',
+              'reminderDate': '2026-08-16T09:00:00.000',
+              'nextFollowUp': '2026-08-20T10:15:00.000',
+              'completed': false,
+              'waitingForResponse': true,
+              'personIds': ['person-1', 'person-2'],
+            },
+          ],
+        },
+      ]),
+    });
+    const repository = FollowUpRepository();
+    final updated = await repository.setCompleted('t1', 'f1', true);
+    expect(updated.completed, isTrue);
+    expect(updated.title, 'پیگیری قرارداد');
+    expect(updated.dateTime, DateTime(2026, 8, 15, 10, 15));
+    expect(updated.note, 'شرح کامل');
+    expect(updated.result, 'پاسخ دریافت شد');
+    expect(updated.reminderDate, DateTime(2026, 8, 16, 9));
+    expect(updated.nextFollowUp, DateTime(2026, 8, 20, 10, 15));
+    expect(updated.waitingForResponse, isTrue);
+    expect(updated.personIds, ['person-1', 'person-2']);
+
+    final stored = (await repository.loadForTask('t1')).single;
+    expect(stored.toJson(), updated.toJson());
   });
 
   test('update fails when the FollowUp id does not exist', () async {
