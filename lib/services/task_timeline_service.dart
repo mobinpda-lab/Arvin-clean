@@ -68,7 +68,6 @@ class TaskTimelineService {
         );
       }
     }
-    }
 
     if (task.updatedAt != null) {
       entries.add(
