@@ -12,17 +12,6 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Future<void> revealReminder(WidgetTester tester) async {
-    final reminder = find.byKey(const ValueKey('follow-up-reminder-block'));
-    await tester.scrollUntilVisible(
-      reminder,
-      260,
-      scrollable: find.byType(Scrollable).last,
-    );
-    await tester.pumpAndSettle();
-    expect(reminder, findsOneWidget);
-  }
-
   testWidgets('saves entered follow-up title and preserves prefilled date time',
       (tester) async {
     FollowUp? result;
@@ -70,7 +59,7 @@ void main() {
     expect(result!.note, 'شرح تماس');
     expect(result!.result, 'پاسخ دریافت شد');
     expect(result!.dateTime, initial);
-    expect(result!.reminderDate, isNull);
+    expect(result!.reminderDate, initial.reminderDate);
   });
 
   testWidgets('blank optional title remains absent in the model', (tester) async {
@@ -115,7 +104,7 @@ void main() {
     expect(result!.dateTime, initial);
   });
 
-  testWidgets('editing preserves the exact independent reminder timestamp',
+  testWidgets('editing preserves legacy scheduling timestamps without exposing controls',
       (tester) async {
     FollowUp? result;
     final reminder = DateTime(2026, 9, 2, 7, 45);
@@ -150,10 +139,8 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
 
-    await revealReminder(tester);
-    expect(find.text('۱۴۰۵/۰۶/۱۱'), findsOneWidget);
-    expect(find.text('۰۷:۴۵'), findsOneWidget);
-    expect(find.byKey(const ValueKey('follow-up-reminder-clear')), findsOneWidget);
+    expect(find.text('انتخاب پیگیری بعدی'), findsNothing);
+    expect(find.byKey(const ValueKey('follow-up-reminder-block')), findsNothing);
 
     await saveEditor(tester);
 
@@ -163,7 +150,7 @@ void main() {
     expect(result!.nextFollowUp, initial.nextFollowUp);
   });
 
-  testWidgets('existing reminder can be cleared without changing FollowUp identity',
+  testWidgets('legacy FollowUp reminder is not editable through retired controls',
       (tester) async {
     FollowUp? result;
     final initial = FollowUp(
@@ -194,12 +181,8 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
 
-    await revealReminder(tester);
-    final clear = find.byKey(const ValueKey('follow-up-reminder-clear'));
-    expect(clear, findsOneWidget);
-    await tester.tap(clear);
-    await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('follow-up-reminder-clear')), findsNothing);
+    expect(find.text('انتخاب پیگیری بعدی'), findsNothing);
 
     await saveEditor(tester);
 
