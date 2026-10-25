@@ -36,9 +36,7 @@ class HomeListProjection {
         case HomeListScope.notes:
           return task.isNotebookItem;
         case HomeListScope.followUpEnabled:
-          return task.followUpEnabled ||
-              task.followUps.isNotEmpty ||
-              task.followUpDate != null;
+          return task.followUps.isNotEmpty;
         case HomeListScope.today:
           final date = _effectiveDate(task);
           return !task.completed &&
@@ -77,9 +75,8 @@ class HomeListProjection {
     return List<Task>.unmodifiable(result);
   }
 
-  /// Returns the first reminder at each exact timestamp, preserving canonical order.
-  /// A follow-up at the same timestamp takes display precedence over reminders.
-  /// This is a read-only UI projection; the source Task and reminder list are untouched.
+  /// Returns reminder entries while preserving canonical order.
+  /// Legacy Follow-up timestamps do not suppress independent Task Reminders.
   List<TaskReminder> projectReminders(
     Iterable<TaskReminder> reminders, {
     DateTime? followUpDate,
@@ -89,23 +86,19 @@ class HomeListProjection {
     final followUpTimestamp = followUpDate?.microsecondsSinceEpoch;
     for (final reminder in reminders) {
       final timestamp = reminder.date.microsecondsSinceEpoch;
-      if (followUpTimestamp != null && timestamp == followUpTimestamp) continue;
       if (seenTimestamps.add(timestamp)) result.add(reminder);
     }
     return List<TaskReminder>.unmodifiable(result);
   }
 
-  /// The due-date row is suppressed when a follow-up occupies the same instant.
+  /// A real historical Follow-up never suppresses the independent Task due date.
   bool shouldProjectDueDate(Task task) {
     final dueDate = task.dueDate;
     if (dueDate == null) return false;
-    final followUpDate = task.lastFollowUp?.dateTime;
-    return followUpDate == null ||
-        dueDate.microsecondsSinceEpoch != followUpDate.microsecondsSinceEpoch;
+    return true;
   }
 
-  DateTime? _effectiveDate(Task task) =>
-      task.dueDate ?? task.legacyHomeFollowUpDate;
+  DateTime? _effectiveDate(Task task) => task.dueDate;
 
   DateTime? _latestMeaningfulDate(Task task) {
     DateTime? latest;
