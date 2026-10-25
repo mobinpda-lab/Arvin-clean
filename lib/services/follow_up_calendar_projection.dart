@@ -2,6 +2,12 @@ import '../calendar_page.dart';
 import '../models/recurrence.dart';
 import '../models/task.dart';
 
+class TaskReminderCalendarTarget {
+  const TaskReminderCalendarTarget({required this.taskId, required this.reminder});
+  final String taskId;
+  final TaskReminder reminder;
+}
+
 class FollowUpCalendarTarget {
   const FollowUpCalendarTarget({
     required this.taskId,
@@ -35,6 +41,38 @@ class FollowUpCalendarProjection {
     Iterable<Task> tasks,
     String reminderId,
   ) => null;
+
+  /// Resolves only an independent canonical TaskReminder.
+  TaskReminderCalendarTarget? resolveTaskReminderTarget(Iterable<Task> tasks, String reminderId) {
+    String? taskId;
+    String? reminderRecordId;
+    if (reminderId.startsWith('task-reminder-item:')) {
+      final suffix = reminderId.substring('task-reminder-item:'.length);
+      final separator = suffix.indexOf(':');
+      if (separator <= 0 || separator == suffix.length - 1) return null;
+      taskId = Uri.decodeComponent(suffix.substring(0, separator));
+      reminderRecordId = Uri.decodeComponent(suffix.substring(separator + 1));
+    } else if (reminderId.startsWith('task-reminder:')) {
+      taskId = reminderId.substring('task-reminder:'.length);
+    } else { return null; }
+    for (final task in tasks) {
+      if (task.id != taskId || task.completed || task.archived || task.trashed) continue;
+      TaskReminder? target;
+      if (reminderRecordId != null) {
+        for (final reminder in task.taskReminders) {
+          if (reminder.id == reminderRecordId) { target = reminder; break; }
+        }
+      } else {
+        for (final reminder in task.taskReminders) {
+          if (!reminder.isLegacyTaskReminder) continue;
+          if (target != null) return null;
+          target = reminder;
+        }
+      }
+      if (target != null) return TaskReminderCalendarTarget(taskId: task.id, reminder: target);
+    }
+    return null;
+  }
 
   bool _sameInstant(DateTime a, DateTime b) =>
       a.toUtc().isAtSameMomentAs(b.toUtc());

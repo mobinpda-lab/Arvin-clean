@@ -61,7 +61,8 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
           title: task.title.trim().isEmpty ? 'بدون عنوان' : task.title,
         ));
       }
-      if (task.followUps.isNotEmpty) {
+      if (!task.completed && !task.archived && !task.trashed &&
+          task.followUps.isNotEmpty) {
         for (final followUp in task.followUps) {
           rows.add(_FollowUpRow(
             taskId: id,
