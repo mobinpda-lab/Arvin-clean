@@ -16,6 +16,9 @@ void main() {
         tags: ['مهم'],
         priority: TaskPriority.high,
         followUpEnabled: true,
+        followUps: <FollowUp>[
+          FollowUp(id: 'a-follow-up', dateTime: DateTime(2026, 10, 7, 9)),
+        ],
         checklist: ['یک'],
       ),
       Task(
