@@ -2187,25 +2187,23 @@ class _HomePageState extends State<HomePage> {
     }
 
     Task? task;
-    if (task == null) {
-      for (final prefix in const <String>[
-        'task-reminder-item:',
-        'task-due:',
-        'task-reminder:',
-      ]) {
-        if (!reminder.id.startsWith(prefix)) continue;
-        final suffix = reminder.id.substring(prefix.length);
-        for (final candidate in _searchSource) {
-          // Repeat occurrences append an ISO timestamp to the canonical Task
-          // ID (which itself is stable). Match the Task prefix, not the entire
-          // occurrence ID, so each occurrence can still edit/register its Task.
-          if (suffix == candidate.id || suffix.startsWith('${candidate.id}:')) {
-            task = candidate;
-            break;
-          }
+    for (final prefix in const <String>[
+      'task-reminder-item:',
+      'task-due:',
+      'task-reminder:',
+    ]) {
+      if (!reminder.id.startsWith(prefix)) continue;
+      final suffix = reminder.id.substring(prefix.length);
+      for (final candidate in _searchSource) {
+        // Repeat occurrences append an ISO timestamp to the canonical Task
+        // ID (which itself is stable). Match the Task prefix, not the entire
+        // occurrence ID, so each occurrence can still edit/register its Task.
+        if (suffix == candidate.id || suffix.startsWith('${candidate.id}:')) {
+          task = candidate;
+          break;
         }
-        if (task != null) break;
       }
+      if (task != null) break;
     }
     if (task == null) return;
 
