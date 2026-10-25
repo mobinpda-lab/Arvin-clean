@@ -1,5 +1,7 @@
 abstract final class AppFonts {
   static const String vazirmatnFamily = 'Vazirmatn';
+  static const String vazirmatnLightAsset =
+      'assets/fonts/vazirmatn/Vazirmatn-Light.ttf';
   static const String vazirmatnRegularAsset =
       'assets/fonts/vazirmatn/Vazirmatn-Regular.ttf';
   static const String vazirmatnMediumAsset =
