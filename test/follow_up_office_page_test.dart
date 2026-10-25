@@ -303,14 +303,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byTooltip('فقط پیگیری‌های موعدرسیده'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('کار موعدرسیده'), findsOneWidget);
-    expect(find.text('کار جایگزین‌شده'), findsNothing);
-    expect(find.text('کار آینده'), findsNothing);
-    expect(find.text('کار تکمیل‌شده'), findsNothing);
-    expect(find.text('موعد پیگیری'), findsOneWidget);
+    // The Follow-up office now presents historical Follow-up records and
+    // waiting/future filters; retired nextFollowUp dates are not an active
+    // due-date scheduler or a separate "due" filter.
+    expect(find.byTooltip('فقط پیگیری‌های موعدرسیده'), findsNothing);
+    expect(find.text('باید پیگیری شود'), findsOneWidget);
+    expect(find.text('برنامه جدید بدون موعد'), findsOneWidget);
+    expect(find.text('نباید نمایش داده شود'), findsNothing);
   });
 
   testWidgets('edits an existing follow-up without creating a duplicate',
