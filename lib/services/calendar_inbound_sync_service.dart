@@ -388,16 +388,6 @@ class CalendarInboundSyncService {
     );
   }
 
-  (String, String)? _parseFollowUpReminderId(String reminderId) {
-    final value = reminderId.substring('followup:'.length);
-    final separator = value.indexOf(':');
-    if (separator <= 0 || separator == value.length - 1) return null;
-    return (
-      value.substring(0, separator),
-      value.substring(separator + 1),
-    );
-  }
-
   String _providerKey(String calendarId, String eventId) =>
       '${calendarId.trim()}:${eventId.trim()}';
 
