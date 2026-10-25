@@ -294,7 +294,7 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                                     DateUtils.dateOnly(_now),
                                   )
                             ? ArvinColors.errorSoft
-                            : task.followUpEnabled
+                            : task.followUps.isNotEmpty
                             ? ArvinColors.reminderSoft
                             : ArvinColors.projectSoft;
                         return Card(
