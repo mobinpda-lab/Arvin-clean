@@ -286,8 +286,8 @@ targetCalendarId: 'calendar-7',
       followUp('f1'),
     ]);
 
-    expect(result?.created, 1);
-    expect(executor.receivedPlan?.items.single.reminderId, 'task-reminder:task-1');
+    expect(result?.created, 0);
+    expect(executor.receivedPlan?.items, isEmpty);
   });
 
   test('disabled source does not delete its existing external link', () async {

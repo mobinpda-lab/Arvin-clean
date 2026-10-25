@@ -434,8 +434,10 @@ class Task {
           ? null
           : DateTime.tryParse(json['dueDate'] as String),
       allDay: json['allDay'] as bool? ?? false,
-      followUpEnabled: json['followUpEnabled'] as bool? ??
-          loadedFollowUps.isNotEmpty || legacyFollowUpDate != null,
+      // Legacy followUpDate is retained as historical data only. Missing
+      // enablement must never reactivate the retired automatic Follow-up
+      // scheduler during deserialization.
+      followUpEnabled: json['followUpEnabled'] as bool? ?? false,
       followUpDate: legacyFollowUpDate,
       tags: (json['tags'] as List<dynamic>? ?? const [])
           .whereType<String>()

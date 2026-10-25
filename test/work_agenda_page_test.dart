@@ -38,7 +38,8 @@ void main() {
     expect(find.text('تحویل قرارداد'), findsOneWidget);
     expect(find.textContaining('موعد کار'), findsOneWidget);
     expect(find.textContaining('یادآوری کار'), findsOneWidget);
-    expect(find.textContaining('پیگیری'), findsWidgets);
+    // Historical Follow-up dates are retained, but no longer projected as active scheduled work.
+    expect(find.textContaining('پیگیری'), findsNothing);
     expect(find.text('۱۴۰۵/۰۶/۰۷'), findsWidgets);
   });
 

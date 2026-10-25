@@ -7,7 +7,7 @@ import 'package:arvin/services/task_migration_adapter.dart';
 void main() {
   const adapter = TaskMigrationAdapter();
 
-  test('decodes legacy Home JSON without fabricating follow-up history', () {
+  test('decodes legacy Home JSON without fabricating history or reactivating scheduling', () {
     const raw = '''[
       {
         "id": "legacy-1",
@@ -32,7 +32,7 @@ void main() {
     expect(task.tags, ['crm']);
     expect(task.category, 'sales');
     expect(task.followUpDate, DateTime.parse('2026-08-20T10:30:00.000Z'));
-    expect(task.followUpEnabled, isTrue);
+    expect(task.followUpEnabled, isFalse);
     expect(task.followUps, isEmpty);
     expect(task.lastFollowUp, isNull);
     expect(task.archived, isFalse);

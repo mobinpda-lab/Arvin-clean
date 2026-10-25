@@ -48,7 +48,7 @@ void main() {
       expect(task.lastFollowUpDate, DateTime(2026, 8, 15, 10, 30));
     });
 
-    test('legacy follow-up date preserves the same item without fake history', () {
+    test('legacy follow-up date preserves the item without reactivating scheduling or fabricating history', () {
       final legacyDate = DateTime(2026, 8, 15, 9);
       final task = Task.fromJson({
         'id': 'legacy-1',
@@ -57,7 +57,7 @@ void main() {
       });
 
       expect(task.id, 'legacy-1');
-      expect(task.followUpEnabled, isTrue);
+      expect(task.followUpEnabled, isFalse);
       expect(task.followUpDate, legacyDate);
       expect(task.followUps, isEmpty);
       expect(task.lastFollowUp, isNull);

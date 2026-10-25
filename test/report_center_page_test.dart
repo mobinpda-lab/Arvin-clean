@@ -182,8 +182,11 @@ void main() {
     expect(find.text('نتیجه: 2 پیگیری'), findsOneWidget);
     expect(find.textContaining('پاسخ آنا'), findsOneWidget);
     expect(find.textContaining('پاسخ رضا'), findsOneWidget);
-    expect(find.textContaining('اقدام بعدی:'), findsOneWidget);
-    expect(find.textContaining('یادآور:'), findsOneWidget);
+    // Historical Follow-up data remains in the report, but retired schedule fields
+    // must not be presented as an active next action.
+    expect(find.textContaining('اقدام بعدی:'), findsNothing);
+    // Legacy Follow-up reminderDate is not rendered as an active reminder.
+    expect(find.textContaining('یادآور:'), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey('report-center-filters')));
     await tester.pumpAndSettle();

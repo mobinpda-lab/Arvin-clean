@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:arvin/models/task.dart';
 
 void main() {
-  test('legacy task JSON preserves scheduling data without fake history', () {
+  test('legacy task JSON preserves the date without reactivating scheduling or fabricating history', () {
     final legacyDate = DateTime.parse('2026-08-20T09:30:00.000');
     final task = Task.fromJson({
       'id': 'legacy-1',
@@ -19,7 +19,7 @@ void main() {
     expect(task.title, 'کار قدیمی');
     expect(task.description, 'اطلاعات قدیمی');
     expect(task.tags, ['قدیمی']);
-    expect(task.followUpEnabled, isTrue);
+    expect(task.followUpEnabled, isFalse);
     expect(task.followUpDate, legacyDate);
     expect(task.followUps, isEmpty);
     expect(task.lastFollowUp, isNull);
