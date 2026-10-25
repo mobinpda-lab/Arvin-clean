@@ -118,22 +118,8 @@ jobs:
           test "$actual" = "$TARGET_SHA"
           echo "EXACT_TARGET_SHA=$actual"
 
-      - name: Cache pinned VazirHarf
-        uses: actions/cache@v5
-        with:
-          path: ${{ runner.temp }}/vazirharf
-          key: arvin-vazirharf-${{ runner.os }}-3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
-      - name: Fetch pinned VazirHarf on cache miss
-        run: |
-          set -euo pipefail
-          if [ ! -d "$RUNNER_TEMP/vazirharf/.git" ]; then
-            git clone --no-tags --depth 1 https://github.com/nadalaba/vazirharf.git "$RUNNER_TEMP/vazirharf"
-          fi
-          git -C "$RUNNER_TEMP/vazirharf" fetch --depth 1 origin 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
-          git -C "$RUNNER_TEMP/vazirharf" checkout --detach 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
-          test -s "$RUNNER_TEMP/vazirharf/fonts/ttf/Vazirharf-Regular.ttf"
-          mkdir -p assets/fonts
-          cp -a "$RUNNER_TEMP/vazirharf/." assets/fonts/vazirharf/
+      - name: Fetch official Vazirmatn assets
+        run: bash tool/fetch_vazirmatn.sh
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
