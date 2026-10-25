@@ -2659,14 +2659,14 @@ class _HomePageState extends State<HomePage> {
       TaskSwipeAction.archive => Icons.archive_outlined,
       TaskSwipeAction.trash => Icons.delete_outline,
       TaskSwipeAction.moveToToday => Icons.today_outlined,
-      TaskSwipeAction.convertToFollowUp => Icons.follow_the_signs_outlined,
+      TaskSwipeAction.convertToFollowUp => Icons.block,
       TaskSwipeAction.none => Icons.block,
     };
     final label = switch (action) {
       TaskSwipeAction.archive => 'بایگانی',
       TaskSwipeAction.trash => 'سطل زباله',
       TaskSwipeAction.moveToToday => 'انتقال به امروز',
-      TaskSwipeAction.convertToFollowUp => 'تبدیل به کار پیگیری‌دار',
+      TaskSwipeAction.convertToFollowUp => 'بدون عمل (گزینه قدیمی)',
       TaskSwipeAction.none => 'بدون عمل',
     };
     return Container(
