@@ -249,7 +249,9 @@ jobs:
 
       - name: Fetch official Vazirmatn assets
         if: steps.release_state.outputs.already_released != 'true'
-        run: bash tool/fetch_vazirmatn.sh      - name: Android V2 audit
+        run: bash tool/fetch_vazirmatn.sh
+
+      - name: Android V2 audit
         if: steps.release_state.outputs.already_released != 'true'
         shell: bash
         run: |
