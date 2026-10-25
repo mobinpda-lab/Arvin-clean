@@ -3,7 +3,6 @@ import '../models/task.dart';
 enum WorkAgendaEventKind {
   taskDue,
   taskReminder,
-  followUpReminder,
 }
 
 class WorkAgendaEvent {
