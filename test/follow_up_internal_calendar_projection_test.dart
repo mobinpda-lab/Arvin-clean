@@ -107,9 +107,8 @@ void main() {
 
     expect(changed.nextFollowUp, DateTime(2026, 10, 21, 10));
     expect(changed.reminderDate, originalReminder);
-    expect(reminders.project([task]).single.date, originalReminder);
+    expect(reminders.project([task]), isEmpty);
 
-    expect(reminders.project([task]).single.date, originalReminder);
     final followUpWithoutReminder = FollowUp(
       id: changed.id,
       dateTime: changed.dateTime,
