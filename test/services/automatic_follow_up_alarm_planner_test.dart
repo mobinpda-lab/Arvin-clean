@@ -1,6 +1,5 @@
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/automatic_follow_up_alarm_planner.dart';
-import 'package:arvin/services/automatic_follow_up_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
