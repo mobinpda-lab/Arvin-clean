@@ -82,16 +82,6 @@ jobs:
         run: |
           printf '{"final_head":"%s","internal_build_validated":true,"release_validation":"blocked"}\n' "$FINAL_SHA" > release.json
 
-      - name: Fetch pinned VazirHarf for manual validation
-        if: github.event_name == 'workflow_dispatch'
-        run: |
-          set -euo pipefail
-          git clone --no-tags --depth 1 https://github.com/nadalaba/vazirharf.git "$RUNNER_TEMP/vazirharf"
-          git -C "$RUNNER_TEMP/vazirharf" fetch --depth 1 origin 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
-          git -C "$RUNNER_TEMP/vazirharf" checkout --detach 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
-          test -s "$RUNNER_TEMP/vazirharf/fonts/ttf/Vazirharf-Regular.ttf"
-          test -s "$RUNNER_TEMP/vazirharf/fonts/ttf/Vazirharf-Bold.ttf"
-
       - name: Setup exact Flutter for manual validation
         if: github.event_name == 'workflow_dispatch'
         uses: subosito/flutter-action@v2
@@ -116,11 +106,9 @@ jobs:
           grep -q 'VERSION_17' android/app/build.gradle.kts
           grep -q 'desugar_jdk_libs:2.1.5' android/app/build.gradle.kts
 
-      - name: Restore VazirHarf assets for manual validation
+      - name: Fetch official Vazirmatn assets for manual validation
         if: github.event_name == 'workflow_dispatch'
-        run: mkdir -p assets/fonts && rm -rf assets/fonts/vazirharf && cp -a "$RUNNER_TEMP/vazirharf/." assets/fonts/vazirharf/
-
-      - name: Analyze from locked dependency graph for manual validation
+        run: bash tool/fetch_vazirmatn.sh      - name: Analyze from locked dependency graph for manual validation
         if: github.event_name == 'workflow_dispatch'
         run: |
           set -euo pipefail
