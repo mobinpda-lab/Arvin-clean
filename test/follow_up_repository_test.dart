@@ -96,6 +96,57 @@ void main() {
     expect(task['category'], 'فروش');
   });
 
+  test('setCompleted preserves FollowUp identity and all user-entered fields', () async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': jsonEncode([
+        {
+          'id': 'task-preserve',
+          'title': 'پیگیری مشتری',
+          'followUps': [
+            {
+              'id': 'followup-preserve',
+              'dateTime': '2026-08-15T10:15:00.000',
+              'title': 'تماس با مشتری',
+              'note': 'یادداشت مهم',
+              'result': 'منتظر پاسخ',
+              'reminderDate': '2026-08-17T09:00:00.000',
+              'nextFollowUp': '2026-08-20T11:00:00.000',
+              'completed': false,
+              'waitingForResponse': true,
+              'personIds': ['person-1', 'person-2'],
+            },
+          ],
+        },
+      ]),
+    });
+
+    const repository = FollowUpRepository();
+    final before = (await repository.loadForTask('task-preserve')).single;
+    expect(before.id, 'followup-preserve');
+    expect(before.title, 'تماس با مشتری');
+    expect(before.note, 'یادداشت مهم');
+    expect(before.result, 'منتظر پاسخ');
+    expect(before.personIds, ['person-1', 'person-2']);
+    expect(before.waitingForResponse, isTrue);
+
+    final returned = await repository.setCompleted(
+      'task-preserve',
+      'followup-preserve',
+      true,
+    );
+    final after = (await repository.loadForTask('task-preserve')).single;
+
+    for (final followUp in [returned, after]) {
+      expect(followUp.id, 'followup-preserve');
+      expect(followUp.title, 'تماس با مشتری');
+      expect(followUp.note, 'یادداشت مهم');
+      expect(followUp.result, 'منتظر پاسخ');
+      expect(followUp.personIds, ['person-1', 'person-2']);
+      expect(followUp.waitingForResponse, isTrue);
+      expect(followUp.completed, isTrue);
+    }
+  });
+
   test('update fails when the FollowUp id does not exist', () async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks': jsonEncode([
