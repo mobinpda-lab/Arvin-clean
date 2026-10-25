@@ -67,17 +67,7 @@ class TaskTimelineService {
           ),
         );
       }
-    } else if (task.followUpDate != null) {
-      // Compatibility for transitional in-memory Tasks that still carry only
-      // the legacy single followUpDate. Persisted legacy JSON is already
-      // migrated into FollowUps[] by Task.fromJson.
-      entries.add(
-        TaskTimelineEntry(
-          id: 'task:${task.id}:legacy-followup',
-          kind: TaskTimelineEntryKind.followUp,
-          dateTime: task.followUpDate!,
-        ),
-      );
+    }
     }
 
     if (task.updatedAt != null) {
