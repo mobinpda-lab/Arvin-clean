@@ -213,3 +213,8 @@
 ## 2026-10-15 — Decision record: PR #2725 validated
 
 Both required exact-head gates for `ba2306cfc66ad982f8e8ab73b838a4a8d6ed6b55` are terminal `success`: Build `38752957837` and Device Smoke `38752957813` (all six lanes). Proceed with the authorized squash merge of PR #2725 only while its head remains unchanged. After confirmed merge, create `feat/person-reports-followup-issue-2683` from fresh `main` and begin Issue #2683. Do not conflate CI success with physical-device release acceptance.
+
+
+## Wave 7.35 owner decision update — 2026-10-25
+
+The current explicit owner instruction supersedes older font decisions: **Vazirmatn v33.003 is the official Arvin UI font**. It must be locally bundled from a pinned upstream revision, used by the global Flutter theme, Calendar and PDF output, and validated with RTL/typography tests. Older VazirHarf references in this document are historical evidence only and do not override the current owner instruction. Release remains `BLOCKED — RELEASE: NO-GO` until exact-SHA validation and physical-device acceptance.

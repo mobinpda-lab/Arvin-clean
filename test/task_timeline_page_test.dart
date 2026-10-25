@@ -10,7 +10,14 @@ void main() {
       id: 'timeline-1',
       title: 'پرونده مشتری',
       createdAt: DateTime(2026, 8, 26, 8),
-      reminderDate: DateTime(2026, 8, 26, 12),
+      taskReminders: [
+        TaskReminder(
+          id: 'timeline-reminder',
+          title: 'یادآوری',
+          date: DateTime(2026, 8, 26, 12),
+          sequence: 1,
+        ),
+      ],
       updatedAt: DateTime(2026, 8, 26, 16),
       followUps: [
         FollowUp(

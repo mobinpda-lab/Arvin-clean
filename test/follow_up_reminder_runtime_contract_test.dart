@@ -40,16 +40,21 @@ void main() {
     );
   });
 
-  test('canonical FollowUp write paths request reminder rescheduling', () {
+  test('FollowUp history writes do not schedule; TaskReminder owns delivery', () {
     final coordinator =
         File('lib/services/follow_up_write_coordinator.dart').readAsStringSync();
-    final detail = File('lib/task_detail_page.dart').readAsStringSync();
-    final office = File('lib/follow_up_office_page.dart').readAsStringSync();
+    final planner =
+        File('lib/services/follow_up_reminder_alarm_planner.dart').readAsStringSync();
+    final delivery =
+        File('lib/services/follow_up_reminder_delivery_service.dart').readAsStringSync();
     final home = File('lib/main.dart').readAsStringSync();
 
-    expect(coordinator, contains('reminderReschedule'));
-    expect(detail, contains('AndroidFollowUpReminderScheduler().reschedule'));
-    expect(office, contains('AndroidFollowUpReminderScheduler().reschedule'));
+    expect(coordinator, isNot(contains('reminderReschedule')));
+    expect(coordinator, isNot(contains('AndroidFollowUpReminderScheduler')));
+    expect(planner, contains('for (final reminder in task.taskReminders)'));
+    expect(planner, contains('if (!reminder.alarmEnabled) continue;'));
+    expect(delivery, contains('if (!reminder.alarmEnabled) continue;'));
+    expect(home, contains('await taskStore.save(snapshot);'));
     expect(home, contains('AndroidFollowUpReminderScheduler().reschedule'));
   });
 }

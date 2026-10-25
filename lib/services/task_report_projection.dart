@@ -9,7 +9,7 @@ class TaskReportEntry {
     required this.checklist,
     required this.followUps,
     required this.completed,
-    this.reminderDate,
+    required this.reminders,
   });
 
   final String id;
@@ -19,7 +19,7 @@ class TaskReportEntry {
   final List<FollowUp> followUps;
   final List<String> checklist;
   final bool completed;
-  final DateTime? reminderDate;
+  final List<TaskReminder> reminders;
 }
 
 class TaskReport {
@@ -58,7 +58,7 @@ class TaskReportProjection {
             ),
             followUps: List<FollowUp>.unmodifiable(task.followUps),
             completed: task.completed,
-            reminderDate: task.reminderDate,
+            reminders: List<TaskReminder>.unmodifiable(task.taskReminders),
           ),
         )
         .toList(growable: false);

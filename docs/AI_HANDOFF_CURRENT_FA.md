@@ -126,7 +126,7 @@ Repository reality always overrides conversation memory.
 - آخرین FollowUp باید از `Task.followUps[]` و `lastFollowUp` canonical بیاید؛ تاریخ legacy نباید به‌عنوان تاریخ واقعی پیگیری نمایش داده شود.
 - Task Detail باید یک داشبورد مسیر پیگیری باشد: خلاصه، وضعیت، آخرین پیگیری، Timeline، فاصله بین پیگیری‌ها، اقدام بعدی، یادآوری و دو اقدام روشن «افزودن پیگیری» و «انجام کار».
 - Task Editor باید Full Screen و lifecycle-oriented باشد؛ هدر ثابت، عنوان در ابتدا، توضیحات مستقل، پروژه/دسته/برچسب، موعد/یادآوری/تکرار/اهمیت، سپس پیگیری، چک‌لیست و قابلیت‌های موجود.
-- فونت نهایی: VazirHarf v34.003. رنگ‌های نهایی و RTL مطابق قرارداد محصول.
+- فونت نهایی: Vazirmatn v34.003. رنگ‌های نهایی و RTL مطابق قرارداد محصول.
 - هیچ Storage/Model/Repository موازی برای Project، FollowUp یا Search ساخته نشود.
 - داده‌های کاربر نباید حذف یا مهاجرت مخرب شوند.
 
@@ -140,7 +140,7 @@ Repository reality always overrides conversation memory.
 1. بررسی compile/analyze/test روی Head فعلی.
 2. Build واقعی APK.
 3. Device/UI evidence برای Home، Quick Entry، Task Editor و Task Detail.
-4. بررسی دقیق RTL، فونت VazirHarf، فاصله‌ها و چهار فیلتر/نمای Home (زمان، پروژه، دسته، برچسب).
+4. بررسی دقیق RTL، فونت Vazirmatn، فاصله‌ها و چهار فیلتر/نمای Home (زمان، پروژه، دسته، برچسب).
 5. فقط پس از exact-head evidence، PR/merge و سپس post-merge validation.
 6. هر تغییر بعدی باید در همین handoff ثبت شود تا ادامه کار به گفتگو وابسته نباشد.
 
@@ -156,3 +156,8 @@ Repository reality always overrides conversation memory.
 - Task remains the core actionable entity. A Task can have 0/1 Project, 0/1 Category and multiple Tags. Project/Category/Tag filters remain distinct and combine with AND.
 - Before changing Task/Project/Category/Group/Tag/Filter/Search/Report/Calendar/Repeat/Backup/Restore, read the ADR, inspect current main and related PRs/issues, and link the ADR in the PR. Date-based grouping is presentation-only.
 - Current-code caveat: Project membership and Category catalog are represented separately; do not claim a physical Project→Category foreign key exists. This conformance question is part of Issue #2580.
+
+
+## Wave 7.35 owner override — 2026-10-25
+
+The explicit current owner instruction supersedes the older typography statements in this handoff: Vazirmatn v33.003 is the sole official Arvin UI font. Bundle the pinned official TTF weights, use them in global theme, Calendar and PDF, and require exact-SHA RTL/font evidence. Older VazirHarf statements are historical only.

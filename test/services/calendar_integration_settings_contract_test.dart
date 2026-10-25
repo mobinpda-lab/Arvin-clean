@@ -45,8 +45,6 @@ void main() {
     expect(calendar.deleteLinkedEventWithTask, isFalse);
     expect(calendar.syncDueDates, isTrue);
     expect(calendar.syncTaskReminders, isTrue);
-    expect(calendar.syncFollowUps, isTrue);
-    expect(calendar.syncFollowUpReminders, isTrue);
     expect(calendar.syncRecurrence, isFalse);
   });
 
@@ -59,8 +57,6 @@ void main() {
       targetCalendarId: 'google-work',
       syncDueDates: true,
       syncTaskReminders: false,
-      syncFollowUps: true,
-      syncFollowUpReminders: true,
       syncRecurrence: true,
       autoSync: true,
       deleteLinkedEventWithTask: false,

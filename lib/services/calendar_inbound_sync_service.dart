@@ -201,7 +201,7 @@ class CalendarInboundSyncService {
         id: reminderId,
         title: task.title,
         date: date,
-        isAllDay: _isDateOnly(date),
+        isAllDay: task.allDay,
         completed: task.completed,
       );
     }
@@ -247,47 +247,7 @@ class CalendarInboundSyncService {
           completed: task.completed,
         );
       }
-      final date = task.reminderDate;
-      if (date == null) return null;
-      return CalendarReminder(
-        id: reminderId,
-        title: 'یادآوری: ${task.title}',
-        date: date,
-        completed: task.completed,
-      );
-    }
-
-    if (reminderId.startsWith('followup:')) {
-      final parsed = _parseFollowUpReminderId(reminderId);
-      if (parsed == null) return null;
-      final task = _taskForId(tasks, parsed.$1);
-      if (task == null || task.trashed) return null;
-      for (final followUp in task.followUps) {
-        if (followUp.id != parsed.$2) continue;
-        return CalendarReminder(
-          id: reminderId,
-          title: followUp.note.trim().isEmpty
-              ? task.title
-              : '${task.title} — ${followUp.note.trim()}',
-          date: followUp.dateTime,
-          completed: followUp.completed || task.completed,
-        );
-      }
-    }
-
-    if (reminderId.startsWith('task-followup:')) {
-      final task = _taskForId(
-        tasks,
-        reminderId.substring('task-followup:'.length),
-      );
-      final date = task?.followUpDate;
-      if (task == null || date == null || task.trashed) return null;
-      return CalendarReminder(
-        id: reminderId,
-        title: task.title,
-        date: date,
-        completed: task.completed,
-      );
+      return null;
     }
 
     // Recurrence occurrences are projections rather than one canonical
@@ -305,6 +265,7 @@ class CalendarInboundSyncService {
       if (task == null || task.trashed) return false;
       task.title = revision.title;
       task.dueDate = revision.start;
+      task.allDay = revision.allDay;
       task.updatedAt = DateTime.now();
       return true;
     }
@@ -333,57 +294,17 @@ class CalendarInboundSyncService {
         reminderId.substring('task-reminder:'.length),
       );
       if (task == null || task.trashed) return false;
-      if (task.legacyTaskReminderMigrationVersion >= 1) {
-        final index = task.taskReminders.indexWhere(
-          (item) => item.isLegacyTaskReminder,
-        );
-        if (index < 0) return false;
-        final next = List<TaskReminder>.of(task.taskReminders);
-        next[index] = next[index].copyWith(
-          title: revision.title,
-          date: revision.start,
-          isAllDay: revision.allDay,
-        );
-        task.taskReminders = next;
-      } else {
-        task.title = revision.title.replaceFirst('یادآوری: ', '');
-      }
-      task.reminderDate = revision.start;
-      task.updatedAt = DateTime.now();
-      return true;
-    }
-
-    if (reminderId.startsWith('followup:')) {
-      final parsed = _parseFollowUpReminderId(reminderId);
-      if (parsed == null) return false;
-      final task = _taskForId(tasks, parsed.$1);
-      if (task == null || task.trashed) return false;
-      final index = task.followUps.indexWhere((item) => item.id == parsed.$2);
+      if (task.legacyTaskReminderMigrationVersion < 1) return false;
+      final index = task.taskReminders.indexWhere((item) => item.isLegacyTaskReminder);
       if (index < 0) return false;
-      final current = task.followUps[index];
-      final next = List<FollowUp>.of(task.followUps);
-      next[index] = FollowUp(
-        id: current.id,
-        dateTime: revision.start,
-        note: current.note,
-        result: current.result,
-        reminderDate: current.reminderDate,
-        nextFollowUp: current.nextFollowUp,
-        completed: current.completed,
+      final next = List<TaskReminder>.of(task.taskReminders);
+      next[index] = next[index].copyWith(
+        title: revision.title,
+        date: revision.start,
+        isAllDay: revision.allDay,
       );
-      task.followUps = next;
-      task.followUpEnabled = true;
-      task.updatedAt = DateTime.now();
-      return true;
-    }
-
-    if (reminderId.startsWith('task-followup:')) {
-      final task = _taskForId(
-        tasks,
-        reminderId.substring('task-followup:'.length),
-      );
-      if (task == null || task.trashed) return false;
-      task.followUpDate = revision.start;
+      task.taskReminders = next;
+      task.reminderDate = revision.start;
       task.updatedAt = DateTime.now();
       return true;
     }
@@ -399,6 +320,7 @@ class CalendarInboundSyncService {
       final task = _taskForId(tasks, reminderId.substring('task-due:'.length));
       if (task == null || task.trashed) return false;
       task.dueDate = null;
+      task.allDay = false;
       task.updatedAt = DateTime.now();
       return true;
     }
@@ -422,39 +344,13 @@ class CalendarInboundSyncService {
         reminderId.substring('task-reminder:'.length),
       );
       if (task == null || task.trashed) return false;
-      if (task.legacyTaskReminderMigrationVersion >= 1) {
-        final next = List<TaskReminder>.of(task.taskReminders)
-          ..removeWhere((item) => item.isLegacyTaskReminder);
-        final hadMigratedReminder = next.length != task.taskReminders.length;
-        if (!hadMigratedReminder) return false;
-        task.taskReminders = next;
-      }
+      if (task.legacyTaskReminderMigrationVersion < 1) return false;
+      final next = List<TaskReminder>.of(task.taskReminders)
+        ..removeWhere((item) => item.isLegacyTaskReminder);
+      final hadMigratedReminder = next.length != task.taskReminders.length;
+      if (!hadMigratedReminder) return false;
+      task.taskReminders = next;
       task.reminderDate = null;
-      task.updatedAt = DateTime.now();
-      return true;
-    }
-
-    if (reminderId.startsWith('followup:')) {
-      final parsed = _parseFollowUpReminderId(reminderId);
-      if (parsed == null) return false;
-      final task = _taskForId(tasks, parsed.$1);
-      if (task == null || task.trashed) return false;
-      final index = task.followUps.indexWhere((item) => item.id == parsed.$2);
-      if (index < 0) return false;
-      final next = List<FollowUp>.of(task.followUps)..removeAt(index);
-      task.followUps = next;
-      task.followUpEnabled = next.isNotEmpty;
-      task.updatedAt = DateTime.now();
-      return true;
-    }
-
-    if (reminderId.startsWith('task-followup:')) {
-      final task = _taskForId(
-        tasks,
-        reminderId.substring('task-followup:'.length),
-      );
-      if (task == null || task.trashed) return false;
-      task.followUpDate = null;
       task.updatedAt = DateTime.now();
       return true;
     }
@@ -481,16 +377,6 @@ class CalendarInboundSyncService {
     );
   }
 
-  (String, String)? _parseFollowUpReminderId(String reminderId) {
-    final value = reminderId.substring('followup:'.length);
-    final separator = value.indexOf(':');
-    if (separator <= 0 || separator == value.length - 1) return null;
-    return (
-      value.substring(0, separator),
-      value.substring(separator + 1),
-    );
-  }
-
   String _providerKey(String calendarId, String eventId) =>
       '${calendarId.trim()}:${eventId.trim()}';
 
@@ -505,10 +391,4 @@ class CalendarInboundSyncService {
     return start.add(const Duration(days: 1));
   }
 
-  bool _isDateOnly(DateTime value) =>
-      value.hour == 0 &&
-      value.minute == 0 &&
-      value.second == 0 &&
-      value.millisecond == 0 &&
-      value.microsecond == 0;
 }

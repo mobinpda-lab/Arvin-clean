@@ -65,8 +65,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   bool _saving = false;
   DateTime? _dueDate;
   DateTime? _reminderDate;
-  bool _reminderFollowsDueTime = true;
-  bool _followUpEnabled = false;
+  bool _addFollowUpHistory = false;
   bool _checklistEnabled = false;
   final List<FollowUp> _pendingFollowUps = <FollowUp>[];
   final List<String> _checklistItems = <String>[];
@@ -119,19 +118,9 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     super.dispose();
   }
 
-  void _syncAutomaticReminder() {
-    if (!_reminderFollowsDueTime) return;
-    if (_dueDate == null) {
-      _reminderDate = null;
-    } else {
-      _reminderDate = _dueDate;
-    }
-  }
-
   void _setDueDate(DateTime? value) {
     setState(() {
       _dueDate = value;
-      _syncAutomaticReminder();
     });
   }
 
@@ -144,12 +133,19 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     );
     if (task == null) return null;
     task.description = _descriptionController.text.trim();
-    _syncAutomaticReminder();
     task.dueDate = _dueDate;
-    task.reminderDate = _reminderDate;
     task.recurrence = _recurrence;
-    task.followUpEnabled = _followUpEnabled || _pendingFollowUps.isNotEmpty;
     task.followUps = List<FollowUp>.of(_pendingFollowUps);
+    task.taskReminders = _reminderDate == null
+        ? <TaskReminder>[]
+        : <TaskReminder>[
+            TaskReminder(
+              id: 'quick-reminder-${task.id}',
+              title: 'یادآور',
+              date: _reminderDate!,
+              sequence: 1,
+            ),
+          ];
     task.checklistEnabled = _checklistEnabled;
     task.checklist = List<String>.of(_checklistItems);
     final category = _categoryController.text.trim();
@@ -172,7 +168,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     if (!mounted || followUp == null) return null;
     setState(() {
       _pendingFollowUps.add(followUp);
-      _followUpEnabled = true;
+      _addFollowUpHistory = true;
     });
     return followUp.note;
   }
@@ -732,7 +728,6 @@ Future<DateTime?> _pickCustomDue() async {
                           onSelected: (value) {
                             setState(() {
                               _reminderDate = value is DateTime ? value : null;
-                              _reminderFollowsDueTime = false;
                             });
                           },
                         ),
@@ -745,14 +740,14 @@ Future<DateTime?> _pickCustomDue() async {
                     runSpacing: 4,
                     children: [
                       FilterChip(
-                        key: const ValueKey('quick-capture-follow-up-enabled'),
-                        selected: _followUpEnabled,
+                        key: const ValueKey('quick-capture-follow-up-history'),
+                        selected: _addFollowUpHistory,
                         avatar: const Icon(Icons.follow_the_signs_outlined, size: 18),
-                        label: const Text('دارای پیگیری'),
+                        label: const Text('ثبت سابقه پیگیری'),
                         onSelected: _saving
                             ? null
                             : (value) => setState(() {
-                                  _followUpEnabled =
+                                  _addFollowUpHistory =
                                       value || _pendingFollowUps.isNotEmpty;
                                 }),
                       ),
@@ -767,7 +762,7 @@ Future<DateTime?> _pickCustomDue() async {
                       ),
                     ],
                   ),
-                  if (_followUpEnabled) ...[
+                  if (_addFollowUpHistory) ...[
                     const SizedBox(height: 8),
                     ArvinRollBox<String>(
                       key: const ValueKey('quick-capture-follow-up-rollbox'),

@@ -64,10 +64,30 @@ class _Executor extends CalendarProviderSyncExecutor {
 
 void main() {
   CalendarReminder followUp(String id) => CalendarReminder(
-        id: 'followup:task-1:$id',
+        id: 'task-reminder-item:task-1:$id',
         title: 'پیگیری مشتری',
         date: DateTime(2026, 9, 16, 10),
       );
+
+  test('per-Reminder calendar sync setting is independent of local alarm setting', () async {
+    final executor = _Executor();
+    final service = CalendarOutboundSyncService(
+      settingsService: _Settings(const CalendarIntegrationSettings(
+        enabled: true,
+        autoSync: true,
+        syncTaskReminders: true,
+        targetCalendarId: 'primary',
+      )),
+      executor: executor,
+      linkStore: _Links(),
+    );
+    final rows = [
+      CalendarReminder(id: 'task-reminder-item:task-1:no-sync', title: 'فقط آلارم', date: DateTime(2026, 9, 16, 10), syncToDevice: false),
+      CalendarReminder(id: 'task-reminder-item:task-1:sync', title: 'فقط تقویم', date: DateTime(2026, 9, 16, 10), syncToDevice: true),
+    ];
+    await service.sync(rows, force: true);
+    expect(executor.receivedPlan?.items.map((item) => item.reminderId), ['task-reminder-item:task-1:sync']);
+  });
 
   test('does nothing while outbound sync is disabled', () async {
     final executor = _Executor();
@@ -81,7 +101,7 @@ void main() {
     expect(executor.receivedPlan, isNull);
   });
 
-  test('plans canonical follow-ups and executes against selected target', () async {
+  test('plans canonical Task Reminders and executes against selected target', () async {
     final executor = _Executor();
     final service = CalendarOutboundSyncService(
       settingsService: _Settings(
@@ -107,7 +127,7 @@ targetCalendarId: 'calendar-7',
 
     expect(result?.created, 1);
     expect(executor.receivedTarget, 'calendar-7');
-    expect(executor.receivedPlan?.items.single.reminderId, 'followup:task-1:f1');
+    expect(executor.receivedPlan?.items.single.reminderId, 'task-reminder-item:task-1:f1');
   });
 
   test('existing link produces idempotent update/no-op planning, not duplicate create', () async {
@@ -140,7 +160,7 @@ targetCalendarId: 'calendar-7',
 
   test('edit-only sync updates existing linked events without creating or removing other links', () async {
     final linkedReminder = CalendarReminder(
-      id: 'followup:task-1:f1',
+      id: 'task-reminder-item:task-1:f1',
       title: 'پیگیری ویرایش‌شده',
       date: DateTime(2026, 9, 17, 11),
     );
@@ -152,7 +172,7 @@ targetCalendarId: 'calendar-7',
         lastSyncedFingerprint: 'old-fingerprint',
       ),
       ExternalCalendarEventLink(
-        reminderId: 'followup:task-2:f2',
+        reminderId: 'task-reminder-item:task-2:f2',
         calendarId: 'calendar-7',
         eventId: 'event-10',
         lastSyncedFingerprint: 'other-fingerprint',
@@ -175,7 +195,7 @@ targetCalendarId: 'calendar-7',
       [
         linkedReminder,
         CalendarReminder(
-          id: 'followup:task-3:f3',
+          id: 'task-reminder-item:task-3:f3',
           title: 'کار ثبت‌نشده',
           date: DateTime(2026, 9, 18, 12),
         ),
@@ -244,9 +264,7 @@ targetCalendarId: 'calendar-7',
           autoSync: true,
           targetCalendarId: 'calendar-7',
           syncDueDates: false,
-          syncTaskReminders: true,
-          syncFollowUps: false,
-          syncFollowUpReminders: false,
+          syncTaskReminders: false,
           syncRecurrence: false,
         ),
       ),
@@ -281,7 +299,7 @@ targetCalendarId: 'calendar-7',
         const CalendarIntegrationSettings(
           enabled: true,
           autoSync: true,
-          syncFollowUps: false,
+          syncTaskReminders: false,
           targetCalendarId: 'calendar-7',
         ),
       ),
@@ -343,7 +361,7 @@ targetCalendarId: 'calendar-7',
         lastSyncedFingerprint: revision.fingerprint,
       ),
       ExternalCalendarEventLink(
-        reminderId: 'followup:task-2:f2',
+        reminderId: 'task-reminder-item:task-2:f2',
         calendarId: 'calendar-7',
         eventId: 'event-10',
         lastSyncedFingerprint: 'other-fingerprint',
@@ -376,7 +394,7 @@ targetCalendarId: 'calendar-7',
     expect(links.links.map((link) => link.reminderId), contains(reminder.id));
     expect(
       links.links.map((link) => link.reminderId),
-      isNot(contains('followup:task-2:f2')),
+      isNot(contains('task-reminder-item:task-2:f2')),
     );
   });
 
@@ -442,7 +460,7 @@ targetCalendarId: 'calendar-7',
         date: DateTime(2026, 9, 16, 10),
       ),
       CalendarReminder(
-        id: 'followup:task-1:f1',
+        id: 'task-reminder-item:task-1:f1',
         title: 'پیگیری واردشده',
         date: DateTime(2026, 9, 16, 11),
       ),

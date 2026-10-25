@@ -141,7 +141,7 @@ class _ArvinAppState extends State<ArvinApp> {
 
   @override
   Widget build(BuildContext context) {
-    final selectedOption = arvinFontById(settings.fontFamily ?? 'vazirharf');
+    final selectedOption = arvinFontById(settings.fontFamily ?? 'vazirmatn');
     final selectedFontFamily = selectedOption.effectiveFontFamily;
     final lightBaseTextTheme = ThemeData.light().textTheme.apply(
       fontFamily: selectedFontFamily,
@@ -534,8 +534,6 @@ class _HomePageState extends State<HomePage> {
         );
     }
   }
-
-  DateTime? _homeFollowUpDate(Task task) => task.lastFollowUp?.dateTime;
 
   String? _projectTitleForTask(Task task) {
     for (final project in projects) {
@@ -2188,44 +2186,40 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
+    if (!reminder.syncToDevice) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('همگام‌سازی تقویم برای این یادآور خاموش است.')),
+      );
+      return;
+    }
     Task? task;
-    final followUpTarget = reminder.id.startsWith('followup:')
-        ? calendarProjection.resolveTarget(_searchSource, reminder.id)
-        : null;
-    if (followUpTarget != null) {
+    for (final prefix in const <String>[
+      'task-reminder-item:',
+      'task-due:',
+      'task-reminder:',
+    ]) {
+      if (!reminder.id.startsWith(prefix)) continue;
+      final suffix = reminder.id.substring(prefix.length);
       for (final candidate in _searchSource) {
-        if (candidate.id == followUpTarget.taskId) {
+        // Repeat occurrences append an ISO timestamp to the canonical Task
+        // ID (which itself is stable). Match the Task prefix, not the entire
+        // occurrence ID, so each occurrence can still edit/register its Task.
+        final taskKey = prefix == 'task-reminder-item:'
+            ? Uri.encodeComponent(candidate.id)
+            : candidate.id;
+        if (suffix == taskKey || suffix.startsWith('$taskKey:')) {
           task = candidate;
           break;
         }
       }
-    }
-    if (task == null) {
-      for (final prefix in const <String>[
-        'task-reminder-item:',
-        'task-due:',
-        'task-reminder:',
-        'task-followup:',
-      ]) {
-        if (!reminder.id.startsWith(prefix)) continue;
-        final suffix = reminder.id.substring(prefix.length);
-        for (final candidate in _searchSource) {
-          // Repeat occurrences append an ISO timestamp to the canonical Task
-          // ID (which itself is stable). Match the Task prefix, not the entire
-          // occurrence ID, so each occurrence can still edit/register its Task.
-          if (suffix == candidate.id || suffix.startsWith('${candidate.id}:')) {
-            task = candidate;
-            break;
-          }
-        }
-        if (task != null) break;
-      }
+      if (task != null) break;
     }
     if (task == null) return;
 
     final canonical = CalendarReminder(
       id: reminder.id,
-      title: task.title,
+      title: reminder.title,
       // Keep the selected calendar row's date. For recurrence, this is the
       // occurrence date, not the Task's original anchor date.
       date: reminder.date,
@@ -2437,10 +2431,10 @@ class _HomePageState extends State<HomePage> {
       case HomeTaskFilterKind.today:
         _selectDueScope(TaskDueScope.today);
         return;
-      case HomeTaskFilterKind.followUp:
-        _selectListScope(TaskListScope.followUpEnabled);
+      case HomeTaskFilterKind.followUpHistory:
+        _selectListScope(TaskListScope.followUpHistory);
         return;
-      case HomeTaskFilterKind.withoutFollowUp:
+      case HomeTaskFilterKind.withoutFollowUpHistory:
         _selectListScope(TaskListScope.simpleNotes);
         return;
       case HomeTaskFilterKind.completed:
@@ -2661,18 +2655,6 @@ class _HomePageState extends State<HomePage> {
             );
         }
         return false;
-      case TaskSwipeAction.convertToFollowUp:
-        if (task.followUpEnabled) return false;
-        await taskStore.convertToFollowUp(task.id);
-        await _load();
-        if (mounted) {
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              const SnackBar(content: Text('کار به کار پیگیری‌دار تبدیل شد')),
-            );
-        }
-        return false;
       case TaskSwipeAction.none:
         return false;
     }
@@ -2684,14 +2666,12 @@ class _HomePageState extends State<HomePage> {
       TaskSwipeAction.archive => Icons.archive_outlined,
       TaskSwipeAction.trash => Icons.delete_outline,
       TaskSwipeAction.moveToToday => Icons.today_outlined,
-      TaskSwipeAction.convertToFollowUp => Icons.follow_the_signs_outlined,
       TaskSwipeAction.none => Icons.block,
     };
     final label = switch (action) {
       TaskSwipeAction.archive => 'بایگانی',
       TaskSwipeAction.trash => 'سطل زباله',
       TaskSwipeAction.moveToToday => 'انتقال به امروز',
-      TaskSwipeAction.convertToFollowUp => 'تبدیل به کار پیگیری‌دار',
       TaskSwipeAction.none => 'بدون عمل',
     };
     return Container(
@@ -2749,11 +2729,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
   Widget _taskCard(Task task) {
-    final followUpDate = _homeFollowUpDate(task);
-    final projectedReminders = const HomeListProjection().projectReminders(
-      task.taskReminders,
-      followUpDate: followUpDate,
-    );
+    final projectedReminders =
+        const HomeListProjection().projectReminders(task.taskReminders);
     final late = _overdue(task);
     final colors = Theme.of(context).colorScheme;
     final preview = _latestFollowUpPreview(task);
@@ -2943,35 +2920,6 @@ class _HomePageState extends State<HomePage> {
                                 icon: const Icon(Icons.close_rounded, size: 17),
                                 color: late ? ArvinColors.error : ArvinColors.textSecondary,
                               ),
-                          ],
-                        ),
-                      ],
-                      if (followUpDate != null) ...[
-                        const SizedBox(height: 7),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.event_outlined,
-                              size: 15,
-                              color: late
-                                  ? ArvinColors.taskStatusAmber
-                                  : ArvinColors.textSecondary,
-                            ),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                'پیگیری: ${_date(followUpDate)} • ${_time(followUpDate)}',
-                                style: TextStyle(
-                                  color: late
-                                      ? ArvinColors.taskStatusAmber
-                                      : ArvinColors.textSecondary,
-                                  fontSize: 11,
-                                  fontWeight: late
-                                      ? FontWeight.w600
-                                      : FontWeight.w400,
-                                ),
-                              ),
-                            ),
                           ],
                         ),
                       ],

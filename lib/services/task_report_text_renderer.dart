@@ -32,8 +32,14 @@ class TaskReportTextRenderer {
       if (entry.description.trim().isNotEmpty) {
         buffer.writeln('توضیحات: ${entry.description.trim()}');
       }
-      if (entry.reminderDate != null) {
-        buffer.writeln('یادآوری: ${formatDateTime(entry.reminderDate!)}');
+      if (entry.reminders.isNotEmpty) {
+        buffer.writeln('یادآورها:');
+        for (final reminder in entry.reminders) {
+          final when = reminder.isAllDay
+              ? 'تمام‌روز ${formatDay(reminder.date)}'
+              : formatDateTime(reminder.date);
+          buffer.writeln('• ${reminder.title}: $when');
+        }
       }
       if (entry.tags.isNotEmpty) {
         buffer.writeln('برچسب‌ها: ${entry.tags.join('، ')}');
@@ -57,6 +63,9 @@ class TaskReportTextRenderer {
 
     return buffer.toString().trimRight();
   }
+
+  static String formatDay(DateTime value) =>
+      _dateFormatter.format(value, usePersianDate: true);
 
   static String formatDateTime(DateTime value) {
     final date = _dateFormatter.format(value, usePersianDate: true);

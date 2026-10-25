@@ -9,9 +9,9 @@ void main() {
       (tester) async {
     final now = DateTime(2026, 8, 26, 12);
     final tasks = [
-      Task(id: 'later', title: 'کار زمان‌دار', reminderDate: DateTime(2026, 8, 27, 9)),
+      Task(id: 'later', title: 'کار زمان‌دار', dueDate: DateTime(2026, 8, 27, 9)),
       Task(id: 'free', title: 'کار بدون زمان'),
-      Task(id: 'late', title: 'کار عقب‌افتاده', reminderDate: DateTime(2026, 8, 25, 9)),
+      Task(id: 'late', title: 'کار عقب‌افتاده', dueDate: DateTime(2026, 8, 25, 9)),
       Task(id: 'done', title: 'کار تمام‌شده', completed: true),
     ];
 

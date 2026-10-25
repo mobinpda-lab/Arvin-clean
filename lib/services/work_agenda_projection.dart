@@ -3,23 +3,23 @@ import '../models/task.dart';
 enum WorkAgendaEventKind {
   taskDue,
   taskReminder,
-  followUpSchedule,
-  followUpReminder,
 }
 
 class WorkAgendaEvent {
   const WorkAgendaEvent({
     required this.kind,
     required this.at,
-    this.followUpId,
+    this.reminderId,
+    this.isAllDay = false,
   });
 
   final WorkAgendaEventKind kind;
   final DateTime at;
-  final String? followUpId;
+  final String? reminderId;
+  final bool isAllDay;
 
   String get stableKey =>
-      '${kind.name}:${followUpId ?? ''}:${at.toIso8601String()}';
+      '${kind.name}:${reminderId ?? ''}:${at.toIso8601String()}:$isAllDay';
 }
 
 class WorkAgendaItem {
@@ -52,13 +52,13 @@ class WorkAgendaDay {
 /// Read-only composition of canonical user work for one local day or an
 /// inclusive local date range.
 ///
-/// This service deliberately consumes only canonical [Task]/[FollowUp] data.
+/// This service deliberately consumes only canonical Task and TaskReminder data.
 /// Official occasions, prayer times and Daily Content are not inputs and
 /// therefore cannot leak into work reports.
 ///
 /// A Task may match through several scheduling concepts on the same day but is
-/// emitted once for that day with all matching [events] attached. FollowUp
-/// identity is preserved on FollowUp-derived events.
+/// emitted once for that day with all matching [events] attached. Reminder
+/// identity is preserved when multiple reminders share a timestamp.
 class WorkAgendaProjection {
   const WorkAgendaProjection();
 
@@ -95,7 +95,8 @@ class WorkAgendaProjection {
       void addEvent(
         DateTime? value,
         WorkAgendaEventKind kind, {
-        String? followUpId,
+        String? reminderId,
+        bool isAllDay = false,
       }) {
         if (value == null) return;
         final local = value.toLocal();
@@ -118,30 +119,19 @@ class WorkAgendaProjection {
           WorkAgendaEvent(
             kind: kind,
             at: value,
-            followUpId: followUpId,
+            reminderId: reminderId,
+            isAllDay: isAllDay,
           ),
         );
       }
 
-      addEvent(task.dueDate, WorkAgendaEventKind.taskDue);
-      addEvent(task.reminderDate, WorkAgendaEventKind.taskReminder);
-
-      // Match the canonical AutomaticFollowUpService rule: only the latest
-      // real FollowUp can own the current nextFollowUp schedule. The legacy
-      // Task.followUpDate is deliberately not treated as real history/work.
-      final latestFollowUp = task.lastFollowUp;
-      addEvent(
-        latestFollowUp?.nextFollowUp,
-        WorkAgendaEventKind.followUpSchedule,
-        followUpId: latestFollowUp?.id,
-      );
-
-      // Independent reminders belong to their exact canonical FollowUp.
-      for (final followUp in task.followUps) {
+      addEvent(task.dueDate, WorkAgendaEventKind.taskDue, isAllDay: task.allDay);
+      for (final reminder in task.taskReminders) {
         addEvent(
-          followUp.reminderDate,
-          WorkAgendaEventKind.followUpReminder,
-          followUpId: followUp.id,
+          reminder.date,
+          WorkAgendaEventKind.taskReminder,
+          reminderId: reminder.id,
+          isAllDay: reminder.isAllDay,
         );
       }
     }

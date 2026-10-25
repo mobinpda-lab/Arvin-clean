@@ -278,18 +278,6 @@ class TaskStore {
       if (index < 0) throw StateError('Task not found: $taskId');
       final task = tasks[index];
       task.followUps = [...task.followUps, followUp];
-      task.followUpEnabled = true;
-      task.updatedAt = DateTime.now();
-    });
-  }
-
-  Future<void> convertToFollowUp(String taskId) async {
-    await mutate<void>((tasks) {
-      final index = tasks.indexWhere((task) => task.id == taskId);
-      if (index < 0) throw StateError('Task not found: $taskId');
-      final task = tasks[index];
-      if (task.followUpEnabled) return;
-      task.followUpEnabled = true;
       task.updatedAt = DateTime.now();
     });
   }

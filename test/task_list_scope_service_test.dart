@@ -40,7 +40,7 @@ void main() {
     expect(identical(result.first, active), isTrue);
   });
 
-  test('without-follow-up scope excludes every canonical or legacy follow-up', () {
+  test('simple-note scope ignores retired schedule fields but excludes history', () {
     final plain = task('plain');
     final enabled = task('enabled', followUpEnabled: true);
     final legacyDate = task(
@@ -59,7 +59,8 @@ void main() {
       scope: TaskListScope.simpleNotes,
     );
 
-    expect(result, <Task>[plain]);
+    expect(result, <Task>[plain, enabled, legacyDate],
+        reason: 'retired schedule fields are not active FollowUp behavior');
   });
 
   test('follow-up scope accepts enablement, legacy date, or history', () {
@@ -78,10 +79,10 @@ void main() {
 
     final result = const TaskListScopeService().project(
       <Task>[plain, enabled, legacyDate, historyOnly],
-      scope: TaskListScope.followUpEnabled,
+      scope: TaskListScope.followUpHistory,
     );
 
-    expect(result, <Task>[enabled, legacyDate, historyOnly]);
+    expect(result, <Task>[historyOnly]);
   });
 
   test('projection never mutates or reorders the source list', () {

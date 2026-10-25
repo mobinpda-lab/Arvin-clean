@@ -22,16 +22,8 @@ class FollowUpReminderAlarmPlanner {
     for (final task in tasks) {
       if (task.completed || task.archived || task.trashed) continue;
 
-      final taskReminder = task.reminderDate;
-      // Before migration, retain the legacy delivery identity. Once the
-      // legacy date has been migrated into TaskReminder, do not schedule the
-      // singular field a second time.
-      if (task.legacyTaskReminderMigrationVersion < 1 && taskReminder != null) {
-        final identity = 'task:${task.id}@${taskReminder.toIso8601String()}';
-        if (!delivered.contains(identity)) candidates.add(taskReminder);
-      }
-
       for (final reminder in task.taskReminders) {
+        if (!reminder.alarmEnabled) continue;
         final scheduledAt = reminder.isAllDay
             ? DateTime(reminder.date.year, reminder.date.month, reminder.date.day, 9)
             : reminder.date;
@@ -43,15 +35,6 @@ class FollowUpReminderAlarmPlanner {
         if (!delivered.contains(identity)) candidates.add(scheduledAt);
       }
 
-      for (final followUp in task.followUps) {
-        if (followUp.completed) continue;
-        final at = followUp.reminderDate;
-        if (at == null) continue;
-        final identity =
-            '${task.id}:${followUp.id}@${at.toIso8601String()}';
-        if (delivered.contains(identity)) continue;
-        candidates.add(at);
-      }
     }
     if (candidates.isEmpty) return null;
     candidates.sort();

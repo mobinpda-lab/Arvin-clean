@@ -577,7 +577,8 @@ void main() {
 
     expect(captured, isNotNull);
     expect(captured!.dueDate, fixedNow);
-    expect(captured!.reminderDate, fixedNow);
+    expect(captured!.reminderDate, isNull);
+    expect(captured!.taskReminders, isEmpty);
   });
 
   testWidgets('Quick Add manual reminder remains independent from due time',
@@ -632,7 +633,9 @@ void main() {
 
     expect(captured, isNotNull);
     expect(captured!.dueDate, fixedNow);
-    expect(captured!.reminderDate, fixedNow.subtract(const Duration(minutes: 15)));
+    expect(captured!.reminderDate, isNull);
+    expect(captured!.taskReminders, hasLength(1));
+    expect(captured!.taskReminders.single.date, fixedNow.subtract(const Duration(minutes: 15)));
   });
 
 
@@ -672,7 +675,7 @@ void main() {
     );
 
     final followUpToggle = find.byKey(
-      const ValueKey('quick-capture-follow-up-enabled'),
+      const ValueKey('quick-capture-follow-up-history'),
     );
     await tester.ensureVisible(followUpToggle);
     await tester.tap(followUpToggle);
@@ -713,7 +716,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(captured, isNotNull);
-    expect(captured!.followUpEnabled, isTrue);
+    expect(captured!.followUpEnabled, isFalse);
     expect(captured!.followUpDate, isNull);
     expect(captured!.checklistEnabled, isTrue);
     expect(captured!.checklist, ['[ ] تماس با فروشنده']);
@@ -755,7 +758,7 @@ void main() {
       'خرید فرش اتاق',
     );
     final toggle = find.byKey(
-      const ValueKey('quick-capture-follow-up-enabled'),
+      const ValueKey('quick-capture-follow-up-history'),
     );
     await tester.ensureVisible(toggle);
     await tester.tap(toggle);
@@ -778,7 +781,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(captured, isNotNull);
-    expect(captured!.followUpEnabled, isTrue);
+    expect(captured!.followUpEnabled, isFalse);
     expect(captured!.followUps, hasLength(1));
     expect(captured!.followUps.single.nextFollowUp, isNull);
     expect(captured!.followUps.single.reminderDate, isNull);

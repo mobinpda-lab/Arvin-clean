@@ -28,7 +28,7 @@ void main() {
       Task(
         id: 'ui-task',
         title: 'تمرین روزانه',
-        reminderDate: DateTime(2026, 8, 20, 9),
+        dueDate: DateTime(2026, 8, 20, 9),
       ),
     ]);
     final repository = TaskRecurrenceRepository(
@@ -65,7 +65,7 @@ void main() {
       Task(
         id: 'resume-task',
         title: 'پیگیری تکراری',
-        reminderDate: DateTime(2026, 8, 20, 9),
+        dueDate: DateTime(2026, 8, 20, 9),
         recurrence: const RecurrenceRule(
           frequency: RecurrenceFrequency.daily,
           interval: 2,
@@ -80,7 +80,7 @@ void main() {
 
     final stored = (await store.load()).single;
     expect(stored.id, 'resume-task');
-    expect(stored.reminderDate, DateTime(2026, 8, 20, 9));
+    expect(stored.dueDate, DateTime(2026, 8, 20, 9));
     expect(stored.recurrence?.active, isTrue);
     expect(stored.recurrence?.interval, 2);
     expect(stored.completed, isFalse);
@@ -120,7 +120,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final task = (await store.load()).single;
-    expect(task.reminderDate, DateTime(2026, 8, 26, 9));
+    expect(task.dueDate, DateTime(2026, 8, 26, 9));
     expect(task.recurrence?.interval, 2);
     expect(find.text('برنامه تکرار از امروز ادامه پیدا کرد'), findsOneWidget);
   });
@@ -153,7 +153,7 @@ void main() {
       Task(
         id: 'lifecycle-ui',
         title: 'کار تکرارشونده',
-        reminderDate: occurrence,
+        dueDate: occurrence,
         recurrence: const RecurrenceRule(
           frequency: RecurrenceFrequency.daily,
           interval: 1,
@@ -176,7 +176,7 @@ void main() {
 
     final stored = (await store.load()).single;
     expect(stored.id, 'lifecycle-ui');
-    expect(stored.reminderDate, occurrence);
+    expect(stored.dueDate, occurrence);
     expect(stored.recurrence?.active, isTrue);
     expect(stored.occurrenceHistory.length, 1);
     expect(stored.completed, isFalse);
@@ -229,7 +229,7 @@ void main() {
       Task(
         id: 'tracking-level-ui',
         title: 'تعهد قابل پیگیری',
-        reminderDate: reminder,
+        dueDate: reminder,
         recurrence: const RecurrenceRule(frequency: RecurrenceFrequency.daily),
       ),
     ]);
@@ -286,7 +286,7 @@ void main() {
       Task(
         id: 'repeat-editor-contract',
         title: 'تعهد دوره‌ای',
-        reminderDate: reminder,
+        dueDate: reminder,
       ),
     ]);
     final repository = TaskRecurrenceRepository(

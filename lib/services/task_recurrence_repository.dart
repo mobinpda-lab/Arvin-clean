@@ -134,7 +134,7 @@ class TaskRecurrenceRepository {
   }) async {
     final task = _findTask(await _store.load(), taskId);
     final rule = task.recurrence;
-    final anchor = task.reminderDate;
+    final anchor = task.dueDate;
     if (rule == null || anchor == null) {
       return <String, dynamic>{'completed': 0, 'total': null, 'remaining': null};
     }
@@ -248,7 +248,7 @@ class TaskRecurrenceRepository {
     return _store.mutate<Task>((tasks) {
       final task = _find(tasks, taskId);
       final rule = task.recurrence;
-      final scheduledFrom = task.reminderDate;
+      final scheduledFrom = task.dueDate;
 
       if (rule == null) {
         throw StateError('Task has no recurrence: $taskId');
@@ -261,7 +261,7 @@ class TaskRecurrenceRepository {
         scheduledFrom: scheduledFrom,
         target: target ?? _now(),
       );
-      task.reminderDate = next;
+      task.dueDate = next;
       task.updatedAt = _now();
       return task;
     });

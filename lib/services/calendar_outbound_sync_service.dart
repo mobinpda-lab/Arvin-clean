@@ -34,7 +34,6 @@ class CalendarOutboundSyncService {
       'task-reminder-item:',
       'task-due:',
       'task-reminder:',
-      'task-followup:',
       'task-recurrence:',
     ]) {
       if (reminderId.startsWith(prefix)) {
@@ -46,11 +45,6 @@ class CalendarOutboundSyncService {
         }
         return separator < 0 ? value : value.substring(0, separator);
       }
-    }
-    if (reminderId.startsWith('followup:')) {
-      final value = reminderId.substring('followup:'.length);
-      final separator = value.indexOf(':');
-      if (separator > 0) return value.substring(0, separator);
     }
     return null;
   }
@@ -87,6 +81,7 @@ class CalendarOutboundSyncService {
       // An explicit edit of an already-linked Task is a direct reconciliation
       // request, not a new/background sync. Per-source toggles still gate normal
       // sync and unlinked reminders, but must not strand an existing link.
+      if (!reminder.syncToDevice) continue;
       if (!linkedOnly && !_enabledForReminder(integration, reminder)) continue;
       try {
         revisions.add(await revisionService.fromReminder(reminder));
@@ -158,12 +153,6 @@ class CalendarOutboundSyncService {
     if (id.startsWith('task-reminder-item:') ||
         id.startsWith('task-reminder:')) {
       return integration.syncTaskReminders;
-    }
-    if (id.startsWith('followup:')) {
-      return integration.syncFollowUps;
-    }
-    if (id.startsWith('task-followup:')) {
-      return integration.syncFollowUpReminders;
     }
     if (id.startsWith('task-recurrence:')) {
       return integration.syncRecurrence;

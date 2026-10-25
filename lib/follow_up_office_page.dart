@@ -2,12 +2,9 @@ import 'package:flutter/material.dart';
 
 import 'arvin_colors.dart';
 
-import 'android_automatic_follow_up_scheduler.dart';
-import 'android_follow_up_reminder_scheduler.dart';
 import 'follow_up_entry_page.dart';
 import 'follow_up_repository.dart';
 import 'models/task.dart';
-import 'services/automatic_follow_up_service.dart';
 import 'services/task_store.dart';
 import 'services/follow_up_write_coordinator.dart';
 import 'services/persian_date_formatter.dart';
@@ -29,7 +26,6 @@ class FollowUpOfficePage extends StatefulWidget {
 
 class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
   static const _waitingService = WaitingForResponseService();
-  static const _automaticService = AutomaticFollowUpService();
   static const _dateFormatter = PersianDateFormatter();
 
   late final FollowUpWriteCoordinator _writer;
@@ -37,8 +33,6 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
   bool _saving = false;
   bool _showFutureOnly = false;
   bool _showWaitingOnly = false;
-  bool _showAutomaticDueOnly = false;
-  List<Task> _canonicalTasks = const [];
   List<_TaskOption> _tasks = const [];
   List<_FollowUpRow> _rows = const [];
 
@@ -46,11 +40,7 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
   void initState() {
     super.initState();
     _writer = widget.writeCoordinator ??
-        FollowUpWriteCoordinator(
-          repository: widget.repository,
-          scheduler: AndroidAutomaticFollowUpScheduler(),
-          reminderReschedule: AndroidFollowUpReminderScheduler().reschedule,
-        );
+        FollowUpWriteCoordinator(repository: widget.repository);
     _load();
   }
 
@@ -74,23 +64,11 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
             followUp: followUp,
           ));
         }
-      } else if (task.followUpDate != null) {
-        final legacy = task.followUpDate!;
-        rows.add(_FollowUpRow(
-          taskId: id,
-          taskTitle: task.title,
-          followUp: FollowUp(
-            id: legacy.microsecondsSinceEpoch.toString(),
-            dateTime: legacy,
-            note: 'پیگیری قدیمی مهاجرت‌شده',
-          ),
-        ));
       }
     }
     rows.sort((a, b) => b.dateTime.compareTo(a.dateTime));
     if (!mounted) return;
     setState(() {
-      _canonicalTasks = canonicalTasks;
       _tasks = tasks;
       _rows = rows;
       _loading = false;
@@ -216,29 +194,10 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
     return waiting;
   }
 
-  List<_FollowUpRow> get _automaticDueRows {
-    final rowsByKey = <String, _FollowUpRow>{
-      for (final row in _rows)
-        if (row.taskId.isNotEmpty) '${row.taskId}\u0000${row.followUp.id}': row,
-    };
-    final candidates = _automaticService.dueCandidates(
-      _canonicalTasks,
-      now: DateTime.now(),
-    );
-
-    return [
-      for (final candidate in candidates)
-        if (rowsByKey['${candidate.taskId}\u0000${candidate.followUpId}'] case final row?)
-          row,
-    ];
-  }
-
   List<_FollowUpRow> get _visibleRows {
-    var rows = _showAutomaticDueOnly
-        ? _automaticDueRows
-        : _showWaitingOnly
-            ? _waitingRows
-            : List<_FollowUpRow>.of(_rows);
+    var rows = _showWaitingOnly
+        ? _waitingRows
+        : List<_FollowUpRow>.of(_rows);
     if (_showFutureOnly) {
       final now = DateTime.now();
       rows = rows.where((row) => row.dateTime.isAfter(now)).toList();
@@ -257,28 +216,10 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
         title: const Text('دفتر پیگیری'),
         actions: [
           IconButton(
-            tooltip: _showAutomaticDueOnly
-                ? 'نمایش همه پیگیری‌ها'
-                : 'فقط پیگیری‌های موعدرسیده',
-            onPressed: () => setState(() {
-              _showAutomaticDueOnly = !_showAutomaticDueOnly;
-              if (_showAutomaticDueOnly) {
-                _showWaitingOnly = false;
-                _showFutureOnly = false;
-              }
-            }),
-            icon: Icon(
-              _showAutomaticDueOnly
-                  ? Icons.alarm_on
-                  : Icons.alarm_on_outlined,
-            ),
-          ),
-          IconButton(
             tooltip: _showWaitingOnly ? 'نمایش همه پیگیری‌ها' : 'فقط منتظر پاسخ',
             onPressed: () => setState(() {
               _showWaitingOnly = !_showWaitingOnly;
               if (_showWaitingOnly) {
-                _showAutomaticDueOnly = false;
               }
             }),
             icon: Icon(
@@ -290,7 +231,6 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
             onPressed: () => setState(() {
               _showFutureOnly = !_showFutureOnly;
               if (_showFutureOnly) {
-                _showAutomaticDueOnly = false;
               }
             }),
             icon: Icon(
@@ -309,9 +249,7 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
           : rows.isEmpty
               ? Center(
                   child: Text(
-                    _showAutomaticDueOnly
-                        ? 'پیگیری موعدرسیده‌ای وجود ندارد'
-                        : _showWaitingOnly
+                    _showWaitingOnly
                             ? 'موردی در انتظار پاسخ نیست'
                             : _showFutureOnly
                                 ? 'پیگیری آینده‌ای ثبت نشده است'
@@ -360,13 +298,6 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
                                     ),
                                   ),
                                 ),
-                                if (_showAutomaticDueOnly)
-                                  Chip(
-                                    backgroundColor: ArvinColors.timeSoft,
-                                    avatar: const Icon(Icons.alarm_on, size: 16, color: ArvinColors.time),
-                                    label: const Text('موعد پیگیری'),
-                                    visualDensity: VisualDensity.compact,
-                                  ),
                                 if (waiting)
                                   Chip(
                                     backgroundColor: ArvinColors.reminderSoft,
@@ -395,12 +326,6 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
                             if (resultLabel.isNotEmpty && !waiting) ...[
                               const SizedBox(height: 6),
                               Text('نتیجه: $resultLabel'),
-                            ],
-                            if (row.nextFollowUp != null) ...[
-                              const SizedBox(height: 8),
-                              Text(
-                                'پیگیری بعدی: ${_dateTime(row.nextFollowUp!)}',
-                              ),
                             ],
                           ],
                         ),
@@ -445,5 +370,4 @@ class _FollowUpRow {
   DateTime get dateTime => followUp.dateTime;
   String get note => followUp.note;
   String? get result => followUp.result;
-  DateTime? get nextFollowUp => followUp.nextFollowUp;
 }

@@ -74,3 +74,8 @@
 - Current-main Build #38178428086 is stale/incomplete; Device Smoke #38178428043 is stale/queued. Do not claim green.
 - Product release remains blocked pending physical-device Calendar same-event update, real-file Backup/Restore, Repeat/Checklist golden flow, Persian RTL/compact-screen review and explicit owner approval.
 - Current report-filter decision remains: Persian/Jalali user-facing date/time, Persian digits, compact expandable sections preserving selection, multi-select, canonical source data, no parallel Report/Note stores. The shared Universal Arvin Time Picker and Report Center integration must be reconciled on one validated branch.
+
+
+## Explicit owner override — 2026-10-25
+
+The font choice stated in older continuity notes is superseded: Vazirmatn v33.003 is the official Arvin font per the current owner command. Preserve this note as history, but apply the current font contract and exact-SHA validation gates. Release remains `BLOCKED — RELEASE: NO-GO` until verified.

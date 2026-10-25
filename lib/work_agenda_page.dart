@@ -97,10 +97,8 @@ class _WorkAgendaPageState extends State<WorkAgendaPage> {
     final label = switch (event.kind) {
       WorkAgendaEventKind.taskDue => 'موعد کار',
       WorkAgendaEventKind.taskReminder => 'یادآوری کار',
-      WorkAgendaEventKind.followUpSchedule => 'پیگیری',
-      WorkAgendaEventKind.followUpReminder => 'یادآوری پیگیری',
     };
-    return '$label • ${_time(event.at)}';
+    return event.isAllDay ? '$label • تمام‌روز' : '$label • ${_time(event.at)}';
   }
 
   @override

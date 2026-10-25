@@ -22,21 +22,8 @@ class FollowUpReminderDeliveryService {
     for (final task in tasks) {
       if (task.completed || task.archived || task.trashed) continue;
 
-      final taskReminder = task.reminderDate;
-      if (task.legacyTaskReminderMigrationVersion < 1 &&
-          taskReminder != null &&
-          !taskReminder.isAfter(now)) {
-        final candidate = FollowUpReminderCandidate.task(
-          taskId: task.id,
-          taskTitle: task.title,
-          scheduledAt: taskReminder,
-        );
-        if (!deliveredIdentities.contains(deliveryIdentity(candidate))) {
-          result.add(candidate);
-        }
-      }
-
       for (final reminder in task.taskReminders) {
+        if (!reminder.alarmEnabled) continue;
         final scheduledAt = reminder.isAllDay
             ? DateTime(reminder.date.year, reminder.date.month, reminder.date.day, 9)
             : reminder.date;
@@ -55,22 +42,6 @@ class FollowUpReminderDeliveryService {
         }
       }
 
-      for (final followUp in task.followUps) {
-        final reminderDate = followUp.reminderDate;
-        if (reminderDate == null || reminderDate.isAfter(now)) continue;
-
-        final note = followUp.note.trim();
-        final candidate = FollowUpReminderCandidate(
-          taskId: task.id,
-          taskTitle: task.title,
-          followUpId: followUp.id,
-          label: note.isEmpty ? 'پیگیری' : note,
-          scheduledAt: reminderDate,
-        );
-
-        if (deliveredIdentities.contains(deliveryIdentity(candidate))) continue;
-        result.add(candidate);
-      }
     }
 
     result.sort((a, b) {

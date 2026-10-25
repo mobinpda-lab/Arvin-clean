@@ -249,8 +249,6 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                           separatorBuilder: (_, __) => const SizedBox(height: 8),
                           itemBuilder: (_, index) {
                             final row = waitingRows[index];
-                            final next = row.nextFollowUp;
-                            final reminder = row.reminderDate;
                             return Card(
                               child: ListTile(
                                 onTap: () => Navigator.of(context).push<void>(
@@ -263,8 +261,6 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                                   if (row.followUp.note.trim().isNotEmpty) row.followUp.note.trim(),
                                   if (row.followUp.result?.trim().isNotEmpty == true) 'نتیجه: ${row.followUp.result!.trim()}',
                                   'افراد: ${row.people.map((person) => person.displayName).join('، ')}',
-                                  if (next != null) 'اقدام بعدی: ${_reportDateTimeLabel(next)}',
-                                  if (reminder != null) 'یادآور: ${_reportDateTimeLabel(reminder)}',
                                 ].join(' • ')),
                               ),
                             );
@@ -298,7 +294,7 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                                     DateUtils.dateOnly(_now),
                                   )
                             ? ArvinColors.errorSoft
-                            : task.followUpEnabled
+                            : task.taskReminders.isNotEmpty
                             ? ArvinColors.reminderSoft
                             : ArvinColors.projectSoft;
                         return Card(

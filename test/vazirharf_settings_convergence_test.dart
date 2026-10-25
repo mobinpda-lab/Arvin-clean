@@ -1,33 +1,29 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:arvin/theme/app_fonts.dart';
 import 'package:arvin/theme/font_registry.dart';
 
 void main() {
-  test('canonical Settings keeps legacy VazirHarf as a safe fallback option', () {
+  test('Vazirmatn is the sole canonical app font and legacy settings resolve to it', () {
     final mainSource = File('lib/main.dart').readAsStringSync();
     final fontsSource = File('lib/theme/app_fonts.dart').readAsStringSync();
     final settingsSource = File('lib/settings_page.dart').readAsStringSync();
 
-    expect(mainSource, contains("import 'theme/font_registry.dart';"));
-    expect(fontsSource, contains("static const String vazirharfFamily = 'VazirHarf';"));
-    expect(arvinFontById('vazirharf').effectiveFontFamily, 'VazirHarf');
+    expect(mainSource, contains("settings.fontFamily ?? 'vazirmatn'"));
+    expect(fontsSource, contains("static const String vazirmatnFamily = 'Vazirmatn';"));
+    expect(arvinFontById('vazirharf').effectiveFontFamily, AppFonts.vazirmatnFamily);
+    expect(arvinFontById('system').effectiveFontFamily, AppFonts.vazirmatnFamily);
+    expect(kAvailableArvinFonts, hasLength(1));
     expect(settingsSource, contains("ValueKey('font-settings-entry')"));
   });
 
-  test('font catalog contains supported choices and safe fallback behavior', () {
-    expect(kAvailableArvinFonts.map((font) => font.id).toSet(), containsAll(<String>{'vazirmatn','estedad','sahel','shabnam','samim','tanha','gandom','parastoo','mikhak','lalezar','vazir-code','system','vazirharf'}));
-    expect(arvinFontById('system').effectiveFontFamily, isNull);
-    expect(arvinFontById('vazirmatn').effectiveFontFamily, isNull);
-    expect(arvinFontById('unknown-font').id, 'vazirharf');
-  });
-
-  test('release APK builds the canonical VazirHarf app entrypoint', () {
-    final workflow = File('.github/workflows/build.yml').readAsStringSync();
-
-    expect(workflow, contains('flutter build apk --\${{ matrix.variant }} -t lib/main.dart'));
-    expect(workflow, isNot(contains('-t lib/main_iransans.dart')));
-    expect(workflow, isNot(contains('IRANSANSX_FANUM_REGULAR_B64')));
-    expect(workflow, isNot(contains('IRANSANSX_FANUM_BOLD_B64')));
+  test('pinned official font fetch provides the bundled weights and license', () {
+    final pubspec = File('pubspec.yaml').readAsStringSync();
+    final script = File('tool/fetch_vazirmatn.sh').readAsStringSync();
+    expect(pubspec, contains('family: Vazirmatn'));
+    expect(script, contains('83629f877e8f084cc07b47030b5d3a0ff06c76ec'));
+    expect(script, contains('Vazirmatn-'));
+    expect(File('assets/fonts/vazirmatn/OFL.txt').existsSync(), isTrue);
   });
 }

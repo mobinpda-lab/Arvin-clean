@@ -49,14 +49,15 @@ class _SettingsPageState extends State<SettingsPage> {
               shrinkWrap: true,
               children: [
                 for (final option in kAvailableArvinFonts)
-                  RadioListTile<String>(
+                  ListTile(
                     key: ValueKey('font-option-${option.id}'),
-                    value: option.id,
+                    onTap: () => Navigator.of(dialogContext).pop(option.id),
+                    leading: Radio<String>(value: option.id),
                     title: Text(option.nameFa),
                     subtitle: Text(option.isAvailableLocally
                       ? option.description
                       : '${option.description} • فایل فونت همراه برنامه نیست؛ بازگشت امن به فونت سیستم'),
-                    secondary: selected == option.id
+                    trailing: selected == option.id
                       ? const Icon(Icons.check_circle, color: Colors.green)
                       : const Icon(Icons.text_fields),
                   ),
@@ -70,8 +71,8 @@ class _SettingsPageState extends State<SettingsPage> {
     await _setFontFamily(choice);
   }
   Future<void> _setSwipeAction({required bool rightSide, required TaskSwipeAction action}) async { final current = settings; if (current == null) return; final next = rightSide ? current.copyWith(swipeRightAction: action) : current.copyWith(swipeLeftAction: action); await widget.service.saveSwipeActions(right: next.swipeRightAction, left: next.swipeLeftAction); if (!mounted) return; setState(() => settings = next); widget.onSettingsChanged(next); }
-  String _swipeActionLabel(TaskSwipeAction action) => switch (action) { TaskSwipeAction.archive => 'بایگانی', TaskSwipeAction.trash => 'سطل زباله', TaskSwipeAction.moveToToday => 'انتقال به امروز', TaskSwipeAction.convertToFollowUp => 'تبدیل به کار پیگیری‌دار', TaskSwipeAction.none => 'بدون عمل' };
-  IconData _swipeActionIcon(TaskSwipeAction action) => switch (action) { TaskSwipeAction.archive => Icons.archive_outlined, TaskSwipeAction.trash => Icons.delete_outline, TaskSwipeAction.moveToToday => Icons.today_outlined, TaskSwipeAction.convertToFollowUp => Icons.follow_the_signs_outlined, TaskSwipeAction.none => Icons.block };
+  String _swipeActionLabel(TaskSwipeAction action) => switch (action) { TaskSwipeAction.archive => 'بایگانی', TaskSwipeAction.trash => 'سطل زباله', TaskSwipeAction.moveToToday => 'انتقال به امروز', TaskSwipeAction.none => 'بدون عمل' };
+  IconData _swipeActionIcon(TaskSwipeAction action) => switch (action) { TaskSwipeAction.archive => Icons.archive_outlined, TaskSwipeAction.trash => Icons.delete_outline, TaskSwipeAction.moveToToday => Icons.today_outlined, TaskSwipeAction.none => Icons.block };
   List<DropdownMenuItem<TaskSwipeAction>> _swipeItems() => TaskSwipeAction.values.map((action) => DropdownMenuItem<TaskSwipeAction>(value: action, child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(_swipeActionIcon(action), size: 20), const SizedBox(width: 8), Text(_swipeActionLabel(action))]))).toList();
   Future<void> _openBackupSchedule() async { await Navigator.of(context).push<void>(MaterialPageRoute<void>(builder: (_) => BackupSchedulePage())); }
   Future<void> _openCalendarIntegrationSettings() async { await Navigator.of(context).push<void>(MaterialPageRoute<void>(builder: (_) => CalendarIntegrationSettingsPage(service: widget.service))); await _load(); }
