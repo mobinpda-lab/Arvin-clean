@@ -59,7 +59,7 @@ void main() {
     expect(result!.note, 'شرح تماس');
     expect(result!.result, 'پاسخ دریافت شد');
     expect(result!.dateTime, initial);
-    expect(result!.reminderDate, initial.reminderDate);
+    expect(result!.reminderDate, isNull);
   });
 
   testWidgets('blank optional title remains absent in the model', (tester) async {
@@ -150,7 +150,7 @@ void main() {
     expect(result!.nextFollowUp, initial.nextFollowUp);
   });
 
-  testWidgets('legacy FollowUp reminder is not editable through retired controls',
+  testWidgets('legacy FollowUp reminder is hidden but preserved without retired controls',
       (tester) async {
     FollowUp? result;
     final initial = FollowUp(
@@ -188,7 +188,7 @@ void main() {
 
     expect(result, isNotNull);
     expect(result!.id, initial.id);
-    expect(result!.reminderDate, isNull);
+    expect(result!.reminderDate, initial.reminderDate);
   });
   testWidgets('FollowUp Back prompts and save preserves entered changes',
       (tester) async {
