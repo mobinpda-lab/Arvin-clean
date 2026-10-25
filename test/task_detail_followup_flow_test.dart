@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('ordinary Task detail is read-only and has Edit without add FollowUp',
+  testWidgets('ordinary Task detail also exposes real Follow-up entry',
       (tester) async {
     final task = Task(
       id: 'ordinary',
@@ -28,7 +28,7 @@ void main() {
     expect(find.text('نسخه نهایی برای مشتری'), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-due-date')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-edit')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-add-followup')), findsNothing);
+    expect(find.byKey(const ValueKey('task-detail-add-followup')), findsOneWidget);
   });
 
   testWidgets('Task detail renders due date as Jalali with Persian digits',
