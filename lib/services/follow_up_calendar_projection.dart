@@ -30,24 +30,11 @@ class FollowUpCalendarProjection {
   String legacyFollowUpReminderIdFor(Task task) =>
       'task-followup:${task.id}';
 
+  /// Retired legacy Follow-up reminder IDs are never active Calendar targets.
   FollowUpCalendarTarget? resolveTarget(
     Iterable<Task> tasks,
     String reminderId,
-  ) {
-    for (final task in tasks) {
-      if (task.trashed) continue;
-      for (final followUp in task.followUps) {
-        if (followUp.reminderDate != null &&
-            reminderIdFor(task, followUp) == reminderId) {
-          return FollowUpCalendarTarget(
-            taskId: task.id,
-            followUp: followUp,
-          );
-        }
-      }
-    }
-    return null;
-  }
+  ) => null;
 
   bool _sameInstant(DateTime a, DateTime b) =>
       a.toUtc().isAtSameMomentAs(b.toUtc());
