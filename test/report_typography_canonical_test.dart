@@ -8,8 +8,8 @@ void main() {
 
   test('canonical report typography assets are bundled and loadable', () async {
     const regular =
-        'assets/fonts/vazirharf/fonts/ttf/Vazirharf-Regular.ttf';
-    const bold = 'assets/fonts/vazirharf/fonts/ttf/Vazirharf-Bold.ttf';
+        'assets/fonts/vazirmatn/Vazirmatn-Regular.ttf';
+    const bold = 'assets/fonts/vazirmatn/Vazirmatn-Bold.ttf';
 
     final regularBytes = await rootBundle.load(regular);
     final boldBytes = await rootBundle.load(bold);
