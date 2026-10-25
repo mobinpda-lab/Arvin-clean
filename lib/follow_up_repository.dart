@@ -83,6 +83,18 @@ class FollowUpRepository {
       return List<FollowUp>.of(task.followUps);
     }
 
+    // A legacy followUpDate is historical evidence, not an active schedule.
+    // Preserve it as one stable FollowUp row when no canonical history exists.
+    final legacyDate = task.followUpDate;
+    if (legacyDate != null) {
+      return [
+        FollowUp(
+          id: 'legacy-followup-${task.id}',
+          dateTime: legacyDate,
+          note: 'مهاجرت خودکار از تاریخ پیگیری قبلی',
+        ),
+      ];
+    }
     return const [];
   }
 }
