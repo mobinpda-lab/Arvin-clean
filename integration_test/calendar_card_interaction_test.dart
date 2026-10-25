@@ -121,14 +121,15 @@ void main() {
         await Future<void>.delayed(const Duration(milliseconds: 100));
         await tester.pump(const Duration(milliseconds: 100));
       }
-      expect(persisted, isNotNull);
-      expect(persisted.taskReminders, hasLength(1));
-      expect(persisted.taskReminders.single.id, reminderId);
-      expect(persisted.taskReminders.single.date.hour, 23);
-      expect(persisted.taskReminders.single.date.minute, 47);
-      expect(persisted.dueDate, now.add(const Duration(hours: 2)));
-      expect(persisted.followUps.single.dateTime, now);
-      expect(persisted.followUps.single.note, 'این سابقه نباید با ویرایش یادآور تغییر کند');
+      if (persisted == null) fail('The independent TaskReminder edit was not persisted.');
+      final savedTask = persisted;
+      expect(savedTask.taskReminders, hasLength(1));
+      expect(savedTask.taskReminders.single.id, reminderId);
+      expect(savedTask.taskReminders.single.date.hour, 23);
+      expect(savedTask.taskReminders.single.date.minute, 47);
+      expect(savedTask.dueDate, now.add(const Duration(hours: 2)));
+      expect(savedTask.followUps.single.dateTime, now);
+      expect(savedTask.followUps.single.note, 'این سابقه نباید با ویرایش یادآور تغییر کند');
       expect(tester.takeException(), isNull);
       await tester.pumpAndSettle();
       await binding.takeScreenshot('calendar-card-independent-reminder-edit');
