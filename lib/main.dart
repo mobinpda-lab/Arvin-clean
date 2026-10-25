@@ -2161,9 +2161,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _registerTaskInDeviceCalendar(CalendarReminder reminder) async {
     final isTaskCalendarItem = reminder.id.startsWith('task-due:') ||
         reminder.id.startsWith('task-reminder-item:') ||
-        reminder.id.startsWith('task-reminder:') ||
-        reminder.id.startsWith('task-followup:') ||
-        reminder.id.startsWith('followup:');
+        reminder.id.startsWith('task-reminder:');
     if (!isTaskCalendarItem) return;
     var settings = await appSettingsService.load();
     var targetCalendarId = settings.calendarIntegration.targetCalendarId?.trim();
@@ -2189,23 +2187,11 @@ class _HomePageState extends State<HomePage> {
     }
 
     Task? task;
-    final followUpTarget = reminder.id.startsWith('followup:')
-        ? calendarProjection.resolveTarget(_searchSource, reminder.id)
-        : null;
-    if (followUpTarget != null) {
-      for (final candidate in _searchSource) {
-        if (candidate.id == followUpTarget.taskId) {
-          task = candidate;
-          break;
-        }
-      }
-    }
     if (task == null) {
       for (final prefix in const <String>[
         'task-reminder-item:',
         'task-due:',
         'task-reminder:',
-        'task-followup:',
       ]) {
         if (!reminder.id.startsWith(prefix)) continue;
         final suffix = reminder.id.substring(prefix.length);
@@ -2662,16 +2648,7 @@ class _HomePageState extends State<HomePage> {
         }
         return false;
       case TaskSwipeAction.convertToFollowUp:
-        if (task.followUpEnabled) return false;
-        await taskStore.convertToFollowUp(task.id);
-        await _load();
-        if (mounted) {
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              const SnackBar(content: Text('کار به کار پیگیری‌دار تبدیل شد')),
-            );
-        }
+        // Retired legacy action: Follow-up is recorded history, not a Task mode.
         return false;
       case TaskSwipeAction.none:
         return false;
