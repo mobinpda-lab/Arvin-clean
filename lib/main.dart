@@ -2194,12 +2194,11 @@ class _HomePageState extends State<HomePage> {
       return;
     }
     Task? task;
-    if (task == null) {
-      for (final prefix in const <String>[
-        'task-reminder-item:',
-        'task-due:',
-        'task-reminder:',
-      ]) {
+    for (final prefix in const <String>[
+      'task-reminder-item:',
+      'task-due:',
+      'task-reminder:',
+    ]) {
         if (!reminder.id.startsWith(prefix)) continue;
         final suffix = reminder.id.substring(prefix.length);
         for (final candidate in _searchSource) {
@@ -2214,8 +2213,7 @@ class _HomePageState extends State<HomePage> {
             break;
           }
         }
-        if (task != null) break;
-      }
+      if (task != null) break;
     }
     if (task == null) return;
 
