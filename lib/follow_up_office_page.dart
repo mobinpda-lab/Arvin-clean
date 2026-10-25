@@ -69,6 +69,7 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
             followUp: followUp,
           ));
         }
+      }
     }
     rows.sort((a, b) => b.dateTime.compareTo(a.dateTime));
     if (!mounted) return;
