@@ -309,7 +309,8 @@ void main() {
     expect(find.byTooltip('فقط پیگیری‌های موعدرسیده'), findsNothing);
     expect(find.text('باید پیگیری شود'), findsOneWidget);
     expect(find.text('برنامه جدید بدون موعد'), findsOneWidget);
-    expect(find.text('نباید نمایش داده شود'), findsNothing);
+    // Completion does not erase the historical Follow-up record.
+    expect(find.text('نباید نمایش داده شود'), findsOneWidget);
   });
 
   testWidgets('edits an existing follow-up without creating a duplicate',
