@@ -3,7 +3,6 @@ import '../models/task.dart';
 enum WorkAgendaEventKind {
   taskDue,
   taskReminder,
-  followUpSchedule,
   followUpReminder,
 }
 
@@ -125,16 +124,6 @@ class WorkAgendaProjection {
 
       addEvent(task.dueDate, WorkAgendaEventKind.taskDue);
       addEvent(task.reminderDate, WorkAgendaEventKind.taskReminder);
-
-      // Match the canonical AutomaticFollowUpService rule: only the latest
-      // real FollowUp can own the current nextFollowUp schedule. The legacy
-      // Task.followUpDate is deliberately not treated as real history/work.
-      final latestFollowUp = task.lastFollowUp;
-      addEvent(
-        latestFollowUp?.nextFollowUp,
-        WorkAgendaEventKind.followUpSchedule,
-        followUpId: latestFollowUp?.id,
-      );
 
       // Independent reminders belong to their exact canonical FollowUp.
       for (final followUp in task.followUps) {
