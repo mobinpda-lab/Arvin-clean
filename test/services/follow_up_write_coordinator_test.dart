@@ -43,7 +43,21 @@ void main() {
       note: 'تماس اولیه',
     );
     await repository.add('task-1', original);
-    await coordinator.update('task-1', original.copyWith(note: 'تماس تکمیل شد'));
+    await coordinator.update(
+      'task-1',
+      FollowUp(
+        id: original.id,
+        dateTime: original.dateTime,
+        title: original.title,
+        note: 'تماس تکمیل شد',
+        result: original.result,
+        reminderDate: original.reminderDate,
+        nextFollowUp: original.nextFollowUp,
+        completed: original.completed,
+        waitingForResponse: original.waitingForResponse,
+        personIds: original.personIds,
+      ),
+    );
     final saved = await repository.loadForTask('task-1');
     expect(saved.single.id, 'follow-1');
     expect(saved.single.note, 'تماس تکمیل شد');
