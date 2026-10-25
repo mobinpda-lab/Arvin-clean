@@ -16,7 +16,7 @@ for weight in Light Regular Medium SemiBold Bold; do
   cp "$source_file" "$DEST/Vazirmatn-$weight.ttf"
 done
 cp "$WORK/source/OFL.txt" "$DEST/OFL.txt"
-for weight in Regular Medium SemiBold Bold; do
+for weight in Light Regular Medium SemiBold Bold; do
   test -s "$DEST/Vazirmatn-$weight.ttf"
 done
 test -s "$DEST/OFL.txt"
