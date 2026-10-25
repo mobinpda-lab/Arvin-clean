@@ -448,7 +448,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('امروز'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('۱۴:۳۵'), findsNWidgets(2));
+    // Choosing a Task due date must not silently create a separate Reminder.
+    expect(find.textContaining('۱۴:۳۵'), findsOneWidget);
 
     final reminderRollBox = find.byKey(const ValueKey('quick-capture-reminder-rollbox'));
     await tester.ensureVisible(reminderRollBox);
