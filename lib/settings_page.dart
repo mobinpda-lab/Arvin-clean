@@ -52,6 +52,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   RadioListTile<String>(
                     key: ValueKey('font-option-${option.id}'),
                     value: option.id,
+                    onTap: () => Navigator.of(dialogContext).pop(option.id),
                     title: Text(option.nameFa),
                     subtitle: Text(option.isAvailableLocally
                       ? option.description
