@@ -1551,7 +1551,7 @@ Future<void> _pickDueDate() async {
                         ),
                         const SizedBox(height: 4),
                         const Text(
-                          'عنوان، یادداشت، اقدام بعدی و یادآور هر پیگیری جداگانه ذخیره می‌شوند.',
+                          'عنوان، یادداشت و نتیجه هر اقدام واقعی در تاریخچه نگهداری می‌شود.',
                           style: TextStyle(color: ArvinColors.textSecondary, fontSize: 12),
                         ),
                         for (final followUp in _followUps) ...[
@@ -1570,10 +1570,6 @@ Future<void> _pickDueDate() async {
                             subtitle: Text(
                               [
                                 if (followUp.note.trim().isNotEmpty) followUp.note.trim(),
-                                if (followUp.nextFollowUp != null)
-                                  'اقدام بعدی: ${_dateText(followUp.nextFollowUp!)} • ${_timeText(followUp.nextFollowUp!)}',
-                                if (followUp.reminderDate != null)
-                                  'یادآور: ${_dateText(followUp.reminderDate!)} • ${_timeText(followUp.reminderDate!)}',
                               ].join('\n'),
                               maxLines: 3,
                               overflow: TextOverflow.ellipsis,
