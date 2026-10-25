@@ -50,6 +50,14 @@ void main() {
           calendarSyncEnabled: true,
           sequence: 3,
         ),
+        TaskReminder(
+          id: 'r4',
+          title: 'Neither channel',
+          date: DateTime(2026, 10, 24, 20),
+          alarmEnabled: false,
+          calendarSyncEnabled: false,
+          sequence: 4,
+        ),
       ],
     );
 
@@ -60,11 +68,12 @@ void main() {
     var loaded = await TaskStore(executor: executor).load();
     expect(loaded, hasLength(1));
     expect(loaded.single.dueDate, task.dueDate);
-    expect(loaded.single.taskReminders.map((item) => item.id), ['r1', 'r2', 'r3']);
+    expect(loaded.single.taskReminders.map((item) => item.id), ['r1', 'r2', 'r3', 'r4']);
     expect(loaded.single.taskReminders.map((item) => [item.alarmEnabled, item.calendarSyncEnabled]), [
       [true, false],
       [false, true],
       [true, true],
+      [false, false],
     ]);
 
     final current = loaded.single;
@@ -77,12 +86,12 @@ void main() {
       ),
       current.taskReminders.last,
       TaskReminder(
-        id: 'r4',
+        id: 'r5',
         title: 'New independent Reminder',
         date: DateTime(2026, 10, 25, 9),
         alarmEnabled: true,
         calendarSyncEnabled: false,
-        sequence: 4,
+        sequence: 5,
       ),
     ];
     await TaskStore(executor: executor).save([current]);
@@ -91,7 +100,7 @@ void main() {
     executor = NativeDatabase(databaseFile);
     loaded = await TaskStore(executor: executor).load();
     final reminders = loaded.single.taskReminders;
-    expect(reminders.map((item) => item.id), ['r1', 'r3', 'r4']);
+    expect(reminders.map((item) => item.id), ['r1', 'r3', 'r5']);
     expect(reminders.first.title, 'Edited alarm');
     expect(reminders.first.date, DateTime(2026, 10, 24, 17, 30));
     expect(reminders.first.alarmEnabled, isFalse);
