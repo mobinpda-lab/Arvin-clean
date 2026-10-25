@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:arvin/models/task.dart';
 
 void main() {
-  test('legacy followUpDate remains scheduling data, not fabricated history', () {
+  test('legacy followUpDate remains stored history, not active scheduling or fabricated history', () {
     final task = Task.fromJson({
       'id': 'legacy-1',
       'title': 'Legacy reminder',
@@ -11,7 +11,7 @@ void main() {
 
     expect(task.followUps, isEmpty);
     expect(task.followUpDate, DateTime(2026, 8, 18, 9, 30));
-    expect(task.followUpEnabled, isTrue);
+    expect(task.followUpEnabled, isFalse);
     expect(task.lastFollowUp, isNull);
     expect(task.legacyHomeFollowUpDate, DateTime(2026, 8, 18, 9, 30));
   });
