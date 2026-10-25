@@ -141,10 +141,26 @@ void main() {
       expect(followUp.title, 'تماس با مشتری');
       expect(followUp.note, 'یادداشت مهم');
       expect(followUp.result, 'منتظر پاسخ');
+      expect(followUp.reminderDate, DateTime(2026, 8, 17, 9));
+      expect(followUp.nextFollowUp, DateTime(2026, 8, 20, 11));
       expect(followUp.personIds, ['person-1', 'person-2']);
       expect(followUp.waitingForResponse, isTrue);
       expect(followUp.completed, isTrue);
     }
+
+    // Repeated completion toggles must not discard any existing Follow-up data.
+    await repository.setCompleted('task-preserve', 'followup-preserve', false);
+    await repository.setCompleted('task-preserve', 'followup-preserve', true);
+    final recompleted = (await repository.loadForTask('task-preserve')).single;
+    expect(recompleted.id, 'followup-preserve');
+    expect(recompleted.title, 'تماس با مشتری');
+    expect(recompleted.note, 'یادداشت مهم');
+    expect(recompleted.result, 'منتظر پاسخ');
+    expect(recompleted.reminderDate, DateTime(2026, 8, 17, 9));
+    expect(recompleted.nextFollowUp, DateTime(2026, 8, 20, 11));
+    expect(recompleted.personIds, ['person-1', 'person-2']);
+    expect(recompleted.waitingForResponse, isTrue);
+    expect(recompleted.completed, isTrue);
   });
 
   test('update fails when the FollowUp id does not exist', () async {
