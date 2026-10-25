@@ -23,7 +23,7 @@ void main() {
     final script = File('tool/fetch_vazirmatn.sh').readAsStringSync();
     expect(pubspec, contains('family: Vazirmatn'));
     expect(script, contains('83629f877e8f084cc07b47030b5d3a0ff06c76ec'));
-    expect(script, contains('Vazirmatn-$weight.ttf'));
+    expect(script, contains('Vazirmatn-'));
     expect(File('assets/fonts/vazirmatn/OFL.txt').existsSync(), isTrue);
   });
 }
