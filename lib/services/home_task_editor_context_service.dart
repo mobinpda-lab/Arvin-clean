@@ -36,13 +36,30 @@ class HomeTaskEditorContextService {
     required Iterable<Task> tasks,
     Task? task,
   }) async {
+    debugPrint(
+      'CALENDAR_EDIT_TRACE: editor_context_start taskId=${task?.id} '
+      'taskCount=${tasks.length}',
+    );
+    debugPrint('CALENDAR_EDIT_TRACE: editor_projects_load_begin');
     final projects = await assignmentService.loadProjects();
+    debugPrint('CALENDAR_EDIT_TRACE: editor_projects_load_complete count=${projects.length}');
     final selectedProjectId = task == null
         ? null
         : await assignmentService.projectIdForTask(task.id);
+    debugPrint(
+      'CALENDAR_EDIT_TRACE: editor_project_selection_complete '
+      'selectedProjectId=$selectedProjectId',
+    );
 
+    debugPrint('CALENDAR_EDIT_TRACE: editor_tags_load_begin');
     final storedTags = await taskStore.loadTags();
+    debugPrint('CALENDAR_EDIT_TRACE: editor_tags_load_complete count=${storedTags.length}');
+    debugPrint('CALENDAR_EDIT_TRACE: editor_categories_load_begin');
     final storedCategories = await taskStore.loadCategories();
+    debugPrint(
+      'CALENDAR_EDIT_TRACE: editor_categories_load_complete '
+      'count=${storedCategories.length}',
+    );
 
     final tags = <String>{
       ...storedTags,
@@ -64,6 +81,7 @@ class HomeTaskEditorContextService {
       .toList()
       ..sort();
 
+    debugPrint('CALENDAR_EDIT_TRACE: editor_context_complete');
     return HomeTaskEditorContext(
       projects: List<ProjectPlan>.unmodifiable(projects),
       selectedProjectId: selectedProjectId,
