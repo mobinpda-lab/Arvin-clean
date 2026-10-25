@@ -23,6 +23,7 @@ class FollowUpReminderDeliveryService {
       if (task.completed || task.archived || task.trashed) continue;
 
       for (final reminder in task.taskReminders) {
+        if (!reminder.alarmEnabled) continue;
         final scheduledAt = reminder.isAllDay
             ? DateTime(reminder.date.year, reminder.date.month, reminder.date.day, 9)
             : reminder.date;
