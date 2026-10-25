@@ -1,3 +1,5 @@
+> **Superseded typography notice (2026-10-25):** This historical contract preserves the decision that was active when it was written. The current explicit product-owner instruction now requires **Vazirmatn v33.003** as the official Arvin font. Do not use this document to override the current typography contract in [ARVIN_UI_CANONICAL.md](UI/ARVIN_UI_CANONICAL.md) and [HOME_STYLE_LOCK.md](HOME_STYLE_LOCK.md). Historical FollowUp data remains preserved; the current Reminder-only scheduling contract is [ARVIN_REMINDER_CONTRACT.md](arvin-memory/ARVIN_REMINDER_CONTRACT.md).
+
 # قرارداد نهایی مالک — کار پیگیری‌دار آروین
 
 تاریخ ثبت: 2026-08-28
