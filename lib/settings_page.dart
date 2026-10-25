@@ -49,15 +49,15 @@ class _SettingsPageState extends State<SettingsPage> {
               shrinkWrap: true,
               children: [
                 for (final option in kAvailableArvinFonts)
-                  RadioListTile<String>(
+                  ListTile(
                     key: ValueKey('font-option-${option.id}'),
-                    value: option.id,
                     onTap: () => Navigator.of(dialogContext).pop(option.id),
+                    leading: Radio<String>(value: option.id),
                     title: Text(option.nameFa),
                     subtitle: Text(option.isAvailableLocally
                       ? option.description
                       : '${option.description} • فایل فونت همراه برنامه نیست؛ بازگشت امن به فونت سیستم'),
-                    secondary: selected == option.id
+                    trailing: selected == option.id
                       ? const Icon(Icons.check_circle, color: Colors.green)
                       : const Icon(Icons.text_fields),
                   ),
