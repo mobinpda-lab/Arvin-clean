@@ -86,12 +86,6 @@ List<Map<String, Object>> _conflictLinks() => [
     'eventId': 'arvin-event-a',
     'lastSyncedFingerprint': 'fingerprint-a',
   },
-  {
-    'reminderId': 'task-reminder-item:conflict-b:reminder-b',
-    'calendarId': 'calendar-1',
-    'eventId': 'arvin-event-b',
-    'lastSyncedFingerprint': 'fingerprint-b',
-  },
 ];
 
 Future<void> _mockCalendarProvider({
@@ -225,6 +219,26 @@ void main() {
     expect(find.text('یادآور جلسه مشتری'), findsWidgets);
     expect(find.textContaining('اعمال ۰۹:۳۰'), findsWidgets);
     expect(find.textContaining('هیچ زمانی بدون تأیید شما تغییر نمی‌کند'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('unlinked Reminder is not included in phone-calendar conflict checks', (tester) async {
+    final tasks = await _seedConflictTasks();
+    await _mockCalendarProvider(events: []);
+    await tester.pumpWidget(MaterialApp(
+      home: CanonicalCalendarLauncher(
+        tasks: tasks,
+        onRefreshTasks: () => TaskStore().load(),
+        onRetryCalendarSync: () async {},
+      ),
+    ));
+    await tester.pump();
+    await _openMoreMenu(tester);
+    await tester.scrollUntilVisible(find.text('تداخل‌ها', skipOffstage: false), 300, scrollable: find.byType(Scrollable).last);
+    await tester.tap(find.text('تداخل‌ها'));
+    await tester.pumpAndSettle();
+    expect(find.text('تداخل زمانی پیدا نشد'), findsOneWidget);
+    expect(find.text('یادآور جلسه مشتری'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
