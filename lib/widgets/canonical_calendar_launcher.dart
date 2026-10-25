@@ -52,35 +52,37 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
   CalendarInboundSyncService get _inboundSync => CalendarInboundSyncService();
 
   static const _calendarHelpSteps = <ContextualHelpStep>[
-    ContextualHelpStep(
-      icon: Icons.touch_app_outlined,
-      title: 'انتخاب روز',
-      body: 'روی هر روز بزنید تا پیگیری‌ها، مناسبت‌ها و اطلاعات همان روز پایین تقویم دیده شود.',
-    ),
-    ContextualHelpStep(
-      icon: Icons.swap_horiz,
-      title: 'تغییر ماه',
-      body: 'با فلش‌های کنار نام ماه بین ماه قبل و بعد جابه‌جا شوید.',
-    ),
-    ContextualHelpStep(
-      icon: Icons.today_outlined,
-      title: 'برگشت به امروز',
-      body: 'دکمه «امروز» شما را مستقیم به تاریخ امروز برمی‌گرداند.',
-    ),
-    ContextualHelpStep(
-      icon: Icons.notifications_active_outlined,
-      title: 'پیگیری‌ها و مناسبت‌ها',
-      body: 'عدد کوچک روی روز یعنی آن روز موردی برای دیدن دارد؛ جزئیات در پایین صفحه نمایش داده می‌شود.',
-    ),
-    ContextualHelpStep(
-      icon: Icons.warning_amber_outlined,
-    ),
-    ContextualHelpStep(
-      icon: Icons.event_available_outlined,
-      title: 'تقویم دستگاه',
-      body: 'از «بیشتر» و سپس «تقویم دستگاه» می‌توانید Task و Reminderهای آروین را با تقویم گوشی همگام کنید.'
-    ),
-  ];
+      ContextualHelpStep(
+        icon: Icons.touch_app_outlined,
+        title: 'انتخاب روز',
+        body: 'روی هر روز بزنید تا پیگیری‌ها، مناسبت‌ها و اطلاعات همان روز پایین تقویم دیده شود.',
+      ),
+      ContextualHelpStep(
+        icon: Icons.swap_horiz,
+        title: 'تغییر ماه',
+        body: 'با فلش‌های کنار نام ماه بین ماه قبل و بعد جابه‌جا شوید.',
+      ),
+      ContextualHelpStep(
+        icon: Icons.today_outlined,
+        title: 'برگشت به امروز',
+        body: 'دکمه «امروز» شما را مستقیم به تاریخ امروز برمی‌گرداند.',
+      ),
+      ContextualHelpStep(
+        icon: Icons.notifications_active_outlined,
+        title: 'پیگیری‌ها و مناسبت‌ها',
+        body: 'عدد کوچک روی روز یعنی آن روز موردی برای دیدن دارد؛ جزئیات در پایین صفحه نمایش داده می‌شود.',
+      ),
+      ContextualHelpStep(
+        icon: Icons.warning_amber_outlined,
+        title: 'بررسی تداخل‌ها',
+        body: 'از «بیشتر» و سپس «تداخل‌ها» پیگیری‌های زمان‌دار را بررسی کنید؛ هیچ تغییری بدون تأیید شما اعمال نمی‌شود.',
+      ),
+      ContextualHelpStep(
+        icon: Icons.event_available_outlined,
+        title: 'تقویم دستگاه',
+        body: 'از «بیشتر» و سپس «تقویم دستگاه» می‌توانید یک پیگیری فعال را به تقویم گوشی منتقل کنید.',
+      ),
+    ];
 
   static const _notebookHelpSteps = <ContextualHelpStep>[
     ContextualHelpStep(
@@ -363,6 +365,131 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
         return;
     }
   }
+
+  Future<void> _editTaskFromCalendar(CalendarReminder reminder) async {
+    final task = _taskForReminder(reminder);
+    final editTask = widget.onEditTask;
+    if (task == null || editTask == null) return;
+    await editTask(task);
+    if (!mounted) return;
+    final refreshed = await widget.onRefreshTasks?.call();
+    if (refreshed != null && mounted) {
+      setState(() => _tasks = List<Task>.of(refreshed));
+    }
+  }
+
+  Future<void> _deleteTaskFromCalendar(CalendarReminder reminder) async {
+    final task = _taskForReminder(reminder);
+    final deleteTask = widget.onDeleteTask;
+    if (task == null || deleteTask == null) return;
+    final approved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('انتقال کار به سطل زباله؟'),
+        content: Text('«${task.title}» به سطل زباله منتقل می‌شود. اطلاعات و سابقهٔ کار حفظ می‌شود.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('لغو'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('انتقال به سطل زباله'),
+          ),
+        ],
+      ),
+    );
+    if (approved != true || !mounted) return;
+    await deleteTask(task);
+    if (!mounted) return;
+    final refreshed = await widget.onRefreshTasks?.call();
+    if (refreshed != null && mounted) {
+      setState(() => _tasks = List<Task>.of(refreshed));
+    }
+  }
+
+  Future<void> _exportToSystemCalendar(BuildContext context) async {
+      final eligible = widget.projection
+          .project(_tasks)
+          .where(SystemCalendarBridge.isEligible)
+          .toList(growable: false);
+  
+      if (eligible.isEmpty) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(
+              content: Text('پیگیری فعالی برای افزودن به تقویم دستگاه نیست'),
+            ),
+          );
+        return;
+      }
+  
+      CalendarReminder? selected;
+      if (eligible.length == 1) {
+        selected = eligible.single;
+      } else {
+        selected = await showDialog<CalendarReminder>(
+          context: context,
+          builder: (dialogContext) => SimpleDialog(
+            title: const Text('انتخاب پیگیری برای تقویم دستگاه'),
+            children: [
+              for (final reminder in eligible)
+                SimpleDialogOption(
+                  onPressed: () => Navigator.of(dialogContext).pop(reminder),
+                  child: Text(reminder.title),
+                ),
+            ],
+          ),
+        );
+      }
+  
+      if (selected == null || !context.mounted) return;
+  
+      try {
+        final opened = await SystemCalendarBridge().insert(selected);
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(
+                opened
+                    ? 'فرم افزودن رویداد در تقویم دستگاه باز شد'
+                    : 'برنامه تقویم سازگار روی دستگاه پیدا نشد',
+              ),
+            ),
+          );
+      } catch (error) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(content: Text('باز کردن تقویم دستگاه ناموفق بود: $error')),
+          );
+      }
+    }
+
+  Future<void> _retryCalendarSync(BuildContext context) async {
+      final retry = widget.onRetryCalendarSync;
+      if (retry == null) return;
+      try {
+        await retry();
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(content: Text('همگام‌سازی تقویم دوباره انجام شد. تغییرات آروین و تقویم گوشی نیز بررسی شد.')),
+          );
+      } catch (error) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(content: Text('همگام‌سازی انجام نشد: $error')),
+          );
+      }
+    }
 
   Future<void> _openMore(
     BuildContext context,
