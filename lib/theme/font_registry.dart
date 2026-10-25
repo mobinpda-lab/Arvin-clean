@@ -25,4 +25,7 @@ const List<ArvinFontOption> kAvailableArvinFonts = <ArvinFontOption>[
   ),
 ];
 
-ArvinFontOption arvinFontById(String? id) => kAvailableArvinFonts.single;
+ArvinFontOption arvinFontById(String? id) => kAvailableArvinFonts.firstWhere(
+      (option) => option.id == id,
+      orElse: () => kAvailableArvinFonts.single,
+    );
