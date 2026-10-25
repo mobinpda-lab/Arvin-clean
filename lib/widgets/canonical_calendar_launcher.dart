@@ -648,13 +648,4 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
 
 enum _CalendarMoreAction { systemCalendar, retrySync, nextAction, timeline }
 
-String _digits(String value) {
-  const western = '0123456789';
-  const persian = '۰۱۲۳۴۵۶۷۸۹';
-  var result = value;
-  for (var i = 0; i < western.length; i++) {
-    result = result.replaceAll(western[i], persian[i]);
-  }
-  return result;
-}
 
