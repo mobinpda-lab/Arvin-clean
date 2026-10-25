@@ -185,6 +185,41 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('task-editor-exit-discard')));
       await tester.pumpAndSettle();
 
+      // Independent positive-save path: reopen the same Reminder editor,
+      // choose a new time through the universal picker, save the picker, then
+      // save the Task editor and verify durable readback from TaskStore.
+      await tester.longPress(card);
+      await tester.pumpAndSettle();
+      expect(find.byKey(editTaskActionKey), findsOneWidget);
+      await tester.tap(find.byKey(editTaskActionKey));
+      await tester.pumpAndSettle();
+      for (var attempt = 0; attempt < 50 && editorDialog.evaluate().isEmpty; attempt++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(editorDialog, findsOneWidget);
+      final saveReminderTimeButton = find.byKey(
+        const ValueKey('task-editor-reminder-time-calendar-smoke-reminder'),
+      );
+      await tester.ensureVisible(saveReminderTimeButton);
+      await tester.tap(saveReminderTimeButton);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('universal-time-manual-toggle')));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const ValueKey('universal-time-manual-input')),
+        '13:45',
+      );
+      await tester.pumpAndSettle();
+      expect(tester.widget<FilledButton>(
+        find.byKey(const ValueKey('universal-time-save')),
+      ).onPressed, isNotNull);
+      await tester.tap(find.byKey(const ValueKey('universal-time-save')));
+      await tester.pumpAndSettle();
+      final saveTaskButton = find.byKey(const ValueKey('task-editor-header-save'));
+      await tester.ensureVisible(saveTaskButton);
+      await tester.tap(saveTaskButton);
+      await tester.pumpAndSettle();
+
       final finalReadback = await TaskStore().load();
       expect(finalReadback, hasLength(1));
       expect(finalReadback.single.id, taskId);
@@ -192,14 +227,16 @@ void main() {
       expect(finalReadback.single.dueDate, dueAt);
       expect(finalReadback.single.taskReminders, hasLength(1));
       expect(finalReadback.single.taskReminders.single.id, reminderId);
-      expect(
-        finalReadback.single.taskReminders.single.date.toUtc().isAtSameMomentAs(reminderAt.toUtc()),
-        isTrue,
-      );
+      expect(finalReadback.single.taskReminders.single.date.year, reminderAt.year);
+      expect(finalReadback.single.taskReminders.single.date.month, reminderAt.month);
+      expect(finalReadback.single.taskReminders.single.date.day, reminderAt.day);
+      expect(finalReadback.single.taskReminders.single.date.hour, 13);
+      expect(finalReadback.single.taskReminders.single.date.minute, 45);
       expect(tester.takeException(), isNull);
       debugPrint(
-        'CALENDAR_REMINDER_TRACE: after_cancel dueAt=${finalReadback.single.dueDate} '
-        'reminderIds=${finalReadback.single.taskReminders.map((item) => item.id).toList()}',
+        'CALENDAR_REMINDER_TRACE: after_positive_save dueAt=${finalReadback.single.dueDate} '
+        'reminderId=${finalReadback.single.taskReminders.single.id} '
+        'savedTime=${finalReadback.single.taskReminders.single.date}',
       );
       await binding.takeScreenshot('calendar-canonical-reminder-after-cancel');
     },

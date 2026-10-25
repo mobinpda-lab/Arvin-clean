@@ -27,8 +27,14 @@ void main() {
             <String, dynamic>{
               'id': 'android-upgrade-follow-up',
               'dateTime': '2026-09-20T10:00:00.000Z',
+              'title': 'تماس پیش از ارتقا',
               'note': 'پیگیری پیش از ارتقا',
+              'result': 'منتظر پاسخ',
+              'reminderDate': '2026-09-21T09:00:00.000Z',
+              'nextFollowUp': '2026-09-22T11:00:00.000Z',
               'completed': true,
+              'waitingForResponse': true,
+              'personIds': <String>['legacy-person-1', 'legacy-person-2'],
             },
           ],
           'checklist': <String>['مرحله ۱', 'مرحله ۲'],
@@ -49,9 +55,16 @@ void main() {
     expect(migrated.single.tags, <String>['مهم', 'فروش']);
     expect(migrated.single.category, 'فروش');
     expect(migrated.single.completed, isTrue);
-    expect(migrated.single.followUps.single.id, 'android-upgrade-follow-up');
-    expect(migrated.single.followUps.single.note, 'پیگیری پیش از ارتقا');
-    expect(migrated.single.followUps.single.completed, isTrue);
+    final migratedFollowUp = migrated.single.followUps.single;
+    expect(migratedFollowUp.id, 'android-upgrade-follow-up');
+    expect(migratedFollowUp.title, 'تماس پیش از ارتقا');
+    expect(migratedFollowUp.note, 'پیگیری پیش از ارتقا');
+    expect(migratedFollowUp.result, 'منتظر پاسخ');
+    expect(migratedFollowUp.reminderDate, DateTime.utc(2026, 9, 21, 9));
+    expect(migratedFollowUp.nextFollowUp, DateTime.utc(2026, 9, 22, 11));
+    expect(migratedFollowUp.waitingForResponse, isTrue);
+    expect(migratedFollowUp.personIds, <String>['legacy-person-1', 'legacy-person-2']);
+    expect(migratedFollowUp.completed, isTrue);
     expect(migrated.single.checklist, <String>['مرحله ۱', 'مرحله ۲']);
 
     // Legacy storage is deliberately changed after cutover. A fresh
@@ -76,7 +89,16 @@ void main() {
     expect(afterUpgrade, hasLength(1));
     expect(afterUpgrade.single.id, 'android-upgrade-task');
     expect(afterUpgrade.single.title, 'داده پیش از ارتقا');
-    expect(afterUpgrade.single.followUps.single.id, 'android-upgrade-follow-up');
+    final reloadedFollowUp = afterUpgrade.single.followUps.single;
+    expect(reloadedFollowUp.id, 'android-upgrade-follow-up');
+    expect(reloadedFollowUp.title, 'تماس پیش از ارتقا');
+    expect(reloadedFollowUp.note, 'پیگیری پیش از ارتقا');
+    expect(reloadedFollowUp.result, 'منتظر پاسخ');
+    expect(reloadedFollowUp.reminderDate, DateTime.utc(2026, 9, 21, 9));
+    expect(reloadedFollowUp.nextFollowUp, DateTime.utc(2026, 9, 22, 11));
+    expect(reloadedFollowUp.waitingForResponse, isTrue);
+    expect(reloadedFollowUp.personIds, <String>['legacy-person-1', 'legacy-person-2']);
+    expect(reloadedFollowUp.completed, isTrue);
     expect(afterUpgrade.single.checklist, <String>['مرحله ۱', 'مرحله ۲']);
 
     await freshStore.save(const <Task>[]);
