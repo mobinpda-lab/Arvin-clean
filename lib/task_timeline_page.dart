@@ -28,6 +28,7 @@ class TaskTimelinePage extends StatelessWidget {
 
   String _label(TaskTimelineEntryKind kind) => switch (kind) {
         TaskTimelineEntryKind.created => 'ایجاد کار',
+        TaskTimelineEntryKind.due => 'موعد کار',
         TaskTimelineEntryKind.reminder => 'یادآور',
         TaskTimelineEntryKind.followUp => 'پیگیری',
         TaskTimelineEntryKind.updated => 'آخرین ویرایش',
@@ -35,6 +36,7 @@ class TaskTimelinePage extends StatelessWidget {
 
   IconData _icon(TaskTimelineEntryKind kind) => switch (kind) {
         TaskTimelineEntryKind.created => Icons.add_task_outlined,
+        TaskTimelineEntryKind.due => Icons.event_outlined,
         TaskTimelineEntryKind.reminder => Icons.notifications_none,
         TaskTimelineEntryKind.followUp => Icons.history,
         TaskTimelineEntryKind.updated => Icons.edit_outlined,
