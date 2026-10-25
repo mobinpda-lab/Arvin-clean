@@ -273,6 +273,20 @@ void main() {
             },
           ],
         },
+        {
+          'id': 'completed',
+          'title': 'کار تکمیل‌شده',
+          'completed': true,
+          'followUps': [
+            {
+              'id': 'c1',
+              'dateTime': '2026-08-25T12:00:00.000',
+              'note': 'سابقه تکمیل‌شده',
+              'result': null,
+              'nextFollowUp': '2020-01-01T09:00:00.000',
+            },
+          ],
+        },
       ]),
     });
 
@@ -283,6 +297,7 @@ void main() {
     expect(find.text('کار موعدرسیده'), findsOneWidget);
     expect(find.text('کار جایگزین‌شده'), findsOneWidget);
     expect(find.text('کار آینده'), findsOneWidget);
+    expect(find.text('کار تکمیل‌شده'), findsNothing);
     expect(find.text('موعد پیگیری'), findsNothing);
   });
 
