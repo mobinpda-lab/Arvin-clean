@@ -33,7 +33,7 @@ class PersonFollowUpReportProjection {
     Set<String> personIds = const <String>{},
     bool waitingForResponseOnly = true,
     bool includeDanglingPeople = true,
-    DateTime? nextActionDueBy,
+    @Deprecated('Next Follow-up is not a scheduling or report filter. Use Reminder-specific filters when in scope.') DateTime? nextActionDueBy,
   }) {
     final directory = <String, PersonReference>{
       for (final person in people) person.id: person,
@@ -79,11 +79,6 @@ class PersonFollowUpReportProjection {
         // was deleted. A stable placeholder preserves history without reviving
         // the deleted Person record or creating a parallel directory.
         if (associated.isEmpty) continue;
-        final nextAction = followUp.nextFollowUp;
-        if (nextActionDueBy != null &&
-            (nextAction == null || nextAction.isAfter(nextActionDueBy))) {
-          continue;
-        }
         rows.add(PersonFollowUpReportRow(
           task: task,
           followUp: followUp,
