@@ -216,9 +216,6 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
             tooltip: _showWaitingOnly ? 'نمایش همه پیگیری‌ها' : 'فقط منتظر پاسخ',
             onPressed: () => setState(() {
               _showWaitingOnly = !_showWaitingOnly;
-              if (_showWaitingOnly) {
-                _showAutomaticDueOnly = false;
-              }
             }),
             icon: Icon(
               _showWaitingOnly ? Icons.hourglass_top : Icons.hourglass_top_outlined,
