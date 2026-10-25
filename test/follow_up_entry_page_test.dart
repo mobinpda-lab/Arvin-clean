@@ -188,7 +188,7 @@ void main() {
 
     expect(result, isNotNull);
     expect(result!.id, initial.id);
-    expect(result!.reminderDate, initial.reminderDate);
+    expect(result!.reminderDate, isNull);
   });
   testWidgets('FollowUp Back prompts and save preserves entered changes',
       (tester) async {
