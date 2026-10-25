@@ -29,7 +29,7 @@ void main() {
     expect(tasks.single.completed, isTrue);
   });
 
-  test('preserves legacy followUpDate through read boundary without fake history', () async {
+  test('preserves legacy followUpDate through read boundary without reactivating scheduling or fabricating history', () async {
     SharedPreferences.setMockInitialValues({
       legacyKey:
           '[{"id":"reader-followup","title":"پیگیری","followUpDate":"2026-08-25T08:00:00.000Z"}]',
@@ -39,7 +39,7 @@ void main() {
     final task = TaskMigrationReader().loadFrom(prefs).single;
 
     expect(task.followUpDate, DateTime.parse('2026-08-25T08:00:00.000Z'));
-    expect(task.followUpEnabled, isTrue);
+    expect(task.followUpEnabled, isFalse);
     expect(task.followUps, isEmpty);
     expect(task.lastFollowUp, isNull);
   });
