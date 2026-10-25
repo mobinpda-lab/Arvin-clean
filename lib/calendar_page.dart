@@ -1065,8 +1065,21 @@ class _ReminderCardState extends State<_ReminderCard> {
   Future<void> _run(
     Future<void> Function(CalendarReminder reminder)? action,
   ) async {
-    if (action == null) return;
-    await action(widget.item);
+    debugPrint(
+      'CALENDAR_EDIT_TRACE: action_start itemId=${widget.item.id} '
+      'isEditTask=${action == widget.onEditTask} mounted=$mounted',
+    );
+    if (action == null) {
+      debugPrint('CALENDAR_EDIT_TRACE: action_missing itemId=${widget.item.id}');
+      return;
+    }
+    try {
+      await action(widget.item);
+      debugPrint('CALENDAR_EDIT_TRACE: action_complete itemId=${widget.item.id}');
+    } catch (error, stackTrace) {
+      debugPrint('CALENDAR_EDIT_TRACE: action_error itemId=${widget.item.id} error=$error stack=$stackTrace');
+      rethrow;
+    }
   }
 
   Future<void> _showTaskActions() async {
@@ -1162,7 +1175,16 @@ class _ReminderCardState extends State<_ReminderCard> {
                   leading: const Icon(Icons.edit_outlined),
                   title: const Text('ویرایش'),
                   onTap: () {
+                    debugPrint(
+                      'CALENDAR_EDIT_TRACE: edit_tap itemId=${widget.item.id} '
+                      'sheetMountedBeforePop=${sheetContext.mounted} '
+                      'navigatorCanPop=${Navigator.of(sheetContext).canPop()}',
+                    );
                     Navigator.of(sheetContext).pop();
+                    debugPrint(
+                      'CALENDAR_EDIT_TRACE: sheet_pop_requested itemId=${widget.item.id} '
+                      'cardMounted=$mounted sheetMountedAfterPop=${sheetContext.mounted}',
+                    );
                     _run(widget.onEditTask);
                   },
                 ),
