@@ -5,9 +5,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:arvin/follow_up_repository.dart';
 import 'package:arvin/models/task.dart';
+import 'package:arvin/services/task_store.dart';
 
 void main() {
-  test('reads legacy followUpDate without rewriting it', () async {
+  test('legacy followUpDate alone never fabricates a FollowUp history record', () async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks': '[{"id":"t1","title":"کار","followUpDate":"2026-08-14T09:30:00.000"}]',
     });
@@ -15,9 +16,10 @@ void main() {
     const repository = FollowUpRepository();
     final followUps = await repository.loadForTask('t1');
 
-    expect(followUps, hasLength(1));
-    expect(followUps.single.dateTime, DateTime(2026, 8, 14, 9, 30));
-    expect(followUps.single.note, 'مهاجرت خودکار از تاریخ پیگیری قبلی');
+    expect(followUps, isEmpty);
+    final task = (await TaskStore().load()).single;
+    expect(task.followUpDate, DateTime(2026, 8, 14, 9, 30));
+    expect(task.followUps, isEmpty);
   });
 
   test('appends a FollowUp while preserving the task envelope', () async {
@@ -37,8 +39,9 @@ void main() {
     await repository.add('t1', followUp);
     final followUps = await repository.loadForTask('t1');
 
-    expect(followUps, hasLength(2));
-    expect(followUps.last.id, 'f2');
+    expect(followUps, hasLength(1));
+    expect(followUps.single.id, 'f2');
+    expect((await TaskStore().load()).single.followUpDate, DateTime(2026, 8, 14, 9, 30));
     expect(followUps.last.result, 'پاسخ دریافت شد');
   });
 
