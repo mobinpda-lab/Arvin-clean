@@ -154,6 +154,90 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     }
   }
 
+  Future<void> _editTaskFromCalendar(CalendarReminder reminder) async {
+    if (widget.onEditTask == null) return;
+    Task? task;
+    for (final prefix in const <String>[
+      'task-due:',
+      'task-reminder-item:',
+      'task-reminder:',
+    ]) {
+      if (!reminder.id.startsWith(prefix)) continue;
+      final suffix = reminder.id.substring(prefix.length);
+      final separator = suffix.indexOf(':');
+      final taskId = prefix == 'task-reminder-item:' && separator > 0
+          ? Uri.decodeComponent(suffix.substring(0, separator))
+          : suffix;
+      for (final candidate in _tasks) {
+        if (candidate.trashed) continue;
+        final matches = prefix == 'task-reminder-item:'
+            ? taskId == candidate.id
+            : suffix == candidate.id || suffix.startsWith('${candidate.id}:');
+        if (matches) {
+          task = candidate;
+          break;
+        }
+      }
+      if (task != null) break;
+    }
+    if (task == null) return;
+    await widget.onEditTask!(task);
+    if (!mounted) return;
+    final refreshed = await widget.onRefreshTasks?.call();
+    if (refreshed != null) setState(() => _tasks = List<Task>.of(refreshed));
+  }
+
+  Future<void> _deleteTaskFromCalendar(CalendarReminder reminder) async {
+    if (widget.onDeleteTask == null) return;
+    Task? task;
+    for (final prefix in const <String>[
+      'task-due:',
+      'task-reminder-item:',
+      'task-reminder:',
+    ]) {
+      if (!reminder.id.startsWith(prefix)) continue;
+      final suffix = reminder.id.substring(prefix.length);
+      final separator = suffix.indexOf(':');
+      final taskId = prefix == 'task-reminder-item:' && separator > 0
+          ? Uri.decodeComponent(suffix.substring(0, separator))
+          : suffix;
+      for (final candidate in _tasks) {
+        if (candidate.trashed) continue;
+        final matches = prefix == 'task-reminder-item:'
+            ? taskId == candidate.id
+            : suffix == candidate.id || suffix.startsWith('${candidate.id}:');
+        if (matches) {
+          task = candidate;
+          break;
+        }
+      }
+      if (task != null) break;
+    }
+    if (task == null) return;
+    final approved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('انتقال کار به سطل زباله؟'),
+        content: Text('«${task!.title}» به سطل زباله منتقل می‌شود. اطلاعات و سابقهٔ کار حفظ می‌شود.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('لغو'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('انتقال به سطل زباله'),
+          ),
+        ],
+      ),
+    );
+    if (approved != true || !mounted) return;
+    await widget.onDeleteTask!(task);
+    if (!mounted) return;
+    final refreshed = await widget.onRefreshTasks?.call();
+    if (refreshed != null) setState(() => _tasks = List<Task>.of(refreshed));
+  }
+
   Future<void> _createTaskForDate(DateTime date) async {
     final task = await widget.onCreateTaskForDate?.call(date);
     if (task == null || !mounted || _tasks.any((item) => item.id == task.id)) {
@@ -445,7 +529,7 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
         reminders: <CalendarReminder>[...sameCalendarReminders, ...external],
         reminderId: reminder.id, windowStart: reminder.date, windowEnd: dayEnd, limit: 3,
       );
-      if (advice.hasConflict) entries.add(_CalendarConflictAdviceEntry(reminder: reminder, advice: advice, calendarId: link.calendarId as String));
+      if (advice.hasConflict) entries.add(_CalendarConflictAdviceEntry(reminder: reminder, advice: advice));
     }
     if (!context.mounted) return;
     final applied = await showModalBottomSheet<bool>(
@@ -751,10 +835,9 @@ enum _CalendarMoreAction {
 }
 
 class _CalendarConflictAdviceEntry {
-  const _CalendarConflictAdviceEntry({required this.reminder, required this.advice, required this.calendarId});
+  const _CalendarConflictAdviceEntry({required this.reminder, required this.advice});
   final CalendarReminder reminder;
   final CalendarReschedulingAdvice advice;
-  final String calendarId;
 }
 
 String _digits(String value) {
