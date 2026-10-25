@@ -1,35 +1,19 @@
 import 'dart:convert';
 
-import 'package:arvin/automatic_follow_up_scheduler_adapter.dart';
 import 'package:arvin/calendar_page.dart';
-import 'package:arvin/follow_up_repository.dart';
 import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/models/task.dart';
-import 'package:arvin/services/calendar_reschedule_apply_service.dart';
 import 'package:arvin/services/follow_up_calendar_projection.dart';
-import 'package:arvin/services/follow_up_write_coordinator.dart';
 import 'package:arvin/task_next_action_page.dart';
 import 'package:arvin/task_timeline_page.dart';
 import 'package:arvin/widgets/canonical_calendar_launcher.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:arvin/services/iran_clock.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:arvin/widgets/arvin_primary_navigation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-class _FakeScheduler implements AutomaticFollowUpSchedulerAdapter {
-  int rescheduleCalls = 0;
-
-  @override
-  Future<void> cancel() async {}
-
-  @override
-  Future<void> reschedule() async {
-    rescheduleCalls += 1;
-  }
-}
-
 
 Future<void> _pumpRouteTransition(WidgetTester tester) async {
   // Calendar keeps an active ticker, so pumpAndSettle can wait forever.
@@ -74,8 +58,85 @@ class _RecordingCalendarProjection extends FollowUpCalendarProjection {
   }
 }
 
+const _calendarChannel = MethodChannel('arvin/system_calendar');
+
+List<Task> _conflictTasks() {
+  final when = DateTime(2026, 8, 27, 9);
+  return [
+    Task(
+      id: 'conflict-a',
+      title: 'جلسه مشتری',
+      dueDate: DateTime(2026, 8, 27, 12),
+      followUps: [FollowUp(id: 'history-a', dateTime: DateTime(2026, 8, 27, 8), note: 'سابقه واقعی A')],
+      taskReminders: [TaskReminder(id: 'reminder-a', title: 'یادآور جلسه مشتری', date: when, sequence: 1)],
+    ),
+    Task(
+      id: 'conflict-b',
+      title: 'جلسه داخلی',
+      followUps: [FollowUp(id: 'history-b', dateTime: DateTime(2026, 8, 27, 8, 15), note: 'سابقه واقعی B')],
+      taskReminders: [TaskReminder(id: 'reminder-b', title: 'یادآور جلسه داخلی', date: when, sequence: 1)],
+    ),
+  ];
+}
+
+List<Map<String, Object>> _conflictLinks() => [
+  {
+    'reminderId': 'task-reminder-item:conflict-a:reminder-a',
+    'calendarId': 'calendar-1',
+    'eventId': 'arvin-event-a',
+    'lastSyncedFingerprint': 'fingerprint-a',
+  },
+  {
+    'reminderId': 'task-reminder-item:conflict-b:reminder-b',
+    'calendarId': 'calendar-1',
+    'eventId': 'arvin-event-b',
+    'lastSyncedFingerprint': 'fingerprint-b',
+  },
+];
+
+Future<void> _mockCalendarProvider({
+  List<Map<String, Object?>> events = const [],
+}) async {
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      .setMockMethodCallHandler(_calendarChannel, (call) async {
+    switch (call.method) {
+      case 'calendarReadPermissionGranted':
+      case 'requestCalendarReadPermission':
+        return true;
+      case 'listDeviceCalendars':
+        return <Object?>[];
+      case 'listDeviceCalendarEvents':
+        return events;
+      default:
+        return null;
+    }
+  });
+}
+
+Future<List<Task>> _seedConflictTasks({bool persist = true}) async {
+  final tasks = _conflictTasks();
+  SharedPreferences.setMockInitialValues({
+    'arvin.tasks': jsonEncode(tasks.map((task) => task.toJson()).toList()),
+    'arvin.calendar.externalLinks': jsonEncode(_conflictLinks()),
+  });
+  if (persist) await TaskStore().save(tasks);
+  await _mockCalendarProvider(events: [
+    {
+      'instanceId': 'provider-instance-1',
+      'eventId': 'provider-event-1',
+      'calendarId': 'calendar-1',
+      'title': 'جلسه خارج از آروین',
+      'startMillis': DateTime(2026, 8, 27, 9).millisecondsSinceEpoch,
+      'endMillis': DateTime(2026, 8, 27, 9, 30).millisecondsSinceEpoch,
+      'allDay': false,
+    },
+  ]);
+  return tasks;
+}
+
 void main() {
   setUp(() async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(_calendarChannel, null);
     await TaskStore.resetTestDatabase();
   });
 
@@ -146,188 +207,107 @@ void main() {
     expect(find.byKey(const ValueKey('timeline-open-people')), findsOneWidget);
   });
 
-  testWidgets('real calendar conflict button shows safe replacement suggestions',
-      (tester) async {
-    final when = DateTime(2026, 8, 27, 9);
-    final tasks = [
-      Task(
-        id: 'conflict-a',
-        title: 'جلسه مشتری',
-        followUps: [
-          FollowUp(id: 'follow-a', dateTime: when, reminderDate: when, note: 'پیگیری قرارداد'),
-        ],
+  testWidgets('calendar conflict advice uses only synced independent TaskReminders and provider events', (tester) async {
+    final tasks = await _seedConflictTasks();
+    await tester.pumpWidget(MaterialApp(
+      home: CanonicalCalendarLauncher(
+        tasks: tasks,
+        onRefreshTasks: () => TaskStore().load(),
+        onRetryCalendarSync: () async {},
       ),
-      Task(
-        id: 'conflict-b',
-        title: 'جلسه داخلی',
-        followUps: [
-          FollowUp(id: 'follow-b', dateTime: when, reminderDate: when, note: 'هماهنگی تیم'),
-        ],
-      ),
-    ];
-
-    await tester.pumpWidget(
-      MaterialApp(home: CanonicalCalendarLauncher(tasks: tasks)),
-    );
+    ));
     await tester.pump();
-
     await _openMoreMenu(tester);
-    await tester.scrollUntilVisible(
-      find.text('تداخل‌ها', skipOffstage: false),
-      300,
-      scrollable: find.byType(Scrollable).last,
-    );
+    await tester.scrollUntilVisible(find.text('تداخل‌ها', skipOffstage: false), 300, scrollable: find.byType(Scrollable).last);
     await tester.tap(find.text('تداخل‌ها'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-
+    await tester.pumpAndSettle();
     expect(find.text('تداخل‌های زمانی'), findsOneWidget);
-    expect(find.text('پیگیری جلسه مشتری'), findsWidgets);
-    expect(find.text('پیگیری جلسه داخلی'), findsWidgets);
+    expect(find.text('یادآور جلسه مشتری'), findsWidgets);
     expect(find.textContaining('اعمال ۰۹:۳۰'), findsWidgets);
-    expect(
-      find.textContaining('هیچ زمانی بدون تأیید شما تغییر نمی‌کند'),
-      findsOneWidget,
-    );
+    expect(find.textContaining('هیچ زمانی بدون تأیید شما تغییر نمی‌کند'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
-  testWidgets('suggested reschedule requires confirmation before canonical write',
-      (tester) async {
-    const repository = FollowUpRepository();
-    final when = DateTime(2026, 8, 27, 9);
-    final tasks = [
-      Task(
-        id: 'conflict-a',
-        title: 'جلسه مشتری',
-        followUps: [
-          FollowUp(
-            id: 'follow-a',
-            dateTime: when,
-            reminderDate: when,
-            note: 'پیگیری قرارداد',
-            result: 'منتظر تأیید',
-            nextFollowUp: DateTime(2026, 8, 29, 9),
-          ),
-        ],
+  testWidgets('confirmed reschedule changes only one independent Reminder and requests sync', (tester) async {
+    final tasks = await _seedConflictTasks();
+    var syncCalls = 0;
+    await tester.pumpWidget(MaterialApp(
+      home: CanonicalCalendarLauncher(
+        tasks: tasks,
+        onRefreshTasks: () => TaskStore().load(),
+        onRetryCalendarSync: () async { syncCalls++; },
       ),
-      Task(
-        id: 'conflict-b',
-        title: 'جلسه داخلی',
-        followUps: [
-          FollowUp(id: 'follow-b', dateTime: when, reminderDate: when, note: 'هماهنگی تیم'),
-        ],
-      ),
-    ];
-    SharedPreferences.setMockInitialValues({
-      'arvin.tasks': jsonEncode(tasks.map((task) => task.toJson()).toList()),
-    });
-    final scheduler = _FakeScheduler();
-    final service = CalendarRescheduleApplyService(
-      writer: FollowUpWriteCoordinator(
-        repository: repository,
-        scheduler: scheduler,
-      ),
-    );
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: CanonicalCalendarLauncher(
-          tasks: tasks,
-          rescheduleApplyService: service,
-        ),
-      ),
-    );
+    ));
     await tester.pump();
-
     await _openMoreMenu(tester);
-    await tester.scrollUntilVisible(
-      find.text('تداخل‌ها', skipOffstage: false),
-      300,
-      scrollable: find.byType(Scrollable).last,
-    );
+    await tester.scrollUntilVisible(find.text('تداخل‌ها', skipOffstage: false), 300, scrollable: find.byType(Scrollable).last);
     await tester.tap(find.text('تداخل‌ها'));
     await tester.pumpAndSettle();
-    final apply = find.textContaining('اعمال ۰۹:۳۰').first;
-    await tester.tap(apply);
+    await tester.tap(find.textContaining('اعمال ۰۹:۳۰').first);
     await tester.pumpAndSettle();
-
     expect(find.text('تأیید تغییر زمان'), findsOneWidget);
     expect(find.text('زمان فعلی: ۰۹:۰۰'), findsOneWidget);
-    expect(find.text('زمان پیشنهادی: ۰۹:۳۰'), findsOneWidget);
-
     await tester.tap(find.text('لغو'));
     await tester.pumpAndSettle();
-    expect(scheduler.rescheduleCalls, 0);
-    final afterCancelA = await repository.loadForTask('conflict-a');
-    final afterCancelB = await repository.loadForTask('conflict-b');
-    expect(afterCancelA.single.dateTime, when);
-    expect(afterCancelB.single.dateTime, when);
+
+    var saved = await TaskStore().load();
+    expect(saved.firstWhere((task) => task.id == 'conflict-a').taskReminders.single.date, DateTime(2026, 8, 27, 9));
+    expect(saved.firstWhere((task) => task.id == 'conflict-a').followUps.single.dateTime, DateTime(2026, 8, 27, 8));
+    expect(saved.firstWhere((task) => task.id == 'conflict-a').dueDate, DateTime(2026, 8, 27, 12));
+    expect(syncCalls, 0);
 
     await tester.tap(find.textContaining('اعمال ۰۹:۳۰').first);
     await tester.pumpAndSettle();
     await tester.tap(find.text('اعمال زمان پیشنهادی'));
     await tester.pumpAndSettle();
 
-    expect(scheduler.rescheduleCalls, 1);
-    expect(find.text('زمان پیگیری با موفقیت تغییر کرد'), findsOneWidget);
-    final savedA = await repository.loadForTask('conflict-a');
-    final savedB = await repository.loadForTask('conflict-b');
-    final moved = [savedA.single, savedB.single]
-        .where((item) => item.dateTime == DateTime(2026, 8, 27, 9, 30))
-        .toList();
-    expect(moved, hasLength(1));
+    saved = await TaskStore().load();
+    final taskA = saved.firstWhere((task) => task.id == 'conflict-a');
+    final taskB = saved.firstWhere((task) => task.id == 'conflict-b');
+    expect(taskA.taskReminders.single.id, 'reminder-a');
+    expect(taskA.taskReminders.single.date, DateTime(2026, 8, 27, 9, 30));
+    expect(taskA.followUps.single.dateTime, DateTime(2026, 8, 27, 8));
+    expect(taskA.dueDate, DateTime(2026, 8, 27, 12));
+    expect(taskB.taskReminders.single.date, DateTime(2026, 8, 27, 9));
+    expect(syncCalls, 1);
+    expect(find.text('زمان یادآور با موفقیت تغییر کرد و همگام‌سازی دوباره درخواست شد.'), findsOneWidget);
   });
 
-  testWidgets('failed confirmed write is surfaced without scheduler request',
-      (tester) async {
-    const repository = FollowUpRepository();
-    final when = DateTime(2026, 8, 27, 9);
-    final tasks = [
-      Task(
-        id: 'conflict-a',
-        title: 'جلسه مشتری',
-        followUps: [FollowUp(id: 'follow-a', dateTime: when, reminderDate: when)],
+  testWidgets('failed independent Reminder write is surfaced without requesting sync', (tester) async {
+    final tasks = await _seedConflictTasks(persist: false);
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': '[]',
+      'arvin.calendar.externalLinks': jsonEncode(_conflictLinks()),
+    });
+    await _mockCalendarProvider(events: [
+      {
+        'instanceId': 'provider-instance-1',
+        'eventId': 'provider-event-1',
+        'calendarId': 'calendar-1',
+        'title': 'جلسه خارج از آروین',
+        'startMillis': DateTime(2026, 8, 27, 9).millisecondsSinceEpoch,
+        'endMillis': DateTime(2026, 8, 27, 9, 30).millisecondsSinceEpoch,
+        'allDay': false,
+      },
+    ]);
+    var syncCalls = 0;
+    await tester.pumpWidget(MaterialApp(
+      home: CanonicalCalendarLauncher(
+        tasks: tasks,
+        onRetryCalendarSync: () async { syncCalls++; },
       ),
-      Task(
-        id: 'conflict-b',
-        title: 'جلسه داخلی',
-        followUps: [FollowUp(id: 'follow-b', dateTime: when, reminderDate: when)],
-      ),
-    ];
-    SharedPreferences.setMockInitialValues({'arvin.tasks': '[]'});
-    final scheduler = _FakeScheduler();
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: CanonicalCalendarLauncher(
-          tasks: tasks,
-          rescheduleApplyService: CalendarRescheduleApplyService(
-            writer: FollowUpWriteCoordinator(
-              repository: repository,
-              scheduler: scheduler,
-            ),
-          ),
-        ),
-      ),
-    );
+    ));
     await tester.pump();
-
     await _openMoreMenu(tester);
-    await tester.scrollUntilVisible(
-      find.text('تداخل‌ها'),
-      250,
-      scrollable: find.byType(Scrollable).last,
-      maxScrolls: 10,
-    );
+    await tester.scrollUntilVisible(find.text('تداخل‌ها', skipOffstage: false), 300, scrollable: find.byType(Scrollable).last);
     await tester.tap(find.text('تداخل‌ها'));
     await tester.pumpAndSettle();
     await tester.tap(find.textContaining('اعمال ۰۹:۳۰').first);
     await tester.pumpAndSettle();
     await tester.tap(find.text('اعمال زمان پیشنهادی'));
     await tester.pumpAndSettle();
-
-    expect(find.text('تغییر زمان انجام نشد؛ دوباره تلاش کنید'), findsOneWidget);
-    expect(scheduler.rescheduleCalls, 0);
+    expect(find.text('تغییر یادآور یا همگام‌سازی انجام نشد؛ وضعیت تقویم را بررسی کنید.'), findsOneWidget);
+    expect(syncCalls, 0);
   });
 
   testWidgets('next action opens canonical ranked suggestion page',
