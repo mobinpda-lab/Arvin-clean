@@ -33,7 +33,7 @@ void main() {
     expect(
       planner.nextAlarmAt(
         [migrated],
-        deliveredState: {'task:legacy-task': 'task:legacy-task@\${at.toIso8601String()}'},
+        deliveredState: {'task:legacy-task': 'task:legacy-task@${at.toIso8601String()}'},
         now: now,
       ),
       isNull,
