@@ -461,6 +461,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     );
   }
 
+  @override
   Widget build(BuildContext context) {
     final latest = _task.lastFollowUp;
     final history = List<FollowUp>.of(_task.followUps)
