@@ -5,6 +5,7 @@ import '../models/task.dart';
 import '../notebook_page.dart';
 import '../official_calendar_page.dart';
 import '../services/calendar_inbound_sync_service.dart';
+import '../services/calendar_rescheduling_advisor.dart';
 import '../services/follow_up_calendar_projection.dart';
 import '../services/system_calendar_bridge.dart';
 import '../task_next_action_page.dart';
@@ -19,6 +20,7 @@ class CanonicalCalendarLauncher extends StatefulWidget {
     super.key,
     required this.tasks,
     this.projection = const FollowUpCalendarProjection(),
+    this.reschedulingAdvisor = const CalendarReschedulingAdvisor(),
     this.onRefreshTasks,
     this.onCreateTaskForDate,
     this.onCreateTaskFromCalendarEvent,
@@ -31,6 +33,7 @@ class CanonicalCalendarLauncher extends StatefulWidget {
 
   final List<Task> tasks;
   final FollowUpCalendarProjection projection;
+  final CalendarReschedulingAdvisor reschedulingAdvisor;
   /// Reloads canonical Tasks before timeline access so the launcher never
   /// relies on a stale snapshot after another route writes to SQL.
   final Future<List<Task>> Function()? onRefreshTasks;
@@ -491,6 +494,93 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
       }
     }
 
+  Future<void> _openConflictAdvice(
+    BuildContext context,
+    List<CalendarReminder> reminders,
+  ) async {
+    final entries = <_CalendarConflictAdviceEntry>[];
+    for (final reminder in reminders) {
+      if (reminder.completed || reminder.isAllDay) continue;
+      final dayStart = DateTime(
+        reminder.date.year,
+        reminder.date.month,
+        reminder.date.day,
+      );
+      final advice = widget.reschedulingAdvisor.advise(
+        reminders: reminders,
+        reminderId: reminder.id,
+        windowStart: reminder.date,
+        windowEnd: dayStart.add(const Duration(days: 1)),
+        limit: 3,
+      );
+      if (advice.hasConflict) {
+        entries.add(_CalendarConflictAdviceEntry(
+          reminder: reminder,
+          advice: advice,
+        ));
+      }
+    }
+    if (!context.mounted) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                entries.isEmpty ? 'تداخل زمانی پیدا نشد' : 'تداخل‌های زمانی',
+                style: Theme.of(sheetContext).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 12),
+              if (entries.isEmpty)
+                const Text('بین کارها و یادآورهای زمان‌دار فعلی تداخلی دیده نشد.')
+              else
+                for (final entry in entries) ...[
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            entry.reminder.title,
+                            style: Theme.of(sheetContext).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            '${_digits('${entry.advice.conflicts.length}')} تداخل در این زمان پیدا شد.',
+                          ),
+                          if (entry.advice.suggestions.isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            const Text('زمان‌های پیشنهادی، صرفاً جهت بررسی:'),
+                            const SizedBox(height: 4),
+                            for (final suggestion in entry.advice.suggestions)
+                              Text('• ${_time(suggestion.start)}'),
+                          ] else
+                            const Text('تا پایان همین روز زمان خالی پیشنهادی پیدا نشد.'),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              const SizedBox(height: 8),
+              const Text('هیچ زمانی به‌صورت خودکار تغییر نمی‌کند.'),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _openMore(
     BuildContext context,
     List<CalendarReminder> reminders,
@@ -543,6 +633,15 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
                     Navigator.of(sheetContext)
                         .pop(_CalendarMoreAction.timeline),
               ),
+              ListTile(
+                key: const ValueKey('calendar-more-conflicts'),
+                leading: const Icon(Icons.warning_amber_outlined),
+                title: const Text('تداخل‌ها'),
+                subtitle: const Text('بررسی تداخل کارها و یادآورهای زمان‌دار'),
+                onTap: () => Navigator.of(sheetContext).pop(
+                  _CalendarMoreAction.conflicts,
+                ),
+              ),
                 ],
               ),
             ),
@@ -565,6 +664,9 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
         return;
       case _CalendarMoreAction.timeline:
         await _openTimeline(context);
+        return;
+      case _CalendarMoreAction.conflicts:
+        await _openConflictAdvice(context, reminders);
         return;
     }
   }
@@ -646,6 +748,24 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
   }
 }
 
-enum _CalendarMoreAction { systemCalendar, retrySync, nextAction, timeline }
+enum _CalendarMoreAction { systemCalendar, retrySync, nextAction, timeline, conflicts }
 
+class _CalendarConflictAdviceEntry {
+  const _CalendarConflictAdviceEntry({required this.reminder, required this.advice});
+  final CalendarReminder reminder;
+  final CalendarReschedulingAdvice advice;
+}
 
+String _digits(String value) {
+  const western = '0123456789';
+  const persian = '۰۱۲۳۴۵۶۷۸۹';
+  var result = value;
+  for (var i = 0; i < western.length; i++) {
+    result = result.replaceAll(western[i], persian[i]);
+  }
+  return result;
+}
+
+String _time(DateTime value) => _digits(
+  '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}',
+);
