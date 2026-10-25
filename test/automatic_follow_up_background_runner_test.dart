@@ -13,7 +13,7 @@ void main() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
   });
 
-  test('delivers each due latest follow-up only once', () async {
+  test('legacy Next Follow-up history never triggers background notification', () async {
     final store = _FakeTaskStore([
       Task(
         id: 't1',
@@ -34,12 +34,12 @@ void main() {
       now: () => now,
     );
 
-    expect(await runner.run(), 1);
     expect(await runner.run(), 0);
-    expect(sink.delivered.map((candidate) => candidate.taskId), ['t1']);
+    expect(await runner.run(), 0);
+    expect(sink.delivered, isEmpty);
   });
 
-  test('failed notification is not marked and is retried', () async {
+  test('legacy Follow-up dates are not retried as future notifications', () async {
     final store = _FakeTaskStore([
       Task(
         id: 'retry',
@@ -61,11 +61,11 @@ void main() {
     );
 
     expect(await runner.run(), 0);
-    expect(await runner.run(), 1);
-    expect(sink.attempts, 2);
+    expect(await runner.run(), 0);
+    expect(sink.attempts, 0);
   });
 
-  test('a new latest follow-up schedule can notify after the old one', () async {
+  test('adding another historical Follow-up cannot create an alarm', () async {
     final store = _FakeTaskStore([
       Task(
         id: 'evolving',
@@ -86,7 +86,7 @@ void main() {
       now: () => now,
     );
 
-    expect(await runner.run(), 1);
+    expect(await runner.run(), 0);
 
     store.tasks = [
       Task(
@@ -107,11 +107,8 @@ void main() {
       ),
     ];
 
-    expect(await runner.run(), 1);
-    expect(
-      sink.delivered.map((candidate) => candidate.followUpId).toList(),
-      ['first', 'second'],
-    );
+    expect(await runner.run(), 0);
+    expect(sink.delivered, isEmpty);
   });
 
   test('inactive and future tasks do not produce notifications', () async {

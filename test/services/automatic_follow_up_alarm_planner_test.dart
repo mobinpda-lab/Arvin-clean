@@ -27,7 +27,7 @@ void main() {
     );
   }
 
-  test('chooses earliest not-delivered canonical schedule', () {
+  test('legacy nextFollowUp never creates an alarm', () {
     final earlier = taskWithSchedule(
       id: 'earlier',
       historyAt: now.subtract(const Duration(hours: 1)),
@@ -45,36 +45,27 @@ void main() {
         deliveredState: const {},
         now: now,
       ),
-      now.add(const Duration(hours: 1)),
+      isNull,
     );
   });
 
-  test('skips the already delivered latest schedule', () {
-    final earlier = taskWithSchedule(
-      id: 'earlier',
+  test('delivered-state history cannot revive legacy Next Follow-up scheduling', () {
+    final legacy = taskWithSchedule(
+      id: 'legacy',
       historyAt: now.subtract(const Duration(hours: 1)),
-      nextAt: now.add(const Duration(hours: 1)),
-    );
-    final later = taskWithSchedule(
-      id: 'later',
-      historyAt: now.subtract(const Duration(minutes: 30)),
       nextAt: now.add(const Duration(hours: 2)),
     );
-    final candidate = const AutomaticFollowUpService()
-        .scheduledCandidates([earlier])
-        .single;
-
     expect(
       planner.nextAlarmAt(
-        [earlier, later],
-        deliveredState: {'earlier': candidate.deliveryIdentity},
+        [legacy],
+        deliveredState: const {'legacy': 'already-delivered'},
         now: now,
       ),
-      now.add(const Duration(hours: 2)),
+      isNull,
     );
   });
 
-  test('clamps overdue retry to a small future delay', () {
+  test('overdue legacy Next Follow-up cannot schedule a retry', () {
     final overdue = taskWithSchedule(
       id: 'overdue',
       historyAt: now.subtract(const Duration(hours: 2)),
@@ -87,7 +78,7 @@ void main() {
         deliveredState: const {},
         now: now,
       ),
-      now.add(const Duration(minutes: 5)),
+      isNull,
     );
   });
 
