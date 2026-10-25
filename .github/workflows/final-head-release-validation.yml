@@ -108,7 +108,9 @@ jobs:
 
       - name: Fetch official Vazirmatn assets for manual validation
         if: github.event_name == 'workflow_dispatch'
-        run: bash tool/fetch_vazirmatn.sh      - name: Analyze from locked dependency graph for manual validation
+        run: bash tool/fetch_vazirmatn.sh
+
+      - name: Analyze from locked dependency graph for manual validation
         if: github.event_name == 'workflow_dispatch'
         run: |
           set -euo pipefail
