@@ -80,15 +80,6 @@ class TaskNextActionService {
       candidates.add(task.reminderDate!);
     }
 
-    final nextFollowUp = task.lastFollowUp?.nextFollowUp;
-    if (nextFollowUp != null) {
-      candidates.add(nextFollowUp);
-    } else if (task.followUps.isEmpty && task.followUpDate != null) {
-      // Transitional compatibility: persisted legacy JSON is migrated into
-      // FollowUps[], but an in-memory legacy-only Task may still carry this.
-      candidates.add(task.followUpDate!);
-    }
-
     if (candidates.isEmpty) return null;
     candidates.sort();
     return candidates.first;
