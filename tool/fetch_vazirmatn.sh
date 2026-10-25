@@ -10,7 +10,7 @@ git -C "$WORK/source" checkout --detach "$FONT_REVISION"
 test "$(git -C "$WORK/source" rev-parse HEAD)" = "$FONT_REVISION"
 DEST="$ROOT/assets/fonts/vazirmatn"
 mkdir -p "$DEST"
-for weight in Regular Medium SemiBold Bold; do
+for weight in Light Regular Medium SemiBold Bold; do
   source_file="$WORK/source/fonts/ttf/Vazirmatn-$weight.ttf"
   test -s "$source_file"
   cp "$source_file" "$DEST/Vazirmatn-$weight.ttf"
