@@ -10,12 +10,12 @@ void main() {
     final event = WorkAgendaEvent(
       kind: WorkAgendaEventKind.taskReminder,
       at: DateTime(2026, 8, 29, 9, 15),
-      followUpId: 'fu-1',
+      reminderId: 'r-1',
     );
 
     expect(
       TaskReportPdfRenderer.agendaEventLabel(event),
-      'یادآوری پیگیری: ۱۴۰۵/۰۶/۰۷ ۰۹:۱۵',
+      'یادآوری کار: ۱۴۰۵/۰۶/۰۷ ۰۹:۱۵',
     );
   });
 
@@ -25,13 +25,12 @@ void main() {
       title: 'تحویل قرارداد',
       description: 'نسخه نهایی',
       dueDate: DateTime(2026, 8, 29, 10),
-      reminderDate: DateTime(2026, 8, 29, 9),
-      followUps: [
-        FollowUp(
-          id: 'fu-1',
-          dateTime: DateTime(2026, 8, 28, 12),
-          nextFollowUp: DateTime(2026, 8, 29, 11),
-          reminderDate: DateTime(2026, 8, 29, 10, 30),
+      taskReminders: [
+        TaskReminder(
+          id: 'r-1',
+          title: 'یادآوری قرارداد',
+          date: DateTime(2026, 8, 29, 9),
+          sequence: 1,
         ),
       ],
     );
@@ -41,7 +40,7 @@ void main() {
       generatedAt: DateTime(2026, 8, 29, 8),
     );
     expect(report.days, hasLength(1));
-    expect(report.days.single.items.single.events, hasLength(4));
+    expect(report.days.single.items.single.events, hasLength(2));
 
     final renderer = TaskReportPdfRenderer(
       fontLoader: () async => TaskReportFonts(
