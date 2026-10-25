@@ -1096,7 +1096,7 @@ This entry supersedes older statements that the owner decision is pending or tha
 - Anti-regression: hard-coded hex colors in Home, Calendar, Reports, Notebook, and Task editor were routed through `ArvinColors`; Calendar obtains its declared font via `AppFonts.vazirharfFamily`. Follow-up card interactions use normal tap for parent Task editor and long press for follow-up actions; narrow date-ribbon count bubbles use scale-down to prevent overflow.
 - Prior exact-head build `2d04631dd9d1939bd3feafa12aa7d68bec349b58` produced Debug and Release APK artifacts but multiple test shards failed. Affected tests were updated; exact-head validation is still required. Do not infer success from old runs.
 - Current release status: **NO-GO / NOT VALIDATED** until the final resulting SHA has passing analyzer, all test shards with zero skipped tests, Debug/Release artifacts, all six Device Smoke lanes, Calendar Provider Acceptance, and artifact inspection.
-- Font gap remains open: project bundles VazirHarf; Vazirmatn is not present in declared assets and is not claimed applied. Physical-device acceptance is still separate.
+- Historical Wave 7.34 typography checkpoint (superseded): VazirHarf was active and Vazirmatn was not bundled. Wave 7.35 now pins official Vazirmatn and wires it into the theme/PDF build; exact-head CI and physical-device acceptance remain pending.
 
 
 ## Wave 7.35 owner decision update — 2026-10-25
