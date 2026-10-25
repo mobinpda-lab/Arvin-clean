@@ -125,13 +125,6 @@ class WorkAgendaProjection {
       addEvent(task.reminderDate, WorkAgendaEventKind.taskReminder);
 
       // Independent reminders belong to their exact canonical FollowUp.
-      for (final followUp in task.followUps) {
-        addEvent(
-          followUp.reminderDate,
-          WorkAgendaEventKind.followUpReminder,
-          followUpId: followUp.id,
-        );
-      }
     }
 
     final days = grouped.keys.toList()..sort();
