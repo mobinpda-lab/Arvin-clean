@@ -82,11 +82,6 @@ class FollowUpReminderDeliveryState {
       for (final reminder in task.taskReminders) {
         liveKeys.add('task:${task.id}:reminder:${reminder.id}');
       }
-      for (final followUp in task.followUps) {
-        if (followUp.reminderDate != null) {
-          liveKeys.add('${task.id}:${followUp.id}');
-        }
-      }
     }
 
     final next = Map<String, String>.of(state);
