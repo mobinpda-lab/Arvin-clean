@@ -134,9 +134,12 @@ void main() {
         findsOneWidget,
       );
 
-      await tester.tap(
-        find.byKey(const ValueKey('task-editor-reminder-time-calendar-smoke-reminder')),
+      final reminderTimeButton = find.byKey(
+        const ValueKey('task-editor-reminder-time-calendar-smoke-reminder'),
       );
+      await tester.ensureVisible(reminderTimeButton);
+      await tester.pumpAndSettle();
+      await tester.tap(reminderTimeButton);
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
       expect(find.byKey(const ValueKey('universal-time-cancel')), findsOneWidget);
