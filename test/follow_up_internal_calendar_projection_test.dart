@@ -1,13 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/follow_up_calendar_projection.dart';
-import 'package:arvin/services/follow_up_internal_calendar_projection.dart';
 
 void main() {
-  const internal = FollowUpInternalCalendarProjection();
   const reminders = FollowUpCalendarProjection();
 
-  test('nextFollowUp appears only in internal projection, not reminder projection', () {
+  test('legacy nextFollowUp does not create a calendar event', () {
     final task = Task(
       id: 'customer-call',
       title: 'تماس با مشتری',
@@ -22,13 +20,8 @@ void main() {
     );
 
     final before = task.toJson();
-    final internalItems = internal.project([task]);
     final reminderItems = reminders.project([task]);
 
-    expect(internalItems, hasLength(1));
-    expect(internalItems.single.id, 'task-followup-action:customer-call:follow-1');
-    expect(internalItems.single.title, 'تماس با مشتری');
-    expect(internalItems.single.date, DateTime(2026, 10, 20, 10));
     expect(reminderItems, isEmpty);
     expect(task.toJson(), before);
   });
@@ -49,10 +42,8 @@ void main() {
     );
 
     final before = task.toJson();
-    final actionItems = internal.project([task]);
     final reminderItems = reminders.project([task]);
 
-    expect(actionItems, isEmpty);
     expect(reminderItems.any((item) => item.date == DateTime(2026, 10, 20, 9, 55)), isTrue);
     expect(task.followUps.single.nextFollowUp, DateTime(2026, 10, 20, 10));
     expect(task.toJson(), before);
@@ -83,10 +74,9 @@ void main() {
       ],
     );
 
-    final items = internal.project([withReminder, withoutReminder]);
+    final items = reminders.project([withReminder, withoutReminder]);
     expect(items, hasLength(1));
-    expect(items.single.id,
-        'task-followup-action:task-without-reminder:follow-without-reminder');
+    expect(items.single.id, contains('task-with-reminder'));
   });
 
   test('changing nextFollowUp does not mutate existing reminderDate', () {
@@ -119,11 +109,7 @@ void main() {
     expect(changed.reminderDate, originalReminder);
     expect(reminders.project([task]).single.date, originalReminder);
 
-    // The existing Reminder wins the internal calendar display. The action
-    // date remains independently editable in canonical Follow-up data.
-    expect(internal.project([task]), isEmpty);
-    // Clearing the Reminder is an explicit, independent operation. Once
-    // cleared, the still-existing nextFollowUp becomes visible internally.
+    expect(reminders.project([task]).single.date, originalReminder);
     final followUpWithoutReminder = FollowUp(
       id: changed.id,
       dateTime: changed.dateTime,
@@ -137,7 +123,6 @@ void main() {
       title: task.title,
       followUps: [followUpWithoutReminder],
     );
-    expect(internal.project([taskWithoutReminder]).single.date,
-        DateTime(2026, 10, 21, 10));
+    expect(reminders.project([taskWithoutReminder]), isEmpty);
   });
 }
