@@ -14,8 +14,8 @@ enum HomeListSort { date, latest, title }
 /// Pure canonical projection for Home list scopes and ordering.
 ///
 /// No persistence, selection state, routing or UI state is owned here. Date
-/// scopes prefer the independent Task due date and fall back to the existing
-/// legacy FollowUp projection only while Home migration remains incomplete.
+/// scopes use the independent Task due date only; legacy Follow-up dates are
+/// retained for compatibility but never act as current scheduling data.
 class HomeListProjection {
   const HomeListProjection();
 
@@ -83,7 +83,6 @@ class HomeListProjection {
   }) {
     final seenTimestamps = <int>{};
     final result = <TaskReminder>[];
-    final followUpTimestamp = followUpDate?.microsecondsSinceEpoch;
     for (final reminder in reminders) {
       final timestamp = reminder.date.microsecondsSinceEpoch;
       if (seenTimestamps.add(timestamp)) result.add(reminder);
