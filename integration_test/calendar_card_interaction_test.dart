@@ -127,7 +127,15 @@ void main() {
       await tester.tap(find.byKey(editTaskActionKey));
       await tester.pumpAndSettle();
 
-      expect(find.byKey(const ValueKey('arvin-task-editor-dialog')), findsOneWidget);
+      // The edit callback awaits canonical project/tag/category reads before
+      // presenting the dialog. pumpAndSettle alone can return while those
+      // futures are pending and no frame is scheduled; keep the same assertion
+      // but pump until the real editor appears or the bounded wait expires.
+      final editorDialog = find.byKey(const ValueKey('arvin-task-editor-dialog'));
+      for (var attempt = 0; attempt < 50 && editorDialog.evaluate().isEmpty; attempt++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(editorDialog, findsOneWidget);
       expect(find.byKey(const ValueKey('task-editor-multiple-reminders')), findsOneWidget);
       expect(
         find.byKey(const ValueKey('task-editor-reminder-title-calendar-smoke-reminder')),
