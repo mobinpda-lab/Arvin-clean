@@ -4,7 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:arvin/main.dart';
 import 'package:arvin/services/app_settings_service.dart';
-import 'package:arvin/services/task_store.dart';
 
 void main() {
   setUp(() {
