@@ -10,7 +10,14 @@ void main() {
       id: 'task-1',
       title: 'تحویل قرارداد',
       dueDate: DateTime(2026, 8, 29, 10),
-      reminderDate: DateTime(2026, 8, 29, 9),
+      taskReminders: [
+        TaskReminder(
+          id: 'task-reminder-1',
+          title: 'یادآوری قرارداد',
+          date: DateTime(2026, 8, 29, 9),
+          sequence: 1,
+        ),
+      ],
       followUps: [
         FollowUp(
           id: 'fu-1',
