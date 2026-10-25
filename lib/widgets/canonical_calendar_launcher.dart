@@ -370,12 +370,25 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
   }
 
   Future<void> _editTaskFromCalendar(CalendarReminder reminder) async {
+    debugPrint(
+      'CALENDAR_EDIT_TRACE: launcher_callback_start reminderId=${reminder.id} '
+      'launcherMounted=$mounted',
+    );
     final task = _taskForReminder(reminder);
     final editTask = widget.onEditTask;
-    if (task == null || editTask == null) return;
+    debugPrint(
+      'CALENDAR_EDIT_TRACE: launcher_task_lookup taskId=${task?.id} '
+      'editCallbackPresent=${editTask != null}',
+    );
+    if (task == null || editTask == null) {
+      debugPrint('CALENDAR_EDIT_TRACE: launcher_callback_early_return');
+      return;
+    }
     await editTask(task);
+    debugPrint('CALENDAR_EDIT_TRACE: launcher_edit_callback_complete taskId=${task.id} mounted=$mounted');
     if (!mounted) return;
     final refreshed = await widget.onRefreshTasks?.call();
+    debugPrint('CALENDAR_EDIT_TRACE: launcher_refresh_complete refreshedCount=${refreshed?.length} mounted=$mounted');
     if (refreshed != null && mounted) {
       setState(() => _tasks = List<Task>.of(refreshed));
     }
