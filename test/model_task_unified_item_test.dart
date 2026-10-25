@@ -68,7 +68,7 @@ void main() {
     expect(restored.followUps.single.note, 'تماس انجام شد');
   });
 
-  test('legacy followUpDate stays scheduling data and does not fabricate history', () {
+  test('legacy followUpDate is preserved as history without reactivating scheduling', () {
     final legacyDate = DateTime(2026, 8, 13, 12);
     final task = Task.fromJson({
       'id': 'legacy',
@@ -76,7 +76,7 @@ void main() {
       'followUpDate': legacyDate.toIso8601String(),
     });
 
-    expect(task.followUpEnabled, isTrue);
+    expect(task.followUpEnabled, isFalse);
     expect(task.followUpDate, legacyDate);
     expect(task.followUps, isEmpty);
     expect(task.lastFollowUp, isNull);
