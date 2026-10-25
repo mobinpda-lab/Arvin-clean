@@ -119,7 +119,7 @@ void main() {
       nextActionDueBy: DateTime(2026, 10, 15, 23, 59),
     );
 
-    expect(rows.map((row) => row.followUp.id), ['due', 'later', 'missing']);
+    expect(rows.map((row) => row.followUp.id), ['due', 'later', 'none']);
     expect(rows.single.reminderDate, DateTime(2026, 10, 20, 9));
   });
 
