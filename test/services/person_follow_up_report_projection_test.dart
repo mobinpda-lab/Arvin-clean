@@ -120,7 +120,8 @@ void main() {
     );
 
     expect(rows.map((row) => row.followUp.id), ['due', 'later', 'none']);
-    expect(rows.single.reminderDate, DateTime(2026, 10, 20, 9));
+    expect(rows.firstWhere((row) => row.followUp.id == 'due').reminderDate,
+        DateTime(2026, 10, 20, 9));
   });
 
   test('keeps a waiting Follow-up visible with a deleted-person placeholder', () {
