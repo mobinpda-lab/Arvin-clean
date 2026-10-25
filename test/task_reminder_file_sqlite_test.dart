@@ -84,7 +84,7 @@ void main() {
         alarmEnabled: false,
         calendarSyncEnabled: true,
       ),
-      current.taskReminders.last,
+      current.taskReminders[2],
       TaskReminder(
         id: 'r5',
         title: 'New independent Reminder',
