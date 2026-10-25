@@ -228,8 +228,13 @@ void main() {
           {
             'id': 'history-1',
             'dateTime': '2026-09-21T10:00:00.000Z',
+            'title': 'تماس اول',
             'note': 'پیگیری اول',
             'result': 'منتظر پاسخ',
+            'reminderDate': '2026-09-23T09:00:00.000Z',
+            'nextFollowUp': '2026-09-24T11:00:00.000Z',
+            'waitingForResponse': true,
+            'personIds': ['person-a', 'person-b'],
             'completed': false,
           },
           {
@@ -279,5 +284,24 @@ void main() {
       'پیگیری اول',
       'پیگیری دوم',
     ]);
+    final migratedFollowUp = loaded.first.followUps.first;
+    expect(migratedFollowUp.title, 'تماس اول');
+    expect(migratedFollowUp.result, 'منتظر پاسخ');
+    expect(migratedFollowUp.reminderDate, DateTime.utc(2026, 9, 23, 9));
+    expect(migratedFollowUp.nextFollowUp, DateTime.utc(2026, 9, 24, 11));
+    expect(migratedFollowUp.waitingForResponse, isTrue);
+    expect(migratedFollowUp.personIds, ['person-a', 'person-b']);
+
+    final rerun = await const SqlTaskMigrationWriter().migrateFromPreferences(
+      executor: database,
+      preferences: preferences,
+    );
+    expect(rerun.insertedCount, 0);
+    expect(rerun.skippedExistingCount, 2);
+    final relationRows = await database.runSelect(
+      'SELECT person_id FROM follow_up_people WHERE follow_up_id = ? ORDER BY ordinal',
+      const ['history-1'],
+    );
+    expect(relationRows.map((row) => row['person_id']), ['person-a', 'person-b']);
   });
 }
