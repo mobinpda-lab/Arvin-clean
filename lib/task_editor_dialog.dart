@@ -399,28 +399,34 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                       title: const Text('تمام‌روز (بدون ساعت)'),
                       ),
                     ),
-                    CheckboxListTile(
-                      key: ValueKey('task-editor-reminder-alarm-$reminderKey'),
-                      contentPadding: EdgeInsets.zero,
-                      controlAffinity: ListTileControlAffinity.leading,
-                      value: reminder.alarmEnabled,
-                      onChanged: (value) => _updateTaskReminder(
-                        index,
-                        reminder.copyWith(alarmEnabled: value ?? false),
+                    Material(
+                      color: Colors.transparent,
+                      child: CheckboxListTile(
+                        key: ValueKey('task-editor-reminder-alarm-$reminderKey'),
+                        contentPadding: EdgeInsets.zero,
+                        controlAffinity: ListTileControlAffinity.leading,
+                        value: reminder.alarmEnabled,
+                        onChanged: (value) => _updateTaskReminder(
+                          index,
+                          reminder.copyWith(alarmEnabled: value ?? false),
+                        ),
+                        title: const Text('آلارم محلی'),
+                        subtitle: const Text('خاموش‌کردن آلارم یادآور را حذف نمی‌کند.'),
                       ),
-                      title: const Text('آلارم محلی'),
-                      subtitle: const Text('خاموش‌کردن آلارم یادآور را حذف نمی‌کند.'),
                     ),
-                    CheckboxListTile(
-                      key: ValueKey('task-editor-reminder-calendar-sync-$reminderKey'),
-                      contentPadding: EdgeInsets.zero,
-                      controlAffinity: ListTileControlAffinity.leading,
-                      value: reminder.calendarSyncEnabled,
-                      onChanged: (value) => _updateTaskReminder(
-                        index,
-                        reminder.copyWith(calendarSyncEnabled: value ?? false),
+                    Material(
+                      color: Colors.transparent,
+                      child: CheckboxListTile(
+                        key: ValueKey('task-editor-reminder-calendar-sync-$reminderKey'),
+                        contentPadding: EdgeInsets.zero,
+                        controlAffinity: ListTileControlAffinity.leading,
+                        value: reminder.calendarSyncEnabled,
+                        onChanged: (value) => _updateTaskReminder(
+                          index,
+                          reminder.copyWith(calendarSyncEnabled: value ?? false),
+                        ),
+                        title: const Text('همگام‌سازی با تقویم دستگاه'),
                       ),
-                      title: const Text('همگام‌سازی با تقویم دستگاه'),
                     ),
                   ],
                 ),
