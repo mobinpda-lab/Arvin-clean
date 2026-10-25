@@ -331,9 +331,9 @@ void main() {
     final taskB = saved.firstWhere((task) => task.id == 'conflict-b');
     expect(taskA.taskReminders.single.id, 'reminder-a');
     expect(taskA.taskReminders.single.date, when.add(const Duration(minutes: 30)));
-    expect(taskA.followUps.single.dateTime, DateTime(2026, 8, 27, 8));
-    expect(taskA.dueDate, DateTime(2026, 8, 27, 12));
-    expect(taskB.taskReminders.single.date, DateTime(2026, 8, 27, 9));
+    expect(taskA.followUps.single.dateTime, DateTime(when.year, when.month, when.day, 8));
+    expect(taskA.dueDate, DateTime(when.year, when.month, when.day, 12));
+    expect(taskB.taskReminders.single.date, when);
     expect(syncCalls, 1);
     expect(find.text('زمان یادآور با موفقیت تغییر کرد و همگام‌سازی دوباره درخواست شد.'), findsOneWidget);
   });
