@@ -1097,3 +1097,8 @@ This entry supersedes older statements that the owner decision is pending or tha
 - Prior exact-head build `2d04631dd9d1939bd3feafa12aa7d68bec349b58` produced Debug and Release APK artifacts but multiple test shards failed. Affected tests were updated; exact-head validation is still required. Do not infer success from old runs.
 - Current release status: **NO-GO / NOT VALIDATED** until the final resulting SHA has passing analyzer, all test shards with zero skipped tests, Debug/Release artifacts, all six Device Smoke lanes, Calendar Provider Acceptance, and artifact inspection.
 - Font gap remains open: project bundles VazirHarf; Vazirmatn is not present in declared assets and is not claimed applied. Physical-device acceptance is still separate.
+
+
+## Wave 7.35 owner decision update — 2026-10-25
+
+The current explicit owner instruction supersedes older font decisions: **Vazirmatn v33.003 is the official Arvin UI font**. It must be locally bundled from a pinned upstream revision, used by the global Flutter theme, Calendar and PDF output, and validated with RTL/typography tests. Older VazirHarf references in this document are historical evidence only and do not override the current owner instruction. Release remains `BLOCKED — RELEASE: NO-GO` until exact-SHA validation and physical-device acceptance.
