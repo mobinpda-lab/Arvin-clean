@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import '../calendar_page.dart';
 import '../models/recurrence.dart';
 import '../models/task.dart';
@@ -92,8 +93,25 @@ class FollowUpCalendarProjection {
   }) {
     final reminders = <CalendarReminder>[];
 
-    for (final task in tasks) {
-      if (task.trashed) continue;
+    final taskList = tasks.toList(growable: false);
+    debugPrint(
+      'CALENDAR_DIAG_B: inputContainsSmokeTask=${taskList.any((task) => task.id == 'calendar-smoke-task')} '
+      'inputTaskIds=${taskList.where((task) => task.id == 'calendar-smoke-task').map((task) => task.id).toList()}',
+    );
+
+    for (final task in taskList) {
+      if (task.trashed) {
+        if (task.id == 'calendar-smoke-task') {
+          for (final reminder in task.taskReminders) {
+            debugPrint(
+              'CALENDAR_DIAG_B: taskId=${task.id} reminderId=${reminder.id} '
+              'type=${reminder.isLegacyTaskReminder ? 'legacy' : 'independent'} '
+              'date=${reminder.date.toIso8601String()} DROP_REASON=task_trashed',
+            );
+          }
+        }
+        continue;
+      }
 
       final taskDatesAlreadyProjected = <DateTime>[];
 
@@ -112,6 +130,14 @@ class FollowUpCalendarProjection {
             isAllDay: reminder.isAllDay,
           ),
         );
+        if (task.id == 'calendar-smoke-task') {
+          debugPrint(
+            'CALENDAR_DIAG_B: taskId=${task.id} '
+            'outputReminderId=${reminder.isLegacyTaskReminder ? taskReminderIdFor(task) : independentTaskReminderIdFor(task, reminder)} '
+            'type=${reminder.isLegacyTaskReminder ? 'legacy' : 'independent'} '
+            'date=${reminder.date.toIso8601String()} RESULT=PROJECTED',
+          );
+        }
         if (reminder.isLegacyTaskReminder) {
           // Preserve the legacy projection's due-date de-duplication behavior.
           taskDatesAlreadyProjected.add(reminder.date);
@@ -179,6 +205,9 @@ class FollowUpCalendarProjection {
     }
 
     reminders.sort((a, b) => a.date.compareTo(b.date));
+    debugPrint(
+      'CALENDAR_DIAG_B: outputSmokeReminderIdsAndDates=${reminders.where((item) => item.id.contains('calendar-smoke-task')).map((item) => '${item.id}@${item.date.toIso8601String()}').toList()}',
+    );
     return List<CalendarReminder>.unmodifiable(reminders);
   }
 }
