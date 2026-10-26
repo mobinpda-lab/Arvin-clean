@@ -151,10 +151,19 @@ void main() {
       Task? persisted;
       for (var attempt = 0; attempt < 50; attempt++) {
         final current = await store.load();
-        if (current.isNotEmpty && current.single.taskReminders.single.date.hour == 23 &&
-            current.single.taskReminders.single.date.minute == 47) {
-          persisted = current.single;
-          break;
+        if (current.isNotEmpty) {
+          final matching = current.single.taskReminders
+              .where((item) => item.id == reminderId)
+              .toList(growable: false);
+          if (matching.length == 1 &&
+              matching.single.date.year == targetDate.year &&
+              matching.single.date.month == targetDate.month &&
+              matching.single.date.day == targetDate.day &&
+              matching.single.date.hour == 23 &&
+              matching.single.date.minute == 47) {
+            persisted = current.single;
+            break;
+          }
         }
         await Future<void>.delayed(const Duration(milliseconds: 100));
         await tester.pump(const Duration(milliseconds: 100));
