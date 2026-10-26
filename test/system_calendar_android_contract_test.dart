@@ -3,6 +3,23 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('notification settings bridge opens Android app notification settings', () {
+    final activity = File(
+      'android/app/src/main/kotlin/com/example/arvin/MainActivity.kt',
+    ).readAsStringSync();
+    final settings = File('lib/settings_page.dart').readAsStringSync();
+    final main = File('lib/main.dart').readAsStringSync();
+
+    expect(activity, contains('arvin/app_settings'));
+    expect(activity, contains('openNotificationSettings'));
+    expect(activity, contains('Settings.ACTION_APP_NOTIFICATION_SETTINGS'));
+    expect(activity, contains('Settings.ACTION_APPLICATION_DETAILS_SETTINGS'));
+    expect(settings, contains('notification-settings-title'));
+    expect(settings, contains('areNotificationsEnabled'));
+    expect(settings, contains('requestNotificationsPermission'));
+    expect(main, contains('onPressed: _openPrimarySettings'));
+  });
+
   test('manual system calendar export remains user-approved insert UI', () {
     final activity = File(
       'android/app/src/main/kotlin/com/example/arvin/MainActivity.kt',

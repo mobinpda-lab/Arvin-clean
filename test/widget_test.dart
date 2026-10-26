@@ -25,6 +25,19 @@ void main() {
     expect(find.byKey(const ValueKey('home-menu')), findsOneWidget);
   });
 
+  testWidgets('Home notification bell opens the real notification settings section', (tester) async {
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('home-notifications')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('تنظیمات'), findsOneWidget);
+    expect(find.byKey(const ValueKey('notification-settings-title')), findsOneWidget);
+    expect(find.byKey(const ValueKey('notification-permission-status')), findsOneWidget);
+    expect(find.byKey(const ValueKey('notification-system-settings-entry')), findsOneWidget);
+  });
+
   testWidgets('Home exposes the canonical workflow controls', (tester) async {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
