@@ -41,6 +41,7 @@ void main() {
             updatedAt: DateTime.utc(2026, 8, 14, 18),
             dueDate: _taskDueAt,
             reminderDate: _legacyReminderAt,
+            legacyTaskReminderMigrationVersion: 1,
             followUpEnabled: true,
             category: 'فروش',
             tags: const <String>['قرارداد', 'مهم'],
@@ -115,6 +116,7 @@ void main() {
           expect(task.description, 'شرح مستقل Task باید حفظ شود');
           expect(task.dueDate?.toIso8601String(), _taskDueAt.toIso8601String());
           expect(task.reminderDate?.toIso8601String(), _legacyReminderAt.toIso8601String());
+          expect(task.legacyTaskReminderMigrationVersion, 1);
           expect(task.followUpEnabled, isTrue);
           expect(task.category, 'فروش');
           expect(task.tags, <String>['قرارداد', 'مهم']);
