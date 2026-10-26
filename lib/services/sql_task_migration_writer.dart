@@ -110,13 +110,14 @@ class SqlTaskMigrationWriter {
       final followUp = task.followUps[ordinal];
       await executor.runInsert(
         '''INSERT INTO follow_ups (
-          id, task_id, date_time, note, result, reminder_date,
+          id, task_id, date_time, title, note, result, reminder_date,
           next_follow_up, completed, ordinal
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
         <Object?>[
           followUp.id,
           task.id,
           followUp.dateTime.toIso8601String(),
+          followUp.title,
           followUp.note,
           followUp.result,
           followUp.reminderDate?.toIso8601String(),
