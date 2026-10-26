@@ -1,6 +1,7 @@
 import 'package:arvin/main.dart' as app;
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/iran_clock.dart';
+import 'package:arvin/services/persian_date_formatter.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:arvin/theme/app_fonts.dart';
 import 'package:arvin/widgets/arvin_primary_navigation.dart';
@@ -24,6 +25,7 @@ void main() {
       final reminderAt = now.add(const Duration(minutes: 10));
       const taskId = 'calendar-smoke-task';
       const reminderId = 'calendar-smoke-reminder';
+      const secondReminderId = 'calendar-smoke-reminder-2';
       final seed = Task(
         id: taskId,
         title: 'کار آزمون تعامل تقویم',
@@ -44,6 +46,12 @@ void main() {
             title: 'یادآور آزمایشی',
             date: reminderAt,
             sequence: 1,
+          ),
+          TaskReminder(
+            id: secondReminderId,
+            title: 'یادآور مستقل دوم',
+            date: now.add(const Duration(hours: 1)),
+            sequence: 2,
           ),
         ],
       );
@@ -83,6 +91,8 @@ void main() {
 
       // The independent Reminder opens the canonical Task editor, never a
       // Follow-up editor. Canceling the time picker must not alter its time.
+      await tester.ensureVisible(card);
+      await tester.pumpAndSettle();
       await tester.tap(card);
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('arvin-task-editor-dialog')), findsOneWidget);
@@ -95,6 +105,34 @@ void main() {
       expect(find.byKey(const ValueKey('universal-time-save')), findsOneWidget);
       expect(Directionality.of(tester.element(find.byKey(const ValueKey('universal-time-selected-value')))), TextDirection.rtl);
       await tester.tap(find.byKey(const ValueKey('universal-time-cancel')));
+      await tester.pumpAndSettle();
+
+      // Cancel must leave the canonical persisted reminder and sibling data untouched.
+      final afterCancel = (await store.load()).single;
+      expect(afterCancel.taskReminders.singleWhere((item) => item.id == reminderId).date, reminderAt);
+      expect(afterCancel.taskReminders.singleWhere((item) => item.id == secondReminderId).date, now.add(const Duration(hours: 1)));
+      expect(afterCancel.dueDate, now.add(const Duration(hours: 2)));
+      expect(afterCancel.followUps.single.dateTime, now);
+      expect(afterCancel.followUps.single.note, 'این سابقه نباید با ویرایش یادآور تغییر کند');
+
+      // Change the date through the actual Jalali date picker.
+      final dateButton = find.byKey(const ValueKey('task-editor-reminder-date-calendar-smoke-reminder'));
+      await tester.ensureVisible(dateButton);
+      await tester.tap(dateButton);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('persian-date-picker')), findsOneWidget);
+      final formatter = const PersianDateFormatter();
+      final targetDate = DateTime(reminderAt.year, reminderAt.month, reminderAt.day + 1);
+      final initialJalali = formatter.toJalali(reminderAt);
+      final targetJalali = formatter.toJalali(targetDate);
+      if (targetJalali.year != initialJalali.year || targetJalali.month != initialJalali.month) {
+        await tester.tap(find.byTooltip('ماه بعد'));
+        await tester.pumpAndSettle();
+      }
+      final targetDay = find.byKey(ValueKey('persian-date-day-${targetJalali.day}'));
+      await tester.ensureVisible(targetDay);
+      await tester.tap(targetDay);
+      await tester.tap(find.text('تأیید'));
       await tester.pumpAndSettle();
 
       // Make a real time change through the existing universal picker.
@@ -123,10 +161,14 @@ void main() {
       }
       if (persisted == null) fail('The independent TaskReminder edit was not persisted.');
       final savedTask = persisted;
-      expect(savedTask.taskReminders, hasLength(1));
-      expect(savedTask.taskReminders.single.id, reminderId);
-      expect(savedTask.taskReminders.single.date.hour, 23);
-      expect(savedTask.taskReminders.single.date.minute, 47);
+      expect(savedTask.taskReminders, hasLength(2));
+      final savedReminder = savedTask.taskReminders.singleWhere((item) => item.id == reminderId);
+      expect(savedReminder.date.year, targetDate.year);
+      expect(savedReminder.date.month, targetDate.month);
+      expect(savedReminder.date.day, targetDate.day);
+      expect(savedReminder.date.hour, 23);
+      expect(savedReminder.date.minute, 47);
+      expect(savedTask.taskReminders.singleWhere((item) => item.id == secondReminderId).date, now.add(const Duration(hours: 1)));
       expect(savedTask.dueDate, now.add(const Duration(hours: 2)));
       expect(savedTask.followUps.single.dateTime, now);
       expect(savedTask.followUps.single.note, 'این سابقه نباید با ویرایش یادآور تغییر کند');

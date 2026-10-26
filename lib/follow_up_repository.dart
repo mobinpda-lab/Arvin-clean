@@ -7,9 +7,11 @@ import 'services/task_store.dart';
 /// routed through [TaskStore.mutate] so FollowUp writes cannot race with Home,
 /// Notebook, recurrence, People, or Sync writes to `arvin.tasks`.
 class FollowUpRepository {
-  const FollowUpRepository();
+  const FollowUpRepository({TaskStore? store}) : _injectedStore = store;
 
-  TaskStore get _store => TaskStore();
+  final TaskStore? _injectedStore;
+
+  TaskStore get _store => _injectedStore ?? TaskStore();
 
   Future<List<FollowUp>> loadForTask(String taskId) async {
     final tasks = await _store.load();
