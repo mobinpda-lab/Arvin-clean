@@ -58,6 +58,32 @@ void main() {
       await store.save([seed]);
       debugPrint('CALENDAR_SMOKE: seeded one canonical record in SQLite');
 
+      // Wave 7.96 diagnostic A: verify the persisted record through a fresh
+      // TaskStore.load() read, without changing any acceptance assertions.
+      final reloadedTasks = await TaskStore().load();
+      debugPrint(
+        'CALENDAR_DIAG_A: requestedTaskId=$taskId '
+        'reloadedTaskIds=${reloadedTasks.map((task) => task.id).toList()} '
+        'reloadedTaskCount=${reloadedTasks.length}',
+      );
+      for (final task in reloadedTasks.where((task) => task.id == taskId)) {
+        debugPrint(
+          'CALENDAR_DIAG_A: taskId=${task.id} '
+          'reminderCount=${task.taskReminders.length}',
+        );
+        for (final reminder in task.taskReminders) {
+          debugPrint(
+            'CALENDAR_DIAG_A: taskId=${task.id} '
+            'reminderId=${reminder.id} '
+            'type=${reminder.isLegacyTaskReminder ? 'legacy' : 'independent'} '
+            'date=${reminder.date.toIso8601String()}',
+          );
+        }
+      }
+      if (!reloadedTasks.any((task) => task.id == taskId)) {
+        debugPrint('CALENDAR_DIAG_A: RESULT=TASK_NOT_FOUND_AFTER_LOAD');
+      }
+
       app.main();
       await tester.pumpAndSettle();
 
