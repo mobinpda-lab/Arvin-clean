@@ -285,6 +285,7 @@ void main() {
   test('preserves complete Follow-up history across closing and reopening SQLite', () async {
     final directory = await Directory.systemTemp.createTemp('arvin-follow-up-reopen-');
     final databaseFile = File('${directory.path}/arvin.sqlite');
+    await database.close();
     database = NativeDatabase(databaseFile);
 
     const raw = '''
@@ -323,6 +324,7 @@ void main() {
     ]);
 
     await database.close();
+    database = NativeDatabase.memory();
     await directory.delete(recursive: true);
   });
 
