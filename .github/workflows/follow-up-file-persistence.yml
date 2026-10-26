@@ -1,0 +1,74 @@
+name: Arvin Follow-up File Persistence
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      target_sha:
+        description: 'Exact commit SHA to validate'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: arvin-follow-up-file-persistence-${{ github.event.pull_request.number || inputs.target_sha || github.ref_name }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: '3.47.0'
+
+jobs:
+  follow-up-file-persistence:
+    name: Follow-up file-backed SQLite persistence (no APK build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout exact target
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.event.pull_request.head.sha }}
+
+      - name: Verify checkout SHA
+        env:
+          TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          echo "LOCAL_EXECUTION_ID=github-actions-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          echo "CHECKOUT_SHA=$actual"
+          test -n "$TARGET_SHA"
+          test "$actual" = "$TARGET_SHA"
+          echo "EXACT_TARGET_SHA=$actual"
+
+      - name: Install Flutter Stable
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Verify Flutter version and revision
+        run: |
+          set -euo pipefail
+          flutter --version
+          git rev-parse HEAD
+
+      - name: Cache Pub packages
+        uses: actions/cache@v5
+        with:
+          path: ~/.pub-cache
+          key: arvin-follow-up-pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            arvin-follow-up-pub-${{ runner.os }}-
+
+      - name: Resolve locked dependencies
+        run: |
+          set -euo pipefail
+          flutter pub get --enforce-lockfile
+          git diff --exit-code -- pubspec.lock
+
+      - name: Run only the file-backed Repository test
+        run: flutter test test/follow_up_repository_file_persistence_test.dart
