@@ -130,10 +130,10 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     }
     _reminderFollowsDueTime = task == null ||
         (task.legacyTaskReminderMigrationVersion < 1 &&
-            (task.reminderDate == null ||
-                (task.dueDate != null &&
-                    !task.allDay &&
-                    task.reminderDate == task.dueDate)));
+            task.reminderDate != null &&
+            task.dueDate != null &&
+            !task.allDay &&
+            task.reminderDate == task.dueDate);
     _followUpEnabled =
         task?.followUpEnabled == true ||
         (task?.followUps.isNotEmpty ?? false) ||
