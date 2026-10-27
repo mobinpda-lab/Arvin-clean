@@ -61,6 +61,16 @@ void main() {
       // Wave 7.96 diagnostic A: verify the persisted record through a fresh
       // TaskStore.load() read, without changing any acceptance assertions.
       final reloadedTasks = await TaskStore().load();
+      expect(reloadedTasks, hasLength(1));
+      expect(reloadedTasks.single.id, taskId);
+      expect(reloadedTasks.single.taskReminders, hasLength(2));
+      expect(
+        reloadedTasks.single.taskReminders.every(
+          (item) => !item.isLegacyTaskReminder,
+        ),
+        isTrue,
+        reason: 'Due Date must not turn independent reminders into legacy reminders',
+      );
       debugPrint(
         'CALENDAR_DIAG_A: requestedTaskId=$taskId '
         'reloadedTaskIds=${reloadedTasks.map((task) => task.id).toList()} '
