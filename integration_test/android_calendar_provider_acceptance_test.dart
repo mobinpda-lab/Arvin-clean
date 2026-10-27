@@ -31,7 +31,9 @@ void main() {
       debugPrint(
         'CALENDAR_PROVIDER_ACCEPTANCE=LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR',
       );
-      return;
+      throw StateError(
+        'Calendar Provider acceptance BLOCKED: no writable calendar is available; CRUD was not executed.',
+      );
     }
 
     final calendar = writable.first;
