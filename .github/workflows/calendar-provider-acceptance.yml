@@ -51,19 +51,67 @@ jobs:
         with:
           ref: ${{ github.event.inputs.target_sha || github.event.pull_request.head.sha || github.sha }}
 
+      - name: Initialize SHA verification evidence
+        shell: bash
+        env:
+          TARGET_SHA: ${{ github.event.inputs.target_sha || github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -u
+          evidence_dir=".github/calendar-provider-evidence"
+          if ! mkdir -p "$evidence_dir"; then
+            echo "::error::Failed to create SHA verification evidence directory: $evidence_dir" >&2
+            exit 1
+          fi
+          if ! actual_sha="$(git rev-parse HEAD 2>&1)"; then
+            echo "::error::Failed to determine checked-out SHA: $actual_sha" >&2
+            exit 1
+          fi
+          if ! {
+            printf 'TARGET_SHA=%s\n' "$TARGET_SHA"
+            printf 'CHECKED_OUT_SHA=%s\n' "$actual_sha"
+            printf 'SHA_CHECK_RESULT=PENDING\n'
+            printf 'STOP_REASON=SHA verification has not completed yet.\n'
+          } > "$evidence_dir/sha-verification.txt"; then
+            echo "::error::Failed to write base SHA verification evidence to $evidence_dir/sha-verification.txt" >&2
+            exit 1
+          fi
+          echo "SHA_EVIDENCE_INITIALIZED=true"
+          echo "TARGET_SHA=$TARGET_SHA"
+          echo "CHECKED_OUT_SHA=$actual_sha"
+
       - name: Verify exact target SHA
         shell: bash
         env:
           TARGET_SHA: ${{ github.event.inputs.target_sha || github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
+          evidence_file=".github/calendar-provider-evidence/sha-verification.txt"
           actual_sha="$(git rev-parse HEAD)"
           echo "TARGET_SHA=$TARGET_SHA"
           echo "CHECKED_OUT_SHA=$actual_sha"
           if [[ "$actual_sha" != "$TARGET_SHA" ]]; then
+            if ! {
+              printf 'TARGET_SHA=%s\n' "$TARGET_SHA"
+              printf 'CHECKED_OUT_SHA=%s\n' "$actual_sha"
+              printf 'SHA_CHECK_RESULT=FAIL\n'
+              printf 'STOP_REASON=Checked-out SHA did not match target_sha; Calendar and CRUD tests were not started.\n'
+            } > "$evidence_file"; then
+              echo "::error::SHA mismatch detected but evidence file update failed: $evidence_file" >&2
+            fi
             echo "ERROR: checked-out SHA $actual_sha does not match target_sha $TARGET_SHA" >&2
+            echo "STOP_REASON=SHA_MISMATCH; Calendar and CRUD tests must not run." >&2
             exit 1
           fi
+          if ! {
+            printf 'TARGET_SHA=%s\n' "$TARGET_SHA"
+            printf 'CHECKED_OUT_SHA=%s\n' "$actual_sha"
+            printf 'SHA_CHECK_RESULT=PASS\n'
+            printf 'STOP_REASON=none\n'
+          } > "$evidence_file"; then
+            echo "::error::SHA matched but final evidence could not be written: $evidence_file" >&2
+            exit 1
+          fi
+          echo "SHA_CHECK_RESULT=PASS"
 
       - name: Fetch pinned VazirHarf
         run: |
