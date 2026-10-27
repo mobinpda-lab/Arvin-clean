@@ -263,4 +263,61 @@ void main() {
     expect(find.text('open-unchanged'), findsOneWidget);
   });
 
+
+  testWidgets(
+    'FollowUp time picker remains RTL and cancel preserves dateTime',
+    (tester) async {
+      FollowUp? result;
+      final initial = DateTime(2026, 9, 8, 9, 15);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: ElevatedButton(
+                onPressed: () async {
+                  result = await Navigator.of(context).push<FollowUp>(
+                    MaterialPageRoute(
+                      builder: (_) => FollowUpEntryPage(initialDateTime: initial),
+                    ),
+                  );
+                },
+                child: const Text('open-time-picker'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('open-time-picker'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('follow-up-entry-time')));
+      await tester.pumpAndSettle();
+
+      final selectedTime = find.byKey(
+        const ValueKey('universal-time-selected-value'),
+      );
+      expect(selectedTime, findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('universal-time-cancel')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('universal-time-save')),
+        findsOneWidget,
+      );
+      expect(
+        Directionality.of(tester.element(selectedTime)),
+        TextDirection.rtl,
+      );
+
+      await tester.tap(find.byKey(const ValueKey('universal-time-cancel')));
+      await tester.pumpAndSettle();
+      await saveEditor(tester);
+
+      expect(result, isNotNull);
+      expect(result!.dateTime, initial);
+    },
+  );
+
 }
