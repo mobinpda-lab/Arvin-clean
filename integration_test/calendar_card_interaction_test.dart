@@ -130,7 +130,16 @@ void main() {
       await tester.ensureVisible(card);
       await tester.pumpAndSettle();
       await tester.tap(card);
-      await tester.pumpAndSettle();
+      // Calendar editing awaits canonical editor preparation (storage and
+      // project metadata). pumpAndSettle alone can return before that Future
+      // completes when no frame is scheduled, so use the same bounded wait
+      // pattern as the Android home smoke test. Keep the assertion strict.
+      for (var attempt = 0; attempt < 30; attempt++) {
+        await tester.pump(const Duration(milliseconds: 100));
+        if (find.byKey(const ValueKey('arvin-task-editor-dialog')).evaluate().isNotEmpty) {
+          break;
+        }
+      }
       expect(find.byKey(const ValueKey('arvin-task-editor-dialog')), findsOneWidget);
       final timeButton = find.byKey(const ValueKey('task-editor-reminder-time-calendar-smoke-reminder'));
       await tester.ensureVisible(timeButton);
