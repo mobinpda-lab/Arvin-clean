@@ -177,7 +177,7 @@ jobs:
           git diff --exit-code -- pubspec.lock
       - name: Verify Reminder legacy compatibility
         if: matrix.scenario == 'calendar'
-        run: flutter test test/task_reminder_legacy_compatibility_test.dart
+        run: flutter test test/task_reminder_legacy_compatibility_test.dart test/follow_up_entry_page_test.dart
 
       - name: Enable KVM
         run: |
