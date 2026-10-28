@@ -226,7 +226,7 @@ jobs:
           set -e
           cat "../$evidence_dir/provisioner-instrumentation.txt"
           
-          junit_dir="calendarProvisioner/build/outputs/androidTest-results/connected"
+          junit_dir="../build/calendarProvisioner/outputs/androidTest-results/connected"
           mkdir -p "../$evidence_dir/junit"
           if [ -d "$junit_dir" ]; then
             find "$junit_dir" -type f -name '*.xml' -print -exec cp --parents '{}' "../$evidence_dir/junit/" \;
