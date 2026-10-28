@@ -24,19 +24,24 @@ void main() {
 
     final calendars = await bridge.listDeviceCalendars();
     final writable = calendars
-        .where((item) => item.accessLevel >= 500)
+        .where(
+          (item) =>
+              item.accountName == 'ARVIN CI Acceptance' &&
+              item.accountType == 'com.example.arvin.calendarprovisioner.account' &&
+              item.accessLevel >= 500,
+        )
         .toList(growable: false);
 
-    if (writable.isEmpty) {
+    if (writable.length != 1) {
       debugPrint(
-        'CALENDAR_PROVIDER_ACCEPTANCE=LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR',
+        'CALENDAR_PROVIDER_ACCEPTANCE=BLOCKED_PROVISIONED_CALENDAR_MISSING count=${writable.length}',
       );
       throw StateError(
-        'Calendar Provider acceptance BLOCKED: no writable calendar is available; CRUD was not executed.',
+        'Calendar Provider acceptance BLOCKED: expected exactly one writable ARVIN CI Acceptance calendar; CRUD was not executed.',
       );
     }
 
-    final calendar = writable.first;
+    final calendar = writable.single;
     final store = ExternalCalendarLinkStore(
       preferencesKey: 'arvin.calendar.externalLinks.acceptance',
     );
@@ -88,6 +93,23 @@ void main() {
     );
     expect(noOpResult.noOp, 1);
     expect(noOpResult.created, 0);
+
+    final eventsAfterNoOp = await bridge.listDeviceCalendarEvents(
+      calendarIds: [calendar.id],
+      start: start.subtract(const Duration(hours: 1)),
+      end: start.add(const Duration(hours: 4)),
+    );
+    expect(
+      eventsAfterNoOp.where((event) => event.eventId == createdLink.eventId),
+      hasLength(1),
+      reason: 'the original linked event must remain present exactly once',
+    );
+    expect(
+      eventsAfterNoOp.where((event) => event.title == reminder.title),
+      hasLength(1),
+      reason: 'no-op update must not create a duplicate Calendar Provider event',
+    );
+    debugPrint('CALENDAR_PROVIDER_NOOP_NO_DUPLICATE=PASS');
 
     final updatedReminder = CalendarReminder(
       id: reminder.id,
