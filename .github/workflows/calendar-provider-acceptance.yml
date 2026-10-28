@@ -210,8 +210,108 @@ jobs:
           arch: x86_64
           target: default
           disable-animations: true
-          script: >-
-            set -eu && mkdir -p .github/calendar-provider-evidence && echo "HEAD_SHA=$(git rev-parse HEAD)" > .github/calendar-provider-evidence/environment.txt && echo "EMULATOR_API=$(adb shell getprop ro.build.version.sdk | tr -d '\\r')" >> .github/calendar-provider-evidence/environment.txt && echo "PROVIDER_DISCOVERY_BEGIN" >> .github/calendar-provider-evidence/environment.txt && (adb shell dumpsys package providers | grep -i -E 'calendar|com.android.providers.calendar' >> .github/calendar-provider-evidence/environment.txt || true) && echo "PROVIDER_DISCOVERY_END" >> .github/calendar-provider-evidence/environment.txt && cd android && bash ./gradlew :calendarProvisioner:assembleDebug :calendarProvisioner:assembleDebugAndroidTest :calendarProvisioner:processDebugManifest && bash ./gradlew :calendarProvisioner:connectedDebugAndroidTest --stacktrace > ../.github/calendar-provider-evidence/provisioner-instrumentation.txt 2>&1 && cat ../.github/calendar-provider-evidence/provisioner-instrumentation.txt && cd .. && grep -q 'CALENDAR_PROVISIONER=PASS' .github/calendar-provider-evidence/provisioner-instrumentation.txt && adb shell pm grant com.example.arvin.calendarprovisioner android.permission.READ_CALENDAR && adb shell pm grant com.example.arvin.calendarprovisioner android.permission.WRITE_CALENDAR && flutter build apk --debug -t lib/main.dart && adb install -r build/app/outputs/flutter-apk/app-debug.apk && adb shell pm grant com.example.arvin android.permission.READ_CALENDAR && adb shell pm grant com.example.arvin android.permission.WRITE_CALENDAR && { set +e; flutter test integration_test/android_calendar_provider_acceptance_test.dart -d emulator-${EMULATOR_PORT} > .github/calendar-provider-evidence/test-output.txt 2>&1; rc=$?; set -e; cat .github/calendar-provider-evidence/test-output.txt; if grep -q 'CALENDAR_PROVIDER_ACCEPTANCE=PASS' .github/calendar-provider-evidence/test-output.txt && grep -q 'CALENDAR_PROVIDER_NOOP_NO_DUPLICATE=PASS' .github/calendar-provider-evidence/test-output.txt; then echo 'RESULT=PASS_REAL_PROVIDER_CREATE_NOOP_UPDATE_DELETE' > .github/calendar-provider-evidence/result.txt; elif grep -q 'CALENDAR_PROVIDER_ACCEPTANCE=BLOCKED_PROVISIONED_CALENDAR_MISSING' .github/calendar-provider-evidence/test-output.txt; then echo 'RESULT=BLOCKED_PROVISIONED_CALENDAR_MISSING' > .github/calendar-provider-evidence/result.txt; exit 1; else echo "RESULT=FAILURE_OR_BLOCKED_TEST_EXIT_$rc" > .github/calendar-provider-evidence/result.txt; if [ "$rc" -eq 0 ]; then echo "Acceptance test exited successfully without emitting an explicit PASS marker." >&2; exit 1; else exit "$rc"; fi; fi; }
+          script: |
+            set -euo pipefail
+            evidence_dir=".github/calendar-provider-evidence"
+            mkdir -p "$evidence_dir"
+            printf 'HEAD_SHA=%s\n' "$(git rev-parse HEAD)" > "$evidence_dir/environment.txt"
+            printf 'EMULATOR_API=%s\n' "$(adb shell getprop ro.build.version.sdk | tr -d '\r')" >> "$evidence_dir/environment.txt"
+            {
+              echo "PROVIDER_DISCOVERY_BEGIN"
+              adb shell dumpsys package providers | grep -i -E 'calendar|com.android.providers.calendar' || true
+              echo "PROVIDER_DISCOVERY_END"
+            } >> "$evidence_dir/environment.txt"
+
+            cd android
+            bash ./gradlew :calendarProvisioner:assembleDebug :calendarProvisioner:assembleDebugAndroidTest :calendarProvisioner:processDebugManifest
+            set +e
+            bash ./gradlew :calendarProvisioner:connectedDebugAndroidTest --stacktrace > "../$evidence_dir/provisioner-instrumentation.txt" 2>&1
+            gradle_rc=$?
+            set -e
+            cat "../$evidence_dir/provisioner-instrumentation.txt"
+
+            junit_dir="calendarProvisioner/build/outputs/androidTest-results/connected"
+            mkdir -p "../$evidence_dir/junit"
+            if [ -d "$junit_dir" ]; then
+              find "$junit_dir" -type f -name '*.xml' -print -exec cp --parents '{}' "../$evidence_dir/junit/" \;
+            fi
+            python3 - "$junit_dir" "../$evidence_dir/junit-summary.txt" <<'PY'
+            import pathlib, sys, xml.etree.ElementTree as ET
+            root = pathlib.Path(sys.argv[1])
+            output = pathlib.Path(sys.argv[2])
+            reports = sorted(root.rglob("*.xml")) if root.is_dir() else []
+            if not reports:
+                raise SystemExit("No JUnit XML report found")
+            matches = []
+            for report in reports:
+                try:
+                    doc = ET.parse(report).getroot()
+                except ET.ParseError as exc:
+                    raise SystemExit(f"Invalid JUnit XML {report}: {exc}")
+                for case in doc.iter("testcase"):
+                    if case.get("classname", "").endswith("CalendarProvisionerTest") and case.get("name") == "provisionsExactlyOneWritableCalendarIdempotently":
+                        matches.append((report, case))
+            if len(matches) != 1:
+                raise SystemExit(f"Expected exactly one Provisioner testcase in JUnit XML; found {len(matches)}")
+            report, case = matches[0]
+            bad = [child.tag for child in case if child.tag in ("failure", "error", "skipped")]
+            if bad:
+                output.write_text(
+                    f"JUNIT_REPORT={report}\nTEST_CASE={case.get('name')}\nTEST_RESULT=FAIL\nTEST_FAILURE_TAGS={','.join(bad)}\n",
+                    encoding="utf-8")
+                print(output.read_text(), end="")
+                raise SystemExit(f"Provisioner JUnit testcase failed or skipped: {bad}")
+            output.write_text(
+                f"JUNIT_REPORT={report}\nTEST_CLASS={case.get('classname')}\n"
+                f"TEST_CASE={case.get('name')}\nTEST_RESULT=PASS\n",
+                encoding="utf-8")
+            print(output.read_text(), end="")
+            PY
+            if [ "$gradle_rc" -ne 0 ]; then
+              echo "Instrumentation Gradle task failed with exit code $gradle_rc" >&2
+              exit "$gradle_rc"
+            fi
+            adb logcat -d -s CalendarProvisionerTest:I '*:S' > "../$evidence_dir/provisioner-logcat.txt"
+            python3 - "../$evidence_dir/provisioner-logcat.txt" "../$evidence_dir/provisioner-result.txt" <<'PY'
+            import pathlib, re, sys
+            log = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace")
+            pattern = re.compile(r"CALENDAR_PROVISIONER=PASS calendarId=(\d+) account=ARVIN CI Acceptance accessLevel>=500")
+            matches = pattern.findall(log)
+            if not matches:
+                raise SystemExit("JUnit passed but actual Provisioner success evidence was not found in logcat")
+            calendar_id = matches[-1][0]
+            pathlib.Path(sys.argv[2]).write_text(
+                f"CALENDAR_PROVISIONER=PASS calendarId={calendar_id} account=ARVIN CI Acceptance accessLevel>=500\n",
+                encoding="utf-8")
+            print(pathlib.Path(sys.argv[2]).read_text(), end="")
+            PY
+            cd ..
+            adb shell pm grant com.example.arvin.calendarprovisioner android.permission.READ_CALENDAR
+            adb shell pm grant com.example.arvin.calendarprovisioner android.permission.WRITE_CALENDAR
+            flutter build apk --debug -t lib/main.dart
+            adb install -r build/app/outputs/flutter-apk/app-debug.apk
+            adb shell pm grant com.example.arvin android.permission.READ_CALENDAR
+            adb shell pm grant com.example.arvin android.permission.WRITE_CALENDAR
+            set +e
+            flutter test integration_test/android_calendar_provider_acceptance_test.dart -d "emulator-${EMULATOR_PORT}" > "$evidence_dir/test-output.txt" 2>&1
+            flutter_rc=$?
+            set -e
+            cat "$evidence_dir/test-output.txt"
+            if [ "$flutter_rc" -ne 0 ]; then
+              echo "Flutter Calendar Provider acceptance failed with exit code $flutter_rc" >&2
+              echo "RESULT=FAILURE_FLUTTER_EXIT_$flutter_rc" > "$evidence_dir/result.txt"
+              exit "$flutter_rc"
+            fi
+            if grep -q 'CALENDAR_PROVIDER_ACCEPTANCE=PASS' "$evidence_dir/test-output.txt" && grep -q 'CALENDAR_PROVIDER_NOOP_NO_DUPLICATE=PASS' "$evidence_dir/test-output.txt"; then
+              echo 'RESULT=PASS_REAL_PROVIDER_CREATE_NOOP_UPDATE_DELETE' > "$evidence_dir/result.txt"
+            elif grep -q 'CALENDAR_PROVIDER_ACCEPTANCE=BLOCKED_PROVISIONED_CALENDAR_MISSING' "$evidence_dir/test-output.txt"; then
+              echo 'RESULT=BLOCKED_PROVISIONED_CALENDAR_MISSING' > "$evidence_dir/result.txt"
+              exit 1
+            else
+              echo 'RESULT=FAILURE_OR_BLOCKED_MISSING_ACCEPTANCE_MARKERS' > "$evidence_dir/result.txt"
+              echo "Flutter test exited zero without all explicit acceptance markers." >&2
+              exit 1
+            fi
 
       - name: Publish exact-head provider evidence
         if: always()
