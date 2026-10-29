@@ -336,12 +336,71 @@ jobs:
           bash ./gradlew :calendarProvisioner:assembleDebug :calendarProvisioner:assembleDebugAndroidTest :calendarProvisioner:processDebugManifest
           cd ..
           capture_command "$GITHUB_WORKSPACE/$evidence_dir/pre-instrumentation-logcat-clear.txt" "pre-A" "clear-logcat" adb logcat -c
+          continuous_logcat_raw="$RUNNER_TEMP/android-logcat-continuous-raw.txt"
+          continuous_logcat_stderr="$RUNNER_TEMP/android-logcat-continuous-stderr.txt"
+          continuous_logcat_pid_file="$GITHUB_WORKSPACE/$evidence_dir/continuous-logcat-process.txt"
+          {
+            printf 'LOGCAT_STREAM_START_UTC=%s\\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            printf 'COMMAND=adb logcat -b all -v threadtime\\n'
+          } > "$continuous_logcat_pid_file"
+          adb logcat -b all -v threadtime > "$continuous_logcat_raw" 2> "$continuous_logcat_stderr" &
+          logcat_pid=$!
+          printf 'HOST_PID=%s\\n' "$logcat_pid" >> "$continuous_logcat_pid_file"
+          if ! kill -0 "$logcat_pid"; then
+            echo "Continuous Android logcat failed to start" >&2
+            exit 1
+          fi
           forensic_checkpoint "A-before-instrumentation"
           cd android
+          gradle_start_utc="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          printf 'GRADLE_COMMAND_START_UTC=%s\\nCOMMAND=bash ./gradlew :calendarProvisioner:connectedDebugAndroidTest --info --stacktrace --console=plain --warning-mode=all\\n' "$gradle_start_utc" > "../$evidence_dir/provisioner-instrumentation.txt"
           set +e
-          bash ./gradlew :calendarProvisioner:connectedDebugAndroidTest --stacktrace > "../$evidence_dir/provisioner-instrumentation.txt" 2>&1
+          bash ./gradlew :calendarProvisioner:connectedDebugAndroidTest --info --stacktrace --console=plain --warning-mode=all >> "../$evidence_dir/provisioner-instrumentation.txt" 2>&1
           gradle_rc=$?
           set -e
+          gradle_end_utc="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          printf 'GRADLE_COMMAND_END_UTC=%s\\nGRADLE_EXIT_CODE=%s\\n' "$gradle_end_utc" "$gradle_rc" >> "../$evidence_dir/provisioner-instrumentation.txt"
+          {
+            printf 'LOGCAT_STREAM_STOP_REQUEST_UTC=%s\\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            set +e
+            kill "$logcat_pid"
+            logcat_kill_rc=$?
+            wait "$logcat_pid"
+            logcat_wait_rc=$?
+            set -e
+            printf 'LOGCAT_KILL_EXIT_CODE=%s\\nLOGCAT_WAIT_EXIT_CODE=%s\\n' "$logcat_kill_rc" "$logcat_wait_rc"
+            printf 'LOGCAT_STREAM_STOPPED_UTC=%s\\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          } >> "$continuous_logcat_pid_file"
+          python3 - "$continuous_logcat_raw" "$continuous_logcat_stderr" "$GITHUB_WORKSPACE/$evidence_dir/android-logcat-continuous.txt" "$GITHUB_WORKSPACE/$evidence_dir/continuous-logcat-summary.txt" <<'PY'
+          import pathlib, re, sys
+          raw_path, err_path, out_path, summary_path = map(pathlib.Path, sys.argv[1:])
+          raw = raw_path.read_text(encoding="utf-8", errors="replace")
+          err = err_path.read_text(encoding="utf-8", errors="replace")
+          target_name = "ARVIN CI Acceptance"
+          target_type = "com.example.arvin.calendarprovisioner.account"
+          def redact(value):
+              value = re.sub(r"[\\w.+-]+@[\\w.-]+\\.[A-Za-z]{2,}", "<redacted-email>", value)
+              value = re.sub(r"(?i)(account_name|ownerAccount)=([^,\\s]+)", lambda m: m.group(1) + "=" + (m.group(2) if m.group(2) == target_name else "<redacted>"), value)
+              value = re.sub(r"Account\\s*\\{name=([^,}]+)", lambda m: "Account {name=" + (m.group(1) if m.group(1) == target_name else "<redacted>"), value)
+              value = re.sub(r"(?i)(accountName|accountNameForDisplay)=([^,\\s]+)", r"\\1=<redacted>", value)
+              return value
+          safe = redact(raw)
+          out_path.write_text(safe, encoding="utf-8")
+          events = [line for line in safe.splitlines() if re.search(r"(?i)com\\.example\\.arvin\\.calendarprovisioner|PACKAGE_(?:REMOVED|ADDED)|deletePackageX|action_authenticator_remove|connectedDebugAndroidTest|uninstall", line)]
+          summary = [
+              "CONTINUOUS_LOGCAT_CAPTURE=complete",
+              f"RAW_LOG_LINES={len(raw.splitlines())}",
+              f"REDACTED_LOG_LINES={len(safe.splitlines())}",
+              f"PACKAGE_LIFECYCLE_RELEVANT_LINES={len(events)}",
+              f"TARGET_ACCOUNT_TYPE_SEEN={str(target_type in raw).lower()}",
+              "SENSITIVE_ACCOUNT_FIELDS_REDACTED=true",
+              "NOTE=Logcat process/thread IDs are retained where emitted; they do not by themselves prove the initiating caller."
+          ]
+          summary_path.write_text("\\n".join(summary + events) + "\\n", encoding="utf-8")
+          if err.strip():
+              pathlib.Path(str(out_path) + ".stderr.txt").write_text(redact(err), encoding="utf-8")
+          print("\\n".join(summary))
+          PY
           forensic_checkpoint "C-after-instrumentation"
           capture_command "$GITHUB_WORKSPACE/$evidence_dir/lifecycle-B-to-C.txt" "C-after-instrumentation" "package-manager-and-instrumentation-logcat" adb logcat -d -v threadtime 'PackageManager:*' 'PackageInstaller:*' 'installd:*' 'ActivityManager:*' 'AndroidJUnitRunner:*' 'Instrumentation:*' 'CalendarProvisionerTest:*' 'CalendarProvisionerForensics:*'
           cat "../$evidence_dir/provisioner-instrumentation.txt"
