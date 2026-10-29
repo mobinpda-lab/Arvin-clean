@@ -22,7 +22,29 @@ void main() {
     expect(readGranted, isTrue, reason: 'READ_CALENDAR must be granted by CI');
     expect(writeGranted, isTrue, reason: 'WRITE_CALENDAR must be granted by CI');
 
-    final calendars = await bridge.listDeviceCalendars();
+    const emulatorSerial = String.fromEnvironment(
+      'ARVIN_EMULATOR_SERIAL',
+      defaultValue: 'unknown',
+    );
+    const androidSdk = String.fromEnvironment(
+      'ARVIN_ANDROID_SDK',
+      defaultValue: 'unknown',
+    );
+    final readPermissionNow = await bridge.hasReadPermission();
+    final writePermissionNow = await bridge.hasWritePermission();
+    late final List<DeviceCalendarInfo> calendars;
+    try {
+      calendars = await bridge.listDeviceCalendars();
+    } catch (error, stackTrace) {
+      debugPrint(
+        'CALENDAR_PROVIDER_SNAPSHOT=C-before-zero-assertion '
+        'device=$emulatorSerial sdk=$androidSdk '
+        'readPermission=$readPermissionNow writePermission=$writePermissionNow '
+        'rawRowCount=QUERY_ERROR matchingRowCount=QUERY_ERROR '
+        'queryErrorType=${error.runtimeType} queryError=$error',
+      );
+      Error.throwWithStackTrace(error, stackTrace);
+    }
     final writable = calendars
         .where(
           (item) =>
@@ -31,6 +53,27 @@ void main() {
               item.accessLevel >= 500,
         )
         .toList(growable: false);
+
+    debugPrint(
+      'CALENDAR_PROVIDER_SNAPSHOT=C-before-zero-assertion '
+      'device=$emulatorSerial sdk=$androidSdk '
+      'readPermission=$readPermissionNow writePermission=$writePermissionNow '
+      'rawRowCount=${calendars.length} matchingRowCount=${writable.length}',
+    );
+    for (final item in calendars) {
+      final nameMatches = item.accountName == 'ARVIN CI Acceptance';
+      final typeMatches =
+          item.accountType == 'com.example.arvin.calendarprovisioner.account';
+      debugPrint(
+        'CALENDAR_PROVIDER_ROW id=${item.id} '
+        'accountName=${nameMatches ? item.accountName : '<redacted-or-mismatch>'} '
+        'accountType=${typeMatches ? item.accountType : '<redacted-or-mismatch>'} '
+        'displayName=${item.displayName == 'ARVIN CI Acceptance' ? item.displayName : '<redacted-or-mismatch>'} '
+        'accessLevel=${item.accessLevel} '
+        'matchAccountName=$nameMatches matchAccountType=$typeMatches '
+        'matchAccessLevel=${item.accessLevel >= 500}',
+      );
+    }
 
     if (writable.length != 1) {
       debugPrint(
