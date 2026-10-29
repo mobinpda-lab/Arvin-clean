@@ -215,15 +215,24 @@ jobs:
         run: |
           cat > "$RUNNER_TEMP/calendar-provider-acceptance.sh" <<'BASH'
           set -euo pipefail
-          evidence_dir=".github/calendar-provider-evidence"
-          mkdir -p "$evidence_dir"
-          printf 'HEAD_SHA=%s\n' "$(git rev-parse HEAD)" > "$evidence_dir/environment.txt"
-          printf 'EMULATOR_API=%s\n' "$(adb shell getprop ro.build.version.sdk | tr -d '\r')" >> "$evidence_dir/environment.txt"
+          repo_root="${GITHUB_WORKSPACE:?GITHUB_WORKSPACE is required}"
+          repo_root="$(cd "$repo_root" && pwd -P)"
+          if [[ "$(git -C "$repo_root" rev-parse --show-toplevel)" != "$repo_root" ]]; then
+            echo "::error::GITHUB_WORKSPACE does not resolve to the Git checkout root: $repo_root" >&2
+            exit 1
+          fi
+          EVIDENCE_DIR="$repo_root/.github/calendar-provider-evidence"
+          if ! mkdir -p "$EVIDENCE_DIR" || [[ ! -d "$EVIDENCE_DIR" || ! -w "$EVIDENCE_DIR" ]]; then
+            echo "::error::Evidence directory is not writable: $EVIDENCE_DIR" >&2
+            exit 1
+          fi
+          printf 'HEAD_SHA=%s\n' "$(git -C "$repo_root" rev-parse HEAD)" > "$EVIDENCE_DIR/environment.txt"
+          printf 'EMULATOR_API=%s\n' "$(adb shell getprop ro.build.version.sdk | tr -d '\r')" >> "$EVIDENCE_DIR/environment.txt"
           {
             echo "PROVIDER_DISCOVERY_BEGIN"
             adb shell dumpsys package providers | grep -i -E 'calendar|com.android.providers.calendar' || true
             echo "PROVIDER_DISCOVERY_END"
-          } >> "$evidence_dir/environment.txt"
+          } >> "$EVIDENCE_DIR/environment.txt"
 
           capture_command() {
             local snapshot_file="$1"
@@ -309,10 +318,81 @@ jobs:
           PY
           }
 
+          verify_main_app_permissions() {
+            local package="com.example.arvin"
+            local package_paths package_list permission help_output output rc package_dump
+            package_paths="$(adb shell pm path "$package" 2>&1 | tr -d '\r')" || {
+              echo "::error::Unable to query installed main app package path" >&2
+              return 1
+            }
+            if ! grep -Eq '^package:.+' <<<"$package_paths"; then
+              echo "::error::Main app package is not installed: $package_paths" >&2
+              return 1
+            fi
+            package_list="$(adb shell pm list packages 2>&1 | tr -d '\r')" || {
+              echo "::error::Unable to enumerate installed Android packages" >&2
+              return 1
+            }
+            if ! grep -Fxq "package:$package" <<<"$package_list"; then
+              echo "::error::Installed package list does not contain exact package $package" >&2
+              return 1
+            fi
+            printf 'MAIN_APP_PACKAGE_INSTALLED=PASS package=%s\n' "$package" | tee "$EVIDENCE_DIR/main-app-package-verification.txt"
+            help_output="$(adb shell cmd package help 2>&1 | tr -d '\r' || true)"
+            for permission in android.permission.READ_CALENDAR android.permission.WRITE_CALENDAR; do
+              if grep -Eq '(^|[[:space:]])check-permission([[:space:]]|$)' <<<"$help_output"; then
+                set +e
+                output="$(adb shell cmd package check-permission "$permission" "$package" 0 2>&1 | tr -d '\r')"
+                rc=$?
+                set -e
+                if [[ "$rc" -ne 0 ]]; then
+                  echo "::error::cmd package check-permission failed for $permission (exit=$rc): $output" >&2
+                  printf 'PERMISSION_CHECK=FAIL permission=%s method=cmd-package-check-permission exit=%s output=%s\n' "$permission" "$rc" "$output" >> "$EVIDENCE_DIR/main-app-permissions.txt"
+                  return 1
+                fi
+                case "$output" in
+                  granted) ;;
+                  denied)
+                    echo "::error::Required calendar permission is denied: $permission" >&2
+                    printf 'PERMISSION_CHECK=FAIL permission=%s method=cmd-package-check-permission output=denied\n' "$permission" >> "$EVIDENCE_DIR/main-app-permissions.txt"
+                    return 1
+                    ;;
+                  *)
+                    echo "::error::Unrecognized check-permission output for $permission: $output" >&2
+                    printf 'PERMISSION_CHECK=UNKNOWN permission=%s method=cmd-package-check-permission output=%s\n' "$permission" "$output" >> "$EVIDENCE_DIR/main-app-permissions.txt"
+                    return 1
+                    ;;
+                esac
+                printf 'PERMISSION_CHECK=PASS permission=%s method=cmd-package-check-permission output=granted\n' "$permission" | tee -a "$EVIDENCE_DIR/main-app-permissions.txt"
+              else
+                package_dump="$(adb shell dumpsys package "$package" 2>&1 | tr -d '\r')" || {
+                  echo "::error::Fallback Package Manager dump failed for $package" >&2
+                  return 1
+                }
+                output="$(python3 -c 'import re,sys; p=re.escape(sys.argv[1]); text=sys.argv[2].split("runtime permissions:",1)[-1]; m=re.findall(r"(?m)^\s*"+p+r":\s*granted=(true|false)\b",text); print("granted" if m==["true"] else "denied" if m==["false"] else "unknown")' "$permission" "$package_dump")"
+                case "$output" in
+                  granted)
+                    printf 'PERMISSION_CHECK=PASS permission=%s method=dumpsys-package output=granted\n' "$permission" | tee -a "$EVIDENCE_DIR/main-app-permissions.txt"
+                    ;;
+                  denied)
+                    echo "::error::Required calendar permission is denied by Package Manager: $permission" >&2
+                    printf 'PERMISSION_CHECK=FAIL permission=%s method=dumpsys-package output=denied\n' "$permission" >> "$EVIDENCE_DIR/main-app-permissions.txt"
+                    return 1
+                    ;;
+                  *)
+                    echo "::error::Could not prove granted state for $permission from Package Manager output" >&2
+                    printf 'PERMISSION_CHECK=UNKNOWN permission=%s method=dumpsys-package output=unparseable\n' "$permission" >> "$EVIDENCE_DIR/main-app-permissions.txt"
+                    return 1
+                    ;;
+                esac
+              fi
+            done
+          }
+
           forensic_checkpoint() {
             local label="$1"
-            local snapshot_file="$GITHUB_WORKSPACE/$evidence_dir/checkpoint-${label}.txt"
-            mkdir -p "$GITHUB_WORKSPACE/$evidence_dir"
+            local snapshot_file="$EVIDENCE_DIR/checkpoint-${label}.txt"
+            mkdir -p "$EVIDENCE_DIR"
             printf 'CHECKPOINT=%s\nHOST_CHECKPOINT_TIMESTAMP_UTC=%s\n' "$label" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$snapshot_file"
             capture_command "$snapshot_file" "$label" device-list adb devices -l
             capture_command "$snapshot_file" "$label" device-time adb shell date -u
@@ -326,7 +406,7 @@ jobs:
             capture_command "$snapshot_file" "$label" main-package-dump adb shell dumpsys package com.example.arvin
             for package in com.example.arvin com.example.arvin.calendarprovisioner; do
               for permission in android.permission.READ_CALENDAR android.permission.WRITE_CALENDAR; do
-                capture_command "$snapshot_file" "$label" "permission-${package##*.}-${permission##*.}" adb shell pm check-permission "$permission" "$package"
+                capture_command "$snapshot_file" "$label" "permission-${package##*.}-${permission##*.}" adb shell cmd package check-permission "$permission" "$package" 0
               done
             done
             cat "$snapshot_file"
@@ -336,10 +416,10 @@ jobs:
           bash ./gradlew :calendarProvisioner:clean
           bash ./gradlew :calendarProvisioner:assembleDebug :calendarProvisioner:assembleDebugAndroidTest :calendarProvisioner:processDebugManifest
           cd ..
-          capture_command "$GITHUB_WORKSPACE/$evidence_dir/pre-instrumentation-logcat-clear.txt" "pre-A" "clear-logcat" adb logcat -c
+          capture_command "$EVIDENCE_DIR/pre-instrumentation-logcat-clear.txt" "pre-A" "clear-logcat" adb logcat -c
           continuous_logcat_raw="$RUNNER_TEMP/android-logcat-continuous-raw.txt"
           continuous_logcat_stderr="$RUNNER_TEMP/android-logcat-continuous-stderr.txt"
-          continuous_logcat_pid_file="$GITHUB_WORKSPACE/$evidence_dir/continuous-logcat-process.txt"
+          continuous_logcat_pid_file="$EVIDENCE_DIR/continuous-logcat-process.txt"
           {
             printf 'LOGCAT_STREAM_START_UTC=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
             printf 'COMMAND=adb logcat -b all -v threadtime\n'
@@ -354,13 +434,13 @@ jobs:
           forensic_checkpoint "A-before-instrumentation"
           cd android
           gradle_start_utc="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          printf 'GRADLE_COMMAND_START_UTC=%s\nCOMMAND=bash ./gradlew :calendarProvisioner:connectedDebugAndroidTest --info --stacktrace --console=plain --warning-mode=all\n' "$gradle_start_utc" > "../$evidence_dir/provisioner-instrumentation.txt"
+          printf 'GRADLE_COMMAND_START_UTC=%s\nCOMMAND=bash ./gradlew :calendarProvisioner:connectedDebugAndroidTest --info --stacktrace --console=plain --warning-mode=all\n' "$gradle_start_utc" > "$EVIDENCE_DIR/provisioner-instrumentation.txt"
           set +e
-          bash ./gradlew :calendarProvisioner:connectedDebugAndroidTest --info --stacktrace --console=plain --warning-mode=all >> "../$evidence_dir/provisioner-instrumentation.txt" 2>&1
+          bash ./gradlew :calendarProvisioner:connectedDebugAndroidTest --info --stacktrace --console=plain --warning-mode=all >> "$EVIDENCE_DIR/provisioner-instrumentation.txt" 2>&1
           gradle_rc=$?
           set -e
           gradle_end_utc="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          printf 'GRADLE_COMMAND_END_UTC=%s\nGRADLE_EXIT_CODE=%s\n' "$gradle_end_utc" "$gradle_rc" >> "../$evidence_dir/provisioner-instrumentation.txt"
+          printf 'GRADLE_COMMAND_END_UTC=%s\nGRADLE_EXIT_CODE=%s\n' "$gradle_end_utc" "$gradle_rc" >> "$EVIDENCE_DIR/provisioner-instrumentation.txt"
           {
             printf 'LOGCAT_STREAM_STOP_REQUEST_UTC=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
             set +e
@@ -372,7 +452,7 @@ jobs:
             printf 'LOGCAT_KILL_EXIT_CODE=%s\nLOGCAT_WAIT_EXIT_CODE=%s\n' "$logcat_kill_rc" "$logcat_wait_rc"
             printf 'LOGCAT_STREAM_STOPPED_UTC=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           } >> "$continuous_logcat_pid_file"
-          python3 - "$continuous_logcat_raw" "$continuous_logcat_stderr" "$GITHUB_WORKSPACE/$evidence_dir/android-logcat-continuous.txt" "$GITHUB_WORKSPACE/$evidence_dir/continuous-logcat-summary.txt" <<'PY'
+          python3 - "$continuous_logcat_raw" "$continuous_logcat_stderr" "$EVIDENCE_DIR/android-logcat-continuous.txt" "$EVIDENCE_DIR/continuous-logcat-summary.txt" <<'PY'
           import pathlib, re, sys
           raw_path, err_path, out_path, summary_path = map(pathlib.Path, sys.argv[1:])
           raw = raw_path.read_text(encoding="utf-8", errors="replace")
@@ -403,15 +483,15 @@ jobs:
           print("\n".join(summary))
           PY
           forensic_checkpoint "C-after-instrumentation"
-          capture_command "$GITHUB_WORKSPACE/$evidence_dir/lifecycle-B-to-C.txt" "C-after-instrumentation" "package-manager-and-instrumentation-logcat" adb logcat -d -v threadtime 'PackageManager:*' 'PackageInstaller:*' 'installd:*' 'ActivityManager:*' 'AndroidJUnitRunner:*' 'Instrumentation:*' 'CalendarProvisionerTest:*' 'CalendarProvisionerForensics:*'
-          cat "../$evidence_dir/provisioner-instrumentation.txt"
+          capture_command "$EVIDENCE_DIR/lifecycle-B-to-C.txt" "C-after-instrumentation" "package-manager-and-instrumentation-logcat" adb logcat -d -v threadtime 'PackageManager:*' 'PackageInstaller:*' 'installd:*' 'ActivityManager:*' 'AndroidJUnitRunner:*' 'Instrumentation:*' 'CalendarProvisionerTest:*' 'CalendarProvisionerForensics:*'
+          cat "$EVIDENCE_DIR/provisioner-instrumentation.txt"
           
           junit_dir="../build/calendarProvisioner/outputs/androidTest-results/connected"
-          mkdir -p "../$evidence_dir/junit"
+          mkdir -p "$EVIDENCE_DIR/junit"
           if [ -d "$junit_dir" ]; then
-            find "$junit_dir" -type f -name '*.xml' -print -exec cp --parents '{}' "../$evidence_dir/junit/" \;
+            find "$junit_dir" -type f -name '*.xml' -print -exec cp --parents '{}' "$EVIDENCE_DIR/junit/" \;
           fi
-          python3 - "$junit_dir" "../$evidence_dir/junit-summary.txt" <<'PY'
+          python3 - "$junit_dir" "$EVIDENCE_DIR/junit-summary.txt" <<'PY'
           import pathlib, sys, xml.etree.ElementTree as ET
           root = pathlib.Path(sys.argv[1])
           output = pathlib.Path(sys.argv[2])
@@ -454,7 +534,7 @@ jobs:
           # Gradle's connected test task uninstalls both APKs during teardown.
           # Re-discover and reinstall only freshly built APKs from this checkout,
           # then run the existing provisioning test directly through AndroidJUnitRunner.
-          apk_root="$GITHUB_WORKSPACE/build/calendarProvisioner/outputs/apk"
+          apk_root="$repo_root/build/calendarProvisioner/outputs/apk"
           discover_provisioner_apks() {
             mapfile -d '' -t provisioner_apks < <(find "$apk_root" -type f -name 'calendarProvisioner-debug.apk' -print0 2>/dev/null)
             mapfile -d '' -t provisioner_test_apks < <(find "$apk_root" -type f -name 'calendarProvisioner-debug-androidTest.apk' -print0 2>/dev/null)
@@ -491,24 +571,24 @@ jobs:
             printf 'INSTRUMENTATION_APK_PATH=%s\n' "$provisioner_test_apk"
             printf 'INSTRUMENTATION_APK_SIZE_BYTES=%s\n' "$(stat -c '%s' "$provisioner_test_apk")"
             printf 'INSTRUMENTATION_APK_SHA256=%s\n' "$(sha256sum "$provisioner_test_apk" | awk '{print $1}')"
-          } > "$evidence_dir/provisioner-apk-manifest.txt"
-          cat "$evidence_dir/provisioner-apk-manifest.txt"
+          } > "$EVIDENCE_DIR/provisioner-apk-manifest.txt"
+          cat "$EVIDENCE_DIR/provisioner-apk-manifest.txt"
           adb install -r "$provisioner_apk"
           adb install -r "$provisioner_test_apk"
           set +e
           adb shell am instrument -w -r -e class 'com.example.arvin.calendarprovisioner.CalendarProvisionerTest#provisionsExactlyOneWritableCalendarIdempotently' 'com.example.arvin.calendarprovisioner.test/androidx.test.runner.AndroidJUnitRunner' > "$RUNNER_TEMP/provisioner-post-cleanup-instrumentation.txt" 2>&1
           post_cleanup_rc=$?
           set -e
-          cp "$RUNNER_TEMP/provisioner-post-cleanup-instrumentation.txt" "$evidence_dir/provisioner-post-cleanup-instrumentation.txt"
-          cat "$evidence_dir/provisioner-post-cleanup-instrumentation.txt"
+          cp "$RUNNER_TEMP/provisioner-post-cleanup-instrumentation.txt" "$EVIDENCE_DIR/provisioner-post-cleanup-instrumentation.txt"
+          cat "$EVIDENCE_DIR/provisioner-post-cleanup-instrumentation.txt"
           if [ "$post_cleanup_rc" -ne 0 ] || ! grep -Fq 'INSTRUMENTATION_CODE: -1' "$RUNNER_TEMP/provisioner-post-cleanup-instrumentation.txt" || ! grep -Fq 'OK (1 test)' "$RUNNER_TEMP/provisioner-post-cleanup-instrumentation.txt" || grep -Eq 'FAILURES!!!|INSTRUMENTATION_FAILED|Error in ' "$RUNNER_TEMP/provisioner-post-cleanup-instrumentation.txt"; then
-            printf 'POST_CLEANUP_PROVISIONER_TEST=FAIL exit_code=%s\n' "$post_cleanup_rc" | tee "$evidence_dir/provisioner-post-cleanup-result.txt"
+            printf 'POST_CLEANUP_PROVISIONER_TEST=FAIL exit_code=%s\n' "$post_cleanup_rc" | tee "$EVIDENCE_DIR/provisioner-post-cleanup-result.txt"
             exit 1
           fi
-          printf 'POST_CLEANUP_PROVISIONER_TEST=PASS exit_code=%s\n' "$post_cleanup_rc" | tee "$evidence_dir/provisioner-post-cleanup-result.txt"
+          printf 'POST_CLEANUP_PROVISIONER_TEST=PASS exit_code=%s\n' "$post_cleanup_rc" | tee "$EVIDENCE_DIR/provisioner-post-cleanup-result.txt"
           forensic_checkpoint "C2-after-post-cleanup-provisioner-test"
-          adb logcat -d -s CalendarProvisionerTest:I CalendarProvisionerForensics:I '*:S' > "../$evidence_dir/provisioner-logcat.txt"
-          python3 - "../$evidence_dir/provisioner-logcat.txt" "../$evidence_dir/provisioner-result.txt" <<'PY'
+          adb logcat -d -s CalendarProvisionerTest:I CalendarProvisionerForensics:I '*:S' > "$EVIDENCE_DIR/provisioner-logcat.txt"
+          python3 - "$EVIDENCE_DIR/provisioner-logcat.txt" "$EVIDENCE_DIR/provisioner-result.txt" <<'PY'
           import pathlib, re, sys
           log = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace")
           pattern = re.compile(r"CALENDAR_PROVISIONER=PASS calendarId=(\d+) account=ARVIN CI Acceptance accessLevel>=500")
@@ -521,30 +601,90 @@ jobs:
               encoding="utf-8")
           print(pathlib.Path(sys.argv[2]).read_text(), end="")
           PY
-          flutter build apk --debug -t lib/main.dart
-          adb install -r build/app/outputs/flutter-apk/app-debug.apk
+          python3 - "$EVIDENCE_DIR/checkpoint-C2-after-post-cleanup-provisioner-test.txt" "$EVIDENCE_DIR/provisioner-result.txt" "$EVIDENCE_DIR/provisioner-provider-verification.txt" <<'PY'
+          import pathlib, re, sys
+          checkpoint_path, result_path, output_path = map(pathlib.Path, sys.argv[1:])
+          checkpoint = checkpoint_path.read_text(encoding="utf-8", errors="replace")
+          result = result_path.read_text(encoding="utf-8", errors="replace")
+          if "DUMPSYS_TARGET_ACCOUNT_MENTIONED=true" not in checkpoint:
+              raise SystemExit("Provisioner account is not independently confirmed in checkpoint C2")
+          if "PROVISIONER_PACKAGE_LISTED=true" not in checkpoint:
+              raise SystemExit("Provisioner package is not installed/listed in checkpoint C2")
+          if "MATCHING_EXPECTED_CALENDAR_COUNT=1" not in checkpoint:
+              raise SystemExit("Checkpoint C2 does not prove exactly one matching writable calendar")
+          match = re.search(r"CALENDAR_PROVISIONER=PASS calendarId=(\d+) account=ARVIN CI Acceptance accessLevel>=500", result)
+          if not match:
+              raise SystemExit("Provisioner result does not contain a validated calendar ID")
+          calendar_id = match.group(1)
+          rows = []
+          for line in checkpoint.splitlines():
+              if not re.search(r"\bRow:\s*\d+", line):
+                  continue
+              fields = dict(re.findall(r"([A-Za-z_]+)=([^,]*)", line))
+              try:
+                  access = int(fields.get("calendar_access_level", "0").strip())
+              except ValueError:
+                  access = -1
+              if (fields.get("_id", "").strip() == calendar_id and
+                  fields.get("account_name", "").strip() == "ARVIN CI Acceptance" and
+                  fields.get("account_type", "").strip() == "com.example.arvin.calendarprovisioner.account" and
+                  fields.get("calendar_displayName", "").strip() == "ARVIN CI Acceptance" and access >= 500):
+                  rows.append(fields)
+          if len(rows) != 1:
+              raise SystemExit(f"Provisioner log calendar ID {calendar_id} does not match exactly one checkpoint C2 writable row")
+          output_path.write_text(
+              f"PROVISIONER_ACCOUNT=PASS account=ARVIN CI Acceptance\n"
+              f"PROVISIONER_CALENDAR_COUNT=PASS matching=1\n"
+              f"PROVISIONER_CALENDAR_ID=PASS id={calendar_id}\n"
+              f"PROVISIONER_WRITE_ACCESS=PASS accessLevel={rows[0]['calendar_access_level'].strip()}\n",
+              encoding="utf-8")
+          print(output_path.read_text(), end="")
+          PY
+          app_apk="$repo_root/build/app/outputs/flutter-apk/app-debug.apk"
+          (cd "$repo_root" && flutter build apk --debug -t lib/main.dart)
+          if [[ ! -s "$app_apk" ]]; then
+            echo "::error::Main app APK is missing or empty: $app_apk" >&2
+            exit 1
+          fi
+          "$aapt_bin" dump badging "$app_apk" | grep -Eq "^package: name='com.example.arvin'([[:space:]]|$)" || {
+            echo "::error::Built APK package ID does not match com.example.arvin" >&2
+            exit 1
+          }
+          adb install -r "$app_apk"
           adb shell pm grant com.example.arvin android.permission.READ_CALENDAR
           adb shell pm grant com.example.arvin android.permission.WRITE_CALENDAR
+          : > "$EVIDENCE_DIR/main-app-permissions.txt"
+          verify_main_app_permissions
+          for required_evidence in "$EVIDENCE_DIR/sha-verification.txt" "$EVIDENCE_DIR/provisioner-apk-manifest.txt" "$EVIDENCE_DIR/provisioner-post-cleanup-result.txt" "$EVIDENCE_DIR/provisioner-post-cleanup-instrumentation.txt" "$EVIDENCE_DIR/junit-summary.txt" "$EVIDENCE_DIR/provisioner-logcat.txt" "$EVIDENCE_DIR/provisioner-result.txt" "$EVIDENCE_DIR/provisioner-provider-verification.txt" "$EVIDENCE_DIR/checkpoint-C2-after-post-cleanup-provisioner-test.txt"; do
+            if [[ ! -s "$required_evidence" || ! -r "$required_evidence" ]]; then
+              echo "::error::Required Provisioner evidence is missing, empty, or unreadable: $required_evidence" >&2
+              exit 1
+            fi
+          done
           forensic_checkpoint "D-before-flutter-calendar-check"
           android_sdk="$(adb shell getprop ro.build.version.sdk | tr -d '\r')"
           emulator_serial="emulator-${EMULATOR_PORT}"
           set +e
-          flutter test integration_test/android_calendar_provider_acceptance_test.dart -d "$emulator_serial" --dart-define="ARVIN_EMULATOR_SERIAL=$emulator_serial" --dart-define="ARVIN_ANDROID_SDK=$android_sdk" > "$evidence_dir/test-output.txt" 2>&1
+          (cd "$repo_root" && flutter test integration_test/android_calendar_provider_acceptance_test.dart -d "$emulator_serial" --dart-define="ARVIN_EMULATOR_SERIAL=$emulator_serial" --dart-define="ARVIN_ANDROID_SDK=$android_sdk") > "$EVIDENCE_DIR/test-output.txt" 2>&1
           flutter_rc=$?
           set -e
-          cat "$evidence_dir/test-output.txt"
+          if [[ ! -s "$EVIDENCE_DIR/test-output.txt" || ! -r "$EVIDENCE_DIR/test-output.txt" ]]; then
+            echo "::error::Flutter test evidence is missing, empty, or unreadable" >&2
+            exit 1
+          fi
+          cat "$EVIDENCE_DIR/test-output.txt"
           if [ "$flutter_rc" -ne 0 ]; then
             echo "Flutter Calendar Provider acceptance failed with exit code $flutter_rc" >&2
-            echo "RESULT=FAILURE_FLUTTER_EXIT_$flutter_rc" > "$evidence_dir/result.txt"
+            echo "RESULT=FAILURE_FLUTTER_EXIT_$flutter_rc" > "$EVIDENCE_DIR/result.txt"
             exit "$flutter_rc"
           fi
-          if grep -q 'CALENDAR_PROVIDER_ACCEPTANCE=PASS' "$evidence_dir/test-output.txt" && grep -q 'CALENDAR_PROVIDER_NOOP_NO_DUPLICATE=PASS' "$evidence_dir/test-output.txt"; then
-            echo 'RESULT=PASS_REAL_PROVIDER_CREATE_NOOP_UPDATE_DELETE' > "$evidence_dir/result.txt"
-          elif grep -q 'CALENDAR_PROVIDER_ACCEPTANCE=BLOCKED_PROVISIONED_CALENDAR_MISSING' "$evidence_dir/test-output.txt"; then
-            echo 'RESULT=BLOCKED_PROVISIONED_CALENDAR_MISSING' > "$evidence_dir/result.txt"
+          if grep -q 'CALENDAR_PROVIDER_ACCEPTANCE=PASS' "$EVIDENCE_DIR/test-output.txt" && grep -q 'CALENDAR_PROVIDER_NOOP_NO_DUPLICATE=PASS' "$EVIDENCE_DIR/test-output.txt"; then
+            echo 'RESULT=PASS_REAL_PROVIDER_CREATE_NOOP_UPDATE_DELETE' > "$EVIDENCE_DIR/result.txt"
+          elif grep -q 'CALENDAR_PROVIDER_ACCEPTANCE=BLOCKED_PROVISIONED_CALENDAR_MISSING' "$EVIDENCE_DIR/test-output.txt"; then
+            echo 'RESULT=BLOCKED_PROVISIONED_CALENDAR_MISSING' > "$EVIDENCE_DIR/result.txt"
             exit 1
           else
-            echo 'RESULT=FAILURE_OR_BLOCKED_MISSING_ACCEPTANCE_MARKERS' > "$evidence_dir/result.txt"
+            echo 'RESULT=FAILURE_OR_BLOCKED_MISSING_ACCEPTANCE_MARKERS' > "$EVIDENCE_DIR/result.txt"
             echo "Flutter test exited zero without all explicit acceptance markers." >&2
             exit 1
           fi
