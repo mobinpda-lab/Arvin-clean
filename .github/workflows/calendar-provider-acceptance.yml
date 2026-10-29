@@ -282,6 +282,16 @@ jobs:
           print(pathlib.Path(sys.argv[2]).read_text(), end="")
           PY
           cd ..
+          echo "=== DIAGNOSTIC INSPECTION START ==="
+          adb devices -l
+          adb shell getprop ro.build.version.sdk
+          echo "--- INSTALLED PACKAGES ---"
+          adb shell pm list packages | sort
+          echo "--- CHECK PROVISIONER PKG ---"
+          adb shell pm path com.example.arvin.calendarprovisioner || echo "PROVISIONER_NOT_FOUND"
+          echo "--- CHECK APP PKG ---"
+          adb shell pm path com.example.arvin || echo "APP_NOT_FOUND"
+          echo "=== DIAGNOSTIC INSPECTION END ==="
           adb shell pm grant com.example.arvin.calendarprovisioner android.permission.READ_CALENDAR
           adb shell pm grant com.example.arvin.calendarprovisioner android.permission.WRITE_CALENDAR
           flutter build apk --debug -t lib/main.dart
