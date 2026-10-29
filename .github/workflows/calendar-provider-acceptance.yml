@@ -443,6 +443,9 @@ jobs:
               encoding="utf-8")
           print(output.read_text(), end="")
           PY
+          # Restore the repository root: the Gradle/JUnit section above runs from android/.
+          # APK evidence paths below are repository-root-relative.
+          cd ..
           if [ "$gradle_rc" -ne 0 ]; then
             echo "Instrumentation Gradle task failed with exit code $gradle_rc" >&2
             exit "$gradle_rc"
@@ -518,7 +521,6 @@ jobs:
               encoding="utf-8")
           print(pathlib.Path(sys.argv[2]).read_text(), end="")
           PY
-          cd ..
           flutter build apk --debug -t lib/main.dart
           adb install -r build/app/outputs/flutter-apk/app-debug.apk
           adb shell pm grant com.example.arvin android.permission.READ_CALENDAR
