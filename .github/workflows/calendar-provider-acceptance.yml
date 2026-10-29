@@ -333,6 +333,7 @@ jobs:
           }
 
           cd android
+          bash ./gradlew :calendarProvisioner:clean
           bash ./gradlew :calendarProvisioner:assembleDebug :calendarProvisioner:assembleDebugAndroidTest :calendarProvisioner:processDebugManifest
           cd ..
           capture_command "$GITHUB_WORKSPACE/$evidence_dir/pre-instrumentation-logcat-clear.txt" "pre-A" "clear-logcat" adb logcat -c
@@ -446,6 +447,63 @@ jobs:
             echo "Instrumentation Gradle task failed with exit code $gradle_rc" >&2
             exit "$gradle_rc"
           fi
+
+          # Gradle's connected test task uninstalls both APKs during teardown.
+          # Re-discover and reinstall only freshly built APKs from this checkout,
+          # then run the existing provisioning test directly through AndroidJUnitRunner.
+          apk_root="$GITHUB_WORKSPACE/build/calendarProvisioner/outputs/apk"
+          discover_provisioner_apks() {
+            mapfile -d '' -t provisioner_apks < <(find "$apk_root" -type f -name 'calendarProvisioner-debug.apk' -print0 2>/dev/null)
+            mapfile -d '' -t provisioner_test_apks < <(find "$apk_root" -type f -name 'calendarProvisioner-debug-androidTest.apk' -print0 2>/dev/null)
+          }
+          discover_provisioner_apks
+          if [ "${#provisioner_apks[@]}" -eq 0 ] || [ "${#provisioner_test_apks[@]}" -eq 0 ]; then
+            echo "APK_DISCOVERY=REBUILD_MISSING_OUTPUTS"
+            (cd android && bash ./gradlew :calendarProvisioner:assembleDebug :calendarProvisioner:assembleDebugAndroidTest)
+            discover_provisioner_apks
+          fi
+          if [ "${#provisioner_apks[@]}" -ne 1 ] || [ "${#provisioner_test_apks[@]}" -ne 1 ]; then
+            printf 'APK_DISCOVERY=FAIL provisioner_count=%s instrumentation_count=%s\n' "${#provisioner_apks[@]}" "${#provisioner_test_apks[@]}" >&2
+            exit 1
+          fi
+          provisioner_apk="${provisioner_apks[0]}"
+          provisioner_test_apk="${provisioner_test_apks[0]}"
+          sdk_root="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          if [ -z "$sdk_root" ]; then
+            echo "APK_VALIDATION=FAIL Android SDK root is unavailable" >&2
+            exit 1
+          fi
+          aapt_bin="$(find "$sdk_root/build-tools" -type f -name aapt -print -quit)"
+          if [ -z "$aapt_bin" ]; then
+            echo "APK_VALIDATION=FAIL aapt was not found" >&2
+            exit 1
+          fi
+          "$aapt_bin" dump badging "$provisioner_apk" | grep -Eq "^package: name='com.example.arvin.calendarprovisioner'([[:space:]]|$)"
+          "$aapt_bin" dump badging "$provisioner_test_apk" | grep -Eq "^package: name='com.example.arvin.calendarprovisioner.test'([[:space:]]|$)"
+          {
+            printf 'CHECKED_OUT_SHA=%s\n' "$(git rev-parse HEAD)"
+            printf 'PROVISIONER_APK_PATH=%s\n' "$provisioner_apk"
+            printf 'PROVISIONER_APK_SIZE_BYTES=%s\n' "$(stat -c '%s' "$provisioner_apk")"
+            printf 'PROVISIONER_APK_SHA256=%s\n' "$(sha256sum "$provisioner_apk" | awk '{print $1}')"
+            printf 'INSTRUMENTATION_APK_PATH=%s\n' "$provisioner_test_apk"
+            printf 'INSTRUMENTATION_APK_SIZE_BYTES=%s\n' "$(stat -c '%s' "$provisioner_test_apk")"
+            printf 'INSTRUMENTATION_APK_SHA256=%s\n' "$(sha256sum "$provisioner_test_apk" | awk '{print $1}')"
+          } > "$evidence_dir/provisioner-apk-manifest.txt"
+          cat "$evidence_dir/provisioner-apk-manifest.txt"
+          adb install -r "$provisioner_apk"
+          adb install -r "$provisioner_test_apk"
+          set +e
+          adb shell am instrument -w -r -e class 'com.example.arvin.calendarprovisioner.CalendarProvisionerTest#provisionsExactlyOneWritableCalendarIdempotently' 'com.example.arvin.calendarprovisioner.test/androidx.test.runner.AndroidJUnitRunner' > "$RUNNER_TEMP/provisioner-post-cleanup-instrumentation.txt" 2>&1
+          post_cleanup_rc=$?
+          set -e
+          cp "$RUNNER_TEMP/provisioner-post-cleanup-instrumentation.txt" "$evidence_dir/provisioner-post-cleanup-instrumentation.txt"
+          cat "$evidence_dir/provisioner-post-cleanup-instrumentation.txt"
+          if [ "$post_cleanup_rc" -ne 0 ] || ! grep -Fq 'INSTRUMENTATION_CODE: -1' "$RUNNER_TEMP/provisioner-post-cleanup-instrumentation.txt" || ! grep -Fq 'OK (1 test)' "$RUNNER_TEMP/provisioner-post-cleanup-instrumentation.txt" || grep -Eq 'FAILURES!!!|INSTRUMENTATION_FAILED|Error in ' "$RUNNER_TEMP/provisioner-post-cleanup-instrumentation.txt"; then
+            printf 'POST_CLEANUP_PROVISIONER_TEST=FAIL exit_code=%s\n' "$post_cleanup_rc" | tee "$evidence_dir/provisioner-post-cleanup-result.txt"
+            exit 1
+          fi
+          printf 'POST_CLEANUP_PROVISIONER_TEST=PASS exit_code=%s\n' "$post_cleanup_rc" | tee "$evidence_dir/provisioner-post-cleanup-result.txt"
+          forensic_checkpoint "C2-after-post-cleanup-provisioner-test"
           adb logcat -d -s CalendarProvisionerTest:I CalendarProvisionerForensics:I '*:S' > "../$evidence_dir/provisioner-logcat.txt"
           python3 - "../$evidence_dir/provisioner-logcat.txt" "../$evidence_dir/provisioner-result.txt" <<'PY'
           import pathlib, re, sys
