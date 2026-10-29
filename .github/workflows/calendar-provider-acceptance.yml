@@ -223,22 +223,22 @@ jobs:
             local snapshot_file="$GITHUB_WORKSPACE/.github/calendar-provider-evidence/calendar-provider-${label}.txt"
             local raw_file="$RUNNER_TEMP/calendar-provider-${label}-raw.txt"
             {
-              printf 'SNAPSHOT=%s\\n' "$label"
-              printf 'DEVICE_SERIAL=emulator-%s\\n' "${EMULATOR_PORT:-unknown}"
-              printf 'DEVICE_LIST_BEGIN\\n'
+              printf 'SNAPSHOT=%s\n' "$label"
+              printf 'DEVICE_SERIAL=emulator-%s\n' "${EMULATOR_PORT:-unknown}"
+              printf 'DEVICE_LIST_BEGIN\n'
               adb devices -l
-              printf 'DEVICE_LIST_END\\n'
+              printf 'DEVICE_LIST_END\n'
               printf 'ANDROID_SDK='
-              adb shell getprop ro.build.version.sdk | tr -d '\\r'
+              adb shell getprop ro.build.version.sdk | tr -d '\r'
               printf 'ANDROID_FINGERPRINT='
-              adb shell getprop ro.build.fingerprint | tr -d '\\r'
+              adb shell getprop ro.build.fingerprint | tr -d '\r'
               for package in com.example.arvin com.example.arvin.calendarprovisioner; do
                 for permission in android.permission.READ_CALENDAR android.permission.WRITE_CALENDAR; do
                   set +e
                   permission_output="$(adb shell pm check-permission "$permission" "$package" 2>&1)"
                   permission_rc=$?
                   set -e
-                  printf 'PERMISSION package=%s name=%s output=%s exit_code=%s\\n' "$package" "$permission" "$permission_output" "$permission_rc"
+                  printf 'PERMISSION package=%s name=%s output=%s exit_code=%s\n' "$package" "$permission" "$permission_output" "$permission_rc"
                 done
               done
             } >> "$snapshot_file"
@@ -253,13 +253,13 @@ jobs:
           print(f"QUERY_EXIT_CODE={rc}")
           fields_by_row = []
           for line in output.splitlines():
-              if re.search(r"\\bRow:\\s*\\d+", line):
+              if re.search(r"\bRow:\s*\d+", line):
                   fields = dict(re.findall(r"([A-Za-z_]+)=([^,]*)", line))
                   fields_by_row.append(fields)
           print(f"RAW_ROW_COUNT={len(fields_by_row)}")
           if rc != 0 or not fields_by_row:
               if output.strip():
-                  safe_error = re.sub(r"(?i)(account_name|ownerAccount)=([^,\\n]+)", r"\\1=<redacted>", output.strip())
+                  safe_error = re.sub(r"(?i)(account_name|ownerAccount)=([^,\n]+)", r"\1=<redacted>", output.strip())
                   print("QUERY_OUTPUT=" + safe_error[:2000])
           matches = 0
           for row in fields_by_row:
@@ -363,7 +363,7 @@ jobs:
           adb shell pm grant com.example.arvin android.permission.READ_CALENDAR
           adb shell pm grant com.example.arvin android.permission.WRITE_CALENDAR
           snapshot_calendar_provider "B-before-flutter"
-          android_sdk="$(adb shell getprop ro.build.version.sdk | tr -d '\\r')"
+          android_sdk="$(adb shell getprop ro.build.version.sdk | tr -d '\r')"
           emulator_serial="emulator-${EMULATOR_PORT}"
           set +e
           flutter test integration_test/android_calendar_provider_acceptance_test.dart -d "$emulator_serial" --dart-define="ARVIN_EMULATOR_SERIAL=$emulator_serial" --dart-define="ARVIN_ANDROID_SDK=$android_sdk" > "$evidence_dir/test-output.txt" 2>&1
