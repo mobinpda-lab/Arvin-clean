@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('shows one Task once with all same-day work reasons', (tester) async {
+  testWidgets('shows Task due date and independent Reminder without legacy Follow-up schedules', (tester) async {
     final day = DateTime(2026, 8, 29);
     final task = Task(
       id: 'task-1',
@@ -31,7 +31,7 @@ void main() {
     expect(find.text('تحویل قرارداد'), findsOneWidget);
     expect(find.textContaining('موعد کار'), findsOneWidget);
     expect(find.textContaining('یادآوری کار'), findsOneWidget);
-    expect(find.textContaining('پیگیری'), findsWidgets);
+    expect(find.textContaining('پیگیری'), findsNothing);
     expect(find.text('۱۴۰۵/۰۶/۰۷'), findsWidgets);
   });
 

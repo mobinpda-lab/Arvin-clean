@@ -38,7 +38,7 @@ void main() {
         reminderDate: reminder,
       );
 
-  test('returns overdue and exact-now FollowUp reminders but not future work', () {
+  test('legacy FollowUp reminder dates never create notifications', () {
     final result = service.due(
       [
         task(
@@ -53,35 +53,16 @@ void main() {
       now: now,
     );
 
-    expect(result.map((item) => item.followUpId), ['past', 'now']);
-    expect(result.last.label, 'تماس');
+    expect(result, isEmpty);
   });
 
-  test('exact delivered identity is skipped while a changed time is new work', () {
-    final original = followUp('fu', now.subtract(const Duration(minutes: 10)));
-    final tasks = [task('one', followUps: [original])];
-    final first = service.due(tasks, now: now).single;
-    final delivered = service.deliveryIdentity(first);
-
-    expect(
-      service.due(tasks, now: now, deliveredIdentities: {delivered}),
-      isEmpty,
-    );
-
-    final changed = task(
-      'one',
-      followUps: [
-        followUp('fu', now.subtract(const Duration(minutes: 2))),
-      ],
-    );
-    final changedResult = service.due(
-      [changed],
-      now: now,
-      deliveredIdentities: {delivered},
-    );
-
-    expect(changedResult, hasLength(1));
-    expect(service.deliveryIdentity(changedResult.single), isNot(delivered));
+  test('legacy FollowUp reminder timestamps cannot become delivery identities', () {
+    final tasks = [
+      task('one', followUps: [
+        followUp('fu', now.subtract(const Duration(minutes: 10))),
+      ]),
+    ];
+    expect(service.due(tasks, now: now), isEmpty);
   });
 
   test('inactive Tasks never produce FollowUp reminder delivery', () {
@@ -98,18 +79,21 @@ void main() {
     expect(result, isEmpty);
   });
 
-  test('Task-level reminder is delivered by the canonical reminder service', () {
+  test('raw legacy Task.reminderDate is not scheduled without a TaskReminder record', () {
     final result = service.due(
-      [
-        task(
-          'one',
-          taskReminder: now.subtract(const Duration(minutes: 1)),
-          followUps: [followUp('no-reminder', null)],
-        ),
-      ],
+      [task('one', taskReminder: now.subtract(const Duration(minutes: 1)))],
       now: now,
     );
+    expect(result, isEmpty);
+  });
 
+  test('decoded legacy Task reminder is scheduled through its migrated TaskReminder', () {
+    final migrated = Task.fromJson({
+      'id': 'one',
+      'title': 'Task one',
+      'reminderDate': now.subtract(const Duration(minutes: 1)).toIso8601String(),
+    });
+    final result = service.due([migrated], now: now);
     expect(result, hasLength(1));
     expect(result.single.isTaskReminder, isTrue);
     expect(result.single.stableKey, 'task:one');
@@ -117,43 +101,34 @@ void main() {
     expect(result.single.scheduledAt, now.subtract(const Duration(minutes: 1)));
   });
 
-  test('Task-level reminder and FollowUp reminder can coexist without duplicate identity', () {
+  test('canonical independent TaskReminder is delivered without FollowUp reminder', () {
     final result = service.due(
       [
         task(
           'one',
-          taskReminder: now.subtract(const Duration(minutes: 2)),
+          taskReminders: [
+            TaskReminder(
+              id: 'r1',
+              title: 'یادآور معتبر',
+              date: now.subtract(const Duration(minutes: 2)),
+              sequence: 1,
+            ),
+          ],
           followUps: [followUp('fu', now.subtract(const Duration(minutes: 1)))],
         ),
       ],
       now: now,
     );
-
-    expect(result.map((item) => item.stableKey), ['task:one', 'one:fu']);
+    expect(result.map((item) => item.stableKey), ['task:one:reminder:r1']);
   });
 
-  test('blank note uses canonical label and ordering is deterministic', () {
+  test('legacy FollowUp notes do not produce notification candidates', () {
     final sameTime = now.subtract(const Duration(minutes: 1));
-    final result = service.due(
-      [
-        task('b', followUps: [followUp('z', sameTime)]),
-        task('a', followUps: [followUp('y', sameTime)]),
-        task(
-          'early',
-          followUps: [
-            followUp('x', sameTime.subtract(const Duration(minutes: 1))),
-          ],
-        ),
-      ],
-      now: now,
-    );
-
-    expect(result.map((item) => item.stableKey), [
-      'early:x',
-      'a:y',
-      'b:z',
-    ]);
-    expect(result.first.label, 'پیگیری');
+    final result = service.due([
+      task('a', followUps: [followUp('y', sameTime)]),
+      task('b', followUps: [followUp('z', sameTime)]),
+    ], now: now);
+    expect(result, isEmpty);
   });
 
   test('delivers multiple Task reminders with distinct stable identities', () {

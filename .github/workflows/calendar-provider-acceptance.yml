@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'integration_test/android_calendar_provider_acceptance_test.dart'
+      - 'android/calendarProvisioner/**'
       - '.github/workflows/calendar-provider-acceptance.yml'
       - 'lib/services/calendar_provider_sync_executor.dart'
       - 'lib/services/calendar_outbound_sync_service.dart'
@@ -20,6 +21,7 @@ on:
     branches: [main]
     paths:
       - 'integration_test/android_calendar_provider_acceptance_test.dart'
+      - 'android/calendarProvisioner/**'
       - '.github/workflows/calendar-provider-acceptance.yml'
       - 'lib/services/calendar_provider_sync_executor.dart'
       - 'lib/services/calendar_sync_plan_service.dart'
@@ -30,6 +32,20 @@ on:
       - 'test/services/calendar_outbound_sync_service_test.dart'
       - 'test/services/calendar_integration_settings_contract_test.dart'
   workflow_dispatch:
+    inputs:
+      target_sha:
+        description: 'Expected exact commit SHA to validate'
+        required: true
+        type: string
+      sha_mismatch_test:
+        description: 'Run the controlled negative SHA-mismatch test only'
+        required: true
+        default: false
+        type: boolean
+      checkout_sha:
+        description: 'Valid commit SHA to checkout; required only when sha_mismatch_test is true'
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -43,6 +59,122 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.sha_mismatch_test == 'true' && github.event.inputs.checkout_sha || github.event.inputs.target_sha || github.event.pull_request.head.sha || github.sha }}
+
+      - name: Initialize SHA verification evidence
+        shell: bash
+        env:
+          TARGET_SHA: ${{ github.event.inputs.target_sha || github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -u
+          evidence_dir=".github/calendar-provider-evidence"
+          if ! mkdir -p "$evidence_dir"; then
+            echo "::error::Failed to create SHA verification evidence directory: $evidence_dir" >&2
+            exit 1
+          fi
+          if ! actual_sha="$(git rev-parse HEAD 2>&1)"; then
+            echo "::error::Failed to determine checked-out SHA: $actual_sha" >&2
+            exit 1
+          fi
+          if ! {
+            printf 'TARGET_SHA=%s\n' "$TARGET_SHA"
+            printf 'CHECKED_OUT_SHA=%s\n' "$actual_sha"
+            printf 'SHA_CHECK_RESULT=PENDING\n'
+            printf 'STOP_REASON=SHA verification has not completed yet.\n'
+          } > "$evidence_dir/sha-verification.txt"; then
+            echo "::error::Failed to write base SHA verification evidence to $evidence_dir/sha-verification.txt" >&2
+            exit 1
+          fi
+          echo "SHA_EVIDENCE_INITIALIZED=true"
+          echo "TARGET_SHA=$TARGET_SHA"
+          echo "CHECKED_OUT_SHA=$actual_sha"
+
+      - name: Verify exact target SHA
+        shell: bash
+        env:
+          TARGET_SHA: ${{ github.event.inputs.target_sha || github.event.pull_request.head.sha || github.sha }}
+          SHA_MISMATCH_TEST: ${{ github.event.inputs.sha_mismatch_test || 'false' }}
+          CHECKOUT_SHA_INPUT: ${{ github.event.inputs.checkout_sha || '' }}
+        run: |
+          set -euo pipefail
+          evidence_file=".github/calendar-provider-evidence/sha-verification.txt"
+          actual_sha="$(git rev-parse HEAD)"
+          echo "TARGET_SHA=$TARGET_SHA"
+          echo "CHECKED_OUT_SHA=$actual_sha"
+          if [[ "$SHA_MISMATCH_TEST" != "true" && -n "$CHECKOUT_SHA_INPUT" ]]; then
+            if [[ ! "$TARGET_SHA" =~ ^[0-9a-fA-F]{40}$ || ! "$CHECKOUT_SHA_INPUT" =~ ^[0-9a-fA-F]{40}$ ]]; then
+              {
+                printf 'TARGET_SHA=%s\n' "$TARGET_SHA"
+                printf 'CHECKED_OUT_SHA=%s\n' "$actual_sha"
+                printf 'SHA_CHECK_RESULT=FAIL\n'
+                printf 'STOP_REASON=NORMAL_MODE_SHA_INPUT_INVALID; target_sha and provided checkout_sha must be valid 40-character hexadecimal SHAs.\n'
+              } > "$evidence_file"
+              echo "::error::Invalid target_sha or checkout_sha in normal mode; Calendar and CRUD tests must not run." >&2
+              exit 1
+            fi
+            normalized_target_sha="${TARGET_SHA,,}"
+            normalized_checkout_sha="${CHECKOUT_SHA_INPUT,,}"
+            if [[ "$normalized_checkout_sha" != "$normalized_target_sha" ]]; then
+              {
+                printf 'TARGET_SHA=%s\n' "$TARGET_SHA"
+                printf 'CHECKED_OUT_SHA=%s\n' "$actual_sha"
+                printf 'SHA_CHECK_RESULT=FAIL\n'
+                printf 'STOP_REASON=NORMAL_MODE_CHECKOUT_SHA_MISMATCH; provided checkout_sha must equal target_sha; Calendar and CRUD tests were not started.\n'
+              } > "$evidence_file"
+              echo "::error::Provided checkout_sha does not match target_sha; Calendar and CRUD tests must not run." >&2
+              exit 1
+            fi
+          fi
+          if [[ "$SHA_MISMATCH_TEST" == "true" ]]; then
+            if [[ ! "$TARGET_SHA" =~ ^[0-9a-fA-F]{40}$ || ! "$CHECKOUT_SHA_INPUT" =~ ^[0-9a-fA-F]{40}$ || "$TARGET_SHA" == "$CHECKOUT_SHA_INPUT" || "$actual_sha" != "$CHECKOUT_SHA_INPUT" ]]; then
+              {
+                printf 'TARGET_SHA=%s\n' "$TARGET_SHA"
+                printf 'CHECKED_OUT_SHA=%s\n' "$actual_sha"
+                printf 'SHA_CHECK_RESULT=FAIL\n'
+                printf 'STOP_REASON=SHA_MISMATCH_TEST_SETUP_INVALID; expected and checkout SHAs must be distinct valid 40-character SHAs and checkout must match checkout_sha.\n'
+              } > "$evidence_file"
+              echo "::error::Invalid controlled SHA mismatch test setup; Calendar and CRUD tests must not run." >&2
+              exit 1
+            fi
+          fi
+          if [[ "$actual_sha" != "$TARGET_SHA" ]]; then
+            if ! {
+              printf 'TARGET_SHA=%s\n' "$TARGET_SHA"
+              printf 'CHECKED_OUT_SHA=%s\n' "$actual_sha"
+              printf 'SHA_CHECK_RESULT=FAIL\n'
+              if [[ "$SHA_MISMATCH_TEST" == "true" ]]; then
+              printf 'STOP_REASON=CONTROLLED_SHA_MISMATCH_TEST; expected and checked-out SHAs differ; Calendar and CRUD tests were not started.\n'
+            else
+              printf 'STOP_REASON=Checked-out SHA did not match target_sha; Calendar and CRUD tests were not started.\n'
+            fi
+            } > "$evidence_file"; then
+              echo "::error::SHA mismatch detected but evidence file update failed: $evidence_file" >&2
+            fi
+            echo "ERROR: checked-out SHA $actual_sha does not match target_sha $TARGET_SHA" >&2
+            echo "STOP_REASON=SHA_MISMATCH; Calendar and CRUD tests must not run." >&2
+            exit 1
+          fi
+          if ! {
+            printf 'TARGET_SHA=%s\n' "$TARGET_SHA"
+            printf 'CHECKED_OUT_SHA=%s\n' "$actual_sha"
+            printf 'SHA_CHECK_RESULT=PASS\n'
+            printf 'STOP_REASON=none\n'
+          } > "$evidence_file"; then
+            echo "::error::SHA matched but final evidence could not be written: $evidence_file" >&2
+            exit 1
+          fi
+          if [[ "$SHA_MISMATCH_TEST" == "true" ]]; then
+            echo "::error::Controlled SHA mismatch test unexpectedly passed; Calendar and CRUD tests must not run." >&2
+            {
+              printf 'TARGET_SHA=%s\n' "$TARGET_SHA"
+              printf 'CHECKED_OUT_SHA=%s\n' "$actual_sha"
+              printf 'SHA_CHECK_RESULT=FAIL\n'
+              printf 'STOP_REASON=CONTROLLED_SHA_MISMATCH_TEST_DID_NOT_MISMATCH; Calendar and CRUD tests must not run.\n'
+            } > "$evidence_file"
+            exit 1
+          fi
+          echo "SHA_CHECK_RESULT=PASS"
 
       - name: Fetch pinned VazirHarf
         run: |
@@ -71,18 +203,596 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Run real Calendar Provider acceptance or prove stock-emulator limitation
+      - name: Validate workflow with actionlint
+        shell: bash
+        run: |
+          set -euo pipefail
+          go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.7
+          "$HOME/go/bin/actionlint" .github/workflows/calendar-provider-acceptance.yml
+
+      - name: Prepare Calendar Provider acceptance script
+        shell: bash
+        run: |
+          cat > "$RUNNER_TEMP/calendar-provider-acceptance.sh" <<'BASH'
+          set -euo pipefail
+          repo_root="${GITHUB_WORKSPACE:?GITHUB_WORKSPACE is required}"
+          repo_root="$(cd "$repo_root" && pwd -P)"
+          if [[ "$(git -C "$repo_root" rev-parse --show-toplevel)" != "$repo_root" ]]; then
+            echo "::error::GITHUB_WORKSPACE does not resolve to the Git checkout root: $repo_root" >&2
+            exit 1
+          fi
+          EVIDENCE_DIR="$repo_root/.github/calendar-provider-evidence"
+          if ! mkdir -p "$EVIDENCE_DIR" || [[ ! -d "$EVIDENCE_DIR" || ! -w "$EVIDENCE_DIR" ]]; then
+            echo "::error::Evidence directory is not writable: $EVIDENCE_DIR" >&2
+            exit 1
+          fi
+          printf 'HEAD_SHA=%s\n' "$(git -C "$repo_root" rev-parse HEAD)" > "$EVIDENCE_DIR/environment.txt"
+          printf 'EMULATOR_API=%s\n' "$(adb shell getprop ro.build.version.sdk | tr -d '\r')" >> "$EVIDENCE_DIR/environment.txt"
+          {
+            echo "PROVIDER_DISCOVERY_BEGIN"
+            adb shell dumpsys package providers | grep -i -E 'calendar|com.android.providers.calendar' || true
+            echo "PROVIDER_DISCOVERY_END"
+          } >> "$EVIDENCE_DIR/environment.txt"
+
+          capture_command() {
+            local snapshot_file="$1"
+            local checkpoint="$2"
+            local command_name="$3"
+            shift 3
+            local stdout_file="$RUNNER_TEMP/${checkpoint}-${command_name}.stdout"
+            local stderr_file="$RUNNER_TEMP/${checkpoint}-${command_name}.stderr"
+            local command_display
+            printf -v command_display '%q ' "$@"
+            local host_timestamp
+            host_timestamp="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            set +e
+            "$@" > "$stdout_file" 2> "$stderr_file"
+            local command_rc=$?
+            set -e
+            python3 - "$snapshot_file" "$checkpoint" "$command_name" "$host_timestamp" "$command_display" "$command_rc" "$stdout_file" "$stderr_file" <<'PY' >> "$snapshot_file"
+          import pathlib, re, sys
+          snapshot, checkpoint, name, timestamp, command, rc, out_path, err_path = sys.argv[1:]
+          rc = int(rc)
+          stdout = pathlib.Path(out_path).read_text(encoding="utf-8", errors="replace")
+          stderr = pathlib.Path(err_path).read_text(encoding="utf-8", errors="replace")
+          target_name = "ARVIN CI Acceptance"
+          target_type = "com.example.arvin.calendarprovisioner.account"
+          def redact_emails(value):
+              return re.sub(r"[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}", "<redacted-email>", value)
+          def safe_output(value):
+              value = redact_emails(value)
+              if name == "account-dump":
+                  safe = []
+                  for line in value.splitlines():
+                      if target_name in line or target_type in line:
+                          safe.append(line)
+                      elif re.search(r"(?i)Account\s*\{|(?:account_)?name\s*[=:]|(?:account_)?type\s*[=:]", line):
+                          safe.append("<redacted account detail>")
+                      else:
+                          safe.append(line)
+                  print("DUMPSYS_TARGET_ACCOUNT_MENTIONED=" + str(target_name in value or target_type in value).lower())
+                  return "\n".join(safe)
+              if name == "calendar-query":
+                  safe, rows = [], []
+                  for line in value.splitlines():
+                      if re.search(r"\bRow:\s*\d+", line):
+                          fields = dict(re.findall(r"([A-Za-z_]+)=([^,]*)", line))
+                          rows.append(fields)
+                          target = fields.get("account_name", "").strip() == target_name and fields.get("account_type", "").strip() == target_type
+                          safe.append(line if target else re.sub(r"(account_name|account_type|calendar_displayName)=([^,]*)", r"\1=<redacted>", line))
+                      else:
+                          safe.append(line)
+                  matching = 0
+                  for row in rows:
+                      try: access = int(row.get("calendar_access_level", "0").strip())
+                      except ValueError: access = -1
+                      matching += int(row.get("account_name", "").strip() == target_name and row.get("account_type", "").strip() == target_type and row.get("calendar_displayName", "").strip() == target_name and access >= 500)
+                  print(f"RAW_ROW_COUNT={len(rows)}")
+                  print(f"MATCHING_EXPECTED_CALENDAR_COUNT={matching}")
+                  return "\n".join(safe)
+              if name == "related-packages":
+                  lines = [line for line in value.splitlines() if "com.example.arvin" in line or "com.android.providers.calendar" in line]
+                  print("PROVISIONER_PACKAGE_LISTED=" + str(any("com.example.arvin.calendarprovisioner" in x for x in lines)).lower())
+                  print("APP_PACKAGE_LISTED=" + str(any("com.example.arvin" in x and "calendarprovisioner" not in x for x in lines)).lower())
+                  return "\n".join(lines) if lines else "<no related packages listed>"
+              if name == "provisioner-path":
+                  print("PROVISIONER_PATH_PRESENT=" + str("package:" in value).lower())
+              if name == "package-manager-and-instrumentation-logcat":
+                  value = re.sub(r"(?i)(account_name|ownerAccount)=([^,\n]+)", r"\1=<redacted>", value)
+                  value = re.sub(r"Account\s*\{name=[^,}]+", "Account {name=<redacted>", value)
+              return value
+          print(f"CHECKPOINT={checkpoint}")
+          print(f"HOST_TIMESTAMP_UTC={timestamp}")
+          print(f"COMMAND_NAME={name}")
+          print(f"COMMAND={command.strip()}")
+          print("STDOUT_BEGIN")
+          safe_stdout = safe_output(stdout)
+          print(safe_stdout if safe_stdout else "<empty>")
+          print("STDOUT_END")
+          print("STDERR_BEGIN")
+          safe_stderr = redact_emails(stderr)
+          print(safe_stderr if safe_stderr else "<empty>")
+          print("STDERR_END")
+          print(f"EXIT_CODE={rc}")
+          print("OUTPUT_REDACTED=true")
+          PY
+          }
+
+          verify_main_app_permissions() {
+            local package="com.example.arvin"
+            local package_paths package_list permission help_output output rc package_dump
+            package_paths="$(adb shell pm path "$package" 2>&1 | tr -d '\r')" || {
+              echo "::error::Unable to query installed main app package path" >&2
+              return 1
+            }
+            if ! grep -Eq '^package:.+' <<<"$package_paths"; then
+              echo "::error::Main app package is not installed: $package_paths" >&2
+              return 1
+            fi
+            package_list="$(adb shell pm list packages 2>&1 | tr -d '\r')" || {
+              echo "::error::Unable to enumerate installed Android packages" >&2
+              return 1
+            }
+            if ! grep -Fxq "package:$package" <<<"$package_list"; then
+              echo "::error::Installed package list does not contain exact package $package" >&2
+              return 1
+            fi
+            printf 'MAIN_APP_PACKAGE_INSTALLED=PASS package=%s\n' "$package" | tee "$EVIDENCE_DIR/main-app-package-verification.txt"
+            help_output="$(adb shell cmd package help 2>&1 | tr -d '\r' || true)"
+            for permission in android.permission.READ_CALENDAR android.permission.WRITE_CALENDAR; do
+              if grep -Eq '(^|[[:space:]])check-permission([[:space:]]|$)' <<<"$help_output"; then
+                set +e
+                output="$(adb shell cmd package check-permission "$permission" "$package" 0 2>&1 | tr -d '\r')"
+                rc=$?
+                set -e
+                if [[ "$rc" -ne 0 ]]; then
+                  echo "::error::cmd package check-permission failed for $permission (exit=$rc): $output" >&2
+                  printf 'PERMISSION_CHECK=FAIL permission=%s method=cmd-package-check-permission exit=%s output=%s\n' "$permission" "$rc" "$output" >> "$EVIDENCE_DIR/main-app-permissions.txt"
+                  return 1
+                fi
+                case "$output" in
+                  granted) ;;
+                  denied)
+                    echo "::error::Required calendar permission is denied: $permission" >&2
+                    printf 'PERMISSION_CHECK=FAIL permission=%s method=cmd-package-check-permission output=denied\n' "$permission" >> "$EVIDENCE_DIR/main-app-permissions.txt"
+                    return 1
+                    ;;
+                  *)
+                    echo "::error::Unrecognized check-permission output for $permission: $output" >&2
+                    printf 'PERMISSION_CHECK=UNKNOWN permission=%s method=cmd-package-check-permission output=%s\n' "$permission" "$output" >> "$EVIDENCE_DIR/main-app-permissions.txt"
+                    return 1
+                    ;;
+                esac
+                printf 'PERMISSION_CHECK=PASS permission=%s method=cmd-package-check-permission output=granted\n' "$permission" | tee -a "$EVIDENCE_DIR/main-app-permissions.txt"
+              else
+                package_dump="$(adb shell dumpsys package "$package" 2>&1 | tr -d '\r')" || {
+                  echo "::error::Fallback Package Manager dump failed for $package" >&2
+                  return 1
+                }
+                output="$(python3 -c 'import re,sys; p=re.escape(sys.argv[1]); text=sys.argv[2].split("runtime permissions:",1)[-1]; m=re.findall(r"(?m)^\s*"+p+r":\s*granted=(true|false)\b",text); print("granted" if m==["true"] else "denied" if m==["false"] else "unknown")' "$permission" "$package_dump")"
+                case "$output" in
+                  granted)
+                    printf 'PERMISSION_CHECK=PASS permission=%s method=dumpsys-package output=granted\n' "$permission" | tee -a "$EVIDENCE_DIR/main-app-permissions.txt"
+                    ;;
+                  denied)
+                    echo "::error::Required calendar permission is denied by Package Manager: $permission" >&2
+                    printf 'PERMISSION_CHECK=FAIL permission=%s method=dumpsys-package output=denied\n' "$permission" >> "$EVIDENCE_DIR/main-app-permissions.txt"
+                    return 1
+                    ;;
+                  *)
+                    echo "::error::Could not prove granted state for $permission from Package Manager output" >&2
+                    printf 'PERMISSION_CHECK=UNKNOWN permission=%s method=dumpsys-package output=unparseable\n' "$permission" >> "$EVIDENCE_DIR/main-app-permissions.txt"
+                    return 1
+                    ;;
+                esac
+              fi
+            done
+          }
+
+          forensic_checkpoint() {
+            local label="$1"
+            local snapshot_file="$EVIDENCE_DIR/checkpoint-${label}.txt"
+            mkdir -p "$EVIDENCE_DIR"
+            printf 'CHECKPOINT=%s\nHOST_CHECKPOINT_TIMESTAMP_UTC=%s\n' "$label" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$snapshot_file"
+            capture_command "$snapshot_file" "$label" device-list adb devices -l
+            capture_command "$snapshot_file" "$label" device-time adb shell date -u
+            capture_command "$snapshot_file" "$label" android-sdk adb shell getprop ro.build.version.sdk
+            capture_command "$snapshot_file" "$label" android-fingerprint adb shell getprop ro.build.fingerprint
+            capture_command "$snapshot_file" "$label" android-model adb shell getprop ro.product.model
+            capture_command "$snapshot_file" "$label" provisioner-path adb shell pm path com.example.arvin.calendarprovisioner
+            capture_command "$snapshot_file" "$label" related-packages adb shell pm list packages
+            capture_command "$snapshot_file" "$label" account-dump adb shell dumpsys account
+            capture_command "$snapshot_file" "$label" calendar-query adb shell content query --uri content://com.android.calendar/calendars --projection _id:account_name:account_type:calendar_displayName:calendar_access_level
+            capture_command "$snapshot_file" "$label" main-package-dump adb shell dumpsys package com.example.arvin
+            for package in com.example.arvin com.example.arvin.calendarprovisioner; do
+              for permission in android.permission.READ_CALENDAR android.permission.WRITE_CALENDAR; do
+                capture_command "$snapshot_file" "$label" "permission-${package##*.}-${permission##*.}" adb shell cmd package check-permission "$permission" "$package" 0
+              done
+            done
+            cat "$snapshot_file"
+          }
+
+          # android/build.gradle.kts relocates every subproject build directory to
+          # <checkout>/build/<project>; remove prior APK/JUnit outputs before this checkout's build.
+          provisioner_output_root="$repo_root/build/calendarProvisioner/outputs"
+          rm -rf "$provisioner_output_root/apk" "$provisioner_output_root/androidTest-results"
+          {
+            printf 'CHECKED_OUT_SHA=%s\n' "$(git -C "$repo_root" rev-parse HEAD)"
+            printf 'GRADLE_BUILD_DIR_SOURCE=android/build.gradle.kts rootProject.layout.buildDirectory.dir("../../build")\n'
+            printf 'PROVISIONER_OUTPUT_ROOT=%s\n' "$provisioner_output_root"
+            printf 'STALE_APK_AND_JUNIT_OUTPUTS_REMOVED=true\n'
+          } > "$EVIDENCE_DIR/provisioner-build-preflight.txt"
+          cd android
+          bash ./gradlew :calendarProvisioner:clean
+          bash ./gradlew :calendarProvisioner:assembleDebug :calendarProvisioner:assembleDebugAndroidTest :calendarProvisioner:processDebugManifest
+          cd ..
+          printf 'INITIAL_BUILD=PASS\n' >> "$EVIDENCE_DIR/provisioner-build-preflight.txt"
+          cat "$EVIDENCE_DIR/provisioner-build-preflight.txt"
+
+          # Preserve both provisioner APKs before connected instrumentation can uninstall
+          # packages or Gradle teardown can remove transient outputs.
+          apk_root="$repo_root/build/calendarProvisioner/outputs/apk"
+          preserved_apk_dir="$repo_root/.preserved_provisioner_apks"
+          rm -rf "$preserved_apk_dir"
+          mkdir -p "$preserved_apk_dir"
+          if [[ ! -d "$preserved_apk_dir" || ! -w "$preserved_apk_dir" ]]; then
+            echo "::error::Persistent provisioner APK directory is not writable: $preserved_apk_dir" >&2
+            exit 1
+          fi
+          mapfile -d '' -t provisioner_apks < <(find "$apk_root" -type f -name 'calendarProvisioner-debug.apk' -print0 2>/dev/null)
+          mapfile -d '' -t provisioner_test_apks < <(find "$apk_root" -type f -name 'calendarProvisioner-debug-androidTest.apk' -print0 2>/dev/null)
+          if [[ "${#provisioner_apks[@]}" -ne 1 || "${#provisioner_test_apks[@]}" -ne 1 ]]; then
+            printf 'APK_PRESERVATION=FAIL provisioner_count=%s instrumentation_count=%s\n' "${#provisioner_apks[@]}" "${#provisioner_test_apks[@]}" | tee "$EVIDENCE_DIR/provisioner-apk-preservation.txt" >&2
+            exit 1
+          fi
+          source_provisioner_apk="${provisioner_apks[0]}"
+          source_instrumentation_apk="${provisioner_test_apks[0]}"
+          for source_apk in "$source_provisioner_apk" "$source_instrumentation_apk"; do
+            if [[ ! -f "$source_apk" || ! -r "$source_apk" || ! -s "$source_apk" ]]; then
+              echo "::error::Built provisioner APK is missing, unreadable, or empty: $source_apk" >&2
+              exit 1
+            fi
+          done
+          provisioner_apk="$preserved_apk_dir/calendarProvisioner-debug.apk"
+          provisioner_test_apk="$preserved_apk_dir/calendarProvisioner-debug-androidTest.apk"
+          cp -- "$source_provisioner_apk" "$provisioner_apk"
+          cp -- "$source_instrumentation_apk" "$provisioner_test_apk"
+          for preserved_apk in "$provisioner_apk" "$provisioner_test_apk"; do
+            if [[ ! -f "$preserved_apk" || ! -r "$preserved_apk" || ! -s "$preserved_apk" ]]; then
+              echo "::error::Preserved provisioner APK is missing, unreadable, or empty: $preserved_apk" >&2
+              exit 1
+            fi
+          done
+          {
+            printf 'CHECKED_OUT_SHA=%s\n' "$(git -C "$repo_root" rev-parse HEAD)"
+            printf 'PRESERVED_APK_DIRECTORY=%s\n' "$preserved_apk_dir"
+            printf 'PROVISIONER_APK_SOURCE=%s\n' "$source_provisioner_apk"
+            printf 'PROVISIONER_APK_PATH=%s\n' "$provisioner_apk"
+            printf 'PROVISIONER_APK_SIZE_BYTES=%s\n' "$(stat -c '%s' "$provisioner_apk")"
+            printf 'PROVISIONER_APK_SHA256=%s\n' "$(sha256sum "$provisioner_apk" | awk '{print $1}')"
+            printf 'INSTRUMENTATION_APK_SOURCE=%s\n' "$source_instrumentation_apk"
+            printf 'INSTRUMENTATION_APK_PATH=%s\n' "$provisioner_test_apk"
+            printf 'INSTRUMENTATION_APK_SIZE_BYTES=%s\n' "$(stat -c '%s' "$provisioner_test_apk")"
+            printf 'INSTRUMENTATION_APK_SHA256=%s\n' "$(sha256sum "$provisioner_test_apk" | awk '{print $1}')"
+            printf 'APK_PRESERVATION=PASS\n'
+          } > "$preserved_apk_dir/manifest.txt"
+          cp -- "$preserved_apk_dir/manifest.txt" "$EVIDENCE_DIR/provisioner-apk-preservation.txt"
+          cat "$preserved_apk_dir/manifest.txt"
+          capture_command "$EVIDENCE_DIR/pre-instrumentation-logcat-clear.txt" "pre-A" "clear-logcat" adb logcat -c
+          continuous_logcat_raw="$RUNNER_TEMP/android-logcat-continuous-raw.txt"
+          continuous_logcat_stderr="$RUNNER_TEMP/android-logcat-continuous-stderr.txt"
+          continuous_logcat_pid_file="$EVIDENCE_DIR/continuous-logcat-process.txt"
+          {
+            printf 'LOGCAT_STREAM_START_UTC=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            printf 'COMMAND=adb logcat -b all -v threadtime\n'
+          } > "$continuous_logcat_pid_file"
+          adb logcat -b all -v threadtime > "$continuous_logcat_raw" 2> "$continuous_logcat_stderr" &
+          logcat_pid=$!
+          printf 'HOST_PID=%s\n' "$logcat_pid" >> "$continuous_logcat_pid_file"
+          if ! kill -0 "$logcat_pid"; then
+            echo "Continuous Android logcat failed to start" >&2
+            exit 1
+          fi
+          forensic_checkpoint "A-before-instrumentation"
+          cd android
+          gradle_start_utc="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          printf 'GRADLE_COMMAND_START_UTC=%s\nCOMMAND=bash ./gradlew :calendarProvisioner:connectedDebugAndroidTest --info --stacktrace --console=plain --warning-mode=all\n' "$gradle_start_utc" > "$EVIDENCE_DIR/provisioner-instrumentation.txt"
+          set +e
+          bash ./gradlew :calendarProvisioner:connectedDebugAndroidTest --info --stacktrace --console=plain --warning-mode=all >> "$EVIDENCE_DIR/provisioner-instrumentation.txt" 2>&1
+          gradle_rc=$?
+          set -e
+          gradle_end_utc="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          printf 'GRADLE_COMMAND_END_UTC=%s\nGRADLE_EXIT_CODE=%s\n' "$gradle_end_utc" "$gradle_rc" >> "$EVIDENCE_DIR/provisioner-instrumentation.txt"
+          {
+            printf 'LOGCAT_STREAM_STOP_REQUEST_UTC=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            set +e
+            kill "$logcat_pid"
+            logcat_kill_rc=$?
+            wait "$logcat_pid"
+            logcat_wait_rc=$?
+            set -e
+            printf 'LOGCAT_KILL_EXIT_CODE=%s\nLOGCAT_WAIT_EXIT_CODE=%s\n' "$logcat_kill_rc" "$logcat_wait_rc"
+            printf 'LOGCAT_STREAM_STOPPED_UTC=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          } >> "$continuous_logcat_pid_file"
+          python3 - "$continuous_logcat_raw" "$continuous_logcat_stderr" "$EVIDENCE_DIR/android-logcat-continuous.txt" "$EVIDENCE_DIR/continuous-logcat-summary.txt" <<'PY'
+          import pathlib, re, sys
+          raw_path, err_path, out_path, summary_path = map(pathlib.Path, sys.argv[1:])
+          raw = raw_path.read_text(encoding="utf-8", errors="replace")
+          err = err_path.read_text(encoding="utf-8", errors="replace")
+          target_name = "ARVIN CI Acceptance"
+          target_type = "com.example.arvin.calendarprovisioner.account"
+          def redact(value):
+              value = re.sub(r"[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}", "<redacted-email>", value)
+              value = re.sub(r"(?i)(account_name|ownerAccount)=([^,\s]+)", lambda m: m.group(1) + "=" + (m.group(2) if m.group(2) == target_name else "<redacted>"), value)
+              value = re.sub(r"Account\s*\{name=([^,}]+)", lambda m: "Account {name=" + (m.group(1) if m.group(1) == target_name else "<redacted>"), value)
+              value = re.sub(r"(?i)(accountName|accountNameForDisplay)=([^,\s]+)", r"\1=<redacted>", value)
+              return value
+          safe = redact(raw)
+          out_path.write_text(safe, encoding="utf-8")
+          events = [line for line in safe.splitlines() if re.search(r"(?i)com\.example\.arvin\.calendarprovisioner|PACKAGE_(?:REMOVED|ADDED)|deletePackageX|action_authenticator_remove|connectedDebugAndroidTest|uninstall", line)]
+          summary = [
+              "CONTINUOUS_LOGCAT_CAPTURE=complete",
+              f"RAW_LOG_LINES={len(raw.splitlines())}",
+              f"REDACTED_LOG_LINES={len(safe.splitlines())}",
+              f"PACKAGE_LIFECYCLE_RELEVANT_LINES={len(events)}",
+              f"TARGET_ACCOUNT_TYPE_SEEN={str(target_type in raw).lower()}",
+              "SENSITIVE_ACCOUNT_FIELDS_REDACTED=true",
+              "NOTE=Logcat process/thread IDs are retained where emitted; they do not by themselves prove the initiating caller."
+          ]
+          summary_path.write_text("\n".join(summary + events) + "\n", encoding="utf-8")
+          if err.strip():
+              pathlib.Path(str(out_path) + ".stderr.txt").write_text(redact(err), encoding="utf-8")
+          print("\n".join(summary))
+          PY
+          forensic_checkpoint "C-after-instrumentation"
+          capture_command "$EVIDENCE_DIR/lifecycle-B-to-C.txt" "C-after-instrumentation" "package-manager-and-instrumentation-logcat" adb logcat -d -v threadtime 'PackageManager:*' 'PackageInstaller:*' 'installd:*' 'ActivityManager:*' 'AndroidJUnitRunner:*' 'Instrumentation:*' 'CalendarProvisionerTest:*' 'CalendarProvisionerForensics:*'
+          cat "$EVIDENCE_DIR/provisioner-instrumentation.txt"
+          
+          junit_dir="../build/calendarProvisioner/outputs/androidTest-results/connected"
+          mkdir -p "$EVIDENCE_DIR/junit"
+          if [ -d "$junit_dir" ]; then
+            find "$junit_dir" -type f -name '*.xml' -print -exec cp --parents '{}' "$EVIDENCE_DIR/junit/" \;
+          fi
+          python3 - "$junit_dir" "$EVIDENCE_DIR/junit-summary.txt" <<'PY'
+          import pathlib, sys, xml.etree.ElementTree as ET
+          root = pathlib.Path(sys.argv[1])
+          output = pathlib.Path(sys.argv[2])
+          reports = sorted(root.rglob("*.xml")) if root.is_dir() else []
+          if not reports:
+              raise SystemExit("No JUnit XML report found")
+          matches = []
+          for report in reports:
+              try:
+                  doc = ET.parse(report).getroot()
+              except ET.ParseError as exc:
+                  raise SystemExit(f"Invalid JUnit XML {report}: {exc}")
+              for case in doc.iter("testcase"):
+                  if case.get("classname", "").endswith("CalendarProvisionerTest") and case.get("name") == "provisionsExactlyOneWritableCalendarIdempotently":
+                      matches.append((report, case))
+          if len(matches) != 1:
+              raise SystemExit(f"Expected exactly one Provisioner testcase in JUnit XML; found {len(matches)}")
+          report, case = matches[0]
+          bad = [child.tag for child in case if child.tag in ("failure", "error", "skipped")]
+          if bad:
+              output.write_text(
+                  f"JUNIT_REPORT={report}\nTEST_CASE={case.get('name')}\nTEST_RESULT=FAIL\nTEST_FAILURE_TAGS={','.join(bad)}\n",
+                  encoding="utf-8")
+              print(output.read_text(), end="")
+              raise SystemExit(f"Provisioner JUnit testcase failed or skipped: {bad}")
+          output.write_text(
+              f"JUNIT_REPORT={report}\nTEST_CLASS={case.get('classname')}\n"
+              f"TEST_CASE={case.get('name')}\nTEST_RESULT=PASS\n",
+              encoding="utf-8")
+          print(output.read_text(), end="")
+          PY
+          # Restore the repository root: the Gradle/JUnit section above runs from android/.
+          # APK evidence paths below are repository-root-relative.
+          cd ..
+          if [ "$gradle_rc" -ne 0 ]; then
+            echo "Instrumentation Gradle task failed with exit code $gradle_rc" >&2
+            exit "$gradle_rc"
+          fi
+
+          # Install only the durable APK copies captured before instrumentation/teardown.
+          preserved_apk_dir="$repo_root/.preserved_provisioner_apks"
+          provisioner_apk="$preserved_apk_dir/calendarProvisioner-debug.apk"
+          provisioner_test_apk="$preserved_apk_dir/calendarProvisioner-debug-androidTest.apk"
+          preservation_manifest="$preserved_apk_dir/manifest.txt"
+          if [[ ! -d "$preserved_apk_dir" || ! -r "$preservation_manifest" || ! -s "$preservation_manifest" ]]; then
+            echo "::error::Persistent provisioner APK directory or manifest is missing/unreadable after instrumentation teardown" >&2
+            exit 1
+          fi
+          for preserved_apk in "$provisioner_apk" "$provisioner_test_apk"; do
+            if [[ ! -f "$preserved_apk" || ! -r "$preserved_apk" || ! -s "$preserved_apk" ]]; then
+              echo "::error::Preserved provisioner APK is missing, unreadable, or empty after teardown: $preserved_apk" >&2
+              exit 1
+            fi
+          done
+          expected_provisioner_sha="$(sed -n 's/^PROVISIONER_APK_SHA256=//p' "$preservation_manifest")"
+          expected_instrumentation_sha="$(sed -n 's/^INSTRUMENTATION_APK_SHA256=//p' "$preservation_manifest")"
+          actual_provisioner_sha="$(sha256sum "$provisioner_apk" | awk '{print $1}')"
+          actual_instrumentation_sha="$(sha256sum "$provisioner_test_apk" | awk '{print $1}')"
+          if [[ ! "$expected_provisioner_sha" =~ ^[0-9a-f]{64}$ || ! "$expected_instrumentation_sha" =~ ^[0-9a-f]{64}$ || "$actual_provisioner_sha" != "$expected_provisioner_sha" || "$actual_instrumentation_sha" != "$expected_instrumentation_sha" ]]; then
+            {
+              printf 'POST_TEARDOWN_APK_INTEGRITY=FAIL\n'
+              printf 'EXPECTED_PROVISIONER_SHA256=%s\n' "$expected_provisioner_sha"
+              printf 'ACTUAL_PROVISIONER_SHA256=%s\n' "$actual_provisioner_sha"
+              printf 'EXPECTED_INSTRUMENTATION_SHA256=%s\n' "$expected_instrumentation_sha"
+              printf 'ACTUAL_INSTRUMENTATION_SHA256=%s\n' "$actual_instrumentation_sha"
+            } | tee "$EVIDENCE_DIR/provisioner-apk-integrity.txt" >&2
+            exit 1
+          fi
+          {
+            printf 'POST_TEARDOWN_APK_INTEGRITY=PASS\n'
+            printf 'PROVISIONER_APK_PATH=%s\n' "$provisioner_apk"
+            printf 'PROVISIONER_APK_SIZE_BYTES=%s\n' "$(stat -c '%s' "$provisioner_apk")"
+            printf 'PROVISIONER_APK_SHA256_EXPECTED=%s\n' "$expected_provisioner_sha"
+            printf 'PROVISIONER_APK_SHA256_ACTUAL=%s\n' "$actual_provisioner_sha"
+            printf 'INSTRUMENTATION_APK_PATH=%s\n' "$provisioner_test_apk"
+            printf 'INSTRUMENTATION_APK_SIZE_BYTES=%s\n' "$(stat -c '%s' "$provisioner_test_apk")"
+            printf 'INSTRUMENTATION_APK_SHA256_EXPECTED=%s\n' "$expected_instrumentation_sha"
+            printf 'INSTRUMENTATION_APK_SHA256_ACTUAL=%s\n' "$actual_instrumentation_sha"
+          } | tee "$EVIDENCE_DIR/provisioner-apk-integrity.txt"
+          sdk_root="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          if [ -z "$sdk_root" ]; then
+            echo "APK_VALIDATION=FAIL Android SDK root is unavailable" >&2
+            exit 1
+          fi
+          aapt_bin="$(find "$sdk_root/build-tools" -type f -name aapt -print -quit)"
+          if [ -z "$aapt_bin" ]; then
+            echo "APK_VALIDATION=FAIL aapt was not found" >&2
+            exit 1
+          fi
+          "$aapt_bin" dump badging "$provisioner_apk" | grep -Eq "^package: name='com.example.arvin.calendarprovisioner'([[:space:]]|$)"
+          "$aapt_bin" dump badging "$provisioner_test_apk" | grep -Eq "^package: name='com.example.arvin.calendarprovisioner.test'([[:space:]]|$)"
+          cp -- "$preservation_manifest" "$EVIDENCE_DIR/provisioner-apk-manifest.txt"
+          cat "$EVIDENCE_DIR/provisioner-apk-manifest.txt"
+          adb install -r "$provisioner_apk"
+          adb install -r "$provisioner_test_apk"
+          set +e
+          adb shell am instrument -w -r -e class 'com.example.arvin.calendarprovisioner.CalendarProvisionerTest#provisionsExactlyOneWritableCalendarIdempotently' 'com.example.arvin.calendarprovisioner.test/androidx.test.runner.AndroidJUnitRunner' > "$RUNNER_TEMP/provisioner-post-cleanup-instrumentation.txt" 2>&1
+          post_cleanup_rc=$?
+          set -e
+          cp "$RUNNER_TEMP/provisioner-post-cleanup-instrumentation.txt" "$EVIDENCE_DIR/provisioner-post-cleanup-instrumentation.txt"
+          cat "$EVIDENCE_DIR/provisioner-post-cleanup-instrumentation.txt"
+          if [ "$post_cleanup_rc" -ne 0 ] || ! grep -Fq 'INSTRUMENTATION_CODE: -1' "$RUNNER_TEMP/provisioner-post-cleanup-instrumentation.txt" || ! grep -Fq 'OK (1 test)' "$RUNNER_TEMP/provisioner-post-cleanup-instrumentation.txt" || grep -Eq 'FAILURES!!!|INSTRUMENTATION_FAILED|Error in ' "$RUNNER_TEMP/provisioner-post-cleanup-instrumentation.txt"; then
+            printf 'POST_CLEANUP_PROVISIONER_TEST=FAIL exit_code=%s\n' "$post_cleanup_rc" | tee "$EVIDENCE_DIR/provisioner-post-cleanup-result.txt"
+            exit 1
+          fi
+          printf 'POST_CLEANUP_PROVISIONER_TEST=PASS exit_code=%s\n' "$post_cleanup_rc" | tee "$EVIDENCE_DIR/provisioner-post-cleanup-result.txt"
+          forensic_checkpoint "C2-after-post-cleanup-provisioner-test"
+          adb logcat -d -s CalendarProvisionerTest:I CalendarProvisionerForensics:I '*:S' > "$EVIDENCE_DIR/provisioner-logcat.txt"
+          python3 - "$EVIDENCE_DIR/provisioner-logcat.txt" "$EVIDENCE_DIR/provisioner-result.txt" <<'PY'
+          import pathlib, re, sys
+          log = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace")
+          pattern = re.compile(r"CALENDAR_PROVISIONER=PASS calendarId=(\d+) account=ARVIN CI Acceptance accessLevel>=500")
+          matches = pattern.findall(log)
+          if not matches:
+              raise SystemExit("JUnit passed but actual Provisioner success evidence was not found in logcat")
+          calendar_id = matches[-1][0]
+          pathlib.Path(sys.argv[2]).write_text(
+              f"CALENDAR_PROVISIONER=PASS calendarId={calendar_id} account=ARVIN CI Acceptance accessLevel>=500\n",
+              encoding="utf-8")
+          print(pathlib.Path(sys.argv[2]).read_text(), end="")
+          PY
+          python3 - "$EVIDENCE_DIR/checkpoint-C2-after-post-cleanup-provisioner-test.txt" "$EVIDENCE_DIR/provisioner-result.txt" "$EVIDENCE_DIR/provisioner-provider-verification.txt" <<'PY'
+          import pathlib, re, sys
+          checkpoint_path, result_path, output_path = map(pathlib.Path, sys.argv[1:])
+          checkpoint = checkpoint_path.read_text(encoding="utf-8", errors="replace")
+          result = result_path.read_text(encoding="utf-8", errors="replace")
+          if "DUMPSYS_TARGET_ACCOUNT_MENTIONED=true" not in checkpoint:
+              raise SystemExit("Provisioner account is not independently confirmed in checkpoint C2")
+          if "PROVISIONER_PACKAGE_LISTED=true" not in checkpoint:
+              raise SystemExit("Provisioner package is not installed/listed in checkpoint C2")
+          if "MATCHING_EXPECTED_CALENDAR_COUNT=1" not in checkpoint:
+              raise SystemExit("Checkpoint C2 does not prove exactly one matching writable calendar")
+          match = re.search(r"CALENDAR_PROVISIONER=PASS calendarId=(\d+) account=ARVIN CI Acceptance accessLevel>=500", result)
+          if not match:
+              raise SystemExit("Provisioner result does not contain a validated calendar ID")
+          calendar_id = match.group(1)
+          rows = []
+          for line in checkpoint.splitlines():
+              if not re.search(r"\bRow:\s*\d+", line):
+                  continue
+              fields = dict(re.findall(r"([A-Za-z_]+)=([^,]*)", line))
+              try:
+                  access = int(fields.get("calendar_access_level", "0").strip())
+              except ValueError:
+                  access = -1
+              if (fields.get("_id", "").strip() == calendar_id and
+                  fields.get("account_name", "").strip() == "ARVIN CI Acceptance" and
+                  fields.get("account_type", "").strip() == "com.example.arvin.calendarprovisioner.account" and
+                  fields.get("calendar_displayName", "").strip() == "ARVIN CI Acceptance" and access >= 500):
+                  rows.append(fields)
+          if len(rows) != 1:
+              raise SystemExit(f"Provisioner log calendar ID {calendar_id} does not match exactly one checkpoint C2 writable row")
+          output_path.write_text(
+              f"PROVISIONER_ACCOUNT=PASS account=ARVIN CI Acceptance\n"
+              f"PROVISIONER_CALENDAR_COUNT=PASS matching=1\n"
+              f"PROVISIONER_CALENDAR_ID=PASS id={calendar_id}\n"
+              f"PROVISIONER_WRITE_ACCESS=PASS accessLevel={rows[0]['calendar_access_level'].strip()}\n",
+              encoding="utf-8")
+          print(output_path.read_text(), end="")
+          PY
+          app_apk="$repo_root/build/app/outputs/flutter-apk/app-debug.apk"
+          rm -f "$app_apk"
+          (cd "$repo_root" && flutter build apk --debug -t lib/main.dart)
+          if [[ ! -s "$app_apk" ]]; then
+            echo "::error::Main app APK is missing or empty: $app_apk" >&2
+            exit 1
+          fi
+          "$aapt_bin" dump badging "$app_apk" | grep -Eq "^package: name='com.example.arvin'([[:space:]]|$)" || {
+            echo "::error::Built APK package ID does not match com.example.arvin" >&2
+            exit 1
+          }
+          {
+            printf 'CHECKED_OUT_SHA=%s\n' "$(git -C "$repo_root" rev-parse HEAD)"
+            printf 'MAIN_APP_APK_PATH=%s\n' "$app_apk"
+            printf 'MAIN_APP_APK_SIZE_BYTES=%s\n' "$(stat -c '%s' "$app_apk")"
+            printf 'MAIN_APP_APK_SHA256=%s\n' "$(sha256sum "$app_apk" | awk '{print $1}')"
+          } > "$EVIDENCE_DIR/main-app-apk-manifest.txt"
+          cat "$EVIDENCE_DIR/main-app-apk-manifest.txt"
+          adb install -r "$app_apk"
+          adb shell pm grant com.example.arvin android.permission.READ_CALENDAR
+          adb shell pm grant com.example.arvin android.permission.WRITE_CALENDAR
+          : > "$EVIDENCE_DIR/main-app-permissions.txt"
+          verify_main_app_permissions
+          for required_evidence in "$EVIDENCE_DIR/sha-verification.txt" "$EVIDENCE_DIR/provisioner-build-preflight.txt" "$EVIDENCE_DIR/provisioner-apk-preservation.txt" "$EVIDENCE_DIR/provisioner-apk-integrity.txt" "$EVIDENCE_DIR/provisioner-apk-manifest.txt" "$EVIDENCE_DIR/main-app-apk-manifest.txt" "$EVIDENCE_DIR/main-app-permissions.txt" "$EVIDENCE_DIR/provisioner-post-cleanup-result.txt" "$EVIDENCE_DIR/provisioner-post-cleanup-instrumentation.txt" "$EVIDENCE_DIR/junit-summary.txt" "$EVIDENCE_DIR/provisioner-logcat.txt" "$EVIDENCE_DIR/provisioner-result.txt" "$EVIDENCE_DIR/provisioner-provider-verification.txt" "$EVIDENCE_DIR/checkpoint-C2-after-post-cleanup-provisioner-test.txt"; do
+            if [[ ! -s "$required_evidence" || ! -r "$required_evidence" ]]; then
+              echo "::error::Required Provisioner evidence is missing, empty, or unreadable: $required_evidence" >&2
+              exit 1
+            fi
+          done
+          forensic_checkpoint "D-before-flutter-calendar-check"
+          android_sdk="$(adb shell getprop ro.build.version.sdk | tr -d '\r')"
+          emulator_serial="emulator-${EMULATOR_PORT}"
+          set +e
+          (cd "$repo_root" && flutter test integration_test/android_calendar_provider_acceptance_test.dart -d "$emulator_serial" --dart-define="ARVIN_EMULATOR_SERIAL=$emulator_serial" --dart-define="ARVIN_ANDROID_SDK=$android_sdk") > "$EVIDENCE_DIR/test-output.txt" 2>&1
+          flutter_rc=$?
+          set -e
+          if [[ ! -s "$EVIDENCE_DIR/test-output.txt" || ! -r "$EVIDENCE_DIR/test-output.txt" ]]; then
+            echo "::error::Flutter test evidence is missing, empty, or unreadable" >&2
+            exit 1
+          fi
+          cat "$EVIDENCE_DIR/test-output.txt"
+          if [ "$flutter_rc" -ne 0 ]; then
+            echo "Flutter Calendar Provider acceptance failed with exit code $flutter_rc" >&2
+            echo "RESULT=FAILURE_FLUTTER_EXIT_$flutter_rc" > "$EVIDENCE_DIR/result.txt"
+            exit "$flutter_rc"
+          fi
+          if grep -q 'CALENDAR_PROVIDER_ACCEPTANCE=PASS' "$EVIDENCE_DIR/test-output.txt" && grep -q 'CALENDAR_PROVIDER_NOOP_NO_DUPLICATE=PASS' "$EVIDENCE_DIR/test-output.txt"; then
+            echo 'RESULT=PASS_REAL_PROVIDER_CREATE_NOOP_UPDATE_DELETE' > "$EVIDENCE_DIR/result.txt"
+          elif grep -q 'CALENDAR_PROVIDER_ACCEPTANCE=BLOCKED_PROVISIONED_CALENDAR_MISSING' "$EVIDENCE_DIR/test-output.txt"; then
+            echo 'RESULT=BLOCKED_PROVISIONED_CALENDAR_MISSING' > "$EVIDENCE_DIR/result.txt"
+            exit 1
+          else
+            echo 'RESULT=FAILURE_OR_BLOCKED_MISSING_ACCEPTANCE_MARKERS' > "$EVIDENCE_DIR/result.txt"
+            echo "Flutter test exited zero without all explicit acceptance markers." >&2
+            exit 1
+          fi
+          BASH
+          chmod 700 "$RUNNER_TEMP/calendar-provider-acceptance.sh"
+          echo "=== VALIDATE GENERATED ACCEPTANCE SCRIPT ==="
+          bash -n "$RUNNER_TEMP/calendar-provider-acceptance.sh"
+          echo "BASH_SYNTAX_VALIDATION=PASS"
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+          shellcheck --severity=error -s bash "$RUNNER_TEMP/calendar-provider-acceptance.sh"
+          echo "SHELLCHECK_VALIDATION=PASS"
+
+      - name: Run Calendar Provisioner instrumentation and real Provider acceptance
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
           arch: x86_64
           target: default
           disable-animations: true
-          script: mkdir -p .github/calendar-provider-evidence && echo "HEAD_SHA=$(git rev-parse HEAD)" > .github/calendar-provider-evidence/environment.txt && echo "EMULATOR_API=$(adb shell getprop ro.build.version.sdk | tr -d '\\r')" >> .github/calendar-provider-evidence/environment.txt && echo "PROVIDER_DISCOVERY_BEGIN" >> .github/calendar-provider-evidence/environment.txt && (adb shell dumpsys package providers | grep -i -E 'calendar|com.android.providers.calendar' >> .github/calendar-provider-evidence/environment.txt || true) && echo "PROVIDER_DISCOVERY_END" >> .github/calendar-provider-evidence/environment.txt && flutter build apk --debug -t lib/main.dart && adb install -r build/app/outputs/flutter-apk/app-debug.apk && adb shell pm grant com.example.arvin android.permission.READ_CALENDAR && adb shell pm grant com.example.arvin android.permission.WRITE_CALENDAR && flutter test integration_test/android_calendar_provider_acceptance_test.dart -d emulator-${EMULATOR_PORT} > .github/calendar-provider-evidence/test-output.txt 2>&1; rc=$?; cat .github/calendar-provider-evidence/test-output.txt 2>/dev/null || true; if [ "$rc" -ne 0 ]; then exit "$rc"; fi; if grep -q 'CALENDAR_PROVIDER_ACCEPTANCE=PASS' .github/calendar-provider-evidence/test-output.txt; then echo 'RESULT=PASS_REAL_PROVIDER_CREATE_NOOP_UPDATE_DELETE' > .github/calendar-provider-evidence/result.txt; elif grep -q 'CALENDAR_PROVIDER_ACCEPTANCE=LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR' .github/calendar-provider-evidence/test-output.txt; then echo 'RESULT=LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR' > .github/calendar-provider-evidence/result.txt; else echo 'No explicit provider acceptance result was emitted.' >&2; exit 1; fi
+          script: bash "$RUNNER_TEMP/calendar-provider-acceptance.sh"
 
       - name: Publish exact-head provider evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: arvin-calendar-provider-acceptance-${{ github.event.pull_request.head.sha || github.sha }}
+          name: arvin-calendar-provider-acceptance-${{ github.event.inputs.target_sha || github.event.pull_request.head.sha || github.sha }}
           path: .github/calendar-provider-evidence
           if-no-files-found: error

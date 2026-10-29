@@ -29,15 +29,11 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
   final _titleController = TextEditingController();
   final _noteController = TextEditingController();
   final _resultController = TextEditingController();
-  DateTime? _reminderDate;
-  DateTime? _nextFollowUp;
   bool _waitingForResponse = false;
   late DateTime _initialDateTime;
   late String _initialTitle;
   late String _initialNote;
   late String _initialResult;
-  late DateTime? _initialReminderDate;
-  late DateTime? _initialNextFollowUp;
   late bool _initialWaitingForResponse;
 
   bool get _editing => widget.initialFollowUp != null;
@@ -52,14 +48,10 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     _waitingForResponse = initial?.waitingForResponse == true ||
         _waitingService.isWaitingResult(initial?.result);
     _resultController.text = _waitingForResponse ? '' : initial?.result ?? '';
-    _reminderDate = initial?.reminderDate;
-    _nextFollowUp = initial?.nextFollowUp;
     _initialDateTime = _dateTime;
     _initialTitle = _titleController.text;
     _initialNote = _noteController.text;
     _initialResult = _resultController.text;
-    _initialReminderDate = _reminderDate;
-    _initialNextFollowUp = _nextFollowUp;
     _initialWaitingForResponse = _waitingForResponse;
   }
 
@@ -137,72 +129,11 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     });
   }
 
-  DateTime _baseReminder() => _reminderDate ?? _nextFollowUp ?? _dateTime;
-
-  Future<void> _pickReminderDate() async {
-    final base = _baseReminder();
-    final picked = await _pickPersianDate(
-      initialDate: base,
-      firstDate: DateTime(2020),
-      helpText: 'انتخاب تاریخ یادآور پیگیری',
-    );
-    if (picked == null || !mounted) return;
-    setState(() {
-      _reminderDate = DateTime(
-        picked.year,
-        picked.month,
-        picked.day,
-        base.hour,
-        base.minute,
-      );
-    });
-  }
-
-  Future<void> _pickReminderTime() async {
-    final base = _baseReminder();
-    final picked = await _pickClock(
-      initialDate: base,
-      helpText: 'انتخاب ساعت یادآور پیگیری',
-    );
-    if (picked == null || !mounted) return;
-    setState(() {
-      _reminderDate = DateTime(
-        base.year,
-        base.month,
-        base.day,
-        picked.hour,
-        picked.minute,
-      );
-    });
-  }
-
-  void _clearReminder() => setState(() => _reminderDate = null);
-
-  Future<void> _pickNext() async {
-    final picked = await _pickPersianDate(
-      initialDate: _nextFollowUp ?? _dateTime,
-      firstDate: _dateTime,
-      helpText: 'انتخاب پیگیری بعدی',
-    );
-    if (picked == null || !mounted) return;
-    setState(() {
-      _nextFollowUp = DateTime(
-        picked.year,
-        picked.month,
-        picked.day,
-        _dateTime.hour,
-        _dateTime.minute,
-      );
-    });
-  }
-
   bool get _hasChanges =>
       _dateTime != _initialDateTime ||
       _titleController.text != _initialTitle ||
       _noteController.text != _initialNote ||
       _resultController.text != _initialResult ||
-      _reminderDate != _initialReminderDate ||
-      _nextFollowUp != _initialNextFollowUp ||
       _waitingForResponse != _initialWaitingForResponse;
 
   Future<void> _requestClose() async {
@@ -260,8 +191,9 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
       completed: widget.initialFollowUp?.completed ?? false,
       waitingForResponse: _waitingForResponse,
       personIds: widget.initialFollowUp?.personIds ?? const <String>[],
-      reminderDate: _reminderDate,
-      nextFollowUp: _nextFollowUp,
+      // Preserve legacy fields during edits without exposing retired scheduling UI.
+      reminderDate: widget.initialFollowUp?.reminderDate,
+      nextFollowUp: widget.initialFollowUp?.nextFollowUp,
     );
     widget.onSaved?.call(followUp);
     Navigator.of(context).pop(followUp);
@@ -269,7 +201,6 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
 
   @override
   Widget build(BuildContext context) {
-    final reminder = _reminderDate;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -361,81 +292,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
               ),
             ),
             const SizedBox(height: 12),
-            OutlinedButton.icon(
-              onPressed: _pickNext,
-              icon: const Icon(Icons.event_repeat),
-              label: Text(
-                _nextFollowUp == null
-                    ? 'انتخاب پیگیری بعدی'
-                    : 'پیگیری بعدی: ${_formatDate(_nextFollowUp!)} • ساعت ${_formatTime(_nextFollowUp!)}',
-              ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              key: const ValueKey('follow-up-reminder-block'),
-              margin: EdgeInsets.zero,
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      children: [
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'یادآور این پیگیری',
-                                style: TextStyle(fontWeight: FontWeight.w700),
-                              ),
-                              SizedBox(height: 2),
-                              Text('مستقل از زمان خود پیگیری و پیگیری بعدی'),
-                            ],
-                          ),
-                        ),
-                        if (reminder != null)
-                          TextButton(
-                            key: const ValueKey('follow-up-reminder-clear'),
-                            onPressed: _clearReminder,
-                            child: const Text('حذف یادآور'),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            key: const ValueKey('follow-up-reminder-date'),
-                            onPressed: _pickReminderDate,
-                            icon: const Icon(Icons.notifications_active_outlined),
-                            label: Text(
-                              reminder == null
-                                  ? 'تاریخ یادآور'
-                                  : _formatDate(reminder),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            key: const ValueKey('follow-up-reminder-time'),
-                            onPressed: _pickReminderTime,
-                            icon: const Icon(Icons.schedule_outlined),
-                            label: Text(
-                              reminder == null
-                                  ? 'ساعت یادآور'
-                                  : _formatTime(reminder),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
+
           ],
         ),
         bottomNavigationBar: SafeArea(

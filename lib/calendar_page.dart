@@ -99,6 +99,7 @@ class _CalendarPageState extends State<CalendarPage> {
   late DateTime _month;
   late DateTime _selectedDay;
   _CalendarViewMode _viewMode = _CalendarViewMode.week;
+  bool _wave796DiagnosticLogged = false;
 
   @override
   void initState() {
@@ -719,6 +720,21 @@ class _CalendarPageState extends State<CalendarPage> {
     final selectedJalali = _dateFormatter.toJalali(_selectedDay);
     final selectedReminders = _forDay(_selectedDay);
     final selectedDailyContent = widget.dailyContentForDate?.call(_selectedDay);
+    if (!_wave796DiagnosticLogged) {
+      _wave796DiagnosticLogged = true;
+      final allCalendarReminders = _calendarReminders();
+      debugPrint(
+        'CALENDAR_DIAG_C: selectedDay=${_selectedDay.toIso8601String()} '
+        'incomingReminderIds=${widget.reminders.map((item) => item.id).toList()}',
+      );
+      debugPrint(
+        'CALENDAR_DIAG_C: mergedReminderIds=${allCalendarReminders.map((item) => item.id).toList()} '
+        'dayFilterOutputIds=${selectedReminders.map((item) => item.id).toList()}',
+      );
+      debugPrint(
+        'CALENDAR_DIAG_C: finalCardKeys=${selectedReminders.map((item) => 'reminder-card-${item.id}').toList()}',
+      );
+    }
     final hasSelectedItems =
         selectedDailyContent != null || selectedReminders.isNotEmpty;
 

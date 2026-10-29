@@ -26,7 +26,7 @@ class CalendarScheduleProjection {
             id: 'calendar:${reminder.id}',
             ownerId: reminder.id,
             start: reminder.date,
-            end: reminder.date.add(timedDuration),
+            end: reminder.end ?? reminder.date.add(timedDuration),
           ),
         )
         .toList();

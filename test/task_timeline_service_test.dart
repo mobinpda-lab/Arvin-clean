@@ -66,7 +66,7 @@ void main() {
     expect(entry.result, 'پاسخ مثبت');
   });
 
-  test('uses legacy followUpDate only when canonical history is empty', () {
+  test('legacy followUpDate alone never creates a timeline history entry', () {
     final legacyOnly = Task(
       id: 'legacy',
       title: 'قدیمی',
@@ -87,8 +87,7 @@ void main() {
     final legacyTimeline = service.build(legacyOnly);
     final canonicalTimeline = service.build(withHistory);
 
-    expect(legacyTimeline, hasLength(1));
-    expect(legacyTimeline.single.id, 'task:legacy:legacy-followup');
+    expect(legacyTimeline, isEmpty);
     expect(canonicalTimeline, hasLength(1));
     expect(canonicalTimeline.single.id, 'followup:real');
   });

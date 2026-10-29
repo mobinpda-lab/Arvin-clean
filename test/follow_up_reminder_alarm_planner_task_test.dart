@@ -24,7 +24,7 @@ void main() {
     );
   });
 
-  test('does not schedule a delivered Task reminder but still schedules FollowUp work', () {
+  test('delivered Task reminder is not replaced by legacy Follow-up reminder', () {
     final taskReminder = now.add(const Duration(hours: 1));
     final followUpReminder = now.add(const Duration(hours: 2));
     final task = Task(
@@ -48,7 +48,7 @@ void main() {
       now: now,
     );
 
-    expect(result, followUpReminder);
+    expect(result, isNull);
   });
 
   test('completed Task does not schedule its reminder', () {

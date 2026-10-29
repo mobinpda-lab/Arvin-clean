@@ -22,19 +22,69 @@ void main() {
     expect(readGranted, isTrue, reason: 'READ_CALENDAR must be granted by CI');
     expect(writeGranted, isTrue, reason: 'WRITE_CALENDAR must be granted by CI');
 
-    final calendars = await bridge.listDeviceCalendars();
+    const emulatorSerial = String.fromEnvironment(
+      'ARVIN_EMULATOR_SERIAL',
+      defaultValue: 'unknown',
+    );
+    const androidSdk = String.fromEnvironment(
+      'ARVIN_ANDROID_SDK',
+      defaultValue: 'unknown',
+    );
+    final readPermissionNow = await bridge.hasReadPermission();
+    final writePermissionNow = await bridge.hasWritePermission();
+    late final List<DeviceCalendarInfo> calendars;
+    try {
+      calendars = await bridge.listDeviceCalendars();
+    } catch (error, stackTrace) {
+      debugPrint(
+        'CALENDAR_PROVIDER_SNAPSHOT=C-before-zero-assertion '
+        'device=$emulatorSerial sdk=$androidSdk '
+        'readPermission=$readPermissionNow writePermission=$writePermissionNow '
+        'rawRowCount=QUERY_ERROR matchingRowCount=QUERY_ERROR '
+        'queryErrorType=${error.runtimeType} queryError=$error',
+      );
+      Error.throwWithStackTrace(error, stackTrace);
+    }
     final writable = calendars
-        .where((item) => item.accessLevel >= 500)
+        .where(
+          (item) =>
+              item.accountName == 'ARVIN CI Acceptance' &&
+              item.accountType == 'com.example.arvin.calendarprovisioner.account' &&
+              item.accessLevel >= 500,
+        )
         .toList(growable: false);
 
-    if (writable.isEmpty) {
+    debugPrint(
+      'CALENDAR_PROVIDER_SNAPSHOT=C-before-zero-assertion '
+      'device=$emulatorSerial sdk=$androidSdk '
+      'readPermission=$readPermissionNow writePermission=$writePermissionNow '
+      'rawRowCount=${calendars.length} matchingRowCount=${writable.length}',
+    );
+    for (final item in calendars) {
+      final nameMatches = item.accountName == 'ARVIN CI Acceptance';
+      final typeMatches =
+          item.accountType == 'com.example.arvin.calendarprovisioner.account';
       debugPrint(
-        'CALENDAR_PROVIDER_ACCEPTANCE=LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR',
+        'CALENDAR_PROVIDER_ROW id=${item.id} '
+        'accountName=${nameMatches ? item.accountName : '<redacted-or-mismatch>'} '
+        'accountType=${typeMatches ? item.accountType : '<redacted-or-mismatch>'} '
+        'displayName=${item.displayName == 'ARVIN CI Acceptance' ? item.displayName : '<redacted-or-mismatch>'} '
+        'accessLevel=${item.accessLevel} '
+        'matchAccountName=$nameMatches matchAccountType=$typeMatches '
+        'matchAccessLevel=${item.accessLevel >= 500}',
       );
-      return;
     }
 
-    final calendar = writable.first;
+    if (writable.length != 1) {
+      debugPrint(
+        'CALENDAR_PROVIDER_ACCEPTANCE=BLOCKED_PROVISIONED_CALENDAR_MISSING count=${writable.length}',
+      );
+      throw StateError(
+        'Calendar Provider acceptance BLOCKED: expected exactly one writable ARVIN CI Acceptance calendar; CRUD was not executed.',
+      );
+    }
+
+    final calendar = writable.single;
     final store = ExternalCalendarLinkStore(
       preferencesKey: 'arvin.calendar.externalLinks.acceptance',
     );
@@ -86,6 +136,23 @@ void main() {
     );
     expect(noOpResult.noOp, 1);
     expect(noOpResult.created, 0);
+
+    final eventsAfterNoOp = await bridge.listDeviceCalendarEvents(
+      calendarIds: [calendar.id],
+      start: start.subtract(const Duration(hours: 1)),
+      end: start.add(const Duration(hours: 4)),
+    );
+    expect(
+      eventsAfterNoOp.where((event) => event.eventId == createdLink.eventId),
+      hasLength(1),
+      reason: 'the original linked event must remain present exactly once',
+    );
+    expect(
+      eventsAfterNoOp.where((event) => event.title == reminder.title),
+      hasLength(1),
+      reason: 'no-op update must not create a duplicate Calendar Provider event',
+    );
+    debugPrint('CALENDAR_PROVIDER_NOOP_NO_DUPLICATE=PASS');
 
     final updatedReminder = CalendarReminder(
       id: reminder.id,

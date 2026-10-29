@@ -2161,9 +2161,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _registerTaskInDeviceCalendar(CalendarReminder reminder) async {
     final isTaskCalendarItem = reminder.id.startsWith('task-due:') ||
         reminder.id.startsWith('task-reminder-item:') ||
-        reminder.id.startsWith('task-reminder:') ||
-        reminder.id.startsWith('task-followup:') ||
-        reminder.id.startsWith('followup:');
+        reminder.id.startsWith('task-reminder:');
     if (!isTaskCalendarItem) return;
     var settings = await appSettingsService.load();
     var targetCalendarId = settings.calendarIntegration.targetCalendarId?.trim();
@@ -2189,37 +2187,23 @@ class _HomePageState extends State<HomePage> {
     }
 
     Task? task;
-    final followUpTarget = reminder.id.startsWith('followup:')
-        ? calendarProjection.resolveTarget(_searchSource, reminder.id)
-        : null;
-    if (followUpTarget != null) {
+    for (final prefix in const <String>[
+      'task-reminder-item:',
+      'task-due:',
+      'task-reminder:',
+    ]) {
+      if (!reminder.id.startsWith(prefix)) continue;
+      final suffix = reminder.id.substring(prefix.length);
       for (final candidate in _searchSource) {
-        if (candidate.id == followUpTarget.taskId) {
+        // Repeat occurrences append an ISO timestamp to the canonical Task
+        // ID (which itself is stable). Match the Task prefix, not the entire
+        // occurrence ID, so each occurrence can still edit/register its Task.
+        if (suffix == candidate.id || suffix.startsWith('${candidate.id}:')) {
           task = candidate;
           break;
         }
       }
-    }
-    if (task == null) {
-      for (final prefix in const <String>[
-        'task-reminder-item:',
-        'task-due:',
-        'task-reminder:',
-        'task-followup:',
-      ]) {
-        if (!reminder.id.startsWith(prefix)) continue;
-        final suffix = reminder.id.substring(prefix.length);
-        for (final candidate in _searchSource) {
-          // Repeat occurrences append an ISO timestamp to the canonical Task
-          // ID (which itself is stable). Match the Task prefix, not the entire
-          // occurrence ID, so each occurrence can still edit/register its Task.
-          if (suffix == candidate.id || suffix.startsWith('${candidate.id}:')) {
-            task = candidate;
-            break;
-          }
-        }
-        if (task != null) break;
-      }
+      if (task != null) break;
     }
     if (task == null) return;
 
@@ -2662,16 +2646,7 @@ class _HomePageState extends State<HomePage> {
         }
         return false;
       case TaskSwipeAction.convertToFollowUp:
-        if (task.followUpEnabled) return false;
-        await taskStore.convertToFollowUp(task.id);
-        await _load();
-        if (mounted) {
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              const SnackBar(content: Text('کار به کار پیگیری‌دار تبدیل شد')),
-            );
-        }
+        // Retired legacy action: Follow-up is recorded history, not a Task mode.
         return false;
       case TaskSwipeAction.none:
         return false;
@@ -2684,14 +2659,14 @@ class _HomePageState extends State<HomePage> {
       TaskSwipeAction.archive => Icons.archive_outlined,
       TaskSwipeAction.trash => Icons.delete_outline,
       TaskSwipeAction.moveToToday => Icons.today_outlined,
-      TaskSwipeAction.convertToFollowUp => Icons.follow_the_signs_outlined,
+      TaskSwipeAction.convertToFollowUp => Icons.block,
       TaskSwipeAction.none => Icons.block,
     };
     final label = switch (action) {
       TaskSwipeAction.archive => 'بایگانی',
       TaskSwipeAction.trash => 'سطل زباله',
       TaskSwipeAction.moveToToday => 'انتقال به امروز',
-      TaskSwipeAction.convertToFollowUp => 'تبدیل به کار پیگیری‌دار',
+      TaskSwipeAction.convertToFollowUp => 'بدون عمل (گزینه قدیمی)',
       TaskSwipeAction.none => 'بدون عمل',
     };
     return Container(

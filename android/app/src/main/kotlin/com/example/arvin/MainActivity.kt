@@ -134,8 +134,14 @@ class MainActivity : FlutterActivity() {
                         return@setMethodCallHandler
                     }
                     try {
-                        val uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId)
-                        val updated = contentResolver.update(uri, eventValues(calendarId, title, startMillis, endMillis, allDay, description), CalendarContract.Events.CALENDAR_ID + " = ?", arrayOf(calendarIdText))
+                        // Selection is not permitted on an item URI by Calendar Provider.
+                        // Use the collection URI and constrain both row and owner calendar.
+                        val updated = contentResolver.update(
+                            CalendarContract.Events.CONTENT_URI,
+                            eventValues(calendarId, title, startMillis, endMillis, allDay, description),
+                            CalendarContract.Events._ID + " = ? AND " + CalendarContract.Events.CALENDAR_ID + " = ?",
+                            arrayOf(eventId.toString(), calendarIdText),
+                        )
                         result.success(updated == 1)
                     } catch (error: SecurityException) {
                         result.error("calendar_write_denied", "Android Calendar Provider denied update", error.message)
@@ -179,13 +185,12 @@ class MainActivity : FlutterActivity() {
                         return@setMethodCallHandler
                     }
                     try {
-                        val uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId)
                         var exists = false
                         contentResolver.query(
-                            uri,
+                            CalendarContract.Events.CONTENT_URI,
                             arrayOf(CalendarContract.Events._ID, CalendarContract.Events.CALENDAR_ID),
-                            CalendarContract.Events.CALENDAR_ID + " = ?",
-                            arrayOf(calendarIdText),
+                            CalendarContract.Events._ID + " = ? AND " + CalendarContract.Events.CALENDAR_ID + " = ?",
+                            arrayOf(eventId.toString(), calendarIdText),
                             null,
                         )?.use { cursor ->
                             exists = cursor.moveToFirst() &&
@@ -212,8 +217,13 @@ class MainActivity : FlutterActivity() {
                         return@setMethodCallHandler
                     }
                     try {
-                        val uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId)
-                        val deleted = contentResolver.delete(uri, CalendarContract.Events.CALENDAR_ID + " = ?", arrayOf(calendarIdText))
+                        // Use the collection URI because Calendar Provider rejects selections
+                        // attached to a row-specific Events URI.
+                        val deleted = contentResolver.delete(
+                            CalendarContract.Events.CONTENT_URI,
+                            CalendarContract.Events._ID + " = ? AND " + CalendarContract.Events.CALENDAR_ID + " = ?",
+                            arrayOf(eventId.toString(), calendarIdText),
+                        )
                         result.success(deleted == 1)
                     } catch (error: SecurityException) {
                         result.error("calendar_write_denied", "Android Calendar Provider denied delete", error.message)

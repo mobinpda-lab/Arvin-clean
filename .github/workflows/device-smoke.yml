@@ -175,6 +175,10 @@ jobs:
           set -euo pipefail
           flutter pub get --enforce-lockfile
           git diff --exit-code -- pubspec.lock
+      - name: Verify Reminder legacy compatibility
+        if: matrix.scenario == 'calendar'
+        run: flutter test test/task_reminder_legacy_compatibility_test.dart test/follow_up_entry_page_test.dart
+
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -213,8 +217,5 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: arvin-device-smoke-calendar-${{ github.sha }}
-          path: |
-            artifacts/device-smoke/calendar-card-interaction.png
-            artifacts/device-smoke/calendar-card-completed.png
-            artifacts/device-smoke/calendar-persian-time-picker.png
+          path: artifacts/device-smoke/calendar-card-independent-reminder-edit.png
           if-no-files-found: error

@@ -128,7 +128,7 @@ void main() {
     expect(find.text('حرکت به چپ'), findsOneWidget);
   });
 
-  testWidgets('RTL right swipe converts the same task to follow-up',
+  testWidgets('RTL right swipe cannot create Follow-up history',
       (tester) async {
     const taskId = 'rtl-convert-right';
 
@@ -162,17 +162,15 @@ void main() {
     expect(result, isFalse);
     expect(find.text('تبدیل به پیگیری از راست'), findsOneWidget);
 
-    expect(
-      find.text('کار به کار پیگیری‌دار تبدیل شد'),
-      findsOneWidget,
-    );
+    expect(find.text('کار به کار پیگیری‌دار تبدیل شد'), findsNothing);
     final stored = await TaskStore().load();
     expect(stored, hasLength(1));
     expect(stored.single.id, taskId);
-    expect(stored.single.followUpEnabled, isTrue);
+    expect(stored.single.followUpEnabled, isFalse);
+    expect(stored.single.followUps, isEmpty);
   });
 
-  testWidgets('RTL left swipe converts the same task to follow-up',
+  testWidgets('RTL left swipe cannot create Follow-up history',
       (tester) async {
     const taskId = 'rtl-convert-left';
 
@@ -206,13 +204,11 @@ void main() {
     expect(result, isFalse);
     expect(find.text('تبدیل به پیگیری از چپ'), findsOneWidget);
 
-    expect(
-      find.text('کار به کار پیگیری‌دار تبدیل شد'),
-      findsOneWidget,
-    );
+    expect(find.text('کار به کار پیگیری‌دار تبدیل شد'), findsNothing);
     final stored = await TaskStore().load();
     expect(stored, hasLength(1));
     expect(stored.single.id, taskId);
-    expect(stored.single.followUpEnabled, isTrue);
+    expect(stored.single.followUpEnabled, isFalse);
+    expect(stored.single.followUps, isEmpty);
   });
 }

@@ -6,194 +6,104 @@ void main() {
   const projection = FollowUpReminderProjection();
   final now = DateTime(2026, 8, 28, 16);
 
-  test('projects future FollowUp reminders with parent identity and label', () {
+  test('legacy FollowUp.reminderDate never creates a future candidate', () {
     final task = Task(
-      id: 'task-1',
-      title: 'قرارداد',
+      id: 'history-only',
+      title: 'تاریخچه',
+      followUpEnabled: true,
+      followUpDate: now.add(const Duration(hours: 1)),
       followUps: [
         FollowUp(
           id: 'fu-1',
-          dateTime: DateTime(2026, 8, 28, 12),
-          note: 'تماس با مشتری',
-          reminderDate: DateTime(2026, 8, 28, 17, 30),
+          dateTime: now,
+          note: 'تماس واقعی',
+          reminderDate: now.add(const Duration(hours: 2)),
+          nextFollowUp: now.add(const Duration(hours: 3)),
+        ),
+      ],
+    );
+    expect(projection.pending([task], now: now), isEmpty);
+  });
+
+  test('only independent TaskReminder records enter the projection', () {
+    final task = Task(
+      id: 'task-1',
+      title: 'کار',
+      reminderDate: now.add(const Duration(hours: 1)),
+      followUps: [
+        FollowUp(
+          id: 'fu-1',
+          dateTime: now,
+          reminderDate: now.add(const Duration(hours: 2)),
+        ),
+      ],
+      taskReminders: [
+        TaskReminder(
+          id: 'r1',
+          title: 'یادآور معتبر',
+          date: now.add(const Duration(hours: 3)),
+          sequence: 1,
         ),
       ],
     );
 
     final result = projection.pending([task], now: now);
-
     expect(result, hasLength(1));
-    expect(result.single.taskId, 'task-1');
-    expect(result.single.taskTitle, 'قرارداد');
-    expect(result.single.followUpId, 'fu-1');
-    expect(result.single.label, 'تماس با مشتری');
-    expect(result.single.scheduledAt, DateTime(2026, 8, 28, 17, 30));
-    expect(result.single.stableKey, 'task-1:fu-1');
+    expect(result.single.stableKey, 'task:task-1:reminder:r1');
+    expect(result.single.isTaskReminder, isTrue);
+    expect(result.single.scheduledAt, now.add(const Duration(hours: 3)));
   });
 
-  test('projects canonical Task reminder alongside FollowUp reminders', () {
-    final task = Task(
-      id: 'task-1',
-      title: 'کار',
-      reminderDate: DateTime(2026, 8, 28, 17),
-      followUps: [
-        FollowUp(
-          id: 'fu-1',
-          dateTime: DateTime(2026, 8, 28, 15),
-          reminderDate: DateTime(2026, 8, 28, 18),
-        ),
-      ],
+  test('legacy Task reminder enters only through the approved decode migration', () {
+    final decoded = Task.fromJson({
+      'id': 'legacy-task',
+      'title': 'کار قدیمی',
+      'reminderDate': '2026-08-28T17:00:00.000',
+    });
+    final result = projection.pending([decoded], now: now);
+    expect(result, hasLength(1));
+    expect(result.single.stableKey, 'task:legacy-task');
+    expect(result.single.taskReminderId, isNull);
+    expect(result.single.scheduledAt, DateTime(2026, 8, 28, 17));
+  });
+
+  test('raw legacy Task reminder, legacy dates, and flags do not schedule', () {
+    final raw = Task(
+      id: 'raw-legacy',
+      title: 'کار قدیمی',
+      reminderDate: now.add(const Duration(hours: 1)),
+      followUpDate: now.add(const Duration(hours: 2)),
+      followUpEnabled: true,
     );
-
-    final result = projection.pending([task], now: now);
-
-    expect(result, hasLength(2));
-    expect(result.map((item) => item.stableKey), ['task:task-1', 'task-1:fu-1']);
-    expect(result.first.isTaskReminder, isTrue);
-    expect(result.first.label, 'یادآوری');
+    expect(projection.pending([raw], now: now), isEmpty);
   });
 
-  test('FollowUp reminder remains independent from Task reminder', () {
-    final task = Task(
-      id: 'task-1',
-      title: 'کار',
-      reminderDate: DateTime(2026, 8, 28, 16, 15),
-      followUps: [
-        FollowUp(
-          id: 'fu-1',
-          dateTime: DateTime(2026, 8, 28, 15),
-          reminderDate: DateTime(2026, 8, 28, 18),
-        ),
-      ],
-    );
-
-    final result = projection.pending([task], now: now);
-
-    expect(result, hasLength(2));
-    final followUpReminder = result.singleWhere((item) => item.isTaskReminder == false);
-    expect(followUpReminder.scheduledAt, DateTime(2026, 8, 28, 18));
-    expect(followUpReminder.label, 'پیگیری');
-  });
-
-  test('ignores disabled, expired, completed, archived, and trashed work', () {
-    FollowUp future(String id) => FollowUp(
-          id: id,
-          dateTime: now,
-          reminderDate: now.add(const Duration(hours: 1)),
-        );
-
+  test('completed archived and trashed Tasks do not schedule independent reminders', () {
+    final at = now.add(const Duration(hours: 1));
     final tasks = [
-      Task(
-        id: 'active',
-        title: 'فعال',
-        followUps: [
-          FollowUp(id: 'no-reminder', dateTime: now),
-          FollowUp(
-            id: 'expired',
-            dateTime: now,
-            reminderDate: now.subtract(const Duration(minutes: 1)),
-          ),
-          FollowUp(id: 'completed-future', dateTime: now, reminderDate: now.add(const Duration(hours: 2)), completed: true),
-          FollowUp(id: 'due-now', dateTime: now, reminderDate: now),
-        ],
-      ),
-      Task(
-        id: 'completed',
-        title: 'انجام‌شده',
-        completed: true,
-        followUps: [future('completed-task-future')],
-      ),
-      Task(
-        id: 'archived',
-        title: 'بایگانی',
-        archived: true,
-        followUps: [future('archived-future')],
-      ),
-      Task(
-        id: 'trashed',
-        title: 'حذف‌شده',
-        trashed: true,
-        followUps: [future('trashed-future')],
-      ),
+      Task(id: 'done', title: 'انجام‌شده', completed: true, taskReminders: [TaskReminder(id: 'a', title: 'a', date: at, sequence: 1)]),
+      Task(id: 'archived', title: 'بایگانی', archived: true, taskReminders: [TaskReminder(id: 'b', title: 'b', date: at, sequence: 1)]),
+      Task(id: 'trashed', title: 'حذف‌شده', trashed: true, taskReminders: [TaskReminder(id: 'c', title: 'c', date: at, sequence: 1)]),
     ];
-
-    final result = projection.pending(tasks, now: now);
-
-    expect(result.map((item) => item.followUpId), ['due-now']);
+    expect(projection.pending(tasks, now: now), isEmpty);
   });
 
-  test('sorts deterministically by reminder time then stable identity', () {
-    final task = Task(
-      id: 't',
-      title: 'کار',
-      followUps: [
-        FollowUp(
-          id: 'b',
-          dateTime: now,
-          reminderDate: now.add(const Duration(hours: 2)),
-        ),
-        FollowUp(
-          id: 'c',
-          dateTime: now,
-          reminderDate: now.add(const Duration(hours: 1)),
-        ),
-        FollowUp(
-          id: 'a',
-          dateTime: now,
-          reminderDate: now.add(const Duration(hours: 2)),
-        ),
-      ],
-    );
-
-    final result = projection.pending([task], now: now);
-
-    expect(result.map((item) => item.followUpId), ['c', 'a', 'b']);
-  });
-
-  test('projects independent Task reminders with stable delivery keys', () {
+  test('sorts independent reminders deterministically and uses 9 AM for all-day', () {
     final task = Task(
       id: 'multi',
       title: 'کار',
       taskReminders: [
-        TaskReminder(
-          id: 'r1',
-          title: 'یادآور اول',
-          date: DateTime(2026, 8, 28, 17),
-          sequence: 1,
-        ),
-        TaskReminder(
-          id: 'r2',
-          title: 'یادآور تمام‌روز',
-          date: DateTime(2026, 8, 29),
-          isAllDay: true,
-          sequence: 2,
-        ),
+        TaskReminder(id: 'later', title: 'بعدی', date: now.add(const Duration(hours: 2)), sequence: 2),
+        TaskReminder(id: 'earlier', title: 'اولی', date: now.add(const Duration(hours: 1)), sequence: 1),
+        TaskReminder(id: 'all-day', title: 'تمام‌روز', date: DateTime(2026, 8, 29), isAllDay: true, sequence: 3),
       ],
     );
-
     final result = projection.pending([task], now: now);
-
-    expect(result, hasLength(2));
     expect(result.map((item) => item.stableKey), [
-      'task:multi:reminder:r1',
-      'task:multi:reminder:r2',
+      'task:multi:reminder:earlier',
+      'task:multi:reminder:later',
+      'task:multi:reminder:all-day',
     ]);
     expect(result.last.scheduledAt, DateTime(2026, 8, 29, 9));
-    expect(result.last.label, 'یادآور تمام‌روز');
-  });
-
-  test('migrated legacy reminder keeps its existing scheduler delivery key', () {
-    final task = Task.fromJson({
-      'id': 'legacy-scheduler-task',
-      'title': 'کار قدیمی',
-      'reminderDate': '2026-10-20T09:30:00.000',
-    });
-
-    final result = projection.pending([task], now: now);
-
-    expect(result, hasLength(1));
-    expect(result.single.stableKey, 'task:legacy-scheduler-task');
-    expect(result.single.taskReminderId, isNull);
-    expect(result.single.scheduledAt, DateTime(2026, 10, 20, 9, 30));
   });
 }

@@ -101,7 +101,7 @@ void main() {
     expect(rows.single.people.single.displayName, 'شخص حذف‌شده');
   });
 
-  test('next-action cutoff is independent and excludes missing or later next action', () {
+  test('legacy next-action cutoff does not filter historical Follow-up rows', () {
     final task = Task(
       id: 'task',
       title: 'اقدام بعدی',
@@ -119,8 +119,9 @@ void main() {
       nextActionDueBy: DateTime(2026, 10, 15, 23, 59),
     );
 
-    expect(rows.map((row) => row.followUp.id), ['due']);
-    expect(rows.single.reminderDate, DateTime(2026, 10, 20, 9));
+    expect(rows.map((row) => row.followUp.id), ['due', 'later', 'none']);
+    expect(rows.firstWhere((row) => row.followUp.id == 'due').reminderDate,
+        DateTime(2026, 10, 20, 9));
   });
 
   test('keeps a waiting Follow-up visible with a deleted-person placeholder', () {

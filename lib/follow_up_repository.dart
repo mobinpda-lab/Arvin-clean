@@ -7,9 +7,11 @@ import 'services/task_store.dart';
 /// routed through [TaskStore.mutate] so FollowUp writes cannot race with Home,
 /// Notebook, recurrence, People, or Sync writes to `arvin.tasks`.
 class FollowUpRepository {
-  const FollowUpRepository();
+  const FollowUpRepository({TaskStore? store}) : _injectedStore = store;
 
-  TaskStore get _store => TaskStore();
+  final TaskStore? _injectedStore;
+
+  TaskStore get _store => _injectedStore ?? TaskStore();
 
   Future<List<FollowUp>> loadForTask(String taskId) async {
     final tasks = await _store.load();
@@ -61,11 +63,14 @@ class FollowUpRepository {
       final updatedFollowUp = FollowUp(
         id: current.id,
         dateTime: current.dateTime,
+        title: current.title,
         note: current.note,
         result: current.result,
         reminderDate: current.reminderDate,
         nextFollowUp: current.nextFollowUp,
         completed: completed,
+        waitingForResponse: current.waitingForResponse,
+        personIds: current.personIds,
       );
       final updated = List<FollowUp>.of(existing)..[index] = updatedFollowUp;
       task.followUps = updated;
@@ -81,19 +86,6 @@ class FollowUpRepository {
     return tasks[index];
   }
 
-  List<FollowUp> _decodeFollowUps(Task task) {
-    if (task.followUps.isNotEmpty) {
-      return List<FollowUp>.of(task.followUps);
-    }
-
-    final legacy = task.followUpDate;
-    if (legacy == null) return const [];
-    return <FollowUp>[
-      FollowUp(
-        id: legacy.microsecondsSinceEpoch.toString(),
-        dateTime: legacy,
-        note: 'مهاجرت خودکار از تاریخ پیگیری قبلی',
-      ),
-    ];
-  }
+  List<FollowUp> _decodeFollowUps(Task task) =>
+      List<FollowUp>.of(task.followUps);
 }

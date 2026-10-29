@@ -218,7 +218,7 @@ class TaskReportFilter {
       if (hasRepeat != null && (task.recurrence != null) != hasRepeat) {
         return false;
       }
-      if (hasFollowUp != null && task.followUpEnabled != hasFollowUp) {
+      if (hasFollowUp != null && (task.followUps.isNotEmpty) != hasFollowUp) {
         return false;
       }
       if (hasChecklist != null &&

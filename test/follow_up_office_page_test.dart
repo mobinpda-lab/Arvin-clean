@@ -231,8 +231,7 @@ void main() {
     expect(find.text('منتظر پاسخ'), findsNWidgets(2));
   });
 
-  testWidgets('automatic due filter uses only latest canonical schedule',
-      (tester) async {
+  testWidgets('legacy Next Follow-up dates never create an automatic due filter', (tester) async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks': jsonEncode([
         {
@@ -240,31 +239,24 @@ void main() {
           'title': 'کار موعدرسیده',
           'followUps': [
             {
-              'id': 'd1',
+              'id': 'f1',
               'dateTime': '2026-08-25T10:00:00.000',
-              'note': 'باید پیگیری شود',
+              'note': 'سابقه واقعی',
               'result': null,
               'nextFollowUp': '2020-01-01T09:00:00.000',
             },
           ],
         },
         {
-          'id': 'superseded',
+          'id': 'replaced',
           'title': 'کار جایگزین‌شده',
           'followUps': [
             {
-              'id': 's1',
-              'dateTime': '2026-08-20T10:00:00.000',
-              'note': 'زمان قدیمی',
+              'id': 'f2',
+              'dateTime': '2026-08-25T10:30:00.000',
+              'note': 'سابقه دوم',
               'result': null,
-              'nextFollowUp': '2020-01-01T09:00:00.000',
-            },
-            {
-              'id': 's2',
-              'dateTime': '2026-08-26T10:00:00.000',
-              'note': 'برنامه جدید بدون موعد',
-              'result': null,
-              'nextFollowUp': null,
+              'nextFollowUp': '2026-08-25T11:00:00.000',
             },
           ],
         },
@@ -273,9 +265,9 @@ void main() {
           'title': 'کار آینده',
           'followUps': [
             {
-              'id': 'f1',
+              'id': 'f3',
               'dateTime': '2026-08-25T11:00:00.000',
-              'note': 'بعداً',
+              'note': 'سابقه سوم',
               'result': null,
               'nextFollowUp': '2099-01-01T09:00:00.000',
             },
@@ -289,7 +281,7 @@ void main() {
             {
               'id': 'c1',
               'dateTime': '2026-08-25T12:00:00.000',
-              'note': 'نباید نمایش داده شود',
+              'note': 'سابقه تکمیل‌شده',
               'result': null,
               'nextFollowUp': '2020-01-01T09:00:00.000',
             },
@@ -298,19 +290,15 @@ void main() {
       ]),
     });
 
-    await tester.pumpWidget(
-      const MaterialApp(home: FollowUpOfficePage()),
-    );
+    await tester.pumpWidget(const MaterialApp(home: FollowUpOfficePage()));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byTooltip('فقط پیگیری‌های موعدرسیده'));
-    await tester.pumpAndSettle();
-
+    expect(find.byTooltip('فقط پیگیری‌های موعدرسیده'), findsNothing);
     expect(find.text('کار موعدرسیده'), findsOneWidget);
-    expect(find.text('کار جایگزین‌شده'), findsNothing);
-    expect(find.text('کار آینده'), findsNothing);
+    expect(find.text('کار جایگزین‌شده'), findsOneWidget);
+    expect(find.text('کار آینده'), findsOneWidget);
     expect(find.text('کار تکمیل‌شده'), findsNothing);
-    expect(find.text('موعد پیگیری'), findsOneWidget);
+    expect(find.text('موعد پیگیری'), findsNothing);
   });
 
   testWidgets('edits an existing follow-up without creating a duplicate',

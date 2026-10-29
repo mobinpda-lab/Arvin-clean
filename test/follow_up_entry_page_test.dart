@@ -12,17 +12,6 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Future<void> revealReminder(WidgetTester tester) async {
-    final reminder = find.byKey(const ValueKey('follow-up-reminder-block'));
-    await tester.scrollUntilVisible(
-      reminder,
-      260,
-      scrollable: find.byType(Scrollable).last,
-    );
-    await tester.pumpAndSettle();
-    expect(reminder, findsOneWidget);
-  }
-
   testWidgets('saves entered follow-up title and preserves prefilled date time',
       (tester) async {
     FollowUp? result;
@@ -115,7 +104,7 @@ void main() {
     expect(result!.dateTime, initial);
   });
 
-  testWidgets('editing preserves the exact independent reminder timestamp',
+  testWidgets('editing preserves legacy scheduling timestamps without exposing controls',
       (tester) async {
     FollowUp? result;
     final reminder = DateTime(2026, 9, 2, 7, 45);
@@ -150,10 +139,8 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
 
-    await revealReminder(tester);
-    expect(find.text('۱۴۰۵/۰۶/۱۱'), findsOneWidget);
-    expect(find.text('۰۷:۴۵'), findsOneWidget);
-    expect(find.byKey(const ValueKey('follow-up-reminder-clear')), findsOneWidget);
+    expect(find.text('انتخاب پیگیری بعدی'), findsNothing);
+    expect(find.byKey(const ValueKey('follow-up-reminder-block')), findsNothing);
 
     await saveEditor(tester);
 
@@ -163,7 +150,7 @@ void main() {
     expect(result!.nextFollowUp, initial.nextFollowUp);
   });
 
-  testWidgets('existing reminder can be cleared without changing FollowUp identity',
+  testWidgets('legacy FollowUp reminder is hidden but preserved without retired controls',
       (tester) async {
     FollowUp? result;
     final initial = FollowUp(
@@ -194,18 +181,14 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
 
-    await revealReminder(tester);
-    final clear = find.byKey(const ValueKey('follow-up-reminder-clear'));
-    expect(clear, findsOneWidget);
-    await tester.tap(clear);
-    await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('follow-up-reminder-clear')), findsNothing);
+    expect(find.text('انتخاب پیگیری بعدی'), findsNothing);
 
     await saveEditor(tester);
 
     expect(result, isNotNull);
     expect(result!.id, initial.id);
-    expect(result!.reminderDate, isNull);
+    expect(result!.reminderDate, initial.reminderDate);
   });
   testWidgets('FollowUp Back prompts and save preserves entered changes',
       (tester) async {
@@ -279,5 +262,62 @@ void main() {
     expect(find.text('تغییرات ذخیره نشده'), findsNothing);
     expect(find.text('open-unchanged'), findsOneWidget);
   });
+
+
+  testWidgets(
+    'FollowUp time picker remains RTL and cancel preserves dateTime',
+    (tester) async {
+      FollowUp? result;
+      final initial = DateTime(2026, 9, 8, 9, 15);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: ElevatedButton(
+                onPressed: () async {
+                  result = await Navigator.of(context).push<FollowUp>(
+                    MaterialPageRoute(
+                      builder: (_) => FollowUpEntryPage(initialDateTime: initial),
+                    ),
+                  );
+                },
+                child: const Text('open-time-picker'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('open-time-picker'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('follow-up-entry-time')));
+      await tester.pumpAndSettle();
+
+      final selectedTime = find.byKey(
+        const ValueKey('universal-time-selected-value'),
+      );
+      expect(selectedTime, findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('universal-time-cancel')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('universal-time-save')),
+        findsOneWidget,
+      );
+      expect(
+        Directionality.of(tester.element(selectedTime)),
+        TextDirection.rtl,
+      );
+
+      await tester.tap(find.byKey(const ValueKey('universal-time-cancel')));
+      await tester.pumpAndSettle();
+      await saveEditor(tester);
+
+      expect(result, isNotNull);
+      expect(result!.dateTime, initial);
+    },
+  );
 
 }
