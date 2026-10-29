@@ -412,10 +412,22 @@ jobs:
             cat "$snapshot_file"
           }
 
+          # android/build.gradle.kts relocates every subproject build directory to
+          # <checkout>/build/<project>; remove prior APK/JUnit outputs before this checkout's build.
+          provisioner_output_root="$repo_root/build/calendarProvisioner/outputs"
+          rm -rf "$provisioner_output_root/apk" "$provisioner_output_root/androidTest-results"
+          {
+            printf 'CHECKED_OUT_SHA=%s\n' "$(git -C "$repo_root" rev-parse HEAD)"
+            printf 'GRADLE_BUILD_DIR_SOURCE=android/build.gradle.kts rootProject.layout.buildDirectory.dir("../../build")\n'
+            printf 'PROVISIONER_OUTPUT_ROOT=%s\n' "$provisioner_output_root"
+            printf 'STALE_APK_AND_JUNIT_OUTPUTS_REMOVED=true\n'
+          } > "$EVIDENCE_DIR/provisioner-build-preflight.txt"
           cd android
           bash ./gradlew :calendarProvisioner:clean
           bash ./gradlew :calendarProvisioner:assembleDebug :calendarProvisioner:assembleDebugAndroidTest :calendarProvisioner:processDebugManifest
           cd ..
+          printf 'INITIAL_BUILD=PASS\n' >> "$EVIDENCE_DIR/provisioner-build-preflight.txt"
+          cat "$EVIDENCE_DIR/provisioner-build-preflight.txt"
           capture_command "$EVIDENCE_DIR/pre-instrumentation-logcat-clear.txt" "pre-A" "clear-logcat" adb logcat -c
           continuous_logcat_raw="$RUNNER_TEMP/android-logcat-continuous-raw.txt"
           continuous_logcat_stderr="$RUNNER_TEMP/android-logcat-continuous-stderr.txt"
@@ -542,11 +554,19 @@ jobs:
           discover_provisioner_apks
           if [ "${#provisioner_apks[@]}" -eq 0 ] || [ "${#provisioner_test_apks[@]}" -eq 0 ]; then
             echo "APK_DISCOVERY=REBUILD_MISSING_OUTPUTS"
-            (cd android && bash ./gradlew :calendarProvisioner:assembleDebug :calendarProvisioner:assembleDebugAndroidTest)
+            printf 'APK_DISCOVERY_REBUILD=START checkout_sha=%s\n' "$(git rev-parse HEAD)" >> "$EVIDENCE_DIR/provisioner-build-preflight.txt"
+            rm -rf "$apk_root"
+            (cd android && bash ./gradlew :calendarProvisioner:clean)
+            (cd android && bash ./gradlew :calendarProvisioner:assembleDebug :calendarProvisioner:assembleDebugAndroidTest :calendarProvisioner:processDebugManifest)
             discover_provisioner_apks
+            printf 'APK_DISCOVERY_REBUILD=END provisioner_count=%s instrumentation_count=%s\n' "${#provisioner_apks[@]}" "${#provisioner_test_apks[@]}" >> "$EVIDENCE_DIR/provisioner-build-preflight.txt"
           fi
           if [ "${#provisioner_apks[@]}" -ne 1 ] || [ "${#provisioner_test_apks[@]}" -ne 1 ]; then
-            printf 'APK_DISCOVERY=FAIL provisioner_count=%s instrumentation_count=%s\n' "${#provisioner_apks[@]}" "${#provisioner_test_apks[@]}" >&2
+            {
+              printf 'APK_DISCOVERY=FAIL provisioner_count=%s instrumentation_count=%s\n' "${#provisioner_apks[@]}" "${#provisioner_test_apks[@]}"
+              for candidate in "${provisioner_apks[@]}"; do printf 'PROVISIONER_APK_CANDIDATE=%s\n' "$candidate"; done
+              for candidate in "${provisioner_test_apks[@]}"; do printf 'INSTRUMENTATION_APK_CANDIDATE=%s\n' "$candidate"; done
+            } | tee -a "$EVIDENCE_DIR/provisioner-build-preflight.txt" >&2
             exit 1
           fi
           provisioner_apk="${provisioner_apks[0]}"
@@ -641,6 +661,7 @@ jobs:
           print(output_path.read_text(), end="")
           PY
           app_apk="$repo_root/build/app/outputs/flutter-apk/app-debug.apk"
+          rm -f "$app_apk"
           (cd "$repo_root" && flutter build apk --debug -t lib/main.dart)
           if [[ ! -s "$app_apk" ]]; then
             echo "::error::Main app APK is missing or empty: $app_apk" >&2
@@ -650,12 +671,19 @@ jobs:
             echo "::error::Built APK package ID does not match com.example.arvin" >&2
             exit 1
           }
+          {
+            printf 'CHECKED_OUT_SHA=%s\n' "$(git -C "$repo_root" rev-parse HEAD)"
+            printf 'MAIN_APP_APK_PATH=%s\n' "$app_apk"
+            printf 'MAIN_APP_APK_SIZE_BYTES=%s\n' "$(stat -c '%s' "$app_apk")"
+            printf 'MAIN_APP_APK_SHA256=%s\n' "$(sha256sum "$app_apk" | awk '{print $1}')"
+          } > "$EVIDENCE_DIR/main-app-apk-manifest.txt"
+          cat "$EVIDENCE_DIR/main-app-apk-manifest.txt"
           adb install -r "$app_apk"
           adb shell pm grant com.example.arvin android.permission.READ_CALENDAR
           adb shell pm grant com.example.arvin android.permission.WRITE_CALENDAR
           : > "$EVIDENCE_DIR/main-app-permissions.txt"
           verify_main_app_permissions
-          for required_evidence in "$EVIDENCE_DIR/sha-verification.txt" "$EVIDENCE_DIR/provisioner-apk-manifest.txt" "$EVIDENCE_DIR/provisioner-post-cleanup-result.txt" "$EVIDENCE_DIR/provisioner-post-cleanup-instrumentation.txt" "$EVIDENCE_DIR/junit-summary.txt" "$EVIDENCE_DIR/provisioner-logcat.txt" "$EVIDENCE_DIR/provisioner-result.txt" "$EVIDENCE_DIR/provisioner-provider-verification.txt" "$EVIDENCE_DIR/checkpoint-C2-after-post-cleanup-provisioner-test.txt"; do
+          for required_evidence in "$EVIDENCE_DIR/sha-verification.txt" "$EVIDENCE_DIR/provisioner-build-preflight.txt" "$EVIDENCE_DIR/provisioner-apk-manifest.txt" "$EVIDENCE_DIR/main-app-apk-manifest.txt" "$EVIDENCE_DIR/main-app-permissions.txt" "$EVIDENCE_DIR/provisioner-post-cleanup-result.txt" "$EVIDENCE_DIR/provisioner-post-cleanup-instrumentation.txt" "$EVIDENCE_DIR/junit-summary.txt" "$EVIDENCE_DIR/provisioner-logcat.txt" "$EVIDENCE_DIR/provisioner-result.txt" "$EVIDENCE_DIR/provisioner-provider-verification.txt" "$EVIDENCE_DIR/checkpoint-C2-after-post-cleanup-provisioner-test.txt"; do
             if [[ ! -s "$required_evidence" || ! -r "$required_evidence" ]]; then
               echo "::error::Required Provisioner evidence is missing, empty, or unreadable: $required_evidence" >&2
               exit 1
