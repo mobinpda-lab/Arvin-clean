@@ -203,6 +203,13 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
+      - name: Validate workflow with actionlint
+        shell: bash
+        run: |
+          set -euo pipefail
+          go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.7
+          "$HOME/go/bin/actionlint" .github/workflows/calendar-provider-acceptance.yml
+
       - name: Prepare Calendar Provider acceptance script
         shell: bash
         run: |
@@ -218,77 +225,125 @@ jobs:
             echo "PROVIDER_DISCOVERY_END"
           } >> "$evidence_dir/environment.txt"
 
-          snapshot_calendar_provider() {
-            local label="$1"
-            local snapshot_file="$GITHUB_WORKSPACE/.github/calendar-provider-evidence/calendar-provider-${label}.txt"
-            local raw_file="$RUNNER_TEMP/calendar-provider-${label}-raw.txt"
-            {
-              printf 'SNAPSHOT=%s\n' "$label"
-              printf 'DEVICE_SERIAL=emulator-%s\n' "${EMULATOR_PORT:-unknown}"
-              printf 'DEVICE_LIST_BEGIN\n'
-              adb devices -l
-              printf 'DEVICE_LIST_END\n'
-              printf 'ANDROID_SDK='
-              adb shell getprop ro.build.version.sdk | tr -d '\r'
-              printf 'ANDROID_FINGERPRINT='
-              adb shell getprop ro.build.fingerprint | tr -d '\r'
-              for package in com.example.arvin com.example.arvin.calendarprovisioner; do
-                for permission in android.permission.READ_CALENDAR android.permission.WRITE_CALENDAR; do
-                  set +e
-                  permission_output="$(adb shell pm check-permission "$permission" "$package" 2>&1)"
-                  permission_rc=$?
-                  set -e
-                  printf 'PERMISSION package=%s name=%s output=%s exit_code=%s\n' "$package" "$permission" "$permission_output" "$permission_rc"
-                done
-              done
-            } >> "$snapshot_file"
+          capture_command() {
+            local snapshot_file="$1"
+            local checkpoint="$2"
+            local command_name="$3"
+            shift 3
+            local stdout_file="$RUNNER_TEMP/${checkpoint}-${command_name}.stdout"
+            local stderr_file="$RUNNER_TEMP/${checkpoint}-${command_name}.stderr"
+            local command_display
+            printf -v command_display '%q ' "$@"
+            local host_timestamp
+            host_timestamp="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
             set +e
-            adb shell content query --uri content://com.android.calendar/calendars --projection _id:account_name:account_type:calendar_displayName:calendar_access_level > "$raw_file" 2>&1
-            query_rc=$?
+            "$@" > "$stdout_file" 2> "$stderr_file"
+            local command_rc=$?
             set -e
-            python3 - "$raw_file" "$label" "$query_rc" <<'PY' >> "$snapshot_file"
+            python3 - "$snapshot_file" "$checkpoint" "$command_name" "$host_timestamp" "$command_display" "$command_rc" "$stdout_file" "$stderr_file" <<'PY' >> "$snapshot_file"
           import pathlib, re, sys
-          raw_path, label, rc = sys.argv[1], sys.argv[2], int(sys.argv[3])
-          output = pathlib.Path(raw_path).read_text(encoding="utf-8", errors="replace")
-          print(f"QUERY_EXIT_CODE={rc}")
-          fields_by_row = []
-          for line in output.splitlines():
-              if re.search(r"\bRow:\s*\d+", line):
-                  fields = dict(re.findall(r"([A-Za-z_]+)=([^,]*)", line))
-                  fields_by_row.append(fields)
-          print(f"RAW_ROW_COUNT={len(fields_by_row)}")
-          if rc != 0 or not fields_by_row:
-              if output.strip():
-                  safe_error = re.sub(r"(?i)(account_name|ownerAccount)=([^,\n]+)", r"\1=<redacted>", output.strip())
-                  print("QUERY_OUTPUT=" + safe_error[:2000])
-          matches = 0
-          for row in fields_by_row:
-              name = row.get("account_name", "").strip()
-              account_type = row.get("account_type", "").strip()
-              display = row.get("calendar_displayName", "").strip()
-              try: access = int(row.get("calendar_access_level", "0").strip())
-              except ValueError: access = -1
-              match_name = name == "ARVIN CI Acceptance"
-              match_type = account_type == "com.example.arvin.calendarprovisioner.account"
-              match_access = access >= 500
-              matches += int(match_name and match_type and match_access)
-              print("ROW id={id} account_name={name} account_type={atype} display_name={display} access_level={access} match_account_name={mn} match_account_type={mt} match_access_level={ma}".format(
-                  id=row.get("_id", "<missing>"),
-                  name=name if match_name else "<redacted-or-mismatch>",
-                  atype=account_type if match_type else "<redacted-or-mismatch>",
-                  display=display if display == "ARVIN CI Acceptance" else "<redacted-or-mismatch>",
-                  access=access, mn=match_name, mt=match_type, ma=match_access))
-          print(f"MATCHING_ROW_COUNT={matches}")
+          snapshot, checkpoint, name, timestamp, command, rc, out_path, err_path = sys.argv[1:]
+          rc = int(rc)
+          stdout = pathlib.Path(out_path).read_text(encoding="utf-8", errors="replace")
+          stderr = pathlib.Path(err_path).read_text(encoding="utf-8", errors="replace")
+          target_name = "ARVIN CI Acceptance"
+          target_type = "com.example.arvin.calendarprovisioner.account"
+          def redact_emails(value):
+              return re.sub(r"[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}", "<redacted-email>", value)
+          def safe_output(value):
+              value = redact_emails(value)
+              if name == "account-dump":
+                  safe = []
+                  for line in value.splitlines():
+                      if target_name in line or target_type in line:
+                          safe.append(line)
+                      elif re.search(r"(?i)Account\s*\{|(?:account_)?name\s*[=:]|(?:account_)?type\s*[=:]", line):
+                          safe.append("<redacted account detail>")
+                      else:
+                          safe.append(line)
+                  print("DUMPSYS_TARGET_ACCOUNT_MENTIONED=" + str(target_name in value or target_type in value).lower())
+                  return "\n".join(safe)
+              if name == "calendar-query":
+                  safe, rows = [], []
+                  for line in value.splitlines():
+                      if re.search(r"\bRow:\s*\d+", line):
+                          fields = dict(re.findall(r"([A-Za-z_]+)=([^,]*)", line))
+                          rows.append(fields)
+                          target = fields.get("account_name", "").strip() == target_name and fields.get("account_type", "").strip() == target_type
+                          safe.append(line if target else re.sub(r"(account_name|account_type|calendar_displayName)=([^,]*)", r"\1=<redacted>", line))
+                      else:
+                          safe.append(line)
+                  matching = 0
+                  for row in rows:
+                      try: access = int(row.get("calendar_access_level", "0").strip())
+                      except ValueError: access = -1
+                      matching += int(row.get("account_name", "").strip() == target_name and row.get("account_type", "").strip() == target_type and row.get("calendar_displayName", "").strip() == target_name and access >= 500)
+                  print(f"RAW_ROW_COUNT={len(rows)}")
+                  print(f"MATCHING_EXPECTED_CALENDAR_COUNT={matching}")
+                  return "\n".join(safe)
+              if name == "related-packages":
+                  lines = [line for line in value.splitlines() if "com.example.arvin" in line or "com.android.providers.calendar" in line]
+                  print("PROVISIONER_PACKAGE_LISTED=" + str(any("com.example.arvin.calendarprovisioner" in x for x in lines)).lower())
+                  print("APP_PACKAGE_LISTED=" + str(any("com.example.arvin" in x and "calendarprovisioner" not in x for x in lines)).lower())
+                  return "\n".join(lines) if lines else "<no related packages listed>"
+              if name == "provisioner-path":
+                  print("PROVISIONER_PATH_PRESENT=" + str("package:" in value).lower())
+              if name == "package-manager-and-instrumentation-logcat":
+                  value = re.sub(r"(?i)(account_name|ownerAccount)=([^,\n]+)", r"\1=<redacted>", value)
+                  value = re.sub(r"Account\s*\{name=[^,}]+", "Account {name=<redacted>", value)
+              return value
+          print(f"CHECKPOINT={checkpoint}")
+          print(f"HOST_TIMESTAMP_UTC={timestamp}")
+          print(f"COMMAND_NAME={name}")
+          print(f"COMMAND={command.strip()}")
+          print("STDOUT_BEGIN")
+          safe_stdout = safe_output(stdout)
+          print(safe_stdout if safe_stdout else "<empty>")
+          print("STDOUT_END")
+          print("STDERR_BEGIN")
+          safe_stderr = redact_emails(stderr)
+          print(safe_stderr if safe_stderr else "<empty>")
+          print("STDERR_END")
+          print(f"EXIT_CODE={rc}")
+          print("OUTPUT_REDACTED=true")
           PY
+          }
+
+          forensic_checkpoint() {
+            local label="$1"
+            local snapshot_file="$GITHUB_WORKSPACE/$evidence_dir/checkpoint-${label}.txt"
+            mkdir -p "$GITHUB_WORKSPACE/$evidence_dir"
+            printf 'CHECKPOINT=%s\nHOST_CHECKPOINT_TIMESTAMP_UTC=%s\n' "$label" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$snapshot_file"
+            capture_command "$snapshot_file" "$label" device-list adb devices -l
+            capture_command "$snapshot_file" "$label" device-time adb shell date -u
+            capture_command "$snapshot_file" "$label" android-sdk adb shell getprop ro.build.version.sdk
+            capture_command "$snapshot_file" "$label" android-fingerprint adb shell getprop ro.build.fingerprint
+            capture_command "$snapshot_file" "$label" android-model adb shell getprop ro.product.model
+            capture_command "$snapshot_file" "$label" provisioner-path adb shell pm path com.example.arvin.calendarprovisioner
+            capture_command "$snapshot_file" "$label" related-packages adb shell pm list packages
+            capture_command "$snapshot_file" "$label" account-dump adb shell dumpsys account
+            capture_command "$snapshot_file" "$label" calendar-query adb shell content query --uri content://com.android.calendar/calendars --projection _id:account_name:account_type:calendar_displayName:calendar_access_level
+            capture_command "$snapshot_file" "$label" main-package-dump adb shell dumpsys package com.example.arvin
+            for package in com.example.arvin com.example.arvin.calendarprovisioner; do
+              for permission in android.permission.READ_CALENDAR android.permission.WRITE_CALENDAR; do
+                capture_command "$snapshot_file" "$label" "permission-${package##*.}-${permission##*.}" adb shell pm check-permission "$permission" "$package"
+              done
+            done
             cat "$snapshot_file"
           }
 
           cd android
           bash ./gradlew :calendarProvisioner:assembleDebug :calendarProvisioner:assembleDebugAndroidTest :calendarProvisioner:processDebugManifest
+          cd ..
+          capture_command "$GITHUB_WORKSPACE/$evidence_dir/pre-instrumentation-logcat-clear.txt" "pre-A" "clear-logcat" adb logcat -c
+          forensic_checkpoint "A-before-instrumentation"
+          cd android
           set +e
           bash ./gradlew :calendarProvisioner:connectedDebugAndroidTest --stacktrace > "../$evidence_dir/provisioner-instrumentation.txt" 2>&1
           gradle_rc=$?
           set -e
+          forensic_checkpoint "C-after-instrumentation"
+          capture_command "$GITHUB_WORKSPACE/$evidence_dir/lifecycle-B-to-C.txt" "C-after-instrumentation" "package-manager-and-instrumentation-logcat" adb logcat -d -v threadtime 'PackageManager:*' 'PackageInstaller:*' 'installd:*' 'ActivityManager:*' 'AndroidJUnitRunner:*' 'Instrumentation:*' 'CalendarProvisionerTest:*' 'CalendarProvisionerForensics:*'
           cat "../$evidence_dir/provisioner-instrumentation.txt"
           
           junit_dir="../build/calendarProvisioner/outputs/androidTest-results/connected"
@@ -332,7 +387,7 @@ jobs:
             echo "Instrumentation Gradle task failed with exit code $gradle_rc" >&2
             exit "$gradle_rc"
           fi
-          adb logcat -d -s CalendarProvisionerTest:I '*:S' > "../$evidence_dir/provisioner-logcat.txt"
+          adb logcat -d -s CalendarProvisionerTest:I CalendarProvisionerForensics:I '*:S' > "../$evidence_dir/provisioner-logcat.txt"
           python3 - "../$evidence_dir/provisioner-logcat.txt" "../$evidence_dir/provisioner-result.txt" <<'PY'
           import pathlib, re, sys
           log = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace")
@@ -346,23 +401,12 @@ jobs:
               encoding="utf-8")
           print(pathlib.Path(sys.argv[2]).read_text(), end="")
           PY
-          snapshot_calendar_provider "A-after-provisioner"
           cd ..
-          echo "=== DIAGNOSTIC INSPECTION START ==="
-          adb devices -l
-          adb shell getprop ro.build.version.sdk
-          echo "--- INSTALLED PACKAGES ---"
-          adb shell pm list packages | sort
-          echo "--- CHECK PROVISIONER PKG ---"
-          adb shell pm path com.example.arvin.calendarprovisioner || echo "PROVISIONER_NOT_FOUND"
-          echo "--- CHECK APP PKG ---"
-          adb shell pm path com.example.arvin || echo "APP_NOT_FOUND"
-          echo "=== DIAGNOSTIC INSPECTION END ==="
           flutter build apk --debug -t lib/main.dart
           adb install -r build/app/outputs/flutter-apk/app-debug.apk
           adb shell pm grant com.example.arvin android.permission.READ_CALENDAR
           adb shell pm grant com.example.arvin android.permission.WRITE_CALENDAR
-          snapshot_calendar_provider "B-before-flutter"
+          forensic_checkpoint "D-before-flutter-calendar-check"
           android_sdk="$(adb shell getprop ro.build.version.sdk | tr -d '\r')"
           emulator_serial="emulator-${EMULATOR_PORT}"
           set +e
@@ -390,6 +434,10 @@ jobs:
           echo "=== VALIDATE GENERATED ACCEPTANCE SCRIPT ==="
           bash -n "$RUNNER_TEMP/calendar-provider-acceptance.sh"
           echo "BASH_SYNTAX_VALIDATION=PASS"
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+          shellcheck --severity=error -s bash "$RUNNER_TEMP/calendar-provider-acceptance.sh"
+          echo "SHELLCHECK_VALIDATION=PASS"
 
       - name: Run Calendar Provisioner instrumentation and real Provider acceptance
         uses: reactivecircus/android-emulator-runner@v2
