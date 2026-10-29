@@ -134,8 +134,13 @@ class MainActivity : FlutterActivity() {
                         return@setMethodCallHandler
                     }
                     try {
-                        val uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId)
-                        val updated = contentResolver.update(uri, eventValues(calendarId, title, startMillis, endMillis, allDay, description), CalendarContract.Events.CALENDAR_ID + " = ?", arrayOf(calendarIdText))
+                        val selection = CalendarContract.Events._ID + " = ? AND " + CalendarContract.Events.CALENDAR_ID + " = ?"
+                        val updated = contentResolver.update(
+                            CalendarContract.Events.CONTENT_URI,
+                            eventValues(calendarId, title, startMillis, endMillis, allDay, description),
+                            selection,
+                            arrayOf(eventId.toString(), calendarId.toString()),
+                        )
                         result.success(updated == 1)
                     } catch (error: SecurityException) {
                         result.error("calendar_write_denied", "Android Calendar Provider denied update", error.message)
@@ -212,8 +217,12 @@ class MainActivity : FlutterActivity() {
                         return@setMethodCallHandler
                     }
                     try {
-                        val uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId)
-                        val deleted = contentResolver.delete(uri, CalendarContract.Events.CALENDAR_ID + " = ?", arrayOf(calendarIdText))
+                        val selection = CalendarContract.Events._ID + " = ? AND " + CalendarContract.Events.CALENDAR_ID + " = ?"
+                        val deleted = contentResolver.delete(
+                            CalendarContract.Events.CONTENT_URI,
+                            selection,
+                            arrayOf(eventId.toString(), calendarId.toString()),
+                        )
                         result.success(deleted == 1)
                     } catch (error: SecurityException) {
                         result.error("calendar_write_denied", "Android Calendar Provider denied delete", error.message)

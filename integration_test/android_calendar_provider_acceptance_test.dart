@@ -85,6 +85,9 @@ void main() {
       isTrue,
       reason: 'created event must be visible through Android Calendar Provider',
     );
+    debugPrint(
+      'CALENDAR_PROVIDER_CREATE=PASS calendarId=${calendar.id} eventId=${createdLink.eventId} providerVisible=true',
+    );
 
     final noOpPlan = planner.plan(revisions: [revision], links: links);
     final noOpResult = await executor.execute(
@@ -108,6 +111,9 @@ void main() {
       eventsAfterNoOp.where((event) => event.title == reminder.title),
       hasLength(1),
       reason: 'no-op update must not create a duplicate Calendar Provider event',
+    );
+    debugPrint(
+      'CALENDAR_PROVIDER_NOOP_UPDATE=PASS calendarId=${calendar.id} eventId=${createdLink.eventId} providerEventCount=1 matchingTitleCount=1 created=${noOpResult.created}',
     );
     debugPrint('CALENDAR_PROVIDER_NOOP_NO_DUPLICATE=PASS');
 
@@ -136,7 +142,11 @@ void main() {
       (event) => event.eventId == createdLink.eventId,
     );
     expect(updatedEvent, hasLength(1));
+    expect(updatedEvent.single.eventId, createdLink.eventId);
     expect(updatedEvent.single.title, updatedReminder.title);
+    debugPrint(
+      'CALENDAR_PROVIDER_UPDATE=PASS calendarId=${calendar.id} eventId=${updatedEvent.single.eventId} providerEventCount=1 title=${updatedEvent.single.title} updated=${updateResult.updated}',
+    );
 
     if (writable.length >= 2) {
       // Keep the original linked event alive until destination migration is exercised.
@@ -225,6 +235,9 @@ void main() {
         events.any((event) => event.eventId == createdLink.eventId),
         isFalse,
         reason: 'deleted event must no longer be visible',
+      );
+      debugPrint(
+        'CALENDAR_PROVIDER_DELETE=PASS calendarId=${calendar.id} eventId=${createdLink.eventId} providerVisible=false deleted=${deleteResult.deleted}',
       );
 
       debugPrint(
