@@ -78,7 +78,7 @@ void main() {
       contains("if: always() && (matrix.scenario == 'home' || matrix.scenario == 'quick-capture' || matrix.scenario == 'people')"),
     );
     expect(workflow, contains('actions/upload-artifact@v5'));
-    expect(workflow, contains(r'arvin-device-smoke-${{ matrix.scenario }}-${{ github.sha }}'));
+    expect(workflow, contains(r'arvin-device-smoke-${{ matrix.scenario }}-${{ inputs.target_sha || github.sha }}'));
 
     // The workflow builds a JSON matrix in prepare-matrix and exposes it
     // through the job output. Validate that contract instead of expecting a
