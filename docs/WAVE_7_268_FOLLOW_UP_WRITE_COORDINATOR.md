@@ -40,7 +40,8 @@ path. `AndroidFollowUpReminderScheduler` and its alarm planner are not removed.
 
 ## Regression coverage
 
-- Task Editor round-trip test asserts preservation of `followUpEnabled` and
+- Task Editor round-trip tests (`task_editor_full_entry_test.dart` and
+  `task_editor_dialog_test.dart`) assert preservation of `followUpEnabled` and
   `followUpDate` when saving an existing Task.
 - Coordinator tests assert reminder callback invocation after successful add
   and update, best-effort handling of reminder scheduling failure, and no

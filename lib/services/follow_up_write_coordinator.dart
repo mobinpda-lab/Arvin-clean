@@ -11,9 +11,9 @@ class FollowUpWriteCoordinator {
       'Legacy Next Follow-up scheduling is retired; use reminderReschedule '
       'for independent reminder scheduling.',
     )
-    AutomaticFollowUpSchedulerAdapter? scheduler,
+    this.scheduler,
     this.reminderReschedule,
-  }) : scheduler = scheduler;
+  });
 
   final FollowUpRepository repository;
 
