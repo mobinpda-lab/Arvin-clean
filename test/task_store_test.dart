@@ -338,4 +338,35 @@ void main() {
     expect(reloaded.single.followUps.single.waitingForResponse, isTrue);
   });
 
+  test('TaskStore persists completedAt and Follow-up history together', () async {
+    await TaskStore.resetTestDatabase();
+    try {
+      final store = TaskStore();
+      final completedAt = DateTime(2026, 10, 30, 13, 45);
+      final followUp = FollowUp(
+        id: 'completed-history-follow-up',
+        dateTime: DateTime(2026, 10, 29, 10),
+        note: 'Actual recorded action',
+      );
+      await store.save(<Task>[
+        Task(
+          id: 'completed-with-history',
+          title: 'Completed task',
+          completed: true,
+          completedAt: completedAt,
+          followUps: <FollowUp>[followUp],
+        ),
+      ]);
+
+      final loaded = (await TaskStore().load()).single;
+      expect(loaded.completed, isTrue);
+      expect(loaded.completedAt, completedAt);
+      expect(loaded.followUps, hasLength(1));
+      expect(loaded.followUps.single.id, followUp.id);
+      expect(loaded.followUps.single.note, followUp.note);
+    } finally {
+      await TaskStore.resetTestDatabase();
+    }
+  });
+
 }

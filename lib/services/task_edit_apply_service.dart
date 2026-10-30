@@ -14,8 +14,6 @@ class TaskEditApplyService {
     target.description = edited.description;
     target.dueDate = edited.dueDate;
     target.allDay = edited.allDay;
-    target.followUpEnabled = edited.followUpEnabled;
-    target.followUpDate = edited.followUpDate;
     target.tags = List<String>.of(edited.tags);
     target.category = edited.category;
     target.checklist = List<String>.of(edited.checklist);
@@ -28,7 +26,7 @@ class TaskEditApplyService {
     target.legacyTaskReminderMigrationVersion =
         edited.legacyTaskReminderMigrationVersion;
     target.priority = edited.priority;
-    target.completed = edited.completed;
+    target.setCompleted(edited.completed, at: _now());
     target.recurrence = edited.recurrence;
     target.updatedAt = _now();
   }

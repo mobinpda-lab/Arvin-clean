@@ -3,7 +3,7 @@ import '../models/task.dart';
 enum HomeListScope {
   all,
   notes,
-  followUpEnabled,
+  hasFollowUps,
   today,
   future,
   overdue,
@@ -35,7 +35,7 @@ class HomeListProjection {
           return true;
         case HomeListScope.notes:
           return task.isNotebookItem;
-        case HomeListScope.followUpEnabled:
+        case HomeListScope.hasFollowUps:
           return task.followUps.isNotEmpty;
         case HomeListScope.today:
           final date = _effectiveDate(task);

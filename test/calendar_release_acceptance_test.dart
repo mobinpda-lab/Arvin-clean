@@ -35,7 +35,6 @@ class _FakeAppSettingsService extends AppSettingsService {
   Future<AppSettings> load() async => const AppSettings(
         themeMode: ThemeMode.system,
         usePersianDate: true,
-        fontFamily: null,
       );
 }
 

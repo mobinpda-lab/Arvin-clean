@@ -39,6 +39,7 @@ void main() {
       reminderDate: DateTime.parse('2026-08-04T11:00:00.000'),
       archived: true,
       completed: true,
+      completedAt: DateTime.parse('2026-08-07T14:15:00.000'),
       followUps: [
         FollowUp(
           id: 'follow-1',
@@ -70,6 +71,7 @@ void main() {
     expect(restored.reminderDate, original.reminderDate);
     expect(restored.archived, original.archived);
     expect(restored.completed, original.completed);
+    expect(restored.completedAt, original.completedAt);
     expect(restored.followUps.single.id, 'follow-1');
     expect(restored.followUps.single.note, 'یادداشت');
     expect(restored.followUps.single.result, 'نتیجه');
@@ -77,6 +79,23 @@ void main() {
         DateTime.parse('2026-08-06T13:00:00.000'));
     expect(restored.recurrence?.frequency, RecurrenceFrequency.monthly);
     expect(restored.recurrence?.interval, 2);
+  });
+
+  test('completion timestamp is idempotent, cleared on reopen, and fresh on recommit', () {
+    final task = Task(id: 'completion-lifecycle', title: 'Lifecycle');
+    final first = DateTime.parse('2026-10-30T10:00:00.000');
+    final second = DateTime.parse('2026-10-30T11:00:00.000');
+
+    task.setCompleted(true, at: first);
+    expect(task.completed, isTrue);
+    expect(task.completedAt, first);
+    task.setCompleted(true, at: second);
+    expect(task.completedAt, first);
+    task.setCompleted(false, at: second);
+    expect(task.completed, isFalse);
+    expect(task.completedAt, isNull);
+    task.setCompleted(true, at: second);
+    expect(task.completedAt, second);
   });
 
   test('missing optional legacy fields use current model defaults', () {

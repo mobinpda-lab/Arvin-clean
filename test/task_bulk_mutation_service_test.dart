@@ -36,6 +36,28 @@ void main() {
     );
   }
 
+  test('bulk completion stamps once and preserves Follow-up history', () {
+    final completedAt = DateTime(2026, 10, 30, 12, 30);
+    final followUp = FollowUp(
+      id: 'history-1',
+      dateTime: DateTime(2026, 10, 29, 9),
+      note: 'Recorded action',
+    );
+    final tasks = <Task>[
+      Task(id: 'selected', title: 'Selected', followUps: <FollowUp>[followUp]),
+      Task(id: 'already-done', title: 'Done', completed: true, completedAt: DateTime(2026, 10, 28)),
+      Task(id: 'trashed', title: 'Trashed', trashed: true),
+    ];
+    service = TaskBulkMutationService(now: () => completedAt);
+
+    expect(service.complete(tasks, <String>['selected', 'already-done', 'trashed']), 1);
+    expect(tasks.first.completed, isTrue);
+    expect(tasks.first.completedAt, completedAt);
+    expect(tasks.first.followUps, <FollowUp>[followUp]);
+    expect(service.complete(tasks, <String>['selected']), 0);
+    expect(tasks.first.completedAt, completedAt);
+  });
+
   test('moveToTrash changes only selected canonical task instances', () {
     final first = task('1');
     final second = task('2');

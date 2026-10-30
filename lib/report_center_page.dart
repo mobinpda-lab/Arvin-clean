@@ -12,6 +12,7 @@ import 'services/external_calendar_link_store.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/system_calendar_bridge.dart';
 import 'services/task_report_filter.dart';
+import 'services/completed_task_report_projection.dart';
 import 'services/person_follow_up_report_projection.dart';
 import 'task_detail_page.dart';
 import 'task_report_page.dart';
@@ -173,6 +174,63 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
         _filter = const TaskReportFilter();
       });
 
+  Future<void> _openCompletedFollowUpReport() async {
+    final initial = _now.toLocal();
+    final picked = await showPersianDatePicker(
+      context: context,
+      initialDate: DateTime(initial.year, initial.month, initial.day),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2100),
+      helpText: 'انتخاب روز گزارش پیگیری‌های انجام‌شده',
+    );
+    if (picked == null || !mounted) return;
+
+    final completedTasks = const CompletedTaskReportProjection().forJalaliDay(
+      widget.tasks,
+      picked,
+    );
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('گزارش پیگیری‌های انجام‌شده • ${const PersianDateFormatter().format(picked, usePersianDate: true)}'),
+        content: SizedBox(
+          width: 480,
+          child: completedTasks.isEmpty
+              ? const Text('در این روز تکمیل ثبت‌شده‌ای وجود ندارد.')
+              : ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 420),
+                  child: ListView(
+                    shrinkWrap: true,
+                    children: [
+                      for (final task in completedTasks)
+                        ListTile(
+                          key: ValueKey('completed-follow-up-task-${task.id}'),
+                          title: Text(task.title.trim().isEmpty ? 'بدون عنوان' : task.title),
+                          subtitle: Text(_reportDateTimeLabel(task.completedAt!)),
+                          onTap: () {
+                            Navigator.of(dialogContext).pop();
+                            Navigator.of(context).push<void>(
+                              MaterialPageRoute<void>(
+                                builder: (_) => TaskDetailPage(task: task),
+                              ),
+                            );
+                          },
+                        ),
+                    ],
+                  ),
+                ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('بستن'),
+          ),
+        ],
+      ),
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
     final tasks = _filtered;
@@ -221,6 +279,18 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                     label: const Text('فیلترها'),
                   ),
                 ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  key: const ValueKey('report-center-completed-follow-ups'),
+                  onPressed: _openCompletedFollowUpReport,
+                  icon: const Icon(Icons.task_alt_outlined),
+                  label: const Text('گزارش پیگیری‌های انجام‌شده'),
+                ),
               ),
             ),
             if (_filter.isActive)

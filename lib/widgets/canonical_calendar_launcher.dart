@@ -5,6 +5,7 @@ import '../models/task.dart';
 import '../notebook_page.dart';
 import '../official_calendar_page.dart';
 import '../services/calendar_rescheduling_advisor.dart';
+import '../services/calendar_swipe_settings_service.dart';
 import '../services/calendar_inbound_sync_service.dart';
 import '../services/follow_up_calendar_projection.dart';
 import '../services/external_calendar_link_store.dart';
@@ -54,6 +55,7 @@ class CanonicalCalendarLauncher extends StatefulWidget {
 
 class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
   late List<Task> _tasks;
+  CalendarSwipeSettings _calendarSwipeSettings = const CalendarSwipeSettings();
   CalendarInboundSyncService get _inboundSync => CalendarInboundSyncService();
 
   static const _calendarHelpSteps = <ContextualHelpStep>[
@@ -116,7 +118,18 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
   void initState() {
     super.initState();
     _tasks = List<Task>.of(widget.tasks);
+    Future<void>.microtask(_loadCalendarSwipeSettings);
     Future<void>.microtask(_reconcileDeviceCalendar);
+  }
+
+  Future<void> _loadCalendarSwipeSettings() async {
+    try {
+      final settings = await CalendarSwipeSettingsService().load();
+      if (!mounted) return;
+      setState(() => _calendarSwipeSettings = settings);
+    } catch (_) {
+      // Gesture settings are optional; default to no action on either side.
+    }
   }
 
   Future<void> _reconcileDeviceCalendar() async {
@@ -816,6 +829,8 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
             onRegisterTaskToDeviceCalendar: widget.onRegisterTaskToDeviceCalendar,
             onOpenExternalReminder: _openExternalReminder,
             canMutateReminder: (_) => false,
+            calendarSwipeRightAction: _calendarSwipeSettings.right,
+            calendarSwipeLeftAction: _calendarSwipeSettings.left,
             onCreateTaskForDate: widget.onCreateTaskForDate == null
                 ? null
                 : _createTaskForDate,

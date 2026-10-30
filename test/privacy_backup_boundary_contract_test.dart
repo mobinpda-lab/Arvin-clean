@@ -11,7 +11,6 @@ void main() {
     const settings = AppSettings(
       themeMode: ThemeMode.dark,
       usePersianDate: true,
-      fontFamily: 'vazirmatn',
       swipeRightAction: TaskSwipeAction.trash,
       swipeLeftAction: TaskSwipeAction.archive,
     );
@@ -46,7 +45,6 @@ void main() {
     const settings = AppSettings(
       themeMode: ThemeMode.system,
       usePersianDate: false,
-      fontFamily: null,
       swipeRightAction: TaskSwipeAction.trash,
       swipeLeftAction: TaskSwipeAction.archive,
     );

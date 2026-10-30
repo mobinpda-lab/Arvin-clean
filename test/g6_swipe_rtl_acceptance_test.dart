@@ -16,7 +16,6 @@ void main() {
     final settings = const AppSettings(
       themeMode: ThemeMode.light,
       usePersianDate: true,
-      fontFamily: null,
       swipeRightAction: TaskSwipeAction.archive,
       swipeLeftAction: TaskSwipeAction.trash,
     );
@@ -58,7 +57,6 @@ void main() {
     final settings = const AppSettings(
       themeMode: ThemeMode.light,
       usePersianDate: true,
-      fontFamily: null,
       swipeRightAction: TaskSwipeAction.moveToToday,
       swipeLeftAction: TaskSwipeAction.none,
     );
@@ -93,7 +91,6 @@ void main() {
     final settings = const AppSettings(
       themeMode: ThemeMode.light,
       usePersianDate: true,
-      fontFamily: null,
       swipeRightAction: TaskSwipeAction.archive,
       swipeLeftAction: TaskSwipeAction.trash,
     );
@@ -135,7 +132,6 @@ void main() {
     final settings = const AppSettings(
       themeMode: ThemeMode.light,
       usePersianDate: true,
-      fontFamily: null,
       swipeRightAction: TaskSwipeAction.convertToFollowUp,
       swipeLeftAction: TaskSwipeAction.none,
     );
@@ -180,7 +176,6 @@ void main() {
     final settings = const AppSettings(
       themeMode: ThemeMode.light,
       usePersianDate: true,
-      fontFamily: null,
       swipeRightAction: TaskSwipeAction.none,
       swipeLeftAction: TaskSwipeAction.convertToFollowUp,
     );

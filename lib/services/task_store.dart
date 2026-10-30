@@ -278,18 +278,6 @@ class TaskStore {
       if (index < 0) throw StateError('Task not found: $taskId');
       final task = tasks[index];
       task.followUps = [...task.followUps, followUp];
-      task.followUpEnabled = true;
-      task.updatedAt = DateTime.now();
-    });
-  }
-
-  Future<void> convertToFollowUp(String taskId) async {
-    await mutate<void>((tasks) {
-      final index = tasks.indexWhere((task) => task.id == taskId);
-      if (index < 0) throw StateError('Task not found: $taskId');
-      final task = tasks[index];
-      if (task.followUpEnabled) return;
-      task.followUpEnabled = true;
       task.updatedAt = DateTime.now();
     });
   }
@@ -416,6 +404,10 @@ class TaskStore {
     envelope['archived'] = (row['archived'] as num?)?.toInt() == 1;
     envelope['trashed'] = (row['trashed'] as num?)?.toInt() == 1;
     envelope['completed'] = (row['completed'] as num?)?.toInt() == 1;
+    final completedAt = row['completed_at'];
+    if (completedAt is String && completedAt.isNotEmpty) {
+      envelope['completedAt'] = completedAt;
+    }
 
     final recurrence = row['recurrence_json'];
     // Backward compatibility: older canonical rows may not have the dedicated
@@ -542,8 +534,8 @@ class TaskStore {
           '''INSERT INTO tasks (
             id, storage_ordinal, title, description, created_at, updated_at, due_date,
             follow_up_enabled, follow_up_date, category, notebook_kind, reminder_date,
-            priority, archived, trashed, completed, recurrence_json, legacy_payload_json
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+            priority, archived, trashed, completed, completed_at, recurrence_json, legacy_payload_json
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
           <Object?>[
             task.id,
             ordinal,
@@ -561,6 +553,7 @@ class TaskStore {
             task.archived ? 1 : 0,
             task.trashed ? 1 : 0,
             task.completed ? 1 : 0,
+            task.completedAt?.toIso8601String(),
             task.recurrence == null ? null : jsonEncode(task.recurrence!.toJson()),
             jsonEncode(envelope),
           ],
@@ -603,7 +596,7 @@ class TaskStore {
       'id', 'title', 'description', 'createdAt', 'updatedAt', 'dueDate',
       'followUpEnabled', 'followUpDate', 'tags', 'category', 'checklist',
       'checklistOccurrences', 'occurrenceHistory', 'notebookKind', 'reminderDate', 'priority', 'archived', 'trashed',
-      'completed', 'followUps', 'recurrence', 'people',
+      'completed', 'completedAt', 'followUps', 'recurrence', 'people',
     };
     final preserved = <String, dynamic>{};
     final previous = previousPayload;

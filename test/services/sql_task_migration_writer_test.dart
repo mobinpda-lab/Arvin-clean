@@ -47,7 +47,8 @@ void main() {
         ],
         'archived': false,
         'trashed': false,
-        'completed': false,
+        'completed': true,
+        'completedAt': '2026-09-22T12:30:00Z',
         'futureField': {'keep': true},
       }
     ]);
@@ -70,6 +71,8 @@ void main() {
       const ['legacy-1'],
     )).single;
     expect(task['title'], 'تماس');
+    expect(task['completed'], 1);
+    expect(task['completed_at'], '2026-09-22T12:30:00Z');
     expect(task['legacy_payload_json'], isNotNull);
 
     final restoredEnvelope =

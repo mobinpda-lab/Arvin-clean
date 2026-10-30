@@ -81,9 +81,9 @@ class SqlTaskMigrationWriter {
       '''INSERT INTO tasks (
         id, storage_ordinal, title, description, created_at, updated_at, due_date,
         follow_up_enabled, follow_up_date, category, notebook_kind,
-        reminder_date, priority, archived, trashed, completed,
+        reminder_date, priority, archived, trashed, completed, completed_at,
         recurrence_json, legacy_payload_json
-       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
       <Object?>[
         task.id,
         storageOrdinal,
@@ -101,6 +101,7 @@ class SqlTaskMigrationWriter {
         _bool(task.archived),
         _bool(task.trashed),
         _bool(task.completed),
+        task.completedAt?.toIso8601String(),
         task.recurrence == null ? null : jsonEncode(task.recurrence!.toJson()),
         record.sourceJsonEncoded,
       ],

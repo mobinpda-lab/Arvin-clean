@@ -84,6 +84,7 @@ class TaskMigrationWriter {
         'archived': task.archived,
         'trashed': task.trashed,
         'completed': task.completed,
+        'completedAt': task.completedAt?.toIso8601String(),
       });
     }
 

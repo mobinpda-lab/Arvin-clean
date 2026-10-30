@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:arvin/calendar_page.dart';
 import 'package:arvin/services/iran_clock.dart';
+import 'package:arvin/services/calendar_swipe_settings_service.dart';
 
 void main() {
   testWidgets('calendar cards use canonical pastel status colors and status icons', (tester) async {
@@ -581,6 +582,91 @@ void main() {
     expect(find.byIcon(Icons.mosque), findsWidgets);
     final status = tester.widget<Text>(find.text('ثبت نشده'));
     expect(status.style?.fontSize, 11);
+  });
+
+
+  testWidgets('calendar swipe actions are independent and external items are isolated', (tester) async {
+    final day = DateTime(2030, 5, 1);
+    var editCount = 0;
+    var deleteCount = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CalendarPage(
+          initialSelectedDay: day,
+          reminders: [
+            CalendarReminder(id: 'task-due:owned-task', title: 'Owned task', date: day),
+            CalendarReminder(id: 'task-followup:owned-task:followup-1', title: 'Owned Follow-up', date: day),
+            CalendarReminder(
+              id: 'external-calendar:device:external-event',
+              title: 'External event',
+              date: day,
+              externalCalendarId: 'device',
+              externalEventId: 'external-event',
+            ),
+          ],
+          calendarSwipeRightAction: CalendarSwipeAction.edit,
+          calendarSwipeLeftAction: CalendarSwipeAction.trash,
+          onEditTask: (_) async { editCount++; },
+          onDeleteTask: (_) async { deleteCount++; },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.drag(
+      find.byKey(const ValueKey('calendar-pastel-card-task-due:owned-task')),
+      const Offset(240, 0),
+    );
+    await tester.pumpAndSettle();
+    expect(editCount, 1);
+
+    await tester.drag(
+      find.byKey(const ValueKey('calendar-pastel-card-task-followup:owned-task:followup-1')),
+      const Offset(-240, 0),
+    );
+    await tester.pumpAndSettle();
+    expect(deleteCount, 0);
+
+    await tester.drag(
+      find.byKey(const ValueKey('calendar-pastel-card-external-calendar:device:external-event')),
+      const Offset(-240, 0),
+    );
+    await tester.pumpAndSettle();
+    expect(deleteCount, 0);
+  });
+
+  testWidgets('failed calendar sync swipe reports failure without local mutation', (tester) async {
+    final day = DateTime(2030, 5, 1);
+    final reminder = CalendarReminder(
+      id: 'task-reminder:sync-failure',
+      title: 'Reminder remains intact',
+      date: day,
+    );
+    var syncCalls = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CalendarPage(
+          initialSelectedDay: day,
+          reminders: [reminder],
+          calendarSwipeRightAction: CalendarSwipeAction.sync,
+          onRegisterTaskToDeviceCalendar: (_) async {
+            syncCalls++;
+            throw StateError('permission or target failure');
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.drag(
+      find.byKey(const ValueKey('calendar-pastel-card-task-reminder:sync-failure')),
+      const Offset(240, 0),
+    );
+    await tester.pumpAndSettle();
+
+    expect(syncCalls, 1);
+    expect(reminder.title, 'Reminder remains intact');
+    expect(find.text('عمل تقویم انجام نشد؛ اطلاعات داخلی بدون تغییر باقی ماند.'), findsOneWidget);
   });
 
 

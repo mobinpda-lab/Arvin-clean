@@ -37,17 +37,19 @@ void main() {
     expect(find.byKey(const ValueKey('swipe-settings-title')), findsOneWidget);
     expect(find.byKey(const ValueKey('swipe-right-action')), findsOneWidget);
     expect(find.byKey(const ValueKey('swipe-left-action')), findsOneWidget);
-    expect(find.byKey(const ValueKey('font-settings-entry')), findsOneWidget);
+    expect(find.byKey(const ValueKey('calendar-swipe-settings-title')), findsOneWidget);
+    expect(find.byKey(const ValueKey('calendar-swipe-right-action')), findsOneWidget);
+    expect(find.byKey(const ValueKey('calendar-swipe-left-action')), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('swipe-right-action')));
     await tester.pumpAndSettle();
-    expect(find.text('ثبت پیگیری'), findsOneWidget);
+    expect(find.text('ثبت پیگیری'), findsNothing);
     expect(find.text('انتقال به تقویم گوشی'), findsNothing);
-    await tester.tap(find.text('ثبت پیگیری').last);
+    await tester.tap(find.text('بایگانی').last);
     await tester.pumpAndSettle();
     expect(
       (await service.load()).swipeRightAction,
-      TaskSwipeAction.convertToFollowUp,
+      TaskSwipeAction.archive,
     );
 
     await tester.tap(find.text('تیره'));
@@ -60,31 +62,7 @@ void main() {
     expect((await service.load()).usePersianDate, isFalse);
     expect(changed?.usePersianDate, isFalse);
 
-    await tester.tap(find.byKey(const ValueKey('font-settings-entry')));
-    await tester.pumpAndSettle();
-    expect(find.text('انتخاب فونت'), findsOneWidget);
-    expect((await service.load()).fontFamily, 'vazirmatn');
-
-    expect(find.byKey(const ValueKey('font-option-vazirmatn')), findsOneWidget);
-    expect(find.byKey(const ValueKey('font-option-system')), findsNothing);
-    expect(find.byKey(const ValueKey('font-option-vazirharf')), findsNothing);
-    expect(
-      find.descendant(
-        of: find.byKey(const ValueKey('font-option-vazirmatn')),
-        matching: find.text('وزیرمتن'),
-      ),
-      findsOneWidget,
-    );
-    expect(find.text('VazirHarf'), findsNothing);
-    await tester.tap(find.byKey(const ValueKey('font-option-vazirmatn')));
-    await tester.pumpAndSettle();
-    // The selected RadioGroup value is already Vazirmatn, so tapping it is a
-    // no-op. Close the informational picker explicitly.
-    expect(find.text('انتخاب فونت'), findsOneWidget);
-    Navigator.of(tester.element(find.text('انتخاب فونت'))).pop();
-    await tester.pumpAndSettle();
     expect(find.text('انتخاب فونت'), findsNothing);
-    expect((await service.load()).fontFamily, 'vazirmatn');
 
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('projects-settings-entry')),

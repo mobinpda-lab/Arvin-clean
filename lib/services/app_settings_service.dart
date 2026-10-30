@@ -77,7 +77,6 @@ class AppSettings {
   const AppSettings({
     required this.themeMode,
     required this.usePersianDate,
-    required this.fontFamily,
     this.fontSize = 16.0,
     this.swipeRightAction = TaskSwipeAction.trash,
     this.swipeLeftAction = TaskSwipeAction.archive,
@@ -86,7 +85,6 @@ class AppSettings {
 
   final ThemeMode themeMode;
   final bool usePersianDate;
-  final String? fontFamily;
   final double fontSize;
   final TaskSwipeAction swipeRightAction;
   final TaskSwipeAction swipeLeftAction;
@@ -95,9 +93,7 @@ class AppSettings {
   AppSettings copyWith({
     ThemeMode? themeMode,
     bool? usePersianDate,
-    String? fontFamily,
     double? fontSize,
-    bool clearFontFamily = false,
     TaskSwipeAction? swipeRightAction,
     TaskSwipeAction? swipeLeftAction,
     CalendarIntegrationSettings? calendarIntegration,
@@ -105,7 +101,6 @@ class AppSettings {
     return AppSettings(
       themeMode: themeMode ?? this.themeMode,
       usePersianDate: usePersianDate ?? this.usePersianDate,
-      fontFamily: clearFontFamily ? null : (fontFamily ?? this.fontFamily),
       fontSize: fontSize ?? this.fontSize,
       swipeRightAction: swipeRightAction ?? this.swipeRightAction,
       swipeLeftAction: swipeLeftAction ?? this.swipeLeftAction,
@@ -117,7 +112,6 @@ class AppSettings {
 class AppSettingsService {
   static const _themeModeKey = 'arvin.settings.themeMode';
   static const _persianDateKey = 'arvin.settings.usePersianDate';
-  static const _fontFamilyKey = 'arvin.settings.fontFamily';
   static const _fontSizeKey = 'arvin.settings.fontSize';
   static const _swipeRightKey = 'arvin.settings.swipeRightAction';
   static const _swipeLeftKey = 'arvin.settings.swipeLeftAction';
@@ -148,7 +142,6 @@ class AppSettingsService {
     return AppSettings(
       themeMode: _decodeThemeMode(preferences.getString(_themeModeKey)),
       usePersianDate: preferences.getBool(_persianDateKey) ?? true,
-      fontFamily: _normalizeFontFamily(preferences.getString(_fontFamilyKey)),
       fontSize: _normalizeFontSize(preferences.getDouble(_fontSizeKey)),
       swipeRightAction: _decodeSwipeAction(
         preferences.getString(_swipeRightKey),
@@ -177,21 +170,13 @@ class AppSettingsService {
     await preferences.setDouble(_fontSizeKey, _normalizeFontSize(size));
   }
 
-  Future<void> saveFontFamily(String? family) async {
-    final preferences = await SharedPreferences.getInstance();
-    await preferences.setString(
-      _fontFamilyKey,
-      _normalizeFontFamily(family),
-    );
-  }
-
   Future<void> saveSwipeActions({
     required TaskSwipeAction right,
     required TaskSwipeAction left,
   }) async {
     final preferences = await SharedPreferences.getInstance();
-    await preferences.setString(_swipeRightKey, right.name);
-    await preferences.setString(_swipeLeftKey, left.name);
+    await preferences.setString(_swipeRightKey, _normalizeSwipeAction(right).name);
+    await preferences.setString(_swipeLeftKey, _normalizeSwipeAction(left).name);
   }
 
   Future<void> saveCalendarIntegrationSettings(
@@ -244,17 +229,13 @@ class AppSettingsService {
   }
 
   Map<String, dynamic> toPortableJson(AppSettings settings) {
-    final family = _normalizeFontFamily(settings.fontFamily);
     final calendar = settings.calendarIntegration;
     return <String, dynamic>{
       'themeMode': settings.themeMode.name,
       'usePersianDate': settings.usePersianDate,
       'fontSize': _normalizeFontSize(settings.fontSize),
-      'swipeRightAction': settings.swipeRightAction.name,
-      'swipeLeftAction': settings.swipeLeftAction.name,
-      // Explicit null means the portable setting was intentionally left at
-      // the app default; old backups that omit the key remain distinguishable.
-      'fontFamily': family,
+      'swipeRightAction': _normalizeSwipeAction(settings.swipeRightAction).name,
+      'swipeLeftAction': _normalizeSwipeAction(settings.swipeLeftAction).name,
       'calendarIntegration': <String, dynamic>{
         'enabled': calendar.enabled,
         'showExternalEvents': calendar.showExternalEvents,
@@ -280,6 +261,7 @@ class AppSettingsService {
   }) {
     final merged = Map<String, dynamic>.from(current);
     for (final entry in incoming.entries) {
+      if (entry.key == 'fontFamily') continue;
       final value = entry.value;
       if ((entry.key == 'calendarIntegration' ||
               entry.key == 'backupSchedule' ||
@@ -301,7 +283,6 @@ class AppSettingsService {
   AppSettings decodePortableJson(Map<String, dynamic> json) {
     final rawThemeMode = json['themeMode'];
     final rawPersianDate = json['usePersianDate'];
-    final rawFontFamily = json['fontFamily'];
     final rawFontSize = json['fontSize'];
     final rawSwipeRight = json['swipeRightAction'];
     final rawSwipeLeft = json['swipeLeftAction'];
@@ -315,9 +296,6 @@ class AppSettingsService {
     }
     if (rawFontSize != null && rawFontSize is! num) {
       throw const FormatException('Arvin backup font size setting is invalid');
-    }
-    if (rawFontFamily != null && rawFontFamily is! String) {
-      throw const FormatException('Arvin backup font setting is invalid');
     }
     if (rawSwipeRight != null && rawSwipeRight is! String) {
       throw const FormatException('Arvin backup right-swipe setting is invalid');
@@ -371,7 +349,6 @@ class AppSettingsService {
     return AppSettings(
       themeMode: themeMode,
       usePersianDate: rawPersianDate is bool ? rawPersianDate : true,
-      fontFamily: _normalizeFontFamily(rawFontFamily as String?),
       fontSize: _normalizeFontSize((rawFontSize as num?)?.toDouble()),
       swipeRightAction: _decodePortableSwipeAction(
         rawSwipeRight as String?,
@@ -411,13 +388,8 @@ class AppSettingsService {
     await preferences.setString(_themeModeKey, settings.themeMode.name);
     await preferences.setBool(_persianDateKey, settings.usePersianDate);
     await preferences.setDouble(_fontSizeKey, _normalizeFontSize(settings.fontSize));
-    await preferences.setString(_swipeRightKey, settings.swipeRightAction.name);
-    await preferences.setString(_swipeLeftKey, settings.swipeLeftAction.name);
-
-    await preferences.setString(
-      _fontFamilyKey,
-      _normalizeFontFamily(settings.fontFamily),
-    );
+    await preferences.setString(_swipeRightKey, _normalizeSwipeAction(settings.swipeRightAction).name);
+    await preferences.setString(_swipeLeftKey, _normalizeSwipeAction(settings.swipeLeftAction).name);
   }
 
   Future<AppSettings> restorePortableJson(Map<String, dynamic> json) async {
@@ -467,10 +439,10 @@ class AppSettingsService {
     String? raw, {
     required TaskSwipeAction fallback,
   }) {
-    return TaskSwipeAction.values
+    return _normalizeSwipeAction(TaskSwipeAction.values
             .where((action) => action.name == raw)
             .firstOrNull ??
-        fallback;
+        fallback);
   }
 
   TaskSwipeAction _decodePortableSwipeAction(
@@ -483,16 +455,15 @@ class AppSettingsService {
     if (matching.isEmpty) {
       throw FormatException('Arvin backup $side-swipe setting is unsupported');
     }
-    return matching.first;
+    return _normalizeSwipeAction(matching.first);
   }
+
+  TaskSwipeAction _normalizeSwipeAction(TaskSwipeAction action) =>
+      action == TaskSwipeAction.convertToFollowUp ? TaskSwipeAction.none : action;
 
   double _normalizeFontSize(double? value) {
     final size = value ?? 16.0;
     return size.clamp(12.0, 24.0).toDouble();
-  }
-
-  String _normalizeFontFamily(String? family) {
-    return 'vazirmatn';
   }
 
   String? _normalizeCalendarId(String? id) {
