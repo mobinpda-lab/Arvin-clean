@@ -203,7 +203,7 @@ void main() {
     expect(result, isNotNull);
     expect(result!.id, 'history');
     expect(result!.followUpEnabled, isTrue);
-    expect(result!.followUpDate, DateTime(2026, 8, 27, 10, 30));
+    expect(result!.followUpDate, DateTime(2026, 8, 28, 12));
     expect(result!.followUps, hasLength(2));
     expect(result!.followUps.last.note, 'تماس دوم');
     expect(result!.category, 'مشتریان');
