@@ -57,7 +57,13 @@ void main() {
     expect(find.byKey(const ValueKey('font-option-vazirmatn')), findsOneWidget);
     expect(find.byKey(const ValueKey('font-option-system')), findsNothing);
     expect(find.byKey(const ValueKey('font-option-vazirharf')), findsNothing);
-    expect(find.text('وزیرمتن'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('font-option-vazirmatn')),
+        matching: find.text('وزیرمتن'),
+      ),
+      findsOneWidget,
+    );
     expect(find.text('VazirHarf'), findsNothing);
     await tester.tap(find.byKey(const ValueKey('font-option-vazirmatn')));
     await tester.pumpAndSettle();

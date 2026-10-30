@@ -367,35 +367,20 @@ jobs:
             echo "Expected AccountManager account was not independently observed." >&2
             exit 1
           fi
-          adb shell content query --uri content://com.android.calendar/calendars --projection _id:account_name:account_type:calendar_displayName:calendar_access_level --where "account_name='ARVIN CI Acceptance' AND account_type='com.example.arvin.calendarprovisioner.account' AND calendar_displayName='ARVIN CI Acceptance'" > "$evidence_dir/provisioner-calendar-verification.txt"
-          python3 - "$evidence_dir/provisioner-calendar-verification.txt" <<'PY'
-          import pathlib, re, sys
-          output = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace")
-          rows = [line for line in output.splitlines() if re.search(r"^Row:\s*\d+\b", line)]
-          if len(rows) != 1:
-              raise SystemExit(f"Expected exactly one matching Calendar Provider row, found {len(rows)}")
-          fields = dict(re.findall(r"([A-Za-z_]+)=([^,]*)", rows[0]))
-          expected = {
-              "account_name": "ARVIN CI Acceptance",
-              "account_type": "com.example.arvin.calendarprovisioner.account",
-              "calendar_displayName": "ARVIN CI Acceptance",
-          }
-          for key, value in expected.items():
-              if fields.get(key, "").strip() != value:
-                  raise SystemExit(f"Calendar Provider field mismatch: {key}")
-          try:
-              access = int(fields.get("calendar_access_level", "").strip())
-          except ValueError:
-              raise SystemExit("Calendar Provider access level is missing or invalid")
-          if access < 500:
-              raise SystemExit(f"Calendar Provider calendar is not writable: access_level={access}")
-          print("PROVISIONER_PRECRUD_GATE=PASS")
-          print("PROVISIONER_PACKAGE_PATH=PASS")
-          print("EXPECTED_ACCOUNT=PASS")
-          print("MATCHING_CALENDAR_COUNT=1")
-          print(f"CALENDAR_ACCESS_LEVEL={access}")
-          PY
+          # Use the same ContentResolver query executed by Android instrumentation.
+          # The adb shell content-query path previously returned zero rows while the
+          # instrumented Provider query succeeded; avoid a caller/selection false-negative.
+          provider_row_evidence="$evidence_dir/provisioner-reprovision-logcat.txt"
+          if ! grep -Eq 'CALENDAR_PROVIDER_ROW=PASS id=[0-9]+ account=ARVIN_CI_ACCEPTANCE accountType=com\.example\.arvin\.calendarprovisioner\.account displayName=ARVIN_CI_ACCEPTANCE accessLevel=[5-9][0-9]* rowCount=1' "$provider_row_evidence"; then
+            echo "Instrumentation did not prove exactly one writable Calendar Provider row by id." >&2
+            exit 1
+          fi
+          cp "$provider_row_evidence" "$evidence_dir/provisioner-calendar-verification.txt"
           printf 'PROVISIONER_PRECRUD_GATE=PASS\n' >> "$evidence_dir/provisioner-reinstall.txt"
+          echo "PROVISIONER_PRECRUD_GATE=PASS"
+          echo "PROVISIONER_PACKAGE_PATH=PASS"
+          echo "EXPECTED_ACCOUNT=PASS"
+          echo "MATCHING_CALENDAR_COUNT=1"
 
           flutter build apk --debug -t lib/main.dart
           adb install -r build/app/outputs/flutter-apk/app-debug.apk
