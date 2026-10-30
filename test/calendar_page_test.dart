@@ -617,7 +617,7 @@ void main() {
     await tester.fling(
       find.byKey(const ValueKey('calendar-pastel-card-task-due:owned-task')),
       const Offset(240, 0),
-      speed: 1000,
+      1000,
     );
     await tester.pumpAndSettle();
     expect(editCount, 1);
@@ -625,7 +625,7 @@ void main() {
     await tester.fling(
       find.byKey(const ValueKey('calendar-pastel-card-task-followup:owned-task:followup-1')),
       const Offset(-240, 0),
-      speed: 1000,
+      1000,
     );
     await tester.pumpAndSettle();
     expect(deleteCount, 0);
@@ -633,7 +633,7 @@ void main() {
     await tester.fling(
       find.byKey(const ValueKey('calendar-pastel-card-external-calendar:device:external-event')),
       const Offset(-240, 0),
-      speed: 1000,
+      1000,
     );
     await tester.pumpAndSettle();
     expect(deleteCount, 0);
@@ -665,7 +665,7 @@ void main() {
     await tester.fling(
       find.byKey(const ValueKey('calendar-pastel-card-task-reminder:sync-failure')),
       const Offset(240, 0),
-      speed: 1000,
+      1000,
     );
     await tester.pumpAndSettle();
 
