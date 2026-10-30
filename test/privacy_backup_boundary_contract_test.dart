@@ -22,14 +22,13 @@ void main() {
       {
         'themeMode',
         'usePersianDate',
-        'fontFamily',
         'fontSize',
         'swipeRightAction',
         'swipeLeftAction',
         'calendarIntegration',
       },
     );
-    expect(portable['fontFamily'], 'vazirmatn');
+    expect(portable.containsKey('fontFamily'), isFalse);
     expect(
       portable.keys.any((key) => key.toLowerCase().contains('token')),
       isFalse,
@@ -59,7 +58,6 @@ void main() {
     expect(document['settings'], {
       'themeMode': 'system',
       'usePersianDate': false,
-      'fontFamily': 'vazirmatn',
       'fontSize': 16.0,
       'swipeRightAction': 'trash',
       'swipeLeftAction': 'archive',

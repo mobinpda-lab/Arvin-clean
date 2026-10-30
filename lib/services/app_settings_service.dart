@@ -277,6 +277,9 @@ class AppSettingsService {
         merged[entry.key] = value;
       }
     }
+    // Font selection is no longer a portable preference. Strip any legacy
+    // device value so restores converge on the app's bundled Vazirmatn theme.
+    merged.remove('fontFamily');
     return merged;
   }
 

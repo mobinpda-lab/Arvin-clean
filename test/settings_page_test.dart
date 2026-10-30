@@ -38,9 +38,17 @@ void main() {
     expect(find.byKey(const ValueKey('swipe-right-action')), findsOneWidget);
     expect(find.byKey(const ValueKey('swipe-left-action')), findsOneWidget);
     expect(find.text('اندازه متن'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('calendar-swipe-settings-title')),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('calendar-swipe-settings-title')), findsOneWidget);
     expect(find.byKey(const ValueKey('calendar-swipe-right-action')), findsOneWidget);
     expect(find.byKey(const ValueKey('calendar-swipe-left-action')), findsOneWidget);
+    await tester.drag(find.byType(ListView), const Offset(0, 900));
+    await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('swipe-right-action')));
     await tester.pumpAndSettle();

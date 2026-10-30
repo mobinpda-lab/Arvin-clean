@@ -725,6 +725,15 @@ Future<DateTime?> _pickCustomDue() async {
                     spacing: 8,
                     runSpacing: 4,
                     children: [
+                      FilterChip(
+                        key: const ValueKey('quick-capture-checklist-enabled'),
+                        selected: _checklistEnabled,
+                        avatar: const Icon(Icons.checklist_outlined),
+                        label: const Text('چک‌لیست'),
+                        onSelected: _saving
+                            ? null
+                            : (enabled) => setState(() => _checklistEnabled = enabled),
+                      ),
                   if (_checklistEnabled) ...[
                     const SizedBox(height: 8),
                     ArvinRollBox<String>(

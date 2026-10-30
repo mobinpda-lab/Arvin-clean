@@ -5,6 +5,7 @@ import 'package:arvin/services/g1_drift_schema.dart';
 void main() {
   test('schema installer adds nullable completed_at to an existing task table', () async {
     final database = NativeDatabase.memory();
+    await database.ensureOpen(G1DriftSchema());
     try {
       await database.runCustom('''CREATE TABLE tasks (
         id TEXT NOT NULL PRIMARY KEY, storage_ordinal INTEGER NOT NULL DEFAULT 0,

@@ -92,6 +92,8 @@ void main() {
     expect(all.single.category, 'کاری');
     expect(all.single.tags, ['مهم', 'قرارداد']);
     expect(all.single.followUpEnabled, isTrue);
+    expect(all.single.completed, isFalse);
+    expect(all.single.completedAt, isNull);
     expect(all.single.followUps, isEmpty);
     expect(all.single.dueDate, isNull);
     expect(all.single.isSimpleNote, isTrue);

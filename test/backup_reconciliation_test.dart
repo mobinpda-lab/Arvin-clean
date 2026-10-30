@@ -107,8 +107,7 @@ void main() {
         },
       );
 
-      expect(merged.containsKey('fontFamily'), isTrue);
-      expect(merged['fontFamily'], isNull);
+      expect(merged.containsKey('fontFamily'), isFalse);
       expect(
         (merged['calendarIntegration'] as Map)['targetCalendarId'],
         isNull,
@@ -140,7 +139,7 @@ void main() {
 
       expect(merged['themeMode'], 'light');
       expect(merged['fontSize'], 18);
-      expect(merged['fontFamily'], 'VazirHarf');
+      expect(merged.containsKey('fontFamily'), isFalse);
       expect(merged['calendarIntegration'], {
         'enabled': false,
         'targetCalendarId': 'local-calendar',

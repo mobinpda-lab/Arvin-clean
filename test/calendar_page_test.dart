@@ -23,15 +23,15 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      (tester.widget<Card>(find.byKey(const ValueKey('calendar-pastel-card-planned'))).color),
+      (tester.widget<Card>(find.byKey(const ValueKey('reminder-card-planned'))).color),
       const Color(0xFFEFF6FF),
     );
     expect(
-      tester.widget<Card>(find.byKey(const ValueKey('calendar-pastel-card-task-followup:waiting'))).color,
+      tester.widget<Card>(find.byKey(const ValueKey('reminder-card-task-followup:waiting'))).color,
       const Color(0xFFFEFCE8),
     );
     expect(
-      tester.widget<Card>(find.byKey(const ValueKey('calendar-pastel-card-completed'))).color,
+      tester.widget<Card>(find.byKey(const ValueKey('reminder-card-completed'))).color,
       const Color(0xFFECFDF5),
     );
     expect(find.byIcon(Icons.hourglass_bottom_rounded), findsOneWidget);
@@ -51,7 +51,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      tester.widget<Card>(find.byKey(const ValueKey('calendar-pastel-card-overdue'))).color,
+      tester.widget<Card>(find.byKey(const ValueKey('reminder-card-overdue'))).color,
       const Color(0xFFFEF2F2),
     );
     expect(find.byIcon(Icons.warning_rounded), findsOneWidget);
@@ -614,21 +614,21 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.drag(
-      find.byKey(const ValueKey('calendar-pastel-card-task-due:owned-task')),
+      find.byKey(const ValueKey('reminder-card-task-due:owned-task')),
       const Offset(240, 0),
     );
     await tester.pumpAndSettle();
     expect(editCount, 1);
 
     await tester.drag(
-      find.byKey(const ValueKey('calendar-pastel-card-task-followup:owned-task:followup-1')),
+      find.byKey(const ValueKey('reminder-card-task-followup:owned-task:followup-1')),
       const Offset(-240, 0),
     );
     await tester.pumpAndSettle();
     expect(deleteCount, 0);
 
     await tester.drag(
-      find.byKey(const ValueKey('calendar-pastel-card-external-calendar:device:external-event')),
+      find.byKey(const ValueKey('reminder-card-external-calendar:device:external-event')),
       const Offset(-240, 0),
     );
     await tester.pumpAndSettle();
@@ -659,7 +659,7 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.drag(
-      find.byKey(const ValueKey('calendar-pastel-card-task-reminder:sync-failure')),
+      find.byKey(const ValueKey('reminder-card-task-reminder:sync-failure')),
       const Offset(240, 0),
     );
     await tester.pumpAndSettle();

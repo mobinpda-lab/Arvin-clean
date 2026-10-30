@@ -719,7 +719,9 @@ void main() {
       MaterialApp(
         home: Directionality(
           textDirection: TextDirection.rtl,
-          child: QuickCaptureDialog(idFactory: () => 'quick-no-follow-up'),
+          child: Scaffold(
+            body: QuickCaptureDialog(idFactory: () => 'quick-no-follow-up'),
+          ),
         ),
       ),
     );

@@ -64,7 +64,9 @@ void main() {
     final source = File('lib/main.dart').readAsStringSync();
 
     expect(source, contains('Future<Task?> _completeFromDetail(Task task)'));
-    expect(source, contains('task.completed = !task.completed;'));
+    expect(source, contains('task.setCompleted(!task.completed);'));
+    expect(source, contains('task.updatedAt = DateTime.now();'));
+    expect(source, contains('await taskStore.save(List<Task>.of(tasks));'));
     expect(source, contains('await taskStore.save(List<Task>.of(tasks));'));
     expect(source, contains('await _syncCalendarAfterDetailTaskUpdate(refreshed);'));
     expect(source, contains('Future<void> _syncCalendarAfterDetailTaskUpdate'));

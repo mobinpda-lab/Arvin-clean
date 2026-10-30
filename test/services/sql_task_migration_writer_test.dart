@@ -72,7 +72,10 @@ void main() {
     )).single;
     expect(task['title'], 'تماس');
     expect(task['completed'], 1);
-    expect(task['completed_at'], '2026-09-22T12:30:00Z');
+    expect(
+      DateTime.parse(task['completed_at'] as String),
+      DateTime.parse('2026-09-22T12:30:00Z'),
+    );
     expect(task['legacy_payload_json'], isNotNull);
 
     final restoredEnvelope =
