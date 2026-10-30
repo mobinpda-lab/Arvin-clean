@@ -176,15 +176,6 @@ jobs:
           fi
           echo "SHA_CHECK_RESULT=PASS"
 
-      - name: Fetch pinned VazirHarf
-        run: |
-          set -euo pipefail
-          git clone --no-tags --depth 1 https://github.com/nadalaba/vazirharf.git "$RUNNER_TEMP/vazirharf"
-          git -C "$RUNNER_TEMP/vazirharf" fetch --depth 1 origin 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
-          git -C "$RUNNER_TEMP/vazirharf" checkout --detach 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
-          mkdir -p assets/fonts
-          cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
-
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
@@ -383,6 +374,24 @@ jobs:
           echo "MATCHING_CALENDAR_COUNT=1"
 
           flutter build apk --debug -t lib/main.dart
+          apk="build/app/outputs/flutter-apk/app-debug.apk"
+          test -s "$apk"
+          for font in \
+            assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf \
+            assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf \
+            assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf; do
+            if ! unzip -Z1 "$apk" | grep -Fxq "assets/flutter_assets/$font"; then
+              echo "FONT_ASSET_BUNDLED=FAIL missing=$font" >&2
+              exit 1
+            fi
+            echo "FONT_ASSET_BUNDLED=PASS $font"
+          done
+          if grep -R -n -E 'VazirHarf|vazirharf|font-option-system|System Default|fontFamily:[[:space:]]*["'"]system["'"]' lib pubspec.yaml; then
+            echo "FONT_SOURCE_PURGE=FAIL legacy font or System Default reference remains" >&2
+            exit 1
+          fi
+          echo "FONT_SOURCE_PURGE=PASS"
+          echo "FONT_GATE=PASS_VAZIRMATN_BUNDLED_SYSTEM_DEFAULT_PURGED"
           adb install -r build/app/outputs/flutter-apk/app-debug.apk
           adb shell pm grant com.example.arvin android.permission.READ_CALENDAR
           adb shell pm grant com.example.arvin android.permission.WRITE_CALENDAR
