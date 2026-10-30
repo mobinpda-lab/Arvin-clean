@@ -1112,7 +1112,9 @@ class _ReminderCardState extends State<_ReminderCard> {
     if (velocity.abs() < 250 ||
         widget.item.id.startsWith('external-calendar:') ||
         widget.item.externalCalendarId != null ||
-        widget.item.externalEventId != null) return;
+        widget.item.externalEventId != null) {
+      return;
+    }
     if (!_isTaskRecord && !_isFollowUp) return;
     final action = velocity > 0 ? widget.swipeRightAction : widget.swipeLeftAction;
     switch (action) {
