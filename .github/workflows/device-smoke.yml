@@ -148,7 +148,7 @@ jobs:
           actual="$(git rev-parse HEAD)"
           echo "CHECKOUT_SHA=$actual"
           echo "TARGET_SHA=$TARGET_SHA"
-          if [[ "$actual" != "$TARGET_SHA" ]]; then
+          if [ "$actual" != "$TARGET_SHA" ]; then
             echo "CHECKOUT SHA mismatch: expected $TARGET_SHA, got $actual" >&2
             exit 1
           fi
