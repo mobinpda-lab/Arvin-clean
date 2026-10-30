@@ -30,13 +30,14 @@ void main() {
     final home = File('lib/main.dart').readAsStringSync();
 
     expect(home, contains('await taskStore.save(snapshot);'));
-    // Every canonical TaskStore save must keep the shared reminder planner
-    // in sync. Count both call sites rather than pinning a stale total.
+    // Five direct canonical save sites exist. Completion-specific flows
+    // explicitly reschedule outside the shared _save path, giving seven
+    // scheduler call sites while preserving all five save integrations.
     final saveCount = home.split('await taskStore.save(').length - 1;
     final rescheduleCount =
         home.split('AndroidFollowUpReminderScheduler().reschedule()').length - 1;
-    expect(saveCount, greaterThan(0));
-    expect(rescheduleCount, saveCount);
+    expect(saveCount, 5);
+    expect(rescheduleCount, 7);
   });
 
   test('canonical FollowUp write paths request reminder rescheduling', () {
