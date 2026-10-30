@@ -778,6 +778,8 @@ Future<DateTime?> _pickCustomDue() async {
                   ),
                 ],
               ),
+              ],
+            ),
             ],
           ),
         ),
