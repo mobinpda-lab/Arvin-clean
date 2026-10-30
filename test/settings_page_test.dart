@@ -52,34 +52,17 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('font-settings-entry')));
     await tester.pumpAndSettle();
     expect(find.text('انتخاب فونت'), findsOneWidget);
-    expect((await service.load()).fontFamily, isNull);
+    expect((await service.load()).fontFamily, 'vazirmatn');
 
-    await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('font-option-system')),
-      180,
-      scrollable: find.byType(Scrollable).last,
-    );
-    await tester.ensureVisible(find.byKey(const ValueKey('font-option-system')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('font-option-vazirharf')), findsOneWidget);
-    expect(find.byKey(const ValueKey('font-option-system')), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('font-option-system')));
-    await tester.pumpAndSettle();
-    expect((await service.load()).fontFamily, 'system');
-
-    await tester.tap(find.byKey(const ValueKey('font-settings-entry')));
-    await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('font-option-vazirharf')),
-      180,
-      scrollable: find.byType(Scrollable).last,
-    );
-    await tester.ensureVisible(find.byKey(const ValueKey('font-option-vazirharf')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('font-option-vazirharf')));
+    expect(find.byKey(const ValueKey('font-option-vazirmatn')), findsOneWidget);
+    expect(find.byKey(const ValueKey('font-option-system')), findsNothing);
+    expect(find.byKey(const ValueKey('font-option-vazirharf')), findsNothing);
+    expect(find.text('وزیرمتن'), findsOneWidget);
+    expect(find.text('VazirHarf'), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('font-option-vazirmatn')));
     await tester.pumpAndSettle();
     expect(find.text('انتخاب فونت'), findsNothing);
-    expect((await service.load()).fontFamily, 'vazirharf');
+    expect((await service.load()).fontFamily, 'vazirmatn');
 
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('projects-settings-entry')),

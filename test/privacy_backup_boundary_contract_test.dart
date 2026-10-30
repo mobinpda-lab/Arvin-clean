@@ -11,7 +11,7 @@ void main() {
     const settings = AppSettings(
       themeMode: ThemeMode.dark,
       usePersianDate: true,
-      fontFamily: 'VazirHarf',
+      fontFamily: 'vazirmatn',
       swipeRightAction: TaskSwipeAction.trash,
       swipeLeftAction: TaskSwipeAction.archive,
     );
@@ -30,6 +30,7 @@ void main() {
         'calendarIntegration',
       },
     );
+    expect(portable['fontFamily'], 'vazirmatn');
     expect(
       portable.keys.any((key) => key.toLowerCase().contains('token')),
       isFalse,
@@ -60,7 +61,7 @@ void main() {
     expect(document['settings'], {
       'themeMode': 'system',
       'usePersianDate': false,
-      'fontFamily': null,
+      'fontFamily': 'vazirmatn',
       'fontSize': 16.0,
       'swipeRightAction': 'trash',
       'swipeLeftAction': 'archive',
