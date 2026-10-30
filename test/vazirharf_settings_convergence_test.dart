@@ -18,7 +18,7 @@ void main() {
     expect(arvinFontById('system').id, 'vazirmatn');
     expect(arvinFontById('unknown-font').id, 'vazirmatn');
     expect(settingsSource, contains("ValueKey('font-settings-entry')"));
-    expect(settingsSource, contains("ValueKey('font-option-${option.id}')"));
+    expect(settingsSource, contains("ValueKey('font-option-\${option.id}')"));
   });
 
   test('font catalog contains only the canonical Vazirmatn choice', () {
@@ -31,7 +31,7 @@ void main() {
   test('release APK builds the canonical Vazirmatn app entrypoint', () {
     final workflow = File('.github/workflows/build.yml').readAsStringSync();
 
-    expect(workflow, contains('flutter build apk --${{ matrix.variant }} -t lib/main.dart'));
+    expect(workflow, contains('flutter build apk --\${{ matrix.variant }} -t lib/main.dart'));
     expect(workflow, isNot(contains('-t lib/main_iransans.dart')));
     expect(workflow, isNot(contains('IRANSANSX_FANUM_REGULAR_B64')));
     expect(workflow, isNot(contains('IRANSANSX_FANUM_BOLD_B64')));
