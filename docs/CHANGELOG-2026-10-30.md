@@ -13,7 +13,7 @@ This entry records the governing product decisions for Reminder-only scheduling,
 ### Canonical gestures
 
 - **Task-list swipe:** `ثبت پیگیری` opens the Add Follow-up form; it does not immediately create a Follow-up Record. Task-list swipe choices must not contain `انتقال به تقویم گوشی`.
-- **Calendar item actions:** Edit, Trash/Delete, and Device Calendar Sync belong to the Calendar surface and remain isolated from Task-list swipe choices.
+- **Calendar swipe/gesture actions:** Edit, Trash/Delete, and Device Calendar Sync belong exclusively to Calendar items and remain isolated from Task-list swipe choices.
 
 ### Typography
 
