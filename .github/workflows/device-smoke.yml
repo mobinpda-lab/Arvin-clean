@@ -12,6 +12,26 @@ on:
         description: 'Exact product commit SHA to validate'
         required: true
         type: string
+      run_home:
+        description: 'Run Home scenario'
+        required: true
+        default: true
+        type: boolean
+      run_quick_capture:
+        description: 'Run Quick Capture scenario'
+        required: true
+        default: true
+        type: boolean
+      run_backup_restore:
+        description: 'Run Backup/Restore scenario'
+        required: true
+        default: true
+        type: boolean
+      run_people:
+        description: 'Run People scenario'
+        required: true
+        default: true
+        type: boolean
       run_calendar:
         description: 'Run Calendar interaction scenario'
         required: true
@@ -25,7 +45,7 @@ on:
       run_sql_migration:
         description: 'Run SQL legacy-storage migration scenario'
         required: true
-        default: false
+        default: true
         type: boolean
 
 permissions:
@@ -49,6 +69,10 @@ jobs:
         id: set-matrix
         env:
           EVENT_NAME: ${{ github.event_name }}
+          RUN_HOME: ${{ inputs.run_home }}
+          RUN_QUICK_CAPTURE: ${{ inputs.run_quick_capture }}
+          RUN_BACKUP_RESTORE: ${{ inputs.run_backup_restore }}
+          RUN_PEOPLE: ${{ inputs.run_people }}
           RUN_CALENDAR: ${{ inputs.run_calendar }}
           RUN_SQL_PERSISTENCE: ${{ inputs.run_sql_persistence }}
           RUN_SQL_MIGRATION: ${{ inputs.run_sql_migration }}
@@ -67,6 +91,18 @@ jobs:
               {"scenario":"calendar","test_file":"integration_test/calendar_card_interaction_test.dart"}
             ]'
           else
+            if [ "$RUN_HOME" = "true" ]; then
+              scenarios="$(jq -c '. + [{"scenario":"home","test_file":"integration_test/android_home_smoke_test.dart"}]' <<< "$scenarios")"
+            fi
+            if [ "$RUN_QUICK_CAPTURE" = "true" ]; then
+              scenarios="$(jq -c '. + [{"scenario":"quick-capture","test_file":"integration_test/android_quick_capture_smoke_test.dart"}]' <<< "$scenarios")"
+            fi
+            if [ "$RUN_BACKUP_RESTORE" = "true" ]; then
+              scenarios="$(jq -c '. + [{"scenario":"backup-restore","test_file":"integration_test/android_backup_restore_sql_smoke_test.dart"}]' <<< "$scenarios")"
+            fi
+            if [ "$RUN_PEOPLE" = "true" ]; then
+              scenarios="$(jq -c '. + [{"scenario":"people","test_file":"integration_test/android_people_smoke_test.dart"}]' <<< "$scenarios")"
+            fi
             if [ "$RUN_CALENDAR" = "true" ]; then
               scenarios="$(jq -c '. + [{"scenario":"calendar","test_file":"integration_test/calendar_card_interaction_test.dart"}]' <<< "$scenarios")"
             fi
@@ -101,34 +137,22 @@ jobs:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.sha }}
       - name: Record and verify checkout revision
         env:
-          TARGET_SHA: ${{ inputs.target_sha }}
+          TARGET_SHA: ${{ inputs.target_sha || github.sha }}
+        shell: bash
         run: |
           set -euo pipefail
+          if [[ ! "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Invalid TARGET_SHA: expected 40 lowercase hexadecimal characters" >&2
+            exit 1
+          fi
           actual="$(git rev-parse HEAD)"
           echo "CHECKOUT_SHA=$actual"
-          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
-            test -n "$TARGET_SHA"
-            if [ "$actual" != "$TARGET_SHA" ]; then
-              echo "CHECKOUT SHA mismatch: expected $TARGET_SHA, got $actual" >&2
-              exit 1
-            fi
-            echo "EXACT_TARGET_SHA=$actual"
+          echo "TARGET_SHA=$TARGET_SHA"
+          if [[ "$actual" != "$TARGET_SHA" ]]; then
+            echo "CHECKOUT SHA mismatch: expected $TARGET_SHA, got $actual" >&2
+            exit 1
           fi
-      - name: Cache pinned VazirHarf
-        uses: actions/cache@v5
-        with:
-          path: ${{ runner.temp }}/vazirharf
-          key: arvin-vazirharf-${{ runner.os }}-3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
-      - name: Fetch pinned VazirHarf on cache miss
-        run: |
-          set -euo pipefail
-          if [ ! -d "$RUNNER_TEMP/vazirharf/.git" ]; then
-            git clone --no-tags --depth 1 https://github.com/nadalaba/vazirharf.git "$RUNNER_TEMP/vazirharf"
-            git -C "$RUNNER_TEMP/vazirharf" fetch --depth 1 origin 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
-            git -C "$RUNNER_TEMP/vazirharf" checkout --detach 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
-          fi
-          test "$(git -C "$RUNNER_TEMP/vazirharf" rev-parse HEAD)" = "3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8"
-          test -s "$RUNNER_TEMP/vazirharf/fonts/ttf/Vazirharf-Regular.ttf"
+          echo "EXACT_TARGET_SHA=$actual"
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
@@ -143,8 +167,6 @@ jobs:
           test -s android/gradle/wrapper/gradle-wrapper.jar
           test -s android/gradlew
           grep -q 'desugar_jdk_libs:2.1.5' android/app/build.gradle.kts
-      - name: Restore VazirHarf assets
-        run: mkdir -p assets/fonts && rm -rf assets/fonts/vazirharf && cp -a "$RUNNER_TEMP/vazirharf/." assets/fonts/vazirharf/
       - name: Cache Gradle
         uses: actions/cache@v5
         with:
@@ -200,7 +222,7 @@ jobs:
         if: always() && (matrix.scenario == 'home' || matrix.scenario == 'quick-capture' || matrix.scenario == 'people')
         uses: actions/upload-artifact@v5
         with:
-          name: arvin-device-smoke-${{ matrix.scenario }}-${{ github.sha }}
+          name: arvin-device-smoke-${{ matrix.scenario }}-${{ inputs.target_sha || github.sha }}
           path: artifacts/device-smoke/${{ matrix.scenario }}.png
           if-no-files-found: warn
 
@@ -208,7 +230,7 @@ jobs:
         if: always() && matrix.scenario == 'quick-capture'
         uses: actions/upload-artifact@v5
         with:
-          name: arvin-persian-time-picker-${{ github.sha }}
+          name: arvin-persian-time-picker-${{ inputs.target_sha || github.sha }}
           path: artifacts/device-smoke/persian-time-picker.png
           if-no-files-found: warn
 
@@ -216,6 +238,6 @@ jobs:
         if: always() && matrix.scenario == 'calendar'
         uses: actions/upload-artifact@v5
         with:
-          name: arvin-device-smoke-calendar-${{ github.sha }}
+          name: arvin-device-smoke-calendar-${{ inputs.target_sha || github.sha }}
           path: artifacts/device-smoke/calendar-card-independent-reminder-edit.png
           if-no-files-found: error
