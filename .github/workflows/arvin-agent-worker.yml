@@ -56,8 +56,8 @@ jobs:
             exit 1
           fi
           actual="$(git rev-parse HEAD)"
-          printf 'EXPECTED_MAIN_SHA=%s\\n' "$ARVIN_EXPECTED_MAIN_SHA"
-          printf 'ACTUAL_CHECKOUT_SHA=%s\\n' "$actual"
+          printf 'EXPECTED_MAIN_SHA=%s\n' "$ARVIN_EXPECTED_MAIN_SHA"
+          printf 'ACTUAL_CHECKOUT_SHA=%s\n' "$actual"
           if [[ "$actual" != "$ARVIN_EXPECTED_MAIN_SHA" ]]; then
             echo "::error::Exact leased-main checkout mismatch; refusing to run the worker." >&2
             exit 1
