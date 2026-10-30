@@ -63,3 +63,26 @@ The Arvin factory should check this trace automatically at the appropriate gate 
 - **Change scope:** Diagnostic and dispatch-input correction only. No workflow source, product source, schema, migration, or scheduler behavior is changed by this entry.
 - **Validation evidence:** GitHub `refs/heads/main` returned the SHA above; GitHub `refs/heads/fix/wave-7-61-reminder-only-next-follow-up` returned `f4c64704e514d34d1bc9afa070f0163774fc32d0`; workflow source confirms `actions/checkout` uses `ref: main`. PR #2995 was observed OPEN/DRAFT/UNMERGED and Issue #2102 OPEN at audit time.
 - **Execution result:** Lease diagnosis is resolved. A new worker dispatch and downstream CI validation have not yet been executed; no green status is claimed. Release remains `BLOCKED — RELEASE: NO-GO`.
+
+
+## Wave 7.280 — Exact Main Lease Checkout and Calendar Conflict Fixture (2026-10-31)
+
+**Request:** Prevent recurring worker lease mismatches and correct the failing unlinked-Reminder conflict test without weakening its product assertion.
+
+### Decision and implementation
+
+- The autonomous queue already obtains the live main commit SHA with the GitHub API and passes it as expected_main_sha when dispatching arvin-agent-worker.yml.
+- The worker previously checked out the moving main branch and only then compared HEAD with the captured SHA. If main advanced between queue dispatch and worker checkout, this created a time-of-check/time-of-use race and a false lease mismatch.
+- The worker now checks out the exact immutable SHA supplied by the queue (inputs.expected_main_sha), validates its 40-character hexadecimal form, compares git rev-parse HEAD with that same value, and emits explicit EXPECTED_MAIN_SHA, ACTUAL_CHECKOUT_SHA, and MAIN_LEASE_MATCH=PASS evidence. A malformed or mismatched lease still fails closed; no mismatch is silently replaced and no guard is weakened.
+- The failing unlinked Reminder widget test reused _seedConflictTasks(), whose default fixture persisted a valid external-calendar link for reminder-a. That made the supposedly unlinked Reminder eligible for conflict checking. The fixture now supports linked: false, and this test explicitly uses it. The strict assertions that no Reminder card is shown and no conflict result is presented remain unchanged. Other tests retain the linked fixture by default.
+
+### Validation status
+
+- Source changes committed on the authorized PR branch.
+- Runtime Flutter tests and workflow execution are pending CI on the new exact PR head. No test-pass or pipeline-green claim is made by this documentation entry.
+- PR #2995 remains OPEN / DRAFT / UNMERGED; Issue #2102 remains OPEN.
+- Release remains BLOCKED — RELEASE: NO-GO until all exact-head checks and acceptance gates are green.
+
+### Operational standard
+
+The queue is the sole autonomous worker dispatcher and must capture one live main SHA per lease. The worker must consume that immutable SHA rather than resolving the moving branch again. Empty, malformed, or mismatched lease data must never authorize execution. Manual dispatch is not a substitute for the queue's live-SHA lease contract.
