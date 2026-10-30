@@ -147,11 +147,16 @@ Future<void> _mockCalendarProvider({
   });
 }
 
-Future<List<Task>> _seedConflictTasks({bool persist = true}) async {
+Future<List<Task>> _seedConflictTasks({
+  bool persist = true,
+  bool linked = true,
+}) async {
   final tasks = _conflictTasks();
   SharedPreferences.setMockInitialValues({
     'arvin.tasks': jsonEncode(tasks.map((task) => task.toJson()).toList()),
-    'arvin.calendar.externalLinks': jsonEncode(_conflictLinks()),
+    'arvin.calendar.externalLinks': jsonEncode(
+      linked ? _conflictLinks() : const <Map<String, Object>>[],
+    ),
   });
   if (persist) await TaskStore().save(tasks);
   await _mockCalendarProvider(events: _providerConflictEvents());
@@ -273,7 +278,9 @@ void main() {
   });
 
   testWidgets('unlinked Reminder is not included in phone-calendar conflict checks', (tester) async {
-    final tasks = await _seedConflictTasks();
+    // The fixture must not carry a provider link: this test verifies that an
+    // unlinked Reminder is excluded before any phone-calendar conflict query.
+    final tasks = await _seedConflictTasks(linked: false);
     await _mockCalendarProvider(events: []);
     await tester.pumpWidget(MaterialApp(
       home: CanonicalCalendarLauncher(
