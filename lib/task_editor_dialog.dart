@@ -919,6 +919,10 @@ Future<void> _pickDueDate() async {
         archived: existing?.archived ?? false,
         trashed: existing?.trashed ?? false,
         completed: _completed,
+        // Preserve legacy compatibility metadata without exposing a retired
+        // Next Follow-up editor or erasing it during unrelated Task edits.
+        followUpEnabled: existing?.followUpEnabled ?? false,
+        followUpDate: existing?.followUpDate,
         followUps: List<FollowUp>.of(_followUps),
         recurrence: _buildRecurrence(),
         people: existing?.people ?? const [],

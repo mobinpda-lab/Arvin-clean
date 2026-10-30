@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'arvin_colors.dart';
 
-import 'android_automatic_follow_up_scheduler.dart';
 import 'android_follow_up_reminder_scheduler.dart';
 import 'follow_up_entry_page.dart';
 import 'follow_up_repository.dart';
@@ -43,7 +42,6 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
     _writer = widget.writeCoordinator ??
         FollowUpWriteCoordinator(
           repository: widget.repository,
-          scheduler: AndroidAutomaticFollowUpScheduler(),
           reminderReschedule: AndroidFollowUpReminderScheduler().reschedule,
         );
     _load();

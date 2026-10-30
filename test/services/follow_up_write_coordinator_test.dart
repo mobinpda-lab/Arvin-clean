@@ -1,25 +1,10 @@
 import 'dart:convert';
 
-import 'package:arvin/automatic_follow_up_scheduler_adapter.dart';
 import 'package:arvin/follow_up_repository.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/follow_up_write_coordinator.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-class _FakeScheduler implements AutomaticFollowUpSchedulerAdapter {
-  int rescheduleCalls = 0;
-  bool throwOnReschedule = false;
-
-  @override
-  Future<void> cancel() async {}
-
-  @override
-  Future<void> reschedule() async {
-    rescheduleCalls += 1;
-    if (throwOnReschedule) throw StateError('platform unavailable');
-  }
-}
 
 void main() {
   const repository = FollowUpRepository();
@@ -37,10 +22,12 @@ void main() {
   });
 
   test('successful add persists first then requests reschedule', () async {
-    final scheduler = _FakeScheduler();
+    var reminderRescheduleCalls = 0;
     final coordinator = FollowUpWriteCoordinator(
       repository: repository,
-      scheduler: scheduler,
+      reminderReschedule: () async {
+        reminderRescheduleCalls++;
+      },
     );
     final followUp = FollowUp(
       id: 'follow-1',
@@ -50,16 +37,18 @@ void main() {
 
     await coordinator.add('task-1', followUp);
 
-    expect(scheduler.rescheduleCalls, 1);
+    expect(reminderRescheduleCalls, 1);
     final saved = await repository.loadForTask('task-1');
     expect(saved.single.id, 'follow-1');
   });
 
   test('successful update requests reschedule', () async {
-    final scheduler = _FakeScheduler();
+    var reminderRescheduleCalls = 0;
     final coordinator = FollowUpWriteCoordinator(
       repository: repository,
-      scheduler: scheduler,
+      reminderReschedule: () async {
+        reminderRescheduleCalls++;
+      },
     );
     final original = FollowUp(
       id: 'follow-1',
@@ -74,16 +63,19 @@ void main() {
     );
     await coordinator.update('task-1', updated);
 
-    expect(scheduler.rescheduleCalls, 1);
+    expect(reminderRescheduleCalls, 1);
     final saved = await repository.loadForTask('task-1');
     expect(saved.single.nextFollowUp, DateTime(2026, 8, 28, 10));
   });
 
-  test('scheduler failure never rolls back a successful user write', () async {
-    final scheduler = _FakeScheduler()..throwOnReschedule = true;
+  test('reminder scheduling failure never rolls back a successful user write', () async {
+    var reminderRescheduleCalls = 0;
     final coordinator = FollowUpWriteCoordinator(
       repository: repository,
-      scheduler: scheduler,
+      reminderReschedule: () async {
+        reminderRescheduleCalls++;
+        throw StateError('platform unavailable');
+      },
     );
     final followUp = FollowUp(
       id: 'follow-1',
@@ -93,16 +85,18 @@ void main() {
 
     await coordinator.add('task-1', followUp);
 
-    expect(scheduler.rescheduleCalls, 1);
+    expect(reminderRescheduleCalls, 1);
     final saved = await repository.loadForTask('task-1');
     expect(saved.single.id, 'follow-1');
   });
 
-  test('persistence failure does not call scheduler', () async {
-    final scheduler = _FakeScheduler();
+  test('persistence failure does not call reminder rescheduling', () async {
+    var reminderRescheduleCalls = 0;
     final coordinator = FollowUpWriteCoordinator(
       repository: repository,
-      scheduler: scheduler,
+      reminderReschedule: () async {
+        reminderRescheduleCalls++;
+      },
     );
 
     expect(
@@ -112,6 +106,6 @@ void main() {
       ),
       throwsStateError,
     );
-    expect(scheduler.rescheduleCalls, 0);
+    expect(reminderRescheduleCalls, 0);
   });
 }

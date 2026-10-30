@@ -7,12 +7,19 @@ import '../models/task.dart';
 class FollowUpWriteCoordinator {
   const FollowUpWriteCoordinator({
     required this.repository,
-    required this.scheduler,
+    @Deprecated(
+      'Legacy Next Follow-up scheduling is retired; use reminderReschedule '
+      'for independent reminder scheduling.',
+    )
+    AutomaticFollowUpSchedulerAdapter? scheduler,
     this.reminderReschedule,
-  });
+  }) : scheduler = scheduler;
 
   final FollowUpRepository repository;
-  final AutomaticFollowUpSchedulerAdapter scheduler;
+
+  /// Optional compatibility hook for callers not yet migrated from the
+  /// retired Next Follow-up scheduler. New consumers must omit this field.
+  final AutomaticFollowUpSchedulerAdapter? scheduler;
   final Future<void> Function()? reminderReschedule;
 
   Future<void> add(String taskId, FollowUp followUp) async {
@@ -40,10 +47,13 @@ class FollowUpWriteCoordinator {
   }
 
   Future<void> _rescheduleBestEffort() async {
-    try {
-      await scheduler.reschedule();
-    } catch (_) {
-      // Canonical persistence already succeeded; runtime can retry later.
+    final legacyScheduler = scheduler;
+    if (legacyScheduler != null) {
+      try {
+        await legacyScheduler.reschedule();
+      } catch (_) {
+        // Compatibility scheduling is best-effort after canonical persistence.
+      }
     }
     final reminder = reminderReschedule;
     if (reminder != null) {

@@ -59,6 +59,8 @@ void main() {
       ),
       priority: TaskPriority.high,
       completed: true,
+      followUpEnabled: true,
+      followUpDate: DateTime(2026, 9, 22, 11, 15),
     );
 
     await openEditor(
@@ -87,6 +89,8 @@ void main() {
     expect(result!.recurrence?.interval, 2);
     expect(result!.priority, TaskPriority.high);
     expect(result!.completed, isTrue);
+    expect(result!.followUpEnabled, isTrue);
+    expect(result!.followUpDate, DateTime(2026, 9, 22, 11, 15));
   });
 
   testWidgets('full-entry controls remain scroll-accessible on short RTL viewport',
