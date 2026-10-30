@@ -40,7 +40,10 @@ jobs:
       - name: Checkout exact leased main
         uses: actions/checkout@v4
         with:
-          ref: main
+          # The queue captures main once and passes that immutable lease SHA.
+          # Checkout the leased object itself; checking out the moving "main"
+          # ref here creates a race if main advances after dispatch.
+          ref: ${{ inputs.expected_main_sha }}
           fetch-depth: 0
 
       - name: Validate exact main lease
@@ -48,9 +51,18 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$ARVIN_ISSUE_NUMBER"
-          test -n "$ARVIN_EXPECTED_MAIN_SHA"
+          if [[ ! "$ARVIN_EXPECTED_MAIN_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo "::error::ARVIN_EXPECTED_MAIN_SHA must be an exact 40-character commit SHA." >&2
+            exit 1
+          fi
           actual="$(git rev-parse HEAD)"
-          test "$actual" = "$ARVIN_EXPECTED_MAIN_SHA"
+          printf 'EXPECTED_MAIN_SHA=%s\\n' "$ARVIN_EXPECTED_MAIN_SHA"
+          printf 'ACTUAL_CHECKOUT_SHA=%s\\n' "$actual"
+          if [[ "$actual" != "$ARVIN_EXPECTED_MAIN_SHA" ]]; then
+            echo "::error::Exact leased-main checkout mismatch; refusing to run the worker." >&2
+            exit 1
+          fi
+          echo "MAIN_LEASE_MATCH=PASS"
 
       - name: Setup Flutter
         if: ${{ hashFiles('pubspec.yaml') != '' }}
