@@ -503,30 +503,49 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
   Future<void> _openConflictAdvice(BuildContext context, List<CalendarReminder> reminders) async {
     final links = await ExternalCalendarLinkStore().load();
     final linksById = <String, dynamic>{for (final link in links) link.reminderId: link};
-    final bridge = SystemCalendarBridge();
-    final canRead = await bridge.hasReadPermission() || await bridge.requestReadPermission();
-    if (!canRead) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تقویم گوشی قابل خواندن نیست؛ بررسی تداخل انجام نشد.')));
-      return;
-    }
-    final calendars = await bridge.listDeviceCalendars();
-    final syncEnabledCalendarIds = calendars
-        .where((calendar) => calendar.syncEvents)
-        .map((calendar) => calendar.id)
-        .toSet();
-    final eligible = reminders.where((reminder) {
+
+    // ExternalCalendarLinkStore is the authoritative link state for independent
+    // TaskReminders. Unlinked reminders must never enter provider conflict checks.
+    final linkedCandidates = reminders.where((reminder) {
       final link = linksById[reminder.id];
       return !reminder.completed &&
           !reminder.isAllDay &&
           link != null &&
-          syncEnabledCalendarIds.contains(link.calendarId) &&
+          link.calendarId.trim().isNotEmpty &&
+          link.eventId.trim().isNotEmpty &&
           widget.projection.resolveTaskReminderTarget(_tasks, reminder.id) != null;
     }).toList(growable: false);
-    if (eligible.isEmpty) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('یادآور مستقلی با پیوند معتبر به تقویم همگام‌شونده وجود ندارد؛ تداخل بررسی نشد.')));
-      return;
+
+    final bridge = SystemCalendarBridge();
+    var eligible = <CalendarReminder>[];
+    if (linkedCandidates.isNotEmpty) {
+      final canRead =
+          await bridge.hasReadPermission() || await bridge.requestReadPermission();
+      if (!canRead) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('تقویم گوشی قابل خواندن نیست؛ بررسی تداخل انجام نشد.'),
+        ));
+        return;
+      }
+      final calendars = await bridge.listDeviceCalendars();
+      final syncEnabledCalendarIds = calendars
+          .where((calendar) => calendar.syncEvents)
+          .map((calendar) => calendar.id)
+          .toSet();
+      eligible = linkedCandidates.where((reminder) {
+        final link = linksById[reminder.id];
+        return syncEnabledCalendarIds.contains(link.calendarId);
+      }).toList(growable: false);
+      // Preserve the existing disabled-calendar guidance. The empty-state sheet
+      // is specifically for the case where there are no linked candidates at all.
+      if (eligible.isEmpty) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('یادآور مستقلی با پیوند معتبر به تقویم همگام‌شونده وجود ندارد؛ تداخل بررسی نشد.'),
+        ));
+        return;
+      }
     }
     final ownedEvents = <String>{for (final link in links) '${link.calendarId}:${link.eventId}'};
     final entries = <_CalendarConflictAdviceEntry>[];
