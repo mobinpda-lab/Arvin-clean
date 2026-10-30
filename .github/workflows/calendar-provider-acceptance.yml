@@ -386,7 +386,7 @@ jobs:
             fi
             echo "FONT_ASSET_BUNDLED=PASS $font"
           done
-          if grep -R -n -E 'VazirHarf|vazirharf|font-option-system|System Default|fontFamily:[[:space:]]*["'"]system["'"]' lib pubspec.yaml; then
+          if grep -R -n -E "VazirHarf|vazirharf|font-option-system|System Default|fontFamily:[[:space:]]*['\"]system['\"]" lib pubspec.yaml; then
             echo "FONT_SOURCE_PURGE=FAIL legacy font or System Default reference remains" >&2
             exit 1
           fi
