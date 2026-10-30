@@ -39,6 +39,17 @@ void main() {
     expect(find.byKey(const ValueKey('swipe-left-action')), findsOneWidget);
     expect(find.byKey(const ValueKey('font-settings-entry')), findsOneWidget);
 
+    await tester.tap(find.byKey(const ValueKey('swipe-right-action')));
+    await tester.pumpAndSettle();
+    expect(find.text('ثبت پیگیری'), findsOneWidget);
+    expect(find.text('انتقال به تقویم گوشی'), findsNothing);
+    await tester.tap(find.text('ثبت پیگیری').last);
+    await tester.pumpAndSettle();
+    expect(
+      (await service.load()).swipeRightAction,
+      TaskSwipeAction.convertToFollowUp,
+    );
+
     await tester.tap(find.text('تیره'));
     await tester.pumpAndSettle();
     expect((await service.load()).themeMode, ThemeMode.dark);
@@ -66,6 +77,11 @@ void main() {
     );
     expect(find.text('VazirHarf'), findsNothing);
     await tester.tap(find.byKey(const ValueKey('font-option-vazirmatn')));
+    await tester.pumpAndSettle();
+    // The selected RadioGroup value is already Vazirmatn, so tapping it is a
+    // no-op. Close the informational picker explicitly.
+    expect(find.text('انتخاب فونت'), findsOneWidget);
+    await tester.pageBack();
     await tester.pumpAndSettle();
     expect(find.text('انتخاب فونت'), findsNothing);
     expect((await service.load()).fontFamily, 'vazirmatn');
