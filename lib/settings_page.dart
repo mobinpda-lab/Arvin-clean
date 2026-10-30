@@ -35,7 +35,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _showFontPicker() async {
     final current = settings;
     if (current == null) return;
-    final selected = arvinFontById(current.fontFamily ?? 'vazirharf').id;
+    final selected = arvinFontById(current.fontFamily ?? 'vazirmatn').id;
     final choice = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -53,9 +53,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     key: ValueKey('font-option-${option.id}'),
                     value: option.id,
                     title: Text(option.nameFa),
-                    subtitle: Text(option.isAvailableLocally
-                      ? option.description
-                      : '${option.description} • فایل فونت همراه برنامه نیست؛ بازگشت امن به فونت سیستم'),
+                    subtitle: Text(option.description),
                     secondary: selected == option.id
                       ? const Icon(Icons.check_circle, color: Colors.green)
                       : const Icon(Icons.text_fields),
@@ -87,7 +85,7 @@ class _SettingsPageState extends State<SettingsPage> {
       const SizedBox(height: 20), const Divider(height: 32), const Text('کارها و حرکت کارت‌ها', key: ValueKey('swipe-settings-title'), style: TextStyle(fontWeight: FontWeight.bold)), const SizedBox(height: 6), const Text('عمل کشیدن کارت به راست و چپ را جداگانه تعیین کنید.'), const SizedBox(height: 12),
       DropdownButtonFormField<TaskSwipeAction>(key: const ValueKey('swipe-right-action'), initialValue: current.swipeRightAction, decoration: const InputDecoration(labelText: 'کشیدن به راست', prefixIcon: Icon(Icons.swipe_right_outlined), border: OutlineInputBorder()), items: _swipeItems(), onChanged: (action) { if (action != null) _setSwipeAction(rightSide: true, action: action); }),
       const SizedBox(height: 12), DropdownButtonFormField<TaskSwipeAction>(key: const ValueKey('swipe-left-action'), initialValue: current.swipeLeftAction, decoration: const InputDecoration(labelText: 'کشیدن به چپ', prefixIcon: Icon(Icons.swipe_left_outlined), border: OutlineInputBorder()), items: _swipeItems(), onChanged: (action) { if (action != null) _setSwipeAction(rightSide: false, action: action); }),
-      const Divider(height: 32), ListTile(key: const ValueKey('font-settings-entry'), contentPadding: EdgeInsets.zero, leading: const Icon(Icons.text_fields), title: const Text('فونت'), subtitle: Text(arvinFontById(current.fontFamily ?? 'vazirharf').nameFa), trailing: const Icon(Icons.chevron_left), onTap: _showFontPicker),
+      const Divider(height: 32), ListTile(key: const ValueKey('font-settings-entry'), contentPadding: EdgeInsets.zero, leading: const Icon(Icons.text_fields), title: const Text('فونت'), subtitle: Text(arvinFontById(current.fontFamily ?? 'vazirmatn').nameFa), trailing: const Icon(Icons.chevron_left), onTap: _showFontPicker),
       const SizedBox(height: 12), ListTile(contentPadding: EdgeInsets.zero, title: const Text('اندازه متن'), subtitle: Text(current.fontSize.toStringAsFixed(0)), leading: const Icon(Icons.format_size), trailing: SizedBox(width: 180, child: Slider(min: 12, max: 24, divisions: 12, value: current.fontSize.clamp(12, 24), label: current.fontSize.toStringAsFixed(0), onChanged: _setFontSize)),), const SizedBox(height: 20), const Text('پروژه و دسته‌بندی', style: TextStyle(fontWeight: FontWeight.bold)), const SizedBox(height: 8), ListTile(key: const ValueKey('projects-settings-entry'), contentPadding: EdgeInsets.zero, leading: const Icon(Icons.account_tree_outlined), title: const Text('پروژه‌ها'), subtitle: const Text('ساخت، ویرایش، بایگانی و حذف امن پروژه‌ها'), trailing: const Icon(Icons.chevron_left), onTap: _openProjectsManagement),
       const Divider(height: 24), ListTile(key: const ValueKey('taxonomy-settings-entry'), contentPadding: EdgeInsets.zero, leading: const Icon(Icons.sell_outlined), title: const Text('دسته‌ها و برچسب‌ها'), subtitle: const Text('تغییر نام و حذف امن روی همان کارها و یادداشت‌ها'), trailing: const Icon(Icons.chevron_left), onTap: _openTaxonomyManagement),
       const SizedBox(height: 20), const Text('تقویم و همگام‌سازی', style: TextStyle(fontWeight: FontWeight.bold)), const SizedBox(height: 8), ListTile(key: const ValueKey('calendar-integration-settings-entry'), contentPadding: EdgeInsets.zero, leading: const Icon(Icons.sync_outlined), title: const Text('تقویم و همگام‌سازی'), subtitle: Text(current.calendarIntegration.enabled ? 'اتصال تقویم دستگاه فعال است' : 'اتصال تقویم دستگاه خاموش است'), trailing: const Icon(Icons.chevron_left), onTap: _openCalendarIntegrationSettings),
