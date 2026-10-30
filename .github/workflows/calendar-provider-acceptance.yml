@@ -220,6 +220,28 @@ jobs:
           
           cd android
           bash ./gradlew :calendarProvisioner:assembleDebug :calendarProvisioner:assembleDebugAndroidTest :calendarProvisioner:processDebugManifest
+          # Preserve exact-checkout APKs outside Gradle's build tree before instrumentation teardown.
+          apk_root="../build/calendarProvisioner/outputs/apk"
+          preserved_apk_dir="$RUNNER_TEMP/arvin-provisioner-apks"
+          rm -rf "$preserved_apk_dir"
+          mkdir -p "$preserved_apk_dir"
+          mapfile -d '' -t provisioner_apks < <(find "$apk_root" -type f -name 'calendarProvisioner-debug.apk' -print0)
+          mapfile -d '' -t provisioner_test_apks < <(find "$apk_root" -type f -name 'calendarProvisioner-debug-androidTest.apk' -print0)
+          if [[ "${#provisioner_apks[@]}" -ne 1 || "${#provisioner_test_apks[@]}" -ne 1 ]]; then
+            echo "APK_PRESERVATION=FAIL provisioner_count=${#provisioner_apks[@]} instrumentation_count=${#provisioner_test_apks[@]}" >&2
+            exit 1
+          fi
+          cp -- "${provisioner_apks[0]}" "$preserved_apk_dir/calendarProvisioner-debug.apk"
+          cp -- "${provisioner_test_apks[0]}" "$preserved_apk_dir/calendarProvisioner-debug-androidTest.apk"
+          test -s "$preserved_apk_dir/calendarProvisioner-debug.apk"
+          test -s "$preserved_apk_dir/calendarProvisioner-debug-androidTest.apk"
+          {
+            printf 'CHECKED_OUT_SHA=%s\n' "$(git rev-parse HEAD)"
+            printf 'PROVISIONER_APK_SHA256=%s\n' "$(sha256sum "$preserved_apk_dir/calendarProvisioner-debug.apk" | awk '{print $1}')"
+            printf 'INSTRUMENTATION_APK_SHA256=%s\n' "$(sha256sum "$preserved_apk_dir/calendarProvisioner-debug-androidTest.apk" | awk '{print $1}')"
+            printf 'APK_PRESERVATION=PASS\n'
+          } > "$preserved_apk_dir/manifest.txt"
+          cp "$preserved_apk_dir/manifest.txt" "../$evidence_dir/provisioner-apk-integrity.txt"
           set +e
           bash ./gradlew :calendarProvisioner:connectedDebugAndroidTest --stacktrace > "../$evidence_dir/provisioner-instrumentation.txt" 2>&1
           gradle_rc=$?
@@ -283,13 +305,20 @@ jobs:
           PY
           cd ..
 
-          # Gradle connectedDebugAndroidTest removes its target and test packages during
-          # teardown. Reinstall the APKs built from this exact checkout and use the
-          # existing instrumentation test as the explicit, observable provisioning entry point.
-          provisioner_apk="android/calendarProvisioner/build/outputs/apk/debug/calendarProvisioner-debug.apk"
-          provisioner_test_apk="android/calendarProvisioner/build/outputs/apk/androidTest/debug/calendarProvisioner-debug-androidTest.apk"
-          if [[ ! -s "$provisioner_apk" || ! -s "$provisioner_test_apk" ]]; then
-            echo "Same-checkout Provisioner APKs are missing after instrumentation teardown." >&2
+          # Reuse the immutable APK copies captured before connected instrumentation teardown.
+          preserved_apk_dir="$RUNNER_TEMP/arvin-provisioner-apks"
+          provisioner_apk="$preserved_apk_dir/calendarProvisioner-debug.apk"
+          provisioner_test_apk="$preserved_apk_dir/calendarProvisioner-debug-androidTest.apk"
+          if [[ ! -s "$preserved_apk_dir/manifest.txt" || ! -s "$provisioner_apk" || ! -s "$provisioner_test_apk" ]]; then
+            echo "Preserved same-checkout Provisioner APKs or integrity manifest are missing after teardown." >&2
+            exit 1
+          fi
+          expected_app_sha="$(sed -n 's/^PROVISIONER_APK_SHA256=//p' "$preserved_apk_dir/manifest.txt")"
+          expected_test_sha="$(sed -n 's/^INSTRUMENTATION_APK_SHA256=//p' "$preserved_apk_dir/manifest.txt")"
+          actual_app_sha="$(sha256sum "$provisioner_apk" | awk '{print $1}')"
+          actual_test_sha="$(sha256sum "$provisioner_test_apk" | awk '{print $1}')"
+          if [[ "$actual_app_sha" != "$expected_app_sha" || "$actual_test_sha" != "$expected_test_sha" ]]; then
+            echo "Preserved Provisioner APK checksum mismatch after teardown." >&2
             exit 1
           fi
           {
@@ -298,6 +327,7 @@ jobs:
             printf 'PROVISIONER_APK=%s\n' "$provisioner_apk"
             printf 'PROVISIONER_TEST_APK=%s\n' "$provisioner_test_apk"
             sha256sum "$provisioner_apk" "$provisioner_test_apk"
+            printf 'APK_INTEGRITY=PASS\n'
           } > "$evidence_dir/provisioner-reinstall.txt"
 
           adb install -r "$provisioner_apk" | tee "$evidence_dir/provisioner-app-install.txt"
