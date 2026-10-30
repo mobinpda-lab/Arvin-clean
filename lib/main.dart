@@ -49,6 +49,7 @@ import 'services/widget_task_bridge.dart';
 import 'services/widget_task_selection_service.dart';
 import 'settings_page.dart';
 import 'task_detail_page.dart';
+import 'follow_up_entry_page.dart';
 import 'task_editor_dialog.dart';
 import 'task_next_action_page.dart';
 import 'task_report_page.dart';
@@ -141,7 +142,7 @@ class _ArvinAppState extends State<ArvinApp> {
 
   @override
   Widget build(BuildContext context) {
-    final selectedOption = arvinFontById(settings.fontFamily ?? 'vazirharf');
+    final selectedOption = arvinFontById(settings.fontFamily ?? 'vazirmatn');
     final selectedFontFamily = selectedOption.effectiveFontFamily;
     final lightBaseTextTheme = ThemeData.light().textTheme.apply(
       fontFamily: selectedFontFamily,
@@ -2646,7 +2647,14 @@ class _HomePageState extends State<HomePage> {
         }
         return false;
       case TaskSwipeAction.convertToFollowUp:
-        // Retired legacy action: Follow-up is recorded history, not a Task mode.
+        final followUp = await Navigator.of(context).push<FollowUp>(
+          MaterialPageRoute<FollowUp>(
+            builder: (_) => const FollowUpEntryPage(),
+          ),
+        );
+        if (followUp != null) {
+          await _addFollowUpFromDetail(task, followUp);
+        }
         return false;
       case TaskSwipeAction.none:
         return false;
@@ -2659,14 +2667,14 @@ class _HomePageState extends State<HomePage> {
       TaskSwipeAction.archive => Icons.archive_outlined,
       TaskSwipeAction.trash => Icons.delete_outline,
       TaskSwipeAction.moveToToday => Icons.today_outlined,
-      TaskSwipeAction.convertToFollowUp => Icons.block,
+      TaskSwipeAction.convertToFollowUp => Icons.add_comment_outlined,
       TaskSwipeAction.none => Icons.block,
     };
     final label = switch (action) {
       TaskSwipeAction.archive => 'بایگانی',
       TaskSwipeAction.trash => 'سطل زباله',
       TaskSwipeAction.moveToToday => 'انتقال به امروز',
-      TaskSwipeAction.convertToFollowUp => 'بدون عمل (گزینه قدیمی)',
+      TaskSwipeAction.convertToFollowUp => 'ثبت پیگیری',
       TaskSwipeAction.none => 'بدون عمل',
     };
     return Container(
