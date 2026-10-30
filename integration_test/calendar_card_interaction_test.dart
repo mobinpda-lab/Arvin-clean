@@ -119,7 +119,7 @@ void main() {
       expect(Directionality.of(tester.element(card)), TextDirection.rtl);
       expect(
         Theme.of(tester.element(card)).textTheme.bodyMedium?.fontFamily,
-        AppFonts.vazirharfFamily,
+        AppFonts.vazirmatnFamily,
       );
       expect(tester.takeException(), isNull);
 
