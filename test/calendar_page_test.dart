@@ -613,6 +613,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    // Production swipe actions are velocity-gated; use a deterministic fling.
     await tester.fling(
       find.byKey(const ValueKey('calendar-pastel-card-task-due:owned-task')),
       const Offset(240, 0),
