@@ -111,9 +111,21 @@ void main() {
         'reminder-card-task-reminder-item:calendar-smoke-task:calendar-smoke-reminder',
       );
       final card = find.byKey(cardKey);
-      for (var attempt = 0; attempt < 80 && card.evaluate().isEmpty; attempt++) {
-        await tester.pump(const Duration(milliseconds: 100));
-      }
+      final calendarList = find.byKey(
+        const ValueKey('calendar-selected-day-list'),
+      );
+      final calendarScrollable = find.descendant(
+        of: calendarList,
+        matching: find.byType(Scrollable),
+      );
+      expect(calendarList, findsOneWidget);
+      expect(calendarScrollable, findsOneWidget);
+      await tester.scrollUntilVisible(
+        card,
+        200,
+        scrollable: calendarScrollable,
+      );
+      await tester.pumpAndSettle();
       expect(card, findsOneWidget);
       expect(find.text('یادآور آزمایشی'), findsOneWidget);
       expect(Directionality.of(tester.element(card)), TextDirection.rtl);
