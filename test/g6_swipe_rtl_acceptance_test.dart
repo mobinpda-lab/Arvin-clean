@@ -150,13 +150,12 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle(timeout: const Duration(seconds: 5));
+    await tester.pumpAndSettle();
     await tester.drag(
       find.byType(Dismissible).first,
       const Offset(500, 0),
-      duration: const Duration(milliseconds: 300),
     );
-    await tester.pumpAndSettle(timeout: const Duration(seconds: 5));
+    await tester.pumpAndSettle();
     expect(find.text('ثبت پیگیری'), findsOneWidget);
     expect(find.byKey(const ValueKey('follow-up-entry-back')), findsOneWidget);
     var stored = await TaskStore().load();
@@ -165,7 +164,7 @@ void main() {
     expect(stored.single.followUpEnabled, isFalse);
     expect(stored.single.followUps, isEmpty);
     await tester.tap(find.byKey(const ValueKey('follow-up-entry-back')));
-    await tester.pumpAndSettle(timeout: const Duration(seconds: 5));
+    await tester.pumpAndSettle();
     expect(find.text(taskTitle), findsOneWidget);
     stored = await TaskStore().load();
     expect(stored, hasLength(1));
@@ -196,13 +195,12 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle(timeout: const Duration(seconds: 5));
+    await tester.pumpAndSettle();
     await tester.drag(
       find.byType(Dismissible).first,
       const Offset(-500, 0),
-      duration: const Duration(milliseconds: 300),
     );
-    await tester.pumpAndSettle(timeout: const Duration(seconds: 5));
+    await tester.pumpAndSettle();
     expect(find.text('ثبت پیگیری'), findsOneWidget);
     expect(find.byKey(const ValueKey('follow-up-entry-back')), findsOneWidget);
     var stored = await TaskStore().load();
@@ -211,7 +209,7 @@ void main() {
     expect(stored.single.followUpEnabled, isFalse);
     expect(stored.single.followUps, isEmpty);
     await tester.tap(find.byKey(const ValueKey('follow-up-entry-back')));
-    await tester.pumpAndSettle(timeout: const Duration(seconds: 5));
+    await tester.pumpAndSettle();
     expect(find.text(taskTitle), findsOneWidget);
     stored = await TaskStore().load();
     expect(stored, hasLength(1));
