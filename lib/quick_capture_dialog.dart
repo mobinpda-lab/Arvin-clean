@@ -776,7 +776,6 @@ Future<DateTime?> _pickCustomDue() async {
                       child: Text(_saving ? 'در حال ثبت…' : 'ثبت کار'),
                     ),
                   ),
-                  ),
                 ],
               ),
             ],
