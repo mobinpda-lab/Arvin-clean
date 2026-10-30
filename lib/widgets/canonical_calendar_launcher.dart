@@ -578,45 +578,45 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     bool? applied;
     try {
       applied = await showModalBottomSheet<bool>(
-      context: context, isScrollControlled: true, showDragHandle: true,
-      builder: (sheetContext) => SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Text(entries.isEmpty ? 'تداخل زمانی پیدا نشد' : 'تداخل‌های زمانی',
-              style: Theme.of(sheetContext).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
-            const SizedBox(height: 12),
-            if (entries.isEmpty)
-              const Text('در یادآورهای همگام‌شده و رویدادهای تقویم مقصد تداخلی پیدا نشد.')
-            else for (final entry in entries) ...[
-              Card(child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                  Text(entry.reminder.title, style: Theme.of(sheetContext).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 6),
-                  Text('${_digits('${entry.advice.conflicts.length}')} تداخل در این زمان پیدا شد.'),
-                  const SizedBox(height: 10),
-                  if (entry.advice.suggestions.isEmpty)
-                    const Text('تا پایان همین روز زمان خالی پیشنهادی پیدا نشد.')
-                  else ...[
-                    const Text('زمان‌های پیشنهادی:'), const SizedBox(height: 8),
-                    Wrap(spacing: 8, runSpacing: 8, children: [
-                      for (final suggestion in entry.advice.suggestions)
-                        ActionChip(label: Text('اعمال ${_time(suggestion.start)}'), onPressed: () async {
-                          final changed = await _confirmAndApplyReschedule(sheetContext, entry, suggestion.start);
-                          if (changed && sheetContext.mounted) Navigator.of(sheetContext).pop(true);
-                        }),
-                    ]),
-                  ],
-                ]),
-              )),
+        context: context, isScrollControlled: true, showDragHandle: true,
+        builder: (sheetContext) => SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Text(entries.isEmpty ? 'تداخل زمانی پیدا نشد' : 'تداخل‌های زمانی',
+                style: Theme.of(sheetContext).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+              const SizedBox(height: 12),
+              if (entries.isEmpty)
+                const Text('در یادآورهای همگام‌شده و رویدادهای تقویم مقصد تداخلی پیدا نشد.')
+              else for (final entry in entries) ...[
+                Card(child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                    Text(entry.reminder.title, style: Theme.of(sheetContext).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 6),
+                    Text('${_digits('${entry.advice.conflicts.length}')} تداخل در این زمان پیدا شد.'),
+                    const SizedBox(height: 10),
+                    if (entry.advice.suggestions.isEmpty)
+                      const Text('تا پایان همین روز زمان خالی پیشنهادی پیدا نشد.')
+                    else ...[
+                      const Text('زمان‌های پیشنهادی:'), const SizedBox(height: 8),
+                      Wrap(spacing: 8, runSpacing: 8, children: [
+                        for (final suggestion in entry.advice.suggestions)
+                          ActionChip(label: Text('اعمال ${_time(suggestion.start)}'), onPressed: () async {
+                            final changed = await _confirmAndApplyReschedule(sheetContext, entry, suggestion.start);
+                            if (changed && sheetContext.mounted) Navigator.of(sheetContext).pop(true);
+                          }),
+                      ]),
+                    ],
+                  ]),
+                )),
+                const SizedBox(height: 8),
+              ],
               const SizedBox(height: 8),
-            ],
-            const SizedBox(height: 8),
-            const Text('هیچ زمانی بدون تأیید شما تغییر نمی‌کند.'),
-          ]),
+              const Text('هیچ زمانی بدون تأیید شما تغییر نمی‌کند.'),
+            ]),
+          ),
         ),
-      ),
       );
     } finally {
       if (mounted) setState(() => _conflictAdviceVisible = false);
@@ -846,7 +846,7 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
       child: Scaffold(
         body: Offstage(
           offstage: _conflictAdviceVisible,
-          child: ContextualHelpOverlay(  
+          child: ContextualHelpOverlay(
             title: 'راهنمای تقویم',
             steps: _calendarHelpSteps,
             buttonKey: const ValueKey('calendar-context-help'),
