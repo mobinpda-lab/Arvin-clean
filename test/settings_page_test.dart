@@ -81,7 +81,7 @@ void main() {
     // The selected RadioGroup value is already Vazirmatn, so tapping it is a
     // no-op. Close the informational picker explicitly.
     expect(find.text('انتخاب فونت'), findsOneWidget);
-    await tester.pageBack();
+    Navigator.of(tester.element(find.text('انتخاب فونت'))).pop();
     await tester.pumpAndSettle();
     expect(find.text('انتخاب فونت'), findsNothing);
     expect((await service.load()).fontFamily, 'vazirmatn');

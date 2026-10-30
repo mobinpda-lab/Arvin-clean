@@ -128,10 +128,10 @@ void main() {
     expect(find.text('حرکت به چپ'), findsOneWidget);
   });
 
-  testWidgets('RTL right swipe cannot create Follow-up history',
+  testWidgets('RTL right swipe opens Follow-up entry without creating history',
       (tester) async {
     const taskId = 'rtl-convert-right';
-
+    const taskTitle = 'تبدیل به پیگیری از راست';
     final settings = const AppSettings(
       themeMode: ThemeMode.light,
       usePersianDate: true,
@@ -139,11 +139,9 @@ void main() {
       swipeRightAction: TaskSwipeAction.convertToFollowUp,
       swipeLeftAction: TaskSwipeAction.none,
     );
-
     SharedPreferences.setMockInitialValues({
-      'arvin.tasks': '[{"id":"$taskId","title":"تبدیل به پیگیری از راست"}]',
+      'arvin.tasks': '[{"id":"$taskId","title":"$taskTitle"}]',
     });
-
     await tester.pumpWidget(
       MaterialApp(
         home: Directionality(
@@ -152,28 +150,34 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
-
-    final dismissible = tester.widget<Dismissible>(find.byType(Dismissible));
-    final result =
-        await dismissible.confirmDismiss!(DismissDirection.endToStart);
-    await tester.pumpAndSettle();
-
-    expect(result, isFalse);
-    expect(find.text('تبدیل به پیگیری از راست'), findsOneWidget);
-
-    expect(find.text('کار به کار پیگیری‌دار تبدیل شد'), findsNothing);
-    final stored = await TaskStore().load();
+    await tester.pumpAndSettle(timeout: const Duration(seconds: 5));
+    await tester.drag(
+      find.byType(Dismissible).first,
+      const Offset(500, 0),
+      duration: const Duration(milliseconds: 300),
+    );
+    await tester.pumpAndSettle(timeout: const Duration(seconds: 5));
+    expect(find.text('ثبت پیگیری'), findsOneWidget);
+    expect(find.byKey(const ValueKey('follow-up-entry-back')), findsOneWidget);
+    var stored = await TaskStore().load();
+    expect(stored, hasLength(1));
+    expect(stored.single.id, taskId);
+    expect(stored.single.followUpEnabled, isFalse);
+    expect(stored.single.followUps, isEmpty);
+    await tester.tap(find.byKey(const ValueKey('follow-up-entry-back')));
+    await tester.pumpAndSettle(timeout: const Duration(seconds: 5));
+    expect(find.text(taskTitle), findsOneWidget);
+    stored = await TaskStore().load();
     expect(stored, hasLength(1));
     expect(stored.single.id, taskId);
     expect(stored.single.followUpEnabled, isFalse);
     expect(stored.single.followUps, isEmpty);
   });
 
-  testWidgets('RTL left swipe cannot create Follow-up history',
+  testWidgets('RTL left swipe opens Follow-up entry without creating history',
       (tester) async {
     const taskId = 'rtl-convert-left';
-
+    const taskTitle = 'تبدیل به پیگیری از چپ';
     final settings = const AppSettings(
       themeMode: ThemeMode.light,
       usePersianDate: true,
@@ -181,11 +185,9 @@ void main() {
       swipeRightAction: TaskSwipeAction.none,
       swipeLeftAction: TaskSwipeAction.convertToFollowUp,
     );
-
     SharedPreferences.setMockInitialValues({
-      'arvin.tasks': '[{"id":"$taskId","title":"تبدیل به پیگیری از چپ"}]',
+      'arvin.tasks': '[{"id":"$taskId","title":"$taskTitle"}]',
     });
-
     await tester.pumpWidget(
       MaterialApp(
         home: Directionality(
@@ -194,18 +196,24 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
-
-    final dismissible = tester.widget<Dismissible>(find.byType(Dismissible));
-    final result =
-        await dismissible.confirmDismiss!(DismissDirection.startToEnd);
-    await tester.pumpAndSettle();
-
-    expect(result, isFalse);
-    expect(find.text('تبدیل به پیگیری از چپ'), findsOneWidget);
-
-    expect(find.text('کار به کار پیگیری‌دار تبدیل شد'), findsNothing);
-    final stored = await TaskStore().load();
+    await tester.pumpAndSettle(timeout: const Duration(seconds: 5));
+    await tester.drag(
+      find.byType(Dismissible).first,
+      const Offset(-500, 0),
+      duration: const Duration(milliseconds: 300),
+    );
+    await tester.pumpAndSettle(timeout: const Duration(seconds: 5));
+    expect(find.text('ثبت پیگیری'), findsOneWidget);
+    expect(find.byKey(const ValueKey('follow-up-entry-back')), findsOneWidget);
+    var stored = await TaskStore().load();
+    expect(stored, hasLength(1));
+    expect(stored.single.id, taskId);
+    expect(stored.single.followUpEnabled, isFalse);
+    expect(stored.single.followUps, isEmpty);
+    await tester.tap(find.byKey(const ValueKey('follow-up-entry-back')));
+    await tester.pumpAndSettle(timeout: const Duration(seconds: 5));
+    expect(find.text(taskTitle), findsOneWidget);
+    stored = await TaskStore().load();
     expect(stored, hasLength(1));
     expect(stored.single.id, taskId);
     expect(stored.single.followUpEnabled, isFalse);

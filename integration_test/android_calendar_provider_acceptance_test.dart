@@ -212,6 +212,19 @@ void main() {
       );
       expect(cleanupResult.deleted, 1);
       expect(await store.load(), isEmpty);
+      final deletedEvents = await bridge.listDeviceCalendarEvents(
+        calendarIds: [secondCalendar.id],
+        start: start.subtract(const Duration(hours: 1)),
+        end: start.add(const Duration(hours: 4)),
+      );
+      expect(
+        deletedEvents.any((event) => event.eventId == migratedLinks.single.eventId),
+        isFalse,
+        reason: 'deleted migrated event must no longer be visible',
+      );
+      debugPrint(
+        'CALENDAR_PROVIDER_DELETE=PASS calendarId=${secondCalendar.id} eventId=${migratedLinks.single.eventId} providerVisible=false deleted=${cleanupResult.deleted}',
+      );
     } else {
       // With one writable calendar, finish the ordinary create/update/delete acceptance.
       links = await store.load();

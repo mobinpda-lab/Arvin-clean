@@ -376,11 +376,15 @@ jobs:
           flutter build apk --debug -t lib/main.dart
           apk="build/app/outputs/flutter-apk/app-debug.apk"
           test -s "$apk"
+          apk_extract_dir="$RUNNER_TEMP/arvin-calendar-apk"
+          rm -rf "$apk_extract_dir"
+          mkdir -p "$apk_extract_dir"
+          unzip -q "$apk" -d "$apk_extract_dir"
           for font in \
-            assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf \
-            assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf \
-            assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf; do
-            if ! unzip -Z1 "$apk" | grep -Fxq "assets/flutter_assets/$font"; then
+            assets/flutter_assets/assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf \
+            assets/flutter_assets/assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf \
+            assets/flutter_assets/assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf; do
+            if [[ ! -s "$apk_extract_dir/$font" ]]; then
               echo "FONT_ASSET_BUNDLED=FAIL missing=$font" >&2
               exit 1
             fi
@@ -405,14 +409,44 @@ jobs:
             echo "RESULT=FAILURE_FLUTTER_EXIT_$flutter_rc" > "$evidence_dir/result.txt"
             exit "$flutter_rc"
           fi
-          if grep -q 'CALENDAR_PROVIDER_ACCEPTANCE=PASS' "$evidence_dir/test-output.txt" && grep -q 'CALENDAR_PROVIDER_NOOP_NO_DUPLICATE=PASS' "$evidence_dir/test-output.txt"; then
-            echo 'RESULT=PASS_REAL_PROVIDER_CREATE_NOOP_UPDATE_DELETE' > "$evidence_dir/result.txt"
+          python3 - "$evidence_dir/test-output.txt" "$evidence_dir/crud-markers.txt" <<'PY'
+          import pathlib, re, sys
+          lines = pathlib.Path(sys.argv[1]).read_text(
+              encoding="utf-8", errors="replace"
+          ).splitlines()
+          captured = []
+          missing = []
+          for operation in ("CREATE", "UPDATE", "DELETE"):
+              matches = [
+                  line for line in lines
+                  if re.search(rf"CALENDAR_PROVIDER_{operation}=PASS(?:\\s|$)", line)
+              ]
+              if not matches:
+                  missing.append(operation)
+              captured.extend(matches)
+          output = pathlib.Path(sys.argv[2])
+          output.write_text(
+              "\\n".join(captured) + ("\\n" if captured else ""),
+              encoding="utf-8",
+          )
+          print(output.read_text(encoding="utf-8"), end="")
+          if missing:
+              raise SystemExit(
+                  "Missing successful Calendar CRUD markers: " + ", ".join(missing)
+              )
+          PY
+          if grep -q 'CALENDAR_PROVIDER_ACCEPTANCE=PASS' "$evidence_dir/test-output.txt" \
+            && grep -q 'CALENDAR_PROVIDER_NOOP_NO_DUPLICATE=PASS' "$evidence_dir/test-output.txt" \
+            && grep -q 'CALENDAR_PROVIDER_CREATE=PASS' "$evidence_dir/crud-markers.txt" \
+            && grep -q 'CALENDAR_PROVIDER_UPDATE=PASS' "$evidence_dir/crud-markers.txt" \
+            && grep -q 'CALENDAR_PROVIDER_DELETE=PASS' "$evidence_dir/crud-markers.txt"; then
+            echo 'RESULT=PASS_REAL_PROVIDER_CREATE_UPDATE_DELETE' > "$evidence_dir/result.txt"
           elif grep -q 'CALENDAR_PROVIDER_ACCEPTANCE=BLOCKED_PROVISIONED_CALENDAR_MISSING' "$evidence_dir/test-output.txt"; then
             echo 'RESULT=BLOCKED_PROVISIONED_CALENDAR_MISSING' > "$evidence_dir/result.txt"
             exit 1
           else
-            echo 'RESULT=FAILURE_OR_BLOCKED_MISSING_ACCEPTANCE_MARKERS' > "$evidence_dir/result.txt"
-            echo "Flutter test exited zero without all explicit acceptance markers." >&2
+            echo 'RESULT=FAILURE_OR_BLOCKED_MISSING_CRUD_MARKERS' > "$evidence_dir/result.txt"
+            echo "Flutter test exited without complete CREATE/UPDATE/DELETE acceptance evidence." >&2
             exit 1
           fi
           BASH
