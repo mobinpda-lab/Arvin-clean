@@ -362,3 +362,16 @@
 **BLOCKED — RELEASE: NO-GO**
 
 انتشار تا زمان عبور مستقل از تمام گیت‌های لازم محصول، CI، پذیرش داده، تقویم دستگاه و دستگاه واقعی مسدود باقی می‌ماند.
+
+
+## Wave 7-61 Track A/B — Typography and Task completion lifecycle
+
+- The only application font is the bundled `Vazirmatn` family. Settings expose text size only; no font-family picker or active font-family preference is supported. Light and dark application themes use the same family. PDF report and Work Agenda output use the bundled Vazirmatn Regular/Bold assets through the shared renderer.
+- Legacy backup `fontFamily` values are ignored during portable-settings merge/decode. New portable settings do not export a font-family selection; restoring a legacy value cannot change the enforced font.
+- Task completion time is the nullable Task-level `completedAt` ISO-8601 value. The first transition to completed records the timestamp; repeated completion preserves it; explicit reopen clears it; the next completion records a new timestamp.
+- Title, description/Task Note, priority, category and other editor metadata updates change `updatedAt` but do not own or mutate completion state or `completedAt`. Completion is performed only through the explicit completion lifecycle action.
+- Existing SQL schema version remains **7**: `tasks.completed_at` is already part of the canonical v7 schema and the idempotent installer adds the nullable column to older task tables when absent. No schema-version increment or destructive migration is needed for this change. Existing `follow_up_enabled` and `follow_up_date` columns remain intact; no follow-up rows are synthesized, dropped or rewritten by completion/metadata operations.
+- Single, bulk and swipe completion preserve the existing `followUps` history. TaskStore persists `completedAt` in both the canonical SQL column and the task JSON envelope and continues to write follow-up relations transactionally.
+- The completed swipe action is a one-way completion action; reopening remains an explicit Task detail lifecycle action.
+
+Release remains **BLOCKED — RELEASE: NO-GO** pending all independent product and device acceptance gates.

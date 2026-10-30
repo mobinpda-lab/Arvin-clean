@@ -22,6 +22,13 @@ void main() {
     expect(source, isNot(contains("package:printing/printing.dart")));
   });
 
+  test('application light and dark themes enforce Vazirmatn', () {
+    final source = File('lib/main.dart').readAsStringSync();
+    expect(source, contains('lightBaseTextTheme = ThemeData.light().textTheme.apply(\n      fontFamily: AppFonts.vazirmatnFamily'));
+    expect(source, contains('darkBaseTextTheme = ThemeData.dark().textTheme.apply(\n      fontFamily: AppFonts.vazirmatnFamily'));
+    expect(source, contains('fontFamily: AppFonts.vazirmatnFamily'));
+  });
+
   test('font registry exposes only the required Vazirmatn option', () {
     final source = File('lib/theme/font_registry.dart').readAsStringSync();
     expect(source, contains("id: 'vazirmatn'"));

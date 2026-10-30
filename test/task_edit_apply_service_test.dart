@@ -82,13 +82,20 @@ void main() {
     final edited = Task(
       id: 'metadata-only',
       title: 'بعد',
-      completed: true,
+      description: 'یادداشت تازه',
+      category: 'مشتری',
+      priority: TaskPriority.high,
+      completed: false,
     );
 
     service.apply(target, edited);
 
     expect(target.completed, isTrue);
     expect(target.completedAt, completedAt);
+    expect(target.description, 'یادداشت تازه');
+    expect(target.category, 'مشتری');
+    expect(target.priority, TaskPriority.high);
+    expect(target.updatedAt, isNotNull);
     expect(target.followUpEnabled, isTrue);
     expect(target.followUpDate, legacyDate);
   });

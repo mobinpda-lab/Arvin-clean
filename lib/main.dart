@@ -2661,6 +2661,17 @@ class _HomePageState extends State<HomePage> {
             );
         }
         return false;
+      case TaskSwipeAction.complete:
+        if (task.completed) return false;
+        task.setCompleted(true);
+        task.updatedAt = DateTime.now();
+        await _save();
+        try {
+          await AndroidFollowUpReminderScheduler().reschedule();
+        } catch (_) {
+          // Completion is persisted; a later scheduler pass can retry.
+        }
+        return true;
       case TaskSwipeAction.convertToFollowUp:
         // Retired legacy preference: the supported shortcut is the explicit
         // «افزودن یادآور» control in the Task editor.
@@ -2676,6 +2687,7 @@ class _HomePageState extends State<HomePage> {
       TaskSwipeAction.archive => Icons.archive_outlined,
       TaskSwipeAction.trash => Icons.delete_outline,
       TaskSwipeAction.moveToToday => Icons.today_outlined,
+      TaskSwipeAction.complete => Icons.check_circle_outline,
       TaskSwipeAction.convertToFollowUp => Icons.block,
       TaskSwipeAction.none => Icons.block,
     };
@@ -2683,6 +2695,7 @@ class _HomePageState extends State<HomePage> {
       TaskSwipeAction.archive => 'بایگانی',
       TaskSwipeAction.trash => 'سطل زباله',
       TaskSwipeAction.moveToToday => 'انتقال به امروز',
+      TaskSwipeAction.complete => 'انجام‌شدن',
       TaskSwipeAction.convertToFollowUp => 'بدون عمل',
       TaskSwipeAction.none => 'بدون عمل',
     };

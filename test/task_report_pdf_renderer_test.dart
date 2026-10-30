@@ -12,6 +12,17 @@ void main() {
     );
   });
 
+  test('default renderer uses bundled Vazirmatn fonts', () async {
+    final report = const TaskReportProjection().project(
+      [Task(id: 'font-default', title: 'آزمون وزیرمتن')],
+      generatedAt: DateTime.utc(2026, 10, 30),
+      title: 'گزارش فونت',
+    );
+    final bytes = await TaskReportPdfRenderer().build(report);
+    expect(bytes.length, greaterThan(100));
+    expect(String.fromCharCodes(bytes.take(4)), '%PDF');
+  });
+
   test('shared renderer produces real PDF bytes without platform printing', () async {
     final report = const TaskReportProjection().project(
       [

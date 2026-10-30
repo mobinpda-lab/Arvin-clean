@@ -37,6 +37,7 @@ void main() {
     expect(find.byKey(const ValueKey('swipe-settings-title')), findsOneWidget);
     expect(find.byKey(const ValueKey('swipe-right-action')), findsOneWidget);
     expect(find.byKey(const ValueKey('swipe-left-action')), findsOneWidget);
+    expect(find.text('اندازه متن'), findsOneWidget);
     expect(find.byKey(const ValueKey('calendar-swipe-settings-title')), findsOneWidget);
     expect(find.byKey(const ValueKey('calendar-swipe-right-action')), findsOneWidget);
     expect(find.byKey(const ValueKey('calendar-swipe-left-action')), findsOneWidget);
@@ -45,6 +46,12 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('ثبت پیگیری'), findsNothing);
     expect(find.text('انتقال به تقویم گوشی'), findsNothing);
+    await tester.tap(find.text('انجام‌شدن').last);
+    await tester.pumpAndSettle();
+    expect((await service.load()).swipeRightAction, TaskSwipeAction.complete);
+
+    await tester.tap(find.byKey(const ValueKey('swipe-right-action')));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('بایگانی').last);
     await tester.pumpAndSettle();
     expect(

@@ -26,7 +26,9 @@ class TaskEditApplyService {
     target.legacyTaskReminderMigrationVersion =
         edited.legacyTaskReminderMigrationVersion;
     target.priority = edited.priority;
-    target.setCompleted(edited.completed, at: _now());
+    // Completion is a separate lifecycle action. An editor payload (including
+    // Task Note metadata edits) must never complete/reopen a Task or rewrite
+    // its completedAt timestamp.
     target.recurrence = edited.recurrence;
     target.updatedAt = _now();
   }
