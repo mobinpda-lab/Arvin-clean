@@ -2,8 +2,13 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/task_store.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  setUp(() {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+  });
+
   test('SQL persistence round-trips completedAt and preserves follow-up history', () async {
     final database = NativeDatabase.memory();
     try {

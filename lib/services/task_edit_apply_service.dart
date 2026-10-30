@@ -26,9 +26,12 @@ class TaskEditApplyService {
     target.legacyTaskReminderMigrationVersion =
         edited.legacyTaskReminderMigrationVersion;
     target.priority = edited.priority;
-    // Completion is a separate lifecycle action. An editor payload (including
-    // Task Note metadata edits) must never complete/reopen a Task or rewrite
-    // its completedAt timestamp.
+    // The editor initializes this value from the canonical Task; only an
+    // explicit user toggle changes it. Metadata-only edits therefore preserve
+    // completion and completedAt, while an explicit reopen clears the stamp.
+    if (edited.completed != target.completed) {
+      target.setCompleted(edited.completed, at: _now());
+    }
     target.recurrence = edited.recurrence;
     target.updatedAt = _now();
   }

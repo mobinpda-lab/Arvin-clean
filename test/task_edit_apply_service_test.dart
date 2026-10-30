@@ -85,7 +85,7 @@ void main() {
       description: 'یادداشت تازه',
       category: 'مشتری',
       priority: TaskPriority.high,
-      completed: false,
+      completed: true,
     );
 
     service.apply(target, edited);
@@ -98,6 +98,19 @@ void main() {
     expect(target.updatedAt, isNotNull);
     expect(target.followUpEnabled, isTrue);
     expect(target.followUpDate, legacyDate);
+  });
+
+  test('explicit reopen in editor clears completedAt', () {
+    final target = Task(
+      id: 'explicit-reopen', title: 'انجام‌شده', completed: true,
+      completedAt: DateTime(2026, 10, 29, 9),
+    );
+    final edited = Task(id: 'explicit-reopen', title: 'باز', completed: false);
+
+    service.apply(target, edited);
+
+    expect(target.completed, isFalse);
+    expect(target.completedAt, isNull);
   });
 
   test('applies disabled checklist state while preserving checklist rows', () {
