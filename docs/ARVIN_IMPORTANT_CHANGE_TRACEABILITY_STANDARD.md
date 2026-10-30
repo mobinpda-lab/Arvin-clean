@@ -51,3 +51,15 @@ For an important change, the repository should make it possible to answer:
 The Arvin factory should check this trace automatically at the appropriate gate and report missing links clearly. It should not create unnecessary manual work.
 
 **Operating principle:** `Fast Documentation + Strong Traceability + Minimal Manual Overhead`
+
+
+## 7. Wave 7.279 — exact main lease diagnosis (2026-10-31)
+
+- **Request / governance:** Wave 7.279; governing Issue [#2102](https://github.com/mobinpda-lab/Arvin-clean/issues/2102); observed on Draft PR [#2995](https://github.com/mobinpda-lab/Arvin-clean/pull/2995).
+- **Failure:** `.github/workflows/arvin-agent-worker.yml`, step `Validate exact main lease`, compares `git rev-parse HEAD` with `ARVIN_EXPECTED_MAIN_SHA` after the preceding checkout explicitly uses `ref: main`.
+- **Incorrect dispatched lease value:** `f4c64704e514d34d1bc9afa070f0163774fc32d0`. This is the PR worker branch HEAD, not the live `main` HEAD.
+- **Verified main commit:** [`18cbeecc95a03a3b301359ca5b96cfef175a3b15`](https://github.com/mobinpda-lab/Arvin-clean/commit/18cbeecc95a03a3b301359ca5b96cfef175a3b15).
+- **Decision / resolution:** For a dispatch that checks out `main`, set input `expected_main_sha` to the exact main commit SHA captured immediately before dispatch: `18cbeecc95a03a3b301359ca5b96cfef175a3b15`. Keep the exact equality check fail-closed; do not weaken or bypass it. Re-fetch `main` immediately before any later dispatch and stop if it has moved.
+- **Change scope:** Diagnostic and dispatch-input correction only. No workflow source, product source, schema, migration, or scheduler behavior is changed by this entry.
+- **Validation evidence:** GitHub `refs/heads/main` returned the SHA above; GitHub `refs/heads/fix/wave-7-61-reminder-only-next-follow-up` returned `f4c64704e514d34d1bc9afa070f0163774fc32d0`; workflow source confirms `actions/checkout` uses `ref: main`. PR #2995 was observed OPEN/DRAFT/UNMERGED and Issue #2102 OPEN at audit time.
+- **Execution result:** Lease diagnosis is resolved. A new worker dispatch and downstream CI validation have not yet been executed; no green status is claimed. Release remains `BLOCKED — RELEASE: NO-GO`.
