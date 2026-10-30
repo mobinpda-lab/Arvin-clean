@@ -419,14 +419,14 @@ jobs:
           for operation in ("CREATE", "UPDATE", "DELETE"):
               matches = [
                   line for line in lines
-                  if re.search(rf"CALENDAR_PROVIDER_{operation}=PASS(?:\\s|$)", line)
+                  if re.search(rf"CALENDAR_PROVIDER_{operation}=PASS(?:\s|$)", line)
               ]
               if not matches:
                   missing.append(operation)
               captured.extend(matches)
           output = pathlib.Path(sys.argv[2])
           output.write_text(
-              "\\n".join(captured) + ("\\n" if captured else ""),
+              "\n".join(captured) + ("\n" if captured else ""),
               encoding="utf-8",
           )
           print(output.read_text(encoding="utf-8"), end="")
