@@ -56,6 +56,8 @@ class CanonicalCalendarLauncher extends StatefulWidget {
 class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
   late List<Task> _tasks;
   CalendarSwipeSettings _calendarSwipeSettings = const CalendarSwipeSettings();
+  // Keep the launcher subtree out of global finders while conflict advice is modal.
+  bool _conflictAdviceVisible = false;
   CalendarInboundSyncService get _inboundSync => CalendarInboundSyncService();
 
   static const _calendarHelpSteps = <ContextualHelpStep>[
@@ -572,7 +574,10 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
       if (advice.hasConflict) entries.add(_CalendarConflictAdviceEntry(reminder: reminder, advice: advice));
     }
     if (!context.mounted) return;
-    final applied = await showModalBottomSheet<bool>(
+    setState(() => _conflictAdviceVisible = true);
+    bool? applied;
+    try {
+      applied = await showModalBottomSheet<bool>(
       context: context, isScrollControlled: true, showDragHandle: true,
       builder: (sheetContext) => SafeArea(
         child: SingleChildScrollView(
@@ -612,7 +617,10 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
           ]),
         ),
       ),
-    );
+      );
+    } finally {
+      if (mounted) setState(() => _conflictAdviceVisible = false);
+    }
     if (applied == true && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('زمان یادآور با موفقیت تغییر کرد و همگام‌سازی دوباره درخواست شد.')));
     }
@@ -836,26 +844,29 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        body: ContextualHelpOverlay(
-          title: 'راهنمای تقویم',
-          steps: _calendarHelpSteps,
-          buttonKey: const ValueKey('calendar-context-help'),
-          child: IranianOfficialCalendarPage(
-            reminders: reminders,
-            visibleReminderProjection: projectVisible,
-            onEditTask: _editTaskFromCalendar,
-            onDeleteTask: _deleteTaskFromCalendar,
-            onRegisterTaskToDeviceCalendar: widget.onRegisterTaskToDeviceCalendar,
-            onOpenExternalReminder: _openExternalReminder,
-            canMutateReminder: (_) => false,
-            calendarSwipeRightAction: _calendarSwipeSettings.right,
-            calendarSwipeLeftAction: _calendarSwipeSettings.left,
-            onCreateTaskForDate: widget.onCreateTaskForDate == null
-                ? null
-                : _createTaskForDate,
-            onCreateTaskFromCalendarEvent: widget.onCreateTaskFromCalendarEvent == null
-                ? null
-                : _createTaskFromCalendarEvent,
+        body: Offstage(
+          offstage: _conflictAdviceVisible,
+          child: ContextualHelpOverlay(  
+            title: 'راهنمای تقویم',
+            steps: _calendarHelpSteps,
+            buttonKey: const ValueKey('calendar-context-help'),
+            child: IranianOfficialCalendarPage(
+              reminders: reminders,
+              visibleReminderProjection: projectVisible,
+              onEditTask: _editTaskFromCalendar,
+              onDeleteTask: _deleteTaskFromCalendar,
+              onRegisterTaskToDeviceCalendar: widget.onRegisterTaskToDeviceCalendar,
+              onOpenExternalReminder: _openExternalReminder,
+              canMutateReminder: (_) => false,
+              calendarSwipeRightAction: _calendarSwipeSettings.right,
+              calendarSwipeLeftAction: _calendarSwipeSettings.left,
+              onCreateTaskForDate: widget.onCreateTaskForDate == null
+                  ? null
+                  : _createTaskForDate,
+              onCreateTaskFromCalendarEvent: widget.onCreateTaskFromCalendarEvent == null
+                  ? null
+                  : _createTaskFromCalendarEvent,
+            ),
           ),
         ),
         bottomNavigationBar: ArvinPrimaryNavigation(

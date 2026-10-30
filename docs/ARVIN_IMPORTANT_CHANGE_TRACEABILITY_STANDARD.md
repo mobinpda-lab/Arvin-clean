@@ -86,3 +86,14 @@ The Arvin factory should check this trace automatically at the appropriate gate 
 ### Operational standard
 
 The queue is the sole autonomous worker dispatcher and must capture one live main SHA per lease. The worker must consume that immutable SHA rather than resolving the moving branch again. Empty, malformed, or mismatched lease data must never authorize execution. Manual dispatch is not a substitute for the queue's live-SHA lease contract.
+
+
+## Wave 7.61 — Conflict advice finder isolation (2026-10-31)
+
+- **Request / governance:** Wave 7.61; governing Issue [#2102](https://github.com/mobinpda-lab/Arvin-clean/issues/2102); Draft PR [#2995](https://github.com/mobinpda-lab/Arvin-clean/pull/2995).
+- **Exact root cause:** The unlinked fixture removes the provider-link record but intentionally retains its canonical independent TaskReminder. FollowUpCalendarProjection.project() renders that reminder in the underlying calendar page. showModalBottomSheet() leaves the launcher route mounted, so the global Flutter find.text('یادآور جلسه مشتری') sees the background calendar card even though the empty conflict sheet contains no conflict entry. Filtering eligible candidates was correct for provider conflict evaluation but could not isolate a global finder from the underlying route.
+- **Decision:** Preserve the canonical independent Reminder in the normal calendar projection. Do not delete it, suppress it permanently, or change the projection contract. While conflict advice is presented, place the obscured launcher body subtree Offstage; restore it in a finally block after the modal closes. This isolates the modal's rendered widget scope without changing stored data or ordinary calendar visibility.
+- **Code change:** lib/widgets/canonical_calendar_launcher.dart adds modal-lifecycle state and wraps the calendar body in Offstage only for the duration of the conflict-advice modal. Existing linkedCandidates / eligible checks remain authoritative; unlinked or ineligible reminders cannot enter provider conflict evaluation or conflict entries.
+- **Test preservation:** test/canonical_calendar_launcher_test.dart was read from the exact base SHA and is not modified. The strict empty-state title, absence-of-reminder, and tester.takeException() assertions remain intact.
+- **Validation status:** New exact-head CI, all test shards, APK builds, Calendar Provider Acceptance, and Device Smoke must complete before acceptance. No green status is implied by this commit.
+- **Release / governance:** PR #2995 remains OPEN / DRAFT / UNMERGED; Issue #2102 remains OPEN. Release remains BLOCKED — RELEASE: NO-GO until every required check and smoke lane is green.
