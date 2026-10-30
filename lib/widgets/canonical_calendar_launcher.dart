@@ -561,7 +561,7 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
         title: event.title, date: event.start, end: event.end, isAllDay: event.allDay,
         externalCalendarId: event.calendarId, externalEventId: event.eventId,
       )).toList(growable: false);
-      final sameCalendarReminders = reminders.where((candidate) {
+      final sameCalendarReminders = eligible.where((candidate) {
         final candidateLink = linksById[candidate.id];
         return candidateLink != null && candidateLink.calendarId == link.calendarId &&
           !candidate.completed && !candidate.isAllDay &&

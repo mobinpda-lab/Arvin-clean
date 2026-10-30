@@ -97,3 +97,9 @@ The queue is the sole autonomous worker dispatcher and must capture one live mai
 - **Test preservation:** test/canonical_calendar_launcher_test.dart was read from the exact base SHA and is not modified. The strict empty-state title, absence-of-reminder, and tester.takeException() assertions remain intact.
 - **Validation status:** New exact-head CI, all test shards, APK builds, Calendar Provider Acceptance, and Device Smoke must complete before acceptance. No green status is implied by this commit.
 - **Release / governance:** PR #2995 remains OPEN / DRAFT / UNMERGED; Issue #2102 remains OPEN. Release remains BLOCKED — RELEASE: NO-GO until every required check and smoke lane is green.
+
+
+### Wave 7.61 follow-up — eligible-only conflict context
+
+- Refined the conflict advisor input so same-calendar context is drawn from the already validated `eligible` set, not the full calendar projection. This excludes linked-but-ineligible candidates (including malformed provider links) from conflict calculations as well as the rendered advice entries. The canonical calendar projection remains unchanged outside the modal.
+- No test file or assertion was changed. Validation is pending on the resulting exact PR HEAD.
