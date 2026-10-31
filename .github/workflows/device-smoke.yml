@@ -57,6 +57,8 @@ concurrency:
 
 env:
   FLUTTER_VERSION: '3.47.0'
+  # One revision contract for PR, manual dispatch, and push events.
+  TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
 
 jobs:
   prepare-matrix:
@@ -134,10 +136,10 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.sha }}
+          ref: ${{ env.TARGET_SHA }}
       - name: Record and verify checkout revision
         env:
-          TARGET_SHA: ${{ inputs.target_sha || github.sha }}
+          TARGET_SHA: ${{ env.TARGET_SHA }}
         shell: bash
         run: |
           set -euo pipefail
@@ -145,9 +147,10 @@ jobs:
             echo "Invalid TARGET_SHA: expected 40 lowercase hexadecimal characters" >&2
             exit 1
           fi
+          git cat-file -e "$TARGET_SHA^{commit}"
           actual="$(git rev-parse HEAD)"
-          echo "CHECKOUT_SHA=$actual"
-          echo "TARGET_SHA=$TARGET_SHA"
+          echo "EXPECTED_TARGET_SHA=$TARGET_SHA"
+          echo "CHECKED_OUT_SHA=$actual"
           if [ "$actual" != "$TARGET_SHA" ]; then
             echo "CHECKOUT SHA mismatch: expected $TARGET_SHA, got $actual" >&2
             exit 1
@@ -222,7 +225,7 @@ jobs:
         if: always() && (matrix.scenario == 'home' || matrix.scenario == 'quick-capture' || matrix.scenario == 'people')
         uses: actions/upload-artifact@v5
         with:
-          name: arvin-device-smoke-${{ matrix.scenario }}-${{ inputs.target_sha || github.sha }}
+          name: arvin-device-smoke-${{ matrix.scenario }}-${{ env.TARGET_SHA }}
           path: artifacts/device-smoke/${{ matrix.scenario }}.png
           if-no-files-found: warn
 
@@ -230,7 +233,7 @@ jobs:
         if: always() && matrix.scenario == 'quick-capture'
         uses: actions/upload-artifact@v5
         with:
-          name: arvin-persian-time-picker-${{ inputs.target_sha || github.sha }}
+          name: arvin-persian-time-picker-${{ env.TARGET_SHA }}
           path: artifacts/device-smoke/persian-time-picker.png
           if-no-files-found: warn
 
@@ -238,6 +241,6 @@ jobs:
         if: always() && matrix.scenario == 'calendar'
         uses: actions/upload-artifact@v5
         with:
-          name: arvin-device-smoke-calendar-${{ inputs.target_sha || github.sha }}
+          name: arvin-device-smoke-calendar-${{ env.TARGET_SHA }}
           path: artifacts/device-smoke/calendar-card-independent-reminder-edit.png
           if-no-files-found: error
