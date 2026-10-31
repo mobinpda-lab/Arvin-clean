@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -366,6 +367,55 @@ void main() {
       expect(loaded.followUps.single.note, followUp.note);
     } finally {
       await TaskStore.resetTestDatabase();
+    }
+  });
+
+
+  test('does not resurrect the last deleted Task Reminder after SQLite reopen', () async {
+    final directory =
+        await Directory.systemTemp.createTemp('arvin-task-reminder-delete-');
+    final databaseFile = File('${directory.path}/arvin.sqlite');
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setString(TaskStore.key, '[]');
+    var database = NativeDatabase(databaseFile);
+
+    try {
+      var store = TaskStore(executor: database);
+      final reminderDate = DateTime.utc(2026, 10, 31, 9, 30);
+      await store.save(<Task>[
+        Task(
+          id: 'delete-last-reminder',
+          title: 'Reminder deletion',
+          taskReminders: <TaskReminder>[
+            TaskReminder(
+              id: 'last-reminder',
+              title: 'آخرین یادآور',
+              date: reminderDate,
+              sequence: 1,
+            ),
+          ],
+        ),
+      ]);
+
+      await database.close();
+      database = NativeDatabase(databaseFile);
+      store = TaskStore(executor: database);
+      final taskBeforeDelete = (await store.load()).single;
+      expect(taskBeforeDelete.taskReminders, hasLength(1));
+      expect(taskBeforeDelete.taskReminders.single.id, 'last-reminder');
+
+      taskBeforeDelete.taskReminders.clear();
+      await store.save(<Task>[taskBeforeDelete]);
+
+      await database.close();
+      database = NativeDatabase(databaseFile);
+      final taskAfterReopen =
+          (await TaskStore(executor: database).load()).single;
+
+      expect(taskAfterReopen.taskReminders, isEmpty);
+    } finally {
+      await database.close();
+      await directory.delete(recursive: true);
     }
   });
 
