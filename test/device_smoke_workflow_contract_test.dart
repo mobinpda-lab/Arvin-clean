@@ -56,7 +56,10 @@ void main() {
     final driver = File('test_driver/integration_test.dart').readAsStringSync();
     expect(driver, contains('integrationDriver('));
     expect(driver, contains('onScreenshot:'));
-    expect(driver, contains(r'artifacts/device-smoke/$screenshotName.png'));
+    expect(
+      driver,
+      contains(r"File('${outputDirectory.path}/$screenshotName.png')"),
+    );
     expect(driver, contains('writeAsBytes(screenshotBytes'));
 
     final homeTest = File('integration_test/android_home_smoke_test.dart').readAsStringSync();
