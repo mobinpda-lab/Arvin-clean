@@ -1,3 +1,5 @@
+import java.io.File
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
@@ -20,7 +22,7 @@ val arvinProductionSigningInputs = listOf(
 val arvinProductionSigningHasAnyInput = arvinProductionSigningInputs.any { !it.isNullOrBlank() }
 val arvinProductionSigningConfigured =
     arvinProductionSigningInputs.all { !it.isNullOrBlank() } &&
-        java.io.File(arvinProductionKeystorePath.orEmpty()).isFile
+        File(arvinProductionKeystorePath.orEmpty()).isFile
 
 if (arvinProductionSigningHasAnyInput && !arvinProductionSigningConfigured) {
     throw GradleException(
