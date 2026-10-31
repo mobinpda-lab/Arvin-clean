@@ -1437,9 +1437,10 @@ class _HomePageState extends State<HomePage> {
 
     // Description metadata updates are deliberately isolated: completion
     // timestamps and historical Follow-up rows are not assigned or rewritten.
+    final updatedAt = DateTime.now();
+    await taskStore.updateDescription(task.id, description, updatedAt);
     target.description = description;
-    target.updatedAt = DateTime.now();
-    await taskStore.save(List<Task>.of(tasks));
+    target.updatedAt = updatedAt;
     final refreshed = await taskStore.load();
     if (!mounted) return target;
     setState(() => tasks = List<Task>.of(refreshed));
