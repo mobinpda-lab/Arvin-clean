@@ -1428,6 +1428,24 @@ class _HomePageState extends State<HomePage> {
     return refreshed.firstWhere((item) => item.id == task.id);
   }
 
+  Future<Task?> _descriptionChangedFromDetail(
+    Task task,
+    String description,
+  ) async {
+    final target = tasks.firstWhere((item) => item.id == task.id);
+    if (target.description == description) return target;
+
+    // Description metadata updates are deliberately isolated: completion
+    // timestamps and historical Follow-up rows are not assigned or rewritten.
+    target.description = description;
+    target.updatedAt = DateTime.now();
+    await taskStore.save(List<Task>.of(tasks));
+    final refreshed = await taskStore.load();
+    if (!mounted) return target;
+    setState(() => tasks = List<Task>.of(refreshed));
+    return refreshed.firstWhere((item) => item.id == task.id);
+  }
+
   Future<Task?> _completeFromDetail(Task task) async {
     // The detail action is a true toggle: a second tap returns the task to
     // the active/undone state. Done remains independent from archive/trash.
@@ -1529,6 +1547,7 @@ class _HomePageState extends State<HomePage> {
           onAddFollowUp: _addFollowUpFromDetail,
           onComplete: _completeFromDetail,
           onChecklistChanged: _checklistChangedFromDetail,
+          onDescriptionChanged: _descriptionChangedFromDetail,
         ),
       ),
     );
