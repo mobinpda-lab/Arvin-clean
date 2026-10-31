@@ -104,7 +104,9 @@ if not driver_path.is_file():
 driver = driver_path.read_text(encoding='utf-8')
 require(driver, 'integrationDriver(', str(driver_path))
 require(driver, 'onScreenshot:', str(driver_path))
-require(driver, 'artifacts/device-smoke/$screenshotName.png', str(driver_path))
+require(driver, "Directory('artifacts/device-smoke')", str(driver_path))
+require(driver, 'await outputDirectory.create(recursive: true);', str(driver_path))
+require(driver, "File('${outputDirectory.path}/$screenshotName.png')", str(driver_path))
 forbidden_device_parallel = 'max-parallel: 1'
 forbid(device, forbidden_device_parallel, str(device_path))
 
