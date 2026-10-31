@@ -597,6 +597,7 @@ class TaskStore {
       'followUpEnabled', 'followUpDate', 'tags', 'category', 'checklist',
       'checklistOccurrences', 'occurrenceHistory', 'notebookKind', 'reminderDate', 'priority', 'archived', 'trashed',
       'completed', 'completedAt', 'followUps', 'recurrence', 'people',
+      'taskReminders',
     };
     final preserved = <String, dynamic>{};
     final previous = previousPayload;
