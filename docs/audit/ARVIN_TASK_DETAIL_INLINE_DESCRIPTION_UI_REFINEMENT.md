@@ -43,3 +43,7 @@ This register records the approved contract and implementation intent. CI and te
 
 **Release decision remains:** `BLOCKED — RELEASE: NO-GO`.  
 **Issue #2102 remains:** `OPEN`.
+
+### Legacy-field inventory clarification
+
+The read-only inventory of `lib/models/task.dart` and `lib/services/task_store.dart` confirms the named legacy fields `FollowUp.nextFollowUp`, `Task.followUpEnabled`, and `Task.followUpDate` remain present and serialized/persisted. No standalone property or SQL field named exactly `enabled` was found in either of those two files; exact-word occurrences are UI/widget flags or comments elsewhere. This refinement does not create, rename, or delete an `enabled` data field. If a distinct legacy `enabled` schema member is intended, its owning model/table/path must be identified before any future schema operation.
