@@ -102,7 +102,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   Future<void> _saveDescription() async {
     final save = widget.onDescriptionChanged;
     final controller = _descriptionController;
-    if (save == null || controller == null || _isSavingDescription) return;
+    if (controller == null || _isSavingDescription) return;
 
     final description = controller.text.trim();
     if (description == _task.description) {
