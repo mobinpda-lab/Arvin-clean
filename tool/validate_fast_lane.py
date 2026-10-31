@@ -87,7 +87,7 @@ for token in (
     'ref: ${{ env.TARGET_SHA }}',
     'name: Record and verify checkout revision',
     'actual="$(git rev-parse HEAD)"',
-    'echo "CHECKOUT_SHA=$actual"',
+    'echo "CHECKED_OUT_SHA=$actual"',
     'echo "EXACT_TARGET_SHA=$actual"',
     'CHECKOUT SHA mismatch: expected $TARGET_SHA, got $actual',
 ):
