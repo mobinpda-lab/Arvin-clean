@@ -22,9 +22,9 @@ void main() {
     expect(workflow, contains('name: Record and verify checkout revision'));
     expect(workflow, contains(r'actual="$(git rev-parse HEAD)"'));
     expect(workflow, contains(r'echo "CHECKED_OUT_SHA=$actual"'));
-    expect(workflow, contains(r'echo "EXPECTED_TARGET_SHA=$TARGET_SHA"
-          echo "CHECKED_OUT_SHA=$actual"
-          echo "EXACT_TARGET_SHA=$actual"'));
+    expect(workflow, contains(r'echo "EXPECTED_TARGET_SHA=$TARGET_SHA"'));
+    expect(workflow, contains(r'echo "CHECKED_OUT_SHA=$actual"'));
+    expect(workflow, contains(r'echo "EXACT_TARGET_SHA=$actual"'));
     expect(
       workflow,
       contains(r'CHECKOUT SHA mismatch: expected $TARGET_SHA, got $actual'),
