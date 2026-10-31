@@ -370,6 +370,45 @@ jobs:
 
           adb install -r "$provisioner_apk" | tee "$evidence_dir/provisioner-app-install.txt"
           adb install -t -r "$provisioner_test_apk" | tee "$evidence_dir/provisioner-test-install.txt"
+          # Pull the installed package APKs back from Android and verify their bytes against the manifest.
+          adb shell pm path com.example.arvin.calendarprovisioner | tr -d '\r' > "$evidence_dir/installed-app-apk-path.txt"
+          adb shell pm path com.example.arvin.calendarprovisioner.test | tr -d '\r' > "$evidence_dir/installed-test-apk-path.txt"
+          installed_app_path="$(sed -n 's/^package://p' "$evidence_dir/installed-app-apk-path.txt" | head -n 1)"
+          installed_test_path="$(sed -n 's/^package://p' "$evidence_dir/installed-test-apk-path.txt" | head -n 1)"
+          if [[ -z "$installed_app_path" || -z "$installed_test_path" ]]; then
+            echo "APK_INTEGRITY=FAIL unable to resolve installed APK paths from PackageManager." >&2
+            exit 42
+          fi
+          adb pull "$installed_app_path" "$preserved_apk_dir/installed-calendarProvisioner-debug.apk"
+          adb pull "$installed_test_path" "$preserved_apk_dir/installed-calendarProvisioner-debug-androidTest.apk"
+          python3 - "$manifest_file" "$preserved_apk_dir/installed-calendarProvisioner-debug.apk" "$preserved_apk_dir/installed-calendarProvisioner-debug-androidTest.apk" <<'PY'
+          import hashlib, json, pathlib, sys
+          manifest_path, *installed_paths = sys.argv[1:]
+          try:
+              manifest = json.loads(pathlib.Path(manifest_path).read_text(encoding="utf-8"))
+              expected_artifacts = manifest["artifacts"]
+              if len(expected_artifacts) != 2 or len(installed_paths) != 2:
+                  raise ValueError("expected exactly two manifest entries and two installed APKs")
+              errors = []
+              for expected, installed in zip(expected_artifacts, installed_paths):
+                  path = pathlib.Path(installed)
+                  try:
+                      size = path.stat().st_size
+                      digest = hashlib.sha256(path.read_bytes()).hexdigest()
+                      if size != expected["file_size_bytes"]:
+                          errors.append(f"INSTALLED_SIZE_MISMATCH path={path} expected={expected['file_size_bytes']} actual={size}")
+                      if digest != expected["sha256_checksum"]:
+                          errors.append(f"INSTALLED_SHA256_MISMATCH path={path} expected={expected['sha256_checksum']} actual={digest}")
+                  except Exception as exc:
+                      errors.append(f"INSTALLED_READ_ERROR path={path} error={type(exc).__name__}: {exc}")
+              if errors:
+                  raise RuntimeError("; ".join(errors))
+              print("INSTALLED_APK_INTEGRITY=PASS app_and_instrumentation")
+          except Exception as exc:
+              print(f"INSTALLED_APK_INTEGRITY=FAIL {type(exc).__name__}: {exc}", file=sys.stderr)
+              raise SystemExit(42)
+          PY
+          printf 'INSTALLED_APK_INTEGRITY=PASS\\n' >> "$evidence_dir/provisioner-reinstall.txt"
           adb shell pm list instrumentation | tr -d '\r' | tee "$evidence_dir/available-instrumentation.txt"
           if ! grep -Fq 'com.example.arvin.calendarprovisioner.test/androidx.test.runner.AndroidJUnitRunner' "$evidence_dir/available-instrumentation.txt"; then
             echo "The same-checkout Provisioner instrumentation runner is not registered after installation." >&2
