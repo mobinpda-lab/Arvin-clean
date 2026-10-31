@@ -9,6 +9,7 @@ import 'models/task.dart';
 import 'services/follow_up_elapsed_formatter.dart';
 import 'services/follow_up_write_coordinator.dart';
 import 'services/persian_date_formatter.dart';
+import 'services/task_store.dart';
 import 'services/waiting_for_response_service.dart';
 import 'task_report_page.dart';
 import 'widgets/taxonomy_icon_row.dart';
@@ -23,6 +24,7 @@ class TaskDetailPage extends StatefulWidget {
     this.onEditFollowUp,
     this.onComplete,
     this.onChecklistChanged,
+    this.onDescriptionChanged,
     this.now,
   });
 
@@ -33,6 +35,7 @@ class TaskDetailPage extends StatefulWidget {
   final Future<FollowUp> Function(Task task, FollowUp followUp)? onEditFollowUp;
   final Future<Task?> Function(Task task)? onComplete;
   final Future<Task?> Function(Task task, List<String> checklist)? onChecklistChanged;
+  final Future<Task?> Function(Task task, String description)? onDescriptionChanged;
   final DateTime? now;
 
   @override
@@ -42,7 +45,6 @@ class TaskDetailPage extends StatefulWidget {
 class _TaskDetailPageState extends State<TaskDetailPage> {
   static const _brand = ArvinColors.primary;
   static const _waiting = ArvinColors.reminder;
-  static const _done = ArvinColors.tag;
   static const _danger = ArvinColors.error;
   static const _muted = ArvinColors.neutral;
   static const _formatter = PersianDateFormatter();
@@ -50,6 +52,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   static const _waitingService = WaitingForResponseService();
 
   late Task _task;
+  TextEditingController? _descriptionController;
+  bool _isEditingDescription = false;
+  bool _isSavingDescription = false;
 
   @override
   void initState() {
@@ -65,24 +70,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
   String _dateTime(DateTime value) => '${_date(value)} • ${_time(value)}';
 
-  String _statusLabel() {
-    if (_task.completed) return 'انجام شده';
-    final latest = _task.lastFollowUp;
-    if (latest != null && _waitingService.isWaitingResult(latest.result)) {
-      return 'در انتظار پاسخ';
-    }
-    return 'در انتظار انجام';
-  }
-
-  Color _statusColor() {
-    if (_task.completed) return _done;
-    final latest = _task.lastFollowUp;
-    if (latest != null && _waitingService.isWaitingResult(latest.result)) {
-      return _waiting;
-    }
-    return _task.priority == TaskPriority.high ? _danger : _brand;
-  }
-
   String? _resultLabel(FollowUp followUp) {
     if (_waitingService.isWaitingResult(followUp.result)) return 'منتظر پاسخ';
     final value = followUp.result?.trim();
@@ -95,6 +82,79 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     final updated = await edit(_task);
     if (!mounted || updated == null) return;
     setState(() => _task = updated);
+  }
+
+  void _beginDescriptionEdit() {
+    _descriptionController?.dispose();
+    _descriptionController = TextEditingController(text: _task.description);
+    setState(() => _isEditingDescription = true);
+  }
+
+  void _cancelDescriptionEdit() {
+    _descriptionController?.dispose();
+    _descriptionController = null;
+    setState(() {
+      _isEditingDescription = false;
+      _isSavingDescription = false;
+    });
+  }
+
+  Future<void> _saveDescription() async {
+    final save = widget.onDescriptionChanged;
+    final controller = _descriptionController;
+    if (controller == null || _isSavingDescription) return;
+
+    final description = controller.text.trim();
+    if (description == _task.description) {
+      _cancelDescriptionEdit();
+      return;
+    }
+
+    setState(() => _isSavingDescription = true);
+    try {
+      final updated = save != null
+          ? await save(_task, description)
+          : await _persistDescriptionDirectly(_task, description);
+      if (!mounted) return;
+      if (updated == null) {
+        throw StateError('Task description update was not persisted.');
+      }
+      _descriptionController?.dispose();
+      _descriptionController = null;
+      setState(() {
+        _task = updated;
+        _isEditingDescription = false;
+        _isSavingDescription = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isSavingDescription = false);
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('ذخیره توضیحات انجام نشد؛ دوباره تلاش کنید')),
+        );
+    }
+  }
+
+  Future<Task?> _persistDescriptionDirectly(
+    Task task,
+    String description,
+  ) async {
+    final store = TaskStore();
+    final updatedAt = DateTime.now();
+    await store.updateDescription(task.id, description, updatedAt);
+    final refreshed = await store.load();
+    for (final candidate in refreshed) {
+      if (candidate.id == task.id) return candidate;
+    }
+    return null;
+  }
+
+  @override
+  void dispose() {
+    _descriptionController?.dispose();
+    super.dispose();
   }
 
   Future<void> _openReport() async {
@@ -194,30 +254,97 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     );
   }
 
+  Widget _descriptionSection() {
+    final hasDescription = _task.description.trim().isNotEmpty;
+    return Padding(
+      padding: const EdgeInsets.only(top: 9),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (!_isEditingDescription)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: IconButton(
+                key: const ValueKey('task-detail-description-edit'),
+                tooltip: 'ویرایش توضیحات',
+                visualDensity: VisualDensity.compact,
+                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                padding: EdgeInsets.zero,
+                onPressed: _beginDescriptionEdit,
+                icon: const Icon(Icons.edit_outlined, size: 18),
+              ),
+            ),
+          if (_isEditingDescription)
+            TextField(
+              key: const ValueKey('task-detail-description-input'),
+              controller: _descriptionController,
+              minLines: 2,
+              maxLines: null,
+              textDirection: TextDirection.rtl,
+              decoration: const InputDecoration(
+                hintText: 'توضیحات کار را بنویسید...',
+                border: OutlineInputBorder(),
+                isDense: true,
+              ),
+            )
+          else
+            Text(
+              hasDescription ? _task.description.trim() : 'توضیحی ثبت نشده است',
+              key: ValueKey(
+                hasDescription
+                    ? 'task-detail-description'
+                    : 'task-detail-description-placeholder',
+              ),
+              style: TextStyle(
+                color: hasDescription
+                    ? const Color(0xFF55566B)
+                    : _muted,
+                height: 1.55,
+              ),
+            ),
+          if (_isEditingDescription) ...[
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                TextButton(
+                  key: const ValueKey('task-detail-description-cancel'),
+                  onPressed: _isSavingDescription ? null : _cancelDescriptionEdit,
+                  child: const Text('انصراف'),
+                ),
+                const SizedBox(width: 6),
+                FilledButton.icon(
+                  key: const ValueKey('task-detail-description-save'),
+                  onPressed: _isSavingDescription ? null : _saveDescription,
+                  icon: _isSavingDescription
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.check, size: 17),
+                  label: const Text('ذخیره'),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _summaryCard() {
-    final statusColor = _statusColor();
     return _card(
       key: const ValueKey('task-detail-summary-card'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  _task.title,
-                  key: const ValueKey('task-detail-title'),
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, height: 1.25),
-                ),
-              ),
-              _badge(_statusLabel(), statusColor, icon: _task.completed ? Icons.check_circle_outline : Icons.track_changes_outlined),
-            ],
+          Text(
+            _task.title,
+            key: const ValueKey('task-detail-title'),
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, height: 1.25),
           ),
-          if (_task.description.trim().isNotEmpty) ...[
-            const SizedBox(height: 9),
-            Text(_task.description.trim(), key: const ValueKey('task-detail-description'), style: const TextStyle(color: Color(0xFF55566B), height: 1.55)),
-          ],
+          _descriptionSection(),
           const SizedBox(height: 12),
           if (_task.category?.trim().isNotEmpty == true || _task.tags.isNotEmpty || widget.projectTitle?.trim().isNotEmpty == true) ...[
             TaxonomyIconRow(

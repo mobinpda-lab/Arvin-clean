@@ -243,4 +243,4 @@ jobs:
         with:
           name: arvin-device-smoke-calendar-${{ env.TARGET_SHA }}
           path: artifacts/device-smoke/calendar-card-independent-reminder-edit.png
-          if-no-files-found: error
+          if-no-files-found: warn

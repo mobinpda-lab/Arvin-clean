@@ -339,6 +339,58 @@ void main() {
     expect(reloaded.single.followUps.single.waitingForResponse, isTrue);
   });
 
+  test('TaskStore updates description without rewriting completedAt or historical Follow-ups', () async {
+    await TaskStore.resetTestDatabase();
+    try {
+      final store = TaskStore();
+      final completedAt = DateTime(2026, 10, 30, 13, 45);
+      final followUpDate = DateTime(2026, 10, 29, 10);
+      final nextFollowUp = DateTime(2026, 11, 2, 12);
+      final followUp = FollowUp(
+        id: 'description-update-history',
+        dateTime: followUpDate,
+        note: 'Historical action',
+        nextFollowUp: nextFollowUp,
+        completed: true,
+      );
+      await store.save(<Task>[
+        Task(
+          id: 'description-update-task',
+          title: 'Description update',
+          description: 'Before',
+          updatedAt: DateTime(2026, 10, 27, 8),
+          completed: true,
+          completedAt: completedAt,
+          followUpEnabled: true,
+          followUpDate: followUpDate,
+          followUps: <FollowUp>[followUp],
+        ),
+      ]);
+
+      final updatedAt = DateTime(2026, 10, 31, 12);
+      await store.updateDescription(
+        'description-update-task',
+        'After',
+        updatedAt,
+      );
+
+      final loaded = (await store.load()).single;
+      expect(loaded.description, 'After');
+      expect(loaded.updatedAt, updatedAt);
+      expect(loaded.completedAt, completedAt);
+      expect(loaded.followUpEnabled, isTrue);
+      expect(loaded.followUpDate, followUpDate);
+      expect(loaded.followUps, hasLength(1));
+      expect(loaded.followUps.single.id, followUp.id);
+      expect(loaded.followUps.single.dateTime, followUpDate);
+      expect(loaded.followUps.single.note, 'Historical action');
+      expect(loaded.followUps.single.nextFollowUp, nextFollowUp);
+      expect(loaded.followUps.single.completed, isTrue);
+    } finally {
+      await TaskStore.resetTestDatabase();
+    }
+  });
+
   test('TaskStore persists completedAt and Follow-up history together', () async {
     await TaskStore.resetTestDatabase();
     try {
