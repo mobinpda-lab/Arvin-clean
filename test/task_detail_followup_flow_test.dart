@@ -31,6 +31,92 @@ void main() {
     expect(find.byKey(const ValueKey('task-detail-add-followup')), findsOneWidget);
   });
 
+  testWidgets('Task detail removes the redundant status badge and shows description placeholder',
+      (tester) async {
+    final task = Task(id: 'empty-description', title: 'کار بدون توضیح');
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TaskDetailPage(
+          task: task,
+          onDescriptionChanged: (current, description) async => current,
+        ),
+      ),
+    );
+
+    expect(find.text('توضیحی ثبت نشده است'), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-description-edit')), findsOneWidget);
+    expect(find.text('در انتظار انجام'), findsNothing);
+    expect(find.text('در انتظار پاسخ'), findsNothing);
+    expect(find.text('پیگیری دار'), findsNothing);
+    expect(find.text('ثبت یادداشت'), findsNothing);
+  });
+
+  testWidgets('inline description edit updates updatedAt and preserves completion and Follow-up history',
+      (tester) async {
+    final completedAt = DateTime(2026, 10, 29, 9, 30);
+    final followUpDate = DateTime(2026, 10, 28, 11);
+    final nextFollowUp = DateTime(2026, 11, 2, 12);
+    final originalFollowUp = FollowUp(
+      id: 'immutable-follow-up',
+      dateTime: followUpDate,
+      note: 'تاریخچه غیرقابل تغییر',
+      nextFollowUp: nextFollowUp,
+      completed: true,
+    );
+    final previousUpdatedAt = DateTime(2026, 10, 27, 8);
+    final task = Task(
+      id: 'inline-description',
+      title: 'کار دارای توضیح',
+      description: 'متن قبلی',
+      updatedAt: previousUpdatedAt,
+      completed: true,
+      completedAt: completedAt,
+      followUpEnabled: true,
+      followUpDate: followUpDate,
+      followUps: <FollowUp>[originalFollowUp],
+    );
+    final savedAt = DateTime(2026, 10, 31, 12);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TaskDetailPage(
+          task: task,
+          onDescriptionChanged: (current, description) async {
+            current.description = description;
+            current.updatedAt = savedAt;
+            return current;
+          },
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('task-detail-description-edit')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('task-detail-description-input')), findsOneWidget);
+
+    await tester.enterText(
+      find.byKey(const ValueKey('task-detail-description-input')),
+      'توضیح به‌روزشده',
+    );
+    await tester.tap(find.byKey(const ValueKey('task-detail-description-save')));
+    await tester.pumpAndSettle();
+
+    expect(task.description, 'توضیح به‌روزشده');
+    expect(task.updatedAt, savedAt);
+    expect(task.completedAt, completedAt);
+    expect(task.followUps, hasLength(1));
+    expect(identical(task.followUps.single, originalFollowUp), isTrue);
+    expect(task.followUps.single.note, 'تاریخچه غیرقابل تغییر');
+    expect(task.followUps.single.nextFollowUp, nextFollowUp);
+    expect(task.followUps.single.dateTime, followUpDate);
+    expect(task.followUpEnabled, isTrue);
+    expect(task.followUpDate, followUpDate);
+    expect(find.text('توضیح به‌روزشده'), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-description-input')), findsNothing);
+    expect(find.text('ثبت یادداشت'), findsNothing);
+  });
+
   testWidgets('Task detail renders due date as Jalali with Persian digits',
       (tester) async {
     final task = Task(
