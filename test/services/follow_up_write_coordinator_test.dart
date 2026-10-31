@@ -21,7 +21,7 @@ void main() {
     });
   });
 
-  test('successful add persists first then requests reschedule', () async {
+  test('successful add persists first then requests reminder reschedule', () async {
     var reminderRescheduleCalls = 0;
     final coordinator = FollowUpWriteCoordinator(
       repository: repository,
@@ -42,7 +42,7 @@ void main() {
     expect(saved.single.id, 'follow-1');
   });
 
-  test('successful update requests reschedule', () async {
+  test('successful update requests independent reminder reschedule', () async {
     var reminderRescheduleCalls = 0;
     final coordinator = FollowUpWriteCoordinator(
       repository: repository,
@@ -66,6 +66,32 @@ void main() {
     expect(reminderRescheduleCalls, 1);
     final saved = await repository.loadForTask('task-1');
     expect(saved.single.nextFollowUp, DateTime(2026, 8, 28, 10));
+  });
+
+  test('successful completion refreshes independent reminder schedule', () async {
+    var reminderRescheduleCalls = 0;
+    final coordinator = FollowUpWriteCoordinator(
+      repository: repository,
+      reminderReschedule: () async {
+        reminderRescheduleCalls++;
+      },
+    );
+    await repository.add(
+      'task-1',
+      FollowUp(
+        id: 'follow-1',
+        dateTime: DateTime(2026, 8, 26, 12),
+      ),
+    );
+
+    final completed = await coordinator.setCompleted(
+      'task-1',
+      'follow-1',
+      true,
+    );
+
+    expect(completed.completed, isTrue);
+    expect(reminderRescheduleCalls, 1);
   });
 
   test('reminder scheduling failure never rolls back a successful user write', () async {
