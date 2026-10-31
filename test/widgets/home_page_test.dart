@@ -57,7 +57,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('home-more-task-filters')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('home-my-tasks-completed')));
+    await tester.tap(find.text('انجام‌شده'));
     await tester.pumpAndSettle();
 
     expect(find.text('کار انجام‌شده قدیمی'), findsOneWidget);

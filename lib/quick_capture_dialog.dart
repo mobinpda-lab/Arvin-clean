@@ -150,7 +150,8 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       _descriptionController.clear();
       setState(() => _saving = false);
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) FocusScope.of(context).requestFocus(_titleFocus);
+        if (!mounted) return;
+        FocusScope.of(context).requestFocus(_titleFocus);
       });
     } catch (_) {
       if (!mounted) return;
