@@ -263,6 +263,54 @@ class TaskStore {
   Future<void> save(List<Task> tasks) =>
       TaskStorageLock.synchronized<void>(() => _saveUnlocked(tasks));
 
+  /// Updates only Task description metadata without rewriting relation tables.
+  /// In particular, historical Follow-up rows are never deleted/reinserted here.
+  Future<void> updateDescription(
+    String taskId,
+    String description,
+    DateTime updatedAt,
+  ) {
+    return TaskStorageLock.synchronized<void>(() async {
+      final executor = _database;
+      await _ensureReady();
+      final rows = await executor.runSelect(
+        'SELECT legacy_payload_json FROM tasks WHERE id = ?',
+        <Object?>[taskId],
+      );
+      if (rows.isEmpty) {
+        throw StateError('Task not found: $taskId');
+      }
+
+      final rawPayload = rows.single['legacy_payload_json'];
+      final payload = <String, dynamic>{};
+      if (rawPayload is String && rawPayload.trim().isNotEmpty) {
+        final decoded = jsonDecode(rawPayload);
+        if (decoded is! Map) {
+          throw const FormatException('Task legacy payload is not a JSON object.');
+        }
+        payload.addAll(Map<String, dynamic>.from(decoded));
+      }
+      payload['description'] = description;
+      payload['updatedAt'] = updatedAt.toIso8601String();
+
+      final changed = await executor.runUpdate(
+        '''UPDATE tasks
+           SET description = ?, updated_at = ?, legacy_payload_json = ?
+           WHERE id = ?''',
+        <Object?>[
+          description,
+          updatedAt.toIso8601String(),
+          jsonEncode(payload),
+          taskId,
+        ],
+      );
+      if (changed != 1) {
+        throw StateError('Task description update affected $changed rows.');
+      }
+    });
+  }
+
+
   Future<T> mutate<T>(TaskMutation<T> mutation) {
     return TaskStorageLock.synchronized<T>(() async {
       final tasks = await _loadUnlocked();
