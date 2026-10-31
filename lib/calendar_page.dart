@@ -7,6 +7,7 @@ import 'daily_content.dart';
 import 'services/prayer_completion_projection.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/iran_clock.dart';
+import 'services/calendar_swipe_settings_service.dart';
 import 'widgets/jalali_date_jump_dialog.dart';
 
 class CalendarReminder {
@@ -54,6 +55,8 @@ class CalendarPage extends StatefulWidget {
     this.prayerStatusFor,
     this.onPrayerCompleted,
     this.onPrayerNotCompleted,
+    this.calendarSwipeRightAction = CalendarSwipeAction.none,
+    this.calendarSwipeLeftAction = CalendarSwipeAction.none,
   });
 
   final List<CalendarReminder> reminders;
@@ -83,6 +86,8 @@ class CalendarPage extends StatefulWidget {
   prayerStatusFor;
   final Future<void> Function(CalendarReminder reminder)? onPrayerCompleted;
   final Future<void> Function(CalendarReminder reminder)? onPrayerNotCompleted;
+  final CalendarSwipeAction calendarSwipeRightAction;
+  final CalendarSwipeAction calendarSwipeLeftAction;
 
   /// Optional Daily Content projection for the selected calendar date.
   ///
@@ -99,6 +104,7 @@ class _CalendarPageState extends State<CalendarPage> {
   late DateTime _month;
   late DateTime _selectedDay;
   _CalendarViewMode _viewMode = _CalendarViewMode.week;
+  bool _wave796DiagnosticLogged = false;
 
   @override
   void initState() {
@@ -357,7 +363,7 @@ class _CalendarPageState extends State<CalendarPage> {
             visualDensity: VisualDensity.compact,
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             textStyle: WidgetStatePropertyAll(
-              TextStyle(fontSize: 14, fontWeight: FontWeight.w500, fontFamily: AppFonts.vazirharfFamily),
+              TextStyle(fontSize: 14, fontWeight: FontWeight.w500, fontFamily: AppFonts.vazirmatnFamily),
             ),
           ),
           segments: const [
@@ -719,6 +725,21 @@ class _CalendarPageState extends State<CalendarPage> {
     final selectedJalali = _dateFormatter.toJalali(_selectedDay);
     final selectedReminders = _forDay(_selectedDay);
     final selectedDailyContent = widget.dailyContentForDate?.call(_selectedDay);
+    if (!_wave796DiagnosticLogged) {
+      _wave796DiagnosticLogged = true;
+      final allCalendarReminders = _calendarReminders();
+      debugPrint(
+        'CALENDAR_DIAG_C: selectedDay=${_selectedDay.toIso8601String()} '
+        'incomingReminderIds=${widget.reminders.map((item) => item.id).toList()}',
+      );
+      debugPrint(
+        'CALENDAR_DIAG_C: mergedReminderIds=${allCalendarReminders.map((item) => item.id).toList()} '
+        'dayFilterOutputIds=${selectedReminders.map((item) => item.id).toList()}',
+      );
+      debugPrint(
+        'CALENDAR_DIAG_C: finalCardKeys=${selectedReminders.map((item) => 'reminder-card-${item.id}').toList()}',
+      );
+    }
     final hasSelectedItems =
         selectedDailyContent != null || selectedReminders.isNotEmpty;
 
@@ -726,7 +747,7 @@ class _CalendarPageState extends State<CalendarPage> {
       textDirection: TextDirection.rtl,
       child: Theme(
         data: Theme.of(context).copyWith(
-          textTheme: Theme.of(context).textTheme.apply(fontFamily: AppFonts.vazirharfFamily),
+          textTheme: Theme.of(context).textTheme.apply(fontFamily: AppFonts.vazirmatnFamily),
         ),
         child: Scaffold(
         appBar: AppBar(
@@ -853,18 +874,18 @@ class _CalendarPageState extends State<CalendarPage> {
                                     true)
                                 ? widget.onEditReminder
                                 : null,
-                            onEditTask: _isTaskCalendarItemId(
+                            onEditTask: _isTaskRecordCalendarItemId(
                                   selectedReminders[index].id,
                                 )
                                 ? widget.onEditTask
                                 : null,
-                            onDeleteTask: _isTaskCalendarItemId(
+                            onDeleteTask: _isTaskRecordCalendarItemId(
                                   selectedReminders[index].id,
                                 )
                                 ? widget.onDeleteTask
                                 : null,
                             onRegisterTaskToDeviceCalendar:
-                                _isTaskCalendarItemId(selectedReminders[index].id)
+                                _isTaskRecordCalendarItemId(selectedReminders[index].id)
                                 ? widget.onRegisterTaskToDeviceCalendar
                                 : null,
                             onConvertToTask: widget.onConvertReminderToTask,
@@ -879,6 +900,8 @@ class _CalendarPageState extends State<CalendarPage> {
                             ),
                             onPrayerCompleted: widget.onPrayerCompleted,
                             onPrayerNotCompleted: widget.onPrayerNotCompleted,
+                            swipeRightAction: widget.calendarSwipeRightAction,
+                            swipeLeftAction: widget.calendarSwipeLeftAction,
                           ),
                         ],
                       ],
@@ -957,12 +980,16 @@ IconData _calendarStatusIcon(CalendarReminder item) {
   return Icons.circle_outlined;
 }
 
-bool _isTaskCalendarItemId(String id) =>
+bool _isTaskRecordCalendarItemId(String id) =>
     id.startsWith('task-due:') ||
     id.startsWith('task-reminder-item:') ||
-    id.startsWith('task-reminder:') ||
-    id.startsWith('task-followup:') ||
-    id.startsWith('followup:');
+    id.startsWith('task-reminder:');
+
+bool _isFollowUpCalendarItemId(String id) =>
+    id.startsWith('task-followup:') || id.startsWith('followup:');
+
+bool _isTaskCalendarItemId(String id) =>
+    _isTaskRecordCalendarItemId(id) || _isFollowUpCalendarItemId(id);
 
 enum _CalendarItemVisualKind { ordinary, arvinReminder, followUpAction, importedPhoneCalendar, prayer }
 
@@ -1021,6 +1048,8 @@ class _ReminderCard extends StatefulWidget {
     this.prayerStatus,
     this.onPrayerCompleted,
     this.onPrayerNotCompleted,
+    this.swipeRightAction = CalendarSwipeAction.none,
+    this.swipeLeftAction = CalendarSwipeAction.none,
   });
 
   final CalendarReminder item;
@@ -1037,6 +1066,8 @@ class _ReminderCard extends StatefulWidget {
   final PrayerCompletionStatus? prayerStatus;
   final Future<void> Function(CalendarReminder reminder)? onPrayerCompleted;
   final Future<void> Function(CalendarReminder reminder)? onPrayerNotCompleted;
+  final CalendarSwipeAction swipeRightAction;
+  final CalendarSwipeAction swipeLeftAction;
 
   bool get isPrayer => item.id.startsWith('prayer-');
   @override
@@ -1045,6 +1076,8 @@ class _ReminderCard extends StatefulWidget {
 
 class _ReminderCardState extends State<_ReminderCard> {
   bool get _isTaskCalendarItem => _isTaskCalendarItemId(widget.item.id);
+  bool get _isTaskRecord => _isTaskRecordCalendarItemId(widget.item.id);
+  bool get _isFollowUp => _isFollowUpCalendarItemId(widget.item.id);
 
   bool get _hasActions =>
       (widget.isPrayer &&
@@ -1064,7 +1097,39 @@ class _ReminderCardState extends State<_ReminderCard> {
     Future<void> Function(CalendarReminder reminder)? action,
   ) async {
     if (action == null) return;
-    await action(widget.item);
+    try {
+      await action(widget.item);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('عمل تقویم انجام نشد؛ اطلاعات داخلی بدون تغییر باقی ماند.')),
+      );
+    }
+  }
+
+  Future<void> _handleHorizontalSwipe(DragEndDetails details) async {
+    final velocity = details.primaryVelocity ?? 0;
+    if (velocity.abs() < 250 ||
+        widget.item.id.startsWith('external-calendar:') ||
+        widget.item.externalCalendarId != null ||
+        widget.item.externalEventId != null) {
+      return;
+    }
+    if (!_isTaskRecord && !_isFollowUp) return;
+    final action = velocity > 0 ? widget.swipeRightAction : widget.swipeLeftAction;
+    switch (action) {
+      case CalendarSwipeAction.edit:
+        await _run(_isTaskRecord ? widget.onEditTask : widget.onEdit);
+        return;
+      case CalendarSwipeAction.trash:
+        if (_isTaskRecord) await _run(widget.onDeleteTask);
+        return;
+      case CalendarSwipeAction.sync:
+        if (_isTaskRecord) await _run(widget.onRegisterTaskToDeviceCalendar);
+        return;
+      case CalendarSwipeAction.none:
+        return;
+    }
   }
 
   Future<void> _showTaskActions() async {
@@ -1235,7 +1300,9 @@ class _ReminderCardState extends State<_ReminderCard> {
         ? '${widget.dateLabel} • رویداد تمام‌روز'
         : '${widget.dateLabel} • ${widget.timeLabel}';
 
-    return Card(
+    return GestureDetector(
+      onHorizontalDragEnd: _handleHorizontalSwipe,
+      child: Card(
       key: ValueKey('calendar-pastel-card-${item.id}'),
       color: _calendarStatusBackground(item),
       elevation: 1,
@@ -1389,6 +1456,7 @@ class _ReminderCardState extends State<_ReminderCard> {
             ),
           ),
         ],
+      ),
       ),
       ),
     );

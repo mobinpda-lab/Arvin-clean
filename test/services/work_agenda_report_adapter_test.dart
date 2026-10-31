@@ -42,9 +42,10 @@ void main() {
       [
         WorkAgendaEventKind.taskReminder,
         WorkAgendaEventKind.taskDue,
-        WorkAgendaEventKind.followUpSchedule,
       ],
     );
+    // Legacy nextFollowUp alone must not create a current agenda event.
+    expect(item.events, hasLength(2));
   });
 
   test('range preserves agenda day grouping and allows same task on different days', () {

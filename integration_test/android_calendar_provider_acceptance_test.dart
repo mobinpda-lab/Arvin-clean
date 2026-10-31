@@ -24,17 +24,24 @@ void main() {
 
     final calendars = await bridge.listDeviceCalendars();
     final writable = calendars
-        .where((item) => item.accessLevel >= 500)
+        .where(
+          (item) =>
+              item.accountName == 'ARVIN CI Acceptance' &&
+              item.accountType == 'com.example.arvin.calendarprovisioner.account' &&
+              item.accessLevel >= 500,
+        )
         .toList(growable: false);
 
-    if (writable.isEmpty) {
+    if (writable.length != 1) {
       debugPrint(
-        'CALENDAR_PROVIDER_ACCEPTANCE=LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR',
+        'CALENDAR_PROVIDER_ACCEPTANCE=BLOCKED_PROVISIONED_CALENDAR_MISSING count=${writable.length}',
       );
-      return;
+      throw StateError(
+        'Calendar Provider acceptance BLOCKED: expected exactly one writable ARVIN CI Acceptance calendar; CRUD was not executed.',
+      );
     }
 
-    final calendar = writable.first;
+    final calendar = writable.single;
     final store = ExternalCalendarLinkStore(
       preferencesKey: 'arvin.calendar.externalLinks.acceptance',
     );
@@ -78,6 +85,9 @@ void main() {
       isTrue,
       reason: 'created event must be visible through Android Calendar Provider',
     );
+    debugPrint(
+      'CALENDAR_PROVIDER_CREATE=PASS calendarId=${calendar.id} eventId=${createdLink.eventId} providerVisible=true',
+    );
 
     final noOpPlan = planner.plan(revisions: [revision], links: links);
     final noOpResult = await executor.execute(
@@ -86,6 +96,26 @@ void main() {
     );
     expect(noOpResult.noOp, 1);
     expect(noOpResult.created, 0);
+
+    final eventsAfterNoOp = await bridge.listDeviceCalendarEvents(
+      calendarIds: [calendar.id],
+      start: start.subtract(const Duration(hours: 1)),
+      end: start.add(const Duration(hours: 4)),
+    );
+    expect(
+      eventsAfterNoOp.where((event) => event.eventId == createdLink.eventId),
+      hasLength(1),
+      reason: 'the original linked event must remain present exactly once',
+    );
+    expect(
+      eventsAfterNoOp.where((event) => event.title == reminder.title),
+      hasLength(1),
+      reason: 'no-op update must not create a duplicate Calendar Provider event',
+    );
+    debugPrint(
+      'CALENDAR_PROVIDER_NOOP_UPDATE=PASS calendarId=${calendar.id} eventId=${createdLink.eventId} providerEventCount=1 matchingTitleCount=1 created=${noOpResult.created}',
+    );
+    debugPrint('CALENDAR_PROVIDER_NOOP_NO_DUPLICATE=PASS');
 
     final updatedReminder = CalendarReminder(
       id: reminder.id,
@@ -112,7 +142,11 @@ void main() {
       (event) => event.eventId == createdLink.eventId,
     );
     expect(updatedEvent, hasLength(1));
+    expect(updatedEvent.single.eventId, createdLink.eventId);
     expect(updatedEvent.single.title, updatedReminder.title);
+    debugPrint(
+      'CALENDAR_PROVIDER_UPDATE=PASS calendarId=${calendar.id} eventId=${updatedEvent.single.eventId} providerEventCount=1 title=${updatedEvent.single.title} updated=${updateResult.updated}',
+    );
 
     if (writable.length >= 2) {
       // Keep the original linked event alive until destination migration is exercised.
@@ -178,6 +212,19 @@ void main() {
       );
       expect(cleanupResult.deleted, 1);
       expect(await store.load(), isEmpty);
+      final deletedEvents = await bridge.listDeviceCalendarEvents(
+        calendarIds: [secondCalendar.id],
+        start: start.subtract(const Duration(hours: 1)),
+        end: start.add(const Duration(hours: 4)),
+      );
+      expect(
+        deletedEvents.any((event) => event.eventId == migratedLinks.single.eventId),
+        isFalse,
+        reason: 'deleted migrated event must no longer be visible',
+      );
+      debugPrint(
+        'CALENDAR_PROVIDER_DELETE=PASS calendarId=${secondCalendar.id} eventId=${migratedLinks.single.eventId} providerVisible=false deleted=${cleanupResult.deleted}',
+      );
     } else {
       // With one writable calendar, finish the ordinary create/update/delete acceptance.
       links = await store.load();
@@ -201,6 +248,9 @@ void main() {
         events.any((event) => event.eventId == createdLink.eventId),
         isFalse,
         reason: 'deleted event must no longer be visible',
+      );
+      debugPrint(
+        'CALENDAR_PROVIDER_DELETE=PASS calendarId=${calendar.id} eventId=${createdLink.eventId} providerVisible=false deleted=${deleteResult.deleted}',
       );
 
       debugPrint(

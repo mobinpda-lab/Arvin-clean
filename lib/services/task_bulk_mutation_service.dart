@@ -10,6 +10,23 @@ class TaskBulkMutationService {
 
   final DateTime Function() _now;
 
+  /// Marks selected tasks complete once, preserving their Follow-up history.
+  /// Repeated bulk completion is idempotent and never rewrites completedAt.
+  int complete(List<Task> tasks, Iterable<String> selectedIds) {
+    final ids = selectedIds.toSet();
+    if (ids.isEmpty) return 0;
+
+    var changed = 0;
+    final changedAt = _now();
+    for (final task in tasks) {
+      if (!ids.contains(task.id) || task.completed || task.trashed) continue;
+      task.setCompleted(true, at: changedAt);
+      task.updatedAt = changedAt;
+      changed++;
+    }
+    return changed;
+  }
+
   /// Moves selected tasks to trash without changing IDs, history, category,
   /// tags, due dates, reminders or follow-up state.
   int moveToTrash(List<Task> tasks, Iterable<String> selectedIds) {

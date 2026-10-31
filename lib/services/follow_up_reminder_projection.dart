@@ -36,7 +36,7 @@ class FollowUpReminderCandidate {
           : 'task:$taskId:reminder:$taskReminderId';
 }
 
-/// Projects canonical FollowUp reminder state into deterministic pending work.
+/// Projects independent canonical TaskReminder entries into pending work.
 ///
 /// This is deliberately transport-neutral: reboot rescheduling and Android
 /// alarm delivery can reuse the existing scheduler without introducing a
@@ -52,19 +52,6 @@ class FollowUpReminderProjection {
 
     for (final task in tasks) {
       if (task.completed || task.archived || task.trashed) continue;
-
-      final taskReminder = task.reminderDate;
-      if (task.legacyTaskReminderMigrationVersion < 1 &&
-          taskReminder != null &&
-          !taskReminder.isBefore(now)) {
-        result.add(
-          FollowUpReminderCandidate.task(
-            taskId: task.id,
-            taskTitle: task.title,
-            scheduledAt: taskReminder,
-          ),
-        );
-      }
 
       for (final reminder in task.taskReminders) {
         final scheduledAt = reminder.isAllDay
@@ -84,22 +71,6 @@ class FollowUpReminderProjection {
         );
       }
 
-      for (final followUp in task.followUps) {
-        if (followUp.completed) continue;
-        final reminderDate = followUp.reminderDate;
-        if (reminderDate == null || reminderDate.isBefore(now)) continue;
-
-        final note = followUp.note.trim();
-        result.add(
-          FollowUpReminderCandidate(
-            taskId: task.id,
-            taskTitle: task.title,
-            followUpId: followUp.id,
-            label: note.isEmpty ? 'پیگیری' : note,
-            scheduledAt: reminderDate,
-          ),
-        );
-      }
     }
 
     result.sort((a, b) {

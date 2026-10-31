@@ -11,7 +11,7 @@ class _SettingsService extends AppSettingsService {
   _SettingsService(this.integration);
   final CalendarIntegrationSettings integration;
   @override
-  Future<AppSettings> load() async => AppSettings(themeMode: ThemeMode.system, usePersianDate: true, fontFamily: null, calendarIntegration: integration);
+  Future<AppSettings> load() async => AppSettings(themeMode: ThemeMode.system, usePersianDate: true, calendarIntegration: integration);
 }
 
 class _CalendarBridge extends SystemCalendarBridge {

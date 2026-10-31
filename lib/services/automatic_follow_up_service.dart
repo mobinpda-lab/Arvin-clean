@@ -1,9 +1,7 @@
 import '../models/task.dart';
 
-/// Read-only projection of an automatic follow-up schedule.
-///
-/// This deliberately carries identifiers/value data rather than mutating the
-/// source [Task] or creating a second persistence model.
+/// Legacy compatibility facade. Automatic Follow-up scheduling is retired.
+/// Future scheduling must come from canonical Task Reminders only.
 class AutomaticFollowUpCandidate {
   const AutomaticFollowUpCandidate({
     required this.taskId,
@@ -20,53 +18,17 @@ class AutomaticFollowUpCandidate {
   String get deliveryIdentity => '$followUpId@${dueAt.toIso8601String()}';
 }
 
-/// Derives automatic follow-up work from the canonical `Task.followUps` chain.
-///
-/// Only the chronologically latest FollowUp is authoritative. Therefore a
-/// newer FollowUp without `nextFollowUp` supersedes any older pending schedule.
+/// Retained temporarily so legacy callers can be safely drained without
+/// reviving a retired product workflow.
 class AutomaticFollowUpService {
   const AutomaticFollowUpService();
 
   List<AutomaticFollowUpCandidate> scheduledCandidates(
     Iterable<Task> tasks,
-  ) {
-    final result = <AutomaticFollowUpCandidate>[];
-
-    for (final task in tasks) {
-      if (task.completed || task.archived || task.trashed) continue;
-
-      final latest = task.lastFollowUp;
-      if (latest == null) continue;
-
-      final dueAt = latest.nextFollowUp;
-      if (dueAt == null) continue;
-
-      result.add(
-        AutomaticFollowUpCandidate(
-          taskId: task.id,
-          taskTitle: task.title,
-          followUpId: latest.id,
-          dueAt: dueAt,
-        ),
-      );
-    }
-
-    result.sort((a, b) {
-      final byDueAt = a.dueAt.compareTo(b.dueAt);
-      if (byDueAt != 0) return byDueAt;
-      return a.taskId.compareTo(b.taskId);
-    });
-
-    return List<AutomaticFollowUpCandidate>.unmodifiable(result);
-  }
+  ) => const <AutomaticFollowUpCandidate>[];
 
   List<AutomaticFollowUpCandidate> dueCandidates(
     Iterable<Task> tasks, {
     required DateTime now,
-  }) {
-    final result = scheduledCandidates(tasks)
-        .where((candidate) => !candidate.dueAt.isAfter(now))
-        .toList();
-    return List<AutomaticFollowUpCandidate>.unmodifiable(result);
-  }
+  }) => const <AutomaticFollowUpCandidate>[];
 }

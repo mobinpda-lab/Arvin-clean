@@ -671,16 +671,8 @@ void main() {
       'خرید فرش اتاق',
     );
 
-    final followUpToggle = find.byKey(
-      const ValueKey('quick-capture-follow-up-enabled'),
-    );
-    await tester.ensureVisible(followUpToggle);
-    await tester.tap(followUpToggle);
-    await tester.pumpAndSettle();
-    expect(
-      find.byKey(const ValueKey('quick-capture-follow-up-rollbox')),
-      findsOneWidget,
-    );
+    expect(find.byKey(const ValueKey('quick-capture-follow-up-enabled')), findsNothing);
+    expect(find.byKey(const ValueKey('quick-capture-follow-up-rollbox')), findsNothing);
 
     final checklistToggle = find.byKey(
       const ValueKey('quick-capture-checklist-enabled'),
@@ -713,75 +705,29 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(captured, isNotNull);
-    expect(captured!.followUpEnabled, isTrue);
-    expect(captured!.followUpDate, isNull);
+    expect(captured!.followUpEnabled, isFalse);
+    expect(captured!.followUps, isEmpty);
+
     expect(captured!.checklistEnabled, isTrue);
     expect(captured!.checklist, ['[ ] تماس با فروشنده']);
     expect(captured!.followUps, isEmpty);
   });
 
-  testWidgets('Quick Entry follow-up Roll Box saves an explicit FollowUp record',
+  testWidgets('Quick Entry exposes reminder controls without legacy follow-up scheduling',
       (tester) async {
-    Task? captured;
     await tester.pumpWidget(
       MaterialApp(
         home: Directionality(
           textDirection: TextDirection.rtl,
-          child: Builder(
-            builder: (context) => Scaffold(
-              body: FilledButton(
-                onPressed: () async {
-                  captured = await showModalBottomSheet<Task>(
-                    context: context,
-                    isScrollControlled: true,
-                    builder: (_) => QuickCaptureDialog(
-                      idFactory: () => 'quick-with-follow-up',
-                      now: () => DateTime(2026, 10, 12, 9),
-                    ),
-                  );
-                },
-                child: const Text('باز کردن'),
-              ),
-            ),
+          child: Scaffold(
+            body: QuickCaptureDialog(idFactory: () => 'quick-no-follow-up'),
           ),
         ),
       ),
     );
-
-    await tester.tap(find.text('باز کردن'));
-    await tester.pumpAndSettle();
-    await tester.enterText(
-      find.byKey(const ValueKey('quick-capture-input')),
-      'خرید فرش اتاق',
-    );
-    final toggle = find.byKey(
-      const ValueKey('quick-capture-follow-up-enabled'),
-    );
-    await tester.ensureVisible(toggle);
-    await tester.tap(toggle);
-    await tester.pumpAndSettle();
-    final rollBox = find.byKey(
-      const ValueKey('quick-capture-follow-up-rollbox'),
-    );
-    await tester.ensureVisible(rollBox);
-    await tester.tap(rollBox);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('ثبت جزئیات پیگیری'));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('follow-up-entry-save')), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('follow-up-entry-save')));
-    await tester.pumpAndSettle();
-
-    final submit = find.byKey(const ValueKey('quick-capture-submit'));
-    await tester.ensureVisible(submit);
-    await tester.tap(submit);
-    await tester.pumpAndSettle();
-
-    expect(captured, isNotNull);
-    expect(captured!.followUpEnabled, isTrue);
-    expect(captured!.followUps, hasLength(1));
-    expect(captured!.followUps.single.nextFollowUp, isNull);
-    expect(captured!.followUps.single.reminderDate, isNull);
+    expect(find.byKey(const ValueKey('quick-capture-follow-up-enabled')), findsNothing);
+    expect(find.byKey(const ValueKey('quick-capture-follow-up-rollbox')), findsNothing);
+    expect(find.text('دارای پیگیری'), findsNothing);
   });
 
 }

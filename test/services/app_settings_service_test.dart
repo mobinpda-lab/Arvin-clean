@@ -16,7 +16,6 @@ void main() {
 
     expect(settings.themeMode, ThemeMode.system);
     expect(settings.usePersianDate, isTrue);
-    expect(settings.fontFamily, isNull);
     expect(settings.swipeRightAction, TaskSwipeAction.trash);
     expect(settings.swipeLeftAction, TaskSwipeAction.archive);
   });
@@ -45,23 +44,12 @@ void main() {
     expect(settings.swipeLeftAction, TaskSwipeAction.trash);
   });
 
-  test('normalizes empty font selection back to app default', () async {
-    final service = AppSettingsService();
-
-    await service.saveFontFamily('  VazirHarf  ');
-    expect((await service.load()).fontFamily, 'VazirHarf');
-
-    await service.saveFontFamily('   ');
-    expect((await service.load()).fontFamily, isNull);
-  });
-
-  test('portable settings round-trip theme date font and swipe preferences',
+  test('portable settings omit font selection and preserve theme date and swipe preferences',
       () async {
     final service = AppSettingsService();
     const source = AppSettings(
       themeMode: ThemeMode.dark,
       usePersianDate: true,
-      fontFamily: 'VazirHarf',
       swipeRightAction: TaskSwipeAction.archive,
       swipeLeftAction: TaskSwipeAction.trash,
     );
@@ -71,13 +59,12 @@ void main() {
     expect(json['usePersianDate'], isTrue);
     expect(json['swipeRightAction'], 'archive');
     expect(json['swipeLeftAction'], 'trash');
-    expect(json['fontFamily'], 'VazirHarf');
+    expect(json.containsKey('fontFamily'), isFalse);
     expect(json['calendarIntegration'], isA<Map<String, dynamic>>());
 
     final decoded = service.decodePortableJson(json);
     expect(decoded.themeMode, ThemeMode.dark);
     expect(decoded.usePersianDate, isTrue);
-    expect(decoded.fontFamily, 'VazirHarf');
     expect(decoded.swipeRightAction, TaskSwipeAction.archive);
     expect(decoded.swipeLeftAction, TaskSwipeAction.trash);
   });
@@ -88,23 +75,32 @@ void main() {
     final restored = await service.restorePortableJson({
       'themeMode': 'light',
       'usePersianDate': true,
-      'fontFamily': '  VazirHarf  ',
       'swipeRightAction': 'archive',
       'swipeLeftAction': 'none',
     });
 
     expect(restored.themeMode, ThemeMode.light);
     expect(restored.usePersianDate, isTrue);
-    expect(restored.fontFamily, 'VazirHarf');
     expect(restored.swipeRightAction, TaskSwipeAction.archive);
     expect(restored.swipeLeftAction, TaskSwipeAction.none);
 
     final loaded = await service.load();
     expect(loaded.themeMode, ThemeMode.light);
     expect(loaded.usePersianDate, isTrue);
-    expect(loaded.fontFamily, 'VazirHarf');
     expect(loaded.swipeRightAction, TaskSwipeAction.archive);
     expect(loaded.swipeLeftAction, TaskSwipeAction.none);
+  });
+
+  test('legacy font preference in a backup is ignored and never persisted', () async {
+    final service = AppSettingsService();
+    final restored = await service.restorePortableJson({
+      'themeMode': 'dark',
+      'fontFamily': 'System Default',
+    });
+    expect(restored.themeMode, ThemeMode.dark);
+    final preferences = await SharedPreferences.getInstance();
+    expect(preferences.get('arvin.settings.fontFamily'), isNull);
+    expect(service.toPortableJson(restored).containsKey('fontFamily'), isFalse);
   });
 
   test('portable decoder rejects malformed or unsupported settings', () {
@@ -122,10 +118,7 @@ void main() {
       () => service.decodePortableJson({'usePersianDate': 'yes'}),
       throwsA(isA<FormatException>()),
     );
-    expect(
-      () => service.decodePortableJson({'fontFamily': <String>[]}),
-      throwsA(isA<FormatException>()),
-    );
+    expect(service.decodePortableJson({'fontFamily': <String>[]}).themeMode, ThemeMode.system);
     expect(
       () => service.decodePortableJson({'swipeRightAction': 3}),
       throwsA(isA<FormatException>()),
@@ -141,23 +134,22 @@ void main() {
 
     expect(settings.themeMode, ThemeMode.system);
     expect(settings.usePersianDate, isTrue);
-    expect(settings.fontFamily, isNull);
     expect(settings.swipeRightAction, TaskSwipeAction.trash);
     expect(settings.swipeLeftAction, TaskSwipeAction.archive);
   });
 
-  test('persists Convert to FollowUp as a swipe action', () async {
+  test('retired Convert to FollowUp preference normalizes to none', () async {
     final service = AppSettingsService();
     await service.saveSwipeActions(
       right: TaskSwipeAction.convertToFollowUp,
       left: TaskSwipeAction.archive,
     );
     final settings = await service.load();
-    expect(settings.swipeRightAction, TaskSwipeAction.convertToFollowUp);
+    expect(settings.swipeRightAction, TaskSwipeAction.none);
     expect(settings.swipeLeftAction, TaskSwipeAction.archive);
   });
 
-  test('persists Convert to FollowUp independently on either swipe side', () async {
+  test('retired Convert to FollowUp preference normalizes to none on either side', () async {
     final service = AppSettingsService();
     await service.saveSwipeActions(
       right: TaskSwipeAction.trash,
@@ -165,7 +157,15 @@ void main() {
     );
     final settings = await service.load();
     expect(settings.swipeRightAction, TaskSwipeAction.trash);
-    expect(settings.swipeLeftAction, TaskSwipeAction.convertToFollowUp);
+    expect(settings.swipeLeftAction, TaskSwipeAction.none);
+  });
+
+  test('persists completed as a swipe action', () async {
+    final service = AppSettingsService();
+    await service.saveSwipeActions(right: TaskSwipeAction.complete, left: TaskSwipeAction.archive);
+    final settings = await service.load();
+    expect(settings.swipeRightAction, TaskSwipeAction.complete);
+    expect(settings.swipeLeftAction, TaskSwipeAction.archive);
   });
 
   test('persists Move to Today as a swipe action', () async {

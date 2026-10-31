@@ -1,7 +1,7 @@
 import '../models/task.dart';
 import 'follow_up_reminder_projection.dart';
 
-/// Projects canonical FollowUp reminder timestamps that are ready for delivery.
+/// Projects independent canonical TaskReminder timestamps ready for delivery.
 ///
 /// This service is deliberately pure: it owns no storage, scheduler, Android
 /// plugin, or notification side effect. Delivery-state persistence remains a
@@ -22,20 +22,6 @@ class FollowUpReminderDeliveryService {
     for (final task in tasks) {
       if (task.completed || task.archived || task.trashed) continue;
 
-      final taskReminder = task.reminderDate;
-      if (task.legacyTaskReminderMigrationVersion < 1 &&
-          taskReminder != null &&
-          !taskReminder.isAfter(now)) {
-        final candidate = FollowUpReminderCandidate.task(
-          taskId: task.id,
-          taskTitle: task.title,
-          scheduledAt: taskReminder,
-        );
-        if (!deliveredIdentities.contains(deliveryIdentity(candidate))) {
-          result.add(candidate);
-        }
-      }
-
       for (final reminder in task.taskReminders) {
         final scheduledAt = reminder.isAllDay
             ? DateTime(reminder.date.year, reminder.date.month, reminder.date.day, 9)
@@ -55,22 +41,6 @@ class FollowUpReminderDeliveryService {
         }
       }
 
-      for (final followUp in task.followUps) {
-        final reminderDate = followUp.reminderDate;
-        if (reminderDate == null || reminderDate.isAfter(now)) continue;
-
-        final note = followUp.note.trim();
-        final candidate = FollowUpReminderCandidate(
-          taskId: task.id,
-          taskTitle: task.title,
-          followUpId: followUp.id,
-          label: note.isEmpty ? 'پیگیری' : note,
-          scheduledAt: reminderDate,
-        );
-
-        if (deliveredIdentities.contains(deliveryIdentity(candidate))) continue;
-        result.add(candidate);
-      }
     }
 
     result.sort((a, b) {

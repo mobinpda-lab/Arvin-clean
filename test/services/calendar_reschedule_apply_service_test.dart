@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:arvin/automatic_follow_up_scheduler_adapter.dart';
 import 'package:arvin/follow_up_repository.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/calendar_reschedule_apply_service.dart';
@@ -8,18 +7,6 @@ import 'package:arvin/services/follow_up_calendar_projection.dart';
 import 'package:arvin/services/follow_up_write_coordinator.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-class _FakeScheduler implements AutomaticFollowUpSchedulerAdapter {
-  int rescheduleCalls = 0;
-
-  @override
-  Future<void> cancel() async {}
-
-  @override
-  Future<void> reschedule() async {
-    rescheduleCalls += 1;
-  }
-}
 
 void main() {
   const repository = FollowUpRepository();
@@ -41,11 +28,13 @@ void main() {
         },
       ]),
     });
-    final scheduler = _FakeScheduler();
+    var reminderRescheduleCalls = 0;
     final service = CalendarRescheduleApplyService(
       writer: FollowUpWriteCoordinator(
         repository: repository,
-        scheduler: scheduler,
+        reminderReschedule: () async {
+          reminderRescheduleCalls++;
+        },
       ),
     );
     final proposed = DateTime(2026, 8, 27, 14, 30);
@@ -65,7 +54,7 @@ void main() {
     expect(updated.note, original.note);
     expect(updated.result, original.result);
     expect(updated.nextFollowUp, original.nextFollowUp);
-    expect(scheduler.rescheduleCalls, 1);
+    expect(reminderRescheduleCalls, 1);
 
     final saved = await repository.loadForTask('task-1');
     expect(saved.single.id, original.id);
@@ -85,11 +74,13 @@ void main() {
         },
       ]),
     });
-    final scheduler = _FakeScheduler();
+    var reminderRescheduleCalls = 0;
     final service = CalendarRescheduleApplyService(
       writer: FollowUpWriteCoordinator(
         repository: repository,
-        scheduler: scheduler,
+        reminderReschedule: () async {
+          reminderRescheduleCalls++;
+        },
       ),
     );
 
@@ -106,6 +97,6 @@ void main() {
       ),
       throwsStateError,
     );
-    expect(scheduler.rescheduleCalls, 0);
+    expect(reminderRescheduleCalls, 0);
   });
 }

@@ -83,7 +83,10 @@ void main() {
     final service = _FakeBackupService();
     final manager = ArvinBackupManager(service: service);
 
+    final completedAt = DateTime(2026, 8, 25, 16, 20);
     final task = _completeTask()
+      ..completed = true
+      ..completedAt = completedAt
       ..taskReminders = [
         TaskReminder(
           id: 'backup-r1',
@@ -138,6 +141,8 @@ void main() {
     expect(restored.recurrence?.interval, 2);
     expect(restored.createdAt, DateTime(2026, 8, 20, 8));
     expect(restored.updatedAt, DateTime(2026, 8, 26, 12));
+    expect(restored.completed, isTrue);
+    expect(restored.completedAt, completedAt);
   });
 
   test('canonical backup preserves unassigned Category and Tag catalog entries', () async {

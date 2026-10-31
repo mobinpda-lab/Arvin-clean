@@ -49,72 +49,23 @@ void main() {
     );
   });
 
-  test('uses next follow-up from the latest canonical history entry', () {
+  test('legacy nextFollowUp and followUpDate never schedule next action', () {
     final task = Task(
-      id: 'followup',
-      title: 'پیگیری',
-      followUpDate: DateTime(2026, 8, 20),
+      id: 'legacy',
+      title: 'قدیمی',
+      followUpDate: DateTime(2026, 8, 26, 13),
       followUps: [
         FollowUp(
-          id: 'old',
-          dateTime: DateTime(2026, 8, 20),
-          nextFollowUp: DateTime(2026, 8, 27, 10),
-        ),
-        FollowUp(
-          id: 'latest',
+          id: 'f1',
           dateTime: DateTime(2026, 8, 25),
-          nextFollowUp: DateTime(2026, 8, 26, 16),
+          nextFollowUp: DateTime(2026, 8, 26, 12, 30),
         ),
       ],
     );
 
     final result = service.rank([task], now: now).single;
-
-    expect(result.dueAt, DateTime(2026, 8, 26, 16));
-    expect(result.reason, TaskNextActionReason.scheduled);
-  });
-
-  test('chooses the earliest actionable time across reminder and follow-up', () {
-    final task = Task(
-      id: 'both',
-      title: 'دو موعد',
-      reminderDate: DateTime(2026, 8, 27, 11),
-      followUps: [
-        FollowUp(
-          id: 'f1',
-          dateTime: DateTime(2026, 8, 25),
-          nextFollowUp: DateTime(2026, 8, 26, 15),
-        ),
-      ],
-    );
-
-    expect(
-      service.rank([task], now: now).single.dueAt,
-      DateTime(2026, 8, 26, 15),
-    );
-  });
-
-  test('uses legacy followUpDate only when canonical history is empty', () {
-    final legacy = Task(
-      id: 'legacy',
-      title: 'قدیمی',
-      followUpDate: DateTime(2026, 8, 26, 13),
-    );
-    final historyWithoutNext = Task(
-      id: 'history',
-      title: 'تاریخچه',
-      followUpDate: DateTime(2026, 8, 26, 13),
-      followUps: [
-        FollowUp(id: 'f1', dateTime: DateTime(2026, 8, 25)),
-      ],
-    );
-
-    final result = service.rank([legacy, historyWithoutNext], now: now);
-
-    expect(result.first.task.id, 'legacy');
-    expect(result.first.dueAt, DateTime(2026, 8, 26, 13));
-    expect(result.last.task.id, 'history');
-    expect(result.last.reason, TaskNextActionReason.unscheduled);
+    expect(result.dueAt, isNull);
+    expect(result.reason, TaskNextActionReason.unscheduled);
   });
 
   test('orders unscheduled items by recent activity then stable id', () {

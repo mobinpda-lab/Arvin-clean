@@ -22,9 +22,9 @@ class TaskReportPdfRenderer {
 
   static const _dateFormatter = PersianDateFormatter();
   static const _regularFontAsset =
-      'assets/fonts/vazirharf/fonts/ttf/Vazirharf-Regular.ttf';
+      'assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf';
   static const _boldFontAsset =
-      'assets/fonts/vazirharf/fonts/ttf/Vazirharf-Bold.ttf';
+      'assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf';
 
   final TaskReportFontLoader _fontLoader;
 
@@ -52,8 +52,6 @@ class TaskReportPdfRenderer {
     final label = switch (event.kind) {
       WorkAgendaEventKind.taskDue => 'موعد کار',
       WorkAgendaEventKind.taskReminder => 'یادآوری کار',
-      WorkAgendaEventKind.followUpSchedule => 'زمان پیگیری',
-      WorkAgendaEventKind.followUpReminder => 'یادآوری پیگیری',
     };
     return '$label: ${formatDateTime(event.at)}';
   }

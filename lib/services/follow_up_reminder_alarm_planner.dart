@@ -43,15 +43,6 @@ class FollowUpReminderAlarmPlanner {
         if (!delivered.contains(identity)) candidates.add(scheduledAt);
       }
 
-      for (final followUp in task.followUps) {
-        if (followUp.completed) continue;
-        final at = followUp.reminderDate;
-        if (at == null) continue;
-        final identity =
-            '${task.id}:${followUp.id}@${at.toIso8601String()}';
-        if (delivered.contains(identity)) continue;
-        candidates.add(at);
-      }
     }
     if (candidates.isEmpty) return null;
     candidates.sort();

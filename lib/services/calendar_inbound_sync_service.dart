@@ -257,39 +257,6 @@ class CalendarInboundSyncService {
       );
     }
 
-    if (reminderId.startsWith('followup:')) {
-      final parsed = _parseFollowUpReminderId(reminderId);
-      if (parsed == null) return null;
-      final task = _taskForId(tasks, parsed.$1);
-      if (task == null || task.trashed) return null;
-      for (final followUp in task.followUps) {
-        if (followUp.id != parsed.$2) continue;
-        return CalendarReminder(
-          id: reminderId,
-          title: followUp.note.trim().isEmpty
-              ? task.title
-              : '${task.title} — ${followUp.note.trim()}',
-          date: followUp.dateTime,
-          completed: followUp.completed || task.completed,
-        );
-      }
-    }
-
-    if (reminderId.startsWith('task-followup:')) {
-      final task = _taskForId(
-        tasks,
-        reminderId.substring('task-followup:'.length),
-      );
-      final date = task?.followUpDate;
-      if (task == null || date == null || task.trashed) return null;
-      return CalendarReminder(
-        id: reminderId,
-        title: task.title,
-        date: date,
-        completed: task.completed,
-      );
-    }
-
     // Recurrence occurrences are projections rather than one canonical
     // persisted timestamp; do not guess a mutation target from an occurrence.
     return null;
@@ -353,41 +320,6 @@ class CalendarInboundSyncService {
       return true;
     }
 
-    if (reminderId.startsWith('followup:')) {
-      final parsed = _parseFollowUpReminderId(reminderId);
-      if (parsed == null) return false;
-      final task = _taskForId(tasks, parsed.$1);
-      if (task == null || task.trashed) return false;
-      final index = task.followUps.indexWhere((item) => item.id == parsed.$2);
-      if (index < 0) return false;
-      final current = task.followUps[index];
-      final next = List<FollowUp>.of(task.followUps);
-      next[index] = FollowUp(
-        id: current.id,
-        dateTime: revision.start,
-        note: current.note,
-        result: current.result,
-        reminderDate: current.reminderDate,
-        nextFollowUp: current.nextFollowUp,
-        completed: current.completed,
-      );
-      task.followUps = next;
-      task.followUpEnabled = true;
-      task.updatedAt = DateTime.now();
-      return true;
-    }
-
-    if (reminderId.startsWith('task-followup:')) {
-      final task = _taskForId(
-        tasks,
-        reminderId.substring('task-followup:'.length),
-      );
-      if (task == null || task.trashed) return false;
-      task.followUpDate = revision.start;
-      task.updatedAt = DateTime.now();
-      return true;
-    }
-
     return false;
   }
 
@@ -434,31 +366,6 @@ class CalendarInboundSyncService {
       return true;
     }
 
-    if (reminderId.startsWith('followup:')) {
-      final parsed = _parseFollowUpReminderId(reminderId);
-      if (parsed == null) return false;
-      final task = _taskForId(tasks, parsed.$1);
-      if (task == null || task.trashed) return false;
-      final index = task.followUps.indexWhere((item) => item.id == parsed.$2);
-      if (index < 0) return false;
-      final next = List<FollowUp>.of(task.followUps)..removeAt(index);
-      task.followUps = next;
-      task.followUpEnabled = next.isNotEmpty;
-      task.updatedAt = DateTime.now();
-      return true;
-    }
-
-    if (reminderId.startsWith('task-followup:')) {
-      final task = _taskForId(
-        tasks,
-        reminderId.substring('task-followup:'.length),
-      );
-      if (task == null || task.trashed) return false;
-      task.followUpDate = null;
-      task.updatedAt = DateTime.now();
-      return true;
-    }
-
     return false;
   }
 
@@ -478,16 +385,6 @@ class CalendarInboundSyncService {
     return (
       Uri.decodeComponent(value.substring(0, separator)),
       Uri.decodeComponent(value.substring(separator + 1)),
-    );
-  }
-
-  (String, String)? _parseFollowUpReminderId(String reminderId) {
-    final value = reminderId.substring('followup:'.length);
-    final separator = value.indexOf(':');
-    if (separator <= 0 || separator == value.length - 1) return null;
-    return (
-      value.substring(0, separator),
-      value.substring(separator + 1),
     );
   }
 

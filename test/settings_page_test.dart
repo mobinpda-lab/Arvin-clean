@@ -37,7 +37,35 @@ void main() {
     expect(find.byKey(const ValueKey('swipe-settings-title')), findsOneWidget);
     expect(find.byKey(const ValueKey('swipe-right-action')), findsOneWidget);
     expect(find.byKey(const ValueKey('swipe-left-action')), findsOneWidget);
-    expect(find.byKey(const ValueKey('font-settings-entry')), findsOneWidget);
+    expect(find.text('اندازه متن'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('calendar-swipe-settings-title')),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('calendar-swipe-settings-title')), findsOneWidget);
+    expect(find.byKey(const ValueKey('calendar-swipe-right-action')), findsOneWidget);
+    expect(find.byKey(const ValueKey('calendar-swipe-left-action')), findsOneWidget);
+    await tester.drag(find.byType(ListView), const Offset(0, 900));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('swipe-right-action')));
+    await tester.pumpAndSettle();
+    expect(find.text('ثبت پیگیری'), findsNothing);
+    expect(find.text('انتقال به تقویم گوشی'), findsNothing);
+    await tester.tap(find.text('انجام‌شدن').last);
+    await tester.pumpAndSettle();
+    expect((await service.load()).swipeRightAction, TaskSwipeAction.complete);
+
+    await tester.tap(find.byKey(const ValueKey('swipe-right-action')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('بایگانی').last);
+    await tester.pumpAndSettle();
+    expect(
+      (await service.load()).swipeRightAction,
+      TaskSwipeAction.archive,
+    );
 
     await tester.tap(find.text('تیره'));
     await tester.pumpAndSettle();
@@ -49,37 +77,7 @@ void main() {
     expect((await service.load()).usePersianDate, isFalse);
     expect(changed?.usePersianDate, isFalse);
 
-    await tester.tap(find.byKey(const ValueKey('font-settings-entry')));
-    await tester.pumpAndSettle();
-    expect(find.text('انتخاب فونت'), findsOneWidget);
-    expect((await service.load()).fontFamily, isNull);
-
-    await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('font-option-system')),
-      180,
-      scrollable: find.byType(Scrollable).last,
-    );
-    await tester.ensureVisible(find.byKey(const ValueKey('font-option-system')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('font-option-vazirharf')), findsOneWidget);
-    expect(find.byKey(const ValueKey('font-option-system')), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('font-option-system')));
-    await tester.pumpAndSettle();
-    expect((await service.load()).fontFamily, 'system');
-
-    await tester.tap(find.byKey(const ValueKey('font-settings-entry')));
-    await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('font-option-vazirharf')),
-      180,
-      scrollable: find.byType(Scrollable).last,
-    );
-    await tester.ensureVisible(find.byKey(const ValueKey('font-option-vazirharf')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('font-option-vazirharf')));
-    await tester.pumpAndSettle();
     expect(find.text('انتخاب فونت'), findsNothing);
-    expect((await service.load()).fontFamily, 'vazirharf');
 
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('projects-settings-entry')),

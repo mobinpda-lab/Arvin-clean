@@ -1,6 +1,13 @@
+import 'package:flutter/foundation.dart';
 import '../calendar_page.dart';
 import '../models/recurrence.dart';
 import '../models/task.dart';
+
+class TaskReminderCalendarTarget {
+  const TaskReminderCalendarTarget({required this.taskId, required this.reminder});
+  final String taskId;
+  final TaskReminder reminder;
+}
 
 class FollowUpCalendarTarget {
   const FollowUpCalendarTarget({
@@ -30,21 +37,40 @@ class FollowUpCalendarProjection {
   String legacyFollowUpReminderIdFor(Task task) =>
       'task-followup:${task.id}';
 
+  /// Retired legacy Follow-up reminder IDs are never active Calendar targets.
   FollowUpCalendarTarget? resolveTarget(
     Iterable<Task> tasks,
     String reminderId,
-  ) {
+  ) => null;
+
+  /// Resolves only an independent canonical TaskReminder.
+  TaskReminderCalendarTarget? resolveTaskReminderTarget(Iterable<Task> tasks, String reminderId) {
+    String? taskId;
+    String? reminderRecordId;
+    if (reminderId.startsWith('task-reminder-item:')) {
+      final suffix = reminderId.substring('task-reminder-item:'.length);
+      final separator = suffix.indexOf(':');
+      if (separator <= 0 || separator == suffix.length - 1) return null;
+      taskId = Uri.decodeComponent(suffix.substring(0, separator));
+      reminderRecordId = Uri.decodeComponent(suffix.substring(separator + 1));
+    } else if (reminderId.startsWith('task-reminder:')) {
+      taskId = reminderId.substring('task-reminder:'.length);
+    } else { return null; }
     for (final task in tasks) {
-      if (task.trashed) continue;
-      for (final followUp in task.followUps) {
-        if (followUp.reminderDate != null &&
-            reminderIdFor(task, followUp) == reminderId) {
-          return FollowUpCalendarTarget(
-            taskId: task.id,
-            followUp: followUp,
-          );
+      if (task.id != taskId || task.completed || task.archived || task.trashed) continue;
+      TaskReminder? target;
+      if (reminderRecordId != null) {
+        for (final reminder in task.taskReminders) {
+          if (reminder.id == reminderRecordId) { target = reminder; break; }
+        }
+      } else {
+        for (final reminder in task.taskReminders) {
+          if (!reminder.isLegacyTaskReminder) continue;
+          if (target != null) return null;
+          target = reminder;
         }
       }
+      if (target != null) return TaskReminderCalendarTarget(taskId: task.id, reminder: target);
     }
     return null;
   }
@@ -67,36 +93,27 @@ class FollowUpCalendarProjection {
   }) {
     final reminders = <CalendarReminder>[];
 
-    for (final task in tasks) {
-      if (task.trashed) continue;
+    final taskList = tasks.toList(growable: false);
+    debugPrint(
+      'CALENDAR_DIAG_B: inputContainsSmokeTask=${taskList.any((task) => task.id == 'calendar-smoke-task')} '
+      'inputTaskIds=${taskList.where((task) => task.id == 'calendar-smoke-task').map((task) => task.id).toList()}',
+    );
+
+    for (final task in taskList) {
+      if (task.trashed) {
+        if (task.id == 'calendar-smoke-task') {
+          for (final reminder in task.taskReminders) {
+            debugPrint(
+              'CALENDAR_DIAG_B: taskId=${task.id} reminderId=${reminder.id} '
+              'type=${reminder.isLegacyTaskReminder ? 'legacy' : 'independent'} '
+              'date=${reminder.date.toIso8601String()} DROP_REASON=task_trashed',
+            );
+          }
+        }
+        continue;
+      }
 
       final taskDatesAlreadyProjected = <DateTime>[];
-
-      for (final followUp in task.followUps) {
-        final customTitle = followUp.title?.trim();
-        final hasCustomTitle = customTitle != null && customTitle.isNotEmpty;
-        final calendarTitle = hasCustomTitle
-            ? customTitle
-            : 'پیگیری ${task.title}';
-        final parentSubtitle = hasCustomTitle ? 'پیگیری: ${task.title}' : null;
-        final isCompleted = followUp.completed || task.completed;
-
-        // nextFollowUp is an internal planned action, not a calendar event.
-        // Only the explicitly configured reminderDate is projected.
-        final reminderDate = followUp.reminderDate;
-        if (reminderDate != null) {
-          reminders.add(
-            CalendarReminder(
-              id: reminderIdFor(task, followUp),
-              title: calendarTitle,
-              date: reminderDate,
-              completed: isCompleted,
-              description: parentSubtitle,
-            ),
-          );
-          taskDatesAlreadyProjected.add(reminderDate);
-        }
-      }
 
       for (final reminder in task.taskReminders) {
         reminders.add(
@@ -113,6 +130,14 @@ class FollowUpCalendarProjection {
             isAllDay: reminder.isAllDay,
           ),
         );
+        if (task.id == 'calendar-smoke-task') {
+          debugPrint(
+            'CALENDAR_DIAG_B: taskId=${task.id} '
+            'outputReminderId=${reminder.isLegacyTaskReminder ? taskReminderIdFor(task) : independentTaskReminderIdFor(task, reminder)} '
+            'type=${reminder.isLegacyTaskReminder ? 'legacy' : 'independent'} '
+            'date=${reminder.date.toIso8601String()} RESULT=PROJECTED',
+          );
+        }
         if (reminder.isLegacyTaskReminder) {
           // Preserve the legacy projection's due-date de-duplication behavior.
           taskDatesAlreadyProjected.add(reminder.date);
@@ -180,6 +205,9 @@ class FollowUpCalendarProjection {
     }
 
     reminders.sort((a, b) => a.date.compareTo(b.date));
+    debugPrint(
+      'CALENDAR_DIAG_B: outputSmokeReminderIdsAndDates=${reminders.where((item) => item.id.contains('calendar-smoke-task')).map((item) => '${item.id}@${item.date.toIso8601String()}').toList()}',
+    );
     return List<CalendarReminder>.unmodifiable(reminders);
   }
 }

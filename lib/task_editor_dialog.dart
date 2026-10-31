@@ -64,7 +64,6 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   late final TextEditingController _checklistController;
   late final FocusNode _tagFocusNode;
   late final FocusNode _titleFocusNode;
-  DateTime? _followUpDateTime;
   DateTime? _dueDateTime;
   late bool _dueAllDay;
   DateTime? _reminderDateTime;
@@ -74,7 +73,6 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   late List<TaskReminder> _taskReminders;
   late List<FollowUp> _followUps;
   late int _nextReminderSequence;
-  late bool _followUpEnabled;
   late bool _completed;
   late List<String> _tags;
   late List<String> _checklist;
@@ -107,7 +105,6 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _checklistController = TextEditingController();
     _tagFocusNode = FocusNode();
     _titleFocusNode = FocusNode();
-    _followUpDateTime = task?.followUpDate;
     _dueDateTime = task?.dueDate ?? widget.initialDueDate;
     _dueAllDay = task?.allDay ?? false;
     _reminderDateTime = task?.legacyTaskReminderMigrationVersion == 1
@@ -130,14 +127,10 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     }
     _reminderFollowsDueTime = task == null ||
         (task.legacyTaskReminderMigrationVersion < 1 &&
-            (task.reminderDate == null ||
-                (task.dueDate != null &&
-                    !task.allDay &&
-                    task.reminderDate == task.dueDate)));
-    _followUpEnabled =
-        task?.followUpEnabled == true ||
-        (task?.followUps.isNotEmpty ?? false) ||
-        task?.followUpDate != null;
+            task.reminderDate != null &&
+            task.dueDate != null &&
+            !task.allDay &&
+            task.reminderDate == task.dueDate);
     _completed = task?.completed ?? false;
     _tags = List<String>.of(task?.tags ?? const []);
     _checklist = List<String>.of(task?.checklist ?? const []);
@@ -615,7 +608,6 @@ Future<void> _pickDueDate() async {
       } else {
         _followUps = List<FollowUp>.of(_followUps)..[index] = updated;
       }
-      if (_followUps.isNotEmpty) _followUpEnabled = true;
     });
   }
 
@@ -634,8 +626,6 @@ Future<void> _pickDueDate() async {
           _checklistEnabled ||
           _category != null ||
           _selectedProjectId != widget.selectedProjectId ||
-          _followUpEnabled ||
-          _followUpDateTime != null ||
           _dueDateTime != null ||
           _dueAllDay ||
           _reminderDateTime != null ||
@@ -646,10 +636,6 @@ Future<void> _pickDueDate() async {
           _completed;
     }
 
-    final initialFollowUpEnabled =
-        existing.followUpEnabled ||
-        existing.followUps.isNotEmpty ||
-        existing.followUpDate != null;
     return title != existing.title ||
         description != existing.description ||
         pendingTag.isNotEmpty ||
@@ -658,8 +644,6 @@ Future<void> _pickDueDate() async {
         _checklistEnabled != existing.checklistEnabled ||
         _category != existing.category ||
         _selectedProjectId != widget.selectedProjectId ||
-        _followUpEnabled != initialFollowUpEnabled ||
-        _followUpDateTime != existing.followUpDate ||
         _dueDateTime != existing.dueDate ||
         _dueAllDay != existing.allDay ||
         _reminderDateTime != existing.reminderDate ||
@@ -919,8 +903,6 @@ Future<void> _pickDueDate() async {
         description: _descriptionController.text.trim(),
         dueDate: _dueDateTime,
         allDay: _dueDateTime != null && _dueAllDay,
-        followUpEnabled: _followUpEnabled,
-        followUpDate: existing?.followUpDate ?? _followUpDateTime,
         tags: List<String>.of(_tags),
         category: _category,
         checklist: List<String>.of(_checklist),
@@ -937,6 +919,10 @@ Future<void> _pickDueDate() async {
         archived: existing?.archived ?? false,
         trashed: existing?.trashed ?? false,
         completed: _completed,
+        // Preserve legacy compatibility metadata without exposing a retired
+        // Next Follow-up editor or erasing it during unrelated Task edits.
+        followUpEnabled: existing?.followUpEnabled ?? false,
+        followUpDate: existing?.followUpDate,
         followUps: List<FollowUp>.of(_followUps),
         recurrence: _buildRecurrence(),
         people: existing?.people ?? const [],
@@ -1010,8 +996,6 @@ Future<void> _pickDueDate() async {
               if (target.contains('reminder')) {
                 _reminderDateTime = DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
                 _reminderFollowsDueTime = false;
-              } else if (target.contains('follow-up') || target.contains('followup')) {
-                _followUpDateTime = DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
               } else {
                 _dueDateTime = _dueAllDay || value == null
                     ? DateTime(picked.year, picked.month, picked.day)
@@ -1027,8 +1011,6 @@ Future<void> _pickDueDate() async {
               if (target.contains('reminder')) {
                 _reminderDateTime = next;
                 _reminderFollowsDueTime = false;
-              } else if (target.contains('follow-up')) {
-                _followUpDateTime = next;
               } else {
                 _dueDateTime = next;
                 _dueAllDay = false;
@@ -1551,7 +1533,7 @@ Future<void> _pickDueDate() async {
                         ),
                         const SizedBox(height: 4),
                         const Text(
-                          'عنوان، یادداشت، اقدام بعدی و یادآور هر پیگیری جداگانه ذخیره می‌شوند.',
+                          'عنوان، یادداشت و نتیجه هر اقدام واقعی در تاریخچه نگهداری می‌شود.',
                           style: TextStyle(color: ArvinColors.textSecondary, fontSize: 12),
                         ),
                         for (final followUp in _followUps) ...[
@@ -1570,10 +1552,6 @@ Future<void> _pickDueDate() async {
                             subtitle: Text(
                               [
                                 if (followUp.note.trim().isNotEmpty) followUp.note.trim(),
-                                if (followUp.nextFollowUp != null)
-                                  'اقدام بعدی: ${_dateText(followUp.nextFollowUp!)} • ${_timeText(followUp.nextFollowUp!)}',
-                                if (followUp.reminderDate != null)
-                                  'یادآور: ${_dateText(followUp.reminderDate!)} • ${_timeText(followUp.reminderDate!)}',
                               ].join('\n'),
                               maxLines: 3,
                               overflow: TextOverflow.ellipsis,

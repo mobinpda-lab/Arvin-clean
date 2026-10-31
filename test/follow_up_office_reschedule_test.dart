@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:arvin/automatic_follow_up_scheduler_adapter.dart';
 import 'package:arvin/follow_up_office_page.dart';
 import 'package:arvin/follow_up_repository.dart';
 import 'package:arvin/services/follow_up_write_coordinator.dart';
@@ -9,23 +8,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:arvin/services/task_store.dart';
 
-class _RecordingScheduler implements AutomaticFollowUpSchedulerAdapter {
-  int rescheduleCalls = 0;
-
-  @override
-  Future<void> reschedule() async {
-    rescheduleCalls += 1;
-  }
-
-  @override
-  Future<void> cancel() async {}
-}
-
 void main() {
   setUp(() async {
     await TaskStore.resetTestDatabase();
   });
-  testWidgets('real FollowUp office add write requests alarm rescheduling',
+  testWidgets('real FollowUp office add write requests independent reminder rescheduling',
       (tester) async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks': jsonEncode([
@@ -36,11 +23,13 @@ void main() {
         },
       ]),
     });
-    final scheduler = _RecordingScheduler();
+    var reminderRescheduleCalls = 0;
     final repository = const FollowUpRepository();
     final coordinator = FollowUpWriteCoordinator(
       repository: repository,
-      scheduler: scheduler,
+      reminderReschedule: () async {
+        reminderRescheduleCalls++;
+      },
     );
 
     await tester.pumpWidget(
@@ -62,7 +51,7 @@ void main() {
     await tester.tap(save);
     await tester.pumpAndSettle();
 
-    expect(scheduler.rescheduleCalls, 1);
+    expect(reminderRescheduleCalls, 1);
     expect(find.text('تماس فردا'), findsOneWidget);
   });
 }

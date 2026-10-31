@@ -35,4 +35,30 @@ void main() {
     expect(task.followUps.single.dateTime, DateTime(2026, 8, 19, 10));
     expect(task.lastFollowUp?.id, 'fu-1');
   });
+
+  test('legacy Task fields and FollowUp nextFollowUp survive JSON round-trip', () {
+    final original = Task(
+      id: 'legacy-round-trip',
+      title: 'Legacy metadata',
+      followUpEnabled: true,
+      followUpDate: DateTime(2026, 8, 18, 9, 30),
+      followUps: [
+        FollowUp(
+          id: 'follow-up-round-trip',
+          dateTime: DateTime(2026, 8, 19, 10),
+          nextFollowUp: DateTime(2026, 8, 20, 11),
+        ),
+      ],
+    );
+
+    final restored = Task.fromJson(original.toJson());
+
+    expect(restored.followUpEnabled, isTrue);
+    expect(restored.followUpDate, DateTime(2026, 8, 18, 9, 30));
+    expect(restored.followUps, hasLength(1));
+    expect(
+      restored.followUps.single.nextFollowUp,
+      DateTime(2026, 8, 20, 11),
+    );
+  });
 }

@@ -4,7 +4,7 @@ import 'package:drift/drift.dart';
 
 /// G1-DRIFT relational schema foundation.
 class G1DriftSchema implements QueryExecutorUser {
-  static const int version = 6;
+  static const int version = 7;
 
   static const List<String> _statements = <String>[
     '''CREATE TABLE IF NOT EXISTS tasks (
@@ -13,7 +13,7 @@ class G1DriftSchema implements QueryExecutorUser {
   follow_up_enabled INTEGER NOT NULL, follow_up_date TEXT NULL, category TEXT NULL,
   notebook_kind TEXT NULL, reminder_date TEXT NULL, priority TEXT NOT NULL,
   archived INTEGER NOT NULL, trashed INTEGER NOT NULL, completed INTEGER NOT NULL,
-  recurrence_json TEXT NULL, legacy_payload_json TEXT NULL)''',
+  completed_at TEXT NULL, recurrence_json TEXT NULL, legacy_payload_json TEXT NULL)''',
     '''CREATE TABLE IF NOT EXISTS follow_ups (
   id TEXT NOT NULL PRIMARY KEY, task_id TEXT NOT NULL REFERENCES tasks(id),
   date_time TEXT NOT NULL, title TEXT NULL, note TEXT NOT NULL, result TEXT NULL,
@@ -73,6 +73,9 @@ class G1DriftSchema implements QueryExecutorUser {
       }
       if (!taskColumns.any((row) => row['name'] == 'legacy_payload_json')) {
         await executor.runCustom('ALTER TABLE tasks ADD COLUMN legacy_payload_json TEXT NULL');
+      }
+      if (!taskColumns.any((row) => row['name'] == 'completed_at')) {
+        await executor.runCustom('ALTER TABLE tasks ADD COLUMN completed_at TEXT NULL');
       }
       final followUpColumns = await executor.runSelect("PRAGMA table_info('follow_ups')", const []);
       if (!followUpColumns.any((row) => row['name'] == 'title')) {

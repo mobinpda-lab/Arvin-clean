@@ -213,3 +213,15 @@
 ## 2026-10-15 — Decision record: PR #2725 validated
 
 Both required exact-head gates for `ba2306cfc66ad982f8e8ab73b838a4a8d6ed6b55` are terminal `success`: Build `38752957837` and Device Smoke `38752957813` (all six lanes). Proceed with the authorized squash merge of PR #2725 only while its head remains unchanged. After confirmed merge, create `feat/person-reports-followup-issue-2683` from fresh `main` and begin Issue #2683. Do not conflate CI success with physical-device release acceptance.
+
+
+## 2026-10-31 — Wave 7.61: Calendar conflict background-widget isolation
+
+- **Governing scope:** Issue [#2102](https://github.com/mobinpda-lab/Arvin-clean/issues/2102), Draft PR [#2995](https://github.com/mobinpda-lab/Arvin-clean/pull/2995), target commit `bf52347db1379c7ffa08f42829c686f557796ba3`.
+- **Root cause:** The unlinked fixture removes the external provider-link record but intentionally retains the canonical independent TaskReminder. The calendar projection continues to render that reminder on the underlying launcher route. Because `showModalBottomSheet()` keeps that route mounted, a global Flutter finder can match the background Reminder card even when the conflict-advice sheet correctly contains no conflict entry.
+- **Decision:** Preserve the canonical Reminder and its ordinary calendar projection. Do not delete it, suppress it outside the modal, weaken the projection contract, or replace the fixture with a mock that hides the real behavior.
+- **Implementation:** `CanonicalCalendarLauncher` places the underlying launcher body subtree `Offstage` only while conflict advice is visible, then restores it when the modal lifecycle completes. Conflict candidates are separately restricted to the validated eligible set.
+- **Regression protection:** The existing calendar launcher test file and its strict assertions remain unchanged: the no-conflict empty-state assertion, the `findsNothing` assertion for the Reminder title, and `tester.takeException() == null`. No assertion was removed or weakened; no weak mock was introduced to bypass the overlap.
+- **Exact-head CI evidence observed:** On the target Build run, Analyze and all six test shards completed successfully. The `test-1` job reports the unlinked-Reminder conflict test passing as part of 161 passing tests in that shard. Debug/Release APK builds were still in progress at this checkpoint; Calendar Provider Acceptance and Device Smoke were also not yet complete.
+- **Acceptance boundary:** This record documents the diagnosis, implementation and observed partial CI evidence. It does not declare full Wave 7.61 acceptance. APK artifacts, provider evidence and all seven Device Smoke lanes must be reviewed on the exact final PR head.
+- **Governance:** PR #2995 remains OPEN and must remain DRAFT/UNMERGED; Issue #2102 remains OPEN. Release remains `BLOCKED — RELEASE: NO-GO` until every required exact-head suite and product acceptance gate is green.

@@ -68,15 +68,15 @@ void main() {
       projection
           .project(
             [note, tracked, history],
-            scope: HomeListScope.followUpEnabled,
+            scope: HomeListScope.hasFollowUps,
             sort: HomeListSort.title,
           )
           .map((item) => item.id),
-      ['history', 'tracked'],
+      ['history'],
     );
   });
 
-  test('today future and overdue use Task due date before legacy follow-up', () {
+  test('today future and overdue use Task due date only, never legacy follow-up date', () {
     final tasks = [
       task(
         'today-due',
@@ -106,7 +106,7 @@ void main() {
             now: now,
           )
           .map((item) => item.id),
-      ['legacy-fallback', 'today-due'],
+      ['today-due'],
     );
     expect(
       projection
@@ -203,7 +203,7 @@ void main() {
     expect(tasks, hasLength(3));
   });
 
-  test('home reminder projection prefers same-time follow-ups and keeps first duplicate reminder', () {
+  test('home reminder projection keeps independent reminders and ignores Follow-up history', () {
     final followUpAt = now.add(const Duration(hours: 2));
     final duplicateAt = now.add(const Duration(hours: 1));
     final reminders = <TaskReminder>[
@@ -215,9 +215,9 @@ void main() {
 
     final projected = projection.projectReminders(reminders, followUpDate: followUpAt);
 
-    expect(projected.map((item) => item.id), ['first-at-time', 'unique-time']);
+    expect(projected.map((item) => item.id), ['same-as-follow-up', 'first-at-time', 'unique-time']);
     expect(reminders, hasLength(4));
-    expect(identical(projected.first, reminders[1]), isTrue);
+    expect(identical(projected.first, reminders[0]), isTrue);
 
     final coincident = task(
       'coincident',
@@ -229,7 +229,7 @@ void main() {
       dueDate: followUpAt.add(const Duration(minutes: 1)),
       followUps: [FollowUp(id: 'other-time-follow-up', dateTime: followUpAt)],
     );
-    expect(projection.shouldProjectDueDate(coincident), isFalse);
+    expect(projection.shouldProjectDueDate(coincident), isTrue);
     expect(projection.shouldProjectDueDate(distinct), isTrue);
   });
 

@@ -10,17 +10,24 @@ void main() {
     await TaskStore.resetTestDatabase();
     SharedPreferences.setMockInitialValues(<String, Object>{});
   });
-  test('critical capture to follow-up path survives canonical persistence', () async {
+  test('critical capture to independent reminder path survives canonical persistence', () async {
     final createdAt = DateTime.utc(2026, 8, 26, 8, 30);
     final reminderAt = DateTime.utc(2026, 8, 27, 9);
-    final nextFollowUp = DateTime.utc(2026, 8, 28, 10);
 
     final task = const QuickCaptureService().capture(
       'تماس با مشتری #فوری #فروش',
       id: 'release-critical-1',
       createdAt: createdAt,
     )!;
-    task.reminderDate = reminderAt;
+    task.taskReminders = [
+      TaskReminder(
+        id: 'release-reminder-1',
+        title: 'یادآور مستقل مشتری',
+        date: reminderAt,
+        sequence: 1,
+      ),
+    ];
+    task.nextReminderSequence = 2;
     task.recurrence = const RecurrenceRule(
       frequency: RecurrenceFrequency.daily,
       interval: 2,
@@ -28,17 +35,6 @@ void main() {
 
     final store = TaskStore();
     await store.save([task]);
-    await store.addFollowUp(
-      task.id,
-      FollowUp(
-        id: 'release-followup-1',
-        dateTime: DateTime.utc(2026, 8, 26, 12),
-        note: 'پیگیری واقعی مشتری',
-        result: 'منتظر پاسخ',
-        nextFollowUp: nextFollowUp,
-      ),
-    );
-
     final loaded = await store.load();
     expect(loaded, hasLength(1));
 
@@ -46,19 +42,21 @@ void main() {
     expect(restored.id, 'release-critical-1');
     expect(restored.title, 'تماس با مشتری');
     expect(restored.tags, ['فوری', 'فروش']);
-    expect(restored.reminderDate, reminderAt);
+    expect(restored.reminderDate, isNull);
     expect(restored.createdAt, createdAt);
-    expect(restored.followUpEnabled, isTrue);
-    expect(restored.followUps, hasLength(1));
-    expect(restored.followUps.single.note, 'پیگیری واقعی مشتری');
-    expect(restored.followUps.single.result, 'منتظر پاسخ');
-    expect(restored.followUps.single.nextFollowUp, nextFollowUp);
+    expect(restored.followUpEnabled, isFalse);
+    expect(restored.followUps, isEmpty);
+    expect(restored.taskReminders, hasLength(1));
+    expect(restored.taskReminders.single.id, 'release-reminder-1');
+    expect(restored.taskReminders.single.date, reminderAt);
+    expect(restored.taskReminders.single.sequence, 1);
     expect(restored.recurrence?.frequency, RecurrenceFrequency.daily);
     expect(restored.recurrence?.interval, 2);
 
     final persisted = (await TaskStore().load()).single;
-    expect(persisted.followUps.single.id, 'release-followup-1');
+    expect(persisted.followUps, isEmpty);
+    expect(persisted.taskReminders.single.id, 'release-reminder-1');
     expect(persisted.recurrence, isNotNull);
-    expect(persisted.reminderDate, reminderAt);
+    expect(persisted.reminderDate, isNull);
   });
 }

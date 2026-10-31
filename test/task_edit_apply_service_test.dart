@@ -55,8 +55,8 @@ void main() {
     expect(target.description, 'بعد');
     expect(target.dueDate, DateTime(2026, 8, 30, 14));
     expect(target.allDay, isTrue);
-    expect(target.followUpEnabled, isFalse);
-    expect(target.followUpDate, isNull);
+    expect(target.followUpEnabled, isTrue);
+    expect(target.followUpDate, DateTime(2026, 8, 29, 10));
     expect(target.tags, ['مهم', 'مشتری']);
     expect(target.category, 'مشتریان');
     expect(target.checklist, ['یک', 'دو']);
@@ -66,6 +66,51 @@ void main() {
     expect(target.priority, TaskPriority.high);
     expect(target.completed, isFalse);
     expect(target.updatedAt, appliedAt);
+  });
+
+  test('metadata edits preserve completion timestamp and legacy scheduled fields', () {
+    final completedAt = DateTime(2026, 10, 29, 9, 45);
+    final legacyDate = DateTime(2026, 10, 31, 11);
+    final target = Task(
+      id: 'metadata-only',
+      title: 'قبل',
+      completed: true,
+      completedAt: completedAt,
+      followUpEnabled: true,
+      followUpDate: legacyDate,
+    );
+    final edited = Task(
+      id: 'metadata-only',
+      title: 'بعد',
+      description: 'یادداشت تازه',
+      category: 'مشتری',
+      priority: TaskPriority.high,
+      completed: true,
+    );
+
+    service.apply(target, edited);
+
+    expect(target.completed, isTrue);
+    expect(target.completedAt, completedAt);
+    expect(target.description, 'یادداشت تازه');
+    expect(target.category, 'مشتری');
+    expect(target.priority, TaskPriority.high);
+    expect(target.updatedAt, isNotNull);
+    expect(target.followUpEnabled, isTrue);
+    expect(target.followUpDate, legacyDate);
+  });
+
+  test('explicit reopen in editor clears completedAt', () {
+    final target = Task(
+      id: 'explicit-reopen', title: 'انجام‌شده', completed: true,
+      completedAt: DateTime(2026, 10, 29, 9),
+    );
+    final edited = Task(id: 'explicit-reopen', title: 'باز', completed: false);
+
+    service.apply(target, edited);
+
+    expect(target.completed, isFalse);
+    expect(target.completedAt, isNull);
   });
 
   test('applies disabled checklist state while preserving checklist rows', () {

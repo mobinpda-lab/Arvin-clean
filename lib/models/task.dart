@@ -157,6 +157,7 @@ class Task {
     this.archived = false,
     this.trashed = false,
     this.completed = false,
+    this.completedAt,
     this.followUps = const [],
     this.recurrence,
     Iterable<PersonReference> people = const [],
@@ -202,9 +203,18 @@ class Task {
   bool archived;
   bool trashed;
   bool completed;
+  DateTime? completedAt;
   List<FollowUp> followUps;
   RecurrenceRule? recurrence;
   final List<PersonReference> people;
+
+  /// First completion records a timestamp; repeated completion is idempotent.
+  /// Explicit reopening clears it so the next completion records a fresh time.
+  void setCompleted(bool value, {DateTime? at}) {
+    if (value == completed) return;
+    completed = value;
+    completedAt = value ? (at ?? DateTime.now()) : null;
+  }
 
   /// True only for an item explicitly created as a Notebook simple note.
   /// Notebook membership is independent from follow-up state: adding a
@@ -334,6 +344,7 @@ class Task {
         'archived': archived,
         'trashed': trashed,
         'completed': completed,
+        'completedAt': completedAt?.toIso8601String(),
         'followUps': followUps.map((e) => e.toJson()).toList(),
         if (recurrence != null) 'recurrence': recurrence!.toJson(),
         if (people.isNotEmpty)
@@ -451,6 +462,9 @@ class Task {
       archived: json['archived'] as bool? ?? false,
       trashed: json['trashed'] as bool? ?? false,
       completed: json['completed'] as bool? ?? false,
+      completedAt: json['completedAt'] == null
+          ? null
+          : DateTime.tryParse(json['completedAt'] as String),
       followUps: loadedFollowUps,
       recurrence: json['recurrence'] is Map
           ? RecurrenceRule.fromJson(

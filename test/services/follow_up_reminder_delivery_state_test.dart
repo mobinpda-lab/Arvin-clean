@@ -12,11 +12,13 @@ void main() {
     String followUpId = 'fu-1',
     DateTime? reminderDate,
     bool completed = false,
+    List<TaskReminder> taskReminders = const <TaskReminder>[],
   }) =>
       Task(
         id: taskId,
         title: 'Task $taskId',
         completed: completed,
+        taskReminders: taskReminders,
         followUps: [
           FollowUp(
             id: followUpId,
@@ -51,54 +53,43 @@ void main() {
     });
   });
 
-  test('markDelivered records exact timestamp and replaces old schedule', () {
-    final oldTask = task(
-      'one',
-      reminderDate: DateTime(2026, 8, 28, 11),
+  test('markDelivered records canonical Task Reminder identity', () {
+    final reminder = TaskReminder(
+      id: 'r1',
+      title: 'تماس',
+      date: DateTime(2026, 8, 28, 11),
+      sequence: 1,
     );
-    final oldCandidate = deliveryService
-        .due([oldTask], now: DateTime(2026, 8, 28, 12))
-        .single;
-    final first = stateService.markDelivered({}, oldCandidate);
-
-    final changedTask = task(
-      'one',
-      reminderDate: DateTime(2026, 8, 28, 11, 30),
-    );
-    final changedCandidate = deliveryService
-        .due([changedTask], now: DateTime(2026, 8, 28, 12))
-        .single;
-    final second = stateService.markDelivered(first, changedCandidate);
-
-    expect(second, hasLength(1));
-    expect(
-      second[changedCandidate.stableKey],
-      deliveryService.deliveryIdentity(changedCandidate),
-    );
-    expect(
-      stateService.deliveredIdentities(second),
-      {deliveryService.deliveryIdentity(changedCandidate)},
-    );
+    final candidate = deliveryService.due(
+      [task('one', taskReminders: [reminder])],
+      now: DateTime(2026, 8, 28, 12),
+    ).single;
+    final result = stateService.markDelivered({}, candidate);
+    expect(result, hasLength(1));
+    expect(result[candidate.stableKey], deliveryService.deliveryIdentity(candidate));
   });
 
-  test('reconcile removes deleted or cleared reminders only', () {
-    final keep = task(
+  test('reconcile removes legacy FollowUp delivery markers but keeps canonical Reminder markers', () {
+    final canonical = task(
       'keep',
-      reminderDate: DateTime(2026, 8, 28, 11),
-      completed: true,
+      taskReminders: [
+        TaskReminder(
+          id: 'r1',
+          title: 'یادآور',
+          date: DateTime(2026, 8, 28, 11),
+          sequence: 1,
+        ),
+      ],
     );
-    final cleared = task('cleared', reminderDate: null);
     final state = {
-      'keep:fu-1': 'keep:fu-1@2026-08-28T11:00:00.000',
-      'cleared:fu-1': 'cleared:fu-1@2026-08-28T11:00:00.000',
-      'deleted:fu-1': 'deleted:fu-1@2026-08-28T11:00:00.000',
+      'task:keep:reminder:r1': 'canonical-id',
+      'keep:fu-1': 'legacy-followup-id',
+      'deleted:fu-1': 'deleted-id',
     };
 
-    final result = stateService.reconcile(state, [keep, cleared]);
-
-    expect(result, {
-      'keep:fu-1': 'keep:fu-1@2026-08-28T11:00:00.000',
-    });
+    final result = stateService.reconcile(state, [canonical]);
+    expect(result, {'task:keep:reminder:r1': 'canonical-id'});
     expect(state, hasLength(3));
   });
+
 }

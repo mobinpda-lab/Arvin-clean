@@ -1,7 +1,8 @@
 import '../models/task.dart';
 import 'automatic_follow_up_service.dart';
 
-/// Pure planner for the single Android alarm used by Automatic FollowUp.
+/// Compatibility planner for a retired alarm path. It never schedules
+/// from Follow-up history; canonical Reminder alarms use their own planner.
 ///
 /// Delivery markers are metadata only. Canonical Task/FollowUp data remains the
 /// source of truth for which schedule is currently authoritative.

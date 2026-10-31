@@ -11,7 +11,7 @@ void main() {
       home: TaskDetailPage(
         task: task,
         onComplete: (current) async {
-          current.completed = !current.completed;
+          current.setCompleted(!current.completed);
           task = current;
           return current;
         },

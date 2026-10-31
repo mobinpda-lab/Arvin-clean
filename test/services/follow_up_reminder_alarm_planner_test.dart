@@ -5,75 +5,34 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   const planner = FollowUpReminderAlarmPlanner();
 
-  Task task(
-    String id, {
-    required DateTime reminder,
-    bool taskCompleted = false,
-    bool followUpCompleted = false,
-  }) {
-    return Task(
-      id: id,
-      title: 'Task $id',
-      completed: taskCompleted,
+  test('legacy FollowUp.reminderDate never schedules an alarm', () {
+    final task = Task(
+      id: 'legacy-followup',
+      title: 'تاریخچه',
       followUps: [
         FollowUp(
-          id: 'fu-$id',
+          id: 'f1',
           dateTime: DateTime(2026, 9, 8, 10),
-          reminderDate: reminder,
-          completed: followUpCompleted,
+          reminderDate: DateTime(2026, 9, 8, 11),
         ),
       ],
     );
-  }
-
-  test('selects nearest undelivered independent FollowUp reminder', () {
-    final now = DateTime(2026, 9, 8, 12);
-    final next = planner.nextAlarmAt(
-      [
-        task('later', reminder: DateTime(2026, 9, 8, 15)),
-        task('next', reminder: DateTime(2026, 9, 8, 13)),
-      ],
-      deliveredState: const {},
-      now: now,
-    );
-
-    expect(next, DateTime(2026, 9, 8, 13));
-  });
-
-  test('overdue undelivered reminder is retried after bounded floor', () {
-    final now = DateTime(2026, 9, 8, 12);
-    final next = planner.nextAlarmAt(
-      [task('overdue', reminder: DateTime(2026, 9, 8, 11))],
-      deliveredState: const {},
-      now: now,
-    );
-
-    expect(next, DateTime(2026, 9, 8, 12, 1));
-  });
-
-  test('delivered exact timestamp is skipped but rescheduled timestamp returns', () {
-    final now = DateTime(2026, 9, 8, 12);
-    final old = DateTime(2026, 9, 8, 13);
-    final delivered = {
-      'one:fu-one': 'one:fu-one@${old.toIso8601String()}',
-    };
-
     expect(
-      planner.nextAlarmAt(
-        [task('one', reminder: old)],
-        deliveredState: delivered,
-        now: now,
-      ),
+      planner.nextAlarmAt([task], deliveredState: const {}, now: DateTime(2026, 9, 8, 12)),
       isNull,
     );
+  });
 
+  test('canonical independent Task Reminder still schedules', () {
+    final at = DateTime(2026, 9, 8, 15);
+    final task = Task(
+      id: 'canonical',
+      title: 'یادآور مستقل',
+      taskReminders: [TaskReminder(id: 'r1', title: 'تماس', date: at, sequence: 1)],
+    );
     expect(
-      planner.nextAlarmAt(
-        [task('one', reminder: DateTime(2026, 9, 8, 14))],
-        deliveredState: delivered,
-        now: now,
-      ),
-      DateTime(2026, 9, 8, 14),
+      planner.nextAlarmAt([task], deliveredState: const {}, now: DateTime(2026, 9, 8, 12)),
+      at,
     );
   });
 }

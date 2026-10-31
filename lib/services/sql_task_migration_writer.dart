@@ -81,9 +81,9 @@ class SqlTaskMigrationWriter {
       '''INSERT INTO tasks (
         id, storage_ordinal, title, description, created_at, updated_at, due_date,
         follow_up_enabled, follow_up_date, category, notebook_kind,
-        reminder_date, priority, archived, trashed, completed,
+        reminder_date, priority, archived, trashed, completed, completed_at,
         recurrence_json, legacy_payload_json
-       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
       <Object?>[
         task.id,
         storageOrdinal,
@@ -101,6 +101,7 @@ class SqlTaskMigrationWriter {
         _bool(task.archived),
         _bool(task.trashed),
         _bool(task.completed),
+        task.completedAt?.toIso8601String(),
         task.recurrence == null ? null : jsonEncode(task.recurrence!.toJson()),
         record.sourceJsonEncoded,
       ],
@@ -110,21 +111,35 @@ class SqlTaskMigrationWriter {
       final followUp = task.followUps[ordinal];
       await executor.runInsert(
         '''INSERT INTO follow_ups (
-          id, task_id, date_time, note, result, reminder_date,
-          next_follow_up, completed, ordinal
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+          id, task_id, date_time, title, note, result, reminder_date,
+          next_follow_up, completed, waiting_for_response, ordinal
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
         <Object?>[
           followUp.id,
           task.id,
           followUp.dateTime.toIso8601String(),
+          followUp.title,
           followUp.note,
           followUp.result,
           followUp.reminderDate?.toIso8601String(),
           followUp.nextFollowUp?.toIso8601String(),
           _bool(followUp.completed),
+          _bool(followUp.waitingForResponse),
           ordinal,
         ],
       );
+      for (var personOrdinal = 0;
+          personOrdinal < followUp.personIds.length;
+          personOrdinal++) {
+        await executor.runInsert(
+          'INSERT INTO follow_up_people (follow_up_id, person_id, ordinal) VALUES (?, ?, ?)',
+          <Object?>[
+            followUp.id,
+            followUp.personIds[personOrdinal],
+            personOrdinal,
+          ],
+        );
+      }
     }
 
     for (var ordinal = 0; ordinal < task.checklist.length; ordinal++) {

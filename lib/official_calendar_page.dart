@@ -6,6 +6,7 @@ import 'iranian_official_holiday_source.dart';
 import 'iranian_prayer_time_source.dart';
 import 'prayer_completion_report_page.dart';
 import 'services/app_settings_service.dart';
+import 'services/calendar_swipe_settings_service.dart';
 import 'services/external_calendar_event_projection.dart';
 import 'services/external_calendar_link_store.dart';
 import 'services/prayer_completion_projection.dart';
@@ -36,6 +37,8 @@ class OfficialCalendarPage extends StatefulWidget {
     this.calendarBridge,
     this.externalLinkStore,
     this.externalProjection,
+    this.calendarSwipeRightAction = CalendarSwipeAction.none,
+    this.calendarSwipeLeftAction = CalendarSwipeAction.none,
   });
 
   final OfficialCalendarReminderService service;
@@ -57,6 +60,8 @@ class OfficialCalendarPage extends StatefulWidget {
   final SystemCalendarBridge? calendarBridge;
   final ExternalCalendarLinkStore? externalLinkStore;
   final ExternalCalendarEventProjection? externalProjection;
+  final CalendarSwipeAction calendarSwipeRightAction;
+  final CalendarSwipeAction calendarSwipeLeftAction;
 
   @override
   State<OfficialCalendarPage> createState() => _OfficialCalendarPageState();
@@ -82,6 +87,8 @@ class IranianOfficialCalendarPage extends OfficialCalendarPage {
     super.calendarBridge,
     super.externalLinkStore,
     super.externalProjection,
+    super.calendarSwipeRightAction,
+    super.calendarSwipeLeftAction,
   }) : super(
          service: const OfficialCalendarReminderService(<OfficialCalendarReminderSource>[
            IranianOfficialHolidaySource(),
@@ -212,6 +219,8 @@ class _OfficialCalendarPageState extends State<OfficialCalendarPage> {
               prayerStatusFor: _prayerStatus,
               onPrayerCompleted: (reminder) => _setPrayerStatus(reminder, PrayerCompletionStatus.completed),
               onPrayerNotCompleted: (reminder) => _setPrayerStatus(reminder, PrayerCompletionStatus.notCompleted),
+              calendarSwipeRightAction: widget.calendarSwipeRightAction,
+              calendarSwipeLeftAction: widget.calendarSwipeLeftAction,
             ),
             if (!snapshot.hasData)
               PositionedDirectional(

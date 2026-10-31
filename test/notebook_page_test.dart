@@ -737,7 +737,11 @@ void main() {
     expect(converted.title, 'یادداشت قابل تبدیل');
     expect(converted.category, 'کاری');
     expect(converted.tags, const ['مهم']);
-    expect(converted.followUpEnabled, isTrue);
+    expect(converted.followUpEnabled, isFalse);
+    expect(converted.followUpDate, isNull);
+    expect(converted.completed, isFalse);
+    expect(converted.completedAt, isNull);
+    expect(converted.followUps, isEmpty);
     expect(converted.notebookKind, NotebookItemKind.note);
     expect(find.text('دفترچه'), findsWidgets);
   });

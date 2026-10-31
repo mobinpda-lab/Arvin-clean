@@ -40,28 +40,11 @@ void main() {
     expect(
       item.events.map((event) => event.kind),
       [
-        WorkAgendaEventKind.followUpReminder,
         WorkAgendaEventKind.taskReminder,
         WorkAgendaEventKind.taskDue,
-        WorkAgendaEventKind.followUpSchedule,
-        WorkAgendaEventKind.followUpReminder,
       ],
     );
-    expect(
-      item.events
-          .where((event) => event.kind == WorkAgendaEventKind.followUpSchedule)
-          .single
-          .followUpId,
-      'fu-latest',
-    );
-    expect(
-      item.events.any(
-        (event) =>
-            event.kind == WorkAgendaEventKind.followUpSchedule &&
-            event.followUpId == 'fu-old',
-      ),
-      isFalse,
-    );
+    expect(item.events, hasLength(2));
   });
 
   test('inclusive range groups by local day and keeps deterministic order', () {
@@ -135,7 +118,7 @@ void main() {
     expect(result, isEmpty);
   });
 
-  test('older nextFollowUp is superseded by latest real FollowUp', () {
+  test('legacy nextFollowUp does not create agenda events', () {
     final task = Task(
       id: 'task',
       title: 'پیگیری',

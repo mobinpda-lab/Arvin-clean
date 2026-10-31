@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -7,7 +9,15 @@ import 'package:arvin/services/app_settings_service.dart';
 import 'package:arvin/services/task_store.dart';
 
 void main() {
-  setUp(() {
+  test('Swipe action labels retain Persian wording while retired action stays unavailable', () {
+    final source = File('lib/settings_page.dart').readAsStringSync();
+    expect(source, contains("TaskSwipeAction.complete => 'انجام‌شدن'"));
+    expect(source, contains("TaskSwipeAction.convertToFollowUp => 'ثبت پیگیری'"));
+    expect(source, contains('where((action) => action != TaskSwipeAction.convertToFollowUp)'));
+  });
+
+  setUp(() async {
+    await TaskStore.resetTestDatabase();
     SharedPreferences.setMockInitialValues({});
   });
 
@@ -16,7 +26,6 @@ void main() {
     final settings = const AppSettings(
       themeMode: ThemeMode.light,
       usePersianDate: true,
-      fontFamily: null,
       swipeRightAction: TaskSwipeAction.archive,
       swipeLeftAction: TaskSwipeAction.trash,
     );
@@ -58,7 +67,6 @@ void main() {
     final settings = const AppSettings(
       themeMode: ThemeMode.light,
       usePersianDate: true,
-      fontFamily: null,
       swipeRightAction: TaskSwipeAction.moveToToday,
       swipeLeftAction: TaskSwipeAction.none,
     );
@@ -93,7 +101,6 @@ void main() {
     final settings = const AppSettings(
       themeMode: ThemeMode.light,
       usePersianDate: true,
-      fontFamily: null,
       swipeRightAction: TaskSwipeAction.archive,
       swipeLeftAction: TaskSwipeAction.trash,
     );
@@ -128,22 +135,20 @@ void main() {
     expect(find.text('حرکت به چپ'), findsOneWidget);
   });
 
-  testWidgets('RTL right swipe converts the same task to follow-up',
+
+  testWidgets('RTL right swipe rejects the retired Follow-up action without mutation',
       (tester) async {
     const taskId = 'rtl-convert-right';
-
-    final settings = const AppSettings(
+    const taskTitle = 'تبدیل به پیگیری از راست';
+    const settings = AppSettings(
       themeMode: ThemeMode.light,
       usePersianDate: true,
-      fontFamily: null,
       swipeRightAction: TaskSwipeAction.convertToFollowUp,
       swipeLeftAction: TaskSwipeAction.none,
     );
-
     SharedPreferences.setMockInitialValues({
-      'arvin.tasks': '[{"id":"$taskId","title":"تبدیل به پیگیری از راست"}]',
+      'arvin.tasks': '[{"id":"$taskId","title":"$taskTitle"}]',
     });
-
     await tester.pumpWidget(
       MaterialApp(
         home: Directionality(
@@ -154,40 +159,35 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final dismissible = tester.widget<Dismissible>(find.byType(Dismissible));
-    final result =
-        await dismissible.confirmDismiss!(DismissDirection.endToStart);
+    final dismissible = tester.widget<Dismissible>(find.byType(Dismissible).first);
+    final result = await dismissible.confirmDismiss!(DismissDirection.endToStart);
     await tester.pumpAndSettle();
 
     expect(result, isFalse);
-    expect(find.text('تبدیل به پیگیری از راست'), findsOneWidget);
-
-    expect(
-      find.text('کار به کار پیگیری‌دار تبدیل شد'),
-      findsOneWidget,
-    );
+    expect(find.text('ثبت پیگیری'), findsNothing);
+    expect(find.text(taskTitle), findsOneWidget);
     final stored = await TaskStore().load();
     expect(stored, hasLength(1));
     expect(stored.single.id, taskId);
-    expect(stored.single.followUpEnabled, isTrue);
+    expect(stored.single.followUpEnabled, isFalse);
+    expect(stored.single.completed, isFalse);
+    expect(stored.single.completedAt, isNull);
+    expect(stored.single.followUps, isEmpty);
   });
 
-  testWidgets('RTL left swipe converts the same task to follow-up',
+  testWidgets('RTL left swipe rejects the retired Follow-up action without mutation',
       (tester) async {
     const taskId = 'rtl-convert-left';
-
-    final settings = const AppSettings(
+    const taskTitle = 'تبدیل به پیگیری از چپ';
+    const settings = AppSettings(
       themeMode: ThemeMode.light,
       usePersianDate: true,
-      fontFamily: null,
       swipeRightAction: TaskSwipeAction.none,
       swipeLeftAction: TaskSwipeAction.convertToFollowUp,
     );
-
     SharedPreferences.setMockInitialValues({
-      'arvin.tasks': '[{"id":"$taskId","title":"تبدیل به پیگیری از چپ"}]',
+      'arvin.tasks': '[{"id":"$taskId","title":"$taskTitle"}]',
     });
-
     await tester.pumpWidget(
       MaterialApp(
         home: Directionality(
@@ -198,21 +198,20 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final dismissible = tester.widget<Dismissible>(find.byType(Dismissible));
-    final result =
-        await dismissible.confirmDismiss!(DismissDirection.startToEnd);
+    final dismissible = tester.widget<Dismissible>(find.byType(Dismissible).first);
+    final result = await dismissible.confirmDismiss!(DismissDirection.startToEnd);
     await tester.pumpAndSettle();
 
     expect(result, isFalse);
-    expect(find.text('تبدیل به پیگیری از چپ'), findsOneWidget);
-
-    expect(
-      find.text('کار به کار پیگیری‌دار تبدیل شد'),
-      findsOneWidget,
-    );
+    expect(find.text('ثبت پیگیری'), findsNothing);
+    expect(find.text(taskTitle), findsOneWidget);
     final stored = await TaskStore().load();
     expect(stored, hasLength(1));
     expect(stored.single.id, taskId);
-    expect(stored.single.followUpEnabled, isTrue);
+    expect(stored.single.followUpEnabled, isFalse);
+    expect(stored.single.completed, isFalse);
+    expect(stored.single.completedAt, isNull);
+    expect(stored.single.followUps, isEmpty);
   });
+
 }

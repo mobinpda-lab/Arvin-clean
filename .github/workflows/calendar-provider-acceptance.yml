@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'integration_test/android_calendar_provider_acceptance_test.dart'
+      - 'android/calendarProvisioner/**'
       - '.github/workflows/calendar-provider-acceptance.yml'
       - 'lib/services/calendar_provider_sync_executor.dart'
       - 'lib/services/calendar_outbound_sync_service.dart'
@@ -20,6 +21,7 @@ on:
     branches: [main]
     paths:
       - 'integration_test/android_calendar_provider_acceptance_test.dart'
+      - 'android/calendarProvisioner/**'
       - '.github/workflows/calendar-provider-acceptance.yml'
       - 'lib/services/calendar_provider_sync_executor.dart'
       - 'lib/services/calendar_sync_plan_service.dart'
@@ -30,6 +32,20 @@ on:
       - 'test/services/calendar_outbound_sync_service_test.dart'
       - 'test/services/calendar_integration_settings_contract_test.dart'
   workflow_dispatch:
+    inputs:
+      target_sha:
+        description: 'Expected exact commit SHA to validate'
+        required: true
+        type: string
+      sha_mismatch_test:
+        description: 'Run the controlled negative SHA-mismatch test only'
+        required: true
+        default: false
+        type: boolean
+      checkout_sha:
+        description: 'Valid commit SHA to checkout; required only when sha_mismatch_test is true'
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -43,15 +59,122 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.sha_mismatch_test == 'true' && github.event.inputs.checkout_sha || github.event.inputs.target_sha || github.event.pull_request.head.sha || github.sha }}
 
-      - name: Fetch pinned VazirHarf
+      - name: Initialize SHA verification evidence
+        shell: bash
+        env:
+          TARGET_SHA: ${{ github.event.inputs.target_sha || github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -u
+          evidence_dir=".github/calendar-provider-evidence"
+          if ! mkdir -p "$evidence_dir"; then
+            echo "::error::Failed to create SHA verification evidence directory: $evidence_dir" >&2
+            exit 1
+          fi
+          if ! actual_sha="$(git rev-parse HEAD 2>&1)"; then
+            echo "::error::Failed to determine checked-out SHA: $actual_sha" >&2
+            exit 1
+          fi
+          if ! {
+            printf 'TARGET_SHA=%s\n' "$TARGET_SHA"
+            printf 'CHECKED_OUT_SHA=%s\n' "$actual_sha"
+            printf 'SHA_CHECK_RESULT=PENDING\n'
+            printf 'STOP_REASON=SHA verification has not completed yet.\n'
+          } > "$evidence_dir/sha-verification.txt"; then
+            echo "::error::Failed to write base SHA verification evidence to $evidence_dir/sha-verification.txt" >&2
+            exit 1
+          fi
+          echo "SHA_EVIDENCE_INITIALIZED=true"
+          echo "TARGET_SHA=$TARGET_SHA"
+          echo "CHECKED_OUT_SHA=$actual_sha"
+
+      - name: Verify exact target SHA
+        shell: bash
+        env:
+          TARGET_SHA: ${{ github.event.inputs.target_sha || github.event.pull_request.head.sha || github.sha }}
+          SHA_MISMATCH_TEST: ${{ github.event.inputs.sha_mismatch_test || 'false' }}
+          CHECKOUT_SHA_INPUT: ${{ github.event.inputs.checkout_sha || '' }}
         run: |
           set -euo pipefail
-          git clone --no-tags --depth 1 https://github.com/nadalaba/vazirharf.git "$RUNNER_TEMP/vazirharf"
-          git -C "$RUNNER_TEMP/vazirharf" fetch --depth 1 origin 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
-          git -C "$RUNNER_TEMP/vazirharf" checkout --detach 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
-          mkdir -p assets/fonts
-          cp -a "$RUNNER_TEMP/vazirharf" assets/fonts/vazirharf
+          evidence_file=".github/calendar-provider-evidence/sha-verification.txt"
+          actual_sha="$(git rev-parse HEAD)"
+          echo "TARGET_SHA=$TARGET_SHA"
+          echo "CHECKED_OUT_SHA=$actual_sha"
+          if [[ "$SHA_MISMATCH_TEST" != "true" && -n "$CHECKOUT_SHA_INPUT" ]]; then
+            if [[ ! "$TARGET_SHA" =~ ^[0-9a-fA-F]{40}$ || ! "$CHECKOUT_SHA_INPUT" =~ ^[0-9a-fA-F]{40}$ ]]; then
+              {
+                printf 'TARGET_SHA=%s\n' "$TARGET_SHA"
+                printf 'CHECKED_OUT_SHA=%s\n' "$actual_sha"
+                printf 'SHA_CHECK_RESULT=FAIL\n'
+                printf 'STOP_REASON=NORMAL_MODE_SHA_INPUT_INVALID; target_sha and provided checkout_sha must be valid 40-character hexadecimal SHAs.\n'
+              } > "$evidence_file"
+              echo "::error::Invalid target_sha or checkout_sha in normal mode; Calendar and CRUD tests must not run." >&2
+              exit 1
+            fi
+            normalized_target_sha="${TARGET_SHA,,}"
+            normalized_checkout_sha="${CHECKOUT_SHA_INPUT,,}"
+            if [[ "$normalized_checkout_sha" != "$normalized_target_sha" ]]; then
+              {
+                printf 'TARGET_SHA=%s\n' "$TARGET_SHA"
+                printf 'CHECKED_OUT_SHA=%s\n' "$actual_sha"
+                printf 'SHA_CHECK_RESULT=FAIL\n'
+                printf 'STOP_REASON=NORMAL_MODE_CHECKOUT_SHA_MISMATCH; provided checkout_sha must equal target_sha; Calendar and CRUD tests were not started.\n'
+              } > "$evidence_file"
+              echo "::error::Provided checkout_sha does not match target_sha; Calendar and CRUD tests must not run." >&2
+              exit 1
+            fi
+          fi
+          if [[ "$SHA_MISMATCH_TEST" == "true" ]]; then
+            if [[ ! "$TARGET_SHA" =~ ^[0-9a-fA-F]{40}$ || ! "$CHECKOUT_SHA_INPUT" =~ ^[0-9a-fA-F]{40}$ || "$TARGET_SHA" == "$CHECKOUT_SHA_INPUT" || "$actual_sha" != "$CHECKOUT_SHA_INPUT" ]]; then
+              {
+                printf 'TARGET_SHA=%s\n' "$TARGET_SHA"
+                printf 'CHECKED_OUT_SHA=%s\n' "$actual_sha"
+                printf 'SHA_CHECK_RESULT=FAIL\n'
+                printf 'STOP_REASON=SHA_MISMATCH_TEST_SETUP_INVALID; expected and checkout SHAs must be distinct valid 40-character SHAs and checkout must match checkout_sha.\n'
+              } > "$evidence_file"
+              echo "::error::Invalid controlled SHA mismatch test setup; Calendar and CRUD tests must not run." >&2
+              exit 1
+            fi
+          fi
+          if [[ "$actual_sha" != "$TARGET_SHA" ]]; then
+            if ! {
+              printf 'TARGET_SHA=%s\n' "$TARGET_SHA"
+              printf 'CHECKED_OUT_SHA=%s\n' "$actual_sha"
+              printf 'SHA_CHECK_RESULT=FAIL\n'
+              if [[ "$SHA_MISMATCH_TEST" == "true" ]]; then
+              printf 'STOP_REASON=CONTROLLED_SHA_MISMATCH_TEST; expected and checked-out SHAs differ; Calendar and CRUD tests were not started.\n'
+            else
+              printf 'STOP_REASON=Checked-out SHA did not match target_sha; Calendar and CRUD tests were not started.\n'
+            fi
+            } > "$evidence_file"; then
+              echo "::error::SHA mismatch detected but evidence file update failed: $evidence_file" >&2
+            fi
+            echo "ERROR: checked-out SHA $actual_sha does not match target_sha $TARGET_SHA" >&2
+            echo "STOP_REASON=SHA_MISMATCH; Calendar and CRUD tests must not run." >&2
+            exit 1
+          fi
+          if ! {
+            printf 'TARGET_SHA=%s\n' "$TARGET_SHA"
+            printf 'CHECKED_OUT_SHA=%s\n' "$actual_sha"
+            printf 'SHA_CHECK_RESULT=PASS\n'
+            printf 'STOP_REASON=none\n'
+          } > "$evidence_file"; then
+            echo "::error::SHA matched but final evidence could not be written: $evidence_file" >&2
+            exit 1
+          fi
+          if [[ "$SHA_MISMATCH_TEST" == "true" ]]; then
+            echo "::error::Controlled SHA mismatch test unexpectedly passed; Calendar and CRUD tests must not run." >&2
+            {
+              printf 'TARGET_SHA=%s\n' "$TARGET_SHA"
+              printf 'CHECKED_OUT_SHA=%s\n' "$actual_sha"
+              printf 'SHA_CHECK_RESULT=FAIL\n'
+              printf 'STOP_REASON=CONTROLLED_SHA_MISMATCH_TEST_DID_NOT_MISMATCH; Calendar and CRUD tests must not run.\n'
+            } > "$evidence_file"
+            exit 1
+          fi
+          echo "SHA_CHECK_RESULT=PASS"
 
       - uses: subosito/flutter-action@v2
         with:
@@ -71,18 +194,277 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Run real Calendar Provider acceptance or prove stock-emulator limitation
+      - name: Prepare Calendar Provider acceptance script
+        shell: bash
+        run: |
+          cat > "$RUNNER_TEMP/calendar-provider-acceptance.sh" <<'BASH'
+          set -euo pipefail
+          evidence_dir=".github/calendar-provider-evidence"
+          mkdir -p "$evidence_dir"
+          printf 'HEAD_SHA=%s\n' "$(git rev-parse HEAD)" > "$evidence_dir/environment.txt"
+          printf 'EMULATOR_API=%s\n' "$(adb shell getprop ro.build.version.sdk | tr -d '\r')" >> "$evidence_dir/environment.txt"
+          {
+            echo "PROVIDER_DISCOVERY_BEGIN"
+            adb shell dumpsys package providers | grep -i -E 'calendar|com.android.providers.calendar' || true
+            echo "PROVIDER_DISCOVERY_END"
+          } >> "$evidence_dir/environment.txt"
+          
+          cd android
+          bash ./gradlew :calendarProvisioner:assembleDebug :calendarProvisioner:assembleDebugAndroidTest :calendarProvisioner:processDebugManifest
+          # Preserve exact-checkout APKs outside Gradle's build tree before instrumentation teardown.
+          apk_root="../build/calendarProvisioner/outputs/apk"
+          preserved_apk_dir="$RUNNER_TEMP/arvin-provisioner-apks"
+          rm -rf "$preserved_apk_dir"
+          mkdir -p "$preserved_apk_dir"
+          mapfile -d '' -t provisioner_apks < <(find "$apk_root" -type f -name 'calendarProvisioner-debug.apk' -print0)
+          mapfile -d '' -t provisioner_test_apks < <(find "$apk_root" -type f -name 'calendarProvisioner-debug-androidTest.apk' -print0)
+          if [[ "${#provisioner_apks[@]}" -ne 1 || "${#provisioner_test_apks[@]}" -ne 1 ]]; then
+            echo "APK_PRESERVATION=FAIL provisioner_count=${#provisioner_apks[@]} instrumentation_count=${#provisioner_test_apks[@]}" >&2
+            exit 1
+          fi
+          cp -- "${provisioner_apks[0]}" "$preserved_apk_dir/calendarProvisioner-debug.apk"
+          cp -- "${provisioner_test_apks[0]}" "$preserved_apk_dir/calendarProvisioner-debug-androidTest.apk"
+          test -s "$preserved_apk_dir/calendarProvisioner-debug.apk"
+          test -s "$preserved_apk_dir/calendarProvisioner-debug-androidTest.apk"
+          {
+            printf 'CHECKED_OUT_SHA=%s\n' "$(git rev-parse HEAD)"
+            printf 'PROVISIONER_APK_SHA256=%s\n' "$(sha256sum "$preserved_apk_dir/calendarProvisioner-debug.apk" | awk '{print $1}')"
+            printf 'INSTRUMENTATION_APK_SHA256=%s\n' "$(sha256sum "$preserved_apk_dir/calendarProvisioner-debug-androidTest.apk" | awk '{print $1}')"
+            printf 'APK_PRESERVATION=PASS\n'
+          } > "$preserved_apk_dir/manifest.txt"
+          cp "$preserved_apk_dir/manifest.txt" "../$evidence_dir/provisioner-apk-integrity.txt"
+          set +e
+          bash ./gradlew :calendarProvisioner:connectedDebugAndroidTest --stacktrace > "../$evidence_dir/provisioner-instrumentation.txt" 2>&1
+          gradle_rc=$?
+          set -e
+          cat "../$evidence_dir/provisioner-instrumentation.txt"
+          
+          junit_dir="../build/calendarProvisioner/outputs/androidTest-results/connected"
+          mkdir -p "../$evidence_dir/junit"
+          if [ -d "$junit_dir" ]; then
+            find "$junit_dir" -type f -name '*.xml' -print -exec cp --parents '{}' "../$evidence_dir/junit/" \;
+          fi
+          python3 - "$junit_dir" "../$evidence_dir/junit-summary.txt" <<'PY'
+          import pathlib, sys, xml.etree.ElementTree as ET
+          root = pathlib.Path(sys.argv[1])
+          output = pathlib.Path(sys.argv[2])
+          reports = sorted(root.rglob("*.xml")) if root.is_dir() else []
+          if not reports:
+              raise SystemExit("No JUnit XML report found")
+          matches = []
+          for report in reports:
+              try:
+                  doc = ET.parse(report).getroot()
+              except ET.ParseError as exc:
+                  raise SystemExit(f"Invalid JUnit XML {report}: {exc}")
+              for case in doc.iter("testcase"):
+                  if case.get("classname", "").endswith("CalendarProvisionerTest") and case.get("name") == "provisionsExactlyOneWritableCalendarIdempotently":
+                      matches.append((report, case))
+          if len(matches) != 1:
+              raise SystemExit(f"Expected exactly one Provisioner testcase in JUnit XML; found {len(matches)}")
+          report, case = matches[0]
+          bad = [child.tag for child in case if child.tag in ("failure", "error", "skipped")]
+          if bad:
+              output.write_text(
+                  f"JUNIT_REPORT={report}\nTEST_CASE={case.get('name')}\nTEST_RESULT=FAIL\nTEST_FAILURE_TAGS={','.join(bad)}\n",
+                  encoding="utf-8")
+              print(output.read_text(), end="")
+              raise SystemExit(f"Provisioner JUnit testcase failed or skipped: {bad}")
+          output.write_text(
+              f"JUNIT_REPORT={report}\nTEST_CLASS={case.get('classname')}\n"
+              f"TEST_CASE={case.get('name')}\nTEST_RESULT=PASS\n",
+              encoding="utf-8")
+          print(output.read_text(), end="")
+          PY
+          if [ "$gradle_rc" -ne 0 ]; then
+            echo "Instrumentation Gradle task failed with exit code $gradle_rc" >&2
+            exit "$gradle_rc"
+          fi
+          adb logcat -d -s CalendarProvisionerTest:I '*:S' > "../$evidence_dir/provisioner-logcat.txt"
+          python3 - "../$evidence_dir/provisioner-logcat.txt" "../$evidence_dir/provisioner-result.txt" <<'PY'
+          import pathlib, re, sys
+          log = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace")
+          pattern = re.compile(r"CALENDAR_PROVISIONER=PASS calendarId=(\d+) account=ARVIN CI Acceptance accessLevel>=500")
+          matches = pattern.findall(log)
+          if not matches:
+              raise SystemExit("JUnit passed but actual Provisioner success evidence was not found in logcat")
+          calendar_id = matches[-1][0]
+          pathlib.Path(sys.argv[2]).write_text(
+              f"CALENDAR_PROVISIONER=PASS calendarId={calendar_id} account=ARVIN CI Acceptance accessLevel>=500\n",
+              encoding="utf-8")
+          print(pathlib.Path(sys.argv[2]).read_text(), end="")
+          PY
+          cd ..
+
+          # Reuse the immutable APK copies captured before connected instrumentation teardown.
+          preserved_apk_dir="$RUNNER_TEMP/arvin-provisioner-apks"
+          provisioner_apk="$preserved_apk_dir/calendarProvisioner-debug.apk"
+          provisioner_test_apk="$preserved_apk_dir/calendarProvisioner-debug-androidTest.apk"
+          if [[ ! -s "$preserved_apk_dir/manifest.txt" || ! -s "$provisioner_apk" || ! -s "$provisioner_test_apk" ]]; then
+            echo "Preserved same-checkout Provisioner APKs or integrity manifest are missing after teardown." >&2
+            exit 1
+          fi
+          expected_app_sha="$(sed -n 's/^PROVISIONER_APK_SHA256=//p' "$preserved_apk_dir/manifest.txt")"
+          expected_test_sha="$(sed -n 's/^INSTRUMENTATION_APK_SHA256=//p' "$preserved_apk_dir/manifest.txt")"
+          actual_app_sha="$(sha256sum "$provisioner_apk" | awk '{print $1}')"
+          actual_test_sha="$(sha256sum "$provisioner_test_apk" | awk '{print $1}')"
+          if [[ "$actual_app_sha" != "$expected_app_sha" || "$actual_test_sha" != "$expected_test_sha" ]]; then
+            echo "Preserved Provisioner APK checksum mismatch after teardown." >&2
+            exit 1
+          fi
+          {
+            printf 'CHECKED_OUT_SHA=%s\n' "$(git rev-parse HEAD)"
+            printf 'REINSTALL_STARTED_UTC=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            printf 'PROVISIONER_APK=%s\n' "$provisioner_apk"
+            printf 'PROVISIONER_TEST_APK=%s\n' "$provisioner_test_apk"
+            sha256sum "$provisioner_apk" "$provisioner_test_apk"
+            printf 'APK_INTEGRITY=PASS\n'
+          } > "$evidence_dir/provisioner-reinstall.txt"
+
+          adb install -r "$provisioner_apk" | tee "$evidence_dir/provisioner-app-install.txt"
+          adb install -t -r "$provisioner_test_apk" | tee "$evidence_dir/provisioner-test-install.txt"
+          adb shell pm list instrumentation | tr -d '\r' | tee "$evidence_dir/available-instrumentation.txt"
+          if ! grep -Fq 'com.example.arvin.calendarprovisioner.test/androidx.test.runner.AndroidJUnitRunner' "$evidence_dir/available-instrumentation.txt"; then
+            echo "The same-checkout Provisioner instrumentation runner is not registered after installation." >&2
+            exit 1
+          fi
+
+          adb logcat -c
+          set +e
+          adb shell am instrument -w -r com.example.arvin.calendarprovisioner.test/androidx.test.runner.AndroidJUnitRunner > "$evidence_dir/provisioner-reprovision-instrumentation.txt" 2>&1
+          reprovision_rc=$?
+          set -e
+          cat "$evidence_dir/provisioner-reprovision-instrumentation.txt"
+          if [[ "$reprovision_rc" -ne 0 ]] || ! grep -Fq 'INSTRUMENTATION_CODE: -1' "$evidence_dir/provisioner-reprovision-instrumentation.txt" || ! grep -Fq 'OK (1 test)' "$evidence_dir/provisioner-reprovision-instrumentation.txt"; then
+            echo "The post-teardown provisioning instrumentation did not report a successful test result." >&2
+            printf 'PROVISIONER_REINSTALL=FAIL\nINSTRUMENTATION_EXIT_CODE=%s\n' "$reprovision_rc" >> "$evidence_dir/provisioner-reinstall.txt"
+            exit 1
+          fi
+          adb logcat -d -s CalendarProvisionerTest:I '*:S' > "$evidence_dir/provisioner-reprovision-logcat.txt"
+          if ! grep -Eq 'CALENDAR_PROVISIONER=PASS calendarId=[0-9]+ account=ARVIN CI Acceptance accessLevel>=500' "$evidence_dir/provisioner-reprovision-logcat.txt"; then
+            echo "Instrumentation exited successfully without explicit Provisioner PASS evidence." >&2
+            exit 1
+          fi
+          printf 'INSTRUMENTATION_EXIT_CODE=%s\nPROVISIONER_REINSTALL=INSTRUMENTATION_PASS\nREINSTALL_FINISHED_UTC=%s\n' "$reprovision_rc" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$evidence_dir/provisioner-reinstall.txt"
+
+          # Independent fail-closed preflight before the Flutter CRUD test.
+          adb shell pm path com.example.arvin.calendarprovisioner | tr -d '\r' > "$evidence_dir/provisioner-path-after-reinstall.txt"
+          if ! grep -q '^package:' "$evidence_dir/provisioner-path-after-reinstall.txt"; then
+            echo "Provisioner package path is missing after provisioning." >&2
+            exit 1
+          fi
+          adb shell dumpsys account | grep -F -e 'ARVIN CI Acceptance' -e 'com.example.arvin.calendarprovisioner.account' > "$evidence_dir/provisioner-account-verification.txt"
+          if ! grep -Fq 'ARVIN CI Acceptance' "$evidence_dir/provisioner-account-verification.txt" || ! grep -Fq 'com.example.arvin.calendarprovisioner.account' "$evidence_dir/provisioner-account-verification.txt"; then
+            echo "Expected AccountManager account was not independently observed." >&2
+            exit 1
+          fi
+          # Use the same ContentResolver query executed by Android instrumentation.
+          # The adb shell content-query path previously returned zero rows while the
+          # instrumented Provider query succeeded; avoid a caller/selection false-negative.
+          provider_row_evidence="$evidence_dir/provisioner-reprovision-logcat.txt"
+          if ! grep -Eq 'CALENDAR_PROVIDER_ROW=PASS id=[0-9]+ account=ARVIN_CI_ACCEPTANCE accountType=com\.example\.arvin\.calendarprovisioner\.account displayName=ARVIN_CI_ACCEPTANCE accessLevel=[5-9][0-9]* rowCount=1' "$provider_row_evidence"; then
+            echo "Instrumentation did not prove exactly one writable Calendar Provider row by id." >&2
+            exit 1
+          fi
+          cp "$provider_row_evidence" "$evidence_dir/provisioner-calendar-verification.txt"
+          printf 'PROVISIONER_PRECRUD_GATE=PASS\n' >> "$evidence_dir/provisioner-reinstall.txt"
+          echo "PROVISIONER_PRECRUD_GATE=PASS"
+          echo "PROVISIONER_PACKAGE_PATH=PASS"
+          echo "EXPECTED_ACCOUNT=PASS"
+          echo "MATCHING_CALENDAR_COUNT=1"
+
+          flutter build apk --debug -t lib/main.dart
+          apk="build/app/outputs/flutter-apk/app-debug.apk"
+          test -s "$apk"
+          apk_extract_dir="$RUNNER_TEMP/arvin-calendar-apk"
+          rm -rf "$apk_extract_dir"
+          mkdir -p "$apk_extract_dir"
+          unzip -q "$apk" -d "$apk_extract_dir"
+          for font in \
+            assets/flutter_assets/assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf \
+            assets/flutter_assets/assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf \
+            assets/flutter_assets/assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf; do
+            if [[ ! -s "$apk_extract_dir/$font" ]]; then
+              echo "FONT_ASSET_BUNDLED=FAIL missing=$font" >&2
+              exit 1
+            fi
+            echo "FONT_ASSET_BUNDLED=PASS $font"
+          done
+          if grep -R -n -E "VazirHarf|vazirharf|font-option-system|System Default|fontFamily:[[:space:]]*['\"]system['\"]" lib pubspec.yaml; then
+            echo "FONT_SOURCE_PURGE=FAIL legacy font or System Default reference remains" >&2
+            exit 1
+          fi
+          echo "FONT_SOURCE_PURGE=PASS"
+          echo "FONT_GATE=PASS_VAZIRMATN_BUNDLED_SYSTEM_DEFAULT_PURGED"
+          adb install -r build/app/outputs/flutter-apk/app-debug.apk
+          adb shell pm grant com.example.arvin android.permission.READ_CALENDAR
+          adb shell pm grant com.example.arvin android.permission.WRITE_CALENDAR
+          set +e
+          flutter test integration_test/android_calendar_provider_acceptance_test.dart -d "emulator-${EMULATOR_PORT}" > "$evidence_dir/test-output.txt" 2>&1
+          flutter_rc=$?
+          set -e
+          cat "$evidence_dir/test-output.txt"
+          if [ "$flutter_rc" -ne 0 ]; then
+            echo "Flutter Calendar Provider acceptance failed with exit code $flutter_rc" >&2
+            echo "RESULT=FAILURE_FLUTTER_EXIT_$flutter_rc" > "$evidence_dir/result.txt"
+            exit "$flutter_rc"
+          fi
+          python3 - "$evidence_dir/test-output.txt" "$evidence_dir/crud-markers.txt" <<'PY'
+          import pathlib, re, sys
+          lines = pathlib.Path(sys.argv[1]).read_text(
+              encoding="utf-8", errors="replace"
+          ).splitlines()
+          captured = []
+          missing = []
+          for operation in ("CREATE", "UPDATE", "DELETE"):
+              matches = [
+                  line for line in lines
+                  if re.search(rf"CALENDAR_PROVIDER_{operation}=PASS(?:\s|$)", line)
+              ]
+              if not matches:
+                  missing.append(operation)
+              captured.extend(matches)
+          output = pathlib.Path(sys.argv[2])
+          output.write_text(
+              "\n".join(captured) + ("\n" if captured else ""),
+              encoding="utf-8",
+          )
+          print(output.read_text(encoding="utf-8"), end="")
+          if missing:
+              raise SystemExit(
+                  "Missing successful Calendar CRUD markers: " + ", ".join(missing)
+              )
+          PY
+          if grep -q 'CALENDAR_PROVIDER_ACCEPTANCE=PASS' "$evidence_dir/test-output.txt" \
+            && grep -q 'CALENDAR_PROVIDER_NOOP_NO_DUPLICATE=PASS' "$evidence_dir/test-output.txt" \
+            && grep -q 'CALENDAR_PROVIDER_CREATE=PASS' "$evidence_dir/crud-markers.txt" \
+            && grep -q 'CALENDAR_PROVIDER_UPDATE=PASS' "$evidence_dir/crud-markers.txt" \
+            && grep -q 'CALENDAR_PROVIDER_DELETE=PASS' "$evidence_dir/crud-markers.txt"; then
+            echo 'RESULT=PASS_REAL_PROVIDER_CREATE_UPDATE_DELETE' > "$evidence_dir/result.txt"
+          elif grep -q 'CALENDAR_PROVIDER_ACCEPTANCE=BLOCKED_PROVISIONED_CALENDAR_MISSING' "$evidence_dir/test-output.txt"; then
+            echo 'RESULT=BLOCKED_PROVISIONED_CALENDAR_MISSING' > "$evidence_dir/result.txt"
+            exit 1
+          else
+            echo 'RESULT=FAILURE_OR_BLOCKED_MISSING_CRUD_MARKERS' > "$evidence_dir/result.txt"
+            echo "Flutter test exited without complete CREATE/UPDATE/DELETE acceptance evidence." >&2
+            exit 1
+          fi
+          BASH
+          chmod 700 "$RUNNER_TEMP/calendar-provider-acceptance.sh"
+
+      - name: Run Calendar Provisioner instrumentation and real Provider acceptance
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
           arch: x86_64
           target: default
           disable-animations: true
-          script: mkdir -p .github/calendar-provider-evidence && echo "HEAD_SHA=$(git rev-parse HEAD)" > .github/calendar-provider-evidence/environment.txt && echo "EMULATOR_API=$(adb shell getprop ro.build.version.sdk | tr -d '\\r')" >> .github/calendar-provider-evidence/environment.txt && echo "PROVIDER_DISCOVERY_BEGIN" >> .github/calendar-provider-evidence/environment.txt && (adb shell dumpsys package providers | grep -i -E 'calendar|com.android.providers.calendar' >> .github/calendar-provider-evidence/environment.txt || true) && echo "PROVIDER_DISCOVERY_END" >> .github/calendar-provider-evidence/environment.txt && flutter build apk --debug -t lib/main.dart && adb install -r build/app/outputs/flutter-apk/app-debug.apk && adb shell pm grant com.example.arvin android.permission.READ_CALENDAR && adb shell pm grant com.example.arvin android.permission.WRITE_CALENDAR && flutter test integration_test/android_calendar_provider_acceptance_test.dart -d emulator-${EMULATOR_PORT} > .github/calendar-provider-evidence/test-output.txt 2>&1; rc=$?; cat .github/calendar-provider-evidence/test-output.txt 2>/dev/null || true; if [ "$rc" -ne 0 ]; then exit "$rc"; fi; if grep -q 'CALENDAR_PROVIDER_ACCEPTANCE=PASS' .github/calendar-provider-evidence/test-output.txt; then echo 'RESULT=PASS_REAL_PROVIDER_CREATE_NOOP_UPDATE_DELETE' > .github/calendar-provider-evidence/result.txt; elif grep -q 'CALENDAR_PROVIDER_ACCEPTANCE=LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR' .github/calendar-provider-evidence/test-output.txt; then echo 'RESULT=LIMITATION_NO_WRITABLE_CALENDAR_ON_STOCK_EMULATOR' > .github/calendar-provider-evidence/result.txt; else echo 'No explicit provider acceptance result was emitted.' >&2; exit 1; fi
+          script: bash "$RUNNER_TEMP/calendar-provider-acceptance.sh"
 
       - name: Publish exact-head provider evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: arvin-calendar-provider-acceptance-${{ github.event.pull_request.head.sha || github.sha }}
+          name: arvin-calendar-provider-acceptance-${{ github.event.inputs.target_sha || github.event.pull_request.head.sha || github.sha }}
           path: .github/calendar-provider-evidence
           if-no-files-found: error

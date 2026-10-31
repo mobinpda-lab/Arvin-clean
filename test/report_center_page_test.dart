@@ -182,8 +182,8 @@ void main() {
     expect(find.text('نتیجه: 2 پیگیری'), findsOneWidget);
     expect(find.textContaining('پاسخ آنا'), findsOneWidget);
     expect(find.textContaining('پاسخ رضا'), findsOneWidget);
-    expect(find.textContaining('اقدام بعدی:'), findsOneWidget);
-    expect(find.textContaining('یادآور:'), findsOneWidget);
+    expect(find.textContaining('اقدام بعدی:'), findsNothing);
+    expect(find.textContaining('یادآور:'), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey('report-center-filters')));
     await tester.pumpAndSettle();

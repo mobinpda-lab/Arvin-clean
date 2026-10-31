@@ -115,7 +115,7 @@ void main() {
     expect(result!.followUps, hasLength(1));
     expect(result!.followUps.single.title, 'تماس مجدد');
     expect(result!.followUps.single.note, 'در انتظار ارسال پاسخ');
-    expect(result!.followUpEnabled, isTrue);
+    expect(result!.followUpEnabled, isFalse);
     expect(result!.followUpDate, isNull);
   });
 

@@ -16,6 +16,7 @@ class TaskBulkSelectionBar extends StatelessWidget {
     this.onCategory,
     this.onTags,
     this.onShare,
+    this.onComplete,
   }) : assert(selectedCount >= 0);
 
   final int selectedCount;
@@ -27,6 +28,7 @@ class TaskBulkSelectionBar extends StatelessWidget {
   final VoidCallback? onCategory;
   final VoidCallback? onTags;
   final VoidCallback? onShare;
+  final VoidCallback? onComplete;
 
   @override
   Widget build(BuildContext context) {
@@ -75,6 +77,12 @@ class TaskBulkSelectionBar extends StatelessWidget {
                 runSpacing: 2,
                 alignment: WrapAlignment.end,
                 children: [
+                  IconButton(
+                    key: const ValueKey('task-bulk-complete'),
+                    tooltip: 'انجام کارهای انتخاب‌شده',
+                    onPressed: onComplete,
+                    icon: const Icon(Icons.check_circle_outline),
+                  ),
                   IconButton(
                     key: const ValueKey('task-bulk-share'),
                     tooltip: 'اشتراک / خروجی',

@@ -15,7 +15,6 @@ class _Settings extends AppSettingsService {
   Future<AppSettings> load() async => AppSettings(
         themeMode: ThemeMode.system,
         usePersianDate: true,
-        fontFamily: null,
         calendarIntegration: integration,
       );
 }

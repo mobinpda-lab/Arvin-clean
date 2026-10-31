@@ -1,21 +1,30 @@
 import 'package:arvin/services/task_report_pdf_renderer.dart';
 import 'package:arvin/services/task_report_projection.dart';
+import 'package:arvin/theme/font_registry.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('canonical report typography assets are bundled and loadable', () async {
-    const regular =
-        'assets/fonts/vazirharf/fonts/ttf/Vazirharf-Regular.ttf';
-    const bold = 'assets/fonts/vazirharf/fonts/ttf/Vazirharf-Bold.ttf';
+  test('canonical Vazirmatn report typography assets are bundled and loadable',
+      () async {
+    const regular = 'assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf';
+    const medium = 'assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf';
+    const bold = 'assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf';
 
     final regularBytes = await rootBundle.load(regular);
+    final mediumBytes = await rootBundle.load(medium);
     final boldBytes = await rootBundle.load(bold);
 
     expect(regularBytes.lengthInBytes, greaterThan(1000));
+    expect(mediumBytes.lengthInBytes, greaterThan(1000));
     expect(boldBytes.lengthInBytes, greaterThan(1000));
+    expect(arvinFontById('vazirmatn').fontFamily, 'Vazirmatn');
+    expect(
+      kAvailableArvinFonts.map((font) => font.id).toList(),
+      ['vazirmatn'],
+    );
   });
 
   test('default PDF renderer builds Persian report with canonical fonts', () async {

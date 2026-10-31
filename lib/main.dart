@@ -53,7 +53,7 @@ import 'task_editor_dialog.dart';
 import 'task_next_action_page.dart';
 import 'task_report_page.dart';
 import 'widgets/persian_date_picker.dart';
-import 'theme/font_registry.dart';
+import 'theme/app_fonts.dart';
 import 'widgets/arvin_primary_navigation.dart';
 import 'widgets/arvin_home_primary_add_button.dart';
 import 'widgets/canonical_calendar_launcher.dart';
@@ -115,7 +115,6 @@ class _ArvinAppState extends State<ArvinApp> {
   AppSettings settings = const AppSettings(
     themeMode: ThemeMode.system,
     usePersianDate: true,
-    fontFamily: null,
     fontSize: 16.0,
   );
 
@@ -141,15 +140,13 @@ class _ArvinAppState extends State<ArvinApp> {
 
   @override
   Widget build(BuildContext context) {
-    final selectedOption = arvinFontById(settings.fontFamily ?? 'vazirharf');
-    final selectedFontFamily = selectedOption.effectiveFontFamily;
     final lightBaseTextTheme = ThemeData.light().textTheme.apply(
-      fontFamily: selectedFontFamily,
+      fontFamily: AppFonts.vazirmatnFamily,
       bodyColor: ArvinColors.textPrimary,
       displayColor: ArvinColors.textPrimary,
     );
     final darkBaseTextTheme = ThemeData.dark().textTheme.apply(
-      fontFamily: selectedFontFamily,
+      fontFamily: AppFonts.vazirmatnFamily,
     );
     final readableLightTextTheme = lightBaseTextTheme.copyWith(
       bodyLarge: lightBaseTextTheme.bodyLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w600),
@@ -212,7 +209,7 @@ class _ArvinAppState extends State<ArvinApp> {
             side: BorderSide(color: ArvinColors.border),
           ),
         ),
-        fontFamily: selectedFontFamily,
+        fontFamily: AppFonts.vazirmatnFamily,
         textTheme: readableLightTextTheme,
         iconTheme: const IconThemeData(color: ArvinColors.neutral, size: 24),
         dividerTheme: const DividerThemeData(color: ArvinColors.border, thickness: 1),
@@ -260,7 +257,7 @@ class _ArvinAppState extends State<ArvinApp> {
             side: BorderSide(color: ArvinColors.darkBorder),
           ),
         ),
-        fontFamily: selectedFontFamily,
+        fontFamily: AppFonts.vazirmatnFamily,
         textTheme: readableDarkTextTheme,
         dividerTheme: const DividerThemeData(color: ArvinColors.darkDivider, thickness: 1),
         appBarTheme: const AppBarTheme(),
@@ -299,8 +296,7 @@ class HomePage extends StatefulWidget {
     this.settings = const AppSettings(
       themeMode: ThemeMode.system,
       usePersianDate: true,
-      fontFamily: null,
-    ),
+      ),
     this.onSettingsChanged,
     this.enableFirstRunGuide = false,
     this.backupManager,
@@ -535,7 +531,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  DateTime? _homeFollowUpDate(Task task) => task.lastFollowUp?.dateTime;
+  DateTime? _homeLastFollowUpDate(Task task) => task.lastFollowUp?.dateTime;
 
   String? _projectTitleForTask(Task task) {
     for (final project in projects) {
@@ -1435,7 +1431,7 @@ class _HomePageState extends State<HomePage> {
   Future<Task?> _completeFromDetail(Task task) async {
     // The detail action is a true toggle: a second tap returns the task to
     // the active/undone state. Done remains independent from archive/trash.
-    task.completed = !task.completed;
+    task.setCompleted(!task.completed);
     task.updatedAt = DateTime.now();
     await taskStore.save(List<Task>.of(tasks));
     try {
@@ -1565,6 +1561,26 @@ class _HomePageState extends State<HomePage> {
       selectionMode = false;
     });
     await _save();
+  }
+
+  Future<void> _completeSelected() async {
+    if (selected.isEmpty) return;
+    final changed = taskBulkMutationService.complete(tasks, selected);
+    if (changed == 0) return;
+    setState(() {
+      selected.clear();
+      selectionMode = false;
+    });
+    await _save();
+    try {
+      await AndroidFollowUpReminderScheduler().reschedule();
+    } catch (_) {
+      // Completion is already persisted; a later scheduler pass can retry.
+    }
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text('$changed کار انجام شد')));
   }
 
   void _toggleAllVisibleSelection() {
@@ -1802,7 +1818,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _toggle(Task task) async {
-    setState(() => task.completed = !task.completed);
+    setState(() => task.setCompleted(!task.completed));
     await _save();
   }
 
@@ -2161,9 +2177,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _registerTaskInDeviceCalendar(CalendarReminder reminder) async {
     final isTaskCalendarItem = reminder.id.startsWith('task-due:') ||
         reminder.id.startsWith('task-reminder-item:') ||
-        reminder.id.startsWith('task-reminder:') ||
-        reminder.id.startsWith('task-followup:') ||
-        reminder.id.startsWith('followup:');
+        reminder.id.startsWith('task-reminder:');
     if (!isTaskCalendarItem) return;
     var settings = await appSettingsService.load();
     var targetCalendarId = settings.calendarIntegration.targetCalendarId?.trim();
@@ -2189,37 +2203,23 @@ class _HomePageState extends State<HomePage> {
     }
 
     Task? task;
-    final followUpTarget = reminder.id.startsWith('followup:')
-        ? calendarProjection.resolveTarget(_searchSource, reminder.id)
-        : null;
-    if (followUpTarget != null) {
+    for (final prefix in const <String>[
+      'task-reminder-item:',
+      'task-due:',
+      'task-reminder:',
+    ]) {
+      if (!reminder.id.startsWith(prefix)) continue;
+      final suffix = reminder.id.substring(prefix.length);
       for (final candidate in _searchSource) {
-        if (candidate.id == followUpTarget.taskId) {
+        // Repeat occurrences append an ISO timestamp to the canonical Task
+        // ID (which itself is stable). Match the Task prefix, not the entire
+        // occurrence ID, so each occurrence can still edit/register its Task.
+        if (suffix == candidate.id || suffix.startsWith('${candidate.id}:')) {
           task = candidate;
           break;
         }
       }
-    }
-    if (task == null) {
-      for (final prefix in const <String>[
-        'task-reminder-item:',
-        'task-due:',
-        'task-reminder:',
-        'task-followup:',
-      ]) {
-        if (!reminder.id.startsWith(prefix)) continue;
-        final suffix = reminder.id.substring(prefix.length);
-        for (final candidate in _searchSource) {
-          // Repeat occurrences append an ISO timestamp to the canonical Task
-          // ID (which itself is stable). Match the Task prefix, not the entire
-          // occurrence ID, so each occurrence can still edit/register its Task.
-          if (suffix == candidate.id || suffix.startsWith('${candidate.id}:')) {
-            task = candidate;
-            break;
-          }
-        }
-        if (task != null) break;
-      }
+      if (task != null) break;
     }
     if (task == null) return;
 
@@ -2438,7 +2438,7 @@ class _HomePageState extends State<HomePage> {
         _selectDueScope(TaskDueScope.today);
         return;
       case HomeTaskFilterKind.followUp:
-        _selectListScope(TaskListScope.followUpEnabled);
+        _selectListScope(TaskListScope.hasFollowUps);
         return;
       case HomeTaskFilterKind.withoutFollowUp:
         _selectListScope(TaskListScope.simpleNotes);
@@ -2661,17 +2661,20 @@ class _HomePageState extends State<HomePage> {
             );
         }
         return false;
-      case TaskSwipeAction.convertToFollowUp:
-        if (task.followUpEnabled) return false;
-        await taskStore.convertToFollowUp(task.id);
-        await _load();
-        if (mounted) {
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              const SnackBar(content: Text('کار به کار پیگیری‌دار تبدیل شد')),
-            );
+      case TaskSwipeAction.complete:
+        if (task.completed) return false;
+        task.setCompleted(true);
+        task.updatedAt = DateTime.now();
+        await _save();
+        try {
+          await AndroidFollowUpReminderScheduler().reschedule();
+        } catch (_) {
+          // Completion is persisted; a later scheduler pass can retry.
         }
+        return true;
+      case TaskSwipeAction.convertToFollowUp:
+        // Retired legacy preference: the supported shortcut is the explicit
+        // «افزودن یادآور» control in the Task editor.
         return false;
       case TaskSwipeAction.none:
         return false;
@@ -2684,14 +2687,16 @@ class _HomePageState extends State<HomePage> {
       TaskSwipeAction.archive => Icons.archive_outlined,
       TaskSwipeAction.trash => Icons.delete_outline,
       TaskSwipeAction.moveToToday => Icons.today_outlined,
-      TaskSwipeAction.convertToFollowUp => Icons.follow_the_signs_outlined,
+      TaskSwipeAction.complete => Icons.check_circle_outline,
+      TaskSwipeAction.convertToFollowUp => Icons.block,
       TaskSwipeAction.none => Icons.block,
     };
     final label = switch (action) {
       TaskSwipeAction.archive => 'بایگانی',
       TaskSwipeAction.trash => 'سطل زباله',
       TaskSwipeAction.moveToToday => 'انتقال به امروز',
-      TaskSwipeAction.convertToFollowUp => 'تبدیل به کار پیگیری‌دار',
+      TaskSwipeAction.complete => 'انجام‌شدن',
+      TaskSwipeAction.convertToFollowUp => 'بدون عمل',
       TaskSwipeAction.none => 'بدون عمل',
     };
     return Container(
@@ -2749,10 +2754,10 @@ class _HomePageState extends State<HomePage> {
     );
   }
   Widget _taskCard(Task task) {
-    final followUpDate = _homeFollowUpDate(task);
+    final lastFollowUpDate = _homeLastFollowUpDate(task);
     final projectedReminders = const HomeListProjection().projectReminders(
       task.taskReminders,
-      followUpDate: followUpDate,
+      followUpDate: lastFollowUpDate,
     );
     final late = _overdue(task);
     final colors = Theme.of(context).colorScheme;
@@ -2946,7 +2951,7 @@ class _HomePageState extends State<HomePage> {
                           ],
                         ),
                       ],
-                      if (followUpDate != null) ...[
+                      if (lastFollowUpDate != null) ...[
                         const SizedBox(height: 7),
                         Row(
                           children: [
@@ -2960,7 +2965,7 @@ class _HomePageState extends State<HomePage> {
                             const SizedBox(width: 4),
                             Flexible(
                               child: Text(
-                                'پیگیری: ${_date(followUpDate)} • ${_time(followUpDate)}',
+                                'آخرین پیگیری: ${_date(lastFollowUpDate)} • ${_time(lastFollowUpDate)}',
                                 style: TextStyle(
                                   color: late
                                       ? ArvinColors.taskStatusAmber
@@ -3094,6 +3099,7 @@ class _HomePageState extends State<HomePage> {
         onCategory: _moveSelectedToCategory,
         onTags: _addTagsToSelected,
         onShare: _openSelectedReport,
+        onComplete: _completeSelected,
       ),
     );
   }

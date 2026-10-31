@@ -8,14 +8,14 @@ import 'package:pdf/widgets.dart' as pw;
 void main() {
   test('agenda reason labels stay explicit and Jalali/Persian', () {
     final event = WorkAgendaEvent(
-      kind: WorkAgendaEventKind.followUpReminder,
+      kind: WorkAgendaEventKind.taskReminder,
       at: DateTime(2026, 8, 29, 9, 15),
       followUpId: 'fu-1',
     );
 
     expect(
       TaskReportPdfRenderer.agendaEventLabel(event),
-      'یادآوری پیگیری: ۱۴۰۵/۰۶/۰۷ ۰۹:۱۵',
+      'یادآوری کار: ۱۴۰۵/۰۶/۰۷ ۰۹:۱۵',
     );
   });
 
@@ -41,7 +41,7 @@ void main() {
       generatedAt: DateTime(2026, 8, 29, 8),
     );
     expect(report.days, hasLength(1));
-    expect(report.days.single.items.single.events, hasLength(4));
+    expect(report.days.single.items.single.events, hasLength(2));
 
     final renderer = TaskReportPdfRenderer(
       fontLoader: () async => TaskReportFonts(

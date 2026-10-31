@@ -36,7 +36,7 @@ void main() {
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('font-settings-entry')),
       250,
-      scrollable: find.byType(Scrollable).first,
+      scrollable: find.byType(Scrollable).last,
     );
     await tester.pumpAndSettle();
 

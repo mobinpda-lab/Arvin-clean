@@ -78,6 +78,12 @@ void main() {
       category: 'کاری',
     );
     await repository.updateTags(id: note.id, tags: const ['مهم', 'قرارداد']);
+    final legacyFollowUpDate = DateTime.utc(2026, 9, 20, 9);
+    await TaskStore().mutate<void>((tasks) {
+      final storedNote = tasks.singleWhere((task) => task.id == note.id);
+      storedNote.followUpEnabled = false;
+      storedNote.followUpDate = legacyFollowUpDate;
+    });
     final createdAt = (await TaskStore().load()).single.createdAt;
 
     now = DateTime.utc(2026, 9, 19, 11);
@@ -91,7 +97,11 @@ void main() {
     expect(all.single.updatedAt, now);
     expect(all.single.category, 'کاری');
     expect(all.single.tags, ['مهم', 'قرارداد']);
-    expect(all.single.followUpEnabled, isTrue);
+    expect(converted.title, note.title);
+    expect(all.single.followUpEnabled, isFalse);
+    expect(all.single.followUpDate, legacyFollowUpDate);
+    expect(all.single.completed, isFalse);
+    expect(all.single.completedAt, isNull);
     expect(all.single.followUps, isEmpty);
     expect(all.single.dueDate, isNull);
     expect(all.single.isSimpleNote, isTrue);

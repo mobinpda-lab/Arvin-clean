@@ -1,31 +1,37 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:arvin/theme/font_registry.dart';
+import 'package:arvin/theme/app_fonts.dart';
 
 void main() {
-  test('canonical Settings keeps legacy VazirHarf as a safe fallback option', () {
+  test('canonical app theme locks typography to bundled Vazirmatn', () {
     final mainSource = File('lib/main.dart').readAsStringSync();
-    final fontsSource = File('lib/theme/app_fonts.dart').readAsStringSync();
     final settingsSource = File('lib/settings_page.dart').readAsStringSync();
 
-    expect(mainSource, contains("import 'theme/font_registry.dart';"));
-    expect(fontsSource, contains("static const String vazirharfFamily = 'VazirHarf';"));
-    expect(arvinFontById('vazirharf').effectiveFontFamily, 'VazirHarf');
+    expect(AppFonts.vazirmatnFamily, 'Vazirmatn');
+    expect(mainSource, contains("import 'theme/app_fonts.dart';"));
+    expect(mainSource, contains('fontFamily: AppFonts.vazirmatnFamily'));
     expect(settingsSource, contains("ValueKey('font-settings-entry')"));
+    expect(settingsSource, contains("Text('اندازه متن')"));
+    expect(settingsSource, isNot(contains('font-option-')));
+    expect(settingsSource, isNot(contains('انتخاب فونت')));
   });
 
-  test('font catalog contains supported choices and safe fallback behavior', () {
-    expect(kAvailableArvinFonts.map((font) => font.id).toSet(), containsAll(<String>{'vazirmatn','estedad','sahel','shabnam','samim','tanha','gandom','parastoo','mikhak','lalezar','vazir-code','system','vazirharf'}));
-    expect(arvinFontById('system').effectiveFontFamily, isNull);
-    expect(arvinFontById('vazirmatn').effectiveFontFamily, isNull);
-    expect(arvinFontById('unknown-font').id, 'vazirharf');
+  test('portable settings do not export a user-selectable font', () {
+    final source = File('lib/services/app_settings_service.dart').readAsStringSync();
+    final start = source.indexOf('Map<String, dynamic> toPortableJson');
+    final end = source.indexOf('/// Applies only settings keys', start);
+    expect(start, isNonNegative);
+    expect(end, greaterThan(start));
+    final portableMethod = source.substring(start, end);
+    expect(portableMethod, isNot(contains('fontFamily')));
+    expect(AppFonts.vazirmatnFamily, 'Vazirmatn');
   });
 
-  test('release APK builds the canonical VazirHarf app entrypoint', () {
+  test('release APK builds the canonical Vazirmatn app entrypoint', () {
     final workflow = File('.github/workflows/build.yml').readAsStringSync();
 
-    expect(workflow, contains('flutter build apk --\${{ matrix.variant }} -t lib/main.dart'));
+    expect(workflow, contains(r'flutter build apk --${{ matrix.variant }} -t lib/main.dart'));
     expect(workflow, isNot(contains('-t lib/main_iransans.dart')));
     expect(workflow, isNot(contains('IRANSANSX_FANUM_REGULAR_B64')));
     expect(workflow, isNot(contains('IRANSANSX_FANUM_BOLD_B64')));
