@@ -9,6 +9,7 @@ import 'models/task.dart';
 import 'services/follow_up_elapsed_formatter.dart';
 import 'services/follow_up_write_coordinator.dart';
 import 'services/persian_date_formatter.dart';
+import 'services/task_store.dart';
 import 'services/waiting_for_response_service.dart';
 import 'task_report_page.dart';
 import 'widgets/taxonomy_icon_row.dart';
@@ -111,7 +112,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
     setState(() => _isSavingDescription = true);
     try {
-      final updated = await save(_task, description);
+      final updated = save != null
+          ? await save(_task, description)
+          : await _persistDescriptionDirectly(_task, description);
       if (!mounted) return;
       if (updated == null) {
         throw StateError('Task description update was not persisted.');
@@ -132,6 +135,20 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           const SnackBar(content: Text('ذخیره توضیحات انجام نشد؛ دوباره تلاش کنید')),
         );
     }
+  }
+
+  Future<Task?> _persistDescriptionDirectly(
+    Task task,
+    String description,
+  ) async {
+    final store = TaskStore();
+    final updatedAt = DateTime.now();
+    await store.updateDescription(task.id, description, updatedAt);
+    final refreshed = await store.load();
+    for (final candidate in refreshed) {
+      if (candidate.id == task.id) return candidate;
+    }
+    return null;
   }
 
   @override
@@ -253,9 +270,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 visualDensity: VisualDensity.compact,
                 constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                 padding: EdgeInsets.zero,
-                onPressed: widget.onDescriptionChanged == null
-                    ? null
-                    : _beginDescriptionEdit,
+                onPressed: _beginDescriptionEdit,
                 icon: const Icon(Icons.edit_outlined, size: 18),
               ),
             ),
