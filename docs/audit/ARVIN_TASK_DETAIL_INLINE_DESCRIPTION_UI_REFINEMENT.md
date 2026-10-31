@@ -51,3 +51,5 @@ The read-only inventory of `lib/models/task.dart` and `lib/services/task_store.d
 ## Persistence hardening for strict Follow-up immutability
 
 Description updates use `TaskStore.updateDescription`, a targeted SQL UPDATE of only the Task description, `updated_at`, and the corresponding two envelope keys. It deliberately avoids the general `TaskStore.save` path, whose legacy-compatible rewrite replaces relation rows. The targeted path does not delete, recreate, or update `follow_ups` or `follow_up_people` rows. A TaskStore regression test verifies that `completedAt`, Follow-up IDs/content, `nextFollowUp`, `followUpEnabled`, and `followUpDate` remain unchanged.
+
+When TaskDetailPage is opened in a context that does not supply the app-level callback (for example, a report drill-down), the page falls back to the same targeted `TaskStore.updateDescription` operation. The pencil remains actionable in all TaskDetailPage entry points; no general editor or Quick Capture entry point is added.
