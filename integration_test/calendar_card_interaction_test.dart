@@ -120,7 +120,14 @@ void main() {
       // The Calendar may retain a previously selected display mode. The
       // smoke contract exercises the visible week-day cells, so explicitly
       // select the weekly mode before resolving the seeded day locator.
-      final weeklyMode = find.text('هفتگی');
+      final viewModeControl = find.byKey(
+        const ValueKey('calendar-view-mode-control'),
+      );
+      final weeklyMode = find.descendant(
+        of: viewModeControl,
+        matching: find.text('هفتگی'),
+      );
+      expect(viewModeControl, findsOneWidget);
       expect(weeklyMode, findsOneWidget);
       await tester.tap(weeklyMode);
       await tester.pumpAndSettle();
