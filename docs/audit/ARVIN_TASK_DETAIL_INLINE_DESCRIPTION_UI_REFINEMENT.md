@@ -47,3 +47,7 @@ This register records the approved contract and implementation intent. CI and te
 ### Legacy-field inventory clarification
 
 The read-only inventory of `lib/models/task.dart` and `lib/services/task_store.dart` confirms the named legacy fields `FollowUp.nextFollowUp`, `Task.followUpEnabled`, and `Task.followUpDate` remain present and serialized/persisted. No standalone property or SQL field named exactly `enabled` was found in either of those two files; exact-word occurrences are UI/widget flags or comments elsewhere. This refinement does not create, rename, or delete an `enabled` data field. If a distinct legacy `enabled` schema member is intended, its owning model/table/path must be identified before any future schema operation.
+
+## Persistence hardening for strict Follow-up immutability
+
+Description updates use `TaskStore.updateDescription`, a targeted SQL UPDATE of only the Task description, `updated_at`, and the corresponding two envelope keys. It deliberately avoids the general `TaskStore.save` path, whose legacy-compatible rewrite replaces relation rows. The targeted path does not delete, recreate, or update `follow_ups` or `follow_up_people` rows. A TaskStore regression test verifies that `completedAt`, Follow-up IDs/content, `nextFollowUp`, `followUpEnabled`, and `followUpDate` remain unchanged.
