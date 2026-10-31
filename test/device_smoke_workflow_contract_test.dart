@@ -17,12 +17,14 @@ void main() {
     expect(workflow, contains('"scenario":"sql-migration","test_file":"integration_test/android_upgrade_migration_smoke_test.dart"'));
     expect(
       workflow,
-      contains(r"ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.sha }}"),
+      contains(r"ref: ${{ env.TARGET_SHA }}"),
     );
     expect(workflow, contains('name: Record and verify checkout revision'));
     expect(workflow, contains(r'actual="$(git rev-parse HEAD)"'));
-    expect(workflow, contains(r'echo "CHECKOUT_SHA=$actual"'));
-    expect(workflow, contains(r'echo "EXACT_TARGET_SHA=$actual"'));
+    expect(workflow, contains(r'echo "CHECKED_OUT_SHA=$actual"'));
+    expect(workflow, contains(r'echo "EXPECTED_TARGET_SHA=$TARGET_SHA"
+          echo "CHECKED_OUT_SHA=$actual"
+          echo "EXACT_TARGET_SHA=$actual"'));
     expect(
       workflow,
       contains(r'CHECKOUT SHA mismatch: expected $TARGET_SHA, got $actual'),
@@ -78,7 +80,7 @@ void main() {
       contains("if: always() && (matrix.scenario == 'home' || matrix.scenario == 'quick-capture' || matrix.scenario == 'people')"),
     );
     expect(workflow, contains('actions/upload-artifact@v5'));
-    expect(workflow, contains(r'arvin-device-smoke-${{ matrix.scenario }}-${{ inputs.target_sha || github.sha }}'));
+    expect(workflow, contains(r'arvin-device-smoke-${{ matrix.scenario }}-${{ env.TARGET_SHA }}'));
 
     // The workflow builds a JSON matrix in prepare-matrix and exposes it
     // through the job output. Validate that contract instead of expecting a
