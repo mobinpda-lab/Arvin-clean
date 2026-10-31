@@ -1,0 +1,159 @@
+name: ARVIN Production Signing Verification
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_sha:
+        description: "Exact default-branch commit SHA to build and verify"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: arvin-production-signing-verification
+  cancel-in-progress: false
+
+jobs:
+  production-signing:
+    name: Production APK signing and integrity verification
+    runs-on: ubuntu-latest
+    environment: production-release
+    steps:
+      - name: Validate target is the selected protected default-branch commit
+        env:
+          TARGET_SHA: ${{ inputs.target_sha }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::target_sha must be a 40-character lowercase commit SHA"
+            exit 1
+          fi
+          if [[ "$TARGET_SHA" != "$GITHUB_SHA" ]]; then
+            echo "::error::Production signing may only build the exact commit selected on the protected default branch. Arbitrary PR SHAs are not trusted with production secrets."
+            exit 1
+          fi
+          echo "TARGET_SHA=$TARGET_SHA" >> "$GITHUB_ENV"
+
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.target_sha }}
+          persist-credentials: false
+
+      - name: Verify checkout and prepare protected signing material
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          EXPECTED_CERT_SHA256: ${{ secrets.PRODUCTION_CERT_SHA256 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "$TARGET_SHA"
+          for name in KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD EXPECTED_CERT_SHA256; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error::Required protected environment secret is missing: $name"
+              exit 1
+            fi
+          done
+          keystore="$RUNNER_TEMP/arvin-production-release.jks"
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$keystore"
+          test -s "$keystore"
+          keytool -list -keystore "$keystore" -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" >/dev/null
+          {
+            echo "ARVIN_KEYSTORE_PATH=$keystore"
+            echo "ARVIN_KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD"
+            echo "ARVIN_KEY_ALIAS=$KEY_ALIAS"
+            echo "ARVIN_KEY_PASSWORD=$KEY_PASSWORD"
+            echo "EXPECTED_CERT_SHA256=$EXPECTED_CERT_SHA256"
+          } >> "$GITHUB_ENV"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.0"
+          channel: stable
+          cache: true
+
+      - name: Resolve locked dependencies
+        run: |
+          set -euo pipefail
+          flutter pub get --enforce-lockfile
+          git diff --exit-code -- pubspec.lock
+
+      - name: Build exact-SHA production-signed APK
+        run: |
+          set -euo pipefail
+          flutter build apk --release -t lib/main.dart
+          test -s build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Verify v1, v2, v3 signatures and production certificate
+        id: verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk="build/app/outputs/flutter-apk/app-release.apk"
+          apksigner="$(find "$ANDROID_SDK_ROOT/build-tools" -type f -name apksigner -print | sort -V | tail -n 1)"
+          test -n "$apksigner" && test -x "$apksigner"
+          "$apksigner" verify --verbose --print-certs "$apk" 2>&1 | tee signature-verification.txt
+          grep -Fq 'Verified using v1 scheme (JAR signing): true' signature-verification.txt
+          grep -Fq 'Verified using v2 scheme (APK Signature Scheme v2): true' signature-verification.txt
+          grep -Fq 'Verified using v3 scheme (APK Signature Scheme v3): true' signature-verification.txt
+          actual_cert="$(sed -n 's/.*Signer #1 certificate SHA-256 digest: //p' signature-verification.txt | head -n 1 | tr -d ':' | tr '[:upper:]' '[:lower:]')"
+          expected_cert="$(printf '%s' "$EXPECTED_CERT_SHA256" | tr -d ':' | tr '[:upper:]' '[:lower:]')"
+          test -n "$actual_cert"
+          if [[ "$actual_cert" != "$expected_cert" ]]; then
+            echo "::error::Production certificate fingerprint mismatch"
+            exit 1
+          fi
+          echo "CERT_SHA256=$actual_cert" >> "$GITHUB_OUTPUT"
+
+      - name: Generate formal release manifest
+        env:
+          CERT_SHA256: ${{ steps.verify.outputs.CERT_SHA256 }}
+        run: |
+          set -euo pipefail
+          apk="build/app/outputs/flutter-apk/app-release.apk"
+          mkdir -p release-evidence
+          cp "$apk" release-evidence/app-release.apk
+          cp signature-verification.txt release-evidence/signature-verification.txt
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, subprocess
+          apk = pathlib.Path("release-evidence/app-release.apk")
+          data = apk.read_bytes()
+          manifest = {
+              "manifest_type": "ARVIN_PRODUCTION_RELEASE",
+              "status": "VERIFIED",
+              "target": {
+                  "sha": os.environ["TARGET_SHA"],
+                  "commit_subject": subprocess.check_output(
+                      ["git", "show", "-s", "--format=%s", "HEAD"], text=True
+                  ).strip(),
+                  "commit_timestamp_utc": subprocess.check_output(
+                      ["git", "show", "-s", "--format=%cI", "HEAD"], text=True
+                  ).strip(),
+              },
+              "artifact": {
+                  "file": apk.name,
+                  "size_bytes": len(data),
+                  "sha256": hashlib.sha256(data).hexdigest(),
+                  "md5": hashlib.md5(data).hexdigest(),
+              },
+              "android_signature_schemes": {"v1": "VERIFIED", "v2": "VERIFIED", "v3": "VERIFIED"},
+              "certificate": {"sha256_fingerprint": os.environ["CERT_SHA256"], "production_identity_match": True},
+          }
+          pathlib.Path("release-evidence/release-manifest.json").write_text(
+              json.dumps(manifest, indent=2) + "\n", encoding="utf-8"
+          )
+          print(json.dumps(manifest, indent=2))
+          PY
+
+      - name: Upload signed APK and release evidence
+        uses: actions/upload-artifact@v5
+        with:
+          name: arvin-production-release-${{ inputs.target_sha }}
+          path: release-evidence/
+          if-no-files-found: error
+          retention-days: 90
