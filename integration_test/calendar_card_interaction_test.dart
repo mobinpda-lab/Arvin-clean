@@ -136,11 +136,27 @@ void main() {
         of: calendarList,
         matching: find.byType(Scrollable),
       );
+      final weekView = find.byKey(const ValueKey('calendar-week-view'));
       final targetDayCell = find.byKey(
         ValueKey('calendar-week-day-${testDay.year}-${testDay.month}-${testDay.day}'),
       );
-      expect(targetDayCell, findsOneWidget,
-          reason: 'The seeded reminder day must be visible before selecting it.');
+
+      // Wait for the weekly grid and the exact seeded date cell to be laid
+      // out and hit-testable. pumpAndSettle alone is not a readiness
+      // contract for asynchronously rebuilt calendar projections.
+      var weeklyGridReady = false;
+      for (var attempt = 0; attempt < 50; attempt++) {
+        await tester.pump(const Duration(milliseconds: 100));
+        if (weekView.evaluate().length == 1 &&
+            targetDayCell.hitTestable().evaluate().length == 1) {
+          weeklyGridReady = true;
+          break;
+        }
+      }
+      expect(weekView, findsOneWidget,
+          reason: 'Calendar must render its weekly grid before date selection.');
+      expect(weeklyGridReady, isTrue,
+          reason: 'The seeded week-day cell must be laid out and hit-testable before tapping.');
       await tester.tap(targetDayCell);
       await tester.pumpAndSettle();
 
