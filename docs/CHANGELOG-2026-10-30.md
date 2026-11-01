@@ -39,3 +39,9 @@ This entry records the governing product decisions for Reminder-only scheduling,
 - Release remains **BLOCKED — RELEASE: NO-GO**.
 
 - Implemented configurable Task-list “ثبت پیگیری” for either swipe direction: Settings exposes and persists the action; selecting it opens FollowUpEntryPage and writes a record only after explicit Save. Added left/right and no-auto-write regression tests. Exact-head CI validation is pending.
+
+- Added an optional “افزودن یادآور” shortcut to Follow-up entry for persisted Tasks. It selects Jalali date and Universal Arvin Time Picker time, then stores a normal independent Task Reminder linked to the same Task; new Follow-up JSON omits empty legacy future-scheduling keys.
+- Replaced the completed-Task timestamp dialog with a genuine Follow-up record report: local Jalali day interval, previous/next/Today, Persian-digit aggregation, chronological and Task-ID grouped modes, actual time/note/result/person, Task Details navigation, and exact empty/error states.
+- Added Follow-up completedAt compatibility getter mapped to the canonical persisted dateTime field; a physical SQL-column migration remains pending.
+- Added regression coverage for Reminder shortcut on/off, report day boundaries, multiple records, cross-Task aggregation, exclusions and navigation. Exact-head CI validation is pending.
+- Fixed the Settings UI test expectation for the newly available “ثبت پیگیری” Task swipe action.
