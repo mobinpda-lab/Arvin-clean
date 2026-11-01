@@ -12,7 +12,7 @@ void main() {
     app.main();
     await tester.pumpAndSettle();
 
-    expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
+    expect(find.text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
 
     final skipGuide = find.text('رد کردن');
