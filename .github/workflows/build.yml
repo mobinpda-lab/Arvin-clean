@@ -191,7 +191,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          apk="build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk"
+          if [[ "${{ matrix.variant }}" == "staging" ]]; then
+            apk="android/app/build/outputs/apk/staging/app-staging.apk"
+          else
+            apk="build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk"
+          fi
           test -s "$apk"
           for font in \
             assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf \
