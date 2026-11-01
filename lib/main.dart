@@ -1,8 +1,14 @@
+import 'dart:convert';
+
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
 // ignore_for_file: curly_braces_in_flow_control_structures, deprecated_member_use, unused_field
 
 import 'package:flutter/material.dart';
 
 import 'arvin_colors.dart';
+import 'alarm_overlay_page.dart';
+import 'follow_up_reminder_notification_service.dart';
 
 import 'android_follow_up_reminder_scheduler.dart';
 import 'backup_manager.dart';
@@ -102,6 +108,8 @@ class _SettingsTextScaler extends TextScaler {
   int get hashCode => Object.hash(systemScaler, userScale);
 }
 
+final GlobalKey<NavigatorState> arvinNavigatorKey = GlobalKey<NavigatorState>();
+
 void main() => runApp(const ArvinApp());
 
 class ArvinApp extends StatefulWidget {
@@ -123,9 +131,56 @@ class _ArvinAppState extends State<ArvinApp> {
   void initState() {
     super.initState();
     _loadSettings();
+    _initializeReminderNotificationTapHandler();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       StartupPermissionService().requestOnStartup();
     });
+  }
+
+
+  Future<void> _initializeReminderNotificationTapHandler() async {
+    try {
+      final service = FollowUpReminderNotificationService(
+        onNotificationResponse: _openAlarmOverlayFromNotification,
+      );
+      final launchDetails = await service.initializeForForeground();
+      final response = launchDetails?.notificationResponse;
+      if (launchDetails?.didNotificationLaunchApp == true && response != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _openAlarmOverlayFromNotification(response);
+        });
+      }
+    } catch (_) {
+      // Reminder delivery remains available even if foreground tap wiring fails.
+    }
+  }
+
+  void _openAlarmOverlayFromNotification(NotificationResponse response) {
+    final rawPayload = response.payload;
+    if (rawPayload == null || rawPayload.isEmpty) return;
+    try {
+      final payload = jsonDecode(rawPayload);
+      if (payload is! Map) return;
+      final taskId = payload['taskId'] as String?;
+      final reminderId = payload['taskReminderId'] as String?;
+      final notificationId =
+          (payload['notificationId'] as num?)?.toInt() ?? response.id;
+      if (taskId == null || taskId.isEmpty || notificationId == null) return;
+      final navigator = arvinNavigatorKey.currentState;
+      if (navigator == null) return;
+      navigator.push<void>(
+        MaterialPageRoute<void>(
+          fullscreenDialog: true,
+          builder: (_) => AlarmOverlayPage(
+            taskId: taskId,
+            taskReminderId: reminderId,
+            notificationId: notificationId,
+          ),
+        ),
+      );
+    } catch (_) {
+      // Invalid or stale notification payloads must not open a partial overlay.
+    }
   }
 
   Future<void> _loadSettings() async {
@@ -168,6 +223,7 @@ class _ArvinAppState extends State<ArvinApp> {
       labelLarge: darkBaseTextTheme.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w700),
     );
     return MaterialApp(
+      navigatorKey: arvinNavigatorKey,
       debugShowCheckedModeBanner: false,
       navigatorObservers: [arvinRouteObserver],
       title: 'مدیریت کارها و پیگیری آروین',

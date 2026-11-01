@@ -14,12 +14,14 @@ class FollowUpEntryPage extends StatefulWidget {
     this.initialFollowUp,
     this.initialDateTime,
     this.taskId,
+    this.allowAddingReminder = true,
     this.onSaved,
   });
 
   final FollowUp? initialFollowUp;
   final DateTime? initialDateTime;
   final String? taskId;
+  final bool allowAddingReminder;
   final ValueChanged<FollowUp>? onSaved;
 
   @override
@@ -185,7 +187,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
 
   Future<void> _save() async {
     if (_isSaving) return;
-    if (_addReminder && widget.taskId != null &&
+    if (widget.allowAddingReminder && _addReminder && widget.taskId != null &&
         !_reminderDateTime.isAfter(DateTime.now())) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('زمان یادآور باید در آینده باشد.')),
@@ -193,7 +195,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
       return;
     }
     setState(() => _isSaving = true);
-    if (_addReminder && widget.taskId != null) {
+    if (widget.allowAddingReminder && _addReminder && widget.taskId != null) {
       try {
         await TaskStore().addTaskReminder(widget.taskId!, _reminderDateTime);
         try {
@@ -281,7 +283,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
                 ),
               ],
             ),
-            if (widget.taskId != null && !_editing) ...[
+            if (widget.allowAddingReminder && widget.taskId != null && !_editing) ...[
               SwitchListTile(
                 key: const ValueKey('follow-up-entry-add-reminder'),
                 contentPadding: EdgeInsets.zero,

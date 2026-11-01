@@ -683,3 +683,30 @@ Neither `photo_1793512287397.webp` nor `photo_1793516357359.webp` was present am
 **Path B status:** BLOCKED / NOT VERIFIED — canonical notification scheduling and FollowUp form components exist, but there is no verified active audio/overlay/action lifecycle or exact Reminder-ID response handoff; no Alarm-specific runtime acceptance exists.
 
 **Overall release:** **BLOCKED — RELEASE: NO-GO**.
+
+
+## 12. Alarm Overlay implementation dispatch — 2026-11-01
+
+### Exact base checkpoint
+- Authorized PR #3052 remained OPEN/DRAFT and unmerged.
+- Base source SHA: `27297237721127b76f43945883b48a13d6f850a8`.
+- Issue #823 and #2102 remained OPEN.
+- Release remains `BLOCKED — RELEASE: NO-GO`.
+
+### CI evidence on the base SHA
+- Build #8993 / run `41284272776`: SUCCESS on exact SHA. Analyze job `124782340058` logged `No issues found!`; all six test shards passed: test-0 `124782339948` (195), test-1 `124782339981` (164), test-2 `124782340065` (260), test-3 `124782340115` (125), test-4 `124782340025` (206), test-5 `124782340060` (153), total 1,103 tests.
+- Follow-up File Persistence run `41284272770`, job `124782280003`: SUCCESS; one file-backed SQLite test passed. This does not cover Alarm Stop/Snooze/Overlay Follow-up.
+- Calendar Provider run `41284272831`, job `124782280111`: SUCCESS. Log proves CREATE, NO-OP UPDATE, no duplicate, UPDATE same event ID and DELETE. Limitation: only one writable destination calendar was available in the emulator.
+- Device Smoke run `41284272771`: NOT FINAL at audit update. boot, navigation, task-lifecycle and quick-capture passed; reminder-vazirmatn and calendar-segmented-view were still running; follow-up-persistence remained queued. Do not claim 7/7.
+
+### Alarm Overlay source changes in this dispatch
+- Added a full-screen RTL Alarm Overlay using bundled `Vazirmatn`, loading Task title and the exact Reminder from canonical TaskStore using Task ID + Reminder ID.
+- Notification payload now carries Task ID, Reminder ID, scheduled timestamp and the stable notification ID. Foreground notification tap and cold-start launch are routed to the overlay.
+- Stop cancels only the active local notification ID. It does not mutate Task completion, Reminder data or Follow-up history. No independent audio player/volume stream exists; the displayed volume slider is informational and disabled. Notification cancellation is the verified stop boundary; separate audio playback control remains NOT IMPLEMENTED.
+- Follow-up shortcut opens the existing `FollowUpEntryPage(taskId: ...)`; its optional future-Reminder control is disabled for this route. The page itself does not write a Follow-up; only a returned explicit Save result is appended to the canonical Task.
+- Snooze mutates only the exact TaskReminder date in TaskStore, preserving its ID/title/sequence, then requests the existing scheduler to reschedule. The stepper uses a provisional 5-minute increment (bounded 5–120 minutes). All-day reminders do not expose timed Snooze.
+- Added widget tests for Stop isolation, stable-identity Snooze, Follow-up shortcut no-write-on-open/cancel, and all-day Snooze guard.
+- Visual parity with `photo_1793516357359.webp`: NOT VERIFIED; the reference image was not available in the current file/attachment context. This implementation is functional-first and does not claim pixel matching.
+
+### Validation status
+- The implementation in this dispatch is not yet validated on a new exact implementation SHA. Build, Device Smoke, widget tests and runtime notification-tap behavior must pass on the resulting commit before any Alarm Overlay acceptance status is upgraded.

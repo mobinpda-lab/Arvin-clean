@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'services/follow_up_reminder_projection.dart';
@@ -10,9 +12,12 @@ class FollowUpReminderNotificationService
     implements FollowUpReminderNotificationSink {
   FollowUpReminderNotificationService({
     FlutterLocalNotificationsPlugin? plugin,
-  }) : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
+    void Function(NotificationResponse response)? onNotificationResponse,
+  })  : _plugin = plugin ?? FlutterLocalNotificationsPlugin(),
+        _onNotificationResponse = onNotificationResponse;
 
   final FlutterLocalNotificationsPlugin _plugin;
+  final void Function(NotificationResponse response)? _onNotificationResponse;
   bool _initialized = false;
 
   static const AndroidNotificationChannel _channel =
@@ -28,11 +33,17 @@ class FollowUpReminderNotificationService
     const settings = AndroidInitializationSettings('@mipmap/ic_launcher');
     await _plugin.initialize(
       settings: const InitializationSettings(android: settings),
+      onDidReceiveNotificationResponse: _onNotificationResponse,
     );
     final android = _plugin.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
     await android?.createNotificationChannel(_channel);
     _initialized = true;
+  }
+
+  Future<NotificationAppLaunchDetails?> initializeForForeground() async {
+    await _ensureInitialized();
+    return _plugin.getNotificationAppLaunchDetails();
   }
 
   int notificationIdFor(FollowUpReminderCandidate candidate) {
@@ -60,7 +71,12 @@ class FollowUpReminderNotificationService
           priority: Priority.high,
         ),
       ),
-      payload: candidate.taskId,
+      payload: jsonEncode(<String, Object?>{
+        'taskId': candidate.taskId,
+        'taskReminderId': candidate.taskReminderId,
+        'scheduledAt': candidate.scheduledAt.toIso8601String(),
+        'notificationId': notificationIdFor(candidate),
+      }),
     );
   }
 }
