@@ -76,7 +76,7 @@ canonical_scenarios = {
     'smoke-reminder-vazirmatn': 'integration_test/calendar_card_interaction_test.dart',
     'smoke-follow-up-persistence': 'integration_test/android_sql_persistence_smoke_test.dart',
 }
-matrix_match = re.search(r"scenarios='(\\[.*?\\])'", device, re.DOTALL)
+matrix_match = re.search(r"scenarios='(\[.*?\])'", device, re.DOTALL)
 if not matrix_match:
     raise SystemExit(f'Fast Lane contract missing in {device_path}: canonical scenario JSON')
 try:
