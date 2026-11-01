@@ -149,6 +149,40 @@ void main() {
     expect((await store.load()).single.taskReminders.single.id, 'reminder-stable-1');
   });
 
+
+  testWidgets('explicit Follow-up Save persists history without adding a future Reminder',
+      (tester) async {
+    final store = TaskStore();
+    await seedTask(store);
+    final notifications = _FakeAlarmNotifications();
+
+    await tester.pumpWidget(MaterialApp(
+      home: AlarmOverlayPage(
+        taskId: 'alarm-task-1',
+        taskReminderId: 'reminder-stable-1',
+        notificationId: 7005,
+        taskStore: store,
+        notificationController: notifications,
+        rescheduleReminders: () async {},
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('alarm-overlay-follow-up')));
+    await tester.pumpAndSettle();
+    final note = find.byKey(const ValueKey('follow-up-entry-note'));
+    await tester.enterText(note, 'گفت‌وگو انجام شد');
+    await tester.tap(find.byKey(const ValueKey('follow-up-entry-save')));
+    await tester.pumpAndSettle();
+
+    final stored = (await store.load()).single;
+    expect(stored.followUps, hasLength(2));
+    expect(stored.followUps.last.note, 'گفت‌وگو انجام شد');
+    expect(stored.taskReminders, hasLength(1));
+    expect(stored.taskReminders.single.id, 'reminder-stable-1');
+    expect(stored.completed, isFalse);
+  });
+
   testWidgets('all-day Reminder does not expose a time-changing Snooze control',
       (tester) async {
     final store = TaskStore();

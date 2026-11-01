@@ -710,3 +710,10 @@ Neither `photo_1793512287397.webp` nor `photo_1793516357359.webp` was present am
 
 ### Validation status
 - The implementation in this dispatch is not yet validated on a new exact implementation SHA. Build, Device Smoke, widget tests and runtime notification-tap behavior must pass on the resulting commit before any Alarm Overlay acceptance status is upgraded.
+
+
+### Implementation CI correction checkpoint
+- First implementation commit SHA: `a25ba1e02caee36ab63aaed1e2dd56efefd0a547`.
+- Build run `41286726861` on that SHA reported Analyze FAIL in job `124789416497`. The exact diagnostics were: the Flutter Local Notifications v22 API requires `cancel(id: ...)`, not a positional argument; and `ThemeData.copyWith` does not accept `fontFamily`. Both compile-time issues were corrected in the follow-up patch.
+- The correction also renders all-day Reminder timing as `تمام‌روز` rather than presenting midnight as a real time, and adds explicit Follow-up Save isolation coverage.
+- The next commit is the corrected implementation candidate. Its exact-head CI is the required validation; no implementation PASS is claimed from the failed first attempt.

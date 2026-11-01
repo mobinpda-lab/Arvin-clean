@@ -21,7 +21,7 @@ class FlutterLocalAlarmNotificationController
   final FlutterLocalNotificationsPlugin _plugin;
 
   @override
-  Future<void> cancel(int notificationId) => _plugin.cancel(notificationId);
+  Future<void> cancel(int notificationId) => _plugin.cancel(id: notificationId);
 }
 
 class AlarmOverlayPage extends StatefulWidget {
@@ -214,7 +214,6 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
   Widget build(BuildContext context) {
     final baseTheme = Theme.of(context);
     final themed = baseTheme.copyWith(
-      fontFamily: AppFonts.vazirmatnFamily,
       textTheme: baseTheme.textTheme.apply(
         fontFamily: AppFonts.vazirmatnFamily,
       ),
