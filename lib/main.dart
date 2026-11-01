@@ -1239,6 +1239,7 @@ class _HomePageState extends State<HomePage> {
         final collapsed = _collapsedGroups.contains(group.id);
         final accent = _groupAccent(group.id);
         final soft = _groupSoft(group.id);
+        final groupDate = _groupJalaliDate(group.id);
         return Padding(
           padding: const EdgeInsets.only(bottom: 8),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -1253,9 +1254,9 @@ class _HomePageState extends State<HomePage> {
                   Icon(_groupIcon(group.id), size: 18, color: accent),
                   const SizedBox(width: 7),
                   Expanded(child: Text(group.title, style: TextStyle(color: accent, fontSize: 14, fontWeight: FontWeight.w800))),
-                  if (_groupJalaliDate(group.id) case final date?) ...[
+                  if (groupDate != null) ...[
                     const SizedBox(width: 6),
-                    Text(date, style: TextStyle(color: accent.withAlpha(190), fontSize: 10, fontWeight: FontWeight.w600)),
+                    Text(groupDate, style: TextStyle(color: accent.withAlpha(190), fontSize: 10, fontWeight: FontWeight.w600)),
                   ],
                   Container(
                     constraints: const BoxConstraints(minWidth: 28),
