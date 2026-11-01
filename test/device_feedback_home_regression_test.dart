@@ -98,7 +98,7 @@ void main() {
 
     expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
     expect(find.text('تاریخ گذشته'), findsOneWidget);
-    expect(find.text('امروز'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-group-today')), findsOneWidget);
     expect(find.text('فردا'), findsOneWidget);
     expect(find.text('آینده'), findsOneWidget);
     expect(find.text('فاقد زمان'), findsOneWidget);
