@@ -6,6 +6,64 @@ import 'package:arvin/services/iran_clock.dart';
 import 'package:arvin/services/calendar_swipe_settings_service.dart';
 
 void main() {
+  testWidgets('source filter separates live phone events, Task Reminders and Follow-ups', (tester) async {
+    final day = DateTime(2026, 11, 1);
+    await tester.pumpWidget(MaterialApp(
+      home: CalendarPage(
+        initialSelectedDay: day,
+        reminders: [
+          CalendarReminder(
+            id: 'external-calendar:calendar-1:event-1',
+            title: 'رویداد تقویم گوشی',
+            date: day.add(const Duration(hours: 9)),
+          ),
+          CalendarReminder(
+            id: 'task-reminder-item:task-1:reminder-1',
+            title: 'یادآور واقعی',
+            date: day.add(const Duration(hours: 10)),
+          ),
+          CalendarReminder(
+            id: 'followup:task-1:follow-up-1',
+            title: 'سابقه پیگیری',
+            date: day.add(const Duration(hours: 11)),
+          ),
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('calendar-source-filter')), findsOneWidget);
+    expect(find.text('رویداد تقویم گوشی'), findsOneWidget);
+    expect(find.text('یادآور واقعی'), findsOneWidget);
+    expect(find.text('سابقه پیگیری'), findsOneWidget);
+
+    await tester.tap(find.text('تقویم گوشی'));
+    await tester.pumpAndSettle();
+    expect(find.text('رویداد تقویم گوشی'), findsOneWidget);
+    expect(find.text('یادآور واقعی'), findsNothing);
+    expect(find.text('سابقه پیگیری'), findsNothing);
+
+    await tester.tap(find.text('یادآورها'));
+    await tester.pumpAndSettle();
+    expect(find.text('رویداد تقویم گوشی'), findsNothing);
+    expect(find.text('یادآور واقعی'), findsOneWidget);
+    expect(find.text('سابقه پیگیری'), findsNothing);
+
+    await tester.tap(find.text('پیگیری‌ها'));
+    await tester.pumpAndSettle();
+    expect(find.text('رویداد تقویم گوشی'), findsNothing);
+    expect(find.text('یادآور واقعی'), findsNothing);
+    expect(find.text('سابقه پیگیری'), findsOneWidget);
+
+    await tester.tap(find.text('همه'));
+    await tester.pumpAndSettle();
+    expect(find.text('رویداد تقویم گوشی'), findsOneWidget);
+    expect(find.text('یادآور واقعی'), findsOneWidget);
+    expect(find.text('سابقه پیگیری'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+
   testWidgets('calendar cards use canonical pastel status colors and status icons', (tester) async {
     final selectedDay = DateTime(2030, 5, 1);
     await tester.pumpWidget(
