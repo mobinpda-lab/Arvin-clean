@@ -320,49 +320,6 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
     await _snoozeAlarm();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final baseTheme = Theme.of(context);
-    final themed = baseTheme.copyWith(
-      textTheme: baseTheme.textTheme.apply(
-        fontFamily: AppFonts.vazirmatnFamily,
-      ),
-    );
-    return Theme(
-      data: themed,
-      child: Directionality(
-        textDirection: TextDirection.rtl,
-        child: Scaffold(
-          backgroundColor: const Color(0xFFF3F2F8),
-          body: SafeArea(
-            child: _loading
-                ? const Center(child: CircularProgressIndicator())
-                : _error != null
-                    ? Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(24),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.alarm_off, size: 48),
-                              const SizedBox(height: 16),
-                              Text(_error!, textAlign: TextAlign.center),
-                              const SizedBox(height: 16),
-                              FilledButton(
-                                onPressed: () => Navigator.of(context).pop(),
-                                child: const Text('بستن'),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                    : _buildOverlay(context),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildOverlay(BuildContext context) {
     final task = _task!;
     final reminder = _reminder!;
