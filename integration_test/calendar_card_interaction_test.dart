@@ -127,8 +127,28 @@ void main() {
         of: viewModeControl,
         matching: find.text('هفتگی'),
       );
-      expect(viewModeControl, findsOneWidget);
-      expect(weeklyMode, findsOneWidget);
+
+      // Route readiness is asynchronous: Home reloads canonical SQL before
+      // pushing CanonicalCalendarLauncher, then official calendar sources
+      // resolve through a FutureBuilder. Wait for the actual control without
+      // weakening its one-widget assertion.
+      for (var attempt = 0; attempt < 50; attempt++) {
+        if (viewModeControl.evaluate().length == 1) break;
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      debugPrint(
+        'CALENDAR_ROUTE_DIAG: navigation=${find.byType(ArvinPrimaryNavigation).evaluate().length} '
+        'calendarTitle=${find.text('تقویم پیگیری').evaluate().length} '
+        'helpButton=${find.byKey(const ValueKey('calendar-context-help')).evaluate().length} '
+        'segmentedControl=${viewModeControl.evaluate().length}',
+      );
+      await binding.convertFlutterSurfaceToImage();
+      await binding.takeScreenshot('calendar-before-segmented-control');
+
+      expect(viewModeControl, findsOneWidget,
+          reason: 'The canonical Calendar route must mount its weekly SegmentedButton.');
+      expect(weeklyMode, findsOneWidget,
+          reason: 'The weekly mode must be directly selectable from the SegmentedButton.');
       await tester.tap(weeklyMode);
       await tester.pumpAndSettle();
 
@@ -139,10 +159,13 @@ void main() {
       final calendarList = find.byKey(
         const ValueKey('calendar-selected-day-list'),
       );
-      final calendarScrollable = find.descendant(
-        of: calendarList,
+      // The list key is a structural assertion only. Interaction scrolls the
+      // actual Scrollable ancestor of the reminder card instead of depending
+      // on that assertion key as a locator.
+      final calendarScrollable = find.ancestor(
+        of: card,
         matching: find.byType(Scrollable),
-      );
+      ).first;
       final weekView = find.byKey(const ValueKey('calendar-week-view'));
       final targetDayCell = find.byKey(
         ValueKey('calendar-week-day-${testDay.year}-${testDay.month}-${testDay.day}'),
@@ -193,7 +216,8 @@ void main() {
       );
       expect(tester.takeException(), isNull);
 
-      await binding.convertFlutterSurfaceToImage();
+      // The surface was converted before the route-readiness diagnostic
+      // screenshot above; continue capturing the real interaction state.
 
       // The independent Reminder opens the canonical Task editor, never a
       // Follow-up editor. Canceling the time picker must not alter its time.
