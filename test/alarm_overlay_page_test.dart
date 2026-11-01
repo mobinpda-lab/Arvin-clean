@@ -183,6 +183,47 @@ void main() {
     expect(stored.completed, isFalse);
   });
 
+
+  testWidgets('overlay hierarchy has a prominent Stop, volume speaker, and bottom Follow-up shortcut',
+      (tester) async {
+    final store = TaskStore();
+    await seedTask(store);
+
+    await tester.pumpWidget(MaterialApp(
+      home: AlarmOverlayPage(
+        taskId: 'alarm-task-1',
+        taskReminderId: 'reminder-stable-1',
+        notificationId: 7006,
+        taskStore: store,
+        notificationController: _FakeAlarmNotifications(),
+        rescheduleReminders: () async {},
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    final stop = tester.widget<SizedBox>(
+      find.ancestor(
+        of: find.byKey(const ValueKey('alarm-overlay-stop')),
+        matching: find.byType(SizedBox),
+      ).first,
+    );
+    expect(stop.height, 64);
+    expect(find.byIcon(Icons.volume_up), findsOneWidget);
+    expect(find.byKey(const ValueKey('alarm-overlay-volume-row')), findsOneWidget);
+
+    final volumeY = tester.getTopLeft(
+      find.byKey(const ValueKey('alarm-overlay-volume-row')),
+    ).dy;
+    final snoozeY = tester.getTopLeft(
+      find.byKey(const ValueKey('alarm-overlay-snooze-confirm')),
+    ).dy;
+    final followUpY = tester.getTopLeft(
+      find.byKey(const ValueKey('alarm-overlay-follow-up')),
+    ).dy;
+    expect(followUpY, greaterThan(volumeY));
+    expect(followUpY, greaterThan(snoozeY));
+  });
+
   testWidgets('all-day Reminder does not expose a time-changing Snooze control',
       (tester) async {
     final store = TaskStore();

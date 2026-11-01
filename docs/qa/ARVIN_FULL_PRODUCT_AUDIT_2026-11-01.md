@@ -735,3 +735,64 @@ Neither `photo_1793512287397.webp` nor `photo_1793516357359.webp` was present am
 - Device Smoke run `41286915804`: boot and navigation in progress; five other lanes queued. No 7/7 result.
 - APK Debug/Release/Staging jobs in Build run `41286915733` were still in progress at checkpoint.
 - These results do not upgrade Alarm Overlay acceptance. The next corrected commit requires fresh exact-head validation.
+
+
+## 13. Exact-SHA verification — `53dfae1bbb92ad72de6c51514d5f38f77de3133c`
+
+### Repository and governance snapshot
+- Live branch HEAD and PR #3052 head matched `53dfae1bbb92ad72de6c51514d5f38f77de3133c`.
+- PR #3052: OPEN / DRAFT / UNMERGED. Issues #823 and #2102: OPEN.
+- Release remains `BLOCKED — RELEASE: NO-GO`.
+
+### Build run `41287315440` — SUCCESS
+All jobs completed successfully on the exact target SHA.
+- Analyze: Job `124791202817`, PASS; log: `No issues found!`.
+- Six test shards PASS:
+  - test-0: Job `124791202698`, 196 tests.
+  - test-1: Job `124791202768`, 165 tests.
+  - test-2: Job `124791202567`, 261 tests.
+  - test-3: Job `124791202853`, 125 tests.
+  - test-4: Job `124791202836`, 207 tests.
+  - test-5: Job `124791202833`, 154 tests.
+  - Total: 1,108 tests PASS.
+- APK assembly jobs PASS:
+  - Debug: Job `124791202784`; artifact `13075657764`, 92,529,875 bytes (artifact ZIP size).
+  - Release: Job `124791202839`; artifact `13076265451`, 32,444,630 bytes (artifact ZIP size).
+  - Staging: Job `124791202773`; artifact `13076350444`, 32,846,782 bytes (artifact ZIP size).
+  - Staging audit candidate: artifact `13075559730`.
+  - Staging verification logs: artifact `13075863736`.
+  - Artifact digests are recorded by GitHub Actions; they are ZIP digests, not the APK file's SHA-256.
+- Font packaging audit logged `FONT_GATE=PASS_VAZIRMATN_BUNDLED_SYSTEM_DEFAULT_PURGED`, confirming Regular/Medium/Bold Vazirmatn assets are present in both Debug and Release APK contents.
+- APK assembly is proven; production signing/v2-v3 verification and final release manifest are NOT proven by these job logs. Staging used an ephemeral signing key.
+
+### Device Smoke run `41287315493` — INCOMPLETE
+The run object remains `queued` while selected child jobs are executing.
+- PASS: boot (Job `124791174504`), navigation (`124791174543`), quick-capture (`124791174527`).
+- IN_PROGRESS: task-lifecycle (`124791174524`), calendar-segmented-view (`124791174477`).
+- QUEUED: reminder-vazirmatn (`124791174513`), follow-up-persistence (`124791174487`).
+- Current result: 3/7 completed PASS; 2 running; 2 queued; no failed lane reported yet. This is NOT 7/7 and cannot satisfy the release gate.
+- Completed lane artifacts: boot `13075588012`, navigation `13075892991`, quick-capture `13076131548`; Persian time picker artifact `13076111691`. No artifact yet for the active/queued lanes.
+
+### Calendar Provider run `41287315446` — SUCCESS
+- Job `124791139542`: exact target SHA verification PASS.
+- Real Provider CREATE, NO-OP UPDATE, no-duplicate assertion, UPDATE same event ID, and DELETE all PASS.
+- Font gate also logged `FONT_GATE=PASS_VAZIRMATN_BUNDLED_SYSTEM_DEFAULT_PURGED`.
+- Artifact `13076205955`, 11,216 bytes; ZIP digest `6c16459fabce95f75db5ffb4fd542b2e7030681545bd0029933965e28a960626`.
+- Limitation: `writableCalendars=1`; destination-calendar migration across multiple writable calendars remains unverified.
+
+### Follow-up Persistence run `41287315495` — SUCCESS
+- Job `124791139721`; one file-backed SQLite test passed on the exact target SHA.
+- No artifact was uploaded for this run.
+- This is narrow persistence evidence, not full Alarm lifecycle/device acceptance.
+
+### Visual reference and UI alignment checkpoint
+- User identifies `photo_1793516357359.webp` and `photo_1793512287397.webp` as present in the active workspace. In this execution, Files returned no current-conversation file entries and no Library image entries matching either filename; the image binaries/pointers were therefore not available to inspect. Pixel-level comparison remains NOT VERIFIED; do not claim the references were inspected.
+- Source review of `AlarmOverlayPage` found the Follow-up shortcut was positioned before Snooze/volume rather than at the bottom, and the volume row lacked a speaker icon. A corrective UI patch moves Follow-up to the bottom, adds a speaker icon beside the informational disabled slider, and sets the red Stop button to a prominent 64px height.
+- Added a widget assertion for the visual hierarchy and control presence. This corrective patch is not part of SHA `53dfae1...`; its next exact-head CI must be used for acceptance.
+
+### Current gate decision
+- Build: PASS (6/6 shards; 1,108 tests) on SHA `53dfae1...`.
+- Device Smoke: INCOMPLETE (3/7 PASS; 2 running; 2 queued).
+- Calendar Provider: PASS with one-writable-calendar limitation.
+- Follow-up Persistence: PASS (one test).
+- Release: **BLOCKED — RELEASE: NO-GO**. The required 7/7 Device Smoke and 6/6 Build shards must both be GREEN on the final HEAD; production signing and release manifest also remain separate gates.

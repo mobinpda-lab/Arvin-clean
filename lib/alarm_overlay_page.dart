@@ -298,23 +298,23 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 28),
-        FilledButton.icon(
-          key: const ValueKey('alarm-overlay-stop'),
-          style: FilledButton.styleFrom(
-            backgroundColor: colors.error,
-            foregroundColor: colors.onError,
-            padding: const EdgeInsets.symmetric(vertical: 16),
+        SizedBox(
+          width: double.infinity,
+          height: 64,
+          child: FilledButton.icon(
+            key: const ValueKey('alarm-overlay-stop'),
+            style: FilledButton.styleFrom(
+              backgroundColor: colors.error,
+              foregroundColor: colors.onError,
+              textStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+            onPressed: _busy ? null : _stopAlarm,
+            icon: const Icon(Icons.alarm_off),
+            label: const Text('توقف آلارم'),
           ),
-          onPressed: _busy ? null : _stopAlarm,
-          icon: const Icon(Icons.alarm_off),
-          label: const Text('توقف آلارم'),
-        ),
-        const SizedBox(height: 12),
-        OutlinedButton.icon(
-          key: const ValueKey('alarm-overlay-follow-up'),
-          onPressed: _busy ? null : _openFollowUpEntry,
-          icon: const Icon(Icons.note_add_outlined),
-          label: const Text('ثبت سابقه'),
         ),
         const SizedBox(height: 24),
         if (!reminder.isAllDay) ...[
@@ -356,14 +356,29 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
           ),
         const SizedBox(height: 24),
         Text('صدای اعلان', style: Theme.of(context).textTheme.titleSmall),
-        Slider(
-          key: const ValueKey('alarm-overlay-volume-info'),
-          value: 0.65,
-          onChanged: null,
+        Row(
+          key: const ValueKey('alarm-overlay-volume-row'),
+          children: [
+            const Icon(Icons.volume_up, semanticLabel: 'صدای اعلان'),
+            Expanded(
+              child: Slider(
+                key: const ValueKey('alarm-overlay-volume-info'),
+                value: 0.65,
+                onChanged: null,
+              ),
+            ),
+          ],
         ),
         const Text(
           'کنترل صدای اعلان از تنظیمات صدای دستگاه انجام می‌شود.',
           textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 28),
+        OutlinedButton.icon(
+          key: const ValueKey('alarm-overlay-follow-up'),
+          onPressed: _busy ? null : _openFollowUpEntry,
+          icon: const Icon(Icons.note_add_outlined),
+          label: const Text('ثبت سابقه'),
         ),
       ],
     );
