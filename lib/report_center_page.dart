@@ -13,6 +13,7 @@ import 'services/persian_date_formatter.dart';
 import 'services/system_calendar_bridge.dart';
 import 'services/task_report_filter.dart';
 import 'services/completed_task_report_projection.dart';
+import 'services/completed_follow_up_report_projection.dart';
 import 'services/person_follow_up_report_projection.dart';
 import 'task_detail_page.dart';
 import 'task_report_page.dart';
@@ -175,61 +176,15 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
       });
 
   Future<void> _openCompletedFollowUpReport() async {
-    final initial = _now.toLocal();
-    final picked = await showPersianDatePicker(
-      context: context,
-      initialDate: DateTime(initial.year, initial.month, initial.day),
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2100),
-      helpText: 'انتخاب روز گزارش پیگیری‌های انجام‌شده',
-    );
-    if (picked == null || !mounted) return;
-
-    final completedTasks = const CompletedTaskReportProjection().forJalaliDay(
-      widget.tasks,
-      picked,
-    );
     await showDialog<void>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text('گزارش پیگیری‌های انجام‌شده • ${const PersianDateFormatter().format(picked, usePersianDate: true)}'),
-        content: SizedBox(
-          width: 480,
-          child: completedTasks.isEmpty
-              ? const Text('در این روز تکمیل ثبت‌شده‌ای وجود ندارد.')
-              : ConstrainedBox(
-                  constraints: const BoxConstraints(maxHeight: 420),
-                  child: ListView(
-                    shrinkWrap: true,
-                    children: [
-                      for (final task in completedTasks)
-                        ListTile(
-                          key: ValueKey('completed-follow-up-task-${task.id}'),
-                          title: Text(task.title.trim().isEmpty ? 'بدون عنوان' : task.title),
-                          subtitle: Text(_reportDateTimeLabel(task.completedAt!)),
-                          onTap: () {
-                            Navigator.of(dialogContext).pop();
-                            Navigator.of(context).push<void>(
-                              MaterialPageRoute<void>(
-                                builder: (_) => TaskDetailPage(task: task),
-                              ),
-                            );
-                          },
-                        ),
-                    ],
-                  ),
-                ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('بستن'),
-          ),
-        ],
+      builder: (_) => CompletedFollowUpReportDialog(
+        tasks: widget.tasks,
+        people: _peopleDirectory,
+        initialDay: _now.toLocal(),
       ),
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -1437,3 +1392,263 @@ String _timeLabelOf(TimeOfDay? value, String empty) {
 
 TimeOfDay _toTimeOfDay(Duration value) =>
     TimeOfDay(hour: value.inHours % 24, minute: value.inMinutes % 60);
+
+
+enum _CompletedFollowUpViewMode { chronological, byTask }
+
+class CompletedFollowUpReportDialog extends StatefulWidget {
+  const CompletedFollowUpReportDialog({
+    super.key,
+    required this.tasks,
+    required this.people,
+    required this.initialDay,
+  });
+
+  final List<Task> tasks;
+  final List<PersonReference> people;
+  final DateTime initialDay;
+
+  @override
+  State<CompletedFollowUpReportDialog> createState() =>
+      _CompletedFollowUpReportDialogState();
+}
+
+class _CompletedFollowUpReportDialogState
+    extends State<CompletedFollowUpReportDialog> {
+  static const _projection = CompletedFollowUpReportProjection();
+  static const _formatter = PersianDateFormatter();
+  late DateTime _selectedDay;
+  _CompletedFollowUpViewMode _mode = _CompletedFollowUpViewMode.chronological;
+  bool _failed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final local = widget.initialDay.toLocal();
+    _selectedDay = DateTime(local.year, local.month, local.day);
+  }
+
+  List<CompletedFollowUpReportRow> get _rows {
+    try {
+      _failed = false;
+      return _projection.forLocalDay(widget.tasks, _selectedDay);
+    } catch (_) {
+      _failed = true;
+      return const <CompletedFollowUpReportRow>[];
+    }
+  }
+
+  String _time(DateTime value) =>
+      _formatter.formatTime(value.toLocal().hour, value.toLocal().minute);
+
+  String _followUpText(FollowUp followUp) {
+    final parts = <String>[
+      if (followUp.note.trim().isNotEmpty) followUp.note.trim(),
+      if (followUp.result?.trim().isNotEmpty == true)
+        'نتیجه: ${followUp.result!.trim()}',
+    ];
+    return parts.isEmpty ? 'بدون توضیح' : parts.join(' • ');
+  }
+
+  String _peopleLabel(FollowUp followUp) {
+    if (followUp.personIds.isEmpty) return '';
+    final byId = <String, PersonReference>{
+      for (final person in widget.people) person.id: person,
+    };
+    final names = followUp.personIds
+        .map((id) => byId[id]?.displayName)
+        .whereType<String>()
+        .toList(growable: false);
+    return names.isEmpty ? '' : 'افراد: ${names.join('، ')}';
+  }
+
+  Future<void> _pickDay() async {
+    final picked = await showPersianDatePicker(
+      context: context,
+      initialDate: _selectedDay,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2100),
+      helpText: 'انتخاب روز گزارش پیگیری‌های انجام‌شده',
+    );
+    if (picked == null || !mounted) return;
+    setState(() => _selectedDay =
+        DateTime(picked.year, picked.month, picked.day));
+  }
+
+  void _shiftDay(int days) {
+    setState(() => _selectedDay =
+        DateTime(_selectedDay.year, _selectedDay.month, _selectedDay.day + days));
+  }
+
+  void _openTask(CompletedFollowUpReportRow row) {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => TaskDetailPage(task: row.task),
+      ),
+    );
+  }
+
+  Widget _recordTile(CompletedFollowUpReportRow row) {
+    final people = _peopleLabel(row.followUp);
+    return ListTile(
+      key: ValueKey('completed-follow-up-record-${row.taskId}-${row.followUp.id}'),
+      dense: true,
+      title: Text(row.task.title.trim().isEmpty ? 'بدون عنوان' : row.task.title),
+      subtitle: Text([
+        _followUpText(row.followUp),
+        if (people.isNotEmpty) people,
+      ].join(' • ')),
+      trailing: Text(_time(row.followUp.completedAt)),
+      onTap: () => _openTask(row),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final rows = _rows;
+    final taskCount = rows.map((row) => row.taskId).toSet().length;
+    final grouped = <String, List<CompletedFollowUpReportRow>>{};
+    for (final row in rows) {
+      (grouped[row.taskId] ??= <CompletedFollowUpReportRow>[]).add(row);
+    }
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Dialog(
+        insetPadding: const EdgeInsets.all(16),
+        child: SizedBox(
+          width: 620,
+          height: 620,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'گزارش پیگیری‌های انجام‌شده',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'بستن',
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  children: [
+                    IconButton(
+                      key: const ValueKey('completed-follow-up-previous-day'),
+                      tooltip: 'روز قبل',
+                      onPressed: () => _shiftDay(-1),
+                      icon: const Icon(Icons.chevron_right),
+                    ),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        key: const ValueKey('completed-follow-up-date-picker'),
+                        onPressed: _pickDay,
+                        icon: const Icon(Icons.calendar_month_outlined),
+                        label: Text(_formatter.format(
+                          _selectedDay,
+                          usePersianDate: true,
+                        )),
+                      ),
+                    ),
+                    IconButton(
+                      key: const ValueKey('completed-follow-up-next-day'),
+                      tooltip: 'روز بعد',
+                      onPressed: () => _shiftDay(1),
+                      icon: const Icon(Icons.chevron_left),
+                    ),
+                    TextButton(
+                      key: const ValueKey('completed-follow-up-today'),
+                      onPressed: () {
+                        final now = DateTime.now().toLocal();
+                        setState(() => _selectedDay =
+                            DateTime(now.year, now.month, now.day));
+                      },
+                      child: const Text('امروز'),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Text('${rows.length} پیگیری برای ${taskCount} کار'),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: SegmentedButton<_CompletedFollowUpViewMode>(
+                  segments: const [
+                    ButtonSegment(
+                      value: _CompletedFollowUpViewMode.chronological,
+                      label: Text('به‌ترتیب ساعت'),
+                      icon: Icon(Icons.schedule),
+                    ),
+                    ButtonSegment(
+                      value: _CompletedFollowUpViewMode.byTask,
+                      label: Text('بر اساس کار'),
+                      icon: Icon(Icons.work_outline),
+                    ),
+                  ],
+                  selected: <_CompletedFollowUpViewMode>{_mode},
+                  onSelectionChanged: (values) =>
+                      setState(() => _mode = values.first),
+                ),
+              ),
+              const Divider(height: 16),
+              Expanded(
+                child: _failed
+                    ? const Center(
+                        child: Text('گزارش دریافت نشد. دوباره تلاش کنید.'),
+                      )
+                    : rows.isEmpty
+                        ? const Center(
+                            child: Text('برای این روز پیگیری‌ای ثبت نشده است.'),
+                          )
+                        : _mode == _CompletedFollowUpViewMode.chronological
+                            ? ListView.separated(
+                                itemCount: rows.length,
+                                separatorBuilder: (_, __) =>
+                                    const Divider(height: 1),
+                                itemBuilder: (_, index) =>
+                                    _recordTile(rows[index]),
+                              )
+                            : ListView(
+                                children: [
+                                  for (final entry in grouped.entries)
+                                    ExpansionTile(
+                                      key: ValueKey(
+                                        'completed-follow-up-task-group-${entry.key}',
+                                      ),
+                                      title: Text(entry.value.first.task.title
+                                              .trim()
+                                              .isEmpty
+                                          ? 'بدون عنوان'
+                                          : entry.value.first.task.title),
+                                      subtitle: Text(
+                                        '${entry.value.length} پیگیری',
+                                      ),
+                                      children: [
+                                        for (final row in entry.value)
+                                          _recordTile(row),
+                                      ],
+                                    ),
+                                ],
+                              ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
