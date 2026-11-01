@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
@@ -36,9 +35,14 @@ void main() {
       // both read SharedPreferences. Seed the plugin before either path runs so
       // this file-backed test never waits on an unregistered platform channel.
       SharedPreferences.setMockInitialValues(<String, Object>{});
+      stage('T00a SharedPreferences mock initialized');
+      stage('T00b before Directory.systemTemp.createTemp');
       final directory = await Directory.systemTemp.createTemp('arvin-alarm-file-');
+      stage('T00c temporary directory created: ${directory.path}');
       final path = '${directory.path}/arvin.sqlite';
+      stage('T00d before NativeDatabase constructor');
       var executor = NativeDatabase(File(path));
+      stage('T00e NativeDatabase constructor returned');
       stage('T01 before first Schema install');
       await G1DriftSchema.install(executor);
       stage('T02 first Schema install completed');
