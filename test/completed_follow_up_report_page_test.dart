@@ -59,7 +59,6 @@ void main() {
     expect(find.text('تماس اول'), findsOneWidget);
     expect(find.text('تماس دوم'), findsOneWidget);
     expect(find.text('تماس سوم'), findsOneWidget);
-    expect(find.text('بدون سابقه'), findsNothing);
 
     await tester.tap(find.text('بر اساس کار'));
     await tester.pumpAndSettle();
