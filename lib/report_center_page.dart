@@ -1581,7 +1581,7 @@ class _CompletedFollowUpReportDialogState
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
                 child: Align(
                   alignment: Alignment.centerRight,
-                  child: Text('${rows.length} پیگیری برای ${taskCount} کار'),
+                  child: Text(_formatter.toPersianDigits('${rows.length} پیگیری برای ${taskCount} کار')),
                 ),
               ),
               Padding(
