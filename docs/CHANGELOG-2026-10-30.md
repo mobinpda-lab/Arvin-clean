@@ -47,3 +47,14 @@ This entry records the governing product decisions for Reminder-only scheduling,
 - Fixed the Settings UI test expectation for the newly available “ثبت پیگیری” Task swipe action.
 
 - Corrected analyzer findings in the completed Follow-ups report and stabilized the Follow-up Office waiting-response switch test with a dedicated key; scoped the report exclusion assertion to the report row rather than the underlying page. Fresh exact-head CI is required for these corrections.
+
+
+## 2026-11-01 — Binding alarm / Task completion / Snooze / Follow-up separation directive
+
+- Product-owner clarification: **“انجام شد” completes the parent Task through the existing canonical completion path**. It is not equivalent to stopping audio, snoozing a Reminder, or inserting a Follow-up.
+- Defined four independent user actions: stop current alarm audio; snooze only the same Reminder; complete Task via canonical behavior; optionally insert historical Follow-up only after explicit action.
+- Recorded a narrow product-owner scope override to the earlier Issue #823 “No new features” freeze. The exception is limited to this interaction on PR #3052; unrelated features remain frozen. Issue #823 remains OPEN.
+- Data-safety contract: preserve Task, history, recurrence, unrelated Reminders and existing notification lifecycle; no destructive migration; no automatic Follow-up on stop/snooze/complete; idempotent completion; preserve existing reopen behavior.
+- Acceptance requires exact target SHA + actual run ID + inspectable evidence/artifact for every PASS. Initial source inspection is not runtime proof.
+- Intake baseline HEAD: `eb017f57ccd98f8bc43025aedd837fad2f79a2f6`. Implementation and tests remain NOT VERIFIED pending inspection and execution.
+- PR #3052 remains OPEN/DRAFT. Release remains **BLOCKED — RELEASE: NO-GO**. No main edit, merge or APK publication.
