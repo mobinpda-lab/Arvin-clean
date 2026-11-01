@@ -579,3 +579,107 @@ At SHA `47609116cf02e0f2c712a70a4448a93a1b0e0169`:
 
 ### Decision and next safe action
 Execution is **BLOCKED at integration discovery**, not accepted. Do not add a fake audio engine, decorative slider, synthetic notification lifecycle, parallel FollowUp form, or speculative migration. The next implementation step requires a verified platform alarm/audio lifecycle and notification-response/overlay entry point, then a Task ID + active Reminder ID handoff contract. Only after that should the stop/snooze/shortcut behavior and file-backed SQLite/widget/device tests be implemented on this authorized branch. Keep PR #3052 OPEN/DRAFT, Issue #823 OPEN, and release **BLOCKED — RELEASE: NO-GO**.
+
+
+---
+
+## Unified product + Alarm Widget audit — 2026-11-01 (live exact-head checkpoint)
+
+> This checkpoint supersedes earlier CI status snapshots and any earlier interpretation of the alarm shortcut as Task completion. It records the latest live evidence at the exact SHA below. It does not claim release acceptance.
+
+### A. Governance and immutable target
+
+- Repository: `mobinpda-lab/Arvin-clean`
+- Authorized branch: `fix/recovery-calendar-device-smoke-2026-10-31`
+- PR #3052: **OPEN / DRAFT / unmerged**
+- Issue #823: **OPEN**
+- Issue #2102: **OPEN**
+- Issue #1139: historical context only; not used as an execution authority.
+- Reported SHA comparison: supplied `2ce4d2fa7a73d89dbde92ea704e9e1e318528e7f` equals live branch HEAD and PR head.
+- Exact target SHA for all CI rows below: `2ce4d2fa7a73d89dbde92ea704e9e1e318528e7f`.
+- Release decision: **BLOCKED — RELEASE: NO-GO**.
+- No source implementation was added in this checkpoint. Only this audit ledger and the PR evidence comment are updated. No main edit, merge, APK publication, destructive migration, or issue closure.
+
+### B. Path A — whole-product acceptance matrix
+
+All listed run IDs were re-fetched from GitHub. Each run's `head_sha` is exactly `2ce4d2fa7a73d89dbde92ea704e9e1e318528e7f`.
+
+| Gate | Result at checkpoint | Run / Job evidence | Artifact / limitation |
+|---|---|---|---|
+| Build Analyze | **PASS — scoped static analysis** | Run `41283768533`; job `124781001944`; exact-checkout step SUCCESS; Analyze SUCCESS; log: `No issues found! (ran in 17.8s)` | No APK artifact from this job. |
+| Build test shards | **PASS — 6/6 shards** | Run `41283768533`; jobs: test-0 `124781001943` (195 tests), test-1 `124781002056` (164), test-2 `124781001970` (260), test-3 `124781001868` (125), test-4 `124781001931` (206), test-5 `124781002077` (153). Each exact-checkout step and Test step SUCCESS; aggregate **1,103 tests passed**. | Job logs are the evidence. This is general Flutter test coverage, not proof of Alarm Widget behavior. |
+| Overall Build / APK variants | **PENDING** | Run `41283768533`; staging job `124781001760`, debug job `124781001884`, release job `124781002229` were all IN_PROGRESS at last refresh. | No artifacts returned. APK byte size, checksum, debuggable state, signer identity and final manifest not yet inspectable. |
+| Staging signature / manifest / font packaging audit | **PENDING** | Run `41283768533`; staging job `124781001760`. Workflow includes apksigner v1/v2/v3, debuggable check, SHA-256/size manifest and Vazirmatn packaging/source audit steps, but job had not reached final result. | Staging workflow generates an ephemeral test-only key. Even a successful staging signature is not production-publishable signing evidence. No manifest artifact currently available. |
+| Device Smoke matrix | **PENDING — 0/7 lanes accepted** | Run `41283768541`; matrix preparation job `124780948562` SUCCESS. Lanes: boot `124780961747` IN_PROGRESS; navigation `124780961625` IN_PROGRESS; quick-capture `124780961597` QUEUED; task-lifecycle `124780961620` QUEUED; reminder-vazirmatn `124780961623` QUEUED; calendar-segmented-view `124780961664` QUEUED; follow-up-persistence `124780961992` QUEUED. | No artifacts returned at refresh. Matrix setup success is not lane acceptance. Reminder/Vazirmatn lane reuses `integration_test/calendar_card_interaction_test.dart`; it is not an Alarm Overlay test. |
+| Follow-up file-backed SQLite persistence | **PASS — narrow repository scenario only** | Run `41283768600`; job `124780807362`; exact-checkout and test steps SUCCESS; log: one test passed. | `test/follow_up_repository_file_persistence_test.dart`. It verifies Task completion true→false→true across closing/reopening the same SQLite file while preserving two historical FollowUps, two TaskReminders, dueDate and related Task data. It does **not** test FollowUp creation from Alarm Overlay, snooze writes, notification stop, or audio. No artifact returned. |
+| Calendar Provider | **PENDING** | Run `41283768538`; job `124780807054` IN_PROGRESS. | Job log/artifact not yet available at refresh. Calendar Provider acceptance remains pending. |
+| Production Loop | **PASS — automation-only, not a release gate** | Run `41283768606`; job `124780807413` SUCCESS; feedback-loop job `124780808172` SKIPPED. | No artifact. This does not establish Build, Device Smoke, Calendar Provider, APK signing or release readiness. |
+
+#### Additional whole-product gates
+
+- Database/schema migration: **NOT VERIFIED as a complete release gate**. The passing general test shard includes migration-related unit coverage, but no evidence here establishes backup/recovery against real user data, upgrade-path compatibility across supported schema versions, or destructive-migration safety.
+- Calendar behavior: **PENDING** under Calendar Provider and Device Smoke; do not infer acceptance from unit tests alone.
+- PDF generation and Persian shaping: **NOT VERIFIED** for end-to-end/device output at this checkpoint.
+- Archive/restore states, last-FollowUp office projection and deletion lifecycle: **NOT VERIFIED** as complete product acceptance gates.
+- Staging and release APK: **PENDING**; no inspectable APK, checksum, size, signer certificate, debuggable result or manifest artifact was returned.
+- Production signing: **NOT RUN / NOT VERIFIED**. The production-signing workflow is a separate protected-default-branch workflow and does not accept arbitrary PR-head signing as production evidence.
+
+### C. Path B — Alarm Widget & Follow-up Shortcut matrix
+
+Source inspected at exact SHA `2ce4d2fa7a73d89dbde92ea704e9e1e318528e7f`:
+
+- `lib/automatic_follow_up_notification_service.dart`
+- `lib/automatic_follow_up_background_runner.dart`
+- `lib/follow_up_reminder_notification_service.dart`
+- `lib/follow_up_reminder_background_runner.dart`
+- `lib/android_follow_up_reminder_scheduler.dart`
+- `lib/services/follow_up_reminder_projection.dart`
+- `lib/services/follow_up_reminder_delivery_service.dart`
+- `lib/follow_up_entry_page.dart`
+- `lib/models/task.dart`
+- `lib/services/task_store.dart`
+- `lib/theme/app_fonts.dart`
+- `lib/theme/font_registry.dart`
+- `pubspec.yaml`
+- `android/app/src/main/AndroidManifest.xml`
+
+| Control / invariant | Result | SHA / Run / Job | Evidence and limitation |
+|---|---|---|---|
+| Real alarm delivery lifecycle | **PARTIAL SOURCE EVIDENCE; overlay lifecycle NOT VERIFIED** | SHA above; no Alarm-specific Run/Job | Existing Android scheduler `followUpReminderAlarmId = 42002` schedules a background callback. The callback runs the reminder delivery runner. The notification service calls local-notifications `show()` on a high-importance channel. This is not evidence of a full-screen ringing overlay or an audio-player lifecycle. |
+| Stop active ringtone only | **BLOCKED** | SHA above; no Alarm-specific Run/Job | No active audio controller, explicit stop/cancel action, notification response callback, or overlay route was found in the inspected delivery path. Do not present a red decorative button as functional. |
+| Task + exact Reminder identity | **NOT VERIFIED / current handoff insufficient** | SHA above; no Alarm-specific Run/Job | The reminder projection has `taskId` and `taskReminderId`; the notification payload currently contains only `candidate.taskId`. The notification response path does not currently demonstrate preservation/recovery of the active Reminder ID for snooze or action routing. |
+| Notification/Alarm ID interpretation | **VERIFIED SOURCE FACT** | SHA above | `42002` is the Android AlarmManager scheduler ID for the shared FollowUp/Task Reminder scheduling callback. It is not the active notification ID, ringtone ID, or an audio-controller handle. Individual notification IDs are separately derived from candidate stable identity. |
+| Task title and reminder time in overlay | **NOT VERIFIED** | SHA above; no Alarm-specific Run/Job | No alarm overlay entry point was found. Candidate projection contains title/time data, but no rendered overlay binds and displays it. |
+| Real volume control | **BLOCKED** | SHA above; no Alarm-specific Run/Job | No real alarm audio stream/controller or volume callback was found. No slider may be claimed functional. |
+| Snooze same Reminder, preserving identity/recurrence | **NOT VERIFIED / NOT IMPLEMENTED** | SHA above; no Alarm-specific Run/Job | TaskReminder has stable ID/title/date/isAllDay/sequence and is serialized with Task data. No verified active-reminder response handler, snooze mutation, reschedule integration or file-backed snooze/reopen test exists in the inspected path. |
+| `ثبت سابقه` opens existing form | **PARTIAL SOURCE AVAILABILITY; caller NOT VERIFIED** | SHA above; no Alarm-specific Run/Job | `FollowUpEntryPage(taskId: ...)` exists with explicit `follow-up-entry-save` and `onSaved` callback. No Alarm Overlay caller or exact active Task ID handoff is present in the inspected notification flow. |
+| FollowUp form isolation | **NOT VERIFIED; integration constraint identified** | SHA above; no Alarm-specific Run/Job | Existing form has an optional `افزودن یادآور` switch; when enabled, its save path calls `TaskStore.addTaskReminder` and reschedules. An Alarm shortcut must reuse the same form but must ensure its shortcut mode cannot unintentionally change future Reminders. This isolation is not implemented or tested. |
+| Explicit-save-only FollowUp insertion | **NOT VERIFIED from Alarm entry** | SHA above; no Alarm-specific Run/Job | The form constructs a FollowUp and returns it through `onSaved` / Navigator only after explicit save. No alarm caller/callback wiring or cancel/no-save database isolation test is present. |
+| Task completion remains independent | **SOURCE CONTRACT PRESENT; Alarm isolation NOT VERIFIED** | SHA above; general persistence Run `41283768600`, job `124780807362` | Canonical `Task.setCompleted` exists separately. The persistence test covers completion toggling while preserving existing FollowUps and TaskReminders; it does not prove the Alarm Stop or Follow-up shortcut cannot invoke completion. |
+| Vazirmatn assets and global theme | **PASS — source declaration only** | SHA above; Build Run `41283768533`; font packaging job `124781001760` still IN_PROGRESS | `pubspec.yaml` bundles Vazirmatn Regular/Medium/Bold; `AppFonts` and registry use only `Vazirmatn`; MaterialApp applies the family. This does not prove Overlay/Dialog/slider/accessibility rendering because no overlay exists. |
+| Alarm UI/device/screenshot tests | **NOT RUN** | No Alarm-specific Run/Job | No overlay widget test, stop test, snooze test, alarm-launched FollowUp test, audio test or screenshot artifact exists in this checkpoint. |
+
+#### Font-workflow discrepancy
+
+The Follow-up File Persistence workflow (Run `41283768600`, job `124780807362`) restores a pinned legacy `VazirHarf` checkout under `assets/fonts/vazirharf`. The current product source and `pubspec.yaml` declare bundled `Vazirmatn`. The passing persistence test is not a font-rendering test and must not be used as Vazirmatn acceptance evidence. The Build staging job's dedicated font packaging/source audit is still pending.
+
+#### Reference image availability
+
+Neither `photo_1793512287397.webp` nor `photo_1793516357359.webp` was present among current conversation attachments or saved reference-image entries in this execution context. Their pixel layout, dimensions, spacing and screenshot comparison remain **NOT VERIFIED**. Do not invent coordinates or visual PASS claims.
+
+### D. Execution decision and next safe actions
+
+1. Keep the overall release decision **BLOCKED — RELEASE: NO-GO**.
+2. Allow the current exact-SHA Build, Device Smoke and Calendar Provider runs to finish; then re-fetch run, job, log and artifact results before changing any PENDING row.
+3. Do not treat the narrow Follow-up persistence test, Production Loop, or general test shards as Alarm acceptance.
+4. Before Alarm implementation, define and verify the actual notification-response/overlay entry point and the active Task ID + Reminder ID contract. Confirm whether OS notification sound is the only sound source; do not invent a ringtone controller.
+5. Reuse `FollowUpEntryPage`; add only the minimal shortcut-specific isolation needed so the alarm-origin form cannot mutate Reminder scheduling, while preserving explicit Save-only historical insertion.
+6. Implement stop, snooze, volume, and overlay UI only against verified lifecycle APIs; then add file-backed SQLite close/reopen tests, widget tests, and device evidence for each independent behavior.
+7. Inspect both reference images after they are made available to this execution context.
+8. Keep PR #3052 OPEN/DRAFT; keep Issues #823 and #2102 OPEN. No main edits, merge, production signing, or release promotion.
+
+**Path A status:** PARTIAL — general Analyze and six test shards PASS; overall Build, Device Smoke and Calendar Provider remain PENDING; staging/manifest/signature and several end-to-end product gates remain NOT VERIFIED.
+
+**Path B status:** BLOCKED / NOT VERIFIED — canonical notification scheduling and FollowUp form components exist, but there is no verified active audio/overlay/action lifecycle or exact Reminder-ID response handoff; no Alarm-specific runtime acceptance exists.
+
+**Overall release:** **BLOCKED — RELEASE: NO-GO**.
