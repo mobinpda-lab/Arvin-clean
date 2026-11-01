@@ -18,3 +18,8 @@ The device-smoke workflow emits the seven acceptance lane identifiers below on e
 - Calendar segmented-view and Reminder/Alarm now use separate integration-test files and separate screenshot artifact names. The Reminder lane directly renders the Alarm Overlay screen; notification delivery/tap from foreground, background and cold start remains a separate runtime acceptance requirement.
 - Vazirmatn runtime rendering is not independently pixel-asserted by this lane. The existing APK font-packaging audit proves the required Vazirmatn font assets are bundled; it does not by itself prove visual rendering on every device.
 - A seven-lane result is valid only when all seven jobs have green conclusions, each exact-checkout step prints the requested SHA, and each integration test emits its own passing summary. A successful matrix setup job alone is not acceptance evidence.
+
+
+## Bounded Android integration-test pumping
+
+The Calendar and Alarm Overlay integration tests use bounded frame pumping and explicit widget-readiness loops. They must not wait for global frame quiescence because the canonical Calendar route can retain an active ticker; waiting for all frames to settle can stall the Flutter Driver request/response cycle. This is a test synchronization fix, not a timeout increase. The Reminder lane remains a screen-rendering smoke; actual Notification tap lifecycle is still a separate acceptance gate.

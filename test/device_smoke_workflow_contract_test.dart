@@ -82,6 +82,17 @@ void main() {
     );
     expect(workflow, contains('Upload Reminder overlay evidence'));
     expect(workflow, contains('alarm-overlay-*.png'));
+
+    final fastLaneValidator = File('tool/validate_fast_lane.py').readAsStringSync();
+    expect(
+      fastLaneValidator,
+      contains("'smoke-reminder-vazirmatn': 'integration_test/alarm_overlay_smoke_test.dart'"),
+    );
+
+    final calendarSmoke = File('integration_test/calendar_card_interaction_test.dart').readAsStringSync();
+    expect(calendarSmoke, isNot(contains('pumpAndSettle')));
+    final alarmSmoke = File('integration_test/alarm_overlay_smoke_test.dart').readAsStringSync();
+    expect(alarmSmoke, isNot(contains('pumpAndSettle')));
     expect(workflow, isNot(contains("matrix.scenario == 'home'")));
     expect(workflow, isNot(contains("matrix.scenario == 'people'")));
 

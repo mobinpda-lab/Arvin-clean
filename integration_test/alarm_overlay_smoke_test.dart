@@ -37,12 +37,12 @@ void main() {
       ]);
 
       app.main();
-      await tester.pumpAndSettle();
+      await _pumpFrames(tester, frames: 15);
 
       final skipGuide = find.text('رد کردن');
       if (skipGuide.evaluate().isNotEmpty) {
         await tester.tap(skipGuide);
-        await tester.pumpAndSettle();
+        await _pumpFrames(tester);
       }
 
       final navigator = app.arvinNavigatorKey.currentState;
@@ -59,7 +59,7 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      await _pumpFrames(tester);
 
       expect(find.byKey(const ValueKey('alarm-overlay-stop')), findsOneWidget);
       expect(find.byKey(const ValueKey('alarm-overlay-task-title')), findsOneWidget);
@@ -74,7 +74,7 @@ void main() {
       expect(title.style?.fontFamily, AppFonts.vazirmatnFamily);
 
       await binding.convertFlutterSurfaceToImage();
-      await tester.pumpAndSettle();
+      await _pumpFrames(tester);
       await binding.takeScreenshot('alarm-overlay-top');
 
       final followUp = find.byKey(const ValueKey('alarm-overlay-follow-up'));
@@ -86,9 +86,19 @@ void main() {
           matching: find.byType(Scrollable),
         ),
       );
-      await tester.pumpAndSettle();
+      await _pumpFrames(tester);
       expect(followUp.hitTestable(), findsOneWidget);
       await binding.takeScreenshot('alarm-overlay-follow-up');
     },
   );
+}
+
+
+Future<void> _pumpFrames(
+  WidgetTester tester, {
+  int frames = 5,
+}) async {
+  for (var frame = 0; frame < frames; frame++) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
 }
