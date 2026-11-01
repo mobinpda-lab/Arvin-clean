@@ -187,6 +187,41 @@ jobs:
           cp "$RUNNER_TEMP/apksigner-staging.log" staging-verification/apksigner-verify.log
           printf 'APK_DEBUGGABLE=%s\n' "$debuggable" > staging-verification/manifest-audit.txt
           printf 'TARGET_SHA=%s\n' "$(git rev-parse HEAD)" >> staging-verification/manifest-audit.txt
+          python3 - "$apk" "$RUNNER_TEMP/apksigner-staging.log" "$(git rev-parse HEAD)" "$debuggable" staging-verification/release-manifest.json <<'PY'
+          import hashlib, json, pathlib, sys
+          apk_path, log_path, target_sha, debuggable, manifest_path = sys.argv[1:]
+          apk = pathlib.Path(apk_path)
+          log = pathlib.Path(log_path).read_text(encoding="utf-8", errors="replace")
+          schemes = {}
+          for scheme in ("v1", "v2", "v3"):
+              prefix = f"Verified using {scheme} scheme"
+              matches = [line for line in log.splitlines() if line.startswith(prefix)]
+              if not matches:
+                  raise SystemExit(f"APK_SIGNATURE=FAIL missing {scheme} verification line")
+              schemes[scheme] = matches[-1].rsplit(": ", 1)[-1].strip().lower() == "true"
+          if not schemes["v2"] or not schemes["v3"]:
+              raise SystemExit(f"APK_SIGNATURE=FAIL required v2/v3 schemes: {schemes}")
+          digest = hashlib.sha256(apk.read_bytes()).hexdigest()
+          manifest = {
+              "source_sha": target_sha,
+              "variant": "staging",
+              "apk_path": str(apk),
+              "file_size_bytes": apk.stat().st_size,
+              "sha256": digest,
+              "signature_schemes": schemes,
+              "android_debuggable": debuggable == "true",
+              "signing_key_class": "EPHEMERAL_TEST_ONLY_NOT_PRODUCTION",
+          }
+          pathlib.Path(manifest_path).write_text(
+              json.dumps(manifest, indent=2) + "\n", encoding="utf-8"
+          )
+          print(
+              f"RELEASE_MANIFEST=PASS source_sha={target_sha} "
+              f"bytes={manifest['file_size_bytes']} sha256={digest} "
+              f"v1={schemes['v1']} v2={schemes['v2']} v3={schemes['v3']} "
+              f"debuggable={manifest['android_debuggable']}"
+          )
+          PY
       - name: Font packaging audit
         shell: bash
         run: |
