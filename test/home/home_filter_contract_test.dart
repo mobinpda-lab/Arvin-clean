@@ -20,7 +20,7 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('تاریخ‌گذشته'), findsOneWidget);
+    expect(find.text('تاریخ گذشته'), findsOneWidget);
     expect(find.text('امروز'), findsAtLeastNWidgets(1));
     expect(find.byKey(const ValueKey('home-filter-card-time')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-project')), findsOneWidget);
@@ -41,7 +41,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('home-group-today')), findsOneWidget);
-    expect(find.text('تاریخ‌گذشته'), findsNothing);
+    expect(find.text('تاریخ گذشته'), findsNothing);
     expect(find.byKey(const ValueKey('home-group-tomorrow')), findsNothing);
     expect(find.text('آینده'), findsNothing);
     expect(find.text('فاقد زمان'), findsNothing);
