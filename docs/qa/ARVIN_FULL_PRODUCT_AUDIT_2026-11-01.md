@@ -428,3 +428,38 @@ No merge, release, publish, main-branch edit, issue closure, NIRA change, or des
 7. Update this section with exact commit SHA, test names/results, workflow run/job IDs and artifact references only after those checks actually pass.
 
 **Audit decision:** intake recorded; implementation and acceptance remain pending. Keep PR #3052 OPEN/DRAFT, Issues #823 and #2102 OPEN, and do not claim PASS or release readiness.
+
+
+## 12. Binding product-owner directive — Alarm controls, Task completion, Snooze & Follow-up separation
+
+**Pre-edit live PR HEAD:** `eb017f57ccd98f8bc43025aedd837fad2f79a2f6`  
+**Branch:** `fix/recovery-calendar-device-smoke-2026-10-31` / PR #3052  
+**Issue:** #823 OPEN  
+**Release:** BLOCKED — RELEASE: NO-GO
+
+### Scope conflict and reconciliation
+Issue #823 previously stated “No new features” and froze work to release blockers. The product owner has now explicitly issued a mandatory, narrow scope override for this specific alarm interaction on PR #3052. The exception is limited to the four actions below and their acceptance tests; it does not authorize unrelated feature work, main changes, merging, APK publication, or release. The reconciliation was appended to Issue #823 before source edits. Issue remains OPEN.
+
+### Binding action semantics
+1. **توقف آلارم:** stop active audio only; preserve Task and Reminder; no Task completion and no Follow-up insert; preserve existing dismissal/notification lifecycle.
+2. **Snooze:** selected duration is visible; confirm updates only the same Reminder's next alert through the existing lifecycle. No Task completion, due-date mutation, Follow-up insert, or unrelated/recurring Reminder mutation.
+3. **انجام شد:** call the existing canonical Task-completion path. Persist and display completion after reload/database reopen; suppress notifications according to current policy; preserve Task/history/valid Reminders; no automatic Follow-up. Must be idempotent and retain existing reopen behavior.
+4. **ثبت سابقه پیگیری (optional):** distinct explicit action; insert a real historical FollowUp linked to parent Task using the established historical timestamp; no future schedule data or Reminder mutation; note edits cannot change the timestamp.
+
+### Initial source observations at the recorded HEAD
+- `TaskReminder` in `lib/models/task.dart` exposes id/title/date/isAllDay/sequence and recurrence-independent identity; no dedicated snooze field was observed in this model excerpt. A safe approach must reuse the existing Reminder date/lifecycle only if full scheduler inspection proves this preserves recurrence and notification identity.
+- `FollowUp.completedAt` is currently an alias of `dateTime`. The model excerpt still exposes legacy `reminderDate` and `nextFollowUp` members; the canonical baseline prohibits future scheduling on FollowUp. No schema changes are authorized merely to implement this screen.
+- `lib/main.dart` applies Vazirmatn through app theme text themes; screen/dialog coverage still requires widget-level proof.
+- `lib/services/task_store.dart` exposes `addFollowUp(taskId, followUp)` and `addTaskReminder(taskId, date)`; neither is proof of the canonical Task-completion path or safe snooze semantics.
+- Alarm service, Task completion, recurrence, notification suppression and database reopen behavior remain under inspection. No source change has been made as part of this directive intake.
+
+### Acceptance evidence status
+- Stop audio / no side effects: **NOT VERIFIED**.
+- Snooze display + same-Reminder persistence + recurrence isolation: **NOT VERIFIED**.
+- Canonical Task completion + persisted UI state + notification suppression + idempotency: **NOT VERIFIED**.
+- Explicit Follow-up separation + immutable historical timestamp: **NOT VERIFIED**.
+- Full Vazirmatn overlay/dialog/accessibility rendering: **NOT VERIFIED**.
+- Required widget / service / file-backed SQLite / device tests: **NOT RUN**.
+- No PASS can be assigned until exact target SHA, actual run ID, and inspectable artifact are recorded.
+
+**Governance:** keep PR #3052 OPEN/DRAFT, Issue #823 OPEN, and release BLOCKED — RELEASE: NO-GO. No main edit, merge, APK publication, destructive migration or Task/history deletion.
