@@ -122,3 +122,15 @@ This entry records the governing product decisions for Reminder-only scheduling,
 
 
 - Follow-up implementation commit `c9c1933f57fbdfac4f4cb4facbaae757b7d5677d` keeps the Today/Tomorrow Jalali date nullable and explicit in the Home group renderer. No grouping or data behavior changed.
+
+
+## 2026-11-01 — Calendar source filters and parallel Alarm test remediation
+
+- Added a separate Calendar source filter below the Jalali calendar: `همه`, `تقویم گوشی`, `یادآورها`, `پیگیری‌ها`. It filters the selected-day list by canonical projection IDs while preserving full calendar-grid counts/dots and the existing day/week/month/year view control.
+- Device Calendar items are sourced only from the existing OfficialCalendarPage provider projection when integration, visible calendar selection and Android read permission allow them; no synthetic device events are created.
+- Added a regression test for all four filter selections. It remains NOT VERIFIED until the next exact-head Build.
+- Fixed the Alarm Project-membership test fixture: the Task parent row is now seeded in the same injected SQLite executor as ProjectStore, satisfying the existing project_items foreign key. No production schema relaxation or migration was made.
+- Corrected stale Home/Calendar test expectations for the approved Today label, subtitle and lazy group rendering.
+- Updated the Build workflow to skip all APK variants for Draft pull requests while preserving Analyze and six quality-test shards. The earlier c452033 Build unexpectedly assembled APK variants before this guard was added; those were not published. The new exact-head run must verify APK jobs are skipped.
+- Exact-head alarm_overlay_file_persistence_test.dart remains NOT VERIFIED. Run 41319018092 was a different repository persistence test and must not be represented as Alarm Overlay proof.
+- Release remains BLOCKED — RELEASE: NO-GO. PR #3052 stays OPEN/DRAFT/UNMERGED; Issues #823/#2102/#2299 stay OPEN.
