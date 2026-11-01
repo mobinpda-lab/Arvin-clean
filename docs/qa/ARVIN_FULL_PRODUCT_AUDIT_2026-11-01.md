@@ -1241,3 +1241,105 @@ The selected-day list sorts all-day entries before timed entries and sorts timed
 
 ### Evidence protocol
 Every PASS must identify: **exact SHA + Run ID + Attempt + Job ID + artifact/log/test evidence**. Source inspection is labelled implementation/source evidence, not a runtime PASS. Any missing, stale, cancelled, in-progress, queued or unavailable evidence is **NOT VERIFIED**. Keep historical results explicitly tied to their original SHA.
+
+
+---
+
+## 21. Live timeout extraction and full product-ledger reconciliation — 2026-11-01 18:09 UTC
+
+**This section supersedes all earlier live/current checkpoints above.** The canonical requirements remain fully preserved in §3; the detailed evidence matrix in §4 is retained, but its original source inspection and historical run references are not silently upgraded to the current HEAD.
+
+### 21.1 Live authority and governance
+
+- Repository: `mobinpda-lab/Arvin-clean`
+- Authorized branch: `fix/recovery-calendar-device-smoke-2026-10-31`
+- Current code HEAD at this checkpoint: `6dacb0d0820514d0b4de397ddebffc7ed540a944`
+- PR #3052: OPEN / DRAFT / UNMERGED; branch HEAD matches the PR head.
+- Issues #823, #2102 and #2299: OPEN.
+- No `main` edits, merge, release, APK publication or issue closure.
+- Release: **BLOCKED — RELEASE: NO-GO**.
+- Font authority: **Vazirmatn only**; system default is prohibited.
+
+### 21.2 Exact timeout evidence — SHA 85e4cc9
+
+- Workflow: Follow-up File Persistence, Run `41333954757`, Attempt 1.
+- Target SHA: `85e4cc9a87c37e88dd36919fa3b58856fe82ca9b`.
+- Job: `124929703391`, conclusion **FAILURE**.
+- The job first passed the repository-level test `completion true -> false -> true survives closing and reopening the same SQLite file`.
+- It then explicitly ran `flutter test --reporter expanded test/alarm_overlay_file_persistence_test.dart`.
+- The Alarm Overlay test emitted only:
+  `[ARVIN_TIMEOUT_DIAG][TEST][0ms] T00 START: file-backed persistence scenario`
+- Ten minutes later it failed with `TimeoutException after 0:10:00`.
+- No T01 or later stage was emitted. The test source shows the only awaited operation between T00 and T01 is `Directory.systemTemp.createTemp('arvin-alarm-file-')`; the synchronous `NativeDatabase(File(path))` constructor is after that await and before T01. Therefore the observed stall is narrowed to the temporary-directory creation await (or its underlying test-runner filesystem operation), **before the first SQLite schema install, TaskStorageLock/TaskStore operation, Snooze, executor close/reopen, Complete, or Calendar Outbound Sync**.
+- This is a precise last-success / first-missing-stage boundary, not proof of the underlying OS/filesystem cause. Root cause remains **NOT VERIFIED**. It is incorrect to attribute this reproduced run to SQLite schema, TaskStorageLock, or Calendar Outbound Sync.
+- Log evidence: GitHub Actions Job `124929703391`, full decoded log; failure at 18:06:42 UTC after the 18:56:42 test start in the job log's timestamp sequence.
+
+### 21.3 Diagnostic-only correction on the authorized branch
+
+- Commit `e549cb4d54b6ec2d754e47ebbdac3491ac603915`: added T00a–T00e markers around SharedPreferences mock setup, temporary-directory creation, and NativeDatabase construction; removed an unnecessary Flutter foundation import.
+- Commit `6dacb0d0820514d0b4de397ddebffc7ed540a944`: changed TaskStorageLock diagnostics from production `print` calls to `dart:developer` logging to avoid the Analyze `avoid_print` failures.
+- No SQL, schema, migration, lock algorithm, reminder behavior, or calendar behavior was changed by these diagnostic corrections.
+- The next run on SHA `6dacb0d...` is the first run that can distinguish whether the stall is specifically inside `Directory.systemTemp.createTemp` or NativeDatabase construction. Until its log is complete, no fix or root cause is claimed.
+
+### 21.4 Build / Device Smoke / Calendar Provider reconciliation
+
+All rows below are exact-SHA scoped.
+
+| Workflow | Target SHA | Run / Attempt | Job evidence | Observed result |
+|---|---|---|---|---|
+| Build | `85e4cc9...` | `41333954758` / 1 | test-0 `124930056305`; test-1 `124930056541`; test-2 `124930056493`; test-3 `124930056604`; test-4 `124930056589`; test-5 `124930056712`; Analyze `124930056665`; APK `124930057246` | Run CANCELLED after branch advanced. test-0/1/3/4/5 SUCCESS; test-2 was still IN_PROGRESS at last job inspection; Analyze FAILURE; APK SKIPPED. Analyze log: five `avoid_print` infos in `lib/services/task_storage_lock.dart` and one unnecessary import in the Alarm test. No aggregate Build PASS. |
+| Device Smoke | `85e4cc9...` | `41333954833` / 1 | Boot `124929739017`; Navigation `124929738997`; Quick Capture `124929738974`; Calendar `124929738950`; Task Lifecycle `124929738965`; Follow-up `124929739004`; Reminder/Vazirmatn `124929739007` | Boot, Navigation and Quick Capture SUCCESS (3/7). Calendar was IN_PROGRESS at last observation; Task Lifecycle, Follow-up and Reminder lanes were CANCELLED. Not 7/7. |
+| Calendar Provider | `85e4cc9...` | `41333954741` / 1 | Job `124929703245` | SUCCESS on emulator workflow; this does not prove physical-device, two-writable-calendar, permission/reboot or recovery acceptance. |
+| G1 lock sync | `85e4cc9...` | `41333954770` / 1 | Job `124929703287` | SUCCESS for the lock-sync workflow only; not a substitute for the Alarm file-persistence test. |
+
+New exact-head validation was automatically started on `6dacb0d...`:
+
+| Workflow | Run ID / Attempt | Job IDs / current state at checkpoint |
+|---|---|---|
+| Follow-up File Persistence | `41335034110` / 1 | Job `124932937945` IN_PROGRESS |
+| Build | `41335034309` / 1 | Analyze `124932978848`; test-0 `124932978708`; test-1 `124932978602`; test-2 `124932978644`; test-3 `124932978338`; test-4 `124932978633`; test-5 `124932978641` all IN_PROGRESS; APK `124932979447` SKIPPED |
+| Device Smoke | `41335034137` / 1 | PENDING at checkpoint; no seven-lane result or screenshot evidence yet |
+| Calendar Provider | `41335033982` / 1 | Job `124932937253` IN_PROGRESS |
+
+These runs are on `6dacb0d...` only. Their status is not PASS while in progress or pending. This documentation update, if committed, creates another HEAD and requires another exact-head validation.
+
+### 21.5 Current product requirement disposition (source spot-check, not runtime acceptance)
+
+The canonical A–J baseline remains complete in §3 and the detailed A1–J7 matrix remains in §4. Current source spot-checks at `6dacb0d...` confirm the following high-risk dispositions:
+
+| Requirement area | Current status | Source / behavior finding | Required evidence or blocker |
+|---|---|---|---|
+| A — Task / Due Date / Reminder / Follow-up separation | PARTIALLY IMPLEMENTED | Task has distinct dueDate and taskReminders; FollowUp model still exposes `reminderDate` and `nextFollowUp`. | Current exact-head model/store tests and safe legacy migration remain open. |
+| A — purge Next Follow-up / followUpEnabled / Follow-up future columns | NOT IMPLEMENTED | `lib/models/task.dart` still declares and serializes `followUpEnabled`, `followUpDate`, FollowUp `reminderDate` and `nextFollowUp`; `lib/services/g1_drift_schema.dart` still defines legacy Follow-up columns; TaskStore persists legacy fields. | Inspect actual user database row/value counts and backup state; design and test an idempotent data-preserving migration before destructive DDL. No database mutation authorized. |
+| A — per-record completedAt | PARTIALLY IMPLEMENTED | `FollowUp.completedAt` is a getter alias of persisted `dateTime`, not a distinct canonical persisted field. | Owner must approve representation/migration semantics; tests must prove note edits preserve timestamp. |
+| B — Checklist CRUD in Task Details | IMPLEMENTED BUT NOT VERIFIED | Dedicated Task Details CRUD implementation/tests exist. | Re-run `test/task_detail_checklist_crud_test.dart` and `test/task_detail_checklist_flow_test.dart` on the final target SHA. |
+| B — optional normal Reminder from Follow-up form | IMPLEMENTED BUT NOT VERIFIED | Follow-up entry page offers the optional shortcut and writes a normal Task Reminder through TaskStore. | Exact-head tests and device behavior still required. |
+| C — completed Follow-up report | IMPLEMENTED BUT NOT VERIFIED | Report projection/dialog and tests exist; the projection uses the current completedAt compatibility alias. | Exact-head tests for half-open Jalali day, timezone boundaries, multiple records, archived/completed Task inclusion, and stale-query protection. |
+| D — six Home sections / nearest Reminder / all-day ordering | PARTIALLY IMPLEMENTED | Home source and grouping have been updated; the six-section exact contract and nearest-reminder behavior are not yet proven together. | Exact-head widget + device screenshots and ordering/filter tests. |
+| E — local/device Calendar split and provider sync | IMPLEMENTED BUT NOT VERIFIED | Provider workflow exists and emulator CREATE/NO-OP UPDATE/UPDATE/DELETE passed on this SHA. | Physical-device, multiple writable calendars, permission/reboot, all-day and failure-injection evidence remain open. |
+| F — configurable Task Swipe | IMPLEMENTED BUT NOT VERIFIED | Separate left/right Task settings and “ثبت پیگیری” form-only action exist. | Exact-head settings persistence and both-direction swipe tests. |
+| F — independent Calendar Swipe | PARTIALLY IMPLEMENTED | Separate Calendar swipe settings/actions exist; full independent Edit/Delete/Transfer matrix is not established. | Add/run explicit independent action matrix and device evidence. |
+| G — soft delete / hard delete / history lifecycle | BLOCKED | Trash/restore source exists, but hard-delete effects on independent Follow-up and Reminder history lack an approved complete lifecycle contract. | Owner decision and preservation/cascade tests before destructive implementation. |
+| H — recurrence / backup / PDF | PARTIALLY IMPLEMENTED | Recurrence and backup paths exist; legacy Follow-up data remains serializable; PDF renderer exists. | Exact-head recurrence snapshots/idempotency, backup restore and PDF font embedding/Persian shaping artifacts. |
+| I — Vazirmatn / RTL / typography | IMPLEMENTED BUT NOT VERIFIED | `pubspec.yaml` bundles Vazirmatn Regular 400, Medium 500 and Bold 700. | Exact-head APK packaging gate, all-overlay rendering, weight audit, Persian digits, RTL/accessibility and PDF proof. |
+| J — release acceptance | BLOCKED | No single exact SHA has all data-model, Task/Calendar Swipe, Device Calendar, typography/PDF, six Build shards and seven Device Smoke gates proven. | All gates must pass on one final exact SHA; production signing and Release Manifest remain separate blockers. |
+
+### 21.6 Open decisions / safety blockers
+
+1. **Legacy schema migration:** actual user database contents and verified backup are not inspected. Do not drop `follow_up_enabled`, `follow_up_date`, `reminder_date` or `next_follow_up` columns until counts, non-null values, relationships and restore mapping are established.
+2. **Follow-up timestamp:** current alias `completedAt => dateTime` is a compatibility mapping; a canonical persisted per-record timestamp contract and migration decision remain open.
+3. **Hard-delete history policy:** define whether Reminder and Follow-up records survive permanent Task deletion, are exported/orphaned, or are purged with explicit consent. No destructive guess.
+4. **Alarm sound:** current Stop behavior cancels the active notification ID; independent audio stream stop is not implemented/verified.
+5. **Physical-device Calendar:** emulator provider acceptance is not physical-device acceptance; multi-calendar destination migration remains untested.
+6. **PDF and production signing:** Vazirmatn embedding/shaping, production certificate, v2/v3 production verification, APK_DEBUGGABLE=false and final Release Manifest remain NOT VERIFIED.
+
+### 21.7 Required continuation order
+
+1. Wait for the exact-head `6dacb0d...` persistence Job `124932937945`; inspect T00a–T00e and first missing stage. If it passes the pre-schema boundary, continue through T01–T23 and identify the next actual wait.
+2. Complete all six Build shards and Analyze on one SHA; inspect the full failing logs rather than infer from summary state.
+3. Complete all seven Device Smoke lanes on one SHA; download and inspect screenshots/artifacts for Calendar and Alarm, not just lane conclusions.
+4. Complete Calendar Provider evidence and record its artifact/checksum and scope.
+5. Continue the A–J product audit in §4; do not close legacy migration, hard-delete policy, PDF, physical-device, or signing gates without evidence.
+6. If this ledger is updated again, rerun required workflows on the resulting exact HEAD; no evidence carries forward across SHA changes.
+
+**Governance:** PR #3052 remains OPEN / DRAFT / UNMERGED; Issues #823 / #2102 / #2299 remain OPEN; do not modify `main`, merge, publish or release. **Release: BLOCKED — RELEASE: NO-GO.**
