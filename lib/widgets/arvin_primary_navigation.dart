@@ -30,7 +30,7 @@ class ArvinPrimaryNavigation extends StatelessWidget {
         ArvinPrimaryDestination.home,
         Icons.home_outlined,
         Icons.home_rounded,
-        'خانه',
+        'امروز',
       ),
       (
         ArvinPrimaryDestination.calendar,
