@@ -45,7 +45,7 @@ void main() {
         'smoke-calendar-segmented-view:integration_test/calendar_card_interaction_test.dart',
         'smoke-quick-capture:integration_test/android_quick_capture_smoke_test.dart',
         'smoke-task-lifecycle:integration_test/android_backup_restore_sql_smoke_test.dart',
-        'smoke-reminder-vazirmatn:integration_test/calendar_card_interaction_test.dart',
+        'smoke-reminder-vazirmatn:integration_test/alarm_overlay_smoke_test.dart',
         'smoke-follow-up-persistence:integration_test/android_sql_persistence_smoke_test.dart',
       }),
       reason: 'The seven canonical lanes must map to their real integration tests.',
@@ -80,6 +80,8 @@ void main() {
       workflow,
       contains("matrix.scenario == 'smoke-reminder-vazirmatn'"),
     );
+    expect(workflow, contains('Upload Reminder overlay evidence'));
+    expect(workflow, contains('alarm-overlay-*.png'));
     expect(workflow, isNot(contains("matrix.scenario == 'home'")));
     expect(workflow, isNot(contains("matrix.scenario == 'people'")));
 

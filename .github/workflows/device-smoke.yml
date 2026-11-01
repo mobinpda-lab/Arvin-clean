@@ -43,7 +43,7 @@ jobs:
             {"scenario":"smoke-calendar-segmented-view","test_file":"integration_test/calendar_card_interaction_test.dart"},
             {"scenario":"smoke-quick-capture","test_file":"integration_test/android_quick_capture_smoke_test.dart"},
             {"scenario":"smoke-task-lifecycle","test_file":"integration_test/android_backup_restore_sql_smoke_test.dart"},
-            {"scenario":"smoke-reminder-vazirmatn","test_file":"integration_test/calendar_card_interaction_test.dart"},
+            {"scenario":"smoke-reminder-vazirmatn","test_file":"integration_test/alarm_overlay_smoke_test.dart"},
             {"scenario":"smoke-follow-up-persistence","test_file":"integration_test/android_sql_persistence_smoke_test.dart"}
           ]'
           echo "Selected canonical smoke lanes: $scenarios"
@@ -165,9 +165,17 @@ jobs:
           if-no-files-found: warn
 
       - name: Upload calendar interaction and RTL evidence
-        if: always() && (matrix.scenario == 'smoke-calendar-segmented-view' || matrix.scenario == 'smoke-reminder-vazirmatn')
+        if: always() && matrix.scenario == 'smoke-calendar-segmented-view'
         uses: actions/upload-artifact@v5
         with:
           name: arvin-device-smoke-calendar-${{ env.TARGET_SHA }}
           path: artifacts/device-smoke/*.png
+          if-no-files-found: warn
+
+      - name: Upload Reminder overlay evidence
+        if: always() && matrix.scenario == 'smoke-reminder-vazirmatn'
+        uses: actions/upload-artifact@v5
+        with:
+          name: arvin-device-smoke-reminder-${{ env.TARGET_SHA }}
+          path: artifacts/device-smoke/alarm-overlay-*.png
           if-no-files-found: warn
