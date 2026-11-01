@@ -37,3 +37,5 @@ This entry records the governing product decisions for Reminder-only scheduling,
 - No user database was modified; no destructive schema migration was attempted because live database emptiness and data-preservation requirements have not been established.
 - Exact-head CI after these commits is pending. Staging v2/v3 signature, `APK_DEBUGGABLE=false`, and Release Manifest remain NOT VERIFIED until the new workflow provides raw evidence.
 - Release remains **BLOCKED — RELEASE: NO-GO**.
+
+- Implemented configurable Task-list “ثبت پیگیری” for either swipe direction: Settings exposes and persists the action; selecting it opens FollowUpEntryPage and writes a record only after explicit Save. Added left/right and no-auto-write regression tests. Exact-head CI validation is pending.
