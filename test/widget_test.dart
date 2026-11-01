@@ -19,10 +19,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('بسم الله الرحمن الرحیم'), findsOneWidget);
-    expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
+    expect(find.text('آروین'), findsOneWidget);
+    expect(find.text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها'), findsOneWidget);
     expect(find.byType(AppBar), findsNothing);
     expect(find.byKey(const ValueKey('home-notifications')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-menu')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-search-button')), findsOneWidget);
   });
 
   testWidgets('Home exposes the canonical workflow controls', (tester) async {
@@ -32,18 +33,18 @@ void main() {
     expect(find.byType(TextField), findsOneWidget);
     expect(find.byIcon(Icons.add), findsOneWidget);
     expect(find.byKey(const ValueKey('home-notifications')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-menu')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-search-button')), findsOneWidget);
     expect(find.text('زمان'), findsOneWidget);
-    expect(find.text('پروژه'), findsOneWidget);
-    expect(find.text('دسته'), findsOneWidget);
+    expect(find.text('پروژه‌ها'), findsOneWidget);
+    expect(find.text('دسته‌ها'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
-    expect(find.text('خانه'), findsOneWidget);
+    expect(find.text('امروز'), findsOneWidget);
     expect(find.text('تقویم'), findsOneWidget);
     expect(find.text('دفترچه'), findsOneWidget);
     expect(find.text('بیشتر'), findsOneWidget);
     expect(find.text('اقدام بعدی'), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
 
     final moreSheet = find.byType(Scrollable).last;
@@ -85,10 +86,11 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('کاری برای نمایش وجود ندارد'), findsOneWidget);
+    expect(find.text('هنوز کاری برای نمایش نیست'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-empty-add')), findsOneWidget);
     expect(find.text('زمان'), findsOneWidget);
-    expect(find.text('پروژه'), findsOneWidget);
-    expect(find.text('دسته'), findsOneWidget);
+    expect(find.text('پروژه‌ها'), findsOneWidget);
+    expect(find.text('دسته‌ها'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
   });
 }
