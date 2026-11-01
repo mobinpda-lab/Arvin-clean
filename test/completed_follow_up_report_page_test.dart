@@ -71,6 +71,10 @@ void main() {
     ), findsOneWidget);
 
     await tester.tap(find.byKey(
+      const ValueKey('completed-follow-up-task-group-task-a'),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(
       const ValueKey('completed-follow-up-record-task-a-a-one'),
     ));
     await tester.pumpAndSettle();
