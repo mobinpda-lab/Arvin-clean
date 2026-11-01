@@ -713,7 +713,7 @@ Neither `photo_1793512287397.webp` nor `photo_1793516357359.webp` was present am
 
 
 ### Implementation CI correction checkpoint
-- First implementation commit SHA: `a25ba1e02caee36ab63aaed1e2dd56efefd0a547`.
+- Initial implementation commit: `4dd0fab5a1db77c9577263a714eee3e4662c70fe`; the first compile-failure run was triggered on follow-up SHA `a25ba1e02caee36ab63aaed1e2dd56efefd0a547`.
 - Build run `41286726861` on that SHA reported Analyze FAIL in job `124789416497`. The exact diagnostics were: the Flutter Local Notifications v22 API requires `cancel(id: ...)`, not a positional argument; and `ThemeData.copyWith` does not accept `fontFamily`. Both compile-time issues were corrected in the follow-up patch.
 - The correction also renders all-day Reminder timing as `تمام‌روز` rather than presenting midnight as a real time, and adds explicit Follow-up Save isolation coverage.
 - The next commit is the corrected implementation candidate. Its exact-head CI is the required validation; no implementation PASS is claimed from the failed first attempt.
@@ -723,3 +723,15 @@ Neither `photo_1793512287397.webp` nor `photo_1793516357359.webp` was present am
 - The API/analyzer findings from Build run `41286726861` are corrected in this follow-up: notification cancellation uses the named `id:` parameter; theme font assignment is applied through the text theme; constructor parameters use initializing formals.
 - All-day Reminder display now explicitly shows `تمام‌روز`, not midnight as a scheduled time. A corresponding widget assertion is included.
 - This correction is not yet validated; exact-head CI for the next commit is pending.
+
+
+### Current exact-head CI checkpoint — SHA `56f9bc5ca627915ce33f745ddae99604d138c145`
+- Build #8993 implementation validation / run `41286915733`: Analyze PASS, job `124790119701`, log `No issues found!`.
+- Passing test shards: test-1 job `124790119741` (165 tests), test-2 job `124790119643`, test-3 job `124790119685` (125 tests), test-4 job `124790119698`. Failed shards: test-0 job `124790119746` and test-5 job `124790119574`.
+- Failure details: test-0's source-contract assertion still expected the old plain-text `payload: candidate.taskId` after the payload became structured JSON; test-5's all-day assertion used a broad text finder matching both the time label and the explanatory copy. These are test-contract/assertion failures, not current Analyzer errors.
+- The assertions have been updated to validate the structured Task/Reminder/Notification ID payload and to inspect the keyed reminder-time Text only.
+- Follow-up Persistence run `41286915781`: SUCCESS on exact SHA `56f9bc5...`.
+- Calendar Provider run `41286915757`: IN_PROGRESS at checkpoint.
+- Device Smoke run `41286915804`: boot and navigation in progress; five other lanes queued. No 7/7 result.
+- APK Debug/Release/Staging jobs in Build run `41286915733` were still in progress at checkpoint.
+- These results do not upgrade Alarm Overlay acceptance. The next corrected commit requires fresh exact-head validation.

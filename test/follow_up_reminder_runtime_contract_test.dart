@@ -21,7 +21,9 @@ void main() {
     expect(runner, contains('stateService.markDelivered(state, candidate)'));
     expect(notification, contains('candidate.label'));
     expect(notification, contains('candidate.taskTitle'));
-    expect(notification, contains('payload: candidate.taskId'));
+    expect(notification, contains("'taskId': candidate.taskId"));
+    expect(notification, contains("'taskReminderId': candidate.taskReminderId"));
+    expect(notification, contains("'notificationId': notificationIdFor(candidate)"));
     expect(planner, contains("'task:"));
     expect(runner, contains('FollowUpReminderDeliveryService'));
   });

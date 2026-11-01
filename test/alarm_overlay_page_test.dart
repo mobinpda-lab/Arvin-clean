@@ -202,6 +202,9 @@ void main() {
 
     expect(find.byKey(const ValueKey('alarm-overlay-snooze-confirm')), findsNothing);
     expect(find.text('برای یادآور تمام‌روز، تعویق زمانی در دسترس نیست.'), findsOneWidget);
-    expect(find.textContaining('تمام‌روز'), findsOneWidget);
+    final displayedTime = tester.widget<Text>(
+      find.byKey(const ValueKey('alarm-overlay-reminder-time')),
+    );
+    expect(displayedTime.data, contains('تمام‌روز'));
   });
 }
