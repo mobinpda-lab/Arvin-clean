@@ -254,9 +254,11 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
     final task = _task!;
     final reminder = _reminder!;
     final colors = Theme.of(context).colorScheme;
-    return ListView(
+    return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
-      children: [
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
         Align(
           alignment: Alignment.centerRight,
           child: IconButton(
@@ -380,7 +382,8 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
           icon: const Icon(Icons.note_add_outlined),
           label: const Text('ثبت سابقه'),
         ),
-      ],
+        ],
+      ),
     );
   }
 }
