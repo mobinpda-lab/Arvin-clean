@@ -52,7 +52,7 @@ void main() {
     expect(result, isTrue);
     expect(find.text('حرکت به راست'), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ListTile, 'بایگانی'));
     await tester.pumpAndSettle();
@@ -127,7 +127,7 @@ void main() {
     expect(result, isTrue);
     expect(find.text('حرکت به چپ'), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ListTile, 'سطل زباله'));
     await tester.pumpAndSettle();
