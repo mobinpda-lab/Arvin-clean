@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:drift/native.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:arvin/alarm_overlay_page.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/task_store.dart';
+import 'package:arvin/services/project_store.dart';
+import 'package:arvin/services/g1_drift_schema.dart';
+import 'package:arvin/models/goal_project.dart';
 
 class _FakeAlarmNotifications implements AlarmOverlayNotificationController {
   final List<int> cancelled = <int>[];
@@ -65,6 +69,37 @@ void main() {
     await tester.pumpAndSettle();
     expect(followUp.hitTestable(), findsOneWidget);
   }
+
+  testWidgets('compact card resolves the actual Project membership title', (tester) async {
+    final store = TaskStore();
+    await seedTask(store);
+    final projectDatabase = NativeDatabase.memory();
+    addTearDown(projectDatabase.close);
+    await G1DriftSchema.install(projectDatabase);
+    final projectStore = ProjectStore(executor: projectDatabase);
+    await projectStore.save(<ProjectPlan>[
+      ProjectPlan(
+        id: 'project-marketing',
+        title: 'پروژه بازاریابی',
+        itemIds: const <String>['alarm-task-1'],
+      ),
+    ]);
+
+    await tester.pumpWidget(MaterialApp(
+      home: AlarmOverlayPage(
+        taskId: 'alarm-task-1',
+        taskReminderId: 'reminder-stable-1',
+        notificationId: 7012,
+        taskStore: store,
+        projectStore: projectStore,
+        notificationController: _FakeAlarmNotifications(),
+        rescheduleReminders: () async {},
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.text('پروژه بازاریابی'), findsOneWidget);
+  });
 
   testWidgets('complete uses Task.setCompleted and leaves Reminder and Follow-up history untouched', (tester) async {
     final store = TaskStore();
