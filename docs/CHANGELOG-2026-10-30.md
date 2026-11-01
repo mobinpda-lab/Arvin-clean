@@ -27,3 +27,13 @@ This entry records the governing product decisions for Reminder-only scheduling,
 - This changelog entry registers the canonical contract; it does not certify a repository-wide Next Follow-up / `followUpEnabled` purge.
 - Exact-head Analyze, all six test shards, Debug/Release APK Font Gate, Calendar Provider CRUD, and remaining Issue #823 acceptance gates must pass with retained artifacts before release consideration.
 - **Release:** `BLOCKED — RELEASE: NO-GO`.
+
+
+## 2026-11-01 — Issue #823 full product audit and Staging path correction
+
+- Added a complete canonical product baseline and evidence-led audit ledger in `docs/qa/ARVIN_FULL_PRODUCT_AUDIT_2026-11-01.md`; the ledger distinguishes implementation evidence from runtime/target-SHA acceptance.
+- Corrected Staging APK verification, font audit, manifest and upload paths to follow the repository-level Gradle build directory configured by `android/build.gradle.kts` (`$GITHUB_WORKSPACE/build/app/outputs/apk/staging/app-staging.apk`).
+- Added `test/build_staging_artifact_path_contract_test.dart` to prevent regression to the incorrect `android/app/build` location.
+- No user database was modified; no destructive schema migration was attempted because live database emptiness and data-preservation requirements have not been established.
+- Exact-head CI after these commits is pending. Staging v2/v3 signature, `APK_DEBUGGABLE=false`, and Release Manifest remain NOT VERIFIED until the new workflow provides raw evidence.
+- Release remains **BLOCKED — RELEASE: NO-GO**.
