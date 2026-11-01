@@ -6,6 +6,7 @@ import 'follow_up_entry_page.dart';
 import 'models/task.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/task_store.dart';
+import 'services/project_store.dart';
 import 'theme/app_fonts.dart';
 
 abstract interface class AlarmOverlayNotificationController {
@@ -31,6 +32,7 @@ class AlarmOverlayPage extends StatefulWidget {
     required this.taskReminderId,
     required this.notificationId,
     this.taskStore,
+    this.projectStore,
     this.notificationController,
     this.rescheduleReminders,
     this.now,
@@ -40,6 +42,7 @@ class AlarmOverlayPage extends StatefulWidget {
   final String? taskReminderId;
   final int notificationId;
   final TaskStore? taskStore;
+  final ProjectStore? projectStore;
   final AlarmOverlayNotificationController? notificationController;
   final Future<void> Function()? rescheduleReminders;
   final DateTime Function()? now;
@@ -51,6 +54,7 @@ class AlarmOverlayPage extends StatefulWidget {
 class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
   static const _formatter = PersianDateFormatter();
   late final TaskStore _store = widget.taskStore ?? TaskStore();
+  late final ProjectStore _projects = widget.projectStore ?? ProjectStore();
   late final AlarmOverlayNotificationController _notifications =
       widget.notificationController ?? FlutterLocalAlarmNotificationController();
   late final Future<void> Function() _reschedule =
@@ -59,6 +63,7 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
 
   Task? _task;
   TaskReminder? _reminder;
+  String? _projectTitle;
   bool _loading = true;
   bool _busy = false;
   int _snoozeMinutes = 5;
@@ -79,6 +84,8 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
         throw StateError('کار مرتبط پیدا نشد.');
       }
       final task = taskMatches.single;
+      final projects = await _projects.load();
+      final memberships = projects.where((project) => project.itemIds.contains(task.id));
       if (task.completed || task.archived || task.trashed) {
         throw StateError('یادآور فعال یا کار مرتبط پیدا نشد.');
       }
@@ -93,6 +100,7 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
       setState(() {
         _task = task;
         _reminder = matches.single;
+        _projectTitle = memberships.isEmpty ? null : memberships.first.title;
         _loading = false;
       });
     } catch (error) {
@@ -323,9 +331,11 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
   Widget _buildOverlay(BuildContext context) {
     final task = _task!;
     final reminder = _reminder!;
-    final subtitle = task.category?.trim().isNotEmpty == true
-        ? task.category!.trim()
-        : reminder.title;
+    final subtitle = _projectTitle?.trim().isNotEmpty == true
+        ? _projectTitle!.trim()
+        : task.category?.trim().isNotEmpty == true
+            ? task.category!.trim()
+            : reminder.title;
     final time = reminder.isAllDay ? 'تمام‌روز' : _formatTime(reminder.date);
     final textTheme = Theme.of(context).textTheme;
 
