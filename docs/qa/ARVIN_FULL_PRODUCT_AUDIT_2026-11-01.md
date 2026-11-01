@@ -531,3 +531,51 @@ This section supersedes the prior interpretation in §13 that assigned the dark-
 
 ### Governance
 This latest product-owner clarification supersedes the earlier §13 button-label interpretation. It is not a request to add a new Follow-up concept: reuse the existing Arvin form and explicit-save behavior. PR #3052 remains the only authorized implementation lane; Issue #823 stays OPEN; release remains **BLOCKED — RELEASE: NO-GO**.
+
+
+## Alarm overlay execution checkpoint — 2026-11-01 (PR #3052)
+
+### Live governance and target
+- Live PR #3052: OPEN, DRAFT, not merged; head branch `fix/recovery-calendar-device-smoke-2026-10-31`; exact head SHA `47609116cf02e0f2c712a70a4448a93a1b0e0169`.
+- Governing Issue #823: OPEN.
+- Release decision remains **BLOCKED — RELEASE: NO-GO**.
+- No changes were made to `main`; no merge or APK publication was attempted.
+
+### Source inspection — integration blocker confirmed
+Inspected the exact-head source for:
+- `lib/automatic_follow_up_notification_service.dart`
+- `lib/automatic_follow_up_background_runner.dart`
+- `lib/follow_up_reminder_notification_service.dart`
+- `lib/models/task.dart`
+- `lib/services/task_store.dart`
+- `lib/follow_up_entry_page.dart`
+- `lib/theme/app_fonts.dart` and `lib/theme/font_registry.dart`
+
+Findings:
+1. The notification services currently expose delivery methods (`showDue`) and post high-priority notifications with Task ID payloads. The inspected service code does not expose an active alarm audio controller, stop/dismiss action API, notification-response callback, or overlay launch route. A true in-app alarm overlay and immediate ringtone-stop action therefore have no verified integration entry point in this exact-head source. Do not simulate these controls or claim they work.
+2. `TaskReminder` is a canonical model serialized in the Task payload; its `copyWith` preserves reminder ID, sequence and legacy identity. `TaskStore.mutate` is the existing persistence boundary. However, a safe snooze implementation still needs the active Reminder identity, established rescheduling lifecycle, recurrence semantics and file-backed SQLite close/reopen tests. No snooze write was made.
+3. The standard `FollowUpEntryPage` exists and accepts `taskId`; its explicit save action is `follow-up-entry-save`. The inspected page persists through its existing callback/store integration, but the alarm notification currently carries only a Task ID and no verified overlay caller/route exists. Correct task context handoff from an active ringing reminder is therefore NOT VERIFIED. Do not create a parallel form or persistence model.
+4. `AppFonts.vazirmatnFamily` and the font registry identify bundled `Vazirmatn` as the app font. This confirms the canonical family declaration only; it does not prove every future overlay label, digit, slider, dialog and accessibility label is rendered with it.
+5. The currently inspected notification service does not provide a volume stream/controller. A slider cannot be truthfully implemented as functional until the platform's supported alarm audio stream and its ownership/lifecycle are identified.
+
+### Acceptance status
+- Overlay hierarchy and exact visual match to `photo_1793516357359.webp`: NOT VERIFIED (reference image bytes were not available for inspection in this execution context).
+- Stop active ringtone without Task/Reminder/FollowUp mutation: BLOCKED / NOT IMPLEMENTED.
+- Active Task title and Reminder time binding: NOT VERIFIED.
+- Functional alarm volume slider: BLOCKED / NO VERIFIED AUDIO CONTROLLER.
+- Snooze same Reminder with stable ID, recurrence and unrelated-data isolation: NOT VERIFIED / NOT RUN.
+- `ثبت سابقه` launching existing FollowUpEntryPage for the active Task, with explicit-save-only insertion: PARTIAL SOURCE AVAILABILITY; alarm caller and Task ID handoff NOT VERIFIED.
+- File-backed SQLite close/reopen isolation tests for stop, snooze and FollowUp shortcut: NOT RUN.
+- Alarm overlay widget/device screenshot tests: NOT RUN.
+- No alarm-specific PASS is claimed.
+
+### Exact-head CI context (not alarm acceptance)
+At SHA `47609116cf02e0f2c712a70a4448a93a1b0e0169`:
+- Build #8991 / run `41283480262`: IN PROGRESS at checkpoint.
+- Device Smoke #6258 / run `41283480258`: QUEUED.
+- Follow-up File Persistence #180 / run `41283480264`: SUCCESS; this is not evidence for alarm stop, snooze, or alarm-launched FollowUp.
+- Calendar Provider #1157 / run `41283480278`: IN PROGRESS; unrelated to alarm acceptance.
+- Production Loop #21729 / run `41283480271`: SUCCESS; unrelated to alarm acceptance.
+
+### Decision and next safe action
+Execution is **BLOCKED at integration discovery**, not accepted. Do not add a fake audio engine, decorative slider, synthetic notification lifecycle, parallel FollowUp form, or speculative migration. The next implementation step requires a verified platform alarm/audio lifecycle and notification-response/overlay entry point, then a Task ID + active Reminder ID handoff contract. Only after that should the stop/snooze/shortcut behavior and file-backed SQLite/widget/device tests be implemented on this authorized branch. Keep PR #3052 OPEN/DRAFT, Issue #823 OPEN, and release **BLOCKED — RELEASE: NO-GO**.
