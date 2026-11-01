@@ -7,6 +7,8 @@ import 'models/task.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/task_store.dart';
 import 'services/project_store.dart';
+import 'services/calendar_outbound_sync_service.dart';
+import 'services/follow_up_calendar_projection.dart';
 import 'theme/app_fonts.dart';
 
 abstract interface class AlarmOverlayNotificationController {
@@ -198,7 +200,24 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
           _persistedSnoozeAt = nextTime;
         });
       }
-      await _reschedule();
+      try {
+        await _reschedule();
+      } catch (_) {
+        // Canonical Task completion is already persisted; scheduler can retry.
+      }
+      try {
+        final snapshot = await _store.load();
+        await CalendarOutboundSyncService().sync(
+          const FollowUpCalendarProjection().project(snapshot),
+          preserveUnprojectedTaskIds: snapshot
+              .where((item) => item.trashed)
+              .map((item) => item.id)
+              .toSet(),
+        );
+      } catch (_) {
+        // Match the existing Home save contract: calendar failure never rolls
+        // back a successfully persisted Task completion.
+      }
       await _notifications.cancel(widget.notificationId);
       if (mounted) Navigator.of(context).pop();
     } catch (_) {
