@@ -7,6 +7,10 @@ enum NotebookItemKind { note, checklist }
 
 class FollowUp {
   final String id;
+  /// Canonical historical completion timestamp. Kept as an alias of the
+  /// legacy persisted dateTime field so existing user history is preserved.
+  DateTime get completedAt => dateTime;
+
   final DateTime dateTime;
   final String? title;
   final String note;
