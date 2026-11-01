@@ -186,7 +186,7 @@ The following requirements are the acceptance contract for this audit. They are 
 | E5 changes in one calendar path do not mutate the other | NOT VERIFIED | Separate Calendar integration path exists; no full failure-isolation proof reviewed. | No current target-SHA fault-injection test evidence. |
 | F1 Task left/right settings are independent dropdowns | IMPLEMENTED BUT NOT VERIFIED | \`lib/settings_page.dart\` has \`swipe-right-action\` and \`swipe-left-action\`. | No exact-head settings interaction test reviewed. |
 | F2 Task options include configurable “ثبت پیگیری” | NOT IMPLEMENTED | \`lib/settings_page.dart\` explicitly filters \`TaskSwipeAction.convertToFollowUp\` out of \`_swipeItems()\`, despite defining its label. | No dropdown test proving option selection; source directly contradicts requirement. |
-| F3 selecting “ثبت پیگیری” opens form only | NOT VERIFIED | Runtime action path not fully proven; option is not selectable through current Settings dropdown. | No test evidence. |
+| F3 selecting “ثبت پیگیری” opens form only | IMPLEMENTED BUT NOT VERIFIED | `lib/main.dart` now opens `FollowUpEntryPage`; it writes through `_addFollowUpFromDetail` only after a non-null saved result and returns false so the Task stays in the list. | `test/g6_swipe_rtl_acceptance_test.dart` now checks both directions, no write before Save, and persistence after Save; current-head CI is pending. |
 | F4 Calendar left/right settings independent of Task swipes | IMPLEMENTED BUT NOT VERIFIED | \`lib/settings_page.dart\` uses separate \`CalendarSwipeSettingsService\`; \`lib/calendar_page.dart\` receives separate calendar actions. | No current exact-head independent-execution test reviewed. |
 | F5 Calendar options Edit/Delete/Transfer-to-device | PARTIALLY IMPLEMENTED | CalendarSwipeAction enum has edit/trash/sync/none; \`lib/calendar_page.dart\` dispatches actions. Sync callback is restricted to canonical Task records. | No complete swipe action matrix test/evidence reviewed. |
 | G1 soft delete moves to recoverable Trash | IMPLEMENTED BUT NOT VERIFIED | Task model has trashed; Settings offers Trash; app has Trash state. | No current exact-head restore test evidence reviewed. |
@@ -248,6 +248,14 @@ The inspected \`android/build.gradle.kts\` redirects the root Gradle build direc
 - Added \`test/build_staging_artifact_path_contract_test.dart\` to assert that the workflow follows the configured repository-level Gradle build directory and rejects the incorrect path.
 - Updated \`docs/CHANGELOG-2026-10-30.md\`.
 - The path correction is a source-level diagnosis and patch, not a verification PASS. It must be confirmed by a new exact-head Build run that preserves the raw \`apksigner verify --verbose\` output, separate v2/v3 results, APK_DEBUGGABLE=false, APK size/SHA-256, Release Manifest and Staging artifacts.
+
+### Task Swipe implementation added after the initial source audit
+
+- Settings now exposes `ثبت پیگیری` for either Task-list swipe direction.
+- The preference service no longer rewrites that selection to `none`.
+- The swipe opens `FollowUpEntryPage`; no record is written merely by opening it. The saved result is persisted against the same Task only after explicit Save, and the Task card remains in the list.
+- Regression coverage was updated in `test/g6_swipe_rtl_acceptance_test.dart` and `test/services/app_settings_service_test.dart`.
+- This is source implementation, not an acceptance PASS. The new exact-head workflow must pass before these rows can be upgraded to IMPLEMENTED + VERIFIED.
 
 ## 7. Database migration and data-safety blocker
 
