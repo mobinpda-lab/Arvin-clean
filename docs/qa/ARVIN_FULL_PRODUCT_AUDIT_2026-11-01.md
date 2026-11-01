@@ -976,3 +976,66 @@ All runs below report exact `head_sha=f1caadbd58117c619c25a5d198c022945613f935`.
 ### Gate status
 
 The code correction is committed, but the acceptance result is **NOT VERIFIED** pending fresh CI. The above preliminary runs target `f1caadbd...`; if this audit document is committed afterward, those runs do not transfer to the new branch HEAD. The final audit must identify the resulting documentation-synchronized SHA and record fresh exact-HEAD Build, seven-lane Device Smoke, Calendar Provider, and Follow-up persistence outcomes. Production signing and Release Manifest verification remain separate mandatory gates. PR #3052 must remain OPEN/DRAFT/UNMERGED; Issues #823 and #2102 remain OPEN; no main changes, merge, release, or destructive migration.
+
+## 16. Exact-HEAD CI convergence checkpoint — 2026-11-01
+
+**Evidence anchor:** `be4a1ce9f32ec307bd136e93a8889994336cdacf`. Every run and job recorded in this section checked out this exact SHA. This section is a checkpoint, not a release approval.
+
+### Build / Analyze — run 41289944873 (run #9002)
+
+Run conclusion: **FAILURE**. Exact-head Analyze job `124798938508` succeeded and its log states `No issues found!`. Test shard outcomes:
+
+| Shard | Job ID | Result | Test count |
+|---|---:|---|---:|
+| test-0 | 124798938506 | PASS | 196 passed |
+| test-1 | 124798938457 | PASS | 165 passed |
+| test-2 | 124798938478 | FAIL | 260 passed, 1 failed |
+| test-3 | 124798938499 | FAIL | 125 passed, 1 failed |
+| test-4 | 124798938378 | PASS | 207 passed |
+| test-5 | 124798938509 | PASS | 154 passed |
+
+The two failures are in `test/alarm_overlay_page_test.dart`: both can locate `alarm-overlay-follow-up`, but the tap hit-test lands on the test view rather than the button. This means the earlier lazy-child construction issue was not the only interaction issue: eager construction made the control discoverable, but the test does not bring the bottom control into the visible viewport before tapping. The hierarchy test must likewise be checked for actual visibility/interaction. Do not weaken or skip the tests; correct the UI/test interaction contract and rerun all gates on a new exact SHA. Aggregate shard count: 1,107 passed, 2 failed.
+
+APK artifact records:
+- Staging APK: artifact `13076469355`, ZIP size 32,848,689 bytes, uploaded ZIP SHA-256 `4445c6328d127c397e82b12ac2596a314e863d270cecf821f3436e8c4b4d52c7`. APK SHA-256 `ecb9cc8d665d12acd5ed6f0028930bef40f29a8da1307ffedb306c54b479ef47`, APK size 70,500,441 bytes.
+- Debug APK: artifact `13076499233`, ZIP size 92,519,877 bytes, uploaded ZIP SHA-256 `5a5330010d304eebdfcac07d3354e7da0d232d1713feab0d82c1eea0ddd80fe5`. A separate inner APK SHA-256 was not present in the retrieved job log.
+- Release APK: artifact `13077101388`, ZIP size 32,448,529 bytes, uploaded ZIP SHA-256 `819768ebf1f1bb4a7f992a6392ec390322b7c0c409a4ad863342b1895362ef75`. A separate inner APK SHA-256 and production-signature proof were not present in the retrieved job log.
+- Additional staging audit candidate: artifact `13077275903`, ZIP size 32,848,689 bytes, ZIP SHA-256 `4445c6328d127c397e82b12ac2596a314e863d270cecf821f3436e8c4b4d52c7`.
+- Staging verification: artifact `13077385636`, ZIP size 1,900 bytes, ZIP SHA-256 `8ae4e91fec219a3bcdb606e73c42d0b3f94ff72aa3db31fd5ab348e53e8979c0`.
+
+The build logs report the Vazirmatn Regular/Medium/Bold assets bundled and the legacy/system-default font source purge passing (`FONT_GATE=PASS_VAZIRMATN_BUNDLED_SYSTEM_DEFAULT_PURGED`). This is a packaging/source gate only; it does not prove absence of runtime missing-glyph warnings in Persian numerals or accessibility labels.
+
+### Device Smoke — run 41289944872 (run #6269)
+
+At this checkpoint the run remained queued / unfinished; **4 of 7 lanes have completed PASS**, and no final 7/7 conclusion is available:
+- boot — job `124799032033`: PASS; artifact `13076763418`.
+- navigation — job `124799032000`: PASS; artifact `13076747233`.
+- task-lifecycle — job `124799032044`: PASS; no artifact reported.
+- quick-capture — job `124799031982`: PASS; artifact `13077042064`.
+- reminder-vazirmatn — job `124799032075`: IN_PROGRESS; no final runtime font/glyph conclusion.
+- calendar-segmented-view — job `124799032139`: IN_PROGRESS.
+- follow-up-persistence — job `124799032052`: QUEUED.
+- Persian time-picker evidence artifact: `13077540378` (27,079 bytes); this is supplementary evidence, not a replacement smoke lane.
+
+No cancelled or skipped lane was reported at this checkpoint, but the three remaining lanes are not complete. Do not report 7/7 PASS.
+
+### Calendar Provider — run 41289944891
+
+Exact-head run **SUCCESS**; job `124798916055` PASS. Instrumentation reported one test passed and explicit real-provider markers:
+- CREATE PASS, calendarId=1, eventId=1, providerVisible=true.
+- NO-OP UPDATE PASS, same eventId, one provider event, no duplicate.
+- UPDATE PASS, same eventId, updated title.
+- DELETE PASS, same eventId, providerVisible=false.
+- Limitation recorded by the run: only one writable calendar available; destination migration was not exercised.
+- Artifact `13076956853`, 11,216 bytes; uploaded ZIP SHA-256 `effbd7aa8c2aa310a7a3f96187ba38aea8a095570683356bd8d9fdc931855d4b`.
+
+### Follow-up File Persistence — run 41289944870
+
+Exact-head run **SUCCESS**; job `124798915939` PASS. The file-backed SQLite test reported: `completion true -> false -> true survives closing and reopening the same SQLite file`. One test passed; no artifact was published.
+
+### Governance and disposition
+
+At the time of this checkpoint, PR #3052 was OPEN / DRAFT / UNMERGED with head `be4a1ce9f32ec307bd136e93a8889994336cdacf`; Issues #823 and #2102 were OPEN. No main-branch edit or merge was performed.
+
+**Release remains BLOCKED — RELEASE: NO-GO.** Build run failed on two Alarm Overlay interaction tests; Device Smoke is not yet 7/7; production signing verification and Release Manifest proof remain outstanding. The evidence above is anchored to `be4a1ce...` only. This documentation update itself will advance the PR branch HEAD; it does not transfer or relabel any run as evidence for the new documentation commit. The next implementation step is to resolve the off-screen Follow-up tap/visibility behavior without relaxing tests, then rerun all required workflows against the resulting exact source SHA. After final device lanes finish, record their outcomes separately with their exact run/job/artifact identifiers.
+
