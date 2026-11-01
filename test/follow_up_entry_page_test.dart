@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:arvin/follow_up_entry_page.dart';
 import 'package:arvin/models/task.dart';
+import 'package:arvin/services/task_store.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   Future<void> saveEditor(WidgetTester tester) async {
@@ -319,5 +321,93 @@ void main() {
       expect(result!.dateTime, initial);
     },
   );
+
+
+  testWidgets('saving without the optional Reminder shortcut creates no Reminder',
+      (tester) async {
+    await TaskStore.resetTestDatabase();
+    SharedPreferences.setMockInitialValues({});
+    final store = TaskStore();
+    await store.save([Task(id: 'follow-up-no-reminder', title: 'بدون یادآور')]);
+    FollowUp? result;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: ElevatedButton(
+              onPressed: () async {
+                result = await Navigator.of(context).push<FollowUp>(
+                  MaterialPageRoute(
+                    builder: (_) => const FollowUpEntryPage(
+                      taskId: 'follow-up-no-reminder',
+                    ),
+                  ),
+                );
+              },
+              child: const Text('open-no-reminder'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open-no-reminder'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('follow-up-entry-add-reminder')), findsOneWidget);
+    await saveEditor(tester);
+
+    final saved = (await store.load()).single;
+    expect(result, isNotNull);
+    expect(saved.taskReminders, isEmpty);
+    expect(result!.toJson().containsKey('reminderDate'), isFalse);
+    expect(result!.toJson().containsKey('nextFollowUp'), isFalse);
+  });
+
+  testWidgets('optional Reminder shortcut creates a normal Reminder for the same Task',
+      (tester) async {
+    await TaskStore.resetTestDatabase();
+    SharedPreferences.setMockInitialValues({});
+    final store = TaskStore();
+    await store.save([Task(id: 'follow-up-with-reminder', title: 'با یادآور')]);
+    FollowUp? result;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: ElevatedButton(
+              onPressed: () async {
+                result = await Navigator.of(context).push<FollowUp>(
+                  MaterialPageRoute(
+                    builder: (_) => const FollowUpEntryPage(
+                      taskId: 'follow-up-with-reminder',
+                    ),
+                  ),
+                );
+              },
+              child: const Text('open-with-reminder'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open-with-reminder'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('follow-up-entry-add-reminder')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('follow-up-reminder-date')), findsOneWidget);
+    expect(find.byKey(const ValueKey('follow-up-reminder-time')), findsOneWidget);
+    await saveEditor(tester);
+
+    final saved = (await store.load()).single;
+    expect(result, isNotNull);
+    expect(saved.followUps, isEmpty); // Parent saves the returned historical record.
+    expect(saved.taskReminders, hasLength(1));
+    expect(saved.taskReminders.single.title, 'یادآور پیگیری');
+    expect(saved.taskReminders.single.date.isAfter(DateTime.now()), isTrue);
+    expect(saved.taskReminders.single.isLegacyTaskReminder, isFalse);
+    expect(result!.toJson().containsKey('reminderDate'), isFalse);
+    expect(result!.toJson().containsKey('nextFollowUp'), isFalse);
+  });
 
 }
