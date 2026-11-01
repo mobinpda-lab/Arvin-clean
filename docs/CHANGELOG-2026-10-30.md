@@ -45,3 +45,5 @@ This entry records the governing product decisions for Reminder-only scheduling,
 - Added Follow-up completedAt compatibility getter mapped to the canonical persisted dateTime field; a physical SQL-column migration remains pending.
 - Added regression coverage for Reminder shortcut on/off, report day boundaries, multiple records, cross-Task aggregation, exclusions and navigation. Exact-head CI validation is pending.
 - Fixed the Settings UI test expectation for the newly available “ثبت پیگیری” Task swipe action.
+
+- Corrected analyzer findings in the completed Follow-ups report and stabilized the Follow-up Office waiting-response switch test with a dedicated key; scoped the report exclusion assertion to the report row rather than the underlying page. Fresh exact-head CI is required for these corrections.
