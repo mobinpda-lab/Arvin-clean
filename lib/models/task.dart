@@ -40,8 +40,10 @@ class FollowUp {
         if (title?.trim().isNotEmpty == true) 'title': title!.trim(),
         'note': note,
         'result': result,
-        'reminderDate': reminderDate?.toIso8601String(),
-        'nextFollowUp': nextFollowUp?.toIso8601String(),
+        if (reminderDate != null)
+          'reminderDate': reminderDate!.toIso8601String(),
+        if (nextFollowUp != null)
+          'nextFollowUp': nextFollowUp!.toIso8601String(),
         'completed': completed,
         'waitingForResponse': waitingForResponse,
         if (personIds.isNotEmpty) 'personIds': personIds,
