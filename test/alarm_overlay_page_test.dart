@@ -76,6 +76,12 @@ void main() {
     final projectDatabase = NativeDatabase.memory();
     addTearDown(projectDatabase.close);
     await G1DriftSchema.install(projectDatabase);
+    // Project membership rows reference canonical tasks in the same SQLite
+    // database. Seed that parent row on the injected ProjectStore executor;
+    // the separate default TaskStore test executor is not its FK parent.
+    await TaskStore(executor: projectDatabase).save(<Task>[
+      Task(id: 'alarm-task-1', title: 'تماس با مشتری'),
+    ]);
     final projectStore = ProjectStore(executor: projectDatabase);
     await projectStore.save(<ProjectPlan>[
       ProjectPlan(
