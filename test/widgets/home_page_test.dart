@@ -137,7 +137,7 @@ void main() {
     await tester.scrollUntilVisible(find.text('کار انجام‌نشده'), 400, scrollable: find.byType(Scrollable).last);
     expect(find.text('کار انجام‌نشده'), findsOneWidget);
     expect(find.text('کار انجام‌نشده'), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('home-more-task-filters')));
     await tester.pumpAndSettle();
@@ -268,7 +268,7 @@ void main() {
     expect(result, isTrue);
     expect(find.text('کار فعال'), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ListTile, 'سطل زباله'));
     await tester.pumpAndSettle();
@@ -284,7 +284,7 @@ void main() {
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ListTile, 'سطل زباله'));
     await tester.pumpAndSettle();
@@ -326,7 +326,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('کار بایگانی'), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ListTile, 'بایگانی'));
     await tester.pumpAndSettle();
@@ -351,7 +351,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('کار سطل'), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ListTile, 'سطل زباله'));
     await tester.pumpAndSettle();
@@ -380,7 +380,7 @@ void main() {
     expect(find.byKey(const ValueKey('home-storage-retry')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-add')), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('home-more-quick-capture')));
     await tester.pumpAndSettle();
@@ -525,6 +525,59 @@ void main() {
     // the primary readable content.
     expect(find.text(title), findsOneWidget);
     expect(find.text(description), findsNothing);
+  });
+
+
+  testWidgets('Home summary cards show only real taxonomy and active Project counts', (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': '[{"id":"a","title":"کار الف","category":"مشتری","tags":["مهم","تماس"]},{"id":"b","title":"کار ب","category":"فروش","tags":["مهم"]}]',
+      'arvin.projects': '[{"id":"active-project","title":"پروژه فعال","isArchived":false,"itemIds":[]},{"id":"archived-project","title":"پروژه بایگانی","isArchived":true,"itemIds":[]}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    List<String?> cardText(String key) => tester
+        .widgetList<Text>(find.descendant(
+          of: find.byKey(ValueKey(key)),
+          matching: find.byType(Text),
+        ))
+        .map((widget) => widget.data)
+        .toList();
+
+    expect(cardText('home-filter-card-project'), contains('۱ مورد'));
+    expect(cardText('home-filter-card-category'), contains('۲ مورد'));
+    expect(cardText('home-filter-card-tags'), contains('۲ مورد'));
+    expect(cardText('home-filter-card-time'), contains('همه'));
+    expect(find.text('کار الف'), findsOneWidget);
+    expect(find.text('کار ب'), findsOneWidget);
+    expect(find.text('پروژه فعال'), findsNothing);
+  });
+
+  testWidgets('Home search button focuses the existing canonical search', (tester) async {
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('home-search-button')));
+    await tester.pump();
+
+    final field = tester.widget<TextField>(
+      find.byKey(const ValueKey('home-canonical-search')),
+    );
+    expect(field.focusNode?.hasFocus, isTrue);
+  });
+
+  testWidgets('canonical empty Home offers the real Quick Capture action', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    expect(find.text('هنوز کاری برای نمایش نیست'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-empty-add')), findsOneWidget);
+    expect(find.text('جلسه تیم محصول'), findsNothing);
+    expect(find.text('پیگیری طراحی رابط کاربری'), findsNothing);
+    expect(find.text('مراجعه به دکتر'), findsNothing);
   });
 
 }
