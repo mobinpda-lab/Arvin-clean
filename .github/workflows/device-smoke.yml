@@ -143,12 +143,12 @@ jobs:
           arch: x86_64
           target: default
           disable-animations: true
+          emulator-port: 5554
           script: |
             # Keep setup, test execution, and the final emulator capture in one shell.
             set -eu
-            # android-emulator-runner exports EMULATOR_PORT for its configured AVD.
-            # Avoid a second adb devices daemon/query race after the runner's boot handshake.
-            device="emulator-${EMULATOR_PORT}"
+            # Pin the serial to the explicitly configured runner port; EMULATOR_PORT is not exported in this action context.
+            device="emulator-5554"
             adb -s "$device" get-state
             echo "ADB_DEVICE=$device"
             adb -s "$device" shell getprop sys.boot_completed
