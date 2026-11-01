@@ -2698,7 +2698,7 @@ class _HomePageState extends State<HomePage> {
         // the user explicitly saves it; keep the Task card in the list.
         final followUp = await Navigator.of(context).push<FollowUp>(
           MaterialPageRoute<FollowUp>(
-            builder: (_) => const FollowUpEntryPage(),
+            builder: (_) => FollowUpEntryPage(taskId: task.id),
           ),
         );
         if (!mounted || followUp == null) return false;
