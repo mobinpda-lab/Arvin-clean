@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'models/task.dart';
+import 'android_follow_up_reminder_scheduler.dart';
+import 'services/task_store.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/waiting_for_response_service.dart';
 import 'widgets/persian_date_picker.dart';
@@ -11,11 +13,13 @@ class FollowUpEntryPage extends StatefulWidget {
     super.key,
     this.initialFollowUp,
     this.initialDateTime,
+    this.taskId,
     this.onSaved,
   });
 
   final FollowUp? initialFollowUp;
   final DateTime? initialDateTime;
+  final String? taskId;
   final ValueChanged<FollowUp>? onSaved;
 
   @override
@@ -30,6 +34,9 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
   final _noteController = TextEditingController();
   final _resultController = TextEditingController();
   bool _waitingForResponse = false;
+  bool _addReminder = false;
+  bool _isSaving = false;
+  late DateTime _reminderDateTime;
   late DateTime _initialDateTime;
   late String _initialTitle;
   late String _initialNote;
@@ -43,6 +50,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     super.initState();
     final initial = widget.initialFollowUp;
     _dateTime = initial?.dateTime ?? widget.initialDateTime ?? DateTime.now();
+    _reminderDateTime = DateTime.now().add(const Duration(hours: 1));
     _titleController.text = initial?.title ?? '';
     _noteController.text = initial?.note ?? '';
     _waitingForResponse = initial?.waitingForResponse == true ||
@@ -175,7 +183,34 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     }
   }
 
-  void _save() {
+  Future<void> _save() async {
+    if (_isSaving) return;
+    if (_addReminder && widget.taskId != null &&
+        !_reminderDateTime.isAfter(DateTime.now())) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('زمان یادآور باید در آینده باشد.')),
+      );
+      return;
+    }
+    setState(() => _isSaving = true);
+    if (_addReminder && widget.taskId != null) {
+      try {
+        await TaskStore().addTaskReminder(widget.taskId!, _reminderDateTime);
+        try {
+          await AndroidFollowUpReminderScheduler().reschedule();
+        } catch (_) {
+          // Canonical Reminder is retained and can be rescheduled from storage.
+        }
+      } catch (_) {
+        if (!mounted) return;
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('یادآور ذخیره نشد. دوباره تلاش کنید.')),
+        );
+        return;
+      }
+    }
+    if (!mounted) return;
     final rawResult = _resultController.text.trim();
     final result = _waitingForResponse
         ? WaitingForResponseService.canonicalResult
@@ -246,6 +281,62 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
                 ),
               ],
             ),
+            if (widget.taskId != null && !_editing) ...[
+              SwitchListTile(
+                key: const ValueKey('follow-up-entry-add-reminder'),
+                contentPadding: EdgeInsets.zero,
+                title: const Text('افزودن یادآور'),
+                subtitle: const Text('یک یادآور مستقل برای همین کار بسازید.'),
+                value: _addReminder,
+                onChanged: _isSaving ? null : (value) => setState(() => _addReminder = value),
+              ),
+              if (_addReminder) ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        key: const ValueKey('follow-up-reminder-date'),
+                        onPressed: _isSaving ? null : () async {
+                          final picked = await _pickPersianDate(
+                            initialDate: _reminderDateTime,
+                            firstDate: DateTime.now(),
+                            helpText: 'انتخاب تاریخ یادآور',
+                          );
+                          if (picked != null && mounted) {
+                            setState(() => _reminderDateTime = DateTime(
+                              picked.year, picked.month, picked.day,
+                              _reminderDateTime.hour, _reminderDateTime.minute,
+                            ));
+                          }
+                        },
+                        icon: const Icon(Icons.calendar_month_outlined),
+                        label: Text(_formatDate(_reminderDateTime)),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        key: const ValueKey('follow-up-reminder-time'),
+                        onPressed: _isSaving ? null : () async {
+                          final picked = await _pickClock(
+                            initialDate: _reminderDateTime,
+                            helpText: 'انتخاب ساعت یادآور',
+                          );
+                          if (picked != null && mounted) {
+                            setState(() => _reminderDateTime = DateTime(
+                              _reminderDateTime.year, _reminderDateTime.month,
+                              _reminderDateTime.day, picked.hour, picked.minute,
+                            ));
+                          }
+                        },
+                        icon: const Icon(Icons.schedule_outlined),
+                        label: Text(_formatTime(_reminderDateTime)),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
             const SizedBox(height: 16),
             TextField(
               key: const ValueKey('follow-up-entry-title'),
@@ -301,7 +392,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
             child: FilledButton.icon(
               key: const ValueKey('follow-up-entry-save'),
-              onPressed: _save,
+              onPressed: _isSaving ? null : _save,
               icon: const Icon(Icons.save_outlined),
               label: Text(_editing ? 'ذخیره تغییرات' : 'ذخیره پیگیری'),
             ),
