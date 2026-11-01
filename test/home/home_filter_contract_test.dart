@@ -20,6 +20,8 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
+    final scrollable = find.byType(Scrollable).last;
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('home-group-overdue')), 300, scrollable: scrollable);
     expect(find.text('تاریخ گذشته'), findsOneWidget);
     expect(find.text('امروز'), findsAtLeastNWidgets(1));
     expect(find.byKey(const ValueKey('home-filter-card-time')), findsOneWidget);
@@ -27,7 +29,6 @@ void main() {
     expect(find.byKey(const ValueKey('home-filter-card-category')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-tags')), findsOneWidget);
 
-    final scrollable = find.byType(Scrollable).last;
     await tester.scrollUntilVisible(find.byKey(const ValueKey('home-group-tomorrow')), 400, scrollable: scrollable);
     expect(find.byKey(const ValueKey('home-group-tomorrow')), findsOneWidget);
     await tester.scrollUntilVisible(find.byKey(const ValueKey('home-group-future')), 400, scrollable: scrollable);
