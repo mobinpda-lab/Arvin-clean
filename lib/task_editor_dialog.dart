@@ -597,6 +597,7 @@ Future<void> _pickDueDate() async {
         builder: (_) => FollowUpEntryPage(
           initialFollowUp: existing,
           initialDateTime: DateTime.now(),
+          taskId: widget.task?.id,
         ),
       ),
     );
