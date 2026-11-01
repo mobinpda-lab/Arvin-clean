@@ -5,11 +5,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:arvin/main.dart';
 import 'package:arvin/services/app_settings_service.dart';
 import 'package:arvin/services/task_store.dart';
+import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/iran_clock.dart';
 
 void main() {
   setUp(() async {
     await TaskStore.resetTestDatabase();
+    await ProjectStore.resetTestDatabase();
     SharedPreferences.setMockInitialValues({});
   });
 
@@ -17,12 +19,14 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
+    expect(find.text('آروین'), findsOneWidget);
+    expect(find.text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-search-button')), findsOneWidget);
     expect(find.byType(TextField), findsOneWidget);
     expect(find.byIcon(Icons.add), findsOneWidget);
     expect(find.text('زمان'), findsOneWidget);
-    expect(find.text('پروژه'), findsOneWidget);
-    expect(find.text('دسته'), findsOneWidget);
+    expect(find.text('پروژه‌ها'), findsOneWidget);
+    expect(find.text('دسته‌ها'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
     expect(find.text('جستجو در کارها، پروژه‌ها، دسته‌ها و برچسب‌ها...'), findsOneWidget);
     expect(find.text('کارهای من'), findsNothing);
@@ -159,8 +163,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('زمان'), findsOneWidget);
-    expect(find.text('پروژه'), findsOneWidget);
-    expect(find.text('دسته'), findsOneWidget);
+    expect(find.text('پروژه‌ها'), findsOneWidget);
+    expect(find.text('دسته‌ها'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('home-filter-card-time')));
