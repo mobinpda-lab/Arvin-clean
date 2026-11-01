@@ -12,41 +12,6 @@ on:
         description: 'Exact product commit SHA to validate'
         required: true
         type: string
-      run_home:
-        description: 'Run Home scenario'
-        required: true
-        default: true
-        type: boolean
-      run_quick_capture:
-        description: 'Run Quick Capture scenario'
-        required: true
-        default: true
-        type: boolean
-      run_backup_restore:
-        description: 'Run Backup/Restore scenario'
-        required: true
-        default: true
-        type: boolean
-      run_people:
-        description: 'Run People scenario'
-        required: true
-        default: true
-        type: boolean
-      run_calendar:
-        description: 'Run Calendar interaction scenario'
-        required: true
-        default: true
-        type: boolean
-      run_sql_persistence:
-        description: 'Run SQL persistence scenario'
-        required: true
-        default: true
-        type: boolean
-      run_sql_migration:
-        description: 'Run SQL legacy-storage migration scenario'
-        required: true
-        default: true
-        type: boolean
 
 permissions:
   contents: read
@@ -67,59 +32,21 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - name: Build scenario matrix
+      - name: Build canonical seven-lane matrix
         id: set-matrix
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          RUN_HOME: ${{ inputs.run_home }}
-          RUN_QUICK_CAPTURE: ${{ inputs.run_quick_capture }}
-          RUN_BACKUP_RESTORE: ${{ inputs.run_backup_restore }}
-          RUN_PEOPLE: ${{ inputs.run_people }}
-          RUN_CALENDAR: ${{ inputs.run_calendar }}
-          RUN_SQL_PERSISTENCE: ${{ inputs.run_sql_persistence }}
-          RUN_SQL_MIGRATION: ${{ inputs.run_sql_migration }}
         shell: bash
         run: |
           set -euo pipefail
-          scenarios='[]'
-          if [ "$EVENT_NAME" != "workflow_dispatch" ]; then
-            scenarios='[
-              {"scenario":"home","test_file":"integration_test/android_home_smoke_test.dart"},
-              {"scenario":"quick-capture","test_file":"integration_test/android_quick_capture_smoke_test.dart"},
-              {"scenario":"sql-persistence","test_file":"integration_test/android_sql_persistence_smoke_test.dart"},
-              {"scenario":"sql-migration","test_file":"integration_test/android_upgrade_migration_smoke_test.dart"},
-              {"scenario":"backup-restore","test_file":"integration_test/android_backup_restore_sql_smoke_test.dart"},
-              {"scenario":"people","test_file":"integration_test/android_people_smoke_test.dart"},
-              {"scenario":"calendar","test_file":"integration_test/calendar_card_interaction_test.dart"}
-            ]'
-          else
-            if [ "$RUN_HOME" = "true" ]; then
-              scenarios="$(jq -c '. + [{"scenario":"home","test_file":"integration_test/android_home_smoke_test.dart"}]' <<< "$scenarios")"
-            fi
-            if [ "$RUN_QUICK_CAPTURE" = "true" ]; then
-              scenarios="$(jq -c '. + [{"scenario":"quick-capture","test_file":"integration_test/android_quick_capture_smoke_test.dart"}]' <<< "$scenarios")"
-            fi
-            if [ "$RUN_BACKUP_RESTORE" = "true" ]; then
-              scenarios="$(jq -c '. + [{"scenario":"backup-restore","test_file":"integration_test/android_backup_restore_sql_smoke_test.dart"}]' <<< "$scenarios")"
-            fi
-            if [ "$RUN_PEOPLE" = "true" ]; then
-              scenarios="$(jq -c '. + [{"scenario":"people","test_file":"integration_test/android_people_smoke_test.dart"}]' <<< "$scenarios")"
-            fi
-            if [ "$RUN_CALENDAR" = "true" ]; then
-              scenarios="$(jq -c '. + [{"scenario":"calendar","test_file":"integration_test/calendar_card_interaction_test.dart"}]' <<< "$scenarios")"
-            fi
-            if [ "$RUN_SQL_PERSISTENCE" = "true" ]; then
-              scenarios="$(jq -c '. + [{"scenario":"sql-persistence","test_file":"integration_test/android_sql_persistence_smoke_test.dart"}]' <<< "$scenarios")"
-            fi
-            if [ "$RUN_SQL_MIGRATION" = "true" ]; then
-              scenarios="$(jq -c '. + [{"scenario":"sql-migration","test_file":"integration_test/android_upgrade_migration_smoke_test.dart"}]' <<< "$scenarios")"
-            fi
-            if [ "$scenarios" = "[]" ]; then
-              echo "At least one smoke scenario must be selected for workflow_dispatch." >&2
-              exit 1
-            fi
-          fi
-          echo "Selected scenario matrix: $scenarios"
+          scenarios='[
+            {"scenario":"smoke-boot","test_file":"integration_test/android_home_smoke_test.dart"},
+            {"scenario":"smoke-navigation","test_file":"integration_test/android_people_smoke_test.dart"},
+            {"scenario":"smoke-calendar-segmented-view","test_file":"integration_test/calendar_card_interaction_test.dart"},
+            {"scenario":"smoke-quick-capture","test_file":"integration_test/android_quick_capture_smoke_test.dart"},
+            {"scenario":"smoke-task-lifecycle","test_file":"integration_test/android_backup_restore_sql_smoke_test.dart"},
+            {"scenario":"smoke-reminder-vazirmatn","test_file":"integration_test/calendar_card_interaction_test.dart"},
+            {"scenario":"smoke-follow-up-persistence","test_file":"integration_test/android_sql_persistence_smoke_test.dart"}
+          ]'
+          echo "Selected canonical smoke lanes: $scenarios"
           matrix="$(jq -cn --argjson scenarios "$scenarios" '{include:$scenarios}')"
           echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
 
