@@ -92,8 +92,8 @@ This entry records the governing product decisions for Reminder-only scheduling,
 ## 2026-11-01 — Product-owner compact Reminder card (latest directive)
 
 - Supersedes prior alarm-widget visual layouts and the previous single-action label interpretation for this card. The approved written contract now has four independent actions: `تکمیل`, `تعویق`, `پیگیری`, and `توقف زنگ`.
-- Replaced the expanded Overlay presentation with a compact white rounded card, purple bell, dynamic Task title/subtitle, prominent Persian Reminder time, and responsive four-action Wrap layout.
-- `تکمیل` calls the canonical `Task.setCompleted(true)` model method through the existing TaskStore mutation and Reminder reschedule path; it does not insert FollowUp or alter Reminder dates.
+- Replaced the expanded Overlay presentation with a compact white rounded card, purple bell, dynamic Task title, canonical ProjectStore/ProjectPlan subtitle (with safe category/Reminder fallback), prominent Persian Reminder time, and responsive four-action Wrap layout.
+- `تکمیل` calls the canonical `Task.setCompleted(true)` model method through TaskStore mutation, then best-effort Reminder reschedule and the existing Calendar outbound projection/sync path; it does not insert FollowUp or alter Reminder dates.
 - `تعویق` uses a selected 5–120 minute duration and the existing same-Reminder in-place update/scheduler path; stable Reminder ID and sequence are retained.
 - `پیگیری` opens the existing `FollowUpEntryPage` for the same Task with future Reminder creation disabled; only explicit Save writes a historical FollowUp.
 - `توقف زنگ` cancels only the active notification ID and closes the Overlay. No independent audio player/controller exists in the inspected implementation; the action does not claim independent audio stop.
