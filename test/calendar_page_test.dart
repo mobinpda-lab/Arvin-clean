@@ -6,7 +6,7 @@ import 'package:arvin/services/iran_clock.dart';
 import 'package:arvin/services/calendar_swipe_settings_service.dart';
 
 void main() {
-  testWidgets('source filter separates live phone events, Task Reminders and Follow-ups', (tester) async {
+  testWidgets('source filters separate all-day items, timed reminders, phone events and unfinished tasks', (tester) async {
     final day = DateTime(2026, 11, 1);
     await tester.pumpWidget(MaterialApp(
       home: CalendarPage(
@@ -19,13 +19,26 @@ void main() {
           ),
           CalendarReminder(
             id: 'task-reminder-item:task-1:reminder-1',
-            title: 'یادآور واقعی',
+            title: 'یادآور زمان‌دار',
             date: day.add(const Duration(hours: 10)),
           ),
           CalendarReminder(
             id: 'followup:task-1:follow-up-1',
-            title: 'سابقه پیگیری',
+            title: 'پیگیری باز',
             date: day.add(const Duration(hours: 11)),
+          ),
+          CalendarReminder(
+            id: 'task-due:all-day-task',
+            title: 'کار بدون ساعت',
+            date: day,
+            isAllDay: true,
+          ),
+          CalendarReminder(
+            id: 'task-reminder:completed-all-day',
+            title: 'کار تمام‌روز انجام‌شده',
+            date: day,
+            isAllDay: true,
+            completed: true,
           ),
         ],
       ),
@@ -34,32 +47,42 @@ void main() {
 
     expect(find.byKey(const ValueKey('calendar-source-filter')), findsOneWidget);
     expect(find.text('رویداد تقویم گوشی'), findsOneWidget);
-    expect(find.text('یادآور واقعی'), findsOneWidget);
-    expect(find.text('سابقه پیگیری'), findsOneWidget);
+    expect(find.text('یادآور زمان‌دار'), findsOneWidget);
+    expect(find.text('پیگیری باز'), findsOneWidget);
+    expect(find.text('کار بدون ساعت'), findsOneWidget);
+    expect(find.text('کار تمام‌روز انجام‌شده'), findsOneWidget);
+
+    final allDayTop = tester.getTopLeft(find.byKey(const ValueKey('calendar-pastel-card-task-due:all-day-task'))).dy;
+    final timedTop = tester.getTopLeft(find.byKey(const ValueKey('calendar-pastel-card-task-reminder-item:task-1:reminder-1'))).dy;
+    expect(allDayTop, lessThan(timedTop));
 
     await tester.tap(find.text('تقویم گوشی'));
     await tester.pumpAndSettle();
     expect(find.text('رویداد تقویم گوشی'), findsOneWidget);
-    expect(find.text('یادآور واقعی'), findsNothing);
-    expect(find.text('سابقه پیگیری'), findsNothing);
+    expect(find.text('یادآور زمان‌دار'), findsNothing);
+    expect(find.text('کار بدون ساعت'), findsNothing);
 
     await tester.tap(find.text('یادآورها'));
     await tester.pumpAndSettle();
-    expect(find.text('رویداد تقویم گوشی'), findsNothing);
-    expect(find.text('یادآور واقعی'), findsOneWidget);
-    expect(find.text('سابقه پیگیری'), findsNothing);
+    expect(find.text('یادآور زمان‌دار'), findsOneWidget);
+    expect(find.text('کار بدون ساعت'), findsNothing);
+    expect(find.text('کار تمام‌روز انجام‌شده'), findsNothing);
+    expect(find.text('پیگیری باز'), findsNothing);
 
-    await tester.tap(find.text('پیگیری‌ها'));
+    await tester.tap(find.text('انجام‌نشده'));
     await tester.pumpAndSettle();
-    expect(find.text('رویداد تقویم گوشی'), findsNothing);
-    expect(find.text('یادآور واقعی'), findsNothing);
-    expect(find.text('سابقه پیگیری'), findsOneWidget);
+    expect(find.text('کار بدون ساعت'), findsOneWidget);
+    expect(find.text('کار تمام‌روز انجام‌شده'), findsNothing);
+    expect(find.text('پیگیری باز'), findsOneWidget);
+    expect(find.text('یادآور زمان‌دار'), findsOneWidget);
 
     await tester.tap(find.text('همه'));
     await tester.pumpAndSettle();
     expect(find.text('رویداد تقویم گوشی'), findsOneWidget);
-    expect(find.text('یادآور واقعی'), findsOneWidget);
-    expect(find.text('سابقه پیگیری'), findsOneWidget);
+    expect(find.text('یادآور زمان‌دار'), findsOneWidget);
+    expect(find.text('پیگیری باز'), findsOneWidget);
+    expect(find.text('کار بدون ساعت'), findsOneWidget);
+    expect(find.text('کار تمام‌روز انجام‌شده'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
