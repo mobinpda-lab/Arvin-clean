@@ -1,10 +1,10 @@
 # ARVIN — Full Product Audit, Canonical Baseline & Evidence Ledger
 **Audit date:** 2026-11-01  
-**Repository:** \`mobinpda-lab/Arvin-clean\`  
+**Repository:** `mobinpda-lab/Arvin-clean`  
 **Governing acceptance:** Issue [#823](https://github.com/mobinpda-lab/Arvin-clean/issues/823)  
 **Historical tracking only:** Issue [#1139](https://github.com/mobinpda-lab/Arvin-clean/issues/1139)  
-**Release decision:** \`BLOCKED — RELEASE: NO-GO\`  
-**Authorized implementation lane:** PR [#3052](https://github.com/mobinpda-lab/Arvin-clean/pull/3052), branch \`fix/recovery-calendar-device-smoke-2026-10-31\`
+**Release decision:** `BLOCKED — RELEASE: NO-GO`  
+**Authorized implementation lane:** PR [#3052](https://github.com/mobinpda-lab/Arvin-clean/pull/3052), branch `fix/recovery-calendar-device-smoke-2026-10-31`
 
 ## 1. Audit method and governing rules
 
@@ -28,17 +28,17 @@ At the start of the live inspection:
 
 | Item | Observed value |
 |---|---|
-| Repository default branch | \`main\` |
+| Repository default branch | `main` |
 | PR #3052 | OPEN, Draft, unmerged |
-| PR branch | \`fix/recovery-calendar-device-smoke-2026-10-31\` |
-| Initial PR head SHA | \`3b5721d67e461976748220bcaeb78376c25affe0\` |
-| PR base SHA | \`45e4202b03a434459e4c021a04efa7e8396359db\` |
+| PR branch | `fix/recovery-calendar-device-smoke-2026-10-31` |
+| Initial PR head SHA | `3b5721d67e461976748220bcaeb78376c25affe0` |
+| PR base SHA | `45e4202b03a434459e4c021a04efa7e8396359db` |
 | Issue #823 | OPEN |
 | Issue #2102 | OPEN |
 | Issue #1139 | OPEN; historical tracking only |
 | NIRA | Not modified |
 
-The initial SHA exactly matched the SHA in the user-supplied historical report. Subsequent commits in this authorized PR branch correct the Staging output path, add a path-contract test, and record this audit. The live PR head must be re-read after those commits; evidence from \`3b5721d...\` must not be attributed to later SHAs.
+The initial SHA exactly matched the SHA in the user-supplied historical report. Subsequent commits in this authorized PR branch correct the Staging output path, add a path-contract test, and record this audit. The live PR head must be re-read after those commits; evidence from `3b5721d...` must not be attributed to later SHAs.
 
 ## 3. Complete canonical product baseline (preserved)
 
@@ -151,103 +151,103 @@ The following requirements are the acceptance contract for this audit. They are 
 
 ## 4. Evidence-led audit matrix
 
-**Evidence checkpoint for the rows below:** source inspection on PR branch at initial SHA \`3b5721d67e461976748220bcaeb78376c25affe0\`; Build run \`41274996134\`; Device Smoke run \`41274996175\`; Calendar Provider Acceptance run \`41274996200\`; Fast Lane contract run \`41274996107\`; Follow-up File Persistence run \`41274996125\`. Later PR commits change the workflow/docs only; product source findings below remain observations of the inspected source until rechecked on the new HEAD.
+**Evidence checkpoint for the rows below:** source inspection on PR branch at initial SHA `3b5721d67e461976748220bcaeb78376c25affe0`; Build run `41274996134`; Device Smoke run `41274996175`; Calendar Provider Acceptance run `41274996200`; Fast Lane contract run `41274996107`; Follow-up File Persistence run `41274996125`. The later Task Swipe implementation is a deliberate product-code change on this same PR branch and supersedes initial rows F2/F3; Section 6 records it. Other source findings remain initial-checkpoint observations until validated against the latest PR head.
 
 | ID / requirement group | Status | Source path / user behavior | Relevant test / evidence |
 |---|---|---|---|
-| A1 Task, Due Date, Reminder and Follow-up are distinct | PARTIALLY IMPLEMENTED | \`lib/models/task.dart\` defines Task, TaskReminder and FollowUp; Task has dueDate/taskReminders/followUps. FollowUp still owns reminderDate and nextFollowUp. | \`test/task_store_test.dart\`; Build \`41274996134\` quality shards PASS, but model contract conflicts with A2/A3. |
-| A2 remove Next Follow-up and followUpEnabled from active model/schema/runtime | NOT IMPLEMENTED | \`lib/models/task.dart\` still declares, serializes and parses followUpEnabled/followUpDate; FollowUp still declares nextFollowUp. | \`test/task_store_test.dart\` and \`test/task_detail_checklist_crud_test.dart\` deliberately preserve legacy fields; this is contrary to the new purge requirement. |
-| A3 remove future-scheduling columns from Follow-up table | NOT IMPLEMENTED | \`lib/services/g1_drift_schema.dart\` creates \`follow_ups.reminder_date\` and \`follow_ups.next_follow_up\`; \`tasks.follow_up_enabled\` remains. | \`test/services/g1_drift_schema_test.dart\` and migration writer currently encode legacy schema; safe migration not present in inspected code. |
-| A4 real completedAt on each Follow-up record | PARTIALLY IMPLEMENTED | \`FollowUp.dateTime\` maps to SQL \`follow_ups.date_time\`; \`Task.completedAt\` is a separate Task completion timestamp. No FollowUp.completedAt field was found. | \`test/task_store_test.dart\` tests Task completedAt preservation, not the required per-record completedAt contract. |
-| A5 Follow-up edit cannot mutate its real completion timestamp | PARTIALLY IMPLEMENTED | \`lib/task_detail_page.dart\` protects Follow-up collection during Task description/checklist edits; record timestamp is currently named dateTime. | \`test/task_detail_followup_flow_test.dart\` test “inline description edit updates updatedAt and preserves completion and Follow-up history” passed in Build shard test-1 on initial SHA; per-record completedAt semantics remain absent. |
+| A1 Task, Due Date, Reminder and Follow-up are distinct | PARTIALLY IMPLEMENTED | `lib/models/task.dart` defines Task, TaskReminder and FollowUp; Task has dueDate/taskReminders/followUps. FollowUp still owns reminderDate and nextFollowUp. | `test/task_store_test.dart`; Build `41274996134` quality shards PASS, but model contract conflicts with A2/A3. |
+| A2 remove Next Follow-up and followUpEnabled from active model/schema/runtime | NOT IMPLEMENTED | `lib/models/task.dart` still declares, serializes and parses followUpEnabled/followUpDate; FollowUp still declares nextFollowUp. | `test/task_store_test.dart` and `test/task_detail_checklist_crud_test.dart` deliberately preserve legacy fields; this is contrary to the new purge requirement. |
+| A3 remove future-scheduling columns from Follow-up table | NOT IMPLEMENTED | `lib/services/g1_drift_schema.dart` creates `follow_ups.reminder_date` and `follow_ups.next_follow_up`; `tasks.follow_up_enabled` remains. | `test/services/g1_drift_schema_test.dart` and migration writer currently encode legacy schema; safe migration not present in inspected code. |
+| A4 real completedAt on each Follow-up record | PARTIALLY IMPLEMENTED | `FollowUp.dateTime` maps to SQL `follow_ups.date_time`; `Task.completedAt` is a separate Task completion timestamp. No FollowUp.completedAt field was found. | `test/task_store_test.dart` tests Task completedAt preservation, not the required per-record completedAt contract. |
+| A5 Follow-up edit cannot mutate its real completion timestamp | PARTIALLY IMPLEMENTED | `lib/task_detail_page.dart` protects Follow-up collection during Task description/checklist edits; record timestamp is currently named dateTime. | `test/task_detail_followup_flow_test.dart` test “inline description edit updates updatedAt and preserves completion and Follow-up history” passed in Build shard test-1 on initial SHA; per-record completedAt semantics remain absent. |
 | A6 explicit Follow-up-to-Task conversion is stable/idempotent | NOT VERIFIED | No verified conversion contract was established in inspected paths. | No matching named acceptance test/evidence located. |
-| A7 Task completion suppresses future notifications and preserves history | IMPLEMENTED BUT NOT VERIFIED | \`lib/models/task.dart\` has setCompleted; \`lib/services/task_store.dart\` persists Task and Follow-up history. | \`test/task_store_test.dart\` has completion/history tests; full notification suppression path not independently proven by this run. |
-| B1 Quick Capture has no Checklist or legacy flags | NOT VERIFIED | \`lib/main.dart\`, Quick Capture dialog implementation not fully audited in this pass. | Device Smoke \`smoke-quick-capture\` PASS on run \`41274996175\`; no evidence in that lane for every prohibited field/Checklist rule. |
-| B2 Full Task form supports multiple independent Reminders | IMPLEMENTED BUT NOT VERIFIED | \`lib/models/task.dart\` has \`taskReminders\`; Reminder data is separate from dueDate. | \`test/task_store_test.dart\`; no current exact-head per-reminder edit/delete proof reviewed. |
-| B3 relative reminder requires real time; all-day 00:00 is not a time reference | PARTIALLY IMPLEMENTED | \`lib/calendar_page.dart\` has all-day-aware presentation; full scheduling/alarm path not verified. | No complete date/time edge-case evidence reviewed. |
-| B4 Checklist only in Task Details; Add/Edit/Delete preserves data | IMPLEMENTED + VERIFIED | \`lib/task_detail_page.dart\`; Task Details owns checklist operations. | \`test/task_detail_checklist_crud_test.dart\`, test “checklist add, inline edit and delete preserve legacy follow-up timestamps”, passed in Build run \`41274996134\`, shard test-2, initial SHA. The test preserves legacy fields, so it does not validate the new purge rule. |
-| B5 Follow-up form offers optional normal Reminder shortcut | NOT IMPLEMENTED | \`lib/follow_up_entry_page.dart\` saves FollowUp and still copies legacy reminderDate/nextFollowUp; no new Reminder shortcut observed. | No test for creating a normal Task Reminder from this form located. |
-| B6 New Follow-up defaults to now and uses Universal Arvin Time Picker | IMPLEMENTED BUT NOT VERIFIED | \`lib/follow_up_entry_page.dart\` exposes date/time controls; exact universal picker integration and default behavior not fully proven. | No current target-SHA dedicated picker acceptance result reviewed. |
-| C1 record-driven ledger uses real follow_up_records and MAX(completedAt) | NOT IMPLEMENTED | \`lib/services/completed_task_report_projection.dart\` filters completed Tasks by Task.completedAt, not Follow-up rows; \`lib/report_center_page.dart\` presents completed Tasks. | No record-driven aggregation query/projection test found. |
-| C2 Follow-up report in Report Center opens on today | PARTIALLY IMPLEMENTED | \`lib/report_center_page.dart\` has “گزارش پیگیری‌های انجام‌شده” entry, but it opens a completed-Task report. | \`test/report_center_page_test.dart\` covers report center behavior; it does not establish the required record-driven report. |
-| C3 Jalali date picker and half-open local day interval | IMPLEMENTED BUT NOT VERIFIED | \`lib/services/completed_task_report_projection.dart\` uses local start-of-day and next local day (not fixed 24h). | No test evidence for daylight/timezone boundaries or Follow-up completedAt filtering. |
-| C4 previous/next/Today, summary, two sorting/grouping modes | NOT IMPLEMENTED | \`lib/report_center_page.dart\` dialog has a date picker and task list only; no previous/next/Today controls, aggregation summary, or two display modes were observed. | No matching report interaction tests. |
-| C5 row fields, stable taskId navigation and history sorting | PARTIALLY IMPLEMENTED | Existing report rows navigate using Task IDs; the inspected completed-task dialog uses ValueKey(task.id). Required Follow-up record row fields/sorting not present in that dialog. | \`test/report_center_page_test.dart\`; full required history report NOT VERIFIED. |
-| C6 history retained for open/completed/archived Tasks; exclude reminders/due dates; no notifications | NOT VERIFIED | \`lib/services/person_follow_up_report_projection.dart\` excludes archived/completed tasks in waiting-only mode and exposes legacy reminder/nextFollowUp projections. | No acceptance evidence for the complete report inclusion/exclusion contract. |
+| A7 Task completion suppresses future notifications and preserves history | IMPLEMENTED BUT NOT VERIFIED | `lib/models/task.dart` has setCompleted; `lib/services/task_store.dart` persists Task and Follow-up history. | `test/task_store_test.dart` has completion/history tests; full notification suppression path not independently proven by this run. |
+| B1 Quick Capture has no Checklist or legacy flags | NOT VERIFIED | `lib/main.dart`, Quick Capture dialog implementation not fully audited in this pass. | Device Smoke `smoke-quick-capture` PASS on run `41274996175`; no evidence in that lane for every prohibited field/Checklist rule. |
+| B2 Full Task form supports multiple independent Reminders | IMPLEMENTED BUT NOT VERIFIED | `lib/models/task.dart` has `taskReminders`; Reminder data is separate from dueDate. | `test/task_store_test.dart`; no current exact-head per-reminder edit/delete proof reviewed. |
+| B3 relative reminder requires real time; all-day 00:00 is not a time reference | PARTIALLY IMPLEMENTED | `lib/calendar_page.dart` has all-day-aware presentation; full scheduling/alarm path not verified. | No complete date/time edge-case evidence reviewed. |
+| B4 Checklist only in Task Details; Add/Edit/Delete preserves data | IMPLEMENTED + VERIFIED | `lib/task_detail_page.dart`; Task Details owns checklist operations. | `test/task_detail_checklist_crud_test.dart`, test “checklist add, inline edit and delete preserve legacy follow-up timestamps”, passed in Build run `41274996134`, shard test-2, initial SHA. The test preserves legacy fields, so it does not validate the new purge rule. |
+| B5 Follow-up form offers optional normal Reminder shortcut | NOT IMPLEMENTED | `lib/follow_up_entry_page.dart` saves FollowUp and still copies legacy reminderDate/nextFollowUp; no new Reminder shortcut observed. | No test for creating a normal Task Reminder from this form located. |
+| B6 New Follow-up defaults to now and uses Universal Arvin Time Picker | IMPLEMENTED BUT NOT VERIFIED | `lib/follow_up_entry_page.dart` exposes date/time controls; exact universal picker integration and default behavior not fully proven. | No current target-SHA dedicated picker acceptance result reviewed. |
+| C1 record-driven ledger uses real follow_up_records and MAX(completedAt) | NOT IMPLEMENTED | `lib/services/completed_task_report_projection.dart` filters completed Tasks by Task.completedAt, not Follow-up rows; `lib/report_center_page.dart` presents completed Tasks. | No record-driven aggregation query/projection test found. |
+| C2 Follow-up report in Report Center opens on today | PARTIALLY IMPLEMENTED | `lib/report_center_page.dart` has “گزارش پیگیری‌های انجام‌شده” entry, but it opens a completed-Task report. | `test/report_center_page_test.dart` covers report center behavior; it does not establish the required record-driven report. |
+| C3 Jalali date picker and half-open local day interval | IMPLEMENTED BUT NOT VERIFIED | `lib/services/completed_task_report_projection.dart` uses local start-of-day and next local day (not fixed 24h). | No test evidence for daylight/timezone boundaries or Follow-up completedAt filtering. |
+| C4 previous/next/Today, summary, two sorting/grouping modes | NOT IMPLEMENTED | `lib/report_center_page.dart` dialog has a date picker and task list only; no previous/next/Today controls, aggregation summary, or two display modes were observed. | No matching report interaction tests. |
+| C5 row fields, stable taskId navigation and history sorting | PARTIALLY IMPLEMENTED | Existing report rows navigate using Task IDs; the inspected completed-task dialog uses ValueKey(task.id). Required Follow-up record row fields/sorting not present in that dialog. | `test/report_center_page_test.dart`; full required history report NOT VERIFIED. |
+| C6 history retained for open/completed/archived Tasks; exclude reminders/due dates; no notifications | NOT VERIFIED | `lib/services/person_follow_up_report_projection.dart` excludes archived/completed tasks in waiting-only mode and exposes legacy reminder/nextFollowUp projections. | No acceptance evidence for the complete report inclusion/exclusion contract. |
 | C7 exact empty/error states and stale-query protection | NOT IMPLEMENTED | Existing completed-task dialog uses “در این روز تکمیل ثبت‌شده‌ای وجود ندارد.”, not the required empty state; no required error state/rapid-filter contract observed. | No corresponding tests found. |
-| D1 Home has exactly six fixed sections and completed collapsed at bottom | NOT VERIFIED | \`lib/main.dart\` is the Home composition source; full six-section order/collapse behavior not established in this pass. | \`integration_test/android_home_smoke_test.dart\` covers boot/navigation, not the full six-section contract. |
+| D1 Home has exactly six fixed sections and completed collapsed at bottom | NOT VERIFIED | `lib/main.dart` is the Home composition source; full six-section order/collapse behavior not established in this pass. | `integration_test/android_home_smoke_test.dart` covers boot/navigation, not the full six-section contract. |
 | D2 Home shows only nearest future Reminder per Task | NOT VERIFIED | Reminder projection exists in app source; exact Home summary selection was not established. | No named test/evidence reviewed. |
-| D3 all-day ordering and distinct date filters | PARTIALLY IMPLEMENTED | Calendar item has isAllDay; \`lib/calendar_page.dart\` contains all-day-aware time/presentation branches. Home/filter behavior not fully verified. | No complete ordering/filter boundary test reviewed. |
-| D4 Calendar labels/icons/prayer/reminder visual rules | IMPLEMENTED BUT NOT VERIFIED | \`lib/calendar_page.dart\` has distinct visual-kind classification including prayer, Arvin Reminder and Follow-up. Exact icon/text polish not visually accepted. | Calendar emulator run was cancelled; no screenshot artifact for Calendar lane. |
-| E1 independent Local Arvin Calendar and explicit Device Calendar | IMPLEMENTED BUT NOT VERIFIED | \`lib/calendar_page.dart\`, \`lib/main.dart\`, Calendar integration services. | Calendar Provider Acceptance run \`41274996200\` SUCCESS on initial SHA; physical-device acceptance absent. |
+| D3 all-day ordering and distinct date filters | PARTIALLY IMPLEMENTED | Calendar item has isAllDay; `lib/calendar_page.dart` contains all-day-aware time/presentation branches. Home/filter behavior not fully verified. | No complete ordering/filter boundary test reviewed. |
+| D4 Calendar labels/icons/prayer/reminder visual rules | IMPLEMENTED BUT NOT VERIFIED | `lib/calendar_page.dart` has distinct visual-kind classification including prayer, Arvin Reminder and Follow-up. Exact icon/text polish not visually accepted. | Calendar emulator run was cancelled; no screenshot artifact for Calendar lane. |
+| E1 independent Local Arvin Calendar and explicit Device Calendar | IMPLEMENTED BUT NOT VERIFIED | `lib/calendar_page.dart`, `lib/main.dart`, Calendar integration services. | Calendar Provider Acceptance run `41274996200` SUCCESS on initial SHA; physical-device acceptance absent. |
 | E2 at most five recurrence preview occurrences | NOT VERIFIED | Recurrence/calendar preview implementation not fully inspected in this pass. | No named test/run evidence reviewed. |
-| E3 device sync idempotent, isolated, failure-safe | IMPLEMENTED BUT NOT VERIFIED | Calendar Provider workflow performs real Provider acceptance; Calendar card actions include sync. | Run \`41274996200\` SUCCESS and artifact \`13070688563\`; artifact contents not yet independently reviewed. |
-| E4 all-day never becomes timed 00:00 | PARTIALLY IMPLEMENTED | \`lib/calendar_page.dart\` distinguishes isAllDay and avoids showing a time chip for all-day items; provider sync contract remains to be reviewed. | No complete exact-head all-day Provider evidence reviewed. |
+| E3 device sync idempotent, isolated, failure-safe | IMPLEMENTED BUT NOT VERIFIED | Calendar Provider workflow performs real Provider acceptance; Calendar card actions include sync. | Run `41274996200` SUCCESS and artifact `13070688563`; artifact contents not yet independently reviewed. |
+| E4 all-day never becomes timed 00:00 | PARTIALLY IMPLEMENTED | `lib/calendar_page.dart` distinguishes isAllDay and avoids showing a time chip for all-day items; provider sync contract remains to be reviewed. | No complete exact-head all-day Provider evidence reviewed. |
 | E5 changes in one calendar path do not mutate the other | NOT VERIFIED | Separate Calendar integration path exists; no full failure-isolation proof reviewed. | No current target-SHA fault-injection test evidence. |
-| F1 Task left/right settings are independent dropdowns | IMPLEMENTED BUT NOT VERIFIED | \`lib/settings_page.dart\` has \`swipe-right-action\` and \`swipe-left-action\`. | No exact-head settings interaction test reviewed. |
-| F2 Task options include configurable “ثبت پیگیری” | NOT IMPLEMENTED | \`lib/settings_page.dart\` explicitly filters \`TaskSwipeAction.convertToFollowUp\` out of \`_swipeItems()\`, despite defining its label. | No dropdown test proving option selection; source directly contradicts requirement. |
+| F1 Task left/right settings are independent dropdowns | IMPLEMENTED BUT NOT VERIFIED | `lib/settings_page.dart` has `swipe-right-action` and `swipe-left-action`. | No exact-head settings interaction test reviewed. |
+| F2 Task options include configurable “ثبت پیگیری” | NOT IMPLEMENTED | `lib/settings_page.dart` explicitly filters `TaskSwipeAction.convertToFollowUp` out of `_swipeItems()`, despite defining its label. | No dropdown test proving option selection; source directly contradicts requirement. |
 | F3 selecting “ثبت پیگیری” opens form only | IMPLEMENTED BUT NOT VERIFIED | `lib/main.dart` now opens `FollowUpEntryPage`; it writes through `_addFollowUpFromDetail` only after a non-null saved result and returns false so the Task stays in the list. | `test/g6_swipe_rtl_acceptance_test.dart` now checks both directions, no write before Save, and persistence after Save; current-head CI is pending. |
-| F4 Calendar left/right settings independent of Task swipes | IMPLEMENTED BUT NOT VERIFIED | \`lib/settings_page.dart\` uses separate \`CalendarSwipeSettingsService\`; \`lib/calendar_page.dart\` receives separate calendar actions. | No current exact-head independent-execution test reviewed. |
-| F5 Calendar options Edit/Delete/Transfer-to-device | PARTIALLY IMPLEMENTED | CalendarSwipeAction enum has edit/trash/sync/none; \`lib/calendar_page.dart\` dispatches actions. Sync callback is restricted to canonical Task records. | No complete swipe action matrix test/evidence reviewed. |
+| F4 Calendar left/right settings independent of Task swipes | IMPLEMENTED BUT NOT VERIFIED | `lib/settings_page.dart` uses separate `CalendarSwipeSettingsService`; `lib/calendar_page.dart` receives separate calendar actions. | No current exact-head independent-execution test reviewed. |
+| F5 Calendar options Edit/Delete/Transfer-to-device | PARTIALLY IMPLEMENTED | CalendarSwipeAction enum has edit/trash/sync/none; `lib/calendar_page.dart` dispatches actions. Sync callback is restricted to canonical Task records. | No complete swipe action matrix test/evidence reviewed. |
 | G1 soft delete moves to recoverable Trash | IMPLEMENTED BUT NOT VERIFIED | Task model has trashed; Settings offers Trash; app has Trash state. | No current exact-head restore test evidence reviewed. |
 | G2 hard delete policy and independent history preservation | BLOCKED | No clear product lifecycle decision for hard deletion of Task vs independent Reminder/Follow-up history was established. | No destructive behavior changed; decision required before implementing cascade/purge. |
-| H1 recurrence pattern/occurrence snapshots and idempotency | PARTIALLY IMPLEMENTED | \`lib/models/task.dart\` includes recurrence, checklistOccurrences and occurrenceHistory. | No complete duplicate-occurrence/history test evidence reviewed. |
-| H2 only real backend filters; distinct Task/Reminder/Follow-up dates | PARTIALLY IMPLEMENTED | \`lib/report_center_page.dart\` includes hasFollowUp filter; current projection includes legacy Next Follow-up properties. | Query contract tests not reviewed. |
-| H3 Backup/Restore preserves relationships/history and cannot revive Next Follow-up | PARTIALLY IMPLEMENTED | Backup/Restore smoke lane uses SQL lifecycle; legacy fields remain serialized in Task/FollowUp model. | \`smoke-task-lifecycle\` PASS in run \`41274996175\`; prohibited legacy-field purge/restore behavior is not satisfied. |
-| H4 PDF embeds Vazirmatn and shapes Persian | NOT VERIFIED | \`pubspec.yaml\` registers Vazirmatn for Flutter; PDF package exists. PDF font embedding/shaping path not inspected or tested. | No PDF-specific font embedding/shaping test or artifact reviewed. |
-| I1 Vazirmatn only, bundled in APK; System Default prohibited | PARTIALLY IMPLEMENTED | \`pubspec.yaml\` registers Regular/Medium/Bold; \`lib/main.dart\` applies Vazirmatn theme. | Build run \`41274996134\`: Debug/Release Font Packaging Audit PASS; Staging APK was not found so Staging font packaging NOT VERIFIED. |
+| H1 recurrence pattern/occurrence snapshots and idempotency | PARTIALLY IMPLEMENTED | `lib/models/task.dart` includes recurrence, checklistOccurrences and occurrenceHistory. | No complete duplicate-occurrence/history test evidence reviewed. |
+| H2 only real backend filters; distinct Task/Reminder/Follow-up dates | PARTIALLY IMPLEMENTED | `lib/report_center_page.dart` includes hasFollowUp filter; current projection includes legacy Next Follow-up properties. | Query contract tests not reviewed. |
+| H3 Backup/Restore preserves relationships/history and cannot revive Next Follow-up | PARTIALLY IMPLEMENTED | Backup/Restore smoke lane uses SQL lifecycle; legacy fields remain serialized in Task/FollowUp model. | `smoke-task-lifecycle` PASS in run `41274996175`; prohibited legacy-field purge/restore behavior is not satisfied. |
+| H4 PDF embeds Vazirmatn and shapes Persian | NOT VERIFIED | `pubspec.yaml` registers Vazirmatn for Flutter; PDF package exists. PDF font embedding/shaping path not inspected or tested. | No PDF-specific font embedding/shaping test or artifact reviewed. |
+| I1 Vazirmatn only, bundled in APK; System Default prohibited | PARTIALLY IMPLEMENTED | `pubspec.yaml` registers Regular/Medium/Bold; `lib/main.dart` applies Vazirmatn theme. | Build run `41274996134`: Debug/Release Font Packaging Audit PASS; Staging APK was not found so Staging font packaging NOT VERIFIED. |
 | I2 all overlays/third-party surfaces, single theme source/render guard | NOT VERIFIED | Main theme source exists; global render guard/overlay coverage not proven. | No screenshot/font-leakage acceptance evidence reviewed. |
 | I3 approved typography weights | NOT VERIFIED | Some explicit weights appear in Calendar and theme; complete role-to-weight audit not completed. | No typography contract test/visual acceptance reviewed. |
 | I4 PDF font embedding/shaping and strict RTL/Persian digits | NOT VERIFIED | No PDF output artifact or RTL/Persian-digit comprehensive evidence reviewed. | No PDF shaping test or seven-lane screenshot review. |
 | J1 Data Model release gate | NOT IMPLEMENTED | Active schema/model/store continue to read/write prohibited legacy fields. | Source inspection on initial SHA directly fails the gate. |
 | J2 Task Swipe release gate | NOT IMPLEMENTED | Settings dropdown excludes convertToFollowUp. | Source inspection directly fails the gate. |
 | J3 Calendar Swipe release gate | PARTIALLY IMPLEMENTED | Separate settings/actions exist; full independent action acceptance not proven. | No complete exact-head swipe matrix. |
-| J4 Device Calendar Sync release gate | IMPLEMENTED BUT NOT VERIFIED | Calendar Provider Acceptance succeeded on initial SHA. | Run \`41274996200\`; physical-device sync proof and reviewed artifact details remain NOT VERIFIED. |
-| J5 Typography + PDF release gate | PARTIALLY IMPLEMENTED | Vazirmatn registered; Debug/Release packaging audit passed; PDF shaping unproven and Staging path failed. | Build run \`41274996134\`; Staging APK absent at incorrect path. |
-| J6 required tests and seven Device Smoke lanes | PARTIALLY IMPLEMENTED | Build six shards passed; named Checklist CRUD and description-history tests were found in shard logs. | Run \`41274996134\` exact initial SHA. Device Smoke run \`41274996175\` did not complete: boot/navigation/quick-capture/task-lifecycle passed; calendar/reminder/follow-up lanes were cancelled. |
+| J4 Device Calendar Sync release gate | IMPLEMENTED BUT NOT VERIFIED | Calendar Provider Acceptance succeeded on initial SHA. | Run `41274996200`; physical-device sync proof and reviewed artifact details remain NOT VERIFIED. |
+| J5 Typography + PDF release gate | PARTIALLY IMPLEMENTED | Vazirmatn registered; Debug/Release packaging audit passed; PDF shaping unproven and Staging path failed. | Build run `41274996134`; Staging APK absent at incorrect path. |
+| J6 required tests and seven Device Smoke lanes | PARTIALLY IMPLEMENTED | Build six shards passed; named Checklist CRUD and description-history tests were found in shard logs. | Run `41274996134` exact initial SHA. Device Smoke run `41274996175` did not complete: boot/navigation/quick-capture/task-lifecycle passed; calendar/reminder/follow-up lanes were cancelled. |
 | J7 same-target-SHA proof for release | BLOCKED | Initial SHA has mixed evidence; subsequent workflow/doc commits change the target SHA and trigger fresh runs. | No single SHA has all required gates passed. |
 
 ## 5. Actual CI and runtime evidence
 
 ### Build — run 41274996134
 
-Target branch: \`fix/recovery-calendar-device-smoke-2026-10-31\`; target SHA: \`3b5721d67e461976748220bcaeb78376c25affe0\`.
+Target branch: `fix/recovery-calendar-device-smoke-2026-10-31`; target SHA: `3b5721d67e461976748220bcaeb78376c25affe0`.
 
-- Analyze: PASS (job \`124755300440\`).
-- Test shards test-0 through test-5: PASS (jobs \`124755300326\`, \`124755300332\`, \`124755300394\`, \`124755300382\`, \`124755300335\`, \`124755300413\`).
+- Analyze: PASS (job `124755300440`).
+- Test shards test-0 through test-5: PASS (jobs `124755300326`, `124755300332`, `124755300394`, `124755300382`, `124755300335`, `124755300413`).
 - Checklist CRUD test “checklist add, inline edit and delete preserve legacy follow-up timestamps”: found in shard test-2 log and passed.
 - Task description/history test “inline description edit updates updatedAt and preserves completion and Follow-up history”: found in shard test-1 log and passed.
 - TaskStore test “TaskStore updates description without rewriting completedAt or historical Follow-ups”: found in shard test-5 log and passed.
-- Debug APK: PASS; artifact \`13071391543\`.
-- Release APK build/artifact: PASS at build level; artifact \`13071391639\`. This is not production-signature proof.
-- Staging Gradle task: BUILD SUCCESSFUL; however the workflow looked at the wrong file path \`android/app/build/outputs/apk/staging/app-staging.apk\`. Log explicitly printed \`APK_FILE=NOT_FOUND\`; apksigner exit was NOT_RUN; v1/v2/v3, debuggable and manifest were NOT_VERIFIED/FAIL. Staging candidate artifact was not uploaded because that path did not exist. Verification artifact \`13070643263\` contains audit files only.
+- Debug APK: PASS; artifact `13071391543`.
+- Release APK build/artifact: PASS at build level; artifact `13071391639`. This is not production-signature proof.
+- Staging Gradle task: BUILD SUCCESSFUL; however the workflow looked at the wrong file path `android/app/build/outputs/apk/staging/app-staging.apk`. Log explicitly printed `APK_FILE=NOT_FOUND`; apksigner exit was NOT_RUN; v1/v2/v3, debuggable and manifest were NOT_VERIFIED/FAIL. Staging candidate artifact was not uploaded because that path did not exist. Verification artifact `13070643263` contains audit files only.
 
 ### Device Smoke — run 41274996175
 
-Target SHA: \`3b5721d67e461976748220bcaeb78376c25affe0\`.
+Target SHA: `3b5721d67e461976748220bcaeb78376c25affe0`.
 
-- PASS: \`smoke-boot\`, \`smoke-navigation\`, \`smoke-quick-capture\`, \`smoke-task-lifecycle\`.
-- CANCELLED: \`smoke-calendar-segmented-view\`, \`smoke-reminder-vazirmatn\`, \`smoke-follow-up-persistence\`.
-- Available artifacts: boot \`13070783148\`, quick capture \`13070992114\`, navigation \`13071272143\`, Persian time picker \`13071067054\`.
-- Calendar log emitted: \`CALENDAR_ROUTE_DIAG: navigation=1 calendarTitle=1 helpButton=1 segmentedControl=1\`; therefore the weekly control was present in the observed emulator route at that point. Two seeded reminders were projected and the due-date item was also present. The emulator job was then cancelled; no Calendar screenshot was produced (\`No files were found\`). This is a cancellation, not proof that the assertion passed or failed. No root cause for the remaining long-running interaction is claimed.
+- PASS: `smoke-boot`, `smoke-navigation`, `smoke-quick-capture`, `smoke-task-lifecycle`.
+- CANCELLED: `smoke-calendar-segmented-view`, `smoke-reminder-vazirmatn`, `smoke-follow-up-persistence`.
+- Available artifacts: boot `13070783148`, quick capture `13070992114`, navigation `13071272143`, Persian time picker `13071067054`.
+- Calendar log emitted: `CALENDAR_ROUTE_DIAG: navigation=1 calendarTitle=1 helpButton=1 segmentedControl=1`; therefore the weekly control was present in the observed emulator route at that point. Two seeded reminders were projected and the due-date item was also present. The emulator job was then cancelled; no Calendar screenshot was produced (`No files were found`). This is a cancellation, not proof that the assertion passed or failed. No root cause for the remaining long-running interaction is claimed.
 
 ### Calendar Provider Acceptance — run 41274996200
 
-Target SHA: \`3b5721d67e461976748220bcaeb78376c25affe0\`; job \`124755267335\` SUCCESS; artifact \`13070688563\`. This proves that the workflow job completed successfully on that SHA. The artifact has not yet been unpacked/reviewed in this audit, and it does not replace installed-device acceptance.
+Target SHA: `3b5721d67e461976748220bcaeb78376c25affe0`; job `124755267335` SUCCESS; artifact `13070688563`. This proves that the workflow job completed successfully on that SHA. The artifact has not yet been unpacked/reviewed in this audit, and it does not replace installed-device acceptance.
 
 ### Fast Lane and file persistence
 
-- Fast Lane contract run \`41274996107\`, job \`124755266616\`: SUCCESS.
-- Follow-up file-backed SQLite persistence run \`41274996125\`, job \`124755266847\`: SUCCESS on the initial SHA. This run used a workflow cache/font label referencing VazirHarf; that is factory/test dependency metadata, not proof of the product font. Product font authority remains Vazirmatn.
+- Fast Lane contract run `41274996107`, job `124755266616`: SUCCESS.
+- Follow-up file-backed SQLite persistence run `41274996125`, job `124755266847`: SUCCESS on the initial SHA. This run used a workflow cache/font label referencing VazirHarf; that is factory/test dependency metadata, not proof of the product font. Product font authority remains Vazirmatn.
 
 ## 6. Staging correction committed to the authorized branch
 
-The inspected \`android/build.gradle.kts\` redirects the root Gradle build directory using \`.dir("../../build")\`. The module output is therefore under the repository-level \`build/app/...\`, not \`android/app/build/...\`.
+The inspected `android/build.gradle.kts` redirects the root Gradle build directory using `.dir("../../build")`. The module output is therefore under the repository-level `build/app/...`, not `android/app/build/...`.
 
-- Updated \`.github/workflows/build.yml\` to use \`build/app/outputs/apk/staging/app-staging.apk\` for verification, font audit, manifest and upload paths (six path references).
-- Added \`test/build_staging_artifact_path_contract_test.dart\` to assert that the workflow follows the configured repository-level Gradle build directory and rejects the incorrect path.
-- Updated \`docs/CHANGELOG-2026-10-30.md\`.
-- The path correction is a source-level diagnosis and patch, not a verification PASS. It must be confirmed by a new exact-head Build run that preserves the raw \`apksigner verify --verbose\` output, separate v2/v3 results, APK_DEBUGGABLE=false, APK size/SHA-256, Release Manifest and Staging artifacts.
+- Updated `.github/workflows/build.yml` to use `build/app/outputs/apk/staging/app-staging.apk` for verification, font audit, manifest and upload paths (six path references).
+- Added `test/build_staging_artifact_path_contract_test.dart` to assert that the workflow follows the configured repository-level Gradle build directory and rejects the incorrect path.
+- Updated `docs/CHANGELOG-2026-10-30.md`.
+- The path correction is a source-level diagnosis and patch, not a verification PASS. It must be confirmed by a new exact-head Build run that preserves the raw `apksigner verify --verbose` output, separate v2/v3 results, APK_DEBUGGABLE=false, APK size/SHA-256, Release Manifest and Staging artifacts.
 
 ### Task Swipe implementation added after the initial source audit
 
@@ -261,12 +261,12 @@ The inspected \`android/build.gradle.kts\` redirects the root Gradle build direc
 
 The inspected schema is version 7. It currently defines:
 
-- \`tasks.follow_up_enabled\`
-- \`tasks.follow_up_date\`
-- \`follow_ups.reminder_date\`
-- \`follow_ups.next_follow_up\`
+- `tasks.follow_up_enabled`
+- `tasks.follow_up_date`
+- `follow_ups.reminder_date`
+- `follow_ups.next_follow_up`
 
-The Task model and TaskStore read/write these fields; \`sql_task_migration_writer.dart\` writes them as well. Legacy compatibility is currently active, not merely inert historical data.
+The Task model and TaskStore read/write these fields; `sql_task_migration_writer.dart` writes them as well. Legacy compatibility is currently active, not merely inert historical data.
 
 **Unknown:** whether the real user database contains any rows or non-null legacy values. No live database file was read and no row counts were obtained. Therefore it is not established that the database is empty.
 
