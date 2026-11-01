@@ -1182,3 +1182,62 @@ All following evidence belongs only to SHA `c452033d96667b817a286bb072a2d99c45b0
 - Legacy schema, Backup/Restore, PDF, Checklist/Quick Capture reconciliation, production signing, v2/v3 production certificate and Release Manifest remain open. No Issue is closed.
 
 **Governance remains unchanged:** no main edit, no merge, no release; PR #3052 OPEN/DRAFT/UNMERGED; Issues #823/#2102/#2299 OPEN; **BLOCKED — RELEASE: NO-GO**.
+
+
+---
+
+## 20. Comprehensive reconciliation checkpoint — 2026-11-01 16:34 UTC
+
+**This section supersedes earlier “current” status snapshots in this document.** Earlier run results remain historical and are not carried forward to a later SHA.
+
+### Current authority / exact branch state
+- Repository: `mobinpda-lab/Arvin-clean`
+- Authorized branch: `fix/recovery-calendar-device-smoke-2026-10-31`
+- Current code HEAD at this checkpoint: `a371baa428cade623940ad218a8724b5b1489be4`
+- PR #3052: OPEN / DRAFT / UNMERGED; base `main`; head equals the checkpoint SHA.
+- Issues #823, #2102 and #2299: OPEN.
+- No main edit, merge, tag, release, or APK publication is authorized.
+- Release: **BLOCKED — RELEASE: NO-GO**.
+- Official font: **Vazirmatn only**; system-default fallback is prohibited.
+
+### Exact-SHA workflow reconciliation
+All rows below refer to SHA `a371baa428cade623940ad218a8724b5b1489be4`, Attempt 1:
+
+| Workflow | Run ID | Current observed state | Jobs / evidence |
+|---|---:|---|---|
+| Build | 41326470775 | IN PROGRESS | Analyze `124907678663` SUCCESS; test-0 `124907678687` SUCCESS; test-1 `124907678650` SUCCESS; test-3 `124907678580` SUCCESS; test-4 `124907678712` SUCCESS; test-5 `124907678400` SUCCESS; test-2 `124907678774` IN PROGRESS; APK matrix `124907679302` SKIPPED |
+| Device Smoke | 41326470822 | QUEUED / IN PROGRESS | Prepare `124907647949` SUCCESS; Boot `124907668632` SUCCESS; Navigation `124907668656` IN PROGRESS; Calendar Segmented View `124907668661` IN PROGRESS; Reminder `124907668605`, Task Lifecycle `124907668650`, Follow-up Persistence `124907668672`, Quick Capture `124907668698` QUEUED |
+| Calendar Provider Acceptance | 41326470720 | IN PROGRESS | Job `124907350144` IN PROGRESS |
+| Follow-up File Persistence | 41326470829 | COMPLETED / SUCCESS | Job `124907362840` SUCCESS |
+
+**Important:** Build test-2 logs were not retrievable at this checkpoint (GitHub log endpoint returned BlobNotFound). The job remained IN PROGRESS, so no conclusion is inferred. Device Smoke is not 7/7 accepted. Calendar Provider has no final outcome yet. The standalone Follow-up file-backed SQLite workflow is PASS only for its own named persistence scope; it does not replace the Alarm Overlay file-backed test inside Build test-2.
+
+### Verified correction commits on the authorized branch
+- `5f17184923a1da6883e3f3d76eee4cf7eb166aea`: navigation contract now expects the real Home label `امروز` instead of retired `خانه`.
+- `c402eefbd04c52dd0b564adf1d462a98143a8fa5`: Boot smoke expectation aligned to actual Home subtitle `مدیریت کارها، یادداشت‌ها و پیگیری‌ها`. The new Boot job above has SUCCESS on exact SHA.
+- `a371baa428cade623940ad218a8724b5b1489be4`: Alarm Overlay file-persistence test injects the same file-backed SQLite executor into TaskStore and ProjectStore at both construction points. This corrects test database isolation; Alarm Overlay timeout resolution is still NOT VERIFIED until test-2 completes successfully.
+
+### Product contract source inspection
+At `a371baa428cade623940ad218a8724b5b1489be4`, `lib/calendar_page.dart` declares the requested source filter set:
+- `همه` → all projected entries.
+- `تقویم گوشی` → IDs prefixed `external-calendar:`.
+- `یادآورها` → timed Task reminder/due/recurrence projections; all-day entries excluded.
+- `انجام‌نشده` → entries where `completed == false`.
+
+The selected-day list sorts all-day entries before timed entries and sorts timed entries chronologically. Existing widget coverage is present in `test/calendar_page_test.dart`. These are source/test observations, not physical-device acceptance. Monthly Activity Dot semantics, end-of-day Overdue retention, and live filter interaction still require explicit test/runtime evidence.
+
+### Durable open-work ledger (do not drop)
+1. **Build:** wait for Run 41326470775. Confirm test-2, all six shards, Analyze, and Draft APK guard on this exact SHA. If test-2 fails, inspect its full test output and repair only the proven cause; never weaken assertions or extend timeouts to mask a hang.
+2. **Device Smoke:** wait for all seven lanes in Run 41326470822; capture exact job IDs, conclusions, artifacts, SHA-256 and screenshots. Review Boot, Calendar Segmented View, Reminder/Vazirmatn and Alarm Overlay visuals. No 7/7 claim until all seven pass on one exact SHA.
+3. **Calendar Provider:** complete Run 41326470720; record emulator/device scope, artifact and checksum. Physical-device and two-writable-calendar validation remain separate.
+4. **Alarm Overlay:** prove test `alarm_overlay_file_persistence_test.dart` itself passes, including close/reopen of the same file-backed DB. Separate the four actions: Task completion via canonical TaskStore; Stop only active notification lifecycle; Snooze only same Reminder; Follow-up only explicit save in standard form. Independent audio stop, recurrence, cold-start/background delivery, permissions/reboot/timezone and accessibility remain NOT VERIFIED.
+5. **Calendar filters/all-day:** run the four-filter widget tests on final SHA; add/verify Activity Dot coverage for monthly cells, all-day-first selected-day ordering, exclusion from timed Reminder filter, and retention in Overdue after day end. Verify device interaction and screenshots.
+6. **Reminder/Vazirmatn:** verify Persian digits, missing glyphs, font fallback, semantics/accessibility and all required screens at supported text scales. Reminder lane alone is not whole-app font acceptance.
+7. **Home:** inspect exact-SHA Boot/Navigation/Quick Capture screenshots and compare with owner reference. Named WEBP `image_gen_3ed82aa8-eb27-4627-b4c2-8b37992d3f9d_0.webp` was unavailable in the prior execution environment; pixel-level comparison remains NOT VERIFIED until asset is available.
+8. **Calendar/device sync:** same-event edit, no-duplicate idempotence, broken-link recovery, permissions, reboot, physical device and two writable calendars remain open.
+9. **Data integrity:** legacy schema compatibility/migration, Reminder foreign-key and deletion/reopen behavior, Backup/Restore relationship integrity, recurrence snapshots, Checklist/Quick Capture canonical path and delete lifecycle require separate acceptance evidence.
+10. **Output/signing:** PDF Vazirmatn embedding and Persian shaping; production signing certificate; APK v2/v3 verification; final Release Manifest containing exact SHA, byte size, SHA-256 and 7-lane smoke status are NOT VERIFIED. Draft guard remains SKIPPED; do not build/publish APK from Draft.
+11. **Governance:** keep #823, #2102, #2299 OPEN; keep PR #3052 OPEN/DRAFT/UNMERGED; do not edit main, merge, tag, publish or release. Require explicit owner approval after all gates.
+
+### Evidence protocol
+Every PASS must identify: **exact SHA + Run ID + Attempt + Job ID + artifact/log/test evidence**. Source inspection is labelled implementation/source evidence, not a runtime PASS. Any missing, stale, cancelled, in-progress, queued or unavailable evidence is **NOT VERIFIED**. Keep historical results explicitly tied to their original SHA.
