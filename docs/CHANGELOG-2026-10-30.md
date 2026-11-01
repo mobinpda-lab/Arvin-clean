@@ -66,3 +66,13 @@ This entry records the governing product decisions for Reminder-only scheduling,
 - Existing canonical Task completion is `Task.setCompleted` + TaskStore persistence + reminder reschedule + calendar sync in the app's existing completion callback. Do not implement parallel completion logic.
 - FollowUp historical timestamp uses `dateTime/date_time`; legacy scheduling columns remain in the SQL schema and must be NULL for new historical records.
 - No source implementation or runtime acceptance is claimed. The audit records the blocker and safe integration direction. Release remains **BLOCKED — RELEASE: NO-GO**.
+
+## 2026-11-01 — Binding alarm widget visual-coordinate directive
+
+- Recorded the requested top-to-bottom widget element map and exact Persian labels: red `توقف آلارم`, Task/current Reminder block, audio-volume slider, snooze stepper and dark-blue primary action.
+- Reconciled action naming with the existing binding product decision: dark-blue primary action is `انجام شد` and must invoke canonical Task completion; optional `ثبت سابقه پیگیری` is a distinct explicit historical FollowUp action, never completion.
+- Bundled Vazirmatn is mandatory for every label, numeral, dialog and accessibility string; System Default is prohibited.
+- The referenced `photo_1793516357359.webp` was not available as an attachment in the execution context, and the text supplied no numeric pixel bounds. Exact screenshot/pixel-coordinate acceptance remains NOT VERIFIED.
+- Prior source audit found no in-app alarm audio/volume controller, notification stop/action route or overlay entry point. No fake slider, parallel audio engine or unsupported source implementation was added.
+- No source implementation or alarm-specific test PASS is claimed. Build run `41279261929` is general build evidence only; Device Smoke run `41279261863` was CANCELLED. Calendar Provider and FollowUp SQLite runs do not validate alarm behavior.
+- PR #3052 remains OPEN/DRAFT; Issue #823 remains OPEN; release remains **BLOCKED — RELEASE: NO-GO**.
