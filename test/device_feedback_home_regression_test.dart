@@ -15,11 +15,11 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('home-menu')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-search-button')), findsOneWidget);
     expect(find.byTooltip('پشتیبان'), findsNothing);
     expect(find.byIcon(Icons.backup_outlined), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
 
     expect(find.byIcon(Icons.backup_outlined), findsOneWidget);
@@ -34,10 +34,11 @@ void main() {
     expect(find.byKey(const ValueKey('home-bismillah')), findsOneWidget);
     expect(find.text('بسم الله الرحمن الرحیم'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-title-block')), findsOneWidget);
-    expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
+    expect(find.text('آروین'), findsOneWidget);
+    expect(find.text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-search')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-notifications')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-menu')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-search-button')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
   });
 
@@ -96,7 +97,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
-    expect(find.text('تاریخ‌گذشته'), findsOneWidget);
+    expect(find.text('تاریخ گذشته'), findsOneWidget);
     expect(find.text('امروز'), findsOneWidget);
     expect(find.text('فردا'), findsOneWidget);
     expect(find.text('آینده'), findsOneWidget);
@@ -136,7 +137,7 @@ void main() {
     expect(find.text('برای بایگانی'), findsNothing);
     expect(find.text('برای حذف'), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ListTile, 'بایگانی'));
     await tester.pumpAndSettle();
