@@ -143,3 +143,17 @@ This entry records the governing product decisions for Reminder-only scheduling,
 - Sorted all-day entries before timed entries in the selected-day list; timed entries remain chronological.
 - Added widget coverage for the four source filters, all-day inclusion/exclusion, completed all-day exclusion from unfinished, and all-day-first ordering.
 - Validation is pending on the new branch HEAD; no test or analyzer PASS is claimed by this changelog entry.
+
+
+## 2026-11-01 — Comprehensive audit reconciliation and durable continuation ledger
+
+- Reconciled the conversation's open work with live GitHub state for PR #3052 and Issues #823, #2102 and #2299.
+- Added the current exact-SHA evidence snapshot and outstanding acceptance gates to `docs/qa/ARVIN_FULL_PRODUCT_AUDIT_2026-11-01.md`.
+- Expanded `docs/ARVIN_CONTINUATION_LEDGER.md` into the cross-conversation resume ledger. It records governance locks, source/test commits, exact run/job IDs, current states, known gaps and a mandatory resume protocol. This repository ledger—not chat memory—is the continuity source.
+- Latest source/test SHA at audit checkpoint: `a371baa428cade623940ad218a8724b5b1489be4`. Documentation updates follow it; re-read live branch HEAD before further work.
+- On that source/test SHA, Build Run `41326470775` Attempt 1: Analyze, test-0, test-1, test-3, test-4 and test-5 SUCCESS; test-2 Job `124907678774` IN PROGRESS; APK guard Job `124907679302` SKIPPED. Run not complete.
+- Device Smoke Run `41326470822` Attempt 1: Boot Job `124907668632` SUCCESS; Navigation and Calendar Segmented View IN PROGRESS; four remaining lanes QUEUED at checkpoint. Not 7/7.
+- Calendar Provider Run `41326470720` Job `124907350144` IN PROGRESS.
+- Follow-up File Persistence Run `41326470829` Job `124907362840` SUCCESS; this is not a substitute for the Alarm Overlay persistence test.
+- Open work includes test-2 completion, seven-lane device acceptance and screenshots, physical-device/two-calendar sync, monthly all-day Activity Dot and Overdue proof, four independent alarm actions and runtime audio/accessibility checks, full-app Vazirmatn validation, legacy schema and backup/restore integrity, PDF font embedding, production signing and Release Manifest.
+- PR #3052 remains OPEN/DRAFT/UNMERGED; Issues #823/#2102/#2299 remain OPEN. Draft APK Guard remains SKIPPED. No main edit, merge, tag, APK publication or release. **BLOCKED — RELEASE: NO-GO**.
