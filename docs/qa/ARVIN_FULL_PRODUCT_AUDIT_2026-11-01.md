@@ -1074,3 +1074,51 @@ At the time of this checkpoint, PR #3052 was OPEN / DRAFT / UNMERGED with head `
 
 ### Action-isolation correction after initial implementation
 A source review found that the first attempt to mirror Home's Calendar sync placed the sync call in the Snooze method rather than Task completion. This was corrected before the current validation SHA: Snooze now only mutates the exact Reminder, invokes the established scheduler and cancels its notification; Calendar outbound sync is executed only by the Task completion action. Earlier intermediate-SHA runs are not evidence for the corrected final head.
+
+
+## 18. Owner-approved Home screen implementation — 2026-11-01
+
+**Authorized branch:** `fix/recovery-calendar-device-smoke-2026-10-31`  
+**Latest source implementation commit at this checkpoint:** `5e7f8d81e35a66c0f9b5384b2f19eaa67f205bf3`  
+**PR:** #3052 — keep OPEN / DRAFT / UNMERGED.  
+**Release:** `BLOCKED — RELEASE: NO-GO`.
+
+This section supersedes the earlier Home source observations in §2/§3/§4 only where the current Home implementation is explicitly described below. Earlier audit SHA/run evidence remains historical and is not re-attributed to this implementation.
+
+### Source changes
+
+- `lib/main.dart`: Home header now uses the main title `آروین` and exact subtitle `مدیریت کارها، یادداشت‌ها و پیگیری‌ها`; the existing Bismillah brand identity remains present in a restrained small treatment because the canonical brand lock still requires it.
+- Header search button focuses the existing canonical search field. The search projection and filter behavior are retained.
+- Header notification button reads the actual pending notification requests from `FlutterLocalNotificationsPlugin`; the red dot is rendered only when the returned pending-request count is nonzero. The dialog lists actual scheduled requests, and selecting one resolves its payload Task ID against canonical TaskStore data before opening that Task. Plugin/query failures do not block Home or create a false red dot.
+- Four Home cards now display real values: distinct tag catalog/Task tags, distinct category catalog/Task categories, non-archived Project count, and the existing selected time-filter label. The time card still invokes the existing time-filter sheet; no replacement or invented time-count definition was introduced.
+- `_homeGroups` retains the existing real Task grouping, collapse state and Persian-digit item counts, with order aligned to Today, Tomorrow, Future, Past, then Undated. Today/Tomorrow group headers include dynamically derived Jalali dates. Individual Task due dates continue to use the existing Jalali formatter.
+- The canonical empty state now reads `هنوز کاری برای نمایش نیست` and exposes `home-empty-add`, wired to the existing Quick Capture flow. It is shown only for an actually empty active Task set, not when an active filter merely has no matches.
+- Compact Home add action is aligned to the physical right edge; normal-height FAB uses the RTL-aware start location so it also appears on the physical right, above the five-item bottom navigation.
+- `lib/home/home_filter_ui.dart`: Home filter cards accept explicit active-state metadata so real counts do not incorrectly appear as active filters.
+- `lib/widgets/arvin_primary_navigation.dart`: the existing Home destination label is now `امروز`; the other four routes remain unchanged.
+
+### Data and sample-content safety
+
+No sample Task title, sample date, sample count or sample project/tag/category was added to application runtime code or seeded into storage. Numeric card values are derived at runtime from canonical catalogs, Task assignments and non-archived Project records. Test fixtures contain synthetic values only inside test source files.
+
+### Regression coverage updated/added
+
+- Updated Home widget tests for the new title/subtitle, plural taxonomy labels, Today navigation label, More route, and Past section label.
+- Added tests for data-derived tag/category/Project counts, the existing time-filter value, search-button focus, and the empty-state Quick Capture entry.
+- Existing grouping, filtering, Task completion, Quick Capture, data-error and RTL navigation paths were retained rather than replaced.
+- Test files changed in this slice include `test/widgets/home_page_test.dart`, `test/widget_test.dart`, `test/device_feedback_home_regression_test.dart`, `test/home/home_filter_contract_test.dart`, `test/home_stat_filters_test.dart`, `test/home_more_my_tasks_test.dart`, `test/home_settings_integration_test.dart`, `test/home_today_about_test.dart`, `test/g6_swipe_rtl_acceptance_test.dart`, and `integration_test/android_quick_capture_smoke_test.dart`.
+
+### Acceptance status
+
+- Source implementation: **IMPLEMENTED** on the authorized branch.
+- Local Flutter execution: **NOT VERIFIED** in this connector-only execution; no local Flutter SDK/repository checkout was available.
+- Exact-head Build/Analyze/test shards: **IN PROGRESS / NOT VERIFIED** until GitHub runs for the final post-documentation HEAD complete.
+- Exact-head Device Smoke screenshots and seven lanes: **NOT VERIFIED** until the new SHA's run and artifacts are inspected.
+- Pixel-level reference comparison: **NOT VERIFIED** because the named WEBP reference was not available in the execution environment; the implementation follows the written owner specification only.
+- Large-font/compact-device runtime, TalkBack, actual notification tap lifecycle and physical-device acceptance: **NOT VERIFIED**.
+
+### Independent open work retained
+
+- Reminder-specific Foreign Key failure and file-backed SQLite timeout remain separate open defects; this Home work did not alter their test logic or mark them complete.
+- Calendar Provider physical-device and two-writable-calendar acceptance, Quick Capture/Checklist architecture reconciliation, Legacy Schema safety, Backup/Restore, PDF, real-device acceptance and production signing/Manifest remain open under Issues #823/#2102/#2299.
+- No Issue was closed, no main change was made, and no APK was published.
