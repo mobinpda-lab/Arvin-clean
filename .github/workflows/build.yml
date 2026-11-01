@@ -173,7 +173,7 @@ jobs:
         run: |
           set -uo pipefail
           mkdir -p staging-verification
-          apk="android/app/build/outputs/apk/staging/app-staging.apk"
+          apk="build/app/outputs/apk/staging/app-staging.apk"
           signer_log="staging-verification/apksigner-verify.log"
           : > "$signer_log"
 
@@ -274,7 +274,7 @@ jobs:
           manifest = {
               "source_sha": os.environ["TARGET_SHA"],
               "variant": "staging",
-              "apk_path": "android/app/build/outputs/apk/staging/app-staging.apk",
+              "apk_path": "build/app/outputs/apk/staging/app-staging.apk",
               "apk_status": os.environ["APK_STATUS"],
               "file_size_bytes": int(os.environ["APK_BYTES"]),
               "sha256": os.environ["APK_SHA256"],
@@ -320,7 +320,7 @@ jobs:
         run: |
           set -euo pipefail
           if [[ "${{ matrix.variant }}" == "staging" ]]; then
-            apk="android/app/build/outputs/apk/staging/app-staging.apk"
+            apk="build/app/outputs/apk/staging/app-staging.apk"
           else
             apk="build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk"
           fi
@@ -348,7 +348,7 @@ jobs:
         run: |
           set -euo pipefail
           if [[ "${{ matrix.variant }}" == "staging" ]]; then
-            test -s "android/app/build/outputs/apk/staging/app-staging.apk"
+            test -s "build/app/outputs/apk/staging/app-staging.apk"
           else
             test -s "build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk"
           fi
@@ -357,14 +357,14 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: arvin-${{ matrix.variant }}-apk
-          path: ${{ matrix.variant == 'staging' && 'android/app/build/outputs/apk/staging/app-staging.apk' || format('build/app/outputs/flutter-apk/app-{0}.apk', matrix.variant) }}
+          path: ${{ matrix.variant == 'staging' && 'build/app/outputs/apk/staging/app-staging.apk' || format('build/app/outputs/flutter-apk/app-{0}.apk', matrix.variant) }}
           if-no-files-found: error
       - name: Upload Staging APK audit candidate
         if: always() && matrix.variant == 'staging'
         uses: actions/upload-artifact@v5
         with:
           name: arvin-staging-apk-audit-candidate
-          path: android/app/build/outputs/apk/staging/app-staging.apk
+          path: build/app/outputs/apk/staging/app-staging.apk
           if-no-files-found: ignore
 
       - name: Upload staging verification logs
