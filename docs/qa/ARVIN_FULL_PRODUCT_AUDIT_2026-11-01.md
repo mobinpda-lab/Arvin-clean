@@ -935,3 +935,44 @@ Inspected `lib/alarm_overlay_page.dart` and `test/alarm_overlay_page_test.dart` 
 - Issues #823 and #2102 remain OPEN.
 - No main edit, merge, production signing, release publication, or destructive data migration was performed.
 - Release remains **BLOCKED — RELEASE: NO-GO**. Any correction must be made only on the authorized PR branch and followed by fresh exact-HEAD Build, all seven Device Smoke lanes, Calendar Provider and Follow-up persistence validation.
+
+
+## 15. Alarm Overlay current-head diagnosis and corrective implementation
+
+Audit update: 2026-11-01. Baseline at start of this dispatch was PR HEAD `55aab0d54c13076d9e35815406db5854b31e72ef`, OPEN/DRAFT/UNMERGED. The comparison `612f902...` → `55aab0d...` contains exactly two commits and only one changed path: this audit document. No application or test source changed in those two commits; therefore the three Alarm Overlay failures reported on `612f902...` remained reproducible candidates at `55aab0d...`.
+
+### Reproduced root cause
+
+The Build run on baseline `55aab0d...` was `41289498512` (run number 9000). Analyze passed; test-2, test-3 and test-4 failed. Their job logs identify the same failure in `test/alarm_overlay_page_test.dart`: finder key `alarm-overlay-follow-up` found zero widgets. The failing cases were:
+- `Follow-up shortcut reuses the canonical form without Reminder option` — job `124797854176`.
+- `explicit Follow-up Save persists history without adding a future Reminder` — job `124797854164`.
+- `overlay hierarchy has a prominent Stop, volume speaker, and bottom Follow-up shortcut` — job `124797854251`.
+
+Root cause confirmed from source and widget tree: `_buildOverlay` used `ListView(children: [...])`. Flutter's lazy sliver child delegate had not built the last/bottom Follow-up control when the tests searched for it. This was not a missing route or a missing ValueKey; it was a lazily unbuilt off-screen child.
+
+### Code correction committed
+
+Commit `f1caadbd58117c619c25a5d198c022945613f935` changes only `lib/alarm_overlay_page.dart`: the lazy `ListView` was replaced by `SingleChildScrollView` containing a `Column` with stretch cross-axis alignment. This eagerly builds the complete overlay widget hierarchy while preserving vertical scrolling and the bottom placement of the Follow-up control. No assertion was removed, loosened, skipped, or bypassed; `test/alarm_overlay_page_test.dart` is byte-for-byte unchanged at this commit. The correction is intended to make the existing interactions and visual-order test exercise the actual rendered control. CI acceptance remains pending until fresh exact-SHA runs finish.
+
+### Current source contract review
+
+- Stop action is 64px high, uses the theme error color and cancels only `widget.notificationId`. The Stop method does not write Task, completion, or Reminder data.
+- Task is loaded by exact `taskId`; the Reminder is selected by exact `taskReminderId` (legacy fallback only when no reminder ID is supplied). A non-unique or missing match produces an error state.
+- Snooze increments by 5 minutes and clamps at 5–120; it updates the matched Reminder by ID using `copyWith(date: nextTime)`, retaining ID/title/isAllDay/sequence, persists it, reschedules, and cancels the active notification. All-day reminders omit timed Snooze controls.
+- Follow-up opens the canonical `FollowUpEntryPage(taskId: task.id, allowAddingReminder: false)`. The overlay writes history only after a non-null Follow-up is returned from the form's explicit Save; the form's future Reminder switch is suppressed by the flag.
+- Volume row remains informational: disabled Slider and speaker icon; no independent audio-player or volume controller is verified. Notification dismissal must not be described as stopping an independently controlled audio stream.
+- App font declarations identify `Vazirmatn` with Regular, Medium and Bold assets. Overlay applies `AppFonts.vazirmatnFamily` to its TextTheme and uses Persian numeral conversion for the Snooze value. Dialog/route glyph rendering and accessibility labels still require runtime verification; do not claim full glyph coverage based only on the declarations.
+- The two requested visual references `photo_1793512287397.webp` and `photo_1793516357359.webp` were not found among the available saved reference images in this session. No pixel comparison was performed or claimed.
+
+### Preliminary CI triggered by the correction commit
+
+All runs below report exact `head_sha=f1caadbd58117c619c25a5d198c022945613f935`. At the time of this audit update they were still active; none is a final acceptance claim:
+- Build run `41289880517`, run #9001: pending; jobs not yet published to the run-jobs endpoint.
+- Device Smoke run `41289880384`, run #6268: preparation PASS job `124798736724`; boot job `124798751501` and navigation job `124798751460` in progress; quick-capture `124798751492`, reminder-vazirmatn `124798751453`, calendar-segmented-view `124798751445`, task-lifecycle `124798751559`, and follow-up-persistence `124798751443` queued.
+- Calendar Provider run `41289880498`: job `124798724445` in progress.
+- Follow-up File Persistence run `41289880355`: job `124798724355` in progress.
+- No artifacts had been reported yet for these active runs.
+
+### Gate status
+
+The code correction is committed, but the acceptance result is **NOT VERIFIED** pending fresh CI. The above preliminary runs target `f1caadbd...`; if this audit document is committed afterward, those runs do not transfer to the new branch HEAD. The final audit must identify the resulting documentation-synchronized SHA and record fresh exact-HEAD Build, seven-lane Device Smoke, Calendar Provider, and Follow-up persistence outcomes. Production signing and Release Manifest verification remain separate mandatory gates. PR #3052 must remain OPEN/DRAFT/UNMERGED; Issues #823 and #2102 remain OPEN; no main changes, merge, release, or destructive migration.
