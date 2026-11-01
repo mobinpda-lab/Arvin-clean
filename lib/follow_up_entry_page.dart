@@ -361,6 +361,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
             ),
             const SizedBox(height: 12),
             SwitchListTile(
+              key: const ValueKey('follow-up-entry-waiting-for-response'),
               contentPadding: EdgeInsets.zero,
               title: const Text('منتظر پاسخ دیگران'),
               subtitle: const Text(
