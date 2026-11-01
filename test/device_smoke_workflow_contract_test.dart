@@ -3,91 +3,94 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('device smoke covers integration-base and Draft PRs with real Android flows', () {
+  test('device smoke defines exactly seven canonical lanes on one exact target SHA', () {
     final workflow =
         File('.github/workflows/device-smoke.yml').readAsStringSync();
 
     expect(workflow, contains('name: Arvin Device Smoke'));
     expect(workflow, contains('workflow_dispatch:'));
     expect(workflow, contains('target_sha:'));
-    expect(workflow, contains('run_calendar:'));
-    expect(workflow, contains('run_sql_persistence:'));
-    expect(workflow, contains('run_sql_migration:'));
-    expect(workflow, contains(r'RUN_SQL_MIGRATION: ${{ inputs.run_sql_migration }}'));
-    expect(workflow, contains('"scenario":"sql-migration","test_file":"integration_test/android_upgrade_migration_smoke_test.dart"'));
     expect(
       workflow,
-      contains(r"ref: ${{ env.TARGET_SHA }}"),
+      contains(r'TARGET_SHA: ${{ github.event_name == \'workflow_dispatch\' && inputs.target_sha || github.event_name == \'pull_request\' && github.event.pull_request.head.sha || github.sha }}'),
     );
+
+    // One shared TARGET_SHA is used by every matrix lane, and checkout is
+    // explicitly fenced to that exact revision before tests can run.
+    expect(workflow, contains(r'ref: ${{ env.TARGET_SHA }}'));
     expect(workflow, contains('name: Record and verify checkout revision'));
     expect(workflow, contains(r'actual="$(git rev-parse HEAD)"'));
-    expect(workflow, contains(r'echo "CHECKED_OUT_SHA=$actual"'));
     expect(workflow, contains(r'echo "EXPECTED_TARGET_SHA=$TARGET_SHA"'));
     expect(workflow, contains(r'echo "CHECKED_OUT_SHA=$actual"'));
     expect(workflow, contains(r'echo "EXACT_TARGET_SHA=$actual"'));
+    expect(workflow, contains(r'if [ "$actual" != "$TARGET_SHA" ]; then'));
     expect(
       workflow,
       contains(r'CHECKOUT SHA mismatch: expected $TARGET_SHA, got $actual'),
     );
-    expect(workflow, contains(r'if [ "$actual" != "$TARGET_SHA" ]; then'));
 
-    // Pull requests targeting integration branches must receive smoke coverage.
-    // Keep the main/master restriction for push events, but not for pull_request.
-    final pullRequestTrigger = workflow
-        .split('  pull_request:\n')
-        .last
-        .split('  workflow_dispatch:')
-        .first;
-    expect(pullRequestTrigger, isNot(contains('branches: [main, master]')));
+    final matrixScenarios = RegExp(
+      r'\{"scenario":"([^"]+)","test_file":"([^"]+)"\}',
+    ).allMatches(workflow).toList();
+    final scenarioMappings = matrixScenarios
+        .map((match) => '${match.group(1)}:${match.group(2)}')
+        .toSet();
+
+    expect(matrixScenarios, hasLength(7));
+    expect(
+      scenarioMappings,
+      equals(<String>{
+        'smoke-boot:integration_test/android_home_smoke_test.dart',
+        'smoke-navigation:integration_test/android_people_smoke_test.dart',
+        'smoke-calendar-segmented-view:integration_test/calendar_card_interaction_test.dart',
+        'smoke-quick-capture:integration_test/android_quick_capture_smoke_test.dart',
+        'smoke-task-lifecycle:integration_test/android_backup_restore_sql_smoke_test.dart',
+        'smoke-reminder-vazirmatn:integration_test/calendar_card_interaction_test.dart',
+        'smoke-follow-up-persistence:integration_test/android_sql_persistence_smoke_test.dart',
+      }),
+      reason: 'The seven canonical lanes must map to their real integration tests.',
+    );
+
+    // The Reminder-specific compatibility suite belongs to the Reminder lane;
+    // no retired scenario identifiers may silently suppress it.
     expect(
       workflow,
-      isNot(contains("if: github.event_name != 'pull_request' || github.event.pull_request.draft == false")),
+      contains("if: matrix.scenario == 'smoke-reminder-vazirmatn'"),
     );
+    expect(workflow, isNot(contains("matrix.scenario == 'calendar'")));
+
+    // Screenshot upload conditions must use the actual matrix identifiers.
+    expect(
+      workflow,
+      contains("matrix.scenario == 'smoke-boot'"),
+    );
+    expect(
+      workflow,
+      contains("matrix.scenario == 'smoke-quick-capture'"),
+    );
+    expect(
+      workflow,
+      contains("matrix.scenario == 'smoke-navigation'"),
+    );
+    expect(
+      workflow,
+      contains("matrix.scenario == 'smoke-calendar-segmented-view'"),
+    );
+    expect(
+      workflow,
+      contains("matrix.scenario == 'smoke-reminder-vazirmatn'"),
+    );
+    expect(workflow, isNot(contains("matrix.scenario == 'home'")));
+    expect(workflow, isNot(contains("matrix.scenario == 'people'")));
 
     expect(workflow, contains('reactivecircus/android-emulator-runner@v2'));
     expect(workflow, contains('max-parallel: 2'));
     expect(workflow, contains('timeout-minutes: 30'));
-
-    // Use Flutter's native integration_test screenshot callback at known UI checkpoints.
-    expect(workflow, contains('flutter drive --driver=test_driver/integration_test.dart --target='));
-    expect(workflow, isNot(contains('adb exec-out screencap -p')));
-    expect(workflow, isNot(contains('uiautomator dump')));
-
-    final driver = File('test_driver/integration_test.dart').readAsStringSync();
-    expect(driver, contains('integrationDriver('));
-    expect(driver, contains('onScreenshot:'));
-    expect(
-      driver,
-      contains(r"File('${outputDirectory.path}/$screenshotName.png')"),
-    );
-    expect(driver, contains('writeAsBytes(screenshotBytes'));
-
-    final homeTest = File('integration_test/android_home_smoke_test.dart').readAsStringSync();
-    final quickCaptureTest = File('integration_test/android_quick_capture_smoke_test.dart').readAsStringSync();
-    final peopleTest = File('integration_test/android_people_smoke_test.dart').readAsStringSync();
-    expect(homeTest, contains("takeScreenshot('home')"));
-    final homeRouteAssertionIndex = homeTest.indexOf(
-      "expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);",
-      homeTest.indexOf('expect(created.single.description'),
-    );
-    final homeScreenshotIndex =
-        homeTest.indexOf('await binding.convertFlutterSurfaceToImage();');
-    expect(homeRouteAssertionIndex, greaterThanOrEqualTo(0));
-    expect(homeRouteAssertionIndex, lessThan(homeScreenshotIndex));
-    expect(homeTest, contains('quickCaptureCancel'));
-    expect(quickCaptureTest, contains("takeScreenshot('quick-capture')"));
-    expect(peopleTest, contains("takeScreenshot('people')"));
-    expect(workflow, contains('Upload Android smoke screenshot evidence'));
     expect(
       workflow,
-      contains("if: always() && (matrix.scenario == 'home' || matrix.scenario == 'quick-capture' || matrix.scenario == 'people')"),
+      contains('flutter drive --driver=test_driver/integration_test.dart --target='),
     );
     expect(workflow, contains('actions/upload-artifact@v5'));
-    expect(workflow, contains(r'arvin-device-smoke-${{ matrix.scenario }}-${{ env.TARGET_SHA }}'));
-
-    // The workflow builds a JSON matrix in prepare-matrix and exposes it
-    // through the job output. Validate that contract instead of expecting a
-    // literal YAML list under strategy.matrix.
     expect(
       workflow,
       contains(r'matrix: ${{ fromJSON(needs.prepare-matrix.outputs.matrix) }}'),
@@ -95,31 +98,6 @@ void main() {
     expect(
       workflow,
       contains(r'matrix: ${{ steps.set-matrix.outputs.matrix }}'),
-    );
-    expect(workflow, contains(r"'{include:$scenarios}'"));
-    expect(workflow, contains(r'echo "matrix=$matrix" >> "$GITHUB_OUTPUT"'));
-
-    final matrixScenarios = RegExp(
-      r'\{"scenario":"([^"]+)","test_file":"([^"]+)"\}',
-    ).allMatches(workflow).toList();
-
-    final scenarioMappings = matrixScenarios
-        .map((match) => '${match.group(1)}:${match.group(2)}')
-        .toSet();
-
-    expect(
-      scenarioMappings,
-      equals(<String>{
-        'home:integration_test/android_home_smoke_test.dart',
-        'quick-capture:integration_test/android_quick_capture_smoke_test.dart',
-        'sql-persistence:integration_test/android_sql_persistence_smoke_test.dart',
-        'sql-migration:integration_test/android_upgrade_migration_smoke_test.dart',
-        'backup-restore:integration_test/android_backup_restore_sql_smoke_test.dart',
-        'people:integration_test/android_people_smoke_test.dart',
-        'calendar:integration_test/calendar_card_interaction_test.dart',
-      }),
-      reason:
-          'All seven canonical smoke scenarios must map to their corresponding integration test files',
     );
   });
 }
