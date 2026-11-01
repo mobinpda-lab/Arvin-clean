@@ -250,139 +250,322 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
     );
   }
 
-  Widget _buildOverlay(BuildContext context) {
-    final task = _task!;
-    final reminder = _reminder!;
-    final colors = Theme.of(context).colorScheme;
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-        Align(
-          alignment: Alignment.centerRight,
-          child: IconButton(
-            tooltip: 'بستن',
-            onPressed: _busy ? null : () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.close),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Center(
-          child: CircleAvatar(
-            radius: 42,
-            backgroundColor: colors.errorContainer,
-            child: Icon(Icons.notifications_active, size: 42, color: colors.onErrorContainer),
-          ),
-        ),
-        const SizedBox(height: 24),
-        Text(
-          'زمان یادآور رسیده است',
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          task.title,
-          key: const ValueKey('alarm-overlay-task-title'),
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          '${_formatDate(reminder.date)}  •  ${reminder.isAllDay ? 'تمام‌روز' : _formatTime(reminder.date)}',
-          key: const ValueKey('alarm-overlay-reminder-time'),
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        const SizedBox(height: 28),
-        SizedBox(
-          width: double.infinity,
-          height: 64,
-          child: FilledButton.icon(
-            key: const ValueKey('alarm-overlay-stop'),
-            style: FilledButton.styleFrom(
-              backgroundColor: colors.error,
-              foregroundColor: colors.onError,
-              textStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-              padding: const EdgeInsets.symmetric(vertical: 16),
-            ),
-            onPressed: _busy ? null : _stopAlarm,
-            icon: const Icon(Icons.alarm_off),
-            label: const Text('توقف آلارم'),
-          ),
-        ),
-        const SizedBox(height: 24),
-        if (!reminder.isAllDay) ...[
-          Text('تعویق یادآور', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8),
-          Row(
+  Future<void> _completeTask() async {
+    final task = _task;
+    if (task == null || _busy) return;
+    setState(() => _busy = true);
+    try {
+      await _store.mutate<void>((tasks) {
+        final index = tasks.indexWhere((item) => item.id == widget.taskId);
+        if (index < 0) throw StateError('Task not found');
+        final storedTask = tasks[index];
+        if (storedTask.completed) return;
+        storedTask.setCompleted(true, at: _now());
+        storedTask.updatedAt = _now();
+      });
+      await _reschedule();
+      await _notifications.cancel(widget.notificationId);
+      if (mounted) Navigator.of(context).pop();
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _busy = false);
+      await _showError('تکمیل کار ذخیره نشد. دوباره تلاش کنید.');
+    }
+  }
+
+  Future<void> _showSnoozeDurationPicker() async {
+    if (_busy || _reminder?.isAllDay != false || _persistedSnoozeAt != null) return;
+    var selectedMinutes = _snoozeMinutes;
+    final result = await showDialog<int>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('مدت تعویق یادآور'),
+          content: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               IconButton(
-                key: const ValueKey('alarm-overlay-snooze-minus'),
-                onPressed: _busy || _persistedSnoozeAt != null || _snoozeMinutes <= 5
+                tooltip: 'کاهش مدت تعویق',
+                onPressed: selectedMinutes <= 5
                     ? null
-                    : () => setState(() => _snoozeMinutes -= 5),
+                    : () => setDialogState(() => selectedMinutes -= 5),
                 icon: const Icon(Icons.remove_circle_outline),
               ),
               Text(
-                '${_persianNumber(_snoozeMinutes)} دقیقه',
-                key: const ValueKey('alarm-overlay-snooze-value'),
+                '${_persianNumber(selectedMinutes)} دقیقه',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               IconButton(
-                key: const ValueKey('alarm-overlay-snooze-plus'),
-                onPressed: _busy || _persistedSnoozeAt != null || _snoozeMinutes >= 120
+                tooltip: 'افزایش مدت تعویق',
+                onPressed: selectedMinutes >= 120
                     ? null
-                    : () => setState(() => _snoozeMinutes += 5),
+                    : () => setDialogState(() => selectedMinutes += 5),
                 icon: const Icon(Icons.add_circle_outline),
               ),
             ],
           ),
-          FilledButton(
-            key: const ValueKey('alarm-overlay-snooze-confirm'),
-            onPressed: _busy ? null : _snoozeAlarm,
-            child: const Text('تعویق آلارم'),
-          ),
-        ] else
-          const Text(
-            'برای یادآور تمام‌روز، تعویق زمانی در دسترس نیست.',
-            textAlign: TextAlign.center,
-          ),
-        const SizedBox(height: 24),
-        Text('صدای اعلان', style: Theme.of(context).textTheme.titleSmall),
-        Row(
-          key: const ValueKey('alarm-overlay-volume-row'),
-          children: [
-            const Icon(Icons.volume_up, semanticLabel: 'صدای اعلان'),
-            Expanded(
-              child: Slider(
-                key: const ValueKey('alarm-overlay-volume-info'),
-                value: 0.65,
-                onChanged: null,
-              ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('انصراف'),
+            ),
+            FilledButton(
+              key: const ValueKey('alarm-overlay-snooze-dialog-confirm'),
+              onPressed: () => Navigator.of(dialogContext).pop(selectedMinutes),
+              child: const Text('تأیید تعویق'),
             ),
           ],
         ),
-        const Text(
-          'کنترل صدای اعلان از تنظیمات صدای دستگاه انجام می‌شود.',
-          textAlign: TextAlign.center,
+      ),
+    );
+    if (result == null || !mounted) return;
+    setState(() => _snoozeMinutes = result);
+    await _snoozeAlarm();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final baseTheme = Theme.of(context);
+    final themed = baseTheme.copyWith(
+      textTheme: baseTheme.textTheme.apply(
+        fontFamily: AppFonts.vazirmatnFamily,
+      ),
+    );
+    return Theme(
+      data: themed,
+      child: Directionality(
+        textDirection: TextDirection.rtl,
+        child: Scaffold(
+          backgroundColor: const Color(0xFFF3F2F8),
+          body: SafeArea(
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : _error != null
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.alarm_off, size: 48),
+                              const SizedBox(height: 16),
+                              Text(_error!, textAlign: TextAlign.center),
+                              const SizedBox(height: 16),
+                              FilledButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: const Text('بستن'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    : _buildOverlay(context),
+          ),
         ),
-        const SizedBox(height: 28),
-        OutlinedButton.icon(
-          key: const ValueKey('alarm-overlay-follow-up'),
-          onPressed: _busy ? null : _openFollowUpEntry,
-          icon: const Icon(Icons.note_add_outlined),
-          label: const Text('ثبت سابقه'),
+      ),
+    );
+  }
+
+  Widget _buildOverlay(BuildContext context) {
+    final task = _task!;
+    final reminder = _reminder!;
+    final subtitle = task.category?.trim().isNotEmpty == true
+        ? task.category!.trim()
+        : reminder.title;
+    final time = reminder.isAllDay ? 'تمام‌روز' : _formatTime(reminder.date);
+    final textTheme = Theme.of(context).textTheme;
+
+    Widget action({
+      required String key,
+      required String label,
+      required String semanticLabel,
+      required Color background,
+      required Color foreground,
+      required VoidCallback? onPressed,
+      bool outlined = false,
+    }) {
+      final style = outlined
+          ? OutlinedButton.styleFrom(
+              foregroundColor: foreground,
+              side: BorderSide(color: foreground, width: 1.5),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+              textStyle: textTheme.labelLarge?.copyWith(
+                fontFamily: AppFonts.vazirmatnFamily,
+                fontWeight: FontWeight.w600,
+              ),
+            )
+          : FilledButton.styleFrom(
+              backgroundColor: background,
+              foregroundColor: foreground,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+              textStyle: textTheme.labelLarge?.copyWith(
+                fontFamily: AppFonts.vazirmatnFamily,
+                fontWeight: FontWeight.w600,
+              ),
+            );
+      return Semantics(
+        button: true,
+        label: semanticLabel,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 46),
+          child: outlined
+              ? OutlinedButton(
+                  key: ValueKey<String>(key),
+                  style: style,
+                  onPressed: onPressed,
+                  child: Text(label, textAlign: TextAlign.center),
+                )
+              : FilledButton(
+                  key: ValueKey<String>(key),
+                  style: style,
+                  onPressed: onPressed,
+                  child: Text(label, textAlign: TextAlign.center),
+                ),
         ),
-        ],
+      );
+    }
+
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: Card(
+            color: Colors.white,
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    textDirection: TextDirection.ltr,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const CircleAvatar(
+                        radius: 25,
+                        backgroundColor: Color(0xFFF0ECFF),
+                        child: Icon(
+                          Icons.notifications_active_outlined,
+                          color: Color(0xFF6554C0),
+                          size: 28,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Directionality(
+                          textDirection: TextDirection.rtl,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                task.title,
+                                key: const ValueKey('alarm-overlay-task-title'),
+                                textAlign: TextAlign.right,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: textTheme.titleLarge?.copyWith(
+                                  fontFamily: AppFonts.vazirmatnFamily,
+                                  fontSize: 23,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF25243A),
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                subtitle,
+                                key: const ValueKey('alarm-overlay-task-subtitle'),
+                                textAlign: TextAlign.right,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: textTheme.bodyMedium?.copyWith(
+                                  fontFamily: AppFonts.vazirmatnFamily,
+                                  fontSize: 14,
+                                  color: const Color(0xFF777487),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Directionality(
+                        textDirection: TextDirection.rtl,
+                        child: Text(
+                          time,
+                          key: const ValueKey('alarm-overlay-reminder-time'),
+                          textAlign: TextAlign.left,
+                          style: textTheme.headlineSmall?.copyWith(
+                            fontFamily: AppFonts.vazirmatnFamily,
+                            fontSize: 27,
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFF25243A),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  Wrap(
+                    textDirection: TextDirection.ltr,
+                    alignment: WrapAlignment.spaceBetween,
+                    runSpacing: 8,
+                    spacing: 8,
+                    children: [
+                      action(
+                        key: 'alarm-overlay-complete',
+                        label: 'تکمیل',
+                        semanticLabel: 'تکمیل کار از مسیر اصلی آروین',
+                        background: const Color(0xFF238B58),
+                        foreground: Colors.white,
+                        onPressed: _busy ? null : _completeTask,
+                      ),
+                      action(
+                        key: 'alarm-overlay-snooze',
+                        label: 'تعویق',
+                        semanticLabel: 'انتخاب مدت و تعویق همین یادآور',
+                        background: const Color(0xFF2878C8),
+                        foreground: Colors.white,
+                        onPressed: _busy || reminder.isAllDay
+                            ? null
+                            : _showSnoozeDurationPicker,
+                      ),
+                      action(
+                        key: 'alarm-overlay-follow-up',
+                        label: 'پیگیری',
+                        semanticLabel: 'بازکردن فرم استاندارد ثبت سابقه پیگیری برای همین کار',
+                        background: const Color(0xFF6B55B8),
+                        foreground: Colors.white,
+                        onPressed: _busy ? null : _openFollowUpEntry,
+                      ),
+                      action(
+                        key: 'alarm-overlay-stop',
+                        label: 'توقف زنگ',
+                        semanticLabel: 'توقف اعلان فعال همین یادآور؛ بدون تکمیل کار یا ثبت سابقه',
+                        background: Colors.white,
+                        foreground: const Color(0xFFC53E48),
+                        onPressed: _busy ? null : _stopAlarm,
+                        outlined: true,
+                      ),
+                    ],
+                  ),
+                  if (reminder.isAllDay) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      'این یادآور تمام‌روز است و تعویق زمانی ندارد.',
+                      textAlign: TextAlign.center,
+                      style: textTheme.bodySmall,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

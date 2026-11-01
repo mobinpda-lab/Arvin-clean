@@ -66,6 +66,72 @@ void main() {
     expect(followUp.hitTestable(), findsOneWidget);
   }
 
+  testWidgets('complete uses Task.setCompleted and leaves Reminder and Follow-up history untouched', (tester) async {
+    final store = TaskStore();
+    await seedTask(store);
+    final notifications = _FakeAlarmNotifications();
+    var rescheduled = false;
+
+    await tester.pumpWidget(MaterialApp(
+      home: AlarmOverlayPage(
+        taskId: 'alarm-task-1',
+        taskReminderId: 'reminder-stable-1',
+        notificationId: 7010,
+        taskStore: store,
+        notificationController: notifications,
+        rescheduleReminders: () async { rescheduled = true; },
+        now: () => DateTime(2026, 11, 1, 14),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('alarm-overlay-complete')));
+    await tester.pumpAndSettle();
+
+    final stored = (await store.load()).single;
+    expect(stored.completed, isTrue);
+    expect(stored.completedAt, DateTime(2026, 11, 1, 14));
+    expect(stored.followUps, hasLength(1));
+    expect(stored.taskReminders.single.id, 'reminder-stable-1');
+    expect(stored.taskReminders.single.date, DateTime(2026, 11, 1, 12));
+    expect(rescheduled, isTrue);
+    expect(notifications.cancelled, [7010]);
+  });
+
+  testWidgets('compact card exposes four distinct accessible actions', (tester) async {
+    final store = TaskStore();
+    final task = await seedTask(store);
+    task.category = 'پروژه بازاریابی';
+    await store.save([task]);
+
+    await tester.pumpWidget(MediaQuery(
+      data: const MediaQueryData(textScaler: TextScaler.linear(1.6)),
+      child: MaterialApp(
+        home: AlarmOverlayPage(
+          taskId: 'alarm-task-1',
+          taskReminderId: 'reminder-stable-1',
+          notificationId: 7011,
+          taskStore: store,
+          notificationController: _FakeAlarmNotifications(),
+          rescheduleReminders: () async {},
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.text('تماس با مشتری'), findsOneWidget);
+    expect(find.text('پروژه بازاریابی'), findsOneWidget);
+    for (final key in [
+      'alarm-overlay-complete',
+      'alarm-overlay-snooze',
+      'alarm-overlay-follow-up',
+      'alarm-overlay-stop',
+    ]) {
+      expect(find.byKey(ValueKey<String>(key)), findsOneWidget);
+    }
+    expect(find.byKey(const ValueKey('alarm-overlay-volume-info')), findsNothing);
+  });
+
   testWidgets('stop dismisses only the notification and leaves Task data intact',
       (tester) async {
     final store = TaskStore();
