@@ -77,8 +77,12 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
   Future<void> _loadActiveReminder() async {
     try {
       final tasks = await _store.load();
-      final task = tasks.where((item) => item.id == widget.taskId).firstOrNull;
-      if (task == null || task.completed || task.archived || task.trashed) {
+      final taskMatches = tasks.where((item) => item.id == widget.taskId);
+      if (taskMatches.length != 1) {
+        throw StateError('کار مرتبط پیدا نشد.');
+      }
+      final task = taskMatches.single;
+      if (task.completed || task.archived || task.trashed) {
         throw StateError('یادآور فعال یا کار مرتبط پیدا نشد.');
       }
       final matches = task.taskReminders.where((item) =>
@@ -108,6 +112,14 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
 
   String _formatTime(DateTime value) =>
       _formatter.formatTime(value.hour, value.minute);
+
+  String _persianNumber(int value) {
+    const digits = '۰۱۲۳۴۵۶۷۸۹';
+    return value.toString().split('').map((digit) {
+      final index = int.tryParse(digit);
+      return index == null ? digit : digits[index];
+    }).join();
+  }
 
   Future<void> _showError(String message) async {
     if (!mounted) return;
@@ -323,7 +335,7 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
                 icon: const Icon(Icons.remove_circle_outline),
               ),
               Text(
-                '$_snoozeMinutes دقیقه',
+                '${_persianNumber(_snoozeMinutes)} دقیقه',
                 key: const ValueKey('alarm-overlay-snooze-value'),
                 style: Theme.of(context).textTheme.titleLarge,
               ),

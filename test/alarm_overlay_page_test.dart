@@ -97,7 +97,7 @@ void main() {
         taskStore: store,
         notificationController: notifications,
         now: () => DateTime(2026, 11, 1, 13),
-        rescheduleReminders: () async => rescheduled = true,
+        rescheduleReminders: () async { rescheduled = true; },
       ),
     ));
     await tester.pumpAndSettle();

@@ -1,8 +1,8 @@
+// ignore_for_file: curly_braces_in_flow_control_structures, deprecated_member_use, unused_field
+
 import 'dart:convert';
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
-// ignore_for_file: curly_braces_in_flow_control_structures, deprecated_member_use, unused_field
 
 import 'package:flutter/material.dart';
 
