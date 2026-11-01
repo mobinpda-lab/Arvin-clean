@@ -128,7 +128,7 @@ jobs:
           flutter pub get --enforce-lockfile
           git diff --exit-code -- pubspec.lock
       - name: Verify Reminder legacy compatibility
-        if: matrix.scenario == 'calendar'
+        if: matrix.scenario == 'smoke-reminder-vazirmatn'
         run: flutter test test/task_reminder_legacy_compatibility_test.dart test/follow_up_entry_page_test.dart
 
       - name: Enable KVM
@@ -149,15 +149,15 @@ jobs:
             adb devices -l && device="$(adb devices | awk '$1 ~ /^emulator-/ && $2 == "device" {print $1; exit}')" && test -n "$device" && echo "ADB_DEVICE=$device" && adb -s "$device" shell getprop sys.boot_completed && adb -s "$device" shell getprop ro.build.version.sdk && flutter drive --driver=test_driver/integration_test.dart --target=${{ matrix.test_file }} -d "$device"
 
       - name: Upload Android smoke screenshot evidence
-        if: always() && (matrix.scenario == 'home' || matrix.scenario == 'quick-capture' || matrix.scenario == 'people')
+        if: always() && (matrix.scenario == 'smoke-boot' || matrix.scenario == 'smoke-quick-capture' || matrix.scenario == 'smoke-navigation')
         uses: actions/upload-artifact@v5
         with:
           name: arvin-device-smoke-${{ matrix.scenario }}-${{ env.TARGET_SHA }}
-          path: artifacts/device-smoke/${{ matrix.scenario }}.png
+          path: artifacts/device-smoke/*.png
           if-no-files-found: warn
 
       - name: Upload Persian time picker screenshot evidence
-        if: always() && matrix.scenario == 'quick-capture'
+        if: always() && matrix.scenario == 'smoke-quick-capture'
         uses: actions/upload-artifact@v5
         with:
           name: arvin-persian-time-picker-${{ env.TARGET_SHA }}
@@ -165,9 +165,9 @@ jobs:
           if-no-files-found: warn
 
       - name: Upload calendar interaction and RTL evidence
-        if: always() && matrix.scenario == 'calendar'
+        if: always() && (matrix.scenario == 'smoke-calendar-segmented-view' || matrix.scenario == 'smoke-reminder-vazirmatn')
         uses: actions/upload-artifact@v5
         with:
           name: arvin-device-smoke-calendar-${{ env.TARGET_SHA }}
-          path: artifacts/device-smoke/calendar-card-independent-reminder-edit.png
+          path: artifacts/device-smoke/*.png
           if-no-files-found: warn
