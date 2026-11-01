@@ -125,6 +125,12 @@ android {
             versionNameSuffix = "-staging"
             isDebuggable = false
             matchingFallbacks += listOf("release")
+            // Keep optional Flutter plugin bindings when present; missing optional
+            // plugin classes are explicitly handled by android/app/proguard-rules.pro.
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
             // Never inherit production signing or fall back to the debug key.
             signingConfig = if (arvinStagingSigningConfigured) {
                 signingConfigs.getByName("staging")
