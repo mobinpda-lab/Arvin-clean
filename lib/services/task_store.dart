@@ -330,6 +330,37 @@ class TaskStore {
     });
   }
 
+  Future<TaskReminder> addTaskReminder(
+    String taskId,
+    DateTime date, {
+    String title = 'یادآور پیگیری',
+  }) {
+    return mutate<TaskReminder>((tasks) {
+      final index = tasks.indexWhere((task) => task.id == taskId);
+      if (index < 0) throw StateError('Task not found: $taskId');
+      final task = tasks[index];
+      final highestSequence = task.taskReminders.isEmpty
+          ? 0
+          : task.taskReminders
+              .map((item) => item.sequence)
+              .reduce((a, b) => a > b ? a : b);
+      final sequence = [
+        task.nextReminderSequence,
+        highestSequence + 1,
+      ].reduce((a, b) => a > b ? a : b);
+      final reminder = TaskReminder(
+        id: 'reminder-${DateTime.now().microsecondsSinceEpoch}',
+        title: title,
+        date: date,
+        sequence: sequence,
+      );
+      task.taskReminders = [...task.taskReminders, reminder];
+      task.nextReminderSequence = sequence + 1;
+      task.updatedAt = DateTime.now();
+      return reminder;
+    });
+  }
+
   Future<List<FollowUp>> loadFollowUps(String taskId) async {
     final tasks = await load();
     for (final task in tasks) {
