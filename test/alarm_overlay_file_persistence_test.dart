@@ -36,8 +36,12 @@ void main() {
       // this file-backed test never waits on an unregistered platform channel.
       SharedPreferences.setMockInitialValues(<String, Object>{});
       stage('T00a SharedPreferences mock initialized');
-      stage('T00b before Directory.systemTemp.createTemp');
-      final directory = await Directory.systemTemp.createTemp('arvin-alarm-file-');
+      // Use the checked-out workspace rather than resolving the OS temp
+      // directory: the CI runner's systemTemp lookup stalled before returning.
+      // The workspace is writable in Actions and the directory is deleted below.
+      final testWorkspace = Directory.current;
+      stage('T00b before workspace.createTemp: ${testWorkspace.path}');
+      final directory = await testWorkspace.createTemp('arvin-alarm-file-');
       stage('T00c temporary directory created: ${directory.path}');
       final path = '${directory.path}/arvin.sqlite';
       stage('T00d before NativeDatabase constructor');
