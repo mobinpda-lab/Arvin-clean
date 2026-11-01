@@ -173,7 +173,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     final add = widget.onAddFollowUp;
     if (add == null) return;
     final followUp = await Navigator.of(context).push<FollowUp>(
-      MaterialPageRoute<FollowUp>(builder: (_) => const FollowUpEntryPage()),
+      MaterialPageRoute<FollowUp>(builder: (_) => FollowUpEntryPage(taskId: _task.id)),
     );
     if (!mounted || followUp == null) return;
     final updated = await add(_task, followUp);
