@@ -58,3 +58,11 @@ This entry records the governing product decisions for Reminder-only scheduling,
 - Acceptance requires exact target SHA + actual run ID + inspectable evidence/artifact for every PASS. Initial source inspection is not runtime proof.
 - Intake baseline HEAD: `eb017f57ccd98f8bc43025aedd837fad2f79a2f6`. Implementation and tests remain NOT VERIFIED pending inspection and execution.
 - PR #3052 remains OPEN/DRAFT. Release remains **BLOCKED — RELEASE: NO-GO**. No main edit, merge or APK publication.
+
+
+### Alarm interaction implementation status — source audit
+- Source inspection found the existing reminder path currently posts a high-priority local notification from a background runner; it has no in-app alarm audio controller, stop/cancel action, notification-response route, or alarm overlay. The requested stop control and overlay therefore cannot be wired into an existing UI/audio lifecycle yet.
+- `TaskReminder` records are serialized in the Task JSON envelope in `tasks.legacy_payload_json`; the inspected SQLite schema has no dedicated `task_reminders` table. A safe snooze candidate is an in-place date update preserving Reminder ID via `TaskStore.mutate`, followed by the existing scheduler reschedule, subject to file-backed reopen and isolation tests. No migration is currently justified.
+- Existing canonical Task completion is `Task.setCompleted` + TaskStore persistence + reminder reschedule + calendar sync in the app's existing completion callback. Do not implement parallel completion logic.
+- FollowUp historical timestamp uses `dateTime/date_time`; legacy scheduling columns remain in the SQL schema and must be NULL for new historical records.
+- No source implementation or runtime acceptance is claimed. The audit records the blocker and safe integration direction. Release remains **BLOCKED — RELEASE: NO-GO**.
