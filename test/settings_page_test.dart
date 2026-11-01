@@ -52,7 +52,7 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('swipe-right-action')));
     await tester.pumpAndSettle();
-    expect(find.text('ثبت پیگیری'), findsNothing);
+    expect(find.text('ثبت پیگیری'), findsOneWidget);
     expect(find.text('انتقال به تقویم گوشی'), findsNothing);
     await tester.tap(find.text('انجام‌شدن').last);
     await tester.pumpAndSettle();
