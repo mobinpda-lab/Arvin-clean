@@ -30,14 +30,11 @@ class AlarmOverlayPage extends StatefulWidget {
     required this.taskId,
     required this.taskReminderId,
     required this.notificationId,
-    TaskStore? taskStore,
-    AlarmOverlayNotificationController? notificationController,
-    Future<void> Function()? rescheduleReminders,
-    DateTime Function()? now,
-  })  : taskStore = taskStore,
-        notificationController = notificationController,
-        rescheduleReminders = rescheduleReminders,
-        now = now;
+    this.taskStore,
+    this.notificationController,
+    this.rescheduleReminders,
+    this.now,
+  });
 
   final String taskId;
   final String? taskReminderId;

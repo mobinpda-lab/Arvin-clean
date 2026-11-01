@@ -717,3 +717,9 @@ Neither `photo_1793512287397.webp` nor `photo_1793516357359.webp` was present am
 - Build run `41286726861` on that SHA reported Analyze FAIL in job `124789416497`. The exact diagnostics were: the Flutter Local Notifications v22 API requires `cancel(id: ...)`, not a positional argument; and `ThemeData.copyWith` does not accept `fontFamily`. Both compile-time issues were corrected in the follow-up patch.
 - The correction also renders all-day Reminder timing as `تمام‌روز` rather than presenting midnight as a real time, and adds explicit Follow-up Save isolation coverage.
 - The next commit is the corrected implementation candidate. Its exact-head CI is the required validation; no implementation PASS is claimed from the failed first attempt.
+
+
+### Follow-up compile correction
+- The API/analyzer findings from Build run `41286726861` are corrected in this follow-up: notification cancellation uses the named `id:` parameter; theme font assignment is applied through the text theme; constructor parameters use initializing formals.
+- All-day Reminder display now explicitly shows `تمام‌روز`, not midnight as a scheduled time. A corresponding widget assertion is included.
+- This correction is not yet validated; exact-head CI for the next commit is pending.
