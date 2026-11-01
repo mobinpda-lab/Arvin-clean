@@ -1053,7 +1053,7 @@ At the time of this checkpoint, PR #3052 was OPEN / DRAFT / UNMERGED with head `
 
 ### Action isolation in source
 - **تکمیل:** calls `Task.setCompleted(true, at: ...)` through `TaskStore.mutate`, then best-effort invokes the existing Reminder scheduler and the same Calendar outbound projection/sync used by Home save, preserving trashed Task IDs, before cancelling the current notification. Scheduler/Calendar sync failures do not roll back persisted completion. It does not add FollowUp or alter Reminder dates.
-- **تعویق:** opens a bounded 5–120 minute duration picker and feeds the selected value to the existing in-place Reminder update + scheduler path. The Reminder ID, title and sequence are preserved; no Task dueDate, completion or FollowUp mutation is performed.
+- **تعویق:** opens a bounded 5–120 minute duration picker and feeds the selected value to the existing in-place Reminder update + scheduler path. The Reminder ID, title and sequence are preserved; no Task dueDate, completion or FollowUp mutation is performed. Calendar outbound sync is intentionally not called from Snooze.
 - **پیگیری:** reuses `FollowUpEntryPage(taskId: ...)`; the form is configured with `allowAddingReminder: false`. Only the form's explicit Save result is persisted through `TaskStore.addFollowUp`; Back/cancel writes nothing.
 - **توقف زنگ:** cancels only the notification ID passed by the notification payload and closes the Overlay. No Task completion, FollowUp insertion, Reminder reschedule or data deletion occurs. Independent audio stop is **NOT VERIFIED / unsupported by the current lifecycle**.
 
@@ -1070,3 +1070,7 @@ At the time of this checkpoint, PR #3052 was OPEN / DRAFT / UNMERGED with head `
 - Production signing/manifest, Calendar physical-device edit, Backup/Restore, remaining Issue #823/#2102 gates and product-owner final acceptance remain open.
 
 **Governance:** PR #3052 OPEN/DRAFT/UNMERGED; Issues #823 and #2102 OPEN; no main change, merge or APK publication. **Release: BLOCKED — RELEASE: NO-GO.**
+
+
+### Action-isolation correction after initial implementation
+A source review found that the first attempt to mirror Home's Calendar sync placed the sync call in the Snooze method rather than Task completion. This was corrected before the current validation SHA: Snooze now only mutates the exact Reminder, invokes the established scheduler and cancels its notification; Calendar outbound sync is executed only by the Task completion action. Earlier intermediate-SHA runs are not evidence for the corrected final head.

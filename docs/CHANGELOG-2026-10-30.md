@@ -94,10 +94,12 @@ This entry records the governing product decisions for Reminder-only scheduling,
 - Supersedes prior alarm-widget visual layouts and the previous single-action label interpretation for this card. The approved written contract now has four independent actions: `تکمیل`, `تعویق`, `پیگیری`, and `توقف زنگ`.
 - Replaced the expanded Overlay presentation with a compact white rounded card, purple bell, dynamic Task title, canonical ProjectStore/ProjectPlan subtitle (with safe category/Reminder fallback), prominent Persian Reminder time, and responsive four-action Wrap layout.
 - `تکمیل` calls the canonical `Task.setCompleted(true)` model method through TaskStore mutation, then best-effort Reminder reschedule and the existing Calendar outbound projection/sync path; it does not insert FollowUp or alter Reminder dates.
-- `تعویق` uses a selected 5–120 minute duration and the existing same-Reminder in-place update/scheduler path; stable Reminder ID and sequence are retained.
+- `تعویق` uses a selected 5–120 minute duration and the existing same-Reminder in-place update/scheduler path; stable Reminder ID and sequence are retained. It does not invoke Calendar outbound sync or mutate Task completion/Follow-up state.
 - `پیگیری` opens the existing `FollowUpEntryPage` for the same Task with future Reminder creation disabled; only explicit Save writes a historical FollowUp.
 - `توقف زنگ` cancels only the active notification ID and closes the Overlay. No independent audio player/controller exists in the inspected implementation; the action does not claim independent audio stop.
 - Removed the disabled/decorative volume Slider instead of presenting a nonfunctional control. Android notification volume remains a system setting.
 - Added widget isolation tests and a file-backed SQLite close/reopen test for Snooze and completion, preserving sibling Reminder, dueDate and FollowUp history.
 - The referenced WEBP was unavailable in the execution environment; pixel-level comparison remains NOT VERIFIED. Runtime emulator/device screenshot acceptance remains pending.
 - These source/test changes are not accepted until exact-final-SHA Build, Device Smoke, Alarm screenshot review and remaining release gates pass. PR #3052 remains OPEN/DRAFT; Issues #823/#2102 remain OPEN; **Release: BLOCKED — RELEASE: NO-GO**.
+
+- Corrected action routing after source review: Calendar outbound sync belongs to `تکمیل` only; `تعویق` is limited to the selected Reminder's in-place date update, established scheduler call and active notification cancellation.
