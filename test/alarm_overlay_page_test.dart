@@ -183,10 +183,12 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('alarm-overlay-snooze-plus')));
+    await tester.tap(find.byKey(const ValueKey('alarm-overlay-snooze')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('افزایش مدت تعویق'));
     await tester.pump();
     expect(find.text('۱۰ دقیقه'), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('alarm-overlay-snooze-confirm')));
+    await tester.tap(find.byKey(const ValueKey('alarm-overlay-snooze-dialog-confirm')));
     await tester.pumpAndSettle();
 
     final stored = (await store.load()).single;
@@ -267,8 +269,7 @@ void main() {
   });
 
 
-  testWidgets('overlay hierarchy has a prominent Stop, volume speaker, and bottom Follow-up shortcut',
-      (tester) async {
+  testWidgets('compact card keeps all four actions available without decorative volume control', (tester) async {
     final store = TaskStore();
     await seedTask(store);
 
@@ -284,27 +285,19 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    final stop = tester.widget<SizedBox>(
-      find.ancestor(
-        of: find.byKey(const ValueKey('alarm-overlay-stop')),
-        matching: find.byType(SizedBox),
-      ).first,
-    );
-    expect(stop.height, 64);
-    expect(find.byIcon(Icons.volume_up), findsOneWidget);
-    expect(find.byKey(const ValueKey('alarm-overlay-volume-row')), findsOneWidget);
-
-    final volumeY = tester.getTopLeft(
-      find.byKey(const ValueKey('alarm-overlay-volume-row')),
-    ).dy;
-    final snoozeY = tester.getTopLeft(
-      find.byKey(const ValueKey('alarm-overlay-snooze-confirm')),
-    ).dy;
-    final followUpY = tester.getTopLeft(
-      find.byKey(const ValueKey('alarm-overlay-follow-up')),
-    ).dy;
-    expect(followUpY, greaterThan(volumeY));
-    expect(followUpY, greaterThan(snoozeY));
+    for (final key in [
+      'alarm-overlay-complete',
+      'alarm-overlay-snooze',
+      'alarm-overlay-follow-up',
+      'alarm-overlay-stop',
+    ]) {
+      expect(find.byKey(ValueKey<String>(key)), findsOneWidget);
+    }
+    expect(find.byKey(const ValueKey('alarm-overlay-volume-info')), findsNothing);
+    expect(find.text('تکمیل'), findsOneWidget);
+    expect(find.text('تعویق'), findsOneWidget);
+    expect(find.text('پیگیری'), findsOneWidget);
+    expect(find.text('توقف زنگ'), findsOneWidget);
   });
 
   testWidgets('bottom Follow-up shortcut is reachable and tappable by scrolling on a short viewport',
@@ -331,9 +324,8 @@ void main() {
 
     final followUp = find.byKey(const ValueKey('alarm-overlay-follow-up'));
     expect(followUp, findsOneWidget);
-    expect(followUp.hitTestable(), findsNothing);
-
     await scrollToFollowUp(tester);
+    expect(followUp.hitTestable(), findsOneWidget);
     await tester.tap(followUp);
     await tester.pumpAndSettle();
 
@@ -359,8 +351,9 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('alarm-overlay-snooze-confirm')), findsNothing);
-    expect(find.text('برای یادآور تمام‌روز، تعویق زمانی در دسترس نیست.'), findsOneWidget);
+    expect(find.byKey(const ValueKey('alarm-overlay-snooze')), findsOneWidget);
+    expect(tester.widget<OutlinedButton>(find.byKey(const ValueKey('alarm-overlay-stop'))).onPressed, isNotNull);
+    expect(find.text('این یادآور تمام‌روز است و تعویق زمانی ندارد.'), findsOneWidget);
     final displayedTime = tester.widget<Text>(
       find.byKey(const ValueKey('alarm-overlay-reminder-time')),
     );
