@@ -1079,7 +1079,7 @@ A source review found that the first attempt to mirror Home's Calendar sync plac
 ## 18. Owner-approved Home screen implementation — 2026-11-01
 
 **Authorized branch:** `fix/recovery-calendar-device-smoke-2026-10-31`  
-**Latest source implementation commit at this checkpoint:** `5e7f8d81e35a66c0f9b5384b2f19eaa67f205bf3`  
+**Latest source implementation commit at this checkpoint:** `c9c1933f57fbdfac4f4cb4facbaae757b7d5677d`  
 **PR:** #3052 — keep OPEN / DRAFT / UNMERGED.  
 **Release:** `BLOCKED — RELEASE: NO-GO`.
 
@@ -1122,3 +1122,8 @@ No sample Task title, sample date, sample count or sample project/tag/category w
 - Reminder-specific Foreign Key failure and file-backed SQLite timeout remain separate open defects; this Home work did not alter their test logic or mark them complete.
 - Calendar Provider physical-device and two-writable-calendar acceptance, Quick Capture/Checklist architecture reconciliation, Legacy Schema safety, Backup/Restore, PDF, real-device acceptance and production signing/Manifest remain open under Issues #823/#2102/#2299.
 - No Issue was closed, no main change was made, and no APK was published.
+
+
+### Implementation follow-up — source commit `c9c1933f57fbdfac4f4cb4facbaae757b7d5677d`
+
+The Today/Tomorrow Jalali group date is resolved once per group item builder and rendered only when present; this keeps the nullable date path explicit and avoids changing any grouping or date calculation. This is a presentation-only correction. Exact-head Build and Device Smoke remain required on this commit.
