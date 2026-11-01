@@ -1039,3 +1039,34 @@ At the time of this checkpoint, PR #3052 was OPEN / DRAFT / UNMERGED with head `
 
 **Release remains BLOCKED — RELEASE: NO-GO.** Build run failed on two Alarm Overlay interaction tests; Device Smoke is not yet 7/7; production signing verification and Release Manifest proof remain outstanding. The evidence above is anchored to `be4a1ce...` only. This documentation update itself will advance the PR branch HEAD; it does not transfer or relabel any run as evidence for the new documentation commit. The next implementation step is to resolve the off-screen Follow-up tap/visibility behavior without relaxing tests, then rerun all required workflows against the resulting exact source SHA. After final device lanes finish, record their outcomes separately with their exact run/job/artifact identifiers.
 
+
+
+## 17. Product-owner compact Reminder card — implementation checkpoint
+
+**Implementation SHA:** `782168a96222fe1a5db0e8faefd8215c688ac97b` (source/test implementation); follow-up smoke/docs synchronization is committed separately and requires its own exact-SHA CI.
+
+### Scope and visual contract
+- Replaced the expanded Alarm Overlay layout with a compact white rounded card, purple bell, Task title, data-derived subtitle (Task category when present, otherwise the actual Reminder title), and prominent Persian Reminder time.
+- Added four distinct actions in the requested visual order: `تکمیل`, `تعویق`, `پیگیری`, `توقف زنگ`. The Wrap layout adapts to narrow widths and text scaling; all action buttons have explicit Persian Semantics labels.
+- The reference WEBP named `image_gen_3ed82aa8-eb27-4627-b4c2-8b37992d3f9d_0.webp` was not found among conversation files or saved reference images. Pixel-level matching remains **NOT VERIFIED**; implementation follows the written structural description only.
+- The unsupported, disabled volume Slider was removed. No independent Audio player/stream was found in the current notification lifecycle. `توقف زنگ` therefore cancels only the current notification ID and closes the overlay; it does not claim to stop independent audio. Hardware notification volume remains controlled by Android.
+
+### Action isolation in source
+- **تکمیل:** calls `Task.setCompleted(true, at: ...)` through `TaskStore.mutate`, then invokes the existing Reminder scheduler and cancels the current notification. It does not add FollowUp or alter Reminder dates. The existing app completion/reopen behavior remains available through the canonical Task UI. Calendar outbound sync from this Overlay-specific completion path is not yet independently verified.
+- **تعویق:** opens a bounded 5–120 minute duration picker and feeds the selected value to the existing in-place Reminder update + scheduler path. The Reminder ID, title and sequence are preserved; no Task dueDate, completion or FollowUp mutation is performed.
+- **پیگیری:** reuses `FollowUpEntryPage(taskId: ...)`; the form is configured with `allowAddingReminder: false`. Only the form's explicit Save result is persisted through `TaskStore.addFollowUp`; Back/cancel writes nothing.
+- **توقف زنگ:** cancels only the notification ID passed by the notification payload and closes the Overlay. No Task completion, FollowUp insertion, Reminder reschedule or data deletion occurs. Independent audio stop is **NOT VERIFIED / unsupported by the current lifecycle**.
+
+### Regression coverage added
+- Widget test for completion isolation (Task completed, no new FollowUp, Reminder unchanged, scheduler invoked, active notification cancelled).
+- Widget test for the four action controls and absence of the decorative volume Slider, including large text scaling.
+- Existing widget coverage retained for Snooze identity/date isolation, FollowUp form cancel, explicit FollowUp Save and all-day Reminder handling.
+- Added `test/alarm_overlay_file_persistence_test.dart` to exercise Snooze and Task completion across closing and reopening the same file-backed SQLite database, preserving the sibling Reminder, dueDate and historical FollowUp identity.
+
+### Remaining acceptance gaps
+- The dedicated Android smoke must be aligned to the compact-card contract and then pass on the final SHA, with the actual `alarm-overlay-top` screenshot inspected.
+- Foreground/background/cold-start notification tap, true Notification action delivery, physical-device layout and large-font screenshot review remain separate runtime gates.
+- Recurring Task behavior under Snooze, full notification permission/reboot/timezone cases, independent audio playback/stop and Accessibility Screen Reader runtime remain **NOT VERIFIED**.
+- Production signing/manifest, Calendar physical-device edit, Backup/Restore, remaining Issue #823/#2102 gates and product-owner final acceptance remain open.
+
+**Governance:** PR #3052 OPEN/DRAFT/UNMERGED; Issues #823 and #2102 OPEN; no main change, merge or APK publication. **Release: BLOCKED — RELEASE: NO-GO.**

@@ -87,3 +87,17 @@ This entry records the governing product decisions for Reminder-only scheduling,
 - Source inspection confirms `lib/follow_up_entry_page.dart` contains the standard form and explicit save control `follow-up-entry-save`; exact alarm-widget caller wiring and Task-ID handoff remain NOT VERIFIED.
 - No source implementation or alarm-widget acceptance tests are claimed. Screenshot pixel matching remains NOT VERIFIED because the named WEBP was not available to inspect.
 - Vazirmatn remains mandatory throughout. PR #3052 OPEN/DRAFT, Issue #823 OPEN, Release **BLOCKED — RELEASE: NO-GO**.
+
+
+## 2026-11-01 — Product-owner compact Reminder card (latest directive)
+
+- Supersedes prior alarm-widget visual layouts and the previous single-action label interpretation for this card. The approved written contract now has four independent actions: `تکمیل`, `تعویق`, `پیگیری`, and `توقف زنگ`.
+- Replaced the expanded Overlay presentation with a compact white rounded card, purple bell, dynamic Task title/subtitle, prominent Persian Reminder time, and responsive four-action Wrap layout.
+- `تکمیل` calls the canonical `Task.setCompleted(true)` model method through the existing TaskStore mutation and Reminder reschedule path; it does not insert FollowUp or alter Reminder dates.
+- `تعویق` uses a selected 5–120 minute duration and the existing same-Reminder in-place update/scheduler path; stable Reminder ID and sequence are retained.
+- `پیگیری` opens the existing `FollowUpEntryPage` for the same Task with future Reminder creation disabled; only explicit Save writes a historical FollowUp.
+- `توقف زنگ` cancels only the active notification ID and closes the Overlay. No independent audio player/controller exists in the inspected implementation; the action does not claim independent audio stop.
+- Removed the disabled/decorative volume Slider instead of presenting a nonfunctional control. Android notification volume remains a system setting.
+- Added widget isolation tests and a file-backed SQLite close/reopen test for Snooze and completion, preserving sibling Reminder, dueDate and FollowUp history.
+- The referenced WEBP was unavailable in the execution environment; pixel-level comparison remains NOT VERIFIED. Runtime emulator/device screenshot acceptance remains pending.
+- These source/test changes are not accepted until exact-final-SHA Build, Device Smoke, Alarm screenshot review and remaining release gates pass. PR #3052 remains OPEN/DRAFT; Issues #823/#2102 remain OPEN; **Release: BLOCKED — RELEASE: NO-GO**.

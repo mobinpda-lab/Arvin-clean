@@ -65,8 +65,13 @@ void main() {
       expect(find.byKey(const ValueKey('alarm-overlay-task-title')), findsOneWidget);
       expect(find.byKey(const ValueKey('alarm-overlay-reminder-time')), findsOneWidget);
       expect(find.textContaining('۰۹:۵۴'), findsOneWidget);
-      expect(find.text('تعویق یادآور'), findsOneWidget);
-      expect(find.byKey(const ValueKey('alarm-overlay-volume-row')), findsOneWidget);
+      expect(find.text('تعویق'), findsOneWidget);
+      expect(find.text('تکمیل'), findsOneWidget);
+      expect(find.text('پیگیری'), findsOneWidget);
+      expect(find.byKey(const ValueKey('alarm-overlay-complete')), findsOneWidget);
+      expect(find.byKey(const ValueKey('alarm-overlay-snooze')), findsOneWidget);
+      expect(find.byKey(const ValueKey('alarm-overlay-follow-up')), findsOneWidget);
+      expect(find.byKey(const ValueKey('alarm-overlay-volume-row')), findsNothing);
 
       final title = tester.widget<Text>(
         find.byKey(const ValueKey('alarm-overlay-task-title')),

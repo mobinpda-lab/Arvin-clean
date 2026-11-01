@@ -104,9 +104,6 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
     }
   }
 
-  String _formatDate(DateTime value) =>
-      _formatter.format(value, usePersianDate: true);
-
   String _formatTime(DateTime value) =>
       _formatter.formatTime(value.hour, value.minute);
 
