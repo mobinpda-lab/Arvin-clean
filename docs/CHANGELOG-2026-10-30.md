@@ -134,3 +134,12 @@ This entry records the governing product decisions for Reminder-only scheduling,
 - Updated the Build workflow to skip all APK variants for Draft pull requests while preserving Analyze and six quality-test shards. The earlier c452033 Build unexpectedly assembled APK variants before this guard was added; those were not published. The new exact-head run must verify APK jobs are skipped.
 - Exact-head alarm_overlay_file_persistence_test.dart remains NOT VERIFIED. Run 41319018092 was a different repository persistence test and must not be represented as Alarm Overlay proof.
 - Release remains BLOCKED — RELEASE: NO-GO. PR #3052 stays OPEN/DRAFT/UNMERGED; Issues #823/#2102/#2299 stay OPEN.
+
+## 2026-11-01 — Calendar all-day and source-filter correction
+
+- Removed the unused _filteredForDay analyzer warning by routing the selected-day list through the canonical filter helper.
+- Added the explicit **انجام‌نشده** source filter; it includes every uncompleted item, including date-only/all-day Tasks and Follow-ups.
+- Kept date-only/all-day items out of the timed **یادآورها** source, while preserving them in **همه** and **انجام‌نشده**.
+- Sorted all-day entries before timed entries in the selected-day list; timed entries remain chronological.
+- Added widget coverage for the four source filters, all-day inclusion/exclusion, completed all-day exclusion from unfinished, and all-day-first ordering.
+- Validation is pending on the new branch HEAD; no test or analyzer PASS is claimed by this changelog entry.
