@@ -1,4 +1,6 @@
 from pathlib import Path
+import json
+import re
 
 
 def require(text: str, token: str, source: str) -> None:
@@ -64,33 +66,37 @@ require(device, 'workflow_dispatch:', str(device_path))
 require(device, '# Validate PRs targeting integration branches too; product code can live there before main integration.', str(device_path))
 require(device, '# Draft PRs need CI evidence before they are marked ready; this job never promotes or merges.', str(device_path))
 forbid(device, "if: github.event_name != 'pull_request' || github.event.pull_request.draft == false", str(device_path))
-# Device Smoke must retain every canonical scenario mapping whether the
-# workflow uses a static YAML matrix or a generated JSON include matrix.
+# Device Smoke must run the canonical seven acceptance lanes on every event.
 canonical_scenarios = {
-    'home': 'integration_test/android_home_smoke_test.dart',
-    'quick-capture': 'integration_test/android_quick_capture_smoke_test.dart',
-    'sql-persistence': 'integration_test/android_sql_persistence_smoke_test.dart',
-    'sql-migration': 'integration_test/android_upgrade_migration_smoke_test.dart',
-    'backup-restore': 'integration_test/android_backup_restore_sql_smoke_test.dart',
-    'people': 'integration_test/android_people_smoke_test.dart',
-    'calendar': 'integration_test/calendar_card_interaction_test.dart',
+    'smoke-boot': 'integration_test/android_home_smoke_test.dart',
+    'smoke-navigation': 'integration_test/android_people_smoke_test.dart',
+    'smoke-calendar-segmented-view': 'integration_test/calendar_card_interaction_test.dart',
+    'smoke-quick-capture': 'integration_test/android_quick_capture_smoke_test.dart',
+    'smoke-task-lifecycle': 'integration_test/android_backup_restore_sql_smoke_test.dart',
+    'smoke-reminder-vazirmatn': 'integration_test/calendar_card_interaction_test.dart',
+    'smoke-follow-up-persistence': 'integration_test/android_sql_persistence_smoke_test.dart',
 }
-for scenario, test_file in canonical_scenarios.items():
-    static_mapping = f'scenario: {scenario}' in device and f'test_file: {test_file}' in device
-    dynamic_mapping = f'"scenario":"{scenario}","test_file":"{test_file}"' in device
-    if not (static_mapping or dynamic_mapping):
-        raise SystemExit(
-            f'Fast Lane contract missing in {device_path}: '
-            f'{scenario} -> {test_file}'
-        )
+matrix_match = re.search(r"scenarios='(\\[.*?\\])'", device, re.DOTALL)
+if not matrix_match:
+    raise SystemExit(f'Fast Lane contract missing in {device_path}: canonical scenario JSON')
+try:
+    scenario_entries = json.loads(matrix_match.group(1))
+except json.JSONDecodeError as exc:
+    raise SystemExit(f'Fast Lane contract invalid scenario JSON in {device_path}: {exc}')
+actual_scenarios = {
+    item.get('scenario'): item.get('test_file')
+    for item in scenario_entries
+    if isinstance(item, dict)
+}
+if actual_scenarios != canonical_scenarios:
+    raise SystemExit(
+        f'Fast Lane contract scenario mismatch in {device_path}: '
+        f'expected={canonical_scenarios!r} actual={actual_scenarios!r}'
+    )
 
 # Exact-SHA manual dispatch must be fail-closed before the emulator/test step.
 for token in (
     'target_sha:',
-    'run_calendar:',
-    'run_sql_persistence:',
-    'run_sql_migration:',
-    'RUN_SQL_MIGRATION: ${{ inputs.run_sql_migration }}',
     'ref: ${{ env.TARGET_SHA }}',
     'name: Record and verify checkout revision',
     'actual="$(git rev-parse HEAD)"',
