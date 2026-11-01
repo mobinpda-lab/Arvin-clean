@@ -7,6 +7,11 @@ import 'package:arvin/services/iran_clock.dart';
 
 void main() {
   testWidgets('Home renders five collapsible time groups and hides empty filtered groups', (tester) async {
+    tester.view.physicalSize = const Size(390, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     final now = IranClock.now();
     final today = DateTime(now.year, now.month, now.day, 10);
     final tomorrow = today.add(const Duration(days: 1));
@@ -20,8 +25,6 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    final scrollable = find.byType(Scrollable).last;
-    await tester.scrollUntilVisible(find.byKey(const ValueKey('home-group-overdue')), 300, scrollable: scrollable);
     expect(find.text('تاریخ گذشته'), findsOneWidget);
     expect(find.text('امروز'), findsAtLeastNWidgets(1));
     expect(find.byKey(const ValueKey('home-filter-card-time')), findsOneWidget);
@@ -29,11 +32,8 @@ void main() {
     expect(find.byKey(const ValueKey('home-filter-card-category')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-tags')), findsOneWidget);
 
-    await tester.scrollUntilVisible(find.byKey(const ValueKey('home-group-tomorrow')), 400, scrollable: scrollable);
     expect(find.byKey(const ValueKey('home-group-tomorrow')), findsOneWidget);
-    await tester.scrollUntilVisible(find.byKey(const ValueKey('home-group-future')), 400, scrollable: scrollable);
     expect(find.byKey(const ValueKey('home-group-future')), findsOneWidget);
-    await tester.scrollUntilVisible(find.byKey(const ValueKey('home-group-no_date')), 400, scrollable: scrollable);
     expect(find.byKey(const ValueKey('home-group-no_date')), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('home-filter-card-time')));
