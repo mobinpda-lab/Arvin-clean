@@ -192,7 +192,13 @@ void main() {
 
     expect(find.byType(CanonicalCalendarLauncher), findsOneWidget);
     expect(find.byType(ArvinPrimaryNavigation), findsOneWidget);
-    expect(find.text('امروز'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(ArvinPrimaryNavigation),
+        matching: find.text('امروز'),
+      ),
+      findsOneWidget,
+    );
     expect(find.text('تقویم'), findsOneWidget);
     expect(find.text('دفترچه'), findsOneWidget);
     expect(find.text('اقدام بعدی'), findsNothing);
