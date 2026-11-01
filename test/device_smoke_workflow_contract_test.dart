@@ -12,7 +12,7 @@ void main() {
     expect(workflow, contains('target_sha:'));
     expect(
       workflow,
-      contains(r'TARGET_SHA: ${{ github.event_name == \'workflow_dispatch\' && inputs.target_sha || github.event_name == \'pull_request\' && github.event.pull_request.head.sha || github.sha }}'),
+      contains(r"TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}"),
     );
 
     // One shared TARGET_SHA is used by every matrix lane, and checkout is
