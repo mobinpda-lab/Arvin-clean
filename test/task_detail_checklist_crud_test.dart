@@ -38,6 +38,18 @@ void main() {
         ],
       );
       await store.save([initialTask]);
+      final expectedHistoricalFollowUps = initialTask.followUps
+          .map((followUp) => followUp.toJson())
+          .toList(growable: false);
+
+      void expectFollowUpHistoryUnchanged(Task saved) {
+        expect(saved.followUpDate, legacyFollowUpDate);
+        expect(
+          saved.followUps.map((followUp) => followUp.toJson()).toList(),
+          expectedHistoricalFollowUps,
+        );
+        expect(saved.followUps.single.nextFollowUp, legacyNextFollowUp);
+      }
 
       Future<Task?> persistChecklist(Task task, List<String> checklist) async {
         task.checklist = List<String>.of(checklist);
@@ -65,8 +77,7 @@ void main() {
 
       var saved = (await store.load()).single;
       expect(saved.checklist, ['[ ] تماس با مشتری']);
-      expect(saved.followUpDate, legacyFollowUpDate);
-      expect(saved.followUps.single.nextFollowUp, legacyNextFollowUp);
+      expectFollowUpHistoryUnchanged(saved);
 
       // INLINE EDIT via the pencil icon.
       await tester.tap(find.byKey(const ValueKey('task-detail-checklist-edit-0')));
@@ -80,8 +91,7 @@ void main() {
 
       saved = (await store.load()).single;
       expect(saved.checklist, ['[ ] تماس با مشتری (اصلاح‌شده)']);
-      expect(saved.followUpDate, legacyFollowUpDate);
-      expect(saved.followUps.single.nextFollowUp, legacyNextFollowUp);
+      expectFollowUpHistoryUnchanged(saved);
 
       // DELETE
       await tester.tap(find.byKey(const ValueKey('task-detail-checklist-delete-0')));
@@ -89,8 +99,7 @@ void main() {
 
       saved = (await store.load()).single;
       expect(saved.checklist, isEmpty);
-      expect(saved.followUpDate, legacyFollowUpDate);
-      expect(saved.followUps.single.nextFollowUp, legacyNextFollowUp);
+      expectFollowUpHistoryUnchanged(saved);
     },
   );
 }
