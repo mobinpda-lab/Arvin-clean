@@ -508,3 +508,26 @@ Issue #823 previously stated “No new features” and froze work to release blo
 
 ### Governance
 The visual layout and semantics were recorded in Issue #823 and PR #3052 comments. Keep PR #3052 OPEN/DRAFT and Issue #823 OPEN. No main edit, merge, APK publication, destructive migration or release is authorized. Release remains **BLOCKED — RELEASE: NO-GO**.
+
+
+## Product-owner correction — Follow-up shortcut semantics (2026-11-01)
+
+This section supersedes the prior interpretation in §13 that assigned the dark-blue primary action to canonical Task completion. The latest product-owner directive explicitly clarifies that the button label **`ثبت سابقه`** is the existing Arvin shortcut to open the standard `FollowUpEntryPage` / task Follow-up form (`افزودن پیگیری کار`) for the current Task.
+
+### Binding action contract
+- **`ثبت سابقه`:** open the existing standard Follow-up form for the same Task ID. Opening/cancelling the form must not write a FollowUp, change Reminder schedules, or change Task completion.
+- **Follow-up Save:** only the form's explicit Save action may persist the historical FollowUp through the existing repository/store path. Do not create a second or parallel Follow-up form or persistence implementation.
+- **`توقف آلارم`:** dismiss/stop only the active alarm lifecycle; no Task completion, FollowUp insert or Reminder reschedule.
+- **Snooze:** reschedule only the selected Reminder, preserving its ID, recurrence, other Reminder entries, dueDate, Task state and FollowUp history.
+- **Task completion:** remains a separate canonical Task action and is not represented by the `ثبت سابقه` button. The alarm widget directive does not request auto-completion.
+- **Audio volume:** a slider is accepted only if connected to a real supported alarm audio stream; a decorative slider or invented parallel audio engine is prohibited.
+
+### Source evidence and limits
+- The authorized branch contains `lib/follow_up_entry_page.dart` with the standard `FollowUpEntryPage` form, including explicit save control `follow-up-entry-save`; this is the existing form to reuse.
+- Source inspection confirms the form implementation exists. The exact current alarm-widget caller/route wiring and exact Task ID handoff still require inspection before claiming the shortcut is integrated in the new widget.
+- No source code or runtime tests were changed/run for this correction. SQLite isolation for opening/cancelling/saving Follow-up from the alarm widget remains NOT VERIFIED.
+- The named screenshot `photo_1793516357359.webp` remains unavailable in the execution context; numeric pixel coordinates and screenshot matching remain NOT VERIFIED.
+- Bundled Vazirmatn remains mandatory for all widget/form labels, numerals, dialogs and accessibility labels.
+
+### Governance
+This latest product-owner clarification supersedes the earlier §13 button-label interpretation. It is not a request to add a new Follow-up concept: reuse the existing Arvin form and explicit-save behavior. PR #3052 remains the only authorized implementation lane; Issue #823 stays OPEN; release remains **BLOCKED — RELEASE: NO-GO**.
