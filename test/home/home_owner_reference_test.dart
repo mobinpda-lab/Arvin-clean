@@ -1,6 +1,8 @@
 import 'package:arvin/main.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/task_store.dart';
+import 'package:arvin/services/iran_clock.dart';
+import 'package:arvin/services/persian_date_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -19,9 +21,12 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
+    final now = IranClock.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final dueToday = DateTime(now.year, now.month, now.day, 10).toIso8601String();
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
-          '[{"id":"task-a","title":"کار واقعی الف","category":"فروش","tags":["مهم","مشتری"]},{"id":"task-b","title":"کار واقعی ب","category":"اداری","tags":["مهم"]}]',
+          '[{"id":"task-a","title":"کار واقعی الف","category":"فروش","tags":["مهم","مشتری"],"dueDate":"$dueToday"},{"id":"task-b","title":"کار واقعی ب","category":"اداری","tags":["مهم"]}]',
       'arvin.projects':
           '[{"id":"active-project","title":"پروژه فعال","isArchived":false,"itemIds":[]},{"id":"archived-project","title":"پروژه بایگانی","isArchived":true,"itemIds":[]}]',
     });
@@ -38,6 +43,8 @@ void main() {
     expect(find.text('پروژه‌ها'), findsOneWidget);
     expect(find.text('زمان'), findsOneWidget);
     expect(find.text('امروز'), findsWidgets);
+    final todayJalali = const PersianDateFormatter().format(today, usePersianDate: true);
+    expect(find.text(todayJalali), findsAtLeastNWidgets(1));
     expect(find.text('کار واقعی الف'), findsOneWidget);
     expect(find.text('کار واقعی ب'), findsOneWidget);
     expect(find.text('جلسه تیم محصول'), findsNothing);
