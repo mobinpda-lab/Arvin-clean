@@ -138,18 +138,18 @@ void main() {
     expect(settings.swipeLeftAction, TaskSwipeAction.archive);
   });
 
-  test('retired Convert to FollowUp preference normalizes to none', () async {
+  test('persists register-follow-up preference for the right swipe', () async {
     final service = AppSettingsService();
     await service.saveSwipeActions(
       right: TaskSwipeAction.convertToFollowUp,
       left: TaskSwipeAction.archive,
     );
     final settings = await service.load();
-    expect(settings.swipeRightAction, TaskSwipeAction.none);
+    expect(settings.swipeRightAction, TaskSwipeAction.convertToFollowUp);
     expect(settings.swipeLeftAction, TaskSwipeAction.archive);
   });
 
-  test('retired Convert to FollowUp preference normalizes to none on either side', () async {
+  test('persists register-follow-up preference for the left swipe', () async {
     final service = AppSettingsService();
     await service.saveSwipeActions(
       right: TaskSwipeAction.trash,
@@ -157,7 +157,7 @@ void main() {
     );
     final settings = await service.load();
     expect(settings.swipeRightAction, TaskSwipeAction.trash);
-    expect(settings.swipeLeftAction, TaskSwipeAction.none);
+    expect(settings.swipeLeftAction, TaskSwipeAction.convertToFollowUp);
   });
 
   test('persists completed as a swipe action', () async {
