@@ -12,7 +12,6 @@ import 'services/external_calendar_link_store.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/system_calendar_bridge.dart';
 import 'services/task_report_filter.dart';
-import 'services/completed_task_report_projection.dart';
 import 'services/completed_follow_up_report_projection.dart';
 import 'services/person_follow_up_report_projection.dart';
 import 'task_detail_page.dart';
@@ -1581,7 +1580,7 @@ class _CompletedFollowUpReportDialogState
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
                 child: Align(
                   alignment: Alignment.centerRight,
-                  child: Text(_formatter.toPersianDigits('${rows.length} پیگیری برای ${taskCount} کار')),
+                  child: Text(_formatter.toPersianDigits('${rows.length} پیگیری برای $taskCount کار')),
                 ),
               ),
               Padding(
