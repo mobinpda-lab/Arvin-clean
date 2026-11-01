@@ -145,19 +145,8 @@ jobs:
           disable-animations: true
           emulator-port: 5554
           script: |
-            # Keep setup, test execution, and the final emulator capture in one shell.
-            set -eu
-            # Pin the serial to the explicitly configured runner port; EMULATOR_PORT is not exported in this action context.
-            device="emulator-5554"
-            adb -s "$device" get-state
-            echo "ADB_DEVICE=$device"
-            adb -s "$device" shell getprop sys.boot_completed
-            adb -s "$device" shell getprop ro.build.version.sdk
-            flutter drive --driver=test_driver/integration_test.dart --target=${{ matrix.test_file }} -d "$device"
-            mkdir -p artifacts/device-smoke
-            adb -s "$device" exec-out screencap -p > "artifacts/device-smoke/${{ matrix.scenario }}-final.png"
-            test -s "artifacts/device-smoke/${{ matrix.scenario }}-final.png"
-            echo "SCREENSHOT_ARTIFACT_WRITTEN=artifacts/device-smoke/${{ matrix.scenario }}-final.png"
+            # The emulator-runner executes script lines in separate shells; keep the entire flow in one bash process.
+            bash -euo pipefail -c 'adb -s emulator-5554 get-state && echo "ADB_DEVICE=emulator-5554" && adb -s emulator-5554 shell getprop sys.boot_completed && adb -s emulator-5554 shell getprop ro.build.version.sdk && flutter drive --driver=test_driver/integration_test.dart --target=${{ matrix.test_file }} -d emulator-5554 && mkdir -p artifacts/device-smoke && adb -s emulator-5554 exec-out screencap -p > "artifacts/device-smoke/${{ matrix.scenario }}-final.png" && test -s "artifacts/device-smoke/${{ matrix.scenario }}-final.png" && echo "SCREENSHOT_ARTIFACT_WRITTEN=artifacts/device-smoke/${{ matrix.scenario }}-final.png"'
 
       - name: Upload Android smoke screenshot evidence
         if: always() && (matrix.scenario == 'smoke-boot' || matrix.scenario == 'smoke-quick-capture' || matrix.scenario == 'smoke-navigation' || matrix.scenario == 'smoke-task-lifecycle' || matrix.scenario == 'smoke-follow-up-persistence')
