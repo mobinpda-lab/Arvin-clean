@@ -1127,3 +1127,58 @@ No sample Task title, sample date, sample count or sample project/tag/category w
 ### Implementation follow-up — source commit `c9c1933f57fbdfac4f4cb4facbaae757b7d5677d`
 
 The Today/Tomorrow Jalali group date is resolved once per group item builder and rendered only when present; this keeps the nullable date path explicit and avoids changing any grouping or date calculation. This is a presentation-only correction. Exact-head Build and Device Smoke remain required on this commit.
+
+
+## 19. Parallel Home / Calendar source filters / Alarm test remediation — 2026-11-01
+
+**Implementation source checkpoint before this documentation update:** `f1c557bac901f0bd2d64a5fe95ddb13e5d9f3fa0`  
+**Authorized branch:** `fix/recovery-calendar-device-smoke-2026-10-31`  
+**PR #3052:** OPEN / DRAFT / UNMERGED. **Issues #823 / #2102 / #2299:** OPEN.  
+**Release:** `BLOCKED — RELEASE: NO-GO`.
+
+### Calendar implementation
+- `lib/calendar_page.dart` now retains the existing Jalali month/year navigation, Today jump, Saturday-to-Friday calendar layout, selected-day highlight, daily counts/dots, and existing day/week/month/year view control.
+- Added a separate source SegmentedButton below the calendar: `همه`, `تقویم گوشی`, `یادآورها`, `پیگیری‌ها`. This is intentionally distinct from the existing calendar granularity control (`روزانه / هفتگی / ماهانه / سالانه`).
+- Filtering is based on canonical source identity prefixes: `external-calendar:` for user-approved Device Calendar provider events; `task-reminder-item:`, `task-reminder:`, `task-due:`, and `task-recurrence:` for Task reminders/due-date projections; `followup:`, `task-followup:`, and `task-followup-action:` for historical Follow-up projections. No fixture or sample event is added to runtime storage.
+- The calendar grid's dots and counts remain based on the full merged date projection; selecting a source filter changes only the selected-day list. Empty-filter feedback is distinct from a genuinely empty selected day.
+- Device Calendar event retrieval remains owned by `OfficialCalendarPage`: it requires integration enabled, user-visible calendar IDs, and Android read permission; the new tab does not fabricate phone events or bypass permission.
+- Added `test/calendar_page_test.dart` coverage for all four filters using the existing projection identity contract. This test is **NOT VERIFIED** until it runs on the new exact HEAD.
+
+### Reminder Foreign Key root cause and correction
+- The exact failure in Run `41319018030`, Attempt 1, Job `124885351836` was in `test/alarm_overlay_page_test.dart`, test `compact card resolves the actual Project membership title`.
+- Root cause: the test seeded the Task through the default `TaskStore()` test executor, but injected a different `NativeDatabase.memory()` into `ProjectStore`. The schema correctly enforces `project_items.task_id REFERENCES tasks(id)`; the injected Project database had no parent Task row.
+- Corrected the test to seed the same canonical Task ID into `TaskStore(executor: projectDatabase)` before inserting Project membership. This is test-fixture repair only; no production FK or schema relaxation was introduced.
+- The corrected test is **NOT VERIFIED** until it passes on the post-fix exact SHA.
+
+### File-backed Alarm test / timeout distinction
+- Run `41319018092`, Attempt 1, Job `124885072413` passed one test, but its log proves it ran only `test/follow_up_repository_file_persistence_test.dart`. It does **not** prove `test/alarm_overlay_file_persistence_test.dart`.
+- The dedicated Alarm Overlay file-backed close/reopen test therefore remains **NOT VERIFIED**. The reported prior 10-minute timeout has not yet been attributed to a specific lock, connection or await from a reproduced trace; no timeout ceiling was increased and no unsupported root cause is claimed.
+- Existing Alarm widget tests separately cover Task completion, Reminder snooze, Follow-up cancel/save and Stop notification isolation. Their combined acceptance still requires the dedicated file-backed test and exact-HEAD CI.
+
+### Exact-SHA evidence from the pre-remediation parent
+All following evidence belongs only to SHA `c452033d96667b817a286bb072a2d99c45b01cd6`; it is not carried forward to the implementation source checkpoint above.
+- Build Run `41319018030`, Attempt 1: Analyze Job `124885351710` PASS; test-3 Job `124885351663` PASS; test-5 Job `124885351687` PASS; test-0 Job `124885351836` FAIL (2 tests); test-1 Job `124885351626` FAIL (2 tests); test-4 Job `124885351637` FAIL (1 test); test-2 Job `124885351726` was IN PROGRESS at the inspected checkpoint. Shard failures include the Home label/group assertion drift, the Project FK fixture, and duplicate `امروز` text assertion. APK jobs were automatically run by the then-current Draft workflow; this was unintended relative to the owner no-APK instruction.
+- Device Smoke Run `41319018109`, Attempt 1: navigation Job `124885416484` PASS; Quick Capture Job `124885416556` PASS; boot Job `124885416555` FAIL because the test expected the retired subtitle `مدیریت کارها و پیگیری آروین`; Calendar, Task Lifecycle, Reminder and Follow-up jobs were cancelled/queued during branch advancement. Not a seven-lane pass.
+- Calendar Provider Run `41319018076`, Attempt 1, Job `124885070305`: PASS for emulator CREATE, NO-OP UPDATE/no duplicate, UPDATE same event ID, and DELETE. Artifact `13088483537`, `arvin-calendar-provider-acceptance-c452033d96667b817a286bb072a2d99c45b01cd6`. One writable emulator calendar only; no physical-device or multi-calendar acceptance.
+- Follow-up file persistence Run `41319018092`, Attempt 1, Job `124885072413`: PASS for the repository-level file-backed completion toggle test only, not Alarm Overlay persistence.
+
+### Draft no-APK policy correction
+- Updated `.github/workflows/build.yml` so the `apk` matrix job is skipped for pull requests while they remain Draft. Analyze and all six test shards remain eligible to run. This avoids producing Debug/Release/Staging APK artifacts from a Draft PR; it does not change main or grant release authority.
+- The next exact-HEAD Build must confirm the three APK jobs are skipped and Analyze/test shards run. No APK should be built, published or distributed under this Draft workflow.
+
+### Source/test commits in this remediation sequence
+- `22ceef42489dd461a2b1806e47596cb2244b7663` — correct Project FK parent setup in Alarm widget test.
+- `85c06dc8fbf79f6969ca046ee072687b6bdf00f5` — add Calendar source filter UI.
+- `2b5f75bcd6a9e61dc6a7defaa3db332167c0a088` — add source-filter regression test.
+- `f7ceb0e147ce080d63744f8c8f63f7c7873c9f9b`, `2cf5904a66f6b20e8f949b04069330e309d3e1ac`, `7e6ff55aeee1c8345a069798846afb69d6e54d13`, `bc7f495001b5e746815d0c18f57fdd503bb7d291`, `9ab3ffa7760f18c650ce174bf41b76662d9afc0f` — align stale Home/Calendar acceptance expectations with the approved current labels and layout.
+- `f1c557bac901f0bd2d64a5fe95ddb13e5d9f3fa0` — Draft workflow APK skip policy.
+
+### Remaining open gates / ledger
+- Re-run all six Build test shards and Analyze on the final documentation SHA; specifically confirm Calendar source-filter tests and corrected Project membership test.
+- Run `test/alarm_overlay_file_persistence_test.dart` explicitly and collect full test logs; if it hangs, capture the last completed test step and database/connection state before making a narrow correction.
+- Re-run all seven Device Smoke lanes on one exact SHA; inspect Home, Calendar and Alarm Overlay screenshots and verify no clipping at supported viewport/font scales.
+- Existing Calendar Provider pass is emulator-only; physical device, two writable calendars, permission/reboot and linked-event duplicate/recovery acceptance remain open.
+- Reminder notification delivery across foreground/background/cold start, system notification action affordances, TalkBack/accessibility and audio stop remain separate NOT VERIFIED gates.
+- Legacy schema, Backup/Restore, PDF, Checklist/Quick Capture reconciliation, production signing, v2/v3 production certificate and Release Manifest remain open. No Issue is closed.
+
+**Governance remains unchanged:** no main edit, no merge, no release; PR #3052 OPEN/DRAFT/UNMERGED; Issues #823/#2102/#2299 OPEN; **BLOCKED — RELEASE: NO-GO**.
