@@ -114,3 +114,44 @@ Do not report a feature as completed without a GitHub artifact (commit/PR/test/b
 
 ### Resume protocol
 At the start of every new conversation/account: read this file and `docs/qa/ARVIN_FULL_PRODUCT_AUDIT_2026-11-01.md`, fetch live PR #3052 and branch HEAD, read Issues #823/#2102/#2299, poll exact-SHA workflow runs and compare them with this ledger. Update this file, the full audit, changelog and Issue #2299 whenever the ledger changes. GitHub repository records are the continuity source; chat memory is not.
+
+
+---
+
+## Post-fix audit — exact-SHA results for a371baa — 2026-11-01
+
+Target source/test SHA: `a371baa428cade623940ad218a8724b5b1489be4`.
+
+### Build Run 41326470775 — Attempt 1
+All eight jobs enumerated (Analyze + test-0..test-5 + Draft APK Guard):
+- Analyze — Job `124907678663`: SUCCESS.
+- test-0 — Job `124907678687`: SUCCESS.
+- test-1 — Job `124907678650`: SUCCESS.
+- test-2 — Job `124907678774`: CANCELLED; log ends with GitHub cancellation at 16:35:24Z. The shard had emitted passing test output before cancellation, but no completed test summary / successful job conclusion. Alarm Overlay file-persistence timeout resolution: NOT VERIFIED. Bottom-navigation assertion in this shard: NOT VERIFIED as a completed shard result.
+- test-3 — Job `124907678580`: SUCCESS.
+- test-4 — Job `124907678712`: SUCCESS.
+- test-5 — Job `124907678400`: SUCCESS.
+- Draft APK Guard — Job `124907679302`: SKIPPED (expected while PR remains Draft).
+Conclusion: Build is not a full PASS because test-2 was cancelled.
+
+### Device Smoke Run 41326470822 — Attempt 1
+Seven scenario lanes:
+- Boot — Job `124907668632`: SUCCESS; emulator tests reported “All tests passed”; screenshot artifact ID `13091353439`.
+- Navigation — Job `124907668656`: SUCCESS; emulator tests reported “All tests passed”; screenshot artifact ID `13091458062`.
+- Calendar Segmented View — Job `124907668661`: CANCELLED; screenshot upload step ran, but this is not a passing scenario.
+- Reminder Vazirmatn — Job `124907668605`: CANCELLED.
+- Task Lifecycle — Job `124907668650`: CANCELLED.
+- Follow-up Persistence — Job `124907668672`: CANCELLED.
+- Quick Capture — Job `124907668698`: CANCELLED.
+- Prepare selected smoke scenarios — Job `124907647949`: SUCCESS (setup, not one of the seven acceptance lanes).
+Conclusion: Device Smoke is 2/7 scenario lanes PASS, 5/7 CANCELLED; not 7/7. The corrected Boot assertion from commit `c402eefbd04c52dd0b564adf1d462a98143a8fa5` is present in the tested ancestry and Boot passed on exact SHA `a371baa...`; do not generalize this to other lanes.
+
+### Explicit alarm timeout disposition
+The Alarm Overlay test shard (Build test-2, Job `124907678774`) was cancelled before job completion. Its log contains earlier passing test output but terminates with “The operation was canceled.” Therefore the timeout fix is **NOT VERIFIED**, not PASS and not FAIL. A successful completed rerun of test-2 is required.
+
+### Governance at audit
+- Live PR #3052: OPEN / DRAFT / UNMERGED; live head at audit time: `8752886a6325dd64e7807f5616f6bf329f9ed736` (the a371baa source/test SHA is historical/superseded by documentation synchronization).
+- Issues #823, #2102, #2299: OPEN.
+- Release: **BLOCKED — RELEASE: NO-GO**.
+- No merge, main edit, tag, release or APK publication.
+- Exact-SHA evidence applies only to `a371baa...`; reruns or subsequent work must be recorded against their own exact SHA, Run ID, Attempt, Job ID and artifact/log evidence.
