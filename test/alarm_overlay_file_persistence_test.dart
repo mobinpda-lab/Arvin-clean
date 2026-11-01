@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:arvin/alarm_overlay_page.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/g1_drift_schema.dart';
+import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/task_store.dart';
 
 class _FileAlarmNotifications implements AlarmOverlayNotificationController {
@@ -67,6 +68,7 @@ void main() {
             taskReminderId: 'alarm-file-reminder',
             notificationId: 7210,
             taskStore: store,
+            projectStore: ProjectStore(executor: executor),
             notificationController: notifications,
             now: () => DateTime(2026, 11, 1, 13),
             rescheduleReminders: () async {},
@@ -102,6 +104,7 @@ void main() {
             taskReminderId: 'alarm-file-reminder',
             notificationId: 7211,
             taskStore: store,
+            projectStore: ProjectStore(executor: executor),
             notificationController: notifications,
             now: () => DateTime(2026, 11, 1, 14),
             rescheduleReminders: () async {},
