@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ import 'package:arvin/models/task.dart';
 import 'package:arvin/services/g1_drift_schema.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/task_store.dart';
+import 'package:arvin/services/task_storage_lock.dart';
 
 class _FileAlarmNotifications implements AlarmOverlayNotificationController {
   final List<int> cancelled = <int>[];
@@ -24,6 +26,12 @@ void main() {
   testWidgets(
     'Snooze and completion remain isolated after closing and reopening the same SQLite file',
     (tester) async {
+      final diagnosticClock = Stopwatch()..start();
+      void stage(String message) => debugPrint(
+            '[ARVIN_TIMEOUT_DIAG][TEST][${diagnosticClock.elapsedMilliseconds}ms] $message',
+          );
+      TaskStorageLock.diagnosticLoggingEnabled = true;
+      stage('T00 START: file-backed persistence scenario');
       // ProjectStore's one-time legacy migration and CalendarOutboundSyncService
       // both read SharedPreferences. Seed the plugin before either path runs so
       // this file-backed test never waits on an unregistered platform channel.
@@ -31,12 +39,15 @@ void main() {
       final directory = await Directory.systemTemp.createTemp('arvin-alarm-file-');
       final path = '${directory.path}/arvin.sqlite';
       var executor = NativeDatabase(File(path));
+      stage('T01 before first Schema install');
       await G1DriftSchema.install(executor);
+      stage('T02 first Schema install completed');
       await G1DriftSchema.markLegacyMigrationComplete(executor);
       var store = TaskStore(executor: executor);
       final notifications = _FileAlarmNotifications();
 
       try {
+        stage('T03 before initial Task + Reminder + FollowUp save');
         await store.save(<Task>[
           Task(
             id: 'alarm-file-task',
@@ -67,6 +78,7 @@ void main() {
           ),
         ]);
 
+        stage('T04 initial Task + Reminder + FollowUp save completed');
         await tester.pumpWidget(MaterialApp(
           home: AlarmOverlayPage(
             taskId: 'alarm-file-task',
@@ -80,18 +92,27 @@ void main() {
           ),
         ));
         await tester.pumpAndSettle();
+        stage('T05 before Snooze action');
         await tester.tap(find.byKey(const ValueKey('alarm-overlay-snooze')));
         await tester.pumpAndSettle();
+        stage('T06 Snooze overlay rendered; choosing duration');
         await tester.tap(find.byTooltip('افزایش مدت تعویق'));
         await tester.pump();
         await tester.tap(find.byKey(const ValueKey('alarm-overlay-snooze-dialog-confirm')));
         await tester.pumpAndSettle();
+        stage('T07 Snooze completed; Reminder persistence path returned');
 
+        stage('T08 before closing first SQLite executor');
         await executor.close();
+        stage('T09 first SQLite executor closed');
         executor = NativeDatabase(File(path));
+        stage('T10 before second-connection Schema install');
         await G1DriftSchema.install(executor);
+        stage('T11 second-connection Schema install completed');
         store = TaskStore(executor: executor);
+        stage('T12 before reloading Task after reopen');
         var task = (await store.load()).single;
+        stage('T13 Task reload after reopen completed');
         expect(task.completed, isFalse);
         expect(task.dueDate, DateTime(2026, 11, 5, 16));
         expect(task.followUps.map((item) => item.id), <String>['alarm-file-history']);
@@ -116,14 +137,22 @@ void main() {
           ),
         ));
         await tester.pumpAndSettle();
+        stage('T14 before Complete action; awaiting full completion + Calendar sync path');
         await tester.tap(find.byKey(const ValueKey('alarm-overlay-complete')));
         await tester.pumpAndSettle();
+        stage('T15 Complete action returned to widget test');
 
+        stage('T16 before closing executor after Complete');
         await executor.close();
+        stage('T17 executor after Complete closed');
         executor = NativeDatabase(File(path));
+        stage('T18 before final Schema install');
         await G1DriftSchema.install(executor);
+        stage('T19 final Schema install completed');
         store = TaskStore(executor: executor);
+        stage('T20 before final Task reload');
         task = (await store.load()).single;
+        stage('T21 final Task reload completed');
         expect(task.completed, isTrue);
         expect(task.completedAt, DateTime(2026, 11, 1, 14));
         expect(task.dueDate, DateTime(2026, 11, 5, 16));
@@ -139,7 +168,10 @@ void main() {
           DateTime(2026, 11, 3, 9),
         );
       } finally {
+        stage('T22 finally: closing current SQLite executor');
         await executor.close();
+        TaskStorageLock.diagnosticLoggingEnabled = false;
+        stage('T23 END: diagnostics disabled');
         await directory.delete(recursive: true);
       }
     },
