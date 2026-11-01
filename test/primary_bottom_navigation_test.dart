@@ -20,7 +20,7 @@ void main() {
       ),
     );
 
-    expect(find.text('خانه'), findsOneWidget);
+    expect(find.text('امروز'), findsOneWidget);
     expect(find.text('تقویم'), findsOneWidget);
     expect(find.text('دفترچه'), findsOneWidget);
     expect(find.text('اقدام بعدی'), findsNothing);
