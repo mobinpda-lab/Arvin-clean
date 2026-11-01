@@ -203,7 +203,7 @@ The following requirements are the acceptance contract for this audit. They are 
 | J2 Task Swipe release gate | IMPLEMENTED BUT NOT VERIFIED | Both Task swipe dropdowns expose “ثبت پیگیری”; preference persistence and form-only action are implemented on this branch. | `test/settings_page_test.dart`, `test/services/app_settings_service_test.dart`, `test/g6_swipe_rtl_acceptance_test.dart`; exact-head CI pending. |
 | J3 Calendar Swipe release gate | PARTIALLY IMPLEMENTED | Separate settings/actions exist; full independent action acceptance not proven. | No complete exact-head swipe matrix. |
 | J4 Device Calendar Sync release gate | IMPLEMENTED BUT NOT VERIFIED | Calendar Provider Acceptance succeeded on initial SHA. | Run `41274996200`; physical-device sync proof and reviewed artifact details remain NOT VERIFIED. |
-| J5 Typography + PDF release gate | PARTIALLY IMPLEMENTED | Vazirmatn registered; Debug/Release packaging audit passed; PDF shaping unproven and Staging path failed. | Build run `41274996134`; Staging APK absent at incorrect path. |
+| J5 Typography + PDF release gate | PARTIALLY IMPLEMENTED | Staging run `41276902887` verified Vazirmatn Regular/Medium/Bold bundled and System Default/VazirHarf source references purged; APK_DEBUGGABLE=false. PDF embedding/shaping and production signing remain unproven. | Staging artifact `13072275072`, verification artifact `13071394992`; v2/v3 PASS with ephemeral test key only. |
 | J6 required tests and seven Device Smoke lanes | PARTIALLY IMPLEMENTED | Build six shards passed; named Checklist CRUD and description-history tests were found in shard logs. | Run `41274996134` exact initial SHA. Device Smoke run `41274996175` did not complete: boot/navigation/quick-capture/task-lifecycle passed; calendar/reminder/follow-up lanes were cancelled. |
 | J7 same-target-SHA proof for release | BLOCKED | Initial SHA has mixed evidence; subsequent workflow/doc commits change the target SHA and trigger fresh runs. | No single SHA has all required gates passed. |
 
@@ -281,6 +281,49 @@ The Task model and TaskStore read/write these fields; `sql_task_migration_writer
 
 **Required safe next step:** before any destructive DDL, inspect the actual database and backup state; count rows and non-null legacy values; map each value to its canonical Reminder/history destination; create a verified backup; design an idempotent, data-preserving migration; test pre-migration and post-migration row counts, IDs, relationships, and restore behavior. A table rebuild/drop is blocked until that evidence exists. No migration has been attempted.
 
+## 10. Latest execution checkpoint — SHA f079ebc and subsequent unvalidated source changes
+
+### PR state and latest branch head
+- PR #3052 remains OPEN / DRAFT on the authorized branch.
+- Latest observed branch HEAD: 757fc281ae20751282fa79803c64f0c4c0fe6d6a.
+- The latest source changes (Task Reminder shortcut, completed Follow-up report, regression tests and docs) were committed after SHA f079ebc. No Build or Device Smoke run associated with HEAD 757fc was visible at the latest live query; do not attribute f079ebc workflow results to this newer HEAD.
+
+### Build run 41276902887 — target SHA f079ebc40c12fc87cc5cde1da82a4a27e7e1afb0
+- Overall: FAILURE.
+- Analyze: PASS (job 124760996328).
+- Quality test shards: test-0 PASS (124760996392), test-1 PASS (124760996342), test-2 FAIL (124760996335), test-3 PASS (124760996431), test-4 PASS (124760996287), test-5 PASS (124760996344).
+- Failed shard: 258 tests passed, 1 failed. Exact failure: test/settings_page_test.dart expected “ثبت پیگیری” not to exist; the new product requirement intentionally makes it available. Test expectation was corrected in commit 9b7d93f2fd5a584fd816648df6ece0bb475a042f; this correction has not yet been validated by a fresh Build run.
+- APK Release job 124760996250: build/upload PASS; artifact 13072225265. APK bytes 69,959,353; SHA-256 7e53d84546957a01f5beaa0aef0c9af9f205fd02cac9341a6e5b4c6f75e0daaa.
+- APK Staging job 124760996307: PASS; artifact 13072275072. The corrected repository-level Gradle output path resolved the missing-file error.
+- Staging APK bytes 70,369,380; SHA-256 740466d8f3485484098f32d3ae419c184f0e8b03781805625cdf8bd2ffd1c56f. The APK was downloaded and its checksum independently recomputed from the artifact ZIP; it matches the manifest.
+- Raw verification artifact 13071394992 was downloaded and inspected. apksigner exit code 0; v2 PASS; v3 PASS; v1 FAIL; APK_DEBUGGABLE=false PASS; Release Manifest validation PASS. The signer is an ephemeral test-only key and the manifest explicitly sets publishable=false. This is not production-signature evidence and the Staging APK is NOT RELEASABLE.
+- Staging font audit: Vazirmatn Regular, Medium and Bold bundled; legacy VazirHarf/System Default source references purged. PDF shaping/embedding remains NOT VERIFIED.
+
+### Device Smoke run 41276902849 — target SHA f079ebc40c12fc87cc5cde1da82a4a27e7e1afb0
+| Lane | Job ID | Conclusion |
+|---|---:|---|
+| smoke-boot | 124760825227 | SUCCESS |
+| smoke-navigation | 124760825131 | SUCCESS |
+| smoke-quick-capture | 124760825349 | SUCCESS |
+| smoke-calendar-segmented-view | 124760825238 | CANCELLED |
+| smoke-task-lifecycle | 124760825259 | CANCELLED |
+| smoke-reminder-vazirmatn | 124760825171 | CANCELLED |
+| smoke-follow-up-persistence | 124760825197 | CANCELLED |
+
+- The cancelled Calendar job log records CALENDAR_ROUTE_DIAG: navigation=1 calendarTitle=1 helpButton=1 segmentedControl=1, followed by a long-running VMServiceFlutterDriver request_data and workflow cancellation. No screenshot artifact was produced for the Calendar lane. The assertion was not removed or weakened.
+- Device Smoke result is 3/7 PASS, 4/7 CANCELLED; it is not a successful matrix.
+
+### Other workflows on SHA f079ebc
+- Calendar Provider run 41276902959, job 124760802136: SUCCESS; artifact 13071579113. Exact SHA checkout verified in the job. The earlier reviewed Provider artifact proves CREATE, NO-OP UPDATE, duplicate prevention, UPDATE on same event ID and DELETE, with one writable destination-calendar limitation. It does not prove full failure-injection isolation.
+- Follow-up file-backed SQLite run 41276903118, job 124760802705: SUCCESS; this was on SHA f079ebc before the later feature changes.
+
+### Latest source changes after f079ebc
+- Task Swipe Settings test expectation corrected.
+- Follow-up form shortcut now writes a normal TaskReminder through TaskStore.addTaskReminder when a stable Task ID is available.
+- FollowUp.completedAt getter aliases persisted dateTime; no physical SQL completed_at column for Follow-up was introduced.
+- New daily Follow-up report and projection added; tests cover day boundaries, aggregation, exclusions, grouping and navigation.
+- These source changes are IMPLEMENTED BUT NOT VERIFIED until exact latest-head Build and Device Smoke evidence is available.
+
 ## 8. Open product decisions / blockers
 
 1. **Historical data conversion:** decide how existing Task-level followUpDate and Follow-up-level reminderDate/nextFollowUp values are migrated. Future schedules must become normal Task Reminders, not Follow-up fields. Do not discard values or treat them as active schedules during transition.
@@ -307,6 +350,6 @@ The Task model and TaskStore read/write these fields; `sql_task_migration_writer
 
 **Current decision: BLOCKED — RELEASE: NO-GO.**
 
-Confirmed implementation gaps include active legacy future-Follow-up fields, the Follow-up report using Task completion timestamps instead of real Follow-up records, and the Task Swipe Settings dropdown omitting “ثبت پیگیری”. Calendar swipe settings and Reminder/Calendar foundations exist but are not fully accepted. Checklist CRUD and Task completion/history tests passed on the initial SHA. Four of seven Device Smoke lanes passed; three were cancelled. Calendar Provider Acceptance passed at workflow level but its artifact and physical-device behavior remain unreviewed. Staging build succeeded but verification failed because the APK path was wrong; signature v2/v3 and manifest remain NOT VERIFIED.
+Confirmed remaining gaps include active legacy followUpEnabled/nextFollowUp schema/model fields and the absence of a data-preserving physical-column migration. Task Swipe, Follow-up Reminder shortcut and record-driven daily report source implementations have since been added, but all require fresh exact-head CI. Build run 41276902887 on SHA f079ebc failed one settings-page assertion (258 passed, 1 failed); Staging APK path is now correct and its test-key v2/v3, APK_DEBUGGABLE=false and manifest checks passed. Device Smoke run 41276902849 completed with 3 PASS and 4 CANCELLED; Calendar runtime stalled waiting for VMService data and produced no screenshot. Calendar Provider and file-backed SQLite workflows passed on SHA f079ebc; Provider artifact was reviewed, but these are not proof for the later source changes. The latest PR head has no associated fresh Build or Device Smoke run visible yet.
 
 No merge, release, publish, main-branch edit, issue closure, NIRA change, or destructive database migration was performed.
