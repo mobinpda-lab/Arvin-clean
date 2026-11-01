@@ -155,3 +155,67 @@ The Alarm Overlay test shard (Build test-2, Job `124907678774`) was cancelled be
 - Release: **BLOCKED — RELEASE: NO-GO**.
 - No merge, main edit, tag, release or APK publication.
 - Exact-SHA evidence applies only to `a371baa...`; reruns or subsequent work must be recorded against their own exact SHA, Run ID, Attempt, Job ID and artifact/log evidence.
+
+
+---
+
+## Dual-status audit & parallel recovery checkpoint — 2026-11-01
+
+**Audit evidence SHA:** `aa5066944b97d58ce7041bdbf61e3799974c0103`  
+**Follow-up changes on authorized PR branch:**  
+- Filesystem diagnostic probe: commit `3fa8798104f86ba5bfb068435989ff98aaad5e97`.
+- Device Smoke screenshot capture/upload correction: commit `5889e653d3eadb1ea935ac5e0696b7adab4140ac`.
+- These commits are not yet validated by CI. Their new HEAD must receive fresh exact-SHA Build and Device Smoke runs.
+
+### Dual-status contract — Run 41337292773, Attempt 1, SHA aa506694...
+
+| Device Smoke lane | Functional Status | Visual Evidence Status | Evidence |
+|---|---|---|---|
+| Boot | PASS | ARTIFACT REGISTERED | Job 124939765057; artifact 13095617340 |
+| Navigation | PASS | ARTIFACT REGISTERED | Job 124939765086; artifact 13096450251 |
+| Calendar Segmented View | CANCELLED | NOT FOUND | Job 124939765066; no PNG found; Driver request_data delay then operation cancelled |
+| Quick Capture | PASS | ARTIFACT REGISTERED | Job 124939765073; artifact 13095699213 |
+| Task Lifecycle | PASS | UPLOAD SKIPPED | Job 124939765049; screenshot upload step skipped by workflow condition |
+| Reminder / Vazirmatn | PASS | ARTIFACT REGISTERED | Job 124939765112; artifact 13096880689 |
+| Follow-up Persistence | PASS | UPLOAD SKIPPED | Job 124939765021; screenshot upload step skipped by workflow condition |
+
+Functional total: **6/7 PASS, 1/7 CANCELLED**.  
+Visual evidence total: **4/7 ARTIFACT REGISTERED, 2/7 UPLOAD SKIPPED, 1/7 NOT FOUND**. Functional PASS does not imply visual acceptance.
+
+### T00b filesystem diagnosis — prior evidence and next probe
+
+Build Run `41337292817`, Attempt 1, test-2 Job `124939702107`, SHA `aa506694...`:
+- `T00 START` at 0ms; SharedPreferences mock at 2ms.
+- Last marker at 3ms: immediately before `Directory.current.createTemp`, path `/home/runner/work/Arvin-clean/Arvin-clean`.
+- No exists/stat/permission/disk-space output and no caught filesystem exception were recorded before the ten-minute test timeout.
+- Root cause remains **NOT VERIFIED**. The historical run cannot retroactively provide runner filesystem metadata.
+
+Commit `3fa8798...` adds bounded probes for workspace and system temp: exists, stat/type/mode, write/length/delete, createTemp, elapsed markers and full exception/stack output. The real workspace createTemp is also bounded to eight seconds. This is diagnostic instrumentation only; no DB schema, migration, or user-data change. **Await a fresh exact-HEAD CI run before drawing a root-cause conclusion.**
+
+### Calendar cancellation investigation
+
+Device Smoke Run `41337292773`, Attempt 1, Job `124939765066`, SHA `aa506694...`:
+- Route diagnostics: navigation=1, calendarTitle=1, helpButton=1, segmentedControl=1.
+- Projection diagnostics repeatedly reported `inputContainsSmokeTask=false` and empty task IDs.
+- Driver then logged `VMServiceFlutterDriver: request_data message is taking a long time to complete...`; job later ended with `The operation was canceled`.
+- Upload step ran but found no `artifacts/device-smoke/*.png`.
+- The available log does not prove why the seeded Task was absent from the projection input or why the Driver request remained pending. Both causes remain **NOT VERIFIED**; do not conflate them.
+
+### Screenshot upload correction
+
+At SHA `aa506694...`, the generic Android screenshot upload condition covered only Boot, Quick Capture and Navigation. Task Lifecycle and Follow-up Persistence had no enabled screenshot upload path; their integration tests also contained no `takeScreenshot` calls. Their `UPLOAD SKIPPED` result was therefore explained by workflow configuration, not a proven upload/network failure.
+
+Commit `5889e65...` changes the emulator script to save a final emulator screenshot under `artifacts/device-smoke/<scenario>-final.png` after a successful Flutter drive, and enables the upload step for Task Lifecycle and Follow-up Persistence. This change is **NOT VERIFIED** until the next exact-HEAD Device Smoke run confirms non-empty PNG artifacts and artifact IDs for both lanes. Calendar and Reminder retain their dedicated capture/upload paths.
+
+### Issue #2299 synchronization
+
+Issue #2299 was fetched live as **OPEN**. Its existing body contains historical ledger material and does not yet include this 2026-11-01 exact-SHA checkpoint. A matching audit comment is to be appended; do not close or replace the issue body.
+
+### Governance
+
+- PR #3052: keep OPEN / DRAFT / UNMERGED.
+- Issues #823, #2102, #2299: keep OPEN.
+- No main-branch edits, merge, release, tag, or APK publication.
+- Official font remains Vazirmatn only.
+- Release remains **BLOCKED — RELEASE: NO-GO**.
+- All new commits require exact-HEAD Build, Device Smoke and relevant artifact verification. No result from SHA `aa506694...` transfers automatically to the new HEAD.
