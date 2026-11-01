@@ -148,7 +148,6 @@ The following requirements are the acceptance contract for this audit. They are 
 - Gate 5 Typography + PDF: bundled Vazirmatn, consistent UI, embedded font and correct Persian PDF.
 - Verify all required tests, including date boundaries, multiple same-day records, cross-Task aggregation, exclusion of future Reminders and Due Dates, correct Task navigation, Checklist CRUD, RTL/font behavior, recurrence, delete lifecycle, and seven Device Smoke lanes.
 - Do not report any gate PASS without target SHA + actual run + evidence.
-
 ## 4. Evidence-led audit matrix
 
 **Evidence checkpoint for the rows below:** source inspection on PR branch at initial SHA `3b5721d67e461976748220bcaeb78376c25affe0`; Build run `41274996134`; Device Smoke run `41274996175`; Calendar Provider Acceptance run `41274996200`; Fast Lane contract run `41274996107`; Follow-up File Persistence run `41274996125`. The later Task Swipe implementation is a deliberate product-code change on this same PR branch and supersedes initial rows F2/F3; Section 6 records it. Other source findings remain initial-checkpoint observations until validated against the latest PR head.
@@ -298,7 +297,6 @@ The Task model and TaskStore read/write these fields; `sql_task_migration_writer
 - Staging APK bytes 70,369,380; SHA-256 740466d8f3485484098f32d3ae419c184f0e8b03781805625cdf8bd2ffd1c56f. The APK was downloaded and its checksum independently recomputed from the artifact ZIP; it matches the manifest.
 - Raw verification artifact 13071394992 was downloaded and inspected. apksigner exit code 0; v2 PASS; v3 PASS; v1 FAIL; APK_DEBUGGABLE=false PASS; Release Manifest validation PASS. The signer is an ephemeral test-only key and the manifest explicitly sets publishable=false. This is not production-signature evidence and the Staging APK is NOT RELEASABLE.
 - Staging font audit: Vazirmatn Regular, Medium and Bold bundled; legacy VazirHarf/System Default source references purged. PDF shaping/embedding remains NOT VERIFIED.
-
 ### Device Smoke run 41276902849 — target SHA f079ebc40c12fc87cc5cde1da82a4a27e7e1afb0
 | Lane | Job ID | Conclusion |
 |---|---:|---|
@@ -447,8 +445,7 @@ Issue #823 previously stated “No new features” and froze work to release blo
 4. **ثبت سابقه پیگیری (optional):** distinct explicit action; insert a real historical FollowUp linked to parent Task using the established historical timestamp; no future schedule data or Reminder mutation; note edits cannot change the timestamp.
 
 ### Initial source observations at the recorded HEAD
-- `TaskReminder` in `lib/models/task.dart` exposes id/title/date/isAllDay/sequence and recurrence-independent identity; no dedicated snooze field was observed in this model excerpt. A safe approach must reuse the existing Reminder date/lifecycle only if full scheduler inspection proves this preserves recurrence and notification identity.
-- `FollowUp.completedAt` is currently an alias of `dateTime`. The model excerpt still exposes legacy `reminderDate` and `nextFollowUp` members; the canonical baseline prohibits future scheduling on FollowUp. No schema changes are authorized merely to implement this screen.
+- `TaskReminder` in `lib/models/task.dart` exposes id/title/date/isAllDay/sequence and recurrence-independent identity; no dedicated snooze field was observed in this model excerpt. A safe approach must reuse the existing Reminder date/lifecycle only if full scheduler inspection proves this preserves recurrence and notification identity.- `FollowUp.completedAt` is currently an alias of `dateTime`. The model excerpt still exposes legacy `reminderDate` and `nextFollowUp` members; the canonical baseline prohibits future scheduling on FollowUp. No schema changes are authorized merely to implement this screen.
 - `lib/main.dart` applies Vazirmatn through app theme text themes; screen/dialog coverage still requires widget-level proof.
 - `lib/services/task_store.dart` exposes `addFollowUp(taskId, followUp)` and `addTaskReminder(taskId, date)`; neither is proof of the canonical Task-completion path or safe snooze semantics.
 - Alarm service, Task completion, recurrence, notification suppression and database reopen behavior remain under inspection. No source change has been made as part of this directive intake.
@@ -474,3 +471,40 @@ Issue #823 previously stated “No new features” and froze work to release blo
 - App theme defines Vazirmatn globally, but no alarm overlay exists to inspect or test for inherited theme, dialog text, numerals, or accessibility labels.
 
 **Execution decision:** no source code was changed because the repository has no existing alarm overlay/audio-stop lifecycle or notification-tap route to extend, and the requested visual reference image is not attached to this conversation. This is a concrete integration blocker, not a PASS. Safest next step is to add the alarm interaction through the existing notification lifecycle with an explicit, reviewed notification tap/action entry point and a single active-notification cancellation path; keep Task completion delegated to the existing canonical callback and snooze delegated to TaskStore mutation of the same Reminder ID. No physical schema migration is currently justified. Implementation and all runtime tests remain NOT VERIFIED.
+
+## 13. Binding visual alarm widget directive — layout, typography and acceptance coordinates
+
+**Intake date:** 2026-11-01  
+**Recorded PR HEAD / CI target reviewed:** `eb017f57ccd98f8bc43025aedd837fad2f79a2f6`  
+**PR:** #3052, authorized branch `fix/recovery-calendar-device-smoke-2026-10-31`  
+**Governing Issue:** #823 OPEN  
+**Release:** BLOCKED — RELEASE: NO-GO
+
+### Visual element map (top-to-bottom order; screenshot pixel bounds not yet measurable)
+1. **Top red action:** title `توقف آلارم`; subtitle `بستن صدای آلارم جاری`. Semantics: stop active alarm only; do not complete Task, mutate Reminder data or insert FollowUp.
+2. **Task / Reminder block:** Task title; current Reminder time (reference example `۰۹:۵۴`); subtitle `زمان فعلی یادآور`. Time must be rendered with bundled Vazirmatn numerals.
+3. **Audio control row:** `صدای آلارم` and `قابل تنظیم`, audio icon and slider. The slider is not accepted as functional until a real supported audio stream/controller exists and slider changes that stream. A decorative/fake slider is prohibited.
+4. **Snooze block:** heading `مدت تعویق یادآور`; minus button; central pill `تعویق / ۱۰ دقیقه`; plus button. Confirming snooze may reschedule only the same Reminder ID and must preserve recurrence, dueDate, other Reminders, Task history and FollowUp records.
+5. **Dark-blue primary action:** label is **`انجام شد`** and invokes the canonical parent-Task completion path. Product-owner clarification on Issue #823 governs: `ثبت سابقه` is not a synonym for Task completion. If the UI offers `ثبت سابقه پیگیری`, it is a separate optional explicit action that inserts one genuine historical FollowUp only after user confirmation.
+
+### Typography and coordinate evidence
+- Bundled `Vazirmatn` is mandatory for every visible string, numeral, slider label, button, dialog and accessibility label. System Default and unbundled fallback are prohibited.
+- The supplied text identifies component order and exact strings but does not contain numeric pixel coordinates or dimensions.
+- The named reference `photo_1793516357359.webp` was not present as a readable attachment in the current execution context. Exact screenshot matching, pixel positions, dimensions, margins and visual comparison are therefore **NOT VERIFIED**. Do not invent coordinates from the filename or textual description.
+
+### Source / runtime findings and blockers
+- Prior source inspection at the recorded intake HEAD found the notification/background delivery path but no in-app alarm audio controller/volume stream, stop action, notification-response/cold-start route or alarm overlay entry point.
+- Consequently, the red stop action, real volume slider and overlay cannot yet be claimed implemented. Do not add a parallel audio engine or a nonfunctional visual control as a substitute.
+- Existing Reminder persistence is in the Task JSON envelope; snooze must update the same Reminder through the established TaskStore/scheduler path and prove file-backed SQLite reopen plus unrelated/recurring Reminder isolation.
+- Task completion must reuse the canonical existing completion callback. FollowUp remains independent historical data with the established timestamp; no future schedule fields or Reminder mutations.
+- No source code was changed for this visual intake. No alarm widget test, audio-stop test, snooze test, Task completion test or screenshot acceptance was run for this directive.
+
+### Exact-head CI context (not alarm-widget acceptance)
+- Build run `41279261929` (#8984) on SHA `eb017f57ccd98f8bc43025aedd837fad2f79a2f6`: workflow conclusion SUCCESS. This is general Build evidence only; it does not prove the new alarm widget, audio slider, stop action, snooze or completion behavior.
+- Calendar Provider run `41279261840` (#1153): SUCCESS on the same recorded SHA; unrelated to alarm widget acceptance.
+- Device Smoke run `41279261863` (#6254): CANCELLED; it is not a device acceptance PASS.
+- Follow-up File Persistence run `41279261786` (#176): SUCCESS, but it tests FollowUp completion persistence, not Task completion or alarm snooze. It is not evidence for this directive.
+- No alarm-specific test run or inspectable screenshot artifact is available. All alarm-widget acceptance rows remain **NOT VERIFIED / NOT RUN**.
+
+### Governance
+The visual layout and semantics were recorded in Issue #823 and PR #3052 comments. Keep PR #3052 OPEN/DRAFT and Issue #823 OPEN. No main edit, merge, APK publication, destructive migration or release is authorized. Release remains **BLOCKED — RELEASE: NO-GO**.
