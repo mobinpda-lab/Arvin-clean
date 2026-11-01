@@ -16,6 +16,7 @@ class HomeFilterCard extends StatelessWidget {
     required this.soft,
     required this.icon,
     required this.onTap,
+    this.active,
   });
 
   final HomeFilterDimension dimension;
@@ -25,10 +26,11 @@ class HomeFilterCard extends StatelessWidget {
   final Color soft;
   final IconData icon;
   final VoidCallback onTap;
+  final bool? active;
 
   @override
   Widget build(BuildContext context) {
-    final selected = value != 'همه';
+    final selected = active ?? value != 'همه';
     final compact = MediaQuery.sizeOf(context).height < 700;
     return Expanded(
       child: Semantics(
