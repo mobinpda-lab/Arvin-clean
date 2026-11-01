@@ -119,3 +119,6 @@ This entry records the governing product decisions for Reminder-only scheduling,
 - The named reference WEBP was not accessible in the execution environment; pixel-level comparison remains **NOT VERIFIED**.
 - GitHub exact-head Build, test shards and Device Smoke for the final documentation HEAD must complete before this slice is called CI-accepted. Reminder-specific Foreign Key/SQLite failures, Calendar physical-device acceptance, Backup/Restore, PDF, Legacy Schema, signing/Manifest and product-owner release gates remain open.
 - PR #3052 remains OPEN/DRAFT/UNMERGED; Issues #823/#2102/#2299 remain OPEN. No main change, merge, APK publication or release. **BLOCKED — RELEASE: NO-GO**.
+
+
+- Follow-up implementation commit `c9c1933f57fbdfac4f4cb4facbaae757b7d5677d` keeps the Today/Tomorrow Jalali date nullable and explicit in the Home group renderer. No grouping or data behavior changed.
