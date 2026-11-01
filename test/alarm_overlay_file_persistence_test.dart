@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:arvin/alarm_overlay_page.dart';
 import 'package:arvin/models/task.dart';
@@ -23,6 +24,10 @@ void main() {
   testWidgets(
     'Snooze and completion remain isolated after closing and reopening the same SQLite file',
     (tester) async {
+      // ProjectStore's one-time legacy migration and CalendarOutboundSyncService
+      // both read SharedPreferences. Seed the plugin before either path runs so
+      // this file-backed test never waits on an unregistered platform channel.
+      SharedPreferences.setMockInitialValues(<String, Object>{});
       final directory = await Directory.systemTemp.createTemp('arvin-alarm-file-');
       final path = '${directory.path}/arvin.sqlite';
       var executor = NativeDatabase(File(path));
