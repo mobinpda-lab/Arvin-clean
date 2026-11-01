@@ -3239,6 +3239,8 @@ class _HomePageState extends State<HomePage> {
                 style: IconButton.styleFrom(backgroundColor: ArvinColors.surface, foregroundColor: ArvinColors.neutral),
               ),
               Expanded(child: Column(children: const [
+                Text('بسم الله الرحمن الرحیم', key: ValueKey('home-bismillah'), style: TextStyle(color: ArvinColors.textSecondary, fontSize: 8, fontWeight: FontWeight.w500)),
+                SizedBox(height: 1),
                 Text('آروین', key: ValueKey('home-title-block'), style: TextStyle(color: ArvinColors.primaryDark, fontSize: 23, fontWeight: FontWeight.w800)),
                 SizedBox(height: 2),
                 Text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها', key: ValueKey('home-subtitle'), textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.textSecondary, fontSize: 11.5, fontWeight: FontWeight.w600)),
@@ -3298,7 +3300,7 @@ class _HomePageState extends State<HomePage> {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
               child: Align(
-                alignment: AlignmentDirectional.centerEnd,
+                alignment: Alignment.centerRight,
                 child: KeyedSubtree(
                   key: const ValueKey('home-canonical-add'),
                   child: SizedBox(
@@ -3313,6 +3315,7 @@ class _HomePageState extends State<HomePage> {
         ]),
       ),
       floatingActionButton: !compactHome && selected.isEmpty && loadFailure == null ? Padding(padding: const EdgeInsets.only(bottom: 2), child: KeyedSubtree(key: const ValueKey('home-canonical-add'), child: ArvinHomePrimaryAddButton(onPressed: _quickCapture))) : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
       bottomNavigationBar: selected.isEmpty ? ArvinPrimaryNavigation(selected: ArvinPrimaryDestination.home, onSelected: _onPrimaryDestinationSelected) : TaskBulkSelectionBar(
         selectedCount: selected.length,
         allVisibleSelected: taskBulkSelectionService.allVisibleSelected(selected, visible),
