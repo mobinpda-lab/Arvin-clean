@@ -76,3 +76,14 @@ This entry records the governing product decisions for Reminder-only scheduling,
 - Prior source audit found no in-app alarm audio/volume controller, notification stop/action route or overlay entry point. No fake slider, parallel audio engine or unsupported source implementation was added.
 - No source implementation or alarm-specific test PASS is claimed. Build run `41279261929` is general build evidence only; Device Smoke run `41279261863` was CANCELLED. Calendar Provider and FollowUp SQLite runs do not validate alarm behavior.
 - PR #3052 remains OPEN/DRAFT; Issue #823 remains OPEN; release remains **BLOCKED — RELEASE: NO-GO**.
+
+
+## 2026-11-01 — Product-owner correction: alarm widget Follow-up shortcut
+
+- Supersedes the earlier §13 interpretation that the dark-blue alarm-widget action should be labelled `انجام شد` and invoke Task completion.
+- The latest directive defines the dark-blue `ثبت سابقه` action as the existing shortcut to open Arvin's standard Follow-up form (`FollowUpEntryPage`) for the current Task.
+- Opening or cancelling the form must not persist a FollowUp, alter Reminder schedules or complete the Task. Only explicit Save in the existing form may write historical FollowUp data.
+- Task completion remains a separate canonical action and must not be triggered by this shortcut. Stop, Snooze, Follow-up form and Task completion remain isolated.
+- Source inspection confirms `lib/follow_up_entry_page.dart` contains the standard form and explicit save control `follow-up-entry-save`; exact alarm-widget caller wiring and Task-ID handoff remain NOT VERIFIED.
+- No source implementation or alarm-widget acceptance tests are claimed. Screenshot pixel matching remains NOT VERIFIED because the named WEBP was not available to inspect.
+- Vazirmatn remains mandatory throughout. PR #3052 OPEN/DRAFT, Issue #823 OPEN, Release **BLOCKED — RELEASE: NO-GO**.
