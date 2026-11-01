@@ -399,8 +399,14 @@ class _HomePageState extends State<HomePage> {
       const TaskBulkSelectionService();
   final TaskBulkMutationService taskBulkMutationService =
       TaskBulkMutationService();
+  final FlutterLocalNotificationsPlugin _notificationPlugin =
+      FlutterLocalNotificationsPlugin();
+  final FocusNode _searchFocusNode = FocusNode();
 
   List<Task> tasks = [];
+  List<String> _categoryCatalog = const <String>[];
+  List<String> _tagCatalog = const <String>[];
+  int _pendingNotificationCount = 0;
   List<ProjectPlan> projects = [];
   final Set<String> selected = <String>{};
   bool loading = true;
@@ -434,6 +440,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     widgetTaskBridge.listen(_openWidgetTask);
     _load();
+    _refreshPendingNotificationCount();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _consumeInitialWidgetTask();
     });
@@ -442,6 +449,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     widgetTaskBridge.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -465,14 +473,103 @@ class _HomePageState extends State<HomePage> {
     await _openTaskDetail(task);
   }
 
+  Future<void> _refreshPendingNotificationCount() async {
+    try {
+      final pending = await _notificationPlugin.pendingNotificationRequests();
+      if (!mounted) return;
+      setState(() => _pendingNotificationCount = pending.length);
+    } catch (_) {
+      // Notification state is optional UI metadata; never block Home loading.
+    }
+  }
+
+  Future<void> _showPendingNotifications() async {
+    try {
+      final pending = await _notificationPlugin.pendingNotificationRequests();
+      if (!mounted) return;
+      setState(() => _pendingNotificationCount = pending.length);
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('یادآورهای فعال'),
+          content: pending.isEmpty
+              ? const Text('یادآور در صف اعلان برنامه وجود ندارد.')
+              : SizedBox(
+                  width: 360,
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: pending.length,
+                    separatorBuilder: (_, __) => const Divider(height: 1),
+                    itemBuilder: (_, index) {
+                      final request = pending[index];
+                      final title = request.title?.trim().isNotEmpty == true
+                          ? request.title!.trim()
+                          : 'یادآور آروین';
+                      return ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(Icons.notifications_active_outlined, color: ArvinColors.primary),
+                        title: Text(title),
+                        subtitle: request.body == null ? null : Text(request.body!),
+                        onTap: () {
+                          Navigator.of(dialogContext).pop();
+                          _openPendingReminder(request);
+                        },
+                      );
+                    },
+                  ),
+                ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('بستن'),
+            ),
+          ],
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('خواندن اعلان‌های در انتظار انجام نشد.')),
+      );
+    }
+  }
+
+  void _openPendingReminder(PendingNotificationRequest request) {
+    final rawPayload = request.payload;
+    if (rawPayload == null || rawPayload.isEmpty) return;
+    try {
+      final decoded = jsonDecode(rawPayload);
+      if (decoded is! Map) return;
+      final taskId = decoded['taskId'] as String?;
+      final reminderId = decoded['taskReminderId'] as String?;
+      if (taskId == null || taskId.isEmpty) return;
+      Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(
+          fullscreenDialog: true,
+          builder: (_) => AlarmOverlayPage(
+            taskId: taskId,
+            taskReminderId: reminderId,
+            notificationId: request.id,
+          ),
+        ),
+      );
+    } catch (_) {
+      // Ignore malformed or stale notification payloads.
+    }
+  }
+
   Future<void> _load() async {
     try {
       final value = await taskStore.load();
       final loadedProjects = await projectStore.load();
+      final loadedCategories = await taskStore.loadCategories();
+      final loadedTags = await taskStore.loadTags();
       if (!mounted) return;
       setState(() {
         tasks = List<Task>.of(value);
         projects = List<ProjectPlan>.of(loadedProjects);
+        _categoryCatalog = List<String>.of(loadedCategories);
+        _tagCatalog = List<String>.of(loadedTags);
         loadFailure = null;
         loading = false;
       });
@@ -488,16 +585,23 @@ class _HomePageState extends State<HomePage> {
   List<Task> get _searchSource => List<Task>.of(tasks);
 
   List<String> get _homeCategories {
-    final values =
-        tasks
-            .map((task) => task.category?.trim())
-            .whereType<String>()
-            .where((value) => value.isNotEmpty)
-            .toSet()
-            .toList()
-          ..sort();
+    final values = <String>{
+      ..._categoryCatalog.map((value) => value.trim()).where((value) => value.isNotEmpty),
+      ...tasks.map((task) => task.category?.trim()).whereType<String>().where((value) => value.isNotEmpty),
+    }.toList()..sort();
     return values;
   }
+
+  List<String> get _homeTags {
+    final values = <String>{
+      ..._tagCatalog.map((value) => value.trim()).where((value) => value.isNotEmpty),
+      ...tasks.expand((task) => task.tags).map((value) => value.trim()).where((value) => value.isNotEmpty),
+    }.toList()..sort();
+    return values;
+  }
+
+  String _homeCountLabel(int count) =>
+      persianDateFormatter.toPersianDigits('$count مورد');
 
   Future<String?> _createCategory(String value) async {
     final name = value.trim();
@@ -745,31 +849,29 @@ class _HomePageState extends State<HomePage> {
       }
     }
     return [
-      HomeGroup<Task>(id: 'overdue', title: 'تاریخ‌گذشته', items: grouped['overdue']!),
       HomeGroup<Task>(id: 'today', title: 'امروز', items: grouped['today']!),
       HomeGroup<Task>(id: 'tomorrow', title: 'فردا', items: grouped['tomorrow']!),
       HomeGroup<Task>(id: 'future', title: 'آینده', items: grouped['future']!),
+      HomeGroup<Task>(id: 'overdue', title: 'تاریخ گذشته', items: grouped['overdue']!),
       HomeGroup<Task>(id: 'no_date', title: 'فاقد زمان', items: grouped['no_date']!),
     ];
   }
 
 
   Widget _homeFilterCards() {
-    final projectLabel = _projectFilter == null ? 'همه' : (_projectTitle(_projectFilter) ?? 'بدون پروژه');
-    final categoryLabel = _categoryFilter ?? 'همه';
-    final tagLabel = _tagFilters.isEmpty ? 'همه' : '${_tagFilters.length} مورد';
+    final projectCount = projects.where((project) => !project.isArchived).length;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
       child: Row(
         textDirection: TextDirection.rtl,
         children: [
-          HomeFilterCard(dimension: HomeFilterDimension.time, title: 'زمان', value: _timeFilterLabel, accent: ArvinColors.time, soft: ArvinColors.timeSoft, icon: Icons.schedule_rounded, onTap: _showTimeFilterSheet),
+          HomeFilterCard(dimension: HomeFilterDimension.time, title: 'زمان', value: _timeFilterLabel, active: _timeFilter != 'all', accent: ArvinColors.time, soft: ArvinColors.timeSoft, icon: Icons.schedule_rounded, onTap: _showTimeFilterSheet),
           const SizedBox(width: 8),
-          HomeFilterCard(dimension: HomeFilterDimension.project, title: 'پروژه', value: projectLabel, accent: ArvinColors.project, soft: ArvinColors.projectSoft, icon: Icons.folder_rounded, onTap: _showProjectFilterSheet),
+          HomeFilterCard(dimension: HomeFilterDimension.project, title: 'پروژه‌ها', value: _homeCountLabel(projectCount), active: _projectFilter != null, accent: ArvinColors.project, soft: ArvinColors.projectSoft, icon: Icons.folder_rounded, onTap: _showProjectFilterSheet),
           const SizedBox(width: 8),
-          HomeFilterCard(dimension: HomeFilterDimension.category, title: 'دسته', value: categoryLabel, accent: ArvinColors.category, soft: ArvinColors.categorySoft, icon: Icons.layers_rounded, onTap: _showCategoryFilterSheet),
+          HomeFilterCard(dimension: HomeFilterDimension.category, title: 'دسته‌ها', value: _homeCountLabel(_homeCategories.length), active: _categoryFilter != null, accent: ArvinColors.category, soft: ArvinColors.categorySoft, icon: Icons.layers_rounded, onTap: _showCategoryFilterSheet),
           const SizedBox(width: 8),
-          HomeFilterCard(dimension: HomeFilterDimension.tags, title: 'برچسب‌ها', value: tagLabel, accent: ArvinColors.tag, soft: ArvinColors.tagSoft, icon: Icons.sell_rounded, onTap: _showTagFilterSheet),
+          HomeFilterCard(dimension: HomeFilterDimension.tags, title: 'برچسب‌ها', value: _homeCountLabel(_homeTags.length), active: _tagFilters.isNotEmpty, accent: ArvinColors.tag, soft: ArvinColors.tagSoft, icon: Icons.sell_rounded, onTap: _showTagFilterSheet),
         ],
       ),
     );
@@ -1016,7 +1118,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _showTagFilterSheet() async {
-    final tags = tasks.expand((task) => task.tags).map((tag) => tag.trim()).where((tag) => tag.isNotEmpty).toSet().toList()..sort();
+    final tags = _homeTags;
     final selectedTags = <String>{..._tagFilters};
     String search = '';
     await HomeFilterSheet.show<void>(context, title: 'انتخاب برچسب‌ها', accent: ArvinColors.tag, child: StatefulBuilder(
@@ -1093,20 +1195,33 @@ class _HomePageState extends State<HomePage> {
         .where((group) => group.items.isNotEmpty || (!_homeFilterActive && !compactHome))
         .toList(growable: false);
     if (groups.isEmpty || groups.every((group) => group.items.isEmpty)) {
+      final isCanonicalEmpty = !_homeFilterActive &&
+          filter == 'کل' &&
+          tasks.where((task) => !task.archived && !task.trashed).isEmpty;
       return Center(child: Padding(
         padding: EdgeInsets.all(compactHome ? 16 : 24),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Icon(Icons.search_off_rounded, size: compactHome ? 32 : 38, color: ArvinColors.neutral),
-          SizedBox(height: compactHome ? 6 : 10),
+          Icon(Icons.inbox_outlined, size: compactHome ? 34 : 42, color: ArvinColors.neutral),
+          SizedBox(height: compactHome ? 8 : 12),
           Text(
             (filter == 'سطل زباله' || filter == 'بایگانی')
                 ? _emptyVisibleLabel
                 : (_timeFilter == 'today' && filter == 'فعال'
                     ? 'کاری برای امروز وجود ندارد'
-                    : (_homeFilterActive ? 'کاری با این فیلترها پیدا نشد' : 'کاری برای نمایش وجود ندارد')),
+                    : (_homeFilterActive ? 'کاری با این فیلترها پیدا نشد' : 'هنوز کاری برای نمایش نیست')),
+            textAlign: TextAlign.center,
             style: const TextStyle(fontWeight: FontWeight.w700),
           ),
           if (_homeFilterActive) TextButton(onPressed: _clearHomeFilters, child: const Text('پاک کردن فیلترها')),
+          if (isCanonicalEmpty) ...[
+            const SizedBox(height: 10),
+            FilledButton.icon(
+              key: const ValueKey('home-empty-add'),
+              onPressed: _quickCapture,
+              icon: const Icon(Icons.add_rounded),
+              label: const Text('افزودن کار جدید'),
+            ),
+          ],
         ]),
       ));
     }
@@ -3116,18 +3231,43 @@ class _HomePageState extends State<HomePage> {
           Padding(
             padding: EdgeInsets.fromLTRB(16, compactHome ? 4 : 8, 16, 5),
             child: Row(children: [
-              IconButton(key: const ValueKey('home-notifications'), tooltip: 'اعلان‌ها', onPressed: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('اعلان‌ها در بخش اعلان‌های برنامه مدیریت می‌شوند'))), icon: const Icon(Icons.notifications_none_rounded)),
+              IconButton(
+                key: const ValueKey('home-search-button'),
+                tooltip: 'جست‌وجو',
+                onPressed: () => FocusScope.of(context).requestFocus(_searchFocusNode),
+                icon: const Icon(Icons.search_rounded),
+                style: IconButton.styleFrom(backgroundColor: ArvinColors.surface, foregroundColor: ArvinColors.neutral),
+              ),
               Expanded(child: Column(children: const [
-                Text('بسم الله الرحمن الرحیم', key: ValueKey('home-bismillah'), style: TextStyle(color: ArvinColors.primary, fontSize: 17, fontWeight: FontWeight.w800)),
+                Text('آروین', key: ValueKey('home-title-block'), style: TextStyle(color: ArvinColors.primaryDark, fontSize: 23, fontWeight: FontWeight.w800)),
                 SizedBox(height: 2),
-                Text('مدیریت کارها و پیگیری آروین', key: ValueKey('home-title-block'), textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.textSecondary, fontSize: 11.5, fontWeight: FontWeight.w600)),
+                Text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها', key: ValueKey('home-subtitle'), textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.textSecondary, fontSize: 11.5, fontWeight: FontWeight.w600)),
               ])),
-              IconButton(key: const ValueKey('home-menu'), tooltip: 'منو', onPressed: _openPrimaryMore, icon: const Icon(Icons.menu_rounded)),
+              IconButton(
+                key: const ValueKey('home-notifications'),
+                tooltip: 'اعلان‌ها و یادآورها',
+                onPressed: _showPendingNotifications,
+                style: IconButton.styleFrom(backgroundColor: ArvinColors.surface, foregroundColor: ArvinColors.neutral),
+                icon: Stack(clipBehavior: Clip.none, children: [
+                  const Icon(Icons.notifications_none_rounded),
+                  if (_pendingNotificationCount > 0)
+                    PositionedDirectional(
+                      top: -1,
+                      end: -1,
+                      child: Container(
+                        width: 9,
+                        height: 9,
+                        decoration: const BoxDecoration(color: ArvinColors.error, shape: BoxShape.circle),
+                      ),
+                    ),
+                ]),
+              ),
             ]),
           ),
           Padding(
             padding: EdgeInsets.fromLTRB(16, 0, 16, compactHome ? 6 : 8),
             child: TextField(
+              focusNode: _searchFocusNode,
               key: const ValueKey('home-canonical-search'),
               onChanged: (value) => setState(() => query = value),
               decoration: InputDecoration(
