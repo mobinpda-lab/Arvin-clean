@@ -796,3 +796,66 @@ The run object remains `queued` while selected child jobs are executing.
 - Calendar Provider: PASS with one-writable-calendar limitation.
 - Follow-up Persistence: PASS (one test).
 - Release: **BLOCKED — RELEASE: NO-GO**. The required 7/7 Device Smoke and 6/6 Build shards must both be GREEN on the final HEAD; production signing and release manifest also remain separate gates.
+
+
+## 14. Exact-HEAD convergence checkpoint — SHA `612f9024621bae75c5bd63cec0164ee8421efe1f`
+
+### Repository / governance
+- Target branch: `fix/recovery-calendar-device-smoke-2026-10-31`; PR #3052.
+- Exact-head CI runs: Build `41288270995`, Device Smoke `41288271013`, Calendar Provider `41288271011`, Follow-up File Persistence `41288271008`.
+- PR #3052 remains OPEN; Issues #823 and #2102 were fetched OPEN in this checkpoint. Do not merge or promote release. Draft state is not exposed by the issue-fetch response and must be rechecked from the PR detail UI/API before claiming a fresh Draft verification.
+- Overall release remains **BLOCKED — RELEASE: NO-GO**.
+
+### Build run `41288270995` — FAILURE (exact target SHA)
+- Analyze job `124793953540`: PASS; log: `No issues found! (ran in 18.7s)`.
+- Test shards:
+  - test-0 job `124793953578`: PASS, 196 tests.
+  - test-1 job `124793953623`: PASS, 165 tests.
+  - test-2 job `124793953591`: FAIL, 260 passed / 1 failed.
+  - test-3 job `124793953588`: FAIL, 125 passed / 1 failed.
+  - test-4 job `124793953636`: FAIL, 206 passed / 1 failed.
+  - test-5 job `124793953592`: PASS, 154 tests.
+  - Aggregate: 1,106 passed / 3 failed; 3/6 shards failed. This is not a Build PASS.
+- AlarmOverlay widget evidence:
+  - The Stop-isolation test passed in test-0: `stop dismisses only the notification and leaves Task data intact`.
+  - Follow-up shortcut tests failed in test-2 and test-3 because finder key `alarm-overlay-follow-up` was not found when tapping.
+  - Visual hierarchy test failed in test-4 for the same missing finder key while locating the bottom shortcut. Therefore the requested hierarchy is **NOT VERIFIED as guarded by a passing test** on this SHA; the new test currently fails and requires correction/diagnosis.
+- APK assembly jobs:
+  - Staging job `124793953379`: SUCCESS; artifact `13075957858` (`arvin-staging-apk`, ZIP 32,848,936 bytes); audit candidate `13075669114`; verification logs `13075209870`.
+  - Debug job `124793953516`: SUCCESS; artifact `13076645569` (`arvin-debug-apk`, ZIP 92,519,755 bytes).
+  - Release job `124793953571`: SUCCESS; artifact `13076536107` (`arvin-release-apk`, ZIP 32,448,245 bytes).
+  - These are artifact ZIP sizes, not the APK file byte sizes. GitHub artifact ZIP digests: Debug `5f791f43b984c29f52dd9ba01e6a854c30d365b1c0f0b1d024ecebf3b258302e`; Release `aa273644592ee0f01e99da696ecb47a82451a8898c2f54baa3b4dd2765e34f79`; Staging `4749c480170627b551e9b4d1bb27999e8a733f06097318295300359f8dbc12c6`.
+  - Staging verification log reports APK SHA-256 `e7543aea7449580e4be2e6f78c79c76f5618bcc6fc6d6c574c11df5394a33d78`, APK size 70,500,445 bytes, v2 PASS, v3 PASS, APK_DEBUGGABLE=false, release-manifest validation PASS. It also reports signer certificate SHA256 `NOT_AVAILABLE` and used an ephemeral staging key. Production signing is not configured; the Release APK is explicitly unsigned and must not be distributed. These staging checks are not production-signing evidence.
+  - Font packaging/source audit passed: Regular, Medium and Bold Vazirmatn assets bundled; `FONT_SOURCE_PURGE=PASS`; `FONT_GATE=PASS_VAZIRMATN_BUNDLED_SYSTEM_DEFAULT_PURGED`. This proves assets/source gate, not complete rendered Persian-digit and accessibility-label fidelity on a live overlay. The test shard also emitted font glyph fallback warnings in a separate test context; investigate before asserting complete rendering acceptance.
+- Build gate: **FAIL** due to three failing test shards, despite Analyze and all three APK assembly jobs succeeding.
+
+### Device Smoke run `41288271013` — INCOMPLETE at this checkpoint
+All child jobs are attached to the exact target SHA.
+- PASS: boot, job `124793987213`, artifact `13075339603`.
+- PASS: navigation, job `124793987231`, artifact `13076192419`.
+- PASS: task-lifecycle, job `124793987243`; no lane artifact was uploaded.
+- PASS: quick-capture, job `124793987211`, artifact `13076417219`.
+- IN_PROGRESS: reminder-vazirmatn, job `124793987182`.
+- IN_PROGRESS: calendar-segmented-view, job `124793987200`.
+- QUEUED: follow-up-persistence, job `124793987273`.
+- Current lane tally: 4/7 PASS, 2 IN_PROGRESS, 1 QUEUED; no final 7/7 result. Additional Persian time picker artifact: `13076093504`.
+- Do not report the Device Smoke workflow as complete until the three remaining lanes reach conclusive states and their evidence is inspected.
+
+### Calendar Provider run `41288271011` — SUCCESS
+- Job `124793953299`: exact target SHA verification, APK manifest/integrity, installed APK integrity and real Provider acceptance passed.
+- CREATE PASS; NO-OP UPDATE PASS; duplicate prevention PASS; UPDATE on same event ID PASS; DELETE PASS.
+- Artifact `13075823874`, 11,217-byte ZIP; digest `b8b275b8ecadd56ef02c1833a25391de071cb1ddb1633ccc1f249e1d2a996278`.
+- Limitation: `writableCalendars=1`; multi-destination calendar migration remains unverified.
+
+### Follow-up File Persistence run `41288271008` — SUCCESS
+- Job `124793953290`; exact checkout SHA and one file-backed SQLite test passed.
+- No artifact uploaded. This narrow persistence test is not full Alarm lifecycle acceptance.
+- Workflow restores a pinned VazirHarf asset for test asset bundling; this is not evidence of Vazirmatn overlay rendering.
+
+### Decision / next actions
+1. Keep Release **BLOCKED — RELEASE: NO-GO**. Build is FAIL and Device Smoke is incomplete.
+2. Diagnose the missing `alarm-overlay-follow-up` widget key and fix the widget tests or implementation only on the authorized PR branch; do not weaken assertions to manufacture PASS.
+3. Investigate the font fallback warnings and prove actual overlay Persian digit/text rendering plus accessibility labels; asset packaging alone is insufficient.
+4. Poll Device Smoke until all seven lanes are terminal, then record each job and artifact ID.
+5. Re-run Build and all required exact-head workflows after any source/test correction. No result from SHA `612f902...` transfers to a newer HEAD.
+6. Preserve PR #3052 OPEN/DRAFT/UNMERGED and Issues #823/#2102 OPEN. No main edits, merge, production signing or release publication.
