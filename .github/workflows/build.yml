@@ -159,7 +159,7 @@ jobs:
           set -euo pipefail
           if [[ "${{ matrix.variant }}" == "staging" ]]; then
             cd android
-            ./gradlew --no-daemon :app:assembleStaging
+            bash ./gradlew --no-daemon :app:assembleStaging
           else
             flutter build apk --${{ matrix.variant }} -t lib/main.dart
           fi
@@ -175,8 +175,9 @@ jobs:
           apksigner="$sdk_build_tools/apksigner"
           apkanalyzer="$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer"
           if [[ ! -x "$apkanalyzer" ]]; then
-            apkanalyzer="$(command -v apkanalyzer)"
+            apkanalyzer="$(command -v apkanalyzer || find "$ANDROID_HOME" -type f -name apkanalyzer | sort -V | tail -n 1)"
           fi
+          test -x "$apkanalyzer"
           "$apksigner" verify --verbose --print-certs "$apk" 2>&1 | tee "$RUNNER_TEMP/apksigner-staging.log"
           grep -Fq "Verified using v2 scheme (APK Signature Scheme v2): true" "$RUNNER_TEMP/apksigner-staging.log"
           grep -Fq "Verified using v3 scheme (APK Signature Scheme v3): true" "$RUNNER_TEMP/apksigner-staging.log"
