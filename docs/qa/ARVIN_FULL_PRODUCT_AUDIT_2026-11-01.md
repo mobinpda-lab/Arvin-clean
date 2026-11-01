@@ -859,3 +859,79 @@ All child jobs are attached to the exact target SHA.
 4. Poll Device Smoke until all seven lanes are terminal, then record each job and artifact ID.
 5. Re-run Build and all required exact-head workflows after any source/test correction. No result from SHA `612f902...` transfers to a newer HEAD.
 6. Preserve PR #3052 OPEN/DRAFT/UNMERGED and Issues #823/#2102 OPEN. No main edits, merge, production signing or release publication.
+
+
+## 14. Conclusive alarm overlay audit — implementation SHA `612f9024621bae75c5bd63cec0164ee8421efe1f`
+
+Audit timestamp: 2026-11-01. All CI results below were triggered against and checked out the exact implementation SHA `612f9024621bae75c5bd63cec0164ee8421efe1f`. This is not the current PR branch tip: after these runs, the authorized branch advanced by a documentation-only commit to `3c417feb1e024e1c994e874324318129867ef484`. The run API's PR association reports the latter as the PR head reference, while each workflow's own `head_sha` / checkout verification identifies `612f902...` as the tested commit. Do not conflate these values.
+
+### AlarmOverlayPage source audit
+
+Inspected `lib/alarm_overlay_page.dart` and `test/alarm_overlay_page_test.dart` at SHA `612f902...`.
+
+| Requirement | Source result | Acceptance status / limitation |
+|---|---|---|
+| Stop Alarm, 64px, high-contrast red | `SizedBox(height: 64)`, `FilledButton`, `colorScheme.error/onError`; calls notification controller `cancel(notificationId)` then closes overlay | IMPLEMENTED. Widget test suite did not pass, so not accepted. Stop cancels the active notification ID only; no separate ringtone/audio controller was found or tested. |
+| Task title + reminder time bound to IDs | Overlay loads Task by `taskId`, then exact `TaskReminder` by `taskReminderId`; renders Task title and reminder date/time (all-day shown as `تمام‌روز`) | SOURCE VERIFIED; widget suite incomplete/failed. |
+| Volume slider + speaker | Speaker icon and disabled informational slider (`onChanged: null)); copy says volume is controlled by device settings | IMPLEMENTED AS INFORMATION ONLY. Not a functional volume control. |
+| Snooze 5–120 minutes | +/- controls in 5-minute steps, clamped at 5 and 120; updates only matched Reminder, preserves its ID/title/sequence, reschedules, cancels notification; all-day reminder has no timed Snooze | SOURCE VERIFIED; no full device/runtime snooze acceptance. |
+| Bottom Follow-up shortcut | Shortcut is the last control; opens `FollowUpEntryPage(taskId: task.id, allowAddingReminder: false)`; only returned explicit Save is persisted through `addFollowUp` | SOURCE VERIFIED; three widget tests fail to find the shortcut in their rendered test state. Do not mark behavior PASS. |
+| Vazirmatn | Overlay wraps its content in a theme whose textTheme applies `AppFonts.vazirmatnFamily`; APK font audit found bundled Vazirmatn Regular/Medium/Bold and purged system default | SOURCE + package audit PASS; pixel-level rendering/accessibility acceptance is not established by this run. |
+
+### Build run `41288270995` — FAILURE
+
+- Run number: `8998`; exact `head_sha=612f902...`; overall conclusion FAILURE.
+- Analyze: job `124793953540` SUCCESS.
+- Six test shards:
+  - test-0: job `124793953578`, PASS, 196 tests.
+  - test-1: job `124793953623`, PASS, 165 tests.
+  - test-2: job `124793953591`, FAIL, 260 passed / 1 failed.
+  - test-3: job `124793953588`, FAIL, 125 passed / 1 failed.
+  - test-4: job `124793953636`, FAIL, 206 passed / 1 failed.
+  - test-5: job `124793953592`, PASS, 154 tests.
+  - Aggregate: 1,106 passed and 3 failed (1,109 executed). All three failures are in `test/alarm_overlay_page_test.dart`; each reports that finder key `alarm-overlay-follow-up` found zero widgets at the time of interaction/assertion. This blocks Build acceptance; do not dismiss as unrelated.
+- APK assembly jobs:
+  - Staging job `124793953379`, SUCCESS; artifact `13075957858` (`arvin-staging-apk`, 32,848,936 bytes ZIP).
+  - Debug job `124793953516`, SUCCESS; artifact `13076645569` (`arvin-debug-apk`, 92,519,755 bytes ZIP).
+  - Release job `124793953571`, SUCCESS; artifact `13076536107` (`arvin-release-apk`, 32,448,245 bytes ZIP).
+  - Staging audit candidate artifact `13075669114` (32,848,936 bytes ZIP); staging verification artifact `13075209870` (1,901 bytes ZIP).
+  - Font packaging step passed for the staged APK: Vazirmatn Regular/Medium/Bold present; system-default purge passed. Staging signing is ephemeral/test-only. APK assembly success is not production-signing or release authorization.
+- Artifact sizes above are ZIP archive sizes, not extracted APK byte sizes or APK SHA-256 values.
+
+### Device Smoke run `41288271013` — INCOMPLETE / NOT ACCEPTED
+
+- Preparation job `124793969226`: SUCCESS.
+- boot: job `124793987213`, PASS; screenshot artifact `13075339603`.
+- navigation: job `124793987231`, PASS; screenshot artifact `13076192419`.
+- task-lifecycle: job `124793987243`, PASS; no lane artifact.
+- quick-capture: job `124793987211`, PASS; artifact `13076417219`.
+- reminder-vazirmatn: job `124793987182`, CANCELLED before the legacy-compatibility check/emulator smoke; no valid lane PASS.
+- calendar-segmented-view: job `124793987200`, CANCELLED during emulator smoke; no valid lane PASS.
+- follow-up-persistence: job `124793987273`, CANCELLED; no valid lane PASS.
+- Tally: 4/7 PASS, 3/7 CANCELLED. The extra Persian time-picker artifact is `13076093504`; it does not replace any cancelled lane. No 7/7 acceptance.
+
+### Calendar Provider run `41288271011` — SUCCESS
+
+- Job `124793953299`: exact target SHA verification and real Android Provider acceptance succeeded.
+- One instrumentation test passed: `provisionsExactlyOneWritableCalendarIdempotently`.
+- CREATE, NO-OP UPDATE, duplicate prevention, UPDATE on the same event ID, and DELETE all PASS.
+- Artifact `13075823874`, 11,217-byte ZIP; ZIP digest `b8b275b8ecadd56ef02c1833a25391de071cb1ddb1633ccc1f249e1d2a996278`.
+- Limitation: `writableCalendars=1`; multi-destination calendar migration remains unverified.
+
+### Follow-up File Persistence run `41288271008` — SUCCESS
+
+- Job `124793953290`: exact checkout SHA verification passed; the dedicated file-backed SQLite test passed (1 test).
+- No artifact uploaded. This is narrow persistence evidence, not Alarm Stop/Snooze/Follow-up overlay acceptance.
+- Workflow restores a pinned VazirHarf asset for test asset bundling; this is not evidence of overlay Vazirmatn rendering.
+
+### Corrected decision
+
+- Build: FAIL (Analyze and APK assembly jobs pass, but 3/6 test shards fail).
+- Device Smoke: INCOMPLETE (4/7 PASS, 3 CANCELLED).
+- Calendar Provider: PASS with one-writable-calendar limitation.
+- Follow-up file persistence: PASS (one test only).
+- Alarm Overlay: source implementation present; full widget acceptance NOT VERIFIED due three failing tests; no 7-lane device acceptance.
+- PR #3052 remains OPEN / DRAFT / UNMERGED; branch `fix/recovery-calendar-device-smoke-2026-10-31`. Current branch tip after this tested SHA is `3c417feb1e024e1c994e874324318129867ef484`.
+- Issues #823 and #2102 remain OPEN.
+- No main edit, merge, production signing, release publication, or destructive data migration was performed.
+- Release remains **BLOCKED — RELEASE: NO-GO**. Any correction must be made only on the authorized PR branch and followed by fresh exact-HEAD Build, all seven Device Smoke lanes, Calendar Provider and Follow-up persistence validation.
