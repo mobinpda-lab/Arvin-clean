@@ -23,7 +23,7 @@ void main() {
     expect((await AppSettingsService().load()).fontSize, 20.0);
 
     // The same scaler must reach pushed routes, not only Home.
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
       find.text('تنظیمات'),
