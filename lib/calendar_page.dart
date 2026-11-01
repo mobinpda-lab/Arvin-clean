@@ -35,7 +35,7 @@ class CalendarReminder {
 
 enum _CalendarViewMode { day, week, month, year }
 
-enum _CalendarSourceFilter { all, deviceCalendar, reminders, followUps }
+enum _CalendarSourceFilter { all, deviceCalendar, reminders, incomplete }
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({
@@ -179,19 +179,28 @@ class _CalendarPageState extends State<CalendarPage> {
       case _CalendarSourceFilter.deviceCalendar:
         return id.startsWith('external-calendar:');
       case _CalendarSourceFilter.reminders:
-        return id.startsWith('task-reminder-item:') ||
-            id.startsWith('task-reminder:') ||
-            id.startsWith('task-due:') ||
-            id.startsWith('task-recurrence:');
-      case _CalendarSourceFilter.followUps:
-        return id.startsWith('followup:') ||
-            id.startsWith('task-followup:') ||
-            id.startsWith('task-followup-action:');
+        // All-day items have no exact reminder time and must not be mixed
+        // into the timed Reminder source, even when projected from a Task.
+        return !item.isAllDay &&
+            (id.startsWith('task-reminder-item:') ||
+                id.startsWith('task-reminder:') ||
+                id.startsWith('task-due:') ||
+                id.startsWith('task-recurrence:'));
+      case _CalendarSourceFilter.incomplete:
+        return !item.completed;
     }
   }
 
-  List<CalendarReminder> _filteredForDay(DateTime day) =>
-      _forDay(day).where(_matchesSourceFilter).toList(growable: false);
+  List<CalendarReminder> _filteredForDay(DateTime day) {
+    final items = _forDay(day).where(_matchesSourceFilter).toList();
+    // Date-only / all-day entries lead the daily list; timed entries retain
+    // chronological order after them.
+    items.sort((a, b) {
+      if (a.isAllDay != b.isAllDay) return a.isAllDay ? -1 : 1;
+      return a.date.compareTo(b.date);
+    });
+    return List<CalendarReminder>.unmodifiable(items);
+  }
 
   Widget _buildSourceFilter() {
     return Padding(
@@ -226,8 +235,8 @@ class _CalendarPageState extends State<CalendarPage> {
               label: Text('یادآورها'),
             ),
             ButtonSegment<_CalendarSourceFilter>(
-              value: _CalendarSourceFilter.followUps,
-              label: Text('پیگیری‌ها'),
+              value: _CalendarSourceFilter.incomplete,
+              label: Text('انجام‌نشده'),
             ),
           ],
           selected: <_CalendarSourceFilter>{_sourceFilter},
@@ -796,7 +805,7 @@ class _CalendarPageState extends State<CalendarPage> {
   Widget build(BuildContext context) {
     final selectedJalali = _dateFormatter.toJalali(_selectedDay);
     final allSelectedReminders = _forDay(_selectedDay);
-    final selectedReminders = allSelectedReminders.where(_matchesSourceFilter).toList(growable: false);
+    final selectedReminders = _filteredForDay(_selectedDay);
     final selectedDailyContent = widget.dailyContentForDate?.call(_selectedDay);
     if (!_wave796DiagnosticLogged) {
       _wave796DiagnosticLogged = true;
