@@ -35,6 +35,8 @@ class CalendarReminder {
 
 enum _CalendarViewMode { day, week, month, year }
 
+enum _CalendarSourceFilter { all, deviceCalendar, reminders, followUps }
+
 class CalendarPage extends StatefulWidget {
   const CalendarPage({
     super.key,
@@ -104,6 +106,7 @@ class _CalendarPageState extends State<CalendarPage> {
   late DateTime _month;
   late DateTime _selectedDay;
   _CalendarViewMode _viewMode = _CalendarViewMode.week;
+  _CalendarSourceFilter _sourceFilter = _CalendarSourceFilter.all;
   bool _wave796DiagnosticLogged = false;
 
   @override
@@ -167,6 +170,75 @@ class _CalendarPageState extends State<CalendarPage> {
   List<CalendarReminder> _forDay(DateTime day) => _calendarReminders()
       .where((item) => _sameDay(item.date, day))
       .toList(growable: false);
+
+  bool _matchesSourceFilter(CalendarReminder item) {
+    final id = item.id;
+    switch (_sourceFilter) {
+      case _CalendarSourceFilter.all:
+        return true;
+      case _CalendarSourceFilter.deviceCalendar:
+        return id.startsWith('external-calendar:');
+      case _CalendarSourceFilter.reminders:
+        return id.startsWith('task-reminder-item:') ||
+            id.startsWith('task-reminder:') ||
+            id.startsWith('task-due:') ||
+            id.startsWith('task-recurrence:');
+      case _CalendarSourceFilter.followUps:
+        return id.startsWith('followup:') ||
+            id.startsWith('task-followup:') ||
+            id.startsWith('task-followup-action:');
+    }
+  }
+
+  List<CalendarReminder> _filteredForDay(DateTime day) =>
+      _forDay(day).where(_matchesSourceFilter).toList(growable: false);
+
+  Widget _buildSourceFilter() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 2, 10, 8),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: SegmentedButton<_CalendarSourceFilter>(
+          key: const ValueKey('calendar-source-filter'),
+          showSelectedIcon: false,
+          style: const ButtonStyle(
+            visualDensity: VisualDensity.compact,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            textStyle: WidgetStatePropertyAll(
+              TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                fontFamily: AppFonts.vazirmatnFamily,
+              ),
+            ),
+          ),
+          segments: const [
+            ButtonSegment<_CalendarSourceFilter>(
+              value: _CalendarSourceFilter.all,
+              label: Text('همه'),
+            ),
+            ButtonSegment<_CalendarSourceFilter>(
+              value: _CalendarSourceFilter.deviceCalendar,
+              label: Text('تقویم گوشی'),
+            ),
+            ButtonSegment<_CalendarSourceFilter>(
+              value: _CalendarSourceFilter.reminders,
+              label: Text('یادآورها'),
+            ),
+            ButtonSegment<_CalendarSourceFilter>(
+              value: _CalendarSourceFilter.followUps,
+              label: Text('پیگیری‌ها'),
+            ),
+          ],
+          selected: <_CalendarSourceFilter>{_sourceFilter},
+          onSelectionChanged: (selection) {
+            if (selection.isEmpty) return;
+            setState(() => _sourceFilter = selection.first);
+          },
+        ),
+      ),
+    );
+  }
 
   Map<int, int> _countsForMonth() {
     final counts = <int, int>{};
@@ -723,7 +795,8 @@ class _CalendarPageState extends State<CalendarPage> {
   @override
   Widget build(BuildContext context) {
     final selectedJalali = _dateFormatter.toJalali(_selectedDay);
-    final selectedReminders = _forDay(_selectedDay);
+    final allSelectedReminders = _forDay(_selectedDay);
+    final selectedReminders = allSelectedReminders.where(_matchesSourceFilter).toList(growable: false);
     final selectedDailyContent = widget.dailyContentForDate?.call(_selectedDay);
     if (!_wave796DiagnosticLogged) {
       _wave796DiagnosticLogged = true;
@@ -741,7 +814,7 @@ class _CalendarPageState extends State<CalendarPage> {
       );
     }
     final hasSelectedItems =
-        selectedDailyContent != null || selectedReminders.isNotEmpty;
+        selectedDailyContent != null || allSelectedReminders.isNotEmpty;
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -828,6 +901,7 @@ class _CalendarPageState extends State<CalendarPage> {
                 child: _buildCalendarSurface(),
               ),
             ),
+            _buildSourceFilter(),
             const Divider(height: 1),
             Expanded(
               child: !hasSelectedItems
@@ -841,6 +915,11 @@ class _CalendarPageState extends State<CalendarPage> {
                       key: const ValueKey('calendar-selected-day-list'),
                       padding: const EdgeInsets.fromLTRB(12, 10, 12, 16),
                       children: [
+                        if (allSelectedReminders.isNotEmpty && selectedReminders.isEmpty)
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 28),
+                            child: Center(child: Text('برای این روز موردی در این فیلتر نیست')),
+                          ),
                         if (selectedDailyContent != null) ...[
                           _DailyContentCard(
                             item: selectedDailyContent,
