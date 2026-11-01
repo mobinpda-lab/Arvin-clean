@@ -292,7 +292,7 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
         ),
         const SizedBox(height: 8),
         Text(
-          '${_formatDate(reminder.date)}  •  ${_formatTime(reminder.date)}',
+          '${_formatDate(reminder.date)}  •  ${reminder.isAllDay ? 'تمام‌روز' : _formatTime(reminder.date)}',
           key: const ValueKey('alarm-overlay-reminder-time'),
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.titleMedium,
