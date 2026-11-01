@@ -233,7 +233,7 @@ Target SHA: `3b5721d67e461976748220bcaeb78376c25affe0`.
 
 ### Calendar Provider Acceptance — run 41274996200
 
-Target SHA: `3b5721d67e461976748220bcaeb78376c25affe0`; job `124755267335` SUCCESS; artifact `13070688563`. This proves that the workflow job completed successfully on that SHA. The artifact has not yet been unpacked/reviewed in this audit, and it does not replace installed-device acceptance.
+Target SHA: `3b5721d67e461976748220bcaeb78376c25affe0`; job `124755267335` SUCCESS; artifact `13070688563` downloaded and inspected. `result.txt` reports `RESULT=PASS_REAL_PROVIDER_CREATE_UPDATE_DELETE`; JUnit reports `provisionsExactlyOneWritableCalendarIdempotently` PASS; `crud-markers.txt` confirms CREATE, NO-OP UPDATE (same event ID, providerEventCount=1), no-duplicate check, UPDATE (same event ID), and DELETE. `sha-verification.txt` confirms checked-out SHA exactly matches target SHA. `test-output.txt` reports one instrumentation test passed. Limitation: `CALENDAR_PROVIDER_DESTINATION_MIGRATION=LIMITATION writableCalendars=1`; this run does not prove failure injection cannot damage internal Task/Reminder state, and does not replace physical-device acceptance.
 
 ### Fast Lane and file persistence
 
