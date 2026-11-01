@@ -55,6 +55,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   TextEditingController? _descriptionController;
   bool _isEditingDescription = false;
   bool _isSavingDescription = false;
+  final TextEditingController _checklistAddController = TextEditingController();
+  TextEditingController? _checklistEditController;
+  int? _editingChecklistIndex;
+  bool _isSavingChecklist = false;
 
   @override
   void initState() {
@@ -154,6 +158,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   @override
   void dispose() {
     _descriptionController?.dispose();
+    _checklistAddController.dispose();
+    _checklistEditController?.dispose();
     super.dispose();
   }
 
@@ -406,23 +412,106 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         return '[ ] $value';
       }).toList();
 
-  Future<void> _toggleChecklistItem(int index) async {
+  Future<void> _saveChecklist(List<String> values) async {
     final handler = widget.onChecklistChanged;
-    if (handler == null) return;
+    if (handler == null || _isSavingChecklist) return;
+
+    // Checklist edits are isolated from legacy follow-up scheduling fields.
+    // Pass a detached Task snapshot to the owner and restore the protected
+    // fields on the returned model before accepting it.
+    final previous = _task;
+    final protectedFollowUpDate = previous.followUpDate;
+    final protectedFollowUps = List<FollowUp>.of(previous.followUps);
+    final candidate = Task.fromJson(Map<String, dynamic>.from(previous.toJson()))
+      ..checklist = List<String>.of(values)
+      ..checklistEnabled = true;
+
+    setState(() {
+      _task = candidate;
+      _isSavingChecklist = true;
+    });
+    try {
+      final updated = await handler(candidate, List<String>.of(values));
+      if (!mounted) return;
+      if (updated == null) {
+        setState(() {
+          _task = previous;
+          _isSavingChecklist = false;
+        });
+        return;
+      }
+      updated.followUpDate = protectedFollowUpDate;
+      updated.followUps = protectedFollowUps;
+      setState(() {
+        _task = updated;
+        _isSavingChecklist = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _task = previous;
+        _isSavingChecklist = false;
+      });
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('ذخیره چک‌لیست انجام نشد؛ دوباره تلاش کنید')),
+        );
+    }
+  }
+
+  Future<void> _addChecklistItem() async {
+    final value = _checklistAddController.text.trim();
+    if (value.isEmpty || _isSavingChecklist) return;
+    final next = _normalizedChecklist()..add('[ ] $value');
+    await _saveChecklist(next);
+    if (!mounted) return;
+    _checklistAddController.clear();
+  }
+
+  void _beginChecklistEdit(int index, String item) {
+    _checklistEditController?.dispose();
+    _checklistEditController = TextEditingController(text: item.substring(4));
+    setState(() => _editingChecklistIndex = index);
+  }
+
+  void _cancelChecklistEdit() {
+    _checklistEditController?.dispose();
+    _checklistEditController = null;
+    setState(() => _editingChecklistIndex = null);
+  }
+
+  Future<void> _saveChecklistEdit(int index) async {
+    final controller = _checklistEditController;
+    if (controller == null) return;
+    final value = controller.text.trim();
+    if (value.isEmpty) return;
+    final current = _normalizedChecklist();
+    final marker = current[index].startsWith('[x] ') ? '[x]' : '[ ]';
+    current[index] = '$marker $value';
+    await _saveChecklist(current);
+    if (!mounted) return;
+    _checklistEditController?.dispose();
+    _checklistEditController = null;
+    setState(() => _editingChecklistIndex = null);
+  }
+
+  Future<void> _toggleChecklistItem(int index) async {
     final next = _normalizedChecklist();
     final current = next[index];
     next[index] = current.startsWith('[x] ')
         ? '[ ] ${current.substring(4)}'
         : '[x] ${current.substring(4)}';
-    final updated = await handler(_task, next);
-    if (!mounted || updated == null) return;
-    setState(() => _task = updated);
+    await _saveChecklist(next);
+  }
+
+  Future<void> _deleteChecklistItem(int index) async {
+    final next = _normalizedChecklist()..removeAt(index);
+    await _saveChecklist(next);
   }
 
   Widget _checklistCard() {
-    if (!_task.checklistEnabled || _task.checklist.isEmpty) {
-      return const SizedBox.shrink();
-    }
+    if (!_task.checklistEnabled) return const SizedBox.shrink();
     final items = _normalizedChecklist();
     final completed = items.where((item) => item.startsWith('[x] ')).length;
     return _card(
@@ -442,21 +531,101 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             ],
           ),
           const SizedBox(height: 8),
-          for (var index = 0; index < items.length; index++)
-            Material(
-              color: Colors.transparent,
-              child: CheckboxListTile(
-              key: ValueKey('task-detail-checklist-item-$index'),
-              value: items[index].startsWith('[x] '),
-              onChanged: widget.onChecklistChanged == null
-                  ? null
-                  : (_) => _toggleChecklistItem(index),
-              controlAffinity: ListTileControlAffinity.leading,
-              contentPadding: EdgeInsets.zero,
-              dense: true,
-                title: Text(items[index].substring(4)),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  key: const ValueKey('task-detail-checklist-add-input'),
+                  controller: _checklistAddController,
+                  enabled: widget.onChecklistChanged != null && !_isSavingChecklist,
+                  textDirection: TextDirection.rtl,
+                  decoration: const InputDecoration(
+                    hintText: 'افزودن مورد به چک‌لیست...',
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                  ),
+                  onSubmitted: (_) => _addChecklistItem(),
+                ),
               ),
-            ),
+              const SizedBox(width: 8),
+              IconButton(
+                key: const ValueKey('task-detail-checklist-add'),
+                tooltip: 'افزودن مورد',
+                onPressed: widget.onChecklistChanged == null || _isSavingChecklist
+                    ? null
+                    : _addChecklistItem,
+                icon: const Icon(Icons.add_circle_outline),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          for (var index = 0; index < items.length; index++)
+            if (_editingChecklistIndex == index)
+              Row(
+                key: ValueKey('task-detail-checklist-edit-row-$index'),
+                children: [
+                  Expanded(
+                    child: TextField(
+                      key: ValueKey('task-detail-checklist-edit-input-$index'),
+                      controller: _checklistEditController,
+                      enabled: !_isSavingChecklist,
+                      autofocus: true,
+                      textDirection: TextDirection.rtl,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                      ),
+                      onSubmitted: (_) => _saveChecklistEdit(index),
+                    ),
+                  ),
+                  IconButton(
+                    key: ValueKey('task-detail-checklist-save-$index'),
+                    tooltip: 'ذخیره ویرایش',
+                    onPressed: _isSavingChecklist ? null : () => _saveChecklistEdit(index),
+                    icon: const Icon(Icons.check),
+                  ),
+                  IconButton(
+                    key: ValueKey('task-detail-checklist-cancel-$index'),
+                    tooltip: 'انصراف',
+                    onPressed: _isSavingChecklist ? null : _cancelChecklistEdit,
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              )
+            else
+              Row(
+                key: ValueKey('task-detail-checklist-item-$index'),
+                children: [
+                  Expanded(
+                    child: CheckboxListTile(
+                      value: items[index].startsWith('[x] '),
+                      onChanged: widget.onChecklistChanged == null || _isSavingChecklist
+                          ? null
+                          : (_) => _toggleChecklistItem(index),
+                      controlAffinity: ListTileControlAffinity.leading,
+                      contentPadding: EdgeInsets.zero,
+                      dense: true,
+                      title: Text(items[index].substring(4)),
+                    ),
+                  ),
+                  IconButton(
+                    key: ValueKey('task-detail-checklist-edit-$index'),
+                    tooltip: 'ویرایش مورد',
+                    onPressed: widget.onChecklistChanged == null || _isSavingChecklist
+                        ? null
+                        : () => _beginChecklistEdit(index, items[index]),
+                    icon: const Icon(Icons.edit_outlined, size: 18),
+                  ),
+                  IconButton(
+                    key: ValueKey('task-detail-checklist-delete-$index'),
+                    tooltip: 'حذف مورد',
+                    onPressed: widget.onChecklistChanged == null || _isSavingChecklist
+                        ? null
+                        : () => _deleteChecklistItem(index),
+                    icon: const Icon(Icons.delete_outline, size: 18),
+                  ),
+                ],
+              ),
         ],
       ),
     );
@@ -672,7 +841,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
           children: [
             _summaryCard(),
-            if (_task.checklistEnabled && _task.checklist.isNotEmpty) ...[
+            if (_task.checklistEnabled) ...[
               const SizedBox(height: 10),
               _checklistCard(),
             ],
