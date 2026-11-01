@@ -491,9 +491,9 @@ class _HomePageState extends State<HomePage> {
       await showDialog<void>(
         context: context,
         builder: (dialogContext) => AlertDialog(
-          title: const Text('یادآورهای فعال'),
+          title: const Text('یادآورهای زمان‌بندی‌شده'),
           content: pending.isEmpty
-              ? const Text('یادآور در صف اعلان برنامه وجود ندارد.')
+              ? const Text('یادآور زمان‌بندی‌شده‌ای در صف اعلان برنامه وجود ندارد.')
               : SizedBox(
                   width: 360,
                   child: ListView.separated(
@@ -534,25 +534,18 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _openPendingReminder(PendingNotificationRequest request) {
+  Future<void> _openPendingReminder(PendingNotificationRequest request) async {
     final rawPayload = request.payload;
     if (rawPayload == null || rawPayload.isEmpty) return;
     try {
       final decoded = jsonDecode(rawPayload);
       if (decoded is! Map) return;
       final taskId = decoded['taskId'] as String?;
-      final reminderId = decoded['taskReminderId'] as String?;
       if (taskId == null || taskId.isEmpty) return;
-      Navigator.of(context).push<void>(
-        MaterialPageRoute<void>(
-          fullscreenDialog: true,
-          builder: (_) => AlarmOverlayPage(
-            taskId: taskId,
-            taskReminderId: reminderId,
-            notificationId: request.id,
-          ),
-        ),
-      );
+      final canonicalTasks = await taskStore.load();
+      final matches = canonicalTasks.where((task) => task.id == taskId);
+      if (matches.isEmpty || !mounted) return;
+      await _openTaskDetail(matches.first);
     } catch (_) {
       // Ignore malformed or stale notification payloads.
     }
@@ -1189,6 +1182,19 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  String? _groupJalaliDate(String id) {
+    final now = IranClock.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final date = switch (id) {
+      'today' => today,
+      'tomorrow' => today.add(const Duration(days: 1)),
+      _ => null,
+    };
+    return date == null
+        ? null
+        : persianDateFormatter.format(date, usePersianDate: true);
+  }
+
   Widget _groupedTaskList() {
     final compactHome = MediaQuery.sizeOf(context).height < 700;
     final groups = _homeGroups
@@ -1247,6 +1253,10 @@ class _HomePageState extends State<HomePage> {
                   Icon(_groupIcon(group.id), size: 18, color: accent),
                   const SizedBox(width: 7),
                   Expanded(child: Text(group.title, style: TextStyle(color: accent, fontSize: 14, fontWeight: FontWeight.w800))),
+                  if (_groupJalaliDate(group.id) case final date?) ...[
+                    const SizedBox(width: 6),
+                    Text(date, style: TextStyle(color: accent.withAlpha(190), fontSize: 10, fontWeight: FontWeight.w600)),
+                  ],
                   Container(
                     constraints: const BoxConstraints(minWidth: 28),
                     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
