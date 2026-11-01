@@ -93,7 +93,7 @@ void main() {
     await tester.pump();
 
     final switchTile = tester.widget<SwitchListTile>(
-      find.byType(SwitchListTile),
+      find.byKey(const ValueKey('follow-up-entry-waiting-for-response')),
     );
     expect(switchTile.value, isTrue);
     expect(tester.widget<TextField>(find.byKey(const ValueKey('follow-up-entry-result'))).enabled, isFalse);
