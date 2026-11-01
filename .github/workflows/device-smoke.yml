@@ -150,18 +150,18 @@ jobs:
               set -euo pipefail
               raw_devices="$(adb devices -l 2>&1)" || {
                 echo "ADB_DISCOVERY_FAILED" >&2
-                printf "%s\\n" "$raw_devices" >&2
+                printf "%s\n" "$raw_devices" >&2
                 exit 1
               }
               echo "ADB_DEVICES_RAW_BEGIN"
-              printf "%s\\n" "$raw_devices"
+              printf "%s\n" "$raw_devices"
               echo "ADB_DEVICES_RAW_END"
 
               valid_devices=()
               invalid_devices=()
               header_seen=false
               while IFS= read -r line; do
-                if [[ "$line" == List\\ of\\ devices\\ attached* ]]; then
+                if [[ "$line" == List\ of\ devices\ attached* ]]; then
                   header_seen=true
                   continue
                 fi
@@ -181,7 +181,7 @@ jobs:
                 exit 1
               fi
               if (( ${#invalid_devices[@]} > 0 )); then
-                printf "ADB_INVALID_DEVICE_STATE: %s\\n" "${invalid_devices[@]}" >&2
+                printf "ADB_INVALID_DEVICE_STATE: %s\n" "${invalid_devices[@]}" >&2
                 exit 1
               fi
               if (( ${#valid_devices[@]} != 1 )); then
@@ -210,7 +210,7 @@ jobs:
                 current_state="$(adb -s "$device" get-state 2>&1 || true)"
                 if [[ "$current_state" == "device" ]]; then
                   boot_property="$(adb -s "$device" shell getprop sys.boot_completed 2>&1 || true)"
-                  boot_property="${boot_property//$"\\r"/}"
+                  boot_property="$(printf "%s" "$boot_property" | tr -d "\015")"
                   if [[ "$boot_property" == "1" ]]; then
                     break
                   fi
@@ -223,7 +223,7 @@ jobs:
                 diagnostic_sdk="$(adb -s "$device" shell getprop ro.build.version.sdk 2>&1 || true)"
                 echo "ADB_BOOT_TIMEOUT: serial=$device state=$diagnostic_state sys.boot_completed=$diagnostic_boot sdk=$diagnostic_sdk" >&2
                 echo "ADB_DEVICES_RAW_BEGIN" >&2
-                printf "%s\\n" "$raw_devices" >&2
+                printf "%s\n" "$raw_devices" >&2
                 echo "ADB_DEVICES_RAW_END" >&2
                 exit 1
               fi
