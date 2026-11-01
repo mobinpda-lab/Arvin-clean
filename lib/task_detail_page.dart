@@ -597,15 +597,18 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 key: ValueKey('task-detail-checklist-item-$index'),
                 children: [
                   Expanded(
-                    child: CheckboxListTile(
-                      value: items[index].startsWith('[x] '),
+                    child: Material(
+                      type: MaterialType.transparency,
+                      child: CheckboxListTile(
+                        value: items[index].startsWith('[x] '),
                       onChanged: widget.onChecklistChanged == null || _isSavingChecklist
                           ? null
                           : (_) => _toggleChecklistItem(index),
                       controlAffinity: ListTileControlAffinity.leading,
                       contentPadding: EdgeInsets.zero,
                       dense: true,
-                      title: Text(items[index].substring(4)),
+                        title: Text(items[index].substring(4)),
+                      ),
                     ),
                   ),
                   IconButton(
