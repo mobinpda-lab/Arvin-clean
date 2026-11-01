@@ -95,6 +95,8 @@ jobs:
 
   # APK builds are independent of Analyze/Test and run in parallel with the quality matrix.
   apk:
+    # Draft PRs validate source/tests only; APK assembly is prohibited until explicitly readied.
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
