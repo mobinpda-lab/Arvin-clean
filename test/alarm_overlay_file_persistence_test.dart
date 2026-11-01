@@ -36,13 +36,25 @@ void main() {
       // this file-backed test never waits on an unregistered platform channel.
       SharedPreferences.setMockInitialValues(<String, Object>{});
       stage('T00a SharedPreferences mock initialized');
-      // Use the checked-out workspace rather than resolving the OS temp
-      // directory: the CI runner's systemTemp lookup stalled before returning.
-      // The workspace is writable in Actions and the directory is deleted below.
+      // Probe both runner directories before the real scenario. Every filesystem
+      // operation is bounded and logs its own result/exception so a stalled
+      // createTemp cannot consume the widget test's full ten-minute timeout.
       final testWorkspace = Directory.current;
+      final systemTemp = Directory.systemTemp;
+      await _probeDirectory(testWorkspace, 'workspace', stage);
+      await _probeDirectory(systemTemp, 'systemTemp', stage);
       stage('T00b before workspace.createTemp: ${testWorkspace.path}');
-      final directory = await testWorkspace.createTemp('arvin-alarm-file-');
-      stage('T00c temporary directory created: ${directory.path}');
+      late final Directory directory;
+      try {
+        directory = await testWorkspace
+            .createTemp('arvin-alarm-file-')
+            .timeout(const Duration(seconds: 8));
+        stage('T00c temporary directory created: ${directory.path}');
+      } catch (error, stackTrace) {
+        stage('T00b CREATE_TEMP_EXCEPTION: $error');
+        debugPrint('[ARVIN_TIMEOUT_DIAG][STACK] $stackTrace');
+        rethrow;
+      }
       final path = '${directory.path}/arvin.sqlite';
       stage('T00d before NativeDatabase constructor');
       var executor = NativeDatabase(File(path));
@@ -184,4 +196,52 @@ void main() {
       }
     },
   );
+}
+
+
+Future<void> _probeDirectory(
+  Directory directory,
+  String label,
+  void Function(String) stage,
+) async {
+  stage('FS_PROBE[$label] path=${directory.path}');
+  try {
+    final exists = await directory.exists().timeout(const Duration(seconds: 5));
+    stage('FS_PROBE[$label] exists=$exists');
+    if (!exists) return;
+    final stat = await directory.stat().timeout(const Duration(seconds: 5));
+    stage(
+      'FS_PROBE[$label] statType=${stat.type} mode=0${stat.mode.toRadixString(8)} '
+      'size=${stat.size} modified=${stat.modified.toIso8601String()}',
+    );
+    final probeFile = File(
+      '${directory.path}/.arvin-fs-probe-${DateTime.now().microsecondsSinceEpoch}',
+    );
+    try {
+      await probeFile.writeAsString('arvin-filesystem-probe', flush: true)
+          .timeout(const Duration(seconds: 5));
+      stage('FS_PROBE[$label] write=PASS');
+      final length = await probeFile.length().timeout(const Duration(seconds: 5));
+      stage('FS_PROBE[$label] fileLength=$length');
+      await probeFile.delete().timeout(const Duration(seconds: 5));
+      stage('FS_PROBE[$label] delete=PASS');
+    } catch (error, stackTrace) {
+      stage('FS_PROBE[$label] WRITE_OR_DELETE_EXCEPTION: $error');
+      debugPrint('[ARVIN_TIMEOUT_DIAG][STACK][$label] $stackTrace');
+    }
+    try {
+      final created = await directory.createTemp('arvin-create-probe-')
+          .timeout(const Duration(seconds: 8));
+      stage('FS_PROBE[$label] createTemp=PASS path=${created.path}');
+      await created.delete(recursive: true)
+          .timeout(const Duration(seconds: 5));
+      stage('FS_PROBE[$label] createTempCleanup=PASS');
+    } catch (error, stackTrace) {
+      stage('FS_PROBE[$label] CREATE_TEMP_EXCEPTION: $error');
+      debugPrint('[ARVIN_TIMEOUT_DIAG][CREATE_TEMP_STACK][$label] $stackTrace');
+    }
+  } catch (error, stackTrace) {
+    stage('FS_PROBE[$label] STAT_OR_EXISTS_EXCEPTION: $error');
+    debugPrint('[ARVIN_TIMEOUT_DIAG][STAT_STACK][$label] $stackTrace');
+  }
 }
