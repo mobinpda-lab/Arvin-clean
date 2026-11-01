@@ -103,3 +103,19 @@ This entry records the governing product decisions for Reminder-only scheduling,
 - These source/test changes are not accepted until exact-final-SHA Build, Device Smoke, Alarm screenshot review and remaining release gates pass. PR #3052 remains OPEN/DRAFT; Issues #823/#2102 remain OPEN; **Release: BLOCKED — RELEASE: NO-GO**.
 
 - Corrected action routing after source review: Calendar outbound sync belongs to `تکمیل` only; `تعویق` is limited to the selected Reminder's in-place date update, established scheduler call and active notification cancellation.
+
+
+## 2026-11-01 — Owner-approved Home screen implementation
+
+- Implemented the current Home reference structure on the authorized PR #3052 branch, preserving canonical Task/Project loading, the existing time-filter engine, search projection, time grouping, collapsible sections, Task completion, Quick Capture and navigation routes.
+- Header now presents `آروین` with the exact subtitle `مدیریت کارها، یادداشت‌ها و پیگیری‌ها`, a real search-focus action and a notification button. The small existing Bismillah brand identity remains because the canonical brand lock still applies.
+- The red notification indicator is conditional on actual pending notification requests returned by the notification plugin. The notification list resolves selected payloads to the canonical Task and opens its existing detail route.
+- The four cards show live distinct tag/category counts and non-archived Project count; the Time card retains the existing filter label and opens the existing time filter. No invented time metric was introduced.
+- Home group order now follows Today, Tomorrow, Future, Past and Undated. Counts remain data-derived Persian digits; Today/Tomorrow headers receive dynamically calculated Jalali dates.
+- Added the exact empty-state text `هنوز کاری برای نمایش نیست` and connected its add action to existing Quick Capture. The compact and normal-height add actions are aligned to the physical right side above the bottom navigation.
+- Bottom navigation preserves all five existing destinations and changes the Home label from `خانه` to `امروز`.
+- No reference-image sample Task names, dates or counts were hard-coded or inserted into runtime storage. Test-only fixture data remains confined to tests.
+- Added/updated Home widget and integration acceptance coverage for live card counts, empty state, search focus, RTL layout, navigation and existing grouping/filter behavior.
+- The named reference WEBP was not accessible in the execution environment; pixel-level comparison remains **NOT VERIFIED**.
+- GitHub exact-head Build, test shards and Device Smoke for the final documentation HEAD must complete before this slice is called CI-accepted. Reminder-specific Foreign Key/SQLite failures, Calendar physical-device acceptance, Backup/Restore, PDF, Legacy Schema, signing/Manifest and product-owner release gates remain open.
+- PR #3052 remains OPEN/DRAFT/UNMERGED; Issues #823/#2102/#2299 remain OPEN. No main change, merge, APK publication or release. **BLOCKED — RELEASE: NO-GO**.
