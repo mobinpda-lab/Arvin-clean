@@ -200,24 +200,7 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
           _persistedSnoozeAt = nextTime;
         });
       }
-      try {
-        await _reschedule();
-      } catch (_) {
-        // Canonical Task completion is already persisted; scheduler can retry.
-      }
-      try {
-        final snapshot = await _store.load();
-        await CalendarOutboundSyncService().sync(
-          const FollowUpCalendarProjection().project(snapshot),
-          preserveUnprojectedTaskIds: snapshot
-              .where((item) => item.trashed)
-              .map((item) => item.id)
-              .toSet(),
-        );
-      } catch (_) {
-        // Match the existing Home save contract: calendar failure never rolls
-        // back a successfully persisted Task completion.
-      }
+      await _reschedule();
       await _notifications.cancel(widget.notificationId);
       if (mounted) Navigator.of(context).pop();
     } catch (_) {
@@ -287,7 +270,24 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
         storedTask.setCompleted(true, at: _now());
         storedTask.updatedAt = _now();
       });
-      await _reschedule();
+      try {
+        await _reschedule();
+      } catch (_) {
+        // Canonical Task completion is already persisted; scheduler can retry.
+      }
+      try {
+        final snapshot = await _store.load();
+        await CalendarOutboundSyncService().sync(
+          const FollowUpCalendarProjection().project(snapshot),
+          preserveUnprojectedTaskIds: snapshot
+              .where((item) => item.trashed)
+              .map((item) => item.id)
+              .toSet(),
+        );
+      } catch (_) {
+        // Match the existing Home save contract: calendar failure never rolls
+        // back a successfully persisted Task completion.
+      }
       await _notifications.cancel(widget.notificationId);
       if (mounted) Navigator.of(context).pop();
     } catch (_) {
