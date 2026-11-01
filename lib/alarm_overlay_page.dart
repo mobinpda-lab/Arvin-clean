@@ -182,6 +182,7 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
       if (_persistedSnoozeAt == null) {
         final nextTime = _now().add(Duration(minutes: _snoozeMinutes));
         final updated = reminder.copyWith(date: nextTime);
+        debugPrint('[ARVIN_TIMEOUT_DIAG][SNOOZE] before TaskStore.mutate');
         await _store.mutate<void>((tasks) {
           final taskIndex = tasks.indexWhere((item) => item.id == widget.taskId);
           if (taskIndex < 0) throw StateError('Task not found');
@@ -194,6 +195,7 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
           storedTask.taskReminders = reminders;
           storedTask.updatedAt = _now();
         });
+        debugPrint('[ARVIN_TIMEOUT_DIAG][SNOOZE] TaskStore.mutate completed');
         if (!mounted) return;
         setState(() {
           _reminder = updated;
@@ -262,6 +264,7 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
     if (task == null || _busy) return;
     setState(() => _busy = true);
     try {
+      debugPrint('[ARVIN_TIMEOUT_DIAG][COMPLETE] before TaskStore.mutate');
       await _store.mutate<void>((tasks) {
         final index = tasks.indexWhere((item) => item.id == widget.taskId);
         if (index < 0) throw StateError('Task not found');
@@ -270,13 +273,20 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
         storedTask.setCompleted(true, at: _now());
         storedTask.updatedAt = _now();
       });
+      debugPrint('[ARVIN_TIMEOUT_DIAG][COMPLETE] TaskStore.mutate completed');
       try {
+        debugPrint('[ARVIN_TIMEOUT_DIAG][COMPLETE] before reminder reschedule');
         await _reschedule();
-      } catch (_) {
+        debugPrint('[ARVIN_TIMEOUT_DIAG][COMPLETE] reminder reschedule completed');
+      } catch (error) {
+        debugPrint('[ARVIN_TIMEOUT_DIAG][COMPLETE] reminder reschedule failed: $error');
         // Canonical Task completion is already persisted; scheduler can retry.
       }
       try {
+        debugPrint('[ARVIN_TIMEOUT_DIAG][COMPLETE] before post-completion TaskStore.load');
         final snapshot = await _store.load();
+        debugPrint('[ARVIN_TIMEOUT_DIAG][COMPLETE] post-completion TaskStore.load completed; tasks=${snapshot.length}');
+        debugPrint('[ARVIN_TIMEOUT_DIAG][CALENDAR] before CalendarOutboundSyncService.sync');
         await CalendarOutboundSyncService().sync(
           const FollowUpCalendarProjection().project(snapshot),
           preserveUnprojectedTaskIds: snapshot
@@ -284,7 +294,9 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
               .map((item) => item.id)
               .toSet(),
         );
-      } catch (_) {
+        debugPrint('[ARVIN_TIMEOUT_DIAG][CALENDAR] CalendarOutboundSyncService.sync completed');
+      } catch (error) {
+        debugPrint('[ARVIN_TIMEOUT_DIAG][CALENDAR] Calendar outbound sync failed: $error');
         // Match the existing Home save contract: calendar failure never rolls
         // back a successfully persisted Task completion.
       }
