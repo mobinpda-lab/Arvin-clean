@@ -184,6 +184,7 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
+    await scrollToFollowUp(tester);
     await tester.tap(find.byKey(const ValueKey('alarm-overlay-follow-up')));
     await tester.pumpAndSettle();
     final note = find.byKey(const ValueKey('follow-up-entry-note'));
