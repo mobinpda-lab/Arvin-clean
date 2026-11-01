@@ -353,3 +353,37 @@ The Task model and TaskStore read/write these fields; `sql_task_migration_writer
 Confirmed remaining gaps include active legacy followUpEnabled/nextFollowUp schema/model fields and the absence of a data-preserving physical-column migration. Task Swipe, Follow-up Reminder shortcut and record-driven daily report source implementations have since been added, but all require fresh exact-head CI. Build run 41276902887 on SHA f079ebc failed one settings-page assertion (258 passed, 1 failed); Staging APK path is now correct and its test-key v2/v3, APK_DEBUGGABLE=false and manifest checks passed. Device Smoke run 41276902849 completed with 3 PASS and 4 CANCELLED; Calendar runtime stalled waiting for VMService data and produced no screenshot. Calendar Provider and file-backed SQLite workflows passed on SHA f079ebc; Provider artifact was reviewed, but these are not proof for the later source changes. The latest PR head has no associated fresh Build or Device Smoke run visible yet.
 
 No merge, release, publish, main-branch edit, issue closure, NIRA change, or destructive database migration was performed.
+
+
+## 11. High-priority directive intake — Alarm Snooze / Follow-up Capture / Widget Acceptance
+
+**Intake date:** 2026-11-01  
+**Requested scope:** Alarm overlay with active Task title and Reminder time; red `توقف آلارم` action that terminates active audio; snooze increment/decrement and minute-stepper controls; `ثبت سابقه` writing a historical FollowUp against the same parent Task; Vazirmatn across every overlay text; widget tests for stop/snooze/logging; SQLite persistence proof; exact-head evidence update.
+
+### Source facts established during intake
+- `pubspec.yaml` defines the Vazirmatn family with Regular 400, Medium 500 and Bold 700.
+- `FollowUp.completedAt` in `lib/models/task.dart` is currently a getter alias of `dateTime`. The inspected model does not establish a distinct persisted `completed_at` SQL column.
+- FollowUp JSON currently persists `dateTime`; the existing contract treats that as the canonical historical timestamp. Do not introduce a competing timestamp or perform a destructive migration without an approved data-preserving migration plan.
+- Existing independent future schedules belong to TaskReminder. Alarm snooze must update only the active Reminder record and must not create or modify FollowUp history.
+- The current PR changed-file inventory does not yet show a dedicated alarm/snooze overlay implementation or dedicated alarm widget tests.
+
+### Governance and implementation status
+- Governing Issue #823 currently freezes scope to release blockers and explicitly defers new features. The new alarm/widget scope is therefore **SCOPE CONFLICT — OWNER/GOVERNANCE RECONCILIATION REQUIRED** before it can be treated as accepted scope.
+- PR #3052 received a high-priority intake comment (GitHub comment ID `6554182142`) recording the requested behavior and the timestamp/governance constraints.
+- **Implementation:** NOT VERIFIED / not yet evidenced by a source diff.
+- **Widget tests:** NOT RUN / no evidence.
+- **SQLite snooze-only mutation and FollowUp insertion:** NOT VERIFIED.
+- **Vazirmatn overlay rendering:** NOT VERIFIED (font family declaration alone does not prove overlay inheritance).
+- **Exact-head CI / device acceptance:** NOT RUN for this intake.
+- **Release:** remains **BLOCKED — RELEASE: NO-GO**.
+
+### Safe acceptance contract for the eventual implementation
+1. Stop action terminates the currently playing alarm audio and is idempotent; it does not delete or rewrite the Reminder.
+2. Snooze controls validate the minute step and update only the matching Reminder's next scheduled fire time. Other reminders, Task dueDate, FollowUp rows and Task history remain unchanged.
+3. `ثبت سابقه` inserts exactly one new FollowUp with the same parent Task ID and the canonical historical timestamp (`dateTime`, exposed as `completedAt` by the current model). It must not alter any future Reminder or legacy scheduling values.
+4. All overlay text inherits/enforces Vazirmatn, including dialogs, buttons, labels, controls and accessibility-visible text.
+5. Widget tests cover stop-audio behavior, +/- and minute-stepper boundaries, duplicate-submit prevention, FollowUp insertion/linkage, and schedule immutability.
+6. File-backed SQLite tests reopen the database and prove snooze persistence in Reminder only and exactly-one FollowUp insertion with unchanged future schedules.
+7. Update this section with exact commit SHA, test names/results, workflow run/job IDs and artifact references only after those checks actually pass.
+
+**Audit decision:** intake recorded; implementation and acceptance remain pending. Keep PR #3052 OPEN/DRAFT, Issues #823 and #2102 OPEN, and do not claim PASS or release readiness.
