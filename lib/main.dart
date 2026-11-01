@@ -49,6 +49,7 @@ import 'services/widget_task_bridge.dart';
 import 'services/widget_task_selection_service.dart';
 import 'settings_page.dart';
 import 'task_detail_page.dart';
+import 'follow_up_entry_page.dart';
 import 'task_editor_dialog.dart';
 import 'task_next_action_page.dart';
 import 'task_report_page.dart';
@@ -2693,8 +2694,15 @@ class _HomePageState extends State<HomePage> {
         }
         return true;
       case TaskSwipeAction.convertToFollowUp:
-        // Retired legacy preference: the supported shortcut is the explicit
-        // «افزودن یادآور» control in the Task editor.
+        // Open the real-action form only. Persist a Follow-up Record only after
+        // the user explicitly saves it; keep the Task card in the list.
+        final followUp = await Navigator.of(context).push<FollowUp>(
+          MaterialPageRoute<FollowUp>(
+            builder: (_) => const FollowUpEntryPage(),
+          ),
+        );
+        if (!mounted || followUp == null) return false;
+        await _addFollowUpFromDetail(task, followUp);
         return false;
       case TaskSwipeAction.none:
         return false;
@@ -2708,7 +2716,7 @@ class _HomePageState extends State<HomePage> {
       TaskSwipeAction.trash => Icons.delete_outline,
       TaskSwipeAction.moveToToday => Icons.today_outlined,
       TaskSwipeAction.complete => Icons.check_circle_outline,
-      TaskSwipeAction.convertToFollowUp => Icons.block,
+      TaskSwipeAction.convertToFollowUp => Icons.add_comment_outlined,
       TaskSwipeAction.none => Icons.block,
     };
     final label = switch (action) {
@@ -2716,7 +2724,7 @@ class _HomePageState extends State<HomePage> {
       TaskSwipeAction.trash => 'سطل زباله',
       TaskSwipeAction.moveToToday => 'انتقال به امروز',
       TaskSwipeAction.complete => 'انجام‌شدن',
-      TaskSwipeAction.convertToFollowUp => 'بدون عمل',
+      TaskSwipeAction.convertToFollowUp => 'ثبت پیگیری',
       TaskSwipeAction.none => 'بدون عمل',
     };
     return Container(
