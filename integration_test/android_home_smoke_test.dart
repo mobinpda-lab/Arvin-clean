@@ -122,7 +122,7 @@ void main() {
       await tester.pumpAndSettle();
     }
     expect(quickCaptureDialog, findsNothing);
-    expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
+    expect(find.text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
     await binding.convertFlutterSurfaceToImage();
     await tester.pumpAndSettle();
