@@ -51,6 +51,21 @@ void main() {
     return task;
   }
 
+  Future<void> scrollToFollowUp(WidgetTester tester) async {
+    final followUp = find.byKey(const ValueKey('alarm-overlay-follow-up'));
+    expect(followUp, findsOneWidget);
+    await tester.scrollUntilVisible(
+      followUp,
+      100,
+      scrollable: find.descendant(
+        of: find.byType(SingleChildScrollView),
+        matching: find.byType(Scrollable),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(followUp.hitTestable(), findsOneWidget);
+  }
+
   testWidgets('stop dismisses only the notification and leaves Task data intact',
       (tester) async {
     final store = TaskStore();
@@ -138,6 +153,7 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
+    await scrollToFollowUp(tester);
     await tester.tap(find.byKey(const ValueKey('alarm-overlay-follow-up')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('follow-up-entry-add-reminder')), findsNothing);
@@ -222,6 +238,41 @@ void main() {
     ).dy;
     expect(followUpY, greaterThan(volumeY));
     expect(followUpY, greaterThan(snoozeY));
+  });
+
+  testWidgets('bottom Follow-up shortcut is reachable and tappable by scrolling on a short viewport',
+      (tester) async {
+    tester.view.physicalSize = const Size(360, 560);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final store = TaskStore();
+    await seedTask(store);
+
+    await tester.pumpWidget(MaterialApp(
+      home: AlarmOverlayPage(
+        taskId: 'alarm-task-1',
+        taskReminderId: 'reminder-stable-1',
+        notificationId: 7007,
+        taskStore: store,
+        notificationController: _FakeAlarmNotifications(),
+        rescheduleReminders: () async {},
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    final followUp = find.byKey(const ValueKey('alarm-overlay-follow-up'));
+    expect(followUp, findsOneWidget);
+    expect(followUp.hitTestable(), findsNothing);
+
+    await scrollToFollowUp(tester);
+    await tester.tap(followUp);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('follow-up-entry-note')), findsOneWidget);
+    expect(find.byKey(const ValueKey('follow-up-entry-add-reminder')), findsNothing);
+    expect((await store.load()).single.followUps, hasLength(1));
   });
 
   testWidgets('all-day Reminder does not expose a time-changing Snooze control',
