@@ -99,7 +99,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        variant: [release, debug]
+        variant: [release, debug, staging]
     name: apk (${{ matrix.variant }})
     steps:
       - uses: actions/checkout@v5
@@ -132,8 +132,61 @@ jobs:
           set -euo pipefail
           flutter pub get --enforce-lockfile
           git diff --exit-code -- pubspec.lock
+      - name: Create ephemeral staging signing key
+        if: matrix.variant == 'staging'
+        shell: bash
+        run: |
+          set -euo pipefail
+          keystore="$RUNNER_TEMP/arvin-staging-test.keystore"
+          password="arvin-staging-test-only"
+          keytool -genkeypair -noprompt -v \
+            -keystore "$keystore" -storetype JKS \
+            -storepass "$password" -keypass "$password" \
+            -alias arvin-staging-test -keyalg RSA -keysize 2048 -validity 3650 \
+            -dname "CN=Arvin Staging Test,O=Arvin,C=XX"
+          chmod 600 "$keystore"
+          {
+            echo "ARVIN_STAGING_KEYSTORE_PATH=$keystore"
+            echo "ARVIN_STAGING_KEYSTORE_PASSWORD=$password"
+            echo "ARVIN_STAGING_KEY_ALIAS=arvin-staging-test"
+            echo "ARVIN_STAGING_KEY_PASSWORD=$password"
+          } >> "$GITHUB_ENV"
+          echo "STAGING_SIGNING_KEY=EPHEMERAL_TEST_ONLY"
+
       - name: Build APK
-        run: flutter build apk --${{ matrix.variant }} -t lib/main.dart
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ matrix.variant }}" == "staging" ]]; then
+            cd android
+            ./gradlew --no-daemon :app:assembleStaging
+          else
+            flutter build apk --${{ matrix.variant }} -t lib/main.dart
+          fi
+
+      - name: Verify staging APK signature and merged manifest
+        if: matrix.variant == 'staging'
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk="android/app/build/outputs/apk/staging/app-staging.apk"
+          test -s "$apk"
+          sdk_build_tools="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+          apksigner="$sdk_build_tools/apksigner"
+          apkanalyzer="$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer"
+          if [[ ! -x "$apkanalyzer" ]]; then
+            apkanalyzer="$(command -v apkanalyzer)"
+          fi
+          "$apksigner" verify --verbose --print-certs "$apk" 2>&1 | tee "$RUNNER_TEMP/apksigner-staging.log"
+          grep -Fq "Verified using v2 scheme (APK Signature Scheme v2): true" "$RUNNER_TEMP/apksigner-staging.log"
+          grep -Fq "Verified using v3 scheme (APK Signature Scheme v3): true" "$RUNNER_TEMP/apksigner-staging.log"
+          debuggable="$("$apkanalyzer" manifest debuggable "$apk")"
+          echo "APK_DEBUGGABLE=$debuggable"
+          test "$debuggable" = "false"
+          mkdir -p staging-verification
+          cp "$RUNNER_TEMP/apksigner-staging.log" staging-verification/apksigner-verify.log
+          printf 'APK_DEBUGGABLE=%s\n' "$debuggable" > staging-verification/manifest-audit.txt
+          printf 'TARGET_SHA=%s\n' "$(git rev-parse HEAD)" >> staging-verification/manifest-audit.txt
       - name: Font packaging audit
         shell: bash
         run: |
@@ -158,10 +211,24 @@ jobs:
           echo "FONT_GATE=PASS_VAZIRMATN_BUNDLED_SYSTEM_DEFAULT_PURGED"
 
       - name: Verify APK
-        run: test -s "build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk"
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ matrix.variant }}" == "staging" ]]; then
+            test -s "android/app/build/outputs/apk/staging/app-staging.apk"
+          else
+            test -s "build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk"
+          fi
       - name: Upload APK
         uses: actions/upload-artifact@v5
         with:
           name: arvin-${{ matrix.variant }}-apk
-          path: build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk
+          path: ${{ matrix.variant == 'staging' && 'android/app/build/outputs/apk/staging/app-staging.apk' || format('build/app/outputs/flutter-apk/app-{0}.apk', matrix.variant) }}
+          if-no-files-found: error
+      - name: Upload staging verification logs
+        if: matrix.variant == 'staging'
+        uses: actions/upload-artifact@v5
+        with:
+          name: arvin-staging-verification
+          path: staging-verification/
           if-no-files-found: error
