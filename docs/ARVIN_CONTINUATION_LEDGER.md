@@ -814,3 +814,24 @@ PR #3052 در آخرین استعلام OPEN / DRAFT / UNMERGED و برچسب BL
 ### Validation and governance
 - Fresh workflows for this test-only HEAD are required; results from baseline SHA `29fb42e...` are not transferable.
 - PR #3052 must remain OPEN / DRAFT / UNMERGED; `BLOCKED — RELEASE: NO-GO` remains unchanged. No main edit, merge, release or manual workflow dispatch was performed.
+
+## Wave 7.289 — T13.5 callback lifecycle isolation — 2026-11-02
+
+**Diagnostic baseline:** `29fb42e6e6db74a23ea7ae1504b0a83d42526727`.  
+**Test lifecycle correction:** `945e9e5a35775e0b3127118da25b4ec6e85c13a4`.  
+**Branch:** `fix/recovery-calendar-device-smoke-2026-10-31`; PR #3052.
+
+### Exact log evidence
+- File Persistence Run `41439520248`, Job `125257688409`, checked out the exact baseline SHA.
+- The log emitted `before TaskStore.load` / `after TaskStore.load taskCount=1`; then `before ProjectStore.load` / `after ProjectStore.load projectCount=0`; then `before onLoadComplete(success)` / `after onLoadComplete(success)`.
+- The test subsequently emitted `T13.5a before awaiting onLoadComplete callback signal`, but no `T13.5b` return marker. The job was cancelled at `2026-11-02T11:58:06Z`; T13.5 did not pass.
+- The load/callback marker sequence occurred during the first Overlay mount, before the SQLite close/reopen phase. The second Overlay was pumped without explicitly disposing the first instance. The test expected a new `loadCompleted` signal, but there was no second load/callback marker sequence after T13.5a.
+- Source inspection confirms `_loadActiveReminder()` is initiated from `initState`; the test's second mount did not establish a guaranteed fresh State lifecycle. The evidence localizes the failure to test Overlay lifecycle/callback registration, not TaskStore or ProjectStore loading.
+
+### Authorized test-only correction
+- `test/alarm_overlay_file_persistence_test.dart` now explicitly unmounts the first Alarm Overlay before closing the first SQLite executor. It then mounts a fresh Overlay after reopening the same SQLite file, so the new `onLoadComplete` callback belongs to a fresh State instance.
+- The existing callback wait, error assertion, timeout, real Complete control interaction, notification cancellation and final SQLite readback assertions remain intact. No production code or persistence logic changed.
+- This is a test-harness correction, not a PASS claim. Fresh File Persistence and full required workflows on the resulting HEAD must validate it.
+
+### Governance
+PR #3052 remains OPEN / DRAFT / UNMERGED. `BLOCKED — RELEASE: NO-GO` remains unchanged. No main edit, merge, release or manual workflow dispatch was performed.
