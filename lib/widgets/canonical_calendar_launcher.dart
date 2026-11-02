@@ -6,7 +6,6 @@ import '../notebook_page.dart';
 import '../official_calendar_page.dart';
 import '../services/calendar_rescheduling_advisor.dart';
 import '../services/calendar_swipe_settings_service.dart';
-import '../services/calendar_inbound_sync_service.dart';
 import '../services/follow_up_calendar_projection.dart';
 import '../services/external_calendar_link_store.dart';
 import '../services/task_store.dart';
@@ -58,7 +57,6 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
   CalendarSwipeSettings _calendarSwipeSettings = const CalendarSwipeSettings();
   // Keep the launcher subtree out of global finders while conflict advice is modal.
   bool _conflictAdviceVisible = false;
-  CalendarInboundSyncService get _inboundSync => CalendarInboundSyncService();
 
   static const _calendarHelpSteps = <ContextualHelpStep>[
     ContextualHelpStep(
@@ -121,7 +119,6 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     super.initState();
     _tasks = List<Task>.of(widget.tasks);
     Future<void>.microtask(_loadCalendarSwipeSettings);
-    Future<void>.microtask(_reconcileDeviceCalendar);
   }
 
   Future<void> _loadCalendarSwipeSettings() async {
@@ -134,32 +131,6 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     }
   }
 
-  Future<void> _reconcileDeviceCalendar() async {
-    try {
-      final now = DateTime.now().toLocal();
-      final today = DateTime(now.year, now.month, now.day);
-      final result = await _inboundSync.reconcile(
-        start: today.subtract(const Duration(days: 31)),
-        end: today.add(const Duration(days: 62)),
-      );
-      if (!mounted || !result.changed) return;
-      final refreshed = await widget.onRefreshTasks?.call();
-      if (refreshed != null && mounted) {
-        setState(() => _tasks = List<Task>.of(refreshed));
-      }
-      if (result.conflicts > 0 && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'تعارض همگام‌سازی تقویم: ${result.conflicts} مورد بدون تغییر باقی ماند.',
-            ),
-          ),
-        );
-      }
-    } catch (_) {
-      // Calendar access is optional; failure must not block the Arvin calendar.
-    }
-  }
 
   @override
   void didUpdateWidget(covariant CanonicalCalendarLauncher oldWidget) {
@@ -697,7 +668,7 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(content: Text('همگام‌سازی تقویم دوباره انجام شد. تغییرات آروین و تقویم گوشی نیز بررسی شد.')),
+          const SnackBar(content: Text('خروجی انتخاب‌شده به تقویم گوشی دوباره بررسی شد؛ Taskهای آروین تغییر نکردند.')),
         );
     } catch (error) {
       if (!context.mounted) return;
@@ -739,7 +710,7 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
                 key: const ValueKey('calendar-retry-device-sync'),
                 leading: const Icon(Icons.sync_outlined),
                 title: const Text('تلاش دوباره برای همگام‌سازی'),
-                subtitle: const Text('به‌روزرسانی دوباره آروین و تقویم گوشی در هر دو جهت'),
+                subtitle: const Text('تلاش دوباره برای خروجی یادآورهای آروین به تقویم گوشی'),
                 onTap: () => Navigator.of(sheetContext).pop(
                   _CalendarMoreAction.retrySync,
                 ),
