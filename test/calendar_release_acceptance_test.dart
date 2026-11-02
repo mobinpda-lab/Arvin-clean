@@ -137,15 +137,11 @@ void main() {
   );
 
   testWidgets(
-    'Calendar release acceptance routes completion without exposing ineffective snooze',
+    'Calendar release acceptance excludes historical FollowUp cards and actions',
     (tester) async {
       final day = DateTime(2026, 9, 9, 10);
+      const id = 'followup:release-task:release-followup';
       var completed = 0;
-      final reminder = CalendarReminder(
-        id: 'followup:release-task:release-followup',
-        title: 'پیگیری قرارداد',
-        date: day,
-      );
 
       await tester.pumpWidget(
         MaterialApp(
@@ -153,7 +149,18 @@ void main() {
             textDirection: TextDirection.rtl,
             child: CalendarPage(
               initialSelectedDay: day,
-              reminders: <CalendarReminder>[reminder],
+              reminders: <CalendarReminder>[
+                CalendarReminder(
+                  id: id,
+                  title: 'پیگیری قرارداد',
+                  date: day,
+                ),
+                CalendarReminder(
+                  id: 'task-due:release-task',
+                  title: 'کار تاریخ‌دار',
+                  date: day,
+                ),
+              ],
               onCompleteReminder: (_) async => completed++,
             ),
           ),
@@ -161,20 +168,11 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.longPress(
-        find.byKey(const ValueKey('reminder-card-followup:release-task:release-followup')),
-      );
-      await tester.pumpAndSettle();
-
-      final completeAction = find.byKey(
-        const ValueKey('reminder-complete-followup:release-task:release-followup'),
-      );
-      await tester.ensureVisible(completeAction);
-      await tester.tap(completeAction);
-      await tester.pumpAndSettle();
-
-      expect(completed, 1);
-      expect(find.text('تعویق'), findsNothing);
+      expect(find.text('پیگیری قرارداد'), findsNothing);
+      expect(find.byKey(const ValueKey('reminder-card-$id')), findsNothing);
+      expect(find.byKey(const ValueKey('reminder-complete-$id')), findsNothing);
+      expect(find.text('کار تاریخ‌دار'), findsOneWidget);
+      expect(completed, 0);
     },
   );
 
