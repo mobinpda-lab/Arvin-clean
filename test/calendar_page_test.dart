@@ -48,7 +48,7 @@ void main() {
     expect(find.byKey(const ValueKey('calendar-source-filter')), findsOneWidget);
     expect(find.text('رویداد تقویم گوشی'), findsOneWidget);
     expect(find.text('یادآور زمان‌دار'), findsOneWidget);
-    expect(find.text('پیگیری باز'), findsOneWidget);
+    expect(find.text('پیگیری باز'), findsNothing);
     expect(find.text('کار بدون ساعت'), findsOneWidget);
     expect(find.text('کار تمام‌روز انجام‌شده'), findsOneWidget);
 
@@ -73,14 +73,14 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('کار بدون ساعت'), findsOneWidget);
     expect(find.text('کار تمام‌روز انجام‌شده'), findsNothing);
-    expect(find.text('پیگیری باز'), findsOneWidget);
+    expect(find.text('پیگیری باز'), findsNothing);
     expect(find.text('یادآور زمان‌دار'), findsOneWidget);
 
     await tester.tap(find.text('همه'));
     await tester.pumpAndSettle();
     expect(find.text('رویداد تقویم گوشی'), findsOneWidget);
     expect(find.text('یادآور زمان‌دار'), findsOneWidget);
-    expect(find.text('پیگیری باز'), findsOneWidget);
+    expect(find.text('پیگیری باز'), findsNothing);
     expect(find.text('کار بدون ساعت'), findsOneWidget);
     expect(find.text('کار تمام‌روز انجام‌شده'), findsOneWidget);
     expect(tester.takeException(), isNull);
@@ -164,31 +164,42 @@ void main() {
     );
   });
 
-  testWidgets('follow-up calendar card shows parent subtitle and exact timed chip', (tester) async {
-  final selectedDay = DateTime(2026, 10, 16, 18, 45);
-  await tester.pumpWidget(
-    MaterialApp(
-      home: CalendarPage(
-        initialSelectedDay: selectedDay,
-        reminders: [
-          CalendarReminder(
-            id: 'followup:task-1:follow-up-1',
-            title: 'تماس مجدد',
-            date: selectedDay,
-            description: 'پیگیری: تماس با مشتری',
-          ),
-        ],
+  testWidgets('historical FollowUp is not rendered as a local calendar card', (tester) async {
+    final selectedDay = DateTime(2026, 10, 16, 18, 45);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CalendarPage(
+          initialSelectedDay: selectedDay,
+          reminders: [
+            CalendarReminder(
+              id: 'task-due:dated-task',
+              title: 'کار تاریخ‌دار',
+              date: selectedDay,
+            ),
+            CalendarReminder(
+              id: 'task-reminder-item:dated-task:reminder-1',
+              title: 'یادآور مستقل',
+              date: selectedDay,
+            ),
+            CalendarReminder(
+              id: 'followup:task-1:follow-up-1',
+              title: 'تماس تاریخی',
+              date: selectedDay,
+              description: 'پیگیری: تماس با مشتری',
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-  await tester.pumpAndSettle();
+    );
+    await tester.pumpAndSettle();
 
-  expect(find.text('تماس مجدد'), findsOneWidget);
-  expect(find.text('پیگیری: تماس با مشتری'), findsOneWidget);
-  expect(find.byKey(const ValueKey('calendar-followup-time-chip-followup:task-1:follow-up-1')), findsOneWidget);
-  expect(find.text('۱۸:۴۵'), findsOneWidget);
-});
-
+    expect(find.text('کار تاریخ‌دار'), findsOneWidget);
+    expect(find.text('یادآور مستقل'), findsOneWidget);
+    expect(find.text('تماس تاریخی'), findsNothing);
+    expect(find.text('پیگیری: تماس با مشتری'), findsNothing);
+    expect(find.byKey(const ValueKey('calendar-pastel-card-followup:task-1:follow-up-1')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('shows reminders for the selected day', (tester) async {
     final now = IranClock.now();
@@ -396,20 +407,21 @@ void main() {
     expect(find.byKey(const ValueKey('calendar-today')), findsOneWidget);
   });
 
-  testWidgets('follow-up short tap opens its route and long press opens actions', (tester) async {
+  testWidgets('historical FollowUp cards expose no local calendar actions', (tester) async {
     final day = DateTime(2026, 9, 9, 10);
-    final followUp = CalendarReminder(
-      id: 'followup:task-1:fu-tap',
-      title: 'پیگیری قرارداد',
-      date: day,
-    );
     var taskEdited = 0;
     var followUpEdited = 0;
     await tester.pumpWidget(
       MaterialApp(
         home: CalendarPage(
           initialSelectedDay: day,
-          reminders: [followUp],
+          reminders: [
+            CalendarReminder(
+              id: 'followup:task-1:fu-tap',
+              title: 'پیگیری قرارداد',
+              date: day,
+            ),
+          ],
           onEditTask: (_) async => taskEdited++,
           onEditReminder: (_) async => followUpEdited++,
           onCompleteReminder: (_) async {},
@@ -418,20 +430,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final card = find.byKey(const ValueKey('calendar-pastel-card-followup:task-1:fu-tap'));
-    await tester.tap(card);
-    await tester.pumpAndSettle();
+    expect(find.text('پیگیری قرارداد'), findsNothing);
+    expect(find.byKey(const ValueKey('calendar-pastel-card-followup:task-1:fu-tap')), findsNothing);
     expect(taskEdited, 0);
-    expect(followUpEdited, 1);
-    expect(find.byKey(const ValueKey('reminder-actions-followup:task-1:fu-tap')), findsNothing);
-    expect(find.byKey(const ValueKey('reminder-edit-followup:task-1:fu-tap')), findsNothing);
-
-    await tester.longPress(card);
-    await tester.pumpAndSettle();
-    expect(find.byType(BottomSheet), findsOneWidget);
-    expect(find.byKey(const ValueKey('reminder-complete-followup:task-1:fu-tap')), findsOneWidget);
-    expect(find.byKey(const ValueKey('reminder-edit-followup:task-1:fu-tap')), findsOneWidget);
-    expect(find.byKey(const ValueKey('reminder-actions-followup:task-1:fu-tap')), findsNothing);
+    expect(followUpEdited, 0);
   });
 
   testWidgets('external calendar short tap opens the source item without expanding actions', (tester) async {
@@ -461,14 +463,8 @@ void main() {
     expect(find.byKey(const ValueKey('reminder-actions-external-calendar:event-tap')), findsNothing);
   });
 
-  testWidgets('long press exposes follow-up actions and routes callbacks',
-      (tester) async {
+  testWidgets('historical FollowUp does not expose completion or edit actions', (tester) async {
     final day = DateTime(2026, 9, 9, 10);
-    final reminder = CalendarReminder(
-      id: 'followup:task-1:fu-1',
-      title: 'پیگیری قرارداد',
-      date: day,
-    );
     var completed = 0;
     var edited = 0;
 
@@ -476,40 +472,25 @@ void main() {
       MaterialApp(
         home: CalendarPage(
           initialSelectedDay: day,
-          reminders: [reminder],
+          reminders: [
+            CalendarReminder(
+              id: 'followup:task-1:fu-1',
+              title: 'پیگیری قرارداد',
+              date: day,
+            ),
+          ],
           onCompleteReminder: (_) async => completed++,
           onEditReminder: (_) async => edited++,
         ),
       ),
     );
-
-    await tester.longPress(
-      find.byKey(const ValueKey('calendar-pastel-card-followup:task-1:fu-1')),
-    );
     await tester.pumpAndSettle();
 
-    expect(find.text('انجام شد'), findsOneWidget);
-    expect(find.text('تعویق'), findsNothing);
-    expect(find.text('ویرایش پیگیری'), findsOneWidget);
-    expect(find.text('تبدیل به کار'), findsNothing);
-
-    final completeAction =
-        find.byKey(const ValueKey('reminder-complete-followup:task-1:fu-1'));
-    await tester.ensureVisible(completeAction);
-    await tester.tap(completeAction);
-    await tester.pumpAndSettle();
-    await tester.longPress(
-      find.byKey(const ValueKey('calendar-pastel-card-followup:task-1:fu-1')),
-    );
-    await tester.pumpAndSettle();
-    final editAction =
-        find.byKey(const ValueKey('reminder-edit-followup:task-1:fu-1'));
-    await tester.ensureVisible(editAction);
-    await tester.tap(editAction);
-    await tester.pumpAndSettle();
-
-    expect(completed, 1);
-    expect(edited, 1);
+    expect(find.text('پیگیری قرارداد'), findsNothing);
+    expect(find.text('انجام شد'), findsNothing);
+    expect(find.text('ویرایش پیگیری'), findsNothing);
+    expect(completed, 0);
+    expect(edited, 0);
   });
   testWidgets('distinguishes Arvin reminders from imported phone calendar items', (tester) async {
     final day = DateTime(2026, 9, 9, 10);
@@ -703,12 +684,10 @@ void main() {
     await tester.pumpAndSettle();
     expect(editCount, 1);
 
-    await tester.fling(
+    expect(
       find.byKey(const ValueKey('calendar-pastel-card-task-followup:owned-task:followup-1')),
-      const Offset(-240, 0),
-      1000,
+      findsNothing,
     );
-    await tester.pumpAndSettle();
     expect(deleteCount, 0);
 
     await tester.fling(
