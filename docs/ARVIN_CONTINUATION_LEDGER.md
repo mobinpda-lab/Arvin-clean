@@ -999,3 +999,41 @@ Run 41451772502 / Job 125298740317 on the same SHA completed FAILURE. Gradle sta
 - PR #3052 remains OPEN / DRAFT / UNMERGED.
 - No main edit, merge, release, APK publication, or change to legacy data/schema was made.
 - Final verdict: **BLOCKED — RELEASE: NO-GO**.
+
+
+## 2026-11-02 — Exact-SHA validation checkpoint for historical FollowUp calendar exclusion
+
+**Validated SHA:** `04cacb3a88a99c12286dd6d8f6a9d0268a0d12eb`.
+
+### Build and focused regression evidence
+- Build #9185 / Run `41509339452`: **SUCCESS** on the validated SHA. Analyze succeeded; all six test shards succeeded; aggregate: **1,122 tests passed**. APK matrix was SKIPPED because PR #3052 remains Draft.
+- Calendar UI regression tests passed: `calendar_page_test.dart` — historical FollowUp excluded from supplied and visible-range projected entries; dated Task and independent Reminder retained; no historical completion/edit actions.
+- Legacy action regression tests passed: `calendar_runtime_actions_fast_track_test.dart` and `calendar_release_acceptance_test.dart`.
+- Projection tests passed: `follow_up_calendar_projection_test.dart`.
+- Preservation tests passed: `task_detail_followup_flow_test.dart`, `follow_up_office_page_test.dart`, `completed_follow_up_report_page_test.dart`. These verify the FollowUp history remains accessible in Task Details, Follow-up Office/Notebook and Report Center.
+
+### Persistence and additional workflows
+- Follow-up File Persistence #359 / Run `41509339890`: **SUCCESS** on the same SHA. `follow_up_repository_file_persistence_test.dart` passed; `alarm_overlay_file_persistence_test.dart` passed with Snooze, SQLite close/reopen, Complete and post-reopen verification.
+- Calendar Provider #1342 / Run `41509339317`: **IN_PROGRESS** at this checkpoint; NOT VERIFIED.
+- Device Smoke #6437 / Run `41509340280`, exact same SHA, checkpoint lane results:
+  - Boot (125497526227): SUCCESS
+  - Navigation (125497526419): SUCCESS
+  - Calendar Segmented View (125497526726): IN_PROGRESS
+  - Quick Capture (125497526191): IN_PROGRESS
+  - Task Lifecycle (125497526241): QUEUED
+  - Reminder/Vazirmatn (125497526271): QUEUED
+  - Follow-up Persistence (125497526602): QUEUED
+  - Aggregate Device Smoke: NOT VERIFIED / NOT ACCEPTED until all seven lanes have terminal SUCCESS.
+- Draft Review APK #12 / Run `41509339894`: automated review-only staging build and verification succeeded; private artifact `arvin-review-staging-apk-04cacb3a88a99c12286dd6d8f6a9d0268a0d12eb` was uploaded by the existing workflow. No Release, public APK publication, or distribution occurred.
+
+### Test correction history
+- On prior SHA `ecf8296f6bd6d6daa774dcfb8ef96ad2dc04923d`, `calendar_runtime_actions_fast_track_test.dart` still tried to tap a legacy `task-followup:` card. The test was updated to assert that historical FollowUp has no card or actions while retaining Task read-only action coverage.
+- On prior SHA `0aa92e66809773f4d933ea0b0c3e1a0ca0cbf43f`, `calendar_release_acceptance_test.dart` still long-pressed a historical `followup:` card. It was updated to assert no historical card/actions and positive visibility of a dated Task.
+- On validated SHA `04cacb3...`, all six Build test shards passed. These were stale expectation corrections, not product assertion failures. No test was deleted, skipped, weakened, or bypassed.
+
+### Remaining blockers
+- Complete all seven Device Smoke lanes successfully on one exact SHA; Calendar cancellation or incomplete lanes remain NOT VERIFIED.
+- Complete Calendar Provider acceptance and inspect its inner scenario result.
+- Keep PR #3052 OPEN / DRAFT / UNMERGED and preserve Release NO-GO. No main edit, merge, release, public APK publication, or product-owner sign-off is authorized.
+
+**Verdict remains: BLOCKED — RELEASE: NO-GO.**
