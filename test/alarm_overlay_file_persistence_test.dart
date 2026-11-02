@@ -142,6 +142,7 @@ void main() {
         expect(sibling.date, DateTime(2026, 11, 3, 9));
         expect(sibling.sequence, 3);
 
+        final completeActionKey = GlobalKey(debugLabel: 'alarm-file-complete-action');
         await tester.pumpWidget(MaterialApp(
           home: AlarmOverlayPage(
             taskId: 'alarm-file-task',
@@ -152,47 +153,48 @@ void main() {
             notificationController: notifications,
             now: () => DateTime(2026, 11, 1, 14),
             rescheduleReminders: () async {},
+            completeActionKey: completeActionKey,
           ),
         ));
         await tester.pumpAndSettle();
         stage('T14 before Complete action; verifying real control visibility');
-        stage('T14.01 before Complete keyed Finder construction');
-        final completeButton = find.byKey(const ValueKey('alarm-overlay-complete'));
-        stage('T14.02 after Complete keyed Finder construction');
-        stage('T14.03 before Complete Finder cardinality assertion');
-        expect(completeButton, findsOneWidget);
-        stage('T14.04 after Complete Finder cardinality assertion');
-        stage('T14.05 before SingleChildScrollView Finder construction');
-        final scrollable = find.byType(SingleChildScrollView);
-        stage('T14.06 after SingleChildScrollView Finder construction');
-        stage('T14.07 before SingleChildScrollView cardinality assertion');
-        expect(scrollable, findsOneWidget);
-        stage('T14.08 after SingleChildScrollView cardinality assertion');
-        stage('T14.09 before Scrollable descendant Finder construction');
-        final scrollableFinder = find.descendant(
-          of: scrollable,
-          matching: find.byType(Scrollable),
-        );
-        stage('T14.10 after Scrollable descendant Finder construction');
-        stage('T14.11 before Scrollable cardinality assertion');
-        expect(scrollableFinder, findsOneWidget);
-        stage('T14.12 after Scrollable cardinality assertion');
-        stage('T14.13 before ScrollableState lookup');
-        final scrollableState = tester.state<ScrollableState>(scrollableFinder);
-        stage('T14.14 after ScrollableState lookup');
+        stage('T14.01 before reading the real Complete GlobalKey context');
+        final completeContext = completeActionKey.currentContext;
+        if (completeContext == null) {
+          throw TestFailure('The real Complete control is not mounted.');
+        }
+        stage('T14.02 real Complete control context resolved');
+
+        final completeRenderObject = completeContext.findRenderObject();
+        if (completeRenderObject is! RenderBox) {
+          throw TestFailure('The real Complete control has no RenderBox.');
+        }
+        stage('T14.03 real Complete RenderBox resolved');
+
+        final scrollableState = Scrollable.maybeOf(completeContext);
+        if (scrollableState == null) {
+          throw TestFailure('The real Complete control is not inside its overlay Scrollable.');
+        }
         final scrollPosition = scrollableState.position;
-        stage('T14.15 after ScrollPosition lookup');
+        stage('T14.04 real overlay ScrollPosition resolved');
+
         final viewport = Offset.zero &
             (tester.view.physicalSize / tester.view.devicePixelRatio);
-        stage('T14.16 after viewport geometry lookup');
-        stage('T14.1 real overlay Scrollable and viewport resolved');
+        Rect currentCompleteRect() {
+          final renderObject = completeContext.findRenderObject();
+          if (renderObject is! RenderBox) {
+            throw TestFailure('The real Complete control lost its RenderBox.');
+          }
+          return renderObject.localToGlobal(Offset.zero) & renderObject.size;
+        }
+        stage('T14.05 viewport and real Complete geometry access resolved');
 
         // Move the actual scroll position in bounded, non-animated increments.
-        // Each jump is followed by one finite frame pump; no ensureVisible or
-        // pumpAndSettle Future can wait on the overlay's repeating animation.
+        // The GlobalKey supplies the real button context directly, avoiding a
+        // full-tree Finder cardinality traversal that stalled this test after T14.
         for (var attempt = 0; attempt < 8; attempt++) {
           stage('T14.2 scroll attempt $attempt: before Complete bounds');
-          final buttonRect = tester.getRect(completeButton);
+          final buttonRect = currentCompleteRect();
           if (buttonRect.top >= viewport.top &&
               buttonRect.bottom <= viewport.bottom) {
             stage('T14.3 Complete bounds are inside viewport');
@@ -222,7 +224,7 @@ void main() {
           stage('T14.5 bounded viewport frame pumped');
         }
 
-        final completeRect = tester.getRect(completeButton);
+        final completeRect = currentCompleteRect();
         expect(
           completeRect.top,
           greaterThanOrEqualTo(viewport.top),
@@ -234,7 +236,7 @@ void main() {
           reason: 'The real Complete control must be fully visible before tapping.',
         );
         stage('T14a Complete control is fully inside the real test viewport');
-        await tester.tap(completeButton);
+        await tester.tapAt(currentCompleteRect().center);
         stage('T14b actual Complete button tap dispatched');
         stage('T14c awaiting real completion handler, SQLite mutation, Calendar path and notification cancellation');
         // Do not use pumpAndSettle here: the overlay owns repeating animations

@@ -600,3 +600,14 @@ No PASS is inferred from source changes. Fresh exact-HEAD runs are required for 
 - No test, assertion, timeout or scenario was removed, weakened or skipped.
 
 **Validation:** these markers are diagnostic only. The Complete path remains unaccepted until T14a, real tap, handler completion and final SQLite reopen/readback are all observed on one exact SHA. PR #3052 remains OPEN / DRAFT / UNMERGED; **BLOCKED — RELEASE: NO-GO**.
+
+
+## Wave 7.285 — direct keyed access to the real Complete control — 2026-11-02
+
+**Base SHA:** `eed92b79ac03855e374e8d74042697e4dc8ac4d8`. File Persistence Run `41415654680`, Job `125178735050`, reached T14.03 and then stalled inside the synchronous `expect(completeButton, findsOneWidget)` Finder cardinality evaluation; T14.04 was never reached. The test's finally/cleanup ran only when the 10-minute watchdog expired. This is a test-harness Finder traversal stall, not evidence of a Calendar or production Complete-handler failure.
+
+- `lib/alarm_overlay_page.dart`: added an optional `completeActionKey` test hook to the actual Complete button; normal production callers retain the existing ValueKey and behavior.
+- `test/alarm_overlay_file_persistence_test.dart`: the file-backed test supplies a GlobalKey for that real button and obtains its mounted context, RenderBox, and ancestor Scrollable directly. The bounded jumpTo scroll and full-viewport assertions remain. The test sends a real pointer tap with `tester.tapAt` at the button's actual center, then still requires notification cancellation, handler completion, closing/reopening the same SQLite file, and final persisted Task completion/reminder isolation assertions.
+- Finder-based cardinality checks were removed only from the known-stalling T14 Complete lookup; they were replaced with explicit mounted-context, RenderBox and Scrollable failure checks. No test, scenario, timeout, or product assertion was removed or weakened.
+
+**Validation:** implementation is not acceptance. T14a, real pointer tap, T14d, same-file SQLite reopen/readback and all four exact-SHA workflows must succeed before acceptance. PR #3052 remains OPEN / DRAFT / UNMERGED; **BLOCKED — RELEASE: NO-GO**.

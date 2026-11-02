@@ -38,6 +38,7 @@ class AlarmOverlayPage extends StatefulWidget {
     this.notificationController,
     this.rescheduleReminders,
     this.now,
+    this.completeActionKey,
   });
 
   final String taskId;
@@ -48,6 +49,10 @@ class AlarmOverlayPage extends StatefulWidget {
   final AlarmOverlayNotificationController? notificationController;
   final Future<void> Function()? rescheduleReminders;
   final DateTime Function()? now;
+
+  /// Optional stable handle for verifying and tapping the real Complete control.
+  /// Production callers can omit it; tests can avoid a full-tree Finder traversal.
+  final GlobalKey? completeActionKey;
 
   @override
   State<AlarmOverlayPage> createState() => _AlarmOverlayPageState();
@@ -372,6 +377,7 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
 
     Widget action({
       required String key,
+      Key? widgetKey,
       required String label,
       required String semanticLabel,
       required Color background,
@@ -405,13 +411,13 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
           constraints: const BoxConstraints(minHeight: 46),
           child: outlined
               ? OutlinedButton(
-                  key: ValueKey<String>(key),
+                  key: widgetKey ?? ValueKey<String>(key),
                   style: style,
                   onPressed: onPressed,
                   child: Text(label, textAlign: TextAlign.center),
                 )
               : FilledButton(
-                  key: ValueKey<String>(key),
+                  key: widgetKey ?? ValueKey<String>(key),
                   style: style,
                   onPressed: onPressed,
                   child: Text(label, textAlign: TextAlign.center),
@@ -513,6 +519,7 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
                     children: [
                       action(
                         key: 'alarm-overlay-complete',
+                        widgetKey: widget.completeActionKey,
                         label: 'تکمیل',
                         semanticLabel: 'تکمیل کار از مسیر اصلی آروین',
                         background: const Color(0xFF238B58),
