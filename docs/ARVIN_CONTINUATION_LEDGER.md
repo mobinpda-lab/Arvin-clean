@@ -648,3 +648,27 @@ No application code, test, assertion, migration, schema, UI, runtime behavior, o
 Period identity and normalization; batch transaction/partial-failure policy; duplicate override semantics; inactive Template behavior; status mapping; Project archival/deletion history; Drift/SQLite referential-integrity design; Task-template snapshot versioning and Backup/Restore compatibility. These are design gates, not permission to guess.
 
 **Validation:** documentation registration only. No feature acceptance or runtime PASS is claimed. PR #3052 remains OPEN / DRAFT / UNMERGED; main unchanged; **BLOCKED — RELEASE: NO-GO**.
+
+
+
+## Product Roadmap update — unified Reports and Home search placement — 2026-11-02
+
+**Specification:** `docs/product/ARVIN_RECURRING_BRANCH_PROJECTS_ROADMAP.md`  
+**Status:** `POST-STABILITY / PLANNED`; requirement registration only, not implementation or acceptance.
+
+### Reports Tab — unified reporting
+- All Branch/Center, Project Template and Period reporting is centralized in the single Reports Tab; no parallel or scattered reporting destinations are introduced.
+- Reports Tab must provide a dedicated Branch/Center filter for Projects and Tasks, including current and historical records.
+- Advanced combined multi-criteria filters are required across supported Branch, Template, Period, Status, Tag and Task/Follow-up dimensions.
+- A Task-specific Follow-up filter must return only real Follow-up records linked to the selected Task.
+- Point filters are required as a product capability; their exact selection unit and UX/query semantics remain an explicit owner-design decision and must not be guessed.
+- Reports must reflect real persisted data and provide explicit empty/error/loading states; no synthetic values or parallel Project/Task/Follow-up storage.
+
+### Home UI — global search placement
+- Place global search directly below `مدیریت کارها و پیگیری آروین` and immediately above the four quick-access cards.
+- Placeholder: `جستجو در کارها`; search must be functional against actual Tasks.
+- Preserve the existing RTL quick-access order: زمان، پروژه‌ها، دسته‌ها، برچسب‌ها; four cards remain equal-sized and icon-based.
+- This is a placement requirement, not authorization for a broad Home redesign.
+- The exact reference image file/identity was not recoverable in this registration; pixel-level appearance remains `NOT VERIFIED` pending attachment/linking of that image.
+
+**Governance:** no application code, tests, assertions, schema, migration, UI/runtime behavior, or main branch was changed. Implementation authorization remains withheld until stability acceptance and a separate owner-approved execution command. PR #3052 remains OPEN / DRAFT / UNMERGED. **BLOCKED — RELEASE: NO-GO**.
