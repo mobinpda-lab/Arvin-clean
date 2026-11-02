@@ -622,3 +622,29 @@ No PASS is inferred from source changes. Fresh exact-HEAD runs are required for 
 - The GlobalKey context, real RenderBox/Scrollable geometry, bounded jumpTo scroll, full viewport assertions, real pointer tap, notification-cancellation handler, same-file SQLite close/reopen, persisted Task completion and reminder-isolation assertions remain. No test, assertion, scenario, timeout or production path was removed or weakened.
 
 **Validation:** this addresses the observed missing-context boundary; it is not accepted until T14a, real tap, T14d and final SQLite reopen/readback pass on one exact SHA. Build, File Persistence, all seven Device Smoke lanes with valid uploaded PNGs and Parallel Wave must complete on that SHA. PR #3052 remains OPEN / DRAFT / UNMERGED; **BLOCKED — RELEASE: NO-GO**.
+
+
+---
+
+## Product Roadmap registration — recurring branch projects — 2026-11-02
+
+**Specification:** `docs/product/ARVIN_RECURRING_BRANCH_PROJECTS_ROADMAP.md`  
+**Status:** `POST-STABILITY / PLANNED`; product requirement registered, not implemented or accepted.  
+**Scope:** Branch Directory, Project Template Library, independent Project generation per Branch, copied Task snapshots, Branch/Template/Period/Status/Tag reporting, duplicate warning, historical segregation.
+
+### Frozen product decisions
+- Branch → Projects is One-to-Many; Project → Tasks is One-to-Many.
+- Projects generated for different periods of the same Branch remain separate historical records; no cross-period overwrite.
+- Template is a reusable source, not an active Project. Generated Project Tasks are independent copies; later Template edits affect future generations only.
+- Project and Task remain the canonical execution entities. Existing Projects without Branch/Template remain valid.
+- Branch is a structured entity, never a Tag alias. Branch with history is deactivated, not destructively deleted.
+- Batch generation previews cardinality, warns on Template + Branch + Period duplicates, requires explicit user confirmation, and reports a deterministic result for each Branch.
+- No Next Follow-up or synthetic `followUpEnabled` semantics are reintroduced.
+
+### Governance / implementation boundary
+No application code, test, assertion, migration, schema, UI, runtime behavior, or product dependency was changed for this roadmap. No implementation authorization is granted by this registration. The feature is excluded from the current stability work and must be scheduled only after stability acceptance under a separate owner-approved execution command.
+
+### Pre-implementation decisions still open
+Period identity and normalization; batch transaction/partial-failure policy; duplicate override semantics; inactive Template behavior; status mapping; Project archival/deletion history; Drift/SQLite referential-integrity design; Task-template snapshot versioning and Backup/Restore compatibility. These are design gates, not permission to guess.
+
+**Validation:** documentation registration only. No feature acceptance or runtime PASS is claimed. PR #3052 remains OPEN / DRAFT / UNMERGED; main unchanged; **BLOCKED — RELEASE: NO-GO**.
