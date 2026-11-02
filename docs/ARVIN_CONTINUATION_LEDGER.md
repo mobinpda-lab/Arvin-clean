@@ -590,3 +590,13 @@ No PASS is inferred from source changes. Fresh exact-HEAD runs are required for 
 - No test, assertion, scenario, timeout budget, retry allowance or production behavior was removed or weakened.
 
 **Validation:** this root-cause fix requires fresh Build, File Persistence, seven-lane Device Smoke with registered valid PNGs, and Parallel Wave results on one exact SHA. PR #3052 remains OPEN / DRAFT / UNMERGED; **BLOCKED — RELEASE: NO-GO**.
+
+
+## Wave 7.284 — pinpoint the pre-T14a widget-test stall — 2026-11-02
+
+**Base SHA:** `aabb97d055d1fccbc97b683ca88f20cbdc4bcbea`. File Persistence Run `41413877976`, Job `125173167727`, passed the file-backed Repository persistence step, then timed out after 10 minutes in the Alarm Overlay diagnostic. The final test trace is T14 followed immediately by finally/cleanup; no T14.1, Complete tap, handler marker or post-Complete SQLite reopen marker exists. This proves the stall occurs in the synchronous setup between the T14 stage call and T14.1; it does not identify which individual Finder/state/viewport operation is responsible. Calendar and the Complete handler were not reached.
+
+- `test/alarm_overlay_file_persistence_test.dart`: added ordered diagnostic markers around each Finder construction/cardinality assertion, ScrollableState lookup, ScrollPosition lookup and viewport geometry read. The bounded jumpTo scrolling, real Complete hit-test and tap, handler callback wait, same-file SQLite close/reopen and all persistence/isolation assertions remain unchanged.
+- No test, assertion, timeout or scenario was removed, weakened or skipped.
+
+**Validation:** these markers are diagnostic only. The Complete path remains unaccepted until T14a, real tap, handler completion and final SQLite reopen/readback are all observed on one exact SHA. PR #3052 remains OPEN / DRAFT / UNMERGED; **BLOCKED — RELEASE: NO-GO**.

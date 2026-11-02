@@ -156,18 +156,35 @@ void main() {
         ));
         await tester.pumpAndSettle();
         stage('T14 before Complete action; verifying real control visibility');
+        stage('T14.01 before Complete keyed Finder construction');
         final completeButton = find.byKey(const ValueKey('alarm-overlay-complete'));
+        stage('T14.02 after Complete keyed Finder construction');
+        stage('T14.03 before Complete Finder cardinality assertion');
         expect(completeButton, findsOneWidget);
+        stage('T14.04 after Complete Finder cardinality assertion');
+        stage('T14.05 before SingleChildScrollView Finder construction');
         final scrollable = find.byType(SingleChildScrollView);
+        stage('T14.06 after SingleChildScrollView Finder construction');
+        stage('T14.07 before SingleChildScrollView cardinality assertion');
         expect(scrollable, findsOneWidget);
+        stage('T14.08 after SingleChildScrollView cardinality assertion');
+        stage('T14.09 before Scrollable descendant Finder construction');
         final scrollableFinder = find.descendant(
           of: scrollable,
           matching: find.byType(Scrollable),
         );
+        stage('T14.10 after Scrollable descendant Finder construction');
+        stage('T14.11 before Scrollable cardinality assertion');
         expect(scrollableFinder, findsOneWidget);
-        final scrollPosition = tester.state<ScrollableState>(scrollableFinder).position;
+        stage('T14.12 after Scrollable cardinality assertion');
+        stage('T14.13 before ScrollableState lookup');
+        final scrollableState = tester.state<ScrollableState>(scrollableFinder);
+        stage('T14.14 after ScrollableState lookup');
+        final scrollPosition = scrollableState.position;
+        stage('T14.15 after ScrollPosition lookup');
         final viewport = Offset.zero &
             (tester.view.physicalSize / tester.view.devicePixelRatio);
+        stage('T14.16 after viewport geometry lookup');
         stage('T14.1 real overlay Scrollable and viewport resolved');
 
         // Move the actual scroll position in bounded, non-animated increments.
