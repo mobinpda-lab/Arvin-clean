@@ -7,6 +7,19 @@
 - Implementation/test commit: `8533b17599af46524973bc0a366864d44e08c96e`. Documentation synchronization commits follow; exact final branch HEAD and exact-head CI results must be read back before acceptance.
 - Release remains **BLOCKED — RELEASE: NO-GO**. PR #3052 must remain OPEN / DRAFT / UNMERGED. No main mutation, merge, APK publication, or release is authorized.
 
+### Exact-SHA validation checkpoint — 2026-11-02
+
+- Validated source/test SHA: `04cacb3a88a99c12286dd6d8f6a9d0268a0d12eb`.
+- Build #9185 / Run `41509339452`: **SUCCESS**. Analyze SUCCESS; all six test shards SUCCESS; 1,122 tests passed in total. Draft PR APK matrix was SKIPPED by the existing Draft guard.
+- Explicit regression tests passed: `calendar_page_test.dart` (historical FollowUp hidden from supplied and visible-range projected inputs; dated Task and independent Reminder remain visible); `calendar_runtime_actions_fast_track_test.dart`; `calendar_release_acceptance_test.dart`; `follow_up_calendar_projection_test.dart`.
+- Preservation tests passed: `task_detail_followup_flow_test.dart`, `follow_up_office_page_test.dart`, and `completed_follow_up_report_page_test.dart`. FollowUp remains available in Task Details, Follow-up Office/Notebook, and Report Center.
+- File Persistence #359 / Run `41509339890`: **SUCCESS**. `follow_up_repository_file_persistence_test.dart` and `alarm_overlay_file_persistence_test.dart` passed, including SQLite close/reopen and Snooze/Complete isolation.
+- Device Smoke #6437 / Run `41509340280` on the same SHA at checkpoint: Boot SUCCESS; Navigation SUCCESS; Calendar Segmented View IN_PROGRESS; Quick Capture IN_PROGRESS; Task Lifecycle QUEUED; Reminder/Vazirmatn QUEUED; Follow-up Persistence QUEUED. No aggregate PASS is claimed while five lanes lack terminal success.
+- Calendar Provider #1342 / Run `41509339317`: IN_PROGRESS at checkpoint; no PASS claim.
+- Draft Review APK #12 / Run `41509339894`: the repository's automated review-only staging workflow assembled and verified its staging APK and uploaded the private CI artifact `arvin-review-staging-apk-04cacb3a88a99c12286dd6d8f6a9d0268a0d12eb`. This is not a Release, public publication, or authorization to distribute an APK. No release action was performed.
+- Two earlier exact-SHA test runs exposed obsolete historical-FollowUp card expectations in existing tests; those expectations were replaced with positive/negative assertions for the new owner behavior. On SHA `04cacb3...`, all six shards passed. No tests were deleted, skipped, or weakened.
+- Documentation-only synchronization follows this checkpoint; re-read the resulting PR HEAD and require fresh exact-HEAD CI before accepting any later SHA.
+
 ## 2026-11-02 — Wave 7.292 product roadmap clarification and exact-SHA gate checkpoint
 
 - Preserved the owner's implementation decision for Branch → Project → Task visibility and historical record retention; Home Task-card expand/collapse with exact description/time and a separate Task Details route; latest valid same-Task Follow-up through the real presentation service; and the task-filter strip with «همه» plus Time, Projects, Branch/Center, Categories and Tags.
