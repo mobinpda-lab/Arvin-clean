@@ -975,3 +975,27 @@ The run is now terminal: completed / cancelled, exact head SHA 758edb259b55ecd69
 ## 2026-11-02 — Review APK verification failure diagnosis
 
 Run 41451772502 / Job 125298740317 on the same SHA completed FAILURE. Gradle staging assembly succeeded; the signature/package/debuggable/font verification step exited 1. The workflow redirected apksigner output to a file but did not print or upload that file, so the exact failed predicate cannot be established retrospectively. The two hard-coded v2/v3 text checks are therefore an unproven likely failure point, not a confirmed root cause. The next workflow revision must print the full verifier output, preserve a nonzero apksigner exit as failure, and validate v2 plus v3/v3.1 without weakening package, debuggable, font, signer, manifest, or artifact checks. No approved APK artifact exists for this SHA.
+
+
+## 2026-11-02 — Historical FollowUp excluded from local Calendar
+
+**Scope:** One presentation-only product behavior. No FollowUp records or persisted fields are deleted or migrated.
+
+- Initial inspected PR HEAD: `3b8691e389b77ff7fde02c6d7116fce7269b1797` (PR #3052 OPEN / DRAFT / UNMERGED).
+- Root cause: `CalendarPage._calendarReminders()` merged all caller-supplied reminders and visible-range projected reminders without a final guard against historical FollowUp event IDs. The canonical Task/Reminder projection itself did not emit historical FollowUp records, but the Calendar UI accepted and rendered legacy `followup:` / `task-followup:` items passed through its input boundary.
+- Fix: `lib/calendar_page.dart` now filters only `followup:` and `task-followup:` items from both input collections before calendar counts/cards are built. The separate `task-followup-action:` namespace is not filtered. Task due events, TaskReminder events, recurrence projection and device-calendar imports retain their existing paths.
+- Regression changes: `test/calendar_page_test.dart` now asserts that historical FollowUp cards and their local-calendar actions are absent, while a dated Task and an independent dated Reminder remain visible. Existing Task Details and Report Center history tests are retained unchanged.
+- Implementation/test commit: `012ecba20dd5dc2389035d70c8d441483a75d858`. CHANGELOG synchronization commit: `1a0b7263de37f5ab686e5e58428c6eb0b2927024`. Ledger synchronization is the next commit; exact final HEAD will be re-read after it.
+- Preservation evidence in source: Task Details continues to render `task.followUps` via `lib/task_detail_page.dart`; Report Center continues to use `CompletedFollowUpReportProjection.forLocalDay` via `lib/services/completed_follow_up_report_projection.dart`. Existing tests: `test/task_detail_followup_flow_test.dart` and `test/completed_follow_up_report_page_test.dart`.
+- Validation at documentation checkpoint: test and Build results are PENDING. Do not claim PASS until exact final-head workflow runs and inner test results are inspected. No test was deleted or weakened; behavior-specific calendar assertions were updated to the new owner requirement.
+
+### Remaining blockers
+- Run relevant calendar projection, Calendar UI, Task Details and Report Center tests on the resulting exact HEAD.
+- Run the applicable Build on that exact HEAD and inspect Analyze plus every test shard.
+- Seven-lane Device Smoke remains independently unaccepted unless all seven lanes finish successfully on one new exact SHA; CANCELLED Calendar means NOT VERIFIED.
+- Calendar Provider failure-safety, physical-device acceptance and all other previously recorded release gates remain outstanding.
+
+### Governance
+- PR #3052 remains OPEN / DRAFT / UNMERGED.
+- No main edit, merge, release, APK publication, or change to legacy data/schema was made.
+- Final verdict: **BLOCKED — RELEASE: NO-GO**.
