@@ -580,3 +580,13 @@ No PASS is inferred from source changes. Fresh exact-HEAD runs are required for 
 - `.github/workflows/device-smoke.yml`: changed the boot wait to use an explicit `boot_ready` state in the loop condition instead of the success-branch `break`. The same 90 × 2-second maximum remains; each probe logs command status/value, and the after-loop marker records readiness. No timeout budget is increased and no test or scenario is skipped.
 
 **Validation:** the next exact-SHA run must prove progression through API check, Flutter Drive, screenshot validation and upload. Build, File Persistence, seven Device Smoke lanes and Parallel Wave remain required. PR #3052 stays OPEN / DRAFT / UNMERGED; **BLOCKED — RELEASE: NO-GO**.
+
+
+## Wave 7.283 — isolate child-command stdin from the decoded Bash program — 2026-11-02
+
+**Base SHA:** `b61191e92278b7379503855e379be6c0709cd9c1`. Device Smoke Run `41413038000`, Boot Job `125170562728`, recorded `BOOT_POLL_RESULT attempt=0 status=0 value=1` and then stopped before the next script marker. ADB discovery and the boot-property query both succeeded. The execution model explains the silent exit: the emulator action invokes the one-line Base64 pipeline, so Bash reads the decoded program from stdin; child ADB/Flutter processes inherited that same stdin and could consume the remaining program text. This matches the observed termination immediately after the first ADB shell probe.
+
+- `.github/workflows/device-smoke.yml`: redirected stdin to `/dev/null` for every ADB invocation and Flutter Drive invocation, keeping the decoded Bash program's stdin exclusively owned by Bash. Screenshot stdout remains directed to the real workspace PNG file; command logs, PNG signature/size validation, stage markers, 180-second polling budgets and non-zero test failure propagation remain unchanged.
+- No test, assertion, scenario, timeout budget, retry allowance or production behavior was removed or weakened.
+
+**Validation:** this root-cause fix requires fresh Build, File Persistence, seven-lane Device Smoke with registered valid PNGs, and Parallel Wave results on one exact SHA. PR #3052 remains OPEN / DRAFT / UNMERGED; **BLOCKED — RELEASE: NO-GO**.
