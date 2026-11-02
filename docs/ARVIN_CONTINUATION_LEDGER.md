@@ -713,3 +713,38 @@ Period identity and normalization; batch transaction/partial-failure policy; dup
 
 ### قفل حاکمیتی
 PR #3052 باید OPEN / DRAFT / UNMERGED بماند و برچسب BLOCKED — RELEASE: NO-GO حفظ شود. هیچ کد اجرایی، UI/runtime، Schema یا Migration برای پنج بسته محصولی پیش از تکمیل پایداری و دستور صریح بعدی مجاز نیست. تمرکز مجری فنی: بستن شواهد SQLite، نه توسعه قابلیت‌های محصولی.
+
+
+## 2026-11-02 — تصمیم SSOT مرکزی و ممیزی معماری سراسری
+
+**مبنای ممیزی کد:** 3b29ead7d0cf8eaf8bc74ba079d7c4d0f4c24cd3.  
+**سند ممیزی:** docs/architecture/ARVIN_SSOT_AND_CROSS_FEATURE_DATA_FLOW_AUDIT_2026-11-02.md.  
+**Product Spec:** docs/product/ARVIN_RECURRING_BRANCH_PROJECTS_ROADMAP.md، بخش 18.  
+**وضعیت:** ثبت مستندات و ممیزی خواندنی؛ بدون تغییر کد/تست/Schema/Migration.
+
+### تصمیم مالک محصول — SSOT
+Category، Tag، Project و Branch/Center باید فقط از یک هسته مرکزی مدیریت داده در Settings تغذیه شوند. تمام فرم‌های ثبت/ویرایش، پنج دسترسی سریع Home، جستجو، فیلترها، Reports و Calendar فقط مصرف‌کننده داده canonical باشند. تغییر موفق باید از مسیر mutation واحد و سازگار منتشر شود؛ Snapshotهای محلی باید refresh/invalidate شوند. این الزام در Product Spec ثبت شد؛ پیاده‌سازی یا پذیرش آن ادعا نمی‌شود.
+
+### یافته‌های معماری ثبت‌شده
+- Category هم در taxonomy_categories و هم به‌صورت متن در tasks.category ذخیره می‌شود؛ رابطه FK مشاهده نشد.
+- Tag در tags و task_tags و Project در projects و project_items در SQLite/Drift مشترک نگهداری می‌شوند.
+- مدیریت Category/Tag، ذخیره Task و تغییر کاتالوگ را جداگانه اجرا می‌کند. _persistMutation خطای TaskStore.save را swallow می‌کند و caller همچنان rename کاتالوگ را ادامه می‌دهد؛ ریسک ناسازگاری قطعی از مسیر کنترل جریان.
+- Home و فرم‌ها Snapshot دارند؛ Home در مسیر بازگشت از Settings refresh سراسری مشاهده‌شده ندارد.
+- HomeSearchProjection فقط TaskSearchService را فراخوانی می‌کند؛ Project/Branch search در این مسیر نیست.
+- ReportCenterPage Category/Tag را از Taskهای ورودی استخراج می‌کند؛ Calendar از Task/Reminder/Follow-up projection استفاده می‌کند و به کاتالوگ Category/Tag/Project/Branch متصل نیست.
+- Branch model/table/store در مسیرهای بررسی‌شده پیدا نشد.
+- TaskTaxonomyLifecycleService و TaskTaxonomyMutationService عملیات هم‌پوشان دارند؛ تعیین تکلیف کدهای احتمالا معلق نیازمند بررسی مصرف کامل است؛ هیچ کدی حذف نشده است.
+
+### ریشه‌یابی لاگ واقعی T13.5
+- File Persistence Run 41430574993 / Job 125228304102 و Build Run 41430577235 / Shard 2 Job 125228377887 هر دو T13 Task reload after reopen را ثبت کرده‌اند و سپس در T13.5 منتظر asynchronous Alarm Overlay load completion مانده‌اند.
+- هر دو پس از 10 دقیقه Timeout شده‌اند.
+- Readback اولیه پس از reopen تا T13 پیش رفته و assertions حفظ dueDate، Follow-up history، دو Reminder، Snooze date/sequence و عدم تغییر sibling Reminder مانع ادامه نشده‌اند.
+- تست منتظر loadCompleted.future است. AlarmOverlayPage._loadActiveReminder ابتدا TaskStore.load و سپس ProjectStore.load را await می‌کند و فقط پس از پایان این دو، callback را فراخوانی می‌کند.
+- علت مستقیم اثبات‌شده: callback تکمیل بارگذاری Overlay تا پایان مهلت به تست نرسیده است.
+- علت داخلی دقیق (اینکه کدام await یا lifecycle مانع شده) از لاگ‌های موجود قابل تعیین نیست: NOT VERIFIED. هیچ انتساب قطعی به SQLite، TaskStorageLock یا ProjectStore مجاز نیست.
+- مسیر T13.6/T14، pointer tap، Complete handler و readback نهایی Complete در این اجراها مشاهده نشده است.
+
+### حاکمیت و حفاظت
+PR #3052 در آخرین استعلام OPEN / DRAFT / UNMERGED و برچسب BLOCKED — RELEASE: NO-GO موجود بود. Branch API مقدار protected=false را برای شاخه اجرایی گزارش کرد. Ruleset فعال main-protection فقط refs/heads/main را هدف می‌گیرد؛ endpoint branch protection با 403 در دسترس اتصال ممیزی نبود. بنابراین حفاظت فنی اختصاصی شاخه اجرایی در شواهد فعلی فعال/اثبات‌شده نیست؛ این ممیزی هیچ تنظیمی را تغییر نداد. Label و Draft جایگزین Branch Protection نیستند.
+
+**ثبت مستندات روی شاخه مجاز:** audit document commit 52d4c7a2b0974815ff67883aac7777ede5fe83a5؛ Product Spec commit 0e94d423210f512e9aa8883e1787d0d67b00f119. ثبت Ledger و Changelog در ادامه همین موج انجام می‌شود. هیچ تغییر main، merge، release یا اجرای workflow جدید انجام نشده است.
