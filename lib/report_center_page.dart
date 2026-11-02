@@ -4,6 +4,7 @@ import 'calendar_page.dart';
 
 import 'models/goal_project.dart';
 import 'models/arvin_center.dart';
+import 'models/project_template.dart';
 import 'models/person_reference.dart';
 import 'models/recurrence.dart';
 import 'models/task.dart';
@@ -33,6 +34,7 @@ class ReportCenterPage extends StatefulWidget {
     required this.tasks,
     this.projects = const [],
     this.centers = const [],
+    this.templates = const [],
     this.people = const [],
     this.now,
   });
@@ -40,6 +42,7 @@ class ReportCenterPage extends StatefulWidget {
   final List<Task> tasks;
   final List<ProjectPlan> projects;
   final List<ArvinCenter> centers;
+  final List<ProjectTemplate> templates;
   final List<PersonReference> people;
   final DateTime? now;
 
@@ -161,6 +164,7 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
         initial: _filter,
         projects: widget.projects,
         centers: widget.centers,
+        templates: widget.templates,
         tasks: widget.tasks,
         people: _peopleDirectory,
         now: _now,
@@ -257,6 +261,7 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                 people: _peopleDirectory,
                 tasks: widget.tasks,
                 centers: widget.centers,
+                templates: widget.templates,
                 onClear: _clear,
                 onChanged: (filter) => setState(() => _filter = filter),
               ),
@@ -384,6 +389,7 @@ class _ActiveFilterChips extends StatelessWidget {
     required this.people,
     required this.tasks,
     required this.centers,
+    required this.templates,
     required this.onClear,
     required this.onChanged,
   });
@@ -392,6 +398,7 @@ class _ActiveFilterChips extends StatelessWidget {
   final List<PersonReference> people;
   final List<Task> tasks;
   final List<ArvinCenter> centers;
+  final List<ProjectTemplate> templates;
   final VoidCallback onClear;
   final ValueChanged<TaskReportFilter> onChanged;
 
@@ -399,6 +406,8 @@ class _ActiveFilterChips extends StatelessWidget {
   Widget build(BuildContext context) {
     final taskById = <String, Task>{for (final task in tasks) task.id: task};
     final centerById = <String, ArvinCenter>{for (final center in centers) center.id: center};
+    final templateById = <String, ProjectTemplate>{for (final template in templates) template.id: template};
+    final templateTaskById = <String, ProjectTemplateTask>{for (final template in templates) for (final task in template.tasks) task.id: task};
     final peopleById = <String, PersonReference>{
       for (final person in people) person.id: person,
     };
@@ -429,8 +438,12 @@ class _ActiveFilterChips extends StatelessWidget {
             ),
           for (final id in filter.centerIds)
             InputChip(key: ValueKey('report-active-center-$id'), label: Text(centerById[id]?.name ?? 'مرکز حذف‌شده'), onDeleted: () { final ids = <String>{...filter.centerIds}..remove(id); onChanged(filter.copyWith(centerIds: ids)); }),
-          if (filter.taskId != null)
-            InputChip(key: const ValueKey('report-active-task'), label: Text(taskById[filter.taskId]?.title ?? 'کار حذف‌شده'), onDeleted: () => onChanged(filter.copyWith(clearTaskId: true))),
+          if (filter.taskId != null || filter.templateTaskId != null)
+            InputChip(key: const ValueKey('report-active-task'), label: Text(filter.taskId != null ? (taskById[filter.taskId]?.title ?? 'کار حذف‌شده') : (templateTaskById[filter.templateTaskId]?.title ?? 'کار قالب حذف‌شده')), onDeleted: () => onChanged(filter.copyWith(clearTaskId: true, clearTemplateTaskId: true))),
+          for (final id in filter.templateIds)
+            InputChip(key: ValueKey('report-active-template-$id'), label: Text(templateById[id]?.name ?? 'قالب حذف‌شده'), onDeleted: () { final ids = <String>{...filter.templateIds}..remove(id); onChanged(filter.copyWith(templateIds: ids)); }),
+          if (filter.includeLegacyProjectsWithoutTemplate)
+            InputChip(label: const Text('شامل پروژه‌های قدیمی بدون قالب'), onDeleted: () => onChanged(filter.copyWith(includeLegacyProjectsWithoutTemplate: false))),
           if (filter.projectId != null || filter.projectIds.isNotEmpty)
             InputChip(
               label: Text('پروژه: ${filter.projectIds.length + (filter.projectId == null ? 0 : 1)}'),
@@ -566,6 +579,7 @@ class _ReportFilterSheet extends StatefulWidget {
     required this.initial,
     required this.projects,
     required this.centers,
+    required this.templates,
     required this.tasks,
     required this.people,
     required this.now,
@@ -574,6 +588,7 @@ class _ReportFilterSheet extends StatefulWidget {
   final TaskReportFilter initial;
   final List<ProjectPlan> projects;
   final List<ArvinCenter> centers;
+  final List<ProjectTemplate> templates;
   final List<Task> tasks;
   final List<PersonReference> people;
   final DateTime now;
@@ -590,7 +605,10 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
   TimeOfDay? _toTime;
   Set<String> _centerIds = <String>{};
   String? _taskId;
+  String? _templateTaskId;
   String _taskSearch = '';
+  Set<String> _templateIds = <String>{};
+  bool _includeLegacyProjectsWithoutTemplate = false;
   Set<String> _projectIds = <String>{};
   Set<String> _categories = <String>{};
   Set<String> _tags = <String>{};
@@ -620,6 +638,9 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
     _toTime = f.toTime == null ? null : _toTimeOfDay(f.toTime!);
     _centerIds = <String>{...f.centerIds};
     _taskId = f.taskId;
+    _templateTaskId = f.templateTaskId;
+    _templateIds = <String>{...f.templateIds};
+    _includeLegacyProjectsWithoutTemplate = f.includeLegacyProjectsWithoutTemplate;
     _projectIds = <String>{...f.projectIds, if (f.projectId != null) f.projectId!};
     _categories = <String>{...f.categories, if (f.category != null) f.category!};
     _tags = <String>{...f.tags, if (f.tag != null) f.tag!};
@@ -720,6 +741,9 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
             : Duration(hours: _toTime!.hour, minutes: _toTime!.minute),
         centerIds: Set<String>.of(_centerIds),
         taskId: _taskId,
+        templateTaskId: _templateTaskId,
+        templateIds: Set<String>.of(_templateIds),
+        includeLegacyProjectsWithoutTemplate: _includeLegacyProjectsWithoutTemplate,
         projectIds: Set<String>.of(_projectIds),
         categories: Set<String>.of(_categories),
         tags: Set<String>.of(_tags),
@@ -944,7 +968,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                     key: const ValueKey('report-filter-task-all'),
                     title: const Text('همه کارها'),
                     leading: const Icon(Icons.all_inclusive),
-                    onTap: () => setState(() => _taskId = null),
+                    onTap: () => setState(() { _taskId = null; _templateTaskId = null; }),
                   ),
                   for (final task in (widget.tasks.where((task) => task.title.toLowerCase().contains(_taskSearch)).toList()..sort((a, b) => a.title.compareTo(b.title))))
                     RadioListTile<String>(
@@ -952,10 +976,45 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                       value: task.id,
                       groupValue: _taskId,
                       title: Text(task.title.trim().isEmpty ? 'بدون عنوان' : task.title),
-                      onChanged: (value) => setState(() => _taskId = value),
+                      subtitle: const Text('کار مستقل'),
+                      onChanged: (value) => setState(() { _taskId = value; _templateTaskId = null; }),
                     ),
+                  for (final template in widget.templates)
+                    for (final definition in template.tasks.where((item) => item.title.toLowerCase().contains(_taskSearch)))
+                      RadioListTile<String>(
+                        key: ValueKey('report-filter-template-task-${definition.id}'),
+                        value: definition.id,
+                        groupValue: _templateTaskId,
+                        title: Text(definition.title),
+                        subtitle: Text('قالب: ${template.name}'),
+                        onChanged: (value) => setState(() { _templateTaskId = value; _taskId = null; }),
+                      ),
                 ],
               ),
+            ),
+            _Section(
+              title: 'قالب پروژه',
+              icon: Icons.library_books_outlined,
+              accentColor: ArvinColors.project,
+              selectedCount: _templateIds.length + (_includeLegacyProjectsWithoutTemplate ? 1 : 0),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                _MultiSelectChips(
+                  allLabel: 'همه قالب‌ها',
+                  accentColor: ArvinColors.project,
+                  options: widget.templates.map((template) => MapEntry(template.id, template.name)).toList(growable: false),
+                  selected: _templateIds,
+                  onChanged: (value) => setState(() => _templateIds = value),
+                  keyPrefix: 'report-filter-template',
+                ),
+                if (_templateIds.isNotEmpty)
+                  CheckboxListTile(
+                    key: const ValueKey('report-filter-template-include-legacy'),
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('شامل پروژه‌های قدیمی بدون قالب'),
+                    value: _includeLegacyProjectsWithoutTemplate,
+                    onChanged: (value) => setState(() => _includeLegacyProjectsWithoutTemplate = value ?? false),
+                  ),
+              ]),
             ),
             _Section(
               title: 'اشخاص',

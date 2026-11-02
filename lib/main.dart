@@ -48,6 +48,8 @@ import 'services/task_move_to_today_service.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/project_store.dart';
 import 'services/center_store.dart';
+import 'services/project_template_store.dart';
+import 'models/project_template.dart';
 import 'services/arvin_route_observer.dart';
 import 'services/task_edit_apply_service.dart';
 import 'services/task_bulk_mutation_service.dart';
@@ -2668,6 +2670,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _openPrimaryReports() async {
     final people = await taskStore.loadPeopleDirectory();
+    final templates = await ProjectTemplateStore().load();
     if (!mounted) return;
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
@@ -2675,6 +2678,7 @@ class _HomePageState extends State<HomePage> {
           tasks: List<Task>.of(tasks),
           projects: List<ProjectPlan>.of(projects),
           centers: List<ArvinCenter>.of(centers),
+          templates: templates,
           people: people,
         ),
       ),

@@ -18,6 +18,9 @@ class TaskReportFilter {
     this.projectId,
     this.centerIds = const <String>{},
     this.taskId,
+    this.templateTaskId,
+    this.templateIds = const <String>{},
+    this.includeLegacyProjectsWithoutTemplate = false,
     this.category,
     this.tag,
     this.projectIds = const <String>{},
@@ -48,6 +51,9 @@ class TaskReportFilter {
   final String? projectId;
   final Set<String> centerIds;
   final String? taskId;
+  final String? templateTaskId;
+  final Set<String> templateIds;
+  final bool includeLegacyProjectsWithoutTemplate;
   final String? category;
   final String? tag;
   final Set<String> projectIds;
@@ -80,6 +86,9 @@ class TaskReportFilter {
       projectId != null ||
       centerIds.isNotEmpty ||
       taskId != null ||
+      templateTaskId != null ||
+      templateIds.isNotEmpty ||
+      includeLegacyProjectsWithoutTemplate ||
       category != null ||
       tag != null ||
       projectIds.isNotEmpty ||
@@ -117,6 +126,10 @@ class TaskReportFilter {
     Set<String>? centerIds,
     String? taskId,
     bool clearTaskId = false,
+    String? templateTaskId,
+    bool clearTemplateTaskId = false,
+    Set<String>? templateIds,
+    bool? includeLegacyProjectsWithoutTemplate,
     String? category,
     bool clearCategory = false,
     String? tag,
@@ -157,6 +170,9 @@ class TaskReportFilter {
         projectId: clearProjectId ? null : projectId ?? this.projectId,
         centerIds: centerIds ?? this.centerIds,
         taskId: clearTaskId ? null : taskId ?? this.taskId,
+        templateTaskId: clearTemplateTaskId ? null : templateTaskId ?? this.templateTaskId,
+        templateIds: templateIds ?? this.templateIds,
+        includeLegacyProjectsWithoutTemplate: includeLegacyProjectsWithoutTemplate ?? this.includeLegacyProjectsWithoutTemplate,
         category: clearCategory ? null : category ?? this.category,
         tag: clearTag ? null : tag ?? this.tag,
         projectIds: projectIds ?? this.projectIds,
@@ -208,6 +224,13 @@ class TaskReportFilter {
     return tasks.where((task) {
       if (task.trashed) return false;
       if (taskId != null && task.id != taskId) return false;
+      if (templateTaskId != null && task.templateTaskId != templateTaskId) return false;
+      if (templateIds.isNotEmpty) {
+        final linked = projects.where((project) => project.itemIds.contains(task.id));
+        final fromSelectedTemplate = linked.any((project) => templateIds.contains(project.templateId));
+        final fromLegacyProject = includeLegacyProjectsWithoutTemplate && linked.any((project) => project.templateId == null);
+        if (!fromSelectedTemplate && !fromLegacyProject) return false;
+      }
       if (selectedCenterIds.isNotEmpty &&
           !projects.any((project) => selectedCenterIds.contains(project.centerId) && project.itemIds.contains(task.id))) {
         return false;

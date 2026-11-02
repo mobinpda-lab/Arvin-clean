@@ -1,6 +1,7 @@
 import 'package:arvin/models/task.dart';
 import 'package:arvin/models/arvin_center.dart';
 import 'package:arvin/models/goal_project.dart';
+import 'package:arvin/models/project_template.dart';
 import 'package:arvin/models/person_reference.dart';
 import 'package:arvin/report_center_page.dart';
 import 'package:arvin/task_detail_page.dart';
@@ -327,6 +328,7 @@ void main() {
       home: ReportCenterPage(
         now: DateTime(2026, 11, 3, 10),
         centers: [ArvinCenter(id: '511', name: 'مرکز ۵۱۱', createdAt: DateTime(2026, 1, 1))],
+        templates: [ProjectTemplate(id: 'tpl', name: 'کالیبراسیون یخچال', tasks: [ProjectTemplateTask(id: 'tt-fan', title: 'بررسی فن')], createdAt: DateTime(2026, 1, 1), updatedAt: DateTime(2026, 1, 1))],
         projects: [ProjectPlan(id: 'p511', title: 'پروژه ۵۱۱', centerId: '511', itemIds: const ['t511'])],
         tasks: [Task(id: 't511', title: 'بررسی فن')],
       ),
@@ -346,6 +348,11 @@ void main() {
     await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-task-search')), 240, scrollable: find.byType(Scrollable).last);
     expect(find.byKey(const ValueKey('report-filter-task-search')), findsOneWidget);
     expect(find.byKey(const ValueKey('report-filter-task-t511')), findsOneWidget);
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-section-قالب پروژه')), 240, scrollable: find.byType(Scrollable).last);
+    await tester.tap(find.byKey(const ValueKey('report-filter-section-قالب پروژه')));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-template-tpl')), 240, scrollable: find.byType(Scrollable).last);
+    expect(find.byKey(const ValueKey('report-filter-template-tpl')), findsOneWidget);
   });
 }
 

@@ -181,4 +181,14 @@ void main() {
     expect(selected.copyWith(centerIds: {}).taskId, 'task-511');
     expect(selected.isActive, isTrue);
   });
+
+  test('template name and template task origin combine with Center and existing dimensions', () {
+    final now = DateTime(2026, 11, 3, 10);
+    final task = Task(id: 'copy-511', title: 'بررسی فن', templateTaskId: 'tt-fan', category: 'سرویس', tags: ['فوری'], dueDate: DateTime(2026, 11, 3, 12));
+    final project = ProjectPlan(id: 'p511', title: 'کالیبراسیون 511', centerId: '511', templateId: 'tpl-a', templateNameSnapshot: 'کالیبراسیون یخچال', itemIds: ['copy-511']);
+    final filter = const TaskReportFilter(centerIds: {'511'}, templateIds: {'tpl-a'}, templateTaskId: 'tt-fan', projectIds: {'p511'}, categories: {'سرویس'}, tags: {'فوری'}, timePreset: ReportTimePreset.today);
+    expect(filter.apply([task], now: now, projects: [project]).map((item) => item.id), ['copy-511']);
+    expect(filter.copyWith(templateIds: {}).centerIds, {'511'});
+    expect(filter.copyWith(clearTemplateTaskId: true).templateIds, {'tpl-a'});
+  });
 }
