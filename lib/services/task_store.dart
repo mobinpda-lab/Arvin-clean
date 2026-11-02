@@ -9,6 +9,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/person_reference.dart';
 import '../models/task.dart';
+import '../models/goal_project.dart';
+import 'project_plan_codec.dart';
 import 'g1_drift_schema.dart';
 import 'sql_task_migration_writer.dart';
 import 'task_storage_lock.dart';
@@ -336,7 +338,7 @@ class TaskStore {
              (id, name, color_value, is_archived, center_id, template_id, template_name_snapshot, legacy_payload_json)
              VALUES (?, ?, ?, 0, ?, ?, ?, ?)''',
           <Object?>[project.id, project.title, project.colorValue, project.centerId,
-            project.templateId, project.templateNameSnapshot, jsonEncode(project.toJson())],
+            project.templateId, project.templateNameSnapshot, jsonEncode(const ProjectPlanCodec().encode(project))],
         );
         for (var i = 0; i < project.itemIds.length; i++) {
           await executor.runInsert('INSERT INTO project_items (project_id, task_id, ordinal) VALUES (?, ?, ?)',

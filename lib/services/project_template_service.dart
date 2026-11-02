@@ -121,9 +121,15 @@ class ProjectTemplateService {
           projectId: projectId, templateId: templateId, task: _instantiate(templateTask),
         );
         switch (result) {
-          case TemplateTaskAppendResult.appended: applied.add(projectId);
-          case TemplateTaskAppendResult.alreadyPresent: already.add(projectId);
-          case TemplateTaskAppendResult.ineligible: ineligible.add(projectId);
+          case TemplateTaskAppendResult.appended:
+            applied.add(projectId);
+            break;
+          case TemplateTaskAppendResult.alreadyPresent:
+            already.add(projectId);
+            break;
+          case TemplateTaskAppendResult.ineligible:
+            ineligible.add(projectId);
+            break;
         }
       } catch (error) { failed[projectId] = error.toString(); }
     }
