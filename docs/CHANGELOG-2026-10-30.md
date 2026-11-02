@@ -317,3 +317,14 @@ Target branch SHA: `8ccbc90ebfdcd797d5c18f6ab7a6cb6cff2de358` (all results below
 - Finder-based cardinality checks were removed only from the known-stalling T14 Complete lookup; they were replaced with explicit mounted-context, RenderBox and Scrollable failure checks. No test, scenario, timeout, or product assertion was removed or weakened.
 
 **Validation:** implementation is not acceptance. T14a, real pointer tap, T14d, same-file SQLite reopen/readback and all four exact-SHA workflows must succeed before acceptance. PR #3052 remains OPEN / DRAFT / UNMERGED; **BLOCKED — RELEASE: NO-GO**.
+
+
+## Wave 7.286 — await the real asynchronous overlay-load lifecycle — 2026-11-02
+
+**Base SHA:** `300119997428423d2a62593a97215e88637b10d7`. File Persistence Run `41417580936`, Job `125185087475`, reached T14.01 and immediately entered finally/cleanup. The Complete GlobalKey had no mounted context at that point. The prior test relied on `pumpAndSettle` after starting asynchronous SQLite-backed Task/Project loading; that does not prove the load Future has completed. The timeout was then extended by cleanup attempting to close SQLite while the overlay remained mounted.
+
+- `lib/alarm_overlay_page.dart`: added an optional load-completion callback reporting success or the load error; production callers omit it and retain existing behavior.
+- `test/alarm_overlay_file_persistence_test.dart`: now awaits the actual load-completion signal through `tester.runAsync` before inspecting the keyed Complete control. It fails explicitly if overlay loading reports an error or the control is not mounted. Finally now unmounts the overlay before closing the same SQLite executor, avoiding a live widget retaining the database during teardown.
+- The GlobalKey context, real RenderBox/Scrollable geometry, bounded jumpTo scroll, full viewport assertions, real pointer tap, notification-cancellation handler, same-file SQLite close/reopen, persisted Task completion and reminder-isolation assertions remain. No test, assertion, scenario, timeout or production path was removed or weakened.
+
+**Validation:** this addresses the observed missing-context boundary; it is not accepted until T14a, real tap, T14d and final SQLite reopen/readback pass on one exact SHA. Build, File Persistence, all seven Device Smoke lanes with valid uploaded PNGs and Parallel Wave must complete on that SHA. PR #3052 remains OPEN / DRAFT / UNMERGED; **BLOCKED — RELEASE: NO-GO**.

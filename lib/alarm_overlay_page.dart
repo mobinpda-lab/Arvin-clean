@@ -39,6 +39,7 @@ class AlarmOverlayPage extends StatefulWidget {
     this.rescheduleReminders,
     this.now,
     this.completeActionKey,
+    this.onLoadComplete,
   });
 
   final String taskId;
@@ -53,6 +54,9 @@ class AlarmOverlayPage extends StatefulWidget {
   /// Optional stable handle for verifying and tapping the real Complete control.
   /// Production callers can omit it; tests can avoid a full-tree Finder traversal.
   final GlobalKey? completeActionKey;
+
+  /// Optional lifecycle signal for tests waiting on the asynchronous load.
+  final ValueChanged<String?>? onLoadComplete;
 
   @override
   State<AlarmOverlayPage> createState() => _AlarmOverlayPageState();
@@ -110,12 +114,14 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
         _projectTitle = memberships.isEmpty ? null : memberships.first.title;
         _loading = false;
       });
+      widget.onLoadComplete?.call(null);
     } catch (error) {
       if (!mounted) return;
       setState(() {
         _error = error.toString();
         _loading = false;
       });
+      widget.onLoadComplete?.call(error.toString());
     }
   }
 

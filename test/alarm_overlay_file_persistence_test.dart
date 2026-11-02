@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:drift/native.dart';
@@ -143,6 +144,7 @@ void main() {
         expect(sibling.sequence, 3);
 
         final completeActionKey = GlobalKey(debugLabel: 'alarm-file-complete-action');
+        final loadCompleted = Completer<String?>();
         await tester.pumpWidget(MaterialApp(
           home: AlarmOverlayPage(
             taskId: 'alarm-file-task',
@@ -154,9 +156,20 @@ void main() {
             now: () => DateTime(2026, 11, 1, 14),
             rescheduleReminders: () async {},
             completeActionKey: completeActionKey,
+            onLoadComplete: (error) {
+              if (!loadCompleted.isCompleted) loadCompleted.complete(error);
+            },
           ),
         ));
+        stage('T13.5 waiting for asynchronous Alarm Overlay load completion');
+        final loadError = await tester.runAsync(() => loadCompleted.future);
+        expect(
+          loadError,
+          isNull,
+          reason: loadError ?? 'Alarm Overlay must finish loading before Complete interaction.',
+        );
         await tester.pumpAndSettle();
+        stage('T13.6 asynchronous Alarm Overlay load completed');
         stage('T14 before Complete action; verifying real control visibility');
         stage('T14.01 before reading the real Complete GlobalKey context');
         final completeContext = completeActionKey.currentContext;
@@ -277,8 +290,11 @@ void main() {
           DateTime(2026, 11, 3, 9),
         );
       } finally {
+        await tester.pumpWidget(const SizedBox.shrink());
+        stage('T22.1 finally: Alarm Overlay disposed before SQLite close');
         stage('T22 finally: closing current SQLite executor');
         await executor.close();
+        stage('T22.2 current SQLite executor closed');
         TaskStorageLock.diagnosticLoggingEnabled = false;
         stage('T23 END: diagnostics disabled');
         await directory.delete(recursive: true);
