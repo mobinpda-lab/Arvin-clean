@@ -856,3 +856,66 @@ PR #3052 remains OPEN / DRAFT / UNMERGED. `BLOCKED — RELEASE: NO-GO` remains u
 ### APK and governance
 - Build workflow `.github/workflows/build.yml` explicitly skips all APK variants for Draft pull requests. The APK matrix job on baseline run `41441240668` was `skipped`; no APK was produced or verified. PR must remain Draft, so this route cannot produce a review APK without changing governance or the workflow policy.
 - PR #3052 remains OPEN / DRAFT / UNMERGED. `BLOCKED — RELEASE: NO-GO` remains unchanged. No main edit, merge, release, APK publication, manual dispatch or workflow cancellation was performed.
+
+## Wave 7.291 — Exact-SHA results and Draft-safe review APK workflow — 2026-11-02
+
+**Audit SHA:** `6a14a56bebb88f62be2a69836275e70e5fb042e1`.  
+**Workflow/docs implementation commits:** `19e65fcb7836beeb5f3150e2bc771b1a1fd25cd9` (review APK workflow), `10c00ff665176ff12c427d848702362eda425c7a` (changelog).
+
+### Exact-SHA workflow outcomes
+
+| Workflow | Run | Job | Result | Evidence |
+|---|---:|---:|---|---|
+| Build | 41443901407 | Analyze 125272659293 | SUCCESS | exact checkout SHA verified |
+| Build | 41443901407 | test-0 125272659524; test-1 125272659204; test-2 125272659165; test-3 125272659145; test-4 125272658832; test-5 125272659326 | all SUCCESS | all six test shards completed |
+| Build | 41443901407 | APK matrix 125272661375 | SKIPPED | existing Draft guard preserved |
+| File Persistence | 41443901333 | 125272324515 | SUCCESS | exact checkout SHA; file-backed Repository persistence and Alarm Overlay SQLite close/reopen test both successful |
+| Device Smoke | 41443901412 | boot 125272419953 | SUCCESS | scenario and screenshot upload succeeded |
+| Device Smoke | 41443901412 | navigation 125272419978 | SUCCESS | scenario and screenshot upload succeeded |
+| Device Smoke | 41443901412 | quick-capture 125272419931 | SUCCESS | scenario and screenshot upload succeeded |
+| Device Smoke | 41443901412 | task-lifecycle 125272420065 | SUCCESS | scenario and screenshot upload succeeded |
+| Device Smoke | 41443901412 | reminder-vazirmatn 125272420007 | SUCCESS | legacy compatibility and scenario succeeded; Reminder overlay evidence upload succeeded |
+| Device Smoke | 41443901412 | follow-up-persistence 125272419945 | FAILURE | Android Emulator SDK package preparation reported `Premature EOF`; ADB port 5554 connection refused; screenshot artifact absent |
+| Device Smoke | 41443901412 | calendar-segmented-view 125272420021 | CANCELLED | emulator became ready; job reached Flutter drive then logged `The operation was canceled`; cancellation cause NOT VERIFIED |
+| Calendar Provider | 41443901528 | 125272166147 | SUCCESS | exact target SHA verification and real Provider acceptance succeeded |
+
+Build Analyze + six test shards: **7/7 successful jobs**. File Persistence: **PASS**. Calendar Provider: **PASS**. Device Smoke: **5/7 PASS, 1 FAILURE, 1 CANCELLED**; overall Device Smoke acceptance is not met.
+
+### T13.5 close-and-reopen proof
+
+File Persistence Job `125272324515` log:
+- Checkout verification: `EXACT_TARGET_SHA=6a14a56bebb88f62be2a69836275e70e5fb042e1`.
+- `T13.5b onLoadComplete callback signal returned; error=null`.
+- `T23a before synchronous temporary directory cleanup`.
+- `T24 temporary directory cleanup completed`.
+- Immediately afterwards: `All tests passed!`.
+- Job conclusion: SUCCESS.
+
+Therefore the earlier timeout after asynchronous temp-directory deletion was resolved by the test-only synchronous cleanup change. T13.5 is **PASS on SHA 6a14a56...**. This result is not generalized to any later SHA.
+
+### Device Smoke failure classification
+
+- Follow-up Persistence: the job failed before a product-level test result because SDK Manager reported `Premature EOF` while preparing Android Emulator, then the emulator ADB endpoint refused connection; no screenshot was generated. The run's lane conclusion remains FAILURE, not PASS. This is infrastructure-indicated, but remediation still requires a new exact-SHA run.
+- Calendar Segmented View: the log proves emulator readiness and entry into Flutter drive, followed by cancellation. The available log does not prove who/what initiated cancellation or whether a product assertion would pass. Root cause remains NOT VERIFIED. Do not label it a product defect or an infrastructure defect without further evidence.
+
+### Draft-safe review APK workflow
+
+Added `.github/workflows/arvin-draft-review-apk.yml` on the authorized PR branch:
+- Trigger: pull_request opened/synchronize/reopened; job runs only when head branch is `fix/recovery-calendar-device-smoke-2026-10-31` in the same repository.
+- Permissions: `contents: read` only; no write token, deployment permission, production signing secret, or Release action.
+- Checks out and verifies the exact PR head SHA.
+- Generates a per-run ephemeral 30-day staging test keystore; no key material is committed or persisted.
+- Builds only the existing Gradle `staging` variant (application ID `com.example.arvin.staging`, `debuggable=false`, no production-key fallback).
+- Requires v2 and v3 signature verification, expected application ID, non-debuggable manifest, and Vazirmatn Regular/Medium/Bold assets.
+- Packages the APK with a manifest containing source SHA, APK SHA-256, byte size, signer certificate fingerprint and `publishable=false`; uploads an Actions artifact with seven-day retention.
+- It does not edit or bypass the original `.github/workflows/build.yml` Draft APK guard and does not publish a GitHub Release or public package.
+
+Workflow implementation commit: `19e65fcb7836beeb5f3150e2bc771b1a1fd25cd9`. Changelog commit: `10c00ff665176ff12c427d848702362eda425c7a`. The workflow has not yet been proven by its own successful run. APK existence, installability and artifact retrieval remain NOT VERIFIED until that exact-head workflow completes successfully.
+
+### Governance
+
+- PR #3052 must remain OPEN / DRAFT / UNMERGED.
+- Base/main SHA observed from PR metadata: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Label remains `BLOCKED — RELEASE: NO-GO`.
+- No merge, main edit, release, APK publication, manual dispatch or cancellation was performed.
+- Iran timestamp: 1405/08/11 16:40 (Asia/Tehran).
