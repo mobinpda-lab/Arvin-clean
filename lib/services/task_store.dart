@@ -260,6 +260,56 @@ class TaskStore {
     });
   }
 
+  /// Persists Task reference changes and the matching taxonomy catalog rename
+  /// in the same SQLite transaction. Either both changes commit or neither does.
+  Future<void> renameCategoryAndTasks(
+    List<Task> tasks, {
+    required String from,
+    required String to,
+  }) async {
+    final source = from.trim();
+    final target = to.trim();
+    if (source.isEmpty || target.isEmpty || source == target) return;
+    await TaskStorageLock.synchronized<void>(() => _saveUnlocked(
+          tasks,
+          beforeCommit: (executor) async {
+            await executor.runInsert(
+              'INSERT OR IGNORE INTO taxonomy_categories (name, created_at) VALUES (?, ?)',
+              <Object?>[target, DateTime.now().toIso8601String()],
+            );
+            await executor.runDelete(
+              'DELETE FROM taxonomy_categories WHERE name = ?',
+              <Object?>[source],
+            );
+          },
+        ));
+  }
+
+  /// Persists Task reference changes and the matching taxonomy catalog rename
+  /// in the same SQLite transaction. Either both changes commit or neither does.
+  Future<void> renameTagAndTasks(
+    List<Task> tasks, {
+    required String from,
+    required String to,
+  }) async {
+    final source = from.trim();
+    final target = to.trim();
+    if (source.isEmpty || target.isEmpty || source == target) return;
+    await TaskStorageLock.synchronized<void>(() => _saveUnlocked(
+          tasks,
+          beforeCommit: (executor) async {
+            await executor.runInsert(
+              'INSERT OR IGNORE INTO tags (id, name) VALUES (?, ?)',
+              <Object?>[_tagId(target), target],
+            );
+            await executor.runDelete(
+              'DELETE FROM tags WHERE name = ?',
+              <Object?>[source],
+            );
+          },
+        ));
+  }
+
   Future<void> save(List<Task> tasks) =>
       TaskStorageLock.synchronized<void>(() => _saveUnlocked(tasks));
 
@@ -564,7 +614,10 @@ class TaskStore {
         'waitingForResponse': (row['waiting_for_response'] as num?)?.toInt() == 1,
       };
 
-  Future<void> _saveUnlocked(List<Task> tasks) async {
+  Future<void> _saveUnlocked(
+    List<Task> tasks, {
+    Future<void> Function(QueryExecutor executor)? beforeCommit,
+  }) async {
     final executor = _database;
     await _ensureReady();
 
@@ -658,6 +711,7 @@ class TaskStore {
         }
       }
 
+      await beforeCommit?.call(executor);
       await executor.runCustom('COMMIT');
     } catch (_) {
       try {
