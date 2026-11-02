@@ -30,18 +30,25 @@ void main() {
     expect(find.text('تاریخ گذشته'), findsOneWidget);
     expect(find.text('امروز'), findsAtLeastNWidgets(1));
     expect(find.byKey(const ValueKey('home-filter-card-time')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-filter-card-center')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-project')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-category')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-tags')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-all')), findsNothing);
     expect(find.byKey(const ValueKey('home-compact-filter-scroll')), findsOneWidget);
-    expect(find.byType(ActionChip), findsNWidgets(4));
+    expect(find.byType(ActionChip), findsNWidgets(5));
 
     // Each filter keeps its own internal unrestricted choice.
     await tester.tap(find.byKey(const ValueKey('home-filter-card-time')));
     await tester.pumpAndSettle();
     expect(find.text('همه'), findsOneWidget);
     await tester.tap(find.text('همه').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('home-filter-card-center')));
+    await tester.pumpAndSettle();
+    expect(find.text('همه مراکز'), findsOneWidget);
+    await tester.tap(find.text('همه مراکز'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('home-filter-card-project')));

@@ -18,6 +18,7 @@ import 'backup_schedule.dart';
 import 'calendar_page.dart';
 import 'calendar_integration_settings_page.dart';
 import 'models/goal_project.dart';
+import 'models/arvin_center.dart';
 import 'models/person_reference.dart';
 import 'models/task.dart';
 import 'home/grouping/home_group.dart';
@@ -46,6 +47,7 @@ import 'services/task_list_sort_service.dart';
 import 'services/task_move_to_today_service.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/project_store.dart';
+import 'services/center_store.dart';
 import 'services/arvin_route_observer.dart';
 import 'services/task_edit_apply_service.dart';
 import 'services/task_bulk_mutation_service.dart';
@@ -413,6 +415,7 @@ class _HomePageState extends State<HomePage> {
   List<String> _tagCatalog = const <String>[];
   int _pendingNotificationCount = 0;
   List<ProjectPlan> projects = [];
+  List<ArvinCenter> centers = const <ArvinCenter>[];
   final Set<String> selected = <String>{};
   bool loading = true;
   Object? loadFailure;
@@ -422,6 +425,7 @@ class _HomePageState extends State<HomePage> {
   TaskListScope _listScope = TaskListScope.all;
   TaskDueScope? _dueScope;
   String? _categoryFilter;
+  String? _centerFilter;
   String? _projectFilter;
   final Set<String> _tagFilters = <String>{};
   String _timeFilter = 'all';
@@ -576,12 +580,14 @@ class _HomePageState extends State<HomePage> {
     try {
       final value = await taskStore.load();
       final loadedProjects = await projectStore.load();
+      final loadedCenters = await CenterStore().load();
       final loadedCategories = await taskStore.loadCategories();
       final loadedTags = await taskStore.loadTags();
       if (!mounted) return;
       setState(() {
         tasks = List<Task>.of(value);
         projects = List<ProjectPlan>.of(loadedProjects);
+        centers = List<ArvinCenter>.of(loadedCenters);
         _categoryCatalog = List<String>.of(loadedCategories);
         _tagCatalog = List<String>.of(loadedTags);
         loadFailure = null;
@@ -813,6 +819,15 @@ class _HomePageState extends State<HomePage> {
 
     if (filter != 'بایگانی' && filter != 'سطل زباله') {
       scoped = scoped.where(_matchesTimeFilter);
+      if (_centerFilter != null) {
+        final centerProjectTaskIds = projects
+            .where((project) => _centerFilter == '__no_center__'
+                ? project.centerId == null
+                : project.centerId == _centerFilter)
+            .expand((project) => project.itemIds)
+            .toSet();
+        scoped = scoped.where((task) => centerProjectTaskIds.contains(task.id));
+      }
       if (_categoryFilter != null) scoped = scoped.where((task) => task.category?.trim() == _categoryFilter);
       if (_projectFilter != null) {
         if (_projectFilter == '__no_project__') {
@@ -925,6 +940,15 @@ class _HomePageState extends State<HomePage> {
                 onPressed: _showTimeFilterSheet,
               ),
               chip(
+                key: const ValueKey('home-filter-card-center'),
+                label: _centerFilter == null ? 'مرکز' : _centerFilter == '__no_center__' ? 'بدون مرکز' : (_centerName(_centerFilter) ?? 'مرکز حذف‌شده'),
+                icon: Icons.location_city_outlined,
+                accent: ArvinColors.primary,
+                soft: ArvinColors.primarySoft,
+                active: _centerFilter != null,
+                onPressed: _showCenterFilterSheet,
+              ),
+              chip(
                 key: const ValueKey('home-filter-card-project'),
                 label: _projectFilter == null ? 'پروژه‌ها' : (_projectTitle(_projectFilter) ?? 'بدون پروژه'),
                 icon: Icons.folder_rounded,
@@ -973,6 +997,7 @@ class _HomePageState extends State<HomePage> {
         }),
       ));
     }
+    if (_centerFilter != null) chips.add(HomeFilterChip(label: _centerFilter == '__no_center__' ? 'پروژه‌های بدون مرکز' : (_centerName(_centerFilter) ?? 'مرکز حذف‌شده'), accent: ArvinColors.primary, soft: ArvinColors.primarySoft, icon: Icons.location_city_outlined, onRemove: () => setState(() => _centerFilter = null)));
     if (_projectFilter != null) chips.add(HomeFilterChip(label: _projectTitle(_projectFilter) ?? 'بدون پروژه', accent: ArvinColors.project, soft: ArvinColors.projectSoft, icon: Icons.folder_rounded, onRemove: () => setState(() => _projectFilter = null)));
     if (_categoryFilter != null) chips.add(HomeFilterChip(label: _categoryFilter!, accent: ArvinColors.category, soft: ArvinColors.categorySoft, icon: Icons.layers_rounded, onRemove: () => setState(() => _categoryFilter = null)));
     for (final tag in _tagFilters) chips.add(HomeFilterChip(label: tag, accent: ArvinColors.tag, soft: ArvinColors.tagSoft, icon: Icons.sell_rounded, onRemove: () => setState(() => _tagFilters.remove(tag))));
@@ -996,6 +1021,7 @@ class _HomePageState extends State<HomePage> {
       _toDateFilter = null;
       _fromTimeFilter = null;
       _toTimeFilter = null;
+      _centerFilter = null;
       _projectFilter = null;
       _categoryFilter = null;
       _tagFilters.clear();
@@ -1162,6 +1188,36 @@ class _HomePageState extends State<HomePage> {
         },
       ),
     );
+  }
+
+  String? _centerName(String? id) {
+    if (id == null) return null;
+    for (final center in centers) { if (center.id == id) return center.name; }
+    return null;
+  }
+
+  Future<void> _showCenterFilterSheet() async {
+    String search = '';
+    final result = await HomeFilterSheet.show<String?>(context, title: 'انتخاب مرکز', accent: ArvinColors.primary, child: StatefulBuilder(
+      builder: (sheetContext, setSheetState) {
+        final values = centers.toList()..sort((a, b) => a.name.compareTo(b.name));
+        final filtered = values.where((center) => center.name.toLowerCase().contains(search.toLowerCase())).toList();
+        return SizedBox(
+          height: MediaQuery.sizeOf(sheetContext).height * .58,
+          child: Column(children: [
+            TextField(onChanged: (value) => setSheetState(() => search = value), decoration: const InputDecoration(hintText: 'جستجو در مراکز...', prefixIcon: Icon(Icons.search_rounded))),
+            Expanded(child: ListView(children: [
+              ListTile(title: const Text('همه مراکز'), leading: const Icon(Icons.all_inclusive_rounded), onTap: () => Navigator.of(sheetContext).pop('__all__')),
+              ListTile(title: const Text('پروژه‌های بدون مرکز'), leading: const Icon(Icons.location_off_outlined), onTap: () => Navigator.of(sheetContext).pop('__no_center__')),
+              for (final center in filtered)
+                RadioListTile<String?>(value: center.id, groupValue: _centerFilter, title: Text(center.name), subtitle: center.isArchived ? const Text('بایگانی‌شده') : null, onChanged: (value) => Navigator.of(sheetContext).pop(value)),
+            ])),
+          ]),
+        );
+      },
+    ));
+    if (!mounted) return;
+    setState(() => _centerFilter = result == '__all__' ? null : result);
   }
 
   Future<void> _showProjectFilterSheet() async {
