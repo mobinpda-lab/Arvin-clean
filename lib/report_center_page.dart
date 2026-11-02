@@ -3,6 +3,7 @@ import 'arvin_colors.dart';
 import 'calendar_page.dart';
 
 import 'models/goal_project.dart';
+import 'models/arvin_center.dart';
 import 'models/person_reference.dart';
 import 'models/recurrence.dart';
 import 'models/task.dart';
@@ -31,12 +32,14 @@ class ReportCenterPage extends StatefulWidget {
     super.key,
     required this.tasks,
     this.projects = const [],
+    this.centers = const [],
     this.people = const [],
     this.now,
   });
 
   final List<Task> tasks;
   final List<ProjectPlan> projects;
+  final List<ArvinCenter> centers;
   final List<PersonReference> people;
   final DateTime? now;
 
@@ -157,6 +160,7 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
       builder: (_) => _ReportFilterSheet(
         initial: _filter,
         projects: widget.projects,
+        centers: widget.centers,
         tasks: widget.tasks,
         people: _peopleDirectory,
         now: _now,
@@ -251,6 +255,8 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
               _ActiveFilterChips(
                 filter: _filter,
                 people: _peopleDirectory,
+                tasks: widget.tasks,
+                centers: widget.centers,
                 onClear: _clear,
                 onChanged: (filter) => setState(() => _filter = filter),
               ),
@@ -382,11 +388,15 @@ class _ActiveFilterChips extends StatelessWidget {
 
   final TaskReportFilter filter;
   final List<PersonReference> people;
+  final List<Task> tasks;
+  final List<ArvinCenter> centers;
   final VoidCallback onClear;
   final ValueChanged<TaskReportFilter> onChanged;
 
   @override
   Widget build(BuildContext context) {
+    final taskById = <String, Task>{for (final task in tasks) task.id: task};
+    final centerById = <String, ArvinCenter>{for (final center in centers) center.id: center};
     final peopleById = <String, PersonReference>{
       for (final person in people) person.id: person,
     };
@@ -415,6 +425,10 @@ class _ActiveFilterChips extends StatelessWidget {
               label: Text(_timeLabel(filter.timePreset)),
               onDeleted: () => onChanged(filter.copyWith(timePreset: ReportTimePreset.all)),
             ),
+          for (final id in filter.centerIds)
+            InputChip(key: ValueKey('report-active-center-$id'), label: Text(centerById[id]?.name ?? 'مرکز حذف‌شده'), onDeleted: () { final ids = <String>{...filter.centerIds}..remove(id); onChanged(filter.copyWith(centerIds: ids)); }),
+          if (filter.taskId != null)
+            InputChip(key: const ValueKey('report-active-task'), label: Text(taskById[filter.taskId]?.title ?? 'کار حذف‌شده'), onDeleted: () => onChanged(filter.copyWith(clearTaskId: true))),
           if (filter.projectId != null || filter.projectIds.isNotEmpty)
             InputChip(
               label: Text('پروژه: ${filter.projectIds.length + (filter.projectId == null ? 0 : 1)}'),
@@ -556,6 +570,7 @@ class _ReportFilterSheet extends StatefulWidget {
 
   final TaskReportFilter initial;
   final List<ProjectPlan> projects;
+  final List<ArvinCenter> centers;
   final List<Task> tasks;
   final List<PersonReference> people;
   final DateTime now;
@@ -570,6 +585,9 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
   DateTime? _toDate;
   TimeOfDay? _fromTime;
   TimeOfDay? _toTime;
+  Set<String> _centerIds = <String>{};
+  String? _taskId;
+  String _taskSearch = '';
   Set<String> _projectIds = <String>{};
   Set<String> _categories = <String>{};
   Set<String> _tags = <String>{};
@@ -597,6 +615,8 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
     _toDate = f.toDate;
     _fromTime = f.fromTime == null ? null : _toTimeOfDay(f.fromTime!);
     _toTime = f.toTime == null ? null : _toTimeOfDay(f.toTime!);
+    _centerIds = <String>{...f.centerIds};
+    _taskId = f.taskId;
     _projectIds = <String>{...f.projectIds, if (f.projectId != null) f.projectId!};
     _categories = <String>{...f.categories, if (f.category != null) f.category!};
     _tags = <String>{...f.tags, if (f.tag != null) f.tag!};
@@ -695,6 +715,8 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
         toTime: _toTime == null
             ? null
             : Duration(hours: _toTime!.hour, minutes: _toTime!.minute),
+        centerIds: Set<String>.of(_centerIds),
+        taskId: _taskId,
         projectIds: Set<String>.of(_projectIds),
         categories: Set<String>.of(_categories),
         tags: Set<String>.of(_tags),
@@ -845,6 +867,20 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               ),
             ),
             _Section(
+              title: 'مرکز',
+              icon: Icons.location_city_outlined,
+              accentColor: ArvinColors.primary,
+              selectedCount: _centerIds.length,
+              child: _MultiSelectChips(
+                allLabel: 'همه مراکز',
+                accentColor: ArvinColors.primary,
+                options: widget.centers.map((center) => MapEntry(center.id, center.name)).toList(growable: false),
+                selected: _centerIds,
+                onChanged: (value) => setState(() => _centerIds = value),
+                keyPrefix: 'report-filter-center',
+              ),
+            ),
+            _Section(
               title: 'پروژه',
               icon: Icons.folder_open_outlined,
               accentColor: ArvinColors.project,
@@ -858,22 +894,6 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                 selected: _projectIds,
                 onChanged: (value) => setState(() => _projectIds = value),
                 keyPrefix: 'report-filter-project',
-              ),
-            ),
-            _Section(
-              title: 'اشخاص',
-              icon: Icons.people_outline,
-              accentColor: ArvinColors.primary,
-              selectedCount: _personIds.length,
-              child: _MultiSelectChips(
-                allLabel: 'همه اشخاص',
-                accentColor: ArvinColors.primary,
-                options: widget.people
-                    .map((person) => MapEntry(person.id, person.displayName))
-                    .toList(growable: false),
-                selected: _personIds,
-                onChanged: (value) => setState(() => _personIds = value),
-                keyPrefix: 'report-filter-person',
               ),
             ),
             _Section(
@@ -902,6 +922,52 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                 selected: _tags,
                 onChanged: (value) => setState(() => _tags = value),
                 keyPrefix: 'report-filter-tag',
+              ),
+            ),
+            _Section(
+              title: 'کار',
+              icon: Icons.task_alt_outlined,
+              accentColor: ArvinColors.reminder,
+              selectedCount: _taskId == null ? 0 : 1,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
+                    key: const ValueKey('report-filter-task-search'),
+                    decoration: const InputDecoration(labelText: 'جستجو در کارها', prefixIcon: Icon(Icons.search)),
+                    onChanged: (value) => setState(() => _taskSearch = value.trim().toLowerCase()),
+                  ),
+                  ListTile(
+                    key: const ValueKey('report-filter-task-all'),
+                    title: const Text('همه کارها'),
+                    leading: const Icon(Icons.all_inclusive),
+                    onTap: () => setState(() => _taskId = null),
+                  ),
+                  for (final task in (widget.tasks.where((task) => task.title.toLowerCase().contains(_taskSearch)).toList()..sort((a, b) => a.title.compareTo(b.title))))
+                    RadioListTile<String>(
+                      key: ValueKey('report-filter-task-${task.id}'),
+                      value: task.id,
+                      groupValue: _taskId,
+                      title: Text(task.title.trim().isEmpty ? 'بدون عنوان' : task.title),
+                      onChanged: (value) => setState(() => _taskId = value),
+                    ),
+                ],
+              ),
+            ),
+            _Section(
+              title: 'اشخاص',
+              icon: Icons.people_outline,
+              accentColor: ArvinColors.primary,
+              selectedCount: _personIds.length,
+              child: _MultiSelectChips(
+                allLabel: 'همه اشخاص',
+                accentColor: ArvinColors.primary,
+                options: widget.people
+                    .map((person) => MapEntry(person.id, person.displayName))
+                    .toList(growable: false),
+                selected: _personIds,
+                onChanged: (value) => setState(() => _personIds = value),
+                keyPrefix: 'report-filter-person',
               ),
             ),
             _Section(

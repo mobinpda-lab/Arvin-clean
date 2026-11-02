@@ -16,6 +16,8 @@ class TaskReportFilter {
     this.fromTime,
     this.toTime,
     this.projectId,
+    this.centerIds = const <String>{},
+    this.taskId,
     this.category,
     this.tag,
     this.projectIds = const <String>{},
@@ -44,6 +46,8 @@ class TaskReportFilter {
   final Duration? fromTime;
   final Duration? toTime;
   final String? projectId;
+  final Set<String> centerIds;
+  final String? taskId;
   final String? category;
   final String? tag;
   final Set<String> projectIds;
@@ -108,6 +112,9 @@ class TaskReportFilter {
     bool clearToTime = false,
     String? projectId,
     bool clearProjectId = false,
+    Set<String>? centerIds,
+    String? taskId,
+    bool clearTaskId = false,
     String? category,
     bool clearCategory = false,
     String? tag,
@@ -146,6 +153,8 @@ class TaskReportFilter {
         fromTime: clearFromTime ? null : fromTime ?? this.fromTime,
         toTime: clearToTime ? null : toTime ?? this.toTime,
         projectId: clearProjectId ? null : projectId ?? this.projectId,
+        centerIds: centerIds ?? this.centerIds,
+        taskId: clearTaskId ? null : taskId ?? this.taskId,
         category: clearCategory ? null : category ?? this.category,
         tag: clearTag ? null : tag ?? this.tag,
         projectIds: projectIds ?? this.projectIds,
@@ -182,6 +191,7 @@ class TaskReportFilter {
       ...projectIds,
       if (projectId != null) projectId!,
     };
+    final selectedCenterIds = centerIds;
     final selectedCategories = <String>{
       ...categories,
       if (category != null) category!,
@@ -195,6 +205,11 @@ class TaskReportFilter {
         .toList(growable: false);
     return tasks.where((task) {
       if (task.trashed) return false;
+      if (taskId != null && task.id != taskId) return false;
+      if (selectedCenterIds.isNotEmpty &&
+          !projects.any((project) => selectedCenterIds.contains(project.centerId) && project.itemIds.contains(task.id))) {
+        return false;
+      }
       if (personIds.isNotEmpty &&
           !task.people.any((person) => personIds.contains(person.id)) &&
           !task.followUps.any((followUp) =>

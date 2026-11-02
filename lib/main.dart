@@ -2674,6 +2674,7 @@ class _HomePageState extends State<HomePage> {
         builder: (_) => ReportCenterPage(
           tasks: List<Task>.of(tasks),
           projects: List<ProjectPlan>.of(projects),
+          centers: List<ArvinCenter>.of(centers),
           people: people,
         ),
       ),
