@@ -113,6 +113,10 @@ class ProjectStore {
     final values = List<ProjectPlan>.of(projects);
     await executor.runCustom('BEGIN');
     try {
+      final templateApplications = await executor.runSelect(
+        'SELECT template_task_id, project_id, task_id FROM template_task_applications', const [],
+      );
+      await executor.runCustom('DELETE FROM template_task_applications');
       await executor.runCustom('DELETE FROM project_items');
       await executor.runCustom('DELETE FROM projects');
       for (final project in values) {
