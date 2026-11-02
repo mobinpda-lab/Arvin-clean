@@ -304,7 +304,9 @@ void main() {
         stage('T22.2 current SQLite executor closed');
         TaskStorageLock.diagnosticLoggingEnabled = false;
         stage('T23 END: diagnostics disabled');
-        await directory.delete(recursive: true);
+        stage('T23a before synchronous temporary directory cleanup');
+        directory.deleteSync(recursive: true);
+        stage('T24 temporary directory cleanup completed');
       }
     },
   );
