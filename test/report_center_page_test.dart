@@ -326,15 +326,23 @@ void main() {
     await tester.pumpWidget(MaterialApp(
       home: ReportCenterPage(
         now: DateTime(2026, 11, 3, 10),
-        centers: const [ArvinCenter(id: '511', name: 'مرکز ۵۱۱', createdAt: DateTime(2026, 1, 1))],
+        centers: [ArvinCenter(id: '511', name: 'مرکز ۵۱۱', createdAt: DateTime(2026, 1, 1))],
         projects: [ProjectPlan(id: 'p511', title: 'پروژه ۵۱۱', centerId: '511', itemIds: const ['t511'])],
         tasks: [Task(id: 't511', title: 'بررسی فن')],
       ),
     ));
     await tester.tap(find.byKey(const ValueKey('report-center-filters')));
     await tester.pumpAndSettle();
+    final centerSection = find.byKey(const ValueKey('report-filter-section-مرکز'));
+    await tester.scrollUntilVisible(centerSection, 240, scrollable: find.byType(Scrollable).last);
+    await tester.tap(centerSection);
+    await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-center-511')), 240, scrollable: find.byType(Scrollable).last);
     expect(find.byKey(const ValueKey('report-filter-center-511')), findsOneWidget);
+    final taskSection = find.byKey(const ValueKey('report-filter-section-کار'));
+    await tester.scrollUntilVisible(taskSection, 240, scrollable: find.byType(Scrollable).last);
+    await tester.tap(taskSection);
+    await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-task-search')), 240, scrollable: find.byType(Scrollable).last);
     expect(find.byKey(const ValueKey('report-filter-task-search')), findsOneWidget);
     expect(find.byKey(const ValueKey('report-filter-task-t511')), findsOneWidget);

@@ -382,6 +382,8 @@ class _ActiveFilterChips extends StatelessWidget {
   const _ActiveFilterChips({
     required this.filter,
     required this.people,
+    required this.tasks,
+    required this.centers,
     required this.onClear,
     required this.onChanged,
   });
@@ -563,6 +565,7 @@ class _ReportFilterSheet extends StatefulWidget {
   const _ReportFilterSheet({
     required this.initial,
     required this.projects,
+    required this.centers,
     required this.tasks,
     required this.people,
     required this.now,
