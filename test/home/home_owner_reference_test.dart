@@ -39,7 +39,7 @@ void main() {
     expect(find.byKey(const ValueKey('home-search-button')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-notifications')), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
-    expect(find.text('دسته‌ها'), findsOneWidget);
+    expect(find.text('دسته‌بندی‌ها'), findsOneWidget);
     expect(find.text('پروژه‌ها'), findsOneWidget);
     expect(find.text('زمان'), findsOneWidget);
     expect(find.text('امروز'), findsWidgets);
@@ -51,15 +51,9 @@ void main() {
     expect(find.text('پیگیری طراحی رابط کاربری'), findsNothing);
     expect(find.text('مراجعه به دکتر'), findsNothing);
 
-    final projectCard = find.byKey(const ValueKey('home-filter-card-project'));
-    final projectValues = tester
-        .widgetList<Text>(find.descendant(
-          of: projectCard,
-          matching: find.byType(Text),
-        ))
-        .map((widget) => widget.data)
-        .toList();
-    expect(projectValues, contains('۱ مورد'));
+    expect(find.byKey(const ValueKey('home-filter-card-project')), findsOneWidget);
+    expect(find.byType(ActionChip), findsNWidgets(5));
+    expect(find.byKey(const ValueKey('home-compact-filter-scroll')), findsOneWidget);
 
     final add = find.byKey(const ValueKey('home-canonical-add'));
     expect(add, findsOneWidget);
