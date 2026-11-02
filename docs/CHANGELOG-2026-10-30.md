@@ -388,3 +388,10 @@ Target branch SHA: `8ccbc90ebfdcd797d5c18f6ab7a6cb6cff2de358` (all results below
 - Added UI regression assertions that category and tag rename results are reflected immediately in the management list and canonical catalogs.
 - **Validation:** implementation and test changes are not runtime-accepted until fresh exact-HEAD Build and File Persistence workflows complete. T13.5's internal stopping point remains NOT VERIFIED until the new ordered diagnostic log identifies the last emitted marker. No result from an earlier SHA transfers to this update.
 - PR #3052 remains OPEN / DRAFT / UNMERGED; **BLOCKED — RELEASE: NO-GO**. No main edit, merge, release or APK publication.
+
+## 2026-11-02 — اصلاح قرارداد آزمون حفاظت حذف Category/Tag
+
+- بررسی Build روی SHA `29fb42e6e6db74a23ea7ae1504b0a83d42526727` نشان داد تست Category فقط به‌دلیل انتظار متن قدیمی (`در 2 مورد استفاده می‌شود`) شکست خورده است؛ پیام واقعی UI تعداد ارجاع را در قالب جدید و شفاف نمایش می‌دهد.
+- انتظار تست Category و Tag با پیام واقعی UI همسو شد و assertهای باقی‌ماندن Category/Tag در کاتالوگ canonical به تست‌های حفاظت اضافه شد.
+- منطق حذف، سرویس Mutation، داده‌های Task، تراکنش SQLite، timeoutها و سناریوهای تست تغییر نکردند؛ هیچ تستی حذف، Skip یا تضعیف نشد.
+- اعتبارسنجی این اصلاح فقط با اجرای CI تازه روی SHA جدید قابل پذیرش است؛ نتیجه هنوز `PENDING / NOT VERIFIED` است.
