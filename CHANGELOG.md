@@ -33,3 +33,13 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - Issues #823, #2102, and #2299 remain OPEN until their acceptance/evidence conditions are met.
 - Release status: **BLOCKED — RELEASE: NO-GO**.
 - Vazirmatn is the only approved application UI font; runtime/device verification must be evidenced on the exact candidate SHA.
+
+
+## 2026-11-02 — Wave 7.272 test-interaction and Device Smoke evidence repair
+
+- Home shell test now asserts the exact current search hint used by the product (including the current «دسته‌ها» wording); no UI behavior was changed to satisfy the test.
+- Accordion contract test now scrolls the legacy-only second card into the lazy list viewport before interacting with it, then verifies its Details control exists while no synthetic FollowUp card is rendered from legacy `followUpDate`.
+- File-backed Alarm Overlay test now requires the real Complete control to be present, visible and hit-testable before tapping it; the Complete, persistence, reopen and final state assertions remain intact. Added T14a diagnostic marker.
+- Device Smoke contract parser now extracts the embedded Base64 shell from the actual pipeline syntax while retaining the exact seven-lane mapping and real `flutter drive` assertions.
+- Device Smoke emulator script now writes screenshot output under the absolute GitHub workspace artifact directory, verifies non-zero file size and PNG signature, and logs path/bytes/signature before artifact upload.
+- These are source/test/workflow changes only. Acceptance is pending fresh exact-HEAD Build shards, SQLite file-persistence, Parallel Wave and seven-lane Device Smoke with registered non-empty artifacts.
