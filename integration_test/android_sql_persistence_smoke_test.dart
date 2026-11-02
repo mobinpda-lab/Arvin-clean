@@ -1,10 +1,12 @@
 import 'package:arvin/models/task.dart';
+import 'package:arvin/main.dart' as app;
+import 'package:flutter/material.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('canonical SQL persists a full task cycle on Android',
       (tester) async {
@@ -41,6 +43,13 @@ void main() {
     expect(loaded.single.followUps.single.id, 'android-sql-follow-up');
     expect(loaded.single.followUps.single.note, 'پیگیری پایدار');
     expect(loaded.single.followUps.single.completed, isTrue);
+
+    app.main();
+    await tester.pumpAndSettle();
+    expect(find.text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها'), findsOneWidget);
+    await binding.convertFlutterSurfaceToImage();
+    await tester.pumpAndSettle();
+    await binding.takeScreenshot('follow-up-persistence');
 
     await firstStore.save(const <Task>[]);
   });
