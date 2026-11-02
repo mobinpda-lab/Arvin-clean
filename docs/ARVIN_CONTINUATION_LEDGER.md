@@ -792,3 +792,25 @@ PR #3052 در آخرین استعلام OPEN / DRAFT / UNMERGED و برچسب BL
 **Validation status at ledger registration:** no new workflow result is claimed yet. Fresh Build and File Persistence evidence must be collected against the final documentation HEAD. Any diagnostic conclusion must quote the actual last emitted marker; do not infer TaskStore vs ProjectStore failure without that evidence. No manual test run or workflow dispatch has been performed in this wave at the time of this entry.
 
 **Governance:** PR #3052 remains OPEN / DRAFT / UNMERGED; the existing `BLOCKED — RELEASE: NO-GO` label is retained. No main change, merge, release, APK publication, Schema change, migration, branch-protection change or destructive operation was made.
+
+## Wave 7.288 — exact-SHA deletion-message test reconciliation — 2026-11-02
+
+**Baseline audited:** `29fb42e6e6db74a23ea7ae1504b0a83d42526727`.  
+**Test-only commit:** `154bd692fa006762806b4fb9cc283b675bb153a0`.  
+**Branch:** `fix/recovery-calendar-device-smoke-2026-10-31`; PR #3052.
+
+### Evidence and diagnosis
+- Exact-SHA Build Shard `test-4`, Job `125257825415`, reported `207 tests passed, 1 failed`.
+- The failing test was `referenced category deletion is blocked and data stays intact`, at line 126. The test expected the obsolete text `در 2 مورد استفاده می‌شود`.
+- On the same SHA, the UI constructs the message from `TaskTaxonomyDeleteBlocked.referenceCount`: `دسته «فروش» در 2 کار سابقه ارجاع دارد و قابل حذف نیست؛ برای حفظ سوابق، حذف آن مسدود شده است.`
+- The test fixture has two canonical Tasks with category `فروش`. `categoryUsageCount` counts both; `deleteCategory` throws before `deleteCategoryCatalog` can execute. The existing test's Task readback assertions passed beyond the message assertion only by source inspection; the CI test stopped at the first failing expectation, so runtime readback on this run is not independently proven.
+
+### Authorized correction
+- Updated Category and Tag deletion test expectations to the exact current UI wording and expected reference counts (2 Category references; 1 Tag reference).
+- Added canonical catalog readback assertions to ensure the referenced Category/Tag remains present after blocked deletion, alongside the existing Task data assertions.
+- No production code, deletion guard, persistence behavior, schema, timeout, test scenario or assertion strength was weakened. No test was removed or skipped.
+- No conclusion of runtime data-preservation PASS is claimed until fresh exact-HEAD CI runs the corrected tests successfully.
+
+### Validation and governance
+- Fresh workflows for this test-only HEAD are required; results from baseline SHA `29fb42e...` are not transferable.
+- PR #3052 must remain OPEN / DRAFT / UNMERGED; `BLOCKED — RELEASE: NO-GO` remains unchanged. No main edit, merge, release or manual workflow dispatch was performed.
