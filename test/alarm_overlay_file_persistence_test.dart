@@ -156,7 +156,13 @@ void main() {
         ));
         await tester.pumpAndSettle();
         stage('T14 before Complete action; awaiting full completion + Calendar sync path');
-        await tester.tap(find.byKey(const ValueKey('alarm-overlay-complete')));
+        final completeButton = find.byKey(const ValueKey('alarm-overlay-complete'));
+        expect(completeButton, findsOneWidget);
+        await tester.ensureVisible(completeButton);
+        await tester.pumpAndSettle();
+        expect(completeButton.hitTestable(), findsOneWidget);
+        stage('T14a Complete control is rendered, visible and hit-testable');
+        await tester.tap(completeButton);
         await tester.pumpAndSettle();
         stage('T15 Complete action returned to widget test');
 
