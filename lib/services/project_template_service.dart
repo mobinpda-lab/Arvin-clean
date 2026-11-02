@@ -55,7 +55,8 @@ class ProjectTemplateService {
     required Set<String> centerIds,
   }) async {
     final templates = await templateStore.load();
-    final template = templates.where((item) => item.id == templateId).firstOrNull;
+    ProjectTemplate? template;
+    for (final item in templates) { if (item.id == templateId) { template = item; break; } }
     if (template == null || template.isArchived) throw StateError('قالب فعال پیدا نشد.');
     final centers = await centerStore.load(includeArchived: false);
     var projects = await projectStore.load();
@@ -63,7 +64,8 @@ class ProjectTemplateService {
     final created = <String>[], duplicates = <String>[];
     final failed = <String, String>{};
     for (final centerId in centerIds) {
-      final center = centers.where((item) => item.id == centerId).firstOrNull;
+      ArvinCenter? center;
+      for (final item in centers) { if (item.id == centerId) { center = item; break; } }
       if (center == null) { failed[centerId] = 'مرکز فعال پیدا نشد.'; continue; }
       if (projects.any((p) => p.templateId == template.id && p.centerId == centerId && !p.isArchived)) {
         duplicates.add(centerId); continue;
@@ -104,7 +106,8 @@ class ProjectTemplateService {
     required ProjectTemplateTask templateTask,
     required Set<String> selectedProjectIds,
   }) async {
-    final template = (await templateStore.load()).where((item) => item.id == templateId).firstOrNull;
+    ProjectTemplate? template;
+    for (final item in await templateStore.load()) { if (item.id == templateId) { template = item; break; } }
     if (template == null || !template.tasks.any((item) => item.id == templateTask.id)) {
       throw StateError('کار انتخاب‌شده متعلق به این قالب نیست.');
     }
