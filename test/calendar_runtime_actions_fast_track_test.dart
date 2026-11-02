@@ -50,51 +50,37 @@ void main() {
       id: 'task-due:task-1',
       title: 'موعد کار',
     );
-    await _expectReadOnlyReminder(
-      tester,
-      id: 'task-followup:task-1',
-      title: 'پیگیری قدیمی',
-    );
   });
 
-  testWidgets('canonical follow-up row keeps generic Task actions', (
+  testWidgets('historical FollowUp is not rendered or actionable in local Calendar', (
     tester,
   ) async {
     final day = DateTime(2026, 9, 15, 9);
-    final reminder = CalendarReminder(
-      id: 'followup:task-1:fu-1',
-      title: 'پیگیری قرارداد',
-      date: day,
-    );
+    const id = 'followup:task-1:fu-1';
 
     await tester.pumpWidget(
       MaterialApp(
         home: CalendarPage(
           initialSelectedDay: day,
-          reminders: [reminder],
-          canMutateReminder: (item) => item.id.startsWith('followup:'),
+          reminders: const <CalendarReminder>[
+            CalendarReminder(
+              id: id,
+              title: 'پیگیری قرارداد',
+              date: DateTime(2026, 9, 15, 9),
+            ),
+          ],
           onCompleteReminder: (_) async {},
           onEditReminder: (_) async {},
         ),
       ),
     );
+    await tester.pumpAndSettle();
 
-    await tester.longPress(find.byKey(ValueKey('reminder-card-${reminder.id}')));
-    await tester.pump();
-
-    expect(
-      find.byKey(ValueKey('reminder-complete-${reminder.id}')),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(ValueKey('reminder-snooze-${reminder.id}')),
-      findsNothing,
-      reason: 'Calendar no longer exposes a nonfunctional snooze action',
-    );
-    expect(
-      find.byKey(ValueKey('reminder-edit-${reminder.id}')),
-      findsOneWidget,
-    );
+    expect(find.text('پیگیری قرارداد'), findsNothing);
+    expect(find.byKey(const ValueKey('reminder-card-$id')), findsNothing);
+    expect(find.byKey(const ValueKey('reminder-actions-$id')), findsNothing);
+    expect(find.byKey(const ValueKey('reminder-complete-$id')), findsNothing);
+    expect(find.byKey(const ValueKey('reminder-edit-$id')), findsNothing);
   });
 
   testWidgets('long press on a week date forwards the exact selected date', (
