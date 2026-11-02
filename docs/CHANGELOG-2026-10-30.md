@@ -226,3 +226,12 @@ Target branch SHA: `8ccbc90ebfdcd797d5c18f6ab7a6cb6cff2de358` (all results below
 **Validation:** source remediation is not acceptance. Build, File Persistence, all seven Device Smoke lanes and Parallel Wave must report fresh results on one exact final SHA; screenshots must be present as actual run artifacts and validated by their logs.
 
 **Governance:** PR #3052 remains OPEN / DRAFT / UNMERGED. No main changes, merge, APK Matrix build or release. **BLOCKED — RELEASE: NO-GO**.
+
+
+## Wave 7.277 — analyzer correction for literal shell contract — 2026-11-02
+
+**Base SHA:** `c9bb9a6cd21accbaca930130cc951cbfde95924e`. The first Wave 7.276 Build Analyze run identified one Dart test-source error: the shell token `$device` inside a normal Dart string was treated as Dart interpolation (`undefined_identifier`, `test/device_smoke_workflow_contract_test.dart:125:46`). The assertion now uses a raw Dart string so it checks the literal serial-qualified shell command. No workflow behavior, product code, test, assertion, or scenario was removed.
+
+**Validation:** this correction requires a fresh Build, File Persistence, seven-lane Device Smoke and Parallel Wave result on the new exact SHA. The earlier Parallel Wave contract result does not replace Build Analyze evidence.
+
+**Governance:** PR #3052 remains OPEN / DRAFT / UNMERGED. Release remains **BLOCKED — RELEASE: NO-GO**.

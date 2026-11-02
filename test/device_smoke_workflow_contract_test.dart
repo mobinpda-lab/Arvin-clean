@@ -122,7 +122,7 @@ void main() {
     expect(decodedScript, contains('ADB_DEVICE_DISCOVERY_TIMEOUT'));
     expect(decodedScript, contains('ADB_TRANSIENT_RETRY=flutter-drive'));
     expect(decodedScript, contains('ADB_TRANSIENT_RETRY=screencap'));
-    expect(decodedScript, contains('adb -s "$device" exec-out screencap -p'));
+    expect(decodedScript, contains(r'adb -s "$device" exec-out screencap -p'));
     expect(decodedScript, contains('ADB_DEVICE='));
     expect(decodedScript, contains('SCREENSHOT_ARTIFACT_WRITTEN='));
     expect(workflow, contains('path: artifacts/device-smoke/*.png'));
