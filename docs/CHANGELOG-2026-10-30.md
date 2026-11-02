@@ -355,3 +355,14 @@ Target branch SHA: `8ccbc90ebfdcd797d5c18f6ab7a6cb6cff2de358` (all results below
 - Preserved RTL quick-access order: زمان، پروژه‌ها، دسته‌ها، برچسب‌ها. No broad Home redesign is authorized.
 - The referenced Home image could not be identified/retrieved from the current evidence; exact pixel-level visual matching remains `NOT VERIFIED`.
 - **Status:** `POST-STABILITY / PLANNED`; documentation only, not implementation authorization or acceptance. No app code, tests, assertions, schema, migration, runtime behavior, main, merge or release was changed. PR #3052 remains OPEN / DRAFT / UNMERGED. **BLOCKED — RELEASE: NO-GO**.
+
+
+
+## 2026-11-02 — Final Home product decision: five shortcuts and Branch-aware search
+
+- Updated the Home quick-access requirement from four to exactly five equal-sized icon cards: برچسب‌ها، دسته‌ها، پروژه‌ها، زمان، شعبه/مرکز.
+- Set RTL order from right to left: زمان، پروژه‌ها، دسته‌ها، برچسب‌ها، شعبه/مرکز.
+- Expanded global Home search from Tasks-only to real Tasks, Projects and Branches/Centers; added direct Branch filtering based on the structured Branch relationship/identity.
+- Required entity-type identification in results and direct navigation from a Branch result to its details/projects/history. The Branch shortcut opens the Branch Directory; inactive Branch history remains available.
+- This owner decision supersedes the earlier four-card and Task-only search requirements.
+- **Status:** `POST-STABILITY / PLANNED`; documentation only. No app code, schema, migration, UI/runtime behavior, main, merge or release changed. Exact image pixel matching remains `NOT VERIFIED` pending recovery of the reference image. PR #3052 remains OPEN / DRAFT / UNMERGED. **BLOCKED — RELEASE: NO-GO**.
