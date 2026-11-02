@@ -19,10 +19,6 @@ class CalendarInboundSyncResult {
   bool get changed => false;
 }
 
-@Deprecated(
-  'Inbound reconciliation is retired. Device Calendar is a read-only mirror; '
-  'use the Calendar page mirror projection and explicit outbound export.',
-)
 class CalendarInboundSyncService {
   const CalendarInboundSyncService();
 
