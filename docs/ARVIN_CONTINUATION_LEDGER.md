@@ -428,3 +428,5 @@ No issue closed, no PR merge, no main change, no schema migration. Release remai
 
 ### Acceptance status
 No PASS is inferred from source changes. Fresh exact-HEAD runs are required for all six Build shards + Analyzer, Parallel Wave, file-backed SQLite completion, and all seven Device Smoke lanes with individually registered PNG artifacts. APK matrix remains skipped while PR #3052 is Draft by design. PR must remain OPEN/DRAFT/UNMERGED and Release remains BLOCKED — RELEASE: NO-GO.
+
+- Added real Home-surface screenshot capture to the Task Lifecycle and Follow-up Persistence integration lanes after their data assertions; each now emits a named screenshot through the host-side integration driver rather than manufacturing an image in the workflow.
