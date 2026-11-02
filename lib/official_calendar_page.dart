@@ -98,7 +98,8 @@ class IranianOfficialCalendarPage extends OfficialCalendarPage {
        );
 }
 
-class _OfficialCalendarPageState extends State<OfficialCalendarPage> {
+class _OfficialCalendarPageState extends State<OfficialCalendarPage>
+    with WidgetsBindingObserver {
   late Future<List<CalendarReminder>> _loadFuture;
   final PrayerCompletionStore _prayerStore = const PrayerCompletionStore();
   List<PrayerCompletionRecord> _prayerRecords = const [];
@@ -106,8 +107,24 @@ class _OfficialCalendarPageState extends State<OfficialCalendarPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadFuture = _load();
     _loadPrayerRecords();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Re-query the device provider when the user returns from Calendar.
+      // This refreshes only the ephemeral mirror projection, never Arvin Tasks.
+      _retry();
+    }
   }
 
   Future<void> _loadPrayerRecords() async {
