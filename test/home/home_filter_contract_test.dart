@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:arvin/main.dart';
+import 'package:arvin/widgets/arvin_primary_navigation.dart';
 import 'package:arvin/home/home_filter_ui.dart';
 import 'package:arvin/services/iran_clock.dart';
 
@@ -116,6 +118,43 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('task-card-follow-up-legacy-only')), findsNothing);
     expect(find.byKey(const ValueKey('task-card-details-legacy-only')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Home hides bottom navigation on downward scroll and restores it upward while FAB stays available', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final tasks = List.generate(
+      14,
+      (index) => {
+        'id': 'scroll-task-$index',
+        'title': 'کار پیمایش $index',
+        'dueDate': DateTime(2030, 11, 2, 9 + index).toIso8601String(),
+      },
+    );
+    SharedPreferences.setMockInitialValues({'arvin.tasks': jsonEncode(tasks)});
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ArvinPrimaryNavigation), findsOneWidget);
+    final add = find.byKey(const ValueKey('home-canonical-add'));
+    expect(add, findsOneWidget);
+
+    await tester.drag(find.byKey(const ValueKey('home-task-list-viewport')), const Offset(0, -520));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('home-bottom-navigation-hidden')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
+
+    await tester.drag(find.byKey(const ValueKey('home-task-list-viewport')), const Offset(0, 420));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ArvinPrimaryNavigation), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
