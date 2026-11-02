@@ -78,6 +78,8 @@ class TaskReportFilter {
       fromTime != null ||
       toTime != null ||
       projectId != null ||
+      centerIds.isNotEmpty ||
+      taskId != null ||
       category != null ||
       tag != null ||
       projectIds.isNotEmpty ||

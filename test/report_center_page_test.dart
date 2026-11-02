@@ -1,4 +1,6 @@
 import 'package:arvin/models/task.dart';
+import 'package:arvin/models/arvin_center.dart';
+import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/models/person_reference.dart';
 import 'package:arvin/report_center_page.dart';
 import 'package:arvin/task_detail_page.dart';
@@ -319,5 +321,23 @@ void main() {
   });
 
 
+
+  testWidgets('Report Center exposes center and searchable task controls', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: ReportCenterPage(
+        now: DateTime(2026, 11, 3, 10),
+        centers: const [ArvinCenter(id: '511', name: 'مرکز ۵۱۱', createdAt: DateTime(2026, 1, 1))],
+        projects: [ProjectPlan(id: 'p511', title: 'پروژه ۵۱۱', centerId: '511', itemIds: const ['t511'])],
+        tasks: [Task(id: 't511', title: 'بررسی فن')],
+      ),
+    ));
+    await tester.tap(find.byKey(const ValueKey('report-center-filters')));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-center-511')), 240, scrollable: find.byType(Scrollable).last);
+    expect(find.byKey(const ValueKey('report-filter-center-511')), findsOneWidget);
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-task-search')), 240, scrollable: find.byType(Scrollable).last);
+    expect(find.byKey(const ValueKey('report-filter-task-search')), findsOneWidget);
+    expect(find.byKey(const ValueKey('report-filter-task-t511')), findsOneWidget);
+  });
 }
 

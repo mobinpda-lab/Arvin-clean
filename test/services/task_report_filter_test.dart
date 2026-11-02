@@ -165,4 +165,20 @@ void main() {
   });
 
 
+
+  test('center and task filters combine with project, category, tag and time without resetting other dimensions', () {
+    final now = DateTime(2026, 11, 3, 10);
+    final matching = Task(id: 'task-511', title: 'فن', category: 'تعمیر', tags: ['فوری'], dueDate: DateTime(2026, 11, 3, 12));
+    final otherCenter = Task(id: 'task-512', title: 'فن', category: 'تعمیر', tags: ['فوری'], dueDate: DateTime(2026, 11, 3, 12));
+    final projects = [
+      ProjectPlan(id: 'p511', title: 'کالیبراسیون 511', centerId: '511', itemIds: ['task-511']),
+      ProjectPlan(id: 'p512', title: 'کالیبراسیون 512', centerId: '512', itemIds: ['task-512']),
+    ];
+    final selected = const TaskReportFilter(centerIds: {'511'}, taskId: 'task-511', projectIds: {'p511'}, categories: {'تعمیر'}, tags: {'فوری'}, timePreset: ReportTimePreset.today);
+    expect(selected.apply([matching, otherCenter], now: now, projects: projects).map((task) => task.id), ['task-511']);
+    expect(selected.copyWith(clearTaskId: true).centerIds, {'511'});
+    expect(selected.copyWith(clearTaskId: true).projectIds, {'p511'});
+    expect(selected.copyWith(centerIds: {}).taskId, 'task-511');
+    expect(selected.isActive, isTrue);
+  });
 }
