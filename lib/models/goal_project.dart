@@ -5,6 +5,8 @@ class ProjectPlan {
     this.colorValue = 0xFF4A4CAB,
     this.isArchived = false,
     this.centerId,
+    this.templateId,
+    this.templateNameSnapshot,
     Iterable<String> itemIds = const [],
   }) : itemIds = List.unmodifiable(itemIds);
 
@@ -25,6 +27,11 @@ class ProjectPlan {
   /// Null keeps legacy Projects without a fabricated Center.
   final String? centerId;
 
+  /// Stable origin template identity; null for legacy/manual Projects.
+  final String? templateId;
+  /// Human-readable template name at generation time.
+  final String? templateNameSnapshot;
+
   /// References existing canonical Task ids. Item payloads are never copied
   /// into this planning domain, preserving Task as the executable source of
   /// truth.
@@ -42,6 +49,10 @@ class ProjectPlan {
     Iterable<String>? itemIds,
     String? centerId,
     bool clearCenterId = false,
+    String? templateId,
+    bool clearTemplateId = false,
+    String? templateNameSnapshot,
+    bool clearTemplateNameSnapshot = false,
   }) {
     return ProjectPlan(
       id: id,
@@ -49,6 +60,8 @@ class ProjectPlan {
       colorValue: colorValue ?? this.colorValue,
       isArchived: isArchived ?? this.isArchived,
       centerId: clearCenterId ? null : centerId ?? this.centerId,
+      templateId: clearTemplateId ? null : templateId ?? this.templateId,
+      templateNameSnapshot: clearTemplateNameSnapshot ? null : templateNameSnapshot ?? this.templateNameSnapshot,
       itemIds: itemIds ?? this.itemIds,
     );
   }

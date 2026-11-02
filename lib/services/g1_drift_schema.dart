@@ -26,7 +26,8 @@ class G1DriftSchema implements QueryExecutorUser {
     '''CREATE TABLE IF NOT EXISTS projects (
   id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL,
   color_value INTEGER NOT NULL DEFAULT 4283059371, is_archived INTEGER NOT NULL DEFAULT 0,
-  center_id TEXT NULL REFERENCES centers(id), legacy_payload_json TEXT NULL)''',
+  center_id TEXT NULL REFERENCES centers(id), template_id TEXT NULL,
+  template_name_snapshot TEXT NULL, legacy_payload_json TEXT NULL)''',
     '''CREATE TABLE IF NOT EXISTS project_items (
   project_id TEXT NOT NULL REFERENCES projects(id), task_id TEXT NOT NULL REFERENCES tasks(id),
   ordinal INTEGER NOT NULL, PRIMARY KEY (project_id, task_id))''',
@@ -99,6 +100,13 @@ class G1DriftSchema implements QueryExecutorUser {
       if (!projectColumns.any((row) => row['name'] == 'center_id')) {
         await executor.runCustom('ALTER TABLE projects ADD COLUMN center_id TEXT NULL REFERENCES centers(id)');
       }
+      if (!projectColumns.any((row) => row['name'] == 'template_id')) {
+        await executor.runCustom('ALTER TABLE projects ADD COLUMN template_id TEXT NULL');
+      }
+      if (!projectColumns.any((row) => row['name'] == 'template_name_snapshot')) {
+        await executor.runCustom('ALTER TABLE projects ADD COLUMN template_name_snapshot TEXT NULL');
+      }
+      await executor.runCustom('CREATE UNIQUE INDEX IF NOT EXISTS idx_projects_active_template_center ON projects(template_id, center_id) WHERE template_id IS NOT NULL AND center_id IS NOT NULL AND is_archived = 0');
       if (!projectColumns.any((row) => row['name'] == 'legacy_payload_json')) {
         await executor.runCustom('ALTER TABLE projects ADD COLUMN legacy_payload_json TEXT NULL');
       }

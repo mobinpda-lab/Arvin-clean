@@ -164,6 +164,7 @@ class Task {
     this.trashed = false,
     this.completed = false,
     this.completedAt,
+    this.templateTaskId,
     this.followUps = const [],
     this.recurrence,
     Iterable<PersonReference> people = const [],
@@ -210,6 +211,8 @@ class Task {
   bool trashed;
   bool completed;
   DateTime? completedAt;
+  /// Stable source definition ID for a task generated/propagated from a template.
+  String? templateTaskId;
   List<FollowUp> followUps;
   RecurrenceRule? recurrence;
   final List<PersonReference> people;
@@ -351,6 +354,7 @@ class Task {
         'trashed': trashed,
         'completed': completed,
         'completedAt': completedAt?.toIso8601String(),
+        if (templateTaskId != null) 'templateTaskId': templateTaskId,
         'followUps': followUps.map((e) => e.toJson()).toList(),
         if (recurrence != null) 'recurrence': recurrence!.toJson(),
         if (people.isNotEmpty)
@@ -471,6 +475,7 @@ class Task {
       completedAt: json['completedAt'] == null
           ? null
           : DateTime.tryParse(json['completedAt'] as String),
+      templateTaskId: json['templateTaskId'] as String?,
       followUps: loadedFollowUps,
       recurrence: json['recurrence'] is Map
           ? RecurrenceRule.fromJson(

@@ -9,6 +9,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/person_reference.dart';
 import '../models/task.dart';
+import '../models/goal_project.dart';
+import 'project_plan_codec.dart';
 import 'g1_drift_schema.dart';
 import 'sql_task_migration_writer.dart';
 import 'task_storage_lock.dart';
@@ -312,6 +314,35 @@ class TaskStore {
 
   Future<void> save(List<Task> tasks) =>
       TaskStorageLock.synchronized<void>(() => _saveUnlocked(tasks));
+
+  /// Atomically persists canonical Tasks and their Project metadata/membership.
+  /// Used by template generation/propagation so a partial cross-store write
+  /// cannot leave orphan Task copies or Projects with missing Task rows.
+  Future<void> saveWithProjects(List<Task> tasks, List<ProjectPlan> projects) =>
+      TaskStorageLock.synchronized<void>(() => _saveUnlocked(
+        tasks,
+        beforeCommit: (executor) async {
+          await executor.runCustom('DELETE FROM project_items');
+          await executor.runCustom('DELETE FROM projects');
+          const codec = ProjectPlanCodec();
+          for (final project in projects) {
+            await executor.runInsert(
+              '''INSERT INTO projects
+                 (id, name, color_value, is_archived, center_id, template_id, template_name_snapshot, legacy_payload_json)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+              <Object?>[project.id, project.title, project.colorValue,
+                project.isArchived ? 1 : 0, project.centerId, project.templateId,
+                project.templateNameSnapshot, jsonEncode(codec.encode(project))],
+            );
+            for (var ordinal = 0; ordinal < project.itemIds.length; ordinal++) {
+              await executor.runInsert(
+                'INSERT INTO project_items (project_id, task_id, ordinal) VALUES (?, ?, ?)',
+                <Object?>[project.id, project.itemIds[ordinal], ordinal],
+              );
+            }
+          }
+        },
+      ));
 
   /// Updates only Task description metadata without rewriting relation tables.
   /// In particular, historical Follow-up rows are never deleted/reinserted here.
@@ -729,7 +760,7 @@ class TaskStore {
       'id', 'title', 'description', 'createdAt', 'updatedAt', 'dueDate',
       'followUpEnabled', 'followUpDate', 'tags', 'category', 'checklist',
       'checklistOccurrences', 'occurrenceHistory', 'notebookKind', 'reminderDate', 'priority', 'archived', 'trashed',
-      'completed', 'completedAt', 'followUps', 'recurrence', 'people',
+      'completed', 'completedAt', 'templateTaskId', 'followUps', 'recurrence', 'people',
       'taskReminders',
     };
     final preserved = <String, dynamic>{};

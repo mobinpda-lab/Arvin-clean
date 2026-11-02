@@ -99,6 +99,8 @@ class ProjectStore {
         'colorValue': row['color_value'],
         'isArchived': (row['is_archived'] as num?)?.toInt() == 1,
         'centerId': row['center_id'] as String?,
+        'templateId': row['template_id'] as String?,
+        'templateNameSnapshot': row['template_name_snapshot'] as String?,
         'itemIds': itemRows.map((item) => item['task_id'] as String).toList(),
       }));
     }
@@ -128,14 +130,16 @@ class ProjectStore {
   Future<void> _insertProject(QueryExecutor executor, ProjectPlan project) async {
     await executor.runInsert(
       '''INSERT INTO projects
-         (id, name, color_value, is_archived, center_id, legacy_payload_json)
-         VALUES (?, ?, ?, ?, ?, ?)''',
+         (id, name, color_value, is_archived, center_id, template_id, template_name_snapshot, legacy_payload_json)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
       <Object?>[
         project.id,
         project.title,
         project.colorValue,
         project.isArchived ? 1 : 0,
         project.centerId,
+        project.templateId,
+        project.templateNameSnapshot,
         jsonEncode(codec.encode(project)),
       ],
     );
