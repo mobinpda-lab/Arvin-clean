@@ -1,4 +1,5 @@
 from pathlib import Path
+import base64
 import json
 import re
 
@@ -11,6 +12,26 @@ def require(text: str, token: str, source: str) -> None:
 def forbid(text: str, token: str, source: str) -> None:
     if token in text:
         raise SystemExit(f"Fast Lane contract forbids in {source}: {token}")
+
+
+def decode_embedded_shell_scripts(workflow: str, source: str) -> str:
+    """Return decoded shell scripts embedded as printf + base64 pipelines."""
+    decoded_scripts = []
+    pattern = re.compile(
+        r'printf\\s+"%s"\\s+"([A-Za-z0-9+/=]+)"\\s*'
+        r'\\|\\s*base64\\s+--decode\\s*\\|\\s*bash',
+        re.DOTALL,
+    )
+    for match in pattern.finditer(workflow):
+        encoded = match.group(1)
+        try:
+            decoded = base64.b64decode(encoded, validate=True).decode("utf-8")
+        except (ValueError, UnicodeDecodeError) as exc:
+            raise SystemExit(f"Fast Lane contract invalid embedded Base64 shell in {source}: {exc}")
+        decoded_scripts.append(decoded)
+    if not decoded_scripts:
+        raise SystemExit(f"Fast Lane contract missing embedded Base64 shell script in {source}")
+    return "\\n".join(decoded_scripts)
 
 
 build_path = Path('.github/workflows/build.yml')
@@ -116,7 +137,16 @@ require(device, 'if [ "$actual" != "$TARGET_SHA" ]; then', str(device_path))
 require(device, 'exit 1', str(device_path))
 
 require(device, 'max-parallel: 2', str(device_path))
-require(device, 'flutter drive --driver=test_driver/integration_test.dart', str(device_path))
+# The emulator action's script is intentionally Base64-encoded in YAML.
+# Validate the decoded executable payload, not an absent plaintext copy.
+require(device, 'base64 --decode', str(device_path))
+device_shell_scripts = decode_embedded_shell_scripts(device, str(device_path))
+require(
+    device_shell_scripts,
+    'flutter drive --driver=test_driver/integration_test.dart',
+    str(device_path) + ' decoded emulator script',
+)
+require(device_shell_scripts, 'mkdir -p artifacts/device-smoke', str(device_path) + ' decoded emulator script')
 forbid(device, 'adb exec-out screencap -p', str(device_path))
 driver_path = Path('test_driver/integration_test.dart')
 if not driver_path.is_file():
