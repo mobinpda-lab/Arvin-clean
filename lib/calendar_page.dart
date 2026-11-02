@@ -151,17 +151,23 @@ class _CalendarPageState extends State<CalendarPage> {
     }
   }
 
+  bool _isHistoricalFollowUpCalendarItem(CalendarReminder item) =>
+      item.id.startsWith('followup:') || item.id.startsWith('task-followup:');
+
   List<CalendarReminder> _calendarReminders() {
     final range = _visibleRange();
-    final projected = widget.visibleReminderProjection?.call(range.$1, range.$2) ?? const <CalendarReminder>[];
-    if (projected.isEmpty) return widget.reminders;
-    final merged = <CalendarReminder>[...widget.reminders];
-    final existing = merged.map((item) => item.id).toSet();
+    final canonicalItems = widget.reminders
+        .where((item) => !_isHistoricalFollowUpCalendarItem(item))
+        .toList(growable: true);
+    final projected = (widget.visibleReminderProjection?.call(range.$1, range.$2) ??
+            const <CalendarReminder>[])
+        .where((item) => !_isHistoricalFollowUpCalendarItem(item));
+    final existing = canonicalItems.map((item) => item.id).toSet();
     for (final item in projected) {
-      if (existing.add(item.id)) merged.add(item);
+      if (existing.add(item.id)) canonicalItems.add(item);
     }
-    merged.sort((a, b) => a.date.compareTo(b.date));
-    return List<CalendarReminder>.unmodifiable(merged);
+    canonicalItems.sort((a, b) => a.date.compareTo(b.date));
+    return List<CalendarReminder>.unmodifiable(canonicalItems);
   }
 
   bool _sameDay(DateTime a, DateTime b) =>
