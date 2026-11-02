@@ -254,7 +254,7 @@ class _TaskTaxonomyManagementPageState
       ..showSnackBar(
         SnackBar(
           content: Text(
-            '$kind «${error.value}» در ${error.referenceCount} مورد استفاده می‌شود و قابل حذف نیست. ابتدا موارد را منتقل/تغییرنام دهید.',
+            '$kind «${error.value}» در ${error.referenceCount} کار سابقه ارجاع دارد و قابل حذف نیست؛ برای حفظ سوابق، حذف آن مسدود شده است.',
           ),
         ),
       );
