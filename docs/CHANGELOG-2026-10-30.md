@@ -422,3 +422,13 @@ Target branch SHA: `8ccbc90ebfdcd797d5c18f6ab7a6cb6cff2de358` (all results below
 - Workflow commit: `19e65fcb7836beeb5f3150e2bc771b1a1fd25cd9`. The workflow implementation is not proof that an APK has been built; its own run must pass on the resulting exact HEAD before any APK artifact is claimed.
 - PR #3052 remains OPEN / DRAFT / UNMERGED; base/main SHA remains `45e4202b03a434459e4c021a04efa7e8396359db`; label `BLOCKED — RELEASE: NO-GO` remains. No merge, release, public publication, or manual dispatch was performed.
 - Iran timestamp: 1405/08/11 16:40 (Asia/Tehran).
+
+
+## 2026-11-03 — مشخصات مراکز، قالب پروژه، انتشار امن کار و گزارش‌گیری
+
+- سند مرجع `docs/ARVIN_CENTERS_TEMPLATES_REPORTING_SPEC.md` به‌عنوان قرارداد کامل محصول و معیار پذیرش ثبت شد.
+- واژگان رسمی «مرکز» (بدون موجودیت/فیلتر جداگانه «شعبه»)، رابطهٔ Center → Project → Category → Task و مستقل‌بودن Tags تثبیت شد.
+- جریان Center CRUD، Project Template، تولید مستقل برای چند Center، انتشار انتخابی Task جدید به Projectهای فعال، idempotency، سازگاری داده‌های legacy و گزارش‌های تکی/ترکیبی مستند شد.
+- قرارداد پنج فیلتر عمومی و دو فیلتر افزودهٔ Report Center («کار» و «قالب پروژه») از هم تفکیک شد.
+- وضعیت فعلی مدل/ذخیره‌سازی و شکاف‌های واقعی ثبت شد؛ این milestone مستندسازی است و به معنی پیاده‌سازی قابلیت‌ها نیست.
+- **Governance:** PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched؛ **BLOCKED — RELEASE: NO-GO**.

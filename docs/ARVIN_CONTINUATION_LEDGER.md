@@ -1090,3 +1090,29 @@ Run 41451772502 / Job 125298740317 on the same SHA completed FAILURE. Gradle sta
 - PR #3052 OPEN / DRAFT / UNMERGED; main untouched; no APK publication or release.
 - Verdict: **BLOCKED — RELEASE: NO-GO**.
 - Iran timestamp: 1405/08/12 (Asia/Tehran).
+
+
+## Wave 7.297 — ثبت مشخصات کامل Center / Project Template / Safe Propagation / Reporting — 2026-11-03
+
+**مبنای ثبت:** HEAD `38d8183097d3b88976f4a320a6b3acb44160047c`؛ شاخه `fix/recovery-calendar-device-smoke-2026-10-31`؛ PR #3052.
+
+### اقدام فوری مستنداتی
+- سند کامل `docs/ARVIN_CENTERS_TEMPLATES_REPORTING_SPEC.md` ثبت شد.
+- قرارداد شامل Center → Project → Category → Task، Tags شناور، Center CRUD، حفظ Projectهای legacy بدون Center، قالب پروژه، تولید مستقل برای چند Center، propagation انتخابی و append-only، پنج فیلتر عمومی، دو فیلتر افزوده Report Center، گزارش ترکیبی، idempotency، migration ایمن، سناریوی پذیرش، تست‌ها و پرسش‌های حل‌نشده است.
+- Changelog در `docs/CHANGELOG-2026-10-30.md` برای این milestone به‌روزرسانی شد.
+- این commit صرفاً اسناد است؛ پیاده‌سازی هیچ‌یک از قابلیت‌ها را ادعا نمی‌کند.
+
+### شواهد وضعیت فعلی هنگام تدوین
+- `ProjectPlan` فقط id/title/color/isArchived/itemIds دارد؛ centerId و templateId ندارد.
+- SQLite فعلی projects/project_items دارد؛ Center و Template table در schema مبنا مشاهده نشد.
+- Category روی Task به‌صورت متن است؛ Category→Project FK اثبات نشد.
+- Project مدل وضعیت مستقل completed ندارد؛ فقط isArchived وجود دارد.
+- TaskReportFilter فاقد Center، Task-origin و Template filters است.
+- بنابراین Center/Template/propagation/report extensions در HEAD مبنا NOT IMPLEMENTED / NOT VERIFIED هستند.
+
+### ادامهٔ کار و حاکمیت
+- اجرای بعدی باید با Center persistence و nullable Project association شروع شود؛ سپس Template، generation، propagation و گزارش‌ها، با حفظ canonical TaskStore/ProjectStore.
+- هیچ migration مخرب، Task ID مشترک بین Projectهای تولیدی، propagation خودکار به همه مقصدها یا تغییر معنای گزارش‌های فعلی مجاز نیست.
+- PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main بدون تغییر؛ بدون انتشار APK عمومی.
+- **Verdict: BLOCKED — RELEASE: NO-GO.**
+- Iran timestamp: 1405/08/12 02:06 (Asia/Tehran).
