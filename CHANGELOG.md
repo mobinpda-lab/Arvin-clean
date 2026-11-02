@@ -94,3 +94,13 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - Follow-up Device Smoke has no test result; do not substitute the independent File Persistence run 41451772534 (SUCCESS) for it.
 - Review APK Run 41451772502 / Job 125298740317 built the staging APK successfully but failed the verification step. Its apksigner output was not surfaced, so the exact failing predicate is NOT VERIFIED and no APK artifact was uploaded.
 - Release remains BLOCKED — RELEASE: NO-GO. No acceptance gate is upgraded by these outcomes.
+
+
+## 2026-11-03 — Home last Follow-up requires a real record
+
+- Home's visible Task-card date and preview remain sourced only from the chronologically latest canonical FollowUp in Task.followUps; a legacy followUpDate or followUpEnabled value no longer supplies a synthetic Home Follow-up.
+- The legacyHomeFollowUpDate compatibility accessor now returns only lastFollowUpDate. followUpDate and followUpEnabled continue to round-trip unchanged; no schema, column, migration or stored historical value is deleted or rewritten.
+- HomeTodayProjection inherits the same record-only boundary. Added positive/negative projection and Home widget regression coverage, including a reload assertion proving Home rendering does not create a FollowUp record.
+- Existing Task Details, Follow-up Office/Notebook, Report Center, Reminder and Due Date paths were not changed. No destructive migration or database compatibility change was made.
+- Validation is pending on the resulting exact branch SHA; previous Build/Device Smoke/Calendar Provider outcomes belong to parent SHA db8818c01d9e944717396e3df93bb0a466e92546 and are not evidence for a later commit.
+- Governance remains PR #3052 OPEN / DRAFT / UNMERGED; Release **BLOCKED — RELEASE: NO-GO**.

@@ -48,6 +48,9 @@ void main() {
     );
 
     expect(service.project(task, now: DateTime(2026, 8, 31)), isNull);
+    expect(task.followUps, isEmpty);
+    expect(task.followUpDate, DateTime(2026, 9, 1, 9));
+    expect(task.followUpEnabled, isTrue);
   });
 
   test('blank FollowUp note presents canonical default title', () {

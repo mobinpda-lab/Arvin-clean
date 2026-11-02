@@ -2,11 +2,19 @@ import 'package:arvin/models/task.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('preserves the legacy Home follow-up date when history is absent', () {
+  test('does not project a legacy Home follow-up date without a real record', () {
     final date = DateTime(2026, 8, 25, 9);
-    final task = Task(id: 'legacy-date', title: 'پیگیری', followUpDate: date);
+    final task = Task(
+      id: 'legacy-date',
+      title: 'پیگیری',
+      followUpEnabled: true,
+      followUpDate: date,
+    );
 
-    expect(task.legacyHomeFollowUpDate, date);
+    expect(task.legacyHomeFollowUpDate, isNull);
+    expect(task.lastFollowUp, isNull);
+    expect(task.followUpDate, date);
+    expect(task.followUpEnabled, isTrue);
   });
 
   test('uses the latest follow-up for the Home view when history exists', () {

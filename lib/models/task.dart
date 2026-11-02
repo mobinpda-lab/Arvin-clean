@@ -492,6 +492,7 @@ class Task {
 
   DateTime? get lastFollowUpDate => lastFollowUp?.dateTime;
 
-  DateTime? get legacyHomeFollowUpDate =>
-      followUps.isEmpty ? followUpDate : lastFollowUpDate;
+  /// Compatibility accessor retained for older Home callers. Presentation
+  /// must never infer a recorded FollowUp from legacy scheduling metadata.
+  DateTime? get legacyHomeFollowUpDate => lastFollowUpDate;
 }

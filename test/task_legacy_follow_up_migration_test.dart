@@ -13,7 +13,7 @@ void main() {
     expect(task.followUpDate, DateTime(2026, 8, 18, 9, 30));
     expect(task.followUpEnabled, isTrue);
     expect(task.lastFollowUp, isNull);
-    expect(task.legacyHomeFollowUpDate, DateTime(2026, 8, 18, 9, 30));
+    expect(task.legacyHomeFollowUpDate, isNull);
   });
 
   test('current followUps remain authoritative when legacy date is also present', () {

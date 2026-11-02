@@ -12,12 +12,16 @@ void main() {
     bool completed = false,
     bool archived = false,
     bool trashed = false,
+    bool realFollowUp = true,
   }) {
     return Task(
       id: id,
       title: id,
       followUpEnabled: followUpDate != null,
       followUpDate: followUpDate,
+      followUps: realFollowUp && followUpDate != null
+          ? [FollowUp(id: 'fu-$id', dateTime: followUpDate)]
+          : const [],
       completed: completed,
       archived: archived,
       trashed: trashed,
@@ -40,7 +44,20 @@ void main() {
     expect(result.map((item) => item.id), ['today']);
   });
 
-  test('uses latest canonical FollowUp history instead of stale legacy date', () {
+  test('legacy scheduling fields alone never create a Home FollowUp entry', () {
+    final item = task(
+      'legacy-only',
+      DateTime(2026, 8, 27, 8),
+      realFollowUp: false,
+    );
+
+    expect(projection.select([item], now: today), isEmpty);
+    expect(item.followUpDate, DateTime(2026, 8, 27, 8));
+    expect(item.followUpEnabled, isTrue);
+    expect(item.followUps, isEmpty);
+  });
+
+  test('uses latest canonical FollowUp history instead of stale legacy date', {
     final item = task('history', DateTime(2026, 8, 27, 8));
     item.followUps = [
       FollowUp(

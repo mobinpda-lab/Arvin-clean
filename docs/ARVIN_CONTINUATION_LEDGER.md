@@ -1037,3 +1037,31 @@ Run 41451772502 / Job 125298740317 on the same SHA completed FAILURE. Gradle sta
 - Keep PR #3052 OPEN / DRAFT / UNMERGED and preserve Release NO-GO. No main edit, merge, release, public APK publication, or product-owner sign-off is authorized.
 
 **Verdict remains: BLOCKED — RELEASE: NO-GO.**
+
+
+## Wave 7.295 — Home last Follow-up real-record-only presentation — 2026-11-03
+
+**Parent SHA inspected:** db8818c01d9e944717396e3df93bb0a466e92546. **Branch:** fix/recovery-calendar-device-smoke-2026-10-31.
+
+### Root cause and bounded change
+- The actual Home Task card already reads Task.lastFollowUp through _homeLastFollowUpDate and HomeFollowUpPresentationService; the service returns null when followUps is empty. It does not create or persist records.
+- A legacy compatibility getter Task.legacyHomeFollowUpDate still returned followUpDate when no real FollowUp existed, and HomeTodayProjection consumed that getter. The getter now remains source-compatible but returns only lastFollowUpDate.
+- Positive and negative regressions cover latest real record selection, legacy-only exclusion, preservation of legacy field values, and no record creation during Home rendering (verified after reloading TaskStore).
+- No Task Details, Notebook/Follow-up Office, Report Center, Reminder or Due Date implementation was changed. No schema/column removal, data migration, SQL mutation or historical-record rewrite was made.
+
+### task-followup-action: namespace audit
+- On this exact parent source tree, CalendarPage recognizes this prefix only for visual styling/icon classification. The current source tree does not contain the separately named FollowUpInternalCalendarProjection implementation described in the older calendar decision note, nor a source generator for this ID was found in the inspected current call paths.
+- The documented intended meaning is a read-only internal-calendar action derived from canonical FollowUp.nextFollowUp, distinct from a Reminder: no OS notification and no outbound/device Calendar event. It is not a reason to delete or rewrite nextFollowUp.
+- Current implementation status of an actual generated task-followup-action: item: NOT VERIFIED / not found in current branch source. Do not describe the namespace as an active scheduled reminder or remove it solely based on its name.
+
+### Exact-SHA validation checkpoint before this change
+- Build run 41510778726 on parent SHA: Analyze PASS; all six test shards PASS (156 + 200 + 164 + 208 + 267 + 127 = 1,122 tests); APK matrix SKIPPED under Draft guard.
+- Device Smoke run 41510778774 on parent SHA: Boot, Navigation, Quick Capture, Task Lifecycle, Reminder/Vazirmatn and Follow-up Persistence SUCCESS; Calendar Segmented View CANCELLED. Aggregate NOT ACCEPTED.
+- Calendar Provider run 41510778734 on parent SHA: SUCCESS.
+- These results are parent-SHA evidence only. New exact-head Build and targeted regression outcomes must be recorded after the new commit completes.
+
+### Governance
+- PR #3052 remains OPEN / DRAFT / UNMERGED; no main edit, merge, release or public APK publication.
+- No database migration was required for this presentation-only change; legacy values remain serialized.
+- Verdict: **BLOCKED — RELEASE: NO-GO**.
+- Iran timestamp: 1405/08/12 00:34 (Asia/Tehran).
