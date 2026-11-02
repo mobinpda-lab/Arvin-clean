@@ -1116,3 +1116,90 @@ Run 41451772502 / Job 125298740317 on the same SHA completed FAILURE. Gradle sta
 - PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main بدون تغییر؛ بدون انتشار APK عمومی.
 - **Verdict: BLOCKED — RELEASE: NO-GO.**
 - Iran timestamp: 1405/08/12 02:06 (Asia/Tehran).
+
+
+---
+
+## Wave 7.298 — Clause 10/14 authoritative architecture update & read-only calendar audit — 2026-11-03
+
+**Audit target SHA:** `5ef2181ed3811f73fee29371ab0474a173d89a04`  
+**Repository/branch:** `mobinpda-lab/Arvin-clean` / `fix/recovery-calendar-device-smoke-2026-10-31`  
+**PR #3052:** OPEN / DRAFT / UNMERGED. **main HEAD:** `45e4202b03a434459e4c021a04efa7e8396359db` (unchanged at pre-update verification).  
+**Release:** **BLOCKED — RELEASE: NO-GO**.
+
+### Owner-authoritative specification update
+
+#### Clause 14 — Dual-Track Calendar Architecture
+
+**Track 1 — Local Arvin Calendar (autonomous and auto-registered)**
+- The local Arvin calendar is the sole autonomous calendar experience: embedded/offline solar + Gregorian date engine; zero Android calendar permission; no dependency on external accounts or providers.
+- Eligible canonical Tasks and independent Reminders are registered, updated and retired through Arvin-owned lifecycle management.
+- Follow-up history is historical/read-only. It must never create a future schedule event, reminder or external calendar event.
+
+**Track 2 — Device Calendar Export (selective and explicitly user-triggered)**
+- Export/sync may begin only after a designated user action: the explicit Device Calendar UI action or a configured Calendar-card Swipe action.
+- Provider permission denial, unavailable calendars, query/write failure or provider exceptions must not mutate, corrupt or delete local Arvin calendar records, Tasks or Reminders.
+- Repeating an export/retry is idempotent: one eligible Arvin item maps to one stable provider event; retry must not create duplicates.
+- The two tracks remain isolated. Provider access is not a prerequisite for Track 1 operation.
+
+#### Clause 10 — Enhanced Analytical Report Center
+
+- Preserve all existing report types, semantics and five universal filter dimensions.
+- Add report-specific Task selection and Project Template selection without replacing the universal filters.
+- Support analytical views by Center, Project, Task and Template, including valid combined-filter/report scopes.
+- Preserve canonical Task identity/origin across Projects, avoid double counting, retain legacy/no-Center/no-Template visibility rules and provide accurate empty states.
+- Keep the existing report date boundaries, status/count/progress semantics and historical records unchanged.
+- The detailed implementation contract remains `docs/ARVIN_CENTERS_TEMPLATES_REPORTING_SPEC.md`. This ledger update records the owner-directed Clause 10 alignment; it does not assert that the enhanced report features are implemented or accepted on this SHA.
+
+### Read-only audit — CanonicalCalendarLauncher and Android Calendar Provider
+
+**Evidence inspected at exact target SHA:** `lib/widgets/canonical_calendar_launcher.dart`, `lib/services/follow_up_calendar_projection.dart`, `lib/services/calendar_inbound_sync_service.dart`, `lib/services/system_calendar_bridge.dart`, `lib/services/calendar_sync_plan_service.dart`, `lib/services/calendar_provider_sync_executor.dart`, `android/app/src/main/kotlin/com/example/arvin/MainActivity.kt`, AndroidManifest and the focused launcher/provider contract tests.
+
+#### Findings
+
+1. **BLOCKER — automatic provider reconciliation violates Track isolation and explicit-trigger policy.**
+   - `CanonicalCalendarLauncher.initState()` schedules `_reconcileDeviceCalendar` automatically.
+   - That method invokes `CalendarInboundSyncService.reconcile` for a date window without a user action.
+   - The inbound service reads linked Android Calendar events and writes changes back to canonical Task due dates / TaskReminders. If a linked provider event is absent while the canonical fingerprint still matches, it clears the local due/reminder and persists the changed Task list.
+   - This is an external-provider-to-Arvin import/reconciliation path, not selective outbound export. It conflicts with the new Track 1/Track 2 boundary and creates a local-data deletion risk if provider state is incomplete or unexpectedly omits a linked event. **NOT ACCEPTABLE under updated Clause 14.**
+
+2. **BLOCKER — export eligibility still includes historical Follow-up namespaces.**
+   - `SystemCalendarBridge.isEligible` currently accepts `followup:` and `task-followup:` in addition to Task due dates and Task Reminders.
+   - The current `FollowUpCalendarProjection.project` does not emit Follow-up history and its historical target resolver returns null, which limits the present visible path; however, the bridge/revision eligibility contract itself still permits those IDs. A future/direct caller could export historical Follow-up data.
+   - Updated Clause 14 requires these historical namespaces to be rejected at the export/sync boundary, not merely omitted by one current projection. **Required correction and regression tests; not changed in this read-only audit.**
+
+3. **PARTIAL PASS — explicit outbound entry points exist.**
+   - The launcher exposes a named «تقویم دستگاه» action under More and delegates to the export flow.
+   - Calendar card Swipe actions are separately configurable and passed into the calendar page.
+   - The Android `ACTION_INSERT` path opens the system calendar editor without a direct write operation. The provider create/update/delete APIs are separately permission-gated.
+   - This confirms entry points exist; it does not prove every provider mutation is reachable only through an explicit user action. All call sites still require a full action-path audit.
+
+4. **PARTIAL PASS — stable-link/idempotency design exists.**
+   - Provider sync plans use reminder IDs, stable event links and content fingerprints to select CREATE / NO-OP / UPDATE / DELETE.
+   - The executor preserves the linked event identity on update, validates linked identity before update/delete, writes link metadata only after provider success, and attempts rollback when migrating an event between calendars.
+   - Focused tests cover duplicate-create rejection, no-op/update behavior, stale identity fail-closed behavior, provider create failure, delete and migration rollback.
+   - These are source/test-contract findings only. No fresh exact-SHA test execution or real-provider acceptance was run as part of this read-only audit.
+
+5. **PARTIAL PASS — Android boundary is explicit and bounded.**
+   - `MainActivity` uses `CalendarContract` for provider CRUD and event/calendar queries, checks separate READ/WRITE permissions, scopes update/delete by both event ID and calendar ID, and converts permission/provider exceptions into channel errors.
+   - Event queries enforce a maximum calendar count and bounded time window.
+   - AndroidManifest declares READ_CALENDAR and WRITE_CALENDAR. Their presence is not permission to access the provider automatically; every access must remain behind the updated explicit Track 2 interaction policy.
+   - Permission-denial and provider-failure behavior has not been demonstrated end-to-end against the updated failure-isolation requirement.
+
+### Required follow-up before Clause 14 acceptance
+
+- Remove/retire automatic inbound reconciliation from launcher startup and prevent provider reads/writes from changing canonical local Task/Reminder data under the export-only architecture.
+- Make export eligibility reject all historical Follow-up IDs, including `followup:` and `task-followup:`; add negative tests at both projection and bridge/revision/executor boundaries.
+- Prove all Track 2 provider calls originate only from the designated explicit UI/Swipe actions.
+- Add failure-injection coverage proving permission denial, provider exception, missing calendar, empty/partial provider query and retry leave all local Arvin calendar records, Tasks, Reminders and link metadata unchanged unless a successful explicitly approved export operation is committed.
+- Re-run exact-SHA Build, focused calendar/provider tests and Calendar Provider Acceptance after authorized fixes; separately verify on a real device. No parent-SHA evidence transfers to a later SHA.
+- Verify the Track 1 embedded solar/Gregorian engine, zero-permission behavior and automatic local Task/Reminder lifecycle independently; this audit did not establish those acceptance facts.
+- Audit Clause 10 Report Center implementation against the full analytical specification and record each behavior as PASS / FAIL / NOT VERIFIED with exact-SHA evidence.
+
+### Audit limits and governance
+
+- This was a source-and-test-contract inspection only. No tests, emulator runs, physical-device checks or workflow runs were executed in this checkpoint.
+- No application code, Android manifest, database schema or user data was changed in this audit.
+- The ledger is updated only on the authorized PR #3052 branch. Do not merge, modify `main`, close the PR, publish an APK or release.
+- PR #3052 must remain OPEN / DRAFT / UNMERGED; Release remains **BLOCKED — RELEASE: NO-GO**.
+- Iran timestamp: 1405/08/12 03:07 (Asia/Tehran).
