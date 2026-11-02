@@ -57,7 +57,7 @@ void main() {
     expect(item.followUps, isEmpty);
   });
 
-  test('uses latest canonical FollowUp history instead of stale legacy date', {
+  test('uses latest canonical FollowUp history instead of stale legacy date', () {
     final item = task('history', DateTime(2026, 8, 27, 8));
     item.followUps = [
       FollowUp(
