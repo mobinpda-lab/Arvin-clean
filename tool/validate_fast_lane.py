@@ -18,8 +18,8 @@ def decode_embedded_shell_scripts(workflow: str, source: str) -> str:
     """Return decoded shell scripts embedded as printf + base64 pipelines."""
     decoded_scripts = []
     pattern = re.compile(
-        r'printf\\s+"%s"\\s+"([A-Za-z0-9+/=]+)"\\s*'
-        r'\\|\\s*base64\\s+--decode\\s*\\|\\s*bash',
+        r'printf\s+"%s"\s+"([A-Za-z0-9+/=]+)"\s*'
+        r'\|\s*base64\s+--decode\s*\|\s*bash',
         re.DOTALL,
     )
     for match in pattern.finditer(workflow):
@@ -31,7 +31,7 @@ def decode_embedded_shell_scripts(workflow: str, source: str) -> str:
         decoded_scripts.append(decoded)
     if not decoded_scripts:
         raise SystemExit(f"Fast Lane contract missing embedded Base64 shell script in {source}")
-    return "\\n".join(decoded_scripts)
+    return "\n".join(decoded_scripts)
 
 
 build_path = Path('.github/workflows/build.yml')
