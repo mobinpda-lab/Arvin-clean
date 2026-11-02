@@ -119,22 +119,40 @@ jobs:
             exit 1
           fi
 
-          app_id="$("$apkanalyzer" manifest application-id "$apk")"
-          debuggable="$("$apkanalyzer" manifest debuggable "$apk")"
+          # Collect and print real manifest/font diagnostics before any acceptance assertion.
+          app_id="$(\"$apkanalyzer\" manifest application-id "$apk")"
+          debuggable="$(\"$apkanalyzer\" manifest debuggable "$apk")"
+          font_regular="assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf"
+          font_medium="assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf"
+          font_bold="assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf"
+          font_regular_status=FAIL
+          font_medium_status=FAIL
+          font_bold_status=FAIL
+          if unzip -Z1 "$apk" | grep -Fxq "assets/flutter_assets/$font_regular"; then font_regular_status=PASS; fi
+          if unzip -Z1 "$apk" | grep -Fxq "assets/flutter_assets/$font_medium"; then font_medium_status=PASS; fi
+          if unzip -Z1 "$apk" | grep -Fxq "assets/flutter_assets/$font_bold"; then font_bold_status=PASS; fi
+
+          echo "REVIEW_APK_DIAGNOSTICS_BEGIN"
+          echo "APPLICATION_ID=$app_id"
+          echo "ANDROID_DEBUGGABLE=$debuggable"
+          echo "VAZIRMATN_REGULAR=$font_regular_status ($font_regular)"
+          echo "VAZIRMATN_MEDIUM=$font_medium_status ($font_medium)"
+          echo "VAZIRMATN_BOLD=$font_bold_status ($font_bold)"
+          echo "REVIEW_APK_DIAGNOSTICS_END"
+
+          # Preserve all acceptance checks; diagnostics above do not weaken them.
           test "$app_id" = "com.example.arvin.staging"
           test "$debuggable" = "false"
-
-          for font in \
-            assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf \
-            assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf \
-            assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf; do
-            unzip -Z1 "$apk" | grep -Fxq "assets/flutter_assets/$font"
-          done
+          test "$font_regular_status" = "PASS"
+          test "$font_medium_status" = "PASS"
+          test "$font_bold_status" = "PASS"
 
           apk_copy="review-apk/Arvin-review-staging-${{ steps.revision.outputs.sha }}.apk"
           apk_sha256="$(sha256sum "$apk_copy" | awk '{print $1}')"
           apk_bytes="$(stat -c '%s' "$apk_copy")"
-          signer_sha256="$(grep -F 'Signer #1 certificate SHA-256 digest:' review-apk/apksigner-verify.log | tail -n 1 | sed 's/.*: //')"
+          # Support both legacy apksigner labels and current V3.0/V3.1 signer labels.
+          signer_sha256="$(grep -E '^(V[0-9.]+ )?Signer: certificate SHA-256 digest:|^Signer #[0-9]+ certificate SHA-256 digest:' review-apk/apksigner-verify.log | tail -n 1 | sed 's/.*: //')"
+          echo "SIGNER_CERTIFICATE_SHA256=$signer_sha256"
           test -n "$signer_sha256"
 
           export SOURCE_SHA="${{ steps.revision.outputs.sha }}"
