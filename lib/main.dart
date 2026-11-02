@@ -31,7 +31,6 @@ import 'widgets/universal_arvin_time_picker.dart';
 import 'services/app_settings_service.dart';
 import 'services/daily_content_preferences_service.dart';
 import 'services/calendar_outbound_sync_service.dart';
-import 'services/calendar_inbound_sync_service.dart';
 import 'services/follow_up_calendar_projection.dart';
 
 import 'services/calendar_provider_sync_executor.dart';
@@ -686,21 +685,12 @@ class _HomePageState extends State<HomePage> {
         force: true,
         preserveUnprojectedTaskIds: _trashedTaskIds(snapshot),
       );
-      final now = DateTime.now().toLocal();
-      final today = DateTime(now.year, now.month, now.day);
-      final inbound = await CalendarInboundSyncService().reconcile(
-        start: today.subtract(const Duration(days: 31)),
-        end: today.add(const Duration(days: 62)),
-      );
-      if (inbound.changed) {
-        await _load();
-      }
       if (!mounted) return;
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
           const SnackBar(
-            content: Text('همگام‌سازی دوباره انجام شد؛ تغییرات آروین و تقویم گوشی بررسی و به‌روزرسانی شد.'),
+            content: Text('خروجی آروین به تقویم گوشی دوباره بررسی شد؛ اطلاعات محلی آروین مستقل باقی ماند.'),
           ),
         );
     } catch (_) {
