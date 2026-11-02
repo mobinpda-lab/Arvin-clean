@@ -328,3 +328,16 @@ Target branch SHA: `8ccbc90ebfdcd797d5c18f6ab7a6cb6cff2de358` (all results below
 - The GlobalKey context, real RenderBox/Scrollable geometry, bounded jumpTo scroll, full viewport assertions, real pointer tap, notification-cancellation handler, same-file SQLite close/reopen, persisted Task completion and reminder-isolation assertions remain. No test, assertion, scenario, timeout or production path was removed or weakened.
 
 **Validation:** this addresses the observed missing-context boundary; it is not accepted until T14a, real tap, T14d and final SQLite reopen/readback pass on one exact SHA. Build, File Persistence, all seven Device Smoke lanes with valid uploaded PNGs and Parallel Wave must complete on that SHA. PR #3052 remains OPEN / DRAFT / UNMERGED; **BLOCKED — RELEASE: NO-GO**.
+
+
+---
+
+## 2026-11-02 — Planned product roadmap: recurring projects for Branches/Centers
+
+- Registered `docs/product/ARVIN_RECURRING_BRANCH_PROJECTS_ROADMAP.md` as the formal Product Roadmap & Product Specification for recurring Branch projects.
+- Frozen the product hierarchy: Branch → Projects (1:N), Project → Tasks (1:N), Template → generated Project as provenance; historical Project records for each Branch/Period remain independent and are never overwritten.
+- Defined Branch Directory, Template Library, save-existing-Project-as-Template, multi-Branch generation with independent Task copies, Branch/Template/Period/Status/Tag reporting, duplicate warning/confirmation, and per-Branch batch outcomes.
+- Preserved compatibility: existing Project/Task remain canonical; legacy Projects without Branch/Template remain supported; Branch is not a Tag; a Branch with history is deactivated rather than destructively deleted.
+- Recorded MVP boundaries, explicit non-goals, 15 product acceptance criteria, data-safety constraints and pre-implementation decisions requiring owner/design resolution.
+- **Status:** `POST-STABILITY / PLANNED`. This is a product requirement registration only, not implementation authorization or acceptance.
+- No product code, tests, assertions, schema, migration, UI, main, Merge, Release or APK publication was changed. PR #3052 remains OPEN / DRAFT / UNMERGED. **BLOCKED — RELEASE: NO-GO**.
