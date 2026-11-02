@@ -352,3 +352,62 @@ These runs targeted SHA `073664dbb69f0c1aea96ebd074a97a158b5c1699`; they do not 
 - Keep the four independent Reminder actions and five-tab navigation behavior intact.
 - Require fresh exact-HEAD Build, Parallel Wave, Device Smoke and file-backed persistence evidence after the Wave 7.270 commits.
 - Release remains **BLOCKED — RELEASE: NO-GO**.
+
+
+---
+
+## Wave 7.271 live audit checkpoint — 2026-11-02
+
+**Audited revision:** `2cf461c69bbbeda1b86eaf76a04e2a1036a9d011`  
+**PR #3052:** OPEN / DRAFT / UNMERGED.  
+**Release:** BLOCKED — RELEASE: NO-GO.
+
+### Live workflow outcomes
+
+| Workflow | Run | Job evidence | Outcome |
+|---|---:|---|---|
+| Build #9095 | 41370612040 | Analyze 125040150620 SUCCESS; test-0 125040150319 FAILURE; test-1 125040150555 SUCCESS; test-2 125040150755 FAILURE; test-3 125040150513 FAILURE; test-4 125040150625 SUCCESS; test-5 125040150591 SUCCESS; APK 125040151453 SKIPPED | Overall FAILURE |
+| Parallel Wave | 41370611960 | contract 125040075984 SUCCESS; log: `Arvin Fast Lane workflow contract: OK` | PASS for validator contract only |
+| Follow-up File Persistence | 41370611969 | Job 125040146456 FAILURE | T14 timeout |
+| Device Smoke #6356 | 41370611971 | seven scenario jobs all SUCCESS | No artifact files registered |
+
+### Build failure detail
+
+- Analyzer log explicitly reports `No issues found!`.
+- test-0 fails `test/widgets/home_page_test.dart` canonical Home shell assertion: expected old search placeholder text, no matching widget found.
+- test-3 fails `test/home/home_filter_contract_test.dart`: expected key `task-card-details-legacy-only`, actual finder returned zero widgets. Earlier assertions in that same test had progressed beyond the first-card accordion/description/time and real FollowUp checks; full accordion contract is not accepted.
+- test-2 fails `test/device_smoke_workflow_contract_test.dart`: expected non-null canonical lane match, actual null. The same shard reports 265 tests passed and two failed, including the file-backed Alarm Overlay persistence timeout.
+- test-1, test-4, test-5 passed in this run.
+- APK matrix was skipped by an explicit workflow condition: `if: github.event_name != 'pull_request' || !github.event.pull_request.draft`. PR #3052 is Draft, so the APK job is intentionally excluded. This is a governance gate, not a Gradle/APK compile failure. Do not change PR state or dispatch a release build without explicit authorization.
+
+### File-backed SQLite / Complete action
+
+- Run 41370611969, Job 125040146456 reached T14 after temp directory creation, first SQLite save, Snooze, close/reopen, second schema install, reload and persisted-state assertions completed.
+- T14 immediately precedes `await tester.tap(find.byKey(ValueKey('alarm-overlay-complete')))`.
+- Log then records T22 cleanup and T23 diagnostics shutdown, followed by the 10-minute test timeout.
+- No `[COMPLETE] before TaskStore.mutate` marker appears. Thus the handler body was not observably entered; there is no evidence of a failed SQLite completion write or Calendar sync invocation.
+- Root cause of the tap/interaction not entering the handler remains **NOT VERIFIED**. A likely widget-test interaction/presentation issue is only a hypothesis, not an established cause. Do not claim a database defect or alter assertions/timeouts until the interaction is instrumented and reproduced.
+
+### Device Smoke artifacts
+
+- All seven scenario jobs (Boot, Task Lifecycle, Quick Capture, Reminder/Vazirmatn, Follow-up Persistence, Calendar Segmented View, Navigation) concluded SUCCESS.
+- Artifact listing for Run 41370611971 is empty.
+- All seven job logs report no files matching `artifacts/device-smoke/*.png`; no screenshot/video artifacts are available.
+- Therefore functional scenario completion is not independently accepted from job conclusions alone; visual evidence is NOT VERIFIED. No video evidence was returned.
+
+### Product documentation
+
+- `CHANGELOG.md` contains a Wave 7.270 section documenting the Fast Lane decoder, Home accordion, actual FollowUp projection, scroll-aware navigation with separate FAB, Vazirmatn Bismillah and tests, with an explicit statement that CI acceptance is pending.
+- This Ledger records the Wave 7.270 implementation and now includes this Wave 7.271 live audit.
+- The UI changes are recorded in both documents; these records do not imply acceptance.
+
+### Next actions
+
+1. Fix the two source/test contract failures: update the canonical Home search assertion to the actual product copy; correct the second-card fixture/visibility and preserve its independent Details route assertion.
+2. Investigate the Device Smoke contract test's null lane match against the actual seven-lane workflow source; retain all seven lane checks.
+3. Instrument the Complete button's actual render bounds, visibility, hit-test result and callback entry in the widget test. Establish why the callback is not entered before changing production behavior. Preserve all SQLite reopen and completion assertions.
+4. Diagnose why scenario jobs produce no screenshot files and make each lane write a non-empty artifact at the declared path; do not convert empty artifacts into success.
+5. APK build is intentionally gated while the PR is Draft. Keep that policy intact until explicit product-owner authorization to ready a build candidate.
+6. Re-run Build, Parallel Wave, Device Smoke and file-backed persistence on one exact new HEAD after fixes.
+
+No issue closed, no PR merge, no main change, no schema migration. Release remains **BLOCKED — RELEASE: NO-GO**.
