@@ -376,3 +376,15 @@ Target branch SHA: `8ccbc90ebfdcd797d5c18f6ab7a6cb6cff2de358` (all results below
 - تمرکز فنی جاری روی تکمیل شواهد Alarm Overlay file-backed SQLite است. Repository persistence به‌تنهایی اثبات close/reopen و readback مسیر Complete نیست؛ Run 41429824427 / Job 125225318356 هنگام ثبت هنوز IN PROGRESS بود.
 - پیش از پایان تست‌های پایداری و دستور مستقل مالک محصول، هیچ کد اجرایی، تغییر UI/runtime، Schema یا Migration مجاز نیست.
 - PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ برچسب BLOCKED — RELEASE: NO-GO و وضعیت عدم انتشار حفظ می‌شود.
+
+
+## 2026-11-02 — taxonomy safety lock, atomic rename and canonical Home refresh
+
+- **Owner decision locked:** Category/Tag deletion is blocked whenever canonical Tasks reference the item. No cascading deletion, automatic archive, or policy change is allowed in this phase. The management UI now explains that deletion is blocked to preserve Task history and reports the reference count.
+- Added `TaskStore.renameCategoryAndTasks` and `renameTagAndTasks`; Task reference rewrites and catalog renames execute within the same SQLite transaction. A failed Task write or catalog operation rolls back the entire rename; the catalog cannot advance independently.
+- Taxonomy management now refreshes its canonical Task/category/tag snapshot after a successful rename and after a failed persistence attempt. The old separate catalog rename calls were removed from the UI mutation path.
+- Alarm Overlay load diagnostics now mark before/after `TaskStore.load`, before/after `ProjectStore.load`, and immediately before/after success/error `onLoadComplete` callback invocation. The file-backed test logs before/after awaiting the callback and before settling the loaded frame. No load logic, test assertion, or timeout was removed or weakened.
+- Home now reloads canonical Tasks, Projects, Categories and Tags after returning from Settings and after the Home category/tag creation shortcuts succeed.
+- Added UI regression assertions that category and tag rename results are reflected immediately in the management list and canonical catalogs.
+- **Validation:** implementation and test changes are not runtime-accepted until fresh exact-HEAD Build and File Persistence workflows complete. T13.5's internal stopping point remains NOT VERIFIED until the new ordered diagnostic log identifies the last emitted marker. No result from an earlier SHA transfers to this update.
+- PR #3052 remains OPEN / DRAFT / UNMERGED; **BLOCKED — RELEASE: NO-GO**. No main edit, merge, release or APK publication.
