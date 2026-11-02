@@ -144,18 +144,24 @@ class _TaskTaxonomyManagementPageState
     return result;
   }
 
-  Future<void> _persistMutation(int changed, String successMessage) async {
-    if (changed == 0 || saving) return;
+  Future<bool> _persistMutation(
+    int changed,
+    String successMessage, {
+    required Future<void> Function(List<Task> snapshot) persist,
+  }) async {
+    if (saving) return false;
     setState(() => saving = true);
     try {
-      await store.save(List<Task>.of(tasks));
-      if (!mounted) return;
+      await persist(List<Task>.of(tasks));
+      if (!mounted) return false;
       setState(() => saving = false);
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(SnackBar(content: Text(successMessage)));
+      await _load();
+      return true;
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted) return false;
       setState(() => saving = false);
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
@@ -165,6 +171,7 @@ class _TaskTaxonomyManagementPageState
           ),
         );
       await _load();
+      return false;
     }
   }
 
@@ -229,8 +236,15 @@ class _TaskTaxonomyManagementPageState
       _pendingChanged = changed;
     });
     final changed = _takePendingChanged();
-    await _persistMutation(changed, '$changed مورد به «$next» منتقل شد');
-    await store.renameCategoryCatalog(category, next);
+    await _persistMutation(
+      changed,
+      '$changed مورد به «$next» منتقل شد',
+      persist: (snapshot) => store.renameCategoryAndTasks(
+        snapshot,
+        from: category,
+        to: next,
+      ),
+    );
   }
 
   void _showDeleteBlocked(TaskTaxonomyDeleteBlocked error) {
@@ -273,8 +287,15 @@ class _TaskTaxonomyManagementPageState
       );
     });
     final changed = _takePendingChanged();
-    await _persistMutation(changed, '$changed مورد با برچسب «$next» به‌روز شد');
-    await store.renameTagCatalog(tag, next);
+    await _persistMutation(
+      changed,
+      '$changed مورد با برچسب «$next» به‌روز شد',
+      persist: (snapshot) => store.renameTagAndTasks(
+        snapshot,
+        from: tag,
+        to: next,
+      ),
+    );
   }
 
   Future<void> _deleteTag(String tag) async {
