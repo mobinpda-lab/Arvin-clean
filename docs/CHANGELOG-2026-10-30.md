@@ -366,3 +366,13 @@ Target branch SHA: `8ccbc90ebfdcd797d5c18f6ab7a6cb6cff2de358` (all results below
 - Required entity-type identification in results and direct navigation from a Branch result to its details/projects/history. The Branch shortcut opens the Branch Directory; inactive Branch history remains available.
 - This owner decision supersedes the earlier four-card and Task-only search requirements.
 - **Status:** `POST-STABILITY / PLANNED`; documentation only. No app code, schema, migration, UI/runtime behavior, main, merge or release changed. Exact image pixel matching remains `NOT VERIFIED` pending recovery of the reference image. PR #3052 remains OPEN / DRAFT / UNMERGED. **BLOCKED — RELEASE: NO-GO**.
+
+
+## 2026-11-02 — قفل نهایی پنج تغییر محصولی آروین
+
+- قفل شد: (۱) ساختار Branch/Center، Project و Task با حفظ تاریخچه مستقل؛ (۲) Template Library و تولید Projectهای تکرارشونده مستقل برای هر Branch؛ (۳) Reports Tab متمرکز با فیلترهای Branch/Template/Period/Status/Tag و Follow-upهای مختص Task؛ (۴) Home با دقیقاً پنج کارت برچسب‌ها، دسته‌ها، پروژه‌ها، زمان و شعبه/مرکز؛ (۵) جست‌وجوی سراسری Tasks/Projects/Branches با فیلتر ساختاری Branch.
+- این فهرست مرجع نهایی تصمیم مالک محصول در این گفتگو است و تصمیم‌های قدیمی چهارکارتی/Task-only را جایگزین می‌کند. جزئیات حل‌نشده Point filters و قواعد طراحی همچنان نیازمند تصمیم صریح‌اند.
+- وضعیت همه بسته‌ها POST-STABILITY / PLANNED است؛ ثبت و قفل نیازمندی، مجوز پیاده‌سازی نیست.
+- تمرکز فنی جاری روی تکمیل شواهد Alarm Overlay file-backed SQLite است. Repository persistence به‌تنهایی اثبات close/reopen و readback مسیر Complete نیست؛ Run 41429824427 / Job 125225318356 هنگام ثبت هنوز IN PROGRESS بود.
+- پیش از پایان تست‌های پایداری و دستور مستقل مالک محصول، هیچ کد اجرایی، تغییر UI/runtime، Schema یا Migration مجاز نیست.
+- PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ برچسب BLOCKED — RELEASE: NO-GO و وضعیت عدم انتشار حفظ می‌شود.
