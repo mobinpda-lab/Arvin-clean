@@ -38,6 +38,7 @@ import 'services/external_calendar_link_store.dart';
 
 import 'services/home_list_projection.dart';
 import 'services/home_search_projection.dart';
+import 'services/home_follow_up_presentation_service.dart';
 import 'services/task_due_scope_service.dart';
 import 'services/task_list_scope_service.dart';
 import 'services/task_list_sort_service.dart';
@@ -402,6 +403,9 @@ class _HomePageState extends State<HomePage> {
   final FlutterLocalNotificationsPlugin _notificationPlugin =
       FlutterLocalNotificationsPlugin();
   final FocusNode _searchFocusNode = FocusNode();
+  final ScrollController _homeScrollController = ScrollController();
+  final Set<String> _expandedTaskIds = <String>{};
+  bool _hideBottomNavigation = false;
 
   List<Task> tasks = [];
   List<String> _categoryCatalog = const <String>[];
@@ -439,6 +443,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     widgetTaskBridge.listen(_openWidgetTask);
+    _homeScrollController.addListener(_handleHomeScroll);
     _load();
     _refreshPendingNotificationCount();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -446,8 +451,23 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  void _handleHomeScroll() {
+    if (!_homeScrollController.hasClients || selectionMode) return;
+    final direction = _homeScrollController.position.userScrollDirection;
+    final shouldHide = direction == ScrollDirection.reverse
+        ? true
+        : direction == ScrollDirection.forward
+            ? false
+            : _hideBottomNavigation;
+    if (shouldHide != _hideBottomNavigation && mounted) {
+      setState(() => _hideBottomNavigation = shouldHide);
+    }
+  }
+
   @override
   void dispose() {
+    _homeScrollController.removeListener(_handleHomeScroll);
+    _homeScrollController.dispose();
     widgetTaskBridge.dispose();
     _searchFocusNode.dispose();
     super.dispose();
@@ -592,9 +612,6 @@ class _HomePageState extends State<HomePage> {
     }.toList()..sort();
     return values;
   }
-
-  String _homeCountLabel(int count) =>
-      persianDateFormatter.toPersianDigits('$count مورد');
 
   Future<String?> _createCategory(String value) async {
     final name = value.trim();
@@ -997,8 +1014,7 @@ class _HomePageState extends State<HomePage> {
       {'id': 'next7', 'title': '۷ روز آینده', 'icon': Icons.date_range_rounded},
       {'id': 'next30', 'title': '۳۰ روز آینده', 'icon': Icons.calendar_month_rounded},
       {'id': 'custom', 'title': 'تاریخ مشخص', 'icon': Icons.event_rounded},
-      {'id': 'undated', 'title': 'فاقد زمان', 'icon': Icons.event_busy_rounded},
-    ];
+      {'id': 'undated', 'title': 'فاقد زمان', 'icon': Icons.event_busy_rounded},    ];
     var fromDate = _fromDateFilter;
     var toDate = _toDateFilter;
     var fromTime = _fromTimeFilter;
@@ -1307,6 +1323,7 @@ class _HomePageState extends State<HomePage> {
       ));
     }
     return ListView.builder(
+      controller: _homeScrollController,
       padding: EdgeInsets.fromLTRB(16, 5, 16, MediaQuery.sizeOf(context).height < 700 ? 12 : 96),
       itemCount: groups.length,
       itemBuilder: (context, index) {
@@ -1997,8 +2014,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _restore(Task task) async {
     setState(() {
-      task.trashed = false;
-      task.archived = false;
+      task.trashed = false;      task.archived = false;
       filter = 'کل';
       _listScope = TaskListScope.all;
       _dueScope = null;
@@ -2997,8 +3013,7 @@ class _HomePageState extends State<HomePage> {
           Text(label, style: const TextStyle(fontWeight: FontWeight.w700)),
         ],
       ),
-    );
-  }
+    );  }
 
   String? _latestFollowUpPreview(Task task) {
     final followUp = task.lastFollowUp;
@@ -3040,6 +3055,9 @@ class _HomePageState extends State<HomePage> {
   }
   Widget _taskCard(Task task) {
     final lastFollowUpDate = _homeLastFollowUpDate(task);
+    final followUpPresentation =
+        const HomeFollowUpPresentationService().project(task);
+    final expanded = _expandedTaskIds.contains(task.id);
     final projectedReminders = const HomeListProjection().projectReminders(
       task.taskReminders,
       followUpDate: lastFollowUpDate,
@@ -3087,7 +3105,13 @@ class _HomePageState extends State<HomePage> {
                     ..addAll(next);
                   selectionMode = selected.isNotEmpty;
                 })
-              : () => _openTaskDetail(task),
+              : () => setState(() {
+                  if (expanded) {
+                    _expandedTaskIds.remove(task.id);
+                  } else {
+                    _expandedTaskIds.add(task.id);
+                  }
+                }),
           child: Padding(
             // Compact vertical rhythm: save 4 px per card without shrinking text.
             padding: const EdgeInsets.fromLTRB(5, 2, 5, 2),
@@ -3299,7 +3323,95 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                 ),
+                if (!selectionMode)
+                  IconButton(
+                    key: ValueKey('task-card-details-${task.id}'),
+                    tooltip: 'جزئیات کامل کار',
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () => _openTaskDetail(task),
+                    icon: const Icon(Icons.open_in_new_rounded, size: 19),
+                  ),
               ],
+            ),
+            AnimatedSize(
+              key: ValueKey('task-card-accordion-${task.id}'),
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeInOut,
+              alignment: Alignment.topCenter,
+              child: expanded
+                  ? Padding(
+                      padding: const EdgeInsetsDirectional.fromSTEB(42, 8, 10, 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (task.description.trim().isNotEmpty) ...[
+                            Text(
+                              task.description.trim(),
+                              key: ValueKey('task-card-description-${task.id}'),
+                              style: const TextStyle(
+                                color: ArvinColors.textPrimary,
+                                fontSize: 12,
+                                height: 1.55,
+                              ),
+                            ),
+                            const SizedBox(height: 7),
+                          ],
+                          if (task.dueDate != null) ...[
+                            Row(
+                              children: [
+                                const Icon(Icons.event_available_outlined, size: 15, color: ArvinColors.textSecondary),
+                                const SizedBox(width: 5),
+                                Expanded(
+                                  child: Text(
+                                    task.allDay
+                                        ? 'تاریخ دقیق: ${_date(task.dueDate!)}'
+                                        : 'تاریخ و ساعت دقیق: ${_date(task.dueDate!)} • ${_time(task.dueDate!)}',
+                                    key: ValueKey('task-card-exact-due-${task.id}'),
+                                    style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w600),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                          if (followUpPresentation != null) ...[
+                            if (task.description.trim().isNotEmpty || task.dueDate != null)
+                              const SizedBox(height: 7),
+                            Container(
+                              key: ValueKey('task-card-follow-up-${task.id}'),
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEAF5ED),
+                                borderRadius: BorderRadius.circular(11),
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Icon(Icons.history_rounded, size: 16, color: Color(0xFF397A50)),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'آخرین پیگیری: ${followUpPresentation.title}',
+                                          style: const TextStyle(color: Color(0xFF28643E), fontSize: 11, fontWeight: FontWeight.w700),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          [followUpPresentation.exactDateTime, if (followUpPresentation.relative != null) '🕒 ${followUpPresentation.relative}'].join(' • '),
+                                          style: const TextStyle(color: Color(0xFF397A50), fontSize: 10.5, fontWeight: FontWeight.w500),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    )
+                  : const SizedBox.shrink(),
             ),
           ),
         ),
@@ -3402,7 +3514,19 @@ class _HomePageState extends State<HomePage> {
       ),
       floatingActionButton: !compactHome && selected.isEmpty && loadFailure == null ? Padding(padding: const EdgeInsets.only(bottom: 2), child: KeyedSubtree(key: const ValueKey('home-canonical-add'), child: ArvinHomePrimaryAddButton(onPressed: _quickCapture))) : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
-      bottomNavigationBar: selected.isEmpty ? ArvinPrimaryNavigation(selected: ArvinPrimaryDestination.home, onSelected: _onPrimaryDestinationSelected) : TaskBulkSelectionBar(
+      bottomNavigationBar: selected.isEmpty
+          ? AnimatedSize(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeInOut,
+              alignment: Alignment.topCenter,
+              child: _hideBottomNavigation
+                  ? const SizedBox.shrink(key: ValueKey('home-bottom-navigation-hidden'))
+                  : ArvinPrimaryNavigation(
+                      selected: ArvinPrimaryDestination.home,
+                      onSelected: _onPrimaryDestinationSelected,
+                    ),
+            )
+          : TaskBulkSelectionBar(
         selectedCount: selected.length,
         allVisibleSelected: taskBulkSelectionService.allVisibleSelected(selected, visible),
         onToggleAll: _toggleAllVisibleSelection,
