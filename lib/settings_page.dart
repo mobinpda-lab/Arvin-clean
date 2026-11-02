@@ -6,6 +6,7 @@ import 'projects_launcher.dart';
 import 'services/app_settings_service.dart';
 import 'services/calendar_swipe_settings_service.dart';
 import 'task_taxonomy_management_page.dart';
+import 'center_management_page.dart';
 import 'widgets/contextual_help.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -58,6 +59,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _openBackupSchedule() async { await Navigator.of(context).push<void>(MaterialPageRoute<void>(builder: (_) => BackupSchedulePage())); }
   Future<void> _openCalendarIntegrationSettings() async { await Navigator.of(context).push<void>(MaterialPageRoute<void>(builder: (_) => CalendarIntegrationSettingsPage(service: widget.service))); await _load(); }
   Future<void> _openProjectsManagement() async { await Navigator.of(context).push<void>(MaterialPageRoute<void>(builder: (_) => const ProjectsLauncher())); }
+  Future<void> _openCenterManagement() async { await Navigator.of(context).push<void>(MaterialPageRoute<void>(builder: (_) => const CenterManagementPage())); }
   Future<void> _openTaxonomyManagement() async { await Navigator.of(context).push<void>(MaterialPageRoute<void>(builder: (_) => const TaskTaxonomyManagementPage())); }
   Future<void> _showBackupHelp() => showContextualHelp(context, title: 'راهنمای پشتیبان‌گیری', steps: _backupHelpSteps);
   @override Widget build(BuildContext context) {
@@ -70,6 +72,7 @@ class _SettingsPageState extends State<SettingsPage> {
       DropdownButtonFormField<TaskSwipeAction>(key: const ValueKey('swipe-right-action'), initialValue: current.swipeRightAction, decoration: const InputDecoration(labelText: 'کشیدن به راست', prefixIcon: Icon(Icons.swipe_right_outlined), border: OutlineInputBorder()), items: _swipeItems(), onChanged: (action) { if (action != null) _setSwipeAction(rightSide: true, action: action); }),
       const SizedBox(height: 12), DropdownButtonFormField<TaskSwipeAction>(key: const ValueKey('swipe-left-action'), initialValue: current.swipeLeftAction, decoration: const InputDecoration(labelText: 'کشیدن به چپ', prefixIcon: Icon(Icons.swipe_left_outlined), border: OutlineInputBorder()), items: _swipeItems(), onChanged: (action) { if (action != null) _setSwipeAction(rightSide: false, action: action); }),
       const SizedBox(height: 12), ListTile(key: const ValueKey('font-settings-entry'), contentPadding: EdgeInsets.zero, title: const Text('اندازه متن'), subtitle: Text(current.fontSize.toStringAsFixed(0)), leading: const Icon(Icons.format_size), trailing: SizedBox(width: 180, child: Slider(min: 12, max: 24, divisions: 12, value: current.fontSize.clamp(12, 24), label: current.fontSize.toStringAsFixed(0), onChanged: _setFontSize)),), const SizedBox(height: 20), const Text('پروژه و دسته‌بندی', style: TextStyle(fontWeight: FontWeight.bold)), const SizedBox(height: 8), ListTile(key: const ValueKey('projects-settings-entry'), contentPadding: EdgeInsets.zero, leading: const Icon(Icons.account_tree_outlined), title: const Text('پروژه‌ها'), subtitle: const Text('ساخت، ویرایش، بایگانی و حذف امن پروژه‌ها'), trailing: const Icon(Icons.chevron_left), onTap: _openProjectsManagement),
+      const Divider(height: 24), ListTile(key: const ValueKey('centers-settings-entry'), contentPadding: EdgeInsets.zero, leading: const Icon(Icons.location_city_outlined), title: const Text('مراکز'), subtitle: const Text('مدیریت مراکز و اتصال پروژه‌ها به مرکز'), trailing: const Icon(Icons.chevron_left), onTap: _openCenterManagement),
       const Divider(height: 24), ListTile(key: const ValueKey('taxonomy-settings-entry'), contentPadding: EdgeInsets.zero, leading: const Icon(Icons.sell_outlined), title: const Text('دسته‌ها و برچسب‌ها'), subtitle: const Text('تغییر نام و حذف امن روی همان کارها و یادداشت‌ها'), trailing: const Icon(Icons.chevron_left), onTap: _openTaxonomyManagement),
       const Divider(height: 32), const Text('حرکت کارت‌های تقویم', key: ValueKey('calendar-swipe-settings-title'), style: TextStyle(fontWeight: FontWeight.bold)), const SizedBox(height: 8),
       DropdownButtonFormField<CalendarSwipeAction>(key: const ValueKey('calendar-swipe-right-action'), initialValue: _calendarSwipeSettings.right, decoration: const InputDecoration(labelText: 'کشیدن کارت تقویم به راست', border: OutlineInputBorder()), items: _calendarSwipeItems(), onChanged: (action) { if (action != null) _setCalendarSwipeAction(rightSide: true, action: action); }),

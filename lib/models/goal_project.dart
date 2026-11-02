@@ -4,6 +4,7 @@ class ProjectPlan {
     required this.title,
     this.colorValue = 0xFF4A4CAB,
     this.isArchived = false,
+    this.centerId,
     Iterable<String> itemIds = const [],
   }) : itemIds = List.unmodifiable(itemIds);
 
@@ -21,6 +22,9 @@ class ProjectPlan {
   /// alternative to destructive deletion while preserving history.
   final bool isArchived;
 
+  /// Null keeps legacy Projects without a fabricated Center.
+  final String? centerId;
+
   /// References existing canonical Task ids. Item payloads are never copied
   /// into this planning domain, preserving Task as the executable source of
   /// truth.
@@ -36,12 +40,15 @@ class ProjectPlan {
     int? colorValue,
     bool? isArchived,
     Iterable<String>? itemIds,
+    String? centerId,
+    bool clearCenterId = false,
   }) {
     return ProjectPlan(
       id: id,
       title: title ?? this.title,
       colorValue: colorValue ?? this.colorValue,
       isArchived: isArchived ?? this.isArchived,
+      centerId: clearCenterId ? null : centerId ?? this.centerId,
       itemIds: itemIds ?? this.itemIds,
     );
   }
@@ -93,12 +100,14 @@ class ProjectLifecycleService {
     required String projectId,
     String? title,
     int? colorValue,
+    String? centerId,
+    bool clearCenterId = false,
   }) {
     var found = false;
     final next = projects.map((project) {
       if (project.id != projectId) return project;
       found = true;
-      return project.copyWith(title: title, colorValue: colorValue);
+      return project.copyWith(title: title, colorValue: colorValue, centerId: centerId, clearCenterId: clearCenterId);
     }).toList(growable: false);
     if (!found) {
       throw ArgumentError.value(projectId, 'projectId', 'Unknown Project');

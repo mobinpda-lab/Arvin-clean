@@ -16,6 +16,7 @@ class ProjectPlanCodec {
       'title': project.title,
       'colorValue': project.colorValue,
       'isArchived': project.isArchived,
+      if (project.centerId != null) 'centerId': project.centerId,
       'itemIds': List<String>.of(project.itemIds),
     };
   }
@@ -44,6 +45,10 @@ class ProjectPlanCodec {
     }
     final isArchived = rawArchived is bool ? rawArchived : false;
 
+    final rawCenterId = map['centerId'];
+    if (rawCenterId != null && (rawCenterId is! String || rawCenterId.trim().isEmpty)) {
+      throw const FormatException('Project centerId must be a non-empty string when present');
+    }
     final rawItemIds = map['itemIds'];
     final itemIds = rawItemIds == null
         ? const <String>[]
@@ -54,6 +59,7 @@ class ProjectPlanCodec {
       title: title,
       colorValue: colorValue,
       isArchived: isArchived,
+      centerId: rawCenterId as String?,
       itemIds: itemIds,
     );
   }
