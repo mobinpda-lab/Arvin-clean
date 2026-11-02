@@ -108,14 +108,15 @@ void main() {
       const Color(0xFFEFF6FF),
     );
     expect(
-      tester.widget<Card>(find.byKey(const ValueKey('calendar-pastel-card-task-followup:waiting'))).color,
-      const Color(0xFFFEFCE8),
+      find.byKey(const ValueKey('calendar-pastel-card-task-followup:waiting')),
+      findsNothing,
     );
+    expect(find.text('در انتظار پیگیری'), findsNothing);
     expect(
       tester.widget<Card>(find.byKey(const ValueKey('calendar-pastel-card-completed'))).color,
       const Color(0xFFECFDF5),
     );
-    expect(find.byIcon(Icons.hourglass_bottom_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.hourglass_bottom_rounded), findsNothing);
     expect(find.byIcon(Icons.check_circle_rounded), findsWidgets);
   });
 
