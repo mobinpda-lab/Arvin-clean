@@ -56,12 +56,16 @@ class _ProjectTemplateManagementPageState extends State<ProjectTemplateManagemen
     final title = TextEditingController(text: existing?.title ?? '');
     final description = TextEditingController(text: existing?.description ?? '');
     final category = TextEditingController(text: existing?.category ?? '');
+    final tags = TextEditingController(text: existing?.tags.join(', ') ?? '');
+    final checklist = TextEditingController(text: existing?.checklist.join('\n') ?? '');
     final result = await showDialog<ProjectTemplateTask>(context: context, builder: (ctx) => AlertDialog(
       title: Text(existing == null ? 'کار جدید در قالب' : 'ویرایش کار قالب'),
       content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
         TextField(controller: title, decoration: const InputDecoration(labelText: 'عنوان کار')),
         TextField(controller: description, decoration: const InputDecoration(labelText: 'توضیحات')),
         TextField(controller: category, decoration: const InputDecoration(labelText: 'دسته (اختیاری)')),
+        TextField(controller: tags, decoration: const InputDecoration(labelText: 'برچسب‌ها (با ویرگول جدا شوند)')),
+        TextField(controller: checklist, minLines: 2, maxLines: 4, decoration: const InputDecoration(labelText: 'چک‌لیست (هر مورد در یک خط)')),
       ])),
       actions: [
         TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
@@ -69,11 +73,12 @@ class _ProjectTemplateManagementPageState extends State<ProjectTemplateManagemen
           id: existing?.id ?? 'template-task-${DateTime.now().microsecondsSinceEpoch}',
           title: title.text.trim(), description: description.text.trim(),
           category: category.text.trim().isEmpty ? null : category.text.trim(),
-          tags: existing?.tags ?? const [], checklist: existing?.checklist ?? const [],
+          tags: tags.text.split(',').map((value) => value.trim()).where((value) => value.isNotEmpty).toSet().toList(),
+          checklist: checklist.text.split('\n').map((value) => value.trim()).where((value) => value.isNotEmpty).toList(),
         )); }, child: const Text('ذخیره کار')),
       ],
     ));
-    title.dispose(); description.dispose(); category.dispose(); return result;
+    title.dispose(); description.dispose(); category.dispose(); tags.dispose(); checklist.dispose(); return result;
   }
   Future<void> _addTask(ProjectTemplate template, {ProjectTemplateTask? existing}) async {
     final definition = await _taskDialog(existing: existing); if (definition == null) return;

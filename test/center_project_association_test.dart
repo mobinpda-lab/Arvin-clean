@@ -37,5 +37,6 @@ void main() {
     final restored = await projects.load();
     expect(restored.firstWhere((p) => p.id == 'legacy-project').centerId, isNull);
     expect(restored.firstWhere((p) => p.id == 'new-project').centerId, 'center-512');
+    await expectLater(centers.delete(id: 'center-512'), throwsA(isA<CenterDeleteBlocked>()));
   });
 }

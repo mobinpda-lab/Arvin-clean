@@ -25,7 +25,8 @@ void main() {
     final second = ProjectTemplateTask(id: 'tt-second', title: 'بررسی واشر');
     final template = ProjectTemplate(id: 'tpl', name: 'کالیبراسیون یخچال', tasks: [base, second], createdAt: now, updatedAt: now);
     await templates.save(template);
-    final service = ProjectTemplateService(templateStore: templates, centerStore: centers, projectStore: projects, taskStore: tasks, idFactory: (prefix) => '$prefix-${DateTime.now().microsecondsSinceEpoch}-${prefix == 'task' ? 'a' : 'p'}');
+    var generatedId = 0;
+    final service = ProjectTemplateService(templateStore: templates, centerStore: centers, projectStore: projects, taskStore: tasks, idFactory: (prefix) => '$prefix-${generatedId++}');
     final generated = await service.generateProjects(templateId: 'tpl', centerIds: {'511', '512', '513'});
     expect(generated.created.length, 3);
     final retryGeneration = await service.generateProjects(templateId: 'tpl', centerIds: {'511', '512', '513'});
