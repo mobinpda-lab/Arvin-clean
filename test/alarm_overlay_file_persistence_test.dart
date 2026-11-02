@@ -121,6 +121,10 @@ void main() {
         await tester.pumpAndSettle();
         stage('T07 Snooze completed; Reminder persistence path returned');
 
+        stage('T07a before disposing first Alarm Overlay');
+        await tester.pumpWidget(const SizedBox.shrink());
+        stage('T07b first Alarm Overlay disposed before closing SQLite');
+
         stage('T08 before closing first SQLite executor');
         await executor.close();
         stage('T09 first SQLite executor closed');
