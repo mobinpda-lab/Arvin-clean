@@ -277,3 +277,12 @@ Target branch SHA: `8ccbc90ebfdcd797d5c18f6ab7a6cb6cff2de358` (all results below
 - No test, assertion, lane or production behavior was removed or weakened.
 
 **Validation:** implementation-only checkpoint; final acceptance requires all four workflows on one exact SHA and seven uploaded, validated PNGs. PR #3052 remains OPEN / DRAFT / UNMERGED; **BLOCKED — RELEASE: NO-GO**.
+
+
+## Wave 7.282 — explicit boot-ready state without loop break — 2026-11-02
+
+**Base SHA:** `c312ec35bf10483a9fdfc16b7dde4f1c43ad3d79`. Device Smoke Run `41412450197`, Navigation Job `125168469015`, proves ADB discovery succeeded and the boot-property command returned exit status `0` with value `1`. The log then stopped immediately after `BOOT_POLL_RESULT`; no after-boot marker, API probe, Flutter Drive or PNG followed. Thus neither ADB discovery nor Android boot completion is the failing operation in that observed lane.
+
+- `.github/workflows/device-smoke.yml`: changed the boot wait to use an explicit `boot_ready` state in the loop condition instead of the success-branch `break`. The same 90 × 2-second maximum remains; each probe logs command status/value, and the after-loop marker records readiness. No timeout budget is increased and no test or scenario is skipped.
+
+**Validation:** the next exact-SHA run must prove progression through API check, Flutter Drive, screenshot validation and upload. Build, File Persistence, seven Device Smoke lanes and Parallel Wave remain required. PR #3052 stays OPEN / DRAFT / UNMERGED; **BLOCKED — RELEASE: NO-GO**.
