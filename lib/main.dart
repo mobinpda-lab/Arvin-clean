@@ -852,20 +852,95 @@ class _HomePageState extends State<HomePage> {
 
 
   Widget _homeFilterCards() {
-    final projectCount = projects.where((project) => !project.isArchived).length;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-      child: Row(
-        textDirection: TextDirection.rtl,
-        children: [
-          HomeFilterCard(dimension: HomeFilterDimension.time, title: 'زمان', value: _timeFilterLabel, active: _timeFilter != 'all', accent: ArvinColors.time, soft: ArvinColors.timeSoft, icon: Icons.schedule_rounded, onTap: _showTimeFilterSheet),
-          const SizedBox(width: 8),
-          HomeFilterCard(dimension: HomeFilterDimension.project, title: 'پروژه‌ها', value: _homeCountLabel(projectCount), active: _projectFilter != null, accent: ArvinColors.project, soft: ArvinColors.projectSoft, icon: Icons.folder_rounded, onTap: _showProjectFilterSheet),
-          const SizedBox(width: 8),
-          HomeFilterCard(dimension: HomeFilterDimension.category, title: 'دسته‌ها', value: _homeCountLabel(_homeCategories.length), active: _categoryFilter != null, accent: ArvinColors.category, soft: ArvinColors.categorySoft, icon: Icons.layers_rounded, onTap: _showCategoryFilterSheet),
-          const SizedBox(width: 8),
-          HomeFilterCard(dimension: HomeFilterDimension.tags, title: 'برچسب‌ها', value: _homeCountLabel(_homeTags.length), active: _tagFilters.isNotEmpty, accent: ArvinColors.tag, soft: ArvinColors.tagSoft, icon: Icons.sell_rounded, onTap: _showTagFilterSheet),
-        ],
+    Widget chip({
+      required Key key,
+      required String label,
+      required IconData icon,
+      required Color accent,
+      required Color soft,
+      required bool active,
+      required VoidCallback onPressed,
+    }) {
+      return Padding(
+        padding: const EdgeInsetsDirectional.only(end: 7),
+        child: ActionChip(
+          key: key,
+          onPressed: onPressed,
+          avatar: Icon(icon, size: 16, color: active ? accent : ArvinColors.textSecondary),
+          label: Text(label, style: TextStyle(
+            color: active ? accent : ArvinColors.textPrimary,
+            fontSize: 12,
+            fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+          )),
+          backgroundColor: active ? soft : ArvinColors.surface,
+          side: BorderSide(color: active ? accent.withAlpha(90) : ArvinColors.border),
+          shape: const StadiumBorder(),
+          visualDensity: VisualDensity.compact,
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 0),
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 42,
+      child: Padding(
+        padding: const EdgeInsetsDirectional.only(start: 16, end: 9, bottom: 4),
+        child: SingleChildScrollView(
+          key: const ValueKey('home-compact-filter-scroll'),
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          child: Row(
+            textDirection: TextDirection.rtl,
+            children: [
+              chip(
+                key: const ValueKey('home-filter-card-all'),
+                label: 'همه',
+                icon: Icons.all_inclusive_rounded,
+                accent: ArvinColors.primary,
+                soft: ArvinColors.primary.withAlpha(24),
+                active: !_homeFilterActive,
+                onPressed: _clearHomeFilters,
+              ),
+              chip(
+                key: const ValueKey('home-filter-card-time'),
+                label: _timeFilter == 'all' ? 'زمان' : _timeFilterLabel,
+                icon: Icons.schedule_rounded,
+                accent: ArvinColors.time,
+                soft: ArvinColors.timeSoft,
+                active: _timeFilter != 'all',
+                onPressed: _showTimeFilterSheet,
+              ),
+              chip(
+                key: const ValueKey('home-filter-card-project'),
+                label: _projectFilter == null ? 'پروژه‌ها' : (_projectTitle(_projectFilter) ?? 'بدون پروژه'),
+                icon: Icons.folder_rounded,
+                accent: ArvinColors.project,
+                soft: ArvinColors.projectSoft,
+                active: _projectFilter != null,
+                onPressed: _showProjectFilterSheet,
+              ),
+              chip(
+                key: const ValueKey('home-filter-card-category'),
+                label: _categoryFilter ?? 'دسته‌بندی‌ها',
+                icon: Icons.layers_rounded,
+                accent: ArvinColors.category,
+                soft: ArvinColors.categorySoft,
+                active: _categoryFilter != null,
+                onPressed: _showCategoryFilterSheet,
+              ),
+              chip(
+                key: const ValueKey('home-filter-card-tags'),
+                label: _tagFilters.isEmpty ? 'برچسب‌ها' : 'برچسب‌ها (${_tagFilters.length})',
+                icon: Icons.sell_rounded,
+                accent: ArvinColors.tag,
+                soft: ArvinColors.tagSoft,
+                active: _tagFilters.isNotEmpty,
+                onPressed: _showTagFilterSheet,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
