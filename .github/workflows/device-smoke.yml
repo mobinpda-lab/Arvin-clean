@@ -179,6 +179,6 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: arvin-device-smoke-reminder-${{ env.TARGET_SHA }}
-          # Include the final scenario screenshot as well as the alarm-overlay fallback captures.
+          # Include the final scenario screenshot and legacy alarm-overlay-*.png fallback captures.
           path: artifacts/device-smoke/*.png
           if-no-files-found: warn
