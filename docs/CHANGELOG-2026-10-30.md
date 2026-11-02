@@ -197,3 +197,18 @@ Target branch SHA: `8ccbc90ebfdcd797d5c18f6ab7a6cb6cff2de358` (all results below
 **Validation:** no workflow result is claimed by this source checkpoint. Build, File Persistence, seven-lane Device Smoke and Parallel Wave must all report fresh results against one identical final SHA. Device screenshots are accepted only when the run artifact inventory contains the per-lane files and their logs confirm valid PNG signatures and sizes.
 
 **Governance:** PR #3052 remains OPEN / DRAFT / UNMERGED. No main change, merge, APK Matrix build or release. Release remains **BLOCKED — RELEASE: NO-GO**.
+
+
+## Wave 7.275 — bounded Complete interaction and ADB recovery — 2026-11-02
+
+**Base SHA:** `f9c30440b4efad500aee790d48e6bc0c680602f0`. Source/workflow remediation only; runtime acceptance is pending on the final exact HEAD.
+
+- `test/alarm_overlay_file_persistence_test.dart`: removed the awaited `tester.ensureVisible` Future from the T14 path. The test now immediately asserts that the actual Complete button is hit-testable, records T14a, taps the real control, waits only through the existing bounded 50 × 100ms pump loop for the real notification-cancellation callback, then closes/reopens SQLite and verifies persisted completion and reminder isolation. No handler, storage, assertion, or timeout was bypassed. A visibility failure now fails promptly rather than hanging before T14a.
+- Root-cause qualification: on the base SHA, the live log reached T14 and then entered cleanup without T14a. CalendarOutboundSyncService is invoked only after the Complete tap and TaskStore mutation; therefore the available evidence does not support Calendar Sync as the cause of this particular timeout. The awaited visibility Future is the first unresolved operation at the observed boundary; this is the targeted test-side correction. Production Calendar Sync behavior is unchanged.
+- `.github/workflows/device-smoke.yml`: the encoded emulator script now explicitly restarts the host ADB daemon, waits for emulator serial `emulator-5554`, and verifies the device state before running the lane. ADB-related Flutter Drive failures receive one retry after ADB recovery; screenshot capture receives one retry after ADB recovery. Direct `adb exec-out screencap -p` remains the source of the PNG, and the existing PNG signature and >1000-byte checks remain mandatory before upload.
+- `test/device_smoke_workflow_contract_test.dart`: contract assertions now require the daemon restart, wait-for-device, both one-retry paths, and direct screencap command while preserving the seven canonical lane mappings.
+- No production storage or notification semantics were changed. No APK matrix was enabled. No main-branch change or merge was made.
+
+**Validation status:** source changes are committed; Build (Analyze + test-0…test-5), File Persistence, all seven Device Smoke lanes with registered PNG artifacts, and Parallel Wave must complete against this same final SHA. No PASS is inferred from this implementation commit.
+
+**Governance:** PR #3052 remains OPEN / DRAFT / UNMERGED. Main changes, APK matrix build, publication and release remain blocked. **BLOCKED — RELEASE: NO-GO**.
