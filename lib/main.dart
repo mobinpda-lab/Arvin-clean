@@ -916,15 +916,6 @@ class _HomePageState extends State<HomePage> {
             textDirection: TextDirection.rtl,
             children: [
               chip(
-                key: const ValueKey('home-filter-card-all'),
-                label: 'همه',
-                icon: Icons.all_inclusive_rounded,
-                accent: ArvinColors.primary,
-                soft: ArvinColors.primary.withAlpha(24),
-                active: !_homeFilterActive,
-                onPressed: _clearHomeFilters,
-              ),
-              chip(
                 key: const ValueKey('home-filter-card-time'),
                 label: _timeFilter == 'all' ? 'زمان' : _timeFilterLabel,
                 icon: Icons.schedule_rounded,

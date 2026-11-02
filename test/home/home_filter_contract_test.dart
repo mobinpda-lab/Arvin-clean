@@ -22,7 +22,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('arvin.tasks',
-      '[{"id":"past","title":"گذشته","dueDate":"${past.toIso8601String()}"},{"id":"today","title":"امروز","dueDate":"${today.toIso8601String()}"},{"id":"tomorrow","title":"کار فردا","dueDate":"${tomorrow.toIso8601String()}"},{"id":"future","title":"آینده","dueDate":"${future.toIso8601String()}"},{"id":"none","title":"بی‌زمان"}]');
+      '[{"id":"past","title":"گذشته","dueDate":"${past.toIso8601String()}","category":"شخصی","tags":["خانه"]},{"id":"today","title":"امروز","dueDate":"${today.toIso8601String()}","category":"کاری","tags":["اداری"]},{"id":"tomorrow","title":"کار فردا","dueDate":"${tomorrow.toIso8601String()}","category":"شخصی"},{"id":"future","title":"آینده","dueDate":"${future.toIso8601String()}","category":"کاری"},{"id":"none","title":"بی‌زمان","category":"کاری"}]');
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
@@ -33,9 +33,34 @@ void main() {
     expect(find.byKey(const ValueKey('home-filter-card-project')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-category')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-tags')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-filter-card-all')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-filter-card-all')), findsNothing);
     expect(find.byKey(const ValueKey('home-compact-filter-scroll')), findsOneWidget);
-    expect(find.byType(ActionChip), findsNWidgets(5));
+    expect(find.byType(ActionChip), findsNWidgets(4));
+
+    // Each filter keeps its own internal unrestricted choice.
+    await tester.tap(find.byKey(const ValueKey('home-filter-card-time')));
+    await tester.pumpAndSettle();
+    expect(find.text('همه'), findsOneWidget);
+    await tester.tap(find.text('همه').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('home-filter-card-project')));
+    await tester.pumpAndSettle();
+    expect(find.text('همه پروژه‌ها'), findsOneWidget);
+    await tester.tap(find.text('همه پروژه‌ها'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('home-filter-card-category')));
+    await tester.pumpAndSettle();
+    expect(find.text('همه دسته‌ها'), findsOneWidget);
+    await tester.tap(find.text('همه دسته‌ها'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('home-filter-card-tags')));
+    await tester.pumpAndSettle();
+    expect(find.text('همه برچسب‌ها'), findsOneWidget);
+    await tester.tap(find.text('همه برچسب‌ها'));
+    await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('home-group-tomorrow')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-group-future')), findsOneWidget);
@@ -44,6 +69,20 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('home-filter-card-time')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('امروز').last);
+    await tester.pumpAndSettle();
+
+    // A category restriction can be cleared independently while time stays active.
+    await tester.tap(find.byKey(const ValueKey('home-filter-card-category')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('کاری'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('home-filter-card-time')), findsOneWidget);
+    expect(find.text('امروز'), findsAtLeastNWidgets(1));
+    expect(find.text('کار فردا'), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('home-filter-card-category')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('همه دسته‌ها'));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('home-group-today')), findsOneWidget);

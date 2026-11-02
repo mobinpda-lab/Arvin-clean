@@ -104,3 +104,13 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - Existing Task Details, Follow-up Office/Notebook, Report Center, Reminder and Due Date paths were not changed. No destructive migration or database compatibility change was made.
 - Validation is pending on the resulting exact branch SHA; previous Build/Device Smoke/Calendar Provider outcomes belong to parent SHA db8818c01d9e944717396e3df93bb0a466e92546 and are not evidence for a later commit.
 - Governance remains PR #3052 OPEN / DRAFT / UNMERGED; Release **BLOCKED — RELEASE: NO-GO**.
+
+
+## 2026-11-03 — Home filter bar: no standalone All chip
+
+- Removed only the standalone Home filter-strip chip keyed `home-filter-card-all`. The contextual Time, Projects, Categories and Tags filter cards remain in their approved order.
+- Preserved each filter's own unrestricted choice inside its selector: Time “همه”, Projects “همه پروژه‌ها”, Categories “همه دسته‌ها”, and Tags “همه برچسب‌ها”. Each choice clears only its own dimension; it does not reset the other active filters.
+- The natural unfiltered Home state remains the default when no filter dimensions are active. Existing global “پاک کردن فیلترها” remains available in the active-filter summary; it is distinct from a standalone All chip.
+- Updated Home filter contract tests to assert the absent standalone key, retained per-filter All choices, natural default task display, and independent category clearing while Time remains active.
+- No task schema, database record, persistence path, or task data changed. Validation must be reported against the resulting exact SHA.
+- PR #3052 remains OPEN / DRAFT / UNMERGED; Release **BLOCKED — RELEASE: NO-GO**.

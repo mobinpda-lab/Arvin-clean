@@ -1065,3 +1065,28 @@ Run 41451772502 / Job 125298740317 on the same SHA completed FAILURE. Gradle sta
 - No database migration was required for this presentation-only change; legacy values remain serialized.
 - Verdict: **BLOCKED — RELEASE: NO-GO**.
 - Iran timestamp: 1405/08/12 00:34 (Asia/Tehran).
+
+
+## Wave 7.296 — Home filter “All” scope clarification — 2026-11-03
+
+**Parent HEAD:** f93bd7250db0b54e3069b8025d83a3673fbf6308. **Branch:** fix/recovery-calendar-device-smoke-2026-10-31. **PR:** #3052.
+
+### Authoritative product rule
+- “همه” is an option inside each individual Home filter selector; it is not a standalone dimension or chip in the horizontal filter bar.
+- The filter strip contains only the contextual Time, Projects, Categories and Tags cards. No-filter state naturally shows the normal relevant task set.
+- Selecting an individual selector's “همه” clears only that selector's state: time => `_timeFilter = 'all'`; project => `_projectFilter = null`; category => `_categoryFilter = null`; tags => empty `_tagFilters`. Other dimensions remain active.
+- The global “پاک کردن فیلترها” action in the active-filter summary remains a separate explicit clear-all action; it is not a chip in the filter strip.
+
+### Bounded implementation and regression coverage
+- Removed only the ActionChip with key `home-filter-card-all` from `_homeFilterCards()`; preserved all four filter cards and all four internal unrestricted options.
+- Updated `test/home/home_filter_contract_test.dart`: no standalone key; four filter chips; internal “همه” options for Time/Projects/Categories/Tags; default task grouping; and clearing Categories leaves active Time restriction intact.
+- No schema, data, persistence, filter categories or selection model changes.
+
+### Validation checkpoint
+- Parent SHA exact results: Build 41525905055 SUCCESS (Analyze + 6 test shards); Calendar Provider 41525905018 SUCCESS; Device Smoke 41525904967 incomplete (only 2 of 7 lanes had succeeded at the last recorded poll; remaining lanes not final). Parent results are not evidence for this commit.
+- New exact-SHA Analyze and targeted Home filter test results: pending.
+
+### Governance
+- PR #3052 OPEN / DRAFT / UNMERGED; main untouched; no APK publication or release.
+- Verdict: **BLOCKED — RELEASE: NO-GO**.
+- Iran timestamp: 1405/08/12 (Asia/Tehran).
