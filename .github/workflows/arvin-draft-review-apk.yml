@@ -1,0 +1,169 @@
+name: Arvin Draft Review APK
+run-name: Arvin Draft Review APK (${{ github.event.pull_request.head.sha }})
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: arvin-draft-review-apk-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: '3.47.0'
+
+jobs:
+  review-staging-apk:
+    if: >-
+      github.event.pull_request.head.ref == 'fix/recovery-calendar-device-smoke-2026-10-31' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Resolve and checkout exact PR commit
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Verify exact target SHA
+        id: revision
+        shell: bash
+        env:
+          TARGET_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "$TARGET_SHA"
+          echo "EXACT_TARGET_SHA=$actual"
+          echo "sha=$actual" >> "$GITHUB_OUTPUT"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Create ephemeral staging-only test key
+        shell: bash
+        run: |
+          set -euo pipefail
+          keystore="$RUNNER_TEMP/arvin-review-only-test.keystore"
+          password="$(openssl rand -hex 24)"
+          echo "::add-mask::$password"
+          keytool -genkeypair -noprompt -v \
+            -keystore "$keystore" -storetype JKS \
+            -storepass "$password" -keypass "$password" \
+            -alias arvin-review-only -keyalg RSA -keysize 2048 -validity 30 \
+            -dname "CN=Arvin Review Only Test,O=Arvin,C=XX"
+          chmod 600 "$keystore"
+          {
+            echo "ARVIN_STAGING_KEYSTORE_PATH=$keystore"
+            echo "ARVIN_STAGING_KEYSTORE_PASSWORD=$password"
+            echo "ARVIN_STAGING_KEY_ALIAS=arvin-review-only"
+            echo "ARVIN_STAGING_KEY_PASSWORD=$password"
+          } >> "$GITHUB_ENV"
+          unset password
+          echo "SIGNING_KEY_CLASS=EPHEMERAL_REVIEW_ONLY_TEST"
+
+      - name: Resolve locked Flutter dependencies
+        run: |
+          set -euo pipefail
+          flutter pub get --enforce-lockfile
+          git diff --exit-code -- pubspec.lock
+
+      - name: Assemble non-debuggable staging APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd android
+          bash ./gradlew --no-daemon :app:assembleStaging
+
+      - name: Verify APK signature, package, debuggable flag and Vazirmatn assets
+        id: verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk="build/app/outputs/apk/staging/app-staging.apk"
+          test -s "$apk"
+          mkdir -p review-apk
+          cp "$apk" "review-apk/Arvin-review-staging-${{ steps.revision.outputs.sha }}.apk"
+
+          build_tools="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+          apksigner="$build_tools/apksigner"
+          apkanalyzer="$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer"
+          test -x "$apksigner"
+          test -x "$apkanalyzer"
+
+          "$apksigner" verify --verbose --print-certs "$apk" > review-apk/apksigner-verify.log 2>&1
+          grep -F "Verified using v2 scheme" review-apk/apksigner-verify.log | grep -Fq ": true"
+          grep -F "Verified using v3 scheme" review-apk/apksigner-verify.log | grep -Fq ": true"
+
+          app_id="$("$apkanalyzer" manifest application-id "$apk")"
+          debuggable="$("$apkanalyzer" manifest debuggable "$apk")"
+          test "$app_id" = "com.example.arvin.staging"
+          test "$debuggable" = "false"
+
+          for font in \
+            assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf \
+            assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf \
+            assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf; do
+            unzip -Z1 "$apk" | grep -Fxq "assets/flutter_assets/$font"
+          done
+
+          apk_copy="review-apk/Arvin-review-staging-${{ steps.revision.outputs.sha }}.apk"
+          apk_sha256="$(sha256sum "$apk_copy" | awk '{print $1}')"
+          apk_bytes="$(stat -c '%s' "$apk_copy")"
+          signer_sha256="$(grep -F 'Signer #1 certificate SHA-256 digest:' review-apk/apksigner-verify.log | tail -n 1 | sed 's/.*: //')"
+          test -n "$signer_sha256"
+
+          export SOURCE_SHA="${{ steps.revision.outputs.sha }}"
+          export APK_SHA256="$apk_sha256"
+          export APK_BYTES="$apk_bytes"
+          export SIGNER_SHA256="$signer_sha256"
+          export APP_ID="$app_id"
+          export DEBUGGABLE="$debuggable"
+          python3 - <<'PY'
+          import json, os, pathlib
+          manifest = {
+              "source_sha": os.environ["SOURCE_SHA"],
+              "apk_file": f"Arvin-review-staging-{os.environ['SOURCE_SHA']}.apk",
+              "apk_sha256": os.environ["APK_SHA256"],
+              "apk_size_bytes": int(os.environ["APK_BYTES"]),
+              "application_id": os.environ["APP_ID"],
+              "android_debuggable": os.environ["DEBUGGABLE"],
+              "signature_schemes_verified": ["v2", "v3"],
+              "signer_certificate_sha256": os.environ["SIGNER_SHA256"],
+              "signing_key_class": "EPHEMERAL_REVIEW_ONLY_TEST_NOT_PRODUCTION",
+              "artifact_purpose": "PRIVATE_REVIEW_AND_INSTALLATION_TEST_ONLY",
+              "publishable": False,
+              "release_created": False
+          }
+          pathlib.Path("review-apk/review-apk-manifest.json").write_text(
+              json.dumps(manifest, indent=2) + "\n", encoding="utf-8"
+          )
+          pathlib.Path("review-apk/README.txt").write_text(
+              "ARVIN REVIEW-ONLY STAGING APK\n"
+              "Not a production build. Signed with an ephemeral test-only key.\n"
+              "Do not use for production, do not redistribute, and do not treat as release acceptance.\n",
+              encoding="utf-8"
+          )
+          PY
+
+          echo "APK_SHA256=$apk_sha256"
+          echo "APK_BYTES=$apk_bytes"
+          echo "APPLICATION_ID=$app_id"
+          echo "ANDROID_DEBUGGABLE=$debuggable"
+          echo "STAGING_SIGNATURE_V2=PASS"
+          echo "STAGING_SIGNATURE_V3=PASS"
+          echo "VAZIRMATN_ASSETS=PASS"
+
+      - name: Upload review-only APK artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: arvin-review-staging-apk-${{ steps.revision.outputs.sha }}
+          path: review-apk/
+          if-no-files-found: error
+          retention-days: 7
