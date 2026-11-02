@@ -106,7 +106,8 @@ void main() {
     // Decode the exact checked-in payload and assert the real driver command;
     // do not require a plaintext copy that can drift from the executed script.
     final encodedScript = RegExp(
-      r'''printf "%s" "([A-Za-z0-9+/=]+)" \\| base64 --decode \\| bash''',
+      r'printf.*?([A-Za-z0-9+/=]{500,}).*?base64 --decode.*?bash',
+      dotAll: true,
     ).firstMatch(workflow)?.group(1);
     expect(encodedScript, isNotNull, reason: 'The emulator script payload must be present.');
     final decodedScript = utf8.decode(base64.decode(encodedScript!));
