@@ -183,3 +183,17 @@ Target branch SHA: `8ccbc90ebfdcd797d5c18f6ab7a6cb6cff2de358` (all results below
 - Exact final SHA and workflow outcomes must be recorded after the documentation commit; previous SHA evidence does not transfer.
 
 **Governance:** PR #3052 remains OPEN/DRAFT/UNMERGED; release remains **BLOCKED — RELEASE: NO-GO**.
+
+
+## Wave 7.274 — consolidated remediation — 2026-11-02
+
+**Base implementation revision:** `4f7afad460463b4ecf0353deaf4d5dc33c433be4`. The following source changes are committed on `fix/recovery-calendar-device-smoke-2026-10-31`; runtime acceptance is pending on the final documentation SHA.
+
+- `integration_test/android_sql_persistence_smoke_test.dart`: removed only the unused `package:flutter/material.dart` import flagged by Analyzer. Test behavior and assertions are unchanged.
+- `.github/workflows/device-smoke.yml`: the encoded emulator script now waits for the selected ADB device immediately before capture, verifies it remains in `device` state, creates `artifacts/device-smoke`, and writes the direct `adb exec-out screencap -p` stream to the scenario PNG. Before upload, it enumerates every PNG and logs path, byte size and PNG signature; every file must exceed 1000 bytes and carry the PNG magic signature, and at least one valid PNG must exist. The seven scenario matrix and upload error policy remain intact.
+- `test/alarm_overlay_file_persistence_test.dart`: retains the actual visible/hit-testable Complete control, actual tap, Task completion and close/reopen SQLite assertions. After the tap it no longer calls global `pumpAndSettle`; it pumps at most 50 bounded 100ms frames until the real notification-cancellation callback proves the handler reached its final stage. New T14b/T14c/T14d markers delimit tap dispatch, bounded handler wait and handler completion. The test will still fail if the handler does not complete within the bounded window.
+- No timeout was increased; no test, assertion, scenario, or acceptance requirement was removed or weakened. No production handler or persistence semantics were bypassed.
+
+**Validation:** no workflow result is claimed by this source checkpoint. Build, File Persistence, seven-lane Device Smoke and Parallel Wave must all report fresh results against one identical final SHA. Device screenshots are accepted only when the run artifact inventory contains the per-lane files and their logs confirm valid PNG signatures and sizes.
+
+**Governance:** PR #3052 remains OPEN / DRAFT / UNMERGED. No main change, merge, APK Matrix build or release. Release remains **BLOCKED — RELEASE: NO-GO**.
