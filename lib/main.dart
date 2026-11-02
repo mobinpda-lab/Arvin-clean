@@ -3437,7 +3437,7 @@ class _HomePageState extends State<HomePage> {
                 style: IconButton.styleFrom(backgroundColor: ArvinColors.surface, foregroundColor: ArvinColors.neutral),
               ),
               Expanded(child: Column(children: const [
-                Text('بسم الله الرحمن الرحیم', key: ValueKey('home-bismillah'), style: TextStyle(color: ArvinColors.textSecondary, fontSize: 8, fontWeight: FontWeight.w500)),
+                Text('بسم الله الرحمن الرحیم', key: ValueKey('home-bismillah'), textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.primary, fontFamily: AppFonts.vazirmatnFamily, fontSize: 15, letterSpacing: 0.15, fontWeight: FontWeight.w600)),
                 SizedBox(height: 1),
                 Text('آروین', key: ValueKey('home-title-block'), style: TextStyle(color: ArvinColors.primaryDark, fontSize: 23, fontWeight: FontWeight.w800)),
                 SizedBox(height: 2),
