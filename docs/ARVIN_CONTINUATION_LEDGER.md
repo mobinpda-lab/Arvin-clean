@@ -300,3 +300,55 @@ No source, workflow, test, or product UI file was edited in this checkpoint. No 
 **P2:** update product matrix and changelog only after source changes stabilize; append exact-SHA evidence to Issue #2299 only after each result is independently inspectable. Keep #823/#2102/#2299 OPEN and PR #3052 OPEN/DRAFT/UNMERGED.
 
 **Final gate:** PR remains UNMERGED. Release remains **BLOCKED — RELEASE: NO-GO**.
+
+
+---
+
+## Wave 7.270 implementation checkpoint — 2026-11-02
+
+**Authorized target:** `mobinpda-lab/Arvin-clean`, branch `fix/recovery-calendar-device-smoke-2026-10-31`, PR #3052.  
+**PR state at checkpoint start:** OPEN / DRAFT / UNMERGED. Release remains **BLOCKED — RELEASE: NO-GO**.
+
+### Changes committed on the PR branch
+
+- `tool/validate_fast_lane.py`: Fast Lane now extracts the Base64 payload from the emulator action's `printf "%s" ... | base64 --decode | bash` form, decodes it as UTF-8, and validates the actual executable shell for the required `flutter drive --driver=test_driver/integration_test.dart` command and screenshot directory. It still requires the workflow's Base64 decode pipeline and the seven canonical scenario mapping; no emulator command or driver requirement was removed.
+- `.github/workflows/device-smoke.yml`: retained an explicit `alarm-overlay-*.png` fallback marker in the Reminder artifact step comment while preserving the actual artifact glob.
+- `lib/main.dart`: implemented in-place expansion state for Home task cards; the card tap expands/collapses in place while a distinct Details icon retains `_openTaskDetail`. Expanded content shows description and exact due date/time. The real `HomeFollowUpPresentationService` now projects only `task.lastFollowUp`; the legacy date is not used to fabricate a FollowUp. Actual history is displayed in a soft green presentation with exact time and relative elapsed label.
+- `lib/main.dart`: added a Home list ScrollController and direction-aware Bottom Navigation visibility animation. The Scaffold FAB remains a separate Scaffold slot and is not placed inside the navigation animation. The compact-screen add action remains in the body.
+- `lib/main.dart`: Bismillah is centered and rendered as Vazirmatn text with stronger legibility; no external image was introduced.
+- Home and Device Smoke contract tests were updated for the actual compact-chip labels, no-counter design, accordion/real-history rendering, and Base64 validator contract.
+
+### Exact-head CI evidence before the Wave 7.270 commits
+
+These runs targeted SHA `073664dbb69f0c1aea96ebd074a97a158b5c1699`; they do not validate the later Wave 7.270 commits.
+
+| Workflow | Run / Attempt | Job | Result | Evidence |
+|---|---:|---:|---|---|
+| Parallel Wave | 41367890508 / 1 | contract 125031871982 | FAIL | Validator searched for plaintext driver command, but workflow executes the Base64-decoded script. This is the P0 issue addressed by the validator change. |
+| Build | 41367890590 / 1 | Analyze 125031959175 | FAIL | Analyzer found unused `_homeCountLabel`; removed in the Home implementation commit. |
+| Build | 41367890590 / 1 | test-0 125031959215 | FAIL | Old assertions expected `دسته‌ها`; current compact chip label is `دسته‌بندی‌ها`. |
+| Build | 41367890590 / 1 | test-1 125031959340 | FAIL | Old Home test expected the removed four-card/counter behavior and `دسته‌ها`; assertions updated to compact chips without counters. |
+| Build | 41367890590 / 1 | test-2 125031959323 | FAIL | Old test expected `دسته‌ها` and literal `alarm-overlay-*.png`; test labels/contract updated and workflow marker retained. The file-backed Alarm Overlay test also timed out at T14. |
+| Build | 41367890590 / 1 | test-3 125031959257 | SUCCESS | One shard only; not an overall Build PASS. |
+| Build | 41367890590 / 1 | test-4 125031959025 | FAIL | `home_stat_filters_test.dart` grouping/storage test failed; same old Home label contract. |
+| Build | 41367890590 / 1 | test-5 125031959217 | FAIL | Old Home labels and summary-card count expectations. |
+| Build | 41367890590 / 1 | APK 125031959959 | SKIPPED | No APK artifact from this run. |
+| Follow-up File Persistence | 41367890598 / 1 | 125031889378 | FAIL | `createTempSync`, NativeDatabase, schema install, initial write, Snooze, close/reopen and reload all completed. Timeout occurred after marker T14, before the Complete action returned. No `[COMPLETE]` diagnostic marker appeared; exact reason the Complete tap did not progress is NOT VERIFIED. |
+| Device Smoke | 41367890540 / 1 | seven scenario jobs | SUCCESS job conclusions | All seven jobs ended SUCCESS, but screenshot upload steps reported no files for the observed lanes. No registered non-empty per-lane artifacts were established; visual acceptance remains NOT VERIFIED. Job SUCCESS alone is not promoted to functional 7/7 PASS. |
+
+### Wave 7.270 validation status
+
+- The new validator and Home changes are committed, but no new exact-head Parallel Wave or Build result has yet been inspected at this ledger update.
+- The new Home widget test is source-level coverage only until its exact-head Build shard completes.
+- The file-backed persistence timeout is no longer attributable to temp-directory creation: the synchronous temp directory and SQLite reopen path completed. The remaining T14/Complete-action stall requires separate root-cause work; do not increase timeout or remove the Complete assertion to mask it.
+- No local Flutter/Dart test was run in this environment.
+- No APK from the inspected Build run; no release artifact is accepted.
+
+### Governance and remaining work
+
+- Keep PR #3052 OPEN / DRAFT / UNMERGED.
+- Keep Issues #823, #2102 and #2299 OPEN.
+- Preserve SQLite and all Task/FollowUp records; no destructive schema migration was attempted.
+- Keep the four independent Reminder actions and five-tab navigation behavior intact.
+- Require fresh exact-HEAD Build, Parallel Wave, Device Smoke and file-backed persistence evidence after the Wave 7.270 commits.
+- Release remains **BLOCKED — RELEASE: NO-GO**.
