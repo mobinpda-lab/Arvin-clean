@@ -257,3 +257,13 @@ Target branch SHA: `8ccbc90ebfdcd797d5c18f6ab7a6cb6cff2de358` (all results below
 - No tests, assertions, scenarios, retry policy, timeout limit, production behavior or persistence checks were removed or weakened. No deprecated Next Follow-up or `followUpEnabled` field was added.
 
 **Validation:** Build, File Persistence, seven-lane Device Smoke with actual uploaded PNGs, and Parallel Wave must all finish on one exact final SHA. PR #3052 remains OPEN / DRAFT / UNMERGED; **BLOCKED — RELEASE: NO-GO**.
+
+
+## Wave 7.280 — deterministic bounded ADB and boot polling — 2026-11-02
+
+**Base SHA:** `02124ae6d06b90e9eb6cb2060b433f673fdca257`. Device Smoke Run `41411022699`, Navigation Job `125164209105`, emitted `DEVICE_SCRIPT_STAGE=after-adb-discovery` and then exited the emulator action before the next boot-wait marker. No Flutter Drive command or PNG was produced. The emulator booted and the exact serial reached ADB `device`; the failure is therefore after discovery, not a proven persistent ADB transport outage. The emulator's `stop: Not implemented` line is cleanup output after the action script has ended, not a demonstrated trigger.
+
+- `.github/workflows/device-smoke.yml`: replaced all `SECONDS` arithmetic deadlines with explicit 90-iteration × 2-second bounded counters for initial ADB discovery, boot completion, transport retry and screenshot retry. Added before/after boot-wait markers so the next run can isolate the exact command boundary. Safe initialized state, timeout diagnostics, absolute workspace screenshot output, real Flutter Drive, PNG validation and non-zero test failure propagation remain.
+- No timeout duration was expanded: each polling budget remains 180 seconds. No test, assertion, lane, retry allowance or product behavior was removed or weakened.
+
+**Validation:** this is a diagnostic hardening checkpoint, not acceptance. All four required workflows must complete on one exact SHA; seven actual PNG artifacts remain mandatory. PR #3052 stays OPEN / DRAFT / UNMERGED; **BLOCKED — RELEASE: NO-GO**.
