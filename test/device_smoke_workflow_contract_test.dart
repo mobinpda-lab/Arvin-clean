@@ -89,6 +89,8 @@ void main() {
       fastLaneValidator,
       contains("'smoke-reminder-vazirmatn': 'integration_test/alarm_overlay_smoke_test.dart'"),
     );
+    expect(fastLaneValidator, contains('decode_embedded_shell_scripts'));
+    expect(fastLaneValidator, contains('base64.b64decode'));
 
     final calendarSmoke = File('integration_test/calendar_card_interaction_test.dart').readAsStringSync();
     expect(calendarSmoke, isNot(contains('pumpAndSettle')));
