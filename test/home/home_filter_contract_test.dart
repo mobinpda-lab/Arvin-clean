@@ -86,4 +86,37 @@ void main() {
       88,
     );
   });
+  testWidgets('Home task card expands in place with real FollowUp history and preserves details route', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final actualFollowUpAt = DateTime.now().subtract(const Duration(hours: 2));
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': '[{"id":"accordion-real","title":"کار آکاردئونی","description":"شرح دقیق کار","dueDate":"2026-11-02T12:30:00.000","followUps":[{"id":"follow-up-real","dateTime":"${actualFollowUpAt.toIso8601String()}","note":"تماس واقعی","completed":true}]},{"id":"legacy-only","title":"بدون سابقه واقعی","followUpDate":"2026-11-02T09:00:00.000"}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('task-card-details-accordion-real')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-card-accordion-accordion-real')), findsOneWidget);
+    expect(find.text('شرح دقیق کار'), findsNothing);
+
+    await tester.tap(find.text('کار آکاردئونی'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('شرح دقیق کار'), findsOneWidget);
+    expect(find.textContaining('تاریخ و ساعت دقیق:'), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-card-follow-up-accordion-real')), findsOneWidget);
+    expect(find.text('آخرین پیگیری: تماس واقعی'), findsOneWidget);
+
+    await tester.tap(find.text('بدون سابقه واقعی'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('task-card-follow-up-legacy-only')), findsNothing);
+    expect(find.byKey(const ValueKey('task-card-details-legacy-only')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
 }
