@@ -3,8 +3,8 @@
 - Product behavior: historical FollowUp records are filtered at the local Calendar display boundary. IDs with the historical `followup:` and legacy `task-followup:` namespaces are excluded from both supplied and visible-range projected Calendar items.
 - Dated Task events, independent dated Reminder events, and recurrence projections remain in the existing Calendar projection. `task-followup-action:` is not filtered by this change.
 - FollowUp records, Task Details history, Follow-up Notebook data, Report Center projections, Task storage, Reminder data, Due Dates, and legacy database columns are not modified or deleted.
-- Implementation: `lib/calendar_page.dart`; regression coverage: `test/calendar_page_test.dart`. Existing projection, Task Details and Report Center tests are retained.
-- Implementation/test commit: `efc7ebe71d136bf3756905e20b2156eea02d9447`. Documentation synchronization commits follow; exact final branch HEAD and exact-head CI results must be read back before acceptance.
+- Implementation: `lib/calendar_page.dart`; regression coverage: `test/calendar_page_test.dart`, `test/calendar_runtime_actions_fast_track_test.dart`, and `test/calendar_release_acceptance_test.dart`. Existing projection, Task Details and Report Center tests are retained.
+- Implementation/test commit: `8533b17599af46524973bc0a366864d44e08c96e`. Documentation synchronization commits follow; exact final branch HEAD and exact-head CI results must be read back before acceptance.
 - Release remains **BLOCKED — RELEASE: NO-GO**. PR #3052 must remain OPEN / DRAFT / UNMERGED. No main mutation, merge, APK publication, or release is authorized.
 
 ## 2026-11-02 — Wave 7.292 product roadmap clarification and exact-SHA gate checkpoint
