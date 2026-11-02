@@ -114,10 +114,17 @@ void main() {
     expect(find.byKey(const ValueKey('task-card-follow-up-accordion-real')), findsOneWidget);
     expect(find.text('آخرین پیگیری: تماس واقعی'), findsOneWidget);
 
-    await tester.tap(find.text('بدون سابقه واقعی'));
+    final legacyOnlyTitle = find.text('بدون سابقه واقعی');
+    await tester.ensureVisible(legacyOnlyTitle);
+    await tester.pumpAndSettle();
+    expect(legacyOnlyTitle, findsOneWidget);
+    await tester.tap(legacyOnlyTitle);
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('task-card-follow-up-legacy-only')), findsNothing);
-    expect(find.byKey(const ValueKey('task-card-details-legacy-only')), findsOneWidget);
+    final legacyOnlyDetails = find.byKey(const ValueKey('task-card-details-legacy-only'));
+    await tester.ensureVisible(legacyOnlyDetails);
+    await tester.pumpAndSettle();
+    expect(legacyOnlyDetails, findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
