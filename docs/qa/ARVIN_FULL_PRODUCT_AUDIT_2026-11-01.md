@@ -1343,3 +1343,37 @@ The canonical A–J baseline remains complete in §3 and the detailed A1–J7 ma
 6. If this ledger is updated again, rerun required workflows on the resulting exact HEAD; no evidence carries forward across SHA changes.
 
 **Governance:** PR #3052 remains OPEN / DRAFT / UNMERGED; Issues #823 / #2102 / #2299 remain OPEN; do not modify `main`, merge, publish or release. **Release: BLOCKED — RELEASE: NO-GO.**
+
+
+---
+
+## Wave 7.272 — final exact-SHA evidence settlement — 2026-11-02
+
+**Target branch SHA:** `8ccbc90ebfdcd797d5c18f6ab7a6cb6cff2de358`. The following outcomes are tied to this exact SHA only.
+
+### Build — Run 41382008848
+- Aggregate conclusion: **FAILURE**.
+- Analyze Job `125074920574`: **FAILURE**. Two compile/analyzer errors: undefined name `tester` at `integration_test/android_backup_restore_sql_smoke_test.dart:443:15` and `:446:15`.
+- Test shards: test-0 `125074920667` SUCCESS; test-1 `125074920573` SUCCESS; test-2 `125074920682` FAILURE; test-3 `125074920556` SUCCESS; test-4 `125074920407` SUCCESS; test-5 `125074920744` SUCCESS. Result: **5/6 shards SUCCESS; test-2 FAILURE**.
+- APK matrix Job `125074921501`: SKIPPED under the Draft PR guard. This is intentional and is not an APK build result.
+
+### Alarm Overlay file-backed SQLite — Run 41382008771
+- Job `125074713868`: **FAILURE**. The first repository-level file-backed persistence test passed. The alarm-overlay close/reopen diagnostic timed out after 10 minutes.
+- Last emitted stage: T14, “before Complete action; awaiting full completion + Calendar sync path”. No T14a, Complete callback/handler marker, TaskStore completion mutation marker, or Calendar sync marker was emitted.
+- Therefore the requested interaction did **not** reach an evidenced handler entry. Database completion persistence and Calendar sync are **NOT VERIFIED**; do not call them failed or passed. Root cause remains **NOT VERIFIED**.
+- Build test-2 independently shows the same boundary: T02, T04, T07, T11, T13, T14; then 10-minute timeout, without T14a or handler entry.
+
+### Device Smoke — Run 41382008923
+- All seven jobs concluded SUCCESS: Boot `125074796302`; Navigation `125074796385`; Quick Capture `125074796286`; Calendar Segmented View `125074796335`; Reminder/Vazirmatn `125074796280`; Follow-up Persistence `125074796343`; Task Lifecycle `125074796382`.
+- Artifact API listing returned **zero artifacts**. Upload logs for all seven lanes contain warnings that no files matched `artifacts/device-smoke/*.png`. Some lane-specific upload steps were skipped or also reported missing files.
+- Conclusion: **7/7 smoke job conclusions SUCCESS, but 0 verifiable uploaded PNG artifacts**. No filenames or file sizes exist in the returned artifact inventory. Screenshot/visual acceptance is **NOT VERIFIED**; job success alone is insufficient.
+
+### Parallel Wave — Run 41382008837
+- Contract Job `125074647025`: **SUCCESS**; log output: `Arvin Fast Lane workflow contract: OK`.
+- Important scope note: this workflow checked out PR merge ref `b6dd35a273b537ea9319ea4d17cdd3a004b35b82`, rather than branch head `8ccbc90...`. It validates the Fast Lane contract in the PR merge checkout; it is not an exact branch-head runtime test.
+
+### Governance and next steps
+- PR #3052 remains OPEN / DRAFT / UNMERGED. No main edit, merge, APK publication or release.
+- Release remains **BLOCKED — RELEASE: NO-GO**.
+- Fix the two undefined `tester` references in the integration test without removing its app launch or screenshot assertions; diagnose why T14a/Complete handler are not reached without relaxing timeout/assertions; make each smoke lane create and upload a non-empty valid PNG, then inspect artifact names, sizes and PNG signatures.
+- Any documentation commit advances the branch HEAD. All Build, SQLite, Device Smoke and Parallel Wave evidence above remains historical for SHA `8ccbc90...` and must not be carried forward to the new SHA.
