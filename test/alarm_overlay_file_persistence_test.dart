@@ -166,8 +166,19 @@ void main() {
         expect(completeButton.hitTestable(), findsOneWidget);
         stage('T14a Complete control is rendered, visible and hit-testable');
         await tester.tap(completeButton);
-        await tester.pumpAndSettle();
-        stage('T15 Complete action returned to widget test');
+        stage('T14b actual Complete button tap dispatched');
+        stage('T14c awaiting real completion handler, SQLite mutation, Calendar path and notification cancellation');
+        // Do not use pumpAndSettle here: the overlay owns repeating animations
+        // unrelated to the asynchronous Complete handler. Pump bounded frames
+        // until the handler's final notification-cancel callback is observed.
+        for (var frame = 0;
+            frame < 50 && !notifications.cancelled.contains(7211);
+            frame++) {
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+        expect(notifications.cancelled, contains(7211));
+        stage('T14d Complete handler finished; notification cancellation observed');
+        stage('T15 completion handler returned without global animation settling');
 
         stage('T16 before closing executor after Complete');
         await executor.close();
