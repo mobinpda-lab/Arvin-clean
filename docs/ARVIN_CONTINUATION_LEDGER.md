@@ -688,3 +688,28 @@ Period identity and normalization; batch transaction/partial-failure policy; dup
 - No implementation, code, schema, migration or runtime change is authorized before stability acceptance and a separate execution command. Exact reference-image pixel matching remains `NOT VERIFIED` until the image is attached/identified.
 
 **Governance:** PR #3052 remains OPEN / DRAFT / UNMERGED. **BLOCKED — RELEASE: NO-GO**. No main change, merge, release or APK publication.
+
+
+## 2026-11-02 — قفل نهایی پنج بسته محصولی و تمرکز پایداری SQLite
+
+**مرجع رسمی:** docs/product/ARVIN_RECURRING_BRANCH_PROJECTS_ROADMAP.md، بخش ۱۷.  
+**HEAD ممیزی پیش از این ثبت:** 19567e703ec749b6725177bbd87a11cce9862822.
+
+### فهرست قفل‌شده مالک محصول
+1. ساختار Branch/Center → Projects → Tasks با تاریخچه مستقل هر شعبه/دوره و حفظ Projectهای قدیمی.
+2. Template Library و تولید Project مستقل برای هر Branch با Taskهای کپی‌شده و کنترل تکرار.
+3. Reports Tab واحد برای Branch/Template/Period همراه فیلترهای پیشرفته، Task-specific Follow-up و Point filters (جزئیات Point filters همچنان نیازمند تصمیم طراحی است).
+4. Home دقیقاً پنج کارت: برچسب‌ها، دسته‌ها، پروژه‌ها، زمان، شعبه/مرکز؛ ترتیب RTL مصوب در Product Spec.
+5. جست‌وجوی Home برای Tasks/Projects/Branches با تشخیص نوع نتیجه و فیلتر مستقیم شعبه مبتنی بر هویت/رابطه ساختاری.
+
+این فهرست مرجع نهایی این گفتگو است و فقط با دستور صریح بعدی مالک محصول تغییر می‌کند. وضعیت: POST-STABILITY / PLANNED؛ هیچ مجوز پیاده‌سازی از این ثبت صادر نمی‌شود.
+
+### اولویت اجرایی فعلی — SQLite
+- File Persistence Run 41429824427, Job 125225318356، روی SHA 19567e703ec749b6725177bbd87a11cce9862822: تست Repository persistence موفق شده، اما Alarm Overlay SQLite close-and-reopen diagnostic هنوز IN PROGRESS است؛ بنابراین پذیرش SQLite برابر PASS نیست.
+- معیار لازم: رسیدن تست به کنترل واقعی Complete، اجرای pointer tap واقعی، اثبات فراخوانی و تکمیل handler، بستن و بازگشایی همان فایل SQLite و readback نهایی برای اثبات ماندگاری تکمیل Task و عدم تغییر Reminderها/رکوردهای مستقل.
+- Build Run 41429824528: Analyze موفق؛ شش test shard هنوز در حال اجرا؛ APK job به‌علت Draft بودن SKIPPED.
+- Device Smoke Run 41429824541: Boot و Navigation در حال اجرا؛ پنج lane دیگر در صف. Calendar Provider Run 41429824535 نیز IN PROGRESS است. این وضعیت‌ها فقط snapshot زمان ثبت‌اند و باید دوباره بررسی شوند.
+- تا پایان شواهد، هیچ PASS کلی یا پذیرش SQLite اعلام نشود؛ اجرای تکراری/commit اضافی هنگام فعال‌بودن همین runها انجام نشود.
+
+### قفل حاکمیتی
+PR #3052 باید OPEN / DRAFT / UNMERGED بماند و برچسب BLOCKED — RELEASE: NO-GO حفظ شود. هیچ کد اجرایی، UI/runtime، Schema یا Migration برای پنج بسته محصولی پیش از تکمیل پایداری و دستور صریح بعدی مجاز نیست. تمرکز مجری فنی: بستن شواهد SQLite، نه توسعه قابلیت‌های محصولی.
