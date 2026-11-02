@@ -89,13 +89,17 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
 
   Future<void> _loadActiveReminder() async {
     try {
+      debugPrint('[ARVIN_TIMEOUT_DIAG][OVERLAY_LOAD] before TaskStore.load taskId=${widget.taskId}');
       final tasks = await _store.load();
+      debugPrint('[ARVIN_TIMEOUT_DIAG][OVERLAY_LOAD] after TaskStore.load taskCount=${tasks.length}');
       final taskMatches = tasks.where((item) => item.id == widget.taskId);
       if (taskMatches.length != 1) {
         throw StateError('کار مرتبط پیدا نشد.');
       }
       final task = taskMatches.single;
+      debugPrint('[ARVIN_TIMEOUT_DIAG][OVERLAY_LOAD] before ProjectStore.load taskId=${task.id}');
       final projects = await _projects.load();
+      debugPrint('[ARVIN_TIMEOUT_DIAG][OVERLAY_LOAD] after ProjectStore.load projectCount=${projects.length}');
       final memberships = projects.where((project) => project.itemIds.contains(task.id));
       if (task.completed || task.archived || task.trashed) {
         throw StateError('یادآور فعال یا کار مرتبط پیدا نشد.');
@@ -114,14 +118,18 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
         _projectTitle = memberships.isEmpty ? null : memberships.first.title;
         _loading = false;
       });
+      debugPrint('[ARVIN_TIMEOUT_DIAG][OVERLAY_LOAD] before onLoadComplete(success)');
       widget.onLoadComplete?.call(null);
+      debugPrint('[ARVIN_TIMEOUT_DIAG][OVERLAY_LOAD] after onLoadComplete(success)');
     } catch (error) {
       if (!mounted) return;
       setState(() {
         _error = error.toString();
         _loading = false;
       });
+      debugPrint('[ARVIN_TIMEOUT_DIAG][OVERLAY_LOAD] before onLoadComplete(error)');
       widget.onLoadComplete?.call(error.toString());
+      debugPrint('[ARVIN_TIMEOUT_DIAG][OVERLAY_LOAD] after onLoadComplete(error)');
     }
   }
 
