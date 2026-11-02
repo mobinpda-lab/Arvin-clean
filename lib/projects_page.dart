@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 
 import 'models/goal_project.dart';
+import 'models/arvin_center.dart';
 
 class ProjectsPage extends StatefulWidget {
   const ProjectsPage({
     super.key,
     required this.projects,
     required this.onChanged,
+    this.centers = const <ArvinCenter>[],
   });
 
   final List<ProjectPlan> projects;
   final Future<void> Function(List<ProjectPlan>) onChanged;
+  final List<ArvinCenter> centers;
 
   @override
   State<ProjectsPage> createState() => _ProjectsPageState();
@@ -61,6 +64,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
         id: 'project-$now',
         title: result.title,
         colorValue: result.colorValue,
+        centerId: result.centerId,
       ),
     ));
   }
@@ -73,6 +77,8 @@ class _ProjectsPageState extends State<ProjectsPage> {
       projectId: project.id,
       title: result.title,
       colorValue: result.colorValue,
+      centerId: result.centerId,
+      clearCenterId: result.centerId == null,
     ));
   }
 
@@ -114,6 +120,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
       builder: (context) {
         final controller = TextEditingController(text: project?.title ?? '');
         var colorValue = project?.colorValue ?? 0xFF4A4CAB;
+        String? centerId = project?.centerId;
         return StatefulBuilder(
           builder: (context, setDialogState) => AlertDialog(
             title: Text(project == null ? 'پروژه جدید' : 'ویرایش پروژه'),
@@ -124,6 +131,18 @@ class _ProjectsPageState extends State<ProjectsPage> {
                   key: const ValueKey('project-title-input'),
                   controller: controller,
                   decoration: const InputDecoration(labelText: 'عنوان پروژه'),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String?>(
+                  key: const ValueKey('project-center-selector'),
+                  initialValue: centerId,
+                  decoration: const InputDecoration(labelText: 'مرکز (اختیاری)'),
+                  items: [
+                    const DropdownMenuItem<String?>(value: null, child: Text('بدون مرکز')),
+                    for (final center in widget.centers.where((item) => !item.isArchived))
+                      DropdownMenuItem<String?>(value: center.id, child: Text(center.name)),
+                  ],
+                  onChanged: (value) => setDialogState(() => centerId = value),
                 ),
                 const SizedBox(height: 16),
                 Wrap(
@@ -170,7 +189,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                   if (title.isEmpty) return;
                   Navigator.pop(
                     context,
-                    _ProjectDraft(title: title, colorValue: colorValue),
+                    _ProjectDraft(title: title, colorValue: colorValue, centerId: centerId),
                   );
                 },
                 child: const Text('ذخیره'),
@@ -180,6 +199,13 @@ class _ProjectsPageState extends State<ProjectsPage> {
         );
       },
     );
+  }
+
+  String _centerLabel(ProjectPlan project) {
+    final id = project.centerId;
+    if (id == null) return 'بدون مرکز';
+    for (final center in widget.centers) { if (center.id == id) return center.name; }
+    return 'مرکز حذف‌شده';
   }
 
   @override
@@ -226,9 +252,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                       ),
                     ),
                     subtitle: Text(
-                      project.isArchived
-                          ? '${project.itemIds.length} مورد • بایگانی‌شده'
-                          : '${project.itemIds.length} مورد',
+                      '${_centerLabel(project)} • ${project.itemIds.length} مورد${project.isArchived ? ' • بایگانی‌شده' : ''}',
                     ),
                     trailing: Wrap(
                       children: [
@@ -270,8 +294,9 @@ class _ProjectsPageState extends State<ProjectsPage> {
 }
 
 class _ProjectDraft {
-  const _ProjectDraft({required this.title, required this.colorValue});
+  const _ProjectDraft({required this.title, required this.colorValue, this.centerId});
 
   final String title;
   final int colorValue;
+  final String? centerId;
 }

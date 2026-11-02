@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import 'models/goal_project.dart';
+import 'models/arvin_center.dart';
 import 'projects_page.dart';
 import 'services/project_store.dart';
+import 'services/center_store.dart';
 import 'services/arvin_route_observer.dart';
 
 /// Loads the canonical Project collection before opening the existing
@@ -23,7 +25,9 @@ class ProjectsLauncher extends StatefulWidget {
 class _ProjectsLauncherState extends State<ProjectsLauncher> with RouteAware {
   ModalRoute<void>? _route;
   late final ProjectStore _store = widget.store ?? ProjectStore();
+  final CenterStore _centerStore = CenterStore();
   List<ProjectPlan>? _projects;
+  List<ArvinCenter> _centers = const <ArvinCenter>[];
   Object? _loadError;
 
   @override
@@ -55,10 +59,13 @@ class _ProjectsLauncherState extends State<ProjectsLauncher> with RouteAware {
 
   Future<void> _load() async {
     try {
-      final projects = await _store.load();
+      final values = await Future.wait<Object>([_store.load(), _centerStore.load()]);
+      final projects = values[0] as List<ProjectPlan>;
+      final centers = values[1] as List<ArvinCenter>;
       if (!mounted) return;
       setState(() {
         _projects = List<ProjectPlan>.of(projects);
+        _centers = List<ArvinCenter>.of(centers);
         _loadError = null;
       });
     } catch (error) {
@@ -110,6 +117,7 @@ class _ProjectsLauncherState extends State<ProjectsLauncher> with RouteAware {
 
     return ProjectsPage(
       projects: projects,
+      centers: _centers,
       onChanged: _persist,
     );
   }
