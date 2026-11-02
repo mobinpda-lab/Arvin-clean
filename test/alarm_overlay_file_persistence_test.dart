@@ -40,15 +40,16 @@ void main() {
       // previous workspace Directory.exists/stat probe stalled before SQLite
       // setup, so avoid probing the checkout filesystem in this persistence test.
       final systemTemp = Directory.systemTemp;
-      stage('T00b before systemTemp.createTemp: ${systemTemp.path}');
+      stage('T00b before synchronous systemTemp.createTempSync: ${systemTemp.path}');
+      // The async createTemp Future did not complete in the CI test isolate.
+      // createTempSync uses Dart's native filesystem path and avoids waiting
+      // on that unresolved async operation; it does not bypass SQLite setup.
       late final Directory directory;
       try {
-        directory = await systemTemp
-            .createTemp('arvin-alarm-file-')
-            .timeout(const Duration(seconds: 8));
-        stage('T00c temporary directory created: ${directory.path}');
+        directory = systemTemp.createTempSync('arvin-alarm-file-');
+        stage('T00c temporary directory created synchronously: ${directory.path}');
       } catch (error, stackTrace) {
-        stage('T00b CREATE_TEMP_EXCEPTION: $error');
+        stage('T00b CREATE_TEMP_SYNC_EXCEPTION: $error');
         debugPrint('[ARVIN_TIMEOUT_DIAG][STACK] $stackTrace');
         rethrow;
       }
