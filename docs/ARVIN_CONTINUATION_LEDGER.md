@@ -919,3 +919,59 @@ Workflow implementation commit: `19e65fcb7836beeb5f3150e2bc771b1a1fd25cd9`. Chan
 - Label remains `BLOCKED — RELEASE: NO-GO`.
 - No merge, main edit, release, APK publication, manual dispatch or cancellation was performed.
 - Iran timestamp: 1405/08/11 16:40 (Asia/Tehran).
+
+
+## Wave 7.292 — Product roadmap clarification and exact-SHA acceptance checkpoint — 2026-11-02
+
+**Target SHA audited:** 758edb259b55ecd69b6509e50b94aeadd378e88e.  
+**Branch / PR:** fix/recovery-calendar-device-smoke-2026-10-31 / #3052.
+
+### Product decision preserved
+- Owner-approved scope retained: visible Branch → Project → Task relation with historical preservation; expandable/collapsible Home Task cards showing exact description and date/time while retaining the independent Task Details route; latest valid Follow-up for the same Task through the real HomeFollowUpPresentationService; and the task filter strip «همه» plus Time, Projects, Branch/Center, Categories and Tags.
+- Expanding/collapsing Branch or Project tree nodes is explicitly **not** a product requirement without a separate owner decision.
+- Home Task-card expansion and same-Task Follow-up presentation are recorded in the source changelog as implemented changes, but final acceptance on this SHA remains pending evidence. Full Branch → Project → Task structure/history and the complete five-filter strip remain **PLANNED / NOT ACCEPTED**.
+- This documentation update does not mean product completion. The prior owner decision to implement these capabilities is preserved for a post-stability implementation wave.
+- No deprecated Next Follow-up behavior or synthetic followUpEnabled variable may be reintroduced.
+
+### Exact-SHA CI evidence
+| Lane | Run / Job | SHA | Recorded outcome | Acceptance meaning |
+|---|---:|---|---|---|
+| Build | Run 41451772834 | 758edb259b55ecd69b6509e50b94aeadd378e88e | SUCCESS | Analyze and test shards successful; does not imply APK artifact accepted |
+| File Persistence | Run 41451772534 / Job 125298462750 | same | SUCCESS | Independent file-backed SQLite persistence test only; not Device Smoke |
+| Calendar Provider | Run 41451772492 | same | SUCCESS | Provider acceptance only; not Calendar segmented-view smoke |
+| Device Smoke Boot | Job 125298736720 | same | SUCCESS | Emulator boot lane |
+| Device Smoke Navigation | Job 125298737157 | same | SUCCESS | Navigation lane |
+| Device Smoke Quick Capture | Job 125298736590 | same | SUCCESS | Quick Capture lane |
+| Device Smoke Task Lifecycle | Job 125298736594 | same | SUCCESS | Task lifecycle lane |
+| Device Smoke Reminder Vazirmatn | Job 125298736760 | same | SUCCESS | Reminder lane and compatibility step successful |
+| Device Smoke Calendar Segmented View | Job 125298736601 | same | CANCELLED | Flutter drive was cancelled; screenshot upload then failed because no PNG existed. Initiator/root cause NOT VERIFIED; this is not proof of a failed product assertion |
+| Device Smoke Follow-up Persistence | Job 125298736596 | same | IN_PROGRESS at checkpoint | No final result available; job logs returned BlobNotFound while still running. Final result NOT VERIFIED |
+| Draft Review APK | Run 41451772502 / Job 125298740317 | same | FAILURE | Gradle staging APK assembly succeeded; signature/package/font validation step failed; upload skipped; no artifact. Exact failing verification predicate NOT VERIFIED because apksigner log was redirected but not printed |
+
+Device Smoke overall is **NOT VERIFIED / NOT ACCEPTED** until the Follow-up lane reaches a terminal result and Calendar has a valid, completed exact-SHA rerun with its required evidence. No valid Calendar rerun was identified at this checkpoint.
+
+### Remaining delivery gates
+- **Done:** exact-SHA Build run 41451772834; independent File Persistence 41451772534; Calendar Provider 41451772492; five successful Device Smoke lanes listed above.
+- **Remaining:** obtain terminal Follow-up Persistence result for run 41451772497; resolve Calendar cancellation cause where evidence permits and complete a valid Calendar rerun without weakening tests; correct Review APK diagnostics/verification workflow without relaxing signature, package ID, non-debuggable, font, manifest or artifact checks; then produce and inspect a successful private review APK artifact on one exact candidate SHA.
+- **Acceptance evidence required:** exact SHA checkout in every workflow; all seven Device Smoke lanes completed successfully with required non-empty artifacts; Review APK verification success, manifest and APK SHA-256, signer fingerprint, byte size and downloadable private artifact; product-owner acceptance. No older SHA result can substitute.
+
+### Governance
+- PR #3052 remains OPEN / DRAFT / UNMERGED.
+- Base/main SHA remains 45e4202b03a434459e4c021a04efa7e8396359db.
+- BLOCKED — RELEASE: NO-GO remains mandatory.
+- No main edit, merge, release, public APK publication, manual dispatch, workflow cancellation, test deletion, assertion weakening, schema migration or runtime change was made by this documentation update.
+
+
+## 2026-11-02 — Final outcome update for Device Smoke run 41451772497
+
+The run is now terminal: completed / cancelled, exact head SHA 758edb259b55ecd69b6509e50b94aeadd378e88e.
+
+- Five lanes completed SUCCESS: Boot (125298736720), Navigation (125298737157), Quick Capture (125298736590), Task Lifecycle (125298736594), Reminder Vazirmatn (125298736760).
+- Calendar Segmented View (125298736601) ended CANCELLED. Its log reports "The operation was canceled"; screenshot upload then failed because artifacts/device-smoke/*.png did not exist. The cancellation initiator/root cause is not exposed by the run/job evidence and remains NOT VERIFIED.
+- Follow-up Persistence (125298736596) also ended CANCELLED. Its log reports "The operation was canceled" during flutter drive; the required screenshot upload then failed because no PNG was present. No test assertion outcome or persistence result was produced. Cancellation cause NOT VERIFIED.
+- The overall run conclusion is CANCELLED. Neither Calendar nor Device Follow-up Persistence may be marked PASS. The independent File Persistence run 41451772534 remains a separate successful storage test only.
+- This terminal result supersedes the earlier in-progress checkpoint in this ledger; it does not upgrade the Device Smoke gate.
+
+## 2026-11-02 — Review APK verification failure diagnosis
+
+Run 41451772502 / Job 125298740317 on the same SHA completed FAILURE. Gradle staging assembly succeeded; the signature/package/debuggable/font verification step exited 1. The workflow redirected apksigner output to a file but did not print or upload that file, so the exact failed predicate cannot be established retrospectively. The two hard-coded v2/v3 text checks are therefore an unproven likely failure point, not a confirmed root cause. The next workflow revision must print the full verifier output, preserve a nonzero apksigner exit as failure, and validate v2 plus v3/v3.1 without weakening package, debuggable, font, signer, manifest, or artifact checks. No approved APK artifact exists for this SHA.

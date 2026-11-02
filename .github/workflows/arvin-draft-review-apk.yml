@@ -97,9 +97,27 @@ jobs:
           test -x "$apksigner"
           test -x "$apkanalyzer"
 
+          # Preserve the verifier exit code and always expose its diagnostics in the job log.
+          set +e
           "$apksigner" verify --verbose --print-certs "$apk" > review-apk/apksigner-verify.log 2>&1
-          grep -F "Verified using v2 scheme" review-apk/apksigner-verify.log | grep -Fq ": true"
-          grep -F "Verified using v3 scheme" review-apk/apksigner-verify.log | grep -Fq ": true"
+          apksigner_status=$?
+          set -e
+          cat review-apk/apksigner-verify.log
+          if [ "$apksigner_status" -ne 0 ]; then
+            echo "APK_SIGNATURE_VERIFY_FAILED: apksigner exit=$apksigner_status" >&2
+            exit "$apksigner_status"
+          fi
+
+          # Require APK Signature Scheme v2 and v3 (including the v3.1 variant).
+          # Accept the documented verbose labels without relying on one exact suffix.
+          if ! grep -Eiq 'Verified using v2 scheme.*:[[:space:]]*true([[:space:]]|$)' review-apk/apksigner-verify.log; then
+            echo "APK_SIGNATURE_V2_NOT_VERIFIED" >&2
+            exit 1
+          fi
+          if ! grep -Eiq 'Verified using v3(\.1)? scheme.*:[[:space:]]*true([[:space:]]|$)' review-apk/apksigner-verify.log; then
+            echo "APK_SIGNATURE_V3_NOT_VERIFIED" >&2
+            exit 1
+          fi
 
           app_id="$("$apkanalyzer" manifest application-id "$apk")"
           debuggable="$("$apkanalyzer" manifest debuggable "$apk")"
