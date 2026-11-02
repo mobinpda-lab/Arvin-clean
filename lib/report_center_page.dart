@@ -608,6 +608,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
   String? _templateTaskId;
   String _taskSearch = '';
   Set<String> _templateIds = <String>{};
+  String _templateSearch = '';
   bool _includeLegacyProjectsWithoutTemplate = false;
   Set<String> _projectIds = <String>{};
   Set<String> _categories = <String>{};
@@ -955,7 +956,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               title: 'کار',
               icon: Icons.task_alt_outlined,
               accentColor: ArvinColors.reminder,
-              selectedCount: _taskId == null ? 0 : 1,
+              selectedCount: _taskId == null && _templateTaskId == null ? 0 : 1,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -998,10 +999,16 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               accentColor: ArvinColors.project,
               selectedCount: _templateIds.length + (_includeLegacyProjectsWithoutTemplate ? 1 : 0),
               child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                TextField(
+                  key: const ValueKey('report-filter-template-search'),
+                  decoration: const InputDecoration(labelText: 'جستجو در نام قالب‌ها', prefixIcon: Icon(Icons.search)),
+                  onChanged: (value) => setState(() => _templateSearch = value.trim().toLowerCase()),
+                ),
+                const SizedBox(height: 8),
                 _MultiSelectChips(
                   allLabel: 'همه قالب‌ها',
                   accentColor: ArvinColors.project,
-                  options: widget.templates.map((template) => MapEntry(template.id, template.name)).toList(growable: false),
+                  options: widget.templates.where((template) => template.name.toLowerCase().contains(_templateSearch)).map((template) => MapEntry(template.id, template.name)).toList(growable: false),
                   selected: _templateIds,
                   onChanged: (value) => setState(() => _templateIds = value),
                   keyPrefix: 'report-filter-template',

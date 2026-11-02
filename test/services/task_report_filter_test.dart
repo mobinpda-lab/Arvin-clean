@@ -191,4 +191,17 @@ void main() {
     expect(filter.copyWith(templateIds: {}).centerIds, {'511'});
     expect(filter.copyWith(clearTemplateTaskId: true).templateIds, {'tpl-a'});
   });
+
+  test('legacy projects without center or template stay outside selected template reports unless explicitly included', () {
+    final now = DateTime(2026, 11, 3, 10);
+    final legacy = Task(id: 'legacy', title: 'کار قدیمی');
+    final generated = Task(id: 'generated', title: 'کار قالب', templateTaskId: 'tt');
+    final projects = [
+      ProjectPlan(id: 'legacy-project', title: 'قدیمی', itemIds: ['legacy']),
+      ProjectPlan(id: 'generated-project', title: 'قالبی', centerId: '511', templateId: 'tpl', itemIds: ['generated']),
+    ];
+    final base = const TaskReportFilter(templateIds: {'tpl'});
+    expect(base.apply([legacy, generated], now: now, projects: projects).map((task) => task.id), ['generated']);
+    expect(base.copyWith(includeLegacyProjectsWithoutTemplate: true).apply([legacy, generated], now: now, projects: projects).map((task) => task.id).toSet(), {'legacy', 'generated'});
+  });
 }

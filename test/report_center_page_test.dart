@@ -353,6 +353,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-template-tpl')), 240, scrollable: find.byType(Scrollable).last);
     expect(find.byKey(const ValueKey('report-filter-template-tpl')), findsOneWidget);
+    expect(find.byKey(const ValueKey('report-filter-template-search')), findsOneWidget);
   });
 }
 
