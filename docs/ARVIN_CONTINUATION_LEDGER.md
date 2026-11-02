@@ -748,3 +748,47 @@ Category، Tag، Project و Branch/Center باید فقط از یک هسته م�
 PR #3052 در آخرین استعلام OPEN / DRAFT / UNMERGED و برچسب BLOCKED — RELEASE: NO-GO موجود بود. Branch API مقدار protected=false را برای شاخه اجرایی گزارش کرد. Ruleset فعال main-protection فقط refs/heads/main را هدف می‌گیرد؛ endpoint branch protection با 403 در دسترس اتصال ممیزی نبود. بنابراین حفاظت فنی اختصاصی شاخه اجرایی در شواهد فعلی فعال/اثبات‌شده نیست؛ این ممیزی هیچ تنظیمی را تغییر نداد. Label و Draft جایگزین Branch Protection نیستند.
 
 **ثبت مستندات روی شاخه مجاز:** audit document commit 52d4c7a2b0974815ff67883aac7777ede5fe83a5؛ Product Spec commit 0e94d423210f512e9aa8883e1787d0d67b00f119. ثبت Ledger و Changelog در ادامه همین موج انجام می‌شود. هیچ تغییر main، merge، release یا اجرای workflow جدید انجام نشده است.
+
+
+## Wave 7.287 — owner-locked taxonomy deletion, atomic rename and T13.5 diagnostic boundaries — 2026-11-02
+
+**Authorized base HEAD:** `54f9f3545203a198aadb4dad5886ecefbf5c75b7`  
+**Branch:** `fix/recovery-calendar-device-smoke-2026-10-31`  
+**PR:** #3052 — retain OPEN / DRAFT / UNMERGED.  
+**Scope:** explicit owner authorization in the current conversation; changes are confined to the authorized PR branch.
+
+### Product decision — deletion policy locked
+- Owner decision: Category/Tag deletion is blocked whenever the item has a canonical Task reference. No cascading deletion, automatic archive, or policy change is permitted in this phase.
+- Product contract added to `docs/product/ARVIN_PRODUCT_REFERENCE_v1.4_CANONICAL_ALIGNED.md`, section 15, with status OWNER-APPROVED / LOCKED.
+- `lib/task_taxonomy_management_page.dart` now tells the user that deletion is blocked to preserve Task history and includes the reference count.
+- `lib/services/task_taxonomy_mutation_service.dart` documents the current no-cascade/no-auto-archive rule. Existing delete guards remain fail-closed; no user records or schema were changed.
+
+### Atomic Category/Tag rename
+- `lib/services/task_store.dart`: added `renameCategoryAndTasks` and `renameTagAndTasks`. `_saveUnlocked` accepts a pre-commit callback executed inside its existing SQLite transaction. Task reference rewrite and matching catalog rename now commit together or roll back together.
+- `lib/task_taxonomy_management_page.dart`: rename handlers use the atomic TaskStore methods. The old independent catalog rename after `_persistMutation` was removed. `_persistMutation` now returns success/failure, reloads the management snapshot after either outcome, and does not advance the catalog after a failed transaction.
+- `test/task_taxonomy_management_page_test.dart`: added immediate UI and canonical catalog refresh assertions for category and tag renames.
+
+### T13.5 diagnostic-only instrumentation
+- `lib/alarm_overlay_page.dart`: added ordered debug markers immediately before/after `_store.load()`, immediately before/after `_projects.load()`, and immediately before/after success/error callback invocation.
+- `test/alarm_overlay_file_persistence_test.dart`: added markers before awaiting the callback signal, after it returns (including the error value), and before settling the loaded frame.
+- No production load ordering, Future, callback semantics, test assertion, timeout, persistence check, or Complete interaction was removed or weakened. The next exact-SHA run must be read from the first missing marker; until then the internal cause remains NOT VERIFIED.
+
+### Canonical Home refresh
+- `lib/main.dart`: after Settings returns, Home reloads Tasks, Projects, Categories and Tags through `_load()`.
+- Home category/tag creation shortcuts now use the page's canonical `taskStore`, then reload Home's canonical snapshot before returning the created value.
+
+### Source/documentation commits in this wave
+- TaskStore atomic persistence: `1cbc326fd3c95f9a215ee252a5fc48101a7cfb9d`
+- Taxonomy management atomic flow: `06ca5b5707fc5ac7483aa916bcb9f0fc6c10cc5c`
+- Alarm Overlay diagnostic markers: `9d79cbd97c1c637698b8310e0b4c2ba2a1dd8013`
+- Alarm file-persistence test markers: `5433cf1e2d71603b21c436483d702ab4a8621023`
+- Home canonical refresh: `5726a0052f3838f9744656ca4dc616db809a3195`
+- Management rename UI refresh tests: `30c79bfd62c995af436f6ba81fdce3b6318140d5`
+- Clear referenced-history deletion message: `22a0b7133d6a9eeea6c981358ca4bb0c246171a7`
+- Mutation-service owner-rule comment: `64e62e5af7eb7c86915a9a3a5f155bfd52e0af3f`
+- Product decision lock: `ad886a491639e72e93da91dea850072e21915617`
+- Changelog update: `0463763bc663bcb6f9da09793121eee2e2694e4c`
+
+**Validation status at ledger registration:** no new workflow result is claimed yet. Fresh Build and File Persistence evidence must be collected against the final documentation HEAD. Any diagnostic conclusion must quote the actual last emitted marker; do not infer TaskStore vs ProjectStore failure without that evidence. No manual test run or workflow dispatch has been performed in this wave at the time of this entry.
+
+**Governance:** PR #3052 remains OPEN / DRAFT / UNMERGED; the existing `BLOCKED — RELEASE: NO-GO` label is retained. No main change, merge, release, APK publication, Schema change, migration, branch-protection change or destructive operation was made.
