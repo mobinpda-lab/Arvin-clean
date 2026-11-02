@@ -1203,3 +1203,57 @@ Run 41451772502 / Job 125298740317 on the same SHA completed FAILURE. Gradle sta
 - The ledger is updated only on the authorized PR #3052 branch. Do not merge, modify `main`, close the PR, publish an APK or release.
 - PR #3052 must remain OPEN / DRAFT / UNMERGED; Release remains **BLOCKED — RELEASE: NO-GO**.
 - Iran timestamp: 1405/08/12 03:07 (Asia/Tehran).
+
+
+---
+
+## Wave 7.299 — Device Calendar Mirror vs. Arvin-Owned Task lifecycle boundary — 2026-11-03
+
+**Repository:** `mobinpda-lab/Arvin-clean`  
+**Branch:** `fix/recovery-calendar-device-smoke-2026-10-31`  
+**Implementation base SHA:** `ee904edaa7484e821275ee8fb116b67853a7b552`  
+**PR #3052:** OPEN / DRAFT / UNMERGED. **Release:** BLOCKED — RELEASE: NO-GO.
+
+### Product-owner architectural decision
+
+#### A. Device Calendar Mirror — read/display only
+- External Android Calendar events are projections, not Arvin-owned records.
+- Provider-side event title/time/date changes are reflected in the Calendar mirror when the provider snapshot is reloaded.
+- Provider deletion or detachment removes only that external event from the mirror projection on the next successful reload.
+- Mirror refresh must not create, update, delete or nullify a native Arvin Task, Task due date, Reminder, Reminder date or follow-up history.
+- Mirror display is sourced from the current provider query and is not a persisted copy of the provider event in canonical Task storage.
+
+#### B. Native Arvin Task/Reminder — Arvin owns the record
+- Once an external event is explicitly imported as a native Task, or an Arvin Task/Reminder is exported as a device-calendar replica, the native Arvin record remains authoritative.
+- External event movement, edit, deletion, detachment, missing query results or provider failure MUST NOT mutate, nullify or delete the native Task/Reminder or its dates.
+- Provider-originated changes cannot overwrite Arvin Task title, due date, reminder date, independent TaskReminder records or follow-up history.
+- A user may explicitly edit/delete an Arvin-owned record inside Arvin. A separate explicit export action may update/delete its device replica; that is outbound behavior, never inbound ownership transfer.
+- A provider replica disappearing must not be interpreted as a user request to delete the Arvin source record. Link metadata must not be discarded merely because a provider query omits an event.
+
+### Implementation changes recorded in this wave
+
+1. Removed automatic `_reconcileDeviceCalendar` scheduling and its task-refresh/conflict mutation path from `CanonicalCalendarLauncher`.
+2. Removed inbound reconciliation from the Home retry-sync callback. Retry remains outbound-only; user-facing copy no longer claims bidirectional synchronization.
+3. Retired `CalendarInboundSyncService.reconcile` as a deliberate no-op compatibility surface. It performs no provider query, TaskStore write, link-store save, reminder reschedule or deletion.
+4. Replaced the former inbound mutation tests with ownership-boundary tests asserting native Task title, due date, reminder date and independent TaskReminder identity/content remain unchanged.
+5. Preserved the read-only mirror implementation in `OfficialCalendarPage._loadExternalEvents` + `ExternalCalendarEventProjection`: it queries configured visible device calendars and creates ephemeral `external-calendar:` presentation items. It does not create native Task data.
+6. Added an app-resume refresh to `OfficialCalendarPage`. When the user returns from the device Calendar app, Arvin reloads the provider snapshot; changed/moved events are re-projected and deleted/detached events disappear from the mirror after a successful query. This refresh is read/display-only and does not write native Task or Reminder data.
+
+### Evidence and limitations
+
+- Source files changed: `lib/main.dart`, `lib/widgets/canonical_calendar_launcher.dart`, `lib/services/calendar_inbound_sync_service.dart`, `lib/official_calendar_page.dart`, and `test/services/calendar_inbound_sync_service_test.dart`.
+- The former inbound tests that expected provider edits/deletions to mutate canonical Task data were removed and replaced with ownership immutability assertions.
+- Source inspection confirms the old launcher-startup reconcile call and Home retry inbound call are removed.
+- No fresh Flutter tests, static analysis, Android build, emulator test, physical-device test or Calendar Provider Acceptance workflow has been executed in this wave. All execution outcomes remain NOT VERIFIED.
+- The app-resume mirror refresh is implemented at source level; actual lifecycle/provider behavior on Android remains NOT VERIFIED.
+- This wave does not establish that every external import-to-native-Task action is explicitly user-confirmed; that import-registration path remains separately auditable.
+- This wave does not establish release readiness or change Clause 14 acceptance status.
+
+### Governance
+
+- Only the authorized PR #3052 branch is modified.
+- `main` remains unchanged.
+- PR #3052 remains OPEN / DRAFT / UNMERGED.
+- No merge, release, APK publication or release-signoff is authorized.
+- Release remains **BLOCKED — RELEASE: NO-GO**.
+- Iran timestamp: 1405/08/12 (Asia/Tehran).
