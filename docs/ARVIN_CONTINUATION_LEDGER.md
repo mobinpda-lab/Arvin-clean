@@ -411,3 +411,20 @@ These runs targeted SHA `073664dbb69f0c1aea96ebd074a97a158b5c1699`; they do not 
 6. Re-run Build, Parallel Wave, Device Smoke and file-backed persistence on one exact new HEAD after fixes.
 
 No issue closed, no PR merge, no main change, no schema migration. Release remains **BLOCKED — RELEASE: NO-GO**.
+
+
+---
+
+## Wave 7.272 implementation checkpoint — 2026-11-02
+
+**Scope:** Home test contract, real Complete-button interaction, Device Smoke contract and screenshot artifact integrity. Changes are confined to `fix/recovery-calendar-device-smoke-2026-10-31`.
+
+### Changes committed
+- `test/widgets/home_page_test.dart`: expected search hint corrected to the exact current Home copy (`دسته‌ها`); product UI unchanged.
+- `test/home/home_filter_contract_test.dart`: scrolls the legacy-only second card into view before tap and Details assertion. Retains the negative assertion that no FollowUp presentation is created from legacy `followUpDate`.
+- `test/alarm_overlay_file_persistence_test.dart`: T14 now asserts Complete control exists, scrolls it into view, settles, verifies hit-testability, logs T14a, and taps the actual control. Completion persistence/reopen assertions remain unchanged.
+- `test/device_smoke_workflow_contract_test.dart`: Base64 shell extraction now matches the real encoded command pipeline; exact seven scenario mappings and driver assertions remain required.
+- `.github/workflows/device-smoke.yml`: screenshot output is written to an absolute workspace artifact path and validated for non-empty size and PNG signature before the existing per-scenario upload steps.
+
+### Acceptance status
+No PASS is inferred from source changes. Fresh exact-HEAD runs are required for all six Build shards + Analyzer, Parallel Wave, file-backed SQLite completion, and all seven Device Smoke lanes with individually registered PNG artifacts. APK matrix remains skipped while PR #3052 is Draft by design. PR must remain OPEN/DRAFT/UNMERGED and Release remains BLOCKED — RELEASE: NO-GO.
