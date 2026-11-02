@@ -402,3 +402,11 @@ Target branch SHA: `8ccbc90ebfdcd797d5c18f6ab7a6cb6cff2de358` (all results below
 - بررسی کد تست نشان داد Overlay اول پیش از نصب مجدد Overlay دوم صریحاً unmount نشده بود؛ در نتیجه چرخه‌عمر State تست می‌توانست با callback تازه مورد انتظار همگام نباشد.
 - تست اکنون Overlay نخست را پیش از بستن executor صریحاً unmount می‌کند و سپس پس از بازگشایی همان فایل SQLite، نمونهٔ تازه را mount می‌کند. هیچ منطق تولیدی، timeout یا assertion حذف/تضعیف نشده است.
 - نتیجهٔ اصلاح فقط پس از اجرای File Persistence روی HEAD جدید قابل پذیرش است.
+
+## 2026-11-02 — رفع توقف پاک‌سازی فایل موقت در آزمون T13.5
+
+- لاگ دقیق Build Run `41441240668` / Job `125263630767` و File Persistence Run `41441240620` / Job `125263441852` هر دو نشان دادند T13.5 با موفقیت callback را پس از بازگشایی SQLite دریافت کرده است: نشانگرهای `T07a`، `T07b`، `T13.5a`، `T13.5b` و `T13.6` ثبت شده‌اند و `T13.5b` مقدار `error=null` دارد.
+- هر دو اجرا پس از `T23 END: diagnostics disabled` با `TimeoutException after 0:10:00.000000` شکست خوردند. در کد، تنها عملیات بعد از T23، انتظار برای `directory.delete(recursive: true)` بود و هیچ نشانگر پایان پاک‌سازی وجود نداشت؛ بنابراین توقف به مرحلهٔ پاک‌سازی asynchronous پوشهٔ موقت محدود شد، نه callback Overlay.
+- پاک‌سازی نهایی به `directory.deleteSync(recursive: true)` تغییر کرد و نشانگرهای قبل/بعد پاک‌سازی اضافه شدند. زمان‌محدودیت ۱۰ دقیقه‌ای، انتظار callback، تعامل واقعی Complete، لغو اعلان و تمام assertهای ماندگاری SQLite حفظ شدند.
+- فقط آزمون تغییر کرد؛ منطق تولیدی و رفتار Reminder/Task تغییر نکرد. نتیجهٔ این اصلاح تا اجرای تازه روی SHA جدید `NOT VERIFIED` است.
+- Build APK در اجرای Draft به‌دلیل شرط صریح workflow برای PR غیر Draft، `skipped` بود؛ APK ساخته یا اعتبارسنجی نشده است. هیچ انتشار یا تغییر وضعیت Draft انجام نشد.
