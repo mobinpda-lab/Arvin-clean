@@ -529,3 +529,14 @@ No PASS is inferred from source changes. Fresh exact-HEAD runs are required for 
 **Validation:** this correction requires a fresh Build, File Persistence, seven-lane Device Smoke and Parallel Wave result on the new exact SHA. The earlier Parallel Wave contract result does not replace Build Analyze evidence.
 
 **Governance:** PR #3052 remains OPEN / DRAFT / UNMERGED. Release remains **BLOCKED — RELEASE: NO-GO**.
+
+
+## Wave 7.278 — deterministic viewport interaction and resilient Device Smoke diagnostics — 2026-11-02
+
+**Base SHA:** `0322a91b3326f04caa2eb06129dcdcd376dfbe08`. This checkpoint changes only the Device Smoke runner script, the file-backed Alarm Overlay test interaction, and this audit documentation.
+
+- `.github/workflows/device-smoke.yml`: replaced the embedded Bash payload with a single initialized-state flow. ADB discovery state, device listing, boot property and API level have safe defaults; timeout diagnostics use safe expansions under `set -u`, print the complete device listing and attempt a real diagnostic screenshot only when the emulator transport is online. The screenshot path is anchored to `GITHUB_WORKSPACE/artifacts/device-smoke`, while the upload contract remains the existing workspace-relative path. Flutter Drive logs remain captured; the single transport-only retry remains; screenshot capture/PNG signature/size checks remain independent of test outcome, and a failed integration test still exits non-zero.
+- `test/alarm_overlay_file_persistence_test.dart`: replaced gesture-based scrolling in the T14–T14a gate with bounded, non-animated `ScrollablePosition.jumpTo` increments and one finite 100ms frame pump per increment. Added T14.1–T14.5 markers to identify the exact interaction boundary. The actual keyed Complete control must still be fully inside the viewport and is still tapped; the real notification cancellation, handler completion, same-file SQLite close/reopen, and persisted Task completion/reminder-isolation assertions remain mandatory.
+- No test, scenario, assertion, timeout limit, production handler, schema, or persistence requirement was removed, weakened, or skipped. No legacy Next Follow-up or `followUpEnabled` field was introduced.
+
+**Validation:** source and workflow changes are not acceptance evidence. Build, File Persistence, all seven Device Smoke lanes with registered valid PNG artifacts, and Parallel Wave must complete on this exact new SHA. PR #3052 remains OPEN / DRAFT / UNMERGED; main, merge, APK Matrix and Release remain blocked. **BLOCKED — RELEASE: NO-GO**.

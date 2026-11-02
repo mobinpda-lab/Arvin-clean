@@ -160,20 +160,51 @@ void main() {
         expect(completeButton, findsOneWidget);
         final scrollable = find.byType(SingleChildScrollView);
         expect(scrollable, findsOneWidget);
+        final scrollableFinder = find.descendant(
+          of: scrollable,
+          matching: find.byType(Scrollable),
+        );
+        expect(scrollableFinder, findsOneWidget);
+        final scrollPosition = tester.state<ScrollableState>(scrollableFinder).position;
         final viewport = Offset.zero &
             (tester.view.physicalSize / tester.view.devicePixelRatio);
-        // Scroll the real overlay viewport in bounded, observable steps.
-        // This avoids an unbounded ensureVisible animation while retaining a
-        // strict requirement that the actual Complete button be fully visible.
+        stage('T14.1 real overlay Scrollable and viewport resolved');
+
+        // Move the actual scroll position in bounded, non-animated increments.
+        // Each jump is followed by one finite frame pump; no ensureVisible or
+        // pumpAndSettle Future can wait on the overlay's repeating animation.
         for (var attempt = 0; attempt < 8; attempt++) {
+          stage('T14.2 scroll attempt $attempt: before Complete bounds');
           final buttonRect = tester.getRect(completeButton);
           if (buttonRect.top >= viewport.top &&
               buttonRect.bottom <= viewport.bottom) {
+            stage('T14.3 Complete bounds are inside viewport');
             break;
           }
-          await tester.drag(scrollable, const Offset(0, -220));
+
+          var delta = 0.0;
+          if (buttonRect.bottom > viewport.bottom) {
+            final distance = buttonRect.bottom - viewport.bottom;
+            delta = distance > 220.0 ? 220.0 : distance;
+          } else if (buttonRect.top < viewport.top) {
+            final distance = viewport.top - buttonRect.top;
+            delta = -(distance > 220.0 ? 220.0 : distance);
+          }
+          if (delta == 0.0) {
+            break;
+          }
+          final nextOffset = (scrollPosition.pixels + delta)
+              .clamp(scrollPosition.minScrollExtent, scrollPosition.maxScrollExtent)
+              .toDouble();
+          if (nextOffset == scrollPosition.pixels) {
+            break;
+          }
+          stage('T14.4 jumpTo offset $nextOffset');
+          scrollPosition.jumpTo(nextOffset);
           await tester.pump(const Duration(milliseconds: 100));
+          stage('T14.5 bounded viewport frame pumped');
         }
+
         final completeRect = tester.getRect(completeButton);
         expect(
           completeRect.top,
