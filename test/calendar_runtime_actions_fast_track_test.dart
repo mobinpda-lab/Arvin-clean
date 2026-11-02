@@ -62,7 +62,7 @@ void main() {
       MaterialApp(
         home: CalendarPage(
           initialSelectedDay: day,
-          reminders: const <CalendarReminder>[
+          reminders: <CalendarReminder>[
             CalendarReminder(
               id: id,
               title: 'پیگیری قرارداد',
