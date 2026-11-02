@@ -341,3 +341,17 @@ Target branch SHA: `8ccbc90ebfdcd797d5c18f6ab7a6cb6cff2de358` (all results below
 - Recorded MVP boundaries, explicit non-goals, 15 product acceptance criteria, data-safety constraints and pre-implementation decisions requiring owner/design resolution.
 - **Status:** `POST-STABILITY / PLANNED`. This is a product requirement registration only, not implementation authorization or acceptance.
 - No product code, tests, assertions, schema, migration, UI, main, Merge, Release or APK publication was changed. PR #3052 remains OPEN / DRAFT / UNMERGED. **BLOCKED — RELEASE: NO-GO**.
+
+
+
+## 2026-11-02 — Product specification update: Reports Tab and Home search
+
+- Centralized all Branch/Center, Project Template and Period reporting requirements in one Reports Tab; added a dedicated Branch/Center filter for Projects and Tasks, including historical records.
+- Added advanced combined multi-criteria filtering across supported Branch, Template, Period, Status, Tag and Task/Follow-up dimensions.
+- Added Task-specific Follow-up filtering that must return only real Follow-up records linked to the selected Task.
+- Registered point filters as a requirement; exact semantics and UX/query behavior remain unresolved and require explicit product-owner/design clarification before implementation.
+- Required explicit loading, empty and error states and real-data-backed report results; prohibited parallel storage/models for Project, Task or Follow-up.
+- Specified Home global-search placement directly below `مدیریت کارها و پیگیری آروین` and immediately above the four quick-access cards; placeholder is `جستجو در کارها`, and search must operate on real Tasks.
+- Preserved RTL quick-access order: زمان، پروژه‌ها، دسته‌ها، برچسب‌ها. No broad Home redesign is authorized.
+- The referenced Home image could not be identified/retrieved from the current evidence; exact pixel-level visual matching remains `NOT VERIFIED`.
+- **Status:** `POST-STABILITY / PLANNED`; documentation only, not implementation authorization or acceptance. No app code, tests, assertions, schema, migration, runtime behavior, main, merge or release was changed. PR #3052 remains OPEN / DRAFT / UNMERGED. **BLOCKED — RELEASE: NO-GO**.
