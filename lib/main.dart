@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 import 'arvin_colors.dart';
 import 'alarm_overlay_page.dart';
@@ -3115,7 +3116,10 @@ class _HomePageState extends State<HomePage> {
           child: Padding(
             // Compact vertical rhythm: save 4 px per card without shrinking text.
             padding: const EdgeInsets.fromLTRB(5, 2, 5, 2),
-            child: Row(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 selectionMode
@@ -3412,6 +3416,8 @@ class _HomePageState extends State<HomePage> {
                       ),
                     )
                   : const SizedBox.shrink(),
+            ),
+              ],
             ),
           ),
         ),
