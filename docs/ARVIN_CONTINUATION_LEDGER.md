@@ -219,3 +219,84 @@ Issue #2299 was fetched live as **OPEN**. Its existing body contains historical 
 - Official font remains Vazirmatn only.
 - Release remains **BLOCKED — RELEASE: NO-GO**.
 - All new commits require exact-HEAD Build, Device Smoke and relevant artifact verification. No result from SHA `aa506694...` transfers automatically to the new HEAD.
+
+
+---
+
+## Wave 7.267 live audit checkpoint — 2026-11-02
+
+**Audit target:** PR #3052 branch `fix/recovery-calendar-device-smoke-2026-10-31`  
+**Live PR HEAD:** `e4c3d57413376c41257cd2fba2499eaf2103901f`  
+**PR state:** OPEN / DRAFT / UNMERGED. **Release:** BLOCKED — RELEASE: NO-GO.  
+**Governing issues:** #823 OPEN; #2102 OPEN; #2299 OPEN.
+
+### Exact-head workflow inventory — SHA e4c3d57413376c41257cd2fba2499eaf2103901f
+
+All five run records below were fetched through the commit's workflow-run association. Attempt 1 is the inspected attempt in the available job-list/log endpoints.
+
+| Workflow | Run / Attempt | Job | Result | Evidence / disposition |
+|---|---:|---:|---|---|
+| Build | 41352893022 / 1 | Analyze 124986762204 | PASS (Analyze job only) | Analyze step SUCCESS; does not make Build green |
+| Build | 41352893022 / 1 | test-0 124986762420; test-1 124986762554; test-3 124986762091; test-4 124986762298; test-5 124986762308 | PASS (five shards only) | Each Test step SUCCESS |
+| Build | 41352893022 / 1 | test-2 124986762410 | FAIL | 264 tests passed, 2 failed. Failures: `test/device_smoke_workflow_contract_test.dart` expected literal `alarm-overlay-*.png`; `test/alarm_overlay_file_persistence_test.dart` timed out. |
+| Build | 41352893022 / 1 | APK matrix 124986763255 | SKIPPED | No APK artifact from this run. |
+| Device Smoke | 41352893001 / 1 | Prepare 124986709272 | SUCCESS (setup only) | Does not count as a scenario lane |
+| Device Smoke | 41352893001 / 1 | Boot 124986725361 | SUCCESS job | Emulator script reached `emulator-5554 device`; however upload warned no `artifacts/device-smoke/*.png`. Functional scenario details not independently verified from a completed drive report. |
+| Device Smoke | 41352893001 / 1 | Navigation 124986725385 | SUCCESS job | Upload warned no PNG files. Scenario functional result NOT VERIFIED. |
+| Device Smoke | 41352893001 / 1 | Reminder/Vazirmatn 124986725394 | SUCCESS job | Dedicated overlay upload step SUCCESS, but run artifact listing returned no registered artifacts. Functional/visual acceptance NOT VERIFIED. |
+| Device Smoke | 41352893001 / 1 | Task Lifecycle 124986725358 | SUCCESS job | Upload warned no PNG files. Functional result NOT VERIFIED. |
+| Device Smoke | 41352893001 / 1 | Follow-up Persistence 124986725414 | SUCCESS job | Upload warned no PNG files. Functional result NOT VERIFIED. |
+| Device Smoke | 41352893001 / 1 | Quick Capture 124986725465 | SUCCESS job | Upload step SUCCESS, but no registered artifacts in run listing. Functional/visual acceptance NOT VERIFIED. |
+| Device Smoke | 41352893001 / 1 | Calendar Segmented View 124986725482 | SUCCESS job | Calendar upload step SUCCESS, but no registered artifacts in run listing. Functional/visual acceptance NOT VERIFIED. |
+| Follow-up SQLite | 41352892995 / 1 | 124986757900 | FAIL | Repository file persistence test passed. Alarm Overlay test stopped at T00b immediately before `Directory.systemTemp.createTemp('/tmp')`; 10-minute timeout. No temp directory, NativeDatabase, schema install, write, close/reopen, or reload evidence. Root cause NOT VERIFIED. |
+| Calendar Provider | 41352892991 / 1 | 124986693330 | PASS (provider scope only) | Instrumentation `provisionsExactlyOneWritableCalendarIdempotently`: TEST_RESULT=PASS / OK (1 test); exact-head evidence artifact ID 13102051651, 11,205 bytes, URL https://github.com/mobinpda-lab/Arvin-clean/actions/runs/41352892991/artifacts/13102051651. Does not prove Device Smoke or physical Calendar acceptance. |
+| Parallel Wave | 41352892989 / 1 | 124986693460 | FAIL | Fast Lane contract reports missing literal `flutter drive --driver=test_driver/integration_test.dart` in .github/workflows/device-smoke.yml. |
+
+### Device Smoke dual status
+
+The workflow job conclusions are SUCCESS for all seven lanes, but the available log/artifact evidence is insufficient to claim seven functional PASS results. Initial emulator startup logged `Unable to connect to adb daemon on port: 5037`; later log lines show `emulator-5554 device` for some jobs. The seven lane logs must demonstrate completed scenario execution and their registered artifacts must be non-empty/downloadable before upgrading status.
+
+| Lane | Functional Status | Visual Evidence Status |
+|---|---|---|
+| Boot | NOT VERIFIED | UPLOAD SKIPPED / NOT FOUND |
+| Navigation | NOT VERIFIED | UPLOAD SKIPPED / NOT FOUND |
+| Reminder/Vazirmatn | NOT VERIFIED | NOT FOUND in run artifact listing |
+| Task Lifecycle | NOT VERIFIED | UPLOAD SKIPPED / NOT FOUND |
+| Follow-up Persistence | NOT VERIFIED | UPLOAD SKIPPED / NOT FOUND |
+| Quick Capture | NOT VERIFIED | NOT FOUND in run artifact listing |
+| Calendar Segmented View | NOT VERIFIED | NOT FOUND in run artifact listing |
+
+No artifact registered in Device Smoke run 41352893001. The job-level upload step conclusion alone is not evidence that an artifact exists. The ADB daemon startup error is observed; its underlying cause is NOT VERIFIED. Emulator readiness and the exact Flutter drive outcome remain to be proven per lane.
+
+### Home Wave 7.267 source audit — no Home code changed in this checkpoint
+
+- `lib/main.dart` is the real HomePage entry. It still uses `_homeFilterCards()`; the four large filter cards remain. Existing time/project/category/tag filter state and sheet handlers must be preserved during any later compact-chip conversion.
+- `HomeFollowUpPresentationService` and its test exist. The test explicitly verifies no fabricated latest FollowUp when only a legacy date exists. Its connection to the real Home task card remains NOT VERIFIED / not integrated in this checkpoint.
+- Existing time groups and collapse state were found in Home source; the new pastel/count/accordion requirements are not yet accepted as complete.
+- The actual Home card currently navigates to Task Details; in-place accordion and scroll-direction Bottom Navigation auto-hide remain NOT IMPLEMENTED at this checkpoint.
+- Quick Capture FAB, search and notification handlers remain present in the real Home source; preserve their existing routes/callbacks.
+- Exact owner reference image filenames `photo_1793577657412.webp` and `photo_1793578032490.webp` were not found in repository code search; GitHub Agent visibility of the conversation attachments is NOT VERIFIED. No image-based comparison is claimed.
+- No Bismillah image asset was identified by the searched exact filenames or repository code search. The currently inspected Home visual integration contains a text capsule, not an approved image asset. Full repository asset inventory and license provenance remain NOT VERIFIED.
+- A dedicated Home alarm filter has no verified independent query/projection contract in this audit; record as NEEDS PRODUCT DECISION, do not add.
+- Search for prior exact test paths `test/rtl_spec_test.dart` and `test/vazirmatn_font_test.dart` returned no results; this does not prove absence of all RTL/font tests. Existing relevant test inventory must be enumerated before editing.
+
+### FollowUp / persistence contract audit
+
+- Live source search shows `Task.followUpEnabled` and `Task.followUpDate` remain in the Task model and SQL migration writer; TaskStore still treats them as known payload keys.
+- `FollowUp.nextFollowUp` and `reminderDate` references remain in active model/editor paths per repository audit results.
+- Prior governance requires removal of active future-FollowUp scheduling while preserving compatibility/data. No live database contents or backup were inspected here; destructive schema changes remain prohibited. Safe conversion/rollback plan NOT VERIFIED.
+- Existing test `home_follow_up_presentation_service_test.dart` verifies no synthetic FollowUp from a legacy date; this is source/test presence, not exact-head execution evidence.
+
+### Work disposition and next gates
+
+No source, workflow, test, or product UI file was edited in this checkpoint. No commit, push, new CI run, issue comment, merge, release, APK publication, database migration, or user-data mutation was performed. This is an evidence-led audit-only checkpoint; all open items remain open.
+
+**P0:** resolve ADB startup/boot readiness with logs and actual device enumeration; obtain completed Flutter drive result for all seven lanes; register and download non-empty per-lane artifacts; fix the artifact-name contract without dropping `alarm-overlay-*.png`; independently root-cause the T00b temp-directory stall; rerun full Build; produce and verify a real signed APK/manifest; complete Golden Flow and device acceptance.
+
+**P1:** implement Wave 7.267 only on the real HomePage after locating official Bismillah asset/license and owner references; compact chips with preserved filters; real-data group headers/counts; in-place task accordion with Details route preserved; wire real FollowUp presentation service; scroll-aware Bottom Navigation while preserving FAB; expand Home/RTL/Vazirmatn/viewport/empty-state tests. Decide separately whether an Alarm filter has a real product/query contract.
+
+**P1 data safety:** reconcile active legacy `followUpEnabled`, `followUpDate`, `nextFollowUp`, and FollowUp future-scheduling fields against the current Reminder-only future scheduling baseline. Inspect real DB/backup before any migration; preserve records and provide rollback. Test independent Complete / Stop Alarm / Snooze / Save FollowUp actions across file-backed SQLite reopen.
+
+**P2:** update product matrix and changelog only after source changes stabilize; append exact-SHA evidence to Issue #2299 only after each result is independently inspectable. Keep #823/#2102/#2299 OPEN and PR #3052 OPEN/DRAFT/UNMERGED.
+
+**Final gate:** PR remains UNMERGED. Release remains **BLOCKED — RELEASE: NO-GO**.
