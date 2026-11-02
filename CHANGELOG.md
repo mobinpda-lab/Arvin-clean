@@ -1,5 +1,15 @@
 # Arvin Changelog
 
+## 2026-11-02 — Wave 7.270 Home and Fast Lane recovery
+
+- Fast Lane validator now decodes the emulator workflow's Base64 shell payload and validates the real `flutter drive` command without removing or weakening emulator execution.
+- Home task cards now expand in place, retain a separate Task Details action, and show description plus exact due date/time.
+- Home task cards use `HomeFollowUpPresentationService` to display only the latest persisted `task.lastFollowUp`; legacy dates do not create synthetic history.
+- Home Bottom Navigation now animates with scroll direction; the Scaffold Quick Capture FAB remains outside that animation.
+- Centered Bismillah typography now uses the official Vazirmatn font family.
+- Updated Home and workflow contract tests for compact chips, real FollowUp presentation, and decoded Fast Lane validation. Exact-head CI confirmation is pending; these entries do not imply test or release acceptance.
+
+
 All entries below describe changes on the authorized PR branch. They are not release notes and do not imply release acceptance.
 
 ## 2026-11-01 — Calendar filters, all-day handling, and test stabilization
