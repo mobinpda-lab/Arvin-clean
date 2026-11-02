@@ -835,3 +835,24 @@ PR #3052 در آخرین استعلام OPEN / DRAFT / UNMERGED و برچسب BL
 
 ### Governance
 PR #3052 remains OPEN / DRAFT / UNMERGED. `BLOCKED — RELEASE: NO-GO` remains unchanged. No main edit, merge, release or manual workflow dispatch was performed.
+
+## Wave 7.290 — T13.5 post-callback cleanup timeout — 2026-11-02
+
+**Audited baseline SHA:** `a0dba2603535d6684d12327b37693812c838bf11`.  
+**Authorized branch:** `fix/recovery-calendar-device-smoke-2026-10-31`; PR #3052.
+
+### Exact failure evidence
+- Build Run `41441240668`, failing Job `125263630767`, and File Persistence Run `41441240620`, failing Job `125263441852`, both identify the same test: `Snooze and completion remain isolated after closing and reopening the same SQLite file`.
+- Both logs contain `T07a` / `T07b`, the second TaskStore and ProjectStore loads, `T13.5a`, `T13.5b ... error=null`, `T13.6`, successful Complete handler / notification cancellation, final SQLite reload, and `T23 END: diagnostics disabled`.
+- Both then report `TimeoutException after 0:10:00.000000`. Source inspection at the audited SHA showed the only awaited operation after T23 was `await directory.delete(recursive: true)`; no post-cleanup marker existed. This localizes the timeout to asynchronous temporary-directory cleanup. The T13.5 callback itself did return successfully.
+- The failure was not treated as a T13.5 callback failure and no persistence behavior failure was inferred.
+
+### Test-only correction
+- On the PR branch, commit `5910952cc0342a9812f1076a992a94651f6a6efe` replaces the final asynchronous directory cleanup with `directory.deleteSync(recursive: true)` and adds pre/post cleanup markers.
+- No production code changed. The 10-minute timeout, callback wait, error assertion, Complete interaction, notification-cancellation assertion, and final SQLite readback assertions remain unchanged.
+- CHANGELOG records the same diagnosis and correction.
+- Fresh exact-HEAD Build, File Persistence and Device Smoke are required. No PASS is inferred from the baseline run or from the callback markers alone.
+
+### APK and governance
+- Build workflow `.github/workflows/build.yml` explicitly skips all APK variants for Draft pull requests. The APK matrix job on baseline run `41441240668` was `skipped`; no APK was produced or verified. PR must remain Draft, so this route cannot produce a review APK without changing governance or the workflow policy.
+- PR #3052 remains OPEN / DRAFT / UNMERGED. `BLOCKED — RELEASE: NO-GO` remains unchanged. No main edit, merge, release, APK publication, manual dispatch or workflow cancellation was performed.
