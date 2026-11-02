@@ -1,0 +1,50 @@
+import 'package:arvin/models/arvin_center.dart';
+import 'package:arvin/models/goal_project.dart';
+import 'package:arvin/models/project_template.dart';
+import 'package:arvin/models/task.dart';
+import 'package:arvin/services/center_store.dart';
+import 'package:arvin/services/project_store.dart';
+import 'package:arvin/services/project_template_service.dart';
+import 'package:arvin/services/project_template_store.dart';
+import 'package:arvin/services/task_store.dart';
+import 'package:drift/native.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  test('template creates independent projects and propagation is append-only and idempotent', () async {
+    final db = NativeDatabase.memory(); addTearDown(db.close);
+    final centers = CenterStore(executor: db);
+    final templates = ProjectTemplateStore(executor: db);
+    final projects = ProjectStore(executor: db);
+    final tasks = TaskStore(executor: db);
+    await centers.create(id: '511', name: '511');
+    await centers.create(id: '512', name: '512');
+    final now = DateTime(2026, 11, 3);
+    final base = ProjectTemplateTask(id: 'tt-base', title: 'بررسی فن', category: 'سرویس');
+    final template = ProjectTemplate(id: 'tpl', name: 'کالیبراسیون یخچال', tasks: [base], createdAt: now, updatedAt: now);
+    await templates.save(template);
+    final service = ProjectTemplateService(templateStore: templates, centerStore: centers, projectStore: projects, taskStore: tasks, idFactory: (prefix) => '$prefix-${DateTime.now().microsecondsSinceEpoch}-${prefix == 'task' ? 'a' : 'p'}');
+    final generated = await service.generateProjects(templateId: 'tpl', centerIds: {'511', '512'});
+    expect(generated.created.length, 2);
+    final createdProjects = await projects.load();
+    expect(createdProjects.map((p) => p.centerId).toSet(), {'511', '512'});
+    expect(createdProjects.map((p) => p.itemIds.single).toSet().length, 2);
+    final task511 = (await tasks.load()).firstWhere((task) => createdProjects.firstWhere((p) => p.centerId == '511').itemIds.contains(task.id));
+    task511.setCompleted(true, at: now);
+    await tasks.save(await tasks.load().then((all) => all.map((t) => t.id == task511.id ? task511 : t).toList()));
+    final appended = ProjectTemplateTask(id: 'tt-new', title: 'تمیزکاری فیلتر پشت کندانسور');
+    final updated = template.copyWith(tasks: [...template.tasks, appended], updatedAt: now);
+    await templates.save(updated);
+    final eligible = await service.propagationCandidates('tpl');
+    expect(eligible.eligible.length, 2);
+    final result = await service.propagateTask(templateId: 'tpl', templateTask: appended, selectedProjectIds: eligible.eligible.map((p) => p.id).toSet());
+    expect(result.applied.length, 2);
+    final after = await projects.load();
+    final afterTasks = await tasks.load();
+    expect(afterTasks.firstWhere((t) => t.id == task511.id).completed, isTrue);
+    expect(after.where((p) => p.itemIds.map((id) => afterTasks.firstWhere((t) => t.id == id)).any((t) => t.templateTaskId == 'tt-new')).length, 2);
+    final retry = await service.propagateTask(templateId: 'tpl', templateTask: appended, selectedProjectIds: eligible.eligible.map((p) => p.id).toSet());
+    expect(retry.alreadyPresent.length, 2);
+    expect((await tasks.load()).length, afterTasks.length);
+  });
+}
