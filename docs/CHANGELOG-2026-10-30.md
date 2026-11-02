@@ -170,3 +170,16 @@ Target branch SHA: `8ccbc90ebfdcd797d5c18f6ab7a6cb6cff2de358` (all results below
 - Parallel Wave Run `41382008837`, contract Job `125074647025`: **SUCCESS**, log says `Arvin Fast Lane workflow contract: OK`. Note the job checked out PR merge ref SHA `b6dd35a273b537ea9319ea4d17cdd3a004b35b82`, not the branch head directly; this verifies the workflow contract for the PR merge checkout, not a branch-head test run.
 - Governance unchanged: PR #3052 OPEN / DRAFT / UNMERGED. No merge, main edit, APK build/publication or release. **BLOCKED — RELEASE: NO-GO**.
 - Next: repair the undefined `tester` references without weakening the integration test; instrument the actual Complete control interaction and handler boundary; ensure each of seven Device Smoke jobs writes a non-empty valid PNG at the upload path and verify uploaded artifact metadata; then rerun all required workflows on one new exact SHA. This documentation commit itself creates a new HEAD, so none of the above results transfers to the new SHA.
+
+
+## Wave 7.273 — source remediation checkpoint — 2026-11-02
+
+**Base SHA:** `b5e4d9a37879631c8e903b5508a390d77ba78f1d`. This section records source/workflow changes only; runtime acceptance is pending on the final documentation HEAD.
+
+- `integration_test/android_backup_restore_sql_smoke_test.dart`: converted the portable backup file round-trip case from plain `test` to `testWidgets((tester) async {...})`. The existing actual file write/read/restore assertions remain; the final app launch, Home assertion and `task-lifecycle` screenshot now use the WidgetTester in scope.
+- `test/alarm_overlay_file_persistence_test.dart`: retained the actual keyed Complete button, visibility and hit-test assertions, and real tap. Replaced the second global `pumpAndSettle` after `ensureVisible` with one 200ms frame pump before hit-test. This avoids waiting for unrelated repeating animations while preserving the actual hit-test and callback path; T14a and post-tap/database reopen assertions remain. Whether this resolves the observed T14 stall is **NOT VERIFIED** until the test runs.
+- `.github/workflows/device-smoke.yml`: retained the canonical relative output `artifacts/device-smoke/${SMOKE_SCENARIO}-final.png`; after ADB screencap the script now validates non-empty size (>1000 bytes), PNG signature `89504e470d0a1a0a`, and logs filename/byte count/signature. Upload actions now use `if-no-files-found: error` instead of warning. Seven lane mapping is unchanged.
+- No tests, assertions, lanes, or timeout limits were removed or weakened. No APK build was enabled.
+- Exact final SHA and workflow outcomes must be recorded after the documentation commit; previous SHA evidence does not transfer.
+
+**Governance:** PR #3052 remains OPEN/DRAFT/UNMERGED; release remains **BLOCKED — RELEASE: NO-GO**.
