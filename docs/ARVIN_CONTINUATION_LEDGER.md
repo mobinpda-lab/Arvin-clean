@@ -540,3 +540,14 @@ No PASS is inferred from source changes. Fresh exact-HEAD runs are required for 
 - No test, scenario, assertion, timeout limit, production handler, schema, or persistence requirement was removed, weakened, or skipped. No legacy Next Follow-up or `followUpEnabled` field was introduced.
 
 **Validation:** source and workflow changes are not acceptance evidence. Build, File Persistence, all seven Device Smoke lanes with registered valid PNG artifacts, and Parallel Wave must complete on this exact new SHA. PR #3052 remains OPEN / DRAFT / UNMERGED; main, merge, APK Matrix and Release remain blocked. **BLOCKED — RELEASE: NO-GO**.
+
+
+## Wave 7.279 — inline ADB discovery and explicit execution-stage tracing — 2026-11-02
+
+**Base SHA:** `282fffcbb20a750c2c9ac31ffb4bead7866c0aeb`. Device Smoke Run `41410116463`, Boot Job `125161154388`, reached `ADB_DEVICE_READY` after the emulator reported boot complete, but the action terminated immediately afterward: no `ADB_DEVICE`, Flutter Drive, screenshot-capture marker or PNG artifact was emitted. The emulator's later `stop: Not implemented` message occurred during action cleanup and is not treated as the initiating cause.
+
+- `.github/workflows/device-smoke.yml`: moved initial ADB serial discovery out of the helper-function return path and into an explicit bounded loop. Added stage markers after ADB discovery, boot completion, API validation, Flutter Drive and screenshot capture. Device state and diagnostic fields remain initialized and safe under `set -u`; timeout paths preserve ADB listings and best-effort diagnostic screenshots. The transport-only retry and non-zero propagation of integration-test failures remain intact. Screenshot output stays anchored to the workspace artifact directory and is still checked for PNG signature and size.
+- The new stage markers are intended to prove whether the action proceeds beyond the previously observed ADB-ready boundary; they do not themselves constitute test or screenshot acceptance.
+- No tests, assertions, scenarios, retry policy, timeout limit, production behavior or persistence checks were removed or weakened. No deprecated Next Follow-up or `followUpEnabled` field was added.
+
+**Validation:** Build, File Persistence, seven-lane Device Smoke with actual uploaded PNGs, and Parallel Wave must all finish on one exact final SHA. PR #3052 remains OPEN / DRAFT / UNMERGED; **BLOCKED — RELEASE: NO-GO**.
