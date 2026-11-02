@@ -672,3 +672,19 @@ Period identity and normalization; batch transaction/partial-failure policy; dup
 - The exact reference image file/identity was not recoverable in this registration; pixel-level appearance remains `NOT VERIFIED` pending attachment/linking of that image.
 
 **Governance:** no application code, tests, assertions, schema, migration, UI/runtime behavior, or main branch was changed. Implementation authorization remains withheld until stability acceptance and a separate owner-approved execution command. PR #3052 remains OPEN / DRAFT / UNMERGED. **BLOCKED — RELEASE: NO-GO**.
+
+
+
+## Product decision update — five Home shortcuts and Branch-aware global search — 2026-11-02
+
+**Canonical specification:** `docs/product/ARVIN_RECURRING_BRANCH_PROJECTS_ROADMAP.md`  
+**Status:** `POST-STABILITY / PLANNED`; owner decision registered, not implemented.
+
+- Home quick access is now exactly five equal-sized icon cards: برچسب‌ها، دسته‌ها، پروژه‌ها، زمان، شعبه/مرکز.
+- RTL order from right to left: زمان، پروژه‌ها، دسته‌ها، برچسب‌ها، شعبه/مرکز.
+- Global Home search supports real Tasks, Projects and Branches/Centers, including direct Branch filtering backed by the structured Branch identity/relationship, not merely text matching.
+- Search results identify their entity type; selecting a Branch result leads to its details/projects/history. The Branch quick-access card opens the Branch Directory; inactive Branch history remains accessible.
+- This decision supersedes the prior four-card / Task-only Home search requirement.
+- No implementation, code, schema, migration or runtime change is authorized before stability acceptance and a separate execution command. Exact reference-image pixel matching remains `NOT VERIFIED` until the image is attached/identified.
+
+**Governance:** PR #3052 remains OPEN / DRAFT / UNMERGED. **BLOCKED — RELEASE: NO-GO**. No main change, merge, release or APK publication.
