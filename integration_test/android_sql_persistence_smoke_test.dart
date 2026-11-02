@@ -1,6 +1,5 @@
 import 'package:arvin/models/task.dart';
 import 'package:arvin/main.dart' as app;
-import 'package:flutter/material.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
