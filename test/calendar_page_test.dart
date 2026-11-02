@@ -189,6 +189,13 @@ void main() {
               description: 'پیگیری: تماس با مشتری',
             ),
           ],
+          visibleReminderProjection: (_, __) => [
+            CalendarReminder(
+              id: 'followup:projected-task:fu-projected',
+              title: 'پیگیری از Projection',
+              date: selectedDay,
+            ),
+          ],
         ),
       ),
     );
@@ -198,6 +205,7 @@ void main() {
     expect(find.text('یادآور مستقل'), findsOneWidget);
     expect(find.text('تماس تاریخی'), findsNothing);
     expect(find.text('پیگیری: تماس با مشتری'), findsNothing);
+    expect(find.text('پیگیری از Projection'), findsNothing);
     expect(find.byKey(const ValueKey('calendar-pastel-card-followup:task-1:follow-up-1')), findsNothing);
     expect(tester.takeException(), isNull);
   });
