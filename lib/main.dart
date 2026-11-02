@@ -617,13 +617,17 @@ class _HomePageState extends State<HomePage> {
   Future<String?> _createCategory(String value) async {
     final name = value.trim();
     if (name.isEmpty) return null;
-    return TaskStore().createCategory(name);
+    final created = await taskStore.createCategory(name);
+    if (mounted) await _load();
+    return created;
   }
 
   Future<String?> _createTag(String value) async {
     final name = value.trim();
     if (name.isEmpty) return null;
-    return TaskStore().createTag(name);
+    final created = await taskStore.createTag(name);
+    if (mounted) await _load();
+    return created;
   }
 
   Set<String> _trashedTaskIds(Iterable<Task> snapshot) => snapshot
@@ -2708,6 +2712,7 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+    if (mounted) await _load();
   }
 
   void _showAbout() {
