@@ -59,29 +59,29 @@ class ProjectTemplateService {
     for (final item in templates) { if (item.id == templateId) { template = item; break; } }
     if (template == null || template.isArchived) throw StateError('قالب فعال پیدا نشد.');
     final centers = await centerStore.load(includeArchived: false);
-    var projects = await projectStore.load();
-    var tasks = await taskStore.load();
     final created = <String>[], duplicates = <String>[];
     final failed = <String, String>{};
     for (final centerId in centerIds) {
       ArvinCenter? center;
       for (final item in centers) { if (item.id == centerId) { center = item; break; } }
       if (center == null) { failed[centerId] = 'مرکز فعال پیدا نشد.'; continue; }
-      if (projects.any((p) => p.templateId == template.id && p.centerId == centerId && !p.isArchived)) {
-        duplicates.add(centerId); continue;
-      }
       final generatedTasks = template.tasks.map(_instantiate).toList(growable: false);
       final project = ProjectPlan(
         id: _id('project'), title: template.name, centerId: centerId,
         templateId: template.id, templateNameSnapshot: template.name,
         itemIds: generatedTasks.map((task) => task.id),
       );
-      final nextTasks = [...tasks, ...generatedTasks];
-      final nextProjects = [...projects, project];
       try {
-        await taskStore.saveWithProjects(nextTasks, nextProjects);
-        tasks = nextTasks; projects = nextProjects; created.add(centerId);
-      } catch (error) { failed[centerId] = error.toString(); }
+        await taskStore.createProjectFromTemplate(project, generatedTasks);
+        created.add(centerId);
+      } catch (error) {
+        final current = await projectStore.load();
+        if (current.any((p) => p.templateId == template.id && p.centerId == centerId && !p.isArchived)) {
+          duplicates.add(centerId);
+        } else {
+          failed[centerId] = error.toString();
+        }
+      }
     }
     return TemplateGenerationResult(created: created, duplicates: duplicates, failed: failed);
   }
@@ -111,28 +111,20 @@ class ProjectTemplateService {
     if (template == null || !template.tasks.any((item) => item.id == templateTask.id)) {
       throw StateError('کار انتخاب‌شده متعلق به این قالب نیست.');
     }
-    var projects = await projectStore.load();
-    var tasks = await taskStore.load();
-    final byId = <String, Task>{for (final task in tasks) task.id: task};
+    final projects = await projectStore.load();
+    final projectIds = projects.where((p) => selectedProjectIds.contains(p.id)).map((p) => p.id).toSet();
     final applied = <String>[], already = <String>[], ineligible = <String>[];
     final failed = <String, String>{};
-    for (final projectId in selectedProjectIds) {
-      final index = projects.indexWhere((item) => item.id == projectId);
-      if (index < 0 || projects[index].templateId != templateId || projects[index].isArchived ||
-          !projects[index].itemIds.map((id) => byId[id]).whereType<Task>().any((task) => !task.completed && !task.archived && !task.trashed)) {
-        ineligible.add(projectId); continue;
-      }
-      final project = projects[index];
-      if (project.itemIds.map((id) => byId[id]).whereType<Task>().any((task) => task.templateTaskId == templateTask.id)) {
-        already.add(projectId); continue;
-      }
-      final task = _instantiate(templateTask);
-      final updatedProject = project.copyWith(itemIds: [...project.itemIds, task.id]);
-      final nextProjects = [...projects]..[index] = updatedProject;
-      final nextTasks = [...tasks, task];
+    for (final projectId in projectIds) {
       try {
-        await taskStore.saveWithProjects(nextTasks, nextProjects);
-        tasks = nextTasks; projects = nextProjects; byId[task.id] = task; applied.add(projectId);
+        final result = await taskStore.appendTemplateTaskToProject(
+          projectId: projectId, templateId: templateId, task: _instantiate(templateTask),
+        );
+        switch (result) {
+          case TemplateTaskAppendResult.appended: applied.add(projectId);
+          case TemplateTaskAppendResult.alreadyPresent: already.add(projectId);
+          case TemplateTaskAppendResult.ineligible: ineligible.add(projectId);
+        }
       } catch (error) { failed[projectId] = error.toString(); }
     }
     return TemplatePropagationResult(applied: applied, alreadyPresent: already, ineligible: ineligible, failed: failed);

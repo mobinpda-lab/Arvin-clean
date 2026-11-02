@@ -39,6 +39,9 @@ class G1DriftSchema implements QueryExecutorUser {
     '''CREATE TABLE IF NOT EXISTS project_items (
   project_id TEXT NOT NULL REFERENCES projects(id), task_id TEXT NOT NULL REFERENCES tasks(id),
   ordinal INTEGER NOT NULL, PRIMARY KEY (project_id, task_id))''',
+    '''CREATE TABLE IF NOT EXISTS template_task_applications (
+  template_task_id TEXT NOT NULL, project_id TEXT NOT NULL REFERENCES projects(id),
+  task_id TEXT NOT NULL UNIQUE REFERENCES tasks(id), PRIMARY KEY(template_task_id, project_id))''',
     '''CREATE TABLE IF NOT EXISTS taxonomy_categories (
   name TEXT NOT NULL PRIMARY KEY, created_at TEXT NOT NULL)''',
     '''CREATE TABLE IF NOT EXISTS tags (

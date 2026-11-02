@@ -118,6 +118,13 @@ class ProjectStore {
       for (final project in values) {
         await _insertProject(executor, project);
       }
+      for (final row in templateApplications) {
+        await executor.runInsert(
+          '''INSERT OR IGNORE INTO template_task_applications (template_task_id, project_id, task_id)
+             SELECT ?, ?, ? WHERE EXISTS (SELECT 1 FROM project_items WHERE project_id = ? AND task_id = ?)''',
+          <Object?>[row['template_task_id'], row['project_id'], row['task_id'], row['project_id'], row['task_id']],
+        );
+      }
       await executor.runCustom('COMMIT');
     } catch (_) {
       try { await executor.runCustom('ROLLBACK'); } catch (_) {}

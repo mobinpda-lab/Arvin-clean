@@ -9,13 +9,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/person_reference.dart';
 import '../models/task.dart';
-import '../models/goal_project.dart';
-import 'project_plan_codec.dart';
 import 'g1_drift_schema.dart';
 import 'sql_task_migration_writer.dart';
 import 'task_storage_lock.dart';
 
 typedef TaskMutation<T> = T Function(List<Task> tasks);
+
+enum TemplateTaskAppendResult { appended, alreadyPresent, ineligible }
 
 class TaskStore {
   static const key = 'arvin.tasks';
@@ -315,34 +315,115 @@ class TaskStore {
   Future<void> save(List<Task> tasks) =>
       TaskStorageLock.synchronized<void>(() => _saveUnlocked(tasks));
 
-  /// Atomically persists canonical Tasks and their Project metadata/membership.
-  /// Used by template generation/propagation so a partial cross-store write
-  /// cannot leave orphan Task copies or Projects with missing Task rows.
-  Future<void> saveWithProjects(List<Task> tasks, List<ProjectPlan> projects) =>
-      TaskStorageLock.synchronized<void>(() => _saveUnlocked(
-        tasks,
-        beforeCommit: (executor) async {
-          await executor.runCustom('DELETE FROM project_items');
-          await executor.runCustom('DELETE FROM projects');
-          const codec = ProjectPlanCodec();
-          for (final project in projects) {
-            await executor.runInsert(
-              '''INSERT INTO projects
-                 (id, name, color_value, is_archived, center_id, template_id, template_name_snapshot, legacy_payload_json)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
-              <Object?>[project.id, project.title, project.colorValue,
-                project.isArchived ? 1 : 0, project.centerId, project.templateId,
-                project.templateNameSnapshot, jsonEncode(codec.encode(project))],
-            );
-            for (var ordinal = 0; ordinal < project.itemIds.length; ordinal++) {
-              await executor.runInsert(
-                'INSERT INTO project_items (project_id, task_id, ordinal) VALUES (?, ?, ?)',
-                <Object?>[project.id, project.itemIds[ordinal], ordinal],
-              );
-            }
-          }
-        },
-      ));
+  /// Creates one generated Project and all its independent canonical Tasks in
+  /// a single SQLite transaction. The partial unique index on active
+  /// (template_id, center_id) is the final duplicate/concurrency guard.
+  Future<void> createProjectFromTemplate(ProjectPlan project, List<Task> tasks) {
+    return TaskStorageLock.synchronized<void>(() async {
+      if (project.centerId == null || project.templateId == null) {
+        throw ArgumentError('Generated Projects require Center and Template identities.');
+      }
+      if (tasks.any((task) => task.templateTaskId == null)) {
+        throw ArgumentError('Every generated Task must retain its template-task origin.');
+      }
+      final executor = _database;
+      await _ensureReady();
+      await executor.runCustom('BEGIN');
+      try {
+        for (final task in tasks) { await _insertNewTask(executor, task); }
+        await executor.runInsert(
+          '''INSERT INTO projects
+             (id, name, color_value, is_archived, center_id, template_id, template_name_snapshot, legacy_payload_json)
+             VALUES (?, ?, ?, 0, ?, ?, ?, ?)''',
+          <Object?>[project.id, project.title, project.colorValue, project.centerId,
+            project.templateId, project.templateNameSnapshot, jsonEncode(project.toJson())],
+        );
+        for (var i = 0; i < project.itemIds.length; i++) {
+          await executor.runInsert('INSERT INTO project_items (project_id, task_id, ordinal) VALUES (?, ?, ?)',
+            <Object?>[project.id, project.itemIds[i], i]);
+          final task = tasks.firstWhere((item) => item.id == project.itemIds[i]);
+          await executor.runInsert('INSERT INTO template_task_applications (template_task_id, project_id, task_id) VALUES (?, ?, ?)',
+            <Object?>[task.templateTaskId, project.id, task.id]);
+        }
+        await executor.runCustom('COMMIT');
+      } catch (_) { try { await executor.runCustom('ROLLBACK'); } catch (_) {} rethrow; }
+    });
+  }
+
+  /// Append-only and idempotent: checks the destination's real persisted state
+  /// and origin mapping inside the same transaction as Task + membership writes.
+  Future<TemplateTaskAppendResult> appendTemplateTaskToProject({
+    required String projectId,
+    required String templateId,
+    required Task task,
+  }) {
+    return TaskStorageLock.synchronized<TemplateTaskAppendResult>(() async {
+      final originId = task.templateTaskId;
+      if (originId == null || originId.trim().isEmpty) throw ArgumentError('Template origin is required.');
+      final executor = _database;
+      await _ensureReady();
+      await executor.runCustom('BEGIN');
+      try {
+        final existing = await executor.runSelect(
+          'SELECT task_id FROM template_task_applications WHERE template_task_id = ? AND project_id = ?',
+          <Object?>[originId, projectId],
+        );
+        if (existing.isNotEmpty) { await executor.runCustom('COMMIT'); return TemplateTaskAppendResult.alreadyPresent; }
+        final projectRows = await executor.runSelect(
+          'SELECT template_id, is_archived FROM projects WHERE id = ?', <Object?>[projectId]);
+        if (projectRows.isEmpty || projectRows.single['template_id'] != templateId ||
+            (projectRows.single['is_archived'] as num).toInt() == 1) {
+          await executor.runCustom('COMMIT'); return TemplateTaskAppendResult.ineligible;
+        }
+        final activeRows = await executor.runSelect(
+          '''SELECT COUNT(*) AS count FROM project_items pi JOIN tasks t ON t.id = pi.task_id
+             WHERE pi.project_id = ? AND t.completed = 0 AND t.archived = 0 AND t.trashed = 0''',
+          <Object?>[projectId],
+        );
+        if ((activeRows.single['count'] as num).toInt() == 0) {
+          await executor.runCustom('COMMIT'); return TemplateTaskAppendResult.ineligible;
+        }
+        await _insertNewTask(executor, task);
+        final ordinalRows = await executor.runSelect(
+          'SELECT COALESCE(MAX(ordinal), -1) + 1 AS next_ordinal FROM project_items WHERE project_id = ?',
+          <Object?>[projectId],
+        );
+        await executor.runInsert(
+          'INSERT INTO project_items (project_id, task_id, ordinal) VALUES (?, ?, ?)',
+          <Object?>[projectId, task.id, (ordinalRows.single['next_ordinal'] as num).toInt()],
+        );
+        await executor.runInsert(
+          'INSERT INTO template_task_applications (template_task_id, project_id, task_id) VALUES (?, ?, ?)',
+          <Object?>[originId, projectId, task.id],
+        );
+        await executor.runCustom('COMMIT');
+        return TemplateTaskAppendResult.appended;
+      } catch (_) { try { await executor.runCustom('ROLLBACK'); } catch (_) {} rethrow; }
+    });
+  }
+
+  Future<void> _insertNewTask(QueryExecutor executor, Task task) async {
+    final rows = await executor.runSelect('SELECT COALESCE(MAX(storage_ordinal), -1) + 1 AS next_ordinal FROM tasks', const []);
+    final ordinal = (rows.single['next_ordinal'] as num).toInt();
+    await executor.runInsert(
+      '''INSERT INTO tasks (id, storage_ordinal, title, description, created_at, updated_at, due_date,
+         follow_up_enabled, follow_up_date, category, notebook_kind, reminder_date, priority, archived,
+         trashed, completed, completed_at, recurrence_json, legacy_payload_json)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+      <Object?>[task.id, ordinal, task.title, task.description, task.createdAt?.toIso8601String(),
+        task.updatedAt?.toIso8601String(), task.dueDate?.toIso8601String(), task.followUpEnabled ? 1 : 0,
+        task.followUpDate?.toIso8601String(), task.category, task.notebookKind?.name,
+        task.reminderDate?.toIso8601String(), task.priority.name, task.archived ? 1 : 0,
+        task.trashed ? 1 : 0, task.completed ? 1 : 0, task.completedAt?.toIso8601String(),
+        task.recurrence == null ? null : jsonEncode(task.recurrence!.toJson()), jsonEncode(_canonicalEnvelope(task))],
+    );
+    await _writeRelations(executor, task);
+    final category = task.category?.trim();
+    if (category != null && category.isNotEmpty) {
+      await executor.runInsert('INSERT OR IGNORE INTO taxonomy_categories (name, created_at) VALUES (?, ?)',
+        <Object?>[category, DateTime.now().toIso8601String()]);
+    }
+  }
 
   /// Updates only Task description metadata without rewriting relation tables.
   /// In particular, historical Follow-up rows are never deleted/reinserted here.
@@ -657,6 +738,9 @@ class TaskStore {
       // Project membership is canonical SQL data owned by ProjectStore, but
       // project_items references tasks. Preserve those relationship rows while
       // this legacy-compatible TaskStore rewrite replaces the task rows.
+      final templateApplications = await executor.runSelect(
+        'SELECT template_task_id, project_id, task_id FROM template_task_applications', const [],
+      );
       final projectItems = await executor.runSelect(
         'SELECT project_id, task_id, ordinal FROM project_items ORDER BY project_id, ordinal',
         const [],
@@ -679,6 +763,7 @@ class TaskStore {
           }
         }
       }
+      await executor.runCustom('DELETE FROM template_task_applications');
       await executor.runCustom('DELETE FROM project_items');
       await executor.runCustom('DELETE FROM task_tags');
       await executor.runCustom('DELETE FROM task_people');
@@ -729,6 +814,12 @@ class TaskStore {
           '''INSERT INTO project_items (project_id, task_id, ordinal)
              VALUES (?, ?, ?)''',
           <Object?>[row['project_id'], row['task_id'], row['ordinal']],
+        );
+      }
+      for (final row in templateApplications) {
+        await executor.runInsert(
+          'INSERT INTO template_task_applications (template_task_id, project_id, task_id) VALUES (?, ?, ?)',
+          <Object?>[row['template_task_id'], row['project_id'], row['task_id']],
         );
       }
       // Keep categories used by canonical Tasks visible in the independent catalog.
