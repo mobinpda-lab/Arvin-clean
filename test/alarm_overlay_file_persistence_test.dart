@@ -159,7 +159,10 @@ void main() {
         final completeButton = find.byKey(const ValueKey('alarm-overlay-complete'));
         expect(completeButton, findsOneWidget);
         await tester.ensureVisible(completeButton);
-        await tester.pumpAndSettle();
+        // ensureVisible awaits the scroll animation. A global settle here can
+        // wait forever on unrelated repeating animations in the overlay tree.
+        // Advance one bounded frame, then prove the actual control is hittable.
+        await tester.pump(const Duration(milliseconds: 200));
         expect(completeButton.hitTestable(), findsOneWidget);
         stage('T14a Complete control is rendered, visible and hit-testable');
         await tester.tap(completeButton);
