@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -99,10 +100,23 @@ void main() {
     expect(workflow, contains('reactivecircus/android-emulator-runner@v2'));
     expect(workflow, contains('max-parallel: 2'));
     expect(workflow, contains('timeout-minutes: 30'));
+    // The workflow currently keeps the emulator script base64-encoded.
+    // Decode the exact checked-in payload and assert the real driver command;
+    // do not require a plaintext copy that can drift from the executed script.
+    final encodedScript = RegExp(
+      r'''printf "%s" "([A-Za-z0-9+/=]+)" \\| base64 --decode \\| bash''',
+    ).firstMatch(workflow)?.group(1);
+    expect(encodedScript, isNotNull, reason: 'The emulator script payload must be present.');
+    final decodedScript = utf8.decode(base64.decode(encodedScript!));
     expect(
-      workflow,
+      decodedScript,
       contains('flutter drive --driver=test_driver/integration_test.dart --target='),
     );
+    expect(decodedScript, contains('adb devices -l'));
+    expect(decodedScript, contains('ADB_DEVICE='));
+    expect(decodedScript, contains('SCREENSHOT_ARTIFACT_WRITTEN='));
+    expect(workflow, contains('path: artifacts/device-smoke/*.png'));
+    expect(workflow, contains('alarm-overlay-*.png'));
     expect(workflow, contains('actions/upload-artifact@v5'));
     expect(
       workflow,
