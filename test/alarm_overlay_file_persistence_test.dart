@@ -162,12 +162,15 @@ void main() {
           ),
         ));
         stage('T13.5 waiting for asynchronous Alarm Overlay load completion');
+        stage('T13.5a before awaiting onLoadComplete callback signal');
         final loadError = await tester.runAsync(() => loadCompleted.future);
+        stage('T13.5b onLoadComplete callback signal returned; error=$loadError');
         expect(
           loadError,
           isNull,
           reason: loadError ?? 'Alarm Overlay must finish loading before Complete interaction.',
         );
+        stage('T13.5c before settling the loaded Overlay frame');
         await tester.pumpAndSettle();
         stage('T13.6 asynchronous Alarm Overlay load completed');
         stage('T14 before Complete action; verifying real control visibility');
