@@ -395,3 +395,10 @@ Target branch SHA: `8ccbc90ebfdcd797d5c18f6ab7a6cb6cff2de358` (all results below
 - انتظار تست Category و Tag با پیام واقعی UI همسو شد و assertهای باقی‌ماندن Category/Tag در کاتالوگ canonical به تست‌های حفاظت اضافه شد.
 - منطق حذف، سرویس Mutation، داده‌های Task، تراکنش SQLite، timeoutها و سناریوهای تست تغییر نکردند؛ هیچ تستی حذف، Skip یا تضعیف نشد.
 - اعتبارسنجی این اصلاح فقط با اجرای CI تازه روی SHA جدید قابل پذیرش است؛ نتیجه هنوز `PENDING / NOT VERIFIED` است.
+
+## 2026-11-02 — جداسازی چرخه‌عمر Overlay در تست ماندگاری SQLite
+
+- لاگ نشانگرهای T13.5 ثابت کرد TaskStore.load و ProjectStore.load و callback بارگذاری Overlay در اجرای اولیه کامل شده‌اند؛ تست پس از بازگشایی SQLite، پیش از دریافت سیگنال Completer متوقف شده است.
+- بررسی کد تست نشان داد Overlay اول پیش از نصب مجدد Overlay دوم صریحاً unmount نشده بود؛ در نتیجه چرخه‌عمر State تست می‌توانست با callback تازه مورد انتظار همگام نباشد.
+- تست اکنون Overlay نخست را پیش از بستن executor صریحاً unmount می‌کند و سپس پس از بازگشایی همان فایل SQLite، نمونهٔ تازه را mount می‌کند. هیچ منطق تولیدی، timeout یا assertion حذف/تضعیف نشده است.
+- نتیجهٔ اصلاح فقط پس از اجرای File Persistence روی HEAD جدید قابل پذیرش است.
