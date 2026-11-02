@@ -1,3 +1,12 @@
+## 2026-11-02 — Local Calendar historical FollowUp exclusion
+
+- Product behavior: historical FollowUp records are filtered at the local Calendar display boundary. IDs with the historical `followup:` and legacy `task-followup:` namespaces are excluded from both supplied and visible-range projected Calendar items.
+- Dated Task events, independent dated Reminder events, and recurrence projections remain in the existing Calendar projection. `task-followup-action:` is not filtered by this change.
+- FollowUp records, Task Details history, Follow-up Notebook data, Report Center projections, Task storage, Reminder data, Due Dates, and legacy database columns are not modified or deleted.
+- Implementation: `lib/calendar_page.dart`; regression coverage: `test/calendar_page_test.dart`. Existing projection, Task Details and Report Center tests are retained.
+- Implementation/test commit: `012ecba20dd5dc2389035d70c8d441483a75d858`. Documentation synchronization commits follow; exact final branch HEAD and exact-head CI results must be read back before acceptance.
+- Release remains **BLOCKED — RELEASE: NO-GO**. PR #3052 must remain OPEN / DRAFT / UNMERGED. No main mutation, merge, APK publication, or release is authorized.
+
 ## 2026-11-02 — Wave 7.292 product roadmap clarification and exact-SHA gate checkpoint
 
 - Preserved the owner's implementation decision for Branch → Project → Task visibility and historical record retention; Home Task-card expand/collapse with exact description/time and a separate Task Details route; latest valid same-Task Follow-up through the real presentation service; and the task-filter strip with «همه» plus Time, Projects, Branch/Center, Categories and Tags.
