@@ -561,3 +561,13 @@ No PASS is inferred from source changes. Fresh exact-HEAD runs are required for 
 - No timeout duration was expanded: each polling budget remains 180 seconds. No test, assertion, lane, retry allowance or product behavior was removed or weakened.
 
 **Validation:** this is a diagnostic hardening checkpoint, not acceptance. All four required workflows must complete on one exact SHA; seven actual PNG artifacts remain mandatory. PR #3052 stays OPEN / DRAFT / UNMERGED; **BLOCKED — RELEASE: NO-GO**.
+
+
+## Wave 7.281 — boot/API probe result instrumentation — 2026-11-02
+
+**Base SHA:** `52a19bffcf5378986767294cb8913473ed7aac2d`. Device Smoke Run `41411732137`, Navigation Job `125166175318`, emitted `DEVICE_SCRIPT_STAGE=before-boot-wait` and the emulator action then terminated without an after-boot marker. The emulator was online at ADB discovery; the precise boot-property command result was not yet observable.
+
+- `.github/workflows/device-smoke.yml`: the bounded boot and API probes now capture each ADB command's exit status and output explicitly, print attempt/result markers, and continue the full 180-second polling budget when a probe fails. This makes the next failure boundary attributable to a concrete command result rather than a silent command substitution. The polling budget, PNG integrity checks, Flutter Drive invocation and failure propagation are unchanged.
+- No test, assertion, lane or production behavior was removed or weakened.
+
+**Validation:** implementation-only checkpoint; final acceptance requires all four workflows on one exact SHA and seven uploaded, validated PNGs. PR #3052 remains OPEN / DRAFT / UNMERGED; **BLOCKED — RELEASE: NO-GO**.
