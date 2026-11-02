@@ -26,9 +26,9 @@ void main() {
     expect(find.byIcon(Icons.add), findsOneWidget);
     expect(find.text('زمان'), findsOneWidget);
     expect(find.text('پروژه‌ها'), findsOneWidget);
-    expect(find.text('دسته‌ها'), findsOneWidget);
+    expect(find.text('دسته‌بندی‌ها'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
-    expect(find.text('جستجو در کارها، پروژه‌ها، دسته‌ها و برچسب‌ها...'), findsOneWidget);
+    expect(find.text('جستجو در کارها، پروژه‌ها، دسته‌بندی‌ها و برچسب‌ها...'), findsOneWidget);
     expect(find.text('کارهای من'), findsNothing);
     expect(find.text('مشاهده همه'), findsNothing);
   });
@@ -164,7 +164,7 @@ void main() {
 
     expect(find.text('زمان'), findsOneWidget);
     expect(find.text('پروژه‌ها'), findsOneWidget);
-    expect(find.text('دسته‌ها'), findsOneWidget);
+    expect(find.text('دسته‌بندی‌ها'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('home-filter-card-time')));
@@ -528,7 +528,7 @@ void main() {
   });
 
 
-  testWidgets('Home summary cards show only real taxonomy and active Project counts', (tester) async {
+  testWidgets('Home compact filter chips show real taxonomy without counters', (tester) async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks': '[{"id":"a","title":"کار الف","category":"مشتری","tags":["مهم","تماس"]},{"id":"b","title":"کار ب","category":"فروش","tags":["مهم"]}]',
       'arvin.projects': '[{"id":"active-project","title":"پروژه فعال","isArchived":false,"itemIds":[]},{"id":"archived-project","title":"پروژه بایگانی","isArchived":true,"itemIds":[]}]',
@@ -537,18 +537,14 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    List<String?> cardText(String key) => tester
-        .widgetList<Text>(find.descendant(
-          of: find.byKey(ValueKey(key)),
-          matching: find.byType(Text),
-        ))
-        .map((widget) => widget.data)
-        .toList();
-
-    expect(cardText('home-filter-card-project'), contains('۱ مورد'));
-    expect(cardText('home-filter-card-category'), contains('۲ مورد'));
-    expect(cardText('home-filter-card-tags'), contains('۲ مورد'));
-    expect(cardText('home-filter-card-time'), contains('همه'));
+    expect(find.byKey(const ValueKey('home-filter-card-project')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-filter-card-category')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-filter-card-tags')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-filter-card-time')), findsOneWidget);
+    expect(find.text('پروژه‌ها'), findsOneWidget);
+    expect(find.text('دسته‌بندی‌ها'), findsOneWidget);
+    expect(find.text('برچسب‌ها'), findsOneWidget);
+    expect(find.textContaining('مورد'), findsNothing);
     expect(find.text('کار الف'), findsOneWidget);
     expect(find.text('کار ب'), findsOneWidget);
     expect(find.text('پروژه فعال'), findsNothing);
