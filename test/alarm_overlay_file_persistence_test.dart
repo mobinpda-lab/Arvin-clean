@@ -155,15 +155,37 @@ void main() {
           ),
         ));
         await tester.pumpAndSettle();
-        stage('T14 before Complete action; awaiting full completion + Calendar sync path');
+        stage('T14 before Complete action; verifying real control visibility');
         final completeButton = find.byKey(const ValueKey('alarm-overlay-complete'));
         expect(completeButton, findsOneWidget);
-        // The overlay is mounted in the test viewport; assert the real
-        // Complete control is already hit-testable instead of awaiting a
-        // scroll/visibility Future that can remain pending in this widget tree.
-        // A failed visibility contract now fails immediately at T14.
-        expect(completeButton.hitTestable(), findsOneWidget);
-        stage('T14a Complete control is rendered, visible and hit-testable');
+        final scrollable = find.byType(SingleChildScrollView);
+        expect(scrollable, findsOneWidget);
+        final viewport = Offset.zero &
+            (tester.view.physicalSize / tester.view.devicePixelRatio);
+        // Scroll the real overlay viewport in bounded, observable steps.
+        // This avoids an unbounded ensureVisible animation while retaining a
+        // strict requirement that the actual Complete button be fully visible.
+        for (var attempt = 0; attempt < 8; attempt++) {
+          final buttonRect = tester.getRect(completeButton);
+          if (buttonRect.top >= viewport.top &&
+              buttonRect.bottom <= viewport.bottom) {
+            break;
+          }
+          await tester.drag(scrollable, const Offset(0, -220));
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+        final completeRect = tester.getRect(completeButton);
+        expect(
+          completeRect.top,
+          greaterThanOrEqualTo(viewport.top),
+          reason: 'The real Complete control must be visible in the overlay viewport.',
+        );
+        expect(
+          completeRect.bottom,
+          lessThanOrEqualTo(viewport.bottom),
+          reason: 'The real Complete control must be fully visible before tapping.',
+        );
+        stage('T14a Complete control is fully inside the real test viewport');
         await tester.tap(completeButton);
         stage('T14b actual Complete button tap dispatched');
         stage('T14c awaiting real completion handler, SQLite mutation, Calendar path and notification cancellation');

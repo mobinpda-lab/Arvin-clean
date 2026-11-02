@@ -212,3 +212,17 @@ Target branch SHA: `8ccbc90ebfdcd797d5c18f6ab7a6cb6cff2de358` (all results below
 **Validation status:** source changes are committed; Build (Analyze + test-0…test-5), File Persistence, all seven Device Smoke lanes with registered PNG artifacts, and Parallel Wave must complete against this same final SHA. No PASS is inferred from this implementation commit.
 
 **Governance:** PR #3052 remains OPEN / DRAFT / UNMERGED. Main changes, APK matrix build, publication and release remain blocked. **BLOCKED — RELEASE: NO-GO**.
+
+
+## Wave 7.276 — exact log-driven persistence and emulator transport correction — 2026-11-02
+
+**Base SHA:** `7fee44dd512ee6543ace29d236e6cca06c1753ca`. This remediation is limited to the failing test harness, device-smoke workflow and its contract; product behavior is unchanged.
+
+- **Build #41402881551 / test-2:** two failing tests were confirmed. The workflow-contract assertion expected the literal substring `adb exec-out screencap -p`, while the actual decoded command is `adb -s "$device" exec-out screencap -p`. The assertion now matches the actual serial-qualified command; the seven canonical scenario mappings remain required.
+- **File Persistence #41402881330 and Build test-2:** both logs stop after T14 and enter cleanup without T14a; the ten-minute test timeout is explicit. T00–T13 prove initial save, Snooze, SQLite close/reopen, Schema install and Task reload complete. The Complete control is still required to be present, fully visible, tapped, and followed by the real notification-cancellation callback and final SQLite reopen assertions. The test now performs bounded real viewport drags and checks the button rectangle is fully inside the viewport before tapping; no handler or persistence assertion is skipped. The prior logs do not prove a production Calendar Sync defect.
+- **Device Smoke #41402881315:** all seven lanes show the same transport failure signature: ADB daemon connection on port 5037, then the selected emulator is offline/not registered. The previous script killed the emulator-runner-managed ADB server after emulator startup; the revised script never kills that server, idempotently starts it, polls the exact serial until it is online and boot-complete, and reconnects only offline transports. The one transport-only Flutter Drive retry remains; assertion failures are not retried. Screenshot capture is still a direct serial-qualified `adb exec-out screencap -p`, with PNG signature and >1000-byte checks. It now attempts to preserve a valid screenshot artifact even when the integration test fails, while returning the original test failure status.
+- No test, assertion, scenario, timeout, production behavior, legacy field or storage contract was removed or weakened. No deprecated Next Follow-up field or synthetic `followUpEnabled` value was introduced.
+
+**Validation:** source remediation is not acceptance. Build, File Persistence, all seven Device Smoke lanes and Parallel Wave must report fresh results on one exact final SHA; screenshots must be present as actual run artifacts and validated by their logs.
+
+**Governance:** PR #3052 remains OPEN / DRAFT / UNMERGED. No main changes, merge, APK Matrix build or release. **BLOCKED — RELEASE: NO-GO**.

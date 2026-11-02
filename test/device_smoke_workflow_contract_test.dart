@@ -116,12 +116,13 @@ void main() {
       contains('flutter drive --driver=test_driver/integration_test.dart --target='),
     );
     expect(decodedScript, contains('adb devices -l'));
-    expect(decodedScript, contains('adb kill-server'));
     expect(decodedScript, contains('adb start-server'));
-    expect(decodedScript, contains('wait-for-device'));
+    expect(decodedScript, isNot(contains('adb kill-server')));
+    expect(decodedScript, contains('adb reconnect offline'));
+    expect(decodedScript, contains('ADB_DEVICE_DISCOVERY_TIMEOUT'));
     expect(decodedScript, contains('ADB_TRANSIENT_RETRY=flutter-drive'));
     expect(decodedScript, contains('ADB_TRANSIENT_RETRY=screencap'));
-    expect(decodedScript, contains('adb exec-out screencap -p'));
+    expect(decodedScript, contains('adb -s "$device" exec-out screencap -p'));
     expect(decodedScript, contains('ADB_DEVICE='));
     expect(decodedScript, contains('SCREENSHOT_ARTIFACT_WRITTEN='));
     expect(workflow, contains('path: artifacts/device-smoke/*.png'));
