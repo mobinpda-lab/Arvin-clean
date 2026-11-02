@@ -36,7 +36,7 @@ void main() {
     expect(find.byKey(const ValueKey('home-search-button')), findsOneWidget);
     expect(find.text('زمان'), findsOneWidget);
     expect(find.text('پروژه‌ها'), findsOneWidget);
-    expect(find.text('دسته‌ها'), findsOneWidget);
+    expect(find.text('دسته‌بندی‌ها'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
     expect(find.text('امروز'), findsOneWidget);
     expect(find.text('تقویم'), findsOneWidget);
@@ -90,7 +90,7 @@ void main() {
     expect(find.byKey(const ValueKey('home-empty-add')), findsOneWidget);
     expect(find.text('زمان'), findsOneWidget);
     expect(find.text('پروژه‌ها'), findsOneWidget);
-    expect(find.text('دسته‌ها'), findsOneWidget);
+    expect(find.text('دسته‌بندی‌ها'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
   });
 }
