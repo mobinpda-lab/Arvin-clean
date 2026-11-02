@@ -464,3 +464,16 @@ No PASS is inferred from source changes. Fresh exact-HEAD runs are required for 
 - Release remains **BLOCKED — RELEASE: NO-GO**.
 - Fix the two undefined `tester` references in the integration test without removing its app launch or screenshot assertions; diagnose why T14a/Complete handler are not reached without relaxing timeout/assertions; make each smoke lane create and upload a non-empty valid PNG, then inspect artifact names, sizes and PNG signatures.
 - Any documentation commit advances the branch HEAD. All Build, SQLite, Device Smoke and Parallel Wave evidence above remains historical for SHA `8ccbc90...` and must not be carried forward to the new SHA.
+
+
+## Wave 7.273 — source remediation checkpoint — 2026-11-02
+
+**Base SHA:** `b5e4d9a37879631c8e903b5508a390d77ba78f1d`. This section records source/workflow changes only; runtime acceptance is pending on the final documentation HEAD.
+
+- `integration_test/android_backup_restore_sql_smoke_test.dart`: converted the portable backup file round-trip case from plain `test` to `testWidgets((tester) async {...})`. The existing actual file write/read/restore assertions remain; the final app launch, Home assertion and `task-lifecycle` screenshot now use the WidgetTester in scope.
+- `test/alarm_overlay_file_persistence_test.dart`: retained the actual keyed Complete button, visibility and hit-test assertions, and real tap. Replaced the second global `pumpAndSettle` after `ensureVisible` with one 200ms frame pump before hit-test. This avoids waiting for unrelated repeating animations while preserving the actual hit-test and callback path; T14a and post-tap/database reopen assertions remain. Whether this resolves the observed T14 stall is **NOT VERIFIED** until the test runs.
+- `.github/workflows/device-smoke.yml`: retained the canonical relative output `artifacts/device-smoke/${SMOKE_SCENARIO}-final.png`; after ADB screencap the script now validates non-empty size (>1000 bytes), PNG signature `89504e470d0a1a0a`, and logs filename/byte count/signature. Upload actions now use `if-no-files-found: error` instead of warning. Seven lane mapping is unchanged.
+- No tests, assertions, lanes, or timeout limits were removed or weakened. No APK build was enabled.
+- Exact final SHA and workflow outcomes must be recorded after the documentation commit; previous SHA evidence does not transfer.
+
+**Governance:** PR #3052 remains OPEN/DRAFT/UNMERGED; release remains **BLOCKED — RELEASE: NO-GO**.
