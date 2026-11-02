@@ -378,9 +378,9 @@ void main() {
     await store.save(const <Task>[]);
   });
 
-  test(
+  testWidgets(
     'portable backup file round-trips Task and Calendar link metadata',
-    () async {
+    (tester) async {
       SharedPreferences.setMockInitialValues(<String, Object>{
         ArvinBackupManager.directoryKey: 'file-backed-runtime-smoke',
       });
