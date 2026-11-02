@@ -410,3 +410,15 @@ Target branch SHA: `8ccbc90ebfdcd797d5c18f6ab7a6cb6cff2de358` (all results below
 - پاک‌سازی نهایی به `directory.deleteSync(recursive: true)` تغییر کرد و نشانگرهای قبل/بعد پاک‌سازی اضافه شدند. زمان‌محدودیت ۱۰ دقیقه‌ای، انتظار callback، تعامل واقعی Complete، لغو اعلان و تمام assertهای ماندگاری SQLite حفظ شدند.
 - فقط آزمون تغییر کرد؛ منطق تولیدی و رفتار Reminder/Task تغییر نکرد. نتیجهٔ این اصلاح تا اجرای تازه روی SHA جدید `NOT VERIFIED` است.
 - Build APK در اجرای Draft به‌دلیل شرط صریح workflow برای PR غیر Draft، `skipped` بود؛ APK ساخته یا اعتبارسنجی نشده است. هیچ انتشار یا تغییر وضعیت Draft انجام نشد.
+
+## 2026-11-02 — Exact-SHA persistence result and Draft review APK lane
+
+- Audit target: `6a14a56bebb88f62be2a69836275e70e5fb042e1` on PR #3052 branch `fix/recovery-calendar-device-smoke-2026-10-31`.
+- File Persistence Run `41443901333`, Job `125272324515`: exact checkout SHA verified. The Alarm Overlay file-backed test logged `T13.5b ... error=null`, `T23a before synchronous temporary directory cleanup`, `T24 temporary directory cleanup completed`, and `All tests passed!`. Job conclusion SUCCESS. T13.5 is PASS on this SHA.
+- Build Run `41443901407`: Analyze and all six test shards (test-0 through test-5) SUCCESS. APK matrix SKIPPED because PR #3052 is Draft.
+- Calendar Provider Run `41443901528`, Job `125272166147`: SUCCESS.
+- Device Smoke Run `41443901412`: boot Job `125272419953` PASS; navigation `125272419978` PASS; quick-capture `125272419931` PASS; reminder-vazirmatn `125272420007` PASS; task-lifecycle `125272420065` PASS; follow-up-persistence `125272419945` FAILURE during Android Emulator SDK package preparation (`Premature EOF`, followed by ADB connection refused and no screenshot); calendar-segmented-view `125272420021` CANCELLED after reaching Flutter drive. The latter cancellation cause is NOT VERIFIED. Device Smoke is not 7/7.
+- Added `.github/workflows/arvin-draft-review-apk.yml` as a separate Draft-safe review APK workflow. It is restricted to the named PR branch, uses only `contents: read`, creates a per-run ephemeral staging test keystore, builds the existing non-debuggable `staging` variant, verifies v2/v3 signature, package ID, debuggable=false and Vazirmatn assets, records source SHA + APK SHA-256 + size + signer fingerprint, and uploads a seven-day Actions artifact. It does not alter the existing Build workflow's Draft guard, use production signing secrets, create a Release, publish a package, or change PR readiness.
+- Workflow commit: `19e65fcb7836beeb5f3150e2bc771b1a1fd25cd9`. The workflow implementation is not proof that an APK has been built; its own run must pass on the resulting exact HEAD before any APK artifact is claimed.
+- PR #3052 remains OPEN / DRAFT / UNMERGED; base/main SHA remains `45e4202b03a434459e4c021a04efa7e8396359db`; label `BLOCKED — RELEASE: NO-GO` remains. No merge, release, public publication, or manual dispatch was performed.
+- Iran timestamp: 1405/08/11 16:40 (Asia/Tehran).
