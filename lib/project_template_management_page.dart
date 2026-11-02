@@ -20,7 +20,7 @@ class _ProjectTemplateManagementPageState extends State<ProjectTemplateManagemen
   @override void initState() { super.initState(); _load(); }
   Future<void> _load() async {
     try {
-      final values = await Future.wait<Object>([_service.templateStore.load(), _centersStore.load(includeArchived: false), _service.projectStore.load()]);
+      final values = await Future.wait<Object>([_service.templateStore.load(), _centersStore.load(includeArchived: true), _service.projectStore.load()]);
       if (!mounted) return;
       setState(() { _templates = values[0] as List<ProjectTemplate>; _centers = values[1] as List<ArvinCenter>; _projects = values[2] as List<ProjectPlan>; _loading = false; });
     } catch (error) {

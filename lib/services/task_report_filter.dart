@@ -17,6 +17,7 @@ class TaskReportFilter {
     this.toTime,
     this.projectId,
     this.centerIds = const <String>{},
+    this.includeLegacyProjectsWithoutCenter = false,
     this.taskId,
     this.templateTaskId,
     this.templateIds = const <String>{},
@@ -50,6 +51,7 @@ class TaskReportFilter {
   final Duration? toTime;
   final String? projectId;
   final Set<String> centerIds;
+  final bool includeLegacyProjectsWithoutCenter;
   final String? taskId;
   final String? templateTaskId;
   final Set<String> templateIds;
@@ -85,6 +87,7 @@ class TaskReportFilter {
       toTime != null ||
       projectId != null ||
       centerIds.isNotEmpty ||
+      includeLegacyProjectsWithoutCenter ||
       taskId != null ||
       templateTaskId != null ||
       templateIds.isNotEmpty ||
@@ -124,6 +127,7 @@ class TaskReportFilter {
     String? projectId,
     bool clearProjectId = false,
     Set<String>? centerIds,
+    bool? includeLegacyProjectsWithoutCenter,
     String? taskId,
     bool clearTaskId = false,
     String? templateTaskId,
@@ -169,6 +173,7 @@ class TaskReportFilter {
         toTime: clearToTime ? null : toTime ?? this.toTime,
         projectId: clearProjectId ? null : projectId ?? this.projectId,
         centerIds: centerIds ?? this.centerIds,
+        includeLegacyProjectsWithoutCenter: includeLegacyProjectsWithoutCenter ?? this.includeLegacyProjectsWithoutCenter,
         taskId: clearTaskId ? null : taskId ?? this.taskId,
         templateTaskId: clearTemplateTaskId ? null : templateTaskId ?? this.templateTaskId,
         templateIds: templateIds ?? this.templateIds,
@@ -232,7 +237,9 @@ class TaskReportFilter {
         if (!fromSelectedTemplate && !fromLegacyProject) return false;
       }
       if (selectedCenterIds.isNotEmpty &&
-          !projects.any((project) => selectedCenterIds.contains(project.centerId) && project.itemIds.contains(task.id))) {
+          !projects.any((project) => project.itemIds.contains(task.id) &&
+              (selectedCenterIds.contains(project.centerId) ||
+               (includeLegacyProjectsWithoutCenter && project.centerId == null)))) {
         return false;
       }
       if (personIds.isNotEmpty &&

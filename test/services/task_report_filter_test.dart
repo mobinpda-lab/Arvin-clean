@@ -204,4 +204,17 @@ void main() {
     expect(base.apply([legacy, generated], now: now, projects: projects).map((task) => task.id), ['generated']);
     expect(base.copyWith(includeLegacyProjectsWithoutTemplate: true).apply([legacy, generated], now: now, projects: projects).map((task) => task.id).toSet(), {'legacy', 'generated'});
   });
+
+  test('legacy Projects without Center are included only when explicitly requested alongside a selected Center', () {
+    final now = DateTime(2026, 11, 3);
+    final centered = Task(id: 'centered', title: 'کار مرکز');
+    final legacy = Task(id: 'legacy-center', title: 'کار قدیمی');
+    final projects = [
+      ProjectPlan(id: 'p511', title: 'مرکزی', centerId: '511', itemIds: ['centered']),
+      ProjectPlan(id: 'p-old', title: 'قدیمی', itemIds: ['legacy-center']),
+    ];
+    final base = const TaskReportFilter(centerIds: {'511'});
+    expect(base.apply([centered, legacy], now: now, projects: projects).map((t) => t.id), ['centered']);
+    expect(base.copyWith(includeLegacyProjectsWithoutCenter: true).apply([centered, legacy], now: now, projects: projects).map((t) => t.id).toSet(), {'centered', 'legacy-center'});
+  });
 }

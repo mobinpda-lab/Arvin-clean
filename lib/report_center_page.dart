@@ -438,6 +438,8 @@ class _ActiveFilterChips extends StatelessWidget {
             ),
           for (final id in filter.centerIds)
             InputChip(key: ValueKey('report-active-center-$id'), label: Text(centerById[id]?.name ?? 'مرکز حذف‌شده'), onDeleted: () { final ids = <String>{...filter.centerIds}..remove(id); onChanged(filter.copyWith(centerIds: ids)); }),
+          if (filter.includeLegacyProjectsWithoutCenter)
+            InputChip(label: const Text('شامل پروژه‌های قدیمی بدون مرکز'), onDeleted: () => onChanged(filter.copyWith(includeLegacyProjectsWithoutCenter: false))),
           if (filter.taskId != null || filter.templateTaskId != null)
             InputChip(key: const ValueKey('report-active-task'), label: Text(filter.taskId != null ? (taskById[filter.taskId]?.title ?? 'کار حذف‌شده') : (templateTaskById[filter.templateTaskId]?.title ?? 'کار قالب حذف‌شده')), onDeleted: () => onChanged(filter.copyWith(clearTaskId: true, clearTemplateTaskId: true))),
           for (final id in filter.templateIds)
@@ -604,6 +606,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
   TimeOfDay? _fromTime;
   TimeOfDay? _toTime;
   Set<String> _centerIds = <String>{};
+  bool _includeLegacyProjectsWithoutCenter = false;
   String? _taskId;
   String? _templateTaskId;
   String _taskSearch = '';
@@ -638,6 +641,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
     _fromTime = f.fromTime == null ? null : _toTimeOfDay(f.fromTime!);
     _toTime = f.toTime == null ? null : _toTimeOfDay(f.toTime!);
     _centerIds = <String>{...f.centerIds};
+    _includeLegacyProjectsWithoutCenter = f.includeLegacyProjectsWithoutCenter;
     _taskId = f.taskId;
     _templateTaskId = f.templateTaskId;
     _templateIds = <String>{...f.templateIds};
@@ -741,6 +745,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
             ? null
             : Duration(hours: _toTime!.hour, minutes: _toTime!.minute),
         centerIds: Set<String>.of(_centerIds),
+        includeLegacyProjectsWithoutCenter: _includeLegacyProjectsWithoutCenter,
         taskId: _taskId,
         templateTaskId: _templateTaskId,
         templateIds: Set<String>.of(_templateIds),
@@ -898,15 +903,25 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               title: 'مرکز',
               icon: Icons.location_city_outlined,
               accentColor: ArvinColors.primary,
-              selectedCount: _centerIds.length,
-              child: _MultiSelectChips(
+              selectedCount: _centerIds.length + (_includeLegacyProjectsWithoutCenter ? 1 : 0),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                _MultiSelectChips(
                 allLabel: 'همه مراکز',
                 accentColor: ArvinColors.primary,
                 options: widget.centers.map((center) => MapEntry(center.id, center.name)).toList(growable: false),
                 selected: _centerIds,
                 onChanged: (value) => setState(() => _centerIds = value),
                 keyPrefix: 'report-filter-center',
-              ),
+                ),
+                if (_centerIds.isNotEmpty)
+                  CheckboxListTile(
+                    key: const ValueKey('report-filter-center-include-legacy'),
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('شامل پروژه‌های قدیمی بدون مرکز'),
+                    value: _includeLegacyProjectsWithoutCenter,
+                    onChanged: (value) => setState(() => _includeLegacyProjectsWithoutCenter = value ?? false),
+                  ),
+              ]),
             ),
             _Section(
               title: 'پروژه',
