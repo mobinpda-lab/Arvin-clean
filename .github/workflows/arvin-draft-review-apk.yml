@@ -120,8 +120,8 @@ jobs:
           fi
 
           # Collect and print real manifest/font diagnostics before any acceptance assertion.
-          app_id="$(\"$apkanalyzer\" manifest application-id "$apk")"
-          debuggable="$(\"$apkanalyzer\" manifest debuggable "$apk")"
+          app_id="$("$apkanalyzer" manifest application-id "$apk")"
+          debuggable="$("$apkanalyzer" manifest debuggable "$apk")"
           font_regular="assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf"
           font_medium="assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf"
           font_bold="assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf"
