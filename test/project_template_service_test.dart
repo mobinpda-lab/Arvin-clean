@@ -38,6 +38,24 @@ void main() {
     final project511 = createdProjects.firstWhere((p) => p.centerId == '511');
     final task511 = (await tasks.load()).firstWhere((task) => project511.itemIds.contains(task.id) && task.templateTaskId == 'tt-base');
     task511.setCompleted(true, at: now);
+    task511.archived = true;
+    task511.checklistEnabled = true;
+    task511.checklist = ['[x] سابقه چک‌لیست'];
+    task511.taskReminders = [
+      TaskReminder(
+        id: 'preserved-reminder',
+        title: 'یادآور مستقل موجود',
+        date: now.add(const Duration(days: 2)),
+        sequence: 1,
+      ),
+    ];
+    task511.followUps = [
+      FollowUp(
+        id: 'preserved-follow-up',
+        dateTime: now.subtract(const Duration(days: 1)),
+        note: 'سابقه واقعی باید حفظ شود',
+      ),
+    ];
     await tasks.save(await tasks.load().then((all) => all.map((t) => t.id == task511.id ? task511 : t).toList()));
     final appended = ProjectTemplateTask(id: 'tt-new', title: 'تمیزکاری فیلتر پشت کندانسور');
     final updated = template.copyWith(tasks: [...template.tasks, appended], updatedAt: now);
@@ -52,8 +70,21 @@ void main() {
     expect(result.ineligible, isEmpty);
     final after = await projects.load();
     final afterTasks = await tasks.load();
-    expect(afterTasks.firstWhere((t) => t.id == task511.id).completed, isTrue);
+    final preserved = afterTasks.firstWhere((t) => t.id == task511.id);
+    expect(preserved.completed, isTrue);
+    expect(preserved.archived, isTrue);
+    expect(preserved.completedAt, now);
+    expect(preserved.checklistEnabled, isTrue);
+    expect(preserved.checklist, ['[x] سابقه چک‌لیست']);
+    expect(preserved.taskReminders, hasLength(1));
+    expect(preserved.taskReminders.single.id, 'preserved-reminder');
+    expect(preserved.taskReminders.single.date, now.add(const Duration(days: 2)));
+    expect(preserved.followUps, hasLength(1));
+    expect(preserved.followUps.single.id, 'preserved-follow-up');
+    expect(preserved.followUps.single.dateTime, now.subtract(const Duration(days: 1)));
+    expect(preserved.followUps.single.note, 'سابقه واقعی باید حفظ شود');
     expect(after.where((p) => p.itemIds.map((id) => afterTasks.firstWhere((t) => t.id == id)).any((t) => t.templateTaskId == 'tt-new')).length, 2);
+    expect(after.firstWhere((p) => p.centerId == '511').itemIds, contains(task511.id));
     expect(after.firstWhere((p) => p.centerId == '513').itemIds.length, 2);
     final retry = await service.propagateTask(templateId: 'tpl', templateTask: appended, selectedProjectIds: eligible.eligible.map((p) => p.id).toSet());
     expect(retry.alreadyPresent.length, 2);

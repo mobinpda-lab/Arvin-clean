@@ -1,3 +1,10 @@
+## 2026-11-03 — Commit D: Safe Mid-Cycle Project Template preservation test
+
+- Extended the real SQLite/Drift propagation test with a completed and archived existing Task carrying a Checklist, independent Reminder and historical Follow-up.
+- The test now verifies all existing state/history and project membership survive propagation, while only the new template Task is appended and repeated propagation remains idempotent.
+- Runtime propagation implementation was not changed; the existing transactional append-only path remains the only write path.
+- Local Flutter tests were not run; exact-HEAD Build CI must validate the stronger test. main untouched; PR #3052 OPEN / DRAFT / UNMERGED; release BLOCKED — RELEASE: NO-GO.
+
 ## 2026-11-03 — Commit C1: Calendar routing analyzer cleanup
 
 - Removed the unused Follow-up helper, added the Follow-up action reminder namespace to canonical parent-Task routing, and fixed the analyzer-required control-flow braces.
