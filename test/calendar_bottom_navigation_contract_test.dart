@@ -26,9 +26,13 @@ void main() {
     expect(source, isNot(contains('FloatingActionButton.extended')));
     expect(source, isNot(contains('Positioned(')));
 
-    expect(source, contains("Text('تقویم دستگاه')"));
+    expect(source, isNot(contains("Text('تقویم دستگاه')")));
+    expect(source, isNot(contains('_exportToSystemCalendar')));
+    expect(source, isNot(contains('_retryCalendarSync')));
     expect(source, contains("Text('خط زمانی')"));
     expect(source, contains("Text('تداخل‌ها')"));
+    expect(source, contains('CalendarSwipeAction.sync'));
+    expect(File('lib/task_detail_page.dart').readAsStringSync(), contains('task-detail-send-device-calendar'));
     expect(source, contains('showModalBottomSheet<_CalendarMoreAction>'));
     expect(source, contains('ArvinPrimaryPageShell('));
   });

@@ -499,6 +499,7 @@ void main() {
           projection: projection,
           onEditTask: (value) async => edited = value,
           onDeleteTask: (value) async => deleted = value,
+          onRegisterTaskToDeviceCalendar: (_) async {},
         ),
       ),
     );
