@@ -79,6 +79,7 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (call) async {
       calls.add(call.method);
+      if (call.method == 'calendarReadPermissionGranted') return true;
       if (call.method == 'calendarWritePermissionGranted') return true;
       if (call.method == 'ensureArvinLocalCalendar') {
         return <String, Object?>{
@@ -101,6 +102,7 @@ void main() {
     await service.requestOnStartup();
 
     expect(calls, [
+      'calendarReadPermissionGranted',
       'calendarWritePermissionGranted',
       'ensureArvinLocalCalendar',
     ]);
@@ -120,4 +122,61 @@ void main() {
     await service.requestOnStartup();
     expect(preferences.getBool('startup_permissions_prompted_v1'), isTrue);
   });
+  test('does not create the Android local calendar without both grants', () async {
+    SharedPreferences.setMockInitialValues(<String, Object>{
+      'startup_permissions_prompted_v1': true,
+    });
+    final preferences = await SharedPreferences.getInstance();
+    const channel = MethodChannel('arvin/system_calendar');
+    final calls = <String>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+      calls.add(call.method);
+      if (call.method == 'calendarReadPermissionGranted') return true;
+      if (call.method == 'calendarWritePermissionGranted') return false;
+      return null;
+    });
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    });
+
+    await StartupPermissionService(
+      preferences: preferences,
+      calendarChannel: channel,
+    ).requestOnStartup();
+
+    expect(calls, [
+      'calendarReadPermissionGranted',
+      'calendarWritePermissionGranted',
+    ]);
+    expect(calls, isNot(contains('ensureArvinLocalCalendar')));
+  });
+
+  test('permission request contention is graceful on the native snake-case code', () async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final preferences = await SharedPreferences.getInstance();
+    const channel = MethodChannel('arvin/system_calendar');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+      if (call.method == 'requestCalendarAccessPermissions') {
+        throw PlatformException(code: 'permission_request_in_progress');
+      }
+      return false;
+    });
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    });
+
+    await expectLater(
+      StartupPermissionService(
+        preferences: preferences,
+        calendarChannel: channel,
+      ).requestOnStartup(),
+      completes,
+    );
+    expect(preferences.getBool('startup_permissions_prompted_v1'), isTrue);
+  });
+
 }
