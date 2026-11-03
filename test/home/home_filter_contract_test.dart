@@ -42,6 +42,14 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('home-filter-card-time')));
     await tester.pumpAndSettle();
     expect(find.text('همه'), findsOneWidget);
+    final pastTimeOption = find.widgetWithText(RadioListTile<String>, 'گذشته');
+    await tester.ensureVisible(pastTimeOption);
+    await tester.tap(pastTimeOption);
+    await tester.pumpAndSettle();
+    expect(find.text('انتخاب زمان'), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('home-filter-card-time')));
+    await tester.pumpAndSettle();
     final allTimeOption = find.widgetWithText(RadioListTile<String>, 'همه');
     await tester.ensureVisible(allTimeOption);
     await tester.tap(allTimeOption);
