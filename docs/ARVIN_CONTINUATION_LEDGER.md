@@ -1511,3 +1511,33 @@ Added Report Center regression test at a 320×520 viewport, RTL, with six active
 **Next gate:** synchronize docs, then require Build, Device Smoke, Calendar Provider, Persistence and Draft Review APK on one final exact SHA. If Draft artifact workflow skips/fails because PR is Draft, retain Draft and report the blocker; never remove Draft as a workaround.
 
 PR #3052 remains OPEN / DRAFT / UNMERGED. main untouched. **BLOCKED — RELEASE: NO-GO**.
+
+
+## 2026-11-03 — Owner decision: Triple-Track Calendar architecture / Details-only editing
+
+**Owner-approved product baseline**
+1. **Track 1 — Arvin internal SQLite:** authoritative source of Tasks, priorities P1–P4, categories and centers.
+2. **Track 2 — Local Arvin Calendar Provider:** dedicated Arvin-owned Android system calendar, synchronized with Arvin Task create/update/delete.
+3. **Track 3 — Other phone calendars (Google, Samsung, etc.):** read-only in Arvin Calendar. Edit/time-change/delete is performed only in the source app. A source event becomes an independent Arvin Task only through explicit Import (including the explicit «ثبت در آروین» action).
+4. **Navigation:** a simple tap on any Arvin Task/Follow-up card opens canonical Task Details only. No Calendar inline edit route is allowed. Edit begins only from the explicit Edit action inside Task Details. Task-to-phone-calendar export remains a separate configured swipe action for Arvin-owned Task records.
+
+**Exact-SHA evidence — 681251338c226f6db40bac7d9decde36c1c64d97**
+- Build #9344 / run 41628236149: overall FAILURE. Analyze SUCCESS. Shards test-0, test-1, test-2, test-3 SUCCESS; test-4 and test-5 FAILURE. The test-4 failure was `calendar_page_test.dart: Task card tap opens Details, long-press omits Edit, and Calendar swipe exports`: unexpected `task-due-edit-...` action was present. The test-5 failure was `calendar_runtime_actions_fast_track_test.dart: Task calendar cards open Details and never expose inline edit`: same unexpected Edit action. Each shard reported one failure (215 passed / 1 failed; 161 passed / 1 failed). The repeat-occurrence assertion `repeat occurrence actions resolve back to the canonical Task` passed. No assertions were removed or weakened.
+- Calendar Provider #1495 / run 41628236109: SUCCESS. Real emulator evidence: CREATE (calendarId=1,eventId=1), NO-OP UPDATE, no duplicate, UPDATE on the same event ID, DELETE. Destination migration limitation: only one writable calendar. Artifact 13226554993, 11,211 bytes, digest sha256:ff8bc22074718450c9ed8cb02c9888d23d7fa219431dfc04bf6cf10cca2c4288.
+- Follow-up File Persistence #518 / run 41628236070: SUCCESS.
+- Draft Review APK #171 / run 41628236095: SUCCESS. Staging assembly and signature/package/`debuggable=false`/Vazirmatn checks SUCCESS. Artifact 13226239078, 33,031,127 bytes, digest sha256:bbc79528f72843e0ad32f10c506b1ace1722caa37b64b838923f43ae2b8b4e51; expires 2026-11-10. Signed with an ephemeral test-only key; review-only, not publishable.
+- Ordinary Build APK matrix: SKIPPED because PR remained Draft; this is expected and must not be bypassed by converting the PR to ready.
+- Device Smoke #6596 / run 41628236041: Boot, Navigation, Quick Capture, Task Lifecycle SUCCESS; Reminder/Vazirmatn CANCELLED; Follow-up Persistence CANCELLED; Calendar Segmented View still IN_PROGRESS at the last observed poll. Seven-lane acceptance is NOT VERIFIED.
+
+**Corrective implementation and follow-up validation**
+- Commit a39d9dc9d10a786f69d64f40e8f3c72f6f1c43b0 removed the Calendar long-press Task Edit entry, because it violated the owner rule that editing must start inside Task Details.
+- The first analyzer run on a39d9dc9d10a786f69d64f40e8f3c72f6f1c43b0 detected an accidental removal of the public CalendarPage `onEditTask` API (and its forwarding call sites). This was corrected in ad11694546ed79391df27a4890b635542693f50b: public owner API restored; private Calendar-card edit action remains absent. Do not count the intermediate a39d run as passing.
+- Added Home compact-filter regression coverage in f96d6f2833be7a51b73fdbb7b4484dd1a1ddb0a8: viewport 320×520, RTL, actual Home horizontal compact-filter strip, five filter controls and no layout exception. The prior Report Center chip-wrap test is a different screen and is not evidence for Home.
+- The reported historical 44px Home overflow remains **NOT VERIFIED** until the new Home-specific test and, where needed, visual/emulator evidence are complete. No speculative production layout change was made.
+- Exact-head workflows launched for f96d6f2833be7a51b73fdbb7b4484dd1a1ddb0a8: Build #9347 / 41631273704; Device Smoke #6599 / 41631273582; Calendar Provider #1498 / 41631273728; Follow-up File Persistence #521 / 41631273652; Draft Review APK #174 / 41631273631. At this ledger update they were pending/in progress; inspect terminal results before upgrading any gate.
+
+**Scope and governance**
+- Priority and Quick Capture production logic were not rewritten.
+- No tests/assertions were deleted, skipped or weakened as a fix.
+- PR #3052 remains OPEN / DRAFT / UNMERGED on `fix/recovery-calendar-device-smoke-2026-10-31`; main unchanged; no merge or release. **BLOCKED — RELEASE: NO-GO**.
+- Home 44px overflow: NOT VERIFIED. Seven-lane Device Smoke: NOT VERIFIED. Release: NO-GO.
