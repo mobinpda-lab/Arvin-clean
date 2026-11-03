@@ -706,7 +706,8 @@ class _HomePageState extends State<HomePage> {
     if (due == null) return false;
     final now = IranClock.now();
     final today = DateTime(now.year, now.month, now.day);
-    final day = DateTime(due.year, due.month, due.day);
+    final localDue = due.toLocal();
+    final day = DateTime(localDue.year, localDue.month, localDue.day);
     if (_timeFilter == 'today') return day == today;
     if (_timeFilter == 'past') return day.isBefore(today);
     if (_timeFilter == 'tomorrow') return day == today.add(const Duration(days: 1));
