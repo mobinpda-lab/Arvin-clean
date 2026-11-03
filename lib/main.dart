@@ -1694,6 +1694,14 @@ class _HomePageState extends State<HomePage> {
     return refreshed.firstWhere((item) => item.id == task.id);
   }
 
+  Future<Task?> _moveDueDateToTodayFromDetail(Task task) async {
+    final moved = await TaskMoveToTodayService(store: taskStore).move(task.id);
+    final refreshed = await taskStore.load();
+    if (!mounted) return moved;
+    setState(() => tasks = List<Task>.of(refreshed));
+    return refreshed.firstWhere((item) => item.id == task.id);
+  }
+
   Future<Task?> _completeFromDetail(Task task) async {
     // The detail action is a true toggle: a second tap returns the task to
     // the active/undone state. Done remains independent from archive/trash.
@@ -1740,6 +1748,7 @@ class _HomePageState extends State<HomePage> {
           onComplete: _completeFromDetail,
           onChecklistChanged: _checklistChangedFromDetail,
           onDescriptionChanged: _descriptionChangedFromDetail,
+          onMoveDueDateToToday: _moveDueDateToTodayFromDetail,
           onRegisterTaskToDeviceCalendar: _registerTaskFromDetails,
         ),
       ),
