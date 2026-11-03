@@ -3,19 +3,18 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('legacy insert method is identity-gated and not an automatic UI entry point', () {
+  test('external ACTION_INSERT route is removed from the native calendar bridge', () {
     final activity = File(
       'android/app/src/main/kotlin/com/example/arvin/MainActivity.kt',
     ).readAsStringSync();
 
-    expect(activity, contains('Intent.ACTION_INSERT'));
-    expect(activity, contains('arvin/system_calendar'));
-    expect(activity, contains('insertSystemCalendarEvent'));
-    expect(activity, contains('isExportableTaskReminderId(reminderId)'));
-    expect(activity, contains('invalid_reminder_id'));
+    expect(activity, isNot(contains('Intent.ACTION_INSERT')));
+    expect(activity, isNot(contains('insertSystemCalendarEvent')));
+    expect(activity, contains('ensureArvinLocalCalendar'));
+    expect(activity, contains('CalendarContract.ACCOUNT_TYPE_LOCAL'));
   });
 
-  test('provider sync write access is explicit and separate from manual export', () {
+  test('provider sync write access is constrained to the app-owned Arvin calendar', () {
     final activity = File(
       'android/app/src/main/kotlin/com/example/arvin/MainActivity.kt',
     ).readAsStringSync();
