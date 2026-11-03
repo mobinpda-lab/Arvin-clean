@@ -42,15 +42,20 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('home-filter-card-time')));
     await tester.pumpAndSettle();
     expect(find.text('همه'), findsOneWidget);
-    await tester.tap(find.text('همه').last);
+    final allTimeOption = find.widgetWithText(RadioListTile<String>, 'همه');
+    await tester.ensureVisible(allTimeOption);
+    await tester.tap(allTimeOption);
     await tester.pumpAndSettle();
+    expect(find.text('انتخاب زمان'), findsNothing);
 
     await tester.drag(find.byKey(const ValueKey('home-compact-filter-scroll')), const Offset(-180, 0));
     await tester.pumpAndSettle();
     final centerFilter = find.byKey(const ValueKey('home-filter-card-center'));
     await tester.ensureVisible(centerFilter);
+    await tester.pumpAndSettle();
     await tester.tap(centerFilter);
     await tester.pumpAndSettle();
+    expect(find.text('انتخاب مرکز'), findsOneWidget);
     expect(find.text('همه مراکز'), findsOneWidget);
     await tester.tap(find.text('همه مراکز'));
     await tester.pumpAndSettle();
