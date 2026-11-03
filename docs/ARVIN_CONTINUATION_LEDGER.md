@@ -1315,3 +1315,30 @@ Run 41451772502 / Job 125298740317 on the same SHA completed FAILURE. Gradle sta
 - PR #3052 remains OPEN / DRAFT / UNMERGED.
 - `main` is unchanged; no merge, release, tag or APK publication.
 - Release remains **BLOCKED — RELEASE: NO-GO**.
+
+
+
+## Wave 7.301 — compilation hotfix and exact-HEAD validation checkpoint (2026-11-03)
+
+**Branch:** `fix/recovery-calendar-device-smoke-2026-10-31`  
+**PR #3052:** OPEN / DRAFT / UNMERGED. **Release:** BLOCKED — RELEASE: NO-GO.
+
+### Compilation hotfixes
+- Removed the unsupported `mainAxisSize` argument from the `Wrap` in `lib/center_management_page.dart`. Commit: `ebd0f50539b4c189d5d35ded6fef5d25e3ff20cc`.
+- In `lib/services/project_template_service.dart`, captured the non-null selected template in a final local after the null/archive guard and used that stable reference through project generation and duplicate detection. This avoids nullable-promotion loss inside the closure without weakening validation. Commit: `47c3f352040df771f67f3cf6a3b5830eb303643b`.
+- The two source files were re-read from the resulting branch HEAD; the unsupported Wrap argument is absent and the selected-template final reference is present.
+
+### Validation checkpoint
+- Hotfix implementation HEAD before this ledger update: `47c3f352040df771f67f3cf6a3b5830eb303643b`.
+- Exact-HEAD workflows were automatically created after the source commits: Build `41576466514`, Device Smoke `41576466630`, Calendar Provider `41576466451`, Draft Review APK `41576466509`.
+- At this checkpoint Build Analyze and all six test shards were still running; Device Smoke was queued; Calendar Provider and Draft Review APK were in progress. No exact test counts or PASS claims are recorded.
+- The above runs target the pre-ledger implementation SHA. The ledger synchronization commit below changes HEAD; these runs are retained as diagnostic history only and MUST NOT be used as final acceptance evidence. Fresh exact-HEAD workflows on the ledger-synchronized SHA are required.
+- Draft Review APK availability is NOT VERIFIED until the final exact-HEAD run completes and its artifact is listed.
+- No test was skipped or weakened as part of these two source fixes.
+
+### Governance
+- Only the authorized PR branch was changed; `main` was not modified.
+- PR #3052 remains OPEN / DRAFT / UNMERGED.
+- No merge, release, publication or release sign-off.
+- Release remains **BLOCKED — RELEASE: NO-GO**.
+- Iran timestamp: 1405/08/12 07:40 (Asia/Tehran).
