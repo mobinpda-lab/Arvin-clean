@@ -1,3 +1,12 @@
+## 2026-11-03 — Exact-SHA 24-domain architecture/product audit
+
+- Added docs/qa/ARVIN_MASTER_SPEC_24_DOMAIN_AUDIT_2026-11-03.md, audited directly against PR branch HEAD 469f9a5b0140bb69f6f415e1ad8ad0eee28e2983.
+- The matrix records 24 owner-acceptance domains with conservative statuses, direct source/test paths, and exact-SHA CI evidence. Prior audit documents on older SHAs remain historical only.
+- Confirmed active legacy references in Task/FollowUp models, Drift schema, TaskStore and Task editor. No legacy column or user data was deleted or rewritten.
+- Recorded immediate independent corrections for the next code slice: Home multi-tag OR semantics and the missing Center contribution to Home active-filter state. Calendar card Tap currently routes Task/Follow-up records to Edit callbacks rather than Task Details.
+- Exact-SHA evidence: Build 41614740315 Analyze + six test shards SUCCESS (APK matrix SKIPPED); Calendar Provider 41614740147 SUCCESS; File Persistence 41614740328 SUCCESS; Draft Review APK 41614740340 SUCCESS (review-only); Device Smoke 41614740157 remains IN PROGRESS with four lanes PASS, two IN PROGRESS and one QUEUED at checkpoint.
+- Documentation-only Commit A. No product runtime, tests, schema, migration, dependency, main, merge, release or APK publication changed. PR #3052 remains OPEN / DRAFT / UNMERGED; release remains BLOCKED — RELEASE: NO-GO.
+
 ## 2026-11-03 — Wave 7.304 Home overdue styling and completion archive behavior
 
 - Home cards now render overdue, unfinished Task title and due-date text in the error/red text color only; overdue status and due-date icons remain neutral, card surface and border remain unchanged, and unrelated follow-up text/icons remain neutral.
