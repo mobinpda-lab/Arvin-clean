@@ -197,6 +197,11 @@ class MainActivity : FlutterActivity() {
                     }
                 }
                 METHOD_VERIFY_DEVICE_CALENDAR_EVENT -> {
+                    val reminderId = call.argument<String>("reminderId")
+                    if (!isExportableTaskReminderId(reminderId)) {
+                        result.error("invalid_reminder_id", "Only Task and TaskReminder identities may be verified", null)
+                        return@setMethodCallHandler
+                    }
                     if (!hasCalendarReadPermission()) {
                         result.error("calendar_read_permission_denied", "Calendar read permission is required to verify a linked event", null)
                         return@setMethodCallHandler
