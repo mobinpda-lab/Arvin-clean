@@ -138,3 +138,5 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - Follow-up stabilization for the previously failing Home center-filter contract: the test now explicitly scrolls the center filter chip into the visible viewport before tapping it. The assertion for «همه مراکز» and all subsequent filter assertions remain unchanged; no product or Report Center behavior was modified. Exact-head revalidation is required.
 
 - The Task Details action now also falls back directly to `TaskMoveToTodayService` when opened from another feature route that does not inject the Home callback. The action is therefore available on all Task Details entry paths, not only the Home route. Added a fallback-route persistence regression; exact final-head CI remains required.
+
+- Corrected two analyzer findings introduced by the route-fallback regression: the service result is non-null and the test now checks nullable `updatedAt` explicitly before comparing it. No runtime semantics changed; fresh exact-head validation is required.
