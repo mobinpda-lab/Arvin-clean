@@ -45,6 +45,7 @@ class CalendarPage extends StatefulWidget {
     this.dailyContentForDate,
     this.onCompleteReminder,
     this.onEditReminder,
+    this.onEditTask,
     this.onOpenTask,
     this.onDeleteTask,
     this.onRegisterTaskToDeviceCalendar,
@@ -65,6 +66,7 @@ class CalendarPage extends StatefulWidget {
   final DateTime? initialSelectedDay;
   final Future<void> Function(CalendarReminder reminder)? onCompleteReminder;
   final Future<void> Function(CalendarReminder reminder)? onEditReminder;
+  final Future<void> Function(CalendarReminder reminder)? onEditTask;
   final Future<void> Function(CalendarReminder reminder)? onOpenTask;
   final Future<void> Function(CalendarReminder reminder)? onDeleteTask;
   final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
@@ -1133,7 +1135,6 @@ class _ReminderCard extends StatefulWidget {
     required this.timeLabel,
     this.onComplete,
     this.onEdit,
-    this.onEditTask,
     this.onOpenTask,
     this.onDeleteTask,
     this.onRegisterTaskToDeviceCalendar,
@@ -1152,7 +1153,6 @@ class _ReminderCard extends StatefulWidget {
   final String timeLabel;
   final Future<void> Function(CalendarReminder reminder)? onComplete;
   final Future<void> Function(CalendarReminder reminder)? onEdit;
-  final Future<void> Function(CalendarReminder reminder)? onEditTask;
   final Future<void> Function(CalendarReminder reminder)? onOpenTask;
   final Future<void> Function(CalendarReminder reminder)? onDeleteTask;
   final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
