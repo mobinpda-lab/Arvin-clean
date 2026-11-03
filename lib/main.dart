@@ -705,7 +705,7 @@ class _HomePageState extends State<HomePage> {
     final day = DateTime(local.year, local.month, local.day);
     final now = IranClock.now();
     final today = DateTime(now.year, now.month, now.day);
-    final matchesRange = () {
+    bool matchesRange() {
       if (_timeFilter != 'customRange' || !_timeFilters.contains('customRange')) return false;
       final from = _fromDateFilter == null ? null : DateTime(_fromDateFilter!.year, _fromDateFilter!.month, _fromDateFilter!.day);
       final to = _toDateFilter == null ? null : DateTime(_toDateFilter!.year, _toDateFilter!.month, _toDateFilter!.day);

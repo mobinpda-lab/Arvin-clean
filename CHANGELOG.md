@@ -1,3 +1,10 @@
+## 2026-11-03 — Filter CI follow-up
+
+- Converted the range predicate closure to a named local function to satisfy the repository analyzer rule.
+- Made widget-test taps target the filter chip/checkbox row directly and scroll into view, avoiding ambiguous or clipped text targets.
+- Aligned the bottom-navigation source contract with the approved «خانه» label; no navigation runtime code changed.
+- Exact-HEAD Build remains required; this follow-up is test/analyzer hardening only. Release remains BLOCKED — RELEASE: NO-GO.
+
 ## 2026-11-03 — Filter test alignment and Persian count labels
 
 - Multi-selection counts on the five Home filter chips and active-filter summary chips now use Persian digits, including the Time dimension.

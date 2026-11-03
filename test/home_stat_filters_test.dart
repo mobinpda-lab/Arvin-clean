@@ -78,9 +78,13 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     final before = prefs.getString('arvin.tasks');
 
-    await tester.tap(find.text('دسته‌بندی‌ها'));
+    final categoryChip = find.byKey(const ValueKey('home-filter-card-category'));
+    await tester.ensureVisible(categoryChip);
+    await tester.tap(categoryChip);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('برچسب‌ها'));
+    final tagChip = find.byKey(const ValueKey('home-filter-card-tags'));
+    await tester.ensureVisible(tagChip);
+    await tester.tap(tagChip);
     await tester.pumpAndSettle();
 
     expect(prefs.getString('arvin.tasks'), before);
@@ -90,7 +94,9 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('زمان'));
+    final timeChip = find.byKey(const ValueKey('home-filter-card-time'));
+    await tester.ensureVisible(timeChip);
+    await tester.tap(timeChip);
     await tester.pumpAndSettle();
 
     final sheetScrollable = find.byType(Scrollable).last;
@@ -118,7 +124,9 @@ void main() {
     });
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
-    await tester.tap(find.text('دسته‌بندی‌ها'));
+    final categoryChip = find.byKey(const ValueKey('home-filter-card-category'));
+    await tester.ensureVisible(categoryChip);
+    await tester.tap(categoryChip);
     await tester.pumpAndSettle();
     expect(find.text('همه'), findsOneWidget);
     await tester.tap(find.widgetWithText(CheckboxListTile, 'اداری'));
@@ -142,12 +150,16 @@ void main() {
     });
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
-    await tester.tap(find.text('دسته‌بندی‌ها'));
+    final categoryChip = find.byKey(const ValueKey('home-filter-card-category'));
+    await tester.ensureVisible(categoryChip);
+    await tester.tap(categoryChip);
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(CheckboxListTile, 'اداری'));
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('برچسب‌ها'));
+    final tagsChip = find.byKey(const ValueKey('home-filter-card-tags'));
+    await tester.ensureVisible(tagsChip);
+    await tester.tap(tagsChip);
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(CheckboxListTile, 'مهم'));
     await tester.tap(find.widgetWithText(CheckboxListTile, 'فوری'));
@@ -170,7 +182,9 @@ void main() {
     });
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
-    await tester.tap(find.text('زمان'));
+    final timeChip = find.byKey(const ValueKey('home-filter-card-time'));
+    await tester.ensureVisible(timeChip);
+    await tester.tap(timeChip);
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(CheckboxListTile, 'گذشته'));
     await tester.tap(find.widgetWithText(CheckboxListTile, 'امروز'));

@@ -168,19 +168,25 @@ void main() {
     expect(find.text('دسته‌بندی‌ها'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey('home-filter-card-time')));
+    final timeChip = find.byKey(const ValueKey('home-filter-card-time'));
+    await tester.ensureVisible(timeChip);
+    await tester.tap(timeChip);
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(CheckboxListTile, 'امروز'));
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('home-filter-card-category')));
+    final categoryChip = find.byKey(const ValueKey('home-filter-card-category'));
+    await tester.ensureVisible(categoryChip);
+    await tester.tap(categoryChip);
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(CheckboxListTile, 'اتاق'));
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('home-filter-card-tags')));
+    final tagsChip = find.byKey(const ValueKey('home-filter-card-tags'));
+    await tester.ensureVisible(tagsChip);
+    await tester.tap(tagsChip);
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(CheckboxListTile, 'نوزاد'));
     await tester.tap(find.widgetWithText(CheckboxListTile, 'تعویض'));
@@ -599,7 +605,9 @@ void main() {
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('home-filter-card-time')));
+    final timeChip = find.byKey(const ValueKey('home-filter-card-time'));
+    await tester.ensureVisible(timeChip);
+    await tester.tap(timeChip);
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(CheckboxListTile, 'گذشته'));
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
@@ -697,7 +705,9 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('home-filter-card-time')));
+    final timeChip = find.byKey(const ValueKey('home-filter-card-time'));
+    await tester.ensureVisible(timeChip);
+    await tester.tap(timeChip);
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(CheckboxListTile, 'گذشته'));
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
