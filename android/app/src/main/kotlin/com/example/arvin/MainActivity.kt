@@ -429,6 +429,7 @@ class MainActivity : FlutterActivity() {
      * Creates or reuses only the app-owned local Arvin calendar. A matching
      * display name alone is never treated as proof of ownership.
      */
+    @Synchronized
     private fun ensureArvinLocalCalendar(): Map<String, Any?> {
         val accountName = packageName
         val accountType = CalendarContract.ACCOUNT_TYPE_LOCAL

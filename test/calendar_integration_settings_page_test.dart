@@ -167,10 +167,29 @@ void main() {
       (tester) async {
     messenger.setMockMethodCallHandler(calendarChannel, (call) async {
       switch (call.method) {
-        case SystemCalendarBridge.requestPermissionMethod:
+        case SystemCalendarBridge.requestAccessPermissionsMethod:
           return true;
+        case SystemCalendarBridge.ensureArvinLocalCalendarMethod:
+          return <String, Object?>{
+            'id': 'local-1',
+            'displayName': 'Arvin',
+            'accountName': 'com.example.arvin',
+            'accountType': 'LOCAL',
+            'ownerAccount': 'com.example.arvin',
+            'isArvinLocal': true,
+          };
         case SystemCalendarBridge.listCalendarsMethod:
           return <Map<String, Object?>>[
+            <String, Object?>{
+              'id': 'local-1',
+              'displayName': 'Arvin',
+              'accountName': 'com.example.arvin',
+              'accountType': 'LOCAL',
+              'ownerAccount': 'com.example.arvin',
+              'isArvinLocal': true,
+              'visible': true,
+              'syncEvents': false,
+            },
             <String, Object?>{
               'id': '12',
               'displayName': 'Personal',
@@ -214,6 +233,9 @@ void main() {
 
     expect(find.text('Personal'), findsOneWidget);
     expect(find.text('Samsung Calendar'), findsWidgets);
+    expect(find.byKey(const ValueKey('calendar-provider-arvin-local')), findsOneWidget);
+    expect(find.byKey(const ValueKey('calendar-target-local-1')), findsNothing);
+    expect(find.byKey(const ValueKey('calendar-visible-local-1')), findsNothing);
     expect(find.text('Google Calendar • user@example.com'), findsOneWidget);
 
     final target = find.byKey(const ValueKey('calendar-target-12'));
@@ -236,7 +258,7 @@ void main() {
       (tester) async {
     messenger.setMockMethodCallHandler(calendarChannel, (call) async {
       switch (call.method) {
-        case SystemCalendarBridge.requestPermissionMethod:
+        case SystemCalendarBridge.requestAccessPermissionsMethod:
           return true;
         case SystemCalendarBridge.listCalendarsMethod:
           return <Map<String, Object?>>[
@@ -297,7 +319,7 @@ void main() {
       (tester) async {
     messenger.setMockMethodCallHandler(calendarChannel, (call) async {
       switch (call.method) {
-        case SystemCalendarBridge.requestPermissionMethod:
+        case SystemCalendarBridge.requestAccessPermissionsMethod:
           return true;
         case SystemCalendarBridge.listCalendarsMethod:
           return <Map<String, Object?>>[
@@ -337,7 +359,7 @@ void main() {
       (tester) async {
     messenger.setMockMethodCallHandler(calendarChannel, (call) async {
       switch (call.method) {
-        case SystemCalendarBridge.requestPermissionMethod:
+        case SystemCalendarBridge.requestAccessPermissionsMethod:
           return false;
         case SystemCalendarBridge.listCalendarsMethod:
           fail('calendar discovery must not run after permission denial');

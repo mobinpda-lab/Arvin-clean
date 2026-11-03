@@ -185,7 +185,17 @@ class _CalendarIntegrationSettingsPageState
     }
 
     return Column(
-      children: deviceCalendars.map((calendar) {
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (providerError != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              providerError!,
+              key: const ValueKey('calendar-provider-warning'),
+            ),
+          ),
+        ...deviceCalendars.map((calendar) {
         final visible = current.visibleCalendarIds.contains(calendar.id);
         final isTarget = current.targetCalendarId == calendar.id;
         return Card(
@@ -247,7 +257,8 @@ class _CalendarIntegrationSettingsPageState
             ],
           ),
         );
-      }).toList(growable: false),
+        }).toList(growable: false),
+      ],
     );
   }
 
