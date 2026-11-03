@@ -1391,3 +1391,14 @@ Run 41451772502 / Job 125298740317 on the same SHA completed FAILURE. Gradle sta
 - No merge, release, APK publication or release sign-off.
 - Release remains **BLOCKED — RELEASE: NO-GO**.
 - Iran date: 1405/08/12 (Asia/Tehran).
+
+
+## Wave 7.303 — CI audit and focused regression fixes (2026-11-03)
+- Audited exact HEAD `2b558bd08917ac16a81fd161ced410bedbdc33be`.
+- Build run `41579701473`: terminal FAILURE. Analyze failed on `CenterDeleteBlocked isn't a type` at `test/center_project_association_test.dart:40`. All six shards failed: test-0 130 passed/1 failed; test-1 165/2; test-2 271/2; test-3 200/3; test-4 210/1; test-5 158/1. Common compile error repeated across shards. Other distinct failures: project template test MissingPluginException(shared_preferences); project card summary expected old text without center label; Home center-filter chip not brought into horizontal viewport before tap; calendar settings test attempted to scroll to a removed delete-linked-event switch. No assertions were skipped or relaxed.
+- Device Smoke run `41579701586` remained non-terminal at audit: boot, navigation and quick-capture passed; calendar-segmented-view and task-lifecycle in progress; reminder-vazirmatn and follow-up-persistence queued. Four artifacts had been captured, but seven-path acceptance was NOT VERIFIED.
+- Calendar Provider run `41579701507`: SUCCESS; non-expired artifact `arvin-calendar-provider-acceptance-2b558bd08917ac16a81fd161ced410bedbdc33be` (11,210 bytes).
+- Draft Review APK run `41579701535`: SUCCESS; non-expired artifact `arvin-review-staging-apk-2b558bd08917ac16a81fd161ced410bedbdc33be` (32,990,324 bytes; SHA-256 `b93fc388827c2485f49c0f48ee31678cdf8412431956d22e883416c3f9bcab58`).
+- Focused fixes committed on the PR branch only: `c284845111d2b100f5ce7a5e480d8aff690aa895` exports the canonical `CenterDeleteBlocked` type through `center_store.dart`; `02108c385443c2d52b3f509781400db398c40f1f` updates the project summary assertion to tolerate its center prefix; `8115f3fded9018e731f35dcc85e218856d026fd9` initializes the SharedPreferences mock in the template service test; `a3f9e75eaa67657134bc6bd41644bf49e673f92c` asserts that the prohibited delete-linked-event control is absent; `e3ae30bc069bfa80eba6ecdf28713628164d43ed` scrolls the Home filter strip horizontally before tapping the center chip.
+- These are targeted fixes only. Validation on the new HEAD is pending; none of the prior SHA results transfer to the new commit.
+- Governance: PR #3052 remains OPEN / DRAFT / UNMERGED; no main-branch change or merge was performed. Release remains BLOCKED — RELEASE: NO-GO.
