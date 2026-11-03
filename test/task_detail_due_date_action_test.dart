@@ -117,9 +117,9 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.ensureVisible(
-      find.byKey(const ValueKey('task-detail-set-due-today')),
+      find.byKey(const ValueKey('task-detail-move-due-date-to-today')),
     );
-    await tester.tap(find.byKey(const ValueKey('task-detail-set-due-today')));
+    await tester.tap(find.byKey(const ValueKey('task-detail-move-due-date-to-today')));
     await tester.pumpAndSettle();
 
     final persisted = (await store.load()).single;
