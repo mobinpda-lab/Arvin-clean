@@ -58,6 +58,7 @@ class ProjectTemplateService {
     ProjectTemplate? template;
     for (final item in templates) { if (item.id == templateId) { template = item; break; } }
     if (template == null || template.isArchived) throw StateError('قالب فعال پیدا نشد.');
+    final selectedTemplate = template;
     final centers = await centerStore.load(includeArchived: false);
     final created = <String>[], duplicates = <String>[];
     final failed = <String, String>{};
@@ -65,10 +66,10 @@ class ProjectTemplateService {
       ArvinCenter? center;
       for (final item in centers) { if (item.id == centerId) { center = item; break; } }
       if (center == null) { failed[centerId] = 'مرکز فعال پیدا نشد.'; continue; }
-      final generatedTasks = template.tasks.map(_instantiate).toList(growable: false);
+      final generatedTasks = selectedTemplate.tasks.map(_instantiate).toList(growable: false);
       final project = ProjectPlan(
-        id: _id('project'), title: template.name, centerId: centerId,
-        templateId: template.id, templateNameSnapshot: template.name,
+        id: _id('project'), title: selectedTemplate.name, centerId: centerId,
+        templateId: selectedTemplate.id, templateNameSnapshot: selectedTemplate.name,
         itemIds: generatedTasks.map((task) => task.id),
       );
       try {
@@ -76,7 +77,7 @@ class ProjectTemplateService {
         created.add(centerId);
       } catch (error) {
         final current = await projectStore.load();
-        if (current.any((p) => p.templateId == template.id && p.centerId == centerId && !p.isArchived)) {
+        if (current.any((p) => p.templateId == selectedTemplate.id && p.centerId == centerId && !p.isArchived)) {
           duplicates.add(centerId);
         } else {
           failed[centerId] = error.toString();
