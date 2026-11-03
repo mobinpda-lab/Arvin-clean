@@ -1010,7 +1010,7 @@ class _HomePageState extends State<HomePage> {
               Navigator.pop(sheetContext);
             },child:const Text('تأیید / اعمال فیلتر'))),
           ]),
-          SizedBox(width:double.infinity,child:OutlinedButton(
+          SizedBox(width:double.infinity,child:FilledButton(
             onPressed:fromDate==null&&toDate==null&&fromTime==null&&toTime==null?null:(){
               setState(() {
                 _timeFilters.clear(); _timeFilter='customRange'; _specificDateFilter=null;

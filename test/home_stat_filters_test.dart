@@ -100,7 +100,6 @@ void main() {
     await tester.scrollUntilVisible(find.text('از ساعت'), 300, scrollable: sheetScrollable);
     expect(find.text('از ساعت'), findsOneWidget);
     await tester.scrollUntilVisible(find.text('تا ساعت'), 300, scrollable: sheetScrollable);
-    await tester.scrollUntilVisible(find.text('تأیید / اعمال فیلتر'), 300, scrollable: sheetScrollable);
     expect(find.text('تأیید / اعمال فیلتر'), findsOneWidget);
     expect(find.text('تا ساعت'), findsOneWidget);
     await tester.scrollUntilVisible(find.text('اعمال بازه'), 300, scrollable: sheetScrollable);
