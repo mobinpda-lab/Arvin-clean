@@ -79,12 +79,8 @@ void main() {
       isFalse,
     );
 
-    final deleteSwitch = find.byKey(const ValueKey('calendar-delete-linked'));
-    await _scrollUntilVisible(tester, deleteSwitch);
-    expect(
-      tester.widget<SwitchListTile>(deleteSwitch).value,
-      isFalse,
-    );
+    // Deleting linked device-calendar events is intentionally not exposed.
+    expect(find.byKey(const ValueKey('calendar-delete-linked')), findsNothing);
     expect(service.calendarSaveCount, 0);
   });
 
