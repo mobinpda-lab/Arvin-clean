@@ -49,13 +49,26 @@ void main() {
     );
   });
 
-  test('eligible reminder is sent through the existing platform boundary', () async {
+  test('eligible reminder is inserted into the app-owned Arvin calendar', () async {
     const channel = MethodChannel(SystemCalendarBridge.channelName);
     final calls = <MethodCall>[];
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (call) async {
       calls.add(call);
-      return true;
+      if (call.method == SystemCalendarBridge.writePermissionStatusMethod) {
+        return true;
+      }
+      if (call.method == SystemCalendarBridge.ensureArvinLocalCalendarMethod) {
+        return <String, Object?>{
+          'id': 'arvin-local',
+          'displayName': 'Arvin',
+          'isArvinLocal': true,
+        };
+      }
+      if (call.method == SystemCalendarBridge.createProviderEventMethod) {
+        return 'event-1';
+      }
+      return null;
     });
     addTearDown(() {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -69,10 +82,15 @@ void main() {
     );
 
     expect(await SystemCalendarBridge(channel: channel).insert(reminder), isTrue);
-    expect(calls, hasLength(1));
-    expect(calls.single.method, SystemCalendarBridge.insertMethod);
-    expect(calls.single.arguments, isA<Map<Object?, Object?>>());
-    expect((calls.single.arguments as Map<Object?, Object?>)['reminderId'], 'task-due:task-1');
+    expect(calls.map((call) => call.method), [
+      SystemCalendarBridge.writePermissionStatusMethod,
+      SystemCalendarBridge.ensureArvinLocalCalendarMethod,
+      SystemCalendarBridge.createProviderEventMethod,
+    ]);
+    expect(
+      (calls.last.arguments as Map<Object?, Object?>)['calendarId'],
+      'arvin-local',
+    );
   });
 
   test('local Arvin calendar identity is carried from the native boundary', () async {
