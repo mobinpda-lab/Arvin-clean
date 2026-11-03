@@ -576,4 +576,41 @@ void main() {
     expect(find.text('مراجعه به دکتر'), findsNothing);
   });
 
+  testWidgets('Home Past time filter excludes today and prioritizes incomplete tasks', (tester) async {
+    final now = IranClock.now();
+    String due(int daysAgo, int hour) => DateTime(
+      now.year,
+      now.month,
+      now.day - daysAgo,
+      hour,
+    ).toIso8601String();
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"done-newer","title":"گذشته انجام‌شده جدیدتر","completed":true,"dueDate":"${due(1, 9)}"},'
+          '{"id":"open-newer","title":"گذشته باز جدیدتر","completed":false,"dueDate":"${due(1, 10)}"},'
+          '{"id":"done-older","title":"گذشته انجام‌شده قدیمی‌تر","completed":true,"dueDate":"${due(4, 9)}"},'
+          '{"id":"open-older","title":"گذشته باز قدیمی‌تر","completed":false,"dueDate":"${due(3, 9)}"},'
+          '{"id":"today","title":"موعد امروز","completed":false,"dueDate":"${DateTime(now.year, now.month, now.day, 8).toIso8601String()}"}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('home-filter-card-time')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('گذشته').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('موعد امروز'), findsNothing);
+    final openOlder = find.text('گذشته باز قدیمی‌تر');
+    final openNewer = find.text('گذشته باز جدیدتر');
+    final doneOlder = find.text('گذشته انجام‌شده قدیمی‌تر');
+    final doneNewer = find.text('گذشته انجام‌شده جدیدتر');
+    await tester.ensureVisible(doneNewer);
+    await tester.pumpAndSettle();
+
+    expect(tester.getTopLeft(openOlder).dy, lessThan(tester.getTopLeft(openNewer).dy));
+    expect(tester.getTopLeft(openNewer).dy, lessThan(tester.getTopLeft(doneOlder).dy));
+    expect(tester.getTopLeft(doneOlder).dy, lessThan(tester.getTopLeft(doneNewer).dy));
+  });
+
 }
