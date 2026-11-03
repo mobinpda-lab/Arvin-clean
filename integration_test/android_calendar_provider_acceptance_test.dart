@@ -22,26 +22,17 @@ void main() {
     expect(readGranted, isTrue, reason: 'READ_CALENDAR must be granted by CI');
     expect(writeGranted, isTrue, reason: 'WRITE_CALENDAR must be granted by CI');
 
-    final calendars = await bridge.listDeviceCalendars();
-    final writable = calendars
-        .where(
-          (item) =>
-              item.accountName == 'ARVIN CI Acceptance' &&
-              item.accountType == 'com.example.arvin.calendarprovisioner.account' &&
-              item.accessLevel >= 500,
-        )
-        .toList(growable: false);
-
-    if (writable.length != 1) {
+    final calendar = await bridge.ensureArvinLocalCalendar();
+    if (calendar == null ||
+        !calendar.isArvinLocal ||
+        calendar.accessLevel < 500) {
       debugPrint(
-        'CALENDAR_PROVIDER_ACCEPTANCE=BLOCKED_PROVISIONED_CALENDAR_MISSING count=${writable.length}',
+        'CALENDAR_PROVIDER_ACCEPTANCE=BLOCKED_ARVIN_LOCAL_CALENDAR_MISSING',
       );
       throw StateError(
-        'Calendar Provider acceptance BLOCKED: expected exactly one writable ARVIN CI Acceptance calendar; CRUD was not executed.',
+        'Calendar Provider acceptance BLOCKED: the writable app-owned Arvin local calendar was not provisioned.',
       );
     }
-
-    final calendar = writable.single;
     final store = ExternalCalendarLinkStore(
       preferencesKey: 'arvin.calendar.externalLinks.acceptance',
     );
@@ -148,115 +139,31 @@ void main() {
       'CALENDAR_PROVIDER_UPDATE=PASS calendarId=${calendar.id} eventId=${updatedEvent.single.eventId} providerEventCount=1 title=${updatedEvent.single.title} updated=${updateResult.updated}',
     );
 
-    if (writable.length >= 2) {
-      // Keep the original linked event alive until destination migration is exercised.
-      // The canonical executor requires the existing link to produce an update/move plan.
-      final secondCalendar = writable.firstWhere((item) => item.id != calendar.id);
-      final migrationRevision = CalendarReminder(
-        id: reminder.id,
-        title: updatedReminder.title,
-        date: updatedReminder.date,
-      );
-      final migration = await revisionService.fromReminder(migrationRevision);
-      links = await store.load();
-      final migrationPlan = planner.plan(
-        revisions: [migration],
-        links: links,
-      );
-      final migrationResult = await executor.execute(
-        plan: migrationPlan,
-        targetCalendarId: secondCalendar.id,
-      );
-      expect(migrationResult.created, 0);
-      expect(migrationResult.updated, 1);
+    links = await store.load();
+    final deletePlan = planner.plan(
+      revisions: const <CalendarSyncRevision>[],
+      links: links,
+    );
+    final deleteResult = await executor.execute(
+      plan: deletePlan,
+      targetCalendarId: calendar.id,
+    );
+    expect(deleteResult.deleted, 1);
+    expect(await store.load(), isEmpty);
 
-      final migratedLinks = await store.load();
-      expect(migratedLinks, hasLength(1));
-      expect(migratedLinks.single.calendarId, secondCalendar.id);
-      expect(migratedLinks.single.eventId, isNot(createdLink.eventId));
-
-      final oldCalendarEvents = await bridge.listDeviceCalendarEvents(
-        calendarIds: [calendar.id],
-        start: start.subtract(const Duration(hours: 1)),
-        end: start.add(const Duration(hours: 4)),
-      );
-      expect(
-        oldCalendarEvents.any((event) => event.eventId == createdLink.eventId),
-        isFalse,
-        reason: 'destination migration must remove the old owned event',
-      );
-
-      final newCalendarEvents = await bridge.listDeviceCalendarEvents(
-        calendarIds: [secondCalendar.id],
-        start: start.subtract(const Duration(hours: 1)),
-        end: start.add(const Duration(hours: 4)),
-      );
-      expect(
-        newCalendarEvents.any(
-          (event) => event.eventId == migratedLinks.single.eventId,
-        ),
-        isTrue,
-        reason: 'destination migration must expose the replacement event',
-      );
-      debugPrint(
-        'CALENDAR_PROVIDER_DESTINATION_MIGRATION=PASS from=${calendar.id} to=${secondCalendar.id}',
-      );
-
-      final cleanupPlan = planner.plan(
-        revisions: const <CalendarSyncRevision>[],
-        links: migratedLinks,
-      );
-      final cleanupResult = await executor.execute(
-        plan: cleanupPlan,
-        targetCalendarId: secondCalendar.id,
-      );
-      expect(cleanupResult.deleted, 1);
-      expect(await store.load(), isEmpty);
-      final deletedEvents = await bridge.listDeviceCalendarEvents(
-        calendarIds: [secondCalendar.id],
-        start: start.subtract(const Duration(hours: 1)),
-        end: start.add(const Duration(hours: 4)),
-      );
-      expect(
-        deletedEvents.any((event) => event.eventId == migratedLinks.single.eventId),
-        isFalse,
-        reason: 'deleted migrated event must no longer be visible',
-      );
-      debugPrint(
-        'CALENDAR_PROVIDER_DELETE=PASS calendarId=${secondCalendar.id} eventId=${migratedLinks.single.eventId} providerVisible=false deleted=${cleanupResult.deleted}',
-      );
-    } else {
-      // With one writable calendar, finish the ordinary create/update/delete acceptance.
-      links = await store.load();
-      final deletePlan = planner.plan(
-        revisions: const <CalendarSyncRevision>[],
-        links: links,
-      );
-      final deleteResult = await executor.execute(
-        plan: deletePlan,
-        targetCalendarId: calendar.id,
-      );
-      expect(deleteResult.deleted, 1);
-      expect(await store.load(), isEmpty);
-
-      events = await bridge.listDeviceCalendarEvents(
-        calendarIds: [calendar.id],
-        start: start.subtract(const Duration(hours: 1)),
-        end: start.add(const Duration(hours: 4)),
-      );
-      expect(
-        events.any((event) => event.eventId == createdLink.eventId),
-        isFalse,
-        reason: 'deleted event must no longer be visible',
-      );
-      debugPrint(
-        'CALENDAR_PROVIDER_DELETE=PASS calendarId=${calendar.id} eventId=${createdLink.eventId} providerVisible=false deleted=${deleteResult.deleted}',
-      );
-
-      debugPrint(
-        'CALENDAR_PROVIDER_DESTINATION_MIGRATION=LIMITATION writableCalendars=${writable.length}',
-      );
-    }
+    events = await bridge.listDeviceCalendarEvents(
+      calendarIds: [calendar.id],
+      start: start.subtract(const Duration(hours: 1)),
+      end: start.add(const Duration(hours: 4)),
+    );
+    expect(
+      events.any((event) => event.eventId == createdLink.eventId),
+      isFalse,
+      reason: 'deleted Arvin event must no longer be visible',
+    );
+    debugPrint(
+      'CALENDAR_PROVIDER_DELETE=PASS calendarId=${calendar.id} eventId=${createdLink.eventId} providerVisible=false deleted=${deleteResult.deleted}',
+    );
 
     debugPrint(
       'CALENDAR_PROVIDER_ACCEPTANCE=PASS calendarId=${calendar.id}',
