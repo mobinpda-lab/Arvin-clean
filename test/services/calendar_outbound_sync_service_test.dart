@@ -54,7 +54,7 @@ class _ArvinBridge extends SystemCalendarBridge {
 }
 
 class _Executor extends CalendarProviderSyncExecutor {
-  _Executor({SystemCalendarBridge? bridge, super.linkStore})
+  _Executor({SystemCalendarBridge? bridge})
       : super(bridge: bridge ?? _ArvinBridge());
 
   CalendarSyncPlan? receivedPlan;
