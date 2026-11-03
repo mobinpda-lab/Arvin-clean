@@ -1,3 +1,9 @@
+## 2026-11-03 — Commit E1: Report text numbering correction
+
+- Corrected the first item index in priority-grouped plain-text reports; the counter is incremented once and rendered without an extra offset.
+- This is a focused correctness follow-up to Commit E. The report grouping remains P1→P4 and stable within each group.
+- Local tests not run; exact-HEAD Build CI required. main untouched; PR #3052 OPEN / DRAFT / UNMERGED; release BLOCKED — RELEASE: NO-GO.
+
 ## 2026-11-03 — Commit E: Report Center priority grouping and filter contract
 
 - Removed the existing standalone Priority filter from Report Center and TaskReportFilter; priority is no longer a report-selection criterion.
