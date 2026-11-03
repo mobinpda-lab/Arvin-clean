@@ -57,7 +57,7 @@ void main() {
 
     final start = DateTime.now().add(const Duration(hours: 3));
     final reminder = CalendarReminder(
-      id: 'followup:acceptance-task:acceptance-followup',
+      id: 'task-due:acceptance-task',
       title: 'ARVIN calendar provider acceptance',
       date: start,
     );
