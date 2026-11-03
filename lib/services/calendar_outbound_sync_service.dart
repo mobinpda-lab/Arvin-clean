@@ -10,7 +10,8 @@ import 'external_calendar_link_store.dart';
 /// It reuses the existing revision/planner/executor/link foundations. It does
 /// not persist another event model and it performs no provider writes unless
 /// calendar integration and outbound sync are explicitly enabled with a target
-/// calendar selected by the owner.
+/// calendar selected by the owner. Task lifecycle reconciliation always targets
+/// the app-owned local Arvin calendar; external providers are read-only.
 class CalendarOutboundSyncService {
   CalendarOutboundSyncService({
     AppSettingsService? settingsService,
@@ -106,13 +107,16 @@ class CalendarOutboundSyncService {
     Set<String> preserveUnprojectedTaskIds = const <String>{},
   }) async {
     final integration = (await settingsService.load()).calendarIntegration;
-    final targetCalendarId = integration.targetCalendarId?.trim();
-    if (!integration.enabled ||
-        (!integration.autoSync && !force) ||
-        targetCalendarId == null ||
-        targetCalendarId.isEmpty) {
+    if (!integration.enabled || (!integration.autoSync && !force)) {
       return null;
     }
+    final arvinCalendar = await executor.bridge.ensureArvinLocalCalendar();
+    if (arvinCalendar == null ||
+        !arvinCalendar.isArvinLocal ||
+        arvinCalendar.id.trim().isEmpty) {
+      return null;
+    }
+    final targetCalendarId = arvinCalendar.id.trim();
 
     final links = await linkStore.load();
     final linkedReminderIds = links.map((link) => link.reminderId).toSet();
