@@ -29,7 +29,6 @@ class CanonicalCalendarLauncher extends StatefulWidget {
     this.onEditTask,
     this.onDeleteTask,
     this.onRegisterTaskToDeviceCalendar,
-    this.onRetryCalendarSync,
     this.onOpenReports,
   });
 
@@ -44,7 +43,6 @@ class CanonicalCalendarLauncher extends StatefulWidget {
   final Future<void> Function(Task task)? onEditTask;
   final Future<void> Function(Task task)? onDeleteTask;
   final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
-  final Future<void> Function()? onRetryCalendarSync;
   final Future<void> Function()? onOpenReports;
 
   @override
@@ -419,10 +417,6 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('یادآور مستقل برای تغییر پیدا نشد؛ هیچ داده‌ای تغییر نکرد.')));
       return false;
     }
-    if (widget.onRetryCalendarSync == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('مسیر همگام‌سازی تقویم در دسترس نیست؛ زمان تغییر نکرد.')));
-      return false;
-    }
     final approved = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -465,10 +459,9 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
           break;
         }
       }
-      await widget.onRetryCalendarSync!.call();
       return true;
     } catch (_) {
-      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تغییر یادآور یا همگام‌سازی انجام نشد؛ وضعیت تقویم را بررسی کنید.')));
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تغییر یادآور در آروین انجام نشد؛ ارسال به تقویم گوشی فقط با اقدام صریح انجام می‌شود.')));
       return false;
     }
   }
@@ -597,89 +590,6 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     }
   }
 
-  Future<void> _exportToSystemCalendar(BuildContext context) async {
-    final eligible = widget.projection
-        .project(_tasks)
-        .where(SystemCalendarBridge.isEligible)
-        .toList(growable: false);
-
-    if (eligible.isEmpty) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(
-            content: Text('پیگیری فعالی برای افزودن به تقویم دستگاه نیست'),
-          ),
-        );
-      return;
-    }
-
-    CalendarReminder? selected;
-    if (eligible.length == 1) {
-      selected = eligible.single;
-    } else {
-      selected = await showDialog<CalendarReminder>(
-        context: context,
-        builder: (dialogContext) => SimpleDialog(
-          title: const Text('انتخاب پیگیری برای تقویم دستگاه'),
-          children: [
-            for (final reminder in eligible)
-              SimpleDialogOption(
-                onPressed: () => Navigator.of(dialogContext).pop(reminder),
-                child: Text(reminder.title),
-              ),
-          ],
-        ),
-      );
-    }
-
-    if (selected == null || !context.mounted) return;
-
-    try {
-      final opened = await SystemCalendarBridge().insert(selected);
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Text(
-              opened
-                  ? 'فرم افزودن رویداد در تقویم دستگاه باز شد'
-                  : 'برنامه تقویم سازگار روی دستگاه پیدا نشد',
-            ),
-          ),
-        );
-    } catch (error) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(content: Text('باز کردن تقویم دستگاه ناموفق بود: $error')),
-        );
-    }
-  }
-
-  Future<void> _retryCalendarSync(BuildContext context) async {
-    final retry = widget.onRetryCalendarSync;
-    if (retry == null) return;
-    try {
-      await retry();
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(content: Text('خروجی انتخاب‌شده به تقویم گوشی دوباره بررسی شد؛ Taskهای آروین تغییر نکردند.')),
-        );
-    } catch (error) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(content: Text('همگام‌سازی انجام نشد: $error')),
-        );
-    }
-  }
-
   Future<void> _openMore(
     BuildContext context,
     List<CalendarReminder> reminders,
@@ -698,22 +608,6 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-              ListTile(
-                leading: const Icon(Icons.event_available_outlined),
-                title: const Text('تقویم دستگاه'),
-                subtitle: const Text('افزودن پیگیری فعال به تقویم گوشی'),
-                onTap: () =>
-                    Navigator.of(sheetContext)
-                        .pop(_CalendarMoreAction.systemCalendar),
-              ),
-              ListTile(
-                key: const ValueKey('calendar-retry-device-sync'),
-                leading: const Icon(Icons.sync_outlined),
-                title: const Text('تلاش دوباره برای همگام‌سازی'),
-                subtitle: const Text('تلاش دوباره برای خروجی یادآورهای آروین به تقویم گوشی'),
-                onTap: () => Navigator.of(sheetContext).pop(
-                  _CalendarMoreAction.retrySync,
-                ),
               ),
               ListTile(
                 key: const ValueKey('calendar-more-next-action'),
@@ -751,12 +645,6 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     if (action == null || !context.mounted) return;
 
     switch (action) {
-      case _CalendarMoreAction.systemCalendar:
-        await _exportToSystemCalendar(context);
-        return;
-      case _CalendarMoreAction.retrySync:
-        await _retryCalendarSync(context);
-        return;
       case _CalendarMoreAction.nextAction:
         await _openNextAction(context, reminders);
         return;
@@ -851,8 +739,6 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
 }
 
 enum _CalendarMoreAction {
-  systemCalendar,
-  retrySync,
   nextAction,
   timeline,
   conflicts,

@@ -25,6 +25,7 @@ class TaskDetailPage extends StatefulWidget {
     this.onComplete,
     this.onChecklistChanged,
     this.onDescriptionChanged,
+    this.onRegisterTaskToDeviceCalendar,
     this.now,
   });
 
@@ -36,6 +37,7 @@ class TaskDetailPage extends StatefulWidget {
   final Future<Task?> Function(Task task)? onComplete;
   final Future<Task?> Function(Task task, List<String> checklist)? onChecklistChanged;
   final Future<Task?> Function(Task task, String description)? onDescriptionChanged;
+  final Future<void> Function(Task task)? onRegisterTaskToDeviceCalendar;
   final DateTime? now;
 
   @override
@@ -161,6 +163,12 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     _checklistAddController.dispose();
     _checklistEditController?.dispose();
     super.dispose();
+  }
+
+  Future<void> _sendToDeviceCalendar() async {
+    final callback = widget.onRegisterTaskToDeviceCalendar;
+    if (callback == null) return;
+    await callback(_task);
   }
 
   Future<void> _openReport() async {
@@ -776,6 +784,13 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         appBar: AppBar(
           title: const Text('جزئیات کار'),
           actions: [
+            if (widget.onRegisterTaskToDeviceCalendar != null)
+              IconButton(
+                key: const ValueKey('task-detail-send-device-calendar'),
+                tooltip: 'ارسال به تقویم دستگاه',
+                onPressed: _sendToDeviceCalendar,
+                icon: const Icon(Icons.event_available_outlined),
+              ),
             IconButton(
               key: const ValueKey('task-detail-edit'),
               tooltip: 'ویرایش',

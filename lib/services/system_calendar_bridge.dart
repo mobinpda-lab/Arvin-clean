@@ -107,10 +107,8 @@ class DeviceCalendarEvent {
 
 /// Android boundary for user-approved system calendar access.
 ///
-/// Existing FollowUp export remains intent-based and user-approved. Provider
-/// discovery and external-event reads are read-only and share the existing
-/// Android Calendar Provider boundary; no vendor-specific calendar engine is
-/// introduced here.
+/// Device-calendar writes are explicit, Task-owned exports only.
+/// External provider discovery and event reads remain read-only mirrors.
 class SystemCalendarBridge {
   SystemCalendarBridge({MethodChannel? channel})
       : _channel = channel ?? const MethodChannel(channelName);
@@ -137,14 +135,21 @@ class SystemCalendarBridge {
 
   final MethodChannel _channel;
 
+  static bool isExportableTaskReminderId(String id) {
+    final normalized = id.trim();
+    const prefixes = <String>[
+      'task-due:',
+      'task-reminder-item:',
+      'task-reminder:',
+      'task-recurrence:',
+    ];
+    return prefixes.any((prefix) =>
+        normalized.startsWith(prefix) &&
+        normalized.substring(prefix.length).trim().isNotEmpty);
+  }
+
   static bool isEligible(CalendarReminder reminder) =>
-      (reminder.id.startsWith('followup:') ||
-          reminder.id.startsWith('task-due:') ||
-          reminder.id.startsWith('task-reminder-item:') ||
-          reminder.id.startsWith('task-reminder:') ||
-          reminder.id.startsWith('task-recurrence:') ||
-          reminder.id.startsWith('task-followup:')) &&
-      !reminder.completed;
+      isExportableTaskReminderId(reminder.id) && !reminder.completed;
 
   Future<bool> insert(CalendarReminder reminder) async {
     if (!isEligible(reminder)) return false;
@@ -157,6 +162,7 @@ class SystemCalendarBridge {
     final inserted = await _channel.invokeMethod<bool>(
       insertMethod,
       <String, Object?>{
+        'reminderId': reminder.id,
         'title': reminder.title,
         'startMillis': start.millisecondsSinceEpoch,
         'endMillis': end.millisecondsSinceEpoch,
@@ -207,6 +213,7 @@ class SystemCalendarBridge {
   }
 
   Future<String?> createProviderEvent({
+    required String reminderId,
     required String calendarId,
     required String title,
     required DateTime start,
@@ -217,6 +224,7 @@ class SystemCalendarBridge {
     final eventId = await _channel.invokeMethod<String>(
       createProviderEventMethod,
       _providerEventPayload(
+        reminderId: reminderId,
         calendarId: calendarId,
         title: title,
         start: start,
@@ -230,6 +238,7 @@ class SystemCalendarBridge {
   }
 
   Future<bool> updateProviderEvent({
+    required String reminderId,
     required String calendarId,
     required String eventId,
     required String title,
@@ -242,6 +251,7 @@ class SystemCalendarBridge {
           updateProviderEventMethod,
           <String, Object?>{
             ..._providerEventPayload(
+              reminderId: reminderId,
               calendarId: calendarId,
               title: title,
               start: start,
@@ -304,12 +314,18 @@ class SystemCalendarBridge {
   }
 
   Future<bool> deleteProviderEvent({
+    required String reminderId,
     required String calendarId,
     required String eventId,
   }) async {
+    if (!isExportableTaskReminderId(reminderId)) {
+      throw ArgumentError.value(reminderId, 'reminderId',
+          'Only Task and TaskReminder identities may be exported.');
+    }
     return await _channel.invokeMethod<bool>(
           deleteProviderEventMethod,
           <String, Object?>{
+            'reminderId': reminderId,
             'calendarId': calendarId,
             'eventId': eventId,
           },
@@ -318,6 +334,7 @@ class SystemCalendarBridge {
   }
 
   Map<String, Object?> _providerEventPayload({
+    required String reminderId,
     required String calendarId,
     required String title,
     required DateTime start,
@@ -327,12 +344,14 @@ class SystemCalendarBridge {
   }) {
     final normalizedCalendarId = calendarId.trim();
     final normalizedTitle = title.trim();
-    if (normalizedCalendarId.isEmpty ||
+    if (!isExportableTaskReminderId(reminderId) ||
+        normalizedCalendarId.isEmpty ||
         normalizedTitle.isEmpty ||
         !end.isAfter(start)) {
       throw ArgumentError('Calendar provider event payload is invalid.');
     }
     return <String, Object?>{
+      'reminderId': reminderId,
       'calendarId': normalizedCalendarId,
       'title': normalizedTitle,
       'startMillis': start.millisecondsSinceEpoch,

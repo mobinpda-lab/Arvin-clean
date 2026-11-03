@@ -30,12 +30,12 @@ import 'report_center_page.dart';
 import 'widgets/universal_arvin_time_picker.dart';
 import 'services/app_settings_service.dart';
 import 'services/daily_content_preferences_service.dart';
-import 'services/calendar_outbound_sync_service.dart';
 import 'services/follow_up_calendar_projection.dart';
 
 import 'services/calendar_provider_sync_executor.dart';
 import 'services/calendar_sync_plan_service.dart';
 import 'services/external_calendar_link_store.dart';
+import 'services/system_calendar_bridge.dart';
 
 import 'services/home_list_projection.dart';
 import 'services/home_search_projection.dart';
@@ -388,8 +388,6 @@ class _HomePageState extends State<HomePage> {
   final AppSettingsService appSettingsService = AppSettingsService();
   final FollowUpCalendarProjection calendarProjection =
       const FollowUpCalendarProjection();
-  final CalendarOutboundSyncService calendarOutboundSyncService =
-      CalendarOutboundSyncService();
   final HomeSearchProjection homeSearchProjection =
       const HomeSearchProjection();
   final TaskListScopeService taskListScopeService =
@@ -637,11 +635,6 @@ class _HomePageState extends State<HomePage> {
     return created;
   }
 
-  Set<String> _trashedTaskIds(Iterable<Task> snapshot) => snapshot
-      .where((task) => task.trashed)
-      .map((task) => task.id)
-      .toSet();
-
   Future<void> _save() async {
     if (loadFailure != null) {
       throw StateError(
@@ -653,57 +646,10 @@ class _HomePageState extends State<HomePage> {
     try {
       await AndroidFollowUpReminderScheduler().reschedule();
     } catch (_) {
-      // Canonical Task storage already succeeded; the existing alarm foundation
-      // can retry on the next lifecycle/scheduler trigger.
-    }
-    try {
-      await calendarOutboundSyncService.sync(
-        calendarProjection.project(snapshot),
-        preserveUnprojectedTaskIds: _trashedTaskIds(snapshot),
-      );
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: const Text('همگام‌سازی کار با تقویم مقصد انجام نشد.'),
-            action: SnackBarAction(
-              label: 'تلاش دوباره',
-              onPressed: () => _retryCalendarSync(snapshot),
-            ),
-            duration: const Duration(seconds: 6),
-          ),
-        );
+      // Canonical Task storage already succeeded; scheduler retries later.
     }
   }
 
-  Future<void> _retryCalendarSync(List<Task> snapshot) async {
-    try {
-      await calendarOutboundSyncService.sync(
-        calendarProjection.project(snapshot),
-        force: true,
-        preserveUnprojectedTaskIds: _trashedTaskIds(snapshot),
-      );
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(
-            content: Text('خروجی آروین به تقویم گوشی دوباره بررسی شد؛ اطلاعات محلی آروین مستقل باقی ماند.'),
-          ),
-        );
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(
-            content: Text('همگام‌سازی انجام نشد؛ تنظیمات و دسترسی تقویم را بررسی کنید.'),
-          ),
-        );
-    }
-  }
 
   DateTime? _homeLastFollowUpDate(Task task) => task.lastFollowUp?.dateTime;
 
@@ -1540,29 +1486,6 @@ class _HomePageState extends State<HomePage> {
     return task;
   }
 
-  Future<void> _syncCalendarAfterQuickCapture(List<Task> snapshot) async {
-    try {
-      await calendarOutboundSyncService.sync(
-        calendarProjection.project(snapshot),
-        preserveUnprojectedTaskIds: _trashedTaskIds(snapshot),
-      );
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: const Text('همگام‌سازی کار با تقویم مقصد انجام نشد.'),
-            action: SnackBarAction(
-              label: 'تلاش دوباره',
-              onPressed: () => _retryCalendarSync(snapshot),
-            ),
-            duration: const Duration(seconds: 6),
-          ),
-        );
-    }
-  }
-
   Future<void> _quickCapture() async {
     if (loadFailure != null) {
       ScaffoldMessenger.of(context)
@@ -1630,7 +1553,6 @@ class _HomePageState extends State<HomePage> {
             loadFailure = null;
             loading = false;
           });
-          await _syncCalendarAfterQuickCapture(refreshed);
           return true;
         },
         onCaptured: (captured) async {
@@ -1652,7 +1574,6 @@ class _HomePageState extends State<HomePage> {
             loadFailure = null;
             loading = false;
           });
-          await _syncCalendarAfterQuickCapture(refreshed);
           if (!mounted) return;
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
@@ -1723,7 +1644,6 @@ class _HomePageState extends State<HomePage> {
     // Ordinary auto-sync may be disabled even though this Task was explicitly
     // linked to the phone calendar earlier. Reconcile only existing links so
     // editing one Task cannot create events for unrelated Tasks.
-    await _syncLinkedCalendarAfterTaskEdit(List<Task>.of(tasks));
     return task;
   }
 
@@ -1781,64 +1701,8 @@ class _HomePageState extends State<HomePage> {
     final refreshed = await taskStore.load();
     if (!mounted) return task;
     setState(() => tasks = List<Task>.of(refreshed));
-    await _syncCalendarAfterDetailTaskUpdate(refreshed);
     if (!mounted) return task;
     return refreshed.firstWhere((item) => item.id == task.id);
-  }
-
-  Future<void> _syncCalendarAfterDetailTaskUpdate(
-    List<Task> snapshot,
-  ) async {
-    try {
-      await calendarOutboundSyncService.sync(
-        calendarProjection.project(snapshot),
-        preserveUnprojectedTaskIds: _trashedTaskIds(snapshot),
-      );
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: const Text('همگام‌سازی کار با تقویم مقصد انجام نشد.'),
-            action: SnackBarAction(
-              label: 'تلاش دوباره',
-              onPressed: () => _retryCalendarSync(snapshot),
-            ),
-            duration: const Duration(seconds: 6),
-          ),
-        );
-    }
-  }
-
-  Future<void> _syncLinkedCalendarAfterTaskEdit(List<Task> snapshot) async {
-    try {
-      final result = await calendarOutboundSyncService.sync(
-        calendarProjection.project(snapshot),
-        force: true,
-        linkedOnly: true,
-      );
-      if (!mounted || result == null || result.updated == 0) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(content: Text('تغییرات کار در تقویم گوشی هم به‌روز شد.')),
-        );
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: const Text('کار در آروین ذخیره شد، اما رویداد پیوندخوردهٔ گوشی به‌روز نشد.'),
-            action: SnackBarAction(
-              label: 'تلاش دوباره',
-              onPressed: () => _syncLinkedCalendarAfterTaskEdit(snapshot),
-            ),
-            duration: const Duration(seconds: 6),
-          ),
-        );
-    }
   }
 
   Future<Task> _addFollowUpFromDetail(Task task, FollowUp followUp) async {
@@ -1868,6 +1732,7 @@ class _HomePageState extends State<HomePage> {
           onComplete: _completeFromDetail,
           onChecklistChanged: _checklistChangedFromDetail,
           onDescriptionChanged: _descriptionChangedFromDetail,
+          onRegisterTaskToDeviceCalendar: _registerTaskFromDetails,
         ),
       ),
     );
@@ -2512,11 +2377,43 @@ class _HomePageState extends State<HomePage> {
     await _load();
     return List<Task>.of(_searchSource);
   }
+  Future<void> _registerTaskFromDetails(Task task) async {
+    final eligible = calendarProjection
+        .project(<Task>[task])
+        .where(SystemCalendarBridge.isEligible)
+        .toList(growable: false);
+    if (eligible.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('برای این کار موعد یا یادآور مستقلی برای ارسال وجود ندارد.')),
+      );
+      return;
+    }
+    CalendarReminder? selected;
+    if (eligible.length == 1) {
+      selected = eligible.single;
+    } else {
+      selected = await showDialog<CalendarReminder>(
+        context: context,
+        builder: (dialogContext) => SimpleDialog(
+          title: const Text('انتخاب مورد برای ارسال به تقویم دستگاه'),
+          children: [
+            for (final reminder in eligible)
+              SimpleDialogOption(
+                onPressed: () => Navigator.of(dialogContext).pop(reminder),
+                child: Text('${reminder.title} • ${reminder.date}'),
+              ),
+          ],
+        ),
+      );
+    }
+    if (selected != null && mounted) {
+      await _registerTaskInDeviceCalendar(selected);
+    }
+  }
+
   Future<void> _registerTaskInDeviceCalendar(CalendarReminder reminder) async {
-    final isTaskCalendarItem = reminder.id.startsWith('task-due:') ||
-        reminder.id.startsWith('task-reminder-item:') ||
-        reminder.id.startsWith('task-reminder:');
-    if (!isTaskCalendarItem) return;
+    if (!SystemCalendarBridge.isEligible(reminder)) return;
     var settings = await appSettingsService.load();
     var targetCalendarId = settings.calendarIntegration.targetCalendarId?.trim();
     if (targetCalendarId == null || targetCalendarId.isEmpty) {
@@ -2574,9 +2471,12 @@ class _HomePageState extends State<HomePage> {
     try {
       final revision = await CalendarSyncRevisionService().fromReminder(canonical);
       final links = await ExternalCalendarLinkStore().load();
+      final selectedLinks = links
+          .where((link) => link.reminderId == reminder.id)
+          .toList(growable: false);
       final plan = const CalendarSyncPlanService().plan(
         revisions: <CalendarSyncRevision>[revision],
-        links: links,
+        links: selectedLinks,
         targetCalendarId: targetCalendarId,
       );
       final result = await CalendarProviderSyncExecutor().execute(
@@ -2584,7 +2484,7 @@ class _HomePageState extends State<HomePage> {
         targetCalendarId: targetCalendarId,
       );
       if (!mounted) return;
-      final alreadyLinked = links.any((link) => link.reminderId == reminder.id);
+      final alreadyLinked = selectedLinks.isNotEmpty;
       final message = result.created > 0
           ? 'کار در تقویم گوشی ثبت شد.'
           : result.updated > 0
@@ -2622,7 +2522,6 @@ class _HomePageState extends State<HomePage> {
           onEditTask: (task) async { await _editFromDetail(task); },
           onDeleteTask: _trashTaskFromCalendar,
           onRegisterTaskToDeviceCalendar: _registerTaskInDeviceCalendar,
-          onRetryCalendarSync: () => _retryCalendarSync(tasks),
         ),
       ),
     );

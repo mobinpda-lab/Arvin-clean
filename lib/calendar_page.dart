@@ -1333,17 +1333,6 @@ class _ReminderCardState extends State<_ReminderCard> {
                     _run(widget.onDeleteTask);
                   },
                 ),
-              if (_isTaskCalendarItem &&
-                  widget.onRegisterTaskToDeviceCalendar != null)
-                ListTile(
-                  key: ValueKey('task-due-device-calendar-${widget.item.id}'),
-                  leading: const Icon(Icons.event_available_outlined),
-                  title: const Text('ثبت در تقویم گوشی'),
-                  onTap: () {
-                    Navigator.of(sheetContext).pop();
-                    _run(widget.onRegisterTaskToDeviceCalendar);
-                  },
-                ),
               if (!_isTaskCalendarItem &&
                   !widget.isPrayer &&
                   widget.onConvertToTask != null)

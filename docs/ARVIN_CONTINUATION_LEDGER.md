@@ -1258,3 +1258,18 @@ Run 41451772502 / Job 125298740317 on the same SHA completed FAILURE. Gradle sta
 - No merge, release, APK publication or release-signoff is authorized.
 - Release remains **BLOCKED — RELEASE: NO-GO**.
 - Iran timestamp: 1405/08/12 (Asia/Tehran).
+
+
+### Wave 7.299 implementation follow-up — explicit Task export and immutable ownership (2026-11-03)
+
+**This section records implementation work after the Wave 7.299 audit; it does not retroactively convert the audit into implementation evidence.**
+
+- Removed automatic Calendar outbound writes from Home save, Quick Capture, Task edit and Task completion. No retry callback remains on the Calendar launcher.
+- Restricted the Calendar More menu to its unrelated actions; removed its device-calendar export and retry actions. Removed device-calendar export from the Task-card long-press menu while retaining the Calendar swipe action.
+- Added the explicit Task Details action task-detail-send-device-calendar; it selects an eligible due-date or independent TaskReminder belonging to that Task.
+- Dart export allow-list now accepts only task-due:, task-reminder-item:, task-reminder:, and task-recurrence: identities. Historical followup: and task-followup: identities are rejected.
+- The real arvin/system_calendar MethodChannel now carries reminderId through legacy insert and Provider create/update/delete calls. Android validates the same allow-list before every write and rejects missing/invalid identities.
+- Provider executor rejects invalid plan IDs before permission requests or Provider access. Manual export builds a plan using only the selected reminder's link; the executor retains unrelated stored links when it saves metadata.
+- Inbound reconciliation remains a deliberate no-op. External provider items remain read-only mirror projections; imported Task records remain canonical Arvin data and are not reconciled from later provider changes.
+- Added focused source-contract and MethodChannel identity tests. CI results, physical-device behavior and exact-SHA runtime evidence must be recorded separately after the commit.
+- Governance unchanged: PR #3052 OPEN / DRAFT / UNMERGED; no main modification; BLOCKED — RELEASE: NO-GO.

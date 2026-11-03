@@ -432,3 +432,18 @@ Target branch SHA: `8ccbc90ebfdcd797d5c18f6ab7a6cb6cff2de358` (all results below
 - قرارداد پنج فیلتر عمومی و دو فیلتر افزودهٔ Report Center («کار» و «قالب پروژه») از هم تفکیک شد.
 - وضعیت فعلی مدل/ذخیره‌سازی و شکاف‌های واقعی ثبت شد؛ این milestone مستندسازی است و به معنی پیاده‌سازی قابلیت‌ها نیست.
 - **Governance:** PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## 2026-11-03 — Wave 7.299 implementation follow-up: explicit Task-only Calendar export
+
+This is an implementation record following the earlier Wave 7.299 ownership audit; the earlier audit itself was not implementation or acceptance evidence.
+
+- Removed automatic device-calendar outbound writes from normal Task save, Quick Capture, Task edit and Task completion.
+- Limited Calendar export UI to the approved Calendar Task-card swipe and explicit Task Details button. Removed export and retry from Calendar More and export from Task-card long-press; unrelated More actions and main-list gestures remain untouched.
+- Added Task Details action task-detail-send-device-calendar, scoped to eligible due-date / independent TaskReminder items of the selected Task.
+- Added Dart and Android allow-lists for task-due:, task-reminder-item:, task-reminder:, and task-recurrence:. followup: and task-followup: history IDs, blank IDs and unknown identities fail closed.
+- Propagated the selected reminder identity across the existing arvin/system_calendar channel for insert/create/update/delete. Executor validates plan IDs before native permission/provider calls.
+- Scoped manual sync plans to the selected reminder and its existing link only; unrelated provider links remain preserved by the executor.
+- Inbound provider reconciliation remains non-mutating. Device events are mirror-only; copied/imported Arvin Tasks retain local ownership after import.
+- Focused Dart/MethodChannel/source-contract tests were added. Test execution, Android runtime behavior and all required CI lanes remain pending until exact-head workflows complete.
+- PR #3052 remains OPEN / DRAFT / UNMERGED; main is unchanged; BLOCKED — RELEASE: NO-GO.

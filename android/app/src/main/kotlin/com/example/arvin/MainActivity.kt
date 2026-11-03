@@ -49,6 +49,11 @@ class MainActivity : FlutterActivity() {
         systemCalendarChannel?.setMethodCallHandler { call, result ->
             when (call.method) {
                 METHOD_INSERT_SYSTEM_CALENDAR_EVENT -> {
+                    val reminderId = call.argument<String>("reminderId")
+                    if (!isExportableTaskReminderId(reminderId)) {
+                        result.error("invalid_reminder_id", "Only Task and TaskReminder identities may be exported", null)
+                        return@setMethodCallHandler
+                    }
                     val title = call.argument<String>("title")?.trim().orEmpty()
                     val startMillis = call.argument<Number>("startMillis")?.toLong()
                     val endMillis = call.argument<Number>("endMillis")?.toLong()
@@ -93,6 +98,11 @@ class MainActivity : FlutterActivity() {
                     ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WRITE_CALENDAR), CALENDAR_WRITE_PERMISSION_REQUEST_CODE)
                 }
                 METHOD_CREATE_DEVICE_CALENDAR_EVENT -> {
+                    val reminderId = call.argument<String>("reminderId")
+                    if (!isExportableTaskReminderId(reminderId)) {
+                        result.error("invalid_reminder_id", "Only Task and TaskReminder identities may be exported", null)
+                        return@setMethodCallHandler
+                    }
                     if (!hasCalendarWritePermission()) {
                         result.error("calendar_write_permission_denied", "Calendar write permission is required", null)
                         return@setMethodCallHandler
@@ -117,6 +127,11 @@ class MainActivity : FlutterActivity() {
                     }
                 }
                 METHOD_UPDATE_DEVICE_CALENDAR_EVENT -> {
+                    val reminderId = call.argument<String>("reminderId")
+                    if (!isExportableTaskReminderId(reminderId)) {
+                        result.error("invalid_reminder_id", "Only Task and TaskReminder identities may be exported", null)
+                        return@setMethodCallHandler
+                    }
                     if (!hasCalendarWritePermission()) {
                         result.error("calendar_write_permission_denied", "Calendar write permission is required", null)
                         return@setMethodCallHandler
@@ -205,6 +220,11 @@ class MainActivity : FlutterActivity() {
                     }
                 }
                 METHOD_DELETE_DEVICE_CALENDAR_EVENT -> {
+                    val reminderId = call.argument<String>("reminderId")
+                    if (!isExportableTaskReminderId(reminderId)) {
+                        result.error("invalid_reminder_id", "Only Task and TaskReminder identities may be exported", null)
+                        return@setMethodCallHandler
+                    }
                     if (!hasCalendarWritePermission()) {
                         result.error("calendar_write_permission_denied", "Calendar write permission is required", null)
                         return@setMethodCallHandler
@@ -362,6 +382,17 @@ class MainActivity : FlutterActivity() {
                 else -> result.notImplemented()
             }
         }
+    }
+
+    private fun isExportableTaskReminderId(reminderId: String?): Boolean {
+        val id = reminderId?.trim().orEmpty()
+        val prefix = listOf(
+            "task-due:",
+            "task-reminder-item:",
+            "task-reminder:",
+            "task-recurrence:",
+        ).firstOrNull { id.startsWith(it) } ?: return false
+        return id.removePrefix(prefix).isNotBlank()
     }
 
     private fun hasCalendarReadPermission(): Boolean =

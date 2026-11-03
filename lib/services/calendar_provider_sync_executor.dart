@@ -33,6 +33,14 @@ class CalendarProviderSyncExecutor {
     required CalendarSyncPlan plan,
     required String targetCalendarId,
   }) async {
+    final invalidIds = plan.items
+        .map((item) => item.reminderId)
+        .where((id) => !SystemCalendarBridge.isExportableTaskReminderId(id))
+        .toList(growable: false);
+    if (invalidIds.isNotEmpty) {
+      throw ArgumentError.value(invalidIds, 'plan.items',
+          'Only explicitly selected Task and TaskReminder identities may cross the device-calendar export boundary.');
+    }
     final calendarId = targetCalendarId.trim();
     if (calendarId.isEmpty) {
       throw ArgumentError.value(
@@ -96,6 +104,7 @@ class CalendarProviderSyncExecutor {
             throw StateError('این مورد قبلاً در تقویم گوشی ثبت شده است.');
           }
           final eventId = await bridge.createProviderEvent(
+            reminderId: item.reminderId,
             calendarId: calendarId,
             title: revision.title,
             start: revision.start,
@@ -137,6 +146,7 @@ class CalendarProviderSyncExecutor {
 
           if (link.calendarId == calendarId) {
             final ok = await bridge.updateProviderEvent(
+              reminderId: item.reminderId,
               calendarId: link.calendarId,
               eventId: link.eventId,
               title: revision.title,
@@ -163,6 +173,7 @@ class CalendarProviderSyncExecutor {
           // Create the replacement first, then remove the old owned event. If
           // removal fails, roll back the new event and keep the old link intact.
           final replacementEventId = await bridge.createProviderEvent(
+            reminderId: item.reminderId,
             calendarId: calendarId,
             title: revision.title,
             start: revision.start,
@@ -175,11 +186,13 @@ class CalendarProviderSyncExecutor {
           }
 
           final removedOld = await bridge.deleteProviderEvent(
+            reminderId: item.reminderId,
             calendarId: link.calendarId,
             eventId: link.eventId,
           );
           if (!removedOld) {
             await bridge.deleteProviderEvent(
+              reminderId: item.reminderId,
               calendarId: calendarId,
               eventId: replacementEventId,
             );
@@ -210,6 +223,7 @@ class CalendarProviderSyncExecutor {
             );
           }
           final ok = await bridge.deleteProviderEvent(
+            reminderId: item.reminderId,
             calendarId: link.calendarId,
             eventId: link.eventId,
           );
