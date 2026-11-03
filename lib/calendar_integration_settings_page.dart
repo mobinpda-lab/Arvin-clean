@@ -291,7 +291,6 @@ class _CalendarIntegrationSettingsPageState
                     'Google Calendar، Samsung Calendar و سایر تقویم‌های اندروید از یک Calendar Provider مشترک استفاده می‌کنند؛ آروین موتور جداگانه و تکراری برای هر برند نمی‌سازد.',
                   ),
                   const Divider(height: 32),
-                  const Divider(height: 32),
                   Card(
                     key: const ValueKey('calendar-explicit-export-policy'),
                     child: Padding(
@@ -306,15 +305,9 @@ class _CalendarIntegrationSettingsPageState
                           Text('تاریخچهٔ پیگیری‌ها و گزارش‌های گذشته به تقویم گوشی صادر نمی‌شوند و برای آن‌ها زنگ آینده ساخته نمی‌شود.'),
                           SizedBox(height: 8),
                           Text('ویرایش یا حذف رویداد گوشی، Task و یادآورهای محلی آروین را تغییر نمی‌دهد.'),
+                          SizedBox(height: 8),
+                          Text('حذف یا بایگانی Task در آروین نیز رویداد تقویم گوشی را خودکار حذف نمی‌کند.'),
                         ],
-                      ),
-                    ),
-                  ),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Text(
-                        'حذف یا بایگانی Task در آروین، رویداد تقویم گوشی را خودکار حذف یا تغییر نمی‌دهد. این اتصال فقط با اقدام صریح کاربر مدیریت می‌شود.',
                       ),
                     ),
                   ),
