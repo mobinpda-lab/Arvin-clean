@@ -51,7 +51,6 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('انتخاب زمان'), findsNothing);
 
-    final timeFilter = find.byKey(const ValueKey('home-filter-card-time'));
     await tester.ensureVisible(timeFilter);
     await tester.pumpAndSettle();
     await tester.tap(timeFilter);
@@ -105,13 +104,14 @@ void main() {
     expect(find.byKey(const ValueKey('home-group-future')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-group-no_date')), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey('home-filter-card-time')));
+    await tester.ensureVisible(timeFilter);
+    await tester.pumpAndSettle();
+    await tester.tap(timeFilter);
     await tester.pumpAndSettle();
     await tester.tap(find.text('امروز').last);
     await tester.pumpAndSettle();
 
     // A category restriction can be cleared independently while time stays active.
-    final categoryFilter = find.byKey(const ValueKey('home-filter-card-category'));
     await tester.ensureVisible(categoryFilter);
     await tester.pumpAndSettle();
     await tester.tap(categoryFilter);
@@ -122,7 +122,9 @@ void main() {
     expect(find.text('امروز'), findsAtLeastNWidgets(1));
     expect(find.text('کار فردا'), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('home-filter-card-category')));
+    await tester.ensureVisible(categoryFilter);
+    await tester.pumpAndSettle();
+    await tester.tap(categoryFilter);
     await tester.pumpAndSettle();
     await tester.tap(find.text('همه دسته‌ها'));
     await tester.pumpAndSettle();
