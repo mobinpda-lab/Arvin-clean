@@ -1,3 +1,11 @@
+## 2026-11-03 — Home filter Checkbox Multi-Select stabilization
+
+- Fixed stale single-select state references after converting the Home filters to sets.
+- Time filter drafts now keep a custom date local to the sheet until confirmation; cancelling date selection no longer creates an invalid selected preset.
+- Time-filter removal clears both preset and custom-range state. Existing custom date/time range controls and the «اعمال بازه» action remain available.
+- Added widget tests for staged Category selection, OR semantics for Tags, and AND semantics across dimensions.
+- Local Flutter tests not run; exact-HEAD CI is required. PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; release BLOCKED — RELEASE: NO-GO.
+
 ## 2026-11-03 — Home filter Checkbox Multi-Select standard
 
 - Converted Center, Project and Category filters from single-choice Radio controls to staged Checkbox multi-select. All five Home filter sheets now have an explicit «همه» reset row and «تأیید / اعمال فیلتر» action.

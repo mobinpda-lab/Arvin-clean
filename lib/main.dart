@@ -919,6 +919,10 @@ class _HomePageState extends State<HomePage> {
           _timeFilter = 'all';
           _timeFilters.clear();
           _specificDateFilter = null;
+          _fromDateFilter = null;
+          _toDateFilter = null;
+          _fromTimeFilter = null;
+          _toTimeFilter = null;
         }),
       ));
     }
@@ -964,11 +968,14 @@ class _HomePageState extends State<HomePage> {
     final draft=<String>{..._timeFilters};
     var fromDate=_fromDateFilter,toDate=_toDateFilter;
     var fromTime=_fromTimeFilter,toTime=_toTimeFilter;
+    var customDate=_specificDateFilter;
     await HomeFilterSheet.show<void>(context,title:'انتخاب زمان',accent:ArvinColors.time,
       child:StatefulBuilder(builder:(sheetContext,setSheetState){
-        Future<void> pickCustom() async {
-          final value=await showPersianDatePicker(context:sheetContext,initialDate:_specificDateFilter??DateTime.now(),firstDate:DateTime(2020),lastDate:DateTime(2100),helpText:'تاریخ مشخص');
-          if(value!=null)setSheetState(()=>_specificDateFilter=value);
+        Future<bool> pickCustom() async {
+          final value=await showPersianDatePicker(context:sheetContext,initialDate:customDate??DateTime.now(),firstDate:DateTime(2020),lastDate:DateTime(2100),helpText:'تاریخ مشخص');
+          if(value==null)return false;
+          setSheetState(()=>customDate=value);
+          return true;
         }
         Future<DateTime?> pickDate(DateTime? initial,String help) => showPersianDatePicker(context:sheetContext,initialDate:initial??DateTime.now(),firstDate:DateTime(2020),lastDate:DateTime(2100),helpText:help);
         Future<TimeOfDay?> pickTime(TimeOfDay? initial,String help) => showUniversalArvinTimePicker(context:sheetContext,initialTime:initial??TimeOfDay.now(),helpText:help);
@@ -978,7 +985,7 @@ class _HomePageState extends State<HomePage> {
             for(final option in options) CheckboxListTile(
               value:draft.contains(option['id'] as String),title:Text(option['title'] as String),controlAffinity:ListTileControlAffinity.leading,
               secondary:Icon(option['icon'] as IconData,color:ArvinColors.time),
-              onChanged:(v) async {final id=option['id'] as String;if(id=='custom'&&v==true){await pickCustom();setSheetState(()=>draft.add(id));}else{setSheetState(()=>v==true?draft.add(id):draft.remove(id));}},
+              onChanged:(v) async {final id=option['id'] as String;if(id=='custom'&&v==true){if(await pickCustom())setSheetState(()=>draft.add(id));}else{setSheetState(()=>v==true?draft.add(id):draft.remove(id));}},
             ),
             const Divider(),
             ListTile(title:const Text('از تاریخ'),subtitle:Text(fromDate==null?'انتخاب نشده':_date(fromDate!)),onTap:()async{final v=await pickDate(fromDate,'از تاریخ');if(v!=null)setSheetState(()=>fromDate=v);}),
@@ -997,7 +1004,7 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(width:8),
             Expanded(child:FilledButton(onPressed:(){
               setState(() {
-                _timeFilters..clear()..addAll(draft); _timeFilter='all';
+                _timeFilters..clear()..addAll(draft); _timeFilter='all'; _specificDateFilter=customDate;
                 _fromDateFilter=null; _toDateFilter=null; _fromTimeFilter=null; _toTimeFilter=null;
               });
               Navigator.pop(sheetContext);
@@ -1845,7 +1852,7 @@ class _HomePageState extends State<HomePage> {
       filter = 'کل';
       _listScope = TaskListScope.all;
       _dueScope = scope;
-      _categoryFilter = null;
+      _categoryFilters.clear();
       selected.clear();
       selectionMode = false;
     });
