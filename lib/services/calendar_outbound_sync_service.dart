@@ -60,8 +60,9 @@ class CalendarOutboundSyncService {
   /// calendar after Task lifecycle mutations. This path deliberately ignores
   /// optional external-calendar settings: Arvin is the permanent write target.
   Future<CalendarProviderSyncResult?> syncTaskLifecycle(
-    Iterable<CalendarReminder> reminders,
-  ) async {
+    Iterable<CalendarReminder> reminders, {
+    bool linkedOnly = false,
+  }) async {
     final arvinCalendar = await executor.bridge.ensureArvinLocalCalendar();
     if (arvinCalendar == null ||
         !arvinCalendar.isArvinLocal ||
@@ -81,8 +82,11 @@ class CalendarOutboundSyncService {
       }
     }
 
+    final revisionIds = revisions.map((revision) => revision.reminderId).toSet();
     final managedLinks = (await linkStore.load()).where(
-      (link) => SystemCalendarBridge.isExportableTaskReminderId(link.reminderId),
+      (link) =>
+          SystemCalendarBridge.isExportableTaskReminderId(link.reminderId) &&
+          (!linkedOnly || revisionIds.contains(link.reminderId)),
     );
     final plan = planService.plan(
       revisions: revisions,
