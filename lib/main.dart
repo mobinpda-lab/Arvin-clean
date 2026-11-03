@@ -3219,7 +3219,7 @@ class _HomePageState extends State<HomePage> {
                                   await _save();
                                 },
                                 icon: const Icon(Icons.close_rounded, size: 17),
-                                color: late ? ArvinColors.error : ArvinColors.textSecondary,
+                                color: ArvinColors.textSecondary,
                               ),
                           ],
                         ),
@@ -3231,18 +3231,14 @@ class _HomePageState extends State<HomePage> {
                             Icon(
                               Icons.event_outlined,
                               size: 15,
-                              color: late
-                                  ? ArvinColors.taskStatusAmber
-                                  : ArvinColors.textSecondary,
+                              color: ArvinColors.textSecondary,
                             ),
                             const SizedBox(width: 4),
                             Flexible(
                               child: Text(
                                 'آخرین پیگیری: ${_date(lastFollowUpDate)} • ${_time(lastFollowUpDate)}',
                                 style: TextStyle(
-                                  color: late
-                                      ? ArvinColors.taskStatusAmber
-                                      : ArvinColors.textSecondary,
+                                  color: ArvinColors.textSecondary,
                                   fontSize: 11,
                                   fontWeight: late
                                       ? FontWeight.w600
