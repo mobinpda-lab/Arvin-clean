@@ -670,7 +670,8 @@ class _HomePageState extends State<HomePage> {
 
   bool get _homeFilterActive =>
       query.trim().isNotEmpty ||
-      _timeFilter != 'all' ||
+      _timeFilters.isNotEmpty ||
+      _timeFilter == 'customRange' ||
       _centerFilters.isNotEmpty ||
       _projectFilters.isNotEmpty ||
       _categoryFilters.isNotEmpty ||
@@ -986,11 +987,30 @@ class _HomePageState extends State<HomePage> {
             ListTile(title:const Text('تا ساعت'),subtitle:Text(toTime?.format(sheetContext)??'انتخاب نشده'),onTap:()async{final v=await pickTime(toTime,'تا ساعت');if(v!=null)setSheetState(()=>toTime=v);}),
           ])),
           Row(children:[
-            Expanded(child:OutlinedButton(onPressed:(){setState(()=>{_timeFilters.clear();_timeFilter='all';_specificDateFilter=null;_fromDateFilter=null;_toDateFilter=null;_fromTimeFilter=null;_toTimeFilter=null;});Navigator.pop(sheetContext);},child:const Text('پاک کردن'))),
+            Expanded(child:OutlinedButton(onPressed:(){
+              setState(() {
+                _timeFilters.clear(); _timeFilter='all'; _specificDateFilter=null;
+                _fromDateFilter=null; _toDateFilter=null; _fromTimeFilter=null; _toTimeFilter=null;
+              });
+              Navigator.pop(sheetContext);
+            },child:const Text('پاک کردن'))),
             const SizedBox(width:8),
-            Expanded(child:FilledButton(onPressed:(){setState(()=>{_timeFilters..clear()..addAll(draft);_timeFilter='all';_fromDateFilter=null;_toDateFilter=null;_fromTimeFilter=null;_toTimeFilter=null;});Navigator.pop(sheetContext);},child:const Text('تأیید / اعمال فیلتر'))),
+            Expanded(child:FilledButton(onPressed:(){
+              setState(() {
+                _timeFilters..clear()..addAll(draft); _timeFilter='all';
+                _fromDateFilter=null; _toDateFilter=null; _fromTimeFilter=null; _toTimeFilter=null;
+              });
+              Navigator.pop(sheetContext);
+            },child:const Text('تأیید / اعمال فیلتر'))),
           ]),
-          if(fromDate!=null||toDate!=null||fromTime!=null||toTime!=null) SizedBox(width:double.infinity,child:OutlinedButton(onPressed:(){setState(()=>{_timeFilters.clear();_timeFilter='customRange';_specificDateFilter=null;_fromDateFilter=fromDate;_toDateFilter=toDate;_fromTimeFilter=fromTime;_toTimeFilter=toTime;});Navigator.pop(sheetContext);},child:const Text('اعمال بازهٔ دلخواه'))),
+          SizedBox(width:double.infinity,child:OutlinedButton(
+            onPressed:fromDate==null&&toDate==null&&fromTime==null&&toTime==null?null:(){
+              setState(() {
+                _timeFilters.clear(); _timeFilter='customRange'; _specificDateFilter=null;
+                _fromDateFilter=fromDate; _toDateFilter=toDate; _fromTimeFilter=fromTime; _toTimeFilter=toTime;
+              });
+              Navigator.pop(sheetContext);
+            },child:const Text('اعمال بازه'))),
         ]);
       }));
   }
@@ -1040,13 +1060,16 @@ class _HomePageState extends State<HomePage> {
   Future<void> _showCategoryFilterSheet() async {
     final draft=<String>{..._categoryFilters};
     await HomeFilterSheet.show<void>(context,title:'انتخاب دسته',accent:ArvinColors.category,
-      child:Column(children:[
+      child:StatefulBuilder(builder:(sheetContext,setSheetState)=>Column(children:[
         Expanded(child:ListView(children:[
-          CheckboxListTile(value:draft.isEmpty,title:const Text('همه'),controlAffinity:ListTileControlAffinity.leading,onChanged:(_)=>setState(()=>draft.clear())),
-          for(final item in _homeCategories) CheckboxListTile(value:draft.contains(item),title:Text(item),controlAffinity:ListTileControlAffinity.leading,onChanged:(v){if(v==true){draft.add(item);}else{draft.remove(item);}}),
+          CheckboxListTile(value:draft.isEmpty,title:const Text('همه'),controlAffinity:ListTileControlAffinity.leading,onChanged:(_)=>setSheetState(()=>draft.clear())),
+          for(final item in _homeCategories) CheckboxListTile(value:draft.contains(item),title:Text(item),controlAffinity:ListTileControlAffinity.leading,onChanged:(v)=>setSheetState(()=>v==true?draft.add(item):draft.remove(item))),
         ])),
-        SizedBox(width:double.infinity,child:FilledButton(onPressed:(){setState(()=>_categoryFilters..clear()..addAll(draft));Navigator.pop(context);},child:const Text('تأیید / اعمال فیلتر'))),
-      ]));
+        SizedBox(width:double.infinity,child:FilledButton(onPressed:(){
+          setState(()=>_categoryFilters..clear()..addAll(draft));
+          Navigator.pop(sheetContext);
+        },child:const Text('تأیید / اعمال فیلتر'))),
+      ])));
   }
 
   Future<void> _showTagFilterSheet() async {
@@ -1128,7 +1151,7 @@ class _HomePageState extends State<HomePage> {
           Text(
             (filter == 'سطل زباله' || filter == 'بایگانی')
                 ? _emptyVisibleLabel
-                : (_timeFilter == 'today' && filter == 'فعال'
+                : (_timeFilters.contains('today') && filter == 'فعال'
                     ? 'کاری برای امروز وجود ندارد'
                     : (_homeFilterActive ? 'کاری با این فیلترها پیدا نشد' : 'هنوز کاری برای نمایش نیست')),
             textAlign: TextAlign.center,
@@ -1811,7 +1834,7 @@ class _HomePageState extends State<HomePage> {
       filter = 'کل';
       _listScope = scope;
       _dueScope = null;
-      _categoryFilter = null;
+      _categoryFilters.clear();
       selected.clear();
       selectionMode = false;
     });
