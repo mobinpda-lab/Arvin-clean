@@ -2,6 +2,7 @@ import 'package:arvin/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:arvin/services/iran_clock.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -93,6 +94,11 @@ void main() {
     await tester.pumpAndSettle();
 
     final sheetScrollable = find.byType(Scrollable).last;
+    final customRange = find.widgetWithText(CheckboxListTile, 'بازهٔ دلخواه');
+    expect(customRange, findsOneWidget);
+    await tester.ensureVisible(customRange);
+    await tester.tap(customRange);
+    await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.text('از تاریخ'), 300, scrollable: sheetScrollable);
     expect(find.text('از تاریخ'), findsOneWidget);
     await tester.scrollUntilVisible(find.text('تا تاریخ'), 300, scrollable: sheetScrollable);
@@ -100,14 +106,10 @@ void main() {
     await tester.scrollUntilVisible(find.text('از ساعت'), 300, scrollable: sheetScrollable);
     expect(find.text('از ساعت'), findsOneWidget);
     await tester.scrollUntilVisible(find.text('تا ساعت'), 300, scrollable: sheetScrollable);
-    expect(find.text('تأیید / اعمال فیلتر'), findsOneWidget);
     expect(find.text('تا ساعت'), findsOneWidget);
-    await tester.scrollUntilVisible(find.text('اعمال بازه'), 300, scrollable: sheetScrollable);
-    expect(find.text('اعمال بازه'), findsOneWidget);
-    expect(tester.widget<FilledButton>(find.ancestor(
-      of: find.text('اعمال بازه'),
-      matching: find.byType(FilledButton),
-    ).first).onPressed, isNull);
+    await tester.scrollUntilVisible(find.text('تأیید / اعمال فیلتر'), 300, scrollable: sheetScrollable);
+    expect(find.text('تأیید / اعمال فیلتر'), findsOneWidget);
+    expect(find.text('اعمال بازه'), findsNothing);
   });
 
   testWidgets('category checkbox selection applies OR only after confirmation', (tester) async {
@@ -157,5 +159,30 @@ void main() {
     expect(find.text('برچسب‌ها (۲)'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('time checkbox selections use OR and show the selected count', (tester) async {
+    final iranNow = IranClock.now();
+    final now = DateTime(iranNow.year, iranNow.month, iranNow.day, 12);
+    final yesterday = now.subtract(const Duration(days: 1));
+    final tomorrow = now.add(const Duration(days: 1));
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': '[{"id":"past-time","title":"کار گذشته","dueDate":"${yesterday.toIso8601String()}"},{"id":"today-time","title":"کار امروز","dueDate":"${now.toIso8601String()}"},{"id":"future-time","title":"کار فردا","dueDate":"${tomorrow.toIso8601String()}"}]',
+    });
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('زمان'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'گذشته'));
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'امروز'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('تأیید / اعمال فیلتر'));
+    await tester.pumpAndSettle();
+    expect(find.text('زمان (2)'), findsOneWidget);
+    expect(find.text('کار گذشته'), findsOneWidget);
+    expect(find.text('کار امروز'), findsOneWidget);
+    expect(find.text('کار فردا'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
 
 }

@@ -45,9 +45,11 @@ void main() {
     await tester.tap(timeFilter);
     await tester.pumpAndSettle();
     expect(find.text('همه'), findsOneWidget);
-    final pastTimeOption = find.widgetWithText(RadioListTile<String>, 'گذشته');
+    final pastTimeOption = find.widgetWithText(CheckboxListTile, 'گذشته');
     await tester.ensureVisible(pastTimeOption);
     await tester.tap(pastTimeOption);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
     expect(find.text('انتخاب زمان'), findsNothing);
 
@@ -55,9 +57,11 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(timeFilter);
     await tester.pumpAndSettle();
-    final allTimeOption = find.widgetWithText(RadioListTile<String>, 'همه');
+    final allTimeOption = find.widgetWithText(CheckboxListTile, 'همه');
     await tester.ensureVisible(allTimeOption);
     await tester.tap(allTimeOption);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
     expect(find.text('انتخاب زمان'), findsNothing);
 
@@ -69,8 +73,9 @@ void main() {
     await tester.tap(centerFilter);
     await tester.pumpAndSettle();
     expect(find.text('انتخاب مرکز'), findsOneWidget);
-    expect(find.text('همه مراکز'), findsOneWidget);
-    await tester.tap(find.text('همه مراکز'));
+    expect(find.text('همه'), findsOneWidget);
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'همه'));
+    await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
     final projectFilter = find.byKey(const ValueKey('home-filter-card-project'));
@@ -78,8 +83,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(projectFilter);
     await tester.pumpAndSettle();
-    expect(find.text('همه پروژه‌ها'), findsOneWidget);
-    await tester.tap(find.text('همه پروژه‌ها'));
+    expect(find.text('همه'), findsOneWidget);
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'همه'));
+    await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
     final categoryFilter = find.byKey(const ValueKey('home-filter-card-category'));
@@ -87,8 +93,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(categoryFilter);
     await tester.pumpAndSettle();
-    expect(find.text('همه دسته‌ها'), findsOneWidget);
-    await tester.tap(find.text('همه دسته‌ها'));
+    expect(find.text('همه'), findsOneWidget);
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'همه'));
+    await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
     final tagsFilter = find.byKey(const ValueKey('home-filter-card-tags'));
@@ -96,11 +103,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(tagsFilter);
     await tester.pumpAndSettle();
-    expect(find.text('همه برچسب‌ها'), findsOneWidget);
-    await tester.tap(find.text('همه برچسب‌ها'));
-    await tester.pumpAndSettle();
-    // Tag selection is multi-select and intentionally keeps its sheet open.
-    await tester.tap(find.byTooltip('بستن'));
+    expect(find.text('همه'), findsOneWidget);
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'همه'));
+    await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('home-group-tomorrow')), findsOneWidget);
@@ -111,7 +116,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(timeFilter);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('امروز').last);
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'امروز'));
+    await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
     // A category restriction can be cleared independently while time stays active.
@@ -120,12 +126,12 @@ void main() {
     await tester.tap(categoryFilter);
     await tester.pumpAndSettle();
     final workCategoryOption =
-        find.widgetWithText(RadioListTile<String?>, 'کاری');
+        find.widgetWithText(CheckboxListTile, 'کاری');
     await tester.ensureVisible(workCategoryOption);
     await tester.tap(workCategoryOption);
     await tester.pumpAndSettle();
-    // Selecting a category closes its single-select sheet automatically.
-    expect(find.byTooltip('بستن'), findsNothing);
+    await tester.tap(find.text('تأیید / اعمال فیلتر'));
+    await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('home-filter-card-time')), findsOneWidget);
     expect(find.text('امروز'), findsAtLeastNWidgets(1));
     expect(find.text('کار فردا'), findsNothing);
@@ -134,7 +140,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(categoryFilter);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('همه دسته‌ها'));
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'همه'));
+    await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('home-group-today')), findsOneWidget);

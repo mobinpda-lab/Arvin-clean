@@ -678,13 +678,13 @@ class _HomePageState extends State<HomePage> {
       _tagFilters.isNotEmpty;
 
   String get _timeFilterLabel {
+    if (_timeFilters.length > 1) return 'زمان (${_timeFilters.length})';
     if (_timeFilter == 'customRange') {
       final from = _fromDateFilter == null ? 'شروع' : _date(_fromDateFilter!);
       final to = _toDateFilter == null ? 'پایان' : _date(_toDateFilter!);
       return '$from تا $to';
     }
     if (_timeFilters.isEmpty) return 'همه';
-    if (_timeFilters.length > 1) return 'زمان (${_timeFilters.length})';
     const labels = <String, String>{'past':'گذشته','today':'امروز','tomorrow':'فردا','next7':'۷ روز آینده','next30':'۳۰ روز آینده','custom':'تاریخ مشخص','undated':'فاقد زمان'};
     return labels[_timeFilters.first] ?? 'همه';
   }
@@ -699,9 +699,14 @@ class _HomePageState extends State<HomePage> {
 
   bool _matchesTimeFilter(Task task) {
     final due = task.dueDate;
-    if (_timeFilter == 'customRange') {
-      if (due == null) return false;
-      final local = due.toLocal(), day = DateTime(local.year, local.month, local.day);
+    if (_timeFilters.isEmpty && _timeFilter != 'customRange') return true;
+    if (due == null) return _timeFilters.contains('undated');
+    final local = due.toLocal();
+    final day = DateTime(local.year, local.month, local.day);
+    final now = IranClock.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final matchesRange = () {
+      if (_timeFilter != 'customRange' || !_timeFilters.contains('customRange')) return false;
       final from = _fromDateFilter == null ? null : DateTime(_fromDateFilter!.year, _fromDateFilter!.month, _fromDateFilter!.day);
       final to = _toDateFilter == null ? null : DateTime(_toDateFilter!.year, _toDateFilter!.month, _toDateFilter!.day);
       if ((from != null && day.isBefore(from)) || (to != null && day.isAfter(to))) return false;
@@ -709,11 +714,8 @@ class _HomePageState extends State<HomePage> {
       if (_fromTimeFilter != null && minutes < _fromTimeFilter!.hour * 60 + _fromTimeFilter!.minute && (from == null || day == from)) return false;
       if (_toTimeFilter != null && minutes > _toTimeFilter!.hour * 60 + _toTimeFilter!.minute && (to == null || day == to)) return false;
       return true;
-    }
-    if (_timeFilters.isEmpty) return true;
-    if (due == null) return _timeFilters.contains('undated');
-    final now = IranClock.now(), today = DateTime(now.year, now.month, now.day);
-    final local = due.toLocal(), day = DateTime(local.year, local.month, local.day);
+    };
+    if (matchesRange()) return true;
     return _timeFilters.any((id) {
       switch (id) {
         case 'past': return day.isBefore(today);
@@ -972,6 +974,7 @@ class _HomePageState extends State<HomePage> {
       {'id':'undated','title':'فاقد زمان','icon':Icons.event_busy_rounded},
     ];
     final draft=<String>{..._timeFilters};
+    if (_timeFilter == 'customRange') draft.add('customRange');
     var fromDate=_fromDateFilter,toDate=_toDateFilter;
     var fromTime=_fromTimeFilter,toTime=_toTimeFilter;
     var customDate=_specificDateFilter;
@@ -993,11 +996,21 @@ class _HomePageState extends State<HomePage> {
               secondary:Icon(option['icon'] as IconData,color:ArvinColors.time),
               onChanged:(v) async {final id=option['id'] as String;if(id=='custom'&&v==true){if(await pickCustom())setSheetState(()=>draft.add(id));}else{setSheetState(()=>v==true?draft.add(id):draft.remove(id));}},
             ),
-            const Divider(),
-            ListTile(title:const Text('از تاریخ'),subtitle:Text(fromDate==null?'انتخاب نشده':_date(fromDate!)),onTap:()async{final v=await pickDate(fromDate,'از تاریخ');if(v!=null)setSheetState(()=>fromDate=v);}),
-            ListTile(title:const Text('تا تاریخ'),subtitle:Text(toDate==null?'انتخاب نشده':_date(toDate!)),onTap:()async{final v=await pickDate(toDate,'تا تاریخ');if(v!=null)setSheetState(()=>toDate=v);}),
-            ListTile(title:const Text('از ساعت'),subtitle:Text(fromTime?.format(sheetContext)??'انتخاب نشده'),onTap:()async{final v=await pickTime(fromTime,'از ساعت');if(v!=null)setSheetState(()=>fromTime=v);}),
-            ListTile(title:const Text('تا ساعت'),subtitle:Text(toTime?.format(sheetContext)??'انتخاب نشده'),onTap:()async{final v=await pickTime(toTime,'تا ساعت');if(v!=null)setSheetState(()=>toTime=v);}),
+            CheckboxListTile(
+              value:draft.contains('customRange'),
+              title:const Text('بازهٔ دلخواه'),
+              controlAffinity:ListTileControlAffinity.leading,
+              onChanged:(checked)=>setSheetState(() {
+                if(checked==true) draft.add('customRange'); else draft.remove('customRange');
+              }),
+            ),
+            if(draft.contains('customRange')) ...[
+              const Divider(),
+              ListTile(title:const Text('از تاریخ'),subtitle:Text(fromDate==null?'انتخاب نشده':_date(fromDate!)),onTap:()async{final v=await pickDate(fromDate,'از تاریخ');if(v!=null)setSheetState(()=>fromDate=v);}),
+              ListTile(title:const Text('تا تاریخ'),subtitle:Text(toDate==null?'انتخاب نشده':_date(toDate!)),onTap:()async{final v=await pickDate(toDate,'تا تاریخ');if(v!=null)setSheetState(()=>toDate=v);}),
+              ListTile(title:const Text('از ساعت'),subtitle:Text(fromTime?.format(sheetContext)??'انتخاب نشده'),onTap:()async{final v=await pickTime(fromTime,'از ساعت');if(v!=null)setSheetState(()=>fromTime=v);}),
+              ListTile(title:const Text('تا ساعت'),subtitle:Text(toTime?.format(sheetContext)??'انتخاب نشده'),onTap:()async{final v=await pickTime(toTime,'تا ساعت');if(v!=null)setSheetState(()=>toTime=v);}),
+            ],
           ])),
           Row(children:[
             Expanded(child:OutlinedButton(onPressed:(){
@@ -1008,22 +1021,26 @@ class _HomePageState extends State<HomePage> {
               Navigator.pop(sheetContext);
             },child:const Text('پاک کردن'))),
             const SizedBox(width:8),
-            Expanded(child:FilledButton(onPressed:(){
+            Expanded(child:FilledButton(onPressed:
+              draft.contains('customRange') &&
+                      fromDate == null &&
+                      toDate == null &&
+                      fromTime == null &&
+                      toTime == null
+                  ? null
+                  : () {
               setState(() {
-                _timeFilters..clear()..addAll(draft); _timeFilter='all'; _specificDateFilter=customDate;
-                _fromDateFilter=null; _toDateFilter=null; _fromTimeFilter=null; _toTimeFilter=null;
+                _timeFilters..clear()..addAll(draft);
+                _timeFilter = draft.contains('customRange') ? 'customRange' : 'all';
+                _specificDateFilter = draft.contains('custom') ? customDate : null;
+                _fromDateFilter = draft.contains('customRange') ? fromDate : null;
+                _toDateFilter = draft.contains('customRange') ? toDate : null;
+                _fromTimeFilter = draft.contains('customRange') ? fromTime : null;
+                _toTimeFilter = draft.contains('customRange') ? toTime : null;
               });
               Navigator.pop(sheetContext);
             },child:const Text('تأیید / اعمال فیلتر'))),
           ]),
-          SizedBox(width:double.infinity,child:FilledButton(
-            onPressed:fromDate==null&&toDate==null&&fromTime==null&&toTime==null?null:(){
-              setState(() {
-                _timeFilters.clear(); _timeFilter='customRange'; _specificDateFilter=null;
-                _fromDateFilter=fromDate; _toDateFilter=toDate; _fromTimeFilter=fromTime; _toTimeFilter=toTime;
-              });
-              Navigator.pop(sheetContext);
-            },child:const Text('اعمال بازه'))),
         ]);
       }));
   }

@@ -1,3 +1,11 @@
+## 2026-11-03 — Checkbox filter confirmation and unified time ranges
+
+- Added an explicit checkbox row for «بازهٔ دلخواه»; its date/time bounds are draft-only and the single bottom «تأیید / اعمال فیلتر» action commits the selected time options together.
+- Time selections, including a custom range, now use OR within the Time dimension. Selecting Past with another time option retains Pending-before-Completed ordering.
+- Updated Home filter contract tests from Radio/single-select expectations to Checkbox + explicit confirmation; updated range tests and added a time multi-select OR regression.
+- The five RTL Home filter chips retain horizontal SingleChildScrollView. Existing category/tag OR/AND regression tests remain active.
+- Local Flutter tests were not run in this session; exact-HEAD CI is required. PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; release BLOCKED — RELEASE: NO-GO.
+
 ## 2026-11-03 — Past ordering with multi-select time scopes
 
 - When Past is one of multiple selected time scopes, Home retains a single ordered result group so pending tasks remain ahead of completed tasks; within each status group the canonical priority order remains active.
