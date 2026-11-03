@@ -46,7 +46,7 @@ class _ArvinBridge extends SystemCalendarBridge {
   @override
   Future<DeviceCalendarInfo?> ensureArvinLocalCalendar() async =>
       const DeviceCalendarInfo(
-        id: 'arvin-local',
+        id: 'calendar-7',
         displayName: 'Arvin',
         accessLevel: 700,
         isArvinLocal: true,
@@ -55,7 +55,7 @@ class _ArvinBridge extends SystemCalendarBridge {
 
 class _Executor extends CalendarProviderSyncExecutor {
   _Executor({SystemCalendarBridge? bridge, ExternalCalendarLinkStore? linkStore})
-      : super(bridge: bridge, linkStore: linkStore);
+      : super(bridge: bridge ?? _ArvinBridge(), linkStore: linkStore);
 
   CalendarSyncPlan? receivedPlan;
   String? receivedTarget;
@@ -109,7 +109,7 @@ void main() {
     ]);
 
     expect(result?.updated, 1);
-    expect(executor.receivedTarget, 'arvin-local');
+    expect(executor.receivedTarget, 'calendar-7');
     expect(executor.receivedPlan?.items.single.action, CalendarSyncAction.update);
   });
 
