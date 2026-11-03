@@ -1,4 +1,5 @@
 import 'package:arvin/models/task.dart';
+import 'package:arvin/services/task_move_to_today_service.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:arvin/task_detail_page.dart';
 import 'package:flutter/material.dart';
@@ -35,18 +36,21 @@ void main() {
       );
       await store.save(<Task>[task]);
 
+      final fixedNow = DateTime(2026, 11, 3, 18, 45);
       await tester.pumpWidget(
         MaterialApp(
           home: TaskDetailPage(
             task: task,
-            now: DateTime(2026, 11, 3, 18, 45),
+            now: fixedNow,
+            onMoveDueDateToToday: (current) =>
+                TaskMoveToTodayService(store: store).move(current.id, now: fixedNow),
           ),
         ),
       );
       await tester.pumpAndSettle();
 
       final dueRow = find.byKey(const ValueKey('task-detail-due-date'));
-      final todayAction = find.byKey(const ValueKey('task-detail-set-due-today'));
+      final todayAction = find.byKey(const ValueKey('task-detail-move-due-date-to-today'));
       expect(dueRow, findsOneWidget);
       expect(todayAction, findsOneWidget);
       expect(
@@ -63,7 +67,7 @@ void main() {
       await tester.tap(todayAction);
       await tester.pumpAndSettle();
 
-      final expectedDueDate = DateTime(2026, 11, 3, 14, 35, 12);
+      final expectedDueDate = DateTime(2026, 11, 3, 14, 35);
       final persisted = (await store.load()).single;
       expect(persisted.dueDate, expectedDueDate);
       expect(
@@ -100,11 +104,14 @@ void main() {
     );
     await store.save(<Task>[task]);
 
+    final fixedNow = DateTime(2026, 11, 3, 18, 45);
     await tester.pumpWidget(
       MaterialApp(
         home: TaskDetailPage(
           task: task,
-          now: DateTime(2026, 11, 3, 18, 45),
+          now: fixedNow,
+          onMoveDueDateToToday: (current) =>
+              TaskMoveToTodayService(store: store).move(current.id, now: fixedNow),
         ),
       ),
     );
