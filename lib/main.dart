@@ -2753,12 +2753,6 @@ class _HomePageState extends State<HomePage> {
                 onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.myTasks),
               ),
               ListTile(
-                leading: const Icon(Icons.today_outlined),
-                title: const Text('امروز'),
-                onTap: () =>
-                    Navigator.of(sheetContext).pop(_HomeMoreAction.today),
-              ),
-              ListTile(
                 key: const ValueKey('home-more-undated'),
                 leading: const Icon(Icons.event_busy_outlined),
                 title: const Text('کارهای فاقد زمان'),
@@ -2825,10 +2819,6 @@ class _HomePageState extends State<HomePage> {
         return;
       case _HomeMoreAction.myTasks:
         await _openMyTasks();
-        return;
-      case _HomeMoreAction.today:
-        Navigator.of(context).popUntil((route) => route.isFirst);
-        _selectHomeStat('امروز');
         return;
       case _HomeMoreAction.undated:
         Navigator.of(context).popUntil((route) => route.isFirst);
@@ -3517,8 +3507,7 @@ enum _HomeMoreAction {
   report,
   quickCapture,
   myTasks,
-  today,
-  undated,
+    undated,
   archive,
   trash,
   backup,
