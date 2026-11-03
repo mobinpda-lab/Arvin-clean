@@ -9,8 +9,12 @@ import 'package:arvin/services/project_template_store.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  setUp(() {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+  });
   test('template creates independent projects and propagation is append-only and idempotent', () async {
     final db = NativeDatabase.memory(); addTearDown(db.close);
     final centers = CenterStore(executor: db);
