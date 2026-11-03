@@ -1,3 +1,10 @@
+## 2026-11-03 — Commit H: archived dependency deletion regression tests
+
+- Added regression coverage proving a completed/archived Task with Follow-up history continues to block Category and Tag deletion.
+- Added a SQLite-backed test proving an archived Project still blocks deletion of its owning Center and both records remain intact.
+- The existing lifecycle behavior is unchanged; tests cover Active/Archive/Follow-up references without destructive mutations.
+- Local Flutter tests not run; exact-HEAD CI required. main untouched; PR #3052 OPEN / DRAFT / UNMERGED; release BLOCKED — RELEASE: NO-GO.
+
 ## 2026-11-03 — Commit F: refresh exact-HEAD 24-domain matrix and Legacy inventory
 
 - Updated docs/qa/ARVIN_MASTER_SPEC_24_DOMAIN_AUDIT_2026-11-03.md to source SHA 35b5765a7964c063b01a5ef3366836064decc751, including the filter OR fix, Calendar Task Details routing/export-only swipe, safe template preservation test, report P1-P4 output grouping, and five-item navigation.

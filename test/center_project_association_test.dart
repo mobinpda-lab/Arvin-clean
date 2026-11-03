@@ -39,4 +39,27 @@ void main() {
     expect(restored.firstWhere((p) => p.id == 'new-project').centerId, 'center-512');
     await expectLater(centers.delete(id: 'center-512'), throwsA(isA<CenterDeleteBlocked>()));
   });
+  test('archived Project remains a Center dependency and blocks Center deletion', () async {
+    final db = NativeDatabase.memory();
+    addTearDown(db.close);
+    final centers = CenterStore(executor: db);
+    await centers.create(id: 'center-archived', name: 'مرکز بایگانی');
+    final projects = ProjectStore(executor: db);
+    await projects.save([
+      ProjectPlan(
+        id: 'archived-project',
+        title: 'پروژه بایگانی',
+        centerId: 'center-archived',
+        isArchived: true,
+      ),
+    ]);
+
+    await expectLater(
+      centers.delete(id: 'center-archived'),
+      throwsA(isA<CenterDeleteBlocked>()),
+    );
+    expect((await centers.load()).single.id, 'center-archived');
+    expect((await projects.load()).single.centerId, 'center-archived');
+  });
+
 }
