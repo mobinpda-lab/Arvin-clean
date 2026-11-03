@@ -1,3 +1,12 @@
+## 2026-11-03 — Wave 7.304 Home overdue styling and completion archive behavior
+
+- Home cards now render overdue, unfinished Task title and due-date text in the error/red text color only; overdue status and due-date icons remain neutral, card surface and border remain unchanged, and unrelated follow-up text/icons remain neutral.
+- Completing an active Home Task immediately sets its canonical `completed` and `archived` state before the Home rebuild, so it leaves active scopes including the Past filter and remains in canonical Archive storage. Task identity, due date, reminder, checklist, description and FollowUp history are preserved.
+- Added Home widget regression coverage for red overdue text with neutral icons, instant archive with preservation of task data/history, and instant removal while the Past filter is active. Assertions are additive; existing tests were not deleted or weakened.
+- Date-jump relocation remains **NOT IMPLEMENTED / NEEDS PRODUCT CLARIFICATION**. On this branch, the current-date action is `calendar-today` in `CalendarPage`, while `calendar-date-jump` opens an arbitrary Jalali date selector; neither is a HomePage control. Moving either into Task Details would change its meaning without an explicit owner decision.
+- Source/test commits: `c5d8627211b7cb8b0c601e74cefa44119dd309c4`, `c9c6cbfdda950ca5f2d4d9c0364236d058a5775f`, `378045d5d020d307cb9dfa88b3ede998753ed719`, `9ce6ff8627fb414b4e10ceb3019d169a8487e4af`, `d89f46641a59e93e4cf81cfb69b17192af59fe32`. Exact-HEAD test/CI validation is pending.
+- PR #3052 remains OPEN / DRAFT / UNMERGED; main is untouched. Release remains **BLOCKED — RELEASE: NO-GO**.
+
 ## 2026-11-02 — Local Calendar historical FollowUp exclusion
 
 - Product behavior: historical FollowUp records are filtered at the local Calendar display boundary. IDs with the historical `followup:` and legacy `task-followup:` namespaces are excluded from both supplied and visible-range projected Calendar items.
