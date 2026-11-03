@@ -50,7 +50,6 @@ class TaskDetailPage extends StatefulWidget {
 class _TaskDetailPageState extends State<TaskDetailPage> {
   static const _brand = ArvinColors.primary;
   static const _waiting = ArvinColors.reminder;
-  static const _danger = ArvinColors.error;
   static const _muted = ArvinColors.neutral;
   static const _formatter = PersianDateFormatter();
   static const _elapsedFormatter = FollowUpElapsedFormatter();
