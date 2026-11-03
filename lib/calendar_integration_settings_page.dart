@@ -291,33 +291,6 @@ class _CalendarIntegrationSettingsPageState
                     'Google Calendar، Samsung Calendar و سایر تقویم‌های اندروید از یک Calendar Provider مشترک استفاده می‌کنند؛ آروین موتور جداگانه و تکراری برای هر برند نمی‌سازد.',
                   ),
                   const Divider(height: 32),
-                  const Text(
-                    'موارد قابل ارسال با اقدام صریح',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  _switch(
-                    key: const ValueKey('calendar-sync-due-dates'),
-                    title: 'موعد کارها',
-                    subtitle: 'Due Date کارهای آروین',
-                    value: current.syncDueDates,
-                    update: (value) => current.copyWith(syncDueDates: value),
-                  ),
-                  _switch(
-                    key: const ValueKey('calendar-sync-task-reminders'),
-                    title: 'یادآور کارها',
-                    subtitle: 'Reminder مستقل کار',
-                    value: current.syncTaskReminders,
-                    update: (value) =>
-                        current.copyWith(syncTaskReminders: value),
-                  ),
-                  _switch(
-                    key: const ValueKey('calendar-sync-recurrence'),
-                    title: 'تکرار کارها',
-                    subtitle:
-                        'خاموش به‌صورت پیش‌فرض؛ فقط پس از فعال‌سازی صریح کاربر.',
-                    value: current.syncRecurrence,
-                    update: (value) => current.copyWith(syncRecurrence: value),
-                  ),
                   const Divider(height: 32),
                   Card(
                     key: const ValueKey('calendar-explicit-export-policy'),
