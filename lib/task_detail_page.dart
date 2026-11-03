@@ -8,7 +8,6 @@ import 'follow_up_repository.dart';
 import 'models/task.dart';
 import 'services/follow_up_elapsed_formatter.dart';
 import 'services/follow_up_write_coordinator.dart';
-import 'services/iran_clock.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/task_store.dart';
 import 'services/task_move_to_today_service.dart';
@@ -61,7 +60,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   TextEditingController? _descriptionController;
   bool _isEditingDescription = false;
   bool _isSavingDescription = false;
-  bool _isSettingDueDateToToday = false;
   bool _isMovingDueDateToToday = false;
   final TextEditingController _checklistAddController = TextEditingController();
   TextEditingController? _checklistEditController;
@@ -149,53 +147,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     }
   }
 
-  Future<void> _setDueDateToToday() async {
-    if (_isSettingDueDateToToday) return;
-    final now = widget.now ?? IranClock.now();
-    final existing = _task.dueDate;
-    final preserveTime = !_task.allDay && existing != null;
-    final dueDate = DateTime(
-      now.year,
-      now.month,
-      now.day,
-      preserveTime ? (existing?.hour ?? 0) : 0,
-      preserveTime ? (existing?.minute ?? 0) : 0,
-      preserveTime ? (existing?.second ?? 0) : 0,
-      preserveTime ? (existing?.millisecond ?? 0) : 0,
-      preserveTime ? (existing?.microsecond ?? 0) : 0,
-    );
-
-    setState(() => _isSettingDueDateToToday = true);
-    try {
-      final store = TaskStore();
-      await store.updateDueDate(_task.id, dueDate, DateTime.now());
-      final refreshed = await store.load();
-      Task? updated;
-      for (final candidate in refreshed) {
-        if (candidate.id == _task.id) {
-          updated = candidate;
-          break;
-        }
-      }
-      if (updated == null) {
-        throw StateError('Task due-date update was not readable after persistence.');
-      }
-      if (!mounted) return;
-      setState(() {
-        _task = updated!;
-        _isSettingDueDateToToday = false;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() => _isSettingDueDateToToday = false);
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(content: Text('به‌روزرسانی موعد انجام نشد؛ دوباره تلاش کنید')),
-        );
-    }
-  }
-
   Future<Task?> _persistDescriptionDirectly(
     Task task,
     String description,
@@ -220,12 +171,19 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
   Future<void> _moveDueDateToToday() async {
     final move = widget.onMoveDueDateToToday;
-    if (move == null || _isMovingDueDateToToday) return;
+    if (_isMovingDueDateToToday) return;
     setState(() => _isMovingDueDateToToday = true);
     try {
-      final updated = move != null
-          ? await move(_task)
-          : await TaskMoveToTodayService().move(_task.id);
+      final Task updated;
+      if (move != null) {
+        final result = await move(_task);
+        if (result == null) {
+          throw StateError('Task due-date update was not persisted.');
+        }
+        updated = result;
+      } else {
+        updated = await TaskMoveToTodayService().move(_task.id);
+      }
       if (!mounted) return;
       setState(() {
         _task = updated;
@@ -483,22 +441,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               if (_task.reminderDate != null)
                 const Icon(Icons.notifications_none_outlined, size: 18, color: _muted),
             ],
-          ),
-          const SizedBox(height: 8),
-          Align(
-            alignment: Alignment.centerRight,
-            child: OutlinedButton.icon(
-              key: const ValueKey('task-detail-set-due-today'),
-              onPressed: _isSettingDueDateToToday ? null : _setDueDateToToday,
-              icon: _isSettingDueDateToToday
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.today_outlined, size: 18),
-              label: const Text('تعیین موعد برای امروز'),
-            ),
           ),
           const SizedBox(height: 8),
           Align(
