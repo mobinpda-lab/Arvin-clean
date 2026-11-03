@@ -714,7 +714,7 @@ class _HomePageState extends State<HomePage> {
       if (_fromTimeFilter != null && minutes < _fromTimeFilter!.hour * 60 + _fromTimeFilter!.minute && (from == null || day == from)) return false;
       if (_toTimeFilter != null && minutes > _toTimeFilter!.hour * 60 + _toTimeFilter!.minute && (to == null || day == to)) return false;
       return true;
-    };
+    }
     if (matchesRange()) return true;
     return _timeFilters.any((id) {
       switch (id) {
