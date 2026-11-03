@@ -44,6 +44,27 @@ class TaskListSortService {
     return indexed.map((entry) => entry.value).toList(growable: false);
   }
 
+  /// Past tasks are grouped by completion state first, then by due date.
+  /// Oldest overdue work is shown first within each completion group.
+  List<Task> sortPast(Iterable<Task> tasks) {
+    final indexed = tasks.toList(growable: false).asMap().entries.toList();
+    indexed.sort((left, right) {
+      if (left.value.completed != right.value.completed) {
+        return left.value.completed ? 1 : -1;
+      }
+      final dateComparison = _compareNullableDate(
+        left.value.dueDate,
+        right.value.dueDate,
+        descending: false,
+      );
+      if (dateComparison != 0) return dateComparison;
+      final idComparison = left.value.id.compareTo(right.value.id);
+      if (idComparison != 0) return idComparison;
+      return left.key.compareTo(right.key);
+    });
+    return indexed.map((entry) => entry.value).toList(growable: false);
+  }
+
   int _directional(int value, bool descending) => descending ? -value : value;
 
   int _compareNullableDate(
