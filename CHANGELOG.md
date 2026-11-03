@@ -1,3 +1,10 @@
+## 2026-11-03 — Commit C1: Calendar routing analyzer cleanup
+
+- Removed the unused Follow-up helper, added the Follow-up action reminder namespace to canonical parent-Task routing, and fixed the analyzer-required control-flow braces.
+- This follow-up is based on exact analyzer evidence from Build run 41618701405 on Commit C: the only analyzer findings were the unused helper and missing braces.
+- The Follow-up action card remains non-exportable by swipe; the new prefix is recognized only for opening the owning Task Details.
+- Exact-HEAD CI is required after this correction. No data/schema changes; main untouched; PR remains OPEN / DRAFT / UNMERGED; release BLOCKED — RELEASE: NO-GO.
+
 ## 2026-11-03 — Commit C: Calendar Task Details routing and export-only swipe
 
 - Calendar Task and Follow-up card taps now resolve the owning canonical Task and call the Task Details route; Edit remains available from the explicit Details action only.

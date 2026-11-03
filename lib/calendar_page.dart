@@ -1085,7 +1085,9 @@ bool _isTaskRecordCalendarItemId(String id) =>
     id.startsWith('task-reminder:');
 
 bool _isFollowUpCalendarItemId(String id) =>
-    id.startsWith('task-followup:') || id.startsWith('followup:');
+    id.startsWith('task-followup-action:') ||
+    id.startsWith('task-followup:') ||
+    id.startsWith('followup:');
 
 bool _isTaskCalendarItemId(String id) =>
     _isTaskRecordCalendarItemId(id) || _isFollowUpCalendarItemId(id);
@@ -1178,7 +1180,6 @@ class _ReminderCard extends StatefulWidget {
 class _ReminderCardState extends State<_ReminderCard> {
   bool get _isTaskCalendarItem => _isTaskCalendarItemId(widget.item.id);
   bool get _isTaskRecord => _isTaskRecordCalendarItemId(widget.item.id);
-  bool get _isFollowUp => _isFollowUpCalendarItemId(widget.item.id);
 
   bool get _hasActions =>
       (widget.isPrayer &&
@@ -1213,7 +1214,9 @@ class _ReminderCardState extends State<_ReminderCard> {
         widget.item.id.startsWith('external-calendar:') ||
         widget.item.externalCalendarId != null ||
         widget.item.externalEventId != null ||
-        !_isTaskRecord) return;
+        !_isTaskRecord) {
+      return;
+    }
     final action = velocity > 0 ? widget.swipeRightAction : widget.swipeLeftAction;
     switch (action) {
       case CalendarSwipeAction.sync:
