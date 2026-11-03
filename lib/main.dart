@@ -137,7 +137,10 @@ class _ArvinAppState extends State<ArvinApp> {
     _loadSettings();
     _initializeReminderNotificationTapHandler();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      StartupPermissionService().requestOnStartup();
+      StartupPermissionService().requestOnStartup().catchError((Object error) {
+        // Optional system permissions and calendar provisioning must never
+        // turn an asynchronous startup failure into an app launch crash.
+      });
     });
   }
 
