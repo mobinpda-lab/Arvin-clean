@@ -30,8 +30,11 @@ class _CenterManagementPageState extends State<CenterManagementPage> {
     controller.dispose(); if (name == null || !mounted) return;
     setState(() => _saving = true);
     try {
-      if (center == null) await _store.create(id: 'center-${DateTime.now().microsecondsSinceEpoch}', name: name);
-      else await _store.rename(id: center.id, name: name);
+      if (center == null) {
+        await _store.create(id: 'center-${DateTime.now().microsecondsSinceEpoch}', name: name);
+      } else {
+        await _store.rename(id: center.id, name: name);
+      }
       await _load();
     } catch (error) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('ذخیره مرکز انجام نشد: $error')));
