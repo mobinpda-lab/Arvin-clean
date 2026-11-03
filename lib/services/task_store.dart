@@ -475,53 +475,6 @@ class TaskStore {
   }
 
 
-  /// Updates only a Task due date while preserving all other persisted fields
-  /// and relation rows, including historical Follow-up records.
-  Future<void> updateDueDate(
-    String taskId,
-    DateTime dueDate,
-    DateTime updatedAt,
-  ) {
-    return TaskStorageLock.synchronized<void>(() async {
-      final executor = _database;
-      await _ensureReady();
-      final rows = await executor.runSelect(
-        'SELECT legacy_payload_json FROM tasks WHERE id = ?',
-        <Object?>[taskId],
-      );
-      if (rows.isEmpty) {
-        throw StateError('Task not found: $taskId');
-      }
-
-      final rawPayload = rows.single['legacy_payload_json'];
-      final payload = <String, dynamic>{};
-      if (rawPayload is String && rawPayload.trim().isNotEmpty) {
-        final decoded = jsonDecode(rawPayload);
-        if (decoded is! Map) {
-          throw const FormatException('Task legacy payload is not a JSON object.');
-        }
-        payload.addAll(Map<String, dynamic>.from(decoded));
-      }
-      payload['dueDate'] = dueDate.toIso8601String();
-      payload['updatedAt'] = updatedAt.toIso8601String();
-
-      final changed = await executor.runUpdate(
-        '''UPDATE tasks
-           SET due_date = ?, updated_at = ?, legacy_payload_json = ?
-           WHERE id = ?''',
-        <Object?>[
-          dueDate.toIso8601String(),
-          updatedAt.toIso8601String(),
-          jsonEncode(payload),
-          taskId,
-        ],
-      );
-      if (changed != 1) {
-        throw StateError('Task due-date update affected $changed rows.');
-      }
-    });
-  }
-
   Future<T> mutate<T>(TaskMutation<T> mutation) {
     return TaskStorageLock.synchronized<T>(() async {
       final tasks = await _loadUnlocked();
