@@ -586,7 +586,7 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
       if (mounted) setState(() => _conflictAdviceVisible = false);
     }
     if (applied == true && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('زمان یادآور با موفقیت تغییر کرد و همگام‌سازی دوباره درخواست شد.')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('زمان یادآور در آروین تغییر کرد؛ ارسال به تقویم گوشی فقط با اقدام صریح انجام می‌شود.')));
     }
   }
 
@@ -608,7 +608,6 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-              ),
               ListTile(
                 key: const ValueKey('calendar-more-next-action'),
                 leading: const Icon(Icons.next_plan_outlined),

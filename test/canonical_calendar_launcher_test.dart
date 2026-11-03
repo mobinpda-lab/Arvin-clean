@@ -248,7 +248,6 @@ void main() {
       home: CanonicalCalendarLauncher(
         tasks: tasks,
         onRefreshTasks: () => TaskStore().load(),
-        onRetryCalendarSync: () async {},
       ),
     ));
     await tester.pump();
@@ -270,7 +269,6 @@ void main() {
       home: CanonicalCalendarLauncher(
         tasks: tasks,
         onRefreshTasks: () => TaskStore().load(),
-        onRetryCalendarSync: () async {},
       ),
     ));
     await tester.pump();
@@ -292,7 +290,6 @@ void main() {
       home: CanonicalCalendarLauncher(
         tasks: tasks,
         onRefreshTasks: () => TaskStore().load(),
-        onRetryCalendarSync: () async {},
       ),
     ));
     await tester.pump();
@@ -305,15 +302,13 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('confirmed reschedule changes only one independent Reminder and requests sync', (tester) async {
+  testWidgets('confirmed reschedule changes only one independent Reminder without device-calendar sync', (tester) async {
     final when = _conflictWhen();
     final tasks = await _seedConflictTasks();
-    var syncCalls = 0;
     await tester.pumpWidget(MaterialApp(
       home: CanonicalCalendarLauncher(
         tasks: tasks,
         onRefreshTasks: () => TaskStore().load(),
-        onRetryCalendarSync: () async { syncCalls++; },
       ),
     ));
     await tester.pump();
@@ -332,7 +327,6 @@ void main() {
     expect(saved.firstWhere((task) => task.id == 'conflict-a').taskReminders.single.date, when);
     expect(saved.firstWhere((task) => task.id == 'conflict-a').followUps.single.dateTime, DateTime(when.year, when.month, when.day, 8));
     expect(saved.firstWhere((task) => task.id == 'conflict-a').dueDate, DateTime(when.year, when.month, when.day, 12));
-    expect(syncCalls, 0);
 
     await tester.tap(find.textContaining('اعمال ۰۹:۳۰').first);
     await tester.pumpAndSettle();
@@ -347,8 +341,7 @@ void main() {
     expect(taskA.followUps.single.dateTime, DateTime(when.year, when.month, when.day, 8));
     expect(taskA.dueDate, DateTime(when.year, when.month, when.day, 12));
     expect(taskB.taskReminders.single.date, when);
-    expect(syncCalls, 1);
-    expect(find.text('زمان یادآور با موفقیت تغییر کرد و همگام‌سازی دوباره درخواست شد.'), findsOneWidget);
+    expect(find.text('زمان یادآور در آروین تغییر کرد؛ ارسال به تقویم گوشی فقط با اقدام صریح انجام می‌شود.'), findsOneWidget);
   });
 
   testWidgets('failed independent Reminder write is surfaced without requesting sync', (tester) async {
@@ -358,11 +351,9 @@ void main() {
       'arvin.calendar.externalLinks': jsonEncode(_conflictLinks()),
     });
     await _mockCalendarProvider(events: _providerConflictEvents());
-    var syncCalls = 0;
     await tester.pumpWidget(MaterialApp(
       home: CanonicalCalendarLauncher(
         tasks: tasks,
-        onRetryCalendarSync: () async { syncCalls++; },
       ),
     ));
     await tester.pump();
@@ -374,8 +365,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('اعمال زمان پیشنهادی'));
     await tester.pumpAndSettle();
-    expect(find.text('تغییر یادآور یا همگام‌سازی انجام نشد؛ وضعیت تقویم را بررسی کنید.'), findsOneWidget);
-    expect(syncCalls, 0);
+    expect(find.text('تغییر یادآور در آروین انجام نشد؛ ارسال به تقویم گوشی فقط با اقدام صریح انجام می‌شود.'), findsOneWidget);
   });
 
   testWidgets('next action opens canonical ranked suggestion page',
@@ -470,31 +460,18 @@ void main() {
 
     expect(find.text('کاری برای نمایش خط زمانی وجود ندارد'), findsOneWidget);
   });
-  testWidgets('calendar more menu exposes manual bidirectional sync retry', (tester) async {
-    var calls = 0;
-    await tester.pumpWidget(
-      MaterialApp(
-        home: CanonicalCalendarLauncher(
-          tasks: const <Task>[],
-          onRetryCalendarSync: () async {
-            calls++;
-          },
-        ),
-      ),
-    );
+  testWidgets('calendar More menu keeps unrelated actions and exposes no export or retry', (tester) async {
+    await tester.pumpWidget(const MaterialApp(
+      home: CanonicalCalendarLauncher(tasks: <Task>[]),
+    ));
     await tester.pump();
     await _openMoreMenu(tester);
-    expect(find.text('تلاش دوباره برای همگام‌سازی'), findsOneWidget);
-    await tester.tap(find.text('تلاش دوباره برای همگام‌سازی'));
-    await tester.pump();
-    expect(calls, 1);
-    expect(
-      find.text('همگام‌سازی تقویم دوباره انجام شد. تغییرات آروین و تقویم گوشی نیز بررسی شد.'),
-      findsOneWidget,
-    );
+    expect(find.text('تقویم دستگاه'), findsNothing);
+    expect(find.text('تلاش دوباره برای همگام‌سازی'), findsNothing);
+    expect(find.text('اقدام بعدی'), findsOneWidget);
+    expect(find.text('خط زمانی'), findsOneWidget);
+    expect(find.text('تداخل‌ها'), findsOneWidget);
   });
-
-
 
   testWidgets('repeat occurrence actions resolve back to the canonical Task', (
     tester,
@@ -513,7 +490,6 @@ void main() {
     );
     Task? edited;
     Task? deleted;
-    CalendarReminder? registered;
     final projection = _RecordingCalendarProjection();
 
     await tester.pumpWidget(
@@ -523,7 +499,6 @@ void main() {
           projection: projection,
           onEditTask: (value) async => edited = value,
           onDeleteTask: (value) async => deleted = value,
-          onRegisterTaskToDeviceCalendar: (value) async => registered = value,
         ),
       ),
     );
@@ -549,10 +524,8 @@ void main() {
     expect(card, findsOneWidget);
 
     final edit = find.byKey(ValueKey('task-due-edit-$occurrenceId'));
-    final register = find.byKey(ValueKey('task-due-device-calendar-$occurrenceId'));
     // Management actions are intentionally hidden until a long-press.
     expect(edit, findsNothing);
-    expect(register, findsNothing);
 
     // The occurrence can be below the current viewport after calendar layout.
     // Scroll it fully into view before tapping so the test validates the action,
@@ -566,7 +539,6 @@ void main() {
     await tester.longPress(card);
     await _pumpRouteTransition(tester);
     expect(edit, findsOneWidget);
-    expect(register, findsOneWidget);
     await tester.tap(edit);
     await tester.pump();
     expect(identical(edited, task), isTrue);
@@ -574,10 +546,6 @@ void main() {
     await tester.longPress(card);
     await _pumpRouteTransition(tester);
     expect(register, findsOneWidget);
-    await tester.tap(register);
-    await tester.pump();
-    expect(registered?.id, occurrenceId);
-    expect(registered?.date, anchor);
 
     // Move one full week forward. The occurrence is still a projection of the
     // same canonical Task, not a separately stored Task/Reminder.

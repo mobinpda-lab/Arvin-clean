@@ -1,6 +1,7 @@
 import '../calendar_page.dart';
 import 'app_settings_service.dart';
 import 'calendar_provider_sync_executor.dart';
+import 'system_calendar_bridge.dart';
 import 'calendar_sync_plan_service.dart';
 import 'external_calendar_link_store.dart';
 
@@ -81,6 +82,7 @@ class CalendarOutboundSyncService {
 
     final revisions = <CalendarSyncRevision>[];
     for (final reminder in reminders) {
+      if (!SystemCalendarBridge.isExportableTaskReminderId(reminder.id)) continue;
       if (linkedOnly && !linkedReminderIds.contains(reminder.id)) continue;
       final taskId = _taskIdForReminder(reminder.id);
       if (taskId != null && importedTaskIds.contains(taskId)) continue;
@@ -158,12 +160,6 @@ class CalendarOutboundSyncService {
     if (id.startsWith('task-reminder-item:') ||
         id.startsWith('task-reminder:')) {
       return integration.syncTaskReminders;
-    }
-    if (id.startsWith('followup:')) {
-      return integration.syncFollowUps;
-    }
-    if (id.startsWith('task-followup:')) {
-      return integration.syncFollowUpReminders;
     }
     if (id.startsWith('task-recurrence:')) {
       return integration.syncRecurrence;

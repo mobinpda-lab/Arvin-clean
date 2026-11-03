@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('manual system calendar export remains user-approved insert UI', () {
+  test('legacy insert method is identity-gated and not an automatic UI entry point', () {
     final activity = File(
       'android/app/src/main/kotlin/com/example/arvin/MainActivity.kt',
     ).readAsStringSync();
@@ -11,6 +11,8 @@ void main() {
     expect(activity, contains('Intent.ACTION_INSERT'));
     expect(activity, contains('arvin/system_calendar'));
     expect(activity, contains('insertSystemCalendarEvent'));
+    expect(activity, contains('isExportableTaskReminderId(reminderId)'));
+    expect(activity, contains('invalid_reminder_id'));
   });
 
   test('provider sync write access is explicit and separate from manual export', () {
@@ -25,6 +27,9 @@ void main() {
     expect(activity, contains('createDeviceCalendarEvent'));
     expect(activity, contains('updateDeviceCalendarEvent'));
     expect(activity, contains('deleteDeviceCalendarEvent'));
+    expect(activity, contains('isExportableTaskReminderId(reminderId)'));
+    expect('isExportableTaskReminderId(reminderId)'.allMatches(activity).length,
+        greaterThanOrEqualTo(4));
     expect(activity, contains('CalendarContract.Events.CALENDAR_ID'));
   });
   test('startup calendar permission contract is wired to the native boundary', () {

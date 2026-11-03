@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:arvin/calendar_page.dart';
+import 'package:arvin/services/calendar_swipe_settings_service.dart';
 
 Future<void> _expectReadOnlyReminder(
   WidgetTester tester, {
@@ -136,6 +137,7 @@ void main() {
             onEditTask: (_) async => edited++,
             onDeleteTask: (_) async {},
             onRegisterTaskToDeviceCalendar: (_) async => registered++,
+            calendarSwipeRightAction: CalendarSwipeAction.sync,
           ),
         ),
       );
@@ -155,16 +157,17 @@ void main() {
       await tester.longPress(find.byKey(ValueKey('reminder-card-${reminder.id}')));
       await tester.pumpAndSettle();
       expect(edit, findsOneWidget);
-      expect(register, findsOneWidget);
+      expect(register, findsNothing);
       expect(delete, findsOneWidget);
 
       await tester.tap(edit);
       await tester.pumpAndSettle();
-      await tester.longPress(find.byKey(ValueKey('reminder-card-${reminder.id}')));
+      await tester.fling(
+        find.byKey(ValueKey('reminder-card-${reminder.id}')),
+        const Offset(500, 0),
+        1000,
+      );
       await tester.pumpAndSettle();
-      await tester.tap(register);
-      await tester.pumpAndSettle();
-      expect(delete, findsNothing);
     }
 
     expect(edited, 2);
