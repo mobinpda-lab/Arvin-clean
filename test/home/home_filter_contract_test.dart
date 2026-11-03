@@ -119,10 +119,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(categoryFilter);
     await tester.pumpAndSettle();
-    final workCategoryOption = find.descendant(
-      of: find.byType(ListView),
-      matching: find.text('کاری'),
-    ).first;
+    final workCategoryOption =
+        find.widgetWithText(RadioListTile<String?>, 'کاری');
+    await tester.ensureVisible(workCategoryOption);
     await tester.tap(workCategoryOption);
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('بستن'));
