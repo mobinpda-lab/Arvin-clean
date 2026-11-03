@@ -49,37 +49,6 @@ class MainActivity : FlutterActivity() {
         )
         systemCalendarChannel?.setMethodCallHandler { call, result ->
             when (call.method) {
-                METHOD_INSERT_SYSTEM_CALENDAR_EVENT -> {
-                    val reminderId = call.argument<String>("reminderId")
-                    if (!isExportableTaskReminderId(reminderId)) {
-                        result.error("invalid_reminder_id", "Only Task and TaskReminder identities may be exported", null)
-                        return@setMethodCallHandler
-                    }
-                    val title = call.argument<String>("title")?.trim().orEmpty()
-                    val startMillis = call.argument<Number>("startMillis")?.toLong()
-                    val endMillis = call.argument<Number>("endMillis")?.toLong()
-                    val allDay = call.argument<Boolean>("allDay") ?: false
-
-                    if (title.isEmpty() || startMillis == null || endMillis == null) {
-                        result.error("invalid_event", "Calendar event payload is incomplete", null)
-                        return@setMethodCallHandler
-                    }
-
-                    val calendarIntent = Intent(Intent.ACTION_INSERT).apply {
-                        data = CalendarContract.Events.CONTENT_URI
-                        putExtra(CalendarContract.Events.TITLE, title)
-                        putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, startMillis)
-                        putExtra(CalendarContract.EXTRA_EVENT_END_TIME, endMillis)
-                        putExtra(CalendarContract.Events.ALL_DAY, allDay)
-                    }
-
-                    if (calendarIntent.resolveActivity(packageManager) == null) {
-                        result.success(false)
-                    } else {
-                        startActivity(calendarIntent)
-                        result.success(true)
-                    }
-                }
                 METHOD_CALENDAR_READ_PERMISSION_GRANTED -> {
                     result.success(hasCalendarReadPermission())
                 }
@@ -794,7 +763,6 @@ class MainActivity : FlutterActivity() {
         const val METHOD_TASK_SELECTED = "widgetTaskSelected"
 
         const val SYSTEM_CALENDAR_CHANNEL = "arvin/system_calendar"
-        const val METHOD_INSERT_SYSTEM_CALENDAR_EVENT = "insertSystemCalendarEvent"
         const val METHOD_CALENDAR_READ_PERMISSION_GRANTED =
             "calendarReadPermissionGranted"
         const val METHOD_REQUEST_CALENDAR_READ_PERMISSION =
