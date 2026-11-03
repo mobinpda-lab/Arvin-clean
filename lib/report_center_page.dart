@@ -986,25 +986,43 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                     leading: const Icon(Icons.all_inclusive),
                     onTap: () => setState(() { _taskId = null; _templateTaskId = null; }),
                   ),
-                  for (final task in (widget.tasks.where((task) => task.title.toLowerCase().contains(_taskSearch)).toList()..sort((a, b) => a.title.compareTo(b.title))))
-                    RadioListTile<String>(
-                      key: ValueKey('report-filter-task-${task.id}'),
-                      value: task.id,
-                      groupValue: _taskId,
-                      title: Text(task.title.trim().isEmpty ? 'بدون عنوان' : task.title),
-                      subtitle: const Text('کار مستقل'),
-                      onChanged: (value) => setState(() { _taskId = value; _templateTaskId = null; }),
+                  RadioGroup<String>(
+                    groupValue: _taskId,
+                    onChanged: (value) => setState(() {
+                      _taskId = value;
+                      _templateTaskId = null;
+                    }),
+                    child: Column(
+                      children: [
+                        for (final task in (widget.tasks.where((task) => task.title.toLowerCase().contains(_taskSearch)).toList()..sort((a, b) => a.title.compareTo(b.title))))
+                          RadioListTile<String>(
+                            key: ValueKey('report-filter-task-${task.id}'),
+                            value: task.id,
+                            title: Text(task.title.trim().isEmpty ? 'بدون عنوان' : task.title),
+                            subtitle: const Text('کار مستقل'),
+                          ),
+                      ],
                     ),
-                  for (final template in widget.templates)
-                    for (final definition in template.tasks.where((item) => item.title.toLowerCase().contains(_taskSearch)))
-                      RadioListTile<String>(
-                        key: ValueKey('report-filter-template-task-${definition.id}'),
-                        value: definition.id,
-                        groupValue: _templateTaskId,
-                        title: Text(definition.title),
-                        subtitle: Text('قالب: ${template.name}'),
-                        onChanged: (value) => setState(() { _templateTaskId = value; _taskId = null; }),
-                      ),
+                  ),
+                  RadioGroup<String>(
+                    groupValue: _templateTaskId,
+                    onChanged: (value) => setState(() {
+                      _templateTaskId = value;
+                      _taskId = null;
+                    }),
+                    child: Column(
+                      children: [
+                        for (final template in widget.templates)
+                          for (final definition in template.tasks.where((item) => item.title.toLowerCase().contains(_taskSearch)))
+                            RadioListTile<String>(
+                              key: ValueKey('report-filter-template-task-${definition.id}'),
+                              value: definition.id,
+                              title: Text(definition.title),
+                              subtitle: Text('قالب: ${template.name}'),
+                            ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
