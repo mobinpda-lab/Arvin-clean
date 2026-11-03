@@ -10,6 +10,7 @@ import 'services/follow_up_elapsed_formatter.dart';
 import 'services/follow_up_write_coordinator.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/task_store.dart';
+import 'services/task_move_to_today_service.dart';
 import 'services/waiting_for_response_service.dart';
 import 'task_report_page.dart';
 import 'widgets/taxonomy_icon_row.dart';
@@ -173,7 +174,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     if (move == null || _isMovingDueDateToToday) return;
     setState(() => _isMovingDueDateToToday = true);
     try {
-      final updated = await move(_task);
+      final updated = move != null
+          ? await move(_task)
+          : await TaskMoveToTodayService().move(_task.id);
       if (!mounted) return;
       if (updated == null) {
         throw StateError('Task due date update was not persisted.');
@@ -440,9 +443,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             alignment: AlignmentDirectional.centerStart,
             child: OutlinedButton.icon(
               key: const ValueKey('task-detail-move-due-date-to-today'),
-              onPressed: widget.onMoveDueDateToToday == null || _isMovingDueDateToToday
-                  ? null
-                  : _moveDueDateToToday,
+              onPressed: _isMovingDueDateToToday ? null : _moveDueDateToToday,
               icon: _isMovingDueDateToToday
                   ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
                   : const Icon(Icons.today_outlined, size: 17),
