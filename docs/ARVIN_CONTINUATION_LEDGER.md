@@ -1481,3 +1481,33 @@ Run 41451772502 / Job 125298740317 on the same SHA completed FAILURE. Gradle sta
 **Changes:** no application source or test changes. This entry records a read-only audit; no priority rewrite is justified by current evidence. No tests/assertions/scenarios/timeouts were removed, skipped or weakened.
 
 **Disposition:** priority contract source-level and listed focused-test evidence PASS on this exact SHA; 44px visual issue NOT VERIFIED; aggregate Build FAILURE due to three unrelated Calendar test failures. Iran timestamp: 1405/08/12 14:49 (Asia/Tehran). PR #3052 OPEN / DRAFT / UNMERGED; main untouched; **BLOCKED — RELEASE: NO-GO**.
+
+
+## 2026-11-03 — Calendar failure reproduction and targeted corrections
+
+**Audited baseline SHA:** `1fe99ebd9cf8eac084727f0507f1398ad4806240`.
+
+### Five exact-SHA workflows
+- Build #9339 / run `41626927191`: Analyze SUCCESS; test-1, test-2, test-3, test-4 SUCCESS; test-0 and test-5 FAILURE; ordinary APK matrix SKIPPED.
+- Device Smoke #6591 / run `41626927212`: Prepare matrix SUCCESS; Navigation SUCCESS; Boot SUCCESS; Reminder/Vazirmatn, Quick Capture, Follow-up persistence, Task lifecycle and Calendar segmented-view lanes CANCELLED before completion.
+- Calendar Provider #1490 / run `41626927173`: still IN_PROGRESS at the last poll; exact-SHA verification and setup steps SUCCESS, real Provider acceptance not yet concluded.
+- Follow-up Persistence #513 / run `41626927021`: SUCCESS; file-backed repository persistence and alarm-overlay close/reopen tests both passed.
+- Draft Review APK #166 / run `41626927329`: staging APK assembly, signature/package/debuggable/Vazirmatn verification and review-only artifact upload steps SUCCESS; workflow job later reported CANCELLED. Artifact `13226856769` was created for old SHA `1fe99ebd...`, archive digest `sha256:58adf123e9504d959be38a3615e730c6ad20873796ae1509e6312bcc43b6c7b9`. It is not a final-SHA APK.
+
+### Three Calendar Build failures — root causes
+1. **Task Details card missing:** `OfficialCalendarPage` used `snapshot.data ?? widget.reminders`. An empty successful optional provider result is non-null, so it replaced the canonical Task list with an empty list. Logs confirmed `incomingReminderIds=[]`. Corrected by merging the canonical Task reminders and optional provider results by stable ID, with canonical entries authoritative.
+2. **Card-open count 2 vs 1:** second card existed but was outside the test viewport; Flutter test log explicitly warned the tap offset (398,312) did not hit-test the widget. Corrected test now calls `ensureVisible` and asserts an increment for each card separately. No production code change for this test harness issue.
+3. **Repeat occurrence canonical Task callback:** test expected `onEditTask` on card tap but did not provide `onOpenTask`. This contradicted the approved behavior (tap → Details). Corrected test asserts that `onOpenTask` receives the identical canonical Task. The explicit long-press edit option is now wired to the existing `onEditTask` callback, separate from tap-to-Details.
+
+### Chip overflow
+Added Report Center regression test at a 320×520 viewport, RTL, with six active category/tag/status chips. It asserts all six chips are present and no layout exception occurs. No layout production change was made without a reproduced defect. The historical 44px overflow remains **NOT VERIFIED** until final-SHA CI executes this test.
+
+### Product invariants
+- Task tap remains Task Details; long-press is explicit edit/delete actions.
+- Calendar swipe remains configured explicit transfer to phone calendar; no gesture semantics were changed.
+- Priority and Quick Capture implementation untouched.
+- No tests/assertions/scenarios removed, skipped or weakened.
+
+**Next gate:** synchronize docs, then require Build, Device Smoke, Calendar Provider, Persistence and Draft Review APK on one final exact SHA. If Draft artifact workflow skips/fails because PR is Draft, retain Draft and report the blocker; never remove Draft as a workaround.
+
+PR #3052 remains OPEN / DRAFT / UNMERGED. main untouched. **BLOCKED — RELEASE: NO-GO**.
