@@ -117,7 +117,6 @@ class SystemCalendarBridge {
       : _channel = channel ?? const MethodChannel(channelName);
 
   static const String channelName = 'arvin/system_calendar';
-  static const String insertMethod = 'insertSystemCalendarEvent';
   static const String permissionStatusMethod =
       'calendarReadPermissionGranted';
   static const String requestPermissionMethod =
@@ -158,25 +157,29 @@ class SystemCalendarBridge {
   static bool isEligible(CalendarReminder reminder) =>
       isExportableTaskReminderId(reminder.id) && !reminder.completed;
 
+  /// Registers a Task reminder in Arvin's local calendar only.
   Future<bool> insert(CalendarReminder reminder) async {
     if (!isEligible(reminder)) return false;
-
+    final writeGranted =
+        await hasWritePermission() || await requestWritePermission();
+    if (!writeGranted) return false;
+    final calendar = await ensureArvinLocalCalendar();
+    if (calendar == null || !calendar.isArvinLocal) return false;
     final start = reminder.date;
-    final end = reminder.isAllDay
-        ? DateTime(start.year, start.month, start.day + 1)
-        : start.add(const Duration(minutes: 30));
-
-    final inserted = await _channel.invokeMethod<bool>(
-      insertMethod,
-      <String, Object?>{
-        'reminderId': reminder.id,
-        'title': reminder.title,
-        'startMillis': start.millisecondsSinceEpoch,
-        'endMillis': end.millisecondsSinceEpoch,
-        'allDay': reminder.isAllDay,
-      },
+    final end = reminder.end ??
+        (reminder.isAllDay
+            ? DateTime(start.year, start.month, start.day + 1)
+            : start.add(const Duration(minutes: 30)));
+    final eventId = await createProviderEvent(
+      reminderId: reminder.id,
+      calendarId: calendar.id,
+      title: reminder.title,
+      start: start,
+      end: end,
+      allDay: reminder.isAllDay,
+      description: reminder.description,
     );
-    return inserted ?? false;
+    return eventId != null;
   }
 
   Future<bool> hasReadPermission() async {
