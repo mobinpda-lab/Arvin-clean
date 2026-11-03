@@ -340,32 +340,8 @@ class _CalendarIntegrationSettingsPageState
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Row(
-                            children: [
-                              Icon(Icons.warning_amber_rounded),
-                              SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  'حذف رویداد متصل همراه با حذف کار، گزینه‌ای حساس است و به‌صورت پیش‌فرض خاموش می‌ماند.',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ],
-                          ),
-                          _switch(
-                            key: const ValueKey('calendar-delete-linked'),
-                            title: 'حذف رویداد متصل همراه کار',
-                            subtitle:
-                                'فقط برای رویدادهای متعلق به آروین؛ رویداد خارجی مستقل حذف نمی‌شود.',
-                            value: current.deleteLinkedEventWithTask,
-                            update: (value) => current.copyWith(
-                              deleteLinkedEventWithTask: value,
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        'حذف یا بایگانی Task در آروین، رویداد تقویم گوشی را خودکار حذف یا تغییر نمی‌دهد. این اتصال فقط با اقدام صریح کاربر مدیریت می‌شود.',
                       ),
                     ),
                   ),

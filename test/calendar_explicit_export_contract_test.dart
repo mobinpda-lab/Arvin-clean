@@ -20,6 +20,7 @@ void main() {
     expect(settings, isNot(contains('calendar-auto-sync')));
     expect(settings, isNot(contains('calendar-sync-followups')));
     expect(settings, isNot(contains('calendar-sync-followup-reminders')));
+    expect(settings, isNot(contains('calendar-delete-linked')));
     expect(main, contains('onRegisterTaskToDeviceCalendar: _registerTaskInDeviceCalendar'));
     expect(main, contains('onRegisterTaskToDeviceCalendar: _registerTaskFromDetails'));
   });
