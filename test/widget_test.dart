@@ -38,7 +38,7 @@ void main() {
     expect(find.text('پروژه‌ها'), findsOneWidget);
     expect(find.text('دسته‌بندی‌ها'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
-    expect(find.text('امروز'), findsOneWidget);
+    expect(find.text('خانه'), findsOneWidget);
     expect(find.text('تقویم'), findsOneWidget);
     expect(find.text('دفترچه'), findsOneWidget);
     expect(find.text('بیشتر'), findsOneWidget);
