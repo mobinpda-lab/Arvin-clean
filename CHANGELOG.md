@@ -1,3 +1,14 @@
+## 2026-11-03 — Arvin local calendar lifecycle and read-only external providers
+
+- Startup permission flow now retries idempotent Arvin local-calendar provisioning on every app launch after permission has already been acknowledged.
+- Canonical Task create/edit/due-date/complete/archive mutations reconcile their projected reminders into the app-owned local Arvin calendar after the Task database write succeeds.
+- Task descriptions are included in provider event revisions; completed, archived, and trashed Tasks are removed from the writable Arvin projection without deleting the canonical Task.
+- Outbound provider writes are constrained to the verified app-owned `ACCOUNT_TYPE_LOCAL` Arvin calendar. Google/Samsung calendars remain read-only event sources.
+- Legacy links to external calendars are replaced by Arvin-local links without modifying or deleting the external event.
+- Removed the Android `ACTION_INSERT` route that could open a generic external calendar as a write destination. The legacy bridge insert now writes through the verified Arvin-local provider path.
+- Added unit and Android integration coverage for startup provisioning retry, fixed Arvin destination, external write rejection, archive/description projection, provider CRUD, and Task persistence after provider-event deletion.
+- CI, six-lane test evidence, Device Smoke, and a stable Review APK are not yet verified on the final commit. Release remains BLOCKED — RELEASE: NO-GO pending device acceptance.
+
 ## 2026-11-03 — Calendar Bridge identity and analyzer correction
 
 - Removed the Task Reminder identity from the native calendar-editor launch payload; opening an existing device event requires only its calendar and event IDs.
