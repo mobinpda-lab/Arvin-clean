@@ -133,6 +133,38 @@ void main() {
   });
 
 
+  test('report sorting keeps due date primary and priority secondary', () {
+    final sameDate = DateTime(2026, 10, 7, 15);
+    final lowerPriority = Task(
+      id: 'lower-priority',
+      title: 'اولویت پایین‌تر',
+      dueDate: sameDate,
+      priority: TaskPriority.low,
+    );
+    final highestPriority = Task(
+      id: 'highest-priority',
+      title: 'اولویت بالاتر',
+      dueDate: sameDate,
+      priority: TaskPriority.high,
+    );
+    final laterDate = Task(
+      id: 'later-date',
+      title: 'تاریخ دیرتر',
+      dueDate: DateTime(2026, 10, 8, 9),
+      priority: TaskPriority.high,
+    );
+
+    final result = const TaskReportFilter().apply(
+      [lowerPriority, laterDate, highestPriority],
+      now: now,
+    );
+
+    expect(
+      result.map((task) => task.id),
+      ['highest-priority', 'lower-priority', 'later-date'],
+    );
+  });
+
   test('external calendar filter is explicit and uses the canonical time window', () {
     final eventTime = DateTime(2026, 10, 7, 15);
     final filter = const TaskReportFilter().copyWith(

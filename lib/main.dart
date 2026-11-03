@@ -3173,7 +3173,14 @@ class _HomePageState extends State<HomePage> {
                         children: [
                           Icon(Icons.flag_rounded, size: 13, color: ArvinColors.priorityColor(task.priority)),
                           const SizedBox(width: 4),
-                          Text('${task.priority.code} • ${task.priority.label}', style: TextStyle(color: ArvinColors.priorityColor(task.priority), fontSize: 10.5, fontWeight: FontWeight.w700)),
+                          Flexible(
+                            child: Text(
+                              '${task.priority.code} • ${task.priority.label}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(color: ArvinColors.priorityColor(task.priority), fontSize: 10.5, fontWeight: FontWeight.w700),
+                            ),
+                          ),
                         ],
                       ),
                       if (const HomeListProjection().shouldProjectDueDate(task)) ...[

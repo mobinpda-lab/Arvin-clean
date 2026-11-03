@@ -476,28 +476,6 @@ Future<DateTime?> _pickCustomDue() async {
                 ),
               ),
               const SizedBox(height: 10),
-              Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: Text('اولویت', style: TextStyle(color: ArvinColors.textPrimary, fontWeight: FontWeight.w700)),
-              ),
-              const SizedBox(height: 6),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: [
-                  for (final priority in TaskPriority.values)
-                    ChoiceChip(
-                      key: ValueKey('quick-capture-priority-${priority.name}'),
-                      label: Text('${priority.code} ${priority.label}'),
-                      selected: _priority == priority,
-                      selectedColor: ArvinColors.priorityColor(priority).withValues(alpha: 0.14),
-                      side: BorderSide(color: ArvinColors.priorityColor(priority).withValues(alpha: _priority == priority ? 0.9 : 0.35)),
-                      labelStyle: TextStyle(color: ArvinColors.priorityColor(priority), fontWeight: FontWeight.w700, fontSize: 11),
-                      onSelected: _saving ? null : (_) => setState(() => _priority = priority),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 10),
               if (widget.onCaptured == null)
                 TextField(
                   key: const ValueKey('quick-capture-description'),
@@ -750,6 +728,28 @@ Future<DateTime?> _pickCustomDue() async {
                       ),
                     ],
                   ),
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: Text('اولویت', style: TextStyle(color: ArvinColors.textPrimary, fontWeight: FontWeight.w700)),
+              ),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  for (final priority in TaskPriority.values)
+                    ChoiceChip(
+                      key: ValueKey('quick-capture-priority-${priority.name}'),
+                      label: Text('${priority.code} ${priority.label}'),
+                      selected: _priority == priority,
+                      selectedColor: ArvinColors.priorityColor(priority).withValues(alpha: 0.14),
+                      side: BorderSide(color: ArvinColors.priorityColor(priority).withValues(alpha: _priority == priority ? 0.9 : 0.35)),
+                      labelStyle: TextStyle(color: ArvinColors.priorityColor(priority), fontWeight: FontWeight.w700, fontSize: 11),
+                      onSelected: _saving ? null : (_) => setState(() => _priority = priority),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 10),
                   const SizedBox(height: 10),
                   Wrap(
                     spacing: 8,

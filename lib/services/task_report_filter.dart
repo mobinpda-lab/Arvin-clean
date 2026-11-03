@@ -291,7 +291,22 @@ class TaskReportFilter {
     if (timePreset == ReportTimePreset.past) {
       return const TaskListSortService().sortPast(filteredTasks);
     }
-    return const TaskListSortService().sort(filteredTasks, by: TaskListSort.date);
+    final indexed = filteredTasks.asMap().entries.toList();
+    indexed.sort((left, right) {
+      final leftDate = left.value.dueDate;
+      final rightDate = right.value.dueDate;
+      if (leftDate == null && rightDate != null) return 1;
+      if (leftDate != null && rightDate == null) return -1;
+      if (leftDate != null && rightDate != null) {
+        final dateComparison = leftDate.compareTo(rightDate);
+        if (dateComparison != 0) return dateComparison;
+      }
+      final priorityComparison = left.value.priority.sortOrder
+          .compareTo(right.value.priority.sortOrder);
+      if (priorityComparison != 0) return priorityComparison;
+      return left.key.compareTo(right.key);
+    });
+    return indexed.map((entry) => entry.value).toList(growable: false);
   }
 
   bool _matchesStatus(Task task) {
