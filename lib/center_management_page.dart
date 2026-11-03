@@ -52,7 +52,7 @@ class _CenterManagementPageState extends State<CenterManagementPage> {
       : ListView.separated(padding: const EdgeInsets.all(16), itemCount: _centers.length, separatorBuilder: (_, __) => const Divider(), itemBuilder: (ctx, i) {
           final center = _centers[i];
           return ListTile(key: ValueKey('center-row-${center.id}'), title: Text(center.name), subtitle: Text(center.isArchived ? 'بایگانی‌شده' : 'فعال'),
-            trailing: Wrap(mainAxisSize: MainAxisSize.min, children: [
+            trailing: Wrap(children: [
               IconButton(key: ValueKey('center-edit-${center.id}'), tooltip: 'ویرایش نام مرکز', onPressed: _saving ? null : () => _edit(center: center), icon: const Icon(Icons.edit_outlined)),
               IconButton(key: ValueKey('center-archive-${center.id}'), tooltip: center.isArchived ? 'فعال‌سازی' : 'بایگانی', onPressed: _saving ? null : () => _archive(center), icon: Icon(center.isArchived ? Icons.unarchive_outlined : Icons.archive_outlined)),
             ]),
