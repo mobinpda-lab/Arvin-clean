@@ -10,6 +10,7 @@ class TaskReportEntry {
     required this.followUps,
     required this.completed,
     this.reminderDate,
+    this.priority = TaskPriority.medium,
   });
 
   final String id;
@@ -20,6 +21,13 @@ class TaskReportEntry {
   final List<String> checklist;
   final bool completed;
   final DateTime? reminderDate;
+  final TaskPriority priority;
+}
+
+class TaskReportPriorityGroup {
+  const TaskReportPriorityGroup({required this.priority, required this.entries});
+  final TaskPriority priority;
+  final List<TaskReportEntry> entries;
 }
 
 class TaskReport {
@@ -32,6 +40,17 @@ class TaskReport {
   final String title;
   final DateTime generatedAt;
   final List<TaskReportEntry> entries;
+
+  /// Stable P1-to-P4 grouping for every report output surface.
+  List<TaskReportPriorityGroup> get priorityGroups => TaskPriority.values
+      .map((priority) => TaskReportPriorityGroup(
+            priority: priority,
+            entries: entries
+                .where((entry) => entry.priority == priority)
+                .toList(growable: false),
+          ))
+      .where((group) => group.entries.isNotEmpty)
+      .toList(growable: false);
 }
 
 /// Read-only reporting projection over canonical Tasks.
@@ -59,6 +78,7 @@ class TaskReportProjection {
             followUps: List<FollowUp>.unmodifiable(task.followUps),
             completed: task.completed,
             reminderDate: task.reminderDate,
+            priority: task.priority,
           ),
         )
         .toList(growable: false);

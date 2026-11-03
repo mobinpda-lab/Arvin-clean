@@ -1,4 +1,5 @@
 import 'persian_date_formatter.dart';
+import '../models/task.dart';
 import 'task_report_projection.dart';
 
 /// Pure plain-text renderer over the canonical [TaskReport] projection.
@@ -22,8 +23,13 @@ class TaskReportTextRenderer {
       return buffer.toString();
     }
 
-    for (var index = 0; index < report.entries.length; index++) {
-      final entry = report.entries[index];
+    var index = 0;
+    for (final group in report.priorityGroups) {
+      buffer
+        ..writeln()
+        ..writeln('${group.priority.code} — ${group.priority.label}');
+      for (final entry in group.entries) {
+        index++;
       buffer
         ..writeln()
         ..writeln('${index + 1}. ${entry.title}')
@@ -52,6 +58,7 @@ class TaskReportTextRenderer {
             '• ${formatDateTime(followUp.dateTime)} — ${followUp.note}$result',
           );
         }
+      }
       }
     }
 

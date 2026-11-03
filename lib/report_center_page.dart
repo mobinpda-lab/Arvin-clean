@@ -508,11 +508,6 @@ class _ActiveFilterChips extends StatelessWidget {
                 ));
               },
             ),
-          if (filter.priority != null)
-            InputChip(
-              label: Text(_priorityLabel(filter.priority!)),
-              onDeleted: () => onChanged(filter.copyWith(clearPriority: true)),
-            ),
           if (filter.hasRepeat != null)
             InputChip(
               label: Text(filter.hasRepeat! ? 'تکرارشونده' : 'بدون تکرار'),
@@ -624,7 +619,6 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
   ReportNoteDateField? _noteDateField;
   DateTime? _noteFromDate;
   DateTime? _noteToDate;
-  TaskPriority? _priority;
   bool? _hasRepeat;
   bool? _hasFollowUp;
   bool? _waitingForResponse;
@@ -662,7 +656,6 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
     _noteDateField = f.noteDateField;
     _noteFromDate = f.noteFromDate;
     _noteToDate = f.noteToDate;
-    _priority = f.priority;
     _hasRepeat = f.hasRepeat;
     _hasFollowUp = f.hasFollowUp;
     _hasChecklist = f.hasChecklist;
@@ -764,7 +757,6 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
         noteDateField: _noteDateField,
         noteFromDate: _noteFromDate,
         noteToDate: _noteToDate,
-        priority: _priority,
         hasRepeat: _hasRepeat,
         hasFollowUp: _hasFollowUp,
         hasChecklist: _hasChecklist,
@@ -1269,30 +1261,6 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               ),
             ),
             _Section(
-              title: 'اهمیت',
-              icon: Icons.star_border_rounded,
-              accentColor: ArvinColors.tag,
-              selectedCount: _priority == null ? 0 : 1,
-              child: Wrap(
-                spacing: 6,
-                children: [
-                  ChoiceChip(
-                    label: const Text('همه'),
-                    selected: _priority == null,
-                    onSelected: (_) => setState(() => _priority = null),
-                  ),
-                  for (final value in TaskPriority.values)
-                    ChoiceChip(
-                      label: Text(_priorityLabel(value)),
-                      selected: _priority == value,
-                      selectedColor: ArvinColors.priorityColor(value).withValues(alpha: 0.14),
-                      labelStyle: TextStyle(color: ArvinColors.priorityColor(value), fontWeight: FontWeight.w700),
-                      onSelected: (_) => setState(() => _priority = value),
-                    ),
-                ],
-              ),
-            ),
-            _Section(
               title: 'ویژگی‌های کار',
               icon: Icons.checklist_outlined,
               accentColor: ArvinColors.category,
@@ -1349,7 +1317,6 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                           _noteDateField = null;
                           _noteFromDate = null;
                           _noteToDate = null;
-                          _priority = null;
                           _hasRepeat = null;
                           _hasFollowUp = null;
                           _hasChecklist = null;
@@ -1541,8 +1508,6 @@ String _statusLabel(ReportStatusFilter value) => switch (value) {
       ReportStatusFilter.completed => 'انجام‌شده',
       ReportStatusFilter.archived => 'بایگانی',
     };
-
-String _priorityLabel(TaskPriority value) => '${value.code} — ${value.label}';
 
 String _dateLabel(DateTime? value, String empty) {
   if (value == null) return empty;

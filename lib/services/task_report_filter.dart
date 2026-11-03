@@ -39,7 +39,6 @@ class TaskReportFilter {
     this.noteDateField,
     this.noteFromDate,
     this.noteToDate,
-    this.priority,
     this.hasRepeat,
     this.hasFollowUp,
     this.hasChecklist,
@@ -75,7 +74,6 @@ class TaskReportFilter {
   final ReportNoteDateField? noteDateField;
   final DateTime? noteFromDate;
   final DateTime? noteToDate;
-  final TaskPriority? priority;
   final bool? hasRepeat;
   final bool? hasFollowUp;
   final bool? hasChecklist;
@@ -109,7 +107,6 @@ class TaskReportFilter {
       ((noteFromDate != null || noteToDate != null) && noteDateField != null) ||
       noteFromDate != null ||
       noteToDate != null ||
-      priority != null ||
       hasRepeat != null ||
       hasFollowUp != null ||
       hasChecklist != null;
@@ -157,8 +154,6 @@ class TaskReportFilter {
     bool clearNoteFromDate = false,
     DateTime? noteToDate,
     bool clearNoteToDate = false,
-    TaskPriority? priority,
-    bool clearPriority = false,
     bool? hasRepeat,
     bool clearHasRepeat = false,
     bool? hasFollowUp,
@@ -200,7 +195,6 @@ class TaskReportFilter {
         noteFromDate:
             clearNoteFromDate ? null : noteFromDate ?? this.noteFromDate,
         noteToDate: clearNoteToDate ? null : noteToDate ?? this.noteToDate,
-        priority: clearPriority ? null : priority ?? this.priority,
         hasRepeat: clearHasRepeat ? null : hasRepeat ?? this.hasRepeat,
         hasFollowUp: clearHasFollowUp ? null : hasFollowUp ?? this.hasFollowUp,
         hasChecklist: clearHasChecklist ? null : hasChecklist ?? this.hasChecklist,
@@ -262,7 +256,6 @@ class TaskReportFilter {
         return false;
       }
       if (!_matchesNote(task)) return false;
-      if (priority != null && task.priority != priority) return false;
       if (hasRepeat != null && (task.recurrence != null) != hasRepeat) {
         return false;
       }

@@ -25,6 +25,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('فیلتر گزارش‌ها'), findsOneWidget);
+    expect(find.text('اهمیت'), findsNothing);
     expect(find.text('امروز'), findsOneWidget);
     expect(find.text('بازه دقیق'), findsOneWidget);
     expect(tester.getSize(find.byKey(const ValueKey('report-filter-header'))).height, 64);

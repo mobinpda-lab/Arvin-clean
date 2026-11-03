@@ -1,3 +1,12 @@
+## 2026-11-03 — Commit E: Report Center priority grouping and filter contract
+
+- Removed the existing standalone Priority filter from Report Center and TaskReportFilter; priority is no longer a report-selection criterion.
+- Added canonical P1→P4 groups to the shared TaskReport projection. PDF/Print and plain-text copy/share now render the same priority-group order while preserving input order inside each group.
+- TaskReportEntry now carries canonical Task priority; PDF continues to load bundled Vazirmatn regular/bold fonts and RTL page direction.
+- Added projection and plain-text regression tests for P1/P2/P3/P4 grouping and a Report Center assertion that no Importance filter is exposed.
+- Structured machine-readable export and full Print/Share end-to-end validation remain NOT VERIFIED. Local Flutter tests were not run; exact-HEAD CI required.
+- No Task/Reminder/Follow-up data or schema changed. PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; release BLOCKED — RELEASE: NO-GO.
+
 ## 2026-11-03 — Commit D: Safe Mid-Cycle Project Template preservation test
 
 - Extended the real SQLite/Drift propagation test with a completed and archived existing Task carrying a Checklist, independent Reminder and historical Follow-up.
