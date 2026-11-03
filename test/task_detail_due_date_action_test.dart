@@ -1,4 +1,5 @@
 import 'package:arvin/models/task.dart';
+import 'package:arvin/services/iran_clock.dart';
 import 'package:arvin/services/task_move_to_today_service.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:arvin/task_detail_page.dart';
@@ -125,5 +126,44 @@ void main() {
     final persisted = (await store.load()).single;
     expect(persisted.dueDate, DateTime(2026, 11, 3));
     expect(persisted.allDay, isTrue);
+  });
+
+  testWidgets('Task Details uses the canonical fallback when no owner callback is supplied',
+      (tester) async {
+    await TaskStore.resetTestDatabase();
+    addTearDown(TaskStore.resetTestDatabase);
+    final store = TaskStore();
+    await store.save(<Task>[
+      Task(
+        id: 'fallback-due-action',
+        title: 'موعد با مسیر پیش‌فرض',
+        dueDate: DateTime(2026, 10, 20, 12, 30),
+      ),
+    ]);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TaskDetailPage(
+          task: (await store.load()).single,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('task-detail-move-due-date-to-today')),
+    );
+    await tester.tap(
+      find.byKey(const ValueKey('task-detail-move-due-date-to-today')),
+    );
+    await tester.pumpAndSettle();
+
+    final persisted = (await store.load()).single;
+    final today = IranClock.now();
+    expect(
+      DateTime(persisted.dueDate!.year, persisted.dueDate!.month, persisted.dueDate!.day),
+      DateTime(today.year, today.month, today.day),
+    );
+    expect(persisted.dueDate!.hour, 12);
+    expect(persisted.dueDate!.minute, 30);
   });
 }
