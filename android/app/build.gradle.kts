@@ -74,17 +74,16 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.arvin"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
-        // Uses the version code from pubspec.yaml. When using split APKs, 1000 * ABI_VERSION
-        // is added automatically by Flutter. You can force using the value of versionCode
-        // by specifying the -P force-version-code-ignoring-abi=true flag during build.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // Keep all supported Android runtime ABIs explicit in every APK variant.
+        ndk {
+            abiFilters += setOf("arm64-v8a", "armeabi-v7a", "x86_64")
+        }
     }
 
     signingConfigs {
@@ -114,7 +113,9 @@ android {
 
     buildTypes {
         release {
-            // No debug-signing fallback is permitted for production release.
+            // Keep R8/resource shrinking disabled until the physical startup crash is resolved.
+            isMinifyEnabled = false
+            isShrinkResources = false
             if (arvinProductionSigningConfigured) {
                 signingConfig = signingConfigs.getByName("production")
             }
@@ -124,14 +125,14 @@ android {
             applicationIdSuffix = ".staging"
             versionNameSuffix = "-staging"
             isDebuggable = false
+            isMinifyEnabled = false
+            isShrinkResources = false
             matchingFallbacks += listOf("release")
-            // Keep optional Flutter plugin bindings when present; missing optional
-            // plugin classes are explicitly handled by android/app/proguard-rules.pro.
+            // Retain the rules file for future opt-in, but no shrinking is run in this diagnostic build.
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
-            // Never inherit production signing or fall back to the debug key.
             signingConfig = if (arvinStagingSigningConfigured) {
                 signingConfigs.getByName("staging")
             } else {
