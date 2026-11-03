@@ -45,7 +45,6 @@ class CalendarPage extends StatefulWidget {
     this.dailyContentForDate,
     this.onCompleteReminder,
     this.onEditReminder,
-    this.onEditTask,
     this.onOpenTask,
     this.onDeleteTask,
     this.onRegisterTaskToDeviceCalendar,
@@ -66,7 +65,6 @@ class CalendarPage extends StatefulWidget {
   final DateTime? initialSelectedDay;
   final Future<void> Function(CalendarReminder reminder)? onCompleteReminder;
   final Future<void> Function(CalendarReminder reminder)? onEditReminder;
-  final Future<void> Function(CalendarReminder reminder)? onEditTask;
   final Future<void> Function(CalendarReminder reminder)? onOpenTask;
   final Future<void> Function(CalendarReminder reminder)? onDeleteTask;
   final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
@@ -970,11 +968,6 @@ class _CalendarPageState extends State<CalendarPage> {
                                     true)
                                 ? widget.onEditReminder
                                 : null,
-                            onEditTask: _isTaskRecordCalendarItemId(
-                                  selectedReminders[index].id,
-                                )
-                                ? widget.onEditTask
-                                : null,
                             onOpenTask: _isTaskCalendarItemId(selectedReminders[index].id)
                                 ? widget.onOpenTask
                                 : null,
@@ -1187,7 +1180,6 @@ class _ReminderCardState extends State<_ReminderCard> {
               widget.onPrayerNotCompleted != null)) ||
       (!widget.isPrayer &&
           (widget.onDeleteTask != null ||
-              widget.onEditTask != null ||
               widget.onRegisterTaskToDeviceCalendar != null ||
               widget.onComplete != null ||
               widget.onEdit != null ||
@@ -1304,16 +1296,6 @@ class _ReminderCardState extends State<_ReminderCard> {
                   onTap: () {
                     Navigator.of(sheetContext).pop();
                     _run(widget.onEdit);
-                  },
-                ),
-              if (_isTaskCalendarItem && widget.onEditTask != null)
-                ListTile(
-                  key: ValueKey('task-due-edit-${widget.item.id}'),
-                  leading: const Icon(Icons.edit_outlined),
-                  title: const Text('ویرایش کار'),
-                  onTap: () {
-                    Navigator.of(sheetContext).pop();
-                    _run(widget.onEditTask);
                   },
                 ),
               if (_isTaskCalendarItem && widget.onDeleteTask != null)
