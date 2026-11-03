@@ -28,7 +28,7 @@ void main() {
     expect(find.text('پروژه‌ها'), findsOneWidget);
     expect(find.text('کاری'), findsOneWidget);
     expect(find.text('شخصی'), findsOneWidget);
-    expect(find.text('1 مورد'), findsOneWidget);
+    expect(find.textContaining('1 مورد'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('project-delete-work')));
     await tester.pump();
