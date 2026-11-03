@@ -1435,3 +1435,6 @@ Run 41451772502 / Job 125298740317 on the same SHA completed FAILURE. Gradle sta
 
 
 - Route-completeness audit found TaskDetailPage is also constructed outside Home (e.g. Report Center/calendar feature routes). The Today action now uses the injected Home callback when available and falls back to `TaskMoveToTodayService().move(_task.id)` otherwise, so it remains active on every Task Details route. Added a dedicated no-callback widget regression verifying canonical TaskStore persistence, Iran-local today, preserved existing hour/minute and success feedback. Commits: `cd4369ece45e1ef71ec2b9d4bdc54ef8f27ab452` and `3cf5974ae799a61dc6188be8cb77810cd042a235`. Exact final-head Build/Device/Provider/APK validation is pending.
+
+
+- The first route-fallback exact-head Analyze run found two additional findings introduced by this wave: a redundant null check after the non-null TaskMoveToTodayService result and a nullable updatedAt access in the fallback test. Both were corrected without changing runtime semantics. Commits: `3c2ac888e321d969541fa9edb3871b565aeb7cb7`, `bd2977bd9ccce938f3d57e3ad77812bcbf1d7089`. The unrelated existing 12 info/warning diagnostics remain unchanged; final-head Analyze must be checked again.
