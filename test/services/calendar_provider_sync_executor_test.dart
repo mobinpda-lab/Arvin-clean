@@ -286,6 +286,36 @@ void main() {
     expect(store.links.single.eventId, 'stale-7');
   });
 
+  test('legacy external link is replaced in Arvin without mutating the external event', () async {
+    final old = ExternalCalendarEventLink(
+      reminderId: 'task-due:1',
+      calendarId: '99',
+      eventId: 'google-event-7',
+      lastSyncedFingerprint: 'old',
+    );
+    final bridge = _FakeBridge();
+    final store = _MemoryLinkStore([old]);
+    final executor =
+        CalendarProviderSyncExecutor(bridge: bridge, linkStore: store);
+
+    final result = await executor.execute(
+      plan: CalendarSyncPlan([
+        CalendarSyncPlanItem(
+          reminderId: 'task-due:1',
+          action: CalendarSyncAction.update,
+          revision: _revision('task-due:1', 'new', 'پیگیری جدید'),
+          link: old,
+        ),
+      ]),
+      targetCalendarId: '42',
+    );
+
+    expect(result.updated, 1);
+    expect(bridge.calls, ['create:42:پیگیری جدید']);
+    expect(store.links.single.calendarId, '42');
+    expect(store.links.single.eventId, 'event-1');
+  });
+
   test('external calendar is rejected as a write target', () async {
     final bridge = _FakeBridge();
     final store = _MemoryLinkStore();
