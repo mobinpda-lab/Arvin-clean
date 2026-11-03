@@ -46,6 +46,7 @@ class _FakeBridge extends SystemCalendarBridge {
 
   @override
   Future<bool> verifyProviderEventIdentity({
+    required String reminderId,
     required String calendarId,
     required String eventId,
   }) async => linkedIdentityExists;

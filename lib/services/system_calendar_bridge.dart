@@ -311,6 +311,7 @@ class SystemCalendarBridge {
       return await _channel.invokeMethod<bool>(
             openProviderEventMethod,
             <String, Object?>{
+              'reminderId': reminderId,
               'calendarId': normalizedCalendarId,
               'eventId': normalizedEventId,
             },
@@ -324,12 +325,15 @@ class SystemCalendarBridge {
   /// Fails closed unless the exact provider row still belongs to the linked calendar.
   /// This protects against stale local IDs before an update or delete.
   Future<bool> verifyProviderEventIdentity({
+    required String reminderId,
     required String calendarId,
     required String eventId,
   }) async {
     final normalizedCalendarId = calendarId.trim();
     final normalizedEventId = eventId.trim();
-    if (normalizedCalendarId.isEmpty || normalizedEventId.isEmpty) return false;
+    if (!isExportableTaskReminderId(reminderId) ||
+        normalizedCalendarId.isEmpty ||
+        normalizedEventId.isEmpty) return false;
     try {
       return await _channel.invokeMethod<bool>(
             verifyProviderEventIdentityMethod,

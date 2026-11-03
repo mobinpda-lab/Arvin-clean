@@ -119,8 +119,16 @@ class MainActivity : FlutterActivity() {
                         return@setMethodCallHandler
                     }
                     try {
-                        val uri = contentResolver.insert(CalendarContract.Events.CONTENT_URI, eventValues(calendarId, title, startMillis, endMillis, allDay, description))
-                        result.success(uri?.lastPathSegment)
+                        val existingEventId = findOwnedProviderEventId(calendarId, reminderId!!)
+                        if (existingEventId != null) {
+                            result.success(existingEventId.toString())
+                        } else {
+                            val uri = contentResolver.insert(
+                                CalendarContract.Events.CONTENT_URI,
+                                eventValues(calendarId, reminderId, title, startMillis, endMillis, allDay, description),
+                            )
+                            result.success(uri?.lastPathSegment)
+                        }
                     } catch (error: SecurityException) {
                         result.error("calendar_write_denied", "Android Calendar Provider denied create", error.message)
                     } catch (error: RuntimeException) {
@@ -154,9 +162,9 @@ class MainActivity : FlutterActivity() {
                         // Use the collection URI and constrain both row and owner calendar.
                         val updated = contentResolver.update(
                             CalendarContract.Events.CONTENT_URI,
-                            eventValues(calendarId, title, startMillis, endMillis, allDay, description),
-                            CalendarContract.Events._ID + " = ? AND " + CalendarContract.Events.CALENDAR_ID + " = ?",
-                            arrayOf(eventId.toString(), calendarIdText),
+                            eventValues(calendarId, reminderId!!, title, startMillis, endMillis, allDay, description),
+                            eventOwnershipSelection(),
+                            eventOwnershipArgs(eventId, calendarId, reminderId!!),
                         )
                         result.success(updated == 1)
                     } catch (error: SecurityException) {
@@ -204,14 +212,21 @@ class MainActivity : FlutterActivity() {
                         var exists = false
                         contentResolver.query(
                             CalendarContract.Events.CONTENT_URI,
-                            arrayOf(CalendarContract.Events._ID, CalendarContract.Events.CALENDAR_ID),
-                            CalendarContract.Events._ID + " = ? AND " + CalendarContract.Events.CALENDAR_ID + " = ?",
-                            arrayOf(eventId.toString(), calendarIdText),
+                            arrayOf(
+                                CalendarContract.Events._ID,
+                                CalendarContract.Events.CALENDAR_ID,
+                                CalendarContract.Events.CUSTOM_APP_PACKAGE,
+                                CalendarContract.Events.CUSTOM_APP_URI,
+                            ),
+                            eventOwnershipSelection(),
+                            eventOwnershipArgs(eventId, calendarId, reminderId!!),
                             null,
                         )?.use { cursor ->
                             exists = cursor.moveToFirst() &&
                                 cursor.getLong(cursor.getColumnIndexOrThrow(CalendarContract.Events._ID)) == eventId &&
-                                cursor.getLong(cursor.getColumnIndexOrThrow(CalendarContract.Events.CALENDAR_ID)) == calendarId
+                                cursor.getLong(cursor.getColumnIndexOrThrow(CalendarContract.Events.CALENDAR_ID)) == calendarId &&
+                                cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Events.CUSTOM_APP_PACKAGE)) == packageName &&
+                                cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Events.CUSTOM_APP_URI)) == customAppUriForReminder(reminderId!!)
                         }
                         result.success(exists)
                     } catch (error: SecurityException) {
@@ -242,8 +257,8 @@ class MainActivity : FlutterActivity() {
                         // attached to a row-specific Events URI.
                         val deleted = contentResolver.delete(
                             CalendarContract.Events.CONTENT_URI,
-                            CalendarContract.Events._ID + " = ? AND " + CalendarContract.Events.CALENDAR_ID + " = ?",
-                            arrayOf(eventId.toString(), calendarIdText),
+                            eventOwnershipSelection(),
+                            eventOwnershipArgs(eventId, calendarId, reminderId!!),
                         )
                         result.success(deleted == 1)
                     } catch (error: SecurityException) {
@@ -525,8 +540,39 @@ class MainActivity : FlutterActivity() {
         .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_TYPE, accountType)
         .build()
 
+    private fun customAppUriForReminder(reminderId: String): String =
+        Uri.Builder().scheme("arvin").authority("task").appendPath(reminderId).build().toString()
+
+    private fun eventOwnershipSelection(): String =
+        CalendarContract.Events._ID + " = ? AND " +
+            CalendarContract.Events.CALENDAR_ID + " = ? AND " +
+            CalendarContract.Events.CUSTOM_APP_PACKAGE + " = ? AND " +
+            CalendarContract.Events.CUSTOM_APP_URI + " = ?"
+
+    private fun eventOwnershipArgs(eventId: Long, calendarId: Long, reminderId: String): Array<String> =
+        arrayOf(eventId.toString(), calendarId.toString(), packageName, customAppUriForReminder(reminderId))
+
+    private fun findOwnedProviderEventId(calendarId: Long, reminderId: String): Long? {
+        val ids = mutableListOf<Long>()
+        contentResolver.query(
+            CalendarContract.Events.CONTENT_URI,
+            arrayOf(CalendarContract.Events._ID),
+            CalendarContract.Events.CALENDAR_ID + " = ? AND " +
+                CalendarContract.Events.CUSTOM_APP_PACKAGE + " = ? AND " +
+                CalendarContract.Events.CUSTOM_APP_URI + " = ?",
+            arrayOf(calendarId.toString(), packageName, customAppUriForReminder(reminderId)),
+            null,
+        )?.use { cursor ->
+            val index = cursor.getColumnIndexOrThrow(CalendarContract.Events._ID)
+            while (cursor.moveToNext()) ids.add(cursor.getLong(index))
+        }
+        check(ids.size <= 1) { "Multiple Arvin-owned events exist for one Task and calendar" }
+        return ids.singleOrNull()
+    }
+
     private fun eventValues(
         calendarId: Long,
+        reminderId: String,
         title: String,
         startMillis: Long,
         endMillis: Long,
@@ -534,6 +580,8 @@ class MainActivity : FlutterActivity() {
         description: String?,
     ): ContentValues = ContentValues().apply {
         put(CalendarContract.Events.CALENDAR_ID, calendarId)
+        put(CalendarContract.Events.CUSTOM_APP_PACKAGE, packageName)
+        put(CalendarContract.Events.CUSTOM_APP_URI, customAppUriForReminder(reminderId))
         put(CalendarContract.Events.TITLE, title)
         put(CalendarContract.Events.DTSTART, startMillis)
         put(CalendarContract.Events.DTEND, endMillis)

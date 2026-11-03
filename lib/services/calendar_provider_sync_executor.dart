@@ -135,6 +135,7 @@ class CalendarProviderSyncExecutor {
           // calendar edits, or provider-side deletion. Never mutate or replace an
           // event until the exact (calendarId, eventId) identity is verified.
           final linkedEventExists = await bridge.verifyProviderEventIdentity(
+            reminderId: item.reminderId,
             calendarId: link.calendarId,
             eventId: link.eventId,
           );
@@ -214,6 +215,7 @@ class CalendarProviderSyncExecutor {
             throw StateError('Delete plan item is missing linked event data.');
           }
           final linkedEventExists = await bridge.verifyProviderEventIdentity(
+            reminderId: item.reminderId,
             calendarId: link.calendarId,
             eventId: link.eventId,
           );

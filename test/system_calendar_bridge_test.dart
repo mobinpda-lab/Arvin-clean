@@ -38,13 +38,13 @@ void main() {
 
     final bridge = SystemCalendarBridge();
     expect(
-      await bridge.verifyProviderEventIdentity(calendarId: '42', eventId: '7'),
+      await bridge.verifyProviderEventIdentity(reminderId: 'task-due:task-1', calendarId: '42', eventId: '7'),
       isTrue,
     );
     expect(calls.single.method, SystemCalendarBridge.verifyProviderEventIdentityMethod);
-    expect(calls.single.arguments, {'calendarId': '42', 'eventId': '7'});
+    expect(calls.single.arguments, {'reminderId': 'task-due:task-1', 'calendarId': '42', 'eventId': '7'});
     expect(
-      await bridge.verifyProviderEventIdentity(calendarId: '', eventId: '7'),
+      await bridge.verifyProviderEventIdentity(reminderId: 'task-due:task-1', calendarId: '', eventId: '7'),
       isFalse,
     );
   });
