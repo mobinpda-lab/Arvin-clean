@@ -355,5 +355,39 @@ void main() {
     expect(find.byKey(const ValueKey('report-filter-template-tpl')), findsOneWidget);
     expect(find.byKey(const ValueKey('report-filter-template-search')), findsOneWidget);
   });
+  testWidgets('Report Center Past preset excludes today and shows open tasks first', (tester) async {
+    final now = DateTime(2026, 10, 7, 10);
+    await tester.pumpWidget(MaterialApp(
+      home: ReportCenterPage(
+        now: now,
+        tasks: [
+          Task(id: 'done-newer', title: 'انجام‌شده جدیدتر', completed: true, dueDate: DateTime(2026, 10, 6, 9)),
+          Task(id: 'open-newer', title: 'باز جدیدتر', dueDate: DateTime(2026, 10, 6, 10)),
+          Task(id: 'done-older', title: 'انجام‌شده قدیمی‌تر', completed: true, dueDate: DateTime(2026, 10, 3, 9)),
+          Task(id: 'open-older', title: 'باز قدیمی‌تر', dueDate: DateTime(2026, 10, 4, 9)),
+          Task(id: 'today', title: 'موعد امروز', dueDate: DateTime(2026, 10, 7, 8)),
+        ],
+      ),
+    ));
+
+    await tester.tap(find.byKey(const ValueKey('report-center-filters')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ChoiceChip, 'گذشته'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const ValueKey('report-filter-apply')));
+    await tester.tap(find.byKey(const ValueKey('report-filter-apply')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('نتیجه: 4 کار'), findsOneWidget);
+    expect(find.byKey(const ValueKey('report-task-card-today')), findsNothing);
+    final openOlder = find.byKey(const ValueKey('report-task-card-open-older'));
+    final openNewer = find.byKey(const ValueKey('report-task-card-open-newer'));
+    final doneOlder = find.byKey(const ValueKey('report-task-card-done-older'));
+    final doneNewer = find.byKey(const ValueKey('report-task-card-done-newer'));
+    expect(tester.getTopLeft(openOlder).dy, lessThan(tester.getTopLeft(openNewer).dy));
+    expect(tester.getTopLeft(openNewer).dy, lessThan(tester.getTopLeft(doneOlder).dy));
+    expect(tester.getTopLeft(doneOlder).dy, lessThan(tester.getTopLeft(doneNewer).dy));
+  });
+
 }
 
