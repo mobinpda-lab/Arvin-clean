@@ -1,3 +1,12 @@
+## 2026-11-03 — Commit F: refresh exact-HEAD 24-domain matrix and Legacy inventory
+
+- Updated docs/qa/ARVIN_MASTER_SPEC_24_DOMAIN_AUDIT_2026-11-03.md to source SHA 35b5765a7964c063b01a5ef3366836064decc751, including the filter OR fix, Calendar Task Details routing/export-only swipe, safe template preservation test, report P1-P4 output grouping, and five-item navigation.
+- Added docs/qa/ARVIN_LEGACY_REFERENCE_INVENTORY_2026-11-03.md with direct model, Schema, Store, migration, repository/service, UI, report, Work Agenda, Next Action and test/fixture references.
+- Confirmed Task.followUpEnabled/followUpDate and FollowUp.nextFollowUp/reminderDate remain active compatibility data; Task.reminderDate is still consumed by Editor/Work Agenda/Next Action/Calendar/Report. FollowUp.completedAt remains a getter alias to dateTime; no follow_ups.completed_at column exists.
+- No legacy data, columns, or runtime fields were deleted. No migration was executed. Backup/Rollback and migration plan are documented.
+- CI checkpoint on source SHA 35b5765a7964c063b01a5ef3366836064decc751: Analyze PASS; Build test shards IN PROGRESS; Follow-up File Persistence SUCCESS; Calendar Provider failed due Gradle Plugin Portal inability to resolve Kotlin 2.2.21 artifacts; Device Smoke queued/in progress; Draft Review APK in progress. These are not release acceptance.
+- Documentation-only Commit F. PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; release BLOCKED — RELEASE: NO-GO.
+
 ## 2026-11-03 — Commit G: Canonical five-item navigation labels
 
 - Renamed the visible Home destination from «امروز» to the owner-approved «خانه».
