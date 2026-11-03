@@ -215,4 +215,66 @@ void main() {
     expect(result.map((task) => task.id), ['note-school']);
   });
 
+  test('past preset is strictly before local start of today and sorts open tasks first', () {
+    final openOlder = Task(
+      id: 'open-older',
+      title: 'باز قدیمی‌تر',
+      dueDate: DateTime(2026, 10, 4, 9),
+    );
+    final openNewer = Task(
+      id: 'open-newer',
+      title: 'باز جدیدتر',
+      dueDate: DateTime(2026, 10, 6, 18),
+    );
+    final completedOlder = Task(
+      id: 'completed-older',
+      title: 'انجام‌شده قدیمی‌تر',
+      dueDate: DateTime(2026, 10, 3, 9),
+      completed: true,
+    );
+    final completedNewer = Task(
+      id: 'completed-newer',
+      title: 'انجام‌شده جدیدتر',
+      dueDate: DateTime(2026, 10, 6, 8),
+      completed: true,
+    );
+    final todayAtStart = Task(
+      id: 'today-start',
+      title: 'امروز از ابتدای روز',
+      dueDate: DateTime(2026, 10, 7),
+    );
+    final todayEarlierThanNow = Task(
+      id: 'today-morning',
+      title: 'امروز صبح',
+      dueDate: DateTime(2026, 10, 7, 8),
+    );
+    final future = Task(
+      id: 'future',
+      title: 'آینده',
+      dueDate: DateTime(2026, 10, 8),
+    );
+    final undated = Task(id: 'undated', title: 'بدون موعد');
+
+    final result = const TaskReportFilter(
+      timePreset: ReportTimePreset.past,
+    ).apply(
+      [
+        completedNewer,
+        todayAtStart,
+        openNewer,
+        undated,
+        completedOlder,
+        todayEarlierThanNow,
+        future,
+        openOlder,
+      ],
+      now: now,
+    );
+
+    expect(
+      result.map((task) => task.id),
+      ['open-older', 'open-newer', 'completed-older', 'completed-newer'],
+    );
+  });
+
 }
