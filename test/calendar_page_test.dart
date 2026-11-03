@@ -570,7 +570,7 @@ void main() {
 
 
 
-  testWidgets('task calendar card tap opens editor and long-press reveals actions',
+  testWidgets('Task card tap edits, long-press omits export, and Calendar swipe exports',
       (tester) async {
     final day = DateTime(2026, 9, 9, 10);
     final task = CalendarReminder(
@@ -590,6 +590,7 @@ void main() {
           onEditTask: (_) async => edited++,
           onDeleteTask: (_) async => deleted++,
           onRegisterTaskToDeviceCalendar: (_) async => registered++,
+          calendarSwipeRightAction: CalendarSwipeAction.sync,
         ),
       ),
     );
@@ -615,7 +616,7 @@ void main() {
         findsOneWidget);
     expect(
       find.byKey(const ValueKey('task-due-device-calendar-task-due:interaction-task')),
-      findsOneWidget,
+      findsNothing,
     );
 
     await tester.tap(
@@ -624,12 +625,10 @@ void main() {
     await tester.pumpAndSettle();
     expect(deleted, 1);
 
-    await tester.longPress(
+    await tester.fling(
       find.byKey(const ValueKey('calendar-pastel-card-task-due:interaction-task')),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(
-      find.byKey(const ValueKey('task-due-device-calendar-task-due:interaction-task')),
+      const Offset(500, 0),
+      1000,
     );
     await tester.pumpAndSettle();
     expect(registered, 1);
