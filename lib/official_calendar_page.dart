@@ -220,8 +220,9 @@ class _OfficialCalendarPageState extends State<OfficialCalendarPage>
         // Keep CalendarPage at a stable tree position so late official/external
         // data merges without resetting the user's selected date or view.
         // Optional official/provider loading must never replace canonical
-        // Arvin Task reminders. Merge by stable reminder identity and keep
-        // canonical entries authoritative when an ID is already present.
+        // Arvin Task reminders. Provider success may legitimately return an
+        // empty list; merge by stable reminder identity and keep canonical
+        // entries authoritative when an ID is already present.
         final remindersById = <String, CalendarReminder>{
           for (final reminder in widget.reminders) reminder.id: reminder,
         };
