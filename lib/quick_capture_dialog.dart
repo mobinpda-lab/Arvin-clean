@@ -220,7 +220,10 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       if (!mounted) return;
       _controller.clear();
       _descriptionController.clear();
-      setState(() => _saving = false);
+      setState(() {
+        _priority = TaskPriority.medium;
+        _saving = false;
+      });
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) FocusScope.of(context).requestFocus(_titleFocus);
       });
@@ -254,7 +257,10 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
         _controller.clear();
         _descriptionController.clear();
       }
-      setState(() => _saving = false);
+      setState(() {
+        if (saved) _priority = TaskPriority.medium;
+        _saving = false;
+      });
     } catch (_) {
       if (!mounted) return;
       setState(() {

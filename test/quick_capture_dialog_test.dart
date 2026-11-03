@@ -10,7 +10,7 @@ void main() {
     await tester.pumpWidget(MaterialApp(home: Scaffold(body: QuickCaptureDialog(
       idFactory: () => 'priority-capture',
       now: () => DateTime(2026, 11, 3, 10),
-      onCaptured: (task) async => captured = task,
+      onCaptured: (task) async { captured = task; },
     ))));
     await tester.pumpAndSettle();
     final p2 = find.byKey(const ValueKey('quick-capture-priority-medium'));
@@ -23,6 +23,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(captured, isNotNull);
     expect(captured!.priority, TaskPriority.high);
+    expect(tester.widget<ChoiceChip>(p2).selected, isTrue);
   });
 
   testWidgets('quick capture returns canonical Task with Persian title and tags',
