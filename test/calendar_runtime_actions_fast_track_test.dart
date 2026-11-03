@@ -128,7 +128,8 @@ void main() {
       ),
     ];
 
-    for (final reminder in reminders) {
+    for (var index = 0; index < reminders.length; index++) {
+      final reminder = reminders[index];
       await tester.pumpWidget(
         MaterialApp(
           home: CalendarPage(
@@ -157,9 +158,11 @@ void main() {
       expect(delete, findsNothing);
 
       final card = find.byKey(ValueKey('reminder-card-${reminder.id}'));
+      await tester.ensureVisible(card);
+      await tester.pump(const Duration(milliseconds: 100));
       await tester.tap(card);
       await tester.pump();
-      expect(opened, greaterThan(0));
+      expect(opened, index + 1);
 
       await tester.longPress(card);
       await tester.pumpAndSettle();
