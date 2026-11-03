@@ -123,3 +123,14 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - Updated Home filter contract tests to assert the absent standalone key, retained per-filter All choices, natural default task display, and independent category clearing while Time remains active.
 - No task schema, database record, persistence path, or task data changed. Validation must be reported against the resulting exact SHA.
 - PR #3052 remains OPEN / DRAFT / UNMERGED; Release **BLOCKED — RELEASE: NO-GO**.
+
+
+## 2026-11-03 — Wave 7.304 Task Details explicit due-date action
+- Added a separate, clearly labeled **«تنظیم موعد برای امروز»** action immediately below the Task Details Due Date row. Tapping this button changes the Task's due date; it does not navigate or alter CalendarPage's selected day. The Due Date row itself remains display-only.
+- Wired the action through the existing `TaskMoveToTodayService` and canonical `TaskStore` path. It uses Arvin's existing Iran-local date reference, preserves the existing due time (or uses the current Iran-local hour/minute for an undated Task), and updates only `dueDate` plus `updatedAt`.
+- The detail page reloads the returned canonical Task after saving and refreshes the displayed due date. Other Task fields, reminder schedule, checklist, taxonomy and FollowUp history are preserved by the existing service.
+- Added a Task Details widget regression covering button placement, explicit tap, Jalali/local-day display, canonical storage reload, preserved due time and unrelated fields. Added a Home regression that completes a task, reopens the app, and verifies the task remains accessible in Archive with its description, checklist and FollowUp history.
+- Re-audited Home/Calendar: no independent Home jump-to-today control exists; CalendarPage's `calendar-today` and `calendar-date-jump` controls are retained unchanged. The Home overdue close indicator dismisses only the overdue warning in the current Home state; it does not clear or persistently modify the due date. For a non-overdue task, the same control clears and saves the due date.
+- Previous exact-SHA Build on `4eb65a761870422cdbf1aebdd08abd3d4dec523a` failed: Analyze exited 1 with 12 existing info/warning diagnostics (not a Task Details finding); shard test-0 had 201 passed / 1 failed because `home_filter_contract_test.dart` expected missing text `همه مراکز`; shards test-1 through test-5 passed. Device Smoke was still in progress at the checkpoint. Calendar Provider and Draft Review APK completed successfully; review APK artifact exists and is review-only, not releasable.
+- New source/test commits through `42f249d64dbfe1c825e3f6207c8b48018c85fc58`. Exact-head CI for this source update and final documentation SHA is required; no PASS is inferred from parent-SHA runs.
+- PR #3052 remains OPEN / DRAFT / UNMERGED; `main` unchanged. Release remains **BLOCKED — RELEASE: NO-GO**.
