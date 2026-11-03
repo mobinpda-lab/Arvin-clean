@@ -710,4 +710,43 @@ void main() {
     expect(saved.dueDate, DateTime.parse(dueDate));
   });
 
+
+  testWidgets('completed Home task remains available in Archive after app reopen',
+      (tester) async {
+    await TaskStore.resetTestDatabase();
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"reopen-archive","title":"کار بایگانی پس از بازگشایی","description":"اطلاعات محفوظ","completed":false,"checklist":["[ ] مورد"],"followUps":[{"id":"reopen-history","dateTime":"2026-10-20T09:00:00.000","note":"سابقه محفوظ"}]}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+    expect(find.text('کار بایگانی پس از بازگشایی'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('task-card-toggle-reopen-archive')));
+    await tester.pumpAndSettle();
+    expect(find.text('کار بایگانی پس از بازگشایی'), findsNothing);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+    expect(find.text('کار بایگانی پس از بازگشایی'), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ListTile, 'بایگانی'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('کار بایگانی پس از بازگشایی'), findsOneWidget);
+    final saved = (await TaskStore().load())
+        .singleWhere((task) => task.id == 'reopen-archive');
+    expect(saved.completed, isTrue);
+    expect(saved.archived, isTrue);
+    expect(saved.description, 'اطلاعات محفوظ');
+    expect(saved.checklist, const ['[ ] مورد']);
+    expect(saved.followUps.single.id, 'reopen-history');
+    expect(saved.followUps.single.note, 'سابقه محفوظ');
+  });
+
+
 }
