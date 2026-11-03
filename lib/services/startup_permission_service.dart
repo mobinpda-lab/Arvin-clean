@@ -38,7 +38,10 @@ class StartupPermissionService {
 
   Future<void> _requestOnStartup() async {
     final preferences = _preferences ?? await SharedPreferences.getInstance();
-    if (preferences.getBool(_promptedKey) == true) return;
+    if (preferences.getBool(_promptedKey) == true) {
+      await ensureCalendarProvisioned();
+      return;
+    }
     try {
       if (Platform.isAndroid ||
           _notificationPermissionRequester != null ||
@@ -71,6 +74,25 @@ class StartupPermissionService {
     }
     final android = _notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
     await android?.requestNotificationsPermission();
+  }
+
+  /// Re-checks the app-owned calendar on every launch, including upgrades
+  /// where the one-time permission prompt was already acknowledged.
+  Future<void> ensureCalendarProvisioned() async {
+    try {
+      final granted = await _calendarChannel.invokeMethod<bool>(
+            'calendarWritePermissionGranted',
+          ) ??
+          false;
+      if (!granted) return;
+      await _calendarChannel.invokeMethod<Map<Object?, Object?>>(
+        'ensureArvinLocalCalendar',
+      );
+    } on MissingPluginException {
+      // Native calendar integration is unavailable on this platform.
+    } on PlatformException {
+      // Calendar provisioning must never block the canonical Task store.
+    }
   }
 
   Future<void> _requestCalendarPermission() async {
