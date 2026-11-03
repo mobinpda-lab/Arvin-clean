@@ -61,6 +61,26 @@ void main() {
     expect(reloaded.description, original.description);
   });
 
+  test('all-day Tasks remain date-only when moved to today', () async {
+    final store = TaskStore();
+    await store.save(<Task>[
+      Task(
+        id: 'all-day-date-only',
+        title: 'کار تمام‌روز',
+        allDay: true,
+        dueDate: DateTime(2026, 8, 20, 14, 35),
+      ),
+    ]);
+
+    final moved = await TaskMoveToTodayService(store: store).move(
+      'all-day-date-only',
+      now: DateTime(2026, 8, 28, 10, 7),
+    );
+
+    expect(moved.dueDate, DateTime(2026, 8, 28));
+    expect(moved.allDay, isTrue);
+  });
+
   test('default Move to Today uses the canonical Iran-local calendar day',
       () async {
     final store = TaskStore();
