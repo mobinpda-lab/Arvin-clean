@@ -150,7 +150,7 @@ void main() {
   });
 
 
-  testWidgets('Home uses the four cards as combined filters and preserves time grouping',
+  testWidgets('Home uses the five checkbox filters as combined filters and preserves time grouping',
       (tester) async {
     final today = IranClock.now();
     final isoToday = DateTime(today.year, today.month, today.day, 10).toIso8601String();
@@ -170,18 +170,21 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('home-filter-card-time')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('امروز').last);
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'امروز'));
+    await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('home-filter-card-category')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('اتاق').last);
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'اتاق'));
+    await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('home-filter-card-tags')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('نوزاد'));
-    await tester.tap(find.text('تعویض'));
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'نوزاد'));
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'تعویض'));
+    await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
     expect(find.text('کار منطبق'), findsOneWidget);
@@ -598,7 +601,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('home-filter-card-time')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('گذشته').last);
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'گذشته'));
+    await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
     expect(find.text('موعد امروز'), findsNothing);
@@ -695,7 +699,8 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('home-filter-card-time')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('گذشته'));
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'گذشته'));
+    await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
     expect(find.text('کار گذشته برای بایگانی'), findsOneWidget);

@@ -121,9 +121,9 @@ void main() {
     await tester.tap(find.text('دسته‌بندی‌ها'));
     await tester.pumpAndSettle();
     expect(find.text('همه'), findsOneWidget);
-    await tester.tap(find.text('اداری'));
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'اداری'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('شخصی'));
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'شخصی'));
     await tester.pumpAndSettle();
     // Draft choices are not applied before the explicit confirmation.
     expect(find.text('مالی'), findsOneWidget);
@@ -144,13 +144,13 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('دسته‌بندی‌ها'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('اداری'));
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'اداری'));
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('برچسب‌ها'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('مهم'));
-    await tester.tap(find.text('فوری'));
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'مهم'));
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'فوری'));
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
     expect(find.text('اول'), findsOneWidget);
@@ -177,7 +177,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
-    expect(find.text('زمان (2)'), findsOneWidget);
+    expect(find.text('زمان (۲)'), findsOneWidget);
     expect(find.text('کار گذشته'), findsOneWidget);
     expect(find.text('کار امروز'), findsOneWidget);
     expect(find.text('کار فردا'), findsNothing);

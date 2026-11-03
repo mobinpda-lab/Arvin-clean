@@ -1,3 +1,11 @@
+## 2026-11-03 — Filter test alignment and Persian count labels
+
+- Multi-selection counts on the five Home filter chips and active-filter summary chips now use Persian digits, including the Time dimension.
+- Updated legacy Home widget tests to toggle CheckboxListTile rows and press the explicit Apply action; ambiguous text finders were replaced with row-scoped finders.
+- Added/retained OR-within-dimension and AND-between-dimension assertions for categories and tags, plus Time OR coverage.
+- No schema, Task, Reminder, Follow-up, Calendar or navigation behavior changed.
+- Exact-SHA Build/Device Smoke/Calendar Provider/File Persistence/Draft APK runs remain the release evidence gate; local Flutter tests not run. Release remains BLOCKED — RELEASE: NO-GO.
+
 ## 2026-11-03 — Checkbox filter confirmation and unified time ranges
 
 - Added an explicit checkbox row for «بازهٔ دلخواه»; its date/time bounds are draft-only and the single bottom «تأیید / اعمال فیلتر» action commits the selected time options together.
