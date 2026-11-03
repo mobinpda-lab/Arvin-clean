@@ -100,6 +100,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final sheetScrollable = find.byType(Scrollable).last;
+    await tester.scrollUntilVisible(find.text('بازهٔ دلخواه'), 300, scrollable: sheetScrollable);
     final customRange = find.widgetWithText(CheckboxListTile, 'بازهٔ دلخواه');
     expect(customRange, findsOneWidget);
     await tester.ensureVisible(customRange);
@@ -134,7 +135,7 @@ void main() {
     await tester.tap(find.widgetWithText(CheckboxListTile, 'شخصی'));
     await tester.pumpAndSettle();
     // Draft choices are not applied before the explicit confirmation.
-    expect(find.text('مالی'), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-card-title-three')), findsOneWidget);
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
     expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-category')), matching: find.text('دسته‌بندی‌ها (۲)')), findsOneWidget);

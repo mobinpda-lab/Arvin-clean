@@ -1,3 +1,9 @@
+## 2026-11-03 — Filter regression finder precision
+
+- Scrolled the lazy time-filter list to the «بازهٔ دلخواه» row before asserting its CheckboxListTile.
+- Scoped the pre-apply category assertion to the persisted task-card title key, avoiding collisions with the same category label in the filter sheet and task metadata.
+- Test-only correction; no runtime behavior changed.
+
 ## 2026-11-03 — Filter count assertions
 
 - Scoped count-label assertions to their corresponding top filter chips, because the active-filter summary row intentionally repeats the selected dimension/count.
