@@ -69,6 +69,44 @@ void main() {
     expect(calendar, 1);
   });
 
+  test('already-prompted startup retries local calendar provisioning', () async {
+    SharedPreferences.setMockInitialValues(<String, Object>{
+      'startup_permissions_prompted_v1': true,
+    });
+    final preferences = await SharedPreferences.getInstance();
+    const channel = MethodChannel('arvin/system_calendar');
+    final calls = <String>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+      calls.add(call.method);
+      if (call.method == 'calendarWritePermissionGranted') return true;
+      if (call.method == 'ensureArvinLocalCalendar') {
+        return <String, Object?>{
+          'id': 'arvin-local-1',
+          'displayName': 'Arvin',
+          'isArvinLocal': true,
+        };
+      }
+      return null;
+    });
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    });
+
+    final service = StartupPermissionService(
+      preferences: preferences,
+      calendarChannel: channel,
+    );
+    await service.requestOnStartup();
+
+    expect(calls, [
+      'calendarWritePermissionGranted',
+      'ensureArvinLocalCalendar',
+    ]);
+    expect(preferences.getBool('startup_permissions_prompted_v1'), isTrue);
+  });
+
   test('active native permission request does not fail startup', () async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     final preferences = await SharedPreferences.getInstance();
