@@ -178,9 +178,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           ? await move(_task)
           : await TaskMoveToTodayService().move(_task.id);
       if (!mounted) return;
-      if (updated == null) {
-        throw StateError('Task due date update was not persisted.');
-      }
       setState(() {
         _task = updated;
         _isMovingDueDateToToday = false;
