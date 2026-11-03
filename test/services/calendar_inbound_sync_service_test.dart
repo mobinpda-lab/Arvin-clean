@@ -51,9 +51,13 @@ void main() {
     expect(after.title, before.title);
     expect(after.dueDate, before.dueDate);
     expect(after.reminderDate, before.reminderDate);
-    expect(after.taskReminders.map((item) => item.id), ['reminder-1']);
-    expect(after.taskReminders.single.title, 'یادآور مستقل');
-    expect(after.taskReminders.single.date, DateTime(2026, 10, 8, 9));
+    expect(after.taskReminders.map((item) => item.id).toSet(),
+        {'reminder-1', 'legacy-task-reminder'});
+    final independent = after.taskReminders.singleWhere(
+      (item) => item.id == 'reminder-1',
+    );
+    expect(independent.title, 'یادآور مستقل');
+    expect(independent.date, DateTime(2026, 10, 8, 9));
   });
 
   test('provider deletion or movement has no inbound mutation entry point', () async {
