@@ -5,8 +5,13 @@ import 'package:arvin/services/task_store.dart';
 import 'package:arvin/task_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  setUp(() {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+  });
+
   testWidgets(
     'Task Details explicit today action sits below Due Date and persists only the date change',
     (tester) async {
