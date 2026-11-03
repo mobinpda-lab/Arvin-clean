@@ -190,7 +190,7 @@ void main() {
     );
     await tester.tap(find.text('تقویم'));
     await _pumpRouteTransition(tester);
-    final card = find.byKey(ValueKey('reminder-card-task-due:calendar-open-task:${due.toIso8601String()}'));
+    final card = find.byKey(const ValueKey('reminder-card-task-due:calendar-open-task'));
     for (var i = 0; i < 30 && card.evaluate().isEmpty; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
@@ -518,6 +518,7 @@ void main() {
         count: 10,
       ),
     );
+    Task? opened;
     Task? edited;
     Task? deleted;
     final projection = _RecordingCalendarProjection();
@@ -527,6 +528,7 @@ void main() {
         home: CanonicalCalendarLauncher(
           tasks: <Task>[task],
           projection: projection,
+          onOpenTask: (value) async => opened = value,
           onEditTask: (value) async => edited = value,
           onDeleteTask: (value) async => deleted = value,
           onRegisterTaskToDeviceCalendar: (_) async {},
@@ -565,7 +567,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     await tester.tap(card);
     await tester.pump();
-    expect(identical(edited, task), isTrue);
+    expect(identical(opened, task), isTrue);
+    expect(edited, isNull);
 
     await tester.longPress(card);
     await _pumpRouteTransition(tester);
