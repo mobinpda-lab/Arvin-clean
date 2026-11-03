@@ -2029,7 +2029,15 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _toggle(Task task) async {
-    setState(() => task.setCompleted(!task.completed));
+    setState(() {
+      final completingFromActiveHome =
+          !task.completed && !task.archived && !task.trashed;
+      task.setCompleted(!task.completed);
+      if (completingFromActiveHome) {
+        task.archived = true;
+        task.trashed = false;
+      }
+    });
     await _save();
   }
 
@@ -3104,13 +3112,9 @@ class _HomePageState extends State<HomePage> {
                         icon: Icon(
                           task.completed
                               ? Icons.check_circle_rounded
-                              : late
-                              ? Icons.warning_amber_rounded
                               : Icons.radio_button_unchecked_rounded,
                           color: task.completed
                               ? ArvinColors.taskStatusGreen
-                              : late
-                              ? ArvinColors.taskStatusAmber
                               : colors.primary,
                         ),
                       ),
@@ -3121,8 +3125,9 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       Text(
                         task.title,
+                        key: ValueKey('task-card-title-${task.id}'),
                         style: TextStyle(
-                          color: ArvinColors.textPrimary,
+                          color: late ? ArvinColors.error : ArvinColors.textPrimary,
                           fontWeight: FontWeight.w700,
                           fontSize: 14,
                           decoration: task.completed
@@ -3179,8 +3184,9 @@ class _HomePageState extends State<HomePage> {
                           children: [
                             Icon(
                               Icons.calendar_today_outlined,
+                              key: ValueKey('task-card-due-icon-${task.id}'),
                               size: 15,
-                              color: late ? ArvinColors.error : ArvinColors.textSecondary,
+                              color: ArvinColors.textSecondary,
                             ),
                             const SizedBox(width: 4),
                             Expanded(
