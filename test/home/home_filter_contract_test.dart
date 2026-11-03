@@ -124,8 +124,8 @@ void main() {
     await tester.ensureVisible(workCategoryOption);
     await tester.tap(workCategoryOption);
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('بستن'));
-    await tester.pumpAndSettle();
+    // Selecting a category closes its single-select sheet automatically.
+    expect(find.byTooltip('بستن'), findsNothing);
     expect(find.byKey(const ValueKey('home-filter-card-time')), findsOneWidget);
     expect(find.text('امروز'), findsAtLeastNWidgets(1));
     expect(find.text('کار فردا'), findsNothing);
