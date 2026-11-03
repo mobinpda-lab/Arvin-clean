@@ -134,9 +134,8 @@ class CalendarProviderSyncExecutor {
             throw StateError('Update plan item is missing revision/link data.');
           }
 
-          // Provider IDs are installation-local and may be stale after restore,
-          // calendar edits, or provider-side deletion. Never mutate or replace an
-          // event until the exact (calendarId, eventId) identity is verified.
+          // Provider IDs are installation-local and may be stale after restore or
+          // provider-side deletion. Verify ownership before mutating an Arvin event.
           if (link.calendarId == calendarId) {
             final linkedEventExists = await bridge.verifyProviderEventIdentity(
               reminderId: item.reminderId,
@@ -186,20 +185,6 @@ class CalendarProviderSyncExecutor {
           );
           if (replacementEventId == null) {
             throw StateError('Calendar Provider did not create replacement event.');
-          }
-
-          final removedOld = await bridge.deleteProviderEvent(
-            reminderId: item.reminderId,
-            calendarId: link.calendarId,
-            eventId: link.eventId,
-          );
-          if (!removedOld) {
-            await bridge.deleteProviderEvent(
-              reminderId: item.reminderId,
-              calendarId: calendarId,
-              eventId: replacementEventId,
-            );
-            throw StateError('Calendar Provider did not remove the old linked event.');
           }
 
           links[item.reminderId] = ExternalCalendarEventLink(
