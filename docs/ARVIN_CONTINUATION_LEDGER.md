@@ -1451,3 +1451,33 @@ Run 41451772502 / Job 125298740317 on the same SHA completed FAILURE. Gradle sta
 - Exact-SHA workflow checkpoint: Build `41593575999` (Analyze SUCCESS; six test shards in progress); Device Smoke `41593575925` (Boot and Navigation in progress; Quick Capture, Calendar Segmented View, Task Lifecycle, Reminder/Vazirmatn and Follow-up Persistence queued); Calendar Provider `41593576051` in progress; Draft Review APK `41593576139` in progress; Follow-up File Persistence `41593576023` in progress. No APK artifact is yet verified for this SHA.
 - Superseded intermediate attempt `e3faf8a7eaa452c28d1a6428c90f9d9633b04efc`: Analyze SUCCESS, but shard test-0 failed in Home filter contract due to an invalid expectation that the single-select category sheet still showed its close tooltip after selecting a category. The test was corrected to target the category RadioListTile and assert auto-dismiss; latest source/test SHA is `2ab0bf7ddaa5c1a206cce415d381945311275f30`. This intermediate failure is not hidden or counted as a final result.
 - Release remains **BLOCKED — RELEASE: NO-GO**. PR #3052 must remain OPEN / DRAFT / UNMERGED; main remains unchanged.
+
+
+## 2026-11-03 — Priority owner directive audit (exact source/test HEAD ec59d91c573f160c3367b9834ddc6716469aeba0)
+
+**Decision baseline:** New Tasks default to P2 (blue) in both the main editor and Quick Capture. Legacy high/medium/low/none map to P1 red / P2 blue / P3 amber / P4 grey. No destructive rewrite or bulk normalization is allowed. Past ordering must keep incomplete Tasks above completed Tasks.
+
+**Source findings — verified:**
+- `Task.priority` constructor default = `TaskPriority.medium`; Task Editor initializes `_priority = task?.priority ?? TaskPriority.medium`.
+- Quick Capture initializes P2, writes the selected priority to the canonical Task, and resets to P2 after successful save.
+- Legacy decoder accepts enum names and P1–P4 aliases. high/medium/low/none map to their matching levels; absent/unknown legacy values remain P4 (safe fallback), not a new-Task default.
+- Priority codes/order and color mapping are P1→P4: red, blue, amber, grey.
+- `TaskListSortService.sortPast` compares completion first (unfinished first), then priority and due date. `TaskReport.priorityGroups` iterates enum order and preserves input order within each group.
+
+**Exact-HEAD test evidence — Build run 41625892691:**
+- PASS: `task_priority_compatibility_test.dart` P1–P4 alias compatibility.
+- PASS: `task_report_projection_test.dart` P1→P4 group order.
+- PASS: `task_list_sort_service_test.dart` Past incomplete-first ordering.
+- PASS: `quick_capture_dialog_test.dart` P2 default/persistence, timed Quick Add auto-reminder, and manual reminder independent of due time.
+- Six shard logs contain no `RenderFlex overflowed by 44 pixels` signature. The reported 44px chip-overflow defect has no located dedicated test/reproducer in this run and remains **NOT VERIFIED**; do not claim fixed or add a speculative layout change.
+
+**Current Build blockers (not priority defects):**
+- Analyze SUCCESS.
+- test-0 FAILURE: `canonical_calendar_launcher_test.dart` could not find the expected Task Details key (208 passed / 1 failed).
+- test-5 FAILURE: `calendar_runtime_actions_fast_track_test.dart` expected two matching actions but found one; `canonical_calendar_launcher_test.dart` repeat occurrence expected true but received false (160 passed / 2 failed).
+- test-1 through test-4 SUCCESS. Draft APK matrix was skipped by the Draft guard.
+- Device Smoke run 41625892658 was QUEUED; Calendar Provider run 41625892940 was IN_PROGRESS; Follow-up File Persistence run 41625892728 was SUCCESS at checkpoint.
+
+**Changes:** no application source or test changes. This entry records a read-only audit; no priority rewrite is justified by current evidence. No tests/assertions/scenarios/timeouts were removed, skipped or weakened.
+
+**Disposition:** priority contract source-level and listed focused-test evidence PASS on this exact SHA; 44px visual issue NOT VERIFIED; aggregate Build FAILURE due to three unrelated Calendar test failures. Iran timestamp: 1405/08/12 14:49 (Asia/Tehran). PR #3052 OPEN / DRAFT / UNMERGED; main untouched; **BLOCKED — RELEASE: NO-GO**.
