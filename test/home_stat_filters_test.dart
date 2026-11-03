@@ -12,11 +12,12 @@ void main() {
     });
   });
 
-  testWidgets('Home exposes the four final grouping controls', (tester) async {
+  testWidgets('Home exposes the five canonical filter controls', (tester) async {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
     expect(find.text('زمان'), findsOneWidget);
+    expect(find.text('مرکز'), findsOneWidget);
     expect(find.text('پروژه‌ها'), findsOneWidget);
     expect(find.text('دسته‌بندی‌ها'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
@@ -59,6 +60,7 @@ void main() {
     expect(find.byKey(const ValueKey('home-canonical-search')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-search-button')), findsOneWidget);
     expect(find.text('زمان'), findsOneWidget);
+    expect(find.text('مرکز'), findsOneWidget);
     expect(find.text('پروژه‌ها'), findsOneWidget);
     expect(find.text('دسته‌بندی‌ها'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);

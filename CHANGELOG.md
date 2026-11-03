@@ -1,3 +1,12 @@
+## 2026-11-03 — Commit B: Home filter semantics and five-filter coverage
+
+- Home active-filter state now includes Center, so clear-filter affordances remain visible when Center is the only active filter.
+- Home multi-select Tags now use OR semantics through the pure homeTaskMatchesAnySelectedTag matcher; independent filter dimensions remain AND-combined.
+- Updated Home filter regression coverage to include the fifth Center control and the compact viewport.
+- Added focused unit tests for OR matching and the empty-selection behavior. No persistence/schema behavior changed.
+- Local Flutter tests were not run in this environment; exact-HEAD Build CI is required before treating the change as accepted.
+- PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; release BLOCKED — RELEASE: NO-GO.
+
 ## 2026-11-03 — Exact-SHA 24-domain architecture/product audit
 
 - Added docs/qa/ARVIN_MASTER_SPEC_24_DOMAIN_AUDIT_2026-11-03.md, audited directly against PR branch HEAD 469f9a5b0140bb69f6f415e1ad8ad0eee28e2983.

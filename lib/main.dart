@@ -39,6 +39,7 @@ import 'services/system_calendar_bridge.dart';
 
 import 'services/home_list_projection.dart';
 import 'services/home_search_projection.dart';
+import 'services/home_task_filter_matcher.dart';
 import 'services/home_follow_up_presentation_service.dart';
 import 'services/task_due_scope_service.dart';
 import 'services/task_list_scope_service.dart';
@@ -669,6 +670,7 @@ class _HomePageState extends State<HomePage> {
   bool get _homeFilterActive =>
       query.trim().isNotEmpty ||
       _timeFilter != 'all' ||
+      _centerFilter != null ||
       _projectFilter != null ||
       _categoryFilter != null ||
       _tagFilters.isNotEmpty;
@@ -785,10 +787,9 @@ class _HomePageState extends State<HomePage> {
         }
       }
       if (_tagFilters.isNotEmpty) {
-        scoped = scoped.where((task) {
-          final tags = task.tags.map((value) => value.trim()).where((value) => value.isNotEmpty).toSet();
-          return _tagFilters.every(tags.contains);
-        });
+        scoped = scoped.where(
+          (task) => homeTaskMatchesAnySelectedTag(task, _tagFilters),
+        );
       }
     }
 
