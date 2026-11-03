@@ -332,7 +332,9 @@ class SystemCalendarBridge {
     final normalizedEventId = eventId.trim();
     if (!isExportableTaskReminderId(reminderId) ||
         normalizedCalendarId.isEmpty ||
-        normalizedEventId.isEmpty) return false;
+        normalizedEventId.isEmpty) {
+      return false;
+    }
     try {
       return await _channel.invokeMethod<bool>(
             verifyProviderEventIdentityMethod,
