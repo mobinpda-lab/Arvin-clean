@@ -7,6 +7,7 @@ void main() {
     final calendar = File('lib/calendar_page.dart').readAsStringSync();
     final detail = File('lib/task_detail_page.dart').readAsStringSync();
     final main = File('lib/main.dart').readAsStringSync();
+    final settings = File('lib/calendar_integration_settings_page.dart').readAsStringSync();
     expect(calendar, contains('case CalendarSwipeAction.sync:'));
     expect(calendar, contains('_isTaskRecord'));
     expect(calendar, isNot(contains('task-due-device-calendar-')));
@@ -15,6 +16,10 @@ void main() {
     expect(launcher, isNot(contains('_CalendarMoreAction.retrySync')));
     expect(launcher, contains('_CalendarMoreAction.nextAction'));
     expect(detail, contains('task-detail-send-device-calendar'));
+    expect(settings, contains('calendar-explicit-export-policy'));
+    expect(settings, isNot(contains('calendar-auto-sync')));
+    expect(settings, isNot(contains('calendar-sync-followups')));
+    expect(settings, isNot(contains('calendar-sync-followup-reminders')));
     expect(main, contains('onRegisterTaskToDeviceCalendar: _registerTaskInDeviceCalendar'));
     expect(main, contains('onRegisterTaskToDeviceCalendar: _registerTaskFromDetails'));
   });

@@ -292,7 +292,7 @@ class _CalendarIntegrationSettingsPageState
                   ),
                   const Divider(height: 32),
                   const Text(
-                    'موارد قابل همگام‌سازی',
+                    'موارد قابل ارسال با اقدام صریح',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   _switch(
@@ -311,21 +311,6 @@ class _CalendarIntegrationSettingsPageState
                         current.copyWith(syncTaskReminders: value),
                   ),
                   _switch(
-                    key: const ValueKey('calendar-sync-followups'),
-                    title: 'پیگیری‌ها',
-                    subtitle: 'تاریخ خود پیگیری‌ها',
-                    value: current.syncFollowUps,
-                    update: (value) => current.copyWith(syncFollowUps: value),
-                  ),
-                  _switch(
-                    key: const ValueKey('calendar-sync-followup-reminders'),
-                    title: 'یادآور پیگیری‌ها',
-                    subtitle: 'Reminder مستقل هر پیگیری',
-                    value: current.syncFollowUpReminders,
-                    update: (value) =>
-                        current.copyWith(syncFollowUpReminders: value),
-                  ),
-                  _switch(
                     key: const ValueKey('calendar-sync-recurrence'),
                     title: 'تکرار کارها',
                     subtitle:
@@ -334,13 +319,23 @@ class _CalendarIntegrationSettingsPageState
                     update: (value) => current.copyWith(syncRecurrence: value),
                   ),
                   const Divider(height: 32),
-                  _switch(
-                    key: const ValueKey('calendar-auto-sync'),
-                    title: 'ثبت خودکار کارها در تقویم مقصد',
-                    subtitle:
-                        'هر Task دارای موعد/یادآور مجاز، با تقویم مقصد انتخاب‌شده همگام می‌شود.',
-                    value: current.autoSync,
-                    update: (value) => current.copyWith(autoSync: value),
+                  Card(
+                    key: const ValueKey('calendar-explicit-export-policy'),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text('ارسال خودکار غیرفعال است', style: TextStyle(fontWeight: FontWeight.bold)),
+                          SizedBox(height: 8),
+                          Text('ارسال به تقویم گوشی فقط با کشیدن کارت Task در تقویم آروین یا دکمهٔ «ارسال به تقویم دستگاه» در جزئیات همان کار انجام می‌شود.'),
+                          SizedBox(height: 8),
+                          Text('تاریخچهٔ پیگیری‌ها و گزارش‌های گذشته به تقویم گوشی صادر نمی‌شوند و برای آن‌ها زنگ آینده ساخته نمی‌شود.'),
+                          SizedBox(height: 8),
+                          Text('ویرایش یا حذف رویداد گوشی، Task و یادآورهای محلی آروین را تغییر نمی‌دهد.'),
+                        ],
+                      ),
+                    ),
                   ),
                   Card(
                     child: Padding(
