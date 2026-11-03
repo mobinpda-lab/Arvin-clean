@@ -83,8 +83,12 @@ class _ProjectTemplateManagementPageState extends State<ProjectTemplateManagemen
   Future<void> _addTask(ProjectTemplate template, {ProjectTemplateTask? existing}) async {
     final definition = await _taskDialog(existing: existing); if (definition == null) return;
     final tasks = [...template.tasks];
-    if (existing == null) tasks.add(definition);
-    else { final index = tasks.indexWhere((item) => item.id == existing.id); if (index >= 0) tasks[index] = definition; }
+    if (existing == null) {
+      tasks.add(definition);
+    } else {
+      final index = tasks.indexWhere((item) => item.id == existing.id);
+      if (index >= 0) tasks[index] = definition;
+    }
     final updated = template.copyWith(tasks: tasks, updatedAt: DateTime.now());
     await _saveTemplate(updated);
     if (existing == null) await _offerPropagation(updated, definition);
