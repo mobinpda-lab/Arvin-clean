@@ -11,6 +11,7 @@ void main() {
     DateTime? createdAt,
     DateTime? updatedAt,
     List<FollowUp> followUps = const [],
+    bool completed = false,
   }) {
     return Task(
       id: id,
@@ -19,6 +20,7 @@ void main() {
       createdAt: createdAt,
       updatedAt: updatedAt,
       followUps: followUps,
+      completed: completed,
     );
   }
 
@@ -120,6 +122,27 @@ void main() {
       <Task>[beta, alpha],
     );
     expect(source, <Task>[beta, alpha]);
+  });
+
+  test('past sort puts incomplete tasks first and sorts dates oldest first within each group', () {
+    final openOlder = task('open-older', dueDate: DateTime(2026, 8, 20));
+    final openNewer = task('open-newer', dueDate: DateTime(2026, 8, 25));
+    final doneOlder = task(
+      'done-older',
+      dueDate: DateTime(2026, 8, 18),
+      completed: true,
+    );
+    final doneNewer = task(
+      'done-newer',
+      dueDate: DateTime(2026, 8, 27),
+      completed: true,
+    );
+
+    final result = const TaskListSortService().sortPast(
+      [doneNewer, openNewer, doneOlder, openOlder],
+    );
+
+    expect(result, [openOlder, openNewer, doneOlder, doneNewer]);
   });
 
   test('equal sort values use deterministic id tie break', () {
