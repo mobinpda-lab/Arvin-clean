@@ -4,6 +4,7 @@ import 'package:arvin/services/calendar_outbound_sync_service.dart';
 import 'package:arvin/services/calendar_provider_sync_executor.dart';
 import 'package:arvin/services/calendar_sync_plan_service.dart';
 import 'package:arvin/services/external_calendar_link_store.dart';
+import 'package:arvin/services/system_calendar_bridge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -41,7 +42,21 @@ class _Links extends ExternalCalendarLinkStore {
   }
 }
 
+class _ArvinBridge extends SystemCalendarBridge {
+  @override
+  Future<DeviceCalendarInfo?> ensureArvinLocalCalendar() async =>
+      const DeviceCalendarInfo(
+        id: 'arvin-local',
+        displayName: 'Arvin',
+        accessLevel: 700,
+        isArvinLocal: true,
+      );
+}
+
 class _Executor extends CalendarProviderSyncExecutor {
+  _Executor({SystemCalendarBridge? bridge, ExternalCalendarLinkStore? linkStore})
+      : super(bridge: bridge, linkStore: linkStore);
+
   CalendarSyncPlan? receivedPlan;
   String? receivedTarget;
 
@@ -67,6 +82,36 @@ void main() {
         title: 'پیگیری مشتری',
         date: DateTime(2026, 9, 16, 10),
       );
+
+  test('Task lifecycle sync always targets the app-owned Arvin calendar', () async {
+    final executor = _Executor(bridge: _ArvinBridge());
+    final links = _Links([
+      ExternalCalendarEventLink(
+        reminderId: 'task-due:task-1',
+        calendarId: 'google-calendar',
+        eventId: 'external-event-1',
+        lastSyncedFingerprint: 'old',
+      ),
+    ]);
+    final service = CalendarOutboundSyncService(
+      settingsService: _Settings(const CalendarIntegrationSettings()),
+      executor: executor,
+      linkStore: links,
+    );
+
+    final result = await service.syncTaskLifecycle([
+      CalendarReminder(
+        id: 'task-due:task-1',
+        title: 'Task lifecycle sync',
+        description: 'Updated description',
+        date: DateTime(2026, 11, 4, 10),
+      ),
+    ]);
+
+    expect(result?.updated, 1);
+    expect(executor.receivedTarget, 'arvin-local');
+    expect(executor.receivedPlan?.items.single.action, CalendarSyncAction.update);
+  });
 
   test('does nothing while outbound sync is disabled', () async {
     final executor = _Executor();
