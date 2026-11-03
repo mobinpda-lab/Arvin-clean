@@ -6,6 +6,7 @@ void main() {
   test('calendar actions use the shared bottom navigation', () {
     final source = File('lib/widgets/canonical_calendar_launcher.dart')
         .readAsStringSync();
+    final calendar = File('lib/calendar_page.dart').readAsStringSync();
     final navigation = File('lib/widgets/arvin_primary_navigation.dart')
         .readAsStringSync();
 

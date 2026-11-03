@@ -48,7 +48,6 @@ import 'services/persian_date_formatter.dart';
 import 'services/project_store.dart';
 import 'services/center_store.dart';
 import 'services/project_template_store.dart';
-import 'models/project_template.dart';
 import 'services/arvin_route_observer.dart';
 import 'services/task_edit_apply_service.dart';
 import 'services/task_bulk_mutation_service.dart';
