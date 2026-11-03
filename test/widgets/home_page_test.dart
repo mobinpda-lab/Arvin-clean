@@ -642,7 +642,7 @@ void main() {
     );
     final statusIcon = statusButton.icon as Icon;
     expect(statusIcon.icon, Icons.radio_button_unchecked_rounded);
-    expect(statusIcon.color, ThemeData.light().colorScheme.primary);
+    expect(statusIcon.color, ArvinColors.primary);
     expect(tester.takeException(), isNull);
   });
 
