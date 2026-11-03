@@ -2339,28 +2339,6 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _registerTaskInDeviceCalendar(CalendarReminder reminder) async {
     if (!SystemCalendarBridge.isEligible(reminder)) return;
-    var settings = await appSettingsService.load();
-    var targetCalendarId = settings.calendarIntegration.targetCalendarId?.trim();
-    if (targetCalendarId == null || targetCalendarId.isEmpty) {
-      if (!mounted) return;
-      await Navigator.of(context).push<void>(
-        MaterialPageRoute<void>(
-          builder: (_) => CalendarIntegrationSettingsPage(
-            service: appSettingsService,
-          ),
-        ),
-      );
-      if (!mounted) return;
-      settings = await appSettingsService.load();
-      targetCalendarId = settings.calendarIntegration.targetCalendarId?.trim();
-    }
-    if (targetCalendarId == null || targetCalendarId.isEmpty) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ابتدا یک تقویم مقصد را انتخاب کنید.')),
-      );
-      return;
-    }
 
     Task? task;
     for (final prefix in const <String>[
@@ -2371,9 +2349,6 @@ class _HomePageState extends State<HomePage> {
       if (!reminder.id.startsWith(prefix)) continue;
       final suffix = reminder.id.substring(prefix.length);
       for (final candidate in _searchSource) {
-        // Repeat occurrences append an ISO timestamp to the canonical Task
-        // ID (which itself is stable). Match the Task prefix, not the entire
-        // occurrence ID, so each occurrence can still edit/register its Task.
         if (suffix == candidate.id || suffix.startsWith('${candidate.id}:')) {
           task = candidate;
           break;
@@ -2386,48 +2361,36 @@ class _HomePageState extends State<HomePage> {
     final canonical = CalendarReminder(
       id: reminder.id,
       title: task.title,
-      // Keep the selected calendar row's date. For recurrence, this is the
-      // occurrence date, not the Task's original anchor date.
       date: reminder.date,
       completed: task.completed,
       isAllDay: reminder.isAllDay,
       description: task.description,
     );
     try {
-      final revision = await CalendarSyncRevisionService().fromReminder(canonical);
-      final links = await ExternalCalendarLinkStore().load();
-      final selectedLinks = links
-          .where((link) => link.reminderId == reminder.id)
-          .toList(growable: false);
-      final plan = const CalendarSyncPlanService().plan(
-        revisions: <CalendarSyncRevision>[revision],
-        links: selectedLinks,
-        targetCalendarId: targetCalendarId,
-      );
-      final result = await CalendarProviderSyncExecutor().execute(
-        plan: plan,
-        targetCalendarId: targetCalendarId,
+      final result = await calendarOutboundSyncService.syncTaskLifecycle(
+        <CalendarReminder>[canonical],
+        linkedOnly: true,
       );
       if (!mounted) return;
-      final alreadyLinked = selectedLinks.isNotEmpty;
+      if (result == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('تقویم محلی Arvin هنوز آماده نیست؛ کار داخلی آروین محفوظ است.')),
+        );
+        return;
+      }
       final message = result.created > 0
-          ? 'کار در تقویم گوشی ثبت شد.'
+          ? 'کار در تقویم محلی Arvin ثبت شد.'
           : result.updated > 0
-          ? 'رویداد تقویم گوشی به‌روزرسانی شد.'
-          : alreadyLinked
-          ? 'این مورد قبلاً در تقویم گوشی ثبت شده است.'
-          : 'رویداد تقویم گوشی از قبل به‌روز بود.';
+              ? 'رویداد تقویم محلی Arvin به‌روزرسانی شد.'
+              : 'این مورد در تقویم محلی Arvin به‌روز است.';
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     } catch (error) {
       if (!mounted) return;
-      final detail = error.toString();
-      final message = detail.contains('این مورد قبلاً در تقویم گوشی ثبت شده است.')
-          ? 'این مورد قبلاً در تقویم گوشی ثبت شده است.'
-          : 'ثبت در تقویم گوشی انجام نشد: $error';
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('ثبت در تقویم محلی Arvin انجام نشد: $error')),
+      );
     }
   }
-
 
 
   Future<void> _openPrimaryCalendar() async {
