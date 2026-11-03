@@ -636,6 +636,10 @@ void main() {
       find.byKey(const ValueKey('task-card-due-icon-red-overdue')),
     );
     expect(dueIcon.color, ArvinColors.textSecondary);
+    final dueText = tester.widget<Text>(
+      find.textContaining('موعد گذشته:'),
+    );
+    expect(dueText.style?.color, ArvinColors.error);
 
     final statusButton = tester.widget<IconButton>(
       find.byKey(const ValueKey('task-card-toggle-red-overdue')),
