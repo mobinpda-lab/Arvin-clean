@@ -1548,3 +1548,17 @@ PR #3052 remains OPEN / DRAFT / UNMERGED. main untouched. **BLOCKED — RELEASE:
 - Read-only source audit of `lib/services/calendar_provider_sync_executor.dart` and `lib/services/system_calendar_bridge.dart` found the current outbound executor requires an explicit `targetCalendarId` and performs provider CRUD against that selected system calendar. The native bridge also explicitly opens phone-owned events in the source calendar app rather than editing their contents inside Arvin.
 - The Android `CalendarProvisioner` acceptance module provisions `ARVIN CI Acceptance` (test account/calendar) for instrumentation. Its CREATE/NO-OP UPDATE/UPDATE/DELETE PASS proves Provider CRUD in the CI acceptance environment; it does not prove that the production app provisions and owns a dedicated persistent Local Arvin Calendar Provider.
 - Accordingly, Track 3's source-app ownership boundary is supported by the read-only/native-editor path and explicit Import action. Track 2's required dedicated production Arvin calendar and automatic Task lifecycle synchronization remain **NOT VERIFIED**. Do not promote Provider acceptance to full Track-2 product acceptance. A separate production provisioning/lifecycle design and exact-device evidence are still required.
+
+
+## 2026-11-03 — Latest exact-head pipeline checkpoint (documentation baseline deaf50aa9ba380812f611d38e993d9d14b2388dd)
+
+- PR #3052 HEAD at checkpoint: `deaf50aa9ba380812f611d38e993d9d14b2388dd`. PR OPEN / DRAFT / UNMERGED; base `main`; main HEAD remains `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Build #9350 / run `41631777717`: workflow IN_PROGRESS at last poll; Analyze and all six test shards were IN_PROGRESS; ordinary APK matrix SKIPPED by the Draft guard. No shard result is claimed.
+- Device Smoke #6602 / run `41631777262`: preparation SUCCESS; Boot and Navigation IN_PROGRESS; Reminder/Vazirmatn, Follow-up Persistence, Calendar Segmented View, Quick Capture and Task Lifecycle QUEUED. Seven-lane result NOT VERIFIED.
+- Calendar Provider #1501 / run `41631777653`: IN_PROGRESS; no final artifact/result available at checkpoint.
+- Follow-up File Persistence #524 / run `41631777208`: SUCCESS on this exact SHA.
+- Draft Review APK #177 / run `41631777254`: IN_PROGRESS; no artifact available at checkpoint. Do not reuse older-SHA APK artifacts as candidate evidence.
+- Calendar acceptance tests on earlier SHA 681251338c226f6db40bac7d9decde36c1c64d97: Task Details callback/key test PASS and repeat-occurrence canonical Task test PASS. The per-card action-count assertion was not reached because the same test stopped earlier on the unexpected long-press Edit entry; therefore action-count acceptance remains NOT VERIFIED until the corrected exact-head Build finishes.
+- The Home-specific 320×520 RTL test was added, but the f96d6f2 run was cancelled when documentation commits superseded that SHA. It has no terminal result yet. Historical 44px overflow remains NOT VERIFIED.
+- Production Track 2 remains NOT VERIFIED: current outbound sync accepts a selected `targetCalendarId`; the `ARVIN CI Acceptance` provisioner is a test fixture, not proof of a dedicated production Arvin-owned Android calendar. Provider CRUD acceptance must not be described as full production Track-2 acceptance.
+- The next documentation-synchronized HEAD will require its own exact-SHA Build, seven-lane Device Smoke, Provider, Persistence and Draft Review APK checks. No result above transfers to that new SHA.
