@@ -56,6 +56,45 @@ class CalendarOutboundSyncService {
     return null;
   }
 
+  /// Reconciles the canonical Task projection into the app-owned Arvin
+  /// calendar after Task lifecycle mutations. This path deliberately ignores
+  /// optional external-calendar settings: Arvin is the permanent write target.
+  Future<CalendarProviderSyncResult?> syncTaskLifecycle(
+    Iterable<CalendarReminder> reminders,
+  ) async {
+    final arvinCalendar = await executor.bridge.ensureArvinLocalCalendar();
+    if (arvinCalendar == null ||
+        !arvinCalendar.isArvinLocal ||
+        arvinCalendar.id.trim().isEmpty) {
+      return null;
+    }
+
+    final revisions = <CalendarSyncRevision>[];
+    for (final reminder in reminders) {
+      if (!SystemCalendarBridge.isExportableTaskReminderId(reminder.id)) {
+        continue;
+      }
+      try {
+        revisions.add(await revisionService.fromReminder(reminder));
+      } on ArgumentError {
+        // Completed and otherwise ineligible projections must not be exported.
+      }
+    }
+
+    final managedLinks = (await linkStore.load()).where(
+      (link) => SystemCalendarBridge.isExportableTaskReminderId(link.reminderId),
+    );
+    final plan = planService.plan(
+      revisions: revisions,
+      links: managedLinks,
+      targetCalendarId: arvinCalendar.id,
+    );
+    return executor.execute(
+      plan: plan,
+      targetCalendarId: arvinCalendar.id,
+    );
+  }
+
   Future<CalendarProviderSyncResult?> sync(
     Iterable<CalendarReminder> reminders, {
     bool force = false,
