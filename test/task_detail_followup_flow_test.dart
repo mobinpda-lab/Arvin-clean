@@ -3,6 +3,7 @@ import 'package:arvin/services/waiting_for_response_service.dart';
 import 'package:arvin/task_detail_page.dart';
 import 'package:arvin/services/task_move_to_today_service.dart';
 import 'package:arvin/services/task_store.dart';
+import 'package:arvin/services/iran_clock.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -390,6 +391,46 @@ void main() {
     expect(reloaded.checklist, <String>['تماس', 'ارسال']);
     expect(reloaded.followUps.single.id, 'detail-history');
     expect(reloaded.followUps.single.note, 'تاریخچه محفوظ');
+  });
+
+
+
+  testWidgets('Task detail Today action uses canonical TaskStore fallback when opened outside Home',
+      (tester) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    await TaskStore.resetTestDatabase();
+    final store = TaskStore();
+    await store.save(<Task>[
+      Task(
+        id: 'detail-fallback-today',
+        title: 'کار از مسیر دیگر',
+        dueDate: DateTime(2026, 8, 20, 9, 25),
+      ),
+    ]);
+    final nowBeforeTap = IranClock.now();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TaskDetailPage(
+          task: (await store.load()).single,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-detail-move-due-date-to-today')));
+    await tester.pumpAndSettle();
+
+    final saved = (await store.load()).single;
+    final today = IranClock.now();
+    expect(saved.dueDate, isNotNull);
+    expect(
+      DateTime(saved.dueDate!.year, saved.dueDate!.month, saved.dueDate!.day),
+      DateTime(today.year, today.month, today.day),
+    );
+    expect(saved.dueDate!.hour, 9);
+    expect(saved.dueDate!.minute, 25);
+    expect(saved.updatedAt.isBefore(nowBeforeTap), isFalse);
+    expect(find.text('موعد انجام کار برای امروز تنظیم شد'), findsOneWidget);
   });
 
 
