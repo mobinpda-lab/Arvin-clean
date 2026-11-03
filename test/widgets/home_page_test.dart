@@ -538,7 +538,12 @@ void main() {
   });
 
 
-  testWidgets('Home compact filter chips show real taxonomy without counters', (tester) async {
+  testWidgets('Home compact filter chips remain safe on a short RTL viewport', (tester) async {
+    tester.view.physicalSize = const Size(320, 520);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     SharedPreferences.setMockInitialValues({
       'arvin.tasks': '[{"id":"a","title":"کار الف","category":"مشتری","tags":["مهم","تماس"]},{"id":"b","title":"کار ب","category":"فروش","tags":["مهم"]}]',
       'arvin.projects': '[{"id":"active-project","title":"پروژه فعال","isArchived":false,"itemIds":[]},{"id":"archived-project","title":"پروژه بایگانی","isArchived":true,"itemIds":[]}]',
@@ -546,6 +551,12 @@ void main() {
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
+
+    final filterStrip = find.byKey(const ValueKey('home-compact-filter-scroll'));
+    expect(filterStrip, findsOneWidget);
+    expect(Directionality.of(tester.element(filterStrip)), TextDirection.rtl);
+    expect(tester.widget<SingleChildScrollView>(filterStrip).scrollDirection, Axis.horizontal);
+    expect(tester.takeException(), isNull);
 
     expect(find.byKey(const ValueKey('home-filter-card-project')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-category')), findsOneWidget);
