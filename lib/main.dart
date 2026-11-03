@@ -681,6 +681,7 @@ class _HomePageState extends State<HomePage> {
     }
     switch (_timeFilter) {
       case 'today': return 'امروز';
+      case 'past': return 'گذشته';
       case 'tomorrow': return 'فردا';
       case 'next7': return '۷ روز آینده';
       case 'next30': return '۳۰ روز آینده';
@@ -707,6 +708,7 @@ class _HomePageState extends State<HomePage> {
     final today = DateTime(now.year, now.month, now.day);
     final day = DateTime(due.year, due.month, due.day);
     if (_timeFilter == 'today') return day == today;
+    if (_timeFilter == 'past') return day.isBefore(today);
     if (_timeFilter == 'tomorrow') return day == today.add(const Duration(days: 1));
     if (_timeFilter == 'next7') return !day.isBefore(today) && day.isBefore(today.add(const Duration(days: 7)));
     if (_timeFilter == 'next30') return !day.isBefore(today) && day.isBefore(today.add(const Duration(days: 30)));
@@ -789,12 +791,17 @@ class _HomePageState extends State<HomePage> {
       }
     }
 
-    return taskListSortService.sort(scoped.toList(growable: false), by: _listSort, descending: _sortDescending);
+    final result = scoped.toList(growable: false);
+    if (_timeFilter == 'past') return taskListSortService.sortPast(result);
+    return taskListSortService.sort(result, by: _listSort, descending: _sortDescending);
   }
 
   List<HomeGroup<Task>> get _homeGroups {
     if (filter == 'بایگانی' || filter == 'سطل زباله') {
       return [HomeGroup<Task>(id: 'filtered', title: filter, items: visible)];
+    }
+    if (_timeFilter == 'past') {
+      return [HomeGroup<Task>(id: 'past', title: 'گذشته', items: visible)];
     }
     final now = IranClock.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -968,6 +975,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _showTimeFilterSheet() async {
     const options = <Map<String, Object>>[
       {'id': 'all', 'title': 'همه', 'icon': Icons.all_inclusive_rounded},
+      {'id': 'past', 'title': 'گذشته', 'icon': Icons.history_rounded},
       {'id': 'today', 'title': 'امروز', 'icon': Icons.today_rounded},
       {'id': 'tomorrow', 'title': 'فردا', 'icon': Icons.event_rounded},
       {'id': 'next7', 'title': '۷ روز آینده', 'icon': Icons.date_range_rounded},
