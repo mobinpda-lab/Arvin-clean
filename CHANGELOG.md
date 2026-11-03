@@ -1,3 +1,11 @@
+## 2026-11-03 — Commit C: Calendar Task Details routing and export-only swipe
+
+- Calendar Task and Follow-up card taps now resolve the owning canonical Task and call the Task Details route; Edit remains available from the explicit Details action only.
+- Calendar long-press no longer exposes Task/Follow-up Edit. Calendar horizontal swipe now performs only explicit Device Calendar export for eligible Task records; legacy edit/trash swipe settings decode to no action and are no longer offered in Settings.
+- Added direct CalendarPage tap assertions, launcher-to-canonical-Task resolution coverage, and legacy swipe-setting retirement tests.
+- Local Flutter tests were not run in this environment. Exact-HEAD CI must validate the new routing and settings behavior.
+- No Task/Follow-up data or schema changed. PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; release BLOCKED — RELEASE: NO-GO.
+
 ## 2026-11-03 — Commit B: Home filter semantics and five-filter coverage
 
 - Home active-filter state now includes Center, so clear-filter affordances remain visible when Center is the only active filter.

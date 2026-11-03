@@ -570,7 +570,7 @@ void main() {
 
 
 
-  testWidgets('Task card tap edits, long-press omits export, and Calendar swipe exports',
+  testWidgets('Task card tap opens Details, long-press omits Edit, and Calendar swipe exports',
       (tester) async {
     final day = DateTime(2026, 9, 9, 10);
     final task = CalendarReminder(
@@ -578,6 +578,7 @@ void main() {
       title: 'کار برای تعامل',
       date: day,
     );
+    var opened = 0;
     var edited = 0;
     var deleted = 0;
     var registered = 0;
@@ -588,6 +589,7 @@ void main() {
           initialSelectedDay: day,
           reminders: [task],
           onEditTask: (_) async => edited++,
+          onOpenTask: (_) async => opened++,
           onDeleteTask: (_) async => deleted++,
           onRegisterTaskToDeviceCalendar: (_) async => registered++,
           calendarSwipeRightAction: CalendarSwipeAction.sync,
@@ -600,7 +602,8 @@ void main() {
       find.byKey(const ValueKey('calendar-pastel-card-task-due:interaction-task')),
     );
     await tester.pumpAndSettle();
-    expect(edited, 1);
+    expect(opened, 1);
+    expect(edited, 0);
     expect(find.byKey(const ValueKey('reminder-actions-task-due:interaction-task')),
         findsNothing);
 
@@ -611,7 +614,7 @@ void main() {
     expect(find.byKey(const ValueKey('reminder-actions-task-due:interaction-task')),
         findsNothing);
     expect(find.byKey(const ValueKey('task-due-edit-task-due:interaction-task')),
-        findsOneWidget);
+        findsNothing);
     expect(find.byKey(const ValueKey('task-due-delete-task-due:interaction-task')),
         findsOneWidget);
     expect(
@@ -634,6 +637,36 @@ void main() {
     expect(registered, 1);
   });
 
+
+  testWidgets('Follow-up card tap opens its Task Details callback, not Follow-up edit',
+      (tester) async {
+    final day = DateTime(2026, 9, 9, 10);
+    var opened = 0;
+    var edited = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CalendarPage(
+          initialSelectedDay: day,
+          reminders: [
+            CalendarReminder(
+              id: 'task-followup-action:parent-task:follow-up-1',
+              title: 'اقدام پیگیری',
+              date: day,
+            ),
+          ],
+          onOpenTask: (_) async => opened++,
+          onEditReminder: (_) async => edited++,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey(
+      'calendar-pastel-card-task-followup-action:parent-task:follow-up-1',
+    )));
+    await tester.pumpAndSettle();
+    expect(opened, 1);
+    expect(edited, 0);
+  });
 
   testWidgets('prayer cards use mosque icon and subdued unregistered status', (tester) async {
     final day = DateTime(2026, 9, 9, 10);
@@ -690,7 +723,7 @@ void main() {
       1000,
     );
     await tester.pumpAndSettle();
-    expect(editCount, 1);
+    expect(editCount, 0);
 
     expect(
       find.byKey(const ValueKey('calendar-pastel-card-task-followup:owned-task:followup-1')),

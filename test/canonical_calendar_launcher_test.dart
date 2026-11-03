@@ -21,6 +21,36 @@ Future<void> _pumpRouteTransition(WidgetTester tester) async {
   for (var i = 0; i < 10; i++) {
     await tester.pump(const Duration(milliseconds: 100));
   }
+  testWidgets('calendar Task tap resolves and opens the canonical Task Details callback',
+      (tester) async {
+    final now = IranClock.now();
+    final due = DateTime(now.year, now.month, now.day, 12);
+    final task = Task(
+      id: 'calendar-open-task',
+      title: 'کار برای جزئیات',
+      dueDate: due,
+    );
+    Task? opened;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CanonicalCalendarLauncher(
+          tasks: <Task>[task],
+          onOpenTask: (value) async => opened = value,
+        ),
+      ),
+    );
+    await tester.tap(find.text('تقویم'));
+    await _pumpRouteTransition(tester);
+    final card = find.byKey(ValueKey('reminder-card-task-due:calendar-open-task:${due.toIso8601String()}'));
+    for (var i = 0; i < 30 && card.evaluate().isEmpty; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(card, findsOneWidget);
+    await tester.tap(card);
+    await _pumpRouteTransition(tester);
+    expect(identical(opened, task), isTrue);
+  });
+
 }
 
 Future<void> _openMoreMenu(WidgetTester tester) async {

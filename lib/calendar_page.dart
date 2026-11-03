@@ -46,6 +46,7 @@ class CalendarPage extends StatefulWidget {
     this.onCompleteReminder,
     this.onEditReminder,
     this.onEditTask,
+    this.onOpenTask,
     this.onDeleteTask,
     this.onRegisterTaskToDeviceCalendar,
     this.onConvertReminderToTask,
@@ -66,6 +67,7 @@ class CalendarPage extends StatefulWidget {
   final Future<void> Function(CalendarReminder reminder)? onCompleteReminder;
   final Future<void> Function(CalendarReminder reminder)? onEditReminder;
   final Future<void> Function(CalendarReminder reminder)? onEditTask;
+  final Future<void> Function(CalendarReminder reminder)? onOpenTask;
   final Future<void> Function(CalendarReminder reminder)? onDeleteTask;
   final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
   final Future<void> Function(CalendarReminder reminder)?
@@ -973,6 +975,9 @@ class _CalendarPageState extends State<CalendarPage> {
                                 )
                                 ? widget.onEditTask
                                 : null,
+                            onOpenTask: _isTaskCalendarItemId(selectedReminders[index].id)
+                                ? widget.onOpenTask
+                                : null,
                             onDeleteTask: _isTaskRecordCalendarItemId(
                                   selectedReminders[index].id,
                                 )
@@ -1134,6 +1139,7 @@ class _ReminderCard extends StatefulWidget {
     this.onComplete,
     this.onEdit,
     this.onEditTask,
+    this.onOpenTask,
     this.onDeleteTask,
     this.onRegisterTaskToDeviceCalendar,
     this.onConvertToTask,
@@ -1152,6 +1158,7 @@ class _ReminderCard extends StatefulWidget {
   final Future<void> Function(CalendarReminder reminder)? onComplete;
   final Future<void> Function(CalendarReminder reminder)? onEdit;
   final Future<void> Function(CalendarReminder reminder)? onEditTask;
+  final Future<void> Function(CalendarReminder reminder)? onOpenTask;
   final Future<void> Function(CalendarReminder reminder)? onDeleteTask;
   final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
   final Future<void> Function(CalendarReminder reminder)? onConvertToTask;
@@ -1178,8 +1185,7 @@ class _ReminderCardState extends State<_ReminderCard> {
           (widget.onPrayerCompleted != null ||
               widget.onPrayerNotCompleted != null)) ||
       (!widget.isPrayer &&
-          (widget.onEditTask != null ||
-              widget.onDeleteTask != null ||
+          (widget.onDeleteTask != null ||
               widget.onRegisterTaskToDeviceCalendar != null ||
               widget.onComplete != null ||
               widget.onEdit != null ||
@@ -1206,22 +1212,17 @@ class _ReminderCardState extends State<_ReminderCard> {
     if (velocity.abs() < 250 ||
         widget.item.id.startsWith('external-calendar:') ||
         widget.item.externalCalendarId != null ||
-        widget.item.externalEventId != null) {
-      return;
-    }
-    if (!_isTaskRecord && !_isFollowUp) return;
+        widget.item.externalEventId != null ||
+        !_isTaskRecord) return;
     final action = velocity > 0 ? widget.swipeRightAction : widget.swipeLeftAction;
     switch (action) {
-      case CalendarSwipeAction.edit:
-        await _run(_isTaskRecord ? widget.onEditTask : widget.onEdit);
-        return;
-      case CalendarSwipeAction.trash:
-        if (_isTaskRecord) await _run(widget.onDeleteTask);
-        return;
       case CalendarSwipeAction.sync:
-        if (_isTaskRecord) await _run(widget.onRegisterTaskToDeviceCalendar);
+        await _run(widget.onRegisterTaskToDeviceCalendar);
         return;
+      case CalendarSwipeAction.edit:
+      case CalendarSwipeAction.trash:
       case CalendarSwipeAction.none:
+        // Retired swipe actions are inert; only explicit Device Calendar export remains.
         return;
     }
   }
@@ -1289,19 +1290,7 @@ class _ReminderCardState extends State<_ReminderCard> {
                     _run(widget.onComplete);
                   },
                 ),
-              if ((widget.item.id.startsWith('followup:') ||
-                      widget.item.id.startsWith('task-followup:')) &&
-                  widget.onEdit != null)
-                ListTile(
-                  key: ValueKey('reminder-edit-${widget.item.id}'),
-                  leading: const Icon(Icons.edit_outlined),
-                  title: const Text('ویرایش پیگیری'),
-                  onTap: () {
-                    Navigator.of(sheetContext).pop();
-                    _run(widget.onEdit);
-                  },
-                )
-              else if (!_isTaskCalendarItem &&
+              if (!_isTaskCalendarItem &&
                   !widget.isPrayer &&
                   widget.onEdit != null)
                 ListTile(
@@ -1311,16 +1300,6 @@ class _ReminderCardState extends State<_ReminderCard> {
                   onTap: () {
                     Navigator.of(sheetContext).pop();
                     _run(widget.onEdit);
-                  },
-                ),
-              if (_isTaskCalendarItem && widget.onEditTask != null)
-                ListTile(
-                  key: ValueKey('task-due-edit-${widget.item.id}'),
-                  leading: const Icon(Icons.edit_outlined),
-                  title: const Text('ویرایش'),
-                  onTap: () {
-                    Navigator.of(sheetContext).pop();
-                    _run(widget.onEditTask);
                   },
                 ),
               if (_isTaskCalendarItem && widget.onDeleteTask != null)
@@ -1408,19 +1387,17 @@ class _ReminderCardState extends State<_ReminderCard> {
             visualDensity: const VisualDensity(horizontal: -2, vertical: -3),
             minVerticalPadding: 2,
             contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-            // A short tap opens the canonical item's available detail/edit
-            // route. Quick actions are available only through long-press.
-            onTap: isFollowUpItem
-                ? (widget.onEdit == null ? null : () => _run(widget.onEdit))
-                : _isTaskCalendarItem
-                    ? (widget.onEditTask == null ? null : () => _run(widget.onEditTask))
-                    : widget.item.id.startsWith('external-calendar:')
-                        ? (widget.onOpenExternal == null
-                            ? null
-                            : () => _run(widget.onOpenExternal))
-                        : (widget.onEdit == null || widget.isPrayer
-                            ? null
-                            : () => _run(widget.onEdit)),
+            // Task and Follow-up cards open their canonical Task Details.
+            // Edit remains available only from the explicit Details action.
+            onTap: _isTaskCalendarItem
+                ? (widget.onOpenTask == null ? null : () => _run(widget.onOpenTask))
+                : widget.item.id.startsWith('external-calendar:')
+                    ? (widget.onOpenExternal == null
+                        ? null
+                        : () => _run(widget.onOpenExternal))
+                    : (widget.onEdit == null || widget.isPrayer
+                        ? null
+                        : () => _run(widget.onEdit)),
             onLongPress: _hasActions ? _showTaskActions : null,
             leading: CircleAvatar(
               key: ValueKey('calendar-item-icon-${item.id}'),

@@ -50,10 +50,12 @@ class _SettingsPageState extends State<SettingsPage> {
     CalendarSwipeAction.none => 'بدون عمل',
   };
   List<DropdownMenuItem<CalendarSwipeAction>> _calendarSwipeItems() =>
-      CalendarSwipeAction.values.map((action) => DropdownMenuItem<CalendarSwipeAction>(
-        value: action,
-        child: Text(_calendarSwipeActionLabel(action)),
-      )).toList();
+      const <CalendarSwipeAction>[CalendarSwipeAction.sync, CalendarSwipeAction.none]
+          .map((action) => DropdownMenuItem<CalendarSwipeAction>(
+                value: action,
+                child: Text(_calendarSwipeActionLabel(action)),
+              ))
+          .toList();
   String _swipeActionLabel(TaskSwipeAction action) => switch (action) { TaskSwipeAction.archive => 'بایگانی', TaskSwipeAction.trash => 'سطل زباله', TaskSwipeAction.moveToToday => 'انتقال به امروز', TaskSwipeAction.complete => 'انجام‌شدن', TaskSwipeAction.convertToFollowUp => 'ثبت پیگیری', TaskSwipeAction.none => 'بدون عمل' };
   IconData _swipeActionIcon(TaskSwipeAction action) => switch (action) { TaskSwipeAction.archive => Icons.archive_outlined, TaskSwipeAction.trash => Icons.delete_outline, TaskSwipeAction.moveToToday => Icons.today_outlined, TaskSwipeAction.complete => Icons.check_circle_outline, TaskSwipeAction.convertToFollowUp => Icons.add_comment_outlined, TaskSwipeAction.none => Icons.block };
   List<DropdownMenuItem<TaskSwipeAction>> _swipeItems() => TaskSwipeAction.values.map((action) => DropdownMenuItem<TaskSwipeAction>(value: action, child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(_swipeActionIcon(action), size: 20), const SizedBox(width: 8), Text(_swipeActionLabel(action))]))).toList();

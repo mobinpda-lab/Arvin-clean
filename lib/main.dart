@@ -2546,6 +2546,7 @@ class _HomePageState extends State<HomePage> {
           onCreateTaskForDate: _addForDate,
           onCreateTaskFromCalendarEvent: _addFromCalendarEvent,
           onEditTask: (task) async { await _editFromDetail(task); },
+          onOpenTask: _openTaskDetail,
           onDeleteTask: _trashTaskFromCalendar,
           onRegisterTaskToDeviceCalendar: _registerTaskInDeviceCalendar,
         ),
@@ -2622,6 +2623,7 @@ class _HomePageState extends State<HomePage> {
           MaterialPageRoute<void>(
             builder: (_) => CanonicalCalendarLauncher(
               tasks: _searchSource,
+              onOpenTask: _openTaskDetail,
               onCreateTaskForDate: _addForDate,
               onCreateTaskFromCalendarEvent: _addFromCalendarEvent,
             ),
