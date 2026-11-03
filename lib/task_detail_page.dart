@@ -153,15 +153,16 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     if (_isSettingDueDateToToday) return;
     final now = widget.now ?? IranClock.now();
     final existing = _task.dueDate;
+    final preserveTime = !_task.allDay && existing != null;
     final dueDate = DateTime(
       now.year,
       now.month,
       now.day,
-      if (!_task.allDay && existing != null) existing.hour,
-      if (!_task.allDay && existing != null) existing.minute,
-      if (!_task.allDay && existing != null) existing.second,
-      if (!_task.allDay && existing != null) existing.millisecond,
-      if (!_task.allDay && existing != null) existing.microsecond,
+      preserveTime ? (existing?.hour ?? 0) : 0,
+      preserveTime ? (existing?.minute ?? 0) : 0,
+      preserveTime ? (existing?.second ?? 0) : 0,
+      preserveTime ? (existing?.millisecond ?? 0) : 0,
+      preserveTime ? (existing?.microsecond ?? 0) : 0,
     );
 
     setState(() => _isSettingDueDateToToday = true);
