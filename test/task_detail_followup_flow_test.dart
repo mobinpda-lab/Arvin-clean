@@ -429,7 +429,8 @@ void main() {
     );
     expect(saved.dueDate!.hour, 9);
     expect(saved.dueDate!.minute, 25);
-    expect(saved.updatedAt.isBefore(nowBeforeTap), isFalse);
+    expect(saved.updatedAt, isNotNull);
+    expect(saved.updatedAt!.isBefore(nowBeforeTap), isFalse);
     expect(find.text('موعد انجام کار برای امروز تنظیم شد'), findsOneWidget);
   });
 
