@@ -1541,3 +1541,10 @@ PR #3052 remains OPEN / DRAFT / UNMERGED. main untouched. **BLOCKED — RELEASE:
 - No tests/assertions were deleted, skipped or weakened as a fix.
 - PR #3052 remains OPEN / DRAFT / UNMERGED on `fix/recovery-calendar-device-smoke-2026-10-31`; main unchanged; no merge or release. **BLOCKED — RELEASE: NO-GO**.
 - Home 44px overflow: NOT VERIFIED. Seven-lane Device Smoke: NOT VERIFIED. Release: NO-GO.
+
+
+## 2026-11-03 — Production ownership boundary caveat for Calendar Track 2
+
+- Read-only source audit of `lib/services/calendar_provider_sync_executor.dart` and `lib/services/system_calendar_bridge.dart` found the current outbound executor requires an explicit `targetCalendarId` and performs provider CRUD against that selected system calendar. The native bridge also explicitly opens phone-owned events in the source calendar app rather than editing their contents inside Arvin.
+- The Android `CalendarProvisioner` acceptance module provisions `ARVIN CI Acceptance` (test account/calendar) for instrumentation. Its CREATE/NO-OP UPDATE/UPDATE/DELETE PASS proves Provider CRUD in the CI acceptance environment; it does not prove that the production app provisions and owns a dedicated persistent Local Arvin Calendar Provider.
+- Accordingly, Track 3's source-app ownership boundary is supported by the read-only/native-editor path and explicit Import action. Track 2's required dedicated production Arvin calendar and automatic Task lifecycle synchronization remain **NOT VERIFIED**. Do not promote Provider acceptance to full Track-2 product acceptance. A separate production provisioning/lifecycle design and exact-device evidence are still required.
