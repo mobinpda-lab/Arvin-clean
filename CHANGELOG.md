@@ -1,3 +1,8 @@
+## 2026-11-03 — Filter count assertions
+
+- Scoped count-label assertions to their corresponding top filter chips, because the active-filter summary row intentionally repeats the selected dimension/count.
+- No runtime behavior changed.
+
 ## 2026-11-03 — Filter CI follow-up
 
 - Converted the range predicate closure to a named local function to satisfy the repository analyzer rule.

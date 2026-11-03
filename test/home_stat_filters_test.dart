@@ -137,7 +137,7 @@ void main() {
     expect(find.text('مالی'), findsOneWidget);
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
-    expect(find.text('دسته‌بندی‌ها (۲)'), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-category')), matching: find.text('دسته‌بندی‌ها (۲)')), findsOneWidget);
     expect(find.text('اداری'), findsWidgets);
     expect(find.text('شخصی'), findsWidgets);
     expect(find.text('مالی'), findsNothing);
@@ -168,7 +168,7 @@ void main() {
     expect(find.text('اول'), findsOneWidget);
     expect(find.text('دوم'), findsOneWidget);
     expect(find.text('سوم'), findsNothing);
-    expect(find.text('برچسب‌ها (۲)'), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-tags')), matching: find.text('برچسب‌ها (۲)')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -191,7 +191,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
-    expect(find.text('زمان (۲)'), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-time')), matching: find.text('زمان (۲)')), findsOneWidget);
     expect(find.text('کار گذشته'), findsOneWidget);
     expect(find.text('کار امروز'), findsOneWidget);
     expect(find.text('کار فردا'), findsNothing);
