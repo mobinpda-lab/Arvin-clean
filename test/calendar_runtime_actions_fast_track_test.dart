@@ -108,12 +108,13 @@ void main() {
     expect(requestedDate, DateTime(2026, 9, 15));
   });
 
-  testWidgets('Arvin Task primary actions are visible before expansion', (
+  testWidgets('Task calendar cards open Details and never expose inline edit', (
     tester,
   ) async {
     final day = DateTime(2026, 9, 15, 9);
     var edited = 0;
     var registered = 0;
+    var opened = 0;
     final reminders = <CalendarReminder>[
       CalendarReminder(
         id: 'task-reminder:task-1',
@@ -135,6 +136,7 @@ void main() {
             initialSelectedDay: reminder.date,
             reminders: <CalendarReminder>[reminder],
             onEditTask: (_) async => edited++,
+            onOpenTask: (_) async => opened++,
             onDeleteTask: (_) async {},
             onRegisterTaskToDeviceCalendar: (_) async => registered++,
             calendarSwipeRightAction: CalendarSwipeAction.sync,
@@ -154,24 +156,21 @@ void main() {
       expect(register, findsNothing);
       expect(delete, findsNothing);
 
-      await tester.longPress(find.byKey(ValueKey('reminder-card-${reminder.id}')));
+      final card = find.byKey(ValueKey('reminder-card-${reminder.id}'));
+      await tester.tap(card);
+      await tester.pump();
+      expect(opened, greaterThan(0));
+
+      await tester.longPress(card);
       await tester.pumpAndSettle();
-      expect(edit, findsOneWidget);
+      expect(edit, findsNothing);
       expect(register, findsNothing);
       expect(delete, findsOneWidget);
-
-      await tester.tap(edit);
-      await tester.pumpAndSettle();
-      await tester.fling(
-        find.byKey(ValueKey('reminder-card-${reminder.id}')),
-        const Offset(500, 0),
-        1000,
-      );
-      await tester.pumpAndSettle();
     }
 
-    expect(edited, 2);
-    expect(registered, 2);
+    expect(opened, 2);
+    expect(edited, 0);
+    expect(registered, 0);
   });
 
 }
