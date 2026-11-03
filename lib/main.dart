@@ -31,6 +31,7 @@ import 'services/app_settings_service.dart';
 import 'services/daily_content_preferences_service.dart';
 import 'services/follow_up_calendar_projection.dart';
 
+import 'services/calendar_sync_plan_service.dart';
 import 'services/calendar_outbound_sync_service.dart';
 import 'services/external_calendar_link_store.dart';
 import 'services/system_calendar_bridge.dart';
