@@ -595,7 +595,7 @@ void main() {
     await tester.tap(detailsEdit);
     await tester.pump();
     expect(identical(editedFromDetails, task), isTrue);
-    await navigatorKey.currentState!.pop();
+    navigatorKey.currentState!.pop();
     await _pumpRouteTransition(tester);
     expect(card, findsOneWidget);
 
@@ -604,6 +604,9 @@ void main() {
     await _pumpRouteTransition(tester);
     expect(edit, findsNothing);
     expect(editedFromCalendar, isNull);
+    Navigator.of(tester.element(find.byType(CalendarPage))).pop();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump();
 
     expect(find.text('ثبت در تقویم گوشی'), findsNothing);
 
