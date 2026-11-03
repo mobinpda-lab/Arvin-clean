@@ -33,6 +33,7 @@ import 'services/daily_content_preferences_service.dart';
 import 'services/follow_up_calendar_projection.dart';
 
 import 'services/calendar_provider_sync_executor.dart';
+import 'services/calendar_outbound_sync_service.dart';
 import 'services/calendar_sync_plan_service.dart';
 import 'services/external_calendar_link_store.dart';
 import 'services/system_calendar_bridge.dart';
@@ -388,6 +389,8 @@ class _HomePageState extends State<HomePage> {
   final AppSettingsService appSettingsService = AppSettingsService();
   final FollowUpCalendarProjection calendarProjection =
       const FollowUpCalendarProjection();
+  final CalendarOutboundSyncService calendarOutboundSyncService =
+      CalendarOutboundSyncService();
   final HomeSearchProjection homeSearchProjection =
       const HomeSearchProjection();
   final TaskListScopeService taskListScopeService =
@@ -644,10 +647,23 @@ class _HomePageState extends State<HomePage> {
     }
     final snapshot = List<Task>.of(tasks);
     await taskStore.save(snapshot);
+    await _syncCalendarAfterTaskMutation(snapshot);
     try {
       await AndroidFollowUpReminderScheduler().reschedule();
     } catch (_) {
       // Canonical Task storage already succeeded; scheduler retries later.
+    }
+  }
+
+
+  Future<void> _syncCalendarAfterTaskMutation(Iterable<Task> snapshot) async {
+    try {
+      await calendarOutboundSyncService.syncTaskLifecycle(
+        calendarProjection.project(snapshot),
+      );
+    } catch (_) {
+      // Canonical Task persistence is authoritative. A provider failure never
+      // rolls back or deletes the internal Task; the next mutation retries sync.
     }
   }
 
@@ -1543,6 +1559,7 @@ class _HomePageState extends State<HomePage> {
     target.checklist = List<String>.of(checklist);
     target.updatedAt = DateTime.now();
     await taskStore.save(List<Task>.of(tasks));
+    await _syncCalendarAfterTaskMutation(tasks);
     try {
       await AndroidFollowUpReminderScheduler().reschedule();
     } catch (_) {
