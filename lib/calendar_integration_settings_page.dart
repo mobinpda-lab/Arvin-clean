@@ -257,7 +257,7 @@ class _CalendarIntegrationSettingsPageState
             ],
           ),
         );
-        }).toList(growable: false),
+        }),
       ],
     );
   }
