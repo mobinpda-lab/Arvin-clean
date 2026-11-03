@@ -1,3 +1,10 @@
+## 2026-11-03 — Commit E2: Exact-SHA analyzer corrections for Reports and Template tests
+
+- Added the canonical Task model import to the Project Template regression test so TaskReminder and FollowUp preservation assertions compile.
+- Removed the obsolete Priority-filter argument from the Report Center filter test; priority remains a report grouping/sort dimension, not a filter criterion.
+- Added the Task model import to the grouped text-report test and removed an unnecessary interpolation brace flagged by Analyze.
+- No product data/schema behavior changed. Local tests not run; exact-HEAD CI required. main untouched; PR #3052 OPEN / DRAFT / UNMERGED; release BLOCKED — RELEASE: NO-GO.
+
 ## 2026-11-03 — Commit E1: Report text numbering correction
 
 - Corrected the first item index in priority-grouped plain-text reports; the counter is incremented once and rendered without an extra offset.

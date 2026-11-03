@@ -32,7 +32,7 @@ class TaskReportTextRenderer {
         index++;
       buffer
         ..writeln()
-        ..writeln('${index}. ${entry.title}')
+        ..writeln('$index. ${entry.title}')
         ..writeln('وضعیت: ${entry.completed ? 'انجام‌شده' : 'باز'}');
 
       if (entry.description.trim().isNotEmpty) {

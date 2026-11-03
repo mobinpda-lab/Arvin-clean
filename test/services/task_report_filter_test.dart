@@ -51,7 +51,6 @@ void main() {
       projectId: 'p',
       category: 'کار',
       tag: 'مهم',
-      priority: TaskPriority.high,
       hasFollowUp: true,
       hasChecklist: true,
     ).apply(tasks, now: now, projects: projects);
