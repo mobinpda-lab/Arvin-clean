@@ -1582,6 +1582,7 @@ class _HomePageState extends State<HomePage> {
     await taskStore.updateDescription(task.id, description, updatedAt);
     target.description = description;
     target.updatedAt = updatedAt;
+    await _syncCalendarAfterTaskMutation(tasks);
     final refreshed = await taskStore.load();
     if (!mounted) return target;
     setState(() => tasks = List<Task>.of(refreshed));
@@ -1591,6 +1592,7 @@ class _HomePageState extends State<HomePage> {
   Future<Task?> _moveDueDateToTodayFromDetail(Task task) async {
     final moved = await TaskMoveToTodayService(store: taskStore).move(task.id);
     final refreshed = await taskStore.load();
+    await _syncCalendarAfterTaskMutation(refreshed);
     if (!mounted) return moved;
     setState(() => tasks = List<Task>.of(refreshed));
     return refreshed.firstWhere((item) => item.id == task.id);
@@ -1602,6 +1604,7 @@ class _HomePageState extends State<HomePage> {
     task.setCompleted(!task.completed);
     task.updatedAt = DateTime.now();
     await taskStore.save(List<Task>.of(tasks));
+    await _syncCalendarAfterTaskMutation(tasks);
     try {
       await AndroidFollowUpReminderScheduler().reschedule();
     } catch (_) {
