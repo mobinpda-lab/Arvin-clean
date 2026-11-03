@@ -645,7 +645,6 @@ class _HomePageState extends State<HomePage> {
     }
     final snapshot = List<Task>.of(tasks);
     await taskStore.save(snapshot);
-    await _syncCalendarAfterTaskMutation(snapshot);
     try {
       await AndroidFollowUpReminderScheduler().reschedule();
     } catch (_) {
@@ -653,17 +652,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-
-  Future<void> _syncCalendarAfterTaskMutation(Iterable<Task> snapshot) async {
-    try {
-      await calendarOutboundSyncService.syncTaskLifecycle(
-        calendarProjection.project(snapshot),
-      );
-    } catch (_) {
-      // Canonical Task persistence is authoritative. A provider failure never
-      // rolls back or deletes the internal Task; the next mutation retries sync.
-    }
-  }
 
 
   DateTime? _homeLastFollowUpDate(Task task) => task.lastFollowUp?.dateTime;

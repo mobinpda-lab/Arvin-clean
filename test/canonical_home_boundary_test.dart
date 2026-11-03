@@ -10,15 +10,24 @@ void main() {
     expect(source, contains('List<Task> tasks = [];'));
     expect(source, contains('final TaskStore taskStore = TaskStore();'));
     expect(source, contains('await taskStore.save(snapshot);'));
-    expect(source, isNot(contains('CalendarOutboundSyncService')));
-    expect(source, isNot(contains('calendarOutboundSyncService.sync(')));
+    final save = source.substring(
+      source.indexOf('Future<void> _save()'),
+      source.indexOf('DateTime? _homeLastFollowUpDate'),
+    );
+    expect(save, isNot(contains('CalendarOutboundSyncService')));
+    expect(save, isNot(contains('syncTaskLifecycle')));
     expect(source, isNot(contains('TaskMigrationWriter')));
     expect(source, isNot(contains('migrationWriter.save(')));
   });
   test('normal save, Quick Capture, edit and completion never export automatically', () {
     final source = File('lib/main.dart').readAsStringSync();
-    expect(source, isNot(contains('CalendarOutboundSyncService')));
-    expect(source, isNot(contains('calendarOutboundSyncService')));
+    final save = source.substring(
+      source.indexOf('Future<void> _save()'),
+      source.indexOf('DateTime? _homeLastFollowUpDate'),
+    );
+    expect(save, isNot(contains('CalendarOutboundSyncService')));
+    expect(save, isNot(contains('calendarOutboundSyncService')));
+    expect(source, isNot(contains('_syncCalendarAfterTaskMutation')));
     expect(source, isNot(contains('_syncCalendarAfterQuickCapture')));
     expect(source, isNot(contains('_syncCalendarAfterDetailTaskUpdate')));
     expect(source, isNot(contains('_syncLinkedCalendarAfterTaskEdit')));
@@ -43,7 +52,9 @@ void main() {
     final main = File('lib/main.dart').readAsStringSync();
     expect(main, contains('onRegisterTaskToDeviceCalendar: _registerTaskInDeviceCalendar'));
     expect(main, contains('onRegisterTaskToDeviceCalendar: _registerTaskFromDetails'));
-    expect(main, contains('where((link) => link.reminderId == reminder.id)'));
-    expect(main, contains('links: selectedLinks'));
+    expect(main, contains('linkedOnly: true'));
+    final outbound = File('lib/services/calendar_outbound_sync_service.dart').readAsStringSync();
+    expect(outbound, contains('if (linkedOnly && !linkedReminderIds.contains(reminder.id)) continue;'));
+    expect(outbound, contains('final managedLinks = linkedOnly'));
   });
 }

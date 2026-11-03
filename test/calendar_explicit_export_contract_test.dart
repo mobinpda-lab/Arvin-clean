@@ -29,8 +29,13 @@ void main() {
   });
   test('normal Task save, capture, edit and completion contain no outbound sync', () {
     final main = File('lib/main.dart').readAsStringSync();
-    expect(main, isNot(contains('CalendarOutboundSyncService')));
-    expect(main, isNot(contains('calendarOutboundSyncService')));
+    final save = main.substring(
+      main.indexOf('Future<void> _save()'),
+      main.indexOf('DateTime? _homeLastFollowUpDate'),
+    );
+    expect(save, isNot(contains('CalendarOutboundSyncService')));
+    expect(save, isNot(contains('calendarOutboundSyncService')));
+    expect(main, isNot(contains('_syncCalendarAfterTaskMutation')));
     expect(main, isNot(contains('_syncCalendarAfterQuickCapture')));
     expect(main, isNot(contains('_syncCalendarAfterDetailTaskUpdate')));
     expect(main, isNot(contains('_syncLinkedCalendarAfterTaskEdit')));
@@ -38,9 +43,11 @@ void main() {
   });
   test('one-item plan receives only the selected reminder link', () {
     final main = File('lib/main.dart').readAsStringSync();
-    expect(main, contains('where((link) => link.reminderId == reminder.id)'));
-    expect(main, contains('links: selectedLinks'));
-    expect(main, contains('final alreadyLinked = selectedLinks.isNotEmpty;'));
+    final outbound = File('lib/services/calendar_outbound_sync_service.dart').readAsStringSync();
+    expect(main, contains('linkedOnly: true'));
+    expect(outbound, contains('if (linkedOnly && !linkedReminderIds.contains(reminder.id)) continue;'));
+    expect(outbound, contains('final managedLinks = linkedOnly'));
+    expect(outbound, contains('links: linksForPlan'));
   });
   test('inbound mirror reconciliation is non-mutating and imports remain local', () {
     final inbound = File('lib/services/calendar_inbound_sync_service.dart').readAsStringSync();
