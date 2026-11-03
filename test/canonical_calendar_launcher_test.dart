@@ -544,8 +544,7 @@ void main() {
     await tester.pump();
     expect(identical(edited, task), isTrue);
 
-    await tester.longPress(card);
-    await _pumpRouteTransition(tester);
+    expect(find.text('ثبت در تقویم گوشی'), findsNothing);
 
     // Move one full week forward. The occurrence is still a projection of the
     // same canonical Task, not a separately stored Task/Reminder.
