@@ -100,13 +100,13 @@ class FollowUpCalendarProjection {
     );
 
     for (final task in taskList) {
-      if (task.trashed) {
+      if (task.trashed || task.archived) {
         if (task.id == 'calendar-smoke-task') {
           for (final reminder in task.taskReminders) {
             debugPrint(
               'CALENDAR_DIAG_B: taskId=${task.id} reminderId=${reminder.id} '
               'type=${reminder.isLegacyTaskReminder ? 'legacy' : 'independent'} '
-              'date=${reminder.date.toIso8601String()} DROP_REASON=task_trashed',
+              'date=${reminder.date.toIso8601String()} DROP_REASON=task_archived_or_trashed',
             );
           }
         }
@@ -128,6 +128,7 @@ class FollowUpCalendarProjection {
             date: reminder.date,
             completed: task.completed,
             isAllDay: reminder.isAllDay,
+            description: task.description,
           ),
         );
         if (task.id == 'calendar-smoke-task') {
@@ -154,6 +155,7 @@ class FollowUpCalendarProjection {
             title: 'یادآوری: ${task.title}',
             date: taskReminderDate,
             completed: task.completed,
+            description: task.description,
           ),
         );
         taskDatesAlreadyProjected.add(taskReminderDate);
@@ -183,6 +185,7 @@ class FollowUpCalendarProjection {
             title: task.title,
             date: occurrence,
             completed: completed,
+            description: task.description,
           ));
           taskDatesAlreadyProjected.add(occurrence);
         }
@@ -195,6 +198,7 @@ class FollowUpCalendarProjection {
             date: dueDate,
             completed: task.completed,
             isAllDay: _isDateOnly(dueDate),
+            description: task.description,
           ),
         );
         taskDatesAlreadyProjected.add(dueDate);
