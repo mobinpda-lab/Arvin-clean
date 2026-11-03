@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:arvin/main.dart';
+import 'package:arvin/arvin_colors.dart';
 import 'package:arvin/services/app_settings_service.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:arvin/services/project_store.dart';
@@ -611,6 +612,98 @@ void main() {
     expect(tester.getTopLeft(openOlder).dy, lessThan(tester.getTopLeft(openNewer).dy));
     expect(tester.getTopLeft(openNewer).dy, lessThan(tester.getTopLeft(doneOlder).dy));
     expect(tester.getTopLeft(doneOlder).dy, lessThan(tester.getTopLeft(doneNewer).dy));
+  });
+
+
+  testWidgets('overdue active task uses red text while card and icons stay neutral',
+      (tester) async {
+    final past = IranClock.now().subtract(const Duration(days: 2));
+    final dueDate = DateTime(past.year, past.month, past.day, 10).toIso8601String();
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"red-overdue","title":"کار با موعد گذشته","completed":false,"dueDate":"$dueDate"}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    final title = tester.widget<Text>(
+      find.byKey(const ValueKey('task-card-title-red-overdue')),
+    );
+    expect(title.style?.color, ArvinColors.error);
+
+    final dueIcon = tester.widget<Icon>(
+      find.byKey(const ValueKey('task-card-due-icon-red-overdue')),
+    );
+    expect(dueIcon.color, ArvinColors.textSecondary);
+
+    final statusButton = tester.widget<IconButton>(
+      find.byKey(const ValueKey('task-card-toggle-red-overdue')),
+    );
+    final statusIcon = statusButton.icon as Icon;
+    expect(statusIcon.icon, Icons.radio_button_unchecked_rounded);
+    expect(statusIcon.color, ThemeData.light().colorScheme.primary);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('completing an active Home task immediately archives it and preserves its data',
+      (tester) async {
+    final past = IranClock.now().subtract(const Duration(days: 3));
+    final dueDate = DateTime(past.year, past.month, past.day, 9).toIso8601String();
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"archive-on-complete","title":"کار برای آرشیو فوری","description":"توضیح محفوظ","completed":false,"dueDate":"$dueDate","checklist":["[ ] مورد اول"],"followUps":[{"id":"history-1","dateTime":"2026-10-20T09:00:00.000","note":"سابقه محفوظ"}],"reminderDate":"2026-11-05T08:00:00.000"}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+    expect(find.text('کار برای آرشیو فوری'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('task-card-toggle-archive-on-complete')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('کار برای آرشیو فوری'), findsNothing);
+    final saved = (await TaskStore().load())
+        .singleWhere((task) => task.id == 'archive-on-complete');
+    expect(saved.completed, isTrue);
+    expect(saved.archived, isTrue);
+    expect(saved.trashed, isFalse);
+    expect(saved.description, 'توضیح محفوظ');
+    expect(saved.dueDate, DateTime.parse(dueDate));
+    expect(saved.checklist, const ['[ ] مورد اول']);
+    expect(saved.followUps, hasLength(1));
+    expect(saved.followUps.single.id, 'history-1');
+    expect(saved.followUps.single.note, 'سابقه محفوظ');
+    expect(saved.reminderDate, DateTime.parse('2026-11-05T08:00:00.000'));
+  });
+
+  testWidgets('completing a task from the Home Past filter removes it into Archive',
+      (tester) async {
+    final past = IranClock.now().subtract(const Duration(days: 4));
+    final dueDate = DateTime(past.year, past.month, past.day, 11).toIso8601String();
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"past-archive","title":"کار گذشته برای بایگانی","completed":false,"dueDate":"$dueDate"}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('home-filter-card-time')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('گذشته'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('کار گذشته برای بایگانی'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('task-card-toggle-past-archive')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('کار گذشته برای بایگانی'), findsNothing);
+    final saved = (await TaskStore().load())
+        .singleWhere((task) => task.id == 'past-archive');
+    expect(saved.completed, isTrue);
+    expect(saved.archived, isTrue);
+    expect(saved.dueDate, DateTime.parse(dueDate));
   });
 
 }
