@@ -169,6 +169,13 @@ void main() {
       expect(edit, findsNothing);
       expect(register, findsNothing);
       expect(delete, findsOneWidget);
+
+      // Close the long-press action sheet before replacing the CalendarPage
+      // fixture for the next reminder. Otherwise its ModalBarrier remains on
+      // the Navigator and blocks the next card tap.
+      Navigator.of(tester.element(find.byType(CalendarPage))).pop();
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump();
     }
 
     expect(opened, 2);

@@ -4,6 +4,7 @@ import 'package:arvin/calendar_page.dart';
 import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/follow_up_calendar_projection.dart';
+import 'package:arvin/task_detail_page.dart';
 import 'package:arvin/task_next_action_page.dart';
 import 'package:arvin/task_timeline_page.dart';
 import 'package:arvin/widgets/canonical_calendar_launcher.dart';
@@ -519,17 +520,33 @@ void main() {
       ),
     );
     Task? opened;
-    Task? edited;
+    Task? editedFromDetails;
+    Task? editedFromCalendar;
     Task? deleted;
     final projection = _RecordingCalendarProjection();
+    final navigatorKey = GlobalKey<NavigatorState>();
 
     await tester.pumpWidget(
       MaterialApp(
+        navigatorKey: navigatorKey,
         home: CanonicalCalendarLauncher(
           tasks: <Task>[task],
           projection: projection,
-          onOpenTask: (value) async => opened = value,
-          onEditTask: (value) async => edited = value,
+          onOpenTask: (value) async {
+            opened = value;
+            await navigatorKey.currentState!.push<void>(
+              MaterialPageRoute<void>(
+                builder: (_) => TaskDetailPage(
+                  task: value,
+                  onEdit: (current) async {
+                    editedFromDetails = current;
+                    return current;
+                  },
+                ),
+              ),
+            );
+          },
+          onEditTask: (value) async => editedFromCalendar = value,
           onDeleteTask: (value) async => deleted = value,
           onRegisterTaskToDeviceCalendar: (_) async {},
         ),
@@ -566,16 +583,27 @@ void main() {
     await tester.ensureVisible(card);
     await tester.pump(const Duration(milliseconds: 300));
     await tester.tap(card);
-    await tester.pump();
+    await _pumpRouteTransition(tester);
     expect(identical(opened, task), isTrue);
-    expect(edited, isNull);
+    expect(editedFromCalendar, isNull);
+    expect(find.byKey(const ValueKey('task-detail-page')), findsOneWidget);
 
+    // Editing is available only through the explicit action in the same
+    // Task Details route opened by tapping the calendar card.
+    final detailsEdit = find.byKey(const ValueKey('task-detail-edit'));
+    expect(detailsEdit, findsOneWidget);
+    await tester.tap(detailsEdit);
+    await tester.pump();
+    expect(identical(editedFromDetails, task), isTrue);
+    await navigatorKey.currentState!.pop();
+    await _pumpRouteTransition(tester);
+    expect(card, findsOneWidget);
+
+    // Long-press may expose destructive actions, but never a separate Edit.
     await tester.longPress(card);
     await _pumpRouteTransition(tester);
-    expect(edit, findsOneWidget);
-    await tester.tap(edit);
-    await tester.pump();
-    expect(identical(edited, task), isTrue);
+    expect(edit, findsNothing);
+    expect(editedFromCalendar, isNull);
 
     expect(find.text('ثبت در تقویم گوشی'), findsNothing);
 
