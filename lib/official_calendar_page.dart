@@ -219,7 +219,18 @@ class _OfficialCalendarPageState extends State<OfficialCalendarPage>
         // Canonical Task reminders must not wait for optional official sources.
         // Keep CalendarPage at a stable tree position so late official/external
         // data merges without resetting the user's selected date or view.
-        final reminders = snapshot.data ?? widget.reminders;
+        // Optional official/provider loading must never replace canonical
+        // Arvin Task reminders. Merge by stable reminder identity and keep
+        // canonical entries authoritative when an ID is already present.
+        final remindersById = <String, CalendarReminder>{
+          for (final reminder in widget.reminders) reminder.id: reminder,
+        };
+        for (final reminder in snapshot.data ?? const <CalendarReminder>[]) {
+          remindersById.putIfAbsent(reminder.id, () => reminder);
+        }
+        final reminders = List<CalendarReminder>.unmodifiable(
+          remindersById.values,
+        );
         return Stack(
           children: [
             CalendarPage(
