@@ -390,5 +390,68 @@ void main() {
     expect(tester.getTopLeft(doneOlder).dy, lessThan(tester.getTopLeft(doneNewer).dy));
   });
 
+  testWidgets('Report Center active filter chips wrap without overflow on a short RTL viewport', (tester) async {
+    tester.view.physicalSize = const Size(320, 520);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(MaterialApp(
+      home: ReportCenterPage(
+        now: DateTime(2026, 10, 7, 10),
+        tasks: [
+          Task(id: 'chip-a', title: 'کار اداری', category: 'اداری', tags: ['مهم', 'فوری'], dueDate: DateTime(2026, 10, 6, 9)),
+          Task(id: 'chip-b', title: 'کار شخصی', category: 'شخصی', tags: ['پیگیری'], dueDate: DateTime(2026, 10, 5, 9), completed: true),
+          Task(id: 'chip-c', title: 'کار مالی', category: 'مالی', tags: ['مهم'], dueDate: DateTime(2026, 10, 4, 9)),
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('report-center-filters')));
+    await tester.pumpAndSettle();
+
+    final categorySection = find.byKey(const ValueKey('report-filter-section-دسته'));
+    await tester.scrollUntilVisible(categorySection, 180, scrollable: find.byType(Scrollable).last);
+    await tester.tap(categorySection);
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-category-اداری')), 180, scrollable: find.byType(Scrollable).last);
+    await tester.tap(find.byKey(const ValueKey('report-filter-category-اداری')));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-category-شخصی')), 180, scrollable: find.byType(Scrollable).last);
+    await tester.tap(find.byKey(const ValueKey('report-filter-category-شخصی')));
+    await tester.pumpAndSettle();
+
+    final tagSection = find.byKey(const ValueKey('report-filter-section-برچسب'));
+    await tester.scrollUntilVisible(tagSection, 180, scrollable: find.byType(Scrollable).last);
+    await tester.tap(tagSection);
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-tag-مهم')), 180, scrollable: find.byType(Scrollable).last);
+    await tester.tap(find.byKey(const ValueKey('report-filter-tag-مهم')));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-tag-فوری')), 180, scrollable: find.byType(Scrollable).last);
+    await tester.tap(find.byKey(const ValueKey('report-filter-tag-فوری')));
+    await tester.pumpAndSettle();
+
+    final statusSection = find.byKey(const ValueKey('report-filter-section-وضعیت کار'));
+    await tester.scrollUntilVisible(statusSection, 180, scrollable: find.byType(Scrollable).last);
+    await tester.tap(statusSection);
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-status-open')), 180, scrollable: find.byType(Scrollable).last);
+    await tester.tap(find.byKey(const ValueKey('report-filter-status-open')));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-status-completed')), 180, scrollable: find.byType(Scrollable).last);
+    await tester.tap(find.byKey(const ValueKey('report-filter-status-completed')));
+    await tester.pumpAndSettle();
+
+    final apply = find.byKey(const ValueKey('report-filter-apply'));
+    await tester.ensureVisible(apply);
+    await tester.tap(apply);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(InputChip), findsNWidgets(6));
+    expect(tester.takeException(), isNull);
+  });
+
 }
 
