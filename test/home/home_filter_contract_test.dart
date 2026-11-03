@@ -99,6 +99,9 @@ void main() {
     expect(find.text('همه برچسب‌ها'), findsOneWidget);
     await tester.tap(find.text('همه برچسب‌ها'));
     await tester.pumpAndSettle();
+    // Tag selection is multi-select and intentionally keeps its sheet open.
+    await tester.tap(find.byTooltip('بستن'));
+    await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('home-group-tomorrow')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-group-future')), findsOneWidget);
@@ -116,7 +119,13 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(categoryFilter);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('کاری'));
+    final workCategoryOption = find.descendant(
+      of: find.byType(ListView),
+      matching: find.text('کاری'),
+    ).first;
+    await tester.tap(workCategoryOption);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('بستن'));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('home-filter-card-time')), findsOneWidget);
     expect(find.text('امروز'), findsAtLeastNWidgets(1));
