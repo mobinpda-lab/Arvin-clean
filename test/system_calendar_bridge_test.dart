@@ -75,6 +75,36 @@ void main() {
     expect((calls.single.arguments as Map<Object?, Object?>)['reminderId'], 'task-due:task-1');
   });
 
+  test('local Arvin calendar identity is carried from the native boundary', () async {
+    const channel = MethodChannel(SystemCalendarBridge.channelName);
+    final calls = <MethodCall>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+      calls.add(call);
+      if (call.method == SystemCalendarBridge.ensureArvinLocalCalendarMethod) {
+        return <String, Object?>{
+          'id': 'local-1',
+          'displayName': 'Arvin',
+          'accountName': 'com.example.arvin',
+          'accountType': 'LOCAL',
+          'ownerAccount': 'com.example.arvin',
+          'isArvinLocal': true,
+        };
+      }
+      return null;
+    });
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    });
+
+    final calendar = await SystemCalendarBridge(channel: channel)
+        .ensureArvinLocalCalendar();
+    expect(calendar?.id, 'local-1');
+    expect(calendar?.isArvinLocal, isTrue);
+    expect(calls.single.method, SystemCalendarBridge.ensureArvinLocalCalendarMethod);
+  });
+
   test('opens the selected phone-owned event in its native calendar editor', () async {
     const channel = MethodChannel(SystemCalendarBridge.channelName);
     final calls = <MethodCall>[];

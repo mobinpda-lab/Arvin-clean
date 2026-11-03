@@ -79,6 +79,17 @@ class StartupPermissionService {
       await requester();
       return;
     }
-    await _calendarChannel.invokeMethod<bool>('requestCalendarAccessPermissions');
+    final granted = await _calendarChannel.invokeMethod<bool>(
+      'requestCalendarAccessPermissions',
+    );
+    if (granted == true) {
+      try {
+        await _calendarChannel.invokeMethod<Map<Object?, Object?>>(
+          'ensureArvinLocalCalendar',
+        );
+      } on PlatformException {
+        // Provider failure must not block the internal Arvin Task store.
+      }
+    }
   }
 }

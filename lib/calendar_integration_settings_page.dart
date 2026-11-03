@@ -54,14 +54,24 @@ class _CalendarIntegrationSettingsPageState
       providerError = null;
     });
     try {
-      final granted = await calendarBridge.requestReadPermission();
-      final calendars = granted
+      final accessGranted = await calendarBridge.requestAccessPermissions();
+      if (accessGranted) {
+        await calendarBridge.ensureArvinLocalCalendar();
+      }
+      final readGranted =
+          accessGranted || await calendarBridge.hasReadPermission();
+      final calendars = readGranted
           ? await calendarBridge.listDeviceCalendars()
           : const <DeviceCalendarInfo>[];
       if (!mounted) return;
       setState(() {
-        providerPermissionGranted = granted;
+        providerPermissionGranted = readGranted;
         deviceCalendars = calendars;
+        providerError = accessGranted
+            ? null
+            : readGranted
+                ? 'مجوز نوشتن تقویم داده نشد؛ تقویم داخلی آروین همچنان فعال است.'
+                : null;
       });
     } on PlatformException catch (error) {
       if (!mounted) return;
@@ -142,7 +152,7 @@ class _CalendarIntegrationSettingsPageState
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Text(
-                'برای دیدن تقویم‌های نصب‌شده، دسترسی فقط‌خواندنی تقویم لازم است. آروین در این مرحله هیچ رویدادی را مستقیم ایجاد، ویرایش یا حذف نمی‌کند.',
+                'برای ساخت و نگهداری تقویم پایهٔ محلی Arvin، مجوز خواندن و نوشتن تقویم گوشی لازم است. در صورت رد مجوز، کارهای داخلی آروین بدون تغییر قابل استفاده می‌مانند.',
               ),
               if (providerError != null) ...[
                 const SizedBox(height: 8),
@@ -156,7 +166,7 @@ class _CalendarIntegrationSettingsPageState
                 key: const ValueKey('calendar-request-provider-permission'),
                 onPressed: _loadProviderCalendars,
                 icon: const Icon(Icons.event_available_outlined),
-                label: const Text('بررسی و دریافت دسترسی تقویم گوشی'),
+                label: const Text('دریافت دسترسی و آماده‌سازی تقویم Arvin'),
               ),
             ],
           ),
@@ -193,6 +203,14 @@ class _CalendarIntegrationSettingsPageState
                   '${_providerLabel(calendar)}${calendar.accountName == null ? '' : ' • ${calendar.accountName}'}',
                 ),
               ),
+              if (calendar.isArvinLocal)
+                const ListTile(
+                  key: ValueKey('calendar-provider-arvin-local'),
+                  leading: Icon(Icons.lock_outline_rounded),
+                  title: Text('تقویم پایهٔ محلی Arvin'),
+                  subtitle: Text('توسط خود آروین مدیریت می‌شود و نیازی به انتخاب مقصد ندارد.'),
+                )
+              else ...[
               ListTile(
                 key: ValueKey('calendar-target-${calendar.id}'),
                 enabled: !saving,
@@ -225,6 +243,7 @@ class _CalendarIntegrationSettingsPageState
                         _save(current.copyWith(visibleCalendarIds: nextIds));
                       },
               ),
+              ],
             ],
           ),
         );

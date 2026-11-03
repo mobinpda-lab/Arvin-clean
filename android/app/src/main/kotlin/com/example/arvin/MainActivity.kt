@@ -5,6 +5,7 @@ import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.provider.CalendarContract
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -298,6 +299,23 @@ class MainActivity : FlutterActivity() {
                         CALENDAR_ACCESS_PERMISSION_REQUEST_CODE,
                     )
                 }
+                METHOD_ENSURE_ARVIN_LOCAL_CALENDAR -> {
+                    if (!hasCalendarReadPermission() || !hasCalendarWritePermission()) {
+                        result.error(
+                            "calendar_access_permission_denied",
+                            "Read and write calendar permissions are required to ensure Arvin's local calendar",
+                            null,
+                        )
+                        return@setMethodCallHandler
+                    }
+                    try {
+                        result.success(ensureArvinLocalCalendar())
+                    } catch (error: SecurityException) {
+                        result.error("calendar_write_denied", "Android Calendar Provider denied local Arvin calendar creation", error.message)
+                    } catch (error: RuntimeException) {
+                        result.error("calendar_local_creation_failed", "Unable to ensure the local Arvin calendar", error.message)
+                    }
+                }
                 METHOD_LIST_DEVICE_CALENDARS -> {
                     if (!hasCalendarReadPermission()) {
                         result.error(
@@ -407,6 +425,105 @@ class MainActivity : FlutterActivity() {
             Manifest.permission.WRITE_CALENDAR,
         ) == PackageManager.PERMISSION_GRANTED
 
+    /**
+     * Creates or reuses only the app-owned local Arvin calendar. A matching
+     * display name alone is never treated as proof of ownership.
+     */
+    private fun ensureArvinLocalCalendar(): Map<String, Any?> {
+        val accountName = packageName
+        val accountType = CalendarContract.ACCOUNT_TYPE_LOCAL
+        val uri = arvinLocalCalendarSyncAdapterUri(accountName, accountType)
+        val selection =
+            "${CalendarContract.Calendars.ACCOUNT_NAME} = ? AND " +
+                "${CalendarContract.Calendars.ACCOUNT_TYPE} = ? AND " +
+                "${CalendarContract.Calendars.NAME} = ? AND " +
+                "${CalendarContract.Calendars.OWNER_ACCOUNT} = ?"
+        val args = arrayOf(
+            accountName,
+            accountType,
+            ARVIN_LOCAL_CALENDAR_NAME,
+            accountName,
+        )
+        val ids = mutableListOf<Long>()
+        contentResolver.query(
+            uri,
+            arrayOf(CalendarContract.Calendars._ID),
+            selection,
+            args,
+            null,
+        )?.use { cursor ->
+            val idIndex = cursor.getColumnIndexOrThrow(CalendarContract.Calendars._ID)
+            while (cursor.moveToNext()) ids.add(cursor.getLong(idIndex))
+        }
+
+        check(ids.size <= 1) {
+            "Multiple app-owned Arvin local calendars were found; refusing to create another"
+        }
+        val calendarId = if (ids.size == 1) {
+            ids.single()
+        } else {
+            val values = ContentValues().apply {
+                put(CalendarContract.Calendars.ACCOUNT_NAME, accountName)
+                put(CalendarContract.Calendars.ACCOUNT_TYPE, accountType)
+                put(CalendarContract.Calendars.NAME, ARVIN_LOCAL_CALENDAR_NAME)
+                put(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME, ARVIN_LOCAL_CALENDAR_DISPLAY_NAME)
+                put(CalendarContract.Calendars.OWNER_ACCOUNT, accountName)
+                put(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL, CalendarContract.Calendars.CAL_ACCESS_OWNER)
+                put(CalendarContract.Calendars.CALENDAR_TIME_ZONE, TimeZone.getDefault().id)
+                put(CalendarContract.Calendars.VISIBLE, 1)
+                put(CalendarContract.Calendars.SYNC_EVENTS, 0)
+            }
+            val inserted = contentResolver.insert(uri, values)
+                ?: error("Calendar Provider returned no URI for the local Arvin calendar")
+            inserted.lastPathSegment?.toLongOrNull()
+                ?: error("Calendar Provider returned an invalid local Arvin calendar ID")
+        }
+
+        val projection = arrayOf(
+            CalendarContract.Calendars._ID,
+            CalendarContract.Calendars.ACCOUNT_NAME,
+            CalendarContract.Calendars.ACCOUNT_TYPE,
+            CalendarContract.Calendars.NAME,
+            CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,
+            CalendarContract.Calendars.OWNER_ACCOUNT,
+            CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL,
+        )
+        contentResolver.query(
+            uri,
+            projection,
+            "${CalendarContract.Calendars._ID} = ?",
+            arrayOf(calendarId.toString()),
+            null,
+        )?.use { cursor ->
+            check(cursor.moveToFirst()) { "The local Arvin calendar could not be read back" }
+            check(cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_NAME)) == accountName)
+            check(cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_TYPE)) == accountType)
+            check(cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Calendars.NAME)) == ARVIN_LOCAL_CALENDAR_NAME)
+            check(cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Calendars.OWNER_ACCOUNT)) == accountName)
+            val access = cursor.getInt(cursor.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL))
+            check(access >= CalendarContract.Calendars.CAL_ACCESS_OWNER) { "The local Arvin calendar is not writable" }
+            return mapOf(
+                "id" to cursor.getLong(cursor.getColumnIndexOrThrow(CalendarContract.Calendars._ID)).toString(),
+                "displayName" to cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME)),
+                "accountName" to accountName,
+                "accountType" to accountType,
+                "ownerAccount" to accountName,
+                "accessLevel" to access,
+                "isArvinLocal" to true,
+            )
+        }
+        error("Calendar Provider returned no cursor while verifying the local Arvin calendar")
+    }
+
+    private fun arvinLocalCalendarSyncAdapterUri(
+        accountName: String,
+        accountType: String,
+    ): Uri = CalendarContract.Calendars.CONTENT_URI.buildUpon()
+        .appendQueryParameter(CalendarContract.CALLER_IS_SYNCADAPTER, "true")
+        .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, accountName)
+        .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_TYPE, accountType)
+        .build()
+
     private fun eventValues(
         calendarId: Long,
         title: String,
@@ -427,6 +544,7 @@ class MainActivity : FlutterActivity() {
     private fun readDeviceCalendars(): List<Map<String, Any?>> {
         val projection = arrayOf(
             CalendarContract.Calendars._ID,
+            CalendarContract.Calendars.NAME,
             CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,
             CalendarContract.Calendars.ACCOUNT_NAME,
             CalendarContract.Calendars.ACCOUNT_TYPE,
@@ -446,6 +564,7 @@ class MainActivity : FlutterActivity() {
             "${CalendarContract.Calendars.CALENDAR_DISPLAY_NAME} COLLATE NOCASE ASC",
         )?.use { cursor ->
             val idIndex = cursor.getColumnIndexOrThrow(CalendarContract.Calendars._ID)
+            val nameIndex = cursor.getColumnIndexOrThrow(CalendarContract.Calendars.NAME)
             val displayNameIndex = cursor.getColumnIndexOrThrow(
                 CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,
             )
@@ -476,6 +595,12 @@ class MainActivity : FlutterActivity() {
                     mapOf(
                         "id" to cursor.getLong(idIndex).toString(),
                         "displayName" to cursor.getString(displayNameIndex).orEmpty(),
+                        "isArvinLocal" to (
+                            cursor.getString(accountNameIndex) == packageName &&
+                                cursor.getString(accountTypeIndex) == CalendarContract.ACCOUNT_TYPE_LOCAL &&
+                                cursor.getString(nameIndex) == ARVIN_LOCAL_CALENDAR_NAME &&
+                                cursor.getString(ownerAccountIndex) == packageName
+                        ),
                         "accountName" to cursor.getString(accountNameIndex),
                         "accountType" to cursor.getString(accountTypeIndex),
                         "ownerAccount" to cursor.getString(ownerAccountIndex),
@@ -630,6 +755,9 @@ class MainActivity : FlutterActivity() {
         const val METHOD_VERIFY_DEVICE_CALENDAR_EVENT = "verifyDeviceCalendarEvent"
         const val METHOD_DELETE_DEVICE_CALENDAR_EVENT = "deleteDeviceCalendarEvent"
         const val METHOD_OPEN_DEVICE_CALENDAR_EVENT = "openDeviceCalendarEvent"
+        const val METHOD_ENSURE_ARVIN_LOCAL_CALENDAR = "ensureArvinLocalCalendar"
+        const val ARVIN_LOCAL_CALENDAR_NAME = "com.example.arvin.local.calendar.v1"
+        const val ARVIN_LOCAL_CALENDAR_DISPLAY_NAME = "Arvin"
         const val METHOD_LIST_DEVICE_CALENDARS = "listDeviceCalendars"
         const val METHOD_LIST_DEVICE_CALENDAR_EVENTS = "listDeviceCalendarEvents"
         const val CALENDAR_PERMISSION_REQUEST_CODE = 4102

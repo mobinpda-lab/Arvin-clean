@@ -13,6 +13,7 @@ class DeviceCalendarInfo {
     this.visible = false,
     this.syncEvents = false,
     this.isPrimary = false,
+    this.isArvinLocal = false,
   });
 
   final String id;
@@ -24,6 +25,7 @@ class DeviceCalendarInfo {
   final bool visible;
   final bool syncEvents;
   final bool isPrimary;
+  final bool isArvinLocal;
 
   factory DeviceCalendarInfo.fromMap(Map<Object?, Object?> value) {
     String? optionalString(String key) {
@@ -44,6 +46,7 @@ class DeviceCalendarInfo {
       visible: value['visible'] == true,
       syncEvents: value['syncEvents'] == true,
       isPrimary: value['isPrimary'] == true,
+      isArvinLocal: value['isArvinLocal'] == true,
     );
   }
 }
@@ -125,6 +128,10 @@ class SystemCalendarBridge {
       'calendarWritePermissionGranted';
   static const String requestWritePermissionMethod =
       'requestCalendarWritePermission';
+  static const String requestAccessPermissionsMethod =
+      'requestCalendarAccessPermissions';
+  static const String ensureArvinLocalCalendarMethod =
+      'ensureArvinLocalCalendar';
   static const String createProviderEventMethod = 'createDeviceCalendarEvent';
   static const String updateProviderEventMethod = 'updateDeviceCalendarEvent';
   static const String deleteProviderEventMethod = 'deleteDeviceCalendarEvent';
@@ -188,6 +195,30 @@ class SystemCalendarBridge {
     } on PlatformException catch (error) {
       if (error.code == 'permission_request_in_progress') return false;
       rethrow;
+    }
+  }
+
+  Future<bool> requestAccessPermissions() async {
+    try {
+      return await _channel.invokeMethod<bool>(requestAccessPermissionsMethod) ??
+          false;
+    } on MissingPluginException {
+      return false;
+    } on PlatformException catch (error) {
+      if (error.code == 'permission_request_in_progress') return false;
+      rethrow;
+    }
+  }
+
+  Future<DeviceCalendarInfo?> ensureArvinLocalCalendar() async {
+    try {
+      final raw = await _channel.invokeMethod<Map<Object?, Object?>>(
+        ensureArvinLocalCalendarMethod,
+      );
+      if (raw == null) return null;
+      return DeviceCalendarInfo.fromMap(raw);
+    } on MissingPluginException {
+      return null;
     }
   }
 
