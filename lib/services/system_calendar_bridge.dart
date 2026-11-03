@@ -311,7 +311,6 @@ class SystemCalendarBridge {
       return await _channel.invokeMethod<bool>(
             openProviderEventMethod,
             <String, Object?>{
-              'reminderId': reminderId,
               'calendarId': normalizedCalendarId,
               'eventId': normalizedEventId,
             },
@@ -338,6 +337,7 @@ class SystemCalendarBridge {
       return await _channel.invokeMethod<bool>(
             verifyProviderEventIdentityMethod,
             <String, Object?>{
+              'reminderId': reminderId,
               'calendarId': normalizedCalendarId,
               'eventId': normalizedEventId,
             },
