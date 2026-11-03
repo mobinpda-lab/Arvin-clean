@@ -1273,3 +1273,11 @@ Run 41451772502 / Job 125298740317 on the same SHA completed FAILURE. Gradle sta
 - Inbound reconciliation remains a deliberate no-op. External provider items remain read-only mirror projections; imported Task records remain canonical Arvin data and are not reconciled from later provider changes.
 - Added focused source-contract and MethodChannel identity tests. CI results, physical-device behavior and exact-SHA runtime evidence must be recorded separately after the commit.
 - Governance unchanged: PR #3052 OPEN / DRAFT / UNMERGED; no main modification; BLOCKED — RELEASE: NO-GO.
+
+
+### Wave 7.299 implementation follow-up — alarm-history boundary and settings policy evidence (2026-11-03)
+
+- FollowUp history is display/history data only. The retired AutomaticFollowUpService returns no scheduled or due candidates, and AutomaticFollowUpAlarmPlanner therefore has no FollowUp-history alarm candidates.
+- The active FollowUpReminderProjection and FollowUpReminderDeliveryService iterate only canonical Task.taskReminders. FollowUpReminderAlarmPlanner schedules only independent TaskReminder entries plus the migration-compatible singular Task reminderDate; it does not read Task.followUps. FollowUpWriteCoordinator may refresh this TaskReminder schedule after a FollowUp write, but it cannot create an alarm from the history record.
+- Calendar integration settings no longer expose automatic export, FollowUp-history export, FollowUp-reminder export, source-type sync toggles, or automatic linked-event deletion. The page now states the two approved explicit export gestures and local/device ownership boundary.
+- This is source/test evidence only until the final exact-SHA Build, Calendar Provider, Draft Review APK and seven Device Smoke results are completed and reported. No physical-device PASS is inferred from source inspection.

@@ -447,3 +447,11 @@ This is an implementation record following the earlier Wave 7.299 ownership audi
 - Inbound provider reconciliation remains non-mutating. Device events are mirror-only; copied/imported Arvin Tasks retain local ownership after import.
 - Focused Dart/MethodChannel/source-contract tests were added. Test execution, Android runtime behavior and all required CI lanes remain pending until exact-head workflows complete.
 - PR #3052 remains OPEN / DRAFT / UNMERGED; main is unchanged; BLOCKED — RELEASE: NO-GO.
+
+
+### 2026-11-03 — Wave 7.299 implementation follow-up: history/alarm boundary and settings policy
+
+- Verified the legacy AutomaticFollowUpService returns no future or due candidates and AutomaticFollowUpAlarmPlanner has no FollowUp-history alarm source.
+- Verified active follow-up reminder delivery and alarm planners iterate canonical Task.taskReminders (plus the migration-compatible Task.reminderDate), never Task.followUps history. A FollowUp write may reschedule the independent TaskReminder scheduler, but the scheduler does not create alarms from the history record.
+- Removed automatic-export, FollowUp-export, FollowUp-reminder-export, per-source sync and automatic delete-linked controls from Calendar integration settings. The settings page now explains the two permitted explicit export gestures and the device/local ownership boundary.
+- The earlier Wave 7.299 audit remains separate from this implementation follow-up. Required exact-SHA CI evidence is reported independently; source assertions are not device acceptance.
