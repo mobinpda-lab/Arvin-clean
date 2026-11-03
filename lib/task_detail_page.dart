@@ -25,6 +25,7 @@ class TaskDetailPage extends StatefulWidget {
     this.onComplete,
     this.onChecklistChanged,
     this.onDescriptionChanged,
+    this.onMoveDueDateToToday,
     this.onRegisterTaskToDeviceCalendar,
     this.now,
   });
@@ -37,6 +38,7 @@ class TaskDetailPage extends StatefulWidget {
   final Future<Task?> Function(Task task)? onComplete;
   final Future<Task?> Function(Task task, List<String> checklist)? onChecklistChanged;
   final Future<Task?> Function(Task task, String description)? onDescriptionChanged;
+  final Future<Task?> Function(Task task)? onMoveDueDateToToday;
   final Future<void> Function(Task task)? onRegisterTaskToDeviceCalendar;
   final DateTime? now;
 
@@ -57,6 +59,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   TextEditingController? _descriptionController;
   bool _isEditingDescription = false;
   bool _isSavingDescription = false;
+  bool _isMovingDueDateToToday = false;
   final TextEditingController _checklistAddController = TextEditingController();
   TextEditingController? _checklistEditController;
   int? _editingChecklistIndex;
@@ -163,6 +166,32 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     _checklistAddController.dispose();
     _checklistEditController?.dispose();
     super.dispose();
+  }
+
+  Future<void> _moveDueDateToToday() async {
+    final move = widget.onMoveDueDateToToday;
+    if (move == null || _isMovingDueDateToToday) return;
+    setState(() => _isMovingDueDateToToday = true);
+    try {
+      final updated = await move(_task);
+      if (!mounted) return;
+      if (updated == null) {
+        throw StateError('Task due date update was not persisted.');
+      }
+      setState(() {
+        _task = updated;
+        _isMovingDueDateToToday = false;
+      });
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(content: Text('موعد انجام کار برای امروز تنظیم شد')));
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isMovingDueDateToToday = false);
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(content: Text('تنظیم موعد برای امروز انجام نشد؛ دوباره تلاش کنید')));
+    }
   }
 
   Future<void> _sendToDeviceCalendar() async {
@@ -405,6 +434,20 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               if (_task.reminderDate != null)
                 const Icon(Icons.notifications_none_outlined, size: 18, color: _muted),
             ],
+          ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: OutlinedButton.icon(
+              key: const ValueKey('task-detail-move-due-date-to-today'),
+              onPressed: widget.onMoveDueDateToToday == null || _isMovingDueDateToToday
+                  ? null
+                  : _moveDueDateToToday,
+              icon: _isMovingDueDateToToday
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Icon(Icons.today_outlined, size: 17),
+              label: const Text('تنظیم موعد برای امروز'),
+            ),
           ),
         ],
       ),
