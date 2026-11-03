@@ -14,7 +14,7 @@ class CenterStore {
   static QueryExecutor? _testDatabase;
   final QueryExecutor? _injectedExecutor;
   QueryExecutor get _database {
-    if (_injectedExecutor != null) return _injectedExecutor!;
+    if (_injectedExecutor != null) return _injectedExecutor;
     if (Platform.environment['FLUTTER_TEST'] == 'true') return _testDatabase ??= NativeDatabase.memory();
     return _sharedDatabase ??= driftDatabase(name: 'arvin');
   }
