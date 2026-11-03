@@ -1,3 +1,9 @@
+## 2026-11-03 — Commit G: Canonical five-item navigation labels
+
+- Renamed the visible Home destination from «امروز» to the owner-approved «خانه».
+- Corrected the navigation regression test to assert exactly five visible destinations: خانه، تقویم، دفترچه، گزارش‌ها، بیشتر; the separate Next Action route remains outside the bottom bar.
+- No routing/storage behavior changed. Local Flutter tests not run; exact-HEAD CI required. main untouched; PR #3052 OPEN / DRAFT / UNMERGED; release BLOCKED — RELEASE: NO-GO.
+
 ## 2026-11-03 — Commit E2: Exact-SHA analyzer corrections for Reports and Template tests
 
 - Added the canonical Task model import to the Project Template regression test so TaskReminder and FollowUp preservation assertions compile.
