@@ -45,7 +45,8 @@ void main() {
     await tester.tap(find.text('همه').last);
     await tester.pumpAndSettle();
 
-    await tester.ensureVisible(find.byKey(const ValueKey('home-filter-card-center')));
+    await tester.drag(find.byKey(const ValueKey('home-compact-filter-scroll')), const Offset(-180, 0));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('home-filter-card-center')));
     await tester.pumpAndSettle();
     expect(find.text('همه مراکز'), findsOneWidget);
