@@ -750,7 +750,7 @@ void main() {
 
 
 
-  testWidgets('Home More menu has no standalone Today shortcut', (tester) async {
+  testWidgets('Home More Today shortcut remains a task filter, not calendar navigation', (tester) async {
     SharedPreferences.setMockInitialValues({});
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
@@ -758,10 +758,11 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
 
-    expect(find.widgetWithText(ListTile, 'امروز'), findsNothing);
+    expect(find.widgetWithText(ListTile, 'امروز'), findsOneWidget);
     expect(find.widgetWithText(ListTile, 'فیلتر کارها'), findsOneWidget);
     expect(find.widgetWithText(ListTile, 'کارهای فاقد زمان'), findsOneWidget);
-    expect(find.widgetWithText(ListTile, 'بایگانی'), findsOneWidget);
+    expect(find.byKey(const ValueKey('calendar-today')), findsNothing);
+    expect(find.byKey(const ValueKey('calendar-date-jump')), findsNothing);
   });
 
 }
