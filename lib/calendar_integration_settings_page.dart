@@ -272,12 +272,12 @@ class _CalendarIntegrationSettingsPageState
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  ListTile(
-                    key: const ValueKey('calendar-target-status'),
+                  const ListTile(
+                    key: ValueKey('calendar-target-status'),
                     contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.event_available_outlined),
-                    title: const Text('تقویم مقصد'),
-                    subtitle: Text(_targetCalendarLabel(current)),
+                    leading: Icon(Icons.lock_outline_rounded),
+                    title: Text('مقصد دائمی نوشتن'),
+                    subtitle: Text('تقویم محلی Arvin؛ تقویم‌های خارجی فقط خواندنی هستند.'),
                   ),
                   ListTile(
                     key: const ValueKey('calendar-visible-status'),
