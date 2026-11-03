@@ -1342,3 +1342,52 @@ Run 41451772502 / Job 125298740317 on the same SHA completed FAILURE. Gradle sta
 - No merge, release, publication or release sign-off.
 - Release remains **BLOCKED — RELEASE: NO-GO**.
 - Iran timestamp: 1405/08/12 07:40 (Asia/Tehran).
+
+
+---
+
+## Wave 7.302 — Past time filter and pending-first task ordering (2026-11-03)
+
+**Implementation source HEAD:** `7c2d0260f3af5869671f26d4356e6b20dd15608a`  
+**Branch:** `fix/recovery-calendar-device-smoke-2026-10-31`  
+**PR #3052:** OPEN / DRAFT / UNMERGED. **Release:** BLOCKED — RELEASE: NO-GO.
+
+### Prior-run results — exact SHA `2029d6e6924e6fe29db5b8e4722af2016d16969a`
+- Build Run `41576526214`: FAILURE. Analyze reported 13 issues, including the blocking test compile error `CenterDeleteBlocked isn't a type` at `test/center_project_association_test.dart:40`. Six test shards all failed. Reported shard summaries: test-0 166 passed / 2 failed; test-1 211 / 1; test-2 199 / 3; test-3 269 / 2; test-4 157 / 1; test-5 128 / 1. Aggregate: 1,130 passed / 10 failed. This is not a Build PASS.
+- Device Smoke Run `41576526259`: six lanes concluded SUCCESS (boot, navigation, task lifecycle, reminder/Vazirmatn, follow-up persistence, quick capture). The calendar-segmented-view lane did not pass: its emulator smoke step was CANCELLED and calendar evidence upload failed. Workflow remained IN_PROGRESS during cleanup at the latest poll; overall Device Smoke is NOT ACCEPTED.
+- Calendar Provider Run `41576526351`: SUCCESS; acceptance artifact present.
+- Draft Review APK Run `41576526404`: SUCCESS; non-expired artifact `arvin-review-staging-apk-2029d6e6924e6fe29db5b8e4722af2016d16969a` present (32,987,210 bytes).
+- These results belong only to SHA `2029d6e...`; they do not establish acceptance for the Wave 7.302 implementation.
+
+### Product implementation
+- Home time filter now exposes `گذشته` in the shared time-filter sheet and filter bar.
+- Home membership uses Task.dueDate only and includes tasks whose local due-date day is strictly before the local start of today. Today-at-midnight and all later dates are excluded; undated tasks are excluded.
+- Selecting `گذشته` renders one ordered Past group so completed past tasks cannot be separated into an unrelated date group or appear above pending tasks.
+- Added `TaskListSortService.sortPast`: incomplete tasks first, completed tasks second; within both groups, due dates sort ascending (oldest overdue first), with deterministic ID/input-order tie breaks.
+- Report Center already exposed the `ReportTimePreset.past` option and strict prior-day membership. Its result projection now applies the same shared pending-first / oldest-date-first ordering. The same TaskReportFilter powers the Report Center's advanced filter sheet.
+- Report date comparison normalizes both the selected Task due date and current date to local calendar time.
+- No storage schema, Task model, due-date semantics, reminder data, or FollowUp history was changed.
+
+### Regression tests added
+- `test/task_list_sort_service_test.dart`: pending-first hierarchy and ascending date order inside both completion groups.
+- `test/task_report_filter_test.dart`: strict exclusion of today (including midnight and morning), future and undated records; open-first ordering followed by completed records.
+- `test/widgets/home_page_test.dart`: Home UI selection of `گذشته`, strict exclusion of today's task, and visible pending-first/date ordering.
+- `test/report_center_page_test.dart`: Report Center Past selection, exact result scope, and pending-first/date ordering.
+- Source and test files were re-read from the branch after commits; this is source-presence verification only. No test PASS is claimed until the new exact-HEAD CI runs complete.
+
+### Implementation commits
+- `5cdc622a6125465c1a9e21bf4a4ec8a75ce1d9f7` — shared Past ordering service.
+- `8546027ec6c877fa8a92293c026d9dfa0ff50d03` — Report Center sorting and local date normalization.
+- `e2fd19b255d3145133238cad9ee0a4dfba6fe82e` — Home Past option, strict scope, sorting and grouping.
+- `a5e6fb2867e0851ff719253e0af8cbc576783071` — shared sorting regression test.
+- `97a568ea005f94a7981ff2454b645a0b4eb7e550` — Report filter scope/sorting regression test.
+- `2160632c39c65e7eab722fb76d06ba48d34ca575` — Home UI regression test.
+- `11a0134e130dabec8ed6544e4eed9f04057385f5` — Report Center UI regression test.
+- `7c2d0260f3af5869671f26d4356e6b20dd15608a` — local-date normalization in Home.
+
+### Governance
+- Only the authorized PR branch was changed; `main` was not modified.
+- PR #3052 remains OPEN / DRAFT / UNMERGED.
+- No merge, release, APK publication or release sign-off.
+- Release remains **BLOCKED — RELEASE: NO-GO**.
+- Iran date: 1405/08/12 (Asia/Tehran).
