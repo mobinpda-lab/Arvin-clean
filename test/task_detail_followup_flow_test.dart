@@ -1,6 +1,9 @@
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/waiting_for_response_service.dart';
 import 'package:arvin/task_detail_page.dart';
+import 'package:arvin/services/task_move_to_today_service.dart';
+import 'package:arvin/services/task_store.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -318,4 +321,76 @@ void main() {
     expect(task.id, 'same-id');
     expect(find.text('عنوان جدید'), findsOneWidget);
   });
+
+  testWidgets('Task detail explicit Today action sits below due date, persists local day and preserves Task data',
+      (tester) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    await TaskStore.resetTestDatabase();
+    final store = TaskStore();
+    final original = Task(
+      id: 'detail-move-today',
+      title: 'کار موعددار',
+      description: 'توضیح محفوظ',
+      dueDate: DateTime(2026, 8, 20, 14, 35),
+      reminderDate: DateTime(2026, 8, 19, 9, 15),
+      followUpEnabled: true,
+      followUpDate: DateTime(2026, 8, 21, 10),
+      category: 'مشتریان',
+      tags: <String>['مهم'],
+      checklist: <String>['تماس', 'ارسال'],
+      followUps: <FollowUp>[
+        FollowUp(
+          id: 'detail-history',
+          dateTime: DateTime(2026, 8, 18, 11),
+          note: 'تاریخچه محفوظ',
+        ),
+      ],
+    );
+    await store.save(<Task>[original]);
+    final fixedLocalNow = DateTime(2026, 8, 28, 16, 42, 30);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TaskDetailPage(
+          task: original,
+          onMoveDueDateToToday: (task) => TaskMoveToTodayService(store: store)
+              .move(task.id, now: fixedLocalNow),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final dueDate = find.byKey(const ValueKey('task-detail-due-date'));
+    final action = find.byKey(const ValueKey('task-detail-move-due-date-to-today'));
+    expect(dueDate, findsOneWidget);
+    expect(action, findsOneWidget);
+    expect(
+      tester.getTopLeft(action).dy,
+      greaterThan(tester.getBottomRight(dueDate).dy),
+    );
+    expect(find.text('۱۴۰۵/۰۵/۲۹ • ۱۴:۳۵'), findsOneWidget);
+
+    await tester.tap(action);
+    await tester.pumpAndSettle();
+
+    final expectedDue = DateTime(2026, 8, 28, 14, 35);
+    expect(original.dueDate, DateTime(2026, 8, 20, 14, 35));
+    expect(find.text('۱۴۰۵/۰۶/۰۶ • ۱۴:۳۵'), findsOneWidget);
+    final reloaded = (await store.load()).single;
+    expect(reloaded.dueDate, expectedDue);
+    expect(reloaded.updatedAt, fixedLocalNow);
+    expect(reloaded.id, original.id);
+    expect(reloaded.title, original.title);
+    expect(reloaded.description, original.description);
+    expect(reloaded.reminderDate, DateTime(2026, 8, 19, 9, 15));
+    expect(reloaded.followUpEnabled, isTrue);
+    expect(reloaded.followUpDate, DateTime(2026, 8, 21, 10));
+    expect(reloaded.category, 'مشتریان');
+    expect(reloaded.tags, <String>['مهم']);
+    expect(reloaded.checklist, <String>['تماس', 'ارسال']);
+    expect(reloaded.followUps.single.id, 'detail-history');
+    expect(reloaded.followUps.single.note, 'تاریخچه محفوظ');
+  });
+
+
 }
