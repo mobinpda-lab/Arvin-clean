@@ -1,6 +1,7 @@
 import '../models/task.dart';
 import '../models/goal_project.dart';
 import '../models/recurrence.dart';
+import 'task_list_sort_service.dart';
 
 enum ReportTimePreset { all, today, tomorrow, thisWeek, future, past, undated }
 
@@ -226,7 +227,7 @@ class TaskReportFilter {
     final selectedProjects = projects
         .where((item) => selectedProjectIds.contains(item.id))
         .toList(growable: false);
-    return tasks.where((task) {
+    final filteredTasks = tasks.where((task) {
       if (task.trashed) return false;
       if (taskId != null && task.id != taskId) return false;
       if (templateTaskId != null && task.templateTaskId != templateTaskId) return false;
@@ -287,6 +288,10 @@ class TaskReportFilter {
       if (!_matchesTime(task.dueDate, now)) return false;
       return true;
     }).toList(growable: false);
+    if (timePreset == ReportTimePreset.past) {
+      return const TaskListSortService().sortPast(filteredTasks);
+    }
+    return filteredTasks;
   }
 
   bool _matchesStatus(Task task) {
@@ -361,7 +366,8 @@ class TaskReportFilter {
     }
 
     final local = value.toLocal();
-    final today = DateTime(now.year, now.month, now.day);
+    final localNow = now.toLocal();
+    final today = DateTime(localNow.year, localNow.month, localNow.day);
     final day = DateTime(local.year, local.month, local.day);
 
     switch (timePreset) {
