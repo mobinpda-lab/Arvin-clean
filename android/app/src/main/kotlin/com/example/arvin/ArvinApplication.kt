@@ -28,18 +28,17 @@ class ArvinApplication : Application() {
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
             try {
                 FileOutputStream(dumpFile, true).use { stream ->
-                    OutputStreamWriter(stream, StandardCharsets.UTF_8).use { writer ->
-                        writer.appendLine("===== ARVIN NATIVE JVM UNCAUGHT EXCEPTION =====")
-                        writer.appendLine("timestamp_epoch_ms=${System.currentTimeMillis()}")
-                        writer.appendLine("process=${Process.myPid()}")
-                        writer.appendLine("thread=${thread.name}")
-                        writer.appendLine("exception=${throwable.javaClass.name}")
-                        writer.appendLine(throwable.message ?: "(no message)")
-                        writer.appendLine("stacktrace:")
-                        writer.appendLine(throwable.stackTraceToString())
-                        writer.appendLine("===== END ARVIN CRASH DUMP =====")
-                        writer.flush()
-                    }
+                    val writer = OutputStreamWriter(stream, StandardCharsets.UTF_8)
+                    writer.appendLine("===== ARVIN NATIVE JVM UNCAUGHT EXCEPTION =====")
+                    writer.appendLine("timestamp_epoch_ms=${System.currentTimeMillis()}")
+                    writer.appendLine("process=${Process.myPid()}")
+                    writer.appendLine("thread=${thread.name}")
+                    writer.appendLine("exception=${throwable.javaClass.name}")
+                    writer.appendLine(throwable.message ?: "(no message)")
+                    writer.appendLine("stacktrace:")
+                    writer.appendLine(throwable.stackTraceToString())
+                    writer.appendLine("===== END ARVIN CRASH DUMP =====")
+                    writer.flush()
                     stream.fd.sync()
                 }
             } catch (writeFailure: Throwable) {
