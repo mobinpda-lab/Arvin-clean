@@ -455,3 +455,14 @@ This is an implementation record following the earlier Wave 7.299 ownership audi
 - Verified active follow-up reminder delivery and alarm planners iterate canonical Task.taskReminders (plus the migration-compatible Task.reminderDate), never Task.followUps history. A FollowUp write may reschedule the independent TaskReminder scheduler, but the scheduler does not create alarms from the history record.
 - Removed automatic-export, FollowUp-export, FollowUp-reminder-export, per-source sync and automatic delete-linked controls from Calendar integration settings. The settings page now explains the two permitted explicit export gestures and the device/local ownership boundary.
 - The earlier Wave 7.299 audit remains separate from this implementation follow-up. Required exact-SHA CI evidence is reported independently; source assertions are not device acceptance.
+
+
+## 2026-11-03 — Calendar Bridge identity and analyzer correction
+
+- Removed the Task Reminder identity from the native calendar-editor launch payload; opening an existing device event requires only its calendar and event IDs.
+- Moved the Reminder identity to the provider ownership-verification payload, where it is required to verify the exact Arvin-owned event.
+- Added native-side validation that ownership checks receive an eligible Task/TaskReminder identity before querying Calendar Provider.
+- Removed the redundant spread `.toList(growable: false)` and added the required guard braces in the Calendar Bridge.
+- The existing Arvin local-calendar provisioning and event CRUD paths were not redesigned by this focused correction.
+- Exact-head Analyze, tests, Calendar Provider acceptance and Review APK build are still required. No PASS is inferred from source edits.
+- PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; release remains BLOCKED — RELEASE: NO-GO.
