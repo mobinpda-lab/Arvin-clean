@@ -71,6 +71,7 @@ import 'widgets/canonical_calendar_launcher.dart';
 import 'widgets/home_my_tasks_sheet.dart';
 import 'widgets/task_bulk_selection_bar.dart';
 import 'widgets/taxonomy_icon_row.dart';
+import 'widgets/startup_crash_screen.dart';
 
 class _SettingsTextScaler extends TextScaler {
   const _SettingsTextScaler({
@@ -114,7 +115,57 @@ class _SettingsTextScaler extends TextScaler {
 
 final GlobalKey<NavigatorState> arvinNavigatorKey = GlobalKey<NavigatorState>();
 
-void main() => runApp(const ArvinApp());
+final ValueNotifier<_StartupFailure?> _startupFailure = ValueNotifier<_StartupFailure?>(null);
+
+void _captureStartupFailure(Object error, StackTrace stackTrace) {
+  scheduleMicrotask(() {
+    _startupFailure.value = _StartupFailure(error, stackTrace);
+  });
+}
+
+void main() {
+  runZonedGuarded<void>(() {
+    WidgetsFlutterBinding.ensureInitialized();
+    FlutterError.onError = (details) {
+      FlutterError.presentError(details);
+      _captureStartupFailure(details.exception, details.stack ?? StackTrace.current);
+    };
+    ui.PlatformDispatcher.instance.onError = (error, stackTrace) {
+      _captureStartupFailure(error, stackTrace);
+      return true;
+    };
+    runApp(const _CrashAwareRoot());
+  }, _captureStartupFailure);
+}
+
+class _StartupFailure {
+  const _StartupFailure(this.error, this.stackTrace);
+  final Object error;
+  final StackTrace stackTrace;
+}
+
+class _CrashAwareRoot extends StatelessWidget {
+  const _CrashAwareRoot();
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<_StartupFailure?>(
+      valueListenable: _startupFailure,
+      builder: (context, failure, _) {
+        if (failure != null) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            home: StartupCrashScreen(
+              errorText: failure.error.toString(),
+              stackTrace: failure.stackTrace.toString(),
+            ),
+          );
+        }
+        return const ArvinApp();
+      },
+    );
+  }
+}
 
 class ArvinApp extends StatefulWidget {
   const ArvinApp({super.key});
