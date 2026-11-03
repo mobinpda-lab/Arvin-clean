@@ -225,7 +225,7 @@ void main() {
     expect(
       find.descendant(
         of: find.byType(ArvinPrimaryNavigation),
-        matching: find.text('امروز'),
+        matching: find.text('خانه'),
       ),
       findsOneWidget,
     );
