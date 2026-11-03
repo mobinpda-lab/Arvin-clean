@@ -423,10 +423,11 @@ class _HomePageState extends State<HomePage> {
   String filter = 'کل';
   TaskListScope _listScope = TaskListScope.all;
   TaskDueScope? _dueScope;
-  String? _categoryFilter;
-  String? _centerFilter;
-  String? _projectFilter;
+  final Set<String> _categoryFilters = <String>{};
+  final Set<String> _centerFilters = <String>{};
+  final Set<String> _projectFilters = <String>{};
   final Set<String> _tagFilters = <String>{};
+  final Set<String> _timeFilters = <String>{};
   String _timeFilter = 'all';
   DateTime? _specificDateFilter;
   DateTime? _fromDateFilter;
@@ -670,9 +671,9 @@ class _HomePageState extends State<HomePage> {
   bool get _homeFilterActive =>
       query.trim().isNotEmpty ||
       _timeFilter != 'all' ||
-      _centerFilter != null ||
-      _projectFilter != null ||
-      _categoryFilter != null ||
+      _centerFilters.isNotEmpty ||
+      _projectFilters.isNotEmpty ||
+      _categoryFilters.isNotEmpty ||
       _tagFilters.isNotEmpty;
 
   String get _timeFilterLabel {
@@ -681,16 +682,10 @@ class _HomePageState extends State<HomePage> {
       final to = _toDateFilter == null ? 'پایان' : _date(_toDateFilter!);
       return '$from تا $to';
     }
-    switch (_timeFilter) {
-      case 'today': return 'امروز';
-      case 'past': return 'گذشته';
-      case 'tomorrow': return 'فردا';
-      case 'next7': return '۷ روز آینده';
-      case 'next30': return '۳۰ روز آینده';
-      case 'custom': return _specificDateFilter == null ? 'تاریخ مشخص' : _date(_specificDateFilter!);
-      case 'undated': return 'فاقد زمان';
-      default: return 'همه';
-    }
+    if (_timeFilters.isEmpty) return 'همه';
+    if (_timeFilters.length > 1) return 'زمان (${_timeFilters.length})';
+    const labels = <String, String>{'past':'گذشته','today':'امروز','tomorrow':'فردا','next7':'۷ روز آینده','next30':'۳۰ روز آینده','custom':'تاریخ مشخص','undated':'فاقد زمان'};
+    return labels[_timeFilters.first] ?? 'همه';
   }
 
   String? _projectTitle(String? id) {
@@ -703,43 +698,35 @@ class _HomePageState extends State<HomePage> {
 
   bool _matchesTimeFilter(Task task) {
     final due = task.dueDate;
-    if (_timeFilter == 'all') return true;
-    if (_timeFilter == 'undated') return due == null;
-    if (due == null) return false;
-    final now = IranClock.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final localDue = due.toLocal();
-    final day = DateTime(localDue.year, localDue.month, localDue.day);
-    if (_timeFilter == 'today') return day == today;
-    if (_timeFilter == 'past') return day.isBefore(today);
-    if (_timeFilter == 'tomorrow') return day == today.add(const Duration(days: 1));
-    if (_timeFilter == 'next7') return !day.isBefore(today) && day.isBefore(today.add(const Duration(days: 7)));
-    if (_timeFilter == 'next30') return !day.isBefore(today) && day.isBefore(today.add(const Duration(days: 30)));
-    if (_timeFilter == 'custom') {
-      final selected = _specificDateFilter;
-      if (selected == null) return true;
-      return day == DateTime(selected.year, selected.month, selected.day);
-    }
     if (_timeFilter == 'customRange') {
+      if (due == null) return false;
+      final local = due.toLocal(), day = DateTime(local.year, local.month, local.day);
       final from = _fromDateFilter == null ? null : DateTime(_fromDateFilter!.year, _fromDateFilter!.month, _fromDateFilter!.day);
       final to = _toDateFilter == null ? null : DateTime(_toDateFilter!.year, _toDateFilter!.month, _toDateFilter!.day);
-      final dayMatches = (from == null || !day.isBefore(from)) && (to == null || !day.isAfter(to));
-      if (!dayMatches) return false;
-      if (_fromTimeFilter != null) {
-        final minutes = due.hour * 60 + due.minute;
-        final fromMinutes = _fromTimeFilter!.hour * 60 + _fromTimeFilter!.minute;
-        if (minutes < fromMinutes && (from == null || day == from)) return false;
-      }
-      if (_toTimeFilter != null) {
-        final minutes = due.hour * 60 + due.minute;
-        final toMinutes = _toTimeFilter!.hour * 60 + _toTimeFilter!.minute;
-        if (minutes > toMinutes && (to == null || day == to)) return false;
-      }
+      if ((from != null && day.isBefore(from)) || (to != null && day.isAfter(to))) return false;
+      final minutes = local.hour * 60 + local.minute;
+      if (_fromTimeFilter != null && minutes < _fromTimeFilter!.hour * 60 + _fromTimeFilter!.minute && (from == null || day == from)) return false;
+      if (_toTimeFilter != null && minutes > _toTimeFilter!.hour * 60 + _toTimeFilter!.minute && (to == null || day == to)) return false;
       return true;
     }
-    return true;
+    if (_timeFilters.isEmpty) return true;
+    if (due == null) return _timeFilters.contains('undated');
+    final now = IranClock.now(), today = DateTime(now.year, now.month, now.day);
+    final local = due.toLocal(), day = DateTime(local.year, local.month, local.day);
+    return _timeFilters.any((id) {
+      switch (id) {
+        case 'past': return day.isBefore(today);
+        case 'today': return day == today;
+        case 'tomorrow': return day == today.add(const Duration(days: 1));
+        case 'next7': return !day.isBefore(today) && day.isBefore(today.add(const Duration(days: 7)));
+        case 'next30': return !day.isBefore(today) && day.isBefore(today.add(const Duration(days: 30)));
+        case 'custom':
+          final picked = _specificDateFilter;
+          return picked != null && day == DateTime(picked.year, picked.month, picked.day);
+        default: return false;
+      }
+    });
   }
-
 
   List<Task> get visible {
     final searchActive = query.trim().isNotEmpty;
@@ -761,30 +748,20 @@ class _HomePageState extends State<HomePage> {
 
     if (filter != 'بایگانی' && filter != 'سطل زباله') {
       scoped = scoped.where(_matchesTimeFilter);
-      if (_centerFilter != null) {
-        final centerProjectTaskIds = projects
-            .where((project) => _centerFilter == '__no_center__'
-                ? project.centerId == null
-                : project.centerId == _centerFilter)
-            .expand((project) => project.itemIds)
-            .toSet();
-        scoped = scoped.where((task) => centerProjectTaskIds.contains(task.id));
+      if (_centerFilters.isNotEmpty) {
+        final ids = projects.where((p) => _centerFilters.contains(p.centerId ?? '__no_center__')).expand((p) => p.itemIds).toSet();
+        scoped = scoped.where((task) => ids.contains(task.id));
       }
-      if (_categoryFilter != null) scoped = scoped.where((task) => task.category?.trim() == _categoryFilter);
-      if (_projectFilter != null) {
-        if (_projectFilter == '__no_project__') {
-          final assigned = projects.expand((item) => item.itemIds).toSet();
-          scoped = scoped.where((task) => !assigned.contains(task.id));
-        } else {
-          ProjectPlan? project;
-          for (final item in projects) {
-            if (item.id == _projectFilter) { project = item; break; }
-          }
-          if (project != null) {
-            final ids = project.itemIds.toSet();
-            scoped = scoped.where((task) => ids.contains(task.id));
-          }
-        }
+      if (_categoryFilters.isNotEmpty) {
+        scoped = scoped.where((task) => _categoryFilters.contains(task.category?.trim()));
+      }
+      if (_projectFilters.isNotEmpty) {
+        final assigned = projects.expand((p) => p.itemIds).toSet();
+        final ids = <String>{
+          if (_projectFilters.contains('__no_project__')) ...tasks.where((t) => !assigned.contains(t.id)).map((t) => t.id),
+          ...projects.where((p) => _projectFilters.contains(p.id)).expand((p) => p.itemIds),
+        };
+        scoped = scoped.where((task) => ids.contains(task.id));
       }
       if (_tagFilters.isNotEmpty) {
         scoped = scoped.where(
@@ -794,7 +771,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     final result = scoped.toList(growable: false);
-    if (_timeFilter == 'past') return taskListSortService.sortPast(result);
+    if (_timeFilters.contains('past')) return taskListSortService.sortPast(result);
     return taskListSortService.sort(result, by: _listSort, descending: _sortDescending);
   }
 
@@ -802,7 +779,7 @@ class _HomePageState extends State<HomePage> {
     if (filter == 'بایگانی' || filter == 'سطل زباله') {
       return [HomeGroup<Task>(id: 'filtered', title: filter, items: visible)];
     }
-    if (_timeFilter == 'past') {
+    if (_timeFilters.length == 1 && _timeFilters.contains('past')) {
       return [HomeGroup<Task>(id: 'past', title: 'گذشته', items: visible)];
     }
     final now = IranClock.now();
@@ -878,38 +855,38 @@ class _HomePageState extends State<HomePage> {
             children: [
               chip(
                 key: const ValueKey('home-filter-card-time'),
-                label: _timeFilter == 'all' ? 'زمان' : _timeFilterLabel,
+                label: _timeFilters.isEmpty && _timeFilter != 'customRange' ? 'زمان' : _timeFilterLabel,
                 icon: Icons.schedule_rounded,
                 accent: ArvinColors.time,
                 soft: ArvinColors.timeSoft,
-                active: _timeFilter != 'all',
+                active: _timeFilters.isNotEmpty || _timeFilter == 'customRange',
                 onPressed: _showTimeFilterSheet,
               ),
               chip(
                 key: const ValueKey('home-filter-card-center'),
-                label: _centerFilter == null ? 'مرکز' : _centerFilter == '__no_center__' ? 'بدون مرکز' : (_centerName(_centerFilter) ?? 'مرکز حذف‌شده'),
+                label: _centerFilters.isEmpty ? 'مرکز' : _centerFilters.length == 1 ? (_centerFilters.first == '__no_center__' ? 'بدون مرکز' : (_centerName(_centerFilters.first) ?? 'مرکز حذف‌شده')) : 'مرکز (${_centerFilters.length})',
                 icon: Icons.location_city_outlined,
                 accent: ArvinColors.primary,
                 soft: ArvinColors.primarySoft,
-                active: _centerFilter != null,
+                active: _centerFilters.isNotEmpty,
                 onPressed: _showCenterFilterSheet,
               ),
               chip(
                 key: const ValueKey('home-filter-card-project'),
-                label: _projectFilter == null ? 'پروژه‌ها' : (_projectTitle(_projectFilter) ?? 'بدون پروژه'),
+                label: _projectFilters.isEmpty ? 'پروژه‌ها' : _projectFilters.length == 1 ? (_projectFilters.first == '__no_project__' ? 'بدون پروژه' : (_projectTitle(_projectFilters.first) ?? 'پروژه حذف‌شده')) : 'پروژه‌ها (${_projectFilters.length})',
                 icon: Icons.folder_rounded,
                 accent: ArvinColors.project,
                 soft: ArvinColors.projectSoft,
-                active: _projectFilter != null,
+                active: _projectFilters.isNotEmpty,
                 onPressed: _showProjectFilterSheet,
               ),
               chip(
                 key: const ValueKey('home-filter-card-category'),
-                label: _categoryFilter ?? 'دسته‌بندی‌ها',
+                label: _categoryFilters.isEmpty ? 'دسته‌بندی‌ها' : _categoryFilters.length == 1 ? _categoryFilters.first : 'دسته‌بندی‌ها (${_categoryFilters.length})',
                 icon: Icons.layers_rounded,
                 accent: ArvinColors.category,
                 soft: ArvinColors.categorySoft,
-                active: _categoryFilter != null,
+                active: _categoryFilters.isNotEmpty,
                 onPressed: _showCategoryFilterSheet,
               ),
               chip(
@@ -931,7 +908,7 @@ class _HomePageState extends State<HomePage> {
   Widget _homeActiveFilterChips() {
     if (!_homeFilterActive) return const SizedBox.shrink();
     final chips = <Widget>[];
-    if (_timeFilter != 'all') {
+    if (_timeFilters.isNotEmpty || _timeFilter == 'customRange') {
       chips.add(HomeFilterChip(
         label: _timeFilterLabel,
         accent: ArvinColors.time,
@@ -939,14 +916,15 @@ class _HomePageState extends State<HomePage> {
         icon: Icons.schedule_rounded,
         onRemove: () => setState(() {
           _timeFilter = 'all';
+          _timeFilters.clear();
           _specificDateFilter = null;
         }),
       ));
     }
-    if (_centerFilter != null) chips.add(HomeFilterChip(label: _centerFilter == '__no_center__' ? 'پروژه‌های بدون مرکز' : (_centerName(_centerFilter) ?? 'مرکز حذف‌شده'), accent: ArvinColors.primary, soft: ArvinColors.primarySoft, icon: Icons.location_city_outlined, onRemove: () => setState(() => _centerFilter = null)));
-    if (_projectFilter != null) chips.add(HomeFilterChip(label: _projectTitle(_projectFilter) ?? 'بدون پروژه', accent: ArvinColors.project, soft: ArvinColors.projectSoft, icon: Icons.folder_rounded, onRemove: () => setState(() => _projectFilter = null)));
-    if (_categoryFilter != null) chips.add(HomeFilterChip(label: _categoryFilter!, accent: ArvinColors.category, soft: ArvinColors.categorySoft, icon: Icons.layers_rounded, onRemove: () => setState(() => _categoryFilter = null)));
-    for (final tag in _tagFilters) chips.add(HomeFilterChip(label: tag, accent: ArvinColors.tag, soft: ArvinColors.tagSoft, icon: Icons.sell_rounded, onRemove: () => setState(() => _tagFilters.remove(tag))));
+    if (_centerFilters.isNotEmpty) chips.add(HomeFilterChip(label: _centerFilters.length == 1 ? (_centerFilters.first == '__no_center__' ? 'بدون مرکز' : (_centerName(_centerFilters.first) ?? 'مرکز حذف‌شده')) : 'مرکز (${_centerFilters.length})', accent: ArvinColors.primary, soft: ArvinColors.primarySoft, icon: Icons.location_city_outlined, onRemove: () => setState(() => _centerFilters.clear())));
+    if (_projectFilters.isNotEmpty) chips.add(HomeFilterChip(label: _projectFilters.length == 1 ? (_projectFilters.first == '__no_project__' ? 'بدون پروژه' : (_projectTitle(_projectFilters.first) ?? 'پروژه حذف‌شده')) : 'پروژه‌ها (${_projectFilters.length})', accent: ArvinColors.project, soft: ArvinColors.projectSoft, icon: Icons.folder_rounded, onRemove: () => setState(() => _projectFilters.clear())));
+    if (_categoryFilters.isNotEmpty) chips.add(HomeFilterChip(label: _categoryFilters.length == 1 ? _categoryFilters.first : 'دسته‌بندی‌ها (${_categoryFilters.length})', accent: ArvinColors.category, soft: ArvinColors.categorySoft, icon: Icons.layers_rounded, onRemove: () => setState(() => _categoryFilters.clear())));
+    if (_tagFilters.isNotEmpty) chips.add(HomeFilterChip(label: _tagFilters.length == 1 ? _tagFilters.first : 'برچسب‌ها (${_tagFilters.length})', accent: ArvinColors.tag, soft: ArvinColors.tagSoft, icon: Icons.sell_rounded, onRemove: () => setState(() => _tagFilters.clear())));
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       child: Column(
@@ -962,282 +940,130 @@ class _HomePageState extends State<HomePage> {
   void _clearHomeFilters() {
     setState(() {
       _timeFilter = 'all';
+      _timeFilters.clear();
       _specificDateFilter = null;
       _fromDateFilter = null;
       _toDateFilter = null;
       _fromTimeFilter = null;
       _toTimeFilter = null;
-      _centerFilter = null;
-      _projectFilter = null;
-      _categoryFilter = null;
+      _centerFilters.clear();
+      _projectFilters.clear();
+      _categoryFilters.clear();
       _tagFilters.clear();
     });
   }
 
   Future<void> _showTimeFilterSheet() async {
-    const options = <Map<String, Object>>[
-      {'id': 'all', 'title': 'همه', 'icon': Icons.all_inclusive_rounded},
-      {'id': 'past', 'title': 'گذشته', 'icon': Icons.history_rounded},
-      {'id': 'today', 'title': 'امروز', 'icon': Icons.today_rounded},
-      {'id': 'tomorrow', 'title': 'فردا', 'icon': Icons.event_rounded},
-      {'id': 'next7', 'title': '۷ روز آینده', 'icon': Icons.date_range_rounded},
-      {'id': 'next30', 'title': '۳۰ روز آینده', 'icon': Icons.calendar_month_rounded},
-      {'id': 'custom', 'title': 'تاریخ مشخص', 'icon': Icons.event_rounded},
-      {'id': 'undated', 'title': 'فاقد زمان', 'icon': Icons.event_busy_rounded},    ];
-    var fromDate = _fromDateFilter;
-    var toDate = _toDateFilter;
-    var fromTime = _fromTimeFilter;
-    var toTime = _toTimeFilter;
-    var selectedQuick = _timeFilter == 'customRange' ? 'all' : _timeFilter;
-
-    await HomeFilterSheet.show<void>(
-      context,
-      title: 'انتخاب زمان',
-      accent: ArvinColors.time,
-      child: StatefulBuilder(
-        builder: (sheetContext, setSheetState) {
-          Future<void> pickFromDate() async {
-            final picked = await showPersianDatePicker(
-              context: sheetContext,
-              initialDate: fromDate ?? DateTime.now(),
-              firstDate: DateTime(2020),
-              lastDate: DateTime(2100),
-              helpText: 'از تاریخ',
-            );
-            if (picked != null) setSheetState(() => fromDate = picked);
-          }
-          Future<void> pickToDate() async {
-            final picked = await showPersianDatePicker(
-              context: sheetContext,
-              initialDate: toDate ?? fromDate ?? DateTime.now(),
-              firstDate: DateTime(2020),
-              lastDate: DateTime(2100),
-              helpText: 'تا تاریخ',
-            );
-            if (picked != null) setSheetState(() => toDate = picked);
-          }
-          Future<void> pickFromTime() async {
-            final picked = await showUniversalArvinTimePicker(context: sheetContext, initialTime: fromTime ?? TimeOfDay.now(), helpText: 'از ساعت');
-            if (picked != null) setSheetState(() => fromTime = picked);
-          }
-          Future<void> pickToTime() async {
-            final picked = await showUniversalArvinTimePicker(context: sheetContext, initialTime: toTime ?? TimeOfDay.now(), helpText: 'تا ساعت');
-            if (picked != null) setSheetState(() => toTime = picked);
-          }
-          String dateLabel(DateTime? value, String empty) => value == null ? empty : _date(value);
-          String timeLabel(TimeOfDay? value, String empty) => value == null ? empty : value.format(sheetContext);
-          return ListView(
-            padding: const EdgeInsets.only(bottom: 8),
-            children: [
-              for (final option in options)
-                RadioListTile<String>(
-                  value: option['id'] as String,
-                  groupValue: selectedQuick,
-                  activeColor: ArvinColors.time,
-                  title: Text(option['title'] as String),
-                  secondary: Icon(option['icon'] as IconData, color: ArvinColors.time),
-                  onChanged: (value) async {
-                    final next = value ?? 'all';
-                    if (next == 'custom') {
-                      final picked = await showPersianDatePicker(
-                        context: sheetContext,
-                        initialDate: _specificDateFilter ?? DateTime.now(),
-                        firstDate: DateTime(2020),
-                        lastDate: DateTime(2100),
-                        helpText: 'تاریخ مشخص',
-                      );
-                      if (picked == null) return;
-                      setState(() {
-                        _timeFilter = 'custom';
-                        _specificDateFilter = picked;
-                        _fromDateFilter = null;
-                        _toDateFilter = null;
-                        _fromTimeFilter = null;
-                        _toTimeFilter = null;
-                      });
-                      if (sheetContext.mounted) Navigator.of(sheetContext).pop();
-                      return;
-                    }
-                    setState(() {
-                      _timeFilter = next;
-                      _specificDateFilter = null;
-                      _fromDateFilter = null;
-                      _toDateFilter = null;
-                      _fromTimeFilter = null;
-                      _toTimeFilter = null;
-                    });
-                    Navigator.of(sheetContext).pop();
-                  },
-                ),
-              const Divider(height: 18),
-              ListTile(
-                leading: const Icon(Icons.calendar_month_rounded, color: ArvinColors.time),
-                title: const Text('از تاریخ'),
-                subtitle: Text(dateLabel(fromDate, 'انتخاب نشده')),
-                onTap: () { selectedQuick = 'all'; pickFromDate(); },
-              ),
-              ListTile(
-                leading: const Icon(Icons.event_rounded, color: ArvinColors.time),
-                title: const Text('تا تاریخ'),
-                subtitle: Text(dateLabel(toDate, 'انتخاب نشده')),
-                onTap: () { selectedQuick = 'all'; pickToDate(); },
-              ),
-              ListTile(
-                leading: const Icon(Icons.schedule_rounded, color: ArvinColors.time),
-                title: const Text('از ساعت'),
-                subtitle: Text(timeLabel(fromTime, 'انتخاب نشده')),
-                onTap: () { selectedQuick = 'all'; pickFromTime(); },
-              ),
-              ListTile(
-                leading: const Icon(Icons.access_time_rounded, color: ArvinColors.time),
-                title: const Text('تا ساعت'),
-                subtitle: Text(timeLabel(toTime, 'انتخاب نشده')),
-                onTap: () { selectedQuick = 'all'; pickToTime(); },
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: FilledButton.icon(
-                  style: FilledButton.styleFrom(backgroundColor: ArvinColors.time),
-                  onPressed: fromDate == null && toDate == null && fromTime == null && toTime == null
-                      ? null
-                      : () {
-                          setState(() {
-                            _timeFilter = 'customRange';
-                            _specificDateFilter = null;
-                            _fromDateFilter = fromDate;
-                            _toDateFilter = toDate;
-                            _fromTimeFilter = fromTime;
-                            _toTimeFilter = toTime;
-                          });
-                          Navigator.of(sheetContext).pop();
-                        },
-                  icon: const Icon(Icons.check_rounded),
-                  label: const Text('اعمال بازه'),
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  setState(() {
-                    _timeFilter = 'all';
-                    _specificDateFilter = null;
-                    _fromDateFilter = null;
-                    _toDateFilter = null;
-                    _fromTimeFilter = null;
-                    _toTimeFilter = null;
-                  });
-                  Navigator.of(sheetContext).pop();
-                },
-                child: const Text('پاک کردن'),
-              ),
-
-            ],
-          );
-        },
-      ),
-    );
+    const options = <Map<String,Object>>[
+      {'id':'past','title':'گذشته','icon':Icons.history_rounded},{'id':'today','title':'امروز','icon':Icons.today_rounded},
+      {'id':'tomorrow','title':'فردا','icon':Icons.event_rounded},{'id':'next7','title':'۷ روز آینده','icon':Icons.date_range_rounded},
+      {'id':'next30','title':'۳۰ روز آینده','icon':Icons.calendar_month_rounded},{'id':'custom','title':'تاریخ مشخص','icon':Icons.event_rounded},
+      {'id':'undated','title':'فاقد زمان','icon':Icons.event_busy_rounded},
+    ];
+    final draft=<String>{..._timeFilters};
+    var fromDate=_fromDateFilter,toDate=_toDateFilter;
+    var fromTime=_fromTimeFilter,toTime=_toTimeFilter;
+    await HomeFilterSheet.show<void>(context,title:'انتخاب زمان',accent:ArvinColors.time,
+      child:StatefulBuilder(builder:(sheetContext,setSheetState){
+        Future<void> pickCustom() async {
+          final value=await showPersianDatePicker(context:sheetContext,initialDate:_specificDateFilter??DateTime.now(),firstDate:DateTime(2020),lastDate:DateTime(2100),helpText:'تاریخ مشخص');
+          if(value!=null)setSheetState(()=>_specificDateFilter=value);
+        }
+        Future<DateTime?> pickDate(DateTime? initial,String help) => showPersianDatePicker(context:sheetContext,initialDate:initial??DateTime.now(),firstDate:DateTime(2020),lastDate:DateTime(2100),helpText:help);
+        Future<TimeOfDay?> pickTime(TimeOfDay? initial,String help) => showUniversalArvinTimePicker(context:sheetContext,initialTime:initial??TimeOfDay.now(),helpText:help);
+        return Column(children:[
+          Expanded(child:ListView(children:[
+            CheckboxListTile(value:draft.isEmpty,title:const Text('همه'),controlAffinity:ListTileControlAffinity.leading,onChanged:(_)=>setSheetState(()=>draft.clear())),
+            for(final option in options) CheckboxListTile(
+              value:draft.contains(option['id'] as String),title:Text(option['title'] as String),controlAffinity:ListTileControlAffinity.leading,
+              secondary:Icon(option['icon'] as IconData,color:ArvinColors.time),
+              onChanged:(v) async {final id=option['id'] as String;if(id=='custom'&&v==true){await pickCustom();setSheetState(()=>draft.add(id));}else{setSheetState(()=>v==true?draft.add(id):draft.remove(id));}},
+            ),
+            const Divider(),
+            ListTile(title:const Text('از تاریخ'),subtitle:Text(fromDate==null?'انتخاب نشده':_date(fromDate!)),onTap:()async{final v=await pickDate(fromDate,'از تاریخ');if(v!=null)setSheetState(()=>fromDate=v);}),
+            ListTile(title:const Text('تا تاریخ'),subtitle:Text(toDate==null?'انتخاب نشده':_date(toDate!)),onTap:()async{final v=await pickDate(toDate,'تا تاریخ');if(v!=null)setSheetState(()=>toDate=v);}),
+            ListTile(title:const Text('از ساعت'),subtitle:Text(fromTime?.format(sheetContext)??'انتخاب نشده'),onTap:()async{final v=await pickTime(fromTime,'از ساعت');if(v!=null)setSheetState(()=>fromTime=v);}),
+            ListTile(title:const Text('تا ساعت'),subtitle:Text(toTime?.format(sheetContext)??'انتخاب نشده'),onTap:()async{final v=await pickTime(toTime,'تا ساعت');if(v!=null)setSheetState(()=>toTime=v);}),
+          ])),
+          Row(children:[
+            Expanded(child:OutlinedButton(onPressed:(){setState(()=>{_timeFilters.clear();_timeFilter='all';_specificDateFilter=null;_fromDateFilter=null;_toDateFilter=null;_fromTimeFilter=null;_toTimeFilter=null;});Navigator.pop(sheetContext);},child:const Text('پاک کردن'))),
+            const SizedBox(width:8),
+            Expanded(child:FilledButton(onPressed:(){setState(()=>{_timeFilters..clear()..addAll(draft);_timeFilter='all';_fromDateFilter=null;_toDateFilter=null;_fromTimeFilter=null;_toTimeFilter=null;});Navigator.pop(sheetContext);},child:const Text('تأیید / اعمال فیلتر'))),
+          ]),
+          if(fromDate!=null||toDate!=null||fromTime!=null||toTime!=null) SizedBox(width:double.infinity,child:OutlinedButton(onPressed:(){setState(()=>{_timeFilters.clear();_timeFilter='customRange';_specificDateFilter=null;_fromDateFilter=fromDate;_toDateFilter=toDate;_fromTimeFilter=fromTime;_toTimeFilter=toTime;});Navigator.pop(sheetContext);},child:const Text('اعمال بازهٔ دلخواه'))),
+        ]);
+      }));
   }
 
   String? _centerName(String? id) {
-    if (id == null) return null;
-    for (final center in centers) { if (center.id == id) return center.name; }
+    if(id==null)return null;
+    for(final center in centers){if(center.id==id)return center.name;}
     return null;
   }
 
   Future<void> _showCenterFilterSheet() async {
-    String search = '';
-    final result = await HomeFilterSheet.show<String?>(context, title: 'انتخاب مرکز', accent: ArvinColors.primary, child: StatefulBuilder(
-      builder: (sheetContext, setSheetState) {
-        final values = centers.toList()..sort((a, b) => a.name.compareTo(b.name));
-        final filtered = values.where((center) => center.name.toLowerCase().contains(search.toLowerCase())).toList();
-        return SizedBox(
-          height: MediaQuery.sizeOf(sheetContext).height * .58,
-          child: Column(children: [
-            TextField(onChanged: (value) => setSheetState(() => search = value), decoration: const InputDecoration(hintText: 'جستجو در مراکز...', prefixIcon: Icon(Icons.search_rounded))),
-            Expanded(child: ListView(children: [
-              ListTile(title: const Text('همه مراکز'), leading: const Icon(Icons.all_inclusive_rounded), onTap: () => Navigator.of(sheetContext).pop('__all__')),
-              ListTile(title: const Text('پروژه‌های بدون مرکز'), leading: const Icon(Icons.location_off_outlined), onTap: () => Navigator.of(sheetContext).pop('__no_center__')),
-              for (final center in filtered)
-                RadioListTile<String?>(value: center.id, groupValue: _centerFilter, title: Text(center.name), subtitle: center.isArchived ? const Text('بایگانی‌شده') : null, onChanged: (value) => Navigator.of(sheetContext).pop(value)),
-            ])),
-          ]),
-        );
-      },
-    ));
-    if (!mounted) return;
-    setState(() => _centerFilter = result == '__all__' ? null : result);
+    String search=''; final draft=<String>{..._centerFilters};
+    await HomeFilterSheet.show<void>(context,title:'انتخاب مرکز',accent:ArvinColors.primary,
+      child:StatefulBuilder(builder:(sheetContext,setSheetState){
+        final values=centers.toList()..sort((a,b)=>a.name.compareTo(b.name));
+        final filtered=values.where((v)=>v.name.toLowerCase().contains(search.toLowerCase())).toList();
+        return Column(children:[
+          TextField(onChanged:(v)=>setSheetState(()=>search=v),decoration:const InputDecoration(hintText:'جستجو در مراکز...',prefixIcon:Icon(Icons.search_rounded))),
+          Expanded(child:ListView(children:[
+            CheckboxListTile(value:draft.isEmpty,title:const Text('همه'),controlAffinity:ListTileControlAffinity.leading,onChanged:(_)=>setSheetState(()=>draft.clear())),
+            CheckboxListTile(value:draft.contains('__no_center__'),title:const Text('پروژه‌های بدون مرکز'),controlAffinity:ListTileControlAffinity.leading,onChanged:(v)=>setSheetState(()=>v==true?draft.add('__no_center__'):draft.remove('__no_center__'))),
+            for(final item in filtered) CheckboxListTile(value:draft.contains(item.id),title:Text(item.name),subtitle:item.isArchived?const Text('بایگانی‌شده'):null,controlAffinity:ListTileControlAffinity.leading,onChanged:(v)=>setSheetState(()=>v==true?draft.add(item.id):draft.remove(item.id))),
+          ])),
+          SizedBox(width:double.infinity,child:FilledButton(onPressed:(){setState(()=>_centerFilters..clear()..addAll(draft));Navigator.pop(sheetContext);},child:const Text('تأیید / اعمال فیلتر'))),
+        ]);
+      }));
   }
 
   Future<void> _showProjectFilterSheet() async {
-    String search = '';
-    final result = await HomeFilterSheet.show<String?>(context, title: 'انتخاب پروژه', accent: ArvinColors.project, child: StatefulBuilder(
-      builder: (sheetContext, setSheetState) {
-        final values = projects.where((p) => !p.isArchived).toList()..sort((a, b) => a.title.compareTo(b.title));
-        final filtered = values.where((p) => p.title.toLowerCase().contains(search.toLowerCase())).toList();
-        return SizedBox(
-          height: MediaQuery.sizeOf(sheetContext).height * .58,
-          child: Column(children: [
-            TextField(onChanged: (v) => setSheetState(() => search = v), decoration: const InputDecoration(hintText: 'جستجو در پروژه‌ها...', prefixIcon: Icon(Icons.search_rounded))),
-            Expanded(child: ListView(children: [
-              ListTile(leading: const Icon(Icons.folder_open_rounded, color: ArvinColors.project), title: const Text('همه پروژه‌ها'), trailing: Icon(_projectFilter == null ? Icons.radio_button_checked : Icons.radio_button_off, color: ArvinColors.project), onTap: () => Navigator.of(sheetContext).pop('__all__')),
-              for (final project in filtered)
-                RadioListTile<String?>(value: project.id, groupValue: _projectFilter, activeColor: ArvinColors.project, title: Text(project.title), secondary: const Icon(Icons.folder_rounded), onChanged: (value) => Navigator.of(sheetContext).pop(value)),
-            ])),
-          ]),
-        );
-      },
-    ));
-    if (!mounted) return;
-    setState(() => _projectFilter = result == '__all__' ? null : result);
+    String search=''; final draft=<String>{..._projectFilters};
+    await HomeFilterSheet.show<void>(context,title:'انتخاب پروژه',accent:ArvinColors.project,
+      child:StatefulBuilder(builder:(sheetContext,setSheetState){
+        final values=projects.where((p)=>!p.isArchived).toList()..sort((a,b)=>a.title.compareTo(b.title));
+        final filtered=values.where((p)=>p.title.toLowerCase().contains(search.toLowerCase())).toList();
+        return Column(children:[
+          TextField(onChanged:(v)=>setSheetState(()=>search=v),decoration:const InputDecoration(hintText:'جستجو در پروژه‌ها...',prefixIcon:Icon(Icons.search_rounded))),
+          Expanded(child:ListView(children:[
+            CheckboxListTile(value:draft.isEmpty,title:const Text('همه'),controlAffinity:ListTileControlAffinity.leading,onChanged:(_)=>setSheetState(()=>draft.clear())),
+            CheckboxListTile(value:draft.contains('__no_project__'),title:const Text('بدون پروژه'),controlAffinity:ListTileControlAffinity.leading,onChanged:(v)=>setSheetState(()=>v==true?draft.add('__no_project__'):draft.remove('__no_project__'))),
+            for(final item in filtered) CheckboxListTile(value:draft.contains(item.id),title:Text(item.title),controlAffinity:ListTileControlAffinity.leading,onChanged:(v)=>setSheetState(()=>v==true?draft.add(item.id):draft.remove(item.id))),
+          ])),
+          SizedBox(width:double.infinity,child:FilledButton(onPressed:(){setState(()=>_projectFilters..clear()..addAll(draft));Navigator.pop(sheetContext);},child:const Text('تأیید / اعمال فیلتر'))),
+        ]);
+      }));
   }
 
   Future<void> _showCategoryFilterSheet() async {
-    final result = await HomeFilterSheet.show<String?>(context, title: 'انتخاب دسته', accent: ArvinColors.category, child: ListView(shrinkWrap: true, children: [
-      ListTile(leading: const Icon(Icons.layers_rounded, color: ArvinColors.category), title: const Text('همه دسته‌ها'), trailing: Icon(_categoryFilter == null ? Icons.radio_button_checked : Icons.radio_button_off, color: ArvinColors.category), onTap: () => Navigator.of(context).pop('__all__')),
-      for (final category in _homeCategories)
-        RadioListTile<String?>(value: category, groupValue: _categoryFilter, activeColor: ArvinColors.category, title: Text(category), secondary: const Icon(Icons.layers_rounded), onChanged: (value) => Navigator.of(context).pop(value)),
-    ]));
-    if (!mounted) return;
-    setState(() => _categoryFilter = result == '__all__' ? null : result);
+    final draft=<String>{..._categoryFilters};
+    await HomeFilterSheet.show<void>(context,title:'انتخاب دسته',accent:ArvinColors.category,
+      child:Column(children:[
+        Expanded(child:ListView(children:[
+          CheckboxListTile(value:draft.isEmpty,title:const Text('همه'),controlAffinity:ListTileControlAffinity.leading,onChanged:(_)=>setState(()=>draft.clear())),
+          for(final item in _homeCategories) CheckboxListTile(value:draft.contains(item),title:Text(item),controlAffinity:ListTileControlAffinity.leading,onChanged:(v){if(v==true){draft.add(item);}else{draft.remove(item);}}),
+        ])),
+        SizedBox(width:double.infinity,child:FilledButton(onPressed:(){setState(()=>_categoryFilters..clear()..addAll(draft));Navigator.pop(context);},child:const Text('تأیید / اعمال فیلتر'))),
+      ]));
   }
 
   Future<void> _showTagFilterSheet() async {
-    final tags = _homeTags;
-    final selectedTags = <String>{..._tagFilters};
-    String search = '';
-    await HomeFilterSheet.show<void>(context, title: 'انتخاب برچسب‌ها', accent: ArvinColors.tag, child: StatefulBuilder(
-      builder: (sheetContext, setSheetState) {
-        final filtered = tags.where((tag) => tag.toLowerCase().contains(search.toLowerCase())).toList();
-        return SizedBox(
-          height: MediaQuery.sizeOf(sheetContext).height * .58,
-          child: Column(children: [
-            TextField(onChanged: (value) => setSheetState(() => search = value), decoration: const InputDecoration(hintText: 'جستجو در برچسب‌ها...', prefixIcon: Icon(Icons.search_rounded))),
-            Expanded(child: ListView(children: [
-              ListTile(
-                leading: const Icon(Icons.sell_outlined, color: ArvinColors.tag),
-                title: const Text('همه برچسب‌ها'),
-                trailing: Icon(selectedTags.isEmpty ? Icons.check_circle : Icons.circle_outlined, color: ArvinColors.tag),
-                onTap: () => setSheetState(() { selectedTags.clear(); setState(() { _tagFilters.clear(); }); }),
-              ),
-              for (final tag in filtered)
-                CheckboxListTile(
-                  value: selectedTags.contains(tag),
-                  activeColor: ArvinColors.tag,
-                  title: Text(tag),
-                  secondary: const Icon(Icons.sell_rounded, color: ArvinColors.tag),
-                  onChanged: (checked) => setSheetState(() {
-                    if (checked == true) selectedTags.add(tag); else selectedTags.remove(tag);
-                    setState(() { _tagFilters..clear()..addAll(selectedTags); });
-                  }),
-                ),
-            ])),
-          ]),
-        );
-      },
-    ));
+    final tags=_homeTags; final draft=<String>{..._tagFilters}; String search='';
+    await HomeFilterSheet.show<void>(context,title:'انتخاب برچسب‌ها',accent:ArvinColors.tag,
+      child:StatefulBuilder(builder:(sheetContext,setSheetState){
+        final filtered=tags.where((v)=>v.toLowerCase().contains(search.toLowerCase())).toList();
+        return Column(children:[
+          TextField(onChanged:(v)=>setSheetState(()=>search=v),decoration:const InputDecoration(hintText:'جستجو در برچسب‌ها...',prefixIcon:Icon(Icons.search_rounded))),
+          Expanded(child:ListView(children:[
+            CheckboxListTile(value:draft.isEmpty,title:const Text('همه'),controlAffinity:ListTileControlAffinity.leading,onChanged:(_)=>setSheetState(()=>draft.clear())),
+            for(final item in filtered) CheckboxListTile(value:draft.contains(item),title:Text(item),controlAffinity:ListTileControlAffinity.leading,onChanged:(v)=>setSheetState(()=>v==true?draft.add(item):draft.remove(item))),
+          ])),
+          SizedBox(width:double.infinity,child:FilledButton(onPressed:(){setState(()=>_tagFilters..clear()..addAll(draft));Navigator.pop(sheetContext);},child:const Text('تأیید / اعمال فیلتر'))),
+        ]);
+      }));
   }
-
-
-
 
   Color _groupAccent(String id) {
     switch (id) {
@@ -1945,7 +1771,7 @@ class _HomePageState extends State<HomePage> {
       filter = 'کل';
       _listScope = TaskListScope.all;
       _dueScope = null;
-      _categoryFilter = null;
+      _categoryFilters.clear();
       selected.clear();
       selectionMode = false;
     });
@@ -1955,21 +1781,24 @@ class _HomePageState extends State<HomePage> {
   void _selectHomeStat(String nextFilter) {
     setState(() {
       _listScope = TaskListScope.all;
-      _categoryFilter = null;
-      _projectFilter = null;
+      _categoryFilters.clear();
+      _projectFilters.clear();
       _tagFilters.clear();
       _specificDateFilter = null;
       if (nextFilter == 'امروز') {
         filter = 'فعال';
-        _timeFilter = 'today';
+        _timeFilters..clear()..add('today');
+        _timeFilter = 'all';
         _dueScope = TaskDueScope.today;
       } else if (nextFilter == 'عقب‌افتاده') {
         filter = 'فعال';
         _timeFilter = 'all';
+        _timeFilters.clear();
         _dueScope = TaskDueScope.overdue;
       } else {
         filter = nextFilter;
         _timeFilter = 'all';
+        _timeFilters.clear();
         _dueScope = null;
       }
       selected.clear();
@@ -2004,7 +1833,7 @@ class _HomePageState extends State<HomePage> {
       filter = 'کل';
       _listScope = TaskListScope.all;
       _dueScope = null;
-      _categoryFilter = category;
+      _categoryFilters..clear()..add(category);
       selected.clear();
       selectionMode = false;
     });

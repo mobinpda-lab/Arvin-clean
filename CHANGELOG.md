@@ -1,3 +1,12 @@
+## 2026-11-03 — Home filter Checkbox Multi-Select standard
+
+- Converted Center, Project and Category filters from single-choice Radio controls to staged Checkbox multi-select. All five Home filter sheets now have an explicit «همه» reset row and «تأیید / اعمال فیلتر» action.
+- Time presets are multi-select with OR matching, including Past; custom date selection is a selectable option and custom date/time ranges remain an explicit separate action.
+- Center, Project, Category and Tag selections use OR within each dimension; the dimensions are combined by AND. Past keeps pending-before-completed sorting when included.
+- Filter chips show the selected value for one choice and the filter name with count for multiple choices. The five-chip strip uses a horizontal SingleChildScrollView.
+- Extended short-viewport and time-sheet regression coverage. Local Flutter tests were not run in this environment; exact-HEAD CI is required.
+- PR #3052 remains OPEN / DRAFT / UNMERGED; main is untouched; release remains BLOCKED — RELEASE: NO-GO.
+
 ## 2026-11-03 — Commit H: archived dependency deletion regression tests
 
 - Added regression coverage proving a completed/archived Task with Follow-up history continues to block Category and Tag deletion.

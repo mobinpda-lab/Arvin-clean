@@ -102,6 +102,7 @@ void main() {
     expect(find.text('فردا'), findsOneWidget);
     expect(find.text('آینده'), findsOneWidget);
     expect(find.text('فاقد زمان'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-compact-filter-scroll')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
