@@ -123,19 +123,6 @@ class _CalendarIntegrationSettingsPageState
     return calendar.accountName ?? 'تقویم دستگاه';
   }
 
-  String _targetCalendarLabel(CalendarIntegrationSettings current) {
-    final targetId = current.targetCalendarId;
-    if (targetId == null) return 'هنوز انتخاب نشده است.';
-    for (final calendar in deviceCalendars) {
-      if (calendar.id != targetId) continue;
-      final provider = _providerLabel(calendar);
-      final account = calendar.accountName;
-      final context = account == null ? provider : '$provider • $account';
-      return '${calendar.displayName} • $context';
-    }
-    return 'شناسه فعلی: $targetId';
-  }
-
   Widget _providerSelection(CalendarIntegrationSettings current) {
     if (providerLoading) {
       return const Padding(
@@ -197,7 +184,6 @@ class _CalendarIntegrationSettingsPageState
           ),
         ...deviceCalendars.map((calendar) {
         final visible = current.visibleCalendarIds.contains(calendar.id);
-        final isTarget = current.targetCalendarId == calendar.id;
         return Card(
           key: ValueKey('calendar-provider-${calendar.id}'),
           child: Column(
@@ -221,21 +207,10 @@ class _CalendarIntegrationSettingsPageState
                   subtitle: Text('توسط خود آروین مدیریت می‌شود و نیازی به انتخاب مقصد ندارد.'),
                 )
               else ...[
-              ListTile(
-                key: ValueKey('calendar-target-${calendar.id}'),
-                enabled: !saving,
-                leading: Icon(
-                  isTarget
-                      ? Icons.radio_button_checked
-                      : Icons.radio_button_unchecked,
-                ),
-                title: const Text('تقویم مقصد آروین'),
-                subtitle: const Text('برای ارسال موارد آروین در مراحل همگام‌سازی بعدی'),
-                onTap: saving
-                    ? null
-                    : () => _save(
-                          current.copyWith(targetCalendarId: calendar.id),
-                        ),
+              const ListTile(
+                leading: Icon(Icons.visibility_outlined),
+                title: Text('فقط نمایش رویدادها (Read-only)'),
+                subtitle: Text('تقویم خارجی مقصد نوشتن آروین نیست.'),
               ),
               CheckboxListTile(
                 key: ValueKey('calendar-visible-${calendar.id}'),
