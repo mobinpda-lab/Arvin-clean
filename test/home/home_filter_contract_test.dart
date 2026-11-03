@@ -39,7 +39,10 @@ void main() {
     expect(find.byType(ActionChip), findsNWidgets(5));
 
     // Each filter keeps its own internal unrestricted choice.
-    await tester.tap(find.byKey(const ValueKey('home-filter-card-time')));
+    final timeFilter = find.byKey(const ValueKey('home-filter-card-time'));
+    await tester.ensureVisible(timeFilter);
+    await tester.pumpAndSettle();
+    await tester.tap(timeFilter);
     await tester.pumpAndSettle();
     expect(find.text('همه'), findsOneWidget);
     final pastTimeOption = find.widgetWithText(RadioListTile<String>, 'گذشته');
@@ -68,19 +71,28 @@ void main() {
     await tester.tap(find.text('همه مراکز'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('home-filter-card-project')));
+    final projectFilter = find.byKey(const ValueKey('home-filter-card-project'));
+    await tester.ensureVisible(projectFilter);
+    await tester.pumpAndSettle();
+    await tester.tap(projectFilter);
     await tester.pumpAndSettle();
     expect(find.text('همه پروژه‌ها'), findsOneWidget);
     await tester.tap(find.text('همه پروژه‌ها'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('home-filter-card-category')));
+    final categoryFilter = find.byKey(const ValueKey('home-filter-card-category'));
+    await tester.ensureVisible(categoryFilter);
+    await tester.pumpAndSettle();
+    await tester.tap(categoryFilter);
     await tester.pumpAndSettle();
     expect(find.text('همه دسته‌ها'), findsOneWidget);
     await tester.tap(find.text('همه دسته‌ها'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('home-filter-card-tags')));
+    final tagsFilter = find.byKey(const ValueKey('home-filter-card-tags'));
+    await tester.ensureVisible(tagsFilter);
+    await tester.pumpAndSettle();
+    await tester.tap(tagsFilter);
     await tester.pumpAndSettle();
     expect(find.text('همه برچسب‌ها'), findsOneWidget);
     await tester.tap(find.text('همه برچسب‌ها'));
