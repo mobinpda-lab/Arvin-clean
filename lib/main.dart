@@ -780,8 +780,14 @@ class _HomePageState extends State<HomePage> {
     if (filter == 'بایگانی' || filter == 'سطل زباله') {
       return [HomeGroup<Task>(id: 'filtered', title: filter, items: visible)];
     }
-    if (_timeFilters.length == 1 && _timeFilters.contains('past')) {
-      return [HomeGroup<Task>(id: 'past', title: 'گذشته', items: visible)];
+    if (_timeFilters.contains('past')) {
+      return [
+        HomeGroup<Task>(
+          id: 'past',
+          title: _timeFilters.length == 1 ? 'گذشته' : 'زمان‌های انتخاب‌شده',
+          items: visible,
+        ),
+      ];
     }
     final now = IranClock.now();
     final today = DateTime(now.year, now.month, now.day);

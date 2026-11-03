@@ -1,3 +1,9 @@
+## 2026-11-03 — Past ordering with multi-select time scopes
+
+- When Past is one of multiple selected time scopes, Home retains a single ordered result group so pending tasks remain ahead of completed tasks; within each status group the canonical priority order remains active.
+- This prevents date-bucket regrouping from undoing the Past ordering contract.
+- Exact-HEAD CI is pending; no local Flutter SDK. main untouched; PR #3052 OPEN / DRAFT / UNMERGED; release BLOCKED — RELEASE: NO-GO.
+
 ## 2026-11-03 — Home filter Checkbox Multi-Select stabilization
 
 - Fixed stale single-select state references after converting the Home filters to sets.
