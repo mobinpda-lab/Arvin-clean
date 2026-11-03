@@ -15,7 +15,7 @@ void main() {
       source,
       contains('selected: ArvinPrimaryDestination.calendar'),
     );
-    expect(navigation, contains("'امروز'"));
+    expect(navigation, contains("'خانه'"));
     expect(navigation, contains("'تقویم'"));
     expect(navigation, contains("'دفترچه'"));
     expect(navigation, contains("'گزارش‌ها'"));
