@@ -51,7 +51,10 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('انتخاب زمان'), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('home-filter-card-time')));
+    final timeFilter = find.byKey(const ValueKey('home-filter-card-time'));
+    await tester.ensureVisible(timeFilter);
+    await tester.pumpAndSettle();
+    await tester.tap(timeFilter);
     await tester.pumpAndSettle();
     final allTimeOption = find.widgetWithText(RadioListTile<String>, 'همه');
     await tester.ensureVisible(allTimeOption);
@@ -108,7 +111,10 @@ void main() {
     await tester.pumpAndSettle();
 
     // A category restriction can be cleared independently while time stays active.
-    await tester.tap(find.byKey(const ValueKey('home-filter-card-category')));
+    final categoryFilter = find.byKey(const ValueKey('home-filter-card-category'));
+    await tester.ensureVisible(categoryFilter);
+    await tester.pumpAndSettle();
+    await tester.tap(categoryFilter);
     await tester.pumpAndSettle();
     await tester.tap(find.text('کاری'));
     await tester.pumpAndSettle();
