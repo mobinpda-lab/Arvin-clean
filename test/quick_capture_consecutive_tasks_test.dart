@@ -37,7 +37,7 @@ void main() {
       expect(captured.single.title, 'کار اول');
       expect(captured.single.dueDate, isNull);
       expect(captured.single.reminderDate, isNull);
-      expect(captured.single.priority, TaskPriority.none);
+      expect(captured.single.priority, TaskPriority.medium);
 
       await tester.enterText(input, 'کار دوم');
       await tester.tap(submit);
@@ -48,7 +48,7 @@ void main() {
       expect(captured[1].title, 'کار دوم');
       expect(captured[1].dueDate, isNull);
       expect(captured[1].reminderDate, isNull);
-      expect(captured[1].priority, TaskPriority.none);
+      expect(captured[1].priority, TaskPriority.medium);
     },
   );
   testWidgets(

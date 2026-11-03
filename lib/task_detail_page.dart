@@ -411,17 +411,11 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             children: [
               if (_task.category?.trim().isNotEmpty == true)
                 _badge(_task.category!.trim(), ArvinColors.category, icon: Icons.folder_outlined),
-              if (_task.priority != TaskPriority.none)
-                _badge(
-                  switch (_task.priority) {
-                    TaskPriority.high => 'اهمیت زیاد',
-                    TaskPriority.medium => 'اهمیت متوسط',
-                    TaskPriority.low => 'اهمیت کم',
-                    TaskPriority.none => '',
-                  },
-                  _task.priority == TaskPriority.high ? _danger : _waiting,
-                  icon: Icons.flag_outlined,
-                ),
+              _badge(
+                '${_task.priority.code} — ${_task.priority.label}',
+                ArvinColors.priorityColor(_task.priority),
+                icon: Icons.flag_outlined,
+              ),
               for (final tag in _task.tags.take(4))
                 _badge('#${tag.trim()}', ArvinColors.tag, icon: Icons.sell_outlined),
             ],

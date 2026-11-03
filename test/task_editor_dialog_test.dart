@@ -85,6 +85,7 @@ void main() {
     expect(result!.followUpEnabled, isFalse);
     expect(result!.followUpDate, isNull);
     expect(result!.followUps, isEmpty);
+    expect(result!.priority, TaskPriority.medium);
   });
 
 

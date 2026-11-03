@@ -12,6 +12,7 @@ void main() {
     DateTime? updatedAt,
     List<FollowUp> followUps = const [],
     bool completed = false,
+    TaskPriority priority = TaskPriority.medium,
   }) {
     return Task(
       id: id,
@@ -21,8 +22,17 @@ void main() {
       updatedAt: updatedAt,
       followUps: followUps,
       completed: completed,
+      priority: priority,
     );
   }
+
+  test('priority is primary before date and id', () {
+    final p1 = task('p1', dueDate: DateTime(2026, 9, 5), priority: TaskPriority.high);
+    final p2 = task('p2', dueDate: DateTime(2026, 9, 1), priority: TaskPriority.medium);
+    final p3 = task('p3', priority: TaskPriority.low);
+    final p4 = task('p4', priority: TaskPriority.none);
+    expect(const TaskListSortService().sort([p4, p2, p3, p1], by: TaskListSort.date), [p1, p2, p3, p4]);
+  });
 
   test('date sort supports both directions and keeps undated items last', () {
     final early = task('early', dueDate: DateTime(2026, 8, 28, 8));
@@ -125,24 +135,16 @@ void main() {
   });
 
   test('past sort puts incomplete tasks first and sorts dates oldest first within each group', () {
-    final openOlder = task('open-older', dueDate: DateTime(2026, 8, 20));
-    final openNewer = task('open-newer', dueDate: DateTime(2026, 8, 25));
-    final doneOlder = task(
-      'done-older',
-      dueDate: DateTime(2026, 8, 18),
-      completed: true,
-    );
-    final doneNewer = task(
-      'done-newer',
-      dueDate: DateTime(2026, 8, 27),
-      completed: true,
-    );
+    final openOlder = task('open-older', dueDate: DateTime(2026, 8, 20), priority: TaskPriority.medium);
+    final openNewer = task('open-newer', dueDate: DateTime(2026, 8, 25), priority: TaskPriority.high);
+    final doneOlder = task('done-older', dueDate: DateTime(2026, 8, 18), completed: true, priority: TaskPriority.medium);
+    final doneNewer = task('done-newer', dueDate: DateTime(2026, 8, 27), completed: true, priority: TaskPriority.high);
 
     final result = const TaskListSortService().sortPast(
       [doneNewer, openNewer, doneOlder, openOlder],
     );
 
-    expect(result, [openOlder, openNewer, doneOlder, doneNewer]);
+    expect(result, [openNewer, openOlder, doneNewer, doneOlder]);
   });
 
   test('equal sort values use deterministic id tie break', () {

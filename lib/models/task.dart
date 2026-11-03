@@ -1,7 +1,28 @@
 import 'person_reference.dart';
 import 'recurrence.dart';
 
-enum TaskPriority { none, low, medium, high }
+enum TaskPriority { high, medium, low, none }
+
+extension TaskPriorityProduct on TaskPriority {
+  int get sortOrder => switch (this) {
+        TaskPriority.high => 1,
+        TaskPriority.medium => 2,
+        TaskPriority.low => 3,
+        TaskPriority.none => 4,
+      };
+  String get label => switch (this) {
+        TaskPriority.high => 'فوری و مهم',
+        TaskPriority.medium => 'مهم، غیرفوری',
+        TaskPriority.low => 'فوری، غیرمهم',
+        TaskPriority.none => 'غیرفوری و غیرمهم',
+      };
+  String get code => switch (this) {
+        TaskPriority.high => 'P1',
+        TaskPriority.medium => 'P2',
+        TaskPriority.low => 'P3',
+        TaskPriority.none => 'P4',
+      };
+}
 
 enum NotebookItemKind { note, checklist }
 
@@ -159,7 +180,7 @@ class Task {
     Iterable<TaskReminder> taskReminders = const [],
     this.nextReminderSequence = 1,
     this.legacyTaskReminderMigrationVersion = 0,
-    this.priority = TaskPriority.none,
+    this.priority = TaskPriority.medium,
     this.archived = false,
     this.trashed = false,
     this.completed = false,
@@ -349,7 +370,7 @@ class Task {
           'nextReminderSequence': nextReminderSequence,
         if (legacyTaskReminderMigrationVersion > 0)
           'legacyTaskReminderMigrationVersion': legacyTaskReminderMigrationVersion,
-        if (priority != TaskPriority.none) 'priority': priority.name,
+        'priority': priority.name,
         'archived': archived,
         'trashed': trashed,
         'completed': completed,
@@ -423,11 +444,15 @@ class Task {
     final legacyFollowUpDate = json['followUpDate'] == null
         ? null
         : DateTime.tryParse(json['followUpDate'] as String);
-    final priorityName = json['priority'] as String?;
-    final loadedPriority = TaskPriority.values.firstWhere(
-      (value) => value.name == priorityName,
-      orElse: () => TaskPriority.none,
-    );
+    final rawPriority = json['priority'];
+    final priorityName = rawPriority is String ? rawPriority.trim().toLowerCase() : '';
+    final loadedPriority = switch (priorityName) {
+      'high' || 'p1' => TaskPriority.high,
+      'medium' || 'p2' => TaskPriority.medium,
+      'low' || 'p3' => TaskPriority.low,
+      'none' || 'p4' || '' => TaskPriority.none,
+      _ => TaskPriority.none,
+    };
 
     return Task(
       id: json['id'] as String? ?? '',

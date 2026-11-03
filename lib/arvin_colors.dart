@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'models/task.dart';
+
 /// Canonical semantic palette used across Arvin. Owner-approved brand, surface,
 /// and text tokens stay aligned with the Home visual style lock.
 abstract final class ArvinColors {
@@ -76,4 +78,15 @@ abstract final class ArvinColors {
   static const calendarOverdue = Color(0xFFDC2626);
   static const calendarOverdueSoft = Color(0xFFFEF2F2);
   static const calendarSelectedDay = Color(0xFFEDE9FE);
+  static const priorityP1 = Color(0xFFDC2626);
+  static const priorityP2 = Color(0xFF2563EB);
+  static const priorityP3 = Color(0xFFD97706);
+  static const priorityP4 = Color(0xFF80829C);
+
+  static Color priorityColor(TaskPriority priority) => switch (priority) {
+        TaskPriority.high => priorityP1,
+        TaskPriority.medium => priorityP2,
+        TaskPriority.low => priorityP3,
+        TaskPriority.none => priorityP4,
+      };
 }

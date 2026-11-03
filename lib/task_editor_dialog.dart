@@ -150,7 +150,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _recurrenceCountController = TextEditingController(
       text: task?.recurrence?.count?.toString() ?? '',
     );
-    _priority = task?.priority ?? TaskPriority.none;
+    _priority = task?.priority ?? TaskPriority.medium;
   }
 
   @override
@@ -632,7 +632,7 @@ Future<void> _pickDueDate() async {
           _taskReminders.isNotEmpty ||
           _followUps.isNotEmpty ||
           _recurrence != null ||
-          _priority != TaskPriority.none ||
+          _priority != TaskPriority.medium ||
           _completed;
     }
 
@@ -938,12 +938,7 @@ Future<void> _pickDueDate() async {
   String _timeText(DateTime value) =>
       _dateFormatter.formatTime(value.hour, value.minute);
 
-  String _priorityLabel(TaskPriority priority) => switch (priority) {
-    TaskPriority.none => 'بدون اولویت',
-    TaskPriority.low => 'کم',
-    TaskPriority.medium => 'متوسط',
-    TaskPriority.high => 'زیاد',
-  };
+  String _priorityLabel(TaskPriority priority) => '${priority.code} — ${priority.label}';
 
   String _recurrenceLabel(RecurrenceFrequency frequency) => switch (frequency) {
     RecurrenceFrequency.daily => 'روزانه',
@@ -1421,7 +1416,7 @@ Future<void> _pickDueDate() async {
                                 .map(
                                   (priority) => DropdownMenuItem<TaskPriority>(
                                     value: priority,
-                                    child: Text(_priorityLabel(priority)),
+                                    child: Text(_priorityLabel(priority), style: TextStyle(color: ArvinColors.priorityColor(priority), fontWeight: FontWeight.w700)),
                                   ),
                                 )
                                 .toList(growable: false),

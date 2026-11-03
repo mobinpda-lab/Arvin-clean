@@ -291,7 +291,7 @@ class TaskReportFilter {
     if (timePreset == ReportTimePreset.past) {
       return const TaskListSortService().sortPast(filteredTasks);
     }
-    return filteredTasks;
+    return const TaskListSortService().sort(filteredTasks, by: TaskListSort.date);
   }
 
   bool _matchesStatus(Task task) {

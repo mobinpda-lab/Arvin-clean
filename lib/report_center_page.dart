@@ -1281,10 +1281,12 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                     selected: _priority == null,
                     onSelected: (_) => setState(() => _priority = null),
                   ),
-                  for (final value in TaskPriority.values.where((v) => v != TaskPriority.none))
+                  for (final value in TaskPriority.values)
                     ChoiceChip(
                       label: Text(_priorityLabel(value)),
                       selected: _priority == value,
+                      selectedColor: ArvinColors.priorityColor(value).withValues(alpha: 0.14),
+                      labelStyle: TextStyle(color: ArvinColors.priorityColor(value), fontWeight: FontWeight.w700),
                       onSelected: (_) => setState(() => _priority = value),
                     ),
                 ],
@@ -1540,12 +1542,7 @@ String _statusLabel(ReportStatusFilter value) => switch (value) {
       ReportStatusFilter.archived => 'بایگانی',
     };
 
-String _priorityLabel(TaskPriority value) => switch (value) {
-      TaskPriority.none => 'بدون اهمیت',
-      TaskPriority.low => 'کم',
-      TaskPriority.medium => 'متوسط',
-      TaskPriority.high => 'زیاد',
-    };
+String _priorityLabel(TaskPriority value) => '${value.code} — ${value.label}';
 
 String _dateLabel(DateTime? value, String empty) {
   if (value == null) return empty;

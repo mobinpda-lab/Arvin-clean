@@ -13,6 +13,8 @@ class TaskListSortService {
   }) {
     final indexed = tasks.toList(growable: false).asMap().entries.toList();
     indexed.sort((left, right) {
+      final priorityComparison = left.value.priority.sortOrder.compareTo(right.value.priority.sortOrder);
+      if (priorityComparison != 0) return priorityComparison;
       final comparison = switch (by) {
         TaskListSort.date => _compareNullableDate(
             left.value.dueDate,
@@ -52,6 +54,8 @@ class TaskListSortService {
       if (left.value.completed != right.value.completed) {
         return left.value.completed ? 1 : -1;
       }
+      final priorityComparison = left.value.priority.sortOrder.compareTo(right.value.priority.sortOrder);
+      if (priorityComparison != 0) return priorityComparison;
       final dateComparison = _compareNullableDate(
         left.value.dueDate,
         right.value.dueDate,

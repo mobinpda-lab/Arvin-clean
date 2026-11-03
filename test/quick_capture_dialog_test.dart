@@ -5,6 +5,26 @@ import 'package:arvin/models/task.dart';
 import 'package:arvin/quick_capture_dialog.dart';
 
 void main() {
+  testWidgets('Quick Capture defaults to P2 and persists selected priority', (tester) async {
+    Task? captured;
+    await tester.pumpWidget(MaterialApp(home: Scaffold(body: QuickCaptureDialog(
+      idFactory: () => 'priority-capture',
+      now: () => DateTime(2026, 11, 3, 10),
+      onCaptured: (task) async => captured = task,
+    ))));
+    await tester.pumpAndSettle();
+    final p2 = find.byKey(const ValueKey('quick-capture-priority-medium'));
+    final p1 = find.byKey(const ValueKey('quick-capture-priority-high'));
+    expect(tester.widget<ChoiceChip>(p2).selected, isTrue);
+    await tester.tap(p1);
+    await tester.pump();
+    await tester.enterText(find.byKey(const ValueKey('quick-capture-input')), 'کار فوری');
+    await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
+    await tester.pumpAndSettle();
+    expect(captured, isNotNull);
+    expect(captured!.priority, TaskPriority.high);
+  });
+
   testWidgets('quick capture returns canonical Task with Persian title and tags',
       (tester) async {
     Task? captured;

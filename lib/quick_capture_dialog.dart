@@ -62,6 +62,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   String? _error;
   bool _backHandling = false;
   bool _saving = false;
+  TaskPriority _priority = TaskPriority.medium;
   DateTime? _dueDate;
   DateTime? _reminderDate;
   bool _reminderFollowsDueTime = true;
@@ -141,6 +142,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     );
     if (task == null) return null;
     task.description = _descriptionController.text.trim();
+    task.priority = _priority;
     _syncAutomaticReminder();
     task.dueDate = _dueDate;
     task.reminderDate = _reminderDate;
@@ -466,6 +468,28 @@ Future<DateTime?> _pickCustomDue() async {
                     borderSide: const BorderSide(color: ArvinColors.border),
                   ),
                 ),
+              ),
+              const SizedBox(height: 10),
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: Text('اولویت', style: TextStyle(color: ArvinColors.textPrimary, fontWeight: FontWeight.w700)),
+              ),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  for (final priority in TaskPriority.values)
+                    ChoiceChip(
+                      key: ValueKey('quick-capture-priority-${priority.name}'),
+                      label: Text('${priority.code} ${priority.label}'),
+                      selected: _priority == priority,
+                      selectedColor: ArvinColors.priorityColor(priority).withValues(alpha: 0.14),
+                      side: BorderSide(color: ArvinColors.priorityColor(priority).withValues(alpha: _priority == priority ? 0.9 : 0.35)),
+                      labelStyle: TextStyle(color: ArvinColors.priorityColor(priority), fontWeight: FontWeight.w700, fontSize: 11),
+                      onSelected: _saving ? null : (_) => setState(() => _priority = priority),
+                    ),
+                ],
               ),
               const SizedBox(height: 10),
               if (widget.onCaptured == null)

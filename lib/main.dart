@@ -824,11 +824,11 @@ class _HomePageState extends State<HomePage> {
       }
     }
     return [
-      HomeGroup<Task>(id: 'today', title: 'امروز', items: grouped['today']!),
-      HomeGroup<Task>(id: 'tomorrow', title: 'فردا', items: grouped['tomorrow']!),
-      HomeGroup<Task>(id: 'future', title: 'آینده', items: grouped['future']!),
-      HomeGroup<Task>(id: 'overdue', title: 'تاریخ گذشته', items: grouped['overdue']!),
-      HomeGroup<Task>(id: 'no_date', title: 'فاقد زمان', items: grouped['no_date']!),
+      HomeGroup<Task>(id: 'today', title: 'امروز', items: taskListSortService.sort(grouped['today']!, by: TaskListSort.date)),
+      HomeGroup<Task>(id: 'tomorrow', title: 'فردا', items: taskListSortService.sort(grouped['tomorrow']!, by: TaskListSort.date)),
+      HomeGroup<Task>(id: 'future', title: 'آینده', items: taskListSortService.sort(grouped['future']!, by: TaskListSort.date)),
+      HomeGroup<Task>(id: 'overdue', title: 'تاریخ گذشته', items: taskListSortService.sort(grouped['overdue']!, by: TaskListSort.date)),
+      HomeGroup<Task>(id: 'no_date', title: 'فاقد زمان', items: taskListSortService.sort(grouped['no_date']!, by: TaskListSort.date)),
     ];
   }
 
@@ -3169,24 +3169,13 @@ class _HomePageState extends State<HomePage> {
                           maxTags: 2,
                         ),
                       ],
-                      if (task.priority != TaskPriority.none) ...[
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(Icons.flag_rounded, size: 13, color: ArvinColors.reminder),
-                            const SizedBox(width: 4),
-                            Text(
-                              switch (task.priority) {
-                                TaskPriority.high => 'اهمیت زیاد',
-                                TaskPriority.medium => 'اهمیت متوسط',
-                                TaskPriority.low => 'اهمیت کم',
-                                TaskPriority.none => '',
-                              },
-                              style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 10.5, fontWeight: FontWeight.w600),
-                            ),
-                          ],
-                        ),
-                      ],
+                      Row(
+                        children: [
+                          Icon(Icons.flag_rounded, size: 13, color: ArvinColors.priorityColor(task.priority)),
+                          const SizedBox(width: 4),
+                          Text('${task.priority.code} • ${task.priority.label}', style: TextStyle(color: ArvinColors.priorityColor(task.priority), fontSize: 10.5, fontWeight: FontWeight.w700)),
+                        ],
+                      ),
                       if (const HomeListProjection().shouldProjectDueDate(task)) ...[
                         const SizedBox(height: 3),
                         Row(
