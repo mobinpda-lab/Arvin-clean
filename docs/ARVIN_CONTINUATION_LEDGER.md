@@ -1281,3 +1281,37 @@ Run 41451772502 / Job 125298740317 on the same SHA completed FAILURE. Gradle sta
 - The active FollowUpReminderProjection and FollowUpReminderDeliveryService iterate only canonical Task.taskReminders. FollowUpReminderAlarmPlanner schedules only independent TaskReminder entries plus the migration-compatible singular Task reminderDate; it does not read Task.followUps. FollowUpWriteCoordinator may refresh this TaskReminder schedule after a FollowUp write, but it cannot create an alarm from the history record.
 - Calendar integration settings no longer expose automatic export, FollowUp-history export, FollowUp-reminder export, source-type sync toggles, or automatic linked-event deletion. The page now states the two approved explicit export gestures and local/device ownership boundary.
 - This is source/test evidence only until the final exact-SHA Build, Calendar Provider, Draft Review APK and seven Device Smoke results are completed and reported. No physical-device PASS is inferred from source inspection.
+
+
+### Wave 7.300 — exact-HEAD audit of explicit Calendar export and CI disposition (2026-11-03)
+
+**Audited source HEAD:** `0df33f1139c0cf0fd9c8910dcf9fa93e6660b9b3`  
+**Branch / PR:** `fix/recovery-calendar-device-smoke-2026-10-31` / #3052  
+**Audit timestamp:** 1405/08/12 07:33 Asia/Tehran (2026-11-03).
+
+#### Source findings (read-only; no Dart or Android source changes were necessary in this wave)
+- `TaskDetailPage` already exposes the explicit `task-detail-send-device-calendar` action and routes the current `_task` to the callback.
+- `_registerTaskFromDetails` projects only the supplied Task and, when multiple eligible due/reminder entries exist, requires selection of one entry. `_registerTaskInDeviceCalendar` resolves that selected reminder to its owning Task and creates a one-revision plan.
+- The explicit export caller filters persisted links to `link.reminderId == reminder.id`. `CalendarProviderSyncExecutor` validates every plan ID with `SystemCalendarBridge.isExportableTaskReminderId`, loads the existing link collection, and mutates/removes only the plan item's key while saving the complete collection. This is source-level evidence that unrelated Task links are retained on this path.
+- The Calendar More sheet contains only Next Action, Timeline and Conflicts. The Task-card long-press sheet contains edit/delete and other non-export actions; no device-calendar export action is present. Calendar swipe remains the card export gesture.
+- The reviewed Home standard save/edit/completion paths and Quick Capture path contain no outbound Calendar provider execution. Explicit export remains separately wired from Task Details and Calendar swipe.
+- Dart and Android both use a positive allow-list of `task-due:`, `task-reminder-item:`, `task-reminder:`, and `task-recurrence:`. Historical `followup:` and `task-followup:` IDs do not match the allow-list and are rejected at Dart and Android write boundaries.
+- Inbound reconciliation is a no-op. `OfficialCalendarPage` registers an app lifecycle observer and reloads device events when the app resumes; the resulting provider projection is read/display-only. This supports app-resume refresh, not a claim of continuous real-time updates while Arvin remains foregrounded.
+- Imported/copied Task ownership remains separate from provider mirror projection; device-side edits/deletions are not applied to canonical Task storage by inbound reconciliation.
+
+#### Exact-SHA CI evidence on audited source HEAD
+- Build Run `41574427874`: **FAILURE**. Analyze failed and test shards failed/short-circuited. Compiler blockers recorded in the logs: `lib/center_management_page.dart:55` passes unsupported `mainAxisSize` to `Wrap`; `lib/services/project_template_service.dart:79` dereferences nullable `ProjectTemplate?`. One test shard reported 246 passed / 22 failed or unloadable; this is not a product acceptance pass.
+- Calendar Provider Run `41574427909`: **FAILURE**. Exact target SHA verification succeeded, but the instrumentation/real Provider acceptance step failed during Flutter debug compilation with the same two Dart compiler blockers. Artifact `13203316765` was uploaded; artifact presence is not acceptance.
+- Device Smoke Run `41574427936`: **IN PROGRESS** at the audit poll. Boot, Task Lifecycle, Reminder/Vazirmatn, Navigation, Calendar Segmented View and Quick Capture jobs had concluded FAILURE due the same compile blockers; Follow-up Persistence remained IN_PROGRESS. Calendar screenshot artifact `13202523528` was uploaded, but the Calendar lane did not complete its test and is not PASS. Overall Device Smoke is **NOT ACCEPTED**.
+- The passing Follow-up File Persistence run `41574428035` and unrelated successful automation runs do not substitute for Build, Calendar Provider or seven-lane Device Smoke acceptance.
+
+#### Wave disposition
+- The requested Calendar export architecture is present in source at the audited HEAD; no redundant implementation patch was made.
+- The two unrelated compile blockers must be corrected on the authorized branch before a new exact-HEAD Build, Calendar Provider and complete seven-lane Device Smoke run can be accepted. Do not weaken or skip tests.
+- App-resume mirror refresh is verified at source level only; continuous live refresh and physical-device edit/delete behavior remain **NOT VERIFIED**.
+- No claim of full implementation acceptance, CI PASS, device acceptance or release readiness is made.
+
+#### Governance
+- PR #3052 remains OPEN / DRAFT / UNMERGED.
+- `main` is unchanged; no merge, release, tag or APK publication.
+- Release remains **BLOCKED — RELEASE: NO-GO**.
