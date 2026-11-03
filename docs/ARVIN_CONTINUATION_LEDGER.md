@@ -1432,3 +1432,6 @@ Run 41451772502 / Job 125298740317 on the same SHA completed FAILURE. Gradle sta
 
 
 - After recording the parent-SHA Home center-filter failure, corrected only the test interaction in `test/home/home_filter_contract_test.dart`: it now calls `ensureVisible` on the center filter chip before tapping. The «همه مراکز» assertion and subsequent behavioral assertions are unchanged. No Home product logic and no Report Center behavior changed. Commit: `173fb8cda1969e424f5da11970c6395c8da8d8dc`. Exact-head Build must confirm this correction.
+
+
+- Route-completeness audit found TaskDetailPage is also constructed outside Home (e.g. Report Center/calendar feature routes). The Today action now uses the injected Home callback when available and falls back to `TaskMoveToTodayService().move(_task.id)` otherwise, so it remains active on every Task Details route. Added a dedicated no-callback widget regression verifying canonical TaskStore persistence, Iran-local today, preserved existing hour/minute and success feedback. Commits: `cd4369ece45e1ef71ec2b9d4bdc54ef8f27ab452` and `3cf5974ae799a61dc6188be8cb77810cd042a235`. Exact final-head Build/Device/Provider/APK validation is pending.
