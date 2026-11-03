@@ -19,7 +19,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('Today menu action shows only active canonical tasks due today',
+  testWidgets('Home time filter Today shows only active canonical tasks due today',
       (tester) async {
     final now = IranClock.now();
     final today = DateTime(now.year, now.month, now.day, 12);
@@ -49,8 +49,9 @@ void main() {
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
-    await openMore(tester);
-    await tester.tap(find.widgetWithText(ListTile, 'امروز'));
+    await tester.tap(find.byKey(const ValueKey('home-filter-card-time')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(RadioListTile<String>, 'امروز'));
     await tester.pumpAndSettle();
 
     expect(find.text('کار امروز'), findsOneWidget);
@@ -58,14 +59,17 @@ void main() {
     expect(find.text('کار انجام‌شده امروز'), findsNothing);
   });
 
-  testWidgets('Today menu action has a dedicated empty state', (tester) async {
+  testWidgets('Home time filter Today hides its empty group', (tester) async {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
-    await openMore(tester);
-    await tester.tap(find.widgetWithText(ListTile, 'امروز'));
+    await tester.tap(find.byKey(const ValueKey('home-filter-card-time')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(RadioListTile<String>, 'امروز'));
     await tester.pumpAndSettle();
 
-    expect(find.text('کاری برای امروز وجود ندارد'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-group-today')), findsNothing);
+    expect(find.text('کاری برای امروز وجود ندارد'), findsNothing);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('About menu action opens the built-in Arvin about dialog',
