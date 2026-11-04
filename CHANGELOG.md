@@ -1,3 +1,9 @@
+## 2026-11-04 — Quick Capture tighter visual compression (UI-only)
+
+- Tightened compact option controls to 40dp, icons to 16dp, icon/text gaps to 4dp and internal horizontal padding to 8dp; reduced card and row spacing and compacted title/description field decoration.
+- Preserved the exact existing item order, row structure, selector keys and horizontal scrolling, four Persian priority options/helper texts, Vazirmatn font family, colors, touch target minimum, and all form logic/data behavior. **UI-only; no behavior change.**
+- Updated compact geometry assertion to 40dp. Physical SM-A528B/DS screenshot and zero-vertical-scroll device verification remain NOT VERIFIED pending device test.
+
 ## Quick Capture priority helper row refinement — 2026-11-04
 - Four canonical priority chips now show only «اولویت ۱» through «اولویت ۴» in 40dp-high controls; the four existing explanatory labels appear in a separate compact helper-text row immediately below.
 - Existing priority enum values, ordering, selected-state animation, color mapping, tap callbacks and Semantics labels (including the explanatory text) remain unchanged.
