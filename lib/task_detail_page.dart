@@ -16,6 +16,7 @@ import 'services/task_move_to_today_service.dart';
 import 'services/waiting_for_response_service.dart';
 import 'task_report_page.dart';
 import 'widgets/taxonomy_icon_row.dart';
+import 'widgets/persian_date_picker.dart';
 
 class TaskDetailPage extends StatefulWidget {
   const TaskDetailPage({
@@ -70,6 +71,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   late Task _task;
   TextEditingController? _descriptionController;
   TextEditingController? _titleController;
+  TextEditingController? _categoryController;
+  TextEditingController? _tagsController;
   bool _isInlineEditing = false;
   bool _isSavingInlineEdit = false;
   bool _isEditingDescription = false;
@@ -91,6 +94,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     _descriptionController?.dispose();
     _titleController = TextEditingController(text: _task.title);
     _descriptionController = TextEditingController(text: _task.description);
+    _categoryController = TextEditingController(text: _task.category ?? '');
+    _tagsController = TextEditingController(text: _task.tags.join('، '));
     setState(() => _isInlineEditing = true);
   }
 
@@ -107,9 +112,18 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     final title = _titleController?.text.trim();
     final description = _descriptionController?.text ?? '';
     if (save == null || title == null || _isSavingInlineEdit) return;
+    final category = _categoryController?.text.trim() ?? '';
+    final tags = (_tagsController?.text ?? '')
+        .split(RegExp(r'[,،]'))
+        .map((value) => value.trim())
+        .where((value) => value.isNotEmpty)
+        .toSet()
+        .toList(growable: false);
     final candidate = Task.fromJson(Map<String, dynamic>.from(_task.toJson()))
       ..title = title.isEmpty ? 'بدون عنوان' : title
       ..description = description
+      ..category = category.isEmpty ? null : category
+      ..tags = tags
       ..updatedAt = DateTime.now();
     setState(() => _isSavingInlineEdit = true);
     try {
@@ -118,8 +132,12 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       if (updated == null) throw StateError('Inline Task edit was not persisted.');
       _titleController?.dispose();
       _descriptionController?.dispose();
+      _categoryController?.dispose();
+      _tagsController?.dispose();
       _titleController = null;
       _descriptionController = null;
+      _categoryController = null;
+      _tagsController = null;
       setState(() {
         _task = updated;
         _isInlineEditing = false;
@@ -163,6 +181,28 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         const SnackBar(content: Text('یادآور ذخیره شد؛ زمان‌بندی اعلان در اجرای بعدی بازآزمایی می‌شود')),
       );
     }
+  }
+
+  Future<void> _pickInlineDueDate() async {
+    final current = _task.dueDate ?? DateTime.now();
+    final picked = await showPersianDatePicker(
+      context: context,
+      initialDate: current,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+      helpText: 'انتخاب موعد انجام',
+    );
+    if (picked == null || !mounted) return;
+    final candidate = Task.fromJson(Map<String, dynamic>.from(_task.toJson()));
+    candidate.dueDate = DateTime(
+      picked.year,
+      picked.month,
+      picked.day,
+      _task.dueDate?.hour ?? 0,
+      _task.dueDate?.minute ?? 0,
+    );
+    if (_task.dueDate == null) candidate.allDay = true;
+    await _persistCandidate(candidate);
   }
 
   Future<void> _toggleRecurrence(bool active) async {
@@ -311,6 +351,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   void dispose() {
     _descriptionController?.dispose();
     _titleController?.dispose();
+    _categoryController?.dispose();
+    _tagsController?.dispose();
     _checklistAddController.dispose();
     _checklistEditController?.dispose();
     super.dispose();
@@ -562,6 +604,22 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             )
           else
             _descriptionSection(),
+          if (_isInlineEditing) ...[
+            const SizedBox(height: 9),
+            TextField(
+              key: const ValueKey('task-detail-inline-category'),
+              controller: _categoryController,
+              textDirection: TextDirection.rtl,
+              decoration: const InputDecoration(labelText: 'دسته', border: OutlineInputBorder(), isDense: true),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              key: const ValueKey('task-detail-inline-tags'),
+              controller: _tagsController,
+              textDirection: TextDirection.rtl,
+              decoration: const InputDecoration(labelText: 'برچسب‌ها (با ویرگول جدا کنید)', border: OutlineInputBorder(), isDense: true),
+            ),
+          ],
           const SizedBox(height: 12),
           if (_task.category?.trim().isNotEmpty == true || _task.tags.isNotEmpty || widget.projectTitle?.trim().isNotEmpty == true) ...[
             TaxonomyIconRow(
@@ -1058,6 +1116,16 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         Text(_task.dueDate == null ? 'موعد انجام: تعیین نشده' : 'موعد انجام: ' + _dateTime(_task.dueDate!),
           key: const ValueKey('task-detail-due-date-full'),
           style: const TextStyle(fontWeight: FontWeight.w700)),
+        if (_isInlineEditing)
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton.icon(
+              key: const ValueKey('task-detail-inline-due-date'),
+              onPressed: _pickInlineDueDate,
+              icon: const Icon(Icons.calendar_month_outlined),
+              label: const Text('تغییر موعد'),
+            ),
+          ),
         const SizedBox(height: 6),
         const Text('مسئول مستقل برای این کار تعریف نشده است', style: TextStyle(color: _muted, fontSize: 12)),
         if (_task.people.isNotEmpty) ...[
