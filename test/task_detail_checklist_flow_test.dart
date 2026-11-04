@@ -34,7 +34,10 @@ void main() {
     expect(find.text('لباس'), findsOneWidget);
 
     final item = find.byKey(const ValueKey('task-detail-checklist-item-0'));
-    await tester.tap(item);
+    final checkbox = find.descendant(of: item, matching: find.byType(Checkbox));
+    await tester.ensureVisible(checkbox);
+    await tester.pumpAndSettle();
+    await tester.tap(checkbox);
     await tester.pumpAndSettle();
 
     expect(task.checklist, contains('[x] کیف'));

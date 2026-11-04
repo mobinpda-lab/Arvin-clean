@@ -165,7 +165,7 @@ void main() {
       ),
     );
 
-    expect(find.text('هنوز پیگیری ثبت نشده است'), findsOneWidget);
+    expect(find.text('هنوز پیگیری ثبت نشده است'), findsNothing);
     final add = find.byKey(const ValueKey('task-detail-add-followup'));
     expect(add, findsOneWidget);
     await tester.tap(add);
@@ -214,9 +214,12 @@ void main() {
       ),
     );
 
-    await tester.tap(
-      find.byKey(const ValueKey('task-detail-latest-edit-followup-edit-f1')),
+    final editFollowUp = find.byKey(
+      const ValueKey('task-detail-latest-edit-followup-edit-f1'),
     );
+    await tester.ensureVisible(editFollowUp);
+    await tester.pumpAndSettle();
+    await tester.tap(editFollowUp);
     await tester.pumpAndSettle();
 
     expect(find.text('ویرایش پیگیری'), findsOneWidget);

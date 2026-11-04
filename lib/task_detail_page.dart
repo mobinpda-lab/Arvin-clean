@@ -1248,7 +1248,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           ),
         ]),
         for (final reminder in _task.taskReminders)
-            SwitchListTile(
+          Material(
+            type: MaterialType.transparency,
+            child: SwitchListTile(
               key: ValueKey('task-detail-reminder-${reminder.id}'),
               contentPadding: EdgeInsets.zero,
               value: reminder.isEnabled,
@@ -1257,6 +1259,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               subtitle: Text(reminder.isAllDay ? _date(reminder.date) : _dateTime(reminder.date)),
               secondary: Icon(Icons.notifications_outlined, color: reminder.isEnabled ? ArvinColors.reminder : _muted),
             ),
+          ),
       ]),
     );
   }
