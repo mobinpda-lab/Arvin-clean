@@ -206,3 +206,10 @@ Every new entry must include exact SHA, workflow/run IDs, terminal conclusion, a
 - Focused tests were updated, not removed: the priority test now checks all four labels/helper descriptions, absence of P1–P4 display strings, canonical priority persistence and description persistence. The compact RTL test now expects the description field.
 - The initial UI source commit had a card-nesting sequence corrected in a follow-up commit before final review. Analyze, widget tests, all six Build shards, Device Smoke, Provider, persistence and review APK are NOT VERIFIED on the final docs-synchronized SHA until corresponding workflows finish.
 - No main edits, merge, Draft transition or release. PR #3052 remains OPEN / DRAFT / UNMERGED; release BLOCKED — RELEASE: NO-GO.
+
+
+## 2026-11-04 — Quick Capture compact selector compile correction
+- The compact sizing changes use a `compact` constructor parameter in `ArvinTagRollBox`; its widget class was missing the matching stored field even though `build()` referenced `widget.compact`.
+- Added `final bool compact;` to the widget in commit `642a4016cbaa1994b4dfe2d278066941ef8a65c2`. This repairs the compile contract and preserves the existing selector behavior.
+- Build run `41842459267` on pre-fix SHA `c918f2bb8ce73ffa82dd601ab30eb077b9d49fa4` failed in `compileFlutterBuildStaging` with the missing-field error. Follow-up persistence run `41842459045` passed on that pre-fix SHA; Device Smoke and Calendar Provider were not terminal at inspection; Draft Review APK run `41842459134` failed at Staging assemble for the same compile error.
+- The new fix and all subsequent documentation commits require fresh exact-SHA validation. No test/assertion was deleted, skipped or weakened.
