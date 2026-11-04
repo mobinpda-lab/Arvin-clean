@@ -427,3 +427,15 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - QR/PIN cryptography, discovery/transport implementation, exact schema and conflict algorithm remain design decisions requiring security/technical review. Local P2P implementation and physical acceptance remain NOT VERIFIED. LWW, tombstone policy and device-clock winner selection are not approved by this document.
 - Starting branch HEAD: b299c5ccddf9123a661e8a5c52dc3b0548265d35. This is a documentation-only commit; all existing CI/device evidence remains bound to its original SHA and must not be transferred to the new documentation SHA.
 - PR #3052 must remain OPEN / DRAFT / UNMERGED; main untouched; release remains BLOCKED — RELEASE: NO-GO.
+
+
+## 2026-11-04 — Task Details UI reference audit (PR #3052)
+- Exact audited source SHA: 0f2977a26d76fbe301b27aef05270b2d7568f4d2. PR #3052 remains OPEN / DRAFT / UNMERGED; main remains unchanged.
+- Identified `TaskDetailPage` in `lib/task_detail_page.dart` and `_openTaskDetail` route in `lib/main.dart`.
+- Source audit confirms repeated priority and due-date presentation, repeated category/tag metadata, a fixed bottom action bar, canonical due date, independent TaskReminders, Follow-up history, multiline description editing, and related people distinct from any assignee concept.
+- No dedicated assignee field was found in the inspected Task model; do not infer assignment from `Task.people`.
+- Two user-referenced screenshots were not available to inspect in this audit input. Pixel-level comparison and exact reference conformity remain NOT VERIFIED. No speculative runtime UI changes were made.
+- Exact-SHA Build run 41815969951 SUCCESS (Analyze and six test shards); focused Task Details tests logged PASS. APK matrix SKIPPED by Draft guard. Provider run 41815969715 SUCCESS; Follow-up File Persistence run 41815969772 SUCCESS; review-only APK run 41815969817 SUCCESS (artifact 13314402997).
+- Device Smoke run 41815969732 was incomplete at last poll: Calendar Segmented View job 126526712495 remained IN_PROGRESS after the other six lanes succeeded. Do not claim seven-lane acceptance.
+- Full audit and staged plan: `docs/audit/ARVIN_TASK_DETAILS_REFERENCE_COMPARISON_2026-11-04.md`. Continuity snapshot refreshed in `docs/project-continuity/CURRENT_STATE.md`.
+- No test or assertion was deleted, weakened, skipped or bypassed. No main write, merge or release. Release remains BLOCKED — RELEASE: NO-GO.
