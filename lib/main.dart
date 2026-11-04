@@ -720,6 +720,22 @@ class _HomePageState extends State<HomePage> {
     return null;
   }
 
+  ProjectPlan? _projectForTask(Task task) {
+    for (final project in projects) {
+      if (project.itemIds.contains(task.id)) return project;
+    }
+    return null;
+  }
+
+  String? _centerNameForTask(Task task) {
+    final centerId = _projectForTask(task)?.centerId;
+    if (centerId == null) return null;
+    for (final center in centers) {
+      if (center.id == centerId) return center.name;
+    }
+    return null;
+  }
+
   bool _overdue(Task task) {
     final date = task.dueDate;
     if (date == null || task.completed) return false;
@@ -1672,6 +1688,55 @@ class _HomePageState extends State<HomePage> {
     return updated;
   }
 
+  Future<Task?> _taskChangedFromDetail(Task candidate) async {
+    final index = tasks.indexWhere((item) => item.id == candidate.id);
+    if (index < 0) throw StateError('Task not found: ${candidate.id}');
+    final next = List<Task>.of(tasks);
+    next[index] = candidate;
+    await taskStore.save(next);
+    try {
+      await AndroidFollowUpReminderScheduler().reschedule();
+    } catch (_) {
+      // The canonical Task write succeeded; scheduler recovery remains available.
+    }
+    final refreshed = await taskStore.load();
+    if (!mounted) return refreshed.firstWhere((item) => item.id == candidate.id);
+    setState(() => tasks = List<Task>.of(refreshed));
+    return refreshed.firstWhere((item) => item.id == candidate.id);
+  }
+
+  Future<Task?> _cloneTaskFromDetail(Task source) async {
+    final now = DateTime.now();
+    final payload = Map<String, dynamic>.from(source.toJson());
+    payload['id'] = now.microsecondsSinceEpoch.toString();
+    payload['title'] = 'کپی — ' + source.title;
+    payload['createdAt'] = now.toIso8601String();
+    payload['updatedAt'] = now.toIso8601String();
+    payload['completed'] = false;
+    payload.remove('completedAt');
+    payload['followUps'] = <dynamic>[];
+    payload['taskReminders'] = <dynamic>[];
+    payload.remove('reminderDate');
+    payload.remove('followUpEnabled');
+    payload.remove('followUpDate');
+    payload['checklistOccurrences'] = <String, dynamic>{};
+    payload['occurrenceHistory'] = <String, dynamic>{};
+    final clone = Task.fromJson(payload);
+    final next = List<Task>.of(tasks)..add(clone);
+    await taskStore.save(next);
+    await wave2ProductFastTrack.persistProjectSelection(
+      taskId: clone.id,
+      projectId: _projectForTask(source)?.id,
+    );
+    final refreshed = await taskStore.load();
+    if (!mounted) return refreshed.firstWhere((item) => item.id == clone.id);
+    setState(() => tasks = List<Task>.of(refreshed));
+    try {
+      await AndroidFollowUpReminderScheduler().reschedule();
+    } catch (_) {}
+    return refreshed.firstWhere((item) => item.id == clone.id);
+  }
+
   Future<void> _openTaskDetail(Task task) async {
     if (!mounted) return;
     await Navigator.of(context).push<void>(
@@ -1679,7 +1744,12 @@ class _HomePageState extends State<HomePage> {
         builder: (_) => TaskDetailPage(
           task: task,
           projectTitle: _projectTitleForTask(task),
+          project: _projectForTask(task),
+          centerName: _centerNameForTask(task),
           onEdit: _editFromDetail,
+          onClone: _cloneTaskFromDetail,
+          onDelete: _trashTaskFromCalendar,
+          onTaskChanged: _taskChangedFromDetail,
           onAddFollowUp: _addFollowUpFromDetail,
           onComplete: _completeFromDetail,
           onChecklistChanged: _checklistChangedFromDetail,
