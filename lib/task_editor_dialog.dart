@@ -454,6 +454,39 @@ Future<void> _pickDueDate() async {
     }
   }
 
+  Future<void> _pickDueDateTime() async {
+    final initial = _baseDateTime(_dueDateTime);
+    final date = await showPersianDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+      helpText: 'انتخاب تاریخ انجام کار',
+      cancelText: 'لغو',
+      confirmText: 'انتخاب تاریخ',
+    );
+    if (date == null || !mounted) return;
+
+    final dateWithInitialTime = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      initial.hour,
+      initial.minute,
+    );
+    final value = await _chooseTime(
+      dateWithInitialTime,
+      helpText: 'انتخاب ساعت انجام کار',
+    );
+    if (value == null || !mounted) return;
+
+    setState(() {
+      _dueDateTime = value;
+      _dueAllDay = false;
+      _syncAutomaticReminder();
+    });
+  }
+
   Future<void> _pickReminderDate() async {
     final value = await _chooseDate(
       _reminderDateTime,
@@ -938,8 +971,6 @@ Future<void> _pickDueDate() async {
   String _timeText(DateTime value) =>
       _dateFormatter.formatTime(value.hour, value.minute);
 
-  String _priorityLabel(TaskPriority priority) => '${priority.code} — ${priority.label}';
-
   String _recurrenceLabel(RecurrenceFrequency frequency) => switch (frequency) {
     RecurrenceFrequency.daily => 'روزانه',
     RecurrenceFrequency.weekly => 'هفتگی',
@@ -950,75 +981,64 @@ Future<void> _pickDueDate() async {
     RecurrenceFrequency.hours => 'ساعتی',
   };
 
-  Widget _dateTimeRollBox({    required String keyPrefix,
+  Widget _dateRollBox({
+    required String keyPrefix,
     required String label,
     required DateTime? value,
-    required bool isDate,
     required String target,
     required VoidCallback onCustom,
     required Color accent,
   }) {
     final now = _baseDateTime(null);
     final base = value ?? now;
-    final items = isDate
-        ? <ArvinRollItem<String>>[
-            ArvinRollItem<String>(value: 'today', label: 'امروز', icon: Icons.today_outlined, color: accent),
-            ArvinRollItem<String>(value: 'tomorrow', label: 'فردا', icon: Icons.event_available_outlined, color: accent),
-          ]
-        : <ArvinRollItem<String>>[
-            for (final minutes in const [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 360, 390, 420, 450, 480, 510, 540, 570, 600, 630, 660, 690, 720, 750, 780, 810, 840, 870, 900, 930, 960, 990, 1020, 1050, 1080, 1110, 1140, 1170, 1200, 1230, 1260, 1290, 1320, 1350, 1380, 1410])
-              ArvinRollItem<String>(
-                value: '$minutes',
-                label: _timeText(DateTime(2000, 1, 1, minutes ~/ 60, minutes % 60)),
-                icon: Icons.schedule_outlined,
-                color: accent,
-              ),
-          ];
-    final currentLabel = isDate ? _dateText(base) : _timeText(base);
+    final items = <ArvinRollItem<String>>[
+      ArvinRollItem<String>(value: 'today', label: 'امروز', icon: Icons.today_outlined, color: accent),
+      ArvinRollItem<String>(value: 'tomorrow', label: 'فردا', icon: Icons.event_available_outlined, color: accent),
+    ];
     return KeyedSubtree(
       key: ValueKey('$keyPrefix-rollbox'),
       child: ArvinRollBox<String>(
         label: label,
-        valueLabel: value == null ? 'انتخاب $label' : currentLabel,
-        icon: isDate ? Icons.calendar_month_outlined : Icons.schedule_outlined,
+        valueLabel: value == null ? 'انتخاب $label' : _dateText(base),
+        icon: Icons.calendar_month_outlined,
         color: accent,
         items: items,
         onSelected: (selection) {
           if (selection == null) return;
-          if (isDate) {
-            final picked = selection == 'today' ? now : DateTime(now.year, now.month, now.day + 1, now.hour, now.minute);
-            setState(() {
-              if (target.contains('reminder')) {
-                _reminderDateTime = DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
-                _reminderFollowsDueTime = false;
-              } else {
-                _dueDateTime = _dueAllDay || value == null
-                    ? DateTime(picked.year, picked.month, picked.day)
-                    : DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
-                if (value == null || _dueAllDay) _dueAllDay = true;
-                _syncAutomaticReminder();
-              }
-            });
-          } else {
-            final minutes = int.tryParse(selection) ?? 0;
-            setState(() {
-              final next = DateTime(base.year, base.month, base.day, minutes ~/ 60, minutes % 60);
-              if (target.contains('reminder')) {
-                _reminderDateTime = next;
-                _reminderFollowsDueTime = false;
-              } else {
-                _dueDateTime = next;
-                _dueAllDay = false;
-                _syncAutomaticReminder();
-              }
-            });
-          }
+          final picked = selection == 'today'
+              ? now
+              : DateTime(now.year, now.month, now.day + 1);
+          setState(() {
+            if (target.contains('reminder')) {
+              _reminderDateTime = DateTime(
+                picked.year,
+                picked.month,
+                picked.day,
+                base.hour,
+                base.minute,
+              );
+              _reminderFollowsDueTime = false;
+              _reminderExplicitlyCleared = false;
+            } else {
+              _dueDateTime = _dueAllDay || value == null
+                  ? DateTime(picked.year, picked.month, picked.day)
+                  : DateTime(
+                      picked.year,
+                      picked.month,
+                      picked.day,
+                      base.hour,
+                      base.minute,
+                    );
+              if (value == null || _dueAllDay) _dueAllDay = true;
+              _syncAutomaticReminder();
+            }
+          });
         },
         onCreate: () async {
           onCustom();
           return null;
         },
-        createLabel: isDate ? 'تاریخ سفارشی' : 'ساعت سفارشی',
+        createLabel: 'تاریخ سفارشی',
       ),
     );
   }
@@ -1030,10 +1050,15 @@ Future<void> _pickDueDate() async {
     required VoidCallback onPickDate,
     required VoidCallback onPickTime,
     required VoidCallback onClear,
+    VoidCallback? onPickDateTime,
+    bool unifiedDateTime = false,
     Color accent = ArvinColors.primary,
     bool allDay = false,
     ValueChanged<bool>? onToggleAllDay,
   }) {
+    final selectedLabel = value == null
+        ? 'انتخاب تاریخ و ساعت'
+        : '${_dateText(value)} • ${allDay ? 'تمام‌روز' : _timeText(value)}';
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -1053,18 +1078,52 @@ Future<void> _pickDueDate() async {
                   onPressed: onClear,
                   icon: const Icon(Icons.close, size: 16),
                   label: const Text('حذف'),
-                  style: TextButton.styleFrom(minimumSize: Size.zero, padding: const EdgeInsets.symmetric(horizontal: 4), tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                  style: TextButton.styleFrom(
+                    minimumSize: Size.zero,
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
                 ),
             ],
           ),
           const SizedBox(height: 6),
-          Row(
-            children: [
-              Expanded(child: _dateTimeRollBox(keyPrefix: '$keyPrefix-date', label: 'تاریخ', value: value, isDate: true, target: keyPrefix, onCustom: onPickDate, accent: accent)),
-              const SizedBox(width: 10),
-              Expanded(child: _dateTimeRollBox(keyPrefix: '$keyPrefix-time', label: 'ساعت', value: allDay ? null : value, isDate: false, target: keyPrefix, onCustom: onPickTime, accent: accent)),
-            ],
-          ),
+          if (unifiedDateTime)
+            OutlinedButton.icon(
+              key: ValueKey('$keyPrefix-date-time'),
+              onPressed: onPickDateTime,
+              icon: const Icon(Icons.event_available_outlined),
+              label: Text(selectedLabel, maxLines: 1, overflow: TextOverflow.ellipsis),
+              style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+            )
+          else
+            Row(
+              children: [
+                Expanded(
+                  child: _dateRollBox(
+                    keyPrefix: '$keyPrefix-date',
+                    label: 'تاریخ',
+                    value: value,
+                    target: keyPrefix,
+                    onCustom: onPickDate,
+                    accent: accent,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    key: ValueKey('$keyPrefix-time-button'),
+                    onPressed: onPickTime,
+                    icon: const Icon(Icons.schedule_outlined),
+                    label: Text(
+                      value == null || allDay ? 'انتخاب ساعت' : _timeText(value),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+                  ),
+                ),
+              ],
+            ),
           if (onToggleAllDay != null && value != null) ...[
             const SizedBox(height: 4),
             Material(
@@ -1079,7 +1138,7 @@ Future<void> _pickDueDate() async {
                 subtitle: const Text('بدون ساعت؛ ساعت جعلی مثل ۰۰:۰۰ نمایش داده نمی‌شود.'),
               ),
             ),
-            ],
+          ],
         ],
       ),
     );
@@ -1283,6 +1342,8 @@ Future<void> _pickDueDate() async {
                         value: _dueDateTime,
                         onPickDate: _pickDueDate,
                         onPickTime: _pickDueTime,
+                        onPickDateTime: _pickDueDateTime,
+                        unifiedDateTime: !editing,
                         onClear: _clearDueTime,
                         accent: ArvinColors.time,
                         allDay: _dueAllDay,
@@ -1407,26 +1468,50 @@ Future<void> _pickDueDate() async {
                               if (_recurrence != null) setState(() => _recurrence = _buildRecurrence());
                             },
                           );
-                          final priority = DropdownButtonFormField<TaskPriority>(
+                          final priority = Row(
                             key: const ValueKey('task-editor-priority'),
-                            isExpanded: true,
-                            initialValue: _priority,
-                            decoration: _fieldDecoration(label: 'اولویت'),
-                            items: TaskPriority.values
-                                .map(
-                                  (priority) => DropdownMenuItem<TaskPriority>(
-                                    value: priority,
-                                    child: Text(_priorityLabel(priority), style: TextStyle(color: ArvinColors.priorityColor(priority), fontWeight: FontWeight.w700)),
+                            textDirection: TextDirection.rtl,
+                            children: [
+                              for (final option in TaskPriority.values)
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                                    child: ChoiceChip(
+                                      key: ValueKey('task-editor-priority-${option.name}'),
+                                      label: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          'اولویت ${option.sortOrder}',
+                                          maxLines: 1,
+                                          softWrap: false,
+                                        ),
+                                      ),
+                                      selected: _priority == option,
+                                      selectedColor: ArvinColors.priorityColor(option).withValues(alpha: 0.14),
+                                      side: BorderSide(
+                                        color: ArvinColors.priorityColor(option).withValues(
+                                          alpha: _priority == option ? 0.9 : 0.35,
+                                        ),
+                                      ),
+                                      labelStyle: TextStyle(
+                                        color: ArvinColors.priorityColor(option),
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 11,
+                                      ),
+                                      labelPadding: EdgeInsets.zero,
+                                      padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 8),
+                                      visualDensity: VisualDensity.compact,
+                                      materialTapTargetSize: MaterialTapTargetSize.padded,
+                                      showCheckmark: false,
+                                      onSelected: _saving
+                                          ? null
+                                          : (_) => setState(() => _priority = option),
+                                    ),
                                   ),
-                                )
-                                .toList(growable: false),
-                            onChanged: (priority) {
-                              if (priority != null) {
-                                setState(() => _priority = priority);
-                              }
-                            },
+                                ),
+                            ],
                           );
-                          if (constraints.maxWidth < 400) {
+                          if (constraints.maxWidth < 560) {
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [

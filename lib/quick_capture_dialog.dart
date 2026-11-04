@@ -733,19 +733,36 @@ Future<DateTime?> _pickCustomDue() async {
                 child: Text('اولویت', style: TextStyle(color: ArvinColors.textPrimary, fontWeight: FontWeight.w700)),
               ),
               const SizedBox(height: 6),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
+              Row(
+                key: const ValueKey('quick-capture-priority-row'),
+                textDirection: TextDirection.rtl,
                 children: [
                   for (final priority in TaskPriority.values)
-                    ChoiceChip(
-                      key: ValueKey('quick-capture-priority-${priority.name}'),
-                      label: Text('${priority.code} ${priority.label}'),
-                      selected: _priority == priority,
-                      selectedColor: ArvinColors.priorityColor(priority).withValues(alpha: 0.14),
-                      side: BorderSide(color: ArvinColors.priorityColor(priority).withValues(alpha: _priority == priority ? 0.9 : 0.35)),
-                      labelStyle: TextStyle(color: ArvinColors.priorityColor(priority), fontWeight: FontWeight.w700, fontSize: 11),
-                      onSelected: _saving ? null : (_) => setState(() => _priority = priority),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        child: ChoiceChip(
+                          key: ValueKey('quick-capture-priority-${priority.name}'),
+                          label: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'اولویت ${priority.sortOrder}',
+                              maxLines: 1,
+                              softWrap: false,
+                            ),
+                          ),
+                          selected: _priority == priority,
+                          selectedColor: ArvinColors.priorityColor(priority).withValues(alpha: 0.14),
+                          side: BorderSide(color: ArvinColors.priorityColor(priority).withValues(alpha: _priority == priority ? 0.9 : 0.35)),
+                          labelStyle: TextStyle(color: ArvinColors.priorityColor(priority), fontWeight: FontWeight.w700, fontSize: 11),
+                          labelPadding: EdgeInsets.zero,
+                          padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 8),
+                          visualDensity: VisualDensity.compact,
+                          materialTapTargetSize: MaterialTapTargetSize.padded,
+                          showCheckmark: false,
+                          onSelected: _saving ? null : (_) => setState(() => _priority = priority),
+                        ),
+                      ),
                     ),
                 ],
               ),

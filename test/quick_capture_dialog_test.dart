@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:arvin/models/task.dart';
+import 'package:arvin/arvin_colors.dart';
 import 'package:arvin/quick_capture_dialog.dart';
 
 void main() {
@@ -16,6 +17,13 @@ void main() {
     final p2 = find.byKey(const ValueKey('quick-capture-priority-medium'));
     final p1 = find.byKey(const ValueKey('quick-capture-priority-high'));
     expect(tester.widget<ChoiceChip>(p2).selected, isTrue);
+    for (final label in ['اولویت ۱', 'اولویت ۲', 'اولویت ۳', 'اولویت ۴']) {
+      expect(find.text(label), findsOneWidget);
+    }
+    expect(find.text('P1'), findsNothing);
+    expect(find.text('P2'), findsNothing);
+    expect(find.text('P3'), findsNothing);
+    expect(find.text('P4'), findsNothing);
     await tester.tap(p1);
     await tester.pump();
     await tester.enterText(find.byKey(const ValueKey('quick-capture-input')), 'کار فوری');
@@ -24,6 +32,57 @@ void main() {
     expect(captured, isNotNull);
     expect(captured!.priority, TaskPriority.high);
     expect(tester.widget<ChoiceChip>(p2).selected, isTrue);
+  });
+
+  testWidgets('Quick Capture priorities stay in one accessible Persian row on narrow screens',
+      (tester) async {
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(320, 800);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            body: QuickCaptureDialog(now: () => DateTime(2026, 11, 3, 10)),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final keys = [
+      'quick-capture-priority-high',
+      'quick-capture-priority-medium',
+      'quick-capture-priority-low',
+      'quick-capture-priority-none',
+    ];
+    final rects = <Rect>[];
+    for (final key in keys) {
+      final finder = find.byKey(ValueKey(key));
+      expect(finder, findsOneWidget);
+      rects.add(tester.getRect(finder));
+      expect(tester.getSize(finder).height, greaterThanOrEqualTo(48));
+    }
+    expect(rects.map((rect) => rect.top).toSet(), hasLength(1));
+    expect(rects[0].center.dx, greaterThan(rects[1].center.dx));
+    expect(rects[1].center.dx, greaterThan(rects[2].center.dx));
+    expect(rects[2].center.dx, greaterThan(rects[3].center.dx));
+    expect(rects.every((rect) => rect.width >= 48), isTrue);
+    expect(tester.takeException(), isNull);
+    expect(find.byKey(const ValueKey('quick-capture-priority-row')), findsOneWidget);
+
+    final p1 = tester.widget<ChoiceChip>(find.byKey(ValueKey(keys[0])));
+    final p2 = tester.widget<ChoiceChip>(find.byKey(ValueKey(keys[1])));
+    final p3 = tester.widget<ChoiceChip>(find.byKey(ValueKey(keys[2])));
+    final p4 = tester.widget<ChoiceChip>(find.byKey(ValueKey(keys[3])));
+    expect(p1.side?.color, ArvinColors.priorityP1.withValues(alpha: 0.35));
+    expect(p2.side?.color, ArvinColors.priorityP2.withValues(alpha: 0.9));
+    expect(p3.side?.color, ArvinColors.priorityP3.withValues(alpha: 0.35));
+    expect(p4.side?.color, ArvinColors.priorityP4.withValues(alpha: 0.35));
+    expect(p2.selected, isTrue);
   });
 
   testWidgets('quick capture returns canonical Task with Persian title and tags',
@@ -749,6 +808,125 @@ void main() {
     expect(find.byKey(const ValueKey('quick-capture-follow-up-enabled')), findsNothing);
     expect(find.byKey(const ValueKey('quick-capture-follow-up-rollbox')), findsNothing);
     expect(find.text('دارای پیگیری'), findsNothing);
+  });
+
+  testWidgets('Quick Capture custom due uses the canonical circular clock and saves a local DateTime',
+      (tester) async {
+    Task? captured;
+    final fixedNow = DateTime(2026, 9, 27, 14, 35);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            body: QuickCaptureDialog(
+              idFactory: () => 'quick-canonical-datetime',
+              now: () => fixedNow,
+              onCaptured: (task) async { captured = task; },
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('quick-capture-input')),
+      'کار با موعد سفارشی',
+    );
+    await tester.tap(find.byKey(const ValueKey('quick-capture-due-rollbox')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('تاریخ و ساعت سفارشی'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
+    expect(find.byKey(const ValueKey('universal-time-hour-outer-10')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('universal-time-hour-outer-10')));
+    await tester.tap(find.byKey(const ValueKey('universal-time-minute-30')));
+    await tester.ensureVisible(find.byKey(const ValueKey('universal-time-save')));
+    await tester.tap(find.byKey(const ValueKey('universal-time-save')));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.byKey(const ValueKey('quick-capture-submit')));
+    await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
+    await tester.pumpAndSettle();
+
+    expect(captured, isNotNull);
+    expect(captured!.dueDate, DateTime(2026, 9, 27, 10, 30));
+    expect(captured!.reminderDate, captured!.dueDate);
+  });
+
+  testWidgets('Quick Capture leaves custom due empty when the unified picker is not used',
+      (tester) async {
+    Task? captured;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            body: QuickCaptureDialog(
+              idFactory: () => 'quick-no-due',
+              now: () => DateTime(2026, 9, 27, 14, 35),
+              onCaptured: (task) async { captured = task; },
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('quick-capture-input')),
+      'کار بدون موعد',
+    );
+    await tester.ensureVisible(find.byKey(const ValueKey('quick-capture-submit')));
+    await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
+    await tester.pumpAndSettle();
+
+    expect(captured, isNotNull);
+    expect(captured!.dueDate, isNull);
+    expect(captured!.reminderDate, isNull);
+  });
+
+  testWidgets('Quick Capture cancelling the clock leaves the custom due empty',
+      (tester) async {
+    Task? captured;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            body: QuickCaptureDialog(
+              idFactory: () => 'quick-cancel-custom-due',
+              now: () => DateTime(2026, 9, 27, 14, 35),
+              onCaptured: (task) async { captured = task; },
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('quick-capture-input')),
+      'کار با موعد لغوشده',
+    );
+    await tester.tap(find.byKey(const ValueKey('quick-capture-due-rollbox')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('تاریخ و ساعت سفارشی'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('universal-time-cancel')));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.byKey(const ValueKey('quick-capture-submit')));
+    await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
+    await tester.pumpAndSettle();
+
+    expect(captured, isNotNull);
+    expect(captured!.dueDate, isNull);
+    expect(captured!.reminderDate, isNull);
   });
 
 }
