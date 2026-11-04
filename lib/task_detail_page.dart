@@ -1097,9 +1097,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         onSelected: _changePriority,
         itemBuilder: (_) => TaskPriority.values.map((value) => PopupMenuItem(
           value: value,
-          child: Text(value.code + ' — ' + value.label, style: TextStyle(color: ArvinColors.priorityColor(value))),
+          child: Text('${value.code} — ${value.label}', style: TextStyle(color: ArvinColors.priorityColor(value))),
         )).toList(growable: false),
-        child: _metadataChip(_task.priority.code + ' — ' + _task.priority.label, ArvinColors.priorityColor(_task.priority), icon: Icons.flag_outlined),
+        child: _metadataChip('${_task.priority.code} — ${_task.priority.label}', ArvinColors.priorityColor(_task.priority), icon: Icons.flag_outlined),
       ),
     ]);
   }
@@ -1108,22 +1108,22 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     final chips = <Widget>[
       _metadataChip('زمان اجرا: ثبت نشده', _muted, icon: Icons.schedule_outlined),
       _metadataChip(
-        widget.centerName?.trim().isNotEmpty == true ? 'مرکز: ' + widget.centerName! : 'مرکز: تعیین نشده',
+        widget.centerName?.trim().isNotEmpty == true ? 'مرکز: ${widget.centerName!}' : 'مرکز: تعیین نشده',
         ArvinColors.category,
         icon: Icons.apartment_outlined,
       ),
       _metadataChip(
-        widget.project == null ? 'پروژه: بدون پروژه' : 'پروژه: ' + widget.project!.title,
+        widget.project == null ? 'پروژه: بدون پروژه' : 'پروژه: ${widget.project!.title}',
         widget.project == null ? _muted : Color(widget.project!.colorValue),
         icon: Icons.folder_special_outlined,
       ),
       _metadataChip(
-        _task.category?.trim().isNotEmpty == true ? 'دسته: ' + _task.category! : 'دسته: تعیین نشده',
+        _task.category?.trim().isNotEmpty == true ? 'دسته: ${_task.category!}' : 'دسته: تعیین نشده',
         ArvinColors.category,
         icon: Icons.folder_outlined,
       ),
       _metadataChip(
-        _task.tags.isEmpty ? 'برچسب‌ها: ثبت نشده' : 'برچسب‌ها: ' + _task.tags.join('، '),
+        _task.tags.isEmpty ? 'برچسب‌ها: ثبت نشده' : 'برچسب‌ها: ${_task.tags.join('، ')}',
         ArvinColors.tag,
         icon: Icons.sell_outlined,
       ),
@@ -1141,14 +1141,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           Text(
             widget.project!.templateNameSnapshot?.trim().isNotEmpty == true
                 ? widget.project!.templateNameSnapshot!
-                : 'شناسه الگو: ' + widget.project!.templateId!,
+                : 'شناسه الگو: ${widget.project!.templateId!}',
             key: const ValueKey('task-detail-template-source'),
           ),
         ],
         const SizedBox(height: 12),
         Text(_task.dueDate == null
             ? 'موعد انجام: تعیین نشده'
-            : 'موعد انجام: ' + (_task.allDay ? _date(_task.dueDate!) : _dateTime(_task.dueDate!)),
+            : 'موعد انجام: ${_task.allDay ? _date(_task.dueDate!) : _dateTime(_task.dueDate!)}',
           key: const ValueKey('task-detail-due-date-full'),
           style: const TextStyle(fontWeight: FontWeight.w700)),
         if (_isInlineEditing)
@@ -1171,8 +1171,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             _metadataChip(person.displayName, _muted, icon: Icons.person_outline)).toList(growable: false)),
         ],
         const SizedBox(height: 12),
-        Text('ایجاد: ' + (_task.createdAt == null ? 'نامشخص' : _dateTime(_task.createdAt!)), style: const TextStyle(fontSize: 12, color: _muted)),
-        Text('آخرین به‌روزرسانی: ' + (_task.updatedAt == null ? 'نامشخص' : _dateTime(_task.updatedAt!)), style: const TextStyle(fontSize: 12, color: _muted)),
+        Text('ایجاد: ${_task.createdAt == null ? 'نامشخص' : _dateTime(_task.createdAt!)}', style: const TextStyle(fontSize: 12, color: _muted)),
+        Text('آخرین به‌روزرسانی: ${_task.updatedAt == null ? 'نامشخص' : _dateTime(_task.updatedAt!)}', style: const TextStyle(fontSize: 12, color: _muted)),
       ]),
     );
   }
@@ -1196,7 +1196,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         else
           for (final reminder in _task.taskReminders)
             SwitchListTile(
-              key: ValueKey('task-detail-reminder-' + reminder.id),
+              key: ValueKey('task-detail-reminder-${reminder.id}'),
               contentPadding: EdgeInsets.zero,
               value: reminder.isEnabled,
               onChanged: widget.onTaskChanged == null ? null : (value) => _toggleReminder(reminder, value),
@@ -1240,7 +1240,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             onChanged: widget.onTaskChanged == null ? null : _toggleRecurrence,
           ),
         ]),
-        Text('قاعده: هر ' + rule.interval.toString() + ' ' + unit),
+        Text('قاعده: هر ${rule.interval} ${unit}'),
         const SizedBox(height: 6),
         const Text('رویدادهای آینده (۳۰ روز، حداکثر ۵ مورد):', style: TextStyle(fontWeight: FontWeight.w700)),
         if (anchor == null)
