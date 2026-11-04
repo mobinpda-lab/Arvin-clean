@@ -1,3 +1,14 @@
+## 2026-11-04 — Quick Capture and unified Report Center validation
+
+- The compact Quick Capture empty-title validation remains intact. On exact SHA `9b52d43d1266e258a91a77e3c469589f483c66c9`, Analyze and all six test shards passed; the unchanged `quick capture rejects empty input with visible feedback` test passed. Device Smoke Quick Capture lane also passed and emitted screenshots.
+- Report Center now routes completed-follow-up reporting through the unified «فیلترها» menu; the separate top-level completed-follow-up action is removed without removing the report capability.
+- Exact-SHA tests passed for unified completed-follow-up report selection, center/searchable task controls, genuine Follow-up grouping/detail navigation, and the completed-follow-up empty state. Device Smoke Navigation passed and emitted Report Center, filter-menu and selected-report screenshots; those screenshots were downloaded and visually inspected.
+- Calendar Provider Acceptance and Follow-up File Persistence passed on this exact SHA. The provider test confirms canonical Task survival after deletion of its projected provider event; this does not prove deletion of an entire external calendar is safe on a physical device.
+- بند ۹ product decision is recorded as «مرکز > پروژه > دسته > کار». Report Center center/search controls are tested; repository-wide hierarchy consistency is not claimed.
+- Local P2P QR/PIN pairing and Last-Write-Wins/Tombstone remain design proposals only. Device-clock conflict ordering is not approved; security and clock-skew analysis remain open.
+- Device Smoke Run `41801818497` was still IN_PROGRESS at documentation checkpoint; its Calendar Segmented View and Follow-up Persistence lanes had not yet completed. Do not infer a full Device Smoke pass.
+- PR #3052 remains OPEN / DRAFT / UNMERGED; main unchanged. **Release remains BLOCKED — RELEASE: NO-GO.**
+
 ## 2026-11-03 — Arvin local calendar lifecycle and read-only external providers
 
 - Startup permission flow now retries idempotent Arvin local-calendar provisioning on every app launch after permission has already been acknowledged.
