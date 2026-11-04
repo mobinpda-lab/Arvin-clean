@@ -497,3 +497,11 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - The pre-fix exact-SHA Staging build failed at `lib/widgets/arvin_roll_box.dart:78` and `:144–149` because the constructor and widget build referenced an undeclared `compact` field. This was corrected without changing task data, field order, save logic, or test assertions.
 - Compact spacing and sizing remain UI-only. Vertical scroll remains a safety fallback; physical no-scroll fit and pixel-level comparison to `photo_1793800214435.webp` are NOT VERIFIED.
 - Fresh exact-SHA CI is required after documentation synchronization. PR #3052 stays OPEN / DRAFT / UNMERGED; `main` untouched; release BLOCKED — RELEASE: NO-GO.
+
+
+## 2026-11-04 — CI evidence update for compact Quick Capture (`a657691`)
+- Exact-SHA Follow-up Persistence passed (`41843445148`).
+- Build Analyze is blocked by one `unnecessary_const` lint at `lib/quick_capture_dialog.dart:587:42` (`41843444962`); six test shards had not completed at inspection.
+- Device Smoke (`41843451312`) and Calendar Provider (`41843445191`) were still in progress/queued. Draft Review APK (`41843444971`) was still assembling and had no uploaded artifact at the last check.
+- Quick Capture compact-layout tests exist, but their final shard result and scroll-free physical layout are not verified. The dialog retains a vertical scroll fallback.
+- No tests were removed/skipped/weakened and no timeout was artificially increased. PR #3052 remains OPEN / DRAFT / UNMERGED; release BLOCKED — RELEASE: NO-GO.
