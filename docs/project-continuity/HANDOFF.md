@@ -1,3 +1,12 @@
+## Quick Capture implementation refinement — 2026-11-04
+- Latest source/test checkpoint before this continuity refresh: `2349dc2cdffeae440e525a89842912d681123b26`.
+- Focused test commits: `15212f6f5151c8436f041021d96ca7042bcf0015` (ensure-visible interaction and full-width submit geometry) and `2349dc2cdffeae440e525a89842912d681123b26` (remove obsolete test import).
+- Live PR metadata at this checkpoint: OPEN / DRAFT / UNMERGED; branch HEAD equals the checkpoint SHA.
+- GitHub Actions query for this SHA returned zero workflow runs; commit status is pending with zero contexts. CI is NOT VERIFIED and must not be reported as passing.
+- Keep release BLOCKED — RELEASE: NO-GO.
+
+Next operator: run/dispatch the complete Build (Analyze + six shards) and required exact-SHA Device Smoke, Calendar Provider, Follow-up Persistence and review APK workflows on the final docs-synchronized SHA. Inspect failures and do not weaken assertions.
+
 ## Quick Capture redesign handoff — 2026-11-04
 - Owner-approved scope: redesign only the Quick Task Registration UI; preserve four-level canonical priority enum/data and all existing selection/capture pathways.
 - Source/test implementation checkpoint: `9aaa51dea8957a8f755e57f6d9bb05724a6f00f1`. Inspect `lib/quick_capture_dialog.dart` and `test/quick_capture_dialog_test.dart` before further edits.
