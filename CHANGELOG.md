@@ -449,3 +449,11 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - Device Smoke run 41815969732 was incomplete at last poll: Calendar Segmented View job 126526712495 remained IN_PROGRESS after the other six lanes succeeded. Do not claim seven-lane acceptance.
 - Full audit and staged plan: `docs/audit/ARVIN_TASK_DETAILS_REFERENCE_COMPARISON_2026-11-04.md`. Continuity snapshot refreshed in `docs/project-continuity/CURRENT_STATE.md`.
 - No test or assertion was deleted, weakened, skipped or bypassed. No main write, merge or release. Release remains BLOCKED — RELEASE: NO-GO.
+
+
+## 2026-11-04 — Task Details UI alignment
+- Reorganized Task Details around a compact title/status/priority summary, separate description card, RTL metadata order, conditional template source and a single due-date card.
+- Consolidated status and priority and removed P1–P4 code labels from this page; preserved all existing task actions and lower feature sections.
+- Added bottom scroll clearance for the fixed action bar and focused widget tests for RTL ordering, due-date uniqueness, related-person semantics and bottom actions.
+- No Task model, storage schema or migration was changed. The model has no execution-time or independent assignee field; related people are not assignees.
+- Actual screenshot and pixel-level visual acceptance remain NOT VERIFIED. Exact-SHA CI is pending; PR remains Draft and release NO-GO.

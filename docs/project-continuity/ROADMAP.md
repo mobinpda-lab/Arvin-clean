@@ -28,3 +28,12 @@ A feature mentioned only as an illustrative example (such as periodic tasks or a
 - Do not guess layout, color, spacing or remove repeated metadata without reference and product approval.
 - After screenshots arrive: build approved visual matrix, make UI-only changes preserving all canonical actions/data pathways, add focused RTL widget and golden/screenshot acceptance, then run exact-SHA Build, Calendar Provider and all seven Device Smoke lanes.
 - Current exact-SHA evidence and blockers are tracked in OPEN_ISSUES.md and docs/audit/ARVIN_TASK_DETAILS_REFERENCE_COMPARISON_2026-11-04.md.
+
+
+## Task Details reference-driven implementation — 2026-11-04
+1. UI implementation is present on the active PR branch: summary/status/priority, separate description, ordered metadata, conditional template, single due-date card and preserved lower sections.
+2. Run focused widget/RTL tests and full Build on the final post-documentation SHA; no prior-SHA PASS may be transferred.
+3. Complete all seven Device Smoke lanes plus Calendar Provider and Follow-up Persistence on that same final SHA.
+4. Produce a real revised-page screenshot from an emulator/device and obtain product-owner visual approval. Pixel comparison remains NOT VERIFIED until the installed screenshot is available too.
+5. Do not create or claim a golden image without an actual generated rendering and review.
+6. Task execution-time and assignee concepts require explicit canonical model decisions before data fields or migration are introduced.

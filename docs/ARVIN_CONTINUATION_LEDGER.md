@@ -1648,3 +1648,13 @@ PR #3052 remains OPEN / DRAFT / UNMERGED. main untouched. **BLOCKED — RELEASE:
 - Build 41819344155 SUCCESS (Analyze + six shards); focused Task Details widget cases and RTL/Vazirmatn contracts logged PASS. Follow-up persistence 41819344361 SUCCESS. Review APK run 41819344101 SUCCESS; artifact 13316861010, review-only.
 - Calendar Provider 41819344729 IN_PROGRESS at last poll. Device Smoke 41819344258: Boot/Navigation SUCCESS; Quick Capture/Calendar IN_PROGRESS; Reminder/Vazirmatn/Follow-up Persistence/Task Lifecycle QUEUED.
 - Detailed report: docs/audit/ARVIN_TASK_DETAILS_REFERENCE_COMPARISON_2026-11-04.md. Release remains BLOCKED — RELEASE: NO-GO.
+
+
+# 2026-11-04 — Task Details reference-driven UI implementation
+- Owner supplied the desired UI reference image in this conversation. Implemented a compact Task summary with consolidated status/priority, independent description card, RTL metadata ordering, conditional template source, one due-date card, and preserved reminder/checklist/follow-up/recurrence features.
+- Runtime/test files: lib/task_detail_page.dart and test/task_detail_master_screen_test.dart. Status/priority labels on this screen use Persian labels without P1–P4 code text.
+- Fixed bottom actions remain intact; content ListView bottom padding is 120 px. AppBar uses unified indigo and Vazirmatn.
+- Model constraints: no execution-time property or independent assignee property was found. Execution time is explicitly shown as not recorded; Task.people is shown only as related people.
+- New focused RTL/order/non-duplication/related-people/bottom-action widget tests added. Execution results are pending exact-SHA CI.
+- Actual revised-page screenshot and pixel comparison are NOT VERIFIED; the installed-app image file is not available to the execution runtime. Do not claim golden acceptance.
+- PR #3052 OPEN / DRAFT / UNMERGED; main unchanged; no merge/release. Release BLOCKED — RELEASE: NO-GO.

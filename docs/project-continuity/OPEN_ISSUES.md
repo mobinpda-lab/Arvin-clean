@@ -34,3 +34,21 @@ Snapshot: 1405/08/13 — 2026-11-04 12:53 Asia/Tehran. Recheck live GitHub befor
 | Calendar Provider exact HEAD 940b22f4 | IN PROGRESS | Run 41819344729 in progress at last poll. |
 | Follow-up Persistence exact HEAD 940b22f4 | VERIFIED | Run 41819344361 SUCCESS. |
 | Review APK exact HEAD 940b22f4 | VERIFIED — REVIEW ONLY | Artifact 13316861010; not a release APK. |
+
+
+## Task Details reference implementation checkpoint — 2026-11-04
+### Done (implementation; acceptance still pending)
+- [x] Refactored Task Details layout into compact summary, independent description, ordered metadata, conditional template source and one due-date card.
+- [x] Consolidated status and priority into the summary and removed P1–P4 code labels from this screen.
+- [x] Preserved existing reminder, checklist, follow-up, recurrence, calendar, clone, report, edit, delete and complete/reopen entry points.
+- [x] Increased scroll bottom inset for fixed bottom actions; related people remain distinct from assignee.
+- [x] Added focused widget contracts for RTL order, due-date non-duplication, related people and bottom action visibility.
+### Proposed / pending
+- [ ] Generate and attach an actual screenshot of the revised Task Details page from a built app/emulator.
+- [ ] Add a golden baseline only after a real reviewed rendering is generated; do not synthesize or claim a golden from the reference image.
+### Blocked / NOT VERIFIED
+- [ ] Pixel comparison against installed-app screenshot; installed-app image file is not available in the execution environment.
+- [ ] Actual revised-page screenshot and visual acceptance by product owner.
+- [ ] Final exact-SHA Build, all seven Device Smoke lanes, Calendar Provider, Follow-up Persistence and review APK results.
+- [ ] Execution-time display: canonical Task model currently has no execution-time field; UI displays “زمان اجرا: ثبت نشده”. Do not infer it from createdAt.
+- [ ] Independent assignee display: canonical Task model has no assignee/responsible field; Task.people must remain “افراد مرتبط”.

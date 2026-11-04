@@ -101,3 +101,13 @@ AppBar عنوان «جزئیات کار» دارد و دکمه‌های ثبت �
 
 ## خط قرمزها
 PR #3052 باید OPEN / DRAFT / UNMERGED بماند. main بدون تغییر. هیچ merge یا release انجام نشود. تصمیم فونت فقط Vazirmatn است. وضعیت انتشار BLOCKED — RELEASE: NO-GO باقی می‌ماند.
+
+
+## 2026-11-04 — Task Details reference-driven UI implementation checkpoint
+- Product owner supplied the desired Task Details reference image in the conversation. Its visual structure was translated into a UI-only implementation; the separate installed-app comparison image is still not available as a runtime file, so pixel comparison is NOT VERIFIED.
+- Source changes on code checkpoint d7ae03c8cc74e9f38c739cd84dba77606acc56ff: compact title + status/priority summary; status and priority appear together without duplicate presentation; separate description card retains its editor/save flow; metadata follows RTL order (execution-time placeholder, available center, project, category, tags); template-source card is conditional; due date is presented once in its own card; reminders, checklist, follow-up history/timeline and recurrence remain in the scrollable page.
+- Model audit confirms Task has no execution-time field and no independent assignee/responsible field. UI states execution time as not recorded; it does not mislabel createdAt as execution time. Task.people remains labelled only as related people and is shown only when present.
+- AppBar is unified indigo; existing calendar, inline/full edit, clone, report, delete, complete/reopen actions are retained. Scroll content bottom padding was increased so the fixed action bar does not cover the final content. Vazirmatn remains the only font.
+- Added focused widget tests for section order, single due-date presentation, RTL, related-people semantics and bottom action accessibility. No existing test/assertion was removed, weakened, skipped or bypassed.
+- Screenshot/Golden output for the actual revised page has NOT been generated in this execution environment; pixel-perfect acceptance is NOT VERIFIED. The supplied reference image is the target, not a screenshot of the new build.
+- Current branch update was committed through the authorized branch only. PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; no merge or release. Release remains BLOCKED — RELEASE: NO-GO.

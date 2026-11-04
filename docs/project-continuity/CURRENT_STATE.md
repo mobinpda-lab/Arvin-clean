@@ -29,3 +29,11 @@ Release: BLOCKED — RELEASE: NO-GO
 - No tests/assertions were deleted, weakened, skipped or bypassed.
 - Full audit: docs/audit/ARVIN_TASK_DETAILS_REFERENCE_COMPARISON_2026-11-04.md.
 - Backlog: docs/project-continuity/OPEN_ISSUES.md and ROADMAP.md.
+
+
+## Task Details UI implementation — 2026-11-04
+- Implementation checkpoint: d7ae03c8cc74e9f38c739cd84dba77606acc56ff (code/test checkpoint; subsequent documentation checkpoint will be audited independently).
+- Runtime changes are limited to lib/task_detail_page.dart; focused layout/RTL tests are in test/task_detail_master_screen_test.dart.
+- Pixel comparison and actual-page screenshot acceptance remain NOT VERIFIED. The owner-provided desired image is available; the installed-app image is not available as an executable attachment.
+- Build, Device Smoke, Calendar Provider, Follow-up Persistence and review APK are triggered/pending/in progress at this checkpoint. No PASS is claimed until terminal results are checked on the exact final SHA.
+- PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; release NO-GO.
