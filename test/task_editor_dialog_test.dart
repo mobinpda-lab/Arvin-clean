@@ -469,12 +469,11 @@ void main() {
       find.byKey(const ValueKey('task-editor-title')),
       'کار زمان‌دار',
     );
-    await tester.ensureVisible(
-      find.byKey(const ValueKey('task-editor-due-time-button')),
-    );
-    await tester.tap(
-      find.byKey(const ValueKey('task-editor-due-time-button')),
-    );
+    final unified = find.byKey(const ValueKey('task-editor-due-date-time'));
+    await tester.ensureVisible(unified);
+    await tester.tap(unified);
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('universal-time-hour-outer-10')));
     await tester.pump();
@@ -514,6 +513,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('universal-time-hour-outer-11')));
+    await tester.pump();
     await tester.tap(find.byKey(const ValueKey('universal-time-minute-0')));
     await tester.ensureVisible(find.byKey(const ValueKey('universal-time-save')));
     await tester.tap(find.byKey(const ValueKey('universal-time-save')));
@@ -547,6 +547,7 @@ void main() {
 
     expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('universal-time-hour-outer-10')));
+    await tester.pump();
     await tester.tap(find.byKey(const ValueKey('universal-time-minute-30')));
     await tester.ensureVisible(find.byKey(const ValueKey('universal-time-save')));
     await tester.tap(find.byKey(const ValueKey('universal-time-save')));
