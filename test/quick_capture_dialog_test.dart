@@ -851,6 +851,7 @@ void main() {
     expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
     expect(find.byKey(const ValueKey('universal-time-hour-outer-10')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('universal-time-hour-outer-10')));
+    await tester.pump();
     await tester.tap(find.byKey(const ValueKey('universal-time-minute-30')));
     await tester.ensureVisible(find.byKey(const ValueKey('universal-time-save')));
     await tester.tap(find.byKey(const ValueKey('universal-time-save')));
