@@ -338,6 +338,8 @@ void main() {
     await tester.pumpAndSettle();
     final centerSection = find.byKey(const ValueKey('report-filter-section-مرکز'));
     await tester.scrollUntilVisible(centerSection, 240, scrollable: find.byType(Scrollable).last);
+    await tester.ensureVisible(centerSection);
+    await tester.pumpAndSettle();
     await tester.tap(centerSection);
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-center-511')), 240, scrollable: find.byType(Scrollable).last);
@@ -495,7 +497,12 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('گزارش پیگیری‌های انجام‌شده'), findsOneWidget);
-    expect(find.text('پیگیری نمونه'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey(
+        'completed-follow-up-record-follow-up-task-follow-up-record',
+      )),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
   });
 
