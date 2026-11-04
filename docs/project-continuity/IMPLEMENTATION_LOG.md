@@ -77,3 +77,15 @@ Every new entry must include exact SHA, workflow/run IDs, terminal conclusion, a
 - QR/PIN cryptography, discovery/transport implementation, exact schema and conflict algorithm remain design decisions requiring security/technical review. Local P2P implementation and physical acceptance remain NOT VERIFIED. LWW, tombstone policy and device-clock winner selection are not approved by this document.
 - Starting branch HEAD: b299c5ccddf9123a661e8a5c52dc3b0548265d35. This is a documentation-only commit; all existing CI/device evidence remains bound to its original SHA and must not be transferred to the new documentation SHA.
 - PR #3052 must remain OPEN / DRAFT / UNMERGED; main untouched; release remains BLOCKED — RELEASE: NO-GO.
+
+
+## 2026-11-04 — Task Details UI evidence audit
+- Audited PR #3052 live on exact SHA 0f2977a26d76fbe301b27aef05270b2d7568f4d2; PR OPEN / DRAFT / UNMERGED, base main SHA 45e4202b03a434459e4c021a04efa7e8396359db.
+- Identified TaskDetailPage in lib/task_detail_page.dart and app route _openTaskDetail in lib/main.dart. Read-only audit confirmed current order, duplicated priority/due-date/category/tag presentation, fixed bottom actions, and existing description inline edit.
+- Task model has people references but no dedicated assignee field in the inspected canonical model; people are not treated as assignee. Task due date, independent TaskReminder, recurrence and FollowUp history remain separate.
+- The two comparison images were not available in the audit input. Pixel-level visual comparison remains NOT VERIFIED; no runtime UI change was made rather than guessing at the reference.
+- Exact-SHA Build run 41815969951 SUCCESS (Analyze + six test shards); focused Task Details master screen cases logged PASS. APK matrix SKIPPED by Draft guard.
+- Calendar Provider run 41815969715 SUCCESS; Follow-up File Persistence run 41815969772 SUCCESS; Draft Review APK run 41815969817 SUCCESS with review-only artifact 13314402997.
+- Device Smoke run 41815969732 had six successful lanes at last poll; Calendar Segmented View job 126526712495 remained IN_PROGRESS. No complete seven-lane PASS is claimed.
+- Full findings and staged visual correction plan: docs/audit/ARVIN_TASK_DETAILS_REFERENCE_COMPARISON_2026-11-04.md.
+- No test/assertion/scenario was removed, weakened, skipped or bypassed. No main write, merge or release. PR remains OPEN / DRAFT / UNMERGED; Release BLOCKED — RELEASE: NO-GO.
