@@ -100,7 +100,12 @@ void main() {
     await tester.scrollUntilVisible(
       recurrenceAdd,
       300,
-      scrollable: find.byType(ListView),
+      final detailScrollable = find.descendant(
+      of: find.byKey(const ValueKey('task-detail-page')),
+      matching: find.byType(Scrollable),
+    );
+    expect(detailScrollable, findsOneWidget);
+    scrollable: detailScrollable,
     );
     await tester.pumpAndSettle();
     expect(recurrenceAdd, findsOneWidget);
@@ -141,7 +146,12 @@ void main() {
     await tester.scrollUntilVisible(
       templateSource,
       300,
-      scrollable: find.byType(ListView),
+      final detailScrollable = find.descendant(
+      of: find.byKey(const ValueKey('task-detail-page')),
+      matching: find.byType(Scrollable),
+    );
+    expect(detailScrollable, findsOneWidget);
+    scrollable: detailScrollable,
     );
     await tester.pumpAndSettle();
     expect(templateSource, findsOneWidget);

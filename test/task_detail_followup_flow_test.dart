@@ -186,7 +186,12 @@ void main() {
     await tester.scrollUntilVisible(
       followUpCard,
       300,
-      scrollable: find.byType(ListView),
+      final detailScrollable = find.descendant(
+      of: find.byKey(const ValueKey('task-detail-page')),
+      matching: find.byType(Scrollable),
+    );
+    expect(detailScrollable, findsOneWidget);
+    scrollable: detailScrollable,
     );
     await tester.pumpAndSettle();
     expect(followUpCard, findsOneWidget);
