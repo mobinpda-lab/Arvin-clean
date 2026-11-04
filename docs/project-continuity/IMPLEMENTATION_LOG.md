@@ -1,3 +1,12 @@
+## Task Details visual redesign — 2026-11-04
+- `a654da9262004b57fab591fcd2a72e48481e57f7`: set Task Details canvas to `#F5F6FA`; round the indigo AppBar bottom corners and add a back action; convert shared cards to white 16px rounded cards with subtle shadow; explicitly style Delete red outlined, Complete indigo filled and Edit indigo outlined; remove the «افراد مرتبط» UI block only.
+- `dc6e2aa6a3af26f474b9b02c1ccb24742228208b`: retain the existing checklist controller/callback but present «افزودن مرحله جدید» as a full-width outlined action after the checklist rows. Progress fraction and bar remain intact.
+- `43813096e93abd31388e1eceeb8dfef3fb3d4aba`: update focused test to assert avatar/people UI absence while proving `Task.people` data remains, and verify page/card/action styling.
+- `86c6c9bbaaa8bc83626effb9aa52f6e52c94a3d0`: assert checklist progress bar and add-stage label.
+- No Task model, repository, DAO, database, persistence, callback or business-rule code changed. No destructive data operation. No test removed/skipped/weakened.
+- Exact-SHA CI for this implementation has not yet completed; status remains NOT VERIFIED.
+- PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; release **BLOCKED — RELEASE: NO-GO**.
+
 ## Quick Capture test reconciliation — 2026-11-04
 - Build run `41834832972` on SHA `2549a98ab6d3de3498ab17fc007debf34f105055`: Analyze PASS; Shard test-1 FAILED with 174 passed / 1 failed.
 - Exact failure: `test/quick_capture_dialog_test.dart:321`, test `canonical capture keeps title-only path and optional choices`; the old assertion expected the approved description field to be absent. A second obsolete absence assertion existed in the full-form handoff test.
