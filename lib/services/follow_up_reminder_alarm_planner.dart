@@ -23,9 +23,13 @@ class FollowUpReminderAlarmPlanner {
       if (task.completed || task.archived || task.trashed) continue;
 
       final taskReminder = task.reminderDate;
-      final legacyReminderEntry = task.taskReminders.where(
-        (reminder) => reminder.isLegacyTaskReminder,
-      ).firstOrNull;
+      TaskReminder? legacyReminderEntry;
+      for (final reminder in task.taskReminders) {
+        if (reminder.isLegacyTaskReminder) {
+          legacyReminderEntry = reminder;
+          break;
+        }
+      }
       // Before migration, retain the legacy delivery identity unless the
       // corresponding canonical reminder was explicitly disabled. Once the
       // legacy date has been migrated into TaskReminder, do not schedule the
