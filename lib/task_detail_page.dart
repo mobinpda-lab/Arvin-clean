@@ -802,9 +802,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         alignment: AlignmentDirectional.centerStart,
         child: TextButton.icon(
           key: const ValueKey('task-detail-add-checklist'),
-          onPressed: widget.onChecklistChanged == null
-              ? null
-              : () => setState(() => _isAddingChecklist = true),
+          onPressed: widget.onChecklistChanged != null
+              ? () => setState(() => _isAddingChecklist = true)
+              : (widget.onEdit == null ? null : _edit),
           icon: const Icon(Icons.add, size: 17),
           label: const Text('افزودن چک‌لیست'),
         ),
@@ -997,7 +997,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 ),
               ],
             ),
-          ],
         ],
       ),
     );
@@ -1191,7 +1190,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         _sectionTitle('اطلاعات کار', Icons.info_outline),
         const SizedBox(height: 9),
         Wrap(spacing: 7, runSpacing: 7, children: chips),
-remove project-level template source from metadata        const SizedBox(height: 12),
+        const SizedBox(height: 12),
         Text(_task.dueDate == null
             ? 'موعد انجام: تعیین نشده'
             : 'موعد انجام: ${_task.allDay ? _date(_task.dueDate!) : _dateTime(_task.dueDate!)}',
@@ -1417,12 +1416,8 @@ remove project-level template source from metadata        const SizedBox(height:
             _statusPriorityCard(),
             const SizedBox(height: 10),
             _remindersCard(),
-            if (_task.checklistEnabled && _task.checklist.isNotEmpty ||
-                _isAddingChecklist ||
-                (!_task.checklistEnabled && widget.onChecklistChanged != null)) ...[
-              const SizedBox(height: 10),
-              _checklistCard(),
-            ],
+            const SizedBox(height: 4),
+            _checklistCard(),
             const SizedBox(height: 10),
             if (latest != null) _latestCard(latest, now),
             if (history.isEmpty && latest == null && !_task.completed)
