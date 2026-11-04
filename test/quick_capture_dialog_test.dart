@@ -1,3 +1,5 @@
+import 'package:arvin/models/arvin_center.dart';
+import 'package:arvin/models/goal_project.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -6,7 +8,8 @@ import 'package:arvin/arvin_colors.dart';
 import 'package:arvin/quick_capture_dialog.dart';
 
 void main() {
-  testWidgets('Quick Capture defaults to اولویت ۲ and persists selected priority', (tester) async {
+  testWidgets('Quick Capture priority dropdown defaults to اولویت ۲ and persists selection',
+      (tester) async {
     Task? captured;
     await tester.pumpWidget(MaterialApp(home: Scaffold(body: QuickCaptureDialog(
       idFactory: () => 'priority-capture',
@@ -14,83 +17,109 @@ void main() {
       onCaptured: (task) async { captured = task; },
     ))));
     await tester.pumpAndSettle();
-    final p2 = find.byKey(const ValueKey('quick-capture-priority-medium'));
-    final p1 = find.byKey(const ValueKey('quick-capture-priority-high'));
-    expect(tester.widget<ChoiceChip>(p2).selected, isTrue);
+
+    final dropdown = find.byKey(const ValueKey('quick-capture-priority-dropdown'));
+    expect(dropdown, findsOneWidget);
+    expect(tester.widget<DropdownButton<TaskPriority>>(dropdown).value, TaskPriority.medium);
+    for (final code in ['P1', 'P2', 'P3', 'P4']) {
+      expect(find.text(code), findsNothing);
+    }
+    final initial = tester.widget<DecoratedBox>(
+      find.byKey(const ValueKey('quick-capture-priority-surface')),
+    ).decoration as BoxDecoration;
+    expect((initial.border as Border).top.color, ArvinColors.priorityP2.withValues(alpha: 0.9));
+
+    await tester.tap(dropdown);
+    await tester.pumpAndSettle();
     for (final label in ['اولویت ۱', 'اولویت ۲', 'اولویت ۳', 'اولویت ۴']) {
       expect(find.text(label), findsOneWidget);
     }
-    for (final description in [
-      'اولویت ۱ — فوری و مهم',
-      'اولویت ۲ — مهم، غیرفوری',
-      'اولویت ۳ — فوری، غیرمهم',
-      'اولویت ۴ — غیرفوری و غیرمهم',
-    ]) {
-      expect(find.byTooltip(description), findsOneWidget);
-    }
-    expect(find.text('P1'), findsNothing);
-    expect(find.text('P2'), findsNothing);
-    expect(find.text('P3'), findsNothing);
-    expect(find.text('P4'), findsNothing);
-    await tester.tap(p1);
-    await tester.pump();
+    await tester.tap(find.text('اولویت ۱'));
+    await tester.pumpAndSettle();
+
+    expect(tester.widget<DropdownButton<TaskPriority>>(dropdown).value, TaskPriority.high);
+    final selected = tester.widget<DecoratedBox>(
+      find.byKey(const ValueKey('quick-capture-priority-surface')),
+    ).decoration as BoxDecoration;
+    expect((selected.border as Border).top.color, ArvinColors.priorityP1.withValues(alpha: 0.9));
+
     await tester.enterText(find.byKey(const ValueKey('quick-capture-input')), 'کار فوری');
     await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
     await tester.pumpAndSettle();
     expect(captured, isNotNull);
     expect(captured!.priority, TaskPriority.high);
-    expect(tester.widget<ChoiceChip>(p2).selected, isTrue);
   });
 
-  testWidgets('Quick Capture priorities stay in one accessible Persian row on narrow screens',
+  testWidgets('Quick Capture keeps compact RTL rows and readable width on phone and tablet',
       (tester) async {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     tester.view.devicePixelRatio = 1;
-    tester.view.physicalSize = const Size(320, 800);
 
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Directionality(
-          textDirection: TextDirection.rtl,
-          child: Scaffold(
-            body: QuickCaptureDialog(now: () => DateTime(2026, 11, 3, 10)),
+    for (final width in [320.0, 1024.0]) {
+      tester.view.physicalSize = Size(width, 900);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Directionality(
+            textDirection: TextDirection.rtl,
+            child: Scaffold(
+              body: QuickCaptureDialog(
+                centers: [
+                  ArvinCenter(id: 'center-a', name: 'مرکز الف', createdAt: DateTime(2026, 1, 1)),
+                  ArvinCenter(id: 'center-b', name: 'مرکز ب', createdAt: DateTime(2026, 1, 1)),
+                ],
+                projects: [
+                  ProjectPlan(id: 'project-a', title: 'پروژه الف', centerId: 'center-a'),
+                  ProjectPlan(id: 'project-b', title: 'پروژه ب', centerId: 'center-b'),
+                ],
+                now: () => DateTime(2026, 11, 3, 10),
+              ),
+            ),
           ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    final keys = [
-      'quick-capture-priority-high',
-      'quick-capture-priority-medium',
-      'quick-capture-priority-low',
-      'quick-capture-priority-none',
-    ];
-    final rects = <Rect>[];
-    for (final key in keys) {
-      final finder = find.byKey(ValueKey(key));
-      expect(finder, findsOneWidget);
-      rects.add(tester.getRect(finder));
-      expect(tester.getSize(finder).height, greaterThanOrEqualTo(48));
+      for (final key in [
+        'quick-capture-categories-scroll',
+        'quick-capture-settings-scroll',
+        'quick-capture-center-rollbox',
+        'quick-capture-project-rollbox',
+        'quick-capture-category-rollbox',
+        'quick-capture-tag-rollbox',
+        'quick-capture-priority-dropdown',
+      ]) {
+        expect(find.byKey(ValueKey(key)), findsOneWidget);
+      }
+      expect(find.byKey(const ValueKey('quick-capture-description')), findsNothing);
+      expect(find.byKey(const ValueKey('quick-capture-checklist-enabled')), findsNothing);
+      expect(find.byKey(const ValueKey('quick-capture-checklist-rollbox')), findsNothing);
+      expect(find.text('عنوان'), findsNothing);
+      expect(find.text('تاریخ و ساعت'), findsOneWidget);
+      expect(find.byKey(const ValueKey('quick-capture-full-form')), findsOneWidget);
+
+      final input = tester.widget<TextField>(find.byKey(const ValueKey('quick-capture-input')));
+      expect(input.maxLines, 1);
+      expect(input.minLines, 1);
+
+      final center = tester.getRect(find.byKey(const ValueKey('quick-capture-center-rollbox')));
+      final project = tester.getRect(find.byKey(const ValueKey('quick-capture-project-rollbox')));
+      final category = tester.getRect(find.byKey(const ValueKey('quick-capture-category-rollbox')));
+      final tag = tester.getRect(find.byKey(const ValueKey('quick-capture-tag-rollbox')));
+      expect(center.center.dx, greaterThan(project.center.dx));
+      expect(project.center.dx, greaterThan(category.center.dx));
+      expect(category.center.dx, greaterThan(tag.center.dx));
+
+      final submit = tester.getRect(find.byKey(const ValueKey('quick-capture-submit')));
+      final cancel = tester.getRect(find.byKey(const ValueKey('quick-capture-cancel')));
+      expect(submit.center.dx, greaterThan(cancel.center.dx));
+      expect(tester.takeException(), isNull);
+      if (width > 700) {
+        final dialog = tester.getRect(find.byKey(const ValueKey('quick-capture-dialog')));
+        expect(dialog.width, lessThanOrEqualTo(720));
+        expect(dialog.width, greaterThan(600));
+      }
     }
-    expect(rects.map((rect) => rect.top).toSet(), hasLength(1));
-    expect(rects[0].center.dx, greaterThan(rects[1].center.dx));
-    expect(rects[1].center.dx, greaterThan(rects[2].center.dx));
-    expect(rects[2].center.dx, greaterThan(rects[3].center.dx));
-    expect(rects.every((rect) => rect.width >= 48), isTrue);
-    expect(tester.takeException(), isNull);
-    expect(find.byKey(const ValueKey('quick-capture-priority-row')), findsOneWidget);
-
-    final p1 = tester.widget<ChoiceChip>(find.byKey(ValueKey(keys[0])));
-    final p2 = tester.widget<ChoiceChip>(find.byKey(ValueKey(keys[1])));
-    final p3 = tester.widget<ChoiceChip>(find.byKey(ValueKey(keys[2])));
-    final p4 = tester.widget<ChoiceChip>(find.byKey(ValueKey(keys[3])));
-    expect(p1.side?.color, ArvinColors.priorityP1.withValues(alpha: 0.35));
-    expect(p2.side?.color, ArvinColors.priorityP2.withValues(alpha: 0.9));
-    expect(p3.side?.color, ArvinColors.priorityP3.withValues(alpha: 0.35));
-    expect(p4.side?.color, ArvinColors.priorityP4.withValues(alpha: 0.35));
-    expect(p2.selected, isTrue);
   });
 
   testWidgets('quick capture returns canonical Task with Persian title and tags',
@@ -327,11 +356,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('موعد'), findsOneWidget);
+    expect(find.text('تاریخ و ساعت'), findsOneWidget);
     expect(find.text('تکرار'), findsOneWidget);
     expect(find.text('یادآور'), findsOneWidget);
 
-    await tester.tap(find.text('موعد'));
+    await tester.tap(find.text('تاریخ و ساعت'));
     await tester.pumpAndSettle();
     expect(find.text('امروز'), findsOneWidget);
     expect(find.text('تاریخ و ساعت سفارشی'), findsOneWidget);
@@ -401,8 +430,8 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('موعد'), findsOneWidget);
-    await tester.tap(find.text('موعد'));
+    expect(find.text('تاریخ و ساعت'), findsOneWidget);
+    await tester.tap(find.text('تاریخ و ساعت'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('تاریخ و ساعت سفارشی'));
     await tester.pumpAndSettle();
@@ -438,7 +467,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('موعد'));
+    await tester.tap(find.text('تاریخ و ساعت'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('تاریخ و ساعت سفارشی'));
     await tester.pumpAndSettle();
@@ -504,7 +533,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('موعد'));
+    await tester.tap(find.text('تاریخ و ساعت'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('تاریخ و ساعت سفارشی'));
     await tester.pumpAndSettle();
@@ -532,7 +561,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('موعد'));
+    await tester.tap(find.text('تاریخ و ساعت'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('امروز'));
     await tester.pumpAndSettle();
@@ -724,9 +753,9 @@ void main() {
   });
 
 
-  testWidgets('Quick Entry follow-up and checklist controls activate Task-owned Roll Boxes',
+  testWidgets('Quick Capture hides description and checklist and hands the draft to Full Task Form',
       (tester) async {
-    Task? captured;
+    Task? continued;
     await tester.pumpWidget(
       MaterialApp(
         home: Directionality(
@@ -734,16 +763,19 @@ void main() {
           child: Builder(
             builder: (context) => Scaffold(
               body: FilledButton(
-                onPressed: () async {
-                  captured = await showModalBottomSheet<Task>(
-                    context: context,
-                    isScrollControlled: true,
-                    builder: (_) => QuickCaptureDialog(
-                      idFactory: () => 'quick-follow-up-checklist',
-                      now: () => DateTime(2026, 10, 12, 9),
-                    ),
-                  );
-                },
+                onPressed: () => showModalBottomSheet<void>(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (_) => QuickCaptureDialog(
+                    idFactory: () => 'quick-full-form-handoff',
+                    now: () => DateTime(2026, 10, 12, 9),
+                    onCaptured: (_) async {},
+                    onFullForm: (draft) async {
+                      continued = draft;
+                      return false;
+                    },
+                  ),
+                ),
                 child: const Text('باز کردن'),
               ),
             ),
@@ -751,54 +783,25 @@ void main() {
         ),
       ),
     );
-
     await tester.tap(find.text('باز کردن'));
     await tester.pumpAndSettle();
-    await tester.enterText(
-      find.byKey(const ValueKey('quick-capture-input')),
-      'خرید فرش اتاق',
-    );
+    final input = find.byKey(const ValueKey('quick-capture-input'));
+    await tester.enterText(input, 'خرید فرش اتاق');
 
+    expect(find.byKey(const ValueKey('quick-capture-description')), findsNothing);
+    expect(find.byKey(const ValueKey('quick-capture-checklist-enabled')), findsNothing);
+    expect(find.byKey(const ValueKey('quick-capture-checklist-rollbox')), findsNothing);
     expect(find.byKey(const ValueKey('quick-capture-follow-up-enabled')), findsNothing);
     expect(find.byKey(const ValueKey('quick-capture-follow-up-rollbox')), findsNothing);
 
-    final checklistToggle = find.byKey(
-      const ValueKey('quick-capture-checklist-enabled'),
-    );
-    await tester.ensureVisible(checklistToggle);
-    await tester.tap(checklistToggle);
+    await tester.tap(find.byKey(const ValueKey('quick-capture-full-form')));
     await tester.pumpAndSettle();
-    final checklistRollBox = find.byKey(
-      const ValueKey('quick-capture-checklist-rollbox'),
-    );
-    expect(checklistRollBox, findsOneWidget);
-
-    await tester.ensureVisible(checklistRollBox);
-    await tester.tap(checklistRollBox);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('افزودن مورد چک‌لیست'));
-    await tester.pumpAndSettle();
-    await tester.enterText(
-      find.byKey(const ValueKey('quick-capture-checklist-item-input')),
-      'تماس با فروشنده',
-    );
-    await tester.tap(
-      find.byKey(const ValueKey('quick-capture-checklist-item-save')),
-    );
-    await tester.pumpAndSettle();
-
-    final submit = find.byKey(const ValueKey('quick-capture-submit'));
-    await tester.ensureVisible(submit);
-    await tester.tap(submit);
-    await tester.pumpAndSettle();
-
-    expect(captured, isNotNull);
-    expect(captured!.followUpEnabled, isFalse);
-    expect(captured!.followUps, isEmpty);
-
-    expect(captured!.checklistEnabled, isTrue);
-    expect(captured!.checklist, ['[ ] تماس با فروشنده']);
-    expect(captured!.followUps, isEmpty);
+    expect(continued, isNotNull);
+    expect(continued!.id, 'quick-full-form-handoff');
+    expect(continued!.title, 'خرید فرش اتاق');
+    expect(continued!.checklistEnabled, isFalse);
+    expect(continued!.checklist, isEmpty);
+    expect(tester.widget<TextField>(input).controller!.text, 'خرید فرش اتاق');
   });
 
   testWidgets('Quick Entry exposes reminder controls without legacy follow-up scheduling',

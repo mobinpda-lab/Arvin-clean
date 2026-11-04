@@ -1,3 +1,12 @@
+## 2026-11-04 — Quick Capture compact form implementation (PR #3052)
+
+- Reworking the existing `QuickCaptureDialog` rather than introducing a replacement form or persistence path.
+- Target UI contract: single-line title; header shortcut to the full Task editor; RTL horizontal Center → Project → Category → Tag row; dynamic colored priority dropdown; one Jalali date + approved circular time control; Reminder and Recurrence; submit-right / cancel-left footer.
+- Description and Checklist are being removed from Quick Capture presentation; the full Task editor remains the owner of those fields.
+- Center selection scopes Project choices. A Task's Center relationship is persisted only through its selected canonical Project (`ProjectPlan.centerId`); no `Task.centerId` field or parallel storage is introduced.
+- Exact-head widget, Home persistence and Android smoke validation are pending. This entry records implementation scope, not completion.
+- PR #3052 remains OPEN / DRAFT / UNMERGED; `main` untouched; release BLOCKED — RELEASE: NO-GO.
+
 ## 2026-11-03 — Arvin local calendar lifecycle and read-only external providers
 
 - Startup permission flow now retries idempotent Arvin local-calendar provisioning on every app launch after permission has already been acknowledged.

@@ -1562,3 +1562,13 @@ PR #3052 remains OPEN / DRAFT / UNMERGED. main untouched. **BLOCKED — RELEASE:
 - The Home-specific 320×520 RTL test was added, but the f96d6f2 run was cancelled when documentation commits superseded that SHA. It has no terminal result yet. Historical 44px overflow remains NOT VERIFIED.
 - Production Track 2 remains NOT VERIFIED: current outbound sync accepts a selected `targetCalendarId`; the `ARVIN CI Acceptance` provisioner is a test fixture, not proof of a dedicated production Arvin-owned Android calendar. Provider CRUD acceptance must not be described as full production Track-2 acceptance.
 - The next documentation-synchronized HEAD will require its own exact-SHA Build, seven-lane Device Smoke, Provider, Persistence and Draft Review APK checks. No result above transfers to that new SHA.
+
+
+## 2026-11-04 — Quick Capture implementation checkpoint
+
+- Verified PR #3052 is OPEN / DRAFT / UNMERGED on `fix/recovery-calendar-device-smoke-2026-10-31`; source HEAD at start of this work: `034c2401f7dadaa91ae87468fff140c3976e60b2`; main remains `45e4202b03a434459e4c021a04efa7e8396359db`.
+- On that exact SHA: Arvin Build `41785926465` SUCCESS (six test shards); Draft Review APK `41785926405` SUCCESS; Calendar Provider Acceptance `41785926479` SUCCESS; Device Smoke `41785926396` CANCELLED. No device acceptance is inferred from the cancelled run.
+- Quick Capture baseline audit found separate project/category/tag controls, priority ChoiceChips, extra description/checklist controls, and no Center selector. Existing full-form handoff already creates a canonical Task draft and preserves the same Task identity.
+- New implementation target: compact in-place form with a single-line title, header full-form icon, RTL horizontal taxonomy/settings strips, dynamic priority dropdown, no quick-entry description/checklist, and Center-scoped canonical Project selection. Center persists only through ProjectPlan.centerId; Task model/storage remains unchanged.
+- Four prior Build test failures were already corrected on earlier SHA; those green results do not validate this new UI change. New exact-head Build, Review APK, and complete Device Smoke are required after commit.
+- No merge, main edit, Draft exit, or release is authorized. Release remains **BLOCKED — RELEASE: NO-GO**.

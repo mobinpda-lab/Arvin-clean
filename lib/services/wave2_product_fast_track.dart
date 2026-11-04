@@ -19,7 +19,7 @@ class Wave2ProductFastTrack {
   final HomeTaskEditorContextService contextService;
   final TaskProjectAssignmentService assignmentService;
 
-  Future<String> createProject(String title) async {
+  Future<String> createProject(String title, {String? centerId}) async {
     final cleanTitle = title.trim();
     if (cleanTitle.isEmpty) throw ArgumentError.value(title, 'title');
     final store = ProjectStore();
@@ -27,6 +27,7 @@ class Wave2ProductFastTrack {
     final project = ProjectPlan(
       id: 'project_${DateTime.now().microsecondsSinceEpoch}',
       title: cleanTitle,
+      centerId: centerId,
     );
     await store.save([...projects, project]);
     return project.id;

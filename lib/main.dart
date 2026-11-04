@@ -1468,6 +1468,8 @@ class _HomePageState extends State<HomePage> {
     final editorContext = await wave2ProductFastTrack.prepareEditor(tasks: tasks);
     if (!mounted) return;
     String? selectedProjectId = editorContext.selectedProjectId;
+    final selectedProject = editorContext.projects.where((project) => project.id == selectedProjectId);
+    final selectedCenterId = selectedProject.isEmpty ? null : selectedProject.first.centerId;
 
     await showModalBottomSheet<void>(
       context: context,
@@ -1476,6 +1478,10 @@ class _HomePageState extends State<HomePage> {
       useSafeArea: true,
       builder: (_) => QuickCaptureDialog(
         projects: editorContext.projects,
+        centers: centers,
+        initialCenterId: selectedCenterId,
+        onCreateProjectWithCenter: (title, centerId) =>
+            wave2ProductFastTrack.createProject(title, centerId: centerId),
         knownCategories: editorContext.knownCategories,
         knownTags: editorContext.knownTags,
         onCreateCategory: _createCategory,
