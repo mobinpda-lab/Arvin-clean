@@ -23,6 +23,22 @@ void main() {
     );
   });
 
+  test('older reminder JSON defaults enabled when the new flag is absent', () {
+    final task = Task.fromJson({
+      'id': 'pre-enabled-flag',
+      'title': 'سازگاری قدیمی',
+      'taskReminders': [
+        {
+          'id': 'old-r1',
+          'title': 'یادآور قدیمی',
+          'date': '2026-09-08T15:00:00.000',
+          'sequence': 1,
+        },
+      ],
+    });
+    expect(task.taskReminders.single.isEnabled, isTrue);
+  });
+
   test('disabled independent Task Reminder is persisted and not scheduled', () {
     final at = DateTime(2026, 9, 8, 15);
     final original = Task(
