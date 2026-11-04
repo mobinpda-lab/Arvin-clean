@@ -8,7 +8,7 @@ import 'package:arvin/arvin_colors.dart';
 import 'package:arvin/quick_capture_dialog.dart';
 
 void main() {
-  testWidgets('Quick Capture priority dropdown defaults to اولویت ۲ and persists selection',
+  testWidgets('Quick Capture four-level priority chips preserve canonical priority values',
       (tester) async {
     Task? captured;
     await tester.pumpWidget(MaterialApp(home: Scaffold(body: QuickCaptureDialog(
@@ -18,36 +18,27 @@ void main() {
     ))));
     await tester.pumpAndSettle();
 
-    final dropdown = find.byKey(const ValueKey('quick-capture-priority-dropdown'));
-    expect(dropdown, findsOneWidget);
-    expect(tester.widget<DropdownButton<TaskPriority>>(dropdown).value, TaskPriority.medium);
-    for (final code in ['P1', 'P2', 'P3', 'P4']) {
-      expect(find.text(code), findsNothing);
-    }
-    final initial = tester.widget<DecoratedBox>(
-      find.byKey(const ValueKey('quick-capture-priority-surface')),
-    ).decoration as BoxDecoration;
-    expect((initial.border as Border).top.color, ArvinColors.priorityP2.withValues(alpha: 0.9));
-
-    await tester.tap(dropdown);
-    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('quick-capture-priority-dropdown')), findsOneWidget);
     for (final label in ['اولویت ۱', 'اولویت ۲', 'اولویت ۳', 'اولویت ۴']) {
       expect(find.text(label), findsOneWidget);
     }
-    await tester.tap(find.text('اولویت ۱'));
+    for (final hint in ['فوری و مهم', 'مهم و غیرفوری', 'فوری و غیرمهم', 'غیرفوری و غیرمهم']) {
+      expect(find.text(hint), findsOneWidget);
+    }
+    for (final code in ['P1', 'P2', 'P3', 'P4']) {
+      expect(find.text(code), findsNothing);
+    }
+
+    await tester.tap(find.byKey(const ValueKey('quick-capture-priority-option-1')));
     await tester.pumpAndSettle();
-
-    expect(tester.widget<DropdownButton<TaskPriority>>(dropdown).value, TaskPriority.high);
-    final selected = tester.widget<DecoratedBox>(
-      find.byKey(const ValueKey('quick-capture-priority-surface')),
-    ).decoration as BoxDecoration;
-    expect((selected.border as Border).top.color, ArvinColors.priorityP1.withValues(alpha: 0.9));
-
     await tester.enterText(find.byKey(const ValueKey('quick-capture-input')), 'کار فوری');
+    await tester.enterText(find.byKey(const ValueKey('quick-capture-description')), 'شرح کار');
     await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
     await tester.pumpAndSettle();
+
     expect(captured, isNotNull);
     expect(captured!.priority, TaskPriority.high);
+    expect(captured!.description, 'شرح کار');
   });
 
   testWidgets('Quick Capture keeps compact RTL rows and readable width on phone and tablet',
@@ -91,7 +82,7 @@ void main() {
       ]) {
         expect(find.byKey(ValueKey(key)), findsOneWidget);
       }
-      expect(find.byKey(const ValueKey('quick-capture-description')), findsNothing);
+      expect(find.byKey(const ValueKey('quick-capture-description')), findsOneWidget);
       expect(find.byKey(const ValueKey('quick-capture-checklist-enabled')), findsNothing);
       expect(find.byKey(const ValueKey('quick-capture-checklist-rollbox')), findsNothing);
       expect(find.text('عنوان'), findsNothing);
