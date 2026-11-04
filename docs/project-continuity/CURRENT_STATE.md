@@ -1,3 +1,4 @@
+- Requested commit-message checkpoint: `ui(quick-capture): compact single-screen layout, no logic changes`.
 ## Quick Capture compact layout — 2026-11-04
 - Scope: UI/layout only. Current form field inventory, order, keys and selection flow are preserved. No Task model, validation, draft-building, persistence, field names, callbacks, center/project relationship, reminder synchronization, recurrence mapping or priority values were changed.
 - The existing description TextField remains present (compressed from 2–3 visible lines to 1–2); title placeholder remains «عنوان کار را وارد کنید». Header title and full-form shortcut remain.
