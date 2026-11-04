@@ -102,10 +102,7 @@ void main() {
         ),
       ),
     );
-    await tester.tap(find.byKey(
-      const ValueKey('report-center-completed-follow-ups'),
-    ));
-    await tester.pumpAndSettle();
+    await _openCompletedFollowUpReport(tester);
     expect(find.text('برای این روز پیگیری‌ای ثبت نشده است.'), findsOneWidget);
   });
 }
