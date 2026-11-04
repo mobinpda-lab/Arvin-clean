@@ -191,3 +191,15 @@ Release: BLOCKED — RELEASE: NO-GO
 - Reference image `photo_1793816062206.webp` was not present in current conversation attachments or located in Library search. No visual comparison was performed. Request original reference plus uncut top and lower screenshots from the exact APK/device before making any visual claim.
 - No code/test change was made to mask the cancelled lanes. No rerun/fix of the three incomplete lanes has yet been performed; exact root cause remains open. Documentation commit itself creates a new SHA; all results above remain historical evidence for source SHA `7e61b8d1ac81dca08c99cc5694fb3f5ab21e9e19` only.
 - PR remains OPEN / DRAFT / UNMERGED; no main edit, merge, publication or release. **BLOCKED — RELEASE: NO-GO.**
+
+
+## 2026-11-05 — Module-Core-Logic v1.0 audit checkpoint
+- Live PR #3052: OPEN / DRAFT / UNMERGED. Authorized branch: `fix/recovery-calendar-device-smoke-2026-10-31`. Reviewed HEAD: `4021c84ceb14faf4f6559379cf67dd94955bffe4`. Base `main`: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Module record is in `PRODUCT_DECISIONS.md`; no parallel Module document was created. The exact prior module text was not retrievable, so full verbatim review is NOT VERIFIED.
+- Due Date / TaskReminder separation and FollowUp.dateTime persistence are present. `completedAt` on FollowUp is an alias of dateTime.
+- Legacy Task fields `followUpEnabled` / `followUpDate` and FollowUp `reminderDate` / `nextFollowUp` remain in active model/SQL serialization. No real user DB inventory/backup was inspected; schema retirement remains BLOCKED.
+- Reminder delivery gap: `FollowUpReminderDeliveryService.due` does not filter disabled TaskReminders; `TaskStore.addTaskReminder` has no idempotency guard. No logic fix was made.
+- Alarm: scheduler ID 42002; notification IDs are stable-key hashes with 42002 fallback. Stop only cancels notification; Snooze changes the selected Reminder; Follow-up shortcut disables adding another Reminder.
+- Exact-SHA CI: Analyze PASS; test-0/1/3/5 PASS; test-2/test-4 FAIL; visual golden FAIL; Persistence PASS; Calendar Provider PASS; Device Smoke 4/7 PASS and 3/7 CANCELLED.
+- Test-scenario preservation across the entire PR is NOT VERIFIED: the PR diff rewrites/removes multiple previous test scenarios, although no explicit new skip/timeout directive was detected. Replacement coverage requires review.
+- No source/test/schema/main changes, merge, or release. **BLOCKED — RELEASE: NO-GO.**
