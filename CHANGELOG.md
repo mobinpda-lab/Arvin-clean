@@ -1,3 +1,13 @@
+
+## 2026-11-04 — Task Details reference comparison checkpoint (PR #3052)
+- Revalidated exact branch HEAD 940b22f4dc30aef083e5116843ac9457bd1bd37a; PR OPEN / DRAFT / UNMERGED; main unchanged.
+- Current TaskDetailPage, _openTaskDetail route and Task model re-read. Model has related people but no dedicated assignee field; people are not an assignee.
+- Source confirms repeated due date, priority, category/tags. No runtime cleanup was made because the two named screenshots were unavailable in current conversation and Library search; image-based acceptance remains NOT VERIFIED.
+- Exact-head Build run 41819344155 SUCCESS (Analyze + six test shards), focused Task Details tests and RTL/Vazirmatn contracts logged PASS. Follow-up Persistence 41819344361 SUCCESS. Draft Review APK 41819344101 SUCCESS, artifact 13316861010 (review only).
+- Calendar Provider 41819344729 and Device Smoke 41819344258 were still running/queued at last poll; Device Smoke was incomplete.
+- Detailed audit/backlog: docs/audit/ARVIN_TASK_DETAILS_REFERENCE_COMPARISON_2026-11-04.md and docs/project-continuity/OPEN_ISSUES.md.
+- No tests/assertions weakened/skipped, no main write, merge or release. PR remains OPEN / DRAFT / UNMERGED; Release BLOCKED — RELEASE: NO-GO.
+
 ## 2026-11-04 — Quick Capture compact form implementation (PR #3052)
 
 - First exact-head Build exposed a real overflow in the selected priority Dropdown and two legacy custom date/time action-label expectations. The selected state is now text-only (still color-dynamic), and the unified custom date/time action retains the established Persian label; no test or assertion was disabled.
