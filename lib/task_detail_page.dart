@@ -479,9 +479,16 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       key: key,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFFDFDFE),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE6E7EE)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE9EAF0)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0A202040),
+            blurRadius: 12,
+            offset: Offset(0, 3),
+          ),
+        ],
       ),
       child: child,
     );
@@ -1220,18 +1227,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             runSpacing: 7,
             children: chips,
           ),
-          if (_task.people.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            _sectionTitle('افراد مرتبط', Icons.people_outline),
-            const SizedBox(height: 6),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: _task.people
-                  .map((person) => _metadataChip(person.displayName, _muted, icon: Icons.person_outline))
-                  .toList(growable: false),
-            ),
-          ],
           const SizedBox(height: 8),
           Text(
             'آخرین به‌روزرسانی: ${_task.updatedAt == null ? 'نامشخص' : _dateTime(_task.updatedAt!)}',
@@ -1353,9 +1348,13 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         key: const ValueKey('task-detail-page'),
+        backgroundColor: const Color(0xFFF5F6FA),
         appBar: AppBar(
           backgroundColor: const Color(0xFF37379B),
           foregroundColor: Colors.white,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(bottom: Radius.circular(18)),
+          ),
           title: const Text('جزئیات کار', style: TextStyle(fontFamily: 'Vazirmatn', fontWeight: FontWeight.w700)),
           actions: [
             if (widget.onRegisterTaskToDeviceCalendar != null)
@@ -1408,6 +1407,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 ),
               ],
             ),
+            IconButton(
+              key: const ValueKey('task-detail-back'),
+              tooltip: 'بازگشت',
+              onPressed: () {
+                Navigator.of(context).maybePop();
+              },
+              icon: const Icon(Icons.arrow_back),
+            ),
           ],
         ),
         bottomNavigationBar: SafeArea(
@@ -1416,6 +1423,12 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             Expanded(child: OutlinedButton.icon(
               key: const ValueKey('task-detail-delete'),
               onPressed: widget.onDelete == null ? null : _deleteTask,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFFD04444),
+                side: const BorderSide(color: Color(0xFFD04444)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
               icon: const Icon(Icons.delete_outline),
               label: const Text('حذف'),
             )),
@@ -1423,6 +1436,12 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             Expanded(child: FilledButton.icon(
               key: const ValueKey('task-detail-complete'),
               onPressed: widget.onComplete == null ? null : _complete,
+              style: FilledButton.styleFrom(
+                backgroundColor: _brand,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
               icon: Icon(_task.completed ? Icons.undo : Icons.check_circle_outline),
               label: Text(_task.completed ? 'بازگشت به انجام‌نشده' : 'انجام کار'),
             )),
@@ -1430,6 +1449,12 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             Expanded(child: OutlinedButton.icon(
               key: const ValueKey('task-detail-bottom-edit'),
               onPressed: widget.onEdit == null ? null : _edit,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: _brand,
+                side: const BorderSide(color: _brand),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
               icon: const Icon(Icons.edit_outlined),
               label: const Text('ویرایش'),
             )),
