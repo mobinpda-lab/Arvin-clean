@@ -408,7 +408,7 @@ Future<DateTime?> _pickCustomDue() async {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Text('اولویت', textAlign: TextAlign.right,
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: ArvinColors.textPrimary)),
+                style: TextStyle(fontSize: 13, height: 1.1, fontWeight: FontWeight.w700, color: ArvinColors.textPrimary)),
             const SizedBox(height: 4),
             Row(
               textDirection: TextDirection.rtl,
@@ -429,7 +429,7 @@ Future<DateTime?> _pickCustomDue() async {
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 150),
                           height: 40,
-                          padding: const EdgeInsets.symmetric(horizontal: 2),
+                          padding: const EdgeInsets.symmetric(horizontal: 1),
                           decoration: BoxDecoration(
                             color: color.withValues(alpha: selected ? 0.18 : 0.09),
                             borderRadius: BorderRadius.circular(12),
@@ -466,7 +466,7 @@ Future<DateTime?> _pickCustomDue() async {
                     maxLines: 1,
                     softWrap: false,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 8.5, height: 1.15),
+                    style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 8, height: 1.1),
                   ),
                 ),
               )).toList(growable: false),
@@ -478,7 +478,7 @@ Future<DateTime?> _pickCustomDue() async {
     );
   }
 
-  Widget _surfaceCard({required Widget child, EdgeInsets padding = const EdgeInsets.all(8)}) {
+  Widget _surfaceCard({required Widget child, EdgeInsets padding = const EdgeInsets.all(6)}) {
     return Card(
       elevation: 1,
       shadowColor: ArvinColors.shadowSoft,
@@ -512,7 +512,7 @@ Future<DateTime?> _pickCustomDue() async {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 720),
           child: Padding(
-            padding: EdgeInsets.fromLTRB(12, 4, 12, bottomInset + 6),
+            padding: EdgeInsets.fromLTRB(12, 2, 12, bottomInset + 4),
             child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -522,7 +522,7 @@ Future<DateTime?> _pickCustomDue() async {
                       color: ArvinColors.primaryDark,
                       borderRadius: BorderRadius.vertical(bottom: Radius.circular(18)),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
                     child: Row(
                       textDirection: TextDirection.rtl,
                       children: [
@@ -536,7 +536,7 @@ Future<DateTime?> _pickCustomDue() async {
                         const Expanded(child: Text(
                           'ثبت سریع کار',
                           textAlign: TextAlign.center,
-                          style: TextStyle(fontFamily: 'Vazirmatn', color: Colors.white, fontSize: 17, height: 1.15, fontWeight: FontWeight.w800),
+                          style: TextStyle(fontFamily: 'Vazirmatn', color: Colors.white, fontSize: 16, height: 1.1, fontWeight: FontWeight.w800),
                         )),
                         IconButton(
                           key: const ValueKey('quick-capture-full-form'),
@@ -549,7 +549,7 @@ Future<DateTime?> _pickCustomDue() async {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 5),
                   _surfaceCard(
                     child: TextField(
                       key: const ValueKey('quick-capture-input'),
@@ -564,8 +564,9 @@ Future<DateTime?> _pickCustomDue() async {
                       decoration: InputDecoration(
                         hintText: 'عنوان کار را وارد کنید',
                         errorText: _error,
-                        prefixIcon: const Icon(Icons.title_rounded, color: ArvinColors.primary),
+                        prefixIcon: const Icon(Icons.title_rounded, size: 18, color: ArvinColors.primary),
                         isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 4),
                         border: InputBorder.none,
                       ),
                     ),
@@ -624,7 +625,7 @@ Future<DateTime?> _pickCustomDue() async {
                               },
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 6),
                           SizedBox(
                             width: 124,
                             child: ArvinRollBox<String>(
@@ -783,7 +784,7 @@ Future<DateTime?> _pickCustomDue() async {
                     ),
                   ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 6),
                   _surfaceCard(
                     child: Align(
                       alignment: AlignmentDirectional.centerStart,
@@ -870,7 +871,7 @@ Future<DateTime?> _pickCustomDue() async {
                         style: FilledButton.styleFrom(
                           backgroundColor: ArvinColors.primary,
                           foregroundColor: Colors.white,
-                          minimumSize: const Size.fromHeight(44),
+                          minimumSize: const Size.fromHeight(40),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                         ),
                         onPressed: _saving ? null : _submit,
@@ -880,7 +881,7 @@ Future<DateTime?> _pickCustomDue() async {
                       TextButton(
                         key: const ValueKey('quick-capture-cancel'),
                         style: TextButton.styleFrom(
-                          minimumSize: const Size(64, 44),
+                          minimumSize: const Size(64, 40),
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
                           tapTargetSize: MaterialTapTargetSize.padded,
                         ),
