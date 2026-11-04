@@ -137,3 +137,14 @@ Every new entry must include exact SHA, workflow/run IDs, terminal conclusion, a
 - The first regression-repair commit's Analyze job found a duplicate local declaration of `detailScrollable` in the smart-visibility test (not a product-code lint). Removed only the duplicate declaration and reused the existing page Scrollable finder.
 - Made the non-empty checklist fixture explicitly set `checklistEnabled: true`; this documents the intended canonical fixture state instead of relying on constructor inference.
 - New exact-SHA CI is required; prior run 41827206935 Analyze FAILURE is superseded only after the correction commit passes.
+
+
+## 2026-11-04 — Quick Capture UI redesign (owner-approved)
+- Product owner explicitly approved the Quick Task Registration redesign and selected four canonical priority levels; no priority data remapping or enum change is authorized.
+- Source commits on authorized branch: `bd849800d524289aa555264e8db61e3423066b7f` (card-based UI / priority chips), `ccda9440a6f63439cb9171ac9bfd06ffb7d8c1d6` (card nesting correction), `9aaa51dea8957a8f755e57f6d9bb05724a6f00f1` (description reset behavior). Focused test commit: `e837f0959aff06e0a2727b8564a11b361d903cda`.
+- UI scope: #F5F6FA canvas, dark indigo header with close and full-form actions, white 16px rounded cards, title and multiline description inputs, RTL four-chip priority selector with pastel semantic colors and Persian helper text, and full-width primary submit. Existing Center / Project / Category / Tag, due-date, independent reminder and recurrence controls remain wired to their prior flows.
+- Canonical priority mapping remains unchanged: high=1, medium=2, low=3, none=4; stored TaskPriority value is still assigned directly. No English P1–P4 text is rendered by the new selector.
+- Description writes to existing Task.description and is cleared after successful capture or successful full-form handoff; failed capture preserves input.
+- Focused tests were updated, not removed: the priority test now checks all four labels/helper descriptions, absence of P1–P4 display strings, canonical priority persistence and description persistence. The compact RTL test now expects the description field.
+- The initial UI source commit had a card-nesting sequence corrected in a follow-up commit before final review. Analyze, widget tests, all six Build shards, Device Smoke, Provider, persistence and review APK are NOT VERIFIED on the final docs-synchronized SHA until corresponding workflows finish.
+- No main edits, merge, Draft transition or release. PR #3052 remains OPEN / DRAFT / UNMERGED; release BLOCKED — RELEASE: NO-GO.
