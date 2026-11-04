@@ -1,3 +1,13 @@
+## Task Details UI redesign — 2026-11-04
+- Owner-approved presentation-only scope applied on the authorized PR branch. Source commit: `a654da9262004b57fab591fcd2a72e48481e57f7`; checklist presentation commit: `dc6e2aa6a3af26f474b9b02c1ccb24742228208b`; focused test commits: `43813096e93abd31388e1eceeb8dfef3fb3d4aba`, `86c6c9bbaaa8bc83626effb9aa52f6e52c94a3d0`.
+- UI: icy `#F5F6FA` page background; dark indigo AppBar with rounded lower corners, Vazirmatn title and left-side back action; white 16px rounded cards with soft shadow; existing title/status/priority card retained; metadata, template, due-date, independent reminder, recurrence and checklist cards remain.
+- Checklist retains its existing fractional progress and LinearProgressIndicator; the add control is now a full-width «افزودن مرحله جدید» action after the checklist items, using the same existing add callback and text controller.
+- The entire «افراد مرتبط» display block is removed from Task Details. No `Task.people` model/data/storage logic was changed; the regression test confirms person data remains on the Task while no person UI is rendered.
+- Bottom actions retain their original keys and callbacks: red outlined Delete, indigo filled Complete, indigo outlined Edit.
+- Test file `test/task_detail_master_screen_test.dart` now asserts absence of people UI, retained underlying person data, page/card styling, back action, bottom-action colors, checklist progress and add-stage label. No test was deleted, skipped or weakened.
+- Current source/test implementation HEAD before continuity sync: `86c6c9bbaaa8bc83626effb9aa52f6e52c94a3d0`. CI on this new SHA has not yet been verified; all acceptance gates are NOT VERIFIED until fresh exact-SHA runs finish.
+- PR #3052 remains OPEN / DRAFT / UNMERGED. No main edits, merge, publication or release. **BLOCKED — RELEASE: NO-GO.**
+
 ## Quick Capture test reconciliation — 2026-11-04
 - Build run `41834832972` on SHA `2549a98ab6d3de3498ab17fc007debf34f105055`: Analyze PASS; Shard test-1 FAILED with 174 passed / 1 failed.
 - Exact failure: `test/quick_capture_dialog_test.dart:321`, test `canonical capture keeps title-only path and optional choices`; the old assertion expected the approved description field to be absent. A second obsolete absence assertion existed in the full-form handoff test.
