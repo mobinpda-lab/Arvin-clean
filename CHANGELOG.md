@@ -1,3 +1,13 @@
+## 2026-11-04 — Quick Capture compact single-screen layout (UI-only)
+
+- Compressed the existing Quick Capture header, cards, gaps, priority chips and selector controls; aligned «ثبت کار» and «لغو» in one footer row.
+- Added opt-in 42dp compact presentation for ArvinRollBox and ArvinTagRollBox; retained their menu choices, selected values, semantics and callbacks.
+- Constrained the bottom sheet to 66% of screen height while retaining its inner scroll fallback for short viewports, keyboard and text scaling.
+- Kept the existing title and description fields, selector inventory/order, four canonical TaskPriority values, Persian priority labels/helper text, all selection/validation/save behavior and all data field names unchanged. This is **UI-only; no behavior change**.
+- Updated focused geometry assertions; no test/assertion was removed, weakened, skipped or bypassed.
+- Physical SM-A528B/DS before/after screenshots are NOT VERIFIED; exact-SHA CI is pending after this documentation update.
+- PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; release BLOCKED — RELEASE: NO-GO.
+
 
 ## 2026-11-04 — Task Details reference comparison checkpoint (PR #3052)
 - Revalidated exact branch HEAD 940b22f4dc30aef083e5116843ac9457bd1bd37a; PR OPEN / DRAFT / UNMERGED; main unchanged.
@@ -14,7 +24,7 @@
 
 - Reworking the existing `QuickCaptureDialog` rather than introducing a replacement form or persistence path.
 - Target UI contract: single-line title; header shortcut to the full Task editor; RTL horizontal Center → Project → Category → Tag row; dynamic colored priority dropdown; one Jalali date + approved circular time control; Reminder and Recurrence; submit-right / cancel-left footer.
-- Description and Checklist are being removed from Quick Capture presentation; the full Task editor remains the owner of those fields.
+- The description field remains in Quick Capture; its visible height is compacted only. Checklist controls are not part of the current Quick Capture field inventory; no existing Quick Capture field is removed.
 - Center selection scopes Project choices. A Task's Center relationship is persisted only through its selected canonical Project (`ProjectPlan.centerId`); no `Task.centerId` field or parallel storage is introduced.
 - Exact-head widget, Home persistence and Android smoke validation are pending. This entry records implementation scope, not completion.
 - PR #3052 remains OPEN / DRAFT / UNMERGED; `main` untouched; release BLOCKED — RELEASE: NO-GO.
