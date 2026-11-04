@@ -97,8 +97,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('task-detail-recurrence')), findsNothing);
     final recurrenceAdd = find.byKey(const ValueKey('task-detail-recurrence-add'));
-    final detailScrollable = find.descendant(
-      of: find.byKey(const ValueKey('task-detail-page')),
+    final detailScrollable = find.ancestor(
+      of: recurrenceAdd,
       matching: find.byWidgetPredicate(
         (widget) =>
             widget is Scrollable && widget.axisDirection == AxisDirection.down,
@@ -146,8 +146,8 @@ void main() {
     expect(find.byKey(const ValueKey('task-detail-reminder-smart-reminder')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-checklist')), findsOneWidget);
     final templateSource = find.byKey(const ValueKey('task-detail-template-source'));
-    final detailScrollable = find.descendant(
-      of: find.byKey(const ValueKey('task-detail-page')),
+    final detailScrollable = find.ancestor(
+      of: templateSource,
       matching: find.byWidgetPredicate(
         (widget) =>
             widget is Scrollable && widget.axisDirection == AxisDirection.down,

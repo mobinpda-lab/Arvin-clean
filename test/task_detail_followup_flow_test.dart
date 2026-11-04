@@ -183,8 +183,8 @@ void main() {
     final followUpCard = find.byKey(
       ValueKey('task-detail-followup-${task.followUps.single.id}'),
     );
-    final detailScrollable = find.descendant(
-      of: find.byKey(const ValueKey('task-detail-page')),
+    final detailScrollable = find.ancestor(
+      of: followUpCard,
       matching: find.byWidgetPredicate(
         (widget) =>
             widget is Scrollable && widget.axisDirection == AxisDirection.down,
