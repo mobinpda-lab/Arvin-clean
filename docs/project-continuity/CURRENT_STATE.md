@@ -16,7 +16,7 @@ Release: BLOCKED — RELEASE: NO-GO
 - Build run 41805555476: SUCCESS. Analyze and all six test shards succeeded. APK matrix job was SKIPPED by the Draft guard; no APK build/pass is claimed.
 - Follow-up File Persistence run 41805555397: SUCCESS.
 - Calendar Provider Acceptance run 41805555462: FAILURE before test execution. The emulator installed the app, but Flutter could not start Dart Development Service while loading android_calendar_provider_acceptance_test.dart; log reports 0 tests passed, 1 failed. Treat as an execution blocker; calendar behavior is not disproven by this run.
-- Device Smoke run 41805555579: QUEUED at the last observed poll. Preparation succeeded; Boot and Navigation succeeded; Quick Capture and Calendar Segmented View were IN_PROGRESS; Reminder/Vazirmatn, Follow-up Persistence and Task Lifecycle were QUEUED. No complete seven-lane result.
+- Device Smoke run 41805555579: CANCELLED on SHA 33f9489. Preparation, Boot, Navigation and Quick Capture succeeded; Reminder/Vazirmatn, Follow-up Persistence, Calendar Segmented View and Task Lifecycle were CANCELLED. No complete seven-lane result.
 - Draft Review APK run 41805393577: CANCELLED and targeted older SHA b85ed7b6ac5140e877ce1bd0ece6eef2d4819b43, not current HEAD.
 
 ## Historical exact-SHA evidence — ec4f23e
@@ -43,3 +43,7 @@ The compact Quick Capture form currently displays the empty-title validation inl
 - Current Device Smoke: https://github.com/mobinpda-lab/Arvin-clean/actions/runs/41805555579
 - Detailed history: ../ARVIN_CONTINUATION_LEDGER.md
 - Chronology: ../../CHANGELOG.md
+
+
+## Latest terminal update — Device Smoke
+Run 41805555579 is now confirmed CANCELLED on 33f9489. Successful lanes: preparation, boot, navigation, quick capture. Cancelled lanes: reminder/Vazirmatn, follow-up persistence, calendar segmented view, task lifecycle. The run is not accepted as a complete device smoke.

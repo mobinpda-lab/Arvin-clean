@@ -38,3 +38,9 @@ Chronological evidence index. Root CHANGELOG.md remains the canonical chronologi
 
 ## Evidence rules
 Every new entry must include exact SHA, workflow/run IDs, terminal conclusion, and whether the tests actually executed. Never carry a PASS forward to a later SHA.
+
+
+## Device Smoke terminal correction — 2026-11-04
+- Run 41805555579 on SHA 33f9489 concluded CANCELLED (not merely queued/in progress).
+- Preparation, Boot, Navigation and Quick Capture succeeded. Reminder/Vazirmatn, Follow-up Persistence, Calendar Segmented View and Task Lifecycle were cancelled.
+- No complete seven-lane Device Smoke PASS exists for this SHA. A fresh run on the current candidate is required.

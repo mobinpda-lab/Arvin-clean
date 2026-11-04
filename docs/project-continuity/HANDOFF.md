@@ -2,13 +2,14 @@
 Checkpoint: 1405/08/13 — 2026-11-04 12:53 Asia/Tehran
 Repository: mobinpda-lab/Arvin-clean
 Branch: fix/recovery-calendar-device-smoke-2026-10-31
-Last observed HEAD: 33f9489b4c7f3fa6173459b6994cea2a5469f500
+Last verified app/source baseline: 33f9489b4c7f3fa6173459b6994cea2a5469f500
+Documentation commits through: c089a28a0d054ace214f17c4e3f69b1345d74b98 (refresh live branch HEAD before acting)
 PR #3052: OPEN / DRAFT / UNMERGED
 Release: BLOCKED — RELEASE: NO-GO
 
 ## First action — refresh live state
 1. Read the current branch ref and PR #3052. Confirm they still point to the same head and PR remains open/draft/unmerged.
-2. Poll Device Smoke run 41805555579 to a terminal state; inspect all seven lanes and artifacts. It was QUEUED at the last checkpoint, so do not claim a result without a fresh poll.
+2. Record Device Smoke run 41805555579 as CANCELLED on SHA 33f9489. Preparation, Boot, Navigation and Quick Capture succeeded; Reminder/Vazirmatn, Follow-up Persistence, Calendar Segmented View and Task Lifecycle were cancelled. Do not treat it as a complete pass. Inspect workflow runs for the latest documentation HEAD before starting any new run, to avoid duplicate dispatches.
 3. Inspect Calendar Provider run 41805555462 and preserve its failure classification: Dart Development Service failed to start; zero tests executed. Diagnose the test-runner/emulator startup issue without changing or skipping the acceptance test, then rerun on the new exact SHA.
 4. Confirm Build 41805555476 and Persistence 41805555397 remain the historical exact-HEAD successes; do not transfer them to any later commit.
 5. Obtain a current-SHA Draft Review APK only through the existing workflow; the last known run 41805393577 was cancelled on older SHA b85ed7b.

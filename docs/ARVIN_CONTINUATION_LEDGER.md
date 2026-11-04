@@ -1633,3 +1633,8 @@ PR #3052 remains OPEN / DRAFT / UNMERGED. main untouched. **BLOCKED — RELEASE:
 - P2P pairing and conflict mechanisms remain proposals only. No owner approval for QR/PIN or LWW/tombstones; local-clock winner selection is not approved.
 - No source-code change, merge or main write was made during this continuity documentation deployment. Local working tree status remains NOT VERIFIED.
 - Release remains **BLOCKED — RELEASE: NO-GO**.
+
+
+## 2026-11-04 — Device Smoke terminal result correction
+- Run 41805555579 on SHA 33f9489 ended CANCELLED. Preparation, Boot, Navigation and Quick Capture succeeded; Reminder/Vazirmatn, Follow-up Persistence, Calendar Segmented View and Task Lifecycle were cancelled.
+- This supersedes the earlier queued/in-progress checkpoint for this run. No complete seven-lane acceptance is established.

@@ -398,3 +398,8 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - Quick Capture currently displays inline empty-title feedback plus a floating SnackBar, matching the existing two-occurrence test. One-versus-two-message UX remains awaiting explicit owner decision; no test was weakened.
 - P2P QR/PIN pairing and LWW/tombstones are design proposals only. Device-local clock winner selection is not approved.
 - Release remains **BLOCKED — RELEASE: NO-GO**. See docs/project-continuity/CURRENT_STATE.md and docs/project-continuity/HANDOFF.md for the current operating checkpoint.
+
+
+## 2026-11-04 — Device Smoke terminal result correction
+- Device Smoke run 41805555579 on source SHA 33f9489 concluded CANCELLED. Preparation, Boot, Navigation and Quick Capture succeeded; Reminder/Vazirmatn, Follow-up Persistence, Calendar Segmented View and Task Lifecycle were cancelled. No seven-lane PASS is claimed.
+- The earlier queued/in-progress observation in this checkpoint is superseded by this terminal result. A fresh full run is required on the latest candidate SHA.
