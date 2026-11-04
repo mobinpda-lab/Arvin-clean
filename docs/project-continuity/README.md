@@ -1,0 +1,50 @@
+# Arvin Project Continuity
+Last reviewed: 1405/08/13 — 2026-11-04 12:53 Asia/Tehran
+Repository: mobinpda-lab/Arvin-clean
+Active branch: fix/recovery-calendar-device-smoke-2026-10-31
+Related PR: #3052
+
+## Purpose
+This directory is the durable handoff index for the active Arvin delivery stream. It supplements, and does not replace, the repository's root ARVIN_AI_CONTEXT.md, root CHANGELOG.md, architecture specifications, QA evidence and continuation ledger.
+
+## Start here
+1. CURRENT_STATE.md — verified branch, SHA, gates and current limitations.
+2. HANDOFF.md — the first action for the next operator.
+3. OPEN_ISSUES.md — unresolved work and blockers.
+4. PRODUCT_DECISIONS.md — approved decisions versus proposals.
+5. ROADMAP.md — ordered product work.
+6. IMPLEMENTATION_LOG.md — dated changes and exact-SHA evidence.
+7. Root CHANGELOG.md — chronological repository history.
+8. docs/ARVIN_CONTINUATION_LEDGER.md — detailed historical execution ledger.
+9. ARVIN_AI_CONTEXT.md — broad product and architecture context.
+
+## Evidence and status rules
+- GitHub branch content, PR metadata and workflow evidence are authoritative for this active delivery stream. A report is valid only for its exact SHA.
+- Distinguish four separate facts: proposal, owner-approved decision, code implementation, and successful test evidence.
+- Use these statuses only: PROPOSED, APPROVED, IN_PROGRESS, IMPLEMENTED, VERIFIED, BLOCKED, SUPERSEDED, REJECTED.
+- VERIFIED requires evidence tied to the exact commit under review. A green test on an older SHA does not verify the current branch.
+- A workflow-level failure before any test executes is an execution/infrastructure failure, not proof that the product behavior failed.
+- Mark unavailable facts NOT VERIFIED. Never infer a clean local working tree from GitHub branch metadata.
+- Keep one canonical home for each fact. This directory links to root CHANGELOG.md and the existing Ledger; it does not duplicate their full history.
+
+## Governance invariants
+- PR #3052 stays OPEN / DRAFT / UNMERGED.
+- Never edit, push, or merge main.
+- Do not delete, skip, weaken, or artificially time out tests.
+- Keep the official bundled font Vazirmatn.
+- Preserve user data and backward-compatible migrations; no destructive schema migration.
+- Preserve canonical separation among Task due date, independent TaskReminder, recurrence and historical FollowUp.
+- Release status remains BLOCKED — RELEASE: NO-GO until all required gates pass on one exact candidate SHA and owner acceptance is recorded.
+
+## Update protocol
+1. Read live branch HEAD and PR state before editing.
+2. Read the relevant canonical document and source files.
+3. Record only evidence observed on the exact SHA.
+4. Update the canonical file for the fact, then add a short pointer in other files if needed.
+5. Append chronological events to root CHANGELOG.md and the detailed Ledger; do not create parallel changelogs.
+6. Update CURRENT_STATE.md and HANDOFF.md after every meaningful checkpoint.
+7. Re-read the changed files and confirm the resulting branch SHA.
+8. Never claim tests validate a later documentation-only SHA unless rerun on that exact SHA.
+
+## Time convention
+Project reports use Asia/Tehran time and Gregorian plus Hijri Shamsi dates. Last reviewed timestamp above is the checkpoint time, not a claim of continuous monitoring.
