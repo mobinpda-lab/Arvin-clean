@@ -97,14 +97,27 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('task-detail-recurrence')), findsNothing);
     final recurrenceAdd = find.byKey(const ValueKey('task-detail-recurrence-add'));
-    final detailScrollable = find.ancestor(
-      of: recurrenceAdd,
+    final detailListView = find.descendant(
+      of: find.byKey(const ValueKey('task-detail-page')),
+      matching: find.byType(ListView),
+    );
+    expect(detailListView, findsOneWidget);
+    final detailScrollables = find.descendant(
+      of: detailListView,
       matching: find.byWidgetPredicate(
         (widget) =>
             widget is Scrollable && widget.axisDirection == AxisDirection.down,
       ),
     );
-    expect(detailScrollable, findsOneWidget);
+    final detailScrollable = detailScrollables.first;
+    expect(
+      find.descendant(of: detailScrollable, matching: recurrenceAdd),
+      findsOneWidget,
+    );
+    expect(
+      tester.widget<Scrollable>(detailScrollable).axisDirection,
+      AxisDirection.down,
+    );
     await tester.scrollUntilVisible(
       recurrenceAdd,
       300,
@@ -146,14 +159,27 @@ void main() {
     expect(find.byKey(const ValueKey('task-detail-reminder-smart-reminder')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-checklist')), findsOneWidget);
     final templateSource = find.byKey(const ValueKey('task-detail-template-source'));
-    final detailScrollable = find.ancestor(
-      of: templateSource,
+    final detailListView = find.descendant(
+      of: find.byKey(const ValueKey('task-detail-page')),
+      matching: find.byType(ListView),
+    );
+    expect(detailListView, findsOneWidget);
+    final detailScrollables = find.descendant(
+      of: detailListView,
       matching: find.byWidgetPredicate(
         (widget) =>
             widget is Scrollable && widget.axisDirection == AxisDirection.down,
       ),
     );
-    expect(detailScrollable, findsOneWidget);
+    final detailScrollable = detailScrollables.first;
+    expect(
+      find.descendant(of: detailScrollable, matching: templateSource),
+      findsOneWidget,
+    );
+    expect(
+      tester.widget<Scrollable>(detailScrollable).axisDirection,
+      AxisDirection.down,
+    );
     await tester.scrollUntilVisible(
       templateSource,
       300,

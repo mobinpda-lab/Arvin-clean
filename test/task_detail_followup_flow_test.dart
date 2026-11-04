@@ -183,14 +183,27 @@ void main() {
     final followUpCard = find.byKey(
       ValueKey('task-detail-followup-${task.followUps.single.id}'),
     );
-    final detailScrollable = find.ancestor(
-      of: followUpCard,
+    final detailListView = find.descendant(
+      of: find.byKey(const ValueKey('task-detail-page')),
+      matching: find.byType(ListView),
+    );
+    expect(detailListView, findsOneWidget);
+    final detailScrollables = find.descendant(
+      of: detailListView,
       matching: find.byWidgetPredicate(
         (widget) =>
             widget is Scrollable && widget.axisDirection == AxisDirection.down,
       ),
     );
-    expect(detailScrollable, findsOneWidget);
+    final detailScrollable = detailScrollables.first;
+    expect(
+      find.descendant(of: detailScrollable, matching: followUpCard),
+      findsOneWidget,
+    );
+    expect(
+      tester.widget<Scrollable>(detailScrollable).axisDirection,
+      AxisDirection.down,
+    );
     await tester.scrollUntilVisible(
       followUpCard,
       300,
