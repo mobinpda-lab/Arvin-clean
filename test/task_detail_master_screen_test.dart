@@ -230,21 +230,28 @@ void main() {
       createdAt: DateTime(2026, 11, 1, 8),
       category: 'تجهیزات',
       tags: const ['فوری', 'بخش بستری'],
+      templateTaskId: 'visual-template',
     );
     await tester.pumpWidget(MaterialApp(
       home: TaskDetailPage(
         task: task,
         centerName: 'مرکز نمونه',
-        project: ProjectPlan(id: 'visual-project', title: 'پروژه نمونه'),
+        project: ProjectPlan(
+          id: 'visual-project',
+          title: 'پروژه نمونه',
+          templateId: 'visual-template',
+          templateNameSnapshot: 'الگوی نمونه',
+        ),
         onEdit: (value) async => value,
         onTaskChanged: (value) async => value,
       ),
     ));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('task-detail-summary-card')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-description-card')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-metadata')), findsOneWidget);
+    final summary = find.byKey(const ValueKey('task-detail-summary-card'));
+    final metadata = find.byKey(const ValueKey('task-detail-metadata'));
+    expect(summary, findsOneWidget);
+    expect(metadata, findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-metadata-chips')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-metadata-time')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-metadata-center')), findsOneWidget);
@@ -252,47 +259,68 @@ void main() {
     expect(find.byKey(const ValueKey('task-detail-metadata-category')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-metadata-tags')), findsOneWidget);
     expect(find.text('مشخصات کار'), findsNothing);
-    // Capture the first-screen layout before scrolling the lazy ListView.
-    final summaryY = tester.getTopLeft(find.byKey(const ValueKey('task-detail-summary-card'))).dy;
-    final descriptionY = tester.getTopLeft(find.byKey(const ValueKey('task-detail-description-card'))).dy;
-    final metadataY = tester.getTopLeft(find.byKey(const ValueKey('task-detail-metadata'))).dy;
+    // These controls belong to the summary card; assert them before lazy-list scrolling.
+    expect(find.byKey(const ValueKey('task-detail-status-menu')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-priority-menu')), findsOneWidget);
+
+    final summaryY = tester.getTopLeft(summary).dy;
+    final metadataY = tester.getTopLeft(metadata).dy;
     final timeX = tester.getCenter(find.byKey(const ValueKey('task-detail-metadata-time'))).dx;
     final centerX = tester.getCenter(find.byKey(const ValueKey('task-detail-metadata-center'))).dx;
     final projectX = tester.getCenter(find.byKey(const ValueKey('task-detail-metadata-project'))).dx;
     final categoryX = tester.getCenter(find.byKey(const ValueKey('task-detail-metadata-category'))).dx;
     final tagsX = tester.getCenter(find.byKey(const ValueKey('task-detail-metadata-tags'))).dx;
 
-    // Materialize the due-date and assignee cards before checking their keys.
     final detailScrollable = _taskDetailPageScrollable(tester);
-    await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('task-detail-due-date-card')),
-      240,
-      scrollable: detailScrollable,
-    );
+    final scrollPosition = tester.state<ScrollableState>(detailScrollable).position;
+
+    final template = find.byKey(const ValueKey('task-detail-template-source'));
+    await tester.scrollUntilVisible(template, 240, scrollable: detailScrollable);
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('task-detail-due-date-card')), findsOneWidget);
-    final dueY = tester.getTopLeft(find.byKey(const ValueKey('task-detail-due-date-card'))).dy;
-    expect(find.byKey(const ValueKey('task-detail-status-menu')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-priority-menu')), findsOneWidget);
+    expect(template, findsOneWidget);
+    final templateY = scrollPosition.pixels + tester.getTopLeft(template).dy;
+
+    final dueDate = find.byKey(const ValueKey('task-detail-due-date-card'));
+    await tester.scrollUntilVisible(dueDate, 240, scrollable: detailScrollable);
+    await tester.pumpAndSettle();
+    expect(dueDate, findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-due-date')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-due-date-full')), findsNothing);
-    await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('task-detail-assignee-card')),
-      240,
-      scrollable: detailScrollable,
-    );
+    final dueY = scrollPosition.pixels + tester.getTopLeft(dueDate).dy;
+
+    final assignee = find.byKey(const ValueKey('task-detail-assignee-card'));
+    await tester.scrollUntilVisible(assignee, 240, scrollable: detailScrollable);
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('task-detail-assignee-card')), findsOneWidget);
+    expect(assignee, findsOneWidget);
     expect(find.text('مسئول مستقلی برای این کار ثبت نشده است'), findsOneWidget);
     expect(find.text('افراد مرتبط'), findsNothing);
+    final assigneeY = scrollPosition.pixels + tester.getTopLeft(assignee).dy;
+
+    final description = find.byKey(const ValueKey('task-detail-description-card'));
+    await tester.scrollUntilVisible(description, 240, scrollable: detailScrollable);
+    await tester.pumpAndSettle();
+    expect(description, findsOneWidget);
+    expect(find.text('شرح مستقل'), findsOneWidget);
+    final descriptionY = scrollPosition.pixels + tester.getTopLeft(description).dy;
+
     expect(timeX, greaterThan(centerX));
     expect(centerX, greaterThan(projectX));
     expect(projectX, greaterThan(categoryX));
     expect(categoryX, greaterThan(tagsX));
-    expect(summaryY, lessThan(descriptionY));
-    expect(descriptionY, lessThan(metadataY));
-    expect(metadataY, lessThan(dueY));
-    expect(tester.widget<Directionality>(find.ancestor(of: find.byKey(const ValueKey('task-detail-page')), matching: find.byType(Directionality)).first).textDirection, TextDirection.rtl);
+    expect(summaryY, lessThan(metadataY));
+    expect(metadataY, lessThan(templateY));
+    expect(templateY, lessThan(dueY));
+    expect(dueY, lessThan(assigneeY));
+    expect(assigneeY, lessThan(descriptionY));
+    expect(
+      tester.widget<Directionality>(
+        find.ancestor(
+          of: find.byKey(const ValueKey('task-detail-page')),
+          matching: find.byType(Directionality),
+        ).first,
+      ).textDirection,
+      TextDirection.rtl,
+    );
   });
 
   testWidgets('Task Details opens checklist entry and persists a newly added item', (tester) async {
