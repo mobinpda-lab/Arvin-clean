@@ -1031,7 +1031,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
   Widget _metadataCard() {
     final chips = <Widget>[
-      if (_task.createdAt != null) _metadataChip('زمان اجرا: ' + _dateTime(_task.createdAt!), _muted, icon: Icons.schedule_outlined),
+      _metadataChip('زمان اجرا: ثبت نشده', _muted, icon: Icons.schedule_outlined),
       if (widget.centerName?.trim().isNotEmpty == true) _metadataChip('مرکز: ' + widget.centerName!, ArvinColors.category, icon: Icons.apartment_outlined),
       if (widget.project != null) _metadataChip('پروژه: ' + widget.project!.title, Color(widget.project!.colorValue), icon: Icons.folder_special_outlined),
       if (_task.category?.trim().isNotEmpty == true) _metadataChip('دسته: ' + _task.category!, ArvinColors.category, icon: Icons.folder_outlined),
