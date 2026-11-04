@@ -105,6 +105,7 @@ void main() {
       ),
     ));
 
+    expect(find.byKey(const ValueKey('task-detail-description-card')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-independent-reminders')), findsNothing);
     expect(find.byKey(const ValueKey('task-detail-add-reminder')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-checklist')), findsNothing);
