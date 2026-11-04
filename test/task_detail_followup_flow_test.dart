@@ -260,7 +260,7 @@ void main() {
     );
 
     final editFollowUp = find.byKey(
-      const ValueKey('task-detail-edit-followup-edit-f1'),
+      const ValueKey('task-detail-latest-edit-followup-edit-f1'),
     );
     expect(editFollowUp, findsOneWidget);
     await tester.scrollUntilVisible(
@@ -419,8 +419,8 @@ void main() {
     expect(dueDate, findsOneWidget);
     expect(action, findsOneWidget);
     expect(
-      tester.getTopLeft(action).dy,
-      greaterThan(tester.getBottomRight(dueDate).dy),
+      (tester.getCenter(action).dy - tester.getCenter(dueDate).dy).abs(),
+      lessThan(24),
     );
     expect(find.text('۱۴۰۵/۰۵/۲۹ • ۱۴:۳۵'), findsOneWidget);
 

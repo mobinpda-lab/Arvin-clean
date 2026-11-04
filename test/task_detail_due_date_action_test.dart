@@ -13,7 +13,7 @@ void main() {
   });
 
   testWidgets(
-    'Task Details explicit today action sits below Due Date and persists only the date change',
+    'Task Details explicit today action aligns with Due Date and persists only the date change',
     (tester) async {
       await TaskStore.resetTestDatabase();
       addTearDown(TaskStore.resetTestDatabase);
@@ -60,8 +60,8 @@ void main() {
       expect(dueRow, findsOneWidget);
       expect(todayAction, findsOneWidget);
       expect(
-        tester.getTopLeft(todayAction).dy,
-        greaterThan(tester.getBottomLeft(dueRow).dy),
+        (tester.getCenter(todayAction).dy - tester.getCenter(dueRow).dy).abs(),
+        lessThan(24),
       );
 
       // The Due Date row is display-only; it must not invoke the quick action.

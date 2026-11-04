@@ -584,7 +584,7 @@ Future<DateTime?> _pickCustomDue() async {
                         hintText: 'توضیحات تکمیلی...',
                         prefixIcon: Icon(Icons.notes_rounded, size: 18, color: ArvinColors.primary),
                          isDense: true,
-                         contentPadding: const EdgeInsets.symmetric(vertical: 4),
+                         contentPadding: EdgeInsets.symmetric(vertical: 4),
                         border: InputBorder.none,
                       ),
                     ),

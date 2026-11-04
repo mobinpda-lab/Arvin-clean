@@ -179,6 +179,10 @@ void main() {
     ));
 
     final detailScrollable = _taskDetailPageScrollable(tester);
+    final templateSource = find.byKey(const ValueKey('task-detail-template-source'));
+    await tester.scrollUntilVisible(templateSource, 240, scrollable: detailScrollable);
+    await tester.pumpAndSettle();
+    expect(templateSource, findsOneWidget);
     final reminders = find.byKey(const ValueKey('task-detail-independent-reminders'));
     await tester.scrollUntilVisible(reminders, 240, scrollable: detailScrollable);
     await tester.pumpAndSettle();
@@ -193,14 +197,6 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('افزودن مرحله جدید'), findsOneWidget);
-    final templateSource = find.byKey(const ValueKey('task-detail-template-source'));
-    await tester.scrollUntilVisible(
-      templateSource,
-      300,
-      scrollable: detailScrollable,
-    );
-    await tester.pumpAndSettle();
-    expect(templateSource, findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-latest-followup')), findsNothing);
     expect(find.byKey(const ValueKey('task-detail-timeline')), findsNothing);
   });
