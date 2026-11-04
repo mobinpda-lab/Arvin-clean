@@ -207,8 +207,6 @@ void main() {
       category: 'تجهیزات',
       tags: const ['فوری', 'بخش بستری'],
     );
-    await tester.viewports.setPhysicalSize(const Size(900, 1600));
-    await tester.viewports.setDevicePixelRatio(1);
     await tester.pumpWidget(MaterialApp(
       home: TaskDetailPage(
         task: task,
@@ -239,14 +237,13 @@ void main() {
     expect(descriptionY, lessThan(metadataY));
     expect(metadataY, lessThan(dueY));
     expect(tester.widget<Directionality>(find.ancestor(of: find.byKey(const ValueKey('task-detail-page')), matching: find.byType(Directionality)).first).textDirection, TextDirection.rtl);
-    await tester.viewports.resetPhysicalSize();
   });
 
   testWidgets('Task Details does not present related people as assignees and keeps bottom content clear', (tester) async {
     final task = Task(
       id: 'related-people-1',
       title: 'کار با افراد مرتبط',
-      people: const [PersonReference(id: 'p1', displayName: 'شخص مرتبط')],
+      people: [PersonReference(id: 'p1', displayName: 'شخص مرتبط')],
       checklistEnabled: true,
       checklist: const ['[ ] مورد پایانی'],
     );
