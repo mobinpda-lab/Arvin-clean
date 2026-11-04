@@ -284,7 +284,10 @@ void main() {
       ),
     ));
 
+    final detailScrollable = _taskDetailPageScrollable(tester);
     final addChecklist = find.byKey(const ValueKey('task-detail-add-checklist'));
+    await tester.scrollUntilVisible(addChecklist, 240, scrollable: detailScrollable);
+    await tester.pumpAndSettle();
     expect(addChecklist, findsOneWidget);
     await tester.tap(addChecklist);
     await tester.pumpAndSettle();
