@@ -2,7 +2,9 @@
 Checkpoint: 1405/08/13 — 2026-11-04 12:53 Asia/Tehran
 Repository: mobinpda-lab/Arvin-clean
 Branch: fix/recovery-calendar-device-smoke-2026-10-31
-Branch HEAD / PR #3052 HEAD: 33f9489b4c7f3fa6173459b6994cea2a5469f500
+Last verified application/test baseline: 33f9489b4c7f3fa6173459b6994cea2a5469f500
+Last verified documentation branch HEAD before this state refresh: 952848b3b3197bb004478d1e4c59beebc5744ffd
+Current live branch/PR head: re-read GitHub before acting; this state-file commit itself advances the branch SHA.
 PR: #3052 — OPEN / DRAFT / UNMERGED
 Base main SHA: 45e4202b03a434459e4c021a04efa7e8396359db
 Release: BLOCKED — RELEASE: NO-GO
