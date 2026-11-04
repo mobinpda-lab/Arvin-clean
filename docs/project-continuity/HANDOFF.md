@@ -156,3 +156,15 @@ NOT VERIFIED. GitHub branch data does not reveal uncommitted local modifications
 - Reference image `photo_1793816062206.webp` was not present in current conversation attachments or located in Library search. No visual comparison was performed. Request original reference plus uncut top and lower screenshots from the exact APK/device before making any visual claim.
 - No code/test change was made to mask the cancelled lanes. No rerun/fix of the three incomplete lanes has yet been performed; exact root cause remains open. Documentation commit itself creates a new SHA; all results above remain historical evidence for source SHA `7e61b8d1ac81dca08c99cc5694fb3f5ab21e9e19` only.
 - PR remains OPEN / DRAFT / UNMERGED; no main edit, merge, publication or release. **BLOCKED — RELEASE: NO-GO.**
+
+
+## Module-Core-Logic audit handoff — 2026-11-05
+- Last reviewed source SHA: `4021c84ceb14faf4f6559379cf67dd94955bffe4`; refresh PR/branch before acting.
+- Canonical audit record: `docs/project-continuity/PRODUCT_DECISIONS.md` → “Module-Core-Logic v1.0 — live code crosswalk”. Do not create a second module document.
+- Important implementation gap: `FollowUpReminderDeliveryService.due` currently includes disabled TaskReminders; the planner's enabled check does not protect the actual background delivery path. Also `TaskStore.addTaskReminder` has no explicit idempotency key/duplicate guard.
+- Legacy fields remain in model and SQL. Do not remove or destructively migrate them until real user DB values and backup/rollback are inspected.
+- Fixed Android scheduler ID is 42002; notification IDs are stable-key hashes, with 42002 only as hash-zero fallback.
+- Exact-SHA results on the last reviewed SHA: Analyze PASS; test-0/1/3/5 PASS; test-2/test-4 FAIL; visual golden FAIL; Follow-up Persistence PASS; Calendar Provider PASS; Device Smoke 4 PASS / 3 CANCELLED.
+- Review removed/rewritten tests in the PR diff and produce an owner-approved scenario replacement map. No explicit skip/timeout addition was detected, but complete preservation is NOT VERIFIED.
+- The previous Module-Core-Logic verbatim text was not retrievable during this audit; obtain it before declaring the full v1.0 text validated.
+- No code or test fix is authorized by this audit record. PR remains OPEN / DRAFT / UNMERGED; main untouched; release NO-GO.
