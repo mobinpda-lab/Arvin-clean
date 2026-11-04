@@ -9,6 +9,7 @@ void main() {
     var task = Task(
       id: 'checklist-detail-1',
       title: 'آماده‌سازی مدرسه',
+      checklistEnabled: true,
       checklist: const ['[ ] کیف', '[x] خوراکی', '[ ] لباس'],
     );
 

@@ -131,3 +131,9 @@ Every new entry must include exact SHA, workflow/run IDs, terminal conclusion, a
 - Existing relative Today-vs-due-date geometry assertions are retained; no fixed pixel threshold, assertion deletion, skip, weakened expectation or timeout workaround was introduced.
 - Local Flutter/Dart execution is unavailable in this runtime; flutter analyze and complete flutter test are NOT VERIFIED here. Exact-SHA GitHub Actions results are required for acceptance.
 - PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; release remains BLOCKED — RELEASE: NO-GO.
+
+
+## Follow-up correction after first CI feedback — 2026-11-04
+- The first regression-repair commit's Analyze job found a duplicate local declaration of `detailScrollable` in the smart-visibility test (not a product-code lint). Removed only the duplicate declaration and reused the existing page Scrollable finder.
+- Made the non-empty checklist fixture explicitly set `checklistEnabled: true`; this documents the intended canonical fixture state instead of relying on constructor inference.
+- New exact-SHA CI is required; prior run 41827206935 Analyze FAILURE is superseded only after the correction commit passes.

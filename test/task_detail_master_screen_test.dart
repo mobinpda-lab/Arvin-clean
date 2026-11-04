@@ -141,7 +141,6 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('task-detail-recurrence')), findsNothing);
     final recurrenceAdd = find.byKey(const ValueKey('task-detail-recurrence-add'));
-    final detailScrollable = _taskDetailPageScrollable(tester);
     await tester.scrollUntilVisible(
       recurrenceAdd,
       300,
