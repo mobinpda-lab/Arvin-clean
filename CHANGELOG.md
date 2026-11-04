@@ -524,3 +524,12 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - Repository cleanup audit on the same source SHA: complete recursive tree (790 entries, not truncated); no tracked APK/AAB, generated build/output/cache/temp directories, or safe deletion candidates found. No cleanup deletion or cleanup commit was made.
 - PR #3052 remains OPEN / DRAFT / UNMERGED with head `1815ef72864f3e792661eee08cc932b29ff94c88`; branch is unchanged at this checkpoint. `main` remains `45e4202b03a434459e4c021a04efa7e8396359db`. No code changes, merge, release, or publication were made.
 - **BLOCKED — RELEASE: NO-GO.** Physical tablet installation/behavior, seven-lane Device Smoke, Calendar Provider terminal result, and product-owner release acceptance remain separate gates. This evidence applies only to source SHA `1815ef72864f3e792661eee08cc932b29ff94c88`; any documentation commit creates a new HEAD and does not inherit these exact-SHA CI results.
+
+
+## 2026-11-05 — Module-Core-Logic v1.0 audit (source SHA: 4021c84ceb14faf4f6559379cf67dd94955bffe4)
+- Registered the evidence crosswalk in `docs/project-continuity/PRODUCT_DECISIONS.md` and updated continuity log, current state, handoff and backlog; detailed exact-SHA evidence is in `docs/ARVIN_CONTINUATION_LEDGER.md`.
+- Confirmed Task Due Date / TaskReminder separation, FollowUp.dateTime persistence, Stop/Snooze/Follow-up Alarm paths and scheduler ID 42002 semantics.
+- Found a delivery gap: disabled TaskReminders are not filtered in `FollowUpReminderDeliveryService.due`; Reminder creation has no explicit idempotency guard. Legacy scheduling fields remain in model/schema; no real DB backup inspection, so destructive migration remains blocked.
+- Exact SHA CI: Analyze PASS; four test shards PASS and two FAIL; visual golden FAIL; Follow-up Persistence PASS; Calendar Provider PASS; Device Smoke 4/7 PASS and 3/7 CANCELLED.
+- PR diff test-scenario preservation is NOT VERIFIED: prior tests/assertions were rewritten or removed in several files; no explicit new skip/timeout directive was detected. No code/test changes were made by this audit.
+- PR #3052 OPEN / DRAFT / UNMERGED; main unchanged; **BLOCKED — RELEASE: NO-GO**.
