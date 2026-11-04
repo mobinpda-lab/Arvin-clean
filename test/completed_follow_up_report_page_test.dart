@@ -4,6 +4,21 @@ import 'package:arvin/task_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+Future<void> _openCompletedFollowUpReport(WidgetTester tester) async {
+  await tester.tap(find.byKey(const ValueKey('report-center-filters')));
+  await tester.pumpAndSettle();
+  final reportType = find.byKey(
+    const ValueKey('report-filter-type-completed-follow-ups'),
+  );
+  await tester.ensureVisible(reportType);
+  await tester.tap(reportType);
+  await tester.pumpAndSettle();
+  final apply = find.byKey(const ValueKey('report-filter-apply'));
+  await tester.ensureVisible(apply);
+  await tester.tap(apply);
+  await tester.pumpAndSettle();
+}
+
 void main() {
   testWidgets('Report Center shows genuine Follow-ups, groups by taskId and opens Task Details',
       (tester) async {
@@ -50,10 +65,7 @@ void main() {
         home: ReportCenterPage(tasks: tasks, now: day),
       ),
     );
-    await tester.tap(find.byKey(
-      const ValueKey('report-center-completed-follow-ups'),
-    ));
-    await tester.pumpAndSettle();
+    await _openCompletedFollowUpReport(tester);
 
     expect(find.text('۳ پیگیری برای ۲ کار'), findsOneWidget);
     expect(find.text('تماس اول'), findsOneWidget);
