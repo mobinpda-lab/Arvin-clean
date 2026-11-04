@@ -210,7 +210,10 @@ void main() {
     await tester.ensureVisible(allDay);
     await tester.pumpAndSettle();
     final allDayTile = tester.widget<CheckboxListTile>(allDay);
-    expect(allDayTile.value, isTrue);
+    expect(allDayTile.value, isFalse);
+    await tester.tap(allDay);
+    await tester.pump();
+    expect(tester.widget<CheckboxListTile>(allDay).value, isTrue);
 
     final save = find.byKey(const ValueKey('task-editor-header-save'));
     await tester.ensureVisible(save);
