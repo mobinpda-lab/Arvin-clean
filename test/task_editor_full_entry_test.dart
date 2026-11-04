@@ -160,17 +160,14 @@ void main() {
       onResult: (value) => result = value,
     );
 
-    final timeBox =
-        find.byKey(const ValueKey('task-editor-due-time-rollbox'));
-    await tester.ensureVisible(timeBox);
-    await tester.tap(timeBox);
+    final timeButton =
+        find.byKey(const ValueKey('task-editor-due-time-button'));
+    expect(timeButton, findsOneWidget);
+    await tester.ensureVisible(timeButton);
+    await tester.tap(timeButton);
     await tester.pumpAndSettle();
 
-    final customTime = find.text('ساعت سفارشی');
-    expect(customTime, findsOneWidget);
-    await tester.ensureVisible(customTime);
-    await tester.tap(customTime);
-    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
 
     // The owner-accepted product contract uses Flutter's circular Clock Dial;
     // the old custom RollBox confirmation dialog must no longer be expected.
@@ -196,14 +193,17 @@ void main() {
     Task? result;
     await openEditor(tester, onResult: (value) => result = value);
 
-    final dateBox = find.byKey(const ValueKey('task-editor-due-date-rollbox'));
-    await tester.ensureVisible(dateBox);
-    await tester.tap(dateBox);
+    final unified = find.byKey(const ValueKey('task-editor-due-date-time'));
+    await tester.ensureVisible(unified);
+    await tester.tap(unified);
     await tester.pumpAndSettle();
-
-    final today = find.text('امروز');
-    expect(today, findsOneWidget);
-    await tester.tap(today);
+    await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('universal-time-hour-outer-10')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('universal-time-minute-30')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('universal-time-save')));
     await tester.pumpAndSettle();
 
     final allDay = find.byKey(const ValueKey('task-editor-due-all-day'));

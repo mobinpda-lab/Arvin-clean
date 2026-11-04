@@ -477,6 +477,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('universal-time-hour-outer-10')));
+    await tester.pump();
     await tester.tap(find.byKey(const ValueKey('universal-time-minute-30')));
     await tester.ensureVisible(find.byKey(const ValueKey('universal-time-save')));
     await tester.tap(find.byKey(const ValueKey('universal-time-save')));
@@ -610,6 +611,14 @@ void main() {
     expect(rects.every((rect) => rect.width >= 48), isTrue);
     for (final label in ['اولویت ۱', 'اولویت ۲', 'اولویت ۳', 'اولویت ۴']) {
       expect(find.text(label), findsOneWidget);
+    }
+    for (final description in [
+      'اولویت ۱ — فوری و مهم',
+      'اولویت ۲ — مهم، غیرفوری',
+      'اولویت ۳ — فوری، غیرمهم',
+      'اولویت ۴ — غیرفوری و غیرمهم',
+    ]) {
+      expect(find.byTooltip(description), findsOneWidget);
     }
     expect(find.text('P1'), findsNothing);
     expect(find.text('P2'), findsNothing);

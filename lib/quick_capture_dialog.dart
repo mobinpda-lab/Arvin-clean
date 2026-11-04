@@ -57,6 +57,7 @@ class QuickCaptureDialog extends StatefulWidget {
 }
 
 class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
+  static const _dateFormatter = PersianDateFormatter();
   final TextEditingController _controller = TextEditingController();
   final FocusNode _titleFocus = FocusNode();
   String? _error;
@@ -741,12 +742,19 @@ Future<DateTime?> _pickCustomDue() async {
                     Expanded(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 2),
-                        child: ChoiceChip(
-                          key: ValueKey('quick-capture-priority-${priority.name}'),
+                        child: Tooltip(
+                          message:
+                              '${_dateFormatter.toPersianDigits('اولویت ${priority.sortOrder}')} — ${priority.label}',
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                            child: ChoiceChip(
+                              key: ValueKey('quick-capture-priority-${priority.name}'),
                           label: FittedBox(
                             fit: BoxFit.scaleDown,
                             child: Text(
-                              'اولویت ${priority.sortOrder}',
+                              _dateFormatter.toPersianDigits(
+                                'اولویت ${priority.sortOrder}',
+                              ),
                               maxLines: 1,
                               softWrap: false,
                             ),
@@ -757,10 +765,11 @@ Future<DateTime?> _pickCustomDue() async {
                           labelStyle: TextStyle(color: ArvinColors.priorityColor(priority), fontWeight: FontWeight.w700, fontSize: 11),
                           labelPadding: EdgeInsets.zero,
                           padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 8),
-                          visualDensity: VisualDensity.compact,
                           materialTapTargetSize: MaterialTapTargetSize.padded,
                           showCheckmark: false,
                           onSelected: _saving ? null : (_) => setState(() => _priority = priority),
+                            ),
+                          ),
                         ),
                       ),
                     ),

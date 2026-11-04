@@ -6,7 +6,7 @@ import 'package:arvin/arvin_colors.dart';
 import 'package:arvin/quick_capture_dialog.dart';
 
 void main() {
-  testWidgets('Quick Capture defaults to P2 and persists selected priority', (tester) async {
+  testWidgets('Quick Capture defaults to اولویت ۲ and persists selected priority', (tester) async {
     Task? captured;
     await tester.pumpWidget(MaterialApp(home: Scaffold(body: QuickCaptureDialog(
       idFactory: () => 'priority-capture',
@@ -19,6 +19,14 @@ void main() {
     expect(tester.widget<ChoiceChip>(p2).selected, isTrue);
     for (final label in ['اولویت ۱', 'اولویت ۲', 'اولویت ۳', 'اولویت ۴']) {
       expect(find.text(label), findsOneWidget);
+    }
+    for (final description in [
+      'اولویت ۱ — فوری و مهم',
+      'اولویت ۲ — مهم، غیرفوری',
+      'اولویت ۳ — فوری، غیرمهم',
+      'اولویت ۴ — غیرفوری و غیرمهم',
+    ]) {
+      expect(find.byTooltip(description), findsOneWidget);
     }
     expect(find.text('P1'), findsNothing);
     expect(find.text('P2'), findsNothing);
