@@ -383,3 +383,18 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - The Home-specific 320×520 RTL test was added, but the f96d6f2 run was cancelled when documentation commits superseded that SHA. It has no terminal result yet. Historical 44px overflow remains NOT VERIFIED.
 - Production Track 2 remains NOT VERIFIED: current outbound sync accepts a selected `targetCalendarId`; the `ARVIN CI Acceptance` provisioner is a test fixture, not proof of a dedicated production Arvin-owned Android calendar. Provider CRUD acceptance must not be described as full production Track-2 acceptance.
 - The next documentation-synchronized HEAD will require its own exact-SHA Build, seven-lane Device Smoke, Provider, Persistence and Draft Review APK checks. No result above transfers to that new SHA.
+
+
+## 2026-11-04 — Project continuity deployment and exact-HEAD checkpoint
+
+- Established the durable project continuity index under docs/project-continuity/: README, CURRENT_STATE, PRODUCT_DECISIONS, ROADMAP, OPEN_ISSUES, IMPLEMENTATION_LOG and HANDOFF. These files supplement the root AI context, this changelog and the existing continuation ledger; they do not replace historical records.
+- Current app/source baseline inspected before this documentation-only sequence: 33f9489b4c7f3fa6173459b6994cea2a5469f500. PR #3052 OPEN / DRAFT / UNMERGED; main unchanged.
+- Build run 41805555476 SUCCESS on 33f9489; Analyze and all six test shards passed. APK matrix SKIPPED by Draft guard.
+- Follow-up File Persistence run 41805555397 SUCCESS on 33f9489.
+- Calendar Provider run 41805555462 FAILED before test execution because Dart Development Service failed to start while loading android_calendar_provider_acceptance_test.dart; zero tests passed. This is a runner/execution blocker, not a product-behavior failure result.
+- Device Smoke run 41805555579 was QUEUED at last poll; Boot and Navigation succeeded, Quick Capture and Calendar Segmented View were in progress, remaining lanes queued. No seven-lane PASS is claimed.
+- Review APK run 41805393577 was CANCELLED on older SHA b85ed7b6ac5140e877ce1bd0ece6eef2d4819b43; not current-head evidence.
+- SHA transition 93a7c2b → ec4f23e contains exactly one commit, ec4f23e9a3745f1c924f8f75d84e0b943591a1d2. Build 41797850701 succeeded on ec4f23e; Device Smoke 41797850589 was CANCELLED.
+- Quick Capture currently displays inline empty-title feedback plus a floating SnackBar, matching the existing two-occurrence test. One-versus-two-message UX remains awaiting explicit owner decision; no test was weakened.
+- P2P QR/PIN pairing and LWW/tombstones are design proposals only. Device-local clock winner selection is not approved.
+- Release remains **BLOCKED — RELEASE: NO-GO**. See docs/project-continuity/CURRENT_STATE.md and docs/project-continuity/HANDOFF.md for the current operating checkpoint.
