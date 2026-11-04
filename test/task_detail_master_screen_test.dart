@@ -99,7 +99,10 @@ void main() {
     final recurrenceAdd = find.byKey(const ValueKey('task-detail-recurrence-add'));
     final detailScrollable = find.descendant(
       of: find.byKey(const ValueKey('task-detail-page')),
-      matching: find.byType(Scrollable),
+      matching: find.byWidgetPredicate(
+        (widget) =>
+            widget is Scrollable && widget.axisDirection == AxisDirection.down,
+      ),
     );
     expect(detailScrollable, findsOneWidget);
     await tester.scrollUntilVisible(
@@ -145,7 +148,10 @@ void main() {
     final templateSource = find.byKey(const ValueKey('task-detail-template-source'));
     final detailScrollable = find.descendant(
       of: find.byKey(const ValueKey('task-detail-page')),
-      matching: find.byType(Scrollable),
+      matching: find.byWidgetPredicate(
+        (widget) =>
+            widget is Scrollable && widget.axisDirection == AxisDirection.down,
+      ),
     );
     expect(detailScrollable, findsOneWidget);
     await tester.scrollUntilVisible(

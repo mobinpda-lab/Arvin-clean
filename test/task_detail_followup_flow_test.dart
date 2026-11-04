@@ -185,7 +185,10 @@ void main() {
     );
     final detailScrollable = find.descendant(
       of: find.byKey(const ValueKey('task-detail-page')),
-      matching: find.byType(Scrollable),
+      matching: find.byWidgetPredicate(
+        (widget) =>
+            widget is Scrollable && widget.axisDirection == AxisDirection.down,
+      ),
     );
     expect(detailScrollable, findsOneWidget);
     await tester.scrollUntilVisible(
