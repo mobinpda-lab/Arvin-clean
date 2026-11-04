@@ -1572,3 +1572,9 @@ PR #3052 remains OPEN / DRAFT / UNMERGED. main untouched. **BLOCKED — RELEASE:
 - New implementation target: compact in-place form with a single-line title, header full-form icon, RTL horizontal taxonomy/settings strips, dynamic priority dropdown, no quick-entry description/checklist, and Center-scoped canonical Project selection. Center persists only through ProjectPlan.centerId; Task model/storage remains unchanged.
 - Four prior Build test failures were already corrected on earlier SHA; those green results do not validate this new UI change. New exact-head Build, Review APK, and complete Device Smoke are required after commit.
 - No merge, main edit, Draft exit, or release is authorized. Release remains **BLOCKED — RELEASE: NO-GO**.
+
+
+## 2026-11-04 — Quick Capture first exact-head Build findings
+
+- Commit `753819660fc3fa882e7bbd567df4b4a07c7bdb19` Analyze SUCCESS; Follow-up File Persistence SUCCESS. Build Run `41792759413` FAILURE: all six test shards failed due to four rendering-overflow assertions in the compact selected-priority Dropdown; existing custom date/time tests also revealed the action label had changed from the canonical `تاریخ و ساعت سفارشی`.
+- Root cause is localized to the selected-item builder's icon+label Row inside the bounded Dropdown width; it does not indicate a Task persistence/reminder/calendar failure. Corrective change removes only the redundant icon from the selected state while retaining the dynamic color and full Persian option labels, and restores the established custom date/time action label. No tests/assertions are skipped, deleted, weakened, or given artificial timeouts.

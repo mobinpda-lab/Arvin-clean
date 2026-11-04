@@ -1,5 +1,7 @@
 ## 2026-11-04 — Quick Capture compact form implementation (PR #3052)
 
+- First exact-head Build exposed a real overflow in the selected priority Dropdown and two legacy custom date/time action-label expectations. The selected state is now text-only (still color-dynamic), and the unified custom date/time action retains the established Persian label; no test or assertion was disabled.
+
 - Reworking the existing `QuickCaptureDialog` rather than introducing a replacement form or persistence path.
 - Target UI contract: single-line title; header shortcut to the full Task editor; RTL horizontal Center → Project → Category → Tag row; dynamic colored priority dropdown; one Jalali date + approved circular time control; Reminder and Recurrence; submit-right / cancel-left footer.
 - Description and Checklist are being removed from Quick Capture presentation; the full Task editor remains the owner of those fields.

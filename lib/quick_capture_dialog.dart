@@ -404,14 +404,15 @@ Future<DateTime?> _pickCustomDue() async {
                 final color = ArvinColors.priorityColor(priority);
                 return Align(
                   alignment: AlignmentDirectional.centerStart,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.flag_rounded, size: 16, color: color),
-                      const SizedBox(width: 6),
-                      Text('اولویت', maxLines: 1,
-                          style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 13)),
-                    ],
+                  child: Text(
+                    'اولویت',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: color,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                    ),
                   ),
                 );
               }).toList(growable: false),
@@ -717,7 +718,7 @@ Future<DateTime?> _pickCustomDue() async {
                               ArvinRollItem<Object?>(value: _now().add(const Duration(days: 1)), label: 'فردا', icon: Icons.event_outlined, color: ArvinColors.project),
                               ArvinRollItem<Object?>(value: _now().add(const Duration(days: 7)), label: 'هفته آینده', icon: Icons.date_range_outlined, color: ArvinColors.tag),
                             ],
-                            createLabel: 'انتخاب تاریخ و ساعت',
+                            createLabel: 'تاریخ و ساعت سفارشی',
                             onCreate: _saving ? null : _pickCustomDue,
                             onSelected: (value) => _setDueDate(value is DateTime ? value : null),
                           )),
@@ -736,7 +737,7 @@ Future<DateTime?> _pickCustomDue() async {
                               ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(days: 1)), label: 'یک روز قبل', icon: Icons.notifications_active_outlined, color: ArvinColors.reminder),
                               ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(days: 7)), label: 'یک هفته قبل', icon: Icons.notifications_active_outlined, color: ArvinColors.reminder),
                             ],
-                            createLabel: 'انتخاب تاریخ و ساعت',
+                            createLabel: 'تاریخ و ساعت سفارشی',
                             onCreate: _saving ? null : _pickCustomReminder,
                             onSelected: (value) {
                               setState(() {
