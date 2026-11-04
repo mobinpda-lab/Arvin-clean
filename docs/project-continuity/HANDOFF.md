@@ -6,6 +6,14 @@
 - Verify exact-SHA Analyze and all test shards, especially quick_capture_dialog_test.dart. Do not treat this code checkpoint as verified until final SHA workflows complete.
 - Continuity update is required after every subsequent material source or CI checkpoint. PR remains OPEN/DRAFT/UNMERGED; main untouched; release NO-GO.
 
+## Quick Capture redesign handoff — 2026-11-04
+- Owner-approved scope: redesign only the Quick Task Registration UI; preserve four-level canonical priority enum/data and all existing selection/capture pathways.
+- Source/test implementation checkpoint: `9aaa51dea8957a8f755e57f6d9bb05724a6f00f1`. Inspect `lib/quick_capture_dialog.dart` and `test/quick_capture_dialog_test.dart` before further edits.
+- Four priority chips must remain in enum order high/medium/low/none and persist the same TaskPriority values; visible labels are «اولویت ۱» … «اولویت ۴», with Persian helper captions. Do not display P1–P4.
+- Description is captured in canonical Task.description. Confirm success/reset behavior, empty-title feedback, RTL layout at 320px and tablet widths.
+- Verify exact-SHA Analyze and all test shards, especially quick_capture_dialog_test.dart. Do not treat this code checkpoint as verified until final SHA workflows complete.
+- Continuity update is required after every subsequent material source or CI checkpoint. PR remains OPEN/DRAFT/UNMERGED; main untouched; release NO-GO.
+
 # Handoff — First Actions for the Next Operator
 Checkpoint: 1405/08/13 — 2026-11-04 12:53 Asia/Tehran
 Repository: mobinpda-lab/Arvin-clean
