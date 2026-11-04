@@ -170,7 +170,7 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
         now: _now,
       ),
     );
-    if (result == null) return;
+    if (result == null || !mounted) return;
     setState(() => _filter = result.filter);
     if (result.openCompletedFollowUpReport) {
       final followUpFilter = result.filter.copyWith(
