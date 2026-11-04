@@ -6,7 +6,7 @@ class ArvinRollBox<T> extends StatelessWidget {
   const ArvinRollBox({
     super.key, required this.label, required this.valueLabel, required this.items,
     required this.onSelected, required this.icon, required this.color,
-    this.emptyLabel, this.onCreate, this.createLabel = 'افزودن',
+    this.emptyLabel, this.onCreate, this.createLabel = 'افزودن', this.compact = false,
   });
   final String label;
   final String valueLabel;
@@ -17,6 +17,7 @@ class ArvinRollBox<T> extends StatelessWidget {
   final String? emptyLabel;
   final Future<T?> Function()? onCreate;
   final String createLabel;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -55,12 +56,13 @@ class ArvinRollBox<T> extends StatelessWidget {
         ],
       ],
       child: Container(
-        height: 48, padding: const EdgeInsets.symmetric(horizontal: 10),
+        height: compact ? 42 : 48,
+        padding: EdgeInsets.symmetric(horizontal: compact ? 10 : 10),
         decoration: BoxDecoration(color: color.withValues(alpha: .08), borderRadius: BorderRadius.circular(14), border: Border.all(color: color.withValues(alpha: .42))),
         child: Row(children: [
-          Icon(icon, size: 19, color: color), const SizedBox(width: 7),
-          Expanded(child: Text(valueLabel.isEmpty ? label : valueLabel, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w800))),
-          Icon(Icons.keyboard_arrow_down_rounded, size: 19, color: color),
+          Icon(icon, size: compact ? 18 : 19, color: color), SizedBox(width: compact ? 6 : 7),
+          Expanded(child: Text(valueLabel.isEmpty ? label : valueLabel, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: color, fontSize: compact ? 11.5 : 12, fontWeight: FontWeight.w800))),
+          Icon(Icons.keyboard_arrow_down_rounded, size: compact ? 18 : 19, color: color),
         ]),
       ),
     );
@@ -73,7 +75,7 @@ class ArvinRollItem<T> {
 }
 
 class ArvinTagRollBox extends StatefulWidget {
-  const ArvinTagRollBox({super.key, required this.tags, required this.selectedTags, required this.onChanged, this.onCreate});
+  const ArvinTagRollBox({super.key, required this.tags, required this.selectedTags, required this.onChanged, this.onCreate, this.compact = false});
   final List<String> tags;
   final List<String> selectedTags;
   final ValueChanged<List<String>> onChanged;
@@ -139,12 +141,12 @@ class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
       child: Semantics(
         button: true, label: 'برچسب',
         child: Container(
-          height: 48, padding: const EdgeInsets.symmetric(horizontal: 10),
+          height: widget.compact ? 42 : 48, padding: const EdgeInsets.symmetric(horizontal: 10),
           decoration: BoxDecoration(color: ArvinColors.tagSoft, borderRadius: BorderRadius.circular(14), border: Border.all(color: ArvinColors.tag.withValues(alpha: .42))),
           child: Row(children: [
-            const Icon(Icons.sell_outlined, size: 19, color: ArvinColors.tag), const SizedBox(width: 7),
-            Expanded(child: Text(selected.isEmpty ? 'برچسب' : '${selected.length} برچسب', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: ArvinColors.tagDark, fontSize: 12, fontWeight: FontWeight.w800))),
-            const Icon(Icons.keyboard_arrow_down_rounded, size: 19, color: ArvinColors.tag),
+            Icon(Icons.sell_outlined, size: widget.compact ? 18 : 19, color: ArvinColors.tag), SizedBox(width: widget.compact ? 6 : 7),
+            Expanded(child: Text(selected.isEmpty ? 'برچسب' : '${selected.length} برچسب', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: ArvinColors.tagDark, fontSize: widget.compact ? 11.5 : 12, fontWeight: FontWeight.w800))),
+            Icon(Icons.keyboard_arrow_down_rounded, size: widget.compact ? 18 : 19, color: ArvinColors.tag),
           ]),
         ),
       ),
