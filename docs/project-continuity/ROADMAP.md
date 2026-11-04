@@ -62,3 +62,11 @@ A feature mentioned only as an illustrative example (such as periodic tasks or a
 - اصلاح test-3 در این SHA: scrollUntilVisible قبل از pumpAndSettle و assertion اجرا می‌شود؛ Finder و assertion حفظ شده و تست تضعیف نشده است.
 - PR #3052 هنگام ممیزی OPEN / DRAFT / UNMERGED؛ main تغییر نکرد؛ Vazirmatn و فیلدهای canonical Task حفظ؛ Release: BLOCKED — RELEASE: NO-GO.
 - این snapshot فقط وضعیت runهای SHA ممیزی‌شده را ثبت می‌کند؛ commit مستندات SHA تازه‌ای می‌سازد و PASSهای قبلی را به SHA تازه منتقل نمی‌کند.
+
+
+## 2026-11-05 — Module-Core-Logic backlog (audit only)
+1. **P0 / Reminder delivery correctness:** ensure disabled `TaskReminder` entries are excluded by the actual delivery service, not only by the next-alarm planner; add direct delivery-service regression tests.
+2. **P0 / Idempotency:** define and test an idempotency rule for repeated Reminder creation so retry/double-submit cannot create unintended duplicate records. Do not collapse distinct Reminders that intentionally share a time.
+3. **P0 / Legacy migration safety:** inspect real user DB counts/values and verified backup/restore before deciding how `followUpEnabled`, `followUpDate`, `FollowUp.reminderDate` and `nextFollowUp` are preserved, converted or retired. No destructive DDL before approval.
+4. **P0 / Test scenario mapping:** map each removed/rewritten PR test scenario to its approved replacement or obtain explicit owner disposition. Current PR-wide preservation claim remains NOT VERIFIED.
+5. **Acceptance:** run focused tests and all required exact-SHA workflows after any authorized code change. This registration does not authorize source, schema, migration or test changes.
