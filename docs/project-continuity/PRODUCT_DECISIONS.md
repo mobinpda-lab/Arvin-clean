@@ -46,3 +46,23 @@ PROPOSED = candidate only; APPROVED = explicit owner decision; IN_PROGRESS = wor
 - این snapshot فقط وضعیت runهای SHA ممیزی‌شده را ثبت می‌کند؛ commit مستندات SHA تازه‌ای می‌سازد و PASSهای قبلی را به SHA تازه منتقل نمی‌کند.
 
 تصمیمات محصولی مصوب در این checkpoint تغییر نکردند؛ این ثبت فقط ثبات Vazirmatn، استقلال Reminder/Follow-up/Task due date و حفظ فیلدهای Task را یادآوری می‌کند.
+
+
+## Module-Core-Logic v1.0 — live code crosswalk (۱۴۰۵/۰۸/۱۴ — 2026-11-05 02:38 Asia/Tehran)
+**Status:** IN_PROGRESS / NOT VERIFIED as complete module acceptance.  
+**Reviewed source SHA:** `4021c84ceb14faf4f6559379cf67dd94955bffe4`.  
+**Source-text qualification:** the verbatim Module-Core-Logic v1.0 text previously emitted was not available in the retrieved conversation context. This entry records a source-backed crosswalk for the core invariants named in the execution request; it does not claim a line-by-line validation of unavailable wording and is not a new parallel module specification.
+
+| Core invariant | Source-backed finding | Disposition |
+|---|---|---|
+| Task Due Date is independent from Reminder | `Task.dueDate` is a separate Task field; `TaskReminder.date` and reminder IDs are stored separately. Calendar projections/tests distinguish `task-due:` from `task-reminder-item:`. | IMPLEMENTED; exact-SHA source/tests support separation. |
+| Follow-up timestamp source | `FollowUp.dateTime` is serialized to JSON and SQL `follow_ups.date_time`. `completedAt` is a getter alias to `dateTime`, not a second persisted Follow-up timestamp. | IMPLEMENTED; representation is aligned only if the module treats `dateTime` as canonical. |
+| Legacy-field preservation | Task model/store/schema still retain and write `followUpEnabled`, `followUpDate`, and legacy `reminderDate`; FollowUp model/store/schema still retain `reminderDate` and `nextFollowUp`. | IMPLEMENTED for compatibility/preservation; retirement of active legacy schema/fields is NOT IMPLEMENTED. |
+| Duplicate Reminder prevention | Delivery-state identity prevents re-delivery of an already delivered stable Reminder identity. However, `TaskStore.addTaskReminder` appends a new ID without an idempotency/deduplication key, and `FollowUpReminderDeliveryService.due` currently does not filter `TaskReminder.isEnabled == false`. | PARTIALLY IMPLEMENTED. Disabled reminders can enter the delivery candidate path; repeated add operations are not proven idempotent. No logic change made in this audit. |
+| Stop Alarm cycle | `_stopAlarm` cancels only the active notification ID and closes the overlay; it does not complete or mutate the Task. Complete is a separate action. Snooze mutates only the selected Reminder ID, reschedules, then cancels the active notification. | IMPLEMENTED in source; focused test and file-backed evidence exist on the reviewed SHA. |
+| Follow-up from Alarm | Alarm Overlay opens `FollowUpEntryPage(taskId: task.id, allowAddingReminder: false)`; the Follow-up is added to history only after explicit save. | IMPLEMENTED in source. |
+| Alarm ID 42002 | `followUpReminderAlarmId = 42002` is the AndroidAlarmManager one-shot scheduler ID. Notification IDs are normally a stable-key hash; 42002 is only the hash-zero fallback in the notification service. | CLARIFICATION REQUIRED if the module calls 42002 the ID of every notification. The scheduler ID is fixed; per-notification IDs are not. |
+| SQLite persistence and migration | G1 schema version is 8. File-backed persistence/Alarm Overlay close-reopen workflow passed on the reviewed SHA. Schema installation is transactional and the inspected additions are additive; legacy columns remain. | Persistence test PASS on this SHA; legacy-schema retirement/migration acceptance BLOCKED. |
+| Real user DB / backup safety | No actual user database row/value inventory or verified backup/restore snapshot was inspected in this audit. | NOT VERIFIED; no destructive migration is authorized. |
+
+**Required follow-up before module acceptance:** correct/test the disabled-reminder delivery filter and add idempotent Reminder creation protection under a separately authorized implementation task; decide the precise scope of legacy-field preservation versus eventual schema retirement; verify real DB contents and backup/rollback before any destructive migration.
