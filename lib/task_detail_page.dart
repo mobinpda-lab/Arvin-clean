@@ -878,32 +878,17 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             ),
           ),
           const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  key: const ValueKey('task-detail-checklist-add-input'),
-                  controller: _checklistAddController,
-                  enabled: widget.onChecklistChanged != null && !_isSavingChecklist,
-                  textDirection: TextDirection.rtl,
-                  decoration: const InputDecoration(
-                    hintText: 'افزودن مورد به چک‌لیست...',
-                    border: OutlineInputBorder(),
-                    isDense: true,
-                  ),
-                  onSubmitted: (_) => _addChecklistItem(),
-                ),
-              ),
-              const SizedBox(width: 8),
-              IconButton(
-                key: const ValueKey('task-detail-checklist-add'),
-                tooltip: 'افزودن مورد',
-                onPressed: widget.onChecklistChanged == null || _isSavingChecklist
-                    ? null
-                    : _addChecklistItem,
-                icon: const Icon(Icons.add_circle_outline),
-              ),
-            ],
+          TextField(
+            key: const ValueKey('task-detail-checklist-add-input'),
+            controller: _checklistAddController,
+            enabled: widget.onChecklistChanged != null && !_isSavingChecklist,
+            textDirection: TextDirection.rtl,
+            decoration: const InputDecoration(
+              hintText: 'عنوان مرحله جدید را بنویسید...',
+              border: OutlineInputBorder(),
+              isDense: true,
+            ),
+            onSubmitted: (_) => _addChecklistItem(),
           ),
           const SizedBox(height: 6),
           for (var index = 0; index < items.length; index++)
@@ -977,6 +962,18 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 ],
               ),
         ],
+        const SizedBox(height: 8),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            key: const ValueKey('task-detail-checklist-add'),
+            onPressed: widget.onChecklistChanged == null || _isSavingChecklist
+                ? null
+                : _addChecklistItem,
+            icon: const Icon(Icons.add),
+            label: const Text('افزودن مرحله جدید'),
+          ),
+        ),
       ),
     );
   }
