@@ -109,3 +109,12 @@ Do not change Quick Capture validation behavior or its test until the owner expl
 
 ## Local working tree
 NOT VERIFIED. GitHub branch data does not reveal uncommitted local modifications.
+
+
+## Quick Capture compact-layout handoff — 2026-11-04
+- Latest source correction: `642a4016cbaa1994b4dfe2d278066941ef8a65c2` adds the missing `ArvinTagRollBox.compact` field. The pre-fix Staging compile failure is documented in `CURRENT_STATE.md`.
+- Next action: refresh branch/PR HEAD, then validate Analyze + all six Build shards, full seven-lane Device Smoke (including `smoke-quick-capture`), Calendar Provider, Follow-up Persistence and Draft Review APK on one exact final SHA. Inspect job logs for failures; do not change assertions to make them pass.
+- Compact values: roll-box/tag selectors 40dp high, 8dp horizontal inset, 16dp icons and 10.5sp labels; priority chips 40dp; tighter dialog/card/field vertical spacing. Field order, names, callbacks, persistence and actions must remain unchanged.
+- Keep the vertical scroll fallback for small screens, keyboard and text scaling until physical-device evidence demonstrates safe full-screen fit. Never claim no-scroll acceptance without a current screenshot/device run.
+- Reference image `photo_1793800214435.webp` was not available for inspection in this execution; pixel-level conformity remains NOT VERIFIED.
+- PR #3052 OPEN / DRAFT / UNMERGED; no `main` writes; no test removal/skip/weakening; release BLOCKED — RELEASE: NO-GO.
