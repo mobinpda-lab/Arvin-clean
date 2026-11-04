@@ -477,3 +477,12 @@ This is an implementation record following the earlier Wave 7.299 ownership audi
 - The existing Arvin local-calendar provisioning and event CRUD paths were not redesigned by this focused correction.
 - Exact-head Analyze, tests, Calendar Provider acceptance and Review APK build are still required. No PASS is inferred from source edits.
 - PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; release remains BLOCKED — RELEASE: NO-GO.
+
+
+## 2026-11-04 — Master Task Details scope (in progress)
+- Recorded the product-owner authorization in Issue #823 and PR #3052 for the integrated Master Task Details Screen, Inline Editing and Task Clone on the existing authorized branch.
+- Added a persisted `TaskReminder.isEnabled` flag (legacy JSON defaults to enabled) and updated the alarm planner to exclude disabled independent reminders, including the migrated legacy reminder identity.
+- Expanded Task Details with project/center/template provenance where canonical references exist, status and Eisenhower-priority controls, independent reminder toggles, recurrence preview, related people and timestamps, clone action wiring, fixed delete/complete/edit actions, and inline title/description editing.
+- Added focused reminder-planner and Task Details widget tests.
+- **Not a completion or acceptance claim:** full inline editing of every field, exact clone product acceptance, checklist visual acceptance, current-SHA test results, and complete Device Smoke remain pending verification. The execution-time field is not present in the canonical Task model and is therefore shown as not recorded rather than inferred from createdAt.
+- Preserve Task due date, independent TaskReminder, recurrence and historical FollowUp separation. Do not revive deprecated Next Follow-up scheduling or invent an assignee field.
