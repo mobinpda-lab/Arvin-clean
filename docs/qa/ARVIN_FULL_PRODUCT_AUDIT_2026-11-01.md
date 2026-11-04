@@ -1402,3 +1402,12 @@ The canonical A–J baseline remains complete in §3 and the detailed A1–J7 ma
 - The latest pre-change SHA `679972a8f2d58d29ceda2c0718886c6aab9a5872` had Build SUCCESS, Follow-up File Persistence SUCCESS and Calendar Provider SUCCESS, but Device Smoke FAILURE (one lane failed, one lane cancelled). Those results do not apply to later commits.
 
 **Governance:** PR #3052 remains OPEN / DRAFT / UNMERGED. No main edits, merge, release or APK publication. Release remains **BLOCKED — RELEASE: NO-GO**.
+
+
+## Current blocking acceptance items — 2026-11-05 (source SHA: 7e61b8d1ac81dca08c99cc5694fb3f5ab21e9e19)
+
+- [ ] Resolve and reproduce the uncompleted Device Smoke Boot, Navigation and Calendar lanes. Existing jobs were CANCELLED near the 30-minute job limit after emulator ADB reached API 35 and reported ready. Driver logs were not flushed; identify the exact stalled test operation before changing code. Do not simply extend timeout, skip tests or remove assertions.
+- [ ] Separate emulator/ADB startup recovery, Flutter integration-test execution and screenshot artifact upload in the next diagnostics. Initial ADB offline was transient; upload failure followed missing PNG output; neither alone establishes the test root cause.
+- [ ] Rerun all seven smoke lanes on one exact final SHA, including the dedicated Reminder legacy-compatibility step. Require actual screenshots/artifacts for visual lanes.
+- [ ] Install the exact review APK on a physical device and capture full, uncut Task Details top and lower page. Compare against the approved reference only after the original reference image is supplied.
+- [ ] Preserve exact-SHA evidence separation after every documentation or code commit. Keep PR #3052 OPEN / DRAFT / UNMERGED and release NO-GO.
