@@ -1697,3 +1697,51 @@ PR #3052 remains OPEN / DRAFT / UNMERGED. main untouched. **BLOCKED — RELEASE:
 - Reference image `photo_1793816062206.webp` was not present in current conversation attachments or located in Library search. No visual comparison was performed. Request original reference plus uncut top and lower screenshots from the exact APK/device before making any visual claim.
 - No code/test change was made to mask the cancelled lanes. No rerun/fix of the three incomplete lanes has yet been performed; exact root cause remains open. Documentation commit itself creates a new SHA; all results above remain historical evidence for source SHA `7e61b8d1ac81dca08c99cc5694fb3f5ab21e9e19` only.
 - PR remains OPEN / DRAFT / UNMERGED; no main edit, merge, publication or release. **BLOCKED — RELEASE: NO-GO.**
+
+
+## 2026-11-05 — Module-Core-Logic v1.0 live source/CI audit
+**Repository:** `mobinpda-lab/Arvin-clean`  
+**Branch:** `fix/recovery-calendar-device-smoke-2026-10-31`  
+**Reviewed source SHA:** `4021c84ceb14faf4f6559379cf67dd94955bffe4`  
+**PR #3052:** OPEN / DRAFT / UNMERGED at the initial and pre-write checks  
+**Base main SHA:** `45e4202b03a434459e4c021a04efa7e8396359db`  
+**Release:** BLOCKED — RELEASE: NO-GO
+
+### Scope and source qualification
+The verbatim Module-Core-Logic v1.0 text previously emitted was not present in the retrievable conversation context. This audit therefore cross-checks the named core invariants against the exact reviewed branch source; it does not claim a line-by-line validation of unavailable text. The canonical crosswalk is stored in `docs/project-continuity/PRODUCT_DECISIONS.md`; no parallel module file was created.
+
+### Source findings
+- **Due Date / Reminder:** Task.dueDate and TaskReminder.date are distinct persisted concepts; Calendar identifiers/projections distinguish due-date from independent TaskReminder.
+- **Follow-up timestamp:** FollowUp.dateTime is written to JSON and SQL `follow_ups.date_time`. FollowUp.completedAt is a getter alias, not a separate persisted timestamp.
+- **Legacy fields:** Task.followUpEnabled, Task.followUpDate and Task.reminderDate remain in model/store/schema. FollowUp.reminderDate and FollowUp.nextFollowUp remain in model/store/schema. Legacy Follow-up scheduling columns are still created and written; no destructive schema removal is present in the inspected migration.
+- **Duplicate prevention / disabled state:** delivery-state identity prevents re-delivery of the same recorded stable identity. However, `FollowUpReminderDeliveryService.due` does not filter `TaskReminder.isEnabled`; the actual background runner uses this service. `TaskStore.addTaskReminder` appends a fresh ID and does not expose an idempotency token or duplicate guard. Disposition: PARTIALLY IMPLEMENTED; do not claim full duplicate/disabled protection.
+- **Alarm cycle:** `_stopAlarm` cancels only `widget.notificationId` and closes the overlay. Complete is a separate Task mutation. Snooze changes only the selected Reminder ID, reschedules, then cancels the active notification. Alarm Follow-up opens `FollowUpEntryPage(taskId: task.id, allowAddingReminder: false)`.
+- **ID 42002:** `followUpReminderAlarmId = 42002` is the AndroidAlarmManager scheduler identity. Notification ID is a stable-key hash; 42002 is only the hash-zero fallback. These are different identifier roles.
+- **Persistence / migration:** G1 schema version 8. File-backed persistence and Alarm Overlay close/reopen diagnostic passed on this SHA. Schema installation is transactional and inspected changes are additive. Real user DB contents and verified backup/rollback were not inspected; legacy migration retirement is BLOCKED.
+
+### Exact-SHA CI evidence
+| Workflow | Run / Job | Result | Scope |
+|---|---|---|---|
+| Build Analyze | Run 41918593631 / Job 126884771994 | PASS | Analyze only |
+| Build test-0, test-1, test-3, test-5 | Run 41918593631 | PASS | Four shards only |
+| Build test-2 | Run 41918593631 / Job 126884772351 | FAIL | `task_detail_visual_test.dart` timed out after 10 minutes; shard reported 288 passed, 1 failed |
+| Build test-4 | Run 41918593631 / Job 126884772404 | FAIL | `contextual_guide_test.dart` expected former seven-lane matrix, but workflow now includes visual lane |
+| Visual golden | Run 41918593631 / Job 126884772198 | FAIL | `task_detail_visual_test.dart` timed out after 10 minutes; 0 tests passed |
+| Follow-up File Persistence | Run 41918593732 / Job 126884771276 | PASS | File-backed repository persistence and Alarm Overlay SQLite close/reopen |
+| Calendar Provider | Run 41918593589 / Job 126884770799 | PASS | Emulator Provider CREATE / NO-OP UPDATE / no duplicate / UPDATE / DELETE; not physical-device acceptance |
+| Device Smoke | Run 41918593360 | PARTIAL | Quick Capture, Follow-up Persistence, Task Lifecycle, Reminder/Vazirmatn PASS; Boot, Navigation, Calendar Segmented View CANCELLED |
+
+### PR test-diff preservation check
+The PR patch exposes 86 changed test/integration-test files. Several old test declarations and assertions are removed or rewritten as the product contracts changed (examples: Calendar Follow-up card/action tests, inbound calendar-provider mutation tests, Quick Capture legacy follow-up/checklist controls, and Calendar auto-sync recovery assertions). Some have replacement assertions for the new contract; this is not proof that every prior scenario remains covered. No explicit new `skip:` / `skipReason:` / artificial timeout directive was detected in the inspected test diff. Overall assertion/scenario preservation is therefore **NOT VERIFIED**, not PASS. No test was changed by this audit.
+
+### Changes performed
+Only documentation updates on the authorized branch: canonical Product Decisions crosswalk, Implementation Log, Current State, Roadmap, Handoff, root CHANGELOG and this Ledger. No source, test, workflow, schema, migration or main-branch changes. Each documentation commit advances HEAD; the final resulting SHA and workflows must be re-read and validated separately.
+
+### Required next actions
+1. Obtain the exact verbatim Module-Core-Logic v1.0 text before claiming full module validation.
+2. Obtain owner authorization for the disabled-reminder delivery filter and idempotent Reminder creation fix; preserve tests and add direct regression coverage.
+3. Create an owner-approved map from removed/rewritten PR tests to replacement scenarios.
+4. Inspect real user DB values and verified backup/restore before any legacy schema migration.
+5. Run Analyze, focused core tests, all six Build shards, visual acceptance, all seven Device Smoke lanes, Calendar Provider and Follow-up Persistence on one final exact SHA.
+
+**Governance:** PR #3052 remains OPEN / DRAFT / UNMERGED; do not edit main, merge, publish or release. **BLOCKED — RELEASE: NO-GO.**
