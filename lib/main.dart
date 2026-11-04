@@ -57,6 +57,7 @@ import 'services/task_bulk_mutation_service.dart';
 import 'services/task_bulk_selection_service.dart';
 import 'services/task_store.dart';
 import 'services/task_clone_service.dart';
+import 'services/task_project_assignment_service.dart';
 import 'services/startup_permission_service.dart';
 import 'services/wave2_product_fast_track.dart';
 import 'services/widget_task_bridge.dart';
@@ -1692,13 +1693,13 @@ class _HomePageState extends State<HomePage> {
   Future<Task?> _taskChangedFromDetail(Task candidate) async {
     final index = tasks.indexWhere((item) => item.id == candidate.id);
     if (index < 0) throw StateError('Task not found: ${candidate.id}');
-    final next = List<Task>.of(tasks);
-    next[index] = candidate;
-    await taskStore.save(next);
+    final previous = tasks[index];
+    tasks[index] = candidate;
     try {
-      await AndroidFollowUpReminderScheduler().reschedule();
+      await _save();
     } catch (_) {
-      // The canonical Task write succeeded; scheduler recovery remains available.
+      tasks[index] = previous;
+      rethrow;
     }
     final refreshed = await taskStore.load();
     if (!mounted) return refreshed.firstWhere((item) => item.id == candidate.id);
@@ -1708,19 +1709,20 @@ class _HomePageState extends State<HomePage> {
 
   Future<Task?> _cloneTaskFromDetail(Task source) async {
     final clone = const TaskCloneService().clone(source);
-    final next = List<Task>.of(tasks)..add(clone);
-    await taskStore.save(next);
-    await wave2ProductFastTrack.persistProjectSelection(
-      taskId: clone.id,
-      projectId: _projectForTask(source)?.id,
-    );
-    final refreshed = await taskStore.load();
-    if (!mounted) return refreshed.firstWhere((item) => item.id == clone.id);
-    setState(() => tasks = List<Task>.of(refreshed));
+    tasks.add(clone);
     try {
-      await AndroidFollowUpReminderScheduler().reschedule();
-    } catch (_) {}
-    return refreshed.firstWhere((item) => item.id == clone.id);
+      await _save();
+      await TaskProjectAssignmentService().assign(
+        taskId: clone.id,
+        projectId: _projectForTask(source)?.id,
+      );
+    } catch (_) {
+      tasks.removeWhere((item) => item.id == clone.id);
+      await _save();
+      rethrow;
+    }
+    await _load();
+    return tasks.firstWhere((item) => item.id == clone.id);
   }
 
   Future<void> _openTaskDetail(Task task) async {
