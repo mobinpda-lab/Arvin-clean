@@ -1,3 +1,4 @@
+- Follow-up compact pass commit message: `ui(quick-capture): compact vertical padding and tighter icon/chip sizing matching reference layout`.
 ## Quick Capture tighter visual compression — 2026-11-04
 - Follow-up UI-only pass on the existing compact Quick Capture form. No field order, row membership, widget keys, horizontal selector structure, selected values, priority enum, color palette, Vazirmatn font family, semantics, callbacks, validation, task construction or persistence behavior was changed.
 - Compact ArvinRollBox and ArvinTagRollBox controls reduced from 42dp to 40dp; compact icons reduced from 18dp to 16dp, icon/text gap from 6dp to 4dp, horizontal inset from 10dp to 8dp, compact label size from 11.5sp to 10.5sp. The 40dp minimum touch target is retained.
