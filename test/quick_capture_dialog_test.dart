@@ -107,7 +107,24 @@ void main() {
       final submit = tester.getRect(find.byKey(const ValueKey('quick-capture-submit')));
       final cancel = tester.getRect(find.byKey(const ValueKey('quick-capture-cancel')));
       expect(submit.width, greaterThan(cancel.width));
-      expect(cancel.top, greaterThan(submit.bottom));
+      expect(cancel.center.dy, closeTo(submit.center.dy, 1));
+      expect(submit.height, greaterThanOrEqualTo(40));
+      expect(cancel.height, greaterThanOrEqualTo(40));
+      for (final key in [
+        'quick-capture-center-rollbox',
+        'quick-capture-project-rollbox',
+        'quick-capture-category-rollbox',
+        'quick-capture-tag-rollbox',
+        'quick-capture-due-rollbox',
+        'quick-capture-reminder-rollbox',
+        'quick-capture-recurrence-rollbox',
+      ]) {
+        expect(tester.getRect(find.byKey(ValueKey(key))).height, 42);
+      }
+      expect(
+        tester.getRect(find.byKey(const ValueKey('quick-capture-priority-option-1'))).height,
+        greaterThanOrEqualTo(40),
+      );
       expect(tester.takeException(), isNull);
       if (width > 700) {
         final dialog = tester.getRect(find.byKey(const ValueKey('quick-capture-dialog')));
