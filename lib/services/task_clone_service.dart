@@ -9,7 +9,7 @@ class TaskCloneService {
     final now = at ?? DateTime.now();
     final payload = Map<String, dynamic>.from(source.toJson());
     payload['id'] = id ?? now.microsecondsSinceEpoch.toString();
-    payload['title'] = 'کپی — ' + source.title;
+    payload['title'] = 'کپی — ${source.title}';
     payload['createdAt'] = now.toIso8601String();
     payload['updatedAt'] = now.toIso8601String();
     payload['completed'] = false;
