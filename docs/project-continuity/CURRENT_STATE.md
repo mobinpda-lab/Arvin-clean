@@ -1,3 +1,4 @@
+- Required implementation commit message: `ui(quick-capture): compact single-screen layout, no logic changes`.
 ## Quick Capture priority helper row refinement — 2026-11-04
 - Four canonical priority chips now show only «اولویت ۱» through «اولویت ۴» in 40dp-high controls; the four existing explanatory labels appear in a separate compact helper-text row immediately below.
 - Existing priority enum values, ordering, selected-state animation, color mapping, tap callbacks and Semantics labels (including the explanatory text) remain unchanged.
