@@ -3,7 +3,7 @@ Checkpoint: 1405/08/13 — 2026-11-04 12:53 Asia/Tehran
 Repository: mobinpda-lab/Arvin-clean
 Branch: fix/recovery-calendar-device-smoke-2026-10-31
 Last verified app/source baseline: 33f9489b4c7f3fa6173459b6994cea2a5469f500
-Documentation commits through: c089a28a0d054ace214f17c4e3f69b1345d74b98 (refresh live branch HEAD before acting)
+Last verified documentation branch HEAD before this handoff refresh: e02fd9cc6a880bf7f717902755edcb38d82b14e2 (refresh live branch HEAD before acting)
 PR #3052: OPEN / DRAFT / UNMERGED
 Release: BLOCKED — RELEASE: NO-GO
 

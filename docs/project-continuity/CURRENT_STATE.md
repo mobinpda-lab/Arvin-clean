@@ -10,7 +10,7 @@ Base main SHA: 45e4202b03a434459e4c021a04efa7e8396359db
 Release: BLOCKED — RELEASE: NO-GO
 
 ## Source and working-tree state
-- GitHub reports the authorized branch and PR head at the same SHA above.
+- At the verification immediately before this documentation refresh, the authorized branch and PR head matched. Re-read both live refs before acting; this document's own commit advances the branch.
 - GitHub API does not expose an operator's local uncommitted working tree. Local working-tree cleanliness: NOT VERIFIED.
 - The PR base SHA matches the observed main ref. No main write was performed during this checkpoint.
 
