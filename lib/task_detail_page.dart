@@ -102,8 +102,12 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   void _cancelInlineEdit() {
     _titleController?.dispose();
     _descriptionController?.dispose();
+    _categoryController?.dispose();
+    _tagsController?.dispose();
     _titleController = null;
     _descriptionController = null;
+    _categoryController = null;
+    _tagsController = null;
     setState(() => _isInlineEditing = false);
   }
 
@@ -806,6 +810,17 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             ],
           ),
           const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(
+              key: const ValueKey('task-detail-checklist-progress-bar'),
+              value: items.isEmpty ? 0 : completed / items.length,
+              minHeight: 7,
+              backgroundColor: ArvinColors.border,
+              color: ArvinColors.tag,
+            ),
+          ),
+          const SizedBox(height: 10),
           Row(
             children: [
               Expanded(
