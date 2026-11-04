@@ -656,7 +656,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  _task.dueDate == null ? 'بدون موعد انجام' : _dateTime(_task.dueDate!),
+                  _task.dueDate == null
+                      ? 'بدون موعد انجام'
+                      : (_task.allDay ? _date(_task.dueDate!) : _dateTime(_task.dueDate!)),
                   key: const ValueKey('task-detail-due-date'),
                   style: const TextStyle(color: _muted, fontSize: 12, fontWeight: FontWeight.w700),
                 ),
@@ -1144,7 +1146,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           ),
         ],
         const SizedBox(height: 12),
-        Text(_task.dueDate == null ? 'موعد انجام: تعیین نشده' : 'موعد انجام: ' + _dateTime(_task.dueDate!),
+        Text(_task.dueDate == null
+            ? 'موعد انجام: تعیین نشده'
+            : 'موعد انجام: ' + (_task.allDay ? _date(_task.dueDate!) : _dateTime(_task.dueDate!)),
           key: const ValueKey('task-detail-due-date-full'),
           style: const TextStyle(fontWeight: FontWeight.w700)),
         if (_isInlineEditing)
@@ -1197,7 +1201,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               value: reminder.isEnabled,
               onChanged: widget.onTaskChanged == null ? null : (value) => _toggleReminder(reminder, value),
               title: Text(reminder.title),
-              subtitle: Text(_dateTime(reminder.date)),
+              subtitle: Text(reminder.isAllDay ? _date(reminder.date) : _dateTime(reminder.date)),
               secondary: Icon(Icons.notifications_outlined, color: reminder.isEnabled ? ArvinColors.reminder : _muted),
             ),
       ]),
@@ -1245,7 +1249,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           const Text('رویداد آینده‌ای در این بازه وجود ندارد', style: TextStyle(color: _muted))
         else
           for (final date in upcoming)
-            ListTile(dense: true, contentPadding: EdgeInsets.zero, leading: const Icon(Icons.event_repeat_outlined), title: Text(_dateTime(date))),
+            ListTile(dense: true, contentPadding: EdgeInsets.zero, leading: const Icon(Icons.event_repeat_outlined), title: Text(_task.allDay ? _date(date) : _dateTime(date))),
       ]),
     );
   }
