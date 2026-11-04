@@ -1,3 +1,11 @@
+## Task Details UI redesign handoff — 2026-11-04
+- Review `lib/task_detail_page.dart` and `test/task_detail_master_screen_test.dart`.
+- UI-only source checkpoint before continuity sync: `86c6c9bbaaa8bc83626effb9aa52f6e52c94a3d0`.
+- Key acceptance: no «افراد مرتبط», person chips, or avatar presentation anywhere in Task Details; the Task.people collection itself must remain untouched. Bottom buttons must remain wired to the existing delete/complete/edit callbacks.
+- Checklist: progress fraction and progress bar must remain; «افزودن مرحله جدید» uses the original checklist add handler. Existing CRUD tests must continue to pass.
+- Verify Analyze and the focused Task Details / checklist CRUD / checklist flow / Follow-up flow / due-date / calendar export tests, then all required full CI gates on the final documentation-synchronized SHA. No result from an earlier SHA transfers.
+- Keep PR #3052 OPEN / DRAFT / UNMERGED; do not touch main or release. **BLOCKED — RELEASE: NO-GO.**
+
 ## Quick Capture test reconciliation — 2026-11-04
 - Build run `41834832972` on SHA `2549a98ab6d3de3498ab17fc007debf34f105055`: Analyze PASS; Shard test-1 FAILED with 174 passed / 1 failed.
 - Exact failure: `test/quick_capture_dialog_test.dart:321`, test `canonical capture keeps title-only path and optional choices`; the old assertion expected the approved description field to be absent. A second obsolete absence assertion existed in the full-form handoff test.
