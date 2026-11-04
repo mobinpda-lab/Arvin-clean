@@ -89,3 +89,14 @@ Every new entry must include exact SHA, workflow/run IDs, terminal conclusion, a
 - Device Smoke run 41815969732 had six successful lanes at last poll; Calendar Segmented View job 126526712495 remained IN_PROGRESS. No complete seven-lane PASS is claimed.
 - Full findings and staged visual correction plan: docs/audit/ARVIN_TASK_DETAILS_REFERENCE_COMPARISON_2026-11-04.md.
 - No test/assertion/scenario was removed, weakened, skipped or bypassed. No main write, merge or release. PR remains OPEN / DRAFT / UNMERGED; Release BLOCKED — RELEASE: NO-GO.
+
+
+## 2026-11-04 — Task Details UI reference execution checkpoint
+- Exact live PR #3052 source HEAD: 940b22f4dc30aef083e5116843ac9457bd1bd37a; OPEN / DRAFT / UNMERGED; base main SHA 45e4202b03a434459e4c021a04efa7e8396359db.
+- Re-read TaskDetailPage, _openTaskDetail route and Task model on this exact HEAD. Source blobs: lib/task_detail_page.dart 269a48aee948d00ab453d1d4e82b2b9e2510d4b9; lib/main.dart 97e2f872e69b24dd47ffe936e921c8001ace9388; lib/models/task.dart d5ba37c5bdac479b5c3381fea30f5ea510b64d51.
+- Model has people but no assignee field; people are not treated as assignee. Code confirms repeated due date, priority, category/tags; no runtime cleanup was made without accessible screenshots and product approval.
+- Named screenshots photo_1793790367954.webp and photo_1793790413647.webp were absent from current conversation and not found in Library search. Image comparison and visual acceptance remain NOT VERIFIED.
+- Build run 41819344155 SUCCESS (Analyze + six test shards); focused Task Details tests and RTL/Vazirmatn contracts logged PASS. No Task Details golden/screenshot acceptance evidence found.
+- Follow-up persistence run 41819344361 SUCCESS. Draft Review APK run 41819344101 SUCCESS, artifact 13316861010 (review-only).
+- Calendar Provider run 41819344729 IN_PROGRESS at last poll. Device Smoke run 41819344258: Boot/Navigation PASS; Quick Capture/Calendar IN_PROGRESS; Reminder/Vazirmatn/Follow-up Persistence/Task Lifecycle QUEUED.
+- Full findings: docs/audit/ARVIN_TASK_DETAILS_REFERENCE_COMPARISON_2026-11-04.md. No test weakening/skip/timeout bypass, main write, merge or release. Release remains BLOCKED — RELEASE: NO-GO.
