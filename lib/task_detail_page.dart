@@ -857,7 +857,17 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionTitle('آخرین پیگیری', Icons.bolt_outlined),
+          Row(children: [
+            _sectionTitle('آخرین پیگیری', Icons.bolt_outlined),
+            const Spacer(),
+            if (!_task.completed)
+              IconButton(
+                key: const ValueKey('task-detail-add-followup'),
+                tooltip: 'افزودن پیگیری',
+                onPressed: widget.onAddFollowUp == null ? null : _addFollowUp,
+                icon: const Icon(Icons.add_circle_outline),
+              ),
+          ]),
           const SizedBox(height: 10),
           if (latest == null)
             const Text('هنوز پیگیری ثبت نشده است', style: TextStyle(color: _muted))
