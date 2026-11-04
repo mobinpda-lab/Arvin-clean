@@ -8,6 +8,29 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+Finder _taskDetailPageScrollable(WidgetTester tester) {
+  final candidates = find.descendant(
+    of: find.byKey(const ValueKey('task-detail-page')),
+    matching: find.byType(Scrollable),
+  );
+  final pageScrollables = <Finder>[];
+  for (var index = 0; index < candidates.evaluate().length; index++) {
+    final candidate = candidates.at(index);
+    final state = tester.state<ScrollableState>(candidate);
+    if (state.position.axisDirection == AxisDirection.down &&
+        state.position.maxScrollExtent > 0) {
+      pageScrollables.add(candidate);
+    }
+  }
+  expect(
+    pageScrollables,
+    hasLength(1),
+    reason: 'Select the unique vertical Scrollable with real page scroll extent; '
+        'TextField-internal Scrollables are not the detail-page list.',
+  );
+  return pageScrollables.single;
+}
+
 void main() {
   testWidgets('ordinary Task detail also exposes real Follow-up entry',
       (tester) async {
@@ -183,27 +206,7 @@ void main() {
     final followUpCard = find.byKey(
       ValueKey('task-detail-followup-${task.followUps.single.id}'),
     );
-    final detailListView = find.descendant(
-      of: find.byKey(const ValueKey('task-detail-page')),
-      matching: find.byType(ListView),
-    );
-    expect(detailListView, findsOneWidget);
-    final detailScrollables = find.descendant(
-      of: detailListView,
-      matching: find.byWidgetPredicate(
-        (widget) =>
-            widget is Scrollable && widget.axisDirection == AxisDirection.down,
-      ),
-    );
-    final detailScrollable = detailScrollables.first;
-    expect(
-      find.descendant(of: detailScrollable, matching: followUpCard),
-      findsOneWidget,
-    );
-    expect(
-      tester.widget<Scrollable>(detailScrollable).axisDirection,
-      AxisDirection.down,
-    );
+    final detailScrollable = _taskDetailPageScrollable(tester);
     await tester.scrollUntilVisible(
       followUpCard,
       300,

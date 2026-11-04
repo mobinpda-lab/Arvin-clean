@@ -5,6 +5,29 @@ import 'package:arvin/models/task.dart';
 import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/task_detail_page.dart';
 
+Finder _taskDetailPageScrollable(WidgetTester tester) {
+  final candidates = find.descendant(
+    of: find.byKey(const ValueKey('task-detail-page')),
+    matching: find.byType(Scrollable),
+  );
+  final pageScrollables = <Finder>[];
+  for (var index = 0; index < candidates.evaluate().length; index++) {
+    final candidate = candidates.at(index);
+    final state = tester.state<ScrollableState>(candidate);
+    if (state.position.axisDirection == AxisDirection.down &&
+        state.position.maxScrollExtent > 0) {
+      pageScrollables.add(candidate);
+    }
+  }
+  expect(
+    pageScrollables,
+    hasLength(1),
+    reason: 'Select the unique vertical Scrollable with real page scroll extent; '
+        'TextField-internal Scrollables are not the detail-page list.',
+  );
+  return pageScrollables.single;
+}
+
 void main() {
   testWidgets('Master Task Details saves title and multiline description inline', (tester) async {
     Task? persisted;
@@ -97,27 +120,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('task-detail-recurrence')), findsNothing);
     final recurrenceAdd = find.byKey(const ValueKey('task-detail-recurrence-add'));
-    final detailListView = find.descendant(
-      of: find.byKey(const ValueKey('task-detail-page')),
-      matching: find.byType(ListView),
-    );
-    expect(detailListView, findsOneWidget);
-    final detailScrollables = find.descendant(
-      of: detailListView,
-      matching: find.byWidgetPredicate(
-        (widget) =>
-            widget is Scrollable && widget.axisDirection == AxisDirection.down,
-      ),
-    );
-    final detailScrollable = detailScrollables.first;
-    expect(
-      find.descendant(of: detailScrollable, matching: recurrenceAdd),
-      findsOneWidget,
-    );
-    expect(
-      tester.widget<Scrollable>(detailScrollable).axisDirection,
-      AxisDirection.down,
-    );
+    final detailScrollable = _taskDetailPageScrollable(tester);
     await tester.scrollUntilVisible(
       recurrenceAdd,
       300,
@@ -159,27 +162,7 @@ void main() {
     expect(find.byKey(const ValueKey('task-detail-reminder-smart-reminder')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-checklist')), findsOneWidget);
     final templateSource = find.byKey(const ValueKey('task-detail-template-source'));
-    final detailListView = find.descendant(
-      of: find.byKey(const ValueKey('task-detail-page')),
-      matching: find.byType(ListView),
-    );
-    expect(detailListView, findsOneWidget);
-    final detailScrollables = find.descendant(
-      of: detailListView,
-      matching: find.byWidgetPredicate(
-        (widget) =>
-            widget is Scrollable && widget.axisDirection == AxisDirection.down,
-      ),
-    );
-    final detailScrollable = detailScrollables.first;
-    expect(
-      find.descendant(of: detailScrollable, matching: templateSource),
-      findsOneWidget,
-    );
-    expect(
-      tester.widget<Scrollable>(detailScrollable).axisDirection,
-      AxisDirection.down,
-    );
+    final detailScrollable = _taskDetailPageScrollable(tester);
     await tester.scrollUntilVisible(
       templateSource,
       300,
