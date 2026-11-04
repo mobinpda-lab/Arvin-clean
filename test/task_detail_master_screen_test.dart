@@ -289,18 +289,12 @@ void main() {
     expect(summaryDecoration.color, Colors.white);
     expect(summaryDecoration.borderRadius, BorderRadius.circular(16));
     final deleteButton = tester.widget<OutlinedButton>(
-      find.ancestor(
-        of: find.byKey(const ValueKey('task-detail-delete')),
-        matching: find.byType(OutlinedButton),
-      ).first,
+      find.byKey(const ValueKey('task-detail-delete')),
     );
     final deleteStyle = deleteButton.style!;
     expect(deleteStyle.foregroundColor!.resolve({}), const Color(0xFFD04444));
     final completeButton = tester.widget<FilledButton>(
-      find.ancestor(
-        of: find.byKey(const ValueKey('task-detail-complete')),
-        matching: find.byType(FilledButton),
-      ).first,
+      find.byKey(const ValueKey('task-detail-complete')),
     );
     expect(completeButton.style!.backgroundColor!.resolve({}), const Color(0xFF37379B));
     final list = tester.widget<ListView>(find.byKey(const ValueKey('task-detail-content-list')));
