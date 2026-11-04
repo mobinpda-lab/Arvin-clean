@@ -1,7 +1,9 @@
 # Arvin-clean Multi Device Sync Architecture Specification v13.0
 
 ## Status
-FINAL DESIGN FREEZE + IMPLEMENTATION CONTRACT
+ARCHIVED — PHASE 2 (CLOUD / DROPBOX) DESIGN
+
+> Archive notice (2026-11-04): This document records the earlier Cloud/Dropbox synchronization proposal only. It is not the active Phase 1 architecture and does not authorize Dropbox, cloud accounts, internet access, or cloud dependencies in the current Local P2P implementation. The approved current product direction is recorded in `ARVIN-CLEAN-SYNC-ENGINE-SPECIFICATION-v14.md`.
 
 ## Repository
 mobinpda-lab/Arvin-clean
@@ -172,4 +174,4 @@ Production ready when:
 - Cloud provider can be replaced.
 
 Version: 13.0
-Status: FINAL DESIGN FREEZE
+Status: ARCHIVED — PHASE 2 (CLOUD / DROPBOX)
