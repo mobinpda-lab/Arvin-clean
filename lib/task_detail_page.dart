@@ -1207,8 +1207,16 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   Widget _recurrenceCard(DateTime now) {
     final rule = _task.recurrence;
     if (rule == null) return const SizedBox.shrink();
-    final anchor = rule.startDate ?? _task.dueDate ?? _task.createdAt ?? now;
-    final upcoming = rule.occurrencesBetween(anchor: anchor, from: now, to: now.add(const Duration(days: 30))).take(5).toList(growable: false);
+    // Do not infer a recurrence anchor from Task creation time or an unrelated
+    // Reminder. Only an explicit recurrence start or the Task due date is valid.
+    final anchor = rule.startDate ?? _task.dueDate;
+    final upcoming = anchor == null
+        ? const <DateTime>[]
+        : rule.occurrencesBetween(
+            anchor: anchor,
+            from: now,
+            to: now.add(const Duration(days: 30)),
+          ).take(5).toList(growable: false);
     final unit = switch (rule.frequency) {
       RecurrenceFrequency.daily || RecurrenceFrequency.oncePerDay => 'روز',
       RecurrenceFrequency.weekly => 'هفته',
@@ -1231,7 +1239,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         Text('قاعده: هر ' + rule.interval.toString() + ' ' + unit),
         const SizedBox(height: 6),
         const Text('رویدادهای آینده (۳۰ روز، حداکثر ۵ مورد):', style: TextStyle(fontWeight: FontWeight.w700)),
-        if (upcoming.isEmpty)
+        if (anchor == null)
+          const Text('مبدأ تکرار ثبت نشده است', style: TextStyle(color: _muted))
+        else if (upcoming.isEmpty)
           const Text('رویداد آینده‌ای در این بازه وجود ندارد', style: TextStyle(color: _muted))
         else
           for (final date in upcoming)
