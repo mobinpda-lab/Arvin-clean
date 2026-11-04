@@ -1476,7 +1476,11 @@ class _HomePageState extends State<HomePage> {
       isScrollControlled: true,
       showDragHandle: false,
       useSafeArea: true,
-      builder: (_) => QuickCaptureDialog(
+      builder: (sheetContext) => ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.66,
+        ),
+        child: QuickCaptureDialog(
         projects: editorContext.projects,
         centers: centers,
         initialCenterId: selectedCenterId,
@@ -1552,6 +1556,7 @@ class _HomePageState extends State<HomePage> {
               SnackBar(content: Text('«${captured.title}» ثبت شد')),
             );
         },
+        ),
       ),
     );
   }
