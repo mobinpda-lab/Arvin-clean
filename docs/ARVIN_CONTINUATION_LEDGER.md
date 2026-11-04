@@ -1638,3 +1638,13 @@ PR #3052 remains OPEN / DRAFT / UNMERGED. main untouched. **BLOCKED — RELEASE:
 ## 2026-11-04 — Device Smoke terminal result correction
 - Run 41805555579 on SHA 33f9489 ended CANCELLED. Preparation, Boot, Navigation and Quick Capture succeeded; Reminder/Vazirmatn, Follow-up Persistence, Calendar Segmented View and Task Lifecycle were cancelled.
 - This supersedes the earlier queued/in-progress checkpoint for this run. No complete seven-lane acceptance is established.
+
+
+# 2026-11-04 — Task Details visual comparison execution checkpoint
+
+- Exact current PR HEAD: 940b22f4dc30aef083e5116843ac9457bd1bd37a; PR #3052 OPEN / DRAFT / UNMERGED; main base SHA 45e4202b03a434459e4c021a04efa7e8396359db.
+- Images photo_1793790367954.webp and photo_1793790413647.webp were not present in current conversation file search and were not found in Library. Visual comparison remains NOT VERIFIED; no runtime UI changes.
+- Revalidated TaskDetailPage, _openTaskDetail and Task model. Task.people is related people; no dedicated assignee field. Source confirms repeated due date, priority, category/tags; no removal without image and product approval.
+- Build 41819344155 SUCCESS (Analyze + six shards); focused Task Details widget cases and RTL/Vazirmatn contracts logged PASS. Follow-up persistence 41819344361 SUCCESS. Review APK run 41819344101 SUCCESS; artifact 13316861010, review-only.
+- Calendar Provider 41819344729 IN_PROGRESS at last poll. Device Smoke 41819344258: Boot/Navigation SUCCESS; Quick Capture/Calendar IN_PROGRESS; Reminder/Vazirmatn/Follow-up Persistence/Task Lifecycle QUEUED.
+- Detailed report: docs/audit/ARVIN_TASK_DETAILS_REFERENCE_COMPARISON_2026-11-04.md. Release remains BLOCKED — RELEASE: NO-GO.
