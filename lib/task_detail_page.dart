@@ -1204,7 +1204,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               key: const ValueKey('task-detail-complete'),
               onPressed: widget.onComplete == null ? null : _complete,
               icon: Icon(_task.completed ? Icons.undo : Icons.check_circle_outline),
-              label: Text(_task.completed ? 'بازگشت' : 'انجام کار'),
+              label: Text(_task.completed ? 'بازگشت به انجام‌نشده' : 'انجام کار'),
             )),
             const SizedBox(width: 7),
             Expanded(child: OutlinedButton.icon(
