@@ -1,6 +1,6 @@
 # ممیزی اختلاف رابط کاربری — صفحه جزئیات کار آروین
 
-- تاریخ: 2026-11-04
+- تاریخ: 1405/08/13 — 2026-11-04 14:38 Asia/Tehran
 - مخزن: `mobinpda-lab/Arvin-clean`
 - شاخه: `fix/recovery-calendar-device-smoke-2026-10-31`
 - PR: #3052 (OPEN / DRAFT / UNMERGED)
