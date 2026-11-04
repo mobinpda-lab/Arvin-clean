@@ -189,6 +189,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       await onCaptured(task);
       if (!mounted) return;
       _controller.clear();
+      _descriptionController.clear();
       setState(() {
         _priority = TaskPriority.medium;
         _saving = false;
@@ -224,6 +225,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       if (!mounted) return;
       if (saved) {
         _controller.clear();
+        _descriptionController.clear();
       }
       setState(() {
         if (saved) _priority = TaskPriority.medium;
