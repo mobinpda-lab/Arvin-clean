@@ -961,19 +961,19 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   ),
                 ],
               ),
-        ],
-        const SizedBox(height: 8),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            key: const ValueKey('task-detail-checklist-add'),
-            onPressed: widget.onChecklistChanged == null || _isSavingChecklist
-                ? null
-                : _addChecklistItem,
-            icon: const Icon(Icons.add),
-            label: const Text('افزودن مرحله جدید'),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              key: const ValueKey('task-detail-checklist-add'),
+              onPressed: widget.onChecklistChanged == null || _isSavingChecklist
+                  ? null
+                  : _addChecklistItem,
+              icon: const Icon(Icons.add),
+              label: const Text('افزودن مرحله جدید'),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
