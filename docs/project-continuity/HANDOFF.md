@@ -1,3 +1,9 @@
+## Task Details UI — final verification checkpoint update — 2026-11-04
+- Final focused test adjustment: bottom completion action assertion now checks canonical `ArvinColors.primary` (`#4A4CAB`), not the darker AppBar shade. Commit: `b511d51d172a57656fdae12dd15ed559a27fcfb7`.
+- The Task Details redesign remains limited to `lib/task_detail_page.dart`, `test/task_detail_master_screen_test.dart`, and these three continuity documents. No Task model, repository, DAO, persistence, alarm, calendar, or backend source was modified.
+- The exact current branch HEAD must be read after this documentation sync. No workflow result is currently verified for the new Task Details implementation SHA; do not infer CI success from earlier runs.
+- PR #3052 must remain OPEN / DRAFT / UNMERGED; main untouched; **BLOCKED — RELEASE: NO-GO**.
+
 ## Task Details UI redesign handoff — 2026-11-04
 - Review `lib/task_detail_page.dart` and `test/task_detail_master_screen_test.dart`.
 - UI-only source checkpoint before continuity sync: `86c6c9bbaaa8bc83626effb9aa52f6e52c94a3d0`.
