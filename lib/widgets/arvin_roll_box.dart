@@ -80,6 +80,7 @@ class ArvinTagRollBox extends StatefulWidget {
   final List<String> selectedTags;
   final ValueChanged<List<String>> onChanged;
   final Future<String?> Function()? onCreate;
+  /// Uses the 40dp selector contract in dense forms such as Quick Capture.
   final bool compact;
 
   @override State<ArvinTagRollBox> createState() => _ArvinTagRollBoxState();
