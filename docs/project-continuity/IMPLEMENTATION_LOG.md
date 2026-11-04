@@ -56,3 +56,12 @@ Every new entry must include exact SHA, workflow/run IDs, terminal conclusion, a
 - Exact-head Draft Review APK run `41807761597` on the same SHA completed SUCCESS; artifact `13311083215` (`arvin-review-staging-apk-957924cd67066db06abe5fd15df2c802729aa3bb`) is available and not expired. It is a review/staging APK, not a production release APK.
 - Exact-head Build run `41807761390`: SUCCESS (Analyze and six test shards); APK matrix SKIPPED by Draft guard. Calendar Provider run `41807761328`: SUCCESS; Follow-up Persistence run `41807761334`: SUCCESS. Device Smoke run `41807761329` has not reached a verified terminal seven-lane conclusion at this checkpoint; partial lane results are not overall acceptance.
 - PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; release remains BLOCKED — RELEASE: NO-GO.
+
+
+## 2026-11-04 — Conflict audit and exact-SHA Device Smoke gate
+- Audited PR #3052 live: OPEN / DRAFT / UNMERGED; GitHub reports mergeable=true (previous mergeable=false is no longer current).
+- Live branch HEAD: 5923bc974592f9507b5424d4d03d679fbfca54e7. Live main: 45e4202b03a434459e4c021a04efa7e8396359db.
+- GitHub compare main...branch: status ahead, ahead_by=624, behind_by=0, merge-base equals main SHA. No rebase or merge was performed; no main ref was modified. Current compare does not indicate a branch divergence. The historical reason for the earlier mergeable=false is NOT VERIFIED.
+- Exact-SHA workflows started for 5923bc974592f9507b5424d4d03d679fbfca54e7: Build run 41810086500 IN_PROGRESS; Device Smoke run 41810086328 PENDING (no jobs published at observation); Calendar Provider run 41810086266 IN_PROGRESS; Follow-up File Persistence run 41810086231 IN_PROGRESS; Draft Review APK run 41810086294 IN_PROGRESS. Build APK matrix was SKIPPED by the Draft guard; this is not a build failure and no APK result is claimed from that matrix.
+- Device Smoke has no published lane results yet. Boot, Navigation, Quick Capture, Task Lifecycle, Reminder/Vazirmatn, Calendar Segmented View and Follow-up Persistence are all NOT VERIFIED on this SHA. Do not infer results from prior SHAs.
+- This entry is an interim checkpoint, not terminal acceptance. No source code, tests, or main branch were changed. PR remains OPEN/DRAFT/UNMERGED; release remains BLOCKED — RELEASE: NO-GO.
