@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:arvin/models/task.dart';
 import 'package:arvin/models/goal_project.dart';
+import 'package:arvin/models/person_reference.dart';
 import 'package:arvin/task_detail_page.dart';
 
 Finder _taskDetailPageScrollable(WidgetTester tester) {

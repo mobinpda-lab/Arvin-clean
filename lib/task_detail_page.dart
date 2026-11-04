@@ -15,7 +15,6 @@ import 'services/task_store.dart';
 import 'services/task_move_to_today_service.dart';
 import 'services/waiting_for_response_service.dart';
 import 'task_report_page.dart';
-import 'widgets/taxonomy_icon_row.dart';
 import 'widgets/persian_date_picker.dart';
 
 class TaskDetailPage extends StatefulWidget {
@@ -1154,7 +1153,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         onSelected: _changePriority,
         itemBuilder: (_) => TaskPriority.values.map((value) => PopupMenuItem(
           value: value,
-          child: Text('${value.code} — ${value.label}', style: TextStyle(color: ArvinColors.priorityColor(value))),
+          child: Text(value.label, style: TextStyle(color: ArvinColors.priorityColor(value))),
         )).toList(growable: false),
         child: _metadataChip('${_task.priority.code} — ${_task.priority.label}', ArvinColors.priorityColor(_task.priority), icon: Icons.flag_outlined),
       ),
@@ -1194,9 +1193,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   Widget _metadataCard() {
-    final executionTime = _task.createdAt == null
-        ? 'زمان اجرا: ثبت نشده'
-        : 'زمان ثبت: ${_dateTime(_task.createdAt!)}';
+    const executionTime = 'زمان اجرا: ثبت نشده';
     final center = widget.centerName?.trim();
     final project = widget.project;
     final chips = <Widget>[
