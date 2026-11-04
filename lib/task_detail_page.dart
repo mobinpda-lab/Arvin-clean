@@ -836,7 +836,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
   Widget _checklistCard() {
     final items = _normalizedChecklist();
-    if (!_task.checklistEnabled || (items.isEmpty && !_isAddingChecklist)) {
+    if (!_isAddingChecklist && (!_task.checklistEnabled || items.isEmpty)) {
       return Align(
         alignment: AlignmentDirectional.centerStart,
         child: TextButton.icon(
@@ -1226,6 +1226,12 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           ),
           const SizedBox(height: 8),
           Text(
+            'تاریخ ایجاد: ${_task.createdAt == null ? 'نامشخص' : _dateTime(_task.createdAt!)}',
+            key: const ValueKey('task-detail-created-at'),
+            style: const TextStyle(fontSize: 12, color: _muted),
+          ),
+          const SizedBox(height: 4),
+          Text(
             'آخرین به‌روزرسانی: ${_task.updatedAt == null ? 'نامشخص' : _dateTime(_task.updatedAt!)}',
             key: const ValueKey('task-detail-updated-at'),
             style: const TextStyle(fontSize: 12, color: _muted),
@@ -1418,16 +1424,16 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           minimum: const EdgeInsets.fromLTRB(10, 8, 10, 12),
           child: Row(children: [
             Expanded(child: OutlinedButton.icon(
-              key: const ValueKey('task-detail-delete'),
-              onPressed: widget.onDelete == null ? null : _deleteTask,
+              key: const ValueKey('task-detail-bottom-edit'),
+              onPressed: widget.onEdit == null ? null : _edit,
               style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFFD04444),
-                side: const BorderSide(color: Color(0xFFD04444)),
+                foregroundColor: _brand,
+                side: const BorderSide(color: _brand),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
-              icon: const Icon(Icons.delete_outline),
-              label: const Text('حذف'),
+              icon: const Icon(Icons.edit_outlined),
+              label: const Text('ویرایش'),
             )),
             const SizedBox(width: 7),
             Expanded(child: FilledButton.icon(
@@ -1444,16 +1450,16 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             )),
             const SizedBox(width: 7),
             Expanded(child: OutlinedButton.icon(
-              key: const ValueKey('task-detail-bottom-edit'),
-              onPressed: widget.onEdit == null ? null : _edit,
+              key: const ValueKey('task-detail-delete'),
+              onPressed: widget.onDelete == null ? null : _deleteTask,
               style: OutlinedButton.styleFrom(
-                foregroundColor: _brand,
-                side: const BorderSide(color: _brand),
+                foregroundColor: const Color(0xFFD04444),
+                side: const BorderSide(color: Color(0xFFD04444)),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
-              icon: const Icon(Icons.edit_outlined),
-              label: const Text('ویرایش'),
+              icon: const Icon(Icons.delete_outline),
+              label: const Text('حذف'),
             )),
           ]),
         ),

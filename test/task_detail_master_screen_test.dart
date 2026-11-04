@@ -263,6 +263,44 @@ void main() {
     expect(tester.widget<Directionality>(find.ancestor(of: find.byKey(const ValueKey('task-detail-page')), matching: find.byType(Directionality)).first).textDirection, TextDirection.rtl);
   });
 
+  testWidgets('Task Details opens checklist entry and persists a newly added item', (tester) async {
+    Task? persisted;
+    var saveCalls = 0;
+    final task = Task(
+      id: 'checklist-add-regression',
+      title: 'کار با چک‌لیست تازه',
+      checklistEnabled: false,
+    );
+    await tester.pumpWidget(MaterialApp(
+      home: TaskDetailPage(
+        task: task,
+        onChecklistChanged: (candidate, checklist) async {
+          saveCalls++;
+          candidate.checklist = List<String>.of(checklist);
+          candidate.updatedAt = DateTime.now();
+          persisted = candidate;
+          return candidate;
+        },
+      ),
+    ));
+
+    final addChecklist = find.byKey(const ValueKey('task-detail-add-checklist'));
+    expect(addChecklist, findsOneWidget);
+    await tester.tap(addChecklist);
+    await tester.pumpAndSettle();
+
+    final input = find.byKey(const ValueKey('task-detail-checklist-add-input'));
+    expect(input, findsOneWidget);
+    await tester.enterText(input, 'آماده‌سازی کیف');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+
+    expect(saveCalls, 1);
+    expect(persisted?.checklist, contains('[ ] آماده‌سازی کیف'));
+    expect(find.byKey(const ValueKey('task-detail-checklist')), findsOneWidget);
+    expect(find.text('آماده‌سازی کیف'), findsOneWidget);
+  });
+
   testWidgets('Task Details does not present related people as assignees and keeps bottom content clear', (tester) async {
     final task = Task(
       id: 'related-people-1',
@@ -303,5 +341,10 @@ void main() {
     expect(find.byKey(const ValueKey('task-detail-delete')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-complete')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-bottom-edit')), findsOneWidget);
+    final editCenterX = tester.getCenter(find.byKey(const ValueKey('task-detail-bottom-edit'))).dx;
+    final completeCenterX = tester.getCenter(find.byKey(const ValueKey('task-detail-complete'))).dx;
+    final deleteCenterX = tester.getCenter(find.byKey(const ValueKey('task-detail-delete'))).dx;
+    expect(editCenterX, greaterThan(completeCenterX));
+    expect(completeCenterX, greaterThan(deleteCenterX));
   });
 }
