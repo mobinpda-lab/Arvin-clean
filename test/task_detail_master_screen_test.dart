@@ -188,6 +188,11 @@ void main() {
     await tester.scrollUntilVisible(checklist, 240, scrollable: detailScrollable);
     await tester.pumpAndSettle();
     expect(checklist, findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('task-detail-checklist-progress-bar')),
+      findsOneWidget,
+    );
+    expect(find.text('افزودن مرحله جدید'), findsOneWidget);
     final templateSource = find.byKey(const ValueKey('task-detail-template-source'));
     await tester.scrollUntilVisible(
       templateSource,
