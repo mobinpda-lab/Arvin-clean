@@ -70,7 +70,7 @@ void main() {
         task: task,
         onClone: (source) async {
           cloned = true;
-          return Task(id: 'master-clone-2', title: 'کپی — ' + source.title);
+          return Task(id: 'master-clone-2', title: 'کپی — ${source.title}');
         },
       ),
     ));
