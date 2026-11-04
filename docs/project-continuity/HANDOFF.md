@@ -118,3 +118,11 @@ NOT VERIFIED. GitHub branch data does not reveal uncommitted local modifications
 - Keep the vertical scroll fallback for small screens, keyboard and text scaling until physical-device evidence demonstrates safe full-screen fit. Never claim no-scroll acceptance without a current screenshot/device run.
 - Reference image `photo_1793800214435.webp` was not available for inspection in this execution; pixel-level conformity remains NOT VERIFIED.
 - PR #3052 OPEN / DRAFT / UNMERGED; no `main` writes; no test removal/skip/weakening; release BLOCKED — RELEASE: NO-GO.
+
+
+## CI follow-up handoff — target `a657691` (2026-11-04)
+- Analyze blocker on exact SHA: `unnecessary_const` at `lib/quick_capture_dialog.dart:587:42`; Build run `41843444962`. Inspect the precise widget expression and remove only the redundant const if confirmed; do not touch tests or timeouts. Then rerun exact-head Build and all dependent gates.
+- Quick Capture widget test assertions for compact RTL layout and 40dp chips exist, but shard results were not final at this checkpoint. Scroll-free fit remains unverified: dialog still uses a `SingleChildScrollView`; require measured layout assertion or emulator screenshot evidence before acceptance.
+- Draft Review APK run `41843444971` was still assembling; no artifact had been published at the last artifact-list check. Recheck run conclusion and artifacts before sharing any APK.
+- Persistence run `41843445148` passed exact SHA; Device Smoke `41843451312` and Calendar Provider `41843445191` were still running/queued. Do not claim all gates green.
+- PR #3052 must remain OPEN / DRAFT / UNMERGED; no main edits, no test deletion/skip/weakening/artificial timeout; release BLOCKED — RELEASE: NO-GO.
