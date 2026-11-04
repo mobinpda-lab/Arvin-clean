@@ -213,3 +213,13 @@ Every new entry must include exact SHA, workflow/run IDs, terminal conclusion, a
 - Added `final bool compact;` to the widget in commit `642a4016cbaa1994b4dfe2d278066941ef8a65c2`. This repairs the compile contract and preserves the existing selector behavior.
 - Build run `41842459267` on pre-fix SHA `c918f2bb8ce73ffa82dd601ab30eb077b9d49fa4` failed in `compileFlutterBuildStaging` with the missing-field error. Follow-up persistence run `41842459045` passed on that pre-fix SHA; Device Smoke and Calendar Provider were not terminal at inspection; Draft Review APK run `41842459134` failed at Staging assemble for the same compile error.
 - The new fix and all subsequent documentation commits require fresh exact-SHA validation. No test/assertion was deleted, skipped or weakened.
+
+
+## 2026-11-04 — Exact-SHA CI follow-up for compact Quick Capture (`a657691`)
+- Build run `41843444962`: Analyze failed only on `unnecessary_const` at `lib/quick_capture_dialog.dart:587:42`; six test shards remained in progress; APK matrix skipped. The previous missing `ArvinTagRollBox.compact` declaration was no longer the reported failure.
+- Device Smoke `41843451312`: matrix prepared; boot/navigation active, other five smoke lanes queued at last inspection.
+- Calendar Provider `41843445191`: real Provider acceptance still active.
+- Follow-up Persistence `41843445148`: SUCCESS exact SHA.
+- Draft Review APK `41843444971`: staging assembly active; artifact list empty and upload step pending. APK not yet confirmed.
+- Quick Capture test source includes compact RTL and 40dp dimension checks; exact shard result not yet available. A SingleChildScrollView remains in the dialog; no-scroll acceptance is NOT VERIFIED.
+- No test edits, skips, weakened assertions or timeout extensions were made during this check.
