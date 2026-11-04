@@ -1105,10 +1105,26 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   Widget _metadataCard() {
     final chips = <Widget>[
       _metadataChip('زمان اجرا: ثبت نشده', _muted, icon: Icons.schedule_outlined),
-      if (widget.centerName?.trim().isNotEmpty == true) _metadataChip('مرکز: ' + widget.centerName!, ArvinColors.category, icon: Icons.apartment_outlined),
-      if (widget.project != null) _metadataChip('پروژه: ' + widget.project!.title, Color(widget.project!.colorValue), icon: Icons.folder_special_outlined),
-      if (_task.category?.trim().isNotEmpty == true) _metadataChip('دسته: ' + _task.category!, ArvinColors.category, icon: Icons.folder_outlined),
-      if (_task.tags.isNotEmpty) _metadataChip('برچسب‌ها: ' + _task.tags.join('، '), ArvinColors.tag, icon: Icons.sell_outlined),
+      _metadataChip(
+        widget.centerName?.trim().isNotEmpty == true ? 'مرکز: ' + widget.centerName! : 'مرکز: تعیین نشده',
+        ArvinColors.category,
+        icon: Icons.apartment_outlined,
+      ),
+      _metadataChip(
+        widget.project == null ? 'پروژه: بدون پروژه' : 'پروژه: ' + widget.project!.title,
+        widget.project == null ? _muted : Color(widget.project!.colorValue),
+        icon: Icons.folder_special_outlined,
+      ),
+      _metadataChip(
+        _task.category?.trim().isNotEmpty == true ? 'دسته: ' + _task.category! : 'دسته: تعیین نشده',
+        ArvinColors.category,
+        icon: Icons.folder_outlined,
+      ),
+      _metadataChip(
+        _task.tags.isEmpty ? 'برچسب‌ها: ثبت نشده' : 'برچسب‌ها: ' + _task.tags.join('، '),
+        ArvinColors.tag,
+        icon: Icons.sell_outlined,
+      ),
     ];
     return _card(
       key: const ValueKey('task-detail-metadata'),
@@ -1251,6 +1267,13 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               onPressed: widget.onTaskChanged == null ? (widget.onEdit == null ? null : _edit) : (_isInlineEditing ? _saveInlineEdit : _beginInlineEdit),
               icon: Icon(_isInlineEditing ? Icons.save_outlined : Icons.edit_note_outlined),
             ),
+            if (_isInlineEditing)
+              IconButton(
+                key: const ValueKey('task-detail-inline-edit-cancel'),
+                tooltip: 'انصراف از ویرایش درجا',
+                onPressed: _isSavingInlineEdit ? null : _cancelInlineEdit,
+                icon: const Icon(Icons.close),
+              ),
             IconButton(
               key: const ValueKey('task-detail-clone'),
               tooltip: 'تکثیر / کپی کار',
