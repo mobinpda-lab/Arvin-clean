@@ -428,7 +428,8 @@ Future<DateTime?> _pickCustomDue() async {
                         onTap: _saving ? null : () => setState(() => _priority = priority),
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 150),
-                          padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 2),
+                          height: 40,
+                          padding: const EdgeInsets.symmetric(horizontal: 2),
                           decoration: BoxDecoration(
                             color: color.withValues(alpha: selected ? 0.18 : 0.09),
                             borderRadius: BorderRadius.circular(12),
@@ -437,22 +438,14 @@ Future<DateTime?> _pickCustomDue() async {
                               width: selected ? 1.5 : 1,
                             ),
                           ),
-                          child: Column(
-                            children: [
-                              Text(
-                                _dateFormatter.toPersianDigits('اولویت ${priority.sortOrder}'),
-                                textAlign: TextAlign.center,
-                                maxLines: 1,
-                                style: TextStyle(color: color, fontSize: 10, height: 1.15, fontWeight: FontWeight.w800),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                hints[priority]!,
-                                textAlign: TextAlign.center,
-                                maxLines: 2,
-                                style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 8, height: 1.15),
-                              ),
-                            ],
+                          child: Center(
+                            child: Text(
+                              _dateFormatter.toPersianDigits('اولویت ${priority.sortOrder}'),
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(color: color, fontSize: 10, height: 1.15, fontWeight: FontWeight.w800),
+                            ),
                           ),
                         ),
                       ),
@@ -461,6 +454,24 @@ Future<DateTime?> _pickCustomDue() async {
                 );
               }).toList(growable: false),
             ),
+            const SizedBox(height: 3),
+            Row(
+              textDirection: TextDirection.rtl,
+              children: TaskPriority.values.map((priority) => Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 2),
+                  child: Text(
+                    hints[priority]!,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    softWrap: false,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 8.5, height: 1.15),
+                  ),
+                ),
+              )).toList(growable: false),
+            ),
+
           ],
         ),
       ),
