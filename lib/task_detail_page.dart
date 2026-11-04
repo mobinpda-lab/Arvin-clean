@@ -1155,7 +1155,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           value: value,
           child: Text(value.label, style: TextStyle(color: ArvinColors.priorityColor(value))),
         )).toList(growable: false),
-        child: _metadataChip('${_task.priority.code} — ${_task.priority.label}', ArvinColors.priorityColor(_task.priority), icon: Icons.flag_outlined),
+        child: _metadataChip('${_task.priority.label}', ArvinColors.priorityColor(_task.priority), icon: Icons.flag_outlined),
       ),
     ]);
   }
