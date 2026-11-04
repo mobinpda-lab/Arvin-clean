@@ -82,6 +82,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   TextEditingController? _checklistEditController;
   int? _editingChecklistIndex;
   bool _isSavingChecklist = false;
+  bool _isAddingChecklist = false;
 
   @override
   void initState() {
@@ -748,6 +749,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     await _saveChecklist(next);
     if (!mounted) return;
     _checklistAddController.clear();
+    if (_task.checklist.isNotEmpty && mounted) {
+      setState(() => _isAddingChecklist = false);
+    }
   }
 
   void _beginChecklistEdit(int index, String item) {
@@ -792,8 +796,20 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   Widget _checklistCard() {
-    if (!_task.checklistEnabled) return const SizedBox.shrink();
     final items = _normalizedChecklist();
+    if (!_task.checklistEnabled || (items.isEmpty && !_isAddingChecklist)) {
+      return Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: TextButton.icon(
+          key: const ValueKey('task-detail-add-checklist'),
+          onPressed: widget.onChecklistChanged == null
+              ? null
+              : () => setState(() => _isAddingChecklist = true),
+          icon: const Icon(Icons.add, size: 17),
+          label: const Text('افزودن چک‌لیست'),
+        ),
+      );
+    }
     final completed = items.where((item) => item.startsWith('[x] ')).length;
     return _card(
       key: const ValueKey('task-detail-checklist'),
@@ -927,6 +943,18 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   Widget _latestCard(FollowUp? latest, DateTime now) {
+    if (latest == null) {
+      if (_task.completed) return const SizedBox.shrink();
+      return Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: TextButton.icon(
+          key: const ValueKey('task-detail-add-followup'),
+          onPressed: widget.onAddFollowUp == null ? null : _addFollowUp,
+          icon: const Icon(Icons.add, size: 17),
+          label: const Text('افزودن پیگیری'),
+        ),
+      );
+    }
     return _card(
       key: const ValueKey('task-detail-latest-followup'),
       child: Column(
@@ -944,10 +972,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               ),
           ]),
           const SizedBox(height: 10),
-          if (latest == null)
-            const Text('هنوز پیگیری ثبت نشده است', style: TextStyle(color: _muted))
-          else ...[
-            Text(
+          Text(
               latest.note.trim().isEmpty ? 'پیگیری' : latest.note.trim(),
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
             ),
@@ -1104,6 +1129,38 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     ]);
   }
 
+  Widget _templateSourceCard() {
+    final templateId = _task.templateTaskId?.trim();
+    if (templateId == null || templateId.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    final snapshot = widget.project?.templateId == templateId
+        ? widget.project?.templateNameSnapshot?.trim()
+        : null;
+    return _card(
+      key: const ValueKey('task-detail-template-source'),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.copy_all_outlined, color: _brand),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _sectionTitle('منشأ الگو', Icons.description_outlined),
+                const SizedBox(height: 5),
+                Text(snapshot?.isNotEmpty == true
+                    ? snapshot!
+                    : 'شناسه الگو: $templateId'),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _metadataCard() {
     final chips = <Widget>[
       _metadataChip('زمان اجرا: ثبت نشده', _muted, icon: Icons.schedule_outlined),
@@ -1134,18 +1191,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         _sectionTitle('اطلاعات کار', Icons.info_outline),
         const SizedBox(height: 9),
         Wrap(spacing: 7, runSpacing: 7, children: chips),
-        if (widget.project?.templateId != null) ...[
-          const SizedBox(height: 12),
-          _sectionTitle('منشأ الگو', Icons.copy_all_outlined),
-          const SizedBox(height: 6),
-          Text(
-            widget.project!.templateNameSnapshot?.trim().isNotEmpty == true
-                ? widget.project!.templateNameSnapshot!
-                : 'شناسه الگو: ${widget.project!.templateId!}',
-            key: const ValueKey('task-detail-template-source'),
-          ),
-        ],
-        const SizedBox(height: 12),
+remove project-level template source from metadata        const SizedBox(height: 12),
         Text(_task.dueDate == null
             ? 'موعد انجام: تعیین نشده'
             : 'موعد انجام: ${_task.allDay ? _date(_task.dueDate!) : _dateTime(_task.dueDate!)}',
@@ -1178,6 +1224,17 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   Widget _remindersCard() {
+    if (_task.taskReminders.isEmpty) {
+      return Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: TextButton.icon(
+          key: const ValueKey('task-detail-add-reminder'),
+          onPressed: widget.onEdit == null ? null : _edit,
+          icon: const Icon(Icons.add, size: 17),
+          label: const Text('افزودن یادآور'),
+        ),
+      );
+    }
     return _card(
       key: const ValueKey('task-detail-independent-reminders'),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -1191,10 +1248,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             label: const Text('افزودن'),
           ),
         ]),
-        if (_task.taskReminders.isEmpty)
-          const Text('یادآور مستقلی ثبت نشده است', style: TextStyle(color: _muted))
-        else
-          for (final reminder in _task.taskReminders)
+        for (final reminder in _task.taskReminders)
             SwitchListTile(
               key: ValueKey('task-detail-reminder-${reminder.id}'),
               contentPadding: EdgeInsets.zero,
@@ -1210,7 +1264,18 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
   Widget _recurrenceCard(DateTime now) {
     final rule = _task.recurrence;
-    if (rule == null) return const SizedBox.shrink();
+    if (rule == null) {
+      if (!_isInlineEditing) return const SizedBox.shrink();
+      return Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: TextButton.icon(
+          key: const ValueKey('task-detail-recurrence-add'),
+          onPressed: widget.onEdit == null ? null : _edit,
+          icon: const Icon(Icons.repeat, size: 17),
+          label: const Text('فعال‌سازی تکرار'),
+        ),
+      );
+    }
     // Do not infer a recurrence anchor from Task creation time or an unrelated
     // Reminder. Only an explicit recurrence start or the Task due date is valid.
     final anchor = rule.startDate ?? _task.dueDate;
@@ -1352,22 +1417,28 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             _statusPriorityCard(),
             const SizedBox(height: 10),
             _remindersCard(),
-            if (_task.checklistEnabled) ...[
+            if (_task.checklistEnabled && _task.checklist.isNotEmpty ||
+                _isAddingChecklist ||
+                (!_task.checklistEnabled && widget.onChecklistChanged != null)) ...[
               const SizedBox(height: 10),
               _checklistCard(),
             ],
             const SizedBox(height: 10),
-            _latestCard(latest, now),
+            if (latest != null) _latestCard(latest, now),
+            if (history.isEmpty && latest == null && !_task.completed)
+              _latestCard(null, now),
             if (history.isNotEmpty) ...[
               const SizedBox(height: 10),
               _timeline(history),
             ],
             const SizedBox(height: 10),
             _metadataCard(),
-            if (_task.recurrence != null) ...[
+            if (_task.templateTaskId?.trim().isNotEmpty == true) ...[
               const SizedBox(height: 10),
-              _recurrenceCard(now),
+              _templateSourceCard(),
             ],
+            const SizedBox(height: 10),
+            _recurrenceCard(now),
             if (_task.reminderDate != null) ...[
               const SizedBox(height: 10),
               _card(
