@@ -67,6 +67,11 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      // Empty checklists stay compact until the user explicitly adds one.
+      expect(find.byKey(const ValueKey('task-detail-checklist')), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('task-detail-add-checklist')));
+      await tester.pumpAndSettle();
+
       // ADD
       await tester.enterText(
         find.byKey(const ValueKey('task-detail-checklist-add-input')),
