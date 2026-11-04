@@ -80,6 +80,7 @@ class ArvinTagRollBox extends StatefulWidget {
   final List<String> selectedTags;
   final ValueChanged<List<String>> onChanged;
   final Future<String?> Function()? onCreate;
+  final bool compact;
 
   @override State<ArvinTagRollBox> createState() => _ArvinTagRollBoxState();
 }
