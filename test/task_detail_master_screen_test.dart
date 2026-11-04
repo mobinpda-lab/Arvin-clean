@@ -242,6 +242,16 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
+    // The assignee card is below the initial viewport in the lazy ListView.
+    // Materialize it before asserting its stable identity key.
+    final detailScrollable = _taskDetailPageScrollable(tester);
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('task-detail-assignee-card')),
+      240,
+      scrollable: detailScrollable,
+    );
+    await tester.pumpAndSettle();
+
     expect(find.byKey(const ValueKey('task-detail-summary-card')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-description-card')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-metadata')), findsOneWidget);
