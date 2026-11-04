@@ -1616,3 +1616,20 @@ PR #3052 remains OPEN / DRAFT / UNMERGED. main untouched. **BLOCKED — RELEASE:
 - **پیاده‌سازی و آزمون P2P:** NOT VERIFIED؛ هیچ قرارداد اجرایی نهایی یا پذیرش امنیتی در این checkpoint ادعا نمی‌شود.
 
 **Disposition:** Build PASS on `9b52d43`; Calendar Provider and Follow-up Persistence SUCCESS; Device Smoke remains IN_PROGRESS at checkpoint; PR #3052 OPEN / DRAFT / UNMERGED; main unchanged; **BLOCKED — RELEASE: NO-GO**.
+
+
+## 2026-11-04 — Permanent continuity deployment and current exact-head gate
+
+- Added docs/project-continuity/ as the durable navigation and handoff set: README.md, CURRENT_STATE.md, PRODUCT_DECISIONS.md, ROADMAP.md, OPEN_ISSUES.md, IMPLEMENTATION_LOG.md and HANDOFF.md. Root CHANGELOG.md remains the sole chronological changelog; this Ledger remains the detailed historical evidence record.
+- App/source baseline before this documentation-only sequence: 33f9489b4c7f3fa6173459b6994cea2a5469f500. Documentation commits subsequently advance the branch; all current-source CI claims below apply only to 33f9489.
+- PR #3052 OPEN / DRAFT / UNMERGED; main SHA observed as 45e4202b03a434459e4c021a04efa7e8396359db.
+- Build run 41805555476 on 33f9489 SUCCESS: Analyze and six test shards SUCCESS; APK matrix SKIPPED.
+- Follow-up File Persistence run 41805555397 on 33f9489 SUCCESS.
+- Calendar Provider run 41805555462 on 33f9489 FAILURE before test execution: Dart Development Service failed to start while loading integration_test/android_calendar_provider_acceptance_test.dart; 0 tests passed. This is an execution blocker and does not establish a product regression.
+- Device Smoke run 41805555579 on 33f9489 was QUEUED at the last poll. Boot and Navigation passed; Quick Capture and Calendar Segmented View were in progress; Reminder/Vazirmatn, Follow-up Persistence and Task Lifecycle were queued. No complete seven-lane result.
+- Draft Review APK run 41805393577 was CANCELLED on older SHA b85ed7b6ac5140e877ce1bd0ece6eef2d4819b43.
+- The exact compare 93a7c2b...ec4f23e reports one commit, ec4f23e9a3745f1c924f8f75d84e0b943591a1d2. On ec4f23e, Build 41797850701, Review APK 41797850581, Calendar Provider 41797850592 and Follow-up Persistence 41797850655 succeeded; Device Smoke 41797850589 was CANCELLED.
+- Quick Capture at ec4f23e uses inline empty-title feedback plus a floating SnackBar; the unchanged test expects two occurrences. The product choice to keep both or approve a single-message UX remains pending owner clarification.
+- P2P pairing and conflict mechanisms remain proposals only. No owner approval for QR/PIN or LWW/tombstones; local-clock winner selection is not approved.
+- No source-code change, merge or main write was made during this continuity documentation deployment. Local working tree status remains NOT VERIFIED.
+- Release remains **BLOCKED — RELEASE: NO-GO**.
