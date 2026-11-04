@@ -69,7 +69,15 @@ void main() {
 
       // Empty checklists stay compact until the user explicitly adds one.
       expect(find.byKey(const ValueKey('task-detail-checklist')), findsNothing);
-      await tester.tap(find.byKey(const ValueKey('task-detail-add-checklist')));
+      final detailScrollable = find.descendant(
+        of: find.byKey(const ValueKey('task-detail-page')),
+        matching: find.byType(Scrollable),
+      ).first;
+      final addChecklist = find.byKey(const ValueKey('task-detail-add-checklist'));
+      await tester.scrollUntilVisible(addChecklist, 240, scrollable: detailScrollable);
+      await tester.pumpAndSettle();
+      expect(addChecklist, findsOneWidget);
+      await tester.tap(addChecklist);
       await tester.pumpAndSettle();
 
       // ADD

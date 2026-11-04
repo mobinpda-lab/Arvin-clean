@@ -55,7 +55,14 @@ void main() {
     expect(find.text('نسخه نهایی برای مشتری'), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-due-date')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-edit')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-add-followup')), findsOneWidget);
+    final addFollowUp = find.byKey(const ValueKey('task-detail-add-followup'));
+    await tester.scrollUntilVisible(
+      addFollowUp,
+      240,
+      scrollable: _taskDetailPageScrollable(tester),
+    );
+    await tester.pumpAndSettle();
+    expect(addFollowUp, findsOneWidget);
   });
 
   testWidgets('Task detail removes the redundant status badge and shows description placeholder',
@@ -190,6 +197,12 @@ void main() {
 
     expect(find.text('هنوز پیگیری ثبت نشده است'), findsNothing);
     final add = find.byKey(const ValueKey('task-detail-add-followup'));
+    await tester.scrollUntilVisible(
+      add,
+      240,
+      scrollable: _taskDetailPageScrollable(tester),
+    );
+    await tester.pumpAndSettle();
     expect(add, findsOneWidget);
     await tester.tap(add);
     await tester.pumpAndSettle();
@@ -247,9 +260,14 @@ void main() {
     );
 
     final editFollowUp = find.byKey(
-      const ValueKey('task-detail-latest-edit-followup-edit-f1'),
+      const ValueKey('task-detail-edit-followup-edit-f1'),
     );
-    await tester.ensureVisible(editFollowUp);
+    expect(editFollowUp, findsOneWidget);
+    await tester.scrollUntilVisible(
+      editFollowUp,
+      240,
+      scrollable: _taskDetailPageScrollable(tester),
+    );
     await tester.pumpAndSettle();
     await tester.tap(editFollowUp);
     await tester.pumpAndSettle();

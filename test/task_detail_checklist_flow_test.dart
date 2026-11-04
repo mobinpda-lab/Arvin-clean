@@ -25,8 +25,15 @@ void main() {
       ),
     );
 
+    final detailScrollable = find.descendant(
+      of: find.byKey(const ValueKey('task-detail-page')),
+      matching: find.byType(Scrollable),
+    ).first;
+    final checklistCard = find.byKey(const ValueKey('task-detail-checklist'));
+    await tester.scrollUntilVisible(checklistCard, 240, scrollable: detailScrollable);
+    await tester.pumpAndSettle();
     final progress = find.byKey(const ValueKey('task-detail-checklist-progress'));
-    expect(find.byKey(const ValueKey('task-detail-checklist')), findsOneWidget);
+    expect(checklistCard, findsOneWidget);
     expect(progress, findsOneWidget);
     expect(tester.widget<Text>(progress).data, isNotEmpty);
     expect(find.text('کیف'), findsOneWidget);

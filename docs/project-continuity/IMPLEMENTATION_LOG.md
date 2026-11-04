@@ -122,3 +122,12 @@ Every new entry must include exact SHA, workflow/run IDs, terminal conclusion, a
 - Draft Review APK run 41823721031: SUCCESS; artifact 13317704369, 38,206,200 bytes ZIP. Extracted review APK: 76,806,159 bytes, SHA-256 f3f3efdf74bff2b239f24145c69bbd98fbcf2ac0e2f3bb043e70c6f8d9dcea57. Manifest: applicationId com.example.arvin.staging, android_debuggable=false, v2/v3 signature verified, ephemeral test-only signing key, publishable=false, release_created=false. Review/install testing only; not a production/release APK.
 - Device Smoke run 41823721013: still incomplete at last poll. Boot, Navigation, Quick Capture and Task Lifecycle SUCCESS; Reminder/Vazirmatn and Calendar Segmented View IN_PROGRESS; Follow-up Persistence QUEUED. No seven-lane PASS.
 - No tests/assertions were modified, removed, weakened, skipped or bypassed during this audit. No timeout workaround was applied. PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; release remains BLOCKED — RELEASE: NO-GO.
+
+
+## 2026-11-04 — Task Details CI regression repair (implementation pending exact-SHA CI)
+- Fixed analyzer lint by removing redundant string interpolation around the priority label; no lint suppression was added.
+- CI log review identified lazy ListView child construction as the common reason several off-screen reminder/checklist/Follow-up controls were not discoverable at test time. Existing product keys and capabilities were retained. Widget tests now scroll the actual detail-page Scrollable until each target is built, then assert and interact with it.
+- Checklist CRUD test now explicitly scrolls to the empty-state add CTA before tapping it. Follow-up tests assert the add/edit controls exist before scrolling and tapping; the existing Follow-up edit test targets the canonical timeline edit key.
+- Existing relative Today-vs-due-date geometry assertions are retained; no fixed pixel threshold, assertion deletion, skip, weakened expectation or timeout workaround was introduced.
+- Local Flutter/Dart execution is unavailable in this runtime; flutter analyze and complete flutter test are NOT VERIFIED here. Exact-SHA GitHub Actions results are required for acceptance.
+- PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; release remains BLOCKED — RELEASE: NO-GO.
