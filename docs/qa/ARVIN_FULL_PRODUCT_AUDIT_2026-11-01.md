@@ -1377,3 +1377,28 @@ The canonical A–J baseline remains complete in §3 and the detailed A1–J7 ma
 - Release remains **BLOCKED — RELEASE: NO-GO**.
 - Fix the two undefined `tester` references in the integration test without removing its app launch or screenshot assertions; diagnose why T14a/Complete handler are not reached without relaxing timeout/assertions; make each smoke lane create and upload a non-empty valid PNG, then inspect artifact names, sizes and PNG signatures.
 - Any documentation commit advances the branch HEAD. All Build, SQLite, Device Smoke and Parallel Wave evidence above remains historical for SHA `8ccbc90...` and must not be carried forward to the new SHA.
+
+
+---
+
+## 2026-11-04 — Master Task Details implementation checkpoint
+
+**Owner authorization:** Issue #823 and PR #3052 now explicitly record the product-owner exception for Master Task Details, Inline Editing and Task Clone. Authorized branch remains `fix/recovery-calendar-device-smoke-2026-10-31`.
+
+**Implemented source changes at this checkpoint**
+- `TaskReminder.isEnabled` is persisted in the canonical Task JSON envelope. Older reminder JSON without the field defaults to enabled.
+- `FollowUpReminderAlarmPlanner` skips disabled independent reminders and suppresses the pre-migration legacy reminder date when its canonical legacy reminder entry is disabled.
+- `TaskDetailPage` now renders canonical project/center/template provenance when available, status and priority controls, reminder switches, recurrence future-occurrence preview, people/timestamps, clone action, inline title/description editing and fixed delete/complete/edit actions.
+- `main.dart` wires Task changes to TaskStore, project/center resolution, Task cloning and trash lifecycle. Clone behavior intentionally creates a new Task identity, resets completion and Follow-up history, clears scheduled reminders to avoid duplicating notifications, resets occurrence histories, and retains project membership through the existing project-selection pathway.
+- Tests added for reminder enablement persistence/scheduling, backward-compatible defaults, inline title/description editing, reminder toggling and clone action invocation.
+
+**Known incomplete / NOT VERIFIED**
+- Inline editing is not yet field-complete: title/description, status, priority, reminders, recurrence and checklist interactions are available; project/category/tags/due-date and other editor fields still use the existing full editor pathway.
+- Task execution-time is not a canonical model field; the UI must not infer it from createdAt or dueDate.
+- No canonical assignee field exists in Task; related people remain distinct from a responsible-person assignment.
+- Template name is shown only from ProjectPlan.templateNameSnapshot; no fabricated template name is permitted.
+- Checklist progress styling has not yet received dedicated visual acceptance.
+- No test or analyzer result for the latest implementation SHA is recorded in this entry. Exact-SHA CI is required.
+- The latest pre-change SHA `679972a8f2d58d29ceda2c0718886c6aab9a5872` had Build SUCCESS, Follow-up File Persistence SUCCESS and Calendar Provider SUCCESS, but Device Smoke FAILURE (one lane failed, one lane cancelled). Those results do not apply to later commits.
+
+**Governance:** PR #3052 remains OPEN / DRAFT / UNMERGED. No main edits, merge, release or APK publication. Release remains **BLOCKED — RELEASE: NO-GO**.
