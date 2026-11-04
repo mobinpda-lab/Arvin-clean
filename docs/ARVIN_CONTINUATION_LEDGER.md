@@ -1580,33 +1580,39 @@ PR #3052 remains OPEN / DRAFT / UNMERGED. main untouched. **BLOCKED — RELEASE:
 - Root cause is localized to the selected-item builder's icon+label Row inside the bounded Dropdown width; it does not indicate a Task persistence/reminder/calendar failure. Corrective change removes only the redundant icon from the selected state while retaining the dynamic color and full Persian option labels, and restores the established custom date/time action label. No tests/assertions are skipped, deleted, weakened, or given artificial timeouts.
 
 
-## 2026-11-04 — Owner directive execution checkpoint (SHA `93a7c2ba4526c782306e42b19ba3b159f7c8a738`)
+## 2026-11-04 — Report Center, Quick Capture and exact-SHA acceptance (SHA `9b52d43d1266e258a91a77e3c469589f483c66c9`)
 
-### Governance and exact-SHA workflow evidence
-- PR #3052 was rechecked as OPEN / DRAFT / UNMERGED on `fix/recovery-calendar-device-smoke-2026-10-31`; branch HEAD and PR head were both `93a7c2ba4526c782306e42b19ba3b159f7c8a738`. Base/main remained `45e4202b03a434459e4c021a04efa7e8396359db`.
-- Build run `41793424410`: Analyze SUCCESS; test shards 1–5 SUCCESS; shard 0 FAILURE with one failure, `quick capture rejects empty input with visible feedback`, at `test/quick_capture_dialog_test.dart:204`. The assertion expected two visible occurrences of «عنوان برای ثبت کافی است» but found one. The remaining 211 tests in that shard passed. APK matrix was SKIPPED by the Draft guard.
-- Draft Review APK run `41793424492`: SUCCESS. Its font gate reported `PASS_VAZIRMATN_BUNDLED_SYSTEM_DEFAULT_PURGED` with Vazirmatn Regular, Medium and Bold bundled.
-- Calendar Provider Acceptance run `41793424400`: SUCCESS. It verified CREATE, no-op update/no duplicate, update of the same event, DELETE and `CALENDAR_TASK_SURVIVAL_AFTER_PROVIDER_DELETE=PASS`. The canonical Task remained in TaskStore after its projected provider event was deleted.
-- Follow-up File Persistence run `41793424575`: SUCCESS.
-- Device Smoke run `41793424356`: final conclusion CANCELLED. Boot, Navigation, Quick Capture, Task Lifecycle, Reminder/Vazirmatn and Follow-up Persistence passed; Calendar Segmented View was cancelled. Seven-lane Device Smoke is therefore NOT VERIFIED on this SHA. Its log ended with a cancelled operation and no screenshot artifact; no success is inferred.
+### Governance and source identity
+- The branch advanced from `93a7c2ba4526c782306e42b19ba3b159f7c8a738` through the report-filter implementation and test corrections to `9b52d43d1266e258a91a77e3c469589f483c66c9`. The final source change in this sequence was a test-only correction to route the completed-follow-up empty-state test through the unified Filters menu; it did not change the quick-capture empty-title implementation.
+- At this checkpoint, branch HEAD and PR #3052 head both equal `9b52d43d1266e258a91a77e3c469589f483c66c9`. PR remains OPEN / DRAFT / UNMERGED. Main was not changed.
+- Build Run `41801818527` on this exact SHA: SUCCESS. Analyze and all six test shards completed successfully. The unchanged test `quick capture rejects empty input with visible feedback` passed in test shard 0. APK matrix was SKIPPED by the Draft guard; this is not an APK build/pass.
+- Calendar Provider Acceptance Run `41801818499`: SUCCESS. Follow-up File Persistence Run `41801818518`: SUCCESS.
+- Device Smoke Run `41801818497`: still IN_PROGRESS at this checkpoint. Boot, Navigation, Quick Capture, Task Lifecycle and Reminder/Vazirmatn lanes completed successfully; Calendar Segmented View and Follow-up Persistence lanes remained in progress. Do not report seven-lane completion until the run has a terminal conclusion.
 
-### Quick Capture corrective change
-- The empty-title path retains the inline `InputDecoration.errorText` and now also emits the same short-lived floating SnackBar. This preserves the compact form height while providing both visible feedback surfaces required by the unchanged test.
-- The test `quick capture rejects empty input with visible feedback` is retained unchanged; no test, assertion, scenario or timeout is removed, skipped or weakened.
-- This change is source-level only until the new exact-SHA Analyze and all test shards finish. No Build PASS is claimed yet.
+### Quick Capture — implementation and test evidence
+- The compact Quick Capture form and its empty-title validation remain present. The original test and assertion were not deleted, skipped, or weakened.
+- On exact SHA `9b52d43`, Build test shard 0 reported `quick capture rejects empty input with visible feedback` PASS. Device Smoke lane `smoke-quick-capture` also completed SUCCESS and emitted `quick-capture.png`, `persian-time-picker.png`, and `smoke-quick-capture-final.png`.
+- The test pass establishes the asserted visible feedback, not that two independent user-facing messages are required. No duplicate message or acceptance-criteria change is recorded here.
 
-### Calendar independence audit — accepted product evidence
-- The Provider test proves that deleting the projected provider event does not delete the canonical Task; title, description and due date survive in TaskStore.
-- External event projection remains read-only. `CalendarInboundSyncService` does not write or delete canonical Task/Reminder records; the UI does not expose Arvin-owned destructive actions for external rows.
-- The independent scenario “delete an entire external calendar and prove all related canonical Arvin Tasks remain” is still NOT VERIFIED on a physical device. Do not extend the event-deletion test result to that untested scenario.
+### Report Center — implementation and test evidence
+- The independent top-level «گزارش پیگیری‌های انجام‌شده» action was removed from the Report Center entry view. The report remains reachable through the unified «فیلترها» route under report type.
+- The unified filter flow retains report type and time controls; center and searchable task controls are covered by the Report Center widget test. Completed-follow-up report selection and its empty-state view are covered by the dedicated report tests.
+- On exact SHA `9b52d43`, the relevant tests passed: `completed follow-up report is selected through unified filters`, `Report Center exposes center and searchable task controls`, `Report Center shows genuine Follow-ups, groups by taskId and opens Task Details`, and `Completed Follow-up report shows the exact empty state`.
+- Device Smoke Navigation lane completed SUCCESS and produced `report-center.png`, `report-center-filters.png`, and `report-center-completed-follow-ups.png`. The images were downloaded from Run `41801818497` and visually inspected. The Report Center screenshot shows no separate top-level completed-follow-up button; the filter screenshot shows the unified report-type and time sections; the selected report screenshot shows the completed-follow-up report and its empty-state message.
+- The screenshots do not independently prove every lower filter section's visual layout or every possible filter combination. The tests and screenshot evidence must not be overstated beyond their assertions.
 
-### بند ۹ — Canonical product hierarchy
-Owner-approved hierarchy is **مرکز > پروژه > دسته > کار**. «مرکز» is the canonical top-level entity; «واحد» is not an interchangeable product label. This hierarchy must be consistent in data relationships, selection flows, filtering and product-facing documentation. The hierarchy decision is recorded; full-repository implementation consistency remains subject to exact-source audit.
+### بند ۹ — canonical hierarchy
+- **تصمیم محصول:** سلسله‌مراتب مصوب «مرکز > پروژه > دسته > کار» است؛ «مرکز» سطح بالادستی است و با «واحد» جایگزین نمی‌شود.
+- **پیاده‌سازی‌شده:** گزارش و فیلترها از انتخاب مرکز و کنترل‌های پروژه/دسته/برچسب پشتیبانی می‌کنند؛ شواهد کامل همسانی تمام مسیرهای داده و همه صفحات در این checkpoint ثبت نشده است.
+- **آزمون‌شده:** تست Report Center برای کنترل مرکز و جست‌وجوی کار موفق است؛ این تست به‌تنهایی انطباق کامل همه روابط محصولی با سلسله‌مراتب را ثابت نمی‌کند.
 
-### P2P-0 — explicit owner decisions
-- Pairing: direct local device-to-device pairing on shared Wi-Fi or hotspot, using either QR Code scanning or a six-digit PIN. No Internet, external server, account or Dropbox dependency is permitted in Phase 1.
-- Conflict resolution: Last-Write-Wins using last-edit timestamp. Deletions propagate through tombstone records to prevent older replicas from resurrecting deleted data.
-- Still NOT DECIDED: clock skew and equal-timestamp tie-break; QR/PIN expiry and rate limits; cryptographic identity/key agreement/encryption; key rotation and revocation; operation IDs, idempotency, acknowledgements, retry/resume; tombstone retention/purge; Android background constraints.
-- These owner decisions authorize documentation and contract design only. They do not establish implementation, security approval or real-device acceptance.
+### Calendar independence — confirmed scope and open items
+- **آزمون‌شده:** Calendar Provider Acceptance Run `41801818499` موفق است و سناریوی حذف رویداد پروجکت‌شده و بقای Task canonical در TaskStore را پوشش می‌دهد. Providerهای خارجی در مسیر ورودی read-only هستند و نباید به‌عنوان مرجع حذف یا ویرایش Taskهای آروین تلقی شوند.
+- **نامشخص / باز:** حذف کامل یک تقویم خارجی و اثبات بقای همه Taskهای مرتبط در دستگاه واقعی؛ حذف کامل تقویم جانبی از تمام مسیرهای محصول؛ تکمیل Device Smoke هفت‌مسیره روی این SHA تا پایان Run.
 
-**Disposition:** Quick Capture fix committed for validation only after this documentation/source update; Device Smoke seven-lane gate NOT VERIFIED; Build correction pending; PR #3052 OPEN / DRAFT / UNMERGED; main unchanged; **BLOCKED — RELEASE: NO-GO**.
+### P2P-0 — proposals only, not owner-approved decisions
+- QR Code یا PIN شش‌رقمی برای جفت‌سازی مستقیم روی Wi-Fi/هات‌اسپات و Last-Write-Wins همراه Tombstone صرفاً **پیشنهاد طراحی** هستند و تصمیم نهایی مالک محصول محسوب نمی‌شوند.
+- تعیین برنده تعارض با ساعت دستگاه‌ها تأیید نشده و نباید تثبیت شود. امنیت جفت‌سازی، احراز هویت، تبادل کلید، رمزنگاری، انحراف ساعت، tie-break قطعی، replay/idempotency، تأیید دریافت، بازیابی اتصال و سیاست نگهداری Tombstone همگی نیازمند بررسی و تصمیم جداگانه‌اند.
+- **پیاده‌سازی و آزمون P2P:** NOT VERIFIED؛ هیچ قرارداد اجرایی نهایی یا پذیرش امنیتی در این checkpoint ادعا نمی‌شود.
+
+**Disposition:** Build PASS on `9b52d43`; Calendar Provider and Follow-up Persistence SUCCESS; Device Smoke remains IN_PROGRESS at checkpoint; PR #3052 OPEN / DRAFT / UNMERGED; main unchanged; **BLOCKED — RELEASE: NO-GO**.
