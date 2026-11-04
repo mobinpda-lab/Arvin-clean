@@ -56,6 +56,7 @@ import 'services/task_edit_apply_service.dart';
 import 'services/task_bulk_mutation_service.dart';
 import 'services/task_bulk_selection_service.dart';
 import 'services/task_store.dart';
+import 'services/task_clone_service.dart';
 import 'services/startup_permission_service.dart';
 import 'services/wave2_product_fast_track.dart';
 import 'services/widget_task_bridge.dart';
@@ -1706,22 +1707,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<Task?> _cloneTaskFromDetail(Task source) async {
-    final now = DateTime.now();
-    final payload = Map<String, dynamic>.from(source.toJson());
-    payload['id'] = now.microsecondsSinceEpoch.toString();
-    payload['title'] = 'کپی — ' + source.title;
-    payload['createdAt'] = now.toIso8601String();
-    payload['updatedAt'] = now.toIso8601String();
-    payload['completed'] = false;
-    payload.remove('completedAt');
-    payload['followUps'] = <dynamic>[];
-    payload['taskReminders'] = <dynamic>[];
-    payload.remove('reminderDate');
-    payload.remove('followUpEnabled');
-    payload.remove('followUpDate');
-    payload['checklistOccurrences'] = <String, dynamic>{};
-    payload['occurrenceHistory'] = <String, dynamic>{};
-    final clone = Task.fromJson(payload);
+    final clone = const TaskCloneService().clone(source);
     final next = List<Task>.of(tasks)..add(clone);
     await taskStore.save(next);
     await wave2ProductFastTrack.persistProjectSelection(
