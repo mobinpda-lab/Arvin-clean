@@ -156,7 +156,7 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
   }
 
   Future<void> _openFilters() async {
-    final result = await showModalBottomSheet<TaskReportFilter>(
+    final result = await showModalBottomSheet<_ReportFilterResult>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -170,28 +170,39 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
         now: _now,
       ),
     );
-    if (result != null) {
-      setState(() => _filter = result);
-      if (result.showExternalCalendarEvents) {
-        await _refreshUnimportedDeviceEvents();
-      }
+    if (result == null) return;
+    setState(() => _filter = result.filter);
+    if (result.openCompletedFollowUpReport) {
+      final followUpFilter = result.filter.copyWith(
+        timePreset: ReportTimePreset.all,
+        clearFromDate: true,
+        clearToDate: true,
+        clearFromTime: true,
+        clearToTime: true,
+      );
+      final followUpTasks = followUpFilter.apply(
+        widget.tasks,
+        now: _now,
+        projects: widget.projects,
+      );
+      await showDialog<void>(
+        context: context,
+        builder: (_) => CompletedFollowUpReportDialog(
+          tasks: followUpTasks,
+          people: _peopleDirectory,
+          initialDay: _now.toLocal(),
+        ),
+      );
+      return;
+    }
+    if (result.filter.showExternalCalendarEvents) {
+      await _refreshUnimportedDeviceEvents();
     }
   }
 
   void _clear() => setState(() {
         _filter = const TaskReportFilter();
       });
-
-  Future<void> _openCompletedFollowUpReport() async {
-    await showDialog<void>(
-      context: context,
-      builder: (_) => CompletedFollowUpReportDialog(
-        tasks: widget.tasks,
-        people: _peopleDirectory,
-        initialDay: _now.toLocal(),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -241,18 +252,6 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                     label: const Text('فیلترها'),
                   ),
                 ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  key: const ValueKey('report-center-completed-follow-ups'),
-                  onPressed: _openCompletedFollowUpReport,
-                  icon: const Icon(Icons.task_alt_outlined),
-                  label: const Text('گزارش پیگیری‌های انجام‌شده'),
-                ),
               ),
             ),
             if (_filter.isActive)
@@ -571,6 +570,16 @@ class _ActiveFilterChips extends StatelessWidget {
 }
 
 
+class _ReportFilterResult {
+  const _ReportFilterResult({
+    required this.filter,
+    this.openCompletedFollowUpReport = false,
+  });
+
+  final TaskReportFilter filter;
+  final bool openCompletedFollowUpReport;
+}
+
 class _ReportFilterSheet extends StatefulWidget {
   const _ReportFilterSheet({
     required this.initial,
@@ -623,6 +632,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
   bool? _hasFollowUp;
   bool? _waitingForResponse;
   bool _showExternalCalendarEvents = false;
+  bool _openCompletedFollowUpReport = false;
   bool? _hasChecklist;
 
   @override
@@ -727,7 +737,9 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
 
   void _apply() {
     Navigator.of(context).pop(
-      TaskReportFilter(
+      _ReportFilterResult(
+        openCompletedFollowUpReport: _openCompletedFollowUpReport,
+        filter: TaskReportFilter(
         timePreset: _timePreset,
         fromDate: _fromDate,
         toDate: _toDate,
@@ -760,6 +772,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
         hasRepeat: _hasRepeat,
         hasFollowUp: _hasFollowUp,
         hasChecklist: _hasChecklist,
+        ),
       ),
     );
   }
@@ -821,6 +834,31 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                 children: [
+            _Section(
+              title: 'نوع گزارش',
+              icon: Icons.assessment_outlined,
+              accentColor: ArvinColors.primary,
+              selectedCount: _openCompletedFollowUpReport ? 1 : 0,
+              initiallyExpanded: true,
+              child: Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: [
+                  ChoiceChip(
+                    key: const ValueKey('report-filter-type-tasks'),
+                    label: const Text('گزارش کارها'),
+                    selected: !_openCompletedFollowUpReport,
+                    onSelected: (_) => setState(() => _openCompletedFollowUpReport = false),
+                  ),
+                  ChoiceChip(
+                    key: const ValueKey('report-filter-type-completed-follow-ups'),
+                    label: const Text('گزارش پیگیری‌های انجام‌شده'),
+                    selected: _openCompletedFollowUpReport,
+                    onSelected: (_) => setState(() => _openCompletedFollowUpReport = true),
+                  ),
+                ],
+              ),
+            ),
             _Section(
               title: 'زمان',
               icon: Icons.schedule_outlined,
