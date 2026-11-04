@@ -409,7 +409,7 @@ Future<DateTime?> _pickCustomDue() async {
           children: [
             const Text('اولویت', textAlign: TextAlign.right,
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: ArvinColors.textPrimary)),
-            const SizedBox(height: 10),
+            const SizedBox(height: 4),
             Row(
               textDirection: TextDirection.rtl,
               children: TaskPriority.values.map((priority) {
@@ -428,7 +428,7 @@ Future<DateTime?> _pickCustomDue() async {
                         onTap: _saving ? null : () => setState(() => _priority = priority),
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 150),
-                          padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 2),
+                          padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 2),
                           decoration: BoxDecoration(
                             color: color.withValues(alpha: selected ? 0.18 : 0.09),
                             borderRadius: BorderRadius.circular(12),
@@ -443,14 +443,14 @@ Future<DateTime?> _pickCustomDue() async {
                                 _dateFormatter.toPersianDigits('اولویت ${priority.sortOrder}'),
                                 textAlign: TextAlign.center,
                                 maxLines: 1,
-                                style: TextStyle(color: color, fontSize: 10.5, fontWeight: FontWeight.w800),
+                                style: TextStyle(color: color, fontSize: 10, height: 1.15, fontWeight: FontWeight.w800),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 hints[priority]!,
                                 textAlign: TextAlign.center,
                                 maxLines: 2,
-                                style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 8.5, height: 1.25),
+                                style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 8, height: 1.15),
                               ),
                             ],
                           ),
@@ -467,7 +467,7 @@ Future<DateTime?> _pickCustomDue() async {
     );
   }
 
-  Widget _surfaceCard({required Widget child, EdgeInsets padding = const EdgeInsets.all(12)}) {
+  Widget _surfaceCard({required Widget child, EdgeInsets padding = const EdgeInsets.all(8)}) {
     return Card(
       elevation: 1,
       shadowColor: ArvinColors.shadowSoft,
@@ -501,7 +501,7 @@ Future<DateTime?> _pickCustomDue() async {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 720),
           child: Padding(
-            padding: EdgeInsets.fromLTRB(12, 6, 12, bottomInset + 8),
+            padding: EdgeInsets.fromLTRB(12, 4, 12, bottomInset + 6),
             child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -511,7 +511,7 @@ Future<DateTime?> _pickCustomDue() async {
                       color: ArvinColors.primaryDark,
                       borderRadius: BorderRadius.vertical(bottom: Radius.circular(18)),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                     child: Row(
                       textDirection: TextDirection.rtl,
                       children: [
@@ -525,7 +525,7 @@ Future<DateTime?> _pickCustomDue() async {
                         const Expanded(child: Text(
                           'ثبت سریع کار',
                           textAlign: TextAlign.center,
-                          style: TextStyle(fontFamily: 'Vazirmatn', color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800),
+                          style: TextStyle(fontFamily: 'Vazirmatn', color: Colors.white, fontSize: 17, height: 1.15, fontWeight: FontWeight.w800),
                         )),
                         IconButton(
                           key: const ValueKey('quick-capture-full-form'),
@@ -538,7 +538,7 @@ Future<DateTime?> _pickCustomDue() async {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
                   _surfaceCard(
                     child: TextField(
                       key: const ValueKey('quick-capture-input'),
@@ -559,14 +559,14 @@ Future<DateTime?> _pickCustomDue() async {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
                   _surfaceCard(
                     child: TextField(
                       key: const ValueKey('quick-capture-description'),
                       controller: _descriptionController,
                       enabled: !_saving,
-                      minLines: 2,
-                      maxLines: 3,
+                      minLines: 1,
+                      maxLines: 2,
                       textDirection: TextDirection.rtl,
                       decoration: const InputDecoration(
                         hintText: 'توضیحات تکمیلی...',
@@ -575,7 +575,7 @@ Future<DateTime?> _pickCustomDue() async {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
                   _surfaceCard(
                     child: Align(
                       alignment: AlignmentDirectional.centerStart,
@@ -586,10 +586,11 @@ Future<DateTime?> _pickCustomDue() async {
                         textDirection: TextDirection.rtl,
                         children: [
                           SizedBox(
-                            width: 128,
+                            width: 112,
                             child: ArvinRollBox<String>(
                               key: const ValueKey('quick-capture-center-rollbox'),
                               label: 'مرکز',
+                              compact: true,
                               valueLabel: selectedCenter.isEmpty ? 'مرکز' : selectedCenter.first.name,
                               icon: Icons.business_outlined,
                               color: ArvinColors.primary,
@@ -614,10 +615,11 @@ Future<DateTime?> _pickCustomDue() async {
                           ),
                           const SizedBox(width: 8),
                           SizedBox(
-                            width: 148,
+                            width: 124,
                             child: ArvinRollBox<String>(
                               key: const ValueKey('quick-capture-project-rollbox'),
                               label: 'پروژه',
+                              compact: true,
                               valueLabel: selectedProject.isEmpty ? 'پروژه' : selectedProject.first.title,
                               icon: Icons.folder_outlined,
                               color: ArvinColors.project,
@@ -690,6 +692,7 @@ Future<DateTime?> _pickCustomDue() async {
                             child: ArvinRollBox<String>(
                               key: const ValueKey('quick-capture-category-rollbox'),
                               label: 'دسته',
+                              compact: true,
                               valueLabel: _categoryController.text.trim().isEmpty ? 'دسته' : _categoryController.text.trim(),
                               icon: Icons.grid_view_rounded,
                               color: ArvinColors.tag,
@@ -728,8 +731,9 @@ Future<DateTime?> _pickCustomDue() async {
                           ),
                           const SizedBox(width: 8),
                           SizedBox(
-                            width: 152,
+                            width: 120,
                             child: ArvinTagRollBox(
+                              compact: true,
                               key: const ValueKey('quick-capture-tag-rollbox'),
                               tags: _knownTags,
                               selectedTags: _selectedTags,
@@ -778,9 +782,10 @@ Future<DateTime?> _pickCustomDue() async {
                       child: Row(
                         textDirection: TextDirection.rtl,
                         children: [
-                          SizedBox(width: 148, child: ArvinRollBox<Object?>(
+                          SizedBox(width: 124, child: ArvinRollBox<Object?>(
                             key: const ValueKey('quick-capture-due-rollbox'),
                             label: 'تاریخ و ساعت',
+                            compact: true,
                             valueLabel: _dueDate == null ? 'تاریخ و ساعت' : _dateLabel(_dueDate),
                             icon: Icons.calendar_today_outlined,
                             color: ArvinColors.time,
@@ -798,6 +803,7 @@ Future<DateTime?> _pickCustomDue() async {
                           SizedBox(width: 148, child: ArvinRollBox<Object?>(
                             key: const ValueKey('quick-capture-reminder-rollbox'),
                             label: 'یادآور',
+                            compact: true,
                             valueLabel: _reminderDate == null ? 'یادآور' : _dateLabel(_reminderDate),
                             icon: Icons.notifications_none_outlined,
                             color: ArvinColors.reminder,
@@ -819,9 +825,10 @@ Future<DateTime?> _pickCustomDue() async {
                             },
                           )),
                           const SizedBox(width: 8),
-                          SizedBox(width: 132, child: ArvinRollBox<RecurrenceRule?>(
+                          SizedBox(width: 108, child: ArvinRollBox<RecurrenceRule?>(
                             key: const ValueKey('quick-capture-recurrence-rollbox'),
                             label: 'تکرار',
+                            compact: true,
                             valueLabel: _recurrenceLabel(),
                             icon: Icons.repeat_rounded,
                             color: ArvinColors.category,
@@ -841,9 +848,9 @@ Future<DateTime?> _pickCustomDue() async {
                     ),
                   ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
                   _priorityDropdown(),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
                   Row(
                     textDirection: TextDirection.rtl,
                     children: [
@@ -852,18 +859,24 @@ Future<DateTime?> _pickCustomDue() async {
                         style: FilledButton.styleFrom(
                           backgroundColor: ArvinColors.primary,
                           foregroundColor: Colors.white,
-                          minimumSize: const Size.fromHeight(50),
+                          minimumSize: const Size.fromHeight(44),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                         ),
                         onPressed: _saving ? null : _submit,
                         child: Text(_saving ? 'در حال ثبت…' : 'ثبت کار'),
                       )),
+                      const SizedBox(width: 8),
+                      TextButton(
+                        key: const ValueKey('quick-capture-cancel'),
+                        style: TextButton.styleFrom(
+                          minimumSize: const Size(64, 44),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                          tapTargetSize: MaterialTapTargetSize.padded,
+                        ),
+                        onPressed: _saving ? null : () => Navigator.of(context).pop(),
+                        child: const Text('لغو'),
+                      ),
                     ],
-                  ),
-                  TextButton(
-                    key: const ValueKey('quick-capture-cancel'),
-                    onPressed: _saving ? null : () => Navigator.of(context).pop(),
-                    child: const Text('لغو'),
                   ),
                 ],
               ),
