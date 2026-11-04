@@ -1,5 +1,5 @@
 # Arvin Project Continuity
-Last reviewed: 1405/08/13 — 2026-11-04 12:53 Asia/Tehran
+Last reviewed: ۱۴۰۵/۰۸/۱۴ — 2026-11-05 02:38 Asia/Tehran
 Repository: mobinpda-lab/Arvin-clean
 Active branch: fix/recovery-calendar-device-smoke-2026-10-31
 Related PR: #3052
@@ -61,3 +61,6 @@ Project reports use Asia/Tehran time and Gregorian plus Hijri Shamsi dates. Last
 - اصلاح test-3 در این SHA: scrollUntilVisible قبل از pumpAndSettle و assertion اجرا می‌شود؛ Finder و assertion حفظ شده و تست تضعیف نشده است.
 - PR #3052 هنگام ممیزی OPEN / DRAFT / UNMERGED؛ main تغییر نکرد؛ Vazirmatn و فیلدهای canonical Task حفظ؛ Release: BLOCKED — RELEASE: NO-GO.
 - این snapshot فقط وضعیت runهای SHA ممیزی‌شده را ثبت می‌کند؛ commit مستندات SHA تازه‌ای می‌سازد و PASSهای قبلی را به SHA تازه منتقل نمی‌کند.
+
+
+Latest audit record: PRODUCT_DECISIONS.md → Module-Core-Logic v1.0 crosswalk; exact-SHA evidence and limitations are in IMPLEMENTATION_LOG.md and the root continuation Ledger.
