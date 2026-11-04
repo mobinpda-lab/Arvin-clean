@@ -453,5 +453,51 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('completed follow-up report is selected through unified filters',
+      (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReportCenterPage(
+          now: DateTime(2026, 11, 4, 10),
+          tasks: [
+            Task(
+              id: 'follow-up-task',
+              title: 'پیگیری نمونه',
+              followUps: [
+                FollowUp(
+                  id: 'follow-up-record',
+                  dateTime: DateTime(2026, 11, 4, 9),
+                  note: 'تماس انجام شد',
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+
+    expect(find.byKey(const ValueKey('report-center-completed-follow-ups')),
+        findsNothing);
+    await tester.tap(find.byKey(const ValueKey('report-center-filters')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(
+      const ValueKey('report-filter-type-completed-follow-ups'),
+    ), findsOneWidget);
+    await tester.tap(find.byKey(
+      const ValueKey('report-filter-type-completed-follow-ups'),
+    ));
+    await tester.pumpAndSettle();
+
+    final apply = find.byKey(const ValueKey('report-filter-apply'));
+    await tester.ensureVisible(apply);
+    await tester.tap(apply);
+    await tester.pumpAndSettle();
+
+    expect(find.text('گزارش پیگیری‌های انجام‌شده'), findsOneWidget);
+    expect(find.text('پیگیری نمونه'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
 }
 
