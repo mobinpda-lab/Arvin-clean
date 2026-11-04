@@ -318,7 +318,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('ثبت سریع کار'), findsOneWidget);
-    expect(find.byKey(const ValueKey('quick-capture-description')), findsNothing);
+    expect(find.byKey(const ValueKey('quick-capture-description')), findsOneWidget);
     expect(find.text('پروژه'), findsOneWidget);
     expect(find.text('یادآور'), findsOneWidget);
     expect(find.text('تکرار'), findsOneWidget);
@@ -332,6 +332,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(captured.single.title, 'کار فقط با عنوان');
+    expect(captured.single.description, '');
   });
 
 
@@ -783,7 +784,7 @@ void main() {
     final input = find.byKey(const ValueKey('quick-capture-input'));
     await tester.enterText(input, 'خرید فرش اتاق');
 
-    expect(find.byKey(const ValueKey('quick-capture-description')), findsNothing);
+    expect(find.byKey(const ValueKey('quick-capture-description')), findsOneWidget);
     expect(find.byKey(const ValueKey('quick-capture-checklist-enabled')), findsNothing);
     expect(find.byKey(const ValueKey('quick-capture-checklist-rollbox')), findsNothing);
     expect(find.byKey(const ValueKey('quick-capture-follow-up-enabled')), findsNothing);
@@ -794,6 +795,7 @@ void main() {
     expect(continued, isNotNull);
     expect(continued!.id, 'quick-full-form-handoff');
     expect(continued!.title, 'خرید فرش اتاق');
+    expect(continued!.description, '');
     expect(continued!.checklistEnabled, isFalse);
     expect(continued!.checklist, isEmpty);
     expect(tester.widget<TextField>(input).controller!.text, 'خرید فرش اتاق');
