@@ -119,7 +119,7 @@ void main() {
         'quick-capture-reminder-rollbox',
         'quick-capture-recurrence-rollbox',
       ]) {
-        expect(tester.getRect(find.byKey(ValueKey(key))).height, 42);
+        expect(tester.getRect(find.byKey(ValueKey(key))).height, 40);
       }
       expect(
         tester.getRect(find.byKey(const ValueKey('quick-capture-priority-option-1'))).height,
