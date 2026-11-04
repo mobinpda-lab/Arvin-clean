@@ -194,3 +194,74 @@ void main() {
     expect(find.text('یک کپی مستقل از کار ایجاد شد'), findsOneWidget);
   });
 }
+
+
+  testWidgets('Task Details presents summary, metadata and due date once in RTL order', (tester) async {
+    final task = Task(
+      id: 'visual-order-1',
+      title: 'کار نمونه',
+      description: 'شرح مستقل',
+      dueDate: DateTime(2026, 11, 15, 10, 30),
+      createdAt: DateTime(2026, 11, 1, 8),
+      category: 'تجهیزات',
+      tags: const ['فوری', 'بخش بستری'],
+    );
+    await tester.viewports.setPhysicalSize(const Size(900, 1600));
+    await tester.viewports.setDevicePixelRatio(1);
+    await tester.pumpWidget(MaterialApp(
+      home: TaskDetailPage(
+        task: task,
+        centerName: 'مرکز نمونه',
+        project: ProjectPlan(id: 'visual-project', title: 'پروژه نمونه'),
+        onEdit: (value) async => value,
+        onTaskChanged: (value) async => value,
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('task-detail-summary-card')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-description-card')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-metadata')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-due-date-card')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-status-menu')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-priority-menu')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-due-date')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-due-date-full')), findsNothing);
+    expect(find.text('افراد مرتبط'), findsNothing);
+    expect(find.text('مسئول مستقل برای این کار تعریف نشده است'), findsNothing);
+
+    final summaryY = tester.getTopLeft(find.byKey(const ValueKey('task-detail-summary-card'))).dy;
+    final descriptionY = tester.getTopLeft(find.byKey(const ValueKey('task-detail-description-card'))).dy;
+    final metadataY = tester.getTopLeft(find.byKey(const ValueKey('task-detail-metadata'))).dy;
+    final dueY = tester.getTopLeft(find.byKey(const ValueKey('task-detail-due-date-card'))).dy;
+    expect(summaryY, lessThan(descriptionY));
+    expect(descriptionY, lessThan(metadataY));
+    expect(metadataY, lessThan(dueY));
+    expect(tester.widget<Directionality>(find.ancestor(of: find.byKey(const ValueKey('task-detail-page')), matching: find.byType(Directionality)).first).textDirection, TextDirection.rtl);
+    await tester.viewports.resetPhysicalSize();
+  });
+
+  testWidgets('Task Details does not present related people as assignees and keeps bottom content clear', (tester) async {
+    final task = Task(
+      id: 'related-people-1',
+      title: 'کار با افراد مرتبط',
+      people: const [PersonReference(id: 'p1', displayName: 'شخص مرتبط')],
+      checklistEnabled: true,
+      checklist: const ['[ ] مورد پایانی'],
+    );
+    await tester.pumpWidget(MaterialApp(
+      home: TaskDetailPage(
+        task: task,
+        onChecklistChanged: (value, items) async => value,
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.text('افراد مرتبط'), findsOneWidget);
+    expect(find.text('مسئول: شخص مرتبط'), findsNothing);
+    final list = tester.widget<ListView>(find.byKey(const ValueKey('task-detail-content-list')));
+    expect(list.padding, const EdgeInsets.fromLTRB(16, 14, 16, 120));
+    expect(find.byKey(const ValueKey('task-detail-delete')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-complete')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-bottom-edit')), findsOneWidget);
+  });
