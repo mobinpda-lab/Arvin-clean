@@ -765,8 +765,8 @@ Future<DateTime?> _pickCustomDue() async {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 10),
                   ),
+                  const SizedBox(height: 10),
                   _surfaceCard(
                     child: Align(
                       alignment: AlignmentDirectional.centerStart,
