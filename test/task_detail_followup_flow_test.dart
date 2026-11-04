@@ -262,13 +262,13 @@ void main() {
     final editFollowUp = find.byKey(
       const ValueKey('task-detail-latest-edit-followup-edit-f1'),
     );
-    expect(editFollowUp, findsOneWidget);
     await tester.scrollUntilVisible(
       editFollowUp,
-      240,
+      200,
       scrollable: _taskDetailPageScrollable(tester),
     );
     await tester.pumpAndSettle();
+    expect(editFollowUp, findsOneWidget);
     await tester.tap(editFollowUp);
     await tester.pumpAndSettle();
 
