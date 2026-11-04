@@ -1350,6 +1350,12 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           children: [
             _summaryCard(),
             _statusPriorityCard(),
+            if (_task.checklistEnabled) ...[
+              const SizedBox(height: 10),
+              _checklistCard(),
+            ],
+            const SizedBox(height: 10),
+            _latestCard(latest, now),
             const SizedBox(height: 10),
             _metadataCard(),
             const SizedBox(height: 10),
@@ -1358,12 +1364,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               const SizedBox(height: 10),
               _recurrenceCard(now),
             ],
-            if (_task.checklistEnabled) ...[
-              const SizedBox(height: 10),
-              _checklistCard(),
-            ],
-            const SizedBox(height: 10),
-            _latestCard(latest, now),
             if (history.isNotEmpty) ...[
               const SizedBox(height: 10),
               _timeline(history),
