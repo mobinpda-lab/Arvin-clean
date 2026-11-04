@@ -125,7 +125,10 @@ void main() {
       ),
     );
 
-    await tester.tap(find.byKey(const ValueKey('task-detail-description-edit')));
+    final descriptionEdit = find.byKey(const ValueKey('task-detail-description-edit'));
+    await tester.ensureVisible(descriptionEdit);
+    await tester.pumpAndSettle();
+    await tester.tap(descriptionEdit);
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('task-detail-description-input')), findsOneWidget);
 
