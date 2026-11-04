@@ -1,3 +1,8 @@
+## Quick Capture priority helper row refinement — 2026-11-04
+- Four canonical priority chips now show only «اولویت ۱» through «اولویت ۴» in 40dp-high controls; the four existing explanatory labels appear in a separate compact helper-text row immediately below.
+- Existing priority enum values, ordering, selected-state animation, color mapping, tap callbacks and Semantics labels (including the explanatory text) remain unchanged.
+- This refinement supersedes the in-flight CI started on prior SHA `d83683e47c0d3f6c3ca3fdf10504bc93aebd39d0`; its results are not acceptance evidence for the final SHA.
+
 ## 2026-11-04 — Quick Capture compact single-screen layout (UI-only)
 
 - Compressed the existing Quick Capture header, cards, gaps, priority chips and selector controls; aligned «ثبت کار» and «لغو» in one footer row.
