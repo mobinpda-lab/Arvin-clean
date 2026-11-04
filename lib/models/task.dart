@@ -114,6 +114,7 @@ class TaskReminder {
     this.isAllDay = false,
     required this.sequence,
     this.isLegacyTaskReminder = false,
+    this.isEnabled = true,
   });
 
   final String id;
@@ -126,10 +127,15 @@ class TaskReminder {
   /// It retains the old Calendar identity during migration.
   final bool isLegacyTaskReminder;
 
+  /// Whether this independent reminder participates in notification scheduling.
+  /// Missing values in older JSON payloads default to enabled.
+  final bool isEnabled;
+
   TaskReminder copyWith({
     String? title,
     DateTime? date,
     bool? isAllDay,
+    bool? isEnabled,
   }) => TaskReminder(
         id: id,
         title: title ?? this.title,
@@ -137,6 +143,7 @@ class TaskReminder {
         isAllDay: isAllDay ?? this.isAllDay,
         sequence: sequence,
         isLegacyTaskReminder: isLegacyTaskReminder,
+        isEnabled: isEnabled ?? this.isEnabled,
       );
 
   Map<String, dynamic> toJson() => {
@@ -145,6 +152,7 @@ class TaskReminder {
         'date': date.toIso8601String(),
         'isAllDay': isAllDay,
         'sequence': sequence,
+        if (!isEnabled) 'isEnabled': false,
         if (isLegacyTaskReminder) 'isLegacyTaskReminder': true,
       };
 
@@ -155,6 +163,7 @@ class TaskReminder {
         isAllDay: json['isAllDay'] as bool? ?? false,
         sequence: (json['sequence'] as num?)?.toInt() ?? 1,
         isLegacyTaskReminder: json['isLegacyTaskReminder'] as bool? ?? false,
+        isEnabled: json['isEnabled'] as bool? ?? true,
       );
 }
 
