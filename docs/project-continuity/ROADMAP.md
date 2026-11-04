@@ -21,3 +21,10 @@ This roadmap orders work by release risk and verified dependencies. It does not 
 
 ## Explicitly not promoted from examples
 A feature mentioned only as an illustrative example (such as periodic tasks or a particular edit screen) is not automatically an approved backlog item. Require prior evidence or an explicit owner directive.
+
+
+## Task Details visual acceptance — blocked checkpoint (2026-11-04)
+- Authorized Task Details redesign remains in scope, but image-to-image comparison is blocked until both named screenshots are actually accessible.
+- Do not guess layout, color, spacing or remove repeated metadata without reference and product approval.
+- After screenshots arrive: build approved visual matrix, make UI-only changes preserving all canonical actions/data pathways, add focused RTL widget and golden/screenshot acceptance, then run exact-SHA Build, Calendar Provider and all seven Device Smoke lanes.
+- Current exact-SHA evidence and blockers are tracked in OPEN_ISSUES.md and docs/audit/ARVIN_TASK_DETAILS_REFERENCE_COMPARISON_2026-11-04.md.
