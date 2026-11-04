@@ -180,8 +180,16 @@ void main() {
     expect(task.followUps, hasLength(1));
     expect(task.followUps.single.title, isNull);
     expect(task.followUps.single.note, isEmpty);
-    expect(find.byKey(ValueKey('task-detail-followup-${task.followUps.single.id}')),
-        findsOneWidget);
+    final followUpCard = find.byKey(
+      ValueKey('task-detail-followup-${task.followUps.single.id}'),
+    );
+    await tester.scrollUntilVisible(
+      followUpCard,
+      300,
+      scrollable: find.byType(ListView),
+    );
+    await tester.pumpAndSettle();
+    expect(followUpCard, findsOneWidget);
     expect(find.text('پیگیری'), findsWidgets);
   });
 
