@@ -278,8 +278,31 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    expect(find.text('افراد مرتبط'), findsOneWidget);
-    expect(find.text('مسئول: شخص مرتبط'), findsNothing);
+    expect(find.text('افراد مرتبط'), findsNothing);
+    expect(find.text('شخص مرتبط'), findsNothing);
+    expect(task.people.single.displayName, 'شخص مرتبط');
+    expect(find.byKey(const ValueKey('task-detail-back')), findsOneWidget);
+    final page = tester.widget<Scaffold>(find.byKey(const ValueKey('task-detail-page')));
+    expect(page.backgroundColor, const Color(0xFFF5F6FA));
+    final summary = tester.widget<Container>(find.byKey(const ValueKey('task-detail-summary-card')));
+    final summaryDecoration = summary.decoration! as BoxDecoration;
+    expect(summaryDecoration.color, Colors.white);
+    expect(summaryDecoration.borderRadius, BorderRadius.circular(16));
+    final deleteButton = tester.widget<OutlinedButton>(
+      find.ancestor(
+        of: find.byKey(const ValueKey('task-detail-delete')),
+        matching: find.byType(OutlinedButton),
+      ).first,
+    );
+    final deleteStyle = deleteButton.style!;
+    expect(deleteStyle.foregroundColor!.resolve({}), const Color(0xFFD04444));
+    final completeButton = tester.widget<FilledButton>(
+      find.ancestor(
+        of: find.byKey(const ValueKey('task-detail-complete')),
+        matching: find.byType(FilledButton),
+      ).first,
+    );
+    expect(completeButton.style!.backgroundColor!.resolve({}), const Color(0xFF37379B));
     final list = tester.widget<ListView>(find.byKey(const ValueKey('task-detail-content-list')));
     expect(list.padding, const EdgeInsets.fromLTRB(16, 14, 16, 120));
     expect(find.byKey(const ValueKey('task-detail-delete')), findsOneWidget);
