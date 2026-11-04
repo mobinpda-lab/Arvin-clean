@@ -194,8 +194,6 @@ void main() {
     expect(cloned, isTrue);
     expect(find.text('یک کپی مستقل از کار ایجاد شد'), findsOneWidget);
   });
-}
-
 
   testWidgets('Task Details presents summary, metadata and due date once in RTL order', (tester) async {
     final task = Task(
@@ -263,3 +261,4 @@ void main() {
     expect(find.byKey(const ValueKey('task-detail-complete')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-bottom-edit')), findsOneWidget);
   });
+
