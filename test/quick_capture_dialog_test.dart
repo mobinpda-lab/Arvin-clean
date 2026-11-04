@@ -29,11 +29,15 @@ void main() {
       expect(find.text(code), findsNothing);
     }
 
-    await tester.tap(find.byKey(const ValueKey('quick-capture-priority-option-1')));
+    final priorityOne = find.byKey(const ValueKey('quick-capture-priority-option-1'));
+    await tester.ensureVisible(priorityOne);
+    await tester.tap(priorityOne);
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const ValueKey('quick-capture-input')), 'کار فوری');
     await tester.enterText(find.byKey(const ValueKey('quick-capture-description')), 'شرح کار');
-    await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
+    final submit = find.byKey(const ValueKey('quick-capture-submit'));
+    await tester.ensureVisible(submit);
+    await tester.tap(submit);
     await tester.pumpAndSettle();
 
     expect(captured, isNotNull);
@@ -103,7 +107,8 @@ void main() {
 
       final submit = tester.getRect(find.byKey(const ValueKey('quick-capture-submit')));
       final cancel = tester.getRect(find.byKey(const ValueKey('quick-capture-cancel')));
-      expect(submit.center.dx, greaterThan(cancel.center.dx));
+      expect(submit.width, greaterThan(cancel.width));
+      expect(cancel.top, greaterThan(submit.bottom));
       expect(tester.takeException(), isNull);
       if (width > 700) {
         final dialog = tester.getRect(find.byKey(const ValueKey('quick-capture-dialog')));
