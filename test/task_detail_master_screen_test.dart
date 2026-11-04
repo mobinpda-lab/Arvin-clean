@@ -252,7 +252,17 @@ void main() {
     expect(find.byKey(const ValueKey('task-detail-metadata-category')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-metadata-tags')), findsOneWidget);
     expect(find.text('مشخصات کار'), findsNothing);
-    // Materialize the lower lazy-list cards before checking their keys.
+    // Capture the first-screen layout before scrolling the lazy ListView.
+    final summaryY = tester.getTopLeft(find.byKey(const ValueKey('task-detail-summary-card'))).dy;
+    final descriptionY = tester.getTopLeft(find.byKey(const ValueKey('task-detail-description-card'))).dy;
+    final metadataY = tester.getTopLeft(find.byKey(const ValueKey('task-detail-metadata'))).dy;
+    final timeX = tester.getCenter(find.byKey(const ValueKey('task-detail-metadata-time'))).dx;
+    final centerX = tester.getCenter(find.byKey(const ValueKey('task-detail-metadata-center'))).dx;
+    final projectX = tester.getCenter(find.byKey(const ValueKey('task-detail-metadata-project'))).dx;
+    final categoryX = tester.getCenter(find.byKey(const ValueKey('task-detail-metadata-category'))).dx;
+    final tagsX = tester.getCenter(find.byKey(const ValueKey('task-detail-metadata-tags'))).dx;
+
+    // Materialize the due-date and assignee cards before checking their keys.
     final detailScrollable = _taskDetailPageScrollable(tester);
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('task-detail-due-date-card')),
@@ -261,6 +271,11 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('task-detail-due-date-card')), findsOneWidget);
+    final dueY = tester.getTopLeft(find.byKey(const ValueKey('task-detail-due-date-card'))).dy;
+    expect(find.byKey(const ValueKey('task-detail-status-menu')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-priority-menu')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-due-date')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-due-date-full')), findsNothing);
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('task-detail-assignee-card')),
       240,
@@ -269,21 +284,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('task-detail-assignee-card')), findsOneWidget);
     expect(find.text('مسئول مستقلی برای این کار ثبت نشده است'), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-status-menu')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-priority-menu')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-due-date')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-due-date-full')), findsNothing);
     expect(find.text('افراد مرتبط'), findsNothing);
-
-    final summaryY = tester.getTopLeft(find.byKey(const ValueKey('task-detail-summary-card'))).dy;
-    final descriptionY = tester.getTopLeft(find.byKey(const ValueKey('task-detail-description-card'))).dy;
-    final metadataY = tester.getTopLeft(find.byKey(const ValueKey('task-detail-metadata'))).dy;
-    final dueY = tester.getTopLeft(find.byKey(const ValueKey('task-detail-due-date-card'))).dy;
-    final timeX = tester.getCenter(find.byKey(const ValueKey('task-detail-metadata-time'))).dx;
-    final centerX = tester.getCenter(find.byKey(const ValueKey('task-detail-metadata-center'))).dx;
-    final projectX = tester.getCenter(find.byKey(const ValueKey('task-detail-metadata-project'))).dx;
-    final categoryX = tester.getCenter(find.byKey(const ValueKey('task-detail-metadata-category'))).dx;
-    final tagsX = tester.getCenter(find.byKey(const ValueKey('task-detail-metadata-tags'))).dx;
     expect(timeX, greaterThan(centerX));
     expect(centerX, greaterThan(projectX));
     expect(projectX, greaterThan(categoryX));
