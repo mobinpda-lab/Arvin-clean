@@ -66,6 +66,7 @@ class QuickCaptureDialog extends StatefulWidget {
 class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   static const _dateFormatter = PersianDateFormatter();
   final TextEditingController _controller = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
   final FocusNode _titleFocus = FocusNode();
   String? _error;
   bool _backHandling = false;
@@ -115,6 +116,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   @override
   void dispose() {
     _controller.dispose();
+    _descriptionController.dispose();
     _titleFocus.dispose();
     _categoryController.dispose();
     super.dispose();
@@ -145,6 +147,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     );
     if (task == null) return null;
     task.priority = _priority;
+    task.description = _descriptionController.text.trim();
     _syncAutomaticReminder();
     task.dueDate = _dueDate;
     task.reminderDate = _reminderDate;
@@ -390,59 +393,86 @@ Future<DateTime?> _pickCustomDue() async {
   }
 
   Widget _priorityDropdown() {
-    final selectedColor = ArvinColors.priorityColor(_priority);
-    return Tooltip(
-      message: '${_dateFormatter.toPersianDigits('اولویت ${_priority.sortOrder}')} — ${_priority.label}',
-      child: DecoratedBox(
-        key: const ValueKey('quick-capture-priority-surface'),
-        decoration: BoxDecoration(
-          color: selectedColor.withValues(alpha: 0.06),
-          border: Border.all(color: selectedColor.withValues(alpha: 0.9)),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<TaskPriority>(
-              key: const ValueKey('quick-capture-priority-dropdown'),
-              value: _priority,
-              isExpanded: true,
-              isDense: true,
-              borderRadius: BorderRadius.circular(12),
-              menuMaxHeight: 320,
-              selectedItemBuilder: (context) => TaskPriority.values.map((priority) {
+    const hints = <TaskPriority, String>{
+      TaskPriority.high: 'فوری و مهم',
+      TaskPriority.medium: 'مهم و غیرفوری',
+      TaskPriority.low: 'فوری و غیرمهم',
+      TaskPriority.none: 'غیرفوری و غیرمهم',
+    };
+    return KeyedSubtree(
+      key: const ValueKey('quick-capture-priority-dropdown'),
+      child: _surfaceCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text('اولویت', textAlign: TextAlign.right,
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: ArvinColors.textPrimary)),
+            const SizedBox(height: 10),
+            Row(
+              textDirection: TextDirection.rtl,
+              children: TaskPriority.values.map((priority) {
                 final color = ArvinColors.priorityColor(priority);
-                return Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: Text(
-                    'اولویت',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: color,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
+                final selected = _priority == priority;
+                return Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    child: Semantics(
+                      button: true,
+                      selected: selected,
+                      label: 'اولویت ${priority.sortOrder}، ${hints[priority]}',
+                      child: InkWell(
+                        key: ValueKey('quick-capture-priority-option-${priority.sortOrder}'),
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: _saving ? null : () => setState(() => _priority = priority),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 2),
+                          decoration: BoxDecoration(
+                            color: color.withValues(alpha: selected ? 0.18 : 0.09),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: color.withValues(alpha: selected ? 0.95 : 0.28),
+                              width: selected ? 1.5 : 1,
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              Text(
+                                _dateFormatter.toPersianDigits('اولویت ${priority.sortOrder}'),
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                style: TextStyle(color: color, fontSize: 10.5, fontWeight: FontWeight.w800),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                hints[priority]!,
+                                textAlign: TextAlign.center,
+                                maxLines: 2,
+                                style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 8.5, height: 1.25),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 );
               }).toList(growable: false),
-              items: TaskPriority.values.map((priority) {
-                final color = ArvinColors.priorityColor(priority);
-                return DropdownMenuItem<TaskPriority>(
-                  value: priority,
-                  child: Text(
-                    _dateFormatter.toPersianDigits('اولویت ${priority.sortOrder}'),
-                    style: TextStyle(color: color, fontWeight: FontWeight.w700),
-                  ),
-                );
-              }).toList(growable: false),
-              onChanged: _saving ? null : (value) {
-                if (value != null) setState(() => _priority = value);
-              },
             ),
-          ),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _surfaceCard({required Widget child, EdgeInsets padding = const EdgeInsets.all(12)}) {
+    return Card(
+      elevation: 1,
+      shadowColor: ArvinColors.shadowSoft,
+      color: Colors.white,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(padding: padding, child: child),
     );
   }
 
@@ -459,7 +489,9 @@ Future<DateTime?> _pickCustomDue() async {
     final selectedCenter = availableCenters.where((center) => center.id == _centerId).toList();
     final selectedProject = _knownProjects.where((project) => project.id == _projectId).toList();
 
-    return SafeArea(
+    return ColoredBox(
+      color: const Color(0xFFF5F6FA),
+      child: SafeArea(
       child: Align(
         alignment: AlignmentDirectional.topCenter,
         widthFactor: 1,
@@ -472,52 +504,80 @@ Future<DateTime?> _pickCustomDue() async {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Row(
-                    textDirection: TextDirection.rtl,
-                    children: [
-                      IconButton(
-                        key: const ValueKey('quick-capture-full-form'),
-                        tooltip: 'ورود به فرم کامل',
-                        visualDensity: VisualDensity.compact,
-                        onPressed: _saving ? null : _openFullForm,
-                        icon: const Icon(Icons.open_in_new_rounded),
-                      ),
-                      const Expanded(child: Text(
-                        'ثبت سریع کار',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: ArvinColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w800),
-                      )),
-                      const SizedBox(width: 48),
-                    ],
+                  Container(
+                    decoration: const BoxDecoration(
+                      color: ArvinColors.primaryDark,
+                      borderRadius: BorderRadius.vertical(bottom: Radius.circular(18)),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+                    child: Row(
+                      textDirection: TextDirection.rtl,
+                      children: [
+                        IconButton(
+                          key: const ValueKey('quick-capture-close'),
+                          tooltip: 'بستن',
+                          onPressed: _saving ? null : () => Navigator.of(context).pop(),
+                          color: Colors.white,
+                          icon: const Icon(Icons.close_rounded),
+                        ),
+                        const Expanded(child: Text(
+                          'ثبت سریع کار',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontFamily: 'Vazirmatn', color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800),
+                        )),
+                        IconButton(
+                          key: const ValueKey('quick-capture-full-form'),
+                          tooltip: 'ورود به فرم کامل',
+                          visualDensity: VisualDensity.compact,
+                          onPressed: _saving ? null : _openFullForm,
+                          color: Colors.white,
+                          icon: const Icon(Icons.open_in_new_rounded),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 6),
-                  TextField(
-                    key: const ValueKey('quick-capture-input'),
-                    controller: _controller,
-                    focusNode: _titleFocus,
-                    autofocus: true,
-                    enabled: !_saving,
-                    minLines: 1,
-                    maxLines: 1,
-                    textInputAction: TextInputAction.done,
-                    onSubmitted: (_) => _submit(),
-                    decoration: InputDecoration(
-                      hintText: 'عنوان کار را وارد کنید',
-                      errorText: _error,
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                      filled: true,
-                      fillColor: ArvinColors.surface,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(13),
-                        borderSide: const BorderSide(color: ArvinColors.border),
+                  _surfaceCard(
+                    child: TextField(
+                      key: const ValueKey('quick-capture-input'),
+                      controller: _controller,
+                      focusNode: _titleFocus,
+                      autofocus: true,
+                      enabled: !_saving,
+                      minLines: 1,
+                      maxLines: 1,
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (_) => _submit(),
+                      decoration: InputDecoration(
+                        hintText: 'عنوان کار را وارد کنید',
+                        errorText: _error,
+                        prefixIcon: const Icon(Icons.title_rounded, color: ArvinColors.primary),
+                        isDense: true,
+                        border: InputBorder.none,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: AlignmentDirectional.centerStart,
-                    child: SingleChildScrollView(
+                  const SizedBox(height: 10),
+                  _surfaceCard(
+                    child: TextField(
+                      key: const ValueKey('quick-capture-description'),
+                      controller: _descriptionController,
+                      enabled: !_saving,
+                      minLines: 2,
+                      maxLines: 3,
+                      textDirection: TextDirection.rtl,
+                      decoration: const InputDecoration(
+                        hintText: 'توضیحات تکمیلی...',
+                        prefixIcon: Icon(Icons.notes_rounded, color: ArvinColors.primary),
+                        border: InputBorder.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  _surfaceCard(
+                    child: Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: SingleChildScrollView(
                       key: const ValueKey('quick-capture-categories-scroll'),
                       scrollDirection: Axis.horizontal,
                       child: Row(
@@ -705,17 +765,17 @@ Future<DateTime?> _pickCustomDue() async {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: AlignmentDirectional.centerStart,
-                    child: SingleChildScrollView(
+                  const SizedBox(height: 10),
+                  ),
+                  _surfaceCard(
+                    child: Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: SingleChildScrollView(
                       key: const ValueKey('quick-capture-settings-scroll'),
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         textDirection: TextDirection.rtl,
                         children: [
-                          SizedBox(width: 124, child: _priorityDropdown()),
-                          const SizedBox(width: 8),
                           SizedBox(width: 148, child: ArvinRollBox<Object?>(
                             key: const ValueKey('quick-capture-due-rollbox'),
                             label: 'تاریخ و ساعت',
@@ -778,28 +838,37 @@ Future<DateTime?> _pickCustomDue() async {
                       ),
                     ),
                   ),
+                  ),
+                  const SizedBox(height: 10),
+                  _priorityDropdown(),
                   const SizedBox(height: 10),
                   Row(
                     textDirection: TextDirection.rtl,
                     children: [
                       Expanded(child: FilledButton(
                         key: const ValueKey('quick-capture-submit'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: ArvinColors.primary,
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size.fromHeight(50),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
                         onPressed: _saving ? null : _submit,
                         child: Text(_saving ? 'در حال ثبت…' : 'ثبت کار'),
                       )),
-                      const SizedBox(width: 8),
-                      Expanded(child: TextButton(
-                        key: const ValueKey('quick-capture-cancel'),
-                        onPressed: _saving ? null : () => Navigator.of(context).pop(),
-                        child: const Text('لغو'),
-                      )),
                     ],
+                  ),
+                  TextButton(
+                    key: const ValueKey('quick-capture-cancel'),
+                    onPressed: _saving ? null : () => Navigator.of(context).pop(),
+                    child: const Text('لغو'),
                   ),
                 ],
               ),
             ),
           ),
         ),
+      ),
       ),
     );
   }
