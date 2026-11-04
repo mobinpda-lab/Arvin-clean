@@ -1506,8 +1506,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           children: [
             _summaryCard(),
             const SizedBox(height: 10),
-            _descriptionCard(),
-            const SizedBox(height: 10),
             _metadataCard(),
             if (_task.templateTaskId?.trim().isNotEmpty == true) ...[
               const SizedBox(height: 10),
@@ -1517,6 +1515,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             _dueDateCard(),
             const SizedBox(height: 10),
             _assigneeCard(),
+            const SizedBox(height: 10),
+            _descriptionCard(),
             const SizedBox(height: 10),
             _remindersCard(),
             const SizedBox(height: 4),
