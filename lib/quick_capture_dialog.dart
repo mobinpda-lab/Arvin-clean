@@ -571,7 +571,7 @@ Future<DateTime?> _pickCustomDue() async {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 5),
                   _surfaceCard(
                     child: TextField(
                       key: const ValueKey('quick-capture-description'),
@@ -582,12 +582,14 @@ Future<DateTime?> _pickCustomDue() async {
                       textDirection: TextDirection.rtl,
                       decoration: const InputDecoration(
                         hintText: 'توضیحات تکمیلی...',
-                        prefixIcon: Icon(Icons.notes_rounded, color: ArvinColors.primary),
+                        prefixIcon: Icon(Icons.notes_rounded, size: 18, color: ArvinColors.primary),
+                         isDense: true,
+                         contentPadding: const EdgeInsets.symmetric(vertical: 4),
                         border: InputBorder.none,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 5),
                   _surfaceCard(
                     child: Align(
                       alignment: AlignmentDirectional.centerStart,
@@ -698,7 +700,7 @@ Future<DateTime?> _pickCustomDue() async {
                               },
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 6),
                           SizedBox(
                             width: 128,
                             child: ArvinRollBox<String>(
@@ -741,7 +743,7 @@ Future<DateTime?> _pickCustomDue() async {
                               },
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 6),
                           SizedBox(
                             width: 120,
                             child: ArvinTagRollBox(
@@ -811,7 +813,7 @@ Future<DateTime?> _pickCustomDue() async {
                             onCreate: _saving ? null : _pickCustomDue,
                             onSelected: (value) => _setDueDate(value is DateTime ? value : null),
                           )),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 6),
                           SizedBox(width: 148, child: ArvinRollBox<Object?>(
                             key: const ValueKey('quick-capture-reminder-rollbox'),
                             label: 'یادآور',
@@ -836,7 +838,7 @@ Future<DateTime?> _pickCustomDue() async {
                               });
                             },
                           )),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 6),
                           SizedBox(width: 108, child: ArvinRollBox<RecurrenceRule?>(
                             key: const ValueKey('quick-capture-recurrence-rollbox'),
                             label: 'تکرار',
@@ -860,9 +862,9 @@ Future<DateTime?> _pickCustomDue() async {
                     ),
                   ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 5),
                   _priorityDropdown(),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 5),
                   Row(
                     textDirection: TextDirection.rtl,
                     children: [
@@ -877,7 +879,7 @@ Future<DateTime?> _pickCustomDue() async {
                         onPressed: _saving ? null : _submit,
                         child: Text(_saving ? 'در حال ثبت…' : 'ثبت کار'),
                       )),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       TextButton(
                         key: const ValueKey('quick-capture-cancel'),
                         style: TextButton.styleFrom(
