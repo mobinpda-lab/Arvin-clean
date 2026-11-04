@@ -159,7 +159,17 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     if (_saving) return;
     final task = _buildDraft();
     if (task == null) {
-      setState(() => _error = 'عنوان برای ثبت کافی است');
+      const message = 'عنوان برای ثبت کافی است';
+      setState(() => _error = message);
+      // Keep the compact inline field error and mirror it in the floating
+      // messenger so the validation remains visible without growing the form.
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        SnackBar(
+          content: const Text('عنوان برای ثبت کافی است'),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+        ),
+      );
       return;
     }
     final onCaptured = widget.onCaptured;

@@ -486,3 +486,15 @@ This is an implementation record following the earlier Wave 7.299 ownership audi
 - Added focused reminder-planner and Task Details widget tests.
 - **Not a completion or acceptance claim:** full inline editing of every field, exact clone product acceptance, checklist visual acceptance, current-SHA test results, and complete Device Smoke remain pending verification. The execution-time field is not present in the canonical Task model and is therefore shown as not recorded rather than inferred from createdAt.
 - Preserve Task due date, independent TaskReminder, recurrence and historical FollowUp separation. Do not revive deprecated Next Follow-up scheduling or invent an assignee field.
+
+
+## 2026-11-04 — Quick Capture validation, Calendar isolation and P2P-0 owner decisions
+
+- Quick Capture empty-title validation is corrected without changing or weakening the regression test: the compact title field retains its inline error and the same message is also surfaced through a short floating SnackBar. The form layout is not expanded by a persistent second error row.
+- On exact SHA `93a7c2ba4526c782306e42b19ba3b159f7c8a738`, Build run `41793424410` failed only in shard 0: `quick capture rejects empty input with visible feedback` expected two visible occurrences of «عنوان برای ثبت کافی است» and found one. Analyze and shards 1–5 passed. The corrected source requires a fresh exact-SHA Build; no PASS is claimed for the correction yet.
+- Draft Review APK run `41793424492`, Calendar Provider Acceptance run `41793424400`, and Follow-up File Persistence run `41793424575` succeeded on SHA `93a7c2b...`. The Review APK/font gate reported bundled Vazirmatn Regular/Medium/Bold and removal of the system-default font fallback.
+- Device Smoke run `41793424356` did **not** finish successfully: Boot, Navigation, Quick Capture, Task Lifecycle, Reminder/Vazirmatn and Follow-up Persistence passed, but Calendar Segmented View was cancelled and the run conclusion is `CANCELLED`. This is not a seven-lane Device Smoke PASS.
+- Calendar Provider acceptance on this SHA verified event create, no-op update/no duplicate, update of the same event, delete, and survival of the canonical Task after provider-event deletion. The code boundary also keeps external calendar projections read-only; a separate physical-device test for deletion of an entire external calendar remains NOT VERIFIED.
+- Owner-approved product hierarchy is recorded as **مرکز > پروژه > دسته > کار**. «مرکز» is the canonical top-level term; «واحد» must not replace it in product-facing hierarchy.
+- P2P-0 owner decisions: direct local pairing on shared Wi-Fi/hotspot via QR Code or six-digit PIN, without Internet or an external server; conflict resolution uses Last-Write-Wins by last-edit timestamp and deletions propagate as tombstones. Clock skew/tie-break, QR/PIN hardening, cryptographic protocol, revocation, acknowledgements and tombstone retention remain NOT DECIDED and must not be invented.
+- PR #3052 remains OPEN / DRAFT / UNMERGED. No main changes, merge or release. **BLOCKED — RELEASE: NO-GO**.

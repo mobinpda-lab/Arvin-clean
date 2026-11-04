@@ -123,3 +123,28 @@ Phase 2 remains deferred and is not part of Phase 1 acceptance.
 
 Version: 14.0
 Status: PHASE 1 LOCAL P2P — PRODUCT DIRECTION APPROVED; IMPLEMENTATION NOT VERIFIED
+
+
+## OWNER DECISION — P2P-0 LOCAL PAIRING AND CONFLICT POLICY (2026-11-04)
+
+The product owner has approved the following Phase 1 decisions. These decisions refine the Local P2P product contract; they do not claim that discovery, pairing, transport or synchronization is implemented.
+
+### Direct local pairing
+- Pairing is performed directly between Arvin devices on the same local Wi-Fi network or a phone hotspot.
+- The user may establish the pairing by scanning a QR Code or entering a six-digit PIN.
+- Pairing and subsequent Phase 1 synchronization must not require an external server, Internet access, cloud account or Dropbox.
+- The QR/PIN is a local pairing bootstrap, not by itself proof of a complete authenticated or encrypted transport.
+
+### Conflict and deletion policy
+- The approved conflict-resolution policy is Last-Write-Wins (LWW), comparing the last-edit timestamp of competing versions.
+- Deletions must be represented and propagated as durable tombstone records; a deletion must not be silently resurrected by an older copy received from another peer.
+- Tombstones are synchronization data, not permission for immediate physical deletion. Safe purge/retention conditions must be specified before implementation.
+
+### Decisions still required before implementation
+- Timestamp trust, clock skew handling and deterministic tie-breaking when timestamps are equal are not yet specified.
+- QR payload contents, PIN expiry, retry/rate limits and pairing-session lifecycle remain to be specified.
+- Cryptographic identity, key agreement, authenticated encryption, key storage/rotation and device revocation protocol remain **NOT DECIDED**; do not select or imply a cryptographic suite without a separate security review and owner approval.
+- Operation IDs, idempotency, acknowledgements, retry/resume, offline queue durability and tombstone retention/purge conditions remain subject to the P2P-0 contract.
+- Task, TaskReminder, recurrence, FollowUp and calendar ownership semantics remain independent and must be preserved.
+
+**Status:** OWNER-APPROVED PRODUCT DECISIONS RECORDED / TECHNICAL SECURITY AND RELIABILITY CONTRACT INCOMPLETE / IMPLEMENTATION NOT VERIFIED.

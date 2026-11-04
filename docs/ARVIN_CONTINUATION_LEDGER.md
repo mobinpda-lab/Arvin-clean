@@ -1578,3 +1578,35 @@ PR #3052 remains OPEN / DRAFT / UNMERGED. main untouched. **BLOCKED — RELEASE:
 
 - Commit `753819660fc3fa882e7bbd567df4b4a07c7bdb19` Analyze SUCCESS; Follow-up File Persistence SUCCESS. Build Run `41792759413` FAILURE: all six test shards failed due to four rendering-overflow assertions in the compact selected-priority Dropdown; existing custom date/time tests also revealed the action label had changed from the canonical `تاریخ و ساعت سفارشی`.
 - Root cause is localized to the selected-item builder's icon+label Row inside the bounded Dropdown width; it does not indicate a Task persistence/reminder/calendar failure. Corrective change removes only the redundant icon from the selected state while retaining the dynamic color and full Persian option labels, and restores the established custom date/time action label. No tests/assertions are skipped, deleted, weakened, or given artificial timeouts.
+
+
+## 2026-11-04 — Owner directive execution checkpoint (SHA `93a7c2ba4526c782306e42b19ba3b159f7c8a738`)
+
+### Governance and exact-SHA workflow evidence
+- PR #3052 was rechecked as OPEN / DRAFT / UNMERGED on `fix/recovery-calendar-device-smoke-2026-10-31`; branch HEAD and PR head were both `93a7c2ba4526c782306e42b19ba3b159f7c8a738`. Base/main remained `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Build run `41793424410`: Analyze SUCCESS; test shards 1–5 SUCCESS; shard 0 FAILURE with one failure, `quick capture rejects empty input with visible feedback`, at `test/quick_capture_dialog_test.dart:204`. The assertion expected two visible occurrences of «عنوان برای ثبت کافی است» but found one. The remaining 211 tests in that shard passed. APK matrix was SKIPPED by the Draft guard.
+- Draft Review APK run `41793424492`: SUCCESS. Its font gate reported `PASS_VAZIRMATN_BUNDLED_SYSTEM_DEFAULT_PURGED` with Vazirmatn Regular, Medium and Bold bundled.
+- Calendar Provider Acceptance run `41793424400`: SUCCESS. It verified CREATE, no-op update/no duplicate, update of the same event, DELETE and `CALENDAR_TASK_SURVIVAL_AFTER_PROVIDER_DELETE=PASS`. The canonical Task remained in TaskStore after its projected provider event was deleted.
+- Follow-up File Persistence run `41793424575`: SUCCESS.
+- Device Smoke run `41793424356`: final conclusion CANCELLED. Boot, Navigation, Quick Capture, Task Lifecycle, Reminder/Vazirmatn and Follow-up Persistence passed; Calendar Segmented View was cancelled. Seven-lane Device Smoke is therefore NOT VERIFIED on this SHA. Its log ended with a cancelled operation and no screenshot artifact; no success is inferred.
+
+### Quick Capture corrective change
+- The empty-title path retains the inline `InputDecoration.errorText` and now also emits the same short-lived floating SnackBar. This preserves the compact form height while providing both visible feedback surfaces required by the unchanged test.
+- The test `quick capture rejects empty input with visible feedback` is retained unchanged; no test, assertion, scenario or timeout is removed, skipped or weakened.
+- This change is source-level only until the new exact-SHA Analyze and all test shards finish. No Build PASS is claimed yet.
+
+### Calendar independence audit — accepted product evidence
+- The Provider test proves that deleting the projected provider event does not delete the canonical Task; title, description and due date survive in TaskStore.
+- External event projection remains read-only. `CalendarInboundSyncService` does not write or delete canonical Task/Reminder records; the UI does not expose Arvin-owned destructive actions for external rows.
+- The independent scenario “delete an entire external calendar and prove all related canonical Arvin Tasks remain” is still NOT VERIFIED on a physical device. Do not extend the event-deletion test result to that untested scenario.
+
+### بند ۹ — Canonical product hierarchy
+Owner-approved hierarchy is **مرکز > پروژه > دسته > کار**. «مرکز» is the canonical top-level entity; «واحد» is not an interchangeable product label. This hierarchy must be consistent in data relationships, selection flows, filtering and product-facing documentation. The hierarchy decision is recorded; full-repository implementation consistency remains subject to exact-source audit.
+
+### P2P-0 — explicit owner decisions
+- Pairing: direct local device-to-device pairing on shared Wi-Fi or hotspot, using either QR Code scanning or a six-digit PIN. No Internet, external server, account or Dropbox dependency is permitted in Phase 1.
+- Conflict resolution: Last-Write-Wins using last-edit timestamp. Deletions propagate through tombstone records to prevent older replicas from resurrecting deleted data.
+- Still NOT DECIDED: clock skew and equal-timestamp tie-break; QR/PIN expiry and rate limits; cryptographic identity/key agreement/encryption; key rotation and revocation; operation IDs, idempotency, acknowledgements, retry/resume; tombstone retention/purge; Android background constraints.
+- These owner decisions authorize documentation and contract design only. They do not establish implementation, security approval or real-device acceptance.
+
+**Disposition:** Quick Capture fix committed for validation only after this documentation/source update; Device Smoke seven-lane gate NOT VERIFIED; Build correction pending; PR #3052 OPEN / DRAFT / UNMERGED; main unchanged; **BLOCKED — RELEASE: NO-GO**.
