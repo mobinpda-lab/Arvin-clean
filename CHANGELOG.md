@@ -490,3 +490,10 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - Draft Review APK run 41823721031: SUCCESS; artifact 13317704369, 38,206,200 bytes ZIP. Extracted review APK: 76,806,159 bytes, SHA-256 f3f3efdf74bff2b239f24145c69bbd98fbcf2ac0e2f3bb043e70c6f8d9dcea57. Manifest: applicationId com.example.arvin.staging, android_debuggable=false, v2/v3 signature verified, ephemeral test-only signing key, publishable=false, release_created=false. Review/install testing only; not a production/release APK.
 - Device Smoke run 41823721013: still incomplete at last poll. Boot, Navigation, Quick Capture and Task Lifecycle SUCCESS; Reminder/Vazirmatn and Calendar Segmented View IN_PROGRESS; Follow-up Persistence QUEUED. No seven-lane PASS.
 - No tests/assertions were modified, removed, weakened, skipped or bypassed during this audit. No timeout workaround was applied. PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; release remains BLOCKED — RELEASE: NO-GO.
+
+
+## 2026-11-04 — Quick Capture compact selector compile correction
+- Fixed the missing `ArvinTagRollBox.compact` field required by the compact 40dp tag selector; commit `642a4016cbaa1994b4dfe2d278066941ef8a65c2`.
+- The pre-fix exact-SHA Staging build failed at `lib/widgets/arvin_roll_box.dart:78` and `:144–149` because the constructor and widget build referenced an undeclared `compact` field. This was corrected without changing task data, field order, save logic, or test assertions.
+- Compact spacing and sizing remain UI-only. Vertical scroll remains a safety fallback; physical no-scroll fit and pixel-level comparison to `photo_1793800214435.webp` are NOT VERIFIED.
+- Fresh exact-SHA CI is required after documentation synchronization. PR #3052 stays OPEN / DRAFT / UNMERGED; `main` untouched; release BLOCKED — RELEASE: NO-GO.
