@@ -139,3 +139,15 @@ Release: BLOCKED — RELEASE: NO-GO
 - On pre-fix SHA `c918f2b`, Follow-up File Persistence run `41842459045` SUCCESS; Device Smoke `41842458990` was still running; Calendar Provider `41842459090` was in progress; Draft Review APK `41842459134` failed because the same missing `compact` property prevented Staging assembly. No all-green claim.
 - The user-referenced image `photo_1793800214435.webp` was not available for pixel-level inspection in this execution. Pixel-perfect matching and physical-device screenshot acceptance remain NOT VERIFIED.
 - No tests were deleted, skipped, weakened or bypassed. PR #3052 remains OPEN / DRAFT / UNMERGED; no `main` edits, merge or release. **BLOCKED — RELEASE: NO-GO.**
+
+
+## Exact-SHA CI follow-up — 2026-11-04 (a657691)
+- Target SHA verified across all five requested runs: `a65769133c32cf51480f6ec68febed6eeba1e3b0`; PR #3052 remains OPEN / DRAFT / UNMERGED.
+- Build run `41843444962`: exact checkout and dependency resolution succeeded; `flutter analyze` FAILED on one info-level lint: `unnecessary_const` at `lib/quick_capture_dialog.dart:587:42`. Six test shards were still running at last inspection; the APK matrix job was skipped after Analyze failed. Therefore Build is not green.
+- Device Smoke run `41843451312`: seven-lane matrix prepared successfully. Boot and Navigation were running; Task Lifecycle, Quick Capture, Reminder/Vazirmatn, Follow-up Persistence and Calendar Segmented View were queued at last inspection. No seven-lane conclusion yet.
+- Calendar Provider run `41843445191`: still running its real Provider instrumentation acceptance; no final conclusion yet.
+- Follow-up Persistence run `41843445148`: SUCCESS on exact SHA. File-backed Repository persistence and alarm-overlay SQLite close/reopen checks completed successfully.
+- Draft Review APK run `41843444971`: exact checkout, target-SHA verification, Flutter setup, ephemeral staging key and dependency resolution succeeded; Staging APK assembly was still in progress. Artifact listing returned empty at inspection, and signature/font/manifest verification plus artifact upload had not started. APK production/upload therefore NOT VERIFIED; no artifact link exists yet.
+- The missing `ArvinTagRollBox.compact` field was fixed before this SHA; Build and APK jobs reached Analyze/assemble stages rather than failing on that prior missing-field compiler error. Full APK compilation success remains pending.
+- Quick Capture widget tests in `test/quick_capture_dialog_test.dart` include compact RTL layout and 40dp selector/priority-chip assertions, but their test shard(s) were still running. No result is claimed. The dialog still wraps its content in `SingleChildScrollView`; a no-vertical-scroll fit is not proven by the current test suite or a physical screenshot.
+- No tests were removed, skipped, weakened or given artificial timeout extensions in this follow-up. No `main` changes; release remains BLOCKED — RELEASE: NO-GO.
