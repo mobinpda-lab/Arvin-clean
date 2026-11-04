@@ -499,7 +499,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       children: [
         Icon(icon, size: 19, color: _brand),
         const SizedBox(width: 7),
-        Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+        Text(title, style: const TextStyle(fontFamily: 'Vazirmatn', fontSize: 16, fontWeight: FontWeight.w800)),
       ],
     );
   }
@@ -546,6 +546,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                     : 'task-detail-description-placeholder',
               ),
               style: TextStyle(
+                fontFamily: 'Vazirmatn',
                 color: hasDescription
                     ? const Color(0xFF55566B)
                     : _muted,
@@ -693,13 +694,13 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('موعد انجام', style: TextStyle(color: _muted, fontSize: 12, fontWeight: FontWeight.w600)),
+                const Text('موعد انجام', style: TextStyle(fontFamily: 'Vazirmatn', color: _muted, fontSize: 12, fontWeight: FontWeight.w600)),
                 Text(
                   _task.dueDate == null
                       ? 'تعیین نشده'
                       : (_task.allDay ? _date(_task.dueDate!) : _dateTime(_task.dueDate!)),
                   key: const ValueKey('task-detail-due-date'),
-                  style: const TextStyle(fontWeight: FontWeight.w800),
+                  style: const TextStyle(fontFamily: 'Vazirmatn', fontWeight: FontWeight.w800),
                 ),
               ],
             ),
@@ -721,6 +722,25 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _assigneeCard() {
+    // Task has no canonical assignee relation; related people are not assignees.
+    return _card(
+      key: const ValueKey('task-detail-assignee-card'),
+      child: Row(children: [
+        const Icon(Icons.person_outline, color: _muted),
+        const SizedBox(width: 10),
+        const Expanded(child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('مسئول', style: TextStyle(fontFamily: 'Vazirmatn', color: _muted, fontSize: 12, fontWeight: FontWeight.w700)),
+            SizedBox(height: 4),
+            Text('مسئول مستقلی برای این کار ثبت نشده است', style: TextStyle(fontFamily: 'Vazirmatn', color: Color(0xFF232433), fontWeight: FontWeight.w700)),
+          ],
+        )),
+      ]),
     );
   }
 
@@ -1136,8 +1156,31 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         Icon(icon, size: 14, color: color),
         const SizedBox(width: 5),
-        Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700)),
+        Text(label, style: TextStyle(fontFamily: 'Vazirmatn', color: color, fontSize: 11, fontWeight: FontWeight.w700)),
       ]),
+    );
+  }
+
+  Widget _metadataItem({required Key key, required String label, required String value, required Color color, required IconData icon}) {
+    return SizedBox(
+      key: key,
+      width: 124,
+      child: _card(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              Icon(icon, size: 15, color: color),
+              const SizedBox(width: 5),
+              Expanded(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontFamily: 'Vazirmatn', color: color, fontSize: 11, fontWeight: FontWeight.w700))),
+            ]),
+            const SizedBox(height: 9),
+            Text(value, maxLines: 2, overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontFamily: 'Vazirmatn', color: Color(0xFF232433), fontSize: 12, fontWeight: FontWeight.w700, height: 1.35)),
+          ],
+        ),
+      ),
     );
   }
 
@@ -1197,47 +1240,41 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   Widget _metadataCard() {
-    const executionTime = 'زمان اجرا: ثبت نشده';
     final center = widget.centerName?.trim();
     final project = widget.project;
-    final chips = <Widget>[
-      _metadataChip(executionTime, _muted, icon: Icons.schedule_outlined),
-      if (center != null && center.isNotEmpty)
-        _metadataChip('مرکز: $center', ArvinColors.category, icon: Icons.apartment_outlined),
-      if (project != null)
-        _metadataChip('پروژه: ${project.title}', Color(project.colorValue), icon: Icons.folder_special_outlined),
-      if (_task.category?.trim().isNotEmpty == true)
-        _metadataChip('دسته: ${_task.category!.trim()}', ArvinColors.category, icon: Icons.folder_outlined),
-      if (_task.tags.isNotEmpty)
-        _metadataChip('برچسب‌ها: ${_task.tags.join('، ')}', ArvinColors.tag, icon: Icons.sell_outlined),
+    final items = <Widget>[
+      _metadataItem(key: const ValueKey('task-detail-metadata-time'), label: 'زمان اجرا', value: 'ثبت نشده', color: _muted, icon: Icons.schedule_outlined),
+      _metadataItem(key: const ValueKey('task-detail-metadata-center'), label: 'مرکز', value: center?.isNotEmpty == true ? center! : 'ثبت نشده', color: ArvinColors.category, icon: Icons.apartment_outlined),
+      _metadataItem(key: const ValueKey('task-detail-metadata-project'), label: 'پروژه', value: project?.title.trim().isNotEmpty == true ? project!.title : 'ثبت نشده', color: project == null ? _muted : Color(project.colorValue), icon: Icons.folder_special_outlined),
+      _metadataItem(key: const ValueKey('task-detail-metadata-category'), label: 'دسته', value: _task.category?.trim().isNotEmpty == true ? _task.category!.trim() : 'ثبت نشده', color: ArvinColors.category, icon: Icons.folder_outlined),
+      _metadataItem(key: const ValueKey('task-detail-metadata-tags'), label: 'برچسب‌ها', value: _task.tags.isNotEmpty ? _task.tags.join('، ') : 'بدون برچسب', color: ArvinColors.tag, icon: Icons.sell_outlined),
     ];
-    return _card(
+    return Column(
       key: const ValueKey('task-detail-metadata'),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _sectionTitle('مشخصات کار', Icons.info_outline),
-          const SizedBox(height: 9),
-          Wrap(
-            key: const ValueKey('task-detail-metadata-chips'),
-            spacing: 7,
-            runSpacing: 7,
-            children: chips,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SingleChildScrollView(
+          key: const ValueKey('task-detail-metadata-chips'),
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              for (var index = 0; index < items.length; index++)
+                Padding(
+                  padding: EdgeInsetsDirectional.only(end: index == items.length - 1 ? 0 : 8),
+                  child: items[index],
+                ),
+            ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            'تاریخ ایجاد: ${_task.createdAt == null ? 'نامشخص' : _dateTime(_task.createdAt!)}',
-            key: const ValueKey('task-detail-created-at'),
-            style: const TextStyle(fontSize: 12, color: _muted),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'آخرین به‌روزرسانی: ${_task.updatedAt == null ? 'نامشخص' : _dateTime(_task.updatedAt!)}',
-            key: const ValueKey('task-detail-updated-at'),
-            style: const TextStyle(fontSize: 12, color: _muted),
-          ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 7),
+        Text('تاریخ ایجاد: ${_task.createdAt == null ? 'نامشخص' : _dateTime(_task.createdAt!)}',
+          key: const ValueKey('task-detail-created-at'),
+          style: const TextStyle(fontFamily: 'Vazirmatn', fontSize: 11, color: _muted)),
+        const SizedBox(height: 3),
+        Text('آخرین به‌روزرسانی: ${_task.updatedAt == null ? 'نامشخص' : _dateTime(_task.updatedAt!)}',
+          key: const ValueKey('task-detail-updated-at'),
+          style: const TextStyle(fontFamily: 'Vazirmatn', fontSize: 11, color: _muted)),
+      ],
     );
   }
 
@@ -1478,6 +1515,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             ],
             const SizedBox(height: 10),
             _dueDateCard(),
+            const SizedBox(height: 10),
+            _assigneeCard(),
             const SizedBox(height: 10),
             _remindersCard(),
             const SizedBox(height: 4),
