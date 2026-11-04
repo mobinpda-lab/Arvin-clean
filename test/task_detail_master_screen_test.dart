@@ -90,6 +90,10 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('task-detail-recurrence')), findsNothing);
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('task-detail-recurrence-add')),
+      300,
+    );
     expect(find.byKey(const ValueKey('task-detail-recurrence-add')), findsOneWidget);
   });
 
@@ -124,6 +128,10 @@ void main() {
     expect(find.byKey(const ValueKey('task-detail-independent-reminders')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-reminder-smart-reminder')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-checklist')), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('task-detail-template-source')),
+      300,
+    );
     expect(find.byKey(const ValueKey('task-detail-template-source')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-latest-followup')), findsNothing);
     expect(find.byKey(const ValueKey('task-detail-timeline')), findsNothing);
