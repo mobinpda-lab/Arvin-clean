@@ -261,4 +261,4 @@ void main() {
     expect(find.byKey(const ValueKey('task-detail-complete')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-bottom-edit')), findsOneWidget);
   });
-
+}
