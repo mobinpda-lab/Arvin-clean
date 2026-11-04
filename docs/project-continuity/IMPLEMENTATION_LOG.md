@@ -1,3 +1,9 @@
+## Task Details UI — final verification checkpoint update — 2026-11-04
+- Final focused test adjustment: bottom completion action assertion now checks canonical `ArvinColors.primary` (`#4A4CAB`), not the darker AppBar shade. Commit: `b511d51d172a57656fdae12dd15ed559a27fcfb7`.
+- The Task Details redesign remains limited to `lib/task_detail_page.dart`, `test/task_detail_master_screen_test.dart`, and these three continuity documents. No Task model, repository, DAO, persistence, alarm, calendar, or backend source was modified.
+- The exact current branch HEAD must be read after this documentation sync. No workflow result is currently verified for the new Task Details implementation SHA; do not infer CI success from earlier runs.
+- PR #3052 must remain OPEN / DRAFT / UNMERGED; main untouched; **BLOCKED — RELEASE: NO-GO**.
+
 ## Task Details visual redesign — 2026-11-04
 - `a654da9262004b57fab591fcd2a72e48481e57f7`: set Task Details canvas to `#F5F6FA`; round the indigo AppBar bottom corners and add a back action; convert shared cards to white 16px rounded cards with subtle shadow; explicitly style Delete red outlined, Complete indigo filled and Edit indigo outlined; remove the «افراد مرتبط» UI block only.
 - `dc6e2aa6a3af26f474b9b02c1ccb24742228208b`: retain the existing checklist controller/callback but present «افزودن مرحله جدید» as a full-width outlined action after the checklist rows. Progress fraction and bar remain intact.
