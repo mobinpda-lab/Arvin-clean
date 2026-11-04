@@ -1,3 +1,12 @@
+## Quick Capture UI — owner-approved redesign (2026-11-04)
+- Owner decision APPROVED: UI-only redesign of QuickCaptureDialog; retain all four canonical TaskPriority values and exact enum persistence (high/medium/low/none; sort orders 1–4). No priority remapping.
+- Source checkpoint before continuity updates: `9aaa51dea8957a8f755e57f6d9bb05724a6f00f1`; changes in `lib/quick_capture_dialog.dart` and focused tests in `test/quick_capture_dialog_test.dart`.
+- UI implementation adds an icy `#F5F6FA` canvas, indigo header with close/full-form actions, white rounded cards, title and description fields, RTL pastel four-level priority chips with the exact four Persian labels and helper text, and full-width submit action. Existing center/project/category/tag, due date, reminder and recurrence controls remain connected through their existing callbacks/services.
+- Description now binds to canonical `Task.description`; it is cleared only after successful capture/full-form handoff. Title validation and capture callbacks remain unchanged.
+- Focused test updates preserve priority-value assertions, add exact helper-label / no-English-P-code assertions and description persistence coverage, and update the compact-form description expectation. No test was deleted, skipped or weakened.
+- Runtime and focused tests are IMPLEMENTED; Analyze, widget tests, full Build, Device Smoke and other exact-SHA gates remain NOT VERIFIED until CI completes on the final documentation-synchronized SHA.
+- PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; release remains BLOCKED — RELEASE: NO-GO.
+
 # Current Verified State
 Checkpoint: 1405/08/13 — 2026-11-04
 Repository: mobinpda-lab/Arvin-clean
