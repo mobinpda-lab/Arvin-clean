@@ -128,3 +128,14 @@ Release: BLOCKED — RELEASE: NO-GO
 - Draft Review APK run 41823721031: SUCCESS; artifact 13317704369, 38,206,200 bytes ZIP. Extracted review APK: 76,806,159 bytes, SHA-256 f3f3efdf74bff2b239f24145c69bbd98fbcf2ac0e2f3bb043e70c6f8d9dcea57. Manifest: applicationId com.example.arvin.staging, android_debuggable=false, v2/v3 signature verified, ephemeral test-only signing key, publishable=false, release_created=false. Review/install testing only; not a production/release APK.
 - Device Smoke run 41823721013: still incomplete at last poll. Boot, Navigation, Quick Capture and Task Lifecycle SUCCESS; Reminder/Vazirmatn and Calendar Segmented View IN_PROGRESS; Follow-up Persistence QUEUED. No seven-lane PASS.
 - No tests/assertions were modified, removed, weakened, skipped or bypassed during this audit. No timeout workaround was applied. PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; release remains BLOCKED — RELEASE: NO-GO.
+
+
+## Quick Capture compact layout — compile correction and live CI checkpoint (2026-11-04)
+- Previous PR HEAD `c918f2bb8ce73ffa82dd601ab30eb077b9d49fa4`; PR #3052 was OPEN / DRAFT / UNMERGED.
+- Build run `41842459267` on that exact SHA failed during Staging APK compilation: `ArvinTagRollBox` constructor accepted `compact` and its build method read `widget.compact`, but the widget class did not declare the corresponding field. This is a source compile error, not an APK signing or CI runner issue.
+- Corrected by adding `final bool compact;` to `ArvinTagRollBox` in commit `642a4016cbaa1994b4dfe2d278066941ef8a65c2`. No behavior/data/test assertion was changed by this correction.
+- The compact Quick Capture layout already reduces selector height to 40dp, horizontal padding to 8dp, icons to 16dp and label text to 10.5sp; tag selector uses the same compact contract. The main dialog uses tighter card/field spacing and 40dp priority chips. Existing vertical scroll remains as a safe fallback for short screens, keyboard and text scaling; fit-without-scroll on physical hardware is NOT VERIFIED.
+- Exact-head Build, Device Smoke, Calendar Provider, Follow-up Persistence and Draft Review APK must be checked again on the final documentation-synchronized SHA. Prior results do not transfer.
+- On pre-fix SHA `c918f2b`, Follow-up File Persistence run `41842459045` SUCCESS; Device Smoke `41842458990` was still running; Calendar Provider `41842459090` was in progress; Draft Review APK `41842459134` failed because the same missing `compact` property prevented Staging assembly. No all-green claim.
+- The user-referenced image `photo_1793800214435.webp` was not available for pixel-level inspection in this execution. Pixel-perfect matching and physical-device screenshot acceptance remain NOT VERIFIED.
+- No tests were deleted, skipped, weakened or bypassed. PR #3052 remains OPEN / DRAFT / UNMERGED; no `main` edits, merge or release. **BLOCKED — RELEASE: NO-GO.**
