@@ -242,16 +242,6 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    // The assignee card is below the initial viewport in the lazy ListView.
-    // Materialize it before asserting its stable identity key.
-    final detailScrollable = _taskDetailPageScrollable(tester);
-    await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('task-detail-assignee-card')),
-      240,
-      scrollable: detailScrollable,
-    );
-    await tester.pumpAndSettle();
-
     expect(find.byKey(const ValueKey('task-detail-summary-card')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-description-card')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-metadata')), findsOneWidget);
@@ -262,9 +252,23 @@ void main() {
     expect(find.byKey(const ValueKey('task-detail-metadata-category')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-metadata-tags')), findsOneWidget);
     expect(find.text('مشخصات کار'), findsNothing);
+    // Materialize the lower lazy-list cards before checking their keys.
+    final detailScrollable = _taskDetailPageScrollable(tester);
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('task-detail-due-date-card')),
+      240,
+      scrollable: detailScrollable,
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('task-detail-due-date-card')), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('task-detail-assignee-card')),
+      240,
+      scrollable: detailScrollable,
+    );
+    await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('task-detail-assignee-card')), findsOneWidget);
     expect(find.text('مسئول مستقلی برای این کار ثبت نشده است'), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-due-date-card')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-status-menu')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-priority-menu')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-due-date')), findsOneWidget);
