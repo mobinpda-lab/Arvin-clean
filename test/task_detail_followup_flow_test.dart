@@ -183,15 +183,15 @@ void main() {
     final followUpCard = find.byKey(
       ValueKey('task-detail-followup-${task.followUps.single.id}'),
     );
-    await tester.scrollUntilVisible(
-      followUpCard,
-      300,
-      final detailScrollable = find.descendant(
+    final detailScrollable = find.descendant(
       of: find.byKey(const ValueKey('task-detail-page')),
       matching: find.byType(Scrollable),
     );
     expect(detailScrollable, findsOneWidget);
-    scrollable: detailScrollable,
+    await tester.scrollUntilVisible(
+      followUpCard,
+      300,
+      scrollable: detailScrollable,
     );
     await tester.pumpAndSettle();
     expect(followUpCard, findsOneWidget);

@@ -97,15 +97,15 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('task-detail-recurrence')), findsNothing);
     final recurrenceAdd = find.byKey(const ValueKey('task-detail-recurrence-add'));
-    await tester.scrollUntilVisible(
-      recurrenceAdd,
-      300,
-      final detailScrollable = find.descendant(
+    final detailScrollable = find.descendant(
       of: find.byKey(const ValueKey('task-detail-page')),
       matching: find.byType(Scrollable),
     );
     expect(detailScrollable, findsOneWidget);
-    scrollable: detailScrollable,
+    await tester.scrollUntilVisible(
+      recurrenceAdd,
+      300,
+      scrollable: detailScrollable,
     );
     await tester.pumpAndSettle();
     expect(recurrenceAdd, findsOneWidget);
@@ -143,15 +143,15 @@ void main() {
     expect(find.byKey(const ValueKey('task-detail-reminder-smart-reminder')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-checklist')), findsOneWidget);
     final templateSource = find.byKey(const ValueKey('task-detail-template-source'));
-    await tester.scrollUntilVisible(
-      templateSource,
-      300,
-      final detailScrollable = find.descendant(
+    final detailScrollable = find.descendant(
       of: find.byKey(const ValueKey('task-detail-page')),
       matching: find.byType(Scrollable),
     );
     expect(detailScrollable, findsOneWidget);
-    scrollable: detailScrollable,
+    await tester.scrollUntilVisible(
+      templateSource,
+      300,
+      scrollable: detailScrollable,
     );
     await tester.pumpAndSettle();
     expect(templateSource, findsOneWidget);
