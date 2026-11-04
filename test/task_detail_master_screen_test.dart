@@ -97,10 +97,13 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('task-detail-recurrence')), findsNothing);
     final recurrenceAdd = find.byKey(const ValueKey('task-detail-recurrence-add'));
-    expect(recurrenceAdd, findsOneWidget);
-    await tester.ensureVisible(recurrenceAdd);
+    await tester.scrollUntilVisible(
+      recurrenceAdd,
+      300,
+      scrollable: find.byType(ListView),
+    );
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('task-detail-recurrence-add')), findsOneWidget);
+    expect(recurrenceAdd, findsOneWidget);
   });
 
   testWidgets('Smart visibility shows rich sections only when canonical data exists', (tester) async {
@@ -135,10 +138,13 @@ void main() {
     expect(find.byKey(const ValueKey('task-detail-reminder-smart-reminder')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-checklist')), findsOneWidget);
     final templateSource = find.byKey(const ValueKey('task-detail-template-source'));
-    expect(templateSource, findsOneWidget);
-    await tester.ensureVisible(templateSource);
+    await tester.scrollUntilVisible(
+      templateSource,
+      300,
+      scrollable: find.byType(ListView),
+    );
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('task-detail-template-source')), findsOneWidget);
+    expect(templateSource, findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-latest-followup')), findsNothing);
     expect(find.byKey(const ValueKey('task-detail-timeline')), findsNothing);
   });
