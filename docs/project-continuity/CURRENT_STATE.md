@@ -1,3 +1,10 @@
+## Quick Capture implementation refinement — 2026-11-04
+- Latest source/test checkpoint before this continuity refresh: `2349dc2cdffeae440e525a89842912d681123b26`.
+- Focused test commits: `15212f6f5151c8436f041021d96ca7042bcf0015` (ensure-visible interaction and full-width submit geometry) and `2349dc2cdffeae440e525a89842912d681123b26` (remove obsolete test import).
+- Live PR metadata at this checkpoint: OPEN / DRAFT / UNMERGED; branch HEAD equals the checkpoint SHA.
+- GitHub Actions query for this SHA returned zero workflow runs; commit status is pending with zero contexts. CI is NOT VERIFIED and must not be reported as passing.
+- Keep release BLOCKED — RELEASE: NO-GO.
+
 ## Quick Capture UI — owner-approved redesign (2026-11-04)
 - Owner decision APPROVED: UI-only redesign of QuickCaptureDialog; retain all four canonical TaskPriority values and exact enum persistence (high/medium/low/none; sort orders 1–4). No priority remapping.
 - Source checkpoint before continuity updates: `9aaa51dea8957a8f755e57f6d9bb05724a6f00f1`; changes in `lib/quick_capture_dialog.dart` and focused tests in `test/quick_capture_dialog_test.dart`.
