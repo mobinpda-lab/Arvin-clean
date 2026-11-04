@@ -1240,7 +1240,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             onChanged: widget.onTaskChanged == null ? null : _toggleRecurrence,
           ),
         ]),
-        Text('قاعده: هر ${rule.interval} ${unit}'),
+        Text('قاعده: هر ${rule.interval} $unit'),
         const SizedBox(height: 6),
         const Text('رویدادهای آینده (۳۰ روز، حداکثر ۵ مورد):', style: TextStyle(fontWeight: FontWeight.w700)),
         if (anchor == null)
