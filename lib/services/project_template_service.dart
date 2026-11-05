@@ -73,7 +73,7 @@ class ProjectTemplateService {
         category: task.category,
         tags: List<String>.of(task.tags),
         checklist: task.checklist
-            .map((value) => value.replaceFirst(RegExp(r'^\\s*\\[(?:x|X|✓| )\\]\\s*'), '').trim())
+            .map((value) => value.replaceFirst(RegExp(r'^\s*\[(?:x|X|✓| )\]\s*'), '').trim())
             .toList(growable: false),
       ));
     }
