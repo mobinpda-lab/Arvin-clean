@@ -65,7 +65,7 @@ void main() {
     expect(addFollowUp, findsOneWidget);
   });
 
-  testWidgets('Task detail removes the redundant status badge and shows description placeholder',
+  testWidgets('Task detail shows the approved waiting status badge and description placeholder',
       (tester) async {
     final task = Task(id: 'empty-description', title: 'کار بدون توضیح');
 
@@ -80,7 +80,8 @@ void main() {
 
     expect(find.text('توضیحی ثبت نشده است'), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-inline-edit-toggle')), findsOneWidget);
-    expect(find.text('در انتظار انجام'), findsNothing);
+    expect(find.byKey(const ValueKey('task-status-badge')), findsOneWidget);
+    expect(find.text('در انتظار انجام'), findsOneWidget);
     expect(find.text('در انتظار پاسخ'), findsNothing);
     expect(find.text('پیگیری دار'), findsNothing);
     expect(find.text('ثبت یادداشت'), findsNothing);
@@ -130,10 +131,10 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(descriptionEdit);
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('task-detail-description-input')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-inline-description')), findsOneWidget);
 
     await tester.enterText(
-      find.byKey(const ValueKey('task-detail-description-input')),
+      find.byKey(const ValueKey('task-detail-inline-description')),
       'توضیح به‌روزشده',
     );
     await tester.tap(find.byKey(const ValueKey('task-detail-description-save')));
@@ -150,7 +151,7 @@ void main() {
     expect(task.followUpEnabled, isTrue);
     expect(task.followUpDate, followUpDate);
     expect(find.text('توضیح به‌روزشده'), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-description-input')), findsNothing);
+    expect(find.byKey(const ValueKey('task-detail-inline-description')), findsNothing);
     expect(find.text('ثبت یادداشت'), findsNothing);
   });
 
