@@ -50,7 +50,12 @@ void main() {
     await tester.pumpAndSettle();
     final allTasks = await tasks.load();
     expect(allTasks, hasLength(2));
-    expect(allTasks.any((item) => item.title == 'سرویس پمپ'), isTrue);
+    final generated = allTasks.singleWhere((item) => item.id != source.id);
+    expect(generated.title, 'سرویس پمپ');
+    expect(generated.checklist, ['[ ] کنترل برق', '[ ] کنترل فشار']);
+    expect(generated.checklistEnabled, isTrue);
+    expect(generated.dueDate, isNull);
+    expect(generated.completed, isFalse);
     expect(find.text('کار «سرویس پمپ» از الگو ساخته شد.'), findsOneWidget);
   });
 }
