@@ -489,6 +489,7 @@ void main() {
   });
 
   testWidgets('Unified Task Details preserves the page scroll offset entering and cancelling edit', (tester) async {
+    Task? persisted;
     final task = Task(
       id: 'scroll-preservation',
       title: 'کار با جزئیات زیاد',
@@ -511,7 +512,10 @@ void main() {
     await tester.pumpWidget(MaterialApp(
       home: TaskDetailPage(
         task: task,
-        onTaskChanged: (value) async => value,
+        onTaskChanged: (value) async {
+          persisted = value;
+          return value;
+        },
         onChecklistChanged: (value, checklist) async => value,
       ),
     ));
