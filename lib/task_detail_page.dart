@@ -558,6 +558,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               style: const TextStyle(fontFamily: 'Vazirmatn', height: 1.6),
             ),
           ),
+          if (_task.templateTaskId?.trim().isNotEmpty == true) ...[
+            const SizedBox(height: 8),
+            _templateSourceCard(),
+          ],
         ],
       ),
     );
@@ -1394,10 +1398,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             _metadataCard(),
             const SizedBox(height: 10),
             _summaryCard(),
-            if (_task.templateTaskId?.trim().isNotEmpty == true) ...[
-              const SizedBox(height: 10),
-              _templateSourceCard(),
-            ],
             const SizedBox(height: 10),
             _dueDateCard(),
             const SizedBox(height: 10),
