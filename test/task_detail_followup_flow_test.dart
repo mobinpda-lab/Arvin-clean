@@ -112,15 +112,16 @@ void main() {
       followUps: <FollowUp>[originalFollowUp],
     );
     final savedAt = DateTime(2026, 10, 31, 12);
+    Task? persisted;
 
     await tester.pumpWidget(
       MaterialApp(
         home: TaskDetailPage(
           task: task,
-          onDescriptionChanged: (current, description) async {
-            current.description = description;
-            current.updatedAt = savedAt;
-            return current;
+          onTaskChanged: (candidate) async {
+            candidate.updatedAt = savedAt;
+            persisted = candidate;
+            return candidate;
           },
         ),
       ),
@@ -137,19 +138,21 @@ void main() {
       find.byKey(const ValueKey('task-detail-inline-description')),
       'توضیح به‌روزشده',
     );
-    await tester.tap(find.byKey(const ValueKey('task-detail-description-save')));
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
     await tester.pumpAndSettle();
 
-    expect(task.description, 'توضیح به‌روزشده');
-    expect(task.updatedAt, savedAt);
-    expect(task.completedAt, completedAt);
-    expect(task.followUps, hasLength(1));
-    expect(identical(task.followUps.single, originalFollowUp), isTrue);
-    expect(task.followUps.single.note, 'تاریخچه غیرقابل تغییر');
-    expect(task.followUps.single.nextFollowUp, nextFollowUp);
-    expect(task.followUps.single.dateTime, followUpDate);
-    expect(task.followUpEnabled, isTrue);
-    expect(task.followUpDate, followUpDate);
+    final savedTask = persisted!;
+    expect(savedTask.description, 'توضیح به‌روزشده');
+    expect(savedTask.updatedAt, savedAt);
+    expect(savedTask.completedAt, completedAt);
+    expect(savedTask.followUps, hasLength(1));
+    expect(savedTask.followUps.single.id, originalFollowUp.id);
+    expect(savedTask.followUps.single.note, 'تاریخچه غیرقابل تغییر');
+    expect(savedTask.followUps.single.nextFollowUp, nextFollowUp);
+    expect(savedTask.followUps.single.dateTime, followUpDate);
+    expect(savedTask.followUpEnabled, isTrue);
+    expect(savedTask.followUpDate, followUpDate);
+    expect(task.description, 'متن قبلی');
     expect(find.text('توضیح به‌روزشده'), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-inline-description')), findsNothing);
     expect(find.text('ثبت یادداشت'), findsNothing);
