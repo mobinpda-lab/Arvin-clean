@@ -168,6 +168,57 @@ void main() {
     expect(persisted?.recurrence?.count, 4);
   });
 
+  testWidgets('Unified Task Details stages checklist edits, reorders and saves or cancels atomically', (tester) async {
+    Task? persisted;
+    final source = Task(
+      id: 'inline-checklist-draft',
+      title: 'کار با چک‌لیست',
+      checklistEnabled: true,
+      checklist: const ['[ ] مرحله اول', '[ ] مرحله دوم'],
+      followUps: [
+        FollowUp(id: 'history-keep', dateTime: DateTime(2026, 11, 4), note: 'تاریخچه محفوظ'),
+      ],
+    );
+    await tester.pumpWidget(MaterialApp(
+      home: TaskDetailPage(
+        task: source,
+        onTaskChanged: (candidate) async {
+          persisted = candidate;
+          return candidate;
+        },
+        onChecklistChanged: (candidate, values) async => candidate,
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-detail-checklist-down-0')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const ValueKey('task-detail-checklist-add-input')), 'مرحله سوم');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(find.text('مرحله دوم'), findsOneWidget);
+    expect(find.text('مرحله اول'), findsOneWidget);
+    expect(find.text('مرحله سوم'), findsOneWidget);
+    expect(persisted, isNull);
+
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-cancel')));
+    await tester.pumpAndSettle();
+    expect(source.checklist, ['[ ] مرحله اول', '[ ] مرحله دوم']);
+    expect(persisted, isNull);
+
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-detail-checklist-down-0')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
+    await tester.pumpAndSettle();
+
+    expect(persisted?.checklist, ['[ ] مرحله دوم', '[ ] مرحله اول']);
+    expect(persisted?.followUps.single.id, 'history-keep');
+  });
+
   testWidgets('Unified Task Details preserves the page scroll offset entering and cancelling edit', (tester) async {
     final task = Task(
       id: 'scroll-preservation',
