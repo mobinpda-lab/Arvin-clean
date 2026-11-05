@@ -483,6 +483,86 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     );
   }
 
+  Widget _summaryCard() {
+    return _card(
+      key: const ValueKey('task-detail-summary-card'),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: _isInlineEditing
+                    ? TextField(
+                        key: const ValueKey('task-detail-inline-title'),
+                        controller: _titleController,
+                        textDirection: TextDirection.rtl,
+                        maxLines: 2,
+                        style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900, height: 1.25),
+                        decoration: const InputDecoration(labelText: 'عنوان کار', border: OutlineInputBorder()),
+                      )
+                    : Text(
+                        _task.title,
+                        key: const ValueKey('task-detail-title'),
+                        textAlign: TextAlign.right,
+                        style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900, height: 1.3),
+                      ),
+              ),
+              if (!_isInlineEditing)
+                IconButton(
+                  key: const ValueKey('task-detail-summary-edit'),
+                  tooltip: 'ویرایش درجا',
+                  onPressed: widget.onTaskChanged == null
+                      ? (widget.onEdit == null ? null : _edit)
+                      : _beginInlineEdit,
+                  icon: const Icon(Icons.edit_outlined, color: _brand),
+                ),
+            ],
+          ),
+          if (_isInlineEditing) ...[
+            const SizedBox(height: 8),
+            TextField(
+              key: const ValueKey('task-detail-inline-description'),
+              controller: _descriptionController,
+              minLines: 2,
+              maxLines: null,
+              textDirection: TextDirection.rtl,
+              decoration: const InputDecoration(labelText: 'توضیحات کامل', border: OutlineInputBorder()),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              key: const ValueKey('task-detail-inline-category'),
+              controller: _categoryController,
+              textDirection: TextDirection.rtl,
+              decoration: const InputDecoration(labelText: 'دسته', border: OutlineInputBorder(), isDense: true),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              key: const ValueKey('task-detail-inline-tags'),
+              controller: _tagsController,
+              textDirection: TextDirection.rtl,
+              decoration: const InputDecoration(labelText: 'برچسب‌ها (با ویرگول جدا کنید)', border: OutlineInputBorder(), isDense: true),
+            ),
+          ],
+          const SizedBox(height: 10),
+          _statusPriorityCard(),
+          const SizedBox(height: 10),
+          KeyedSubtree(
+            key: const ValueKey('task-detail-description-card'),
+            child: Text(
+              _task.description.trim().isEmpty
+                  ? 'توضیحی ثبت نشده است'
+                  : _task.description.trim(),
+              key: const ValueKey('task-detail-description'),
+              style: const TextStyle(fontFamily: 'Vazirmatn', height: 1.6),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _dueDateCard() {
     return _card(
       key: const ValueKey('task-detail-due-date-card'),
