@@ -13,6 +13,14 @@ class TaskListSortService {
   }) {
     final indexed = tasks.toList(growable: false).asMap().entries.toList();
     indexed.sort((left, right) {
+      if (by == TaskListSort.lastFollowUp) {
+        final followUpComparison = _compareNullableDate(
+          left.value.lastFollowUpDate,
+          right.value.lastFollowUpDate,
+          descending: descending,
+        );
+        if (followUpComparison != 0) return followUpComparison;
+      }
       final priorityComparison = left.value.priority.sortOrder.compareTo(right.value.priority.sortOrder);
       if (priorityComparison != 0) return priorityComparison;
       final comparison = switch (by) {
@@ -26,11 +34,7 @@ class TaskListSortService {
             _latestMeaningful(right.value),
             descending: descending,
           ),
-        TaskListSort.lastFollowUp => _compareNullableDate(
-            left.value.lastFollowUpDate,
-            right.value.lastFollowUpDate,
-            descending: descending,
-          ),
+        TaskListSort.lastFollowUp => 0,
         TaskListSort.title => _directional(
             _normalizeTitle(left.value.title)
                 .compareTo(_normalizeTitle(right.value.title)),
