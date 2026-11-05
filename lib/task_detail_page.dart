@@ -1163,7 +1163,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   Widget _remindersCard() {
-    if (_task.taskReminders.isEmpty) {
+    final hasLegacyReminder = _task.reminderDate != null;
+    if (_task.taskReminders.isEmpty && !hasLegacyReminder) {
       return Align(
         alignment: AlignmentDirectional.centerStart,
         child: TextButton.icon(
@@ -1178,7 +1179,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       key: const ValueKey('task-detail-independent-reminders'),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          _sectionTitle('یادآورهای مستقل', Icons.notifications_active_outlined),
+          _sectionTitle('یادآوری‌ها', Icons.notifications_active_outlined),
           const Spacer(),
           TextButton.icon(
             key: const ValueKey('task-detail-add-reminder'),
@@ -1187,6 +1188,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             label: const Text('افزودن'),
           ),
         ]),
+        if (hasLegacyReminder)
+          ListTile(
+            key: const ValueKey('task-detail-legacy-reminder'),
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.notifications_none_outlined, color: ArvinColors.reminder),
+            title: const Text('یادآور اصلی'),
+            subtitle: Text(_dateTime(_task.reminderDate!)),
+          ),
         for (final reminder in _task.taskReminders)
           Material(
             type: MaterialType.transparency,
@@ -1419,21 +1428,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             if (history.isNotEmpty) ...[
               const SizedBox(height: 10),
               _timeline(history),
-            ],
-            if (_task.reminderDate != null) ...[
-              const SizedBox(height: 10),
-              _card(
-                key: const ValueKey('task-detail-reminder-date'),
-                child: Row(
-                  children: [
-                    const Icon(Icons.notifications_none_outlined, color: ArvinColors.reminder),
-                    const SizedBox(width: 9),
-                    const Text('یادآور', style: TextStyle(color: _muted, fontWeight: FontWeight.w700)),
-                    const Spacer(),
-                    Text(_dateTime(_task.reminderDate!), style: const TextStyle(fontWeight: FontWeight.w800)),
-                  ],
-                ),
-              ),
             ],
           ],
         ),
