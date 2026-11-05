@@ -3219,6 +3219,7 @@ class _HomePageState extends State<HomePage> {
                       if (_projectTitleForTask(task) != null || task.category?.trim().isNotEmpty == true || task.tags.isNotEmpty) ...[
                         const SizedBox(height: 4),
                         TaxonomyIconRow(
+                          center: _centerNameForTask(task),
                           project: _projectTitleForTask(task),
                           category: task.category,
                           tags: task.tags,
