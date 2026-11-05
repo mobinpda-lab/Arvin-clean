@@ -334,7 +334,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       builder: (dialogContext) => AlertDialog(
         title: const Text('ویرایش عنوان یادآور'),
         content: TextField(
-          key: ValueKey('task-detail-reminder-edit-title-${reminder.id}'),
+          key: ValueKey('task-detail-reminder-edit-title-input-${reminder.id}'),
           controller: controller,
           autofocus: true,
           decoration: const InputDecoration(labelText: 'عنوان یادآور'),
