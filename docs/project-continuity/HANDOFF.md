@@ -185,3 +185,9 @@ NOT VERIFIED. GitHub branch data does not reveal uncommitted local modifications
 - Preserve all existing tests and assertions. Do not skip, weaken, remove, bypass or time out any test. Fix only genuine product/source defects and retain failing evidence.
 - Physical Naskh glyph rendering and full Home visual acceptance remain NOT VERIFIED until a physical-device screenshot is inspected.
 - PR #3052 must remain OPEN / DRAFT / UNMERGED; main untouched; release BLOCKED — RELEASE: NO-GO.
+
+ 
+## TaskHomeScreen analyzer correction — 2026-11-05
+- An intermediate Analyze run on source checkpoint `da311c2f7e4ef9b96fc20a26e31eca996fa63d50` found the plugin import had also been removed even though the app-level notification tap handler still uses `NotificationResponse`, and found an orphan private `_openPendingReminder` helper after removing the Home bell.
+- Corrected in `c0766a5e602d04426486816e95cad4038b667fa7`: restored the plugin type import for the retained notification-response path and removed the now-unreferenced pending-notification helper. The Home header remains bell-free.
+- No test files or assertions were changed. Analyze and widget tests on the corrected/final SHA remain NOT VERIFIED until a fresh exact-SHA run completes.
