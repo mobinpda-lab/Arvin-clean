@@ -1431,7 +1431,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   Widget _statusPriorityCard() {
     final completed = _isInlineEditing ? _draftCompleted : _task.completed;
     final priority = _isInlineEditing ? _draftPriority : _task.priority;
-    final waitingForResponse = !completed && _task.lastFollowUp?.waitingForResponse == true;
+    final waitingForResponse = !completed && !_task.archived && !_task.trashed &&
+        (_task.lastFollowUp?.waitingForResponse == true || _waitingService.isWaiting(_task));
     final status = _task.trashed
         ? 'در سطل زباله'
         : _task.archived
