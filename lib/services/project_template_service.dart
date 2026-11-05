@@ -50,6 +50,47 @@ class ProjectTemplateService {
   String _id(String prefix) => _idFactory?.call(prefix) ??
       '$prefix-${DateTime.now().microsecondsSinceEpoch}-${_sequence++}';
 
+  /// Creates a reusable Project Template from an existing canonical Project.
+  /// The source Project and its Task rows are read-only throughout conversion.
+  Future<ProjectTemplate> createFromProject({
+    required ProjectPlan project,
+    String? name,
+  }) async {
+    final currentProjects = await projectStore.load();
+    final source = currentProjects.where((item) => item.id == project.id);
+    if (source.length != 1) throw StateError('پروژه مبدأ پیدا نشد.');
+    final current = source.single;
+    final allTasks = await taskStore.load();
+    final byId = <String, Task>{for (final task in allTasks) task.id: task};
+    final definitions = <ProjectTemplateTask>[];
+    for (final taskId in current.itemIds) {
+      final task = byId[taskId];
+      if (task == null || task.trashed) continue;
+      definitions.add(ProjectTemplateTask(
+        id: _id('project-template-task'),
+        title: task.title,
+        description: task.description,
+        category: task.category,
+        tags: List<String>.of(task.tags),
+        checklist: task.checklist
+            .map((value) => value.replaceFirst(RegExp(r'^\\s*\\[(?:x|X|✓| )\\]\\s*'), '').trim())
+            .toList(growable: false),
+      ));
+    }
+    final now = DateTime.now();
+    final template = ProjectTemplate(
+      id: _id('project-template'),
+      name: (name ?? current.title).trim(),
+      tasks: definitions,
+      createdAt: now,
+      updatedAt: now,
+      centerId: current.centerId,
+      colorValue: current.colorValue,
+    );
+    await templateStore.save(template);
+    return template;
+  }
+
   Future<TemplateGenerationResult> generateProjects({
     required String templateId,
     required Set<String> centerIds,
