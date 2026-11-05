@@ -17,6 +17,8 @@ void main() {
   test('existing Project converts to Project Template without mutating source records', () async {
     final db = NativeDatabase.memory();
     addTearDown(db.close);
+    final centers = CenterStore(executor: db);
+    await centers.create(id: 'center-77', name: 'مرکز نمونه');
     final templates = ProjectTemplateStore(executor: db);
     final projects = ProjectStore(executor: db);
     final tasks = TaskStore(executor: db);
@@ -41,6 +43,7 @@ void main() {
 
     final service = ProjectTemplateService(
       templateStore: templates,
+      centerStore: centers,
       projectStore: projects,
       taskStore: tasks,
       idFactory: (prefix) => '$prefix-fixed',
