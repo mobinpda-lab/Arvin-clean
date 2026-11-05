@@ -21,9 +21,17 @@ class _ProjectTemplateManagementPageState extends State<ProjectTemplateManagemen
   @override void initState() { super.initState(); _load(); }
   Future<void> _load() async {
     try {
-      final values = await Future.wait<Object>([_service.templateStore.load(), _centersStore.load(includeArchived: true), _service.projectStore.load()]);
+      // Keep access ordered even when stores share the same Drift executor.
+      final templates = await _service.templateStore.load();
+      final centers = await _centersStore.load(includeArchived: true);
+      final projects = await _service.projectStore.load();
       if (!mounted) return;
-      setState(() { _templates = values[0] as List<ProjectTemplate>; _centers = values[1] as List<ArvinCenter>; _projects = values[2] as List<ProjectPlan>; _loading = false; });
+      setState(() {
+        _templates = templates;
+        _centers = centers;
+        _projects = projects;
+        _loading = false;
+      });
     } catch (error) {
       if (!mounted) return;
       setState(() => _loading = false);
