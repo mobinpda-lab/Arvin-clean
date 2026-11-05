@@ -66,7 +66,17 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      // Task Details is a static review surface. Advance the initial route and
+      // Material transitions deterministically, then assert the scheduler is
+      // genuinely idle instead of waiting forever for an unrelated ticker.
+      await tester.pump(const Duration(milliseconds: 350));
+      await tester.pump();
+      expect(
+        tester.binding.hasScheduledFrame,
+        isFalse,
+        reason: 'Task Details must have no repeating frame source before golden capture.',
+      );
+      expect(find.byType(CircularProgressIndicator), findsNothing);
 
       // Preserve a reviewable render even when the approved golden is absent
       // or differs. CI uploads this image; it must not auto-update the baseline.
