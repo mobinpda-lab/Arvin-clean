@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'models/goal_project.dart';
 import 'models/arvin_center.dart';
+import 'services/project_template_service.dart';
 
 class ProjectsPage extends StatefulWidget {
   const ProjectsPage({
@@ -98,6 +99,42 @@ class _ProjectsPageState extends State<ProjectsPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _convertProjectToTemplate(ProjectPlan project) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('تبدیل پروژه به الگو'),
+        content: Text(
+          'از ساختار و کارهای فعلی «${project.title}» یک الگوی پروژه ساخته شود؟ پروژه اصلی و کارهای داخل آن بدون تغییر باقی می‌مانند.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('انصراف')),
+          FilledButton(
+            key: ValueKey('project-template-confirm-${project.id}'),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('تبدیل به الگو'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() => _saving = true);
+    try {
+      await ProjectTemplateService().createFromProject(project: project);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('الگوی پروژه ذخیره شد؛ پروژه اصلی تغییر نکرد.')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('تبدیل پروژه به الگو انجام نشد: $error')),
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   Future<void> _deleteProject(ProjectPlan project) async {
@@ -256,6 +293,12 @@ class _ProjectsPageState extends State<ProjectsPage> {
                     ),
                     trailing: Wrap(
                       children: [
+                        IconButton(
+                          key: ValueKey('project-template-${project.id}'),
+                          tooltip: 'تبدیل به الگو',
+                          onPressed: _saving ? null : () => _convertProjectToTemplate(project),
+                          icon: const Icon(Icons.bookmark_add_outlined),
+                        ),
                         IconButton(
                           key: ValueKey('project-edit-${project.id}'),
                           tooltip: 'ویرایش',
