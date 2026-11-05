@@ -430,3 +430,14 @@ Every new entry must include exact SHA, workflow/run IDs, terminal conclusion, a
 - این تغییرات تا اجرای موفق تست‌ها روی exact final SHA «پیاده‌سازی‌شده اما تأییدنشده» هستند.
 
 - `test/home/home_filter_boolean_logic_test.dart` اکنون OR درون Category/Tag و AND میان این دو بُعد را به‌صورت تعاملی پوشش می‌دهد؛ commit `f6e1f38f93279621716a5734f8ea763a2cd19a2e`. نتیجه اجرای exact-SHA هنوز تأیید نشده است.
+
+
+## ۱۴۰۵/۰۸/۱۴ (2026-11-05) — ممیزی قرارداد نهایی تایپوگرافی و رفع موانع CI
+- HEAD ممیزی‌شده پیش از این بسته: `ea77f423c07c6978e8d62ab271d8906c89ff8824`؛ SHA مبنا `f44fb03fbc3a5b7b8e995dd861a9585aed36b0cc` قدیمی است و به‌عنوان HEAD جاری استفاده نمی‌شود.
+- بررسی نشان داد pubspec فقط Vazirmatn را به‌عنوان خانواده bundled ثبت کرده اما AppFonts هنوز serif/Naskh fallback را برای عبارات مقدس فعال می‌کند؛ دو SVG path-based در کد فعلی قابل تأیید نبودند.
+- در کد این بسته: const نامعتبر در Home visual integration حذف شد؛ fixture PersonReference غیر const اصلاح شد؛ محتوای کارت Task Details اکنون Material شفاف برای tileهای تعاملی فراهم می‌کند؛ Layout Smoke ابعاد width/height را finite نیز بررسی می‌کند.
+- Build run `42072261154`: FAILED؛ Analyze به const invocation در `lib/home/home_visual_integration.dart:68` و fixture در `test/task_detail_template_conversion_test.dart:26` برخورد کرد. Visual run همان SHA به ListTile/Material FlutterError برخورد کرد. چند test shard نیز assertion/compile failures داشتند.
+- Draft APK artifact روی SHA قدیمی موجود است اما build پایدار یا release artifact محسوب نمی‌شود. APK matrix در PR Draft اجرا نشده است.
+- تصمیم جدید supersedes هر استثنای فونتی قبلی: Vazirmatn تنها فونت متنی؛ دو عبارت فقط SVG واقعی path-based.
+- مرجع تصویری دقیق خوشنویسی در منابع قابل بازیابی این ممیزی پیدا نشد؛ طراحی دقیق تا دریافت مرجع NOT VERIFIED است.
+- این اصلاحات و اسناد هنوز باید روی exact final SHA اجرا و تأیید شوند. PR #3052 OPEN/DRAFT/UNMERGED؛ main untouched؛ **BLOCKED — RELEASE: NO-GO**.
