@@ -198,6 +198,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         _isInlineEditing = false;
         _isSavingInlineEdit = false;
       });
+      try {
+        await AndroidFollowUpReminderScheduler().reschedule();
+      } catch (_) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('تغییرات ذخیره شد؛ زمان‌بندی اعلان در اجرای بعدی بازآزمایی می‌شود')),
+        );
+      }
     } catch (_) {
       if (!mounted) return;
       setState(() => _isSavingInlineEdit = false);
