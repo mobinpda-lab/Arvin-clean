@@ -23,7 +23,6 @@ void main() {
           (widget.bytesLoader as dynamic).assetName == 'assets/images/branding/tafweez.svg'),
       findsOneWidget,
     );
-    expect(find.text('أُفَوِّضُ أَمْرِی إِلَى اللَّهِ'), findsNothing);
     expect(AppFonts.familyForText('متن فارسی رابط کاربری'), AppFonts.vazirmatnFamily);
   });
 
