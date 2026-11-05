@@ -159,6 +159,11 @@ void main() {
     );
     expect(oldTemplate.single['name'], 'الگوی قدیمی');
     expect(oldTemplate.single['title'], 'کار قدیمی');
+    final legacyChecklistConfig = await database.runSelect(
+      "SELECT checklist_enabled FROM task_templates WHERE id = 'task-template-v9'",
+      const [],
+    );
+    expect(legacyChecklistConfig.single['checklist_enabled'], 0);
   });
 
   test('Task Template retains legacy reminder time without copying its calendar date', () async {
