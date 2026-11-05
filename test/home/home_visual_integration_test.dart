@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:arvin/home/home_visual_integration.dart';
+import 'package:arvin/theme/app_fonts.dart';
 
 void main() {
   testWidgets('renders canonical Home identity, search and add action', (tester) async {
@@ -16,6 +17,8 @@ void main() {
     );
 
     expect(find.text('بسم الله الرحمن الرحیم'), findsOneWidget);
+    final sacredPhrase = tester.widget<Text>(find.text('بسم الله الرحمن الرحیم'));
+    expect(sacredPhrase.style?.fontFamily, AppFonts.sacredArabicFamily);
     expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-search')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-notifications')), findsOneWidget);
