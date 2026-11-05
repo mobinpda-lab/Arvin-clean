@@ -133,3 +133,13 @@ PROPOSED = candidate only; APPROVED = explicit owner decision; IN_PROGRESS = wor
 | زبان طراحی مشترک سه صفحه | APPROVED | الهام از Microsoft To Do، کارت‌های سفید گوشه‌گرد، پس‌زمینه روشن، رنگ‌های معنایی، فارسی RTL و Vazirmatn؛ خط نسخ عبارات مقدس treatment مستقل است. |
 
 **حدود مصوبه:** این ثبت، تصمیم محصولی و مرجع UX است؛ مجوز تغییر کد اجرایی، تست، Golden Test، schema، Provider یا انتشار نیست. نگاشت «زمان اجرا» و assignment مسئول به داده canonical باید پیش از پیاده‌سازی ممیزی شود؛ تا اثبات منبع واقعی، NOT VERIFIED است. PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main بدون تغییر؛ Release: BLOCKED — RELEASE: NO-GO.
+
+
+## مجوز اجرایی تکمیلی مالک محصول — ۱۴۰۵/۰۸/۱۴ (2026-11-05)
+
+- دستور تجمعی جدید مالک محصول، اجرای runtime code، migration و تست روی شاخه مجاز PR #3052 را صریحاً مجاز کرده است؛ محدودیت قدیمی «صرفاً مستندسازی / بدون runtime» برای این بسته اجرایی دیگر مانع کار نیست.
+- قرارداد Task Template در `docs/project-continuity/TASK_TEMPLATE_DATA_CONTRACT.md` ثبت و در G1 v11 پیاده‌سازی شده است. تاریخ‌های اجرای قبلی، وضعیت تکمیل، Follow-up history و شناسه‌های Reminder به الگوی جدید منتقل نمی‌شوند؛ ساعت Reminder، تنظیم checklist، تعریف recurrence و People references حفظ می‌شوند.
+- People فقط افراد مرتبط‌اند؛ مسئول مستقل در مدل canonical موجود اثبات نشده و همچنان NOT VERIFIED است. کارت مسئول نباید از Task.people نقش مسئول بسازد.
+- فیلد canonical برای «زمان اجرا» در Task تأیید نشده است؛ کارت متادیتا باید «نامشخص» نشان دهد و از createdAt یا dueDate حدس نزند.
+- استثنای خط نسخ برای عبارت «بسم‌الله الرحمن الرحیم» همچنان نیازمند تصمیم صریح مالک است؛ تا آن زمان rendering موجود تغییر نمی‌کند و Vazirmatn فونت عمومی UI باقی می‌ماند.
+- اجرای کد و تست روی شاخه مجاز انجام شده، اما تا اجرای تست‌ها و CI روی exact final SHA، وضعیت «پیاده‌سازی‌شده اما تأییدنشده» است. PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main تغییر نمی‌کند؛ **BLOCKED — RELEASE: NO-GO**.
