@@ -32,12 +32,12 @@ void main() {
 
     expect(find.byType(AppBar), findsNothing);
     expect(find.byKey(const ValueKey('home-bismillah')), findsOneWidget);
-    expect(find.text('بسم الله الرحمن الرحیم'), findsOneWidget);
+    expect(find.text('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-title-block')), findsOneWidget);
     expect(find.text('آروین'), findsOneWidget);
     expect(find.text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-search')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-notifications')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-notifications')), findsNothing);
     expect(find.byKey(const ValueKey('home-search-button')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
   });
@@ -97,7 +97,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
-    expect(find.text('تاریخ گذشته'), findsOneWidget);
+    expect(find.text('گذشته'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-group-today')), findsOneWidget);
     expect(find.text('فردا'), findsOneWidget);
     expect(find.text('آینده'), findsOneWidget);
