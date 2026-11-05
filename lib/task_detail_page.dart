@@ -707,21 +707,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               decoration: const InputDecoration(labelText: 'توضیحات کامل', border: OutlineInputBorder()),
             ),
             const SizedBox(height: 8),
-            TextField(
-              key: const ValueKey('task-detail-inline-category'),
-              controller: _categoryController,
-              textDirection: TextDirection.rtl,
-              decoration: const InputDecoration(labelText: 'دسته', border: OutlineInputBorder(), isDense: true),
-              onChanged: (_) => setState(() {}),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              key: const ValueKey('task-detail-inline-tags'),
-              controller: _tagsController,
-              textDirection: TextDirection.rtl,
-              decoration: const InputDecoration(labelText: 'برچسب‌ها (با ویرگول جدا کنید)', border: OutlineInputBorder(), isDense: true),
-              onChanged: (_) => setState(() {}),
-            ),
           ],
           const SizedBox(height: 10),
           _statusPriorityCard(),
@@ -1310,7 +1295,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     );
   }
 
-  Widget _metadataItem({required Key key, required String label, required String value, required Color color, required IconData icon}) {
+  Widget _metadataItem({required Key key, required String label, required String value, required Color color, required IconData icon, Widget? editor}) {
     return SizedBox(
       key: key,
       width: 124,
@@ -1325,8 +1310,11 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 style: TextStyle(fontFamily: 'Vazirmatn', color: color, fontSize: 11, fontWeight: FontWeight.w700))),
             ]),
             const SizedBox(height: 9),
-            Text(value, maxLines: 2, overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontFamily: 'Vazirmatn', color: Color(0xFF232433), fontSize: 12, fontWeight: FontWeight.w700, height: 1.35)),
+            if (editor != null)
+              editor
+            else
+              Text(value, maxLines: 2, overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontFamily: 'Vazirmatn', color: Color(0xFF232433), fontSize: 12, fontWeight: FontWeight.w700, height: 1.35)),
           ],
         ),
       ),
@@ -1393,8 +1381,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     final project = widget.project;
     final items = <Widget>[
       _metadataItem(key: const ValueKey('task-detail-metadata-time'), label: 'زمان اجرا', value: 'نامشخص', color: _muted, icon: Icons.schedule_outlined),
-      _metadataItem(key: const ValueKey('task-detail-metadata-center'), label: 'مرکز', value: center?.isNotEmpty == true ? center! : 'ثبت نشده', color: ArvinColors.category, icon: Icons.apartment_outlined),
-      _metadataItem(key: const ValueKey('task-detail-metadata-project'), label: 'پروژه', value: project?.title.trim().isNotEmpty == true ? project!.title : 'ثبت نشده', color: project == null ? _muted : Color(project.colorValue), icon: Icons.folder_special_outlined),
+      _metadataItem(key: const ValueKey('task-detail-metadata-center'), label: 'مرکز', value: center?.isNotEmpty == true ? center! : 'نامشخص', color: ArvinColors.category, icon: Icons.apartment_outlined),
+      _metadataItem(key: const ValueKey('task-detail-metadata-project'), label: 'پروژه', value: project?.title.trim().isNotEmpty == true ? project!.title : 'نامشخص', color: project == null ? _muted : Color(project.colorValue), icon: Icons.folder_special_outlined),
       _metadataItem(key: const ValueKey('task-detail-metadata-category'), label: 'دسته', value: _isInlineEditing ? ((_categoryController?.text.trim().isNotEmpty == true) ? _categoryController!.text.trim() : 'ثبت نشده') : (_task.category?.trim().isNotEmpty == true ? _task.category!.trim() : 'ثبت نشده'), color: ArvinColors.category, icon: Icons.folder_outlined),
       _metadataItem(key: const ValueKey('task-detail-metadata-tags'), label: 'برچسب‌ها', value: _isInlineEditing ? ((_tagsController?.text.trim().isNotEmpty == true) ? _tagsController!.text.trim() : 'بدون برچسب') : (_task.tags.isNotEmpty ? _task.tags.join('، ') : 'بدون برچسب'), color: ArvinColors.tag, icon: Icons.sell_outlined),
     ];
