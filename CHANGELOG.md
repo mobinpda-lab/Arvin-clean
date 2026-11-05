@@ -553,3 +553,9 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - Added Center to the task-card taxonomy metadata using the canonical Project → Center relationship. Existing card actions and canonical data pathways are retained.
 - Primary navigation was verified to contain exactly five tabs: Home, Calendar, Notebook, Reports, More. «اقدام بعدی» is not a sixth primary tab.
 - Existing test files and assertions were not edited, deleted, skipped, weakened or bypassed. Exact-SHA Analyze/widget-test evidence is pending on the final documentation-synchronized HEAD. PR remains OPEN / DRAFT / UNMERGED; main untouched; release BLOCKED — RELEASE: NO-GO.
+
+ 
+## TaskHomeScreen analyzer correction — 2026-11-05
+- An intermediate Analyze run on source checkpoint `da311c2f7e4ef9b96fc20a26e31eca996fa63d50` found the plugin import had also been removed even though the app-level notification tap handler still uses `NotificationResponse`, and found an orphan private `_openPendingReminder` helper after removing the Home bell.
+- Corrected in `c0766a5e602d04426486816e95cad4038b667fa7`: restored the plugin type import for the retained notification-response path and removed the now-unreferenced pending-notification helper. The Home header remains bell-free.
+- No test files or assertions were changed. Analyze and widget tests on the corrected/final SHA remain NOT VERIFIED until a fresh exact-SHA run completes.
