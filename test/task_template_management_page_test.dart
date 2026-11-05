@@ -53,7 +53,11 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('task-template-convert-template-list-source')));
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const ValueKey('task-template-name-input')), 'سرویس فصلی پمپ');
-    await tester.tap(find.byKey(const ValueKey('task-template-confirm')));
+    await tester.tap(find.text('ادامه'));
+    await tester.pumpAndSettle();
+    final confirm = find.byKey(const ValueKey('task-template-confirm'));
+    await tester.ensureVisible(confirm);
+    await tester.tap(confirm);
     await tester.pumpAndSettle();
 
     final saved = (await templates.load()).single;
