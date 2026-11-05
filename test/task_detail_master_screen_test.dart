@@ -696,7 +696,11 @@ void main() {
       home: TaskDetailPage(
         task: task,
         centerName: 'مرکز مرکزی',
-        projectTitle: 'پروژه تعمیرات',
+        project: ProjectPlan(
+          id: 'template-project-id',
+          title: 'پروژه تعمیرات',
+          centerId: 'template-center-id',
+        ),
       ),
     ));
 
@@ -712,6 +716,8 @@ void main() {
     expect(saved.single.title, 'بازبینی پمپ');
     expect(saved.single.centerNameSnapshot, 'مرکز مرکزی');
     expect(saved.single.projectNameSnapshot, 'پروژه تعمیرات');
+    expect(saved.single.centerIdSnapshot, 'template-center-id');
+    expect(saved.single.projectIdSnapshot, 'template-project-id');
     expect(task.title, 'بازبینی پمپ');
     expect(task.dueDate, DateTime(2026, 11, 20));
     expect(task.checklist.first, '[x] کنترل برق');
