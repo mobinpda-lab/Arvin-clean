@@ -1,3 +1,10 @@
+## 2026-11-05 — Home test-2 correction and visual timeout disposition
+
+- Root-caused the historical Home test-2 mismatch: the UI combines weekday + Jalali date in one heading Text, while the test searched for date-only exact text; the test also expected the old Category label. Updated the test to assert the complete dynamic heading and «دسته‌ها».
+- Historical test-0 was a fixture-title collision with the «گذشته» group heading; the fixture was disambiguated and test-0 passed on baseline c35929c.
+- Task Details visual job still has an unresolved pumpAndSettle timeout before screenshot/golden capture. Root cause NOT VERIFIED; no timeout bypass or golden update.
+- These corrections require fresh exact-HEAD CI. No older SHA result transfers. PR remains OPEN / DRAFT / UNMERGED; main unchanged; **BLOCKED — RELEASE: NO-GO**.
+
 ## 2026-11-05 — Issue #823 Home filter copy and UI/UX evidence audit
 
 - Corrected the active Home Category filter chip in lib/main.dart to the approved label «دسته‌ها»; added an exact widget assertion in test/home/home_filter_contract_test.dart. The row remains five filters plus a separate sort icon; «همه» remains inside filter panels only.
