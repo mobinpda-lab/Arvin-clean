@@ -80,6 +80,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   bool _isSavingDescription = false;
   bool _isMovingDueDateToToday = false;
   final TextEditingController _checklistAddController = TextEditingController();
+  final ScrollController _detailScrollController = ScrollController();
   TextEditingController? _checklistEditController;
   int? _editingChecklistIndex;
   bool _isSavingChecklist = false;
@@ -406,6 +407,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     _categoryController?.dispose();
     _tagsController?.dispose();
     _checklistAddController.dispose();
+    _detailScrollController.dispose();
     _checklistEditController?.dispose();
     super.dispose();
   }
@@ -707,6 +709,17 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           ],
           const SizedBox(height: 10),
           _statusPriorityCard(),
+          const SizedBox(height: 10),
+          KeyedSubtree(
+            key: const ValueKey('task-detail-description-card'),
+            child: Text(
+              _task.description.trim().isEmpty
+                  ? 'توضیحی ثبت نشده است'
+                  : _task.description.trim(),
+              key: const ValueKey('task-detail-description'),
+              style: const TextStyle(fontFamily: 'Vazirmatn', height: 1.6),
+            ),
+          ),
         ],
       ),
     );
@@ -1550,11 +1563,12 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         ),
         body: ListView(
           key: const ValueKey('task-detail-content-list'),
+          controller: _detailScrollController,
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 120),
           children: [
-            _summaryCard(),
-            const SizedBox(height: 10),
             _metadataCard(),
+            const SizedBox(height: 10),
+            _summaryCard(),
             if (_task.templateTaskId?.trim().isNotEmpty == true) ...[
               const SizedBox(height: 10),
               _templateSourceCard(),
@@ -1564,21 +1578,23 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             const SizedBox(height: 10),
             _assigneeCard(),
             const SizedBox(height: 10),
-            _descriptionCard(),
-            const SizedBox(height: 10),
             _remindersCard(),
-            const SizedBox(height: 4),
-            _checklistCard(),
             const SizedBox(height: 10),
-            if (latest != null) _latestCard(latest, now),
-            if (history.isEmpty && latest == null && !_task.completed)
+            _recurrenceCard(now),
+            const SizedBox(height: 10),
+            _checklistCard(),
+            if (latest != null) ...[
+              const SizedBox(height: 10),
+              _latestCard(latest, now),
+            ],
+            if (history.isEmpty && latest == null && !_task.completed) ...[
+              const SizedBox(height: 10),
               _latestCard(null, now),
+            ],
             if (history.isNotEmpty) ...[
               const SizedBox(height: 10),
               _timeline(history),
             ],
-            const SizedBox(height: 10),
-            _recurrenceCard(now),
             if (_task.reminderDate != null) ...[
               const SizedBox(height: 10),
               _card(
