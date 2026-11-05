@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'models/goal_project.dart';
 import 'models/arvin_center.dart';
 import 'services/project_template_service.dart';
+import 'project_detail_page.dart';
 
 class ProjectsPage extends StatefulWidget {
   const ProjectsPage({
@@ -290,6 +291,14 @@ class _ProjectsPageState extends State<ProjectsPage> {
                     ),
                     subtitle: Text(
                       '${_centerLabel(project)} • ${project.itemIds.length} مورد${project.isArchived ? ' • بایگانی‌شده' : ''}',
+                    ),
+                    onTap: () => Navigator.of(context).push<void>(
+                      MaterialPageRoute<void>(
+                        builder: (_) => ProjectDetailPage(
+                          project: project,
+                          centerName: _centerLabel(project),
+                        ),
+                      ),
                     ),
                     trailing: Wrap(
                       children: [
