@@ -5,8 +5,6 @@ import 'dart:ui' as ui;
 
 import 'dart:convert';
 
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
@@ -470,8 +468,6 @@ class _HomePageState extends State<HomePage> {
       const TaskBulkSelectionService();
   final TaskBulkMutationService taskBulkMutationService =
       TaskBulkMutationService();
-  final FlutterLocalNotificationsPlugin _notificationPlugin =
-      FlutterLocalNotificationsPlugin();
   final FocusNode _searchFocusNode = FocusNode();
   final ScrollController _homeScrollController = ScrollController();
   final Set<String> _expandedTaskIds = <String>{};
@@ -480,7 +476,6 @@ class _HomePageState extends State<HomePage> {
   List<Task> tasks = [];
   List<String> _categoryCatalog = const <String>[];
   List<String> _tagCatalog = const <String>[];
-  int _pendingNotificationCount = 0;
   List<ProjectPlan> projects = [];
   List<ArvinCenter> centers = const <ArvinCenter>[];
   final Set<String> selected = <String>{};
@@ -504,8 +499,8 @@ class _HomePageState extends State<HomePage> {
   TimeOfDay? _toTimeFilter;
   final Set<String> _collapsedGroups = <String>{};
   final Map<String, DateTime> _dismissedOverdueWarnings = <String, DateTime>{};
-  final TaskListSort _listSort = TaskListSort.date;
-  final bool _sortDescending = false;
+  TaskListSort _listSort = TaskListSort.lastFollowUp;
+  bool _sortDescending = false;
 
   String get _emptyVisibleLabel => filter == 'سطل زباله'
       ? 'سطل زباله خالی است'
@@ -518,7 +513,6 @@ class _HomePageState extends State<HomePage> {
     widgetTaskBridge.listen(_openWidgetTask);
     _homeScrollController.addListener(_handleHomeScroll);
     _load();
-    _refreshPendingNotificationCount();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _consumeInitialWidgetTask();
     });
@@ -564,67 +558,6 @@ class _HomePageState extends State<HomePage> {
     }
 
     await _openTaskDetail(task);
-  }
-
-  Future<void> _refreshPendingNotificationCount() async {
-    try {
-      final pending = await _notificationPlugin.pendingNotificationRequests();
-      if (!mounted) return;
-      setState(() => _pendingNotificationCount = pending.length);
-    } catch (_) {
-      // Notification state is optional UI metadata; never block Home loading.
-    }
-  }
-
-  Future<void> _showPendingNotifications() async {
-    try {
-      final pending = await _notificationPlugin.pendingNotificationRequests();
-      if (!mounted) return;
-      setState(() => _pendingNotificationCount = pending.length);
-      await showDialog<void>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: const Text('یادآورهای زمان‌بندی‌شده'),
-          content: pending.isEmpty
-              ? const Text('یادآور زمان‌بندی‌شده‌ای در صف اعلان برنامه وجود ندارد.')
-              : SizedBox(
-                  width: 360,
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    itemCount: pending.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1),
-                    itemBuilder: (_, index) {
-                      final request = pending[index];
-                      final title = request.title?.trim().isNotEmpty == true
-                          ? request.title!.trim()
-                          : 'یادآور آروین';
-                      return ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: const Icon(Icons.notifications_active_outlined, color: ArvinColors.primary),
-                        title: Text(title),
-                        subtitle: request.body == null ? null : Text(request.body!),
-                        onTap: () {
-                          Navigator.of(dialogContext).pop();
-                          _openPendingReminder(request);
-                        },
-                      );
-                    },
-                  ),
-                ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('بستن'),
-            ),
-          ],
-        ),
-      );
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('خواندن اعلان‌های در انتظار انجام نشد.')),
-      );
-    }
   }
 
   Future<void> _openPendingReminder(PendingNotificationRequest request) async {
@@ -889,21 +822,95 @@ class _HomePageState extends State<HomePage> {
         grouped['no_date']!.add(task);
       } else {
         final day = dayOf(due);
-        if (!task.completed && day.isBefore(today)) grouped['overdue']!.add(task);
+        if (day.isBefore(today)) grouped['overdue']!.add(task);
         else if (day == today) grouped['today']!.add(task);
         else if (day == tomorrow) grouped['tomorrow']!.add(task);
         else grouped['future']!.add(task);
       }
     }
     return [
-      HomeGroup<Task>(id: 'today', title: 'امروز', items: taskListSortService.sort(grouped['today']!, by: TaskListSort.date)),
-      HomeGroup<Task>(id: 'tomorrow', title: 'فردا', items: taskListSortService.sort(grouped['tomorrow']!, by: TaskListSort.date)),
-      HomeGroup<Task>(id: 'future', title: 'آینده', items: taskListSortService.sort(grouped['future']!, by: TaskListSort.date)),
-      HomeGroup<Task>(id: 'overdue', title: 'تاریخ گذشته', items: taskListSortService.sort(grouped['overdue']!, by: TaskListSort.date)),
-      HomeGroup<Task>(id: 'no_date', title: 'فاقد زمان', items: taskListSortService.sort(grouped['no_date']!, by: TaskListSort.date)),
+      HomeGroup<Task>(id: 'overdue', title: 'گذشته', items: taskListSortService.sortPast(grouped['overdue']!)),
+      HomeGroup<Task>(id: 'today', title: 'امروز', items: taskListSortService.sort(grouped['today']!, by: _listSort, descending: _sortDescending)),
+      HomeGroup<Task>(id: 'tomorrow', title: 'فردا', items: taskListSortService.sort(grouped['tomorrow']!, by: _listSort, descending: _sortDescending)),
+      HomeGroup<Task>(id: 'future', title: 'آینده', items: taskListSortService.sort(grouped['future']!, by: _listSort, descending: _sortDescending)),
+      HomeGroup<Task>(id: 'no_date', title: 'فاقد زمان', items: taskListSortService.sort(grouped['no_date']!, by: _listSort, descending: _sortDescending)),
     ];
   }
 
+
+  Future<void> _showSortOptions() async {
+    var draftSort = _listSort;
+    var draftDescending = _sortDescending;
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 4, 12, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('مرتب‌سازی کارها', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                RadioListTile<TaskListSort>(
+                  value: TaskListSort.lastFollowUp,
+                  groupValue: draftSort,
+                  title: const Text('تاریخ پیگیری'),
+                  onChanged: (value) => setSheetState(() => draftSort = value!),
+                ),
+                RadioListTile<TaskListSort>(
+                  value: TaskListSort.date,
+                  groupValue: draftSort,
+                  title: const Text('تاریخ انجام کار'),
+                  onChanged: (value) => setSheetState(() => draftSort = value!),
+                ),
+                RadioListTile<TaskListSort>(
+                  value: TaskListSort.latest,
+                  groupValue: draftSort,
+                  title: const Text('آخرین تغییرات'),
+                  onChanged: (value) => setSheetState(() => draftSort = value!),
+                ),
+                RadioListTile<TaskListSort>(
+                  value: TaskListSort.title,
+                  groupValue: draftSort,
+                  title: const Text('عنوان کار'),
+                  onChanged: (value) => setSheetState(() => draftSort = value!),
+                ),
+                SwitchListTile(
+                  value: draftDescending,
+                  title: const Text('ترتیب نزولی'),
+                  onChanged: (value) => setSheetState(() => draftDescending = value),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(sheetContext).pop(),
+                        child: const Text('انصراف'),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: FilledButton(
+                        onPressed: () {
+                          setState(() {
+                            _listSort = draftSort;
+                            _sortDescending = draftDescending;
+                          });
+                          Navigator.of(sheetContext).pop();
+                        },
+                        child: const Text('اعمال مرتب‌سازی'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   Widget _homeFilterCards() {
     Widget chip({
@@ -991,6 +998,13 @@ class _HomePageState extends State<HomePage> {
                 soft: ArvinColors.tagSoft,
                 active: _tagFilters.isNotEmpty,
                 onPressed: _showTagFilterSheet,
+              ),
+              IconButton(
+                key: const ValueKey('home-sort-button'),
+                tooltip: 'مرتب‌سازی کارها',
+                visualDensity: VisualDensity.compact,
+                onPressed: _showSortOptions,
+                icon: const Icon(Icons.sort_rounded),
               ),
             ],
           ),
@@ -1227,14 +1241,25 @@ class _HomePageState extends State<HomePage> {
 
   IconData _groupIcon(String id) {
     switch (id) {
-      case 'overdue': return Icons.warning_amber_rounded;
-      case 'today': return Icons.wb_sunny_rounded;
-      case 'tomorrow': return Icons.event_available_rounded;
-      case 'future': return Icons.auto_awesome_rounded;
+      case 'overdue':
+      case 'today':
+      case 'tomorrow':
+      case 'future': return Icons.calendar_today_rounded;
       case 'no_date': return Icons.schedule_rounded;
       default: return Icons.schedule_rounded;
     }
   }
+
+  String _weekdayName(int weekday) => switch (weekday) {
+    DateTime.monday => 'دوشنبه',
+    DateTime.tuesday => 'سه‌شنبه',
+    DateTime.wednesday => 'چهارشنبه',
+    DateTime.thursday => 'پنج‌شنبه',
+    DateTime.friday => 'جمعه',
+    DateTime.saturday => 'شنبه',
+    DateTime.sunday => 'یکشنبه',
+    _ => '',
+  };
 
   String? _groupJalaliDate(String id) {
     final now = IranClock.now();
@@ -1244,9 +1269,8 @@ class _HomePageState extends State<HomePage> {
       'tomorrow' => today.add(const Duration(days: 1)),
       _ => null,
     };
-    return date == null
-        ? null
-        : persianDateFormatter.format(date, usePersianDate: true);
+    if (date == null) return null;
+    return '${_weekdayName(date.weekday)} ${persianDateFormatter.format(date, usePersianDate: true)}';
   }
 
   Widget _groupedTaskList() {
@@ -2703,6 +2727,57 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _showHomeFilterMenu() async {
+    final action = await showModalBottomSheet<_HomeMoreAction>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.today_outlined),
+              title: const Text('امروز'),
+              onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.today),
+            ),
+            ListTile(
+              leading: const Icon(Icons.event_busy_outlined),
+              title: const Text('کارهای فاقد زمان'),
+              onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.undated),
+            ),
+            ListTile(
+              leading: const Icon(Icons.archive_outlined),
+              title: const Text('بایگانی'),
+              onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.archive),
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete_outline),
+              title: const Text('سطل زباله'),
+              onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.trash),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (action == null || !mounted) return;
+    switch (action) {
+      case _HomeMoreAction.today:
+        _selectHomeStat('امروز');
+        return;
+      case _HomeMoreAction.undated:
+        _selectDueScope(TaskDueScope.undated);
+        return;
+      case _HomeMoreAction.archive:
+        _selectHomeStat('بایگانی');
+        return;
+      case _HomeMoreAction.trash:
+        _selectHomeStat('سطل زباله');
+        return;
+      default:
+        return;
+    }
+  }
+
   Future<void> _openPrimaryMore() async {
     final action = await showModalBottomSheet<_HomeMoreAction>(
       context: context,
@@ -3372,43 +3447,78 @@ class _HomePageState extends State<HomePage> {
     final compactHome = MediaQuery.sizeOf(context).height < 700;
     return Scaffold(
       backgroundColor: ArvinColors.background,
+      drawer: Drawer(
+        child: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            children: [
+              const Padding(
+                padding: EdgeInsets.fromLTRB(20, 16, 20, 12),
+                child: Text('آروین', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: ArvinColors.primary)),
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.home_outlined),
+                title: const Text('خانه'),
+                onTap: () => Navigator.of(context).pop(),
+              ),
+              ListTile(
+                leading: const Icon(Icons.calendar_month_outlined),
+                title: const Text('تقویم'),
+                onTap: () { Navigator.of(context).pop(); _openPrimaryCalendar(); },
+              ),
+              ListTile(
+                leading: const Icon(Icons.note_alt_outlined),
+                title: const Text('دفترچه'),
+                onTap: () { Navigator.of(context).pop(); _openPrimaryNotebook(); },
+              ),
+              ListTile(
+                leading: const Icon(Icons.assessment_outlined),
+                title: const Text('گزارش‌ها'),
+                onTap: () { Navigator.of(context).pop(); _openPrimaryReports(); },
+              ),
+              ListTile(
+                leading: const Icon(Icons.more_horiz_rounded),
+                title: const Text('بیشتر'),
+                onTap: () { Navigator.of(context).pop(); _openPrimaryMore(); },
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.settings_outlined),
+                title: const Text('تنظیمات'),
+                onTap: () { Navigator.of(context).pop(); _openPrimarySettings(); },
+              ),
+            ],
+          ),
+        ),
+      ),
       body: SafeArea(
         child: Column(children: [
           Padding(
             padding: EdgeInsets.fromLTRB(16, compactHome ? 4 : 8, 16, 5),
             child: Row(children: [
-              IconButton(
-                key: const ValueKey('home-search-button'),
-                tooltip: 'جست‌وجو',
-                onPressed: () => FocusScope.of(context).requestFocus(_searchFocusNode),
-                icon: const Icon(Icons.search_rounded),
-                style: IconButton.styleFrom(backgroundColor: ArvinColors.surface, foregroundColor: ArvinColors.neutral),
+              Builder(
+                builder: (buttonContext) => IconButton(
+                  key: const ValueKey('home-drawer-button'),
+                  tooltip: 'منوی آروین',
+                  onPressed: () => Scaffold.of(buttonContext).openDrawer(),
+                  icon: const Icon(Icons.menu_rounded),
+                  style: IconButton.styleFrom(backgroundColor: ArvinColors.surface, foregroundColor: ArvinColors.neutral),
+                ),
               ),
               Expanded(child: Column(children: const [
-                Text('بسم الله الرحمن الرحیم', key: ValueKey('home-bismillah'), textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.primary, fontFamily: AppFonts.vazirmatnFamily, fontSize: 15, letterSpacing: 0.15, fontWeight: FontWeight.w600)),
+                Text('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', key: ValueKey('home-bismillah'), textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.primary, fontFamily: 'serif', fontSize: 17, letterSpacing: 0.1, fontWeight: FontWeight.w500)),
                 SizedBox(height: 1),
                 Text('آروین', key: ValueKey('home-title-block'), style: TextStyle(color: ArvinColors.primaryDark, fontSize: 23, fontWeight: FontWeight.w800)),
                 SizedBox(height: 2),
                 Text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها', key: ValueKey('home-subtitle'), textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.textSecondary, fontSize: 11.5, fontWeight: FontWeight.w600)),
               ])),
               IconButton(
-                key: const ValueKey('home-notifications'),
-                tooltip: 'اعلان‌ها و یادآورها',
-                onPressed: _showPendingNotifications,
+                key: const ValueKey('home-general-filter-button'),
+                tooltip: 'فیلترهای عمومی',
+                onPressed: _showHomeFilterMenu,
+                icon: const Icon(Icons.filter_alt_outlined),
                 style: IconButton.styleFrom(backgroundColor: ArvinColors.surface, foregroundColor: ArvinColors.neutral),
-                icon: Stack(clipBehavior: Clip.none, children: [
-                  const Icon(Icons.notifications_none_rounded),
-                  if (_pendingNotificationCount > 0)
-                    PositionedDirectional(
-                      top: -1,
-                      end: -1,
-                      child: Container(
-                        width: 9,
-                        height: 9,
-                        decoration: const BoxDecoration(color: ArvinColors.error, shape: BoxShape.circle),
-                      ),
-                    ),
-                ]),
               ),
             ]),
           ),
@@ -3419,9 +3529,14 @@ class _HomePageState extends State<HomePage> {
               key: const ValueKey('home-canonical-search'),
               onChanged: (value) => setState(() => query = value),
               decoration: InputDecoration(
-                hintText: 'جستجو در کارها، پروژه‌ها، دسته‌ها و برچسب‌ها...',
+                hintText: 'جستجو در کارها...',
                 hintStyle: const TextStyle(color: ArvinColors.textSecondary, fontSize: 12),
-                prefixIcon: const Icon(Icons.search_rounded),
+                prefixIcon: IconButton(
+                  key: const ValueKey('home-search-button'),
+                  tooltip: 'جستجو',
+                  onPressed: () => FocusScope.of(context).requestFocus(_searchFocusNode),
+                  icon: const Icon(Icons.search_rounded),
+                ),
                 filled: true, fillColor: ArvinColors.surface,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
