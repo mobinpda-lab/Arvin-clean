@@ -35,17 +35,15 @@ void main() {
     expect(find.text('کار بایگانی'), findsNothing);
   });
 
-  testWidgets('Home notification remains physically left of menu in RTL',
+  testWidgets('Home header omits notification bell and keeps general filter left of menu in RTL',
       (tester) async {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
-
-    final notificationCenter = tester.getCenter(
-      find.byKey(const ValueKey('home-notifications')),
-    );
-    
-
-    expect(notificationCenter.dx, lessThan(tester.getCenter(find.byKey(const ValueKey('home-search-button'))).dx));
+    expect(find.byKey(const ValueKey('home-notifications')), findsNothing);
+    expect(find.byKey(const ValueKey('home-search-button')), findsOneWidget);
+    final generalFilterCenter = tester.getCenter(find.byKey(const ValueKey('home-general-filter-button')));
+    final menuCenter = tester.getCenter(find.byKey(const ValueKey('home-drawer-button')));
+    expect(generalFilterCenter.dx, lessThan(menuCenter.dx));
   });
 
   testWidgets('Home keeps core controls reachable on a short Android viewport',
@@ -58,7 +56,7 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('بسم الله الرحمن الرحیم'), findsOneWidget);
+    expect(find.text('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-search')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-search-button')), findsOneWidget);
     expect(find.text('زمان'), findsOneWidget);
