@@ -29,7 +29,7 @@ Canonical register for durable product decisions. Detailed implementation and hi
 | Topic | Status | Safe behavior until decision |
 |---|---|---|
 | Quick Capture empty-title feedback: two visible presentations (inline + SnackBar) or one clear inline presentation | BLOCKED | Preserve current implementation and all existing assertions. Do not change UX or test acceptance until owner decides. |
-| Home sacred-phrase typography: separate Naskh-style display treatment versus Vazirmatn-only global rule | BLOCKED — OWNER CLARIFICATION REQUIRED | Preserve current rendering. Confirm whether Naskh is an explicit exception only for the Arabic sacred phrase, with Vazirmatn retained for all UI text, or whether Vazirmatn must render the phrase too. |
+| Official typography: Vazirmatn for every UI element, with Naskh allowed only for the two owner-approved Arabic sacred phrases «بسم‌الله الرحمن الرحیم» and «أُفَوِّضُ أَمْرِی إِلَى اللَّهِ» (UI spelling may omit diacritics) | APPROVED | Explicit owner decision, 2026-11-05. No Persian UI text or other element may use Naskh; both phrases are the only exceptions. |
 
 ## Status vocabulary
 PROPOSED = candidate only; APPROVED = explicit owner decision; IN_PROGRESS = work underway; IMPLEMENTED = code exists; VERIFIED = exact-SHA evidence proves acceptance; BLOCKED = cannot proceed safely; SUPERSEDED = replaced but retained historically; REJECTED = explicitly declined.
@@ -137,7 +137,7 @@ PROPOSED = candidate only; APPROVED = explicit owner decision; IN_PROGRESS = wor
 | Home Screen: پنج فیلتر سریع RTL با منطق OR درون هر فیلتر و AND بین فیلترها؛ مرتب‌سازی مستقل و پیش‌فرض بر اساس Follow-up Date؛ پنج گروه زمانی بر اساس Due Date | APPROVED | `docs/project-continuity/task_home_screen_spec.md`; فقط presentation/sorting، بدون mutation داده. |
 | Task Master-Detail: فرم واحد نمایش/ویرایش inline با ۱۱ بخش ثابت و حفظ موقعیت اسکرول | APPROVED | `docs/project-continuity/task_detail_ui_ux_spec.md`; قرارداد کامل در سند canonical. |
 | Calendar: هدر سه‌ناحیه‌ای، عبارت مرکزی اعراب‌گذاری‌شده، نمایش سه‌گانه تاریخ، چهار حالت نمایش، پنج فیلتر محتوایی و معماری سه‌لایه تقویم | APPROVED | `docs/project-continuity/calendar_ui_ux_spec.md`; تنظیم قمری فقط بر تاریخ قمری نمایشی اثر دارد. |
-| زبان طراحی مشترک سه صفحه | APPROVED | الهام از Microsoft To Do، کارت‌های سفید گوشه‌گرد، پس‌زمینه روشن، رنگ‌های معنایی، فارسی RTL و Vazirmatn؛ خط نسخ عبارات مقدس treatment مستقل است. |
+| زبان طراحی مشترک سه صفحه | APPROVED | الهام از Microsoft To Do، کارت‌های سفید گوشه‌گرد، پس‌زمینه روشن، رنگ‌های معنایی، فارسی RTL و Vazirmatn؛ تنها دو عبارت قرآنی مصوب در ردیف تایپوگرافی مجاز به خط نسخ هستند. |
 
 **حدود مصوبه:** این ثبت، تصمیم محصولی و مرجع UX است؛ مجوز تغییر کد اجرایی، تست، Golden Test، schema، Provider یا انتشار نیست. نگاشت «زمان اجرا» و assignment مسئول به داده canonical باید پیش از پیاده‌سازی ممیزی شود؛ تا اثبات منبع واقعی، NOT VERIFIED است. PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main بدون تغییر؛ Release: BLOCKED — RELEASE: NO-GO.
 
