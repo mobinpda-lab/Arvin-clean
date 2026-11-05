@@ -24,11 +24,9 @@ void main() {
       ),
     );
 
-    expect(find.text('تقویم پیگیری'), findsOneWidget);
-    expect(
-      Directionality.of(tester.element(find.text('تقویم پیگیری'))),
-      TextDirection.rtl,
-    );
+    final sacredHeader = find.byKey(const ValueKey('calendar-sacred-header'));
+    expect(sacredHeader, findsOneWidget);
+    expect(Directionality.of(tester.element(sacredHeader)), TextDirection.rtl);
     expect(find.byKey(const ValueKey('calendar-today')), findsOneWidget);
     expect(find.text('امروز'), findsOneWidget);
     expect(find.text('مرداد ۱۴۰۵'), findsOneWidget);
