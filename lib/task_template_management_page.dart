@@ -40,14 +40,14 @@ class _TaskTemplateManagementPageState extends State<TaskTemplateManagementPage>
 
   Future<void> _load() async {
     try {
-      final values = await Future.wait<Object>([
-        _tasks.load(),
-        _templates.load(),
-      ]);
+      // These stores may share the same Drift executor. Keep schema
+      // installation and reads sequential to avoid nested BEGIN transactions.
+      final tasks = await _tasks.load();
+      final templates = await _templates.load();
       if (!mounted) return;
       setState(() {
-        _sourceTasks = values[0] as List<Task>;
-        _savedTemplates = values[1] as List<TaskTemplate>;
+        _sourceTasks = tasks;
+        _savedTemplates = templates;
         _loading = false;
       });
     } catch (error) {
