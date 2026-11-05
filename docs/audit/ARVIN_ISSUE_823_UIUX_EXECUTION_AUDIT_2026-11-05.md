@@ -89,3 +89,11 @@ All statuses apply only to baseline SHA c35929c1cc2022b8470cd86b6f6fe8e2ae771e5b
 Only fix/recovery-calendar-device-smoke-2026-10-31 under PR #3052 may be changed. Keep PR OPEN / DRAFT / UNMERGED; do not modify main; no merge, publication or release. Preserve tests/assertions/scenarios; no skip, weakening or artificial timeout. Official UI font remains Vazirmatn pending the narrowly scoped calligraphy decision above.
 
 **BLOCKED — RELEASE: NO-GO.**
+
+## 8. Regression-failure root-cause follow-up (historical SHA 9d073ad)
+
+- test-0: the fixture Task title «گذشته» collided with the Past group heading «گذشته», so an exact-text Finder saw two widgets. The fixture title was changed to «کار عقب‌افتاده» and the matching assertion updated; no assertion was removed. test-0 subsequently succeeded on baseline c35929c.
+- test-2: Home owner-reference test expected the date-only text, but the active heading renders weekday and Jalali date together in one Text widget. The exact finder therefore found zero widgets for the date-only string. The test also still expected the old Category label. The test was corrected to assert the complete weekday + Jalali date heading and the approved «دسته‌ها» label; assertions are stronger, not weaker. This correction is after baseline c35929c and needs fresh exact-HEAD CI.
+- visual: Task Details visual test timed out after ten minutes in pumpAndSettle before reaching image capture/golden comparison (0 passed / 1 failed in the standalone Visual job). The available log does not identify which pending frame/animation prevents settling. No screenshot was produced. Root cause remains NOT VERIFIED; no timeout was raised, no settle assertion was bypassed, and no golden was auto-updated. Further diagnosis must identify the source of the unsettled frame before changing the test.
+- Calendar Provider: first baseline attempt failed to start Dart Development Service and executed zero tests. Retry attempt 2 was still running at last poll. This is an infrastructure startup failure, not a test assertion failure.
+
