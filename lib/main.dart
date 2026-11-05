@@ -983,12 +983,16 @@ class _HomePageState extends State<HomePage> {
                 active: _tagFilters.isNotEmpty,
                 onPressed: _showTagFilterSheet,
               ),
-              IconButton(
-                key: const ValueKey('home-sort-button'),
-                tooltip: 'مرتب‌سازی کارها',
-                visualDensity: VisualDensity.compact,
-                onPressed: _showSortOptions,
-                icon: const Icon(Icons.sort_rounded),
+              Semantics(
+                button: true,
+                label: 'مرتب‌سازی کارها',
+                child: IconButton(
+                  key: const ValueKey('home-sort-button'),
+                  tooltip: 'مرتب‌سازی کارها',
+                  visualDensity: VisualDensity.compact,
+                  onPressed: _showSortOptions,
+                  icon: const Icon(Icons.sort_rounded),
+                ),
               ),
             ],
           ),
