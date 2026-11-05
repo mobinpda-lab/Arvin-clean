@@ -35,7 +35,7 @@ void main() {
     final clone = service.clone(source, at: at, id: 'clone-1');
 
     expect(clone.id, 'clone-1');
-    expect(clone.title, 'کپی — بررسی گزارش');
+    expect(clone.title, 'بررسی گزارش — رونوشت');
     expect(clone.description, source.description);
     expect(clone.dueDate, due);
     expect(clone.checklist, source.checklist);
@@ -51,6 +51,29 @@ void main() {
     expect(clone.checklistOccurrences, isEmpty);
     expect(clone.createdAt, at);
     expect(clone.updatedAt, at);
+  });
+
+  test('clone title avoids stacked suffixes and occupied names', () {
+    expect(service.uniqueCloneTitle('عنوان', const []), 'عنوان — رونوشت');
+    expect(
+      service.uniqueCloneTitle('عنوان — رونوشت', const ['عنوان — رونوشت']),
+      'عنوان — رونوشت ۲',
+    );
+    expect(
+      service.uniqueCloneTitle('عنوان — رونوشت ۲', const [
+        'عنوان — رونوشت',
+        'عنوان — رونوشت ۲',
+      ]),
+      'عنوان — رونوشت ۳',
+    );
+    expect(
+      service.uniqueCloneTitle('عنوان', const [
+        'عنوان — رونوشت',
+        'عنوان — رونوشت ۲',
+        'عنوان — رونوشت ۳',
+      ]),
+      'عنوان — رونوشت ۴',
+    );
   });
 
   test('clone never reuses source identity when id is not supplied', () {
