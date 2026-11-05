@@ -362,7 +362,6 @@ void main() {
 
     final store = TaskStore();
     await seedTask(store);
-    final projectStore = await createEmptyProjectStore();
 
     await tester.pumpWidget(MaterialApp(
       home: AlarmOverlayPage(
@@ -392,6 +391,7 @@ void main() {
       (tester) async {
     final store = TaskStore();
     await seedTask(store, allDay: true);
+    final projectStore = await createEmptyProjectStore();
 
     await tester.pumpWidget(MaterialApp(
       home: AlarmOverlayPage(

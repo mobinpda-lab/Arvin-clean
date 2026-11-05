@@ -376,7 +376,13 @@ void main() {
     expect(find.byKey(const ValueKey('task-detail-latest-followup-title')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-latest-followup-note')), findsOneWidget);
     expect(find.text('تماس با مشتری'), findsNWidgets(2));
-    expect(find.text('پاسخ دریافت نشد'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('task-detail-latest-followup')),
+        matching: find.text('پاسخ دریافت نشد'),
+      ),
+      findsOneWidget,
+    );
     expect(find.text('در انتظار پاسخ'), findsAtLeastNWidgets(1));
 
     final timeline = find.byKey(const ValueKey('task-detail-timeline'));
@@ -602,6 +608,7 @@ void main() {
         onChecklistChanged: (value, checklist) async => value,
       ),
     ));
+    await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('task-detail-description-card')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-independent-reminders')), findsOneWidget);
