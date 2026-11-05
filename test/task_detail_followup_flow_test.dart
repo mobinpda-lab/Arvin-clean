@@ -45,7 +45,7 @@ void main() {
       MaterialApp(
         home: TaskDetailPage(
           task: task,
-          onEdit: (value) async => value,
+          onTaskChanged: (value) async => value,
         ),
       ),
     );
@@ -54,7 +54,7 @@ void main() {
     expect(find.text('ارسال قرارداد'), findsOneWidget);
     expect(find.text('نسخه نهایی برای مشتری'), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-due-date')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-edit')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-inline-edit-toggle')), findsOneWidget);
     final addFollowUp = find.byKey(const ValueKey('task-detail-add-followup'));
     await tester.scrollUntilVisible(
       addFollowUp,
@@ -73,13 +73,13 @@ void main() {
       MaterialApp(
         home: TaskDetailPage(
           task: task,
-          onDescriptionChanged: (current, description) async => current,
+          onTaskChanged: (current) async => current,
         ),
       ),
     );
 
     expect(find.text('توضیحی ثبت نشده است'), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-description-edit')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-inline-edit-toggle')), findsOneWidget);
     expect(find.text('در انتظار انجام'), findsNothing);
     expect(find.text('در انتظار پاسخ'), findsNothing);
     expect(find.text('پیگیری دار'), findsNothing);
@@ -125,7 +125,7 @@ void main() {
       ),
     );
 
-    final descriptionEdit = find.byKey(const ValueKey('task-detail-description-edit'));
+    final descriptionEdit = find.byKey(const ValueKey('task-detail-inline-edit-toggle'));
     await tester.ensureVisible(descriptionEdit);
     await tester.pumpAndSettle();
     await tester.tap(descriptionEdit);
@@ -166,7 +166,7 @@ void main() {
       MaterialApp(
         home: TaskDetailPage(
           task: task,
-          onEdit: (value) async => value,
+          onTaskChanged: (value) async => value,
         ),
       ),
     );
@@ -364,7 +364,7 @@ void main() {
       MaterialApp(
         home: TaskDetailPage(
           task: task,
-          onEdit: (value) async {
+          onTaskChanged: (value) async {
             value.title = 'عنوان جدید';
             return value;
           },
@@ -372,7 +372,13 @@ void main() {
       ),
     );
 
-    await tester.tap(find.byKey(const ValueKey('task-detail-edit')));
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('task-detail-inline-title')),
+      'عنوان جدید',
+    );
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
     await tester.pumpAndSettle();
 
     expect(task.id, 'same-id');
