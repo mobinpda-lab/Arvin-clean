@@ -349,6 +349,12 @@ void main() {
           note: 'پاسخ دریافت نشد',
           waitingForResponse: true,
         ),
+        FollowUp(
+          id: 'older-followup',
+          dateTime: DateTime(2026, 11, 3, 10),
+          title: 'پیگیری قبلی',
+          note: 'ارسال پیام',
+        ),
       ],
     );
     await tester.pumpWidget(MaterialApp(
@@ -373,6 +379,15 @@ void main() {
     expect(find.text('تماس با مشتری'), findsOneWidget);
     expect(find.text('پاسخ دریافت نشد'), findsOneWidget);
     expect(find.text('در انتظار پاسخ'), findsAtLeastNWidgets(1));
+
+    final timeline = find.byKey(const ValueKey('task-detail-timeline'));
+    await tester.scrollUntilVisible(timeline, 240, scrollable: scrollable);
+    await tester.pumpAndSettle();
+    final newest = find.text('تماس با مشتری').last;
+    final older = find.text('پیگیری قبلی');
+    expect(newest, findsOneWidget);
+    expect(older, findsOneWidget);
+    expect(tester.getTopLeft(newest).dy, lessThan(tester.getTopLeft(older).dy));
   });
 
   testWidgets('Unified Task Details stages checklist edits, reorders and saves or cancels atomically', (tester) async {
@@ -769,6 +784,13 @@ void main() {
     expect(metadata, findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-metadata-chips')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-metadata-time')), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('task-detail-metadata-time')),
+        matching: find.text('نامشخص'),
+      ),
+      findsOneWidget,
+    );
     expect(find.byKey(const ValueKey('task-detail-metadata-center')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-metadata-project')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-metadata-category')), findsOneWidget);
