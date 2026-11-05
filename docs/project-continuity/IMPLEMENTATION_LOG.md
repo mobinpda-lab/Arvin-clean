@@ -367,3 +367,42 @@ Every new entry must include exact SHA, workflow/run IDs, terminal conclusion, a
 - Boot/Navigation logs also show transient adb: device offline during emulator startup before later reporting the device ready. This does not identify the subsequent Flutter-driver stall.
 - Quick Capture, Task Lifecycle, Reminder/Vazirmatn and Follow-up Persistence Device Smoke lanes are SUCCESS; they do not compensate for the three cancelled lanes.
 - No assertion was changed, removed, skipped, weakened or bypassed. No timeout was increased. No runtime/product change was made.
+
+
+### اجرای مهندسی موازی طبق دستور تجمعی مالک محصول — 2026-11-05
+
+**دامنه اجرا:** Issue #823 / PR #3052؛ فقط شاخه مجاز `fix/recovery-calendar-device-smoke-2026-10-31`. این اجرا جایگزین ممیزی قبلی نشد و کارهای مستقل بدون انتظار CI پیش رفتند.
+
+#### Task Template / Project Template
+- قرارداد انتقال/حذف داده در `docs/project-continuity/TASK_TEMPLATE_DATA_CONTRACT.md` ثبت شد.
+- `lib/services/g1_drift_schema.dart`: G1 schema به v11 ارتقا یافت؛ جدول Task Template در همان SQLite/Drift ایجاد می‌شود؛ ستون `checklist_enabled` به‌صورت non-destructive برای داده‌های قدیمی اضافه شد؛ نصب schema به‌ازای هر executor serialize شد تا درخواست هم‌زمان دو تب وارد nested BEGIN نشود.
+- `lib/models/task_template.dart` و `lib/services/task_template_store.dart`: تعریف مستقل الگوی کار، اولویت، دسته، برچسب، Checklist و فعال‌بودن Checklist، People references، ساعت Reminder بدون تاریخ اجرا، Recurrence بدون anchor/end date اجرایی و snapshotهای مرکز/پروژه را ذخیره می‌کنند.
+- `lib/task_template_management_page.dart`: فهرست Taskهای موجود، تبدیل با نام‌گذاری و تأیید، نمایش الگوهای ذخیره‌شده و ساخت Task جدید از الگو به Store واقعی متصل شد. Task جدید شناسه و Reminder ID جدید می‌گیرد؛ checklist progress و تاریخچه/موعد قبلی منتقل نمی‌شود.
+- `lib/project_detail_page.dart` و `lib/projects_page.dart`: انتخاب Project از فهرست، صفحه جزئیات، تأیید تبدیل و ذخیره از مسیر ProjectTemplateService/ProjectTemplateStore متصل شد؛ منبع اصلی فقط خوانده می‌شود.
+- `lib/settings_page.dart` و `lib/task_template_management_page.dart`: دو تب «الگوهای کار» و «الگوهای پروژه» در ورودی تنظیمات قرار دارند.
+- تست‌های داده/مهاجرت/تعامل اضافه یا گسترش یافتند: `test/services/task_template_store_test.dart`, `test/services/g1_drift_schema_test.dart`, `test/task_template_management_page_test.dart`, `test/project_detail_page_test.dart`, `test/settings_template_tabs_test.dart`.
+
+#### Home
+- مسیر فعال Home در `lib/main.dart` با پنج فیلتر و sort مستقل حفظ شد.
+- `test/home/home_filter_contract_test.dart`: سناریوی ترکیبی OR در چند دسته و AND با فیلتر زمان، Past و تقدم کارت Past فعال نسبت به Past تکمیل‌شده پوشش داده شد.
+- نتیجه تست روی HEAD فعلی هنوز NOT VERIFIED است.
+
+#### Task Detail — فرم واحد ۱۱ بخشی
+- `lib/task_detail_page.dart`: ترتیب ۱۱ بخش حفظ شد؛ عنوان/توضیح/دسته/برچسب، وضعیت/اولویت، Due Date/تمام‌روز/پاک‌کردن موعد، Reminderهای مستقل، Recurrence شامل تاریخ پایان، و Checklist در همان فرم draft می‌شوند.
+- Checklist در حالت ویرایش به‌صورت draft اتمیک تغییر می‌کند؛ افزودن، تغییر متن، حذف و جابه‌جایی بالا/پایین به ذخیره نهایی متصل شد؛ لغو، تغییرات draft را کنار می‌گذارد. در حالت نمایش، checkboxهای پیشرفت همچنان تعاملی‌اند.
+- کارت آخرین پیگیری و تایم‌لاین عنوان و یادداشت واقعی را از FollowUp می‌خوانند؛ وضعیت انتظار پاسخ از مقدار canonical FollowUp نمایش داده می‌شود؛ ترتیب timeline بر اساس `FollowUp.dateTime` نزولی است.
+- metadata «زمان اجرا» چون منبع canonical ندارد «نامشخص» نشان می‌دهد؛ Task.people به‌عنوان مسئول تعبیر نمی‌شود.
+- ScrollController در ListView واحد حفظ شد و تست صریح ورود/خروج از ویرایش با scroll offset اضافه شد.
+- تست‌های `test/task_detail_master_screen_test.dart` برای Checklist اتمیک، حفظ scroll، Due Date، Recurrence end date، waiting-for-response و timeline توسعه یافتند.
+
+#### Visual
+- لاگ تاریخی job 127329168780 نشان می‌دهد `flutter test test/task_detail_visual_test.dart` پس از ۱۰ دقیقه timeout شده و پیش از تولید `test/failures/task_detail_visual_actual.png` شکست خورده است.
+- در `lib/task_detail_page.dart` هیچ AnimationController، Ticker، Timer.periodic یا انیمیشن تکرارشونده‌ای یافت نشد؛ CircularProgressIndicator تنها در حالت busy و در fixture خاموش است؛ LinearProgressIndicator چک‌لیست determinate است.
+- `test/task_detail_visual_test.dart` از انتظار نامحدود pumpAndSettle به pump قطعی ۳۵۰ms و assertion نبود frame معلق تغییر کرد. این اصلاح، حذف تست یا افزایش timeout نیست؛ اما تا اجرای واقعی روی exact SHA، NOT VERIFIED است.
+- فایل Golden مرجع `test/goldens/task_detail_visual_test.png` در branch و main موجود نیست. Golden جدید بدون screenshot واقعی و بازبینی بصری ساخته/تأیید نشد؛ visual acceptance همچنان BLOCKED است.
+
+#### شواهد و محدودیت CI
+- commitهای کد و تست روی شاخه مجاز ایجاد شدند؛ commitهای سند نیز پس از آن ثبت شدند.
+- در poll زنده آخرین HEAD قبل از این checkpoint، check-runs و workflow-runs خالی بودند. برای HEAD نهایی این اجرای تجمعی نیز تا زمانی که run exact-SHA ظاهر نشود، Analyze، test-0 تا test-5، Visual، Calendar Provider، Device Smoke و Follow-up Persistence همگی NOT VERIFIED هستند.
+- عدم دسترسی به عملیات workflow_dispatch در ابزار متصل، مانع اجرای دستی run از این محیط است؛ این محدودیت، مجوز انتظار منفعلانه یا ادعای PASS ایجاد نمی‌کند.
+- PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ **BLOCKED — RELEASE: NO-GO**.
