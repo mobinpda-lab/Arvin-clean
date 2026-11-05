@@ -71,6 +71,9 @@ void main() {
     expect(loaded.checklist, ['کنترل برق', 'کنترل کابل']);
     expect(loaded.people.single.id, 'person-1');
     expect(loaded.reminders.single.title, 'یادآوری بازبینی');
+    expect(loaded.reminders.single.hour, 8);
+    expect(loaded.reminders.single.minute, 0);
+    expect(loaded.reminders.single.isEnabled, isTrue);
     expect(loaded.recurrence?.frequency, RecurrenceFrequency.weekly);
     expect(loaded.recurrence?.interval, 2);
     expect(loaded.recurrence?.startDate, isNull);
