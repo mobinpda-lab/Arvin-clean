@@ -538,7 +538,7 @@ void main() {
               MaterialPageRoute<void>(
                 builder: (_) => TaskDetailPage(
                   task: value,
-                  onEdit: (current) async {
+                  onTaskChanged: (current) async {
                     editedFromDetails = current;
                     return current;
                   },
@@ -590,11 +590,13 @@ void main() {
 
     // Editing is available only through the explicit action in the same
     // Task Details route opened by tapping the calendar card.
-    final detailsEdit = find.byKey(const ValueKey('task-detail-edit'));
+    final detailsEdit = find.byKey(const ValueKey('task-detail-inline-edit-toggle'));
     expect(detailsEdit, findsOneWidget);
     await tester.tap(detailsEdit);
-    await tester.pump();
-    expect(identical(editedFromDetails, task), isTrue);
+    await tester.pumpAndSettle();
+    await tester.tap(detailsEdit);
+    await tester.pumpAndSettle();
+    expect(editedFromDetails?.id, task.id);
     navigatorKey.currentState!.pop();
     await _pumpRouteTransition(tester);
     expect(card, findsOneWidget);
