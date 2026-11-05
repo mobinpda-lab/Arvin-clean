@@ -104,13 +104,13 @@ PROPOSED = candidate only; APPROVED = explicit owner decision; IN_PROGRESS = wor
 - Purple Add FAB at bottom-right; five bottom tabs only: Home, Calendar, Notebook, Reports, More. «اقدام بعدی» is not a primary tab.
 - No KPI/statistical dashboard and no standalone «کارهای من» Home tab/header.
 - Existing tests/assertions are immutable under this execution request. Any test/analyzer result must be tied to the exact SHA.
-- Implementation note: the Bismillah style uses a system serif fallback because no bundled Naskh font asset was found in the inspected repository paths; physical glyph-level Naskh acceptance remains NOT VERIFIED.
+- Implementation note: the two approved sacred phrases use the exact-text `AppFonts.familyForText` whitelist and Android's system serif/Naskh fallback; no bundled Naskh font asset is currently present. Physical glyph-level rendering remains NOT VERIFIED until device inspection.
 - Governance unchanged: PR #3052 OPEN / DRAFT / UNMERGED; no main edits, merge or release; BLOCKED — RELEASE: NO-GO.
 
 
 ## مصوبه قطعی مالک محصول — فونت و استثنای خط نسخ — ۱۴۰۵/۰۸/۱۴ (2026-11-05)
 
-- فونت تمام اجزا، متون، اعداد، دکمه‌ها، برچسب‌ها و سربرگ‌های اپلیکیشن بدون استثنا **Vazirmatn** است.
+- فونت پایه و اجباری تمام اجزا، متون، اعداد، دکمه‌ها، برچسب‌ها و سربرگ‌های اپلیکیشن **Vazirmatn** است؛ فقط دو عبارت مقدسِ بند بعد استثنا هستند.
 - فقط دو عبارت «بسم‌الله الرحمن الرحیم» و «أُفَوِّضُ أَمْرِی إِلَى اللَّهِ» (یا نمایش بدون اعراب «افوض امری الی الله») مجازند با خط نسخ هنری رندر شوند.
 - هیچ متن یا عنصر دیگری مجاز به استفاده از فونت/خط جایگزین نیست. استثنا فقط به محدوده همان دو عبارت محدود است و متن پیرامونی Vazirmatn می‌ماند.
 - این تصمیم، پرسش قبلی درباره استثنای بسم‌الله را می‌بندد و برای هر دو عبارت مجوز صریح صادر می‌کند.
