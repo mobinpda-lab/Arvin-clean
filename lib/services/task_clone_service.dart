@@ -5,11 +5,16 @@ import '../models/task.dart';
 class TaskCloneService {
   const TaskCloneService();
 
-  Task clone(Task source, {DateTime? at, String? id}) {
+  Task clone(
+    Task source, {
+    DateTime? at,
+    String? id,
+    Iterable<String> existingTitles = const <String>[],
+  }) {
     final now = at ?? DateTime.now();
     final payload = Map<String, dynamic>.from(source.toJson());
     payload['id'] = id ?? now.microsecondsSinceEpoch.toString();
-    payload['title'] = 'کپی — ${source.title}';
+    payload['title'] = uniqueCloneTitle(source.title, existingTitles);
     payload['createdAt'] = now.toIso8601String();
     payload['updatedAt'] = now.toIso8601String();
     payload['completed'] = false;
@@ -23,4 +28,23 @@ class TaskCloneService {
     payload['occurrenceHistory'] = <String, dynamic>{};
     return Task.fromJson(payload);
   }
+
+  /// Produces a stable Persian clone suffix without stacking suffixes.
+  /// Existing titles are supplied by the caller from the canonical Task list.
+  String uniqueCloneTitle(String sourceTitle, Iterable<String> existingTitles) {
+    final suffix = RegExp(r'\s+—\s+رونوشت(?:\s+[۰-۹0-9]+)?);
+    final base = sourceTitle.trim().replaceFirst(suffix, '').trim();
+    final occupied = existingTitles.map((title) => title.trim()).toSet();
+    final first = '$base — رونوشت';
+    if (!occupied.contains(first)) return first;
+    for (var index = 2; ; index++) {
+      final candidate = '$base — رونوشت ${_toPersianDigits(index)}';
+      if (!occupied.contains(candidate)) return candidate;
+    }
+  }
+
+  String _toPersianDigits(int value) => value.toString().replaceAllMapped(
+        RegExp(r'[0-9]'),
+        (match) => '۰۱۲۳۴۵۶۷۸۹'[int.parse(match[0]!)],
+      );
 }
