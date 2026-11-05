@@ -22,12 +22,12 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('arvin.tasks',
-      '[{"id":"past","title":"گذشته","dueDate":"${past.toIso8601String()}","category":"شخصی","tags":["خانه"]},{"id":"today","title":"امروز","dueDate":"${today.toIso8601String()}","category":"کاری","tags":["اداری"]},{"id":"tomorrow","title":"کار فردا","dueDate":"${tomorrow.toIso8601String()}","category":"شخصی"},{"id":"future","title":"آینده","dueDate":"${future.toIso8601String()}","category":"کاری"},{"id":"none","title":"بی‌زمان","category":"کاری"}]');
+      '[{"id":"past","title":"کار عقب‌افتاده","dueDate":"${past.toIso8601String()}","category":"شخصی","tags":["خانه"]},{"id":"today","title":"امروز","dueDate":"${today.toIso8601String()}","category":"کاری","tags":["اداری"]},{"id":"tomorrow","title":"کار فردا","dueDate":"${tomorrow.toIso8601String()}","category":"شخصی"},{"id":"future","title":"آینده","dueDate":"${future.toIso8601String()}","category":"کاری"},{"id":"none","title":"بی‌زمان","category":"کاری"}]');
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('گذشته'), findsOneWidget);
+    expect(find.text('کار عقب‌افتاده'), findsOneWidget);
     expect(find.text('امروز'), findsAtLeastNWidgets(1));
     expect(find.byKey(const ValueKey('home-filter-card-time')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-center')), findsOneWidget);
