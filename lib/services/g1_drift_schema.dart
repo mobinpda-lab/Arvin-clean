@@ -4,7 +4,7 @@ import 'package:drift/drift.dart';
 
 /// G1-DRIFT relational schema foundation.
 class G1DriftSchema implements QueryExecutorUser {
-  static const int version = 9;
+  static const int version = 10;
 
   static const List<String> _statements = <String>[
     '''CREATE TABLE IF NOT EXISTS tasks (
@@ -32,6 +32,7 @@ class G1DriftSchema implements QueryExecutorUser {
   tags_json TEXT NOT NULL DEFAULT '[]', checklist_json TEXT NOT NULL DEFAULT '[]',
   people_json TEXT NOT NULL DEFAULT '[]', reminders_json TEXT NOT NULL DEFAULT '[]',
   recurrence_json TEXT NULL, center_name_snapshot TEXT NULL, project_name_snapshot TEXT NULL,
+  center_id_snapshot TEXT NULL, project_id_snapshot TEXT NULL,
   created_at TEXT NOT NULL, updated_at TEXT NOT NULL, is_archived INTEGER NOT NULL DEFAULT 0)''',
     '''CREATE TABLE IF NOT EXISTS project_template_tasks (
   id TEXT NOT NULL PRIMARY KEY, template_id TEXT NOT NULL REFERENCES project_templates(id),
@@ -95,6 +96,13 @@ class G1DriftSchema implements QueryExecutorUser {
       }
       if (!projectTemplateColumns.any((row) => row['name'] == 'color_value')) {
         await executor.runCustom('ALTER TABLE project_templates ADD COLUMN color_value INTEGER NOT NULL DEFAULT 4283059371');
+      }
+      final taskTemplateColumns = await executor.runSelect("PRAGMA table_info('task_templates')", const []);
+      if (!taskTemplateColumns.any((row) => row['name'] == 'center_id_snapshot')) {
+        await executor.runCustom('ALTER TABLE task_templates ADD COLUMN center_id_snapshot TEXT NULL');
+      }
+      if (!taskTemplateColumns.any((row) => row['name'] == 'project_id_snapshot')) {
+        await executor.runCustom('ALTER TABLE task_templates ADD COLUMN project_id_snapshot TEXT NULL');
       }
       final taskColumns = await executor.runSelect("PRAGMA table_info('tasks')", const []);
       if (!taskColumns.any((row) => row['name'] == 'storage_ordinal')) {
