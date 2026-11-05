@@ -95,3 +95,14 @@ Snapshot: 1405/08/13 — 2026-11-04 12:53 Asia/Tehran. Recheck live GitHub befor
 - Repository cleanup audit on the same source SHA: complete recursive tree (790 entries, not truncated); no tracked APK/AAB, generated build/output/cache/temp directories, or safe deletion candidates found. No cleanup deletion or cleanup commit was made.
 - PR #3052 remains OPEN / DRAFT / UNMERGED with head `1815ef72864f3e792661eee08cc932b29ff94c88`; branch is unchanged at this checkpoint. `main` remains `45e4202b03a434459e4c021a04efa7e8396359db`. No code changes, merge, release, or publication were made.
 - **BLOCKED — RELEASE: NO-GO.** Physical tablet installation/behavior, seven-lane Device Smoke, Calendar Provider terminal result, and product-owner release acceptance remain separate gates. This evidence applies only to source SHA `1815ef72864f3e792661eee08cc932b29ff94c88`; any documentation commit creates a new HEAD and does not inherit these exact-SHA CI results.
+
+
+## Backlog — تایپوگرافی برداری و بیلد پایدار (P0)
+- [ ] حذف استثناهای serif/Naskh و هرگونه فونت ثانویه؛ تثبیت Vazirmatn به‌عنوان تنها فونت متنی.
+- [ ] دریافت مرجع تصویری تأییدشده و ساخت SVG path-based بسم‌الله مطابق آن.
+- [ ] ساخت SVG path-based دعای تفویض با نسخ اصیل و اعراب‌گذاری صحیح.
+- [ ] افزودن semantics/accessibility labels و تست اندازه، تم روشن/تاریک و RTL.
+- [ ] تست رندر در رزولوشن‌های گوشی و تبلت، overflow و عملکرد.
+- [ ] رفع شکست‌های Analyze/Test/Visual از exact-head CI و اجرای مجدد همه تست‌ها بدون کاهش پوشش.
+- [ ] اجرای Build APK و Device Smoke هفت‌مسیره روی یک SHA واحد و ثبت artifact/checksum.
+- [ ] حفظ PR #3052 به‌صورت OPEN/DRAFT/UNMERGED؛ main بدون تغییر؛ Release NO-GO تا پذیرش نهایی.
