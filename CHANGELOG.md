@@ -1,3 +1,11 @@
+## 2026-11-05 — Issue #823 Home filter copy and UI/UX evidence audit
+
+- Corrected the active Home Category filter chip in lib/main.dart to the approved label «دسته‌ها»; added an exact widget assertion in test/home/home_filter_contract_test.dart. The row remains five filters plus a separate sort icon; «همه» remains inside filter panels only.
+- Added docs/audit/ARVIN_ISSUE_823_UIUX_EXECUTION_AUDIT_2026-11-05.md covering canonical documentation registration, Home active-path behavior, Project/Task Templates, Drift, Calendar, Task Details, and exact-SHA CI evidence.
+- Updated Product Decisions and Implementation Log with the unresolved sacred-phrase typography clarification and implementation gaps. Task Template schema/UI conversion and full eleven-section Task Details remain incomplete; no speculative model or migration was added.
+- Existing Home OR/AND code is present, but the combined behavior still needs explicit widget acceptance. Future-group date-heading behavior requires product interpretation before implementation.
+- No tests/assertions were removed, skipped, weakened or bypassed. PR #3052 stays OPEN / DRAFT / UNMERGED; main unchanged; **BLOCKED — RELEASE: NO-GO**.
+
 ## 2026-11-05 — ثبت مستندات مصوب معماری محصول آروین (Home, Task Detail, Calendar)
 
 - سه مرجع canonical محصولی Home، Task Master-Detail و Calendar در `docs/project-continuity/` تثبیت و هم‌راستا شدند.
