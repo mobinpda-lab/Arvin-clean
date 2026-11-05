@@ -113,6 +113,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     _tagsController = TextEditingController(text: _task.tags.join('، '));
     _draftReminders = List<TaskReminder>.of(_task.taskReminders);
     _draftChecklist = List<String>.of(_normalizedChecklist());
+    _isAddingChecklist = _task.checklist.isEmpty;
     _draftDueDate = _task.dueDate;
     _draftAllDay = _task.allDay;
     final rule = _task.recurrence;
@@ -140,6 +141,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     _recurrenceCountController = null;
     _draftReminders = const [];
     _draftChecklist = const [];
+    _isAddingChecklist = false;
+    _editingChecklistIndex = null;
     _draftDueDate = null;
     _draftAllDay = false;
     setState(() => _isInlineEditing = false);
@@ -209,6 +212,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       _recurrenceCountController = null;
       _draftReminders = const [];
       _draftChecklist = const [];
+      _isAddingChecklist = false;
+      _editingChecklistIndex = null;
       _draftDueDate = null;
       _draftAllDay = false;
       setState(() {
