@@ -151,6 +151,8 @@ class _TaskTemplateManagementPageState extends State<TaskTemplateManagementPage>
         name: name,
         centerNameSnapshot: centerSnapshot.isEmpty ? null : centerSnapshot,
         projectNameSnapshot: projectSnapshot,
+        centerIdSnapshot: centerIds.length == 1 ? centerIds.single : null,
+        projectIdSnapshot: relatedProjects.length == 1 ? relatedProjects.single.id : null,
       );
       await _load();
       if (mounted) {
