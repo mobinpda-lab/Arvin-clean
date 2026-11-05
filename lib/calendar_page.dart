@@ -842,13 +842,15 @@ class _CalendarPageState extends State<CalendarPage> {
         ),
         child: Scaffold(
         appBar: AppBar(
-          title: const Text(
+          title: Text(
             'أُفَوِّضُ أَمْرِی إِلَى اللَّهِ',
-            key: ValueKey('calendar-sacred-header'),
+            key: const ValueKey('calendar-sacred-header'),
             style: TextStyle(
               fontFamily: AppFonts.familyForText('أُفَوِّضُ أَمْرِی إِلَى اللَّهِ'),
+              fontFamilyFallback: AppFonts.sacredArabicFallback,
               fontSize: 19,
               fontWeight: FontWeight.w600,
+              height: 1.5,
             ),
           ),
           actions: [
