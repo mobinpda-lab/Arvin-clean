@@ -419,3 +419,12 @@ Every new entry must include exact SHA, workflow/run IDs, terminal conclusion, a
 - Task Details has a dedicated successful-save scroll-offset widget test in addition to existing entry/cancel coverage.
 - Visual root cause is evidenced by job log `127329168780`: `pumpAndSettle` timed out after 10 minutes, before actual screenshot creation. Deterministic pumping at 350ms plus a scheduled-frame assertion addresses the unbounded wait; the actual test and Golden acceptance remain unverified on the final SHA. The canonical Golden is still absent.
 - No device glyph fallback or device smoke result is claimed.
+
+
+## 2026-11-05 — پیاده‌سازی استثنای تایپوگرافی و تست اسکرول
+- `lib/theme/app_fonts.dart` فهرست دقیق دو عبارت مجاز را در `familyForText` تعریف می‌کند؛ متن فارسی عادی به Vazirmatn بازمی‌گردد.
+- `lib/main.dart` و `lib/home/home_visual_integration.dart` عبارت بسم‌الله را از whitelist عبور می‌دهند؛ `lib/calendar_page.dart` عبارت تفویض را با همان تابع رندر می‌کند.
+- `test/home/home_visual_integration_test.dart`, `test/home/home_sacred_phrase_test.dart` و `test/calendar_page_test.dart` استثنا و مرز Vazirmatn را assert می‌کنند.
+- `test/task_detail_master_screen_test.dart` اکنون حفظ offset را در ورود، لغو و ذخیره inline بررسی می‌کند؛ `test/task_detail_scroll_save_test.dart` نیز مسیر ذخیره موفق مستقل را پوشش می‌دهد.
+- `test/task_detail_visual_test.dart` از pump قطعی ۳۵۰ms و assertion `hasScheduledFrame == false` استفاده می‌کند؛ ریشه timeout، انتظار نامحدود `pumpAndSettle` برای idle scheduler در fixture ثابت بود، نه ticker تکرارشونده اثبات‌شده. Golden مرجع همچنان غایب است؛ Visual acceptance BLOCKED.
+- این تغییرات تا اجرای موفق تست‌ها روی exact final SHA «پیاده‌سازی‌شده اما تأییدنشده» هستند.
