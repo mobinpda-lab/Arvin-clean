@@ -3501,7 +3501,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               Expanded(child: Column(children: const [
-                Text('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', key: ValueKey('home-bismillah'), textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.primary, fontFamily: AppFonts.sacredArabicFamily, fontSize: 17, letterSpacing: 0.1, fontWeight: FontWeight.w500)),
+                Text('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', key: ValueKey('home-bismillah'), textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.primary, fontFamily: AppFonts.familyForText('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'), fontSize: 17, letterSpacing: 0.1, fontWeight: FontWeight.w500)),
                 SizedBox(height: 1),
                 Text('آروین', key: ValueKey('home-title-block'), style: TextStyle(color: ArvinColors.primaryDark, fontSize: 23, fontWeight: FontWeight.w800)),
                 SizedBox(height: 2),
