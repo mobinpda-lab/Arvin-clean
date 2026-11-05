@@ -932,16 +932,27 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
   Widget _checklistCard() {
     final items = _normalizedChecklist();
-    if (!_isAddingChecklist && (!_task.checklistEnabled || items.isEmpty)) {
-      return Align(
-        alignment: AlignmentDirectional.centerStart,
-        child: TextButton.icon(
-          key: const ValueKey('task-detail-add-checklist'),
-          onPressed: widget.onChecklistChanged != null
-              ? () => setState(() => _isAddingChecklist = true)
-              : (widget.onEdit == null ? null : _edit),
-          icon: const Icon(Icons.add, size: 17),
-          label: const Text('افزودن چک‌لیست'),
+    if (!_isAddingChecklist && items.isEmpty) {
+      return _card(
+        key: const ValueKey('task-detail-checklist'),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _sectionTitle('چک‌لیست', Icons.checklist_rounded),
+            const SizedBox(height: 8),
+            const Text('چک‌لیستی ثبت نشده است', style: TextStyle(color: _muted)),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: TextButton.icon(
+                key: const ValueKey('task-detail-add-checklist'),
+                onPressed: widget.onChecklistChanged != null
+                    ? () => setState(() => _isAddingChecklist = true)
+                    : (widget.onEdit == null ? null : _edit),
+                icon: const Icon(Icons.add, size: 17),
+                label: const Text('افزودن چک‌لیست'),
+              ),
+            ),
+          ],
         ),
       );
     }
