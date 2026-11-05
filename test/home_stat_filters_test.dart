@@ -1,5 +1,6 @@
 import 'package:arvin/main.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:arvin/services/iran_clock.dart';
@@ -68,7 +69,9 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'), findsOneWidget);
+    expect(find.byType(SvgPicture), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-bismillah-svg')), findsOneWidget);
+    expect(find.bySemanticsLabel('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-search')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-search-button')), findsOneWidget);
     expect(find.text('زمان'), findsOneWidget);
