@@ -21,7 +21,7 @@ void main() {
     expect(find.byKey(const ValueKey('home-compact-filter-scroll')), findsOneWidget);
     expect(find.text('مرکز'), findsOneWidget);
     expect(find.text('پروژه‌ها'), findsOneWidget);
-    expect(find.text('دسته‌بندی‌ها'), findsOneWidget);
+    expect(find.text('دسته‌ها'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
 
     final scrollable = find.byType(Scrollable).last;
@@ -62,7 +62,7 @@ void main() {
     expect(find.text('زمان'), findsOneWidget);
     expect(find.text('مرکز'), findsOneWidget);
     expect(find.text('پروژه‌ها'), findsOneWidget);
-    expect(find.text('دسته‌بندی‌ها'), findsOneWidget);
+    expect(find.text('دسته‌ها'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
     expect(tester.takeException(), isNull);
@@ -136,7 +136,7 @@ void main() {
     expect(find.byKey(const ValueKey('task-card-title-three')), findsOneWidget);
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
-    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-category')), matching: find.text('دسته‌بندی‌ها (۲)')), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-category')), matching: find.text('دسته‌ها (۲)')), findsOneWidget);
     expect(find.text('اداری'), findsWidgets);
     expect(find.text('شخصی'), findsWidgets);
     expect(find.text('مالی'), findsNothing);
