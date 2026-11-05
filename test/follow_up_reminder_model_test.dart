@@ -191,4 +191,29 @@ void main() {
     expect(restored.taskReminders.single.date, DateTime(2026, 10, 20));
     expect(restored.taskReminders.single.isAllDay, isFalse);
   });
+  test('normalizes historical task-specific legacy reminder IDs to the fixed ID', () {
+    final restored = Task.fromJson({
+      'id': 'historical-task',
+      'title': 'یادآور قدیمی',
+      'reminderDate': '2026-10-20T09:30:00.000',
+      'legacyTaskReminderMigrationVersion': 1,
+      'legacyReminderMigrationCompleted': true,
+      'taskReminders': [
+        {
+          'id': 'legacy-task-reminder:historical-task',
+          'taskId': 'historical-task',
+          'title': 'یادآور قدیمی',
+          'date': '2026-10-20T09:30:00.000',
+          'sequence': 1,
+          'isLegacyTaskReminder': true,
+        },
+      ],
+    });
+
+    expect(restored.taskReminders, hasLength(1));
+    expect(restored.taskReminders.single.id, 'legacy-task-reminder');
+    expect(restored.taskReminders.single.isLegacyTaskReminder, isTrue);
+    expect(restored.legacyTaskReminderMigrationVersion, 1);
+  });
+
 }
