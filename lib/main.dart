@@ -1275,6 +1275,7 @@ class _HomePageState extends State<HomePage> {
       return Center(child: Padding(
         padding: EdgeInsets.all(compactHome ? 16 : 24),
         child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
           Icon(Icons.inbox_outlined, size: compactHome ? 34 : 42, color: ArvinColors.neutral),
           SizedBox(height: compactHome ? 8 : 12),
