@@ -50,11 +50,19 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const ValueKey('task-detail-inline-title')), 'عنوان تازه');
     await tester.enterText(find.byKey(const ValueKey('task-detail-inline-description')), 'خط اول\nخط دوم\nخط سوم');
+    final categoryInput = find.byKey(const ValueKey('task-detail-inline-category'));
+    await tester.ensureVisible(categoryInput);
+    await tester.enterText(categoryInput, 'تعمیرات');
+    final tagsInput = find.byKey(const ValueKey('task-detail-inline-tags'));
+    await tester.ensureVisible(tagsInput);
+    await tester.enterText(tagsInput, 'فوری، برنامه‌ریزی');
     await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
     await tester.pumpAndSettle();
 
     expect(persisted?.title, 'عنوان تازه');
     expect(persisted?.description, 'خط اول\nخط دوم\nخط سوم');
+    expect(persisted?.category, 'تعمیرات');
+    expect(persisted?.tags, ['فوری', 'برنامه‌ریزی']);
     expect(find.text('عنوان تازه'), findsOneWidget);
   });
 
