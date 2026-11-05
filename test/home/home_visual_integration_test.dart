@@ -19,6 +19,7 @@ void main() {
 
     final sacredPhrase = find.byKey(const ValueKey('home-bismillah-capsule'));
     expect(sacredPhrase, findsOneWidget);
+    expect(find.byKey(const ValueKey('home-bismillah-svg')), findsOneWidget);
     expect(
       tester.widget<Semantics>(sacredPhrase).properties.label,
       'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
