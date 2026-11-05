@@ -23,7 +23,7 @@ void main() {
       priority: TaskPriority.high,
       tags: const ['ایمنی'],
       checklist: const ['[x] کنترل برق', '[ ] کنترل روغن'],
-      people: const [PersonReference(id: 'person-1', displayName: 'همکار')],
+      people: [PersonReference(id: 'person-1', displayName: 'همکار')],
       taskReminders: [
         TaskReminder(
           id: 'detail-template-reminder',
