@@ -72,6 +72,21 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(ValueKey('task-template-create-confirm-${saved.id}')));
     await tester.pumpAndSettle();
+    final created = (await tasks.load()).singleWhere((item) => item.id != source.id);
+    expect(created.title, 'سرویس پمپ');
+    expect(created.dueDate, isNull);
+    expect(created.completed, isFalse);
+    expect(created.completedAt, isNull);
+    expect(created.followUps, isEmpty);
+    expect(created.taskReminders, isEmpty);
+    expect(created.checklist, ['[ ] کنترل برق', '[ ] کنترل فشار']);
+    expect(created.checklistEnabled, isFalse);
+    expect(source.checklist, ['[x] کنترل برق', '[ ] کنترل فشار']);
+
+    await tester.tap(find.byKey(ValueKey('task-template-create-${saved.id}')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(ValueKey('task-template-create-confirm-${saved.id}')));
+    await tester.pumpAndSettle();
     final allTasks = await tasks.load();
     expect(allTasks, hasLength(2));
     final generated = allTasks.singleWhere((item) => item.id != source.id);
