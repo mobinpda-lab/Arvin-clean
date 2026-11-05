@@ -738,42 +738,64 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   Widget _dueDateCard() {
+    final dueDate = _isInlineEditing ? _draftDueDate : _task.dueDate;
+    final allDay = _isInlineEditing ? _draftAllDay : _task.allDay;
     return _card(
       key: const ValueKey('task-detail-due-date-card'),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.calendar_month_outlined, color: _brand),
-          const SizedBox(width: 9),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('موعد انجام', style: TextStyle(fontFamily: 'Vazirmatn', color: _muted, fontSize: 12, fontWeight: FontWeight.w600)),
-                Text(
-                  _task.dueDate == null
-                      ? 'تعیین نشده'
-                      : (_task.allDay ? _date(_task.dueDate!) : _dateTime(_task.dueDate!)),
-                  key: const ValueKey('task-detail-due-date'),
-                  style: const TextStyle(fontFamily: 'Vazirmatn', fontWeight: FontWeight.w800),
+          Row(
+            children: [
+              const Icon(Icons.calendar_month_outlined, color: _brand),
+              const SizedBox(width: 9),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('موعد انجام', style: TextStyle(fontFamily: 'Vazirmatn', color: _muted, fontSize: 12, fontWeight: FontWeight.w600)),
+                    Text(
+                      dueDate == null
+                          ? 'تعیین نشده'
+                          : (allDay ? _date(dueDate) : _dateTime(dueDate)),
+                      key: const ValueKey('task-detail-due-date'),
+                      style: const TextStyle(fontFamily: 'Vazirmatn', fontWeight: FontWeight.w800),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              if (_isInlineEditing) ...[
+                IconButton(
+                  key: const ValueKey('task-detail-inline-due-date'),
+                  tooltip: 'تغییر تاریخ',
+                  onPressed: _pickInlineDueDate,
+                  icon: const Icon(Icons.edit_calendar_outlined),
+                ),
+                IconButton(
+                  key: const ValueKey('task-detail-inline-due-time'),
+                  tooltip: 'تغییر ساعت',
+                  onPressed: dueDate == null ? null : _pickInlineDueTime,
+                  icon: const Icon(Icons.access_time),
+                ),
+              ] else
+                IconButton(
+                  key: const ValueKey('task-detail-move-due-date-to-today'),
+                  tooltip: 'تنظیم موعد برای امروز',
+                  onPressed: _isMovingDueDateToToday ? null : _moveDueDateToToday,
+                  icon: _isMovingDueDateToToday
+                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(Icons.today_outlined),
+                ),
+            ],
           ),
           if (_isInlineEditing)
-            IconButton(
-              key: const ValueKey('task-detail-inline-due-date'),
-              tooltip: 'تغییر موعد',
-              onPressed: _pickInlineDueDate,
-              icon: const Icon(Icons.edit_calendar_outlined),
+            SwitchListTile(
+              key: const ValueKey('task-detail-inline-all-day'),
+              contentPadding: EdgeInsets.zero,
+              title: const Text('تمام‌روز'),
+              value: allDay,
+              onChanged: (value) => setState(() => _draftAllDay = value),
             ),
-          IconButton(
-            key: const ValueKey('task-detail-move-due-date-to-today'),
-            tooltip: 'تنظیم موعد برای امروز',
-            onPressed: _isMovingDueDateToToday ? null : _moveDueDateToToday,
-            icon: _isMovingDueDateToToday
-                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                : const Icon(Icons.today_outlined),
-          ),
         ],
       ),
     );
