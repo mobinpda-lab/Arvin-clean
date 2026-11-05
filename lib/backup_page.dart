@@ -20,12 +20,14 @@ class BackupPage extends StatefulWidget {
     required this.loadTasks,
     required this.replaceTasks,
     this.manager,
+    this.projectStore,
     this.restoreStageHook,
   });
 
   final Future<List<Map<String, dynamic>>> Function() loadTasks;
   final Future<void> Function(List<Map<String, dynamic>> tasks) replaceTasks;
   final ArvinBackupManager? manager;
+  final ProjectStore? projectStore;
 
   /// Test-only seam for injecting failures at real restore mutation boundaries.
   /// Production callers leave this unset.
@@ -37,6 +39,7 @@ class BackupPage extends StatefulWidget {
 
 class _BackupPageState extends State<BackupPage> {
   late final ArvinBackupManager manager;
+  late final ProjectStore _projectStore = widget.projectStore ?? ProjectStore();
   final AppSettingsService settingsService = AppSettingsService();
   String? directory;
   bool busy = false;
@@ -253,7 +256,7 @@ class _BackupPageState extends State<BackupPage> {
         calendarLinks: (await ExternalCalendarLinkStore().load())
             .map((link) => link.toJson())
             .toList(growable: false),
-        projects: manager.projectCodec.encodeList(await ProjectStore().load()),
+        projects: manager.projectCodec.encodeList(await _projectStore.load()),
         categories: await TaskStore().loadCategories(),
         tags: await TaskStore().loadTags(),
         peopleDirectory: (await TaskStore().loadPeopleDirectory())
@@ -360,7 +363,7 @@ class _BackupPageState extends State<BackupPage> {
           .map((value) => Map<String, dynamic>.from(value))
           .toList(growable: false);
       previousTasks = tasksBeforeRestore;
-      previousProjects = await ProjectStore().load();
+      previousProjects = await _projectStore.load();
       previousCalendarLinks = await ExternalCalendarLinkStore().load();
       previousCategories = await TaskStore().loadCategories();
       previousTags = await TaskStore().loadTags();
@@ -372,7 +375,7 @@ class _BackupPageState extends State<BackupPage> {
       final emergencyBackup = await manager.backupCanonicalTasks(
         currentTasks,
         settings: previousSettings,
-        projects: await ProjectStore().load(),
+        projects: await _projectStore.load(),
         calendarLinks: previousCalendarLinks,
         categories: previousCategories,
         tags: previousTags,
@@ -418,7 +421,7 @@ class _BackupPageState extends State<BackupPage> {
           );
           await widget.restoreStageHook?.call('tasks');
           if (candidate.hasProjects) {
-            await ProjectStore().save(reconciledProjects);
+            await _projectStore.save(reconciledProjects);
           }
           await widget.restoreStageHook?.call('projects');
           await ExternalCalendarLinkStore().restoreForTasks(
@@ -461,7 +464,7 @@ class _BackupPageState extends State<BackupPage> {
         },
         rollback: () async {
           await widget.replaceTasks(previousTasks!);
-          await ProjectStore().save(previousProjects!);
+          await _projectStore.save(previousProjects!);
           await ExternalCalendarLinkStore().save(previousCalendarLinks!);
           await settingsService.restorePortableJson(previousSettings!);
           final oldSchedule = previousSettings!['backupSchedule'];
