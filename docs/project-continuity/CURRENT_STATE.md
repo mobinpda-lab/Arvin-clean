@@ -236,3 +236,17 @@ Release: BLOCKED — RELEASE: NO-GO
 - Added an explicit accessible semantic label to the independent Home sort action: `72e6779f268bb0ca971b651ad0228604b504f4c8`.
 - Ensured the Past group heading also uses the calendar icon when Past is selected directly from the Time filter: `460a40b6411c6c63691817e45ef00aab61544bd8`.
 - These are source-only follow-ups; no test file or assertion was changed. The latest exact-SHA Build and Device Smoke runs must complete before any PASS is recorded.
+
+
+## Calendar UI/UX canonical specification registration — 2026-11-05 — ۱۴۰۵/۰۸/۱۴
+- Canonical owner-approved fourteen-section Calendar specification: `calendar_ui_ux_spec.md`.
+- Header: centered «أُفَوِّضُ أَمْرِي إِلَى اللَّهِ»; search right; Today full Persian date pill + adjacent «برو به تاریخ» picker left; Help removed.
+- Selected-date bar: Jalali bold center, Gregorian right, Hijri lunar left.
+- View modes «روزانه / هفتگی / ماهانه / سالانه» above the calendar grid; default weekly.
+- Seven-column Saturday–Friday RTL grid; date cells show Jalali primary and Gregorian/Hijri lunar secondary.
+- Five filters «همه / تقویم آروین / تقویم گوشی / یادآورها / انجام‌نشده» strictly below the grid and above the agenda. Agenda is selected-day scoped; Task/Event/Reminder cards must not overlap.
+- Hijri adjustment options: +1 day, −1 day, Official Iranian Calendar Match.
+- No runtime implementation or test changes were made as part of specification registration.
+- Exact-SHA audit on base `5bea1ed67549e26aa2ceeb0882477d4cfc2c1f53`: Build #42011495370 FAILURE (test-0, test-2 and visual failed; Analyze and test-1/3/4/5 passed; APK skipped); Device Smoke #42011495381 CANCELLED (4/7 pass, 3/7 cancelled). Calendar Provider, Follow-up Persistence and Parallel Wave Contract passed.
+- The above CI results do not transfer to any subsequent documentation SHA. Re-run exact-head gates after documentation synchronization.
+- PR #3052 OPEN / DRAFT / UNMERGED; main untouched; **BLOCKED — RELEASE: NO-GO**.
