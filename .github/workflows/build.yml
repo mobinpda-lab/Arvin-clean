@@ -32,7 +32,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        lane: [analyze, test-0, test-1, test-2, test-3, test-4, test-5, visual]
+        lane: [analyze, test-0, test-1, test-2, test-3, test-4, test-5]
     steps:
       - uses: actions/checkout@v5
         with:
@@ -93,12 +93,35 @@ jobs:
           SHARD_INDEX: ${{ fromJSON(matrix.lane == 'test-0' && '0' || matrix.lane == 'test-1' && '1' || matrix.lane == 'test-2' && '2' || matrix.lane == 'test-3' && '3' || matrix.lane == 'test-4' && '4' || '5') }}
         run: flutter test --total-shards 6 --shard-index $SHARD_INDEX
 
+  # Keep visual golden coverage independent from the seven-lane Analyze/Test contract.
+  visual:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+      - name: Verify exact requested revision
+        env:
+          TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "$TARGET_SHA"
+          echo "EXACT_TARGET_SHA=$actual"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - name: Resolve locked dependencies
+        run: |
+          set -euo pipefail
+          flutter pub get --enforce-lockfile
+          git diff --exit-code -- pubspec.lock
       - name: Task Details visual golden
-        if: matrix.lane == 'visual'
         run: flutter test test/task_detail_visual_test.dart
-
       - name: Upload Task Details visual evidence
-        if: always() && matrix.lane == 'visual'
+        if: always()
         uses: actions/upload-artifact@v5
         with:
           name: arvin-task-detail-visual-${{ github.run_id }}
