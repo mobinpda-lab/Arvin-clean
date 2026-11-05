@@ -48,6 +48,7 @@ void main() {
     expect(find.byKey(const ValueKey('home-filter-card-project')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-category')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-tags')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-group-overdue')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-all')), findsNothing);
     expect(find.byKey(const ValueKey('home-compact-filter-scroll')), findsOneWidget);
     expect(find.byType(ActionChip), findsNWidgets(5));
