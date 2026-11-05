@@ -55,6 +55,14 @@ void main() {
     return task;
   }
 
+  Future<ProjectStore> createEmptyProjectStore() async {
+    final database = NativeDatabase.memory();
+    addTearDown(database.close);
+    final projects = ProjectStore(executor: database);
+    await projects.load();
+    return projects;
+  }
+
   Future<void> scrollToFollowUp(WidgetTester tester) async {
     final followUp = find.byKey(const ValueKey('alarm-overlay-follow-up'));
     expect(followUp, findsOneWidget);
@@ -208,6 +216,7 @@ void main() {
       (tester) async {
     final store = TaskStore();
     await seedTask(store);
+    final projectStore = await createEmptyProjectStore();
     final notifications = _FakeAlarmNotifications();
     var rescheduled = false;
 
@@ -216,6 +225,7 @@ void main() {
         taskId: 'alarm-task-1',
         taskReminderId: 'reminder-stable-1',
         notificationId: 7002,
+        projectStore: projectStore,
         taskStore: store,
         notificationController: notifications,
         now: () => DateTime(2026, 11, 1, 13),
@@ -279,6 +289,7 @@ void main() {
       (tester) async {
     final store = TaskStore();
     await seedTask(store);
+    final projectStore = await createEmptyProjectStore();
     final notifications = _FakeAlarmNotifications();
 
     await tester.pumpWidget(MaterialApp(
@@ -286,6 +297,7 @@ void main() {
         taskId: 'alarm-task-1',
         taskReminderId: 'reminder-stable-1',
         notificationId: 7005,
+        projectStore: projectStore,
         taskStore: store,
         notificationController: notifications,
         rescheduleReminders: () async {},
@@ -350,6 +362,7 @@ void main() {
 
     final store = TaskStore();
     await seedTask(store);
+    final projectStore = await createEmptyProjectStore();
 
     await tester.pumpWidget(MaterialApp(
       home: AlarmOverlayPage(
@@ -385,6 +398,7 @@ void main() {
         taskId: 'alarm-task-1',
         taskReminderId: 'reminder-stable-1',
         notificationId: 7004,
+        projectStore: projectStore,
         taskStore: store,
         notificationController: _FakeAlarmNotifications(),
         rescheduleReminders: () async {},
