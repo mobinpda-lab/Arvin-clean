@@ -623,3 +623,13 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - Added `test/task_detail_scroll_save_test.dart` for scroll-offset preservation across inline-edit entry and successful save. Existing cancel-path coverage remains.
 - Visual timeout diagnosis: the previous `pumpAndSettle` waited indefinitely for scheduler idle; the test now uses deterministic pumping and asserts no scheduled frame before capture. The approved golden file is still absent, so Visual acceptance remains BLOCKED pending a real captured and reviewed baseline.
 - Exact-SHA test/CI and physical-device glyph verification are not claimed by this entry.
+
+
+## Owner typography decision, reusable templates and Task Details evidence — 2026-11-05
+- Applied the owner's final typography rule: Vazirmatn for all UI; the exact whitelist permits Naskh-style serif only for «بسم‌الله الرحمن الرحیم» and «أُفَوِّضُ أَمْرِی إِلَى اللَّهِ» (or the approved unvowelled UI spelling).
+- Added exact-text font selection in `lib/theme/app_fonts.dart`; Home and Calendar use it. Persian UI text remains on Vazirmatn.
+- Added Home typography whitelist assertions and retained Calendar phrase typography coverage.
+- Expanded Task Details scroll-offset coverage to include entering, cancelling and successfully saving inline edits.
+- Consolidated Task Template UI creation coverage to one clean instantiation path; asserts the source Task and its execution history remain unchanged.
+- The Visual test now advances a static screen deterministically and asserts no scheduled frame before capture; no timeout was increased and no assertion was skipped. The approved golden is still absent, so visual acceptance is BLOCKED pending a reviewed baseline.
+- Exact-SHA CI and physical-device glyph validation are not claimed until their respective evidence is available. PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; release BLOCKED — RELEASE: NO-GO.
