@@ -319,3 +319,18 @@ Every new entry must include exact SHA, workflow/run IDs, terminal conclusion, a
 - PR #3052 remained OPEN / DRAFT / UNMERGED at this audit; branch head and PR head matched the candidate SHA. `main` remained at `45e4202b03a434459e4c021a04efa7e8396359db`. No main edit, merge, release, test modification, test skip, or assertion weakening occurred. Release remains BLOCKED — RELEASE: NO-GO.
 
 - Device Smoke follow-up poll (same run `42005232867`, same candidate SHA): `smoke-boot` and `smoke-navigation` remained IN_PROGRESS; the other five canonical scenario jobs (`smoke-calendar-segmented-view`, `smoke-quick-capture`, `smoke-task-lifecycle`, `smoke-reminder-vazirmatn`, `smoke-follow-up-persistence`) had transitioned to CANCELLED. This is not a seven-lane pass; the run is incomplete/invalid for acceptance and must not be promoted to PASS.
+
+
+## Calendar UI/UX specification registration — 2026-11-05 — ۱۴۰۵/۰۸/۱۴
+- Registered the owner-approved fourteen-section Calendar UI/UX contract at `docs/project-continuity/calendar_ui_ux_spec.md`.
+- Updated Product Decisions, Current State, Roadmap/backlog, this Implementation Log, the continuity index, and the root continuation Ledger with the canonical reference and its boundaries.
+- Locked the header placement: centered «أُفَوِّضُ أَمْرِي إِلَى اللَّهِ», search right, full Persian Today-date pill plus adjacent «برو به تاریخ» picker at top-left; Help removed.
+- Locked the selected-date bar: Jalali bold center, Gregorian right, Hijri lunar left.
+- Locked four view modes above the seven-column Saturday–Friday RTL grid; default weekly. Each cell shows Jalali primary and Gregorian/Hijri lunar secondary values.
+- Locked five content filters below the grid and above the selected-day agenda; Task/Event/Reminder cards must not overlap.
+- Registered Hijri offset options (+1 day, −1 day, Official Iranian Calendar Match).
+- This is documentation-only. No runtime source, test, workflow, schema, migration, calendar provider, or persistence code was changed. No test was added, removed, skipped, weakened, or rerun.
+- This documentation commit sequence creates a new HEAD. Build/Device Smoke results below remain evidence only for SHA `5bea1ed67549e26aa2ceeb0882477d4cfc2c1f53`; they do not verify the new documentation HEAD. Fresh exact-SHA CI is required before acceptance.
+- On the audited SHA, Build #42011495370 = FAILURE (Analyze PASS; test-0/test-2/Visual FAILURE; test-1/test-3/test-4/test-5 PASS; APK SKIPPED by Draft guard). Device Smoke #42011495381 = CANCELLED (Quick Capture, Task Lifecycle, Reminder/Vazirmatn, Follow-up Persistence PASS; Boot, Navigation, Calendar Segmented View CANCELLED).
+- Calendar Provider #42011495562, Follow-up Persistence #42011495565 and Parallel Wave Contract #42011495436 = SUCCESS on the audited SHA.
+- PR #3052 remains OPEN / DRAFT / UNMERGED; main unchanged; **BLOCKED — RELEASE: NO-GO**.
