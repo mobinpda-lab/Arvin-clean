@@ -23,6 +23,8 @@ class TaskTemplate {
     this.recurrence,
     this.centerNameSnapshot,
     this.projectNameSnapshot,
+    this.centerIdSnapshot,
+    this.projectIdSnapshot,
     required this.createdAt,
     required this.updatedAt,
     this.isArchived = false,
@@ -44,6 +46,8 @@ class TaskTemplate {
   final RecurrenceRule? recurrence;
   final String? centerNameSnapshot;
   final String? projectNameSnapshot;
+  final String? centerIdSnapshot;
+  final String? projectIdSnapshot;
   final DateTime createdAt;
   final DateTime updatedAt;
   final bool isArchived;
@@ -54,6 +58,8 @@ class TaskTemplate {
     required Task task,
     String? centerNameSnapshot,
     String? projectNameSnapshot,
+    String? centerIdSnapshot,
+    String? projectIdSnapshot,
     DateTime? now,
   }) {
     final timestamp = now ?? DateTime.now();
@@ -85,6 +91,8 @@ class TaskTemplate {
       ),
       centerNameSnapshot: _clean(centerNameSnapshot),
       projectNameSnapshot: _clean(projectNameSnapshot),
+      centerIdSnapshot: _clean(centerIdSnapshot),
+      projectIdSnapshot: _clean(projectIdSnapshot),
       createdAt: timestamp,
       updatedAt: timestamp,
     );
@@ -112,6 +120,8 @@ class TaskTemplate {
     'recurrence_json': recurrence == null ? null : jsonEncode(recurrence!.toJson()),
     'center_name_snapshot': centerNameSnapshot,
     'project_name_snapshot': projectNameSnapshot,
+    'center_id_snapshot': centerIdSnapshot,
+    'project_id_snapshot': projectIdSnapshot,
     'created_at': createdAt.toIso8601String(),
     'updated_at': updatedAt.toIso8601String(),
     'is_archived': isArchived ? 1 : 0,
@@ -149,6 +159,8 @@ class TaskTemplate {
           : null,
       centerNameSnapshot: row['center_name_snapshot'] as String?,
       projectNameSnapshot: row['project_name_snapshot'] as String?,
+      centerIdSnapshot: row['center_id_snapshot'] as String?,
+      projectIdSnapshot: row['project_id_snapshot'] as String?,
       createdAt: DateTime.parse(row['created_at'] as String),
       updatedAt: DateTime.parse(row['updated_at'] as String),
       isArchived: (row['is_archived'] as num).toInt() == 1,
