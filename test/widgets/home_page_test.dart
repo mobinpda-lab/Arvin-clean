@@ -7,13 +7,21 @@ import 'package:arvin/arvin_colors.dart';
 import 'package:arvin/services/app_settings_service.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:arvin/services/project_store.dart';
+import 'package:arvin/services/center_store.dart';
 import 'package:arvin/services/iran_clock.dart';
 
 void main() {
   setUp(() async {
     await TaskStore.resetTestDatabase();
     await ProjectStore.resetTestDatabase();
+    await CenterStore.resetTestDatabase();
     SharedPreferences.setMockInitialValues({});
+  });
+
+  tearDown(() async {
+    await TaskStore.resetTestDatabase();
+    await ProjectStore.resetTestDatabase();
+    await CenterStore.resetTestDatabase();
   });
 
   testWidgets('renders the current canonical HomePage shell', (tester) async {
