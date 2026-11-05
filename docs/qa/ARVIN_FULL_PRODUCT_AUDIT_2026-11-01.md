@@ -1435,3 +1435,15 @@ The canonical A–J baseline remains complete in §3 and the detailed A1–J7 ma
 - Naskh fallback سیستمی جایگزین asset فونت مستقل شده است؛ کیفیت واقعی glyph shaping روی Androidهای مختلف NOT VERIFIED.
 - Drift v11 و Follow-up Persistence روی SHA جدید باید از لاگ fresh تأیید شوند؛ هیچ PASS از SHA قبلی منتقل نمی‌شود.
 - PR #3052: OPEN / DRAFT / UNMERGED؛ main untouched؛ BLOCKED — RELEASE: NO-GO.
+
+
+## تایپوگرافی برداری و وضعیت بیلد — ۱۴۰۵/۰۸/۱۴ (2026-11-05)
+- HEAD قبلی ممیزی: `ea77f423c07c6978e8d62ab271d8906c89ff8824`; base تاریخی `f44fb03fbc3a5b7b8e995dd861a9585aed36b0cc`.
+- Vazirmatn در pubspec به‌عنوان تنها فونت bundled ثبت شده بود؛ استثنای AppFonts به serif سیستم و Naskh fallback برای دو عبارت مقدس با قرارداد قطعی جدید ناسازگار است.
+- SVGهای اختصاصی path-based برای دو عبارت در دارایی‌های قابل تأیید پیدا نشدند. مرجع تصویری تأییدشده نیز در فایل‌های قابل بازیابی موجود نبود.
+- Build run `42072261154` FAILED: Analyze const errors، تست‌های شاردی ناموفق و Visual smoke FlutterError مربوط به ListTile/Material. APK matrix skipped در PR Draft.
+- Draft Review APK artifact `13436328904` فقط به SHA قدیمی متصل است؛ به‌عنوان APK پایدار/قابل انتشار پذیرفته نمی‌شود.
+- اصلاحات کد اولیه در HEAD جدید شامل رفع const نامعتبر، fixture تست، Material card tile و finite geometry assertion است؛ نتیجه exact-SHA آن‌ها هنوز NOT VERIFIED.
+- Device Smoke run `42072261240` ناقص است؛ دو lane موفق، دو lane در حال اجرا و دو lane لغوشده در آخرین snapshot؛ پذیرش ۷/۷ NOT VERIFIED.
+- تصمیم قطعی: Vazirmatn تنها فونت متنی؛ دو عبارت فقط SVG vector path؛ بدون font fallback. تا دریافت مرجع خوشنویسی، تطبیق دقیق SVG NOT VERIFIED.
+- PR #3052 OPEN/DRAFT/UNMERGED؛ main untouched؛ **BLOCKED — RELEASE: NO-GO**.
