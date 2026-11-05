@@ -158,4 +158,29 @@ void main() {
     expect(oldTemplate.single['name'], 'الگوی قدیمی');
     expect(oldTemplate.single['title'], 'کار قدیمی');
   });
+
+  test('Task Template retains legacy reminder time without copying its calendar date', () async {
+    final database = NativeDatabase.memory();
+    addTearDown(database.close);
+    final store = TaskTemplateStore(executor: database);
+    final executionDate = DateTime(2026, 11, 18, 8, 45);
+    final task = Task(
+      id: 'legacy-reminder-source',
+      title: 'کار دارای یادآور قدیمی',
+      reminderDate: executionDate,
+    );
+
+    final saved = await store.createFromTask(
+      task: task,
+      name: 'الگوی یادآور صبحگاهی',
+      now: DateTime(2026, 11, 5),
+    );
+    final reminder = saved.reminders.single;
+    expect(reminder.title, 'یادآور اصلی');
+    expect(reminder.hour, 8);
+    expect(reminder.minute, 45);
+    expect(saved.toColumns()['reminders_json'], isNot(contains('2026-11-18')));
+    expect(task.reminderDate, executionDate);
+  });
+
 }
