@@ -506,8 +506,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('تبدیل کار به الگو'),
-        content: TextField(
+        content: TextFormField(
           key: const ValueKey('task-detail-template-name'),
+          initialValue: templateName,
           autofocus: true,
           onChanged: (value) => templateName = value,
           decoration: const InputDecoration(labelText: 'نام الگو'),
