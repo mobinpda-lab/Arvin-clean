@@ -87,3 +87,13 @@ Latest audit record: PRODUCT_DECISIONS.md → Module-Core-Logic v1.0 crosswalk; 
 ### الگوهای کار و پروژه
 - قرارداد داده و مرز تاریخچه اجرایی: `TASK_TEMPLATE_DATA_CONTRACT.md`
 - مرجع پیاده‌سازی و وضعیت پذیرش exact-SHA: `IMPLEMENTATION_LOG.md` و `ROADMAP.md`
+
+
+## STD-GOV-AIPOS-v1.0 — 2026-11-05
+- این پوشه مرجع پایدار حافظه پروژه است؛ ترتیب شروع: CURRENT_STATE، HANDOFF، OPEN_ISSUES، PRODUCT_DECISIONS، ROADMAP و سپس IMPLEMENTATION_LOG.
+- هر وضعیت باید به SHA دقیق، شاخه و شواهد GitHub متصل باشد. نتیجهٔ یک SHA به SHA بعدی منتقل نمی‌شود.
+- تفکیک الزامی: تصمیم محصول، پیاده‌سازی، آزمون، پذیرش و انتشار پنج وضعیت مستقل‌اند.
+- هیچ تغییری روی main، هیچ merge و هیچ خروج از Draft مجاز نیست؛ PR #3052 باید OPEN / DRAFT / UNMERGED بماند.
+- تست‌ها حذف، skip، تضعیف یا با timeout مصنوعی سبز نمی‌شوند. خطای زیرساخت از شکست محصول تفکیک می‌شود.
+- پروتکل: ابتدا HEAD/PR را بخوان؛ سپس تغییر محدود را روی شاخه مجاز ثبت کن؛ مستندات و Ledger را به‌روزرسانی کن؛ در پایان HEAD و CI تازه را دوباره بخوان.
+- وضعیت انتشار تا پذیرش تمام دروازه‌ها روی یک SHA و تأیید مالک محصول: BLOCKED — RELEASE: NO-GO.
