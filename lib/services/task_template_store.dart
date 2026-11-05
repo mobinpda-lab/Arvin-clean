@@ -46,6 +46,8 @@ class TaskTemplateStore {
     required String name,
     String? centerNameSnapshot,
     String? projectNameSnapshot,
+    String? centerIdSnapshot,
+    String? projectIdSnapshot,
     DateTime? now,
   }) async {
     final normalized = name.trim();
@@ -62,6 +64,8 @@ class TaskTemplateStore {
       task: task,
       centerNameSnapshot: centerNameSnapshot,
       projectNameSnapshot: projectNameSnapshot,
+      centerIdSnapshot: centerIdSnapshot,
+      projectIdSnapshot: projectIdSnapshot,
       now: timestamp,
     );
     await save(template);
