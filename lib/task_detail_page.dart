@@ -18,6 +18,7 @@ import 'services/task_move_to_today_service.dart';
 import 'services/waiting_for_response_service.dart';
 import 'task_report_page.dart';
 import 'widgets/persian_date_picker.dart';
+import 'widgets/universal_arvin_time_picker.dart';
 
 class TaskDetailPage extends StatefulWidget {
   const TaskDetailPage({
@@ -90,6 +91,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   int? _editingChecklistIndex;
   bool _isSavingChecklist = false;
   bool _isAddingChecklist = false;
+  List<TaskReminder> _draftReminders = const [];
 
   @override
   void initState() {
@@ -104,6 +106,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     _descriptionController = TextEditingController(text: _task.description);
     _categoryController = TextEditingController(text: _task.category ?? '');
     _tagsController = TextEditingController(text: _task.tags.join('، '));
+    _draftReminders = List<TaskReminder>.of(_task.taskReminders);
     final rule = _task.recurrence;
     _recurrenceConfigured = rule != null;
     _recurrenceActive = rule?.active ?? true;
@@ -127,6 +130,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     _tagsController = null;
     _recurrenceIntervalController = null;
     _recurrenceCountController = null;
+    _draftReminders = const [];
     setState(() => _isInlineEditing = false);
   }
 
@@ -157,6 +161,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       ..description = description
       ..category = category.isEmpty ? null : category
       ..tags = tags
+      ..taskReminders = List<TaskReminder>.of(_draftReminders)
+      ..nextReminderSequence = _draftReminders.isEmpty
+          ? _task.nextReminderSequence
+          : (_draftReminders.map((item) => item.sequence).reduce((a, b) => a > b ? a : b) + 1).clamp(_task.nextReminderSequence, 1 << 30)
       ..recurrence = _recurrenceConfigured ? RecurrenceRule(
         frequency: _recurrenceFrequency,
         interval: recurrenceInterval,
@@ -184,6 +192,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       _tagsController = null;
       _recurrenceIntervalController = null;
       _recurrenceCountController = null;
+      _draftReminders = const [];
       setState(() {
         _task = updated;
         _isInlineEditing = false;
@@ -211,6 +220,80 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     final candidate = Task.fromJson(Map<String, dynamic>.from(_task.toJson()))
       ..priority = priority;
     await _persistCandidate(candidate);
+  }
+
+  Future<void> _addInlineReminder() async {
+    final titleController = TextEditingController(
+      text: 'یادآور ${_draftReminders.length + 1}',
+    );
+    final title = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('یادآور جدید'),
+        content: TextField(
+          key: const ValueKey('task-detail-reminder-title-input'),
+          controller: titleController,
+          decoration: const InputDecoration(labelText: 'عنوان یادآور'),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف')),
+          FilledButton(
+            onPressed: () {
+              final value = titleController.text.trim();
+              if (value.isNotEmpty) Navigator.pop(dialogContext, value);
+            },
+            child: const Text('ادامه'),
+          ),
+        ],
+      ),
+    );
+    titleController.dispose();
+    if (title == null || !mounted) return;
+
+    final initial = _task.dueDate ?? DateTime.now().add(const Duration(hours: 1));
+    final date = await showPersianDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+      helpText: 'انتخاب تاریخ یادآور',
+    );
+    if (date == null || !mounted) return;
+    final time = await showUniversalArvinTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(initial),
+      helpText: 'انتخاب ساعت یادآور',
+    );
+    if (time == null || !mounted) return;
+
+    final highest = _draftReminders.isEmpty
+        ? _task.nextReminderSequence - 1
+        : _draftReminders.map((item) => item.sequence).reduce((a, b) => a > b ? a : b);
+    final reminder = TaskReminder(
+      id: 'reminder-${DateTime.now().microsecondsSinceEpoch}',
+      title: title,
+      date: DateTime(date.year, date.month, date.day, time.hour, time.minute),
+      sequence: (highest + 1).clamp(_task.nextReminderSequence, 1 << 30),
+    );
+    setState(() => _draftReminders = [..._draftReminders, reminder]);
+  }
+
+  void _toggleDraftReminder(TaskReminder reminder, bool enabled) {
+    setState(() {
+      _draftReminders = _draftReminders
+          .map((item) => item.id == reminder.id
+              ? item.copyWith(isEnabled: enabled)
+              : item)
+          .toList(growable: false);
+    });
+  }
+
+  void _removeDraftReminder(TaskReminder reminder) {
+    setState(() {
+      _draftReminders = _draftReminders
+          .where((item) => item.id != reminder.id)
+          .toList(growable: false);
+    });
   }
 
   Future<void> _toggleReminder(TaskReminder reminder, bool enabled) async {
