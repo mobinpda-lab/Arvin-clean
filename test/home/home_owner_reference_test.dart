@@ -37,7 +37,7 @@ void main() {
     expect(find.text('آروین'), findsOneWidget);
     expect(find.text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-search-button')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-notifications')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-notifications')), findsNothing);
     expect(find.text('برچسب‌ها'), findsOneWidget);
     expect(find.text('دسته‌بندی‌ها'), findsOneWidget);
     expect(find.text('پروژه‌ها'), findsOneWidget);
