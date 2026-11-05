@@ -73,6 +73,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   static const _waitingService = WaitingForResponseService();
 
   late Task _task;
+
+  TaskTemplateStore get _taskTemplates =>
+      widget.taskTemplateStore ?? TaskTemplateStore();
   TextEditingController? _descriptionController;
   TextEditingController? _titleController;
   TextEditingController? _categoryController;
@@ -1860,6 +1863,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         key: const ValueKey('task-detail-page'),
         backgroundColor: const Color(0xFFF5F6FA),
         appBar: AppBar(
+          key: const ValueKey('task-detail-app-bar'),
           backgroundColor: const Color(0xFF37379B),
           foregroundColor: Colors.white,
           shape: const RoundedRectangleBorder(
@@ -1906,8 +1910,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 if (value == 'report') _openReport();
                 if (value == 'delete') _deleteTask();
               },
-              itemBuilder: (_) => const [
-                PopupMenuItem(
+              itemBuilder: (_) => [
+                const PopupMenuItem(
                   value: 'report',
                   child: ListTile(
                     key: ValueKey('task-detail-report'),
@@ -1919,7 +1923,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 PopupMenuItem(
                   value: 'delete',
                   enabled: widget.onDelete != null && !_isInlineEditing,
-                  child: ListTile(
+                  child: const ListTile(
                     key: ValueKey('task-detail-delete-menu'),
                     contentPadding: EdgeInsets.zero,
                     leading: Icon(Icons.delete_outline, color: Color(0xFFD04444)),
@@ -1939,6 +1943,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           ],
         ),
         bottomNavigationBar: SafeArea(
+          key: const ValueKey('task-detail-bottom-actions'),
           minimum: const EdgeInsets.fromLTRB(10, 8, 10, 12),
           child: Row(children: [
             Expanded(child: OutlinedButton.icon(
