@@ -1,6 +1,9 @@
 import 'package:arvin/models/task.dart';
+import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:arvin/services/task_template_store.dart';
+import 'package:arvin/services/project_store.dart';
+import 'package:arvin/services/center_store.dart';
 import 'package:arvin/task_template_management_page.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +17,8 @@ void main() {
     addTearDown(database.close);
     final tasks = TaskStore(executor: database);
     final templates = TaskTemplateStore(executor: database);
+    final projects = ProjectStore(executor: database);
+    final centers = CenterStore(executor: database);
     final source = Task(
       id: 'template-list-source',
       title: 'سرویس پمپ',
@@ -22,11 +27,26 @@ void main() {
       dueDate: DateTime(2026, 11, 20),
     );
     await tasks.save([source]);
+    await centers.create(
+      id: 'task-template-center',
+      name: 'مرکز نگهداری',
+      now: DateTime(2026, 11, 5),
+    );
+    await projects.save([
+      ProjectPlan(
+        id: 'task-template-project',
+        title: 'پروژه تعمیرات',
+        centerId: 'task-template-center',
+        itemIds: [source.id],
+      ),
+    ]);
 
     await tester.pumpWidget(MaterialApp(
       home: TaskTemplateManagementPage(
         taskStore: tasks,
         templateStore: templates,
+        projectStore: projects,
+        centerStore: centers,
       ),
     ));
     await tester.pumpAndSettle();
@@ -40,6 +60,10 @@ void main() {
     expect(saved.name, 'سرویس فصلی پمپ');
     expect(saved.title, 'سرویس پمپ');
     expect(saved.checklist, ['کنترل برق', 'کنترل فشار']);
+    expect(saved.centerNameSnapshot, 'مرکز نگهداری');
+    expect(saved.projectNameSnapshot, 'پروژه تعمیرات');
+    expect(saved.centerIdSnapshot, 'task-template-center');
+    expect(saved.projectIdSnapshot, 'task-template-project');
     expect(source.dueDate, DateTime(2026, 11, 20));
     expect(source.checklist, ['[x] کنترل برق', '[ ] کنترل فشار']);
     expect(find.text('الگوی کار ذخیره شد؛ کار اصلی بدون تغییر ماند.'), findsOneWidget);
