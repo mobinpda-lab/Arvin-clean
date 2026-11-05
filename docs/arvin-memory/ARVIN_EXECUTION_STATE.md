@@ -1097,3 +1097,88 @@ This entry supersedes older statements that the owner decision is pending or tha
 - Prior exact-head build `2d04631dd9d1939bd3feafa12aa7d68bec349b58` produced Debug and Release APK artifacts but multiple test shards failed. Affected tests were updated; exact-head validation is still required. Do not infer success from old runs.
 - Current release status: **NO-GO / NOT VALIDATED** until the final resulting SHA has passing analyzer, all test shards with zero skipped tests, Debug/Release artifacts, all six Device Smoke lanes, Calendar Provider Acceptance, and artifact inspection.
 - Font gap remains open: project bundles VazirHarf; Vazirmatn is not present in declared assets and is not claimed applied. Physical-device acceptance is still separate.
+
+
+## AUTHORITATIVE LIVE UPDATE — 2026-10-17 — Fresh GitHub baseline and release blockers
+
+- **Verified main ref at audit start:** `f8ea358c30d0a5db1078ae0dae9e2b72cc036e7b` (GitHub `refs/heads/main`, read directly from the Git ref endpoint). Repository is public, default branch `main`, not archived. An active repository ruleset named `main-protection` exists; do not bypass it.
+- **Current release control:** Issue [#2768](https://github.com/mobinpda-lab/Arvin-clean/issues/2768) remains open and explicitly says `RELEASE: NO-GO`. Issue [#2102](https://github.com/mobinpda-lab/Arvin-clean/issues/2102) remains open for exact-head Build/Device Smoke evidence. The body of #2768 cites an older main SHA `e04467a...`; this is stale relative to the live main ref observed at this audit. Refresh the issue after review, without treating its old SHA as current.
+- **PR #2773 Calendar:** open, Draft, unmerged; base SHA equals observed main SHA `f8ea358...`; head SHA `d911931d0a98d8fb4cc9fe9a8e8e616041d2e988`. Build run [39004730158](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39004730158) reports completed/success, with Analyze, six test shards, Debug APK and Release APK all successful. Device Smoke run [39004730144](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39004730144) reports completed/success across seven lanes (home, quick-capture, people, sql-migration, sql-persistence, backup-restore, calendar). Artifacts include calendar interaction evidence and Persian time picker; calendar artifact is named with merge SHA `40e01281808d75a6c15995339554dfa399dfa087`, not PR head SHA. Since PR-triggered workflows can check out GitHub's synthetic merge ref, these results are **not yet sufficient proof of exact-head validation for `d911931...`**. Inspect artifact contents and run checkout assertions / dispatch exact-head validation before acceptance. Keep PR Draft and release NO-GO.
+- **Other active PR observations (fresh GitHub reads):** [#2778](https://github.com/mobinpda-lab/Arvin-clean/pull/2778) open Draft, head `5ba21e6f58b86b3b69dc58482d046050f6df94c3`, base `f8ea358...`; [#2762](https://github.com/mobinpda-lab/Arvin-clean/pull/2762) open Draft, head `777e4d573f3901d1b94b1b0d9289608993270384`, base `e04467a...`; [#2755](https://github.com/mobinpda-lab/Arvin-clean/pull/2755) open Draft, head `6aca28916068a6a21fe0a1a85e1e510bb743a60d`, base `e04467a...`; [#2679](https://github.com/mobinpda-lab/Arvin-clean/pull/2679) open Draft and currently `mergeable=false`, head `349350cb74c423816685a25c36f5cd782b13aac4`, base `3f4b729...`; [#2744](https://github.com/mobinpda-lab/Arvin-clean/pull/2744) open Draft, base `d226719...`; [#2745](https://github.com/mobinpda-lab/Arvin-clean/pull/2745) open Draft, base `d226719...`. These divergent/stale bases must be reconciled against fresh main one at a time; do not merge or rebase blindly.
+- **Current priority order:** P0: release control and exact-head evidence; Calendar interaction regression and data-safety acceptance. P1: establish compatible integration order for Reminder/Follow-up/Person/Reports PRs (#2762, #2755, #2679, #2744, #2745) and verify migration/backup behavior. P2: inspect #2778's actual font assets, licensing, PDF font embedding and rendered RTL output. P3: remaining visual polish only after critical behavior and evidence are stable.
+- **Evidence limitations:** successful emulator smoke is not physical-device acceptance. A green Build is not PDF/RTL visual acceptance, and artifact existence is not artifact-content validation. No release APK SHA-256, physical-device acceptance, full integrated product scenario, or release authorization is established by this audit.
+- **Next actions:** (1) inspect all jobs, artifact contents and workflow checkout SHA for #2773; (2) obtain/verify explicit exact-head Build and Device Smoke for the current main and candidate heads; (3) inspect #2778, #2762, #2755, #2679, #2744 and #2745 diffs and dependencies against live main; (4) update the release-control issue and this canonical state only with verified results; (5) keep release NO-GO until all product and physical-device gates are satisfied.
+- **Status:** baseline audit in progress; no application code changed, no PR merged, no public release performed in this checkpoint.
+
+
+## STAGE 1–2 P0 FOLLOW-UP — 2026-10-17
+
+### PR #2773 — Calendar card interaction
+- PR was transitioned from Draft to **Ready for review** through the official GitHub action. Current snapshot: open, unmerged, `draft=false`, `mergeable=true`; head `d911931d0a98d8fb4cc9fe9a8e8e616041d2e988`, base SHA `f8ea358c30d0a5db1078ae0dae9e2b72cc036e7b`. Compare endpoint reports `ahead`, 22 commits ahead, 0 behind, 14 changed files.
+- Tests in `test/calendar_page_test.dart` cover Follow-up short tap opening the edit route and long press opening contextual actions; external calendar short tap opens source item. `test/external_calendar_page_projection_test.dart` and `test/official_calendar_prayer_actions_test.dart` were adjusted to long-press contextual actions.
+- Build [run 39004730158](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39004730158): Analyze, all six test shards, Debug APK and Release APK are successful. The named widget tests are included in the sharded test suite, but the retrieved job summary does not expose a per-test result line for `calendar_page_test` and `calendar_schedule_projection_test` separately.
+- Emulator Device Smoke [run 39004730144](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39004730144): all seven lanes succeeded, including `device-smoke (calendar)`. Calendar artifact [12090477665](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12090477665) exists (126,322 bytes), named with synthetic merge SHA `40e01281808d75a6c15995339554dfa399dfa087`, not PR head SHA. Artifact contents were not independently opened/reviewed in this checkpoint; do not describe visual evidence as inspected.
+- A PR comment with this validation summary and limits was added. CI success is run/job-level evidence; exhaustive simultaneous Reminder/Follow-up/raw-device-event combinations are not independently proven. Physical-phone acceptance remains open. Do not merge solely on these runs; release remains NO-GO.
+
+### PR #2744 — Deleted Person / Follow-up history (P0 data integrity)
+- Head `570550cedba3b63030347367e472d8dc30b05659`; Build [run 38855728834](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38855728834) passed Analyze, six test shards and Debug/Release APK builds. Device Smoke [run 38855733465](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38855733465) passed six emulator lanes including SQL migration, SQL persistence and backup/restore.
+- Scope is only `lib/services/person_follow_up_report_projection.dart` and `test/services/person_follow_up_report_projection_test.dart`. The projection now preserves a Follow-up row whose Person ID is absent from the current directory and displays `شخص حذف‌شده`; the regression test asserts that projection behavior.
+- This is **not yet proof that the actual Person-delete database operation preserves all rows/foreign-key relationships**, because no storage, deletion service, or migration code changes in this PR. A real delete → TaskStore/SQLite reload → verify Follow-up IDs/Person IDs → report projection test is still required.
+- Comparing this head with current main `f8ea358...` reports diverged: 6 commits ahead and 96 behind. PR remains Draft; do not merge/rebase blindly. A comment was added to the PR recording scope, successful existing CI and missing direct database-delete proof.
+
+### Next execution gates
+1. For #2773: inspect the calendar artifact files and their checkpoint logs; establish whether the tests independently cover simultaneous Reminder/Follow-up and external event collisions; if not, add narrowly scoped regression tests and run the relevant suite on a head commit.
+2. For #2744: add/locate an integration test that deletes a Person through the real app/service and verifies persistence of Follow-up history after reload and backup/restore; first reconcile the 96-commit base divergence safely.
+3. Keep release NO-GO until exact candidate SHA evidence, data-integrity test and physical-device acceptance are all recorded.
+
+## LIVE EXECUTION UPDATE — 2026-10-17 08:45 UTC
+
+### PR #2773 — calendar
+- Successfully squash-merged; merge commit: `0601950e8f56a7563533393844c835b6de49aade`.
+- Build run `39017703770`: Analyze, six test shards, Debug APK and Release APK succeeded.
+- Post-merge Device Smoke run `39017703842` did not complete all scenarios: backup/restore and people were cancelled; SQL migration, SQL persistence, quick-capture and home succeeded. A later post-merge run `39018485465` is queued. Do not record full post-merge Device Smoke PASS yet.
+
+### Vazirmatn assets and PDF renderer — PR #2778
+- Source archive `vazirmatn-v33.003 (2).zip` was materialized from Library and inspected. The archive contains Regular (122,752 bytes), Medium (122,656 bytes), Bold (123,036 bytes), and OFL.txt (4,391 bytes).
+- Git blob SHA comparisons prove byte identity between archive files and the existing branch files under `assets/fonts/ui/vazirmatn/`: Regular `64e4a8189557a17b63fd7a77794207483e592972`, Medium `1e08dd54d90a4879451ef0f80fe0d8068fb7462f`, Bold `efa9b095da01d299310bdcae293e24e657fe6da9`, OFL `be66b3824e9772e75141e631695c5256f105fb57`.
+- PR branch now declares Vazirmatn with only 400/500/700 weights, exposes paths through `AppFonts`, switches PDF loading to these three assets, and strengthens the two requested tests. Latest head after correcting a duplicate declaration: `a981850d066dfa64d7e0e1810907f59b868f23a3`.
+- An earlier build at `a400a4f2b315b27abb06481de027c6a0ecfbc353` failed Analyze because duplicate declarations were introduced; that was corrected in the subsequent commit. Build for the corrected head `a981850d066dfa64d7e0e1810907f59b868f23a3` is pending/running; target tests are NOT PASS until logs confirm. PR #2778 remains Draft and is not merged.
+
+### PR #2744 — person deletion/history
+- Added Drift/SQLite persistence regression test in commit `31b9cfa61efc1323f10e038be22efa1226c4d8ad`: remove a Person from the directory, reopen TaskStore, and assert Task/Follow-up/personIds/waitingForResponse persist.
+- This is a storage-level test of directory removal and relation persistence; it does not invoke the UI delete callback directly.
+- Branch comparison against current main: 7 commits ahead, 97 behind, diverged. A temporary main-to-feature synchronization PR (#2781) reported `mergeable=false` and was closed without merging. PR #2744 remains Draft; no Ready transition or merge is authorized until synchronization/conflict handling and the new test's CI evidence are complete.
+
+**Release gate:** `RELEASE: NO-GO`. No final release APK is approved. Local tests were not run in this environment; report only GitHub Actions evidence once completed.
+
+
+---
+
+# LIVE EXECUTION CHECKPOINT — 2026-10-17 13:30 +03:30
+
+This checkpoint records observations, not release approval. Mainline source of truth is the live GitHub comparison result.
+
+## Current main and post-merge evidence
+- Current main observed by GitHub compare: 0601950e8f56a7563533393844c835b6de49aade (Calendar PR #2773 squash merge).
+- Build [39018485470](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39018485470) completed successfully for this SHA: Analyze, six test shards, Debug APK, and Release APK succeeded.
+- Artifacts from that build: Release APK [12095049736](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12095049736), Debug APK [12095582452](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/12095582452).
+- Device Smoke [39018485465](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39018485465) is terminal-success across all seven lanes: quick-capture, home, SQLite persistence, SQLite migration, backup/restore, calendar, and people. This is Android emulator evidence only; no physical-phone acceptance is established.
+- Build + emulator smoke do not override wider release gates. Release remains RELEASE: NO-GO.
+
+## PR #2778 — Vazirmatn / report typography
+- Current branch head after bounded test correction: 5ced038d66c37e9032216818d7d0015a889b9b05.
+- Prior run [39018914542](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39018914542) failed. Logs show the test incorrectly required assets/fonts/ui/vazirmatn/Vazirmatn-SemiBold.ttf, while the UI Vazirmatn assets declared in pubspec.yaml are Regular/Medium/Bold. The bounded correction removed only the nonexistent asset path from the test.
+- New Build [39023171758](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39023171758) and Device Smoke [39023171771](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39023171771) were still running/queued at checkpoint time; no terminal pass claim is made.
+- PR #2778 remains Draft. The branch comparison reports 42 commits ahead and 1 behind current main. Scope is broader than the owner-requested three Vazirmatn TTFs plus OFL (it adds multiple other font families and workflow changes); this scope needs explicit review before any merge. Earlier PDF CI evidence used sparse one-page fixtures and does not prove dense/multipage report quality.
+
+## PR #2744 — deleted Person history
+- Old branch fix/report-preserve-deleted-person-history-20261016 remains 7 commits ahead / 97 behind current main and diverged; do not rewrite its history.
+- A clean branch was created from current main and the limited change ported without force push: [PR #2783](https://github.com/mobinpda-lab/Arvin-clean/pull/2783), head eb58ec40419f701be27c0b52f6704403d5ea5740.
+- PR #2783 changes the existing Follow-up report projection, adds a deleted-person placeholder regression test, and adds a SQLite persistence regression test for Task/Follow-up IDs and person associations after removal from the directory.
+- Build [39023243091](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39023243091) and Device Smoke [39023243098](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/39023243098) were pending/in progress at checkpoint time. PR #2783 remains Draft and unmerged.
+- The SQLite test verifies storage behavior; it does not alone prove the UI deletion callback or physical-device behavior.
+
+## Product and release gates
+- Open product blockers remain tracked in issues including #2589 (universal Persian time picker rollout incomplete), #2593 (Quick Add / Full Task Editor acceptance in progress), #2654 (multiple independent reminders requirement/design open), #2385 (Report Center specification/acceptance), #2635 (calendar sync contract/acceptance), and #2102 (exact-head Build/Device Smoke release evidence).
+- Do not infer full product acceptance from the successful mainline smoke run. Backup/restore/migration, recurrence/checklist independence, full Report Center behavior, UI typography across all screens, and physical-device acceptance still require gate-specific evidence on a final candidate SHA.
+- Next action: finish exact-head CI on #2778 and #2783, inspect failures, and only then decide whether either PR is ready for review. No merge or release is authorized by this checkpoint.
