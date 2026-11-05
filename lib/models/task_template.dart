@@ -77,7 +77,8 @@ class TaskTemplate {
     // reusable template default. Do not duplicate a reminder already migrated
     // into the independent reminder collection.
     if (task.reminderDate != null &&
-        !task.taskReminders.any((reminder) => reminder.isLegacyTaskReminder)) {
+        !task.taskReminders.any((reminder) => reminder.isLegacyTaskReminder ||
+            reminder.date.isAtSameMomentAs(task.reminderDate!))) {
       final sequence = reminderDefinitions.isEmpty
           ? 1
           : reminderDefinitions.map((item) => item.sequence).reduce((a, b) => a > b ? a : b) + 1;
