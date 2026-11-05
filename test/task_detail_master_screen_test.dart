@@ -10,26 +10,15 @@ import 'package:arvin/services/persian_date_formatter.dart';
 import 'package:arvin/task_detail_page.dart';
 
 Finder _taskDetailPageScrollable(WidgetTester tester) {
-  final candidates = find.descendant(
-    of: find.byKey(const ValueKey('task-detail-page')),
+  final pageScrollable = find.descendant(
+    of: find.byKey(const ValueKey('task-detail-content-list')),
     matching: find.byType(Scrollable),
   );
-  final pageScrollables = <Finder>[];
-  for (var index = 0; index < candidates.evaluate().length; index++) {
-    final candidate = candidates.at(index);
-    final state = tester.state<ScrollableState>(candidate);
-    if (state.position.axisDirection == AxisDirection.down &&
-        state.position.maxScrollExtent > 0) {
-      pageScrollables.add(candidate);
-    }
-  }
-  expect(
-    pageScrollables,
-    hasLength(1),
-    reason: 'Select the unique vertical Scrollable with real page scroll extent; '
-        'TextField-internal Scrollables are not the detail-page list.',
-  );
-  return pageScrollables.single;
+  expect(pageScrollable, findsOneWidget);
+  final state = tester.state<ScrollableState>(pageScrollable);
+  expect(state.position.axisDirection, AxisDirection.down);
+  expect(state.position.maxScrollExtent, greaterThan(0));
+  return pageScrollable;
 }
 
 void main() {
