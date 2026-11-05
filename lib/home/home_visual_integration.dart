@@ -49,7 +49,7 @@ class HomeVisualIntegration extends StatelessWidget {
                     onPressed: onNotifications,
                     icon: const Icon(Icons.notifications_none_rounded),
                   ),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       children: [
                         DecoratedBox(
