@@ -203,3 +203,9 @@ Release: BLOCKED — RELEASE: NO-GO
 - Exact-SHA CI: Analyze PASS; test-0/1/3/5 PASS; test-2/test-4 FAIL; visual golden FAIL; Persistence PASS; Calendar Provider PASS; Device Smoke 4/7 PASS and 3/7 CANCELLED.
 - Test-scenario preservation across the entire PR is NOT VERIFIED: the PR diff rewrites/removes multiple previous test scenarios, although no explicit new skip/timeout directive was detected. Replacement coverage requires review.
 - No source/test/schema/main changes, merge, or release. **BLOCKED — RELEASE: NO-GO.**
+## Uniform UI token implementation checkpoint — 2026-11-05 09:56 Asia/Tehran — ۱۴۰۵/۰۸/۱۴
+- Owner-approved active tokens: primary `#3F3D56`, header `#2D2B42`, background `#F7F8FC`, card `#FFFFFF`, radius 16px, soft 4% shadow blur 10 offset (0,4), font Vazirmatn.
+- New token source: `lib/core/theme/arvin_theme.dart`; compatibility semantic palette: `lib/arvin_colors.dart`.
+- Global light CardTheme and AppBar, shared Home shell/navigation/add button, radio/project selector and recurrence chip were routed through tokens. Priority mapping/status/taxonomy semantics were retained; visible priority labels remain Persian «اولویت ۱»…«اولویت ۴».
+- New focused test: `test/arvin_theme_tokens_test.dart`. Existing tests unchanged. Exact-SHA CI and widget tests pending; full custom-card conversion and physical visual acceptance NOT VERIFIED.
+- PR #3052 remains OPEN / DRAFT / UNMERGED; main unchanged; release BLOCKED — RELEASE: NO-GO.

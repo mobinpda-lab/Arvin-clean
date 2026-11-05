@@ -66,3 +66,20 @@ PROPOSED = candidate only; APPROVED = explicit owner decision; IN_PROGRESS = wor
 | Real user DB / backup safety | No actual user database row/value inventory or verified backup/restore snapshot was inspected in this audit. | NOT VERIFIED; no destructive migration is authorized. |
 
 **Required follow-up before module acceptance:** correct/test the disabled-reminder delivery filter and add idempotent Reminder creation protection under a separately authorized implementation task; decide the precise scope of legacy-field preservation versus eventual schema retirement; verify real DB contents and backup/rollback before any destructive migration.
+## Uniform UI design tokens — owner directive (2026-11-05 09:56 Asia/Tehran — ۱۴۰۵/۰۸/۱۴)
+**Status:** APPROVED — canonical visual token update. This later explicit owner instruction supersedes the earlier palette values recorded in historical UI references and style-lock snapshots; those historical records remain evidence, not the active token source.
+| Token | Value | Usage |
+|---|---|---|
+| Primary purple | `#3F3D56` | Primary actions, active navigation and selected brand states |
+| Header purple | `#2D2B42` | App/page headers and AppBar foreground contrast |
+| Light background | `#F7F8FC` | Main light-theme canvas |
+| Card background | `#FFFFFF` | Standard card surfaces |
+| Card radius | `16px` | Shared card containers |
+| Card shadow | black 4%, blur 10, offset (0,4) | Soft card elevation |
+| Font | `Vazirmatn` | All app UI; no font-family change |
+- Canonical implementation entry point: `lib/core/theme/arvin_theme.dart`; `ArvinColors` remains the semantic compatibility palette and maps shared primary/background/surface tokens to the new values.
+- Shared Flutter `CardThemeData` and app-bar theme use the new light card/header tokens. Shared Home shell, navigation, radio/project selector and recurrence chip surfaces consume the central token aliases.
+- Priority semantics stay unchanged: P1=high/red, P2=medium/blue, P3=low/amber, P4=none/neutral. User-facing labels remain Persian «اولویت ۱» … «اولویت ۴»; do not render literal English P1–P4 unless a later explicit UI decision authorizes it.
+- Status chips retain their existing semantic states/colors; taxonomy remains Center → Project → Category → Tags, with contextual icons and separate existing semantic accent colors. No entity/model or priority enum remapping is authorized.
+- **Coverage status:** foundation implemented; exhaustive conversion of every custom BoxDecoration/card-like surface across all screens and physical visual acceptance remain IN_PROGRESS / NOT VERIFIED. Do not describe the entire app as uniformly migrated until the cross-screen inventory and visual tests pass.
+- Governance unchanged: PR #3052 OPEN / DRAFT / UNMERGED; main untouched; no merge/release; BLOCKED — RELEASE: NO-GO.

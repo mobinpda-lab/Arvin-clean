@@ -70,3 +70,7 @@ A feature mentioned only as an illustrative example (such as periodic tasks or a
 3. **P0 / Legacy migration safety:** inspect real user DB counts/values and verified backup/restore before deciding how `followUpEnabled`, `followUpDate`, `FollowUp.reminderDate` and `nextFollowUp` are preserved, converted or retired. No destructive DDL before approval.
 4. **P0 / Test scenario mapping:** map each removed/rewritten PR test scenario to its approved replacement or obtain explicit owner disposition. Current PR-wide preservation claim remains NOT VERIFIED.
 5. **Acceptance:** run focused tests and all required exact-SHA workflows after any authorized code change. This registration does not authorize source, schema, migration or test changes.
+## UI design system rollout — 2026-11-05 09:56 Asia/Tehran — ۱۴۰۵/۰۸/۱۴
+1. **P1 / Cross-screen card audit:** inventory every custom card-like Container/BoxDecoration in Task Lists, Task Details read-only/edit, Calendar and Quick Entry; migrate only presentation to shared card tokens without changing behavior.
+2. **P1 / Visual regression:** add/retain widget assertions for token application, Persian RTL labels, contextual icons, P1–P4 semantic mapping, status and Center → Project → Category → Tags chips. Do not remove or weaken existing scenarios.
+3. **P1 / Device visual acceptance:** compare all four target surfaces on the physical Android device at supported viewport/text scales. Until then, whole-app uniformity remains NOT VERIFIED.

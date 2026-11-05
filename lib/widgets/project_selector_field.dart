@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../arvin_colors.dart';
 import '../models/goal_project.dart';
 import 'arvin_radio_box.dart';
 
@@ -76,7 +77,7 @@ class ProjectSelectorField extends StatelessWidget {
               label: 'گزینه جدید',
               selected: false,
               newOption: true,
-              accent: const Color(0xFF4A4CAB),
+              accent: ArvinColors.primary,
               onTap: () async {
                 final controller = TextEditingController();
                 final title = await showDialog<String>(

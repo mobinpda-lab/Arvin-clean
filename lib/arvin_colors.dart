@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
 
+import 'core/theme/arvin_theme.dart';
 import 'models/task.dart';
 
 /// Canonical semantic palette used across Arvin. Owner-approved brand, surface,
 /// and text tokens stay aligned with the Home visual style lock.
 abstract final class ArvinColors {
-  static const primary = Color(0xFF4A4CAB);
-  static const primaryDark = Color(0xFF25286F);
+  static const primary = ArvinTheme.primaryPurple;
+  static const primaryDark = ArvinTheme.headerPurple;
   static const primarySoft = Color(0xFFE9EAFF);
 
-  static const background = Color(0xFFF8F8FB);
-  static const surface = Color(0xFFFDFDFE);
+  static const background = ArvinTheme.backgroundLight;
+  static const surface = ArvinTheme.cardBackground;
   static const textPrimary = Color(0xFF232433);
   static const textSecondary = Color(0xFF80829C);
-  static const border = Color(0xFFE5E7ED);
-  static const shadowSoft = Color(0x12000000);
+  static const border = Color(0xFFE6E7EE);
+  static const shadowSoft = Color(0x0A000000);
   static const shadowDark = Color(0x40000000);
 
   // Dark theme semantic tokens.

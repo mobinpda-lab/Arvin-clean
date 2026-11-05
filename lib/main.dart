@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 import 'arvin_colors.dart';
+import 'core/theme/arvin_theme.dart';
 import 'alarm_overlay_page.dart';
 import 'follow_up_reminder_notification_service.dart';
 
@@ -260,12 +261,12 @@ class _ArvinAppState extends State<ArvinApp> {
   @override
   Widget build(BuildContext context) {
     final lightBaseTextTheme = ThemeData.light().textTheme.apply(
-      fontFamily: AppFonts.vazirmatnFamily,
+      fontFamily: ArvinTheme.fontFamily,
       bodyColor: ArvinColors.textPrimary,
       displayColor: ArvinColors.textPrimary,
     );
     final darkBaseTextTheme = ThemeData.dark().textTheme.apply(
-      fontFamily: AppFonts.vazirmatnFamily,
+      fontFamily: ArvinTheme.fontFamily,
     );
     final readableLightTextTheme = lightBaseTextTheme.copyWith(
       bodyLarge: lightBaseTextTheme.bodyLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w600),
@@ -319,23 +320,30 @@ class _ArvinAppState extends State<ArvinApp> {
           outline: ArvinColors.border,
         ),
         scaffoldBackgroundColor: ArvinColors.background,
-        cardTheme: const CardThemeData(
-          color: ArvinColors.surface,
-          elevation: 1,
-          shadowColor: ArvinColors.shadowSoft,
-          margin: EdgeInsets.symmetric(vertical: 2),
+        cardTheme: CardThemeData(
+          color: ArvinTheme.cardBackground,
+          elevation: 2,
+          shadowColor: ArvinTheme.shadowStyle.color,
+          margin: const EdgeInsets.symmetric(vertical: 2),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(16)),
-            side: BorderSide(color: ArvinColors.border),
+            borderRadius: ArvinTheme.cardBorderRadius,
+            side: const BorderSide(color: ArvinColors.border),
           ),
         ),
         fontFamily: AppFonts.vazirmatnFamily,
         textTheme: readableLightTextTheme,
         iconTheme: const IconThemeData(color: ArvinColors.neutral, size: 24),
         dividerTheme: const DividerThemeData(color: ArvinColors.border, thickness: 1),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: ArvinColors.background,
-          foregroundColor: ArvinColors.textPrimary,
+        appBarTheme: AppBarTheme(
+          backgroundColor: ArvinTheme.headerPurple,
+          foregroundColor: Colors.white,
+          iconTheme: const IconThemeData(color: Colors.white),
+          titleTextStyle: TextStyle(
+            fontFamily: ArvinTheme.fontFamily,
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
         ),
         inputDecorationTheme: const InputDecorationTheme(
           filled: true,

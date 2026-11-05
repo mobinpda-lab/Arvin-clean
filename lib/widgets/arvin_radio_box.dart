@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../arvin_colors.dart';
+
 class ArvinRadioBox extends StatelessWidget {
   const ArvinRadioBox({
     super.key,
@@ -7,7 +9,7 @@ class ArvinRadioBox extends StatelessWidget {
     required this.selected,
     required this.onTap,
     this.icon,
-    this.accent = const Color(0xFF4A4CAB),
+    this.accent = ArvinColors.primary,
     this.newOption = false,
   });
 
@@ -20,8 +22,8 @@ class ArvinRadioBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final border = selected ? accent : const Color(0xFFE5E7ED);
-    final background = selected ? accent.withValues(alpha: 0.10) : const Color(0xFFFDFDFE);
+    final border = selected ? accent : ArvinColors.border;
+    final background = selected ? accent.withValues(alpha: 0.10) : ArvinColors.surface;
     return Semantics(
       button: true,
       selected: selected,
@@ -45,7 +47,7 @@ class ArvinRadioBox extends StatelessWidget {
                 Icon(
                   newOption ? Icons.add_circle_outline_rounded : (icon ?? Icons.radio_button_checked_rounded),
                   size: 18,
-                  color: selected ? accent : const Color(0xFF80829C),
+                  color: selected ? accent : ArvinColors.textSecondary,
                 ),
                 const SizedBox(width: 7),
                 Flexible(
@@ -56,7 +58,7 @@ class ArvinRadioBox extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                      color: const Color(0xFF232433),
+                      color: ArvinColors.textPrimary,
                     ),
                   ),
                 ),

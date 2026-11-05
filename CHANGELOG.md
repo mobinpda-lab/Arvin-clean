@@ -533,3 +533,9 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - Exact SHA CI: Analyze PASS; four test shards PASS and two FAIL; visual golden FAIL; Follow-up Persistence PASS; Calendar Provider PASS; Device Smoke 4/7 PASS and 3/7 CANCELLED.
 - PR diff test-scenario preservation is NOT VERIFIED: prior tests/assertions were rewritten or removed in several files; no explicit new skip/timeout directive was detected. No code/test changes were made by this audit.
 - PR #3052 OPEN / DRAFT / UNMERGED; main unchanged; **BLOCKED — RELEASE: NO-GO**.
+## 2026-11-05 09:56 Asia/Tehran — ۱۴۰۵/۰۸/۱۴ — Arvin uniform UI design tokens
+- Recorded the owner's new visual-token directive, superseding earlier active palette values while retaining old docs as historical evidence.
+- Added central `ArvinTheme` tokens, routed shared palette aliases/global light CardTheme/AppBar and selected shared Home/navigation/selector surfaces through them; Vazirmatn and semantic priority/status/taxonomy behavior retained.
+- Added focused token/semantic-color test. Existing tests/assertions were not edited or weakened.
+- Whole-app custom card conversion and physical visual acceptance remain NOT VERIFIED; CI on the resulting SHA is required.
+- PR #3052 stays OPEN / DRAFT / UNMERGED; main unchanged; **BLOCKED — RELEASE: NO-GO**.

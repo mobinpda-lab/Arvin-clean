@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../arvin_colors.dart';
+
 /// Canonical Home primary add action.
 ///
 /// The owner-approved Home reference uses a compact circular indigo `+`, not
@@ -11,7 +13,7 @@ class ArvinHomePrimaryAddButton extends StatelessWidget {
     required this.onPressed,
   });
 
-  static const Color brandColor = Color(0xFF4A4CAB);
+  static const Color brandColor = ArvinColors.primary;
 
   final VoidCallback? onPressed;
 

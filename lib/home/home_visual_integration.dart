@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../core/theme/arvin_theme.dart';
+
 /// Reusable presentation shell matching the owner-approved Arvin Home contract.
 ///
 /// This widget owns no data or persistence. The real Home route supplies its
@@ -15,10 +17,10 @@ class HomeVisualIntegration extends StatelessWidget {
     this.searchHint = 'جست‌وجو در کارها',
   });
 
-  static const primary = Color(0xFF4A4CAB);
-  static const background = Color(0xFFF8F8FB);
-  static const surface = Color(0xFFFDFDFE);
-  static const border = Color(0xFFE5E7ED);
+  static const primary = ArvinTheme.primaryPurple;
+  static const background = ArvinTheme.backgroundLight;
+  static const surface = ArvinTheme.cardBackground;
+  static const border = ArvinTheme.cardBorder;
   static const textPrimary = Color(0xFF232433);
   static const textSecondary = Color(0xFF80829C);
 

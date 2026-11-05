@@ -168,3 +168,10 @@ NOT VERIFIED. GitHub branch data does not reveal uncommitted local modifications
 - Review removed/rewritten tests in the PR diff and produce an owner-approved scenario replacement map. No explicit skip/timeout addition was detected, but complete preservation is NOT VERIFIED.
 - The previous Module-Core-Logic verbatim text was not retrievable during this audit; obtain it before declaring the full v1.0 text validated.
 - No code or test fix is authorized by this audit record. PR remains OPEN / DRAFT / UNMERGED; main untouched; release NO-GO.
+## UI design system handoff — 2026-11-05 09:56 Asia/Tehran — ۱۴۰۵/۰۸/۱۴
+- Canonical token source: `lib/core/theme/arvin_theme.dart`; semantic palette: `lib/arvin_colors.dart`.
+- Active tokens: #3F3D56 primary, #2D2B42 header, #F7F8FC canvas, #FFFFFF cards, 16px radius, 4% black soft shadow (blur 10 / offset 0,4), Vazirmatn.
+- Keep Persian visible priority labels «اولویت ۱»…«اولویت ۴» (mapping high/medium/low/none); do not introduce English P1–P4 text. Preserve status semantic colors and Center → Project → Category → Tags.
+- Global CardTheme is in place, but audit/convert remaining custom-decorated surfaces in Task Lists, Task Details, Calendar and Quick Entry before claiming whole-app uniformity. No UI business logic or data model change is intended.
+- Run Analyze, new token test, focused widget tests and full CI on final SHA; capture physical-device screenshots for visual acceptance.
+- PR #3052 OPEN / DRAFT / UNMERGED; main untouched; release NO-GO.
