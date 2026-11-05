@@ -282,23 +282,22 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   Future<void> _addInlineReminder() async {
-    final titleController = TextEditingController(
-      text: 'یادآور ${_draftReminders.length + 1}',
-    );
+    var titleValue = 'یادآور ${_draftReminders.length + 1}';
     final title = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('یادآور جدید'),
-        content: TextField(
+        content: TextFormField(
           key: const ValueKey('task-detail-reminder-title-input'),
-          controller: titleController,
+          initialValue: titleValue,
+          onChanged: (value) => titleValue = value,
           decoration: const InputDecoration(labelText: 'عنوان یادآور'),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف')),
           FilledButton(
             onPressed: () {
-              final value = titleController.text.trim();
+              final value = titleValue.trim();
               if (value.isNotEmpty) Navigator.pop(dialogContext, value);
             },
             child: const Text('ادامه'),
@@ -306,7 +305,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         ],
       ),
     );
-    titleController.dispose();
     if (title == null || !mounted) return;
 
     final initial = _task.dueDate ?? DateTime.now().add(const Duration(hours: 1));
@@ -348,14 +346,15 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   Future<void> _editDraftReminderTitle(TaskReminder reminder) async {
-    final controller = TextEditingController(text: reminder.title);
+    var titleValue = reminder.title;
     final title = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('ویرایش عنوان یادآور'),
-        content: TextField(
+        content: TextFormField(
           key: ValueKey('task-detail-reminder-edit-title-input-${reminder.id}'),
-          controller: controller,
+          initialValue: titleValue,
+          onChanged: (value) => titleValue = value,
           autofocus: true,
           decoration: const InputDecoration(labelText: 'عنوان یادآور'),
         ),
@@ -363,7 +362,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف')),
           FilledButton(
             onPressed: () {
-              final value = controller.text.trim();
+              final value = titleValue.trim();
               if (value.isNotEmpty) Navigator.pop(dialogContext, value);
             },
             child: const Text('ذخیره عنوان'),
@@ -371,7 +370,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         ],
       ),
     );
-    controller.dispose();
     if (title == null || !mounted) return;
     setState(() {
       _draftReminders = _draftReminders
