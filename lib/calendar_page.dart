@@ -842,7 +842,15 @@ class _CalendarPageState extends State<CalendarPage> {
         ),
         child: Scaffold(
         appBar: AppBar(
-          title: const Text('تقویم پیگیری'),
+          title: const Text(
+            'أُفَوِّضُ أَمْرِي إِلَى اللَّهِ',
+            key: ValueKey('calendar-sacred-header'),
+            style: TextStyle(
+              fontFamily: 'serif',
+              fontSize: 19,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           actions: [
             TextButton(
               key: const ValueKey('calendar-date-jump'),
