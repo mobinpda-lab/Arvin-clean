@@ -991,4 +991,12 @@ void main() {
     expect(followUpCenterX, greaterThan(completeCenterX));
     expect(find.byKey(const ValueKey('task-detail-delete-menu')), findsOneWidget);
   });
+  testWidgets('Task Details exposes the approved waiting status badge', (tester) async {
+    final task = Task(id: 'waiting-status-badge', title: 'کار در انتظار انجام', completed: false);
+    await tester.pumpWidget(MaterialApp(home: TaskDetailPage(task: task)));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('task-status-badge')), findsOneWidget);
+    expect(find.text('در انتظار انجام'), findsOneWidget);
+  });
+
 }
