@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../core/theme/arvin_theme.dart';
-import '../theme/app_fonts.dart';
 
 /// Reusable presentation shell matching the owner-approved Arvin Home contract.
 ///
@@ -59,15 +59,20 @@ class HomeVisualIntegration extends StatelessWidget {
                           ),
                           child: Padding(
                             padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            child: Text(
-                              'بسم الله الرحمن الرحیم',
-                              key: ValueKey('home-bismillah-capsule'),
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: textSecondary,
-                                fontFamily: AppFonts.familyForText('بسم الله الرحمن الرحیم'),
-                                fontSize: 12,
-                                fontWeight: FontWeight.w400,
+                            child: Semantics(
+                              key: const ValueKey('home-bismillah-capsule'),
+                              label: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
+                              child: SvgPicture.asset(
+                                'assets/images/branding/bismillah.svg',
+                                key: const ValueKey('home-bismillah-svg'),
+                                width: 52,
+                                height: 30,
+                                fit: BoxFit.contain,
+                                colorFilter: const ColorFilter.mode(
+                                  textSecondary,
+                                  BlendMode.srcIn,
+                                ),
+                                excludeFromSemantics: true,
                               ),
                             ),
                           ),
