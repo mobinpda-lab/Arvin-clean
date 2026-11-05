@@ -27,7 +27,7 @@ void main() {
     expect(find.byIcon(Icons.add), findsOneWidget);
     expect(find.text('زمان'), findsOneWidget);
     expect(find.text('پروژه‌ها'), findsOneWidget);
-    expect(find.text('دسته‌بندی‌ها'), findsOneWidget);
+    expect(find.text('دسته‌ها'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
     expect(find.text('جستجو در کارها...'), findsOneWidget);
     expect(find.text('کارهای من'), findsNothing);
@@ -165,7 +165,7 @@ void main() {
 
     expect(find.text('زمان'), findsOneWidget);
     expect(find.text('پروژه‌ها'), findsOneWidget);
-    expect(find.text('دسته‌بندی‌ها'), findsOneWidget);
+    expect(find.text('دسته‌ها'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
 
     final timeChip = find.byKey(const ValueKey('home-filter-card-time'));
@@ -563,7 +563,7 @@ void main() {
     expect(find.byKey(const ValueKey('home-filter-card-tags')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-time')), findsOneWidget);
     expect(find.text('پروژه‌ها'), findsOneWidget);
-    expect(find.text('دسته‌بندی‌ها'), findsOneWidget);
+    expect(find.text('دسته‌ها'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
     expect(find.textContaining('مورد'), findsNothing);
     expect(find.text('کار الف'), findsOneWidget);
