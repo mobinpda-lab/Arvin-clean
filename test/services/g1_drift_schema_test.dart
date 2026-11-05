@@ -52,6 +52,7 @@ void main() {
         'follow_ups',
         'projects',
         'project_items',
+        'task_templates',
         'tags',
         'task_tags',
         'checklist_items',
