@@ -102,7 +102,7 @@ void main() {
     expect(task.checklist.first, '[x] کنترل برق');
   });
 
-  test('G1 v10 migration adds context references without changing existing Task or Task Template rows', () async {
+  test('G1 v11 migration adds checklist configuration without changing existing Task or Task Template rows', () async {
     final database = NativeDatabase.memory();
     addTearDown(database.close);
     await database.ensureOpen(G1DriftSchema());
@@ -188,6 +188,26 @@ void main() {
     expect(reminder.minute, 45);
     expect(saved.toColumns()['reminders_json'], isNot(contains('2026-11-18')));
     expect(task.reminderDate, executionDate);
+  });
+
+
+  test('Task Template preserves an enabled but empty reusable checklist', () async {
+    final database = NativeDatabase.memory();
+    addTearDown(database.close);
+    final store = TaskTemplateStore(executor: database);
+    final template = await store.createFromTask(
+      task: Task(
+        id: 'empty-checklist-source',
+        title: 'کار با چک‌لیست خالی',
+        checklistEnabled: true,
+        checklist: const [],
+      ),
+      name: 'الگوی چک‌لیست خالی',
+      now: DateTime(2026, 11, 5),
+    );
+    expect(template.checklist, isEmpty);
+    expect(template.checklistEnabled, isTrue);
+    expect((await store.load()).single.checklistEnabled, isTrue);
   });
 
 }
