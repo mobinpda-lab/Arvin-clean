@@ -1229,6 +1229,7 @@ class _HomePageState extends State<HomePage> {
 
   IconData _groupIcon(String id) {
     switch (id) {
+      case 'past':
       case 'overdue':
       case 'today':
       case 'tomorrow':
