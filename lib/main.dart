@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 
 import 'dart:convert';
 
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
@@ -558,23 +559,6 @@ class _HomePageState extends State<HomePage> {
     }
 
     await _openTaskDetail(task);
-  }
-
-  Future<void> _openPendingReminder(PendingNotificationRequest request) async {
-    final rawPayload = request.payload;
-    if (rawPayload == null || rawPayload.isEmpty) return;
-    try {
-      final decoded = jsonDecode(rawPayload);
-      if (decoded is! Map) return;
-      final taskId = decoded['taskId'] as String?;
-      if (taskId == null || taskId.isEmpty) return;
-      final canonicalTasks = await taskStore.load();
-      final matches = canonicalTasks.where((task) => task.id == taskId);
-      if (matches.isEmpty || !mounted) return;
-      await _openTaskDetail(matches.first);
-    } catch (_) {
-      // Ignore malformed or stale notification payloads.
-    }
   }
 
   Future<void> _load() async {
