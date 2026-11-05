@@ -39,12 +39,22 @@ void main() {
     expect(find.byKey(const ValueKey('home-search-button')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-notifications')), findsNothing);
     expect(find.text('برچسب‌ها'), findsOneWidget);
-    expect(find.text('دسته‌بندی‌ها'), findsOneWidget);
+    expect(find.text('دسته‌ها'), findsOneWidget);
     expect(find.text('پروژه‌ها'), findsOneWidget);
     expect(find.text('زمان'), findsOneWidget);
     expect(find.text('امروز'), findsWidgets);
     final todayJalali = const PersianDateFormatter().format(today, usePersianDate: true);
-    expect(find.text(todayJalali), findsAtLeastNWidgets(1));
+    final weekdayName = switch (today.weekday) {
+      DateTime.monday => 'دوشنبه',
+      DateTime.tuesday => 'سه‌شنبه',
+      DateTime.wednesday => 'چهارشنبه',
+      DateTime.thursday => 'پنج‌شنبه',
+      DateTime.friday => 'جمعه',
+      DateTime.saturday => 'شنبه',
+      DateTime.sunday => 'یکشنبه',
+      _ => '',
+    };
+    expect(find.text('$weekdayName $todayJalali'), findsAtLeastNWidgets(1));
     expect(find.text('کار واقعی الف'), findsOneWidget);
     expect(find.text('کار واقعی ب'), findsOneWidget);
     expect(find.text('جلسه تیم محصول'), findsNothing);
