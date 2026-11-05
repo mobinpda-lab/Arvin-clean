@@ -71,6 +71,11 @@ void main() {
 
     expect(find.byType(SvgPicture), findsOneWidget);
     expect(find.byKey(const ValueKey('home-bismillah-svg')), findsOneWidget);
+    expect(
+      find.byWidgetPredicate((widget) => widget is SvgPicture &&
+          (widget.bytesLoader as dynamic).assetName == 'assets/images/branding/bismillah.svg'),
+      findsOneWidget,
+    );
     expect(find.bySemanticsLabel('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-search')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-search-button')), findsOneWidget);
