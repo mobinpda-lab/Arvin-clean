@@ -164,7 +164,7 @@ void main() {
     await tester.tap(editTitle);
     await tester.pumpAndSettle();
     await tester.enterText(
-      find.byKey(const ValueKey('task-detail-reminder-edit-title-reminder-edit-1')),
+      find.byKey(const ValueKey('task-detail-reminder-edit-title-input-reminder-edit-1')),
       'عنوان اصلاح‌شده',
     );
     await tester.tap(find.text('ذخیره عنوان'));
