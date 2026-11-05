@@ -87,3 +87,20 @@ PROPOSED = candidate only; APPROVED = explicit owner decision; IN_PROGRESS = wor
 ### Target-surface card rollout update — 2026-11-05 10:03 Asia/Tehran — ۱۴۰۵/۰۸/۱۴
 - The shared 16px card surface, white surface, centralized border and 4%/10px/4px shadow were applied to Task Details read-only/edit card wrappers, Task Editor reminder/checklist outer cards, Quick Capture cards/sheet canvas, and Calendar reminder cards. Task List card material already uses 16px radius and now inherits the new shared surface tokens through ArvinColors.
 - This is a targeted pass over the four requested screen families, not proof that every decorative panel in every secondary screen has been migrated. Remaining custom panels and physical screenshot acceptance stay IN_PROGRESS / NOT VERIFIED.
+
+ 
+## TaskHomeScreen — owner-approved final contract (2026-11-05 13:02 Asia/Tehran — ۱۴۰۵/۰۸/۱۴)
+**Status:** APPROVED — canonical Home product decision. Full fourteen-point specification: `task_home_screen_spec.md`.
+- Header RTL positions: hamburger/drawer right, centered Bismillah calligraphy + «آروین» + subtitle, general filter funnel left. No Home notification bell and no standalone header search icon.
+- Independent search field immediately below the header; placeholder «جستجو در کارها...».
+- One horizontally scrollable RTL row: Time → Center → Projects → Categories → Tags → Sort icon. The sort icon is independent and is not a sixth filter.
+- Multi-select semantics: OR within each filter category; AND across different categories.
+- Default sort key is Follow-up Date; undated Follow-ups remain last; priority and stable Task ID are deterministic tie-breakers. Past group retains its existing dedicated overdue ordering.
+- Due Date alone classifies the groups Past, Today, Tomorrow, Future and Timeless. Follow-up Date sorts; Reminder Date triggers alarms only and is excluded from Home grouping/sorting.
+- Dated group headers show dynamic Persian weekday + Jalali date; groups are collapsible and show a calendar icon and count badge.
+- Task cards use a clean white surface, right-side circular completion control in RTL, Persian title, compact Center/Project/Category/Tag metadata and an optional real Follow-up badge.
+- Purple Add FAB at bottom-right; five bottom tabs only: Home, Calendar, Notebook, Reports, More. «اقدام بعدی» is not a primary tab.
+- No KPI/statistical dashboard and no standalone «کارهای من» Home tab/header.
+- Existing tests/assertions are immutable under this execution request. Any test/analyzer result must be tied to the exact SHA.
+- Implementation note: the Bismillah style uses a system serif fallback because no bundled Naskh font asset was found in the inspected repository paths; physical glyph-level Naskh acceptance remains NOT VERIFIED.
+- Governance unchanged: PR #3052 OPEN / DRAFT / UNMERGED; no main edits, merge or release; BLOCKED — RELEASE: NO-GO.
