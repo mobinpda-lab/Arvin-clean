@@ -1745,3 +1745,30 @@ Only documentation updates on the authorized branch: canonical Product Decisions
 5. Run Analyze, focused core tests, all six Build shards, visual acceptance, all seven Device Smoke lanes, Calendar Provider and Follow-up Persistence on one final exact SHA.
 
 **Governance:** PR #3052 remains OPEN / DRAFT / UNMERGED; do not edit main, merge, publish or release. **BLOCKED — RELEASE: NO-GO.**
+
+
+## Calendar UI/UX owner-approved specification registration — 2026-11-05 — ۱۴۰۵/۰۸/۱۴
+**Canonical document:** `docs/project-continuity/calendar_ui_ux_spec.md` (fourteen sections).
+- Header: sacred phrase «أُفَوِّضُ أَمْرِي إِلَى اللَّهِ» centered as Calendar header identity; search icon at top-right; full Persian Today-date pill and «برو به تاریخ» picker adjacent at top-left; Help removed.
+- Today-date pill returns selection to today; date-picker icon opens date navigation.
+- Selected-date display: Jalali bold center, Gregorian right, Hijri lunar left.
+- View modes: «روزانه / هفتگی / ماهانه / سالانه», default weekly, positioned above the grid.
+- Calendar grid: seven columns, Saturday through Friday in RTL order; each cell presents Jalali bold/primary and Gregorian plus Hijri lunar smaller/secondary.
+- Content filters, positioned strictly below the grid and above agenda: «همه / تقویم آروین / تقویم گوشی / یادآورها / انجام‌نشده».
+- Agenda: selected-day Task/Event/Reminder cards filtered by content category; no overlapping cards.
+- Hijri offset options: +1 day, −1 day, Official Iranian Calendar Match.
+- The view-mode row and content-filter row are distinct architectural controls and must not be interchanged.
+- Unknown visual details/search matching/empty-state/card-field behavior remain unspecified; preserve current behavior until separately approved.
+- Documentation-only registration. No runtime source, tests, workflows, schemas, migrations, provider or persistence files changed.
+### Exact-SHA CI poll for base SHA 5bea1ed67549e26aa2ceeb0882477d4cfc2c1f53
+| Workflow | Run | Final result |
+|---|---:|---|
+| Build / Analyze + test shards + Visual | [42011495370](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/42011495370) | FAILURE |
+| Device Smoke | [42011495381](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/42011495381) | CANCELLED; 4/7 PASS, 3/7 CANCELLED |
+| Calendar Provider | [42011495562](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/42011495562) | SUCCESS |
+| Follow-up Persistence | [42011495565](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/42011495565) | SUCCESS |
+| Parallel Wave Contract | [42011495436](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/42011495436) | SUCCESS |
+Build detail: Analyze PASS; test-1/test-3/test-4/test-5 PASS; test-0/test-2 FAILURE; independent Visual Golden FAILURE; APK skipped by Draft guard. Device Smoke: Quick Capture, Task Lifecycle, Reminder/Vazirmatn and Follow-up Persistence PASS; Boot, Navigation and Calendar Segmented View CANCELLED.
+- Exact failure triage from available logs: test-0 duplicate «گذشته» Finder match; test-2 missing expected Jalali date in Home owner-reference test; Visual Golden timed out after 10 minutes. These are not permission to weaken/skip tests or apply a timeout bypass.
+- The CI results above belong only to the base SHA and do not verify any documentation commit SHA.
+- PR #3052 OPEN / DRAFT / UNMERGED; main unchanged; no merge/release; **BLOCKED — RELEASE: NO-GO**.
