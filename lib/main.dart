@@ -11,6 +11,7 @@ import 'package:flutter/rendering.dart';
 
 import 'arvin_colors.dart';
 import 'core/theme/arvin_theme.dart';
+import 'theme/app_fonts.dart';
 import 'alarm_overlay_page.dart';
 import 'follow_up_reminder_notification_service.dart';
 
@@ -3500,7 +3501,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               Expanded(child: Column(children: const [
-                Text('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', key: ValueKey('home-bismillah'), textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.primary, fontFamily: 'serif', fontSize: 17, letterSpacing: 0.1, fontWeight: FontWeight.w500)),
+                Text('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', key: ValueKey('home-bismillah'), textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.primary, fontFamily: AppFonts.sacredArabicFamily, fontSize: 17, letterSpacing: 0.1, fontWeight: FontWeight.w500)),
                 SizedBox(height: 1),
                 Text('آروین', key: ValueKey('home-title-block'), style: TextStyle(color: ArvinColors.primaryDark, fontSize: 23, fontWeight: FontWeight.w800)),
                 SizedBox(height: 2),
