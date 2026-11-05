@@ -22,7 +22,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('arvin.tasks',
-      '[{"id":"past","title":"کار عقب‌افتاده","dueDate":"${past.toIso8601String()}","category":"شخصی","tags":["خانه"]},{"id":"today","title":"امروز","dueDate":"${today.toIso8601String()}","category":"کاری","tags":["اداری"]},{"id":"tomorrow","title":"کار فردا","dueDate":"${tomorrow.toIso8601String()}","category":"شخصی"},{"id":"future","title":"آینده","dueDate":"${future.toIso8601String()}","category":"کاری"},{"id":"none","title":"بی‌زمان","category":"کاری"}]');
+      '[{"id":"past","title":"کار عقب‌افتاده","dueDate":"${past.toIso8601String()}","category":"شخصی","tags":["خانه"]},{"id":"today","title":"امروز","dueDate":"${today.toIso8601String()}","category":"کاری","tags":["اداری"]},{"id":"today-personal","title":"کار امروز شخصی","dueDate":"${today.toIso8601String()}","category":"شخصی","tags":["خانه"]},{"id":"tomorrow","title":"کار فردا","dueDate":"${tomorrow.toIso8601String()}","category":"شخصی"},{"id":"future","title":"آینده","dueDate":"${future.toIso8601String()}","category":"کاری"},{"id":"none","title":"بی‌زمان","category":"کاری"}]');
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
@@ -59,6 +59,9 @@ void main() {
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
     expect(find.text('انتخاب زمان'), findsNothing);
+    expect(find.text('کار عقب‌افتاده'), findsOneWidget);
+    expect(find.text('کار فردا'), findsNothing);
+    expect(find.text('آینده'), findsNothing);
 
     await tester.ensureVisible(timeFilter);
     await tester.pumpAndSettle();
@@ -134,13 +137,19 @@ void main() {
     await tester.pumpAndSettle();
     final workCategoryOption =
         find.widgetWithText(CheckboxListTile, 'کاری');
+    final personalCategoryOption =
+        find.widgetWithText(CheckboxListTile, 'شخصی');
     await tester.ensureVisible(workCategoryOption);
     await tester.tap(workCategoryOption);
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(personalCategoryOption);
+    await tester.tap(personalCategoryOption);
     await tester.pumpAndSettle();
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('home-filter-card-time')), findsOneWidget);
     expect(find.text('امروز'), findsAtLeastNWidgets(1));
+    expect(find.text('کار امروز شخصی'), findsOneWidget);
     expect(find.text('کار فردا'), findsNothing);
 
     await tester.ensureVisible(categoryFilter);
