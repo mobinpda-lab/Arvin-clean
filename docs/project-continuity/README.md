@@ -12,6 +12,7 @@ This directory is the durable handoff index for the active Arvin delivery stream
 2. HANDOFF.md — the first action for the next operator.
 3. OPEN_ISSUES.md — unresolved work and blockers.
 4. PRODUCT_DECISIONS.md — approved decisions versus proposals.
+5. task_home_screen_spec.md — canonical fourteen-point approved Home screen contract.
 5. ROADMAP.md — ordered product work.
 6. IMPLEMENTATION_LOG.md — dated changes and exact-SHA evidence.
 7. Root CHANGELOG.md — chronological repository history.
