@@ -60,6 +60,12 @@ void main() {
       ]),
     );
 
+    final taskTemplateColumns = await database.runSelect(
+      "PRAGMA table_info('task_templates')",
+      const [],
+    );
+    expect(taskTemplateColumns.map((row) => row['name']), contains('checklist_enabled'));
+
     final foreignKeys = await database.runSelect(
       'PRAGMA foreign_keys',
       const [],
