@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/theme/arvin_theme.dart';
+import '../theme/app_fonts.dart';
 
 /// Reusable presentation shell matching the owner-approved Arvin Home contract.
 ///
@@ -64,6 +65,7 @@ class HomeVisualIntegration extends StatelessWidget {
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: textSecondary,
+                                fontFamily: AppFonts.sacredArabicFamily,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w400,
                               ),
