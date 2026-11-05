@@ -342,7 +342,7 @@ void main() {
     expect(find.byKey(const ValueKey('task-detail-metadata-project')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-metadata-category')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-metadata-tags')), findsOneWidget);
-    expect(find.text('مشخصات کار'), findsNothing);
+    expect(find.text('مشخصات کار'), findsOneWidget);
     // These controls belong to the summary card; assert them before lazy-list scrolling.
     expect(find.byKey(const ValueKey('task-detail-status-menu')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-priority-menu')), findsOneWidget);
