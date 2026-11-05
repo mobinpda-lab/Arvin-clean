@@ -1846,7 +1846,7 @@ PR #3052 باید OPEN / DRAFT / UNMERGED باقی بماند؛ main بدون ت
 - تصمیم قطعی تایپوگرافی در `docs/project-continuity/PRODUCT_DECISIONS.md` ثبت شد: Vazirmatn برای کل UI و دو عبارت مقدس به‌عنوان تنها استثنا.
 - Calendar header در `lib/calendar_page.dart` عبارت مصوب را با `AppFonts.familyForText` رندر می‌کند؛ `test/calendar_page_test.dart` تطبیق دقیق whitelist و Vazirmatn برای متن عادی را assert می‌کند.
 - Home Bismillah از whitelist مشترک استفاده می‌کند؛ `test/home/home_sacred_phrase_test.dart` و تست typography دامنه استثنا را پوشش می‌دهند.
-- `test/task_detail_scroll_save_test.dart` مسیر ورود به ویرایش، ذخیره موفق و حفظ offset را پوشش می‌دهد؛ تست قبلی ورود/لغو نیز باقی است.
+- `test/task_detail_master_screen_test.dart` حفظ offset را در ورود، لغو و ذخیره موفق inline پوشش می‌دهد؛ تست جداگانه scroll-save در commit `a652c1ca7237a9e06431060a6bbf95dc321046c2` در همین فایل ادغام و حذف شده است.
 - Visual timeout: لاگ job `127329168780` نشان داد `pumpAndSettle` ده دقیقه منتظر idle کامل scheduler ماند و پیش از ثبت PNG شکست خورد. تست به pump قطعی ۳۵۰ms و assertion نبود frame معلق تغییر کرده است؛ این اصلاح هنوز روی HEAD نهایی PASS نشده. Golden مرجع `test/goldens/task_detail_visual_test.png` در مخزن موجود نیست؛ Visual acceptance همچنان BLOCKED تا تصویر واقعی و بازبینی‌شده ثبت شود.
 - هیچ ادعای PASS برای این تغییرات ثبت نمی‌شود. PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ Release: BLOCKED — RELEASE: NO-GO.
 
@@ -1861,3 +1861,5 @@ PR #3052 باید OPEN / DRAFT / UNMERGED باقی بماند؛ main بدون ت
 - Home: پنج فیلتر RTL، مرتب‌سازی مستقل، OR داخل انتخاب‌های یک بُعد، AND میان ابعاد، Past و اولویت نمایش گذشته تست‌های هدفمند دارند. گروه Future تجمیعی است و تاریخ ساختگی برای آن تولید نمی‌شود.
 - در آخرین بررسی پیش از ثبت این checkpoint، CI روی SHA 98bc9c39bc79677c094429a7f463a8a02f97cda0 صف‌بندی شده بود؛ آن نتایج به commitهای بعدی منتقل نمی‌شوند. نتیجه CI روی HEAD نهایی باید جداگانه خوانده شود.
 - PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main بدون تغییر؛ BLOCKED — RELEASE: NO-GO.
+
+- تست ترکیبی Home برای OR درون هر بُعد و AND میان ابعاد در `test/home/home_filter_boolean_logic_test.dart` با commit `f6e1f38f93279621716a5734f8ea763a2cd19a2e` افزوده شد؛ نتیجه exact-HEAD هنوز تأییدنشده است.
