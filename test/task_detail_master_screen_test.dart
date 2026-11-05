@@ -95,6 +95,18 @@ void main() {
 
     expect(persisted?.dueDate, DateTime(2026, 11, 20, 11, 45));
     expect(persisted?.allDay, isTrue);
+
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
+    await tester.pumpAndSettle();
+    final clearableScroll = _taskDetailPageScrollable(tester);
+    await tester.scrollUntilVisible(dueCard, 240, scrollable: clearableScroll);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-due-clear')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
+    await tester.pumpAndSettle();
+    expect(persisted?.dueDate, isNull);
+    expect(persisted?.allDay, isFalse);
   });
 
   testWidgets('Unified Task Details adds a reminder and saves it with the form', (tester) async {
@@ -226,6 +238,44 @@ void main() {
       persisted?.recurrence?.endDate,
       DateTime(recurrenceStart.year, recurrenceStart.month, recurrenceStart.day, 23, 59, 59, 999),
     );
+  });
+
+  testWidgets('Task Details presents canonical follow-up title, note and waiting-for-response state', (tester) async {
+    final task = Task(
+      id: 'followup-status-presentation',
+      title: 'کار در انتظار پاسخ',
+      followUps: [
+        FollowUp(
+          id: 'waiting-followup',
+          dateTime: DateTime(2026, 11, 4, 14),
+          title: 'تماس با مشتری',
+          note: 'پاسخ دریافت نشد',
+          waitingForResponse: true,
+        ),
+      ],
+    );
+    await tester.pumpWidget(MaterialApp(
+      home: TaskDetailPage(
+        task: task,
+        onTaskChanged: (value) async => value,
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    final summary = find.byKey(const ValueKey('task-detail-summary-card'));
+    expect(
+      find.descendant(of: summary, matching: find.text('در انتظار پاسخ')),
+      findsOneWidget,
+    );
+    final scrollable = _taskDetailPageScrollable(tester);
+    final latest = find.byKey(const ValueKey('task-detail-latest-followup'));
+    await tester.scrollUntilVisible(latest, 240, scrollable: scrollable);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('task-detail-latest-followup-title')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-latest-followup-note')), findsOneWidget);
+    expect(find.text('تماس با مشتری'), findsOneWidget);
+    expect(find.text('پاسخ دریافت نشد'), findsOneWidget);
+    expect(find.text('در انتظار پاسخ'), findsAtLeastNWidgets(1));
   });
 
   testWidgets('Unified Task Details stages checklist edits, reorders and saves or cancels atomically', (tester) async {
