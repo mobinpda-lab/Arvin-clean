@@ -846,8 +846,7 @@ class _CalendarPageState extends State<CalendarPage> {
             'أُفَوِّضُ أَمْرِی إِلَى اللَّهِ',
             key: const ValueKey('calendar-sacred-header'),
             style: TextStyle(
-              fontFamily: AppFonts.familyForText('أُفَوِّضُ أَمْرِی إِلَى اللَّهِ'),
-              fontFamilyFallback: AppFonts.sacredArabicFallback,
+              fontFamily: AppFonts.vazirmatnFamily,
               fontSize: 19,
               fontWeight: FontWeight.w600,
               height: 1.5,
