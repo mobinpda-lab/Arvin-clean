@@ -378,6 +378,35 @@ void main() {
     expect(item1, findsOneWidget);
   });
 
+  testWidgets('enabling repeat prefills today and current time and defaults to seven editable occurrences', (tester) async {
+    Task? result;
+    await pumpEditor(tester, onResult: (value) => result = value);
+
+    final rollBox = find.byKey(const ValueKey('task-editor-recurrence'));
+    await tester.ensureVisible(rollBox);
+    await tester.tap(rollBox);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('روزانه').last);
+    await tester.pumpAndSettle();
+
+    final beforeSave = DateTime.now().toLocal();
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+    final afterSave = DateTime.now().toLocal();
+
+    expect(result, isNotNull);
+    expect(result!.dueDate, isNotNull);
+    expect(result!.dueDate!.isBefore(beforeSave), isTrue);
+    expect(result!.dueDate!.isAfter(afterSave), isFalse);
+    expect(result!.dueDate!.year, beforeSave.year);
+    expect(result!.dueDate!.month, beforeSave.month);
+    expect(result!.dueDate!.day, beforeSave.day);
+    expect(result!.allDay, isFalse);
+    expect(result!.reminderDate, result!.dueDate);
+    expect(result!.recurrence?.count, 7);
+    expect(result!.recurrence?.active, isTrue);
+  });
+
   testWidgets('task editor recurrence uses RollBox and preserves interval', (tester) async {
     Task? result;
     final task = Task(
