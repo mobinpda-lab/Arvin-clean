@@ -452,3 +452,13 @@ Every new entry must include exact SHA, workflow/run IDs, terminal conclusion, a
 - GitHub workflow API برای HEAD کد فعلی اجرای جدیدی گزارش نکرد؛ بنابراین نتیجه اصلاحات و Layout Smoke روی این HEAD هنوز **NOT VERIFIED** است. هیچ نتیجه قدیمی به این SHA منتقل نمی‌شود.
 - مسیر SVGها، dependency رندر SVG و تست روشن/تاریک/چندرزولوشن تا دسترسی به تصویر مرجع و پیاده‌سازی واقعی باقی است.
 - PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## AIPOS v1.0 execution checkpoint — 2026-11-05
+- PR #3052 branch HEAD observed: 7327c4e0f472e52b12ecd330cb0331132d8aa396; PR OPEN/DRAFT/UNMERGED.
+- flutter_svg ^2.3.2 is declared and pubspec.lock resolves 2.3.2. G1 lock sync run 42090629531 SUCCESS.
+- Follow-up file-backed persistence run 42090629520 SUCCESS. Calendar Provider 42090629465 IN_PROGRESS; Build/Analyze 42090629467 PENDING; Device Smoke 42090629594 preparation SUCCESS with lanes incomplete; Draft Review APK 42090629583 IN_PROGRESS.
+- Earlier test corrections aligned Home font contract, Calendar header keys and Task Details inline-edit behavior; template dialog controller lifetime and three analyzer cleanup issues were also corrected. These changes still require exact-final-SHA verification.
+- Both SVG assets are absent. Approved reference image was not found. No path-artwork or Text-to-SVG replacement is claimed.
+- Documentation commits create new HEADs; all checkpoint CI results must be rerun on final documentation SHA. No local Flutter command output or APK build is claimed here.
+- PR #3052 OPEN/DRAFT/UNMERGED; main untouched; release NO-GO.
