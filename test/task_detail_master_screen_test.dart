@@ -269,10 +269,10 @@ void main() {
     ));
 
     expect(find.byKey(const ValueKey('task-detail-description-card')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-independent-reminders')), findsNothing);
-    expect(find.byKey(const ValueKey('task-detail-checklist')), findsNothing);
-    expect(find.byKey(const ValueKey('task-detail-latest-followup')), findsNothing);
-    expect(find.byKey(const ValueKey('task-detail-timeline')), findsNothing);
+    expect(find.byKey(const ValueKey('task-detail-independent-reminders')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-checklist')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-latest-followup')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-timeline')), findsOneWidget);
 
     final detailScrollable = _taskDetailPageScrollable(tester);
     final addReminder = find.byKey(const ValueKey('task-detail-add-reminder'));
@@ -296,7 +296,7 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('task-detail-recurrence')), findsNothing);
+    expect(find.byKey(const ValueKey('task-detail-recurrence')), findsOneWidget);
     final recurrenceAdd = find.byKey(const ValueKey('task-detail-recurrence-add'));
     await tester.scrollUntilVisible(
       recurrenceAdd,
@@ -354,8 +354,8 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('افزودن مرحله جدید'), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-latest-followup')), findsNothing);
-    expect(find.byKey(const ValueKey('task-detail-timeline')), findsNothing);
+    expect(find.byKey(const ValueKey('task-detail-latest-followup')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-timeline')), findsOneWidget);
   });
 
   testWidgets('Task Details converts a Task to a persisted template without mutating source', (tester) async {
