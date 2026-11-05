@@ -84,6 +84,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   bool _isSavingTaskTemplate = false;
   bool _recurrenceConfigured = false;
   bool _recurrenceActive = true;
+  DateTime? _draftRecurrenceEndDate;
   RecurrenceFrequency _recurrenceFrequency = RecurrenceFrequency.daily;
   RecurrenceTrackingLevel _recurrenceTrackingLevel = RecurrenceTrackingLevel.normal;
   TextEditingController? _recurrenceIntervalController;
@@ -123,6 +124,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     final rule = _task.recurrence;
     _recurrenceConfigured = rule != null;
     _recurrenceActive = rule?.active ?? true;
+    _draftRecurrenceEndDate = rule?.endDate;
     _recurrenceFrequency = rule?.frequency ?? RecurrenceFrequency.daily;
     _recurrenceTrackingLevel = rule?.trackingLevel ?? RecurrenceTrackingLevel.normal;
     _recurrenceIntervalController = TextEditingController(text: (rule?.interval ?? 1).toString());
@@ -143,6 +145,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     _tagsController = null;
     _recurrenceIntervalController = null;
     _recurrenceCountController = null;
+    _draftRecurrenceEndDate = null;
     _draftReminders = const [];
     _draftChecklist = const [];
     _isAddingChecklist = false;
@@ -169,6 +172,16 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     final recurrenceInterval = int.tryParse(_recurrenceIntervalController?.text.trim() ?? '1') ?? 0;
     final rawCount = _recurrenceCountController?.text.trim() ?? '';
     final recurrenceCount = rawCount.isEmpty ? null : int.tryParse(rawCount);
+    final recurrenceAnchor = _task.recurrence?.startDate ?? _draftDueDate;
+    if (_recurrenceConfigured &&
+        _draftRecurrenceEndDate != null &&
+        recurrenceAnchor != null &&
+        _draftRecurrenceEndDate!.isBefore(recurrenceAnchor)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تاریخ پایان تکرار نمی‌تواند قبل از مبدأ تکرار باشد.')),
+      );
+      return;
+    }
     if (_recurrenceConfigured &&
         (recurrenceInterval < 1 || (rawCount.isNotEmpty && (recurrenceCount == null || recurrenceCount < 1)))) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -194,7 +207,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         frequency: _recurrenceFrequency,
         interval: recurrenceInterval,
         startDate: _task.recurrence?.startDate,
-        endDate: _task.recurrence?.endDate,
+        endDate: _draftRecurrenceEndDate,
         count: recurrenceCount,
         active: _recurrenceActive,
         trackingLevel: _recurrenceTrackingLevel,
@@ -218,6 +231,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       _tagsController = null;
       _recurrenceIntervalController = null;
       _recurrenceCountController = null;
+      _draftRecurrenceEndDate = null;
       _draftReminders = const [];
       _draftChecklist = const [];
       _isAddingChecklist = false;
@@ -831,6 +845,16 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   onPressed: dueDate == null ? null : _pickInlineDueTime,
                   icon: const Icon(Icons.access_time),
                 ),
+                if (dueDate != null)
+                  IconButton(
+                    key: const ValueKey('task-detail-inline-due-clear'),
+                    tooltip: 'پاک‌کردن موعد',
+                    onPressed: () => setState(() {
+                      _draftDueDate = null;
+                      _draftAllDay = false;
+                    }),
+                    icon: const Icon(Icons.event_busy_outlined),
+                  ),
               ] else
                 IconButton(
                   key: const ValueKey('task-detail-move-due-date-to-today'),
@@ -1644,6 +1668,25 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     RecurrenceFrequency.hours => 'ساعتی',
   };
 
+  Future<void> _pickInlineRecurrenceEndDate() async {
+    final initial = _draftRecurrenceEndDate ??
+        _draftDueDate ??
+        DateTime.now().add(const Duration(days: 30));
+    final picked = await showPersianDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+      helpText: 'انتخاب پایان تکرار',
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      _draftRecurrenceEndDate = DateTime(
+        picked.year, picked.month, picked.day, 23, 59, 59, 999,
+      );
+    });
+  }
+
   Widget _recurrenceCard(DateTime now) {
     final rule = _task.recurrence;
     final configured = rule != null || (_isInlineEditing && _recurrenceConfigured);
@@ -1734,6 +1777,31 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             decoration: const InputDecoration(labelText: 'تعداد دفعات (اختیاری)'),
           ),
           const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  _draftRecurrenceEndDate == null
+                      ? 'پایان تکرار: بدون محدودیت تاریخ'
+                      : 'پایان تکرار: ${_date(_draftRecurrenceEndDate!)}',
+                  key: const ValueKey('task-detail-recurrence-end-date'),
+                ),
+              ),
+              TextButton(
+                key: const ValueKey('task-detail-recurrence-end-date-pick'),
+                onPressed: _pickInlineRecurrenceEndDate,
+                child: const Text('انتخاب پایان'),
+              ),
+              if (_draftRecurrenceEndDate != null)
+                IconButton(
+                  key: const ValueKey('task-detail-recurrence-end-date-clear'),
+                  tooltip: 'حذف پایان تکرار',
+                  onPressed: () => setState(() => _draftRecurrenceEndDate = null),
+                  icon: const Icon(Icons.close),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
           DropdownButtonFormField<RecurrenceTrackingLevel>(
             key: const ValueKey('task-detail-recurrence-tracking'),
             initialValue: _recurrenceTrackingLevel,
@@ -1748,6 +1816,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           ),
         ] else if (rule != null) ...[
           Text('قاعده: هر $interval $unit'),
+          if (rule.endDate != null)
+            Text('پایان تکرار: ${_date(rule.endDate!)}', key: const ValueKey('task-detail-recurrence-end-date')),
           const SizedBox(height: 4),
           Text(rule.active ? 'تکرار فعال است' : 'تکرار غیرفعال است', style: const TextStyle(color: _muted)),
           const SizedBox(height: 6),
