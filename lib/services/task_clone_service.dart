@@ -32,7 +32,7 @@ class TaskCloneService {
   /// Produces a stable Persian clone suffix without stacking suffixes.
   /// Existing titles are supplied by the caller from the canonical Task list.
   String uniqueCloneTitle(String sourceTitle, Iterable<String> existingTitles) {
-    final suffix = RegExp(r'\s+—\s+رونوشت(?:\s+[۰-۹0-9]+)?);
+    final suffix = RegExp(r'\s+—\s+رونوشت(?:\s+[۰-۹0-9]+)?$');
     final base = sourceTitle.trim().replaceFirst(suffix, '').trim();
     final occupied = existingTitles.map((title) => title.trim()).toSet();
     final first = '$base — رونوشت';
