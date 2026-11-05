@@ -1782,3 +1782,34 @@ Build detail: Analyze PASS; test-1/test-3/test-4/test-5 PASS; test-0/test-2 FAIL
 - **Device Smoke Boot / Job 127191526180; Navigation / Job 127191526487; Calendar Segmented View / Job 127191526055:** each CANCELLED at approximately the 30-minute job boundary. Emulator reported API 35 and sys.boot_completed=1, ADB reported device, and logs entered before-flutter-drive; no final Flutter-driver completion or screenshot evidence appeared. bad color buffer handle was logged, but causal relation to the stall is NOT VERIFIED. Boot/Navigation also show transient adb: device offline during startup, followed by successful readiness.
 - The three cancelled jobs' screenshot upload steps report no matching artifacts/device-smoke/*.png. This is missing evidence, not proof of a product assertion failure.
 - No test weakening, skip, timeout bypass, runtime source edit or retry was performed during this audit.
+
+
+---
+
+## 2026-11-05 — ثبت مستندات مصوب معماری محصول آروین (Home, Task Detail, Calendar)
+
+**نوع تغییر:** documentation-only / product decision registration  
+**شروع ممیزی:** branch HEAD `6f6c4e7e448f71b2999ad0421bc7313b30abecaa`  
+**شاخه:** `fix/recovery-calendar-device-smoke-2026-10-31`  
+**PR #3052 پیش از ثبت:** OPEN / DRAFT / UNMERGED؛ base `main`  
+**Release:** BLOCKED — RELEASE: NO-GO
+
+### دامنه اسناد canonical
+- Home: `docs/project-continuity/task_home_screen_spec.md`؛ پنج فیلتر سریع با OR درون گروه و AND بین گروه‌ها، sort مستقل بر اساس Follow-up Date، گروه‌بندی فقط با Due Date، Reminder Date مستقل، پنج گروه زمانی، کارت‌ها، FAB و ناوبری پنج‌تایی.
+- Task Master-Detail: `docs/project-continuity/task_detail_ui_ux_spec.md`؛ فرم واحد نمایش/ویرایش inline و ۱۱ بخش قطعی، چک‌لیست عمومی، آخرین پیگیری و timeline.
+- Calendar: `docs/project-continuity/calendar_ui_ux_spec.md`؛ هدر سه‌ناحیه‌ای، نمایش سه‌گانه تاریخ، چهار mode، پنج content filter، agenda، تنظیم قمری و معماری سه‌لایه.
+
+### ارجاعات ثبت‌شده
+- `docs/project-continuity/PRODUCT_DECISIONS.md`: تصمیم سه صفحه و زبان طراحی مشترک APPROVED ثبت شد.
+- `docs/project-continuity/ROADMAP.md`: سه صفحه به backlog محصولی و acceptance slices افزوده شد.
+- `docs/project-continuity/README.md`: سه سند canonical در نقطه شروع continuity معرفی شدند.
+- `CHANGELOG.md`: رویداد مستندسازی در ابتدای changelog ثبت شد.
+
+### مرزهای داده و پذیرش
+- Task Due Date، TaskReminder، recurrence و FollowUp مستقل‌اند؛ Follow-up timestamp از `FollowUp.dateTime` است.
+- «زمان اجرا» و معنای assignment مسئول باید به فیلد/رابطه canonical واقعی متصل شوند؛ تا تأیید منبع، NOT VERIFIED. `Task.people` به‌تنهایی مجوز معرفی یک شخص به‌عنوان مسئول نیست.
+- این تغییر هیچ runtime code، widget، test، Golden Test، schema، Provider یا migration را تغییر نمی‌دهد.
+- هر تست و CI پیشین فقط برای SHA خودش معتبر است؛ این commit مستندات به‌خودی‌خود هیچ PASS جدیدی ایجاد نمی‌کند.
+
+### وضعیت نهایی مورد انتظار
+PR #3052 باید OPEN / DRAFT / UNMERGED باقی بماند؛ main بدون تغییر؛ Release همچنان BLOCKED — RELEASE: NO-GO.

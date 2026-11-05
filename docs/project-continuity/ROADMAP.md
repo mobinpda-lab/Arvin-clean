@@ -89,3 +89,21 @@ A feature mentioned only as an illustrative example (such as periodic tasks or a
 5. Run focused Calendar widget tests, all six Build shards, independent visual golden, Calendar Provider and all seven Device Smoke lanes on one exact final SHA. No prior-SHA result transfers.
 6. Calendar CI checkpoint on SHA `5bea1ed67549e26aa2ceeb0882477d4cfc2c1f53`: Build #42011495370 FAILURE (test-0/test-2/visual failed); Device Smoke #42011495381 CANCELLED (4 PASS / 3 CANCELLED); Calendar Provider #42011495562 SUCCESS; Follow-up Persistence #42011495565 SUCCESS; Parallel Wave Contract #42011495436 SUCCESS.
 7. No code/test change is authorized by this backlog registration. PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; Release BLOCKED — RELEASE: NO-GO.
+
+
+---
+
+## مصوبه محصولی — یکپارچه‌سازی UI/UX سه صفحه اصلی آروین (2026-11-05)
+**Status:** APPROVED — DOCUMENTED / IMPLEMENTATION NOT AUTHORIZED BY THIS ENTRY  
+**Canonical documents:**
+- Home: `docs/project-continuity/task_home_screen_spec.md`
+- Task Master-Detail: `docs/project-continuity/task_detail_ui_ux_spec.md`
+- Calendar: `docs/project-continuity/calendar_ui_ux_spec.md`
+
+**Product backlog / acceptance slices:**
+1. Home: تثبیت هدر و جستجو، منوی فیلتر عمومی، منطق OR/AND پنج فیلتر، مرتب‌سازی Follow-up Date، تفکیک Due/Follow-up/Reminder، پنج گروه زمانی، کارت‌ها، FAB و Bottom Navigation.
+2. Task Detail: پیاده‌سازی یک فرم واحد View/Edit بدون جابه‌جایی اسکرول؛ هدر و پنج کارت متادیتا؛ هویت/status/priority؛ Due Date؛ مسئول؛ Reminderها؛ recurrence؛ checklist؛ آخرین Follow-up؛ timeline؛ نوار عملیات ثابت.
+3. Calendar: هدر سه‌ناحیه‌ای و Today/Go-to-Date؛ سه‌گانه شمسی/میلادی/قمری؛ Day/Week/Month/Year؛ grid سه‌گانه؛ پنج فیلتر agenda؛ کارت‌های محتوا؛ تنظیم offset قمری و معماری سه‌لایه.
+4. Cross-screen design: زبان بصری Microsoft To Do-inspired، Vazirmatn، Persian RTL، رنگ‌های معنایی و کارت‌های گوشه‌گرد.
+
+**Cross-cutting constraints:** عدم ساخت مدل/مخزن موازی؛ استقلال Due Date، Reminder Date، Follow-up Date؛ عدم حدس درباره زمان اجرا و assignment مسئول؛ حفظ قراردادهای Provider و migration. هر slice برای انتقال از APPROVED به IMPLEMENTED/VERIFIED به مجوز اجرایی جداگانه و شواهد exact-SHA نیاز دارد. این ثبت backlog به‌تنهایی هیچ کد یا تستی را مجاز نمی‌کند.

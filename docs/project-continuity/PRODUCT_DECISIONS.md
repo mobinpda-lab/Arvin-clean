@@ -119,3 +119,15 @@ PROPOSED = candidate only; APPROVED = explicit owner decision; IN_PROGRESS = wor
 - Architectural invariant: view modes are above the grid; content filters are below the grid. These are separate control groups.
 - Details not specified by the owner approval remain unspecified; preserve existing behavior rather than inventing new rules. No runtime implementation is implied by this documentation decision.
 - Existing calendar/provider/data/persistence contracts remain unchanged. PR #3052 OPEN / DRAFT / UNMERGED; main untouched; **BLOCKED — RELEASE: NO-GO**.
+
+
+## مصوبه یکپارچه UI/UX سه‌صفحه‌ای — ۱۴۰۵/۰۸/۱۴ (2026-11-05)
+
+| Decision | Status | Canonical reference / boundary |
+|---|---|---|
+| Home Screen: پنج فیلتر سریع RTL با منطق OR درون هر فیلتر و AND بین فیلترها؛ مرتب‌سازی مستقل و پیش‌فرض بر اساس Follow-up Date؛ پنج گروه زمانی بر اساس Due Date | APPROVED | `docs/project-continuity/task_home_screen_spec.md`; فقط presentation/sorting، بدون mutation داده. |
+| Task Master-Detail: فرم واحد نمایش/ویرایش inline با ۱۱ بخش ثابت و حفظ موقعیت اسکرول | APPROVED | `docs/project-continuity/task_detail_ui_ux_spec.md`; قرارداد کامل در سند canonical. |
+| Calendar: هدر سه‌ناحیه‌ای، عبارت مرکزی اعراب‌گذاری‌شده، نمایش سه‌گانه تاریخ، چهار حالت نمایش، پنج فیلتر محتوایی و معماری سه‌لایه تقویم | APPROVED | `docs/project-continuity/calendar_ui_ux_spec.md`; تنظیم قمری فقط بر تاریخ قمری نمایشی اثر دارد. |
+| زبان طراحی مشترک سه صفحه | APPROVED | الهام از Microsoft To Do، کارت‌های سفید گوشه‌گرد، پس‌زمینه روشن، رنگ‌های معنایی، فارسی RTL و Vazirmatn؛ خط نسخ عبارات مقدس treatment مستقل است. |
+
+**حدود مصوبه:** این ثبت، تصمیم محصولی و مرجع UX است؛ مجوز تغییر کد اجرایی، تست، Golden Test، schema، Provider یا انتشار نیست. نگاشت «زمان اجرا» و assignment مسئول به داده canonical باید پیش از پیاده‌سازی ممیزی شود؛ تا اثبات منبع واقعی، NOT VERIFIED است. PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main بدون تغییر؛ Release: BLOCKED — RELEASE: NO-GO.

@@ -1,3 +1,14 @@
+## 2026-11-05 — ثبت مستندات مصوب معماری محصول آروین (Home, Task Detail, Calendar)
+
+- سه مرجع canonical محصولی Home، Task Master-Detail و Calendar در `docs/project-continuity/` تثبیت و هم‌راستا شدند.
+- Home: هدر/جستجو، فیلتر عمومی، پنج فیلتر سریع و مرتب‌سازی مستقل، OR/AND، تفکیک Due Date / Follow-up Date / Reminder Date، گروه‌بندی پنج‌گانه، کارت‌ها، FAB و ناوبری پنج‌تایی.
+- Task Detail: سند مستقل فرم واحد View/Edit با ترتیب ۱۱ بخش، پنج کارت متادیتا، وضعیت/اهمیت، موعد، مسئول، Reminderها، recurrence، checklist، آخرین Follow-up، timeline و نوار عملیات ثابت اضافه شد.
+- Calendar: مصوبات تکمیلی هدر، تاریخ سه‌گانه، چهار حالت نمایش، پنج فیلتر agenda، کارت‌های محتوا، offset قمری و معماری سه‌لایه در مرجع موجود ثبت شد.
+- PRODUCT_DECISIONS.md و ROADMAP.md تصمیم APPROVED و backlog slices را ارجاع می‌دهند؛ README continuity و continuation Ledger نیز به‌روزرسانی شدند.
+- قید ممیزی: زمان اجرا و assignment مسئول تا اثبات نگاشت canonical، NOT VERIFIED؛ هیچ مدل یا مخزن موازی مجاز نیست.
+- این commit فقط مستندات است؛ هیچ کد اجرایی، ویجت، تست، Golden Test، schema، Provider یا migration تغییر نکرده است. CI قدیمی به SHA جدید منتقل نمی‌شود.
+- PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main untouched؛ Release: BLOCKED — RELEASE: NO-GO.
+
 ## 2026-11-05 — TaskHomeScreen workflow and regression contract alignment
 
 - Restored the exact seven-lane Build quality matrix: Analyze + test-0 through test-5. Moved `test/task_detail_visual_test.dart` and its artifact upload to a separate standalone `visual` job with exact-SHA checkout verification; visual coverage is retained.

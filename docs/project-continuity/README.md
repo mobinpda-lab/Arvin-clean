@@ -70,3 +70,11 @@ Latest audit record: PRODUCT_DECISIONS.md → Module-Core-Logic v1.0 crosswalk; 
 ## Canonical Calendar reference
 - `calendar_ui_ux_spec.md` — owner-approved fourteen-section Calendar UI/UX contract, including exact RTL header zones, triple-date grid, separate view-mode/content-filter rows, agenda and Hijri offset choices.
 - `PRODUCT_DECISIONS.md` records the decision summary; `ROADMAP.md` tracks implementation/acceptance work; root `docs/ARVIN_CONTINUATION_LEDGER.md` records exact-SHA CI evidence.
+
+
+## Canonical three-screen UI/UX references — approved 2026-11-05
+- `task_home_screen_spec.md` — Home: header, search, five quick filters + independent sort, date triad, five time groups, cards, FAB and five-tab navigation.
+- `task_detail_ui_ux_spec.md` — Task Master-Detail: one inline View/Edit form, fixed 11-section order, canonical data boundaries, checklist and Follow-up timeline.
+- `calendar_ui_ux_spec.md` — Calendar: sacred-phrase header, triple-date display, Day/Week/Month/Year modes, five agenda filters, Hijri adjustment and three-layer calendar architecture.
+- Shared visual language: Microsoft To Do-inspired card surfaces, clean light background, rounded white cards, semantic color chips, Persian RTL and official Vazirmatn.
+- Product approval is not implementation acceptance. Runtime, tests, Golden Tests and release remain outside this documentation-only registration.
