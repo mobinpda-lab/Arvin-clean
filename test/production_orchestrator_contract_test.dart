@@ -65,6 +65,9 @@ void main() {
     expect(queue, contains("workflow_id: 'arvin-agent-worker.yml'"));
     expect(queue, contains('expected_main_sha: main.data.commit.sha'));
     expect(queue, contains('activeAiLease'));
+    expect(queue, contains('function isDeferredUntilRelease(issue)'));
+    expect(queue, contains('filter(x => !isDeferredUntilRelease(x.issue))'));
+    expect(queue, contains('if (isDeferredUntilRelease(issue)) continue;'));
     expect(queue, contains('candidates.slice(0, 1)'));
     expect(queue, contains('arvin-autonomous-stale-lease-release'));
 
