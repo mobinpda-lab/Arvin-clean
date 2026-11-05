@@ -108,6 +108,8 @@ class TaskTemplate {
       recurrence: recurrence == null ? null : RecurrenceRule(
         frequency: recurrence.frequency,
         interval: recurrence.interval,
+        startDate: recurrence.startDate,
+        endDate: recurrence.endDate,
         count: recurrence.count,
         active: recurrence.active,
         trackingLevel: recurrence.trackingLevel,
