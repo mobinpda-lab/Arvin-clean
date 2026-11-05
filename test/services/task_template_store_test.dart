@@ -26,7 +26,7 @@ void main() {
       priority: TaskPriority.high,
       completed: true,
       completedAt: DateTime(2026, 11, 10),
-      people: const [PersonReference(id: 'person-1', displayName: 'همکار')],
+      people: [PersonReference(id: 'person-1', displayName: 'همکار')],
       taskReminders: [
         TaskReminder(
           id: 'reminder-1',
