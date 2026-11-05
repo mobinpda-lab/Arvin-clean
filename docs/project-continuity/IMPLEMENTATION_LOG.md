@@ -271,3 +271,18 @@ Every new entry must include exact SHA, workflow/run IDs, terminal conclusion, a
 - Routed Task Details `_card`, Task Editor reminder/checklist panels, Quick Capture `_surfaceCard` and sheet canvas, and Calendar reminder cards through shared card radius/surface/shadow tokens.
 - No field order, keys, callbacks, task data, reminder semantics, calendar projection, navigation, persistence or validation behavior was changed. No existing tests/assertions were removed, skipped or weakened.
 - Whole-repository custom-card inventory and physical visual comparison remain NOT VERIFIED; exact-SHA CI on the final commit is required.
+
+ 
+## TaskHomeScreen implementation — 2026-11-05 13:02 Asia/Tehran — ۱۴۰۵/۰۸/۱۴
+**Product specification:** `docs/project-continuity/task_home_screen_spec.md` (fourteen approved requirements).  
+**Authorized branch:** `fix/recovery-calendar-device-smoke-2026-10-31`; PR #3052.
+- Source commits: `65122e4936002b5ca8687ffa2fb8d65ac5c78841` (Home header, general filter, sort row/sheet, dynamic weekday dates, group order); `e89ee5fad057bbc70406b475db1511166c615740` (Center metadata chip); `0ad42cb67cca0851c3d7d60ed1a5e5918aa87b63` (canonical Center supplied to task card metadata); `da311c2f7e4ef9b96fc20a26e31eca996fa63d50` (Follow-up Date promoted to primary comparator for the default sort).
+- The existing primary navigation widget was inspected and already contains exactly five visible destinations; no redundant navigation edit was made. The internal `nextAction` destination remains available to existing routes, but is not rendered as a sixth primary tab.
+- Home header now uses the hamburger drawer on the right and general filter funnel on the left; bell removed. The existing search-focus test key was moved into the search-field affordance so the search box remains independently testable without restoring a header search icon.
+- Five filters remain Time / Center / Project / Category / Tag. Sort control is appended after them in the RTL row. The existing filter matcher preserves OR within categories and AND across categories.
+- Default sort now uses Follow-up Date first; missing Follow-up dates remain last, followed by priority and stable Task ID. The Past group retains the pre-existing `sortPast` behavior and its existing test contract.
+- Home groups are ordered Past / Today / Tomorrow / Future / Timeless. The group classifier is based only on Due Date; completed past-due tasks are kept in Past and remain excluded from active-overdue semantics. Today/Tomorrow headers now include weekday and full Jalali date.
+- Center chip is derived from the canonical Project's `centerId`; no Task model field or parallel storage was added.
+- No existing test file or assertion was modified, removed, skipped, weakened, bypassed or timed out.
+- The Bismillah uses a system serif fallback and full Arabic diacritics. No bundled Naskh font asset was located in the inspected paths; actual device glyph appearance remains NOT VERIFIED pending physical screenshot review.
+- Exact-SHA CI must be checked after the final documentation commit. No earlier SHA's workflow results transfer. PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; release BLOCKED — RELEASE: NO-GO.
