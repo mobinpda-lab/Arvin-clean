@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:arvin/calendar_page.dart';
@@ -15,6 +16,7 @@ void main() {
     expect(phrase, findsOneWidget);
     expect(tester.widget<Semantics>(phrase).properties.label,
         'أُفَوِّضُ أَمْرِی إِلَى اللَّهِ');
+    expect(find.byType(SvgPicture), findsOneWidget);
     expect(find.byKey(const ValueKey('calendar-sacred-header-svg')), findsOneWidget);
     expect(find.text('أُفَوِّضُ أَمْرِی إِلَى اللَّهِ'), findsNothing);
     expect(AppFonts.familyForText('متن فارسی رابط کاربری'), AppFonts.vazirmatnFamily);
