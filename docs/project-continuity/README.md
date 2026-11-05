@@ -12,16 +12,14 @@ This directory is the durable handoff index for the active Arvin delivery stream
 2. HANDOFF.md — the first action for the next operator.
 3. OPEN_ISSUES.md — unresolved work and blockers.
 4. PRODUCT_DECISIONS.md — approved decisions versus proposals.
-5. task_home_screen_spec.md — canonical fourteen-point approved Home screen contract.
-6. task_detail_ui_ux_spec.md — canonical eleven-section unified Task Details form.
-7. TASK_TEMPLATE_DATA_CONTRACT.md — canonical G1 v11 Task Template transfer and migration contract.
-6. task_detail_ui_ux_spec.md — canonical unified Task Details form and eleven-section contract.
-7. TASK_TEMPLATE_DATA_CONTRACT.md — canonical Task and Project Template data, migration and interaction contract.
-5. ROADMAP.md — ordered product work.
-6. IMPLEMENTATION_LOG.md — dated changes and exact-SHA evidence.
-7. Root CHANGELOG.md — chronological repository history.
-8. docs/ARVIN_CONTINUATION_LEDGER.md — detailed historical execution ledger.
-9. ARVIN_AI_CONTEXT.md — broad product and architecture context.
+5. task_home_screen_spec.md — canonical approved Home screen contract.
+6. task_detail_ui_ux_spec.md — canonical unified Task Details form.
+7. TASK_TEMPLATE_DATA_CONTRACT.md — canonical Task and Project Template data and migration contract.
+8. ROADMAP.md — ordered product work.
+9. IMPLEMENTATION_LOG.md — dated changes and exact-SHA evidence.
+10. Root CHANGELOG.md — chronological repository history.
+11. docs/ARVIN_CONTINUATION_LEDGER.md — detailed historical execution ledger.
+12. ARVIN_AI_CONTEXT.md — broad product and architecture context.
 
 ## Evidence and status rules
 - GitHub branch content, PR metadata and workflow evidence are authoritative for this active delivery stream. A report is valid only for its exact SHA.
