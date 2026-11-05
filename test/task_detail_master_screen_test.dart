@@ -685,6 +685,10 @@ void main() {
       find.byKey(const ValueKey('task-detail-checklist-progress-bar')),
       findsOneWidget,
     );
+    await tester.tap(
+      find.byKey(const ValueKey('task-detail-inline-edit-toggle')),
+    );
+    await tester.pumpAndSettle();
     expect(find.text('افزودن مرحله جدید'), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-latest-followup')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-timeline')), findsOneWidget);
