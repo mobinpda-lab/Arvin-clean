@@ -624,6 +624,7 @@ void main() {
         task: task,
         onChecklistChanged: (value, items) async => value,
         onAddFollowUp: (value, followUp) async => value,
+        onDelete: (value) async {},
       ),
     ));
     await tester.pumpAndSettle();
@@ -638,18 +639,14 @@ void main() {
     final summaryDecoration = summary.decoration! as BoxDecoration;
     expect(summaryDecoration.color, Colors.white);
     expect(summaryDecoration.borderRadius, BorderRadius.circular(16));
-    final deleteButton = tester.widget<OutlinedButton>(
-      find.byKey(const ValueKey('task-detail-delete')),
-    );
-    final deleteStyle = deleteButton.style!;
-    expect(deleteStyle.foregroundColor!.resolve({}), const Color(0xFFD04444));
     final completeButton = tester.widget<FilledButton>(
       find.byKey(const ValueKey('task-detail-complete')),
     );
     expect(completeButton.style!.backgroundColor!.resolve({}), const Color(0xFF3F3D56));
     final list = tester.widget<ListView>(find.byKey(const ValueKey('task-detail-content-list')));
     expect(list.padding, const EdgeInsets.fromLTRB(16, 14, 16, 120));
-    expect(find.byKey(const ValueKey('task-detail-delete')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('task-detail-more')));
+    await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('task-detail-complete')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-add-followup-bottom')), findsOneWidget);
     final followUpCenterX = tester.getCenter(find.byKey(const ValueKey('task-detail-add-followup-bottom'))).dx;
