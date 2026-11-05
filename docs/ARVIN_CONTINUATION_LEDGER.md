@@ -1813,3 +1813,19 @@ Build detail: Analyze PASS; test-1/test-3/test-4/test-5 PASS; test-0/test-2 FAIL
 
 ### وضعیت نهایی مورد انتظار
 PR #3052 باید OPEN / DRAFT / UNMERGED باقی بماند؛ main بدون تغییر؛ Release همچنان BLOCKED — RELEASE: NO-GO.
+
+---
+
+## 2026-11-05 — Issue #823 execution audit checkpoint
+
+- Live pre-change refs: PR #3052 head and authorized branch matched at c35929c1cc2022b8470cd86b6f6fe8e2ae771e5b; main remained 45e4202b03a434459e4c021a04efa7e8396359db.
+- Active Home row was audited in lib/main.dart, not inferred from home_filter_ui.dart. It contains five RTL filter chips and a separate sort action; no sixth «همه» chip. The Category chip copy was corrected to «دسته‌ها» and a widget assertion was added.
+- Audit and status matrix: docs/audit/ARVIN_ISSUE_823_UIUX_EXECUTION_AUDIT_2026-11-05.md.
+- Task Template is not a current schema entity: G1 schema v8 has Project Template tables but no independent Task Template model/table/store. Settings has Project Template management only. Task/Project conversion entry points were not verified. Do not invent template semantics or create parallel storage.
+- Existing TaskCloneService preserves source details, generates Persian «— رونوشت» numbering and clears execution history/reminders; preserve it.
+- Home OR/AND implementation is present, but combined behavior still needs focused end-to-end widget tests. Full dynamic group heading acceptance remains incomplete; Today/Tomorrow are dynamic, Future aggregate has no date suffix.
+- Task Detail has an approved eleven-section specification but runtime inline editing remains partial; explicit scroll-offset preservation test is missing.
+- Sacred phrase Naskh treatment versus global Vazirmatn-only rule is now recorded as owner clarification required in PRODUCT_DECISIONS.md. Preserve current rendering pending confirmation.
+- Baseline c35929 CI snapshot: Analyze, test-0, test-1, test-3, test-4, test-5 and Follow-up file-backed SQLite succeeded; test-2 and Visual were in progress; Device Smoke was incomplete; Calendar Provider first attempt failed before tests due Dart Development Service startup and was rerun. These results do not apply to later SHA.
+- Subsequent documentation/code commits require fresh exact-HEAD CI. PR remains OPEN / DRAFT / UNMERGED; main unchanged; Release BLOCKED — RELEASE: NO-GO.
+
