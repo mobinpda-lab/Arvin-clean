@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:arvin/main.dart';
+import 'package:arvin/arvin_colors.dart';
 import 'package:arvin/widgets/arvin_primary_navigation.dart';
 import 'package:arvin/home/home_filter_ui.dart';
 import 'package:arvin/services/iran_clock.dart';
@@ -22,12 +23,24 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('arvin.tasks',
-      '[{"id":"past","title":"کار عقب‌افتاده","dueDate":"${past.toIso8601String()}","category":"شخصی","tags":["خانه"]},{"id":"today","title":"امروز","dueDate":"${today.toIso8601String()}","category":"کاری","tags":["اداری"]},{"id":"today-personal","title":"کار امروز شخصی","dueDate":"${today.toIso8601String()}","category":"شخصی","tags":["خانه"]},{"id":"tomorrow","title":"کار فردا","dueDate":"${tomorrow.toIso8601String()}","category":"شخصی"},{"id":"future","title":"آینده","dueDate":"${future.toIso8601String()}","category":"کاری"},{"id":"none","title":"بی‌زمان","category":"کاری"}]');
+      '[{"id":"past","title":"کار عقب‌افتاده","dueDate":"${past.toIso8601String()}","category":"شخصی","tags":["خانه"]},{"id":"completed-past","title":"کار گذشته انجام‌شده","dueDate":"${past.toIso8601String()}","completed":true,"completedAt":"${past.toIso8601String()}"},{"id":"today","title":"امروز","dueDate":"${today.toIso8601String()}","category":"کاری","tags":["اداری"]},{"id":"today-personal","title":"کار امروز شخصی","dueDate":"${today.toIso8601String()}","category":"شخصی","tags":["خانه"]},{"id":"tomorrow","title":"کار فردا","dueDate":"${tomorrow.toIso8601String()}","category":"شخصی"},{"id":"future","title":"آینده","dueDate":"${future.toIso8601String()}","category":"کاری"},{"id":"none","title":"بی‌زمان","category":"کاری"}]');
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
     expect(find.text('کار عقب‌افتاده'), findsOneWidget);
+    expect(find.text('کار گذشته انجام‌شده'), findsOneWidget);
+    final activePastTitle = tester.widget<Text>(
+      find.byKey(const ValueKey('task-card-title-past')),
+    );
+    final completedPastTitle = tester.widget<Text>(
+      find.byKey(const ValueKey('task-card-title-completed-past')),
+    );
+    expect(tester.getTopLeft(find.byKey(const ValueKey('task-card-title-past'))).dy,
+        lessThan(tester.getTopLeft(find.byKey(const ValueKey('task-card-title-completed-past'))).dy));
+    expect(activePastTitle.style?.color, ArvinColors.error);
+    expect(completedPastTitle.style?.color, isNot(ArvinColors.error));
+    expect(completedPastTitle.style?.decoration, TextDecoration.lineThrough);
     expect(find.text('امروز'), findsAtLeastNWidgets(1));
     expect(find.byKey(const ValueKey('home-filter-card-time')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-center')), findsOneWidget);
