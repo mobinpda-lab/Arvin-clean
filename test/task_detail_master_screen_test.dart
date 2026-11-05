@@ -188,6 +188,52 @@ void main() {
     expect(persisted?.taskReminders.single.title, 'عنوان اصلاح‌شده');
   });
 
+  testWidgets('Unified Task Details removes only the selected reminder before save', (tester) async {
+    Task? persisted;
+    final task = Task(
+      id: 'inline-reminder-delete',
+      title: 'کار با حذف یادآور',
+      taskReminders: [
+        TaskReminder(
+          id: 'reminder-delete-1',
+          title: 'یادآور حذف‌شونده',
+          date: DateTime(2026, 11, 20, 9),
+          sequence: 1,
+        ),
+        TaskReminder(
+          id: 'reminder-retained-2',
+          title: 'یادآور باقی‌مانده',
+          date: DateTime(2026, 11, 21, 10),
+          sequence: 2,
+        ),
+      ],
+    );
+    await tester.pumpWidget(MaterialApp(
+      home: TaskDetailPage(
+        task: task,
+        onTaskChanged: (candidate) async {
+          persisted = candidate;
+          return candidate;
+        },
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
+    await tester.pumpAndSettle();
+    final scrollable = _taskDetailPageScrollable(tester);
+    final remove = find.byKey(const ValueKey('task-detail-reminder-remove-reminder-delete-1'));
+    await tester.scrollUntilVisible(remove, 240, scrollable: scrollable);
+    await tester.pumpAndSettle();
+    await tester.tap(remove);
+    await tester.pumpAndSettle();
+    expect(find.text('یادآور حذف‌شونده'), findsNothing);
+    expect(find.text('یادآور باقی‌مانده'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
+    await tester.pumpAndSettle();
+    expect(persisted?.taskReminders, hasLength(1));
+    expect(persisted?.taskReminders.single.id, 'reminder-retained-2');
+  });
+
   testWidgets('Unified Task Details edits reminder date and time in place', (tester) async {
     Task? persisted;
     final task = Task(
