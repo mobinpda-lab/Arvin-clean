@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:arvin/main.dart';
+import 'package:arvin/theme/app_fonts.dart';
 import 'package:arvin/arvin_colors.dart';
 import 'package:arvin/widgets/arvin_primary_navigation.dart';
 import 'package:arvin/home/home_filter_ui.dart';
@@ -43,6 +44,19 @@ void main() {
     expect(completedPastTitle.style?.color, isNot(ArvinColors.error));
     expect(completedPastTitle.style?.decoration, TextDecoration.lineThrough);
     expect(find.text('امروز'), findsAtLeastNWidgets(1));
+    final sacredPhrase = tester.widget<Text>(
+      find.byKey(const ValueKey('home-bismillah')),
+    );
+    expect(sacredPhrase.style?.fontFamily, AppFonts.sacredArabicFamily);
+    final homeTitle = tester.widget<Text>(
+      find.byKey(const ValueKey('home-title-block')),
+    );
+    expect(
+      Theme.of(tester.element(find.byKey(const ValueKey('home-title-block'))))
+          .textTheme.titleLarge?.fontFamily,
+      AppFonts.vazirmatnFamily,
+    );
+    expect(homeTitle.style?.fontFamily, isNull);
     expect(find.byKey(const ValueKey('home-filter-card-time')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-center')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-project')), findsOneWidget);
