@@ -37,6 +37,13 @@ void main() {
     expect(find.byKey(const ValueKey('home-filter-card-all')), findsNothing);
     expect(find.byKey(const ValueKey('home-compact-filter-scroll')), findsOneWidget);
     expect(find.byType(ActionChip), findsNWidgets(5));
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('home-filter-card-category')),
+        matching: find.text('دسته‌ها'),
+      ),
+      findsOneWidget,
+    );
 
     // Each filter keeps its own internal unrestricted choice.
     final timeFilter = find.byKey(const ValueKey('home-filter-card-time'));
