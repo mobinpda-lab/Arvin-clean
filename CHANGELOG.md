@@ -635,3 +635,10 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - Exact-SHA CI and physical-device glyph validation are not claimed until their respective evidence is available. PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; release BLOCKED — RELEASE: NO-GO.
 
 - Added `test/home/home_filter_boolean_logic_test.dart` for OR within Category/Tag selections and AND across those dimensions (commit `f6e1f38f93279621716a5734f8ea763a2cd19a2e`); exact-SHA result remains unverified.
+
+## 2026-11-05 — اصلاح مانع کامپایل G1 Drift
+
+- خطای نوع `Expando<Future<void>?>` در `G1DriftSchema` با نگهداری Future در `Expando<Object>` و cast کنترل‌شده هنگام خواندن اصلاح شد.
+- این تغییر در پاسخ به شکست exact-SHA run `42069322654` انجام شد؛ تست Persistence در آن اجرا به علت خطای کامپایل پیش از اجرای تست با `0 tests passed` متوقف شد.
+- نتیجه تست روی SHA جدید هنوز NOT VERIFIED است؛ هیچ PASS از SHA قبلی منتقل نمی‌شود.
+- PR #3052 همچنان باید OPEN / DRAFT / UNMERGED بماند؛ انتشار **BLOCKED — RELEASE: NO-GO**.
