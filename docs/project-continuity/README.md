@@ -65,3 +65,8 @@ Project reports use Asia/Tehran time and Gregorian plus Hijri Shamsi dates. Last
 
 
 Latest audit record: PRODUCT_DECISIONS.md → Module-Core-Logic v1.0 crosswalk; exact-SHA evidence and limitations are in IMPLEMENTATION_LOG.md and the root continuation Ledger.
+
+
+## Canonical Calendar reference
+- `calendar_ui_ux_spec.md` — owner-approved fourteen-section Calendar UI/UX contract, including exact RTL header zones, triple-date grid, separate view-mode/content-filter rows, agenda and Hijri offset choices.
+- `PRODUCT_DECISIONS.md` records the decision summary; `ROADMAP.md` tracks implementation/acceptance work; root `docs/ARVIN_CONTINUATION_LEDGER.md` records exact-SHA CI evidence.
