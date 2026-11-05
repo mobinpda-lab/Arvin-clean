@@ -164,7 +164,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       ..taskReminders = List<TaskReminder>.of(_draftReminders)
       ..nextReminderSequence = _draftReminders.isEmpty
           ? _task.nextReminderSequence
-          : (_draftReminders.map((item) => item.sequence).reduce((a, b) => a > b ? a : b) + 1).clamp(_task.nextReminderSequence, 1 << 30)
+          : (_draftReminders.map((item) => item.sequence).reduce((a, b) => a > b ? a : b) + 1).clamp(_task.nextReminderSequence, 1 << 30).toInt()
       ..recurrence = _recurrenceConfigured ? RecurrenceRule(
         frequency: _recurrenceFrequency,
         interval: recurrenceInterval,
@@ -273,7 +273,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       id: 'reminder-${DateTime.now().microsecondsSinceEpoch}',
       title: title,
       date: DateTime(date.year, date.month, date.day, time.hour, time.minute),
-      sequence: (highest + 1).clamp(_task.nextReminderSequence, 1 << 30),
+      sequence: (highest + 1).clamp(_task.nextReminderSequence, 1 << 30).toInt(),
     );
     setState(() => _draftReminders = [..._draftReminders, reminder]);
   }
