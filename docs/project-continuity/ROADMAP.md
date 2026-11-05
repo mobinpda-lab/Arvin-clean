@@ -159,3 +159,11 @@ A feature mentioned only as an illustrative example (such as periodic tasks or a
 - The type issue was corrected on the authorized branch using `Expando<Object>` with a checked `Future<void>?` read. Changelog records the correction. Re-run on the new exact SHA is required; no PASS is inferred.
 - Golden baseline remains absent. Do not fabricate or auto-update it. The two sacred phrases still use system `serif`; a bundled Naskh family and both-phrase rendering test remain outstanding.
 - Keep PR #3052 OPEN / DRAFT / UNMERGED and release **BLOCKED — RELEASE: NO-GO**.
+
+## 2026-11-05 — Typography and Task Details visual smoke recovery
+
+- Sacred phrase styling is scoped to the two exact approved Arabic phrases. Current implementation uses system serif plus an ordered Naskh family fallback list; Vazirmatn remains the app-wide default. Bundled Naskh font asset is not yet present; physical-device shaping is NOT VERIFIED.
+- Home and Calendar const-expression compile errors and Task Details missing TaskTemplateStore getter/runtime PopupMenuItem const errors were found in exact-SHA CI logs on f44fb03 and corrected on the authorized PR branch.
+- Task Details visual test now verifies nine actual content sections plus AppBar and fixed bottom actions, checks measurable geometry, vertical scroll extent, and render exceptions. It no longer depends on a missing golden PNG. This is structural/layout acceptance, not pixel-golden approval.
+- Fresh exact-SHA Build, Drift v11, Follow-up Persistence, Home filter, sacred phrase and Task Details tests are required. No previous-SHA PASS carries forward.
+- PR #3052 remains OPEN / DRAFT / UNMERGED; main unchanged; BLOCKED — RELEASE: NO-GO.
