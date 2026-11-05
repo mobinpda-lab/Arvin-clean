@@ -37,6 +37,7 @@ void main() {
     expect(find.byKey(const ValueKey('home-filter-card-all')), findsNothing);
     expect(find.byKey(const ValueKey('home-compact-filter-scroll')), findsOneWidget);
     expect(find.byType(ActionChip), findsNWidgets(5));
+    expect(find.byKey(const ValueKey('home-sort-button')), findsOneWidget);
     expect(
       find.descendant(
         of: find.byKey(const ValueKey('home-filter-card-category')),
