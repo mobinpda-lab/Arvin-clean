@@ -18,6 +18,11 @@ void main() {
         'أُفَوِّضُ أَمْرِی إِلَى اللَّهِ');
     expect(find.byType(SvgPicture), findsOneWidget);
     expect(find.byKey(const ValueKey('calendar-sacred-header-svg')), findsOneWidget);
+    expect(
+      find.byWidgetPredicate((widget) => widget is SvgPicture &&
+          (widget.bytesLoader as dynamic).assetName == 'assets/images/branding/tafweez.svg'),
+      findsOneWidget,
+    );
     expect(find.text('أُفَوِّضُ أَمْرِی إِلَى اللَّهِ'), findsNothing);
     expect(AppFonts.familyForText('متن فارسی رابط کاربری'), AppFonts.vazirmatnFamily);
   });
