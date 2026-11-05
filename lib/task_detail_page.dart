@@ -139,6 +139,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     _tagsController?.dispose();
     _recurrenceIntervalController?.dispose();
     _recurrenceCountController?.dispose();
+    _checklistEditController?.dispose();
+    _checklistEditController = null;
     _titleController = null;
     _descriptionController = null;
     _categoryController = null;
@@ -225,6 +227,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       _tagsController?.dispose();
       _recurrenceIntervalController?.dispose();
       _recurrenceCountController?.dispose();
+      _checklistEditController?.dispose();
+      _checklistEditController = null;
       _titleController = null;
       _descriptionController = null;
       _categoryController = null;
