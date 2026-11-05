@@ -1637,17 +1637,12 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               onPressed: widget.onClone == null ? null : _cloneTask,
               icon: const Icon(Icons.copy_all_outlined),
             ),
-            IconButton(
-              key: const ValueKey('task-detail-edit'),
-              tooltip: 'ویرایش کامل',
-              onPressed: widget.onEdit == null ? null : _edit,
-              icon: const Icon(Icons.edit_outlined),
-            ),
             PopupMenuButton<String>(
               key: const ValueKey('task-detail-more'),
               tooltip: 'بیشتر',
               onSelected: (value) {
                 if (value == 'report') _openReport();
+                if (value == 'delete') _deleteTask();
               },
               itemBuilder: (_) => const [
                 PopupMenuItem(
@@ -1657,6 +1652,16 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                     contentPadding: EdgeInsets.zero,
                     leading: Icon(Icons.picture_as_pdf_outlined),
                     title: Text('PDF، چاپ و اشتراک‌گذاری'),
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'delete',
+                  enabled: widget.onDelete != null && !_isInlineEditing,
+                  child: ListTile(
+                    key: ValueKey('task-detail-delete-menu'),
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(Icons.delete_outline, color: Color(0xFFD04444)),
+                    title: Text('انتقال به سطل زباله'),
                   ),
                 ),
               ],
@@ -1675,21 +1680,25 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           minimum: const EdgeInsets.fromLTRB(10, 8, 10, 12),
           child: Row(children: [
             Expanded(child: OutlinedButton.icon(
-              key: const ValueKey('task-detail-bottom-edit'),
-              onPressed: widget.onEdit == null ? null : _edit,
+              key: const ValueKey('task-detail-add-followup-bottom'),
+              onPressed: _isInlineEditing || widget.onAddFollowUp == null
+                  ? null
+                  : _addFollowUp,
               style: OutlinedButton.styleFrom(
                 foregroundColor: _brand,
                 side: const BorderSide(color: _brand),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
-              icon: const Icon(Icons.edit_outlined),
-              label: const Text('ویرایش'),
+              icon: const Icon(Icons.add_comment_outlined),
+              label: const Text('افزودن پیگیری'),
             )),
             const SizedBox(width: 7),
             Expanded(child: FilledButton.icon(
               key: const ValueKey('task-detail-complete'),
-              onPressed: widget.onComplete == null ? null : _complete,
+              onPressed: _isInlineEditing || widget.onComplete == null
+                  ? null
+                  : _complete,
               style: FilledButton.styleFrom(
                 backgroundColor: _brand,
                 foregroundColor: Colors.white,
@@ -1698,19 +1707,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               ),
               icon: Icon(_task.completed ? Icons.undo : Icons.check_circle_outline),
               label: Text(_task.completed ? 'بازگشت به انجام‌نشده' : 'انجام کار'),
-            )),
-            const SizedBox(width: 7),
-            Expanded(child: OutlinedButton.icon(
-              key: const ValueKey('task-detail-delete'),
-              onPressed: widget.onDelete == null ? null : _deleteTask,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFFD04444),
-                side: const BorderSide(color: Color(0xFFD04444)),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-              ),
-              icon: const Icon(Icons.delete_outline),
-              label: const Text('حذف'),
             )),
           ]),
         ),
