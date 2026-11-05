@@ -1288,13 +1288,16 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   Widget _remindersCard() {
+    final reminders = _isInlineEditing ? _draftReminders : _task.taskReminders;
     final hasLegacyReminder = _task.reminderDate != null;
-    if (_task.taskReminders.isEmpty && !hasLegacyReminder) {
+    if (reminders.isEmpty && !hasLegacyReminder && !_isInlineEditing) {
       return Align(
         alignment: AlignmentDirectional.centerStart,
         child: TextButton.icon(
           key: const ValueKey('task-detail-add-reminder'),
-          onPressed: widget.onEdit == null ? null : _edit,
+          onPressed: widget.onTaskChanged == null
+              ? (widget.onEdit == null ? null : _edit)
+              : _beginInlineEdit,
           icon: const Icon(Icons.add, size: 17),
           label: const Text('افزودن یادآور'),
         ),
@@ -1308,7 +1311,11 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           const Spacer(),
           TextButton.icon(
             key: const ValueKey('task-detail-add-reminder'),
-            onPressed: widget.onEdit == null ? null : _edit,
+            onPressed: _isInlineEditing
+                ? _addInlineReminder
+                : widget.onTaskChanged == null
+                    ? (widget.onEdit == null ? null : _edit)
+                    : _beginInlineEdit,
             icon: const Icon(Icons.add, size: 17),
             label: const Text('افزودن'),
           ),
@@ -1321,18 +1328,32 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             title: const Text('یادآور اصلی'),
             subtitle: Text(_dateTime(_task.reminderDate!)),
           ),
-        for (final reminder in _task.taskReminders)
-          Material(
-            type: MaterialType.transparency,
-            child: SwitchListTile(
-              key: ValueKey('task-detail-reminder-${reminder.id}'),
-              contentPadding: EdgeInsets.zero,
-              value: reminder.isEnabled,
-              onChanged: widget.onTaskChanged == null ? null : (value) => _toggleReminder(reminder, value),
-              title: Text(reminder.title),
-              subtitle: Text(reminder.isAllDay ? _date(reminder.date) : _dateTime(reminder.date)),
-              secondary: Icon(Icons.notifications_outlined, color: reminder.isEnabled ? ArvinColors.reminder : _muted),
-            ),
+        for (final reminder in reminders)
+          Row(
+            children: [
+              Expanded(
+                child: SwitchListTile(
+                  key: ValueKey('task-detail-reminder-${reminder.id}'),
+                  contentPadding: EdgeInsets.zero,
+                  value: reminder.isEnabled,
+                  onChanged: _isInlineEditing
+                      ? (value) => _toggleDraftReminder(reminder, value)
+                      : widget.onTaskChanged == null
+                          ? null
+                          : (value) => _toggleReminder(reminder, value),
+                  title: Text(reminder.title),
+                  subtitle: Text(reminder.isAllDay ? _date(reminder.date) : _dateTime(reminder.date)),
+                  secondary: Icon(Icons.notifications_outlined, color: reminder.isEnabled ? ArvinColors.reminder : _muted),
+                ),
+              ),
+              if (_isInlineEditing)
+                IconButton(
+                  key: ValueKey('task-detail-reminder-remove-${reminder.id}'),
+                  tooltip: 'حذف یادآور',
+                  onPressed: () => _removeDraftReminder(reminder),
+                  icon: const Icon(Icons.delete_outline),
+                ),
+            ],
           ),
       ]),
     );
