@@ -92,6 +92,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   bool _isSavingChecklist = false;
   bool _isAddingChecklist = false;
   List<TaskReminder> _draftReminders = const [];
+  DateTime? _draftDueDate;
+  bool _draftAllDay = false;
 
   @override
   void initState() {
@@ -107,6 +109,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     _categoryController = TextEditingController(text: _task.category ?? '');
     _tagsController = TextEditingController(text: _task.tags.join('، '));
     _draftReminders = List<TaskReminder>.of(_task.taskReminders);
+    _draftDueDate = _task.dueDate;
+    _draftAllDay = _task.allDay;
     final rule = _task.recurrence;
     _recurrenceConfigured = rule != null;
     _recurrenceActive = rule?.active ?? true;
@@ -131,6 +135,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     _recurrenceIntervalController = null;
     _recurrenceCountController = null;
     _draftReminders = const [];
+    _draftDueDate = null;
+    _draftAllDay = false;
     setState(() => _isInlineEditing = false);
   }
 
@@ -162,6 +168,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       ..category = category.isEmpty ? null : category
       ..tags = tags
       ..taskReminders = List<TaskReminder>.of(_draftReminders)
+      ..dueDate = _draftDueDate
+      ..allDay = _draftAllDay
       ..nextReminderSequence = _draftReminders.isEmpty
           ? _task.nextReminderSequence
           : (_draftReminders.map((item) => item.sequence).reduce((a, b) => a > b ? a : b) + 1).clamp(_task.nextReminderSequence, 1 << 30).toInt()
@@ -193,6 +201,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       _recurrenceIntervalController = null;
       _recurrenceCountController = null;
       _draftReminders = const [];
+      _draftDueDate = null;
+      _draftAllDay = false;
       setState(() {
         _task = updated;
         _isInlineEditing = false;
@@ -321,7 +331,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   Future<void> _pickInlineDueDate() async {
-    final current = _task.dueDate ?? DateTime.now();
+    final current = _draftDueDate ?? DateTime.now();
     final picked = await showPersianDatePicker(
       context: context,
       initialDate: current,
@@ -330,16 +340,42 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       helpText: 'انتخاب موعد انجام',
     );
     if (picked == null || !mounted) return;
-    final candidate = Task.fromJson(Map<String, dynamic>.from(_task.toJson()));
-    candidate.dueDate = DateTime(
-      picked.year,
-      picked.month,
-      picked.day,
-      _task.dueDate?.hour ?? 0,
-      _task.dueDate?.minute ?? 0,
+    setState(() {
+      _draftDueDate = DateTime(
+        picked.year,
+        picked.month,
+        picked.day,
+        _draftDueDate?.hour ?? 0,
+        _draftDueDate?.minute ?? 0,
+      );
+      if (_draftDueDate == null) _draftAllDay = true;
+    });
+  }
+
+  Future<void> _pickInlineDueTime() async {
+    final current = _draftDueDate;
+    if (current == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ابتدا تاریخ موعد را انتخاب کنید.')),
+      );
+      return;
+    }
+    final picked = await showUniversalArvinTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(current),
+      helpText: 'انتخاب ساعت موعد انجام',
     );
-    if (_task.dueDate == null) candidate.allDay = true;
-    await _persistCandidate(candidate);
+    if (picked == null || !mounted) return;
+    setState(() {
+      _draftDueDate = DateTime(
+        current.year,
+        current.month,
+        current.day,
+        picked.hour,
+        picked.minute,
+      );
+      _draftAllDay = false;
+    });
   }
 
   Future<void> _toggleRecurrence(bool active) async {
