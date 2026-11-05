@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../arvin_colors.dart';
 
-enum HomeFilterDimension { time, project, category, tags }
+enum HomeFilterDimension { time, center, project, category, tags }
 
 class HomeFilterCard extends StatelessWidget {
   const HomeFilterCard({
@@ -160,7 +160,7 @@ class HomeFilterChip extends StatelessWidget {
 
 /// Product-grade Home selection panel.
 ///
-/// Arvin-specific bottom-sheet presentation for the four Home filters.
+/// Arvin-specific bottom-sheet presentation for the five Home filters.
 /// The same selection flow is reused by time, project, category and tag filters.
 class HomeFilterSheet extends StatelessWidget {
   const HomeFilterSheet({
