@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 
 import 'models/task.dart';
 import 'models/task_template.dart';
+import 'models/goal_project.dart';
+import 'models/arvin_center.dart';
 import 'services/task_store.dart';
 import 'services/task_template_store.dart';
+import 'services/project_store.dart';
+import 'services/center_store.dart';
 import 'project_template_management_page.dart';
 
 class TaskTemplateManagementPage extends StatefulWidget {
@@ -11,11 +15,15 @@ class TaskTemplateManagementPage extends StatefulWidget {
     super.key,
     this.taskStore,
     this.templateStore,
+    this.projectStore,
+    this.centerStore,
     this.embedded = false,
   });
 
   final TaskStore? taskStore;
   final TaskTemplateStore? templateStore;
+  final ProjectStore? projectStore;
+  final CenterStore? centerStore;
   final bool embedded;
 
   @override
@@ -27,8 +35,12 @@ class _TaskTemplateManagementPageState extends State<TaskTemplateManagementPage>
   late final TaskStore _tasks = widget.taskStore ?? TaskStore();
   late final TaskTemplateStore _templates =
       widget.templateStore ?? TaskTemplateStore();
+  late final ProjectStore _projectsStore = widget.projectStore ?? ProjectStore();
+  late final CenterStore _centersStore = widget.centerStore ?? CenterStore();
   List<Task> _sourceTasks = const [];
   List<TaskTemplate> _savedTemplates = const [];
+  List<ProjectPlan> _projects = const [];
+  List<ArvinCenter> _centers = const [];
   bool _loading = true;
   bool _busy = false;
 
@@ -44,10 +56,14 @@ class _TaskTemplateManagementPageState extends State<TaskTemplateManagementPage>
       // installation and reads sequential to avoid nested BEGIN transactions.
       final tasks = await _tasks.load();
       final templates = await _templates.load();
+      final projects = await _projectsStore.load();
+      final centers = await _centersStore.load();
       if (!mounted) return;
       setState(() {
         _sourceTasks = tasks;
         _savedTemplates = templates;
+        _projects = projects;
+        _centers = centers;
         _loading = false;
       });
     } catch (error) {
@@ -117,7 +133,23 @@ class _TaskTemplateManagementPageState extends State<TaskTemplateManagementPage>
     if (confirmed != true || !mounted) return;
     setState(() => _busy = true);
     try {
-      await _templates.createFromTask(task: task, name: name);
+      final relatedProjects = _projects.where((project) => project.itemIds.contains(task.id)).toList();
+      final projectSnapshot = relatedProjects.isEmpty
+          ? null
+          : relatedProjects.map((project) => project.title).toSet().join('، ');
+      final centerIds = relatedProjects.map((project) => project.centerId)
+          .whereType<String>().toSet();
+      final centerSnapshot = _centers
+          .where((center) => centerIds.contains(center.id))
+          .map((center) => center.name)
+          .toSet()
+          .join('، ');
+      await _templates.createFromTask(
+        task: task,
+        name: name,
+        centerNameSnapshot: centerSnapshot.isEmpty ? null : centerSnapshot,
+        projectNameSnapshot: projectSnapshot,
+      );
       await _load();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
