@@ -1863,3 +1863,12 @@ PR #3052 باید OPEN / DRAFT / UNMERGED باقی بماند؛ main بدون ت
 - PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main بدون تغییر؛ BLOCKED — RELEASE: NO-GO.
 
 - تست ترکیبی Home برای OR درون هر بُعد و AND میان ابعاد در `test/home/home_filter_boolean_logic_test.dart` با commit `f6e1f38f93279621716a5734f8ea763a2cd19a2e` افزوده شد؛ نتیجه exact-HEAD هنوز تأییدنشده است.
+
+
+## AIPOS v1.0 governance checkpoint — 2026-11-05
+- Added/updated the seven continuity records under docs/project-continuity: README, CURRENT_STATE, PRODUCT_DECISIONS, ROADMAP, OPEN_ISSUES, IMPLEMENTATION_LOG and HANDOFF.
+- Canonical product contract records Vazirmatn-only UI text; dedicated path-only SVG calligraphy for the two sacred phrases; checkbox filters; Center > Project > Category > Task; Overdue-first time filter; and the three-layer Calendar separation.
+- flutter_svg 2.3.2 and matching lockfile are present; G1 lock-sync passed on checkpoint SHA 7327c4e0f472e52b12ecd330cb0331132d8aa396.
+- Follow-up persistence passed; Build/Analyze, Calendar Provider, seven-lane Device Smoke and Draft Review APK were incomplete at the checkpoint. No full flutter analyze/test or Debug/Release APK result is claimed.
+- Both requested SVG files remain absent because the approved reference artwork could not be retrieved. Exact vector calligraphy remains BLOCKED/NOT VERIFIED; do not substitute guessed paths.
+- Documentation changes create a new HEAD; rerun all acceptance workflows on the resulting SHA. PR #3052 OPEN/DRAFT/UNMERGED; main untouched; BLOCKED — RELEASE: NO-GO.
