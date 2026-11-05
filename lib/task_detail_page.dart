@@ -38,6 +38,7 @@ class TaskDetailPage extends StatefulWidget {
     this.onDescriptionChanged,
     this.onMoveDueDateToToday,
     this.onRegisterTaskToDeviceCalendar,
+    this.taskTemplateStore,
     this.now,
   });
 
@@ -56,6 +57,7 @@ class TaskDetailPage extends StatefulWidget {
   final Future<Task?> Function(Task task, String description)? onDescriptionChanged;
   final Future<Task?> Function(Task task)? onMoveDueDateToToday;
   final Future<void> Function(Task task)? onRegisterTaskToDeviceCalendar;
+  final TaskTemplateStore? taskTemplateStore;
   final DateTime? now;
 
   @override
@@ -424,7 +426,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     if (name == null || !mounted || _isSavingTaskTemplate) return;
     setState(() => _isSavingTaskTemplate = true);
     try {
-      await TaskTemplateStore().createFromTask(
+      await _taskTemplates.createFromTask(
         task: _task,
         name: name,
         centerNameSnapshot: widget.centerName,
