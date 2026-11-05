@@ -633,3 +633,5 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - Consolidated Task Template UI creation coverage to one clean instantiation path; asserts the source Task and its execution history remain unchanged.
 - The Visual test now advances a static screen deterministically and asserts no scheduled frame before capture; no timeout was increased and no assertion was skipped. The approved golden is still absent, so visual acceptance is BLOCKED pending a reviewed baseline.
 - Exact-SHA CI and physical-device glyph validation are not claimed until their respective evidence is available. PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; release BLOCKED — RELEASE: NO-GO.
+
+- Added `test/home/home_filter_boolean_logic_test.dart` for OR within Category/Tag selections and AND across those dimensions (commit `f6e1f38f93279621716a5734f8ea763a2cd19a2e`); exact-SHA result remains unverified.
