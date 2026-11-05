@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:arvin/main.dart';
@@ -7,17 +8,22 @@ import 'package:arvin/calendar_page.dart';
 import 'package:arvin/theme/app_fonts.dart';
 
 void main() {
-  testWidgets('Home Bismillah and Calendar text use Vazirmatn only until SVG assets are installed', (tester) async {
+  testWidgets('Home and Calendar sacred phrases render path SVGs with single accessible labels', (tester) async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     await tester.pumpWidget(const ArvinApp());
     await tester.pump();
 
     final homePhrase = find.byKey(const ValueKey('home-bismillah'));
     expect(homePhrase, findsOneWidget);
-    final homeStyle = tester.widget<Text>(homePhrase).style!;
-    expect(homeStyle.fontFamily, AppFonts.vazirmatnFamily);
-    expect(homeStyle.fontFamilyFallback, isNull);
-    expect(homeStyle.fontWeight, FontWeight.w600);
+    expect(tester.widget<Semantics>(homePhrase).properties.label,
+        'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ');
+    expect(find.byKey(const ValueKey('home-bismillah-svg')), findsOneWidget);
+    final homeSvg = tester.widget<SvgPicture>(
+      find.byKey(const ValueKey('home-bismillah-svg')),
+    );
+    expect(homeSvg.width, 210);
+    expect(homeSvg.excludeFromSemantics, isTrue);
+    expect(find.text('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'), findsNothing);
 
     await tester.pumpWidget(MaterialApp(
       home: CalendarPage(
@@ -29,14 +35,16 @@ void main() {
 
     final calendarPhrase = find.byKey(const ValueKey('calendar-sacred-header'));
     expect(calendarPhrase, findsOneWidget);
-    final calendarStyle = tester.widget<Text>(calendarPhrase).style!;
-    expect(calendarStyle.fontFamily, AppFonts.vazirmatnFamily);
-    expect(calendarStyle.fontFamilyFallback, isNull);
-    expect(calendarStyle.fontWeight, FontWeight.w600);
+    expect(tester.widget<Semantics>(calendarPhrase).properties.label,
+        'أُفَوِّضُ أَمْرِی إِلَى اللَّهِ');
+    expect(find.byKey(const ValueKey('calendar-sacred-header-svg')), findsOneWidget);
+    final calendarSvg = tester.widget<SvgPicture>(
+      find.byKey(const ValueKey('calendar-sacred-header-svg')),
+    );
+    expect(calendarSvg.width, 240);
+    expect(calendarSvg.excludeFromSemantics, isTrue);
+    expect(find.text('أُفَوِّضُ أَمْرِی إِلَى اللَّهِ'), findsNothing);
 
-    expect(AppFonts.familyForText('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'), AppFonts.vazirmatnFamily);
-    expect(AppFonts.familyForText('أُفَوِّضُ أَمْرِی إِلَى اللَّهِ'), AppFonts.vazirmatnFamily);
-    expect(AppFonts.familyForText('افوض امری الی الله'), AppFonts.vazirmatnFamily);
     expect(AppFonts.familyForText('متن عادی رابط کاربری'), AppFonts.vazirmatnFamily);
     expect(AppFonts.familyForText('آروین'), AppFonts.vazirmatnFamily);
     expect(tester.takeException(), isNull);
