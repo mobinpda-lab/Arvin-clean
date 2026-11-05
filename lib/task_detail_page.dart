@@ -1194,7 +1194,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 key: const ValueKey('task-detail-checklist-add'),
                 onPressed: _isSavingChecklist
                     ? null
-                    : _isInlineEditing
+                    : _isInlineEditing || _isAddingChecklist
                         ? _addChecklistItem
                         : widget.onChecklistChanged != null
                             ? () => setState(() => _isAddingChecklist = true)
