@@ -1821,11 +1821,11 @@ PR #3052 باید OPEN / DRAFT / UNMERGED باقی بماند؛ main بدون ت
 - Live pre-change refs: PR #3052 head and authorized branch matched at c35929c1cc2022b8470cd86b6f6fe8e2ae771e5b; main remained 45e4202b03a434459e4c021a04efa7e8396359db.
 - Active Home row was audited in lib/main.dart, not inferred from home_filter_ui.dart. It contains five RTL filter chips and a separate sort action; no sixth «همه» chip. The Category chip copy was corrected to «دسته‌ها» and a widget assertion was added.
 - Audit and status matrix: docs/audit/ARVIN_ISSUE_823_UIUX_EXECUTION_AUDIT_2026-11-05.md.
-- Task Template is not a current schema entity: G1 schema v8 has Project Template tables but no independent Task Template model/table/store. Settings has Project Template management only. Task/Project conversion entry points were not verified. Do not invent template semantics or create parallel storage.
+- Superseded by G1 v11 implementation: TaskTemplate has a canonical model/store/table in the existing Drift database; two Settings tabs and Task/Project conversion paths are present. See `docs/project-continuity/TASK_TEMPLATE_DATA_CONTRACT.md`; exact-HEAD test/CI acceptance remains separate.
 - Existing TaskCloneService preserves source details, generates Persian «— رونوشت» numbering and clears execution history/reminders; preserve it.
 - Home OR/AND implementation is present, but combined behavior still needs focused end-to-end widget tests. Full dynamic group heading acceptance remains incomplete; Today/Tomorrow are dynamic, Future aggregate has no date suffix.
-- Task Detail has an approved eleven-section specification but runtime inline editing remains partial; explicit scroll-offset preservation test is missing.
-- Sacred phrase Naskh treatment versus global Vazirmatn-only rule is now recorded as owner clarification required in PRODUCT_DECISIONS.md. Preserve current rendering pending confirmation.
+- Task Detail runtime now exposes the unified 11-section inline form, atomic save/cancel, and a retained ScrollController. Offset tests cover entry/cancel and successful save; exact-HEAD test acceptance remains NOT VERIFIED.
+- Owner has approved exactly two Naskh artistic-script exceptions: Bismillah on Home and «أُفَوِّضُ أَمْرِی إِلَى اللَّهِ» on Calendar. All other UI remains Vazirmatn. Both phrase widgets use the exact-text whitelist; physical-device glyph fallback remains NOT VERIFIED.
 - Baseline c35929 CI snapshot: Analyze, test-0, test-1, test-3, test-4, test-5 and Follow-up file-backed SQLite succeeded; test-2 and Visual were in progress; Device Smoke was incomplete; Calendar Provider first attempt failed before tests due Dart Development Service startup and was rerun. These results do not apply to later SHA.
 - Subsequent documentation/code commits require fresh exact-HEAD CI. PR remains OPEN / DRAFT / UNMERGED; main unchanged; Release BLOCKED — RELEASE: NO-GO.
 
@@ -1840,3 +1840,12 @@ PR #3052 باید OPEN / DRAFT / UNMERGED باقی بماند؛ main بدون ت
 - Home: پنج فیلتر RTL، sort مستقل، Overdue قبل از completed، checkbox multi-select و منطق OR/AND دارای پوشش تستی هستند؛ پنج گروه زمانی در مسیر فعال وجود دارند. سربرگ تاریخ گروه Future به‌صورت تاریخ ساختگی ساخته نمی‌شود چون گروه تجمیعی است.
 - CI روی هر SHA باید مستقل خوانده شود؛ هیچ نتیجه تاریخی منتقل نمی‌شود. Device Smoke، Calendar Provider، Analyze و test shards تا اجرای موفق روی HEAD نهایی NOT VERIFIED هستند.
 - PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main بدون تغییر؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## اجرای تکمیلی پس از ابلاغ قطعی مالک — ۱۴۰۵/۰۸/۱۴ (2026-11-05)
+- تصمیم قطعی تایپوگرافی در `docs/project-continuity/PRODUCT_DECISIONS.md` ثبت شد: Vazirmatn برای کل UI و دو عبارت مقدس به‌عنوان تنها استثنا.
+- Calendar header در `lib/calendar_page.dart` عبارت مصوب را با `AppFonts.familyForText` رندر می‌کند؛ `test/calendar_page_test.dart` تطبیق دقیق whitelist و Vazirmatn برای متن عادی را assert می‌کند.
+- Home Bismillah از whitelist مشترک استفاده می‌کند؛ `test/home/home_sacred_phrase_test.dart` و تست typography دامنه استثنا را پوشش می‌دهند.
+- `test/task_detail_scroll_save_test.dart` مسیر ورود به ویرایش، ذخیره موفق و حفظ offset را پوشش می‌دهد؛ تست قبلی ورود/لغو نیز باقی است.
+- Visual timeout: لاگ job `127329168780` نشان داد `pumpAndSettle` ده دقیقه منتظر idle کامل scheduler ماند و پیش از ثبت PNG شکست خورد. تست به pump قطعی ۳۵۰ms و assertion نبود frame معلق تغییر کرده است؛ این اصلاح هنوز روی HEAD نهایی PASS نشده. Golden مرجع `test/goldens/task_detail_visual_test.png` در مخزن موجود نیست؛ Visual acceptance همچنان BLOCKED تا تصویر واقعی و بازبینی‌شده ثبت شود.
+- هیچ ادعای PASS برای این تغییرات ثبت نمی‌شود. PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ Release: BLOCKED — RELEASE: NO-GO.
