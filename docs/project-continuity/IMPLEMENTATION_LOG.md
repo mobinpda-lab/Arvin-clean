@@ -1,3 +1,12 @@
+## 2026-11-05 — TaskHomeScreen workflow and regression contract alignment
+
+- Restored the exact seven-lane Build quality matrix: Analyze + test-0 through test-5. Moved `test/task_detail_visual_test.dart` and its artifact upload to a separate standalone `visual` job with exact-SHA checkout verification; visual coverage is retained.
+- Synchronized existing Home regression expectations with the approved fourteen-point Home specification: fully vocalized Bismillah, no Home-header notification bell, general-filter/menu RTL positioning, the canonical Past heading «گذشته», and search hint «جستجو در کارها...».
+- Updated the Task Details completion-action color assertion to the owner-approved shared primary token `#3F3D56`.
+- Updated the Vazirmatn source contract to assert the actual single-source `ArvinTheme.fontFamily` wiring and canonical bundled-font token declaration.
+- Test cases and behavioral coverage remain present. No test file or case was deleted, skipped, bypassed, weakened, or timeout-bypassed. No product runtime code was changed in this alignment pass.
+- Build, standalone Visual, Parallel Wave contract, and seven-path Device Smoke must complete on the new exact HEAD before any PASS is recorded. PR #3052 remains OPEN / DRAFT / UNMERGED; `main` unchanged; release BLOCKED — RELEASE: NO-GO.
+
 ## Quick Capture tighter visual compression — 2026-11-04
 - Follow-up UI-only pass on the existing compact Quick Capture form. No field order, row membership, widget keys, horizontal selector structure, selected values, priority enum, color palette, Vazirmatn font family, semantics, callbacks, validation, task construction or persistence behavior was changed.
 - Compact ArvinRollBox and ArvinTagRollBox controls reduced from 42dp to 40dp; compact icons reduced from 18dp to 16dp, icon/text gap from 6dp to 4dp, horizontal inset from 10dp to 8dp, compact label size from 11.5sp to 10.5sp. The 40dp minimum touch target is retained.
