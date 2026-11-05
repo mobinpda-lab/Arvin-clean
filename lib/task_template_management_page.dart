@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'models/task.dart';
+import 'android_follow_up_reminder_scheduler.dart';
 import 'models/task_template.dart';
 import 'models/goal_project.dart';
 import 'models/arvin_center.dart';
@@ -8,6 +9,7 @@ import 'services/task_store.dart';
 import 'services/task_template_store.dart';
 import 'services/project_store.dart';
 import 'services/center_store.dart';
+import 'widgets/persian_date_picker.dart';
 import 'project_template_management_page.dart';
 
 class TaskTemplateManagementPage extends StatefulWidget {
@@ -167,6 +169,93 @@ class _TaskTemplateManagementPageState extends State<TaskTemplateManagementPage>
     }
   }
 
+  Future<void> _createTaskFromTemplate(TaskTemplate template) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('ساخت کار از الگو'),
+        content: Text('یک کار تازه با مشخصات «${template.name}» ساخته شود؟ الگو و کارهای قبلی تغییر نمی‌کنند.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('انصراف')),
+          FilledButton(
+            key: ValueKey('task-template-create-confirm-${template.id}'),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('ساخت کار'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    DateTime? reminderDate;
+    if (template.reminders.isNotEmpty) {
+      reminderDate = await showPersianDatePicker(
+        context: context,
+        initialDate: DateTime.now(),
+        firstDate: DateTime(2020),
+        lastDate: DateTime(2100),
+        helpText: 'انتخاب تاریخ یادآورهای الگو',
+      );
+      if (reminderDate == null || !mounted) return;
+    }
+
+    setState(() => _busy = true);
+    try {
+      final now = DateTime.now();
+      final reminders = template.reminders.map((reminder) => TaskReminder(
+        id: 'reminder-${now.microsecondsSinceEpoch}-${reminder.sequence}',
+        title: reminder.title,
+        date: DateTime(
+          reminderDate!.year,
+          reminderDate.month,
+          reminderDate.day,
+          reminder.hour,
+          reminder.minute,
+        ),
+        isAllDay: reminder.isAllDay,
+        sequence: reminder.sequence,
+        isEnabled: reminder.isEnabled,
+      )).toList(growable: false);
+      final task = Task(
+        id: 'task-${now.microsecondsSinceEpoch}',
+        title: template.title,
+        description: template.description,
+        category: template.category,
+        priority: template.priority,
+        tags: List<String>.of(template.tags),
+        checklistEnabled: template.checklist.isNotEmpty,
+        checklist: template.checklist.map((item) => '[ ] $item').toList(growable: false),
+        people: List.of(template.people),
+        taskReminders: reminders,
+        nextReminderSequence: reminders.isEmpty
+            ? 1
+            : reminders.map((item) => item.sequence).reduce((a, b) => a > b ? a : b) + 1,
+        recurrence: template.recurrence,
+      );
+      await _tasks.mutate<void>((items) => items.add(task));
+      try {
+        await AndroidFollowUpReminderScheduler().reschedule();
+      } catch (_) {
+        // The Task is already persisted. Scheduling is retried by the app's
+        // normal alarm reconciliation path; never roll back the saved Task.
+      }
+      await _load();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('کار «${task.title}» از الگو ساخته شد.')),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('ساخت کار از الگو انجام نشد: $error')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   Future<void> _archive(TaskTemplate template) async {
     setState(() => _busy = true);
     try {
@@ -215,10 +304,23 @@ class _TaskTemplateManagementPageState extends State<TaskTemplateManagementPage>
                         subtitle: Text(
                           '${template.title} • ${template.checklist.length} مرحله • ${template.tags.length} برچسب${template.isArchived ? ' • بایگانی‌شده' : ''}',
                         ),
-                        trailing: IconButton(
-                          tooltip: template.isArchived ? 'فعال‌سازی' : 'بایگانی',
-                          onPressed: _busy ? null : () => _archive(template),
-                          icon: Icon(template.isArchived ? Icons.unarchive_outlined : Icons.archive_outlined),
+                        trailing: Wrap(
+                          spacing: 2,
+                          children: [
+                            IconButton(
+                              key: ValueKey('task-template-create-${template.id}'),
+                              tooltip: 'ساخت کار از الگو',
+                              onPressed: _busy || template.isArchived
+                                  ? null
+                                  : () => _createTaskFromTemplate(template),
+                              icon: const Icon(Icons.add_task),
+                            ),
+                            IconButton(
+                              tooltip: template.isArchived ? 'فعال‌سازی' : 'بایگانی',
+                              onPressed: _busy ? null : () => _archive(template),
+                              icon: Icon(template.isArchived ? Icons.unarchive_outlined : Icons.archive_outlined),
+                            ),
+                          ],
                         ),
                       ),
                     ),
