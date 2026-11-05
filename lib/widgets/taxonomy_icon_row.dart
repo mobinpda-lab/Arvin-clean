@@ -2,16 +2,17 @@ import 'package:flutter/material.dart';
 import '../arvin_colors.dart';
 
 class TaxonomyIconRow extends StatelessWidget {
-  const TaxonomyIconRow({super.key,this.project,this.category,this.tags=const <String>[],this.maxTags=2});
-  final String? project, category;
+  const TaxonomyIconRow({super.key,this.center,this.project,this.category,this.tags=const <String>[],this.maxTags=2});
+  final String? center, project, category;
   final List<String> tags;
   final int maxTags;
 
   @override
   Widget build(BuildContext context) {
-    final p=project?.trim(), c=category?.trim();
+    final centerName=center?.trim(), p=project?.trim(), c=category?.trim();
     final ts=tags.map((v)=>v.trim()).where((v)=>v.isNotEmpty).take(maxTags).toList(growable:false);
     final children=<Widget>[
+      if (centerName?.isNotEmpty==true) _chip(Icons.location_city_outlined,centerName!,ArvinColors.primary,ArvinColors.primarySoft,const ValueKey('taxonomy-icon-row-center')),
       if (p?.isNotEmpty==true) _chip(Icons.folder_outlined,p!,ArvinColors.project,ArvinColors.projectSoft,const ValueKey('taxonomy-icon-row-project')),
       if (c?.isNotEmpty==true) _chip(Icons.grid_view_rounded,c!,ArvinColors.category,ArvinColors.categorySoft,const ValueKey('taxonomy-icon-row-category')),
       for(final value in ts) _chip(Icons.sell_outlined,'#$value',ArvinColors.tag,ArvinColors.tagSoft,ValueKey('taxonomy-icon-row-tag-$value')),
