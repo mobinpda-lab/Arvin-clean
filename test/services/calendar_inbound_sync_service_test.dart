@@ -60,13 +60,25 @@ void main() {
     expect(independent.date, DateTime(2026, 10, 8, 9));
   });
 
-  test('provider deletion or movement has no inbound mutation entry point', () async {
+  test('provider event deletion cannot delete its canonical internal Task', () async {
+    final taskStore = TaskStore(executor: database);
+    final before = (await taskStore.load()).single;
+
+    // The provider snapshot no longer contains the linked event. Inbound
+    // reconciliation deliberately has no mutation path from provider state.
     final result = await const CalendarInboundSyncService().reconcile(
       start: DateTime(2026, 10, 1),
       end: DateTime(2026, 11, 1),
     );
 
+    final remaining = await taskStore.load();
     expect(result.changed, isFalse);
     expect(result.updated + result.deleted, 0);
+    expect(remaining, hasLength(1));
+    expect(remaining.single.id, before.id);
+    expect(remaining.single.title, 'کار مالک آروین');
+    expect(remaining.single.dueDate, before.dueDate);
+    expect(remaining.single.taskReminders.map((item) => item.id),
+        contains('reminder-1'));
   });
 }
