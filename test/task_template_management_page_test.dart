@@ -42,6 +42,6 @@ void main() {
     expect(saved.checklist, ['کنترل برق', 'کنترل فشار']);
     expect(source.dueDate, DateTime(2026, 11, 20));
     expect(source.checklist, ['[x] کنترل برق', '[ ] کنترل فشار']);
-    expect(find.text('الگوی کار ذخیره شد؛ کار اصلی و تاریخچه آن تغییر نمی‌کند.'), findsOneWidget);
+    expect(find.text('الگوی کار ذخیره شد؛ کار اصلی بدون تغییر ماند.'), findsOneWidget);
   });
 }
