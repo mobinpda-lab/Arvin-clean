@@ -144,7 +144,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('universal-time-save')));
     await tester.pumpAndSettle();
-    expect(find.text('تماس با مشتری'), findsOneWidget);
+    expect(find.text('تماس با مشتری'), findsNWidgets(2));
     await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
     await tester.pumpAndSettle();
     expect(persisted?.taskReminders, hasLength(1));
