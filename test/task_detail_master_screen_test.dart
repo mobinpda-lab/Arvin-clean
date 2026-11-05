@@ -416,7 +416,6 @@ void main() {
           persisted = candidate;
           return candidate;
         },
-        onChecklistChanged: (candidate, values) async => candidate,
       ),
     ));
     await tester.pumpAndSettle();
