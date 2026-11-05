@@ -224,3 +224,9 @@ Release: BLOCKED — RELEASE: NO-GO
 - Existing tests/assertions were not edited or weakened. Exact-SHA Analyze and widget test results for the final documentation-synchronized HEAD are NOT VERIFIED until the current run completes.
 - Naskh glyph-level appearance is NOT VERIFIED: the header currently uses a system serif fallback, and no bundled Naskh font asset was found in inspected paths.
 - Release remains BLOCKED — RELEASE: NO-GO. Do not merge, publish, release, or touch main.
+
+ 
+## TaskHomeScreen analyzer correction — 2026-11-05
+- An intermediate Analyze run on source checkpoint `da311c2f7e4ef9b96fc20a26e31eca996fa63d50` found the plugin import had also been removed even though the app-level notification tap handler still uses `NotificationResponse`, and found an orphan private `_openPendingReminder` helper after removing the Home bell.
+- Corrected in `c0766a5e602d04426486816e95cad4038b667fa7`: restored the plugin type import for the retained notification-response path and removed the now-unreferenced pending-notification helper. The Home header remains bell-free.
+- No test files or assertions were changed. Analyze and widget tests on the corrected/final SHA remain NOT VERIFIED until a fresh exact-SHA run completes.
