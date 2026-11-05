@@ -162,3 +162,12 @@ PROPOSED = candidate only; APPROVED = explicit owner decision; IN_PROGRESS = wor
 - پذیرش: تست ساختاری وجود دو SVG و semantics، آزمون حالت روشن/تاریک و اندازه‌های گوشی/تبلت، بررسی عدم overflow و افت فریم، سپس Build و Device Smoke روی یک SHA واحد.
 - این قرارداد در اولویت بالاتر از هر ثبت قبلی است. Vazirmatn تنها فونت متنی محصول باقی می‌ماند.
 - PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main بدون تغییر؛ **BLOCKED — RELEASE: NO-GO** تا اعتبارسنجی بیلد پایدار و پذیرش مالک محصول.
+
+
+## STD-GOV-AIPOS-v1.0 — 2026-11-05
+- UI text everywhere uses Vazirmatn only. No Amiri, system serif, Naskh font, secondary family or text fallback is allowed.
+- Bismillah in Home and Tafweez in Calendar are dedicated transparent SVG path artworks, navy #1A2B4C, not text widgets; each has one accessible semantic label and no duplicate screen-reader announcement.
+- Exact approved reference images are required for final calligraphy approval. If unavailable, matching is NOT VERIFIED; do not claim a guessed design matches.
+- Home taxonomy order: Center > Project > Category > Task. Filter controls use checkboxes; selections within one dimension are OR, dimensions combine with AND. Time filter prioritizes Overdue.
+- Calendar retains three separate layers: view-mode/navigation, date-grid selection/projection, and selected-date agenda/content projection. Persistence and source filters remain separate.
+- PR #3052 remains OPEN/DRAFT/UNMERGED; main untouched; release NO-GO.
