@@ -44,11 +44,11 @@ void main() {
     expect(completedPastTitle.style?.color, isNot(ArvinColors.error));
     expect(completedPastTitle.style?.decoration, TextDecoration.lineThrough);
     expect(find.text('امروز'), findsAtLeastNWidgets(1));
-    final sacredPhrase = tester.widget<Text>(
+    final sacredPhrase = tester.widget<Semantics>(
       find.byKey(const ValueKey('home-bismillah')),
     );
-    expect(sacredPhrase.style?.fontFamily, AppFonts.vazirmatnFamily);
-    expect(AppFonts.familyForText('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'), AppFonts.vazirmatnFamily);
+    expect(sacredPhrase.properties.label, 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ');
+    expect(find.byKey(const ValueKey('home-bismillah-svg')), findsOneWidget);
     final homeTitle = tester.widget<Text>(
       find.byKey(const ValueKey('home-title-block')),
     );
