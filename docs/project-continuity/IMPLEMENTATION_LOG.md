@@ -462,3 +462,13 @@ Every new entry must include exact SHA, workflow/run IDs, terminal conclusion, a
 - Both SVG assets are absent. Approved reference image was not found. No path-artwork or Text-to-SVG replacement is claimed.
 - Documentation commits create new HEADs; all checkpoint CI results must be rerun on final documentation SHA. No local Flutter command output or APK build is claimed here.
 - PR #3052 OPEN/DRAFT/UNMERGED; main untouched; release NO-GO.
+
+
+## SVG sacred branding implementation — 2026-11-05 (۱۴۰۵/۰۸/۱۴)
+- Product assets received from the product owner and validated as single-path SVGs: one `path` element per file, no background/image/text/gradient elements, path fill `#1A2B4C`.
+- Added `assets/images/branding/bismillah.svg` and `assets/images/branding/tafweez.svg`; registered `assets/images/branding/` in `pubspec.yaml`. Existing `flutter_svg: ^2.3.2` dependency and lock resolution were retained.
+- Home header now renders the Bismillah SVG at width 210; Calendar header renders Tafweez SVG at width 240. Both use the approved navy color filter and one outer Semantics label; the inner SVG excludes duplicate semantics.
+- Updated Home/Calendar sacred-phrase widget tests to assert SVG keys, dimensions, semantics labels and absence of duplicate Text widgets. Existing Vazirmatn-only text family remains the only declared text family in `pubspec.yaml` and `AppFonts`.
+- Source/test implementation commit (before continuity-doc sync): `507503611b08d2cfdfbee7d37c05e4fbd72ad85e`.
+- `flutter pub get`, `flutter analyze`, and full `flutter test` have not been run locally in this GitHub connector environment. Exact-SHA CI is required; do not claim test success until its jobs finish.
+- PR #3052 remains OPEN / DRAFT / UNMERGED; no main changes; **BLOCKED — RELEASE: NO-GO**.
