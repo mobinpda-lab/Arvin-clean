@@ -104,3 +104,18 @@ PROPOSED = candidate only; APPROVED = explicit owner decision; IN_PROGRESS = wor
 - Existing tests/assertions are immutable under this execution request. Any test/analyzer result must be tied to the exact SHA.
 - Implementation note: the Bismillah style uses a system serif fallback because no bundled Naskh font asset was found in the inspected repository paths; physical glyph-level Naskh acceptance remains NOT VERIFIED.
 - Governance unchanged: PR #3052 OPEN / DRAFT / UNMERGED; no main edits, merge or release; BLOCKED — RELEASE: NO-GO.
+
+
+## Calendar UI/UX — owner-approved canonical contract — 2026-11-05 — ۱۴۰۵/۰۸/۱۴
+**Status:** APPROVED — CANONICAL. Full fourteen-section specification: `docs/project-continuity/calendar_ui_ux_spec.md`.
+- Header: sacred phrase «أُفَوِّضُ أَمْرِي إِلَى اللَّهِ» centered, replacing the Calendar title; search icon right; full Persian Today-date pill and «برو به تاریخ» picker adjacent at top-left. Help button removed.
+- The full-date pill is a Today shortcut; the adjacent picker is a separate date-navigation action.
+- Selected-date bar: bold prominent Jalali date centered; Gregorian date right; Hijri lunar date left.
+- Four mutually exclusive view segments above the grid: «روزانه»، «هفتگی»، «ماهانه»، «سالانه»; default «هفتگی».
+- Seven-column Saturday-to-Friday RTL calendar grid; each date cell shows bold primary Jalali date plus smaller Gregorian and Hijri lunar dates.
+- Five content filters are strictly below the grid and above the agenda, in order: «همه»، «تقویم آروین»، «تقویم گوشی»، «یادآورها»، «انجام‌نشده».
+- Agenda is scoped to the selected day and filtered by content category; Task/Event/Reminder cards must not overlap.
+- Hijri adjustment options: +1 day, −1 day, Official Iranian Calendar Match.
+- Architectural invariant: view modes are above the grid; content filters are below the grid. These are separate control groups.
+- Details not specified by the owner approval remain unspecified; preserve existing behavior rather than inventing new rules. No runtime implementation is implied by this documentation decision.
+- Existing calendar/provider/data/persistence contracts remain unchanged. PR #3052 OPEN / DRAFT / UNMERGED; main untouched; **BLOCKED — RELEASE: NO-GO**.
