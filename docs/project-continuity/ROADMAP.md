@@ -136,5 +136,13 @@ A feature mentioned only as an illustrative example (such as periodic tasks or a
 4. **بندهای غیرقابل حدس Task Detail:** زمان اجرا همچنان بدون فیلد canonical و «نامشخص» است؛ assignment مسئول در مدل فعلی اثبات نشده و NOT VERIFIED می‌ماند. People مرتبط به‌عنوان مسئول نمایش داده نمی‌شود. مرکز/پروژه فقط از رابطه و context موجود نمایش داده می‌شوند.
 5. **Visual:** علت قطعی ticker از کد TaskDetailPage اثبات نشد؛ کد صفحه فاقد AnimationController/Ticker/Timer.periodic است و fixture نیز CircularProgressIndicator فعال ندارد. شکست مشاهده‌شده در انتظار ۱۰ دقیقه‌ای pumpAndSettle رخ داده است. تست به pump قطعی ۳۵۰ms و assertion idle-frame تغییر یافت؛ این اصلاح تا اجرا NOT VERIFIED است. Golden مرجع task_detail_visual_test.png در شاخه و main موجود نیست؛ تولید/تأیید Golden بدون تصویر واقعی و بازبینی بصری ممنوع است.
 6. **Calendar Provider / Device Smoke:** هیچ Run روی HEAD فعلی در زمان ثبت این checkpoint موجود نبود؛ اجرای exact-SHA تأیید نشده است. تست‌های قدیمی یا PASS روی SHA دیگر قابل انتقال نیستند.
-7. **Typography:** Vazirmatn عمومی باقی می‌ماند؛ تصمیم استثنای خط نسخ «بسم‌الله الرحمن الرحیم» همچنان منتظر مالک است و rendering دست‌نخورده می‌ماند.
+7. **Typography:** تصمیم مالک ثبت و در کد اعمال شد؛ Vazirmatn فونت عمومی UI است و فقط دو عبارت «بسم‌الله الرحمن الرحیم» و «أُفَوِّضُ أَمْرِی إِلَى اللَّهِ» از whitelist خط نسخ استفاده می‌کنند. آزمون glyph روی دستگاه هنوز انجام‌نشده است.
 8. **Release gate:** Issue #823 هنوز کامل نیست. PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main untouched؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## 2026-11-05 — اجرای تکمیلی تصمیم تایپوگرافی و آزمون‌های فرم
+- `AppFonts.familyForText` فقط دو عبارت قرآنی مصوب را به خانواده serif/Naskh-style نگاشت می‌کند؛ سایر متن‌ها Vazirmatn می‌مانند. Home و Calendar از این whitelist استفاده می‌کنند.
+- تست Home برای عبارت بسم‌الله و تست Calendar برای عبارت تفویض و متن فارسی عادی، مرز استثنا را بررسی می‌کنند.
+- تست حفظ Scroll Offset فرم Task Details هم ورود/لغو و هم ورود/ذخیره موفق را پوشش می‌دهد.
+- Visual test از `pumpAndSettle` نامحدود به pump قطعی و assertion نبود frame معلق تغییر کرده است. Golden مرجع هنوز در مخزن موجود نیست؛ بنابراین Visual acceptance همچنان BLOCKED تا ایجاد و بازبینی Golden واقعی.
+- تمام نتایج تست و CI باید به HEAD نهایی همین شاخه منتسب شوند؛ وضعیت انتشار NO-GO باقی است.
