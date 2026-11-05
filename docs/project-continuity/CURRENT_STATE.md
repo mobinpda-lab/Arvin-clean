@@ -250,3 +250,19 @@ Release: BLOCKED — RELEASE: NO-GO
 - Exact-SHA audit on base `5bea1ed67549e26aa2ceeb0882477d4cfc2c1f53`: Build #42011495370 FAILURE (test-0, test-2 and visual failed; Analyze and test-1/3/4/5 passed; APK skipped); Device Smoke #42011495381 CANCELLED (4/7 pass, 3/7 cancelled). Calendar Provider, Follow-up Persistence and Parallel Wave Contract passed.
 - The above CI results do not transfer to any subsequent documentation SHA. Re-run exact-head gates after documentation synchronization.
 - PR #3052 OPEN / DRAFT / UNMERGED; main untouched; **BLOCKED — RELEASE: NO-GO**.
+
+
+## STD-GOV-AIPOS-v1.0 — Live checkpoint — ۱۴۰۵/۰۸/۱۴ — 2026-11-05
+- Repository: `mobinpda-lab/Arvin-clean`
+- Active branch: `fix/recovery-calendar-device-smoke-2026-10-31`
+- PR #3052: OPEN / DRAFT / UNMERGED; base main. No main edits authorized or performed by this work.
+- HEAD observed before this documentation update: `7327c4e0f472e52b12ecd330cb0331132d8aa396`. Documentation commits below create a newer HEAD; re-read GitHub for the resulting SHA.
+- Package: `flutter_svg ^2.3.2` declared in pubspec.yaml; pubspec.lock contains flutter_svg 2.3.2 and its vector dependencies. G1 lock-sync workflow on the observed HEAD: SUCCESS.
+- Follow-up file-backed SQLite persistence run 42090629520: SUCCESS.
+- Calendar Provider run 42090629465: IN_PROGRESS at last poll.
+- Build/Analyze run 42090629467: PENDING; no job result yet. flutter analyze and flutter test exact-SHA results: NOT VERIFIED.
+- Device Smoke run 42090629594: preparation SUCCESS; boot and navigation IN_PROGRESS; five remaining lanes QUEUED. Seven-lane acceptance NOT VERIFIED.
+- Draft Review APK run 42090629583: IN_PROGRESS; APK artifact not yet verified.
+- SVG assets `assets/images/branding/bismillah.svg` and `tafweez.svg`: NOT FOUND at observed HEAD. Home and Calendar sacred phrases still need verified vector replacement. Approved reference image unavailable in searchable project/conversation sources; exact calligraphy match BLOCKED.
+- Physical-device visual inspection: NOT VERIFIED. Do not equate emulator smoke or Review APK with physical-device acceptance.
+- Release: **BLOCKED — RELEASE: NO-GO**.
