@@ -406,3 +406,9 @@ Every new entry must include exact SHA, workflow/run IDs, terminal conclusion, a
 - در poll زنده آخرین HEAD قبل از این checkpoint، check-runs و workflow-runs خالی بودند. برای HEAD نهایی این اجرای تجمعی نیز تا زمانی که run exact-SHA ظاهر نشود، Analyze، test-0 تا test-5، Visual، Calendar Provider، Device Smoke و Follow-up Persistence همگی NOT VERIFIED هستند.
 - عدم دسترسی به عملیات workflow_dispatch در ابزار متصل، مانع اجرای دستی run از این محیط است؛ این محدودیت، مجوز انتظار منفعلانه یا ادعای PASS ایجاد نمی‌کند.
 - PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## 2026-11-05 — تصمیم قطعی تایپوگرافی مالک محصول
+- Vazirmatn فونت رسمی تمام اجزای رابط، متن‌ها، اعداد، دکمه‌ها و سربرگ‌هاست.
+- فقط دو عبارت «بسم‌الله الرحمن الرحیم» و «أُفَوِّضُ أَمْرِی إِلَى اللَّهِ» (یا نگارش UI بدون اعراب «افوض امری الی الله») مجاز به رندر با خط نسخ هنری هستند؛ هیچ متن یا جزء دیگری استثنا نیست.
+- تصمیم در `docs/project-continuity/PRODUCT_DECISIONS.md` ثبت شد.
