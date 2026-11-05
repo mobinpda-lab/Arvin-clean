@@ -662,3 +662,14 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - Layout Smoke ساختاری باقی می‌ماند و باید ۱۱ سطح، ابعاد مثبت و finite، اسکرول و نبود RenderFlex/Bottom overflow را بسنجد؛ تست‌ها یا پوشش آن‌ها حذف نمی‌شوند.
 - در ممیزی HEAD قبلی، Build FAILED و APK matrix به‌علت Draft بودن اجرا نشد؛ Device Smoke کامل نیست. هیچ ادعای APK پایدار یا انتشار وجود ندارد.
 - PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## به‌روزرسانی اجرای قرارداد نهایی — ۱۴۰۵/۰۸/۱۴ (2026-11-05)
+- در کد، AppFonts به یک خانواده متنی واحد Vazirmatn محدود شد؛ serif سیستم، Naskh fallback و هرگونه fontFamilyFallback از Home و Calendar حذف شد.
+- تا زمان ثبت SVGهای path-based، دو عبارت به‌طور موقت در Text widget با Vazirmatn رندر می‌شوند؛ این وضعیت فقط گذار ایمن است و پذیرش نهایی vector typography محسوب نمی‌شود.
+- تست Home/Calendar برای نبود fallback و یگانگی Vazirmatn به‌روزرسانی شد؛ تست HomeVisualIntegration نیز دیگر انتظار فونت ثانویه ندارد.
+- موانع exact-head قبلی در کد اصلاح شدند: const نامعتبر در HomeVisualIntegration، fixture غیر const در Task Template Conversion، Material surface در کارت‌های Task Details، و finite width/height در Layout Smoke.
+- HEAD کد پس از اصلاحات: `2a50457cde537ca02544839397c88c998153f5b4`. پس از آن، این ثبت مستندات SHA را تغییر می‌دهد و تست‌های exact-SHA باید روی آخرین HEAD جدید اجرا شوند.
+- GitHub workflow API برای HEAD کد فعلی اجرای جدیدی گزارش نکرد؛ بنابراین نتیجه اصلاحات و Layout Smoke روی این HEAD هنوز **NOT VERIFIED** است. هیچ نتیجه قدیمی به این SHA منتقل نمی‌شود.
+- مسیر SVGها، dependency رندر SVG و تست روشن/تاریک/چندرزولوشن تا دسترسی به تصویر مرجع و پیاده‌سازی واقعی باقی است.
+- PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched؛ **BLOCKED — RELEASE: NO-GO**.
