@@ -213,3 +213,14 @@ Release: BLOCKED — RELEASE: NO-GO
 ### Target-screen card alignment — 2026-11-05 10:03 Asia/Tehran — ۱۴۰۵/۰۸/۱۴
 - Targeted card styling now also uses the shared token set in Task Details, Task Editor, Quick Capture and Calendar reminder cards; Task Lists retain their 16px card material surface.
 - No product behavior/data/persistence/test assertion changes. Full secondary-screen inventory and physical visual acceptance remain NOT VERIFIED; exact-SHA CI pending.
+
+ 
+## TaskHomeScreen — live implementation checkpoint (2026-11-05 13:02 Asia/Tehran — ۱۴۰۵/۰۸/۱۴)
+- Canonical owner-approved Home contract: `docs/project-continuity/task_home_screen_spec.md`.
+- Authorized PR branch: `fix/recovery-calendar-device-smoke-2026-10-31`; PR #3052 remains OPEN / DRAFT / UNMERGED; main is not modified.
+- Home source alignment commits: `65122e4`, `e89ee5f`, `0ad42cb`, `da311c2` (full SHAs in `IMPLEMENTATION_LOG.md`).
+- Implemented on branch: drawer hamburger/right; general filter funnel/left; no notification bell or header search icon; search field preserved with exact placeholder; five filters plus independent sort button in one RTL row; Follow-up Date default sort; Center/Project/Category/Tag task-card metadata; Past/Today/Tomorrow/Future/Timeless group order; dynamic weekday + Jalali dates for Today/Tomorrow.
+- Primary navigation source was inspected and already contains five visible tabs in the approved order.
+- Existing tests/assertions were not edited or weakened. Exact-SHA Analyze and widget test results for the final documentation-synchronized HEAD are NOT VERIFIED until the current run completes.
+- Naskh glyph-level appearance is NOT VERIFIED: the header currently uses a system serif fallback, and no bundled Naskh font asset was found in inspected paths.
+- Release remains BLOCKED — RELEASE: NO-GO. Do not merge, publish, release, or touch main.
