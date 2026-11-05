@@ -1,7 +1,7 @@
 import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/services/center_store.dart';
 import 'package:arvin/models/task.dart';
-import 'package:arvin/project_detail_page.dart';
+import 'package:arvin/projects_page.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/project_template_service.dart';
 import 'package:arvin/services/project_template_store.dart';
@@ -46,14 +46,18 @@ void main() {
     );
 
     await tester.pumpWidget(MaterialApp(
-      home: ProjectDetailPage(
-        project: project,
-        centerName: 'مرکز نمونه',
+      home: ProjectsPage(
+        projects: [project],
+        onChanged: (values) async {},
         taskStore: tasks,
         templateService: service,
       ),
     ));
     await tester.pumpAndSettle();
+    await tester.tap(find.text('بازرسی دوره‌ای'));
+    await tester.pumpAndSettle();
+    expect(find.text('مشخصات پروژه'), findsOneWidget);
+    expect(find.byKey(const ValueKey('project-detail-task-project-detail-source-task')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('project-detail-convert-template')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('project-detail-template-confirm')));
