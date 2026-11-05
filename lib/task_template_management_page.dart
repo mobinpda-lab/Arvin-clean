@@ -351,28 +351,39 @@ class _TaskTemplateManagementPageState extends State<TaskTemplateManagementPage>
   }
 }
 
-class TemplatesSettingsPage extends StatelessWidget {
+class TemplatesSettingsPage extends StatefulWidget {
   const TemplatesSettingsPage({super.key});
 
   @override
-  Widget build(BuildContext context) => DefaultTabController(
-        length: 2,
-        child: Scaffold(
-          appBar: AppBar(
-            title: const Text('الگوها'),
-            bottom: const TabBar(
-              tabs: [
-                Tab(key: ValueKey('task-templates-tab'), text: 'الگوهای کار'),
-                Tab(key: ValueKey('project-templates-tab'), text: 'الگوهای پروژه'),
-              ],
-            ),
-          ),
-          body: const TabBarView(
-            children: [
-              TaskTemplateManagementPage(embedded: true),
-              ProjectTemplateManagementPage(embedded: true),
+  State<TemplatesSettingsPage> createState() => _TemplatesSettingsPageState();
+}
+
+class _TemplatesSettingsPageState extends State<TemplatesSettingsPage>
+    with SingleTickerProviderStateMixin {
+  late final TabController _controller = TabController(length: 2, vsync: this);
+  int _selectedTab = 0;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(
+          title: const Text('الگوها'),
+          bottom: TabBar(
+            controller: _controller,
+            onTap: (index) => setState(() => _selectedTab = index),
+            tabs: const [
+              Tab(key: ValueKey('task-templates-tab'), text: 'الگوهای کار'),
+              Tab(key: ValueKey('project-templates-tab'), text: 'الگوهای پروژه'),
             ],
           ),
         ),
+        body: _selectedTab == 0
+            ? const TaskTemplateManagementPage(embedded: true)
+            : const ProjectTemplateManagementPage(embedded: true),
       );
 }
