@@ -71,7 +71,9 @@ void main() {
       expect(find.byKey(const ValueKey('task-detail-checklist')), findsNothing);
       final detailScrollable = find.descendant(
         of: find.byKey(const ValueKey('task-detail-page')),
-        matching: find.byType(Scrollable),
+        matching: find.byWidgetPredicate(
+          (widget) => widget is Scrollable && widget.axisDirection == AxisDirection.down,
+        ),
       ).first;
       final addChecklist = find.byKey(const ValueKey('task-detail-add-checklist'));
       await tester.scrollUntilVisible(addChecklist, 240, scrollable: detailScrollable);
