@@ -60,9 +60,9 @@ class ProjectTemplateStore {
     await _database.runCustom('BEGIN');
     try {
       await _database.runInsert(
-        '''INSERT INTO project_templates (id, name, is_archived, created_at, updated_at)
-           VALUES (?, ?, ?, ?, ?)
-           ON CONFLICT(id) DO UPDATE SET name = excluded.name, is_archived = excluded.is_archived, updated_at = excluded.updated_at''',
+        '''INSERT INTO project_templates (id, name, is_archived, created_at, updated_at, center_id, color_value)
+           VALUES (?, ?, ?, ?, ?, ?, ?)
+           ON CONFLICT(id) DO UPDATE SET name = excluded.name, is_archived = excluded.is_archived, updated_at = excluded.updated_at, center_id = excluded.center_id, color_value = excluded.color_value''',
         [template.id, name, template.isArchived ? 1 : 0, template.createdAt.toIso8601String(), now, template.centerId, template.colorValue],
       );
       await _database.runDelete('DELETE FROM project_template_tasks WHERE template_id = ?', [template.id]);
