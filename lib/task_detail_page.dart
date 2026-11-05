@@ -971,9 +971,11 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               alignment: AlignmentDirectional.centerStart,
               child: TextButton.icon(
                 key: const ValueKey('task-detail-add-checklist'),
-                onPressed: widget.onChecklistChanged != null
-                    ? () => setState(() => _isAddingChecklist = true)
-                    : (widget.onEdit == null ? null : _edit),
+                onPressed: widget.onTaskChanged != null
+                    ? _beginInlineEdit
+                    : widget.onChecklistChanged != null
+                        ? () => setState(() => _isAddingChecklist = true)
+                        : (widget.onEdit == null ? null : _edit),
                 icon: const Icon(Icons.add, size: 17),
                 label: const Text('افزودن چک‌لیست'),
               ),
@@ -1011,19 +1013,21 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             ),
           ),
           const SizedBox(height: 10),
-          TextField(
-            key: const ValueKey('task-detail-checklist-add-input'),
-            controller: _checklistAddController,
-            enabled: widget.onChecklistChanged != null && !_isSavingChecklist,
-            textDirection: TextDirection.rtl,
-            decoration: const InputDecoration(
-              hintText: 'عنوان مرحله جدید را بنویسید...',
-              border: OutlineInputBorder(),
-              isDense: true,
+          if (_isInlineEditing || _isAddingChecklist) ...[
+            TextField(
+              key: const ValueKey('task-detail-checklist-add-input'),
+              controller: _checklistAddController,
+              enabled: !_isSavingChecklist,
+              textDirection: TextDirection.rtl,
+              decoration: const InputDecoration(
+                hintText: 'عنوان مرحله جدید را بنویسید...',
+                border: OutlineInputBorder(),
+                isDense: true,
+              ),
+              onSubmitted: (_) => _addChecklistItem(),
             ),
-            onSubmitted: (_) => _addChecklistItem(),
-          ),
-          const SizedBox(height: 6),
+            const SizedBox(height: 6),
+          ],
           for (var index = 0; index < items.length; index++)
             if (_editingChecklistIndex == index)
               Row(
@@ -1076,36 +1080,51 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                       ),
                     ),
                   ),
-                  IconButton(
-                    key: ValueKey('task-detail-checklist-edit-$index'),
-                    tooltip: 'ویرایش مورد',
-                    onPressed: widget.onChecklistChanged == null || _isSavingChecklist
-                        ? null
-                        : () => _beginChecklistEdit(index, items[index]),
-                    icon: const Icon(Icons.edit_outlined, size: 18),
-                  ),
-                  IconButton(
-                    key: ValueKey('task-detail-checklist-delete-$index'),
-                    tooltip: 'حذف مورد',
-                    onPressed: widget.onChecklistChanged == null || _isSavingChecklist
-                        ? null
-                        : () => _deleteChecklistItem(index),
-                    icon: const Icon(Icons.delete_outline, size: 18),
-                  ),
+                  if (_isInlineEditing) ...[
+                    IconButton(
+                      key: ValueKey('task-detail-checklist-up-$index'),
+                      tooltip: 'انتقال به بالا',
+                      onPressed: _isSavingChecklist || index == 0 ? null : () => _moveChecklistItem(index, -1),
+                      icon: const Icon(Icons.arrow_upward, size: 17),
+                    ),
+                    IconButton(
+                      key: ValueKey('task-detail-checklist-down-$index'),
+                      tooltip: 'انتقال به پایین',
+                      onPressed: _isSavingChecklist || index == items.length - 1 ? null : () => _moveChecklistItem(index, 1),
+                      icon: const Icon(Icons.arrow_downward, size: 17),
+                    ),
+                    IconButton(
+                      key: ValueKey('task-detail-checklist-edit-$index'),
+                      tooltip: 'ویرایش مورد',
+                      onPressed: _isSavingChecklist ? null : () => _beginChecklistEdit(index, items[index]),
+                      icon: const Icon(Icons.edit_outlined, size: 18),
+                    ),
+                    IconButton(
+                      key: ValueKey('task-detail-checklist-delete-$index'),
+                      tooltip: 'حذف مورد',
+                      onPressed: _isSavingChecklist ? null : () => _deleteChecklistItem(index),
+                      icon: const Icon(Icons.delete_outline, size: 18),
+                    ),
+                  ],
                 ],
               ),
           const SizedBox(height: 8),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              key: const ValueKey('task-detail-checklist-add'),
-              onPressed: widget.onChecklistChanged == null || _isSavingChecklist
-                  ? null
-                  : _addChecklistItem,
-              icon: const Icon(Icons.add),
-              label: const Text('افزودن مرحله جدید'),
+          if (_isInlineEditing || widget.onTaskChanged == null)
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                key: const ValueKey('task-detail-checklist-add'),
+                onPressed: _isSavingChecklist
+                    ? null
+                    : _isInlineEditing
+                        ? _addChecklistItem
+                        : widget.onChecklistChanged != null
+                            ? () => setState(() => _isAddingChecklist = true)
+                            : null,
+                icon: const Icon(Icons.add),
+                label: const Text('افزودن مرحله جدید'),
+              ),
             ),
-          ),
         ],
       ),
     );
