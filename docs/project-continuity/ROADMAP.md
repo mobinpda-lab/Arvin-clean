@@ -167,3 +167,15 @@ A feature mentioned only as an illustrative example (such as periodic tasks or a
 - Task Details visual test now verifies nine actual content sections plus AppBar and fixed bottom actions, checks measurable geometry, vertical scroll extent, and render exceptions. It no longer depends on a missing golden PNG. This is structural/layout acceptance, not pixel-golden approval.
 - Fresh exact-SHA Build, Drift v11, Follow-up Persistence, Home filter, sacred phrase and Task Details tests are required. No previous-SHA PASS carries forward.
 - PR #3052 remains OPEN / DRAFT / UNMERGED; main unchanged; BLOCKED — RELEASE: NO-GO.
+
+
+## قرارداد نهایی تایپوگرافی و بردارسازی دو عبارت — ۱۴۰۵/۰۸/۱۴ (2026-11-05)
+- Vazirmatn تنها خانواده فونت متنی مجاز برای تمام UI است؛ حذف تمام استثناهای serif/Naskh/Amiri و fallbackهای متنی الزامی است.
+- دو عبارت مقدس دیگر Text widget نیستند: بسم‌الله در هدر Home و دعای تفویض در سربرگ تقویم باید SVG اختصاصی path-based باشند.
+- معیار SVG: vector path واقعی، مقیاس‌پذیری گوشی/تبلت، روشن/تاریک، رنگ سرمه‌ای برند، بدون shadow/background سنگین، semantics متنی قابل دسترس؛ SVG مبتنی بر font/text یا raster embedded رد است.
+- عرض هدف بسم‌الله در موبایل حدود ۱۸۰–۲۳۰px و در تبلت responsive است.
+- مرجع تصویری خوشنویسی مورد تأیید در دارایی‌های قابل بازیابی یافت نشد؛ تطبیق دقیق calligraphy تا دریافت همان مرجع NOT VERIFIED است. نباید شکل خوشنویسی حدسی به‌عنوان نسخه تأییدشده ثبت شود.
+- اصلاحات فوری CI در HEAD قبلی: const invocation در home_visual_integration، fixture غیر const در task_detail_template_conversion_test، و ListTile/Material warning در Task Details card. Layout Smoke ابعاد finite را نیز assert می‌کند.
+- Build exact-head قبلی FAILED: Analyze دارای خطای const در home_visual_integration و fixture تست؛ visual smoke با FlutterError مربوط به ListTile/Material شکست خورد؛ شاردهای تست نیز assertion failures دارند. APK matrix در PR Draft اجرا نشده است.
+- Device Smoke همان SHA کامل نشده و نتیجه هفت‌مسیره NOT VERIFIED است.
+- هیچ PASS از SHA قبلی به HEAD بعدی منتقل نمی‌شود. PR #3052 OPEN/DRAFT/UNMERGED؛ main untouched؛ **BLOCKED — RELEASE: NO-GO**.
