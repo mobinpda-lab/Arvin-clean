@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:arvin/arvin_colors.dart';
 import 'package:arvin/core/theme/arvin_theme.dart';
@@ -842,14 +843,18 @@ class _CalendarPageState extends State<CalendarPage> {
         ),
         child: Scaffold(
         appBar: AppBar(
-          title: Text(
-            'أُفَوِّضُ أَمْرِی إِلَى اللَّهِ',
+          title: Semantics(
             key: const ValueKey('calendar-sacred-header'),
-            style: TextStyle(
-              fontFamily: AppFonts.vazirmatnFamily,
-              fontSize: 19,
-              fontWeight: FontWeight.w600,
-              height: 1.5,
+            label: 'أُفَوِّضُ أَمْرِی إِلَى اللَّهِ',
+            child: SvgPicture.asset(
+              'assets/images/branding/tafweez.svg',
+              key: const ValueKey('calendar-sacred-header-svg'),
+              width: 240,
+              colorFilter: const ColorFilter.mode(
+                Color(0xFF1A2B4C),
+                BlendMode.srcIn,
+              ),
+              excludeFromSemantics: true,
             ),
           ),
           actions: [
