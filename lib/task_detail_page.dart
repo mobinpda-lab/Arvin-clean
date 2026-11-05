@@ -1140,7 +1140,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                       type: MaterialType.transparency,
                       child: CheckboxListTile(
                         value: items[index].startsWith('[x] '),
-                      onChanged: widget.onChecklistChanged == null || _isSavingChecklist
+                      onChanged: _isSavingChecklist ||
+                              (_isInlineEditing
+                                  ? widget.onTaskChanged == null
+                                  : widget.onChecklistChanged == null)
                           ? null
                           : (_) => _toggleChecklistItem(index),
                       controlAffinity: ListTileControlAffinity.leading,
