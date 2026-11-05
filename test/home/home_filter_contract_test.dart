@@ -7,6 +7,7 @@ import 'package:arvin/arvin_colors.dart';
 import 'package:arvin/widgets/arvin_primary_navigation.dart';
 import 'package:arvin/home/home_filter_ui.dart';
 import 'package:arvin/services/iran_clock.dart';
+import 'package:arvin/services/persian_date_formatter.dart';
 
 void main() {
   testWidgets('Home renders five collapsible time groups and hides empty filtered groups', (tester) async {
@@ -132,7 +133,23 @@ void main() {
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('home-group-tomorrow')), findsOneWidget);
+    final dateFormatter = const PersianDateFormatter();
+    final expectedTodayDate = dateFormatter.format(today, usePersianDate: true);
+    final expectedTomorrowDate = dateFormatter.format(tomorrow, usePersianDate: true);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('home-group-today')),
+        matching: find.textContaining(expectedTodayDate),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('home-group-tomorrow')),
+        matching: find.textContaining(expectedTomorrowDate),
+      ),
+      findsOneWidget,
+    );
     expect(find.byKey(const ValueKey('home-group-future')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-group-no_date')), findsOneWidget);
 
