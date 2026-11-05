@@ -107,3 +107,20 @@ A feature mentioned only as an illustrative example (such as periodic tasks or a
 4. Cross-screen design: زبان بصری Microsoft To Do-inspired، Vazirmatn، Persian RTL، رنگ‌های معنایی و کارت‌های گوشه‌گرد.
 
 **Cross-cutting constraints:** عدم ساخت مدل/مخزن موازی؛ استقلال Due Date، Reminder Date، Follow-up Date؛ عدم حدس درباره زمان اجرا و assignment مسئول؛ حفظ قراردادهای Provider و migration. هر slice برای انتقال از APPROVED به IMPLEMENTED/VERIFIED به مجوز اجرایی جداگانه و شواهد exact-SHA نیاز دارد. این ثبت backlog به‌تنهایی هیچ کد یا تستی را مجاز نمی‌کند.
+
+ 
+## 2026-11-05 — Execution audit and current backlog disposition
+
+**Audit:** docs/audit/ARVIN_ISSUE_823_UIUX_EXECUTION_AUDIT_2026-11-05.md  
+**Audit baseline:** c35929c1cc2022b8470cd86b6f6fe8e2ae771e5b  
+**Status:** execution authorized on PR #3052 branch; implementation remains incomplete.
+
+1. Home: five active filters plus independent sort are present. Active Category label corrected to «دسته‌ها». OR/AND code exists but requires combined-result widget coverage. Past/completed ordering needs a focused assertion. Future aggregate heading date behavior needs product clarification before changing presentation.
+2. Task Templates: BLOCKED pending a separate approved Task Template definition and non-destructive G1 migration contract. Existing Project Template infrastructure must be reused; no parallel storage. Then implement real Settings tabs and confirmed conversion from existing Task/Project detail surfaces.
+3. Task Clone: existing TaskCloneService and Persian sequential «— رونوشت» behavior retained; rerun focused tests on final SHA.
+4. Task Detail: canonical eleven-section spec exists; current runtime form is partial. Implement one-page View/Edit and scroll-offset preservation only after mapping each section to canonical fields and existing stores; no guessed runtime/assignee values.
+5. Calendar: preserve existing local/provider paths. Retry Provider acceptance after the baseline Dart Development Service startup failure; distinguish single event deletion from external calendar deletion.
+6. Typography: Product Decisions records owner clarification required for the Naskh sacred-phrase treatment versus the global Vazirmatn rule. Do not change rendering before decision.
+7. Current CI status must always be re-read against the live branch HEAD. No PASS transfers from c35929c or any other historical SHA.
+8. PR #3052 stays OPEN / DRAFT / UNMERGED; main untouched; **BLOCKED — RELEASE: NO-GO**.
+
