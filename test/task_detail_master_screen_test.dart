@@ -12,7 +12,9 @@ import 'package:arvin/task_detail_page.dart';
 Finder _taskDetailPageScrollable(WidgetTester tester) {
   final pageScrollable = find.descendant(
     of: find.byKey(const ValueKey('task-detail-content-list')),
-    matching: find.byType(Scrollable),
+    matching: find.byWidgetPredicate(
+      (widget) => widget is Scrollable && widget.axisDirection == AxisDirection.down,
+    ),
   );
   expect(pageScrollable, findsOneWidget);
   final state = tester.state<ScrollableState>(pageScrollable);
@@ -411,6 +413,12 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
     await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('task-detail-checklist-down-0')),
+      240,
+      scrollable: _taskDetailPageScrollable(tester),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('task-detail-checklist-down-0')));
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const ValueKey('task-detail-checklist-add-input')), 'مرحله سوم');
@@ -427,6 +435,12 @@ void main() {
     expect(persisted, isNull);
 
     await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('task-detail-checklist-down-0')),
+      240,
+      scrollable: _taskDetailPageScrollable(tester),
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('task-detail-checklist-down-0')));
     await tester.pumpAndSettle();
@@ -591,11 +605,14 @@ void main() {
 
     expect(find.byKey(const ValueKey('task-detail-description-card')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-independent-reminders')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-checklist')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-latest-followup')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-timeline')), findsOneWidget);
 
     final detailScrollable = _taskDetailPageScrollable(tester);
+    final checklistCard = find.byKey(const ValueKey('task-detail-checklist'));
+    await tester.scrollUntilVisible(checklistCard, 240, scrollable: detailScrollable);
+    await tester.pumpAndSettle();
+    expect(checklistCard, findsOneWidget);
     final addReminder = find.byKey(const ValueKey('task-detail-add-reminder'));
     await tester.scrollUntilVisible(addReminder, 240, scrollable: detailScrollable);
     await tester.pumpAndSettle();
@@ -996,7 +1013,7 @@ void main() {
     await tester.pumpWidget(MaterialApp(home: TaskDetailPage(task: task)));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('task-status-badge')), findsOneWidget);
-    expect(find.text('در انتظار انجام'), findsOneWidget);
+    expect(find.text('در انتظار انجام'), findsWidgets);
   });
 
 }
