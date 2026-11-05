@@ -536,6 +536,11 @@ void main() {
       find.byKey(const ValueKey('calendar-pastel-card-task-due:interaction-task')),
     );
     await tester.pumpAndSettle();
+    expect(
+      edited,
+      1,
+      reason: 'long-press must open the action menu without directly entering edit',
+    );
     expect(find.byKey(const ValueKey('reminder-actions-task-due:interaction-task')),
         findsNothing);
     expect(find.byKey(const ValueKey('task-due-edit-task-due:interaction-task')),
