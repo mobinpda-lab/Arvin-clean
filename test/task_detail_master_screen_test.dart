@@ -391,11 +391,11 @@ void main() {
     expect(centerX, greaterThan(projectX));
     expect(projectX, greaterThan(categoryX));
     expect(categoryX, greaterThan(tagsX));
-    expect(summaryY, lessThan(metadataY));
-    expect(metadataY, lessThan(templateY));
+    expect(metadataY, lessThan(summaryY));
+    expect(summaryY, lessThan(descriptionY));
+    expect(descriptionY, lessThan(templateY));
     expect(templateY, lessThan(dueY));
     expect(dueY, lessThan(assigneeY));
-    expect(assigneeY, lessThan(descriptionY));
     expect(
       tester.widget<Directionality>(
         find.ancestor(
