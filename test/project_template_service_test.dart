@@ -1,4 +1,5 @@
 import 'package:arvin/models/project_template.dart';
+import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/center_store.dart';
 import 'package:arvin/services/project_store.dart';
@@ -13,6 +14,51 @@ void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
   });
+  test('existing Project converts to Project Template without mutating source records', () async {
+    final db = NativeDatabase.memory();
+    addTearDown(db.close);
+    final templates = ProjectTemplateStore(executor: db);
+    final projects = ProjectStore(executor: db);
+    final tasks = TaskStore(executor: db);
+    final task = Task(
+      id: 'project-source-task',
+      title: 'کنترل شیر',
+      description: 'شرح فنی',
+      category: 'تعمیرات',
+      tags: const ['ایمنی'],
+      checklist: const ['[x] بررسی نشتی', '[ ] ثبت فشار'],
+      priority: TaskPriority.high,
+    );
+    await tasks.save([task]);
+    final project = ProjectPlan(
+      id: 'project-source',
+      title: 'تعمیرات دوره‌ای',
+      centerId: 'center-77',
+      colorValue: 0xFF2F80ED,
+      itemIds: [task.id],
+    );
+    await projects.save([project]);
+
+    final service = ProjectTemplateService(
+      templateStore: templates,
+      projectStore: projects,
+      taskStore: tasks,
+      idFactory: (prefix) => '$prefix-fixed',
+    );
+    final created = await service.createFromProject(project: project);
+    final stored = (await templates.load()).single;
+
+    expect(created.name, 'تعمیرات دوره‌ای');
+    expect(stored.centerId, 'center-77');
+    expect(stored.colorValue, 0xFF2F80ED);
+    expect(stored.tasks.single.title, 'کنترل شیر');
+    expect(stored.tasks.single.checklist, ['بررسی نشتی', 'ثبت فشار']);
+    expect((await projects.load()).single.title, 'تعمیرات دوره‌ای');
+    expect((await projects.load()).single.itemIds, [task.id]);
+    expect((await tasks.load()).single.title, 'کنترل شیر');
+    expect((await tasks.load()).single.checklist, ['[x] بررسی نشتی', '[ ] ثبت فشار']);
+  });
+
   test('template creates independent projects and propagation is append-only and idempotent', () async {
     final db = NativeDatabase.memory(); addTearDown(db.close);
     final centers = CenterStore(executor: db);
