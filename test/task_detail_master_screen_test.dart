@@ -814,16 +814,15 @@ void main() {
     expect(find.byKey(const ValueKey('task-detail-status-menu')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-priority-menu')), findsOneWidget);
 
-    final summaryY = tester.getTopLeft(summary).dy;
-    final metadataY = tester.getTopLeft(metadata).dy;
+    final detailScrollable = _taskDetailPageScrollable(tester);
+    final scrollPosition = tester.state<ScrollableState>(detailScrollable).position;
+    final summaryY = scrollPosition.pixels + tester.getTopLeft(summary).dy;
+    final metadataY = scrollPosition.pixels + tester.getTopLeft(metadata).dy;
     final timeX = tester.getCenter(find.byKey(const ValueKey('task-detail-metadata-time'))).dx;
     final centerX = tester.getCenter(find.byKey(const ValueKey('task-detail-metadata-center'))).dx;
     final projectX = tester.getCenter(find.byKey(const ValueKey('task-detail-metadata-project'))).dx;
     final categoryX = tester.getCenter(find.byKey(const ValueKey('task-detail-metadata-category'))).dx;
     final tagsX = tester.getCenter(find.byKey(const ValueKey('task-detail-metadata-tags'))).dx;
-
-    final detailScrollable = _taskDetailPageScrollable(tester);
-    final scrollPosition = tester.state<ScrollableState>(detailScrollable).position;
 
     final template = find.byKey(const ValueKey('task-detail-template-source'));
     await tester.scrollUntilVisible(template, 240, scrollable: detailScrollable);
