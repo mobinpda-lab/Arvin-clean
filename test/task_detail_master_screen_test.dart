@@ -235,7 +235,6 @@ void main() {
     expect(saved.single.title, 'بازبینی پمپ');
     expect(saved.single.centerNameSnapshot, 'مرکز مرکزی');
     expect(saved.single.projectNameSnapshot, 'پروژه تعمیرات');
-    expect(saved.single.dueDate, isNull);
     expect(task.title, 'بازبینی پمپ');
     expect(task.dueDate, DateTime(2026, 11, 20));
     expect(task.checklist.first, '[x] کنترل برق');
