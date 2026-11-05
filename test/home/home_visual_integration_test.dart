@@ -19,6 +19,9 @@ void main() {
     expect(find.text('بسم الله الرحمن الرحیم'), findsOneWidget);
     final sacredPhrase = tester.widget<Text>(find.text('بسم الله الرحمن الرحیم'));
     expect(sacredPhrase.style?.fontFamily, AppFonts.sacredArabicFamily);
+    expect(AppFonts.familyForText('أُفَوِّضُ أَمْرِی إِلَى اللَّهِ'), AppFonts.sacredArabicFamily);
+    expect(AppFonts.familyForText('افوض امری الی الله'), AppFonts.sacredArabicFamily);
+    expect(AppFonts.familyForText('متن فارسی رابط کاربری'), AppFonts.vazirmatnFamily);
     expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-search')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-notifications')), findsOneWidget);
