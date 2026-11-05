@@ -22,6 +22,8 @@ class ProjectTemplate {
     required this.createdAt,
     required this.updatedAt,
     this.isArchived = false,
+    this.centerId,
+    this.colorValue = 0xFF4A4CAB,
   }) : tasks = List.unmodifiable(tasks);
   final String id;
   final String name;
@@ -29,9 +31,12 @@ class ProjectTemplate {
   final DateTime createdAt;
   final DateTime updatedAt;
   final bool isArchived;
-  ProjectTemplate copyWith({String? name, Iterable<ProjectTemplateTask>? tasks, bool? isArchived, DateTime? updatedAt}) => ProjectTemplate(
+  final String? centerId;
+  final int colorValue;
+  ProjectTemplate copyWith({String? name, Iterable<ProjectTemplateTask>? tasks, bool? isArchived, DateTime? updatedAt, String? centerId, bool clearCenterId = false, int? colorValue}) => ProjectTemplate(
     id: id, name: name ?? this.name, tasks: tasks ?? this.tasks, createdAt: createdAt,
     updatedAt: updatedAt ?? this.updatedAt, isArchived: isArchived ?? this.isArchived,
+    centerId: clearCenterId ? null : centerId ?? this.centerId, colorValue: colorValue ?? this.colorValue,
   );
 }
 class ProjectTemplateDeleteBlocked implements Exception {
