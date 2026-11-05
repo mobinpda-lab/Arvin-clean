@@ -303,9 +303,16 @@ class _TaskTemplateManagementPageState extends State<TaskTemplateManagementPage>
                       key: ValueKey('task-template-${template.id}'),
                       child: ListTile(
                         title: Text(template.name),
-                        subtitle: Text(
-                          '${template.title} • ${template.checklist.length} مرحله • ${template.tags.length} برچسب${template.isArchived ? ' • بایگانی‌شده' : ''}',
-                        ),
+                        subtitle: Text([
+                          template.title,
+                          '${template.checklist.length} مرحله',
+                          '${template.tags.length} برچسب',
+                          if (template.centerNameSnapshot?.isNotEmpty == true)
+                            'مرکز: ${template.centerNameSnapshot}',
+                          if (template.projectNameSnapshot?.isNotEmpty == true)
+                            'پروژه: ${template.projectNameSnapshot}',
+                          if (template.isArchived) 'بایگانی‌شده',
+                        ].join(' • ')),
                         trailing: Wrap(
                           spacing: 2,
                           children: [
