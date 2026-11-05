@@ -108,6 +108,13 @@ PROPOSED = candidate only; APPROVED = explicit owner decision; IN_PROGRESS = wor
 - Governance unchanged: PR #3052 OPEN / DRAFT / UNMERGED; no main edits, merge or release; BLOCKED — RELEASE: NO-GO.
 
 
+## مصوبه قطعی مالک محصول — فونت و استثنای خط نسخ — ۱۴۰۵/۰۸/۱۴ (2026-11-05)
+
+- فونت تمام اجزا، متون، اعداد، دکمه‌ها، برچسب‌ها و سربرگ‌های اپلیکیشن بدون استثنا **Vazirmatn** است.
+- فقط دو عبارت «بسم‌الله الرحمن الرحیم» و «أُفَوِّضُ أَمْرِی إِلَى اللَّهِ» (یا نمایش بدون اعراب «افوض امری الی الله») مجازند با خط نسخ هنری رندر شوند.
+- هیچ متن یا عنصر دیگری مجاز به استفاده از فونت/خط جایگزین نیست. استثنا فقط به محدوده همان دو عبارت محدود است و متن پیرامونی Vazirmatn می‌ماند.
+- این تصمیم، پرسش قبلی درباره استثنای بسم‌الله را می‌بندد و برای هر دو عبارت مجوز صریح صادر می‌کند.
+
 ## Calendar UI/UX — owner-approved canonical contract — 2026-11-05 — ۱۴۰۵/۰۸/۱۴
 **Status:** APPROVED — CANONICAL. Full fourteen-section specification: `docs/project-continuity/calendar_ui_ux_spec.md`.
 - Header: sacred phrase «أُفَوِّضُ أَمْرِي إِلَى اللَّهِ» centered, replacing the Calendar title; search icon right; full Persian Today-date pill and «برو به تاریخ» picker adjacent at top-left. Help button removed.
