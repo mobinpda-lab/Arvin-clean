@@ -334,3 +334,14 @@ Every new entry must include exact SHA, workflow/run IDs, terminal conclusion, a
 - On the audited SHA, Build #42011495370 = FAILURE (Analyze PASS; test-0/test-2/Visual FAILURE; test-1/test-3/test-4/test-5 PASS; APK SKIPPED by Draft guard). Device Smoke #42011495381 = CANCELLED (Quick Capture, Task Lifecycle, Reminder/Vazirmatn, Follow-up Persistence PASS; Boot, Navigation, Calendar Segmented View CANCELLED).
 - Calendar Provider #42011495562, Follow-up Persistence #42011495565 and Parallel Wave Contract #42011495436 = SUCCESS on the audited SHA.
 - PR #3052 remains OPEN / DRAFT / UNMERGED; main unchanged; **BLOCKED — RELEASE: NO-GO**.
+
+
+### Exact failure-log extraction and Device Smoke cancellation diagnosis — 2026-11-05
+- Shard 0 job 127191744252, test/home/home_filter_contract_test.dart:30: Expected exactly one matching candidate; actual finder returned two Text("گذشته") widgets: the Past group heading and task-card title keyed task-card-title-past. This is a test-fixture/Finder collision in the available evidence; no change made.
+- Shard 2 job 127191744137, test/home/home_owner_reference_test.dart:47: expected at least one widget with text ۱۴۰۵/۰۸/۱۴; actual finder returned zero. The log does not establish why the rendered date differs or is absent. Root cause NOT VERIFIED.
+- Shard 2 also reports task_detail_visual_test.dart TimeoutException after 0:10:00.000000; the shard ended with 287 passed / 2 failed.
+- Independent Visual job 127191743762: the same Task Details visual test timed out after 10 minutes; 0 passed / 1 failed. Upload step found no test/failures/task_detail_visual_actual.png; no visual artifact was produced.
+- Device Smoke Boot job 127191526180, Navigation job 127191526487, and Calendar Segmented View job 127191526055 each ended CANCELLED after approximately 30 minutes. Logs show emulator API 35 reached sys.boot_completed=1, ADB reported the emulator as ready, and the script entered before-flutter-drive; no completed Flutter-driver result was captured. Logs contain bad color buffer handle and no PNG screenshot artifacts were produced. The logs do not prove that this warning caused the stall; exact stalled test operation/root cause remains NOT VERIFIED.
+- Boot/Navigation logs also show transient adb: device offline during emulator startup before later reporting the device ready. This does not identify the subsequent Flutter-driver stall.
+- Quick Capture, Task Lifecycle, Reminder/Vazirmatn and Follow-up Persistence Device Smoke lanes are SUCCESS; they do not compensate for the three cancelled lanes.
+- No assertion was changed, removed, skipped, weakened or bypassed. No timeout was increased. No runtime/product change was made.
