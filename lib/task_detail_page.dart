@@ -501,15 +501,15 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   Future<void> _convertToTemplate() async {
-    final controller = TextEditingController(text: _task.title);
+    var templateName = _task.title;
     final name = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('تبدیل کار به الگو'),
         content: TextField(
           key: const ValueKey('task-detail-template-name'),
-          controller: controller,
           autofocus: true,
+          onChanged: (value) => templateName = value,
           decoration: const InputDecoration(labelText: 'نام الگو'),
         ),
         actions: [
@@ -517,7 +517,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           FilledButton(
             key: const ValueKey('task-detail-template-confirm'),
             onPressed: () {
-              final value = controller.text.trim();
+              final value = templateName.trim();
               if (value.isNotEmpty) Navigator.pop(dialogContext, value);
             },
             child: const Text('تأیید و ذخیره'),
@@ -525,7 +525,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         ],
       ),
     );
-    controller.dispose();
     if (name == null || !mounted || _isSavingTaskTemplate) return;
     setState(() => _isSavingTaskTemplate = true);
     try {
