@@ -178,7 +178,7 @@ void main() {
     await tester.scrollUntilVisible(addFollowUp, 240, scrollable: detailScrollable);
     await tester.pumpAndSettle();
     expect(addFollowUp, findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-recurrence')), findsNothing);
+    expect(find.byKey(const ValueKey('task-detail-recurrence')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-recurrence-add')), findsNothing);
     expect(find.byKey(const ValueKey('task-detail-template-source')), findsNothing);
     expect(find.text('افراد مرتبط'), findsNothing);
