@@ -1,3 +1,12 @@
+## 2026-11-05 — Home test-2 regression diagnosis
+
+- Historical test-2 failure on SHA 9d073ad: Home owner-reference test used an exact finder for the Jalali date alone, but the active Home header renders weekday + date together in one Text widget. It also expected the superseded Category label «دسته‌بندی‌ها».
+- Corrected test/home/home_owner_reference_test.dart to assert the full dynamic weekday + Jalali date and canonical «دسته‌ها» label. The assertion is more precise; no case was removed or weakened.
+- test-0 historical failure was independently traced to the Task fixture title colliding with the «گذشته» group heading; the fixture title was disambiguated and test-0 passed on baseline c35929c.
+- Historical Task Details visual failure is a separate 10-minute pumpAndSettle timeout before screenshot/golden capture. Available logs do not reveal the unsettled frame source; root cause remains NOT VERIFIED. No timeout change, settle bypass or golden update was made.
+- Calendar Provider attempt 1 on c35929c failed before tests because Dart Development Service did not start; retry attempt 2 was still in progress at last poll.
+- The new Home test correction and all documentation commits require fresh CI on the live HEAD. No historical PASS transfers.
+
 ## 2026-11-05 — Issue #823 UI/UX evidence audit and Home label correction
 
 - Re-read the live PR, authorized branch and main refs before work. Audit baseline was c35929c1cc2022b8470cd86b6f6fe8e2ae771e5b; PR head and branch matched; main remained 45e4202b03a434459e4c021a04efa7e8396359db.
