@@ -43,5 +43,14 @@ void main() {
     expect(source.dueDate, DateTime(2026, 11, 20));
     expect(source.checklist, ['[x] کنترل برق', '[ ] کنترل فشار']);
     expect(find.text('الگوی کار ذخیره شد؛ کار اصلی بدون تغییر ماند.'), findsOneWidget);
+
+    await tester.tap(find.byKey(ValueKey('task-template-create-${saved.id}')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(ValueKey('task-template-create-confirm-${saved.id}')));
+    await tester.pumpAndSettle();
+    final allTasks = await tasks.load();
+    expect(allTasks, hasLength(2));
+    expect(allTasks.any((item) => item.title == 'سرویس پمپ'), isTrue);
+    expect(find.text('کار «سرویس پمپ» از الگو ساخته شد.'), findsOneWidget);
   });
 }
