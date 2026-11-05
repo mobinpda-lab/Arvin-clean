@@ -967,7 +967,7 @@ class _HomePageState extends State<HomePage> {
               ),
               chip(
                 key: const ValueKey('home-filter-card-category'),
-                label: _categoryFilters.isEmpty ? 'دسته‌بندی‌ها' : _categoryFilters.length == 1 ? _categoryFilters.first : 'دسته‌بندی‌ها (${persianDateFormatter.toPersianDigits('${_categoryFilters.length}')})',
+                label: _categoryFilters.isEmpty ? 'دسته‌ها' : _categoryFilters.length == 1 ? _categoryFilters.first : 'دسته‌ها (${persianDateFormatter.toPersianDigits('${_categoryFilters.length}')})',
                 icon: Icons.layers_rounded,
                 accent: ArvinColors.category,
                 soft: ArvinColors.categorySoft,
