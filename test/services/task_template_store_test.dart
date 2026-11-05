@@ -71,6 +71,7 @@ void main() {
     expect(loaded.priority, TaskPriority.high);
     expect(loaded.tags, ['روزانه', 'ایمنی']);
     expect(loaded.checklist, ['کنترل برق', 'کنترل کابل']);
+    expect(loaded.checklistEnabled, isTrue);
     expect(loaded.people.single.id, 'person-1');
     expect(loaded.reminders.single.title, 'یادآوری بازبینی');
     expect(loaded.reminders.single.hour, 8);
@@ -150,6 +151,7 @@ void main() {
     expect(templateColumns.map((row) => row['name']), containsAll([
       'center_id_snapshot',
       'project_id_snapshot',
+      'checklist_enabled',
     ]));
     final oldTemplate = await database.runSelect(
       "SELECT name, title FROM task_templates WHERE id = 'task-template-v9'",
