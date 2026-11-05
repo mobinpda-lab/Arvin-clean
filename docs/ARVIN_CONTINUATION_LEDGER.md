@@ -1772,3 +1772,13 @@ Build detail: Analyze PASS; test-1/test-3/test-4/test-5 PASS; test-0/test-2 FAIL
 - Exact failure triage from available logs: test-0 duplicate «گذشته» Finder match; test-2 missing expected Jalali date in Home owner-reference test; Visual Golden timed out after 10 minutes. These are not permission to weaken/skip tests or apply a timeout bypass.
 - The CI results above belong only to the base SHA and do not verify any documentation commit SHA.
 - PR #3052 OPEN / DRAFT / UNMERGED; main unchanged; no merge/release; **BLOCKED — RELEASE: NO-GO**.
+
+
+### Raw-log triage detail — Build and Device Smoke runs 42011495370 / 42011495381
+- **Shard 0 / Job 127191744252:** home_filter_contract_test.dart:30 expected exactly one «گذشته»; Flutter found two: the Past section heading and task title task-card-title-past. Exact test: Home renders five collapsible time groups and hides empty filtered groups.
+- **Shard 2 / Job 127191744137:** home_owner_reference_test.dart:47 expected ۱۴۰۵/۰۸/۱۴, but found zero matching Text widgets. Root cause NOT VERIFIED.
+- **Shard 2 / Job 127191744137:** task_detail_visual_test.dart timed out at 10 minutes; shard summary 287 passed / 2 failed.
+- **Visual / Job 127191743762:** same visual test timed out at 10 minutes; 0 passed / 1 failed. Upload log confirms no test/failures/task_detail_visual_actual.png, so no actual screenshot artifact exists.
+- **Device Smoke Boot / Job 127191526180; Navigation / Job 127191526487; Calendar Segmented View / Job 127191526055:** each CANCELLED at approximately the 30-minute job boundary. Emulator reported API 35 and sys.boot_completed=1, ADB reported device, and logs entered before-flutter-drive; no final Flutter-driver completion or screenshot evidence appeared. bad color buffer handle was logged, but causal relation to the stall is NOT VERIFIED. Boot/Navigation also show transient adb: device offline during startup, followed by successful readiness.
+- The three cancelled jobs' screenshot upload steps report no matching artifacts/device-smoke/*.png. This is missing evidence, not proof of a product assertion failure.
+- No test weakening, skip, timeout bypass, runtime source edit or retry was performed during this audit.
