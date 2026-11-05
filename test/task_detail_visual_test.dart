@@ -78,6 +78,8 @@ void main() {
       await tester.pump(const Duration(milliseconds: 350));
       await tester.pump();
 
+      expect(find.byType(TaskDetailPage), findsOneWidget);
+
       // Nine real content sections plus the AppBar and fixed bottom actions
       // make the eleven independently asserted structural surfaces.
       const surfaceKeys = <String>[
@@ -101,6 +103,8 @@ void main() {
         await tester.ensureVisible(finder);
         await tester.pump(const Duration(milliseconds: 50));
         final rect = tester.getRect(finder);
+        expect(rect.width.isFinite, isTrue, reason: '$key width must be finite');
+        expect(rect.height.isFinite, isTrue, reason: '$key height must be finite');
         expect(rect.width, greaterThan(0), reason: '$key must have a measurable width');
         expect(rect.height, greaterThan(0), reason: '$key must have a measurable height');
         expect(rect.width, lessThanOrEqualTo(412), reason: '$key must not exceed the viewport width');
