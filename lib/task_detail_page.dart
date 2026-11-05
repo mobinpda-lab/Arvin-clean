@@ -1076,14 +1076,23 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
   Widget _latestCard(FollowUp? latest, DateTime now) {
     if (latest == null) {
-      if (_task.completed) return const SizedBox.shrink();
-      return Align(
-        alignment: AlignmentDirectional.centerStart,
-        child: TextButton.icon(
-          key: const ValueKey('task-detail-add-followup'),
-          onPressed: widget.onAddFollowUp == null ? null : _addFollowUp,
-          icon: const Icon(Icons.add, size: 17),
-          label: const Text('افزودن پیگیری'),
+      return _card(
+        key: const ValueKey('task-detail-latest-followup'),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              Expanded(child: _sectionTitle('آخرین پیگیری', Icons.bolt_outlined)),
+              if (!_task.completed)
+                TextButton.icon(
+                  key: const ValueKey('task-detail-add-followup'),
+                  onPressed: widget.onAddFollowUp == null ? null : _addFollowUp,
+                  icon: const Icon(Icons.add, size: 17),
+                  label: const Text('افزودن پیگیری'),
+                ),
+            ]),
+            const Text('هنوز پیگیری ثبت نشده است', style: TextStyle(color: _muted)),
+          ],
         ),
       );
     }
@@ -1135,7 +1144,19 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   Widget _timeline(List<FollowUp> history) {
-    if (history.isEmpty) return const SizedBox.shrink();
+    if (history.isEmpty) {
+      return _card(
+        key: const ValueKey('task-detail-timeline'),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _sectionTitle('تاریخچه پیگیری‌ها', Icons.timeline_outlined),
+            const SizedBox(height: 8),
+            const Text('تاریخچه‌ای ثبت نشده است', style: TextStyle(color: _muted)),
+          ],
+        ),
+      );
+    }
     return _card(
       key: const ValueKey('task-detail-timeline'),
       child: Column(
@@ -1700,18 +1721,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             _recurrenceCard(now),
             const SizedBox(height: 10),
             _checklistCard(),
-            if (latest != null) ...[
-              const SizedBox(height: 10),
-              _latestCard(latest, now),
-            ],
-            if (history.isEmpty && latest == null && !_task.completed) ...[
-              const SizedBox(height: 10),
-              _latestCard(null, now),
-            ],
-            if (history.isNotEmpty) ...[
-              const SizedBox(height: 10),
-              _timeline(history),
-            ],
+            const SizedBox(height: 10),
+            _latestCard(latest, now),
+            const SizedBox(height: 10),
+            _timeline(history),
           ],
         ),
       ),
