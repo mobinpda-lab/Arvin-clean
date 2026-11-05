@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:arvin/models/task.dart';
+import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/services/task_template_store.dart';
 import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/models/person_reference.dart';
@@ -314,6 +315,27 @@ void main() {
       createdAt: DateTime(2026, 11, 1, 8),
       category: 'تجهیزات',
       tags: const ['فوری', 'بخش بستری'],
+      checklistEnabled: true,
+      checklist: const ['[ ] کنترل اولیه'],
+      taskReminders: [
+        TaskReminder(
+          id: 'visual-reminder',
+          title: 'یادآوری کنترل',
+          date: DateTime(2026, 11, 14, 9),
+          sequence: 1,
+        ),
+      ],
+      recurrence: RecurrenceRule(
+        frequency: RecurrenceFrequency.weekly,
+        startDate: DateTime(2026, 11, 15),
+      ),
+      followUps: [
+        FollowUp(
+          id: 'visual-followup',
+          dateTime: DateTime(2026, 11, 10, 10),
+          note: 'تماس با مسئول',
+        ),
+      ],
       templateTaskId: 'visual-template',
     );
     await tester.pumpWidget(MaterialApp(
@@ -387,6 +409,31 @@ void main() {
     expect(find.text('شرح مستقل'), findsOneWidget);
     final descriptionY = scrollPosition.pixels + tester.getTopLeft(description).dy;
 
+    final reminders = find.byKey(const ValueKey('task-detail-independent-reminders'));
+    await tester.scrollUntilVisible(reminders, 240, scrollable: detailScrollable);
+    await tester.pumpAndSettle();
+    final remindersY = scrollPosition.pixels + tester.getTopLeft(reminders).dy;
+
+    final recurrence = find.byKey(const ValueKey('task-detail-recurrence'));
+    await tester.scrollUntilVisible(recurrence, 240, scrollable: detailScrollable);
+    await tester.pumpAndSettle();
+    final recurrenceY = scrollPosition.pixels + tester.getTopLeft(recurrence).dy;
+
+    final checklist = find.byKey(const ValueKey('task-detail-checklist'));
+    await tester.scrollUntilVisible(checklist, 240, scrollable: detailScrollable);
+    await tester.pumpAndSettle();
+    final checklistY = scrollPosition.pixels + tester.getTopLeft(checklist).dy;
+
+    final latest = find.byKey(const ValueKey('task-detail-latest-followup'));
+    await tester.scrollUntilVisible(latest, 240, scrollable: detailScrollable);
+    await tester.pumpAndSettle();
+    final latestY = scrollPosition.pixels + tester.getTopLeft(latest).dy;
+
+    final timeline = find.byKey(const ValueKey('task-detail-timeline'));
+    await tester.scrollUntilVisible(timeline, 240, scrollable: detailScrollable);
+    await tester.pumpAndSettle();
+    final timelineY = scrollPosition.pixels + tester.getTopLeft(timeline).dy;
+
     expect(timeX, greaterThan(centerX));
     expect(centerX, greaterThan(projectX));
     expect(projectX, greaterThan(categoryX));
@@ -396,6 +443,11 @@ void main() {
     expect(descriptionY, lessThan(templateY));
     expect(templateY, lessThan(dueY));
     expect(dueY, lessThan(assigneeY));
+    expect(assigneeY, lessThan(remindersY));
+    expect(remindersY, lessThan(recurrenceY));
+    expect(recurrenceY, lessThan(checklistY));
+    expect(checklistY, lessThan(latestY));
+    expect(latestY, lessThan(timelineY));
     expect(
       tester.widget<Directionality>(
         find.ancestor(
