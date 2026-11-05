@@ -57,6 +57,45 @@ void main() {
     expect(find.text('عنوان تازه'), findsOneWidget);
   });
 
+  testWidgets('Unified Task Details edits due time and all-day state with canonical pickers', (tester) async {
+    Task? persisted;
+    final task = Task(
+      id: 'inline-due-date',
+      title: 'کار با موعد',
+      dueDate: DateTime(2026, 11, 20, 9, 30),
+      allDay: false,
+    );
+    await tester.pumpWidget(MaterialApp(
+      home: TaskDetailPage(
+        task: task,
+        onTaskChanged: (candidate) async {
+          persisted = candidate;
+          return candidate;
+        },
+      ),
+    ));
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
+    await tester.pumpAndSettle();
+    final scrollable = _taskDetailPageScrollable(tester);
+    final dueCard = find.byKey(const ValueKey('task-detail-due-date-card'));
+    await tester.scrollUntilVisible(dueCard, 240, scrollable: scrollable);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-due-time')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('universal-time-manual-toggle')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const ValueKey('universal-time-manual-input')), '11:45');
+    await tester.tap(find.byKey(const ValueKey('universal-time-save')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-all-day')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
+    await tester.pumpAndSettle();
+
+    expect(persisted?.dueDate, DateTime(2026, 11, 20, 11, 45));
+    expect(persisted?.allDay, isTrue);
+  });
+
   testWidgets('Unified Task Details adds a reminder and saves it with the form', (tester) async {
     Task? persisted;
     final task = Task(id: 'inline-reminder-add', title: 'کار با یادآور');
