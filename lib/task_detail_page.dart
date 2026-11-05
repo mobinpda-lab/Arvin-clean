@@ -79,6 +79,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   TextEditingController? _tagsController;
   bool _isInlineEditing = false;
   bool _isSavingInlineEdit = false;
+  bool _draftCompleted = false;
+  TaskPriority _draftPriority = TaskPriority.medium;
   bool _isSavingTaskTemplate = false;
   bool _recurrenceConfigured = false;
   bool _recurrenceActive = true;
@@ -116,6 +118,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     _isAddingChecklist = _task.checklist.isEmpty;
     _draftDueDate = _task.dueDate;
     _draftAllDay = _task.allDay;
+    _draftCompleted = _task.completed;
+    _draftPriority = _task.priority;
     final rule = _task.recurrence;
     _recurrenceConfigured = rule != null;
     _recurrenceActive = rule?.active ?? true;
@@ -145,6 +149,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     _editingChecklistIndex = null;
     _draftDueDate = null;
     _draftAllDay = false;
+    _draftCompleted = false;
+    _draftPriority = TaskPriority.medium;
     setState(() => _isInlineEditing = false);
   }
 
@@ -173,6 +179,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     final candidate = Task.fromJson(Map<String, dynamic>.from(_task.toJson()))
       ..title = title.isEmpty ? 'بدون عنوان' : title
       ..description = description
+      ..priority = _draftPriority
       ..category = category.isEmpty ? null : category
       ..tags = tags
       ..taskReminders = List<TaskReminder>.of(_draftReminders)
@@ -193,6 +200,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         trackingLevel: _recurrenceTrackingLevel,
       ) : _task.recurrence
       ..updatedAt = DateTime.now();
+    if (_draftCompleted != _task.completed) candidate.setCompleted(_draftCompleted);
     setState(() => _isSavingInlineEdit = true);
     try {
       final updated = await save(candidate);
@@ -696,8 +704,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               ),
             ],
           ),
-          if (_isInlineEditing) ...[
-            const SizedBox(height: 8),
+          const SizedBox(height: 10),
+          _statusPriorityCard(),
+          const SizedBox(height: 10),
+          if (_isInlineEditing)
             TextField(
               key: const ValueKey('task-detail-inline-description'),
               controller: _descriptionController,
@@ -705,22 +715,18 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               maxLines: null,
               textDirection: TextDirection.rtl,
               decoration: const InputDecoration(labelText: 'توضیحات کامل', border: OutlineInputBorder()),
+            )
+          else
+            KeyedSubtree(
+              key: const ValueKey('task-detail-description-card'),
+              child: Text(
+                _task.description.trim().isEmpty
+                    ? 'توضیحی ثبت نشده است'
+                    : _task.description.trim(),
+                key: const ValueKey('task-detail-description'),
+                style: const TextStyle(fontFamily: 'Vazirmatn', height: 1.6),
+              ),
             ),
-            const SizedBox(height: 8),
-          ],
-          const SizedBox(height: 10),
-          _statusPriorityCard(),
-          const SizedBox(height: 10),
-          if (!_isInlineEditing) KeyedSubtree(
-            key: const ValueKey('task-detail-description-card'),
-            child: Text(
-              _task.description.trim().isEmpty
-                  ? 'توضیحی ثبت نشده است'
-                  : _task.description.trim(),
-              key: const ValueKey('task-detail-description'),
-              style: const TextStyle(fontFamily: 'Vazirmatn', height: 1.6),
-            ),
-          ),
           if (_task.templateTaskId?.trim().isNotEmpty == true) ...[
             const SizedBox(height: 8),
             _templateSourceCard(),
@@ -1322,24 +1328,51 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   Widget _statusPriorityCard() {
-    final status = _task.trashed ? 'در سطل زباله' : _task.archived ? 'بایگانی‌شده' : _task.completed ? 'انجام‌شده' : 'در حال انجام';
+    final completed = _isInlineEditing ? _draftCompleted : _task.completed;
+    final priority = _isInlineEditing ? _draftPriority : _task.priority;
+    final status = _task.trashed
+        ? 'در سطل زباله'
+        : _task.archived
+            ? 'بایگانی‌شده'
+            : completed
+                ? 'انجام‌شده'
+                : 'در انتظار انجام';
     return Wrap(spacing: 7, runSpacing: 7, children: [
       PopupMenuButton<String>(
         key: const ValueKey('task-detail-status-menu'),
         tooltip: 'تغییر وضعیت کار',
-        onSelected: _isInlineEditing ? null : (value) { if (value == 'toggle') _complete(); },
-        itemBuilder: (_) => [PopupMenuItem(value: 'toggle', child: Text(_task.completed ? 'بازگشت به انجام‌نشده' : 'علامت‌گذاری به‌عنوان انجام‌شده'))],
-        child: _metadataChip(status, _task.completed ? ArvinColors.tag : _brand, icon: Icons.check_circle_outline),
+        enabled: !_task.trashed && !_task.archived,
+        onSelected: (value) {
+          if (value != 'toggle') return;
+          if (_isInlineEditing) {
+            setState(() => _draftCompleted = !_draftCompleted);
+          } else {
+            _complete();
+          }
+        },
+        itemBuilder: (_) => [
+          PopupMenuItem(
+            value: 'toggle',
+            child: Text(completed ? 'بازگشت به انجام‌نشده' : 'علامت‌گذاری به‌عنوان انجام‌شده'),
+          ),
+        ],
+        child: _metadataChip(status, completed ? ArvinColors.tag : _brand, icon: Icons.check_circle_outline),
       ),
       PopupMenuButton<TaskPriority>(
         key: const ValueKey('task-detail-priority-menu'),
         tooltip: 'تغییر اولویت',
-        onSelected: _isInlineEditing ? null : _changePriority,
+        onSelected: (value) {
+          if (_isInlineEditing) {
+            setState(() => _draftPriority = value);
+          } else {
+            _changePriority(value);
+          }
+        },
         itemBuilder: (_) => TaskPriority.values.map((value) => PopupMenuItem(
           value: value,
           child: Text(value.label, style: TextStyle(color: ArvinColors.priorityColor(value))),
         )).toList(growable: false),
-        child: _metadataChip(_task.priority.label, ArvinColors.priorityColor(_task.priority), icon: Icons.flag_outlined),
+        child: _metadataChip(priority.label, ArvinColors.priorityColor(priority), icon: Icons.flag_outlined),
       ),
     ]);
   }
