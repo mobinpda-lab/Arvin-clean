@@ -1740,7 +1740,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<Task?> _cloneTaskFromDetail(Task source) async {
-    final clone = const TaskCloneService().clone(source);
+    final clone = const TaskCloneService().clone(
+      source,
+      existingTitles: tasks.map((task) => task.title),
+    );
     tasks.add(clone);
     try {
       await _save();
