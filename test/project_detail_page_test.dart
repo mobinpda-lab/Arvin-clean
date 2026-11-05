@@ -1,4 +1,6 @@
 import 'package:arvin/models/goal_project.dart';
+import 'package:arvin/models/arvin_center.dart';
+import 'package:arvin/services/center_store.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/project_detail_page.dart';
 import 'package:arvin/services/project_store.dart';
@@ -17,6 +19,7 @@ void main() {
     addTearDown(database.close);
     final tasks = TaskStore(executor: database);
     final projects = ProjectStore(executor: database);
+    final centers = CenterStore(executor: database);
     final templates = ProjectTemplateStore(executor: database);
     final task = Task(
       id: 'project-detail-source-task',
@@ -24,6 +27,11 @@ void main() {
       checklist: const ['[x] کنترل روغن', '[ ] کنترل لرزش'],
     );
     await tasks.save([task]);
+    await centers.create(
+      id: 'center-1',
+      name: 'مرکز نمونه',
+      now: DateTime(2026, 11, 5),
+    );
     final project = ProjectPlan(
       id: 'project-detail-source',
       title: 'بازرسی دوره‌ای',
