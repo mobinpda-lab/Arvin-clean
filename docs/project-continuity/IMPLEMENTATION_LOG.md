@@ -1,3 +1,16 @@
+## 2026-11-05 — Issue #823 UI/UX evidence audit and Home label correction
+
+- Re-read the live PR, authorized branch and main refs before work. Audit baseline was c35929c1cc2022b8470cd86b6f6fe8e2ae771e5b; PR head and branch matched; main remained 45e4202b03a434459e4c021a04efa7e8396359db.
+- Audited the active Home path in lib/main.dart rather than relying on the legacy home_filter_ui enum. Corrected the active Category chip label from «دسته‌بندی‌ها» to the approved «دسته‌ها» and added an exact widget assertion in test/home/home_filter_contract_test.dart. Existing five-chip structure, separate sort action and internal panel «همه» option remain intact.
+- Added docs/audit/ARVIN_ISSUE_823_UIUX_EXECUTION_AUDIT_2026-11-05.md with evidence/status matrix for Home, templates/Drift, Calendar and Task Details. It distinguishes code presence from exact-SHA test and device acceptance.
+- Task Template implementation remains blocked pending an owner-approved independent template-definition contract. Schema v8 currently contains Project Template tables but no independent Task Template model/table/store. No parallel store or speculative migration was added.
+- Settings currently routes to ProjectTemplateManagementPage; no independent Task Template tab or Task Details conversion path was verified. Existing Project Template generation and Task clone service were preserved.
+- Task Detail canonical reference defines eleven sections; current runtime inline editor is partial and no exact scroll-offset preservation test was established.
+- Home filter OR/AND behavior is visible in the active implementation but combined end-to-end OR/AND assertions remain required. Full dynamic group-date acceptance is incomplete; Today/Tomorrow derive from Iran-local time, while aggregate Future has no date suffix.
+- Product Decisions now records the sacred-phrase Naskh/Vazirmatn question as BLOCKED for explicit owner clarification. Preserve current rendering until the owner confirms the narrow exception policy.
+- Baseline c35929 CI snapshot: Analyze, test-0, test-1, test-3, test-4, test-5 and Follow-up file-backed SQLite SUCCESS; test-2 and Visual IN_PROGRESS; Device Smoke incomplete; Calendar Provider first attempt failed before tests due Dart Development Service startup (0 tests passed), then was rerun. These results are baseline-only and do not transfer to this documentation/code commit.
+- No tests/assertions/scenarios were removed, skipped, weakened or timeout-bypassed. No main edits, merge or release. PR #3052 remains OPEN / DRAFT / UNMERGED; BLOCKED — RELEASE: NO-GO.
+
 ## 2026-11-05 — TaskHomeScreen workflow and regression contract alignment
 
 - Restored the exact seven-lane Build quality matrix: Analyze + test-0 through test-5. Moved `test/task_detail_visual_test.dart` and its artifact upload to a separate standalone `visual` job with exact-SHA checkout verification; visual coverage is retained.
