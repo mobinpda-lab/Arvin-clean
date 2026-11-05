@@ -694,15 +694,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                         style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900, height: 1.3),
                       ),
               ),
-              if (!_isInlineEditing)
-                IconButton(
-                  key: const ValueKey('task-detail-summary-edit'),
-                  tooltip: 'ویرایش درجا',
-                  onPressed: widget.onTaskChanged == null
-                      ? (widget.onEdit == null ? null : _edit)
-                      : _beginInlineEdit,
-                  icon: const Icon(Icons.edit_outlined, color: _brand),
-                ),
             ],
           ),
           if (_isInlineEditing) ...[
