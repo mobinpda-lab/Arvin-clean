@@ -543,3 +543,13 @@ All entries below describe changes on the authorized PR branch. They are not rel
 ### 2026-11-05 10:03 Asia/Tehran — ۱۴۰۵/۰۸/۱۴ — Target-screen card alignment follow-up
 - Applied shared card surface/radius/shadow tokens to Task Details, Task Editor reminder/checklist cards, Quick Capture cards/canvas and Calendar reminder cards.
 - No product logic, model, persistence, workflow or existing test assertion changed. Full secondary-route conversion and physical visual acceptance remain NOT VERIFIED.
+
+## 2026-11-05 13:02 Asia/Tehran — ۱۴۰۵/۰۸/۱۴ — TaskHomeScreen final specification and UI alignment (PR #3052)
+- Added the canonical fourteen-point Home contract at `docs/project-continuity/task_home_screen_spec.md`.
+- On the authorized PR branch, aligned the Home header: hamburger opens the navigation drawer; the general funnel exposes Today, Timeless, Archive and Trash; notification bell and standalone header search icon are removed. The independent search field remains with placeholder «جستجو در کارها...».
+- Kept the five quick filters in strict RTL order (Time, Center, Projects, Categories, Tags) and added the independent sort icon at the far-left end of that same horizontally scrollable row.
+- Added sort choices and made Follow-up Date the default primary sort key; undated Follow-ups remain last, with priority and stable Task ID as deterministic tie-breakers. Existing Past-group ordering remains unchanged.
+- Home groups now render Past → Today → Tomorrow → Future → Timeless; dated headings include the dynamic Persian weekday and Jalali date. The group classification remains Due Date-only; completed past-due tasks remain in Past without being treated as active overdue work.
+- Added Center to the task-card taxonomy metadata using the canonical Project → Center relationship. Existing card actions and canonical data pathways are retained.
+- Primary navigation was verified to contain exactly five tabs: Home, Calendar, Notebook, Reports, More. «اقدام بعدی» is not a sixth primary tab.
+- Existing test files and assertions were not edited, deleted, skipped, weakened or bypassed. Exact-SHA Analyze/widget-test evidence is pending on the final documentation-synchronized HEAD. PR remains OPEN / DRAFT / UNMERGED; main untouched; release BLOCKED — RELEASE: NO-GO.
