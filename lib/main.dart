@@ -3500,12 +3500,12 @@ class _HomePageState extends State<HomePage> {
                   style: IconButton.styleFrom(backgroundColor: ArvinColors.surface, foregroundColor: ArvinColors.neutral),
                 ),
               ),
-              Expanded(child: Column(children: const [
-                Text('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', key: ValueKey('home-bismillah'), textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.primary, fontFamily: AppFonts.familyForText('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'), fontSize: 17, letterSpacing: 0.1, fontWeight: FontWeight.w500)),
-                SizedBox(height: 1),
-                Text('آروین', key: ValueKey('home-title-block'), style: TextStyle(color: ArvinColors.primaryDark, fontSize: 23, fontWeight: FontWeight.w800)),
-                SizedBox(height: 2),
-                Text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها', key: ValueKey('home-subtitle'), textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.textSecondary, fontSize: 11.5, fontWeight: FontWeight.w600)),
+              Expanded(child: Column(children: [
+                Text('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', key: const ValueKey('home-bismillah'), textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.primary, fontFamily: AppFonts.familyForText('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'), fontFamilyFallback: AppFonts.sacredArabicFallback, fontSize: 17, letterSpacing: 0.1, fontWeight: FontWeight.w600, height: 1.5)),
+                const SizedBox(height: 1),
+                const Text('آروین', key: ValueKey('home-title-block'), style: TextStyle(color: ArvinColors.primaryDark, fontSize: 23, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 2),
+                const Text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها', key: ValueKey('home-subtitle'), textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.textSecondary, fontSize: 11.5, fontWeight: FontWeight.w600)),
               ])),
               IconButton(
                 key: const ValueKey('home-general-filter-button'),
