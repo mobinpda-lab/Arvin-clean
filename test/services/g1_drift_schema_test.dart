@@ -67,6 +67,20 @@ void main() {
     expect(foreignKeys.single['foreign_keys'], 1);
   });
 
+  test('concurrent stores share one serialized schema installation', () async {
+    await Future.wait([
+      G1DriftSchema.install(database),
+      G1DriftSchema.install(database),
+      G1DriftSchema.install(database),
+      G1DriftSchema.install(database),
+    ]);
+    final templates = await database.runSelect(
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'task_templates'",
+      const [],
+    );
+    expect(templates, hasLength(1));
+  });
+
   test('schema installation is idempotent', () async {
     await G1DriftSchema.install(database);
     await G1DriftSchema.install(database);
