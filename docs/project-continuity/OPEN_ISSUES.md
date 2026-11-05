@@ -106,3 +106,13 @@ Snapshot: 1405/08/13 — 2026-11-04 12:53 Asia/Tehran. Recheck live GitHub befor
 - [ ] رفع شکست‌های Analyze/Test/Visual از exact-head CI و اجرای مجدد همه تست‌ها بدون کاهش پوشش.
 - [ ] اجرای Build APK و Device Smoke هفت‌مسیره روی یک SHA واحد و ثبت artifact/checksum.
 - [ ] حفظ PR #3052 به‌صورت OPEN/DRAFT/UNMERGED؛ main بدون تغییر؛ Release NO-GO تا پذیرش نهایی.
+
+
+## AIPOS v1.0 live blockers — 2026-11-05
+- P0: approved calligraphy reference images not found in accessible records; both SVG files are absent. Exact matching artwork is BLOCKED pending reference.
+- P0: replace the two sacred phrase Text widgets with path-only SVG assets and accessible single-announcement semantics; not yet verified.
+- P1: Build/Analyze run 42090629467 pending; Analyze and full flutter test NOT VERIFIED.
+- P1: Device Smoke run 42090629594 preparation passed; boot/navigation in progress, other lanes queued.
+- P1: Calendar Provider 42090629465 in progress; Follow-up persistence 42090629520 success.
+- P1: Draft Review APK 42090629583 in progress; artifact not yet verified.
+- No test may be deleted, skipped, weakened or bypassed. Release remains BLOCKED — RELEASE: NO-GO.
