@@ -738,7 +738,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         border: Border.all(color: ArvinColors.border),
         boxShadow: const [ArvinTheme.shadowStyle],
       ),
-      child: child,
+      child: Material(
+        type: MaterialType.transparency,
+        child: child,
+      ),
     );
   }
 
