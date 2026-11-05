@@ -53,6 +53,22 @@ void main() {
     expect(find.byKey(const ValueKey('home-compact-filter-scroll')), findsOneWidget);
     expect(find.byType(ActionChip), findsNWidgets(5));
     expect(find.byKey(const ValueKey('home-sort-button')), findsOneWidget);
+    final filterCenters = [
+      'time',
+      'center',
+      'project',
+      'category',
+      'tags',
+    ].map((id) => tester.getCenter(
+      find.byKey(ValueKey('home-filter-card-$id')),
+    ).dx).toList(growable: false);
+    for (var index = 0; index < filterCenters.length - 1; index++) {
+      expect(filterCenters[index], greaterThan(filterCenters[index + 1]));
+    }
+    expect(
+      filterCenters.last,
+      greaterThan(tester.getCenter(find.byKey(const ValueKey('home-sort-button'))).dx),
+    );
     expect(
       find.descendant(
         of: find.byKey(const ValueKey('home-filter-card-category')),
