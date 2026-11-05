@@ -177,7 +177,11 @@ void main() {
 
   testWidgets('Unified Task Details edits and persists recurrence in the same form', (tester) async {
     Task? persisted;
-    final task = Task(id: 'inline-recurrence', title: 'کار تکرارشونده');
+    final task = Task(
+      id: 'inline-recurrence',
+      title: 'کار تکرارشونده',
+      dueDate: DateTime(2026, 11, 15),
+    );
     await tester.pumpWidget(MaterialApp(
       home: TaskDetailPage(
         task: task,
@@ -203,6 +207,11 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const ValueKey('task-detail-recurrence-interval')), '2');
     await tester.enterText(find.byKey(const ValueKey('task-detail-recurrence-count')), '4');
+    await tester.tap(find.byKey(const ValueKey('task-detail-recurrence-end-date-pick')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('persian-date-day-20')));
+    await tester.tap(find.text('تأیید'));
+    await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
     await tester.pumpAndSettle();
@@ -210,6 +219,7 @@ void main() {
     expect(persisted?.recurrence?.frequency, RecurrenceFrequency.weekly);
     expect(persisted?.recurrence?.interval, 2);
     expect(persisted?.recurrence?.count, 4);
+    expect(persisted?.recurrence?.endDate, DateTime(2026, 11, 20, 23, 59, 59, 999));
   });
 
   testWidgets('Unified Task Details stages checklist edits, reorders and saves or cancels atomically', (tester) async {
