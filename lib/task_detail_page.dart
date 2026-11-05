@@ -77,6 +77,12 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   bool _isInlineEditing = false;
   bool _isSavingInlineEdit = false;
   bool _isSavingTaskTemplate = false;
+  bool _recurrenceConfigured = false;
+  bool _recurrenceActive = true;
+  RecurrenceFrequency _recurrenceFrequency = RecurrenceFrequency.daily;
+  RecurrenceTrackingLevel _recurrenceTrackingLevel = RecurrenceTrackingLevel.normal;
+  TextEditingController? _recurrenceIntervalController;
+  TextEditingController? _recurrenceCountController;
   bool _isMovingDueDateToToday = false;
   final TextEditingController _checklistAddController = TextEditingController();
   final ScrollController _detailScrollController = ScrollController();
@@ -98,6 +104,13 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     _descriptionController = TextEditingController(text: _task.description);
     _categoryController = TextEditingController(text: _task.category ?? '');
     _tagsController = TextEditingController(text: _task.tags.join('، '));
+    final rule = _task.recurrence;
+    _recurrenceConfigured = rule != null;
+    _recurrenceActive = rule?.active ?? true;
+    _recurrenceFrequency = rule?.frequency ?? RecurrenceFrequency.daily;
+    _recurrenceTrackingLevel = rule?.trackingLevel ?? RecurrenceTrackingLevel.normal;
+    _recurrenceIntervalController = TextEditingController(text: (rule?.interval ?? 1).toString());
+    _recurrenceCountController = TextEditingController(text: rule?.count?.toString() ?? '');
     setState(() => _isInlineEditing = true);
   }
 
@@ -106,10 +119,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     _descriptionController?.dispose();
     _categoryController?.dispose();
     _tagsController?.dispose();
+    _recurrenceIntervalController?.dispose();
+    _recurrenceCountController?.dispose();
     _titleController = null;
     _descriptionController = null;
     _categoryController = null;
     _tagsController = null;
+    _recurrenceIntervalController = null;
+    _recurrenceCountController = null;
     setState(() => _isInlineEditing = false);
   }
 
@@ -125,11 +142,30 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         .where((value) => value.isNotEmpty)
         .toSet()
         .toList(growable: false);
+    final recurrenceInterval = int.tryParse(_recurrenceIntervalController?.text.trim() ?? '1') ?? 0;
+    final rawCount = _recurrenceCountController?.text.trim() ?? '';
+    final recurrenceCount = rawCount.isEmpty ? null : int.tryParse(rawCount);
+    if (_recurrenceConfigured &&
+        (recurrenceInterval < 1 || (rawCount.isNotEmpty && (recurrenceCount == null || recurrenceCount < 1)))) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('فاصله تکرار و شمارش باید عدد مثبت باشند.')),
+      );
+      return;
+    }
     final candidate = Task.fromJson(Map<String, dynamic>.from(_task.toJson()))
       ..title = title.isEmpty ? 'بدون عنوان' : title
       ..description = description
       ..category = category.isEmpty ? null : category
       ..tags = tags
+      ..recurrence = _recurrenceConfigured ? RecurrenceRule(
+        frequency: _recurrenceFrequency,
+        interval: recurrenceInterval,
+        startDate: _task.recurrence?.startDate,
+        endDate: _task.recurrence?.endDate,
+        count: recurrenceCount,
+        active: _recurrenceActive,
+        trackingLevel: _recurrenceTrackingLevel,
+      ) : _task.recurrence
       ..updatedAt = DateTime.now();
     setState(() => _isSavingInlineEdit = true);
     try {
@@ -140,10 +176,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       _descriptionController?.dispose();
       _categoryController?.dispose();
       _tagsController?.dispose();
+      _recurrenceIntervalController?.dispose();
+      _recurrenceCountController?.dispose();
       _titleController = null;
       _descriptionController = null;
       _categoryController = null;
       _tagsController = null;
+      _recurrenceIntervalController = null;
+      _recurrenceCountController = null;
       setState(() {
         _task = updated;
         _isInlineEditing = false;
