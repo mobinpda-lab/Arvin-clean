@@ -78,3 +78,14 @@ A feature mentioned only as an illustrative example (such as periodic tasks or a
 ### Remaining visual rollout
 - Continue inventorying custom card-like panels in secondary routes (Reports, Notebook, Follow-up Office, Backup, People, Projects, Settings and Work Agenda); migrate only presentation and preserve all semantic status/taxonomy distinctions.
 - Capture before/after physical-device screenshots for Home/Task List, Task Details read-only/edit, Calendar and Quick Capture at supported viewport and text scales. Do not claim whole-app uniformity before this gate.
+
+
+## P1 — Calendar UI/UX canonical specification and acceptance
+**Status:** SPECIFICATION APPROVED / RUNTIME ALIGNMENT NOT VERIFIED.
+1. Use `docs/project-continuity/calendar_ui_ux_spec.md` as the canonical fourteen-section Calendar presentation reference.
+2. Preserve the approved RTL header zones, selected-date display, four view modes above the grid, Saturday–Friday triple-date grid, five content filters below the grid, selected-day agenda, non-overlapping cards and Hijri adjustment choices.
+3. Keep View Modes and Content Filters as distinct control groups in their mandated positions; do not transpose them.
+4. Before any runtime changes, audit current Calendar implementation and existing provider/data/persistence contracts against the canonical specification. Do not alter provider, identity, schema or persistence behavior as part of visual alignment without separate authorization.
+5. Run focused Calendar widget tests, all six Build shards, independent visual golden, Calendar Provider and all seven Device Smoke lanes on one exact final SHA. No prior-SHA result transfers.
+6. Calendar CI checkpoint on SHA `5bea1ed67549e26aa2ceeb0882477d4cfc2c1f53`: Build #42011495370 FAILURE (test-0/test-2/visual failed); Device Smoke #42011495381 CANCELLED (4 PASS / 3 CANCELLED); Calendar Provider #42011495562 SUCCESS; Follow-up Persistence #42011495565 SUCCESS; Parallel Wave Contract #42011495436 SUCCESS.
+7. No code/test change is authorized by this backlog registration. PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; Release BLOCKED — RELEASE: NO-GO.
