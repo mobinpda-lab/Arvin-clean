@@ -286,3 +286,9 @@ Every new entry must include exact SHA, workflow/run IDs, terminal conclusion, a
 - No existing test file or assertion was modified, removed, skipped, weakened, bypassed or timed out.
 - The Bismillah uses a system serif fallback and full Arabic diacritics. No bundled Naskh font asset was located in the inspected paths; actual device glyph appearance remains NOT VERIFIED pending physical screenshot review.
 - Exact-SHA CI must be checked after the final documentation commit. No earlier SHA's workflow results transfer. PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; release BLOCKED — RELEASE: NO-GO.
+
+ 
+## TaskHomeScreen analyzer correction — 2026-11-05
+- An intermediate Analyze run on source checkpoint `da311c2f7e4ef9b96fc20a26e31eca996fa63d50` found the plugin import had also been removed even though the app-level notification tap handler still uses `NotificationResponse`, and found an orphan private `_openPendingReminder` helper after removing the Home bell.
+- Corrected in `c0766a5e602d04426486816e95cad4038b667fa7`: restored the plugin type import for the retained notification-response path and removed the now-unreferenced pending-notification helper. The Home header remains bell-free.
+- No test files or assertions were changed. Analyze and widget tests on the corrected/final SHA remain NOT VERIFIED until a fresh exact-SHA run completes.
