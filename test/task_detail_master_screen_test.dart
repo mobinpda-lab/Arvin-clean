@@ -57,6 +57,43 @@ void main() {
     expect(find.text('عنوان تازه'), findsOneWidget);
   });
 
+  testWidgets('Unified Task Details edits and persists recurrence in the same form', (tester) async {
+    Task? persisted;
+    final task = Task(id: 'inline-recurrence', title: 'کار تکرارشونده');
+    await tester.pumpWidget(MaterialApp(
+      home: TaskDetailPage(
+        task: task,
+        onTaskChanged: (candidate) async {
+          persisted = candidate;
+          return candidate;
+        },
+      ),
+    ));
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
+    await tester.pumpAndSettle();
+
+    final scrollable = _taskDetailPageScrollable(tester);
+    final addRule = find.byKey(const ValueKey('task-detail-recurrence-add'));
+    await tester.scrollUntilVisible(addRule, 240, scrollable: scrollable);
+    await tester.pumpAndSettle();
+    await tester.tap(addRule);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('task-detail-recurrence-frequency')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('هفتگی').last);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const ValueKey('task-detail-recurrence-interval')), '2');
+    await tester.enterText(find.byKey(const ValueKey('task-detail-recurrence-count')), '4');
+
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
+    await tester.pumpAndSettle();
+
+    expect(persisted?.recurrence?.frequency, RecurrenceFrequency.weekly);
+    expect(persisted?.recurrence?.interval, 2);
+    expect(persisted?.recurrence?.count, 4);
+  });
+
   testWidgets('Unified Task Details preserves the page scroll offset entering and cancelling edit', (tester) async {
     final task = Task(
       id: 'scroll-preservation',
