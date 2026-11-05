@@ -6,6 +6,16 @@ import 'package:arvin/services/iran_clock.dart';
 import 'package:arvin/services/calendar_swipe_settings_service.dart';
 
 void main() {
+  testWidgets('calendar sacred phrase uses the narrowly scoped Naskh serif treatment', (tester) async {
+    await tester.pumpWidget(const MaterialApp(home: CalendarPage(reminders: [])));
+    await tester.pumpAndSettle();
+
+    final phrase = find.byKey(const ValueKey('calendar-sacred-header'));
+    expect(phrase, findsOneWidget);
+    expect(find.text('أُفَوِّضُ أَمْرِي إِلَى اللَّهِ'), findsOneWidget);
+    expect(tester.widget<Text>(phrase).style?.fontFamily, 'serif');
+  });
+
   testWidgets('source filters separate all-day items, timed reminders, phone events and unfinished tasks', (tester) async {
     final day = DateTime(2026, 11, 1);
     await tester.pumpWidget(MaterialApp(
