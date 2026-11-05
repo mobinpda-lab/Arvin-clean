@@ -1887,7 +1887,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             IconButton(
               key: const ValueKey('task-detail-convert-template'),
               tooltip: 'تبدیل به الگو',
-              onPressed: _isSavingTaskTemplate ? null : _convertToTemplate,
+              onPressed: _isInlineEditing || _isSavingTaskTemplate ? null : _convertToTemplate,
               icon: const Icon(Icons.bookmark_add_outlined),
             ),
             IconButton(
