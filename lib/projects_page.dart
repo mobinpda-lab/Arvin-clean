@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'models/goal_project.dart';
 import 'models/arvin_center.dart';
 import 'project_detail_page.dart';
+import 'services/task_store.dart';
+import 'services/project_template_service.dart';
 
 class ProjectsPage extends StatefulWidget {
   const ProjectsPage({
@@ -10,11 +12,15 @@ class ProjectsPage extends StatefulWidget {
     required this.projects,
     required this.onChanged,
     this.centers = const <ArvinCenter>[],
+    this.taskStore,
+    this.templateService,
   });
 
   final List<ProjectPlan> projects;
   final Future<void> Function(List<ProjectPlan>) onChanged;
   final List<ArvinCenter> centers;
+  final TaskStore? taskStore;
+  final ProjectTemplateService? templateService;
 
   @override
   State<ProjectsPage> createState() => _ProjectsPageState();
@@ -260,6 +266,8 @@ class _ProjectsPageState extends State<ProjectsPage> {
                         builder: (_) => ProjectDetailPage(
                           project: project,
                           centerName: _centerLabel(project),
+                          taskStore: widget.taskStore,
+                          templateService: widget.templateService,
                         ),
                       ),
                     ),
