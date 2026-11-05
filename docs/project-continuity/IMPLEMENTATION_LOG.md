@@ -412,3 +412,10 @@ Every new entry must include exact SHA, workflow/run IDs, terminal conclusion, a
 - Vazirmatn فونت رسمی تمام اجزای رابط، متن‌ها، اعداد، دکمه‌ها و سربرگ‌هاست.
 - فقط دو عبارت «بسم‌الله الرحمن الرحیم» و «أُفَوِّضُ أَمْرِی إِلَى اللَّهِ» (یا نگارش UI بدون اعراب «افوض امری الی الله») مجاز به رندر با خط نسخ هنری هستند؛ هیچ متن یا جزء دیگری استثنا نیست.
 - تصمیم در `docs/project-continuity/PRODUCT_DECISIONS.md` ثبت شد.
+
+## 2026-11-05 — Owner typography decision and parallel implementation follow-through
+- Owner decision recorded in `PRODUCT_DECISIONS.md`: Vazirmatn is universal; only the two explicitly named sacred phrases may use the scoped Naskh treatment.
+- `AppFonts.familyForText` is an exact-text whitelist; Home and Calendar phrase widgets call it. A regular Persian phrase resolves to Vazirmatn in the typography test. Calendar spelling uses the approved Persian yeh variant to match the whitelist.
+- Task Details has a dedicated successful-save scroll-offset widget test in addition to existing entry/cancel coverage.
+- Visual root cause is evidenced by job log `127329168780`: `pumpAndSettle` timed out after 10 minutes, before actual screenshot creation. Deterministic pumping at 350ms plus a scheduled-frame assertion addresses the unbounded wait; the actual test and Golden acceptance remain unverified on the final SHA. The canonical Golden is still absent.
+- No device glyph fallback or device smoke result is claimed.
