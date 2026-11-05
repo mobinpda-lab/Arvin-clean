@@ -1,3 +1,13 @@
+## 2026-11-05 — اجرای کد الگوها و فرم واحد Task Detail (PR #3052)
+
+- قرارداد داده‌ای Task Template در docs/project-continuity/TASK_TEMPLATE_DATA_CONTRACT.md ثبت شد؛ G1 به v11 ارتقا یافت و checklist_enabled با default غیرمخرب اضافه شد. ذخیره‌سازی از همان SQLite/Drift موجود استفاده می‌کند.
+- دو تب عملیاتی «الگوهای کار» و «الگوهای پروژه» به تنظیمات متصل شدند. تبدیل Task از فهرست و جزئیات، تبدیل Project از مسیر Projects → Project Details، ذخیره واقعی، بازخورد و نمایش الگوی ذخیره‌شده پیاده‌سازی شد.
+- Checklist، People references، priority، recurrence definition و ساعت Reminder در Task Template قرارداد مشخص دارند؛ تاریخ‌های اجرای قبلی، وضعیت تکمیل و Follow-up history منتقل نمی‌شوند. Task جدید شناسه‌های جدید و checklist ناتمام می‌گیرد.
+- Task Detail در مسیر فعال به فرم واحد draft/save/cancel نزدیک شد: Checklist اتمیک با reorder، Due Date قابل پاک‌کردن، recurrence end date، Reminderهای قابل ویرایش، وضعیت/اولویت، عنوان/یادداشت Follow-up و حفظ scroll offset. زمان اجرا و مسئول تا وجود منبع canonical «نامشخص» می‌مانند.
+- تست‌های سرویس، مهاجرت، تعامل دو تب، تبدیل Task/Project و فرم Task Detail اضافه/گسترش یافتند. نتیجه همه این تست‌ها روی HEAD نهایی تا دریافت exact-SHA run، NOT VERIFIED است.
+- Visual: انتظار pumpAndSettle با pump قطعی ۳۵۰ms و assertion idle-frame جایگزین شد؛ علت دقیق frame source هنوز اثبات نشده و Golden مرجع در branch/main وجود ندارد؛ Golden بدون بازبینی تصویری ساخته نشد.
+- هیچ تستی حذف، Skip یا تضعیف نشد؛ هیچ Golden به‌روزرسانی نشد. PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ **BLOCKED — RELEASE: NO-GO**.
+
 ## 2026-11-05 — Home test-2 correction and visual timeout disposition
 
 - Root-caused the historical Home test-2 mismatch: the UI combines weekday + Jalali date in one heading Text, while the test searched for date-only exact text; the test also expected the old Category label. Updated the test to assert the complete dynamic heading and «دسته‌ها».
