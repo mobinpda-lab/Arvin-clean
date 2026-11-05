@@ -1,3 +1,12 @@
+## 2026-11-05 — Issue #823 active-path audit and Home category label correction
+
+- Active Home Category chip label aligned to canonical «دسته‌ها» in lib/main.dart; matching widget assertion added without reducing existing coverage.
+- Audit matrix recorded at docs/audit/ARVIN_ISSUE_823_UIUX_EXECUTION_AUDIT_2026-11-05.md. It distinguishes implementation from exact-SHA verification and records gaps in combined Home filter tests, Future heading date semantics, Task Template storage/conversion, two Settings tabs and the unified eleven-section Task Details form.
+- Project Template and Task Clone foundations were preserved. No Task Template schema was invented because field-retention/conversion semantics need an approved contract before a non-destructive migration.
+- Calendar Provider baseline attempt failed before executing tests because Dart Development Service did not start; a retry was launched. No behavioral PASS is inferred from zero executed tests.
+- Sacred-phrase Naskh versus Vazirmatn-only typography is flagged in PRODUCT_DECISIONS.md for explicit owner clarification. Existing rendering remains unchanged.
+- No tests/assertions were deleted, skipped, weakened or timeout-bypassed. PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; release BLOCKED — RELEASE: NO-GO.
+
 ## 2026-11-04 — Quick Capture and unified Report Center validation
 
 - The compact Quick Capture empty-title validation remains intact. On exact SHA `9b52d43d1266e258a91a77e3c469589f483c66c9`, Analyze and all six test shards passed; the unchanged `quick capture rejects empty input with visible feedback` test passed. Device Smoke Quick Capture lane also passed and emitted screenshots.
