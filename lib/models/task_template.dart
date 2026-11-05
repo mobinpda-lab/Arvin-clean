@@ -16,6 +16,7 @@ class TaskTemplate {
     this.description = '',
     this.category,
     this.priority = TaskPriority.medium,
+    this.checklistEnabled = false,
     Iterable<String> tags = const [],
     Iterable<String> checklist = const [],
     Iterable<PersonReference> people = const [],
@@ -39,6 +40,7 @@ class TaskTemplate {
   final String description;
   final String? category;
   final TaskPriority priority;
+  final bool checklistEnabled;
   final List<String> tags;
   final List<String> checklist;
   final List<PersonReference> people;
@@ -98,6 +100,7 @@ class TaskTemplate {
       description: task.description,
       category: task.category,
       priority: task.priority,
+      checklistEnabled: task.checklistEnabled,
       tags: task.tags,
       checklist: task.checklist.map(_withoutExecutionMarker),
       people: task.people,
@@ -133,6 +136,7 @@ class TaskTemplate {
     'description': description,
     'category': category,
     'priority': priority.name,
+    'checklist_enabled': checklistEnabled ? 1 : 0,
     'tags_json': jsonEncode(tags),
     'checklist_json': jsonEncode(checklist),
     'people_json': jsonEncode(people.map((person) => person.toJson()).toList()),
@@ -166,6 +170,7 @@ class TaskTemplate {
         (value) => value.name == priorityName,
         orElse: () => TaskPriority.medium,
       ),
+      checklistEnabled: (row['checklist_enabled'] as num?)?.toInt() == 1,
       tags: decodeList('tags_json').whereType<String>(),
       checklist: decodeList('checklist_json').whereType<String>(),
       people: decodeList('people_json')
