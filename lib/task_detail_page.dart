@@ -1392,8 +1392,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
 
 
-  Widget _metadataChip(String label, Color color, {IconData icon = Icons.info_outline}) {
+  Widget _metadataChip(String label, Color color, {IconData icon = Icons.info_outline, Key? key}) {
     return Container(
+      key: key,
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
       decoration: BoxDecoration(
         color: color.withValues(alpha: .10),
@@ -1472,7 +1473,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             child: Text(completed ? 'بازگشت به انجام‌نشده' : 'علامت‌گذاری به‌عنوان انجام‌شده'),
           ),
         ],
-        child: _metadataChip(status, statusColor, icon: Icons.check_circle_outline),
+        child: _metadataChip(status, statusColor, icon: Icons.check_circle_outline, key: const ValueKey('task-status-badge')),
       ),
       PopupMenuButton<TaskPriority>(
         key: const ValueKey('task-detail-priority-menu'),
