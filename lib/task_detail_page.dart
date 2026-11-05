@@ -340,6 +340,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       helpText: 'انتخاب موعد انجام',
     );
     if (picked == null || !mounted) return;
+    final wasUnset = _draftDueDate == null;
     setState(() {
       _draftDueDate = DateTime(
         picked.year,
@@ -348,7 +349,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         _draftDueDate?.hour ?? 0,
         _draftDueDate?.minute ?? 0,
       );
-      if (_draftDueDate == null) _draftAllDay = true;
+      if (wasUnset) _draftAllDay = true;
     });
   }
 
