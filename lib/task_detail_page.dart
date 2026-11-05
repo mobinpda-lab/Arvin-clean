@@ -1357,19 +1357,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   Widget _remindersCard() {
     final reminders = _isInlineEditing ? _draftReminders : _task.taskReminders;
     final hasLegacyReminder = _task.reminderDate != null;
-    if (reminders.isEmpty && !hasLegacyReminder && !_isInlineEditing) {
-      return Align(
-        alignment: AlignmentDirectional.centerStart,
-        child: TextButton.icon(
-          key: const ValueKey('task-detail-add-reminder'),
-          onPressed: widget.onTaskChanged == null
-              ? (widget.onEdit == null ? null : _edit)
-              : _beginInlineEdit,
-          icon: const Icon(Icons.add, size: 17),
-          label: const Text('افزودن یادآور'),
-        ),
-      );
-    }
     return _card(
       key: const ValueKey('task-detail-independent-reminders'),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -1387,6 +1374,11 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             label: const Text('افزودن'),
           ),
         ]),
+        if (reminders.isEmpty && !hasLegacyReminder)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: Text('یادآوری ثبت نشده است', style: TextStyle(color: _muted)),
+          ),
         if (hasLegacyReminder)
           ListTile(
             key: const ValueKey('task-detail-legacy-reminder'),
