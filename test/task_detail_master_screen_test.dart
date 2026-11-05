@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:arvin/models/task.dart';
+import 'package:arvin/services/task_template_store.dart';
 import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/models/person_reference.dart';
 import 'package:arvin/task_detail_page.dart';
@@ -199,6 +200,46 @@ void main() {
     expect(find.text('افزودن مرحله جدید'), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-latest-followup')), findsNothing);
     expect(find.byKey(const ValueKey('task-detail-timeline')), findsNothing);
+  });
+
+  testWidgets('Task Details converts a Task to a persisted template without mutating source', (tester) async {
+    await TaskTemplateStore.resetTestDatabase();
+    addTearDown(TaskTemplateStore.resetTestDatabase);
+    final task = Task(
+      id: 'task-template-ui-source',
+      title: 'بازبینی پمپ',
+      description: 'شرح پایدار',
+      category: 'فنی',
+      tags: const ['ایمنی'],
+      checklist: const ['[x] کنترل برق', '[ ] کنترل فشار'],
+      priority: TaskPriority.high,
+      dueDate: DateTime(2026, 11, 20),
+    );
+    await tester.pumpWidget(MaterialApp(
+      home: TaskDetailPage(
+        task: task,
+        centerName: 'مرکز مرکزی',
+        projectTitle: 'پروژه تعمیرات',
+      ),
+    ));
+
+    await tester.tap(find.byKey(const ValueKey('task-detail-convert-template')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const ValueKey('task-detail-template-name')), 'بازبینی پمپ دوره‌ای');
+    await tester.tap(find.byKey(const ValueKey('task-detail-template-confirm')));
+    await tester.pumpAndSettle();
+
+    final saved = await TaskTemplateStore().load();
+    expect(saved, hasLength(1));
+    expect(saved.single.name, 'بازبینی پمپ دوره‌ای');
+    expect(saved.single.title, 'بازبینی پمپ');
+    expect(saved.single.centerNameSnapshot, 'مرکز مرکزی');
+    expect(saved.single.projectNameSnapshot, 'پروژه تعمیرات');
+    expect(saved.single.dueDate, isNull);
+    expect(task.title, 'بازبینی پمپ');
+    expect(task.dueDate, DateTime(2026, 11, 20));
+    expect(task.checklist.first, '[x] کنترل برق');
+    expect(find.text('الگوی کار ذخیره شد؛ کار اصلی و سابقه آن تغییر نکرد.'), findsOneWidget);
   });
 
   testWidgets('Master Task Details exposes clone action and calls canonical handler', (tester) async {
