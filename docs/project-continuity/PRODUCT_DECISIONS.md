@@ -28,6 +28,7 @@ Canonical register for durable product decisions. Detailed implementation and hi
 | Topic | Status | Safe behavior until decision |
 |---|---|---|
 | Quick Capture empty-title feedback: two visible presentations (inline + SnackBar) or one clear inline presentation | BLOCKED | Preserve current implementation and all existing assertions. Do not change UX or test acceptance until owner decides. |
+| Home sacred-phrase typography: separate Naskh-style display treatment versus Vazirmatn-only global rule | BLOCKED — OWNER CLARIFICATION REQUIRED | Preserve current rendering. Confirm whether Naskh is an explicit exception only for the Arabic sacred phrase, with Vazirmatn retained for all UI text, or whether Vazirmatn must render the phrase too. |
 
 ## Status vocabulary
 PROPOSED = candidate only; APPROVED = explicit owner decision; IN_PROGRESS = work underway; IMPLEMENTED = code exists; VERIFIED = exact-SHA evidence proves acceptance; BLOCKED = cannot proceed safely; SUPERSEDED = replaced but retained historically; REJECTED = explicitly declined.
