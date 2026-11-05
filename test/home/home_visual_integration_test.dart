@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:arvin/home/home_visual_integration.dart';
 import 'package:arvin/theme/app_fonts.dart';
@@ -16,9 +17,17 @@ void main() {
       ),
     );
 
-    expect(find.text('بسم الله الرحمن الرحیم'), findsOneWidget);
-    final sacredPhrase = tester.widget<Text>(find.text('بسم الله الرحمن الرحیم'));
-    expect(sacredPhrase.style?.fontFamily, AppFonts.vazirmatnFamily);
+    final sacredPhrase = find.byKey(const ValueKey('home-bismillah-capsule'));
+    expect(sacredPhrase, findsOneWidget);
+    expect(
+      tester.widget<Semantics>(sacredPhrase).properties.label,
+      'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
+    );
+    expect(
+      find.byWidgetPredicate((widget) => widget is SvgPicture &&
+          (widget.bytesLoader as dynamic).assetName == 'assets/images/branding/bismillah.svg'),
+      findsOneWidget,
+    );
     expect(AppFonts.familyForText('أُفَوِّضُ أَمْرِی إِلَى اللَّهِ'), AppFonts.vazirmatnFamily);
     expect(AppFonts.familyForText('افوض امری الی الله'), AppFonts.vazirmatnFamily);
     expect(AppFonts.familyForText('متن فارسی رابط کاربری'), AppFonts.vazirmatnFamily);
