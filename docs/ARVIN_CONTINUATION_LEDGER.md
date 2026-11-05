@@ -1849,3 +1849,15 @@ PR #3052 باید OPEN / DRAFT / UNMERGED باقی بماند؛ main بدون ت
 - `test/task_detail_scroll_save_test.dart` مسیر ورود به ویرایش، ذخیره موفق و حفظ offset را پوشش می‌دهد؛ تست قبلی ورود/لغو نیز باقی است.
 - Visual timeout: لاگ job `127329168780` نشان داد `pumpAndSettle` ده دقیقه منتظر idle کامل scheduler ماند و پیش از ثبت PNG شکست خورد. تست به pump قطعی ۳۵۰ms و assertion نبود frame معلق تغییر کرده است؛ این اصلاح هنوز روی HEAD نهایی PASS نشده. Golden مرجع `test/goldens/task_detail_visual_test.png` در مخزن موجود نیست؛ Visual acceptance همچنان BLOCKED تا تصویر واقعی و بازبینی‌شده ثبت شود.
 - هیچ ادعای PASS برای این تغییرات ثبت نمی‌شود. PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ Release: BLOCKED — RELEASE: NO-GO.
+
+
+## Checkpoint اجرایی پس از تصمیم قطعی فونت — ۱۴۰۵/۰۸/۱۴ (2026-11-05)
+- آخرین SHA کد پیش از ثبت این checkpoint: 3a36a7f027bce6385e67fc7d29586395d8b03cf4. ثبت این Ledger یک commit جدید روی همان شاخه ایجاد می‌کند؛ SHA نهایی باید از GitHub زنده خوانده شود.
+- تصمیم فونت قطعی و در کد whitelist شد: Vazirmatn برای کل رابط؛ فقط «بسم‌الله الرحمن الرحیم» و «أُفَوِّضُ أَمْرِی إِلَى اللَّهِ» / «افوض امری الی الله» از family serif/Naskh-style استفاده می‌کنند. فایل‌های کد: lib/theme/app_fonts.dart, lib/main.dart, lib/home/home_visual_integration.dart, lib/calendar_page.dart.
+- تست‌های مرتبط: test/home/home_visual_integration_test.dart, test/home/home_sacred_phrase_test.dart, test/calendar_page_test.dart. آزمون glyph واقعی روی دستگاه هنوز انجام‌نشده.
+- Task Template / Project Template: G1 v11 و Drift مشترک؛ دو تب Settings و تبدیل از فهرست/جزئیات با ذخیره واقعی و تست‌های سرویس/UI. یک مسیر تکراری ایجاد Task از الگو در تست UI حذف و آزمون با مسیر واحد ادغام شد.
+- Task Details: فرم inline، draft ذخیره/لغو، Reminder، Due Date، Recurrence، Checklist و Follow-up؛ تست حفظ offset برای ورود/لغو و ورود/ذخیره موفق باقی است. «زمان اجرا» و «مسئول» بدون منبع canonical همچنان نامشخص/NOT VERIFIED هستند.
+- Visual: انتظار نامحدود pumpAndSettle از تست ثابت حذف شد؛ pump قطعی ۳۵۰ms و assertion نبود frame معلق جایگزین شد. Golden مرجع هنوز در مخزن موجود نیست؛ Visual acceptance BLOCKED تا تولید و بازبینی تصویر مرجع.
+- Home: پنج فیلتر RTL، مرتب‌سازی مستقل، OR داخل انتخاب‌های یک بُعد، AND میان ابعاد، Past و اولویت نمایش گذشته تست‌های هدفمند دارند. گروه Future تجمیعی است و تاریخ ساختگی برای آن تولید نمی‌شود.
+- در آخرین بررسی پیش از ثبت این checkpoint، CI روی SHA 98bc9c39bc79677c094429a7f463a8a02f97cda0 صف‌بندی شده بود؛ آن نتایج به commitهای بعدی منتقل نمی‌شوند. نتیجه CI روی HEAD نهایی باید جداگانه خوانده شود.
+- PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main بدون تغییر؛ BLOCKED — RELEASE: NO-GO.
