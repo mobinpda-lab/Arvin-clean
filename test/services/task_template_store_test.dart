@@ -79,8 +79,8 @@ void main() {
     expect(loaded.reminders.single.isEnabled, isTrue);
     expect(loaded.recurrence?.frequency, RecurrenceFrequency.weekly);
     expect(loaded.recurrence?.interval, 2);
-    expect(loaded.recurrence?.startDate, isNull);
-    expect(loaded.recurrence?.endDate, isNull);
+    expect(loaded.recurrence?.startDate, DateTime(2026, 11, 1));
+    expect(loaded.recurrence?.endDate, DateTime(2027, 1, 1));
     expect(loaded.centerNameSnapshot, 'مرکز نمونه');
     expect(loaded.projectNameSnapshot, 'پروژه نمونه');
     expect(loaded.centerIdSnapshot, 'center-1');
