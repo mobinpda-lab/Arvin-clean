@@ -431,6 +431,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         name: name,
         centerNameSnapshot: widget.centerName,
         projectNameSnapshot: widget.project?.title ?? widget.projectTitle,
+        centerIdSnapshot: widget.project?.centerId,
+        projectIdSnapshot: widget.project?.id,
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context)
