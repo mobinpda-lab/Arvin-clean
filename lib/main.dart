@@ -1274,7 +1274,8 @@ class _HomePageState extends State<HomePage> {
           tasks.where((task) => !task.archived && !task.trashed).isEmpty;
       return Center(child: Padding(
         padding: EdgeInsets.all(compactHome ? 16 : 24),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
+        child: SingleChildScrollView(
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
           Icon(Icons.inbox_outlined, size: compactHome ? 34 : 42, color: ArvinColors.neutral),
           SizedBox(height: compactHome ? 8 : 12),
           Text(
@@ -1296,7 +1297,8 @@ class _HomePageState extends State<HomePage> {
               label: const Text('افزودن کار جدید'),
             ),
           ],
-        ]),
+          ]),
+        ),
       ));
     }
     return ListView.builder(
