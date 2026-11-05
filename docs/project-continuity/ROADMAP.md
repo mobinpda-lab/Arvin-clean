@@ -190,3 +190,14 @@ A feature mentioned only as an illustrative example (such as periodic tasks or a
 - GitHub workflow API برای HEAD کد فعلی اجرای جدیدی گزارش نکرد؛ بنابراین نتیجه اصلاحات و Layout Smoke روی این HEAD هنوز **NOT VERIFIED** است. هیچ نتیجه قدیمی به این SHA منتقل نمی‌شود.
 - مسیر SVGها، dependency رندر SVG و تست روشن/تاریک/چندرزولوشن تا دسترسی به تصویر مرجع و پیاده‌سازی واقعی باقی است.
 - PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## AIPOS v1.0 delivery sequence — 2026-11-05
+1. Keep flutter_svg 2.3.2 and pubspec.lock synchronized; validate with enforce-lockfile.
+2. After the approved calligraphy references are accessible, create authentic path-only Bismillah and Tafweez SVG assets; use SvgPicture.asset with one semantic label in Home and Calendar.
+3. Test SVG path-only structure, Vazirmatn-only text, RTL, light/dark, phone/tablet sizing and overflow. Preserve all existing tests.
+4. Resolve Flutter Analyze and all Home/Calendar/Task Details test failures without skipping or weakening tests.
+5. Run flutter analyze, full flutter test, Debug and Release APK builds on one candidate SHA.
+6. Complete seven Device Smoke lanes, Calendar Provider acceptance and APK artifact inspection on that same SHA.
+7. Obtain product-owner acceptance. Until then PR #3052 stays OPEN/DRAFT/UNMERGED and release stays NO-GO.
+- Reference images are not currently accessible; exact calligraphy match remains NOT VERIFIED.
