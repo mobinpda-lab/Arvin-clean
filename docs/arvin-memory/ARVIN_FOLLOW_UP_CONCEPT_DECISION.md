@@ -1,3 +1,8 @@
+> **STATUS NOTICE (2026-10-24): HISTORICAL / SUPERSEDED AS CURRENT CONTRACT**  
+> This file records earlier owner decisions, including the 2026-10-13 rule that Next Follow-up and reminderDate remain independent current concepts. That rule is retained for decision history only and MUST NOT override the newer owner-approved Reminder contract.  
+> The current normative contract is [ARVIN_REMINDER_CONTRACT.md](ARVIN_REMINDER_CONTRACT.md). In any conflict, the current Reminder contract takes precedence for current product behavior. Do not delete historical Follow-up records or legacy fields without consumer audit, explicit migration design, and regression coverage. The current contract does not claim that the required refactor is already implemented.  
+> Product Reference v1.3 was not located in the inspected repository paths/search results during Wave 7.31; no replacement or reconstruction is implied.
+
 # ARVIN FOLLOW-UP CONCEPT DECISION
 
 - **Date:** 2026-10-12
