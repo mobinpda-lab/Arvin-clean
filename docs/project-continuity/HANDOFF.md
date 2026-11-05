@@ -175,3 +175,13 @@ NOT VERIFIED. GitHub branch data does not reveal uncommitted local modifications
 - Global CardTheme is in place, but audit/convert remaining custom-decorated surfaces in Task Lists, Task Details, Calendar and Quick Entry before claiming whole-app uniformity. No UI business logic or data model change is intended.
 - Run Analyze, new token test, focused widget tests and full CI on final SHA; capture physical-device screenshots for visual acceptance.
 - PR #3052 OPEN / DRAFT / UNMERGED; main untouched; release NO-GO.
+
+ 
+## TaskHomeScreen handoff — 2026-11-05 13:02 Asia/Tehran — ۱۴۰۵/۰۸/۱۴
+- Start with `docs/project-continuity/task_home_screen_spec.md`; it is the canonical fourteen-point approved Home contract.
+- Review the Home implementation in `lib/main.dart` (`HomePage` / `_HomePageState`), sorting in `lib/services/task_list_sort_service.dart`, metadata chips in `lib/widgets/taxonomy_icon_row.dart`, and primary navigation in `lib/widgets/arvin_primary_navigation.dart`.
+- The latest source changes are recorded in `IMPLEMENTATION_LOG.md`. Do not assume any prior-SHA test result validates the latest documentation SHA.
+- Poll Build Analyze and all widget-test shards on the final HEAD. Current baseline on SHA `e0af4008aacf2beba173e5f1af87852e016e3113`: Analyze PASS; test-2/test-4/test-5 failed and the Task Details visual golden timed out; the Device Smoke run was cancelled with only some lanes completed. These are historical baseline findings, not evidence for later commits.
+- Preserve all existing tests and assertions. Do not skip, weaken, remove, bypass or time out any test. Fix only genuine product/source defects and retain failing evidence.
+- Physical Naskh glyph rendering and full Home visual acceptance remain NOT VERIFIED until a physical-device screenshot is inspected.
+- PR #3052 must remain OPEN / DRAFT / UNMERGED; main untouched; release BLOCKED — RELEASE: NO-GO.
