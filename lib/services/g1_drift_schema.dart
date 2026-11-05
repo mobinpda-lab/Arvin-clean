@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
@@ -79,7 +80,30 @@ class G1DriftSchema implements QueryExecutorUser {
   @override
   Future<void> beforeOpen(QueryExecutor executor, OpeningDetails details) async {}
 
-  static Future<void> install(QueryExecutor executor) async {
+  // Store constructors may request the same schema concurrently (for example
+  // both operational template tabs are mounted by TabBarView). Serialize the
+  // idempotent migration per executor so nested BEGIN transactions are avoided.
+  static final Expando<Future<void>> _installations =
+      Expando<Future<void>>('G1DriftSchema.install');
+
+  static Future<void> install(QueryExecutor executor) {
+    final current = _installations[executor];
+    if (current != null) return current;
+    final completer = Completer<void>();
+    _installations[executor] = completer.future;
+    () async {
+      try {
+        await _installSchema(executor);
+        completer.complete();
+      } catch (error, stackTrace) {
+        _installations.delete(executor);
+        completer.completeError(error, stackTrace);
+      }
+    }();
+    return completer.future;
+  }
+
+  static Future<void> _installSchema(QueryExecutor executor) async {
     final schema = G1DriftSchema();
     await executor.ensureOpen(schema);
     await executor.runCustom('PRAGMA foreign_keys = ON');
