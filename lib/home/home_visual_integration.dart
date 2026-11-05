@@ -65,7 +65,7 @@ class HomeVisualIntegration extends StatelessWidget {
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: textSecondary,
-                                fontFamily: AppFonts.sacredArabicFamily,
+                                fontFamily: AppFonts.familyForText('بسم الله الرحمن الرحیم'),
                                 fontSize: 12,
                                 fontWeight: FontWeight.w400,
                               ),
