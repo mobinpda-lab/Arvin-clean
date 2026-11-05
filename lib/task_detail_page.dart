@@ -94,6 +94,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   bool _isSavingChecklist = false;
   bool _isAddingChecklist = false;
   List<TaskReminder> _draftReminders = const [];
+  List<String> _draftChecklist = const [];
   DateTime? _draftDueDate;
   bool _draftAllDay = false;
 
@@ -111,6 +112,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     _categoryController = TextEditingController(text: _task.category ?? '');
     _tagsController = TextEditingController(text: _task.tags.join('، '));
     _draftReminders = List<TaskReminder>.of(_task.taskReminders);
+    _draftChecklist = List<String>.of(_normalizedChecklist());
     _draftDueDate = _task.dueDate;
     _draftAllDay = _task.allDay;
     final rule = _task.recurrence;
@@ -137,6 +139,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     _recurrenceIntervalController = null;
     _recurrenceCountController = null;
     _draftReminders = const [];
+    _draftChecklist = const [];
     _draftDueDate = null;
     _draftAllDay = false;
     setState(() => _isInlineEditing = false);
@@ -170,6 +173,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       ..category = category.isEmpty ? null : category
       ..tags = tags
       ..taskReminders = List<TaskReminder>.of(_draftReminders)
+      ..checklist = List<String>.of(_draftChecklist)
+      ..checklistEnabled = _task.checklistEnabled || _draftChecklist.isNotEmpty
       ..dueDate = _draftDueDate
       ..allDay = _draftAllDay
       ..nextReminderSequence = _draftReminders.isEmpty
@@ -203,6 +208,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       _recurrenceIntervalController = null;
       _recurrenceCountController = null;
       _draftReminders = const [];
+      _draftChecklist = const [];
       _draftDueDate = null;
       _draftAllDay = false;
       setState(() {
@@ -710,6 +716,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               controller: _categoryController,
               textDirection: TextDirection.rtl,
               decoration: const InputDecoration(labelText: 'دسته', border: OutlineInputBorder(), isDense: true),
+              onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 8),
             TextField(
@@ -717,12 +724,13 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               controller: _tagsController,
               textDirection: TextDirection.rtl,
               decoration: const InputDecoration(labelText: 'برچسب‌ها (با ویرگول جدا کنید)', border: OutlineInputBorder(), isDense: true),
+              onChanged: (_) => setState(() {}),
             ),
           ],
           const SizedBox(height: 10),
           _statusPriorityCard(),
           const SizedBox(height: 10),
-          KeyedSubtree(
+          if (!_isInlineEditing) KeyedSubtree(
             key: const ValueKey('task-detail-description-card'),
             child: Text(
               _task.description.trim().isEmpty
@@ -824,7 +832,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     );
   }
 
-  List<String> _normalizedChecklist() => _task.checklist.map((item) {
+  List<String> _normalizedChecklist() => (_isInlineEditing ? _draftChecklist : _task.checklist).map((item) {
         final value = item.trim();
         if (value.startsWith('[x] ')) return value;
         if (value.startsWith('[ ] ')) return value;
@@ -834,8 +842,13 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       }).toList();
 
   Future<void> _saveChecklist(List<String> values) async {
+    if (_isSavingChecklist) return;
+    if (_isInlineEditing) {
+      setState(() => _draftChecklist = List<String>.of(values));
+      return;
+    }
     final handler = widget.onChecklistChanged;
-    if (handler == null || _isSavingChecklist) return;
+    if (handler == null) return;
 
     // Checklist edits are isolated from legacy follow-up scheduling fields.
     // Pass a detached Task snapshot to the owner and restore the protected
@@ -888,7 +901,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     await _saveChecklist(next);
     if (!mounted) return;
     _checklistAddController.clear();
-    if (_task.checklist.isNotEmpty && mounted) {
+    if (_normalizedChecklist().isNotEmpty && mounted) {
       setState(() => _isAddingChecklist = false);
     }
   }
@@ -931,6 +944,15 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
   Future<void> _deleteChecklistItem(int index) async {
     final next = _normalizedChecklist()..removeAt(index);
+    await _saveChecklist(next);
+  }
+
+  Future<void> _moveChecklistItem(int index, int offset) async {
+    final next = _normalizedChecklist();
+    final target = index + offset;
+    if (target < 0 || target >= next.length) return;
+    final item = next.removeAt(index);
+    next.insert(target, item);
     await _saveChecklist(next);
   }
 
@@ -1302,14 +1324,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       PopupMenuButton<String>(
         key: const ValueKey('task-detail-status-menu'),
         tooltip: 'تغییر وضعیت کار',
-        onSelected: (value) { if (value == 'toggle') _complete(); },
+        onSelected: _isInlineEditing ? null : (value) { if (value == 'toggle') _complete(); },
         itemBuilder: (_) => [PopupMenuItem(value: 'toggle', child: Text(_task.completed ? 'بازگشت به انجام‌نشده' : 'علامت‌گذاری به‌عنوان انجام‌شده'))],
         child: _metadataChip(status, _task.completed ? ArvinColors.tag : _brand, icon: Icons.check_circle_outline),
       ),
       PopupMenuButton<TaskPriority>(
         key: const ValueKey('task-detail-priority-menu'),
         tooltip: 'تغییر اولویت',
-        onSelected: _changePriority,
+        onSelected: _isInlineEditing ? null : _changePriority,
         itemBuilder: (_) => TaskPriority.values.map((value) => PopupMenuItem(
           value: value,
           child: Text(value.label, style: TextStyle(color: ArvinColors.priorityColor(value))),
@@ -1355,11 +1377,11 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     final center = widget.centerName?.trim();
     final project = widget.project;
     final items = <Widget>[
-      _metadataItem(key: const ValueKey('task-detail-metadata-time'), label: 'زمان اجرا', value: 'ثبت نشده', color: _muted, icon: Icons.schedule_outlined),
+      _metadataItem(key: const ValueKey('task-detail-metadata-time'), label: 'زمان اجرا', value: 'نامشخص', color: _muted, icon: Icons.schedule_outlined),
       _metadataItem(key: const ValueKey('task-detail-metadata-center'), label: 'مرکز', value: center?.isNotEmpty == true ? center! : 'ثبت نشده', color: ArvinColors.category, icon: Icons.apartment_outlined),
       _metadataItem(key: const ValueKey('task-detail-metadata-project'), label: 'پروژه', value: project?.title.trim().isNotEmpty == true ? project!.title : 'ثبت نشده', color: project == null ? _muted : Color(project.colorValue), icon: Icons.folder_special_outlined),
-      _metadataItem(key: const ValueKey('task-detail-metadata-category'), label: 'دسته', value: _task.category?.trim().isNotEmpty == true ? _task.category!.trim() : 'ثبت نشده', color: ArvinColors.category, icon: Icons.folder_outlined),
-      _metadataItem(key: const ValueKey('task-detail-metadata-tags'), label: 'برچسب‌ها', value: _task.tags.isNotEmpty ? _task.tags.join('، ') : 'بدون برچسب', color: ArvinColors.tag, icon: Icons.sell_outlined),
+      _metadataItem(key: const ValueKey('task-detail-metadata-category'), label: 'دسته', value: _isInlineEditing ? ((_categoryController?.text.trim().isNotEmpty == true) ? _categoryController!.text.trim() : 'ثبت نشده') : (_task.category?.trim().isNotEmpty == true ? _task.category!.trim() : 'ثبت نشده'), color: ArvinColors.category, icon: Icons.folder_outlined),
+      _metadataItem(key: const ValueKey('task-detail-metadata-tags'), label: 'برچسب‌ها', value: _isInlineEditing ? ((_tagsController?.text.trim().isNotEmpty == true) ? _tagsController!.text.trim() : 'بدون برچسب') : (_task.tags.isNotEmpty ? _task.tags.join('، ') : 'بدون برچسب'), color: ArvinColors.tag, icon: Icons.sell_outlined),
     ];
     return Column(
       key: const ValueKey('task-detail-metadata'),
