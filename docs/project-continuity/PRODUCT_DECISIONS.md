@@ -5,7 +5,7 @@ Canonical register for durable product decisions. Detailed implementation and hi
 | Decision | Status | Basis / boundary |
 |---|---|---|
 | Product hierarchy is Center > Project > Category > Task | APPROVED | Owner-confirmed product hierarchy; use the Persian term «مرکز», not «واحد», for the top level. |
-| Official app font is bundled Vazirmatn | APPROVED | Owner-confirmed typography baseline; every page must use Vazirmatn. |
+| Official UI font baseline is Vazirmatn | APPROVED | Every UI element uses Vazirmatn except the two exact owner-approved sacred Arabic phrases recorded below. |
 | PR #3052 stays OPEN / DRAFT / UNMERGED; main untouched; release NO-GO | APPROVED | Binding governance constraints for the active delivery stream. |
 | Phase 1 sync direction is local-network, offline Local P2P; cloud/Dropbox is a separate future Phase 2 | APPROVED | Product direction only. This does not approve a particular pairing or conflict algorithm. |
 | Task due date, independent TaskReminder, recurrence and historical FollowUp remain separate concepts | APPROVED | Canonical product/data semantics; no conflation or parallel storage. |
@@ -78,7 +78,7 @@ PROPOSED = candidate only; APPROVED = explicit owner decision; IN_PROGRESS = wor
 | Card background | `#FFFFFF` | Standard card surfaces |
 | Card radius | `16px` | Shared card containers |
 | Card shadow | black 4%, blur 10, offset (0,4) | Soft card elevation |
-| Font | `Vazirmatn` | All app UI; no font-family change |
+| Font | `Vazirmatn` | All app UI except the two exact owner-approved sacred Arabic phrases; no other font-family exception |
 - Canonical implementation entry point: `lib/core/theme/arvin_theme.dart`; `ArvinColors` remains the semantic compatibility palette and maps shared primary/background/surface tokens to the new values.
 - Shared Flutter `CardThemeData` and app-bar theme use the new light card/header tokens. Shared Home shell, navigation, radio/project selector and recurrence chip surfaces consume the central token aliases.
 - Priority semantics stay unchanged: P1=high/red, P2=medium/blue, P3=low/amber, P4=none/neutral. User-facing labels remain Persian «اولویت ۱» … «اولویت ۴»; do not render literal English P1–P4 unless a later explicit UI decision authorizes it.
