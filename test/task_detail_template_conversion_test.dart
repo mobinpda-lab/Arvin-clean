@@ -68,7 +68,9 @@ void main() {
       find.byKey(const ValueKey('task-detail-template-name')),
       'بازبینی دوره‌ای',
     );
-    await tester.tap(find.byKey(const ValueKey('task-detail-template-confirm')));
+    final confirm = find.byKey(const ValueKey('task-detail-template-confirm'));
+    await tester.ensureVisible(confirm);
+    await tester.tap(confirm);
     await tester.pumpAndSettle();
 
     final saved = (await templates.load()).single;
