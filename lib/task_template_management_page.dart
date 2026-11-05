@@ -225,7 +225,7 @@ class _TaskTemplateManagementPageState extends State<TaskTemplateManagementPage>
         category: template.category,
         priority: template.priority,
         tags: List<String>.of(template.tags),
-        checklistEnabled: template.checklist.isNotEmpty,
+        checklistEnabled: template.checklistEnabled || template.checklist.isNotEmpty,
         checklist: template.checklist.map((item) => '[ ] $item').toList(growable: false),
         people: List.of(template.people),
         taskReminders: reminders,
