@@ -97,7 +97,7 @@ void main() {
     expect(task.checklist.first, '[x] کنترل برق');
   });
 
-  test('G1 v9 installation adds Task Templates without changing existing Task rows', () async {
+  test('G1 v10 migration adds context references without changing existing Task or Task Template rows', () async {
     final database = NativeDatabase.memory();
     addTearDown(database.close);
     await database.ensureOpen(G1DriftSchema());
@@ -106,6 +106,12 @@ void main() {
     );
     await database.runCustom(
       "INSERT INTO tasks (id, title, description, follow_up_enabled, priority, archived, trashed, completed) VALUES ('legacy-1', 'کار موجود', 'شرح', 0, 'medium', 0, 0, 0)",
+    );
+    await database.runCustom(
+      "CREATE TABLE task_templates (id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL, title TEXT NOT NULL, description TEXT NOT NULL DEFAULT '', category TEXT NULL, priority TEXT NOT NULL DEFAULT 'medium', tags_json TEXT NOT NULL DEFAULT '[]', checklist_json TEXT NOT NULL DEFAULT '[]', people_json TEXT NOT NULL DEFAULT '[]', reminders_json TEXT NOT NULL DEFAULT '[]', recurrence_json TEXT NULL, center_name_snapshot TEXT NULL, project_name_snapshot TEXT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, is_archived INTEGER NOT NULL DEFAULT 0)",
+    );
+    await database.runCustom(
+      "INSERT INTO task_templates (id, name, title, created_at, updated_at) VALUES ('task-template-v9', 'الگوی قدیمی', 'کار قدیمی', '2026-01-01', '2026-01-01')",
     );
     await database.runCustom(
       "CREATE TABLE project_templates (id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL, is_archived INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)",
@@ -133,5 +139,19 @@ void main() {
       const [],
     );
     expect(taskTemplateTables, hasLength(1));
+    final templateColumns = await database.runSelect(
+      "PRAGMA table_info('task_templates')",
+      const [],
+    );
+    expect(templateColumns.map((row) => row['name']), containsAll([
+      'center_id_snapshot',
+      'project_id_snapshot',
+    ]));
+    final oldTemplate = await database.runSelect(
+      "SELECT name, title FROM task_templates WHERE id = 'task-template-v9'",
+      const [],
+    );
+    expect(oldTemplate.single['name'], 'الگوی قدیمی');
+    expect(oldTemplate.single['title'], 'کار قدیمی');
   });
 }
