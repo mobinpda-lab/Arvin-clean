@@ -614,3 +614,12 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - Added an explicit accessible semantic label to the independent Home sort action: `72e6779f268bb0ca971b651ad0228604b504f4c8`.
 - Ensured the Past group heading also uses the calendar icon when Past is selected directly from the Time filter: `460a40b6411c6c63691817e45ef00aab61544bd8`.
 - These are source-only follow-ups; no test file or assertion was changed. The latest exact-SHA Build and Device Smoke runs must complete before any PASS is recorded.
+
+
+## Owner-approved sacred phrase typography and Task Details scroll verification — 2026-11-05
+- Recorded the final typography rule: Vazirmatn for all UI; only the Bismillah phrase on Home and «أُفَوِّضُ أَمْرِی إِلَى اللَّهِ» on Calendar may use the narrowly scoped Naskh treatment.
+- Calendar header now uses `AppFonts.familyForText` for the exact approved phrase; `test/calendar_page_test.dart` verifies the exact whitelist match and confirms ordinary Persian text remains Vazirmatn.
+- Home Bismillah uses the shared exact-text whitelist; dedicated Home and typography tests cover the exception boundary.
+- Added `test/task_detail_scroll_save_test.dart` for scroll-offset preservation across inline-edit entry and successful save. Existing cancel-path coverage remains.
+- Visual timeout diagnosis: the previous `pumpAndSettle` waited indefinitely for scheduler idle; the test now uses deterministic pumping and asserts no scheduled frame before capture. The approved golden file is still absent, so Visual acceptance remains BLOCKED pending a real captured and reviewed baseline.
+- Exact-SHA test/CI and physical-device glyph verification are not claimed by this entry.
