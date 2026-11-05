@@ -1829,3 +1829,14 @@ PR #3052 باید OPEN / DRAFT / UNMERGED باقی بماند؛ main بدون ت
 - Baseline c35929 CI snapshot: Analyze, test-0, test-1, test-3, test-4, test-5 and Follow-up file-backed SQLite succeeded; test-2 and Visual were in progress; Device Smoke was incomplete; Calendar Provider first attempt failed before tests due Dart Development Service startup and was rerun. These results do not apply to later SHA.
 - Subsequent documentation/code commits require fresh exact-HEAD CI. PR remains OPEN / DRAFT / UNMERGED; main unchanged; Release BLOCKED — RELEASE: NO-GO.
 
+
+## مالکیت محصول و اجرای تجمعی — ۱۴۰۵/۰۸/۱۴ (2026-11-05)
+
+- تصمیم قطعی فونت: Vazirmatn برای تمام اجزای رابط، متن‌ها، اعداد، دکمه‌ها و سربرگ‌ها. تنها استثناهای مجاز خط نسخ هنری: «بسم‌الله الرحمن الرحیم» و «أُفَوِّضُ أَمْرِی إِلَى اللَّهِ» / «افوض امری الی الله». مرجع: `docs/project-continuity/PRODUCT_DECISIONS.md`.
+- این تصمیم، یادداشت‌های قبلی درباره نیاز به تأیید خط نسخ را supersede می‌کند.
+- Task Template روی G1 v11 و Drift موجود پیاده‌سازی شده است؛ قرارداد canonical: `docs/project-continuity/TASK_TEMPLATE_DATA_CONTRACT.md`. دو تب و مسیرهای تبدیل Task/Project کد و تست تعاملی دارند؛ تا CI exact-SHA، NOT VERIFIED.
+- Task Details مسیر واحد inline edit، ذخیره/لغو و حفظ scroll offset دارد؛ تست‌های فرم ۱۱ بخشی و offset موجودند. مقادیر زمان اجرا و مسئول بدون منبع canonical همچنان «نامشخص» می‌مانند.
+- Visual: علت انتظار طولانی، استفاده از `pumpAndSettle` در تست اسکرین‌شات است که منتظر idle کامل scheduler می‌ماند. تست اکنون با pump قطعی ۳۵۰ms و assertion نبود frame معلق پیش می‌رود؛ timeout افزایش نیافته و تست حذف نشده است. با این حال Golden مرجع در مخزن موجود نیست؛ visual acceptance BLOCKED تا تولید/بازبینی و ثبت Golden معتبر.
+- Home: پنج فیلتر RTL، sort مستقل، Overdue قبل از completed، checkbox multi-select و منطق OR/AND دارای پوشش تستی هستند؛ پنج گروه زمانی در مسیر فعال وجود دارند. سربرگ تاریخ گروه Future به‌صورت تاریخ ساختگی ساخته نمی‌شود چون گروه تجمیعی است.
+- CI روی هر SHA باید مستقل خوانده شود؛ هیچ نتیجه تاریخی منتقل نمی‌شود. Device Smoke، Calendar Provider، Analyze و test shards تا اجرای موفق روی HEAD نهایی NOT VERIFIED هستند.
+- PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main بدون تغییر؛ **BLOCKED — RELEASE: NO-GO**.
