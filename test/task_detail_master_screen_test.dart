@@ -56,6 +56,50 @@ void main() {
     expect(find.text('عنوان تازه'), findsOneWidget);
   });
 
+  testWidgets('Unified Task Details preserves the page scroll offset entering and cancelling edit', (tester) async {
+    final task = Task(
+      id: 'scroll-preservation',
+      title: 'کار با جزئیات زیاد',
+      description: 'شرح طولانی',
+      checklistEnabled: true,
+      checklist: List<String>.generate(12, (index) => '[ ] مرحله شماره ${index + 1}'),
+      taskReminders: List<TaskReminder>.generate(
+        4,
+        (index) => TaskReminder(
+          id: 'scroll-reminder-$index',
+          title: 'یادآور $index',
+          date: DateTime(2026, 11, 5, 10 + index),
+          sequence: index + 1,
+        ),
+      ),
+      followUps: [
+        FollowUp(id: 'scroll-followup', dateTime: DateTime(2026, 11, 4), note: 'پیگیری'),
+      ],
+    );
+    await tester.pumpWidget(MaterialApp(
+      home: TaskDetailPage(
+        task: task,
+        onTaskChanged: (value) async => value,
+        onChecklistChanged: (value, checklist) async => value,
+      ),
+    ));
+    await tester.pumpAndSettle();
+    final scrollable = _taskDetailPageScrollable(tester);
+    await tester.drag(find.byKey(const ValueKey('task-detail-content-list')), const Offset(0, -280));
+    await tester.pumpAndSettle();
+    final position = tester.state<ScrollableState>(scrollable).position;
+    final before = position.pixels;
+    expect(before, greaterThan(0));
+
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
+    await tester.pumpAndSettle();
+    expect(position.pixels, before);
+
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-cancel')));
+    await tester.pumpAndSettle();
+    expect(position.pixels, before);
+  });
+
   testWidgets('Master Task Details toggles an independent reminder', (tester) async {
     Task? persisted;
     final task = Task(
