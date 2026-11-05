@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:arvin/calendar_page.dart';
+import 'package:arvin/theme/app_fonts.dart';
 import 'package:arvin/services/iran_clock.dart';
 import 'package:arvin/services/calendar_swipe_settings_service.dart';
 
@@ -12,8 +13,9 @@ void main() {
 
     final phrase = find.byKey(const ValueKey('calendar-sacred-header'));
     expect(phrase, findsOneWidget);
-    expect(find.text('أُفَوِّضُ أَمْرِي إِلَى اللَّهِ'), findsOneWidget);
-    expect(tester.widget<Text>(phrase).style?.fontFamily, 'serif');
+    expect(find.text('أُفَوِّضُ أَمْرِی إِلَى اللَّهِ'), findsOneWidget);
+    expect(tester.widget<Text>(phrase).style?.fontFamily, AppFonts.familyForText('أُفَوِّضُ أَمْرِی إِلَى اللَّهِ'));
+    expect(AppFonts.familyForText('متن فارسی رابط کاربری'), AppFonts.vazirmatnFamily);
   });
 
   testWidgets('source filters separate all-day items, timed reminders, phone events and unfinished tasks', (tester) async {
