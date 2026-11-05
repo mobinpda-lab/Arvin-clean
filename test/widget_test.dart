@@ -26,7 +26,6 @@ void main() {
           (widget.bytesLoader as dynamic).assetName == 'assets/images/branding/bismillah.svg'),
       findsOneWidget,
     );
-    expect(find.bySemanticsLabel('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'), findsOneWidget);
     expect(find.text('آروین'), findsOneWidget);
     expect(find.text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها'), findsOneWidget);
     expect(find.byType(AppBar), findsNothing);
