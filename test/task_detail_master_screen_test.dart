@@ -188,6 +188,57 @@ void main() {
     expect(persisted?.taskReminders.single.title, 'عنوان اصلاح‌شده');
   });
 
+  testWidgets('Unified Task Details edits reminder date and time in place', (tester) async {
+    Task? persisted;
+    final task = Task(
+      id: 'inline-reminder-schedule-edit',
+      title: 'کار با زمان یادآور',
+      taskReminders: [
+        TaskReminder(
+          id: 'reminder-schedule-1',
+          title: 'یادآور زمان‌دار',
+          date: DateTime(2026, 11, 20, 9, 0),
+          sequence: 1,
+        ),
+      ],
+    );
+    await tester.pumpWidget(MaterialApp(
+      home: TaskDetailPage(
+        task: task,
+        onTaskChanged: (candidate) async {
+          persisted = candidate;
+          return candidate;
+        },
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
+    await tester.pumpAndSettle();
+    final scrollable = _taskDetailPageScrollable(tester);
+    final editSchedule = find.byKey(
+      const ValueKey('task-detail-reminder-edit-schedule-reminder-schedule-1'),
+    );
+    await tester.scrollUntilVisible(editSchedule, 240, scrollable: scrollable);
+    await tester.pumpAndSettle();
+    await tester.tap(editSchedule);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('persian-date-picker')), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'تأیید'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('universal-time-manual-toggle')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('universal-time-manual-input')),
+      '10:45',
+    );
+    await tester.tap(find.byKey(const ValueKey('universal-time-save')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
+    await tester.pumpAndSettle();
+
+    expect(persisted?.taskReminders.single.date, DateTime(2026, 11, 20, 10, 45));
+  });
+
   testWidgets('Unified Task Details edits and persists recurrence in the same form', (tester) async {
     Task? persisted;
     final recurrenceStart = DateTime(2026, 11, 15);
