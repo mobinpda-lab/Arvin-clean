@@ -23,7 +23,7 @@ class ProjectTemplateStore {
   Future<List<ProjectTemplate>> load({bool includeArchived = true}) async {
     await _ready();
     final rows = await _database.runSelect(
-      'SELECT id, name, is_archived, created_at, updated_at FROM project_templates ${includeArchived ? '' : 'WHERE is_archived = 0'} ORDER BY name COLLATE NOCASE, id',
+      'SELECT id, name, is_archived, created_at, updated_at, center_id, color_value FROM project_templates ${includeArchived ? '' : 'WHERE is_archived = 0'} ORDER BY name COLLATE NOCASE, id',
       const [],
     );
     final result = <ProjectTemplate>[];
@@ -37,6 +37,8 @@ class ProjectTemplateStore {
         isArchived: (row['is_archived'] as num).toInt() == 1,
         createdAt: DateTime.parse(row['created_at'] as String),
         updatedAt: DateTime.parse(row['updated_at'] as String),
+        centerId: row['center_id'] as String?,
+        colorValue: (row['color_value'] as num?)?.toInt() ?? 0xFF4A4CAB,
         tasks: taskRows.map((task) => ProjectTemplateTask(
           id: task['id'] as String, title: task['title'] as String,
           description: task['description'] as String, category: task['category'] as String?,
@@ -61,7 +63,7 @@ class ProjectTemplateStore {
         '''INSERT INTO project_templates (id, name, is_archived, created_at, updated_at)
            VALUES (?, ?, ?, ?, ?)
            ON CONFLICT(id) DO UPDATE SET name = excluded.name, is_archived = excluded.is_archived, updated_at = excluded.updated_at''',
-        [template.id, name, template.isArchived ? 1 : 0, template.createdAt.toIso8601String(), now],
+        [template.id, name, template.isArchived ? 1 : 0, template.createdAt.toIso8601String(), now, template.centerId, template.colorValue],
       );
       await _database.runDelete('DELETE FROM project_template_tasks WHERE template_id = ?', [template.id]);
       for (var i = 0; i < template.tasks.length; i++) {
