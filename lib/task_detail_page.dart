@@ -1408,8 +1408,36 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       _metadataItem(key: const ValueKey('task-detail-metadata-time'), label: 'زمان اجرا', value: 'نامشخص', color: _muted, icon: Icons.schedule_outlined),
       _metadataItem(key: const ValueKey('task-detail-metadata-center'), label: 'مرکز', value: center?.isNotEmpty == true ? center! : 'نامشخص', color: ArvinColors.category, icon: Icons.apartment_outlined),
       _metadataItem(key: const ValueKey('task-detail-metadata-project'), label: 'پروژه', value: project?.title.trim().isNotEmpty == true ? project!.title : 'نامشخص', color: project == null ? _muted : Color(project.colorValue), icon: Icons.folder_special_outlined),
-      _metadataItem(key: const ValueKey('task-detail-metadata-category'), label: 'دسته', value: _isInlineEditing ? ((_categoryController?.text.trim().isNotEmpty == true) ? _categoryController!.text.trim() : 'ثبت نشده') : (_task.category?.trim().isNotEmpty == true ? _task.category!.trim() : 'ثبت نشده'), color: ArvinColors.category, icon: Icons.folder_outlined),
-      _metadataItem(key: const ValueKey('task-detail-metadata-tags'), label: 'برچسب‌ها', value: _isInlineEditing ? ((_tagsController?.text.trim().isNotEmpty == true) ? _tagsController!.text.trim() : 'بدون برچسب') : (_task.tags.isNotEmpty ? _task.tags.join('، ') : 'بدون برچسب'), color: ArvinColors.tag, icon: Icons.sell_outlined),
+      _metadataItem(
+        key: const ValueKey('task-detail-metadata-category'),
+        label: 'دسته',
+        value: _task.category?.trim().isNotEmpty == true ? _task.category!.trim() : 'بدون دسته',
+        color: ArvinColors.category,
+        icon: Icons.folder_outlined,
+        editor: _isInlineEditing
+            ? TextField(
+                key: const ValueKey('task-detail-inline-category'),
+                controller: _categoryController,
+                textDirection: TextDirection.rtl,
+                decoration: const InputDecoration(isDense: true, hintText: 'دسته', border: InputBorder.none, contentPadding: EdgeInsets.zero),
+              )
+            : null,
+      ),
+      _metadataItem(
+        key: const ValueKey('task-detail-metadata-tags'),
+        label: 'برچسب‌ها',
+        value: _task.tags.isNotEmpty ? _task.tags.join('، ') : 'بدون برچسب',
+        color: ArvinColors.tag,
+        icon: Icons.sell_outlined,
+        editor: _isInlineEditing
+            ? TextField(
+                key: const ValueKey('task-detail-inline-tags'),
+                controller: _tagsController,
+                textDirection: TextDirection.rtl,
+                decoration: const InputDecoration(isDense: true, hintText: 'برچسب‌ها', border: InputBorder.none, contentPadding: EdgeInsets.zero),
+              )
+            : null,
+      ),
     ];
     return Column(
       key: const ValueKey('task-detail-metadata'),
