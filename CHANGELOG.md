@@ -642,3 +642,13 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - این تغییر در پاسخ به شکست exact-SHA run `42069322654` انجام شد؛ تست Persistence در آن اجرا به علت خطای کامپایل پیش از اجرای تست با `0 tests passed` متوقف شد.
 - نتیجه تست روی SHA جدید هنوز NOT VERIFIED است؛ هیچ PASS از SHA قبلی منتقل نمی‌شود.
 - PR #3052 همچنان باید OPEN / DRAFT / UNMERGED بماند؛ انتشار **BLOCKED — RELEASE: NO-GO**.
+
+## 2026-11-05 — رفع موانع کامپایل، فونت عبارات مقدس و تست ساختاری Task Details
+
+- خطاهای const در هدر Home و عنوان Calendar برطرف شد؛ عبارت‌های مقدس فقط از خانواده serif سیستم با زنجیره fallback مرتب Noto Naskh Arabic / Noto Naskh Arabic UI / NotoNaskhArabic استفاده می‌کنند. متن‌های دیگر همچنان Vazirmatn هستند.
+- تست sacred phrase اکنون Home و Calendar را با هر دو عبارت، وزن 600 و fallback مشخص بررسی می‌کند و عدم نشت استثنا به متن عادی را assert می‌کند.
+- تست Visual از matchesGoldenFile و فایل PNG ناموجود به آزمون Layout/Render Smoke تبدیل شد: ۹ بخش محتوایی واقعی به‌علاوه AppBar و نوار اقدامات ثابت، با بررسی ابعاد، اسکرول و خطاهای Render.
+- خطاهای کامپایل Task Details اصلاح شد: TaskTemplateStore از ورودی تزریق‌شده یا نمونه canonical استفاده می‌کند و PopupMenuButton آیتم حذف را با enabled زمان اجرا می‌سازد.
+- این تغییر عمداً فونت binary جدیدی به‌عنوان asset ادعا نمی‌کند؛ در این مرحله fallback سیستم‌عامل/وب پیکربندی شده است. رندر فیزیکی Naskh روی دستگاه‌های مختلف همچنان نیازمند بررسی دستگاهی است.
+- تمام تست‌ها و گردش‌کارهای جدید باید روی SHA نهایی این مجموعه اجرا شوند؛ نتایج SHAهای قبلی قابل انتقال نیستند.
+- PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main دست‌نخورده و BLOCKED — RELEASE: NO-GO است.
