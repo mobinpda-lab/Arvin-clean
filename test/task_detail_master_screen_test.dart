@@ -623,6 +623,7 @@ void main() {
       home: TaskDetailPage(
         task: task,
         onChecklistChanged: (value, items) async => value,
+        onAddFollowUp: (value, followUp) async => value,
       ),
     ));
     await tester.pumpAndSettle();
@@ -650,11 +651,10 @@ void main() {
     expect(list.padding, const EdgeInsets.fromLTRB(16, 14, 16, 120));
     expect(find.byKey(const ValueKey('task-detail-delete')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-complete')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-bottom-edit')), findsOneWidget);
-    final editCenterX = tester.getCenter(find.byKey(const ValueKey('task-detail-bottom-edit'))).dx;
+    expect(find.byKey(const ValueKey('task-detail-add-followup-bottom')), findsOneWidget);
+    final followUpCenterX = tester.getCenter(find.byKey(const ValueKey('task-detail-add-followup-bottom'))).dx;
     final completeCenterX = tester.getCenter(find.byKey(const ValueKey('task-detail-complete'))).dx;
-    final deleteCenterX = tester.getCenter(find.byKey(const ValueKey('task-detail-delete'))).dx;
-    expect(editCenterX, greaterThan(completeCenterX));
-    expect(completeCenterX, greaterThan(deleteCenterX));
+    expect(followUpCenterX, greaterThan(completeCenterX));
+    expect(find.byKey(const ValueKey('task-detail-delete-menu')), findsOneWidget);
   });
 }
