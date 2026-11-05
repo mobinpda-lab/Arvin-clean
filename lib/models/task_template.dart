@@ -71,6 +71,9 @@ class TaskTemplate {
       reminders: task.taskReminders.map((reminder) => TaskTemplateReminder(
         title: reminder.title,
         isAllDay: reminder.isAllDay,
+        hour: reminder.date.hour,
+        minute: reminder.date.minute,
+        isEnabled: reminder.isEnabled,
         sequence: reminder.sequence,
       )),
       recurrence: recurrence == null ? null : RecurrenceRule(
@@ -157,15 +160,24 @@ class TaskTemplateReminder {
   const TaskTemplateReminder({
     required this.title,
     required this.isAllDay,
+    required this.hour,
+    required this.minute,
+    required this.isEnabled,
     required this.sequence,
   });
   final String title;
   final bool isAllDay;
+  final int hour;
+  final int minute;
+  final bool isEnabled;
   final int sequence;
 
   Map<String, Object?> toJson() => {
     'title': title,
     'isAllDay': isAllDay,
+    'hour': hour,
+    'minute': minute,
+    'isEnabled': isEnabled,
     'sequence': sequence,
   };
 
@@ -173,6 +185,9 @@ class TaskTemplateReminder {
       TaskTemplateReminder(
         title: json['title'] as String? ?? '',
         isAllDay: json['isAllDay'] as bool? ?? false,
+        hour: (json['hour'] as num?)?.toInt() ?? 0,
+        minute: (json['minute'] as num?)?.toInt() ?? 0,
+        isEnabled: json['isEnabled'] as bool? ?? true,
         sequence: (json['sequence'] as num?)?.toInt() ?? 1,
       );
 }
