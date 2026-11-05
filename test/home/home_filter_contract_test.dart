@@ -47,7 +47,8 @@ void main() {
     final sacredPhrase = tester.widget<Text>(
       find.byKey(const ValueKey('home-bismillah')),
     );
-    expect(sacredPhrase.style?.fontFamily, AppFonts.sacredArabicFamily);
+    expect(sacredPhrase.style?.fontFamily, AppFonts.vazirmatnFamily);
+    expect(AppFonts.familyForText('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'), AppFonts.vazirmatnFamily);
     final homeTitle = tester.widget<Text>(
       find.byKey(const ValueKey('home-title-block')),
     );
