@@ -1212,9 +1212,16 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           ]),
           const SizedBox(height: 10),
           Text(
-              latest.note.trim().isEmpty ? 'پیگیری' : latest.note.trim(),
+              latest.title?.trim().isNotEmpty == true
+                  ? latest.title!.trim()
+                  : (latest.note.trim().isEmpty ? 'پیگیری' : latest.note.trim()),
+              key: const ValueKey('task-detail-latest-followup-title'),
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
             ),
+            if (latest.title?.trim().isNotEmpty == true && latest.note.trim().isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(latest.note.trim(), key: const ValueKey('task-detail-latest-followup-note')),
+            ],
             const SizedBox(height: 5),
             Text(_dateTime(latest.dateTime), style: const TextStyle(color: _muted, fontSize: 12, fontWeight: FontWeight.w700)),
             const SizedBox(height: 7),
@@ -1227,6 +1234,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                     style: const TextStyle(color: _brand, fontWeight: FontWeight.w700, fontSize: 12),
                   ),
                 ),
+                if (latest.waitingForResponse) _badge('در انتظار پاسخ', _waiting),
                 if (_resultLabel(latest) != null) _badge(_resultLabel(latest)!, _waitingService.isWaitingResult(latest.result) ? _waiting : _brand),
                 IconButton(
                   key: ValueKey('task-detail-latest-edit-followup-${latest.id}'),
@@ -1260,7 +1268,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionTitle('مسیر پیگیری', Icons.timeline_outlined),
+          _sectionTitle('تاریخچه پیگیری‌ها', Icons.timeline_outlined),
           const SizedBox(height: 12),
           for (var index = 0; index < history.length; index++)
             _timelineItem(
@@ -1304,9 +1312,19 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  followUp.note.trim().isEmpty ? 'پیگیری' : followUp.note.trim(),
+                  followUp.title?.trim().isNotEmpty == true
+                      ? followUp.title!.trim()
+                      : (followUp.note.trim().isEmpty ? 'پیگیری' : followUp.note.trim()),
                   style: const TextStyle(fontWeight: FontWeight.w800),
                 ),
+                if (followUp.title?.trim().isNotEmpty == true && followUp.note.trim().isNotEmpty) ...[
+                  const SizedBox(height: 3),
+                  Text(followUp.note.trim()),
+                ],
+                if (followUp.waitingForResponse) ...[
+                  const SizedBox(height: 4),
+                  _badge('در انتظار پاسخ', _waiting),
+                ],
                 const SizedBox(height: 3),
                 Text(_dateTime(followUp.dateTime), style: const TextStyle(color: _muted, fontSize: 11, fontWeight: FontWeight.w700)),
                 if (result != null && !isLatest) ...[
@@ -1385,13 +1403,21 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   Widget _statusPriorityCard() {
     final completed = _isInlineEditing ? _draftCompleted : _task.completed;
     final priority = _isInlineEditing ? _draftPriority : _task.priority;
+    final waitingForResponse = !completed && _task.lastFollowUp?.waitingForResponse == true;
     final status = _task.trashed
         ? 'در سطل زباله'
         : _task.archived
             ? 'بایگانی‌شده'
             : completed
                 ? 'انجام‌شده'
-                : 'در انتظار انجام';
+                : waitingForResponse
+                    ? 'در انتظار پاسخ'
+                    : 'در انتظار انجام';
+    final statusColor = completed
+        ? ArvinColors.tag
+        : waitingForResponse
+            ? _waiting
+            : _brand;
     return Wrap(spacing: 7, runSpacing: 7, children: [
       PopupMenuButton<String>(
         key: const ValueKey('task-detail-status-menu'),
@@ -1411,7 +1437,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             child: Text(completed ? 'بازگشت به انجام‌نشده' : 'علامت‌گذاری به‌عنوان انجام‌شده'),
           ),
         ],
-        child: _metadataChip(status, completed ? ArvinColors.tag : _brand, icon: Icons.check_circle_outline),
+        child: _metadataChip(status, statusColor, icon: Icons.check_circle_outline),
       ),
       PopupMenuButton<TaskPriority>(
         key: const ValueKey('task-detail-priority-menu'),
