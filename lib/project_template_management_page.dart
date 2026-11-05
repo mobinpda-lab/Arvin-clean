@@ -6,8 +6,9 @@ import 'services/center_store.dart';
 import 'services/project_template_service.dart';
 
 class ProjectTemplateManagementPage extends StatefulWidget {
-  const ProjectTemplateManagementPage({super.key, this.service});
+  const ProjectTemplateManagementPage({super.key, this.service, this.embedded = false});
   final ProjectTemplateService? service;
+  final bool embedded;
   @override State<ProjectTemplateManagementPage> createState() => _ProjectTemplateManagementPageState();
 }
 class _ProjectTemplateManagementPageState extends State<ProjectTemplateManagementPage> {
@@ -146,7 +147,7 @@ class _ProjectTemplateManagementPageState extends State<ProjectTemplateManagemen
     return 'مرکز حذف‌شده';
   }
   @override Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('قالب پروژه‌ها')),
+    appBar: widget.embedded ? null : AppBar(title: const Text('قالب پروژه‌ها')),
     floatingActionButton: FloatingActionButton.extended(key: const ValueKey('template-add'), onPressed: _busy ? null : _createTemplate, icon: const Icon(Icons.add), label: const Text('قالب جدید')),
     body: _loading ? const Center(child: CircularProgressIndicator())
       : _templates.isEmpty ? const Center(child: Text('هنوز قالبی ثبت نشده است.'))
