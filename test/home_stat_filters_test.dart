@@ -3,14 +3,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:arvin/services/iran_clock.dart';
+import 'package:arvin/services/task_store.dart';
+import 'package:arvin/services/project_store.dart';
+import 'package:arvin/services/center_store.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  setUp(() {
+  setUp(() async {
+    await TaskStore.resetTestDatabase();
+    await ProjectStore.resetTestDatabase();
+    await CenterStore.resetTestDatabase();
     SharedPreferences.setMockInitialValues({
       'arvin.tasks': '[\n        {"id":"active","title":"کار فعال","category":"اداری","tags":["مهم"],"completed":false},\n        {"id":"done","title":"کار انجام شده","category":"شخصی","completed":true},\n        {"id":"late","title":"کار عقب افتاده","completed":false,"dueDate":"2020-01-01T08:00:00.000"},\n        {"id":"archived","title":"کار بایگانی","archived":true}\n      ]',
     });
+  });
+
+  tearDown(() async {
+    await TaskStore.resetTestDatabase();
+    await ProjectStore.resetTestDatabase();
+    await CenterStore.resetTestDatabase();
   });
 
   testWidgets('Home exposes the five canonical filter controls', (tester) async {
