@@ -76,6 +76,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   TextEditingController? _tagsController;
   bool _isInlineEditing = false;
   bool _isSavingInlineEdit = false;
+  bool _isSavingTaskTemplate = false;
   bool _isMovingDueDateToToday = false;
   final TextEditingController _checklistAddController = TextEditingController();
   final ScrollController _detailScrollController = ScrollController();
@@ -252,7 +253,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       ),
     );
     controller.dispose();
-    if (name == null || !mounted) return;
+    if (name == null || !mounted || _isSavingTaskTemplate) return;
+    setState(() => _isSavingTaskTemplate = true);
     try {
       await TaskTemplateStore().createFromTask(
         task: _task,
@@ -269,6 +271,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(SnackBar(content: Text('تبدیل کار به الگو انجام نشد: $error')));
+    } finally {
+      if (mounted) setState(() => _isSavingTaskTemplate = false);
     }
   }
 
@@ -1216,7 +1220,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             IconButton(
               key: const ValueKey('task-detail-convert-template'),
               tooltip: 'تبدیل به الگو',
-              onPressed: _convertToTemplate,
+              onPressed: _isSavingTaskTemplate ? null : _convertToTemplate,
               icon: const Icon(Icons.bookmark_add_outlined),
             ),
             IconButton(
