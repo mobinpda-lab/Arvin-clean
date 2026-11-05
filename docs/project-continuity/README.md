@@ -80,3 +80,8 @@ Latest audit record: PRODUCT_DECISIONS.md → Module-Core-Logic v1.0 crosswalk; 
 - `calendar_ui_ux_spec.md` — Calendar: sacred-phrase header, triple-date display, Day/Week/Month/Year modes, five agenda filters, Hijri adjustment and three-layer calendar architecture.
 - Shared visual language: Microsoft To Do-inspired card surfaces, clean light background, rounded white cards, semantic color chips, Persian RTL and official Vazirmatn.
 - Product approval is not implementation acceptance. Runtime, tests, Golden Tests and release remain outside this documentation-only registration.
+
+
+### الگوهای کار و پروژه
+- قرارداد داده و مرز تاریخچه اجرایی: `TASK_TEMPLATE_DATA_CONTRACT.md`
+- مرجع پیاده‌سازی و وضعیت پذیرش exact-SHA: `IMPLEMENTATION_LOG.md` و `ROADMAP.md`
