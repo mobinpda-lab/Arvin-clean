@@ -219,6 +219,46 @@ void main() {
     expect(persisted?.followUps.single.id, 'history-keep');
   });
 
+  testWidgets('Unified Task Details stages status and priority in the same form until save', (tester) async {
+    Task? persisted;
+    final task = Task(
+      id: 'inline-status-priority',
+      title: 'کار با وضعیت و اولویت',
+      priority: TaskPriority.medium,
+    );
+    await tester.pumpWidget(MaterialApp(
+      home: TaskDetailPage(
+        task: task,
+        onTaskChanged: (candidate) async {
+          persisted = candidate;
+          return candidate;
+        },
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-detail-priority-menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(TaskPriority.high.label).last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-detail-status-menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('علامت‌گذاری به‌عنوان انجام‌شده'));
+    await tester.pumpAndSettle();
+
+    expect(persisted, isNull);
+    expect(task.priority, TaskPriority.medium);
+    expect(task.completed, isFalse);
+
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
+    await tester.pumpAndSettle();
+    expect(persisted?.priority, TaskPriority.high);
+    expect(persisted?.completed, isTrue);
+    expect(persisted?.completedAt, isNotNull);
+  });
+
   testWidgets('Unified Task Details preserves the page scroll offset entering and cancelling edit', (tester) async {
     final task = Task(
       id: 'scroll-preservation',
