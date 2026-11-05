@@ -57,6 +57,41 @@ void main() {
     expect(find.text('عنوان تازه'), findsOneWidget);
   });
 
+  testWidgets('Unified Task Details adds a reminder and saves it with the form', (tester) async {
+    Task? persisted;
+    final task = Task(id: 'inline-reminder-add', title: 'کار با یادآور');
+    await tester.pumpWidget(MaterialApp(
+      home: TaskDetailPage(
+        task: task,
+        onTaskChanged: (candidate) async {
+          persisted = candidate;
+          return candidate;
+        },
+      ),
+    ));
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
+    await tester.pumpAndSettle();
+    final scrollable = _taskDetailPageScrollable(tester);
+    final addReminder = find.byKey(const ValueKey('task-detail-add-reminder'));
+    await tester.scrollUntilVisible(addReminder, 240, scrollable: scrollable);
+    await tester.pumpAndSettle();
+    await tester.tap(addReminder);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const ValueKey('task-detail-reminder-title-input')), 'تماس با مشتری');
+    await tester.tap(find.text('ادامه'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('تأیید'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('universal-time-save')));
+    await tester.pumpAndSettle();
+    expect(find.text('تماس با مشتری'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
+    await tester.pumpAndSettle();
+    expect(persisted?.taskReminders, hasLength(1));
+    expect(persisted?.taskReminders.single.title, 'تماس با مشتری');
+    expect(persisted?.taskReminders.single.date, isNotNull);
+  });
+
   testWidgets('Unified Task Details edits and persists recurrence in the same form', (tester) async {
     Task? persisted;
     final task = Task(id: 'inline-recurrence', title: 'کار تکرارشونده');
