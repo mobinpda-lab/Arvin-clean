@@ -327,6 +327,69 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     });
   }
 
+  Future<void> _editDraftReminderTitle(TaskReminder reminder) async {
+    final controller = TextEditingController(text: reminder.title);
+    final title = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('ویرایش عنوان یادآور'),
+        content: TextField(
+          key: ValueKey('task-detail-reminder-edit-title-${reminder.id}'),
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(labelText: 'عنوان یادآور'),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف')),
+          FilledButton(
+            onPressed: () {
+              final value = controller.text.trim();
+              if (value.isNotEmpty) Navigator.pop(dialogContext, value);
+            },
+            child: const Text('ذخیره عنوان'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (title == null || !mounted) return;
+    setState(() {
+      _draftReminders = _draftReminders
+          .map((item) => item.id == reminder.id ? item.copyWith(title: title) : item)
+          .toList(growable: false);
+    });
+  }
+
+  Future<void> _editDraftReminderSchedule(TaskReminder reminder) async {
+    final date = await showPersianDatePicker(
+      context: context,
+      initialDate: reminder.date,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+      helpText: 'تغییر تاریخ یادآور',
+    );
+    if (date == null || !mounted) return;
+    var hour = reminder.date.hour;
+    var minute = reminder.date.minute;
+    if (!reminder.isAllDay) {
+      final time = await showUniversalArvinTimePicker(
+        context: context,
+        initialTime: TimeOfDay(hour: hour, minute: minute),
+        helpText: 'تغییر ساعت یادآور',
+      );
+      if (time == null || !mounted) return;
+      hour = time.hour;
+      minute = time.minute;
+    }
+    setState(() {
+      _draftReminders = _draftReminders
+          .map((item) => item.id == reminder.id
+              ? item.copyWith(date: DateTime(date.year, date.month, date.day, hour, minute))
+              : item)
+          .toList(growable: false);
+    });
+  }
+
   void _removeDraftReminder(TaskReminder reminder) {
     setState(() {
       _draftReminders = _draftReminders
@@ -1519,13 +1582,26 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   secondary: Icon(Icons.notifications_outlined, color: reminder.isEnabled ? ArvinColors.reminder : _muted),
                 ),
               ),
-              if (_isInlineEditing)
+              if (_isInlineEditing) ...[
+                IconButton(
+                  key: ValueKey('task-detail-reminder-edit-title-${reminder.id}'),
+                  tooltip: 'ویرایش عنوان یادآور',
+                  onPressed: () => _editDraftReminderTitle(reminder),
+                  icon: const Icon(Icons.edit_outlined),
+                ),
+                IconButton(
+                  key: ValueKey('task-detail-reminder-edit-schedule-${reminder.id}'),
+                  tooltip: 'تغییر زمان یادآور',
+                  onPressed: () => _editDraftReminderSchedule(reminder),
+                  icon: const Icon(Icons.calendar_month_outlined),
+                ),
                 IconButton(
                   key: ValueKey('task-detail-reminder-remove-${reminder.id}'),
                   tooltip: 'حذف یادآور',
                   onPressed: () => _removeDraftReminder(reminder),
                   icon: const Icon(Icons.delete_outline),
                 ),
+              ],
             ],
           ),
       ]),
