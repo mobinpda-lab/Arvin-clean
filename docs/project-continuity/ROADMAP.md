@@ -153,3 +153,9 @@ A feature mentioned only as an illustrative example (such as periodic tasks or a
 - Task Details: unified 11-section layout and inline save/cancel; scroll offset is tested for entering, cancelling and successful save in `test/task_detail_master_screen_test.dart`.
 - Home: interactive OR/AND test is `test/home/home_filter_boolean_logic_test.dart`.
 - Visual: deterministic pump removes the 10-minute `pumpAndSettle` wait; Golden file remains absent and Visual acceptance remains BLOCKED pending actual reviewed screenshot.
+
+## 2026-11-05 — Exact-SHA G1 compile blocker disposition
+- On SHA `9d095113ac83d827868473a65b0fd2a83d15ac99`, Follow-up File Persistence run `42069322654` failed before executing its test: Dart rejected `Expando<Future<void>?>` because `Expando` requires a non-nullable `Object` value type. The log reported `0 tests passed`.
+- The type issue was corrected on the authorized branch using `Expando<Object>` with a checked `Future<void>?` read. Changelog records the correction. Re-run on the new exact SHA is required; no PASS is inferred.
+- Golden baseline remains absent. Do not fabricate or auto-update it. The two sacred phrases still use system `serif`; a bundled Naskh family and both-phrase rendering test remain outstanding.
+- Keep PR #3052 OPEN / DRAFT / UNMERGED and release **BLOCKED — RELEASE: NO-GO**.
