@@ -232,4 +232,31 @@ void main() {
     expect(task.id, 'same-id');
     expect(find.text('عنوان جدید'), findsOneWidget);
   });
+
+  testWidgets('Task detail always displays project title or no-project placeholder',
+      (tester) async {
+    final task = Task(id: 'project-detail', title: 'کار پروژه‌ای');
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TaskDetailPage(
+          task: task,
+          projectTitle: '  پروژه فروش  ',
+        ),
+      ),
+    );
+
+    expect(
+      find.byKey(const ValueKey('taxonomy-icon-row-project')),
+      findsOneWidget,
+    );
+    expect(find.text('پروژه فروش'), findsOneWidget);
+    expect(find.text('project-id'), findsNothing);
+
+    await tester.pumpWidget(
+      MaterialApp(home: TaskDetailPage(task: task)),
+    );
+    expect(find.text('بدون پروژه'), findsOneWidget);
+  });
+
 }
