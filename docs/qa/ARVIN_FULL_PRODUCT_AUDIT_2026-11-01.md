@@ -1411,3 +1411,27 @@ The canonical A–J baseline remains complete in §3 and the detailed A1–J7 ma
 - [ ] Rerun all seven smoke lanes on one exact final SHA, including the dedicated Reminder legacy-compatibility step. Require actual screenshots/artifacts for visual lanes.
 - [ ] Install the exact review APK on a physical device and capture full, uncut Task Details top and lower page. Compare against the approved reference only after the original reference image is supplied.
 - [ ] Preserve exact-SHA evidence separation after every documentation or code commit. Keep PR #3052 OPEN / DRAFT / UNMERGED and release NO-GO.
+
+## 2026-11-05 — اجرای اصلاحات فونت، Layout Smoke و ممیزی CI (checkpoint)
+
+### شواهد CI روی SHA f44fb03fbc3a5b7b8e995dd861a9585aed36b0cc
+- Run 42070985274 — Follow-up File Persistence: FAILURE. لاگ اجرای تست‌ها به‌دلیل compile error در lib/calendar_page.dart:849 متوقف شد: فراخوانی AppFonts.familyForText(...) در مقدار const.
+- Run 42070985645 — Device Smoke: Navigation job 127398599005 FAILURE در مرحله assembleDebug. شواهد لاگ: const invocation در lib/main.dart:3504 و lib/calendar_page.dart:849؛ getter تعریف‌نشده _taskTemplates در lib/task_detail_page.dart:529؛ و مقادیر runtime در PopupMenuItem const در lib/task_detail_page.dart:1921. اسکرین‌شات artifact تولید شده اما سناریوی اپ به‌دلیل build failure اجرا نشده است.
+- Run 42070986235 — G1 lock sync: SUCCESS.
+- Run 42070985575 — Calendar Provider: IN PROGRESS هنگام استخراج.
+- Run 42070985606 — Build: PENDING و هنوز Job قابل مشاهده نداشت.
+- این شواهد فقط متعلق به SHA f44fb03... هستند.
+
+### اصلاحات کد روی شاخه مجاز
+- lib/theme/app_fonts.dart: fallback محدود به دو عبارت دقیق؛ خانواده اصلی serif و ترتیب fallback شامل Noto Naskh Arabic، Noto Naskh Arabic UI و NotoNaskhArabic. تابع تطبیق متن برای سایر UI همچنان Vazirmatn برمی‌گرداند.
+- lib/main.dart و lib/calendar_page.dart: رفع const invocation و اعمال وزن 600 و line-height مناسب برای دو عبارت.
+- lib/task_detail_page.dart: اتصال getter به widget.taskTemplateStore ?? TaskTemplateStore()؛ ساخت آیتم منوی حذف به‌صورت runtime؛ افزودن کلیدهای سطح AppBar و نوار اقدامات.
+- test/home/home_sacred_phrase_test.dart: بررسی Home و Calendar، دو عبارت مجاز، fallback و عدم نشت به متن عادی.
+- test/task_detail_visual_test.dart: حذف وابستگی به Golden ناموجود و جایگزینی با ۱۱ سطح واقعی (۹ بخش محتوایی + AppBar + نوار اقدامات ثابت)، اندازه‌گیری هندسی، اسکرول و بررسی exception/overflow.
+- فایل PNG مرجع ساخته نشده و Golden acceptance پیکسلی دیگر ادعا نمی‌شود؛ این تست، پوشش ساختاری و چیدمان است.
+
+### وضعیت پذیرش
+- تغییرات هنوز نیازمند اجرای exact-SHA CI هستند. تا ثبت لاگ جدید، همه تست‌های این مرحله NOT VERIFIED.
+- Naskh fallback سیستمی جایگزین asset فونت مستقل شده است؛ کیفیت واقعی glyph shaping روی Androidهای مختلف NOT VERIFIED.
+- Drift v11 و Follow-up Persistence روی SHA جدید باید از لاگ fresh تأیید شوند؛ هیچ PASS از SHA قبلی منتقل نمی‌شود.
+- PR #3052: OPEN / DRAFT / UNMERGED؛ main untouched؛ BLOCKED — RELEASE: NO-GO.
