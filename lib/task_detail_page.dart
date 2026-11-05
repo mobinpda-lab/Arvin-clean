@@ -518,14 +518,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     return value == null || value.isEmpty ? null : value;
   }
 
-  Future<void> _edit() async {
-    final edit = widget.onEdit;
-    if (edit == null) return;
-    final updated = await edit(_task);
-    if (!mounted || updated == null) return;
-    setState(() => _task = updated);
-  }
-
   @override
   void dispose() {
     _descriptionController?.dispose();
@@ -962,7 +954,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                     ? _beginInlineEdit
                     : widget.onChecklistChanged != null
                         ? () => setState(() => _isAddingChecklist = true)
-                        : (widget.onEdit == null ? null : _edit),
+                        : null,
                 icon: const Icon(Icons.add, size: 17),
                 label: const Text('افزودن چک‌لیست'),
               ),
@@ -1462,7 +1454,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             onPressed: _isInlineEditing
                 ? _addInlineReminder
                 : widget.onTaskChanged == null
-                    ? (widget.onEdit == null ? null : _edit)
+                    ? null
                     : _beginInlineEdit,
             icon: const Icon(Icons.add, size: 17),
             label: const Text('افزودن'),
@@ -1677,7 +1669,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             IconButton(
               key: const ValueKey('task-detail-inline-edit-toggle'),
               tooltip: _isInlineEditing ? 'ذخیره ویرایش درجا' : 'ویرایش درجا',
-              onPressed: widget.onTaskChanged == null ? (widget.onEdit == null ? null : _edit) : (_isInlineEditing ? _saveInlineEdit : _beginInlineEdit),
+              onPressed: widget.onTaskChanged == null ? null : (_isInlineEditing ? _saveInlineEdit : _beginInlineEdit),
               icon: Icon(_isInlineEditing ? Icons.save_outlined : Icons.edit_note_outlined),
             ),
             if (_isInlineEditing)
