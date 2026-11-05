@@ -118,7 +118,7 @@ jobs:
           set -euo pipefail
           flutter pub get --enforce-lockfile
           git diff --exit-code -- pubspec.lock
-      - name: Task Details visual golden
+      - name: Task Details structural layout smoke
         run: flutter test test/task_detail_visual_test.dart
       - name: Upload Task Details visual evidence
         if: always()
