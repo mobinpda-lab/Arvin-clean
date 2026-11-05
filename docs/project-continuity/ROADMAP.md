@@ -124,3 +124,17 @@ A feature mentioned only as an illustrative example (such as periodic tasks or a
 7. Current CI status must always be re-read against the live branch HEAD. No PASS transfers from c35929c or any other historical SHA.
 8. PR #3052 stays OPEN / DRAFT / UNMERGED; main untouched; **BLOCKED — RELEASE: NO-GO**.
 
+
+
+## 2026-11-05 — اجرای مهندسی موازی پس از دستور صریح مالک محصول
+
+این checkpoint، وضعیت اجرایی را نسبت به ممیزی قبلی به‌روزرسانی می‌کند؛ ممیزی قبلی حذف نمی‌شود.
+
+1. **Home:** اصلاحات پنج فیلتر و sort در مسیر فعال حفظ شد؛ تست تعاملی ترکیب OR بین چند دسته و AND با فیلتر زمان، Past و اولویت کارت‌های گذشته اضافه/تکمیل شد. exact-SHA CI هنوز NOT VERIFIED است.
+2. **Task Templates / Project Templates:** قرارداد داده در TASK_TEMPLATE_DATA_CONTRACT.md ثبت شد؛ G1 v11 جدول Task Template و مهاجرت غیرمخرب checklist_enabled را دارد؛ نصب هم‌زمان schema برای هر executor serialized شد؛ دو تب عملیاتی تنظیمات، تبدیل Task از فهرست و جزئیات، تبدیل Project از مسیر Projects → Project Details و نمایش الگوهای ذخیره‌شده پیاده‌سازی و تست‌های سرویس/UI اضافه شدند. همه این موارد تا exact-SHA tests/CI «پیاده‌سازی‌شده اما تأییدنشده» هستند.
+3. **Task Detail:** مسیر فعال یک فرم واحد View/Edit با هدر ذخیره/لغو، حفظ scroll controller، draft چندفیلدی، Checklist اتمیک با افزودن/ویرایش/حذف/جابجایی، Reminder، Due Date، Recurrence شامل تاریخ پایان، وضعیت/اولویت و نمایش عنوان/یادداشت Follow-up را دارد. تست حفظ scroll offset و تست تعامل Checklist/Recurrence/Due Date اضافه شد.
+4. **بندهای غیرقابل حدس Task Detail:** زمان اجرا همچنان بدون فیلد canonical و «نامشخص» است؛ assignment مسئول در مدل فعلی اثبات نشده و NOT VERIFIED می‌ماند. People مرتبط به‌عنوان مسئول نمایش داده نمی‌شود. مرکز/پروژه فقط از رابطه و context موجود نمایش داده می‌شوند.
+5. **Visual:** علت قطعی ticker از کد TaskDetailPage اثبات نشد؛ کد صفحه فاقد AnimationController/Ticker/Timer.periodic است و fixture نیز CircularProgressIndicator فعال ندارد. شکست مشاهده‌شده در انتظار ۱۰ دقیقه‌ای pumpAndSettle رخ داده است. تست به pump قطعی ۳۵۰ms و assertion idle-frame تغییر یافت؛ این اصلاح تا اجرا NOT VERIFIED است. Golden مرجع task_detail_visual_test.png در شاخه و main موجود نیست؛ تولید/تأیید Golden بدون تصویر واقعی و بازبینی بصری ممنوع است.
+6. **Calendar Provider / Device Smoke:** هیچ Run روی HEAD فعلی در زمان ثبت این checkpoint موجود نبود؛ اجرای exact-SHA تأیید نشده است. تست‌های قدیمی یا PASS روی SHA دیگر قابل انتقال نیستند.
+7. **Typography:** Vazirmatn عمومی باقی می‌ماند؛ تصمیم استثنای خط نسخ «بسم‌الله الرحمن الرحیم» همچنان منتظر مالک است و rendering دست‌نخورده می‌ماند.
+8. **Release gate:** Issue #823 هنوز کامل نیست. PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main untouched؛ **BLOCKED — RELEASE: NO-GO**.
