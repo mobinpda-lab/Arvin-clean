@@ -530,6 +530,14 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-cancel')));
     await tester.pumpAndSettle();
     expect(position.pixels, before);
+
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
+    await tester.pumpAndSettle();
+    expect(position.pixels, before);
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
+    await tester.pumpAndSettle();
+    expect(position.pixels, before);
+    expect(persisted, isNotNull);
   });
 
   testWidgets('Master Task Details toggles an independent reminder', (tester) async {
