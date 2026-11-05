@@ -1,3 +1,12 @@
+## 2026-11-05 — TaskHomeScreen workflow and regression contract alignment
+
+- Restored the exact seven-lane Build quality matrix: Analyze + test-0 through test-5. Moved `test/task_detail_visual_test.dart` and its artifact upload to a separate standalone `visual` job with exact-SHA checkout verification; visual coverage is retained.
+- Synchronized existing Home regression expectations with the approved fourteen-point Home specification: fully vocalized Bismillah, no Home-header notification bell, general-filter/menu RTL positioning, the canonical Past heading «گذشته», and search hint «جستجو در کارها...».
+- Updated the Task Details completion-action color assertion to the owner-approved shared primary token `#3F3D56`.
+- Updated the Vazirmatn source contract to assert the actual single-source `ArvinTheme.fontFamily` wiring and canonical bundled-font token declaration.
+- Test cases and behavioral coverage remain present. No test file or case was deleted, skipped, bypassed, weakened, or timeout-bypassed. No product runtime code was changed in this alignment pass.
+- Build, standalone Visual, Parallel Wave contract, and seven-path Device Smoke must complete on the new exact HEAD before any PASS is recorded. PR #3052 remains OPEN / DRAFT / UNMERGED; `main` unchanged; release BLOCKED — RELEASE: NO-GO.
+
 ## 2026-11-04 — Quick Capture tighter visual compression (UI-only)
 
 - Tightened compact option controls to 40dp, icons to 16dp, icon/text gaps to 4dp and internal horizontal padding to 8dp; reduced card and row spacing and compacted title/description field decoration.
