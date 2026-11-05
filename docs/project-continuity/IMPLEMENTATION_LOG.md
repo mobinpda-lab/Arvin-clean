@@ -425,6 +425,8 @@ Every new entry must include exact SHA, workflow/run IDs, terminal conclusion, a
 - `lib/theme/app_fonts.dart` فهرست دقیق دو عبارت مجاز را در `familyForText` تعریف می‌کند؛ متن فارسی عادی به Vazirmatn بازمی‌گردد.
 - `lib/main.dart` و `lib/home/home_visual_integration.dart` عبارت بسم‌الله را از whitelist عبور می‌دهند؛ `lib/calendar_page.dart` عبارت تفویض را با همان تابع رندر می‌کند.
 - `test/home/home_visual_integration_test.dart`, `test/home/home_sacred_phrase_test.dart` و `test/calendar_page_test.dart` استثنا و مرز Vazirmatn را assert می‌کنند.
-- `test/task_detail_master_screen_test.dart` اکنون حفظ offset را در ورود، لغو و ذخیره inline بررسی می‌کند؛ `test/task_detail_scroll_save_test.dart` نیز مسیر ذخیره موفق مستقل را پوشش می‌دهد.
+- `test/task_detail_master_screen_test.dart` حفظ offset را در ورود، لغو و ذخیره موفق inline بررسی می‌کند؛ تست مستقل scroll-save در commit `a652c1ca7237a9e06431060a6bbf95dc321046c2` در همین فایل ادغام و فایل جداگانه حذف شد.
 - `test/task_detail_visual_test.dart` از pump قطعی ۳۵۰ms و assertion `hasScheduledFrame == false` استفاده می‌کند؛ ریشه timeout، انتظار نامحدود `pumpAndSettle` برای idle scheduler در fixture ثابت بود، نه ticker تکرارشونده اثبات‌شده. Golden مرجع همچنان غایب است؛ Visual acceptance BLOCKED.
 - این تغییرات تا اجرای موفق تست‌ها روی exact final SHA «پیاده‌سازی‌شده اما تأییدنشده» هستند.
+
+- `test/home/home_filter_boolean_logic_test.dart` اکنون OR درون Category/Tag و AND میان این دو بُعد را به‌صورت تعاملی پوشش می‌دهد؛ commit `f6e1f38f93279621716a5734f8ea763a2cd19a2e`. نتیجه اجرای exact-SHA هنوز تأیید نشده است.
