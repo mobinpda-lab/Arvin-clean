@@ -1,4 +1,5 @@
 import 'package:arvin/models/goal_project.dart';
+import 'package:arvin/models/arvin_center.dart';
 import 'package:arvin/services/center_store.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/projects_page.dart';
@@ -48,6 +49,13 @@ void main() {
     await tester.pumpWidget(MaterialApp(
       home: ProjectsPage(
         projects: [project],
+        centers: [
+          ArvinCenter(
+            id: 'center-1',
+            name: 'مرکز نمونه',
+            createdAt: DateTime(2026, 11, 5),
+          ),
+        ],
         onChanged: (values) async {},
         taskStore: tasks,
         templateService: service,
