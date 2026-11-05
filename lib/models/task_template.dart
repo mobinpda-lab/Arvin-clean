@@ -64,6 +64,32 @@ class TaskTemplate {
   }) {
     final timestamp = now ?? DateTime.now();
     final recurrence = task.recurrence;
+    final reminderDefinitions = task.taskReminders.map((reminder) => TaskTemplateReminder(
+      title: reminder.title,
+      isAllDay: reminder.isAllDay,
+      hour: reminder.date.hour,
+      minute: reminder.date.minute,
+      isEnabled: reminder.isEnabled,
+      sequence: reminder.sequence,
+    )).toList(growable: true);
+    // Legacy Task.reminderDate is still canonical input for older Tasks. Copy
+    // its time-of-day only; the calendar date is execution history, not a
+    // reusable template default. Do not duplicate a reminder already migrated
+    // into the independent reminder collection.
+    if (task.reminderDate != null &&
+        !task.taskReminders.any((reminder) => reminder.isLegacyTaskReminder)) {
+      final sequence = reminderDefinitions.isEmpty
+          ? 1
+          : reminderDefinitions.map((item) => item.sequence).reduce((a, b) => a > b ? a : b) + 1;
+      reminderDefinitions.add(TaskTemplateReminder(
+        title: 'یادآور اصلی',
+        isAllDay: false,
+        hour: task.reminderDate!.hour,
+        minute: task.reminderDate!.minute,
+        isEnabled: true,
+        sequence: sequence,
+      ));
+    }
     return TaskTemplate(
       id: id,
       name: name.trim(),
@@ -74,14 +100,7 @@ class TaskTemplate {
       tags: task.tags,
       checklist: task.checklist.map(_withoutExecutionMarker),
       people: task.people,
-      reminders: task.taskReminders.map((reminder) => TaskTemplateReminder(
-        title: reminder.title,
-        isAllDay: reminder.isAllDay,
-        hour: reminder.date.hour,
-        minute: reminder.date.minute,
-        isEnabled: reminder.isEnabled,
-        sequence: reminder.sequence,
-      )),
+      reminders: reminderDefinitions,
       recurrence: recurrence == null ? null : RecurrenceRule(
         frequency: recurrence.frequency,
         interval: recurrence.interval,
