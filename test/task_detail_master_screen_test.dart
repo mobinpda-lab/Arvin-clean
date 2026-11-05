@@ -6,6 +6,7 @@ import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/services/task_template_store.dart';
 import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/models/person_reference.dart';
+import 'package:arvin/services/persian_date_formatter.dart';
 import 'package:arvin/task_detail_page.dart';
 
 Finder _taskDetailPageScrollable(WidgetTester tester) {
@@ -177,10 +178,11 @@ void main() {
 
   testWidgets('Unified Task Details edits and persists recurrence in the same form', (tester) async {
     Task? persisted;
+    final recurrenceStart = DateTime(2026, 11, 15);
     final task = Task(
       id: 'inline-recurrence',
       title: 'کار تکرارشونده',
-      dueDate: DateTime(2026, 11, 15),
+      dueDate: recurrenceStart,
     );
     await tester.pumpWidget(MaterialApp(
       home: TaskDetailPage(
@@ -209,7 +211,8 @@ void main() {
     await tester.enterText(find.byKey(const ValueKey('task-detail-recurrence-count')), '4');
     await tester.tap(find.byKey(const ValueKey('task-detail-recurrence-end-date-pick')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('persian-date-day-20')));
+    final jalaliDay = const PersianDateFormatter().toJalali(recurrenceStart).day;
+    await tester.tap(find.byKey(ValueKey('persian-date-day-$jalaliDay')));
     await tester.tap(find.text('تأیید'));
     await tester.pumpAndSettle();
 
@@ -219,7 +222,10 @@ void main() {
     expect(persisted?.recurrence?.frequency, RecurrenceFrequency.weekly);
     expect(persisted?.recurrence?.interval, 2);
     expect(persisted?.recurrence?.count, 4);
-    expect(persisted?.recurrence?.endDate, DateTime(2026, 11, 20, 23, 59, 59, 999));
+    expect(
+      persisted?.recurrence?.endDate,
+      DateTime(recurrenceStart.year, recurrenceStart.month, recurrenceStart.day, 23, 59, 59, 999),
+    );
   });
 
   testWidgets('Unified Task Details stages checklist edits, reorders and saves or cancels atomically', (tester) async {
