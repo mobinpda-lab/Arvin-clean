@@ -94,7 +94,7 @@ void main() {
 
       // INLINE EDIT via the pencil icon.
       final editChecklist = find.byKey(const ValueKey('task-detail-checklist-edit-0'));
-      await tester.ensureVisible(editChecklist);
+      await tester.scrollUntilVisible(editChecklist, 240, scrollable: detailScrollable);
       await tester.pumpAndSettle();
       await tester.tap(editChecklist);
       await tester.pumpAndSettle();
@@ -111,7 +111,7 @@ void main() {
 
       // DELETE
       final deleteChecklist = find.byKey(const ValueKey('task-detail-checklist-delete-0'));
-      await tester.ensureVisible(deleteChecklist);
+      await tester.scrollUntilVisible(deleteChecklist, 240, scrollable: detailScrollable);
       await tester.pumpAndSettle();
       await tester.tap(deleteChecklist);
       await tester.pumpAndSettle();
