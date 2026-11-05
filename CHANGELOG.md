@@ -673,3 +673,12 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - GitHub workflow API برای HEAD کد فعلی اجرای جدیدی گزارش نکرد؛ بنابراین نتیجه اصلاحات و Layout Smoke روی این HEAD هنوز **NOT VERIFIED** است. هیچ نتیجه قدیمی به این SHA منتقل نمی‌شود.
 - مسیر SVGها، dependency رندر SVG و تست روشن/تاریک/چندرزولوشن تا دسترسی به تصویر مرجع و پیاده‌سازی واقعی باقی است.
 - PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## AIPOS v1.0 governance checkpoint — 2026-11-05
+- Added/updated the seven continuity records under docs/project-continuity: README, CURRENT_STATE, PRODUCT_DECISIONS, ROADMAP, OPEN_ISSUES, IMPLEMENTATION_LOG and HANDOFF.
+- Canonical product contract records Vazirmatn-only UI text; dedicated path-only SVG calligraphy for the two sacred phrases; checkbox filters; Center > Project > Category > Task; Overdue-first time filter; and the three-layer Calendar separation.
+- flutter_svg 2.3.2 and matching lockfile are present; G1 lock-sync passed on checkpoint SHA 7327c4e0f472e52b12ecd330cb0331132d8aa396.
+- Follow-up persistence passed; Build/Analyze, Calendar Provider, seven-lane Device Smoke and Draft Review APK were incomplete at the checkpoint. No full flutter analyze/test or Debug/Release APK result is claimed.
+- Both requested SVG files remain absent because the approved reference artwork could not be retrieved. Exact vector calligraphy remains BLOCKED/NOT VERIFIED; do not substitute guessed paths.
+- Documentation changes create a new HEAD; rerun all acceptance workflows on the resulting SHA. PR #3052 OPEN/DRAFT/UNMERGED; main untouched; BLOCKED — RELEASE: NO-GO.
