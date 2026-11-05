@@ -144,7 +144,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('universal-time-save')));
     await tester.pumpAndSettle();
-    expect(find.text('تماس با مشتری'), findsNWidgets(2));
+    expect(find.text('تماس با مشتری'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
     await tester.pumpAndSettle();
     expect(persisted?.taskReminders, hasLength(1));
@@ -384,7 +384,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('task-detail-latest-followup-title')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-latest-followup-note')), findsOneWidget);
-    expect(find.text('تماس با مشتری'), findsOneWidget);
+    expect(find.text('تماس با مشتری'), findsNWidgets(2));
     expect(find.text('پاسخ دریافت نشد'), findsOneWidget);
     expect(find.text('در انتظار پاسخ'), findsAtLeastNWidgets(1));
 
