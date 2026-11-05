@@ -120,7 +120,7 @@ A feature mentioned only as an illustrative example (such as periodic tasks or a
 3. Task Clone: existing TaskCloneService and Persian sequential «— رونوشت» behavior retained; rerun focused tests on final SHA.
 4. Task Detail: canonical eleven-section spec exists; current runtime form is partial. Implement one-page View/Edit and scroll-offset preservation only after mapping each section to canonical fields and existing stores; no guessed runtime/assignee values.
 5. Calendar: preserve existing local/provider paths. Retry Provider acceptance after the baseline Dart Development Service startup failure; distinguish single event deletion from external calendar deletion.
-6. Typography: Product Decisions records owner clarification required for the Naskh sacred-phrase treatment versus the global Vazirmatn rule. Do not change rendering before decision.
+6. Typography: owner decision is final — Vazirmatn for all UI; only the two exact sacred Arabic phrases use the scoped Naskh-style system serif family via `AppFonts.familyForText`. Physical-device glyph shaping remains NOT VERIFIED.
 7. Current CI status must always be re-read against the live branch HEAD. No PASS transfers from c35929c or any other historical SHA.
 8. PR #3052 stays OPEN / DRAFT / UNMERGED; main untouched; **BLOCKED — RELEASE: NO-GO**.
 
@@ -146,3 +146,10 @@ A feature mentioned only as an illustrative example (such as periodic tasks or a
 - تست حفظ Scroll Offset فرم Task Details هم ورود/لغو و هم ورود/ذخیره موفق را پوشش می‌دهد.
 - Visual test از `pumpAndSettle` نامحدود به pump قطعی و assertion نبود frame معلق تغییر کرده است. Golden مرجع هنوز در مخزن موجود نیست؛ بنابراین Visual acceptance همچنان BLOCKED تا ایجاد و بازبینی Golden واقعی.
 - تمام نتایج تست و CI باید به HEAD نهایی همین شاخه منتسب شوند؛ وضعیت انتشار NO-GO باقی است.
+
+
+## اجرای تجمعی — آخرین پوشش محصولی
+- Task Template / Project Template: G1 v11, canonical Drift, Settings two-tab hub, list/detail conversion and non-destructive migration tests are implemented; all exact-HEAD acceptance remains pending CI.
+- Task Details: unified 11-section layout and inline save/cancel; scroll offset is tested for entering, cancelling and successful save in `test/task_detail_master_screen_test.dart`.
+- Home: interactive OR/AND test is `test/home/home_filter_boolean_logic_test.dart`.
+- Visual: deterministic pump removes the 10-minute `pumpAndSettle` wait; Golden file remains absent and Visual acceptance remains BLOCKED pending actual reviewed screenshot.
