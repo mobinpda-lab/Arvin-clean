@@ -1,6 +1,7 @@
 import 'package:arvin/models/person_reference.dart';
 import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/models/task.dart';
+import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/services/task_template_store.dart';
 import 'package:arvin/task_detail_page.dart';
 import 'package:drift/native.dart';
@@ -51,7 +52,11 @@ void main() {
       home: TaskDetailPage(
         task: task,
         centerName: 'مرکز فنی',
-        projectTitle: 'پروژه بازبینی',
+        project: ProjectPlan(
+          id: 'project-source-1',
+          title: 'پروژه بازبینی',
+          centerId: 'center-source-1',
+        ),
         taskTemplateStore: templates,
         onTaskChanged: (value) async => value,
       ),
@@ -81,6 +86,8 @@ void main() {
     expect(saved.recurrence?.interval, 2);
     expect(saved.centerNameSnapshot, 'مرکز فنی');
     expect(saved.projectNameSnapshot, 'پروژه بازبینی');
+    expect(saved.centerIdSnapshot, 'center-source-1');
+    expect(saved.projectIdSnapshot, 'project-source-1');
     expect(task.dueDate, dueDate);
     expect(task.completed, isTrue);
     expect(task.followUps.single.id, 'detail-template-followup');
