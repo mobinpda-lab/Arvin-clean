@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import 'arvin_colors.dart';
 import 'core/theme/arvin_theme.dart';
@@ -3500,7 +3501,20 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               Expanded(child: Column(children: [
-                Text('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', key: const ValueKey('home-bismillah'), textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.primary, fontFamily: AppFonts.vazirmatnFamily, fontSize: 17, letterSpacing: 0.1, fontWeight: FontWeight.w600, height: 1.5)),
+                Semantics(
+                  key: const ValueKey('home-bismillah'),
+                  label: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
+                  child: SvgPicture.asset(
+                    'assets/images/branding/bismillah.svg',
+                    key: const ValueKey('home-bismillah-svg'),
+                    width: 210,
+                    colorFilter: const ColorFilter.mode(
+                      Color(0xFF1A2B4C),
+                      BlendMode.srcIn,
+                    ),
+                    excludeFromSemantics: true,
+                  ),
+                ),
                 const SizedBox(height: 1),
                 const Text('آروین', key: ValueKey('home-title-block'), style: TextStyle(color: ArvinColors.primaryDark, fontSize: 23, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 2),
