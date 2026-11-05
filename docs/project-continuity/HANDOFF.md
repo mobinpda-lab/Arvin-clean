@@ -197,3 +197,13 @@ NOT VERIFIED. GitHub branch data does not reveal uncommitted local modifications
 - Added an explicit accessible semantic label to the independent Home sort action: `72e6779f268bb0ca971b651ad0228604b504f4c8`.
 - Ensured the Past group heading also uses the calendar icon when Past is selected directly from the Time filter: `460a40b6411c6c63691817e45ef00aab61544bd8`.
 - These are source-only follow-ups; no test file or assertion was changed. The latest exact-SHA Build and Device Smoke runs must complete before any PASS is recorded.
+
+
+## AIPOS v1.0 handoff — 2026-11-05
+### نخستین گام بعدی دقیق
+1. تصاویر مرجع تأییدشده بسم‌الله و تفویض را از مالک محصول دریافت کن؛ بدون آن‌ها خوشنویسی path-based را حدس نزن و تطابق را تأیید نکن.
+2. HEAD زنده PR #3052 را بخوان؛ ثبت مستندات SHA را تغییر داده است.
+3. سپس SVGهای واقعی را اضافه و در Home/Calendar با SvgPicture.asset و Semantics یکتا جایگزین کن؛ تست ساختاری و روشن/تاریک/چنداندازه را حفظ/تکمیل کن.
+4. Build/Analyze، همه شاردهای تست، هفت Device Smoke lane، Calendar Provider و APK Debug/Release را روی یک SHA نهایی اجرا کن.
+- Lock sync و Follow-up persistence موفق بودند؛ سایر وضعیت‌ها در CURRENT_STATE و OPEN_ISSUES ثبت شده‌اند.
+- PR #3052 OPEN/DRAFT/UNMERGED؛ main untouched؛ BLOCKED — RELEASE: NO-GO.
