@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:arvin/main.dart';
@@ -9,6 +10,10 @@ import 'package:arvin/widgets/arvin_primary_navigation.dart';
 import 'package:arvin/home/home_filter_ui.dart';
 import 'package:arvin/services/iran_clock.dart';
 import 'package:arvin/services/persian_date_formatter.dart';
+
+Finder _homeVerticalScrollable() => find.byWidgetPredicate(
+      (widget) => widget is Scrollable && widget.axisDirection == AxisDirection.down,
+    ).first;
 
 void main() {
   testWidgets('Home renders five collapsible time groups and hides empty filtered groups', (tester) async {
@@ -49,6 +54,11 @@ void main() {
     );
     expect(sacredPhrase.properties.label, 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ');
     expect(find.byKey(const ValueKey('home-bismillah-svg')), findsOneWidget);
+    expect(
+      find.byWidgetPredicate((widget) => widget is SvgPicture &&
+          (widget.bytesLoader as dynamic).assetName == 'assets/images/branding/bismillah.svg'),
+      findsOneWidget,
+    );
     final homeTitle = tester.widget<Text>(
       find.byKey(const ValueKey('home-title-block')),
     );
@@ -183,7 +193,10 @@ void main() {
       findsOneWidget,
     );
     expect(find.byKey(const ValueKey('home-group-future')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-group-no_date')), findsOneWidget);
+    final noDateGroup = find.byKey(const ValueKey('home-group-no_date'));
+    await tester.scrollUntilVisible(noDateGroup, 240, scrollable: _homeVerticalScrollable());
+    await tester.pumpAndSettle();
+    expect(noDateGroup, findsOneWidget);
 
     await tester.ensureVisible(timeFilter);
     await tester.pumpAndSettle();
@@ -292,14 +305,14 @@ void main() {
     expect(find.text('آخرین پیگیری: تماس واقعی'), findsOneWidget);
 
     final legacyOnlyTitle = find.text('بدون سابقه واقعی');
-    await tester.ensureVisible(legacyOnlyTitle);
+    await tester.scrollUntilVisible(legacyOnlyTitle, 240, scrollable: _homeVerticalScrollable());
     await tester.pumpAndSettle();
     expect(legacyOnlyTitle, findsOneWidget);
     await tester.tap(legacyOnlyTitle);
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('task-card-follow-up-legacy-only')), findsNothing);
     final legacyOnlyDetails = find.byKey(const ValueKey('task-card-details-legacy-only'));
-    await tester.ensureVisible(legacyOnlyDetails);
+    await tester.scrollUntilVisible(legacyOnlyDetails, 240, scrollable: _homeVerticalScrollable());
     await tester.pumpAndSettle();
     expect(legacyOnlyDetails, findsOneWidget);
     expect(tester.takeException(), isNull);
