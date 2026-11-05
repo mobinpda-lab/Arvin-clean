@@ -83,11 +83,11 @@ class G1DriftSchema implements QueryExecutorUser {
   // Store constructors may request the same schema concurrently (for example
   // both operational template tabs are mounted by TabBarView). Serialize the
   // idempotent migration per executor so nested BEGIN transactions are avoided.
-  static final Expando<Future<void>?> _installations =
-      Expando<Future<void>>('G1DriftSchema.install');
+  static final Expando<Object> _installations =
+      Expando<Object>('G1DriftSchema.install');
 
   static Future<void> install(QueryExecutor executor) {
-    final current = _installations[executor];
+    final current = _installations[executor] as Future<void>?;
     if (current != null) return current;
     final completer = Completer<void>();
     _installations[executor] = completer.future;
