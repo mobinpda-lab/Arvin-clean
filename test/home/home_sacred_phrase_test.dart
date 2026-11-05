@@ -30,13 +30,13 @@ void main() {
     final calendarPhrase = find.byKey(const ValueKey('calendar-sacred-header'));
     expect(calendarPhrase, findsOneWidget);
     final calendarStyle = tester.widget<Text>(calendarPhrase).style!;
-    expect(calendarStyle.fontFamily, AppFonts.sacredArabicFamily);
+    expect(calendarStyle.fontFamily, AppFonts.vazirmatnFamily);
     expect(calendarStyle.fontFamilyFallback, isNull);
     expect(calendarStyle.fontWeight, FontWeight.w600);
 
-    expect(AppFonts.familyForText('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'), AppFonts.sacredArabicFamily);
-    expect(AppFonts.familyForText('أُفَوِّضُ أَمْرِی إِلَى اللَّهِ'), AppFonts.sacredArabicFamily);
-    expect(AppFonts.familyForText('افوض امری الی الله'), AppFonts.sacredArabicFamily);
+    expect(AppFonts.familyForText('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'), AppFonts.vazirmatnFamily);
+    expect(AppFonts.familyForText('أُفَوِّضُ أَمْرِی إِلَى اللَّهِ'), AppFonts.vazirmatnFamily);
+    expect(AppFonts.familyForText('افوض امری الی الله'), AppFonts.vazirmatnFamily);
     expect(AppFonts.familyForText('متن عادی رابط کاربری'), AppFonts.vazirmatnFamily);
     expect(AppFonts.familyForText('آروین'), AppFonts.vazirmatnFamily);
     expect(tester.takeException(), isNull);
