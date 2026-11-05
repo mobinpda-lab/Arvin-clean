@@ -1,0 +1,120 @@
+name: Verify APK Signature Gate
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/verify-apk-signature.yml'
+  workflow_dispatch:
+    inputs:
+      artifact_run_id:
+        description: 'Run ID that produced the arvin-release-apk artifact'
+        required: false
+        default: '39148486792'
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  verify:
+    name: Check APK checksum and signing certificate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Install Android Build Tools 34.0.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${ANDROID_HOME:?ANDROID_HOME is not set on this runner}"
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager -print -quit)"
+          if [[ -z "$SDKMANAGER" || ! -x "$SDKMANAGER" ]]; then
+            echo "::error::sdkmanager was not found under $ANDROID_HOME/cmdline-tools"
+            exit 1
+          fi
+          # sdkmanager closes stdin after accepting all licenses; suppress the
+          # expected SIGPIPE from yes while preserving sdkmanager's real status.
+          set +o pipefail
+          if yes 2>/dev/null | "$SDKMANAGER" --licenses >/dev/null; then
+            license_status=0
+          else
+            license_status=$?
+          fi
+          set -o pipefail
+          if [[ "$license_status" -ne 0 ]]; then
+            echo "::error::sdkmanager --licenses failed with exit code $license_status"
+            exit "$license_status"
+          fi
+          # The legacy "tools" package is not published in current SDK repositories.
+          "$SDKMANAGER" --install "platform-tools" "build-tools;34.0.0"
+          test -x "$ANDROID_HOME/build-tools/34.0.0/apksigner"
+          "$ANDROID_HOME/build-tools/34.0.0/apksigner" version
+
+      - name: Download APK artifact from specified run
+        uses: actions/download-artifact@v4
+        with:
+          name: arvin-release-apk
+          path: ./apk-artifact
+          run-id: ${{ github.event.inputs.artifact_run_id || '39148486792' }}
+          github-token: ${{ github.token }}
+
+      - name: Verify checksum and APK signature
+        shell: bash
+        env:
+          ARVIN_RELEASE_CERT_SHA256: ${{ vars.ARVIN_RELEASE_CERT_SHA256 }}
+        run: |
+          set -euo pipefail
+          APK_PATH="./apk-artifact/app-release.apk"
+          EXPECTED_SHA="ceb696e84819549be5ccfd534bb773f842961800bd0436bc371b2a1c42242896"
+
+          if [[ ! -f "$APK_PATH" ]]; then
+            echo "::error::Expected APK not found: $APK_PATH"
+            find ./apk-artifact -maxdepth 3 -type f -print || true
+            exit 1
+          fi
+
+          ACTUAL_SHA="$(sha256sum "$APK_PATH" | awk '{print $1}')"
+          echo "Expected SHA-256: $EXPECTED_SHA"
+          echo "Actual SHA-256:   $ACTUAL_SHA"
+
+          if [[ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]]; then
+            echo "::error::CHECKSUM MISMATCH"
+            exit 1
+          fi
+          echo "CHECKSUM VERIFIED"
+
+          if SIGNATURE_OUTPUT="$("$ANDROID_HOME/build-tools/34.0.0/apksigner" verify --verbose --print-certs "$APK_PATH" 2>&1)"; then
+            :
+          else
+            signature_status=$?
+            printf '%s\\n' "$SIGNATURE_OUTPUT"
+            echo "::error::APK_SIGNATURE_INVALID"
+            exit "$signature_status"
+          fi
+          printf '%s\\n' "$SIGNATURE_OUTPUT"
+
+          if grep -Eq 'Signer #[0-9]+ certificate DN: .*CN=Android Debug
+ <<< "$SIGNATURE_OUTPUT"; then
+            echo "::error::RELEASE_SIGNER_REJECTED: Android Debug certificate is not acceptable for a release APK"
+            exit 1
+          fi
+
+          EXPECTED_CERT_SHA="${ARVIN_RELEASE_CERT_SHA256//:/}"
+          EXPECTED_CERT_SHA="${EXPECTED_CERT_SHA,,}"
+          if [[ ! "$EXPECTED_CERT_SHA" =~ ^[0-9a-f]{64}$ ]]; then
+            echo "::error::ARVIN_RELEASE_CERT_SHA256 is unset or invalid; approved release certificate fingerprint is required"
+            exit 1
+          fi
+
+          ACTUAL_CERT_SHA="$(awk '/Signer #1 certificate SHA-256 digest:/ {print $NF; exit}' <<< "$SIGNATURE_OUTPUT")"
+          ACTUAL_CERT_SHA="${ACTUAL_CERT_SHA//:/}"
+          ACTUAL_CERT_SHA="${ACTUAL_CERT_SHA,,}"
+          echo "Expected certificate SHA-256: $EXPECTED_CERT_SHA"
+          echo "Actual certificate SHA-256:   $ACTUAL_CERT_SHA"
+          if [[ "$ACTUAL_CERT_SHA" != "$EXPECTED_CERT_SHA" ]]; then
+            echo "::error::RELEASE_CERTIFICATE_FINGERPRINT_MISMATCH"
+            exit 1
+          fi
+          echo "RELEASE_CERTIFICATE_FINGERPRINT_VERIFIED"
