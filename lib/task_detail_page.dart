@@ -1191,7 +1191,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(bottom: Radius.circular(18)),
           ),
-          title: const Text('جزئیات کار', style: TextStyle(fontFamily: 'Vazirmatn', fontWeight: FontWeight.w700)),
+          title: const Text('مشخصات کار', style: TextStyle(fontFamily: 'Vazirmatn', fontWeight: FontWeight.w700)),
           actions: [
             if (widget.onRegisterTaskToDeviceCalendar != null)
               IconButton(
