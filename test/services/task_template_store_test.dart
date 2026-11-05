@@ -57,6 +57,8 @@ void main() {
       name: 'بازبینی دوره‌ای',
       centerNameSnapshot: 'مرکز نمونه',
       projectNameSnapshot: 'پروژه نمونه',
+      centerIdSnapshot: 'center-1',
+      projectIdSnapshot: 'project-1',
       now: DateTime(2026, 11, 5),
     );
 
@@ -80,6 +82,8 @@ void main() {
     expect(loaded.recurrence?.endDate, isNull);
     expect(loaded.centerNameSnapshot, 'مرکز نمونه');
     expect(loaded.projectNameSnapshot, 'پروژه نمونه');
+    expect(loaded.centerIdSnapshot, 'center-1');
+    expect(loaded.projectIdSnapshot, 'project-1');
 
     final raw = await database.runSelect(
       'SELECT * FROM task_templates WHERE id = ?',
