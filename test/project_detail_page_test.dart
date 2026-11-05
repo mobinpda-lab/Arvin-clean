@@ -1,5 +1,4 @@
 import 'package:arvin/models/goal_project.dart';
-import 'package:arvin/models/arvin_center.dart';
 import 'package:arvin/services/center_store.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/project_detail_page.dart';
