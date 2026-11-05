@@ -539,3 +539,7 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - Added focused token/semantic-color test. Existing tests/assertions were not edited or weakened.
 - Whole-app custom card conversion and physical visual acceptance remain NOT VERIFIED; CI on the resulting SHA is required.
 - PR #3052 stays OPEN / DRAFT / UNMERGED; main unchanged; **BLOCKED — RELEASE: NO-GO**.
+
+### 2026-11-05 10:03 Asia/Tehran — ۱۴۰۵/۰۸/۱۴ — Target-screen card alignment follow-up
+- Applied shared card surface/radius/shadow tokens to Task Details, Task Editor reminder/checklist cards, Quick Capture cards/canvas and Calendar reminder cards.
+- No product logic, model, persistence, workflow or existing test assertion changed. Full secondary-route conversion and physical visual acceptance remain NOT VERIFIED.

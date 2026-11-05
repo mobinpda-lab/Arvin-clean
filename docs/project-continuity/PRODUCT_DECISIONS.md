@@ -83,3 +83,7 @@ PROPOSED = candidate only; APPROVED = explicit owner decision; IN_PROGRESS = wor
 - Status chips retain their existing semantic states/colors; taxonomy remains Center → Project → Category → Tags, with contextual icons and separate existing semantic accent colors. No entity/model or priority enum remapping is authorized.
 - **Coverage status:** foundation implemented; exhaustive conversion of every custom BoxDecoration/card-like surface across all screens and physical visual acceptance remain IN_PROGRESS / NOT VERIFIED. Do not describe the entire app as uniformly migrated until the cross-screen inventory and visual tests pass.
 - Governance unchanged: PR #3052 OPEN / DRAFT / UNMERGED; main untouched; no merge/release; BLOCKED — RELEASE: NO-GO.
+
+### Target-surface card rollout update — 2026-11-05 10:03 Asia/Tehran — ۱۴۰۵/۰۸/۱۴
+- The shared 16px card surface, white surface, centralized border and 4%/10px/4px shadow were applied to Task Details read-only/edit card wrappers, Task Editor reminder/checklist outer cards, Quick Capture cards/sheet canvas, and Calendar reminder cards. Task List card material already uses 16px radius and now inherits the new shared surface tokens through ArvinColors.
+- This is a targeted pass over the four requested screen families, not proof that every decorative panel in every secondary screen has been migrated. Remaining custom panels and physical screenshot acceptance stay IN_PROGRESS / NOT VERIFIED.

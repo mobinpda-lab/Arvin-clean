@@ -209,3 +209,7 @@ Release: BLOCKED — RELEASE: NO-GO
 - Global light CardTheme and AppBar, shared Home shell/navigation/add button, radio/project selector and recurrence chip were routed through tokens. Priority mapping/status/taxonomy semantics were retained; visible priority labels remain Persian «اولویت ۱»…«اولویت ۴».
 - New focused test: `test/arvin_theme_tokens_test.dart`. Existing tests unchanged. Exact-SHA CI and widget tests pending; full custom-card conversion and physical visual acceptance NOT VERIFIED.
 - PR #3052 remains OPEN / DRAFT / UNMERGED; main unchanged; release BLOCKED — RELEASE: NO-GO.
+
+### Target-screen card alignment — 2026-11-05 10:03 Asia/Tehran — ۱۴۰۵/۰۸/۱۴
+- Targeted card styling now also uses the shared token set in Task Details, Task Editor, Quick Capture and Calendar reminder cards; Task Lists retain their 16px card material surface.
+- No product behavior/data/persistence/test assertion changes. Full secondary-screen inventory and physical visual acceptance remain NOT VERIFIED; exact-SHA CI pending.

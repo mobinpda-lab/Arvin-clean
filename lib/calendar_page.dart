@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:arvin/arvin_colors.dart';
+import 'package:arvin/core/theme/arvin_theme.dart';
 import 'theme/app_fonts.dart';
 
 import 'daily_content.dart';
@@ -1363,17 +1364,17 @@ class _ReminderCardState extends State<_ReminderCard> {
       child: Card(
       key: ValueKey('calendar-pastel-card-${item.id}'),
       color: _calendarStatusBackground(item),
-      elevation: 1,
-      shadowColor: statusColor.withValues(alpha: 0.12),
+      elevation: 2,
+      shadowColor: ArvinTheme.shadowStyle.color,
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: ArvinTheme.cardBorderRadius,
       ),
       clipBehavior: Clip.antiAlias,
       child: Container(
         decoration: BoxDecoration(
           border: BorderDirectional(start: BorderSide(color: statusColor, width: 4)),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: ArvinTheme.cardBorderRadius,
         ),
         child: Column(
         children: [

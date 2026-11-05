@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'arvin_colors.dart';
+import 'core/theme/arvin_theme.dart';
 
 import 'android_follow_up_reminder_scheduler.dart';
 import 'follow_up_entry_page.dart';
@@ -479,16 +480,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       key: key,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE9EAF0)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A202040),
-            blurRadius: 12,
-            offset: Offset(0, 3),
-          ),
-        ],
+        color: ArvinColors.surface,
+        borderRadius: ArvinTheme.cardBorderRadius,
+        border: Border.all(color: ArvinColors.border),
+        boxShadow: const [ArvinTheme.shadowStyle],
       ),
       child: child,
     );

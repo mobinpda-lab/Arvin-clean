@@ -266,3 +266,8 @@ Every new entry must include exact SHA, workflow/run IDs, terminal conclusion, a
 - Added `test/arvin_theme_tokens_test.dart` for exact token values and semantic priority/taxonomy palette invariants. No existing test or assertion was removed, skipped, weakened or timed out.
 - **Scope limitation:** the central ThemeData affects Material Card widgets app-wide, but this commit does not claim every custom Container/BoxDecoration on every screen has been converted to a shared card component. Full screen-by-screen custom-surface inventory, visual screenshot acceptance and physical-device review remain NOT VERIFIED.
 - CI is triggered by this code commit; Analyze and widget tests are NOT VERIFIED until the final SHA's workflow results complete. No local Flutter execution is claimed.
+
+### Target-screen card alignment follow-up — 2026-11-05 10:03 Asia/Tehran — ۱۴۰۵/۰۸/۱۴
+- Routed Task Details `_card`, Task Editor reminder/checklist panels, Quick Capture `_surfaceCard` and sheet canvas, and Calendar reminder cards through shared card radius/surface/shadow tokens.
+- No field order, keys, callbacks, task data, reminder semantics, calendar projection, navigation, persistence or validation behavior was changed. No existing tests/assertions were removed, skipped or weakened.
+- Whole-repository custom-card inventory and physical visual comparison remain NOT VERIFIED; exact-SHA CI on the final commit is required.

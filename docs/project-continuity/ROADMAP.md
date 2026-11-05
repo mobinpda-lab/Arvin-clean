@@ -74,3 +74,7 @@ A feature mentioned only as an illustrative example (such as periodic tasks or a
 1. **P1 / Cross-screen card audit:** inventory every custom card-like Container/BoxDecoration in Task Lists, Task Details read-only/edit, Calendar and Quick Entry; migrate only presentation to shared card tokens without changing behavior.
 2. **P1 / Visual regression:** add/retain widget assertions for token application, Persian RTL labels, contextual icons, P1–P4 semantic mapping, status and Center → Project → Category → Tags chips. Do not remove or weaken existing scenarios.
 3. **P1 / Device visual acceptance:** compare all four target surfaces on the physical Android device at supported viewport/text scales. Until then, whole-app uniformity remains NOT VERIFIED.
+
+### Remaining visual rollout
+- Continue inventorying custom card-like panels in secondary routes (Reports, Notebook, Follow-up Office, Backup, People, Projects, Settings and Work Agenda); migrate only presentation and preserve all semantic status/taxonomy distinctions.
+- Capture before/after physical-device screenshots for Home/Task List, Task Details read-only/edit, Calendar and Quick Capture at supported viewport and text scales. Do not claim whole-app uniformity before this gate.

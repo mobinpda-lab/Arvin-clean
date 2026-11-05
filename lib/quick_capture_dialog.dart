@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'arvin_colors.dart';
+import 'core/theme/arvin_theme.dart';
 import 'models/arvin_center.dart';
 
 import 'models/goal_project.dart';
@@ -480,11 +481,11 @@ Future<DateTime?> _pickCustomDue() async {
 
   Widget _surfaceCard({required Widget child, EdgeInsets padding = const EdgeInsets.all(6)}) {
     return Card(
-      elevation: 1,
-      shadowColor: ArvinColors.shadowSoft,
-      color: Colors.white,
+      elevation: 2,
+      shadowColor: ArvinTheme.shadowStyle.color,
+      color: ArvinTheme.cardBackground,
       margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: ArvinTheme.cardBorderRadius),
       child: Padding(padding: padding, child: child),
     );
   }
@@ -503,7 +504,7 @@ Future<DateTime?> _pickCustomDue() async {
     final selectedProject = _knownProjects.where((project) => project.id == _projectId).toList();
 
     return ColoredBox(
-      color: const Color(0xFFF5F6FA),
+      color: ArvinColors.background,
       child: SafeArea(
       child: Align(
         alignment: AlignmentDirectional.topCenter,

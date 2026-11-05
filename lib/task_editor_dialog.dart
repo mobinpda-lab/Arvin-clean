@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'arvin_colors.dart';
+import 'core/theme/arvin_theme.dart';
 import 'follow_up_entry_page.dart';
 
 import 'models/goal_project.dart';
@@ -307,9 +308,10 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
       key: const ValueKey('task-editor-multiple-reminders'),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: _fieldSurface,
-        borderRadius: BorderRadius.circular(18),
+        color: ArvinColors.surface,
+        borderRadius: ArvinTheme.cardBorderRadius,
         border: Border.all(color: _border),
+        boxShadow: const [ArvinTheme.shadowStyle],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -783,7 +785,12 @@ Future<void> _pickDueDate() async {
     return Container(
       key: const ValueKey('task-editor-checklist-block'),
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: ArvinColors.projectSoft, borderRadius: BorderRadius.circular(20), border: Border.all(color: ArvinColors.border)),
+      decoration: BoxDecoration(
+        color: ArvinColors.surface,
+        borderRadius: ArvinTheme.cardBorderRadius,
+        border: Border.all(color: ArvinColors.border),
+        boxShadow: const [ArvinTheme.shadowStyle],
+      ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         const Row(children: [Icon(Icons.checklist_rounded, color: _brand), SizedBox(width: 8), Text('چک‌لیست', style: TextStyle(color: _brand, fontWeight: FontWeight.w800, fontSize: 16))]),
         const SizedBox(height: 4),
