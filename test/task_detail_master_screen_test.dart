@@ -398,7 +398,7 @@ void main() {
     final completeButton = tester.widget<FilledButton>(
       find.byKey(const ValueKey('task-detail-complete')),
     );
-    expect(completeButton.style!.backgroundColor!.resolve({}), const Color(0xFF4A4CAB));
+    expect(completeButton.style!.backgroundColor!.resolve({}), const Color(0xFF3F3D56));
     final list = tester.widget<ListView>(find.byKey(const ValueKey('task-detail-content-list')));
     expect(list.padding, const EdgeInsets.fromLTRB(16, 14, 16, 120));
     expect(find.byKey(const ValueKey('task-detail-delete')), findsOneWidget);
