@@ -13,6 +13,7 @@ import 'services/follow_up_elapsed_formatter.dart';
 import 'services/follow_up_write_coordinator.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/task_store.dart';
+import 'services/task_template_store.dart';
 import 'services/task_move_to_today_service.dart';
 import 'services/waiting_for_response_service.dart';
 import 'task_report_page.dart';
@@ -224,6 +225,52 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         trackingLevel: rule.trackingLevel,
       );
     await _persistCandidate(candidate);
+  }
+
+  Future<void> _convertToTemplate() async {
+    final controller = TextEditingController(text: _task.title);
+    final name = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('تبدیل کار به الگو'),
+        content: TextField(
+          key: const ValueKey('task-detail-template-name'),
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(labelText: 'نام الگو'),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف')),
+          FilledButton(
+            key: const ValueKey('task-detail-template-confirm'),
+            onPressed: () {
+              final value = controller.text.trim();
+              if (value.isNotEmpty) Navigator.pop(dialogContext, value);
+            },
+            child: const Text('تأیید و ذخیره'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (name == null || !mounted) return;
+    try {
+      await TaskTemplateStore().createFromTask(
+        task: _task,
+        name: name,
+        centerNameSnapshot: widget.centerName,
+        projectNameSnapshot: widget.project?.title ?? widget.projectTitle,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(content: Text('الگوی کار ذخیره شد؛ کار اصلی و سابقه آن تغییر نکرد.')));
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text('تبدیل کار به الگو انجام نشد: $error')));
+    }
   }
 
   Future<void> _cloneTask() async {
@@ -1412,6 +1459,12 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 onPressed: _isSavingInlineEdit ? null : _cancelInlineEdit,
                 icon: const Icon(Icons.close),
               ),
+            IconButton(
+              key: const ValueKey('task-detail-convert-template'),
+              tooltip: 'تبدیل به الگو',
+              onPressed: _convertToTemplate,
+              icon: const Icon(Icons.bookmark_add_outlined),
+            ),
             IconButton(
               key: const ValueKey('task-detail-clone'),
               tooltip: 'تکثیر / کپی کار',
