@@ -12,6 +12,7 @@ import 'models/task.dart';
 import 'services/persian_date_formatter.dart';
 import 'widgets/persian_date_picker.dart';
 import 'widgets/arvin_roll_box.dart';
+import 'widgets/arvin_task_selector_wrap.dart';
 import 'widgets/universal_arvin_time_picker.dart';
 
 class ArvinTaskEditorDialog extends StatefulWidget {
@@ -1295,7 +1296,7 @@ Future<void> _pickDueDate() async {
                           : threeColumns
                               ? (constraints.maxWidth - 16) / 3
                               : (constraints.maxWidth - 8) / 2;
-                      return Wrap(
+                      return ArvinTaskSelectorWrap(
                         spacing: 8,
                         runSpacing: 8,
                         children: [
@@ -1337,45 +1338,6 @@ Future<void> _pickDueDate() async {
                                       });
                                       return createdId;
                                     },
-                            ),
-                          ),
-                          SizedBox(
-                            width: itemWidth,
-                            child: ArvinRollBox<String>(
-                              key: const ValueKey('task-editor-category-rollbox'),
-                              label: 'دسته',
-                              valueLabel: _category?.trim().isNotEmpty == true
-                                  ? _category!.trim()
-                                  : 'دسته',
-                              icon: Icons.grid_view_rounded,
-                              color: ArvinColors.category,
-                              emptyLabel: 'بدون دسته',
-                              items: _knownCategories
-                                  .map((value) => value.trim())
-                                  .where((value) => value.isNotEmpty)
-                                  .toSet()
-                                  .map((value) => ArvinRollItem<String>(
-                                        value: value,
-                                        label: value,
-                                        icon: Icons.grid_view_rounded,
-                                        color: ArvinColors.category,
-                                      ))
-                                  .toList(),
-                              onSelected: (value) => setState(() => _category = value),
-                              onCreate: () async {
-                                final value = await _promptNewName('دسته جدید');
-                                if (value == null) return null;
-                                final created =
-                                    await widget.onCreateCategory?.call(value) ?? value;
-                                if (!mounted) return created;
-                                setState(() {
-                                  _category = created;
-                                  if (!_knownCategories.contains(created)) {
-                                    _knownCategories.add(created);
-                                  }
-                                });
-                                return created;
-                              },
                             ),
                           ),
                           SizedBox(
@@ -1442,6 +1404,45 @@ Future<void> _pickDueDate() async {
                                 });
                                 widget.onProjectChanged?.call(createdId);
                                 return createdId;
+                              },
+                            ),
+                          ),
+                          SizedBox(
+                            width: itemWidth,
+                            child: ArvinRollBox<String>(
+                              key: const ValueKey('task-editor-category-rollbox'),
+                              label: 'دسته',
+                              valueLabel: _category?.trim().isNotEmpty == true
+                                  ? _category!.trim()
+                                  : 'دسته',
+                              icon: Icons.grid_view_rounded,
+                              color: ArvinColors.category,
+                              emptyLabel: 'بدون دسته',
+                              items: _knownCategories
+                                  .map((value) => value.trim())
+                                  .where((value) => value.isNotEmpty)
+                                  .toSet()
+                                  .map((value) => ArvinRollItem<String>(
+                                        value: value,
+                                        label: value,
+                                        icon: Icons.grid_view_rounded,
+                                        color: ArvinColors.category,
+                                      ))
+                                  .toList(),
+                              onSelected: (value) => setState(() => _category = value),
+                              onCreate: () async {
+                                final value = await _promptNewName('دسته جدید');
+                                if (value == null) return null;
+                                final created =
+                                    await widget.onCreateCategory?.call(value) ?? value;
+                                if (!mounted) return created;
+                                setState(() {
+                                  _category = created;
+                                  if (!_knownCategories.contains(created)) {
+                                    _knownCategories.add(created);
+                                  }
+                                });
+                                return created;
                               },
                             ),
                           ),
