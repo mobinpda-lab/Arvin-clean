@@ -502,3 +502,19 @@ Every new entry must include exact SHA, workflow/run IDs, terminal conclusion, a
 - Exact blob references: report source `0459fc0a1cfe239eb09fecdd7dd5d42c6ec0845d`; report test `18d5b59fae5d3f127d4ccaedb2963b55b0ad781b`; Quick Capture source `a6b0fa76cd1fed494b0e72d8f66e7db3e47e2a85`; Quick Capture test `875bac562caa55b60bfa2e3871f1e2e2b3ae6abf`.
 - No runtime code or test files were changed in this documentation checkpoint. The new commit is documentation-only and requires fresh exact-SHA CI; earlier PASS results do not transfer automatically.
 - Local working-tree status and local test execution: NOT VERIFIED.
+
+
+## Device Smoke final recheck — 2026-11-06 (۱۴۰۵/۰۸/۱۵)
+- Audited source/branch checkpoint: `49401bd4fcfa5622282d0fd80ec607d12daf467a`; Device Smoke run [42175115690](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/42175115690) checks out this exact SHA on `fix/recovery-calendar-device-smoke-2026-10-31`.
+- Latest GitHub run metadata remains `status=queued`, `conclusion=null`, updated at `2026-11-06T06:32:55Z`. Job-level state is authoritative for this snapshot: Preparation SUCCESS; Boot IN_PROGRESS; Navigation IN_PROGRESS; Calendar Segmented View QUEUED; Quick Capture QUEUED; Task Lifecycle QUEUED; Reminder/Vazirmatn QUEUED; Follow-up Persistence QUEUED.
+- Seven requested product lanes are therefore **NOT COMPLETE / NOT ACCEPTED**. No lane has a terminal result available in this poll; do not convert IN_PROGRESS/QUEUED into PASS or FAIL.
+- Artifact list for this run is empty. Screenshot upload steps have not completed. Fetching logs for Boot and Navigation returned HTTP 404 (BlobNotFound); this is unavailable log evidence, not proof of a product failure.
+- No code, tests, workflow definitions, run state, or main-branch content was changed to obtain this report. No rerun, cancellation, retry, or fabricated device evidence was performed.
+- Previous UI/source audit findings remain open until corrected and independently retested: Quick Capture description field remains present; Reports uses a filter sheet rather than the required visible five-filter row; Calendar does not render the required three-calendar date display; horizontal swipe changes the displayed period rather than transferring the event to the phone calendar; the Tafweez phrase/accessible label does not yet exactly match the newly mandated «وَأُفَوِّضُ أَمْرِي إِلَى اللَّهِ» wording. These are source-inspection findings, not outcomes of this Smoke run.
+- Global Vazirmatn configuration and the two standalone SVG assets were observed in source; this does not establish physical-device glyph/rendering acceptance.
+- PR #3052 remains OPEN / DRAFT / UNMERGED. Main remains `45e4202b03a434459e4c021a04efa7e8396359db`. Release remains **BLOCKED — RELEASE: NO-GO**.
+- This entry is documentation-only. The active Smoke run remains bound to SHA `49401bd4fcfa5622282d0fd80ec607d12daf467a`; its results do not automatically transfer to a later documentation HEAD.
+
+## Documentation synchronization — 2026-11-06 (۱۴۰۵/۰۸/۱۵)
+- Updated continuity evidence only: CURRENT_STATE, IMPLEMENTATION_LOG, OPEN_ISSUES and the root continuation Ledger.
+- No runtime source, tests, workflows, database schema, migration, Android package, or product behavior changed. The Smoke run remains associated with its original checkout SHA; no claim is made that the new documentation commit was device-tested.
