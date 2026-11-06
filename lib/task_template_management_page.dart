@@ -78,15 +78,16 @@ class _TaskTemplateManagementPageState extends State<TaskTemplateManagementPage>
   }
 
   Future<String?> _askName(Task task) async {
-    final controller = TextEditingController(text: task.title);
-    final result = await showDialog<String>(
+    var name = task.title;
+    return showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('تبدیل کار به الگو'),
-        content: TextField(
+        content: TextFormField(
           key: const ValueKey('task-template-name-input'),
-          controller: controller,
+          initialValue: task.title,
           autofocus: true,
+          onChanged: (value) => name = value,
           decoration: const InputDecoration(labelText: 'نام الگو'),
         ),
         actions: [
@@ -96,8 +97,8 @@ class _TaskTemplateManagementPageState extends State<TaskTemplateManagementPage>
           ),
           FilledButton(
             onPressed: () {
-              if (controller.text.trim().isNotEmpty) {
-                Navigator.pop(dialogContext, controller.text.trim());
+              if (name.trim().isNotEmpty) {
+                Navigator.pop(dialogContext, name.trim());
               }
             },
             child: const Text('ادامه'),
@@ -105,8 +106,6 @@ class _TaskTemplateManagementPageState extends State<TaskTemplateManagementPage>
         ],
       ),
     );
-    controller.dispose();
-    return result;
   }
 
   Future<void> _convert(Task task) async {
