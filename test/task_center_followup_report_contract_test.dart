@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:arvin/models/task.dart';
+import 'package:arvin/models/arvin_center.dart';
+import 'package:arvin/task_editor_dialog.dart';
 import 'package:arvin/models/person_reference.dart';
 import 'package:arvin/services/person_follow_up_report_projection.dart';
 import 'package:arvin/services/task_edit_apply_service.dart';
@@ -67,7 +69,7 @@ void main() {
     final projection = const PersonFollowUpReportProjection();
     final matching = projection.project(
       [task],
-      people: const [person],
+      people: [person],
       personIds: const {'person-42'},
     );
     final notMatching = projection.project(
@@ -81,7 +83,6 @@ void main() {
     expect(matching.single.people.single.id, 'person-42');
     expect(notMatching, isEmpty);
   });
-}
 
   testWidgets('Quick Capture saves the explicit no-time choice as a true all-day Task', (tester) async {
     Task? captured;
@@ -117,3 +118,41 @@ void main() {
     expect(captured!.dueDate, DateTime(2026, 11, 6));
     expect(captured!.reminderDate, isNull);
   });
+
+  testWidgets('Full Task Details saves an independently selected Center', (tester) async {
+    Task? saved;
+    final center = ArvinCenter(
+      id: 'center-editor',
+      name: 'مرکز آموزشی',
+      createdAt: DateTime(2026, 11, 6),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              onPressed: () async {
+                saved = await showDialog<Task>(
+                  context: context,
+                  builder: (_) => ArvinTaskEditorDialog(centers: [center]),
+                );
+              },
+              child: const Text('open-center-editor'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open-center-editor'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-editor-center-rollbox')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('مرکز آموزشی').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(saved, isNotNull);
+    expect(saved!.centerId, 'center-editor');
+  });
+}
