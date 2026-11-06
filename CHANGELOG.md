@@ -723,3 +723,11 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - روی SHA مبنا `0d7d76b0889aac972764594db1eee8b8dfa29b7b`، هر شش شارد تست موفق بودند و Analyze به علت همین دو هشدار شکست خورد. APKهای Debug، Release و Staging ساخته و بررسی شدند؛ نتیجه Device Smoke هنوز کامل نبود.
 - Analyze و تمام شش شارد باید مجدداً روی SHA کامیت دوم بررسی شوند؛ نتیجه SHA مبنا جایگزین شواهد SHA جدید نیست.
 - PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## ۱۴۰۵/۰۸/۱۵ (2026-11-06) — ممیزی SVG تفویض و شواهد exact-SHA
+- در کامیت `e81862cbcd723dd0740411de0526aac5e1771e36` فقط تگ `title` از `assets/images/branding/tafweez.svg` حذف شد؛ مقایسه محتوای والد و فایل جدید پس از حذف همین خط، برابری کامل مسیر گرافیکی را تأیید می‌کند.
+- SVG نهایی یک `path`، بدون عنصر پس‌زمینه، با رنگ یکنواخت `#1A2B4C` و viewBox اصلی دارد. این بررسی، تأیید منبع فایل است و جایگزین تست رندر/دستگاه نیست.
+- روی SHA فوق: Build run `42212225056` در زمان ممیزی IN_PROGRESS؛ Analyze و Visual و شاردهای ۴ و ۵ موفق؛ شاردهای ۰ تا ۳ و APKها در حال اجرا. Device Smoke run `42212224923` PENDING و بدون Job/Artifact بود. File Persistence run `42212224806` SUCCESS (یک تست فایل‌محور)؛ Calendar Provider و Draft Review APK در حال اجرا بودند.
+- نتایج SHA قبلی `2c2594e4663b243932620e250b4586e564996461` به SHA جدید منتقل نمی‌شوند؛ نتیجه سطح Workflow برای Build و Device Smoke آن SHA برابر CANCELLED بود.
+- PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ **BLOCKED — RELEASE: NO-GO**.
