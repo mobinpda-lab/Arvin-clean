@@ -11,6 +11,7 @@ import 'services/persian_date_formatter.dart';
 import 'services/quick_capture_service.dart';
 import 'services/task_project_assignment_service.dart';
 import 'widgets/arvin_roll_box.dart';
+import 'widgets/arvin_task_selector_wrap.dart';
 import 'widgets/universal_arvin_time_picker.dart';
 import 'widgets/persian_date_picker.dart';
 
@@ -39,6 +40,7 @@ class QuickCaptureDialog extends StatefulWidget {
     this.onCreateCategory,
     this.onCreateTag,
     this.onCreateProject,
+    this.onCreateCenter,
   });
 
   final QuickCaptureService service;
@@ -59,6 +61,7 @@ class QuickCaptureDialog extends StatefulWidget {
 
   /// Canonical Project creation; no Quick Capture-owned persistence.
   final Future<String?> Function(String title)? onCreateProject;
+  final Future<String?> Function(String name)? onCreateCenter;
 
   @override
   State<QuickCaptureDialog> createState() => _QuickCaptureDialogState();
@@ -82,6 +85,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   final TextEditingController _categoryController = TextEditingController();
   final List<String> _selectedTags = <String>[];
   late List<ProjectPlan> _knownProjects;
+  late List<ArvinCenter> _knownCenters;
   late List<String> _knownCategories;
   late List<String> _knownTags;
 
@@ -92,6 +96,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     _knownCategories = List<String>.of(widget.knownCategories);
     _knownTags = List<String>.of(widget.knownTags);
     _knownProjects = List<ProjectPlan>.of(widget.projects);
+    _knownCenters = List<ArvinCenter>.of(widget.centers);
     final selectedProject = _knownProjects.where((project) => project.id == _projectId);
     _centerId = widget.initialCenterId ??
         (selectedProject.isEmpty ? null : selectedProject.first.centerId);
@@ -512,7 +517,7 @@ Future<DateTime?> _pickCustomDue() async {
 
   Widget _buildContent(BuildContext context) {
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
-    final availableCenters = widget.centers
+    final availableCenters = _knownCenters
         .where((center) => !center.isArchived || center.id == _centerId)
         .toList(growable: false);
     final availableProjects = _knownProjects
@@ -596,11 +601,28 @@ Future<DateTime?> _pickCustomDue() async {
                   _surfaceCard(
                     child: Align(
                       alignment: AlignmentDirectional.centerStart,
-                      child: Wrap(
+                      child: ArvinTaskSelectorWrap(
                         key: const ValueKey('quick-capture-categories-wrap'),
                         spacing: 6,
                         runSpacing: 6,
                         children: [
+                          SizedBox(width: MediaQuery.sizeOf(context).width > 700 ? 248 : 124, child: ArvinRollBox<Object?>(
+                            key: const ValueKey('quick-capture-due-rollbox'),
+                            label: 'تاریخ و ساعت',
+                            compact: true,
+                            valueLabel: _dueDate == null ? 'تاریخ و ساعت' : _dateLabel(_dueDate, dateOnly: _dueAllDay),
+                            icon: Icons.calendar_today_outlined,
+                            color: ArvinColors.time,
+                            emptyLabel: 'بدون تاریخ و ساعت',
+                            items: [
+                              ArvinRollItem<Object?>(value: _now(), label: 'امروز', icon: Icons.today_outlined, color: ArvinColors.time),
+                              ArvinRollItem<Object?>(value: _now().add(const Duration(days: 1)), label: 'فردا', icon: Icons.event_outlined, color: ArvinColors.project),
+                              ArvinRollItem<Object?>(value: _now().add(const Duration(days: 7)), label: 'هفته آینده', icon: Icons.date_range_outlined, color: ArvinColors.tag),
+                            ],
+                            createLabel: 'تاریخ و ساعت سفارشی',
+                            onCreate: _saving ? null : _pickCustomDue,
+                            onSelected: (value) => _setDueDate(value is DateTime ? value : null),
+                          )),
                           SizedBox(
                             width: 112,
                             child: ArvinRollBox<String>(
@@ -626,6 +648,42 @@ Future<DateTime?> _pickCustomDue() async {
                                     }
                                   }
                                 });
+                              },
+                              onCreate: widget.onCreateCenter == null ? null : () async {
+                                final controller = TextEditingController();
+                                final name = await showModalBottomSheet<String>(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  builder: (ctx) => Padding(
+                                    padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(ctx).bottom),
+                                    child: Column(mainAxisSize: MainAxisSize.min, children: [
+                                      const Text('مرکز جدید'),
+                                      TextField(controller: controller, autofocus: true,
+                                        decoration: const InputDecoration(labelText: 'نام مرکز')),
+                                      FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+                                        child: const Text('افزودن')),
+                                    ]),
+                                  ),
+                                );
+                                final value = name?.trim();
+                                if (value == null || value.isEmpty) { controller.dispose(); return null; }
+                                final createdId = await widget.onCreateCenter!(value);
+                                controller.dispose();
+                                if (!mounted || createdId == null || createdId.trim().isEmpty) return createdId;
+                                if (!_knownCenters.any((center) => center.id == createdId)) {
+                                  _knownCenters = [..._knownCenters, ArvinCenter(
+                                    id: createdId, name: value, createdAt: _now(),
+                                  )];
+                                }
+                                setState(() {
+                                  _centerId = createdId;
+                                  if (_projectId != null) {
+                                    final current = _knownProjects.where((project) => project.id == _projectId);
+                                    if (current.isEmpty || current.first.centerId != createdId) _projectId = null;
+                                  }
+                                });
+                                widget.onProjectChanged?.call(_projectId);
+                                return createdId;
                               },
                             ),
                           ),
@@ -793,23 +851,7 @@ Future<DateTime?> _pickCustomDue() async {
                         spacing: 6,
                         runSpacing: 6,
                         children: [
-                          SizedBox(width: MediaQuery.sizeOf(context).width > 700 ? 248 : 124, child: ArvinRollBox<Object?>(
-                            key: const ValueKey('quick-capture-due-rollbox'),
-                            label: 'تاریخ و ساعت',
-                            compact: true,
-                            valueLabel: _dueDate == null ? 'تاریخ و ساعت' : _dateLabel(_dueDate, dateOnly: _dueAllDay),
-                            icon: Icons.calendar_today_outlined,
-                            color: ArvinColors.time,
-                            emptyLabel: 'بدون تاریخ و ساعت',
-                            items: [
-                              ArvinRollItem<Object?>(value: _now(), label: 'امروز', icon: Icons.today_outlined, color: ArvinColors.time),
-                              ArvinRollItem<Object?>(value: _now().add(const Duration(days: 1)), label: 'فردا', icon: Icons.event_outlined, color: ArvinColors.project),
-                              ArvinRollItem<Object?>(value: _now().add(const Duration(days: 7)), label: 'هفته آینده', icon: Icons.date_range_outlined, color: ArvinColors.tag),
-                            ],
-                            createLabel: 'تاریخ و ساعت سفارشی',
-                            onCreate: _saving ? null : _pickCustomDue,
-                            onSelected: (value) => _setDueDate(value is DateTime ? value : null),
-                          )),
+                          ,
                           SizedBox(width: 148, child: ArvinRollBox<Object?>(
                             key: const ValueKey('quick-capture-reminder-rollbox'),
                             label: 'یادآور',
