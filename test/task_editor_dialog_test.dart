@@ -64,12 +64,14 @@ void main() {
       onResult: (value) => result = value,
     );
 
+    final project = find.byKey(const ValueKey('task-editor-project-rollbox'));
     final category = find.byKey(const ValueKey('task-editor-category-rollbox'));
     final project = find.byKey(const ValueKey('task-editor-project-rollbox'));
     final tags = find.byKey(const ValueKey('task-editor-tag-rollbox'));
     expect(category, findsOneWidget);
     expect(project, findsOneWidget);
     expect(tags, findsOneWidget);
+    expect(tester.getRect(project).top, lessThanOrEqualTo(tester.getRect(category).top));
     expect(tester.getRect(tags).top, greaterThan(tester.getRect(category).top));
     expect(tester.takeException(), isNull);
     await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
