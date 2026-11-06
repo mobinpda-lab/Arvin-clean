@@ -44,3 +44,14 @@ PR: #3052
 - `flutter analyze` and full test suite: pending GitHub Actions for this exact HEAD; do not mark PASS until the Build workflow completes.
 - The current change explicitly narrows Report Center's selected-person filter to active waiting Follow-ups and has a regression test distinguishing waiting from ordinary Follow-ups.
 - PR #3052 must remain OPEN / DRAFT / UNMERGED. No main edit or merge is authorized.
+
+
+## Exact HEAD continuation — 2026-11-06 22:24 Asia/Tehran
+- Authorized branch advanced through df5295fe2464d99cc5b2abe83515822ee7c136af and 5f8cfefcb849816f3d16936f4b6bbb0f77c4cf68.
+- df5295fe: preserve Home no-Center matching, make full-form taxonomy controls responsive at larger text scale, keep Quick Capture priority unset by default, and omit the Gregorian year in the selected-day summary.
+- 5f8cfef: align focused regression tests for date-only/time affordance, Semantics time label, RTL wrapping, unset Quick Capture priority, vertical scrollable discovery, scoped Home chip styling and Report Center filter-sheet scrolling.
+- These are follow-up hardening/test-contract commits; they do not by themselves close all five gaps or prove device acceptance.
+- Exact-HEAD workflows: Build 42274180002 pending; Draft Review APK 42274179979 in progress; Calendar Provider 42274179939 in progress; Device Smoke 42274179896 pending. No PASS is recorded before completion on this exact SHA.
+- A prior assistant message showed a sandbox APK path for SHA 7644fc08; that path was not verified in this execution context. Do not treat it as a valid downloadable artifact. New-head APK and APK SHA-256 remain pending artifact publication and verification.
+- PR #3052 verified OPEN / DRAFT / UNMERGED at HEAD 5f8cfefcb849816f3d16936f4b6bbb0f77c4cf68. No main update or merge.
+- Release remains BLOCKED — RELEASE: NO-GO pending exact-head CI, verified APK artifact and owner physical-device acceptance.
