@@ -46,6 +46,27 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  testWidgets('Task editor taxonomy selectors wrap on a narrow RTL phone viewport', (tester) async {
+    Task? result;
+    await pumpEditor(
+      tester,
+      logicalSize: const Size(320, 640),
+      onResult: (value) => result = value,
+    );
+
+    final category = find.byKey(const ValueKey('task-editor-category-rollbox'));
+    final project = find.byKey(const ValueKey('task-editor-project-rollbox'));
+    final tags = find.byKey(const ValueKey('task-editor-tag-rollbox'));
+    expect(category, findsOneWidget);
+    expect(project, findsOneWidget);
+    expect(tags, findsOneWidget);
+    expect(tester.getRect(tags).top, greaterThan(tester.getRect(category).top));
+    expect(tester.takeException(), isNull);
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+    expect(result, isNotNull);
+  });
+
   testWidgets('full Task form exposes canonical follow-up records instead of a toggle',
       (tester) async {
     final task = Task(

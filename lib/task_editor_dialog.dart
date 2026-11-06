@@ -1232,9 +1232,18 @@ Future<void> _pickDueDate() async {
                     ),
                   ),
                   const SizedBox(height: 14),
-                  Row(
-                    children: [
-                      Expanded(                        child: ArvinRollBox<String>(
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final wide = constraints.maxWidth >= 480;
+                      final itemWidth = wide
+                          ? (constraints.maxWidth - 16) / 3
+                          : (constraints.maxWidth - 8) / 2;
+                      return Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          SizedBox(width: itemWidth, child: ArvinRollBox<String>(
+                            key: const ValueKey('task-editor-category-rollbox'),
                           label: 'دسته',
                           valueLabel: _category?.trim().isNotEmpty == true ? _category!.trim() : 'دسته',
                           icon: Icons.grid_view_rounded,
@@ -1254,11 +1263,10 @@ Future<void> _pickDueDate() async {
                             });
                             return created;
                           },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: ArvinRollBox<String>(
+                            )),
+                          )),
+                          SizedBox(width: itemWidth, child: ArvinRollBox<String>(
+                            key: const ValueKey('task-editor-project-rollbox'),
                           label: 'پروژه',
                           valueLabel: _selectedProjectId == null ? 'پروژه' : _projects.where((p) => p.id == _selectedProjectId).map((p) => p.title).isEmpty ? 'پروژه' : _projects.where((p) => p.id == _selectedProjectId).map((p) => p.title).first,
                           icon: Icons.folder_outlined,
@@ -1294,10 +1302,9 @@ Future<void> _pickDueDate() async {
                             return createdId;
                           },
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: ArvinTagRollBox(
+                          )),
+                          SizedBox(width: wide ? itemWidth : constraints.maxWidth, child: ArvinTagRollBox(
+                            key: const ValueKey('task-editor-tag-rollbox'),
                           tags: _knownTags,
                           selectedTags: _tags,
                           onChanged: (value) => setState(() => _tags = List<String>.of(value)),
@@ -1314,7 +1321,9 @@ Future<void> _pickDueDate() async {
                           },
                         ),
                       ),
-                    ],
+                        ],
+                      );
+                    },
                   ),
                   if (_tags.isNotEmpty) ...[
                     const SizedBox(height: 8),
