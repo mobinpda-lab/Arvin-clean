@@ -700,4 +700,19 @@ void main() {
     expect(result!.reminderDate, isNull);
   });
 
+
+  testWidgets('Task editor remains scrollable without overflow with the mobile keyboard open',
+      (tester) async {
+    await pumpEditor(tester, logicalSize: const Size(390, 844));
+    tester.view.viewInsets = const FakeViewPadding(bottom: 600);
+    addTearDown(tester.view.resetViewInsets);
+    await tester.pumpAndSettle();
+
+    final title = find.byKey(const ValueKey('task-editor-title'));
+    await tester.ensureVisible(title);
+    expect(find.byKey(const ValueKey('task-editor-due-date-time')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-center-rollbox')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
 }
