@@ -1515,7 +1515,6 @@ Future<void> _pickDueDate() async {
                       'تاریخ انجام، یادآوری، تکرار، اولویت و وضعیت',
                     ),
                     children: [
-                      ,
                       const SizedBox(height: 10),
                       if (widget.task?.legacyTaskReminderMigrationVersion != 1) ...[
                         _dateTimeEditor(
