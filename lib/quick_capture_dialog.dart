@@ -281,6 +281,25 @@ Future<DateTime?> _pickCustomDue() async {
     return DateTime(date.year, date.month, date.day, time.hour, time.minute);
   }
 
+  Future<void> _pickDateOnlyDue() async {
+    final initial = _dueDate ?? _now();
+    final date = await showPersianDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+      helpText: 'انتخاب تاریخ بدون ساعت',
+      cancelText: 'لغو',
+      confirmText: 'انتخاب تاریخ',
+    );
+    if (date == null || !mounted) return;
+    setState(() {
+      _dueDate = DateTime(date.year, date.month, date.day);
+      _dueAllDay = true;
+      _syncAutomaticReminder();
+    });
+  }
+
   Future<DateTime?> _pickCustomReminder() async {
     final initial = _reminderDate ?? _dueDate ?? widget.now?.call() ?? DateTime.now();
     final date = await showPersianDatePicker(
@@ -793,13 +812,15 @@ Future<DateTime?> _pickCustomDue() async {
                           )),
                           OutlinedButton.icon(
                             key: const ValueKey('quick-capture-no-time'),
-                            onPressed: _saving || _dueDate == null || _dueAllDay
+                            onPressed: _saving || _dueAllDay
                                 ? null
-                                : () => setState(() {
-                                      _dueDate = DateTime(_dueDate!.year, _dueDate!.month, _dueDate!.day);
-                                      _dueAllDay = true;
-                                      _syncAutomaticReminder();
-                                    }),
+                                : _dueDate == null
+                                    ? _pickDateOnlyDue
+                                    : () => setState(() {
+                                          _dueDate = DateTime(_dueDate!.year, _dueDate!.month, _dueDate!.day);
+                                          _dueAllDay = true;
+                                          _syncAutomaticReminder();
+                                        }),
                             icon: const Icon(Icons.access_time_rounded, size: 18),
                             label: const Text('بدون ساعت'),
                             style: OutlinedButton.styleFrom(

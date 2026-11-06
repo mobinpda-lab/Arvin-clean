@@ -449,7 +449,7 @@ Future<void> _pickDueDate() async {
         _dueDateTime = _dueDateTime == null
             ? DateTime(value.year, value.month, value.day)
             : DateTime(value.year, value.month, value.day, _dueDateTime!.hour, _dueDateTime!.minute);
-        if (_dueDateTime != null && widget.task == null) _dueAllDay = true;
+        _dueAllDay = true;
         _syncAutomaticReminder();
       });
     }
@@ -1152,14 +1152,18 @@ Future<void> _pickDueDate() async {
                 ),
               ],
             ),
-          if (onToggleAllDay != null && value != null) ...[
+          if (onToggleAllDay != null) ...[
             const SizedBox(height: 6),
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
                     key: ValueKey('$keyPrefix-no-time'),
-                    onPressed: allDay ? null : () => onToggleAllDay(true),
+                    onPressed: allDay
+                        ? null
+                        : value == null
+                            ? onPickDate
+                            : () => onToggleAllDay(true),
                     icon: const Icon(Icons.access_time_rounded),
                     label: const Text('بدون ساعت'),
                     style: OutlinedButton.styleFrom(
