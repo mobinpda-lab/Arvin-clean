@@ -961,166 +961,163 @@ class _CalendarPageState extends State<CalendarPage> {
             ),
           ],
         ),
-        body: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
-              child: Material(
-                color: Theme.of(context).colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(18),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        key: const ValueKey('calendar-period-previous'),
-                        onPressed: () => _movePeriod(-1),
-                        tooltip: 'بازه قبل',
-                        icon: const Icon(Icons.chevron_right),
-                      ),
-                      Expanded(
-                        child: Center(
-                          child: Semantics(
-                            header: true,
-                            label: 'ماه ${_jalaliMonthYear(selectedJalali)}',
-                            child: Text(
-                              _jalaliMonthYear(selectedJalali),
-                              key: const ValueKey('calendar-month-year-header'),
-                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
+        body: SingleChildScrollView(
+          // Keep every calendar control in one vertically scrollable viewport.
+          // This avoids fractional-pixel RenderFlex overflows on short screens
+          // and when the system text scale is increased.
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
+                child: Material(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(18),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          key: const ValueKey('calendar-period-previous'),
+                          onPressed: () => _movePeriod(-1),
+                          tooltip: 'بازه قبل',
+                          icon: const Icon(Icons.chevron_right),
+                        ),
+                        Expanded(
+                          child: Center(
+                            child: Semantics(
+                              header: true,
+                              label: 'ماه ${_jalaliMonthYear(selectedJalali)}',
+                              child: Text(
+                                _jalaliMonthYear(selectedJalali),
+                                key: const ValueKey('calendar-month-year-header'),
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                      IconButton(
-                        key: const ValueKey('calendar-period-next'),
-                        onPressed: () => _movePeriod(1),
-                        tooltip: 'بازه بعد',
-                        icon: const Icon(Icons.chevron_left),
-                      ),
+                        IconButton(
+                          key: const ValueKey('calendar-period-next'),
+                          onPressed: () => _movePeriod(1),
+                          tooltip: 'بازه بعد',
+                          icon: const Icon(Icons.chevron_left),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              if (_showSearch)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 2, 12, 8),
+                  child: TextField(
+                    key: const ValueKey('calendar-search-field'),
+                    autofocus: true,
+                    textDirection: TextDirection.rtl,
+                    decoration: const InputDecoration(
+                      prefixIcon: Icon(Icons.search),
+                      hintText: 'جستجو در کارها و یادآورها',
+                      isDense: true,
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (value) => setState(() => _searchQuery = value),
+                  ),
+                ),
+              _buildSelectedDateTriplet(),
+              _buildViewModeSelector(),
+              GestureDetector(
+                key: const ValueKey('calendar-swipe-surface'),
+                behavior: HitTestBehavior.opaque,
+                onHorizontalDragEnd: _handleHorizontalSwipe,
+                onLongPress:
+                    _viewMode == _CalendarViewMode.day &&
+                        widget.onCreateTaskForDate != null
+                    ? () => widget.onCreateTaskForDate!(_selectedDay)
+                    : null,
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 180),
+                  child: _buildCalendarSurface(),
+                ),
+              ),
+              _buildSourceFilter(),
+              const Divider(height: 1),
+              if (!hasSelectedItems)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 28),
+                  child: Center(
+                    child: Text(
+                      'برای این روز یادآوری ثبت نشده است',
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                  ),
+                )
+              else
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 16),
+                  child: Column(
+                    key: const ValueKey('calendar-selected-day-list'),
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (allSelectedReminders.isNotEmpty && selectedReminders.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 28),
+                          child: Center(child: Text('برای این روز موردی در این فیلتر نیست')),
+                        ),
+                      if (selectedDailyContent != null) ...[
+                        _DailyContentCard(
+                          item: selectedDailyContent,
+                          onTap: () => _showDailyContent(selectedDailyContent),
+                        ),
+                        if (selectedReminders.isNotEmpty)
+                          const SizedBox(height: 10),
+                      ],
+                      for (var index = 0; index < selectedReminders.length; index++) ...[
+                        if (index > 0) const SizedBox(height: 6),
+                        _ReminderCard(
+                          item: selectedReminders[index],
+                          dateLabel: _date(selectedReminders[index].date),
+                          timeLabel: _time(selectedReminders[index].date),
+                          onComplete:
+                              (widget.canMutateReminder?.call(selectedReminders[index]) ?? true)
+                                  ? widget.onCompleteReminder
+                                  : null,
+                          onEdit:
+                              (widget.canMutateReminder?.call(selectedReminders[index]) ?? true)
+                                  ? widget.onEditReminder
+                                  : null,
+                          onOpenTask: _isTaskCalendarItemId(selectedReminders[index].id)
+                              ? widget.onOpenTask
+                              : null,
+                          onDeleteTask: _isTaskRecordCalendarItemId(selectedReminders[index].id)
+                              ? widget.onDeleteTask
+                              : null,
+                          onRegisterTaskToDeviceCalendar:
+                              _isTaskRecordCalendarItemId(selectedReminders[index].id)
+                                  ? widget.onRegisterTaskToDeviceCalendar
+                                  : null,
+                          onConvertToTask: widget.onConvertReminderToTask,
+                          onOpenExternal: selectedReminders[index].id.startsWith('external-calendar:')
+                              ? widget.onOpenExternalReminder
+                              : null,
+                          onCreateTaskFromCalendarEvent:
+                              selectedReminders[index].id.startsWith('external-calendar:')
+                                  ? widget.onCreateTaskFromCalendarEvent
+                                  : null,
+                          prayerStatus: widget.prayerStatusFor?.call(selectedReminders[index]),
+                          onPrayerCompleted: widget.onPrayerCompleted,
+                          onPrayerNotCompleted: widget.onPrayerNotCompleted,
+                          swipeRightAction: widget.calendarSwipeRightAction,
+                          swipeLeftAction: widget.calendarSwipeLeftAction,
+                        ),
+                      ],
                     ],
                   ),
                 ),
-              ),
-            ),
-            if (_showSearch)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 2, 12, 8),
-                child: TextField(
-                  key: const ValueKey('calendar-search-field'),
-                  autofocus: true,
-                  textDirection: TextDirection.rtl,
-                  decoration: const InputDecoration(
-                    prefixIcon: Icon(Icons.search),
-                    hintText: 'جستجو در کارها و یادآورها',
-                    isDense: true,
-                    border: OutlineInputBorder(),
-                  ),
-                  onChanged: (value) => setState(() => _searchQuery = value),
-                ),
-              ),
-            _buildSelectedDateTriplet(),
-            _buildViewModeSelector(),
-            GestureDetector(
-              key: const ValueKey('calendar-swipe-surface'),
-              behavior: HitTestBehavior.opaque,
-              onHorizontalDragEnd: _handleHorizontalSwipe,
-              onLongPress:
-                  _viewMode == _CalendarViewMode.day &&
-                      widget.onCreateTaskForDate != null
-                  ? () => widget.onCreateTaskForDate!(_selectedDay)
-                  : null,
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 180),
-                child: _buildCalendarSurface(),
-              ),
-            ),
-            _buildSourceFilter(),
-            const Divider(height: 1),
-            Expanded(
-              child: !hasSelectedItems
-                  ? Center(
-                      child: Text(
-                        'برای این روز یادآوری ثبت نشده است',
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                    )
-                  : ListView(
-                      key: const ValueKey('calendar-selected-day-list'),
-                      padding: const EdgeInsets.fromLTRB(12, 10, 12, 16),
-                      children: [
-                        if (allSelectedReminders.isNotEmpty && selectedReminders.isEmpty)
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 28),
-                            child: Center(child: Text('برای این روز موردی در این فیلتر نیست')),
-                          ),
-                        if (selectedDailyContent != null) ...[
-                          _DailyContentCard(
-                            item: selectedDailyContent,
-                            onTap: () =>
-                                _showDailyContent(selectedDailyContent),
-                          ),
-                          if (selectedReminders.isNotEmpty)
-                            const SizedBox(height: 10),
-                        ],
-                        for (
-                          var index = 0;
-                          index < selectedReminders.length;
-                          index++
-                        ) ...[
-                          if (index > 0) const SizedBox(height: 6),
-                          _ReminderCard(
-                            item: selectedReminders[index],
-                            dateLabel: _date(selectedReminders[index].date),
-                            timeLabel: _time(selectedReminders[index].date),
-                            onComplete:
-                                (widget.canMutateReminder?.call(
-                                      selectedReminders[index],
-                                    ) ??
-                                    true)
-                                ? widget.onCompleteReminder
-                                : null,
-                            onEdit:
-                                (widget.canMutateReminder?.call(
-                                      selectedReminders[index],
-                                    ) ??
-                                    true)
-                                ? widget.onEditReminder
-                                : null,
-                            onOpenTask: _isTaskCalendarItemId(selectedReminders[index].id)
-                                ? widget.onOpenTask
-                                : null,
-                            onDeleteTask: _isTaskRecordCalendarItemId(
-                                  selectedReminders[index].id,
-                                )
-                                ? widget.onDeleteTask
-                                : null,
-                            onRegisterTaskToDeviceCalendar:
-                                _isTaskRecordCalendarItemId(selectedReminders[index].id)
-                                ? widget.onRegisterTaskToDeviceCalendar
-                                : null,
-                            onConvertToTask: widget.onConvertReminderToTask,
-                            onOpenExternal: selectedReminders[index].id.startsWith('external-calendar:')
-                                ? widget.onOpenExternalReminder
-                                : null,
-                            onCreateTaskFromCalendarEvent: selectedReminders[index].id.startsWith('external-calendar:')
-                                ? widget.onCreateTaskFromCalendarEvent
-                                : null,
-                            prayerStatus: widget.prayerStatusFor?.call(
-                              selectedReminders[index],
-                            ),
-                            onPrayerCompleted: widget.onPrayerCompleted,
-                            onPrayerNotCompleted: widget.onPrayerNotCompleted,
-                            swipeRightAction: widget.calendarSwipeRightAction,
-                            swipeLeftAction: widget.calendarSwipeLeftAction,
-                          ),
-                        ],
-                      ],
-                    ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       ),
