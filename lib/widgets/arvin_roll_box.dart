@@ -56,13 +56,13 @@ class ArvinRollBox<T> extends StatelessWidget {
         ],
       ],
       child: Container(
-        height: compact ? 40 : 48,
-        padding: EdgeInsets.symmetric(horizontal: compact ? 8 : 10),
+        height: 48,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(color: color.withValues(alpha: .08), borderRadius: BorderRadius.circular(14), border: Border.all(color: color.withValues(alpha: .42))),
         child: Row(children: [
-          Icon(icon, size: compact ? 16 : 19, color: color), SizedBox(width: compact ? 4 : 7),
-          Expanded(child: Text(valueLabel.isEmpty ? label : valueLabel, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: color, fontSize: compact ? 10.5 : 12, fontWeight: FontWeight.w800))),
-          Icon(Icons.keyboard_arrow_down_rounded, size: compact ? 16 : 19, color: color),
+          Icon(icon, size: 18, color: color), SizedBox(width: compact ? 4 : 7),
+          Expanded(child: Text(valueLabel.isEmpty ? label : valueLabel, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w800))),
+          Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: color),
         ]),
       ),
     );
@@ -143,11 +143,11 @@ class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
       child: Semantics(
         button: true, label: 'برچسب',
         child: Container(
-          height: widget.compact ? 40 : 48, padding: EdgeInsets.symmetric(horizontal: widget.compact ? 8 : 10),
+          height: 48, padding: const EdgeInsets.symmetric(horizontal: 10),
           decoration: BoxDecoration(color: ArvinColors.tagSoft, borderRadius: BorderRadius.circular(14), border: Border.all(color: ArvinColors.tag.withValues(alpha: .42))),
           child: Row(children: [
             Icon(Icons.sell_outlined, size: widget.compact ? 16 : 19, color: ArvinColors.tag), SizedBox(width: widget.compact ? 4 : 7),
-            Expanded(child: Text(selected.isEmpty ? 'برچسب' : '${selected.length} برچسب', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: ArvinColors.tagDark, fontSize: widget.compact ? 10.5 : 12, fontWeight: FontWeight.w800))),
+            Expanded(child: Text(selected.isEmpty ? 'برچسب' : '${selected.length} برچسب', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: ArvinColors.tagDark, fontSize: 12, fontWeight: FontWeight.w800))),
             Icon(Icons.keyboard_arrow_down_rounded, size: widget.compact ? 16 : 19, color: ArvinColors.tag),
           ]),
         ),
