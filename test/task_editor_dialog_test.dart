@@ -64,11 +64,14 @@ void main() {
       onResult: (value) => result = value,
     );
 
+    final dueTime = find.byKey(const ValueKey('task-editor-due-date-time'));
     final project = find.byKey(const ValueKey('task-editor-project-rollbox'));
     final category = find.byKey(const ValueKey('task-editor-category-rollbox'));
     final tags = find.byKey(const ValueKey('task-editor-tag-rollbox'));
+    expect(dueTime, findsOneWidget);
     expect(category, findsOneWidget);
     expect(project, findsOneWidget);
+    expect(tester.getRect(dueTime).top, lessThan(tester.getRect(project).top));
     expect(tags, findsOneWidget);
     expect(tester.getRect(project).top, lessThanOrEqualTo(tester.getRect(category).top));
     expect(tester.getRect(tags).top, greaterThan(tester.getRect(category).top));
