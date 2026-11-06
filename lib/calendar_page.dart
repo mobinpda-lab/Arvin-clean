@@ -135,6 +135,10 @@ class _CalendarPageState extends State<CalendarPage> {
     '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}',
   );
 
+  String _gregorianDateWithoutYear(DateTime date) => _dateFormatter.toPersianDigits(
+    '${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}',
+  );
+
   String _hijriDate(DateTime date) {
     // Tabular Islamic civil calendar: deterministic display, not moon-sighting authority.
     final a = (14 - date.month) ~/ 12;
@@ -164,6 +168,8 @@ class _CalendarPageState extends State<CalendarPage> {
       padding: const EdgeInsets.fromLTRB(14, 4, 14, 8),
       child: Row(
         children: [
+          Expanded(child: _DateTier(label: 'میلادی', value: _gregorianDateWithoutYear(selected))),
+          const SizedBox(width: 8),
           Expanded(child: _DateTier(label: 'شمسی', value: _date(selected), prominent: true)),
           const SizedBox(width: 8),
           Expanded(child: _DateTier(label: 'قمری', value: _hijriDate(selected))),

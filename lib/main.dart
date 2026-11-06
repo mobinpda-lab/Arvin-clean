@@ -817,7 +817,10 @@ class _HomePageState extends State<HomePage> {
       if (_centerFilters.isNotEmpty) {
         final ids = tasks.where((task) {
           if (task.centerId != null) return _centerFilters.contains(task.centerId);
-          final linked = projects.where((project) => project.itemIds.contains(task.id));
+          final linked = projects
+              .where((project) => project.itemIds.contains(task.id))
+              .toList(growable: false);
+          if (linked.isEmpty) return _centerFilters.contains('__no_center__');
           return linked.any((project) => _centerFilters.contains(project.centerId ?? '__no_center__'));
         }).map((task) => task.id).toSet();
         scoped = scoped.where((task) => ids.contains(task.id));
