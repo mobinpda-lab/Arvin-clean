@@ -7,14 +7,17 @@ import 'package:arvin/core/theme/arvin_theme.dart';
 void main() {
   group('Arvin design tokens', () {
     test('matches the owner-approved light card palette and typography', () {
-      expect(ArvinTheme.primaryPurple, const Color(0xFF3F3D56));
-      expect(ArvinTheme.headerPurple, const Color(0xFF2D2B42));
+      expect(ArvinTheme.primaryPurple, const Color(0xFF087F8C));
+      expect(ArvinTheme.headerPurple, const Color(0xFF075E66));
       expect(ArvinTheme.backgroundLight, const Color(0xFFF7F8FC));
       expect(ArvinTheme.cardBackground, Colors.white);
       expect(ArvinTheme.cardBorderRadius, BorderRadius.circular(16));
       expect(ArvinTheme.shadowStyle.blurRadius, 10);
       expect(ArvinTheme.shadowStyle.offset, const Offset(0, 4));
       expect(ArvinTheme.fontFamily, 'Vazirmatn');
+      expect(ArvinColors.primary, const Color(0xFF087F8C));
+      expect(ArvinColors.primaryDark, const Color(0xFF075E66));
+      expect(ArvinColors.primarySoft, const Color(0xFFDDF7F5));
     });
 
     test('keeps semantic priority and taxonomy colors separate from brand tokens', () {
