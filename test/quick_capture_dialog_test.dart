@@ -33,7 +33,6 @@ void main() {
     await tester.tap(priorityOne);
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const ValueKey('quick-capture-input')), 'کار فوری');
-    await tester.enterText(find.byKey(const ValueKey('quick-capture-description')), 'شرح کار');
     final submit = find.byKey(const ValueKey('quick-capture-submit'));
     await tester.ensureVisible(submit);
     await tester.tap(submit);
@@ -41,7 +40,7 @@ void main() {
 
     expect(captured, isNotNull);
     expect(captured!.priority, TaskPriority.high);
-    expect(captured!.description, 'شرح کار');
+    expect(captured!.description, '');
   });
 
   testWidgets('Quick Capture keeps compact RTL rows and readable width on phone and tablet',
@@ -85,7 +84,7 @@ void main() {
       ]) {
         expect(find.byKey(ValueKey(key)), findsOneWidget);
       }
-      expect(find.byKey(const ValueKey('quick-capture-description')), findsOneWidget);
+      expect(find.byKey(const ValueKey('quick-capture-description')), findsNothing);
       expect(find.byKey(const ValueKey('quick-capture-checklist-enabled')), findsNothing);
       expect(find.byKey(const ValueKey('quick-capture-checklist-rollbox')), findsNothing);
       expect(find.text('عنوان'), findsNothing);
@@ -335,7 +334,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('ثبت سریع کار'), findsOneWidget);
-    expect(find.byKey(const ValueKey('quick-capture-description')), findsOneWidget);
+    expect(find.byKey(const ValueKey('quick-capture-description')), findsNothing);
     expect(find.text('پروژه'), findsOneWidget);
     expect(find.text('یادآور'), findsOneWidget);
     expect(find.text('تکرار'), findsOneWidget);
@@ -801,7 +800,7 @@ void main() {
     final input = find.byKey(const ValueKey('quick-capture-input'));
     await tester.enterText(input, 'خرید فرش اتاق');
 
-    expect(find.byKey(const ValueKey('quick-capture-description')), findsOneWidget);
+    expect(find.byKey(const ValueKey('quick-capture-description')), findsNothing);
     expect(find.byKey(const ValueKey('quick-capture-checklist-enabled')), findsNothing);
     expect(find.byKey(const ValueKey('quick-capture-checklist-rollbox')), findsNothing);
     expect(find.byKey(const ValueKey('quick-capture-follow-up-enabled')), findsNothing);

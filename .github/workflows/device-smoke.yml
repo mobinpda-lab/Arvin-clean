@@ -17,8 +17,9 @@ permissions:
   contents: read
 
 concurrency:
+  # Keep the existing PR concurrency key; serialize clean retries instead of cancelling active work.
   group: arvin-device-smoke-${{ github.event.pull_request.number || github.ref_name }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 env:
   FLUTTER_VERSION: '3.47.0'
@@ -55,10 +56,11 @@ jobs:
     # Draft PRs need CI evidence before they are marked ready; this job never promotes or merges.
     name: device-smoke (${{ matrix.scenario }})
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     strategy:
       fail-fast: false
-      max-parallel: 2
+      # One emulator per runner at a time avoids host/ADB contention across matrix lanes.
+      max-parallel: 1
       matrix: ${{ fromJSON(needs.prepare-matrix.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v5

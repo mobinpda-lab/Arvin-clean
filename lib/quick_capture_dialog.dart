@@ -67,7 +67,6 @@ class QuickCaptureDialog extends StatefulWidget {
 class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   static const _dateFormatter = PersianDateFormatter();
   final TextEditingController _controller = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
   final FocusNode _titleFocus = FocusNode();
   String? _error;
   bool _backHandling = false;
@@ -117,7 +116,6 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   @override
   void dispose() {
     _controller.dispose();
-    _descriptionController.dispose();
     _titleFocus.dispose();
     _categoryController.dispose();
     super.dispose();
@@ -148,7 +146,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     );
     if (task == null) return null;
     task.priority = _priority;
-    task.description = _descriptionController.text.trim();
+    task.description = '';
     _syncAutomaticReminder();
     task.dueDate = _dueDate;
     task.reminderDate = _reminderDate;
@@ -190,7 +188,6 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       await onCaptured(task);
       if (!mounted) return;
       _controller.clear();
-      _descriptionController.clear();
       setState(() {
         _priority = TaskPriority.medium;
         _saving = false;
@@ -226,7 +223,6 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       if (!mounted) return;
       if (saved) {
         _controller.clear();
-        _descriptionController.clear();
       }
       setState(() {
         if (saved) _priority = TaskPriority.medium;
@@ -568,24 +564,6 @@ Future<DateTime?> _pickCustomDue() async {
                         prefixIcon: const Icon(Icons.title_rounded, size: 18, color: ArvinColors.primary),
                         isDense: true,
                         contentPadding: const EdgeInsets.symmetric(vertical: 4),
-                        border: InputBorder.none,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  _surfaceCard(
-                    child: TextField(
-                      key: const ValueKey('quick-capture-description'),
-                      controller: _descriptionController,
-                      enabled: !_saving,
-                      minLines: 1,
-                      maxLines: 2,
-                      textDirection: TextDirection.rtl,
-                      decoration: const InputDecoration(
-                        hintText: 'توضیحات تکمیلی...',
-                        prefixIcon: Icon(Icons.notes_rounded, size: 18, color: ArvinColors.primary),
-                         isDense: true,
-                         contentPadding: EdgeInsets.symmetric(vertical: 4),
                         border: InputBorder.none,
                       ),
                     ),

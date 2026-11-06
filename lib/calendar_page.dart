@@ -849,7 +849,7 @@ class _CalendarPageState extends State<CalendarPage> {
         appBar: AppBar(
           title: Semantics(
             key: const ValueKey('calendar-sacred-header'),
-            label: 'أُفَوِّضُ أَمْرِی إِلَى اللَّهِ',
+            label: 'وَأُفَوِّضُ أَمْرِي إِلَى اللَّهِ',
             child: SvgPicture.asset(
               'assets/images/branding/tafweez.svg',
               key: const ValueKey('calendar-sacred-header-svg'),

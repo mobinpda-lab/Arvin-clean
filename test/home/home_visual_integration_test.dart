@@ -64,7 +64,7 @@ void main() {
           (widget.bytesLoader as dynamic).assetName == 'assets/images/branding/bismillah.svg'),
       findsOneWidget,
     );
-    expect(AppFonts.familyForText('أُفَوِّضُ أَمْرِی إِلَى اللَّهِ'), AppFonts.vazirmatnFamily);
+    expect(AppFonts.familyForText('وَأُفَوِّضُ أَمْرِي إِلَى اللَّهِ'), AppFonts.vazirmatnFamily);
     expect(AppFonts.familyForText('افوض امری الی الله'), AppFonts.vazirmatnFamily);
     expect(AppFonts.familyForText('متن فارسی رابط کاربری'), AppFonts.vazirmatnFamily);
     expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);

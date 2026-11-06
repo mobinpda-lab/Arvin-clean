@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -25,6 +27,9 @@ void main() {
     expect(homeSvg.excludeFromSemantics, isTrue);
     expect(find.text('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'), findsNothing);
 
+    final tafweezAsset = File('assets/images/branding/tafweez.svg').readAsStringSync();
+    expect(tafweezAsset, contains('<title>وَأُفَوِّضُ أَمْرِي إِلَى اللَّهِ</title>'));
+
     await tester.pumpWidget(MaterialApp(
       home: CalendarPage(
         reminders: const [],
@@ -36,14 +41,14 @@ void main() {
     final calendarPhrase = find.byKey(const ValueKey('calendar-sacred-header'));
     expect(calendarPhrase, findsOneWidget);
     expect(tester.widget<Semantics>(calendarPhrase).properties.label,
-        'أُفَوِّضُ أَمْرِی إِلَى اللَّهِ');
+        'وَأُفَوِّضُ أَمْرِي إِلَى اللَّهِ');
     expect(find.byKey(const ValueKey('calendar-sacred-header-svg')), findsOneWidget);
     final calendarSvg = tester.widget<SvgPicture>(
       find.byKey(const ValueKey('calendar-sacred-header-svg')),
     );
     expect(calendarSvg.width, 240);
     expect(calendarSvg.excludeFromSemantics, isTrue);
-    expect(find.text('أُفَوِّضُ أَمْرِی إِلَى اللَّهِ'), findsNothing);
+    expect(find.text('وَأُفَوِّضُ أَمْرِي إِلَى اللَّهِ'), findsNothing);
 
     expect(AppFonts.familyForText('متن عادی رابط کاربری'), AppFonts.vazirmatnFamily);
     expect(AppFonts.familyForText('آروین'), AppFonts.vazirmatnFamily);
