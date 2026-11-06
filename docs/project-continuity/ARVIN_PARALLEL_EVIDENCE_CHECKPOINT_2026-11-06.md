@@ -59,3 +59,36 @@ Continue polling Build `42209855954`, Calendar Provider `42209855984`, new Devic
 ## Documentation synchronization
 
 This checkpoint, its changelog entry, and the appended product-ledger section are documentation-only updates. Their resulting commit SHA is a new branch head. The workflow results above remain evidence for `33cbccca804a6f33b22a84e37ea1fc1f5600cd2b` only; fresh exact-head workflows are required for the resulting documentation HEAD.
+
+
+## Live parallel checkpoint — ۱۴۰۵/۰۸/۱۵ (2026-11-06)
+
+**Audited code SHA:** `e81862cbcd723dd0740411de0526aac5e1771e36`  
+**PR #3052:** OPEN / DRAFT / UNMERGED. **main:** `45e4202b03a434459e4c021a04efa7e8396359db`. **Release:** BLOCKED — RELEASE: NO-GO.
+
+### Exact-SHA workflow evidence
+- Build `42212225056`: IN_PROGRESS. Analyze job `127874147349` PASS (log: `No issues found!`); Visual job `127874146662` SUCCESS; test shards 4 and 5 SUCCESS; shards 0–3 IN_PROGRESS; Debug, Staging and Release APK jobs IN_PROGRESS. No artifact listed at this checkpoint.
+- Device Smoke `42212224923`: PENDING; no jobs and no artifacts exposed. No device lane is accepted.
+- Follow-up File Persistence `42212224806`: SUCCESS; job `127873397879`; log reports one test passed and records SQLite executor close plus temporary-directory cleanup. This is focused file-backed persistence evidence, not full Device Smoke acceptance.
+- Calendar Provider `42212224989`: IN_PROGRESS; job `127873398173`; log endpoint returned BlobNotFound while active, so detailed stage evidence is unavailable. No artifact.
+- Draft Review APK `42212224924`: IN_PROGRESS; job `127873400021`; log endpoint returned BlobNotFound while active. No artifact.
+- Production Loop `42212224920`, G1 lock sync `42212225294`, Orchestrator `42212224894`, Parallel Wave `42212225472`, and PR Wakeup `42212224907`: workflow-level SUCCESS; these do not replace product acceptance gates.
+- Combined commit status endpoint returned no individual status entries at audit time.
+
+### Previous-head runs — SHA `2c2594e4663b243932620e250b4586e564996461`
+- Build `42210948715`: workflow conclusion CANCELLED, although the returned job list showed the visible Analyze, six shard and APK jobs completed SUCCESS. Treat the overall run as CANCELLED / not an accepted completed Build gate; do not promote child results into a workflow PASS.
+- Device Smoke `42210947981`: CANCELLED; no jobs or artifacts returned. No device acceptance.
+- No previous-head result is carried forward as evidence for `e81862c`.
+
+### Branding diff audit
+- Commit `e81862cbcd723dd0740411de0526aac5e1771e36` changes exactly one file: `assets/images/branding/tafweez.svg`.
+- Parent blob `98203032b9c3ea9a257ed15a7763828bf66ac877`; new blob `dd5db5b401eceef981b417dd7f781d9994ac4e10`.
+- The only diff removes the SVG `title` element. Removing that line from the parent content yields byte-for-byte equality with the new content; path geometry is unchanged.
+- New SVG contains one `path`, no other drawable/metadata elements, no background element, and one fill value `#1A2B4C`; root viewBox remains `0 0 1792 1024`. Source-level Path-Only/vector contract is satisfied. Runtime rendering and accessibility acceptance still require exact-head CI/device evidence.
+
+### Issue triage
+- #823 OPEN: release-scope freeze remains binding; no feature or UX expansion authorized by this audit.
+- #2102 OPEN: main remains at the PR base SHA; exact-main release evidence and physical-device/data-integrity gates remain open. No main change made.
+- #2299 OPEN: remaining-work ledger remains the tracking authority; this checkpoint records evidence without closing product gates.
+
+This checkpoint is documentation-only. All run results above belong only to the exact SHA stated for each run. The documentation commits require their own exact-head validation. No workflow, test, product feature, main branch, merge, or release configuration was changed.
