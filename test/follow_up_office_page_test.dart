@@ -89,12 +89,12 @@ void main() {
     await tester.tap(find.text('ثبت پیگیری'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const ValueKey('follow-up-entry-note')), 'پیام ارسال شد');
-    await tester.tap(find.text('منتظر پاسخ دیگران'));
+    final waitingSwitch = find.byKey(const ValueKey('follow-up-entry-waiting-for-response'));
+    await tester.ensureVisible(waitingSwitch);
+    await tester.tap(waitingSwitch);
     await tester.pump();
 
-    final switchTile = tester.widget<SwitchListTile>(
-      find.byKey(const ValueKey('follow-up-entry-waiting-for-response')),
-    );
+    final switchTile = tester.widget<SwitchListTile>(waitingSwitch);
     expect(switchTile.value, isTrue);
     expect(tester.widget<TextField>(find.byKey(const ValueKey('follow-up-entry-result'))).enabled, isFalse);
 

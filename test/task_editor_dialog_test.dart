@@ -475,7 +475,9 @@ void main() {
     final count = find.byKey(const ValueKey('task-editor-recurrence-count'));
     await tester.enterText(count, '7');
 
-    await tester.tap(find.byKey(const ValueKey('task-editor-repeat-enabled')));
+    final repeatEnabled = find.byKey(const ValueKey('task-editor-repeat-enabled'));
+    await tester.ensureVisible(repeatEnabled);
+    await tester.tap(repeatEnabled);
     await tester.pump();
 
     await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
@@ -536,12 +538,11 @@ void main() {
 
     await pumpEditor(tester, task: task, onResult: (value) => result = value);
 
-    await tester.ensureVisible(
-      find.byKey(const ValueKey('task-editor-due-time-button')),
-    );
-    await tester.tap(
-      find.byKey(const ValueKey('task-editor-due-time-button')),
-    );
+    final dateTimeButton = find.byKey(const ValueKey('task-editor-due-date-time'));
+    await tester.ensureVisible(dateTimeButton);
+    await tester.tap(dateTimeButton);
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('universal-time-hour-outer-11')));
     await tester.pump();

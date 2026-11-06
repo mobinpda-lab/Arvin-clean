@@ -70,7 +70,7 @@ void main() {
     );
 
     expect(find.byKey(const ValueKey('task-editor-more-details')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-editor-due-date-rollbox')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-due-date-time')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-reminder-date-rollbox')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-recurrence')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-priority')), findsOneWidget);
@@ -160,11 +160,12 @@ void main() {
       onResult: (value) => result = value,
     );
 
-    final timeButton =
-        find.byKey(const ValueKey('task-editor-due-time-button'));
-    expect(timeButton, findsOneWidget);
-    await tester.ensureVisible(timeButton);
-    await tester.tap(timeButton);
+    final dateTimeButton = find.byKey(const ValueKey('task-editor-due-date-time'));
+    expect(dateTimeButton, findsOneWidget);
+    await tester.ensureVisible(dateTimeButton);
+    await tester.tap(dateTimeButton);
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
@@ -193,27 +194,13 @@ void main() {
     Task? result;
     await openEditor(tester, onResult: (value) => result = value);
 
-    final unified = find.byKey(const ValueKey('task-editor-due-date-time'));
-    await tester.ensureVisible(unified);
-    await tester.tap(unified);
+    final noTime = find.byKey(const ValueKey('task-editor-due-no-time'));
+    await tester.ensureVisible(noTime);
+    await tester.tap(noTime);
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
+    await tester.tap(find.widgetWithText(FilledButton, 'تأیید'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('universal-time-hour-outer-10')));
-    await tester.pump();
-    await tester.tap(find.byKey(const ValueKey('universal-time-minute-30')));
-    await tester.pump();
-    await tester.tap(find.byKey(const ValueKey('universal-time-save')));
-    await tester.pumpAndSettle();
-
-    final allDay = find.byKey(const ValueKey('task-editor-due-all-day'));
-    await tester.ensureVisible(allDay);
-    await tester.pumpAndSettle();
-    final allDayTile = tester.widget<CheckboxListTile>(allDay);
-    expect(allDayTile.value, isFalse);
-    await tester.tap(allDay);
-    await tester.pump();
-    expect(tester.widget<CheckboxListTile>(allDay).value, isTrue);
+    expect(find.byKey(const ValueKey('task-editor-due-with-time')), findsNothing);
 
     final save = find.byKey(const ValueKey('task-editor-header-save'));
     await tester.ensureVisible(save);

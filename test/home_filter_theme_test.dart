@@ -69,7 +69,10 @@ void main() {
     expect(cardDecoration.border!.top.color, ArvinColors.primary.withAlpha(150));
 
     final chipContainer = tester.widget<Container>(
-      find.ancestor(of: find.text('مدرسه'), matching: find.byType(Container)).first,
+      find.descendant(
+        of: find.byType(HomeFilterChip),
+        matching: find.byType(Container),
+      ).first,
     );
     final chipDecoration = chipContainer.decoration! as BoxDecoration;
     expect(chipDecoration.color, ArvinColors.primarySoft);
