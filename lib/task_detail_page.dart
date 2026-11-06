@@ -5,6 +5,7 @@ import 'core/theme/arvin_theme.dart';
 
 import 'android_follow_up_reminder_scheduler.dart';
 import 'follow_up_entry_page.dart';
+import 'services/task_store.dart';
 import 'follow_up_repository.dart';
 import 'models/task.dart';
 import 'models/goal_project.dart';
@@ -657,23 +658,33 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     );
   }
 
+  Future<FollowUp?> _openFollowUpEntry({FollowUp? initialFollowUp}) async {
+    final store = TaskStore();
+    final people = await store.loadPeopleDirectory();
+    if (!mounted) return null;
+    return Navigator.of(context).push<FollowUp>(
+      MaterialPageRoute<FollowUp>(
+        builder: (_) => FollowUpEntryPage(
+          taskId: _task.id,
+          initialFollowUp: initialFollowUp,
+          people: people,
+          onCreatePerson: (person) => store.mergePeopleDirectory([person]),
+        ),
+      ),
+    );
+  }
+
   Future<void> _addFollowUp() async {
     final add = widget.onAddFollowUp;
     if (add == null) return;
-    final followUp = await Navigator.of(context).push<FollowUp>(
-      MaterialPageRoute<FollowUp>(builder: (_) => FollowUpEntryPage(taskId: _task.id)),
-    );
+    final followUp = await _openFollowUpEntry();
     if (!mounted || followUp == null) return;
     final updated = await add(_task, followUp);
     if (mounted) setState(() => _task = updated);
   }
 
   Future<void> _editFollowUp(FollowUp existing) async {
-    final updated = await Navigator.of(context).push<FollowUp>(
-      MaterialPageRoute<FollowUp>(
-        builder: (_) => FollowUpEntryPage(initialFollowUp: existing),
-      ),
-    );
+    final updated = await _openFollowUpEntry(initialFollowUp: existing);
     if (!mounted || updated == null) return;
 
     try {

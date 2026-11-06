@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'models/task.dart';
+import 'models/person_reference.dart';
 import 'android_follow_up_reminder_scheduler.dart';
 import 'services/task_store.dart';
 import 'services/persian_date_formatter.dart';
@@ -16,6 +17,8 @@ class FollowUpEntryPage extends StatefulWidget {
     this.taskId,
     this.allowAddingReminder = true,
     this.onSaved,
+    this.people = const <PersonReference>[],
+    this.onCreatePerson,
   });
 
   final FollowUp? initialFollowUp;
@@ -23,6 +26,8 @@ class FollowUpEntryPage extends StatefulWidget {
   final String? taskId;
   final bool allowAddingReminder;
   final ValueChanged<FollowUp>? onSaved;
+  final List<PersonReference> people;
+  final Future<void> Function(PersonReference person)? onCreatePerson;
 
   @override
   State<FollowUpEntryPage> createState() => _FollowUpEntryPageState();
@@ -38,6 +43,9 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
   bool _waitingForResponse = false;
   bool _addReminder = false;
   bool _isSaving = false;
+  late List<PersonReference> _people;
+  late Set<String> _selectedPersonIds;
+  late Set<String> _initialPersonIds;
   late DateTime _reminderDateTime;
   late DateTime _initialDateTime;
   late String _initialTitle;
@@ -63,6 +71,14 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     _initialNote = _noteController.text;
     _initialResult = _resultController.text;
     _initialWaitingForResponse = _waitingForResponse;
+    _people = List<PersonReference>.of(widget.people);
+    _selectedPersonIds = <String>{...initial?.personIds ?? const <String>[]};
+    for (final id in _selectedPersonIds) {
+      if (!_people.any((person) => person.id == id)) {
+        _people.add(PersonReference(id: id, displayName: 'شخص حذف‌شده'));
+      }
+    }
+    _initialPersonIds = <String>{..._selectedPersonIds};
   }
 
   @override
@@ -144,7 +160,9 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
       _titleController.text != _initialTitle ||
       _noteController.text != _initialNote ||
       _resultController.text != _initialResult ||
-      _waitingForResponse != _initialWaitingForResponse;
+      _waitingForResponse != _initialWaitingForResponse ||
+      !_selectedPersonIds.containsAll(_initialPersonIds) ||
+      !_initialPersonIds.containsAll(_selectedPersonIds);
 
   Future<void> _requestClose() async {
     if (!_hasChanges) {
@@ -183,6 +201,56 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     } else if (action == 'save') {
       _save();
     }
+  }
+
+  Future<void> _addPerson() async {
+    final controller = TextEditingController();
+    final name = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('افزودن شخص'),
+        content: TextField(
+          key: const ValueKey('follow-up-person-new-name'),
+          controller: controller,
+          autofocus: true,
+          textInputAction: TextInputAction.done,
+          decoration: const InputDecoration(labelText: 'نام شخص'),
+          onSubmitted: (value) => Navigator.of(dialogContext).pop(value.trim()),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('انصراف'),
+          ),
+          FilledButton(
+            key: const ValueKey('follow-up-person-create'),
+            onPressed: () => Navigator.of(dialogContext).pop(controller.text.trim()),
+            child: const Text('افزودن'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    final normalizedName = name?.trim() ?? '';
+    if (normalizedName.isEmpty || !mounted) return;
+    final person = PersonReference(
+      id: 'person:${DateTime.now().microsecondsSinceEpoch}',
+      displayName: normalizedName,
+    );
+    try {
+      await widget.onCreatePerson?.call(person);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ذخیره شخص انجام نشد؛ دوباره تلاش کنید.')),
+      );
+      return;
+    }
+    if (!mounted) return;
+    setState(() {
+      _people.add(person);
+      _selectedPersonIds.add(person.id);
+    });
   }
 
   Future<void> _save() async {
@@ -227,7 +295,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
       result: result,
       completed: widget.initialFollowUp?.completed ?? false,
       waitingForResponse: _waitingForResponse,
-      personIds: widget.initialFollowUp?.personIds ?? const <String>[],
+      personIds: _selectedPersonIds.toList(growable: false),
       // Preserve legacy fields during edits without exposing retired scheduling UI.
       reminderDate: widget.initialFollowUp?.reminderDate,
       nextFollowUp: widget.initialFollowUp?.nextFollowUp,
@@ -373,6 +441,45 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
               onChanged: (value) =>
                   setState(() => _waitingForResponse = value),
             ),
+            if (_waitingForResponse) ...[
+              const SizedBox(height: 8),
+              const Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  'شخص طرف پیگیری',
+                  style: TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                children: [
+                  for (final person in _people)
+                    FilterChip(
+                      key: ValueKey('follow-up-person-${person.id}'),
+                      label: Text(person.displayName),
+                      selected: _selectedPersonIds.contains(person.id),
+                      onSelected: _isSaving
+                          ? null
+                          : (selected) => setState(() {
+                                if (selected) {
+                                  _selectedPersonIds.add(person.id);
+                                } else {
+                                  _selectedPersonIds.remove(person.id);
+                                }
+                              }),
+                    ),
+                  if (widget.onCreatePerson != null)
+                    ActionChip(
+                      key: const ValueKey('follow-up-person-add'),
+                      avatar: const Icon(Icons.add, size: 18),
+                      label: const Text('افزودن شخص'),
+                      onPressed: _isSaving ? null : _addPerson,
+                    ),
+                ],
+              ),
+            ],
             const SizedBox(height: 4),
             TextField(
               key: const ValueKey('follow-up-entry-result'),

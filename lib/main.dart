@@ -3005,9 +3005,15 @@ class _HomePageState extends State<HomePage> {
       case TaskSwipeAction.convertToFollowUp:
         // Open the real-action form only. Persist a Follow-up Record only after
         // the user explicitly saves it; keep the Task card in the list.
+        final people = await taskStore.loadPeopleDirectory();
+        if (!mounted) return false;
         final followUp = await Navigator.of(context).push<FollowUp>(
           MaterialPageRoute<FollowUp>(
-            builder: (_) => FollowUpEntryPage(taskId: task.id),
+            builder: (_) => FollowUpEntryPage(
+              taskId: task.id,
+              people: people,
+              onCreatePerson: (person) => taskStore.mergePeopleDirectory([person]),
+            ),
           ),
         );
         if (!mounted || followUp == null) return false;

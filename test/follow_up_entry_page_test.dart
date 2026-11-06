@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:arvin/follow_up_entry_page.dart';
 import 'package:arvin/models/task.dart';
+import 'package:arvin/models/person_reference.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -192,6 +193,94 @@ void main() {
     expect(result!.id, initial.id);
     expect(result!.reminderDate, initial.reminderDate);
   });
+  testWidgets('waiting FollowUp can add, select, reopen and remove a stable person', (tester) async {
+    FollowUp? saved;
+    final people = <PersonReference>[
+      PersonReference(id: 'person-ana', displayName: 'آنا'),
+    ];
+    Future<void> createPerson(PersonReference person) async {
+      people.add(person);
+    }
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: ElevatedButton(
+              onPressed: () async {
+                saved = await Navigator.of(context).push<FollowUp>(
+                  MaterialPageRoute(
+                    builder: (_) => FollowUpEntryPage(
+                      initialDateTime: DateTime(2026, 11, 6, 9),
+                      people: people,
+                      onCreatePerson: createPerson,
+                    ),
+                  ),
+                );
+              },
+              child: const Text('open-person-follow-up'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open-person-follow-up'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('follow-up-entry-waiting-for-response')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('follow-up-person-person-ana')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('follow-up-person-add')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const ValueKey('follow-up-person-new-name')), 'سارا احمدی');
+    await tester.tap(find.byKey(const ValueKey('follow-up-person-create')));
+    await tester.pumpAndSettle();
+
+    expect(people, hasLength(2));
+    expect(find.byKey(ValueKey('follow-up-person-${people.last.id}')), findsOneWidget);
+    await saveEditor(tester);
+    expect(saved, isNotNull);
+    expect(saved!.waitingForResponse, isTrue);
+    expect(saved!.personIds, contains('person-ana'));
+    expect(saved!.personIds, contains(people.last.id));
+
+    final edited = saved!;
+    saved = null;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: ElevatedButton(
+              onPressed: () async {
+                saved = await Navigator.of(context).push<FollowUp>(
+                  MaterialPageRoute(
+                    builder: (_) => FollowUpEntryPage(
+                      initialFollowUp: edited,
+                      people: people,
+                      onCreatePerson: createPerson,
+                    ),
+                  ),
+                );
+              },
+              child: const Text('reopen-person-follow-up'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('reopen-person-follow-up'));
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<FilterChip>(find.byKey(const ValueKey('follow-up-person-person-ana'))).selected,
+      isTrue,
+    );
+    await tester.tap(find.byKey(const ValueKey('follow-up-person-person-ana')));
+    await tester.pumpAndSettle();
+    await saveEditor(tester);
+    expect(saved!.personIds, isNot(contains('person-ana')));
+    expect(saved!.personIds, contains(people.last.id));
+  });
+
   testWidgets('FollowUp Back prompts and save preserves entered changes',
       (tester) async {
     FollowUp? result;

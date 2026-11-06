@@ -479,3 +479,16 @@ Release: BLOCKED — RELEASE: NO-GO
 - برای parent SHA `1c14c80`: Build `42262966593` PENDING، Device Smoke `42262966560` PENDING، Draft Review APK `42262966666` IN_PROGRESS، Calendar Provider `42262966580` IN_PROGRESS، Follow-up Persistence `42262966838` IN_PROGRESS. Artifactی هنوز ثبت نشده بود.
 
 PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ هیچ merge یا release انجام نشده است؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## پیوند شخص به پیگیری — اجرای UI و ذخیرهٔ شناسهٔ پایدار (۱۴۰۵/۰۸/۱۵)
+
+- **Parent SHA:** `277117469ff586a9529c5ab23c655cc2d6eb2e0e`
+- **Scope:** فقط فرم ثبت/ویرایش Follow-up و اتصال آن به فهرست canonical اشخاص.
+- هنگام فعال بودن «منتظر پاسخ دیگران»، فهرست اشخاص با شناسهٔ پایدار و گزینهٔ افزودن شخص جدید نمایش داده می‌شود. انتخاب قبلی در ویرایش بازسازی می‌شود و انتخاب/حذف از همان مجموعهٔ `FollowUp.personIds` ذخیره می‌شود.
+- ایجاد شخص از مسیر `TaskStore.mergePeopleDirectory` انجام می‌شود؛ دادهٔ شخص در فهرست canonical باقی می‌ماند و Follow-up فقط شناسه‌ها را نگه می‌دارد. افراد حذف‌شده با برچسب تاریخی «شخص حذف‌شده» قابل مشاهده و حذف از پیوند هستند.
+- مسیر ثبت از Home و مسیر افزودن/ویرایش در Task Details به همان فرم و مخزن داده وصل شدند. آزمون widget برای افزودن، انتخاب، بازگشایی و حذف پیوند اضافه شد.
+- **هنوز نیازمند CI exact-SHA:** Analyze، تست‌های کامل، گزارش person projection و آزمون persistence واقعی با بازگشایی برنامه. این تغییر به‌تنهایی اثبات نصب یا پذیرش دستگاه نیست.
+- **موارد باز:** جریان زنجیره‌ای تاریخ/ساعت و «بدون ساعت» برای Follow-up/Reminder، یکپارچه‌سازی جزء مشترک فیلترهای Home و Report، و ممیزی نهایی Home/تبلت.
+
+PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ هیچ merge یا release انجام نشود؛ **BLOCKED — RELEASE: NO-GO**.
