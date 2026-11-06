@@ -1472,3 +1472,27 @@ The canonical A–J baseline remains complete in §3 and the detailed A1–J7 ma
 - مستند checkpoint: `docs/project-continuity/ARVIN_PARALLEL_EVIDENCE_CHECKPOINT_2026-11-06.md`.
 - نتیجه‌ها فقط به SHA مربوط به همان Run تعلق دارند. تغییر مستندات، HEAD جدید می‌سازد و اجرای exact-head تازه برای پذیرش همان HEAD لازم است.
 - PR #3052 همچنان OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+---
+
+## Live evidence ledger — ۱۴۰۵/۰۸/۱۵ (2026-11-06)
+
+**Code SHA:** `e81862cbcd723dd0740411de0526aac5e1771e36`  
+**PR #3052:** OPEN / DRAFT / UNMERGED  
+**main:** `45e4202b03a434459e4c021a04efa7e8396359db` (untouched)  
+**Release:** BLOCKED — RELEASE: NO-GO.
+
+| Gate | Exact run/job | Observed result | Disposition |
+|---|---|---|---|
+| Build | Run `42212225056` | IN_PROGRESS; Analyze + Visual + shards 4/5 SUCCESS; shards 0–3 and APK jobs IN_PROGRESS | NOT COMPLETE |
+| Device Smoke | Run `42212224923` | PENDING; no jobs/artifacts | NOT ACCEPTED |
+| File Persistence | Run `42212224806`, job `127873397879` | SUCCESS; one file-backed test passed | Focused evidence only |
+| Calendar Provider | Run `42212224989`, job `127873398173` | IN_PROGRESS; active log unavailable (BlobNotFound) | NOT VERIFIED |
+| Draft Review APK | Run `42212224924`, job `127873400021` | IN_PROGRESS; active log unavailable (BlobNotFound) | NOT VERIFIED |
+
+Branding commit `e81862c` changes only `assets/images/branding/tafweez.svg`; the sole deletion is its `title` element. The path is byte-for-byte preserved after normalizing that deletion; one path and one `#1A2B4C` fill remain. Runtime render and device acceptance are still open.
+
+Prior SHA `2c2594e4663b243932620e250b4586e564996461`: Build `42210948715` and Device Smoke `42210947981` both have workflow-level CANCELLED conclusions; no result is inherited by the current SHA.
+
+Issues #823, #2102 and #2299 remain OPEN. Scope freeze remains active; no new feature, workflow/test change, main edit, merge, or release action was made. This ledger entry is a documentation record, not a gate closure.
