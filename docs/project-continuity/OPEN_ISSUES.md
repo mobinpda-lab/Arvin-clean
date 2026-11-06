@@ -129,3 +129,23 @@ Snapshot: 1405/08/13 — 2026-11-04 12:53 Asia/Tehran. Recheck live GitHub befor
 | Local working tree and local test run | NOT VERIFIED | Remote GitHub audit cannot report a workstation's uncommitted state or claim locally executed tests. |
 
 All tests and assertions remain protected: no deletion, skip, weakening, or fabricated timeout is authorized.
+
+
+## Device Smoke and canonical product gaps — 2026-11-06 (۱۴۰۵/۰۸/۱۵)
+
+### Device Smoke run 42175115690
+- **BLOCKED / INCOMPLETE:** exact checkout SHA `49401bd4fcfa5622282d0fd80ec607d12daf467a`.
+- Preparation SUCCESS; Boot and Navigation IN_PROGRESS; Calendar Segmented View, Quick Capture, Task Lifecycle, Reminder/Vazirmatn and Follow-up Persistence QUEUED at the latest job-level poll.
+- No final lane conclusions and no uploaded artifacts. Boot/Navigation log download returned 404; root cause and test outcome NOT VERIFIED.
+- Next action: continue polling the same run; collect each lane's terminal conclusion and screenshot/artifact evidence. Do not cancel, rerun, skip, or mark incomplete lanes as PASS.
+
+### Product deviations requiring a future implementation/verification slice
+1. **Quick Capture:** remove the description field from the quick form while preserving description entry in the full form. Existing source still renders the description field; the quick-capture test currently asserts its presence.
+2. **Reports filters:** implement the visible RTL five-filter row in the Reports page, in the canonical order Time → Center → Project → Category → Tag; no «همه» chip.
+3. **Calendar triple date:** show Jalali, Gregorian and Hijri lunar dates according to the approved calendar specification.
+4. **Calendar swipe/export:** retain period navigation only where intended; implement and verify the approved swipe-to-phone-calendar transfer behavior without duplicate events or data loss.
+5. **Tafweez exact phrase:** align SVG semantics/accessible label and any visible text with exact owner wording «وَأُفَوِّضُ أَمْرِي إِلَى اللَّهِ»; inspect artwork/diacritics visually before acceptance.
+6. **Physical-device typography:** verify Vazirmatn and both sacred SVGs on the target Android device in light/dark themes, RTL and supported text scales. Source configuration alone is insufficient.
+
+- These are open findings from source/spec audit; they are not claimed as Device Smoke failures. Add focused tests and exact-SHA evidence after owner-approved implementation.
+- Governance: PR #3052 OPEN / DRAFT / UNMERGED; main untouched; **BLOCKED — RELEASE: NO-GO**.
