@@ -1289,10 +1289,14 @@ Future<void> _pickDueDate() async {
                               valueLabel: _selectedProjectId == null
                                   ? 'پروژه'
                                   : _projects
-                                      .where((p) => p.id == _selectedProjectId)
-                                      .map((p) => p.title)
-                                      .firstOrNull ??
-                                    'پروژه',
+                                          .where((p) => p.id == _selectedProjectId)
+                                          .map((p) => p.title)
+                                          .isEmpty
+                                      ? 'پروژه'
+                                      : _projects
+                                          .where((p) => p.id == _selectedProjectId)
+                                          .map((p) => p.title)
+                                          .first,
                               icon: Icons.folder_outlined,
                               color: ArvinColors.project,
                               emptyLabel: 'بدون پروژه',
