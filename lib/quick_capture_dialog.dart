@@ -587,7 +587,7 @@ Future<DateTime?> _pickCustomDue() async {
                               valueLabel: selectedCenter.isEmpty ? 'مرکز' : selectedCenter.first.name,
                               icon: Icons.business_outlined,
                               color: ArvinColors.primary,
-                              emptyLabel: 'همه مراکز',
+                              emptyLabel: 'بدون محدودیت مرکز',
                               items: availableCenters.map((center) => ArvinRollItem<String>(
                                 value: center.id, label: center.name,
                                 icon: Icons.business_outlined, color: ArvinColors.primary,

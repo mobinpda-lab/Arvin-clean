@@ -7,6 +7,53 @@ import 'package:arvin/models/task.dart';
 import 'package:arvin/quick_capture_dialog.dart';
 
 void main() {
+  testWidgets('Quick Capture center filter narrows projects and has no All option',
+      (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            body: QuickCaptureDialog(
+              centers: [
+                ArvinCenter(id: 'center-a', name: 'مرکز الف', createdAt: DateTime(2026, 1, 1)),
+                ArvinCenter(id: 'center-b', name: 'مرکز ب', createdAt: DateTime(2026, 1, 1)),
+              ],
+              projects: [
+                ProjectPlan(id: 'project-a', title: 'پروژه الف', centerId: 'center-a'),
+                ProjectPlan(id: 'project-b', title: 'پروژه ب', centerId: 'center-b'),
+              ],
+              now: () => DateTime(2026, 11, 3, 10),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final center = find.byKey(const ValueKey('quick-capture-center-rollbox'));
+    await tester.ensureVisible(center);
+    await tester.tap(center);
+    await tester.pumpAndSettle();
+
+    expect(find.text('همه مراکز'), findsNothing);
+    expect(find.text('بدون محدودیت مرکز'), findsOneWidget);
+    expect(find.text('مرکز الف'), findsOneWidget);
+    expect(find.text('مرکز ب'), findsOneWidget);
+
+    await tester.tap(find.text('مرکز ب').last);
+    await tester.pumpAndSettle();
+
+    final project = find.byKey(const ValueKey('quick-capture-project-rollbox'));
+    await tester.ensureVisible(project);
+    await tester.tap(project);
+    await tester.pumpAndSettle();
+
+    expect(find.text('پروژه ب'), findsOneWidget);
+    expect(find.text('پروژه الف'), findsNothing);
+    expect(find.text('همه'), findsNothing);
+  });
+
   testWidgets('Quick Capture four-level priority chips preserve canonical priority values',
       (tester) async {
     Task? captured;
