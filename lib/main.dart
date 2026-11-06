@@ -323,8 +323,10 @@ class _ArvinAppState extends State<ArvinApp> {
         ).copyWith(
           primary: ArvinColors.primary,
           onPrimary: ArvinColors.surface,
-          secondary: ArvinColors.project,
+          secondary: ArvinColors.primary,
           onSecondary: ArvinColors.surface,
+          secondaryContainer: ArvinColors.primarySoft,
+          onSecondaryContainer: ArvinColors.textPrimary,
           error: ArvinColors.error,
           onError: ArvinColors.surface,
           surface: ArvinColors.surface,
@@ -344,6 +346,41 @@ class _ArvinAppState extends State<ArvinApp> {
         ),
         fontFamily: AppFonts.vazirmatnFamily,
         textTheme: readableLightTextTheme,
+        chipTheme: const ChipThemeData(
+          selectedColor: ArvinColors.primarySoft,
+          secondarySelectedColor: ArvinColors.primarySoft,
+          checkmarkColor: ArvinColors.primary,
+        ),
+        floatingActionButtonTheme: const FloatingActionButtonThemeData(
+          backgroundColor: ArvinColors.primary,
+          foregroundColor: ArvinColors.surface,
+        ),
+        navigationBarTheme: NavigationBarThemeData(
+          backgroundColor: ArvinColors.surface,
+          indicatorColor: ArvinColors.primarySoft,
+          iconTheme: WidgetStateProperty.resolveWith(
+            (states) => IconThemeData(
+              color: states.contains(WidgetState.selected)
+                  ? ArvinColors.primary
+                  : ArvinColors.textSecondary,
+            ),
+          ),
+          labelTextStyle: WidgetStateProperty.resolveWith(
+            (states) => TextStyle(
+              color: states.contains(WidgetState.selected)
+                  ? ArvinColors.primary
+                  : ArvinColors.textSecondary,
+              fontWeight: states.contains(WidgetState.selected)
+                  ? FontWeight.w700
+                  : FontWeight.w500,
+            ),
+          ),
+        ),
+        progressIndicatorTheme: const ProgressIndicatorThemeData(
+          color: ArvinColors.primary,
+          linearTrackColor: ArvinColors.primarySoft,
+          circularTrackColor: ArvinColors.primarySoft,
+        ),
         iconTheme: const IconThemeData(color: ArvinColors.neutral, size: 24),
         dividerTheme: const DividerThemeData(color: ArvinColors.border, thickness: 1),
         appBarTheme: AppBarTheme(

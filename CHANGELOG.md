@@ -1,5 +1,19 @@
 
 
+## یکپارچه‌سازی رنگ حالت انتخاب‌شده در تم سراسری — ۱۴۰۵/۰۸/۱۵
+
+**Parent SHA:** `50b1e99164fea7c03110e2641c786a78f8c94752`
+
+- رنگ انتخاب‌شدهٔ پنج فیلتر Home و پنج فیلتر مشترک Report Center اکنون از `ArvinColors.primary` و `primarySoft` استفاده می‌کند؛ رنگ accent هر بُعد فقط در حالت غیرفعال/نشانهٔ معنایی باقی می‌ماند.
+- چیپ‌های فیلتر فعال نیز فیروزه‌ای هستند. `ColorScheme.secondary` و `secondaryContainer` به توکن برند متصل شدند تا ChoiceChipهای Material از رنگ پروژه به‌عنوان رنگ انتخاب استفاده نکنند.
+- FAB، NavigationBar، ProgressIndicator و ChipTheme به توکن‌های برند متصل شدند. رنگ‌های معنایی اولویت/وضعیت و رنگ سرمه‌ای SVGهای مقدس تغییر نکردند.
+- آزمون widget برای رنگ حالت فعال HomeFilterPill، HomeFilterCard و HomeFilterChip اضافه شد.
+- نتیجهٔ Analyze، مجموعهٔ کامل تست‌ها و ساخت APK باید روی SHA نهایی ثبت شود.
+
+PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+
 ## حذف وابستگی ناخواستهٔ Task Details به بارگذاری هم‌زمان اشخاص — ۱۴۰۵/۰۸/۱۵
 
 **Parent SHA:** `1845c5a071beb7e087d21453a31753db905506d8`

@@ -25,27 +25,31 @@ class HomeFilterPill extends StatelessWidget {
   final VoidCallback onPressed;
 
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsetsDirectional.only(end: 7),
-        child: ActionChip(
-          onPressed: onPressed,
-          avatar: Icon(icon, size: 16, color: active ? accent : ArvinColors.textSecondary),
-          label: Text(
-            label,
-            style: TextStyle(
-              color: active ? accent : ArvinColors.textPrimary,
-              fontSize: 12,
-              fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-            ),
+  Widget build(BuildContext context) {
+    final selectedAccent = active ? ArvinColors.primary : accent;
+    final selectedSurface = active ? ArvinColors.primarySoft : soft;
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(end: 7),
+      child: ActionChip(
+        onPressed: onPressed,
+        avatar: Icon(icon, size: 16, color: active ? selectedAccent : ArvinColors.textSecondary),
+        label: Text(
+          label,
+          style: TextStyle(
+            color: active ? selectedAccent : ArvinColors.textPrimary,
+            fontSize: 12,
+            fontWeight: active ? FontWeight.w700 : FontWeight.w500,
           ),
-          backgroundColor: active ? soft : ArvinColors.surface,
-          side: BorderSide(color: active ? accent.withAlpha(90) : ArvinColors.border),
-          shape: const StadiumBorder(),
-          visualDensity: VisualDensity.compact,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 0),
         ),
-      );
+        backgroundColor: active ? selectedSurface : ArvinColors.surface,
+        side: BorderSide(color: active ? selectedAccent.withAlpha(90) : ArvinColors.border),
+        shape: const StadiumBorder(),
+        visualDensity: VisualDensity.compact,
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 0),
+      ),
+    );
+  }
 }
 
 class HomeFilterCard extends StatelessWidget {
@@ -73,13 +77,15 @@ class HomeFilterCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final selected = active ?? value != 'همه';
+    final selectedAccent = selected ? ArvinColors.primary : accent;
+    final selectedSoft = selected ? ArvinColors.primarySoft : soft;
     final compact = MediaQuery.sizeOf(context).height < 700;
     return Expanded(
       child: Semantics(
         button: true,
         label: title + ': ' + value,
         child: Material(
-          color: selected ? Color.alphaBlend(accent.withAlpha(22), soft) : soft,
+          color: selected ? Color.alphaBlend(selectedAccent.withAlpha(22), selectedSoft) : soft,
           borderRadius: BorderRadius.circular(16),
           child: InkWell(
             key: ValueKey('home-filter-card-' + dimension.name),
@@ -92,11 +98,11 @@ class HomeFilterCard extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: 4, vertical: compact ? 4 : 7),
               decoration: BoxDecoration(
                 color: selected
-                    ? Color.alphaBlend(accent.withAlpha(18), soft)
+                    ? Color.alphaBlend(selectedAccent.withAlpha(18), selectedSoft)
                     : soft,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: selected ? accent.withAlpha(150) : accent.withAlpha(45),
+                  color: selected ? selectedAccent.withAlpha(150) : accent.withAlpha(45),
                   width: selected ? 1.5 : 1,
                 ),
                 boxShadow: [
@@ -110,14 +116,14 @@ class HomeFilterCard extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(icon, color: accent, size: compact ? 18 : 20),
+                  Icon(icon, color: selectedAccent, size: compact ? 18 : 20),
                   SizedBox(height: compact ? 3 : 5),
                   Text(
                     title,
                     maxLines: 1,
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: accent.withAlpha(235),
+                      color: selectedAccent.withAlpha(235),
                       fontSize: compact ? 10 : 11,
                       fontWeight: FontWeight.w700,
                     ),
@@ -130,7 +136,7 @@ class HomeFilterCard extends StatelessWidget {
                       maxLines: 1,
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: accent,
+                        color: selectedAccent,
                         fontSize: compact ? 10.5 : 11.5,
                         fontWeight: FontWeight.w800,
                       ),
@@ -167,20 +173,20 @@ class HomeFilterChip extends StatelessWidget {
     return Container(
       constraints: const BoxConstraints(minHeight: 34),
       decoration: BoxDecoration(
-        color: soft,
+        color: ArvinColors.primarySoft,
         borderRadius: BorderRadius.circular(17),
-        border: Border.all(color: accent.withAlpha(65)),
+        border: Border.all(color: ArvinColors.primary.withAlpha(65)),
       ),
       padding: const EdgeInsetsDirectional.only(start: 8, end: 5),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (icon != null) Icon(icon, size: 15, color: accent),
+          if (icon != null) Icon(icon, size: 15, color: ArvinColors.primary),
           if (icon != null) const SizedBox(width: 4),
           Text(
             label,
             style: TextStyle(
-              color: accent,
+              color: ArvinColors.primary,
               fontSize: 11.5,
               fontWeight: FontWeight.w700,
             ),
@@ -192,7 +198,7 @@ class HomeFilterChip extends StatelessWidget {
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
             visualDensity: VisualDensity.compact,
-            icon: Icon(Icons.close_rounded, size: 16, color: accent),
+            icon: Icon(Icons.close_rounded, size: 16, color: ArvinColors.primary),
           ),
         ],
       ),
