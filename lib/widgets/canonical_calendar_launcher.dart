@@ -734,11 +734,7 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
       child: Scaffold(
         body: Offstage(
           offstage: _conflictAdviceVisible,
-          child: ContextualHelpOverlay(
-            title: 'راهنمای تقویم',
-            steps: _calendarHelpSteps,
-            buttonKey: const ValueKey('calendar-context-help'),
-            child: IranianOfficialCalendarPage(
+          child: IranianOfficialCalendarPage(
               reminders: reminders,
               visibleReminderProjection: projectVisible,
               onEditTask: _editTaskFromCalendar,
@@ -756,7 +752,6 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
                   ? null
                   : _createTaskFromCalendarEvent,
             ),
-          ),
         ),
         bottomNavigationBar: ArvinPrimaryNavigation(
           selected: ArvinPrimaryDestination.calendar,
