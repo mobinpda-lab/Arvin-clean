@@ -1088,4 +1088,30 @@ void main() {
     expect(captured!.reminderDate, isNull);
   });
 
+
+  testWidgets('Quick Capture remains scrollable without overflow when the phone keyboard is open',
+      (tester) async {
+    tester.view.physicalSize = const Size(360, 780);
+    tester.view.devicePixelRatio = 1;
+    tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetViewInsets);
+
+    await tester.pumpWidget(MaterialApp(
+      home: Directionality(
+        textDirection: TextDirection.rtl,
+        child: Scaffold(body: QuickCaptureDialog()),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('quick-capture-categories-wrap')), findsOneWidget);
+    expect(find.byKey(const ValueKey('quick-capture-submit')), findsOneWidget);
+    expect(find.byType(SingleChildScrollView), findsWidgets);
+    await tester.ensureVisible(find.byKey(const ValueKey('quick-capture-tag-rollbox')));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
+
 }
