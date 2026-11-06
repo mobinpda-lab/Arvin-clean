@@ -527,3 +527,12 @@ Every new entry must include exact SHA, workflow/run IDs, terminal conclusion, a
 - Artifact list remains empty. Boot and Navigation are still inside the canonical smoke execution step; screenshot uploads remain pending. No final screenshot or device proof is available.
 - Do not cancel or retry the two active jobs solely to manufacture a green matrix. Wait for their terminal results, then investigate cancelled lanes from available workflow/job diagnostics. No acceptance claim is permitted meanwhile.
 - The documentation branch HEAD has advanced to include this note; the run is still bound to the pre-documentation code SHA above. PR #3052 remains OPEN / DRAFT / UNMERGED; main remains `45e4202b03a434459e4c021a04efa7e8396359db`; release remains **BLOCKED — RELEASE: NO-GO**.
+
+
+## Device Smoke terminal result — 2026-11-06 (۱۴۰۵/۰۸/۱۵)
+- Final poll of run [42175115690](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/42175115690): `status=completed`, `conclusion=cancelled`, checkout SHA `49401bd4fcfa5622282d0fd80ec607d12daf467a`.
+- Preparation job SUCCESS. All seven product lanes ended CANCELLED: Boot, Navigation, Calendar Segmented View, Quick Capture, Task Lifecycle, Reminder/Vazirmatn and Follow-up Persistence. Final acceptance: **0/7 PASS; 7/7 CANCELLED; Device Smoke FAILS THE COMPLETION GATE / NOT ACCEPTED**. Cancellation is not evidence that product behavior failed; it is evidence that the scenarios did not complete.
+- Artifact endpoint returned an empty list; no screenshot/device evidence was uploaded. Job-step summaries for cancelled lanes were empty. Earlier log retrieval attempts returned 404; cancellation initiator/root cause is **NOT VERIFIED** from the available evidence.
+- Do not relabel cancelled lanes as skipped/pass, and do not infer a device test failure from cancellation alone. A fresh authorized run is required after investigating why this run was cancelled; preserve all tests/assertions and do not add timeout/skip/retry masking.
+- Run is pinned to code SHA `49401bd4fcfa5622282d0fd80ec607d12daf467a`. Continuity docs were subsequently synchronized on the authorized branch; those documentation commits do not retroactively change the run's checkout SHA or make its result apply to the new HEAD.
+- PR #3052 remains OPEN / DRAFT / UNMERGED. Main remains `45e4202b03a434459e4c021a04efa7e8396359db`. Release remains **BLOCKED — RELEASE: NO-GO**.
