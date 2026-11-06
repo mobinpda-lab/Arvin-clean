@@ -1173,27 +1173,41 @@ Future<void> _pickDueDate() async {
                     color: ArvinColors.surface,
                     border: Border(bottom: BorderSide(color: _border)),
                   ),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        key: const ValueKey('task-editor-close'),
-                        tooltip: 'بستن',
-                        onPressed: _requestClose,
-                        icon: const Icon(Icons.close_rounded),
-                      ),
-                      const Expanded(
-                        child: Center(
-                          child: Text('ویرایش کار', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-                        ),
-                      ),
-                      FilledButton.icon(
-                        key: const ValueKey('task-editor-header-save'),
-                        onPressed: _save,
-                        icon: const Icon(Icons.check_rounded, size: 18),
-                        label: const Text('ذخیره'),
-                        style: FilledButton.styleFrom(backgroundColor: _brand, foregroundColor: ArvinColors.surface),
-                      ),
-                    ],
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final compact = constraints.maxWidth < 420;
+                      return Row(
+                        children: [
+                          IconButton(
+                            key: const ValueKey('task-editor-close'),
+                            tooltip: 'بستن',
+                            onPressed: _requestClose,
+                            icon: const Icon(Icons.close_rounded),
+                          ),
+                          const Expanded(
+                            child: Center(
+                              child: Text('ویرایش کار', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                            ),
+                          ),
+                          if (compact)
+                            IconButton(
+                              key: const ValueKey('task-editor-header-save'),
+                              tooltip: 'ذخیره',
+                              onPressed: _save,
+                              icon: const Icon(Icons.check_rounded),
+                              color: _brand,
+                            )
+                          else
+                            FilledButton.icon(
+                              key: const ValueKey('task-editor-header-save'),
+                              onPressed: _save,
+                              icon: const Icon(Icons.check_rounded, size: 18),
+                              label: const Text('ذخیره'),
+                              style: FilledButton.styleFrom(backgroundColor: _brand, foregroundColor: ArvinColors.surface),
+                            ),
+                        ],
+                      );
+                    },
                   ),
                 ),
                 Expanded(

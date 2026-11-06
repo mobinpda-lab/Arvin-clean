@@ -204,33 +204,10 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
   }
 
   Future<void> _addPerson() async {
-    final controller = TextEditingController();
     final name = await showDialog<String>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('افزودن شخص'),
-        content: TextField(
-          key: const ValueKey('follow-up-person-new-name'),
-          controller: controller,
-          autofocus: true,
-          textInputAction: TextInputAction.done,
-          decoration: const InputDecoration(labelText: 'نام شخص'),
-          onSubmitted: (value) => Navigator.of(dialogContext).pop(value.trim()),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('انصراف'),
-          ),
-          FilledButton(
-            key: const ValueKey('follow-up-person-create'),
-            onPressed: () => Navigator.of(dialogContext).pop(controller.text.trim()),
-            child: const Text('افزودن'),
-          ),
-        ],
-      ),
+      builder: (_) => const _FollowUpPersonNameDialog(),
     );
-    controller.dispose();
     final normalizedName = name?.trim() ?? '';
     if (normalizedName.isEmpty || !mounted) return;
     final person = PersonReference(
@@ -510,6 +487,49 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
         ),
       ),
       ),
+    );
+  }
+}
+
+class _FollowUpPersonNameDialog extends StatefulWidget {
+  const _FollowUpPersonNameDialog();
+
+  @override
+  State<_FollowUpPersonNameDialog> createState() => _FollowUpPersonNameDialogState();
+}
+
+class _FollowUpPersonNameDialogState extends State<_FollowUpPersonNameDialog> {
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('افزودن شخص'),
+      content: TextField(
+        key: const ValueKey('follow-up-person-new-name'),
+        controller: _controller,
+        autofocus: true,
+        textInputAction: TextInputAction.done,
+        decoration: const InputDecoration(labelText: 'نام شخص'),
+        onSubmitted: (value) => Navigator.of(context).pop(value.trim()),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('انصراف'),
+        ),
+        FilledButton(
+          key: const ValueKey('follow-up-person-create'),
+          onPressed: () => Navigator.of(context).pop(_controller.text.trim()),
+          child: const Text('افزودن'),
+        ),
+      ],
     );
   }
 }

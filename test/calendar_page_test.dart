@@ -181,7 +181,7 @@ void main() {
     expect(find.text('عقب‌افتاده'), findsOneWidget);
   });
 
-  testWidgets('week date bar is 56 pixels high and highlights selected day in pastel purple', (tester) async {
+  testWidgets('week date bar keeps a 68-pixel minimum and highlights selected day in pastel purple', (tester) async {
     final selectedDay = DateTime(2030, 5, 1);
     await tester.pumpWidget(
       MaterialApp(
@@ -197,8 +197,8 @@ void main() {
     final selectedDayWidget = tester.widget<Container>(
       find.descendant(of: find.byKey(selectedKey), matching: find.byType(Container)).first,
     );
-    expect(selectedDayWidget.constraints?.maxHeight, anyOf(isNull, 56));
-    expect(tester.getSize(find.byKey(selectedKey)).height, 56);
+    expect(selectedDayWidget.constraints?.minHeight, 68);
+    expect(tester.getSize(find.byKey(selectedKey)).height, greaterThanOrEqualTo(68));
     expect(selectedDayWidget.decoration, isA<BoxDecoration>());
     expect(
       (selectedDayWidget.decoration! as BoxDecoration).color,
