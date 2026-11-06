@@ -40,6 +40,16 @@ void main() {
     expect(find.text('پروژه‌ها'), findsOneWidget);
     expect(find.text('دسته‌ها'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
+    for (final key in [
+      'home-filter-card-time',
+      'home-filter-card-center',
+      'home-filter-card-project',
+      'home-filter-card-category',
+      'home-filter-card-tags',
+    ]) {
+      expect(tester.getRect(find.byKey(ValueKey(key))).height, greaterThanOrEqualTo(48));
+    }
+    expect(tester.takeException(), isNull);
 
     final scrollable = find.byType(Scrollable).last;
     await tester.scrollUntilVisible(find.byKey(const ValueKey('active')), 400, scrollable: scrollable);
