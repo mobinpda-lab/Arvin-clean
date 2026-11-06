@@ -1554,6 +1554,7 @@ class _HomePageState extends State<HomePage> {
         initialCenterId: selectedCenterId,
         onCreateProjectWithCenter: (title, centerId) =>
             wave2ProductFastTrack.createProject(title, centerId: centerId),
+        onCreateCenter: _createCenter,
         knownCategories: editorContext.knownCategories,
         knownTags: editorContext.knownTags,
         onCreateCategory: _createCategory,
