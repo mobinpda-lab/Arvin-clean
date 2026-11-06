@@ -58,38 +58,7 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
   // Keep the launcher subtree out of global finders while conflict advice is modal.
   bool _conflictAdviceVisible = false;
 
-  static const _calendarHelpSteps = <ContextualHelpStep>[
-    ContextualHelpStep(
-      icon: Icons.touch_app_outlined,
-      title: 'انتخاب روز',
-      body: 'روی هر روز بزنید تا پیگیری‌ها، مناسبت‌ها و اطلاعات همان روز پایین تقویم دیده شود.',
-    ),
-    ContextualHelpStep(
-      icon: Icons.swap_horiz,
-      title: 'تغییر ماه',
-      body: 'با فلش‌های کنار نام ماه بین ماه قبل و بعد جابه‌جا شوید.',
-    ),
-    ContextualHelpStep(
-      icon: Icons.today_outlined,
-      title: 'برگشت به امروز',
-      body: 'دکمه «امروز» شما را مستقیم به تاریخ امروز برمی‌گرداند.',
-    ),
-    ContextualHelpStep(
-      icon: Icons.notifications_active_outlined,
-      title: 'پیگیری‌ها و مناسبت‌ها',
-      body: 'عدد کوچک روی روز یعنی آن روز موردی برای دیدن دارد؛ جزئیات در پایین صفحه نمایش داده می‌شود.',
-    ),
-    ContextualHelpStep(
-      icon: Icons.warning_amber_outlined,
-      title: 'بررسی تداخل‌ها',
-      body: 'از «بیشتر» و سپس «تداخل‌ها» فقط یادآورهای مستقل همگام‌شده با تقویم گوشی را بررسی کنید؛ هیچ تغییری بدون تأیید شما اعمال نمی‌شود.',
-    ),
-    ContextualHelpStep(
-      icon: Icons.event_available_outlined,
-      title: 'تقویم دستگاه',
-      body: 'از «بیشتر» و سپس «تقویم دستگاه» می‌توانید یک یادآور مستقل را به تقویم گوشی منتقل کنید.',
-    ),
-  ];
+
 
   static const _notebookHelpSteps = <ContextualHelpStep>[
     ContextualHelpStep(
