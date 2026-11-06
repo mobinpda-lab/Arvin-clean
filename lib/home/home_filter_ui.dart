@@ -44,9 +44,9 @@ class HomeFilterPill extends StatelessWidget {
         backgroundColor: active ? selectedSurface : ArvinColors.surface,
         side: BorderSide(color: active ? selectedAccent.withAlpha(90) : ArvinColors.border),
         shape: const StadiumBorder(),
-        visualDensity: VisualDensity.compact,
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 0),
+        visualDensity: VisualDensity.standard,
+        materialTapTargetSize: MaterialTapTargetSize.padded,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       ),
     );
   }
