@@ -34,9 +34,13 @@ class HomeVisualIntegration extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final sacredVectorColor = theme.brightness == Brightness.dark
+    final isDark = theme.brightness == Brightness.dark;
+    final svgColor = isDark
         ? theme.colorScheme.onSurface
         : const Color(0xFF1A2B4C);
+    final capsuleBackground = isDark
+        ? theme.colorScheme.surfaceContainerLow
+        : const Color(0xFFF0F0F6);
     return Scaffold(
       backgroundColor: background,
       body: SafeArea(
@@ -57,9 +61,10 @@ class HomeVisualIntegration extends StatelessWidget {
                     child: Column(
                       children: [
                         DecoratedBox(
+                          key: const ValueKey('home-bismillah-capsule-surface'),
                           decoration: BoxDecoration(
-                            color: Color(0xFFF0F0F6),
-                            borderRadius: BorderRadius.all(Radius.circular(14)),
+                            color: capsuleBackground,
+                            borderRadius: const BorderRadius.all(Radius.circular(14)),
                           ),
                           child: Padding(
                             padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -73,7 +78,7 @@ class HomeVisualIntegration extends StatelessWidget {
                                 height: 30,
                                 fit: BoxFit.contain,
                                 colorFilter: ColorFilter.mode(
-                                  sacredVectorColor,
+                                  svgColor,
                                   BlendMode.srcIn,
                                 ),
                                 excludeFromSemantics: true,

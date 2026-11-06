@@ -5,15 +5,39 @@ import 'package:arvin/home/home_visual_integration.dart';
 import 'package:arvin/theme/app_fonts.dart';
 
 void main() {
-  testWidgets('Home sacred SVG uses brand navy in light theme and readable onSurface in dark theme', (tester) async {
-    Widget home(ThemeData theme) => MaterialApp(theme: theme, home: const HomeVisualIntegration(body: SizedBox.shrink()));
-    await tester.pumpWidget(home(ThemeData.light()));
-    var svg = tester.widget<SvgPicture>(find.byKey(const ValueKey('home-bismillah-svg')));
+  testWidgets('Home sacred SVG and capsule use brand colors in light theme', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData.light(),
+        home: const HomeVisualIntegration(body: SizedBox.shrink()),
+      ),
+    );
+    final svg = tester.widget<SvgPicture>(
+      find.byKey(const ValueKey('home-bismillah-svg')),
+    );
     expect(svg.colorFilter, const ColorFilter.mode(Color(0xFF1A2B4C), BlendMode.srcIn));
+    final capsule = tester.widget<DecoratedBox>(
+      find.byKey(const ValueKey('home-bismillah-capsule-surface')),
+    );
+    expect((capsule.decoration! as BoxDecoration).color, const Color(0xFFF0F0F6));
+  });
+
+  testWidgets('Home sacred SVG and capsule adapt to dark theme contrast', (tester) async {
     final darkTheme = ThemeData.dark();
-    await tester.pumpWidget(home(darkTheme));
-    svg = tester.widget<SvgPicture>(find.byKey(const ValueKey('home-bismillah-svg')));
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: darkTheme,
+        home: const HomeVisualIntegration(body: SizedBox.shrink()),
+      ),
+    );
+    final svg = tester.widget<SvgPicture>(
+      find.byKey(const ValueKey('home-bismillah-svg')),
+    );
     expect(svg.colorFilter, ColorFilter.mode(darkTheme.colorScheme.onSurface, BlendMode.srcIn));
+    final capsule = tester.widget<DecoratedBox>(
+      find.byKey(const ValueKey('home-bismillah-capsule-surface')),
+    );
+    expect((capsule.decoration! as BoxDecoration).color, darkTheme.colorScheme.surfaceContainerLow);
   });
 
   testWidgets('renders canonical Home identity, search and add action', (tester) async {

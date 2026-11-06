@@ -690,3 +690,11 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - SVG بسم‌الله Home و تفویض Calendar در تم روشن سرمه‌ای برند و در تم تاریک رنگ `onSurface` می‌گیرند؛ تست‌های تم روشن/تاریک افزوده شدند.
 - هیچ تستی حذف یا skip نشد و هیچ پوشش رفتاری تضعیف نشد. تست‌های متمرکز و شش شارد باید روی SHA نهایی تازه اجرا شوند.
 - PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## ۱۴۰۵/۰۸/۱۵ (2026-11-06) — اصلاح نهایی کنتراست پویا و تست Task Details
+- پس‌زمینه کپسول بسم‌الله Home در تم تاریک از `colorScheme.surfaceContainerLow` می‌آید و با رنگ روشن پویای SVG (`onSurface`) هماهنگ است؛ تم روشن رنگ برند قبلی را حفظ می‌کند.
+- تست‌های Home و Calendar برای تم روشن و تاریک به سناریوهای مستقل تقسیم شدند؛ مقایسه تم تاریک با رنگ واقعی Theme انجام می‌شود، نه مقدار رنگ هاردکدشده.
+- کلید کارت منشأ الگو به `task_detail_template_source_card` استاندارد شد. تست Task Details ابتدا Description را آشکار می‌کند، وجود کارت الگو را پیش از اسکرول بررسی می‌کند و سپس ترتیب آن تا Due Date را می‌سنجد.
+- تست‌های موجود، از جمله نشان «در انتظار انجام»، حفظ شدند؛ هیچ حذف، Skip، کاهش assertion یا تغییر timeout انجام نشد.
+- این تغییرات نیازمند اجرای تازه شش شارد و Device Smoke روی SHA جدید هستند. PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched؛ **BLOCKED — RELEASE: NO-GO**.

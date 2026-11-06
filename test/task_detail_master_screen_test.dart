@@ -656,7 +656,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(timelineCard, findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-recurrence-add')), findsNothing);
-    expect(find.byKey(const ValueKey('task-detail-template-source')), findsNothing);
+    expect(find.byKey(const ValueKey('task_detail_template_source_card')), findsNothing);
     expect(find.text('افراد مرتبط'), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
@@ -701,7 +701,7 @@ void main() {
     ));
 
     final detailScrollable = _taskDetailPageScrollable(tester);
-    final templateSource = find.byKey(const ValueKey('task-detail-template-source'));
+    final templateSource = find.byKey(const ValueKey('task_detail_template_source_card'));
     await tester.scrollUntilVisible(templateSource, 240, scrollable: detailScrollable);
     await tester.pumpAndSettle();
     expect(templateSource, findsOneWidget);
@@ -872,7 +872,17 @@ void main() {
     final categoryX = tester.getCenter(find.byKey(const ValueKey('task-detail-metadata-category'))).dx;
     final tagsX = tester.getCenter(find.byKey(const ValueKey('task-detail-metadata-tags'))).dx;
 
-    final template = find.byKey(const ValueKey('task-detail-template-source'));
+    final description = find.byKey(const ValueKey('task-detail-description-card'));
+    await tester.scrollUntilVisible(description, 240, scrollable: detailScrollable);
+    await tester.pumpAndSettle();
+    expect(description, findsOneWidget);
+    expect(find.text('شرح مستقل'), findsOneWidget);
+    final descriptionY = scrollPosition.pixels + tester.getTopLeft(description).dy;
+
+    final template = find.byKey(
+      const ValueKey('task_detail_template_source_card'),
+    );
+    expect(template, findsOneWidget);
     await tester.scrollUntilVisible(template, 240, scrollable: detailScrollable);
     await tester.pumpAndSettle();
     expect(template, findsOneWidget);
@@ -893,13 +903,6 @@ void main() {
     expect(find.text('مسئول مستقلی برای این کار ثبت نشده است'), findsOneWidget);
     expect(find.text('افراد مرتبط'), findsNothing);
     final assigneeY = scrollPosition.pixels + tester.getTopLeft(assignee).dy;
-
-    final description = find.byKey(const ValueKey('task-detail-description-card'));
-    await tester.scrollUntilVisible(description, 240, scrollable: detailScrollable);
-    await tester.pumpAndSettle();
-    expect(description, findsOneWidget);
-    expect(find.text('شرح مستقل'), findsOneWidget);
-    final descriptionY = scrollPosition.pixels + tester.getTopLeft(description).dy;
 
     final reminders = find.byKey(const ValueKey('task-detail-independent-reminders'));
     await tester.scrollUntilVisible(reminders, 240, scrollable: detailScrollable);

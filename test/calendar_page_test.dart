@@ -8,14 +8,24 @@ import 'package:arvin/services/iran_clock.dart';
 import 'package:arvin/services/calendar_swipe_settings_service.dart';
 
 void main() {
-  testWidgets('calendar sacred SVG uses brand navy in light theme and readable onSurface in dark theme', (tester) async {
-    Widget calendar(ThemeData theme) => MaterialApp(theme: theme, home: const CalendarPage(reminders: []));
-    await tester.pumpWidget(calendar(ThemeData.light()));
-    var svg = tester.widget<SvgPicture>(find.byKey(const ValueKey('calendar-sacred-header-svg')));
+  testWidgets('calendar sacred SVG uses brand navy in light theme', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(theme: ThemeData.light(), home: const CalendarPage(reminders: [])),
+    );
+    final svg = tester.widget<SvgPicture>(
+      find.byKey(const ValueKey('calendar-sacred-header-svg')),
+    );
     expect(svg.colorFilter, const ColorFilter.mode(Color(0xFF1A2B4C), BlendMode.srcIn));
+  });
+
+  testWidgets('calendar sacred SVG follows onSurface in dark theme', (tester) async {
     final darkTheme = ThemeData.dark();
-    await tester.pumpWidget(calendar(darkTheme));
-    svg = tester.widget<SvgPicture>(find.byKey(const ValueKey('calendar-sacred-header-svg')));
+    await tester.pumpWidget(
+      MaterialApp(theme: darkTheme, home: const CalendarPage(reminders: [])),
+    );
+    final svg = tester.widget<SvgPicture>(
+      find.byKey(const ValueKey('calendar-sacred-header-svg')),
+    );
     expect(svg.colorFilter, ColorFilter.mode(darkTheme.colorScheme.onSurface, BlendMode.srcIn));
   });
 

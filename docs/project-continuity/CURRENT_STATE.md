@@ -333,3 +333,12 @@ Release: BLOCKED — RELEASE: NO-GO
 - Release APK داخل Build قبلی ساخته شد، اما سه شارد شکست داشتند؛ ساخت APK به‌تنهایی پذیرش محصول یا انتشار را اثبات نمی‌کند.
 - این ثبت همراه تغییرات منبع/تست در یک commit واحد قرار می‌گیرد. تمام CI باید روی SHA این commit تازه اجرا شود؛ نتایج SHA مبنا به آن منتقل نمی‌شوند.
 - PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main دست‌نخورده؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## اصلاح تکمیلی کنتراست پویا و تثبیت Finder کارت منشأ الگو — 2026-11-06 (۱۴۰۵/۰۸/۱۵)
+- کپسول SVG بسم‌الله Home در Light از زمینه برند روشن `#F0F0F6` استفاده می‌کند و در Dark به `colorScheme.surfaceContainerLow` تغییر می‌کند؛ رنگ SVG در Dark همچنان به‌صورت پویا از `colorScheme.onSurface` دریافت می‌شود.
+- آزمون‌های SVG در Home و Calendar به دو تست مستقل Light/Dark تفکیک شدند؛ مقدار پویا از خود Theme خوانده می‌شود و رنگ زمینه کپسول نیز جداگانه assert می‌شود.
+- کارت منشأ الگو در Task Details کلید ثابت `task_detail_template_source_card` دارد و تنها در فهرست اصلی، پس از Summary/Description و پیش از Due Date رندر می‌شود.
+- آزمون ترتیب RTL ابتدا Description را پیدا و آشکار می‌کند، سپس وجود کارت منشأ الگو را پیش از اسکرول به آن assert می‌کند؛ ترتیب Description → Template Source → Due Date → Assignee حفظ شده است.
+- هیچ تستی حذف، skip یا تضعیف نشده است. assertion نشان «در انتظار انجام» و پوشش Smart visibility حفظ شده‌اند.
+- تغییرات باید روی HEAD جدید در شش شارد Build و Device Smoke کامل اعتبارسنجی شوند؛ هیچ PASS از SHA قبلی منتقل نمی‌شود. PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched؛ **BLOCKED — RELEASE: NO-GO**.

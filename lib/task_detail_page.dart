@@ -1499,7 +1499,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         ? widget.project?.templateNameSnapshot?.trim()
         : null;
     return _card(
-      key: const ValueKey('task-detail-template-source'),
+      key: const ValueKey('task_detail_template_source_card'),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
