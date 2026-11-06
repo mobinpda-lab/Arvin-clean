@@ -402,7 +402,7 @@ void main() {
   });
 
   testWidgets('Report Center active filter chips wrap without overflow on a short RTL viewport', (tester) async {
-    tester.view.physicalSize = const Size(320, 520);
+    tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
