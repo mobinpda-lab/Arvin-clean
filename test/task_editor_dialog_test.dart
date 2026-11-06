@@ -13,7 +13,7 @@ void main() {
     Task? task,
     List<String> knownTags = const [],
     ValueChanged<Task?>? onResult,
-    Size logicalSize = const Size(540, 960),
+    Size logicalSize = const Size(390, 844),
   }) async {
     tester.view.physicalSize = Size(logicalSize.width * 2, logicalSize.height * 2);
     tester.view.devicePixelRatio = 2;
