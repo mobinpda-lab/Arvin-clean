@@ -1286,6 +1286,20 @@ Future<void> _pickDueDate() async {
                     ),
                   ),
                   const SizedBox(height: 14),
+                  _dateTimeEditor(
+                        keyPrefix: 'task-editor-due',
+                        title: 'تاریخ انجام',
+                        value: _dueDateTime,
+                        onPickDate: _pickDueDate,
+                        onPickTime: _pickDueTime,
+                        onPickDateTime: _pickDueDateTime,
+                        unifiedDateTime: true,
+                        onClear: _clearDueTime,
+                        accent: ArvinColors.time,
+                        allDay: _dueAllDay,
+                        onToggleAllDay: _toggleDueAllDay,
+                      ),
+                  const SizedBox(height: 14),
                   LayoutBuilder(
                     builder: (context, constraints) {
                       final wide = constraints.maxWidth >= 480;
@@ -1501,19 +1515,7 @@ Future<void> _pickDueDate() async {
                       'تاریخ انجام، یادآوری، تکرار، اولویت و وضعیت',
                     ),
                     children: [
-                      _dateTimeEditor(
-                        keyPrefix: 'task-editor-due',
-                        title: 'تاریخ انجام',
-                        value: _dueDateTime,
-                        onPickDate: _pickDueDate,
-                        onPickTime: _pickDueTime,
-                        onPickDateTime: _pickDueDateTime,
-                        unifiedDateTime: true,
-                        onClear: _clearDueTime,
-                        accent: ArvinColors.time,
-                        allDay: _dueAllDay,
-                        onToggleAllDay: _toggleDueAllDay,
-                      ),
+                      ,
                       const SizedBox(height: 10),
                       if (widget.task?.legacyTaskReminderMigrationVersion != 1) ...[
                         _dateTimeEditor(
