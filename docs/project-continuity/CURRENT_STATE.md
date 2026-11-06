@@ -529,3 +529,12 @@ PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ **BLOCKED — RELE
 - نیازمند CI exact-SHA جدید است؛ نتایج قبلی به SHAهای خودشان محدود می‌مانند.
 
 PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## Five-gap implementation checkpoint — ۱۴۰۵/۰۸/۱۵
+
+- Starting HEAD: `4e3136e4dde44bd0b41896265d6ddc6423845046`.
+- Code commits: `957f18bf2e5fe8a6f91e950cd963b2a1d03344dd` (direct Task Center, chained date/time and all-day controls) and `eaddf66fd512e11a1e16bb0e056dac4824699d54` (shared Home/Report filter pill and direct Center matching).
+- Added focused regression coverage for Task Center/all-day JSON, edit application, personId projection and direct Center report filtering. Exact-head CI remains required; flutter analyze is not yet claimed PASS.
+- PR #3052 remains OPEN / DRAFT / UNMERGED. main unchanged. Release remains BLOCKED — RELEASE: NO-GO.
+- Detailed evidence: `docs/project-continuity/WAVE_5_GAPS_IMPLEMENTATION_2026-11-06.md`.

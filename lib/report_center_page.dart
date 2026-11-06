@@ -1526,6 +1526,7 @@ class _MultiSelectChips extends StatelessWidget {
 
 class _Section extends StatefulWidget {
   const _Section({
+    super.key,
     required this.title,
     required this.child,
     this.icon = Icons.tune_outlined,
