@@ -27,11 +27,15 @@ void main() {
   });
 
   testWidgets('Home exposes the five canonical filter controls', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
     expect(find.text('زمان'), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-compact-filter-scroll')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-compact-filter-wrap')), findsOneWidget);
     expect(find.text('مرکز'), findsOneWidget);
     expect(find.text('پروژه‌ها'), findsOneWidget);
     expect(find.text('دسته‌ها'), findsOneWidget);
