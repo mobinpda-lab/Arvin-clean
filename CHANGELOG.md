@@ -698,3 +698,11 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - کلید کارت منشأ الگو به `task_detail_template_source_card` استاندارد شد. تست Task Details ابتدا Description را آشکار می‌کند، وجود کارت الگو را پیش از اسکرول بررسی می‌کند و سپس ترتیب آن تا Due Date را می‌سنجد.
 - تست‌های موجود، از جمله نشان «در انتظار انجام»، حفظ شدند؛ هیچ حذف، Skip، کاهش assertion یا تغییر timeout انجام نشد.
 - این تغییرات نیازمند اجرای تازه شش شارد و Device Smoke روی SHA جدید هستند. PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## ۱۴۰۵/۰۸/۱۵ (2026-11-06) — رفع هشدارهای Analyzer در تست Home
+- دو عملگر غیرضروری `!` از `capsule.decoration` در `test/home/home_visual_integration_test.dart` حذف شدند تا هشدارهای `unnecessary_non_null_assertion` برطرف شوند.
+- هیچ تست یا assertion حذف، skip یا تضعیف نشد؛ فقط null assertion غیرضروری حذف شد.
+- روی SHA مبنا `0d7d76b0889aac972764594db1eee8b8dfa29b7b`، هر شش شارد تست موفق بودند و Analyze به علت همین دو هشدار شکست خورد. APKهای Debug، Release و Staging ساخته و بررسی شدند؛ نتیجه Device Smoke هنوز کامل نبود.
+- Analyze و تمام شش شارد باید مجدداً روی SHA کامیت دوم بررسی شوند؛ نتیجه SHA مبنا جایگزین شواهد SHA جدید نیست.
+- PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched؛ **BLOCKED — RELEASE: NO-GO**.

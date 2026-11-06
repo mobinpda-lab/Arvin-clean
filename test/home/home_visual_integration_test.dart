@@ -19,7 +19,7 @@ void main() {
     final capsule = tester.widget<DecoratedBox>(
       find.byKey(const ValueKey('home-bismillah-capsule-surface')),
     );
-    expect((capsule.decoration! as BoxDecoration).color, const Color(0xFFF0F0F6));
+    expect((capsule.decoration as BoxDecoration).color, const Color(0xFFF0F0F6));
   });
 
   testWidgets('Home sacred SVG and capsule adapt to dark theme contrast', (tester) async {
@@ -37,7 +37,7 @@ void main() {
     final capsule = tester.widget<DecoratedBox>(
       find.byKey(const ValueKey('home-bismillah-capsule-surface')),
     );
-    expect((capsule.decoration! as BoxDecoration).color, darkTheme.colorScheme.surfaceContainerLow);
+    expect((capsule.decoration as BoxDecoration).color, darkTheme.colorScheme.surfaceContainerLow);
   });
 
   testWidgets('renders canonical Home identity, search and add action', (tester) async {

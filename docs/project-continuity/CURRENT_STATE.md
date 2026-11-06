@@ -342,3 +342,10 @@ Release: BLOCKED — RELEASE: NO-GO
 - آزمون ترتیب RTL ابتدا Description را پیدا و آشکار می‌کند، سپس وجود کارت منشأ الگو را پیش از اسکرول به آن assert می‌کند؛ ترتیب Description → Template Source → Due Date → Assignee حفظ شده است.
 - هیچ تستی حذف، skip یا تضعیف نشده است. assertion نشان «در انتظار انجام» و پوشش Smart visibility حفظ شده‌اند.
 - تغییرات باید روی HEAD جدید در شش شارد Build و Device Smoke کامل اعتبارسنجی شوند؛ هیچ PASS از SHA قبلی منتقل نمی‌شود. PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## اصلاح Analyze تست Home و تثبیت کامیت دوم — 2026-11-06 (۱۴۰۵/۰۸/۱۵)
+- SHA مبنا: `0d7d76b0889aac972764594db1eee8b8dfa29b7b`. در `test/home/home_visual_integration_test.dart` دو عملگر غیرضروری `!` از `capsule.decoration` حذف شدند؛ هیچ assertion، تست، انتظار یا پوشش رفتاری حذف یا تضعیف نشد.
+- تغییر صرفاً برای رفع دو هشدار `unnecessary_non_null_assertion` است. نتیجه قطعی Analyze روی SHA جدید فقط پس از اجرای CI همان SHA اعلام می‌شود.
+- روی SHA مبنا، شش شارد `test-0` تا `test-5` موفق بودند؛ Analyze به علت همین دو هشدار شکست خورد. ساخت APKهای Debug، Release و Staging موفق بود؛ Device Smoke هنوز نتیجه نهایی نداشت.
+- این اصلاح همراه به‌روزرسانی این سند و `CHANGELOG.md` در یک کامیت واحد ثبت می‌شود. PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main دست‌نخورده؛ **BLOCKED — RELEASE: NO-GO**.
