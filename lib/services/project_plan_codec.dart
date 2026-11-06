@@ -8,7 +8,7 @@ import '../models/goal_project.dart';
 class ProjectPlanCodec {
   const ProjectPlanCodec();
 
-  static const int defaultColorValue = 0xFF4A4CAB;
+  static const int defaultColorValue = 0xFF087F8C;
 
   Map<String, dynamic> encode(ProjectPlan project) {
     return <String, dynamic>{

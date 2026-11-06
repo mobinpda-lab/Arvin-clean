@@ -28,6 +28,11 @@ void main() {
     expect(decoded.itemIds, project.itemIds);
   });
 
+  test('new Projects use the canonical turquoise brand default', () {
+    expect(ProjectPlanCodec.defaultColorValue, 0xFF087F8C);
+    expect(ProjectPlan(id: 'new', title: 'جدید').colorValue, 0xFF087F8C);
+  });
+
   test('legacy Project shape gets safe defaults', () {
     final project = codec.decode({
       'id': 'legacy-project',

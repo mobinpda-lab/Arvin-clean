@@ -126,7 +126,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
       context: context,
       builder: (context) {
         final controller = TextEditingController(text: project?.title ?? '');
-        var colorValue = project?.colorValue ?? 0xFF4A4CAB;
+        var colorValue = project?.colorValue ?? 0xFF087F8C;
         String? centerId = project?.centerId;
         return StatefulBuilder(
           builder: (context, setDialogState) => AlertDialog(
@@ -156,7 +156,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                   spacing: 10,
                   runSpacing: 10,
                   children: const [
-                    0xFF4A4CAB,
+                    0xFF087F8C,
                     0xFF2F80ED,
                     0xFF27AE60,
                     0xFFF2994A,

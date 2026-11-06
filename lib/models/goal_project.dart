@@ -2,7 +2,7 @@ class ProjectPlan {
   ProjectPlan({
     required this.id,
     required this.title,
-    this.colorValue = 0xFF4A4CAB,
+    this.colorValue = 0xFF087F8C,
     this.isArchived = false,
     this.centerId,
     this.templateId,
