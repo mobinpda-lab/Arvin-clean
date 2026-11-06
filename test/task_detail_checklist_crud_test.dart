@@ -17,7 +17,7 @@ void main() {
   });
 
   testWidgets(
-    'checklist add, inline edit and delete preserve legacy follow-up timestamps',
+    'unified checklist add, inline edit and delete preserve legacy follow-up timestamps',
     (tester) async {
       final store = TaskStore();
       final legacyFollowUpDate = DateTime(2026, 8, 14, 9, 30);
@@ -51,9 +51,8 @@ void main() {
         expect(saved.followUps.single.nextFollowUp, legacyNextFollowUp);
       }
 
-      Future<Task?> persistChecklist(Task task, List<String> checklist) async {
-        task.checklist = List<String>.of(checklist);
-        await store.save([task]);
+      Future<Task?> persistTask(Task candidate) async {
+        await store.save([candidate]);
         return (await store.load()).single;
       }
 
@@ -61,40 +60,30 @@ void main() {
         MaterialApp(
           home: TaskDetailPage(
             task: (await store.load()).single,
-            onChecklistChanged: persistChecklist,
+            onTaskChanged: persistTask,
           ),
         ),
       );
       await tester.pumpAndSettle();
 
-      // Empty checklists stay compact until the user explicitly adds one.
-      expect(find.byKey(const ValueKey('task-detail-checklist')), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
+      await tester.pumpAndSettle();
+
       final detailScrollable = find.descendant(
-        of: find.byKey(const ValueKey('task-detail-page')),
+        of: find.byKey(const ValueKey('task-detail-content-list')),
         matching: find.byWidgetPredicate(
           (widget) => widget is Scrollable && widget.axisDirection == AxisDirection.down,
         ),
       ).first;
-      final addChecklist = find.byKey(const ValueKey('task-detail-add-checklist'));
-      await tester.scrollUntilVisible(addChecklist, 240, scrollable: detailScrollable);
+      final addInput = find.byKey(const ValueKey('task-detail-checklist-add-input'));
+      await tester.scrollUntilVisible(addInput, 240, scrollable: detailScrollable);
       await tester.pumpAndSettle();
-      expect(addChecklist, findsOneWidget);
-      await tester.tap(addChecklist);
-      await tester.pumpAndSettle();
-
-      // ADD
-      await tester.enterText(
-        find.byKey(const ValueKey('task-detail-checklist-add-input')),
-        'تماس با مشتری',
-      );
+      await tester.enterText(addInput, 'تماس با مشتری');
       await tester.tap(find.byKey(const ValueKey('task-detail-checklist-add')));
       await tester.pumpAndSettle();
 
-      var saved = (await store.load()).single;
-      expect(saved.checklist, ['[ ] تماس با مشتری']);
-      expectFollowUpHistoryUnchanged(saved);
-
-      // INLINE EDIT via the pencil icon.
+      // Inline editing stages the new checklist row until the unified form is saved.
+      expect((await store.load()).single.checklist, isEmpty);
       final editChecklist = find.byKey(const ValueKey('task-detail-checklist-edit-0'));
       await tester.scrollUntilVisible(editChecklist, 240, scrollable: detailScrollable);
       await tester.pumpAndSettle();
@@ -107,15 +96,21 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('task-detail-checklist-save-0')));
       await tester.pumpAndSettle();
 
-      saved = (await store.load()).single;
+      await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
+      await tester.pumpAndSettle();
+      var saved = (await store.load()).single;
       expect(saved.checklist, ['[ ] تماس با مشتری (اصلاح‌شده)']);
       expectFollowUpHistoryUnchanged(saved);
 
-      // DELETE
+      // Delete through the same unified edit form and persist the empty checklist.
+      await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
+      await tester.pumpAndSettle();
       final deleteChecklist = find.byKey(const ValueKey('task-detail-checklist-delete-0'));
       await tester.scrollUntilVisible(deleteChecklist, 240, scrollable: detailScrollable);
       await tester.pumpAndSettle();
       await tester.tap(deleteChecklist);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
       await tester.pumpAndSettle();
 
       saved = (await store.load()).single;
