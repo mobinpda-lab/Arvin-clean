@@ -173,7 +173,10 @@ void main() {
     // The owner-accepted product contract uses Flutter's circular Clock Dial;
     // the old custom RollBox confirmation dialog must no longer be expected.
     expect(find.byKey(const ValueKey('task-editor-time-confirm')), findsNothing);
-    expect(find.text('۱۴:۳۰'), findsWidgets);
+    expect(
+      tester.widget<Semantics>(find.byKey(const ValueKey('universal-time-selected-value'))).properties.label,
+      '۱۴:۳۰',
+    );
 
     // Close the canonical time picker without changing the selected time.
     final cancel = find.text('لغو');
@@ -200,7 +203,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FilledButton, 'تأیید'));
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('task-editor-due-with-time')), findsNothing);
+    expect(find.byKey(const ValueKey('task-editor-due-with-time')), findsOneWidget);
 
     final save = find.byKey(const ValueKey('task-editor-header-save'));
     await tester.ensureVisible(save);

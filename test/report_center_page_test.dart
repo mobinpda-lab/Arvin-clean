@@ -8,6 +8,13 @@ import 'package:arvin/task_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+Finder _reportFilterVerticalScrollable() => find.byWidgetPredicate(
+      (widget) =>
+          widget is Scrollable &&
+          (widget.axisDirection == AxisDirection.down ||
+              widget.axisDirection == AxisDirection.up),
+    ).first;
+
 void main() {
   testWidgets('Report Center opens an Arvin bottom-sheet filter panel', (tester) async {
     await tester.pumpWidget(
@@ -85,7 +92,7 @@ void main() {
       await tester.scrollUntilVisible(
         find.byKey(const ValueKey('report-filter-section-دسته')),
         200,
-        scrollable: find.byType(Scrollable).last,
+        scrollable: _reportFilterVerticalScrollable(),
       );
       await tester.tap(find.byKey(const ValueKey('report-filter-section-دسته')));
       await tester.pumpAndSettle();
@@ -308,6 +315,8 @@ void main() {
       200,
       scrollable: find.byType(Scrollable).last,
     );
+    await tester.ensureVisible(typeSection);
+    await tester.pumpAndSettle();
     await tester.tap(typeSection);
     await tester.pumpAndSettle();
     await tester.tap(find.text('منتظر پاسخ'));

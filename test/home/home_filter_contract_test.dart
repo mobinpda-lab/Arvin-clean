@@ -12,7 +12,8 @@ import 'package:arvin/services/iran_clock.dart';
 import 'package:arvin/services/persian_date_formatter.dart';
 
 Finder _homeVerticalScrollable() => find.byWidgetPredicate(
-      (widget) => widget is Scrollable && widget.axisDirection == AxisDirection.down,
+      (widget) => widget is Scrollable &&
+          (widget.axisDirection == AxisDirection.down || widget.axisDirection == AxisDirection.up),
     ).first;
 
 void main() {

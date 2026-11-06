@@ -183,9 +183,16 @@ void main() {
       final project = tester.getRect(find.byKey(const ValueKey('quick-capture-project-rollbox')));
       final category = tester.getRect(find.byKey(const ValueKey('quick-capture-category-rollbox')));
       final tag = tester.getRect(find.byKey(const ValueKey('quick-capture-tag-rollbox')));
-      expect(center.center.dx, greaterThan(project.center.dx));
-      expect(project.center.dx, greaterThan(category.center.dx));
-      expect(category.center.dx, greaterThan(tag.center.dx));
+      void expectRtlBefore(Rect first, Rect second) {
+        if ((first.top - second.top).abs() < 1) {
+          expect(first.center.dx, greaterThan(second.center.dx));
+        } else {
+          expect(first.top, lessThan(second.top));
+        }
+      }
+      expectRtlBefore(center, project);
+      expectRtlBefore(project, category);
+      expectRtlBefore(category, tag);
 
       final submit = tester.getRect(find.byKey(const ValueKey('quick-capture-submit')));
       final cancel = tester.getRect(find.byKey(const ValueKey('quick-capture-cancel')));

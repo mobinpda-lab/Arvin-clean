@@ -68,11 +68,9 @@ void main() {
     final cardDecoration = selectedCard.decoration! as BoxDecoration;
     expect(cardDecoration.border!.top.color, ArvinColors.primary.withAlpha(150));
 
+    final chipWidget = find.byType(HomeFilterChip).first;
     final chipContainer = tester.widget<Container>(
-      find.descendant(
-        of: find.byType(HomeFilterChip),
-        matching: find.byType(Container),
-      ).first,
+      find.descendant(of: chipWidget, matching: find.byType(Container)).first,
     );
     final chipDecoration = chipContainer.decoration! as BoxDecoration;
     expect(chipDecoration.color, ArvinColors.primarySoft);
