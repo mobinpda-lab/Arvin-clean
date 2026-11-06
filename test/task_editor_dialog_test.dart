@@ -46,6 +46,16 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  testWidgets('Task editor taxonomy wraps at large text scale', (tester) async {
+    tester.platformDispatcher.textScaleFactorTestValue = 1.4;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    await pumpEditor(tester, logicalSize: const Size(320, 640));
+    expect(find.byKey(const ValueKey('task-editor-category-rollbox')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-project-rollbox')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-tag-rollbox')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Task editor taxonomy selectors wrap on a narrow RTL phone viewport', (tester) async {
     Task? result;
     await pumpEditor(

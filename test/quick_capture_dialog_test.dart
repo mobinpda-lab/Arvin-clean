@@ -125,6 +125,8 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     tester.view.devicePixelRatio = 1;
+    tester.platformDispatcher.textScaleFactorTestValue = 1.35;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
 
     for (final width in [320.0, 1024.0]) {
       tester.view.physicalSize = Size(width, 900);

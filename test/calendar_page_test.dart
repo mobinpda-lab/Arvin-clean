@@ -817,4 +817,32 @@ void main() {
   });
 
 
+
+  testWidgets('Calendar avoids fractional-pixel overflow on a narrow RTL viewport with large text',
+      (tester) async {
+    tester.view.physicalSize = const Size(1081, 1920);
+    tester.view.devicePixelRatio = 3;
+    tester.platformDispatcher.textScaleFactorTestValue = 1.4;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: CalendarPage(
+            initialSelectedDay: DateTime(2026, 11, 6),
+            reminders: const [],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    await tester.tap(find.text('سالانه'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
 }

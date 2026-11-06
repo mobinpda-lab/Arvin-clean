@@ -157,4 +157,27 @@ void main() {
     expect(find.text('برای بایگانی'), findsOneWidget);
     expect(find.text('برای حذف'), findsOneWidget);
   });
+
+  testWidgets('Home handles fractional logical width, large text and keyboard insets',
+      (tester) async {
+    tester.view.physicalSize = const Size(1081, 1920);
+    tester.view.devicePixelRatio = 3;
+    tester.view.viewInsets = const FakeViewPadding(bottom: 240);
+    tester.platformDispatcher.textScaleFactorTestValue = 1.4;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetViewInsets);
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': '[{"id":"fractional-home","title":"کار در اندازه باریک"}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('home-drawer-button')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-canonical-search')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-compact-filter-scroll')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }
