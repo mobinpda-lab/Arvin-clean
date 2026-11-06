@@ -77,6 +77,7 @@ import 'widgets/canonical_calendar_launcher.dart';
 import 'widgets/home_my_tasks_sheet.dart';
 import 'widgets/task_bulk_selection_bar.dart';
 import 'widgets/taxonomy_icon_row.dart';
+import 'widgets/arvin_task_selector_wrap.dart';
 import 'widgets/startup_crash_screen.dart';
 
 class _SettingsTextScaler extends TextScaler {
@@ -965,17 +966,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _homeFilterCards() {
-    return SizedBox(
-      height: 42,
-      child: Padding(
-        padding: const EdgeInsetsDirectional.only(start: 16, end: 9, bottom: 4),
-        child: SingleChildScrollView(
-          key: const ValueKey('home-compact-filter-scroll'),
-          scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
-          child: Row(
-            textDirection: TextDirection.rtl,
-            children: [
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 9, 4),
+      child: ArvinTaskSelectorWrap(
+        key: const ValueKey('home-compact-filter-wrap'),
+        spacing: 6,
+        runSpacing: 6,
+        children: [
               HomeFilterPill(
                 key: const ValueKey('home-filter-card-time'),
                 label: _timeFilters.isEmpty && _timeFilter != 'customRange' ? 'زمان' : _timeFilterLabel,
@@ -1032,9 +1029,7 @@ class _HomePageState extends State<HomePage> {
                   icon: const Icon(Icons.sort_rounded),
                 ),
               ),
-            ],
-          ),
-        ),
+        ],
       ),
     );
   }
