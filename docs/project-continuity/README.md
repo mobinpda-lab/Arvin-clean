@@ -95,3 +95,17 @@ Latest audit record: PRODUCT_DECISIONS.md → Module-Core-Logic v1.0 crosswalk; 
 - تست‌ها حذف، skip، تضعیف یا با timeout مصنوعی سبز نمی‌شوند. خطای زیرساخت از شکست محصول تفکیک می‌شود.
 - پروتکل: ابتدا HEAD/PR را بخوان؛ سپس تغییر محدود را روی شاخه مجاز ثبت کن؛ مستندات و Ledger را به‌روزرسانی کن؛ در پایان HEAD و CI تازه را دوباره بخوان.
 - وضعیت انتشار تا پذیرش تمام دروازه‌ها روی یک SHA و تأیید مالک محصول: BLOCKED — RELEASE: NO-GO.
+
+
+## Latest checkpoint
+
+
+## Live execution checkpoint — ۱۴۰۵/۰۸/۱۵ — ۱۰:۰۱ (Asia/Tehran) / 2026-11-06
+- Repository: `mobinpda-lab/Arvin-clean`; authorized branch: `fix/recovery-calendar-device-smoke-2026-10-31`; checkpoint parent SHA: `105737b1e4d5f9e2d6e35dfc7c9f4bfd5b1cbdda`.
+- PR #3052 was verified OPEN / DRAFT / UNMERGED, based on `main`; do not merge, close, or mark ready.
+- Release remains **BLOCKED — RELEASE: NO-GO**. No main-branch write is authorized.
+- Device Smoke run `42169009238` (run #7146) is still `IN_PROGRESS` on exact SHA `105737b1e4d5f9e2d6e35dfc7c9f4bfd5b1cbdda`. The observed lane snapshot: Preparation SUCCESS; Quick Capture SUCCESS; Follow-up Persistence SUCCESS; Reminder/Vazirmatn SUCCESS; Task Lifecycle SUCCESS; Calendar Segmented View IN_PROGRESS; Boot and Navigation jobs CANCELLED. Therefore the seven-lane Smoke gate is NOT VERIFIED / incomplete. The cancelled lanes are not PASS and must not be treated as skipped acceptance.
+- Exact-SHA Build run `42169009592` (#9904) reports SUCCESS; this does not replace the incomplete Device Smoke gate.
+- GitHub exposes committed branch state only. Local working-tree status and local test execution are NOT VERIFIED from this remote audit.
+
+For this checkpoint, the authoritative live files are the branch HEAD, PR #3052, exact-SHA workflow runs, and the canonical source/tests cited in IMPLEMENTATION_LOG.md. This continuity folder is a concise index, not a substitute for the root changelog or detailed execution ledger.

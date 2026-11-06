@@ -116,3 +116,16 @@ Snapshot: 1405/08/13 — 2026-11-04 12:53 Asia/Tehran. Recheck live GitHub befor
 - P1: Calendar Provider 42090629465 in progress; Follow-up persistence 42090629520 success.
 - P1: Draft Review APK 42090629583 in progress; artifact not yet verified.
 - No test may be deleted, skipped, weakened or bypassed. Release remains BLOCKED — RELEASE: NO-GO.
+
+
+## Live open items — ۱۴۰۵/۰۸/۱۵ — ۱۰:۰۱ (Asia/Tehran) / 2026-11-06
+| Item | Status | Evidence / next action |
+|---|---|---|
+| Device Smoke Boot and Navigation lanes | BLOCKED / INCOMPLETE | Run `42169009238`: both jobs ended CANCELLED; inspect job logs/cancellation cause and obtain complete lane execution on a fresh exact SHA. Do not mark as skipped or passed. |
+| Device Smoke Calendar Segmented View | IN_PROGRESS | Same run `42169009238`; wait for terminal result and inspect artifact. A still-running lane does not make the whole workflow complete. |
+| Quick Capture empty-title feedback | IMPLEMENTED / VERIFICATION PENDING | Inline error + floating SnackBar exist; original test asserts both. Run is green for the Quick Capture Smoke lane, but retain as open until the focused test and full Smoke gate are confirmed on the final post-commit SHA. |
+| Report completed Follow-ups placement | IMPLEMENTED | Separate top-level action absent; report type is in unified filter sheet; widget test asserts both. Fresh post-commit exact-SHA test evidence is still required. |
+| Navigation test-driver timing/interruption | OPEN / ROOT CAUSE NOT VERIFIED | Inspect navigation lane logs, emulator readiness, driver waits and app transitions. Do not add artificial timeout, skip, retry masking, or weakened assertions. |
+| Local working tree and local test run | NOT VERIFIED | Remote GitHub audit cannot report a workstation's uncommitted state or claim locally executed tests. |
+
+All tests and assertions remain protected: no deletion, skip, weakening, or fabricated timeout is authorized.

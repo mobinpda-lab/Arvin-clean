@@ -349,3 +349,23 @@ Release: BLOCKED — RELEASE: NO-GO
 - تغییر صرفاً برای رفع دو هشدار `unnecessary_non_null_assertion` است. نتیجه قطعی Analyze روی SHA جدید فقط پس از اجرای CI همان SHA اعلام می‌شود.
 - روی SHA مبنا، شش شارد `test-0` تا `test-5` موفق بودند؛ Analyze به علت همین دو هشدار شکست خورد. ساخت APKهای Debug، Release و Staging موفق بود؛ Device Smoke هنوز نتیجه نهایی نداشت.
 - این اصلاح همراه به‌روزرسانی این سند و `CHANGELOG.md` در یک کامیت واحد ثبت می‌شود. PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main دست‌نخورده؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+# Live State — ۱۴۰۵/۰۸/۱۵ — ۱۰:۰۱ (Asia/Tehran) / 2026-11-06
+
+
+## Live execution checkpoint — ۱۴۰۵/۰۸/۱۵ — ۱۰:۰۱ (Asia/Tehran) / 2026-11-06
+- Repository: `mobinpda-lab/Arvin-clean`; authorized branch: `fix/recovery-calendar-device-smoke-2026-10-31`; checkpoint parent SHA: `105737b1e4d5f9e2d6e35dfc7c9f4bfd5b1cbdda`.
+- PR #3052 was verified OPEN / DRAFT / UNMERGED, based on `main`; do not merge, close, or mark ready.
+- Release remains **BLOCKED — RELEASE: NO-GO**. No main-branch write is authorized.
+- Device Smoke run `42169009238` (run #7146) is still `IN_PROGRESS` on exact SHA `105737b1e4d5f9e2d6e35dfc7c9f4bfd5b1cbdda`. The observed lane snapshot: Preparation SUCCESS; Quick Capture SUCCESS; Follow-up Persistence SUCCESS; Reminder/Vazirmatn SUCCESS; Task Lifecycle SUCCESS; Calendar Segmented View IN_PROGRESS; Boot and Navigation jobs CANCELLED. Therefore the seven-lane Smoke gate is NOT VERIFIED / incomplete. The cancelled lanes are not PASS and must not be treated as skipped acceptance.
+- Exact-SHA Build run `42169009592` (#9904) reports SUCCESS; this does not replace the incomplete Device Smoke gate.
+- GitHub exposes committed branch state only. Local working-tree status and local test execution are NOT VERIFIED from this remote audit.
+
+## Verified source/test observations at checkpoint SHA
+- `lib/report_center_page.dart`: completed Follow-up reporting is selected inside the comprehensive `_ReportFilterSheet` under `report-filter-type-completed-follow-ups`; no separate top-level action is exposed.
+- `test/report_center_page_test.dart`: asserts `report-center-completed-follow-ups` is absent, opens the unified filter sheet, selects the completed-follow-up report type, applies it, and verifies the report output.
+- `lib/quick_capture_dialog.dart`: empty-title validation sets compact inline `errorText` and presents a floating SnackBar with «عنوان برای ثبت کافی است».
+- `test/quick_capture_dialog_test.dart`: retains the test `quick capture rejects empty input with visible feedback`, asserting both visible feedback instances and the Quick Capture title. No assertion was removed or weakened in this checkpoint.
+- Exact source blob SHAs: report page `0459fc0a1cfe239eb09fecdd7dd5d42c6ec0845d`; report test `18d5b59fae5d3f127d4ccaedb2963b55b0ad781b`; Quick Capture source `a6b0fa76cd1fed494b0e72d8f66e7db3e47e2a85`; Quick Capture test `875bac562caa55b60bfa2e3871f1e2e2b3ae6abf`.
+- The source and focused assertions are present. Build run SUCCESS is exact-SHA evidence, while the overall Device Smoke acceptance remains incomplete as detailed above.

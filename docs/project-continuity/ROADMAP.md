@@ -201,3 +201,12 @@ A feature mentioned only as an illustrative example (such as periodic tasks or a
 6. Complete seven Device Smoke lanes, Calendar Provider acceptance and APK artifact inspection on that same SHA.
 7. Obtain product-owner acceptance. Until then PR #3052 stays OPEN/DRAFT/UNMERGED and release stays NO-GO.
 - Reference images are not currently accessible; exact calligraphy match remains NOT VERIFIED.
+
+
+## Delivery phases — ۱۴۰۵/۰۸/۱۵ — ۱۰:۰۱ (Asia/Tehran) / 2026-11-06
+1. **P0 — Release/Device Smoke recovery:** complete and validate all seven canonical Device Smoke lanes on one exact candidate SHA; preserve screenshots/artifacts and diagnose cancelled Boot/Navigation jobs and the still-running Calendar lane. No gate is promoted by partial success.
+2. **P1 — Product completion and regression closure:** finish remaining product/quality work only through canonical stores and repositories; retain the unified Report Filters route and Quick Capture empty-title feedback; run exact-SHA Analyze, all test shards, visual checks, provider and persistence gates.
+3. **Phase 1 — Local P2P:** design and implement authenticated, secure local-network synchronization only after threat model, pairing lifecycle, conflict semantics, deletion/tombstone retention, clock-skew handling and owner approval. No parallel data store.
+4. **Phase 2 — Cloud synchronization:** separate future phase, after Local P2P is accepted; cloud/Dropbox is not a prerequisite or substitute for Phase 1.
+
+Current checkpoint: Smoke run `42169009238` remains IN_PROGRESS with cancelled Boot/Navigation and Calendar still in progress; P0 is NOT VERIFIED. Release remains NO-GO.

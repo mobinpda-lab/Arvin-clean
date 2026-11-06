@@ -207,3 +207,13 @@ NOT VERIFIED. GitHub branch data does not reveal uncommitted local modifications
 4. Build/Analyze، همه شاردهای تست، هفت Device Smoke lane، Calendar Provider و APK Debug/Release را روی یک SHA نهایی اجرا کن.
 - Lock sync و Follow-up persistence موفق بودند؛ سایر وضعیت‌ها در CURRENT_STATE و OPEN_ISSUES ثبت شده‌اند.
 - PR #3052 OPEN/DRAFT/UNMERGED؛ main untouched؛ BLOCKED — RELEASE: NO-GO.
+
+
+## Next operator handoff — ۱۴۰۵/۰۸/۱۵ — ۱۰:۰۱ (Asia/Tehran) / 2026-11-06
+**Current truth:** authorized branch HEAD `105737b1e4d5f9e2d6e35dfc7c9f4bfd5b1cbdda`; PR #3052 OPEN / DRAFT / UNMERGED; release BLOCKED — RELEASE: NO-GO. Smoke run `42169009238` is IN_PROGRESS but not complete: Boot and Navigation are CANCELLED, Calendar is still running, and the other listed lanes succeeded.
+
+**First action:** inspect the live status and logs of run `42169009238`, determine why Boot and Navigation were cancelled, and let the Calendar lane reach a terminal result. Then run/confirm a complete seven-lane Device Smoke on the latest post-documentation commit SHA. Do not accept partial lanes, suppress failures, weaken assertions, or add artificial timeouts.
+
+**Already present at the audited source SHA:** completed Follow-up reporting is inside the unified Report Filters sheet and the standalone top-level action is absent; Quick Capture empty-title feedback is both inline and a floating SnackBar, with its original widget test asserting both. Preserve these implementations and tests.
+
+**After the new documentation commit:** read branch HEAD, PR metadata, new workflow run IDs, each test shard and artifact status. Record only exact-SHA evidence. Do not edit main, close/ready/merge PR #3052, or release. Local working-tree state remains NOT VERIFIED by this remote handoff.

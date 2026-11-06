@@ -171,3 +171,16 @@ PROPOSED = candidate only; APPROVED = explicit owner decision; IN_PROGRESS = wor
 - Home taxonomy order: Center > Project > Category > Task. Filter controls use checkboxes; selections within one dimension are OR, dimensions combine with AND. Time filter prioritizes Overdue.
 - Calendar retains three separate layers: view-mode/navigation, date-grid selection/projection, and selected-date agenda/content projection. Persistence and source filters remain separate.
 - PR #3052 remains OPEN/DRAFT/UNMERGED; main untouched; release NO-GO.
+
+
+## Decision register additions / checkpoint — ۱۴۰۵/۰۸/۱۵ — ۱۰:۰۱ (Asia/Tehran) / 2026-11-06
+| Decision | Status | Evidence / boundary |
+|---|---|---|
+| Product hierarchy: Center > Project > Category > Task | APPROVED / IMPLEMENTED | Owner-approved hierarchy; canonical product language and current implementation are to be audited page-by-page before VERIFIED. |
+| Completed Follow-up report is selected only inside the comprehensive Report Filters sheet; no separate top-level button | APPROVED / IMPLEMENTED | Source: `lib/report_center_page.dart`; regression: `test/report_center_page_test.dart` verifies the standalone action is absent and the unified filter path works. Exact-SHA full acceptance remains tied to current CI. |
+| Official UI font is Vazirmatn; the two owner-designated sacred phrases are SVG vectors and must not introduce a secondary font | APPROVED | Font policy is binding. SVG implementation status must be recorded only against actual SVG assets and rendering tests; do not infer it from approval. |
+| Calendar architecture uses three local layers | APPROVED | Architecture decision only; implementation/acceptance remain separate statuses and must be backed by source plus exact-SHA tests. |
+| Local-network P2P synchronization precedes cloud synchronization | APPROVED (direction) | Phase 1 local P2P; Phase 2 cloud. Pairing, cryptographic and conflict-resolution details remain unapproved until their security review and owner decision. |
+| Quick Capture empty-title feedback remains compact inline error plus floating SnackBar | IMPLEMENTED | Source and the original visible-feedback widget assertions are present; no test weakening. Full Smoke gate remains incomplete. |
+
+The governance vocabulary remains: PROPOSED, APPROVED, IN_PROGRESS, IMPLEMENTED, VERIFIED, BLOCKED, SUPERSEDED, REJECTED. These statuses are not interchangeable; implementation does not imply verification.
