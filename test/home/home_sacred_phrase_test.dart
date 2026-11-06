@@ -15,12 +15,12 @@ void _expectPathOnlySvgAsset(String assetPath) {
   // Rendering through SvgPicture below validates that flutter_svg can parse it.
   expect(
     source,
-    matches(RegExp(r'^\\s*<svg\\b[^>]*>[\\s\\S]*</svg>\\s*$')),
+    matches(RegExp(r'^\s*<svg\b[^>]*>[\s\S]*</svg>\s*$')),
     reason: '$assetPath must be a complete SVG document',
   );
   expect(source, contains('xmlns="http://www.w3.org/2000/svg"'));
 
-  final elements = RegExp(r'<\\/?([A-Za-z][A-Za-z0-9:_-]*)\\b')
+  final elements = RegExp(r'<\/?([A-Za-z][A-Za-z0-9:_-]*)\b')
       .allMatches(source)
       .map((match) => match.group(1))
       .toSet();
@@ -30,12 +30,12 @@ void _expectPathOnlySvgAsset(String assetPath) {
     reason: '$assetPath must contain only SVG and vector path elements',
   );
 
-  final paths = RegExp(r'<path\\b([^>]*)>').allMatches(source);
+  final paths = RegExp(r'<path\b([^>]*)>').allMatches(source);
   expect(paths, isNotEmpty, reason: '$assetPath must contain vector paths');
   for (final path in paths) {
     expect(
       path.group(1),
-      matches(RegExp(r'\\bd\\s*=\\s*["\'][^"\']+["\']')),
+      matches(RegExp(r'\bd\s*=\s*"[^"]+"')),
       reason: '$assetPath path elements must have non-empty path data',
     );
   }
