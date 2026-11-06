@@ -572,11 +572,10 @@ Future<DateTime?> _pickCustomDue() async {
                   _surfaceCard(
                     child: Align(
                       alignment: AlignmentDirectional.centerStart,
-                      child: SingleChildScrollView(
-                      key: const ValueKey('quick-capture-categories-scroll'),
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        textDirection: TextDirection.rtl,
+                      child: Wrap(
+                        key: const ValueKey('quick-capture-categories-wrap'),
+                        spacing: 6,
+                        runSpacing: 6,
                         children: [
                           SizedBox(
                             width: 112,
@@ -606,7 +605,6 @@ Future<DateTime?> _pickCustomDue() async {
                               },
                             ),
                           ),
-                          const SizedBox(width: 6),
                           SizedBox(
                             width: 124,
                             child: ArvinRollBox<String>(
@@ -679,7 +677,6 @@ Future<DateTime?> _pickCustomDue() async {
                               },
                             ),
                           ),
-                          const SizedBox(width: 6),
                           SizedBox(
                             width: 128,
                             child: ArvinRollBox<String>(
@@ -722,7 +719,6 @@ Future<DateTime?> _pickCustomDue() async {
                               },
                             ),
                           ),
-                          const SizedBox(width: 6),
                           SizedBox(
                             width: 120,
                             child: ArvinTagRollBox(
@@ -761,19 +757,16 @@ Future<DateTime?> _pickCustomDue() async {
                             ),
                           ),
                         ],
-                      ),
                     ),
-                  ),
                   ),
                   const SizedBox(height: 6),
                   _surfaceCard(
                     child: Align(
                       alignment: AlignmentDirectional.centerStart,
-                      child: SingleChildScrollView(
-                      key: const ValueKey('quick-capture-settings-scroll'),
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        textDirection: TextDirection.rtl,
+                      child: Wrap(
+                        key: const ValueKey('quick-capture-settings-wrap'),
+                        spacing: 6,
+                        runSpacing: 6,
                         children: [
                           SizedBox(width: 124, child: ArvinRollBox<Object?>(
                             key: const ValueKey('quick-capture-due-rollbox'),
@@ -792,7 +785,6 @@ Future<DateTime?> _pickCustomDue() async {
                             onCreate: _saving ? null : _pickCustomDue,
                             onSelected: (value) => _setDueDate(value is DateTime ? value : null),
                           )),
-                          const SizedBox(width: 6),
                           SizedBox(width: 148, child: ArvinRollBox<Object?>(
                             key: const ValueKey('quick-capture-reminder-rollbox'),
                             label: 'یادآور',
@@ -817,7 +809,6 @@ Future<DateTime?> _pickCustomDue() async {
                               });
                             },
                           )),
-                          const SizedBox(width: 6),
                           SizedBox(width: 108, child: ArvinRollBox<RecurrenceRule?>(
                             key: const ValueKey('quick-capture-recurrence-rollbox'),
                             label: 'تکرار',
@@ -837,9 +828,7 @@ Future<DateTime?> _pickCustomDue() async {
                             onSelected: (value) => setState(() => _recurrence = value),
                           )),
                         ],
-                      ),
                     ),
-                  ),
                   ),
                   const SizedBox(height: 5),
                   _priorityDropdown(),

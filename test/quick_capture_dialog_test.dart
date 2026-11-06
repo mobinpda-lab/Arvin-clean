@@ -121,8 +121,8 @@ void main() {
       await tester.pumpAndSettle();
 
       for (final key in [
-        'quick-capture-categories-scroll',
-        'quick-capture-settings-scroll',
+        'quick-capture-categories-wrap',
+        'quick-capture-settings-wrap',
         'quick-capture-center-rollbox',
         'quick-capture-project-rollbox',
         'quick-capture-category-rollbox',
@@ -131,6 +131,11 @@ void main() {
       ]) {
         expect(find.byKey(ValueKey(key)), findsOneWidget);
       }
+      final horizontalFormScrolls = tester
+          .widgetList<SingleChildScrollView>(find.byType(SingleChildScrollView))
+          .where((scroll) => scroll.scrollDirection == Axis.horizontal);
+      expect(horizontalFormScrolls, isEmpty);
+      expect(tester.takeException(), isNull);
       expect(find.byKey(const ValueKey('quick-capture-description')), findsNothing);
       expect(find.byKey(const ValueKey('quick-capture-checklist-enabled')), findsNothing);
       expect(find.byKey(const ValueKey('quick-capture-checklist-rollbox')), findsNothing);
