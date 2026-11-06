@@ -851,7 +851,6 @@ Future<DateTime?> _pickCustomDue() async {
                         spacing: 6,
                         runSpacing: 6,
                         children: [
-                          ,
                           SizedBox(width: 148, child: ArvinRollBox<Object?>(
                             key: const ValueKey('quick-capture-reminder-rollbox'),
                             label: 'یادآور',
