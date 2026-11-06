@@ -109,7 +109,7 @@ void main() {
     );
     final notMatching = projection.project(
       [task],
-      people: const [person],
+      people: [person],
       personIds: const {'person-other'},
     );
 
