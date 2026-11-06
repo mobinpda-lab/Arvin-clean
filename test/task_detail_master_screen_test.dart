@@ -1,3 +1,4 @@
+import 'package:arvin/arvin_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -1026,7 +1027,7 @@ void main() {
     final completeButton = tester.widget<FilledButton>(
       find.byKey(const ValueKey('task-detail-complete')),
     );
-    expect(completeButton.style!.backgroundColor!.resolve({}), const Color(0xFF3F3D56));
+    expect(completeButton.style!.backgroundColor!.resolve({}), ArvinColors.primary);
     final list = tester.widget<ListView>(find.byKey(const ValueKey('task-detail-content-list')));
     expect(list.padding, const EdgeInsets.fromLTRB(16, 14, 16, 120));
     await tester.tap(find.byKey(const ValueKey('task-detail-more')));

@@ -492,3 +492,16 @@ PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ هیچ merge یا 
 - **موارد باز:** جریان زنجیره‌ای تاریخ/ساعت و «بدون ساعت» برای Follow-up/Reminder، یکپارچه‌سازی جزء مشترک فیلترهای Home و Report، و ممیزی نهایی Home/تبلت.
 
 PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ هیچ merge یا release انجام نشود؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## اصلاح شکست‌های CI پس از پیوند شخص و سرریز Calendar — ۱۴۰۵/۰۸/۱۵
+
+**Parent SHA:** `52205ba2ff5964e34d96acc0b3cb3c2db338890d`
+
+- CI روی SHA `5c522e7`، `flutter analyze` را PASS کرد و persistence file-backed و SQLite close/reopen نیز PASS شدند.
+- آزمون `task_detail_followup_flow_test.dart` نشان داد مسیر پیش‌نمایش Task Details ممکن است فاقد provider دیتابیس اشخاص باشد؛ بارگذاری دایرکتوری اکنون fail-soft است و در این حالت فقط افراد پیوندخوردهٔ همان Task را برای بازکردن فرم ارائه می‌کند. مسیر اصلی برنامه همچنان دایرکتوری canonical را از TaskStore می‌خواند.
+- آزمون Task Details یک رنگ قدیمی indigo را assert می‌کرد؛ assertion به توکن واقعی `ArvinColors.primary` به‌روزرسانی شد، نه اینکه تست حذف یا شل شود.
+- آزمون Calendar در عرض باریک و text scale 1.4 یک سرریز 47px را در سلول‌های هفته نشان داد. ارتفاع ثابت 68px به حداقل ارتفاع تبدیل شد و Column با `MainAxisSize.min` اندازهٔ واقعی محتوا را می‌پذیرد. آزمون دست‌نخورده باقی ماند تا رفع منشأ layout را بررسی کند.
+- این اصلاحات نیازمند اجرای مجدد exact-SHA هستند. نتیجهٔ FAIL روی parent SHA حفظ می‌شود.
+
+PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ **BLOCKED — RELEASE: NO-GO**.

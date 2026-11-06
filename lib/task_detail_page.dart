@@ -5,6 +5,7 @@ import 'core/theme/arvin_theme.dart';
 
 import 'android_follow_up_reminder_scheduler.dart';
 import 'follow_up_entry_page.dart';
+import 'models/person_reference.dart';
 import 'services/task_store.dart';
 import 'follow_up_repository.dart';
 import 'models/task.dart';
@@ -660,7 +661,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
   Future<FollowUp?> _openFollowUpEntry({FollowUp? initialFollowUp}) async {
     final store = TaskStore();
-    final people = await store.loadPeopleDirectory();
+    List<PersonReference> people;
+    try {
+      people = await store.loadPeopleDirectory();
+    } catch (_) {
+      // Read-only/isolated Task Details routes can still open the canonical
+      // Follow-up editor when no directory provider is available.
+      people = List<PersonReference>.of(_task.people);
+    }
     if (!mounted) return null;
     return Navigator.of(context).push<FollowUp>(
       MaterialPageRoute<FollowUp>(

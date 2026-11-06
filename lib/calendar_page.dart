@@ -617,12 +617,13 @@ class _CalendarPageState extends State<CalendarPage> {
                         ? null
                         : () => widget.onCreateTaskForDate!(date),
                     child: Container(
-                      height: 68,
+                      constraints: const BoxConstraints(minHeight: 68),
                       decoration: BoxDecoration(
                         color: selected ? ArvinColors.calendarSelectedDay : Colors.transparent,
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
