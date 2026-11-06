@@ -151,9 +151,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _centers = List<ArvinCenter>.of(widget.centers);
     _category = task?.category;
     _selectedProjectId = widget.selectedProjectId;
-    final selectedProject = _projects.where((project) => project.id == _selectedProjectId);
-    _selectedCenterId = widget.selectedCenterId ?? task?.centerId ??
-        (selectedProject.isEmpty ? null : selectedProject.first.centerId);
+    _selectedCenterId = widget.selectedCenterId ?? task?.centerId;
     _recurrence = task?.recurrence;
     _repeatEnabled = task?.recurrence?.active ?? false;
     _recurrenceStartDate = task?.recurrence?.startDate;

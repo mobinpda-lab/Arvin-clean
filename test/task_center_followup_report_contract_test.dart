@@ -106,7 +106,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('امروز').last);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('quick-capture-no-time')));
+    final noTime = find.byKey(const ValueKey('quick-capture-no-time'));
+    await tester.ensureVisible(noTime);
+    await tester.tap(noTime);
     await tester.pumpAndSettle();
     final submit = find.byKey(const ValueKey('quick-capture-submit'));
     await tester.ensureVisible(submit);

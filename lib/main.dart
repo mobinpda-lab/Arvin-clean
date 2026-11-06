@@ -637,6 +637,8 @@ class _HomePageState extends State<HomePage> {
   Future<String?> _createCenter(String value) async {
     final name = value.trim();
     if (name.isEmpty) return null;
+    final existing = centers.where((center) => center.name.trim().toLowerCase() == name.toLowerCase());
+    if (existing.isNotEmpty) return existing.first.id;
     final id = 'center_${DateTime.now().microsecondsSinceEpoch}';
     await CenterStore().create(id: id, name: name);
     if (mounted) await _load();
@@ -777,10 +779,9 @@ class _HomePageState extends State<HomePage> {
       scoped = scoped.where(_matchesTimeFilter);
       if (_centerFilters.isNotEmpty) {
         final ids = tasks.where((task) {
-          final linked = projects.where((project) => project.itemIds.contains(task.id)).toList(growable: false);
-          final effectiveCenterId = task.centerId ?? (linked.isEmpty ? null : linked.first.centerId);
-          if (effectiveCenterId != null) return _centerFilters.contains(effectiveCenterId);
-          return linked.isNotEmpty && _centerFilters.contains('__no_center__');
+          if (task.centerId != null) return _centerFilters.contains(task.centerId);
+          final linked = projects.where((project) => project.itemIds.contains(task.id));
+          return linked.any((project) => _centerFilters.contains(project.centerId ?? '__no_center__'));
         }).map((task) => task.id).toSet();
         scoped = scoped.where((task) => ids.contains(task.id));
       }

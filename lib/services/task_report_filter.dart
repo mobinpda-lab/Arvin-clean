@@ -235,12 +235,11 @@ class TaskReportFilter {
         final linkedProjects = projects
             .where((project) => project.itemIds.contains(task.id))
             .toList(growable: false);
-        final effectiveCenterId = task.centerId ??
-            (linkedProjects.isEmpty ? null : linkedProjects.first.centerId);
-        final matchesCenter = effectiveCenterId != null
-            ? selectedCenterIds.contains(effectiveCenterId)
-            : includeLegacyProjectsWithoutCenter &&
-                linkedProjects.any((project) => project.centerId == null);
+        final matchesCenter = task.centerId != null
+            ? selectedCenterIds.contains(task.centerId)
+            : linkedProjects.any((project) =>
+                selectedCenterIds.contains(project.centerId) ||
+                (includeLegacyProjectsWithoutCenter && project.centerId == null));
         if (!matchesCenter) return false;
       }
       if (personIds.isNotEmpty &&
