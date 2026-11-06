@@ -776,7 +776,12 @@ class _HomePageState extends State<HomePage> {
     if (filter != 'بایگانی' && filter != 'سطل زباله') {
       scoped = scoped.where(_matchesTimeFilter);
       if (_centerFilters.isNotEmpty) {
-        final ids = projects.where((p) => _centerFilters.contains(p.centerId ?? '__no_center__')).expand((p) => p.itemIds).toSet();
+        final ids = tasks.where((task) {
+          final linked = projects.where((project) => project.itemIds.contains(task.id)).toList(growable: false);
+          final effectiveCenterId = task.centerId ?? (linked.isEmpty ? null : linked.first.centerId);
+          if (effectiveCenterId != null) return _centerFilters.contains(effectiveCenterId);
+          return linked.isNotEmpty && _centerFilters.contains('__no_center__');
+        }).map((task) => task.id).toSet();
         scoped = scoped.where((task) => ids.contains(task.id));
       }
       if (_categoryFilters.isNotEmpty) {
@@ -919,36 +924,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _homeFilterCards() {
-    Widget chip({
-      required Key key,
-      required String label,
-      required IconData icon,
-      required Color accent,
-      required Color soft,
-      required bool active,
-      required VoidCallback onPressed,
-    }) {
-      return Padding(
-        padding: const EdgeInsetsDirectional.only(end: 7),
-        child: ActionChip(
-          key: key,
-          onPressed: onPressed,
-          avatar: Icon(icon, size: 16, color: active ? accent : ArvinColors.textSecondary),
-          label: Text(label, style: TextStyle(
-            color: active ? accent : ArvinColors.textPrimary,
-            fontSize: 12,
-            fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-          )),
-          backgroundColor: active ? soft : ArvinColors.surface,
-          side: BorderSide(color: active ? accent.withAlpha(90) : ArvinColors.border),
-          shape: const StadiumBorder(),
-          visualDensity: VisualDensity.compact,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 0),
-        ),
-      );
-    }
-
     return SizedBox(
       height: 42,
       child: Padding(
@@ -960,7 +935,7 @@ class _HomePageState extends State<HomePage> {
           child: Row(
             textDirection: TextDirection.rtl,
             children: [
-              chip(
+              HomeFilterPill(
                 key: const ValueKey('home-filter-card-time'),
                 label: _timeFilters.isEmpty && _timeFilter != 'customRange' ? 'زمان' : _timeFilterLabel,
                 icon: Icons.schedule_rounded,
@@ -969,7 +944,7 @@ class _HomePageState extends State<HomePage> {
                 active: _timeFilters.isNotEmpty || _timeFilter == 'customRange',
                 onPressed: _showTimeFilterSheet,
               ),
-              chip(
+              HomeFilterPill(
                 key: const ValueKey('home-filter-card-center'),
                 label: _centerFilters.isEmpty ? 'مرکز' : _centerFilters.length == 1 ? (_centerFilters.first == '__no_center__' ? 'بدون مرکز' : (_centerName(_centerFilters.first) ?? 'مرکز حذف‌شده')) : 'مرکز (${persianDateFormatter.toPersianDigits('${_centerFilters.length}')})',
                 icon: Icons.location_city_outlined,
@@ -978,7 +953,7 @@ class _HomePageState extends State<HomePage> {
                 active: _centerFilters.isNotEmpty,
                 onPressed: _showCenterFilterSheet,
               ),
-              chip(
+              HomeFilterPill(
                 key: const ValueKey('home-filter-card-project'),
                 label: _projectFilters.isEmpty ? 'پروژه‌ها' : _projectFilters.length == 1 ? (_projectFilters.first == '__no_project__' ? 'بدون پروژه' : (_projectTitle(_projectFilters.first) ?? 'پروژه حذف‌شده')) : 'پروژه‌ها (${persianDateFormatter.toPersianDigits('${_projectFilters.length}')})',
                 icon: Icons.folder_rounded,
@@ -987,7 +962,7 @@ class _HomePageState extends State<HomePage> {
                 active: _projectFilters.isNotEmpty,
                 onPressed: _showProjectFilterSheet,
               ),
-              chip(
+              HomeFilterPill(
                 key: const ValueKey('home-filter-card-category'),
                 label: _categoryFilters.isEmpty ? 'دسته‌ها' : _categoryFilters.length == 1 ? _categoryFilters.first : 'دسته‌ها (${persianDateFormatter.toPersianDigits('${_categoryFilters.length}')})',
                 icon: Icons.layers_rounded,
@@ -996,7 +971,7 @@ class _HomePageState extends State<HomePage> {
                 active: _categoryFilters.isNotEmpty,
                 onPressed: _showCategoryFilterSheet,
               ),
-              chip(
+              HomeFilterPill(
                 key: const ValueKey('home-filter-card-tags'),
                 label: _tagFilters.isEmpty ? 'برچسب‌ها' : 'برچسب‌ها (${persianDateFormatter.toPersianDigits('${_tagFilters.length}')})',
                 icon: Icons.sell_rounded,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'arvin_colors.dart';
 import 'calendar_page.dart';
+import 'home/home_filter_ui.dart';
 
 import 'models/goal_project.dart';
 import 'models/arvin_center.dart';
@@ -613,6 +614,23 @@ class _ReportFilterSheet extends StatefulWidget {
 }
 
 class _ReportFilterSheetState extends State<_ReportFilterSheet> {
+  final GlobalKey _timeSectionKey = GlobalKey();
+  final GlobalKey _centerSectionKey = GlobalKey();
+  final GlobalKey _projectSectionKey = GlobalKey();
+  final GlobalKey _categorySectionKey = GlobalKey();
+  final GlobalKey _tagSectionKey = GlobalKey();
+
+  void _jumpToFilter(GlobalKey key) {
+    final target = key.currentContext;
+    if (target == null) return;
+    Scrollable.ensureVisible(
+      target,
+      alignment: 0.08,
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
   late ReportTimePreset _timePreset;
   DateTime? _fromDate;
   DateTime? _toDate;
@@ -843,6 +861,64 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                 children: [
+            SizedBox(
+              height: 42,
+              child: SingleChildScrollView(
+                key: const ValueKey('report-home-filter-scroll'),
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  textDirection: TextDirection.rtl,
+                  children: [
+                    HomeFilterPill(
+                      key: const ValueKey('report-home-filter-time'),
+                      label: _timePreset == ReportTimePreset.all && _fromDate == null && _toDate == null && _fromTime == null && _toTime == null ? 'زمان' : _timeLabel(_timePreset),
+                      icon: Icons.schedule_rounded,
+                      accent: ArvinColors.time,
+                      soft: ArvinColors.timeSoft,
+                      active: _timePreset != ReportTimePreset.all || _fromDate != null || _toDate != null || _fromTime != null || _toTime != null,
+                      onPressed: () => _jumpToFilter(_timeSectionKey),
+                    ),
+                    HomeFilterPill(
+                      key: const ValueKey('report-home-filter-center'),
+                      label: _centerIds.isEmpty ? 'مرکز' : 'مرکز (${_centerIds.length})',
+                      icon: Icons.location_city_outlined,
+                      accent: ArvinColors.primary,
+                      soft: ArvinColors.primarySoft,
+                      active: _centerIds.isNotEmpty,
+                      onPressed: () => _jumpToFilter(_centerSectionKey),
+                    ),
+                    HomeFilterPill(
+                      key: const ValueKey('report-home-filter-project'),
+                      label: _projectIds.isEmpty ? 'پروژه‌ها' : 'پروژه‌ها (${_projectIds.length})',
+                      icon: Icons.folder_rounded,
+                      accent: ArvinColors.project,
+                      soft: ArvinColors.projectSoft,
+                      active: _projectIds.isNotEmpty,
+                      onPressed: () => _jumpToFilter(_projectSectionKey),
+                    ),
+                    HomeFilterPill(
+                      key: const ValueKey('report-home-filter-category'),
+                      label: _categories.isEmpty ? 'دسته‌ها' : 'دسته‌ها (${_categories.length})',
+                      icon: Icons.layers_rounded,
+                      accent: ArvinColors.category,
+                      soft: ArvinColors.categorySoft,
+                      active: _categories.isNotEmpty,
+                      onPressed: () => _jumpToFilter(_categorySectionKey),
+                    ),
+                    HomeFilterPill(
+                      key: const ValueKey('report-home-filter-tags'),
+                      label: _tags.isEmpty ? 'برچسب‌ها' : 'برچسب‌ها (${_tags.length})',
+                      icon: Icons.sell_rounded,
+                      accent: ArvinColors.tag,
+                      soft: ArvinColors.tagSoft,
+                      active: _tags.isNotEmpty,
+                      onPressed: () => _jumpToFilter(_tagSectionKey),
+                    ),
+                  ],
+                ),
+              ),
+            ),
             _Section(
               title: 'نوع گزارش',
               icon: Icons.assessment_outlined,
@@ -869,6 +945,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               ),
             ),
             _Section(
+              key: _timeSectionKey,
               title: 'زمان',
               icon: Icons.schedule_outlined,
               accentColor: ArvinColors.time,
@@ -939,6 +1016,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               ),
             ),
             _Section(
+              key: _centerSectionKey,
               title: 'مرکز',
               icon: Icons.location_city_outlined,
               accentColor: ArvinColors.primary,
@@ -963,6 +1041,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               ]),
             ),
             _Section(
+              key: _projectSectionKey,
               title: 'پروژه',
               icon: Icons.folder_open_outlined,
               accentColor: ArvinColors.project,
@@ -979,6 +1058,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               ),
             ),
             _Section(
+              key: _categorySectionKey,
               title: 'دسته',
               icon: Icons.category_outlined,
               accentColor: ArvinColors.category,
@@ -993,6 +1073,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               ),
             ),
             _Section(
+              key: _tagSectionKey,
               title: 'برچسب',
               icon: Icons.sell_outlined,
               accentColor: ArvinColors.tag,

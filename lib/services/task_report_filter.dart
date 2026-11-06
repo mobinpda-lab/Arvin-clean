@@ -231,11 +231,17 @@ class TaskReportFilter {
         final fromLegacyProject = includeLegacyProjectsWithoutTemplate && linked.any((project) => project.templateId == null);
         if (!fromSelectedTemplate && !fromLegacyProject) return false;
       }
-      if (selectedCenterIds.isNotEmpty &&
-          !projects.any((project) => project.itemIds.contains(task.id) &&
-              (selectedCenterIds.contains(project.centerId) ||
-               (includeLegacyProjectsWithoutCenter && project.centerId == null)))) {
-        return false;
+      if (selectedCenterIds.isNotEmpty) {
+        final linkedProjects = projects
+            .where((project) => project.itemIds.contains(task.id))
+            .toList(growable: false);
+        final effectiveCenterId = task.centerId ??
+            (linkedProjects.isEmpty ? null : linkedProjects.first.centerId);
+        final matchesCenter = effectiveCenterId != null
+            ? selectedCenterIds.contains(effectiveCenterId)
+            : includeLegacyProjectsWithoutCenter &&
+                linkedProjects.any((project) => project.centerId == null);
+        if (!matchesCenter) return false;
       }
       if (personIds.isNotEmpty &&
           !task.people.any((person) => personIds.contains(person.id)) &&

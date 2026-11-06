@@ -6,6 +6,48 @@ import '../arvin_colors.dart';
 
 enum HomeFilterDimension { time, center, project, category, tags }
 
+class HomeFilterPill extends StatelessWidget {
+  const HomeFilterPill({
+    super.key,
+    required this.label,
+    required this.icon,
+    required this.accent,
+    required this.soft,
+    required this.active,
+    required this.onPressed,
+  });
+
+  final String label;
+  final IconData icon;
+  final Color accent;
+  final Color soft;
+  final bool active;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsetsDirectional.only(end: 7),
+        child: ActionChip(
+          onPressed: onPressed,
+          avatar: Icon(icon, size: 16, color: active ? accent : ArvinColors.textSecondary),
+          label: Text(
+            label,
+            style: TextStyle(
+              color: active ? accent : ArvinColors.textPrimary,
+              fontSize: 12,
+              fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+            ),
+          ),
+          backgroundColor: active ? soft : ArvinColors.surface,
+          side: BorderSide(color: active ? accent.withAlpha(90) : ArvinColors.border),
+          shape: const StadiumBorder(),
+          visualDensity: VisualDensity.compact,
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 0),
+        ),
+      );
+}
+
 class HomeFilterCard extends StatelessWidget {
   const HomeFilterCard({
     super.key,
