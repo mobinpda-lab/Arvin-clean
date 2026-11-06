@@ -612,10 +612,26 @@ void main() {
 
     expect(find.byKey(const ValueKey('task-detail-description-card')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-independent-reminders')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-latest-followup')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-timeline')), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('task-detail-summary-card')),
+        matching: find.text('در انتظار انجام'),
+      ),
+      findsOneWidget,
+    );
 
     final detailScrollable = _taskDetailPageScrollable(tester);
+    final latestCard = find.byKey(const ValueKey('task-detail-latest-followup'));
+    await tester.scrollUntilVisible(latestCard, 240, scrollable: detailScrollable);
+    await tester.pumpAndSettle();
+    expect(latestCard, findsOneWidget);
+    expect(find.text('هنوز پیگیری ثبت نشده است'), findsOneWidget);
+
+    final timelineCard = find.byKey(const ValueKey('task-detail-timeline'));
+    await tester.scrollUntilVisible(timelineCard, 240, scrollable: detailScrollable);
+    await tester.pumpAndSettle();
+    expect(timelineCard, findsOneWidget);
+
     final checklistCard = find.byKey(const ValueKey('task-detail-checklist'));
     await tester.scrollUntilVisible(checklistCard, 240, scrollable: detailScrollable);
     await tester.pumpAndSettle();
