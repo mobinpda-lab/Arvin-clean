@@ -41,6 +41,8 @@ class TaskDetailPage extends StatefulWidget {
     this.onRegisterTaskToDeviceCalendar,
     this.taskTemplateStore,
     this.now,
+    this.people = const <PersonReference>[],
+    this.onCreatePerson,
   });
 
   final Task task;
@@ -60,6 +62,8 @@ class TaskDetailPage extends StatefulWidget {
   final Future<void> Function(Task task)? onRegisterTaskToDeviceCalendar;
   final TaskTemplateStore? taskTemplateStore;
   final DateTime? now;
+  final List<PersonReference> people;
+  final Future<void> Function(PersonReference person)? onCreatePerson;
 
   @override
   State<TaskDetailPage> createState() => _TaskDetailPageState();
@@ -661,13 +665,15 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
   Future<FollowUp?> _openFollowUpEntry({FollowUp? initialFollowUp}) async {
     final store = TaskStore();
-    List<PersonReference> people;
-    try {
-      people = await store.loadPeopleDirectory();
-    } catch (_) {
-      // Read-only/isolated Task Details routes can still open the canonical
-      // Follow-up editor when no directory provider is available.
-      people = List<PersonReference>.of(_task.people);
+    final peopleById = <String, PersonReference>{
+      for (final person in widget.people) person.id: person,
+      for (final person in _task.people) person.id: person,
+    };
+    for (final id in initialFollowUp?.personIds ?? const <String>[]) {
+      peopleById.putIfAbsent(
+        id,
+        () => PersonReference(id: id, displayName: 'شخص حذف‌شده'),
+      );
     }
     if (!mounted) return null;
     return Navigator.of(context).push<FollowUp>(
@@ -675,8 +681,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         builder: (_) => FollowUpEntryPage(
           taskId: _task.id,
           initialFollowUp: initialFollowUp,
-          people: people,
-          onCreatePerson: (person) => store.mergePeopleDirectory([person]),
+          people: peopleById.values.toList(growable: false),
+          onCreatePerson: widget.onCreatePerson ??
+              (person) => store.mergePeopleDirectory([person]),
         ),
       ),
     );

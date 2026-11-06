@@ -14,6 +14,7 @@ import 'services/external_calendar_link_store.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/system_calendar_bridge.dart';
 import 'services/task_report_filter.dart';
+import 'services/task_store.dart';
 import 'services/completed_follow_up_report_projection.dart';
 import 'services/person_follow_up_report_projection.dart';
 import 'task_detail_page.dart';
@@ -287,7 +288,11 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                               child: ListTile(
                                 onTap: () => Navigator.of(context).push<void>(
                                   MaterialPageRoute<void>(
-                                    builder: (_) => TaskDetailPage(task: row.task),
+                                    builder: (_) => TaskDetailPage(
+                                      task: row.task,
+                                      people: _peopleDirectory,
+                                      onCreatePerson: (person) => TaskStore().mergePeopleDirectory([person]),
+                                    ),
                                   ),
                                 ),
                                 title: Text(row.task.title.trim().isEmpty ? 'بدون عنوان' : row.task.title),
@@ -337,7 +342,11 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                           child: ListTile(
                             onTap: () => Navigator.of(context).push<void>(
                               MaterialPageRoute<void>(
-                                builder: (_) => TaskDetailPage(task: task),
+                                builder: (_) => TaskDetailPage(
+                                  task: task,
+                                  people: _peopleDirectory,
+                                  onCreatePerson: (person) => TaskStore().mergePeopleDirectory([person]),
+                                ),
                               ),
                             ),
                             dense: true,

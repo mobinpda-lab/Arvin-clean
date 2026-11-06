@@ -1778,6 +1778,8 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _openTaskDetail(Task task) async {
     if (!mounted) return;
+    final people = await taskStore.loadPeopleDirectory();
+    if (!mounted) return;
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
         builder: (_) => TaskDetailPage(
@@ -1795,6 +1797,8 @@ class _HomePageState extends State<HomePage> {
           onDescriptionChanged: _descriptionChangedFromDetail,
           onMoveDueDateToToday: _moveDueDateToTodayFromDetail,
           onRegisterTaskToDeviceCalendar: _registerTaskFromDetails,
+          people: people,
+          onCreatePerson: (person) => taskStore.mergePeopleDirectory([person]),
         ),
       ),
     );

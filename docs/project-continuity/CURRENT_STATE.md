@@ -517,3 +517,15 @@ PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ **BLOCKED — RELE
 - این تغییرات هنوز نیازمند Analyze و تست‌های exact-SHA هستند.
 
 PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## حذف وابستگی ناخواستهٔ Task Details به بارگذاری هم‌زمان اشخاص — ۱۴۰۵/۰۸/۱۵
+
+**Parent SHA:** `1845c5a071beb7e087d21453a31753db905506d8`
+
+- آزمون‌های CI نشان داد بازکردن فرم ویرایش Follow-up از Task Details به انتظار مستقیم برای `TaskStore.loadPeopleDirectory()` وابسته شده و در مسیرهای isolated/preview تست، فرم باز نمی‌شود.
+- دایرکتوری اشخاص اکنون به‌صورت دادهٔ ورودی اختیاری به Task Details تزریق می‌شود؛ مسیر اصلی Home و Report Center آن را از مخزن canonical می‌خوانند. اشخاص پیوندخوردهٔ خود Task نیز در فهرست قرار می‌گیرند و شناسه‌های تاریخی ناموجود با عنوان «شخص حذف‌شده» حفظ می‌شوند.
+- افزودن شخص همچنان از `TaskStore.mergePeopleDirectory` استفاده می‌کند؛ خواندن دایرکتوری دیگر در لحظهٔ بازکردن فرم، navigation را متوقف نمی‌کند.
+- نیازمند CI exact-SHA جدید است؛ نتایج قبلی به SHAهای خودشان محدود می‌مانند.
+
+PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ **BLOCKED — RELEASE: NO-GO**.
