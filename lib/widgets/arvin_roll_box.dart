@@ -112,7 +112,7 @@ class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
                 if (widget.onCreate != null)
                   ListTile(
                     leading: const Icon(Icons.add_circle_outline, color: ArvinColors.primary),
-                    title: const Text('افزودن برچسب'),
+                    title: const Text('+ افزودن برچسب'),
                     onTap: () async {
                       final created = await widget.onCreate!.call();
                       if (created == null || created.trim().isEmpty) return;
