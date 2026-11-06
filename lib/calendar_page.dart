@@ -813,6 +813,10 @@ class _CalendarPageState extends State<CalendarPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final sacredVectorColor = theme.brightness == Brightness.dark
+        ? theme.colorScheme.onSurface
+        : const Color(0xFF1A2B4C);
     final selectedJalali = _dateFormatter.toJalali(_selectedDay);
     final allSelectedReminders = _forDay(_selectedDay);
     final selectedReminders = _filteredForDay(_selectedDay);
@@ -850,8 +854,8 @@ class _CalendarPageState extends State<CalendarPage> {
               'assets/images/branding/tafweez.svg',
               key: const ValueKey('calendar-sacred-header-svg'),
               width: 240,
-              colorFilter: const ColorFilter.mode(
-                Color(0xFF1A2B4C),
+              colorFilter: ColorFilter.mode(
+                sacredVectorColor,
                 BlendMode.srcIn,
               ),
               excludeFromSemantics: true,

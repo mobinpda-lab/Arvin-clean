@@ -5,6 +5,17 @@ import 'package:arvin/home/home_visual_integration.dart';
 import 'package:arvin/theme/app_fonts.dart';
 
 void main() {
+  testWidgets('Home sacred SVG uses brand navy in light theme and readable onSurface in dark theme', (tester) async {
+    Widget home(ThemeData theme) => MaterialApp(theme: theme, home: const HomeVisualIntegration(body: SizedBox.shrink()));
+    await tester.pumpWidget(home(ThemeData.light()));
+    var svg = tester.widget<SvgPicture>(find.byKey(const ValueKey('home-bismillah-svg')));
+    expect(svg.colorFilter, const ColorFilter.mode(Color(0xFF1A2B4C), BlendMode.srcIn));
+    final darkTheme = ThemeData.dark();
+    await tester.pumpWidget(home(darkTheme));
+    svg = tester.widget<SvgPicture>(find.byKey(const ValueKey('home-bismillah-svg')));
+    expect(svg.colorFilter, ColorFilter.mode(darkTheme.colorScheme.onSurface, BlendMode.srcIn));
+  });
+
   testWidgets('renders canonical Home identity, search and add action', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(

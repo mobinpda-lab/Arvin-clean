@@ -321,3 +321,15 @@ Release: BLOCKED — RELEASE: NO-GO
   - Calendar Provider run `42140371756`: IN_PROGRESS.
 - This continuity update is documentation-only and does not cancel, modify, or replace any active workflow. Results from the previous SHA do not transfer to a later SHA.
 - PR #3052 remains OPEN / DRAFT / UNMERGED by instruction. No write to `main`, merge, or release is authorized. **BLOCKED — RELEASE: NO-GO** until all required exact-SHA test shards and validation lanes pass and product-owner approval is recorded.
+
+## اصلاحات یکپارچه Task Details، الگو و کنتراست SVG — 2026-11-06 (۱۴۰۵/۰۸/۱۵)
+- مبنای بررسی: branch HEAD `cbc56e0db2695dc6c578ecfb841e6fd916613080`. Device Smoke run `42141526859` روی همین SHA با نتیجه `CANCELLED` خاتمه یافته بود؛ هیچ Job فعالی از آن اجرا باقی نمانده بود، بنابراین تغییرات بدون لغو/دست‌کاری اجرای فعال انجام شد.
+- Build run `42141526931` روی همان SHA: Analyze PASS؛ test-0 و test-1 و test-5 PASS؛ test-2 و test-3 و test-4 FAIL. شکست‌ها در لاگ‌ها به‌ترتیب شامل پیام موفقیتِ ساخت کار از الگو که پس از SnackBar قبلی دیده نمی‌شد، پیمایش معکوس بخش‌های lazy در تست Smart visibility، و وجود دو نمونه از کارت منشأ الگو با کلید یکسان بودند.
+- `lib/task_template_management_page.dart`: صف SnackBarهای قبلی پیش از پیام موفقیت ساخت کار از الگو پاک می‌شود؛ هیچ عملیات ذخیره‌سازی یا داده‌ای تغییر نکرده است.
+- `test/task_detail_master_screen_test.dart`: پیمایش تست Smart visibility مطابق ترتیب واقعی صفحه شد: Reminder → Recurrence → Checklist → Follow-up → Timeline. assertion نشان «در انتظار انجام» حفظ شده است.
+- `lib/task_detail_page.dart`: کارت منشأ الگو از داخل Summary خارج شد و فقط در جایگاه مستقل فهرست جزئیات، پس از Summary/Description و پیش از Due Date باقی ماند. تست rich details یکتایی آن را بررسی می‌کند.
+- Home و Calendar: رنگ SVG در تم روشن سرمه‌ای برند `#1A2B4C` و در تم تاریک `Theme.of(context).colorScheme.onSurface` است؛ فیلتر `BlendMode.srcIn` حفظ شد. تست‌های اختصاصی هر دو حالت روشن/تاریک افزوده شدند. متن جایگزین Semantics و اندازه/fit فایل‌های SVG تغییر نکرد.
+- Calendar Provider run `42141526861` و Follow-up Persistence run `42141526818` روی SHA مبنا SUCCESS بودند؛ Draft Review APK run `42141526865` SUCCESS و review-only بود. Device Smoke روی SHA مبنا CANCELLED؛ نصب/استفاده واقعی دستگاه NOT VERIFIED.
+- Release APK داخل Build قبلی ساخته شد، اما سه شارد شکست داشتند؛ ساخت APK به‌تنهایی پذیرش محصول یا انتشار را اثبات نمی‌کند.
+- این ثبت همراه تغییرات منبع/تست در یک commit واحد قرار می‌گیرد. تمام CI باید روی SHA این commit تازه اجرا شود؛ نتایج SHA مبنا به آن منتقل نمی‌شوند.
+- PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main دست‌نخورده؛ **BLOCKED — RELEASE: NO-GO**.

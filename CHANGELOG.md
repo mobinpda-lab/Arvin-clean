@@ -682,3 +682,11 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - Follow-up persistence passed; Build/Analyze, Calendar Provider, seven-lane Device Smoke and Draft Review APK were incomplete at the checkpoint. No full flutter analyze/test or Debug/Release APK result is claimed.
 - Both requested SVG files remain absent because the approved reference artwork could not be retrieved. Exact vector calligraphy remains BLOCKED/NOT VERIFIED; do not substitute guessed paths.
 - Documentation changes create a new HEAD; rerun all acceptance workflows on the resulting SHA. PR #3052 OPEN/DRAFT/UNMERGED; main untouched; BLOCKED — RELEASE: NO-GO.
+
+## ۱۴۰۵/۰۸/۱۵ (2026-11-06) — رفع شکست‌های Task Template/Details و کنتراست SVG
+- صف SnackBarهای قبلی پیش از پیام موفقیت ساخت کار از الگو پاک می‌شود تا پیام عملیات تازه فوراً قابل مشاهده باشد.
+- تست Smart visibility با ترتیب واقعی lazy list هماهنگ شد: یادآور، تکرار، چک‌لیست، پیگیری و خط زمانی؛ assertion «در انتظار انجام» همچنان فعال است.
+- کارت منشأ الگو از کارت خلاصه خارج شد و تنها یک‌بار پس از خلاصه/توضیحات و پیش از موعد انجام رندر می‌شود.
+- SVG بسم‌الله Home و تفویض Calendar در تم روشن سرمه‌ای برند و در تم تاریک رنگ `onSurface` می‌گیرند؛ تست‌های تم روشن/تاریک افزوده شدند.
+- هیچ تستی حذف یا skip نشد و هیچ پوشش رفتاری تضعیف نشد. تست‌های متمرکز و شش شارد باید روی SHA نهایی تازه اجرا شوند.
+- PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched؛ **BLOCKED — RELEASE: NO-GO**.

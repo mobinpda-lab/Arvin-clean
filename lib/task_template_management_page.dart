@@ -242,7 +242,9 @@ class _TaskTemplateManagementPageState extends State<TaskTemplateManagementPage>
       }
       await _load();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        final messenger = ScaffoldMessenger.of(context);
+        messenger.clearSnackBars();
+        messenger.showSnackBar(
           SnackBar(content: Text('کار «${task.title}» از الگو ساخته شد.')),
         );
       }

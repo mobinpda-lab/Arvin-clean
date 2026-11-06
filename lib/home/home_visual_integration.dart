@@ -33,6 +33,10 @@ class HomeVisualIntegration extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final sacredVectorColor = theme.brightness == Brightness.dark
+        ? theme.colorScheme.onSurface
+        : const Color(0xFF1A2B4C);
     return Scaffold(
       backgroundColor: background,
       body: SafeArea(
@@ -68,8 +72,8 @@ class HomeVisualIntegration extends StatelessWidget {
                                 width: 52,
                                 height: 30,
                                 fit: BoxFit.contain,
-                                colorFilter: const ColorFilter.mode(
-                                  textSecondary,
+                                colorFilter: ColorFilter.mode(
+                                  sacredVectorColor,
                                   BlendMode.srcIn,
                                 ),
                                 excludeFromSemantics: true,

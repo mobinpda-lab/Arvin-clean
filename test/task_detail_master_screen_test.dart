@@ -621,36 +621,40 @@ void main() {
     );
 
     final detailScrollable = _taskDetailPageScrollable(tester);
-    final latestCard = find.byKey(const ValueKey('task-detail-latest-followup'));
-    await tester.scrollUntilVisible(latestCard, 240, scrollable: detailScrollable);
-    await tester.pumpAndSettle();
-    expect(latestCard, findsOneWidget);
-    expect(find.text('هنوز پیگیری ثبت نشده است'), findsOneWidget);
-
-    final timelineCard = find.byKey(const ValueKey('task-detail-timeline'));
-    await tester.scrollUntilVisible(timelineCard, 240, scrollable: detailScrollable);
-    await tester.pumpAndSettle();
-    expect(timelineCard, findsOneWidget);
-
-    final checklistCard = find.byKey(const ValueKey('task-detail-checklist'));
-    await tester.scrollUntilVisible(checklistCard, 240, scrollable: detailScrollable);
-    await tester.pumpAndSettle();
-    expect(checklistCard, findsOneWidget);
     final addReminder = find.byKey(const ValueKey('task-detail-add-reminder'));
     await tester.scrollUntilVisible(addReminder, 240, scrollable: detailScrollable);
     await tester.pumpAndSettle();
     expect(addReminder, findsOneWidget);
 
+    final recurrenceCard = find.byKey(const ValueKey('task-detail-recurrence'));
+    await tester.scrollUntilVisible(recurrenceCard, 240, scrollable: detailScrollable);
+    await tester.pumpAndSettle();
+    expect(recurrenceCard, findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-recurrence-add')), findsNothing);
+
+    final checklistCard = find.byKey(const ValueKey('task-detail-checklist'));
+    await tester.scrollUntilVisible(checklistCard, 240, scrollable: detailScrollable);
+    await tester.pumpAndSettle();
+    expect(checklistCard, findsOneWidget);
     final addChecklist = find.byKey(const ValueKey('task-detail-add-checklist'));
     await tester.scrollUntilVisible(addChecklist, 240, scrollable: detailScrollable);
     await tester.pumpAndSettle();
     expect(addChecklist, findsOneWidget);
 
+    final latestCard = find.byKey(const ValueKey('task-detail-latest-followup'));
+    await tester.scrollUntilVisible(latestCard, 240, scrollable: detailScrollable);
+    await tester.pumpAndSettle();
+    expect(latestCard, findsOneWidget);
+    expect(find.text('هنوز پیگیری ثبت نشده است'), findsOneWidget);
     final addFollowUp = find.byKey(const ValueKey('task-detail-add-followup'));
     await tester.scrollUntilVisible(addFollowUp, 240, scrollable: detailScrollable);
     await tester.pumpAndSettle();
     expect(addFollowUp, findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-recurrence')), findsOneWidget);
+
+    final timelineCard = find.byKey(const ValueKey('task-detail-timeline'));
+    await tester.scrollUntilVisible(timelineCard, 240, scrollable: detailScrollable);
+    await tester.pumpAndSettle();
+    expect(timelineCard, findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-recurrence-add')), findsNothing);
     expect(find.byKey(const ValueKey('task-detail-template-source')), findsNothing);
     expect(find.text('افراد مرتبط'), findsNothing);
