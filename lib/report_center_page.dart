@@ -22,6 +22,7 @@ import 'task_detail_page.dart';
 import 'task_report_page.dart';
 import 'widgets/persian_date_picker.dart';
 import 'widgets/universal_arvin_time_picker.dart';
+import 'widgets/arvin_task_selector_wrap.dart';
 
 String _reportDateTimeLabel(DateTime value) {
   const formatter = PersianDateFormatter();
@@ -863,10 +864,9 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                 children: [
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
-              child: Wrap(
-                textDirection: TextDirection.rtl,
-                spacing: 0,
-                runSpacing: 4,
+              child: ArvinTaskSelectorWrap(
+                spacing: 6,
+                runSpacing: 6,
                 children: [
                     HomeFilterPill(
                       key: const ValueKey('report-home-filter-time'),
