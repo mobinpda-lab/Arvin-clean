@@ -53,68 +53,70 @@ void main() {
     'Home and Calendar sacred phrases render path SVGs with single accessible labels',
     (tester) async {
       final semanticsHandle = tester.ensureSemantics();
-      addTearDown(semanticsHandle.dispose);
-
-      SharedPreferences.setMockInitialValues(<String, Object>{});
-      _expectPathOnlySvgAsset('assets/images/branding/bismillah.svg');
-
-      await tester.pumpWidget(const ArvinApp());
-      await tester.pump();
-
-      const homeLabel = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ';
-      final homePhrase = find.byKey(const ValueKey('home-bismillah'));
-      expect(homePhrase, findsOneWidget);
-      expect(
-        tester.widget<Semantics>(homePhrase).properties.label,
-        homeLabel,
-      );
-      expect(find.bySemanticsLabel(homeLabel), findsOneWidget);
-      expect(find.byKey(const ValueKey('home-bismillah-svg')), findsOneWidget);
-      final homeSvg = tester.widget<SvgPicture>(
-        find.byKey(const ValueKey('home-bismillah-svg')),
-      );
-      expect(homeSvg.width, 210);
-      expect(homeSvg.excludeFromSemantics, isTrue);
-      expect(find.text(homeLabel), findsNothing);
-
-      _expectPathOnlySvgAsset('assets/images/branding/tafweez.svg');
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: CalendarPage(
-            reminders: const [],
-            initialSelectedDay: DateTime(2026, 11, 5),
+      try {
+        SharedPreferences.setMockInitialValues(<String, Object>{});
+        _expectPathOnlySvgAsset('assets/images/branding/bismillah.svg');
+  
+        await tester.pumpWidget(const ArvinApp());
+        await tester.pump();
+  
+        const homeLabel = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ';
+        final homePhrase = find.byKey(const ValueKey('home-bismillah'));
+        expect(homePhrase, findsOneWidget);
+        expect(
+          tester.widget<Semantics>(homePhrase).properties.label,
+          homeLabel,
+        );
+        expect(find.bySemanticsLabel(homeLabel), findsOneWidget);
+        expect(find.byKey(const ValueKey('home-bismillah-svg')), findsOneWidget);
+        final homeSvg = tester.widget<SvgPicture>(
+          find.byKey(const ValueKey('home-bismillah-svg')),
+        );
+        expect(homeSvg.width, 210);
+        expect(homeSvg.excludeFromSemantics, isTrue);
+        expect(find.text(homeLabel), findsNothing);
+  
+        _expectPathOnlySvgAsset('assets/images/branding/tafweez.svg');
+  
+        await tester.pumpWidget(
+          MaterialApp(
+            home: CalendarPage(
+              reminders: const [],
+              initialSelectedDay: DateTime(2026, 11, 5),
+            ),
           ),
-        ),
-      );
-      await tester.pump();
-
-      const calendarLabel = 'وَأُفَوِّضُ أَمْرِي إِلَى اللَّهِ';
-      final calendarPhrase =
-          find.byKey(const ValueKey('calendar-sacred-header'));
-      expect(calendarPhrase, findsOneWidget);
-      expect(
-        tester.widget<Semantics>(calendarPhrase).properties.label,
-        calendarLabel,
-      );
-      expect(find.bySemanticsLabel(calendarLabel), findsOneWidget);
-      expect(
-        find.byKey(const ValueKey('calendar-sacred-header-svg')),
-        findsOneWidget,
-      );
-      final calendarSvg = tester.widget<SvgPicture>(
-        find.byKey(const ValueKey('calendar-sacred-header-svg')),
-      );
-      expect(calendarSvg.width, 240);
-      expect(calendarSvg.excludeFromSemantics, isTrue);
-      expect(find.text(calendarLabel), findsNothing);
-
-      expect(
-        AppFonts.familyForText('متن عادی رابط کاربری'),
-        AppFonts.vazirmatnFamily,
-      );
-      expect(AppFonts.familyForText('آروین'), AppFonts.vazirmatnFamily);
-      expect(tester.takeException(), isNull);
+        );
+        await tester.pump();
+  
+        const calendarLabel = 'وَأُفَوِّضُ أَمْرِي إِلَى اللَّهِ';
+        final calendarPhrase =
+            find.byKey(const ValueKey('calendar-sacred-header'));
+        expect(calendarPhrase, findsOneWidget);
+        expect(
+          tester.widget<Semantics>(calendarPhrase).properties.label,
+          calendarLabel,
+        );
+        expect(find.bySemanticsLabel(calendarLabel), findsOneWidget);
+        expect(
+          find.byKey(const ValueKey('calendar-sacred-header-svg')),
+          findsOneWidget,
+        );
+        final calendarSvg = tester.widget<SvgPicture>(
+          find.byKey(const ValueKey('calendar-sacred-header-svg')),
+        );
+        expect(calendarSvg.width, 240);
+        expect(calendarSvg.excludeFromSemantics, isTrue);
+        expect(find.text(calendarLabel), findsNothing);
+  
+        expect(
+          AppFonts.familyForText('متن عادی رابط کاربری'),
+          AppFonts.vazirmatnFamily,
+        );
+        expect(AppFonts.familyForText('آروین'), AppFonts.vazirmatnFamily);
+        expect(tester.takeException(), isNull);
+      } finally {
+        semanticsHandle.dispose();
+      }
     },
   );
 }
