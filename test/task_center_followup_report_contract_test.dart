@@ -51,6 +51,41 @@ void main() {
     expect(result.map((task) => task.id), ['matching']);
   });
 
+
+  test('Report Center person filter returns only Tasks waiting for that stable personId', () {
+    final waiting = Task(
+      id: 'waiting-for-person',
+      title: 'منتظر پاسخ',
+      followUps: [
+        FollowUp(
+          id: 'waiting-person-follow-up',
+          dateTime: DateTime(2026, 11, 6, 9),
+          waitingForResponse: true,
+          personIds: const ['person-42'],
+        ),
+      ],
+    );
+    final notWaiting = Task(
+      id: 'not-waiting-for-person',
+      title: 'پیگیری عادی',
+      followUps: [
+        FollowUp(
+          id: 'ordinary-follow-up',
+          dateTime: DateTime(2026, 11, 6, 10),
+          waitingForResponse: false,
+          personIds: const ['person-42'],
+        ),
+      ],
+    );
+
+    final result = const TaskReportFilter(personIds: {'person-42'}).apply(
+      [waiting, notWaiting],
+      now: DateTime(2026, 11, 6, 12),
+    );
+
+    expect(result.map((task) => task.id), ['waiting-for-person']);
+  });
+
   test('Person report matches the stable personId saved on a waiting Follow-up', () {
     final task = Task(
       id: 'waiting-task',

@@ -243,8 +243,9 @@ class TaskReportFilter {
         if (!matchesCenter) return false;
       }
       if (personIds.isNotEmpty &&
-          !task.people.any((person) => personIds.contains(person.id)) &&
           !task.followUps.any((followUp) =>
+              followUp.waitingForResponse &&
+              !followUp.completed &&
               followUp.personIds.any(personIds.contains))) {
         return false;
       }
