@@ -7,6 +7,36 @@ import 'package:arvin/models/task.dart';
 import 'package:arvin/quick_capture_dialog.dart';
 
 void main() {
+  testWidgets('Quick Capture does not assign a priority or dates without an explicit choice',
+      (tester) async {
+    Task? captured;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: QuickCaptureDialog(
+            idFactory: () => 'quick-no-defaults',
+            now: () => DateTime(2026, 11, 6, 10),
+            onCaptured: (task) async => captured = task,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('quick-capture-input')),
+      'کار بدون پیش‌فرض',
+    );
+    final submit = find.byKey(const ValueKey('quick-capture-submit'));
+    await tester.ensureVisible(submit);
+    await tester.tap(submit);
+    await tester.pumpAndSettle();
+
+    expect(captured, isNotNull);
+    expect(captured!.priority, TaskPriority.none);
+    expect(captured!.dueDate, isNull);
+    expect(captured!.reminderDate, isNull);
+  });
+
   testWidgets('Quick Capture center filter narrows projects and has no All option',
       (tester) async {
     await tester.pumpWidget(

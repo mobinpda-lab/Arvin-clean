@@ -71,7 +71,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   String? _error;
   bool _backHandling = false;
   bool _saving = false;
-  TaskPriority _priority = TaskPriority.medium;
+  TaskPriority _priority = TaskPriority.none;
   DateTime? _dueDate;
   DateTime? _reminderDate;
   bool _reminderFollowsDueTime = true;
@@ -189,7 +189,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       if (!mounted) return;
       _controller.clear();
       setState(() {
-        _priority = TaskPriority.medium;
+        _priority = TaskPriority.none;
         _saving = false;
       });
       WidgetsBinding.instance.addPostFrameCallback((_) {
