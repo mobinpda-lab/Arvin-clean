@@ -3503,6 +3503,13 @@ class _HomePageState extends State<HomePage> {
       ),
       body: SafeArea(
         child: Column(children: [
+          Flexible(
+            fit: FlexFit.loose,
+            child: SingleChildScrollView(
+              key: const ValueKey('home-controls-vertical-scroll'),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
           Padding(
             padding: EdgeInsets.fromLTRB(16, compactHome ? 4 : 8, 16, 5),
             child: Row(children: [
@@ -3569,6 +3576,10 @@ class _HomePageState extends State<HomePage> {
           ),
           _homeFilterCards(),
           _homeActiveFilterChips(),
+                ],
+              ),
+            ),
+          ),
           Expanded(child: SizedBox.expand(key: const ValueKey('home-task-list-viewport'), child: loading ? Center(child: CircularProgressIndicator(color: ArvinColors.primary)) : loadFailure != null
             ? SingleChildScrollView(padding: const EdgeInsets.all(24), child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
                 Icon(Icons.storage_outlined, size: 40), SizedBox(height: 12),
