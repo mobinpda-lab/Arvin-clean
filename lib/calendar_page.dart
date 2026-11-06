@@ -939,7 +939,7 @@ class _CalendarPageState extends State<CalendarPage> {
             child: SvgPicture.asset(
               'assets/images/branding/tafweez.svg',
               key: const ValueKey('calendar-sacred-header-svg'),
-              width: 240,
+              width: 180,
               colorFilter: ColorFilter.mode(
                 sacredVectorColor,
                 BlendMode.srcIn,
