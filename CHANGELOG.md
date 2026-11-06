@@ -1,3 +1,13 @@
+## ۱۴۰۵/۰۸/۱۵ (2026-11-06) — ممیزی موازی CI، Device Smoke و APK روی SHA `33cbccca804a6f33b22a84e37ea1fc1f5600cd2b`
+
+- PR #3052 روی شاخه مجاز OPEN / DRAFT / UNMERGED است؛ SHA مبنا و نتایج هر Run جداگانه ثبت شدند.
+- روی SHA هدف، Analyze و شش شارد تست و Visual موفق‌اند؛ Build هنوز به‌دلیل APKهای Debug و Staging در حال اجراست و Calendar Provider نیز باز است.
+- Draft Review APK با امضای v2/v3، debuggable=false و سه وزن Vazirmatn تأیید شد؛ کلید موقت بازبینی است و APK قابل انتشار نیست.
+- آرتیفکت Release تولید شده، اما امضا و کلید تولیدی آن مستقلاً تأیید نشده است؛ پذیرش انتشار صادر نمی‌شود.
+- Device Smoke جدید هنوز PENDING است. Device Smoke قدیمی متعلق به SHA `59a321d333bd867049cf7f5b87be82ad9cb8e68e` است و فقط Boot و Navigation آن موفق‌اند؛ Calendar در حال اجرا و چهار lane دیگر در صف‌اند.
+- جزئیات Runها، آرتیفکت‌ها، SHA-256 و دروازه‌های باز در `docs/project-continuity/ARVIN_PARALLEL_EVIDENCE_CHECKPOINT_2026-11-06.md` و Ledger محصول ثبت شده‌اند.
+- وضعیت انتشار همچنان **BLOCKED — RELEASE: NO-GO** است.
+
 ## 2026-11-06 — test(ci): align concurrency contract with serial device-smoke policy
 
 - علت شکست CI: تست قرارداد هم‌زمانی برای Device Smoke مقدارهای `cancel-in-progress: true` و `max-parallel: 2` را انتظار داشت، درحالی‌که سیاست موجود Workflow اجرای سریالی و عدم لغو اجرای جاری (`false` و `1`) است.
