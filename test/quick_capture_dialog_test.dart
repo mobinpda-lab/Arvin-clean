@@ -161,7 +161,7 @@ void main() {
     expect(captured!.description, '');
   });
 
-  testWidgets('Quick Capture keeps compact RTL rows and readable width on phone and tablet',
+  testWidgets('Quick Capture keeps compact RTL rows and touch targets on 360-412dp phones',
       (tester) async {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -169,7 +169,7 @@ void main() {
     tester.platformDispatcher.textScaleFactorTestValue = 1.35;
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
 
-    for (final width in [320.0, 1024.0]) {
+    for (final width in [360.0, 412.0]) {
       tester.view.physicalSize = Size(width, 900);
       await tester.pumpWidget(
         MaterialApp(
@@ -241,8 +241,8 @@ void main() {
       final cancel = tester.getRect(find.byKey(const ValueKey('quick-capture-cancel')));
       expect(submit.width, greaterThan(cancel.width));
       expect(cancel.center.dy, closeTo(submit.center.dy, 1));
-      expect(submit.height, greaterThanOrEqualTo(40));
-      expect(cancel.height, greaterThanOrEqualTo(40));
+      expect(submit.height, greaterThanOrEqualTo(48));
+      expect(cancel.height, greaterThanOrEqualTo(48));
       for (final key in [
         'quick-capture-center-rollbox',
         'quick-capture-project-rollbox',
@@ -252,7 +252,7 @@ void main() {
         'quick-capture-reminder-rollbox',
         'quick-capture-recurrence-rollbox',
       ]) {
-        expect(tester.getRect(find.byKey(ValueKey(key))).height, 40);
+        expect(tester.getRect(find.byKey(ValueKey(key))).height, 48);
       }
       expect(
         tester.getRect(find.byKey(const ValueKey('quick-capture-priority-option-1'))).height,
