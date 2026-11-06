@@ -7,6 +7,47 @@ import 'package:arvin/models/task.dart';
 import 'package:arvin/quick_capture_dialog.dart';
 
 void main() {
+
+  testWidgets('Quick Capture can create a center inline and immediately select it', (tester) async {
+    String? createdName;
+    Task? captured;
+    await tester.pumpWidget(MaterialApp(
+      home: Directionality(
+        textDirection: TextDirection.rtl,
+        child: Scaffold(
+          body: QuickCaptureDialog(
+            onCreateCenter: (name) async {
+              createdName = name;
+              return 'center-inline';
+            },
+            onCaptured: (task) async => captured = task,
+          ),
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    final center = find.byKey(const ValueKey('quick-capture-center-rollbox'));
+    await tester.ensureVisible(center);
+    await tester.tap(center);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('افزودن').last);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, 'مرکز تازه');
+    await tester.tap(find.widgetWithText(FilledButton, 'افزودن').last);
+    await tester.pumpAndSettle();
+
+    expect(createdName, 'مرکز تازه');
+    expect(find.text('مرکز تازه'), findsOneWidget);
+    await tester.enterText(find.byKey(const ValueKey('quick-capture-input')), 'کار در مرکز جدید');
+    final submit = find.byKey(const ValueKey('quick-capture-submit'));
+    await tester.ensureVisible(submit);
+    await tester.tap(submit);
+    await tester.pumpAndSettle();
+    expect(captured?.centerId, 'center-inline');
+  });
+
+
   testWidgets('Quick Capture does not assign a priority or dates without an explicit choice',
       (tester) async {
     Task? captured;
@@ -179,6 +220,7 @@ void main() {
       expect(input.maxLines, 1);
       expect(input.minLines, 1);
 
+      final due = tester.getRect(find.byKey(const ValueKey('quick-capture-due-rollbox')));
       final center = tester.getRect(find.byKey(const ValueKey('quick-capture-center-rollbox')));
       final project = tester.getRect(find.byKey(const ValueKey('quick-capture-project-rollbox')));
       final category = tester.getRect(find.byKey(const ValueKey('quick-capture-category-rollbox')));
@@ -190,6 +232,7 @@ void main() {
           expect(first.top, lessThan(second.top));
         }
       }
+      expectRtlBefore(due, center);
       expectRtlBefore(center, project);
       expectRtlBefore(project, category);
       expectRtlBefore(category, tag);
