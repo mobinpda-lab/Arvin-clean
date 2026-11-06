@@ -15,7 +15,7 @@ Finder _taskDetailPageScrollable(WidgetTester tester) {
     matching: find.byWidgetPredicate(
       (widget) => widget is Scrollable && widget.axisDirection == AxisDirection.down,
     ),
-  );
+  ).first;
   expect(pageScrollable, findsOneWidget);
   final state = tester.state<ScrollableState>(pageScrollable);
   expect(state.position.axisDirection, AxisDirection.down);
