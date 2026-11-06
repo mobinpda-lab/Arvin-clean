@@ -20,8 +20,8 @@ void main() {
     expect(build, isNot(contains('ready_for_review')));
     expect(device, contains('branches: [main, master]'));
     expect(build, contains('cancel-in-progress: true'));
-    expect(device, contains('cancel-in-progress: true'));
-    expect(device, contains('max-parallel: 2'));
+    expect(device, contains('cancel-in-progress: false'));
+    expect(device, contains('max-parallel: 1'));
     expect(
       build,
       isNot(contains(r'github.event.pull_request.number || github.run_id')),
