@@ -103,7 +103,7 @@ void main() {
     expect(workflow, contains('max-parallel: 1'));
     expect(workflow, contains('timeout-minutes: 60'));
     expect(workflow, contains('cancel-in-progress: false'));
-    expect(workflow, contains('arvin-device-smoke-${{ github.event.pull_request.number || github.ref_name }}'));
+    expect(workflow, contains(r'arvin-device-smoke-${{ github.event.pull_request.number || github.ref_name }}'));
     // The workflow currently keeps the emulator script base64-encoded.
     // Decode the exact checked-in payload and assert the real driver command;
     // do not require a plaintext copy that can drift from the executed script.

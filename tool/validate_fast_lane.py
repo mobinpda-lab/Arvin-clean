@@ -136,7 +136,9 @@ for token in (
 require(device, 'if [ "$actual" != "$TARGET_SHA" ]; then', str(device_path))
 require(device, 'exit 1', str(device_path))
 
-require(device, 'max-parallel: 2', str(device_path))
+require(device, 'max-parallel: 1', str(device_path))
+require(device, 'timeout-minutes: 60', str(device_path))
+require(device, 'cancel-in-progress: false', str(device_path))
 # The emulator action's script is intentionally Base64-encoded in YAML.
 # Validate the decoded executable payload, not an absent plaintext copy.
 require(device, 'base64 --decode', str(device_path))
@@ -157,7 +159,7 @@ require(driver, 'onScreenshot:', str(driver_path))
 require(driver, "Directory('artifacts/device-smoke')", str(driver_path))
 require(driver, 'await outputDirectory.create(recursive: true);', str(driver_path))
 require(driver, "File('${outputDirectory.path}/$screenshotName.png')", str(driver_path))
-forbidden_device_parallel = 'max-parallel: 1'
+forbidden_device_parallel = 'max-parallel: 2'
 forbid(device, forbidden_device_parallel, str(device_path))
 
 print('Arvin Fast Lane workflow contract: OK')
