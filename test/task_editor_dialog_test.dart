@@ -66,7 +66,6 @@ void main() {
 
     final project = find.byKey(const ValueKey('task-editor-project-rollbox'));
     final category = find.byKey(const ValueKey('task-editor-category-rollbox'));
-    final project = find.byKey(const ValueKey('task-editor-project-rollbox'));
     final tags = find.byKey(const ValueKey('task-editor-tag-rollbox'));
     expect(category, findsOneWidget);
     expect(project, findsOneWidget);
