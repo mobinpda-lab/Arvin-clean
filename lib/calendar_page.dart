@@ -37,7 +37,7 @@ class CalendarReminder {
 
 enum _CalendarViewMode { day, week, month, year }
 
-enum _CalendarSourceFilter { all, deviceCalendar, reminders, incomplete }
+enum _CalendarSourceFilter { all, arvinCalendar, deviceCalendar, reminders, incomplete }
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({
@@ -112,6 +112,8 @@ class _CalendarPageState extends State<CalendarPage> {
   _CalendarViewMode _viewMode = _CalendarViewMode.week;
   _CalendarSourceFilter _sourceFilter = _CalendarSourceFilter.all;
   bool _wave796DiagnosticLogged = false;
+  bool _showSearch = false;
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -126,6 +128,49 @@ class _CalendarPageState extends State<CalendarPage> {
     final j = _dateFormatter.toJalali(date);
     return _dateFormatter.toPersianDigits(
       '${j.year}/${j.month.toString().padLeft(2, '0')}/${j.day.toString().padLeft(2, '0')}',
+    );
+  }
+
+  String _gregorianDate(DateTime date) => _dateFormatter.toPersianDigits(
+    '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}',
+  );
+
+  String _hijriDate(DateTime date) {
+    // Tabular Islamic civil calendar: deterministic display, not moon-sighting authority.
+    final a = (14 - date.month) ~/ 12;
+    final y = date.year + 4800 - a;
+    final m = date.month + 12 * a - 3;
+    final julianDay = date.day + ((153 * m + 2) ~/ 5) + 365 * y +
+        y ~/ 4 - y ~/ 100 + y ~/ 400 - 32045;
+    var l = julianDay - 1948440 + 10632;
+    final n = (l - 1) ~/ 10631;
+    l = l - 10631 * n + 354;
+    final j = ((10985 - l) ~/ 5316) * ((50 * l) ~/ 17719) +
+        (l ~/ 5670) * ((43 * l) ~/ 15238);
+    l = l - ((30 - j) ~/ 15) * ((17719 * j) ~/ 50) -
+        (j ~/ 16) * ((15238 * j) ~/ 43) + 29;
+    final month = (24 * l) ~/ 709;
+    final day = l - (709 * month) ~/ 24;
+    final year = 30 * n + j - 30;
+    return _dateFormatter.toPersianDigits(
+      '$year/${month.toString().padLeft(2, '0')}/${day.toString().padLeft(2, '0')}',
+    );
+  }
+
+  Widget _buildSelectedDateTriplet() {
+    final selected = _selectedDay;
+    return Padding(
+      key: const ValueKey('calendar-date-triplet'),
+      padding: const EdgeInsets.fromLTRB(14, 4, 14, 8),
+      child: Row(
+        children: [
+          Expanded(child: _DateTier(label: 'میلادی', value: _gregorianDate(selected))),
+          const SizedBox(width: 8),
+          Expanded(child: _DateTier(label: 'شمسی', value: _date(selected), prominent: true)),
+          const SizedBox(width: 8),
+          Expanded(child: _DateTier(label: 'قمری', value: _hijriDate(selected))),
+        ],
+      ),
     );
   }
 
@@ -186,6 +231,8 @@ class _CalendarPageState extends State<CalendarPage> {
     switch (_sourceFilter) {
       case _CalendarSourceFilter.all:
         return true;
+      case _CalendarSourceFilter.arvinCalendar:
+        return !id.startsWith('external-calendar:');
       case _CalendarSourceFilter.deviceCalendar:
         return id.startsWith('external-calendar:');
       case _CalendarSourceFilter.reminders:
@@ -202,7 +249,13 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   List<CalendarReminder> _filteredForDay(DateTime day) {
-    final items = _forDay(day).where(_matchesSourceFilter).toList();
+    final query = _searchQuery.trim().toLowerCase();
+    final items = _forDay(day).where((item) {
+      if (!_matchesSourceFilter(item)) return false;
+      if (query.isEmpty) return true;
+      return item.title.toLowerCase().contains(query) ||
+          (item.description?.toLowerCase().contains(query) ?? false);
+    }).toList();
     // Date-only / all-day entries lead the daily list; timed entries retain
     // chronological order after them.
     items.sort((a, b) {
@@ -235,6 +288,10 @@ class _CalendarPageState extends State<CalendarPage> {
             ButtonSegment<_CalendarSourceFilter>(
               value: _CalendarSourceFilter.all,
               label: Text('همه'),
+            ),
+            ButtonSegment<_CalendarSourceFilter>(
+              value: _CalendarSourceFilter.arvinCalendar,
+              label: Text('تقویم آروین'),
             ),
             ButtonSegment<_CalendarSourceFilter>(
               value: _CalendarSourceFilter.deviceCalendar,
@@ -560,7 +617,7 @@ class _CalendarPageState extends State<CalendarPage> {
                         ? null
                         : () => widget.onCreateTaskForDate!(date),
                     child: Container(
-                      height: 56,
+                      height: 68,
                       decoration: BoxDecoration(
                         color: selected ? ArvinColors.calendarSelectedDay : Colors.transparent,
                         borderRadius: BorderRadius.circular(14),
@@ -575,7 +632,15 @@ class _CalendarPageState extends State<CalendarPage> {
                               color: selected ? ArvinColors.tag : ArvinColors.textSecondary,
                             ),
                           ),
-                          const SizedBox(height: 2),
+                          const SizedBox(height: 1),
+                          Text(
+                            _gregorianDate(date).split('/').skip(1).join('/'),
+                            style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 8),
+                          ),
+                          Text(
+                            _hijriDate(date).split('/').skip(1).join('/'),
+                            style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 8),
+                          ),
                           FittedBox(
                             fit: BoxFit.scaleDown,
                             child: Row(
@@ -664,7 +729,7 @@ class _CalendarPageState extends State<CalendarPage> {
             itemCount: leading + days,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 7,
-              mainAxisExtent: 38,
+              mainAxisExtent: 52,
             ),
             itemBuilder: (_, index) {
               if (index < leading) {
@@ -701,7 +766,18 @@ class _CalendarPageState extends State<CalendarPage> {
                       mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(_dateFormatter.toPersianDigits('$day')),
+                        Text(
+                          _dateFormatter.toPersianDigits('$day'),
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                        Text(
+                          _gregorianDate(date).split('/').skip(1).join('/'),
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 8),
+                        ),
+                        Text(
+                          _hijriDate(date).split('/').skip(1).join('/'),
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 8),
+                        ),
                         if (count > 0)
                           Text(
                             _dateFormatter.toPersianDigits('$count'),
@@ -847,6 +923,16 @@ class _CalendarPageState extends State<CalendarPage> {
         ),
         child: Scaffold(
         appBar: AppBar(
+          leading: IconButton(
+            key: const ValueKey('calendar-search-toggle'),
+            tooltip: 'جستجو',
+            onPressed: () => setState(() {
+              _showSearch = !_showSearch;
+              if (!_showSearch) _searchQuery = '';
+            }),
+            icon: const Icon(Icons.search),
+          ),
+          centerTitle: true,
           title: Semantics(
             key: const ValueKey('calendar-sacred-header'),
             label: 'وَأُفَوِّضُ أَمْرِي إِلَى اللَّهِ',
@@ -863,18 +949,15 @@ class _CalendarPageState extends State<CalendarPage> {
           ),
           actions: [
             TextButton(
-              key: const ValueKey('calendar-date-jump'),
-              onPressed: _jumpToDate,
-              child: const Text('برو به تاریخ'),
+              key: const ValueKey('calendar-today'),
+              onPressed: _today,
+              child: Text(_date(IranClock.now())),
             ),
-            Padding(
-              padding: const EdgeInsetsDirectional.only(end: 8),
-              child: TextButton.icon(
-                key: const ValueKey('calendar-today'),
-                onPressed: _today,
-                icon: const Icon(Icons.today_outlined, size: 18),
-                label: const Text('امروز'),
-              ),
+            IconButton(
+              key: const ValueKey('calendar-date-jump'),
+              tooltip: 'برو به تاریخ',
+              onPressed: _jumpToDate,
+              icon: const Icon(Icons.event_available_outlined),
             ),
           ],
         ),
@@ -922,6 +1005,23 @@ class _CalendarPageState extends State<CalendarPage> {
                 ),
               ),
             ),
+            if (_showSearch)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 2, 12, 8),
+                child: TextField(
+                  key: const ValueKey('calendar-search-field'),
+                  autofocus: true,
+                  textDirection: TextDirection.rtl,
+                  decoration: const InputDecoration(
+                    prefixIcon: Icon(Icons.search),
+                    hintText: 'جستجو در کارها و یادآورها',
+                    isDense: true,
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: (value) => setState(() => _searchQuery = value),
+                ),
+              ),
+            _buildSelectedDateTriplet(),
             _buildViewModeSelector(),
             GestureDetector(
               key: const ValueKey('calendar-swipe-surface'),
@@ -1024,6 +1124,39 @@ class _CalendarPageState extends State<CalendarPage> {
         ),
       ),
       ),
+    );
+  }
+}
+
+class _DateTier extends StatelessWidget {
+  const _DateTier({
+    required this.label,
+    required this.value,
+    this.prominent = false,
+  });
+
+  final String label;
+  final String value;
+  final bool prominent;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(label, style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+        const SizedBox(height: 2),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            value,
+            maxLines: 1,
+            style: (prominent ? theme.textTheme.titleMedium : theme.textTheme.bodySmall)
+                ?.copyWith(fontWeight: prominent ? FontWeight.w800 : FontWeight.w500),
+          ),
+        ),
+      ],
     );
   }
 }
