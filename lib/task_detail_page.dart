@@ -1987,6 +1987,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             const SizedBox(height: 10),
             _summaryCard(),
             const SizedBox(height: 10),
+            _templateSourceCard(),
+            const SizedBox(height: 10),
             _dueDateCard(),
             const SizedBox(height: 10),
             _assigneeCard(),
