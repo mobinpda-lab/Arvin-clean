@@ -1458,3 +1458,17 @@ The canonical A–J baseline remains complete in §3 and the detailed A1–J7 ma
 - GitHub workflow API برای HEAD کد فعلی اجرای جدیدی گزارش نکرد؛ بنابراین نتیجه اصلاحات و Layout Smoke روی این HEAD هنوز **NOT VERIFIED** است. هیچ نتیجه قدیمی به این SHA منتقل نمی‌شود.
 - مسیر SVGها، dependency رندر SVG و تست روشن/تاریک/چندرزولوشن تا دسترسی به تصویر مرجع و پیاده‌سازی واقعی باقی است.
 - PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## ۱۴۰۵/۰۸/۱۵ (2026-11-06) — ممیزی موازی CI، APK و Device Smoke (هدف شواهد: `33cbccca804a6f33b22a84e37ea1fc1f5600cd2b`)
+
+- PR #3052: OPEN / DRAFT / UNMERGED؛ head مستندات در حال تکمیل؛ base SHA مشاهده‌شده برای main برابر `45e4202b03a434459e4c021a04efa7e8396359db`.
+- ممیزی کامیت `33cbccc`: فقط سه فایل تست قرارداد CI، CHANGELOG و سند continuity تغییر کرده‌اند. در تست فقط دو مقدار مورد انتظار Device Smoke به `cancel-in-progress: false` و `max-parallel: 1` اصلاح شده؛ هیچ assertion حذف/skip/تضعیف نشده است. Workflow تغییر نکرده و blob SHA آن `030aa62801e8885994b997975bfbfc1a4e910dab` است.
+- روی SHA هدف: Production Loop `42209856056`, Orchestrator `42209855911`, PR Wakeup `42209855944`, Parallel Wave `42209855856`, G1 lock sync `42209855749` و Follow-up File Persistence `42209856031` موفق‌اند.
+- Build `42209855954`: Analyze و test-0 تا test-5 و Visual موفق؛ APK Release job موفق و artifact `13498617943` تولید شده؛ APK Debug و Staging هنوز در حال اجرا. SHA-256 فایل Release APK استخراج‌شده `34c7c7a0d326c63ecee5852c99595466c3b7a302a8a088a41f2a9a76247acad6` است، اما امضای مستقل/کلید تولیدی تأیید نشده.
+- Draft Review APK `42209856090`: SUCCESS؛ artifact `13498418932`؛ ZIP digest `68c61ecfd1cb25eb23fba697dbe5ffb0213b3150a4e7c36758f4e9f814c1da2a`. APK SHA-256 `a4040ef1939b42c82b7565484f32108727faa89f107636fd4a9832c7e4132fc5`؛ v2/v3 PASS؛ debuggable=false؛ package staging؛ Vazirmatn Regular/Medium/Bold موجود؛ کلید موقت review-only و publishable=false.
+- Calendar Provider `42209855984` هنوز IN PROGRESS؛ Device Smoke جدید `42209855748` هنوز PENDING و بدون artifact.
+- Device Smoke قدیمی `42205465399` متعلق به SHA `59a321d333bd867049cf7f5b87be82ad9cb8e68e` است: Boot و Navigation SUCCESS با artifacts `13498760412` و `13497798480`؛ Calendar IN PROGRESS؛ Reminder/Vazirmatn، Quick Capture، Follow-up Persistence و Task Lifecycle QUEUED. هیچ پذیرش Quick Capture یا Calendar از این Run ثبت نشده است.
+- مستند checkpoint: `docs/project-continuity/ARVIN_PARALLEL_EVIDENCE_CHECKPOINT_2026-11-06.md`.
+- نتیجه‌ها فقط به SHA مربوط به همان Run تعلق دارند. تغییر مستندات، HEAD جدید می‌سازد و اجرای exact-head تازه برای پذیرش همان HEAD لازم است.
+- PR #3052 همچنان OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ **BLOCKED — RELEASE: NO-GO**.
