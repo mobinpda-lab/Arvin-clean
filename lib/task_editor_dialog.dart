@@ -1242,85 +1242,132 @@ Future<void> _pickDueDate() async {
                         spacing: 8,
                         runSpacing: 8,
                         children: [
-                          SizedBox(width: itemWidth, child: ArvinRollBox<String>(
-                            key: const ValueKey('task-editor-category-rollbox'),
-                          label: 'دسته',
-                          valueLabel: _category?.trim().isNotEmpty == true ? _category!.trim() : 'دسته',
-                          icon: Icons.grid_view_rounded,
-                          color: ArvinColors.category,
-                          emptyLabel: 'بدون دسته',
-                          items: _knownCategories.map((value) => value.trim()).where((value) => value.isNotEmpty).toSet().toList()
-                              .map((value) => ArvinRollItem<String>(value: value, label: value, icon: Icons.grid_view_rounded, color: ArvinColors.category)).toList(),
-                          onSelected: (value) => setState(() => _category = value),
-                          onCreate: () async {
-                            final value = await _promptNewName('دسته جدید');
-                            if (value == null) return null;
-                            final created = await widget.onCreateCategory?.call(value) ?? value;
-                            if (!mounted) return created;
-                            setState(() {
-                              _category = created;
-                              if (!_knownCategories.contains(created)) _knownCategories.add(created);
-                            });
-                            return created;
-                          },
-                            )),
-                          )),
-                          SizedBox(width: itemWidth, child: ArvinRollBox<String>(
-                            key: const ValueKey('task-editor-project-rollbox'),
-                          label: 'پروژه',
-                          valueLabel: _selectedProjectId == null ? 'پروژه' : _projects.where((p) => p.id == _selectedProjectId).map((p) => p.title).isEmpty ? 'پروژه' : _projects.where((p) => p.id == _selectedProjectId).map((p) => p.title).first,
-                          icon: Icons.folder_outlined,
-                          color: ArvinColors.project,
-                          emptyLabel: 'بدون پروژه',
-                          items: _projects.where((project) => !project.isArchived || project.id == _selectedProjectId).map((project) => ArvinRollItem<String>(
-                            value: project.id,
-                            label: project.isArchived ? '${project.title} (بایگانی‌شده)' : project.title,
-                            icon: Icons.folder_outlined,
-                            color: project.isArchived ? ArvinColors.neutral : ArvinColors.project,
-                          )).toList(),
-                          onSelected: (value) => setState(() => _selectedProjectId = value),
-                          onCreate: () async {
-                            final title = await _promptNewName('پروژه جدید');
-                            if (title == null || widget.onCreateProject == null) return null;
-                            final createdId = await widget.onCreateProject!(title);
-                            if (!mounted || createdId == null || createdId.trim().isEmpty) {
-                              return createdId;
-                            }
-                            final existing = _projects.indexWhere((project) => project.id == createdId);
-                            setState(() {
-                              if (existing >= 0) {
-                                _projects[existing] = _projects[existing].copyWith(title: title);
-                              } else {
-                                _projects = [
-                                  ..._projects,
-                                  ProjectPlan(id: createdId, title: title),
-                                ];
-                              }
-                              _selectedProjectId = createdId;
-                            });
-                            widget.onProjectChanged?.call(createdId);
-                            return createdId;
-                          },
-                        ),
-                          )),
-                          SizedBox(width: wide ? itemWidth : constraints.maxWidth, child: ArvinTagRollBox(
-                            key: const ValueKey('task-editor-tag-rollbox'),
-                          tags: _knownTags,
-                          selectedTags: _tags,
-                          onChanged: (value) => setState(() => _tags = List<String>.of(value)),
-                          onCreate: () async {
-                            final value = await _promptNewName('برچسب جدید');
-                            if (value == null) return null;
-                            final created = await widget.onCreateTag?.call(value) ?? value;
-                            if (!mounted) return created;
-                            setState(() {
-                              if (!_tags.contains(created)) _tags.add(created);
-                              if (!_knownTags.contains(created)) _knownTags.add(created);
-                            });
-                            return created;
-                          },
-                        ),
-                      ),
+                          SizedBox(
+                            width: itemWidth,
+                            child: ArvinRollBox<String>(
+                              key: const ValueKey('task-editor-category-rollbox'),
+                              label: 'دسته',
+                              valueLabel: _category?.trim().isNotEmpty == true
+                                  ? _category!.trim()
+                                  : 'دسته',
+                              icon: Icons.grid_view_rounded,
+                              color: ArvinColors.category,
+                              emptyLabel: 'بدون دسته',
+                              items: _knownCategories
+                                  .map((value) => value.trim())
+                                  .where((value) => value.isNotEmpty)
+                                  .toSet()
+                                  .map((value) => ArvinRollItem<String>(
+                                        value: value,
+                                        label: value,
+                                        icon: Icons.grid_view_rounded,
+                                        color: ArvinColors.category,
+                                      ))
+                                  .toList(),
+                              onSelected: (value) => setState(() => _category = value),
+                              onCreate: () async {
+                                final value = await _promptNewName('دسته جدید');
+                                if (value == null) return null;
+                                final created =
+                                    await widget.onCreateCategory?.call(value) ?? value;
+                                if (!mounted) return created;
+                                setState(() {
+                                  _category = created;
+                                  if (!_knownCategories.contains(created)) {
+                                    _knownCategories.add(created);
+                                  }
+                                });
+                                return created;
+                              },
+                            ),
+                          ),
+                          SizedBox(
+                            width: itemWidth,
+                            child: ArvinRollBox<String>(
+                              key: const ValueKey('task-editor-project-rollbox'),
+                              label: 'پروژه',
+                              valueLabel: _selectedProjectId == null
+                                  ? 'پروژه'
+                                  : _projects
+                                      .where((p) => p.id == _selectedProjectId)
+                                      .map((p) => p.title)
+                                      .firstOrNull ??
+                                    'پروژه',
+                              icon: Icons.folder_outlined,
+                              color: ArvinColors.project,
+                              emptyLabel: 'بدون پروژه',
+                              items: _projects
+                                  .where((project) =>
+                                      !project.isArchived ||
+                                      project.id == _selectedProjectId)
+                                  .map((project) => ArvinRollItem<String>(
+                                        value: project.id,
+                                        label: project.isArchived
+                                            ? '${project.title} (بایگانی‌شده)'
+                                            : project.title,
+                                        icon: Icons.folder_outlined,
+                                        color: project.isArchived
+                                            ? ArvinColors.neutral
+                                            : ArvinColors.project,
+                                      ))
+                                  .toList(),
+                              onSelected: (value) =>
+                                  setState(() => _selectedProjectId = value),
+                              onCreate: () async {
+                                final title = await _promptNewName('پروژه جدید');
+                                if (title == null || widget.onCreateProject == null) {
+                                  return null;
+                                }
+                                final createdId = await widget.onCreateProject!(title);
+                                if (!mounted ||
+                                    createdId == null ||
+                                    createdId.trim().isEmpty) {
+                                  return createdId;
+                                }
+                                final existing = _projects.indexWhere(
+                                  (project) => project.id == createdId,
+                                );
+                                setState(() {
+                                  if (existing >= 0) {
+                                    _projects[existing] =
+                                        _projects[existing].copyWith(title: title);
+                                  } else {
+                                    _projects = [
+                                      ..._projects,
+                                      ProjectPlan(id: createdId, title: title),
+                                    ];
+                                  }
+                                  _selectedProjectId = createdId;
+                                });
+                                widget.onProjectChanged?.call(createdId);
+                                return createdId;
+                              },
+                            ),
+                          ),
+                          SizedBox(
+                            width: wide ? itemWidth : constraints.maxWidth,
+                            child: ArvinTagRollBox(
+                              key: const ValueKey('task-editor-tag-rollbox'),
+                              tags: _knownTags,
+                              selectedTags: _tags,
+                              onChanged: (value) =>
+                                  setState(() => _tags = List<String>.of(value)),
+                              onCreate: () async {
+                                final value = await _promptNewName('برچسب جدید');
+                                if (value == null) return null;
+                                final created =
+                                    await widget.onCreateTag?.call(value) ?? value;
+                                if (!mounted) return created;
+                                setState(() {
+                                  if (!_tags.contains(created)) _tags.add(created);
+                                  if (!_knownTags.contains(created)) {
+                                    _knownTags.add(created);
+                                  }
+                                });
+                                return created;
+                              },
+                            ),
+                          ),
                         ],
                       );
                     },
