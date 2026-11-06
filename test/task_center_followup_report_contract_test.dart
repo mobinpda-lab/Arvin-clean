@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:arvin/models/task.dart';
@@ -5,6 +6,7 @@ import 'package:arvin/models/person_reference.dart';
 import 'package:arvin/services/person_follow_up_report_projection.dart';
 import 'package:arvin/services/task_edit_apply_service.dart';
 import 'package:arvin/services/task_report_filter.dart';
+import 'package:arvin/quick_capture_dialog.dart';
 
 void main() {
   test('Task JSON preserves independent Center ID and true all-day due date', () {
@@ -60,7 +62,7 @@ void main() {
         ),
       ],
     );
-    const person = PersonReference(id: 'person-42', displayName: 'سارا');
+    final person = PersonReference(id: 'person-42', displayName: 'سارا');
 
     final projection = const PersonFollowUpReportProjection();
     final matching = projection.project(
@@ -80,3 +82,38 @@ void main() {
     expect(notMatching, isEmpty);
   });
 }
+
+  testWidgets('Quick Capture saves the explicit no-time choice as a true all-day Task', (tester) async {
+    Task? captured;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: QuickCaptureDialog(
+            idFactory: () => 'quick-capture-all-day',
+            now: () => DateTime(2026, 11, 6, 9, 45),
+            onCaptured: (task) async { captured = task; },
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('quick-capture-input')),
+      'آماده‌سازی کیف مدرسه',
+    );
+    await tester.tap(find.byKey(const ValueKey('quick-capture-due-rollbox')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('امروز').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('quick-capture-no-time')));
+    await tester.pumpAndSettle();
+    final submit = find.byKey(const ValueKey('quick-capture-submit'));
+    await tester.ensureVisible(submit);
+    await tester.tap(submit);
+    await tester.pumpAndSettle();
+
+    expect(captured, isNotNull);
+    expect(captured!.allDay, isTrue);
+    expect(captured!.dueDate, DateTime(2026, 11, 6));
+    expect(captured!.reminderDate, isNull);
+  });

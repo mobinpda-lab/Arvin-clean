@@ -12,8 +12,9 @@ PR: #3052
   - Full Task Details now has a Center selector and Inline Add backed by `CenterStore`.
   - Quick Capture writes its selected Center into the canonical Task model.
   - Full Task Details uses a chained Jalali date → time flow for both create and edit.
-  - Both full form and Quick Capture expose the explicit «بدون ساعت» action and persist `allDay=true`; automatic due-time reminder is cleared for all-day tasks.
+  - Both full form and Quick Capture expose the explicit «بدون ساعت» action, including when no date has yet been selected; Quick Capture can open a Jalali date-only picker directly. The canonical Task persists `allDay=true`; automatic due-time reminder is cleared for all-day tasks.
 - `eaddf66fd512e11a1e16bb0e056dac4824699d54` — `feat(report): reuse Home filters and match direct Center IDs`
+- `286485ad1d73231dfb2b7f891803026cf190fd87` — `fix(forms): allow date-only selection before choosing a time`
   - Extracted the Home filter chip presentation into reusable `HomeFilterPill`.
   - Home and Report Center use the same component, with Report Center exposing the five dimensions in Home order: Time, Center, Project, Category, Tags.
   - Home and Report Center matching now recognizes the direct Task Center ID as well as the legacy Project Center association.
@@ -25,7 +26,7 @@ PR: #3052
 | 2. Chained date/time + no-time | Chained date → time enabled in full form for both new and existing Tasks; Quick Capture custom date selection already chains to time. Added explicit «بدون ساعت» controls and all-day semantics in both entry surfaces. | Exact-head tests, serialization checks and visual/device acceptance. |
 | 3. Center selector + Inline Add | Added direct optional `Task.centerId`, JSON persistence, full form selector and canonical CenterStore Inline Add; Quick Capture now persists its selected Center. | Exact-head analyze/tests, existing-task round-trip and backup compatibility tests. |
 | 4. Shared five filters | Extracted shared `HomeFilterPill` and reused it in Report Center in the same five-filter order; direct Task Center IDs participate in Home and Report Center matching. | Widget tests for navigation, filter selection and combined AND semantics. |
-| 5. Tests, analyze and continuity | Added focused regression tests for Task Center/all-day serialization, edit application, direct Center report filtering, and personId report projection. | Flutter analyze and complete test suite must pass on the final exact HEAD; no local Flutter SDK was available in this execution environment. |
+| 5. Tests, analyze and continuity | Added focused regression tests for Task Center/all-day serialization, edit application, direct Center report filtering, personId report projection, and Quick Capture's explicit all-day action. | Flutter analyze and complete test suite must pass on the final exact HEAD; no local Flutter SDK was available in this execution environment. |
 
 ## Validation and governance
 - The source commits above were pushed only to the authorized branch.

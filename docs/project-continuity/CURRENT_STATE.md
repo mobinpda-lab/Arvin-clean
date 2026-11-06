@@ -538,3 +538,11 @@ PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ **BLOCKED — RELE
 - Added focused regression coverage for Task Center/all-day JSON, edit application, personId projection and direct Center report filtering. Exact-head CI remains required; flutter analyze is not yet claimed PASS.
 - PR #3052 remains OPEN / DRAFT / UNMERGED. main unchanged. Release remains BLOCKED — RELEASE: NO-GO.
 - Detailed evidence: `docs/project-continuity/WAVE_5_GAPS_IMPLEMENTATION_2026-11-06.md`.
+
+
+## اصلاح انتخاب تاریخ فقط بدون ساعت — ۱۴۰۵/۰۸/۱۵
+
+- در فرم کامل و ثبت سریع، گزینهٔ «بدون ساعت» از حالت بدون تاریخ نیز قابل استفاده است؛ انتخاب تاریخ شمسی بدون بازکردن انتخابگر ساعت انجام می‌شود.
+- انتخابگر ساعت در فرم کامل همچنان با انتخاب تاریخ به‌صورت زنجیره‌ای باز می‌شود؛ انتخاب «بدون ساعت» حالت `allDay=true` را نگه می‌دارد و یادآور خودکار ساعت‌دار را حذف می‌کند.
+- کامیت: `286485ad1d73231dfb2b7f891803026cf190fd87`.
+- آزمون Widget برای مسیر Quick Capture به مجموعهٔ آزمون‌های قرارداد مرکز/پیگیری افزوده شد؛ نتیجهٔ آن فقط پس از CI exact-HEAD قابل تأیید است.
