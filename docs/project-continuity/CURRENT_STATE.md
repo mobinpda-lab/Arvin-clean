@@ -304,3 +304,20 @@ Release: BLOCKED — RELEASE: NO-GO
 - Follow-up Persistence run 42094218060: SUCCESS. G1 lock sync run 42094218111: SUCCESS.
 - `flutter analyze`: PASS on target SHA. `flutter test`: FAIL, aggregate 1,198 PASS / 32 FAIL. Do not mark the test suite green.
 - PR #3052 governance remains OPEN / DRAFT / UNMERGED by instruction; no main write, merge, or release is authorized. **BLOCKED — RELEASE: NO-GO**.
+
+## زیرساخت برندینگ، فونت و تداوم — 2026-11-06 (۱۴۰۵/۰۸/۱۵)
+- Target branch: `fix/recovery-calendar-device-smoke-2026-10-31`; baseline SHA before this documentation commit: `25dfa7e9adb50570b2c9a23bb9edd1e0a4a34893`.
+- Sacred vector assets were already present at the canonical paths on the target branch; no duplicate or replacement files were created:
+  - `assets/images/branding/bismillah.svg` (blob `421f2fbaa27764c0b11962465cc351b2537239c8`, 30,058 bytes).
+  - `assets/images/branding/tafweez.svg` (blob `dd5db5b401eceef981b417dd7f781d9994ac4e10`, 22,553 bytes).
+- `pubspec.yaml` already declares active dependency `flutter_svg: ^2.3.2` and includes `assets/images/branding/` under Flutter assets. No dependency or asset-registration edit was necessary.
+- Global text-family contract verified in source: `ArvinTheme.fontFamily = 'Vazirmatn'` in `lib/core/theme/arvin_theme.dart`; `AppFonts.vazirmatnFamily = 'Vazirmatn'` in `lib/theme/app_fonts.dart`; light and dark MaterialApp ThemeData both set `fontFamily: AppFonts.vazirmatnFamily` in `lib/main.dart`. No Amiri/Neyriz references were found in these inspected global font configuration files. This is a scoped source inspection, not a repository-wide proof that no secondary font string exists anywhere.
+- Recent test-helper correction: commit `25dfa7e9adb50570b2c9a23bb9edd1e0a4a34893`, message `test: select primary task detail scrollable`; `_taskDetailPageScrollable` now selects the first downward-axis Scrollable within `task-detail-content-list` using `.first`.
+- Exact-SHA CI for `25dfa7e9adb50570b2c9a23bb9edd1e0a4a34893`, latest observed status:
+  - Build run `42140371675`: Analyze SUCCESS; test-0 SUCCESS; test-1 SUCCESS; test-5 SUCCESS; test-2 FAILURE; test-3 FAILURE; test-4 FAILURE. Debug, Staging and Release APK jobs were still IN_PROGRESS at this observation. Overall Build: IN_PROGRESS; test suite is NOT green.
+  - Device Smoke run `42140371697`: preparation SUCCESS; boot and navigation IN_PROGRESS; calendar-segmented-view, reminder-vazirmatn, quick-capture, follow-up-persistence and task-lifecycle QUEUED. Overall NOT COMPLETE.
+  - Draft Review APK run `42140371696`: IN_PROGRESS.
+  - Follow-up Persistence run `42140371677`: SUCCESS.
+  - Calendar Provider run `42140371756`: IN_PROGRESS.
+- This continuity update is documentation-only and does not cancel, modify, or replace any active workflow. Results from the previous SHA do not transfer to a later SHA.
+- PR #3052 remains OPEN / DRAFT / UNMERGED by instruction. No write to `main`, merge, or release is authorized. **BLOCKED — RELEASE: NO-GO** until all required exact-SHA test shards and validation lanes pass and product-owner approval is recorded.
