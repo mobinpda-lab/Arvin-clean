@@ -793,7 +793,7 @@ Future<DateTime?> _pickCustomDue() async {
                         spacing: 6,
                         runSpacing: 6,
                         children: [
-                          SizedBox(width: 124, child: ArvinRollBox<Object?>(
+                          SizedBox(width: MediaQuery.sizeOf(context).width > 700 ? 248 : 124, child: ArvinRollBox<Object?>(
                             key: const ValueKey('quick-capture-due-rollbox'),
                             label: 'تاریخ و ساعت',
                             compact: true,
@@ -810,25 +810,6 @@ Future<DateTime?> _pickCustomDue() async {
                             onCreate: _saving ? null : _pickCustomDue,
                             onSelected: (value) => _setDueDate(value is DateTime ? value : null),
                           )),
-                          OutlinedButton.icon(
-                            key: const ValueKey('quick-capture-no-time'),
-                            onPressed: _saving || _dueAllDay
-                                ? null
-                                : _dueDate == null
-                                    ? _pickDateOnlyDue
-                                    : () => setState(() {
-                                          _dueDate = DateTime(_dueDate!.year, _dueDate!.month, _dueDate!.day);
-                                          _dueAllDay = true;
-                                          _syncAutomaticReminder();
-                                        }),
-                            icon: const Icon(Icons.access_time_rounded, size: 18),
-                            label: const Text('بدون ساعت'),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: ArvinColors.time,
-                              side: BorderSide(color: ArvinColors.time.withAlpha(90)),
-                              visualDensity: VisualDensity.compact,
-                            ),
-                          ),
                           SizedBox(width: 148, child: ArvinRollBox<Object?>(
                             key: const ValueKey('quick-capture-reminder-rollbox'),
                             label: 'یادآور',
@@ -872,6 +853,29 @@ Future<DateTime?> _pickCustomDue() async {
                             onSelected: (value) => setState(() => _recurrence = value),
                           )),
                         ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: OutlinedButton.icon(
+                      key: const ValueKey('quick-capture-no-time'),
+                      onPressed: _saving || _dueAllDay
+                          ? null
+                          : _dueDate == null
+                              ? _pickDateOnlyDue
+                              : () => setState(() {
+                                    _dueDate = DateTime(_dueDate!.year, _dueDate!.month, _dueDate!.day);
+                                    _dueAllDay = true;
+                                    _syncAutomaticReminder();
+                                  }),
+                      icon: const Icon(Icons.access_time_rounded, size: 18),
+                      label: const Text('بدون ساعت'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: ArvinColors.time,
+                        side: BorderSide(color: ArvinColors.time.withAlpha(90)),
+                        visualDensity: VisualDensity.compact,
                       ),
                     ),
                   ),

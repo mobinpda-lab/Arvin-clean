@@ -1288,7 +1288,9 @@ Future<void> _pickDueDate() async {
                   LayoutBuilder(
                     builder: (context, constraints) {
                       final wide = constraints.maxWidth >= 480;
-                      final itemWidth = wide
+                      final largeText = MediaQuery.textScalerOf(context).scale(1) > 1.2;
+                      final threeColumns = wide && !largeText;
+                      final itemWidth = threeColumns
                           ? (constraints.maxWidth - 16) / 3
                           : (constraints.maxWidth - 8) / 2;
                       return Wrap(
@@ -1442,7 +1444,7 @@ Future<void> _pickDueDate() async {
                             ),
                           ),
                           SizedBox(
-                            width: wide ? itemWidth : constraints.maxWidth,
+                            width: threeColumns ? itemWidth : constraints.maxWidth,
                             child: ArvinTagRollBox(
                               key: const ValueKey('task-editor-tag-rollbox'),
                               tags: _knownTags,

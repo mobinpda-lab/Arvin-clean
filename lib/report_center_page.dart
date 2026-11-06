@@ -861,15 +861,13 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                 children: [
-            SizedBox(
-              height: 42,
-              child: SingleChildScrollView(
-                key: const ValueKey('report-home-filter-scroll'),
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                child: Row(
-                  textDirection: TextDirection.rtl,
-                  children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Wrap(
+                textDirection: TextDirection.rtl,
+                spacing: 0,
+                runSpacing: 4,
+                children: [
                     HomeFilterPill(
                       key: const ValueKey('report-home-filter-time'),
                       label: _timePreset == ReportTimePreset.all && _fromDate == null && _toDate == null && _fromTime == null && _toTime == null ? 'زمان' : _timeLabel(_timePreset),
@@ -915,8 +913,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                       active: _tags.isNotEmpty,
                       onPressed: () => _jumpToFilter(_tagSectionKey),
                     ),
-                  ],
-                ),
+                ],
               ),
             ),
             _Section(

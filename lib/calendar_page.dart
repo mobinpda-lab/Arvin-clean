@@ -164,8 +164,6 @@ class _CalendarPageState extends State<CalendarPage> {
       padding: const EdgeInsets.fromLTRB(14, 4, 14, 8),
       child: Row(
         children: [
-          Expanded(child: _DateTier(label: 'میلادی', value: _gregorianDate(selected))),
-          const SizedBox(width: 8),
           Expanded(child: _DateTier(label: 'شمسی', value: _date(selected), prominent: true)),
           const SizedBox(width: 8),
           Expanded(child: _DateTier(label: 'قمری', value: _hijriDate(selected))),
