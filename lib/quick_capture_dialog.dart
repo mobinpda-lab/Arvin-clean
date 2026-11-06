@@ -633,6 +633,7 @@ Future<DateTime?> _pickCustomDue() async {
                               icon: Icons.business_outlined,
                               color: ArvinColors.primary,
                               emptyLabel: 'بدون محدودیت مرکز',
+                              createLabel: '+ افزودن مرکز',
                               items: availableCenters.map((center) => ArvinRollItem<String>(
                                 value: center.id, label: center.name,
                                 icon: Icons.business_outlined, color: ArvinColors.primary,
@@ -697,7 +698,7 @@ Future<DateTime?> _pickCustomDue() async {
                               icon: Icons.folder_outlined,
                               color: ArvinColors.project,
                               emptyLabel: 'بدون پروژه',
-                              createLabel: 'ایجاد جدید',
+                              createLabel: '+ افزودن پروژه',
                               items: availableProjects.map((project) => ArvinRollItem<String>(
                                 value: project.id,
                                 label: project.isArchived ? '${project.title} (بایگانی‌شده)' : project.title,
@@ -769,6 +770,7 @@ Future<DateTime?> _pickCustomDue() async {
                               icon: Icons.grid_view_rounded,
                               color: ArvinColors.tag,
                               emptyLabel: 'بدون دسته',
+                              createLabel: '+ افزودن دسته',
                               items: _knownCategories.map((v) => v.trim()).where((v) => v.isNotEmpty)
                                   .map((v) => ArvinRollItem<String>(
                                     value: v, label: v, icon: Icons.grid_view_rounded, color: ArvinColors.tag,
