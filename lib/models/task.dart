@@ -175,6 +175,7 @@ class Task {
     this.createdAt,
     this.updatedAt,
     this.dueDate,
+    this.centerId,
     this.allDay = false,
     this.followUpEnabled = false,
     this.followUpDate,
@@ -209,6 +210,8 @@ class Task {
   DateTime? createdAt;
   DateTime? updatedAt;
   DateTime? dueDate;
+  /// Independent canonical Center reference; Project membership remains separate.
+  String? centerId;
   /// True when the due date is intentionally date-only (All-Day).
   /// The timestamp remains for date identity; consumers must not present its time.
   bool allDay;
@@ -356,6 +359,7 @@ class Task {
         'createdAt': createdAt?.toIso8601String(),
         'updatedAt': updatedAt?.toIso8601String(),
         'dueDate': dueDate?.toIso8601String(),
+        if (centerId != null && centerId!.trim().isNotEmpty) 'centerId': centerId,
         if (allDay) 'allDay': true,
         'followUpEnabled': followUpEnabled,
         'followUpDate': followUpDate?.toIso8601String(),
@@ -476,6 +480,9 @@ class Task {
       dueDate: json['dueDate'] == null
           ? null
           : DateTime.tryParse(json['dueDate'] as String),
+      centerId: (json['centerId'] as String?)?.trim().isEmpty == true
+          ? null
+          : (json['centerId'] as String?)?.trim(),
       allDay: json['allDay'] as bool? ?? false,
       followUpEnabled: json['followUpEnabled'] as bool? ??
           loadedFollowUps.isNotEmpty || legacyFollowUpDate != null,

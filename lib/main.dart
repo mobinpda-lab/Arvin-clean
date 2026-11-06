@@ -634,6 +634,15 @@ class _HomePageState extends State<HomePage> {
     return created;
   }
 
+  Future<String?> _createCenter(String value) async {
+    final name = value.trim();
+    if (name.isEmpty) return null;
+    final id = 'center_${DateTime.now().microsecondsSinceEpoch}';
+    await CenterStore().create(id: id, name: name);
+    if (mounted) await _load();
+    return id;
+  }
+
   Future<void> _save() async {
     if (loadFailure != null) {
       throw StateError(
@@ -1410,6 +1419,9 @@ class _HomePageState extends State<HomePage> {
         initialDescription: reminder.description,
         initialDueDate: reminder.date,
         projects: editorContext.projects,
+        centers: centers,
+        selectedCenterId: null,
+        onCreateCenter: _createCenter,
         selectedProjectId: editorContext.selectedProjectId,
         onProjectChanged: (value) => selectedProjectId = value,
         onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
@@ -1468,6 +1480,9 @@ class _HomePageState extends State<HomePage> {
       builder: (_) => ArvinTaskEditorDialog(
         initialDueDate: DateTime(date.year, date.month, date.day),
         projects: editorContext.projects,
+        centers: centers,
+        selectedCenterId: null,
+        onCreateCenter: _createCenter,
         selectedProjectId: editorContext.selectedProjectId,
         onProjectChanged: (value) => selectedProjectId = value,
         onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
@@ -1540,6 +1555,9 @@ class _HomePageState extends State<HomePage> {
             builder: (_) => ArvinTaskEditorDialog(
               task: draft,
               projects: editedContext.projects,
+              centers: centers,
+              selectedCenterId: draft.centerId,
+              onCreateCenter: _createCenter,
               selectedProjectId: selectedProjectId ?? editedContext.selectedProjectId,
               onProjectChanged: (value) => selectedProjectId = value,
         onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
@@ -1610,6 +1628,9 @@ class _HomePageState extends State<HomePage> {
       builder: (_) => ArvinTaskEditorDialog(
         task: old,
         projects: editorContext.projects,
+        centers: centers,
+        selectedCenterId: old.centerId,
+        onCreateCenter: _createCenter,
         selectedProjectId: editorContext.selectedProjectId,
         onProjectChanged: (value) => selectedProjectId = value,
         onCreateProject: (title) => wave2ProductFastTrack.createProject(title),

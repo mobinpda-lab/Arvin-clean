@@ -73,6 +73,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   bool _saving = false;
   TaskPriority _priority = TaskPriority.none;
   DateTime? _dueDate;
+  bool _dueAllDay = false;
   DateTime? _reminderDate;
   bool _reminderFollowsDueTime = true;
   RecurrenceRule? _recurrence;
@@ -123,7 +124,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
 
   void _syncAutomaticReminder() {
     if (!_reminderFollowsDueTime) return;
-    if (_dueDate == null) {
+    if (_dueDate == null || _dueAllDay) {
       _reminderDate = null;
     } else {
       _reminderDate = _dueDate;
@@ -133,6 +134,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   void _setDueDate(DateTime? value) {
     setState(() {
       _dueDate = value;
+      _dueAllDay = false;
       _syncAutomaticReminder();
     });
   }
@@ -149,6 +151,8 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     task.description = '';
     _syncAutomaticReminder();
     task.dueDate = _dueDate;
+    task.centerId = _centerId;
+    task.allDay = _dueDate != null && _dueAllDay;
     task.reminderDate = _reminderDate;
     task.recurrence = _recurrence;
     final category = _categoryController.text.trim();
@@ -237,10 +241,11 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     }
   }
 
-  String _dateLabel(DateTime? value) {
+  String _dateLabel(DateTime? value, {bool dateOnly = false}) {
     if (value == null) return 'بدون موعد';
     final formatter = const PersianDateFormatter();
     final date = formatter.format(value, usePersianDate: true);
+    if (dateOnly) return date;
     final time = formatter.formatTime(value.hour, value.minute);
     return '$date • $time';
   }
@@ -773,7 +778,7 @@ Future<DateTime?> _pickCustomDue() async {
                             key: const ValueKey('quick-capture-due-rollbox'),
                             label: 'تاریخ و ساعت',
                             compact: true,
-                            valueLabel: _dueDate == null ? 'تاریخ و ساعت' : _dateLabel(_dueDate),
+                            valueLabel: _dueDate == null ? 'تاریخ و ساعت' : _dateLabel(_dueDate, dateOnly: _dueAllDay),
                             icon: Icons.calendar_today_outlined,
                             color: ArvinColors.time,
                             emptyLabel: 'بدون تاریخ و ساعت',
@@ -786,6 +791,23 @@ Future<DateTime?> _pickCustomDue() async {
                             onCreate: _saving ? null : _pickCustomDue,
                             onSelected: (value) => _setDueDate(value is DateTime ? value : null),
                           )),
+                          OutlinedButton.icon(
+                            key: const ValueKey('quick-capture-no-time'),
+                            onPressed: _saving || _dueDate == null || _dueAllDay
+                                ? null
+                                : () => setState(() {
+                                      _dueDate = DateTime(_dueDate!.year, _dueDate!.month, _dueDate!.day);
+                                      _dueAllDay = true;
+                                      _syncAutomaticReminder();
+                                    }),
+                            icon: const Icon(Icons.access_time_rounded, size: 18),
+                            label: const Text('بدون ساعت'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: ArvinColors.time,
+                              side: BorderSide(color: ArvinColors.time.withAlpha(90)),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          ),
                           SizedBox(width: 148, child: ArvinRollBox<Object?>(
                             key: const ValueKey('quick-capture-reminder-rollbox'),
                             label: 'یادآور',

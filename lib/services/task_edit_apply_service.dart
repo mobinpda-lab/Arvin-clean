@@ -13,6 +13,7 @@ class TaskEditApplyService {
     target.title = edited.title;
     target.description = edited.description;
     target.dueDate = edited.dueDate;
+    target.centerId = edited.centerId;
     target.allDay = edited.allDay;
     target.tags = List<String>.of(edited.tags);
     target.category = edited.category;

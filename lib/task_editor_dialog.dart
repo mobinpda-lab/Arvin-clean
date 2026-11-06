@@ -6,6 +6,7 @@ import 'core/theme/arvin_theme.dart';
 import 'follow_up_entry_page.dart';
 
 import 'models/goal_project.dart';
+import 'models/arvin_center.dart';
 import 'models/recurrence.dart';
 import 'models/task.dart';
 import 'services/persian_date_formatter.dart';
@@ -21,6 +22,9 @@ class ArvinTaskEditorDialog extends StatefulWidget {
     this.initialTitle,
     this.initialDescription,
     this.projects = const [],
+    this.centers = const [],
+    this.selectedCenterId,
+    this.onCreateCenter,
     this.selectedProjectId,
     this.onProjectChanged,
     this.onCreateProject,
@@ -39,6 +43,9 @@ class ArvinTaskEditorDialog extends StatefulWidget {
   /// The editor owns no Project persistence; callers persist the selected id
   /// through canonical ProjectPlan.itemIds after a successful Task save.
   final List<ProjectPlan> projects;
+  final List<ArvinCenter> centers;
+  final String? selectedCenterId;
+  final Future<String?> Function(String name)? onCreateCenter;
   final String? selectedProjectId;
   final ValueChanged<String?>? onProjectChanged;
   final Future<String?> Function(String title)? onCreateProject;
@@ -81,6 +88,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   late List<String> _knownCategories;
   late List<String> _knownTags;
   late List<ProjectPlan> _projects;
+  late List<ArvinCenter> _centers;
+  late String? _selectedCenterId;
   late String? _category;
   late String? _selectedProjectId;
   late RecurrenceRule? _recurrence;
@@ -139,8 +148,12 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _knownCategories = List<String>.of(widget.knownCategories);
     _knownTags = List<String>.of(widget.knownTags);
     _projects = List<ProjectPlan>.of(widget.projects);
+    _centers = List<ArvinCenter>.of(widget.centers);
     _category = task?.category;
     _selectedProjectId = widget.selectedProjectId;
+    final selectedProject = _projects.where((project) => project.id == _selectedProjectId);
+    _selectedCenterId = widget.selectedCenterId ?? task?.centerId ??
+        (selectedProject.isEmpty ? null : selectedProject.first.centerId);
     _recurrence = task?.recurrence;
     _repeatEnabled = task?.recurrence?.active ?? false;
     _recurrenceStartDate = task?.recurrence?.startDate;
@@ -646,6 +659,11 @@ Future<void> _pickDueDate() async {
     });
   }
 
+  String get _selectedCenterLabel {
+    final matches = _centers.where((center) => center.id == _selectedCenterId);
+    return matches.isEmpty ? 'مرکز' : matches.first.name;
+  }
+
   bool get _hasChanges {
     final existing = widget.task;
     final title = _titleController.text;
@@ -660,6 +678,7 @@ Future<void> _pickDueDate() async {
           _checklist.isNotEmpty ||
           _checklistEnabled ||
           _category != null ||
+          _selectedCenterId != widget.selectedCenterId ||
           _selectedProjectId != widget.selectedProjectId ||
           _dueDateTime != null ||
           _dueAllDay ||
@@ -678,6 +697,7 @@ Future<void> _pickDueDate() async {
         !listEquals(_checklist, existing.checklist) ||
         _checklistEnabled != existing.checklistEnabled ||
         _category != existing.category ||
+        _selectedCenterId != existing.centerId ||
         _selectedProjectId != widget.selectedProjectId ||
         _dueDateTime != existing.dueDate ||
         _dueAllDay != existing.allDay ||
@@ -942,6 +962,7 @@ Future<void> _pickDueDate() async {
             : _titleController.text.trim(),
         description: _descriptionController.text.trim(),
         dueDate: _dueDateTime,
+        centerId: _selectedCenterId,
         allDay: _dueDateTime != null && _dueAllDay,
         tags: List<String>.of(_tags),
         category: _category,
@@ -1132,18 +1153,34 @@ Future<void> _pickDueDate() async {
               ],
             ),
           if (onToggleAllDay != null && value != null) ...[
-            const SizedBox(height: 4),
-            Material(
-              color: Colors.transparent,
-              child: CheckboxListTile(
-                key: ValueKey('$keyPrefix-all-day'),
-                contentPadding: EdgeInsets.zero,
-                controlAffinity: ListTileControlAffinity.leading,
-                value: allDay,
-                onChanged: (next) => onToggleAllDay(next ?? false),
-                title: const Text('تمام‌روز'),
-                subtitle: const Text('بدون ساعت؛ ساعت جعلی مثل ۰۰:۰۰ نمایش داده نمی‌شود.'),
-              ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    key: ValueKey('$keyPrefix-no-time'),
+                    onPressed: allDay ? null : () => onToggleAllDay(true),
+                    icon: const Icon(Icons.access_time_rounded),
+                    label: const Text('بدون ساعت'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: accent,
+                      backgroundColor: allDay ? accent.withAlpha(18) : null,
+                      side: BorderSide(color: accent.withAlpha(allDay ? 150 : 70)),
+                    ),
+                  ),
+                ),
+                if (allDay) ...[
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      key: ValueKey('$keyPrefix-with-time'),
+                      onPressed: onPickTime,
+                      icon: const Icon(Icons.schedule_rounded),
+                      label: const Text('انتخاب ساعت'),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ],
         ],
@@ -1256,6 +1293,46 @@ Future<void> _pickDueDate() async {
                         spacing: 8,
                         runSpacing: 8,
                         children: [
+                          SizedBox(
+                            width: itemWidth,
+                            child: ArvinRollBox<String>(
+                              key: const ValueKey('task-editor-center-rollbox'),
+                              label: 'مرکز',
+                              valueLabel: _selectedCenterLabel,
+                              icon: Icons.business_outlined,
+                              color: ArvinColors.primary,
+                              emptyLabel: 'بدون مرکز',
+                              items: _centers
+                                  .where((center) => !center.isArchived || center.id == _selectedCenterId)
+                                  .map((center) => ArvinRollItem<String>(
+                                        value: center.id,
+                                        label: center.isArchived ? '${center.name} (بایگانی‌شده)' : center.name,
+                                        icon: Icons.business_outlined,
+                                        color: center.isArchived ? ArvinColors.textSecondary : ArvinColors.primary,
+                                      ))
+                                  .toList(growable: false),
+                              onSelected: (value) => setState(() => _selectedCenterId = value),
+                              onCreate: widget.onCreateCenter == null
+                                  ? null
+                                  : () async {
+                                      final name = await _promptNewName('مرکز جدید');
+                                      if (name == null) return null;
+                                      final createdId = await widget.onCreateCenter!(name);
+                                      if (!mounted || createdId == null || createdId.trim().isEmpty) return createdId;
+                                      setState(() {
+                                        if (!_centers.any((center) => center.id == createdId)) {
+                                          _centers = [..._centers, ArvinCenter(
+                                            id: createdId,
+                                            name: name,
+                                            createdAt: DateTime.now(),
+                                          )];
+                                        }
+                                        _selectedCenterId = createdId;
+                                      });
+                                      return createdId;
+                                    },
+                            ),
+                          ),
                           SizedBox(
                             width: itemWidth,
                             child: ArvinRollBox<String>(
@@ -1424,7 +1501,7 @@ Future<void> _pickDueDate() async {
                         onPickDate: _pickDueDate,
                         onPickTime: _pickDueTime,
                         onPickDateTime: _pickDueDateTime,
-                        unifiedDateTime: !editing,
+                        unifiedDateTime: true,
                         onClear: _clearDueTime,
                         accent: ArvinColors.time,
                         allDay: _dueAllDay,
