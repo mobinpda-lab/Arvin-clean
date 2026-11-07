@@ -1,18 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../arvin_colors.dart';
-
 /// Canonical Home primary add action.
 ///
-/// The owner-approved Home reference uses a compact circular indigo `+`, not
-/// an extended text FAB. Integration into Home remains a separate small slice
-/// so this visual component can validate independently.
+/// The owner-approved Home reference uses a compact circular plus action.
 class ArvinHomePrimaryAddButton extends StatelessWidget {
   const ArvinHomePrimaryAddButton({
     super.key,
     required this.onPressed,
   });
-
 
   final VoidCallback? onPressed;
 
