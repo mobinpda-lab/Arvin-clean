@@ -7,6 +7,7 @@ import 'models/arvin_center.dart';
 import 'models/goal_project.dart';
 import 'models/recurrence.dart';
 import 'models/task.dart';
+import 'home/home_filter_ui.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/quick_capture_service.dart';
 import 'services/task_project_assignment_service.dart';
@@ -598,31 +599,32 @@ Future<DateTime?> _pickCustomDue() async {
                         textDirection: TextDirection.rtl,
                         mainAxisSize: MainAxisSize.max,
                         children: [
-                          Expanded(child: ArvinRollBox<Object?>(
-                            key: const ValueKey('quick-capture-due-rollbox'),
-                            label: 'زمان',
-                            compact: true,
-                            valueLabel: _dueDate == null ? 'زمان' : _dateLabel(_dueDate, dateOnly: _dueAllDay),
-                            icon: Icons.calendar_today_outlined,
-                            color: ArvinColors.time,
-                            emptyLabel: 'بدون تاریخ و ساعت',
-                            items: [
-                              ArvinRollItem<Object?>(value: _now(), label: 'امروز', icon: Icons.today_outlined, color: ArvinColors.time),
-                              ArvinRollItem<Object?>(value: _now().add(const Duration(days: 1)), label: 'فردا', icon: Icons.event_outlined, color: ArvinColors.project),
-                              ArvinRollItem<Object?>(value: _now().add(const Duration(days: 7)), label: 'هفته آینده', icon: Icons.date_range_outlined, color: ArvinColors.tag),
-                            ],
-                            createLabel: 'تاریخ و ساعت سفارشی',
-                            onCreate: _saving ? null : _pickCustomDue,
-                            onSelected: (value) {
-                              final isCustomAllDay = value is DateTime &&
-                                  _pendingCustomDueAllDay;
-                              _setDueDate(
-                                value is DateTime ? value : null,
-                                allDay: isCustomAllDay,
-                              );
-                              _pendingCustomDueAllDay = false;
-                            },
-                          )),
+                          Expanded(
+                            child: HomeFilterPill(
+                              key: const ValueKey('quick-capture-due-rollbox'),
+                              label: _dueDate == null
+                                  ? 'زمان کار / موعد'
+                                  : _dateLabel(_dueDate, dateOnly: _dueAllDay),
+                              icon: Icons.calendar_today_outlined,
+                              accent: Theme.of(context).colorScheme.primary,
+                              soft: Color.alphaBlend(
+                                Theme.of(context).colorScheme.primary.withAlpha(18),
+                                Theme.of(context).colorScheme.surface,
+                              ),
+                              active: _dueDate != null,
+                              onPressed: _saving
+                                  ? () {}
+                                  : () async {
+                                      final value = await _pickCustomDue();
+                                      if (!mounted || value == null) return;
+                                      _setDueDate(
+                                        value,
+                                        allDay: _pendingCustomDueAllDay,
+                                      );
+                                      _pendingCustomDueAllDay = false;
+                                    },
+                            ),
+                          ),
                           const SizedBox(width: 4),
                           Expanded(
                             child: ArvinRollBox<String>(
