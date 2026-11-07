@@ -20,6 +20,7 @@ void main() {
                   ReusableFilterOption(value: 'work', label: 'کاری'),
                 ],
                 selectedValues: const {},
+                createLabel: 'افزودن',
                 onCreate: (name) async {
                   savedName = name;
                   return ReusableFilterOption(value: 'new-$name', label: name);
