@@ -917,11 +917,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     final handler = widget.onChecklistChanged;
     if (handler == null) return;
 
-    // Checklist edits are isolated from legacy follow-up scheduling fields.
-    // Pass a detached Task snapshot to the owner and restore the protected
-    // fields on the returned model before accepting it.
+    // Checklist edits are isolated from the historical Follow-up timeline.
     final previous = _task;
-    final protectedFollowUpDate = previous.followUpDate;
     final protectedFollowUps = List<FollowUp>.of(previous.followUps);
     final candidate = Task.fromJson(Map<String, dynamic>.from(previous.toJson()))
       ..checklist = List<String>.of(values)
@@ -941,7 +938,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         });
         return;
       }
-      updated.followUpDate = protectedFollowUpDate;
       updated.followUps = protectedFollowUps;
       setState(() {
         _task = updated;
@@ -1589,7 +1585,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
   Widget _remindersCard() {
     final reminders = _isInlineEditing ? _draftReminders : _task.taskReminders;
-    final hasLegacyReminder = _task.reminderDate != null;
     return _card(
       key: const ValueKey('task-detail-independent-reminders'),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -1607,18 +1602,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             label: const Text('افزودن'),
           ),
         ]),
-        if (reminders.isEmpty && !hasLegacyReminder)
+        if (reminders.isEmpty)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8),
             child: Text('یادآوری ثبت نشده است', style: TextStyle(color: _muted)),
-          ),
-        if (hasLegacyReminder)
-          ListTile(
-            key: const ValueKey('task-detail-legacy-reminder'),
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.notifications_none_outlined, color: ArvinColors.reminder),
-            title: const Text('یادآور اصلی'),
-            subtitle: Text(_dateTime(_task.reminderDate!)),
           ),
         for (final reminder in reminders)
           Row(
