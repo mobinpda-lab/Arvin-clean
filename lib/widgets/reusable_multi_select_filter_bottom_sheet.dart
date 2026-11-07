@@ -61,13 +61,12 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
     final color = accent ?? Theme.of(context).colorScheme.primary;
     final available = List<ReusableFilterOption<T>>.of(options);
     final working = <T>{...selectedValues};
-    final searchController = TextEditingController();
-    final createController = TextEditingController();
     var search = '';
+    var createText = '';
+    var createFieldGeneration = 0;
     var creating = false;
 
-    try {
-      return await showCustom<Set<T>>(
+    return showCustom<Set<T>>(
         context,
         title: title,
         accent: color,
@@ -80,7 +79,6 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
             return Column(
               children: [
                 TextField(
-                  controller: searchController,
                   onChanged: (value) => setSheetState(() => search = value),
                   decoration: InputDecoration(
                     hintText: searchHint,
@@ -94,10 +92,11 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
                     children: [
                       Expanded(
                         child: TextField(
-                          controller: createController,
+                          key: ValueKey('multi-select-create-$createFieldGeneration'),
                           textInputAction: TextInputAction.done,
+                          onChanged: (value) => createText = value,
                           onSubmitted: (_) async {
-                            final value = createController.text.trim();
+                            final value = createText.trim();
                             if (value.isEmpty || creating) return;
                             setSheetState(() => creating = true);
                             try {
@@ -108,7 +107,8 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
                                   available.add(created);
                                 }
                                 working.add(created.value);
-                                createController.clear();
+                                createText = '';
+                                      createFieldGeneration++;
                               });
                             } finally {
                               if (sheetContext.mounted) {
@@ -130,7 +130,7 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
                           onPressed: creating
                               ? null
                               : () async {
-                                  final value = createController.text.trim();
+                                  final value = createText.trim();
                                   if (value.isEmpty) return;
                                   setSheetState(() => creating = true);
                                   try {
@@ -141,7 +141,8 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
                                         available.add(created);
                                       }
                                       working.add(created.value);
-                                      createController.clear();
+                                      createText = '';
+                                      createFieldGeneration++;
                                     });
                                   } finally {
                                     if (sheetContext.mounted) {
@@ -228,10 +229,7 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
           },
         ),
       );
-    } finally {
-      searchController.dispose();
-      createController.dispose();
-    }
+
   }
 
   static Future<ReusableSingleSelectResult<T>?> showSingleSelect<T>(
@@ -249,15 +247,13 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
   }) async {
     final color = accent ?? Theme.of(context).colorScheme.primary;
     final available = List<ReusableFilterOption<T>>.of(options);
-    final searchController = TextEditingController();
-    final createController = TextEditingController();
     var search = '';
+    var createText = '';
     var creating = false;
     final clearToken = Object();
     Object? selected = selectedValue ?? (emptyLabel == null ? null : clearToken);
 
-    try {
-      return await showCustom<ReusableSingleSelectResult<T>>(
+    return showCustom<ReusableSingleSelectResult<T>>(
         context,
         title: title,
         accent: color,
@@ -268,7 +264,7 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
                     option.label.toLowerCase().contains(search.toLowerCase()))
                 .toList(growable: false);
             Future<void> createAndSelect() async {
-              final value = createController.text.trim();
+              final value = createText.trim();
               if (value.isEmpty || onCreate == null || creating) return;
               setSheetState(() => creating = true);
               try {
@@ -287,7 +283,6 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
             return Column(
               children: [
                 TextField(
-                  controller: searchController,
                   onChanged: (value) => setSheetState(() => search = value),
                   decoration: InputDecoration(
                     hintText: searchHint,
@@ -301,8 +296,8 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
                     children: [
                       Expanded(
                         child: TextField(
-                          controller: createController,
                           textInputAction: TextInputAction.done,
+                          onChanged: (value) => createText = value,
                           onSubmitted: (_) => createAndSelect(),
                           decoration: InputDecoration(
                             hintText: createHint,
@@ -385,9 +380,6 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
           },
         ),
       );
-    } finally {
-      searchController.dispose();
-      createController.dispose();
-    }
+
   }
 }
