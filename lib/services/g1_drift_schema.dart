@@ -318,6 +318,22 @@ class G1DriftSchema implements QueryExecutorUser {
       'SELECT id, title, $reminderColumn, legacy_payload_json FROM tasks ORDER BY storage_ordinal, id',
       const [],
     );
+    // Normalize legacy All-Day due dates to floating date-only values.
+    for (final row in taskRows) {
+      final rawPayload = row['legacy_payload_json'];
+      if (rawPayload is! String || rawPayload.trim().isEmpty) continue;
+      final decoded = jsonDecode(rawPayload);
+      if (decoded is! Map || decoded['allDay'] != true) continue;
+      final rawDueDate = decoded['dueDate'];
+      if (rawDueDate is! String) continue;
+      final parsedDueDate = DateTime.tryParse(rawDueDate);
+      if (parsedDueDate == null) continue;
+      final dateOnly = _dateOnlyStorageValue(parsedDueDate);
+      await executor.runUpdate(
+        'UPDATE tasks SET due_date = ? WHERE id = ?',
+        <Object?>[dateOnly, row['id']],
+      );
+    }
     for (final row in taskRows) {
       final payload = <String, dynamic>{};
       final raw = row['legacy_payload_json'];
@@ -386,7 +402,10 @@ class G1DriftSchema implements QueryExecutorUser {
             'follow-up-reminder-${legacy['task_id']}-${legacy['id']}',
             legacy['task_id'],
             'یادآور پیگیری',
-            legacy['reminder_date'],
+            isAllDay && legacy['reminder_date'] is String &&
+                    DateTime.tryParse(legacy['reminder_date'] as String) != null
+                ? _dateOnlyStorageValue(DateTime.parse(legacy['reminder_date'] as String))
+                : legacy['reminder_date'],
             isAllDay ? 1 : 0,
             sequence,
           ],
@@ -447,6 +466,9 @@ class G1DriftSchema implements QueryExecutorUser {
     await executor.runCustom('DROP TABLE tasks');
     await executor.runCustom('ALTER TABLE tasks_canonical_v14 RENAME TO tasks');
   }
+
+  static String _dateOnlyStorageValue(DateTime value) =>
+      '${value.year.toString().padLeft(4, '0')}-${value.month.toString().padLeft(2, '0')}-${value.day.toString().padLeft(2, '0')}';
 
   static Future<bool> _hasTable(QueryExecutor executor, String table) async {
     final rows = await executor.runSelect(
