@@ -119,7 +119,7 @@ void main() {
     expect(restored.taskReminders.map((item) => item.id), [
       'backup-r1',
       'backup-r2',
-      'legacy-task-reminder',
+      'legacy-task-reminder-backup-task',
     ]);
     expect(restored.taskReminders[1].isAllDay, isTrue);
     expect(restored.taskReminders.last.isLegacyTaskReminder, isTrue);
