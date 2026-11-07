@@ -277,6 +277,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('follow-up-entry-waiting-for-response')));
     await tester.pumpAndSettle();
+    expect(find.text('منتظر پیگیری دیگران'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('follow-up-person-person-ana')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('follow-up-person-add')));
