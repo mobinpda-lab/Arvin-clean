@@ -197,13 +197,17 @@ void main() {
     Task? result;
     await openEditor(tester, onResult: (value) => result = value);
 
-    final noTime = find.byKey(const ValueKey('task-editor-due-no-time'));
-    await tester.ensureVisible(noTime);
+    final dateTime = find.byKey(const ValueKey('task-editor-due-date-time'));
+    await tester.ensureVisible(dateTime);
+    await tester.tap(dateTime);
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
+    await tester.pumpAndSettle();
+    final noTime = find.byKey(const ValueKey('universal-time-no-time'));
+    expect(noTime, findsOneWidget);
     await tester.tap(noTime);
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'تأیید'));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('task-editor-due-with-time')), findsOneWidget);
+    expect(find.textContaining('تمام‌روز'), findsOneWidget);
 
     final save = find.byKey(const ValueKey('task-editor-header-save'));
     await tester.ensureVisible(save);
