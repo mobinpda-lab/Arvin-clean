@@ -549,32 +549,6 @@ Future<void> _pickDueDateTime() async {
     _reminderExplicitlyCleared = true;
   });
 
-  Future<String?> _promptNewName(String title) async {
-    final controller = TextEditingController();
-    final result = await showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: ArvinColors.surface,
-      builder: (sheetContext) => Padding(
-        padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(sheetContext).bottom),
-        child: Directionality(
-          textDirection: TextDirection.rtl,
-          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 12),
-            TextField(controller: controller, autofocus: true, decoration: const InputDecoration(labelText: 'نام', border: OutlineInputBorder())),
-            const SizedBox(height: 12),
-            FilledButton(onPressed: () => Navigator.of(sheetContext).pop(controller.text.trim()), child: const Text('افزودن')),
-          ]),
-        ),
-      ),
-    );
-    // The bottom-sheet route can still perform a final rebuild while its
-    // closing animation is completing. Defer disposal so the TextField never
-    // observes a controller that was disposed during that transition.
-    WidgetsBinding.instance.addPostFrameCallback((_) => controller.dispose());
-    return result?.trim().isEmpty == true ? null : result?.trim();
-  }
   bool _sameRecurrence(RecurrenceRule? a, RecurrenceRule? b) {
     if (identical(a, b)) return true;
     if (a == null || b == null) return false;
