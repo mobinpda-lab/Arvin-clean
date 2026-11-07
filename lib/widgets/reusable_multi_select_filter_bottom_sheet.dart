@@ -153,7 +153,7 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
                                   height: 18,
                                   child: CircularProgressIndicator(strokeWidth: 2),
                                 )
-                              : const Text('افزودن'),
+                              : Text(createLabel),
                         ),
                       ),
                     ],
@@ -299,6 +299,7 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
                       SizedBox(
                         height: 48,
                         child: FilledButton(
+                          key: createKey,
                           onPressed: creating ? null : createAndSelect,
                           child: creating
                               ? const SizedBox(
@@ -306,7 +307,7 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
                                   height: 18,
                                   child: CircularProgressIndicator(strokeWidth: 2),
                                 )
-                              : const Text('افزودن'),
+                              : Text(createLabel),
                         ),
                       ),
                     ],
