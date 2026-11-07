@@ -28,29 +28,64 @@ class HomeFilterPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final selectedAccent = ArvinColors.primary;
     final selectedSurface = ArvinColors.primarySoft;
-    return Padding(
-      padding: const EdgeInsetsDirectional.only(end: 7),
-      child: ActionChip(
-        onPressed: onPressed,
-        avatar: Icon(icon, size: 16, color: active ? selectedAccent : ArvinColors.textSecondary),
-        label: Text(
-          label,
-          style: TextStyle(
-            color: active ? selectedAccent : ArvinColors.textPrimary,
-            fontSize: 12,
-            fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+    return Semantics(
+      button: true,
+      label: label,
+      child: SizedBox(
+        height: 48,
+        child: Material(
+          color: active ? selectedSurface : ArvinColors.surface,
+          shape: StadiumBorder(
+            side: BorderSide(
+              color: active
+                  ? selectedAccent.withAlpha(90)
+                  : ArvinColors.border,
+            ),
+          ),
+          child: InkWell(
+            onTap: onPressed,
+            customBorder: const StadiumBorder(),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 3),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  Icon(
+                    icon,
+                    size: 14,
+                    color: active
+                        ? selectedAccent
+                        : ArvinColors.textSecondary,
+                  ),
+                  const SizedBox(width: 3),
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        label,
+                        maxLines: 1,
+                        softWrap: false,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: active
+                              ? selectedAccent
+                              : ArvinColors.textPrimary,
+                          fontSize: 10.5,
+                          fontWeight:
+                              active ? FontWeight.w700 : FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
-        backgroundColor: active ? selectedSurface : ArvinColors.surface,
-        side: BorderSide(color: active ? selectedAccent.withAlpha(90) : ArvinColors.border),
-        shape: const StadiumBorder(),
-        visualDensity: VisualDensity.standard,
-        materialTapTargetSize: MaterialTapTargetSize.padded,
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       ),
     );
-  }
-}
+  }}
 
 class HomeFilterCard extends StatelessWidget {
   const HomeFilterCard({
