@@ -409,15 +409,17 @@ class TaskStore {
     final ordinal = (rows.single['next_ordinal'] as num).toInt();
     await executor.runInsert(
       '''INSERT INTO tasks (id, storage_ordinal, title, description, created_at, updated_at, due_date,
-         follow_up_enabled, follow_up_date, category, notebook_kind, reminder_date, priority, archived,
-         trashed, completed, completed_at, recurrence_json, legacy_payload_json)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-      <Object?>[task.id, ordinal, task.title, task.description, task.createdAt?.toIso8601String(),
-        task.updatedAt?.toIso8601String(), task.dueDate?.toIso8601String(), task.followUpEnabled ? 1 : 0,
-        task.followUpDate?.toIso8601String(), task.category, task.notebookKind?.name,
-        task.reminderDate?.toIso8601String(), task.priority.name, task.archived ? 1 : 0,
+         category, notebook_kind, priority, archived, trashed, completed, completed_at,
+         recurrence_json, legacy_payload_json)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+      <Object?>[
+        task.id, ordinal, task.title, task.description, task.createdAt?.toIso8601String(),
+        task.updatedAt?.toIso8601String(), task.dueDate?.toIso8601String(), task.category,
+        task.notebookKind?.name, task.priority.name, task.archived ? 1 : 0,
         task.trashed ? 1 : 0, task.completed ? 1 : 0, task.completedAt?.toIso8601String(),
-        task.recurrence == null ? null : jsonEncode(task.recurrence!.toJson()), jsonEncode(_canonicalEnvelope(task))],
+        task.recurrence == null ? null : jsonEncode(task.recurrence!.toJson()),
+        jsonEncode(_canonicalEnvelope(task)),
+      ],
     );
     await _writeRelations(executor, task);
     final category = task.category?.trim();
@@ -639,12 +641,8 @@ class TaskStore {
     envelope['createdAt'] = row['created_at'];
     envelope['updatedAt'] = row['updated_at'];
     envelope['dueDate'] = row['due_date'];
-    envelope['followUpEnabled'] =
-        (row['follow_up_enabled'] as num?)?.toInt() == 1;
-    envelope['followUpDate'] = row['follow_up_date'];
     envelope['category'] = row['category'];
     envelope['notebookKind'] = row['notebook_kind'];
-    envelope['reminderDate'] = row['reminder_date'];
     envelope['priority'] = row['priority'];
     envelope['archived'] = (row['archived'] as num?)?.toInt() == 1;
     envelope['trashed'] = (row['trashed'] as num?)?.toInt() == 1;
@@ -798,9 +796,9 @@ class TaskStore {
         await executor.runInsert(
           '''INSERT INTO tasks (
             id, storage_ordinal, title, description, created_at, updated_at, due_date,
-            follow_up_enabled, follow_up_date, category, notebook_kind, reminder_date,
-            priority, archived, trashed, completed, completed_at, recurrence_json, legacy_payload_json
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+            category, notebook_kind, priority, archived, trashed, completed, completed_at,
+            recurrence_json, legacy_payload_json
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
           <Object?>[
             task.id,
             ordinal,
@@ -809,11 +807,8 @@ class TaskStore {
             task.createdAt?.toIso8601String(),
             task.updatedAt?.toIso8601String(),
             task.dueDate?.toIso8601String(),
-            task.followUpEnabled ? 1 : 0,
-            task.followUpDate?.toIso8601String(),
             task.category,
             task.notebookKind?.name,
-            task.reminderDate?.toIso8601String(),
             task.priority.name,
             task.archived ? 1 : 0,
             task.trashed ? 1 : 0,
