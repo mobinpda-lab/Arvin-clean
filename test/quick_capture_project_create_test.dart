@@ -32,9 +32,9 @@ void main() {
 
     await tester.tap(find.byTooltip('پروژه'));
     await tester.pumpAndSettle();
-    expect(find.text('ایجاد جدید'), findsOneWidget);
+    expect(find.byKey(const ValueKey('quick-capture-create-project')), findsOneWidget);
 
-    await tester.tap(find.text('ایجاد جدید'));
+    await tester.tap(find.byKey(const ValueKey('quick-capture-create-project')));
     await tester.pumpAndSettle();
     expect(find.text('پروژه جدید'), findsOneWidget);
 

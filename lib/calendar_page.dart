@@ -739,7 +739,7 @@ class _CalendarPageState extends State<CalendarPage> {
             itemCount: leading + days,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 7,
-              mainAxisExtent: 40,
+              mainAxisExtent: 48,
             ),
             itemBuilder: (_, index) {
               if (index < leading) {
