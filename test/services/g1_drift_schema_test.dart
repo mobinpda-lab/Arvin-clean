@@ -16,6 +16,7 @@ void main() {
 
   test('creates the complete G1 relational schema', () async {
     await G1DriftSchema.install(database);
+    expect(G1DriftSchema.version, 15);
 
     final tables = await database.runSelect(
       "SELECT name FROM sqlite_master "
@@ -241,7 +242,7 @@ void main() {
     expect(recordColumns.map((row) => row['name']), isNot(contains('reminder_date')));
 
     final retiredTables = await database.runSelect(
-      "SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('follow_ups', 'follow_up_people', 'people')",
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('follow_ups', 'follow_up_people', 'people', 'task_people')",
       const [],
     );
     expect(retiredTables, isEmpty);
