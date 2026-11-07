@@ -454,7 +454,7 @@ Future<DateTime?> _pickCustomDue() async {
                         onTap: _saving ? null : () => setState(() => _priority = priority),
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 150),
-                          height: 40,
+                          height: 48,
                           padding: const EdgeInsets.symmetric(horizontal: 1),
                           decoration: BoxDecoration(
                             color: color.withValues(alpha: selected ? 0.18 : 0.09),

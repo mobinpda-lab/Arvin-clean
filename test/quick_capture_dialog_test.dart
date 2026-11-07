@@ -169,7 +169,7 @@ void main() {
     tester.platformDispatcher.textScaleFactorTestValue = 1.35;
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
 
-    for (final width in [360.0, 412.0]) {
+    for (final width in [360.0, 390.0, 412.0]) {
       tester.view.physicalSize = Size(width, 900);
       await tester.pumpWidget(
         MaterialApp(
@@ -203,6 +203,15 @@ void main() {
         'quick-capture-priority-dropdown',
       ]) {
         expect(find.byKey(ValueKey(key)), findsOneWidget);
+      }
+      final priorityTargets = [
+        for (var order = 1; order <= 4; order++)
+          find.byKey(ValueKey('quick-capture-priority-option-$order')),
+      ];
+      for (final target in priorityTargets) {
+        expect(target, findsOneWidget);
+        expect(tester.getSize(target).height, greaterThanOrEqualTo(48));
+        expect(tester.getSize(target).width, greaterThanOrEqualTo(48));
       }
       final horizontalFormScrolls = tester
           .widgetList<SingleChildScrollView>(find.byType(SingleChildScrollView))
