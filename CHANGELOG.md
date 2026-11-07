@@ -906,3 +906,12 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - Finder پیمایش آزمون کارت Home به Scrollable داخل `home-task-list-viewport` محدود شد تا به Scrollable نامرتبط/غایب در بخش‌های دیگر وابسته نباشد.
 - این تغییرات فقط اصلاح آزمون بر اساس قرارداد فعلی‌اند؛ بررسی ذخیره واقعی، حفظ تاریخچه و نمایش Home همچنان باید با اجرای تازه Build روی HEAD نهایی تأیید شوند.
 - آخرین نتایج قبلی Build متعلق به SHA `d2e27ba` هستند و برای این commit یا HEAD بعدی اعتبار ندارند. وضعیت انتشار همچنان **BLOCKED — RELEASE: NO-GO** است.
+
+
+## اصلاحیهٔ هدف لمس Quick Add — ۱۴۰۵/۰۸/۱۶
+
+- آخرین commit کد/آزمون: `c0b3715f16b4fd46e67a2c157559f1de71e2d812`.
+- چهار گزینهٔ اولویت Quick Add از ارتفاع ۴۰dp به ۴۸dp رسیدند تا حداقل هدف لمس ۴۸dp رعایت شود.
+- ماتریس آزمون Quick Add اکنون عرض‌های ۳۶۰، ۳۹۰ و ۴۱۲dp را با مقیاس متن بزرگ بررسی می‌کند و برای هر چهار گزینه، عرض و ارتفاع حداقل ۴۸dp را assert می‌کند.
+- این تغییر به‌همراه اصلاحات قبلی Calendar و Task Editor هنوز در انتظار اجرای مجدد روی HEAD نهایی است؛ تا دریافت نتیجه، PASS محسوب نمی‌شود.
+- وضعیت انتشار: **BLOCKED — RELEASE: NO-GO**؛ PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched.
