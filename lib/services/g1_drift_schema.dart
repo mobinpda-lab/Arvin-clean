@@ -7,7 +7,7 @@ import '../models/task.dart';
 
 /// G1-DRIFT relational schema foundation.
 class G1DriftSchema implements QueryExecutorUser {
-  static const int version = 14;
+  static const int version = 15;
 
   static const List<String> _statements = <String>[
     '''CREATE TABLE IF NOT EXISTS tasks (
@@ -432,7 +432,7 @@ class G1DriftSchema implements QueryExecutorUser {
     if (!columns.any((row) => retired.contains(row['name']))) return;
 
     await executor.runCustom('''
-      CREATE TABLE tasks_canonical_v14 (
+      CREATE TABLE tasks_canonical_v15 (
         id TEXT NOT NULL PRIMARY KEY,
         storage_ordinal INTEGER NOT NULL DEFAULT 0,
         title TEXT NOT NULL,
