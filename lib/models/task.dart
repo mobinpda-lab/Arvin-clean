@@ -59,15 +59,6 @@ class FollowUp {
     this.personIds = const <String>[],
   });
 
-  @Deprecated('Use TaskReminder on the parent Task.')
-  DateTime? get reminderDate => null;
-
-  @Deprecated('Use TaskReminder.isAllDay on the parent Task.')
-  bool get reminderAllDay => false;
-
-  @Deprecated('Follow-up records do not schedule future work.')
-  DateTime? get nextFollowUp => null;
-
   Map<String, dynamic> toJson() => {
         'id': id,
         'dateTime': dateTime.toIso8601String(),
