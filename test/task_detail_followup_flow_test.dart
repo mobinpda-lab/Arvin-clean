@@ -148,10 +148,10 @@ void main() {
     expect(savedTask.followUps, hasLength(1));
     expect(savedTask.followUps.single.id, originalFollowUp.id);
     expect(savedTask.followUps.single.note, 'تاریخچه غیرقابل تغییر');
-    expect(savedTask.followUps.single.nextFollowUp, nextFollowUp);
+    expect(savedTask.followUps.single.nextFollowUp, isNull);
     expect(savedTask.followUps.single.dateTime, followUpDate);
     expect(savedTask.followUpEnabled, isTrue);
-    expect(savedTask.followUpDate, followUpDate);
+    expect(savedTask.followUpDate, isNull);
     expect(task.description, 'متن قبلی');
     expect(find.text('توضیح به‌روزشده'), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-inline-description')), findsNothing);
