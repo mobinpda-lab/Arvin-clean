@@ -873,3 +873,10 @@ PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main دست‌نخورد�
 - **پالت رنگ:** گزارش `ARVIN_DYNAMIC_THEME_PALETTE_2026-11-07.md` وجود AppThemeManager، ۹ رنگ و کلید `arvin.settings.primaryColor` را مستند کرده؛ آزمون نهایی SharedPreferences، پوشش کامل صفحات و پذیرش بصری/دستگاهی هنوز باز است.
 - **فیلترها:** اصلاح قبلی overflow در commit `2baad457ba0bdd89114566afb4b42e2315904bb2` ثبت شده؛ آزمون میدانی مستقل در عرض‌های 360، 390 و 412dp هنوز انجام/تأیید نشده است.
 - PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ `main` بدون تغییر؛ Merge/انتشار ممنوع؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## Product architecture decision — Connected Notebook — 2026-11-07
+- Owner-approved product direction is documented in `docs/project-continuity/ARCHITECTURE_NOTEBOOK.md`: Notebook as a fast-capture “second brain and action platform”, bidirectional visibility/linking with Tasks and Follow-up records, preservation of source note text when creating a Task, and integration with the shared filter experience.
+- This is a product/architecture decision and future-work specification only. **No implementation code, Dart file, database schema, migration, or test was changed for this feature in this phase.** Current release stability takes priority.
+- Gap analysis inspected the branch sources: canonical Notebook records currently reuse Task with `notebook_kind`; Drift has `tasks`, `follow_up_records`, `task_reminders`, project/taxonomy relation tables, but no dedicated Notebook-to-Follow-up link table; `NotebookPage` currently exposes separate Category/Project/Tag selectors and its own search. Fast-capture ergonomics, linked-entry chips, Center filter and shared five-axis filtering remain future verification/implementation items.
+- PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; **BLOCKED — RELEASE: NO-GO**.
