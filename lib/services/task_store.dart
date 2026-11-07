@@ -891,6 +891,24 @@ class TaskStore {
   }
 
   Future<void> _writeRelations(QueryExecutor executor, Task task) async {
+    final now = DateTime.now().toIso8601String();
+    for (final person in task.people) {
+      await executor.runInsert(
+        '''INSERT INTO persons (id, name, created_at, updated_at)
+           VALUES (?, ?, ?, ?)
+           ON CONFLICT(id) DO UPDATE SET name = excluded.name, updated_at = excluded.updated_at''',
+        <Object?>[person.id, person.displayName, now, now],
+      );
+    }
+    for (final followUp in task.followUps) {
+      for (final personId in followUp.personIds) {
+        await executor.runInsert(
+          '''INSERT OR IGNORE INTO persons (id, name, created_at, updated_at)
+             VALUES (?, '', ?, ?)''',
+          <Object?>[personId, now, now],
+        );
+      }
+    }
     for (final reminder in task.taskReminders) {
       await executor.runInsert(
         '''INSERT INTO task_reminders
@@ -930,12 +948,6 @@ class TaskStore {
     }
     for (var ordinal = 0; ordinal < task.people.length; ordinal++) {
       final person = task.people[ordinal];
-      final now = DateTime.now().toIso8601String();
-      await executor.runInsert(
-        '''INSERT INTO persons (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)
-           ON CONFLICT(id) DO UPDATE SET name = excluded.name, updated_at = excluded.updated_at''',
-        <Object?>[person.id, person.displayName, now, now],
-      );
       await executor.runInsert(
         'INSERT INTO task_persons (task_id, person_id, ordinal) VALUES (?, ?, ?)',
         <Object?>[task.id, person.id, ordinal],
