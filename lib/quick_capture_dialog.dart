@@ -82,7 +82,6 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   DateTime? _reminderDate;
   bool _reminderAllDay = false;
   bool _pendingCustomReminderAllDay = false;
-  bool _reminderFollowsDueTime = true;
   RecurrenceRule? _recurrence;
   String? _projectId;
   String? _centerId;
@@ -132,22 +131,10 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     super.dispose();
   }
 
-  void _syncAutomaticReminder() {
-    if (!_reminderFollowsDueTime) return;
-    if (_dueDate == null || _dueAllDay) {
-      _reminderDate = null;
-      _reminderAllDay = false;
-    } else {
-      _reminderDate = _dueDate;
-      _reminderAllDay = false;
-    }
-  }
-
   void _setDueDate(DateTime? value, {bool allDay = false}) {
     setState(() {
       _dueDate = value;
       _dueAllDay = value != null && allDay;
-      _syncAutomaticReminder();
     });
   }
 
@@ -161,12 +148,21 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     if (task == null) return null;
     task.priority = _priority;
     task.description = '';
-    _syncAutomaticReminder();
     task.dueDate = _dueDate;
     task.centerId = _centerId;
     task.allDay = _dueDate != null && _dueAllDay;
-    task.reminderDate = _reminderDate;
-    task.reminderAllDay = _reminderDate != null && _reminderAllDay;
+    task.taskReminders = _reminderDate == null
+        ? <TaskReminder>[]
+        : <TaskReminder>[
+            TaskReminder(
+              id: 'quick-capture-reminder-${task.id}',
+              title: 'یادآوری: ${task.title}',
+              date: _reminderDate!,
+              isAllDay: _reminderAllDay,
+              sequence: 1,
+            ),
+          ];
+    task.nextReminderSequence = _reminderDate == null ? 1 : 2;
     task.recurrence = _recurrence;
     final category = _categoryController.text.trim();
     task.category = category.isEmpty ? null : category;
@@ -826,7 +822,6 @@ Future<DateTime?> _pickCustomDue() async {
                                 _reminderDate = value is DateTime ? value : null;
                                 _reminderAllDay = _reminderDate != null && _pendingCustomReminderAllDay;
                                 _pendingCustomReminderAllDay = false;
-                                _reminderFollowsDueTime = false;
                               });
                             },
                           )),
