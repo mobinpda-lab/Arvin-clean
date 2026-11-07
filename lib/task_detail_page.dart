@@ -524,8 +524,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       emptyLabel: 'بدون مرکز',
       createHint: 'نام مرکز جدید',
       createLabel: 'افزودن مرکز',
-      onCreate: (name) async {
-        final id = await widget.onCreateCenter?.call(name);
+      onCreate: widget.onCreateCenter == null ? null : (name) async {
+        final id = await widget.onCreateCenter!(name);
         if (id == null || id.trim().isEmpty) return null;
         if (mounted && !_centers.any((center) => center.id == id)) {
           setState(() {
@@ -578,8 +578,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       emptyLabel: 'بدون پروژه',
       createHint: 'نام پروژه جدید',
       createLabel: 'افزودن پروژه',
-      onCreate: (title) async {
-        final id = await widget.onCreateProject?.call(title, _selectedCenterId);
+      onCreate: widget.onCreateProject == null ? null : (title) async {
+        final id = await widget.onCreateProject!(title, _selectedCenterId);
         if (id == null || id.trim().isEmpty) return null;
         if (mounted && !_projects.any((project) => project.id == id)) {
           setState(() {
