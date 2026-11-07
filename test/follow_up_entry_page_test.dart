@@ -153,7 +153,7 @@ void main() {
     expect(result!.nextFollowUp, initial.nextFollowUp);
   });
 
-  testWidgets('legacy FollowUp reminder is hidden but preserved without retired controls',
+  testWidgets('legacy FollowUp reminder remains editable and is preserved',
       (tester) async {
     FollowUp? result;
     final initial = FollowUp(
@@ -184,7 +184,8 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('follow-up-reminder-clear')), findsNothing);
+    expect(find.byKey(const ValueKey('follow-up-legacy-reminder-date')), findsOneWidget);
+    expect(find.byKey(const ValueKey('follow-up-legacy-reminder-clear')), findsOneWidget);
     expect(find.text('انتخاب پیگیری بعدی'), findsNothing);
 
     await saveEditor(tester);
@@ -193,6 +194,54 @@ void main() {
     expect(result!.id, initial.id);
     expect(result!.reminderDate, initial.reminderDate);
   });
+
+  testWidgets('legacy FollowUp reminder can be selected as All-Day', (tester) async {
+    FollowUp? result;
+    final initial = FollowUp(
+      id: 'fu-all-day',
+      dateTime: DateTime(2026, 8, 28, 12),
+      reminderDate: DateTime(2026, 8, 29, 8, 30),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: ElevatedButton(
+              onPressed: () async {
+                result = await Navigator.of(context).push<FollowUp>(
+                  MaterialPageRoute(
+                    builder: (_) => FollowUpEntryPage(initialFollowUp: initial),
+                  ),
+                );
+              },
+              child: const Text('open-legacy-all-day'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open-legacy-all-day'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(
+      const ValueKey('follow-up-legacy-reminder-date'),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'تأیید'));
+    await tester.pumpAndSettle();
+    final noTime = find.byKey(const ValueKey('universal-time-no-time'));
+    expect(noTime, findsOneWidget);
+    await tester.tap(noTime);
+    await tester.pumpAndSettle();
+
+    await saveEditor(tester);
+    expect(result, isNotNull);
+    expect(result!.reminderDate, isNotNull);
+    expect(result!.reminderDate!.hour, 0);
+    expect(result!.reminderDate!.minute, 0);
+    expect(result!.reminderAllDay, isTrue);
+  });
+
   testWidgets('waiting FollowUp can add, select, reopen and remove a stable person', (tester) async {
     FollowUp? saved;
     final people = <PersonReference>[
