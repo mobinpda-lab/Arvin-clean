@@ -199,7 +199,7 @@ class TaskReportPdfRenderer {
       pw.Text('وضعیت: ${entry.completed ? 'انجام‌شده' : 'باز'}'),
       for (final reminder in entry.reminders)
         pw.Text(
-          'یادآوری: ${reminder.title} — ${reminder.isAllDay ? formatDate(reminder.date) : formatDateTime(reminder.date)}${reminder.isEnabled ? '' : ' (غیرفعال)'}',
+          'یادآوری: ${reminder.title} — ${reminder.isAllDay ? formatDay(reminder.date) : formatDateTime(reminder.date)}${reminder.isEnabled ? '' : ' (غیرفعال)'}',
         ),
       if (entry.tags.isNotEmpty) pw.Text('برچسب‌ها: ${entry.tags.join('، ')}'),
       if (entry.checklist.isNotEmpty) ...[
