@@ -34,7 +34,7 @@ void main() {
 
     expect(task.legacyTaskReminderMigrationVersion, 1);
     expect(task.taskReminders.map((reminder) => reminder.id),
-        <String>['legacy-task-reminder-task-reminder-integration']);
+        <String>['legacy-task-reminder-deleted-legacy-reminder']);
 
     // Deletion is represented by an empty canonical collection plus the
     // persisted migration tombstone; the old compatibility field stays intact.
