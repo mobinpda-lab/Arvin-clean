@@ -2,7 +2,7 @@ import 'package:arvin/models/task.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('FollowUp reminder is optional and survives canonical JSON round-trip', () {
+  test('FollowUp serializes only historical fields', () {
     final followUp = FollowUp(
       id: 'f-reminder',
       dateTime: DateTime(2026, 8, 28, 15, 30),
@@ -21,9 +21,9 @@ void main() {
     expect(restored.title, followUp.title);
     expect(restored.note, followUp.note);
     expect(restored.result, followUp.result);
-    expect(restored.reminderDate, followUp.reminderDate);
-    expect(restored.reminderAllDay, isTrue);
-    expect(restored.nextFollowUp, followUp.nextFollowUp);
+    expect(restored.toJson().containsKey('reminderDate'), isFalse);
+    expect(restored.toJson().containsKey('reminderAllDay'), isFalse);
+    expect(restored.toJson().containsKey('nextFollowUp'), isFalse);
   });
 
   test('legacy FollowUp JSON without reminder remains valid', () {
@@ -36,12 +36,12 @@ void main() {
     });
 
     expect(restored.title, isNull);
-    expect(restored.reminderDate, isNull);
-    expect(restored.reminderAllDay, isFalse);
+    expect(restored.toJson().containsKey('reminderDate'), isFalse);
+    expect(restored.toJson().containsKey('nextFollowUp'), isFalse);
     expect(restored.note, 'پیگیری قبلی');
   });
 
-  test('Task envelope preserves FollowUp reminder without a second store', () {
+  test('Task envelope keeps Follow-up history free of reminder scheduling', () {
     final task = Task(
       id: 't1',
       title: 'قرارداد',
@@ -59,11 +59,8 @@ void main() {
     final restored = Task.fromJson(task.toJson());
 
     expect(restored.followUps, hasLength(1));
-    expect(
-      restored.followUps.single.reminderDate,
-      DateTime(2026, 8, 28, 11, 45),
-    );
-    expect(restored.followUps.single.reminderAllDay, isTrue);
+    expect(restored.followUps.single.toJson().containsKey('reminderDate'), isFalse);
+    expect(restored.followUps.single.toJson().containsKey('nextFollowUp'), isFalse);
   });
 
   test('multiple independent Task reminders and monotonic sequence survive JSON round-trip', () {
