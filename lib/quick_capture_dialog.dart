@@ -637,7 +637,7 @@ Future<DateTime?> _pickCustomDue() async {
                               createItemKey: const ValueKey('quick-capture-create-center'),
                               items: availableCenters.map((center) => ArvinRollItem<String>(
                                 value: center.id, label: center.name,
-                                icon: Icons.business_outlined, color: ArvinColors.primary,
+                                icon: Icons.business_outlined, color: Theme.of(context).colorScheme.primary,
                               )).toList(growable: false),
                               onSelected: (value) {
                                 setState(() {
