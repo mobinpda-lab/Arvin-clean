@@ -224,7 +224,6 @@ void main() {
 
   testWidgets('legacy Task reminder can be explicitly changed to All-Day', (tester) async {
     Task? result;
-    final reminderDate = DateTime(2026, 10, 20);
     final task = Task(
       id: 'legacy-all-day-editor',
       title: 'یادآور قدیمی',
