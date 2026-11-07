@@ -145,22 +145,6 @@ class FollowUpCalendarProjection {
         }
       }
 
-      final taskReminderDate = task.reminderDate;
-      if (task.legacyTaskReminderMigrationVersion < 1 &&
-          taskReminderDate != null &&
-          !taskDatesAlreadyProjected.any((date) => _sameInstant(date, taskReminderDate))) {
-        reminders.add(
-          CalendarReminder(
-            id: taskReminderIdFor(task),
-            title: 'یادآوری: ${task.title}',
-            date: taskReminderDate,
-            completed: task.completed,
-            description: task.description,
-          ),
-        );
-        taskDatesAlreadyProjected.add(taskReminderDate);
-      }
-
       final dueDate = task.dueDate;
       final recurrence = task.recurrence;
       if (recurrence != null &&
@@ -204,8 +188,6 @@ class FollowUpCalendarProjection {
         taskDatesAlreadyProjected.add(dueDate);
       }
 
-      // Legacy followUpDate is a schedule/history value, not proof that an
-      // independent reminder exists. Do not project it into Calendar.
     }
 
     reminders.sort((a, b) => a.date.compareTo(b.date));
