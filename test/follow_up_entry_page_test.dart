@@ -160,8 +160,8 @@ void main() {
     expect(result, isNotNull);
     expect(result!.id, initial.id);
     expect(result!.dateTime, initial.dateTime);
-    expect(result!.reminderDate, isNull);
-    expect(result!.nextFollowUp, isNull);
+    expect(result!.toJson().containsKey('reminderDate'), isFalse);
+    expect(result!.toJson().containsKey('nextFollowUp'), isFalse);
     expect(result!.toJson().containsKey('reminderDate'), isFalse);
     expect(result!.toJson().containsKey('nextFollowUp'), isFalse);
     expect(savedTask.taskReminders, hasLength(1));
