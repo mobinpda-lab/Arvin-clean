@@ -63,6 +63,32 @@ void main() {
     expect(restored.followUps.single.toJson().containsKey('nextFollowUp'), isFalse);
   });
 
+  test('legacy Follow-up reminder becomes an independent TaskReminder', () {
+    final task = Task.fromJson({
+      'id': 'follow-up-reminder-migration',
+      'title': 'کار مادر',
+      'followUps': [
+        {
+          'id': 'legacy-follow-up',
+          'dateTime': '2026-10-19T12:00:00.000',
+          'reminderDate': '2026-10-20T09:30:00.000',
+          'reminderAllDay': true,
+          'nextFollowUp': '2026-10-22T10:00:00.000',
+        },
+      ],
+    });
+
+    expect(task.followUps, hasLength(1));
+    expect(task.followUps.single.toJson().containsKey('reminderDate'), isFalse);
+    expect(task.followUps.single.toJson().containsKey('nextFollowUp'), isFalse);
+    expect(task.taskReminders, hasLength(1));
+    expect(task.taskReminders.single.id, 'follow-up-reminder-legacy-follow-up');
+    expect(task.taskReminders.single.date, DateTime(2026, 10, 20, 9, 30));
+    expect(task.taskReminders.single.isAllDay, isTrue);
+    expect(task.toJson().containsKey('followUpDate'), isFalse);
+    expect(task.toJson().containsKey('followUpEnabled'), isFalse);
+  });
+
   test('multiple independent Task reminders and monotonic sequence survive JSON round-trip', () {
     final task = Task(
       id: 'multi-reminder',
