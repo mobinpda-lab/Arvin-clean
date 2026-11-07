@@ -29,7 +29,8 @@
 - Added a ChangeNotifier-backed `AppThemeManager` with the nine approved accent colors and SharedPreferences key `arvin.settings.primaryColor`.
 - The no-selection default is option 8, Vivid Sky Blue `#3A86EF`; unsupported stored values fall back to this default.
 - Added «انتخاب تم و رنگ اصلی برنامه» to Settings. Selecting a swatch persists the value and notifies the app root for live Material theme rebuilding.
-- Light/dark ColorScheme and the primary Material component themes now use the selected accent. The canonical static fallback brand token is also Vivid Sky Blue.
+- Light/dark ColorScheme, both app bars, focused input borders and primary Material component themes now use the selected accent. The canonical static fallback brand token and its soft surface are also Vivid Sky Blue.
+- Invalid legacy accent values are removed from SharedPreferences and replaced by the default on load.
 - Added focused manager and Settings widget tests. These tests are source additions only; exact-HEAD CI has not yet established PASS.
 - Repository-wide custom accent usage and full-screen reactivity remain subject to further audit; no claim of complete visual migration is made here.
 - 360/390/412dp geometry, physical Samsung SM-A528B/DS installation, restart persistence, and screenshot acceptance remain NOT VERIFIED.
