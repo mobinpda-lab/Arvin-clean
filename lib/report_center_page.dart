@@ -23,7 +23,6 @@ import 'task_detail_page.dart';
 import 'task_report_page.dart';
 import 'widgets/persian_date_picker.dart';
 import 'widgets/universal_arvin_time_picker.dart';
-import 'widgets/arvin_task_selector_wrap.dart';
 import 'widgets/reusable_multi_select_filter_bottom_sheet.dart';
 
 String _reportDateTimeLabel(DateTime value) {
@@ -1030,10 +1029,6 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
     final projectOptions = <MapEntry<String, String>>[
       ...widget.projects.map((project) => MapEntry(project.id, project.title)),
       ..._createdProjects.entries,
-    ];
-    final personOptions = <MapEntry<String, String>>[
-      ...widget.people.map((person) => MapEntry(person.id, person.displayName)),
-      ..._createdPeople.values.map((person) => MapEntry(person.id, person.displayName)),
     ];
     return SafeArea(
       child: Container(

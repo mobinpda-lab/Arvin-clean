@@ -1321,7 +1321,6 @@ class _HomePageState extends State<HomePage> {
       createLabel: 'افزودن پروژه',
       onCreate: (title) async {
         final id = await wave2ProductFastTrack.createProject(title);
-        if (id == null) return null;
         if (mounted) await _load();
         return ReusableFilterOption<String>(
           value: id,

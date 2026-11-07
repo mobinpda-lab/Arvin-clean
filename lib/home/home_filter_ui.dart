@@ -350,8 +350,8 @@ class HomeFilterSheet extends StatelessWidget {
       builder: (_) => HomeFilterSheet(
         title: title,
         accent: accent,
-        child: child,
         heightFactor: heightFactor,
+        child: child,
       ),
     );
   }
