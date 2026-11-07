@@ -311,18 +311,22 @@ class Task {
 
   @Deprecated('Use taskReminders directly.')
   bool get reminderAllDay {
-    for (final reminder in taskReminders) {
-      if (reminder.isLegacyTaskReminder) return reminder.isAllDay;
-    }
-    return false;
+    final primary = taskReminders.isEmpty
+        ? null
+        : (List<TaskReminder>.of(taskReminders)
+              ..sort((a, b) => a.sequence.compareTo(b.sequence)))
+            .first;
+    return primary?.isAllDay ?? false;
   }
 
   @Deprecated('Use TaskReminder.isAllDay.')
   set reminderAllDay(bool value) {
-    final index = taskReminders.indexWhere((item) => item.isLegacyTaskReminder);
-    if (index >= 0) {
-      taskReminders[index] = taskReminders[index].copyWith(isAllDay: value);
-    }
+    if (taskReminders.isEmpty) return;
+    final ordered = List<TaskReminder>.of(taskReminders)
+      ..sort((a, b) => a.sequence.compareTo(b.sequence));
+    final primary = ordered.first;
+    final index = taskReminders.indexWhere((item) => item.id == primary.id);
+    taskReminders[index] = primary.copyWith(isAllDay: value);
   }
 
   /// First completion records a timestamp; repeated completion is idempotent.
