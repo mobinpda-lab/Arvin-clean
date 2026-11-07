@@ -130,8 +130,17 @@ void main() {
       'SELECT id, is_all_day FROM task_reminders WHERE task_id = ? ORDER BY sequence',
       <Object?>['canonical-task'],
     );
-    expect(reminders.map((row) => row['id']), ['reminder-one', 'reminder-two']);
-    expect(reminders.map((row) => row['is_all_day']), [0, 1]);
+    expect(reminders.map((row) => row['id']), [
+      'reminder-one',
+      'reminder-two',
+      'follow-up-reminder-legacy-follow-up',
+    ]);
+    expect(reminders.map((row) => row['is_all_day']), [0, 1, 0]);
+    final migratedFollowUpReminder = await database.runSelect(
+      'SELECT remind_at FROM task_reminders WHERE id = ?',
+      <Object?>['follow-up-reminder-legacy-follow-up'],
+    );
+    expect(migratedFollowUpReminder.single['remind_at'], '2026-11-07T09:00:00.000');
 
     final records = await database.runSelect(
       'SELECT id, completed_at FROM follow_up_records WHERE task_id = ?',
