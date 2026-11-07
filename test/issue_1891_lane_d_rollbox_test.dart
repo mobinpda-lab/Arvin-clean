@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:arvin/arvin_colors.dart';
+import 'package:arvin/home/home_filter_ui.dart';
 import 'package:arvin/widgets/arvin_roll_box.dart';
 
 void main() {
@@ -42,8 +43,14 @@ void main() {
     );
 
     await tester.pumpAndSettle();
-    final tagSelector = find.bySemanticsLabel('1 برچسب');
+
+    // ArvinTagRollBox renders a HomeFilterPill. Its label is generated from
+    // selectedTags.length using Dart's default (ASCII) integer formatting.
+    // Find the concrete trigger widget instead of depending on a semantics
+    // tree being enabled by the test binding.
+    final tagSelector = find.byType(HomeFilterPill);
     expect(tagSelector, findsOneWidget);
+    expect(find.text('1 برچسب'), findsOneWidget);
     await tester.tap(tagSelector);
     await tester.pumpAndSettle();
     expect(find.text('انتخاب برچسب'), findsOneWidget);
@@ -61,7 +68,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(selected, <String>['مهم']);
 
-    final tagSelectorAgain = find.bySemanticsLabel('1 برچسب');
+    final tagSelectorAgain = find.byType(HomeFilterPill);
     expect(tagSelectorAgain, findsOneWidget);
     await tester.tap(tagSelectorAgain);
     await tester.pumpAndSettle();
