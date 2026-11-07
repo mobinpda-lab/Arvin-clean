@@ -356,7 +356,7 @@ class G1DriftSchema implements QueryExecutorUser {
              (id, task_id, title, remind_at, is_all_day, sequence, is_enabled, is_legacy_task_reminder)
              VALUES (?, ?, ?, ?, ?, ?, 1, 0)''',
           <Object?>[
-            'follow-up-reminder-${legacy['id']}',
+            'follow-up-reminder-${legacy['task_id']}-${legacy['id']}',
             legacy['task_id'],
             'یادآور پیگیری',
             legacy['reminder_date'],
