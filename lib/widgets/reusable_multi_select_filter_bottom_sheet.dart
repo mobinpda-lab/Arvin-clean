@@ -53,6 +53,7 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
     String createHint = 'نام مورد جدید',
     String createLabel = 'افزودن و انتخاب',
     String applyLabel = 'تأیید / اعمال فیلتر',
+    String? optionKeyPrefix,
     Future<ReusableFilterOption<T>?> Function(String value)? onCreate,
     bool allowClear = true,
   }) async {
@@ -166,6 +167,9 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
                     children: [
                       for (final option in filtered)
                         CheckboxListTile(
+                          key: optionKeyPrefix == null
+                              ? null
+                              : ValueKey('$optionKeyPrefix-${option.value}'),
                           value: working.contains(option.value),
                           activeColor: color,
                           controlAffinity: ListTileControlAffinity.leading,
