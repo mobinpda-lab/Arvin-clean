@@ -275,38 +275,65 @@ class Task {
   @Deprecated('Follow-up history has no future scheduling date.')
   set followUpDate(DateTime? value) {}
 
-  /// Compatibility projection backed by the independent TaskReminder list.
+  /// Canonical primary reminder selected by stable sequence.
+  DateTime? get primaryReminderDate {
+    final enabled = taskReminders.where((item) => item.isEnabled).toList()
+      ..sort((a, b) => a.sequence.compareTo(b.sequence));
+    return enabled.isEmpty ? null : enabled.first.date;
+  }
+
+  set primaryReminderDate(DateTime? value) {
+    final enabled = taskReminders.toList()
+      ..sort((a, b) => a.sequence.compareTo(b.sequence));
+    if (enabled.isEmpty || value == null) return;
+    final primary = enabled.first;
+    final index = taskReminders.indexWhere((item) => item.id == primary.id);
+    taskReminders[index] = primary.copyWith(date: value);
+  }
+
+  /// Compatibility projection for data that has not completed the legacy
+  /// reminder cutover. It never aliases a newly-created independent reminder.
   @Deprecated('Use taskReminders directly.')
   DateTime? get reminderDate {
-    if (taskReminders.isEmpty) return null;
-    final ordered = List<TaskReminder>.of(taskReminders)
-      ..sort((a, b) => a.sequence.compareTo(b.sequence));
-    return ordered.first.date;
+    for (final reminder in taskReminders) {
+      if (reminder.isLegacyTaskReminder) return reminder.date;
+    }
+    return null;
   }
 
   @Deprecated('Use taskReminders directly.')
   set reminderDate(DateTime? value) {
-    final ordered = List<TaskReminder>.of(taskReminders)
-      ..sort((a, b) => a.sequence.compareTo(b.sequence));
-    final primary = ordered.isEmpty ? null : ordered.first;
+    if (legacyTaskReminderMigrationVersion >= 1) return;
+    final index = taskReminders.indexWhere((item) => item.isLegacyTaskReminder);
     if (value == null) {
-      if (primary != null) taskReminders.removeWhere((item) => item.id == primary.id);
+      if (index >= 0) taskReminders.removeAt(index);
       return;
     }
-    if (primary != null) {
-      final index = taskReminders.indexWhere((item) => item.id == primary.id);
-      taskReminders[index] = primary.copyWith(date: value);
-      return;
+    if (index >= 0) {
+      taskReminders[index] = taskReminders[index].copyWith(
+        id: 'legacy-task-reminder-$id',
+        date: value,
+      );
+    } else {
+      final reminderId = 'legacy-task-reminder-$id';
+      var highestSequence = 0;
+      for (final reminder in taskReminders) {
+        if (reminder.sequence > highestSequence) highestSequence = reminder.sequence;
+      }
+      final sequence = nextReminderSequence > highestSequence
+          ? nextReminderSequence
+          : highestSequence + 1;
+      taskReminders.add(TaskReminder(
+        id: reminderId,
+        title: 'یادآوری: $title',
+        date: value,
+        isAllDay: false,
+        sequence: sequence,
+        isLegacyTaskReminder: true,
+      ));
+      nextReminderSequence = sequence + 1;
     }
-    final sequence = nextReminderSequence < 1 ? 1 : nextReminderSequence;
-    taskReminders.add(TaskReminder(
-      id: 'task-reminder-$id-$sequence',
-      title: 'یادآوری: $title',
-      date: value,
-      isAllDay: false,
-      sequence: sequence,
-    ));
-    nextReminderSequence = sequence + 1;
+    legacyTaskReminderMigrationVersion = 1;
   }
 
   @Deprecated('Use taskReminders directly.')
