@@ -885,7 +885,7 @@ class _HomePageState extends State<HomePage> {
     final tomorrow = today.add(const Duration(days: 1));
     DateTime dayOf(DateTime value) => DateTime(value.year, value.month, value.day);
     final grouped = <String, List<Task>>{
-      'overdue': <Task>[], 'today': <Task>[], 'tomorrow': <Task>[], 'future': <Task>[], 'no_date': <Task>[],
+      'overdue': <Task>[], 'completed_past': <Task>[], 'today': <Task>[], 'tomorrow': <Task>[], 'future': <Task>[], 'no_date': <Task>[],
     };
     for (final task in visible) {
       final due = task.dueDate;
@@ -893,7 +893,9 @@ class _HomePageState extends State<HomePage> {
         grouped['no_date']!.add(task);
       } else {
         final day = dayOf(due);
-        if (TaskDueStatus.isOverdue(task, now: now)) {
+        if (task.completed && day.isBefore(today)) {
+          grouped['completed_past']!.add(task);
+        } else if (TaskDueStatus.isOverdue(task, now: now)) {
           grouped['overdue']!.add(task);
         } else if (day == today) {
           grouped['today']!.add(task);
@@ -906,6 +908,7 @@ class _HomePageState extends State<HomePage> {
     }
     return [
       HomeGroup<Task>(id: 'overdue', title: 'گذشته', items: taskListSortService.sortPast(grouped['overdue']!)),
+      HomeGroup<Task>(id: 'completed_past', title: 'گذشته (انجام‌شده)', items: taskListSortService.sortPast(grouped['completed_past']!)),
       HomeGroup<Task>(id: 'today', title: 'امروز', items: taskListSortService.sort(grouped['today']!, by: _listSort, descending: _sortDescending)),
       HomeGroup<Task>(id: 'tomorrow', title: 'فردا', items: taskListSortService.sort(grouped['tomorrow']!, by: _listSort, descending: _sortDescending)),
       HomeGroup<Task>(id: 'future', title: 'آینده', items: taskListSortService.sort(grouped['future']!, by: _listSort, descending: _sortDescending)),
