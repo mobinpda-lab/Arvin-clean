@@ -716,3 +716,15 @@ PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ **BLOCKED — RELE
 - گلوگاه صف: #7233 / 42335301964 CANCELLED؛ اما #7268 / 42346612483 روی SHA قدیمی db91a78 هنوز در وضعیت کلی QUEUED است، درحالی‌که job smoke-boot در IN_PROGRESS و شش lane دیگر QUEUED هستند. این اجرای قدیمی، Device Smoke جدید را پشت خود نگه می‌دارد؛ اگر ادامه یابد، لغو دستی توسط مبین لازم است.
 - شکاف‌های باقی‌مانده محصول: یادآور legacy Task.reminderDate و FollowUp.reminderDate هنوز All-Day مستقل ندارند؛ سلکتورهای مرکز/پروژه/دسته/برچسب در Task Details هنوز از ArvinRollBox استفاده می‌کنند و هم‌شکلی کامل آن‌ها با HomeFilterPill در UI واقعی تأیید نشده است.
 - **BLOCKED — RELEASE: NO-GO** تا Build تمام شاردها، Calendar Provider، Persistence، Device Smoke و APK exact-HEAD سبز شوند و APK روی SM-A528B/DS نصب و آزمون شود.
+
+
+## وضعیت تجمیعی جدید — ۱۴۰۵/۰۸/۱۶
+- HEAD کد پیش از این ثبت مستنداتی: `72963f7f69f9dc5e4846f52880e2a5deb283815d`. PR #3052 روی همین شاخه OPEN / DRAFT / UNMERGED است؛ main روی `45e4202b03a434459e4c021a04efa7e8396359db` بدون تغییر مانده است.
+- اجرای Device Smoke قدیمی #7268 / `42346612483` اکنون CANCELLED است. اجرای تازه روی HEAD کد `72963f7...` با شماره #7299 / `42350206655` ثبت شده، اما هنوز PENDING است و Job دستگاه شروع نشده است.
+- دروازه‌های ثبت‌شده روی SHA کد `72963f7...`: Build #10066 / `42350206647` PENDING؛ Calendar Provider #2201 / `42350206625` QUEUED؛ Follow-up Persistence #1224 / `42350206608` PENDING؛ G1 Lock #4693 / `42350206596` QUEUED؛ Draft Review APK #873 / `42350206660` PENDING؛ Device Smoke #7299 PENDING. هیچ‌کدام هنوز PASS نهایی نیستند.
+- Build قبلی #10044 روی SHA قدیمی `f69ef3ae...` به علت دو شکست تست (ترتیب فیلترهای Home و تست قدیمی کنترل بدون ساعت) FAILED شد. کد و آزمون‌ها اصلاح شده‌اند؛ این اصلاحات تا پاس Build تازه روی SHA جدید VERIFIED محسوب نمی‌شوند.
+- All-Day legacy: فیلدهای `Task.reminderDate` و `FollowUp.reminderDate` اکنون پرچم‌های مستقل `reminderAllDay` دارند؛ JSON round-trip و مهاجرت Task به `TaskReminder.isAllDay` پوشش داده شده است. ویرایش یادآور legacy در فرم Task و فرم FollowUp گزینه «بدون ساعت» را داخل دیالوگ ساعت می‌دهد. نیمه‌شب بدون پرچم صریح همچنان زمان‌دار باقی می‌ماند.
+- Selectorهای مرکز/پروژه/دسته/برچسب در Task Editor اکنون از Sheet مشترک با فیلترهای Home استفاده می‌کنند؛ سه مورد نخست انتخاب تک‌گزینه‌ای و برچسب چندگزینه‌ای است؛ ایجاد مورد جدید حفظ شده است. رنگ pill و Wrap RTL نیز همسان شده‌اند.
+- APK review-only قبلی متعلق به SHA `f69ef3ae...` است و برای HEAD جدید قابل استفاده/استناد نیست. آرتیفکت Draft Review روی SHA فعلی هنوز تولید/دریافت نشده است؛ پس از موفقیت Run exact-head استخراج و SHA-256 بایت APK جداگانه ثبت می‌شود.
+- هیچ تست فیزیکی روی Samsung SM-A528B/DS هنوز ثبت نشده است.
+- **BLOCKED — RELEASE: NO-GO** تا پاس تمام دروازه‌ها روی یک SHA نهایی، APK همان SHA، نصب و آزمون واقعی گوشی و تأیید مالک.
