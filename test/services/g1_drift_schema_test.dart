@@ -165,12 +165,12 @@ void main() {
     expect(reminders.map((row) => row['id']), [
       'reminder-one',
       'reminder-two',
-      'follow-up-reminder-legacy-follow-up',
+      'follow-up-reminder-canonical-task-legacy-follow-up',
     ]);
     expect(reminders.map((row) => row['is_all_day']), [0, 1, 0]);
     final migratedFollowUpReminder = await database.runSelect(
       'SELECT remind_at FROM task_reminders WHERE id = ?',
-      <Object?>['follow-up-reminder-legacy-follow-up'],
+      <Object?>['follow-up-reminder-canonical-task-legacy-follow-up'],
     );
     expect(migratedFollowUpReminder.single['remind_at'], '2026-11-07T09:00:00.000');
 
