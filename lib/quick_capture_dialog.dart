@@ -623,7 +623,6 @@ Future<DateTime?> _pickCustomDue() async {
                               _pendingCustomDueAllDay = false;
                             },
                           )),
-                          const SizedBox(width: 4)),
                           const SizedBox(width: 4),
                           Expanded(
                             child: ArvinRollBox<String>(
