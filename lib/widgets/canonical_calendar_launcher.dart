@@ -60,6 +60,29 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
 
 
 
+  static const _calendarHelpSteps = <ContextualHelpStep>[
+    ContextualHelpStep(
+      icon: Icons.calendar_month_outlined,
+      title: 'انتخاب بازه',
+      body: 'از کنترل‌های روزانه، هفتگی و ماهانه برای تغییر نمای تقویم استفاده کنید.',
+    ),
+    ContextualHelpStep(
+      icon: Icons.chevron_left_rounded,
+      title: 'جابجایی در زمان',
+      body: 'با فلش‌های قبل و بعد، بازهٔ تقویم را بدون تغییر داده‌های یادآورها جابه‌جا کنید.',
+    ),
+    ContextualHelpStep(
+      icon: Icons.event_available_outlined,
+      title: 'رفتن به تاریخ',
+      body: 'برای باز کردن یک روز مشخص، انتخاب‌گر تاریخ شمسی را به کار ببرید.',
+    ),
+    ContextualHelpStep(
+      icon: Icons.notifications_active_outlined,
+      title: 'یادآورها',
+      body: 'یادآورهای مستقل و رویدادهای تقویم دستگاه را در روز انتخاب‌شده بررسی کنید.',
+    ),
+  ];
+
   static const _notebookHelpSteps = <ContextualHelpStep>[
     ContextualHelpStep(
       icon: Icons.add_circle_outline,
@@ -703,7 +726,11 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
       child: Scaffold(
         body: Offstage(
           offstage: _conflictAdviceVisible,
-          child: IranianOfficialCalendarPage(
+          child: ContextualHelpOverlay(
+            title: 'راهنمای تقویم',
+            steps: _calendarHelpSteps,
+            buttonKey: const ValueKey('calendar-context-help'),
+            child: IranianOfficialCalendarPage(
               reminders: reminders,
               visibleReminderProjection: projectVisible,
               onEditTask: _editTaskFromCalendar,
@@ -721,6 +748,7 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
                   ? null
                   : _createTaskFromCalendarEvent,
             ),
+          ),
         ),
         bottomNavigationBar: ArvinPrimaryNavigation(
           selected: ArvinPrimaryDestination.calendar,

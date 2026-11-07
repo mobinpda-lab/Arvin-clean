@@ -63,7 +63,7 @@ void main() {
       find.descendant(
         of: find.byKey(const ValueKey('home-filter-card-center')),
         matching: find.byType(AnimatedContainer),
-      ),
+      ).first,
     );
     final cardDecoration = selectedCard.decoration! as BoxDecoration;
     expect(cardDecoration.border!.top.color, ArvinColors.primary.withAlpha(150));
