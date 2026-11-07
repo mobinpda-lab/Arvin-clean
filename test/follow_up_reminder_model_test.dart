@@ -82,7 +82,7 @@ void main() {
     expect(task.followUps.single.toJson().containsKey('reminderDate'), isFalse);
     expect(task.followUps.single.toJson().containsKey('nextFollowUp'), isFalse);
     expect(task.taskReminders, hasLength(1));
-    expect(task.taskReminders.single.id, 'follow-up-reminder-legacy-follow-up');
+    expect(task.taskReminders.single.id, 'follow-up-reminder-follow-up-reminder-migration-legacy-follow-up');
     expect(task.taskReminders.single.date, DateTime(2026, 10, 20, 9, 30));
     expect(task.taskReminders.single.isAllDay, isTrue);
     expect(task.toJson().containsKey('followUpDate'), isFalse);
@@ -118,7 +118,7 @@ void main() {
         reason: 'legacy singular reminder must remain unchanged');
     expect(restored.taskReminders, hasLength(3));
     expect(restored.taskReminders.map((item) => item.id),
-        ['reminder-a', 'reminder-c', 'legacy-task-reminder']);
+        ['reminder-a', 'reminder-c', 'legacy-task-reminder-multi-reminder']);
     final independentAllDay = restored.taskReminders.singleWhere(
       (item) => item.id == 'reminder-c',
     );
@@ -138,7 +138,7 @@ void main() {
 
     expect(restored.reminderDate, DateTime(2026, 10, 20, 9, 30));
     expect(restored.taskReminders, hasLength(1));
-    expect(restored.taskReminders.single.id, 'legacy-task-reminder');
+    expect(restored.taskReminders.single.id, 'legacy-task-reminder-legacy-task');
     expect(restored.taskReminders.single.isLegacyTaskReminder, isTrue);
     expect(restored.taskReminders.single.date, restored.reminderDate);
     expect(restored.taskReminders.single.isAllDay, isFalse,
@@ -149,7 +149,7 @@ void main() {
     final restoredAgain = Task.fromJson(restored.toJson());
     expect(restoredAgain.taskReminders, hasLength(1),
         reason: 'reloading a migrated Task must not create a duplicate');
-    expect(restoredAgain.taskReminders.single.id, 'legacy-task-reminder');
+    expect(restoredAgain.taskReminders.single.id, 'legacy-task-reminder-legacy-with-new');
     expect(restoredAgain.legacyTaskReminderMigrationVersion, 1);
   });
 
