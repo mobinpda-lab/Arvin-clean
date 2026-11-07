@@ -10,6 +10,7 @@ void main() {
       note: 'یادداشت تماس با مشتری',
       result: 'منتظر پاسخ',
       reminderDate: DateTime(2026, 8, 28, 15, 15),
+      reminderAllDay: true,
       nextFollowUp: DateTime(2026, 8, 30, 10),
     );
 
@@ -21,6 +22,7 @@ void main() {
     expect(restored.note, followUp.note);
     expect(restored.result, followUp.result);
     expect(restored.reminderDate, followUp.reminderDate);
+    expect(restored.reminderAllDay, isTrue);
     expect(restored.nextFollowUp, followUp.nextFollowUp);
   });
 
@@ -35,6 +37,7 @@ void main() {
 
     expect(restored.title, isNull);
     expect(restored.reminderDate, isNull);
+    expect(restored.reminderAllDay, isFalse);
     expect(restored.note, 'پیگیری قبلی');
   });
 
