@@ -269,6 +269,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   }
 
 Future<DateTime?> _pickCustomDue() async {
+    _pendingCustomDueAllDay = false;
     final initial = _dueDate ?? widget.now?.call() ?? DateTime.now();
     final date = await showPersianDatePicker(
       context: context,

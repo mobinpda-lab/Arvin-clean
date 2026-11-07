@@ -489,16 +489,13 @@ Future<void> _pickDueDate() async {
     );
     if (value != null && mounted) {
       setState(() {
+        final base = _baseDateTime(_dueDateTime);
         _dueDateTime = value.isAllDay
-            ? DateTime(
-                _dueDateTime!.year,
-                _dueDateTime!.month,
-                _dueDateTime!.day,
-              )
+            ? DateTime(base.year, base.month, base.day)
             : DateTime(
-                _dueDateTime!.year,
-                _dueDateTime!.month,
-                _dueDateTime!.day,
+                base.year,
+                base.month,
+                base.day,
                 value.time!.hour,
                 value.time!.minute,
               );
@@ -1214,7 +1211,7 @@ Future<void> _pickDueDate() async {
                 );
               },
             ),
-          if (onToggleAllDay != null) ...[
+          if (onToggleAllDay != null && !unifiedDateTime) ...[
             const SizedBox(height: 6),
             Row(
               children: [

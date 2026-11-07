@@ -1025,6 +1025,48 @@ void main() {
     expect(captured!.reminderDate, captured!.dueDate);
   });
 
+  testWidgets('Quick Capture stores a custom all-day deadline without a clock time',
+      (tester) async {
+    Task? captured;
+    final fixedNow = DateTime(2026, 9, 27, 14, 35);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            body: QuickCaptureDialog(
+              idFactory: () => 'quick-all-day-due',
+              now: () => fixedNow,
+              onCaptured: (task) async { captured = task; },
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('quick-capture-input')),
+      'کار تمام‌روز',
+    );
+    await tester.tap(find.byKey(const ValueKey('quick-capture-due-rollbox')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('تاریخ و ساعت سفارشی'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('universal-time-no-time')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const ValueKey('quick-capture-submit')));
+    await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
+    await tester.pumpAndSettle();
+
+    expect(captured, isNotNull);
+    expect(captured!.dueDate, DateTime(2026, 9, 27));
+    expect(captured!.allDay, isTrue);
+    expect(captured!.reminderDate, isNull);
+  });
+
+
   testWidgets('Quick Capture leaves custom due empty when the unified picker is not used',
       (tester) async {
     Task? captured;
