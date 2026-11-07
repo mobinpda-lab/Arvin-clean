@@ -137,7 +137,7 @@ class HomeFilterCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: selected
                     ? Color.alphaBlend(selectedAccent.withAlpha(18), selectedSoft)
-                    : ArvinColors.surface,
+                    : colors.surface,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: selected ? selectedAccent.withAlpha(150) : colors.outline,
