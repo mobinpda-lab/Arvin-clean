@@ -26,20 +26,21 @@ class HomeFilterPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final selectedAccent = ArvinColors.primary;
-    final selectedSurface = ArvinColors.primarySoft;
+    final colors = Theme.of(context).colorScheme;
+    final selectedAccent = colors.primary;
+    final selectedSurface = Color.alphaBlend(selectedAccent.withAlpha(18), colors.surface);
     return Semantics(
       button: true,
       label: label,
       child: SizedBox(
         height: 48,
         child: Material(
-          color: active ? selectedSurface : ArvinColors.surface,
+          color: active ? selectedSurface : colors.surface,
           shape: StadiumBorder(
             side: BorderSide(
               color: active
                   ? selectedAccent.withAlpha(90)
-                  : ArvinColors.border,
+                  : colors.outline,
             ),
           ),
           child: InkWell(
@@ -56,7 +57,7 @@ class HomeFilterPill extends StatelessWidget {
                     size: 14,
                     color: active
                         ? selectedAccent
-                        : ArvinColors.textSecondary,
+                        : colors.onSurfaceVariant,
                   ),
                   const SizedBox(width: 3),
                   Flexible(
@@ -70,7 +71,7 @@ class HomeFilterPill extends StatelessWidget {
                         style: TextStyle(
                           color: active
                               ? selectedAccent
-                              : ArvinColors.textPrimary,
+                              : colors.onSurface,
                           fontSize: 10.5,
                           fontWeight:
                               active ? FontWeight.w700 : FontWeight.w500,
@@ -113,15 +114,16 @@ class HomeFilterCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final selected = active ?? value != 'همه';
-    final selectedAccent = ArvinColors.primary;
-    final selectedSoft = ArvinColors.primarySoft;
+    final colors = Theme.of(context).colorScheme;
+    final selectedAccent = colors.primary;
+    final selectedSoft = Color.alphaBlend(selectedAccent.withAlpha(18), colors.surface);
     final compact = MediaQuery.sizeOf(context).height < 700;
     return Expanded(
       child: Semantics(
         button: true,
         label: title + ': ' + value,
         child: Material(
-          color: selected ? Color.alphaBlend(selectedAccent.withAlpha(22), selectedSoft) : ArvinColors.surface,
+          color: selected ? Color.alphaBlend(selectedAccent.withAlpha(22), selectedSoft) : colors.surface,
           borderRadius: BorderRadius.circular(16),
           child: InkWell(
             key: ValueKey('home-filter-card-' + dimension.name),
@@ -138,7 +140,7 @@ class HomeFilterCard extends StatelessWidget {
                     : ArvinColors.surface,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: selected ? selectedAccent.withAlpha(150) : ArvinColors.border,
+                  color: selected ? selectedAccent.withAlpha(150) : colors.outline,
                   width: selected ? 1.5 : 1,
                 ),
                 boxShadow: [
@@ -206,23 +208,26 @@ class HomeFilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final chipAccent = colors.primary;
+    final chipSoft = Color.alphaBlend(chipAccent.withAlpha(18), colors.surface);
     return Container(
       constraints: const BoxConstraints(minHeight: 34),
       decoration: BoxDecoration(
-        color: ArvinColors.primarySoft,
+        color: chipSoft,
         borderRadius: BorderRadius.circular(17),
-        border: Border.all(color: ArvinColors.primary.withAlpha(65)),
+        border: Border.all(color: chipAccent.withAlpha(65)),
       ),
       padding: const EdgeInsetsDirectional.only(start: 8, end: 5),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (icon != null) Icon(icon, size: 15, color: ArvinColors.primary),
+          if (icon != null) Icon(icon, size: 15, color: chipAccent),
           if (icon != null) const SizedBox(width: 4),
           Text(
             label,
             style: TextStyle(
-              color: ArvinColors.primary,
+              color: chipAccent,
               fontSize: 11.5,
               fontWeight: FontWeight.w700,
             ),
@@ -234,7 +239,7 @@ class HomeFilterChip extends StatelessWidget {
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
             visualDensity: VisualDensity.compact,
-            icon: Icon(Icons.close_rounded, size: 16, color: ArvinColors.primary),
+            icon: Icon(Icons.close_rounded, size: 16, color: chipAccent),
           ),
         ],
       ),
@@ -261,7 +266,8 @@ class HomeFilterSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.sizeOf(context).height;
-    const brandAccent = ArvinColors.primary;
+    final colors = Theme.of(context).colorScheme;
+    final brandAccent = colors.primary;
     return SafeArea(
       top: false,
       child: ConstrainedBox(
@@ -271,7 +277,7 @@ class HomeFilterSheet extends StatelessWidget {
           minHeight: 220,
         ),
         child: Material(
-          color: ArvinColors.surface,
+          color: colors.surface,
           elevation: 12,
           shadowColor: Colors.black.withAlpha(35),
           borderRadius: BorderRadius.circular(28),
