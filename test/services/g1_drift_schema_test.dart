@@ -134,7 +134,7 @@ void main() {
          (id, title, description, due_date, priority, archived, trashed,
           completed, legacy_payload_json)
          VALUES (?, ?, '', '2026-11-08T00:00:00.000', 'none', 0, 0, 0, ?)''',
-      <Object?>['canonical-task', jsonEncode(payload)],
+      <Object?>['canonical-task', 'کار کانونی', jsonEncode(payload)],
     );
     // Recreate the pre-v12 layout to exercise the real upgrade/cutover path.
     await database.runCustom(
