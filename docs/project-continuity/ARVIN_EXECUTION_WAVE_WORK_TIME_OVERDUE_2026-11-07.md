@@ -120,3 +120,12 @@ No tests were deleted or weakened. `main` was not modified. No merge, publicatio
 - SQL migration writer now writes normalized Person links and inserts required Person rows before dependent Follow-up relations. Removed a duplicate TaskReminder insert loop found during the same persistence audit.
 - Tests now assert the normalized schema, Person foreign keys, old-relation migration, multiple reminder persistence, and absence of legacy reminder resurrection. These tests remain active; no test was removed or skipped.
 - The next exact-HEAD CI is required on the new branch HEAD after this batch. The prior 2026-11-07 runs on older SHAs remain historical only.
+
+
+## Date-only / All-Day storage contract — 2026-11-07
+
+- The shared round clock contains its own explicit `بدون ساعت` action. Date selection remains first; the clock opens immediately after date confirmation. Cancellation returns without changing the prior committed value.
+- Central overdue logic is confirmed: timed Tasks become overdue after the exact due datetime; All-Day Tasks become overdue at the start of the next local calendar day; completed or undated Tasks are never overdue.
+- Task and TaskReminder serialization now writes All-Day values as date-only `YYYY-MM-DD` strings. Timed values retain full timestamps. SQLite TaskStore, schema cutover, and SQL migration writer use the same date-only encoding, avoiding synthetic `00:00` in persisted floating values.
+- Added regression coverage for Task All-Day due-date serialization and raw SQLite All-Day reminder storage. Existing persistence coverage still checks reminder IDs, order, and independent timestamps.
+- Latest code/test HEAD before this note: `c0a6118685ab9d52f962e83c947e2977d98ab7fc`; exact-HEAD CI has started and remains pending/in progress at time of recording.
