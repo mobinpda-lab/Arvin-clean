@@ -268,7 +268,7 @@ void main() {
     expect(result.map((task) => task.id), ['note-school']);
   });
 
-  test('past preset is strictly before local start of today and sorts open tasks first', () {
+  test('past preset includes elapsed timed tasks today, excludes all-day today and completed tasks', () {
     final openOlder = Task(
       id: 'open-older',
       title: 'باز قدیمی‌تر',
@@ -295,6 +295,7 @@ void main() {
       id: 'today-start',
       title: 'امروز از ابتدای روز',
       dueDate: DateTime(2026, 10, 7),
+      allDay: true,
     );
     final todayEarlierThanNow = Task(
       id: 'today-morning',
@@ -326,7 +327,7 @@ void main() {
 
     expect(
       result.map((task) => task.id),
-      ['open-older', 'open-newer', 'completed-older', 'completed-newer'],
+      ['open-older', 'open-newer', 'today-morning'],
     );
   });
 
