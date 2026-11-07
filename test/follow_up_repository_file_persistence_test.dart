@@ -172,7 +172,7 @@ void main() {
           expect(await _count(active.executor, 'follow_up_records'), 2);
           expect(await _count(active.executor, 'follow_up_record_people'), 3);
           expect(await _count(active.executor, 'task_reminders'), 2);
-          expect(await _count(active.executor, 'task_people'), 1);
+          expect(await _count(active.executor, 'task_persons'), 1);
 
           await active.close();
           active = null;
@@ -207,7 +207,7 @@ Future<int> _count(QueryExecutor executor, String table) async {
     'follow_up_records',
     'follow_up_record_people',
     'task_reminders',
-    'task_people',
+    'task_persons',
   };
   if (!allowedTables.contains(table)) {
     throw ArgumentError.value(table, 'table', 'Unsupported test table');
