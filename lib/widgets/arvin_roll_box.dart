@@ -65,7 +65,7 @@ class ArvinRollBox<T> extends StatelessWidget {
               for (final item in items)
                 RadioListTile<Object?>(
                   value: item.value,
-                  activeColor: ArvinColors.primary,
+                  activeColor: colors.primary,
                   title: Text(item.label),
                   secondary: Icon(
                     item.icon ?? icon,
@@ -76,9 +76,9 @@ class ArvinRollBox<T> extends StatelessWidget {
               if (onCreate != null)
                 ListTile(
                   key: createItemKey,
-                  leading: const Icon(
+                  leading: Icon(
                     Icons.add_circle_outline_rounded,
-                    color: ArvinColors.primary,
+                    color: colors.primary,
                   ),
                   title: Text(createLabel),
                   onTap: () => Navigator.of(sheetContext)
@@ -165,7 +165,7 @@ class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
     final applied = await HomeFilterSheet.show<List<String>>(
       context,
       title: 'انتخاب برچسب',
-      accent: ArvinColors.primary,
+      accent: colors.primary,
       child: StatefulBuilder(
         builder: (sheetContext, setSheetState) => Column(
           children: [
@@ -178,7 +178,7 @@ class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
                       dense: true,
                       activeColor: colors.primary,
                       value: working.contains(tag),
-                      secondary: const Icon(
+                      secondary: Icon(
                         Icons.sell_outlined,
                         color: colors.primary,
                       ),
@@ -193,7 +193,7 @@ class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
                     ),
                   if (widget.onCreate != null)
                     ListTile(
-                      leading: const Icon(
+                      leading: Icon(
                         Icons.add_circle_outline,
                         color: colors.primary,
                       ),
