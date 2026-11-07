@@ -107,101 +107,19 @@ void main() {
     expect(result!.dateTime, initial);
   });
 
-  testWidgets('editing preserves legacy scheduling timestamps',
-      (tester) async {
-    FollowUp? result;
-    final reminder = DateTime(2026, 9, 2, 7, 45);
+  testWidgets('editing a historical Follow-up can add an independent all-day Task Reminder', (tester) async {
+    await TaskStore.resetTestDatabase();
+    SharedPreferences.setMockInitialValues({});
+    addTearDown(TaskStore.resetTestDatabase);
+    final store = TaskStore();
+    await store.save([Task(id: 'follow-up-edit-reminder', title: 'کار مادر')]);
     final initial = FollowUp(
-      id: 'fu-reminder',
-      dateTime: DateTime(2026, 8, 28, 10, 15),
-      note: 'تماس',
-      result: 'انجام شد',
-      reminderDate: reminder,
-      nextFollowUp: DateTime(2026, 9, 3, 10, 15),
-    );
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Builder(
-          builder: (context) => Scaffold(
-            body: ElevatedButton(
-              onPressed: () async {
-                result = await Navigator.of(context).push<FollowUp>(
-                  MaterialPageRoute(
-                    builder: (_) => FollowUpEntryPage(initialFollowUp: initial),
-                  ),
-                );
-              },
-              child: const Text('open'),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    await tester.tap(find.text('open'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('انتخاب پیگیری بعدی'), findsNothing);
-    expect(find.byKey(const ValueKey('follow-up-reminder-block')), findsNothing);
-
-    await saveEditor(tester);
-
-    expect(result, isNotNull);
-    expect(result!.id, initial.id);
-    expect(result!.reminderDate, reminder);
-    expect(result!.nextFollowUp, initial.nextFollowUp);
-  });
-
-  testWidgets('legacy FollowUp reminder remains editable and is preserved',
-      (tester) async {
-    FollowUp? result;
-    final initial = FollowUp(
-      id: 'fu-clear',
+      id: 'historical-follow-up',
       dateTime: DateTime(2026, 8, 28, 12),
-      reminderDate: DateTime(2026, 8, 29, 8, 30),
+      note: 'سابقه تماس',
     );
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Builder(
-          builder: (context) => Scaffold(
-            body: ElevatedButton(
-              onPressed: () async {
-                result = await Navigator.of(context).push<FollowUp>(
-                  MaterialPageRoute(
-                    builder: (_) => FollowUpEntryPage(initialFollowUp: initial),
-                  ),
-                );
-              },
-              child: const Text('open'),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    await tester.tap(find.text('open'));
-    await tester.pumpAndSettle();
-
-    expect(find.byKey(const ValueKey('follow-up-legacy-reminder-date')), findsOneWidget);
-    expect(find.byKey(const ValueKey('follow-up-legacy-reminder-clear')), findsOneWidget);
-    expect(find.text('انتخاب پیگیری بعدی'), findsNothing);
-
-    await saveEditor(tester);
-
-    expect(result, isNotNull);
-    expect(result!.id, initial.id);
-    expect(result!.reminderDate, initial.reminderDate);
-  });
-
-  testWidgets('legacy FollowUp reminder can be selected as All-Day', (tester) async {
     FollowUp? result;
-    final initial = FollowUp(
-      id: 'fu-all-day',
-      dateTime: DateTime(2026, 8, 28, 12),
-      reminderDate: DateTime(2026, 8, 29, 8, 30),
-    );
+
     await tester.pumpWidget(
       MaterialApp(
         home: Builder(
@@ -210,36 +128,46 @@ void main() {
               onPressed: () async {
                 result = await Navigator.of(context).push<FollowUp>(
                   MaterialPageRoute(
-                    builder: (_) => FollowUpEntryPage(initialFollowUp: initial),
+                    builder: (_) => FollowUpEntryPage(
+                      initialFollowUp: initial,
+                      taskId: 'follow-up-edit-reminder',
+                      allowAddingReminder: true,
+                    ),
                   ),
                 );
               },
-              child: const Text('open-legacy-all-day'),
+              child: const Text('open-edit-follow-up-reminder'),
             ),
           ),
         ),
       ),
     );
-    await tester.tap(find.text('open-legacy-all-day'));
+    await tester.tap(find.text('open-edit-follow-up-reminder'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(
-      const ValueKey('follow-up-legacy-reminder-date'),
-    ));
+    expect(find.byKey(const ValueKey('follow-up-legacy-reminder-editor')), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('follow-up-entry-add-reminder')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('follow-up-reminder-date')));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FilledButton, 'تأیید'));
     await tester.pumpAndSettle();
-    final noTime = find.byKey(const ValueKey('universal-time-no-time'));
-    expect(noTime, findsOneWidget);
-    await tester.tap(noTime);
+    await tester.tap(find.byKey(const ValueKey('universal-time-no-time')));
     await tester.pumpAndSettle();
-
     await saveEditor(tester);
+
+    final savedTask = (await store.load()).single;
     expect(result, isNotNull);
-    expect(result!.reminderDate, isNotNull);
-    expect(result!.reminderDate!.hour, 0);
-    expect(result!.reminderDate!.minute, 0);
-    expect(result!.reminderAllDay, isTrue);
+    expect(result!.id, initial.id);
+    expect(result!.dateTime, initial.dateTime);
+    expect(result!.reminderDate, isNull);
+    expect(result!.nextFollowUp, isNull);
+    expect(result!.toJson().containsKey('reminderDate'), isFalse);
+    expect(result!.toJson().containsKey('nextFollowUp'), isFalse);
+    expect(savedTask.taskReminders, hasLength(1));
+    expect(savedTask.taskReminders.single.isAllDay, isTrue);
+    expect(savedTask.taskReminders.single.date.hour, 0);
+    expect(savedTask.taskReminders.single.date.minute, 0);
   });
 
   testWidgets('waiting FollowUp can add, select, reopen and remove a stable person', (tester) async {
