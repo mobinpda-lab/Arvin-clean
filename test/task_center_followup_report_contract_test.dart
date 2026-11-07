@@ -139,9 +139,9 @@ void main() {
     );
     await tester.tap(find.byKey(const ValueKey('quick-capture-due-rollbox')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('امروز').last);
+    await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
     await tester.pumpAndSettle();
-    final noTime = find.byKey(const ValueKey('quick-capture-no-time'));
+    final noTime = find.byKey(const ValueKey('universal-time-no-time'));
     await tester.ensureVisible(noTime);
     await tester.tap(noTime);
     await tester.pumpAndSettle();
