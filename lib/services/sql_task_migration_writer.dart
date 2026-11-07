@@ -80,10 +80,9 @@ class SqlTaskMigrationWriter {
     await executor.runInsert(
       '''INSERT INTO tasks (
         id, storage_ordinal, title, description, created_at, updated_at, due_date,
-        follow_up_enabled, follow_up_date, category, notebook_kind,
-        reminder_date, priority, archived, trashed, completed, completed_at,
+        category, notebook_kind, priority, archived, trashed, completed, completed_at,
         recurrence_json, legacy_payload_json
-       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
       <Object?>[
         task.id,
         storageOrdinal,
@@ -92,11 +91,8 @@ class SqlTaskMigrationWriter {
         task.createdAt?.toIso8601String(),
         task.updatedAt?.toIso8601String(),
         task.dueDate?.toIso8601String(),
-        _bool(task.followUpEnabled),
-        task.followUpDate?.toIso8601String(),
         task.category,
         task.notebookKind?.name,
-        task.reminderDate?.toIso8601String(),
         task.priority.name,
         _bool(task.archived),
         _bool(task.trashed),
