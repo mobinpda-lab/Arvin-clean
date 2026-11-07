@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../home/home_filter_ui.dart';
+import 'reusable_multi_select_filter_bottom_sheet.dart';
 
 class ArvinRollBox<T> extends StatelessWidget {
   const ArvinRollBox({
@@ -12,6 +13,7 @@ class ArvinRollBox<T> extends StatelessWidget {
     required this.color,
     this.emptyLabel,
     this.onCreate,
+    this.onCreateWithName,
     this.createLabel = 'افزودن',
     this.createItemKey,
     this.compact = false,
@@ -25,15 +27,15 @@ class ArvinRollBox<T> extends StatelessWidget {
   final Color color;
   final String? emptyLabel;
   final Future<T?> Function()? onCreate;
+  final Future<ReusableFilterOption<T>?> Function(String value)? onCreateWithName;
   final String createLabel;
   final Key? createItemKey;
   final bool compact;
 
   Future<void> _openSelector(BuildContext context) async {
-    final colors = Theme.of(context).colorScheme;
     Object? currentValue;
     if (emptyLabel != null && valueLabel == label) {
-      currentValue = _ArvinClearToken.instance;
+      currentValue = null;
     } else {
       for (final item in items) {
         if (item.label == valueLabel) {
@@ -43,62 +45,38 @@ class ArvinRollBox<T> extends StatelessWidget {
       }
     }
 
-    final choice = await HomeFilterSheet.show<Object?>(
+    final create = onCreateWithName ??
+        (onCreate == null
+            ? null
+            : (String _) async {
+                final created = await onCreate!.call();
+                if (created == null) return null;
+                final existing = items.where((item) => item.value == created);
+                return ReusableFilterOption<T>(
+                  value: created,
+                  label: existing.isNotEmpty ? existing.first.label : created.toString(),
+                );
+              });
+    final result = await ReusableMultiSelectFilterBottomSheet.showSingleSelect<T>(
       context,
       title: 'انتخاب $label',
-      accent: colors.primary,
-      child: Builder(
-        builder: (sheetContext) => RadioGroup<Object?>(
-          groupValue: currentValue,
-          onChanged: (value) => Navigator.of(sheetContext).pop(value),
-          child: ListView(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            children: [
-              if (emptyLabel != null)
-                RadioListTile<Object?>(
-                  value: _ArvinClearToken.instance,
-                  activeColor: colors.primary,
-                  title: Text(emptyLabel!),
-                ),
-              for (final item in items)
-                RadioListTile<Object?>(
-                  value: item.value,
-                  activeColor: colors.primary,
-                  title: Text(item.label),
-                  secondary: Icon(
-                    item.icon ?? icon,
-                    color: colors.primary,
-                    size: 20,
-                  ),
-                ),
-              if (onCreate != null)
-                ListTile(
-                  key: createItemKey,
-                  leading: Icon(
-                    Icons.add_circle_outline_rounded,
-                    color: colors.primary,
-                  ),
-                  title: Text(createLabel),
-                  onTap: () => Navigator.of(sheetContext)
-                      .pop(_ArvinCreateToken.instance),
-                ),
-            ],
-          ),
-        ),
-      ),
+      accent: Theme.of(context).colorScheme.primary,
+      options: items
+          .map((item) => ReusableFilterOption<T>(
+                value: item.value,
+                label: item.label,
+                icon: item.icon ?? icon,
+              ))
+          .toList(growable: false),
+      selectedValue: currentValue as T?,
+      emptyLabel: emptyLabel,
+      createLabel: createLabel,
+      createKey: createItemKey,
+      onCreate: create,
     );
 
-    if (!context.mounted || choice == null) return;
-    if (choice is _ArvinClearToken) {
-      onSelected(null);
-      return;
-    }
-    if (choice is _ArvinCreateToken) {
-      final created = await onCreate?.call();
-      if (context.mounted && created != null) onSelected(created);
-      return;
-    }
-    onSelected(choice as T?);
+    if (!context.mounted || result == null) return;
+    onSelected(result.cleared ? null : result.value);
   }
 
   @override
@@ -136,6 +114,7 @@ class ArvinTagRollBox extends StatefulWidget {
     required this.selectedTags,
     required this.onChanged,
     this.onCreate,
+    this.onCreateWithName,
     this.compact = false,
   });
 
@@ -143,6 +122,7 @@ class ArvinTagRollBox extends StatefulWidget {
   final List<String> selectedTags;
   final ValueChanged<List<String>> onChanged;
   final Future<String?> Function()? onCreate;
+  final Future<String?> Function(String value)? onCreateWithName;
   final bool compact;
 
   @override
@@ -151,90 +131,43 @@ class ArvinTagRollBox extends StatefulWidget {
 
 class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
   Future<void> _openSelector() async {
-    final colors = Theme.of(context).colorScheme;
     final tags = widget.tags
         .map((value) => value.trim())
         .where((value) => value.isNotEmpty)
         .toSet()
         .toList()
       ..sort();
-    final working = <String>{...widget.selectedTags};
-
-    final applied = await HomeFilterSheet.show<List<String>>(
+    final create = widget.onCreateWithName ??
+        (widget.onCreate == null
+            ? null
+            : (String _) async {
+                final created = await widget.onCreate!.call();
+                if (created == null || created.trim().isEmpty) return null;
+                return ReusableFilterOption<String>(
+                  value: created.trim(),
+                  label: created.trim(),
+                );
+              });
+    final applied = await ReusableMultiSelectFilterBottomSheet.showMultiSelect<String>(
       context,
       title: 'انتخاب برچسب',
-      accent: colors.primary,
-      child: StatefulBuilder(
-        builder: (sheetContext, setSheetState) => Column(
-          children: [
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                children: [
-                  for (final tag in tags)
-                    CheckboxListTile(
-                      dense: true,
-                      activeColor: colors.primary,
-                      value: working.contains(tag),
-                      secondary: Icon(
-                        Icons.sell_outlined,
-                        color: colors.primary,
-                      ),
-                      title: Text(tag),
-                      onChanged: (checked) => setSheetState(() {
-                        if (checked == true) {
-                          working.add(tag);
-                        } else {
-                          working.remove(tag);
-                        }
-                      }),
-                    ),
-                  if (widget.onCreate != null)
-                    ListTile(
-                      leading: Icon(
-                        Icons.add_circle_outline,
-                        color: colors.primary,
-                      ),
-                      title: const Text('+ افزودن برچسب'),
-                      onTap: () async {
-                        final created = await widget.onCreate!.call();
-                        if (!sheetContext.mounted ||
-                            created == null ||
-                            created.trim().isEmpty) {
-                          return;
-                        }
-                        setSheetState(() => working.add(created.trim()));
-                      },
-                    ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: TextButton(
-                    onPressed: () => Navigator.of(sheetContext).pop(),
-                    child: const Text('لغو'),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: FilledButton(
-                    onPressed: () => Navigator.of(sheetContext)
-                        .pop(working.toList()..sort()),
-                    child: const Text('اعمال'),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+      accent: Theme.of(context).colorScheme.primary,
+      options: tags
+          .map((tag) => ReusableFilterOption<String>(
+                value: tag,
+                label: tag,
+                icon: Icons.sell_outlined,
+              ))
+          .toList(growable: false),
+      selectedValues: widget.selectedTags.toSet(),
+      searchHint: 'جستجو در برچسب‌ها...',
+      createHint: 'نام برچسب جدید',
+      createLabel: '+ افزودن برچسب',
+      onCreate: create,
     );
 
     if (!mounted || applied == null) return;
-    widget.onChanged(applied);
+    widget.onChanged(applied.toList()..sort());
   }
 
   @override
@@ -251,12 +184,3 @@ class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
   }
 }
 
-class _ArvinCreateToken {
-  const _ArvinCreateToken._();
-  static const instance = _ArvinCreateToken._();
-}
-
-class _ArvinClearToken {
-  const _ArvinClearToken._();
-  static const instance = _ArvinClearToken._();
-}
