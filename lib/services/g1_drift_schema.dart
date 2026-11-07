@@ -7,16 +7,16 @@ import '../models/task.dart';
 
 /// G1-DRIFT relational schema foundation.
 class G1DriftSchema implements QueryExecutorUser {
-  static const int version = 13;
+  static const int version = 14;
 
   static const List<String> _statements = <String>[
     '''CREATE TABLE IF NOT EXISTS tasks (
-  id TEXT NOT NULL PRIMARY KEY, storage_ordinal INTEGER NOT NULL DEFAULT 0, title TEXT NOT NULL, description TEXT NOT NULL,
-  created_at TEXT NULL, updated_at TEXT NULL, due_date TEXT NULL,
-  follow_up_enabled INTEGER NOT NULL, follow_up_date TEXT NULL, category TEXT NULL,
-  notebook_kind TEXT NULL, reminder_date TEXT NULL, priority TEXT NOT NULL,
-  archived INTEGER NOT NULL, trashed INTEGER NOT NULL, completed INTEGER NOT NULL,
-  completed_at TEXT NULL, recurrence_json TEXT NULL, legacy_payload_json TEXT NULL)''',
+  id TEXT NOT NULL PRIMARY KEY, storage_ordinal INTEGER NOT NULL DEFAULT 0,
+  title TEXT NOT NULL, description TEXT NOT NULL, created_at TEXT NULL,
+  updated_at TEXT NULL, due_date TEXT NULL, category TEXT NULL,
+  notebook_kind TEXT NULL, priority TEXT NOT NULL, archived INTEGER NOT NULL,
+  trashed INTEGER NOT NULL, completed INTEGER NOT NULL, completed_at TEXT NULL,
+  recurrence_json TEXT NULL, legacy_payload_json TEXT NULL)''',
     '''CREATE TABLE IF NOT EXISTS task_reminders (
   id TEXT NOT NULL PRIMARY KEY, task_id TEXT NOT NULL REFERENCES tasks(id),
   title TEXT NOT NULL, remind_at TEXT NOT NULL, is_all_day INTEGER NOT NULL DEFAULT 0,
@@ -114,7 +114,7 @@ class G1DriftSchema implements QueryExecutorUser {
   static Future<void> _installSchema(QueryExecutor executor) async {
     final schema = G1DriftSchema();
     await executor.ensureOpen(schema);
-    await executor.runCustom('PRAGMA foreign_keys = ON');
+    await executor.runCustom('PRAGMA foreign_keys = OFF');
     await executor.runCustom('PRAGMA busy_timeout = 5000');
     await executor.runCustom('PRAGMA synchronous = NORMAL');
     await executor.runCustom('BEGIN');
@@ -183,15 +183,22 @@ class G1DriftSchema implements QueryExecutorUser {
       }
       await migrateTaskPeople(executor);
       await migrateCanonicalEntities(executor);
+      await _rebuildTaskTableWithoutLegacyScheduleColumns(executor);
       // Do not write PRAGMA user_version here. The canonical migration marker
       // is arvin_storage_meta, and this install path can be reached by more
       // than one SQLite connection (for example app + Android smoke tooling).
       // A user_version write acquires a database-wide lock and can fail even
       // though the schema itself is already installed. Schema DDL above is
       // idempotent and the marker remains the canonical cutover boundary.
+      final foreignKeyViolations = await executor.runSelect('PRAGMA foreign_key_check', const []);
+      if (foreignKeyViolations.isNotEmpty) {
+        throw StateError('Canonical schema rebuild produced foreign-key violations: $foreignKeyViolations');
+      }
       await executor.runCustom('COMMIT');
+      await executor.runCustom('PRAGMA foreign_keys = ON');
     } catch (_) {
       try { await executor.runCustom('ROLLBACK'); } catch (_) {}
+      try { await executor.runCustom('PRAGMA foreign_keys = ON'); } catch (_) {}
       rethrow;
     }
   }
@@ -277,8 +284,11 @@ class G1DriftSchema implements QueryExecutorUser {
       }
     }
 
+    final taskColumns = await executor.runSelect("PRAGMA table_info('tasks')", const []);
+    final hasLegacyTaskReminder = taskColumns.any((row) => row['name'] == 'reminder_date');
+    final reminderColumn = hasLegacyTaskReminder ? 'reminder_date' : 'NULL AS reminder_date';
     final taskRows = await executor.runSelect(
-      'SELECT id, title, reminder_date, legacy_payload_json FROM tasks ORDER BY storage_ordinal, id',
+      'SELECT id, title, $reminderColumn, legacy_payload_json FROM tasks ORDER BY storage_ordinal, id',
       const [],
     );
     for (final row in taskRows) {
@@ -366,6 +376,49 @@ class G1DriftSchema implements QueryExecutorUser {
     if (hasPeople) {
       await executor.runCustom('DROP TABLE people');
     }
+  }
+
+  static Future<void> _rebuildTaskTableWithoutLegacyScheduleColumns(
+    QueryExecutor executor,
+  ) async {
+    final columns = await executor.runSelect("PRAGMA table_info('tasks')", const []);
+    const retired = {'follow_up_enabled', 'follow_up_date', 'reminder_date'};
+    if (!columns.any((row) => retired.contains(row['name']))) return;
+
+    await executor.runCustom('''
+      CREATE TABLE tasks_canonical_v14 (
+        id TEXT NOT NULL PRIMARY KEY,
+        storage_ordinal INTEGER NOT NULL DEFAULT 0,
+        title TEXT NOT NULL,
+        description TEXT NOT NULL,
+        created_at TEXT NULL,
+        updated_at TEXT NULL,
+        due_date TEXT NULL,
+        category TEXT NULL,
+        notebook_kind TEXT NULL,
+        priority TEXT NOT NULL,
+        archived INTEGER NOT NULL,
+        trashed INTEGER NOT NULL,
+        completed INTEGER NOT NULL,
+        completed_at TEXT NULL,
+        recurrence_json TEXT NULL,
+        legacy_payload_json TEXT NULL
+      )
+    ''');
+    await executor.runCustom('''
+      INSERT INTO tasks_canonical_v14 (
+        id, storage_ordinal, title, description, created_at, updated_at, due_date,
+        category, notebook_kind, priority, archived, trashed, completed,
+        completed_at, recurrence_json, legacy_payload_json
+      )
+      SELECT
+        id, storage_ordinal, title, description, created_at, updated_at, due_date,
+        category, notebook_kind, priority, archived, trashed, completed,
+        completed_at, recurrence_json, legacy_payload_json
+      FROM tasks
+    ''');
+    await executor.runCustom('DROP TABLE tasks');
+    await executor.runCustom('ALTER TABLE tasks_canonical_v14 RENAME TO tasks');
   }
 
   static Future<bool> _hasTable(QueryExecutor executor, String table) async {
