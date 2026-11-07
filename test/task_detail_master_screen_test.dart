@@ -91,7 +91,7 @@ void main() {
     expect(find.byKey(const ValueKey('persian-date-picker')), findsOneWidget);
     await tester.tap(find.text('تأیید'));
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('universal-arvin-time-picker')), findsOneWidget);
+    expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('universal-time-manual-toggle')));
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const ValueKey('universal-time-manual-input')), '11:45');
