@@ -20,7 +20,14 @@ void main() {
           checklist: const ['تماس', 'ثبت نتیجه'],
           followUps: const [],
           completed: false,
-          reminderDate: DateTime(2026, 8, 30, 9, 30),
+          reminders: [
+            TaskReminder(
+              id: 'report-reminder-1',
+              title: 'یادآور گزارش',
+              date: DateTime(2026, 8, 30, 9, 30),
+              sequence: 1,
+            ),
+          ],
         ),
       ],
     );

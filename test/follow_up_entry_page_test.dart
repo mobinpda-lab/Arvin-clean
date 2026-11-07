@@ -62,7 +62,8 @@ void main() {
     expect(result!.note, 'شرح تماس');
     expect(result!.result, 'پاسخ دریافت شد');
     expect(result!.dateTime, initial);
-    expect(result!.reminderDate, isNull);
+    expect(result!.toJson().containsKey('reminderDate'), isFalse);
+    expect(result!.toJson().containsKey('nextFollowUp'), isFalse);
   });
 
   testWidgets('blank optional title remains absent in the model', (tester) async {

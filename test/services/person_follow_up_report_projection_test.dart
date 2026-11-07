@@ -105,8 +105,7 @@ void main() {
     expect(json.containsKey('reminderDate'), isFalse);
     expect(json.containsKey('reminderAllDay'), isFalse);
     expect(json.containsKey('nextFollowUp'), isFalse);
-    expect(record.reminderDate, isNull);
-    expect(record.nextFollowUp, isNull);
+    expect(record.dateTime, now);
   });
 
   test('keeps a waiting Follow-up visible with a deleted-person placeholder', () {
