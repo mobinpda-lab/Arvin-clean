@@ -992,3 +992,16 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - HEAD کد: d969728523d402a72647f608e635dd1c42ed54ab؛ CI این SHA هنوز تأیید نشده است.
 - Device Smoke قدیمی #7233 / 42335301964 CANCELLED؛ اجرای قدیمی‌تر شماره 7268 / 42346612483 فعال و در حال مصرف صف بود؛ نتیجهٔ آن برای HEAD جدید معتبر نیست.
 - PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched؛ **BLOCKED — RELEASE: NO-GO**.
+
+## ۱۴۰۵/۰۸/۱۶ — اصلاحات پذیرش UI و جدول شکست‌ها
+- Home Quick Capture test fixture به 390×844 و ensureVisible اصلاح شد؛ assertionهای ذخیره و حفظ تاریخچه دست‌نخورده‌اند.
+- Calendar month test حداقل 48dp و محدودهٔ واقعی 288–320dp را می‌سنجد؛ حد قبلی <280dp با شش ردیف 48dp ناسازگار بود.
+- تست توکن‌های تعاملی به پالت یکپارچه فیروزه‌ای به‌روزرسانی شد؛ رنگ منتخب روز Calendar به #DDF7F5 و SVG برند روشن به #1A2B4C بازگشت.
+- مرتب‌سازی Home به سمت چپ پنج فیلتر منتقل شد تا پس از آن‌ها در ترتیب RTL قرار گیرد.
+- خطای موقت compile در SHA 068d848 (انتساب ArvinTimeSelection به DateTime?) در 26e635 اصلاح شد؛ wrapper legacy زمان‌محور حفظ شده است.
+- ۶ شکست Run 42343978253 روی SHA 11919... با اصلاحات کد/fixture/قرارداد آزمون پاسخ داده شدند؛ هنوز PASS بودن آن‌ها فقط پس از Build تازه روی SHA جدید قابل اعلام است.
+- بررسی 895c7ad: تغییر تست‌ها پوشش Wrap/حداقل لمس را تقویت کرد؛ تستی حذف یا Skip نشد.
+- SHA کد این اصلاحات: 7a1890fa8c1933fb230cdfa92dcd762209eae95c؛ Runهای Build 42347751661 و Device Smoke 42347751648 در PENDING، Provider 42347751668، Draft APK 42347751728 و Persistence 42347751664 در حال اجرا.
+- Run قدیمی Device Smoke #7233 لغو شده؛ #7268 / 42346612483 روی SHA db91... هنوز صف را اشغال می‌کند؛ در صورت تداوم، لغو دستی آن توسط مبین لازم است.
+- شکاف‌های باقیمانده: All-Day در legacy Task.reminderDate و FollowUp.reminderDate و یکسان‌سازی کامل ظاهر سلکتورهای Task Details با Home هنوز تکمیل/تأیید نشده است.
+- PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched؛ **BLOCKED — RELEASE: NO-GO**.

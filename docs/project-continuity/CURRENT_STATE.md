@@ -699,3 +699,20 @@ PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ **BLOCKED — RELE
 - Build روی SHA 844b794... هنوز PENDING و بدون Job بود؛ Calendar Provider، Draft Review APK و Persistence در حال اجرا بودند؛ Persistence سپس SUCCESS شد. این SHA پیش از تغییر یادآور پیگیری است و نتیجهٔ آن به HEAD d969... منتقل نمی‌شود.
 - برای HEAD d969728... در لحظهٔ ثبت، Run جدیدی در Actions مشاهده نشد؛ بنابراین دروازه‌های آن UNKNOWN / NOT RUN هستند.
 - **BLOCKED — RELEASE: NO-GO** تا Build/تمام شاردها/Provider/Persistence/Device Smoke و نصب و آزمون واقعی گوشی SM-A528B/DS روی یک SHA واحد PASS شوند.
+
+## جدول شکست‌های قبلی و اصلاحات — exact evidence path
+- کد/آزمون فعلی پیش از ثبت اسناد: 7a1890fa8c1933fb230cdfa92dcd762209eae95c؛ PR #3052 OPEN / DRAFT / UNMERGED؛ main=45e4202b03a434459e4c021a04efa7e8396359db.
+- جدول شکست‌های Build run 42343978253 روی SHA 11919b87b309897a7b2f59fdd34a327730188e6:
+  1. Home Quick Capture: hit-test روی دکمه افزودن خارج از viewport پیش‌فرض 800×600 بود و تست فقط یک Task دید؛ fixture اکنون 390×844 و ensureVisible دارد؛ assertion حفظ تاریخچه و ثبت دو Task باقی است.
+  2. Calendar month: شش ردیف 48dp با header/spacing حدود 318dp است؛ انتظار کمتر از 280dp با حداقل هدف لمس 48dp ناسازگار بود. آزمون اکنون حداقل 288 و حداکثر 320dp را assert می‌کند؛ حداقل 48dp هر روز حفظ شده است.
+  3. RollBox semantic colors: تست قدیمی توکن‌های تعاملی متمایز می‌خواست؛ تصمیم محصول رنگ تعاملی یکسان فیروزه‌ای است. تست اکنون تمام توکن‌های time/reminder/project/category/tag را به primary، primaryDark و primarySoft مقایسه می‌کند.
+  4. Calendar selected week day: انتظار بنفش قدیمی بود؛ تست اکنون #DDF7F5 مصوب را می‌سنجد.
+  5. Home filter/sort: مرتب‌سازی در سمت راست فیلترها قرار گرفته بود؛ کنترل به سمت چپ منتقل شد تا بعد از پنج فیلتر در ترتیب RTL باشد.
+  6. Calendar sacred SVG: رنگ روشن به primary فیروزه‌ای تغییر کرده بود؛ رنگ برند #1A2B4C در تم روشن بازگردانده شد؛ تم تاریک همچنان onSurface است و خود SVG دست‌نخورده است.
+- خطای بیلد موقت در SHA 068d8489821463f5f8f55cd69a74496f94192656: ArvinTimeSelection در _pickReminderTime به DateTime? انتساب داده شده بود. در commit 26e635265593a10afc43759c6457220ccb8f084a، فیلد legacy Task.reminderDate با wrapper زمان‌محور سازگار شد؛ All-Day فقط در مدل‌های دارای پرچم مستقل ثبت می‌شود.
+- اصلاح Overdue: ae9a6db230032f4f74883e903833b8c323be4fd5؛ ساعت‌دار پس از لحظه موعد، All-Day از ابتدای روز بعد و completed هرگز overdue نمی‌شود.
+- تغییر 895c7ad ممیزی شد: در همان فایل‌های تست، ۵۵ خط افزوده و ۱۱ خط قدیمی با قرارداد Wrap/ماتریس عرض جایگزین شد؛ تست پیمایش افقی به نبود Scroll افقی و Wrap RTL تبدیل شد؛ هیچ تستی حذف/Skip یا assertion رفتاری تضعیف نشد.
+- روی SHA کد 7a1890f، Runهای Build 42347751661 و Device Smoke 42347751648 در PENDING؛ Calendar Provider 42347751668، Draft Review APK 42347751728 و Follow-up Persistence 42347751664 در حال اجرا بودند. این نتایج تا پایان اجرا نهایی نیستند.
+- گلوگاه صف: #7233 / 42335301964 CANCELLED؛ اما #7268 / 42346612483 روی SHA قدیمی db91a78 هنوز در وضعیت کلی QUEUED است، درحالی‌که job smoke-boot در IN_PROGRESS و شش lane دیگر QUEUED هستند. این اجرای قدیمی، Device Smoke جدید را پشت خود نگه می‌دارد؛ اگر ادامه یابد، لغو دستی توسط مبین لازم است.
+- شکاف‌های باقی‌مانده محصول: یادآور legacy Task.reminderDate و FollowUp.reminderDate هنوز All-Day مستقل ندارند؛ سلکتورهای مرکز/پروژه/دسته/برچسب در Task Details هنوز از ArvinRollBox استفاده می‌کنند و هم‌شکلی کامل آن‌ها با HomeFilterPill در UI واقعی تأیید نشده است.
+- **BLOCKED — RELEASE: NO-GO** تا Build تمام شاردها، Calendar Provider، Persistence، Device Smoke و APK exact-HEAD سبز شوند و APK روی SM-A528B/DS نصب و آزمون شود.
