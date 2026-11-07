@@ -827,17 +827,6 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
     );
   }
 
-  void _jumpToFilter(GlobalKey key) {
-    final target = key.currentContext;
-    if (target == null) return;
-    Scrollable.ensureVisible(
-      target,
-      alignment: 0.08,
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOutCubic,
-    );
-  }
-
   late ReportTimePreset _timePreset;
   DateTime? _fromDate;
   DateTime? _toDate;
