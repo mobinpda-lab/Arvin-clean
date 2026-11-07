@@ -844,7 +844,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         children: [
           Row(
             children: [
-              const Icon(Icons.calendar_month_outlined, color: _brand),
+              Icon(Icons.calendar_month_outlined, color: _brand),
               const SizedBox(width: 9),
               Expanded(
                 child: Column(
@@ -1287,7 +1287,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   child: Text(
                     '● ${_elapsedFormatter.since(latest.dateTime, now: now)}',
                     key: const ValueKey('task-detail-latest-followup-elapsed'),
-                    style: const TextStyle(color: _brand, fontWeight: FontWeight.w700, fontSize: 12),
+                    style: TextStyle(color: _brand, fontWeight: FontWeight.w700, fontSize: 12),
                   ),
                 ),
                 if (latest.waitingForResponse) _badge('در انتظار پاسخ', _waiting),
@@ -1529,7 +1529,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.copy_all_outlined, color: _brand),
+          Icon(Icons.copy_all_outlined, color: _brand),
           const SizedBox(width: 9),
           Expanded(
             child: Column(
@@ -1976,7 +1976,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   : _addFollowUp,
               style: OutlinedButton.styleFrom(
                 foregroundColor: _brand,
-                side: const BorderSide(color: _brand),
+                side: BorderSide(color: _brand),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
