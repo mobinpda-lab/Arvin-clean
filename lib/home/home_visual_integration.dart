@@ -18,12 +18,6 @@ class HomeVisualIntegration extends StatelessWidget {
     this.searchHint = 'جست‌وجو در کارها',
   });
 
-  static const primary = ArvinTheme.primaryPurple;
-  static const background = ArvinTheme.backgroundLight;
-  static const surface = ArvinTheme.cardBackground;
-  static const border = ArvinTheme.cardBorder;
-  static const textPrimary = Color(0xFF232433);
-  static const textSecondary = Color(0xFF80829C);
 
   final Widget body;
   final VoidCallback? onAdd;
@@ -34,15 +28,16 @@ class HomeVisualIntegration extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colors = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
     final svgColor = isDark
         ? theme.colorScheme.onSurface
-        : const Color(0xFF1A2B4C);
+        : colors.onSurface;
     final capsuleBackground = isDark
         ? theme.colorScheme.surfaceContainerLow
-        : const Color(0xFFF0F0F6);
+        : Color.alphaBlend(colors.primary.withAlpha(10), colors.surface);
     return Scaffold(
-      backgroundColor: background,
+      backgroundColor: colors.surface,
       body: SafeArea(
         child: Column(
           children: [
@@ -92,7 +87,7 @@ class HomeVisualIntegration extends StatelessWidget {
                           key: ValueKey('home-product-title'),
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            color: textPrimary,
+                            color: colors.onSurface,
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
                           ),
@@ -118,7 +113,7 @@ class HomeVisualIntegration extends StatelessWidget {
                   hintStyle: const TextStyle(color: textSecondary),
                   prefixIcon: const Icon(Icons.search_rounded),
                   filled: true,
-                  fillColor: surface,
+                  fillColor: colors.surface,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                     borderSide: const BorderSide(color: border),
@@ -141,7 +136,7 @@ class HomeVisualIntegration extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         key: const ValueKey('home-canonical-add'),
         tooltip: 'افزودن کار جدید',
-        backgroundColor: primary,
+        backgroundColor: colors.primary,
         foregroundColor: Colors.white,
         onPressed: onAdd,
         child: const Icon(Icons.add, size: 30),
