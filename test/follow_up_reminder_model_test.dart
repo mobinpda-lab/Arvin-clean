@@ -149,7 +149,7 @@ void main() {
     final restoredAgain = Task.fromJson(restored.toJson());
     expect(restoredAgain.taskReminders, hasLength(1),
         reason: 'reloading a migrated Task must not create a duplicate');
-    expect(restoredAgain.taskReminders.single.id, 'legacy-task-reminder-legacy-with-new');
+    expect(restoredAgain.taskReminders.single.id, 'legacy-task-reminder-legacy-task');
     expect(restoredAgain.legacyTaskReminderMigrationVersion, 1);
   });
 
@@ -172,7 +172,7 @@ void main() {
 
     expect(restored.taskReminders, hasLength(2));
     expect(restored.taskReminders.first.id, 'new-reminder');
-    expect(restored.taskReminders.last.id, 'legacy-task-reminder');
+    expect(restored.taskReminders.last.id, 'legacy-task-reminder-legacy-with-new');
     expect(restored.taskReminders.last.sequence, 7,
         reason: 'migration must not recycle previously used sequence numbers');
     expect(restored.nextReminderSequence, 8);
@@ -180,7 +180,7 @@ void main() {
     final restoredAgain = Task.fromJson(restored.toJson());
     expect(restoredAgain.taskReminders, hasLength(2));
     expect(restoredAgain.taskReminders.map((item) => item.id).toSet(),
-        {'new-reminder', 'legacy-task-reminder'});
+        {'new-reminder', 'legacy-task-reminder-legacy-with-new'});
   });
 
   test('Task without a legacy reminder does not prematurely mark migration complete', () {
