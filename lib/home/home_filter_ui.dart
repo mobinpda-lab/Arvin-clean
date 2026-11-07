@@ -2,8 +2,6 @@
 
 import 'package:flutter/material.dart';
 
-import '../arvin_colors.dart';
-
 enum HomeFilterDimension { time, center, project, category, tags }
 
 class HomeFilterPill extends StatelessWidget {
