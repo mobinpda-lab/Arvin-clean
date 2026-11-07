@@ -287,12 +287,12 @@ class Task {
       return;
     }
     if (index >= 0) {
-      taskReminders[index] = taskReminders[index].copyWith(date: value);
+      taskReminders[index] = taskReminders[index].copyWith(
+        id: 'legacy-task-reminder-$id',
+        date: value,
+      );
     } else {
-      var reminderId = 'legacy-task-reminder';
-      if (taskReminders.any((item) => item.id == reminderId)) {
-        reminderId = 'legacy-task-reminder-$id';
-      }
+      final reminderId = 'legacy-task-reminder-$id';
       var highestSequence = 0;
       for (final reminder in taskReminders) {
         if (reminder.sequence > highestSequence) {
@@ -494,6 +494,14 @@ class Task {
       }
     }
 
+    for (var index = 0; index < loadedTaskReminders.length; index++) {
+      final reminder = loadedTaskReminders[index];
+      if (reminder.isLegacyTaskReminder && reminder.id == 'legacy-task-reminder') {
+        loadedTaskReminders[index] =
+            reminder.copyWith(id: 'legacy-task-reminder-${json['id'] ?? ''}');
+      }
+    }
+
     final rawLegacyReminderDate = json['reminderDate'];
     final legacyReminderDate = rawLegacyReminderDate == null
         ? null
@@ -516,7 +524,7 @@ class Task {
         final taskTitle = json['title'] as String? ?? '';
         loadedTaskReminders.add(
           TaskReminder(
-            id: 'legacy-task-reminder',
+            id: 'legacy-task-reminder-${json['id'] ?? ''}',
             title: 'یادآوری: $taskTitle',
             date: legacyReminderDate,
             isAllDay: json['reminderAllDay'] as bool? ?? false,
@@ -541,7 +549,7 @@ class Task {
         final reminderDate = DateTime.tryParse(rawDate);
         if (reminderDate == null) continue;
         final followUpId = (rawFollowUp['id'] as String?)?.trim();
-        final reminderId = 'follow-up-reminder-${followUpId?.isNotEmpty == true ? followUpId : index}';
+        final reminderId = 'follow-up-reminder-${json['id'] ?? ''}-${followUpId?.isNotEmpty == true ? followUpId : index}';
         if (loadedTaskReminders.any((item) => item.id == reminderId)) continue;
         final highestSequence = loadedTaskReminders.isEmpty
             ? 0
