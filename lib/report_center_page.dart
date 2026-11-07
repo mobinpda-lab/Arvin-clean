@@ -662,6 +662,171 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
   final GlobalKey _categorySectionKey = GlobalKey();
   final GlobalKey _tagSectionKey = GlobalKey();
 
+  Future<void> _openTimePresetFilter() async {
+    final result = await ReusableMultiSelectFilterBottomSheet.showSingleSelect<ReportTimePreset>(
+      context,
+      title: 'انتخاب زمان',
+      accent: ArvinColors.time,
+      options: ReportTimePreset.values
+          .map((preset) => ReusableFilterOption<ReportTimePreset>(
+                value: preset,
+                label: _timeLabel(preset),
+                icon: Icons.schedule_outlined,
+              ))
+          .toList(growable: false),
+      selectedValue: _timePreset,
+      emptyLabel: 'همه زمان‌ها',
+    );
+    if (!mounted || result == null) return;
+    setState(() {
+      _timePreset = result.cleared ? ReportTimePreset.all : result.value ?? ReportTimePreset.all;
+      _fromDate = null;
+      _toDate = null;
+      _fromTime = null;
+      _toTime = null;
+    });
+  }
+
+  Future<void> _openDimensionFilter({
+    required String title,
+    required String keyPrefix,
+    required List<MapEntry<String, String>> options,
+    required Set<String> selected,
+    required ValueChanged<Set<String>> onChanged,
+    required Color accent,
+    Future<MapEntry<String, String>?> Function(String value)? onCreate,
+  }) async {
+    final applied = await ReusableMultiSelectFilterBottomSheet.showMultiSelect<String>(
+      context,
+      title: title,
+      accent: accent,
+      options: options
+          .map((option) => ReusableFilterOption<String>(
+                value: option.key,
+                label: option.value,
+              ))
+          .toList(growable: false),
+      selectedValues: selected,
+      optionKeyPrefix: keyPrefix,
+      searchHint: 'جستجو...',
+      createHint: 'نام مورد جدید',
+      createLabel: 'افزودن و انتخاب',
+      onCreate: onCreate == null
+          ? null
+          : (value) async {
+              final created = await onCreate(value);
+              if (created == null) return null;
+              return ReusableFilterOption<String>(
+                value: created.key,
+                label: created.value,
+              );
+            },
+    );
+    if (mounted && applied != null) onChanged(applied);
+  }
+
+  Future<void> _openCenterFilter() async {
+    final options = <MapEntry<String, String>>[
+      ...widget.centers.map((center) => MapEntry(center.id, center.name)),
+      ..._createdCenters.entries,
+    ];
+    await _openDimensionFilter(
+      title: 'انتخاب مرکز',
+      keyPrefix: 'report-filter-center',
+      options: options,
+      selected: _centerIds,
+      onChanged: (value) => setState(() => _centerIds = value),
+      accent: Theme.of(context).colorScheme.primary,
+      onCreate: widget.onCreateCenter == null
+          ? null
+          : (name) async {
+              final id = await widget.onCreateCenter!(name);
+              if (id == null) return null;
+              if (mounted) setState(() => _createdCenters[id] = name);
+              return MapEntry(id, name);
+            },
+    );
+  }
+
+  Future<void> _openProjectFilter() async {
+    final options = <MapEntry<String, String>>[
+      ...widget.projects.map((project) => MapEntry(project.id, project.title)),
+      ..._createdProjects.entries,
+    ];
+    await _openDimensionFilter(
+      title: 'انتخاب پروژه',
+      keyPrefix: 'report-filter-project',
+      options: options,
+      selected: _projectIds,
+      onChanged: (value) => setState(() => _projectIds = value),
+      accent: ArvinColors.project,
+      onCreate: widget.onCreateProject == null
+          ? null
+          : (title) async {
+              final id = await widget.onCreateProject!(title);
+              if (id == null) return null;
+              if (mounted) setState(() => _createdProjects[id] = title);
+              return MapEntry(id, title);
+            },
+    );
+  }
+
+  Future<void> _openCategoryFilter() async {
+    final options = <MapEntry<String, String>>[
+      ...widget.tasks
+          .map((task) => task.category?.trim())
+          .whereType<String>()
+          .where((value) => value.isNotEmpty)
+          .toSet()
+          .map((value) => MapEntry(value, value)),
+      ..._createdCategories.entries,
+    ];
+    await _openDimensionFilter(
+      title: 'انتخاب دسته',
+      keyPrefix: 'report-filter-category',
+      options: options,
+      selected: _categories,
+      onChanged: (value) => setState(() => _categories = value),
+      accent: ArvinColors.category,
+      onCreate: widget.onCreateCategory == null
+          ? null
+          : (name) async {
+              final value = await widget.onCreateCategory!(name);
+              if (value == null) return null;
+              if (mounted) setState(() => _createdCategories[value] = value);
+              return MapEntry(value, value);
+            },
+    );
+  }
+
+  Future<void> _openTagFilter() async {
+    final options = <MapEntry<String, String>>[
+      ...widget.tasks
+          .expand((task) => task.tags)
+          .map((value) => value.trim())
+          .where((value) => value.isNotEmpty)
+          .toSet()
+          .map((value) => MapEntry(value, value)),
+      ..._createdTags.entries,
+    ];
+    await _openDimensionFilter(
+      title: 'انتخاب برچسب‌ها',
+      keyPrefix: 'report-filter-tag',
+      options: options,
+      selected: _tags,
+      onChanged: (value) => setState(() => _tags = value),
+      accent: ArvinColors.tag,
+      onCreate: widget.onCreateTag == null
+          ? null
+          : (name) async {
+              final value = await widget.onCreateTag!(name);
+              if (value == null) return null;
+              if (mounted) setState(() => _createdTags[value] = value);
+              return MapEntry(value, value);
+            },
+    );
+  }
+
   void _jumpToFilter(GlobalKey key) {
     final target = key.currentContext;
     if (target == null) return;
@@ -947,7 +1112,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                       active: _timePreset != ReportTimePreset.all ||
                           _fromDate != null || _toDate != null ||
                           _fromTime != null || _toTime != null,
-                      onPressed: () => _jumpToFilter(_timeSectionKey),
+                      onPressed: _openTimePresetFilter,
                     ),
                   ),
                   const SizedBox(width: 4),
@@ -962,7 +1127,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                         Theme.of(context).colorScheme.surface,
                       ),
                       active: _centerIds.isNotEmpty,
-                      onPressed: () => _jumpToFilter(_centerSectionKey),
+                      onPressed: _openCenterFilter,
                     ),
                   ),
                   const SizedBox(width: 4),
@@ -977,7 +1142,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                         Theme.of(context).colorScheme.surface,
                       ),
                       active: _projectIds.isNotEmpty,
-                      onPressed: () => _jumpToFilter(_projectSectionKey),
+                      onPressed: _openProjectFilter,
                     ),
                   ),
                   const SizedBox(width: 4),
@@ -992,7 +1157,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                         Theme.of(context).colorScheme.surface,
                       ),
                       active: _categories.isNotEmpty,
-                      onPressed: () => _jumpToFilter(_categorySectionKey),
+                      onPressed: _openCategoryFilter,
                     ),
                   ),
                   const SizedBox(width: 4),
@@ -1007,7 +1172,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                         Theme.of(context).colorScheme.surface,
                       ),
                       active: _tags.isNotEmpty,
-                      onPressed: () => _jumpToFilter(_tagSectionKey),
+                      onPressed: _openTagFilter,
                     ),
                   ),
                 ],
