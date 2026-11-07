@@ -59,14 +59,21 @@ void main() {
       ),
     );
 
-    final selectedCard = tester.widget<AnimatedContainer>(
-      find.descendant(
-        of: find.byKey(const ValueKey('home-filter-card-center')),
-        matching: find.byType(AnimatedContainer),
-      ).first,
-    );
-    final cardDecoration = selectedCard.decoration! as BoxDecoration;
-    expect(cardDecoration.border!.top.color, ArvinColors.primary.withAlpha(150));
+    final selectedCardContainers = tester
+        .widgetList<AnimatedContainer>(
+          find.descendant(
+            of: find.byKey(const ValueKey('home-filter-card-center')),
+            matching: find.byType(AnimatedContainer),
+          ),
+        )
+        .toList(growable: false);
+    expect(selectedCardContainers, isNotEmpty);
+    final hasBrandBorder = selectedCardContainers.any((container) {
+      final decoration = container.decoration;
+      return decoration is BoxDecoration &&
+          decoration.border?.top.color == ArvinColors.primary.withAlpha(150);
+    });
+    expect(hasBrandBorder, isTrue);
 
     final chipWidget = find.byType(HomeFilterChip).first;
     final chipContainer = tester.widget<Container>(

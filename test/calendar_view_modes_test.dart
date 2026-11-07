@@ -28,7 +28,7 @@ void main() {
     expect(sacredHeader, findsOneWidget);
     expect(Directionality.of(tester.element(sacredHeader)), TextDirection.rtl);
     expect(find.byKey(const ValueKey('calendar-today')), findsOneWidget);
-    expect(find.text('۱۴۰۵/۰۵/۲۱'), findsAtLeastNWidgets(1)); // Full Jalali date for the selected day.
+    expect(find.text('۱۴۰۵/۰۵/۲۱'), findsNWidgets(2)); // Full Jalali date for the selected day.
     expect(find.text('مرداد ۱۴۰۵'), findsOneWidget);
 
     expect(
