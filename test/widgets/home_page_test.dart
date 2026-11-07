@@ -560,7 +560,7 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    final filterStrip = find.byKey(const ValueKey('home-compact-filter-scroll'));
+    final filterStrip = find.byKey(const ValueKey('home-compact-filter-wrap'));
     expect(filterStrip, findsOneWidget);
     expect(Directionality.of(tester.element(filterStrip)), TextDirection.rtl);
     expect(tester.widget<SingleChildScrollView>(filterStrip).scrollDirection, Axis.horizontal);

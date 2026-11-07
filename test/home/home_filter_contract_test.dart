@@ -76,7 +76,7 @@ void main() {
     expect(find.byKey(const ValueKey('home-filter-card-tags')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-group-overdue')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-all')), findsNothing);
-    expect(find.byKey(const ValueKey('home-compact-filter-scroll')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-compact-filter-wrap')), findsOneWidget);
     expect(find.byType(ActionChip), findsNWidgets(5));
     expect(find.byKey(const ValueKey('home-sort-button')), findsOneWidget);
     final filterCenters = [
@@ -133,7 +133,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('انتخاب زمان'), findsNothing);
 
-    await tester.drag(find.byKey(const ValueKey('home-compact-filter-scroll')), const Offset(-180, 0));
+    await tester.drag(find.byKey(const ValueKey('home-compact-filter-wrap')), const Offset(-180, 0));
     await tester.pumpAndSettle();
     final centerFilter = find.byKey(const ValueKey('home-filter-card-center'));
     await tester.ensureVisible(centerFilter);

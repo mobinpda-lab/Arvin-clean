@@ -110,7 +110,7 @@ void main() {
     expect(find.text('فردا'), findsOneWidget);
     expect(find.text('آینده'), findsOneWidget);
     expect(find.text('فاقد زمان'), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-compact-filter-scroll')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-compact-filter-wrap')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -178,7 +178,7 @@ void main() {
 
     expect(find.byKey(const ValueKey('home-drawer-button')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-search')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-compact-filter-scroll')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-compact-filter-wrap')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }
