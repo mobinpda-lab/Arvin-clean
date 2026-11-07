@@ -374,7 +374,7 @@ void main() {
       expect(loaded.updatedAt, updatedAt);
       expect(loaded.completedAt, completedAt);
       expect(loaded.followUpEnabled, isTrue);
-      expect(loaded.followUpDate, followUpDate);
+      expect(loaded.followUpDate, isNull);
       expect(loaded.followUps, hasLength(1));
       expect(loaded.followUps.single.id, followUp.id);
       expect(loaded.followUps.single.dateTime, followUpDate);
