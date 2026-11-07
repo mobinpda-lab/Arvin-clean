@@ -138,7 +138,7 @@ void main() {
       service.build(task).map((entry) => entry.id).toList(),
       [
         'task:same-time:created',
-        'task:same-time:reminder:legacy-task-reminder',
+        'task:same-time:reminder:legacy-task-reminder-same-time',
         'followup:a',
         'followup:b',
         'task:same-time:updated',
