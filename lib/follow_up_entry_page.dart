@@ -490,7 +490,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
             SwitchListTile(
               key: const ValueKey('follow-up-entry-waiting-for-response'),
               contentPadding: EdgeInsets.zero,
-              title: const Text('منتظر پاسخ دیگران'),
+              title: const Text('منتظر پیگیری دیگران'),
               subtitle: const Text(
                 'این پیگیری در فهرست موارد منتظر پاسخ نمایش داده می‌شود.',
               ),
