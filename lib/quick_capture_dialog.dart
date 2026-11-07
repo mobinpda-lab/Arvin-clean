@@ -623,6 +623,7 @@ Future<DateTime?> _pickCustomDue() async {
                               _pendingCustomDueAllDay = false;
                             },
                           )),
+                          const SizedBox(width: 4)),
                           const SizedBox(width: 4),
                           Expanded(
                             child: ArvinRollBox<String>(
@@ -688,7 +689,8 @@ Future<DateTime?> _pickCustomDue() async {
                                 return createdId;
                               },
                             ),
-                          ),
+                          )),
+                          const SizedBox(width: 4),
                           Expanded(
                             child: ArvinRollBox<String>(
                               key: const ValueKey('quick-capture-project-rollbox'),
@@ -760,7 +762,8 @@ Future<DateTime?> _pickCustomDue() async {
                                 return createdId;
                               },
                             ),
-                          ),
+                          )),
+                          const SizedBox(width: 4),
                           Expanded(
                             child: ArvinRollBox<String>(
                               key: const ValueKey('quick-capture-category-rollbox'),
@@ -802,7 +805,8 @@ Future<DateTime?> _pickCustomDue() async {
                                 return created;
                               },
                             ),
-                          ),
+                          )),
+                          const SizedBox(width: 4),
                           Expanded(
                             child: ArvinTagRollBox(
                               compact: true,
