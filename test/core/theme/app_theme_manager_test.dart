@@ -22,6 +22,7 @@ void main() {
     expect(preferences.getString(AppThemeManager.preferenceKey), '#7209B7');
 
     await AppThemeManager.instance.select('#3A86EF');
+    await preferences.setString(AppThemeManager.preferenceKey, '#7209B7');
     await AppThemeManager.instance.load();
     expect(AppThemeManager.instance.selectedHex, '#7209B7');
   });
