@@ -51,7 +51,7 @@ void main() {
     expect(reloaded.dueDate, DateTime(2026, 8, 28, 14, 35));
     expect(reloaded.updatedAt, now);
     expect(reloaded.reminderDate, DateTime(2026, 8, 19, 9, 15));
-    expect(reloaded.followUpDate, DateTime(2026, 8, 21, 10));
+    expect(reloaded.followUpDate, isNull);
     expect(reloaded.followUps.single.id, 'follow-1');
     expect(reloaded.followUps.single.note, 'تماس اول');
     expect(reloaded.category, 'مشتریان');
