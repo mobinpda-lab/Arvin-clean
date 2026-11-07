@@ -20,6 +20,7 @@ import 'services/waiting_for_response_service.dart';
 import 'task_report_page.dart';
 import 'widgets/persian_date_picker.dart';
 import 'widgets/universal_arvin_time_picker.dart';
+import 'widgets/reusable_multi_select_filter_bottom_sheet.dart';
 
 class TaskDetailPage extends StatefulWidget {
   const TaskDetailPage({
@@ -43,6 +44,10 @@ class TaskDetailPage extends StatefulWidget {
     this.now,
     this.people = const <PersonReference>[],
     this.onCreatePerson,
+    this.categoryOptions = const <String>[],
+    this.tagOptions = const <String>[],
+    this.onCreateCategory,
+    this.onCreateTag,
   });
 
   final Task task;
@@ -64,6 +69,10 @@ class TaskDetailPage extends StatefulWidget {
   final DateTime? now;
   final List<PersonReference> people;
   final Future<void> Function(PersonReference person)? onCreatePerson;
+  final List<String> categoryOptions;
+  final List<String> tagOptions;
+  final Future<String?> Function(String name)? onCreateCategory;
+  final Future<String?> Function(String name)? onCreateTag;
 
   @override
   State<TaskDetailPage> createState() => _TaskDetailPageState();
@@ -436,6 +445,86 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         const SnackBar(content: Text('یادآور ذخیره شد؛ زمان‌بندی اعلان در اجرای بعدی بازآزمایی می‌شود')),
       );
     }
+  }
+
+  Future<void> _openInlineCategorySelector() async {
+    final current = _categoryController?.text.trim() ?? '';
+    final values = <String>{
+      ...widget.categoryOptions.map((value) => value.trim()).where((value) => value.isNotEmpty),
+      if (current.isNotEmpty) current,
+    }.toList()
+      ..sort();
+    final result = await ReusableMultiSelectFilterBottomSheet.showSingleSelect<String>(
+      context,
+      title: 'انتخاب دسته',
+      accent: ArvinColors.category,
+      options: values
+          .map((value) => ReusableFilterOption<String>(
+                value: value,
+                label: value,
+                icon: Icons.layers_outlined,
+              ))
+          .toList(growable: false),
+      selectedValue: current.isEmpty ? null : current,
+      emptyLabel: 'بدون دسته',
+      createHint: 'نام دسته جدید',
+      createLabel: 'افزودن دسته',
+      onCreate: (name) async {
+        final created = await widget.onCreateCategory?.call(name) ?? name;
+        if (created.trim().isEmpty) return null;
+        return ReusableFilterOption<String>(
+          value: created,
+          label: created,
+          icon: Icons.layers_outlined,
+        );
+      },
+    );
+    if (!mounted || result == null) return;
+    setState(() {
+      _categoryController?.text = result.cleared ? '' : result.value ?? '';
+    });
+  }
+
+  Future<void> _openInlineTagSelector() async {
+    final current = (_tagsController?.text ?? '')
+        .split('،')
+        .map((value) => value.trim())
+        .where((value) => value.isNotEmpty)
+        .toSet();
+    final values = <String>{
+      ...widget.tagOptions.map((value) => value.trim()).where((value) => value.isNotEmpty),
+      ...current,
+    }.toList()
+      ..sort();
+    final result = await ReusableMultiSelectFilterBottomSheet.showMultiSelect<String>(
+      context,
+      title: 'انتخاب برچسب‌ها',
+      accent: ArvinColors.tag,
+      options: values
+          .map((value) => ReusableFilterOption<String>(
+                value: value,
+                label: value,
+                icon: Icons.sell_outlined,
+              ))
+          .toList(growable: false),
+      selectedValues: current,
+      searchHint: 'جستجو در برچسب‌ها...',
+      createHint: 'نام برچسب جدید',
+      createLabel: 'افزودن برچسب',
+      onCreate: (name) async {
+        final created = await widget.onCreateTag?.call(name) ?? name;
+        if (created.trim().isEmpty) return null;
+        return ReusableFilterOption<String>(
+          value: created,
+          label: created,
+          icon: Icons.sell_outlined,
+        );
+      },
+    );
+    if (!mounted || result == null) return;
+    setState(() {
+      _tagsController?.text = (result.toList()..sort()).join('، ');
+    });
   }
 
   Future<void> _pickInlineWorkTime() async {
@@ -1530,11 +1619,13 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         color: ArvinColors.category,
         icon: Icons.folder_outlined,
         editor: _isInlineEditing
-            ? TextField(
+            ? OutlinedButton.icon(
                 key: const ValueKey('task-detail-inline-category'),
-                controller: _categoryController,
-                textDirection: TextDirection.rtl,
-                decoration: const InputDecoration(isDense: true, hintText: 'دسته', border: InputBorder.none, contentPadding: EdgeInsets.zero),
+                onPressed: _openInlineCategorySelector,
+                icon: const Icon(Icons.layers_outlined, size: 18),
+                label: Text(_categoryController?.text.trim().isNotEmpty == true
+                    ? _categoryController!.text.trim()
+                    : 'انتخاب دسته'),
               )
             : null,
       ),
@@ -1545,11 +1636,13 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         color: ArvinColors.tag,
         icon: Icons.sell_outlined,
         editor: _isInlineEditing
-            ? TextField(
+            ? OutlinedButton.icon(
                 key: const ValueKey('task-detail-inline-tags'),
-                controller: _tagsController,
-                textDirection: TextDirection.rtl,
-                decoration: const InputDecoration(isDense: true, hintText: 'برچسب‌ها', border: InputBorder.none, contentPadding: EdgeInsets.zero),
+                onPressed: _openInlineTagSelector,
+                icon: const Icon(Icons.sell_outlined, size: 18),
+                label: Text(_tagsController?.text.trim().isNotEmpty == true
+                    ? _tagsController!.text.trim()
+                    : 'انتخاب برچسب‌ها'),
               )
             : null,
       ),
