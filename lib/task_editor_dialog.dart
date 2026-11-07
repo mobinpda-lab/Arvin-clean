@@ -321,36 +321,6 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     );
   }
 
-  Future<void> _pickTaskReminderTime(int index) async {
-    if (index < 0 || index >= _taskReminders.length) return;
-    final current = _taskReminders[index];
-    final selection = await _chooseTime(
-      current.date,
-      helpText: 'انتخاب ساعت یادآور',
-    );
-    if (selection == null || !mounted) return;
-    final latestIndex = _taskReminders.indexWhere((item) => item.id == current.id);
-    if (latestIndex < 0) return;
-    _updateTaskReminder(
-      latestIndex,
-      current.copyWith(
-        date: selection.isAllDay
-            ? DateTime(
-                current.date.year,
-                current.date.month,
-                current.date.day,
-              )
-            : DateTime(
-                current.date.year,
-                current.date.month,
-                current.date.day,
-                selection.time!.hour,
-                selection.time!.minute,
-              ),
-        isAllDay: selection.isAllDay,
-      ),
-    );
-  }
 
   Widget _taskRemindersEditor() {
     return Container(
@@ -561,13 +531,21 @@ Future<void> _pickDueDate() async {
   }
 
   Future<void> _pickReminderTime() async {
-    final value = await _chooseTime(
-      _reminderDateTime,
+    final base = _baseDateTime(_reminderDateTime);
+    final value = await showUniversalArvinTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(base),
       helpText: 'انتخاب ساعت یادآوری',
     );
     if (value != null && mounted) {
       setState(() {
-        _reminderDateTime = value;
+        _reminderDateTime = DateTime(
+          base.year,
+          base.month,
+          base.day,
+          value.hour,
+          value.minute,
+        );
         _reminderFollowsDueTime = false;
         _reminderExplicitlyCleared = false;
       });
