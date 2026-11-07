@@ -438,46 +438,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     );
   }
 
-Future<void> _pickDueDate() async {
-    final value = await _chooseDate(
-      _dueDateTime,
-      helpText: 'انتخاب تاریخ انجام کار',
-    );
-    if (value != null && mounted) {
-      setState(() {
-        _dueDateTime = _dueDateTime == null
-            ? DateTime(value.year, value.month, value.day)
-            : DateTime(value.year, value.month, value.day, _dueDateTime!.hour, _dueDateTime!.minute);
-        _dueAllDay = true;
-        _syncAutomaticReminder();
-      });
-    }
-  }
-
-  Future<void> _pickDueTime() async {
-    final value = await _chooseTime(
-      _dueDateTime,
-      helpText: 'انتخاب ساعت انجام کار',
-    );
-    if (value != null && mounted) {
-      setState(() {
-        final base = _baseDateTime(_dueDateTime);
-        _dueDateTime = value.isAllDay
-            ? DateTime(base.year, base.month, base.day)
-            : DateTime(
-                base.year,
-                base.month,
-                base.day,
-                value.time!.hour,
-                value.time!.minute,
-              );
-        _dueAllDay = value.isAllDay;
-        _syncAutomaticReminder();
-      });
-    }
-  }
-
-  Future<void> _pickDueDateTime() async {
+Future<void> _pickDueDateTime() async {
     final initial = _baseDateTime(_dueDateTime);
     final date = await showPersianDatePicker(
       context: context,
@@ -585,16 +546,6 @@ Future<void> _pickDueDate() async {
     _syncAutomaticReminder();
   });
 
-  void _toggleDueAllDay(bool value) {
-    if (_dueDateTime == null) return;
-    setState(() {
-      _dueAllDay = value;
-      if (value) {
-        _dueDateTime = DateTime(_dueDateTime!.year, _dueDateTime!.month, _dueDateTime!.day);
-      }
-      _syncAutomaticReminder();
-    });
-  }
   void _clearReminderTime() => setState(() {
     _reminderDateTime = null;
     _reminderAllDay = false;
