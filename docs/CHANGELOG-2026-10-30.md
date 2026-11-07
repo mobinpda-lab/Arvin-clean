@@ -538,3 +538,13 @@ This is an implementation record following the earlier Wave 7.299 ownership audi
 - Waiting-for-others flow binds a unified Person; Reports Person filter covers linked tasks and follow-ups.
 - Initial live checkpoint on SHA `a10d3f3ed0a4a815ca88b4e7622e07921e7c2290`: Build, Analyze, six test shards, Visual, Calendar Provider and Follow-up SQLite succeeded. Device Smoke was still running/queued on an Android emulator, not a physical Samsung. Staging APK raw SHA-256 `8f253be983cbc2db4f6bc51ad261f1983573396c284b823184d89e20a38bafde`, size `79120216` bytes; signed with an ephemeral test-only key and `publishable=false`.
 - This is contract registration and baseline evidence only, not implementation acceptance. Physical Samsung SM-A528B/DS seven-path evidence remains mandatory. PR #3052 stays OPEN/DRAFT/UNMERGED; main untouched; **BLOCKED — RELEASE: NO-GO**.
+
+
+## 2026-11-07 — Work Time picker and overdue semantics implementation wave
+
+- Task Details inline edit now uses one «زمان کار / موعد» control with Persian date picker followed by the round clock. The clock's in-dialog «بدون ساعت» choice persists a date-only value; cancellation at either step leaves the previous value intact.
+- Task Details independent reminder creation and editing now support the same sequential picker and true all-day reminder state. Quick Capture custom reminders also persist `reminderAllDay` when «بدون ساعت» is selected.
+- Added `TaskDueStatus.isOverdue` and applied it to Home warning/grouping and Report Center coloring / «گذشته» filtering: timed items expire after their datetime; all-day items expire at the start of the next local day; completed and undated tasks are never overdue.
+- Corrected the Calendar tafweez vector label to exact «أُفَوِّضُ أَمْرِي إِلَى اللَّهِ» without a leading waw. Added/updated focused tests for the picker flow and overdue boundaries.
+- Progress and remaining gaps are recorded in `docs/project-continuity/ARVIN_EXECUTION_WAVE_WORK_TIME_OVERDUE_2026-11-07.md`.
+- This source wave is not yet CI-verified. Schema clean-slate, shared five-way filter component, unified Person binding, and physical Samsung SM-A528B/DS seven-path acceptance remain pending. Keep PR #3052 OPEN/DRAFT/UNMERGED; main untouched; **BLOCKED — RELEASE: NO-GO**.
