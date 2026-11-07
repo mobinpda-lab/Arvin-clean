@@ -385,7 +385,7 @@ class Task {
           ),
         if (notebookKind != null) 'notebookKind': notebookKind!.name,
         'reminderDate': reminderDate?.toIso8601String(),
-        if (reminderAllDay) 'reminderAllDay': true,
+        if (reminderDate != null && reminderAllDay) 'reminderAllDay': true,
         if (taskReminders.isNotEmpty)
           'taskReminders': taskReminders.map((item) => item.toJson()).toList(),
         if (nextReminderSequence > 1)
