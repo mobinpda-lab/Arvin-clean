@@ -3,9 +3,11 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 
+import '../models/task.dart';
+
 /// G1-DRIFT relational schema foundation.
 class G1DriftSchema implements QueryExecutorUser {
-  static const int version = 11;
+  static const int version = 12;
 
   static const List<String> _statements = <String>[
     '''CREATE TABLE IF NOT EXISTS tasks (
@@ -21,6 +23,24 @@ class G1DriftSchema implements QueryExecutorUser {
   reminder_date TEXT NULL, next_follow_up TEXT NULL, completed INTEGER NOT NULL,
   waiting_for_response INTEGER NOT NULL DEFAULT 0,
   ordinal INTEGER NOT NULL, UNIQUE (task_id, ordinal))''',
+    '''CREATE TABLE IF NOT EXISTS task_reminders (
+  id TEXT NOT NULL PRIMARY KEY, task_id TEXT NOT NULL REFERENCES tasks(id),
+  title TEXT NOT NULL, remind_at TEXT NOT NULL, is_all_day INTEGER NOT NULL DEFAULT 0,
+  sequence INTEGER NOT NULL, is_enabled INTEGER NOT NULL DEFAULT 1,
+  is_legacy_task_reminder INTEGER NOT NULL DEFAULT 0,
+  UNIQUE (task_id, sequence))''',
+    '''CREATE TABLE IF NOT EXISTS follow_up_records (
+  id TEXT NOT NULL PRIMARY KEY, task_id TEXT NOT NULL REFERENCES tasks(id),
+  completed_at TEXT NOT NULL, title TEXT NULL, note TEXT NOT NULL,
+  result TEXT NULL, completed INTEGER NOT NULL,
+  waiting_for_response INTEGER NOT NULL DEFAULT 0,
+  ordinal INTEGER NOT NULL, UNIQUE (task_id, ordinal))''',
+    '''CREATE TABLE IF NOT EXISTS persons (
+  id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL,
+  created_at TEXT NOT NULL, updated_at TEXT NOT NULL)''',
+    '''CREATE TABLE IF NOT EXISTS follow_up_record_people (
+  follow_up_id TEXT NOT NULL REFERENCES follow_up_records(id), person_id TEXT NOT NULL,
+  ordinal INTEGER NOT NULL, PRIMARY KEY (follow_up_id, person_id))''',
     '''CREATE TABLE IF NOT EXISTS centers (
   id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL,
   is_archived INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL)''',
@@ -171,6 +191,7 @@ class G1DriftSchema implements QueryExecutorUser {
         await executor.runCustom('ALTER TABLE projects ADD COLUMN legacy_payload_json TEXT NULL');
       }
       await migrateTaskPeople(executor);
+      await migrateCanonicalEntities(executor);
       // Do not write PRAGMA user_version here. The canonical migration marker
       // is arvin_storage_meta, and this install path can be reached by more
       // than one SQLite connection (for example app + Android smoke tooling).
@@ -207,8 +228,90 @@ class G1DriftSchema implements QueryExecutorUser {
              ON CONFLICT(id) DO UPDATE SET name = excluded.name, updated_at = excluded.updated_at''',
           <Object?>[id.trim(), name.trim(), now, now],
         );
+        await executor.runInsert(
+          '''INSERT INTO persons (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)
+             ON CONFLICT(id) DO UPDATE SET name = excluded.name, updated_at = excluded.updated_at''',
+          <Object?>[id.trim(), name.trim(), now, now],
+        );
       } on FormatException {
         continue;
+      }
+    }
+  }
+
+  /// Materializes independent reminders, historical Follow-up records and
+  /// the unified Person directory in canonical relational tables. Legacy
+  /// tables remain read-compatible until every consumer has moved.
+  static Future<void> migrateCanonicalEntities(QueryExecutor executor) async {
+    final directoryRows = await executor.runSelect(
+      'SELECT id, name, created_at, updated_at FROM people',
+      const [],
+    );
+    for (final row in directoryRows) {
+      await executor.runInsert(
+        '''INSERT OR IGNORE INTO persons (id, name, created_at, updated_at)
+           VALUES (?, ?, ?, ?)''',
+        <Object?>[row['id'], row['name'], row['created_at'], row['updated_at']],
+      );
+    }
+
+    final legacyFollowUps = await executor.runSelect(
+      'SELECT * FROM follow_ups ORDER BY task_id, ordinal',
+      const [],
+    );
+    for (final row in legacyFollowUps) {
+      await executor.runInsert(
+        '''INSERT OR IGNORE INTO follow_up_records
+           (id, task_id, completed_at, title, note, result, completed, waiting_for_response, ordinal)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+        <Object?>[
+          row['id'], row['task_id'], row['date_time'], row['title'], row['note'],
+          row['result'], row['completed'], row['waiting_for_response'], row['ordinal'],
+        ],
+      );
+    }
+
+    final legacyFollowUpPeople = await executor.runSelect(
+      'SELECT follow_up_id, person_id, ordinal FROM follow_up_people ORDER BY follow_up_id, ordinal',
+      const [],
+    );
+    for (final row in legacyFollowUpPeople) {
+      await executor.runInsert(
+        '''INSERT OR IGNORE INTO follow_up_record_people
+           (follow_up_id, person_id, ordinal) VALUES (?, ?, ?)''',
+        <Object?>[row['follow_up_id'], row['person_id'], row['ordinal']],
+      );
+    }
+
+    final taskRows = await executor.runSelect(
+      'SELECT id, title, reminder_date, legacy_payload_json FROM tasks ORDER BY storage_ordinal, id',
+      const [],
+    );
+    for (final row in taskRows) {
+      final payload = <String, dynamic>{};
+      final raw = row['legacy_payload_json'];
+      if (raw is String && raw.trim().isNotEmpty) {
+        final decoded = jsonDecode(raw);
+        if (decoded is! Map) {
+          throw const FormatException('Task payload must be a JSON object during reminder cutover.');
+        }
+        payload.addAll(Map<String, dynamic>.from(decoded));
+      }
+      payload['id'] = row['id'];
+      payload['title'] = row['title'];
+      payload['reminderDate'] ??= row['reminder_date'];
+      final task = Task.fromJson(payload);
+      for (final reminder in task.taskReminders) {
+        await executor.runInsert(
+          '''INSERT OR IGNORE INTO task_reminders
+             (id, task_id, title, remind_at, is_all_day, sequence, is_enabled, is_legacy_task_reminder)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+          <Object?>[
+            reminder.id, task.id, reminder.title, reminder.date.toIso8601String(),
+            reminder.isAllDay ? 1 : 0, reminder.sequence, reminder.isEnabled ? 1 : 0,
+            reminder.isLegacyTaskReminder ? 1 : 0,
+          ],
+        );
       }
     }
   }
