@@ -338,7 +338,7 @@ void main() {
       isTrue,
     );
 
-    await tester.tap(find.text('منتظر پاسخ دیگران'));
+    await tester.tap(find.text('منتظر پیگیری دیگران'));
     await tester.pumpAndSettle();
     final noteField = find.byKey(const ValueKey('follow-up-entry-note'));
     await tester.ensureVisible(noteField);
