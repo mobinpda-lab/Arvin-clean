@@ -546,9 +546,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     setState(() {
       _selectedCenterId = result.cleared ? null : result.value;
       final selectedProject = _projects.where((project) => project.id == _selectedProjectId);
-      if (selectedProject.isNotEmpty &&
-          _selectedCenterId != null &&
-          selectedProject.first.centerId != _selectedCenterId) {
+      if (result.cleared ||
+          (selectedProject.isNotEmpty &&
+              _selectedCenterId != null &&
+              selectedProject.first.centerId != _selectedCenterId)) {
         _selectedProjectId = null;
       }
     });
