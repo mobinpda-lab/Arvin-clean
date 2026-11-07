@@ -613,9 +613,6 @@ Future<void> _pickDueDateTime() async {
           left.dateTime != right.dateTime ||
           left.note != right.note ||
           left.result != right.result ||
-          left.reminderDate != right.reminderDate ||
-          left.reminderAllDay != right.reminderAllDay ||
-          left.nextFollowUp != right.nextFollowUp ||
           left.completed != right.completed ||
           left.waitingForResponse != right.waitingForResponse ||
           !listEquals(left.personIds, right.personIds)) {
