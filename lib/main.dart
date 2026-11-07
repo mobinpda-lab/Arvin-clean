@@ -968,14 +968,19 @@ class _HomePageState extends State<HomePage> {
   Widget _homeFilterCards() {
     return Padding(
       padding: const EdgeInsetsDirectional.fromSTEB(12, 0, 12, 4),
-      child: ArvinTaskSelectorWrap(
-        key: const ValueKey('home-compact-filter-wrap'),
-        spacing: 6,
-        runSpacing: 6,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          ArvinTaskSelectorWrap(
+            key: const ValueKey('home-compact-filter-wrap'),
+            spacing: 6,
+            runSpacing: 6,
+            children: [
               HomeFilterPill(
                 key: const ValueKey('home-filter-card-time'),
-                label: _timeFilters.isEmpty && _timeFilter != 'customRange' ? 'زمان' : _timeFilterLabel,
+                label: _timeFilters.isEmpty && _timeFilter != 'customRange'
+                    ? 'زمان'
+                    : _timeFilterLabel,
                 icon: Icons.schedule_rounded,
                 accent: ArvinColors.primary,
                 soft: ArvinColors.primarySoft,
@@ -984,7 +989,13 @@ class _HomePageState extends State<HomePage> {
               ),
               HomeFilterPill(
                 key: const ValueKey('home-filter-card-center'),
-                label: _centerFilters.isEmpty ? 'مرکز' : _centerFilters.length == 1 ? (_centerFilters.first == '__no_center__' ? 'بدون مرکز' : (_centerName(_centerFilters.first) ?? 'مرکز حذف‌شده')) : 'مرکز (${persianDateFormatter.toPersianDigits('${_centerFilters.length}')})',
+                label: _centerFilters.isEmpty
+                    ? 'مرکز'
+                    : _centerFilters.length == 1
+                        ? (_centerFilters.first == '__no_center__'
+                            ? 'بدون مرکز'
+                            : (_centerName(_centerFilters.first) ?? 'مرکز حذف‌شده'))
+                        : 'مرکز (${persianDateFormatter.toPersianDigits('${_centerFilters.length}')})',
                 icon: Icons.location_city_outlined,
                 accent: ArvinColors.primary,
                 soft: ArvinColors.primarySoft,
@@ -993,7 +1004,13 @@ class _HomePageState extends State<HomePage> {
               ),
               HomeFilterPill(
                 key: const ValueKey('home-filter-card-project'),
-                label: _projectFilters.isEmpty ? 'پروژه‌ها' : _projectFilters.length == 1 ? (_projectFilters.first == '__no_project__' ? 'بدون پروژه' : (_projectTitle(_projectFilters.first) ?? 'پروژه حذف‌شده')) : 'پروژه‌ها (${persianDateFormatter.toPersianDigits('${_projectFilters.length}')})',
+                label: _projectFilters.isEmpty
+                    ? 'پروژه‌ها'
+                    : _projectFilters.length == 1
+                        ? (_projectFilters.first == '__no_project__'
+                            ? 'بدون پروژه'
+                            : (_projectTitle(_projectFilters.first) ?? 'پروژه حذف‌شده'))
+                        : 'پروژه‌ها (${persianDateFormatter.toPersianDigits('${_projectFilters.length}')})',
                 icon: Icons.folder_rounded,
                 accent: ArvinColors.primary,
                 soft: ArvinColors.primarySoft,
@@ -1002,7 +1019,11 @@ class _HomePageState extends State<HomePage> {
               ),
               HomeFilterPill(
                 key: const ValueKey('home-filter-card-category'),
-                label: _categoryFilters.isEmpty ? 'دسته‌ها' : _categoryFilters.length == 1 ? _categoryFilters.first : 'دسته‌ها (${persianDateFormatter.toPersianDigits('${_categoryFilters.length}')})',
+                label: _categoryFilters.isEmpty
+                    ? 'دسته‌ها'
+                    : _categoryFilters.length == 1
+                        ? _categoryFilters.first
+                        : 'دسته‌ها (${persianDateFormatter.toPersianDigits('${_categoryFilters.length}')})',
                 icon: Icons.layers_rounded,
                 accent: ArvinColors.primary,
                 soft: ArvinColors.primarySoft,
@@ -1011,29 +1032,32 @@ class _HomePageState extends State<HomePage> {
               ),
               HomeFilterPill(
                 key: const ValueKey('home-filter-card-tags'),
-                label: _tagFilters.isEmpty ? 'برچسب‌ها' : 'برچسب‌ها (${persianDateFormatter.toPersianDigits('${_tagFilters.length}')})',
+                label: _tagFilters.isEmpty
+                    ? 'برچسب‌ها'
+                    : 'برچسب‌ها (${persianDateFormatter.toPersianDigits('${_tagFilters.length}')})',
                 icon: Icons.sell_rounded,
                 accent: ArvinColors.primary,
                 soft: ArvinColors.primarySoft,
                 active: _tagFilters.isNotEmpty,
                 onPressed: _showTagFilterSheet,
               ),
-
+            ],
+          ),
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: Semantics(
+              button: true,
+              label: 'مرتب‌سازی کارها',
+              child: IconButton(
+                key: const ValueKey('home-sort-button'),
+                tooltip: 'مرتب‌سازی کارها',
+                visualDensity: VisualDensity.compact,
+                onPressed: _showSortOptions,
+                icon: const Icon(Icons.sort_rounded),
+              ),
+            ),
+          ),
         ],
-      ),
-      Align(
-        alignment: AlignmentDirectional.centerEnd,
-        child: Semantics(
-                button: true,
-                label: 'مرتب‌سازی کارها',
-                child: IconButton(
-                  key: const ValueKey('home-sort-button'),
-                  tooltip: 'مرتب‌سازی کارها',
-                  visualDensity: VisualDensity.compact,
-                  onPressed: _showSortOptions,
-                  icon: const Icon(Icons.sort_rounded),
-                ),
-              ),,
       ),
     );
   }
