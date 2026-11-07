@@ -129,3 +129,13 @@ No tests were deleted or weakened. `main` was not modified. No merge, publicatio
 - Task and TaskReminder serialization now writes All-Day values as date-only `YYYY-MM-DD` strings. Timed values retain full timestamps. SQLite TaskStore, schema cutover, and SQL migration writer use the same date-only encoding, avoiding synthetic `00:00` in persisted floating values.
 - Added regression coverage for Task All-Day due-date serialization and raw SQLite All-Day reminder storage. Existing persistence coverage still checks reminder IDs, order, and independent timestamps.
 - Latest code/test HEAD before this note: `c0a6118685ab9d52f962e83c947e2977d98ab7fc`; exact-HEAD CI has started and remains pending/in progress at time of recording.
+
+
+## Schema v15 and All-Day migration hardening — 2026-11-07
+
+- Bumped Drift schema from v14 to **v15** after adding normalized `task_persons` and Person foreign-key relations. The task-table rebuild staging name now matches v15.
+- Migration now transfers old JSON-backed `task_people` records to `task_persons`, retires `task_people`, and backfills unresolved linked Person IDs before enforcing canonical relation integrity.
+- Legacy All-Day Task due dates and migrated All-Day reminders are normalized to `YYYY-MM-DD` at the SQL layer. Timed values retain full ISO timestamps.
+- Regression tests assert schema v15, Person foreign keys, retirement of `task_people`, legacy All-Day conversion, raw date-only Task/Reminder storage, and independent reminder round-trips.
+- The 2026-11-07 Follow-up Persistence run on `273816246492973ba8258d626cb1cdcfcfd4b351` failed only because a test compared an All-Day date-only value to a UTC timestamp string; the assertion has been corrected to compare calendar components and date-only storage, without relaxing persistence coverage.
+- Exact-HEAD CI must complete on the latest SHA after this documentation update; prior SHA results remain non-transferable.
