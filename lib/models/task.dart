@@ -26,7 +26,7 @@ extension TaskPriorityProduct on TaskPriority {
 
 enum NotebookItemKind { note, checklist }
 
-class FollowUp {
+class FollowUpRecord {
   final String id;
 
   /// Canonical historical timestamp for this record.
@@ -40,7 +40,7 @@ class FollowUp {
   final bool waitingForResponse;
   final List<String> personIds;
 
-  const FollowUp({
+  const FollowUpRecord({
     required this.id,
     required this.dateTime,
     this.title,
@@ -70,7 +70,7 @@ class FollowUp {
         if (personIds.isNotEmpty) 'personIds': personIds,
       };
 
-  factory FollowUp.fromJson(Map<String, dynamic> json) {
+  factory FollowUpRecord.fromJson(Map<String, dynamic> json) {
     return FollowUp(
       id: json['id'] as String? ?? '',
       dateTime: DateTime.parse(json['dateTime'] as String),
@@ -90,6 +90,9 @@ class FollowUp {
     );
   }
 }
+
+/// Source-compatible type alias; the canonical entity is FollowUpRecord.
+typedef FollowUp = FollowUpRecord;
 
 /// Temporary compatibility alias for the legacy Home load-only boundary.
 /// Remove when HomePage stops using the legacy view model.
