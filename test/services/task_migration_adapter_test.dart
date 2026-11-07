@@ -31,8 +31,8 @@ void main() {
     expect(task.description, 'پیگیری قرارداد');
     expect(task.tags, ['crm']);
     expect(task.category, 'sales');
-    expect(task.followUpDate, DateTime.parse('2026-08-20T10:30:00.000Z'));
-    expect(task.followUpEnabled, isTrue);
+    expect(task.followUpDate, isNull);
+    expect(task.followUpEnabled, isFalse);
     expect(task.followUps, isEmpty);
     expect(task.lastFollowUp, isNull);
     expect(task.archived, isFalse);
