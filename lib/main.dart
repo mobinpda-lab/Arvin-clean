@@ -977,8 +977,8 @@ class _HomePageState extends State<HomePage> {
                 key: const ValueKey('home-filter-card-time'),
                 label: _timeFilters.isEmpty && _timeFilter != 'customRange' ? 'زمان' : _timeFilterLabel,
                 icon: Icons.schedule_rounded,
-                accent: ArvinColors.time,
-                soft: ArvinColors.timeSoft,
+                accent: ArvinColors.primary,
+                soft: ArvinColors.primarySoft,
                 active: _timeFilters.isNotEmpty || _timeFilter == 'customRange',
                 onPressed: _showTimeFilterSheet,
               ),
@@ -995,8 +995,8 @@ class _HomePageState extends State<HomePage> {
                 key: const ValueKey('home-filter-card-project'),
                 label: _projectFilters.isEmpty ? 'پروژه‌ها' : _projectFilters.length == 1 ? (_projectFilters.first == '__no_project__' ? 'بدون پروژه' : (_projectTitle(_projectFilters.first) ?? 'پروژه حذف‌شده')) : 'پروژه‌ها (${persianDateFormatter.toPersianDigits('${_projectFilters.length}')})',
                 icon: Icons.folder_rounded,
-                accent: ArvinColors.project,
-                soft: ArvinColors.projectSoft,
+                accent: ArvinColors.primary,
+                soft: ArvinColors.primarySoft,
                 active: _projectFilters.isNotEmpty,
                 onPressed: _showProjectFilterSheet,
               ),
@@ -1004,8 +1004,8 @@ class _HomePageState extends State<HomePage> {
                 key: const ValueKey('home-filter-card-category'),
                 label: _categoryFilters.isEmpty ? 'دسته‌ها' : _categoryFilters.length == 1 ? _categoryFilters.first : 'دسته‌ها (${persianDateFormatter.toPersianDigits('${_categoryFilters.length}')})',
                 icon: Icons.layers_rounded,
-                accent: ArvinColors.category,
-                soft: ArvinColors.categorySoft,
+                accent: ArvinColors.primary,
+                soft: ArvinColors.primarySoft,
                 active: _categoryFilters.isNotEmpty,
                 onPressed: _showCategoryFilterSheet,
               ),
@@ -1013,12 +1013,17 @@ class _HomePageState extends State<HomePage> {
                 key: const ValueKey('home-filter-card-tags'),
                 label: _tagFilters.isEmpty ? 'برچسب‌ها' : 'برچسب‌ها (${persianDateFormatter.toPersianDigits('${_tagFilters.length}')})',
                 icon: Icons.sell_rounded,
-                accent: ArvinColors.tag,
-                soft: ArvinColors.tagSoft,
+                accent: ArvinColors.primary,
+                soft: ArvinColors.primarySoft,
                 active: _tagFilters.isNotEmpty,
                 onPressed: _showTagFilterSheet,
               ),
-              Semantics(
+
+        ],
+      ),
+      Align(
+        alignment: AlignmentDirectional.centerEnd,
+        child: Semantics(
                 button: true,
                 label: 'مرتب‌سازی کارها',
                 child: IconButton(
@@ -1028,8 +1033,7 @@ class _HomePageState extends State<HomePage> {
                   onPressed: _showSortOptions,
                   icon: const Icon(Icons.sort_rounded),
                 ),
-              ),
-        ],
+              ),,
       ),
     );
   }
@@ -3574,7 +3578,7 @@ class _HomePageState extends State<HomePage> {
                     key: const ValueKey('home-bismillah-svg'),
                     width: 210,
                     colorFilter: const ColorFilter.mode(
-                      Color(0xFF1A2B4C),
+                      ArvinColors.primary,
                       BlendMode.srcIn,
                     ),
                     excludeFromSemantics: true,

@@ -328,18 +328,32 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              const Expanded(
-                child: Text('یادآورهای مستقل', style: TextStyle(fontWeight: FontWeight.w800)),
-              ),
-              FilledButton.tonalIcon(
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final addButton = FilledButton.tonalIcon(
                 key: const ValueKey('task-editor-add-reminder'),
                 onPressed: _addTaskReminder,
                 icon: const Icon(Icons.add, size: 18),
                 label: const Text('افزودن یادآور'),
-              ),
-            ],
+              );
+              if (constraints.maxWidth < 360 ||
+                  MediaQuery.textScalerOf(context).scale(1) > 1.2) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text('یادآورهای مستقل', style: TextStyle(fontWeight: FontWeight.w800)),
+                    const SizedBox(height: 6),
+                    Align(alignment: AlignmentDirectional.centerStart, child: addButton),
+                  ],
+                );
+              }
+              return Row(
+                children: [
+                  const Expanded(child: Text('یادآورهای مستقل', style: TextStyle(fontWeight: FontWeight.w800))),
+                  addButton,
+                ],
+              );
+            },
           ),
           const SizedBox(height: 4),
           const Text('هر یادآور مستقل است و می‌تواند عنوان و زمان جداگانه داشته باشد.'),

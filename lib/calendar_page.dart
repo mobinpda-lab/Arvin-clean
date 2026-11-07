@@ -604,7 +604,7 @@ class _CalendarPageState extends State<CalendarPage> {
 
     return Padding(
       key: const ValueKey('calendar-week-view'),
-      padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
+      padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
       child: Row(
         children: [
           for (var offset = 0; offset < 7; offset++) ...[
@@ -770,33 +770,24 @@ class _CalendarPageState extends State<CalendarPage> {
                             )
                           : null,
                     ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          _dateFormatter.toPersianDigits('$day'),
-                          style: const TextStyle(fontWeight: FontWeight.w700),
-                        ),
-                        Text(
-                          _gregorianDate(date).split('/').skip(1).join('/'),
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 8),
-                        ),
-                        Text(
-                          _hijriDate(date).split('/').skip(1).join('/'),
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 8),
-                        ),
-                        if (count > 0)
-                          Text(
-                            _dateFormatter.toPersianDigits('$count'),
-                            style: TextStyle(
-                              fontSize: 10,
-                              height: 1,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
-                      ],
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(_dateFormatter.toPersianDigits('$day'),
+                              style: const TextStyle(fontWeight: FontWeight.w700, height: 1)),
+                          Text(_gregorianDate(date).split('/').skip(1).join('/'),
+                              style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 7, height: 1)),
+                          Text(_hijriDate(date).split('/').skip(1).join('/'),
+                              style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 7, height: 1)),
+                          if (count > 0)
+                            Text(_dateFormatter.toPersianDigits('$count'),
+                                style: TextStyle(fontSize: 8, height: 1, fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).colorScheme.primary)),
+                        ],
+                      ),
                     ),
                   ),
               );

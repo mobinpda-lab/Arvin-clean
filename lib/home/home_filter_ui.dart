@@ -26,8 +26,8 @@ class HomeFilterPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final selectedAccent = active ? ArvinColors.primary : accent;
-    final selectedSurface = active ? ArvinColors.primarySoft : soft;
+    final selectedAccent = ArvinColors.primary;
+    final selectedSurface = ArvinColors.primarySoft;
     return Padding(
       padding: const EdgeInsetsDirectional.only(end: 7),
       child: ActionChip(
@@ -77,15 +77,15 @@ class HomeFilterCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final selected = active ?? value != 'همه';
-    final selectedAccent = selected ? ArvinColors.primary : accent;
-    final selectedSoft = selected ? ArvinColors.primarySoft : soft;
+    final selectedAccent = ArvinColors.primary;
+    final selectedSoft = ArvinColors.primarySoft;
     final compact = MediaQuery.sizeOf(context).height < 700;
     return Expanded(
       child: Semantics(
         button: true,
         label: title + ': ' + value,
         child: Material(
-          color: selected ? Color.alphaBlend(selectedAccent.withAlpha(22), selectedSoft) : soft,
+          color: selected ? Color.alphaBlend(selectedAccent.withAlpha(22), selectedSoft) : ArvinColors.surface,
           borderRadius: BorderRadius.circular(16),
           child: InkWell(
             key: ValueKey('home-filter-card-' + dimension.name),
@@ -102,7 +102,7 @@ class HomeFilterCard extends StatelessWidget {
                     : soft,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: selected ? selectedAccent.withAlpha(150) : accent.withAlpha(45),
+                  color: selected ? selectedAccent.withAlpha(150) : ArvinColors.border,
                   width: selected ? 1.5 : 1,
                 ),
                 boxShadow: [

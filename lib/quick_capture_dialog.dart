@@ -121,6 +121,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
 
   @override
   void dispose() {
+    _titleFocus.unfocus();
     _controller.dispose();
     _titleFocus.dispose();
     _categoryController.dispose();
@@ -200,9 +201,6 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       setState(() {
         _priority = TaskPriority.none;
         _saving = false;
-      });
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) FocusScope.of(context).requestFocus(_titleFocus);
       });
     } catch (_) {
       if (!mounted) return;
@@ -534,7 +532,6 @@ Future<DateTime?> _pickCustomDue() async {
       child: Align(
         alignment: AlignmentDirectional.topCenter,
         widthFactor: 1,
-        heightFactor: 1,
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 720),
           child: Padding(
@@ -581,7 +578,7 @@ Future<DateTime?> _pickCustomDue() async {
                       key: const ValueKey('quick-capture-input'),
                       controller: _controller,
                       focusNode: _titleFocus,
-                      autofocus: true,
+                      autofocus: false,
                       enabled: !_saving,
                       minLines: 1,
                       maxLines: 1,
@@ -652,7 +649,8 @@ Future<DateTime?> _pickCustomDue() async {
                                 });
                               },
                               onCreate: widget.onCreateCenter == null ? null : () async {
-                                final controller = TextEditingController();
+                                _titleFocus.unfocus();
+                                var draftName = '';
                                 final name = await showModalBottomSheet<String>(
                                   context: context,
                                   isScrollControlled: true,
@@ -660,17 +658,16 @@ Future<DateTime?> _pickCustomDue() async {
                                     padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(ctx).bottom),
                                     child: Column(mainAxisSize: MainAxisSize.min, children: [
                                       const Text('مرکز جدید'),
-                                      TextField(controller: controller, autofocus: true,
+                                      TextField(autofocus: true, onChanged: (text) => draftName = text,
                                         decoration: const InputDecoration(labelText: 'نام مرکز')),
-                                      FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+                                      FilledButton(onPressed: () => Navigator.pop(ctx, draftName.trim()),
                                         child: const Text('افزودن')),
                                     ]),
                                   ),
                                 );
                                 final value = name?.trim();
-                                if (value == null || value.isEmpty) { controller.dispose(); return null; }
+                                if (value == null || value.isEmpty) return null;
                                 final createdId = await widget.onCreateCenter!(value);
-                                controller.dispose();
                                 if (!mounted || createdId == null || createdId.trim().isEmpty) return createdId;
                                 if (!_knownCenters.any((center) => center.id == createdId)) {
                                   _knownCenters = [..._knownCenters, ArvinCenter(
@@ -779,21 +776,21 @@ Future<DateTime?> _pickCustomDue() async {
                                   )).toList(growable: false),
                               onSelected: (v) => setState(() => _categoryController.text = v ?? ''),
                               onCreate: () async {
-                                final controller = TextEditingController();
+                                _titleFocus.unfocus();
+                                var draftName = '';
                                 final value = await showModalBottomSheet<String>(
                                   context: context, isScrollControlled: true,
                                   builder: (ctx) => Padding(
                                     padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(ctx).bottom),
                                     child: Column(mainAxisSize: MainAxisSize.min, children: [
                                       const Text('دسته جدید'),
-                                      TextField(controller: controller, autofocus: true,
+                                      TextField(autofocus: true, onChanged: (text) => draftName = text,
                                         decoration: const InputDecoration(labelText: 'نام')),
-                                      FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+                                      FilledButton(onPressed: () => Navigator.pop(ctx, draftName.trim()),
                                         child: const Text('افزودن')),
                                     ]),
                                   ),
                                 );
-                                controller.dispose();
                                 if (value == null || value.isEmpty) return null;
                                 final created = await widget.onCreateCategory?.call(value) ?? value;
                                 if (!mounted) return created;
@@ -816,21 +813,21 @@ Future<DateTime?> _pickCustomDue() async {
                                 _selectedTags..clear()..addAll(values);
                               }),
                               onCreate: () async {
-                                final controller = TextEditingController();
+                                _titleFocus.unfocus();
+                                var draftName = '';
                                 final value = await showModalBottomSheet<String>(
                                   context: context, isScrollControlled: true,
                                   builder: (ctx) => Padding(
                                     padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(ctx).bottom),
                                     child: Column(mainAxisSize: MainAxisSize.min, children: [
                                       const Text('برچسب جدید'),
-                                      TextField(controller: controller, autofocus: true,
+                                      TextField(autofocus: true, onChanged: (text) => draftName = text,
                                         decoration: const InputDecoration(labelText: 'نام')),
-                                      FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+                                      FilledButton(onPressed: () => Navigator.pop(ctx, draftName.trim()),
                                         child: const Text('افزودن')),
                                     ]),
                                   ),
                                 );
-                                controller.dispose();
                                 if (value == null || value.isEmpty) return null;
                                 final created = await widget.onCreateTag?.call(value) ?? value;
                                 if (!mounted) return created;
