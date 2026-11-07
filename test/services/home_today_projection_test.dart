@@ -52,8 +52,8 @@ void main() {
     );
 
     expect(projection.select([item], now: today), isEmpty);
-    expect(item.followUpDate, DateTime(2026, 8, 27, 8));
-    expect(item.followUpEnabled, isTrue);
+    expect(item.followUpDate, isNull);
+    expect(item.followUpEnabled, isFalse);
     expect(item.followUps, isEmpty);
   });
 
