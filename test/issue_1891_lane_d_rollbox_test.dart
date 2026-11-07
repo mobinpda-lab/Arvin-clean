@@ -41,14 +41,18 @@ void main() {
       ),
     );
 
-    final tagSelector = find.byTooltip('برچسب');
+    await tester.pumpAndSettle();
+    final tagSelector = find.bySemanticsLabel('1 برچسب');
+    expect(tagSelector, findsOneWidget);
     await tester.tap(tagSelector);
     await tester.pumpAndSettle();
     expect(find.text('انتخاب برچسب'), findsOneWidget);
     expect(find.byType(CheckboxListTile), findsNWidgets(2));
 
     final targetTag = find.widgetWithText(CheckboxListTile, 'مشتری');
+    expect(targetTag, findsOneWidget);
     await tester.ensureVisible(targetTag);
+    await tester.pumpAndSettle();
     await tester.tap(targetTag);
     await tester.pump();
     expect(selected, <String>['مهم']);
@@ -57,9 +61,15 @@ void main() {
     await tester.pumpAndSettle();
     expect(selected, <String>['مهم']);
 
-    await tester.tap(find.byTooltip('برچسب'));
+    final tagSelectorAgain = find.bySemanticsLabel('1 برچسب');
+    expect(tagSelectorAgain, findsOneWidget);
+    await tester.tap(tagSelectorAgain);
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'مشتری'));
+    final targetTagAgain = find.widgetWithText(CheckboxListTile, 'مشتری');
+    expect(targetTagAgain, findsOneWidget);
+    await tester.ensureVisible(targetTagAgain);
+    await tester.pumpAndSettle();
+    await tester.tap(targetTagAgain);
     await tester.pump();
     await tester.tap(find.text('اعمال'));
     await tester.pumpAndSettle();

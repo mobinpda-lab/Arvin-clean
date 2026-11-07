@@ -8,12 +8,21 @@ import 'package:arvin/task_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-Finder _reportFilterVerticalScrollable() => find
-    .ancestor(
-      of: find.byKey(const ValueKey('report-filter-scroll')),
-      matching: find.byType(Scrollable),
-    )
-    .first;
+Future<void> _ensureReportFilterTargetVisible(
+  WidgetTester tester,
+  Finder target,
+) async {
+  await tester.pumpAndSettle();
+  final filterList = find.byKey(const ValueKey('report-filter-scroll'));
+  expect(filterList, findsOneWidget);
+  for (var attempt = 0; attempt < 20 && !tester.any(target); attempt++) {
+    await tester.drag(filterList, const Offset(0, -300));
+    await tester.pumpAndSettle();
+  }
+  expect(target, findsOneWidget);
+  await tester.ensureVisible(target);
+  await tester.pumpAndSettle();
+}
 
 void main() {
   testWidgets('Report Center opens an Arvin bottom-sheet filter panel', (tester) async {
@@ -28,6 +37,7 @@ void main() {
       ),
     );
 
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('report-center-filters')));
     await tester.pumpAndSettle();
 
@@ -35,11 +45,7 @@ void main() {
     expect(find.text('اهمیت'), findsNothing);
     expect(find.byKey(const ValueKey('report-home-filter-time')), findsOneWidget);
     final todayPreset = find.text('امروز');
-    await tester.scrollUntilVisible(
-      todayPreset,
-      200,
-      scrollable: _reportFilterVerticalScrollable(),
-    );
+    await _ensureReportFilterTargetVisible(tester, todayPreset);
     expect(todayPreset, findsOneWidget);
     expect(find.text('بازه دقیق'), findsOneWidget);
     expect(tester.getSize(find.byKey(const ValueKey('report-filter-header'))).height, 64);
@@ -90,16 +96,13 @@ void main() {
         ),
       );
 
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('report-center-filters')));
       await tester.pumpAndSettle();
 
       final timeSection =
           find.byKey(const ValueKey('report-filter-section-زمان'));
-      await tester.scrollUntilVisible(
-        timeSection,
-        200,
-        scrollable: _reportFilterVerticalScrollable(),
-      );
+      await _ensureReportFilterTargetVisible(tester, timeSection);
       await tester.ensureVisible(timeSection);
       await tester.pumpAndSettle();
       final todayPreset = find.descendant(
@@ -110,10 +113,9 @@ void main() {
       await tester.tap(todayPreset);
       await tester.pumpAndSettle();
 
-      await tester.scrollUntilVisible(
+      await _ensureReportFilterTargetVisible(
+        tester,
         find.byKey(const ValueKey('report-filter-section-دسته')),
-        200,
-        scrollable: _reportFilterVerticalScrollable(),
       );
       await tester.tap(find.byKey(const ValueKey('report-filter-section-دسته')));
       await tester.pumpAndSettle();
@@ -185,6 +187,7 @@ void main() {
 
     expect(find.byType(DropdownButtonFormField<String>), findsNothing);
     expect(find.byType(SwitchListTile), findsNothing);
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('report-center-filters')));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
@@ -217,15 +220,12 @@ void main() {
     expect(find.textContaining('اقدام بعدی:'), findsNothing);
     expect(find.textContaining('یادآور:'), findsNothing);
 
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('report-center-filters')));
     await tester.pumpAndSettle();
     final peopleSection =
         find.byKey(const ValueKey('report-filter-section-اشخاص'));
-    await tester.scrollUntilVisible(
-      peopleSection,
-      200,
-      scrollable: _reportFilterVerticalScrollable(),
-    );
+    await _ensureReportFilterTargetVisible(tester, peopleSection);
     await tester.ensureVisible(peopleSection);
     await tester.pumpAndSettle();
     await tester.tap(peopleSection);
@@ -278,15 +278,12 @@ void main() {
       ),
     );
 
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('report-center-filters')));
     await tester.pumpAndSettle();
     final peopleSection =
         find.byKey(const ValueKey('report-filter-section-اشخاص'));
-    await tester.scrollUntilVisible(
-      peopleSection,
-      200,
-      scrollable: _reportFilterVerticalScrollable(),
-    );
+    await _ensureReportFilterTargetVisible(tester, peopleSection);
     await tester.ensureVisible(peopleSection);
     await tester.pumpAndSettle();
     await tester.tap(peopleSection);
@@ -334,6 +331,7 @@ void main() {
     await tester.pageBack();
     await tester.pumpAndSettle();
 
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('report-center-filters')));
     await tester.pumpAndSettle();
     final typeSection = find.byKey(
@@ -372,6 +370,7 @@ void main() {
         tasks: [Task(id: 't511', title: 'بررسی فن')],
       ),
     ));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('report-center-filters')));
     await tester.pumpAndSettle();
     final centerSection = find.byKey(const ValueKey('report-filter-section-مرکز'));
@@ -411,15 +410,12 @@ void main() {
       ),
     ));
 
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('report-center-filters')));
     await tester.pumpAndSettle();
     final timeSection =
         find.byKey(const ValueKey('report-filter-section-زمان'));
-    await tester.scrollUntilVisible(
-      timeSection,
-      200,
-      scrollable: _reportFilterVerticalScrollable(),
-    );
+    await _ensureReportFilterTargetVisible(tester, timeSection);
     await tester.ensureVisible(timeSection);
     await tester.pumpAndSettle();
     final pastPreset = find.descendant(
@@ -462,6 +458,7 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('report-center-filters')));
     await tester.pumpAndSettle();
 
@@ -532,6 +529,7 @@ void main() {
 
     expect(find.byKey(const ValueKey('report-center-completed-follow-ups')),
         findsNothing);
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('report-center-filters')));
     await tester.pumpAndSettle();
 
