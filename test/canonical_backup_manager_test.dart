@@ -129,14 +129,8 @@ void main() {
     expect(restored.followUps, hasLength(1));
     expect(restored.followUps.single.note, 'تماس اول');
     expect(restored.followUps.single.result, 'منتظر پاسخ');
-    expect(
-      restored.followUps.single.reminderDate,
-      DateTime(2026, 8, 28, 10, 15),
-    );
-    expect(
-      restored.followUps.single.nextFollowUp,
-      DateTime(2026, 8, 28, 10, 30),
-    );
+    expect(restored.followUps.single.toJson().containsKey('reminderDate'), isFalse);
+    expect(restored.followUps.single.toJson().containsKey('nextFollowUp'), isFalse);
     expect(restored.recurrence?.frequency, RecurrenceFrequency.weekly);
     expect(restored.recurrence?.interval, 2);
     expect(restored.createdAt, DateTime(2026, 8, 20, 8));
@@ -580,7 +574,7 @@ void main() {
     expect(restored.recurrence?.frequency, RecurrenceFrequency.daily);
     expect(restored.recurrence?.interval, 2);
     expect(restored.followUps.single.id, 'golden-flow-followup');
-    expect(restored.followUps.single.nextFollowUp, DateTime(2026, 10, 10, 11));
+    expect(restored.followUps.single.toJson().containsKey('nextFollowUp'), isFalse);
   });
 
   test('restore distinguishes omitted, null, and explicit empty Projects fields', () async {
