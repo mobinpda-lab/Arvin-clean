@@ -39,3 +39,15 @@
 - هیچ تستی حذف، Skip، دور زده یا تضعیف نمی‌شود.
 - PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ `main` دست‌نخورده؛ Merge و انتشار ممنوع.
 - وضعیت انتشار: **BLOCKED — RELEASE: NO-GO**.
+
+
+---
+
+## TSK-02 — فهرست شکست‌های تاریخی شارد ۱
+
+- [Build run 42407484460](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/42407484460)، job `quality (test-1)` / ID `128509578970`، checkout SHA `b1ad86a164f9d8f8363e29313163f1be0ee53d4a`: **174 passed / 13 failed**؛ اجرای کلی بعداً CANCELLED شد.
+- نام دقیق هر ۱۳ تست، مسیر و خط، خروجی خطا و دسته‌بندی Assertion/Widget lifecycle/SQL binding در بخش «TSK-02 — تحلیل تفصیلی ۱۳ شکست شارد ۱» در `CURRENT_STATE.md` ثبت شده است.
+- خطاهای مشاهده‌شده: ۹ اختلاف Assertion/داده، ۲ خطای استفاده از TextEditingController پس از dispose، ۱ خطای پارامترهای SQL، و ۱ خطای lifecycle چارچوب Flutter همراه Finder ناموفق. Timeout و Mock failure در این لاگ مشاهده نشد.
+- این شکست‌ها فقط به SHA همان اجرا مربوط‌اند؛ تا زمان اجرای مجدد روی یک SHA واحد، TSK-02 باز و IN_PROGRESS می‌ماند. هیچ تستی حذف/Skip/تضعیف یا بازنویسی نشود.
+- سند `ARCHITECTURE_NOTEBOOK.md` از قبل در شاخه وجود داشت و بررسی شد؛ سند تکراری ایجاد نشد. Gap Analysis فقط فهرست نیازهای فاز بعد است.
+- مشخصات Staging APK قبلی حفظ شود: حجم `79,185,752` bytes؛ APK SHA-256 `dd990f90a1441423c3214e915d528f5f78e6d65ce0045b45b75791ddd1873416`؛ run `42406934575`، artifact `13588285590`. این APK متعلق به SHA `2baad457...` است و مدرک نصب روی Samsung نیست.
