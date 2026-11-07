@@ -128,10 +128,12 @@ void main() {
       tester.getSize(find.byKey(const ValueKey('calendar-month-day-12'))).height,
       greaterThanOrEqualTo(48),
     );
-    expect(
-      tester.getSize(find.byKey(const ValueKey('calendar-month-view'))).height,
-      lessThan(280),
-    );
+    final monthHeight =
+        tester.getSize(find.byKey(const ValueKey('calendar-month-view'))).height;
+    // Six 48dp touch rows plus weekday header and spacing need about 318dp.
+    // Keep the minimum target size while bounding the month grid's height.
+    expect(monthHeight, greaterThanOrEqualTo(288));
+    expect(monthHeight, lessThanOrEqualTo(320));
     expect(find.text('مرداد ۱۴۰۵'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('calendar-period-next')));
     await tester.pumpAndSettle();

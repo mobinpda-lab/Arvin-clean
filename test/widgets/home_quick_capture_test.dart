@@ -13,6 +13,10 @@ void main() {
   });
   testWidgets('Home primary add persists canonical task and preserves history',
       (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     SharedPreferences.setMockInitialValues({
       'arvin.tasks': jsonEncode([
         {
@@ -34,7 +38,9 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('home-canonical-add')));
+    final addButton = find.byKey(const ValueKey('home-canonical-add'));
+    await tester.ensureVisible(addButton);
+    await tester.tap(addButton);
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('quick-capture-dialog')), findsOneWidget);
     await tester.enterText(

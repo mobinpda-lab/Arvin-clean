@@ -1044,7 +1044,7 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
           Align(
-            alignment: AlignmentDirectional.centerEnd,
+            alignment: Alignment.centerLeft,
             child: Semantics(
               button: true,
               label: 'مرتب‌سازی کارها',

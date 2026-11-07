@@ -888,9 +888,11 @@ class _CalendarPageState extends State<CalendarPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // Preserve the approved brand SVG color in light mode; only dark mode
+    // adapts to onSurface. The SVG path itself remains untouched.
     final sacredVectorColor = theme.brightness == Brightness.dark
         ? theme.colorScheme.onSurface
-        : ArvinColors.primary;
+        : const Color(0xFF1A2B4C);
     final selectedJalali = _dateFormatter.toJalali(_selectedDay);
     final allSelectedReminders = _forDay(_selectedDay);
     final selectedReminders = _filteredForDay(_selectedDay);
