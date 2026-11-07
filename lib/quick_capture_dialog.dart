@@ -537,7 +537,7 @@ Future<DateTime?> _pickCustomDue() async {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Container(
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.primary,
                       borderRadius: BorderRadius.vertical(bottom: Radius.circular(18)),
                     ),
