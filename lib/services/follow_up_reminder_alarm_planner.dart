@@ -22,23 +22,9 @@ class FollowUpReminderAlarmPlanner {
     for (final task in tasks) {
       if (task.completed || task.archived || task.trashed) continue;
 
-      for (final reminder in task.taskReminders) {
-        if (reminder.isLegacyTaskReminder) {
-          legacyReminderEntry = reminder;
-          break;
-        }
-      }
-      // Before migration, retain the legacy delivery identity unless the
-      // corresponding canonical reminder was explicitly disabled. Once the
-      // legacy date has been migrated into TaskReminder, do not schedule the
-      // singular field a second time.
-      if (task.legacyTaskReminderMigrationVersion < 1 &&
-          taskReminder != null &&
-          legacyReminderEntry?.isEnabled != false) {
-        final identity = 'task:${task.id}@${taskReminder.toIso8601String()}';
-        if (!delivered.contains(identity)) candidates.add(taskReminder);
-      }
-
+      // TaskReminder is the sole scheduling source. Task.fromJson migrates
+      // legacy Task.reminderDate into this collection; FollowUp history is
+      // never treated as a future reminder.
       for (final reminder in task.taskReminders) {
         if (!reminder.isEnabled) continue;
         final scheduledAt = reminder.isAllDay

@@ -177,7 +177,7 @@ class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
         .toSet()
         .toList()
       ..sort();
-    Future<ReusableFilterOption<String>?>? create;
+    Future<ReusableFilterOption<String>?> Function(String value)? create;
     if (widget.onCreateWithName != null) {
       create = (name) async {
         final created = await widget.onCreateWithName!(name);
