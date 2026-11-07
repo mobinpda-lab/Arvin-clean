@@ -27,12 +27,23 @@ void main() {
     expect(AppThemeManager.instance.selectedHex, '#7209B7');
   });
 
+  test('clears an unsupported legacy stored color and restores the default', () async {
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setString(AppThemeManager.preferenceKey, '#000080');
+    await AppThemeManager.instance.load();
+    expect(AppThemeManager.instance.selectedHex, '#3A86EF');
+    expect(preferences.getString(AppThemeManager.preferenceKey), isNull);
+  });
+
   test('rejects colors outside the approved nine-color palette', () async {
     expect(
       () => AppThemeManager.instance.select('#000080'),
       throwsArgumentError,
     );
-    expect(AppThemeManager.palette, hasLength(9));
+    expect(
+      AppThemeManager.palette.map((entry) => entry.hex).toList(),
+      <String>['#078B91', '#1B4965', '#2A9D8F', '#4361EE', '#7209B7', '#F77F00', '#D90429', '#3A86EF', '#2B2D42'],
+    );
     expect(AppThemeManager.palette[7].hex, '#3A86EF');
   });
 }
