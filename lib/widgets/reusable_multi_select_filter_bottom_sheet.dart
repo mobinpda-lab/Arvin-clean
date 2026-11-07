@@ -203,19 +203,20 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Row(
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  spacing: 8,
+                  runSpacing: 4,
                   children: [
                     if (allowClear)
                       TextButton(
                         onPressed: () => setSheetState(working.clear),
                         child: const Text('پاک کردن انتخاب‌ها'),
                       ),
-                    const Spacer(),
                     TextButton(
                       onPressed: () => Navigator.of(sheetContext).pop(),
                       child: const Text('لغو'),
                     ),
-                    const SizedBox(width: 8),
                     FilledButton(
                       onPressed: () => Navigator.of(sheetContext).pop(Set<T>.of(working)),
                       child: Text(applyLabel),
