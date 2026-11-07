@@ -1368,8 +1368,10 @@ Future<void> _pickDueDateTime() async {
                               createLabel: '+ افزودن پروژه',
                               items: _projects
                                   .where((project) =>
-                                      !project.isArchived ||
-                                      project.id == _selectedProjectId)
+                                      (!project.isArchived ||
+                                          project.id == _selectedProjectId) &&
+                                      (_selectedCenterId == null ||
+                                          project.centerId == _selectedCenterId))
                                   .map((project) => ArvinRollItem<String>(
                                         value: project.id,
                                         label: project.isArchived
