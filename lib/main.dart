@@ -542,6 +542,7 @@ class _HomePageState extends State<HomePage> {
   final TaskBulkMutationService taskBulkMutationService =
       TaskBulkMutationService();
   final FocusNode _searchFocusNode = FocusNode();
+  final ValueNotifier<String> _searchQueryNotifier = ValueNotifier<String>('');
   final ScrollController _homeScrollController = ScrollController();
   final Set<String> _expandedTaskIds = <String>{};
   bool _hideBottomNavigation = false;
@@ -610,6 +611,7 @@ class _HomePageState extends State<HomePage> {
     _homeScrollController.dispose();
     widgetTaskBridge.dispose();
     _searchFocusNode.dispose();
+    _searchQueryNotifier.dispose();
     super.dispose();
   }
 
@@ -3785,7 +3787,10 @@ class _HomePageState extends State<HomePage> {
             child: TextField(
               focusNode: _searchFocusNode,
               key: const ValueKey('home-canonical-search'),
-              onChanged: (value) => setState(() => query = value),
+              onChanged: (value) {
+                query = value;
+                _searchQueryNotifier.value = value;
+              },
               decoration: InputDecoration(
                 hintText: 'جستجو در کارها...',
                 hintStyle: TextStyle(color: colors.onSurfaceVariant, fontSize: 12),
@@ -3804,21 +3809,58 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           _homeFilterCards(),
-          _homeActiveFilterChips(),
+          ValueListenableBuilder<String>(
+            valueListenable: _searchQueryNotifier,
+            builder: (context, _, __) => _homeActiveFilterChips(),
+          ),
                 ],
               ),
             ),
           ),
-          Expanded(child: SizedBox.expand(key: const ValueKey('home-task-list-viewport'), child: loading ? Center(child: CircularProgressIndicator(color: colors.primary)) : loadFailure != null
-            ? SingleChildScrollView(padding: const EdgeInsets.all(24), child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Icon(Icons.storage_outlined, size: 40), SizedBox(height: 12),
-                Text('داده‌های کارها قابل خواندن نیست', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w700)),
-                const SizedBox(height: 8),
-                Text('برای جلوگیری از از دست رفتن اطلاعات، تا بازیابی موفق هیچ تغییری ذخیره نمی‌شود.', textAlign: TextAlign.center),
-                const SizedBox(height: 16),
-                FilledButton.icon(key: const ValueKey('home-storage-retry'), onPressed: () { setState(() => loading = true); _load(); }, icon: const Icon(Icons.refresh), label: const Text('تلاش دوباره')),
-              ])))
-            : _groupedTaskList())),
+          Expanded(
+            child: ValueListenableBuilder<String>(
+              valueListenable: _searchQueryNotifier,
+              builder: (context, _, __) => SizedBox.expand(
+                key: const ValueKey('home-task-list-viewport'),
+                child: loading
+                    ? Center(child: CircularProgressIndicator(color: colors.primary))
+                    : loadFailure != null
+                        ? SingleChildScrollView(
+                            padding: const EdgeInsets.all(24),
+                            child: Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.storage_outlined, size: 40),
+                                  const SizedBox(height: 12),
+                                  const Text(
+                                    'داده‌های کارها قابل خواندن نیست',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(fontWeight: FontWeight.w700),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  const Text(
+                                    'برای جلوگیری از از دست رفتن اطلاعات، تا بازیابی موفق هیچ تغییری ذخیره نمی‌شود.',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  FilledButton.icon(
+                                    key: const ValueKey('home-storage-retry'),
+                                    onPressed: () {
+                                      setState(() => loading = true);
+                                      _load();
+                                    },
+                                    icon: const Icon(Icons.refresh),
+                                    label: const Text('تلاش دوباره'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        : _groupedTaskList(),
+              ),
+            ),
+          ),
           if (compactHome && selected.isEmpty && loadFailure == null)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
@@ -3851,18 +3893,21 @@ class _HomePageState extends State<HomePage> {
                       onSelected: _onPrimaryDestinationSelected,
                     ),
             )
-          : TaskBulkSelectionBar(
-        selectedCount: selected.length,
-        allVisibleSelected: taskBulkSelectionService.allVisibleSelected(selected, visible),
-        onToggleAll: _toggleAllVisibleSelection,
-        onClearSelection: _clearBulkSelection,
-        onArchive: _archiveSelected,
-        onTrash: _trashSelected,
-        onCategory: _moveSelectedToCategory,
-        onTags: _addTagsToSelected,
-        onShare: _openSelectedReport,
-        onComplete: _completeSelected,
-      ),
+          : ValueListenableBuilder<String>(
+              valueListenable: _searchQueryNotifier,
+              builder: (context, _, __) => TaskBulkSelectionBar(
+                selectedCount: selected.length,
+                allVisibleSelected: taskBulkSelectionService.allVisibleSelected(selected, visible),
+                onToggleAll: _toggleAllVisibleSelection,
+                onClearSelection: _clearBulkSelection,
+                onArchive: _archiveSelected,
+                onTrash: _trashSelected,
+                onCategory: _moveSelectedToCategory,
+                onTags: _addTagsToSelected,
+                onShare: _openSelectedReport,
+                onComplete: _completeSelected,
+              ),
+            ),
     );
   }
 }
