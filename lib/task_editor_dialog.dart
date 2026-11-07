@@ -1450,6 +1450,7 @@ Future<void> _pickDueDate() async {
                               color: ArvinColors.category,
                               emptyLabel: 'بدون دسته',
                               createLabel: '+ افزودن دسته',
+                              createItemKey: const ValueKey('task-editor-create-category'),
                               items: _knownCategories
                                   .map((value) => value.trim())
                                   .where((value) => value.isNotEmpty)

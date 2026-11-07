@@ -634,6 +634,7 @@ Future<DateTime?> _pickCustomDue() async {
                               color: ArvinColors.primary,
                               emptyLabel: 'بدون محدودیت مرکز',
                               createLabel: '+ افزودن مرکز',
+                              createItemKey: const ValueKey('quick-capture-create-center'),
                               items: availableCenters.map((center) => ArvinRollItem<String>(
                                 value: center.id, label: center.name,
                                 icon: Icons.business_outlined, color: ArvinColors.primary,
