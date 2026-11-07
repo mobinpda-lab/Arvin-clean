@@ -14,7 +14,7 @@ final DateTime _actionAt = DateTime.utc(2026, 8, 15, 10, 15, 42, 123);
 final DateTime _siblingActionAt = DateTime.utc(2026, 8, 10, 8, 30);
 final DateTime _taskDueAt = DateTime.utc(2026, 9, 2, 14, 45);
 final DateTime _firstTaskReminderAt = DateTime.utc(2026, 8, 17, 12, 5);
-final DateTime _secondTaskReminderAt = DateTime.utc(2026, 8, 19, 16, 40);
+final DateTime _secondTaskReminderAt = DateTime.utc(2026, 8, 19);
 
 void main() {
   test(
@@ -142,6 +142,12 @@ void main() {
           expect(secondReminder.date.toIso8601String(), _secondTaskReminderAt.toIso8601String());
           expect(secondReminder.sequence, 2);
           expect(task.nextReminderSequence, 3);
+          final storedAllDayReminder = await active.executor.runSelect(
+            'SELECT remind_at, is_all_day FROM task_reminders WHERE id = ?',
+            const <Object?>['task-reminder-2'],
+          );
+          expect(storedAllDayReminder.single['remind_at'], '2026-08-19');
+          expect(storedAllDayReminder.single['is_all_day'], 1);
 
           // Re-read the Follow-ups through the public Repository boundary.
           final followUps = await active.repository.loadForTask('task-persistence-1');
