@@ -108,6 +108,8 @@ void main() {
     final payload = <String, dynamic>{
       'id': 'canonical-task',
       'title': 'کار کانونی',
+      'dueDate': '2026-11-08T00:00:00.000',
+      'allDay': true,
       'taskReminders': <Map<String, dynamic>>[
         {
           'id': 'reminder-one',
@@ -128,9 +130,9 @@ void main() {
     };
     await database.runInsert(
       '''INSERT INTO tasks
-         (id, title, description, priority, archived, trashed,
+         (id, title, description, due_date, priority, archived, trashed,
           completed, legacy_payload_json)
-         VALUES (?, ?, '', 'none', 0, 0, 0, ?)''',
+         VALUES (?, ?, '', '2026-11-08T00:00:00.000', 'none', 0, 0, 0, ?)''',
       <Object?>['canonical-task', jsonEncode(payload)],
     );
     // Recreate the pre-v12 layout to exercise the real upgrade/cutover path.
@@ -192,6 +194,12 @@ void main() {
       'follow-up-reminder-canonical-task-legacy-follow-up',
     ]);
     expect(reminders.map((row) => row['is_all_day']), [0, 1, 0]);
+    expect(reminders[1]['remind_at'], '2026-11-09');
+    final migratedDueDate = await database.runSelect(
+      'SELECT due_date FROM tasks WHERE id = ?',
+      const <Object?>['canonical-task'],
+    );
+    expect(migratedDueDate.single['due_date'], '2026-11-08');
     final migratedFollowUpReminder = await database.runSelect(
       'SELECT remind_at FROM task_reminders WHERE id = ?',
       <Object?>['follow-up-reminder-canonical-task-legacy-follow-up'],
