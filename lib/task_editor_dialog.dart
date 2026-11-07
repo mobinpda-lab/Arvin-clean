@@ -1123,33 +1123,48 @@ Future<void> _pickDueDate() async {
               style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
             )
           else
-            Row(
-              children: [
-                Expanded(
-                  child: _dateRollBox(
-                    keyPrefix: '$keyPrefix-date',
-                    label: 'تاریخ',
-                    value: value,
-                    target: keyPrefix,
-                    onCustom: onPickDate,
-                    accent: accent,
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final scale = MediaQuery.textScalerOf(context).scale(1);
+                final stackControls = constraints.maxWidth < 300 ||
+                    (scale > 1.3 && constraints.maxWidth < 340);
+                final dateControl = _dateRollBox(
+                  keyPrefix: '$keyPrefix-date',
+                  label: 'تاریخ',
+                  value: value,
+                  target: keyPrefix,
+                  onCustom: onPickDate,
+                  accent: accent,
+                );
+                final timeControl = OutlinedButton.icon(
+                  key: ValueKey('$keyPrefix-time-button'),
+                  onPressed: onPickTime,
+                  icon: const Icon(Icons.schedule_outlined),
+                  label: Text(
+                    value == null || allDay ? 'انتخاب ساعت' : _timeText(value),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    key: ValueKey('$keyPrefix-time-button'),
-                    onPressed: onPickTime,
-                    icon: const Icon(Icons.schedule_outlined),
-                    label: Text(
-                      value == null || allDay ? 'انتخاب ساعت' : _timeText(value),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
-                  ),
-                ),
-              ],
+                  style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+                );
+                if (stackControls) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      dateControl,
+                      const SizedBox(height: 8),
+                      timeControl,
+                    ],
+                  );
+                }
+                return Row(
+                  children: [
+                    Expanded(child: dateControl),
+                    const SizedBox(width: 10),
+                    Expanded(child: timeControl),
+                  ],
+                );
+              },
             ),
           if (onToggleAllDay != null) ...[
             const SizedBox(height: 6),
