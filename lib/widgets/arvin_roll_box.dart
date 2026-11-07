@@ -35,7 +35,7 @@ class ArvinRollBox<T> extends StatelessWidget {
   Future<void> _openSelector(BuildContext context) async {
     Object? currentValue;
     if (emptyLabel != null && valueLabel == label) {
-      currentValue = null;
+      currentValue = _ArvinClearToken.instance;
     } else {
       for (final item in items) {
         if (item.label == valueLabel) {
@@ -45,18 +45,58 @@ class ArvinRollBox<T> extends StatelessWidget {
       }
     }
 
-    final create = onCreateWithName ??
-        (onCreate == null
-            ? null
-            : (String _) async {
-                final created = await onCreate!.call();
-                if (created == null) return null;
-                final existing = items.where((item) => item.value == created);
-                return ReusableFilterOption<T>(
-                  value: created,
-                  label: existing.isNotEmpty ? existing.first.label : created.toString(),
-                );
-              });
+    // Custom date/reminder/recurrence actions are not entity creation. Keep
+    // their dedicated action while all entity selectors use the shared inline
+    // create flow below.
+    if (onCreate != null && onCreateWithName == null) {
+      final colors = Theme.of(context).colorScheme;
+      final choice = await HomeFilterSheet.show<Object?>(
+        context,
+        title: 'انتخاب $label',
+        accent: colors.primary,
+        child: Builder(
+          builder: (sheetContext) => RadioGroup<Object?>(
+            groupValue: currentValue,
+            onChanged: (value) => Navigator.of(sheetContext).pop(value),
+            child: ListView(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              children: [
+                if (emptyLabel != null)
+                  RadioListTile<Object?>(
+                    value: _ArvinClearToken.instance,
+                    activeColor: colors.primary,
+                    title: Text(emptyLabel!),
+                  ),
+                for (final item in items)
+                  RadioListTile<Object?>(
+                    value: item.value,
+                    activeColor: colors.primary,
+                    title: Text(item.label),
+                    secondary: Icon(item.icon ?? icon, color: colors.primary, size: 20),
+                  ),
+                ListTile(
+                  key: createItemKey,
+                  leading: Icon(Icons.add_circle_outline_rounded, color: colors.primary),
+                  title: Text(createLabel),
+                  onTap: () => Navigator.of(sheetContext).pop(_ArvinCreateToken.instance),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      if (!context.mounted || choice == null) return;
+      if (choice is _ArvinClearToken) {
+        onSelected(null);
+      } else if (choice is _ArvinCreateToken) {
+        final created = await onCreate!.call();
+        if (context.mounted && created != null) onSelected(created);
+      } else {
+        onSelected(choice as T?);
+      }
+      return;
+    }
+
     final result = await ReusableMultiSelectFilterBottomSheet.showSingleSelect<T>(
       context,
       title: 'انتخاب $label',
@@ -68,11 +108,11 @@ class ArvinRollBox<T> extends StatelessWidget {
                 icon: item.icon ?? icon,
               ))
           .toList(growable: false),
-      selectedValue: currentValue as T?,
+      selectedValue: currentValue is T ? currentValue : null,
       emptyLabel: emptyLabel,
       createLabel: createLabel,
       createKey: createItemKey,
-      onCreate: create,
+      onCreate: onCreateWithName,
     );
 
     if (!context.mounted || result == null) return;
@@ -184,3 +224,12 @@ class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
   }
 }
 
+class _ArvinCreateToken {
+  const _ArvinCreateToken._();
+  static const instance = _ArvinCreateToken._();
+}
+
+class _ArvinClearToken {
+  const _ArvinClearToken._();
+  static const instance = _ArvinClearToken._();
+}
