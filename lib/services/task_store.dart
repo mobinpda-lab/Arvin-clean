@@ -976,6 +976,17 @@ class TaskStore {
     }
     for (var ordinal = 0; ordinal < task.people.length; ordinal++) {
       final person = task.people[ordinal];
+      final now = DateTime.now().toIso8601String();
+      await executor.runInsert(
+        '''INSERT INTO persons (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)
+           ON CONFLICT(id) DO UPDATE SET name = excluded.name, updated_at = excluded.updated_at''',
+        <Object?>[person.id, person.displayName, now, now],
+      );
+      await executor.runInsert(
+        '''INSERT INTO people (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)
+           ON CONFLICT(id) DO UPDATE SET name = excluded.name, updated_at = excluded.updated_at''',
+        <Object?>[person.id, person.displayName, now, now],
+      );
       await executor.runInsert(
         'INSERT INTO task_people (task_id, person_id, person_json, ordinal) VALUES (?, ?, ?, ?)',
         <Object?>[task.id, person.id, jsonEncode(person.toJson()), ordinal],
