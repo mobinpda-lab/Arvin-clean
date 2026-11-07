@@ -221,6 +221,41 @@ void main() {
     expect(result!.dueDate!.minute, 0);
   });
 
+
+  testWidgets('legacy Task reminder can be explicitly changed to All-Day', (tester) async {
+    Task? result;
+    final reminderDate = DateTime(2026, 10, 20);
+    final task = Task(
+      id: 'legacy-all-day-editor',
+      title: 'یادآور قدیمی',
+      reminderDate: DateTime(2026, 10, 19, 9, 30),
+    );
+    await openEditor(tester, task: task, onResult: (value) => result = value);
+
+    final reminderButton =
+        find.byKey(const ValueKey('task-editor-reminder-date-time'));
+    await tester.ensureVisible(reminderButton);
+    await tester.tap(reminderButton);
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
+    await tester.pumpAndSettle();
+    final noTime = find.byKey(const ValueKey('universal-time-no-time'));
+    expect(noTime, findsOneWidget);
+    await tester.tap(noTime);
+    await tester.pumpAndSettle();
+
+    final save = find.byKey(const ValueKey('task-editor-header-save'));
+    await tester.ensureVisible(save);
+    await tester.tap(save);
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.reminderDate, isNotNull);
+    expect(result!.reminderDate!.hour, 0);
+    expect(result!.reminderDate!.minute, 0);
+    expect(result!.reminderAllDay, isTrue);
+  });
+
   testWidgets('full Task editor adds independent numbered reminders without replacing legacy reminder', (tester) async {
     Task? result;
     final legacyDate = DateTime(2026, 10, 20, 9, 30);
