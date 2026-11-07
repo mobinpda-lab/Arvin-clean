@@ -423,6 +423,75 @@ void main() {
   });
 
 
+  test('TaskStore persists multiple reminders, Follow-up records and Persons in canonical tables', () async {
+    final database = NativeDatabase.memory();
+    try {
+      final store = TaskStore(executor: database);
+      const person = PersonReference(id: 'canonical-person', displayName: 'شخص کانونی');
+      await store.savePeopleDirectory(const <PersonReference>[person]);
+      final firstDate = DateTime(2026, 11, 8, 9);
+      final secondDate = DateTime(2026, 11, 9);
+      final followUpAt = DateTime(2026, 11, 7, 12);
+      await store.save(<Task>[
+        Task(
+          id: 'canonical-relations-task',
+          title: 'کار با روابط مستقل',
+          people: const <PersonReference>[person],
+          taskReminders: <TaskReminder>[
+            TaskReminder(
+              id: 'canonical-reminder-1',
+              title: 'یادآور اول',
+              date: firstDate,
+              sequence: 1,
+            ),
+            TaskReminder(
+              id: 'canonical-reminder-2',
+              title: 'یادآور دوم',
+              date: secondDate,
+              isAllDay: true,
+              sequence: 2,
+            ),
+          ],
+          followUps: <FollowUp>[
+            FollowUp(
+              id: 'canonical-follow-up',
+              dateTime: followUpAt,
+              note: 'سابقه مستقل',
+              personIds: const <String>['canonical-person'],
+            ),
+          ],
+        ),
+      ]);
+
+      final reminderRows = await database.runSelect(
+        'SELECT id, is_all_day FROM task_reminders WHERE task_id = ? ORDER BY sequence',
+        <Object?>['canonical-relations-task'],
+      );
+      expect(reminderRows.map((row) => row['id']),
+          ['canonical-reminder-1', 'canonical-reminder-2']);
+      expect(reminderRows.map((row) => row['is_all_day']), [0, 1]);
+
+      final followUpRows = await database.runSelect(
+        'SELECT id, completed_at FROM follow_up_records WHERE task_id = ?',
+        <Object?>['canonical-relations-task'],
+      );
+      expect(followUpRows.single['id'], 'canonical-follow-up');
+      expect(followUpRows.single['completed_at'], followUpAt.toIso8601String());
+
+      final personRows = await database.runSelect(
+        'SELECT name FROM persons WHERE id = ?',
+        <Object?>['canonical-person'],
+      );
+      expect(personRows.single['name'], 'شخص کانونی');
+
+      final loaded = (await store.load()).single;
+      expect(loaded.taskReminders, hasLength(2));
+      expect(loaded.followUps.single.personIds, ['canonical-person']);
+    } finally {
+      await database.close();
+    }
+  });
+
   test('does not resurrect the last deleted Task Reminder after SQLite reopen', () async {
     final directory =
         await Directory.systemTemp.createTemp('arvin-task-reminder-delete-');
