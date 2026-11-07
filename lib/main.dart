@@ -12,6 +12,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import 'arvin_colors.dart';
 import 'core/theme/arvin_theme.dart';
+import 'core/theme/app_theme_manager.dart';
 import 'theme/app_fonts.dart';
 import 'alarm_overlay_page.dart';
 import 'follow_up_reminder_notification_service.dart';
@@ -194,6 +195,7 @@ class ArvinApp extends StatefulWidget {
 
 class _ArvinAppState extends State<ArvinApp> {
   final AppSettingsService settingsService = AppSettingsService();
+  final AppThemeManager themeManager = AppThemeManager.instance;
   AppSettings settings = const AppSettings(
     themeMode: ThemeMode.system,
     usePersianDate: true,
@@ -204,6 +206,8 @@ class _ArvinAppState extends State<ArvinApp> {
   void initState() {
     super.initState();
     _loadSettings();
+    themeManager.addListener(_handleThemeChanged);
+    themeManager.load();
     _initializeReminderNotificationTapHandler();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       StartupPermissionService().requestOnStartup().catchError((Object error) {
@@ -213,6 +217,16 @@ class _ArvinAppState extends State<ArvinApp> {
     });
   }
 
+
+  void _handleThemeChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    themeManager.removeListener(_handleThemeChanged);
+    super.dispose();
+  }
 
   Future<void> _initializeReminderNotificationTapHandler() async {
     try {
@@ -272,6 +286,8 @@ class _ArvinAppState extends State<ArvinApp> {
 
   @override
   Widget build(BuildContext context) {
+    final accentColor = themeManager.selectedColor;
+    final accentSoft = Color.lerp(Colors.white, accentColor, 0.14)!;
     final lightBaseTextTheme = ThemeData.light().textTheme.apply(
       fontFamily: ArvinTheme.fontFamily,
       bodyColor: ArvinColors.textPrimary,
@@ -318,14 +334,14 @@ class _ArvinAppState extends State<ArvinApp> {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: ArvinColors.primary,
+          seedColor: accentColor,
           brightness: Brightness.light,
         ).copyWith(
-          primary: ArvinColors.primary,
+          primary: accentColor,
           onPrimary: ArvinColors.surface,
-          secondary: ArvinColors.primary,
+          secondary: accentColor,
           onSecondary: ArvinColors.surface,
-          secondaryContainer: ArvinColors.primarySoft,
+          secondaryContainer: accentSoft,
           onSecondaryContainer: ArvinColors.textPrimary,
           error: ArvinColors.error,
           onError: ArvinColors.surface,
@@ -346,29 +362,29 @@ class _ArvinAppState extends State<ArvinApp> {
         ),
         fontFamily: AppFonts.vazirmatnFamily,
         textTheme: readableLightTextTheme,
-        chipTheme: const ChipThemeData(
-          selectedColor: ArvinColors.primarySoft,
-          secondarySelectedColor: ArvinColors.primarySoft,
-          checkmarkColor: ArvinColors.primary,
+        chipTheme: ChipThemeData(
+          selectedColor: accentSoft,
+          secondarySelectedColor: accentSoft,
+          checkmarkColor: accentColor,
         ),
-        floatingActionButtonTheme: const FloatingActionButtonThemeData(
-          backgroundColor: ArvinColors.primary,
+        floatingActionButtonTheme: FloatingActionButtonThemeData(
+          backgroundColor: accentColor,
           foregroundColor: ArvinColors.surface,
         ),
         navigationBarTheme: NavigationBarThemeData(
           backgroundColor: ArvinColors.surface,
-          indicatorColor: ArvinColors.primarySoft,
+          indicatorColor: accentSoft,
           iconTheme: WidgetStateProperty.resolveWith(
             (states) => IconThemeData(
               color: states.contains(WidgetState.selected)
-                  ? ArvinColors.primary
+                  ? accentColor
                   : ArvinColors.textSecondary,
             ),
           ),
           labelTextStyle: WidgetStateProperty.resolveWith(
             (states) => TextStyle(
               color: states.contains(WidgetState.selected)
-                  ? ArvinColors.primary
+                  ? accentColor
                   : ArvinColors.textSecondary,
               fontWeight: states.contains(WidgetState.selected)
                   ? FontWeight.w700
@@ -376,15 +392,15 @@ class _ArvinAppState extends State<ArvinApp> {
             ),
           ),
         ),
-        progressIndicatorTheme: const ProgressIndicatorThemeData(
-          color: ArvinColors.primary,
-          linearTrackColor: ArvinColors.primarySoft,
-          circularTrackColor: ArvinColors.primarySoft,
+        progressIndicatorTheme: ProgressIndicatorThemeData(
+          color: accentColor,
+          linearTrackColor: accentSoft,
+          circularTrackColor: accentSoft,
         ),
         iconTheme: const IconThemeData(color: ArvinColors.neutral, size: 24),
         dividerTheme: const DividerThemeData(color: ArvinColors.border, thickness: 1),
         appBarTheme: AppBarTheme(
-          backgroundColor: ArvinTheme.headerPurple,
+          backgroundColor: accentColor,
           foregroundColor: Colors.white,
           iconTheme: const IconThemeData(color: Colors.white),
           titleTextStyle: TextStyle(
@@ -394,7 +410,7 @@ class _ArvinAppState extends State<ArvinApp> {
             fontWeight: FontWeight.w700,
           ),
         ),
-        inputDecorationTheme: const InputDecorationTheme(
+        inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: ArvinColors.surface,
           labelStyle: TextStyle(color: ArvinColors.textSecondary, fontWeight: FontWeight.w600),
@@ -409,19 +425,19 @@ class _ArvinAppState extends State<ArvinApp> {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(14)),
-            borderSide: BorderSide(color: ArvinColors.primary, width: 1.8),
+            borderSide: BorderSide(color: accentColor, width: 1.8),
           ),
         ),
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: ArvinColors.primary,
+          seedColor: accentColor,
           brightness: Brightness.dark,
         ).copyWith(
-          primary: ArvinColors.darkPrimary,
-          onPrimary: ArvinColors.darkOnPrimary,
-          secondary: ArvinColors.darkSecondary,
+          primary: accentColor,
+          onPrimary: Colors.white,
+          secondary: accentColor,
           error: ArvinColors.darkError,
         ),
         cardTheme: const CardThemeData(
