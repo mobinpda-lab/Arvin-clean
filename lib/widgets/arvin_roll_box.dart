@@ -49,44 +49,42 @@ class ArvinRollBox<T> extends StatelessWidget {
       title: 'انتخاب $label',
       accent: ArvinColors.primary,
       child: Builder(
-        builder: (sheetContext) => ListView(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          children: [
-            if (emptyLabel != null)
-              RadioListTile<Object?>(
-                value: _ArvinClearToken.instance,
-                groupValue: currentValue,
-                activeColor: ArvinColors.primary,
-                title: Text(emptyLabel!),
-                onChanged: (value) =>
-                    Navigator.of(sheetContext).pop(_ArvinClearToken.instance),
-              ),
-            for (final item in items)
-              RadioListTile<Object?>(
-                value: item.value,
-                groupValue: currentValue,
-                activeColor: ArvinColors.primary,
-                title: Text(item.label),
-                secondary: Icon(
-                  item.icon ?? icon,
-                  color: ArvinColors.primary,
-                  size: 20,
+        builder: (sheetContext) => RadioGroup<Object?>(
+          groupValue: currentValue,
+          onChanged: (value) => Navigator.of(sheetContext).pop(value),
+          child: ListView(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            children: [
+              if (emptyLabel != null)
+                RadioListTile<Object?>(
+                  value: _ArvinClearToken.instance,
+                  activeColor: ArvinColors.primary,
+                  title: Text(emptyLabel!),
                 ),
-                onChanged: (value) =>
-                    Navigator.of(sheetContext).pop(item.value),
-              ),
-            if (onCreate != null)
-              ListTile(
-                key: createItemKey,
-                leading: const Icon(
-                  Icons.add_circle_outline_rounded,
-                  color: ArvinColors.primary,
+              for (final item in items)
+                RadioListTile<Object?>(
+                  value: item.value,
+                  activeColor: ArvinColors.primary,
+                  title: Text(item.label),
+                  secondary: Icon(
+                    item.icon ?? icon,
+                    color: ArvinColors.primary,
+                    size: 20,
+                  ),
                 ),
-                title: Text(createLabel),
-                onTap: () =>
-                    Navigator.of(sheetContext).pop(_ArvinCreateToken.instance),
-              ),
-          ],
+              if (onCreate != null)
+                ListTile(
+                  key: createItemKey,
+                  leading: const Icon(
+                    Icons.add_circle_outline_rounded,
+                    color: ArvinColors.primary,
+                  ),
+                  title: Text(createLabel),
+                  onTap: () => Navigator.of(sheetContext)
+                      .pop(_ArvinCreateToken.instance),
+                ),
+            ],
+          ),
         ),
       ),
     );
