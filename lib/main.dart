@@ -1804,7 +1804,7 @@ class _HomePageState extends State<HomePage> {
         task: old,
         projects: editorContext.projects,
         centers: centers,
-        selectedCenterId: old.centerId,
+        selectedCenterId: old.centerId ?? _projectForTask(old)?.centerId,
         onCreateCenter: _createCenter,
         selectedProjectId: editorContext.selectedProjectId,
         onProjectChanged: (value) => selectedProjectId = value,
