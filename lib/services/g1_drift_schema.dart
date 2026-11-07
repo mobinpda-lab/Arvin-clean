@@ -338,7 +338,7 @@ class G1DriftSchema implements QueryExecutorUser {
              (id, task_id, title, remind_at, is_all_day, sequence, is_enabled, is_legacy_task_reminder)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
           <Object?>[
-            reminder.id, task.id, reminder.title, reminder.date.toIso8601String(),
+            reminder.id, task.id, reminder.title, reminder.storageDateValue,
             reminder.isAllDay ? 1 : 0, reminder.sequence, reminder.isEnabled ? 1 : 0,
             reminder.isLegacyTaskReminder ? 1 : 0,
           ],
