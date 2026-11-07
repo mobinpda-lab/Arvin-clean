@@ -1988,6 +1988,10 @@ class _HomePageState extends State<HomePage> {
           onRegisterTaskToDeviceCalendar: _registerTaskFromDetails,
           people: people,
           onCreatePerson: (person) => taskStore.mergePeopleDirectory([person]),
+          categoryOptions: _homeCategories,
+          tagOptions: _homeTags,
+          onCreateCategory: _createCategory,
+          onCreateTag: _createTag,
         ),
       ),
     );
