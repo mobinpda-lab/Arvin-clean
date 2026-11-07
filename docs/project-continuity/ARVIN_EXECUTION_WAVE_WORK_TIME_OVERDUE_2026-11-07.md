@@ -73,3 +73,19 @@ No tests were deleted or weakened. `main` was not modified. No merge, publicatio
 - Compatibility constructor arguments/getters remain temporarily in the Dart model to keep old call sites source-compatible; they no longer represent persisted Task/Follow-up state. Remove those shims after the remaining test fixtures and consumers are fully migrated.
 - The reusable five-way multi-select filter component and complete reuse across Home, Quick Add, Task Details and Reports are still pending.
 - Physical Samsung SM-A528B/DS seven-path verification remains pending and is a hard release gate.
+
+
+## Shared five-way filter interaction wave
+
+- Added `ReusableMultiSelectFilterBottomSheet` with multi-select checkboxes, search, a clear-all option inside the sheet, inline creation, and automatic selection of newly created items. Single-select mode reuses the same bottom-sheet design for Task metadata selectors.
+- Home now opens the shared component for Center, Project, Category and Tag filters; the Time filter uses the shared sheet shell for its date/time controls. The Home row remains one RTL row of five controls (Time, Center, Project, Category, Tag), with no All chip and no horizontal scroll.
+- Quick Add and the full Task editor now use the shared selector for Center, Project, Category and Tag; tag selection remains multi-select. Inline creation receives the typed name, persists through the existing entity callback, and returns the created item selected.
+- Task Details inline editing now uses the same component for Category and Tags; the full editor opened from Task Details provides Center and Project selection through the same shared component. Center is still inherited through Project context rather than a separate Task field.
+- Reports now has a compact five-way RTL filter row. Center, Project, Category, Tag and Person selections open the shared checkbox sheet; new values are saved through the canonical entity callbacks and selected immediately. Report Person matching continues to include linked Tasks and historical Follow-up records.
+- Added a dedicated widget test for multi-select, inline creation/auto-selection and single-select clearing, plus a Task Details metadata selector test and updated Report filter interaction tests.
+- Exact-head CI remains the acceptance gate; this wave is not marked PASS until the new workflows complete.
+
+## Remaining UI/data caveats
+- Task Details Center is derived from the selected Project; there is no separate Task-level center field. Center/Project selection is available in the full editor, while inline Task Details edits Category and Tags.
+- Quick Add/Task editor persist center context through Project membership; a standalone Center selection without a Project is not a separate Task relation.
+- The shared filter component and the latest schema cutover still require exact-HEAD CI and physical-device validation.
