@@ -98,3 +98,15 @@ No tests were deleted or weakened. `main` was not modified. No merge, publicatio
 - Inline-created Projects are persisted with the selected `centerId`; the full Task editor and Quick Add use the same selected-Center context.
 - Report and Home center filters already prioritize `Task.centerId`, then use the existing Project center relation as a fallback for older tasks.
 - Added a widget regression test for selecting Center then Project and verifying both persisted values. Exact-HEAD CI remains required.
+
+
+## Canonical storage and consumer-alignment pass — 2026-11-07
+
+- Source audit confirms Drift schema version **14** declares canonical `tasks`, `task_reminders`, `follow_up_records`, and `persons` tables. The schema installer migrates legacy Follow-up/person/reminder rows and rebuilds `tasks` without `follow_up_enabled`, `follow_up_date`, or `reminder_date`; old `follow_ups` and `people` tables are retired after transfer.
+- TaskStore reads/writes independent reminder and Follow-up relation rows. The model retains a deprecated compatibility boundary only while remaining source consumers/tests are migrated; the compatibility reminder projection now resolves the primary independent reminder rather than only legacy-marked rows.
+- Alarm planning no longer schedules the same primary reminder twice through both the singular compatibility view and the independent reminder collection. Delivery-state reconciliation now derives live reminder keys from independent reminder IDs.
+- Work Agenda now projects every enabled independent Task reminder instead of one singular reminder.
+- Compile fixes: imported the shared filter component and Center model where newly shared selectors are consumed; corrected generic result construction and tag-create callback adaptation; added reminder identity support to TaskReminder.copyWith.
+- No tests were deleted, skipped, or weakened. The previous exact-HEAD CI on `0c89f9f3643d82302d686721558ca9445a03423a` failed because the model cutover removed compatibility members before all consumers/tests were moved. A staged compatibility boundary has been restored; the follow-up exact-HEAD CI is running on `381ff68207a201ed722ae428ec8ffc48418b458b`.
+- Remaining schema/entity work: replace JSON-backed `task_people` with an FK-backed relation to `persons`, verify person assignment/report filtering end-to-end, and finish migration of all remaining compatibility call sites before removing deprecated model projections.
+- Current exact-HEAD Build, Review APK, Calendar Provider, Follow-up Persistence and Device Smoke results must be read from their run IDs for this SHA; none of the earlier SHA results may be carried forward.
