@@ -587,3 +587,12 @@ This is an implementation record following the earlier Wave 7.299 ownership audi
 - Reports now exposes a five-way RTL row (Time, Center, Project, Category, Tag), with Person as an additional report dimension. All dimensions use the shared component and inline creation where supported.
 - Added widget tests for shared filter creation and Task Details selectors; updated Report filter tests for the nested shared sheet.
 - Exact-head CI and Samsung SM-A528B/DS physical tests remain required. **BLOCKED — RELEASE: NO-GO**.
+
+
+## 2026-11-07 — Task Details Center / Project selectors
+
+- Task Details inline edit now uses the shared selector for Center, Project, Category and Tags.
+- Center changes persist through `Task.centerId`; Project membership remains a separate canonical relation. Project choices are scoped to the selected Center; clearing Center clears an incompatible Project.
+- Inline Project creation now receives the selected Center ID across Task Details, the full Task editor and Quick Add.
+- Added regression coverage for Task Details Center/Project selection and persistence.
+- Exact-HEAD CI and physical Samsung SM-A528B/DS smoke remain required; **BLOCKED — RELEASE: NO-GO**.
