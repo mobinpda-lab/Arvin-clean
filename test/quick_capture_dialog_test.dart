@@ -6,6 +6,20 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/quick_capture_dialog.dart';
 
+Future<void> _openQuickCaptureDueTimePicker(WidgetTester tester) async {
+  final dueControl = find.byKey(const ValueKey('quick-capture-due-rollbox'));
+  await tester.ensureVisible(dueControl);
+  await tester.tap(dueControl);
+  await tester.pumpAndSettle();
+  expect(find.byKey(const ValueKey('persian-date-picker')), findsOneWidget);
+  final confirmDate = find.widgetWithText(FilledButton, 'انتخاب تاریخ');
+  expect(confirmDate, findsOneWidget);
+  await tester.tap(confirmDate);
+  await tester.pumpAndSettle();
+  expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
+  expect(find.byKey(const ValueKey('universal-time-no-time')), findsOneWidget);
+}
+
 void main() {
 
   testWidgets('Quick Capture can create a center inline and immediately select it', (tester) async {
@@ -222,7 +236,7 @@ void main() {
       expect(find.byKey(const ValueKey('quick-capture-checklist-enabled')), findsNothing);
       expect(find.byKey(const ValueKey('quick-capture-checklist-rollbox')), findsNothing);
       expect(find.text('عنوان'), findsNothing);
-      expect(find.text('زمان'), findsOneWidget);
+      expect(find.text('زمان کار / موعد'), findsOneWidget);
       expect(find.byKey(const ValueKey('quick-capture-no-time')), findsNothing);
       expect(find.byKey(const ValueKey('quick-capture-full-form')), findsOneWidget);
 
@@ -512,20 +526,17 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('زمان'), findsOneWidget);
+    expect(find.byKey(const ValueKey('quick-capture-due-rollbox')), findsOneWidget);
     expect(find.text('تکرار'), findsOneWidget);
     expect(find.text('یادآور'), findsOneWidget);
 
-    await tester.tap(find.text('زمان'));
+    final dueControl = find.byKey(const ValueKey('quick-capture-due-rollbox'));
+    await tester.ensureVisible(dueControl);
+    await tester.tap(dueControl);
     await tester.pumpAndSettle();
-    expect(find.text('امروز'), findsOneWidget);
-    expect(find.text('تاریخ و ساعت سفارشی'), findsOneWidget);
-    await tester.tap(find.text('تاریخ و ساعت سفارشی'));
-    await tester.pumpAndSettle();
-    expect(find.text('انتخاب تاریخ'), findsWidgets);
+    expect(find.byKey(const ValueKey('persian-date-picker')), findsOneWidget);
     expect(find.text('فروردین'), findsNothing);
-    final dateConfirm = find.widgetWithText(FilledButton, 'انتخاب تاریخ');
-    await tester.tap(dateConfirm);
+    await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('universal-time-cancel')));
@@ -586,16 +597,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('زمان'), findsOneWidget);
-    await tester.tap(find.text('زمان'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('تاریخ و ساعت سفارشی'));
-    await tester.pumpAndSettle();
-    expect(find.text('انتخاب تاریخ'), findsWidgets);
-    final dateConfirm = find.widgetWithText(FilledButton, 'انتخاب تاریخ');
-    expect(dateConfirm, findsOneWidget);
-    await tester.tap(dateConfirm);
-    await tester.pumpAndSettle();
+    await _openQuickCaptureDueTimePicker(tester);
     expect(find.text('زمان انجام کار'), findsWidgets);
     expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
   });
@@ -623,12 +625,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('زمان'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('تاریخ و ساعت سفارشی'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
-    await tester.pumpAndSettle();
+    await _openQuickCaptureDueTimePicker(tester);
 
     expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('universal-time-save')));
@@ -689,12 +686,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('زمان'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('تاریخ و ساعت سفارشی'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
-    await tester.pumpAndSettle();
+    await _openQuickCaptureDueTimePicker(tester);
     expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('universal-time-save')));
     await tester.pumpAndSettle();
@@ -717,9 +709,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('زمان'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('امروز'));
+    await _openQuickCaptureDueTimePicker(tester);
+    await tester.tap(find.byKey(const ValueKey('universal-time-save')));
     await tester.pumpAndSettle();
     expect(find.textContaining('۱۴:۳۵'), findsNWidgets(2));
 
@@ -838,9 +829,8 @@ void main() {
       find.byKey(const ValueKey('quick-capture-input')),
       'کار زمان‌دار',
     );
-    await tester.tap(find.byKey(const ValueKey('quick-capture-due-rollbox')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('امروز'));
+    await _openQuickCaptureDueTimePicker(tester);
+    await tester.tap(find.byKey(const ValueKey('universal-time-save')));
     await tester.pumpAndSettle();
 
     await tester.ensureVisible(find.byKey(const ValueKey('quick-capture-submit')));
@@ -888,9 +878,8 @@ void main() {
       find.byKey(const ValueKey('quick-capture-input')),
       'کار با یادآوری دستی',
     );
-    await tester.tap(find.byKey(const ValueKey('quick-capture-due-rollbox')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('امروز'));
+    await _openQuickCaptureDueTimePicker(tester);
+    await tester.tap(find.byKey(const ValueKey('universal-time-save')));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('quick-capture-reminder-rollbox')));
@@ -1001,12 +990,7 @@ void main() {
       find.byKey(const ValueKey('quick-capture-input')),
       'کار با موعد سفارشی',
     );
-    await tester.tap(find.byKey(const ValueKey('quick-capture-due-rollbox')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('تاریخ و ساعت سفارشی'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
-    await tester.pumpAndSettle();
+    await _openQuickCaptureDueTimePicker(tester);
 
     expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
     expect(find.byKey(const ValueKey('universal-time-hour-outer-10')), findsOneWidget);
@@ -1049,12 +1033,7 @@ void main() {
       find.byKey(const ValueKey('quick-capture-input')),
       'کار تمام‌روز',
     );
-    await tester.tap(find.byKey(const ValueKey('quick-capture-due-rollbox')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('تاریخ و ساعت سفارشی'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
-    await tester.pumpAndSettle();
+    await _openQuickCaptureDueTimePicker(tester);
     await tester.tap(find.byKey(const ValueKey('universal-time-no-time')));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.byKey(const ValueKey('quick-capture-submit')));
@@ -1121,12 +1100,7 @@ void main() {
       find.byKey(const ValueKey('quick-capture-input')),
       'کار با موعد لغوشده',
     );
-    await tester.tap(find.byKey(const ValueKey('quick-capture-due-rollbox')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('تاریخ و ساعت سفارشی'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
-    await tester.pumpAndSettle();
+    await _openQuickCaptureDueTimePicker(tester);
     expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('universal-time-cancel')));
     await tester.pumpAndSettle();

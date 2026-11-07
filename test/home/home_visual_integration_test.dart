@@ -5,21 +5,29 @@ import 'package:arvin/home/home_visual_integration.dart';
 import 'package:arvin/theme/app_fonts.dart';
 
 void main() {
-  testWidgets('Home sacred SVG and capsule use brand colors in light theme', (tester) async {
+  testWidgets('Home sacred SVG and capsule use Option #8 theme colors in light theme', (tester) async {
+    final lightTheme = ThemeData.light().copyWith(
+      colorScheme: ThemeData.light().colorScheme.copyWith(
+        primary: const Color(0xFF3A86EF),
+      ),
+    );
     await tester.pumpWidget(
       MaterialApp(
-        theme: ThemeData.light(),
+        theme: lightTheme,
         home: const HomeVisualIntegration(body: SizedBox.shrink()),
       ),
     );
     final svg = tester.widget<SvgPicture>(
       find.byKey(const ValueKey('home-bismillah-svg')),
     );
-    expect(svg.colorFilter, const ColorFilter.mode(Color(0xFF1A2B4C), BlendMode.srcIn));
+    expect(svg.colorFilter, ColorFilter.mode(lightTheme.colorScheme.onSurface, BlendMode.srcIn));
     final capsule = tester.widget<DecoratedBox>(
       find.byKey(const ValueKey('home-bismillah-capsule-surface')),
     );
-    expect((capsule.decoration as BoxDecoration).color, const Color(0xFFF0F0F6));
+    expect(
+      (capsule.decoration as BoxDecoration).color,
+      Color.alphaBlend(lightTheme.colorScheme.primary.withAlpha(10), lightTheme.colorScheme.surface),
+    );
   });
 
   testWidgets('Home sacred SVG and capsule adapt to dark theme contrast', (tester) async {

@@ -717,7 +717,7 @@ void main() {
     );
     final statusIcon = statusButton.icon as Icon;
     expect(statusIcon.icon, Icons.radio_button_unchecked_rounded);
-    expect(statusIcon.color, ArvinColors.primary);
+    expect(statusIcon.color, const Color(0xFF3A86EF));
     expect(tester.takeException(), isNull);
   });
 

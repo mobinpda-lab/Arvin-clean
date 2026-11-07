@@ -22,6 +22,12 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        theme: ThemeData(
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFF3A86EF),
+          ).copyWith(primary: const Color(0xFF3A86EF)),
+        ),
         home: Directionality(
           textDirection: TextDirection.rtl,
           child: Scaffold(
@@ -162,7 +168,7 @@ void main() {
       find.byKey(const ValueKey('task-editor-header-save')),
     );
     expect(save.onPressed, isNotNull);
-    expect(save.color, ArvinColors.primary);
+    expect(save.color, const Color(0xFF3A86EF));
     expect(tester.widget<Icon>(find.descendant(
       of: find.byKey(const ValueKey('task-editor-header-save')),
       matching: find.byIcon(Icons.check_rounded),

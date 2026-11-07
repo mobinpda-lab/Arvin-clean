@@ -1,4 +1,3 @@
-import 'package:arvin/arvin_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -1005,6 +1004,12 @@ void main() {
       checklist: const ['[ ] مورد پایانی'],
     );
     await tester.pumpWidget(MaterialApp(
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF3A86EF),
+        ).copyWith(primary: const Color(0xFF3A86EF)),
+      ),
       home: TaskDetailPage(
         task: task,
         onChecklistChanged: (value, items) async => value,
@@ -1027,7 +1032,7 @@ void main() {
     final completeButton = tester.widget<FilledButton>(
       find.byKey(const ValueKey('task-detail-complete')),
     );
-    expect(completeButton.style!.backgroundColor!.resolve({}), ArvinColors.primary);
+    expect(completeButton.style!.backgroundColor!.resolve({}), const Color(0xFF3A86EF));
     final list = tester.widget<ListView>(find.byKey(const ValueKey('task-detail-content-list')));
     expect(list.padding, const EdgeInsets.fromLTRB(16, 14, 16, 120));
     await tester.tap(find.byKey(const ValueKey('task-detail-more')));

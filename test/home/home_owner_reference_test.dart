@@ -61,8 +61,10 @@ void main() {
     expect(find.text('پیگیری طراحی رابط کاربری'), findsNothing);
     expect(find.text('مراجعه به دکتر'), findsNothing);
 
-    expect(find.byKey(const ValueKey('home-filter-card-project')), findsOneWidget);
-    expect(find.byType(ActionChip), findsNWidgets(5));
+    for (final id in ['time', 'center', 'project', 'category', 'tags']) {
+      expect(find.byKey(ValueKey('home-filter-card-$id')), findsOneWidget);
+    }
+    expect(find.byKey(const ValueKey('home-compact-filter-row')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-compact-filter-wrap')), findsOneWidget);
 
     final add = find.byKey(const ValueKey('home-canonical-add'));

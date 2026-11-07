@@ -225,7 +225,14 @@ void main() {
       ),
       findsOneWidget,
     );
-    expect(find.byKey(const ValueKey('home-group-future')), findsOneWidget);
+    final futureGroup = find.byKey(const ValueKey('home-group-future'));
+    await tester.scrollUntilVisible(
+      futureGroup,
+      240,
+      scrollable: _homeVerticalScrollable(),
+    );
+    await tester.pumpAndSettle();
+    expect(futureGroup, findsOneWidget);
     final noDateGroup = find.byKey(const ValueKey('home-group-no_date'));
     await tester.scrollUntilVisible(noDateGroup, 240, scrollable: _homeVerticalScrollable());
     await tester.pumpAndSettle();
@@ -279,20 +286,27 @@ void main() {
   testWidgets('Home filter cards reduce vertical density on compact screens', (tester) async {
     Widget buildFilter(Size size) => MediaQuery(
       data: MediaQueryData(size: size),
-      child: Directionality(
-        textDirection: TextDirection.rtl,
-        child: Row(
-          children: [
-            HomeFilterCard(
-              dimension: HomeFilterDimension.time,
-              title: 'زمان',
-              value: 'امروز',
-              accent: const Color(0xFF4A4CAB),
-              soft: const Color(0xFFE9EAFF),
+      child: Theme(
+        data: ThemeData.light().copyWith(
+          colorScheme: ThemeData.light().colorScheme.copyWith(
+            primary: const Color(0xFF3A86EF),
+          ),
+        ),
+        child: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Row(
+            children: [
+              HomeFilterCard(
+                dimension: HomeFilterDimension.time,
+                title: 'زمان',
+                value: 'امروز',
+                accent: const Color(0xFF3A86EF),
+                soft: const Color(0xFFEAF2FE),
               icon: Icons.schedule_rounded,
               onTap: () {},
             ),
-          ],
+            ],
+          ),
         ),
       ),
     );

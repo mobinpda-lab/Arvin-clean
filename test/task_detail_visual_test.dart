@@ -49,10 +49,10 @@ void main() {
           theme: ThemeData(
             useMaterial3: true,
             colorScheme: ColorScheme.fromSeed(
-              seedColor: const Color(0xFF4A4CAB),
+              seedColor: const Color(0xFF3A86EF),
               brightness: Brightness.light,
             ).copyWith(
-              primary: const Color(0xFF4A4CAB),
+              primary: const Color(0xFF3A86EF),
               onPrimary: Colors.white,
             ),
             scaffoldBackgroundColor: const Color(0xFFF5F6FA),
