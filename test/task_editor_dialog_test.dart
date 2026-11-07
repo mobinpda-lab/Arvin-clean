@@ -107,6 +107,9 @@ void main() {
       final row = find.byKey(const ValueKey('task-editor-five-filter-row'));
       expect(row, findsOneWidget);
       final rowRect = tester.getRect(row);
+      expect(find.descendant(of: row, matching: find.byType(Scrollable)), findsNothing);
+      expect(find.byKey(const ValueKey('task-editor-due-no-time')), findsNothing);
+      expect(find.text('بدون ساعت'), findsNothing);
       final keys = [
         'task-editor-due-date-time',
         'task-editor-center-rollbox',
