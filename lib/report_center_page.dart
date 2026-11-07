@@ -690,6 +690,11 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
   Set<String> _categories = <String>{};
   Set<String> _tags = <String>{};
   Set<String> _personIds = <String>{};
+  final Map<String, String> _createdCenters = <String, String>{};
+  final Map<String, String> _createdProjects = <String, String>{};
+  final Map<String, String> _createdCategories = <String, String>{};
+  final Map<String, String> _createdTags = <String, String>{};
+  final Map<String, PersonReference> _createdPeople = <String, PersonReference>{};
   Set<ReportStatusFilter> _statuses = <ReportStatusFilter>{};
   Set<RecurrenceTrackingLevel> _trackingLevels = <RecurrenceTrackingLevel>{};
   Set<NotebookItemKind> _noteKinds = <NotebookItemKind>{};
@@ -860,6 +865,22 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
         .where((value) => value.isNotEmpty)
         .toSet()
         .toList()..sort();
+    categories.addAll(_createdCategories.keys);
+    categories.sort();
+    tags.addAll(_createdTags.keys);
+    tags.sort();
+    final centerOptions = <MapEntry<String, String>>[
+      ...widget.centers.map((center) => MapEntry(center.id, center.name)),
+      ..._createdCenters.entries,
+    ];
+    final projectOptions = <MapEntry<String, String>>[
+      ...widget.projects.map((project) => MapEntry(project.id, project.title)),
+      ..._createdProjects.entries,
+    ];
+    final personOptions = <MapEntry<String, String>>[
+      ...widget.people.map((person) => MapEntry(person.id, person.displayName)),
+      ..._createdPeople.values.map((person) => MapEntry(person.id, person.displayName)),
+    ];
     return SafeArea(
       child: Container(
         constraints: BoxConstraints(
@@ -1099,7 +1120,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                 _MultiSelectChips(
                 allLabel: 'همه مراکز',
                 accentColor: Theme.of(context).colorScheme.primary,
-                options: widget.centers.map((center) => MapEntry(center.id, center.name)).toList(growable: false),
+                options: centerOptions,
                 selected: _centerIds,
                 onChanged: (value) => setState(() => _centerIds = value),
                 keyPrefix: 'report-filter-center',
@@ -1107,7 +1128,9 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                     ? null
                     : (name) async {
                         final id = await widget.onCreateCenter!(name);
-                        return id == null ? null : MapEntry(id, name);
+                        if (id == null) return null;
+                        if (mounted) setState(() => _createdCenters[id] = name);
+                        return MapEntry(id, name);
                       },
                 ),
                 if (_centerIds.isNotEmpty)
@@ -1129,9 +1152,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               child: _MultiSelectChips(
                 allLabel: 'همه پروژه‌ها',
                 accentColor: ArvinColors.project,
-                options: widget.projects
-                    .map((project) => MapEntry(project.id, project.title))
-                    .toList(growable: false),
+                options: projectOptions,
                 selected: _projectIds,
                 onChanged: (value) => setState(() => _projectIds = value),
                 keyPrefix: 'report-filter-project',
@@ -1139,7 +1160,9 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                     ? null
                     : (title) async {
                         final id = await widget.onCreateProject!(title);
-                        return id == null ? null : MapEntry(id, title);
+                        if (id == null) return null;
+                        if (mounted) setState(() => _createdProjects[id] = title);
+                        return MapEntry(id, title);
                       },
               ),
             ),
@@ -1160,7 +1183,9 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                     ? null
                     : (name) async {
                         final value = await widget.onCreateCategory!(name);
-                        return value == null ? null : MapEntry(value, value);
+                        if (value == null) return null;
+                        if (mounted) setState(() => _createdCategories[value] = value);
+                        return MapEntry(value, value);
                       },
               ),
             ),
@@ -1181,7 +1206,9 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                     ? null
                     : (name) async {
                         final value = await widget.onCreateTag!(name);
-                        return value == null ? null : MapEntry(value, value);
+                        if (value == null) return null;
+                        if (mounted) setState(() => _createdTags[value] = value);
+                        return MapEntry(value, value);
                       },
               ),
             ),
@@ -1292,9 +1319,9 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                     ? null
                     : (name) async {
                         final person = await widget.onCreatePerson!(name);
-                        return person == null
-                            ? null
-                            : MapEntry(person.id, person.displayName);
+                        if (person == null) return null;
+                        if (mounted) setState(() => _createdPeople[person.id] = person);
+                        return MapEntry(person.id, person.displayName);
                       },
               ),
             ),
