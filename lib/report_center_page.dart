@@ -15,6 +15,7 @@ import 'services/external_calendar_link_store.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/system_calendar_bridge.dart';
 import 'services/task_report_filter.dart';
+import 'services/task_due_status.dart';
 import 'services/task_store.dart';
 import 'services/completed_follow_up_report_projection.dart';
 import 'services/person_follow_up_report_projection.dart';
@@ -330,10 +331,7 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                         final task = tasks[index - externalEvents.length];
                         final cardColor = task.completed
                             ? ArvinColors.timeSoft
-                            : task.dueDate != null &&
-                                  DateUtils.dateOnly(task.dueDate!).isBefore(
-                                    DateUtils.dateOnly(_now),
-                                  )
+                            : TaskDueStatus.isOverdue(task, now: _now)
                             ? ArvinColors.errorSoft
                             : task.followUps.isNotEmpty
                             ? ArvinColors.reminderSoft
