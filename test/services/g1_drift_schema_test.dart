@@ -67,7 +67,7 @@ void main() {
         'tags',
         'task_tags',
         'checklist_items',
-        'task_people',
+        'task_persons',
       ]),
     );
 
@@ -77,6 +77,7 @@ void main() {
     );
     expect(tables.map((row) => row['name']), isNot(contains('follow_up_people')));
     expect(tables.map((row) => row['name']), isNot(contains('people')));
+    expect(tables.map((row) => row['name']), isNot(contains('task_people')));
 
     final taskTemplateColumns = await database.runSelect(
       "PRAGMA table_info('task_templates')",
