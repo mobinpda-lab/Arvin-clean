@@ -9,8 +9,7 @@ class TaskReportEntry {
     required this.checklist,
     required this.followUps,
     required this.completed,
-    this.reminderDate,
-    this.reminderAllDay = false,
+    this.reminders = const <TaskReminder>[],
     this.priority = TaskPriority.medium,
   });
 
@@ -18,11 +17,10 @@ class TaskReportEntry {
   final String title;
   final String description;
   final List<String> tags;
-  final List<FollowUp> followUps;
+  final List<FollowUpRecord> followUps;
   final List<String> checklist;
   final bool completed;
-  final DateTime? reminderDate;
-  final bool reminderAllDay;
+  final List<TaskReminder> reminders;
   final TaskPriority priority;
 }
 
@@ -77,10 +75,9 @@ class TaskReportProjection {
             checklist: List<String>.unmodifiable(
               task.checklistEnabled ? task.checklist : const <String>[],
             ),
-            followUps: List<FollowUp>.unmodifiable(task.followUps),
+            followUps: List<FollowUpRecord>.unmodifiable(task.followUps),
             completed: task.completed,
-            reminderDate: task.reminderDate,
-            reminderAllDay: task.reminderAllDay,
+            reminders: List<TaskReminder>.unmodifiable(task.taskReminders),
             priority: task.priority,
           ),
         )
