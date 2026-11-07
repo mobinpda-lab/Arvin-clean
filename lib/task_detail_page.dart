@@ -157,15 +157,17 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   String get _selectedCenterName {
+    if (_selectedCenterId == null) return 'بدون مرکز';
     final center = _centers.where((item) => item.id == _selectedCenterId);
-    return center.isNotEmpty ? center.first.name : widget.centerName ?? 'بدون مرکز';
+    return center.isNotEmpty ? center.first.name : widget.centerName ?? 'مرکز انتخاب‌شده';
   }
 
   String get _selectedProjectTitle {
+    if (_selectedProjectId == null) return 'بدون پروژه';
     final project = _projects.where((item) => item.id == _selectedProjectId);
     return project.isNotEmpty
         ? project.first.title
-        : widget.projectTitle ?? widget.project?.title ?? 'بدون پروژه';
+        : widget.projectTitle ?? widget.project?.title ?? 'پروژه انتخاب‌شده';
   }
 
   void _beginInlineEdit() {
@@ -1770,9 +1772,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       _metadataItem(
         key: const ValueKey('task-detail-metadata-center'),
         label: 'مرکز',
-        value: _selectedCenterId == null
-            ? (center?.isNotEmpty == true ? center! : 'بدون مرکز')
-            : _selectedCenterName,
+        value: _isInlineEditing
+            ? _selectedCenterName
+            : (center?.isNotEmpty == true ? center! : _selectedCenterName),
         color: ArvinColors.category,
         icon: Icons.apartment_outlined,
         editor: _isInlineEditing
@@ -1787,9 +1789,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       _metadataItem(
         key: const ValueKey('task-detail-metadata-project'),
         label: 'پروژه',
-        value: _selectedProjectId == null
-            ? (project?.title.trim().isNotEmpty == true ? project!.title : 'بدون پروژه')
-            : _selectedProjectTitle,
+        value: _isInlineEditing
+            ? _selectedProjectTitle
+            : (project?.title.trim().isNotEmpty == true ? project!.title : _selectedProjectTitle),
         color: project == null ? _muted : Color(project.colorValue),
         icon: Icons.folder_special_outlined,
         editor: _isInlineEditing
