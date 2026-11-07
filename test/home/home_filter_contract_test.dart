@@ -59,6 +59,10 @@ void main() {
     );
     expect(sacredPhrase.properties.label, 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ');
     expect(find.byKey(const ValueKey('home-bismillah-svg')), findsOneWidget);
+    final sacredSvg = tester.widget<SvgPicture>(
+      find.byKey(const ValueKey('home-bismillah-svg')),
+    );
+    expect(sacredSvg.width, 210);
     expect(
       find.byWidgetPredicate((widget) => widget is SvgPicture &&
           (widget.bytesLoader as dynamic).assetName == 'assets/images/branding/bismillah.svg'),
