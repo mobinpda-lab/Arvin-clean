@@ -1244,20 +1244,20 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _showCenterFilterSheet() async {
+    final sortedCenters = centers.toList()
+      ..sort((a, b) => a.name.compareTo(b.name));
     final options = <ReusableFilterOption<String>>[
       const ReusableFilterOption(
         value: '__no_center__',
         label: 'پروژه‌های بدون مرکز',
       ),
-      ...centers
-          .toList()
-        ..sort((a, b) => a.name.compareTo(b.name))
-          .map((center) => ReusableFilterOption<String>(
-                value: center.id,
-                label: center.name,
-                subtitle: center.isArchived ? 'بایگانی‌شده' : null,
-                icon: Icons.business_outlined,
-              )),
+      for (final center in sortedCenters)
+        ReusableFilterOption<String>(
+          value: center.id,
+          label: center.name,
+          subtitle: center.isArchived ? 'بایگانی‌شده' : null,
+          icon: Icons.business_outlined,
+        ),
     ];
     final applied = await ReusableMultiSelectFilterBottomSheet.showMultiSelect<String>(
       context,
@@ -1273,7 +1273,7 @@ class _HomePageState extends State<HomePage> {
         if (id == null) return null;
         return ReusableFilterOption<String>(
           value: id,
-          label: centers.where((item) => item.id == id).map((item) => item.name).firstOrNull ?? name,
+          label: name,
           icon: Icons.business_outlined,
         );
       },
