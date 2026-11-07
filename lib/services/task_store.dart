@@ -418,7 +418,7 @@ class TaskStore {
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
       <Object?>[
         task.id, ordinal, task.title, task.description, task.createdAt?.toIso8601String(),
-        task.updatedAt?.toIso8601String(), task.dueDate?.toIso8601String(), task.category,
+        task.updatedAt?.toIso8601String(), task.dueDateStorageValue, task.category,
         task.notebookKind?.name, task.priority.name, task.archived ? 1 : 0,
         task.trashed ? 1 : 0, task.completed ? 1 : 0, task.completedAt?.toIso8601String(),
         task.recurrence == null ? null : jsonEncode(task.recurrence!.toJson()),
@@ -915,7 +915,7 @@ class TaskStore {
            (id, task_id, title, remind_at, is_all_day, sequence, is_enabled, is_legacy_task_reminder)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
         <Object?>[
-          reminder.id, task.id, reminder.title, reminder.date.toIso8601String(),
+          reminder.id, task.id, reminder.title, reminder.storageDateValue,
           reminder.isAllDay ? 1 : 0, reminder.sequence, reminder.isEnabled ? 1 : 0,
           reminder.isLegacyTaskReminder ? 1 : 0,
         ],
