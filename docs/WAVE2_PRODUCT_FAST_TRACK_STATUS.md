@@ -16,3 +16,12 @@ Next required implementation step: wire the coordinator into the existing Home a
 - در HEAD فعلی: Build `42336933347` و Device Smoke `42336933508` هنوز PENDING و بدون Job؛ Draft Review APK `42336933225` و Calendar Provider `42336933308` و Follow-up Persistence `42336934664` در حال اجرا هستند.
 - گیت نصب واقعی روی گوشی، آزمون Device Smoke کامل و پذیرش مالک محصول هنوز اثبات نشده‌اند. نصب/انتشار مجاز نیست.
 - PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main بدون تغییر؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## اصلاحیه دفتر وضعیت محصول — ۱۴۰۵/۰۸/۱۶
+
+- آخرین commit کد/آزمون در این چرخه: `0d6ac9f44debc6ca6955f8940826979604f3636b`.
+- همگام‌سازی اسناد پیوستگی در commit `d1bb22e36d63bd0ac00980f0a9df4eee0214d2b4` ثبت شد؛ این commit صرفاً مستندات است. همگام‌سازی همین دفتر وضعیت نیز commit بعدی خواهد بود و به‌خودی‌خود نتیجهٔ CI را تغییر نمی‌دهد.
+- Build شکست‌خوردهٔ `42335681385` متعلق به SHA قدیمی `d2e27baea747ddedf42f744297be09ab86753294` است. اصلاحات پس از آن باید روی HEAD نهایی دوباره اجرا شوند.
+- Release فقط پس از Build/Analyze/تمام شش شارد PASS، Device Smoke کامل، Provider و Persistence PASS روی همان SHA و پذیرش نصب روی گوشی واقعی قابل بازنگری است.
+- وضعیت فعلی: **BLOCKED — RELEASE: NO-GO**؛ PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched.
