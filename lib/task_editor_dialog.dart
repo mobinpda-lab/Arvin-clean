@@ -30,6 +30,7 @@ class ArvinTaskEditorDialog extends StatefulWidget {
     this.selectedProjectId,
     this.onProjectChanged,
     this.onCreateProject,
+    this.onCreateProjectWithCenter,
     this.knownCategories = const [],
     this.knownTags = const [],
     this.onCreateCategory,
@@ -51,6 +52,7 @@ class ArvinTaskEditorDialog extends StatefulWidget {
   final String? selectedProjectId;
   final ValueChanged<String?>? onProjectChanged;
   final Future<String?> Function(String title)? onCreateProject;
+  final Future<String?> Function(String title, String? centerId)? onCreateProjectWithCenter;
 
   /// Existing canonical Task categories offered as quick choices.
   final List<String> knownCategories;
@@ -1367,12 +1369,22 @@ Future<void> _pickDueDateTime() async {
                                             : ArvinColors.project,
                                       ))
                                   .toList(),
-                              onSelected: (value) =>
-                                  setState(() => _selectedProjectId = value),
-                              onCreateWithName: widget.onCreateProject == null
+                              onSelected: (value) {
+                                final selectedProject = _projects.where((item) => item.id == value);
+                                setState(() {
+                                  _selectedProjectId = value;
+                                  if (selectedProject.isNotEmpty) {
+                                    _selectedCenterId = selectedProject.first.centerId;
+                                  }
+                                });
+                              },
+                              onCreateWithName: widget.onCreateProjectWithCenter == null &&
+                                      widget.onCreateProject == null
                                   ? null
                                   : (title) async {
-                                      final createdId = await widget.onCreateProject!(title);
+                                      final createdId = widget.onCreateProjectWithCenter != null
+                                          ? await widget.onCreateProjectWithCenter!(title, _selectedCenterId)
+                                          : await widget.onCreateProject!(title);
                                       if (!mounted || createdId == null || createdId.trim().isEmpty) return null;
                                       final existing = _projects.indexWhere(
                                         (project) => project.id == createdId,
@@ -1384,7 +1396,7 @@ Future<void> _pickDueDateTime() async {
                                         } else {
                                           _projects = [
                                             ..._projects,
-                                            ProjectPlan(id: createdId, title: title),
+                                            ProjectPlan(id: createdId, title: title, centerId: _selectedCenterId),
                                           ];
                                         }
                                         _selectedProjectId = createdId;
