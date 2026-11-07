@@ -51,7 +51,11 @@ class AppThemeManager extends ChangeNotifier {
   Future<void> load() async {
     final preferences = await SharedPreferences.getInstance();
     final stored = preferences.getString(preferenceKey);
-    final next = stored != null && isSupported(stored) ? stored.toUpperCase() : defaultHex;
+    final validStored = stored != null && isSupported(stored);
+    if (stored != null && !validStored) {
+      await preferences.remove(preferenceKey);
+    }
+    final next = validStored ? stored!.toUpperCase() : defaultHex;
     if (_selectedHex == next) return;
     _selectedHex = next;
     notifyListeners();
