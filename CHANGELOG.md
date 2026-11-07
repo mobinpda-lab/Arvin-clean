@@ -888,3 +888,12 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - شواهد SHA قدیمی `d2e27ba`: Calendar Provider run `42335681413` SUCCESS؛ Draft Review APK run `42335681420` SUCCESS؛ Device Smoke run `42335681478` CANCELLED. Artifactهای Staging/Debug از Build همان SHA موجودند؛ digest گزارش‌شده GitHub مربوط به ZIP آرشیو است و **SHA-256 خود APK نیست**.
 - SHA فعلی این ثبت: `52ecbef18d7bbc26d2915270e28297d272342634`. Build `42336933347` و Device Smoke `42336933508` در صف و بدون Job؛ Draft Review APK `42336933225` در حال اجرا؛ Calendar Provider `42336933308` در حال اجرا پس از تأیید SHA؛ Follow-up Persistence `42336934664` در حال اجرا. هیچ‌یک هنوز PASS نیستند.
 - PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ Merge و انتشار انجام نشده؛ **BLOCKED — RELEASE: NO-GO** تا قبولی همه دروازه‌ها روی یک SHA، Device Smoke کامل و پذیرش روی گوشی واقعی.
+
+
+## اصلاحیه وضعیت exact-HEAD — ۱۴۰۵/۰۸/۱۶
+
+- پس از ثبت checkpoint قبلی، دو اصلاح تکمیلی آزمون ثبت شد: آزمون تاریخ تقویم تعداد دو نمایش معتبر تاریخ را صریحاً می‌سنجد؛ آزمون رنگ Home تمام لایه‌های AnimatedContainer کارت را بررسی می‌کند، نه یک لایهٔ تصادفی.
+- آخرین SHA کد/آزمون پیش از همگام‌سازی اسناد: `0d6ac9f44debc6ca6955f8940826979604f3636b`. این ثبت اسناد، commit بعدی و فقط مستندسازی است؛ هیچ نتیجه CI از SHA قبلی به HEAD مستندات منتقل نمی‌شود.
+- برای HEAD نهایی پس از این ثبت، Build شش‌شارد، Draft Review APK، Calendar Provider، Follow-up Persistence و Device Smoke باید دوباره اجرا و جداگانه بررسی شوند.
+- اصلاحات کد و آزمون تا این نقطه ثبت شده‌اند؛ **رفع‌شدن شکست‌ها هنوز تأیید CI ندارد**. آزمون گوشی واقعی و پذیرش مالک محصول نیز انجام/اثبات نشده‌اند.
+- PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched؛ بدون Merge و انتشار؛ **BLOCKED — RELEASE: NO-GO**.
