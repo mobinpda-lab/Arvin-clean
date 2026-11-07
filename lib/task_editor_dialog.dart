@@ -1311,7 +1311,19 @@ Future<void> _pickDueDateTime() async {
                                         color: center.isArchived ? ArvinColors.textSecondary : _brand,
                                       ))
                                   .toList(growable: false),
-                              onSelected: (value) => setState(() => _selectedCenterId = value),
+                              onSelected: (value) {
+                                setState(() {
+                                  _selectedCenterId = value;
+                                  final selectedProject = _projects.where(
+                                    (project) => project.id == _selectedProjectId,
+                                  );
+                                  if (value == null ||
+                                      (selectedProject.isNotEmpty &&
+                                          selectedProject.first.centerId != value)) {
+                                    _selectedProjectId = null;
+                                  }
+                                });
+                              },
                               onCreateWithName: widget.onCreateCenter == null
                                   ? null
                                   : (name) async {
