@@ -311,3 +311,15 @@ NOT VERIFIED. GitHub branch data does not reveal uncommitted local modifications
 5. TSK-03 را فقط با شواهد واقعی عرض‌های 360، 390 و 412dp ببند. TSK-04 را فقط پس از بررسی ذخیره/بازیابی SharedPreferences، مقدار پیش‌فرض `#3A86EF`، ۹ گزینه، و رفتار رنگ در صفحات روشن/تاریک ببند.
 6. پس از نصب candidate روی Samsung SM-A528B/DS، نتیجه نصب، اجرای بدون کرش، رفتار فیلترها و رنگ سازمانی را با شواهد ثبت کن.
 7. PR #3052 باید OPEN / DRAFT / UNMERGED باقی بماند؛ `main` تغییر نکند؛ بدون Merge یا انتشار؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+---
+
+## Handoff — Connected Notebook architecture decision — 2026-11-07
+
+1. مرجع تصمیم محصول و برنامه شکاف‌ها: `docs/project-continuity/ARCHITECTURE_NOTEBOOK.md` را بخوان.
+2. هدف: دفترچه یادداشت «مغز دوم و سکوی اقدام» با Fast Capture، ارتباط دوطرفه با کارها و پیگیری‌ها و فیلترهای هم‌راستا با آروین.
+3. Gap Analysis بر پایه کد شاخه در زمان بررسی تهیه شده است: `Task.notebookKind` و `CanonicalNotebookRepository` دفترچه را روی Task canonical نگه می‌دارند؛ Drift جدول مستقل Notebook یا رابطه صریح Note↔Follow-up ندارد؛ صفحه Notebook فیلترهای Category/Project/Tag را جداگانه دارد. جزئیات در سند معماری ثبت شده‌اند.
+4. **در این فاز هیچ تغییر کدی برای این قابلیت انجام نشده است**: هیچ فایل `.dart`، اسکیما/مهاجرت دیتابیس یا تستی تغییر نکرده؛ هیچ تستی حذف یا Skip نشده است. این تصمیم صرفاً مستندسازی و برنامه‌ریزی آینده است تا پایداری ریلیز جاری حفظ شود.
+5. پیش از پیاده‌سازی، محور پنجم فیلتر پنج‌گانه که در درخواست نام‌گذاری نشده باید با مالک محصول روشن شود. هیچ رفتار فعلی بدون آزمون و تأیید تغییر نکند.
+6. PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main دست‌نخورده؛ بدون Merge یا انتشار؛ **BLOCKED — RELEASE: NO-GO**.
