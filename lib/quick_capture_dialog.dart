@@ -79,6 +79,8 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   bool _dueAllDay = false;
   bool _pendingCustomDueAllDay = false;
   DateTime? _reminderDate;
+  bool _reminderAllDay = false;
+  bool _pendingCustomReminderAllDay = false;
   bool _reminderFollowsDueTime = true;
   RecurrenceRule? _recurrence;
   String? _projectId;
@@ -133,8 +135,10 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     if (!_reminderFollowsDueTime) return;
     if (_dueDate == null || _dueAllDay) {
       _reminderDate = null;
+      _reminderAllDay = false;
     } else {
       _reminderDate = _dueDate;
+      _reminderAllDay = false;
     }
   }
 
@@ -161,6 +165,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     task.centerId = _centerId;
     task.allDay = _dueDate != null && _dueAllDay;
     task.reminderDate = _reminderDate;
+    task.reminderAllDay = _reminderDate != null && _reminderAllDay;
     task.recurrence = _recurrence;
     final category = _categoryController.text.trim();
     task.category = category.isEmpty ? null : category;
@@ -311,9 +316,16 @@ Future<DateTime?> _pickCustomDue() async {
       confirmText: 'انتخاب تاریخ',
     );
     if (date == null || !mounted) return null;
-    final time = await _pickPersianTime(context, initial: initial, helpText: 'زمان یادآوری');
-    if (time == null || !mounted) return null;
-    return DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    final selection = await showUniversalArvinTimeSelectionPicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(initial),
+      helpText: 'زمان یادآوری',
+    );
+    if (selection == null || !mounted) return null;
+    _pendingCustomReminderAllDay = selection.isAllDay;
+    return selection.isAllDay
+        ? DateTime(date.year, date.month, date.day)
+        : DateTime(date.year, date.month, date.day, selection.time!.hour, selection.time!.minute);
   }
 
   Future<RecurrenceRule?> _pickCustomRecurrence() async {
@@ -877,6 +889,8 @@ Future<DateTime?> _pickCustomDue() async {
                             onSelected: (value) {
                               setState(() {
                                 _reminderDate = value is DateTime ? value : null;
+                                _reminderAllDay = _reminderDate != null && _pendingCustomReminderAllDay;
+                                _pendingCustomReminderAllDay = false;
                                 _reminderFollowsDueTime = false;
                               });
                             },
