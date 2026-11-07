@@ -16,6 +16,22 @@ void main() {
       expect(task.legacyTaskReminderMigrationVersion, 0);
     });
 
+    test('legacy Task reminder All-Day flag migrates and survives round-trip', () {
+      final date = DateTime(2026, 10, 30);
+      final task = Task.fromJson({
+        'id': 'legacy-all-day',
+        'title': 'یادآور تمام‌روز',
+        'reminderDate': date.toIso8601String(),
+        'reminderAllDay': true,
+      });
+      expect(task.reminderAllDay, isTrue);
+      expect(task.taskReminders.single.isAllDay, isTrue);
+      final restored = Task.fromJson(task.toJson());
+      expect(restored.reminderAllDay, isTrue);
+      expect(restored.taskReminders.single.isAllDay, isTrue);
+      expect(restored.taskReminders.single.date, date);
+    });
+
     test('a valid legacy reminder retains identity and date after reload', () {
       final dueAt = DateTime.utc(2026, 10, 29, 12);
       final legacyReminderAt = DateTime.utc(2026, 10, 28, 8, 15);
