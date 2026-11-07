@@ -21,7 +21,7 @@ Finder _homeVerticalScrollable() => find.descendant(
     ).first;
 
 void main() {
-  testWidgets('Home renders five collapsible time groups and hides empty filtered groups', (tester) async {
+  testWidgets('Home keeps completed past tasks visible in a separate non-overdue group', (tester) async {
     tester.view.physicalSize = const Size(390, 1200);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -42,6 +42,7 @@ void main() {
 
     expect(find.text('کار عقب‌افتاده'), findsOneWidget);
     expect(find.text('کار گذشته انجام‌شده'), findsOneWidget);
+    expect(find.text('گذشته (انجام‌شده)'), findsOneWidget);
     final activePastTitle = tester.widget<Text>(
       find.byKey(const ValueKey('task-card-title-past')),
     );
