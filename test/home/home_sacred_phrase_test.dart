@@ -88,7 +88,7 @@ void main() {
         );
         await tester.pump();
   
-        const calendarLabel = 'وَأُفَوِّضُ أَمْرِي إِلَى اللَّهِ';
+        const calendarLabel = 'أُفَوِّضُ أَمْرِي إِلَى اللَّهِ';
         final calendarPhrase =
             find.byKey(const ValueKey('calendar-sacred-header'));
         expect(calendarPhrase, findsOneWidget);
