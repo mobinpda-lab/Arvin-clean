@@ -110,3 +110,13 @@ No tests were deleted or weakened. `main` was not modified. No merge, publicatio
 - No tests were deleted, skipped, or weakened. The previous exact-HEAD CI on `0c89f9f3643d82302d686721558ca9445a03423a` failed because the model cutover removed compatibility members before all consumers/tests were moved. A staged compatibility boundary has been restored; the follow-up exact-HEAD CI is running on `381ff68207a201ed722ae428ec8ffc48418b458b`.
 - Remaining schema/entity work: replace JSON-backed `task_people` with an FK-backed relation to `persons`, verify person assignment/report filtering end-to-end, and finish migration of all remaining compatibility call sites before removing deprecated model projections.
 - Current exact-HEAD Build, Review APK, Calendar Provider, Follow-up Persistence and Device Smoke results must be read from their run IDs for this SHA; none of the earlier SHA results may be carried forward.
+
+
+## Unified Person relation normalization — 2026-11-07
+
+- Added canonical `task_persons` with foreign keys to `tasks` and `persons`; `follow_up_record_people.person_id` now references the same `persons` directory.
+- Schema installation now migrates the former JSON-backed `task_people` rows into `task_persons` and drops the old relation table. Fresh databases no longer create `task_people`.
+- TaskStore reads Task people by joining `task_persons` to `persons`, writes only stable Person IDs, and preserves referenced directory entries when replacing the unreferenced directory catalog.
+- SQL migration writer now writes normalized Person links and inserts required Person rows before dependent Follow-up relations. Removed a duplicate TaskReminder insert loop found during the same persistence audit.
+- Tests now assert the normalized schema, Person foreign keys, old-relation migration, multiple reminder persistence, and absence of legacy reminder resurrection. These tests remain active; no test was removed or skipped.
+- The next exact-HEAD CI is required on the new branch HEAD after this batch. The prior 2026-11-07 runs on older SHAs remain historical only.
