@@ -293,7 +293,15 @@ class Task {
       if (taskReminders.any((item) => item.id == reminderId)) {
         reminderId = 'legacy-task-reminder-$id';
       }
-      final sequence = nextReminderSequence;
+      var highestSequence = 0;
+      for (final reminder in taskReminders) {
+        if (reminder.sequence > highestSequence) {
+          highestSequence = reminder.sequence;
+        }
+      }
+      final sequence = nextReminderSequence > highestSequence
+          ? nextReminderSequence
+          : highestSequence + 1;
       taskReminders.add(TaskReminder(
         id: reminderId,
         title: 'یادآوری: $title',
