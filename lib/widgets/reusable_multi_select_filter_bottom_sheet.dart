@@ -50,6 +50,7 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
     required Set<T> selectedValues,
     Color? accent,
     String searchHint = 'جستجو...',
+    String allLabel = 'همه',
     String createHint = 'نام مورد جدید',
     String createLabel = 'افزودن و انتخاب',
     String applyLabel = 'تأیید / اعمال فیلتر',
@@ -165,6 +166,16 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
                   child: ListView(
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     children: [
+                      CheckboxListTile(
+                        key: optionKeyPrefix == null
+                            ? null
+                            : ValueKey('$optionKeyPrefix-all'),
+                        value: working.isEmpty,
+                        activeColor: color,
+                        controlAffinity: ListTileControlAffinity.leading,
+                        title: Text(allLabel),
+                        onChanged: (_) => setSheetState(working.clear),
+                      ),
                       for (final option in filtered)
                         CheckboxListTile(
                           key: optionKeyPrefix == null
