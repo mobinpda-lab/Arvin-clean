@@ -566,3 +566,14 @@ This is an implementation record following the earlier Wave 7.299 ownership audi
 - Added relational migration and TaskStore persistence tests. Exact-head CI is pending.
 - Updated Home so completed past Tasks remain visible in a separate history group and are never labeled overdue. Updated regression expectations for the current time and Person contracts.
 - Release remains **BLOCKED — RELEASE: NO-GO**; PR #3052 remains OPEN/DRAFT/UNMERGED; main untouched.
+
+
+## 2026-11-07 — Clean-slate Task / Follow-up / Person schema cutover (v13–v14)
+
+- Rebuilt the canonical `tasks` table without `follow_up_enabled`, `follow_up_date` or `reminder_date`; preserved canonical Task data and checked foreign-key integrity during the transactional rebuild.
+- Migrated and retired legacy `follow_ups`, `follow_up_people` and `people` tables. Canonical storage now uses `follow_up_records`, `follow_up_record_people` and `persons`.
+- Converted old Task and Follow-up reminder dates into independent, Task-scoped `task_reminders`; Follow-up future scheduling (`next_follow_up`) is not carried forward.
+- Renamed the canonical model to `FollowUpRecord` with `completedAt` as its timestamp, and to `Person`; temporary source-compatible aliases remain while call sites finish migration.
+- Follow-up entry can create an independent TaskReminder on create or edit. Task Timeline and Calendar now project independent reminders; Task Details no longer duplicates the legacy reminder display.
+- Added/updated migration and persistence tests. Exact-head CI is pending; do not mark this wave PASS until the relevant workflows complete.
+- **BLOCKED — RELEASE: NO-GO** until all CI and the seven physical Samsung SM-A528B/DS paths are verified. PR #3052 remains OPEN/DRAFT/UNMERGED; main untouched.
