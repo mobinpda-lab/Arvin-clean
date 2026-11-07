@@ -255,11 +255,13 @@ class HomeFilterSheet extends StatelessWidget {
     required this.title,
     required this.accent,
     required this.child,
+    this.heightFactor = .76,
   });
 
   final String title;
   final Color accent;
   final Widget child;
+  final double heightFactor;
 
   @override
   Widget build(BuildContext context) {
@@ -271,7 +273,7 @@ class HomeFilterSheet extends StatelessWidget {
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxWidth: 520,
-          maxHeight: height * .76,
+          maxHeight: height * heightFactor,
           minHeight: 220,
         ),
         child: Material(
@@ -337,6 +339,7 @@ class HomeFilterSheet extends StatelessWidget {
     required String title,
     required Color accent,
     required Widget child,
+    double heightFactor = .76,
   }) {
     return showModalBottomSheet<T>(
       context: context,
@@ -348,6 +351,7 @@ class HomeFilterSheet extends StatelessWidget {
         title: title,
         accent: accent,
         child: child,
+        heightFactor: heightFactor,
       ),
     );
   }
