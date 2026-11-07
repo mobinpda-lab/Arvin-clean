@@ -422,8 +422,8 @@ void main() {
     final database = NativeDatabase.memory();
     try {
       final store = TaskStore(executor: database);
-      const person = PersonReference(id: 'canonical-person', displayName: 'شخص کانونی');
-      await store.savePeopleDirectory(const <PersonReference>[person]);
+      final person = PersonReference(id: 'canonical-person', displayName: 'شخص کانونی');
+      await store.savePeopleDirectory(<PersonReference>[person]);
       final firstDate = DateTime(2026, 11, 8, 9);
       final secondDate = DateTime(2026, 11, 9);
       final followUpAt = DateTime(2026, 11, 7, 12);
@@ -431,7 +431,7 @@ void main() {
         Task(
           id: 'canonical-relations-task',
           title: 'کار با روابط مستقل',
-          people: const <PersonReference>[person],
+          people: <PersonReference>[person],
           taskReminders: <TaskReminder>[
             TaskReminder(
               id: 'canonical-reminder-1',
