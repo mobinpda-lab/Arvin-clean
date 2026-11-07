@@ -967,7 +967,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _homeFilterCards() {
     return Padding(
-      padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 9, 4),
+      padding: const EdgeInsetsDirectional.fromSTEB(12, 0, 12, 4),
       child: ArvinTaskSelectorWrap(
         key: const ValueKey('home-compact-filter-wrap'),
         spacing: 6,
