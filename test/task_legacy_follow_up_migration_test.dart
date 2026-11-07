@@ -36,7 +36,7 @@ void main() {
     expect(task.lastFollowUp?.id, 'fu-1');
   });
 
-  test('legacy Task fields and FollowUp nextFollowUp survive JSON round-trip', () {
+  test('legacy Task fields survive while Follow-up future scheduling is retired', () {
     final original = Task(
       id: 'legacy-round-trip',
       title: 'Legacy metadata',
@@ -56,9 +56,6 @@ void main() {
     expect(restored.followUpEnabled, isTrue);
     expect(restored.followUpDate, DateTime(2026, 8, 18, 9, 30));
     expect(restored.followUps, hasLength(1));
-    expect(
-      restored.followUps.single.nextFollowUp,
-      DateTime(2026, 8, 20, 11),
-    );
+    expect(restored.followUps.single.toJson().containsKey('nextFollowUp'), isFalse);
   });
 }
