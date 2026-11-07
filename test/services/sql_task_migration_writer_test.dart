@@ -83,7 +83,7 @@ void main() {
     expect(restoredEnvelope['futureField'], {'keep': true});
 
     final followUps = await database.runSelect(
-      'SELECT task_id, note, result, ordinal FROM follow_ups WHERE task_id = ?',
+      'SELECT task_id, note, result, ordinal FROM follow_up_records WHERE task_id = ?',
       const ['legacy-1'],
     );
     expect(followUps.single['note'], 'تماس شد');
@@ -215,7 +215,7 @@ void main() {
       const [],
     );
     final followUps = await database.runSelect(
-      'SELECT COUNT(*) AS count FROM follow_ups',
+      'SELECT COUNT(*) AS count FROM follow_up_records',
       const [],
     );
     expect(tasks.single['count'], 0);
@@ -435,7 +435,7 @@ void main() {
       );
 
       final sqlCompleted = await database.runSelect(
-        'SELECT completed FROM follow_ups WHERE id = ? AND task_id = ?',
+        'SELECT completed FROM follow_up_records WHERE id = ? AND task_id = ?',
         const [targetFollowUpId, originalTaskId],
       );
       expect(sqlCompleted, hasLength(1));
