@@ -883,8 +883,8 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                       key: const ValueKey('report-home-filter-exact-range'),
                       label: 'تاریخ و ساعت',
                       icon: Icons.date_range_outlined,
-                      accent: ArvinColors.primary,
-                      soft: ArvinColors.primarySoft,
+                      accent: Theme.of(context).colorScheme.primary,
+                      soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
                       active: _fromDate != null || _toDate != null || _fromTime != null || _toTime != null,
                       onPressed: () => _jumpToFilter(_exactRangeSectionKey),
                     ),
@@ -892,8 +892,8 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                       key: const ValueKey('report-home-filter-center'),
                       label: _centerIds.isEmpty ? 'مرکز' : 'مرکز (${_centerIds.length})',
                       icon: Icons.location_city_outlined,
-                      accent: ArvinColors.primary,
-                      soft: ArvinColors.primarySoft,
+                      accent: Theme.of(context).colorScheme.primary,
+                      soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
                       active: _centerIds.isNotEmpty,
                       onPressed: () => _jumpToFilter(_centerSectionKey),
                     ),
@@ -901,8 +901,8 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                       key: const ValueKey('report-home-filter-project'),
                       label: _projectIds.isEmpty ? 'پروژه‌ها' : 'پروژه‌ها (${_projectIds.length})',
                       icon: Icons.folder_rounded,
-                      accent: ArvinColors.primary,
-                      soft: ArvinColors.primarySoft,
+                      accent: Theme.of(context).colorScheme.primary,
+                      soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
                       active: _projectIds.isNotEmpty,
                       onPressed: () => _jumpToFilter(_projectSectionKey),
                     ),
@@ -910,8 +910,8 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                       key: const ValueKey('report-home-filter-category'),
                       label: _categories.isEmpty ? 'دسته‌ها' : 'دسته‌ها (${_categories.length})',
                       icon: Icons.layers_rounded,
-                      accent: ArvinColors.primary,
-                      soft: ArvinColors.primarySoft,
+                      accent: Theme.of(context).colorScheme.primary,
+                      soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
                       active: _categories.isNotEmpty,
                       onPressed: () => _jumpToFilter(_categorySectionKey),
                     ),
@@ -919,8 +919,8 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                       key: const ValueKey('report-home-filter-tags'),
                       label: _tags.isEmpty ? 'برچسب‌ها' : 'برچسب‌ها (${_tags.length})',
                       icon: Icons.sell_rounded,
-                      accent: ArvinColors.primary,
-                      soft: ArvinColors.primarySoft,
+                      accent: Theme.of(context).colorScheme.primary,
+                      soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
                       active: _tags.isNotEmpty,
                       onPressed: () => _jumpToFilter(_tagSectionKey),
                     ),
@@ -930,7 +930,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
             _Section(
               title: 'نوع گزارش',
               icon: Icons.assessment_outlined,
-              accentColor: ArvinColors.primary,
+              accentColor: Theme.of(context).colorScheme.primary,
               selectedCount: _openCompletedFollowUpReport ? 1 : 0,
               initiallyExpanded: true,
               child: Wrap(
@@ -1028,12 +1028,12 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               key: _centerSectionKey,
               title: 'مرکز',
               icon: Icons.location_city_outlined,
-              accentColor: ArvinColors.primary,
+              accentColor: Theme.of(context).colorScheme.primary,
               selectedCount: _centerIds.length + (_includeLegacyProjectsWithoutCenter ? 1 : 0),
               child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                 _MultiSelectChips(
                 allLabel: 'همه مراکز',
-                accentColor: ArvinColors.primary,
+                accentColor: Theme.of(context).colorScheme.primary,
                 options: widget.centers.map((center) => MapEntry(center.id, center.name)).toList(growable: false),
                 selected: _centerIds,
                 onChanged: (value) => setState(() => _centerIds = value),
@@ -1188,11 +1188,11 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
             _Section(
               title: 'اشخاص',
               icon: Icons.people_outline,
-              accentColor: ArvinColors.primary,
+              accentColor: Theme.of(context).colorScheme.primary,
               selectedCount: _personIds.length,
               child: _MultiSelectChips(
                 allLabel: 'همه اشخاص',
-                accentColor: ArvinColors.primary,
+                accentColor: Theme.of(context).colorScheme.primary,
                 options: widget.people
                     .map((person) => MapEntry(person.id, person.displayName))
                     .toList(growable: false),
@@ -1204,7 +1204,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
             _Section(
               title: 'یادداشت',
               icon: Icons.sticky_note_2_outlined,
-              accentColor: ArvinColors.primary,
+              accentColor: Theme.of(context).colorScheme.primary,
               selectedCount: _noteKinds.length +
                   (_noteQueryController.text.trim().isNotEmpty ? 1 : 0) +
                   (_noteFromDate != null || _noteToDate != null ? 1 : 0),
@@ -1229,8 +1229,8 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                         key: const ValueKey('report-filter-note-kind-note'),
                         label: const Text('یادداشت'),
                         selected: _noteKinds.contains(NotebookItemKind.note),
-                        selectedColor: ArvinColors.primarySoft,
-                        checkmarkColor: ArvinColors.primary,
+                        selectedColor: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
+                        checkmarkColor: Theme.of(context).colorScheme.primary,
                         onSelected: (selected) => setState(() {
                           selected
                               ? _noteKinds.add(NotebookItemKind.note)
@@ -1313,13 +1313,13 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                         ReportStatusFilter.open => ArvinColors.projectSoft,
                         ReportStatusFilter.completed => ArvinColors.timeSoft,
                         ReportStatusFilter.archived => ArvinColors.neutralSoft,
-                        ReportStatusFilter.all => ArvinColors.primarySoft,
+                        ReportStatusFilter.all => Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
                       },
                       checkmarkColor: switch (value) {
                         ReportStatusFilter.open => ArvinColors.project,
                         ReportStatusFilter.completed => ArvinColors.time,
                         ReportStatusFilter.archived => ArvinColors.neutral,
-                        ReportStatusFilter.all => ArvinColors.primary,
+                        ReportStatusFilter.all => Theme.of(context).colorScheme.primary,
                       },
                       onSelected: (selected) => setState(() {
                         selected ? _statuses.add(value) : _statuses.remove(value);
