@@ -283,3 +283,18 @@ NOT VERIFIED. GitHub branch data does not reveal uncommitted local modifications
 - The Shard 1 UI overflow is now directly localized in the reusable filter sheet: the log for `test/reusable_multi_select_filter_bottom_sheet_test.dart` identifies `Row` at `lib/widgets/reusable_multi_select_filter_bottom_sheet.dart:206:17` and reports `A RenderFlex overflowed by 158 pixels on the right`. This is confirmed for that test. Other UI tests report missed hit-tests at filter/apply controls; verify each affected screen against the shared component before assigning a common cause.
 - Shard 1 is therefore **not green**. The source Analyze fix is verified, but the full quality gate remains failed until all 14 regressions are fixed without weakening tests.
 - Documentation commit `cb89261753adc2d935798e85d0a3ed8b9ef66b37` was created after the source run; no workflow run for that documentation SHA was visible at the time of this addendum. Re-check exact-SHA CI for the documentation commit; do not transfer PASS from source SHA `6fa57ce` to the documentation SHA.
+
+
+---
+
+## TODO handoff — 2026-11-07 — verified branch HEAD `b1ad86a164f9d8f8363e29313163f1be0ee53d4a`
+
+- نخست `docs/project-continuity/TODO.md` را بخوان؛ این فایل فهرست فعال کارهای باز و معیارهای تکمیل را نگه می‌دارد.
+- Staging Review APK برای SHA `b1ad86a164f9d8f8363e29313163f1be0ee53d4a` آماده و بارگذاری شده است: run `42407484426`، artifact `13588087657`؛ APK SHA-256 `04482b5595eb7666a9a47076eb7c8fdcec480ca7911ab2a8f718ef442276fd90`، اندازه `79,185,749` bytes، package `com.example.arvin.staging`، non-debuggable، V2/V3 و Vazirmatn PASS. این artifact فقط review/test است؛ publishable=false.
+- Build run `42407484460` روی همین SHA هنوز کامل نیست: Analyze و Visual PASS؛ شش شارد تست و APK Debug/Staging/Release در جریان‌اند. تست‌های فیلتر تا پایان همین run در انتظار تأیید بمانند.
+- Device Smoke run `42407484403` روی همین SHA در وضعیت PENDING و بدون job قابل مشاهده است؛ هیچ نتیجه‌ای از SHAهای قبلی به آن منتقل نکن.
+- G1 lock sync `42407484429`، Follow-up file persistence `42407484432` و Calendar Provider `42407484406` روی همین SHA SUCCESS هستند.
+- نصب و پذیرش فیزیکی Samsung SM-A528B/DS هنوز تأیید نشده است. Artifact را با نصب واقعی یکی ندان.
+- اصلاح overflow فیلتر در commit `2baad457ba0bdd89114566afb4b42e2315904bb2` ثبت شده؛ نتیجه تست‌های مرتبط باید از run جاری استخراج شود.
+- پس از تکمیل CI و Device Smoke، پذیرش گوشی واقعی را ثبت کن و TODO را با شواهد جدید به‌روزرسانی کن. هیچ تستی حذف/تضعیف نشود.
+- PR #3052: OPEN / DRAFT / UNMERGED؛ `main` در SHA `45e4202b03a434459e4c021a04efa7e8396359db`؛ بدون Merge یا انتشار؛ **BLOCKED — RELEASE: NO-GO**.

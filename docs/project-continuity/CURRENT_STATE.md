@@ -843,3 +843,18 @@ PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main دست‌نخورد�
 - The Shard 1 UI overflow is now directly localized in the reusable filter sheet: the log for `test/reusable_multi_select_filter_bottom_sheet_test.dart` identifies `Row` at `lib/widgets/reusable_multi_select_filter_bottom_sheet.dart:206:17` and reports `A RenderFlex overflowed by 158 pixels on the right`. This is confirmed for that test. Other UI tests report missed hit-tests at filter/apply controls; verify each affected screen against the shared component before assigning a common cause.
 - Shard 1 is therefore **not green**. The source Analyze fix is verified, but the full quality gate remains failed until all 14 regressions are fixed without weakening tests.
 - Documentation commit `cb89261753adc2d935798e85d0a3ed8b9ef66b37` was created after the source run; no workflow run for that documentation SHA was visible at the time of this addendum. Re-check exact-SHA CI for the documentation commit; do not transfer PASS from source SHA `6fa57ce` to the documentation SHA.
+
+
+---
+
+## TODO / CI checkpoint — 2026-11-07 — branch HEAD `b1ad86a164f9d8f8363e29313163f1be0ee53d4a`
+
+- مرجع کارهای باز: [`docs/project-continuity/TODO.md`](TODO.md). فقط مواردی در فهرست فعال‌اند که بازبودن یا نیاز به تأییدشان در کد، CI یا همین اسناد قابل ردیابی است.
+- شاخه مجاز و PR #3052 هر دو روی SHA `b1ad86a164f9d8f8363e29313163f1be0ee53d4a` هستند. PR وضعیت `OPEN / DRAFT / UNMERGED` دارد؛ `main` روی `45e4202b03a434459e4c021a04efa7e8396359db` باقی است.
+- **Staging Review APK — تکمیل‌شده برای بازبینی، نه انتشار:** run `42407484426` روی همین SHA با SUCCESS پایان یافت. Artifact ID `13588087657`، نام `arvin-review-staging-apk-b1ad86a164f9d8f8363e29313163f1be0ee53d4a`، اندازه ZIP برابر `39,226,420` بایت. فایل APK: `Arvin-review-staging-b1ad86a164f9d8f8363e29313163f1be0ee53d4a.apk`، اندازه `79,185,749` بایت، SHA-256 برابر `04482b5595eb7666a9a47076eb7c8fdcec480ca7911ab2a8f718ef442276fd90`. شناسه بسته `com.example.arvin.staging`، `android_debuggable=false)، امضای V2/V3 و فایل‌های Vazirmatn تأیید شدند. کلید امضا موقت و مخصوص بازبینی است؛ `publishable=false` و این APK نسخه انتشار نیست. [Run](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/42407484426) · [Artifact](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/42407484426/artifacts/13588087657)
+- **Build و تست‌های اصلی — در جریان:** run `42407484460` روی همین SHA؛ Analyze و Visual موفق‌اند؛ هر شش شارد تست و jobهای Debug/Staging/Release APK هنوز `IN_PROGRESS` هستند. بنابراین نتیجه نهایی تست‌ها، از جمله تست‌های فیلتر، هنوز «در انتظار تأیید» است. [Run](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/42407484460)
+- **Device Smoke — در انتظار:** run `42407484403` دقیقاً همین SHA را هدف گرفته و در وضعیت `PENDING` است؛ در زمان ثبت این checkpoint هنوز jobای برای آن برنگشته است. [Run](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/42407484403)
+- روی همین SHA، G1 lock sync run `42407484429`، Follow-up file persistence run `42407484432` و Calendar Provider run `42407484406` هر سه SUCCESS هستند. این شواهد فقط به همین SHA نسبت داده می‌شوند.
+- اصلاح سرریز ۱۵۸ پیکسلی پنل فیلتر در commit `2baad457ba0bdd89114566afb4b42e2315904bb2` ثبت شده است؛ قبولی تست‌های مرتبط باید از شاردهای اجرای جاری و همین SHA تأیید شود. شکست‌های قدیمی run `42406373769` روی SHA `6fa57ce5231f73d67304bed46263a02af1e1cb90` به HEAD فعلی تعمیم داده نمی‌شوند.
+- نصب و رفتار واقعی روی Samsung SM-A528B/DS هنوز **در انتظار تأیید** است؛ Artifact بازبینی به‌تنهایی اثبات نصب و پذیرش گوشی واقعی نیست.
+- انتشار همچنان **BLOCKED — RELEASE: NO-GO** است. PR باید OPEN/DRAFT/UNMERGED بماند؛ هیچ Merge، انتشار یا تغییری در `main` مجاز نیست.
