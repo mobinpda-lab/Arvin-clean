@@ -335,7 +335,7 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
                     onChanged: (value) {
                       if (identical(value, clearToken)) {
                         Navigator.of(sheetContext).pop(
-                          const ReusableSingleSelectResult<T>(
+                          ReusableSingleSelectResult<T>(
                             value: null,
                             cleared: true,
                           ),
