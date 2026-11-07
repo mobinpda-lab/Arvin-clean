@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../core/theme/arvin_theme.dart';
-
 /// Reusable presentation shell matching the owner-approved Arvin Home contract.
 ///
 /// This widget owns no data or persistence. The real Home route supplies its
