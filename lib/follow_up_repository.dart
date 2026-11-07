@@ -3,9 +3,9 @@ import 'services/task_store.dart';
 
 /// Canonical persistence boundary for FollowUp data.
 ///
-/// FollowUps remain embedded in the canonical Task document. All mutations are
-/// routed through [TaskStore.mutate] so FollowUp writes cannot race with Home,
-/// Notebook, recurrence, People, or Sync writes to `arvin.tasks`.
+/// Follow-up history is stored in the canonical `follow_up_records` relation.
+/// All mutations are routed through [TaskStore.mutate] so Follow-up writes cannot
+/// race with Home, Notebook, recurrence, People, or Sync writes.
 class FollowUpRepository {
   const FollowUpRepository({TaskStore? store}) : _injectedStore = store;
 
