@@ -596,3 +596,12 @@ This is an implementation record following the earlier Wave 7.299 ownership audi
 - Inline Project creation now receives the selected Center ID across Task Details, the full Task editor and Quick Add.
 - Added regression coverage for Task Details Center/Project selection and persistence.
 - Exact-HEAD CI and physical Samsung SM-A528B/DS smoke remain required; **BLOCKED — RELEASE: NO-GO**.
+
+
+## 2026-11-07 — Canonical storage consumer alignment
+
+- Confirmed schema v14 canonical tables and legacy schedule-column retirement path.
+- Updated reminder alarm planning and Work Agenda to consume the independent multi-reminder collection; avoided duplicate delivery through the compatibility bridge.
+- Corrected shared filter imports/generic callback contracts and Center model imports needed by the unified selector work.
+- Compatibility projections remain temporary until every source consumer and existing test has moved. No tests were removed or weakened.
+- Exact-HEAD CI is required on `381ff68207a201ed722ae428ec8ffc48418b458b`; release remains **BLOCKED — RELEASE: NO-GO** pending all checks and physical Samsung SM-A528B/DS smoke.
