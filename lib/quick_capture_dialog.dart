@@ -647,7 +647,7 @@ Future<DateTime?> _pickCustomDue() async {
                                   _centerId = value;
                                   if (_projectId != null) {
                                     final current = _knownProjects.where((project) => project.id == _projectId);
-                                    if (current.isEmpty || (value != null && current.first.centerId != value)) {
+                                    if (value == null || current.isEmpty || current.first.centerId != value) {
                                       _projectId = null;
                                       widget.onProjectChanged?.call(null);
                                     }
