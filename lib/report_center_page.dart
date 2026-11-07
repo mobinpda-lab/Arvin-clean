@@ -881,7 +881,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                     ),
                     HomeFilterPill(
                       key: const ValueKey('report-home-filter-exact-range'),
-                      label: 'بازه دقیق',
+                      label: 'تاریخ و ساعت',
                       icon: Icons.date_range_outlined,
                       accent: ArvinColors.time,
                       soft: ArvinColors.timeSoft,
