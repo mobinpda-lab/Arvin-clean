@@ -192,6 +192,12 @@ void main() {
     );
     expect(recordColumns.map((row) => row['name']), isNot(contains('next_follow_up')));
     expect(recordColumns.map((row) => row['name']), isNot(contains('reminder_date')));
+
+    final retiredTables = await database.runSelect(
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('follow_ups', 'follow_up_people', 'people')",
+      const [],
+    );
+    expect(retiredTables, isEmpty);
   });
 
   test('concurrent stores share one serialized schema installation', () async {
