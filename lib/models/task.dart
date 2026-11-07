@@ -26,6 +26,9 @@ extension TaskPriorityProduct on TaskPriority {
 
 enum NotebookItemKind { note, checklist }
 
+String _dateOnlyStorageValue(DateTime value) =>
+    '${value.year.toString().padLeft(4, '0')}-${value.month.toString().padLeft(2, '0')}-${value.day.toString().padLeft(2, '0')}';
+
 class FollowUpRecord {
   final String id;
 
@@ -138,6 +141,10 @@ class TaskReminder {
   /// Missing values in older JSON payloads default to enabled.
   final bool isEnabled;
 
+  /// Date-only reminders are serialized as YYYY-MM-DD, never synthetic midnight.
+  String get storageDateValue =>
+      isAllDay ? _dateOnlyStorageValue(date) : date.toIso8601String();
+
   TaskReminder copyWith({
     String? id,
     String? title,
@@ -157,7 +164,7 @@ class TaskReminder {
   Map<String, dynamic> toJson() => {
         'id': id,
         'title': title,
-        'date': date.toIso8601String(),
+        'date': storageDateValue,
         'isAllDay': isAllDay,
         'sequence': sequence,
         if (!isEnabled) 'isEnabled': false,
@@ -228,6 +235,11 @@ class Task {
   DateTime? dueDate;
   /// Independent canonical Center reference; Project membership remains separate.
   String? centerId;
+  /// Date-only tasks serialize their due date as YYYY-MM-DD without a synthetic time.
+  String? get dueDateStorageValue => dueDate == null
+      ? null
+      : (allDay ? _dateOnlyStorageValue(dueDate!) : dueDate!.toIso8601String());
+
   /// True when the due date is intentionally date-only (All-Day).
   /// The timestamp remains for date identity; consumers must not present its time.
   bool allDay;
@@ -464,7 +476,9 @@ class Task {
         'description': description,
         'createdAt': createdAt?.toIso8601String(),
         'updatedAt': updatedAt?.toIso8601String(),
-        'dueDate': dueDate?.toIso8601String(),
+        'dueDate': dueDate == null
+            ? null
+            : (allDay ? _dateOnlyStorageValue(dueDate!) : dueDate!.toIso8601String()),
         if (centerId != null && centerId!.trim().isNotEmpty) 'centerId': centerId,
         if (allDay) 'allDay': true,
         'tags': tags,
