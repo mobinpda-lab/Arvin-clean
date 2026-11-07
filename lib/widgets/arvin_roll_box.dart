@@ -107,52 +107,13 @@ class ArvinRollBox<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final selected = valueLabel.isNotEmpty && valueLabel != label;
-    return Tooltip(
-      message: label,
-      child: Material(
-        color: selected ? ArvinColors.primarySoft : ArvinColors.surface,
-        borderRadius: BorderRadius.circular(24),
-        child: InkWell(
-          key: key,
-          onTap: () => _openSelector(context),
-          borderRadius: BorderRadius.circular(24),
-          child: Container(
-            height: 48,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: selected
-                    ? ArvinColors.primary.withAlpha(90)
-                    : ArvinColors.border,
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(icon, size: 18, color: ArvinColors.primary),
-                SizedBox(width: compact ? 4 : 7),
-                Expanded(
-                  child: Text(
-                    valueLabel.isEmpty ? label : valueLabel,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: ArvinColors.textPrimary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                const Icon(
-                  Icons.keyboard_arrow_down_rounded,
-                  size: 18,
-                  color: ArvinColors.primary,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+    return HomeFilterPill(
+      label: valueLabel.isEmpty ? label : valueLabel,
+      icon: icon,
+      accent: ArvinColors.primary,
+      soft: ArvinColors.primarySoft,
+      active: selected,
+      onPressed: () => _openSelector(context),
     );
   }
 }
@@ -281,56 +242,13 @@ class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
   @override
   Widget build(BuildContext context) {
     final selected = widget.selectedTags.toSet();
-    return Tooltip(
-      message: 'برچسب',
-      child: Material(
-        color: selected.isEmpty ? ArvinColors.surface : ArvinColors.primarySoft,
-        borderRadius: BorderRadius.circular(24),
-        child: InkWell(
-          key: widget.key,
-          onTap: _openSelector,
-          borderRadius: BorderRadius.circular(24),
-          child: Container(
-            height: 48,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: selected.isEmpty
-                    ? ArvinColors.border
-                    : ArvinColors.primary.withAlpha(90),
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.sell_outlined,
-                  size: widget.compact ? 16 : 19,
-                  color: ArvinColors.primary,
-                ),
-                SizedBox(width: widget.compact ? 4 : 7),
-                Expanded(
-                  child: Text(
-                    selected.isEmpty ? 'برچسب' : '${selected.length} برچسب',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: ArvinColors.textPrimary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                Icon(
-                  Icons.keyboard_arrow_down_rounded,
-                  size: widget.compact ? 16 : 19,
-                  color: ArvinColors.primary,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+    return HomeFilterPill(
+      label: selected.isEmpty ? 'برچسب' : '${selected.length} برچسب',
+      icon: Icons.sell_outlined,
+      accent: ArvinColors.primary,
+      soft: ArvinColors.primarySoft,
+      active: selected.isNotEmpty,
+      onPressed: _openSelector,
     );
   }
 }
