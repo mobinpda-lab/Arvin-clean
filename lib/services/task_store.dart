@@ -693,10 +693,6 @@ class TaskStore {
     );
     final followUpJson = <Map<String, dynamic>>[];
     for (final followUpRow in followUps) {
-      final legacyRows = await executor.runSelect(
-        'SELECT reminder_date, next_follow_up FROM follow_ups WHERE id = ?',
-        <Object?>[followUpRow['id']],
-      );
       final value = <String, dynamic>{
         'id': followUpRow['id'],
         'dateTime': followUpRow['completed_at'],
@@ -707,12 +703,6 @@ class TaskStore {
         'waitingForResponse':
             (followUpRow['waiting_for_response'] as num?)?.toInt() == 1,
       };
-      // Transitional read-only bridge: legacy schedule fields are surfaced
-      // only while their remaining UI consumers are being removed.
-      if (legacyRows.isNotEmpty) {
-        value['reminderDate'] = legacyRows.single['reminder_date'];
-        value['nextFollowUp'] = legacyRows.single['next_follow_up'];
-      }
       var personRows = await executor.runSelect(
         'SELECT person_id FROM follow_up_record_people WHERE follow_up_id = ? ORDER BY ordinal',
         <Object?>[followUpRow['id']],
@@ -762,19 +752,6 @@ class TaskStore {
     }
     return Map<String, dynamic>.from(decoded);
   }
-
-  Map<String, dynamic> _followUpJson(Map<String, Object?> row) =>
-      <String, dynamic>{
-        'id': row['id'],
-        'dateTime': row['date_time'],
-        'title': row['title'],
-        'note': row['note'],
-        'result': row['result'],
-        'reminderDate': row['reminder_date'],
-        'nextFollowUp': row['next_follow_up'],
-        'completed': (row['completed'] as num?)?.toInt() == 1,
-        'waitingForResponse': (row['waiting_for_response'] as num?)?.toInt() == 1,
-      };
 
   Future<void> _saveUnlocked(
     List<Task> tasks, {
@@ -947,23 +924,6 @@ class TaskStore {
       for (var personOrdinal = 0; personOrdinal < followUp.personIds.length; personOrdinal++) {
         await executor.runInsert(
           'INSERT INTO follow_up_record_people (follow_up_id, person_id, ordinal) VALUES (?, ?, ?)',
-          <Object?>[followUp.id, followUp.personIds[personOrdinal], personOrdinal],
-        );
-      }
-      await executor.runInsert(
-        '''INSERT INTO follow_ups
-           (id, task_id, date_time, title, note, result, reminder_date, next_follow_up, completed, waiting_for_response, ordinal)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-        <Object?>[
-          followUp.id, task.id, followUp.dateTime.toIso8601String(), followUp.title,
-          followUp.note, followUp.result, followUp.reminderDate?.toIso8601String(),
-          followUp.nextFollowUp?.toIso8601String(), followUp.completed ? 1 : 0,
-          followUp.waitingForResponse ? 1 : 0, ordinal,
-        ],
-      );
-      for (var personOrdinal = 0; personOrdinal < followUp.personIds.length; personOrdinal++) {
-        await executor.runInsert(
-          'INSERT INTO follow_up_people (follow_up_id, person_id, ordinal) VALUES (?, ?, ?)',
           <Object?>[followUp.id, followUp.personIds[personOrdinal], personOrdinal],
         );
       }
