@@ -1244,70 +1244,138 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _showCenterFilterSheet() async {
-    String search=''; final draft=<String>{..._centerFilters};
-    await HomeFilterSheet.show<void>(context,title:'انتخاب مرکز',accent:Theme.of(context).colorScheme.primary,
-      child:StatefulBuilder(builder:(sheetContext,setSheetState){
-        final values=centers.toList()..sort((a,b)=>a.name.compareTo(b.name));
-        final filtered=values.where((v)=>v.name.toLowerCase().contains(search.toLowerCase())).toList();
-        return Column(children:[
-          TextField(onChanged:(v)=>setSheetState(()=>search=v),decoration:const InputDecoration(hintText:'جستجو در مراکز...',prefixIcon:Icon(Icons.search_rounded))),
-          Expanded(child:ListView(children:[
-            CheckboxListTile(value:draft.isEmpty,title:const Text('همه'),controlAffinity:ListTileControlAffinity.leading,onChanged:(_)=>setSheetState(()=>draft.clear())),
-            CheckboxListTile(value:draft.contains('__no_center__'),title:const Text('پروژه‌های بدون مرکز'),controlAffinity:ListTileControlAffinity.leading,onChanged:(v)=>setSheetState(()=>v==true?draft.add('__no_center__'):draft.remove('__no_center__'))),
-            for(final item in filtered) CheckboxListTile(value:draft.contains(item.id),title:Text(item.name),subtitle:item.isArchived?const Text('بایگانی‌شده'):null,controlAffinity:ListTileControlAffinity.leading,onChanged:(v)=>setSheetState(()=>v==true?draft.add(item.id):draft.remove(item.id))),
-          ])),
-          SizedBox(width:double.infinity,child:FilledButton(onPressed:(){setState(()=>_centerFilters..clear()..addAll(draft));Navigator.pop(sheetContext);},child:const Text('تأیید / اعمال فیلتر'))),
-        ]);
-      }));
+    final options = <ReusableFilterOption<String>>[
+      const ReusableFilterOption(
+        value: '__no_center__',
+        label: 'پروژه‌های بدون مرکز',
+      ),
+      ...centers
+          .toList()
+        ..sort((a, b) => a.name.compareTo(b.name))
+          .map((center) => ReusableFilterOption<String>(
+                value: center.id,
+                label: center.name,
+                subtitle: center.isArchived ? 'بایگانی‌شده' : null,
+                icon: Icons.business_outlined,
+              )),
+    ];
+    final applied = await ReusableMultiSelectFilterBottomSheet.showMultiSelect<String>(
+      context,
+      title: 'انتخاب مرکز',
+      accent: Theme.of(context).colorScheme.primary,
+      options: options,
+      selectedValues: _centerFilters,
+      searchHint: 'جستجو در مراکز...',
+      createHint: 'نام مرکز جدید',
+      createLabel: 'افزودن مرکز',
+      onCreate: (name) async {
+        final id = await _createCenter(name);
+        if (id == null) return null;
+        return ReusableFilterOption<String>(
+          value: id,
+          label: centers.where((item) => item.id == id).map((item) => item.name).firstOrNull ?? name,
+          icon: Icons.business_outlined,
+        );
+      },
+    );
+    if (!mounted || applied == null) return;
+    setState(() => _centerFilters..clear()..addAll(applied));
   }
 
   Future<void> _showProjectFilterSheet() async {
-    String search=''; final draft=<String>{..._projectFilters};
-    await HomeFilterSheet.show<void>(context,title:'انتخاب پروژه',accent:ArvinColors.project,
-      child:StatefulBuilder(builder:(sheetContext,setSheetState){
-        final values=projects.where((p)=>!p.isArchived).toList()..sort((a,b)=>a.title.compareTo(b.title));
-        final filtered=values.where((p)=>p.title.toLowerCase().contains(search.toLowerCase())).toList();
-        return Column(children:[
-          TextField(onChanged:(v)=>setSheetState(()=>search=v),decoration:const InputDecoration(hintText:'جستجو در پروژه‌ها...',prefixIcon:Icon(Icons.search_rounded))),
-          Expanded(child:ListView(children:[
-            CheckboxListTile(value:draft.isEmpty,title:const Text('همه'),controlAffinity:ListTileControlAffinity.leading,onChanged:(_)=>setSheetState(()=>draft.clear())),
-            CheckboxListTile(value:draft.contains('__no_project__'),title:const Text('بدون پروژه'),controlAffinity:ListTileControlAffinity.leading,onChanged:(v)=>setSheetState(()=>v==true?draft.add('__no_project__'):draft.remove('__no_project__'))),
-            for(final item in filtered) CheckboxListTile(value:draft.contains(item.id),title:Text(item.title),controlAffinity:ListTileControlAffinity.leading,onChanged:(v)=>setSheetState(()=>v==true?draft.add(item.id):draft.remove(item.id))),
-          ])),
-          SizedBox(width:double.infinity,child:FilledButton(onPressed:(){setState(()=>_projectFilters..clear()..addAll(draft));Navigator.pop(sheetContext);},child:const Text('تأیید / اعمال فیلتر'))),
-        ]);
-      }));
+    final options = <ReusableFilterOption<String>>[
+      const ReusableFilterOption(value: '__no_project__', label: 'بدون پروژه'),
+      ...projects
+          .where((project) => !project.isArchived)
+          .map((project) => ReusableFilterOption<String>(
+                value: project.id,
+                label: project.title,
+                icon: Icons.folder_outlined,
+              )),
+    ];
+    final applied = await ReusableMultiSelectFilterBottomSheet.showMultiSelect<String>(
+      context,
+      title: 'انتخاب پروژه',
+      accent: ArvinColors.project,
+      options: options,
+      selectedValues: _projectFilters,
+      searchHint: 'جستجو در پروژه‌ها...',
+      createHint: 'نام پروژه جدید',
+      createLabel: 'افزودن پروژه',
+      onCreate: (title) async {
+        final id = await wave2ProductFastTrack.createProject(title);
+        if (id == null) return null;
+        return ReusableFilterOption<String>(
+          value: id,
+          label: title,
+          icon: Icons.folder_outlined,
+        );
+      },
+    );
+    if (!mounted || applied == null) return;
+    setState(() => _projectFilters..clear()..addAll(applied));
   }
 
   Future<void> _showCategoryFilterSheet() async {
-    final draft=<String>{..._categoryFilters};
-    await HomeFilterSheet.show<void>(context,title:'انتخاب دسته',accent:ArvinColors.category,
-      child:StatefulBuilder(builder:(sheetContext,setSheetState)=>Column(children:[
-        Expanded(child:ListView(children:[
-          CheckboxListTile(value:draft.isEmpty,title:const Text('همه'),controlAffinity:ListTileControlAffinity.leading,onChanged:(_)=>setSheetState(()=>draft.clear())),
-          for(final item in _homeCategories) CheckboxListTile(value:draft.contains(item),title:Text(item),controlAffinity:ListTileControlAffinity.leading,onChanged:(v)=>setSheetState(()=>v==true?draft.add(item):draft.remove(item))),
-        ])),
-        SizedBox(width:double.infinity,child:FilledButton(onPressed:(){
-          setState(()=>_categoryFilters..clear()..addAll(draft));
-          Navigator.pop(sheetContext);
-        },child:const Text('تأیید / اعمال فیلتر'))),
-      ])));
+    final options = _homeCategories
+        .map((value) => ReusableFilterOption<String>(
+              value: value,
+              label: value,
+              icon: Icons.layers_outlined,
+            ))
+        .toList(growable: false);
+    final applied = await ReusableMultiSelectFilterBottomSheet.showMultiSelect<String>(
+      context,
+      title: 'انتخاب دسته',
+      accent: ArvinColors.category,
+      options: options,
+      selectedValues: _categoryFilters,
+      searchHint: 'جستجو در دسته‌ها...',
+      createHint: 'نام دسته جدید',
+      createLabel: 'افزودن دسته',
+      onCreate: (name) async {
+        final created = await _createCategory(name);
+        if (created == null) return null;
+        return ReusableFilterOption<String>(
+          value: created,
+          label: created,
+          icon: Icons.layers_outlined,
+        );
+      },
+    );
+    if (!mounted || applied == null) return;
+    setState(() => _categoryFilters..clear()..addAll(applied));
   }
 
   Future<void> _showTagFilterSheet() async {
-    final tags=_homeTags; final draft=<String>{..._tagFilters}; String search='';
-    await HomeFilterSheet.show<void>(context,title:'انتخاب برچسب‌ها',accent:ArvinColors.tag,
-      child:StatefulBuilder(builder:(sheetContext,setSheetState){
-        final filtered=tags.where((v)=>v.toLowerCase().contains(search.toLowerCase())).toList();
-        return Column(children:[
-          TextField(onChanged:(v)=>setSheetState(()=>search=v),decoration:const InputDecoration(hintText:'جستجو در برچسب‌ها...',prefixIcon:Icon(Icons.search_rounded))),
-          Expanded(child:ListView(children:[
-            CheckboxListTile(value:draft.isEmpty,title:const Text('همه'),controlAffinity:ListTileControlAffinity.leading,onChanged:(_)=>setSheetState(()=>draft.clear())),
-            for(final item in filtered) CheckboxListTile(value:draft.contains(item),title:Text(item),controlAffinity:ListTileControlAffinity.leading,onChanged:(v)=>setSheetState(()=>v==true?draft.add(item):draft.remove(item))),
-          ])),
-          SizedBox(width:double.infinity,child:FilledButton(onPressed:(){setState(()=>_tagFilters..clear()..addAll(draft));Navigator.pop(sheetContext);},child:const Text('تأیید / اعمال فیلتر'))),
-        ]);
-      }));
+    final options = _homeTags
+        .map((value) => ReusableFilterOption<String>(
+              value: value,
+              label: value,
+              icon: Icons.sell_outlined,
+            ))
+        .toList(growable: false);
+    final applied = await ReusableMultiSelectFilterBottomSheet.showMultiSelect<String>(
+      context,
+      title: 'انتخاب برچسب‌ها',
+      accent: ArvinColors.tag,
+      options: options,
+      selectedValues: _tagFilters,
+      searchHint: 'جستجو در برچسب‌ها...',
+      createHint: 'نام برچسب جدید',
+      createLabel: 'افزودن برچسب',
+      onCreate: (name) async {
+        final created = await _createTag(name);
+        if (created == null) return null;
+        return ReusableFilterOption<String>(
+          value: created,
+          label: created,
+          icon: Icons.sell_outlined,
+        );
+      },
+    );
+    if (!mounted || applied == null) return;
+    setState(() => _tagFilters..clear()..addAll(applied));
   }
 
   Color _groupAccent(String id) {
