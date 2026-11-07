@@ -128,6 +128,8 @@ void main() {
       );
       await tester.tap(find.byKey(const ValueKey('report-filter-category-کار')));
       await tester.pumpAndSettle();
+      await tester.tap(find.text('تأیید / اعمال فیلتر'));
+      await tester.pumpAndSettle();
 
       await tester.scrollUntilVisible(
         find.byKey(const ValueKey('report-filter-apply')),
@@ -240,6 +242,8 @@ void main() {
       scrollable: find.byType(Scrollable).last,
     );
     await tester.tap(find.byKey(const ValueKey('report-filter-person-ana')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('report-filter-apply')),
