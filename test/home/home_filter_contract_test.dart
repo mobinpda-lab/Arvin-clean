@@ -84,25 +84,51 @@ void main() {
     expect(find.byKey(const ValueKey('home-filter-card-tags')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-group-overdue')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-all')), findsNothing);
-    expect(find.byKey(const ValueKey('home-compact-filter-wrap')), findsOneWidget);
-    expect(find.byType(ActionChip), findsNWidgets(5));
+    expect(find.byKey(const ValueKey('home-compact-filter-row')), findsOneWidget);
+    expect(find.byType(HomeFilterPill), findsNWidgets(5));
     expect(find.byKey(const ValueKey('home-sort-button')), findsOneWidget);
-    final filterCenters = [
-      'time',
-      'center',
-      'project',
-      'category',
-      'tags',
-    ].map((id) => tester.getCenter(
-      find.byKey(ValueKey('home-filter-card-$id')),
-    ).dx).toList(growable: false);
-    for (var index = 0; index < filterCenters.length - 1; index++) {
-      expect(filterCenters[index], greaterThan(filterCenters[index + 1]));
+    final originalWidth = tester.view.physicalSize.width;
+    for (final width in [360.0, 390.0, 412.0]) {
+      tester.view.physicalSize = Size(width, 1200);
+      await tester.pumpAndSettle();
+      final filterKeys = [
+        'time',
+        'center',
+        'project',
+        'category',
+        'tags',
+      ];
+      final filterRects = filterKeys
+          .map((id) => tester.getRect(
+                find.byKey(ValueKey('home-filter-card-$id')),
+              ))
+          .toList(growable: false);
+      for (final rect in filterRects) {
+        expect(rect.height, greaterThanOrEqualTo(48));
+        expect(rect.left, greaterThanOrEqualTo(0));
+        expect(rect.right, lessThanOrEqualTo(width));
+      }
+      for (var index = 1; index < filterRects.length; index++) {
+        expect(filterRects[index].top, closeTo(filterRects.first.top, 0.1));
+        expect(filterRects[index].bottom, closeTo(filterRects.first.bottom, 0.1));
+        expect(filterRects[index - 1].center.dx,
+            greaterThan(filterRects[index].center.dx));
+      }
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('home-compact-filter-row')),
+          matching: find.byWidgetPredicate(
+            (widget) =>
+                widget is Scrollable &&
+                (widget.axisDirection == AxisDirection.left ||
+                    widget.axisDirection == AxisDirection.right),
+          ),
+        ),
+        findsNothing,
+      );
     }
-    expect(
-      filterCenters.last,
-      greaterThan(tester.getCenter(find.byKey(const ValueKey('home-sort-button'))).dx),
-    );
+    tester.view.physicalSize = Size(originalWidth, 1200);
+    await tester.pumpAndSettle();
     expect(
       find.descendant(
         of: find.byKey(const ValueKey('home-filter-card-category')),
@@ -141,9 +167,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('انتخاب زمان'), findsNothing);
 
-    await tester.drag(find.byKey(const ValueKey('home-compact-filter-wrap')), const Offset(-180, 0));
-    await tester.pumpAndSettle();
-    final centerFilter = find.byKey(const ValueKey('home-filter-card-center'));
+        final centerFilter = find.byKey(const ValueKey('home-filter-card-center'));
     await tester.ensureVisible(centerFilter);
     await tester.pumpAndSettle();
     await tester.tap(centerFilter);
