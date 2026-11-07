@@ -3560,9 +3560,10 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final compactHome = MediaQuery.sizeOf(context).height < 700;
     return Scaffold(
-      backgroundColor: ArvinColors.background,
+      backgroundColor: colors.surface,
       drawer: Drawer(
         child: SafeArea(
           child: ListView(
@@ -3570,7 +3571,7 @@ class _HomePageState extends State<HomePage> {
             children: [
               const Padding(
                 padding: EdgeInsets.fromLTRB(20, 16, 20, 12),
-                child: Text('آروین', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: ArvinColors.primary)),
+                child: Text('آروین', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: colors.primary)),
               ),
               const Divider(),
               ListTile(
@@ -3626,7 +3627,7 @@ class _HomePageState extends State<HomePage> {
                   tooltip: 'منوی آروین',
                   onPressed: () => Scaffold.of(buttonContext).openDrawer(),
                   icon: const Icon(Icons.menu_rounded),
-                  style: IconButton.styleFrom(backgroundColor: ArvinColors.surface, foregroundColor: ArvinColors.neutral),
+                  style: IconButton.styleFrom(backgroundColor: colors.surface, foregroundColor: colors.onSurfaceVariant),
                 ),
               ),
               Expanded(child: Column(children: [
@@ -3637,15 +3638,15 @@ class _HomePageState extends State<HomePage> {
                     'assets/images/branding/bismillah.svg',
                     key: const ValueKey('home-bismillah-svg'),
                     width: 210,
-                    colorFilter: const ColorFilter.mode(
-                      ArvinColors.primary,
+                    colorFilter: ColorFilter.mode(
+                      colors.primary,
                       BlendMode.srcIn,
                     ),
                     excludeFromSemantics: true,
                   ),
                 ),
                 const SizedBox(height: 1),
-                const Text('آروین', key: ValueKey('home-title-block'), style: TextStyle(color: ArvinColors.primaryDark, fontSize: 23, fontWeight: FontWeight.w800)),
+                Text('آروین', key: const ValueKey('home-title-block'), style: TextStyle(color: colors.primary, fontSize: 23, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 2),
                 const Text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها', key: ValueKey('home-subtitle'), textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.textSecondary, fontSize: 11.5, fontWeight: FontWeight.w600)),
               ])),
@@ -3654,7 +3655,7 @@ class _HomePageState extends State<HomePage> {
                 tooltip: 'فیلترهای عمومی',
                 onPressed: _showHomeFilterMenu,
                 icon: const Icon(Icons.filter_alt_outlined),
-                style: IconButton.styleFrom(backgroundColor: ArvinColors.surface, foregroundColor: ArvinColors.neutral),
+                style: IconButton.styleFrom(backgroundColor: colors.surface, foregroundColor: colors.onSurfaceVariant),
               ),
             ]),
           ),
@@ -3666,18 +3667,18 @@ class _HomePageState extends State<HomePage> {
               onChanged: (value) => setState(() => query = value),
               decoration: InputDecoration(
                 hintText: 'جستجو در کارها...',
-                hintStyle: const TextStyle(color: ArvinColors.textSecondary, fontSize: 12),
+                hintStyle: TextStyle(color: colors.onSurfaceVariant, fontSize: 12),
                 prefixIcon: IconButton(
                   key: const ValueKey('home-search-button'),
                   tooltip: 'جستجو',
                   onPressed: () => FocusScope.of(context).requestFocus(_searchFocusNode),
                   icon: const Icon(Icons.search_rounded),
                 ),
-                filled: true, fillColor: ArvinColors.surface,
+                filled: true, fillColor: colors.surface,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
                 enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
-                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: const BorderSide(color: ArvinColors.primary, width: 1.2)),
+                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide(color: colors.primary, width: 1.2)),
               ),
             ),
           ),
@@ -3687,7 +3688,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-          Expanded(child: SizedBox.expand(key: const ValueKey('home-task-list-viewport'), child: loading ? Center(child: CircularProgressIndicator(color: ArvinColors.primary)) : loadFailure != null
+          Expanded(child: SizedBox.expand(key: const ValueKey('home-task-list-viewport'), child: loading ? Center(child: CircularProgressIndicator(color: colors.primary)) : loadFailure != null
             ? SingleChildScrollView(padding: const EdgeInsets.all(24), child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
                 Icon(Icons.storage_outlined, size: 40), SizedBox(height: 12),
                 Text('داده‌های کارها قابل خواندن نیست', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w700)),
