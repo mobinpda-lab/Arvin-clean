@@ -28,3 +28,11 @@
 - Typography contract: **Vazirmatn**. Default accent color: **#3A86EF** (palette option 8); do not confuse this dynamic accent with legacy semantic teal tokens.
 - Governance: PR #3052 remains **OPEN / DRAFT / UNMERGED**; `main` remains `45e4202b03a434459e4c021a04efa7e8396359db`; release remains **BLOCKED — RELEASE: NO-GO**. No merge, publication or release.
 - Documentation synchronization itself changes the branch SHA; all exact-SHA acceptance gates must be checked again on the resulting documentation commit. Current physical Samsung SM-A528B/DS Device Smoke is not claimed as passed.
+
+
+## CI completion addendum — Run 42406373769 — 2026-11-07
+
+- This addendum supersedes the in-progress Shard 1 status above. On source SHA `6fa57ce5231f73d67304bed46263a02af1e1cb90`, Shard 1 job `128504856909` has now completed with **FAILURE: 173 passed / 14 failed**. The 14 failed test titles and failure messages are the same 14 listed above; no new failure category appeared in this shard. Analyze job `128504856906` on the same SHA completed **SUCCESS**.
+- The Shard 1 UI overflow is now directly localized in the reusable filter sheet: the log for `test/reusable_multi_select_filter_bottom_sheet_test.dart` identifies `Row` at `lib/widgets/reusable_multi_select_filter_bottom_sheet.dart:206:17` and reports `A RenderFlex overflowed by 158 pixels on the right`. This is confirmed for that test. Other UI tests report missed hit-tests at filter/apply controls; verify each affected screen against the shared component before assigning a common cause.
+- Shard 1 is therefore **not green**. The source Analyze fix is verified, but the full quality gate remains failed until all 14 regressions are fixed without weakening tests.
+- Documentation commit `cb89261753adc2d935798e85d0a3ed8b9ef66b37` was created after the source run; no workflow run for that documentation SHA was visible at the time of this addendum. Re-check exact-SHA CI for the documentation commit; do not transfer PASS from source SHA `6fa57ce` to the documentation SHA.
