@@ -1005,3 +1005,15 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - Run قدیمی Device Smoke #7233 لغو شده؛ #7268 / 42346612483 روی SHA db91... هنوز صف را اشغال می‌کند؛ در صورت تداوم، لغو دستی آن توسط مبین لازم است.
 - شکاف‌های باقیمانده: All-Day در legacy Task.reminderDate و FollowUp.reminderDate و یکسان‌سازی کامل ظاهر سلکتورهای Task Details با Home هنوز تکمیل/تأیید نشده است.
 - PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## ۱۴۰۵/۰۸/۱۶ — All-Day یادآورهای legacy و یکسان‌سازی Selectorها
+- `Task.reminderAllDay` و `FollowUp.reminderAllDay` به مدل و JSON افزوده شدند؛ All-Day فقط با پرچم صریح ذخیره می‌شود و نیمه‌شب از روی حدس All-Day تلقی نمی‌شود.
+- مهاجرت legacy Task reminder مقدار All-Day را به `TaskReminder.isAllDay` منتقل می‌کند؛ ویرایش یادآور legacy Task و FollowUp از تقویم شمسی و دیالوگ ساعت گرد با گزینه داخلی «بدون ساعت» پشتیبانی می‌کند.
+- FollowUpRepository، Task editor و Task report projection پرچم جدید را حفظ می‌کنند.
+- سلکتورهای مرکز/پروژه/دسته/برچسب در فرم Task از Sheet مشترک Home استفاده می‌کنند؛ مرکز/پروژه/دسته تک‌انتخابی و برچسب چندانتخابی است؛ افزودن مورد جدید حفظ شده است.
+- ظاهر pill، رنگ تعاملی و Wrap RTL سلکتورها همسان شدند؛ ترتیب دیداری پنج فیلتر Home نیز به RTL واقعی اصلاح شد.
+- آزمون‌های JSON، مهاجرت، All-Day در Task و FollowUp و تعامل Selectorها اضافه/به‌روزرسانی شدند؛ هیچ تستی حذف یا Skip نشده است.
+- HEAD کد پیش از این ثبت: `72963f7f69f9dc5e4846f52880e2a5deb283815d`. CI exact-head در زمان ثبت: Build #10066 PENDING، Provider #2201 QUEUED، Persistence #1224 PENDING، G1 #4693 QUEUED، Draft Review APK #873 PENDING، Device Smoke #7299 PENDING.
+- اجرای قدیمی Device Smoke #7268 / `42346612483` CANCELLED است؛ اجرای جدید هنوز وارد Job دستگاه نشده است.
+- PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ APK exact-head و تست فیزیکی SM-A528B/DS هنوز در انتظارند؛ **BLOCKED — RELEASE: NO-GO**.
