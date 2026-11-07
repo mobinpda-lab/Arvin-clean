@@ -64,8 +64,8 @@ class TaskStore {
     });
   }
 
-  /// Replaces the canonical directory atomically. Task relations remain in
-  /// task_people; the directory is independent and can contain orphan people.
+  /// Replaces unreferenced directory entries atomically. Task and Follow-up
+  /// links remain in normalized relation tables; referenced Persons are retained.
   Future<void> savePeopleDirectory(Iterable<PersonReference> people) async {
     final normalized = <String, PersonReference>{};
     for (final person in people) {
