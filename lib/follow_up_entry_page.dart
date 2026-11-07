@@ -317,6 +317,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
       personIds: _selectedPersonIds.toList(growable: false),
       // Preserve legacy fields during edits without exposing retired scheduling UI.
       reminderDate: widget.initialFollowUp?.reminderDate,
+      reminderAllDay: widget.initialFollowUp?.reminderAllDay ?? false,
       nextFollowUp: widget.initialFollowUp?.nextFollowUp,
     );
     widget.onSaved?.call(followUp);
