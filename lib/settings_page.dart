@@ -4,6 +4,7 @@ import 'backup_schedule_page.dart';
 import 'calendar_integration_settings_page.dart';
 import 'projects_launcher.dart';
 import 'services/app_settings_service.dart';
+import 'core/theme/app_theme_manager.dart';
 import 'services/calendar_swipe_settings_service.dart';
 import 'task_taxonomy_management_page.dart';
 import 'center_management_page.dart';
@@ -11,12 +12,13 @@ import 'task_template_management_page.dart';
 import 'widgets/contextual_help.dart';
 
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({super.key, required this.service, required this.onSettingsChanged, required this.onOpenBackup, this.onOpenBackupSchedule, this.onStartInteractiveGuide});
+  const SettingsPage({super.key, required this.service, required this.onSettingsChanged, required this.onOpenBackup, this.onOpenBackupSchedule, this.onStartInteractiveGuide, this.themeManager});
   final AppSettingsService service;
   final ValueChanged<AppSettings> onSettingsChanged;
   final VoidCallback onOpenBackup;
   final VoidCallback? onOpenBackupSchedule;
   final VoidCallback? onStartInteractiveGuide;
+  final AppThemeManager? themeManager;
   @override State<SettingsPage> createState() => _SettingsPageState();
 }
 
@@ -28,9 +30,11 @@ class _SettingsPageState extends State<SettingsPage> {
     ContextualHelpStep(icon: Icons.restore, title: 'بازیابی با دقت', body: 'برای برگرداندن اطلاعات، فایل درست را انتخاب کنید. آروین قبل از جایگزینی اطلاعات مسیر بازیابی را کنترل می‌کند.'),
   ];
   AppSettings? settings;
+  AppThemeManager get _themeManager => widget.themeManager ?? AppThemeManager.instance;
   CalendarSwipeSettings _calendarSwipeSettings = const CalendarSwipeSettings();
   @override void initState() { super.initState(); _load(); }
-  Future<void> _load() async { final values = await Future.wait<Object>([widget.service.load(), CalendarSwipeSettingsService().load()]); if (!mounted) return; setState(() { settings = values[0] as AppSettings; _calendarSwipeSettings = values[1] as CalendarSwipeSettings; }); }
+  Future<void> _load() async { await _themeManager.load(); final values = await Future.wait<Object>([widget.service.load(), CalendarSwipeSettingsService().load()]); if (!mounted) return; setState(() { settings = values[0] as AppSettings; _calendarSwipeSettings = values[1] as CalendarSwipeSettings; }); }
+  Future<void> _setAccentColor(String hex) async { await _themeManager.select(hex); if (mounted) setState(() {}); }
   Future<void> _setTheme(ThemeMode mode) async { final current = settings; if (current == null) return; await widget.service.saveThemeMode(mode); final next = current.copyWith(themeMode: mode); if (!mounted) return; setState(() => settings = next); widget.onSettingsChanged(next); }
   Future<void> _setPersianDate(bool value) async { final current = settings; if (current == null) return; await widget.service.saveUsePersianDate(value); final next = current.copyWith(usePersianDate: value); if (!mounted) return; setState(() => settings = next); widget.onSettingsChanged(next); }
   Future<void> _setFontSize(double size) async { final current = settings; if (current == null) return; await widget.service.saveFontSize(size); final next = current.copyWith(fontSize: size); if (!mounted) return; setState(() => settings = next); widget.onSettingsChanged(next); }
@@ -70,6 +74,45 @@ class _SettingsPageState extends State<SettingsPage> {
     final current = settings;
     return Directionality(textDirection: TextDirection.rtl, child: Scaffold(appBar: AppBar(title: const Text('تنظیمات')), body: current == null ? const Center(child: CircularProgressIndicator()) : ListView(key: const ValueKey('settings-page-scroll'), padding: const EdgeInsets.all(16), children: [
       const Text('ظاهر و نمایش', style: TextStyle(fontWeight: FontWeight.bold)), const SizedBox(height: 8),
+      const Text('انتخاب تم و رنگ اصلی برنامه', key: ValueKey('theme-palette-title'), style: TextStyle(fontWeight: FontWeight.w700)),
+      const SizedBox(height: 10),
+      Wrap(
+        key: const ValueKey('theme-palette-grid'),
+        spacing: 12,
+        runSpacing: 12,
+        children: AppThemeManager.palette.map((entry) {
+          final selected = _themeManager.selectedHex == entry.hex;
+          return Semantics(
+            button: true,
+            selected: selected,
+            label: 'رنگ شماره ${entry.number}، ${entry.name}، ${entry.hex}',
+            child: Tooltip(
+              message: '${entry.number}. ${entry.name} — ${entry.hex}',
+              child: InkWell(
+                key: ValueKey('theme-color-${entry.number}'),
+                customBorder: const CircleBorder(),
+                onTap: () => _setAccentColor(entry.hex),
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: entry.color,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: selected ? Theme.of(context).colorScheme.onSurface : Colors.transparent,
+                      width: selected ? 3 : 1,
+                    ),
+                  ),
+                  child: selected
+                      ? const Icon(Icons.check_rounded, color: Colors.white, size: 22)
+                      : null,
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+      const SizedBox(height: 16),
       SegmentedButton<ThemeMode>(segments: const [ButtonSegment(value: ThemeMode.system, label: Text('سیستم'), icon: Icon(Icons.settings_suggest_outlined)), ButtonSegment(value: ThemeMode.light, label: Text('روشن'), icon: Icon(Icons.light_mode_outlined)), ButtonSegment(value: ThemeMode.dark, label: Text('تیره'), icon: Icon(Icons.dark_mode_outlined))], selected: {current.themeMode}, onSelectionChanged: (selection) => _setTheme(selection.first)),
       const SizedBox(height: 16), SwitchListTile(contentPadding: EdgeInsets.zero, title: const Text('نمایش تاریخ فارسی'), subtitle: const Text('تاریخ فارسی پیش‌فرض آروین است؛ انتخاب تاریخ پیگیری همیشه با تقویم شمسی انجام می‌شود.'), value: current.usePersianDate, onChanged: _setPersianDate),
       const SizedBox(height: 20), const Divider(height: 32), const Text('کارها و حرکت کارت‌ها', key: ValueKey('swipe-settings-title'), style: TextStyle(fontWeight: FontWeight.bold)), const SizedBox(height: 6), const Text('عمل کشیدن کارت به راست و چپ را جداگانه تعیین کنید.'), const SizedBox(height: 12),
