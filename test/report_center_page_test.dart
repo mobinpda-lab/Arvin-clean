@@ -203,7 +203,9 @@ void main() {
       200,
       scrollable: find.byType(Scrollable).last,
     );
-    await tester.tap(find.byKey(const ValueKey('report-filter-section-اشخاص')));
+    final peopleSection = find.byKey(const ValueKey('report-filter-section-اشخاص'));
+    await tester.ensureVisible(peopleSection);
+    await tester.tap(peopleSection);
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('report-filter-person-ana')),
