@@ -3569,8 +3569,8 @@ class _HomePageState extends State<HomePage> {
           child: ListView(
             padding: const EdgeInsets.symmetric(vertical: 12),
             children: [
-              const Padding(
-                padding: EdgeInsets.fromLTRB(20, 16, 20, 12),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
                 child: Text('آروین', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: colors.primary)),
               ),
               const Divider(),
@@ -3648,7 +3648,7 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(height: 1),
                 Text('آروین', key: const ValueKey('home-title-block'), style: TextStyle(color: colors.primary, fontSize: 23, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 2),
-                const Text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها', key: ValueKey('home-subtitle'), textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.textSecondary, fontSize: 11.5, fontWeight: FontWeight.w600)),
+                Text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها', key: const ValueKey('home-subtitle'), textAlign: TextAlign.center, style: TextStyle(color: colors.onSurfaceVariant, fontSize: 11.5, fontWeight: FontWeight.w600)),
               ])),
               IconButton(
                 key: const ValueKey('home-general-filter-button'),
