@@ -140,7 +140,11 @@ void main() {
             (reminder) => reminder.id == 'task-reminder-2',
           );
           expect(secondReminder.title, 'یادآور مستقل دوم');
-          expect(secondReminder.date.toIso8601String(), _secondTaskReminderAt.toIso8601String());
+          expect(secondReminder.isAllDay, isTrue);
+          expect(secondReminder.date.year, 2026);
+          expect(secondReminder.date.month, 8);
+          expect(secondReminder.date.day, 19);
+          expect(secondReminder.storageDateValue, '2026-08-19');
           expect(secondReminder.sequence, 2);
           expect(task.nextReminderSequence, 3);
           final storedAllDayReminder = await active.executor.runSelect(
