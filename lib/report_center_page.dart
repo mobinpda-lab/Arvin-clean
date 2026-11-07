@@ -24,6 +24,7 @@ import 'task_report_page.dart';
 import 'widgets/persian_date_picker.dart';
 import 'widgets/universal_arvin_time_picker.dart';
 import 'widgets/arvin_task_selector_wrap.dart';
+import 'widgets/reusable_multi_select_filter_bottom_sheet.dart';
 
 String _reportDateTimeLabel(DateTime value) {
   const formatter = PersianDateFormatter();
@@ -41,8 +42,18 @@ class ReportCenterPage extends StatefulWidget {
     this.templates = const [],
     this.people = const [],
     this.now,
+    this.onCreateCenter,
+    this.onCreateProject,
+    this.onCreateCategory,
+    this.onCreateTag,
+    this.onCreatePerson,
   });
 
+  final Future<String?> Function(String name)? onCreateCenter;
+  final Future<String?> Function(String title)? onCreateProject;
+  final Future<String?> Function(String name)? onCreateCategory;
+  final Future<String?> Function(String name)? onCreateTag;
+  final Future<PersonReference?> Function(String name)? onCreatePerson;
   final List<Task> tasks;
   final List<ProjectPlan> projects;
   final List<ArvinCenter> centers;
@@ -172,6 +183,11 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
         tasks: widget.tasks,
         people: _peopleDirectory,
         now: _now,
+        onCreateCenter: widget.onCreateCenter,
+        onCreateProject: widget.onCreateProject,
+        onCreateCategory: widget.onCreateCategory,
+        onCreateTag: widget.onCreateTag,
+        onCreatePerson: widget.onCreatePerson,
       ),
     );
     if (result == null || !mounted) return;
@@ -598,8 +614,18 @@ class _ReportFilterSheet extends StatefulWidget {
     required this.tasks,
     required this.people,
     required this.now,
+    this.onCreateCenter,
+    this.onCreateProject,
+    this.onCreateCategory,
+    this.onCreateTag,
+    this.onCreatePerson,
   });
 
+  final Future<String?> Function(String name)? onCreateCenter;
+  final Future<String?> Function(String title)? onCreateProject;
+  final Future<String?> Function(String name)? onCreateCategory;
+  final Future<String?> Function(String name)? onCreateTag;
+  final Future<PersonReference?> Function(String name)? onCreatePerson;
   final TaskReportFilter initial;
   final List<ProjectPlan> projects;
   final List<ArvinCenter> centers;
@@ -864,64 +890,89 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                 children: [
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
-              child: ArvinTaskSelectorWrap(
-                spacing: 6,
-                runSpacing: 6,
+              child: Row(
+                textDirection: TextDirection.rtl,
                 children: [
-                    HomeFilterPill(
+                  Expanded(
+                    child: HomeFilterPill(
                       key: const ValueKey('report-home-filter-time'),
-                      label: _timePreset == ReportTimePreset.all && _fromDate == null && _toDate == null && _fromTime == null && _toTime == null ? 'زمان' : _timeLabel(_timePreset),
+                      label: _timePreset == ReportTimePreset.all &&
+                              _fromDate == null && _toDate == null &&
+                              _fromTime == null && _toTime == null
+                          ? 'زمان'
+                          : _timeLabel(_timePreset),
                       icon: Icons.schedule_rounded,
                       accent: Theme.of(context).colorScheme.primary,
-                      soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
-                      active: _timePreset != ReportTimePreset.all || _fromDate != null || _toDate != null || _fromTime != null || _toTime != null,
+                      soft: Color.alphaBlend(
+                        Theme.of(context).colorScheme.primary.withAlpha(18),
+                        Theme.of(context).colorScheme.surface,
+                      ),
+                      active: _timePreset != ReportTimePreset.all ||
+                          _fromDate != null || _toDate != null ||
+                          _fromTime != null || _toTime != null,
                       onPressed: () => _jumpToFilter(_timeSectionKey),
                     ),
-                    HomeFilterPill(
-                      key: const ValueKey('report-home-filter-exact-range'),
-                      label: 'تاریخ و ساعت',
-                      icon: Icons.date_range_outlined,
-                      accent: Theme.of(context).colorScheme.primary,
-                      soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
-                      active: _fromDate != null || _toDate != null || _fromTime != null || _toTime != null,
-                      onPressed: () => _jumpToFilter(_exactRangeSectionKey),
-                    ),
-                    HomeFilterPill(
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: HomeFilterPill(
                       key: const ValueKey('report-home-filter-center'),
                       label: _centerIds.isEmpty ? 'مرکز' : 'مرکز (${_centerIds.length})',
                       icon: Icons.location_city_outlined,
                       accent: Theme.of(context).colorScheme.primary,
-                      soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
+                      soft: Color.alphaBlend(
+                        Theme.of(context).colorScheme.primary.withAlpha(18),
+                        Theme.of(context).colorScheme.surface,
+                      ),
                       active: _centerIds.isNotEmpty,
                       onPressed: () => _jumpToFilter(_centerSectionKey),
                     ),
-                    HomeFilterPill(
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: HomeFilterPill(
                       key: const ValueKey('report-home-filter-project'),
-                      label: _projectIds.isEmpty ? 'پروژه‌ها' : 'پروژه‌ها (${_projectIds.length})',
+                      label: _projectIds.isEmpty ? 'پروژه' : 'پروژه (${_projectIds.length})',
                       icon: Icons.folder_rounded,
                       accent: Theme.of(context).colorScheme.primary,
-                      soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
+                      soft: Color.alphaBlend(
+                        Theme.of(context).colorScheme.primary.withAlpha(18),
+                        Theme.of(context).colorScheme.surface,
+                      ),
                       active: _projectIds.isNotEmpty,
                       onPressed: () => _jumpToFilter(_projectSectionKey),
                     ),
-                    HomeFilterPill(
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: HomeFilterPill(
                       key: const ValueKey('report-home-filter-category'),
-                      label: _categories.isEmpty ? 'دسته‌ها' : 'دسته‌ها (${_categories.length})',
+                      label: _categories.isEmpty ? 'دسته' : 'دسته (${_categories.length})',
                       icon: Icons.layers_rounded,
                       accent: Theme.of(context).colorScheme.primary,
-                      soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
+                      soft: Color.alphaBlend(
+                        Theme.of(context).colorScheme.primary.withAlpha(18),
+                        Theme.of(context).colorScheme.surface,
+                      ),
                       active: _categories.isNotEmpty,
                       onPressed: () => _jumpToFilter(_categorySectionKey),
                     ),
-                    HomeFilterPill(
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: HomeFilterPill(
                       key: const ValueKey('report-home-filter-tags'),
-                      label: _tags.isEmpty ? 'برچسب‌ها' : 'برچسب‌ها (${_tags.length})',
+                      label: _tags.isEmpty ? 'برچسب' : 'برچسب (${_tags.length})',
                       icon: Icons.sell_rounded,
                       accent: Theme.of(context).colorScheme.primary,
-                      soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
+                      soft: Color.alphaBlend(
+                        Theme.of(context).colorScheme.primary.withAlpha(18),
+                        Theme.of(context).colorScheme.surface,
+                      ),
                       active: _tags.isNotEmpty,
                       onPressed: () => _jumpToFilter(_tagSectionKey),
                     ),
+                  ),
                 ],
               ),
             ),
