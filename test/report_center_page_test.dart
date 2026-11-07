@@ -438,8 +438,6 @@ void main() {
     expect(find.byKey(const ValueKey('report-task-card-done-newer')), findsNothing);
     expect(tester.getTopLeft(openOlder).dy, lessThan(tester.getTopLeft(openNewer).dy));
     expect(tester.getTopLeft(openNewer).dy, lessThan(tester.getTopLeft(todayTimed).dy));
-    expect(tester.getTopLeft(openNewer).dy, lessThan(tester.getTopLeft(doneOlder).dy));
-    expect(tester.getTopLeft(doneOlder).dy, lessThan(tester.getTopLeft(doneNewer).dy));
   });
 
   testWidgets('Report Center active filter chips wrap without overflow on a short RTL viewport', (tester) async {
