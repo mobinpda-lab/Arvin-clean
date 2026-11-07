@@ -85,6 +85,17 @@ void main() {
     );
     expect(taskTemplateColumns.map((row) => row['name']), contains('checklist_enabled'));
 
+    final taskPersonForeignKeys = await database.runSelect(
+      "PRAGMA foreign_key_list('task_persons')",
+      const [],
+    );
+    expect(taskPersonForeignKeys.map((row) => row['table']), contains('persons'));
+    final followUpPersonForeignKeys = await database.runSelect(
+      "PRAGMA foreign_key_list('follow_up_record_people')",
+      const [],
+    );
+    expect(followUpPersonForeignKeys.map((row) => row['table']), contains('persons'));
+
     final foreignKeys = await database.runSelect(
       'PRAGMA foreign_keys',
       const [],
@@ -142,6 +153,17 @@ void main() {
          created_at TEXT NOT NULL, updated_at TEXT NOT NULL)''',
     );
     await database.runCustom(
+      '''CREATE TABLE task_people (
+         task_id TEXT NOT NULL, person_id TEXT NOT NULL,
+         person_json TEXT NOT NULL, ordinal INTEGER NOT NULL,
+         PRIMARY KEY (task_id, person_id))''',
+    );
+    await database.runCustom(
+      '''INSERT INTO task_people (task_id, person_id, person_json, ordinal)
+         VALUES ('canonical-task', 'task-person-old',
+                 '{"id":"task-person-old","displayName":"شخص قدیمی"}', 0)''',
+    );
+    await database.runCustom(
       '''INSERT INTO follow_ups
          (id, task_id, date_time, note, reminder_date, next_follow_up, completed, ordinal)
          VALUES ('legacy-follow-up', 'canonical-task', '2026-11-06T12:00:00.000',
@@ -157,6 +179,7 @@ void main() {
          VALUES ('legacy-follow-up', 'person-1', 0)''',
     );
 
+    await G1DriftSchema.migrateTaskPeople(database);
     await G1DriftSchema.migrateCanonicalEntities(database);
 
     final reminders = await database.runSelect(
@@ -193,6 +216,14 @@ void main() {
       <Object?>['person-1'],
     );
     expect(personRows.single['name'], 'شخص یک');
+    final taskPersonRows = await database.runSelect(
+      '''SELECT task_persons.person_id, persons.name
+         FROM task_persons JOIN persons ON persons.id = task_persons.person_id
+         WHERE task_persons.task_id = ?''',
+      <Object?>['canonical-task'],
+    );
+    expect(taskPersonRows.single['person_id'], 'task-person-old');
+    expect(taskPersonRows.single['name'], 'شخص قدیمی');
 
     final recordColumns = await database.runSelect(
       "PRAGMA table_info('follow_up_records')",
