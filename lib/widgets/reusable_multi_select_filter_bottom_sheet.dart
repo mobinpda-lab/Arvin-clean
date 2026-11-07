@@ -227,6 +227,8 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
     String? emptyLabel,
     String searchHint = 'جستجو...',
     String createHint = 'نام مورد جدید',
+    String createLabel = 'افزودن',
+    Key? createKey,
     Future<ReusableFilterOption<T>?> Function(String value)? onCreate,
   }) async {
     final color = accent ?? Theme.of(context).colorScheme.primary;
