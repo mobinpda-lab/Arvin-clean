@@ -65,6 +65,7 @@ class FollowUpRepository {
         note: current.note,
         result: current.result,
         reminderDate: current.reminderDate,
+        reminderAllDay: current.reminderAllDay,
         nextFollowUp: current.nextFollowUp,
         completed: completed,
         waitingForResponse: current.waitingForResponse,
