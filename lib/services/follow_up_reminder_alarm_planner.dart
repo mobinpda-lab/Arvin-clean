@@ -22,8 +22,6 @@ class FollowUpReminderAlarmPlanner {
     for (final task in tasks) {
       if (task.completed || task.archived || task.trashed) continue;
 
-      final taskReminder = task.reminderDate;
-      TaskReminder? legacyReminderEntry;
       for (final reminder in task.taskReminders) {
         if (reminder.isLegacyTaskReminder) {
           legacyReminderEntry = reminder;
