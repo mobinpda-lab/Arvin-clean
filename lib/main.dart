@@ -975,6 +975,7 @@ class _HomePageState extends State<HomePage> {
             key: const ValueKey('home-compact-filter-wrap'),
             spacing: 6,
             runSpacing: 6,
+            children: [
               HomeFilterPill(
                 key: const ValueKey('home-filter-card-tags'),
                 label: _tagFilters.isEmpty
