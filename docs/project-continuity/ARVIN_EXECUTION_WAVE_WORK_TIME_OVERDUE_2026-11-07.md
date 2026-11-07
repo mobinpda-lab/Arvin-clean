@@ -7,6 +7,7 @@ Release: BLOCKED — RELEASE: NO-GO
 ## Implemented on this branch
 - Task Details inline editing now exposes one «زمان کار / موعد» action instead of separate date and time buttons. It opens the Persian date picker, then the round clock dialog. The clock's explicit «بدون ساعت» action stores the date-only value at midnight with `allDay=true`; no state is committed when either dialog is cancelled.
 - Task Details independent reminder create/edit uses the same date-then-clock sequence and supports the clock dialog's explicit no-time option. All-day reminders store a date-only value and `TaskReminder.isAllDay=true`.
+- Reports Person multi-select now matches both tasks linked through `Task.people` and all historical Follow-up records linked through `FollowUp.personIds`; it no longer restricts person matching to active waiting Follow-ups. The existing Follow-up entry flow already reveals Person selection when the waiting toggle is enabled.
 - Quick Capture custom reminder selection now uses the same explicit time-selection result and persists `Task.reminderAllDay` for no-time reminders. Its existing unified work-time due picker already used the sequential date + clock flow.
 - Added central `TaskDueStatus.isOverdue`: timed tasks become overdue strictly after their datetime; all-day tasks become overdue at the first instant of the next local calendar day; completed or undated tasks are never overdue.
 - Home overdue warning and grouping now use the central rule. Report Center overdue coloring and Report Time «گذشته» matching use the same timed/all-day boundary.
