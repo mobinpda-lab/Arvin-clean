@@ -566,6 +566,8 @@ void main() {
     await tester.ensureVisible(unified);
     await tester.tap(unified);
     await tester.pumpAndSettle();
+    await tester.tap(find.text('انتخاب تاریخ و ساعت'));
+    await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('universal-time-hour-outer-10')));
@@ -602,6 +604,8 @@ void main() {
     await tester.ensureVisible(dateTimeButton);
     await tester.tap(dateTimeButton);
     await tester.pumpAndSettle();
+    await tester.tap(find.text('انتخاب تاریخ و ساعت'));
+    await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('universal-time-hour-outer-11')));
@@ -627,12 +631,16 @@ void main() {
 
     final unified = find.byKey(const ValueKey('task-editor-due-date-time'));
     expect(unified, findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-due-no-time')), findsNothing);
+    expect(find.text('بدون ساعت'), findsNothing);
     expect(find.byKey(const ValueKey('task-editor-due-date-rollbox')), findsNothing);
     expect(find.byKey(const ValueKey('task-editor-due-time-button')), findsNothing);
     expect(find.byKey(const ValueKey('task-editor-due-time-rollbox')), findsNothing);
 
     await tester.ensureVisible(unified);
     await tester.tap(unified);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('انتخاب تاریخ و ساعت'));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
     await tester.pumpAndSettle();
@@ -664,6 +672,8 @@ void main() {
     final unified = find.byKey(const ValueKey('task-editor-due-date-time'));
     await tester.ensureVisible(unified);
     await tester.tap(unified);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('انتخاب تاریخ و ساعت'));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
     await tester.pumpAndSettle();
@@ -769,6 +779,8 @@ void main() {
     final unified = find.byKey(const ValueKey('task-editor-due-date-time'));
     await tester.ensureVisible(unified);
     await tester.tap(unified);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('انتخاب تاریخ و ساعت'));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
     await tester.pumpAndSettle();
