@@ -599,3 +599,12 @@ PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ **BLOCKED — RELE
 - برای HEAD نهایی پس از این ثبت، Build شش‌شارد، Draft Review APK، Calendar Provider، Follow-up Persistence و Device Smoke باید دوباره اجرا و جداگانه بررسی شوند.
 - اصلاحات کد و آزمون تا این نقطه ثبت شده‌اند؛ **رفع‌شدن شکست‌ها هنوز تأیید CI ندارد**. آزمون گوشی واقعی و پذیرش مالک محصول نیز انجام/اثبات نشده‌اند.
 - PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched؛ بدون Merge و انتشار؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## اصلاحیه تکمیلی Home — ۱۴۰۵/۰۸/۱۶
+
+- commit کد/آزمون بعد از checkpoint قبلی: `467e7f76aced41a123f00a99dd334f32f09ad70c`.
+- آزمون Quick Capture اکنون رفتار واقعی محصول را بررسی می‌کند: پس از ثبت، فرم عمداً باز می‌ماند؛ ابتدا ذخیره و حفظ تاریخچه از Store بررسی می‌شود، سپس فرم بسته و نمایش Task در Home تأیید می‌شود.
+- Finder پیمایش آزمون کارت Home به Scrollable داخل `home-task-list-viewport` محدود شد تا به Scrollable نامرتبط/غایب در بخش‌های دیگر وابسته نباشد.
+- این تغییرات فقط اصلاح آزمون بر اساس قرارداد فعلی‌اند؛ بررسی ذخیره واقعی، حفظ تاریخچه و نمایش Home همچنان باید با اجرای تازه Build روی HEAD نهایی تأیید شوند.
+- آخرین نتایج قبلی Build متعلق به SHA `d2e27ba` هستند و برای این commit یا HEAD بعدی اعتبار ندارند. وضعیت انتشار همچنان **BLOCKED — RELEASE: NO-GO** است.
