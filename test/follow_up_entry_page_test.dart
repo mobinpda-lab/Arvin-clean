@@ -107,7 +107,7 @@ void main() {
     expect(result!.dateTime, initial);
   });
 
-  testWidgets('editing preserves legacy scheduling timestamps without exposing controls',
+  testWidgets('editing preserves legacy scheduling timestamps',
       (tester) async {
     FollowUp? result;
     final reminder = DateTime(2026, 9, 2, 7, 45);
