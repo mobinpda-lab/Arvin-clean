@@ -174,8 +174,10 @@ class Task {
     this.dueDate,
     this.centerId,
     this.allDay = false,
-    this.followUpEnabled = false,
-    this.followUpDate,
+    @Deprecated('Follow-up history is represented by FollowUpRecord entries.')
+    bool followUpEnabled = false,
+    @Deprecated('Follow-up records do not schedule future work.')
+    DateTime? followUpDate,
     this.tags = const [],
     this.category,
     this.checklist = const [],
@@ -183,8 +185,10 @@ class Task {
     this.checklistOccurrences = const {},
     this.occurrenceHistory = const {},
     this.notebookKind,
-    this.reminderDate,
-    this.reminderAllDay = false,
+    @Deprecated('Use independent TaskReminder records.')
+    DateTime? reminderDate,
+    @Deprecated('Use TaskReminder.isAllDay.')
+    bool reminderAllDay = false,
     Iterable<TaskReminder> taskReminders = const [],
     this.nextReminderSequence = 1,
     this.legacyTaskReminderMigrationVersion = 0,
@@ -200,7 +204,10 @@ class Task {
   }) : checklistEnabled = checklistEnabled ??
             (checklist.isNotEmpty || notebookKind == NotebookItemKind.checklist),
         people = _normalizePeople(people),
-        taskReminders = List<TaskReminder>.of(taskReminders);
+        taskReminders = List<TaskReminder>.of(taskReminders) {
+    if (reminderDate != null) this.reminderDate = reminderDate;
+    if (reminderAllDay) this.reminderAllDay = true;
+  }
 
   final String id;
   String title;
@@ -213,8 +220,6 @@ class Task {
   /// True when the due date is intentionally date-only (All-Day).
   /// The timestamp remains for date identity; consumers must not present its time.
   bool allDay;
-  bool followUpEnabled;
-  DateTime? followUpDate;
   List<String> tags;
   String? category;
   List<String> checklist;
@@ -228,12 +233,7 @@ class Task {
   /// scheduled occurrence ISO timestamps. Stored in the canonical Task model.
   Map<String, Map<String, dynamic>> occurrenceHistory;
   NotebookItemKind? notebookKind;
-  /// Legacy singular Task reminder retained for backward compatibility.
-  DateTime? reminderDate;
-  /// Explicit date-only state for the legacy singular reminder.
-  /// Midnight timestamps alone never imply All-Day.
-  bool reminderAllDay;
-  /// New independent reminders stored in the canonical Task JSON envelope.
+  /// Independent reminders; all scheduling is represented in this collection.
   List<TaskReminder> taskReminders;
   /// Monotonic per-Task sequence; removed reminder numbers are never reused.
   int nextReminderSequence;
@@ -250,6 +250,72 @@ class Task {
   List<FollowUp> followUps;
   RecurrenceRule? recurrence;
   final List<PersonReference> people;
+
+  /// Legacy compatibility view only. No Follow-up scheduling state is stored.
+  @Deprecated('Use followUps.isNotEmpty.')
+  bool get followUpEnabled => followUps.isNotEmpty;
+
+  @Deprecated('Follow-up history has no future scheduling date.')
+  set followUpEnabled(bool value) {}
+
+  @Deprecated('Follow-up history has no future scheduling date.')
+  DateTime? get followUpDate => null;
+
+  @Deprecated('Follow-up history has no future scheduling date.')
+  set followUpDate(DateTime? value) {}
+
+  /// Compatibility projection backed by the independent TaskReminder list.
+  @Deprecated('Use taskReminders directly.')
+  DateTime? get reminderDate {
+    for (final reminder in taskReminders) {
+      if (reminder.isLegacyTaskReminder) return reminder.date;
+    }
+    return null;
+  }
+
+  @Deprecated('Use taskReminders directly.')
+  set reminderDate(DateTime? value) {
+    final index = taskReminders.indexWhere((item) => item.isLegacyTaskReminder);
+    if (value == null) {
+      if (index >= 0) taskReminders.removeAt(index);
+      return;
+    }
+    if (index >= 0) {
+      taskReminders[index] = taskReminders[index].copyWith(date: value);
+    } else {
+      var reminderId = 'legacy-task-reminder';
+      if (taskReminders.any((item) => item.id == reminderId)) {
+        reminderId = 'legacy-task-reminder-$id';
+      }
+      final sequence = nextReminderSequence;
+      taskReminders.add(TaskReminder(
+        id: reminderId,
+        title: 'یادآوری: $title',
+        date: value,
+        isAllDay: false,
+        sequence: sequence,
+        isLegacyTaskReminder: true,
+      ));
+      nextReminderSequence = sequence + 1;
+    }
+    legacyTaskReminderMigrationVersion = 1;
+  }
+
+  @Deprecated('Use taskReminders directly.')
+  bool get reminderAllDay {
+    for (final reminder in taskReminders) {
+      if (reminder.isLegacyTaskReminder) return reminder.isAllDay;
+    }
+    return false;
+  }
+
+  @Deprecated('Use TaskReminder.isAllDay.')
+  set reminderAllDay(bool value) {
+    final index = taskReminders.indexWhere((item) => item.isLegacyTaskReminder);
+    if (index >= 0) {
+      taskReminders[index] = taskReminders[index].copyWith(isAllDay: value);
+    }
+  }
 
   /// First completion records a timestamp; repeated completion is idempotent.
   /// Explicit reopening clears it so the next completion records a fresh time.
@@ -362,8 +428,6 @@ class Task {
         'dueDate': dueDate?.toIso8601String(),
         if (centerId != null && centerId!.trim().isNotEmpty) 'centerId': centerId,
         if (allDay) 'allDay': true,
-        'followUpEnabled': followUpEnabled,
-        'followUpDate': followUpDate?.toIso8601String(),
         'tags': tags,
         'category': category,
         'checklist': checklist,
@@ -377,8 +441,6 @@ class Task {
             (key, value) => MapEntry(key, Map<String, dynamic>.from(value)),
           ),
         if (notebookKind != null) 'notebookKind': notebookKind!.name,
-        'reminderDate': reminderDate?.toIso8601String(),
-        if (reminderDate != null && reminderAllDay) 'reminderAllDay': true,
         if (taskReminders.isNotEmpty)
           'taskReminders': taskReminders.map((item) => item.toJson()).toList(),
         if (nextReminderSequence > 1)
@@ -489,9 +551,6 @@ class Task {
       if (loadedTaskReminders.isNotEmpty)
         loadedTaskReminders.map((item) => item.sequence).reduce((a, b) => a > b ? a : b) + 1,
     ].reduce((a, b) => a > b ? a : b);
-    final legacyFollowUpDate = json['followUpDate'] == null
-        ? null
-        : DateTime.tryParse(json['followUpDate'] as String);
     final rawPriority = json['priority'];
     final priorityName = rawPriority is String ? rawPriority.trim().toLowerCase() : '';
     final loadedPriority = switch (priorityName) {
@@ -519,9 +578,6 @@ class Task {
           ? null
           : (json['centerId'] as String?)?.trim(),
       allDay: json['allDay'] as bool? ?? false,
-      followUpEnabled: json['followUpEnabled'] as bool? ??
-          loadedFollowUps.isNotEmpty || legacyFollowUpDate != null,
-      followUpDate: legacyFollowUpDate,
       tags: (json['tags'] as List<dynamic>? ?? const [])
           .whereType<String>()
           .toList(),
@@ -540,8 +596,6 @@ class Task {
             (value) => value?.name == json['notebookKind'],
             orElse: () => null,
           ),
-      reminderDate: legacyReminderDate,
-      reminderAllDay: json['reminderAllDay'] as bool? ?? false,
       taskReminders: loadedTaskReminders,
       nextReminderSequence: nextReminderSequence,
       legacyTaskReminderMigrationVersion: migrationVersion,
