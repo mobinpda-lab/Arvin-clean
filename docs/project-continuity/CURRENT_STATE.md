@@ -736,3 +736,11 @@ PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ **BLOCKED — RELE
 - تست UI برای حفظ یادآور قبلی و انتخاب All-Day در FollowUp افزوده/به‌روزرسانی شد. مدل Task نیز در JSON از ذخیرهٔ پرچم All-Day بدون تاریخ جلوگیری می‌کند.
 - این ثبت مستنداتی HEAD شاخه را تغییر می‌دهد؛ تمام دروازه‌ها باید روی SHA نهایی همین ثبت دوباره بررسی شوند. نتایج SHAهای قبلی به آن منتقل نمی‌شوند.
 - **BLOCKED — RELEASE: NO-GO** تا PASS روی SHA نهایی، APK همان SHA و تست نصب/عملکرد روی SM-A528B/DS.
+
+## Layout Fix: Enforced Single-Row Filter — ۱۴۰۵/۰۸/۱۶
+- علت رگرسیون: پنج HomeFilterPill در ArvinTaskSelectorWrap (Wrap) قرار داشتند؛ در عرض محدود موبایل به ردیف دوم می‌شکستند و تست قدیمی نیز پیمایش افقی را انجام می‌داد.
+- اصلاح در `lib/main.dart`: فیلترهای زمان، مرکز، پروژه، دسته و برچسب اکنون در یک Row با `mainAxisSize: MainAxisSize.max`، `mainAxisAlignment: MainAxisAlignment.spaceBetween` و پنج `Expanded` قرار گرفته‌اند؛ فاصله‌ها ۴dp است و پیمایش افقی/Wrap در این ردیف وجود ندارد.
+- اصلاح در `lib/home/home_filter_ui.dart`: HomeFilterPill به کنترل فشرده با ارتفاع ثابت ۴۸dp، آیکون ۱۴dp، متن تک‌خطی و کوچک‌سازی متن در فضای محدود تبدیل شد. حداقل سطح لمس ۴۸dp حفظ شده است.
+- آزمون `test/home/home_filter_contract_test.dart` اکنون عرض‌های ۳۶۰، ۳۹۰ و ۴۱۲dp را بررسی می‌کند: هر پنج فیلتر باید top/bottom یکسان، ارتفاع حداقل ۴۸dp، قرارگیری داخل عرض و نبود Scrollable افقی داشته باشند. مسیر انتخاب فیلترها بدون drag افقی آزمایش می‌شود.
+- این اصلاح در زمان ثبت مستندات کد است و تا اجرای موفق تست/CI روی SHA نهایی VERIFIED محسوب نمی‌شود. PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main بدون تغییر.
+- **BLOCKED — RELEASE: NO-GO** تا اجرای exact-HEAD CI و پذیرش دستی دستگاه.
