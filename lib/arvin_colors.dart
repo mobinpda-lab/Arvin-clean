@@ -14,14 +14,14 @@ abstract final class ArvinColors {
   static const surface = ArvinTheme.cardBackground;
   static const textPrimary = Color(0xFF232433);
   static const textSecondary = Color(0xFF80829C);
-  static const border = Color(0xFFE6E7EE);
+  static const border = ArvinTheme.cardBorder;
   static const shadowSoft = Color(0x0A000000);
   static const shadowDark = Color(0x40000000);
 
   // Dark theme semantic tokens.
-  static const darkPrimary = Color(0xFFB7BCFF);
-  static const darkOnPrimary = Color(0xFF20236E);
-  static const darkSecondary = Color(0xFF9FC4FF);
+  static const darkPrimary = Color(0xFF5AD6D0);
+  static const darkOnPrimary = Color(0xFF003738);
+  static const darkSecondary = Color(0xFF9BE7E2);
   static const darkError = Color(0xFFFFB4AB);
   static const darkSurface = Color(0xFF25283A);
   static const darkBorder = Color(0xFF41465B);
