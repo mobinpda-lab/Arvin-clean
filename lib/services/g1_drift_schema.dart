@@ -314,6 +314,54 @@ class G1DriftSchema implements QueryExecutorUser {
         );
       }
     }
+
+    // A legacy reminder attached to a Follow-up is not Follow-up scheduling:
+    // convert it into a normal independent TaskReminder before the old fields
+    // are retired. The Follow-up's future nextFollowUp value is intentionally
+    // not carried forward.
+    final legacyFollowUpReminders = await executor.runSelect(
+      'SELECT id, task_id, reminder_date FROM follow_ups WHERE reminder_date IS NOT NULL ORDER BY task_id, ordinal',
+      const [],
+    );
+    for (final legacy in legacyFollowUpReminders) {
+      final taskRows = await executor.runSelect(
+        'SELECT legacy_payload_json FROM tasks WHERE id = ?',
+        <Object?>[legacy['task_id']],
+      );
+      var isAllDay = false;
+      if (taskRows.isNotEmpty) {
+        final rawPayload = taskRows.single['legacy_payload_json'];
+        if (rawPayload is String && rawPayload.trim().isNotEmpty) {
+          final decoded = jsonDecode(rawPayload);
+          if (decoded is Map && decoded['followUps'] is List) {
+            for (final rawFollowUp in decoded['followUps'] as List) {
+              if (rawFollowUp is Map && rawFollowUp['id'] == legacy['id']) {
+                isAllDay = rawFollowUp['reminderAllDay'] == true;
+                break;
+              }
+            }
+          }
+        }
+      }
+      final sequenceRows = await executor.runSelect(
+        'SELECT COALESCE(MAX(sequence), 0) + 1 AS next_sequence FROM task_reminders WHERE task_id = ?',
+        <Object?>[legacy['task_id']],
+      );
+      final sequence = (sequenceRows.single['next_sequence'] as num).toInt();
+      await executor.runInsert(
+        '''INSERT OR IGNORE INTO task_reminders
+           (id, task_id, title, remind_at, is_all_day, sequence, is_enabled, is_legacy_task_reminder)
+           VALUES (?, ?, ?, ?, ?, ?, 1, 0)''',
+        <Object?>[
+          'follow-up-reminder-${legacy['id']}',
+          legacy['task_id'],
+          'یادآور پیگیری',
+          legacy['reminder_date'],
+          isAllDay ? 1 : 0,
+          sequence,
+        ],
+      );
+    }
   }
 
   static Future<bool> isLegacyMigrationComplete(QueryExecutor executor) async {
