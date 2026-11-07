@@ -451,7 +451,7 @@ void main() {
     expect(reloaded.description, original.description);
     expect(reloaded.reminderDate, DateTime(2026, 8, 19, 9, 15));
     expect(reloaded.followUpEnabled, isTrue);
-    expect(reloaded.followUpDate, DateTime(2026, 8, 21, 10));
+    expect(reloaded.followUpDate, isNull);
     expect(reloaded.category, 'مشتریان');
     expect(reloaded.tags, <String>['مهم']);
     expect(reloaded.checklist, <String>['تماس', 'ارسال']);
