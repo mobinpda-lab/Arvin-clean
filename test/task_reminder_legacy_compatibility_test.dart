@@ -44,14 +44,14 @@ void main() {
 
       final migrated = Task.fromJson(legacyJson);
       expect(migrated.taskReminders, hasLength(1));
-      expect(migrated.taskReminders.single.id, 'legacy-task-reminder');
+      expect(migrated.taskReminders.single.id, 'legacy-task-reminder-legacy-task');
       expect(migrated.taskReminders.single.date, legacyReminderAt);
       expect(migrated.taskReminders.single.isLegacyTaskReminder, isTrue);
       expect(migrated.dueDate, dueAt);
 
       final reloaded = Task.fromJson(migrated.toJson());
       expect(reloaded.taskReminders, hasLength(1));
-      expect(reloaded.taskReminders.single.id, 'legacy-task-reminder');
+      expect(reloaded.taskReminders.single.id, 'legacy-task-reminder-legacy-task');
       expect(reloaded.taskReminders.single.date, legacyReminderAt);
       expect(reloaded.taskReminders.single.isLegacyTaskReminder, isTrue);
       expect(reloaded.dueDate, dueAt);
