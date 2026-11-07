@@ -80,7 +80,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
   }
 
   Future<void> _loadLifecycle(Task? task) async {
-    if (task == null || task.recurrence == null || task.reminderDate == null) {
+    if (task == null || task.recurrence == null || task.primaryReminderDate == null) {
       if (mounted) {
         setState(() {
         _progress = const {};
@@ -94,7 +94,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
     final now = widget.repository.now();
     final progress = await widget.repository.progress(task.id, from: task.recurrence!.startDate);
     final rule = task.recurrence!;
-    final anchor = task.reminderDate!;
+    final anchor = task.primaryReminderDate!;
     DateTime? next;
     var cursor = rule.startDate ?? anchor;
     var guard = 0;
@@ -132,7 +132,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
     if (task == null || _saving) return;
     final interval = int.tryParse(_interval.text.trim());
     final count = int.tryParse(_count.text.trim());
-    final startDate = _startDate ?? task.reminderDate;
+    final startDate = _startDate ?? task.primaryReminderDate;
     if (_enabled && (interval == null || interval < 1)) {
       _message('فاصله تکرار باید حداقل ۱ باشد');
       return;
@@ -195,7 +195,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
 
   Future<void> _resumeFromToday() async {
     final task = _selectedTask;
-    if (task == null || task.recurrence == null || task.reminderDate == null || _saving) return;
+    if (task == null || task.recurrence == null || task.primaryReminderDate == null || _saving) return;
     setState(() => _saving = true);
     try {
       await widget.repository.resumeFromToday(task.id);
