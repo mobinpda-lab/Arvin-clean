@@ -48,6 +48,12 @@ class TaskDetailPage extends StatefulWidget {
     this.tagOptions = const <String>[],
     this.onCreateCategory,
     this.onCreateTag,
+    this.centers = const <ArvinCenter>[],
+    this.projects = const <ProjectPlan>[],
+    this.selectedProjectId,
+    this.onCreateCenter,
+    this.onCreateProject,
+    this.onProjectChanged,
   });
 
   final Task task;
@@ -73,6 +79,12 @@ class TaskDetailPage extends StatefulWidget {
   final List<String> tagOptions;
   final Future<String?> Function(String name)? onCreateCategory;
   final Future<String?> Function(String name)? onCreateTag;
+  final List<ArvinCenter> centers;
+  final List<ProjectPlan> projects;
+  final String? selectedProjectId;
+  final Future<String?> Function(String name)? onCreateCenter;
+  final Future<String?> Function(String title, String? centerId)? onCreateProject;
+  final Future<void> Function(String? projectId)? onProjectChanged;
 
   @override
   State<TaskDetailPage> createState() => _TaskDetailPageState();
@@ -87,6 +99,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   static const _waitingService = WaitingForResponseService();
 
   late Task _task;
+  late List<ArvinCenter> _centers;
+  late List<ProjectPlan> _projects;
+  String? _selectedCenterId;
+  String? _selectedProjectId;
 
   TaskTemplateStore get _taskTemplates =>
       widget.taskTemplateStore ?? TaskTemplateStore();
@@ -122,6 +138,34 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   void initState() {
     super.initState();
     _task = widget.task;
+    _centers = List<ArvinCenter>.of(widget.centers);
+    _projects = List<ProjectPlan>.of(widget.projects);
+    _selectedCenterId = widget.task.centerId ?? widget.project?.centerId;
+    _selectedProjectId = widget.selectedProjectId ?? widget.project?.id;
+  }
+
+  @override
+  void didUpdateWidget(covariant TaskDetailPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.task.id != widget.task.id) {
+      _task = widget.task;
+      _selectedCenterId = widget.task.centerId ?? widget.project?.centerId;
+      _selectedProjectId = widget.selectedProjectId ?? widget.project?.id;
+    }
+    _centers = List<ArvinCenter>.of(widget.centers);
+    _projects = List<ProjectPlan>.of(widget.projects);
+  }
+
+  String get _selectedCenterName {
+    final center = _centers.where((item) => item.id == _selectedCenterId);
+    return center.isNotEmpty ? center.first.name : widget.centerName ?? 'بدون مرکز';
+  }
+
+  String get _selectedProjectTitle {
+    final project = _projects.where((item) => item.id == _selectedProjectId);
+    return project.isNotEmpty
+        ? project.first.title
+        : widget.projectTitle ?? widget.project?.title ?? 'بدون پروژه';
   }
 
   void _beginInlineEdit() {
@@ -131,6 +175,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     _descriptionController = TextEditingController(text: _task.description);
     _categoryController = TextEditingController(text: _task.category ?? '');
     _tagsController = TextEditingController(text: _task.tags.join('، '));
+    _selectedCenterId = _task.centerId ?? widget.project?.centerId;
+    _selectedProjectId = widget.selectedProjectId ?? widget.project?.id;
     _draftReminders = List<TaskReminder>.of(_task.taskReminders);
     _draftChecklist = List<String>.of(_normalizedChecklist());
     _isAddingChecklist = _task.checklist.isEmpty;
@@ -214,6 +260,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       ..priority = _draftPriority
       ..category = category.isEmpty ? null : category
       ..tags = tags
+      ..centerId = _selectedCenterId
       ..taskReminders = List<TaskReminder>.of(_draftReminders)
       ..checklist = List<String>.of(_draftChecklist)
       ..checklistEnabled = _task.checklistEnabled || _draftChecklist.isNotEmpty
@@ -238,6 +285,15 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       final updated = await save(candidate);
       if (!mounted) return;
       if (updated == null) throw StateError('Inline Task edit was not persisted.');
+      try {
+        await widget.onProjectChanged?.call(_selectedProjectId);
+      } catch (_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('کار ذخیره شد؛ اتصال پروژه نیازمند تلاش دوباره است.')),
+          );
+        }
+      }
       _titleController?.dispose();
       _descriptionController?.dispose();
       _categoryController?.dispose();
@@ -445,6 +501,105 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         const SnackBar(content: Text('یادآور ذخیره شد؛ زمان‌بندی اعلان در اجرای بعدی بازآزمایی می‌شود')),
       );
     }
+  }
+
+  Future<void> _openInlineCenterSelector() async {
+    final options = _centers
+        .map((center) => ReusableFilterOption<String>(
+              value: center.id,
+              label: center.name,
+              icon: Icons.business_outlined,
+            ))
+        .toList(growable: false);
+    final result = await ReusableMultiSelectFilterBottomSheet.showSingleSelect<String>(
+      context,
+      title: 'انتخاب مرکز',
+      accent: ArvinColors.primary,
+      options: options,
+      selectedValue: _selectedCenterId,
+      emptyLabel: 'بدون مرکز',
+      createHint: 'نام مرکز جدید',
+      createLabel: 'افزودن مرکز',
+      onCreate: (name) async {
+        final id = await widget.onCreateCenter?.call(name);
+        if (id == null || id.trim().isEmpty) return null;
+        if (mounted && !_centers.any((center) => center.id == id)) {
+          setState(() {
+            _centers = [
+              ..._centers,
+              ArvinCenter(id: id, name: name, createdAt: DateTime.now()),
+            ];
+          });
+        }
+        return ReusableFilterOption<String>(
+          value: id,
+          label: name,
+          icon: Icons.business_outlined,
+        );
+      },
+    );
+    if (!mounted || result == null) return;
+    setState(() {
+      _selectedCenterId = result.cleared ? null : result.value;
+      final selectedProject = _projects.where((project) => project.id == _selectedProjectId);
+      if (selectedProject.isNotEmpty &&
+          _selectedCenterId != null &&
+          selectedProject.first.centerId != _selectedCenterId) {
+        _selectedProjectId = null;
+      }
+    });
+  }
+
+  Future<void> _openInlineProjectSelector() async {
+    final options = _projects
+        .where((project) =>
+            (!project.isArchived || project.id == _selectedProjectId) &&
+            (_selectedCenterId == null ||
+                project.centerId == null ||
+                project.centerId == _selectedCenterId))
+        .map((project) => ReusableFilterOption<String>(
+              value: project.id,
+              label: project.isArchived
+                  ? '${project.title} (بایگانی‌شده)'
+                  : project.title,
+              icon: Icons.folder_outlined,
+            ))
+        .toList(growable: false);
+    final result = await ReusableMultiSelectFilterBottomSheet.showSingleSelect<String>(
+      context,
+      title: 'انتخاب پروژه',
+      accent: ArvinColors.project,
+      options: options,
+      selectedValue: _selectedProjectId,
+      emptyLabel: 'بدون پروژه',
+      createHint: 'نام پروژه جدید',
+      createLabel: 'افزودن پروژه',
+      onCreate: (title) async {
+        final id = await widget.onCreateProject?.call(title, _selectedCenterId);
+        if (id == null || id.trim().isEmpty) return null;
+        if (mounted && !_projects.any((project) => project.id == id)) {
+          setState(() {
+            _projects = [
+              ..._projects,
+              ProjectPlan(id: id, title: title, centerId: _selectedCenterId),
+            ];
+          });
+        }
+        return ReusableFilterOption<String>(
+          value: id,
+          label: title,
+          icon: Icons.folder_outlined,
+        );
+      },
+    );
+    if (!mounted || result == null) return;
+    setState(() {
+      _selectedProjectId = result.cleared ? null : result.value;
+      final selectedProject = _projects.where((project) => project.id == _selectedProjectId);
+      if (selectedProject.isNotEmpty) {
+        _selectedCenterId = selectedProject.first.centerId;
+      }
+    });
   }
 
   Future<void> _openInlineCategorySelector() async {
