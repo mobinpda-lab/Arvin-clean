@@ -41,7 +41,9 @@ void main() {
       ),
     );
 
-    await tester.tap(find.byTooltip('برچسب'));
+    final tagPill = find.text('برچسب');
+    await tester.ensureVisible(tagPill);
+    await tester.tap(tagPill);
     await tester.pumpAndSettle();
     expect(find.text('انتخاب برچسب'), findsOneWidget);
     expect(find.byType(CheckboxListTile), findsNWidgets(2));

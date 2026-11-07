@@ -339,9 +339,15 @@ void main() {
     );
 
     await tester.tap(find.text('منتظر پاسخ دیگران'));
-    await tester.pump();
-    await tester.enterText(find.byKey(const ValueKey('follow-up-entry-note')), 'تماس ویرایش‌شده');
-    await tester.enterText(find.byKey(const ValueKey('follow-up-entry-result')), 'پاسخ نهایی');
+    await tester.pumpAndSettle();
+    final noteField = find.byKey(const ValueKey('follow-up-entry-note'));
+    await tester.ensureVisible(noteField);
+    await tester.tap(noteField);
+    await tester.enterText(noteField, 'تماس ویرایش‌شده');
+    final resultField = find.byKey(const ValueKey('follow-up-entry-result'));
+    await tester.ensureVisible(resultField);
+    await tester.tap(resultField);
+    await tester.enterText(resultField, 'پاسخ نهایی');
     await tapVisible(tester, 'ذخیره تغییرات');
     await tester.pumpAndSettle();
 

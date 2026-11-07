@@ -320,7 +320,9 @@ void main() {
       find.byKey(const ValueKey('task-editor-title')),
       'کار ذخیره‌شده هنگام خروج',
     );
-    await tester.tap(find.byTooltip('برچسب'));
+    final tagPill = find.text('برچسب');
+    await tester.ensureVisible(tagPill);
+    await tester.tap(tagPill);
     await tester.pumpAndSettle();
     await tester.tap(find.text('فوری'));
     await tester.pumpAndSettle();
@@ -611,9 +613,12 @@ void main() {
     await tester.ensureVisible(dateTimeButton);
     await tester.tap(dateTimeButton);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('انتخاب تاریخ و ساعت'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
+    final datePicker = find.byKey(const ValueKey('persian-date-picker'));
+    expect(datePicker, findsOneWidget);
+    await tester.tap(find.descendant(
+      of: datePicker,
+      matching: find.text('انتخاب تاریخ'),
+    ));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('universal-time-hour-outer-11')));
     await tester.pump();

@@ -319,11 +319,16 @@ void main() {
     );
     await tester.tap(find.text('reopen-person-follow-up'));
     await tester.pumpAndSettle();
-    expect(
-      tester.widget<FilterChip>(find.byKey(const ValueKey('follow-up-person-person-ana'))).selected,
-      isTrue,
+    final anaChip = find.byKey(const ValueKey('follow-up-person-person-ana'));
+    await tester.scrollUntilVisible(
+      anaChip,
+      160,
+      scrollable: find.byType(Scrollable).first,
     );
-    await tester.tap(find.byKey(const ValueKey('follow-up-person-person-ana')));
+    await tester.ensureVisible(anaChip);
+    await tester.pumpAndSettle();
+    expect(tester.widget<FilterChip>(anaChip).selected, isTrue);
+    await tester.tap(anaChip);
     await tester.pumpAndSettle();
     await saveEditor(tester);
     expect(saved!.personIds, isNot(contains('person-ana')));

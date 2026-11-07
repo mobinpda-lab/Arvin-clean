@@ -207,7 +207,9 @@ void main() {
     expect(noTime, findsOneWidget);
     await tester.tap(noTime);
     await tester.pumpAndSettle();
-    expect(find.textContaining('تمام‌روز'), findsOneWidget);
+    // The redesigned pill shows the date only for an All-Day selection.
+    expect(find.byKey(const ValueKey('task-editor-due-date-time')), findsOneWidget);
+    expect(find.textContaining('تمام‌روز'), findsNothing);
 
     final save = find.byKey(const ValueKey('task-editor-header-save'));
     await tester.ensureVisible(save);

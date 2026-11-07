@@ -661,12 +661,21 @@ void main() {
 
     await tester.tap(find.text('یادآور'));
     await tester.pumpAndSettle();
-    expect(find.text('تاریخ و ساعت سفارشی'), findsOneWidget);
-    await tester.tap(find.text('تاریخ و ساعت سفارشی'));
+    final customReminder = find.text('تاریخ و ساعت سفارشی');
+    expect(customReminder, findsOneWidget);
+    await tester.ensureVisible(customReminder);
+    await tester.pumpAndSettle();
+    await tester.tap(customReminder);
     await tester.pumpAndSettle();
 
-    expect(find.widgetWithText(FilledButton, 'انتخاب تاریخ'), findsOneWidget);
-    await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
+    final datePicker = find.byKey(const ValueKey('persian-date-picker'));
+    expect(datePicker, findsOneWidget);
+    final confirmDate = find.descendant(
+      of: datePicker,
+      matching: find.text('انتخاب تاریخ'),
+    ).last;
+    await tester.ensureVisible(confirmDate);
+    await tester.tap(confirmDate);
     await tester.pumpAndSettle();
 
     expect(find.text('زمان یادآوری'), findsWidgets);
