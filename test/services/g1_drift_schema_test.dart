@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:arvin/services/g1_drift_schema.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -50,6 +51,10 @@ void main() {
       containsAll(<String>[
         'tasks',
         'follow_ups',
+        'follow_up_records',
+        'task_reminders',
+        'persons',
+        'follow_up_record_people',
         'projects',
         'project_items',
         'task_templates',
@@ -71,6 +76,88 @@ void main() {
       const [],
     );
     expect(foreignKeys.single['foreign_keys'], 1);
+  });
+
+  test('materializes multiple Task reminders, historical Follow-ups and Persons canonically', () async {
+    await G1DriftSchema.install(database);
+    final payload = <String, dynamic>{
+      'id': 'canonical-task',
+      'title': 'کار کانونی',
+      'taskReminders': <Map<String, dynamic>>[
+        {
+          'id': 'reminder-one',
+          'title': 'یادآور اول',
+          'date': '2026-11-08T09:00:00.000',
+          'isAllDay': false,
+          'sequence': 1,
+        },
+        {
+          'id': 'reminder-two',
+          'title': 'یادآور دوم',
+          'date': '2026-11-09T00:00:00.000',
+          'isAllDay': true,
+          'sequence': 2,
+        },
+      ],
+      'followUps': <dynamic>[],
+    };
+    await database.runInsert(
+      '''INSERT INTO tasks
+         (id, title, description, follow_up_enabled, priority, archived, trashed,
+          completed, legacy_payload_json)
+         VALUES (?, ?, '', 0, 'none', 0, 0, 0, ?)''',
+      <Object?>['canonical-task', jsonEncode(payload)],
+    );
+    await database.runCustom(
+      '''INSERT INTO follow_ups
+         (id, task_id, date_time, note, reminder_date, next_follow_up, completed, ordinal)
+         VALUES ('legacy-follow-up', 'canonical-task', '2026-11-06T12:00:00.000',
+                 'سابقه تاریخی', '2026-11-07T09:00:00.000',
+                 '2026-11-10T09:00:00.000', 1, 0)''',
+    );
+    await database.runCustom(
+      '''INSERT INTO people (id, name, created_at, updated_at)
+         VALUES ('person-1', 'شخص یک', '2026-11-01', '2026-11-01')''',
+    );
+    await database.runCustom(
+      '''INSERT INTO follow_up_people (follow_up_id, person_id, ordinal)
+         VALUES ('legacy-follow-up', 'person-1', 0)''',
+    );
+
+    await G1DriftSchema.migrateCanonicalEntities(database);
+
+    final reminders = await database.runSelect(
+      'SELECT id, is_all_day FROM task_reminders WHERE task_id = ? ORDER BY sequence',
+      <Object?>['canonical-task'],
+    );
+    expect(reminders.map((row) => row['id']), ['reminder-one', 'reminder-two']);
+    expect(reminders.map((row) => row['is_all_day']), [0, 1]);
+
+    final records = await database.runSelect(
+      'SELECT id, completed_at FROM follow_up_records WHERE task_id = ?',
+      <Object?>['canonical-task'],
+    );
+    expect(records, hasLength(1));
+    expect(records.single['completed_at'], '2026-11-06T12:00:00.000');
+
+    final recordPeople = await database.runSelect(
+      'SELECT person_id FROM follow_up_record_people WHERE follow_up_id = ?',
+      <Object?>['legacy-follow-up'],
+    );
+    expect(recordPeople.single['person_id'], 'person-1');
+
+    final personRows = await database.runSelect(
+      'SELECT name FROM persons WHERE id = ?',
+      <Object?>['person-1'],
+    );
+    expect(personRows.single['name'], 'شخص یک');
+
+    final recordColumns = await database.runSelect(
+      "PRAGMA table_info('follow_up_records')",
+      const [],
+    );
+    expect(recordColumns.map((row) => row['name']), isNot(contains('next_follow_up')));
+    expect(recordColumns.map((row) => row['name']), isNot(contains('reminder_date')));
   });
 
   test('concurrent stores share one serialized schema installation', () async {
