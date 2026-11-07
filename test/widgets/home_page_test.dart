@@ -546,11 +546,12 @@ void main() {
   });
 
 
-  testWidgets('Home compact filter chips remain safe on a short RTL viewport', (tester) async {
-    tester.view.physicalSize = const Size(320, 520);
+  testWidgets('Home five filters stay in one RTL row without horizontal scrolling at phone widths and with keyboard',
+      (tester) async {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetViewInsets);
 
     SharedPreferences.setMockInitialValues({
       'arvin.tasks': '[{"id":"a","title":"کار الف","category":"مشتری","tags":["مهم","تماس"]},{"id":"b","title":"کار ب","category":"فروش","tags":["مهم"]}]',
@@ -558,24 +559,50 @@ void main() {
     });
 
     await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    for (final width in <double>[360, 390, 412]) {
+      tester.view.physicalSize = Size(width, 760);
+      tester.view.viewInsets = const FakeViewPadding();
+      await tester.pumpAndSettle();
 
-    final filterStrip = find.byKey(const ValueKey('home-compact-filter-wrap'));
-    expect(filterStrip, findsOneWidget);
-    expect(Directionality.of(tester.element(filterStrip)), TextDirection.rtl);
-    final filterWrap = find.descendant(of: filterStrip, matching: find.byType(Wrap));
-    expect(filterWrap, findsOneWidget);
-    expect(tester.widget<Wrap>(filterWrap).textDirection, TextDirection.rtl);
-    expect(
-      find.descendant(
-        of: filterStrip,
-        matching: find.byWidgetPredicate(
-          (widget) => widget is SingleChildScrollView &&
-              widget.scrollDirection == Axis.horizontal,
+      final filterStrip = find.byKey(const ValueKey('home-compact-filter-wrap'));
+      expect(filterStrip, findsOneWidget);
+      expect(Directionality.of(tester.element(filterStrip)), TextDirection.rtl);
+      final filterRow = find.byKey(const ValueKey('home-compact-filter-row'));
+      expect(filterRow, findsOneWidget);
+      expect(tester.widget<Row>(filterRow).textDirection, TextDirection.rtl);
+      expect(
+        find.descendant(
+          of: filterStrip,
+          matching: find.byType(Wrap),
         ),
-      ),
-      findsNothing,
-    );
+        findsNothing,
+      );
+      expect(
+        find.descendant(
+          of: filterStrip,
+          matching: find.byWidgetPredicate(
+            (widget) => widget is SingleChildScrollView &&
+                widget.scrollDirection == Axis.horizontal,
+          ),
+        ),
+        findsNothing,
+      );
+      final controls = find.descendant(
+        of: filterStrip,
+        matching: find.byType(HomeFilterPill),
+      );
+      expect(controls, findsNWidgets(5));
+      for (final control in controls.evaluate()) {
+        final size = tester.getSize(find.byWidget(control.widget));
+        expect(size.height, greaterThanOrEqualTo(48));
+        expect(size.width, greaterThanOrEqualTo(48));
+      }
+      expect(tester.takeException(), isNull);
+    }
+
+    tester.view.viewInsets = const FakeViewPadding(bottom: 280);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('home-compact-filter-row')), findsOneWidget);
     expect(tester.takeException(), isNull);
 
     expect(find.byKey(const ValueKey('home-filter-card-project')), findsOneWidget);
