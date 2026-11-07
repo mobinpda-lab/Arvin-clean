@@ -50,7 +50,6 @@ void main() {
       tables.map((row) => row['name']),
       containsAll(<String>[
         'tasks',
-        'follow_ups',
         'follow_up_records',
         'task_reminders',
         'persons',
@@ -64,6 +63,13 @@ void main() {
         'task_people',
       ]),
     );
+
+    expect(
+      tables.map((row) => row['name']),
+      isNot(contains('follow_ups')),
+    );
+    expect(tables.map((row) => row['name']), isNot(contains('follow_up_people')));
+    expect(tables.map((row) => row['name']), isNot(contains('people')));
 
     final taskTemplateColumns = await database.runSelect(
       "PRAGMA table_info('task_templates')",
@@ -107,6 +113,25 @@ void main() {
           completed, legacy_payload_json)
          VALUES (?, ?, '', 0, 'none', 0, 0, 0, ?)''',
       <Object?>['canonical-task', jsonEncode(payload)],
+    );
+    // Recreate the pre-v12 layout to exercise the real upgrade/cutover path.
+    await database.runCustom(
+      '''CREATE TABLE follow_ups (
+         id TEXT NOT NULL PRIMARY KEY, task_id TEXT NOT NULL REFERENCES tasks(id),
+         date_time TEXT NOT NULL, title TEXT NULL, note TEXT NOT NULL, result TEXT NULL,
+         reminder_date TEXT NULL, next_follow_up TEXT NULL, completed INTEGER NOT NULL,
+         waiting_for_response INTEGER NOT NULL DEFAULT 0, ordinal INTEGER NOT NULL,
+         UNIQUE(task_id, ordinal))''',
+    );
+    await database.runCustom(
+      '''CREATE TABLE follow_up_people (
+         follow_up_id TEXT NOT NULL REFERENCES follow_ups(id), person_id TEXT NOT NULL,
+         ordinal INTEGER NOT NULL, PRIMARY KEY(follow_up_id, person_id))''',
+    );
+    await database.runCustom(
+      '''CREATE TABLE people (
+         id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL,
+         created_at TEXT NOT NULL, updated_at TEXT NOT NULL)''',
     );
     await database.runCustom(
       '''INSERT INTO follow_ups
@@ -204,22 +229,22 @@ void main() {
     );
 
     await database.runCustom(
-      "INSERT INTO follow_ups "
-      "(id, task_id, date_time, note, completed, ordinal) "
+      "INSERT INTO follow_up_records "
+      "(id, task_id, completed_at, note, completed, ordinal) "
       "VALUES ('fu-1', 'task-1', '2026-09-22T10:00:00Z', 'اول', 0, 0)",
     );
 
     await expectLater(
       database.runCustom(
-        "INSERT INTO follow_ups "
-        "(id, task_id, date_time, note, completed, ordinal) "
+        "INSERT INTO follow_up_records "
+        "(id, task_id, completed_at, note, completed, ordinal) "
         "VALUES ('fu-2', 'task-1', '2026-09-22T11:00:00Z', 'تکراری', 0, 0)",
       ),
       throwsA(isA<Exception>()),
     );
 
     final ordered = await database.runSelect(
-      'SELECT ordinal FROM follow_ups WHERE task_id = ? ORDER BY ordinal',
+      'SELECT ordinal FROM follow_up_records WHERE task_id = ? ORDER BY ordinal',
       <Object?>['task-1'],
     );
     expect(ordered.single['ordinal'], 0);
@@ -230,8 +255,8 @@ void main() {
 
     await expectLater(
       database.runCustom(
-        "INSERT INTO follow_ups "
-        "(id, task_id, date_time, note, completed, ordinal) "
+        "INSERT INTO follow_up_records "
+        "(id, task_id, completed_at, note, completed, ordinal) "
         "VALUES ('fu-orphan', 'missing', '2026-09-22T10:00:00Z', '', 0, 0)",
       ),
       throwsA(isA<Exception>()),
