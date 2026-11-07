@@ -525,3 +525,16 @@ This is an implementation record following the earlier Wave 7.299 ownership audi
 - Exact-SHA Build Analyze and Test-0 through Test-5 all passed; Review Staging APK, Calendar Provider and Follow-up Persistence workflows passed. Device Smoke remains CANCELLED: Quick Capture, Task Lifecycle, Reminder/Vazirmatn and Follow-up Persistence passed; Boot, Navigation and Calendar Segmented View remain incomplete/cancelled. No full seven-lane acceptance claim.
 - Generated and audited review-only staging APK with source SHA 7e61b8d1ac81dca08c99cc5694fb3f5ab21e9e19; package `com.example.arvin.staging`, non-debuggable, v2/v3 verified, Vazirmatn assets present, signed by ephemeral test-only key, non-publishable. See continuation ledger for separate archive/APK SHA-256 values.
 - No code/test weakening or timeout workaround was applied. Device smoke root cause and physical-device visual acceptance remain unresolved; release remains BLOCKED — RELEASE: NO-GO.
+
+
+## 2026-11-07 — Product-owner directive: unified work time, canonical entities and universal filters
+
+- Registered the PO contract in `docs/project-continuity/ARVIN_PO_UNIFIED_WORK_TIME_SCHEMA_FILTER_ENGINE_2026-11-07.md`.
+- Unified «زمان کار / موعد» must replace parallel date/time/due-date controls in Quick Add, Task Details and Edit. Date selection opens the round time picker; «بدون ساعت» is an in-dialog action that persists an all-day value without synthetic midnight. Cancellation preserves the prior value. Reminder pickers follow the same sequence independently.
+- Overdue contract: timed tasks become overdue after their datetime; all-day tasks only after the local day ends; completed tasks are never overdue.
+- Clean-slate Drift authorization covers canonical `tasks`, independent multi-row `task_reminders`, historical-only `follow_up_records`, and unified `persons`; remove `follow_up_enabled`, `follow_up_date`, and `next_follow_up` after consumers are refactored. Bump schema version and prove fresh database initialization.
+- Register reusable five-way RTL filters (زمان، مرکز، پروژه، دسته، برچسب), inline create-and-auto-select, OR within each dimension / AND across dimensions, one responsive row at 360/390/412dp, and 48dp minimum touch targets.
+- Register turquoise palette and exact Calendar vector phrase. Keep Bismillah SVG at 210dp and Vazirmatn.
+- Waiting-for-others flow binds a unified Person; Reports Person filter covers linked tasks and follow-ups.
+- Initial live checkpoint on SHA `a10d3f3ed0a4a815ca88b4e7622e07921e7c2290`: Build, Analyze, six test shards, Visual, Calendar Provider and Follow-up SQLite succeeded. Device Smoke was still running/queued on an Android emulator, not a physical Samsung. Staging APK raw SHA-256 `8f253be983cbc2db4f6bc51ad261f1983573396c284b823184d89e20a38bafde`, size `79120216` bytes; signed with an ephemeral test-only key and `publishable=false`.
+- This is contract registration and baseline evidence only, not implementation acceptance. Physical Samsung SM-A528B/DS seven-path evidence remains mandatory. PR #3052 stays OPEN/DRAFT/UNMERGED; main untouched; **BLOCKED — RELEASE: NO-GO**.
