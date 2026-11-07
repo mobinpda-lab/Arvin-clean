@@ -605,3 +605,12 @@ This is an implementation record following the earlier Wave 7.299 ownership audi
 - Corrected shared filter imports/generic callback contracts and Center model imports needed by the unified selector work.
 - Compatibility projections remain temporary until every source consumer and existing test has moved. No tests were removed or weakened.
 - Exact-HEAD CI is required on `381ff68207a201ed722ae428ec8ffc48418b458b`; release remains **BLOCKED — RELEASE: NO-GO** pending all checks and physical Samsung SM-A528B/DS smoke.
+
+
+## 2026-11-07 — Unified Person relation
+
+- Normalized Task-to-Person links into `task_persons` with foreign keys to the canonical `persons` directory.
+- Follow-up Person links now reference the same Person directory; migration transfers the former JSON relation before retiring it.
+- TaskStore and the SQL migration writer now read/write stable Person IDs through the normalized relation.
+- Added schema and migration regression coverage, including foreign-key checks.
+- Exact-HEAD CI and physical Samsung SM-A528B/DS Device Smoke remain required; **BLOCKED — RELEASE: NO-GO**.
