@@ -71,7 +71,7 @@ void main() {
     expect(result.map((task) => task.id), ['open']);
   });
 
-  test('person multi-select matches only active waiting Follow-up associations', () {
+  test('person multi-select matches linked Tasks and Follow-up history', () {
     final ana = PersonReference(id: 'ana', displayName: 'آنا');
     final taskPersonOnly = Task(id: 'task-person-only', title: 'فقط ارتباط شخص', people: [ana]);
     final waitingFollowUp = Task(
@@ -104,7 +104,10 @@ void main() {
       now: now,
     );
 
-    expect(result.map((task) => task.id), ['waiting-follow-up-person']);
+    expect(
+      result.map((task) => task.id).toSet(),
+      {'task-person-only', 'waiting-follow-up-person', 'ordinary-follow-up-person'},
+    );
   });
 
   test('trashed tasks never enter reports', () {
