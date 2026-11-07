@@ -703,6 +703,22 @@ class _HomePageState extends State<HomePage> {
     return id;
   }
 
+  Future<PersonReference?> _createReportPerson(String value) async {
+    final name = value.trim();
+    if (name.isEmpty) return null;
+    final directory = await taskStore.loadPeopleDirectory();
+    final existing = directory.where(
+      (person) => person.displayName.trim().toLowerCase() == name.toLowerCase(),
+    );
+    if (existing.isNotEmpty) return existing.first;
+    final person = PersonReference(
+      id: 'person_${DateTime.now().microsecondsSinceEpoch}',
+      displayName: name,
+    );
+    await taskStore.savePeopleDirectory([...directory, person]);
+    return person;
+  }
+
   Future<void> _save() async {
     if (loadFailure != null) {
       throw StateError(
@@ -2783,6 +2799,11 @@ class _HomePageState extends State<HomePage> {
           centers: List<ArvinCenter>.of(centers),
           templates: templates,
           people: people,
+          onCreateCenter: _createCenter,
+          onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
+          onCreateCategory: _createCategory,
+          onCreateTag: _createTag,
+          onCreatePerson: _createReportPerson,
         ),
       ),
     );
