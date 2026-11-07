@@ -278,46 +278,35 @@ class Task {
   /// Compatibility projection backed by the independent TaskReminder list.
   @Deprecated('Use taskReminders directly.')
   DateTime? get reminderDate {
-    for (final reminder in taskReminders) {
-      if (reminder.isLegacyTaskReminder) return reminder.date;
-    }
-    return null;
+    if (taskReminders.isEmpty) return null;
+    final ordered = List<TaskReminder>.of(taskReminders)
+      ..sort((a, b) => a.sequence.compareTo(b.sequence));
+    return ordered.first.date;
   }
 
   @Deprecated('Use taskReminders directly.')
   set reminderDate(DateTime? value) {
-    final index = taskReminders.indexWhere((item) => item.isLegacyTaskReminder);
+    final ordered = List<TaskReminder>.of(taskReminders)
+      ..sort((a, b) => a.sequence.compareTo(b.sequence));
+    final primary = ordered.isEmpty ? null : ordered.first;
     if (value == null) {
-      if (index >= 0) taskReminders.removeAt(index);
+      if (primary != null) taskReminders.removeWhere((item) => item.id == primary.id);
       return;
     }
-    if (index >= 0) {
-      taskReminders[index] = taskReminders[index].copyWith(
-        id: 'legacy-task-reminder-$id',
-        date: value,
-      );
-    } else {
-      final reminderId = 'legacy-task-reminder-$id';
-      var highestSequence = 0;
-      for (final reminder in taskReminders) {
-        if (reminder.sequence > highestSequence) {
-          highestSequence = reminder.sequence;
-        }
-      }
-      final sequence = nextReminderSequence > highestSequence
-          ? nextReminderSequence
-          : highestSequence + 1;
-      taskReminders.add(TaskReminder(
-        id: reminderId,
-        title: 'یادآوری: $title',
-        date: value,
-        isAllDay: false,
-        sequence: sequence,
-        isLegacyTaskReminder: true,
-      ));
-      nextReminderSequence = sequence + 1;
+    if (primary != null) {
+      final index = taskReminders.indexWhere((item) => item.id == primary.id);
+      taskReminders[index] = primary.copyWith(date: value);
+      return;
     }
-    legacyTaskReminderMigrationVersion = 1;
+    final sequence = nextReminderSequence < 1 ? 1 : nextReminderSequence;
+    taskReminders.add(TaskReminder(
+      id: 'task-reminder-$id-$sequence',
+      title: 'یادآوری: $title',
+      date: value,
+      isAllDay: false,
+      sequence: sequence,
+    ));
+    nextReminderSequence = sequence + 1;
   }
 
   @Deprecated('Use taskReminders directly.')
