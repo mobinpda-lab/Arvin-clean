@@ -600,9 +600,9 @@ Future<DateTime?> _pickCustomDue() async {
                         children: [
                           Expanded(child: ArvinRollBox<Object?>(
                             key: const ValueKey('quick-capture-due-rollbox'),
-                            label: 'تاریخ و ساعت',
+                            label: 'زمان',
                             compact: true,
-                            valueLabel: _dueDate == null ? 'تاریخ و ساعت' : _dateLabel(_dueDate, dateOnly: _dueAllDay),
+                            valueLabel: _dueDate == null ? 'زمان' : _dateLabel(_dueDate, dateOnly: _dueAllDay),
                             icon: Icons.calendar_today_outlined,
                             color: ArvinColors.time,
                             emptyLabel: 'بدون تاریخ و ساعت',
