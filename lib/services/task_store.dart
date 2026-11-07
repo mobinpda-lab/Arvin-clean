@@ -83,7 +83,11 @@ class TaskStore {
       };
       await executor.runCustom('BEGIN');
       try {
-        await executor.runCustom('DELETE FROM persons');
+        await executor.runCustom(
+          '''DELETE FROM persons
+             WHERE id NOT IN (SELECT person_id FROM task_persons
+                              UNION SELECT person_id FROM follow_up_record_people)''',
+        );
         final now = DateTime.now().toIso8601String();
         for (final person in normalized.values) {
           final old = oldById[person.id];
@@ -722,11 +726,19 @@ class TaskStore {
     envelope['tags'] = tags.map((item) => item['name'] as String).toList();
 
     final people = await executor.runSelect(
-      'SELECT person_json FROM task_people WHERE task_id = ? ORDER BY ordinal',
+      '''SELECT persons.id, persons.name
+         FROM task_persons
+         JOIN persons ON persons.id = task_persons.person_id
+         WHERE task_persons.task_id = ?
+         ORDER BY task_persons.ordinal''',
       <Object?>[row['id']],
     );
-    envelope['people'] =
-        people.map((item) => jsonDecode(item['person_json'] as String)).toList();
+    envelope['people'] = people
+        .map((item) => <String, dynamic>{
+              'id': item['id'],
+              'displayName': item['name'],
+            })
+        .toList(growable: false);
 
     return Task.fromJson(envelope);
   }
@@ -780,7 +792,7 @@ class TaskStore {
       await executor.runCustom('DELETE FROM template_task_applications');
       await executor.runCustom('DELETE FROM project_items');
       await executor.runCustom('DELETE FROM task_tags');
-      await executor.runCustom('DELETE FROM task_people');
+      await executor.runCustom('DELETE FROM task_persons');
       await executor.runCustom('DELETE FROM checklist_items');
       await executor.runCustom('DELETE FROM task_reminders');
       await executor.runCustom('DELETE FROM follow_up_record_people');
@@ -925,8 +937,8 @@ class TaskStore {
         <Object?>[person.id, person.displayName, now, now],
       );
       await executor.runInsert(
-        'INSERT INTO task_people (task_id, person_id, person_json, ordinal) VALUES (?, ?, ?, ?)',
-        <Object?>[task.id, person.id, jsonEncode(person.toJson()), ordinal],
+        'INSERT INTO task_persons (task_id, person_id, ordinal) VALUES (?, ?, ?)',
+        <Object?>[task.id, person.id, ordinal],
       );
     }
     for (var ordinal = 0; ordinal < task.tags.length; ordinal++) {
