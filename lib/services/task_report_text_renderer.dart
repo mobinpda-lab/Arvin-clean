@@ -38,8 +38,12 @@ class TaskReportTextRenderer {
       if (entry.description.trim().isNotEmpty) {
         buffer.writeln('توضیحات: ${entry.description.trim()}');
       }
-      if (entry.reminderDate != null) {
-        buffer.writeln('یادآوری: ${formatDateTime(entry.reminderDate!)}');
+      for (final reminder in entry.reminders) {
+        final due = reminder.isAllDay
+            ? formatDate(reminder.date)
+            : formatDateTime(reminder.date);
+        final enabled = reminder.isEnabled ? '' : ' (غیرفعال)';
+        buffer.writeln('یادآوری: ${reminder.title} — $due$enabled');
       }
       if (entry.tags.isNotEmpty) {
         buffer.writeln('برچسب‌ها: ${entry.tags.join('، ')}');
@@ -64,6 +68,9 @@ class TaskReportTextRenderer {
 
     return buffer.toString().trimRight();
   }
+
+  static String formatDate(DateTime value) =>
+      _dateFormatter.format(value, usePersianDate: true);
 
   static String formatDateTime(DateTime value) {
     final date = _dateFormatter.format(value, usePersianDate: true);
