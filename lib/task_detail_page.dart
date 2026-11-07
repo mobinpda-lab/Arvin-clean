@@ -70,7 +70,7 @@ class TaskDetailPage extends StatefulWidget {
 }
 
 class _TaskDetailPageState extends State<TaskDetailPage> {
-  static const _brand = ArvinColors.primary;
+  Color get _brand => Theme.of(context).colorScheme.primary;
   static const _waiting = ArvinColors.reminder;
   static const _muted = ArvinColors.neutral;
   static const _formatter = PersianDateFormatter();
