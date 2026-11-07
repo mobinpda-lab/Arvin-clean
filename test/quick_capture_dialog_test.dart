@@ -31,7 +31,7 @@ void main() {
     await tester.ensureVisible(center);
     await tester.tap(center);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('افزودن').last);
+    await tester.tap(find.byKey(const ValueKey('quick-capture-create-center')));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, 'مرکز تازه');
     await tester.tap(find.widgetWithText(FilledButton, 'افزودن').last);

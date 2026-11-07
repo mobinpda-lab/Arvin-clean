@@ -70,7 +70,7 @@ void main() {
     );
     await tester.tap(find.byTooltip('دسته'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('افزودن').last);
+    await tester.tap(find.byKey(const ValueKey('task-editor-create-category')));
     await tester.pumpAndSettle();
     await tester.enterText(find.widgetWithText(TextField, 'نام'), '  مشتری ویژه  ');
     await tester.tap(find.text('افزودن').last);
