@@ -858,3 +858,18 @@ PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main دست‌نخورد�
 - اصلاح سرریز ۱۵۸ پیکسلی پنل فیلتر در commit `2baad457ba0bdd89114566afb4b42e2315904bb2` ثبت شده است؛ قبولی تست‌های مرتبط باید از شاردهای اجرای جاری و همین SHA تأیید شود. شکست‌های قدیمی run `42406373769` روی SHA `6fa57ce5231f73d67304bed46263a02af1e1cb90` به HEAD فعلی تعمیم داده نمی‌شوند.
 - نصب و رفتار واقعی روی Samsung SM-A528B/DS هنوز **در انتظار تأیید** است؛ Artifact بازبینی به‌تنهایی اثبات نصب و پذیرش گوشی واقعی نیست.
 - انتشار همچنان **BLOCKED — RELEASE: NO-GO** است. PR باید OPEN/DRAFT/UNMERGED بماند؛ هیچ Merge، انتشار یا تغییری در `main` مجاز نیست.
+
+
+---
+
+## TODO / Staging APK execution update — 2026-11-07 — HEAD `ad58025592690515020de2c4e3bf0fd0ac65db1b`
+
+- دفتر کارهای باز مطابق آخرین درخواست مالک در [`TODO.md`](TODO.md) با شناسه‌های TSK-01 تا TSK-04 و دروازه انتشار ARV-REL-01 همگام شد.
+- **Staging APK run `42406934575`: SUCCESS روی SHA `2baad457ba0bdd89114566afb4b42e2315904bb2`.** Artifact ID `13588285590`، APK `Arvin-review-staging-2baad457ba0bdd89114566afb4b42e2315904bb2.apk`، حجم `79,185,752` bytes، APK SHA-256 `dd990f90a1441423c3214e915d528f5f78e6d65ce0045b45b75791ddd1873416`. Artifact ZIP برابر `39,226,418` bytes با digest `29369cb751c75055198b69252cd49461d47bf8e50a7e4da3d289393ce6cb89aa`. package `com.example.arvin.staging`، non-debuggable، امضای V2/V3 و Vazirmatn تأیید شده‌اند. کلید امضا موقت و مخصوص بازبینی است؛ `publishable=false`. [Run](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/42406934575) · [Artifact](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/42406934575/artifacts/13588285590)
+- Build run `42406934619` روی همان SHA با وضعیت CANCELLED پایان یافته است؛ موفقیت Review APK را نباید به معنی قبولی Build و همه شاردها دانست.
+- Build run `42407484460` روی SHA `b1ad86a164f9d8f8363e29313163f1be0ee53d4a` نیز بعد از پیش‌روی شاخه CANCELLED شده است. job شارد ۱ پیش از لغو، **174 passed / 13 failed** گزارش کرده است؛ از جمله شکست‌های timestamp/Reminder، Drift binding، و overflow عمودی در سناریوهای UI. این نتایج فقط به همان SHA تعلق دارند.
+- روی HEAD فعلی این checkpoint، `ad58025592690515020de2c4e3bf0fd0ac65db1b`، Build run `42408265669` در جریان است؛ Analyze و Visual موفق‌اند، اما شش شارد و APKها در انتظار نتیجه نهایی‌اند. Device Smoke run `42408265703` در وضعیت PENDING و بدون job قابل مشاهده است. Calendar Provider و Review APK مربوط به همین HEAD نیز در زمان ثبت در حال اجرا هستند.
+- **Samsung SM-A528B/DS:** نصب و رفتار واقعی، نبود کرش و اعمال رنگ `#3A86EF` هنوز در انتظار تأیید است؛ Artifact به‌تنهایی اثبات نصب فیزیکی نیست.
+- **پالت رنگ:** گزارش `ARVIN_DYNAMIC_THEME_PALETTE_2026-11-07.md` وجود AppThemeManager، ۹ رنگ و کلید `arvin.settings.primaryColor` را مستند کرده؛ آزمون نهایی SharedPreferences، پوشش کامل صفحات و پذیرش بصری/دستگاهی هنوز باز است.
+- **فیلترها:** اصلاح قبلی overflow در commit `2baad457ba0bdd89114566afb4b42e2315904bb2` ثبت شده؛ آزمون میدانی مستقل در عرض‌های 360، 390 و 412dp هنوز انجام/تأیید نشده است.
+- PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ `main` بدون تغییر؛ Merge/انتشار ممنوع؛ **BLOCKED — RELEASE: NO-GO**.

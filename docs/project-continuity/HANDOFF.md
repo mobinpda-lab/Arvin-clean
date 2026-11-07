@@ -298,3 +298,16 @@ NOT VERIFIED. GitHub branch data does not reveal uncommitted local modifications
 - اصلاح overflow فیلتر در commit `2baad457ba0bdd89114566afb4b42e2315904bb2` ثبت شده؛ نتیجه تست‌های مرتبط باید از run جاری استخراج شود.
 - پس از تکمیل CI و Device Smoke، پذیرش گوشی واقعی را ثبت کن و TODO را با شواهد جدید به‌روزرسانی کن. هیچ تستی حذف/تضعیف نشود.
 - PR #3052: OPEN / DRAFT / UNMERGED؛ `main` در SHA `45e4202b03a434459e4c021a04efa7e8396359db`؛ بدون Merge یا انتشار؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+---
+
+## Handoff — TODO and Staging APK verification — 2026-11-07
+
+1. ابتدا `docs/project-continuity/TODO.md` را بخوان و وضعیت TSK-01 تا TSK-04 را با شواهد SHA-محور به‌روزرسانی کن.
+2. برای تست دستی، از [Staging Artifact run 42406934575](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/42406934575/artifacts/13588285590) استفاده کن. این APK روی SHA `2baad457ba0bdd89114566afb4b42e2315904bb2` ساخته شده، نه HEAD فعلی. SHA-256 APK: `dd990f90a1441423c3214e915d528f5f78e6d65ce0045b45b75791ddd1873416`؛ حجم `79,185,752` bytes؛ package `com.example.arvin.staging`. فقط review/test است و publishable نیست.
+3. اجرای Build فعلی در زمان handoff: [42408265669](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/42408265669)، هدف SHA `ad58025592690515020de2c4e3bf0fd0ac65db1b`. Analyze و Visual موفق؛ شش شارد و APKها هنوز در جریان‌اند. Device Smoke [42408265703](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/42408265703) روی همین SHA در وضعیت PENDING و بدون job است.
+4. شارد ۱ اجرای قبلی [42407484460](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/42407484460) روی SHA `b1ad86a...` برابر 174 passed / 13 failed بود و کل run بعداً CANCELLED شد. این شکست‌ها را به HEAD فعلی نسبت نده؛ منتظر شارد ۱ اجرای جدید بمان و شکست‌ها را بدون حذف یا تضعیف تست‌ها رفع کن.
+5. TSK-03 را فقط با شواهد واقعی عرض‌های 360، 390 و 412dp ببند. TSK-04 را فقط پس از بررسی ذخیره/بازیابی SharedPreferences، مقدار پیش‌فرض `#3A86EF`، ۹ گزینه، و رفتار رنگ در صفحات روشن/تاریک ببند.
+6. پس از نصب candidate روی Samsung SM-A528B/DS، نتیجه نصب، اجرای بدون کرش، رفتار فیلترها و رنگ سازمانی را با شواهد ثبت کن.
+7. PR #3052 باید OPEN / DRAFT / UNMERGED باقی بماند؛ `main` تغییر نکند؛ بدون Merge یا انتشار؛ **BLOCKED — RELEASE: NO-GO**.
