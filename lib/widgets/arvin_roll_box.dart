@@ -32,6 +32,7 @@ class ArvinRollBox<T> extends StatelessWidget {
   final bool compact;
 
   Future<void> _openSelector(BuildContext context) async {
+    final colors = Theme.of(context).colorScheme;
     Object? currentValue;
     if (emptyLabel != null && valueLabel == label) {
       currentValue = _ArvinClearToken.instance;
@@ -47,7 +48,7 @@ class ArvinRollBox<T> extends StatelessWidget {
     final choice = await HomeFilterSheet.show<Object?>(
       context,
       title: 'انتخاب $label',
-      accent: ArvinColors.primary,
+      accent: colors.primary,
       child: Builder(
         builder: (sheetContext) => RadioGroup<Object?>(
           groupValue: currentValue,
@@ -58,7 +59,7 @@ class ArvinRollBox<T> extends StatelessWidget {
               if (emptyLabel != null)
                 RadioListTile<Object?>(
                   value: _ArvinClearToken.instance,
-                  activeColor: ArvinColors.primary,
+                  activeColor: colors.primary,
                   title: Text(emptyLabel!),
                 ),
               for (final item in items)
@@ -68,7 +69,7 @@ class ArvinRollBox<T> extends StatelessWidget {
                   title: Text(item.label),
                   secondary: Icon(
                     item.icon ?? icon,
-                    color: ArvinColors.primary,
+                    color: colors.primary,
                     size: 20,
                   ),
                 ),
@@ -108,8 +109,8 @@ class ArvinRollBox<T> extends StatelessWidget {
     return HomeFilterPill(
       label: valueLabel.isEmpty ? label : valueLabel,
       icon: icon,
-      accent: ArvinColors.primary,
-      soft: ArvinColors.primarySoft,
+      accent: Theme.of(context).colorScheme.primary,
+      soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
       active: selected,
       onPressed: () => _openSelector(context),
     );
@@ -152,6 +153,7 @@ class ArvinTagRollBox extends StatefulWidget {
 
 class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
   Future<void> _openSelector() async {
+    final colors = Theme.of(context).colorScheme;
     final tags = widget.tags
         .map((value) => value.trim())
         .where((value) => value.isNotEmpty)
@@ -174,11 +176,11 @@ class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
                   for (final tag in tags)
                     CheckboxListTile(
                       dense: true,
-                      activeColor: ArvinColors.primary,
+                      activeColor: colors.primary,
                       value: working.contains(tag),
                       secondary: const Icon(
                         Icons.sell_outlined,
-                        color: ArvinColors.primary,
+                        color: colors.primary,
                       ),
                       title: Text(tag),
                       onChanged: (checked) => setSheetState(() {
@@ -193,7 +195,7 @@ class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
                     ListTile(
                       leading: const Icon(
                         Icons.add_circle_outline,
-                        color: ArvinColors.primary,
+                        color: colors.primary,
                       ),
                       title: const Text('+ افزودن برچسب'),
                       onTap: () async {
@@ -243,8 +245,8 @@ class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
     return HomeFilterPill(
       label: selected.isEmpty ? 'برچسب' : '${selected.length} برچسب',
       icon: Icons.sell_outlined,
-      accent: ArvinColors.primary,
-      soft: ArvinColors.primarySoft,
+      accent: Theme.of(context).colorScheme.primary,
+      soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
       active: selected.isNotEmpty,
       onPressed: _openSelector,
     );
