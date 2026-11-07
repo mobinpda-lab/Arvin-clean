@@ -194,7 +194,7 @@ void main() {
       await tester.pumpAndSettle();
 
       for (final key in [
-        'quick-capture-categories-wrap',
+        'quick-capture-five-filter-row',
         'quick-capture-settings-wrap',
         'quick-capture-center-rollbox',
         'quick-capture-project-rollbox',
@@ -1158,7 +1158,29 @@ void main() {
       tester.view.physicalSize = Size(width, 780);
       tester.view.viewInsets = const FakeViewPadding(bottom: 300);
       await tester.pumpAndSettle();
-      expect(find.byKey(const ValueKey('quick-capture-categories-wrap')), findsOneWidget);
+      final filterRow = find.byKey(const ValueKey('quick-capture-five-filter-row'));
+      expect(filterRow, findsOneWidget);
+      expect(find.byKey(const ValueKey('quick-capture-no-time')), findsNothing);
+      expect(find.text('بدون ساعت'), findsNothing);
+      final rowRect = tester.getRect(filterRow);
+      final filterKeys = [
+        'quick-capture-due-rollbox',
+        'quick-capture-center-rollbox',
+        'quick-capture-project-rollbox',
+        'quick-capture-category-rollbox',
+        'quick-capture-tag-rollbox',
+      ];
+      final filterRects = filterKeys.map((key) => tester.getRect(find.byKey(ValueKey(key)))).toList();
+      for (final rect in filterRects) {
+        expect(rect.height, greaterThanOrEqualTo(48));
+        expect(rect.top, closeTo(filterRects.first.top, 0.1));
+        expect(rect.left, greaterThanOrEqualTo(rowRect.left));
+        expect(rect.right, lessThanOrEqualTo(rowRect.right));
+      }
+      expect(filterRects[0].center.dx, greaterThan(filterRects[1].center.dx));
+      expect(filterRects[1].center.dx, greaterThan(filterRects[2].center.dx));
+      expect(filterRects[2].center.dx, greaterThan(filterRects[3].center.dx));
+      expect(filterRects[3].center.dx, greaterThan(filterRects[4].center.dx));
       expect(find.byKey(const ValueKey('quick-capture-submit')), findsOneWidget);
       expect(find.byType(SingleChildScrollView), findsWidgets);
       await tester.ensureVisible(find.byKey(const ValueKey('quick-capture-tag-rollbox')));
