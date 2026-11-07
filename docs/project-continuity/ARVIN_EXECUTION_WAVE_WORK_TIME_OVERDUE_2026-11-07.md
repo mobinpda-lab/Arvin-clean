@@ -36,3 +36,22 @@ Release: BLOCKED — RELEASE: NO-GO
 - `test/services/task_due_status_test.dart` (new)
 
 No tests were deleted or weakened. `main` was not modified. No merge, publication or release occurred.
+
+
+## Storage wave — canonical relational tables (schema v12)
+
+- Bumped `G1DriftSchema.version` from 11 to 12.
+- Added first-class `task_reminders` with stable reminder ID, Task FK, independent datetime, all-day state, sequence, enabled state and transitional legacy-origin marker.
+- Added historical-only `follow_up_records` with `completed_at` as the timestamp driver. The canonical table has no `reminder_date` or `next_follow_up` scheduling columns.
+- Added canonical `persons` directory and `follow_up_record_people` relation.
+- Added idempotent materialization from existing Task reminder envelopes, old `follow_ups` rows and person directory/relations. Reminder IDs, sequence, all-day state, Follow-up IDs/timestamps and person IDs are retained.
+- `TaskStore` now reads and writes Task reminders through `task_reminders`; Follow-up history is read/written through `follow_up_records`; the Person directory uses `persons`.
+- A transitional compatibility bridge still writes/reads legacy `follow_ups` rows for the remaining UI consumers of old Follow-up scheduling properties. The old `tasks` columns and `people`/ `follow_ups` tables have NOT been dropped yet. They must only be removed after the consumer audit and model/UI migration are complete.
+- Added schema-level migration tests for multiple reminders, historical Follow-up records, person relations, and absence of future-scheduling columns from the canonical record table; added TaskStore relational persistence tests.
+- This is an implementation step, not the final clean-slate cutover. Exact-head CI is pending; no test PASS is claimed from source edits alone.
+
+## Latest test recovery batch
+
+- Updated stale tests to the approved Calendar phrase, the current waiting-for-others label, the complete Person filter semantics, and timed/all-day overdue boundaries.
+- Home now keeps completed past Tasks visible in a separate «گذشته (انجام‌شده)» group instead of misclassifying them as overdue or hiding them.
+- Rebuilt CI must confirm all updated tests on the exact current HEAD before acceptance.
