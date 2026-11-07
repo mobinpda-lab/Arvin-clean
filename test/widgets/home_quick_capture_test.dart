@@ -13,6 +13,10 @@ void main() {
   });
   testWidgets('Home primary add persists canonical task and preserves history',
       (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     SharedPreferences.setMockInitialValues({
       'arvin.tasks': jsonEncode([
         {
@@ -34,17 +38,25 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('home-canonical-add')));
+    final addButton = find.byKey(const ValueKey('home-canonical-add'));
+    await tester.ensureVisible(addButton);
+    await tester.tap(addButton);
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('quick-capture-dialog')), findsOneWidget);
     await tester.enterText(
       find.byKey(const ValueKey('quick-capture-input')),
       'تماس با علی #مهم',
     );
-    await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
+    final submit = find.byKey(const ValueKey('quick-capture-submit'));
+    await tester.ensureVisible(submit);
+    await tester.pumpAndSettle();
+    await tester.tap(submit);
     await tester.pumpAndSettle();
 
-    expect(find.text('تماس با علی'), findsOneWidget);
+    // Quick Capture intentionally remains open after persisting so the
+    // user can enter another task. Verify persistence first, then close it
+    // before asserting the Home list projection.
+    expect(find.byKey(const ValueKey('quick-capture-dialog')), findsOneWidget);
 
     final raw = (await TaskStore().load()).map((task) => task.toJson()).toList();
     expect(raw, hasLength(2));
@@ -62,5 +74,10 @@ void main() {
     );
     expect(captured['tags'], ['مهم']);
     expect(DateTime.tryParse(captured['createdAt'] as String? ?? ''), isNotNull);
+
+    await tester.tap(find.byKey(const ValueKey('quick-capture-close')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('quick-capture-dialog')), findsNothing);
+    expect(find.text('تماس با علی'), findsOneWidget);
   });
 }

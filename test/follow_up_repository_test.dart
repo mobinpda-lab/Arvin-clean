@@ -133,8 +133,8 @@ void main() {
     expect(updated.dateTime, DateTime(2026, 8, 15, 10, 15));
     expect(updated.note, 'شرح کامل');
     expect(updated.result, 'پاسخ دریافت شد');
-    expect(updated.reminderDate, DateTime(2026, 8, 16, 9));
-    expect(updated.nextFollowUp, DateTime(2026, 8, 20, 10, 15));
+    expect(updated.toJson().containsKey('reminderDate'), isFalse);
+    expect(updated.toJson().containsKey('nextFollowUp'), isFalse);
     expect(updated.waitingForResponse, isTrue);
     expect(updated.personIds, ['person-1', 'person-2']);
 

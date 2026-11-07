@@ -98,6 +98,9 @@ class ProjectStore {
         'title': row['name'],
         'colorValue': row['color_value'],
         'isArchived': (row['is_archived'] as num?)?.toInt() == 1,
+        'centerId': row['center_id'] as String?,
+        'templateId': row['template_id'] as String?,
+        'templateNameSnapshot': row['template_name_snapshot'] as String?,
         'itemIds': itemRows.map((item) => item['task_id'] as String).toList(),
       }));
     }
@@ -110,10 +113,21 @@ class ProjectStore {
     final values = List<ProjectPlan>.of(projects);
     await executor.runCustom('BEGIN');
     try {
+      final templateApplications = await executor.runSelect(
+        'SELECT template_task_id, project_id, task_id FROM template_task_applications', const [],
+      );
+      await executor.runCustom('DELETE FROM template_task_applications');
       await executor.runCustom('DELETE FROM project_items');
       await executor.runCustom('DELETE FROM projects');
       for (final project in values) {
         await _insertProject(executor, project);
+      }
+      for (final row in templateApplications) {
+        await executor.runInsert(
+          '''INSERT OR IGNORE INTO template_task_applications (template_task_id, project_id, task_id)
+             SELECT ?, ?, ? WHERE EXISTS (SELECT 1 FROM project_items WHERE project_id = ? AND task_id = ?)''',
+          <Object?>[row['template_task_id'], row['project_id'], row['task_id'], row['project_id'], row['task_id']],
+        );
       }
       await executor.runCustom('COMMIT');
     } catch (_) {
@@ -127,13 +141,16 @@ class ProjectStore {
   Future<void> _insertProject(QueryExecutor executor, ProjectPlan project) async {
     await executor.runInsert(
       '''INSERT INTO projects
-         (id, name, color_value, is_archived, legacy_payload_json)
-         VALUES (?, ?, ?, ?, ?)''',
+         (id, name, color_value, is_archived, center_id, template_id, template_name_snapshot, legacy_payload_json)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
       <Object?>[
         project.id,
         project.title,
         project.colorValue,
         project.isArchived ? 1 : 0,
+        project.centerId,
+        project.templateId,
+        project.templateNameSnapshot,
         jsonEncode(codec.encode(project)),
       ],
     );

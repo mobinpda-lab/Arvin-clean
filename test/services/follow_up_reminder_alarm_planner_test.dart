@@ -23,6 +23,63 @@ void main() {
     );
   });
 
+  test('older reminder JSON defaults enabled when the new flag is absent', () {
+    final task = Task.fromJson({
+      'id': 'pre-enabled-flag',
+      'title': 'سازگاری قدیمی',
+      'taskReminders': [
+        {
+          'id': 'old-r1',
+          'title': 'یادآور قدیمی',
+          'date': '2026-09-08T15:00:00.000',
+          'sequence': 1,
+        },
+      ],
+    });
+    expect(task.taskReminders.single.isEnabled, isTrue);
+  });
+
+  test('disabled independent Task Reminder is persisted and not scheduled', () {
+    final at = DateTime(2026, 9, 8, 15);
+    final original = Task(
+      id: 'disabled-reminder',
+      title: 'یادآور غیرفعال',
+      taskReminders: [
+        TaskReminder(id: 'r-disabled', title: 'تماس', date: at, sequence: 1, isEnabled: false),
+      ],
+    );
+    final restored = Task.fromJson(original.toJson());
+    expect(restored.taskReminders.single.isEnabled, isFalse);
+    expect(restored.taskReminders.single.toJson()['isEnabled'], isFalse);
+    expect(
+      planner.nextAlarmAt([restored], deliveredState: const {}, now: DateTime(2026, 9, 8, 12)),
+      isNull,
+    );
+  });
+
+  test('legacy reminder toggle also suppresses its pre-migration date', () {
+    final at = DateTime(2026, 9, 8, 15);
+    final task = Task(
+      id: 'legacy-reminder-disabled',
+      title: 'یادآور قدیمی',
+      reminderDate: at,
+      taskReminders: [
+        TaskReminder(
+          id: 'legacy-r',
+          title: 'یادآور قدیمی',
+          date: at,
+          sequence: 1,
+          isLegacyTaskReminder: true,
+          isEnabled: false,
+        ),
+      ],
+    );
+    expect(
+      planner.nextAlarmAt([task], deliveredState: const {}, now: DateTime(2026, 9, 8, 12)),
+      isNull,
+    );
+  });
+
   test('canonical independent Task Reminder still schedules', () {
     final at = DateTime(2026, 9, 8, 15);
     final task = Task(

@@ -1,16 +1,29 @@
 // ignore_for_file: curly_braces_in_flow_control_structures, deprecated_member_use, unused_field
 
+import 'dart:async';
+import 'dart:ui' as ui;
+
+import 'dart:convert';
+
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import 'arvin_colors.dart';
+import 'core/theme/arvin_theme.dart';
+import 'core/theme/app_theme_manager.dart';
+import 'theme/app_fonts.dart';
+import 'alarm_overlay_page.dart';
+import 'follow_up_reminder_notification_service.dart';
 
 import 'android_follow_up_reminder_scheduler.dart';
 import 'backup_manager.dart';
 import 'backup_schedule_page.dart';
 import 'backup_schedule.dart';
 import 'calendar_page.dart';
-import 'calendar_integration_settings_page.dart';
 import 'models/goal_project.dart';
+import 'models/arvin_center.dart';
 import 'models/person_reference.dart';
 import 'models/task.dart';
 import 'home/grouping/home_group.dart';
@@ -22,44 +35,52 @@ import 'report_center_page.dart';
 import 'widgets/universal_arvin_time_picker.dart';
 import 'services/app_settings_service.dart';
 import 'services/daily_content_preferences_service.dart';
-import 'services/calendar_outbound_sync_service.dart';
-import 'services/calendar_inbound_sync_service.dart';
 import 'services/follow_up_calendar_projection.dart';
 
-import 'services/calendar_provider_sync_executor.dart';
 import 'services/calendar_sync_plan_service.dart';
+import 'services/calendar_outbound_sync_service.dart';
 import 'services/external_calendar_link_store.dart';
+import 'services/system_calendar_bridge.dart';
 
 import 'services/home_list_projection.dart';
 import 'services/home_search_projection.dart';
+import 'services/home_task_filter_matcher.dart';
+import 'services/home_follow_up_presentation_service.dart';
 import 'services/task_due_scope_service.dart';
 import 'services/task_list_scope_service.dart';
 import 'services/task_list_sort_service.dart';
+import 'services/task_due_status.dart';
 import 'services/task_move_to_today_service.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/project_store.dart';
+import 'services/center_store.dart';
+import 'services/project_template_store.dart';
 import 'services/arvin_route_observer.dart';
 import 'services/task_edit_apply_service.dart';
 import 'services/task_bulk_mutation_service.dart';
 import 'services/task_bulk_selection_service.dart';
 import 'services/task_store.dart';
+import 'services/task_clone_service.dart';
+import 'services/task_project_assignment_service.dart';
 import 'services/startup_permission_service.dart';
 import 'services/wave2_product_fast_track.dart';
 import 'services/widget_task_bridge.dart';
 import 'services/widget_task_selection_service.dart';
 import 'settings_page.dart';
 import 'task_detail_page.dart';
+import 'follow_up_entry_page.dart';
 import 'task_editor_dialog.dart';
 import 'task_next_action_page.dart';
 import 'task_report_page.dart';
 import 'widgets/persian_date_picker.dart';
-import 'theme/app_fonts.dart';
 import 'widgets/arvin_primary_navigation.dart';
 import 'widgets/arvin_home_primary_add_button.dart';
 import 'widgets/canonical_calendar_launcher.dart';
 import 'widgets/home_my_tasks_sheet.dart';
 import 'widgets/task_bulk_selection_bar.dart';
 import 'widgets/taxonomy_icon_row.dart';
+import 'widgets/reusable_multi_select_filter_bottom_sheet.dart';
+import 'widgets/startup_crash_screen.dart';
 
 class _SettingsTextScaler extends TextScaler {
   const _SettingsTextScaler({
@@ -101,7 +122,71 @@ class _SettingsTextScaler extends TextScaler {
   int get hashCode => Object.hash(systemScaler, userScale);
 }
 
-void main() => runApp(const ArvinApp());
+final GlobalKey<NavigatorState> arvinNavigatorKey = GlobalKey<NavigatorState>();
+
+final ValueNotifier<_StartupFailure?> _startupFailure = ValueNotifier<_StartupFailure?>(null);
+
+void _captureStartupFailure(Object error, StackTrace stackTrace) {
+  scheduleMicrotask(() {
+    _startupFailure.value = _StartupFailure(error, stackTrace);
+  });
+}
+
+bool _isLayoutOverflow(Object error) =>
+    error is FlutterError &&
+    error.toString().toLowerCase().contains('overflowed by');
+
+void main() {
+  runZonedGuarded<void>(() {
+    WidgetsFlutterBinding.ensureInitialized();
+    FlutterError.onError = (details) {
+      FlutterError.presentError(details);
+      if (_isLayoutOverflow(details.exception)) {
+        debugPrint('ARVIN_LAYOUT_OVERFLOW_IGNORED: ${details.exceptionAsString()}');
+        return;
+      }
+      _captureStartupFailure(details.exception, details.stack ?? StackTrace.current);
+    };
+    ui.PlatformDispatcher.instance.onError = (error, stackTrace) {
+      if (_isLayoutOverflow(error)) {
+        debugPrint('ARVIN_LAYOUT_OVERFLOW_IGNORED: $error');
+        return true;
+      }
+      _captureStartupFailure(error, stackTrace);
+      return true;
+    };
+    runApp(const _CrashAwareRoot());
+  }, _captureStartupFailure);
+}
+
+class _StartupFailure {
+  const _StartupFailure(this.error, this.stackTrace);
+  final Object error;
+  final StackTrace stackTrace;
+}
+
+class _CrashAwareRoot extends StatelessWidget {
+  const _CrashAwareRoot();
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<_StartupFailure?>(
+      valueListenable: _startupFailure,
+      builder: (context, failure, _) {
+        if (failure != null) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            home: StartupCrashScreen(
+              errorText: failure.error.toString(),
+              stackTrace: failure.stackTrace.toString(),
+            ),
+          );
+        }
+        return const ArvinApp();
+      },
+    );
+  }
+}
 
 class ArvinApp extends StatefulWidget {
   const ArvinApp({super.key});
@@ -112,6 +197,7 @@ class ArvinApp extends StatefulWidget {
 
 class _ArvinAppState extends State<ArvinApp> {
   final AppSettingsService settingsService = AppSettingsService();
+  final AppThemeManager themeManager = AppThemeManager.instance;
   AppSettings settings = const AppSettings(
     themeMode: ThemeMode.system,
     usePersianDate: true,
@@ -122,9 +208,71 @@ class _ArvinAppState extends State<ArvinApp> {
   void initState() {
     super.initState();
     _loadSettings();
+    themeManager.addListener(_handleThemeChanged);
+    themeManager.load();
+    _initializeReminderNotificationTapHandler();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      StartupPermissionService().requestOnStartup();
+      StartupPermissionService().requestOnStartup().catchError((Object error) {
+        // Optional system permissions and calendar provisioning must never
+        // turn an asynchronous startup failure into an app launch crash.
+      });
     });
+  }
+
+
+  void _handleThemeChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    themeManager.removeListener(_handleThemeChanged);
+    super.dispose();
+  }
+
+  Future<void> _initializeReminderNotificationTapHandler() async {
+    try {
+      final service = FollowUpReminderNotificationService(
+        onNotificationResponse: _openAlarmOverlayFromNotification,
+      );
+      final launchDetails = await service.initializeForForeground();
+      final response = launchDetails?.notificationResponse;
+      if (launchDetails?.didNotificationLaunchApp == true && response != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _openAlarmOverlayFromNotification(response);
+        });
+      }
+    } catch (_) {
+      // Reminder delivery remains available even if foreground tap wiring fails.
+    }
+  }
+
+  void _openAlarmOverlayFromNotification(NotificationResponse response) {
+    final rawPayload = response.payload;
+    if (rawPayload == null || rawPayload.isEmpty) return;
+    try {
+      final payload = jsonDecode(rawPayload);
+      if (payload is! Map) return;
+      final taskId = payload['taskId'] as String?;
+      final reminderId = payload['taskReminderId'] as String?;
+      final notificationId =
+          (payload['notificationId'] as num?)?.toInt() ?? response.id;
+      if (taskId == null || taskId.isEmpty || notificationId == null) return;
+      final navigator = arvinNavigatorKey.currentState;
+      if (navigator == null) return;
+      navigator.push<void>(
+        MaterialPageRoute<void>(
+          fullscreenDialog: true,
+          builder: (_) => AlarmOverlayPage(
+            taskId: taskId,
+            taskReminderId: reminderId,
+            notificationId: notificationId,
+          ),
+        ),
+      );
+    } catch (_) {
+      // Invalid or stale notification payloads must not open a partial overlay.
+    }
   }
 
   Future<void> _loadSettings() async {
@@ -140,13 +288,15 @@ class _ArvinAppState extends State<ArvinApp> {
 
   @override
   Widget build(BuildContext context) {
+    final accentColor = themeManager.selectedColor;
+    final accentSoft = Color.lerp(Colors.white, accentColor, 0.14)!;
     final lightBaseTextTheme = ThemeData.light().textTheme.apply(
-      fontFamily: AppFonts.vazirmatnFamily,
+      fontFamily: ArvinTheme.fontFamily,
       bodyColor: ArvinColors.textPrimary,
       displayColor: ArvinColors.textPrimary,
     );
     final darkBaseTextTheme = ThemeData.dark().textTheme.apply(
-      fontFamily: AppFonts.vazirmatnFamily,
+      fontFamily: ArvinTheme.fontFamily,
     );
     final readableLightTextTheme = lightBaseTextTheme.copyWith(
       bodyLarge: lightBaseTextTheme.bodyLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w600),
@@ -167,6 +317,7 @@ class _ArvinAppState extends State<ArvinApp> {
       labelLarge: darkBaseTextTheme.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w700),
     );
     return MaterialApp(
+      navigatorKey: arvinNavigatorKey,
       debugShowCheckedModeBanner: false,
       navigatorObservers: [arvinRouteObserver],
       title: 'مدیریت کارها و پیگیری آروین',
@@ -185,13 +336,15 @@ class _ArvinAppState extends State<ArvinApp> {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: ArvinColors.primary,
+          seedColor: accentColor,
           brightness: Brightness.light,
         ).copyWith(
-          primary: ArvinColors.primary,
+          primary: accentColor,
           onPrimary: ArvinColors.surface,
-          secondary: ArvinColors.project,
+          secondary: accentColor,
           onSecondary: ArvinColors.surface,
+          secondaryContainer: accentSoft,
+          onSecondaryContainer: ArvinColors.textPrimary,
           error: ArvinColors.error,
           onError: ArvinColors.surface,
           surface: ArvinColors.surface,
@@ -199,25 +352,67 @@ class _ArvinAppState extends State<ArvinApp> {
           outline: ArvinColors.border,
         ),
         scaffoldBackgroundColor: ArvinColors.background,
-        cardTheme: const CardThemeData(
-          color: ArvinColors.surface,
-          elevation: 1,
-          shadowColor: ArvinColors.shadowSoft,
-          margin: EdgeInsets.symmetric(vertical: 2),
+        cardTheme: CardThemeData(
+          color: ArvinTheme.cardBackground,
+          elevation: 2,
+          shadowColor: ArvinTheme.shadowStyle.color,
+          margin: const EdgeInsets.symmetric(vertical: 2),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(16)),
-            side: BorderSide(color: ArvinColors.border),
+            borderRadius: ArvinTheme.cardBorderRadius,
+            side: const BorderSide(color: ArvinColors.border),
           ),
         ),
         fontFamily: AppFonts.vazirmatnFamily,
         textTheme: readableLightTextTheme,
+        chipTheme: ChipThemeData(
+          selectedColor: accentSoft,
+          secondarySelectedColor: accentSoft,
+          checkmarkColor: accentColor,
+        ),
+        floatingActionButtonTheme: FloatingActionButtonThemeData(
+          backgroundColor: accentColor,
+          foregroundColor: ArvinColors.surface,
+        ),
+        navigationBarTheme: NavigationBarThemeData(
+          backgroundColor: ArvinColors.surface,
+          indicatorColor: accentSoft,
+          iconTheme: WidgetStateProperty.resolveWith(
+            (states) => IconThemeData(
+              color: states.contains(WidgetState.selected)
+                  ? accentColor
+                  : ArvinColors.textSecondary,
+            ),
+          ),
+          labelTextStyle: WidgetStateProperty.resolveWith(
+            (states) => TextStyle(
+              color: states.contains(WidgetState.selected)
+                  ? accentColor
+                  : ArvinColors.textSecondary,
+              fontWeight: states.contains(WidgetState.selected)
+                  ? FontWeight.w700
+                  : FontWeight.w500,
+            ),
+          ),
+        ),
+        progressIndicatorTheme: ProgressIndicatorThemeData(
+          color: accentColor,
+          linearTrackColor: accentSoft,
+          circularTrackColor: accentSoft,
+        ),
         iconTheme: const IconThemeData(color: ArvinColors.neutral, size: 24),
         dividerTheme: const DividerThemeData(color: ArvinColors.border, thickness: 1),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: ArvinColors.background,
-          foregroundColor: ArvinColors.textPrimary,
+        appBarTheme: AppBarTheme(
+          backgroundColor: accentColor,
+          foregroundColor: Colors.white,
+          iconTheme: const IconThemeData(color: Colors.white),
+          titleTextStyle: TextStyle(
+            fontFamily: ArvinTheme.fontFamily,
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
         ),
-        inputDecorationTheme: const InputDecorationTheme(
+        inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: ArvinColors.surface,
           labelStyle: TextStyle(color: ArvinColors.textSecondary, fontWeight: FontWeight.w600),
@@ -232,19 +427,19 @@ class _ArvinAppState extends State<ArvinApp> {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(14)),
-            borderSide: BorderSide(color: ArvinColors.primary, width: 1.8),
+            borderSide: BorderSide(color: accentColor, width: 1.8),
           ),
         ),
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: ArvinColors.primary,
+          seedColor: accentColor,
           brightness: Brightness.dark,
         ).copyWith(
-          primary: ArvinColors.darkPrimary,
-          onPrimary: ArvinColors.darkOnPrimary,
-          secondary: ArvinColors.darkSecondary,
+          primary: accentColor,
+          onPrimary: Colors.white,
+          secondary: accentColor,
           error: ArvinColors.darkError,
         ),
         cardTheme: const CardThemeData(
@@ -260,21 +455,25 @@ class _ArvinAppState extends State<ArvinApp> {
         fontFamily: AppFonts.vazirmatnFamily,
         textTheme: readableDarkTextTheme,
         dividerTheme: const DividerThemeData(color: ArvinColors.darkDivider, thickness: 1),
-        appBarTheme: const AppBarTheme(),
-        inputDecorationTheme: const InputDecorationTheme(
+        appBarTheme: AppBarTheme(
+          backgroundColor: accentColor,
+          foregroundColor: Colors.white,
+          iconTheme: const IconThemeData(color: Colors.white),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: ArvinColors.darkSurface,
-          border: OutlineInputBorder(
+          border: const OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(14)),
             borderSide: BorderSide(color: ArvinColors.darkOutline, width: 1.2),
           ),
-          enabledBorder: OutlineInputBorder(
+          enabledBorder: const OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(14)),
             borderSide: BorderSide(color: ArvinColors.darkOutline, width: 1.2),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(14)),
-            borderSide: BorderSide(color: ArvinColors.darkPrimary, width: 1.8),
+            borderRadius: const BorderRadius.all(Radius.circular(14)),
+            borderSide: BorderSide(color: accentColor, width: 1.8),
           ),
         ),
       ),
@@ -342,9 +541,16 @@ class _HomePageState extends State<HomePage> {
       const TaskBulkSelectionService();
   final TaskBulkMutationService taskBulkMutationService =
       TaskBulkMutationService();
+  final FocusNode _searchFocusNode = FocusNode();
+  final ScrollController _homeScrollController = ScrollController();
+  final Set<String> _expandedTaskIds = <String>{};
+  bool _hideBottomNavigation = false;
 
   List<Task> tasks = [];
+  List<String> _categoryCatalog = const <String>[];
+  List<String> _tagCatalog = const <String>[];
   List<ProjectPlan> projects = [];
+  List<ArvinCenter> centers = const <ArvinCenter>[];
   final Set<String> selected = <String>{};
   bool loading = true;
   Object? loadFailure;
@@ -353,9 +559,11 @@ class _HomePageState extends State<HomePage> {
   String filter = 'کل';
   TaskListScope _listScope = TaskListScope.all;
   TaskDueScope? _dueScope;
-  String? _categoryFilter;
-  String? _projectFilter;
+  final Set<String> _categoryFilters = <String>{};
+  final Set<String> _centerFilters = <String>{};
+  final Set<String> _projectFilters = <String>{};
   final Set<String> _tagFilters = <String>{};
+  final Set<String> _timeFilters = <String>{};
   String _timeFilter = 'all';
   DateTime? _specificDateFilter;
   DateTime? _fromDateFilter;
@@ -364,8 +572,8 @@ class _HomePageState extends State<HomePage> {
   TimeOfDay? _toTimeFilter;
   final Set<String> _collapsedGroups = <String>{};
   final Map<String, DateTime> _dismissedOverdueWarnings = <String, DateTime>{};
-  final TaskListSort _listSort = TaskListSort.date;
-  final bool _sortDescending = false;
+  TaskListSort _listSort = TaskListSort.lastFollowUp;
+  bool _sortDescending = false;
 
   String get _emptyVisibleLabel => filter == 'سطل زباله'
       ? 'سطل زباله خالی است'
@@ -376,15 +584,32 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     widgetTaskBridge.listen(_openWidgetTask);
+    _homeScrollController.addListener(_handleHomeScroll);
     _load();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _consumeInitialWidgetTask();
     });
   }
 
+  void _handleHomeScroll() {
+    if (!_homeScrollController.hasClients || selectionMode) return;
+    final direction = _homeScrollController.position.userScrollDirection;
+    final shouldHide = direction == ScrollDirection.reverse
+        ? true
+        : direction == ScrollDirection.forward
+            ? false
+            : _hideBottomNavigation;
+    if (shouldHide != _hideBottomNavigation && mounted) {
+      setState(() => _hideBottomNavigation = shouldHide);
+    }
+  }
+
   @override
   void dispose() {
+    _homeScrollController.removeListener(_handleHomeScroll);
+    _homeScrollController.dispose();
     widgetTaskBridge.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -412,10 +637,16 @@ class _HomePageState extends State<HomePage> {
     try {
       final value = await taskStore.load();
       final loadedProjects = await projectStore.load();
+      final loadedCenters = await CenterStore().load();
+      final loadedCategories = await taskStore.loadCategories();
+      final loadedTags = await taskStore.loadTags();
       if (!mounted) return;
       setState(() {
         tasks = List<Task>.of(value);
         projects = List<ProjectPlan>.of(loadedProjects);
+        centers = List<ArvinCenter>.of(loadedCenters);
+        _categoryCatalog = List<String>.of(loadedCategories);
+        _tagCatalog = List<String>.of(loadedTags);
         loadFailure = null;
         loading = false;
       });
@@ -431,33 +662,63 @@ class _HomePageState extends State<HomePage> {
   List<Task> get _searchSource => List<Task>.of(tasks);
 
   List<String> get _homeCategories {
-    final values =
-        tasks
-            .map((task) => task.category?.trim())
-            .whereType<String>()
-            .where((value) => value.isNotEmpty)
-            .toSet()
-            .toList()
-          ..sort();
+    final values = <String>{
+      ..._categoryCatalog.map((value) => value.trim()).where((value) => value.isNotEmpty),
+      ...tasks.map((task) => task.category?.trim()).whereType<String>().where((value) => value.isNotEmpty),
+    }.toList()..sort();
+    return values;
+  }
+
+  List<String> get _homeTags {
+    final values = <String>{
+      ..._tagCatalog.map((value) => value.trim()).where((value) => value.isNotEmpty),
+      ...tasks.expand((task) => task.tags).map((value) => value.trim()).where((value) => value.isNotEmpty),
+    }.toList()..sort();
     return values;
   }
 
   Future<String?> _createCategory(String value) async {
     final name = value.trim();
     if (name.isEmpty) return null;
-    return TaskStore().createCategory(name);
+    final created = await taskStore.createCategory(name);
+    if (mounted) await _load();
+    return created;
   }
 
   Future<String?> _createTag(String value) async {
     final name = value.trim();
     if (name.isEmpty) return null;
-    return TaskStore().createTag(name);
+    final created = await taskStore.createTag(name);
+    if (mounted) await _load();
+    return created;
   }
 
-  Set<String> _trashedTaskIds(Iterable<Task> snapshot) => snapshot
-      .where((task) => task.trashed)
-      .map((task) => task.id)
-      .toSet();
+  Future<String?> _createCenter(String value) async {
+    final name = value.trim();
+    if (name.isEmpty) return null;
+    final existing = centers.where((center) => center.name.trim().toLowerCase() == name.toLowerCase());
+    if (existing.isNotEmpty) return existing.first.id;
+    final id = 'center_${DateTime.now().microsecondsSinceEpoch}';
+    await CenterStore().create(id: id, name: name);
+    if (mounted) await _load();
+    return id;
+  }
+
+  Future<PersonReference?> _createReportPerson(String value) async {
+    final name = value.trim();
+    if (name.isEmpty) return null;
+    final directory = await taskStore.loadPeopleDirectory();
+    final existing = directory.where(
+      (person) => person.displayName.trim().toLowerCase() == name.toLowerCase(),
+    );
+    if (existing.isNotEmpty) return existing.first;
+    final person = PersonReference(
+      id: 'person_${DateTime.now().microsecondsSinceEpoch}',
+      displayName: name,
+    );
+    await taskStore.savePeopleDirectory([...directory, person]);
+    return person;
+  }
 
   Future<void> _save() async {
     if (loadFailure != null) {
@@ -470,66 +731,11 @@ class _HomePageState extends State<HomePage> {
     try {
       await AndroidFollowUpReminderScheduler().reschedule();
     } catch (_) {
-      // Canonical Task storage already succeeded; the existing alarm foundation
-      // can retry on the next lifecycle/scheduler trigger.
-    }
-    try {
-      await calendarOutboundSyncService.sync(
-        calendarProjection.project(snapshot),
-        preserveUnprojectedTaskIds: _trashedTaskIds(snapshot),
-      );
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: const Text('همگام‌سازی کار با تقویم مقصد انجام نشد.'),
-            action: SnackBarAction(
-              label: 'تلاش دوباره',
-              onPressed: () => _retryCalendarSync(snapshot),
-            ),
-            duration: const Duration(seconds: 6),
-          ),
-        );
+      // Canonical Task storage already succeeded; scheduler retries later.
     }
   }
 
-  Future<void> _retryCalendarSync(List<Task> snapshot) async {
-    try {
-      await calendarOutboundSyncService.sync(
-        calendarProjection.project(snapshot),
-        force: true,
-        preserveUnprojectedTaskIds: _trashedTaskIds(snapshot),
-      );
-      final now = DateTime.now().toLocal();
-      final today = DateTime(now.year, now.month, now.day);
-      final inbound = await CalendarInboundSyncService().reconcile(
-        start: today.subtract(const Duration(days: 31)),
-        end: today.add(const Duration(days: 62)),
-      );
-      if (inbound.changed) {
-        await _load();
-      }
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(
-            content: Text('همگام‌سازی دوباره انجام شد؛ تغییرات آروین و تقویم گوشی بررسی و به‌روزرسانی شد.'),
-          ),
-        );
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(
-            content: Text('همگام‌سازی انجام نشد؛ تنظیمات و دسترسی تقویم را بررسی کنید.'),
-          ),
-        );
-    }
-  }
+
 
   DateTime? _homeLastFollowUpDate(Task task) => task.lastFollowUp?.dateTime;
 
@@ -540,35 +746,46 @@ class _HomePageState extends State<HomePage> {
     return null;
   }
 
+  ProjectPlan? _projectForTask(Task task) {
+    for (final project in projects) {
+      if (project.itemIds.contains(task.id)) return project;
+    }
+    return null;
+  }
+
+  String? _centerNameForTask(Task task) {
+    final centerId = _projectForTask(task)?.centerId;
+    if (centerId == null) return null;
+    for (final center in centers) {
+      if (center.id == centerId) return center.name;
+    }
+    return null;
+  }
+
   bool _overdue(Task task) {
-    final date = task.dueDate;
-    if (date == null || task.completed) return false;
-    if (_dismissedOverdueWarnings[task.id] == date) return false;
-    return date.isBefore(DateTime.now());
+    if (!TaskDueStatus.isOverdue(task, now: IranClock.now())) return false;
+    return _dismissedOverdueWarnings[task.id] != task.dueDate;
   }
 
   bool get _homeFilterActive =>
       query.trim().isNotEmpty ||
-      _timeFilter != 'all' ||
-      _projectFilter != null ||
-      _categoryFilter != null ||
+      _timeFilters.isNotEmpty ||
+      _timeFilter == 'customRange' ||
+      _centerFilters.isNotEmpty ||
+      _projectFilters.isNotEmpty ||
+      _categoryFilters.isNotEmpty ||
       _tagFilters.isNotEmpty;
 
   String get _timeFilterLabel {
+    if (_timeFilters.length > 1) return 'زمان (${persianDateFormatter.toPersianDigits('${_timeFilters.length}')})';
     if (_timeFilter == 'customRange') {
       final from = _fromDateFilter == null ? 'شروع' : _date(_fromDateFilter!);
       final to = _toDateFilter == null ? 'پایان' : _date(_toDateFilter!);
       return '$from تا $to';
     }
-    switch (_timeFilter) {
-      case 'today': return 'امروز';
-      case 'tomorrow': return 'فردا';
-      case 'next7': return '۷ روز آینده';
-      case 'next30': return '۳۰ روز آینده';
-      case 'custom': return _specificDateFilter == null ? 'تاریخ مشخص' : _date(_specificDateFilter!);
-      case 'undated': return 'فاقد زمان';
-      default: return 'همه';
-    }
+    if (_timeFilters.isEmpty) return 'همه';
+    const labels = <String, String>{'past':'گذشته','today':'امروز','tomorrow':'فردا','next7':'۷ روز آینده','next30':'۳۰ روز آینده','custom':'تاریخ مشخص','undated':'فاقد زمان'};
+    return labels[_timeFilters.first] ?? 'همه';
   }
 
   String? _projectTitle(String? id) {
@@ -581,41 +798,37 @@ class _HomePageState extends State<HomePage> {
 
   bool _matchesTimeFilter(Task task) {
     final due = task.dueDate;
-    if (_timeFilter == 'all') return true;
-    if (_timeFilter == 'undated') return due == null;
-    if (due == null) return false;
+    if (_timeFilters.isEmpty && _timeFilter != 'customRange') return true;
+    if (due == null) return _timeFilters.contains('undated');
+    final local = due.toLocal();
+    final day = DateTime(local.year, local.month, local.day);
     final now = IranClock.now();
     final today = DateTime(now.year, now.month, now.day);
-    final day = DateTime(due.year, due.month, due.day);
-    if (_timeFilter == 'today') return day == today;
-    if (_timeFilter == 'tomorrow') return day == today.add(const Duration(days: 1));
-    if (_timeFilter == 'next7') return !day.isBefore(today) && day.isBefore(today.add(const Duration(days: 7)));
-    if (_timeFilter == 'next30') return !day.isBefore(today) && day.isBefore(today.add(const Duration(days: 30)));
-    if (_timeFilter == 'custom') {
-      final selected = _specificDateFilter;
-      if (selected == null) return true;
-      return day == DateTime(selected.year, selected.month, selected.day);
-    }
-    if (_timeFilter == 'customRange') {
+    bool matchesRange() {
+      if (_timeFilter != 'customRange' || !_timeFilters.contains('customRange')) return false;
       final from = _fromDateFilter == null ? null : DateTime(_fromDateFilter!.year, _fromDateFilter!.month, _fromDateFilter!.day);
       final to = _toDateFilter == null ? null : DateTime(_toDateFilter!.year, _toDateFilter!.month, _toDateFilter!.day);
-      final dayMatches = (from == null || !day.isBefore(from)) && (to == null || !day.isAfter(to));
-      if (!dayMatches) return false;
-      if (_fromTimeFilter != null) {
-        final minutes = due.hour * 60 + due.minute;
-        final fromMinutes = _fromTimeFilter!.hour * 60 + _fromTimeFilter!.minute;
-        if (minutes < fromMinutes && (from == null || day == from)) return false;
-      }
-      if (_toTimeFilter != null) {
-        final minutes = due.hour * 60 + due.minute;
-        final toMinutes = _toTimeFilter!.hour * 60 + _toTimeFilter!.minute;
-        if (minutes > toMinutes && (to == null || day == to)) return false;
-      }
+      if ((from != null && day.isBefore(from)) || (to != null && day.isAfter(to))) return false;
+      final minutes = local.hour * 60 + local.minute;
+      if (_fromTimeFilter != null && minutes < _fromTimeFilter!.hour * 60 + _fromTimeFilter!.minute && (from == null || day == from)) return false;
+      if (_toTimeFilter != null && minutes > _toTimeFilter!.hour * 60 + _toTimeFilter!.minute && (to == null || day == to)) return false;
       return true;
     }
-    return true;
+    if (matchesRange()) return true;
+    return _timeFilters.any((id) {
+      switch (id) {
+        case 'past': return day.isBefore(today);
+        case 'today': return day == today;
+        case 'tomorrow': return day == today.add(const Duration(days: 1));
+        case 'next7': return !day.isBefore(today) && day.isBefore(today.add(const Duration(days: 7)));
+        case 'next30': return !day.isBefore(today) && day.isBefore(today.add(const Duration(days: 30)));
+        case 'custom':
+          final picked = _specificDateFilter;
+          return picked != null && day == DateTime(picked.year, picked.month, picked.day);
+        default: return false;
+      }
+    });
   }
-
 
   List<Task> get visible {
     final searchActive = query.trim().isNotEmpty;
@@ -637,43 +850,59 @@ class _HomePageState extends State<HomePage> {
 
     if (filter != 'بایگانی' && filter != 'سطل زباله') {
       scoped = scoped.where(_matchesTimeFilter);
-      if (_categoryFilter != null) scoped = scoped.where((task) => task.category?.trim() == _categoryFilter);
-      if (_projectFilter != null) {
-        if (_projectFilter == '__no_project__') {
-          final assigned = projects.expand((item) => item.itemIds).toSet();
-          scoped = scoped.where((task) => !assigned.contains(task.id));
-        } else {
-          ProjectPlan? project;
-          for (final item in projects) {
-            if (item.id == _projectFilter) { project = item; break; }
-          }
-          if (project != null) {
-            final ids = project.itemIds.toSet();
-            scoped = scoped.where((task) => ids.contains(task.id));
-          }
-        }
+      if (_centerFilters.isNotEmpty) {
+        final ids = tasks.where((task) {
+          if (task.centerId != null) return _centerFilters.contains(task.centerId);
+          final linked = projects
+              .where((project) => project.itemIds.contains(task.id))
+              .toList(growable: false);
+          if (linked.isEmpty) return _centerFilters.contains('__no_center__');
+          return linked.any((project) => _centerFilters.contains(project.centerId ?? '__no_center__'));
+        }).map((task) => task.id).toSet();
+        scoped = scoped.where((task) => ids.contains(task.id));
+      }
+      if (_categoryFilters.isNotEmpty) {
+        scoped = scoped.where((task) => _categoryFilters.contains(task.category?.trim()));
+      }
+      if (_projectFilters.isNotEmpty) {
+        final assigned = projects.expand((p) => p.itemIds).toSet();
+        final ids = <String>{
+          if (_projectFilters.contains('__no_project__')) ...tasks.where((t) => !assigned.contains(t.id)).map((t) => t.id),
+          ...projects.where((p) => _projectFilters.contains(p.id)).expand((p) => p.itemIds),
+        };
+        scoped = scoped.where((task) => ids.contains(task.id));
       }
       if (_tagFilters.isNotEmpty) {
-        scoped = scoped.where((task) {
-          final tags = task.tags.map((value) => value.trim()).where((value) => value.isNotEmpty).toSet();
-          return _tagFilters.every(tags.contains);
-        });
+        scoped = scoped.where(
+          (task) => homeTaskMatchesAnySelectedTag(task, _tagFilters),
+        );
       }
     }
 
-    return taskListSortService.sort(scoped.toList(growable: false), by: _listSort, descending: _sortDescending);
+    final result = scoped.toList(growable: false);
+    if (_timeFilters.contains('past')) return taskListSortService.sortPast(result);
+    return taskListSortService.sort(result, by: _listSort, descending: _sortDescending);
   }
 
   List<HomeGroup<Task>> get _homeGroups {
     if (filter == 'بایگانی' || filter == 'سطل زباله') {
       return [HomeGroup<Task>(id: 'filtered', title: filter, items: visible)];
     }
+    if (_timeFilters.contains('past')) {
+      return [
+        HomeGroup<Task>(
+          id: 'past',
+          title: _timeFilters.length == 1 ? 'گذشته' : 'زمان‌های انتخاب‌شده',
+          items: visible,
+        ),
+      ];
+    }
     final now = IranClock.now();
     final today = DateTime(now.year, now.month, now.day);
     final tomorrow = today.add(const Duration(days: 1));
     DateTime dayOf(DateTime value) => DateTime(value.year, value.month, value.day);
     final grouped = <String, List<Task>>{
-      'overdue': <Task>[], 'today': <Task>[], 'tomorrow': <Task>[], 'future': <Task>[], 'no_date': <Task>[],
+      'overdue': <Task>[], 'completed_past': <Task>[], 'today': <Task>[], 'tomorrow': <Task>[], 'future': <Task>[], 'no_date': <Task>[],
     };
     for (final task in visible) {
       final due = task.dueDate;
@@ -681,38 +910,214 @@ class _HomePageState extends State<HomePage> {
         grouped['no_date']!.add(task);
       } else {
         final day = dayOf(due);
-        if (!task.completed && day.isBefore(today)) grouped['overdue']!.add(task);
-        else if (day == today) grouped['today']!.add(task);
-        else if (day == tomorrow) grouped['tomorrow']!.add(task);
-        else grouped['future']!.add(task);
+        if (task.completed && day.isBefore(today)) {
+          grouped['completed_past']!.add(task);
+        } else if (TaskDueStatus.isOverdue(task, now: now)) {
+          grouped['overdue']!.add(task);
+        } else if (day == today) {
+          grouped['today']!.add(task);
+        } else if (day == tomorrow) {
+          grouped['tomorrow']!.add(task);
+        } else {
+          grouped['future']!.add(task);
+        }
       }
     }
     return [
-      HomeGroup<Task>(id: 'overdue', title: 'تاریخ‌گذشته', items: grouped['overdue']!),
-      HomeGroup<Task>(id: 'today', title: 'امروز', items: grouped['today']!),
-      HomeGroup<Task>(id: 'tomorrow', title: 'فردا', items: grouped['tomorrow']!),
-      HomeGroup<Task>(id: 'future', title: 'آینده', items: grouped['future']!),
-      HomeGroup<Task>(id: 'no_date', title: 'فاقد زمان', items: grouped['no_date']!),
+      HomeGroup<Task>(id: 'overdue', title: 'گذشته', items: taskListSortService.sortPast(grouped['overdue']!)),
+      HomeGroup<Task>(id: 'completed_past', title: 'گذشته (انجام‌شده)', items: taskListSortService.sortPast(grouped['completed_past']!)),
+      HomeGroup<Task>(id: 'today', title: 'امروز', items: taskListSortService.sort(grouped['today']!, by: _listSort, descending: _sortDescending)),
+      HomeGroup<Task>(id: 'tomorrow', title: 'فردا', items: taskListSortService.sort(grouped['tomorrow']!, by: _listSort, descending: _sortDescending)),
+      HomeGroup<Task>(id: 'future', title: 'آینده', items: taskListSortService.sort(grouped['future']!, by: _listSort, descending: _sortDescending)),
+      HomeGroup<Task>(id: 'no_date', title: 'فاقد زمان', items: taskListSortService.sort(grouped['no_date']!, by: _listSort, descending: _sortDescending)),
     ];
   }
 
 
+  Future<void> _showSortOptions() async {
+    var draftSort = _listSort;
+    var draftDescending = _sortDescending;
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 4, 12, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('مرتب‌سازی کارها', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                RadioListTile<TaskListSort>(
+                  value: TaskListSort.lastFollowUp,
+                  groupValue: draftSort,
+                  title: const Text('تاریخ پیگیری'),
+                  onChanged: (value) => setSheetState(() => draftSort = value!),
+                ),
+                RadioListTile<TaskListSort>(
+                  value: TaskListSort.date,
+                  groupValue: draftSort,
+                  title: const Text('تاریخ انجام کار'),
+                  onChanged: (value) => setSheetState(() => draftSort = value!),
+                ),
+                RadioListTile<TaskListSort>(
+                  value: TaskListSort.latest,
+                  groupValue: draftSort,
+                  title: const Text('آخرین تغییرات'),
+                  onChanged: (value) => setSheetState(() => draftSort = value!),
+                ),
+                RadioListTile<TaskListSort>(
+                  value: TaskListSort.title,
+                  groupValue: draftSort,
+                  title: const Text('عنوان کار'),
+                  onChanged: (value) => setSheetState(() => draftSort = value!),
+                ),
+                SwitchListTile(
+                  value: draftDescending,
+                  title: const Text('ترتیب نزولی'),
+                  onChanged: (value) => setSheetState(() => draftDescending = value),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(sheetContext).pop(),
+                        child: const Text('انصراف'),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: FilledButton(
+                        onPressed: () {
+                          setState(() {
+                            _listSort = draftSort;
+                            _sortDescending = draftDescending;
+                          });
+                          Navigator.of(sheetContext).pop();
+                        },
+                        child: const Text('اعمال مرتب‌سازی'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _homeFilterCards() {
-    final projectLabel = _projectFilter == null ? 'همه' : (_projectTitle(_projectFilter) ?? 'بدون پروژه');
-    final categoryLabel = _categoryFilter ?? 'همه';
-    final tagLabel = _tagFilters.isEmpty ? 'همه' : '${_tagFilters.length} مورد';
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-      child: Row(
-        textDirection: TextDirection.rtl,
+      key: const ValueKey('home-compact-filter-wrap'),
+      padding: const EdgeInsetsDirectional.fromSTEB(12, 0, 12, 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          HomeFilterCard(dimension: HomeFilterDimension.time, title: 'زمان', value: _timeFilterLabel, accent: ArvinColors.time, soft: ArvinColors.timeSoft, icon: Icons.schedule_rounded, onTap: _showTimeFilterSheet),
-          const SizedBox(width: 8),
-          HomeFilterCard(dimension: HomeFilterDimension.project, title: 'پروژه', value: projectLabel, accent: ArvinColors.project, soft: ArvinColors.projectSoft, icon: Icons.folder_rounded, onTap: _showProjectFilterSheet),
-          const SizedBox(width: 8),
-          HomeFilterCard(dimension: HomeFilterDimension.category, title: 'دسته', value: categoryLabel, accent: ArvinColors.category, soft: ArvinColors.categorySoft, icon: Icons.layers_rounded, onTap: _showCategoryFilterSheet),
-          const SizedBox(width: 8),
-          HomeFilterCard(dimension: HomeFilterDimension.tags, title: 'برچسب‌ها', value: tagLabel, accent: ArvinColors.tag, soft: ArvinColors.tagSoft, icon: Icons.sell_rounded, onTap: _showTagFilterSheet),
+          Row(
+            key: const ValueKey('home-compact-filter-row'),
+            textDirection: TextDirection.rtl,
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: HomeFilterPill(
+                  key: const ValueKey('home-filter-card-time'),
+                  label: _timeFilters.isEmpty && _timeFilter != 'customRange'
+                      ? 'زمان'
+                      : _timeFilterLabel,
+                  icon: Icons.schedule_rounded,
+                  accent: Theme.of(context).colorScheme.primary,
+                  soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
+                  active: _timeFilters.isNotEmpty || _timeFilter == 'customRange',
+                  onPressed: _showTimeFilterSheet,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: HomeFilterPill(
+                  key: const ValueKey('home-filter-card-center'),
+                  label: _centerFilters.isEmpty
+                      ? 'مرکز'
+                      : _centerFilters.length == 1
+                          ? (_centerFilters.first == '__no_center__'
+                              ? 'بدون مرکز'
+                              : (_centerName(_centerFilters.first) ??
+                                  'مرکز حذف‌شده'))
+                          : 'مرکز (${persianDateFormatter.toPersianDigits('${_centerFilters.length}')})',
+                  icon: Icons.location_city_outlined,
+                  accent: Theme.of(context).colorScheme.primary,
+                  soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
+                  active: _centerFilters.isNotEmpty,
+                  onPressed: _showCenterFilterSheet,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: HomeFilterPill(
+                  key: const ValueKey('home-filter-card-project'),
+                  label: _projectFilters.isEmpty
+                      ? 'پروژه‌ها'
+                      : _projectFilters.length == 1
+                          ? (_projectFilters.first == '__no_project__'
+                              ? 'بدون پروژه'
+                              : (_projectTitle(_projectFilters.first) ??
+                                  'پروژه حذف‌شده'))
+                          : 'پروژه‌ها (${persianDateFormatter.toPersianDigits('${_projectFilters.length}')})',
+                  icon: Icons.folder_rounded,
+                  accent: Theme.of(context).colorScheme.primary,
+                  soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
+                  active: _projectFilters.isNotEmpty,
+                  onPressed: _showProjectFilterSheet,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: HomeFilterPill(
+                  key: const ValueKey('home-filter-card-category'),
+                  label: _categoryFilters.isEmpty
+                      ? 'دسته‌ها'
+                      : _categoryFilters.length == 1
+                          ? _categoryFilters.first
+                          : 'دسته‌ها (${persianDateFormatter.toPersianDigits('${_categoryFilters.length}')})',
+                  icon: Icons.layers_rounded,
+                  accent: Theme.of(context).colorScheme.primary,
+                  soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
+                  active: _categoryFilters.isNotEmpty,
+                  onPressed: _showCategoryFilterSheet,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: HomeFilterPill(
+                  key: const ValueKey('home-filter-card-tags'),
+                  label: _tagFilters.isEmpty
+                      ? 'برچسب‌ها'
+                      : 'برچسب‌ها (${persianDateFormatter.toPersianDigits('${_tagFilters.length}')})',
+                  icon: Icons.sell_rounded,
+                  accent: Theme.of(context).colorScheme.primary,
+                  soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
+                  active: _tagFilters.isNotEmpty,
+                  onPressed: _showTagFilterSheet,
+                ),
+              ),
+            ],
+          ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Semantics(
+              button: true,
+              label: 'مرتب‌سازی کارها',
+              child: IconButton(
+                key: const ValueKey('home-sort-button'),
+                tooltip: 'مرتب‌سازی کارها',
+                visualDensity: VisualDensity.compact,
+                onPressed: _showSortOptions,
+                icon: const Icon(Icons.sort_rounded),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -721,7 +1126,7 @@ class _HomePageState extends State<HomePage> {
   Widget _homeActiveFilterChips() {
     if (!_homeFilterActive) return const SizedBox.shrink();
     final chips = <Widget>[];
-    if (_timeFilter != 'all') {
+    if (_timeFilters.isNotEmpty || _timeFilter == 'customRange') {
       chips.add(HomeFilterChip(
         label: _timeFilterLabel,
         accent: ArvinColors.time,
@@ -729,13 +1134,19 @@ class _HomePageState extends State<HomePage> {
         icon: Icons.schedule_rounded,
         onRemove: () => setState(() {
           _timeFilter = 'all';
+          _timeFilters.clear();
           _specificDateFilter = null;
+          _fromDateFilter = null;
+          _toDateFilter = null;
+          _fromTimeFilter = null;
+          _toTimeFilter = null;
         }),
       ));
     }
-    if (_projectFilter != null) chips.add(HomeFilterChip(label: _projectTitle(_projectFilter) ?? 'بدون پروژه', accent: ArvinColors.project, soft: ArvinColors.projectSoft, icon: Icons.folder_rounded, onRemove: () => setState(() => _projectFilter = null)));
-    if (_categoryFilter != null) chips.add(HomeFilterChip(label: _categoryFilter!, accent: ArvinColors.category, soft: ArvinColors.categorySoft, icon: Icons.layers_rounded, onRemove: () => setState(() => _categoryFilter = null)));
-    for (final tag in _tagFilters) chips.add(HomeFilterChip(label: tag, accent: ArvinColors.tag, soft: ArvinColors.tagSoft, icon: Icons.sell_rounded, onRemove: () => setState(() => _tagFilters.remove(tag))));
+    if (_centerFilters.isNotEmpty) chips.add(HomeFilterChip(label: _centerFilters.length == 1 ? (_centerFilters.first == '__no_center__' ? 'بدون مرکز' : (_centerName(_centerFilters.first) ?? 'مرکز حذف‌شده')) : 'مرکز (${persianDateFormatter.toPersianDigits('${_centerFilters.length}')})', accent: Theme.of(context).colorScheme.primary, soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface), icon: Icons.location_city_outlined, onRemove: () => setState(() => _centerFilters.clear())));
+    if (_projectFilters.isNotEmpty) chips.add(HomeFilterChip(label: _projectFilters.length == 1 ? (_projectFilters.first == '__no_project__' ? 'بدون پروژه' : (_projectTitle(_projectFilters.first) ?? 'پروژه حذف‌شده')) : 'پروژه‌ها (${persianDateFormatter.toPersianDigits('${_projectFilters.length}')})', accent: ArvinColors.project, soft: ArvinColors.projectSoft, icon: Icons.folder_rounded, onRemove: () => setState(() => _projectFilters.clear())));
+    if (_categoryFilters.isNotEmpty) chips.add(HomeFilterChip(label: _categoryFilters.length == 1 ? _categoryFilters.first : 'دسته‌بندی‌ها (${persianDateFormatter.toPersianDigits('${_categoryFilters.length}')})', accent: ArvinColors.category, soft: ArvinColors.categorySoft, icon: Icons.layers_rounded, onRemove: () => setState(() => _categoryFilters.clear())));
+    if (_tagFilters.isNotEmpty) chips.add(HomeFilterChip(label: _tagFilters.length == 1 ? _tagFilters.first : 'برچسب‌ها (${persianDateFormatter.toPersianDigits('${_tagFilters.length}')})', accent: ArvinColors.tag, soft: ArvinColors.tagSoft, icon: Icons.sell_rounded, onRemove: () => setState(() => _tagFilters.clear())));
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       child: Column(
@@ -751,251 +1162,239 @@ class _HomePageState extends State<HomePage> {
   void _clearHomeFilters() {
     setState(() {
       _timeFilter = 'all';
+      _timeFilters.clear();
       _specificDateFilter = null;
       _fromDateFilter = null;
       _toDateFilter = null;
       _fromTimeFilter = null;
       _toTimeFilter = null;
-      _projectFilter = null;
-      _categoryFilter = null;
+      _centerFilters.clear();
+      _projectFilters.clear();
+      _categoryFilters.clear();
       _tagFilters.clear();
     });
   }
 
   Future<void> _showTimeFilterSheet() async {
-    const options = <Map<String, Object>>[
-      {'id': 'all', 'title': 'همه', 'icon': Icons.all_inclusive_rounded},
-      {'id': 'today', 'title': 'امروز', 'icon': Icons.today_rounded},
-      {'id': 'tomorrow', 'title': 'فردا', 'icon': Icons.event_rounded},
-      {'id': 'next7', 'title': '۷ روز آینده', 'icon': Icons.date_range_rounded},
-      {'id': 'next30', 'title': '۳۰ روز آینده', 'icon': Icons.calendar_month_rounded},
-      {'id': 'custom', 'title': 'تاریخ مشخص', 'icon': Icons.event_rounded},
-      {'id': 'undated', 'title': 'فاقد زمان', 'icon': Icons.event_busy_rounded},
+    const options = <Map<String,Object>>[
+      {'id':'past','title':'گذشته','icon':Icons.history_rounded},{'id':'today','title':'امروز','icon':Icons.today_rounded},
+      {'id':'tomorrow','title':'فردا','icon':Icons.event_rounded},{'id':'next7','title':'۷ روز آینده','icon':Icons.date_range_rounded},
+      {'id':'next30','title':'۳۰ روز آینده','icon':Icons.calendar_month_rounded},{'id':'custom','title':'تاریخ مشخص','icon':Icons.event_rounded},
+      {'id':'undated','title':'فاقد زمان','icon':Icons.event_busy_rounded},
     ];
-    var fromDate = _fromDateFilter;
-    var toDate = _toDateFilter;
-    var fromTime = _fromTimeFilter;
-    var toTime = _toTimeFilter;
-    var selectedQuick = _timeFilter == 'customRange' ? 'all' : _timeFilter;
-
-    await HomeFilterSheet.show<void>(
-      context,
-      title: 'انتخاب زمان',
-      accent: ArvinColors.time,
-      child: StatefulBuilder(
-        builder: (sheetContext, setSheetState) {
-          Future<void> pickFromDate() async {
-            final picked = await showPersianDatePicker(
-              context: sheetContext,
-              initialDate: fromDate ?? DateTime.now(),
-              firstDate: DateTime(2020),
-              lastDate: DateTime(2100),
-              helpText: 'از تاریخ',
-            );
-            if (picked != null) setSheetState(() => fromDate = picked);
-          }
-          Future<void> pickToDate() async {
-            final picked = await showPersianDatePicker(
-              context: sheetContext,
-              initialDate: toDate ?? fromDate ?? DateTime.now(),
-              firstDate: DateTime(2020),
-              lastDate: DateTime(2100),
-              helpText: 'تا تاریخ',
-            );
-            if (picked != null) setSheetState(() => toDate = picked);
-          }
-          Future<void> pickFromTime() async {
-            final picked = await showUniversalArvinTimePicker(context: sheetContext, initialTime: fromTime ?? TimeOfDay.now(), helpText: 'از ساعت');
-            if (picked != null) setSheetState(() => fromTime = picked);
-          }
-          Future<void> pickToTime() async {
-            final picked = await showUniversalArvinTimePicker(context: sheetContext, initialTime: toTime ?? TimeOfDay.now(), helpText: 'تا ساعت');
-            if (picked != null) setSheetState(() => toTime = picked);
-          }
-          String dateLabel(DateTime? value, String empty) => value == null ? empty : _date(value);
-          String timeLabel(TimeOfDay? value, String empty) => value == null ? empty : value.format(sheetContext);
-          return ListView(
-            padding: const EdgeInsets.only(bottom: 8),
-            children: [
-              for (final option in options)
-                RadioListTile<String>(
-                  value: option['id'] as String,
-                  groupValue: selectedQuick,
-                  activeColor: ArvinColors.time,
-                  title: Text(option['title'] as String),
-                  secondary: Icon(option['icon'] as IconData, color: ArvinColors.time),
-                  onChanged: (value) async {
-                    final next = value ?? 'all';
-                    if (next == 'custom') {
-                      final picked = await showPersianDatePicker(
-                        context: sheetContext,
-                        initialDate: _specificDateFilter ?? DateTime.now(),
-                        firstDate: DateTime(2020),
-                        lastDate: DateTime(2100),
-                        helpText: 'تاریخ مشخص',
-                      );
-                      if (picked == null) return;
-                      setState(() {
-                        _timeFilter = 'custom';
-                        _specificDateFilter = picked;
-                        _fromDateFilter = null;
-                        _toDateFilter = null;
-                        _fromTimeFilter = null;
-                        _toTimeFilter = null;
-                      });
-                      if (sheetContext.mounted) Navigator.of(sheetContext).pop();
-                      return;
-                    }
-                    setState(() {
-                      _timeFilter = next;
-                      _specificDateFilter = null;
-                      _fromDateFilter = null;
-                      _toDateFilter = null;
-                      _fromTimeFilter = null;
-                      _toTimeFilter = null;
-                    });
-                    Navigator.of(sheetContext).pop();
-                  },
-                ),
-              const Divider(height: 18),
-              ListTile(
-                leading: const Icon(Icons.calendar_month_rounded, color: ArvinColors.time),
-                title: const Text('از تاریخ'),
-                subtitle: Text(dateLabel(fromDate, 'انتخاب نشده')),
-                onTap: () { selectedQuick = 'all'; pickFromDate(); },
-              ),
-              ListTile(
-                leading: const Icon(Icons.event_rounded, color: ArvinColors.time),
-                title: const Text('تا تاریخ'),
-                subtitle: Text(dateLabel(toDate, 'انتخاب نشده')),
-                onTap: () { selectedQuick = 'all'; pickToDate(); },
-              ),
-              ListTile(
-                leading: const Icon(Icons.schedule_rounded, color: ArvinColors.time),
-                title: const Text('از ساعت'),
-                subtitle: Text(timeLabel(fromTime, 'انتخاب نشده')),
-                onTap: () { selectedQuick = 'all'; pickFromTime(); },
-              ),
-              ListTile(
-                leading: const Icon(Icons.access_time_rounded, color: ArvinColors.time),
-                title: const Text('تا ساعت'),
-                subtitle: Text(timeLabel(toTime, 'انتخاب نشده')),
-                onTap: () { selectedQuick = 'all'; pickToTime(); },
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: FilledButton.icon(
-                  style: FilledButton.styleFrom(backgroundColor: ArvinColors.time),
-                  onPressed: fromDate == null && toDate == null && fromTime == null && toTime == null
-                      ? null
-                      : () {
-                          setState(() {
-                            _timeFilter = 'customRange';
-                            _specificDateFilter = null;
-                            _fromDateFilter = fromDate;
-                            _toDateFilter = toDate;
-                            _fromTimeFilter = fromTime;
-                            _toTimeFilter = toTime;
-                          });
-                          Navigator.of(sheetContext).pop();
-                        },
-                  icon: const Icon(Icons.check_rounded),
-                  label: const Text('اعمال بازه'),
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  setState(() {
-                    _timeFilter = 'all';
-                    _specificDateFilter = null;
-                    _fromDateFilter = null;
-                    _toDateFilter = null;
-                    _fromTimeFilter = null;
-                    _toTimeFilter = null;
-                  });
-                  Navigator.of(sheetContext).pop();
-                },
-                child: const Text('پاک کردن'),
-              ),
-
+    final draft=<String>{..._timeFilters};
+    if (_timeFilter == 'customRange') draft.add('customRange');
+    var fromDate=_fromDateFilter,toDate=_toDateFilter;
+    var fromTime=_fromTimeFilter,toTime=_toTimeFilter;
+    var customDate=_specificDateFilter;
+    await ReusableMultiSelectFilterBottomSheet.showCustom<void>(context,title:'انتخاب زمان',accent:ArvinColors.time,
+      child:StatefulBuilder(builder:(sheetContext,setSheetState){
+        Future<bool> pickCustom() async {
+          final value=await showPersianDatePicker(context:sheetContext,initialDate:customDate??DateTime.now(),firstDate:DateTime(2020),lastDate:DateTime(2100),helpText:'تاریخ مشخص');
+          if(value==null)return false;
+          setSheetState(()=>customDate=value);
+          return true;
+        }
+        Future<DateTime?> pickDate(DateTime? initial,String help) => showPersianDatePicker(context:sheetContext,initialDate:initial??DateTime.now(),firstDate:DateTime(2020),lastDate:DateTime(2100),helpText:help);
+        Future<TimeOfDay?> pickTime(TimeOfDay? initial,String help) => showUniversalArvinTimePicker(context:sheetContext,initialTime:initial??TimeOfDay.now(),helpText:help);
+        return Column(children:[
+          Expanded(child:ListView(children:[
+            CheckboxListTile(value:draft.isEmpty,title:const Text('همه'),controlAffinity:ListTileControlAffinity.leading,onChanged:(_)=>setSheetState(()=>draft.clear())),
+            for(final option in options) CheckboxListTile(
+              value:draft.contains(option['id'] as String),title:Text(option['title'] as String),controlAffinity:ListTileControlAffinity.leading,
+              secondary:Icon(option['icon'] as IconData,color:ArvinColors.time),
+              onChanged:(v) async {final id=option['id'] as String;if(id=='custom'&&v==true){if(await pickCustom())setSheetState(()=>draft.add(id));}else{setSheetState(()=>v==true?draft.add(id):draft.remove(id));}},
+            ),
+            CheckboxListTile(
+              value:draft.contains('customRange'),
+              title:const Text('بازهٔ دلخواه'),
+              controlAffinity:ListTileControlAffinity.leading,
+              onChanged:(checked)=>setSheetState(() {
+                if(checked==true) draft.add('customRange'); else draft.remove('customRange');
+              }),
+            ),
+            if(draft.contains('customRange')) ...[
+              const Divider(),
+              ListTile(title:const Text('از تاریخ'),subtitle:Text(fromDate==null?'انتخاب نشده':_date(fromDate!)),onTap:()async{final v=await pickDate(fromDate,'از تاریخ');if(v!=null)setSheetState(()=>fromDate=v);}),
+              ListTile(title:const Text('تا تاریخ'),subtitle:Text(toDate==null?'انتخاب نشده':_date(toDate!)),onTap:()async{final v=await pickDate(toDate,'تا تاریخ');if(v!=null)setSheetState(()=>toDate=v);}),
+              ListTile(title:const Text('از ساعت'),subtitle:Text(fromTime?.format(sheetContext)??'انتخاب نشده'),onTap:()async{final v=await pickTime(fromTime,'از ساعت');if(v!=null)setSheetState(()=>fromTime=v);}),
+              ListTile(title:const Text('تا ساعت'),subtitle:Text(toTime?.format(sheetContext)??'انتخاب نشده'),onTap:()async{final v=await pickTime(toTime,'تا ساعت');if(v!=null)setSheetState(()=>toTime=v);}),
             ],
-          );
-        },
+          ])),
+          Row(children:[
+            Expanded(child:OutlinedButton(onPressed:(){
+              setState(() {
+                _timeFilters.clear(); _timeFilter='all'; _specificDateFilter=null;
+                _fromDateFilter=null; _toDateFilter=null; _fromTimeFilter=null; _toTimeFilter=null;
+              });
+              Navigator.pop(sheetContext);
+            },child:const Text('پاک کردن'))),
+            const SizedBox(width:8),
+            Expanded(child:FilledButton(onPressed:
+              draft.contains('customRange') &&
+                      fromDate == null &&
+                      toDate == null &&
+                      fromTime == null &&
+                      toTime == null
+                  ? null
+                  : () {
+              setState(() {
+                _timeFilters..clear()..addAll(draft);
+                _timeFilter = draft.contains('customRange') ? 'customRange' : 'all';
+                _specificDateFilter = draft.contains('custom') ? customDate : null;
+                _fromDateFilter = draft.contains('customRange') ? fromDate : null;
+                _toDateFilter = draft.contains('customRange') ? toDate : null;
+                _fromTimeFilter = draft.contains('customRange') ? fromTime : null;
+                _toTimeFilter = draft.contains('customRange') ? toTime : null;
+              });
+              Navigator.pop(sheetContext);
+            },child:const Text('تأیید / اعمال فیلتر'))),
+          ]),
+        ]);
+      }));
+  }
+
+  String? _centerName(String? id) {
+    if(id==null)return null;
+    for(final center in centers){if(center.id==id)return center.name;}
+    return null;
+  }
+
+  Future<void> _showCenterFilterSheet() async {
+    final sortedCenters = centers.toList()
+      ..sort((a, b) => a.name.compareTo(b.name));
+    final options = <ReusableFilterOption<String>>[
+      const ReusableFilterOption(
+        value: '__no_center__',
+        label: 'پروژه‌های بدون مرکز',
       ),
+      for (final center in sortedCenters)
+        ReusableFilterOption<String>(
+          value: center.id,
+          label: center.name,
+          subtitle: center.isArchived ? 'بایگانی‌شده' : null,
+          icon: Icons.business_outlined,
+        ),
+    ];
+    final applied = await ReusableMultiSelectFilterBottomSheet.showMultiSelect<String>(
+      context,
+      title: 'انتخاب مرکز',
+      accent: Theme.of(context).colorScheme.primary,
+      options: options,
+      selectedValues: _centerFilters,
+      searchHint: 'جستجو در مراکز...',
+      createHint: 'نام مرکز جدید',
+      createLabel: 'افزودن مرکز',
+      onCreate: (name) async {
+        final id = await _createCenter(name);
+        if (id == null) return null;
+        return ReusableFilterOption<String>(
+          value: id,
+          label: name,
+          icon: Icons.business_outlined,
+        );
+      },
     );
+    if (!mounted || applied == null) return;
+    setState(() => _centerFilters..clear()..addAll(applied));
   }
 
   Future<void> _showProjectFilterSheet() async {
-    String search = '';
-    final result = await HomeFilterSheet.show<String?>(context, title: 'انتخاب پروژه', accent: ArvinColors.project, child: StatefulBuilder(
-      builder: (sheetContext, setSheetState) {
-        final values = projects.where((p) => !p.isArchived).toList()..sort((a, b) => a.title.compareTo(b.title));
-        final filtered = values.where((p) => p.title.toLowerCase().contains(search.toLowerCase())).toList();
-        return SizedBox(
-          height: MediaQuery.sizeOf(sheetContext).height * .58,
-          child: Column(children: [
-            TextField(onChanged: (v) => setSheetState(() => search = v), decoration: const InputDecoration(hintText: 'جستجو در پروژه‌ها...', prefixIcon: Icon(Icons.search_rounded))),
-            Expanded(child: ListView(children: [
-              ListTile(leading: const Icon(Icons.folder_open_rounded, color: ArvinColors.project), title: const Text('همه پروژه‌ها'), trailing: Icon(_projectFilter == null ? Icons.radio_button_checked : Icons.radio_button_off, color: ArvinColors.project), onTap: () => Navigator.of(sheetContext).pop('__all__')),
-              for (final project in filtered)
-                RadioListTile<String?>(value: project.id, groupValue: _projectFilter, activeColor: ArvinColors.project, title: Text(project.title), secondary: const Icon(Icons.folder_rounded), onChanged: (value) => Navigator.of(sheetContext).pop(value)),
-            ])),
-          ]),
+    final options = <ReusableFilterOption<String>>[
+      const ReusableFilterOption(value: '__no_project__', label: 'بدون پروژه'),
+      ...projects
+          .where((project) => !project.isArchived)
+          .map((project) => ReusableFilterOption<String>(
+                value: project.id,
+                label: project.title,
+                icon: Icons.folder_outlined,
+              )),
+    ];
+    final applied = await ReusableMultiSelectFilterBottomSheet.showMultiSelect<String>(
+      context,
+      title: 'انتخاب پروژه',
+      accent: ArvinColors.project,
+      options: options,
+      selectedValues: _projectFilters,
+      searchHint: 'جستجو در پروژه‌ها...',
+      createHint: 'نام پروژه جدید',
+      createLabel: 'افزودن پروژه',
+      onCreate: (title) async {
+        final id = await wave2ProductFastTrack.createProject(title);
+        if (id == null) return null;
+        if (mounted) await _load();
+        return ReusableFilterOption<String>(
+          value: id,
+          label: title,
+          icon: Icons.folder_outlined,
         );
       },
-    ));
-    if (!mounted) return;
-    setState(() => _projectFilter = result == '__all__' ? null : result);
+    );
+    if (!mounted || applied == null) return;
+    setState(() => _projectFilters..clear()..addAll(applied));
   }
 
   Future<void> _showCategoryFilterSheet() async {
-    final result = await HomeFilterSheet.show<String?>(context, title: 'انتخاب دسته', accent: ArvinColors.category, child: ListView(shrinkWrap: true, children: [
-      ListTile(leading: const Icon(Icons.layers_rounded, color: ArvinColors.category), title: const Text('همه دسته‌ها'), trailing: Icon(_categoryFilter == null ? Icons.radio_button_checked : Icons.radio_button_off, color: ArvinColors.category), onTap: () => Navigator.of(context).pop('__all__')),
-      for (final category in _homeCategories)
-        RadioListTile<String?>(value: category, groupValue: _categoryFilter, activeColor: ArvinColors.category, title: Text(category), secondary: const Icon(Icons.layers_rounded), onChanged: (value) => Navigator.of(context).pop(value)),
-    ]));
-    if (!mounted) return;
-    setState(() => _categoryFilter = result == '__all__' ? null : result);
+    final options = _homeCategories
+        .map((value) => ReusableFilterOption<String>(
+              value: value,
+              label: value,
+              icon: Icons.layers_outlined,
+            ))
+        .toList(growable: false);
+    final applied = await ReusableMultiSelectFilterBottomSheet.showMultiSelect<String>(
+      context,
+      title: 'انتخاب دسته',
+      accent: ArvinColors.category,
+      options: options,
+      selectedValues: _categoryFilters,
+      searchHint: 'جستجو در دسته‌ها...',
+      createHint: 'نام دسته جدید',
+      createLabel: 'افزودن دسته',
+      onCreate: (name) async {
+        final created = await _createCategory(name);
+        if (created == null) return null;
+        return ReusableFilterOption<String>(
+          value: created,
+          label: created,
+          icon: Icons.layers_outlined,
+        );
+      },
+    );
+    if (!mounted || applied == null) return;
+    setState(() => _categoryFilters..clear()..addAll(applied));
   }
 
   Future<void> _showTagFilterSheet() async {
-    final tags = tasks.expand((task) => task.tags).map((tag) => tag.trim()).where((tag) => tag.isNotEmpty).toSet().toList()..sort();
-    final selectedTags = <String>{..._tagFilters};
-    String search = '';
-    await HomeFilterSheet.show<void>(context, title: 'انتخاب برچسب‌ها', accent: ArvinColors.tag, child: StatefulBuilder(
-      builder: (sheetContext, setSheetState) {
-        final filtered = tags.where((tag) => tag.toLowerCase().contains(search.toLowerCase())).toList();
-        return SizedBox(
-          height: MediaQuery.sizeOf(sheetContext).height * .58,
-          child: Column(children: [
-            TextField(onChanged: (value) => setSheetState(() => search = value), decoration: const InputDecoration(hintText: 'جستجو در برچسب‌ها...', prefixIcon: Icon(Icons.search_rounded))),
-            Expanded(child: ListView(children: [
-              ListTile(
-                leading: const Icon(Icons.sell_outlined, color: ArvinColors.tag),
-                title: const Text('همه برچسب‌ها'),
-                trailing: Icon(selectedTags.isEmpty ? Icons.check_circle : Icons.circle_outlined, color: ArvinColors.tag),
-                onTap: () => setSheetState(() { selectedTags.clear(); setState(() { _tagFilters.clear(); }); }),
-              ),
-              for (final tag in filtered)
-                CheckboxListTile(
-                  value: selectedTags.contains(tag),
-                  activeColor: ArvinColors.tag,
-                  title: Text(tag),
-                  secondary: const Icon(Icons.sell_rounded, color: ArvinColors.tag),
-                  onChanged: (checked) => setSheetState(() {
-                    if (checked == true) selectedTags.add(tag); else selectedTags.remove(tag);
-                    setState(() { _tagFilters..clear()..addAll(selectedTags); });
-                  }),
-                ),
-            ])),
-          ]),
+    final options = _homeTags
+        .map((value) => ReusableFilterOption<String>(
+              value: value,
+              label: value,
+              icon: Icons.sell_outlined,
+            ))
+        .toList(growable: false);
+    final applied = await ReusableMultiSelectFilterBottomSheet.showMultiSelect<String>(
+      context,
+      title: 'انتخاب برچسب‌ها',
+      accent: ArvinColors.tag,
+      options: options,
+      selectedValues: _tagFilters,
+      searchHint: 'جستجو در برچسب‌ها...',
+      createHint: 'نام برچسب جدید',
+      createLabel: 'افزودن برچسب',
+      onCreate: (name) async {
+        final created = await _createTag(name);
+        if (created == null) return null;
+        return ReusableFilterOption<String>(
+          value: created,
+          label: created,
+          icon: Icons.sell_outlined,
         );
       },
-    ));
+    );
+    if (!mounted || applied == null) return;
+    setState(() => _tagFilters..clear()..addAll(applied));
   }
-
-
-
 
   Color _groupAccent(String id) {
     switch (id) {
@@ -1004,7 +1403,7 @@ class _HomePageState extends State<HomePage> {
       case 'tomorrow': return ArvinColors.groupingTomorrow;
       case 'future': return ArvinColors.groupingFuture;
       case 'no_date': return ArvinColors.neutral;
-      default: return ArvinColors.primary;
+      default: return Theme.of(context).colorScheme.primary;
     }
   }
 
@@ -1015,19 +1414,43 @@ class _HomePageState extends State<HomePage> {
       case 'tomorrow': return ArvinColors.groupingTomorrowSoft;
       case 'future': return ArvinColors.groupingFutureSoft;
       case 'no_date': return ArvinColors.groupingNoDateSoft;
-      default: return ArvinColors.primarySoft;
+      default: return Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface);
     }
   }
 
   IconData _groupIcon(String id) {
     switch (id) {
-      case 'overdue': return Icons.warning_amber_rounded;
-      case 'today': return Icons.wb_sunny_rounded;
-      case 'tomorrow': return Icons.event_available_rounded;
-      case 'future': return Icons.auto_awesome_rounded;
+      case 'past':
+      case 'overdue':
+      case 'today':
+      case 'tomorrow':
+      case 'future': return Icons.calendar_today_rounded;
       case 'no_date': return Icons.schedule_rounded;
       default: return Icons.schedule_rounded;
     }
+  }
+
+  String _weekdayName(int weekday) => switch (weekday) {
+    DateTime.monday => 'دوشنبه',
+    DateTime.tuesday => 'سه‌شنبه',
+    DateTime.wednesday => 'چهارشنبه',
+    DateTime.thursday => 'پنج‌شنبه',
+    DateTime.friday => 'جمعه',
+    DateTime.saturday => 'شنبه',
+    DateTime.sunday => 'یکشنبه',
+    _ => '',
+  };
+
+  String? _groupJalaliDate(String id) {
+    final now = IranClock.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final date = switch (id) {
+      'today' => today,
+      'tomorrow' => today.add(const Duration(days: 1)),
+      _ => null,
+    };
+    if (date == null) return null;
+    return '${_weekdayName(date.weekday)} ${persianDateFormatter.format(date, usePersianDate: true)}';
   }
 
   Widget _groupedTaskList() {
@@ -1036,24 +1459,41 @@ class _HomePageState extends State<HomePage> {
         .where((group) => group.items.isNotEmpty || (!_homeFilterActive && !compactHome))
         .toList(growable: false);
     if (groups.isEmpty || groups.every((group) => group.items.isEmpty)) {
+      final isCanonicalEmpty = !_homeFilterActive &&
+          filter == 'کل' &&
+          tasks.where((task) => !task.archived && !task.trashed).isEmpty;
       return Center(child: Padding(
         padding: EdgeInsets.all(compactHome ? 16 : 24),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Icon(Icons.search_off_rounded, size: compactHome ? 32 : 38, color: ArvinColors.neutral),
-          SizedBox(height: compactHome ? 6 : 10),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Icon(Icons.inbox_outlined, size: compactHome ? 34 : 42, color: ArvinColors.neutral),
+          SizedBox(height: compactHome ? 8 : 12),
           Text(
             (filter == 'سطل زباله' || filter == 'بایگانی')
                 ? _emptyVisibleLabel
-                : (_timeFilter == 'today' && filter == 'فعال'
+                : (_timeFilters.contains('today') && filter == 'فعال'
                     ? 'کاری برای امروز وجود ندارد'
-                    : (_homeFilterActive ? 'کاری با این فیلترها پیدا نشد' : 'کاری برای نمایش وجود ندارد')),
+                    : (_homeFilterActive ? 'کاری با این فیلترها پیدا نشد' : 'هنوز کاری برای نمایش نیست')),
+            textAlign: TextAlign.center,
             style: const TextStyle(fontWeight: FontWeight.w700),
           ),
           if (_homeFilterActive) TextButton(onPressed: _clearHomeFilters, child: const Text('پاک کردن فیلترها')),
-        ]),
+          if (isCanonicalEmpty) ...[
+            const SizedBox(height: 10),
+            FilledButton.icon(
+              key: const ValueKey('home-empty-add'),
+              onPressed: _quickCapture,
+              icon: const Icon(Icons.add_rounded),
+              label: const Text('افزودن کار جدید'),
+            ),
+          ],
+          ]),
+        ),
       ));
     }
     return ListView.builder(
+      controller: _homeScrollController,
       padding: EdgeInsets.fromLTRB(16, 5, 16, MediaQuery.sizeOf(context).height < 700 ? 12 : 96),
       itemCount: groups.length,
       itemBuilder: (context, index) {
@@ -1061,6 +1501,7 @@ class _HomePageState extends State<HomePage> {
         final collapsed = _collapsedGroups.contains(group.id);
         final accent = _groupAccent(group.id);
         final soft = _groupSoft(group.id);
+        final groupDate = _groupJalaliDate(group.id);
         return Padding(
           padding: const EdgeInsets.only(bottom: 8),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -1075,6 +1516,10 @@ class _HomePageState extends State<HomePage> {
                   Icon(_groupIcon(group.id), size: 18, color: accent),
                   const SizedBox(width: 7),
                   Expanded(child: Text(group.title, style: TextStyle(color: accent, fontSize: 14, fontWeight: FontWeight.w800))),
+                  if (groupDate != null) ...[
+                    const SizedBox(width: 6),
+                    Text(groupDate, style: TextStyle(color: accent.withAlpha(190), fontSize: 10, fontWeight: FontWeight.w600)),
+                  ],
                   Container(
                     constraints: const BoxConstraints(minWidth: 28),
                     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
@@ -1143,9 +1588,14 @@ class _HomePageState extends State<HomePage> {
         initialDescription: reminder.description,
         initialDueDate: reminder.date,
         projects: editorContext.projects,
+        centers: centers,
+        selectedCenterId: null,
+        onCreateCenter: _createCenter,
         selectedProjectId: editorContext.selectedProjectId,
         onProjectChanged: (value) => selectedProjectId = value,
         onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
+        onCreateProjectWithCenter: (title, centerId) =>
+            wave2ProductFastTrack.createProject(title, centerId: centerId),
         knownCategories: editorContext.knownCategories,
         knownTags: editorContext.knownTags,
         onCreateCategory: _createCategory,
@@ -1201,9 +1651,14 @@ class _HomePageState extends State<HomePage> {
       builder: (_) => ArvinTaskEditorDialog(
         initialDueDate: DateTime(date.year, date.month, date.day),
         projects: editorContext.projects,
+        centers: centers,
+        selectedCenterId: null,
+        onCreateCenter: _createCenter,
         selectedProjectId: editorContext.selectedProjectId,
         onProjectChanged: (value) => selectedProjectId = value,
         onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
+        onCreateProjectWithCenter: (title, centerId) =>
+            wave2ProductFastTrack.createProject(title, centerId: centerId),
         knownCategories: editorContext.knownCategories,
         knownTags: editorContext.knownTags,
         onCreateCategory: _createCategory,
@@ -1219,29 +1674,6 @@ class _HomePageState extends State<HomePage> {
     );
     await _load();
     return task;
-  }
-
-  Future<void> _syncCalendarAfterQuickCapture(List<Task> snapshot) async {
-    try {
-      await calendarOutboundSyncService.sync(
-        calendarProjection.project(snapshot),
-        preserveUnprojectedTaskIds: _trashedTaskIds(snapshot),
-      );
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: const Text('همگام‌سازی کار با تقویم مقصد انجام نشد.'),
-            action: SnackBarAction(
-              label: 'تلاش دوباره',
-              onPressed: () => _retryCalendarSync(snapshot),
-            ),
-            duration: const Duration(seconds: 6),
-          ),
-        );
-    }
   }
 
   Future<void> _quickCapture() async {
@@ -1261,14 +1693,25 @@ class _HomePageState extends State<HomePage> {
     final editorContext = await wave2ProductFastTrack.prepareEditor(tasks: tasks);
     if (!mounted) return;
     String? selectedProjectId = editorContext.selectedProjectId;
+    final selectedProject = editorContext.projects.where((project) => project.id == selectedProjectId);
+    final selectedCenterId = selectedProject.isEmpty ? null : selectedProject.first.centerId;
 
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       showDragHandle: false,
       useSafeArea: true,
-      builder: (_) => QuickCaptureDialog(
+      builder: (sheetContext) => ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.66,
+        ),
+        child: QuickCaptureDialog(
         projects: editorContext.projects,
+        centers: centers,
+        initialCenterId: selectedCenterId,
+        onCreateProjectWithCenter: (title, centerId) =>
+            wave2ProductFastTrack.createProject(title, centerId: centerId),
+        onCreateCenter: _createCenter,
         knownCategories: editorContext.knownCategories,
         knownTags: editorContext.knownTags,
         onCreateCategory: _createCategory,
@@ -1286,9 +1729,14 @@ class _HomePageState extends State<HomePage> {
             builder: (_) => ArvinTaskEditorDialog(
               task: draft,
               projects: editedContext.projects,
+              centers: centers,
+              selectedCenterId: draft.centerId,
+              onCreateCenter: _createCenter,
               selectedProjectId: selectedProjectId ?? editedContext.selectedProjectId,
               onProjectChanged: (value) => selectedProjectId = value,
         onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
+        onCreateProjectWithCenter: (title, centerId) =>
+            wave2ProductFastTrack.createProject(title, centerId: centerId),
               knownCategories: editedContext.knownCategories,
               knownTags: editedContext.knownTags,
             ),
@@ -1311,7 +1759,6 @@ class _HomePageState extends State<HomePage> {
             loadFailure = null;
             loading = false;
           });
-          await _syncCalendarAfterQuickCapture(refreshed);
           return true;
         },
         onCaptured: (captured) async {
@@ -1333,7 +1780,6 @@ class _HomePageState extends State<HomePage> {
             loadFailure = null;
             loading = false;
           });
-          await _syncCalendarAfterQuickCapture(refreshed);
           if (!mounted) return;
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
@@ -1341,6 +1787,7 @@ class _HomePageState extends State<HomePage> {
               SnackBar(content: Text('«${captured.title}» ثبت شد')),
             );
         },
+        ),
       ),
     );
   }
@@ -1357,9 +1804,14 @@ class _HomePageState extends State<HomePage> {
       builder: (_) => ArvinTaskEditorDialog(
         task: old,
         projects: editorContext.projects,
+        centers: centers,
+        selectedCenterId: old.centerId ?? _projectForTask(old)?.centerId,
+        onCreateCenter: _createCenter,
         selectedProjectId: editorContext.selectedProjectId,
         onProjectChanged: (value) => selectedProjectId = value,
         onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
+        onCreateProjectWithCenter: (title, centerId) =>
+            wave2ProductFastTrack.createProject(title, centerId: centerId),
         knownCategories: editorContext.knownCategories,
         knownTags: editorContext.knownTags,
         onCreateCategory: _createCategory,
@@ -1401,10 +1853,6 @@ class _HomePageState extends State<HomePage> {
   Future<Task?> _editFromDetail(Task task) async {
     await _edit(task);
     if (!mounted) return task;
-    // Ordinary auto-sync may be disabled even though this Task was explicitly
-    // linked to the phone calendar earlier. Reconcile only existing links so
-    // editing one Task cannot create events for unrelated Tasks.
-    await _syncLinkedCalendarAfterTaskEdit(List<Task>.of(tasks));
     return task;
   }
 
@@ -1428,6 +1876,33 @@ class _HomePageState extends State<HomePage> {
     return refreshed.firstWhere((item) => item.id == task.id);
   }
 
+  Future<Task?> _descriptionChangedFromDetail(
+    Task task,
+    String description,
+  ) async {
+    final target = tasks.firstWhere((item) => item.id == task.id);
+    if (target.description == description) return target;
+
+    // Description metadata updates are deliberately isolated: completion
+    // timestamps and historical Follow-up rows are not assigned or rewritten.
+    final updatedAt = DateTime.now();
+    await taskStore.updateDescription(task.id, description, updatedAt);
+    target.description = description;
+    target.updatedAt = updatedAt;
+    final refreshed = await taskStore.load();
+    if (!mounted) return target;
+    setState(() => tasks = List<Task>.of(refreshed));
+    return refreshed.firstWhere((item) => item.id == task.id);
+  }
+
+  Future<Task?> _moveDueDateToTodayFromDetail(Task task) async {
+    final moved = await TaskMoveToTodayService(store: taskStore).move(task.id);
+    final refreshed = await taskStore.load();
+    if (!mounted) return moved;
+    setState(() => tasks = List<Task>.of(refreshed));
+    return refreshed.firstWhere((item) => item.id == task.id);
+  }
+
   Future<Task?> _completeFromDetail(Task task) async {
     // The detail action is a true toggle: a second tap returns the task to
     // the active/undone state. Done remains independent from archive/trash.
@@ -1443,64 +1918,8 @@ class _HomePageState extends State<HomePage> {
     final refreshed = await taskStore.load();
     if (!mounted) return task;
     setState(() => tasks = List<Task>.of(refreshed));
-    await _syncCalendarAfterDetailTaskUpdate(refreshed);
     if (!mounted) return task;
     return refreshed.firstWhere((item) => item.id == task.id);
-  }
-
-  Future<void> _syncCalendarAfterDetailTaskUpdate(
-    List<Task> snapshot,
-  ) async {
-    try {
-      await calendarOutboundSyncService.sync(
-        calendarProjection.project(snapshot),
-        preserveUnprojectedTaskIds: _trashedTaskIds(snapshot),
-      );
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: const Text('همگام‌سازی کار با تقویم مقصد انجام نشد.'),
-            action: SnackBarAction(
-              label: 'تلاش دوباره',
-              onPressed: () => _retryCalendarSync(snapshot),
-            ),
-            duration: const Duration(seconds: 6),
-          ),
-        );
-    }
-  }
-
-  Future<void> _syncLinkedCalendarAfterTaskEdit(List<Task> snapshot) async {
-    try {
-      final result = await calendarOutboundSyncService.sync(
-        calendarProjection.project(snapshot),
-        force: true,
-        linkedOnly: true,
-      );
-      if (!mounted || result == null || result.updated == 0) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(content: Text('تغییرات کار در تقویم گوشی هم به‌روز شد.')),
-        );
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: const Text('کار در آروین ذخیره شد، اما رویداد پیوندخوردهٔ گوشی به‌روز نشد.'),
-            action: SnackBarAction(
-              label: 'تلاش دوباره',
-              onPressed: () => _syncLinkedCalendarAfterTaskEdit(snapshot),
-            ),
-            duration: const Duration(seconds: 6),
-          ),
-        );
-    }
   }
 
   Future<Task> _addFollowUpFromDetail(Task task, FollowUp followUp) async {
@@ -1518,17 +1937,82 @@ class _HomePageState extends State<HomePage> {
     return updated;
   }
 
+  Future<Task?> _taskChangedFromDetail(Task candidate) async {
+    final index = tasks.indexWhere((item) => item.id == candidate.id);
+    if (index < 0) throw StateError('Task not found: ${candidate.id}');
+    final previous = tasks[index];
+    tasks[index] = candidate;
+    try {
+      await _save();
+    } catch (_) {
+      tasks[index] = previous;
+      rethrow;
+    }
+    final refreshed = await taskStore.load();
+    if (!mounted) return refreshed.firstWhere((item) => item.id == candidate.id);
+    setState(() => tasks = List<Task>.of(refreshed));
+    return refreshed.firstWhere((item) => item.id == candidate.id);
+  }
+
+  Future<Task?> _cloneTaskFromDetail(Task source) async {
+    final clone = const TaskCloneService().clone(
+      source,
+      existingTitles: tasks.map((task) => task.title),
+    );
+    tasks.add(clone);
+    try {
+      await _save();
+      await TaskProjectAssignmentService().assign(
+        taskId: clone.id,
+        projectId: _projectForTask(source)?.id,
+      );
+    } catch (_) {
+      tasks.removeWhere((item) => item.id == clone.id);
+      await _save();
+      rethrow;
+    }
+    await _load();
+    return tasks.firstWhere((item) => item.id == clone.id);
+  }
+
   Future<void> _openTaskDetail(Task task) async {
+    if (!mounted) return;
+    final people = await taskStore.loadPeopleDirectory();
     if (!mounted) return;
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
         builder: (_) => TaskDetailPage(
           task: task,
           projectTitle: _projectTitleForTask(task),
+          project: _projectForTask(task),
+          centerName: _centerNameForTask(task),
           onEdit: _editFromDetail,
+          onClone: _cloneTaskFromDetail,
+          onDelete: _trashTaskFromCalendar,
+          onTaskChanged: _taskChangedFromDetail,
           onAddFollowUp: _addFollowUpFromDetail,
           onComplete: _completeFromDetail,
           onChecklistChanged: _checklistChangedFromDetail,
+          onDescriptionChanged: _descriptionChangedFromDetail,
+          onMoveDueDateToToday: _moveDueDateToTodayFromDetail,
+          onRegisterTaskToDeviceCalendar: _registerTaskFromDetails,
+          people: people,
+          onCreatePerson: (person) => taskStore.mergePeopleDirectory([person]),
+          categoryOptions: _homeCategories,
+          tagOptions: _homeTags,
+          onCreateCategory: _createCategory,
+          onCreateTag: _createTag,
+          centers: centers,
+          projects: projects,
+          selectedProjectId: _projectForTask(task)?.id,
+          onCreateCenter: _createCenter,
+          onCreateProject: (title, centerId) =>
+              wave2ProductFastTrack.createProject(title, centerId: centerId),
+          onProjectChanged: (projectId) =>
+              wave2ProductFastTrack.persistProjectSelection(
+            taskId: task.id,
+            projectId: projectId,
+          ),
         ),
       ),
     );
@@ -1719,12 +2203,11 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _restore(Task task) async {
     setState(() {
-      task.trashed = false;
-      task.archived = false;
+      task.trashed = false;      task.archived = false;
       filter = 'کل';
       _listScope = TaskListScope.all;
       _dueScope = null;
-      _categoryFilter = null;
+      _categoryFilters.clear();
       selected.clear();
       selectionMode = false;
     });
@@ -1734,21 +2217,24 @@ class _HomePageState extends State<HomePage> {
   void _selectHomeStat(String nextFilter) {
     setState(() {
       _listScope = TaskListScope.all;
-      _categoryFilter = null;
-      _projectFilter = null;
+      _categoryFilters.clear();
+      _projectFilters.clear();
       _tagFilters.clear();
       _specificDateFilter = null;
       if (nextFilter == 'امروز') {
         filter = 'فعال';
-        _timeFilter = 'today';
+        _timeFilters..clear()..add('today');
+        _timeFilter = 'all';
         _dueScope = TaskDueScope.today;
       } else if (nextFilter == 'عقب‌افتاده') {
         filter = 'فعال';
         _timeFilter = 'all';
+        _timeFilters.clear();
         _dueScope = TaskDueScope.overdue;
       } else {
         filter = nextFilter;
         _timeFilter = 'all';
+        _timeFilters.clear();
         _dueScope = null;
       }
       selected.clear();
@@ -1761,7 +2247,7 @@ class _HomePageState extends State<HomePage> {
       filter = 'کل';
       _listScope = scope;
       _dueScope = null;
-      _categoryFilter = null;
+      _categoryFilters.clear();
       selected.clear();
       selectionMode = false;
     });
@@ -1772,7 +2258,7 @@ class _HomePageState extends State<HomePage> {
       filter = 'کل';
       _listScope = TaskListScope.all;
       _dueScope = scope;
-      _categoryFilter = null;
+      _categoryFilters.clear();
       selected.clear();
       selectionMode = false;
     });
@@ -1783,7 +2269,7 @@ class _HomePageState extends State<HomePage> {
       filter = 'کل';
       _listScope = TaskListScope.all;
       _dueScope = null;
-      _categoryFilter = category;
+      _categoryFilters..clear()..add(category);
       selected.clear();
       selectionMode = false;
     });
@@ -1818,7 +2304,15 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _toggle(Task task) async {
-    setState(() => task.setCompleted(!task.completed));
+    setState(() {
+      final completingFromActiveHome =
+          !task.completed && !task.archived && !task.trashed;
+      task.setCompleted(!task.completed);
+      if (completingFromActiveHome) {
+        task.archived = true;
+        task.trashed = false;
+      }
+    });
     await _save();
   }
 
@@ -2174,33 +2668,43 @@ class _HomePageState extends State<HomePage> {
     await _load();
     return List<Task>.of(_searchSource);
   }
-  Future<void> _registerTaskInDeviceCalendar(CalendarReminder reminder) async {
-    final isTaskCalendarItem = reminder.id.startsWith('task-due:') ||
-        reminder.id.startsWith('task-reminder-item:') ||
-        reminder.id.startsWith('task-reminder:');
-    if (!isTaskCalendarItem) return;
-    var settings = await appSettingsService.load();
-    var targetCalendarId = settings.calendarIntegration.targetCalendarId?.trim();
-    if (targetCalendarId == null || targetCalendarId.isEmpty) {
-      if (!mounted) return;
-      await Navigator.of(context).push<void>(
-        MaterialPageRoute<void>(
-          builder: (_) => CalendarIntegrationSettingsPage(
-            service: appSettingsService,
-          ),
-        ),
-      );
-      if (!mounted) return;
-      settings = await appSettingsService.load();
-      targetCalendarId = settings.calendarIntegration.targetCalendarId?.trim();
-    }
-    if (targetCalendarId == null || targetCalendarId.isEmpty) {
+  Future<void> _registerTaskFromDetails(Task task) async {
+    final eligible = calendarProjection
+        .project(<Task>[task])
+        .where(SystemCalendarBridge.isEligible)
+        .toList(growable: false);
+    if (eligible.isEmpty) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ابتدا یک تقویم مقصد را انتخاب کنید.')),
+        const SnackBar(content: Text('برای این کار موعد یا یادآور مستقلی برای ارسال وجود ندارد.')),
       );
       return;
     }
+    CalendarReminder? selected;
+    if (eligible.length == 1) {
+      selected = eligible.single;
+    } else {
+      selected = await showDialog<CalendarReminder>(
+        context: context,
+        builder: (dialogContext) => SimpleDialog(
+          title: const Text('انتخاب مورد برای ارسال به تقویم دستگاه'),
+          children: [
+            for (final reminder in eligible)
+              SimpleDialogOption(
+                onPressed: () => Navigator.of(dialogContext).pop(reminder),
+                child: Text('${reminder.title} • ${reminder.date}'),
+              ),
+          ],
+        ),
+      );
+    }
+    if (selected != null && mounted) {
+      await _registerTaskInDeviceCalendar(selected);
+    }
+  }
+
+  Future<void> _registerTaskInDeviceCalendar(CalendarReminder reminder) async {
+    if (!SystemCalendarBridge.isEligible(reminder)) return;
 
     Task? task;
     for (final prefix in const <String>[
@@ -2211,9 +2715,6 @@ class _HomePageState extends State<HomePage> {
       if (!reminder.id.startsWith(prefix)) continue;
       final suffix = reminder.id.substring(prefix.length);
       for (final candidate in _searchSource) {
-        // Repeat occurrences append an ISO timestamp to the canonical Task
-        // ID (which itself is stable). Match the Task prefix, not the entire
-        // occurrence ID, so each occurrence can still edit/register its Task.
         if (suffix == candidate.id || suffix.startsWith('${candidate.id}:')) {
           task = candidate;
           break;
@@ -2226,45 +2727,36 @@ class _HomePageState extends State<HomePage> {
     final canonical = CalendarReminder(
       id: reminder.id,
       title: task.title,
-      // Keep the selected calendar row's date. For recurrence, this is the
-      // occurrence date, not the Task's original anchor date.
       date: reminder.date,
       completed: task.completed,
       isAllDay: reminder.isAllDay,
       description: task.description,
     );
     try {
-      final revision = await CalendarSyncRevisionService().fromReminder(canonical);
-      final links = await ExternalCalendarLinkStore().load();
-      final plan = const CalendarSyncPlanService().plan(
-        revisions: <CalendarSyncRevision>[revision],
-        links: links,
-        targetCalendarId: targetCalendarId,
-      );
-      final result = await CalendarProviderSyncExecutor().execute(
-        plan: plan,
-        targetCalendarId: targetCalendarId,
+      final result = await calendarOutboundSyncService.syncTaskLifecycle(
+        <CalendarReminder>[canonical],
+        linkedOnly: true,
       );
       if (!mounted) return;
-      final alreadyLinked = links.any((link) => link.reminderId == reminder.id);
+      if (result == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('تقویم محلی Arvin هنوز آماده نیست؛ کار داخلی آروین محفوظ است.')),
+        );
+        return;
+      }
       final message = result.created > 0
-          ? 'کار در تقویم گوشی ثبت شد.'
+          ? 'کار در تقویم محلی Arvin ثبت شد.'
           : result.updated > 0
-          ? 'رویداد تقویم گوشی به‌روزرسانی شد.'
-          : alreadyLinked
-          ? 'این مورد قبلاً در تقویم گوشی ثبت شده است.'
-          : 'رویداد تقویم گوشی از قبل به‌روز بود.';
+              ? 'رویداد تقویم محلی Arvin به‌روزرسانی شد.'
+              : 'این مورد در تقویم محلی Arvin به‌روز است.';
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     } catch (error) {
       if (!mounted) return;
-      final detail = error.toString();
-      final message = detail.contains('این مورد قبلاً در تقویم گوشی ثبت شده است.')
-          ? 'این مورد قبلاً در تقویم گوشی ثبت شده است.'
-          : 'ثبت در تقویم گوشی انجام نشد: $error';
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('ثبت در تقویم محلی Arvin انجام نشد: $error')),
+      );
     }
   }
-
 
 
   Future<void> _openPrimaryCalendar() async {
@@ -2282,9 +2774,9 @@ class _HomePageState extends State<HomePage> {
           onCreateTaskForDate: _addForDate,
           onCreateTaskFromCalendarEvent: _addFromCalendarEvent,
           onEditTask: (task) async { await _editFromDetail(task); },
+          onOpenTask: _openTaskDetail,
           onDeleteTask: _trashTaskFromCalendar,
           onRegisterTaskToDeviceCalendar: _registerTaskInDeviceCalendar,
-          onRetryCalendarSync: () => _retryCalendarSync(tasks),
         ),
       ),
     );
@@ -2322,13 +2814,21 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _openPrimaryReports() async {
     final people = await taskStore.loadPeopleDirectory();
+    final templates = await ProjectTemplateStore().load();
     if (!mounted) return;
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
         builder: (_) => ReportCenterPage(
           tasks: List<Task>.of(tasks),
           projects: List<ProjectPlan>.of(projects),
+          centers: List<ArvinCenter>.of(centers),
+          templates: templates,
           people: people,
+          onCreateCenter: _createCenter,
+          onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
+          onCreateCategory: _createCategory,
+          onCreateTag: _createTag,
+          onCreatePerson: _createReportPerson,
         ),
       ),
     );
@@ -2356,6 +2856,7 @@ class _HomePageState extends State<HomePage> {
           MaterialPageRoute<void>(
             builder: (_) => CanonicalCalendarLauncher(
               tasks: _searchSource,
+              onOpenTask: _openTaskDetail,
               onCreateTaskForDate: _addForDate,
               onCreateTaskFromCalendarEvent: _addFromCalendarEvent,
             ),
@@ -2413,6 +2914,7 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+    if (mounted) await _load();
   }
 
   void _showAbout() {
@@ -2452,6 +2954,57 @@ class _HomePageState extends State<HomePage> {
       case HomeTaskFilterKind.category:
         final category = selection.category;
         if (category != null) _selectCategory(category);
+        return;
+    }
+  }
+
+  Future<void> _showHomeFilterMenu() async {
+    final action = await showModalBottomSheet<_HomeMoreAction>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.today_outlined),
+              title: const Text('امروز'),
+              onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.today),
+            ),
+            ListTile(
+              leading: const Icon(Icons.event_busy_outlined),
+              title: const Text('کارهای فاقد زمان'),
+              onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.undated),
+            ),
+            ListTile(
+              leading: const Icon(Icons.archive_outlined),
+              title: const Text('بایگانی'),
+              onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.archive),
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete_outline),
+              title: const Text('سطل زباله'),
+              onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.trash),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (action == null || !mounted) return;
+    switch (action) {
+      case _HomeMoreAction.today:
+        _selectHomeStat('امروز');
+        return;
+      case _HomeMoreAction.undated:
+        _selectDueScope(TaskDueScope.undated);
+        return;
+      case _HomeMoreAction.archive:
+        _selectHomeStat('بایگانی');
+        return;
+      case _HomeMoreAction.trash:
+        _selectHomeStat('سطل زباله');
+        return;
+      default:
         return;
     }
   }
@@ -2673,8 +3226,21 @@ class _HomePageState extends State<HomePage> {
         }
         return true;
       case TaskSwipeAction.convertToFollowUp:
-        // Retired legacy preference: the supported shortcut is the explicit
-        // «افزودن یادآور» control in the Task editor.
+        // Open the real-action form only. Persist a Follow-up Record only after
+        // the user explicitly saves it; keep the Task card in the list.
+        final people = await taskStore.loadPeopleDirectory();
+        if (!mounted) return false;
+        final followUp = await Navigator.of(context).push<FollowUp>(
+          MaterialPageRoute<FollowUp>(
+            builder: (_) => FollowUpEntryPage(
+              taskId: task.id,
+              people: people,
+              onCreatePerson: (person) => taskStore.mergePeopleDirectory([person]),
+            ),
+          ),
+        );
+        if (!mounted || followUp == null) return false;
+        await _addFollowUpFromDetail(task, followUp);
         return false;
       case TaskSwipeAction.none:
         return false;
@@ -2688,7 +3254,7 @@ class _HomePageState extends State<HomePage> {
       TaskSwipeAction.trash => Icons.delete_outline,
       TaskSwipeAction.moveToToday => Icons.today_outlined,
       TaskSwipeAction.complete => Icons.check_circle_outline,
-      TaskSwipeAction.convertToFollowUp => Icons.block,
+      TaskSwipeAction.convertToFollowUp => Icons.add_comment_outlined,
       TaskSwipeAction.none => Icons.block,
     };
     final label = switch (action) {
@@ -2696,7 +3262,7 @@ class _HomePageState extends State<HomePage> {
       TaskSwipeAction.trash => 'سطل زباله',
       TaskSwipeAction.moveToToday => 'انتقال به امروز',
       TaskSwipeAction.complete => 'انجام‌شدن',
-      TaskSwipeAction.convertToFollowUp => 'بدون عمل',
+      TaskSwipeAction.convertToFollowUp => 'ثبت پیگیری',
       TaskSwipeAction.none => 'بدون عمل',
     };
     return Container(
@@ -2712,8 +3278,7 @@ class _HomePageState extends State<HomePage> {
           Text(label, style: const TextStyle(fontWeight: FontWeight.w700)),
         ],
       ),
-    );
-  }
+    );  }
 
   String? _latestFollowUpPreview(Task task) {
     final followUp = task.lastFollowUp;
@@ -2737,7 +3302,7 @@ class _HomePageState extends State<HomePage> {
       children: [
         Row(
           children: [
-            const Icon(Icons.checklist_rounded, size: 15, color: ArvinColors.primary),
+            Icon(Icons.checklist_rounded, size: 15, color: Theme.of(context).colorScheme.primary),
             const SizedBox(width: 4),
             Text(
               'چک‌لیست: ${persianDateFormatter.toPersianDigits('$completed از $total')}',
@@ -2748,13 +3313,16 @@ class _HomePageState extends State<HomePage> {
         const SizedBox(height: 4),
         ClipRRect(
           borderRadius: BorderRadius.circular(4),
-          child: LinearProgressIndicator(value: progress, minHeight: 5, backgroundColor: ArvinColors.primarySoft),
+          child: LinearProgressIndicator(value: progress, minHeight: 5, backgroundColor: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface)),
         ),
       ],
     );
   }
   Widget _taskCard(Task task) {
     final lastFollowUpDate = _homeLastFollowUpDate(task);
+    final followUpPresentation =
+        const HomeFollowUpPresentationService().project(task);
+    final expanded = _expandedTaskIds.contains(task.id);
     final projectedReminders = const HomeListProjection().projectReminders(
       task.taskReminders,
       followUpDate: lastFollowUpDate,
@@ -2802,11 +3370,20 @@ class _HomePageState extends State<HomePage> {
                     ..addAll(next);
                   selectionMode = selected.isNotEmpty;
                 })
-              : () => _openTaskDetail(task),
+              : () => setState(() {
+                  if (expanded) {
+                    _expandedTaskIds.remove(task.id);
+                  } else {
+                    _expandedTaskIds.add(task.id);
+                  }
+                }),
           child: Padding(
             // Compact vertical rhythm: save 4 px per card without shrinking text.
             padding: const EdgeInsets.fromLTRB(5, 2, 5, 2),
-            child: Row(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 selectionMode
@@ -2837,13 +3414,9 @@ class _HomePageState extends State<HomePage> {
                         icon: Icon(
                           task.completed
                               ? Icons.check_circle_rounded
-                              : late
-                              ? Icons.warning_amber_rounded
                               : Icons.radio_button_unchecked_rounded,
                           color: task.completed
                               ? ArvinColors.taskStatusGreen
-                              : late
-                              ? ArvinColors.taskStatusAmber
                               : colors.primary,
                         ),
                       ),
@@ -2854,8 +3427,9 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       Text(
                         task.title,
+                        key: ValueKey('task-card-title-${task.id}'),
                         style: TextStyle(
-                          color: ArvinColors.textPrimary,
+                          color: late ? ArvinColors.error : ArvinColors.textPrimary,
                           fontWeight: FontWeight.w700,
                           fontSize: 14,
                           decoration: task.completed
@@ -2882,38 +3456,36 @@ class _HomePageState extends State<HomePage> {
                       if (_projectTitleForTask(task) != null || task.category?.trim().isNotEmpty == true || task.tags.isNotEmpty) ...[
                         const SizedBox(height: 4),
                         TaxonomyIconRow(
+                          center: _centerNameForTask(task),
                           project: _projectTitleForTask(task),
                           category: task.category,
                           tags: task.tags,
                           maxTags: 2,
                         ),
                       ],
-                      if (task.priority != TaskPriority.none) ...[
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(Icons.flag_rounded, size: 13, color: ArvinColors.reminder),
-                            const SizedBox(width: 4),
-                            Text(
-                              switch (task.priority) {
-                                TaskPriority.high => 'اهمیت زیاد',
-                                TaskPriority.medium => 'اهمیت متوسط',
-                                TaskPriority.low => 'اهمیت کم',
-                                TaskPriority.none => '',
-                              },
-                              style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 10.5, fontWeight: FontWeight.w600),
+                      Row(
+                        children: [
+                          Icon(Icons.flag_rounded, size: 13, color: ArvinColors.priorityColor(task.priority)),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              '${task.priority.code} • ${task.priority.label}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(color: ArvinColors.priorityColor(task.priority), fontSize: 10.5, fontWeight: FontWeight.w700),
                             ),
-                          ],
-                        ),
-                      ],
+                          ),
+                        ],
+                      ),
                       if (const HomeListProjection().shouldProjectDueDate(task)) ...[
                         const SizedBox(height: 3),
                         Row(
                           children: [
                             Icon(
                               Icons.calendar_today_outlined,
+                              key: ValueKey('task-card-due-icon-${task.id}'),
                               size: 15,
-                              color: late ? ArvinColors.error : ArvinColors.textSecondary,
+                              color: ArvinColors.textSecondary,
                             ),
                             const SizedBox(width: 4),
                             Expanded(
@@ -2946,7 +3518,7 @@ class _HomePageState extends State<HomePage> {
                                   await _save();
                                 },
                                 icon: const Icon(Icons.close_rounded, size: 17),
-                                color: late ? ArvinColors.error : ArvinColors.textSecondary,
+                                color: ArvinColors.textSecondary,
                               ),
                           ],
                         ),
@@ -2958,18 +3530,14 @@ class _HomePageState extends State<HomePage> {
                             Icon(
                               Icons.event_outlined,
                               size: 15,
-                              color: late
-                                  ? ArvinColors.taskStatusAmber
-                                  : ArvinColors.textSecondary,
+                              color: ArvinColors.textSecondary,
                             ),
                             const SizedBox(width: 4),
                             Flexible(
                               child: Text(
                                 'آخرین پیگیری: ${_date(lastFollowUpDate)} • ${_time(lastFollowUpDate)}',
                                 style: TextStyle(
-                                  color: late
-                                      ? ArvinColors.taskStatusAmber
-                                      : ArvinColors.textSecondary,
+                                  color: ArvinColors.textSecondary,
                                   fontSize: 11,
                                   fontWeight: late
                                       ? FontWeight.w600
@@ -3014,6 +3582,96 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                 ),
+                if (!selectionMode)
+                  IconButton(
+                    key: ValueKey('task-card-details-${task.id}'),
+                    tooltip: 'جزئیات کامل کار',
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () => _openTaskDetail(task),
+                    icon: const Icon(Icons.open_in_new_rounded, size: 19),
+                  ),
+              ],
+            ),
+            AnimatedSize(
+              key: ValueKey('task-card-accordion-${task.id}'),
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeInOut,
+              alignment: Alignment.topCenter,
+              child: expanded
+                  ? Padding(
+                      padding: const EdgeInsetsDirectional.fromSTEB(42, 8, 10, 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (task.description.trim().isNotEmpty) ...[
+                            Text(
+                              task.description.trim(),
+                              key: ValueKey('task-card-description-${task.id}'),
+                              style: const TextStyle(
+                                color: ArvinColors.textPrimary,
+                                fontSize: 12,
+                                height: 1.55,
+                              ),
+                            ),
+                            const SizedBox(height: 7),
+                          ],
+                          if (task.dueDate != null) ...[
+                            Row(
+                              children: [
+                                const Icon(Icons.event_available_outlined, size: 15, color: ArvinColors.textSecondary),
+                                const SizedBox(width: 5),
+                                Expanded(
+                                  child: Text(
+                                    task.allDay
+                                        ? 'تاریخ دقیق: ${_date(task.dueDate!)}'
+                                        : 'تاریخ و ساعت دقیق: ${_date(task.dueDate!)} • ${_time(task.dueDate!)}',
+                                    key: ValueKey('task-card-exact-due-${task.id}'),
+                                    style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w600),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                          if (followUpPresentation != null) ...[
+                            if (task.description.trim().isNotEmpty || task.dueDate != null)
+                              const SizedBox(height: 7),
+                            Container(
+                              key: ValueKey('task-card-follow-up-${task.id}'),
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEAF5ED),
+                                borderRadius: BorderRadius.circular(11),
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Icon(Icons.history_rounded, size: 16, color: Color(0xFF397A50)),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'آخرین پیگیری: ${followUpPresentation.title}',
+                                          style: const TextStyle(color: Color(0xFF28643E), fontSize: 11, fontWeight: FontWeight.w700),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          [followUpPresentation.exactDateTime, if (followUpPresentation.relative != null) '🕒 ${followUpPresentation.relative}'].join(' • '),
+                                          style: const TextStyle(color: Color(0xFF397A50), fontSize: 10.5, fontWeight: FontWeight.w500),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
               ],
             ),
           ),
@@ -3024,43 +3682,135 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final compactHome = MediaQuery.sizeOf(context).height < 700;
     return Scaffold(
-      backgroundColor: ArvinColors.background,
+      backgroundColor: colors.surface,
+      drawer: Drawer(
+        child: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+                child: Text('آروین', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: colors.primary)),
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.home_outlined),
+                title: const Text('خانه'),
+                onTap: () => Navigator.of(context).pop(),
+              ),
+              ListTile(
+                leading: const Icon(Icons.calendar_month_outlined),
+                title: const Text('تقویم'),
+                onTap: () { Navigator.of(context).pop(); _openPrimaryCalendar(); },
+              ),
+              ListTile(
+                leading: const Icon(Icons.note_alt_outlined),
+                title: const Text('دفترچه'),
+                onTap: () { Navigator.of(context).pop(); _openPrimaryNotebook(); },
+              ),
+              ListTile(
+                leading: const Icon(Icons.assessment_outlined),
+                title: const Text('گزارش‌ها'),
+                onTap: () { Navigator.of(context).pop(); _openPrimaryReports(); },
+              ),
+              ListTile(
+                leading: const Icon(Icons.more_horiz_rounded),
+                title: const Text('بیشتر'),
+                onTap: () { Navigator.of(context).pop(); _openPrimaryMore(); },
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.settings_outlined),
+                title: const Text('تنظیمات'),
+                onTap: () { Navigator.of(context).pop(); _openPrimarySettings(); },
+              ),
+            ],
+          ),
+        ),
+      ),
       body: SafeArea(
         child: Column(children: [
+          Flexible(
+            fit: FlexFit.loose,
+            child: SingleChildScrollView(
+              key: const ValueKey('home-controls-vertical-scroll'),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
           Padding(
             padding: EdgeInsets.fromLTRB(16, compactHome ? 4 : 8, 16, 5),
             child: Row(children: [
-              IconButton(key: const ValueKey('home-notifications'), tooltip: 'اعلان‌ها', onPressed: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('اعلان‌ها در بخش اعلان‌های برنامه مدیریت می‌شوند'))), icon: const Icon(Icons.notifications_none_rounded)),
-              Expanded(child: Column(children: const [
-                Text('بسم الله الرحمن الرحیم', key: ValueKey('home-bismillah'), style: TextStyle(color: ArvinColors.primary, fontSize: 17, fontWeight: FontWeight.w800)),
-                SizedBox(height: 2),
-                Text('مدیریت کارها و پیگیری آروین', key: ValueKey('home-title-block'), textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.textSecondary, fontSize: 11.5, fontWeight: FontWeight.w600)),
+              Builder(
+                builder: (buttonContext) => IconButton(
+                  key: const ValueKey('home-drawer-button'),
+                  tooltip: 'منوی آروین',
+                  onPressed: () => Scaffold.of(buttonContext).openDrawer(),
+                  icon: const Icon(Icons.menu_rounded),
+                  style: IconButton.styleFrom(backgroundColor: colors.surface, foregroundColor: colors.onSurfaceVariant),
+                ),
+              ),
+              Expanded(child: Column(children: [
+                Semantics(
+                  key: const ValueKey('home-bismillah'),
+                  label: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
+                  child: SvgPicture.asset(
+                    'assets/images/branding/bismillah.svg',
+                    key: const ValueKey('home-bismillah-svg'),
+                    width: 210,
+                    colorFilter: ColorFilter.mode(
+                      colors.primary,
+                      BlendMode.srcIn,
+                    ),
+                    excludeFromSemantics: true,
+                  ),
+                ),
+                const SizedBox(height: 1),
+                Text('آروین', key: const ValueKey('home-title-block'), style: TextStyle(color: colors.primary, fontSize: 23, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 2),
+                Text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها', key: const ValueKey('home-subtitle'), textAlign: TextAlign.center, style: TextStyle(color: colors.onSurfaceVariant, fontSize: 11.5, fontWeight: FontWeight.w600)),
               ])),
-              IconButton(key: const ValueKey('home-menu'), tooltip: 'منو', onPressed: _openPrimaryMore, icon: const Icon(Icons.menu_rounded)),
+              IconButton(
+                key: const ValueKey('home-general-filter-button'),
+                tooltip: 'فیلترهای عمومی',
+                onPressed: _showHomeFilterMenu,
+                icon: const Icon(Icons.filter_alt_outlined),
+                style: IconButton.styleFrom(backgroundColor: colors.surface, foregroundColor: colors.onSurfaceVariant),
+              ),
             ]),
           ),
           Padding(
             padding: EdgeInsets.fromLTRB(16, 0, 16, compactHome ? 6 : 8),
             child: TextField(
+              focusNode: _searchFocusNode,
               key: const ValueKey('home-canonical-search'),
               onChanged: (value) => setState(() => query = value),
               decoration: InputDecoration(
-                hintText: 'جستجو در کارها، پروژه‌ها، دسته‌ها و برچسب‌ها...',
-                hintStyle: const TextStyle(color: ArvinColors.textSecondary, fontSize: 12),
-                prefixIcon: const Icon(Icons.search_rounded),
-                filled: true, fillColor: ArvinColors.surface,
+                hintText: 'جستجو در کارها...',
+                hintStyle: TextStyle(color: colors.onSurfaceVariant, fontSize: 12),
+                prefixIcon: IconButton(
+                  key: const ValueKey('home-search-button'),
+                  tooltip: 'جستجو',
+                  onPressed: () => FocusScope.of(context).requestFocus(_searchFocusNode),
+                  icon: const Icon(Icons.search_rounded),
+                ),
+                filled: true, fillColor: colors.surface,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
                 enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
-                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: const BorderSide(color: ArvinColors.primary, width: 1.2)),
+                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide(color: colors.primary, width: 1.2)),
               ),
             ),
           ),
           _homeFilterCards(),
           _homeActiveFilterChips(),
-          Expanded(child: SizedBox.expand(key: const ValueKey('home-task-list-viewport'), child: loading ? Center(child: CircularProgressIndicator(color: ArvinColors.primary)) : loadFailure != null
+                ],
+              ),
+            ),
+          ),
+          Expanded(child: SizedBox.expand(key: const ValueKey('home-task-list-viewport'), child: loading ? Center(child: CircularProgressIndicator(color: colors.primary)) : loadFailure != null
             ? SingleChildScrollView(padding: const EdgeInsets.all(24), child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
                 Icon(Icons.storage_outlined, size: 40), SizedBox(height: 12),
                 Text('داده‌های کارها قابل خواندن نیست', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w700)),
@@ -3074,7 +3824,7 @@ class _HomePageState extends State<HomePage> {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
               child: Align(
-                alignment: AlignmentDirectional.centerEnd,
+                alignment: Alignment.centerRight,
                 child: KeyedSubtree(
                   key: const ValueKey('home-canonical-add'),
                   child: SizedBox(
@@ -3089,7 +3839,20 @@ class _HomePageState extends State<HomePage> {
         ]),
       ),
       floatingActionButton: !compactHome && selected.isEmpty && loadFailure == null ? Padding(padding: const EdgeInsets.only(bottom: 2), child: KeyedSubtree(key: const ValueKey('home-canonical-add'), child: ArvinHomePrimaryAddButton(onPressed: _quickCapture))) : null,
-      bottomNavigationBar: selected.isEmpty ? ArvinPrimaryNavigation(selected: ArvinPrimaryDestination.home, onSelected: _onPrimaryDestinationSelected) : TaskBulkSelectionBar(
+      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+      bottomNavigationBar: selected.isEmpty
+          ? AnimatedSize(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeInOut,
+              alignment: Alignment.topCenter,
+              child: _hideBottomNavigation
+                  ? const SizedBox.shrink(key: ValueKey('home-bottom-navigation-hidden'))
+                  : ArvinPrimaryNavigation(
+                      selected: ArvinPrimaryDestination.home,
+                      onSelected: _onPrimaryDestinationSelected,
+                    ),
+            )
+          : TaskBulkSelectionBar(
         selectedCount: selected.length,
         allVisibleSelected: taskBulkSelectionService.allVisibleSelected(selected, visible),
         onToggleAll: _toggleAllVisibleSelection,

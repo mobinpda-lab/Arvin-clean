@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:developer' as developer;
 
 /// Process-local serialization boundary for the canonical `arvin.tasks`
 /// document.
@@ -16,7 +17,13 @@ class TaskStorageLock {
       Queue<_TaskStorageLockEntry>();
   static bool _running = false;
 
+  /// Test-only diagnostic switch; does not alter queue or serialization behavior.
+  static bool diagnosticLoggingEnabled = false;
+
   static Future<T> synchronized<T>(Future<T> Function() action) {
+    if (diagnosticLoggingEnabled) {
+      developer.log('[ARVIN_TIMEOUT_DIAG][LOCK] queued; pending=${_queue.length + 1}; running=$_running');
+    }
     final completer = Completer<T>();
     final zone = Zone.current;
 
@@ -24,9 +31,13 @@ class TaskStorageLock {
       _TaskStorageLockEntry(
         zone: zone,
         run: () async {
+          if (diagnosticLoggingEnabled) developer.log('[ARVIN_TIMEOUT_DIAG][LOCK] acquired; pending=${_queue.length}');
           try {
-            completer.complete(await action());
+            final result = await action();
+            if (diagnosticLoggingEnabled) developer.log('[ARVIN_TIMEOUT_DIAG][LOCK] action completed');
+            completer.complete(result);
           } catch (error, stackTrace) {
+            if (diagnosticLoggingEnabled) developer.log('[ARVIN_TIMEOUT_DIAG][LOCK] action failed: $error');
             completer.completeError(error, stackTrace);
           }
         },
@@ -43,6 +54,7 @@ class TaskStorageLock {
     _running = true;
     final entry = _queue.removeFirst();
     entry.zone.run(entry.run).whenComplete(() {
+      if (diagnosticLoggingEnabled) developer.log('[ARVIN_TIMEOUT_DIAG][LOCK] released');
       _running = false;
       _drain();
     });

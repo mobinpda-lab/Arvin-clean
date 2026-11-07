@@ -89,12 +89,12 @@ void main() {
     await tester.tap(find.text('ثبت پیگیری'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const ValueKey('follow-up-entry-note')), 'پیام ارسال شد');
-    await tester.tap(find.text('منتظر پاسخ دیگران'));
+    final waitingSwitch = find.byKey(const ValueKey('follow-up-entry-waiting-for-response'));
+    await tester.ensureVisible(waitingSwitch);
+    await tester.tap(waitingSwitch);
     await tester.pump();
 
-    final switchTile = tester.widget<SwitchListTile>(
-      find.byType(SwitchListTile),
-    );
+    final switchTile = tester.widget<SwitchListTile>(waitingSwitch);
     expect(switchTile.value, isTrue);
     expect(tester.widget<TextField>(find.byKey(const ValueKey('follow-up-entry-result'))).enabled, isFalse);
 
@@ -338,10 +338,16 @@ void main() {
       isTrue,
     );
 
-    await tester.tap(find.text('منتظر پاسخ دیگران'));
-    await tester.pump();
-    await tester.enterText(find.byKey(const ValueKey('follow-up-entry-note')), 'تماس ویرایش‌شده');
-    await tester.enterText(find.byKey(const ValueKey('follow-up-entry-result')), 'پاسخ نهایی');
+    await tester.tap(find.text('منتظر پیگیری دیگران'));
+    await tester.pumpAndSettle();
+    final noteField = find.byKey(const ValueKey('follow-up-entry-note'));
+    await tester.ensureVisible(noteField);
+    await tester.tap(noteField);
+    await tester.enterText(noteField, 'تماس ویرایش‌شده');
+    final resultField = find.byKey(const ValueKey('follow-up-entry-result'));
+    await tester.ensureVisible(resultField);
+    await tester.tap(resultField);
+    await tester.enterText(resultField, 'پاسخ نهایی');
     await tapVisible(tester, 'ذخیره تغییرات');
     await tester.pumpAndSettle();
 

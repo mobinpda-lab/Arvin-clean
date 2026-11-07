@@ -1,4 +1,5 @@
 import '../models/task.dart';
+import 'task_list_sort_service.dart';
 
 /// Pure, case-insensitive search across canonical task and follow-up text.
 ///
@@ -27,9 +28,9 @@ class TaskSearchService {
 
   List<Task> search(Iterable<Task> tasks, String query) {
     final groups = _queryGroups(query);
-    if (groups.isEmpty) return List<Task>.of(tasks);
+    if (groups.isEmpty) return const TaskListSortService().sort(tasks, by: TaskListSort.date);
 
-    return tasks.where((task) {
+    final matches = tasks.where((task) {
       final fields = <String>[
         task.title,
         task.description,
@@ -47,7 +48,8 @@ class TaskSearchService {
           (term) => fields.any((field) => _contains(field, term)),
         ),
       );
-    }).toList();
+    }).toList(growable: false);
+    return const TaskListSortService().sort(matches, by: TaskListSort.date);
   }
 
   List<Set<String>> _queryGroups(String value) {

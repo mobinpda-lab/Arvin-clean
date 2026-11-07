@@ -53,7 +53,7 @@ void main() {
     expect(updated.dateTime, proposed);
     expect(updated.note, original.note);
     expect(updated.result, original.result);
-    expect(updated.nextFollowUp, original.nextFollowUp);
+    expect(updated.toJson().containsKey('nextFollowUp'), isFalse);
     expect(reminderRescheduleCalls, 1);
 
     final saved = await repository.loadForTask('task-1');
@@ -61,7 +61,7 @@ void main() {
     expect(saved.single.dateTime, proposed);
     expect(saved.single.note, original.note);
     expect(saved.single.result, original.result);
-    expect(saved.single.nextFollowUp, original.nextFollowUp);
+    expect(saved.single.toJson().containsKey('nextFollowUp'), isFalse);
   });
 
   test('persistence failure does not request alarm reschedule', () async {

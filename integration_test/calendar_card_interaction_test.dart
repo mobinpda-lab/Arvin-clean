@@ -22,7 +22,14 @@ void main() {
       expect(existing, isEmpty, reason: 'Calendar smoke expects a fresh emulator database');
 
       final now = IranClock.now();
-      final reminderAt = now.add(const Duration(minutes: 10));
+      // Anchor all test data to the same calendar day selected by CalendarPage.
+      // A relative +10 minute timestamp can cross midnight and leave the
+      // initially selected day empty, which unmounts calendar-selected-day-list.
+      final testDay = DateTime(now.year, now.month, now.day);
+      final reminderAt = DateTime(testDay.year, testDay.month, testDay.day, 12, 10);
+      final secondReminderAt = DateTime(testDay.year, testDay.month, testDay.day, 13);
+      final legacyFollowUpDate = DateTime(testDay.year, testDay.month, testDay.day, 15);
+      final legacyNextFollowUp = DateTime(testDay.year, testDay.month, testDay.day, 16);
       const taskId = 'calendar-smoke-task';
       const reminderId = 'calendar-smoke-reminder';
       const secondReminderId = 'calendar-smoke-reminder-2';
@@ -31,13 +38,16 @@ void main() {
         title: 'کار آزمون تعامل تقویم',
         createdAt: now,
         updatedAt: now,
-        dueDate: now.add(const Duration(hours: 2)),
+        dueDate: DateTime(testDay.year, testDay.month, testDay.day, 14),
+        followUpEnabled: true,
+        followUpDate: legacyFollowUpDate,
         followUps: [
           FollowUp(
             id: 'calendar-smoke-history',
             dateTime: now,
             title: 'سابقه تاریخی',
             note: 'این سابقه نباید با ویرایش یادآور تغییر کند',
+            nextFollowUp: legacyNextFollowUp,
           ),
         ],
         taskReminders: [
@@ -50,7 +60,7 @@ void main() {
           TaskReminder(
             id: secondReminderId,
             title: 'یادآور مستقل دوم',
-            date: now.add(const Duration(hours: 1)),
+            date: secondReminderAt,
             sequence: 2,
           ),
         ],
@@ -95,17 +105,52 @@ void main() {
       }
 
       app.main();
-      await tester.pumpAndSettle();
+      await _pumpUntilFound(tester, find.byType(ArvinPrimaryNavigation));
 
       final skipGuide = find.text('رد کردن');
       if (skipGuide.evaluate().isNotEmpty) {
         await tester.tap(skipGuide);
-        await tester.pumpAndSettle();
+        await _pumpFrames(tester);
       }
 
       expect(find.byType(ArvinPrimaryNavigation), findsOneWidget);
       await tester.tap(find.text('تقویم').last);
-      await tester.pumpAndSettle();
+      await _pumpFrames(tester);
+
+      // The Calendar may retain a previously selected display mode. The
+      // smoke contract exercises the visible week-day cells, so explicitly
+      // select the weekly mode before resolving the seeded day locator.
+      final viewModeControl = find.byKey(
+        const ValueKey('calendar-view-mode-control'),
+      );
+      final weeklyMode = find.descendant(
+        of: viewModeControl,
+        matching: find.text('هفتگی'),
+      );
+
+      // Route readiness is asynchronous: Home reloads canonical SQL before
+      // pushing CanonicalCalendarLauncher, then official calendar sources
+      // resolve through a FutureBuilder. Wait for the actual control without
+      // weakening its one-widget assertion.
+      for (var attempt = 0; attempt < 50; attempt++) {
+        if (viewModeControl.evaluate().length == 1) break;
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      debugPrint(
+        'CALENDAR_ROUTE_DIAG: navigation=${find.byType(ArvinPrimaryNavigation).evaluate().length} '
+        'calendarTitle=${find.text('تقویم پیگیری').evaluate().length} '
+        'helpButton=${find.byKey(const ValueKey('calendar-context-help')).evaluate().length} '
+        'segmentedControl=${viewModeControl.evaluate().length}',
+      );
+      await binding.convertFlutterSurfaceToImage();
+      await binding.takeScreenshot('calendar-before-segmented-control');
+
+      expect(viewModeControl, findsOneWidget,
+          reason: 'The canonical Calendar route must mount its weekly SegmentedButton.');
+      expect(weeklyMode, findsOneWidget,
+          reason: 'The weekly mode must be directly selectable from the SegmentedButton.');
+      await tester.tap(weeklyMode);
+      await _pumpFrames(tester);
 
       final cardKey = const ValueKey(
         'reminder-card-task-reminder-item:calendar-smoke-task:calendar-smoke-reminder',
@@ -114,18 +159,54 @@ void main() {
       final calendarList = find.byKey(
         const ValueKey('calendar-selected-day-list'),
       );
-      final calendarScrollable = find.descendant(
-        of: calendarList,
+      // The list key is a structural assertion only. Interaction scrolls the
+      // actual Scrollable ancestor of the reminder card instead of depending
+      // on that assertion key as a locator.
+      final calendarScrollable = find.ancestor(
+        of: card,
         matching: find.byType(Scrollable),
+      ).first;
+      final weekView = find.byKey(const ValueKey('calendar-week-view'));
+      final targetDayCell = find.byKey(
+        ValueKey('calendar-week-day-${testDay.year}-${testDay.month}-${testDay.day}'),
       );
-      expect(calendarList, findsOneWidget);
+
+      // Wait for the weekly grid and the exact seeded date cell to be laid
+      // out and hit-testable. bounded frame pumping alone is not a readiness
+      // contract for asynchronously rebuilt calendar projections.
+      var weeklyGridReady = false;
+      for (var attempt = 0; attempt < 50; attempt++) {
+        await tester.pump(const Duration(milliseconds: 100));
+        if (weekView.evaluate().length == 1 &&
+            targetDayCell.hitTestable().evaluate().length == 1) {
+          weeklyGridReady = true;
+          break;
+        }
+      }
+      expect(weekView, findsOneWidget,
+          reason: 'Calendar must render its weekly grid before date selection.');
+      expect(weeklyGridReady, isTrue,
+          reason: 'The seeded week-day cell must be laid out and hit-testable before tapping.');
+      await tester.tap(targetDayCell);
+      await _pumpFrames(tester);
+
+      // Wait for the canonical Task projection to reach the Calendar UI.
+      // Do not attempt to scroll a selected-day list while Empty State is mounted.
+      for (var attempt = 0; attempt < 50; attempt++) {
+        if (card.evaluate().isNotEmpty) break;
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(card, findsOneWidget,
+          reason: 'The selected test day must show the seeded independent reminder.');
+      expect(calendarList, findsOneWidget,
+          reason: 'A selected day containing a reminder must mount calendar-selected-day-list.');
       expect(calendarScrollable, findsOneWidget);
       await tester.scrollUntilVisible(
         card,
         200,
         scrollable: calendarScrollable,
       );
-      await tester.pumpAndSettle();
+      await _pumpFrames(tester);
       expect(card, findsOneWidget);
       expect(find.text('یادآور آزمایشی'), findsOneWidget);
       expect(Directionality.of(tester.element(card)), TextDirection.rtl);
@@ -135,15 +216,16 @@ void main() {
       );
       expect(tester.takeException(), isNull);
 
-      await binding.convertFlutterSurfaceToImage();
+      // The surface was converted before the route-readiness diagnostic
+      // screenshot above; continue capturing the real interaction state.
 
       // The independent Reminder opens the canonical Task editor, never a
       // Follow-up editor. Canceling the time picker must not alter its time.
       await tester.ensureVisible(card);
-      await tester.pumpAndSettle();
+      await _pumpFrames(tester);
       await tester.tap(card);
       // Calendar editing awaits canonical editor preparation (storage and
-      // project metadata). pumpAndSettle alone can return before that Future
+      // project metadata). bounded frame pumping alone can return before that Future
       // completes when no frame is scheduled, so use the same bounded wait
       // pattern as the Android home smoke test. Keep the assertion strict.
       for (var attempt = 0; attempt < 30; attempt++) {
@@ -156,27 +238,30 @@ void main() {
       final timeButton = find.byKey(const ValueKey('task-editor-reminder-time-calendar-smoke-reminder'));
       await tester.ensureVisible(timeButton);
       await tester.tap(timeButton);
-      await tester.pumpAndSettle();
+      await _pumpFrames(tester);
       expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
       expect(find.byKey(const ValueKey('universal-time-cancel')), findsOneWidget);
       expect(find.byKey(const ValueKey('universal-time-save')), findsOneWidget);
       expect(Directionality.of(tester.element(find.byKey(const ValueKey('universal-time-selected-value')))), TextDirection.rtl);
       await tester.tap(find.byKey(const ValueKey('universal-time-cancel')));
-      await tester.pumpAndSettle();
+      await _pumpFrames(tester);
 
       // Cancel must leave the canonical persisted reminder and sibling data untouched.
       final afterCancel = (await store.load()).single;
       expect(afterCancel.taskReminders.singleWhere((item) => item.id == reminderId).date, reminderAt);
-      expect(afterCancel.taskReminders.singleWhere((item) => item.id == secondReminderId).date, now.add(const Duration(hours: 1)));
-      expect(afterCancel.dueDate, now.add(const Duration(hours: 2)));
+      expect(afterCancel.taskReminders.singleWhere((item) => item.id == secondReminderId).date, secondReminderAt);
+      expect(afterCancel.dueDate, DateTime(testDay.year, testDay.month, testDay.day, 14));
+      expect(afterCancel.followUpEnabled, isTrue);
+      expect(afterCancel.followUpDate, legacyFollowUpDate);
       expect(afterCancel.followUps.single.dateTime, now);
+      expect(afterCancel.followUps.single.nextFollowUp, legacyNextFollowUp);
       expect(afterCancel.followUps.single.note, 'این سابقه نباید با ویرایش یادآور تغییر کند');
 
       // Change the date through the actual Jalali date picker.
       final dateButton = find.byKey(const ValueKey('task-editor-reminder-date-calendar-smoke-reminder'));
       await tester.ensureVisible(dateButton);
       await tester.tap(dateButton);
-      await tester.pumpAndSettle();
+      await _pumpFrames(tester);
       expect(find.byKey(const ValueKey('persian-date-picker')), findsOneWidget);
       final formatter = const PersianDateFormatter();
       final targetDate = DateTime(reminderAt.year, reminderAt.month, reminderAt.day + 1);
@@ -184,26 +269,26 @@ void main() {
       final targetJalali = formatter.toJalali(targetDate);
       if (targetJalali.year != initialJalali.year || targetJalali.month != initialJalali.month) {
         await tester.tap(find.byTooltip('ماه بعد'));
-        await tester.pumpAndSettle();
+        await _pumpFrames(tester);
       }
       final targetDay = find.byKey(ValueKey('persian-date-day-${targetJalali.day}'));
       await tester.ensureVisible(targetDay);
       await tester.tap(targetDay);
       await tester.tap(find.text('تأیید'));
-      await tester.pumpAndSettle();
+      await _pumpFrames(tester);
 
       // Make a real time change through the existing universal picker.
       await tester.tap(timeButton);
-      await tester.pumpAndSettle();
+      await _pumpFrames(tester);
       await tester.tap(find.byKey(const ValueKey('universal-time-manual-toggle')));
-      await tester.pumpAndSettle();
+      await _pumpFrames(tester);
       await tester.enterText(find.byKey(const ValueKey('universal-time-manual-input')), '۲۳:۴۷');
       await tester.tap(find.byKey(const ValueKey('universal-time-save')));
-      await tester.pumpAndSettle();
+      await _pumpFrames(tester);
       final saveEditor = find.byKey(const ValueKey('task-editor-header-save'));
       await tester.ensureVisible(saveEditor);
       await tester.tap(saveEditor);
-      await tester.pumpAndSettle();
+      await _pumpFrames(tester);
 
       Task? persisted;
       for (var attempt = 0; attempt < 50; attempt++) {
@@ -234,14 +319,38 @@ void main() {
       expect(savedReminder.date.day, targetDate.day);
       expect(savedReminder.date.hour, 23);
       expect(savedReminder.date.minute, 47);
-      expect(savedTask.taskReminders.singleWhere((item) => item.id == secondReminderId).date, now.add(const Duration(hours: 1)));
-      expect(savedTask.dueDate, now.add(const Duration(hours: 2)));
+      expect(savedTask.taskReminders.singleWhere((item) => item.id == secondReminderId).date, secondReminderAt);
+      expect(savedTask.dueDate, DateTime(testDay.year, testDay.month, testDay.day, 14));
+      expect(savedTask.followUpEnabled, isTrue);
+      expect(savedTask.followUpDate, legacyFollowUpDate);
       expect(savedTask.followUps.single.dateTime, now);
+      expect(savedTask.followUps.single.nextFollowUp, legacyNextFollowUp);
       expect(savedTask.followUps.single.note, 'این سابقه نباید با ویرایش یادآور تغییر کند');
       expect(tester.takeException(), isNull);
-      await tester.pumpAndSettle();
+      await _pumpFrames(tester);
       await binding.takeScreenshot('calendar-card-independent-reminder-edit');
       debugPrint('CALENDAR_SMOKE: independent Reminder edited and saved without changing Task due date or Follow-up history');
     },
   );
+}
+
+
+Future<void> _pumpFrames(
+  WidgetTester tester, {
+  int frames = 5,
+}) async {
+  for (var frame = 0; frame < frames; frame++) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+}
+
+Future<void> _pumpUntilFound(
+  WidgetTester tester,
+  Finder finder, {
+  int maxFrames = 50,
+}) async {
+  for (var frame = 0; frame < maxFrames; frame++) {
+    if (finder.evaluate().isNotEmpty) return;
+    await tester.pump(const Duration(milliseconds: 100));
+  }
 }

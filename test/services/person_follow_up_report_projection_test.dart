@@ -9,7 +9,7 @@ void main() {
   final directory = <PersonReference>[ana, reza];
   final now = DateTime(2026, 10, 15, 10);
 
-  FollowUp waiting(String id, List<String> personIds, {DateTime? next, DateTime? reminder}) =>
+  FollowUp waiting(String id, List<String> personIds) =>
       FollowUp(
         id: id,
         dateTime: now,
@@ -17,8 +17,6 @@ void main() {
         result: 'نتیجه آزاد به تنهایی نباید وضعیت انتظار بسازد',
         personIds: personIds,
         waitingForResponse: true,
-        nextFollowUp: next,
-        reminderDate: reminder,
       );
 
   test('projects separate waiting rows for multiple people and follow-ups on one task', () {
@@ -27,8 +25,7 @@ void main() {
       title: 'تماس با مشتری',
       followUpEnabled: false,
       followUps: [
-        waiting('fu-ana', ['ana'], next: DateTime(2026, 10, 16, 9),
-            reminder: DateTime(2026, 10, 15, 18)),
+        waiting('fu-ana', ['ana']),
         waiting('fu-reza', ['reza']),
         waiting('fu-both', ['ana', 'reza']),
       ],
@@ -41,9 +38,8 @@ void main() {
     expect(rows[0].people.single.id, 'ana');
     expect(rows[1].people.single.id, 'reza');
     expect(rows[2].people.map((person) => person.id), ['ana', 'reza']);
-    expect(rows[0].nextFollowUp, DateTime(2026, 10, 16, 9));
-    expect(rows[0].reminderDate, DateTime(2026, 10, 15, 18));
-    expect(rows[0].nextFollowUp, isNot(equals(rows[0].reminderDate)));
+    expect(rows[0].followUp.toJson().containsKey('nextFollowUp'), isFalse);
+    expect(rows[0].followUp.toJson().containsKey('reminderDate'), isFalse);
   });
 
   test('person filter returns only rows linked to that canonical person', () {
@@ -101,27 +97,15 @@ void main() {
     expect(rows.single.people.single.displayName, 'شخص حذف‌شده');
   });
 
-  test('legacy next-action cutoff does not filter historical Follow-up rows', () {
-    final task = Task(
-      id: 'task',
-      title: 'اقدام بعدی',
-      followUps: [
-        waiting('due', ['ana'], next: DateTime(2026, 10, 15, 9),
-            reminder: DateTime(2026, 10, 20, 9)),
-        waiting('later', ['ana'], next: DateTime(2026, 10, 17, 9)),
-        waiting('none', ['ana']),
-      ],
-    );
+  test('historical Follow-up model does not serialize future scheduling fields', () {
+    final record = waiting('historical-only', ['ana']);
+    final json = record.toJson();
 
-    final rows = const PersonFollowUpReportProjection().project(
-      [task],
-      people: directory,
-      nextActionDueBy: DateTime(2026, 10, 15, 23, 59),
-    );
-
-    expect(rows.map((row) => row.followUp.id), ['due', 'later', 'none']);
-    expect(rows.firstWhere((row) => row.followUp.id == 'due').reminderDate,
-        DateTime(2026, 10, 20, 9));
+    expect(json, containsPair('id', 'historical-only'));
+    expect(json.containsKey('reminderDate'), isFalse);
+    expect(json.containsKey('reminderAllDay'), isFalse);
+    expect(json.containsKey('nextFollowUp'), isFalse);
+    expect(record.dateTime, now);
   });
 
   test('keeps a waiting Follow-up visible with a deleted-person placeholder', () {

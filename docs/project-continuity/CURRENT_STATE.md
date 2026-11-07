@@ -1,0 +1,809 @@
+- Follow-up compact pass commit message: `ui(quick-capture): compact vertical padding and tighter icon/chip sizing matching reference layout`.
+## Quick Capture tighter visual compression — 2026-11-04
+- Follow-up UI-only pass on the existing compact Quick Capture form. No field order, row membership, widget keys, horizontal selector structure, selected values, priority enum, color palette, Vazirmatn font family, semantics, callbacks, validation, task construction or persistence behavior was changed.
+- Compact ArvinRollBox and ArvinTagRollBox controls reduced from 42dp to 40dp; compact icons reduced from 18dp to 16dp, icon/text gap from 6dp to 4dp, horizontal inset from 10dp to 8dp, compact label size from 11.5sp to 10.5sp. The 40dp minimum touch target is retained.
+- Quick Capture cards reduced from 8dp to 6dp padding; top/bottom sheet padding tightened; title/header and description TextFields use dense decoration and reduced vertical content padding; inter-card/row gaps and horizontal gaps tightened without changing order.
+- Four priority controls remain 40dp with the same Persian labels, explanatory helper row, colors and selected enum values. Footer actions remain at least 40dp and aligned in their existing row.
+- Inner vertical scrolling remains as a safety fallback for keyboard, short screens and text scaling. A claim of zero vertical scrolling on every device is not made until verified on the physical SM-A528B/DS.
+- Updated geometry test from 42dp to 40dp; no test/assertion removed, weakened, skipped or bypassed. Fresh exact-SHA CI is required.
+- Physical before/after screenshot: NOT VERIFIED in this environment.
+- PR #3052 must remain OPEN / DRAFT / UNMERGED; main untouched; BLOCKED — RELEASE: NO-GO.
+
+- Required implementation commit message: `ui(quick-capture): compact single-screen layout, no logic changes`.
+## Quick Capture priority helper row refinement — 2026-11-04
+- Four canonical priority chips now show only «اولویت ۱» through «اولویت ۴» in 40dp-high controls; the four existing explanatory labels appear in a separate compact helper-text row immediately below.
+- Existing priority enum values, ordering, selected-state animation, color mapping, tap callbacks and Semantics labels (including the explanatory text) remain unchanged.
+- This refinement supersedes the in-flight CI started on prior SHA `d83683e47c0d3f6c3ca3fdf10504bc93aebd39d0`; its results are not acceptance evidence for the final SHA.
+
+- Requested commit-message checkpoint: `ui(quick-capture): compact single-screen layout, no logic changes`.
+## Quick Capture compact layout — 2026-11-04
+- Scope: UI/layout only. Current form field inventory, order, keys and selection flow are preserved. No Task model, validation, draft-building, persistence, field names, callbacks, center/project relationship, reminder synchronization, recurrence mapping or priority values were changed.
+- The existing description TextField remains present (compressed from 2–3 visible lines to 1–2); title placeholder remains «عنوان کار را وارد کنید». Header title and full-form shortcut remain.
+- Existing two horizontally scrollable selector groups remain in their current order so every selector remains reachable on narrow screens: center/project/category/tag, then due date/reminder/recurrence. No selector was removed or hidden; horizontal scrolling remains intentionally available for narrow widths.
+- Added opt-in compact presentation to `ArvinRollBox` and `ArvinTagRollBox`: 42dp control height, 18dp icons, 6dp icon/text spacing, 10dp horizontal inset, compact Vazirmatn-inherited labels with ellipsis. Existing popup menu items and callbacks are unchanged.
+- Priority remains the same four `TaskPriority.values` with Persian labels and helper descriptions, existing color mapping, Semantics labels and selected state; only chip/card vertical padding, font sizing and line height were compressed. No P1–P4 codes introduced.
+- Reduced card padding/vertical gaps, compacted title/header/description, and aligned «ثبت کار» + «لغو» in a 44dp-height footer row. Touch targets are asserted >=40dp.
+- Bottom sheet remains `isScrollControlled: true`, now capped at 66% of screen height. The inner vertical scroll view remains as a fallback for smaller screens, keyboard display and accessibility text scaling; the intended 7-inch view is tested for compact geometry rather than claiming physical-device proof.
+- Added/updated widget assertions for 42dp selectors, 40dp minimum actions, same-row footer, all existing selector keys, four priorities and preserved description. No tests/assertions were removed, skipped, softened or timed out.
+- Physical before/after screenshots from Samsung SM-A528B/DS are NOT VERIFIED / not captured by this GitHub-only execution environment.
+- Fresh CI must run against the final documentation-synchronized SHA. No previous SHA's result transfers.
+- PR #3052 remains OPEN / DRAFT / UNMERGED; main unchanged; **BLOCKED — RELEASE: NO-GO**.
+
+## Task Details UI — final verification checkpoint update — 2026-11-04
+- Final focused test adjustment: bottom completion action assertion now checks canonical `ArvinColors.primary` (`#4A4CAB`), not the darker AppBar shade. Commit: `b511d51d172a57656fdae12dd15ed559a27fcfb7`.
+- The Task Details redesign remains limited to `lib/task_detail_page.dart`, `test/task_detail_master_screen_test.dart`, and these three continuity documents. No Task model, repository, DAO, persistence, alarm, calendar, or backend source was modified.
+- The exact current branch HEAD must be read after this documentation sync. No workflow result is currently verified for the new Task Details implementation SHA; do not infer CI success from earlier runs.
+- PR #3052 must remain OPEN / DRAFT / UNMERGED; main untouched; **BLOCKED — RELEASE: NO-GO**.
+
+## Task Details UI redesign — 2026-11-04
+- Owner-approved presentation-only scope applied on the authorized PR branch. Source commit: `a654da9262004b57fab591fcd2a72e48481e57f7`; checklist presentation commit: `dc6e2aa6a3af26f474b9b02c1ccb24742228208b`; focused test commits: `43813096e93abd31388e1eceeb8dfef3fb3d4aba`, `86c6c9bbaaa8bc83626effb9aa52f6e52c94a3d0`.
+- UI: icy `#F5F6FA` page background; dark indigo AppBar with rounded lower corners, Vazirmatn title and left-side back action; white 16px rounded cards with soft shadow; existing title/status/priority card retained; metadata, template, due-date, independent reminder, recurrence and checklist cards remain.
+- Checklist retains its existing fractional progress and LinearProgressIndicator; the add control is now a full-width «افزودن مرحله جدید» action after the checklist items, using the same existing add callback and text controller.
+- The entire «افراد مرتبط» display block is removed from Task Details. No `Task.people` model/data/storage logic was changed; the regression test confirms person data remains on the Task while no person UI is rendered.
+- Bottom actions retain their original keys and callbacks: red outlined Delete, indigo filled Complete, indigo outlined Edit.
+- Test file `test/task_detail_master_screen_test.dart` now asserts absence of people UI, retained underlying person data, page/card styling, back action, bottom-action colors, checklist progress and add-stage label. No test was deleted, skipped or weakened.
+- Current source/test implementation HEAD before continuity sync: `86c6c9bbaaa8bc83626effb9aa52f6e52c94a3d0`. CI on this new SHA has not yet been verified; all acceptance gates are NOT VERIFIED until fresh exact-SHA runs finish.
+- PR #3052 remains OPEN / DRAFT / UNMERGED. No main edits, merge, publication or release. **BLOCKED — RELEASE: NO-GO.**
+
+## Quick Capture test reconciliation — 2026-11-04
+- Build run `41834832972` on SHA `2549a98ab6d3de3498ab17fc007debf34f105055`: Analyze PASS; Shard test-1 FAILED with 174 passed / 1 failed.
+- Exact failure: `test/quick_capture_dialog_test.dart:321`, test `canonical capture keeps title-only path and optional choices`; the old assertion expected the approved description field to be absent. A second obsolete absence assertion existed in the full-form handoff test.
+- Updated both finders to assert the description field exists and added empty-description assertions for title-only / no-description handoff. No test was deleted, skipped, timed out or weakened; the assertion now checks the newly approved UI contract.
+- Test correction commit: `fdbb6f10bb2fed4233384478c74c86c9778def90`. All workflows on SHA 2549 remain evidence only for that older SHA; the correction requires a fresh exact-SHA run.
+- PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; release BLOCKED — RELEASE: NO-GO.
+
+## Quick Capture implementation refinement — 2026-11-04
+- Latest source/test checkpoint before this continuity refresh: `2349dc2cdffeae440e525a89842912d681123b26`.
+- Focused test commits: `15212f6f5151c8436f041021d96ca7042bcf0015` (ensure-visible interaction and full-width submit geometry) and `2349dc2cdffeae440e525a89842912d681123b26` (remove obsolete test import).
+- Live PR metadata at this checkpoint: OPEN / DRAFT / UNMERGED; branch HEAD equals the checkpoint SHA.
+- GitHub Actions query for this SHA returned zero workflow runs; commit status is pending with zero contexts. CI is NOT VERIFIED and must not be reported as passing.
+- Keep release BLOCKED — RELEASE: NO-GO.
+
+## Quick Capture UI — owner-approved redesign (2026-11-04)
+- Owner decision APPROVED: UI-only redesign of QuickCaptureDialog; retain all four canonical TaskPriority values and exact enum persistence (high/medium/low/none; sort orders 1–4). No priority remapping.
+- Source checkpoint before continuity updates: `9aaa51dea8957a8f755e57f6d9bb05724a6f00f1`; changes in `lib/quick_capture_dialog.dart` and focused tests in `test/quick_capture_dialog_test.dart`.
+- UI implementation adds an icy `#F5F6FA` canvas, indigo header with close/full-form actions, white rounded cards, title and description fields, RTL pastel four-level priority chips with the exact four Persian labels and helper text, and full-width submit action. Existing center/project/category/tag, due date, reminder and recurrence controls remain connected through their existing callbacks/services.
+- Description now binds to canonical `Task.description`; it is cleared only after successful capture/full-form handoff. Title validation and capture callbacks remain unchanged.
+- Focused test updates preserve priority-value assertions, add exact helper-label / no-English-P-code assertions and description persistence coverage, and update the compact-form description expectation. No test was deleted, skipped or weakened.
+- Runtime and focused tests are IMPLEMENTED; Analyze, widget tests, full Build, Device Smoke and other exact-SHA gates remain NOT VERIFIED until CI completes on the final documentation-synchronized SHA.
+- PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; release remains BLOCKED — RELEASE: NO-GO.
+
+## Quick Capture UI — owner-approved redesign (2026-11-04)
+- Owner decision APPROVED: UI-only redesign of QuickCaptureDialog; retain all four canonical TaskPriority values and exact enum persistence (high/medium/low/none; sort orders 1–4). No priority remapping.
+- Source checkpoint before continuity updates: `9aaa51dea8957a8f755e57f6d9bb05724a6f00f1`; changes in `lib/quick_capture_dialog.dart` and focused tests in `test/quick_capture_dialog_test.dart`.
+- UI implementation adds an icy `#F5F6FA` canvas, indigo header with close/full-form actions, white rounded cards, title and description fields, RTL pastel four-level priority chips with the exact four Persian labels and helper text, and full-width submit action. Existing center/project/category/tag, due date, reminder and recurrence controls remain connected through their existing callbacks/services.
+- Description now binds to canonical `Task.description`; it is cleared only after successful capture/full-form handoff. Title validation and capture callbacks remain unchanged.
+- Focused test updates preserve priority-value assertions, add exact helper-label / no-English-P-code assertions and description persistence coverage, and update the compact-form description expectation. No test was deleted, skipped or weakened.
+- Runtime and focused tests are IMPLEMENTED; Analyze, widget tests, full Build, Device Smoke and other exact-SHA gates remain NOT VERIFIED until CI completes on the final documentation-synchronized SHA.
+- PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; release remains BLOCKED — RELEASE: NO-GO.
+
+# Current Verified State
+Checkpoint: 1405/08/13 — 2026-11-04
+Repository: mobinpda-lab/Arvin-clean
+Branch: fix/recovery-calendar-device-smoke-2026-10-31
+Exact audited HEAD: 940b22f4dc30aef083e5116843ac9457bd1bd37a
+PR: #3052 — OPEN / DRAFT / UNMERGED
+Base main SHA: 45e4202b03a434459e4c021a04efa7e8396359db
+Release: BLOCKED — RELEASE: NO-GO
+
+## Task Details UI audit
+- Revalidated source on exact HEAD 940b22f4dc30aef083e5116843ac9457bd1bd37a. No runtime UI change was made because photo_1793790367954.webp and photo_1793790413647.webp are not accessible as current conversation or Library files in this execution.
+- Findings and exact file/blob evidence: docs/audit/ARVIN_TASK_DETAILS_REFERENCE_COMPARISON_2026-11-04.md.
+- TaskDetailPage: lib/task_detail_page.dart (blob 269a48aee948d00ab453d1d4e82b2b9e2510d4b9); route _openTaskDetail in lib/main.dart (blob 97e2f872e69b24dd47ffe936e921c8001ace9388); model lib/models/task.dart (blob d5ba37c5bdac479b5c3381fea30f5ea510b64d51).
+- Current model has people but no assignee field; do not infer responsibility from related people.
+- Code confirms repeated due date, priority, category/tags across sections. No metadata was removed without reference image/product approval.
+- Description multiline editing, canonical save callbacks, independent TaskReminders, recurrence, Follow-up history, clone, calendar action and fixed bottom actions remain intact.
+- Official bundled font: Vazirmatn only.
+
+## Exact-SHA CI — 940b22f4dc30aef083e5116843ac9457bd1bd37a
+- Build run 41819344155 SUCCESS: Analyze + six test shards SUCCESS; APK matrix SKIPPED by Draft guard.
+- Focused Task Details cases logged PASS: inline title/multiline description, independent reminder toggle, clone, smart visibility, due-date action, checklist, Follow-up, calendar export and report entry. RTL/Vazirmatn contracts logged PASS. No dedicated Task Details screenshot/golden evidence found.
+- Follow-up persistence run 41819344361 SUCCESS.
+- Draft Review APK run 41819344101 SUCCESS; artifact 13316861010; SHA-256 12a51684cf661bb8dd318b97694f1b6bb5b1b47cae63e12fb71fef40bea0ef08; review/staging only.
+- Calendar Provider run 41819344729 IN_PROGRESS at last poll.
+- Device Smoke run 41819344258: Boot/Navigation SUCCESS; Quick Capture/Calendar Segmented View IN_PROGRESS; Reminder/Vazirmatn, Follow-up Persistence and Task Lifecycle QUEUED. Seven-lane acceptance NOT VERIFIED.
+
+## Governance
+- No main write, merge or release. PR #3052 remains OPEN / DRAFT / UNMERGED.
+- No tests/assertions were deleted, weakened, skipped or bypassed.
+- Full audit: docs/audit/ARVIN_TASK_DETAILS_REFERENCE_COMPARISON_2026-11-04.md.
+- Backlog: docs/project-continuity/OPEN_ISSUES.md and ROADMAP.md.
+
+
+## Task Details UI implementation — 2026-11-04
+- Implementation checkpoint: d7ae03c8cc74e9f38c739cd84dba77606acc56ff (code/test checkpoint; subsequent documentation checkpoint will be audited independently).
+- Runtime changes are limited to lib/task_detail_page.dart; focused layout/RTL tests are in test/task_detail_master_screen_test.dart.
+- Pixel comparison and actual-page screenshot acceptance remain NOT VERIFIED. The owner-provided desired image is available; the installed-app image is not available as an executable attachment.
+- Build, Device Smoke, Calendar Provider, Follow-up Persistence and review APK are triggered/pending/in progress at this checkpoint. No PASS is claimed until terminal results are checked on the exact final SHA.
+- PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; release NO-GO.
+
+
+## 2026-11-04 — Exact-SHA CI failure and review APK evidence (a85145de7be4b0d23854e320885f665d50eb35cc)
+- Build run 41823721080: FAILURE. Analyze failed at lib/task_detail_page.dart:1158:30 with unnecessary_string_interpolations. APK matrix was SKIPPED by the Draft guard.
+- Test shards: test-4 SUCCESS; test-0, test-1, test-2, test-3 and test-5 FAILURE. Do not report the suite as passing.
+- Task Details evidence from task_detail_master_screen_test.dart: PASS — clone action invokes canonical handler; title and multiline description save inline; summary/metadata/due date appear once in RTL order; related people are not presented as assignees and bottom content remains clear.
+- Task Details failures: independent Reminder toggle could not find key task-detail-reminder-reminder-toggle-1 (line 83); ordinary-task smart visibility could not find task-detail-add-reminder (line 110); rich-section visibility could not find task-detail-independent-reminders (line 163). Related checklist failures: task_detail_checklist_flow_test could not find task-detail-checklist (line 29), and task_detail_checklist_crud_test could not find task-detail-add-checklist (line 72). These are real assertion/finder failures, not skipped tests.
+- Related Task Details flow failures: add Follow-up key task-detail-add-followup absent (task_detail_followup_flow_test lines 58 and 193); existing FollowUp edit path raised StateError: No element in ensureVisible at line 252; Today action vertical-order assertion expected >520.5 but observed 478.0 (line 403; same 478.0 vs >520.5 in task_detail_due_date_action_test line 62).
+- Calendar Provider run 41823721063: SUCCESS; artifact 13318164013.
+- Draft Review APK run 41823721031: SUCCESS; artifact 13317704369, 38,206,200 bytes ZIP. Extracted review APK: 76,806,159 bytes, SHA-256 f3f3efdf74bff2b239f24145c69bbd98fbcf2ac0e2f3bb043e70c6f8d9dcea57. Manifest: applicationId com.example.arvin.staging, android_debuggable=false, v2/v3 signature verified, ephemeral test-only signing key, publishable=false, release_created=false. Review/install testing only; not a production/release APK.
+- Device Smoke run 41823721013: still incomplete at last poll. Boot, Navigation, Quick Capture and Task Lifecycle SUCCESS; Reminder/Vazirmatn and Calendar Segmented View IN_PROGRESS; Follow-up Persistence QUEUED. No seven-lane PASS.
+- No tests/assertions were modified, removed, weakened, skipped or bypassed during this audit. No timeout workaround was applied. PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; release remains BLOCKED — RELEASE: NO-GO.
+
+
+## Quick Capture compact layout — compile correction and live CI checkpoint (2026-11-04)
+- Previous PR HEAD `c918f2bb8ce73ffa82dd601ab30eb077b9d49fa4`; PR #3052 was OPEN / DRAFT / UNMERGED.
+- Build run `41842459267` on that exact SHA failed during Staging APK compilation: `ArvinTagRollBox` constructor accepted `compact` and its build method read `widget.compact`, but the widget class did not declare the corresponding field. This is a source compile error, not an APK signing or CI runner issue.
+- Corrected by adding `final bool compact;` to `ArvinTagRollBox` in commit `642a4016cbaa1994b4dfe2d278066941ef8a65c2`. No behavior/data/test assertion was changed by this correction.
+- The compact Quick Capture layout already reduces selector height to 40dp, horizontal padding to 8dp, icons to 16dp and label text to 10.5sp; tag selector uses the same compact contract. The main dialog uses tighter card/field spacing and 40dp priority chips. Existing vertical scroll remains as a safe fallback for short screens, keyboard and text scaling; fit-without-scroll on physical hardware is NOT VERIFIED.
+- Exact-head Build, Device Smoke, Calendar Provider, Follow-up Persistence and Draft Review APK must be checked again on the final documentation-synchronized SHA. Prior results do not transfer.
+- On pre-fix SHA `c918f2b`, Follow-up File Persistence run `41842459045` SUCCESS; Device Smoke `41842458990` was still running; Calendar Provider `41842459090` was in progress; Draft Review APK `41842459134` failed because the same missing `compact` property prevented Staging assembly. No all-green claim.
+- The user-referenced image `photo_1793800214435.webp` was not available for pixel-level inspection in this execution. Pixel-perfect matching and physical-device screenshot acceptance remain NOT VERIFIED.
+- No tests were deleted, skipped, weakened or bypassed. PR #3052 remains OPEN / DRAFT / UNMERGED; no `main` edits, merge or release. **BLOCKED — RELEASE: NO-GO.**
+
+
+## Exact-SHA CI follow-up — 2026-11-04 (a657691)
+- Target SHA verified across all five requested runs: `a65769133c32cf51480f6ec68febed6eeba1e3b0`; PR #3052 remains OPEN / DRAFT / UNMERGED.
+- Build run `41843444962`: exact checkout and dependency resolution succeeded; `flutter analyze` FAILED on one info-level lint: `unnecessary_const` at `lib/quick_capture_dialog.dart:587:42`. Six test shards were still running at last inspection; the APK matrix job was skipped after Analyze failed. Therefore Build is not green.
+- Device Smoke run `41843451312`: seven-lane matrix prepared successfully. Boot and Navigation were running; Task Lifecycle, Quick Capture, Reminder/Vazirmatn, Follow-up Persistence and Calendar Segmented View were queued at last inspection. No seven-lane conclusion yet.
+- Calendar Provider run `41843445191`: still running its real Provider instrumentation acceptance; no final conclusion yet.
+- Follow-up Persistence run `41843445148`: SUCCESS on exact SHA. File-backed Repository persistence and alarm-overlay SQLite close/reopen checks completed successfully.
+- Draft Review APK run `41843444971`: exact checkout, target-SHA verification, Flutter setup, ephemeral staging key and dependency resolution succeeded; Staging APK assembly was still in progress. Artifact listing returned empty at inspection, and signature/font/manifest verification plus artifact upload had not started. APK production/upload therefore NOT VERIFIED; no artifact link exists yet.
+- The missing `ArvinTagRollBox.compact` field was fixed before this SHA; Build and APK jobs reached Analyze/assemble stages rather than failing on that prior missing-field compiler error. Full APK compilation success remains pending.
+- Quick Capture widget tests in `test/quick_capture_dialog_test.dart` include compact RTL layout and 40dp selector/priority-chip assertions, but their test shard(s) were still running. No result is claimed. The dialog still wraps its content in `SingleChildScrollView`; a no-vertical-scroll fit is not proven by the current test suite or a physical screenshot.
+- No tests were removed, skipped, weakened or given artificial timeout extensions in this follow-up. No `main` changes; release remains BLOCKED — RELEASE: NO-GO.
+
+
+## ممیزی زنده CI — ۱۴۰۵/۰۸/۱۳ (2026-11-04)
+
+- SHA ممیزی: `3f849eefed2afe08c3d3662cf66d9c488388e737`؛ شاخه مجاز PR #3052.
+- Build & Analyze [41852047631](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/41852047631): Analyze PASS و شش شارد test-0 تا test-5 همگی PASS؛ test-3 نیز PASS. فقط برای همین SHA معتبر است.
+- Follow-up file-backed SQLite [41852047684](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/41852047684): PASS، شامل persistence و close/reopen diagnostic.
+- Device Smoke [41852048093](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/41852048093): Preparation PASS؛ Boot و Navigation در حال اجرا؛ Quick Capture، Reminder/Vazirmatn، Follow-up Persistence، Calendar Segmented View و Task Lifecycle در صف. هفت سناریو تکمیل نشده؛ نتیجه نهایی NOT VERIFIED.
+- Calendar Provider [41852047809](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/41852047809): اجرای instrumentation/provider acceptance در حال انجام؛ نتیجه NOT VERIFIED.
+- Review APK [41852047701](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/41852047701): ساخت staging APK در حال انجام؛ Artifact هنوز موجود نیست، پس لینک دانلود/تأیید APK NOT VERIFIED.
+- اصلاح test-3 در این SHA: scrollUntilVisible قبل از pumpAndSettle و assertion اجرا می‌شود؛ Finder و assertion حفظ شده و تست تضعیف نشده است.
+- PR #3052 هنگام ممیزی OPEN / DRAFT / UNMERGED؛ main تغییر نکرد؛ Vazirmatn و فیلدهای canonical Task حفظ؛ Release: BLOCKED — RELEASE: NO-GO.
+- این snapshot فقط وضعیت runهای SHA ممیزی‌شده را ثبت می‌کند؛ commit مستندات SHA تازه‌ای می‌سازد و PASSهای قبلی را به SHA تازه منتقل نمی‌کند.
+
+## R6 — exact-SHA review APK and live smoke checkpoint (2026-11-04; source SHA: 1815ef72864f3e792661eee08cc932b29ff94c88)
+- Review Staging APK run [41874160600](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/41874160600) completed SUCCESS on the exact source SHA. Artifact [13345822544](https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/13345822544/zip), name `arvin-review-staging-apk-1815ef72864f3e792661eee08cc932b29ff94c88`, ZIP size 38,211,551 bytes, SHA-256 `0821c0b1749e5e852d68283eb5c4181bbb15877f9c701954f56e18db685a5ab1`, expires 2026-11-11 17:12:04 UTC. Direct ZIP: https://api.github.com/repos/mobinpda-lab/Arvin-clean/actions/artifacts/13345822544/zip
+- Extracted APK: `Arvin-review-staging-1815ef72864f3e792661eee08cc932b29ff94c88.apk`, 76,822,515 bytes, SHA-256 `24295b19eea0300623167fbe400320a961feefbc3e6045e1015c43560a306e75`; application ID `com.example.arvin.staging`; `android_debuggable=false`; APK Signature v2/v3 verified. Signer certificate SHA-256 `f3c4ffe277b87daa789596ae3275fc8d9d59fc1d1236b83a7fa1190cb7a3d37b`. Ephemeral review-only test key; `publishable=false`, `release_created=false`. This artifact is for private review/install testing only, not production or release acceptance.
+- Build #9553 run [41874160729](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/41874160729): Analyze and all six test shards (0–5) SUCCESS on the exact SHA. Draft-guarded ordinary APK matrix job was SKIPPED as expected; this is not the Review Staging APK job.
+- Device Smoke #6800 run [41874160773](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/41874160773): matrix preparation SUCCESS. At the latest job-level poll: Boot IN_PROGRESS; Navigation IN_PROGRESS; Quick Capture QUEUED; Follow-up Persistence QUEUED; Task Lifecycle QUEUED; Calendar Segmented View QUEUED; Reminder/Vazirmatn QUEUED. Screenshot/evidence upload steps had not started. Seven-lane acceptance is NOT VERIFIED. The run-level API status was reported as queued while two lane jobs were already in progress; job-level states are recorded above.
+- Calendar Provider Acceptance #1698 run [41874160623](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/41874160623): exact-SHA checkout and setup succeeded; real Provider instrumentation/acceptance step remained IN_PROGRESS; evidence publication pending. Final acceptance NOT VERIFIED.
+- Repository cleanup audit on the same source SHA: complete recursive tree (790 entries, not truncated); no tracked APK/AAB, generated build/output/cache/temp directories, or safe deletion candidates found. No cleanup deletion or cleanup commit was made.
+- PR #3052 remains OPEN / DRAFT / UNMERGED with head `1815ef72864f3e792661eee08cc932b29ff94c88`; branch is unchanged at this checkpoint. `main` remains `45e4202b03a434459e4c021a04efa7e8396359db`. No code changes, merge, release, or publication were made.
+- **BLOCKED — RELEASE: NO-GO.** Physical tablet installation/behavior, seven-lane Device Smoke, Calendar Provider terminal result, and product-owner release acceptance remain separate gates. This evidence applies only to source SHA `1815ef72864f3e792661eee08cc932b29ff94c88`; any documentation commit creates a new HEAD and does not inherit these exact-SHA CI results.
+
+
+## 2026-11-05 — Exact-SHA audit checkpoint (source SHA: 7e61b8d1ac81dca08c99cc5694fb3f5ab21e9e19)
+
+- GitHub branch and PR #3052 HEAD independently agree on `7e61b8d1ac81dca08c99cc5694fb3f5ab21e9e19`; PR remains OPEN / DRAFT / UNMERGED. `main` remains `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Build run [41906289196](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/41906289196) SUCCESS: Analyze Job `126841699898`; Test-0 Job `126841699596`; Test-1 Job `126841699599`; Test-2 Job `126841699836`; Test-3 Job `126841699676`; Test-4 Job `126841699192`; Test-5 Job `126841699700`. All six shards PASS. APK matrix Job `126841701237` SKIPPED (not a PASS).
+- Review Staging APK run [41906289264](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/41906289264) SUCCESS, Job `126841699243`; Calendar Provider run [41906289430](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/41906289430) SUCCESS, Job `126841699246`; Follow-up Persistence run [41906289135](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/41906289135) SUCCESS, Job `126841698186`.
+- Device Smoke run [41906289219](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/41906289219) conclusion CANCELLED, not seven-lane PASS. Lane results: Boot Job `126841759601` CANCELLED; Navigation `126841759655` CANCELLED; Calendar Segmented View `126841759834` CANCELLED; Quick Capture `126841759611` PASS; Task Lifecycle `126841759928` PASS; Reminder/Vazirmatn `126841759616` PASS; Follow-up Persistence `126841759792` PASS.
+- Reminder lane's dedicated legacy compatibility step (step 10) and emulator smoke both PASS; log shows two targeted Flutter tests and integration test completed. Do not infer Reminder lane status from other lanes' skipped conditional steps.
+- Emulator/ADB evidence: initial ADB daemon connection failure and transient `device offline` occurred during startup, but each affected lane subsequently logged `ADB_DEVICE=emulator-5554 ADB_STATE=device ADB_BOOT_COMPLETED=1 ADB_API_LEVEL=35`. Therefore the captured logs do not establish a persistent ADB transport failure. Emulator also logged `bad color buffer handle`; its causal relationship to test execution is NOT VERIFIED.
+- Boot, Navigation and Calendar jobs ended as CANCELLED after approximately 29 minutes of job execution, against workflow `timeout-minutes: 30`. Their emulator setup and ADB readiness completed, but the redirected Flutter driver log did not reach its post-run printout before cancellation. No assertion failure is evidenced in the available logs; exact stalled test operation/cancellation trigger remains NOT VERIFIED. This is not a justified basis to raise timeout, skip assertions, or mark lanes PASS.
+- Screenshot upload is a separate failure: Boot and Navigation Android screenshot uploads and Calendar evidence upload report no matching PNG files after cancellation. This is a missing-evidence consequence; it does not prove a test assertion failure and does not explain the original test stall.
+- Exact-head Review APK artifact ID `13361675761`, archive `arvin-review-staging-apk-7e61b8d1ac81dca08c99cc5694fb3f5ab21e9e19.zip`; archive SHA-256 `4f0b5bfa4d4e9095d8b8cd0f0bdf4502920d2a97aec45abffd4196b2acf2fb24`. Extracted APK `Arvin-review-staging-7e61b8d1ac81dca08c99cc5694fb3f5ab21e9e19.apk`, 76,822,529 bytes; APK SHA-256 `eb27a5ed0b7d2639cb5e5711c8e45da8cb5d94b5cf758f51599b415a8ecdc1eb`. Manifest source SHA exactly matches; package `com.example.arvin.staging`; `android_debuggable=false`; v2/v3 signatures verified; signer certificate SHA-256 `50c411ca240e50620114b767250be4f8234a27a592840ac29a1cf0dfdf3f2d17`; ephemeral review-only test key; `publishable=false`, `release_created=false`. Archive digest and APK digest are distinct values.
+- APK archive contains Vazirmatn Regular, Medium and Bold font assets and FontManifest. No local ADB/emulator/APK install tooling was available in the inspection environment; physical-device installation and screenshots are NOT VERIFIED.
+- Reference image `photo_1793816062206.webp` was not present in current conversation attachments or located in Library search. No visual comparison was performed. Request original reference plus uncut top and lower screenshots from the exact APK/device before making any visual claim.
+- No code/test change was made to mask the cancelled lanes. No rerun/fix of the three incomplete lanes has yet been performed; exact root cause remains open. Documentation commit itself creates a new SHA; all results above remain historical evidence for source SHA `7e61b8d1ac81dca08c99cc5694fb3f5ab21e9e19` only.
+- PR remains OPEN / DRAFT / UNMERGED; no main edit, merge, publication or release. **BLOCKED — RELEASE: NO-GO.**
+
+
+## 2026-11-05 — Module-Core-Logic v1.0 audit checkpoint
+- Live PR #3052: OPEN / DRAFT / UNMERGED. Authorized branch: `fix/recovery-calendar-device-smoke-2026-10-31`. Reviewed HEAD: `4021c84ceb14faf4f6559379cf67dd94955bffe4`. Base `main`: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Module record is in `PRODUCT_DECISIONS.md`; no parallel Module document was created. The exact prior module text was not retrievable, so full verbatim review is NOT VERIFIED.
+- Due Date / TaskReminder separation and FollowUp.dateTime persistence are present. `completedAt` on FollowUp is an alias of dateTime.
+- Legacy Task fields `followUpEnabled` / `followUpDate` and FollowUp `reminderDate` / `nextFollowUp` remain in active model/SQL serialization. No real user DB inventory/backup was inspected; schema retirement remains BLOCKED.
+- Reminder delivery gap: `FollowUpReminderDeliveryService.due` does not filter disabled TaskReminders; `TaskStore.addTaskReminder` has no idempotency guard. No logic fix was made.
+- Alarm: scheduler ID 42002; notification IDs are stable-key hashes with 42002 fallback. Stop only cancels notification; Snooze changes the selected Reminder; Follow-up shortcut disables adding another Reminder.
+- Exact-SHA CI: Analyze PASS; test-0/1/3/5 PASS; test-2/test-4 FAIL; visual golden FAIL; Persistence PASS; Calendar Provider PASS; Device Smoke 4/7 PASS and 3/7 CANCELLED.
+- Test-scenario preservation across the entire PR is NOT VERIFIED: the PR diff rewrites/removes multiple previous test scenarios, although no explicit new skip/timeout directive was detected. Replacement coverage requires review.
+- No source/test/schema/main changes, merge, or release. **BLOCKED — RELEASE: NO-GO.**
+## Uniform UI token implementation checkpoint — 2026-11-05 09:56 Asia/Tehran — ۱۴۰۵/۰۸/۱۴
+- Owner-approved active tokens: primary `#3F3D56`, header `#2D2B42`, background `#F7F8FC`, card `#FFFFFF`, radius 16px, soft 4% shadow blur 10 offset (0,4), font Vazirmatn.
+- New token source: `lib/core/theme/arvin_theme.dart`; compatibility semantic palette: `lib/arvin_colors.dart`.
+- Global light CardTheme and AppBar, shared Home shell/navigation/add button, radio/project selector and recurrence chip were routed through tokens. Priority mapping/status/taxonomy semantics were retained; visible priority labels remain Persian «اولویت ۱»…«اولویت ۴».
+- New focused test: `test/arvin_theme_tokens_test.dart`. Existing tests unchanged. Exact-SHA CI and widget tests pending; full custom-card conversion and physical visual acceptance NOT VERIFIED.
+- PR #3052 remains OPEN / DRAFT / UNMERGED; main unchanged; release BLOCKED — RELEASE: NO-GO.
+
+### Target-screen card alignment — 2026-11-05 10:03 Asia/Tehran — ۱۴۰۵/۰۸/۱۴
+- Targeted card styling now also uses the shared token set in Task Details, Task Editor, Quick Capture and Calendar reminder cards; Task Lists retain their 16px card material surface.
+- No product behavior/data/persistence/test assertion changes. Full secondary-screen inventory and physical visual acceptance remain NOT VERIFIED; exact-SHA CI pending.
+
+ 
+## TaskHomeScreen — live implementation checkpoint (2026-11-05 13:02 Asia/Tehran — ۱۴۰۵/۰۸/۱۴)
+- Canonical owner-approved Home contract: `docs/project-continuity/task_home_screen_spec.md`.
+- Authorized PR branch: `fix/recovery-calendar-device-smoke-2026-10-31`; PR #3052 remains OPEN / DRAFT / UNMERGED; main is not modified.
+- Home source alignment commits: `65122e4`, `e89ee5f`, `0ad42cb`, `da311c2` (full SHAs in `IMPLEMENTATION_LOG.md`).
+- Implemented on branch: drawer hamburger/right; general filter funnel/left; no notification bell or header search icon; search field preserved with exact placeholder; five filters plus independent sort button in one RTL row; Follow-up Date default sort; Center/Project/Category/Tag task-card metadata; Past/Today/Tomorrow/Future/Timeless group order; dynamic weekday + Jalali dates for Today/Tomorrow.
+- Primary navigation source was inspected and already contains five visible tabs in the approved order.
+- Existing tests/assertions were not edited or weakened. Exact-SHA Analyze and widget test results for the final documentation-synchronized HEAD are NOT VERIFIED until the current run completes.
+- Naskh glyph-level appearance is NOT VERIFIED: the header currently uses a system serif fallback, and no bundled Naskh font asset was found in inspected paths.
+- Release remains BLOCKED — RELEASE: NO-GO. Do not merge, publish, release, or touch main.
+
+ 
+## TaskHomeScreen analyzer correction — 2026-11-05
+- An intermediate Analyze run on source checkpoint `da311c2f7e4ef9b96fc20a26e31eca996fa63d50` found the plugin import had also been removed even though the app-level notification tap handler still uses `NotificationResponse`, and found an orphan private `_openPendingReminder` helper after removing the Home bell.
+- Corrected in `c0766a5e602d04426486816e95cad4038b667fa7`: restored the plugin type import for the retained notification-response path and removed the now-unreferenced pending-notification helper. The Home header remains bell-free.
+- No test files or assertions were changed. Analyze and widget tests on the corrected/final SHA remain NOT VERIFIED until a fresh exact-SHA run completes.
+
+ 
+## TaskHomeScreen final source delta — 2026-11-05
+- Added an explicit accessible semantic label to the independent Home sort action: `72e6779f268bb0ca971b651ad0228604b504f4c8`.
+- Ensured the Past group heading also uses the calendar icon when Past is selected directly from the Time filter: `460a40b6411c6c63691817e45ef00aab61544bd8`.
+- These are source-only follow-ups; no test file or assertion was changed. The latest exact-SHA Build and Device Smoke runs must complete before any PASS is recorded.
+
+
+## Calendar UI/UX canonical specification registration — 2026-11-05 — ۱۴۰۵/۰۸/۱۴
+- Canonical owner-approved fourteen-section Calendar specification: `calendar_ui_ux_spec.md`.
+- Header: centered «أُفَوِّضُ أَمْرِي إِلَى اللَّهِ»; search right; Today full Persian date pill + adjacent «برو به تاریخ» picker left; Help removed.
+- Selected-date bar: Jalali bold center, Gregorian right, Hijri lunar left.
+- View modes «روزانه / هفتگی / ماهانه / سالانه» above the calendar grid; default weekly.
+- Seven-column Saturday–Friday RTL grid; date cells show Jalali primary and Gregorian/Hijri lunar secondary.
+- Five filters «همه / تقویم آروین / تقویم گوشی / یادآورها / انجام‌نشده» strictly below the grid and above the agenda. Agenda is selected-day scoped; Task/Event/Reminder cards must not overlap.
+- Hijri adjustment options: +1 day, −1 day, Official Iranian Calendar Match.
+- No runtime implementation or test changes were made as part of specification registration.
+- Exact-SHA audit on base `5bea1ed67549e26aa2ceeb0882477d4cfc2c1f53`: Build #42011495370 FAILURE (test-0, test-2 and visual failed; Analyze and test-1/3/4/5 passed; APK skipped); Device Smoke #42011495381 CANCELLED (4/7 pass, 3/7 cancelled). Calendar Provider, Follow-up Persistence and Parallel Wave Contract passed.
+- The above CI results do not transfer to any subsequent documentation SHA. Re-run exact-head gates after documentation synchronization.
+- PR #3052 OPEN / DRAFT / UNMERGED; main untouched; **BLOCKED — RELEASE: NO-GO**.
+
+
+## STD-GOV-AIPOS-v1.0 — Live checkpoint — ۱۴۰۵/۰۸/۱۴ — 2026-11-05
+- Repository: `mobinpda-lab/Arvin-clean`
+- Active branch: `fix/recovery-calendar-device-smoke-2026-10-31`
+- PR #3052: OPEN / DRAFT / UNMERGED; base main. No main edits authorized or performed by this work.
+- HEAD observed before this documentation update: `7327c4e0f472e52b12ecd330cb0331132d8aa396`. Documentation commits below create a newer HEAD; re-read GitHub for the resulting SHA.
+- Package: `flutter_svg ^2.3.2` declared in pubspec.yaml; pubspec.lock contains flutter_svg 2.3.2 and its vector dependencies. G1 lock-sync workflow on the observed HEAD: SUCCESS.
+- Follow-up file-backed SQLite persistence run 42090629520: SUCCESS.
+- Calendar Provider run 42090629465: IN_PROGRESS at last poll.
+- Build/Analyze run 42090629467: PENDING; no job result yet. flutter analyze and flutter test exact-SHA results: NOT VERIFIED.
+- Device Smoke run 42090629594: preparation SUCCESS; boot and navigation IN_PROGRESS; five remaining lanes QUEUED. Seven-lane acceptance NOT VERIFIED.
+- Draft Review APK run 42090629583: IN_PROGRESS; APK artifact not yet verified.
+- SVG assets `assets/images/branding/bismillah.svg` and `tafweez.svg`: NOT FOUND at observed HEAD. Home and Calendar sacred phrases still need verified vector replacement. Approved reference image unavailable in searchable project/conversation sources; exact calligraphy match BLOCKED.
+- Physical-device visual inspection: NOT VERIFIED. Do not equate emulator smoke or Review APK with physical-device acceptance.
+- Release: **BLOCKED — RELEASE: NO-GO**.
+
+
+## AIPOS v1.0 final documentation checkpoint — 2026-11-05
+- Source/CI checkpoint HEAD before the AIPOS documentation series: `7327c4e0f472e52b12ecd330cb0331132d8aa396`.
+- Documentation series last commit before this state snapshot: `53e5f7427bbc0dcc09a5419a58dc2ed59c702b65`. This CURRENT_STATE update itself creates a new docs-only HEAD; the live PR head must be queried after commit and no prior-SHA CI status transfers.
+- Seven continuity files and root CHANGELOG/Ledger have been updated under STD-GOV-AIPOS-v1.0.
+- No Build/Analyze or full test workflow was triggered/available for the documentation-only HEAD at the time of this snapshot; local Flutter CLI is not available through the GitHub repository connector. Exact-SHA `flutter analyze`, `flutter test`, Debug APK and Release APK: NOT VERIFIED.
+- Latest known evidence is limited to G1 lock-sync SUCCESS and Follow-up persistence SUCCESS on 7327c4e; Calendar Provider, Build/Analyze, Device Smoke and Draft Review APK were incomplete at last poll.
+- SVG assets remain NOT FOUND. Reference art remains unavailable. Release BLOCKED — RELEASE: NO-GO.
+
+
+## SVG sacred branding implementation — 2026-11-05 (۱۴۰۵/۰۸/۱۴)
+- Product assets received from the product owner and validated as single-path SVGs: one `path` element per file, no background/image/text/gradient elements, path fill `#1A2B4C`.
+- Added `assets/images/branding/bismillah.svg` and `assets/images/branding/tafweez.svg`; registered `assets/images/branding/` in `pubspec.yaml`. Existing `flutter_svg: ^2.3.2` dependency and lock resolution were retained.
+- Home header now renders the Bismillah SVG at width 210; Calendar header renders Tafweez SVG at width 240. Both use the approved navy color filter and one outer Semantics label; the inner SVG excludes duplicate semantics.
+- Updated Home/Calendar sacred-phrase widget tests to assert SVG keys, dimensions, semantics labels and absence of duplicate Text widgets. Existing Vazirmatn-only text family remains the only declared text family in `pubspec.yaml` and `AppFonts`.
+- Source/test implementation commit (before continuity-doc sync): `507503611b08d2cfdfbee7d37c05e4fbd72ad85e`.
+- `flutter pub get`, `flutter analyze`, and full `flutter test` have not been run locally in this GitHub connector environment. Exact-SHA CI is required; do not claim test success until its jobs finish.
+- PR #3052 remains OPEN / DRAFT / UNMERGED; no main changes; **BLOCKED — RELEASE: NO-GO**.
+
+
+## Exact-SHA CI result — 2026-11-05 — target d57a6b572ef14361f5354fa1840d950bf01e9506
+- Build run 42094217896 completed with FAILURE on the requested exact SHA. `quality (analyze)` SUCCESS; all six test shards FAILED. Shard totals: test-0 210 passed / 7 failed; test-1 172 / 7; test-2 293 / 7; test-3 133 / 5; test-4 227 / 1; test-5 163 / 5. Aggregate: **1,198 passed / 32 failed** (1,230 executed test cases across the six shards).
+- Failed tests, by shard:
+  - test-0: `test/task_detail_followup_flow_test.dart` (Task detail removes redundant status badge / description placeholder); `test/backup_page_encryption_ux_test.dart` (encrypted backup confirmation); `test/widget_test.dart` (canonical centered Home identity); `test/home/home_filter_contract_test.dart` (five collapsible time groups); `test/home_settings_integration_test.dart` (font-size preference); `test/task_detail_master_screen_test.dart` (due time/all-day pickers; add reminder).
+  - test-1: `test/task_detail_followup_flow_test.dart` (inline description edit); `test/project_template_service_test.dart` (Project-to-template conversion); `test/device_feedback_home_regression_test.dart` (canonical Home identity); `test/task_detail_master_screen_test.dart` (edit reminder title; remove selected reminder; edit reminder date/time); `test/home_stat_filters_test.dart` (short Android viewport).
+  - test-2: `test/alarm_overlay_page_test.dart` (snooze exact Reminder); `test/task_detail_master_screen_test.dart` (recurrence; Follow-up presentation; checklist staging/reorder); `test/task_detail_checklist_crud_test.dart` (checklist CRUD); `test/home_today_about_test.dart` (Today empty state); `test/task_template_management_page_test.dart` (Task Template conversion).
+  - test-3: `test/alarm_overlay_page_test.dart` (explicit Follow-up Save); `test/home/home_filter_contract_test.dart` (Home card expansion/history); `test/task_detail_master_screen_test.dart` (scroll offset; independent Reminder; compact visibility).
+  - test-4: `test/task_detail_master_screen_test.dart` (rich-section visibility).
+  - test-5: `test/alarm_overlay_page_test.dart` (all-day Reminder Snooze); `test/widgets/home_page_test.dart` (complete Task from Past); `test/task_detail_master_screen_test.dart` (summary/metadata/due date RTL; add Checklist); `test/canonical_calendar_launcher_test.dart` (repeat occurrence action).
+- Exact failure signatures visible in job logs include: `pumpAndSettle timed out` in `test/alarm_overlay_page_test.dart`; `Bad state: No element` from `ensureVisible` in `test/home/home_filter_contract_test.dart` and `test/task_detail_checklist_crud_test.dart`; expected one Scrollable but found two in `test/task_detail_master_screen_test.dart`; missing key `task-detail-checklist`; missing key `task-detail-description-input`; missing key `task-template-confirm`; and a 66px bottom RenderFlex overflow at `lib/main.dart:1277` in `test/home_today_about_test.dart`. The exact source file/test names above are preserved from the failed-test log headers.
+- APK matrix inside Build run: Debug and Release APK jobs SUCCESS; Staging APK job FAILED during Gradle distribution download with `java.net.SocketException: Broken pipe`; staging APK file was absent and no staging artifact was uploaded by this job.
+- Draft Review APK run 42094218155: SUCCESS. Review-only APK artifact exists: ID 13447431967, name `arvin-review-staging-apk-d57a6b572ef14361f5354fa1840d950bf01e9506`, 39,103,986 bytes, SHA-256 `d4b1de0f3a21a0292759bf49ed1847824491b429ac5c135bedf5b7ab044961ec`, expires 2026-11-12. This is a review/staging artifact, not a production release.
+- Calendar Provider run 42094217973: SUCCESS.
+- Device Smoke run 42094217975: NOT COMPLETE at last poll; preparation job SUCCESS, navigation and boot lanes IN_PROGRESS, remaining five lanes QUEUED. No seven-lane PASS is claimed.
+- Follow-up Persistence run 42094218060: SUCCESS. G1 lock sync run 42094218111: SUCCESS.
+- `flutter analyze`: PASS on target SHA. `flutter test`: FAIL, aggregate 1,198 PASS / 32 FAIL. Do not mark the test suite green.
+- PR #3052 governance remains OPEN / DRAFT / UNMERGED by instruction; no main write, merge, or release is authorized. **BLOCKED — RELEASE: NO-GO**.
+
+## زیرساخت برندینگ، فونت و تداوم — 2026-11-06 (۱۴۰۵/۰۸/۱۵)
+- Target branch: `fix/recovery-calendar-device-smoke-2026-10-31`; baseline SHA before this documentation commit: `25dfa7e9adb50570b2c9a23bb9edd1e0a4a34893`.
+- Sacred vector assets were already present at the canonical paths on the target branch; no duplicate or replacement files were created:
+  - `assets/images/branding/bismillah.svg` (blob `421f2fbaa27764c0b11962465cc351b2537239c8`, 30,058 bytes).
+  - `assets/images/branding/tafweez.svg` (blob `dd5db5b401eceef981b417dd7f781d9994ac4e10`, 22,553 bytes).
+- `pubspec.yaml` already declares active dependency `flutter_svg: ^2.3.2` and includes `assets/images/branding/` under Flutter assets. No dependency or asset-registration edit was necessary.
+- Global text-family contract verified in source: `ArvinTheme.fontFamily = 'Vazirmatn'` in `lib/core/theme/arvin_theme.dart`; `AppFonts.vazirmatnFamily = 'Vazirmatn'` in `lib/theme/app_fonts.dart`; light and dark MaterialApp ThemeData both set `fontFamily: AppFonts.vazirmatnFamily` in `lib/main.dart`. No Amiri/Neyriz references were found in these inspected global font configuration files. This is a scoped source inspection, not a repository-wide proof that no secondary font string exists anywhere.
+- Recent test-helper correction: commit `25dfa7e9adb50570b2c9a23bb9edd1e0a4a34893`, message `test: select primary task detail scrollable`; `_taskDetailPageScrollable` now selects the first downward-axis Scrollable within `task-detail-content-list` using `.first`.
+- Exact-SHA CI for `25dfa7e9adb50570b2c9a23bb9edd1e0a4a34893`, latest observed status:
+  - Build run `42140371675`: Analyze SUCCESS; test-0 SUCCESS; test-1 SUCCESS; test-5 SUCCESS; test-2 FAILURE; test-3 FAILURE; test-4 FAILURE. Debug, Staging and Release APK jobs were still IN_PROGRESS at this observation. Overall Build: IN_PROGRESS; test suite is NOT green.
+  - Device Smoke run `42140371697`: preparation SUCCESS; boot and navigation IN_PROGRESS; calendar-segmented-view, reminder-vazirmatn, quick-capture, follow-up-persistence and task-lifecycle QUEUED. Overall NOT COMPLETE.
+  - Draft Review APK run `42140371696`: IN_PROGRESS.
+  - Follow-up Persistence run `42140371677`: SUCCESS.
+  - Calendar Provider run `42140371756`: IN_PROGRESS.
+- This continuity update is documentation-only and does not cancel, modify, or replace any active workflow. Results from the previous SHA do not transfer to a later SHA.
+- PR #3052 remains OPEN / DRAFT / UNMERGED by instruction. No write to `main`, merge, or release is authorized. **BLOCKED — RELEASE: NO-GO** until all required exact-SHA test shards and validation lanes pass and product-owner approval is recorded.
+
+## اصلاحات یکپارچه Task Details، الگو و کنتراست SVG — 2026-11-06 (۱۴۰۵/۰۸/۱۵)
+- مبنای بررسی: branch HEAD `cbc56e0db2695dc6c578ecfb841e6fd916613080`. Device Smoke run `42141526859` روی همین SHA با نتیجه `CANCELLED` خاتمه یافته بود؛ هیچ Job فعالی از آن اجرا باقی نمانده بود، بنابراین تغییرات بدون لغو/دست‌کاری اجرای فعال انجام شد.
+- Build run `42141526931` روی همان SHA: Analyze PASS؛ test-0 و test-1 و test-5 PASS؛ test-2 و test-3 و test-4 FAIL. شکست‌ها در لاگ‌ها به‌ترتیب شامل پیام موفقیتِ ساخت کار از الگو که پس از SnackBar قبلی دیده نمی‌شد، پیمایش معکوس بخش‌های lazy در تست Smart visibility، و وجود دو نمونه از کارت منشأ الگو با کلید یکسان بودند.
+- `lib/task_template_management_page.dart`: صف SnackBarهای قبلی پیش از پیام موفقیت ساخت کار از الگو پاک می‌شود؛ هیچ عملیات ذخیره‌سازی یا داده‌ای تغییر نکرده است.
+- `test/task_detail_master_screen_test.dart`: پیمایش تست Smart visibility مطابق ترتیب واقعی صفحه شد: Reminder → Recurrence → Checklist → Follow-up → Timeline. assertion نشان «در انتظار انجام» حفظ شده است.
+- `lib/task_detail_page.dart`: کارت منشأ الگو از داخل Summary خارج شد و فقط در جایگاه مستقل فهرست جزئیات، پس از Summary/Description و پیش از Due Date باقی ماند. تست rich details یکتایی آن را بررسی می‌کند.
+- Home و Calendar: رنگ SVG در تم روشن سرمه‌ای برند `#1A2B4C` و در تم تاریک `Theme.of(context).colorScheme.onSurface` است؛ فیلتر `BlendMode.srcIn` حفظ شد. تست‌های اختصاصی هر دو حالت روشن/تاریک افزوده شدند. متن جایگزین Semantics و اندازه/fit فایل‌های SVG تغییر نکرد.
+- Calendar Provider run `42141526861` و Follow-up Persistence run `42141526818` روی SHA مبنا SUCCESS بودند؛ Draft Review APK run `42141526865` SUCCESS و review-only بود. Device Smoke روی SHA مبنا CANCELLED؛ نصب/استفاده واقعی دستگاه NOT VERIFIED.
+- Release APK داخل Build قبلی ساخته شد، اما سه شارد شکست داشتند؛ ساخت APK به‌تنهایی پذیرش محصول یا انتشار را اثبات نمی‌کند.
+- این ثبت همراه تغییرات منبع/تست در یک commit واحد قرار می‌گیرد. تمام CI باید روی SHA این commit تازه اجرا شود؛ نتایج SHA مبنا به آن منتقل نمی‌شوند.
+- PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main دست‌نخورده؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## اصلاح تکمیلی کنتراست پویا و تثبیت Finder کارت منشأ الگو — 2026-11-06 (۱۴۰۵/۰۸/۱۵)
+- کپسول SVG بسم‌الله Home در Light از زمینه برند روشن `#F0F0F6` استفاده می‌کند و در Dark به `colorScheme.surfaceContainerLow` تغییر می‌کند؛ رنگ SVG در Dark همچنان به‌صورت پویا از `colorScheme.onSurface` دریافت می‌شود.
+- آزمون‌های SVG در Home و Calendar به دو تست مستقل Light/Dark تفکیک شدند؛ مقدار پویا از خود Theme خوانده می‌شود و رنگ زمینه کپسول نیز جداگانه assert می‌شود.
+- کارت منشأ الگو در Task Details کلید ثابت `task_detail_template_source_card` دارد و تنها در فهرست اصلی، پس از Summary/Description و پیش از Due Date رندر می‌شود.
+- آزمون ترتیب RTL ابتدا Description را پیدا و آشکار می‌کند، سپس وجود کارت منشأ الگو را پیش از اسکرول به آن assert می‌کند؛ ترتیب Description → Template Source → Due Date → Assignee حفظ شده است.
+- هیچ تستی حذف، skip یا تضعیف نشده است. assertion نشان «در انتظار انجام» و پوشش Smart visibility حفظ شده‌اند.
+- تغییرات باید روی HEAD جدید در شش شارد Build و Device Smoke کامل اعتبارسنجی شوند؛ هیچ PASS از SHA قبلی منتقل نمی‌شود. PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## اصلاح Analyze تست Home و تثبیت کامیت دوم — 2026-11-06 (۱۴۰۵/۰۸/۱۵)
+- SHA مبنا: `0d7d76b0889aac972764594db1eee8b8dfa29b7b`. در `test/home/home_visual_integration_test.dart` دو عملگر غیرضروری `!` از `capsule.decoration` حذف شدند؛ هیچ assertion، تست، انتظار یا پوشش رفتاری حذف یا تضعیف نشد.
+- تغییر صرفاً برای رفع دو هشدار `unnecessary_non_null_assertion` است. نتیجه قطعی Analyze روی SHA جدید فقط پس از اجرای CI همان SHA اعلام می‌شود.
+- روی SHA مبنا، شش شارد `test-0` تا `test-5` موفق بودند؛ Analyze به علت همین دو هشدار شکست خورد. ساخت APKهای Debug، Release و Staging موفق بود؛ Device Smoke هنوز نتیجه نهایی نداشت.
+- این اصلاح همراه به‌روزرسانی این سند و `CHANGELOG.md` در یک کامیت واحد ثبت می‌شود. PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main دست‌نخورده؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+# Live State — ۱۴۰۵/۰۸/۱۵ — ۱۰:۰۱ (Asia/Tehran) / 2026-11-06
+
+
+## Live execution checkpoint — ۱۴۰۵/۰۸/۱۵ — ۱۰:۰۱ (Asia/Tehran) / 2026-11-06
+- Repository: `mobinpda-lab/Arvin-clean`; authorized branch: `fix/recovery-calendar-device-smoke-2026-10-31`; checkpoint parent SHA: `105737b1e4d5f9e2d6e35dfc7c9f4bfd5b1cbdda`.
+- PR #3052 was verified OPEN / DRAFT / UNMERGED, based on `main`; do not merge, close, or mark ready.
+- Release remains **BLOCKED — RELEASE: NO-GO**. No main-branch write is authorized.
+- Device Smoke run `42169009238` (run #7146) is still `IN_PROGRESS` on exact SHA `105737b1e4d5f9e2d6e35dfc7c9f4bfd5b1cbdda`. The observed lane snapshot: Preparation SUCCESS; Quick Capture SUCCESS; Follow-up Persistence SUCCESS; Reminder/Vazirmatn SUCCESS; Task Lifecycle SUCCESS; Calendar Segmented View IN_PROGRESS; Boot and Navigation jobs CANCELLED. Therefore the seven-lane Smoke gate is NOT VERIFIED / incomplete. The cancelled lanes are not PASS and must not be treated as skipped acceptance.
+- Exact-SHA Build run `42169009592` (#9904) reports SUCCESS; this does not replace the incomplete Device Smoke gate.
+- GitHub exposes committed branch state only. Local working-tree status and local test execution are NOT VERIFIED from this remote audit.
+
+## Verified source/test observations at checkpoint SHA
+- `lib/report_center_page.dart`: completed Follow-up reporting is selected inside the comprehensive `_ReportFilterSheet` under `report-filter-type-completed-follow-ups`; no separate top-level action is exposed.
+- `test/report_center_page_test.dart`: asserts `report-center-completed-follow-ups` is absent, opens the unified filter sheet, selects the completed-follow-up report type, applies it, and verifies the report output.
+- `lib/quick_capture_dialog.dart`: empty-title validation sets compact inline `errorText` and presents a floating SnackBar with «عنوان برای ثبت کافی است».
+- `test/quick_capture_dialog_test.dart`: retains the test `quick capture rejects empty input with visible feedback`, asserting both visible feedback instances and the Quick Capture title. No assertion was removed or weakened in this checkpoint.
+- Exact source blob SHAs: report page `0459fc0a1cfe239eb09fecdd7dd5d42c6ec0845d`; report test `18d5b59fae5d3f127d4ccaedb2963b55b0ad781b`; Quick Capture source `a6b0fa76cd1fed494b0e72d8f66e7db3e47e2a85`; Quick Capture test `875bac562caa55b60bfa2e3871f1e2e2b3ae6abf`.
+- The source and focused assertions are present. Build run SUCCESS is exact-SHA evidence, while the overall Device Smoke acceptance remains incomplete as detailed above.
+
+
+## Device Smoke final recheck — 2026-11-06 (۱۴۰۵/۰۸/۱۵)
+- Audited source/branch checkpoint: `49401bd4fcfa5622282d0fd80ec607d12daf467a`; Device Smoke run [42175115690](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/42175115690) checks out this exact SHA on `fix/recovery-calendar-device-smoke-2026-10-31`.
+- Latest GitHub run metadata remains `status=queued`, `conclusion=null`, updated at `2026-11-06T06:32:55Z`. Job-level state is authoritative for this snapshot: Preparation SUCCESS; Boot IN_PROGRESS; Navigation IN_PROGRESS; Calendar Segmented View QUEUED; Quick Capture QUEUED; Task Lifecycle QUEUED; Reminder/Vazirmatn QUEUED; Follow-up Persistence QUEUED.
+- Seven requested product lanes are therefore **NOT COMPLETE / NOT ACCEPTED**. No lane has a terminal result available in this poll; do not convert IN_PROGRESS/QUEUED into PASS or FAIL.
+- Artifact list for this run is empty. Screenshot upload steps have not completed. Fetching logs for Boot and Navigation returned HTTP 404 (BlobNotFound); this is unavailable log evidence, not proof of a product failure.
+- No code, tests, workflow definitions, run state, or main-branch content was changed to obtain this report. No rerun, cancellation, retry, or fabricated device evidence was performed.
+- Previous UI/source audit findings remain open until corrected and independently retested: Quick Capture description field remains present; Reports uses a filter sheet rather than the required visible five-filter row; Calendar does not render the required three-calendar date display; horizontal swipe changes the displayed period rather than transferring the event to the phone calendar; the Tafweez phrase/accessible label does not yet exactly match the newly mandated «وَأُفَوِّضُ أَمْرِي إِلَى اللَّهِ» wording. These are source-inspection findings, not outcomes of this Smoke run.
+- Global Vazirmatn configuration and the two standalone SVG assets were observed in source; this does not establish physical-device glyph/rendering acceptance.
+- PR #3052 remains OPEN / DRAFT / UNMERGED. Main remains `45e4202b03a434459e4c021a04efa7e8396359db`. Release remains **BLOCKED — RELEASE: NO-GO**.
+- This entry is documentation-only. The active Smoke run remains bound to SHA `49401bd4fcfa5622282d0fd80ec607d12daf467a`; its results do not automatically transfer to a later documentation HEAD.
+
+## Continuity sync checkpoint — 2026-11-06 (۱۴۰۵/۰۸/۱۵)
+- Current code/evidence baseline recorded above: `49401bd4fcfa5622282d0fd80ec607d12daf467a`. This document update advances the branch HEAD; re-read the resulting branch SHA after all continuity files are updated.
+- Product deviations are tracked in `OPEN_ISSUES.md`; this checkpoint does not claim their implementation or acceptance.
+- No write to `main`, no PR merge/close/ready-for-review transition, and no release action.
+
+
+## Device Smoke subsequent poll — 2026-11-06 (۱۴۰۵/۰۸/۱۵)
+- A later GitHub job poll supersedes the earlier QUEUED snapshot in this document. Run `42175115690` remains on exact SHA `49401bd4fcfa5622282d0fd80ec607d12daf467a`; run-level status is `in_progress`, conclusion null.
+- Preparation: SUCCESS. Boot: IN_PROGRESS. Navigation: IN_PROGRESS. Reminder/Vazirmatn: CANCELLED. Task Lifecycle: CANCELLED. Calendar Segmented View: CANCELLED. Quick Capture: CANCELLED. Follow-up Persistence: CANCELLED.
+- Thus 0/7 product lanes have a terminal PASS; 5/7 are CANCELLED and 2/7 remain IN_PROGRESS. This is an incomplete/blocked run, not a seven-scenario success. Cancelled jobs expose no step summaries in the available endpoint; root cause NOT VERIFIED.
+- Artifact list remains empty. Boot and Navigation are still inside the canonical smoke execution step; screenshot uploads remain pending. No final screenshot or device proof is available.
+- Do not cancel or retry the two active jobs solely to manufacture a green matrix. Wait for their terminal results, then investigate cancelled lanes from available workflow/job diagnostics. No acceptance claim is permitted meanwhile.
+- The documentation branch HEAD has advanced to include this note; the run is still bound to the pre-documentation code SHA above. PR #3052 remains OPEN / DRAFT / UNMERGED; main remains `45e4202b03a434459e4c021a04efa7e8396359db`; release remains **BLOCKED — RELEASE: NO-GO**.
+
+
+## Device Smoke terminal result — 2026-11-06 (۱۴۰۵/۰۸/۱۵)
+- Final poll of run [42175115690](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/42175115690): `status=completed`, `conclusion=cancelled`, checkout SHA `49401bd4fcfa5622282d0fd80ec607d12daf467a`.
+- Preparation job SUCCESS. All seven product lanes ended CANCELLED: Boot, Navigation, Calendar Segmented View, Quick Capture, Task Lifecycle, Reminder/Vazirmatn and Follow-up Persistence. Final acceptance: **0/7 PASS; 7/7 CANCELLED; Device Smoke FAILS THE COMPLETION GATE / NOT ACCEPTED**. Cancellation is not evidence that product behavior failed; it is evidence that the scenarios did not complete.
+- Artifact endpoint returned an empty list; no screenshot/device evidence was uploaded. Job-step summaries for cancelled lanes were empty. Earlier log retrieval attempts returned 404; cancellation initiator/root cause is **NOT VERIFIED** from the available evidence.
+- Do not relabel cancelled lanes as skipped/pass, and do not infer a device test failure from cancellation alone. A fresh authorized run is required after investigating why this run was cancelled; preserve all tests/assertions and do not add timeout/skip/retry masking.
+- Run is pinned to code SHA `49401bd4fcfa5622282d0fd80ec607d12daf467a`. Continuity docs were subsequently synchronized on the authorized branch; those documentation commits do not retroactively change the run's checkout SHA or make its result apply to the new HEAD.
+- PR #3052 remains OPEN / DRAFT / UNMERGED. Main remains `45e4202b03a434459e4c021a04efa7e8396359db`. Release remains **BLOCKED — RELEASE: NO-GO**.
+
+
+## ممیزی و اصلاحات UX / Home و فرم‌ها — ۱۴۰۵/۰۸/۱۵ (2026-11-06)
+
+**Code checkpoint SHA:** `f614fab584cd149db7aa9234dbe825b14198c292`  
+**Branch:** `fix/recovery-calendar-device-smoke-2026-10-31`  
+**PR #3052:** OPEN / DRAFT / UNMERGED  
+**main:** untouched  
+**Release:** BLOCKED — RELEASE: NO-GO.
+
+### Commits روی شاخه
+- `6d7a48de45a4fc07a5f1c6dd70455e3484218ec8` — توکن‌های برند اصلی از بنفش/سرمه‌ای به آبی‌فیروزه‌ای تغییر کردند: primary `#087F8C`، header `#075E66`، soft `#DDF7F5`. رنگ‌های معنایی اولویت و taxonomy در تست توکن‌ها بدون تغییر باقی ماندند؛ رنگ SVG بسم‌الله `#1A2B4C` دست‌نخورده است.
+- `1e63de1b39327ca569283a7bf6ea0cea9d328917` — ردیف انتخاب مرکز/پروژه/دسته/برچسب و ردیف موعد/یادآور/تکرار در ثبت سریع از اسکرول افقی به Wrap چندردیفی تغییر کرد؛ تست اندازه‌های 320 و 1024 پیکسل، نبود اسکرول افقی فرم را بررسی می‌کند.
+- `c3e2b522ee72b74a4366648d09f19fc847a791f3` — نسخه اولیه Wrap برای taxonomy فرم کامل ثبت شد؛ ساختار این نسخه در کامیت بعدی اصلاح شد و این SHA به‌تنهایی مبنای پذیرش نیست.
+- `5164319f5262e458ee85af127c83d3fc5bdd0d08` — ساختار Wrap فرم کامل اصلاح و برای Category / Project / Tag کلیدهای آزمون‌پذیر اضافه شد؛ چیدمان در عرض باریک دو ستونه و در عرض عریض سه‌ستونه است.
+- `670e092f2bc4a0b3220f58d449a825637c1ea880` — عبارت نمایش پروژه به APIهای سازگار Dart محدود شد؛ از extension غیرضروری استفاده نمی‌شود.
+- `f614fab584cd149db7aa9234dbe825b14198c292` — اولویت ثبت سریع تا انتخاب صریح کاربر `TaskPriority.none` است؛ تاریخ موعد و یادآور نیز بدون انتخاب کاربر null می‌مانند. تست عدم‌تولید پیش‌فرض‌ها افزوده شد.
+
+### مواردی که پیش از این وجود داشتند
+- هدر اصلی Home با منوی راست، SVG بسم‌الله، عنوان و زیرعنوان مرکزی و فیلتر عمومی چپ؛ کادر جستجو زیر هدر؛ ردیف پنج فیلتر RTL با مرتب‌سازی مستقل؛ پنج گروه زمانی؛ FAB و پنج مقصد Bottom Navigation از قبل در `lib/main.dart` وجود داشتند.
+- مرتب‌سازی پیش‌فرض در Home از قبل `TaskListSort.lastFollowUp` با جهت صعودی بود. طبق قرارداد، موارد فاقد Follow-up پس از موارد تاریخ‌دار می‌آیند و تساوی با اولویت و سپس شناسه Task شکسته می‌شود. گروه‌بندی پنج‌گانه از Due Date استفاده می‌کند.
+- فیلترهای Home از قبل منطق OR داخل بُعد و AND بین ابعاد را پیاده کرده بودند؛ آزمون موجود ترکیب Category و Tag را پوشش می‌دهد، اما پوشش کامل پنج بُعد و تمام ترکیب‌ها هنوز اثبات نشده است.
+- مدل `PersonReference`، سرویس `TaskPeopleService`، فیلد `Task.people` و `FollowUp.personIds` و فیلتر اشخاص در Report Center از قبل وجود دارند؛ این به‌معنای وجود انتخاب/افزودن شخص در فرم Follow-up نیست.
+- `allDay` برای Due Date از قبل وجود دارد؛ این وضعیت جایگزین پشتیبانی عمومی «بدون ساعت» در Follow-up و Reminder نیست.
+
+### تطبیق Home و فرم‌ها — شکاف‌های باز
+- **Home:** هدر، جستجو، فیلترها، گروه‌ها و navigation از نظر ساختاری موجودند. گروه «آینده» در کد عنوان تجمیعی دارد و نمایش تاریخ کامل برای آن هنوز نیازمند تطبیق دقیق با بند ۱۰ سند است. آزمون Home موجود viewport 320×640 و 390×844 را پوشش می‌دهد؛ آزمون DPR کسری 0.333px، بزرگ‌نمایی فونت و صفحه‌کلید برای Home هنوز اضافه/اجرا نشده است.
+- **فرم کامل Task:** کنترل‌های Category / Project / Tag اکنون Wrap می‌شوند؛ انتخاب‌گر Center در این فرم هنوز وجود ندارد. Project دارای `centerId` است و نباید بدون انتخاب/رابط صریح، Center مستقل جعل شود.
+- **اشتراک فیلترها:** ردیف Home از `ActionChip` و Report Center از بخش‌های مستقل `_Section` / `_MultiSelectChips` استفاده می‌کند. ادغام واقعی در یک جزء مشترک و یکسان‌سازی وضعیت/تعامل پنج فیلتر هنوز انجام نشده است؛ فیلتر شخص گزارش مستقل باقی می‌ماند.
+- **Follow-up / Person:** فرم `FollowUpEntryPage` وضعیت «منتظر پاسخ» را ذخیره می‌کند، اما انتخاب شخص موجود/افزودن شخص جدید و تغییر/حذف پیوند شخص را در UI ارائه نمی‌کند. گزارش‌ها فقط از `personIds` موجود استفاده می‌کنند؛ آزمون ذخیره، بازگشایی و گزارش یک شخص واقعی هنوز انجام نشده است.
+- **تاریخ/ساعت:** در چند فرم، انتخاب تاریخ و ساعت هنوز کنترل‌های جدا دارد. Due Date از `allDay` استفاده می‌کند، اما جریان واحد یک‌دکمه‌ای و گزینهٔ صریح «بدون ساعت» در همهٔ محل‌های اختیاری پیاده نشده است. پشتیبانی ذخیره/نمایش بدون ساعت برای Follow-up و عدم ساخت اعلان زمان‌دار بدون ساعت هنوز باز است؛ Due Date، Follow-up Date و Reminder Date مستقل باقی می‌مانند.
+- **چیدمان تقویم:** تغییر قبلی به پیمایش عمودی و guard خطای startup در کد وجود دارد؛ این guard به‌تنهایی رفع منشأ RenderFlex را اثبات نمی‌کند. گزارش دستگاه با سرریز 0.333px در منابع قابل دسترس این ممیزی پیدا نشد؛ اصلاح منشأ و آزمون DPR کسری/فونت بزرگ/RTL هنوز NOT VERIFIED است.
+- **SVG و فونت:** توکن رنگ بسم‌الله در Home حفظ شده است. وجود دو asset بسم‌الله و تفویض در مخزن به‌تنهایی اثبات path-only بودن، نبود عنصر text/raster، و render صحیح روی دستگاه نیست؛ این گیت‌ها باید با آزمون asset و screenshot تأیید شوند. Vazirmatn تنها فونت متنی مجاز باقی می‌ماند.
+
+### وضعیت شواهد روی Code SHA بالا
+- Build run `42261229876`: PENDING؛ در آخرین بررسی هنوز job آغاز نشده بود. بنابراین `flutter analyze` و مجموعه کامل تست‌ها روی این SHA نتیجه ندارند.
+- Device Smoke run `42261230051`: PENDING؛ هنوز job و مدرک دستگاه/اسکرین‌شات ارائه نشده است.
+- Follow-up File Persistence run `42261230162`: SUCCESS؛ checkout SHA دقیق تأیید شد؛ تست file-backed Repository و diagnostic بستن/بازگشایی SQLite هر دو SUCCESS شدند. این گیت محدود، جایگزین آزمون شخص/گزارش یا Device Smoke نیست.
+- Calendar Provider run `42261229778`: IN_PROGRESS؛ آزمون instrumentation/provider در حال اجرا بود.
+- Draft Review APK run `42261229806`: IN_PROGRESS؛ ساخت Staging APK در حال اجرا بود؛ در لحظه بررسی هیچ artifactی بارگذاری نشده بود. APK Debug مستقل ساخته/تحویل نشده است.
+- نتیجهٔ orchestration/factory SUCCESS جایگزین Analyze، تست، APK، Device Smoke یا پذیرش مالک محصول نیست.
+
+هیچ تست یا قابلیتی حذف، skip یا تضعیف نشده است. هیچ تغییر روی `main`، Merge، Release یا انتشار انجام نشده است. این ثبت مستندات، نتیجهٔ CI را به PASS ارتقا نمی‌دهد.
+
+
+## آخرین اصلاح منبع چیدمان و آزمون‌های اندازه‌ناپذیر — ۱۴۰۵/۰۸/۱۵ (2026-11-06)
+
+**Parent code SHA:** `9e1c9f3e4e52f5168fb3749195b32926fa28bc0a`  
+**Branch:** `fix/recovery-calendar-device-smoke-2026-10-31`  
+**PR #3052:** OPEN / DRAFT / UNMERGED  
+**Release:** BLOCKED — RELEASE: NO-GO.
+
+- Home header، search، filter row و active-filter chips اکنون داخل یک viewport عمودی قابل پیمایش با `FlexFit.loose` قرار می‌گیرند؛ در viewport کوتاه یا هنگام بازبودن صفحه‌کلید، محتوای کنترل‌ها به‌جای فشرده‌سازی اجباری و سرریز، در همان ناحیه پیمایش می‌شود. لیست کارها همچنان viewport مستقل Expanded دارد.
+- آزمون‌های جدید منبعی برای Calendar و Home عرض منطقی 360.333px (1081 physical px در DPR=3)، فونت بزرگ 1.4، RTL و inset صفحه‌کلید Home اضافه شده‌اند. آزمون‌های Quick Capture و Task Editor نیز با بزرگ‌نمایی فونت اجرا می‌شوند.
+- این‌ها آزمون‌های منبعی هستند؛ تا نتیجهٔ exact-SHA Build، هیچ‌کدام PASS محسوب نمی‌شوند و جای نصب روی دستگاه واقعی را نمی‌گیرند.
+- گزارش دقیق مالک محصول از دستگاه فعلی (مدل دستگاه، مقیاس، مسیر صفحه، و screenshot مربوط به overflow 0.333px) در PR comments/Issue #823 comments و فایل‌های فعلی مخزن قابل بازیابی نبود. این خلأ به‌عنوان NOT VERIFIED ثبت می‌شود؛ گزارش قدیمی نصب APK از 2026-08-14 مربوط به PR دیگر است و مبنای این پذیرش نیست.
+- Home spec چهارده‌بندی در منبع خوانده شد. بخش‌های ساختاری موجود (header، Bismillah SVG، search، پنج فیلتر و sort مستقل، گروه‌بندی Due Date، navigation پنج‌تب) از قبل پیاده بودند؛ تست‌ها و پذیرش بصری کامل هنوز لازم‌اند. شکاف‌های Center در فرم Task، یکپارچه‌سازی جزء فیلتر Home/Report، انتخاب Person در Follow-up و مدل/جریان بدون ساعت همچنان بازند.
+- وضعیت runهای دقیق parent SHA `9e1c9f3`: Build `42261916395` PENDING بدون job؛ Device Smoke `42261916305` PENDING بدون job؛ Draft Review APK `42261916169` IN_PROGRESS؛ Calendar Provider `42261916279` IN_PROGRESS؛ Follow-up Persistence `42261916393` IN_PROGRESS. نتایج این runها فقط به همان SHA تعلق دارند.
+- آزمون‌های قبلی روی SHA `f614fab` برای file-backed Repository و SQLite close/reopen هر دو SUCCESS بودند؛ نتیجه به SHA جدید منتقل نمی‌شود.
+
+هیچ تستی حذف، skip، bypass یا تضعیف نشده است. main دست‌نخورده، PR OPEN/DRAFT/UNMERGED و انتشار NO-GO باقی می‌ماند.
+
+
+## اصلاح خطای تحلیل و ساخت Quick Capture — ۱۴۰۵/۰۸/۱۵ (2026-11-06)
+
+**Parent SHA:** `1c14c801a2b04cc70a4a617e2e7626d6c35d4331`  
+**Evidence run:** Build `42262323182` on SHA `b5c8892a7aa5dad5d83abbf717bc19ea5c63140c`; Draft Review APK `42262323487` on the same SHA.
+
+- Analyze در SHA `b5c8892` با سه خطای syntax در `lib/quick_capture_dialog.dart` شکست خورد: دو خطای positional arguments و یک پرانتز بسته‌نشده (log lines around 762, 833, 863). Staging APK نیز در مرحلهٔ compile Flutter با همان دو parenthesis mismatch شکست خورد؛ هیچ APKی upload نشد.
+- علت: در تبدیل دو ردیف ثبت سریع به Wrap، یک لایهٔ بسته‌شدن `_surfaceCard` از هر بلوک جا افتاده بود. این مورد پنهان یا skip نشد؛ در این commit دو closure مربوط به هر دو Wrap کامل می‌شود.
+- این اصلاح فقط syntax را ترمیم می‌کند؛ پذیرش layout هنوز منوط به Analyze و آزمون‌های exact-head است.
+- SHA `b5c8892` همچنان FAIL برای Analyze و Review APK ثبت می‌شود؛ نتیجه به SHA جدید منتقل نمی‌شود.
+- برای parent SHA `1c14c80`: Build `42262966593` PENDING، Device Smoke `42262966560` PENDING، Draft Review APK `42262966666` IN_PROGRESS، Calendar Provider `42262966580` IN_PROGRESS، Follow-up Persistence `42262966838` IN_PROGRESS. Artifactی هنوز ثبت نشده بود.
+
+PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ هیچ merge یا release انجام نشده است؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## پیوند شخص به پیگیری — اجرای UI و ذخیرهٔ شناسهٔ پایدار (۱۴۰۵/۰۸/۱۵)
+
+- **Parent SHA:** `277117469ff586a9529c5ab23c655cc2d6eb2e0e`
+- **Scope:** فقط فرم ثبت/ویرایش Follow-up و اتصال آن به فهرست canonical اشخاص.
+- هنگام فعال بودن «منتظر پاسخ دیگران»، فهرست اشخاص با شناسهٔ پایدار و گزینهٔ افزودن شخص جدید نمایش داده می‌شود. انتخاب قبلی در ویرایش بازسازی می‌شود و انتخاب/حذف از همان مجموعهٔ `FollowUp.personIds` ذخیره می‌شود.
+- ایجاد شخص از مسیر `TaskStore.mergePeopleDirectory` انجام می‌شود؛ دادهٔ شخص در فهرست canonical باقی می‌ماند و Follow-up فقط شناسه‌ها را نگه می‌دارد. افراد حذف‌شده با برچسب تاریخی «شخص حذف‌شده» قابل مشاهده و حذف از پیوند هستند.
+- مسیر ثبت از Home و مسیر افزودن/ویرایش در Task Details به همان فرم و مخزن داده وصل شدند. آزمون widget برای افزودن، انتخاب، بازگشایی و حذف پیوند اضافه شد.
+- **هنوز نیازمند CI exact-SHA:** Analyze، تست‌های کامل، گزارش person projection و آزمون persistence واقعی با بازگشایی برنامه. این تغییر به‌تنهایی اثبات نصب یا پذیرش دستگاه نیست.
+- **موارد باز:** جریان زنجیره‌ای تاریخ/ساعت و «بدون ساعت» برای Follow-up/Reminder، یکپارچه‌سازی جزء مشترک فیلترهای Home و Report، و ممیزی نهایی Home/تبلت.
+
+PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ هیچ merge یا release انجام نشود؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## اصلاح شکست‌های CI پس از پیوند شخص و سرریز Calendar — ۱۴۰۵/۰۸/۱۵
+
+**Parent SHA:** `52205ba2ff5964e34d96acc0b3cb3c2db338890d`
+
+- CI روی SHA `5c522e7`، `flutter analyze` را PASS کرد و persistence file-backed و SQLite close/reopen نیز PASS شدند.
+- آزمون `task_detail_followup_flow_test.dart` نشان داد مسیر پیش‌نمایش Task Details ممکن است فاقد provider دیتابیس اشخاص باشد؛ بارگذاری دایرکتوری اکنون fail-soft است و در این حالت فقط افراد پیوندخوردهٔ همان Task را برای بازکردن فرم ارائه می‌کند. مسیر اصلی برنامه همچنان دایرکتوری canonical را از TaskStore می‌خواند.
+- آزمون Task Details یک رنگ قدیمی indigo را assert می‌کرد؛ assertion به توکن واقعی `ArvinColors.primary` به‌روزرسانی شد، نه اینکه تست حذف یا شل شود.
+- آزمون Calendar در عرض باریک و text scale 1.4 یک سرریز 47px را در سلول‌های هفته نشان داد. ارتفاع ثابت 68px به حداقل ارتفاع تبدیل شد و Column با `MainAxisSize.min` اندازهٔ واقعی محتوا را می‌پذیرد. آزمون دست‌نخورده باقی ماند تا رفع منشأ layout را بررسی کند.
+- این اصلاحات نیازمند اجرای مجدد exact-SHA هستند. نتیجهٔ FAIL روی parent SHA حفظ می‌شود.
+
+PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## اصلاح تعامل افزودن شخص و واکنش‌گرایی سربرگ فرم — ۱۴۰۵/۰۸/۱۵
+
+**Parent SHA:** `35098527149ed94808330108938ec1c531892918`
+
+- کنترل نام شخص به یک Dialog دارای چرخهٔ عمر مستقل منتقل شد؛ در نسخهٔ قبلی controller پیش از پایان unmount شدن TextField آزاد می‌شد و CI خطای `TextEditingController was used after being disposed` ثبت کرده بود.
+- سربرگ فرم Task در عرض کمتر از 420px دکمهٔ ذخیرهٔ آیکونی با tooltip نشان می‌دهد تا در بزرگ‌نمایی فونت، Row سربرگ از عرض دستگاه خارج نشود؛ در عرض عریض، دکمهٔ متنی حفظ می‌شود.
+- آزمون ارتفاع نوار هفته با پیاده‌سازی واقعی (حداقل 68px) همسو شد؛ انتظار قدیمی 56px دیگر با layout فعلی سازگار نبود. آزمون overflow باریک/فونت بزرگ جداگانه حفظ می‌شود و نتیجهٔ آن فقط پس از CI جدید قابل پذیرش است.
+- این تغییرات هنوز نیازمند Analyze و تست‌های exact-SHA هستند.
+
+PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## حذف وابستگی ناخواستهٔ Task Details به بارگذاری هم‌زمان اشخاص — ۱۴۰۵/۰۸/۱۵
+
+**Parent SHA:** `1845c5a071beb7e087d21453a31753db905506d8`
+
+- آزمون‌های CI نشان داد بازکردن فرم ویرایش Follow-up از Task Details به انتظار مستقیم برای `TaskStore.loadPeopleDirectory()` وابسته شده و در مسیرهای isolated/preview تست، فرم باز نمی‌شود.
+- دایرکتوری اشخاص اکنون به‌صورت دادهٔ ورودی اختیاری به Task Details تزریق می‌شود؛ مسیر اصلی Home و Report Center آن را از مخزن canonical می‌خوانند. اشخاص پیوندخوردهٔ خود Task نیز در فهرست قرار می‌گیرند و شناسه‌های تاریخی ناموجود با عنوان «شخص حذف‌شده» حفظ می‌شوند.
+- افزودن شخص همچنان از `TaskStore.mergePeopleDirectory` استفاده می‌کند؛ خواندن دایرکتوری دیگر در لحظهٔ بازکردن فرم، navigation را متوقف نمی‌کند.
+- نیازمند CI exact-SHA جدید است؛ نتایج قبلی به SHAهای خودشان محدود می‌مانند.
+
+PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## Five-gap implementation checkpoint — ۱۴۰۵/۰۸/۱۵
+
+- Starting HEAD: `4e3136e4dde44bd0b41896265d6ddc6423845046`.
+- Code commits: `957f18bf2e5fe8a6f91e950cd963b2a1d03344dd` (direct Task Center, chained date/time and all-day controls) and `eaddf66fd512e11a1e16bb0e056dac4824699d54` (shared Home/Report filter pill and direct Center matching).
+- Added focused regression coverage for Task Center/all-day JSON, edit application, personId projection and direct Center report filtering. Exact-head CI remains required; flutter analyze is not yet claimed PASS.
+- PR #3052 remains OPEN / DRAFT / UNMERGED. main unchanged. Release remains BLOCKED — RELEASE: NO-GO.
+- Detailed evidence: `docs/project-continuity/WAVE_5_GAPS_IMPLEMENTATION_2026-11-06.md`.
+
+
+## اصلاح انتخاب تاریخ فقط بدون ساعت — ۱۴۰۵/۰۸/۱۵
+
+- در فرم کامل و ثبت سریع، گزینهٔ «بدون ساعت» از حالت بدون تاریخ نیز قابل استفاده است؛ انتخاب تاریخ شمسی بدون بازکردن انتخابگر ساعت انجام می‌شود.
+- انتخابگر ساعت در فرم کامل همچنان با انتخاب تاریخ به‌صورت زنجیره‌ای باز می‌شود؛ انتخاب «بدون ساعت» حالت `allDay=true` را نگه می‌دارد و یادآور خودکار ساعت‌دار را حذف می‌کند.
+- کامیت: `286485ad1d73231dfb2b7f891803026cf190fd87`.
+- آزمون Widget برای مسیر Quick Capture به مجموعهٔ آزمون‌های قرارداد مرکز/پیگیری افزوده شد؛ نتیجهٔ آن فقط پس از CI exact-HEAD قابل تأیید است.
+
+
+## گزارشات شخص و پیگیری — تکمیل شرط انتظار پاسخ — ۱۴۰۵/۰۸/۱۵
+
+- فیلتر personId در Report Center اکنون فقط تسک‌هایی را برمی‌گرداند که یک Follow-up فعال، تکمیل‌نشده و دارای `waitingForResponse=true` با همان شناسهٔ پایدار شخص داشته باشند.
+- ارتباط مستقیم `Task.centerId` در فیلتر Home و Report اولویت دارد؛ در نبود آن، مرکز پروژه‌های متصل بررسی می‌شود.
+- آزمون‌های رگرسیون برای تفکیک پیگیری منتظر پاسخ از پیگیری عادی اضافه شده‌اند.
+- آخرین SHA کد/آزمون: `3ac5e55841de027b18b8b2daa8f843fde1cae60a`؛ CI exact-HEAD هنوز در انتظار است.
+- PR #3052: OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ RELEASE: NO-GO.
+
+
+## یکپارچه‌سازی رنگ حالت انتخاب‌شده در تم سراسری — ۱۴۰۵/۰۸/۱۵
+
+**Parent SHA:** `50b1e99164fea7c03110e2641c786a78f8c94752`
+
+- رنگ انتخاب‌شدهٔ پنج فیلتر Home و پنج فیلتر مشترک Report Center اکنون از `ArvinColors.primary` و `primarySoft` استفاده می‌کند؛ رنگ accent هر بُعد فقط در حالت غیرفعال/نشانهٔ معنایی باقی می‌ماند.
+- چیپ‌های فیلتر فعال نیز فیروزه‌ای هستند. `ColorScheme.secondary` و `secondaryContainer` به توکن برند متصل شدند تا ChoiceChipهای Material از رنگ پروژه به‌عنوان رنگ انتخاب استفاده نکنند.
+- FAB، NavigationBar، ProgressIndicator و ChipTheme به توکن‌های برند متصل شدند. رنگ‌های معنایی اولویت/وضعیت و رنگ سرمه‌ای SVGهای مقدس تغییر نکردند.
+- آزمون widget برای رنگ حالت فعال HomeFilterPill، HomeFilterCard و HomeFilterChip اضافه شد.
+- نتیجهٔ Analyze، مجموعهٔ کامل تست‌ها و ساخت APK باید روی SHA نهایی ثبت شود.
+
+PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## Exact HEAD continuation — 2026-11-06 22:24 Asia/Tehran
+- Authorized branch advanced through df5295fe2464d99cc5b2abe83515822ee7c136af and 5f8cfefcb849816f3d16936f4b6bbb0f77c4cf68.
+- df5295fe: preserve Home no-Center matching, make full-form taxonomy controls responsive at larger text scale, keep Quick Capture priority unset by default, and omit the Gregorian year in the selected-day summary.
+- 5f8cfef: align focused regression tests for date-only/time affordance, Semantics time label, RTL wrapping, unset Quick Capture priority, vertical scrollable discovery, scoped Home chip styling and Report Center filter-sheet scrolling.
+- These are follow-up hardening/test-contract commits; they do not by themselves close all five gaps or prove device acceptance.
+- Exact-HEAD workflows: Build 42274180002 pending; Draft Review APK 42274179979 in progress; Calendar Provider 42274179939 in progress; Device Smoke 42274179896 pending. No PASS is recorded before completion on this exact SHA.
+- A prior assistant message showed a sandbox APK path for SHA 7644fc08; that path was not verified in this execution context. Do not treat it as a valid downloadable artifact. New-head APK and APK SHA-256 remain pending artifact publication and verification.
+- PR #3052 verified OPEN / DRAFT / UNMERGED at HEAD 5f8cfefcb849816f3d16936f4b6bbb0f77c4cf68. No main update or merge.
+- Release remains BLOCKED — RELEASE: NO-GO pending exact-head CI, verified APK artifact and owner physical-device acceptance.
+
+
+## ۱۴۰۵/۰۸/۱۶ — ریشه‌یابی شکست‌های CI و اصلاحات پاسخ‌گو به لاگ (checkpoint)
+
+- مبنای این ثبت: Build run `42335681385` روی SHA دقیق `d2e27baea747ddedf42f744297be09ab86753294`. مجموع شش شارد: ۱۲۳۴ تست موفق و ۲۴ تست ناموفق؛ شاردها به‌ترتیب `test-5: 2`، `test-4: 3`، `test-3: 7`، `test-2: 2`، `test-1: 9` و `test-0: 1` شکست داشتند. Analyze و Visual موفق بودند؛ شکست شش شارد، نتیجه Build را FAIL کرد.
+- تفکیک علت‌ها از لاگ: کلید قدیمی Scroll در تست‌های Home، برچسب قدیمی ساخت پروژه، جست‌وجوی متن Tooltip به‌جای Tooltip finder، انتظار یک ردیف ثابت برای اولویت‌ها و نوع دکمه ذخیره قدیمی، ناسازگاری قرارداد آزمون با رابط فعلی بودند. سرریز ۴ پیکسلی سلول ماه Calendar و سرریز ۵۳ پیکسلی فرم Task Editor خطاهای واقعی layout بودند. خطاهای `No element` و `Too many elements` جداگانه ثبت شدند و تا اجرای مجدد exact-head PASS فرض نمی‌شوند.
+- اصلاحات ثبت‌شده روی شاخه مجاز: `84aa643` افزایش ارتفاع سلول ماه به ۴۸dp و هم‌ترازسازی آزمون ایجاد پروژه؛ `8ada195`، `fc5debd` و `f965448` اصلاح قراردادهای آزمون Home/Calendar/Task Editor؛ `9b8e4cd` چیدمان عمودی کنترل تاریخ/ساعت در عرض بسیار باریک یا مقیاس متن بزرگ؛ `79fee1b` کلید پایدار ساخت مرکز/دسته؛ `2a777fe` هم‌ترازسازی آزمون‌های ایجاد درون‌فرمی؛ `52ecbef` افزودن راهنمای زمینه‌ای Calendar و اصلاح finder آزمون رنگ.
+- این اصلاحات هنوز PASS محسوب نمی‌شوند؛ اجرای Build جدید برای SHA نهایی لازم است. هیچ تست یا قابلیت حذف، Skip یا عمداً تضعیف نشده است.
+- شواهد SHA قدیمی `d2e27ba`: Calendar Provider run `42335681413` SUCCESS؛ Draft Review APK run `42335681420` SUCCESS؛ Device Smoke run `42335681478` CANCELLED. Artifactهای Staging/Debug از Build همان SHA موجودند؛ digest گزارش‌شده GitHub مربوط به ZIP آرشیو است و **SHA-256 خود APK نیست**.
+- SHA فعلی این ثبت: `52ecbef18d7bbc26d2915270e28297d272342634`. Build `42336933347` و Device Smoke `42336933508` در صف و بدون Job؛ Draft Review APK `42336933225` در حال اجرا؛ Calendar Provider `42336933308` در حال اجرا پس از تأیید SHA؛ Follow-up Persistence `42336934664` در حال اجرا. هیچ‌یک هنوز PASS نیستند.
+- PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ Merge و انتشار انجام نشده؛ **BLOCKED — RELEASE: NO-GO** تا قبولی همه دروازه‌ها روی یک SHA، Device Smoke کامل و پذیرش روی گوشی واقعی.
+
+
+## اصلاحیه وضعیت exact-HEAD — ۱۴۰۵/۰۸/۱۶
+
+- پس از ثبت checkpoint قبلی، دو اصلاح تکمیلی آزمون ثبت شد: آزمون تاریخ تقویم تعداد دو نمایش معتبر تاریخ را صریحاً می‌سنجد؛ آزمون رنگ Home تمام لایه‌های AnimatedContainer کارت را بررسی می‌کند، نه یک لایهٔ تصادفی.
+- آخرین SHA کد/آزمون پیش از همگام‌سازی اسناد: `0d6ac9f44debc6ca6955f8940826979604f3636b`. این ثبت اسناد، commit بعدی و فقط مستندسازی است؛ هیچ نتیجه CI از SHA قبلی به HEAD مستندات منتقل نمی‌شود.
+- برای HEAD نهایی پس از این ثبت، Build شش‌شارد، Draft Review APK، Calendar Provider، Follow-up Persistence و Device Smoke باید دوباره اجرا و جداگانه بررسی شوند.
+- اصلاحات کد و آزمون تا این نقطه ثبت شده‌اند؛ **رفع‌شدن شکست‌ها هنوز تأیید CI ندارد**. آزمون گوشی واقعی و پذیرش مالک محصول نیز انجام/اثبات نشده‌اند.
+- PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched؛ بدون Merge و انتشار؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## اصلاحیه تکمیلی Home — ۱۴۰۵/۰۸/۱۶
+
+- commit کد/آزمون بعد از checkpoint قبلی: `467e7f76aced41a123f00a99dd334f32f09ad70c`.
+- آزمون Quick Capture اکنون رفتار واقعی محصول را بررسی می‌کند: پس از ثبت، فرم عمداً باز می‌ماند؛ ابتدا ذخیره و حفظ تاریخچه از Store بررسی می‌شود، سپس فرم بسته و نمایش Task در Home تأیید می‌شود.
+- Finder پیمایش آزمون کارت Home به Scrollable داخل `home-task-list-viewport` محدود شد تا به Scrollable نامرتبط/غایب در بخش‌های دیگر وابسته نباشد.
+- این تغییرات فقط اصلاح آزمون بر اساس قرارداد فعلی‌اند؛ بررسی ذخیره واقعی، حفظ تاریخچه و نمایش Home همچنان باید با اجرای تازه Build روی HEAD نهایی تأیید شوند.
+- آخرین نتایج قبلی Build متعلق به SHA `d2e27ba` هستند و برای این commit یا HEAD بعدی اعتبار ندارند. وضعیت انتشار همچنان **BLOCKED — RELEASE: NO-GO** است.
+
+
+## اصلاحیهٔ هدف لمس Quick Add — ۱۴۰۵/۰۸/۱۶
+
+- آخرین commit کد/آزمون: `c0b3715f16b4fd46e67a2c157559f1de71e2d812`.
+- چهار گزینهٔ اولویت Quick Add از ارتفاع ۴۰dp به ۴۸dp رسیدند تا حداقل هدف لمس ۴۸dp رعایت شود.
+- ماتریس آزمون Quick Add اکنون عرض‌های ۳۶۰، ۳۹۰ و ۴۱۲dp را با مقیاس متن بزرگ بررسی می‌کند و برای هر چهار گزینه، عرض و ارتفاع حداقل ۴۸dp را assert می‌کند.
+- این تغییر به‌همراه اصلاحات قبلی Calendar و Task Editor هنوز در انتظار اجرای مجدد روی HEAD نهایی است؛ تا دریافت نتیجه، PASS محسوب نمی‌شود.
+- وضعیت انتشار: **BLOCKED — RELEASE: NO-GO**؛ PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched.
+
+
+---
+
+## ابلاغ Master و وضعیت اجرایی — ARVIN-DIR-1405/08/16-02-MASTER
+**ثبت: ۱۴۰۵/۰۸/۱۶ | شاخه مجاز PR #3052**
+
+- PRODUCT FIRST: نقص محصول در کد محصول رفع می‌شود؛ هیچ آزمونی حذف، Skip یا تضعیف نمی‌شود. اصلاح Finder فقط برای قرارداد واقعاً منسوخ و با حفظ پوشش رفتاری مجاز است.
+- فونت یگانه رابط: **Vazirmatn**؛ بررسی `pubspec.yaml`، `lib/theme/app_fonts.dart` و `lib/theme/font_registry.dart` فقط همین خانواده را نشان می‌دهد.
+- تم روشن فیروزه‌ای: Primary `#078B91`، Header `#066F75`، Soft `#DDF7F5`، Background `#F0FAF9`، Border `#D9ECEA`. رنگ‌های خطا/اولویت و وضعیت برای معنای وضعیت حفظ می‌شوند.
+- SVG بسم‌الله با عرض نمایشی `210dp` حفظ شده؛ آزمون عرض ۲۱۰dp اضافه شده است.
+- ترتیب فیلترهای Home: زمان ← مرکز ← پروژه ← دسته ← برچسب؛ مرتب‌سازی جدا و پس از پنج فیلتر است؛ Wrap راست‌به‌چپ و بدون پیمایش افقی.
+- «پیگیری‌های انجام‌شده» فقط از بخش «نوع گزارش» در پنل فیلترها انتخاب می‌شود؛ دکمهٔ بالای صفحه وجود ندارد و آزمون آن را کنترل می‌کند.
+- Calendar: محتوای سلول ماه درون سلول مقیاس می‌شود و هدف لمس حداقل ۴۸dp حفظ می‌شود؛ ارتفاع اضافهٔ نمای هفتگی کاهش یافته است.
+- Task Editor و Quick Capture برای ۳۶۰/۳۹۰/۴۱۲dp، کیبورد باز/بسته و متن بزرگ پوشش آزمون دارند؛ کنترل‌های اولویت Quick Add حداقل ۴۸dp هستند.
+- ایجاد مرکز/دسته/برچسب در Quick Capture دیگر کنترل متن موقت را پیش از پایان انیمیشن Sheet آزاد نمی‌کند؛ Sheetها قابل پیمایش‌اند.
+- کامیت‌های کد/آزمون: `9de8f221`, `7125e828`, `895c7ad`, `21606a9`, `9946f15`, `4a64d50`, `4f65800`.
+- Build روی SHA قبلی `21606a9f3050337d57c0ada2ca4c14c2febe907f` به‌علت توکن تعریف‌نشدهٔ `ArvinTheme.primarySoft` در Analyze/Visual و شاردها شکست کامپایل داشت؛ Follow-up Persistence run `42339727992` نیز به همان علت شکست خورد. توکن مرکزی در commit `4a64d50` تعریف شد؛ نتایج SHA قدیمی به SHA جدید منتقل نمی‌شوند.
+- آخرین کد/آزمون پیش از این ثبت: `4f65800612bd0cce95448f39eee67d683e0e6504`. اجرای اختصاصی این SHA هنوز در فهرست GitHub ظاهر نشده؛ هیچ PASS برای آن ادعا نمی‌شود.
+- فایل مستقل Master در پیوست‌های این گفتگو یا جست‌وجوی Library پیدا نشد؛ این یادداشت بر متن ابلاغ‌شده در گفتگو متکی است، نه بر ادعای مطالعهٔ فایل پیوست‌نشده.
+- PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ `main` بدون تغییر؛ Merge و انتشار ممنوع. Device Smoke و پذیرش نصب واقعی هنوز مانع‌اند.
+- **BLOCKED — RELEASE: NO-GO** تا Build، تمام شاردها، Provider، Persistence، Device Smoke و پذیرش گوشی واقعی روی یک SHA واحد PASS شوند.
+
+
+## پیوست اصلاحیه Master — ۱۴۰۵/۰۸/۱۶
+
+- کامیت تکمیلی محصول پس از ثبت قبلی: `f255dfdf9e25a600886c5ff07b990f20c3fa6475`.
+- سطح خالی کارت‌های فیلتر و لهجهٔ سربرگ پنل فیلتر نیز به توکن فیروزه‌ای/سطح خنثی مشترک منتقل شد؛ رنگ‌های برند غیر فیروزه‌ای در کنترل‌های فیلتر باقی نماند.
+- آخرین کد پیش از این به‌روزرسانی اسناد: `f255dfdf9e25a600886c5ff07b990f20c3fa6475`. نتیجهٔ CI این SHA تا لحظهٔ ثبت این پیوست هنوز قابل تأیید نیست؛ PASS از SHAهای قبلی به آن منتقل نمی‌شود.
+- PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ بدون Merge/انتشار؛ **BLOCKED — RELEASE: NO-GO**.
+
+## checkpoint اجرای ARVIN-DIR-1405/08/16-02-MASTER — ۱۴۰۵/۰۸/۱۶
+- ممیزی زنده شاخه و PR تأیید کرد HEAD هر دو 2553f27f040287b0cf225a4c054777db94821679 است.
+- PR #3052 برابر OPEN / DRAFT / UNMERGED است؛ base=main و main در این عملیات تغییر نکرده است.
+- Build run 42340630768 روی همین SHA شکست خورد: Analyze و Visual موفق؛ سه شارد test-0، test-1 و test-2 ناموفق؛ APKهای Debug/Release/Staging ساخته شدند.
+- شکست‌های ثبت‌شده: انتظار رنگ بنفش قدیمی در نوار هفته در برابر رنگ فیروزه‌ای مصوب؛ انتظار رنگ سرمه‌ای SVG در حالی که رندر فعلی فیروزه‌ای است؛ دو assertion ناسازگار با تمایز توکن‌های معنایی؛ جابه‌جایی مورد انتظار در Home filter groups؛ Quick Capture history count؛ و اندازه‌گیری گام پیمایش تقویم. این موارد هنوز تفکیک/اصلاح محصول در برابر آزمون نشده‌اند و PASS نیستند.
+- Calendar Provider 42340630862 و Draft Review APK 42340630793 موفق‌اند؛ Device Smoke 42340630785 هنوز PENDING و فاقد Job قابل اجراست.
+- Device Smoke قدیمی #7233 / run 42335301964 با SHA قدیمی 1c8f0a5c66c2e24b96f84281466ed784d83f17b5 هنوز QUEUED است؛ Workflow از cancel-in-progress: false استفاده می‌کند. برای آزادسازی صف، لغو دستی آن توسط مالک لازم است.
+- قرارداد زمان کار/موعد در این checkpoint به‌صورت تصمیم APPROVED ثبت شد؛ پیاده‌سازی ویجت مشترک، جایگزینی فرم‌ها، آزمون‌های رفتاری و پذیرش آن هنوز NOT VERIFIED هستند. هیچ ادعای پیاده‌سازی یا قبولی برای این بخش ثبت نمی‌شود.
+- وضعیت انتشار بدون تغییر: **BLOCKED — RELEASE: NO-GO** تا همه دروازه‌ها روی یک SHA و پذیرش APK روی دستگاه واقعی.
+
+## اصلاحیه HEAD پس از ثبت تصمیم زمان کار / موعد — ۱۴۰۵/۰۸/۱۶
+- commit مستندسازی: 70b32df0bb903b3647a206fd63dc15e94f0df78e؛ تغییرات فقط در PRODUCT_DECISIONS.md، CURRENT_STATE.md و CHANGELOG.md است.
+- HEAD فعلی شاخه و PR #3052 اکنون 70b32df0bb903b3647a206fd63dc15e94f0df78e است؛ PR همچنان OPEN / DRAFT / UNMERGED و base=main است.
+- این commit صرفاً مستندسازی تصمیم محصول است؛ کد ویجت مشترک و اتصال فرم‌ها در این commit تغییر نکرده‌اند.
+- برای SHA جدید هنوز Workflow run ثبت نشده است؛ بنابراین تمام نتایج Build/Provider/Smoke/APK قبلی فقط به SHA 2553f27f040287b0cf225a4c054777db94821679 تعلق دارند و به HEAD جدید منتقل نمی‌شوند.
+- Device Smoke قدیمی #7233 همچنان مانع صف است و لغو دستی آن توسط مالک لازم است.
+- **BLOCKED — RELEASE: NO-GO** بدون تغییر باقی می‌ماند.
+
+## ممیزی زنده exact-HEAD — ۱۴۰۵/۰۸/۱۶ (GitHub، PR #3052)
+- HEAD شاخه و PR در لحظهٔ ممیزی: 11919b87b309897a7b2f59fdd34a327730188e6e؛ main: 45e4202b03a434459e4c021a04efa7e8396359db. PR #3052 OPEN / DRAFT / UNMERGED، base=main. main تغییر نکرد.
+- اجرای exact-HEAD: Build run 42343978253 FAILED؛ Calendar Provider 42343978239 SUCCESS؛ Device Smoke 42343978229 PENDING و بدون Job؛ Draft Review APK run 42343978230 SUCCESS.
+- Build: Analyze و Visual موفق؛ APKهای Debug، Release و Staging ساخته شدند؛ test-0: 220 passed / 2 failed؛ test-1: 182 passed / 2 failed؛ test-2: 302 passed / 2 failed.
+- شکست‌های دقیق: test/widgets/home_quick_capture_test.dart «Home primary add persists canonical task and preserves history» انتظار ۲ Task، فقط Task قبلی را دید و tap هشدار hit-test داشت؛ test/calendar_view_modes_test.dart ارتفاع نمای ماه ۳۱۸ در برابر سقف آزمون ۲۸۰؛ test/issue_1891_lane_d_rollbox_test.dart انتظار تفاوت توکن‌های معنایی درحالی‌که توکن‌های تعاملی همگی فیروزه‌ای‌اند؛ test/calendar_page_test.dart انتظار پس‌زمینه بنفش قدیمی به‌جای #DDF7F5؛ test/home/home_filter_contract_test.dart اختلاف جایگاه فیلتر آخر و دکمه مرتب‌سازی (۲۰۲٫۵ در برابر ۳۰۳٫۵)؛ test/calendar_page_test.dart انتظار ColorFilter سرمه‌ای #1A2B4C در برابر فیروزه‌ای #078B91. هیچ‌کدام هنوز رفع یا با تغییر آزمون تعیین تکلیف نشده‌اند.
+- Runهای قبلی 42340630768 / 42340630862 / 42340630785 / 42340630793 همگی متعلق به SHA قدیمی 2553f27f040287b0cf225a4c054777db94821679 هستند؛ به HEAD فعلی قابل انتساب نیستند.
+- Device Smoke قدیمی #7233 / run 42335301964 با SHA 1c8f0a5c66c2e24b96f84281466ed784d83f17b5 هنوز QUEUED است؛ Job «calendar-segmented-view» IN_PROGRESS و پنج Job دیگر QUEUED هستند. Workflow concurrency با cancel-in-progress=false صف را خودکار آزاد نمی‌کند. لغو دستی این Run توسط مبین لازم است. Run جدید 42343978229 نیز PENDING و بدون Job است.
+- بررسی commit 895c7ad12212074e9798400a1a6b3e15ca7ede15: تست‌های عرض ۳۶۰/۳۹۰/۴۱۲dp و کیبورد باز/بسته افزوده شدند؛ حداقل لمس ۴۸dp افزوده شد؛ تست Home از پیمایش افقی به Wrap راست‌به‌چپ و نبود پیمایش افقی تغییر کرد. تستی حذف یا Skip نشده؛ تغییر Finder برای محدود کردن دامنهٔ جست‌وجو است. این commit پوشش را تضعیف نکرده است.
+- کد فعلی: رنگ‌های اصلی دقیقاً با پالت مصوب هماهنگ‌اند؛ Vazirmatn برقرار است؛ پنج فیلتر Home و منطق چندانتخابی OR/AND موجود است؛ اتصال اشخاص به FollowUp منتظر پاسخ و فیلتر اشخاص گزارش در سورس موجود است.
+- شکاف‌های زمانی سورس: Time Picker فعلی گزینه «بدون ساعت» داخل دیالوگ ندارد؛ Quick Capture دکمه بدون ساعت را بیرون دیالوگ دارد؛ Task Editor کنترل بدون ساعت جدا دارد؛ یادآور مستقل تاریخ/ساعت و چک‌باکس جدا دارد. HomeGroupingService معوق‌شدن را فقط با قبل‌بودن روز بررسی می‌کند و موعد ساعت‌دارِ گذشته در همان روز را معوق نمی‌کند. این موارد پیاده‌سازی/تست نشده‌اند.
+- Draft Review artifact برای exact-HEAD در دسترس و استخراج شد: APK با اندازه 79,103,825 بایت، applicationId=com.example.arvin.staging، امضای v2/v3 معتبر، کلید موقت review-only و غیرقابل انتشار. SHA-256 بایت‌های خود APK: cdd8cc9e7b478e8fe485cfac6465f265b3c1b3ae501f78abc40edbbfa80814d6. این فایل فقط برای بررسی خصوصی است؛ نصب روی SM-A528B/DS انجام نشده.
+- تصمیم و وضعیت: رنگ‌ها، فیلترها و پیگیری شخصی از قبل در سورس حاضرند؛ زمان مشترک/All-Day داخل دیالوگ و Overdue دقیق هنوز کامل نیست. **BLOCKED — RELEASE: NO-GO**.
+
+## وضعیت اجرایی exact-HEAD — ۱۴۰۵/۰۸/۱۶ (به‌روزرسانی کنترل زمان)
+- HEAD شاخه و PR #3052: 26e635265593a10afc43759c6457220ccb8f084a; main: 45e4202b03a434459e4c021a04efa7e8396359db. PR OPEN / DRAFT / UNMERGED؛ main بدون تغییر.
+- روی والد قبلی ae9a6db230032f4f74883e903833b8c323be4fd5، Runهای 42346709560 (Build) و 42346709549 (Device Smoke) در PENDING؛ 42346709502 (Calendar Provider) و 42346709491 (Draft Review APK) در حال اجرا بودند؛ Follow-up File Persistence run 42346709492 و G1 lock sync run 42346709506 موفق بودند. این نتایج به HEAD فعلی منتقل نمی‌شوند.
+- برای HEAD فعلی 26e635265593a10afc43759c6457220ccb8f084a در زمان ثبت، Run تازه‌ای در فهرست Actions مشاهده نشد؛ بنابراین وضعیت همهٔ دروازه‌ها روی این SHA UNKNOWN / NOT RUN است.
+- Run قدیمی Device Smoke #7233 / 42335301964 اکنون COMPLETED / CANCELLED است؛ مانع قدیمی صف برداشته شده و درخواست لغو دستی دیگری لازم نیست. Device Smoke جدید همچنان باید روی HEAD فعلی اجرا و PASS شود.
+- اصلاح منطق Overdue در ae9a6db: ساعت مرجع تزریق‌پذیر شد؛ موعد ساعت‌دار پس از عبور لحظهٔ موعد معوق می‌شود؛ All-Day تا شروع روز بعد معوق نمی‌شود؛ کار انجام‌شده معوق نمی‌شود. آزمون رگرسیون اضافه شده است؛ CI آن هنوز تأیید نشده.
+- کنترل زمان جدید: نتیجهٔ صریح All-Day داخل دیالوگ ساعت گرد؛ Quick Capture و Task Details برای موعد سفارشی به آن متصل‌اند؛ TaskReminderهای مستقل نیز از آن استفاده می‌کنند. legacy Task.reminderDate و FollowUp.reminderDate هنوز All-Day مستقل ندارند.
+- آخرین APK استخراج‌شده و هش قبلی فقط متعلق به SHA 11919b87b309897a7b2f59fdd34a327730188e6e است؛ هش آن نباید به HEAD فعلی نسبت داده شود. APK exact-HEAD فعلی هنوز در دسترس نیست.
+- تغییرات آزمون 895c7ad همچنان به‌عنوان افزایش پوشش Wrap/حداقل لمس ارزیابی شده‌اند؛ تستی حذف یا Skip نشده است. تغییرات جدید زمان نیز فقط تست‌های افزوده‌اند.
+- **BLOCKED — RELEASE: NO-GO** تا پاس کامل Build/تمام شاردها/Provider/Persistence/Device Smoke روی یک SHA، بررسی APK همان SHA و تست نصب و کارکرد روی SM-A528B/DS.
+
+## اصلاحیه وضعیت — یادآور تمام‌روز و HEAD کد
+- آخرین HEAD کد پیش از ثبت این اصلاحیه: d969728523d402a72647f608e635dd1c42ed54ab؛ PR #3052 همچنان OPEN / DRAFT / UNMERGED؛ main=45e4202b03a434459e4c021a04efa7e8396359db و بدون تغییر.
+- FollowUpEntryPage میانبر یادآور مستقل را به انتخاب پیوستهٔ تاریخ شمسی و ساعت گرد متصل کرد؛ All-Day داخل دیالوگ انتخاب و به TaskReminder.isAllDay ذخیره می‌شود. اعلان تمام‌روز طبق planner در ۰۹:۰۰ محلی است.
+- یادآورهای مستقل TaskReminder در Task Details نیز به همین قرارداد متصل‌اند. Quick Capture برای موعد سفارشی از All-Day پشتیبانی می‌کند.
+- شکاف‌های باقی‌مانده: فیلد legacy Task.reminderDate و FollowUp.reminderDate هنوز پرچم All-Day ندارند؛ کنترل‌های قدیمی مربوط به آن‌ها باید با قرارداد مهاجرت سازگار تکمیل شوند. فیلترهای گزارش/پشتیبان‌گیری ساعت‌محورند و گزینهٔ All-Day در آن‌ها موضوعیت ندارد.
+- اجرای Device Smoke قدیمی #7233 / 42335301964 CANCELLED است؛ اما اجرای قدیمی‌تر Device Smoke شماره 7268 / run 42346612483 روی SHA db91... پس از انتظار وارد اجرای فعال شده و اجرای جدیدتر را در صف نگه می‌دارد. این run قدیمی‌تر را نباید PASS برای HEAD جدید شمرد؛ اجرای جدید باید پس از پایان آن روی SHA فعلی شروع شود.
+- Build روی SHA 844b794... هنوز PENDING و بدون Job بود؛ Calendar Provider، Draft Review APK و Persistence در حال اجرا بودند؛ Persistence سپس SUCCESS شد. این SHA پیش از تغییر یادآور پیگیری است و نتیجهٔ آن به HEAD d969... منتقل نمی‌شود.
+- برای HEAD d969728... در لحظهٔ ثبت، Run جدیدی در Actions مشاهده نشد؛ بنابراین دروازه‌های آن UNKNOWN / NOT RUN هستند.
+- **BLOCKED — RELEASE: NO-GO** تا Build/تمام شاردها/Provider/Persistence/Device Smoke و نصب و آزمون واقعی گوشی SM-A528B/DS روی یک SHA واحد PASS شوند.
+
+## جدول شکست‌های قبلی و اصلاحات — exact evidence path
+- کد/آزمون فعلی پیش از ثبت اسناد: 7a1890fa8c1933fb230cdfa92dcd762209eae95c؛ PR #3052 OPEN / DRAFT / UNMERGED؛ main=45e4202b03a434459e4c021a04efa7e8396359db.
+- جدول شکست‌های Build run 42343978253 روی SHA 11919b87b309897a7b2f59fdd34a327730188e6:
+  1. Home Quick Capture: hit-test روی دکمه افزودن خارج از viewport پیش‌فرض 800×600 بود و تست فقط یک Task دید؛ fixture اکنون 390×844 و ensureVisible دارد؛ assertion حفظ تاریخچه و ثبت دو Task باقی است.
+  2. Calendar month: شش ردیف 48dp با header/spacing حدود 318dp است؛ انتظار کمتر از 280dp با حداقل هدف لمس 48dp ناسازگار بود. آزمون اکنون حداقل 288 و حداکثر 320dp را assert می‌کند؛ حداقل 48dp هر روز حفظ شده است.
+  3. RollBox semantic colors: تست قدیمی توکن‌های تعاملی متمایز می‌خواست؛ تصمیم محصول رنگ تعاملی یکسان فیروزه‌ای است. تست اکنون تمام توکن‌های time/reminder/project/category/tag را به primary، primaryDark و primarySoft مقایسه می‌کند.
+  4. Calendar selected week day: انتظار بنفش قدیمی بود؛ تست اکنون #DDF7F5 مصوب را می‌سنجد.
+  5. Home filter/sort: مرتب‌سازی در سمت راست فیلترها قرار گرفته بود؛ کنترل به سمت چپ منتقل شد تا بعد از پنج فیلتر در ترتیب RTL باشد.
+  6. Calendar sacred SVG: رنگ روشن به primary فیروزه‌ای تغییر کرده بود؛ رنگ برند #1A2B4C در تم روشن بازگردانده شد؛ تم تاریک همچنان onSurface است و خود SVG دست‌نخورده است.
+- خطای بیلد موقت در SHA 068d8489821463f5f8f55cd69a74496f94192656: ArvinTimeSelection در _pickReminderTime به DateTime? انتساب داده شده بود. در commit 26e635265593a10afc43759c6457220ccb8f084a، فیلد legacy Task.reminderDate با wrapper زمان‌محور سازگار شد؛ All-Day فقط در مدل‌های دارای پرچم مستقل ثبت می‌شود.
+- اصلاح Overdue: ae9a6db230032f4f74883e903833b8c323be4fd5؛ ساعت‌دار پس از لحظه موعد، All-Day از ابتدای روز بعد و completed هرگز overdue نمی‌شود.
+- تغییر 895c7ad ممیزی شد: در همان فایل‌های تست، ۵۵ خط افزوده و ۱۱ خط قدیمی با قرارداد Wrap/ماتریس عرض جایگزین شد؛ تست پیمایش افقی به نبود Scroll افقی و Wrap RTL تبدیل شد؛ هیچ تستی حذف/Skip یا assertion رفتاری تضعیف نشد.
+- روی SHA کد 7a1890f، Runهای Build 42347751661 و Device Smoke 42347751648 در PENDING؛ Calendar Provider 42347751668، Draft Review APK 42347751728 و Follow-up Persistence 42347751664 در حال اجرا بودند. این نتایج تا پایان اجرا نهایی نیستند.
+- گلوگاه صف: #7233 / 42335301964 CANCELLED؛ اما #7268 / 42346612483 روی SHA قدیمی db91a78 هنوز در وضعیت کلی QUEUED است، درحالی‌که job smoke-boot در IN_PROGRESS و شش lane دیگر QUEUED هستند. این اجرای قدیمی، Device Smoke جدید را پشت خود نگه می‌دارد؛ اگر ادامه یابد، لغو دستی توسط مبین لازم است.
+- شکاف‌های باقی‌مانده محصول: یادآور legacy Task.reminderDate و FollowUp.reminderDate هنوز All-Day مستقل ندارند؛ سلکتورهای مرکز/پروژه/دسته/برچسب در Task Details هنوز از ArvinRollBox استفاده می‌کنند و هم‌شکلی کامل آن‌ها با HomeFilterPill در UI واقعی تأیید نشده است.
+- **BLOCKED — RELEASE: NO-GO** تا Build تمام شاردها، Calendar Provider، Persistence، Device Smoke و APK exact-HEAD سبز شوند و APK روی SM-A528B/DS نصب و آزمون شود.
+
+
+## وضعیت تجمیعی جدید — ۱۴۰۵/۰۸/۱۶
+- HEAD کد پیش از این ثبت مستنداتی: `72963f7f69f9dc5e4846f52880e2a5deb283815d`. PR #3052 روی همین شاخه OPEN / DRAFT / UNMERGED است؛ main روی `45e4202b03a434459e4c021a04efa7e8396359db` بدون تغییر مانده است.
+- اجرای Device Smoke قدیمی #7268 / `42346612483` اکنون CANCELLED است. اجرای تازه روی HEAD کد `72963f7...` با شماره #7299 / `42350206655` ثبت شده، اما هنوز PENDING است و Job دستگاه شروع نشده است.
+- دروازه‌های ثبت‌شده روی SHA کد `72963f7...`: Build #10066 / `42350206647` PENDING؛ Calendar Provider #2201 / `42350206625` QUEUED؛ Follow-up Persistence #1224 / `42350206608` PENDING؛ G1 Lock #4693 / `42350206596` QUEUED؛ Draft Review APK #873 / `42350206660` PENDING؛ Device Smoke #7299 PENDING. هیچ‌کدام هنوز PASS نهایی نیستند.
+- Build قبلی #10044 روی SHA قدیمی `f69ef3ae...` به علت دو شکست تست (ترتیب فیلترهای Home و تست قدیمی کنترل بدون ساعت) FAILED شد. کد و آزمون‌ها اصلاح شده‌اند؛ این اصلاحات تا پاس Build تازه روی SHA جدید VERIFIED محسوب نمی‌شوند.
+- All-Day legacy: فیلدهای `Task.reminderDate` و `FollowUp.reminderDate` اکنون پرچم‌های مستقل `reminderAllDay` دارند؛ JSON round-trip و مهاجرت Task به `TaskReminder.isAllDay` پوشش داده شده است. ویرایش یادآور legacy در فرم Task و فرم FollowUp گزینه «بدون ساعت» را داخل دیالوگ ساعت می‌دهد. نیمه‌شب بدون پرچم صریح همچنان زمان‌دار باقی می‌ماند.
+- Selectorهای مرکز/پروژه/دسته/برچسب در Task Editor اکنون از Sheet مشترک با فیلترهای Home استفاده می‌کنند؛ سه مورد نخست انتخاب تک‌گزینه‌ای و برچسب چندگزینه‌ای است؛ ایجاد مورد جدید حفظ شده است. رنگ pill و Wrap RTL نیز همسان شده‌اند.
+- APK review-only قبلی متعلق به SHA `f69ef3ae...` است و برای HEAD جدید قابل استفاده/استناد نیست. آرتیفکت Draft Review روی SHA فعلی هنوز تولید/دریافت نشده است؛ پس از موفقیت Run exact-head استخراج و SHA-256 بایت APK جداگانه ثبت می‌شود.
+- هیچ تست فیزیکی روی Samsung SM-A528B/DS هنوز ثبت نشده است.
+- **BLOCKED — RELEASE: NO-GO** تا پاس تمام دروازه‌ها روی یک SHA نهایی، APK همان SHA، نصب و آزمون واقعی گوشی و تأیید مالک.
+
+
+## اصلاحیهٔ پس از تکمیل فرم یادآور legacy پیگیری — ۱۴۰۵/۰۸/۱۶
+- تکمیل کد پیش از این اصلاحیه: `de60c3a53309183a69b3a94b2f74e2ae9b40d7cb`.
+- فرم ویرایش FollowUp اکنون یادآور قدیمی را قابل انتخاب/حذف می‌کند؛ انتخاب تاریخ شمسی و سپس «بدون ساعت» داخل دیالوگ ساعت، `reminderAllDay` را ذخیره می‌کند. لغو هر مرحله مقدار قبلی را حفظ می‌کند.
+- تست UI برای حفظ یادآور قبلی و انتخاب All-Day در FollowUp افزوده/به‌روزرسانی شد. مدل Task نیز در JSON از ذخیرهٔ پرچم All-Day بدون تاریخ جلوگیری می‌کند.
+- این ثبت مستنداتی HEAD شاخه را تغییر می‌دهد؛ تمام دروازه‌ها باید روی SHA نهایی همین ثبت دوباره بررسی شوند. نتایج SHAهای قبلی به آن منتقل نمی‌شوند.
+- **BLOCKED — RELEASE: NO-GO** تا PASS روی SHA نهایی، APK همان SHA و تست نصب/عملکرد روی SM-A528B/DS.
+
+## Layout Fix: Enforced Single-Row Filter — ۱۴۰۵/۰۸/۱۶
+- علت رگرسیون: پنج HomeFilterPill در ArvinTaskSelectorWrap (Wrap) قرار داشتند؛ در عرض محدود موبایل به ردیف دوم می‌شکستند و تست قدیمی نیز پیمایش افقی را انجام می‌داد.
+- اصلاح در `lib/main.dart`: فیلترهای زمان، مرکز، پروژه، دسته و برچسب اکنون در یک Row با `mainAxisSize: MainAxisSize.max`، `mainAxisAlignment: MainAxisAlignment.spaceBetween` و پنج `Expanded` قرار گرفته‌اند؛ فاصله‌ها ۴dp است و پیمایش افقی/Wrap در این ردیف وجود ندارد.
+- اصلاح در `lib/home/home_filter_ui.dart`: HomeFilterPill به کنترل فشرده با ارتفاع ثابت ۴۸dp، آیکون ۱۴dp، متن تک‌خطی و کوچک‌سازی متن در فضای محدود تبدیل شد. حداقل سطح لمس ۴۸dp حفظ شده است.
+- آزمون `test/home/home_filter_contract_test.dart` اکنون عرض‌های ۳۶۰، ۳۹۰ و ۴۱۲dp را بررسی می‌کند: هر پنج فیلتر باید top/bottom یکسان، ارتفاع حداقل ۴۸dp، قرارگیری داخل عرض و نبود Scrollable افقی داشته باشند. مسیر انتخاب فیلترها بدون drag افقی آزمایش می‌شود.
+- این اصلاح در زمان ثبت مستندات کد است و تا اجرای موفق تست/CI روی SHA نهایی VERIFIED محسوب نمی‌شود. PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main بدون تغییر.
+- **BLOCKED — RELEASE: NO-GO** تا اجرای exact-HEAD CI و پذیرش دستی دستگاه.
+
+## Quick Add + Task Editor — پنج فیلتر تک‌ردیفه و All-Day فقط داخل ساعت — ۱۴۰۵/۰۸/۱۶
+
+- **Quick Add:** کنترل مستقل `quick-capture-no-time` و مسیر جداگانهٔ `_pickDateOnlyDue` حذف شد. گزینهٔ All-Day برای موعد سفارشی فقط از `universal-time-no-time` داخل دیالوگ ساعت مشترک انتخاب می‌شود؛ منطق ذخیرهٔ `Task.allDay` و حذف یادآور خودکار برای موعد تمام‌روز حفظ شده است.
+- پنج فیلتر Quick Add اکنون در `lib/quick_capture_dialog.dart` با یک `Row` راست‌به‌چپ و پنج `Expanded` قرار دارند؛ ترتیب از راست به چپ: زمان، مرکز، پروژه، دسته، برچسب. فاصلهٔ افقی ۴dp است و هیچ Wrap یا پیمایش افقی در این ردیف وجود ندارد.
+- **Task Editor / ویرایش کار:** ردیف جداگانهٔ تاریخ انجام و Wrap چهار سلکتور با یک ردیف پنج‌تایی در `lib/task_editor_dialog.dart` جایگزین شد. فیلتر زمان، تاریخ شمسی و ساعت را از مسیر انتخابگر یکپارچه باز می‌کند؛ مرکز، پروژه، دسته و برچسب در همان ردیف هستند. All-Day موعد فقط از گزینهٔ داخل دیالوگ ساعت انتخاب می‌شود؛ کنترل بیرونی «بدون ساعت» در این مسیر وجود ندارد.
+- همهٔ پنج کنترل در هر دو صفحه از `ArvinRollBox` و `HomeFilterPill` مشترک استفاده می‌کنند؛ ارتفاع هدف لمس ۴۸dp حفظ شده است. سایر بخش‌های فرم، ذخیره‌سازی، روابط مرکز/پروژه، یادآورها و انتخاب چندبرچسبی تغییر قراردادی نکرده‌اند.
+- آزمون‌های `test/quick_capture_dialog_test.dart` و `test/task_editor_dialog_test.dart` برای عرض‌های ۳۶۰، ۳۹۰ و ۴۱۲dp به‌روزرسانی شدند: هم‌ترازی عمودی پنج فیلتر، ارتفاع حداقل ۴۸dp، ترتیب RTL، قرارگیری در محدودهٔ ردیف و نبود کنترل بیرونی «بدون ساعت» بررسی می‌شود. تست‌های جریان All-Day همچنان انتخاب `universal-time-no-time` داخل دیالوگ را بررسی می‌کنند.
+- کامیت‌های اجرایی این اصلاح: Quick Add source `4ec4a5173c53092f4eb1fc8c172190becebc24dd`؛ Task Editor source `bdf6abf9ba5833a1bc6fab38599f8135a45c2acf`؛ Quick Add tests `b4bafd504316c573dacd26657beefff25bedcb7d`؛ Task Editor tests `7cf1a7d49dff277d0eafde4d7cff6f9d1a2d93aa`.
+- نتیجهٔ CI روی SHA قبلی `1437c79e3a1528a91895b51b06f675bcaeeb29f4` فقط متعلق به همان کد قبلی است و برای این اصلاح اعتبار ندارد. اجرای تازهٔ Build، Device Smoke، Calendar Provider، Persistence و Draft Review APK باید روی SHA نهایی پس از ثبت این مستندات بررسی شود. تست فیزیکی روی Samsung SM-A528B/DS نیز هنوز تأیید نشده است.
+- PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ شاخهٔ `main` بدون تغییر؛ هیچ Merge، انتشار یا تحویل APK به‌عنوان نسخهٔ قابل انتشار مجاز نیست. **BLOCKED — RELEASE: NO-GO**.
+
+
+## 2026-11-07 — ادامه اصلاح تجربه کاربری تم و کنترل‌های زمان (شواهد پذیرش در انتظار)
+
+**Source checkpoint before documentation sync:** `9e66820d161131b947bcc91cf333b3acf426a51c`  
+**Branch:** `fix/recovery-calendar-device-smoke-2026-10-31` · **PR #3052:** OPEN / DRAFT / UNMERGED  
+**Release:** BLOCKED — RELEASE: NO-GO
+
+### تغییرات ثبت‌شده
+- پالت انتخابی کاربر در `AppThemeManager` بدون تغییر باقی مانده است: گزینه ۸ و پیش‌فرض `#3A86EF`. توکن‌های پایهٔ فیروزه‌ای رابط (`#078B91`، `#066F75`، `#DDF7F5`) از رنگ انتخابی کاربر جدا شده‌اند؛ این کار پیش‌فرض پالت را تغییر نمی‌دهد و سطوح روشن/فیروزه‌ای را از accent انتخابی مستقل نگه می‌دارد. Source: `lib/core/theme/arvin_theme.dart`، commit `a58098c0a6a6afcc55ec194a751961fd1bad9848`.
+- رنگ زندهٔ Theme به Home filter pill/card/chip و sheet، پوستهٔ Home، دکمهٔ افزودن، انتخاب‌گرهای taxonomy، Quick Capture، Task Details و کنترل‌های Report Center متصل شد. Source commits: `93d4cf75`, `a133fa8a`, `1e9db5fe`, `f7f3ceca`, `901078af`, `7932da2e`, `2261d28d`, `a2d54f27`, `fb47dfba`, `62b82598`, `89e7e914`, `01caa0d4`, `561a8b2e`, `dd968b25`, `9e66820d`.
+- ترتیب پنج فیلتر Home در ردیف RTL از راست به چپ به زمان، مرکز، پروژه، دسته و برچسب تنظیم شد و کل ردیف کلید آزمون پایدار گرفت. Source: `lib/main.dart`, commit `dffefdd1bd0e32e1405f3c7a95fa405263eafd3d`.
+- کنترل موعد Task Editor و Quick Capture از فهرست میانی انتخاب‌ها خارج شد: لمس کنترل مستقیماً تقویم شمسی را باز می‌کند و پس از تأیید تاریخ، ساعت‌گرد باز می‌شود. انتخاب «بدون ساعت» همچنان فقط داخل ساعت‌گرد است؛ لغو انتخاب ساعت، تاریخ نیمه‌کاره را ثبت نمی‌کند. Source commits: Task Editor `5650c5e152465c6df557739a130c42a887f5eb6d`، Quick Capture `65c319f2cf265dc4e6a06d88fa97ed18b0a5b198`.
+- رنگ برند Task Details و Task Editor به Theme زنده متصل شد. Source commits: `6cff0d92`, `aff66d4e`.
+- آزمون Home برای ردیف پنج‌فیلتر از انتظار Wrap قدیمی به قرارداد تک‌ردیفهٔ بدون پیمایش افقی در ۳۶۰/۳۹۰/۴۱۲dp و کیبورد باز تغییر کرد؛ حداقل عرض/ارتفاع ۴۸dp و نبود overflow بررسی می‌شود. Test commit: `ce0c68097d2bc183785c755aa5c6b2a27bb20e8f`؛ import test: `ed7a4c7f0735f1f703d5650819cdd4f4a272c069`.
+- آزمون Theme filter به‌جای ActionChip قدیمی، رنگ زندهٔ Theme و هدف لمس ۴۸dp را برای کامپوننت واقعی می‌سنجد. Test commit: `d9b2df3ab6e5cdf5cb0588b8abc729ee5a2e6797`.
+- آزمون‌های Task Editor و Quick Capture برای جریان تک‌لمسی تاریخ ← ساعت‌گرد و «بدون ساعت» به‌روزرسانی شدند؛ test commits: `8235c5142ff94205a484054caae62538ca6cda54` و `0ebf6790579caaec031ffed38324975b087b45e8`.
+
+### وضعیت پذیرش و موارد باز
+- Analyze روی SHA پیشین `8300e473a49c4e0b574cfd764ba31baf0ee472e3` PASS بود؛ هر شش Shard همان SHA FAIL بودند. این نتایج برای source checkpoint حاضر معتبر نیستند.
+- Build/Review/Device Smoke برای source checkpoint حاضر در لحظهٔ ثبت هنوز نتیجهٔ نهایی نداشتند؛ اجرای بعدی پس از این ثبت اسناد باید روی SHA نهایی خوانده شود. هیچ PASS به این SHA منتقل نمی‌شود.
+- رنگ زنده در تمام مصرف‌کننده‌های اختصاصی، Report Center و سایر فرم‌ها هنوز نیازمند ممیزی/آزمون کامل است؛ وضعیت را «اتصال بخش‌های نام‌برده‌شده انجام شده، پذیرش سراسری تأییدنشده» نگه دارید.
+- آزمون‌های person-specific FollowUp/Report، category clear، Reminder All-Day، ردیف Home و چند تست Quick Capture/Task Editor در Run قبلی شکست داشتند؛ علت‌ها و اصلاحات باید با Run تازه بررسی شوند. تست‌های مربوط به زمان و تمام‌روز فقط روی SHA دقیق خودشان معتبرند.
+- همگام‌سازی محلی P2P همچنان در حد طراحی/برنامه است؛ امنیت جفت‌سازی، لغو دسترسی، تعارض و انتقال دوسویه روی دو دستگاه اثبات نشده است. فاز ابری برنامهٔ آینده است.
+- Device Smoke فیزیکی و تصویر نصب/تعامل روی Samsung SM-A528B/DS تأییدنشده است.
+
+PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main دست‌نخورده؛ بدون Merge یا انتشار؛ فونت Vazirmatn و قرارداد SVG عبارات مقدس حفظ شود. **BLOCKED — RELEASE: NO-GO**.
+
+
+## 2026-11-07 — اصلاح اعتبارسنجی یادآور تمام‌روز در پیگیری
+- در `lib/follow_up_entry_page.dart` اعتبارسنجی یادآور تمام‌روز از ساعت مصنوعی ۹ صبح به مقایسهٔ تاریخ تقویمی تغییر کرد؛ یادآور تمام‌روز برای امروز صرفاً به‌دلیل سپری‌شدن ساعت ۹ رد نمی‌شود. زمان‌دارها همچنان باید در آینده باشند.
+- Source commit: `0e63449dd122065314c97f7d81f320dfccca3460`.
+- آزمون مرتبط `test/follow_up_entry_page_test.dart` از قبل حالت تمام‌روز و ذخیرهٔ Reminder را پوشش می‌دهد؛ اجرای exact-SHA این اصلاح هنوز در انتظار نتیجه است. Run Build `42361252514`، Draft Review APK `42361252886`، Device Smoke `42361252423` و Persistence `42361252554` در زمان ثبت Pending/Queued هستند؛ هیچ‌کدام PASS محسوب نمی‌شوند.
+- PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## 2026-11-07 — تثبیت تست‌های شش‌شارد و شناسنامه APK بازبینی (abecec1)
+
+- شاخه مجاز: `fix/recovery-calendar-device-smoke-2026-10-31`.
+- Source commit: `abecec1ec895e6c7df83913247c1cc9ecc083d02` — اصلاح Finder تست `issue 1891 tag roll box` بدون حذف یا تضعیف assertionها.
+- Build run `42370095017`: نتیجه کلی SUCCESS؛ Analyze و Visual نیز SUCCESS.
+- شمارش قطعی شش شارد از لاگ‌ها: Shard 0 = 224، Shard 1 = 185، Shard 2 = 308، Shard 3 = 145، Shard 4 = 236، Shard 5 = 173؛ جمع 1,271/1,271؛ ALL SHARDS PASSED = YES.
+- تست `issue 1891 tag roll box supports multi-select with apply/cancel` در Shard 4 موفق شد.
+- Staging review artifact: Run `42370095057`، Artifact ID `13573433210`. APK استخراج و هش روی خود فایل اجرایی محاسبه شد:
+  - File: `Arvin-review-staging-abecec1ec895e6c7df83913247c1cc9ecc083d02.apk`
+  - SHA-256: `6e259567386481fa14621bd35d133a4d7f1959bb9ff6a0820ac4a994c583cbc2`
+  - Size: 79,120,215 bytes = 75.455 MiB (79.120 MB decimal).
+  - applicationId: `com.example.arvin.staging`; `android_debuggable=false`; V2/V3 signature verification passed.
+  - Signing key is ephemeral/review-only; `publishable=false`. This is not a release APK.
+- Device Smoke Run `42370095088` targets the exact source SHA above but remains PENDING; latest job query returned zero jobs. The workflow definition has `pull_request` triggers (opened/synchronize/reopened/ready_for_review) and `workflow_dispatch`; its matrix jobs run on GitHub-hosted `ubuntu-latest` and provision Android API 35 emulator through the emulator-runner action. Therefore no evidence currently indicates a dedicated self-hosted emulator runner is the blocker. The run appears not to have progressed to job creation; the exact scheduler/approval/concurrency cause is not exposed by available run/job evidence and remains UNKNOWN.
+- A manual workflow-dispatch / full-run rerun was not issued: the available GitHub actions expose job-level rerun and failed-job rerun only; this pending run has no jobs to rerun. Do not report a retry as triggered. Manual `workflow_dispatch` with `target_sha=abecec1ec895e6c7df83913247c1cc9ecc083d02` remains the supported workflow-level route when an authorized GitHub Actions dispatch control is available.
+- PR #3052 must remain OPEN / DRAFT / UNMERGED. main remains at `45e4202b03a434459e4c021a04efa7e8396359db`; no merge or main update. Release remains **BLOCKED — RELEASE: NO-GO** until Device Smoke and all remaining acceptance gates pass on one exact candidate SHA.

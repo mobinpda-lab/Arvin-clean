@@ -34,13 +34,17 @@ class CalendarSwipeSettingsService {
 
   Future<void> save(CalendarSwipeSettings settings) async {
     final preferences = await SharedPreferences.getInstance();
-    await preferences.setString(_rightKey, settings.right.name);
-    await preferences.setString(_leftKey, settings.left.name);
+    await preferences.setString(_rightKey, _encode(settings.right));
+    await preferences.setString(_leftKey, _encode(settings.left));
   }
 
   CalendarSwipeAction _decode(String? raw) =>
-      CalendarSwipeAction.values.firstWhere(
-        (action) => action.name == raw,
-        orElse: () => CalendarSwipeAction.none,
-      );
+      raw == CalendarSwipeAction.sync.name
+          ? CalendarSwipeAction.sync
+          : CalendarSwipeAction.none;
+
+  String _encode(CalendarSwipeAction action) =>
+      action == CalendarSwipeAction.sync
+          ? CalendarSwipeAction.sync.name
+          : CalendarSwipeAction.none.name;
 }

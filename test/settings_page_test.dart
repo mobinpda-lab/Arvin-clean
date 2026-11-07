@@ -1,5 +1,6 @@
 import 'package:arvin/services/app_settings_service.dart';
 import 'package:arvin/settings_page.dart';
+import 'package:arvin/core/theme/app_theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -32,6 +33,15 @@ void main() {
     expect(find.text('راهنمای تعاملی صفحه اصلی'), findsNothing);
 
     expect(find.text('تنظیمات'), findsOneWidget);
+    expect(find.text('انتخاب تم و رنگ اصلی برنامه'), findsOneWidget);
+    expect(find.byKey(const ValueKey('theme-palette-grid')), findsOneWidget);
+    expect(find.byKey(const ValueKey('theme-color-8')), findsOneWidget);
+    expect(AppThemeManager.instance.selectedHex, AppThemeManager.defaultHex);
+    await tester.tap(find.byKey(const ValueKey('theme-color-1')));
+    await tester.pumpAndSettle();
+    final themePreferences = await SharedPreferences.getInstance();
+    expect(themePreferences.getString(AppThemeManager.preferenceKey), '#078B91');
+    expect(AppThemeManager.instance.selectedHex, '#078B91');
     expect(find.text('نمایش تاریخ فارسی'), findsOneWidget);
     expect((await service.load()).usePersianDate, isTrue);
     expect(find.byKey(const ValueKey('swipe-settings-title')), findsOneWidget);
@@ -52,7 +62,7 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('swipe-right-action')));
     await tester.pumpAndSettle();
-    expect(find.text('ثبت پیگیری'), findsNothing);
+    expect(find.text('ثبت پیگیری'), findsOneWidget);
     expect(find.text('انتقال به تقویم گوشی'), findsNothing);
     await tester.tap(find.text('انجام‌شدن').last);
     await tester.pumpAndSettle();

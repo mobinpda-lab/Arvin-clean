@@ -36,9 +36,9 @@ void main() {
       find.byKey(const ValueKey('task-editor-description')),
       '  توضیح پیگیری  ',
     );
-    await tester.tap(find.byTooltip('برچسب'));
+    await tester.tap(find.byKey(const ValueKey('task-editor-tag-rollbox')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('افزودن برچسب'));
+    await tester.tap(find.text('+ افزودن برچسب'));
     await tester.pumpAndSettle();
     await tester.enterText(find.widgetWithText(TextField, 'نام'), 'مهم');
     await tester.tap(find.text('افزودن').last);

@@ -83,7 +83,7 @@ void main() {
     expect(restoredEnvelope['futureField'], {'keep': true});
 
     final followUps = await database.runSelect(
-      'SELECT task_id, note, result, ordinal FROM follow_ups WHERE task_id = ?',
+      'SELECT task_id, note, result, ordinal FROM follow_up_records WHERE task_id = ?',
       const ['legacy-1'],
     );
     expect(followUps.single['note'], 'تماس شد');
@@ -96,10 +96,14 @@ void main() {
     expect(checklist.map((row) => row['value']), ['ارسال قرارداد', 'تماس مجدد']);
 
     final people = await database.runSelect(
-      'SELECT person_id, person_json FROM task_people WHERE task_id = ?',
+      '''SELECT task_persons.person_id, persons.name
+         FROM task_persons
+         JOIN persons ON persons.id = task_persons.person_id
+         WHERE task_persons.task_id = ?''',
       const ['legacy-1'],
     );
     expect(people.single['person_id'], 'person-1');
+    expect(people.single['name'], 'علی رضایی');
 
     final tags = await database.runSelect(
       '''SELECT tags.name
@@ -215,7 +219,7 @@ void main() {
       const [],
     );
     final followUps = await database.runSelect(
-      'SELECT COUNT(*) AS count FROM follow_ups',
+      'SELECT COUNT(*) AS count FROM follow_up_records',
       const [],
     );
     expect(tasks.single['count'], 0);
@@ -425,8 +429,8 @@ void main() {
       expect(persistedTarget.title, originalTarget.title);
       expect(persistedTarget.note, originalTarget.note);
       expect(persistedTarget.result, originalTarget.result);
-      expect(persistedTarget.reminderDate, originalTarget.reminderDate);
-      expect(persistedTarget.nextFollowUp, originalTarget.nextFollowUp);
+      expect(persistedTarget.toJson().containsKey('reminderDate'), isFalse);
+      expect(persistedTarget.toJson().containsKey('nextFollowUp'), isFalse);
       expect(persistedTarget.waitingForResponse, originalTarget.waitingForResponse);
       expect(persistedTarget.personIds, originalTarget.personIds);
       expect(
@@ -435,7 +439,7 @@ void main() {
       );
 
       final sqlCompleted = await database.runSelect(
-        'SELECT completed FROM follow_ups WHERE id = ? AND task_id = ?',
+        'SELECT completed FROM follow_up_records WHERE id = ? AND task_id = ?',
         const [targetFollowUpId, originalTaskId],
       );
       expect(sqlCompleted, hasLength(1));

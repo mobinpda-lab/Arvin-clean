@@ -3,28 +3,42 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:arvin/main.dart';
+import 'package:arvin/home/home_filter_ui.dart';
+import 'package:arvin/arvin_colors.dart';
 import 'package:arvin/services/app_settings_service.dart';
 import 'package:arvin/services/task_store.dart';
+import 'package:arvin/services/project_store.dart';
+import 'package:arvin/services/center_store.dart';
 import 'package:arvin/services/iran_clock.dart';
 
 void main() {
   setUp(() async {
     await TaskStore.resetTestDatabase();
+    await ProjectStore.resetTestDatabase();
+    await CenterStore.resetTestDatabase();
     SharedPreferences.setMockInitialValues({});
+  });
+
+  tearDown(() async {
+    await TaskStore.resetTestDatabase();
+    await ProjectStore.resetTestDatabase();
+    await CenterStore.resetTestDatabase();
   });
 
   testWidgets('renders the current canonical HomePage shell', (tester) async {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
+    expect(find.text('آروین'), findsOneWidget);
+    expect(find.text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-search-button')), findsOneWidget);
     expect(find.byType(TextField), findsOneWidget);
     expect(find.byIcon(Icons.add), findsOneWidget);
     expect(find.text('زمان'), findsOneWidget);
-    expect(find.text('پروژه'), findsOneWidget);
-    expect(find.text('دسته'), findsOneWidget);
+    expect(find.text('پروژه‌ها'), findsOneWidget);
+    expect(find.text('دسته‌ها'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
-    expect(find.text('جستجو در کارها، پروژه‌ها، دسته‌ها و برچسب‌ها...'), findsOneWidget);
+    expect(find.text('جستجو در کارها...'), findsOneWidget);
     expect(find.text('کارهای من'), findsNothing);
     expect(find.text('مشاهده همه'), findsNothing);
   });
@@ -133,7 +147,7 @@ void main() {
     await tester.scrollUntilVisible(find.text('کار انجام‌نشده'), 400, scrollable: find.byType(Scrollable).last);
     expect(find.text('کار انجام‌نشده'), findsOneWidget);
     expect(find.text('کار انجام‌نشده'), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('home-more-task-filters')));
     await tester.pumpAndSettle();
@@ -145,7 +159,7 @@ void main() {
   });
 
 
-  testWidgets('Home uses the four cards as combined filters and preserves time grouping',
+  testWidgets('Home uses the five checkbox filters as combined filters and preserves time grouping',
       (tester) async {
     final today = IranClock.now();
     final isoToday = DateTime(today.year, today.month, today.day, 10).toIso8601String();
@@ -159,24 +173,33 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('زمان'), findsOneWidget);
-    expect(find.text('پروژه'), findsOneWidget);
-    expect(find.text('دسته'), findsOneWidget);
+    expect(find.text('پروژه‌ها'), findsOneWidget);
+    expect(find.text('دسته‌ها'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey('home-filter-card-time')));
+    final timeChip = find.byKey(const ValueKey('home-filter-card-time'));
+    await tester.ensureVisible(timeChip);
+    await tester.tap(timeChip);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('امروز').last);
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byKey(const ValueKey('home-filter-card-category')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('اتاق').last);
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'امروز'));
+    await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('home-filter-card-tags')));
+    final categoryChip = find.byKey(const ValueKey('home-filter-card-category'));
+    await tester.ensureVisible(categoryChip);
+    await tester.tap(categoryChip);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('نوزاد'));
-    await tester.tap(find.text('تعویض'));
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'اتاق'));
+    await tester.tap(find.text('تأیید / اعمال فیلتر'));
+    await tester.pumpAndSettle();
+
+    final tagsChip = find.byKey(const ValueKey('home-filter-card-tags'));
+    await tester.ensureVisible(tagsChip);
+    await tester.tap(tagsChip);
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'نوزاد'));
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'تعویض'));
+    await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
     expect(find.text('کار منطبق'), findsOneWidget);
@@ -264,7 +287,7 @@ void main() {
     expect(result, isTrue);
     expect(find.text('کار فعال'), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ListTile, 'سطل زباله'));
     await tester.pumpAndSettle();
@@ -280,7 +303,7 @@ void main() {
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ListTile, 'سطل زباله'));
     await tester.pumpAndSettle();
@@ -322,7 +345,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('کار بایگانی'), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ListTile, 'بایگانی'));
     await tester.pumpAndSettle();
@@ -347,7 +370,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('کار سطل'), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ListTile, 'سطل زباله'));
     await tester.pumpAndSettle();
@@ -376,7 +399,7 @@ void main() {
     expect(find.byKey(const ValueKey('home-storage-retry')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-add')), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('home-more-quick-capture')));
     await tester.pumpAndSettle();
@@ -521,6 +544,299 @@ void main() {
     // the primary readable content.
     expect(find.text(title), findsOneWidget);
     expect(find.text(description), findsNothing);
+  });
+
+
+  testWidgets('Home five filters stay in one RTL row without horizontal scrolling at phone widths and with keyboard',
+      (tester) async {
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetViewInsets);
+
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': '[{"id":"a","title":"کار الف","category":"مشتری","tags":["مهم","تماس"]},{"id":"b","title":"کار ب","category":"فروش","tags":["مهم"]}]',
+      'arvin.projects': '[{"id":"active-project","title":"پروژه فعال","isArchived":false,"itemIds":[]},{"id":"archived-project","title":"پروژه بایگانی","isArchived":true,"itemIds":[]}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    for (final width in <double>[360, 390, 412]) {
+      tester.view.physicalSize = Size(width, 760);
+      tester.view.viewInsets = const FakeViewPadding();
+      await tester.pumpAndSettle();
+
+      final filterStrip = find.byKey(const ValueKey('home-compact-filter-wrap'));
+      expect(filterStrip, findsOneWidget);
+      expect(Directionality.of(tester.element(filterStrip)), TextDirection.rtl);
+      final filterRow = find.byKey(const ValueKey('home-compact-filter-row'));
+      expect(filterRow, findsOneWidget);
+      expect(tester.widget<Row>(filterRow).textDirection, TextDirection.rtl);
+      expect(
+        find.descendant(
+          of: filterStrip,
+          matching: find.byType(Wrap),
+        ),
+        findsNothing,
+      );
+      expect(
+        find.descendant(
+          of: filterStrip,
+          matching: find.byWidgetPredicate(
+            (widget) => widget is SingleChildScrollView &&
+                widget.scrollDirection == Axis.horizontal,
+          ),
+        ),
+        findsNothing,
+      );
+      final controls = find.descendant(
+        of: filterStrip,
+        matching: find.byType(HomeFilterPill),
+      );
+      expect(controls, findsNWidgets(5));
+      for (final control in controls.evaluate()) {
+        final size = tester.getSize(find.byWidget(control.widget));
+        expect(size.height, greaterThanOrEqualTo(48));
+        expect(size.width, greaterThanOrEqualTo(48));
+      }
+      expect(tester.takeException(), isNull);
+    }
+
+    tester.view.viewInsets = const FakeViewPadding(bottom: 280);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('home-compact-filter-row')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    expect(find.byKey(const ValueKey('home-filter-card-project')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-filter-card-category')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-filter-card-tags')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-filter-card-time')), findsOneWidget);
+    expect(find.text('پروژه‌ها'), findsOneWidget);
+    expect(find.text('دسته‌ها'), findsOneWidget);
+    expect(find.text('برچسب‌ها'), findsOneWidget);
+    expect(find.textContaining('مورد'), findsNothing);
+    expect(find.text('کار الف'), findsOneWidget);
+    expect(find.text('کار ب'), findsOneWidget);
+    expect(find.text('پروژه فعال'), findsNothing);
+  });
+
+  testWidgets('Home search button focuses the existing canonical search', (tester) async {
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('home-search-button')));
+    await tester.pump();
+
+    final field = tester.widget<TextField>(
+      find.byKey(const ValueKey('home-canonical-search')),
+    );
+    expect(field.focusNode?.hasFocus, isTrue);
+  });
+
+  testWidgets('canonical empty Home offers the real Quick Capture action', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    expect(find.text('هنوز کاری برای نمایش نیست'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-empty-add')), findsOneWidget);
+    expect(find.text('جلسه تیم محصول'), findsNothing);
+    expect(find.text('پیگیری طراحی رابط کاربری'), findsNothing);
+    expect(find.text('مراجعه به دکتر'), findsNothing);
+  });
+
+  testWidgets('Home Past time filter excludes today and prioritizes incomplete tasks', (tester) async {
+    final now = IranClock.now();
+    String due(int daysAgo, int hour) => DateTime(
+      now.year,
+      now.month,
+      now.day - daysAgo,
+      hour,
+    ).toIso8601String();
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"done-newer","title":"گذشته انجام‌شده جدیدتر","completed":true,"dueDate":"${due(1, 9)}"},'
+          '{"id":"open-newer","title":"گذشته باز جدیدتر","completed":false,"dueDate":"${due(1, 10)}"},'
+          '{"id":"done-older","title":"گذشته انجام‌شده قدیمی‌تر","completed":true,"dueDate":"${due(4, 9)}"},'
+          '{"id":"open-older","title":"گذشته باز قدیمی‌تر","completed":false,"dueDate":"${due(3, 9)}"},'
+          '{"id":"today","title":"موعد امروز","completed":false,"dueDate":"${DateTime(now.year, now.month, now.day, 8).toIso8601String()}"}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+    final timeChip = find.byKey(const ValueKey('home-filter-card-time'));
+    await tester.ensureVisible(timeChip);
+    await tester.tap(timeChip);
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'گذشته'));
+    await tester.tap(find.text('تأیید / اعمال فیلتر'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('موعد امروز'), findsNothing);
+    final openOlder = find.text('گذشته باز قدیمی‌تر');
+    final openNewer = find.text('گذشته باز جدیدتر');
+    final doneOlder = find.text('گذشته انجام‌شده قدیمی‌تر');
+    final doneNewer = find.text('گذشته انجام‌شده جدیدتر');
+    await tester.ensureVisible(doneNewer);
+    await tester.pumpAndSettle();
+
+    expect(tester.getTopLeft(openOlder).dy, lessThan(tester.getTopLeft(openNewer).dy));
+    expect(tester.getTopLeft(openNewer).dy, lessThan(tester.getTopLeft(doneOlder).dy));
+    expect(tester.getTopLeft(doneOlder).dy, lessThan(tester.getTopLeft(doneNewer).dy));
+  });
+
+
+  testWidgets('overdue active task uses red text while card and icons stay neutral',
+      (tester) async {
+    final past = IranClock.now().subtract(const Duration(days: 2));
+    final dueDate = DateTime(past.year, past.month, past.day, 10).toIso8601String();
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"red-overdue","title":"کار با موعد گذشته","completed":false,"dueDate":"$dueDate"}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    final title = tester.widget<Text>(
+      find.byKey(const ValueKey('task-card-title-red-overdue')),
+    );
+    expect(title.style?.color, ArvinColors.error);
+
+    final dueIcon = tester.widget<Icon>(
+      find.byKey(const ValueKey('task-card-due-icon-red-overdue')),
+    );
+    expect(dueIcon.color, ArvinColors.textSecondary);
+    final dueText = tester.widget<Text>(
+      find.textContaining('موعد گذشته:'),
+    );
+    expect(dueText.style?.color, ArvinColors.error);
+
+    final statusButton = tester.widget<IconButton>(
+      find.byKey(const ValueKey('task-card-toggle-red-overdue')),
+    );
+    final statusIcon = statusButton.icon as Icon;
+    expect(statusIcon.icon, Icons.radio_button_unchecked_rounded);
+    expect(statusIcon.color, const Color(0xFF3A86EF));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('completing an active Home task immediately archives it and preserves its data',
+      (tester) async {
+    final past = IranClock.now().subtract(const Duration(days: 3));
+    final dueDate = DateTime(past.year, past.month, past.day, 9).toIso8601String();
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"archive-on-complete","title":"کار برای آرشیو فوری","description":"توضیح محفوظ","completed":false,"dueDate":"$dueDate","checklist":["[ ] مورد اول"],"followUps":[{"id":"history-1","dateTime":"2026-10-20T09:00:00.000","note":"سابقه محفوظ"}],"reminderDate":"2026-11-05T08:00:00.000"}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+    expect(find.text('کار برای آرشیو فوری'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('task-card-toggle-archive-on-complete')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('کار برای آرشیو فوری'), findsNothing);
+    final saved = (await TaskStore().load())
+        .singleWhere((task) => task.id == 'archive-on-complete');
+    expect(saved.completed, isTrue);
+    expect(saved.archived, isTrue);
+    expect(saved.trashed, isFalse);
+    expect(saved.description, 'توضیح محفوظ');
+    expect(saved.dueDate, DateTime.parse(dueDate));
+    expect(saved.checklist, const ['[ ] مورد اول']);
+    expect(saved.followUps, hasLength(1));
+    expect(saved.followUps.single.id, 'history-1');
+    expect(saved.followUps.single.note, 'سابقه محفوظ');
+    expect(saved.reminderDate, DateTime.parse('2026-11-05T08:00:00.000'));
+  });
+
+  testWidgets('completing a task from the Home Past filter removes it into Archive',
+      (tester) async {
+    final past = IranClock.now().subtract(const Duration(days: 4));
+    final dueDate = DateTime(past.year, past.month, past.day, 11).toIso8601String();
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"past-archive","title":"کار گذشته برای بایگانی","completed":false,"dueDate":"$dueDate"}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    final timeChip = find.byKey(const ValueKey('home-filter-card-time'));
+    await tester.ensureVisible(timeChip);
+    await tester.tap(timeChip);
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'گذشته'));
+    await tester.tap(find.text('تأیید / اعمال فیلتر'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('کار گذشته برای بایگانی'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('task-card-toggle-past-archive')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('کار گذشته برای بایگانی'), findsNothing);
+    final saved = (await TaskStore().load())
+        .singleWhere((task) => task.id == 'past-archive');
+    expect(saved.completed, isTrue);
+    expect(saved.archived, isTrue);
+    expect(saved.dueDate, DateTime.parse(dueDate));
+  });
+
+
+  testWidgets('completed Home task remains available in Archive after app reopen',
+      (tester) async {
+    await TaskStore.resetTestDatabase();
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"reopen-archive","title":"کار بایگانی پس از بازگشایی","description":"اطلاعات محفوظ","completed":false,"checklist":["[ ] مورد"],"followUps":[{"id":"reopen-history","dateTime":"2026-10-20T09:00:00.000","note":"سابقه محفوظ"}]}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+    expect(find.text('کار بایگانی پس از بازگشایی'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('task-card-toggle-reopen-archive')));
+    await tester.pumpAndSettle();
+    expect(find.text('کار بایگانی پس از بازگشایی'), findsNothing);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+    expect(find.text('کار بایگانی پس از بازگشایی'), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ListTile, 'بایگانی'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('کار بایگانی پس از بازگشایی'), findsOneWidget);
+    final saved = (await TaskStore().load())
+        .singleWhere((task) => task.id == 'reopen-archive');
+    expect(saved.completed, isTrue);
+    expect(saved.archived, isTrue);
+    expect(saved.description, 'اطلاعات محفوظ');
+    expect(saved.checklist, const ['[ ] مورد']);
+    expect(saved.followUps.single.id, 'reopen-history');
+    expect(saved.followUps.single.note, 'سابقه محفوظ');
+  });
+
+
+
+  testWidgets('Home More Today shortcut remains a task filter, not calendar navigation', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
+    await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(ListTile, 'امروز'), findsOneWidget);
+    expect(find.widgetWithText(ListTile, 'فیلتر کارها'), findsOneWidget);
+    expect(find.widgetWithText(ListTile, 'کارهای فاقد زمان'), findsOneWidget);
+    expect(find.byKey(const ValueKey('calendar-today')), findsNothing);
+    expect(find.byKey(const ValueKey('calendar-date-jump')), findsNothing);
   });
 
 }

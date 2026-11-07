@@ -70,8 +70,8 @@ void main() {
     );
 
     expect(find.byKey(const ValueKey('task-editor-more-details')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-editor-due-date-rollbox')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-editor-reminder-date-rollbox')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-due-date-time')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-reminder-date-time')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-recurrence')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-priority')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-completed')), findsOneWidget);
@@ -89,8 +89,8 @@ void main() {
     expect(result!.recurrence?.interval, 2);
     expect(result!.priority, TaskPriority.high);
     expect(result!.completed, isTrue);
-    expect(result!.followUpEnabled, isTrue);
-    expect(result!.followUpDate, DateTime(2026, 9, 22, 11, 15));
+    expect(result!.followUpEnabled, isFalse);
+    expect(result!.followUpDate, isNull);
   });
 
   testWidgets('full-entry controls remain scroll-accessible on short RTL viewport',
@@ -160,22 +160,23 @@ void main() {
       onResult: (value) => result = value,
     );
 
-    final timeBox =
-        find.byKey(const ValueKey('task-editor-due-time-rollbox'));
-    await tester.ensureVisible(timeBox);
-    await tester.tap(timeBox);
+    final dateTimeButton = find.byKey(const ValueKey('task-editor-due-date-time'));
+    expect(dateTimeButton, findsOneWidget);
+    await tester.ensureVisible(dateTimeButton);
+    await tester.tap(dateTimeButton);
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
     await tester.pumpAndSettle();
 
-    final customTime = find.text('ساعت سفارشی');
-    expect(customTime, findsOneWidget);
-    await tester.ensureVisible(customTime);
-    await tester.tap(customTime);
-    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
 
     // The owner-accepted product contract uses Flutter's circular Clock Dial;
     // the old custom RollBox confirmation dialog must no longer be expected.
     expect(find.byKey(const ValueKey('task-editor-time-confirm')), findsNothing);
-    expect(find.text('۱۴:۳۰'), findsWidgets);
+    expect(
+      tester.widget<Semantics>(find.byKey(const ValueKey('universal-time-selected-value'))).properties.label,
+      '۱۴:۳۰',
+    );
 
     // Close the canonical time picker without changing the selected time.
     final cancel = find.text('لغو');
@@ -196,21 +197,19 @@ void main() {
     Task? result;
     await openEditor(tester, onResult: (value) => result = value);
 
-    final dateBox = find.byKey(const ValueKey('task-editor-due-date-rollbox'));
-    await tester.ensureVisible(dateBox);
-    await tester.tap(dateBox);
+    final dateTime = find.byKey(const ValueKey('task-editor-due-date-time'));
+    await tester.ensureVisible(dateTime);
+    await tester.tap(dateTime);
     await tester.pumpAndSettle();
-
-    final today = find.text('امروز');
-    expect(today, findsOneWidget);
-    await tester.tap(today);
+    await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
     await tester.pumpAndSettle();
-
-    final allDay = find.byKey(const ValueKey('task-editor-due-all-day'));
-    await tester.ensureVisible(allDay);
+    final noTime = find.byKey(const ValueKey('universal-time-no-time'));
+    expect(noTime, findsOneWidget);
+    await tester.tap(noTime);
     await tester.pumpAndSettle();
-    final allDayTile = tester.widget<CheckboxListTile>(allDay);
-    expect(allDayTile.value, isTrue);
+    // The redesigned pill shows the date only for an All-Day selection.
+    expect(find.byKey(const ValueKey('task-editor-due-date-time')), findsOneWidget);
+    expect(find.textContaining('تمام‌روز'), findsNothing);
 
     final save = find.byKey(const ValueKey('task-editor-header-save'));
     await tester.ensureVisible(save);
@@ -222,6 +221,40 @@ void main() {
     expect(result!.allDay, isTrue);
     expect(result!.dueDate!.hour, 0);
     expect(result!.dueDate!.minute, 0);
+  });
+
+
+  testWidgets('legacy Task reminder can be explicitly changed to All-Day', (tester) async {
+    Task? result;
+    final task = Task(
+      id: 'legacy-all-day-editor',
+      title: 'یادآور قدیمی',
+      reminderDate: DateTime(2026, 10, 19, 9, 30),
+    );
+    await openEditor(tester, task: task, onResult: (value) => result = value);
+
+    final reminderButton =
+        find.byKey(const ValueKey('task-editor-reminder-date-time'));
+    await tester.ensureVisible(reminderButton);
+    await tester.tap(reminderButton);
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
+    await tester.pumpAndSettle();
+    final noTime = find.byKey(const ValueKey('universal-time-no-time'));
+    expect(noTime, findsOneWidget);
+    await tester.tap(noTime);
+    await tester.pumpAndSettle();
+
+    final save = find.byKey(const ValueKey('task-editor-header-save'));
+    await tester.ensureVisible(save);
+    await tester.tap(save);
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.reminderDate, isNotNull);
+    expect(result!.reminderDate!.hour, 0);
+    expect(result!.reminderDate!.minute, 0);
+    expect(result!.reminderAllDay, isTrue);
   });
 
   testWidgets('full Task editor adds independent numbered reminders without replacing legacy reminder', (tester) async {
@@ -269,7 +302,7 @@ void main() {
     await openEditor(tester, task: task, onResult: (value) => result = value);
 
     final migratedTitle = find.byKey(
-      const ValueKey('task-editor-reminder-title-legacy-task-reminder'),
+      const ValueKey('task-editor-reminder-title-legacy-task-reminder-full-entry'),
     );
     expect(migratedTitle, findsOneWidget);
     await tester.enterText(migratedTitle, 'یادآور مستقل ویرایش‌شده');
@@ -284,7 +317,7 @@ void main() {
     expect(result!.reminderDate, legacyDate);
     expect(result!.legacyTaskReminderMigrationVersion, 1);
     expect(result!.taskReminders, hasLength(1));
-    expect(result!.taskReminders.single.id, 'legacy-task-reminder');
+    expect(result!.taskReminders.single.id, 'legacy-task-reminder-full-entry');
     expect(result!.taskReminders.single.isLegacyTaskReminder, isTrue);
     expect(result!.taskReminders.single.title, 'یادآور مستقل ویرایش‌شده');
   });

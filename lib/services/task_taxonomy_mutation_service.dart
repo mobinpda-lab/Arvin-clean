@@ -23,10 +23,9 @@ class TaskTaxonomyDeleteBlocked implements Exception {
 /// identity, FollowUp history, reminders, due dates and unrelated metadata are
 /// never replaced by a parallel taxonomy store.
 ///
-/// Owner recovery rule: a Category or Tag that is referenced by a canonical
-/// item cannot be destructively deleted. Callers must first rename/reassign the
-/// references (or use a future explicit archive/disable path). The delete
-/// methods therefore fail closed instead of silently orphaning user data.
+/// Product-owner decision: a Category or Tag referenced by a canonical Task
+/// cannot be deleted. No cascading deletion or automatic archive is permitted
+/// in the current product phase. Delete methods fail closed and preserve data.
 class TaskTaxonomyMutationService {
   TaskTaxonomyMutationService({DateTime Function()? now})
       : _now = now ?? DateTime.now;

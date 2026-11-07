@@ -13,14 +13,21 @@ void main() {
     Task? task,
     List<String> knownTags = const [],
     ValueChanged<Task?>? onResult,
+    Size logicalSize = const Size(390, 844),
   }) async {
-    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.physicalSize = Size(logicalSize.width * 2, logicalSize.height * 2);
     tester.view.devicePixelRatio = 2;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
     await tester.pumpWidget(
       MaterialApp(
+        theme: ThemeData(
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFF3A86EF),
+          ).copyWith(primary: const Color(0xFF3A86EF)),
+        ),
         home: Directionality(
           textDirection: TextDirection.rtl,
           child: Scaffold(
@@ -45,6 +52,95 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  testWidgets('Task editor five filters stay in one row at large text scale', (tester) async {
+    tester.platformDispatcher.textScaleFactorTestValue = 1.4;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    await pumpEditor(tester, logicalSize: const Size(320, 640));
+    final row = find.byKey(const ValueKey('task-editor-five-filter-row'));
+    expect(row, findsOneWidget);
+    final filters = [
+      'task-editor-due-date-time',
+      'task-editor-center-rollbox',
+      'task-editor-project-rollbox',
+      'task-editor-category-rollbox',
+      'task-editor-tag-rollbox',
+    ].map((key) => find.byKey(ValueKey(key))).toList();
+    final first = tester.getRect(filters.first);
+    for (final filter in filters) {
+      expect(filter, findsOneWidget);
+      expect(tester.getRect(filter).height, greaterThanOrEqualTo(48));
+      expect(tester.getRect(filter).top, closeTo(first.top, 0.1));
+    }
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Task editor stays responsive at 360/390/412dp with keyboard open and closed',
+      (tester) async {
+    tester.platformDispatcher.textScaleFactorTestValue = 1.4;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    await pumpEditor(tester, logicalSize: const Size(390, 844));
+
+    for (final width in [360.0, 390.0, 412.0]) {
+      tester.view.physicalSize = Size(width * 2, 844 * 2);
+      tester.view.viewInsets = FakeViewPadding.zero;
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('task-editor-category-rollbox')), findsOneWidget);
+      expect(find.byKey(const ValueKey('task-editor-project-rollbox')), findsOneWidget);
+      expect(find.byKey(const ValueKey('task-editor-tag-rollbox')), findsOneWidget);
+      expect(tester.takeException(), isNull);
+
+      tester.view.viewInsets = const FakeViewPadding(bottom: 320);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('task-editor-title')), findsOneWidget);
+      expect(find.byKey(const ValueKey('task-editor-due-date-time')), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    }
+    tester.view.resetViewInsets();
+  });
+
+  testWidgets('Task editor five filters remain single-row at 360/390/412dp', (tester) async {
+    Task? result;
+    await pumpEditor(
+      tester,
+      logicalSize: const Size(320, 640),
+      onResult: (value) => result = value,
+    );
+
+    for (final width in [360.0, 390.0, 412.0]) {
+      tester.view.physicalSize = Size(width * 2, 640 * 2);
+      tester.view.viewInsets = FakeViewPadding.zero;
+      await tester.pumpAndSettle();
+      final row = find.byKey(const ValueKey('task-editor-five-filter-row'));
+      expect(row, findsOneWidget);
+      final rowRect = tester.getRect(row);
+      expect(find.descendant(of: row, matching: find.byType(Scrollable)), findsNothing);
+      expect(find.byKey(const ValueKey('task-editor-due-no-time')), findsNothing);
+      expect(find.text('بدون ساعت'), findsNothing);
+      final keys = [
+        'task-editor-due-date-time',
+        'task-editor-center-rollbox',
+        'task-editor-project-rollbox',
+        'task-editor-category-rollbox',
+        'task-editor-tag-rollbox',
+      ];
+      final rects = keys.map((key) => tester.getRect(find.byKey(ValueKey(key)))).toList();
+      for (final rect in rects) {
+        expect(rect.height, greaterThanOrEqualTo(48));
+        expect(rect.top, closeTo(rects.first.top, 0.1));
+        expect(rect.left, greaterThanOrEqualTo(rowRect.left));
+        expect(rect.right, lessThanOrEqualTo(rowRect.right));
+      }
+      expect(rects[0].center.dx, greaterThan(rects[1].center.dx));
+      expect(rects[1].center.dx, greaterThan(rects[2].center.dx));
+      expect(rects[2].center.dx, greaterThan(rects[3].center.dx));
+      expect(rects[3].center.dx, greaterThan(rects[4].center.dx));
+      expect(tester.takeException(), isNull);
+    }
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+    expect(result, isNotNull);
+  });
+
   testWidgets('full Task form exposes canonical follow-up records instead of a toggle',
       (tester) async {
     final task = Task(
@@ -68,10 +164,15 @@ void main() {
     expect(find.byKey(const ValueKey('task-editor-followup-time-rollbox')), findsNothing);
     expect(find.text('مشتری'), findsOneWidget);
 
-    final save = tester.widget<FilledButton>(
+    final save = tester.widget<IconButton>(
       find.byKey(const ValueKey('task-editor-header-save')),
     );
-    expect(save.style?.backgroundColor?.resolve({}), ArvinColors.primary);
+    expect(save.onPressed, isNotNull);
+    expect(save.color, const Color(0xFF3A86EF));
+    expect(tester.widget<Icon>(find.descendant(
+      of: find.byKey(const ValueKey('task-editor-header-save')),
+      matching: find.byIcon(Icons.check_rounded),
+    )).icon, Icons.check_rounded);
   });
 
   testWidgets('saving an ordinary Task does not invent follow-up records or timestamps',
@@ -85,6 +186,7 @@ void main() {
     expect(result!.followUpEnabled, isFalse);
     expect(result!.followUpDate, isNull);
     expect(result!.followUps, isEmpty);
+    expect(result!.priority, TaskPriority.medium);
   });
 
 
@@ -120,7 +222,7 @@ void main() {
   });
 
 
-  testWidgets('editing and saving preserves the exact existing follow-up time',
+  testWidgets('editing and saving does not restore retired follow-up scheduling',
       (tester) async {
     Task? result;
     final task = Task(
@@ -140,8 +242,8 @@ void main() {
     await tester.pump();
 
     expect(result, isNotNull);
-    expect(result!.followUpEnabled, isTrue);
-    expect(result!.followUpDate, DateTime(2026, 8, 27, 10, 30));
+    expect(result!.followUpEnabled, isFalse);
+    expect(result!.followUpDate, isNull);
   });
 
   testWidgets('new ordinary Task exposes the follow-up list without inventing records',
@@ -203,7 +305,7 @@ void main() {
     expect(result, isNotNull);
     expect(result!.id, 'history');
     expect(result!.followUpEnabled, isTrue);
-    expect(result!.followUpDate, DateTime(2026, 8, 28, 12));
+    expect(result!.followUpDate, isNull);
     expect(result!.followUps, hasLength(2));
     expect(result!.followUps.last.note, 'تماس دوم');
     expect(result!.category, 'مشتریان');
@@ -218,7 +320,9 @@ void main() {
       find.byKey(const ValueKey('task-editor-title')),
       'کار ذخیره‌شده هنگام خروج',
     );
-    await tester.tap(find.byTooltip('برچسب'));
+    final tagPill = find.text('برچسب');
+    await tester.ensureVisible(tagPill);
+    await tester.tap(tagPill);
     await tester.pumpAndSettle();
     await tester.tap(find.text('فوری'));
     await tester.pumpAndSettle();
@@ -442,7 +546,9 @@ void main() {
     final count = find.byKey(const ValueKey('task-editor-recurrence-count'));
     await tester.enterText(count, '7');
 
-    await tester.tap(find.byKey(const ValueKey('task-editor-repeat-enabled')));
+    final repeatEnabled = find.byKey(const ValueKey('task-editor-repeat-enabled'));
+    await tester.ensureVisible(repeatEnabled);
+    await tester.tap(repeatEnabled);
     await tester.pump();
 
     await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
@@ -467,15 +573,17 @@ void main() {
       find.byKey(const ValueKey('task-editor-title')),
       'کار زمان‌دار',
     );
-    await tester.ensureVisible(
-      find.byKey(const ValueKey('task-editor-due-time-rollbox')),
-    );
-    await tester.tap(
-      find.byKey(const ValueKey('task-editor-due-time-rollbox')),
-    );
+    final unified = find.byKey(const ValueKey('task-editor-due-date-time'));
+    await tester.ensureVisible(unified);
+    await tester.tap(unified);
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('۱۰:۳۰'));
-    await tester.tap(find.text('۱۰:۳۰'));
+    await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('universal-time-hour-outer-10')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('universal-time-minute-30')));
+    await tester.ensureVisible(find.byKey(const ValueKey('universal-time-save')));
+    await tester.tap(find.byKey(const ValueKey('universal-time-save')));
     await tester.pumpAndSettle();
 
     await tester.ensureVisible(find.byKey(const ValueKey('task-editor-header-save')));
@@ -501,15 +609,22 @@ void main() {
 
     await pumpEditor(tester, task: task, onResult: (value) => result = value);
 
-    await tester.ensureVisible(
-      find.byKey(const ValueKey('task-editor-due-time-rollbox')),
-    );
-    await tester.tap(
-      find.byKey(const ValueKey('task-editor-due-time-rollbox')),
-    );
+    final dateTimeButton = find.byKey(const ValueKey('task-editor-due-date-time'));
+    await tester.ensureVisible(dateTimeButton);
+    await tester.tap(dateTimeButton);
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('۱۱:۰۰'));
-    await tester.tap(find.text('۱۱:۰۰'));
+    final datePicker = find.byKey(const ValueKey('persian-date-picker'));
+    expect(datePicker, findsOneWidget);
+    await tester.tap(find.descendant(
+      of: datePicker,
+      matching: find.text('انتخاب تاریخ'),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('universal-time-hour-outer-11')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('universal-time-minute-0')));
+    await tester.ensureVisible(find.byKey(const ValueKey('universal-time-save')));
+    await tester.tap(find.byKey(const ValueKey('universal-time-save')));
     await tester.pumpAndSettle();
 
     await tester.ensureVisible(find.byKey(const ValueKey('task-editor-header-save')));
@@ -519,6 +634,193 @@ void main() {
     expect(result, isNotNull);
     expect(result!.dueDate, DateTime(2026, 8, 27, 11));
     expect(result!.reminderDate, DateTime(2026, 8, 27, 9));
+  });
+
+  testWidgets('new Task uses one date-time entry and the approved circular clock',
+      (tester) async {
+    Task? result;
+    await pumpEditor(tester, onResult: (value) => result = value);
+
+    final unified = find.byKey(const ValueKey('task-editor-due-date-time'));
+    expect(unified, findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-due-no-time')), findsNothing);
+    expect(find.text('بدون ساعت'), findsNothing);
+    expect(find.byKey(const ValueKey('task-editor-due-date-rollbox')), findsNothing);
+    expect(find.byKey(const ValueKey('task-editor-due-time-button')), findsNothing);
+    expect(find.byKey(const ValueKey('task-editor-due-time-rollbox')), findsNothing);
+
+    await tester.ensureVisible(unified);
+    await tester.tap(unified);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('انتخاب تاریخ و ساعت'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('universal-time-hour-outer-10')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('universal-time-minute-30')));
+    await tester.ensureVisible(find.byKey(const ValueKey('universal-time-save')));
+    await tester.tap(find.byKey(const ValueKey('universal-time-save')));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.dueDate, isNotNull);
+    expect(result!.dueDate!.hour, 10);
+    expect(result!.dueDate!.minute, 30);
+    expect(result!.allDay, isFalse);
+    expect(result!.reminderDate, result!.dueDate);
+  });
+
+  testWidgets('Task editor saves a real all-day deadline from inside the clock dialog',
+      (tester) async {
+    Task? result;
+    await pumpEditor(tester, onResult: (value) => result = value);
+    final unified = find.byKey(const ValueKey('task-editor-due-date-time'));
+    await tester.ensureVisible(unified);
+    await tester.tap(unified);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('انتخاب تاریخ و ساعت'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('universal-time-no-time')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.dueDate, isNotNull);
+    expect(result!.dueDate!.hour, 0);
+    expect(result!.dueDate!.minute, 0);
+    expect(result!.allDay, isTrue);
+    expect(result!.reminderDate, isNull);
+  });
+
+
+  testWidgets('new Task keeps due date and reminder absent when the unified control is untouched',
+      (tester) async {
+    Task? result;
+    await pumpEditor(tester, onResult: (value) => result = value);
+
+    expect(find.byKey(const ValueKey('task-editor-due-date-time')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.dueDate, isNull);
+    expect(result!.allDay, isFalse);
+    expect(result!.reminderDate, isNull);
+  });
+
+  testWidgets('Task editor priority labels wrap safely at narrow width',
+      (tester) async {
+    Task? result;
+    await pumpEditor(
+      tester,
+      logicalSize: const Size(320, 800),
+      onResult: (value) => result = value,
+    );
+    final row = find.byKey(const ValueKey('task-editor-priority'));
+    await tester.ensureVisible(row);
+    expect(row, findsOneWidget);
+
+    final keys = [
+      'task-editor-priority-high',
+      'task-editor-priority-medium',
+      'task-editor-priority-low',
+      'task-editor-priority-none',
+    ];
+    final rects = <Rect>[];
+    for (final key in keys) {
+      final finder = find.byKey(ValueKey(key));
+      expect(finder, findsOneWidget);
+      rects.add(tester.getRect(finder));
+      expect(tester.getSize(finder).height, greaterThanOrEqualTo(48));
+    }
+    final rowTops = rects.map((rect) => rect.top).toSet();
+    expect(rowTops.length, greaterThan(1));
+    expect(rowTops.length, lessThanOrEqualTo(2));
+    for (final rect in rects) {
+      expect(rect.left, greaterThanOrEqualTo(0));
+      expect(rect.right, lessThanOrEqualTo(320));
+    }
+    expect(rects.every((rect) => rect.width >= 48), isTrue);
+    for (final label in ['اولویت ۱', 'اولویت ۲', 'اولویت ۳', 'اولویت ۴']) {
+      expect(find.text(label), findsOneWidget);
+    }
+    for (final description in [
+      'اولویت ۱ — فوری و مهم',
+      'اولویت ۲ — مهم، غیرفوری',
+      'اولویت ۳ — فوری، غیرمهم',
+      'اولویت ۴ — غیرفوری و غیرمهم',
+    ]) {
+      expect(find.byTooltip(description), findsOneWidget);
+    }
+    expect(find.text('P1'), findsNothing);
+    expect(find.text('P2'), findsNothing);
+    expect(find.text('P3'), findsNothing);
+    expect(find.text('P4'), findsNothing);
+    expect(tester.takeException(), isNull);
+
+    final p2 = tester.widget<ChoiceChip>(
+      find.byKey(const ValueKey('task-editor-priority-medium')),
+    );
+    expect(p2.selected, isTrue);
+    expect(tester.widget<ChoiceChip>(find.byKey(const ValueKey('task-editor-priority-high'))).side?.color, ArvinColors.priorityP1.withValues(alpha: 0.35));
+    expect(p2.side?.color, ArvinColors.priorityP2.withValues(alpha: 0.9));
+    expect(tester.widget<ChoiceChip>(find.byKey(const ValueKey('task-editor-priority-low'))).side?.color, ArvinColors.priorityP3.withValues(alpha: 0.35));
+    expect(tester.widget<ChoiceChip>(find.byKey(const ValueKey('task-editor-priority-none'))).side?.color, ArvinColors.priorityP4.withValues(alpha: 0.35));
+    await tester.tap(find.byKey(const ValueKey('task-editor-priority-high')));
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+    expect(result, isNotNull);
+    expect(result!.priority, TaskPriority.high);
+  });
+
+  testWidgets('Task editor cancelling the circular clock does not commit a partial date',
+      (tester) async {
+    Task? result;
+    await pumpEditor(tester, onResult: (value) => result = value);
+    final unified = find.byKey(const ValueKey('task-editor-due-date-time'));
+    await tester.ensureVisible(unified);
+    await tester.tap(unified);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('انتخاب تاریخ و ساعت'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('universal-time-cancel')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+    expect(result, isNotNull);
+    expect(result!.dueDate, isNull);
+    expect(result!.allDay, isFalse);
+    expect(result!.reminderDate, isNull);
+  });
+
+
+  testWidgets('Task editor remains scrollable without overflow with the mobile keyboard open',
+      (tester) async {
+    await pumpEditor(tester, logicalSize: const Size(390, 844));
+    tester.view.viewInsets = const FakeViewPadding(bottom: 600);
+    addTearDown(tester.view.resetViewInsets);
+    await tester.pumpAndSettle();
+
+    final title = find.byKey(const ValueKey('task-editor-title'));
+    await tester.ensureVisible(title);
+    expect(find.byKey(const ValueKey('task-editor-due-date-time')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-center-rollbox')), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
 }

@@ -34,8 +34,8 @@ class TaskMoveToTodayService {
       effectiveNow.year,
       effectiveNow.month,
       effectiveNow.day,
-      previousDue?.hour ?? effectiveNow.hour,
-      previousDue?.minute ?? effectiveNow.minute,
+      task.allDay ? 0 : (previousDue?.hour ?? effectiveNow.hour),
+      task.allDay ? 0 : (previousDue?.minute ?? effectiveNow.minute),
     );
     task.updatedAt = effectiveNow;
 

@@ -492,4 +492,28 @@ void main() {
     expect(reminders.single.date, DateTime(2026, 12, 5, 9, 30));
     expect(reminders.single.isAllDay, isFalse);
   });
+  test('archived Tasks are removed from the writable calendar projection', () {
+    final archived = Task(
+      id: 'archived-task',
+      title: 'کار بایگانی‌شده',
+      description: 'شرح محفوظ',
+      dueDate: DateTime(2026, 11, 4, 9),
+      archived: true,
+    );
+    expect(projection.project([archived]), isEmpty);
+  });
+
+  test('Task description is included in due-date and reminder projections', () {
+    final task = Task(
+      id: 'described-task',
+      title: 'تماس',
+      description: 'شرح جدید کار',
+      dueDate: DateTime(2026, 11, 5, 10),
+      reminderDate: DateTime(2026, 11, 5, 9),
+    );
+    final reminders = projection.project([task]);
+    expect(reminders, hasLength(2));
+    expect(reminders.every((item) => item.description == 'شرح جدید کار'), isTrue);
+  });
+
 }

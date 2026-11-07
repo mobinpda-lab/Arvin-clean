@@ -93,13 +93,53 @@ jobs:
           SHARD_INDEX: ${{ fromJSON(matrix.lane == 'test-0' && '0' || matrix.lane == 'test-1' && '1' || matrix.lane == 'test-2' && '2' || matrix.lane == 'test-3' && '3' || matrix.lane == 'test-4' && '4' || '5') }}
         run: flutter test --total-shards 6 --shard-index $SHARD_INDEX
 
+  # Keep visual golden coverage independent from the seven-lane Analyze/Test contract.
+  visual:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+      - name: Verify exact requested revision
+        env:
+          TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "$TARGET_SHA"
+          echo "EXACT_TARGET_SHA=$actual"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - name: Resolve locked dependencies
+        run: |
+          set -euo pipefail
+          flutter pub get --enforce-lockfile
+          git diff --exit-code -- pubspec.lock
+      - name: Task Details structural layout smoke
+        run: flutter test test/task_detail_visual_test.dart
+      - name: Upload Task Details visual evidence
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: arvin-task-detail-visual-${{ github.run_id }}
+          path: |
+            test/failures/task_detail_visual_actual.png
+            test/failures/**/*.png
+          if-no-files-found: warn
+
   # APK builds are independent of Analyze/Test and run in parallel with the quality matrix.
   apk:
+    # Product owner explicitly authorized candidate-only APK assembly on this draft PR branch.
+    # Artifacts are validation evidence only; this workflow never publishes or releases them.
+    if: always()
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        variant: [release, debug]
+        variant: [release, debug, staging]
     name: apk (${{ matrix.variant }})
     steps:
       - uses: actions/checkout@v5
@@ -132,13 +172,198 @@ jobs:
           set -euo pipefail
           flutter pub get --enforce-lockfile
           git diff --exit-code -- pubspec.lock
-      - name: Build APK
-        run: flutter build apk --${{ matrix.variant }} -t lib/main.dart
-      - name: Font packaging audit
+      - name: Create ephemeral staging signing key
+        if: matrix.variant == 'staging'
         shell: bash
         run: |
           set -euo pipefail
-          apk="build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk"
+          keystore="$RUNNER_TEMP/arvin-staging-test.keystore"
+          password="$(openssl rand -hex 24)"
+          echo "::add-mask::$password"
+          keytool -genkeypair -noprompt -v \
+            -keystore "$keystore" -storetype JKS \
+            -storepass "$password" -keypass "$password" \
+            -alias arvin-staging-test -keyalg RSA -keysize 2048 -validity 3650 \
+            -dname "CN=Arvin Staging Test,O=Arvin,C=XX"
+          chmod 600 "$keystore"
+          {
+            echo "ARVIN_STAGING_KEYSTORE_PATH=$keystore"
+            echo "ARVIN_STAGING_KEYSTORE_PASSWORD=$password"
+            echo "ARVIN_STAGING_KEY_ALIAS=arvin-staging-test"
+            echo "ARVIN_STAGING_KEY_PASSWORD=$password"
+          } >> "$GITHUB_ENV"
+          unset password
+          echo "STAGING_SIGNING_KEY=EPHEMERAL_TEST_ONLY"
+
+      - name: Build APK
+        id: build-apk
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ matrix.variant }}" == "staging" ]]; then
+            cd android
+            bash ./gradlew --no-daemon :app:assembleStaging
+          else
+            flutter build apk --${{ matrix.variant }} -t lib/main.dart
+          fi
+
+      - name: Verify staging APK signature and merged manifest
+        if: matrix.variant == 'staging'
+        shell: bash
+        run: |
+          set -uo pipefail
+          mkdir -p staging-verification
+          apk="build/app/outputs/apk/staging/app-staging.apk"
+          signer_log="staging-verification/apksigner-verify.log"
+          : > "$signer_log"
+
+          apk_status=NOT_VERIFIED
+          apksigner_exit=NOT_RUN
+          v1_status=NOT_VERIFIED
+          v2_status=NOT_VERIFIED
+          v3_status=NOT_VERIFIED
+          signer_sha256=NOT_AVAILABLE
+          debuggable_status=NOT_VERIFIED
+          debuggable_value=NOT_VERIFIED
+          apkanalyzer_exit=NOT_RUN
+
+          if [[ -s "$apk" ]]; then
+            apk_status=PASS
+            sdk_build_tools="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+            apksigner="$sdk_build_tools/apksigner"
+            apkanalyzer="$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer"
+            if [[ ! -x "$apkanalyzer" ]]; then
+              apkanalyzer="$(command -v apkanalyzer || find "$ANDROID_HOME" -type f -name apkanalyzer | sort -V | tail -n 1)"
+            fi
+
+            if [[ -x "$apksigner" ]]; then
+              set +e
+              "$apksigner" verify --verbose --print-certs "$apk" > "$signer_log" 2>&1
+              apksigner_exit=$?
+              set -e
+              cat "$signer_log"
+              for scheme in v1 v2 v3; do
+                line="$(grep -F "Verified using $scheme scheme" "$signer_log" | tail -n 1 || true)"
+                if [[ -z "$line" ]]; then
+                  status=NOT_VERIFIED
+                elif [[ "$line" == *": true" ]]; then
+                  status=PASS
+                else
+                  status=FAIL
+                fi
+                case "$scheme" in
+                  v1) v1_status="$status" ;;
+                  v2) v2_status="$status" ;;
+                  v3) v3_status="$status" ;;
+                esac
+              done
+              digest_line="$(grep -F 'Signer #1 certificate SHA-256 digest:' "$signer_log" | tail -n 1 || true)"
+              if [[ -n "$digest_line" ]]; then
+                signer_sha256="${digest_line##*: }"
+              fi
+            else
+              echo "APKSIGNER=NOT_FOUND" | tee -a "$signer_log"
+            fi
+
+            if [[ -x "$apkanalyzer" ]]; then
+              set +e
+              debuggable_value="$("$apkanalyzer" manifest debuggable "$apk" 2>&1)"
+              apkanalyzer_exit=$?
+              set -e
+              if [[ "$apkanalyzer_exit" == "0" && "$debuggable_value" == "false" ]]; then
+                debuggable_status=PASS
+              elif [[ "$apkanalyzer_exit" == "0" ]]; then
+                debuggable_status=FAIL
+              fi
+            else
+              echo "APK_ANALYZER=NOT_FOUND" | tee -a staging-verification/manifest-audit.txt
+            fi
+          else
+            echo "APK_FILE=NOT_FOUND path=$apk" | tee -a "$signer_log"
+          fi
+
+          apk_bytes=0
+          apk_sha256=NOT_AVAILABLE
+          if [[ -s "$apk" ]]; then
+            apk_bytes="$(stat -c '%s' "$apk")"
+            apk_sha256="$(sha256sum "$apk" | awk '{print $1}')"
+          fi
+
+          manifest_status=PASS
+          [[ "$apk_status" == PASS ]] || manifest_status=FAIL
+          [[ "$apksigner_exit" == 0 ]] || manifest_status=FAIL
+          [[ "$v2_status" == PASS ]] || manifest_status=FAIL
+          [[ "$v3_status" == PASS ]] || manifest_status=FAIL
+          [[ "$debuggable_status" == PASS ]] || manifest_status=FAIL
+
+          export APK_STATUS="$apk_status"
+          export APKSIGNER_EXIT="$apksigner_exit"
+          export V1_STATUS="$v1_status"
+          export V2_STATUS="$v2_status"
+          export V3_STATUS="$v3_status"
+          export SIGNER_SHA256="$signer_sha256"
+          export DEBUGGABLE_STATUS="$debuggable_status"
+          export DEBUGGABLE_VALUE="$debuggable_value"
+          export APKANALYZER_EXIT="$apkanalyzer_exit"
+          export APK_BYTES="$apk_bytes"
+          export APK_SHA256="$apk_sha256"
+          export TARGET_SHA="$(git rev-parse HEAD)"
+          export MANIFEST_STATUS="$manifest_status"
+          python3 - <<'PY'
+          import json, os, pathlib
+          manifest = {
+              "source_sha": os.environ["TARGET_SHA"],
+              "variant": "staging",
+              "apk_path": "build/app/outputs/apk/staging/app-staging.apk",
+              "apk_status": os.environ["APK_STATUS"],
+              "file_size_bytes": int(os.environ["APK_BYTES"]),
+              "sha256": os.environ["APK_SHA256"],
+              "apksigner_exit_code": os.environ["APKSIGNER_EXIT"],
+              "signature_schemes": {
+                  "v1": os.environ["V1_STATUS"],
+                  "v2": os.environ["V2_STATUS"],
+                  "v3": os.environ["V3_STATUS"],
+              },
+              "signer_certificate_sha256": os.environ["SIGNER_SHA256"],
+              "apkanalyzer_exit_code": os.environ["APKANALYZER_EXIT"],
+              "android_debuggable_value": os.environ["DEBUGGABLE_VALUE"],
+              "android_debuggable_check": os.environ["DEBUGGABLE_STATUS"],
+              "release_manifest_validation": os.environ["MANIFEST_STATUS"],
+              "signing_key_class": "EPHEMERAL_TEST_ONLY_NOT_PRODUCTION",
+              "publishable": False,
+          }
+          pathlib.Path("staging-verification/release-manifest.json").write_text(
+              json.dumps(manifest, indent=2) + "\n", encoding="utf-8"
+          )
+          pathlib.Path("staging-verification/manifest-audit.txt").write_text(
+              "\n".join(f"{key}={value}" for key, value in manifest.items()) + "\n",
+              encoding="utf-8",
+          )
+          PY
+
+          echo "APK_STATUS=$apk_status"
+          echo "APKSIGNER_EXIT_CODE=$apksigner_exit"
+          echo "APK_SIGNATURE_V1=$v1_status"
+          echo "APK_SIGNATURE_V2=$v2_status"
+          echo "APK_SIGNATURE_V3=$v3_status"
+          echo "SIGNER_CERTIFICATE_SHA256=$signer_sha256"
+          echo "APK_DEBUGGABLE_CHECK=$debuggable_status value=$debuggable_value exit=$apkanalyzer_exit"
+          echo "RELEASE_MANIFEST_VALIDATION=$manifest_status"
+          echo "APK_SHA256=$apk_sha256 APK_BYTES=$apk_bytes"
+          if [[ "$manifest_status" != PASS ]]; then
+            exit 1
+          fi
+
+      - name: Font packaging audit
+        if: always() && steps.build-apk.outcome == 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ matrix.variant }}" == "staging" ]]; then
+            apk="build/app/outputs/apk/staging/app-staging.apk"
+          else
+            apk="build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk"
+          fi
           test -s "$apk"
           for font in \
             assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf \
@@ -158,10 +383,34 @@ jobs:
           echo "FONT_GATE=PASS_VAZIRMATN_BUNDLED_SYSTEM_DEFAULT_PURGED"
 
       - name: Verify APK
-        run: test -s "build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk"
+        if: always() && steps.build-apk.outcome == 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ matrix.variant }}" == "staging" ]]; then
+            test -s "build/app/outputs/apk/staging/app-staging.apk"
+          else
+            test -s "build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk"
+          fi
       - name: Upload APK
+        if: success() && steps.build-apk.outcome == 'success'
         uses: actions/upload-artifact@v5
         with:
           name: arvin-${{ matrix.variant }}-apk
-          path: build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk
+          path: ${{ matrix.variant == 'staging' && 'build/app/outputs/apk/staging/app-staging.apk' || format('build/app/outputs/flutter-apk/app-{0}.apk', matrix.variant) }}
           if-no-files-found: error
+      - name: Upload Staging APK audit candidate
+        if: always() && matrix.variant == 'staging'
+        uses: actions/upload-artifact@v5
+        with:
+          name: arvin-staging-apk-audit-candidate
+          path: build/app/outputs/apk/staging/app-staging.apk
+          if-no-files-found: ignore
+
+      - name: Upload staging verification logs
+        if: always() && matrix.variant == 'staging'
+        uses: actions/upload-artifact@v5
+        with:
+          name: arvin-staging-verification
+          path: staging-verification/
+          if-no-files-found: warn

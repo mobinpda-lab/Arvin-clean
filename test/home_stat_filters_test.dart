@@ -1,25 +1,55 @@
 import 'package:arvin/main.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:arvin/services/iran_clock.dart';
+import 'package:arvin/services/task_store.dart';
+import 'package:arvin/services/project_store.dart';
+import 'package:arvin/services/center_store.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  setUp(() {
+  setUp(() async {
+    await TaskStore.resetTestDatabase();
+    await ProjectStore.resetTestDatabase();
+    await CenterStore.resetTestDatabase();
     SharedPreferences.setMockInitialValues({
       'arvin.tasks': '[\n        {"id":"active","title":"کار فعال","category":"اداری","tags":["مهم"],"completed":false},\n        {"id":"done","title":"کار انجام شده","category":"شخصی","completed":true},\n        {"id":"late","title":"کار عقب افتاده","completed":false,"dueDate":"2020-01-01T08:00:00.000"},\n        {"id":"archived","title":"کار بایگانی","archived":true}\n      ]',
     });
   });
 
-  testWidgets('Home exposes the four final grouping controls', (tester) async {
+  tearDown(() async {
+    await TaskStore.resetTestDatabase();
+    await ProjectStore.resetTestDatabase();
+    await CenterStore.resetTestDatabase();
+  });
+
+  testWidgets('Home exposes the five canonical filter controls', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
     expect(find.text('زمان'), findsOneWidget);
-    expect(find.text('پروژه'), findsOneWidget);
-    expect(find.text('دسته'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-compact-filter-wrap')), findsOneWidget);
+    expect(find.text('مرکز'), findsOneWidget);
+    expect(find.text('پروژه‌ها'), findsOneWidget);
+    expect(find.text('دسته‌ها'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
+    for (final key in [
+      'home-filter-card-time',
+      'home-filter-card-center',
+      'home-filter-card-project',
+      'home-filter-card-category',
+      'home-filter-card-tags',
+    ]) {
+      expect(tester.getRect(find.byKey(ValueKey(key))).height, greaterThanOrEqualTo(48));
+    }
+    expect(tester.takeException(), isNull);
 
     final scrollable = find.byType(Scrollable).last;
     await tester.scrollUntilVisible(find.byKey(const ValueKey('active')), 400, scrollable: scrollable);
@@ -32,17 +62,15 @@ void main() {
     expect(find.text('کار بایگانی'), findsNothing);
   });
 
-  testWidgets('Home notification remains physically left of menu in RTL',
+  testWidgets('Home header omits notification bell and keeps general filter left of menu in RTL',
       (tester) async {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
-
-    final notificationCenter = tester.getCenter(
-      find.byKey(const ValueKey('home-notifications')),
-    );
-    final menuCenter = tester.getCenter(find.byKey(const ValueKey('home-menu')));
-
-    expect(notificationCenter.dx, greaterThan(menuCenter.dx));
+    expect(find.byKey(const ValueKey('home-notifications')), findsNothing);
+    expect(find.byKey(const ValueKey('home-search-button')), findsOneWidget);
+    final generalFilterCenter = tester.getCenter(find.byKey(const ValueKey('home-general-filter-button')));
+    final menuCenter = tester.getCenter(find.byKey(const ValueKey('home-drawer-button')));
+    expect(generalFilterCenter.dx, lessThan(menuCenter.dx));
   });
 
   testWidgets('Home keeps core controls reachable on a short Android viewport',
@@ -55,11 +83,19 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('بسم الله الرحمن الرحیم'), findsOneWidget);
+    expect(find.byType(SvgPicture), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-bismillah-svg')), findsOneWidget);
+    expect(
+      find.byWidgetPredicate((widget) => widget is SvgPicture &&
+          (widget.bytesLoader as dynamic).assetName == 'assets/images/branding/bismillah.svg'),
+      findsOneWidget,
+    );
     expect(find.byKey(const ValueKey('home-canonical-search')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-search-button')), findsOneWidget);
     expect(find.text('زمان'), findsOneWidget);
-    expect(find.text('پروژه'), findsOneWidget);
-    expect(find.text('دسته'), findsOneWidget);
+    expect(find.text('مرکز'), findsOneWidget);
+    expect(find.text('پروژه‌ها'), findsOneWidget);
+    expect(find.text('دسته‌ها'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
     expect(tester.takeException(), isNull);
@@ -73,9 +109,13 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     final before = prefs.getString('arvin.tasks');
 
-    await tester.tap(find.text('دسته'));
+    final categoryChip = find.byKey(const ValueKey('home-filter-card-category'));
+    await tester.ensureVisible(categoryChip);
+    await tester.tap(categoryChip);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('برچسب‌ها'));
+    final tagChip = find.byKey(const ValueKey('home-filter-card-tags'));
+    await tester.ensureVisible(tagChip);
+    await tester.tap(tagChip);
     await tester.pumpAndSettle();
 
     expect(prefs.getString('arvin.tasks'), before);
@@ -85,10 +125,18 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('زمان'));
+    final timeChip = find.byKey(const ValueKey('home-filter-card-time'));
+    await tester.ensureVisible(timeChip);
+    await tester.tap(timeChip);
     await tester.pumpAndSettle();
 
     final sheetScrollable = find.byType(Scrollable).last;
+    await tester.scrollUntilVisible(find.text('بازهٔ دلخواه'), 300, scrollable: sheetScrollable);
+    final customRange = find.widgetWithText(CheckboxListTile, 'بازهٔ دلخواه');
+    expect(customRange, findsOneWidget);
+    await tester.ensureVisible(customRange);
+    await tester.tap(customRange);
+    await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.text('از تاریخ'), 300, scrollable: sheetScrollable);
     expect(find.text('از تاریخ'), findsOneWidget);
     await tester.scrollUntilVisible(find.text('تا تاریخ'), 300, scrollable: sheetScrollable);
@@ -97,12 +145,90 @@ void main() {
     expect(find.text('از ساعت'), findsOneWidget);
     await tester.scrollUntilVisible(find.text('تا ساعت'), 300, scrollable: sheetScrollable);
     expect(find.text('تا ساعت'), findsOneWidget);
-    await tester.scrollUntilVisible(find.text('اعمال بازه'), 300, scrollable: sheetScrollable);
-    expect(find.text('اعمال بازه'), findsOneWidget);
-    expect(tester.widget<FilledButton>(find.ancestor(
-      of: find.text('اعمال بازه'),
-      matching: find.byType(FilledButton),
-    ).first).onPressed, isNull);
+    await tester.scrollUntilVisible(find.text('تأیید / اعمال فیلتر'), 300, scrollable: sheetScrollable);
+    expect(find.text('تأیید / اعمال فیلتر'), findsOneWidget);
+    expect(find.text('اعمال بازه'), findsNothing);
   });
+
+  testWidgets('category checkbox selection applies OR only after confirmation', (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': '[{"id":"one","title":"اداری","category":"اداری"},{"id":"two","title":"شخصی","category":"شخصی"},{"id":"three","title":"مالی","category":"مالی"}]',
+    });
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+    final categoryChip = find.byKey(const ValueKey('home-filter-card-category'));
+    await tester.ensureVisible(categoryChip);
+    await tester.tap(categoryChip);
+    await tester.pumpAndSettle();
+    expect(find.text('همه'), findsOneWidget);
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'اداری'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'شخصی'));
+    await tester.pumpAndSettle();
+    // Draft choices are not applied before the explicit confirmation.
+    expect(find.byKey(const ValueKey('task-card-title-three')), findsOneWidget);
+    await tester.tap(find.text('تأیید / اعمال فیلتر'));
+    await tester.pumpAndSettle();
+    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-category')), matching: find.text('دسته‌ها (۲)')), findsOneWidget);
+    expect(find.text('اداری'), findsWidgets);
+    expect(find.text('شخصی'), findsWidgets);
+    expect(find.text('مالی'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('tag choices are OR within Tags and AND with Category', (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': '[{"id":"one","title":"اول","category":"اداری","tags":["مهم","فوری"]},{"id":"two","title":"دوم","category":"اداری","tags":["فوری"]},{"id":"three","title":"سوم","category":"شخصی","tags":["مهم"]}]',
+    });
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+    final categoryChip = find.byKey(const ValueKey('home-filter-card-category'));
+    await tester.ensureVisible(categoryChip);
+    await tester.tap(categoryChip);
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'اداری'));
+    await tester.tap(find.text('تأیید / اعمال فیلتر'));
+    await tester.pumpAndSettle();
+    final tagsChip = find.byKey(const ValueKey('home-filter-card-tags'));
+    await tester.ensureVisible(tagsChip);
+    await tester.tap(tagsChip);
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'مهم'));
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'فوری'));
+    await tester.tap(find.text('تأیید / اعمال فیلتر'));
+    await tester.pumpAndSettle();
+    expect(find.text('اول'), findsOneWidget);
+    expect(find.text('دوم'), findsOneWidget);
+    expect(find.text('سوم'), findsNothing);
+    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-tags')), matching: find.text('برچسب‌ها (۲)')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('time checkbox selections use OR and show the selected count', (tester) async {
+    final iranNow = IranClock.now();
+    final now = DateTime(iranNow.year, iranNow.month, iranNow.day, 12);
+    final yesterday = now.subtract(const Duration(days: 1));
+    final tomorrow = now.add(const Duration(days: 1));
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': '[{"id":"past-time","title":"کار گذشته","dueDate":"${yesterday.toIso8601String()}"},{"id":"today-time","title":"کار امروز","dueDate":"${now.toIso8601String()}"},{"id":"future-time","title":"کار فردا","dueDate":"${tomorrow.toIso8601String()}"}]',
+    });
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+    final timeChip = find.byKey(const ValueKey('home-filter-card-time'));
+    await tester.ensureVisible(timeChip);
+    await tester.tap(timeChip);
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'گذشته'));
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'امروز'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('تأیید / اعمال فیلتر'));
+    await tester.pumpAndSettle();
+    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-time')), matching: find.text('زمان (۲)')), findsOneWidget);
+    expect(find.text('کار گذشته'), findsOneWidget);
+    expect(find.text('کار امروز'), findsOneWidget);
+    expect(find.text('کار فردا'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
 
 }

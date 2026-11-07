@@ -43,4 +43,22 @@ void main() {
     expect(entry.checklist, isEmpty);
   });
 
+  test('groups report entries in P1 to P4 order and preserves order within each group', () {
+    final report = projection.project([
+      Task(id: 'p3-first', title: 'اول P3', priority: TaskPriority.low),
+      Task(id: 'p1', title: 'P1', priority: TaskPriority.high),
+      Task(id: 'p4', title: 'P4', priority: TaskPriority.none),
+      Task(id: 'p2', title: 'P2', priority: TaskPriority.medium),
+      Task(id: 'p3-second', title: 'دوم P3', priority: TaskPriority.low),
+    ]);
+    expect(
+      report.priorityGroups.map((group) => group.priority),
+      [TaskPriority.high, TaskPriority.medium, TaskPriority.low, TaskPriority.none],
+    );
+    expect(
+      report.priorityGroups.map((group) => group.entries.map((entry) => entry.id).toList()).toList(),
+      [['p1'], ['p2'], ['p3-first', 'p3-second'], ['p4']],
+    );
+  });
+
 }

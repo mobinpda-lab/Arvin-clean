@@ -34,7 +34,7 @@ void main() {
 
     expect(task.legacyTaskReminderMigrationVersion, 1);
     expect(task.taskReminders.map((reminder) => reminder.id),
-        <String>['legacy-task-reminder']);
+        <String>['legacy-task-reminder-task-reminder-integration']);
 
     // Deletion is represented by an empty canonical collection plus the
     // persisted migration tombstone; the old compatibility field stays intact.
@@ -82,7 +82,7 @@ void main() {
     });
 
     expect(oldTask.taskReminders, hasLength(1));
-    expect(oldTask.taskReminders.single.id, 'legacy-task-reminder');
+    expect(oldTask.taskReminders.single.id, 'legacy-task-reminder-task-reminder-integration');
     expect(oldTask.taskReminders.single.isLegacyTaskReminder, isTrue);
 
     oldTask.taskReminders.addAll(<TaskReminder>[
@@ -102,7 +102,7 @@ void main() {
     oldTask.nextReminderSequence = 4;
 
     final eventLink = ExternalCalendarEventLink(
-      reminderId: 'task-reminder-item:task-reminder-integration:legacy-task-reminder',
+      reminderId: 'task-reminder-item:task-reminder-integration:legacy-task-reminder-task-reminder-integration',
       calendarId: 'calendar-local-1',
       eventId: 'provider-event-stable-42',
       lastSyncedFingerprint: 'fingerprint-v1',
@@ -122,7 +122,7 @@ void main() {
     expect(sqlReloaded.single.id, oldTask.id);
     expect(sqlReloaded.single.people.single.id, 'person-7');
     expect(sqlReloaded.single.taskReminders.map((r) => r.id).toSet(), {
-      'legacy-task-reminder',
+      'legacy-task-reminder-task-reminder-integration',
       'task-reminder-integration:reminder:2',
       'task-reminder-integration:reminder:3',
     });
@@ -152,7 +152,7 @@ void main() {
     expect(task.taskReminders, hasLength(3),
         reason: 'restore must not duplicate any Reminder');
     expect(task.taskReminders.map((r) => r.id).toSet(), {
-      'legacy-task-reminder',
+      'legacy-task-reminder-task-reminder-integration',
       'task-reminder-integration:reminder:2',
       'task-reminder-integration:reminder:3',
     });

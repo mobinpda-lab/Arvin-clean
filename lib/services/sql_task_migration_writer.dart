@@ -80,10 +80,9 @@ class SqlTaskMigrationWriter {
     await executor.runInsert(
       '''INSERT INTO tasks (
         id, storage_ordinal, title, description, created_at, updated_at, due_date,
-        follow_up_enabled, follow_up_date, category, notebook_kind,
-        reminder_date, priority, archived, trashed, completed, completed_at,
+        category, notebook_kind, priority, archived, trashed, completed, completed_at,
         recurrence_json, legacy_payload_json
-       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
       <Object?>[
         task.id,
         storageOrdinal,
@@ -91,12 +90,9 @@ class SqlTaskMigrationWriter {
         task.description,
         task.createdAt?.toIso8601String(),
         task.updatedAt?.toIso8601String(),
-        task.dueDate?.toIso8601String(),
-        _bool(task.followUpEnabled),
-        task.followUpDate?.toIso8601String(),
+        task.dueDateStorageValue,
         task.category,
         task.notebookKind?.name,
-        task.reminderDate?.toIso8601String(),
         task.priority.name,
         _bool(task.archived),
         _bool(task.trashed),
@@ -107,22 +103,57 @@ class SqlTaskMigrationWriter {
       ],
     );
 
+    for (final reminder in task.taskReminders) {
+      await executor.runInsert(
+        '''INSERT INTO task_reminders
+           (id, task_id, title, remind_at, is_all_day, sequence, is_enabled, is_legacy_task_reminder)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+        <Object?>[
+          reminder.id,
+          task.id,
+          reminder.title,
+          reminder.storageDateValue,
+          _bool(reminder.isAllDay),
+          reminder.sequence,
+          _bool(reminder.isEnabled),
+          _bool(reminder.isLegacyTaskReminder),
+        ],
+      );
+    }
+
+    final now = DateTime.now().toIso8601String();
+    for (final person in task.people) {
+      await executor.runInsert(
+        '''INSERT INTO persons (id, name, created_at, updated_at)
+           VALUES (?, ?, ?, ?)
+           ON CONFLICT(id) DO UPDATE SET name = excluded.name, updated_at = excluded.updated_at''',
+        <Object?>[person.id, person.displayName, now, now],
+      );
+    }
+    for (final followUp in task.followUps) {
+      for (final personId in followUp.personIds) {
+        await executor.runInsert(
+          '''INSERT OR IGNORE INTO persons (id, name, created_at, updated_at)
+             VALUES (?, '', ?, ?)''',
+          <Object?>[personId, now, now],
+        );
+      }
+    }
+
     for (var ordinal = 0; ordinal < task.followUps.length; ordinal++) {
       final followUp = task.followUps[ordinal];
       await executor.runInsert(
-        '''INSERT INTO follow_ups (
-          id, task_id, date_time, title, note, result, reminder_date,
-          next_follow_up, completed, waiting_for_response, ordinal
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+        '''INSERT INTO follow_up_records (
+          id, task_id, completed_at, title, note, result, completed,
+          waiting_for_response, ordinal
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
         <Object?>[
           followUp.id,
           task.id,
-          followUp.dateTime.toIso8601String(),
+          followUp.completedAt.toIso8601String(),
           followUp.title,
           followUp.note,
           followUp.result,
-          followUp.reminderDate?.toIso8601String(),
-          followUp.nextFollowUp?.toIso8601String(),
           _bool(followUp.completed),
           _bool(followUp.waitingForResponse),
           ordinal,
@@ -132,7 +163,7 @@ class SqlTaskMigrationWriter {
           personOrdinal < followUp.personIds.length;
           personOrdinal++) {
         await executor.runInsert(
-          'INSERT INTO follow_up_people (follow_up_id, person_id, ordinal) VALUES (?, ?, ?)',
+          'INSERT INTO follow_up_record_people (follow_up_id, person_id, ordinal) VALUES (?, ?, ?)',
           <Object?>[
             followUp.id,
             followUp.personIds[personOrdinal],
@@ -152,16 +183,16 @@ class SqlTaskMigrationWriter {
 
     for (var ordinal = 0; ordinal < task.people.length; ordinal++) {
       final person = task.people[ordinal];
+      final now = DateTime.now().toIso8601String();
       await executor.runInsert(
-        '''INSERT INTO task_people (
-          task_id, person_id, person_json, ordinal
-        ) VALUES (?, ?, ?, ?)''',
-        <Object?>[
-          task.id,
-          person.id,
-          jsonEncode(person.toJson()),
-          ordinal,
-        ],
+        '''INSERT INTO persons (id, name, created_at, updated_at)
+           VALUES (?, ?, ?, ?)
+           ON CONFLICT(id) DO UPDATE SET name = excluded.name, updated_at = excluded.updated_at''',
+        <Object?>[person.id, person.displayName, now, now],
+      );
+      await executor.runInsert(
+        'INSERT INTO task_persons (task_id, person_id, ordinal) VALUES (?, ?, ?)',
+        <Object?>[task.id, person.id, ordinal],
       );
     }
 

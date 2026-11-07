@@ -1,3 +1,4 @@
+import 'package:arvin/models/task.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:arvin/services/task_report_projection.dart';
@@ -19,7 +20,14 @@ void main() {
           checklist: const ['تماس', 'ثبت نتیجه'],
           followUps: const [],
           completed: false,
-          reminderDate: DateTime(2026, 8, 30, 9, 30),
+          reminders: [
+            TaskReminder(
+              id: 'report-reminder-1',
+              title: 'یادآور گزارش',
+              date: DateTime(2026, 8, 30, 9, 30),
+              sequence: 1,
+            ),
+          ],
         ),
       ],
     );
@@ -77,4 +85,22 @@ void main() {
     expect(text, isNot(contains('چک‌لیست:')));
     expect(text, isNot(contains('پیگیری‌ها:')));
   });
+  test('plain-text output groups tasks by P1 through P4', () {
+    final report = const TaskReportProjection().project([
+      Task(id: 'p3', title: 'کار P3', priority: TaskPriority.low),
+      Task(id: 'p1', title: 'کار P1', priority: TaskPriority.high),
+      Task(id: 'p4', title: 'کار P4', priority: TaskPriority.none),
+      Task(id: 'p2', title: 'کار P2', priority: TaskPriority.medium),
+    ]);
+    final output = renderer.render(report);
+    final p1 = output.indexOf('P1 — فوری و مهم');
+    final p2 = output.indexOf('P2 — مهم، غیرفوری');
+    final p3 = output.indexOf('P3 — فوری، غیرمهم');
+    final p4 = output.indexOf('P4 — غیرفوری و غیرمهم');
+    expect(p1, greaterThanOrEqualTo(0));
+    expect(p1, lessThan(p2));
+    expect(p2, lessThan(p3));
+    expect(p3, lessThan(p4));
+  });
+
 }

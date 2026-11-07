@@ -1,8 +1,35 @@
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/waiting_for_response_service.dart';
 import 'package:arvin/task_detail_page.dart';
+import 'package:arvin/services/task_move_to_today_service.dart';
+import 'package:arvin/services/task_store.dart';
+import 'package:arvin/services/iran_clock.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+Finder _taskDetailPageScrollable(WidgetTester tester) {
+  final candidates = find.descendant(
+    of: find.byKey(const ValueKey('task-detail-page')),
+    matching: find.byType(Scrollable),
+  );
+  final pageScrollables = <Finder>[];
+  for (var index = 0; index < candidates.evaluate().length; index++) {
+    final candidate = candidates.at(index);
+    final state = tester.state<ScrollableState>(candidate);
+    if (state.position.axisDirection == AxisDirection.down &&
+        state.position.maxScrollExtent > 0) {
+      pageScrollables.add(candidate);
+    }
+  }
+  expect(
+    pageScrollables,
+    hasLength(1),
+    reason: 'Select the unique vertical Scrollable with real page scroll extent; '
+        'TextField-internal Scrollables are not the detail-page list.',
+  );
+  return pageScrollables.single;
+}
 
 void main() {
   testWidgets('ordinary Task detail also exposes real Follow-up entry',
@@ -18,7 +45,7 @@ void main() {
       MaterialApp(
         home: TaskDetailPage(
           task: task,
-          onEdit: (value) async => value,
+          onTaskChanged: (value) async => value,
         ),
       ),
     );
@@ -27,8 +54,108 @@ void main() {
     expect(find.text('ارسال قرارداد'), findsOneWidget);
     expect(find.text('نسخه نهایی برای مشتری'), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-due-date')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-edit')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-add-followup')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-inline-edit-toggle')), findsOneWidget);
+    final addFollowUp = find.byKey(const ValueKey('task-detail-add-followup'));
+    await tester.scrollUntilVisible(
+      addFollowUp,
+      240,
+      scrollable: _taskDetailPageScrollable(tester),
+    );
+    await tester.pumpAndSettle();
+    expect(addFollowUp, findsOneWidget);
+  });
+
+  testWidgets('Task detail shows the approved waiting status badge and description placeholder',
+      (tester) async {
+    final task = Task(id: 'empty-description', title: 'کار بدون توضیح');
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TaskDetailPage(
+          task: task,
+          onTaskChanged: (current) async => current,
+        ),
+      ),
+    );
+
+    expect(find.text('توضیحی ثبت نشده است'), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-inline-edit-toggle')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-status-badge')), findsOneWidget);
+    expect(find.text('در انتظار انجام'), findsOneWidget);
+    expect(find.text('در انتظار پاسخ'), findsNothing);
+    expect(find.text('پیگیری دار'), findsNothing);
+    expect(find.text('ثبت یادداشت'), findsNothing);
+  });
+
+  testWidgets('inline description edit updates updatedAt and preserves completion and Follow-up history',
+      (tester) async {
+    final completedAt = DateTime(2026, 10, 29, 9, 30);
+    final followUpDate = DateTime(2026, 10, 28, 11);
+    final nextFollowUp = DateTime(2026, 11, 2, 12);
+    final originalFollowUp = FollowUp(
+      id: 'immutable-follow-up',
+      dateTime: followUpDate,
+      note: 'تاریخچه غیرقابل تغییر',
+      nextFollowUp: nextFollowUp,
+      completed: true,
+    );
+    final previousUpdatedAt = DateTime(2026, 10, 27, 8);
+    final task = Task(
+      id: 'inline-description',
+      title: 'کار دارای توضیح',
+      description: 'متن قبلی',
+      updatedAt: previousUpdatedAt,
+      completed: true,
+      completedAt: completedAt,
+      followUpEnabled: true,
+      followUpDate: followUpDate,
+      followUps: <FollowUp>[originalFollowUp],
+    );
+    final savedAt = DateTime(2026, 10, 31, 12);
+    Task? persisted;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TaskDetailPage(
+          task: task,
+          onTaskChanged: (candidate) async {
+            candidate.updatedAt = savedAt;
+            persisted = candidate;
+            return candidate;
+          },
+        ),
+      ),
+    );
+
+    final descriptionEdit = find.byKey(const ValueKey('task-detail-inline-edit-toggle'));
+    await tester.ensureVisible(descriptionEdit);
+    await tester.pumpAndSettle();
+    await tester.tap(descriptionEdit);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('task-detail-inline-description')), findsOneWidget);
+
+    await tester.enterText(
+      find.byKey(const ValueKey('task-detail-inline-description')),
+      'توضیح به‌روزشده',
+    );
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
+    await tester.pumpAndSettle();
+
+    final savedTask = persisted!;
+    expect(savedTask.description, 'توضیح به‌روزشده');
+    expect(savedTask.updatedAt, savedAt);
+    expect(savedTask.completedAt, completedAt);
+    expect(savedTask.followUps, hasLength(1));
+    expect(savedTask.followUps.single.id, originalFollowUp.id);
+    expect(savedTask.followUps.single.note, 'تاریخچه غیرقابل تغییر');
+    expect(savedTask.followUps.single.nextFollowUp, nextFollowUp);
+    expect(savedTask.followUps.single.dateTime, followUpDate);
+    expect(savedTask.followUpEnabled, isTrue);
+    expect(savedTask.followUpDate, followUpDate);
+    expect(task.description, 'متن قبلی');
+    expect(find.text('توضیح به‌روزشده'), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-inline-description')), findsNothing);
+    expect(find.text('ثبت یادداشت'), findsNothing);
   });
 
   testWidgets('Task detail renders due date as Jalali with Persian digits',
@@ -43,7 +170,7 @@ void main() {
       MaterialApp(
         home: TaskDetailPage(
           task: task,
-          onEdit: (value) async => value,
+          onTaskChanged: (value) async => value,
         ),
       ),
     );
@@ -75,8 +202,14 @@ void main() {
       ),
     );
 
-    expect(find.text('هنوز پیگیری ثبت نشده است'), findsOneWidget);
+    expect(find.text('هنوز پیگیری ثبت نشده است'), findsNothing);
     final add = find.byKey(const ValueKey('task-detail-add-followup'));
+    await tester.scrollUntilVisible(
+      add,
+      240,
+      scrollable: _taskDetailPageScrollable(tester),
+    );
+    await tester.pumpAndSettle();
     expect(add, findsOneWidget);
     await tester.tap(add);
     await tester.pumpAndSettle();
@@ -90,8 +223,17 @@ void main() {
     expect(task.followUps, hasLength(1));
     expect(task.followUps.single.title, isNull);
     expect(task.followUps.single.note, isEmpty);
-    expect(find.byKey(ValueKey('task-detail-followup-${task.followUps.single.id}')),
-        findsOneWidget);
+    final followUpCard = find.byKey(
+      ValueKey('task-detail-followup-${task.followUps.single.id}'),
+    );
+    final detailScrollable = _taskDetailPageScrollable(tester);
+    await tester.scrollUntilVisible(
+      followUpCard,
+      300,
+      scrollable: detailScrollable,
+    );
+    await tester.pumpAndSettle();
+    expect(followUpCard, findsOneWidget);
     expect(find.text('پیگیری'), findsWidgets);
   });
 
@@ -124,9 +266,17 @@ void main() {
       ),
     );
 
-    await tester.tap(
-      find.byKey(const ValueKey('task-detail-latest-edit-followup-edit-f1')),
+    final editFollowUp = find.byKey(
+      const ValueKey('task-detail-latest-edit-followup-edit-f1'),
     );
+    await tester.scrollUntilVisible(
+      editFollowUp,
+      200,
+      scrollable: _taskDetailPageScrollable(tester),
+    );
+    await tester.pumpAndSettle();
+    expect(editFollowUp, findsOneWidget);
+    await tester.tap(editFollowUp);
     await tester.pumpAndSettle();
 
     expect(find.text('ویرایش پیگیری'), findsOneWidget);
@@ -218,7 +368,7 @@ void main() {
       MaterialApp(
         home: TaskDetailPage(
           task: task,
-          onEdit: (value) async {
+          onTaskChanged: (value) async {
             value.title = 'عنوان جدید';
             return value;
           },
@@ -226,10 +376,129 @@ void main() {
       ),
     );
 
-    await tester.tap(find.byKey(const ValueKey('task-detail-edit')));
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('task-detail-inline-title')),
+      'عنوان جدید',
+    );
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
     await tester.pumpAndSettle();
 
     expect(task.id, 'same-id');
     expect(find.text('عنوان جدید'), findsOneWidget);
   });
+
+  testWidgets('Task detail explicit Today action sits below due date, persists local day and preserves Task data',
+      (tester) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    await TaskStore.resetTestDatabase();
+    final store = TaskStore();
+    final original = Task(
+      id: 'detail-move-today',
+      title: 'کار موعددار',
+      description: 'توضیح محفوظ',
+      dueDate: DateTime(2026, 8, 20, 14, 35),
+      reminderDate: DateTime(2026, 8, 19, 9, 15),
+      followUpEnabled: true,
+      followUpDate: DateTime(2026, 8, 21, 10),
+      category: 'مشتریان',
+      tags: <String>['مهم'],
+      checklist: <String>['تماس', 'ارسال'],
+      followUps: <FollowUp>[
+        FollowUp(
+          id: 'detail-history',
+          dateTime: DateTime(2026, 8, 18, 11),
+          note: 'تاریخچه محفوظ',
+        ),
+      ],
+    );
+    await store.save(<Task>[original]);
+    final fixedLocalNow = DateTime(2026, 8, 28, 16, 42, 30);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TaskDetailPage(
+          task: original,
+          onMoveDueDateToToday: (task) => TaskMoveToTodayService(store: store)
+              .move(task.id, now: fixedLocalNow),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final dueDate = find.byKey(const ValueKey('task-detail-due-date'));
+    final action = find.byKey(const ValueKey('task-detail-move-due-date-to-today'));
+    expect(dueDate, findsOneWidget);
+    expect(action, findsOneWidget);
+    expect(
+      (tester.getCenter(action).dy - tester.getCenter(dueDate).dy).abs(),
+      lessThan(24),
+    );
+    expect(find.text('۱۴۰۵/۰۵/۲۹ • ۱۴:۳۵'), findsOneWidget);
+
+    await tester.tap(action);
+    await tester.pumpAndSettle();
+
+    final expectedDue = DateTime(2026, 8, 28, 14, 35);
+    expect(original.dueDate, DateTime(2026, 8, 20, 14, 35));
+    expect(find.text('۱۴۰۵/۰۶/۰۶ • ۱۴:۳۵'), findsOneWidget);
+    final reloaded = (await store.load()).single;
+    expect(reloaded.dueDate, expectedDue);
+    expect(reloaded.updatedAt, fixedLocalNow);
+    expect(reloaded.id, original.id);
+    expect(reloaded.title, original.title);
+    expect(reloaded.description, original.description);
+    expect(reloaded.reminderDate, DateTime(2026, 8, 19, 9, 15));
+    expect(reloaded.followUpEnabled, isTrue);
+    expect(reloaded.followUpDate, isNull);
+    expect(reloaded.category, 'مشتریان');
+    expect(reloaded.tags, <String>['مهم']);
+    expect(reloaded.checklist, <String>['تماس', 'ارسال']);
+    expect(reloaded.followUps.single.id, 'detail-history');
+    expect(reloaded.followUps.single.note, 'تاریخچه محفوظ');
+  });
+
+
+
+  testWidgets('Task detail Today action uses canonical TaskStore fallback when opened outside Home',
+      (tester) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    await TaskStore.resetTestDatabase();
+    final store = TaskStore();
+    await store.save(<Task>[
+      Task(
+        id: 'detail-fallback-today',
+        title: 'کار از مسیر دیگر',
+        dueDate: DateTime(2026, 8, 20, 9, 25),
+      ),
+    ]);
+    final nowBeforeTap = IranClock.now();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TaskDetailPage(
+          task: (await store.load()).single,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-detail-move-due-date-to-today')));
+    await tester.pumpAndSettle();
+
+    final saved = (await store.load()).single;
+    final today = IranClock.now();
+    expect(saved.dueDate, isNotNull);
+    expect(
+      DateTime(saved.dueDate!.year, saved.dueDate!.month, saved.dueDate!.day),
+      DateTime(today.year, today.month, today.day),
+    );
+    expect(saved.dueDate!.hour, 9);
+    expect(saved.dueDate!.minute, 25);
+    expect(saved.updatedAt, isNotNull);
+    expect(saved.updatedAt!.isBefore(nowBeforeTap), isFalse);
+    expect(find.text('موعد انجام کار برای امروز تنظیم شد'), findsOneWidget);
+  });
+
+
 }

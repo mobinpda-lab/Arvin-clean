@@ -54,14 +54,24 @@ class _CalendarIntegrationSettingsPageState
       providerError = null;
     });
     try {
-      final granted = await calendarBridge.requestReadPermission();
-      final calendars = granted
+      final accessGranted = await calendarBridge.requestAccessPermissions();
+      if (accessGranted) {
+        await calendarBridge.ensureArvinLocalCalendar();
+      }
+      final readGranted =
+          accessGranted || await calendarBridge.hasReadPermission();
+      final calendars = readGranted
           ? await calendarBridge.listDeviceCalendars()
           : const <DeviceCalendarInfo>[];
       if (!mounted) return;
       setState(() {
-        providerPermissionGranted = granted;
+        providerPermissionGranted = readGranted;
         deviceCalendars = calendars;
+        providerError = accessGranted
+            ? null
+            : readGranted
+                ? 'مجوز نوشتن تقویم داده نشد؛ تقویم داخلی آروین همچنان فعال است.'
+                : null;
       });
     } on PlatformException catch (error) {
       if (!mounted) return;
@@ -113,19 +123,6 @@ class _CalendarIntegrationSettingsPageState
     return calendar.accountName ?? 'تقویم دستگاه';
   }
 
-  String _targetCalendarLabel(CalendarIntegrationSettings current) {
-    final targetId = current.targetCalendarId;
-    if (targetId == null) return 'هنوز انتخاب نشده است.';
-    for (final calendar in deviceCalendars) {
-      if (calendar.id != targetId) continue;
-      final provider = _providerLabel(calendar);
-      final account = calendar.accountName;
-      final context = account == null ? provider : '$provider • $account';
-      return '${calendar.displayName} • $context';
-    }
-    return 'شناسه فعلی: $targetId';
-  }
-
   Widget _providerSelection(CalendarIntegrationSettings current) {
     if (providerLoading) {
       return const Padding(
@@ -142,7 +139,7 @@ class _CalendarIntegrationSettingsPageState
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Text(
-                'برای دیدن تقویم‌های نصب‌شده، دسترسی فقط‌خواندنی تقویم لازم است. آروین در این مرحله هیچ رویدادی را مستقیم ایجاد، ویرایش یا حذف نمی‌کند.',
+                'برای ساخت و نگهداری تقویم پایهٔ محلی Arvin، مجوز خواندن و نوشتن تقویم گوشی لازم است. در صورت رد مجوز، کارهای داخلی آروین بدون تغییر قابل استفاده می‌مانند.',
               ),
               if (providerError != null) ...[
                 const SizedBox(height: 8),
@@ -156,7 +153,7 @@ class _CalendarIntegrationSettingsPageState
                 key: const ValueKey('calendar-request-provider-permission'),
                 onPressed: _loadProviderCalendars,
                 icon: const Icon(Icons.event_available_outlined),
-                label: const Text('بررسی و دریافت دسترسی تقویم گوشی'),
+                label: const Text('دریافت دسترسی و آماده‌سازی تقویم Arvin'),
               ),
             ],
           ),
@@ -175,9 +172,18 @@ class _CalendarIntegrationSettingsPageState
     }
 
     return Column(
-      children: deviceCalendars.map((calendar) {
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (providerError != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              providerError!,
+              key: const ValueKey('calendar-provider-warning'),
+            ),
+          ),
+        ...deviceCalendars.map((calendar) {
         final visible = current.visibleCalendarIds.contains(calendar.id);
-        final isTarget = current.targetCalendarId == calendar.id;
         return Card(
           key: ValueKey('calendar-provider-${calendar.id}'),
           child: Column(
@@ -193,21 +199,18 @@ class _CalendarIntegrationSettingsPageState
                   '${_providerLabel(calendar)}${calendar.accountName == null ? '' : ' • ${calendar.accountName}'}',
                 ),
               ),
-              ListTile(
-                key: ValueKey('calendar-target-${calendar.id}'),
-                enabled: !saving,
-                leading: Icon(
-                  isTarget
-                      ? Icons.radio_button_checked
-                      : Icons.radio_button_unchecked,
-                ),
-                title: const Text('تقویم مقصد آروین'),
-                subtitle: const Text('برای ارسال موارد آروین در مراحل همگام‌سازی بعدی'),
-                onTap: saving
-                    ? null
-                    : () => _save(
-                          current.copyWith(targetCalendarId: calendar.id),
-                        ),
+              if (calendar.isArvinLocal)
+                const ListTile(
+                  key: ValueKey('calendar-provider-arvin-local'),
+                  leading: Icon(Icons.lock_outline_rounded),
+                  title: Text('تقویم پایهٔ محلی Arvin'),
+                  subtitle: Text('توسط خود آروین مدیریت می‌شود و نیازی به انتخاب مقصد ندارد.'),
+                )
+              else ...[
+              const ListTile(
+                leading: Icon(Icons.visibility_outlined),
+                title: Text('فقط نمایش رویدادها (Read-only)'),
+                subtitle: Text('تقویم خارجی مقصد نوشتن آروین نیست.'),
               ),
               CheckboxListTile(
                 key: ValueKey('calendar-visible-${calendar.id}'),
@@ -225,10 +228,12 @@ class _CalendarIntegrationSettingsPageState
                         _save(current.copyWith(visibleCalendarIds: nextIds));
                       },
               ),
+              ],
             ],
           ),
         );
-      }).toList(growable: false),
+        }),
+      ],
     );
   }
 
@@ -267,12 +272,12 @@ class _CalendarIntegrationSettingsPageState
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  ListTile(
-                    key: const ValueKey('calendar-target-status'),
+                  const ListTile(
+                    key: ValueKey('calendar-target-status'),
                     contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.event_available_outlined),
-                    title: const Text('تقویم مقصد'),
-                    subtitle: Text(_targetCalendarLabel(current)),
+                    leading: Icon(Icons.lock_outline_rounded),
+                    title: Text('مقصد دائمی نوشتن'),
+                    subtitle: Text('تقویم محلی Arvin؛ تقویم‌های خارجی فقط خواندنی هستند.'),
                   ),
                   ListTile(
                     key: const ValueKey('calendar-visible-status'),
@@ -291,85 +296,22 @@ class _CalendarIntegrationSettingsPageState
                     'Google Calendar، Samsung Calendar و سایر تقویم‌های اندروید از یک Calendar Provider مشترک استفاده می‌کنند؛ آروین موتور جداگانه و تکراری برای هر برند نمی‌سازد.',
                   ),
                   const Divider(height: 32),
-                  const Text(
-                    'موارد قابل همگام‌سازی',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  _switch(
-                    key: const ValueKey('calendar-sync-due-dates'),
-                    title: 'موعد کارها',
-                    subtitle: 'Due Date کارهای آروین',
-                    value: current.syncDueDates,
-                    update: (value) => current.copyWith(syncDueDates: value),
-                  ),
-                  _switch(
-                    key: const ValueKey('calendar-sync-task-reminders'),
-                    title: 'یادآور کارها',
-                    subtitle: 'Reminder مستقل کار',
-                    value: current.syncTaskReminders,
-                    update: (value) =>
-                        current.copyWith(syncTaskReminders: value),
-                  ),
-                  _switch(
-                    key: const ValueKey('calendar-sync-followups'),
-                    title: 'پیگیری‌ها',
-                    subtitle: 'تاریخ خود پیگیری‌ها',
-                    value: current.syncFollowUps,
-                    update: (value) => current.copyWith(syncFollowUps: value),
-                  ),
-                  _switch(
-                    key: const ValueKey('calendar-sync-followup-reminders'),
-                    title: 'یادآور پیگیری‌ها',
-                    subtitle: 'Reminder مستقل هر پیگیری',
-                    value: current.syncFollowUpReminders,
-                    update: (value) =>
-                        current.copyWith(syncFollowUpReminders: value),
-                  ),
-                  _switch(
-                    key: const ValueKey('calendar-sync-recurrence'),
-                    title: 'تکرار کارها',
-                    subtitle:
-                        'خاموش به‌صورت پیش‌فرض؛ فقط پس از فعال‌سازی صریح کاربر.',
-                    value: current.syncRecurrence,
-                    update: (value) => current.copyWith(syncRecurrence: value),
-                  ),
-                  const Divider(height: 32),
-                  _switch(
-                    key: const ValueKey('calendar-auto-sync'),
-                    title: 'ثبت خودکار کارها در تقویم مقصد',
-                    subtitle:
-                        'هر Task دارای موعد/یادآور مجاز، با تقویم مقصد انتخاب‌شده همگام می‌شود.',
-                    value: current.autoSync,
-                    update: (value) => current.copyWith(autoSync: value),
-                  ),
                   Card(
+                    key: const ValueKey('calendar-explicit-export-policy'),
                     child: Padding(
                       padding: const EdgeInsets.all(12),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Row(
-                            children: [
-                              Icon(Icons.warning_amber_rounded),
-                              SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  'حذف رویداد متصل همراه با حذف کار، گزینه‌ای حساس است و به‌صورت پیش‌فرض خاموش می‌ماند.',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ],
-                          ),
-                          _switch(
-                            key: const ValueKey('calendar-delete-linked'),
-                            title: 'حذف رویداد متصل همراه کار',
-                            subtitle:
-                                'فقط برای رویدادهای متعلق به آروین؛ رویداد خارجی مستقل حذف نمی‌شود.',
-                            value: current.deleteLinkedEventWithTask,
-                            update: (value) => current.copyWith(
-                              deleteLinkedEventWithTask: value,
-                            ),
-                          ),
+                        children: const [
+                          Text('ارسال خودکار غیرفعال است', style: TextStyle(fontWeight: FontWeight.bold)),
+                          SizedBox(height: 8),
+                          Text('ارسال به تقویم گوشی فقط با کشیدن کارت Task در تقویم آروین یا دکمهٔ «ارسال به تقویم دستگاه» در جزئیات همان کار انجام می‌شود.'),
+                          SizedBox(height: 8),
+                          Text('تاریخچهٔ پیگیری‌ها و گزارش‌های گذشته به تقویم گوشی صادر نمی‌شوند و برای آن‌ها زنگ آینده ساخته نمی‌شود.'),
+                          SizedBox(height: 8),
+                          Text('ویرایش یا حذف رویداد گوشی، Task و یادآورهای محلی آروین را تغییر نمی‌دهد.'),
+                          SizedBox(height: 8),
+                          Text('تکمیل یا بایگانی Task، رویداد پیوندخورده در تقویم محلی Arvin را همگام می‌کند؛ رویدادهای خارجی تغییر نمی‌کنند.'),
                         ],
                       ),
                     ),

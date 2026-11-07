@@ -112,7 +112,7 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
     if (task == null || !mounted) return;
 
     final followUp = await Navigator.of(context).push<FollowUp>(
-      MaterialPageRoute(builder: (_) => const FollowUpEntryPage()),
+      MaterialPageRoute(builder: (_) => FollowUpEntryPage(taskId: task.id)),
     );
     if (followUp == null || !mounted) return;
 

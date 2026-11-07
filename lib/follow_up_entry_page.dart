@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'models/task.dart';
+import 'models/person_reference.dart';
+import 'android_follow_up_reminder_scheduler.dart';
+import 'services/task_store.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/waiting_for_response_service.dart';
 import 'widgets/persian_date_picker.dart';
@@ -11,12 +14,20 @@ class FollowUpEntryPage extends StatefulWidget {
     super.key,
     this.initialFollowUp,
     this.initialDateTime,
+    this.taskId,
+    this.allowAddingReminder = true,
     this.onSaved,
+    this.people = const <PersonReference>[],
+    this.onCreatePerson,
   });
 
   final FollowUp? initialFollowUp;
   final DateTime? initialDateTime;
+  final String? taskId;
+  final bool allowAddingReminder;
   final ValueChanged<FollowUp>? onSaved;
+  final List<PersonReference> people;
+  final Future<void> Function(PersonReference person)? onCreatePerson;
 
   @override
   State<FollowUpEntryPage> createState() => _FollowUpEntryPageState();
@@ -30,6 +41,14 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
   final _noteController = TextEditingController();
   final _resultController = TextEditingController();
   bool _waitingForResponse = false;
+  bool _addReminder = false;
+  bool _reminderAllDay = false;
+  bool _isSaving = false;
+  late List<PersonReference> _people;
+  late Set<String> _selectedPersonIds;
+  late Set<String> _initialPersonIds;
+  late DateTime _reminderDateTime;
+  late bool _initialAddReminder;
   late DateTime _initialDateTime;
   late String _initialTitle;
   late String _initialNote;
@@ -43,6 +62,8 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     super.initState();
     final initial = widget.initialFollowUp;
     _dateTime = initial?.dateTime ?? widget.initialDateTime ?? DateTime.now();
+    _reminderDateTime = DateTime.now().add(const Duration(hours: 1));
+    _initialAddReminder = false;
     _titleController.text = initial?.title ?? '';
     _noteController.text = initial?.note ?? '';
     _waitingForResponse = initial?.waitingForResponse == true ||
@@ -53,6 +74,14 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     _initialNote = _noteController.text;
     _initialResult = _resultController.text;
     _initialWaitingForResponse = _waitingForResponse;
+    _people = List<PersonReference>.of(widget.people);
+    _selectedPersonIds = <String>{...initial?.personIds ?? const <String>[]};
+    for (final id in _selectedPersonIds) {
+      if (!_people.any((person) => person.id == id)) {
+        _people.add(PersonReference(id: id, displayName: 'شخص حذف‌شده'));
+      }
+    }
+    _initialPersonIds = <String>{..._selectedPersonIds};
   }
 
   @override
@@ -92,6 +121,35 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
       initialTime: TimeOfDay.fromDateTime(initialDate),
       helpText: helpText,
     );
+  }
+
+  Future<void> _pickTaskReminderDate() async {
+    final picked = await _pickPersianDate(
+      initialDate: _reminderDateTime,
+      firstDate: DateTime.now(),
+      helpText: 'انتخاب تاریخ یادآور',
+    );
+    if (picked == null || !mounted) return;
+
+    final selection = await showUniversalArvinTimeSelectionPicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(_reminderDateTime),
+      helpText: 'انتخاب ساعت یادآور',
+    );
+    if (selection == null || !mounted) return;
+
+    setState(() {
+      _reminderDateTime = selection.isAllDay
+          ? DateTime(picked.year, picked.month, picked.day)
+          : DateTime(
+              picked.year,
+              picked.month,
+              picked.day,
+              selection.time!.hour,
+              selection.time!.minute,
+            );
+      _reminderAllDay = selection.isAllDay;
+    });
   }
 
   Future<void> _pickDate() async {
@@ -134,7 +192,10 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
       _titleController.text != _initialTitle ||
       _noteController.text != _initialNote ||
       _resultController.text != _initialResult ||
-      _waitingForResponse != _initialWaitingForResponse;
+      _waitingForResponse != _initialWaitingForResponse ||
+      !_selectedPersonIds.containsAll(_initialPersonIds) ||
+      !_initialPersonIds.containsAll(_selectedPersonIds) ||
+      _addReminder != _initialAddReminder;
 
   Future<void> _requestClose() async {
     if (!_hasChanges) {
@@ -175,7 +236,70 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     }
   }
 
-  void _save() {
+  Future<void> _addPerson() async {
+    final name = await showDialog<String>(
+      context: context,
+      builder: (_) => const _FollowUpPersonNameDialog(),
+    );
+    final normalizedName = name?.trim() ?? '';
+    if (normalizedName.isEmpty || !mounted) return;
+    final person = PersonReference(
+      id: 'person:${DateTime.now().microsecondsSinceEpoch}',
+      displayName: normalizedName,
+    );
+    try {
+      await widget.onCreatePerson?.call(person);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ذخیره شخص انجام نشد؛ دوباره تلاش کنید.')),
+      );
+      return;
+    }
+    if (!mounted) return;
+    setState(() {
+      _people.add(person);
+      _selectedPersonIds.add(person.id);
+    });
+  }
+
+  Future<void> _save() async {
+    if (_isSaving) return;
+    final now = DateTime.now();
+    final reminderIsPast = _reminderAllDay
+        ? DateUtils.dateOnly(_reminderDateTime)
+            .isBefore(DateUtils.dateOnly(now))
+        : !_reminderDateTime.isAfter(now);
+    if (widget.allowAddingReminder && _addReminder && widget.taskId != null &&
+        reminderIsPast) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('زمان یادآور باید در آینده باشد.')),
+      );
+      return;
+    }
+    setState(() => _isSaving = true);
+    if (widget.allowAddingReminder && _addReminder && widget.taskId != null) {
+      try {
+        await TaskStore().addTaskReminder(
+          widget.taskId!,
+          _reminderDateTime,
+          isAllDay: _reminderAllDay,
+        );
+        try {
+          await AndroidFollowUpReminderScheduler().reschedule();
+        } catch (_) {
+          // Canonical Reminder is retained and can be rescheduled from storage.
+        }
+      } catch (_) {
+        if (!mounted) return;
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('یادآور ذخیره نشد. دوباره تلاش کنید.')),
+        );
+        return;
+      }
+    }
+    if (!mounted) return;
     final rawResult = _resultController.text.trim();
     final result = _waitingForResponse
         ? WaitingForResponseService.canonicalResult
@@ -190,10 +314,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
       result: result,
       completed: widget.initialFollowUp?.completed ?? false,
       waitingForResponse: _waitingForResponse,
-      personIds: widget.initialFollowUp?.personIds ?? const <String>[],
-      // Preserve legacy fields during edits without exposing retired scheduling UI.
-      reminderDate: widget.initialFollowUp?.reminderDate,
-      nextFollowUp: widget.initialFollowUp?.nextFollowUp,
+      personIds: _selectedPersonIds.toList(growable: false),
     );
     widget.onSaved?.call(followUp);
     Navigator.of(context).pop(followUp);
@@ -246,6 +367,27 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
                 ),
               ],
             ),
+            if (widget.allowAddingReminder && widget.taskId != null) ...[
+              SwitchListTile(
+                key: const ValueKey('follow-up-entry-add-reminder'),
+                contentPadding: EdgeInsets.zero,
+                title: const Text('افزودن یادآور'),
+                subtitle: const Text('یک یادآور مستقل برای همین کار بسازید.'),
+                value: _addReminder,
+                onChanged: _isSaving ? null : (value) => setState(() => _addReminder = value),
+              ),
+              if (_addReminder) ...[
+                OutlinedButton.icon(
+                  key: const ValueKey('follow-up-reminder-date'),
+                  onPressed: _isSaving ? null : _pickTaskReminderDate,
+                  icon: const Icon(Icons.calendar_month_outlined),
+                  label: Text(
+                    '${_formatDate(_reminderDateTime)} • '
+                    '${_reminderAllDay ? 'بدون ساعت' : _formatTime(_reminderDateTime)}',
+                  ),
+                ),
+              ],
+            ],
             const SizedBox(height: 16),
             TextField(
               key: const ValueKey('follow-up-entry-title'),
@@ -270,8 +412,9 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
             ),
             const SizedBox(height: 12),
             SwitchListTile(
+              key: const ValueKey('follow-up-entry-waiting-for-response'),
               contentPadding: EdgeInsets.zero,
-              title: const Text('منتظر پاسخ دیگران'),
+              title: const Text('منتظر پیگیری دیگران'),
               subtitle: const Text(
                 'این پیگیری در فهرست موارد منتظر پاسخ نمایش داده می‌شود.',
               ),
@@ -279,6 +422,45 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
               onChanged: (value) =>
                   setState(() => _waitingForResponse = value),
             ),
+            if (_waitingForResponse) ...[
+              const SizedBox(height: 8),
+              const Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  'شخص طرف پیگیری',
+                  style: TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                children: [
+                  for (final person in _people)
+                    FilterChip(
+                      key: ValueKey('follow-up-person-${person.id}'),
+                      label: Text(person.displayName),
+                      selected: _selectedPersonIds.contains(person.id),
+                      onSelected: _isSaving
+                          ? null
+                          : (selected) => setState(() {
+                                if (selected) {
+                                  _selectedPersonIds.add(person.id);
+                                } else {
+                                  _selectedPersonIds.remove(person.id);
+                                }
+                              }),
+                    ),
+                  if (widget.onCreatePerson != null)
+                    ActionChip(
+                      key: const ValueKey('follow-up-person-add'),
+                      avatar: const Icon(Icons.add, size: 18),
+                      label: const Text('افزودن شخص'),
+                      onPressed: _isSaving ? null : _addPerson,
+                    ),
+                ],
+              ),
+            ],
             const SizedBox(height: 4),
             TextField(
               key: const ValueKey('follow-up-entry-result'),
@@ -301,7 +483,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
             child: FilledButton.icon(
               key: const ValueKey('follow-up-entry-save'),
-              onPressed: _save,
+              onPressed: _isSaving ? null : _save,
               icon: const Icon(Icons.save_outlined),
               label: Text(_editing ? 'ذخیره تغییرات' : 'ذخیره پیگیری'),
             ),
@@ -309,6 +491,49 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
         ),
       ),
       ),
+    );
+  }
+}
+
+class _FollowUpPersonNameDialog extends StatefulWidget {
+  const _FollowUpPersonNameDialog();
+
+  @override
+  State<_FollowUpPersonNameDialog> createState() => _FollowUpPersonNameDialogState();
+}
+
+class _FollowUpPersonNameDialogState extends State<_FollowUpPersonNameDialog> {
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('افزودن شخص'),
+      content: TextField(
+        key: const ValueKey('follow-up-person-new-name'),
+        controller: _controller,
+        autofocus: true,
+        textInputAction: TextInputAction.done,
+        decoration: const InputDecoration(labelText: 'نام شخص'),
+        onSubmitted: (value) => Navigator.of(context).pop(value.trim()),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('انصراف'),
+        ),
+        FilledButton(
+          key: const ValueKey('follow-up-person-create'),
+          onPressed: () => Navigator.of(context).pop(_controller.text.trim()),
+          child: const Text('افزودن'),
+        ),
+      ],
     );
   }
 }

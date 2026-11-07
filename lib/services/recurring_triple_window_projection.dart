@@ -76,7 +76,7 @@ class RecurringTripleWindowProjection {
     for (final task in tasks) {
       if (task.archived || task.trashed) continue;
       final rule = task.recurrence;
-      final anchor = task.reminderDate;
+      final anchor = task.primaryReminderDate;
       if (rule == null || anchor == null || !rule.active) continue;
 
       // RecurrenceRule owns the canonical cycle start and all rule constraints.

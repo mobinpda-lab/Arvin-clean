@@ -29,7 +29,7 @@ void main() {
     expect(tasks.single.completed, isTrue);
   });
 
-  test('preserves legacy followUpDate through read boundary without fake history', () async {
+  test('ignores retired legacy followUpDate at the read boundary', () async {
     SharedPreferences.setMockInitialValues({
       legacyKey:
           '[{"id":"reader-followup","title":"پیگیری","followUpDate":"2026-08-25T08:00:00.000Z"}]',

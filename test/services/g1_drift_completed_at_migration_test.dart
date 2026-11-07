@@ -17,17 +17,19 @@ void main() {
         legacy_payload_json TEXT NULL
       )''');
       await database.runInsert(
-        'INSERT INTO tasks (id, title, description, follow_up_enabled, priority, archived, trashed, completed) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        ['old-task', 'قدیمی', '', 1, 'none', 0, 0, 1],
+        'INSERT INTO tasks (id, title, description, priority, archived, trashed, completed) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        ['old-task', 'قدیمی', '', 'none', 0, 0, 1],
       );
       await G1DriftSchema.install(database);
       final columns = await database.runSelect("PRAGMA table_info('tasks')", const []);
       final completedAt = columns.singleWhere((row) => row['name'] == 'completed_at');
       expect(completedAt['notnull'], 0);
-      final rows = await database.runSelect('SELECT id, completed, completed_at, follow_up_enabled FROM tasks WHERE id = ?', ['old-task']);
+      final rows = await database.runSelect('SELECT id, completed, completed_at FROM tasks WHERE id = ?', ['old-task']);
       expect(rows.single['completed'], 1);
       expect(rows.single['completed_at'], isNull);
-      expect(rows.single['follow_up_enabled'], 1);
+      expect(columns.map((row) => row['name']), isNot(contains('follow_up_enabled')));
+      expect(columns.map((row) => row['name']), isNot(contains('follow_up_date')));
+      expect(columns.map((row) => row['name']), isNot(contains('reminder_date')));
     } finally { await database.close(); }
   });
 }

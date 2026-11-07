@@ -73,19 +73,31 @@ class TaskMigrationWriter {
         continue;
       }
 
-      merged.add(<String, dynamic>{
+      final mergedTask = <String, dynamic>{
         ...existing,
         'id': task.id,
         'title': task.title,
         'description': task.description,
-        'followUpEnabled': task.followUpEnabled,
-        'followUpDate': task.followUpDate?.toIso8601String(),
         'tags': List<String>.of(task.tags),
         'archived': task.archived,
         'trashed': task.trashed,
         'completed': task.completed,
         'completedAt': task.completedAt?.toIso8601String(),
-      });
+        'taskReminders': task.taskReminders.map((item) => item.toJson()).toList(),
+        'nextReminderSequence': task.nextReminderSequence,
+        'legacyTaskReminderMigrationVersion': task.legacyTaskReminderMigrationVersion,
+        'followUps': task.followUps.map((item) => item.toJson()).toList(),
+        'people': task.people.map((person) => person.toJson()).toList(),
+      };
+      for (final legacyKey in const [
+        'followUpEnabled',
+        'followUpDate',
+        'reminderDate',
+        'reminderAllDay',
+      ]) {
+        mergedTask.remove(legacyKey);
+      }
+      merged.add(mergedTask);
     }
 
     final encoded = jsonEncode(merged);

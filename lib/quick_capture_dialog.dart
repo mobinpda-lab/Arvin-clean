@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 
 import 'arvin_colors.dart';
+import 'core/theme/arvin_theme.dart';
+import 'models/arvin_center.dart';
 
 import 'models/goal_project.dart';
 import 'models/recurrence.dart';
 import 'models/task.dart';
+import 'home/home_filter_ui.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/quick_capture_service.dart';
 import 'services/task_project_assignment_service.dart';
 import 'widgets/arvin_roll_box.dart';
+import 'widgets/reusable_multi_select_filter_bottom_sheet.dart';
 import 'widgets/universal_arvin_time_picker.dart';
 import 'widgets/persian_date_picker.dart';
 
@@ -27,13 +31,17 @@ class QuickCaptureDialog extends StatefulWidget {
     this.onCaptured,
     this.onFullForm,
     this.projects = const <ProjectPlan>[],
+    this.centers = const <ArvinCenter>[],
     this.initialProjectId,
+    this.initialCenterId,
+    this.onCreateProjectWithCenter,
     this.onProjectChanged,
     this.knownCategories = const <String>[],
     this.knownTags = const <String>[],
     this.onCreateCategory,
     this.onCreateTag,
     this.onCreateProject,
+    this.onCreateCenter,
   });
 
   final QuickCaptureService service;
@@ -42,7 +50,10 @@ class QuickCaptureDialog extends StatefulWidget {
   final Future<void> Function(Task task)? onCaptured;
   final Future<bool> Function(Task draft)? onFullForm;
   final List<ProjectPlan> projects;
+  final List<ArvinCenter> centers;
   final String? initialProjectId;
+  final String? initialCenterId;
+  final Future<String?> Function(String title, String? centerId)? onCreateProjectWithCenter;
   final ValueChanged<String?>? onProjectChanged;
   final List<String> knownCategories;
   final List<String> knownTags;
@@ -51,31 +62,33 @@ class QuickCaptureDialog extends StatefulWidget {
 
   /// Canonical Project creation; no Quick Capture-owned persistence.
   final Future<String?> Function(String title)? onCreateProject;
+  final Future<String?> Function(String name)? onCreateCenter;
 
   @override
   State<QuickCaptureDialog> createState() => _QuickCaptureDialogState();
 }
 
 class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
+  static const _dateFormatter = PersianDateFormatter();
   final TextEditingController _controller = TextEditingController();
   final FocusNode _titleFocus = FocusNode();
   String? _error;
   bool _backHandling = false;
   bool _saving = false;
+  TaskPriority _priority = TaskPriority.none;
   DateTime? _dueDate;
+  bool _dueAllDay = false;
+  bool _pendingCustomDueAllDay = false;
   DateTime? _reminderDate;
-  bool _reminderFollowsDueTime = true;
-  bool _checklistEnabled = false;
-  final List<String> _checklistItems = <String>[];
+  bool _reminderAllDay = false;
+  bool _pendingCustomReminderAllDay = false;
   RecurrenceRule? _recurrence;
-  final TextEditingController _recurrenceIntervalController =
-      TextEditingController(text: '1');
   String? _projectId;
-  final TextEditingController _descriptionController = TextEditingController();
+  String? _centerId;
   final TextEditingController _categoryController = TextEditingController();
-  final TextEditingController _tagsController = TextEditingController();
   final List<String> _selectedTags = <String>[];
   late List<ProjectPlan> _knownProjects;
+  late List<ArvinCenter> _knownCenters;
   late List<String> _knownCategories;
   late List<String> _knownTags;
 
@@ -86,6 +99,10 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     _knownCategories = List<String>.of(widget.knownCategories);
     _knownTags = List<String>.of(widget.knownTags);
     _knownProjects = List<ProjectPlan>.of(widget.projects);
+    _knownCenters = List<ArvinCenter>.of(widget.centers);
+    final selectedProject = _knownProjects.where((project) => project.id == _projectId);
+    _centerId = widget.initialCenterId ??
+        (selectedProject.isEmpty ? null : selectedProject.first.centerId);
   }
 
   Future<void> _handleBack() async {
@@ -107,28 +124,17 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
 
   @override
   void dispose() {
+    _titleFocus.unfocus();
     _controller.dispose();
     _titleFocus.dispose();
-    _descriptionController.dispose();
     _categoryController.dispose();
-    _tagsController.dispose();
-    _recurrenceIntervalController.dispose();
     super.dispose();
   }
 
-  void _syncAutomaticReminder() {
-    if (!_reminderFollowsDueTime) return;
-    if (_dueDate == null) {
-      _reminderDate = null;
-    } else {
-      _reminderDate = _dueDate;
-    }
-  }
-
-  void _setDueDate(DateTime? value) {
+  void _setDueDate(DateTime? value, {bool allDay = false}) {
     setState(() {
       _dueDate = value;
-      _syncAutomaticReminder();
+      _dueAllDay = value != null && allDay;
     });
   }
 
@@ -140,67 +146,45 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       createdAt: createdAt,
     );
     if (task == null) return null;
-    task.description = _descriptionController.text.trim();
-    _syncAutomaticReminder();
+    task.priority = _priority;
+    task.description = '';
     task.dueDate = _dueDate;
-    task.reminderDate = _reminderDate;
+    task.centerId = _centerId;
+    task.allDay = _dueDate != null && _dueAllDay;
+    task.taskReminders = _reminderDate == null
+        ? <TaskReminder>[]
+        : <TaskReminder>[
+            TaskReminder(
+              id: 'quick-capture-reminder-${task.id}',
+              title: 'یادآوری: ${task.title}',
+              date: _reminderDate!,
+              isAllDay: _reminderAllDay,
+              sequence: 1,
+            ),
+          ];
+    task.nextReminderSequence = _reminderDate == null ? 1 : 2;
     task.recurrence = _recurrence;
-    task.checklistEnabled = _checklistEnabled;
-    task.checklist = List<String>.of(_checklistItems);
     final category = _categoryController.text.trim();
     task.category = category.isEmpty ? null : category;
-    final manualTags = _tagsController.text
-        .split(RegExp(r'[,،#\\s]+'))
-        .map((tag) => tag.trim())
-        .where((tag) => tag.isNotEmpty)
-        .toSet();
-    task.tags = {...task.tags, ..._selectedTags, ...manualTags}.toList(growable: false);
+    task.tags = {...task.tags, ..._selectedTags}.toList(growable: false);
     return task;
-  }
-
-  Future<String?> _addChecklistItem() async {
-    var enteredItem = '';
-    final item = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('مورد چک‌لیست'),
-        content: TextField(
-          key: const ValueKey('quick-capture-checklist-item-input'),
-          autofocus: true,
-          textInputAction: TextInputAction.done,
-          onChanged: (value) => enteredItem = value,
-          onSubmitted: (value) => Navigator.of(dialogContext).pop(value.trim()),
-          decoration: const InputDecoration(
-            hintText: 'مثلاً تماس با فروشنده',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('لغو'),
-          ),
-          FilledButton(
-            key: const ValueKey('quick-capture-checklist-item-save'),
-            onPressed: () => Navigator.of(dialogContext).pop(enteredItem.trim()),
-            child: const Text('افزودن'),
-          ),
-        ],
-      ),
-    );
-    final normalized = item?.trim();
-    if (!mounted || normalized == null || normalized.isEmpty) return null;
-    setState(() {
-      _checklistItems.add('[ ] $normalized');
-      _checklistEnabled = true;
-    });
-    return normalized;
   }
 
   Future<void> _submit() async {
     if (_saving) return;
     final task = _buildDraft();
     if (task == null) {
-      setState(() => _error = 'عنوان برای ثبت کافی است');
+      const message = 'عنوان برای ثبت کافی است';
+      setState(() => _error = message);
+      // Keep the compact inline field error and mirror it in the floating
+      // messenger so the validation remains visible without growing the form.
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        SnackBar(
+          content: const Text('عنوان برای ثبت کافی است'),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+        ),
+      );
       return;
     }
     final onCaptured = widget.onCaptured;
@@ -217,10 +201,9 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       await onCaptured(task);
       if (!mounted) return;
       _controller.clear();
-      _descriptionController.clear();
-      setState(() => _saving = false);
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) FocusScope.of(context).requestFocus(_titleFocus);
+      setState(() {
+        _priority = TaskPriority.none;
+        _saving = false;
       });
     } catch (_) {
       if (!mounted) return;
@@ -250,9 +233,11 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       if (!mounted) return;
       if (saved) {
         _controller.clear();
-        _descriptionController.clear();
       }
-      setState(() => _saving = false);
+      setState(() {
+        if (saved) _priority = TaskPriority.medium;
+        _saving = false;
+      });
     } catch (_) {
       if (!mounted) return;
       setState(() {
@@ -262,29 +247,19 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     }
   }
 
-  String _dateLabel(DateTime? value) {
+  String _dateLabel(DateTime? value, {bool dateOnly = false}) {
     if (value == null) return 'بدون موعد';
     final formatter = const PersianDateFormatter();
     final date = formatter.format(value, usePersianDate: true);
+    if (dateOnly) return date;
     final time = formatter.formatTime(value.hour, value.minute);
     return '$date • $time';
   }
 
   DateTime _now() => widget.now?.call() ?? DateTime.now();
 
-  Future<TimeOfDay?> _pickPersianTime(
-    BuildContext parentContext, {
-    required DateTime initial,
-    required String helpText,
-  }) {
-    return showUniversalArvinTimePicker(
-      context: parentContext,
-      initialTime: TimeOfDay.fromDateTime(initial),
-      helpText: helpText,
-    );
-  }
-
 Future<DateTime?> _pickCustomDue() async {
+    _pendingCustomDueAllDay = false;
     final initial = _dueDate ?? widget.now?.call() ?? DateTime.now();
     final date = await showPersianDatePicker(
       context: context,
@@ -296,9 +271,22 @@ Future<DateTime?> _pickCustomDue() async {
       confirmText: 'انتخاب تاریخ',
     );
     if (date == null || !mounted) return null;
-    final time = await _pickPersianTime(context, initial: initial, helpText: 'زمان انجام کار');
-    if (time == null || !mounted) return null;
-    return DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    final selection = await showUniversalArvinTimeSelectionPicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(initial),
+      helpText: 'زمان انجام کار',
+    );
+    if (selection == null || !mounted) return null;
+    _pendingCustomDueAllDay = selection.isAllDay;
+    return selection.isAllDay
+        ? DateTime(date.year, date.month, date.day)
+        : DateTime(
+            date.year,
+            date.month,
+            date.day,
+            selection.time!.hour,
+            selection.time!.minute,
+          );
   }
 
   Future<DateTime?> _pickCustomReminder() async {
@@ -313,9 +301,16 @@ Future<DateTime?> _pickCustomDue() async {
       confirmText: 'انتخاب تاریخ',
     );
     if (date == null || !mounted) return null;
-    final time = await _pickPersianTime(context, initial: initial, helpText: 'زمان یادآوری');
-    if (time == null || !mounted) return null;
-    return DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    final selection = await showUniversalArvinTimeSelectionPicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(initial),
+      helpText: 'زمان یادآوری',
+    );
+    if (selection == null || !mounted) return null;
+    _pendingCustomReminderAllDay = selection.isAllDay;
+    return selection.isAllDay
+        ? DateTime(date.year, date.month, date.day)
+        : DateTime(date.year, date.month, date.day, selection.time!.hour, selection.time!.minute);
   }
 
   Future<RecurrenceRule?> _pickCustomRecurrence() async {
@@ -345,7 +340,7 @@ Future<DateTime?> _pickCustomDue() async {
                       RecurrenceFrequency.oncePerDay => 'روز',
                     },
                     icon: Icons.repeat_rounded,
-                    color: ArvinColors.primary,
+                    color: Theme.of(context).colorScheme.primary,
                     items: const [
                       ArvinRollItem(value: RecurrenceFrequency.minutes, label: 'دقیقه', icon: Icons.schedule_rounded),
                       ArvinRollItem(value: RecurrenceFrequency.hours, label: 'ساعت', icon: Icons.access_time_rounded),
@@ -416,384 +411,480 @@ Future<DateTime?> _pickCustomDue() async {
     );
   }
 
-  Widget _buildContent(BuildContext context) {
-    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
-    return SafeArea(
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(16, 10, 16, bottomInset + 12),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Container(
-                  width: 42,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: ArvinColors.border,
-                    borderRadius: BorderRadius.circular(99),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-              const Text(
-                'ثبت سریع کار',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: ArvinColors.textPrimary,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: 14),
-              TextField(
-                key: const ValueKey('quick-capture-input'),
-                controller: _controller,
-                focusNode: _titleFocus,
-                autofocus: true,
-                enabled: !_saving,
-                textInputAction: TextInputAction.next,
-                onSubmitted: (_) => _submit(),
-                decoration: InputDecoration(
-                  labelText: 'عنوان',
-                  hintText: 'عنوان کار را وارد کنید',
-                  helperText: 'عنوان برای ثبت کافی است',
-                  errorText: _error,
-                  filled: true,
-                  fillColor: ArvinColors.surface,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: ArvinColors.border),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              if (widget.onCaptured == null)
-                TextField(
-                  key: const ValueKey('quick-capture-description'),
-                controller: _descriptionController,
-                enabled: !_saving,
-                minLines: 2,
-                maxLines: 4,
-                decoration: InputDecoration(
-                  labelText: 'توضیحات (اختیاری)',
-                  filled: true,
-                  fillColor: ArvinColors.surface,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-                ),
-              ),
-              if (widget.onCaptured == null) const SizedBox(height: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(child: ArvinRollBox<String>(
-                    label: 'پروژه',
-                    valueLabel: _projectId == null                        ? 'پروژه'
-                        : _knownProjects
-                                .where((project) => project.id == _projectId)
-                                .map((project) => project.title)
-                                .isEmpty
-                            ? 'پروژه'
-                            : _knownProjects
-                                .where((project) => project.id == _projectId)
-                                .map((project) => project.title)
-                                .first,
-                    icon: Icons.folder_outlined,
-                    color: ArvinColors.project,
-                    emptyLabel: 'بدون پروژه',
-                    createLabel: 'ایجاد جدید',
-                    items: _knownProjects
-                        .where((project) =>
-                            !project.isArchived || project.id == _projectId)
-                        .map(
-                          (project) => ArvinRollItem<String>(
-                            value: project.id,
-                            label: project.isArchived
-                                ? '${project.title} (بایگانی‌شده)'
-                                : project.title,
-                            icon: Icons.folder_outlined,
-                            color: project.isArchived
-                                ? ArvinColors.textSecondary
-                                : ArvinColors.project,
+  Widget _priorityDropdown() {
+    const hints = <TaskPriority, String>{
+      TaskPriority.high: 'فوری و مهم',
+      TaskPriority.medium: 'مهم و غیرفوری',
+      TaskPriority.low: 'فوری و غیرمهم',
+      TaskPriority.none: 'غیرفوری و غیرمهم',
+    };
+    return KeyedSubtree(
+      key: const ValueKey('quick-capture-priority-dropdown'),
+      child: _surfaceCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text('اولویت', textAlign: TextAlign.right,
+                style: TextStyle(fontSize: 13, height: 1.1, fontWeight: FontWeight.w700, color: ArvinColors.textPrimary)),
+            const SizedBox(height: 4),
+            Row(
+              textDirection: TextDirection.rtl,
+              children: TaskPriority.values.map((priority) {
+                final color = ArvinColors.priorityColor(priority);
+                final selected = _priority == priority;
+                return Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    child: Semantics(
+                      button: true,
+                      selected: selected,
+                      label: 'اولویت ${priority.sortOrder}، ${hints[priority]}',
+                      child: InkWell(
+                        key: ValueKey('quick-capture-priority-option-${priority.sortOrder}'),
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: _saving ? null : () => setState(() => _priority = priority),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          height: 48,
+                          padding: const EdgeInsets.symmetric(horizontal: 1),
+                          decoration: BoxDecoration(
+                            color: color.withValues(alpha: selected ? 0.18 : 0.09),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: color.withValues(alpha: selected ? 0.95 : 0.28),
+                              width: selected ? 1.5 : 1,
+                            ),
                           ),
-                        )
-                        .toList(),
-                    onSelected: (value) => setState(() {
-                      _projectId = value;
-                    }),
-                    onCreate: () async {
-                      var draftName = '';
-                      final value = await showModalBottomSheet<String>(
-                        context: context,
-                        isScrollControlled: true,
-                        builder: (ctx) => Padding(
-                          padding: EdgeInsets.fromLTRB(
-                            16,
-                            16,
-                            16,
-                            16 + MediaQuery.viewInsetsOf(ctx).bottom,
-                          ),
-                          child: SingleChildScrollView(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Text('پروژه جدید'),
-                                TextField(
-                                  autofocus: false,
-                                  onChanged: (text) => draftName = text,
-                                  decoration: const InputDecoration(labelText: 'نام پروژه'),
-                                ),
-                                FilledButton(
-                                  onPressed: () => Navigator.pop(ctx, draftName.trim()),
-                                  child: const Text('افزودن'),
-                                ),
-                              ],
+                          child: Center(
+                            child: Text(
+                              _dateFormatter.toPersianDigits('اولویت ${priority.sortOrder}'),
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(color: color, fontSize: 10, height: 1.15, fontWeight: FontWeight.w800),
                             ),
                           ),
                         ),
-                      );
-                      if (value == null || value.isEmpty) return null;
-                      final createProject = widget.onCreateProject;
-                      final createdId = createProject != null
-                          ? await createProject(value)
-                          : await TaskProjectAssignmentService()
-                              .createProject(title: value)
-                              .then((project) => project.id);
-                      if (!mounted || createdId == null) return createdId;
-                      final existing = _knownProjects
-                          .where((project) => project.id == createdId)
-                          .toList(growable: false);
-                      if (existing.isEmpty) {
-                        final refreshed =
-                            await TaskProjectAssignmentService().loadProjects();
-                        _knownProjects = List<ProjectPlan>.of(refreshed);
-                      }
-                      setState(() => _projectId = createdId);
-                      return createdId;
-                    },
-                  ),),
-                      const SizedBox(width: 8),
-                      Expanded(child: ArvinRollBox<String>(
-                    label: 'دسته',
-                    valueLabel: _categoryController.text.trim().isEmpty ? 'دسته' : _categoryController.text.trim(),
-                    icon: Icons.grid_view_rounded,
-                    color: ArvinColors.tag,
-                    emptyLabel: 'بدون دسته',
-                    items: _knownCategories.map((v) => v.trim()).where((v) => v.isNotEmpty).map((v) => ArvinRollItem<String>(
-                      value: v, label: v, icon: Icons.grid_view_rounded, color: ArvinColors.tag,
-                    )).toList(),
-                    onSelected: (v) => setState(() => _categoryController.text = v ?? ''),
-                    onCreate: () async {
-                      final controller = TextEditingController();
-                      final value = await showModalBottomSheet<String>(
-                        context: context, isScrollControlled: true,
-                        builder: (ctx) => Padding(
-                          padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(ctx).bottom),
-                          child: Column(mainAxisSize: MainAxisSize.min, children: [
-                            const Text('دسته جدید'),
-                            TextField(controller: controller, autofocus: true, decoration: const InputDecoration(labelText: 'نام')),
-                            FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('افزودن')),
-                          ]),
-                        ),
-                      );
-                      controller.dispose();
-                      if (value == null || value.isEmpty) return null;
-                      final created = await widget.onCreateCategory?.call(value) ?? value;
-                      if (!mounted) return created;
-                      setState(() {
-                        _categoryController.text = created;
-                        if (!_knownCategories.contains(created)) _knownCategories.add(created);
-                      });
-                      return created;
-                    },
-                  ),),
-                      const SizedBox(width: 8),
-                      Expanded(child: ArvinTagRollBox(
-                    tags: _knownTags,
-                    selectedTags: _selectedTags,
-                    onChanged: (values) => setState(() {
-                      _selectedTags
-                        ..clear()
-                        ..addAll(values);
-                      _tagsController.text = _selectedTags.join('، ');
-                    }),
-                    onCreate: () async {
-                      final controller = TextEditingController();
-                      final value = await showModalBottomSheet<String>(
-                        context: context, isScrollControlled: true,
-                        builder: (ctx) => Padding(
-                          padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(ctx).bottom),
-                          child: Column(mainAxisSize: MainAxisSize.min, children: [
-                            const Text('برچسب جدید'),
-                            TextField(controller: controller, autofocus: true, decoration: const InputDecoration(labelText: 'نام')),
-                            FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('افزودن')),
-                          ]),
-                        ),
-                      );
-                      controller.dispose();
-                      if (value == null || value.isEmpty) return null;
-                      final created = await widget.onCreateTag?.call(value) ?? value;
-                      if (!mounted) return created;
-                      setState(() {
-                        if (!_selectedTags.contains(created)) _selectedTags.add(created);
-                        if (!_knownTags.contains(created)) _knownTags.add(created);
-                        _tagsController.text = _selectedTags.join('، ');
-                      });
-                      return created;
-                    },
-                  ),),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ArvinRollBox<Object?>(
-                          key: const ValueKey('quick-capture-due-rollbox'),
-                          label: 'موعد',
-                          valueLabel: _dueDate == null ? 'موعد' : _dateLabel(_dueDate),
-                          icon: Icons.calendar_today_outlined,
-                          color: ArvinColors.time,
-                          emptyLabel: 'بدون موعد',
-                          items: [
-                            ArvinRollItem<Object?>(value: _now(), label: 'امروز', icon: Icons.today_outlined, color: ArvinColors.time),
-                            ArvinRollItem<Object?>(value: _now().add(const Duration(days: 1)), label: 'فردا', icon: Icons.event_outlined, color: ArvinColors.project),
-                            ArvinRollItem<Object?>(value: _now().add(const Duration(days: 7)), label: 'هفته آینده', icon: Icons.date_range_outlined, color: ArvinColors.tag),
-                          ],
-                          createLabel: 'تاریخ و ساعت سفارشی',
-                          onCreate: _saving ? null : _pickCustomDue,
-                          onSelected: (value) {
-                            if (value is DateTime) {
-                              _setDueDate(value);
-                            } else {
-                              _setDueDate(null);
-                            }
-                          },
-                        ),
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: ArvinRollBox<RecurrenceRule?>(
-                          label: 'تکرار',
-                          valueLabel: _recurrenceLabel(),
-                          icon: Icons.repeat_rounded,
-                          color: ArvinColors.category,
-                          emptyLabel: 'بدون تکرار',
-                          items: const [
-                            ArvinRollItem<RecurrenceRule?>(value: RecurrenceRule(frequency: RecurrenceFrequency.daily), label: 'هر روز', icon: Icons.today_outlined, color: ArvinColors.category),
-                            ArvinRollItem<RecurrenceRule?>(value: RecurrenceRule(frequency: RecurrenceFrequency.weekly), label: 'هر هفته', icon: Icons.view_week_outlined, color: ArvinColors.project),
-                            ArvinRollItem<RecurrenceRule?>(value: RecurrenceRule(frequency: RecurrenceFrequency.monthly), label: 'هر ماه', icon: Icons.calendar_month_outlined, color: ArvinColors.tag),
-                            ArvinRollItem<RecurrenceRule?>(value: RecurrenceRule(frequency: RecurrenceFrequency.yearly), label: 'هر سال', icon: Icons.event_repeat_outlined, color: ArvinColors.time),
-                          ],
-                          createLabel: 'تکرار سفارشی',
-                          onCreate: _saving ? null : _pickCustomRecurrence,
-                          onSelected: (value) => setState(() => _recurrence = value),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: ArvinRollBox<Object?>(
-                          key: const ValueKey('quick-capture-reminder-rollbox'),
-                          label: 'یادآور',
-                          valueLabel: _reminderDate == null ? 'یادآور' : _dateLabel(_reminderDate),
-                          icon: Icons.notifications_none_outlined,
-                          color: ArvinColors.reminder,
-                          emptyLabel: 'بدون یادآور',
-                          items: [
-                            ArvinRollItem<Object?>(value: _dueDate ?? _now(), label: 'همان زمان موعد', icon: Icons.notifications_active_outlined, color: ArvinColors.reminder),
-                            ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(minutes: 15)), label: '۱۵ دقیقه قبل', icon: Icons.notifications_active_outlined, color: ArvinColors.reminder),
-                            ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(hours: 1)), label: 'یک ساعت قبل', icon: Icons.notifications_active_outlined, color: ArvinColors.reminder),
-                            ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(days: 1)), label: 'یک روز قبل', icon: Icons.notifications_active_outlined, color: ArvinColors.reminder),
-                            ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(days: 7)), label: 'یک هفته قبل', icon: Icons.notifications_active_outlined, color: ArvinColors.reminder),
-                          ],
-                          createLabel: 'تاریخ و ساعت سفارشی',
-                          onCreate: _saving ? null : _pickCustomReminder,
-                          onSelected: (value) {
-                            setState(() {
-                              _reminderDate = value is DateTime ? value : null;
-                              _reminderFollowsDueTime = false;
-                            });
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 4,
-                    children: [
-                      FilterChip(
-                        key: const ValueKey('quick-capture-checklist-enabled'),
-                        selected: _checklistEnabled,
-                        avatar: const Icon(Icons.checklist_outlined),
-                        label: const Text('چک‌لیست'),
-                        onSelected: _saving
-                            ? null
-                            : (enabled) => setState(() => _checklistEnabled = enabled),
-                      ),
-                  if (_checklistEnabled) ...[
-                    const SizedBox(height: 8),
-                    ArvinRollBox<String>(
-                      key: const ValueKey('quick-capture-checklist-rollbox'),
-                      label: 'چک‌لیست',
-                      valueLabel: _checklistItems.isEmpty
-                          ? 'افزودن مورد'
-                          : '${_checklistItems.length} مورد',
-                      icon: Icons.checklist_outlined,
-                      color: ArvinColors.time,
-                      emptyLabel: 'چک‌لیست خالی',
-                      items: _checklistItems
-                          .map((item) => ArvinRollItem<String>(
-                                value: item,
-                                label: item,
-                                icon: Icons.check_box_outline_blank,
-                              ))
-                          .toList(growable: false),
-                      createLabel: 'افزودن مورد چک‌لیست',
-                      onCreate: _saving ? null : _addChecklistItem,
-                      onSelected: (_) {},
-                    ),
-                  ],
-                ],
-              ),
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      key: const ValueKey('quick-capture-cancel'),
-                      onPressed: _saving ? null : () => Navigator.of(context).pop(),
-                      child: const Text('لغو'),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: OutlinedButton(
-                      key: const ValueKey('quick-capture-full-form'),
-                      onPressed: _saving ? null : _openFullForm,
-                      child: const Text('فرم کامل'),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: FilledButton(
-                      key: const ValueKey('quick-capture-submit'),
-                      onPressed: _saving ? null : _submit,
-                      child: Text(_saving ? 'در حال ثبت…' : 'ثبت کار'),
-                    ),
-                  ),
-                ],
-              ),
-              ],
+                );
+              }).toList(growable: false),
             ),
-            ],
-          ),
+            const SizedBox(height: 3),
+            Row(
+              textDirection: TextDirection.rtl,
+              children: TaskPriority.values.map((priority) => Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 2),
+                  child: Text(
+                    hints[priority]!,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    softWrap: false,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 8, height: 1.1),
+                  ),
+                ),
+              )).toList(growable: false),
+            ),
+
+          ],
         ),
       ),
     );
   }
 
+  Widget _surfaceCard({required Widget child, EdgeInsets padding = const EdgeInsets.all(6)}) {
+    return Card(
+      elevation: 2,
+      shadowColor: ArvinTheme.shadowStyle.color,
+      color: ArvinTheme.cardBackground,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(borderRadius: ArvinTheme.cardBorderRadius),
+      child: Padding(padding: padding, child: child),
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+    final availableCenters = _knownCenters
+        .where((center) => !center.isArchived || center.id == _centerId)
+        .toList(growable: false);
+    final availableProjects = _knownProjects
+        .where((project) =>
+            (!project.isArchived || project.id == _projectId) &&
+            (_centerId == null || project.centerId == _centerId))
+        .toList(growable: false);
+    final selectedCenter = availableCenters.where((center) => center.id == _centerId).toList();
+    final selectedProject = _knownProjects.where((project) => project.id == _projectId).toList();
+
+    return ColoredBox(
+      color: Theme.of(context).colorScheme.surface,
+      child: SafeArea(
+      child: Align(
+        alignment: AlignmentDirectional.topCenter,
+        widthFactor: 1,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 720),
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(12, 2, 12, bottomInset + 4),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.vertical(bottom: Radius.circular(18)),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                    child: Row(
+                      textDirection: TextDirection.rtl,
+                      children: [
+                        IconButton(
+                          key: const ValueKey('quick-capture-close'),
+                          tooltip: 'بستن',
+                          onPressed: _saving ? null : () => Navigator.of(context).pop(),
+                          color: Colors.white,
+                          icon: const Icon(Icons.close_rounded),
+                        ),
+                        const Expanded(child: Text(
+                          'ثبت سریع کار',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontFamily: 'Vazirmatn', color: Colors.white, fontSize: 16, height: 1.1, fontWeight: FontWeight.w800),
+                        )),
+                        IconButton(
+                          key: const ValueKey('quick-capture-full-form'),
+                          tooltip: 'ورود به فرم کامل',
+                          visualDensity: VisualDensity.compact,
+                          onPressed: _saving ? null : _openFullForm,
+                          color: Colors.white,
+                          icon: const Icon(Icons.open_in_new_rounded),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  _surfaceCard(
+                    child: TextField(
+                      key: const ValueKey('quick-capture-input'),
+                      controller: _controller,
+                      focusNode: _titleFocus,
+                      autofocus: false,
+                      enabled: !_saving,
+                      minLines: 1,
+                      maxLines: 1,
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (_) => _submit(),
+                      decoration: InputDecoration(
+                        hintText: 'عنوان کار را وارد کنید',
+                        errorText: _error,
+                        prefixIcon: Icon(Icons.title_rounded, size: 18, color: Theme.of(context).colorScheme.primary),
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 4),
+                        border: InputBorder.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  _surfaceCard(
+                    child: Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: Row(
+                        key: const ValueKey('quick-capture-five-filter-row'),
+                        textDirection: TextDirection.rtl,
+                        mainAxisSize: MainAxisSize.max,
+                        children: [
+                          Expanded(
+                            child: HomeFilterPill(
+                              key: const ValueKey('quick-capture-due-rollbox'),
+                              label: _dueDate == null
+                                  ? 'زمان کار / موعد'
+                                  : _dateLabel(_dueDate, dateOnly: _dueAllDay),
+                              icon: Icons.calendar_today_outlined,
+                              accent: Theme.of(context).colorScheme.primary,
+                              soft: Color.alphaBlend(
+                                Theme.of(context).colorScheme.primary.withAlpha(18),
+                                Theme.of(context).colorScheme.surface,
+                              ),
+                              active: _dueDate != null,
+                              onPressed: _saving
+                                  ? () {}
+                                  : () async {
+                                      final value = await _pickCustomDue();
+                                      if (!mounted || value == null) return;
+                                      _setDueDate(
+                                        value,
+                                        allDay: _pendingCustomDueAllDay,
+                                      );
+                                      _pendingCustomDueAllDay = false;
+                                    },
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: ArvinRollBox<String>(
+                              key: const ValueKey('quick-capture-center-rollbox'),
+                              label: 'مرکز',
+                              compact: true,
+                              valueLabel: selectedCenter.isEmpty ? 'مرکز' : selectedCenter.first.name,
+                              icon: Icons.business_outlined,
+                              color: Theme.of(context).colorScheme.primary,
+                              emptyLabel: 'بدون محدودیت مرکز',
+                              createLabel: '+ افزودن مرکز',
+                              createItemKey: const ValueKey('quick-capture-create-center'),
+                              items: availableCenters.map((center) => ArvinRollItem<String>(
+                                value: center.id, label: center.name,
+                                icon: Icons.business_outlined, color: Theme.of(context).colorScheme.primary,
+                              )).toList(growable: false),
+                              onSelected: (value) {
+                                setState(() {
+                                  _centerId = value;
+                                  if (_projectId != null) {
+                                    final current = _knownProjects.where((project) => project.id == _projectId);
+                                    if (value == null || current.isEmpty || current.first.centerId != value) {
+                                      _projectId = null;
+                                      widget.onProjectChanged?.call(null);
+                                    }
+                                  }
+                                });
+                              },
+                              onCreateWithName: widget.onCreateCenter == null
+                                  ? null
+                                  : (value) async {
+                                      _titleFocus.unfocus();
+                                      final createdId = await widget.onCreateCenter!(value);
+                                      if (!mounted || createdId == null || createdId.trim().isEmpty) return null;
+                                      if (!_knownCenters.any((center) => center.id == createdId)) {
+                                        _knownCenters = [..._knownCenters, ArvinCenter(
+                                          id: createdId, name: value, createdAt: _now(),
+                                        )];
+                                      }
+                                      setState(() {
+                                        _centerId = createdId;
+                                        if (_projectId != null) {
+                                          final current = _knownProjects.where((project) => project.id == _projectId);
+                                          if (current.isEmpty || current.first.centerId != createdId) _projectId = null;
+                                        }
+                                      });
+                                      widget.onProjectChanged?.call(_projectId);
+                                      return ReusableFilterOption<String>(
+                                        value: createdId,
+                                        label: value,
+                                      );
+                                    },
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: ArvinRollBox<String>(
+                              key: const ValueKey('quick-capture-project-rollbox'),
+                              label: 'پروژه',
+                              compact: true,
+                              valueLabel: selectedProject.isEmpty ? 'پروژه' : selectedProject.first.title,
+                              icon: Icons.folder_outlined,
+                              color: ArvinColors.project,
+                              emptyLabel: 'بدون پروژه',
+                              createLabel: '+ افزودن پروژه',
+                              createItemKey: const ValueKey('quick-capture-create-project'),
+                              items: availableProjects.map((project) => ArvinRollItem<String>(
+                                value: project.id,
+                                label: project.isArchived ? '${project.title} (بایگانی‌شده)' : project.title,
+                                icon: Icons.folder_outlined,
+                                color: project.isArchived ? ArvinColors.textSecondary : ArvinColors.project,
+                              )).toList(growable: false),
+                              onSelected: (value) {
+                                setState(() {
+                                  _projectId = value;
+                                  if (value != null) {
+                                    final match = _knownProjects.where((project) => project.id == value);
+                                    _centerId = match.isEmpty ? null : match.first.centerId;
+                                  }
+                                  widget.onProjectChanged?.call(value);
+                                });
+                              },
+                              onCreateWithName: (value) async {
+                                final createWithCenter = widget.onCreateProjectWithCenter;
+                                final createProject = widget.onCreateProject;
+                                final createdId = createWithCenter != null
+                                    ? await createWithCenter(value, _centerId)
+                                    : createProject != null
+                                        ? await createProject(value)
+                                        : await TaskProjectAssignmentService()
+                                            .createProject(title: value, centerId: _centerId)
+                                            .then((project) => project.id);
+                                if (!mounted || createdId == null || createdId.trim().isEmpty) return null;
+                                final existing = _knownProjects.where((project) => project.id == createdId).toList();
+                                if (existing.isEmpty) {
+                                  _knownProjects = List<ProjectPlan>.of(
+                                    await TaskProjectAssignmentService().loadProjects(),
+                                  );
+                                }
+                                final created = _knownProjects.where((project) => project.id == createdId).toList();
+                                setState(() {
+                                  _projectId = createdId;
+                                  if (created.isNotEmpty) _centerId = created.first.centerId;
+                                });
+                                widget.onProjectChanged?.call(createdId);
+                                return ReusableFilterOption<String>(
+                                  value: createdId,
+                                  label: value,
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: ArvinRollBox<String>(
+                              key: const ValueKey('quick-capture-category-rollbox'),
+                              label: 'دسته',
+                              compact: true,
+                              valueLabel: _categoryController.text.trim().isEmpty ? 'دسته' : _categoryController.text.trim(),
+                              icon: Icons.grid_view_rounded,
+                              color: ArvinColors.tag,
+                              emptyLabel: 'بدون دسته',
+                              createLabel: '+ افزودن دسته',
+                              items: _knownCategories.map((v) => v.trim()).where((v) => v.isNotEmpty)
+                                  .map((v) => ArvinRollItem<String>(
+                                    value: v, label: v, icon: Icons.grid_view_rounded, color: ArvinColors.tag,
+                                  )).toList(growable: false),
+                              onSelected: (v) => setState(() => _categoryController.text = v ?? ''),
+                              onCreateWithName: (value) async {
+                                _titleFocus.unfocus();
+                                final created = await widget.onCreateCategory?.call(value) ?? value;
+                                if (!mounted) return null;
+                                setState(() {
+                                  _categoryController.text = created;
+                                  if (!_knownCategories.contains(created)) _knownCategories.add(created);
+                                });
+                                return ReusableFilterOption<String>(
+                                  value: created,
+                                  label: created,
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: ArvinTagRollBox(
+                              compact: true,
+                              key: const ValueKey('quick-capture-tag-rollbox'),
+                              tags: _knownTags,
+                              selectedTags: _selectedTags,
+                              onChanged: (values) => setState(() {
+                                _selectedTags..clear()..addAll(values);
+                              }),
+                              onCreateWithName: (value) async {
+                                _titleFocus.unfocus();
+                                final created = await widget.onCreateTag?.call(value) ?? value;
+                                if (!mounted) return null;
+                                setState(() {
+                                  if (!_selectedTags.contains(created)) _selectedTags.add(created);
+                                  if (!_knownTags.contains(created)) _knownTags.add(created);
+                                });
+                                return created;
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  _surfaceCard(
+                    child: Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: Wrap(
+                        key: const ValueKey('quick-capture-settings-wrap'),
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          SizedBox(width: 148, child: ArvinRollBox<Object?>(
+                            key: const ValueKey('quick-capture-reminder-rollbox'),
+                            label: 'یادآور',
+                            compact: true,
+                            valueLabel: _reminderDate == null ? 'یادآور' : _dateLabel(_reminderDate),
+                            icon: Icons.notifications_none_outlined,
+                            color: ArvinColors.reminder,
+                            emptyLabel: 'بدون یادآور',
+                            items: [
+                              ArvinRollItem<Object?>(value: _dueDate ?? _now(), label: 'همان زمان موعد', icon: Icons.notifications_active_outlined, color: ArvinColors.reminder),
+                              ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(minutes: 15)), label: '۱۵ دقیقه قبل', icon: Icons.notifications_active_outlined, color: ArvinColors.reminder),
+                              ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(hours: 1)), label: 'یک ساعت قبل', icon: Icons.notifications_active_outlined, color: ArvinColors.reminder),
+                              ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(days: 1)), label: 'یک روز قبل', icon: Icons.notifications_active_outlined, color: ArvinColors.reminder),
+                              ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(days: 7)), label: 'یک هفته قبل', icon: Icons.notifications_active_outlined, color: ArvinColors.reminder),
+                            ],
+                            createLabel: 'تاریخ و ساعت سفارشی',
+                            onCreate: _saving ? null : _pickCustomReminder,
+                            onSelected: (value) {
+                              setState(() {
+                                _reminderDate = value is DateTime ? value : null;
+                                _reminderAllDay = _reminderDate != null && _pendingCustomReminderAllDay;
+                                _pendingCustomReminderAllDay = false;
+                              });
+                            },
+                          )),
+                          SizedBox(width: 108, child: ArvinRollBox<RecurrenceRule?>(
+                            key: const ValueKey('quick-capture-recurrence-rollbox'),
+                            label: 'تکرار',
+                            compact: true,
+                            valueLabel: _recurrenceLabel(),
+                            icon: Icons.repeat_rounded,
+                            color: ArvinColors.category,
+                            emptyLabel: 'بدون تکرار',
+                            items: const [
+                              ArvinRollItem<RecurrenceRule?>(value: RecurrenceRule(frequency: RecurrenceFrequency.daily), label: 'هر روز', icon: Icons.today_outlined, color: ArvinColors.category),
+                              ArvinRollItem<RecurrenceRule?>(value: RecurrenceRule(frequency: RecurrenceFrequency.weekly), label: 'هر هفته', icon: Icons.view_week_outlined, color: ArvinColors.project),
+                              ArvinRollItem<RecurrenceRule?>(value: RecurrenceRule(frequency: RecurrenceFrequency.monthly), label: 'هر ماه', icon: Icons.calendar_month_outlined, color: ArvinColors.tag),
+                              ArvinRollItem<RecurrenceRule?>(value: RecurrenceRule(frequency: RecurrenceFrequency.yearly), label: 'هر سال', icon: Icons.event_repeat_outlined, color: ArvinColors.time),
+                            ],
+                            createLabel: 'تکرار سفارشی',
+                            onCreate: _saving ? null : _pickCustomRecurrence,
+                            onSelected: (value) => setState(() => _recurrence = value),
+                          )),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  const SizedBox(height: 5),
+                  _priorityDropdown(),
+                  const SizedBox(height: 5),
+                  Row(
+                    textDirection: TextDirection.rtl,
+                    children: [
+                      Expanded(child: FilledButton(
+                        key: const ValueKey('quick-capture-submit'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Theme.of(context).colorScheme.primary,
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size.fromHeight(40),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        onPressed: _saving ? null : _submit,
+                        child: Text(_saving ? 'در حال ثبت…' : 'ثبت کار'),
+                      )),
+                      const SizedBox(width: 6),
+                      TextButton(
+                        key: const ValueKey('quick-capture-cancel'),
+                        style: TextButton.styleFrom(
+                          minimumSize: const Size(64, 40),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                          tapTargetSize: MaterialTapTargetSize.padded,
+                        ),
+                        onPressed: _saving ? null : () => Navigator.of(context).pop(),
+                        child: const Text('لغو'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+      ),
+    );
+  }
 }

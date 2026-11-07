@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:arvin/services/g1_drift_schema.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -15,6 +16,7 @@ void main() {
 
   test('creates the complete G1 relational schema', () async {
     await G1DriftSchema.install(database);
+    expect(G1DriftSchema.version, 15);
 
     final tables = await database.runSelect(
       "SELECT name FROM sqlite_master "
@@ -31,6 +33,13 @@ void main() {
       taskColumns.map((row) => row['name']),
       contains('legacy_payload_json'),
     );
+    expect(
+      taskColumns.map((row) => row['name']),
+      isNot(contains('follow_up_enabled')),
+    );
+    expect(taskColumns.map((row) => row['name']), isNot(contains('follow_up_date')));
+    expect(taskColumns.map((row) => row['name']), isNot(contains('reminder_date')));
+
 
     final projectColumns = await database.runSelect(
       "PRAGMA table_info('projects')",
@@ -49,21 +58,208 @@ void main() {
       tables.map((row) => row['name']),
       containsAll(<String>[
         'tasks',
-        'follow_ups',
+        'follow_up_records',
+        'task_reminders',
+        'persons',
+        'follow_up_record_people',
         'projects',
         'project_items',
+        'task_templates',
         'tags',
         'task_tags',
         'checklist_items',
-        'task_people',
+        'task_persons',
       ]),
     );
+
+    expect(
+      tables.map((row) => row['name']),
+      isNot(contains('follow_ups')),
+    );
+    expect(tables.map((row) => row['name']), isNot(contains('follow_up_people')));
+    expect(tables.map((row) => row['name']), isNot(contains('people')));
+    expect(tables.map((row) => row['name']), isNot(contains('task_people')));
+
+    final taskTemplateColumns = await database.runSelect(
+      "PRAGMA table_info('task_templates')",
+      const [],
+    );
+    expect(taskTemplateColumns.map((row) => row['name']), contains('checklist_enabled'));
+
+    final taskPersonForeignKeys = await database.runSelect(
+      "PRAGMA foreign_key_list('task_persons')",
+      const [],
+    );
+    expect(taskPersonForeignKeys.map((row) => row['table']), contains('persons'));
+    final followUpPersonForeignKeys = await database.runSelect(
+      "PRAGMA foreign_key_list('follow_up_record_people')",
+      const [],
+    );
+    expect(followUpPersonForeignKeys.map((row) => row['table']), contains('persons'));
 
     final foreignKeys = await database.runSelect(
       'PRAGMA foreign_keys',
       const [],
     );
     expect(foreignKeys.single['foreign_keys'], 1);
+  });
+
+  test('materializes multiple Task reminders, historical Follow-ups and Persons canonically', () async {
+    await G1DriftSchema.install(database);
+    final payload = <String, dynamic>{
+      'id': 'canonical-task',
+      'title': 'کار کانونی',
+      'dueDate': '2026-11-08T00:00:00.000',
+      'allDay': true,
+      'taskReminders': <Map<String, dynamic>>[
+        {
+          'id': 'reminder-one',
+          'title': 'یادآور اول',
+          'date': '2026-11-08T09:00:00.000',
+          'isAllDay': false,
+          'sequence': 1,
+        },
+        {
+          'id': 'reminder-two',
+          'title': 'یادآور دوم',
+          'date': '2026-11-09T00:00:00.000',
+          'isAllDay': true,
+          'sequence': 2,
+        },
+      ],
+      'followUps': <dynamic>[],
+    };
+    await database.runInsert(
+      '''INSERT INTO tasks
+         (id, title, description, due_date, priority, archived, trashed,
+          completed, legacy_payload_json)
+         VALUES (?, ?, '', '2026-11-08T00:00:00.000', 'none', 0, 0, 0, ?)''',
+      <Object?>['canonical-task', jsonEncode(payload)],
+    );
+    // Recreate the pre-v12 layout to exercise the real upgrade/cutover path.
+    await database.runCustom(
+      '''CREATE TABLE follow_ups (
+         id TEXT NOT NULL PRIMARY KEY, task_id TEXT NOT NULL REFERENCES tasks(id),
+         date_time TEXT NOT NULL, title TEXT NULL, note TEXT NOT NULL, result TEXT NULL,
+         reminder_date TEXT NULL, next_follow_up TEXT NULL, completed INTEGER NOT NULL,
+         waiting_for_response INTEGER NOT NULL DEFAULT 0, ordinal INTEGER NOT NULL,
+         UNIQUE(task_id, ordinal))''',
+    );
+    await database.runCustom(
+      '''CREATE TABLE follow_up_people (
+         follow_up_id TEXT NOT NULL REFERENCES follow_ups(id), person_id TEXT NOT NULL,
+         ordinal INTEGER NOT NULL, PRIMARY KEY(follow_up_id, person_id))''',
+    );
+    await database.runCustom(
+      '''CREATE TABLE people (
+         id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL,
+         created_at TEXT NOT NULL, updated_at TEXT NOT NULL)''',
+    );
+    await database.runCustom(
+      '''CREATE TABLE task_people (
+         task_id TEXT NOT NULL, person_id TEXT NOT NULL,
+         person_json TEXT NOT NULL, ordinal INTEGER NOT NULL,
+         PRIMARY KEY (task_id, person_id))''',
+    );
+    await database.runCustom(
+      '''INSERT INTO task_people (task_id, person_id, person_json, ordinal)
+         VALUES ('canonical-task', 'task-person-old',
+                 '{"id":"task-person-old","displayName":"شخص قدیمی"}', 0)''',
+    );
+    await database.runCustom(
+      '''INSERT INTO follow_ups
+         (id, task_id, date_time, note, reminder_date, next_follow_up, completed, ordinal)
+         VALUES ('legacy-follow-up', 'canonical-task', '2026-11-06T12:00:00.000',
+                 'سابقه تاریخی', '2026-11-07T09:00:00.000',
+                 '2026-11-10T09:00:00.000', 1, 0)''',
+    );
+    await database.runCustom(
+      '''INSERT INTO people (id, name, created_at, updated_at)
+         VALUES ('person-1', 'شخص یک', '2026-11-01', '2026-11-01')''',
+    );
+    await database.runCustom(
+      '''INSERT INTO follow_up_people (follow_up_id, person_id, ordinal)
+         VALUES ('legacy-follow-up', 'person-1', 0)''',
+    );
+
+    await G1DriftSchema.migrateTaskPeople(database);
+    await G1DriftSchema.migrateCanonicalEntities(database);
+
+    final reminders = await database.runSelect(
+      'SELECT id, is_all_day FROM task_reminders WHERE task_id = ? ORDER BY sequence',
+      <Object?>['canonical-task'],
+    );
+    expect(reminders.map((row) => row['id']), [
+      'reminder-one',
+      'reminder-two',
+      'follow-up-reminder-canonical-task-legacy-follow-up',
+    ]);
+    expect(reminders.map((row) => row['is_all_day']), [0, 1, 0]);
+    expect(reminders[1]['remind_at'], '2026-11-09');
+    final migratedDueDate = await database.runSelect(
+      'SELECT due_date FROM tasks WHERE id = ?',
+      const <Object?>['canonical-task'],
+    );
+    expect(migratedDueDate.single['due_date'], '2026-11-08');
+    final migratedFollowUpReminder = await database.runSelect(
+      'SELECT remind_at FROM task_reminders WHERE id = ?',
+      <Object?>['follow-up-reminder-canonical-task-legacy-follow-up'],
+    );
+    expect(migratedFollowUpReminder.single['remind_at'], '2026-11-07T09:00:00.000');
+
+    final records = await database.runSelect(
+      'SELECT id, completed_at FROM follow_up_records WHERE task_id = ?',
+      <Object?>['canonical-task'],
+    );
+    expect(records, hasLength(1));
+    expect(records.single['completed_at'], '2026-11-06T12:00:00.000');
+
+    final recordPeople = await database.runSelect(
+      'SELECT person_id FROM follow_up_record_people WHERE follow_up_id = ?',
+      <Object?>['legacy-follow-up'],
+    );
+    expect(recordPeople.single['person_id'], 'person-1');
+
+    final personRows = await database.runSelect(
+      'SELECT name FROM persons WHERE id = ?',
+      <Object?>['person-1'],
+    );
+    expect(personRows.single['name'], 'شخص یک');
+    final taskPersonRows = await database.runSelect(
+      '''SELECT task_persons.person_id, persons.name
+         FROM task_persons JOIN persons ON persons.id = task_persons.person_id
+         WHERE task_persons.task_id = ?''',
+      <Object?>['canonical-task'],
+    );
+    expect(taskPersonRows.single['person_id'], 'task-person-old');
+    expect(taskPersonRows.single['name'], 'شخص قدیمی');
+
+    final recordColumns = await database.runSelect(
+      "PRAGMA table_info('follow_up_records')",
+      const [],
+    );
+    expect(recordColumns.map((row) => row['name']), isNot(contains('next_follow_up')));
+    expect(recordColumns.map((row) => row['name']), isNot(contains('reminder_date')));
+
+    final retiredTables = await database.runSelect(
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('follow_ups', 'follow_up_people', 'people', 'task_people')",
+      const [],
+    );
+    expect(retiredTables, isEmpty);
+  });
+
+  test('concurrent stores share one serialized schema installation', () async {
+    await Future.wait([
+      G1DriftSchema.install(database),
+      G1DriftSchema.install(database),
+      G1DriftSchema.install(database),
+      G1DriftSchema.install(database),
+    ]);
+    final templates = await database.runSelect(
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'task_templates'",
+      const [],
+    );
+    expect(templates, hasLength(1));
   });
 
   test('schema installation is idempotent', () async {
@@ -82,27 +278,27 @@ void main() {
 
     await database.runCustom(
       "INSERT INTO tasks "
-      "(id, title, description, follow_up_enabled, priority, archived, trashed, completed) "
-      "VALUES ('task-1', 'عنوان', '', 1, 'none', 0, 0, 0)",
+      "(id, title, description, priority, archived, trashed, completed) "
+      "VALUES ('task-1', 'عنوان', '', 'none', 0, 0, 0)",
     );
 
     await database.runCustom(
-      "INSERT INTO follow_ups "
-      "(id, task_id, date_time, note, completed, ordinal) "
+      "INSERT INTO follow_up_records "
+      "(id, task_id, completed_at, note, completed, ordinal) "
       "VALUES ('fu-1', 'task-1', '2026-09-22T10:00:00Z', 'اول', 0, 0)",
     );
 
     await expectLater(
       database.runCustom(
-        "INSERT INTO follow_ups "
-        "(id, task_id, date_time, note, completed, ordinal) "
+        "INSERT INTO follow_up_records "
+        "(id, task_id, completed_at, note, completed, ordinal) "
         "VALUES ('fu-2', 'task-1', '2026-09-22T11:00:00Z', 'تکراری', 0, 0)",
       ),
       throwsA(isA<Exception>()),
     );
 
     final ordered = await database.runSelect(
-      'SELECT ordinal FROM follow_ups WHERE task_id = ? ORDER BY ordinal',
+      'SELECT ordinal FROM follow_up_records WHERE task_id = ? ORDER BY ordinal',
       <Object?>['task-1'],
     );
     expect(ordered.single['ordinal'], 0);
@@ -113,8 +309,8 @@ void main() {
 
     await expectLater(
       database.runCustom(
-        "INSERT INTO follow_ups "
-        "(id, task_id, date_time, note, completed, ordinal) "
+        "INSERT INTO follow_up_records "
+        "(id, task_id, completed_at, note, completed, ordinal) "
         "VALUES ('fu-orphan', 'missing', '2026-09-22T10:00:00Z', '', 0, 0)",
       ),
       throwsA(isA<Exception>()),

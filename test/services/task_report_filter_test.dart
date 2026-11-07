@@ -51,7 +51,6 @@ void main() {
       projectId: 'p',
       category: 'کار',
       tag: 'مهم',
-      priority: TaskPriority.high,
       hasFollowUp: true,
       hasChecklist: true,
     ).apply(tasks, now: now, projects: projects);
@@ -133,6 +132,38 @@ void main() {
   });
 
 
+  test('report sorting keeps due date primary and priority secondary', () {
+    final sameDate = DateTime(2026, 10, 7, 15);
+    final lowerPriority = Task(
+      id: 'lower-priority',
+      title: 'اولویت پایین‌تر',
+      dueDate: sameDate,
+      priority: TaskPriority.low,
+    );
+    final highestPriority = Task(
+      id: 'highest-priority',
+      title: 'اولویت بالاتر',
+      dueDate: sameDate,
+      priority: TaskPriority.high,
+    );
+    final laterDate = Task(
+      id: 'later-date',
+      title: 'تاریخ دیرتر',
+      dueDate: DateTime(2026, 10, 8, 9),
+      priority: TaskPriority.high,
+    );
+
+    final result = const TaskReportFilter().apply(
+      [lowerPriority, laterDate, highestPriority],
+      now: now,
+    );
+
+    expect(
+      result.map((task) => task.id),
+      ['highest-priority', 'lower-priority', 'later-date'],
+    );
+  });
+
   test('external calendar filter is explicit and uses the canonical time window', () {
     final eventTime = DateTime(2026, 10, 7, 15);
     final filter = const TaskReportFilter().copyWith(
@@ -165,4 +196,56 @@ void main() {
   });
 
 
+
+  test('center and task filters combine with project, category, tag and time without resetting other dimensions', () {
+    final now = DateTime(2026, 11, 3, 10);
+    final matching = Task(id: 'task-511', title: 'فن', category: 'تعمیر', tags: ['فوری'], dueDate: DateTime(2026, 11, 3, 12));
+    final otherCenter = Task(id: 'task-512', title: 'فن', category: 'تعمیر', tags: ['فوری'], dueDate: DateTime(2026, 11, 3, 12));
+    final projects = [
+      ProjectPlan(id: 'p511', title: 'کالیبراسیون 511', centerId: '511', itemIds: ['task-511']),
+      ProjectPlan(id: 'p512', title: 'کالیبراسیون 512', centerId: '512', itemIds: ['task-512']),
+    ];
+    final selected = const TaskReportFilter(centerIds: {'511'}, taskId: 'task-511', projectIds: {'p511'}, categories: {'تعمیر'}, tags: {'فوری'}, timePreset: ReportTimePreset.today);
+    expect(selected.apply([matching, otherCenter], now: now, projects: projects).map((task) => task.id), ['task-511']);
+    expect(selected.copyWith(clearTaskId: true).centerIds, {'511'});
+    expect(selected.copyWith(clearTaskId: true).projectIds, {'p511'});
+    expect(selected.copyWith(centerIds: {}).taskId, 'task-511');
+    expect(selected.isActive, isTrue);
+  });
+
+  test('template name and template task origin combine with Center and existing dimensions', () {
+    final now = DateTime(2026, 11, 3, 10);
+    final task = Task(id: 'copy-511', title: 'بررسی فن', templateTaskId: 'tt-fan', category: 'سرویس', tags: ['فوری'], dueDate: DateTime(2026, 11, 3, 12));
+    final project = ProjectPlan(id: 'p511', title: 'کالیبراسیون 511', centerId: '511', templateId: 'tpl-a', templateNameSnapshot: 'کالیبراسیون یخچال', itemIds: ['copy-511']);
+    final filter = const TaskReportFilter(centerIds: {'511'}, templateIds: {'tpl-a'}, templateTaskId: 'tt-fan', projectIds: {'p511'}, categories: {'سرویس'}, tags: {'فوری'}, timePreset: ReportTimePreset.today);
+    expect(filter.apply([task], now: now, projects: [project]).map((item) => item.id), ['copy-511']);
+    expect(filter.copyWith(templateIds: {}).centerIds, {'511'});
+    expect(filter.copyWith(clearTemplateTaskId: true).templateIds, {'tpl-a'});
+  });
+
+  test('legacy projects without center or template stay outside selected template reports unless explicitly included', () {
+    final now = DateTime(2026, 11, 3, 10);
+    final legacy = Task(id: 'legacy', title: 'کار قدیمی');
+    final generated = Task(id: 'generated', title: 'کار قالب', templateTaskId: 'tt');
+    final projects = [
+      ProjectPlan(id: 'legacy-project', title: 'قدیمی', itemIds: ['legacy']),
+      ProjectPlan(id: 'generated-project', title: 'قالبی', centerId: '511', templateId: 'tpl', itemIds: ['generated']),
+    ];
+    final base = const TaskReportFilter(templateIds: {'tpl'});
+    expect(base.apply([legacy, generated], now: now, projects: projects).map((task) => task.id), ['generated']);
+    expect(base.copyWith(includeLegacyProjectsWithoutTemplate: true).apply([legacy, generated], now: now, projects: projects).map((task) => task.id).toSet(), {'legacy', 'generated'});
+  });
+
+  test('legacy Projects without Center are included only when explicitly requested alongside a selected Center', () {
+    final now = DateTime(2026, 11, 3);
+    final centered = Task(id: 'centered', title: 'کار مرکز');
+    final legacy = Task(id: 'legacy-center', title: 'کار قدیمی');
+    final projects = [
+      ProjectPlan(id: 'p511', title: 'مرکزی', centerId: '511', itemIds: ['centered']),
+      ProjectPlan(id: 'p-old', title: 'قدیمی', itemIds: ['legacy-center']),
+    ];
+    final base = const TaskReportFilter(centerIds: {'511'});
+    expect(base.apply([centered, legacy], now: now, projects: projects).map((t) => t.id), ['centered']);
+    expect(base.copyWith(includeLegacyProjectsWithoutCenter: true).apply([centered, legacy], now: now, projects: projects).map((t) => t.id).toSet(), {'centered', 'legacy-center'});
+  });
 }

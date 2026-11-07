@@ -24,13 +24,11 @@ void main() {
       ),
     );
 
-    expect(find.text('تقویم پیگیری'), findsOneWidget);
-    expect(
-      Directionality.of(tester.element(find.text('تقویم پیگیری'))),
-      TextDirection.rtl,
-    );
+    final sacredHeader = find.byKey(const ValueKey('calendar-sacred-header'));
+    expect(sacredHeader, findsOneWidget);
+    expect(Directionality.of(tester.element(sacredHeader)), TextDirection.rtl);
     expect(find.byKey(const ValueKey('calendar-today')), findsOneWidget);
-    expect(find.text('امروز'), findsOneWidget);
+    expect(find.text('۱۴۰۵/۰۵/۲۱'), findsNWidgets(2)); // Full Jalali date for the selected day.
     expect(find.text('مرداد ۱۴۰۵'), findsOneWidget);
 
     expect(
@@ -46,6 +44,8 @@ void main() {
     expect(find.byKey(const ValueKey('calendar-day-view')), findsNothing);
     expect(find.byKey(const ValueKey('calendar-month-view')), findsNothing);
     expect(find.byType(GridView), findsNothing);
+    final weekDay = find.byKey(const ValueKey('calendar-week-day-2026-8-12'));
+    expect(tester.getSize(weekDay).height, greaterThanOrEqualTo(48));
     expect(
       tester.getSize(find.byKey(const ValueKey('calendar-week-view'))).height,
       lessThan(80),
@@ -125,9 +125,15 @@ void main() {
     expect(find.byKey(const ValueKey('calendar-month-view')), findsOneWidget);
     expect(find.byType(GridView), findsOneWidget);
     expect(
-      tester.getSize(find.byKey(const ValueKey('calendar-month-view'))).height,
-      lessThan(280),
+      tester.getSize(find.byKey(const ValueKey('calendar-month-day-12'))).height,
+      greaterThanOrEqualTo(48),
     );
+    final monthHeight =
+        tester.getSize(find.byKey(const ValueKey('calendar-month-view'))).height;
+    // Six 48dp touch rows plus weekday header and spacing need about 318dp.
+    // Keep the minimum target size while bounding the month grid's height.
+    expect(monthHeight, greaterThanOrEqualTo(288));
+    expect(monthHeight, lessThanOrEqualTo(320));
     expect(find.text('مرداد ۱۴۰۵'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('calendar-period-next')));
     await tester.pumpAndSettle();

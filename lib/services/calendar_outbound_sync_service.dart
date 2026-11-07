@@ -1,6 +1,7 @@
 import '../calendar_page.dart';
 import 'app_settings_service.dart';
 import 'calendar_provider_sync_executor.dart';
+import 'system_calendar_bridge.dart';
 import 'calendar_sync_plan_service.dart';
 import 'external_calendar_link_store.dart';
 
@@ -9,7 +10,8 @@ import 'external_calendar_link_store.dart';
 /// It reuses the existing revision/planner/executor/link foundations. It does
 /// not persist another event model and it performs no provider writes unless
 /// calendar integration and outbound sync are explicitly enabled with a target
-/// calendar selected by the owner.
+/// calendar selected by the owner. Task lifecycle reconciliation always targets
+/// the app-owned local Arvin calendar; external providers are read-only.
 class CalendarOutboundSyncService {
   CalendarOutboundSyncService({
     AppSettingsService? settingsService,
@@ -55,6 +57,49 @@ class CalendarOutboundSyncService {
     return null;
   }
 
+  /// Reconciles the canonical Task projection into the app-owned Arvin
+  /// calendar after Task lifecycle mutations. This path deliberately ignores
+  /// optional external-calendar settings: Arvin is the permanent write target.
+  Future<CalendarProviderSyncResult?> syncTaskLifecycle(
+    Iterable<CalendarReminder> reminders, {
+    bool linkedOnly = false,
+  }) async {
+    final arvinCalendar = await executor.bridge.ensureArvinLocalCalendar();
+    if (arvinCalendar == null ||
+        !arvinCalendar.isArvinLocal ||
+        arvinCalendar.id.trim().isEmpty) {
+      return null;
+    }
+
+    final revisions = <CalendarSyncRevision>[];
+    for (final reminder in reminders) {
+      if (!SystemCalendarBridge.isExportableTaskReminderId(reminder.id)) {
+        continue;
+      }
+      try {
+        revisions.add(await revisionService.fromReminder(reminder));
+      } on ArgumentError {
+        // Completed and otherwise ineligible projections must not be exported.
+      }
+    }
+
+    final revisionIds = revisions.map((revision) => revision.reminderId).toSet();
+    final managedLinks = (await linkStore.load()).where(
+      (link) =>
+          SystemCalendarBridge.isExportableTaskReminderId(link.reminderId) &&
+          (!linkedOnly || revisionIds.contains(link.reminderId)),
+    );
+    final plan = planService.plan(
+      revisions: revisions,
+      links: managedLinks,
+      targetCalendarId: arvinCalendar.id,
+    );
+    return executor.execute(
+      plan: plan,
+      targetCalendarId: arvinCalendar.id,
+    );
+  }
+
   Future<CalendarProviderSyncResult?> sync(
     Iterable<CalendarReminder> reminders, {
     bool force = false,
@@ -62,13 +107,16 @@ class CalendarOutboundSyncService {
     Set<String> preserveUnprojectedTaskIds = const <String>{},
   }) async {
     final integration = (await settingsService.load()).calendarIntegration;
-    final targetCalendarId = integration.targetCalendarId?.trim();
-    if (!integration.enabled ||
-        (!integration.autoSync && !force) ||
-        targetCalendarId == null ||
-        targetCalendarId.isEmpty) {
+    if (!integration.enabled || (!integration.autoSync && !force)) {
       return null;
     }
+    final arvinCalendar = await executor.bridge.ensureArvinLocalCalendar();
+    if (arvinCalendar == null ||
+        !arvinCalendar.isArvinLocal ||
+        arvinCalendar.id.trim().isEmpty) {
+      return null;
+    }
+    final targetCalendarId = arvinCalendar.id.trim();
 
     final links = await linkStore.load();
     final linkedReminderIds = links.map((link) => link.reminderId).toSet();
@@ -81,6 +129,7 @@ class CalendarOutboundSyncService {
 
     final revisions = <CalendarSyncRevision>[];
     for (final reminder in reminders) {
+      if (!SystemCalendarBridge.isExportableTaskReminderId(reminder.id)) continue;
       if (linkedOnly && !linkedReminderIds.contains(reminder.id)) continue;
       final taskId = _taskIdForReminder(reminder.id);
       if (taskId != null && importedTaskIds.contains(taskId)) continue;
@@ -158,12 +207,6 @@ class CalendarOutboundSyncService {
     if (id.startsWith('task-reminder-item:') ||
         id.startsWith('task-reminder:')) {
       return integration.syncTaskReminders;
-    }
-    if (id.startsWith('followup:')) {
-      return integration.syncFollowUps;
-    }
-    if (id.startsWith('task-followup:')) {
-      return integration.syncFollowUpReminders;
     }
     if (id.startsWith('task-recurrence:')) {
       return integration.syncRecurrence;

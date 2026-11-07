@@ -461,8 +461,7 @@ class AppSettingsService {
     return _normalizeSwipeAction(matching.first);
   }
 
-  TaskSwipeAction _normalizeSwipeAction(TaskSwipeAction action) =>
-      action == TaskSwipeAction.convertToFollowUp ? TaskSwipeAction.none : action;
+  TaskSwipeAction _normalizeSwipeAction(TaskSwipeAction action) => action;
 
   double _normalizeFontSize(double? value) {
     final size = value ?? 16.0;

@@ -1,11 +1,133 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:arvin/calendar_page.dart';
+import 'package:arvin/theme/app_fonts.dart';
 import 'package:arvin/services/iran_clock.dart';
 import 'package:arvin/services/calendar_swipe_settings_service.dart';
 
 void main() {
+  testWidgets('calendar sacred SVG uses brand navy in light theme', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(theme: ThemeData.light(), home: const CalendarPage(reminders: [])),
+    );
+    final svg = tester.widget<SvgPicture>(
+      find.byKey(const ValueKey('calendar-sacred-header-svg')),
+    );
+    expect(svg.colorFilter, const ColorFilter.mode(Color(0xFF1A2B4C), BlendMode.srcIn));
+  });
+
+  testWidgets('calendar sacred SVG follows onSurface in dark theme', (tester) async {
+    final darkTheme = ThemeData.dark();
+    await tester.pumpWidget(
+      MaterialApp(theme: darkTheme, home: const CalendarPage(reminders: [])),
+    );
+    final svg = tester.widget<SvgPicture>(
+      find.byKey(const ValueKey('calendar-sacred-header-svg')),
+    );
+    expect(svg.colorFilter, ColorFilter.mode(darkTheme.colorScheme.onSurface, BlendMode.srcIn));
+  });
+
+  testWidgets('calendar sacred header renders the approved path SVG', (tester) async {
+    await tester.pumpWidget(const MaterialApp(home: CalendarPage(reminders: [])));
+    await tester.pumpAndSettle();
+
+    final phrase = find.byKey(const ValueKey('calendar-sacred-header'));
+    expect(phrase, findsOneWidget);
+    expect(tester.widget<Semantics>(phrase).properties.label,
+        'أُفَوِّضُ أَمْرِي إِلَى اللَّهِ');
+    expect(find.byType(SvgPicture), findsOneWidget);
+    expect(find.byKey(const ValueKey('calendar-sacred-header-svg')), findsOneWidget);
+    expect(
+      find.byWidgetPredicate((widget) => widget is SvgPicture &&
+          (widget.bytesLoader as dynamic).assetName == 'assets/images/branding/tafweez.svg'),
+      findsOneWidget,
+    );
+    expect(AppFonts.familyForText('متن فارسی رابط کاربری'), AppFonts.vazirmatnFamily);
+  });
+
+  testWidgets('source filters separate all-day items, timed reminders, phone events and unfinished tasks', (tester) async {
+    final day = DateTime(2026, 11, 1);
+    await tester.pumpWidget(MaterialApp(
+      home: CalendarPage(
+        initialSelectedDay: day,
+        reminders: [
+          CalendarReminder(
+            id: 'external-calendar:calendar-1:event-1',
+            title: 'رویداد تقویم گوشی',
+            date: day.add(const Duration(hours: 9)),
+          ),
+          CalendarReminder(
+            id: 'task-reminder-item:task-1:reminder-1',
+            title: 'یادآور زمان‌دار',
+            date: day.add(const Duration(hours: 10)),
+          ),
+          CalendarReminder(
+            id: 'followup:task-1:follow-up-1',
+            title: 'پیگیری باز',
+            date: day.add(const Duration(hours: 11)),
+          ),
+          CalendarReminder(
+            id: 'task-due:all-day-task',
+            title: 'کار بدون ساعت',
+            date: day,
+            isAllDay: true,
+          ),
+          CalendarReminder(
+            id: 'task-reminder:completed-all-day',
+            title: 'کار تمام‌روز انجام‌شده',
+            date: day,
+            isAllDay: true,
+            completed: true,
+          ),
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('calendar-source-filter')), findsOneWidget);
+    expect(find.text('رویداد تقویم گوشی'), findsOneWidget);
+    expect(find.text('یادآور زمان‌دار'), findsOneWidget);
+    expect(find.text('پیگیری باز'), findsNothing);
+    expect(find.text('کار بدون ساعت'), findsOneWidget);
+    expect(find.text('کار تمام‌روز انجام‌شده'), findsOneWidget);
+
+    final allDayTop = tester.getTopLeft(find.byKey(const ValueKey('calendar-pastel-card-task-due:all-day-task'))).dy;
+    final timedTop = tester.getTopLeft(find.byKey(const ValueKey('calendar-pastel-card-task-reminder-item:task-1:reminder-1'))).dy;
+    expect(allDayTop, lessThan(timedTop));
+
+    await tester.tap(find.text('تقویم گوشی'));
+    await tester.pumpAndSettle();
+    expect(find.text('رویداد تقویم گوشی'), findsOneWidget);
+    expect(find.text('یادآور زمان‌دار'), findsNothing);
+    expect(find.text('کار بدون ساعت'), findsNothing);
+
+    await tester.tap(find.text('یادآورها'));
+    await tester.pumpAndSettle();
+    expect(find.text('یادآور زمان‌دار'), findsOneWidget);
+    expect(find.text('کار بدون ساعت'), findsNothing);
+    expect(find.text('کار تمام‌روز انجام‌شده'), findsNothing);
+    expect(find.text('پیگیری باز'), findsNothing);
+
+    await tester.tap(find.text('انجام‌نشده'));
+    await tester.pumpAndSettle();
+    expect(find.text('کار بدون ساعت'), findsOneWidget);
+    expect(find.text('کار تمام‌روز انجام‌شده'), findsNothing);
+    expect(find.text('پیگیری باز'), findsNothing);
+    expect(find.text('یادآور زمان‌دار'), findsOneWidget);
+
+    await tester.tap(find.text('همه'));
+    await tester.pumpAndSettle();
+    expect(find.text('رویداد تقویم گوشی'), findsOneWidget);
+    expect(find.text('یادآور زمان‌دار'), findsOneWidget);
+    expect(find.text('پیگیری باز'), findsNothing);
+    expect(find.text('کار بدون ساعت'), findsOneWidget);
+    expect(find.text('کار تمام‌روز انجام‌شده'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+
   testWidgets('calendar cards use canonical pastel status colors and status icons', (tester) async {
     final selectedDay = DateTime(2030, 5, 1);
     await tester.pumpWidget(
@@ -27,14 +149,15 @@ void main() {
       const Color(0xFFEFF6FF),
     );
     expect(
-      tester.widget<Card>(find.byKey(const ValueKey('calendar-pastel-card-task-followup:waiting'))).color,
-      const Color(0xFFFEFCE8),
+      find.byKey(const ValueKey('calendar-pastel-card-task-followup:waiting')),
+      findsNothing,
     );
+    expect(find.text('در انتظار پیگیری'), findsNothing);
     expect(
       tester.widget<Card>(find.byKey(const ValueKey('calendar-pastel-card-completed'))).color,
       const Color(0xFFECFDF5),
     );
-    expect(find.byIcon(Icons.hourglass_bottom_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.hourglass_bottom_rounded), findsNothing);
     expect(find.byIcon(Icons.check_circle_rounded), findsWidgets);
   });
 
@@ -58,7 +181,7 @@ void main() {
     expect(find.text('عقب‌افتاده'), findsOneWidget);
   });
 
-  testWidgets('week date bar is 56 pixels high and highlights selected day in pastel purple', (tester) async {
+  testWidgets('week date bar keeps a 68-pixel minimum and highlights selected day in pastel turquoise', (tester) async {
     final selectedDay = DateTime(2030, 5, 1);
     await tester.pumpWidget(
       MaterialApp(
@@ -74,40 +197,59 @@ void main() {
     final selectedDayWidget = tester.widget<Container>(
       find.descendant(of: find.byKey(selectedKey), matching: find.byType(Container)).first,
     );
-    expect(selectedDayWidget.constraints?.maxHeight, anyOf(isNull, 56));
-    expect(tester.getSize(find.byKey(selectedKey)).height, 56);
+    expect(selectedDayWidget.constraints?.minHeight, 68);
+    expect(tester.getSize(find.byKey(selectedKey)).height, greaterThanOrEqualTo(68));
     expect(selectedDayWidget.decoration, isA<BoxDecoration>());
     expect(
       (selectedDayWidget.decoration! as BoxDecoration).color,
-      const Color(0xFFEDE9FE),
+      const Color(0xFFDDF7F5),
     );
   });
 
-  testWidgets('follow-up calendar card shows parent subtitle and exact timed chip', (tester) async {
-  final selectedDay = DateTime(2026, 10, 16, 18, 45);
-  await tester.pumpWidget(
-    MaterialApp(
-      home: CalendarPage(
-        initialSelectedDay: selectedDay,
-        reminders: [
-          CalendarReminder(
-            id: 'followup:task-1:follow-up-1',
-            title: 'تماس مجدد',
-            date: selectedDay,
-            description: 'پیگیری: تماس با مشتری',
-          ),
-        ],
+  testWidgets('historical FollowUp is not rendered as a local calendar card', (tester) async {
+    final selectedDay = DateTime(2026, 10, 16, 18, 45);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CalendarPage(
+          initialSelectedDay: selectedDay,
+          reminders: [
+            CalendarReminder(
+              id: 'task-due:dated-task',
+              title: 'کار تاریخ‌دار',
+              date: selectedDay,
+            ),
+            CalendarReminder(
+              id: 'task-reminder-item:dated-task:reminder-1',
+              title: 'یادآور مستقل',
+              date: selectedDay,
+            ),
+            CalendarReminder(
+              id: 'followup:task-1:follow-up-1',
+              title: 'تماس تاریخی',
+              date: selectedDay,
+              description: 'پیگیری: تماس با مشتری',
+            ),
+          ],
+          visibleReminderProjection: (_, __) => [
+            CalendarReminder(
+              id: 'followup:projected-task:fu-projected',
+              title: 'پیگیری از Projection',
+              date: selectedDay,
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-  await tester.pumpAndSettle();
+    );
+    await tester.pumpAndSettle();
 
-  expect(find.text('تماس مجدد'), findsOneWidget);
-  expect(find.text('پیگیری: تماس با مشتری'), findsOneWidget);
-  expect(find.byKey(const ValueKey('calendar-followup-time-chip-followup:task-1:follow-up-1')), findsOneWidget);
-  expect(find.text('۱۸:۴۵'), findsOneWidget);
-});
-
+    expect(find.text('کار تاریخ‌دار'), findsOneWidget);
+    expect(find.text('یادآور مستقل'), findsOneWidget);
+    expect(find.text('تماس تاریخی'), findsNothing);
+    expect(find.text('پیگیری: تماس با مشتری'), findsNothing);
+    expect(find.text('پیگیری از Projection'), findsNothing);
+    expect(find.byKey(const ValueKey('calendar-pastel-card-followup:task-1:follow-up-1')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('shows reminders for the selected day', (tester) async {
     final now = IranClock.now();
@@ -315,20 +457,21 @@ void main() {
     expect(find.byKey(const ValueKey('calendar-today')), findsOneWidget);
   });
 
-  testWidgets('follow-up short tap opens its route and long press opens actions', (tester) async {
+  testWidgets('historical FollowUp cards expose no local calendar actions', (tester) async {
     final day = DateTime(2026, 9, 9, 10);
-    final followUp = CalendarReminder(
-      id: 'followup:task-1:fu-tap',
-      title: 'پیگیری قرارداد',
-      date: day,
-    );
     var taskEdited = 0;
     var followUpEdited = 0;
     await tester.pumpWidget(
       MaterialApp(
         home: CalendarPage(
           initialSelectedDay: day,
-          reminders: [followUp],
+          reminders: [
+            CalendarReminder(
+              id: 'followup:task-1:fu-tap',
+              title: 'پیگیری قرارداد',
+              date: day,
+            ),
+          ],
           onEditTask: (_) async => taskEdited++,
           onEditReminder: (_) async => followUpEdited++,
           onCompleteReminder: (_) async {},
@@ -337,20 +480,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final card = find.byKey(const ValueKey('calendar-pastel-card-followup:task-1:fu-tap'));
-    await tester.tap(card);
-    await tester.pumpAndSettle();
+    expect(find.text('پیگیری قرارداد'), findsNothing);
+    expect(find.byKey(const ValueKey('calendar-pastel-card-followup:task-1:fu-tap')), findsNothing);
     expect(taskEdited, 0);
-    expect(followUpEdited, 1);
-    expect(find.byKey(const ValueKey('reminder-actions-followup:task-1:fu-tap')), findsNothing);
-    expect(find.byKey(const ValueKey('reminder-edit-followup:task-1:fu-tap')), findsNothing);
-
-    await tester.longPress(card);
-    await tester.pumpAndSettle();
-    expect(find.byType(BottomSheet), findsOneWidget);
-    expect(find.byKey(const ValueKey('reminder-complete-followup:task-1:fu-tap')), findsOneWidget);
-    expect(find.byKey(const ValueKey('reminder-edit-followup:task-1:fu-tap')), findsOneWidget);
-    expect(find.byKey(const ValueKey('reminder-actions-followup:task-1:fu-tap')), findsNothing);
+    expect(followUpEdited, 0);
   });
 
   testWidgets('external calendar short tap opens the source item without expanding actions', (tester) async {
@@ -380,14 +513,8 @@ void main() {
     expect(find.byKey(const ValueKey('reminder-actions-external-calendar:event-tap')), findsNothing);
   });
 
-  testWidgets('long press exposes follow-up actions and routes callbacks',
-      (tester) async {
+  testWidgets('historical FollowUp does not expose completion or edit actions', (tester) async {
     final day = DateTime(2026, 9, 9, 10);
-    final reminder = CalendarReminder(
-      id: 'followup:task-1:fu-1',
-      title: 'پیگیری قرارداد',
-      date: day,
-    );
     var completed = 0;
     var edited = 0;
 
@@ -395,40 +522,25 @@ void main() {
       MaterialApp(
         home: CalendarPage(
           initialSelectedDay: day,
-          reminders: [reminder],
+          reminders: [
+            CalendarReminder(
+              id: 'followup:task-1:fu-1',
+              title: 'پیگیری قرارداد',
+              date: day,
+            ),
+          ],
           onCompleteReminder: (_) async => completed++,
           onEditReminder: (_) async => edited++,
         ),
       ),
     );
-
-    await tester.longPress(
-      find.byKey(const ValueKey('calendar-pastel-card-followup:task-1:fu-1')),
-    );
     await tester.pumpAndSettle();
 
-    expect(find.text('انجام شد'), findsOneWidget);
-    expect(find.text('تعویق'), findsNothing);
-    expect(find.text('ویرایش پیگیری'), findsOneWidget);
-    expect(find.text('تبدیل به کار'), findsNothing);
-
-    final completeAction =
-        find.byKey(const ValueKey('reminder-complete-followup:task-1:fu-1'));
-    await tester.ensureVisible(completeAction);
-    await tester.tap(completeAction);
-    await tester.pumpAndSettle();
-    await tester.longPress(
-      find.byKey(const ValueKey('calendar-pastel-card-followup:task-1:fu-1')),
-    );
-    await tester.pumpAndSettle();
-    final editAction =
-        find.byKey(const ValueKey('reminder-edit-followup:task-1:fu-1'));
-    await tester.ensureVisible(editAction);
-    await tester.tap(editAction);
-    await tester.pumpAndSettle();
-
-    expect(completed, 1);
-    expect(edited, 1);
+    expect(find.text('پیگیری قرارداد'), findsNothing);
+    expect(find.text('انجام شد'), findsNothing);
+    expect(find.text('ویرایش پیگیری'), findsNothing);
+    expect(completed, 0);
+    expect(edited, 0);
   });
   testWidgets('distinguishes Arvin reminders from imported phone calendar items', (tester) async {
     final day = DateTime(2026, 9, 9, 10);
@@ -499,7 +611,7 @@ void main() {
 
 
 
-  testWidgets('task calendar card tap opens editor and long-press reveals actions',
+  testWidgets('Task card tap opens Details, long-press omits Edit, and Calendar swipe exports',
       (tester) async {
     final day = DateTime(2026, 9, 9, 10);
     final task = CalendarReminder(
@@ -507,6 +619,7 @@ void main() {
       title: 'کار برای تعامل',
       date: day,
     );
+    var opened = 0;
     var edited = 0;
     var deleted = 0;
     var registered = 0;
@@ -517,8 +630,10 @@ void main() {
           initialSelectedDay: day,
           reminders: [task],
           onEditTask: (_) async => edited++,
+          onOpenTask: (_) async => opened++,
           onDeleteTask: (_) async => deleted++,
           onRegisterTaskToDeviceCalendar: (_) async => registered++,
+          calendarSwipeRightAction: CalendarSwipeAction.sync,
         ),
       ),
     );
@@ -528,7 +643,8 @@ void main() {
       find.byKey(const ValueKey('calendar-pastel-card-task-due:interaction-task')),
     );
     await tester.pumpAndSettle();
-    expect(edited, 1);
+    expect(opened, 1);
+    expect(edited, 0);
     expect(find.byKey(const ValueKey('reminder-actions-task-due:interaction-task')),
         findsNothing);
 
@@ -539,12 +655,12 @@ void main() {
     expect(find.byKey(const ValueKey('reminder-actions-task-due:interaction-task')),
         findsNothing);
     expect(find.byKey(const ValueKey('task-due-edit-task-due:interaction-task')),
-        findsOneWidget);
+        findsNothing);
     expect(find.byKey(const ValueKey('task-due-delete-task-due:interaction-task')),
         findsOneWidget);
     expect(
       find.byKey(const ValueKey('task-due-device-calendar-task-due:interaction-task')),
-      findsOneWidget,
+      findsNothing,
     );
 
     await tester.tap(
@@ -553,17 +669,45 @@ void main() {
     await tester.pumpAndSettle();
     expect(deleted, 1);
 
-    await tester.longPress(
+    await tester.fling(
       find.byKey(const ValueKey('calendar-pastel-card-task-due:interaction-task')),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(
-      find.byKey(const ValueKey('task-due-device-calendar-task-due:interaction-task')),
+      const Offset(500, 0),
+      1000,
     );
     await tester.pumpAndSettle();
     expect(registered, 1);
   });
 
+
+  testWidgets('Follow-up card tap opens its Task Details callback, not Follow-up edit',
+      (tester) async {
+    final day = DateTime(2026, 9, 9, 10);
+    var opened = 0;
+    var edited = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CalendarPage(
+          initialSelectedDay: day,
+          reminders: [
+            CalendarReminder(
+              id: 'task-followup-action:parent-task:follow-up-1',
+              title: 'اقدام پیگیری',
+              date: day,
+            ),
+          ],
+          onOpenTask: (_) async => opened++,
+          onEditReminder: (_) async => edited++,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey(
+      'calendar-pastel-card-task-followup-action:parent-task:follow-up-1',
+    )));
+    await tester.pumpAndSettle();
+    expect(opened, 1);
+    expect(edited, 0);
+  });
 
   testWidgets('prayer cards use mosque icon and subdued unregistered status', (tester) async {
     final day = DateTime(2026, 9, 9, 10);
@@ -620,14 +764,12 @@ void main() {
       1000,
     );
     await tester.pumpAndSettle();
-    expect(editCount, 1);
+    expect(editCount, 0);
 
-    await tester.fling(
+    expect(
       find.byKey(const ValueKey('calendar-pastel-card-task-followup:owned-task:followup-1')),
-      const Offset(-240, 0),
-      1000,
+      findsNothing,
     );
-    await tester.pumpAndSettle();
     expect(deleteCount, 0);
 
     await tester.fling(
@@ -675,4 +817,32 @@ void main() {
   });
 
 
+
+  testWidgets('Calendar avoids fractional-pixel overflow on a narrow RTL viewport with large text',
+      (tester) async {
+    tester.view.physicalSize = const Size(1081, 1920);
+    tester.view.devicePixelRatio = 3;
+    tester.platformDispatcher.textScaleFactorTestValue = 1.4;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: CalendarPage(
+            initialSelectedDay: DateTime(2026, 11, 6),
+            reminders: const [],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    await tester.tap(find.text('سالانه'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'arvin_radio_box.dart';
+import 'arvin_task_selector_wrap.dart';
 
 /// Reusable editor field for Arvin's canonical Task.category.
 ///
@@ -66,7 +67,7 @@ class _TaskCategoryFieldState extends State<TaskCategoryField> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Wrap(
+        ArvinTaskSelectorWrap(
           spacing: 7,
           runSpacing: 7,
           children: [

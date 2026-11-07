@@ -6,7 +6,6 @@ import '../notebook_page.dart';
 import '../official_calendar_page.dart';
 import '../services/calendar_rescheduling_advisor.dart';
 import '../services/calendar_swipe_settings_service.dart';
-import '../services/calendar_inbound_sync_service.dart';
 import '../services/follow_up_calendar_projection.dart';
 import '../services/external_calendar_link_store.dart';
 import '../services/task_store.dart';
@@ -28,9 +27,9 @@ class CanonicalCalendarLauncher extends StatefulWidget {
     this.onCreateTaskForDate,
     this.onCreateTaskFromCalendarEvent,
     this.onEditTask,
+    this.onOpenTask,
     this.onDeleteTask,
     this.onRegisterTaskToDeviceCalendar,
-    this.onRetryCalendarSync,
     this.onOpenReports,
   });
 
@@ -43,9 +42,9 @@ class CanonicalCalendarLauncher extends StatefulWidget {
   final Future<Task?> Function(DateTime date)? onCreateTaskForDate;
   final Future<Task?> Function(CalendarReminder reminder)? onCreateTaskFromCalendarEvent;
   final Future<void> Function(Task task)? onEditTask;
+  final Future<void> Function(Task task)? onOpenTask;
   final Future<void> Function(Task task)? onDeleteTask;
   final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
-  final Future<void> Function()? onRetryCalendarSync;
   final Future<void> Function()? onOpenReports;
 
   @override
@@ -58,38 +57,29 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
   CalendarSwipeSettings _calendarSwipeSettings = const CalendarSwipeSettings();
   // Keep the launcher subtree out of global finders while conflict advice is modal.
   bool _conflictAdviceVisible = false;
-  CalendarInboundSyncService get _inboundSync => CalendarInboundSyncService();
+
+
 
   static const _calendarHelpSteps = <ContextualHelpStep>[
     ContextualHelpStep(
-      icon: Icons.touch_app_outlined,
-      title: 'انتخاب روز',
-      body: 'روی هر روز بزنید تا پیگیری‌ها، مناسبت‌ها و اطلاعات همان روز پایین تقویم دیده شود.',
+      icon: Icons.calendar_month_outlined,
+      title: 'انتخاب بازه',
+      body: 'از کنترل‌های روزانه، هفتگی و ماهانه برای تغییر نمای تقویم استفاده کنید.',
     ),
     ContextualHelpStep(
-      icon: Icons.swap_horiz,
-      title: 'تغییر ماه',
-      body: 'با فلش‌های کنار نام ماه بین ماه قبل و بعد جابه‌جا شوید.',
-    ),
-    ContextualHelpStep(
-      icon: Icons.today_outlined,
-      title: 'برگشت به امروز',
-      body: 'دکمه «امروز» شما را مستقیم به تاریخ امروز برمی‌گرداند.',
-    ),
-    ContextualHelpStep(
-      icon: Icons.notifications_active_outlined,
-      title: 'پیگیری‌ها و مناسبت‌ها',
-      body: 'عدد کوچک روی روز یعنی آن روز موردی برای دیدن دارد؛ جزئیات در پایین صفحه نمایش داده می‌شود.',
-    ),
-    ContextualHelpStep(
-      icon: Icons.warning_amber_outlined,
-      title: 'بررسی تداخل‌ها',
-      body: 'از «بیشتر» و سپس «تداخل‌ها» فقط یادآورهای مستقل همگام‌شده با تقویم گوشی را بررسی کنید؛ هیچ تغییری بدون تأیید شما اعمال نمی‌شود.',
+      icon: Icons.chevron_left_rounded,
+      title: 'جابجایی در زمان',
+      body: 'با فلش‌های قبل و بعد، بازهٔ تقویم را بدون تغییر داده‌های یادآورها جابه‌جا کنید.',
     ),
     ContextualHelpStep(
       icon: Icons.event_available_outlined,
-      title: 'تقویم دستگاه',
-      body: 'از «بیشتر» و سپس «تقویم دستگاه» می‌توانید یک یادآور مستقل را به تقویم گوشی منتقل کنید.',
+      title: 'رفتن به تاریخ',
+      body: 'برای باز کردن یک روز مشخص، انتخاب‌گر تاریخ شمسی را به کار ببرید.',
+    ),
+    ContextualHelpStep(
+      icon: Icons.notifications_active_outlined,
+      title: 'یادآورها',
+      body: 'یادآورهای مستقل و رویدادهای تقویم دستگاه را در روز انتخاب‌شده بررسی کنید.',
     ),
   ];
 
@@ -121,7 +111,6 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     super.initState();
     _tasks = List<Task>.of(widget.tasks);
     Future<void>.microtask(_loadCalendarSwipeSettings);
-    Future<void>.microtask(_reconcileDeviceCalendar);
   }
 
   Future<void> _loadCalendarSwipeSettings() async {
@@ -134,32 +123,6 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     }
   }
 
-  Future<void> _reconcileDeviceCalendar() async {
-    try {
-      final now = DateTime.now().toLocal();
-      final today = DateTime(now.year, now.month, now.day);
-      final result = await _inboundSync.reconcile(
-        start: today.subtract(const Duration(days: 31)),
-        end: today.add(const Duration(days: 62)),
-      );
-      if (!mounted || !result.changed) return;
-      final refreshed = await widget.onRefreshTasks?.call();
-      if (refreshed != null && mounted) {
-        setState(() => _tasks = List<Task>.of(refreshed));
-      }
-      if (result.conflicts > 0 && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'تعارض همگام‌سازی تقویم: ${result.conflicts} مورد بدون تغییر باقی ماند.',
-            ),
-          ),
-        );
-      }
-    } catch (_) {
-      // Calendar access is optional; failure must not block the Arvin calendar.
-    }
-  }
 
   @override
   void didUpdateWidget(covariant CanonicalCalendarLauncher oldWidget) {
@@ -201,6 +164,34 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     final refreshed = await widget.onRefreshTasks?.call();
     if (refreshed != null) setState(() => _tasks = List<Task>.of(refreshed));
   }
+
+  Task? _resolveTaskFromCalendarReminder(CalendarReminder reminder) {
+    const prefixes = <String>[
+      'task-reminder-item:', 'task-followup-action:', 'task-followup:',
+      'followup:', 'task-due:', 'task-reminder:',
+    ];
+    for (final prefix in prefixes) {
+      if (!reminder.id.startsWith(prefix)) continue;
+      final suffix = reminder.id.substring(prefix.length);
+      final separator = suffix.indexOf(':');
+      final encodedId = separator > 0 ? suffix.substring(0, separator) : suffix;
+      final taskId = Uri.decodeComponent(encodedId);
+      for (final task in _tasks) {
+        if (task.id == taskId || suffix.startsWith('${task.id}:')) return task;
+      }
+    }
+    return null;
+  }
+
+  Future<void> _openTaskDetailsFromCalendar(CalendarReminder reminder) async {
+    final task = _resolveTaskFromCalendarReminder(reminder);
+    if (task == null || widget.onOpenTask == null) return;
+    await widget.onOpenTask!(task);
+    if (!mounted) return;
+    final refreshed = await widget.onRefreshTasks?.call();
+    if (refreshed != null) setState(() => _tasks = List<Task>.of(refreshed));
+  }
+
 
   Future<void> _deleteTaskFromCalendar(CalendarReminder reminder) async {
     if (widget.onDeleteTask == null) return;
@@ -448,10 +439,6 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('یادآور مستقل برای تغییر پیدا نشد؛ هیچ داده‌ای تغییر نکرد.')));
       return false;
     }
-    if (widget.onRetryCalendarSync == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('مسیر همگام‌سازی تقویم در دسترس نیست؛ زمان تغییر نکرد.')));
-      return false;
-    }
     final approved = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -494,10 +481,9 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
           break;
         }
       }
-      await widget.onRetryCalendarSync!.call();
       return true;
     } catch (_) {
-      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تغییر یادآور یا همگام‌سازی انجام نشد؛ وضعیت تقویم را بررسی کنید.')));
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تغییر یادآور در آروین انجام نشد؛ ارسال به تقویم گوشی فقط با اقدام صریح انجام می‌شود.')));
       return false;
     }
   }
@@ -622,90 +608,7 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
       if (mounted) setState(() => _conflictAdviceVisible = false);
     }
     if (applied == true && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('زمان یادآور با موفقیت تغییر کرد و همگام‌سازی دوباره درخواست شد.')));
-    }
-  }
-
-  Future<void> _exportToSystemCalendar(BuildContext context) async {
-    final eligible = widget.projection
-        .project(_tasks)
-        .where(SystemCalendarBridge.isEligible)
-        .toList(growable: false);
-
-    if (eligible.isEmpty) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(
-            content: Text('پیگیری فعالی برای افزودن به تقویم دستگاه نیست'),
-          ),
-        );
-      return;
-    }
-
-    CalendarReminder? selected;
-    if (eligible.length == 1) {
-      selected = eligible.single;
-    } else {
-      selected = await showDialog<CalendarReminder>(
-        context: context,
-        builder: (dialogContext) => SimpleDialog(
-          title: const Text('انتخاب پیگیری برای تقویم دستگاه'),
-          children: [
-            for (final reminder in eligible)
-              SimpleDialogOption(
-                onPressed: () => Navigator.of(dialogContext).pop(reminder),
-                child: Text(reminder.title),
-              ),
-          ],
-        ),
-      );
-    }
-
-    if (selected == null || !context.mounted) return;
-
-    try {
-      final opened = await SystemCalendarBridge().insert(selected);
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Text(
-              opened
-                  ? 'فرم افزودن رویداد در تقویم دستگاه باز شد'
-                  : 'برنامه تقویم سازگار روی دستگاه پیدا نشد',
-            ),
-          ),
-        );
-    } catch (error) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(content: Text('باز کردن تقویم دستگاه ناموفق بود: $error')),
-        );
-    }
-  }
-
-  Future<void> _retryCalendarSync(BuildContext context) async {
-    final retry = widget.onRetryCalendarSync;
-    if (retry == null) return;
-    try {
-      await retry();
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(content: Text('همگام‌سازی تقویم دوباره انجام شد. تغییرات آروین و تقویم گوشی نیز بررسی شد.')),
-        );
-    } catch (error) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(content: Text('همگام‌سازی انجام نشد: $error')),
-        );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('زمان یادآور در آروین تغییر کرد؛ ارسال به تقویم گوشی فقط با اقدام صریح انجام می‌شود.')));
     }
   }
 
@@ -727,23 +630,6 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-              ListTile(
-                leading: const Icon(Icons.event_available_outlined),
-                title: const Text('تقویم دستگاه'),
-                subtitle: const Text('افزودن پیگیری فعال به تقویم گوشی'),
-                onTap: () =>
-                    Navigator.of(sheetContext)
-                        .pop(_CalendarMoreAction.systemCalendar),
-              ),
-              ListTile(
-                key: const ValueKey('calendar-retry-device-sync'),
-                leading: const Icon(Icons.sync_outlined),
-                title: const Text('تلاش دوباره برای همگام‌سازی'),
-                subtitle: const Text('به‌روزرسانی دوباره آروین و تقویم گوشی در هر دو جهت'),
-                onTap: () => Navigator.of(sheetContext).pop(
-                  _CalendarMoreAction.retrySync,
-                ),
-              ),
               ListTile(
                 key: const ValueKey('calendar-more-next-action'),
                 leading: const Icon(Icons.next_plan_outlined),
@@ -780,12 +666,6 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     if (action == null || !context.mounted) return;
 
     switch (action) {
-      case _CalendarMoreAction.systemCalendar:
-        await _exportToSystemCalendar(context);
-        return;
-      case _CalendarMoreAction.retrySync:
-        await _retryCalendarSync(context);
-        return;
       case _CalendarMoreAction.nextAction:
         await _openNextAction(context, reminders);
         return;
@@ -854,6 +734,7 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
               reminders: reminders,
               visibleReminderProjection: projectVisible,
               onEditTask: _editTaskFromCalendar,
+              onOpenTask: _openTaskDetailsFromCalendar,
               onDeleteTask: _deleteTaskFromCalendar,
               onRegisterTaskToDeviceCalendar: widget.onRegisterTaskToDeviceCalendar,
               onOpenExternalReminder: _openExternalReminder,
@@ -880,8 +761,6 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
 }
 
 enum _CalendarMoreAction {
-  systemCalendar,
-  retrySync,
   nextAction,
   timeline,
   conflicts,

@@ -1,6 +1,7 @@
 import '../models/task.dart';
 import '../models/goal_project.dart';
 import '../models/recurrence.dart';
+import 'task_list_sort_service.dart';
 
 enum ReportTimePreset { all, today, tomorrow, thisWeek, future, past, undated }
 
@@ -16,6 +17,12 @@ class TaskReportFilter {
     this.fromTime,
     this.toTime,
     this.projectId,
+    this.centerIds = const <String>{},
+    this.includeLegacyProjectsWithoutCenter = false,
+    this.taskId,
+    this.templateTaskId,
+    this.templateIds = const <String>{},
+    this.includeLegacyProjectsWithoutTemplate = false,
     this.category,
     this.tag,
     this.projectIds = const <String>{},
@@ -32,7 +39,6 @@ class TaskReportFilter {
     this.noteDateField,
     this.noteFromDate,
     this.noteToDate,
-    this.priority,
     this.hasRepeat,
     this.hasFollowUp,
     this.hasChecklist,
@@ -44,6 +50,12 @@ class TaskReportFilter {
   final Duration? fromTime;
   final Duration? toTime;
   final String? projectId;
+  final Set<String> centerIds;
+  final bool includeLegacyProjectsWithoutCenter;
+  final String? taskId;
+  final String? templateTaskId;
+  final Set<String> templateIds;
+  final bool includeLegacyProjectsWithoutTemplate;
   final String? category;
   final String? tag;
   final Set<String> projectIds;
@@ -62,7 +74,6 @@ class TaskReportFilter {
   final ReportNoteDateField? noteDateField;
   final DateTime? noteFromDate;
   final DateTime? noteToDate;
-  final TaskPriority? priority;
   final bool? hasRepeat;
   final bool? hasFollowUp;
   final bool? hasChecklist;
@@ -74,6 +85,12 @@ class TaskReportFilter {
       fromTime != null ||
       toTime != null ||
       projectId != null ||
+      centerIds.isNotEmpty ||
+      includeLegacyProjectsWithoutCenter ||
+      taskId != null ||
+      templateTaskId != null ||
+      templateIds.isNotEmpty ||
+      includeLegacyProjectsWithoutTemplate ||
       category != null ||
       tag != null ||
       projectIds.isNotEmpty ||
@@ -90,7 +107,6 @@ class TaskReportFilter {
       ((noteFromDate != null || noteToDate != null) && noteDateField != null) ||
       noteFromDate != null ||
       noteToDate != null ||
-      priority != null ||
       hasRepeat != null ||
       hasFollowUp != null ||
       hasChecklist != null;
@@ -108,6 +124,14 @@ class TaskReportFilter {
     bool clearToTime = false,
     String? projectId,
     bool clearProjectId = false,
+    Set<String>? centerIds,
+    bool? includeLegacyProjectsWithoutCenter,
+    String? taskId,
+    bool clearTaskId = false,
+    String? templateTaskId,
+    bool clearTemplateTaskId = false,
+    Set<String>? templateIds,
+    bool? includeLegacyProjectsWithoutTemplate,
     String? category,
     bool clearCategory = false,
     String? tag,
@@ -130,8 +154,6 @@ class TaskReportFilter {
     bool clearNoteFromDate = false,
     DateTime? noteToDate,
     bool clearNoteToDate = false,
-    TaskPriority? priority,
-    bool clearPriority = false,
     bool? hasRepeat,
     bool clearHasRepeat = false,
     bool? hasFollowUp,
@@ -146,6 +168,12 @@ class TaskReportFilter {
         fromTime: clearFromTime ? null : fromTime ?? this.fromTime,
         toTime: clearToTime ? null : toTime ?? this.toTime,
         projectId: clearProjectId ? null : projectId ?? this.projectId,
+        centerIds: centerIds ?? this.centerIds,
+        includeLegacyProjectsWithoutCenter: includeLegacyProjectsWithoutCenter ?? this.includeLegacyProjectsWithoutCenter,
+        taskId: clearTaskId ? null : taskId ?? this.taskId,
+        templateTaskId: clearTemplateTaskId ? null : templateTaskId ?? this.templateTaskId,
+        templateIds: templateIds ?? this.templateIds,
+        includeLegacyProjectsWithoutTemplate: includeLegacyProjectsWithoutTemplate ?? this.includeLegacyProjectsWithoutTemplate,
         category: clearCategory ? null : category ?? this.category,
         tag: clearTag ? null : tag ?? this.tag,
         projectIds: projectIds ?? this.projectIds,
@@ -167,7 +195,6 @@ class TaskReportFilter {
         noteFromDate:
             clearNoteFromDate ? null : noteFromDate ?? this.noteFromDate,
         noteToDate: clearNoteToDate ? null : noteToDate ?? this.noteToDate,
-        priority: clearPriority ? null : priority ?? this.priority,
         hasRepeat: clearHasRepeat ? null : hasRepeat ?? this.hasRepeat,
         hasFollowUp: clearHasFollowUp ? null : hasFollowUp ?? this.hasFollowUp,
         hasChecklist: clearHasChecklist ? null : hasChecklist ?? this.hasChecklist,
@@ -182,6 +209,7 @@ class TaskReportFilter {
       ...projectIds,
       if (projectId != null) projectId!,
     };
+    final selectedCenterIds = centerIds;
     final selectedCategories = <String>{
       ...categories,
       if (category != null) category!,
@@ -193,12 +221,32 @@ class TaskReportFilter {
     final selectedProjects = projects
         .where((item) => selectedProjectIds.contains(item.id))
         .toList(growable: false);
-    return tasks.where((task) {
+    final filteredTasks = tasks.where((task) {
       if (task.trashed) return false;
+      if (taskId != null && task.id != taskId) return false;
+      if (templateTaskId != null && task.templateTaskId != templateTaskId) return false;
+      if (templateIds.isNotEmpty) {
+        final linked = projects.where((project) => project.itemIds.contains(task.id));
+        final fromSelectedTemplate = linked.any((project) => templateIds.contains(project.templateId));
+        final fromLegacyProject = includeLegacyProjectsWithoutTemplate && linked.any((project) => project.templateId == null);
+        if (!fromSelectedTemplate && !fromLegacyProject) return false;
+      }
+      if (selectedCenterIds.isNotEmpty) {
+        final linkedProjects = projects
+            .where((project) => project.itemIds.contains(task.id))
+            .toList(growable: false);
+        final matchesCenter = task.centerId != null
+            ? selectedCenterIds.contains(task.centerId)
+            : linkedProjects.any((project) =>
+                selectedCenterIds.contains(project.centerId) ||
+                (includeLegacyProjectsWithoutCenter && project.centerId == null));
+        if (!matchesCenter) return false;
+      }
       if (personIds.isNotEmpty &&
           !task.people.any((person) => personIds.contains(person.id)) &&
-          !task.followUps.any((followUp) =>
-              followUp.personIds.any(personIds.contains))) {
+          !task.followUps.any(
+            (followUp) => followUp.personIds.any(personIds.contains),
+          )) {
         return false;
       }
       if (waitingForResponse != null) {
@@ -214,7 +262,6 @@ class TaskReportFilter {
         return false;
       }
       if (!_matchesNote(task)) return false;
-      if (priority != null && task.priority != priority) return false;
       if (hasRepeat != null && (task.recurrence != null) != hasRepeat) {
         return false;
       }
@@ -237,9 +284,29 @@ class TaskReportFilter {
           !selectedProjects.any((project) => project.itemIds.contains(task.id))) {
         return false;
       }
-      if (!_matchesTime(task.dueDate, now)) return false;
+      if (timePreset == ReportTimePreset.past && task.completed) return false;
+      if (!_matchesTime(task.dueDate, now, allDay: task.allDay)) return false;
       return true;
     }).toList(growable: false);
+    if (timePreset == ReportTimePreset.past) {
+      return const TaskListSortService().sortPast(filteredTasks);
+    }
+    final indexed = filteredTasks.asMap().entries.toList();
+    indexed.sort((left, right) {
+      final leftDate = left.value.dueDate;
+      final rightDate = right.value.dueDate;
+      if (leftDate == null && rightDate != null) return 1;
+      if (leftDate != null && rightDate == null) return -1;
+      if (leftDate != null && rightDate != null) {
+        final dateComparison = leftDate.compareTo(rightDate);
+        if (dateComparison != 0) return dateComparison;
+      }
+      final priorityComparison = left.value.priority.sortOrder
+          .compareTo(right.value.priority.sortOrder);
+      if (priorityComparison != 0) return priorityComparison;
+      return left.key.compareTo(right.key);
+    });
+    return indexed.map((entry) => entry.value).toList(growable: false);
   }
 
   bool _matchesStatus(Task task) {
@@ -300,10 +367,10 @@ class TaskReportFilter {
     return true;
   }
 
-  bool matchesExternalCalendarDate(DateTime value, {required DateTime now}) =>
-      _matchesTime(value, now);
+  bool matchesExternalCalendarDate(DateTime value, {required DateTime now, bool allDay = false}) =>
+      _matchesTime(value, now, allDay: allDay);
 
-  bool _matchesTime(DateTime? value, DateTime now) {
+  bool _matchesTime(DateTime? value, DateTime now, {bool allDay = false}) {
     if (value == null) {
       final noPreciseRange = fromDate == null &&
           toDate == null &&
@@ -314,7 +381,8 @@ class TaskReportFilter {
     }
 
     final local = value.toLocal();
-    final today = DateTime(now.year, now.month, now.day);
+    final localNow = now.toLocal();
+    final today = DateTime(localNow.year, localNow.month, localNow.day);
     final day = DateTime(local.year, local.month, local.day);
 
     switch (timePreset) {
@@ -331,7 +399,10 @@ class TaskReportFilter {
       case ReportTimePreset.future:
         if (!day.isAfter(today)) return false;
       case ReportTimePreset.past:
-        if (!day.isBefore(today)) return false;
+        final overdue = allDay
+            ? !localNow.isBefore(DateTime(local.year, local.month, local.day + 1))
+            : local.isBefore(localNow);
+        if (!overdue) return false;
       case ReportTimePreset.undated:
         return false;
     }

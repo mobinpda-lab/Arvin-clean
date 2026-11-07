@@ -24,9 +24,11 @@ void main() {
 
   test('application light and dark themes enforce Vazirmatn', () {
     final source = File('lib/main.dart').readAsStringSync();
-    expect(source, contains('lightBaseTextTheme = ThemeData.light().textTheme.apply(\n      fontFamily: AppFonts.vazirmatnFamily'));
-    expect(source, contains('darkBaseTextTheme = ThemeData.dark().textTheme.apply(\n      fontFamily: AppFonts.vazirmatnFamily'));
-    expect(source, contains('fontFamily: AppFonts.vazirmatnFamily'));
+    expect(source, contains('lightBaseTextTheme = ThemeData.light().textTheme.apply(\n      fontFamily: ArvinTheme.fontFamily'));
+    expect(source, contains('darkBaseTextTheme = ThemeData.dark().textTheme.apply(\n      fontFamily: ArvinTheme.fontFamily'));
+    expect(source, contains('fontFamily: ArvinTheme.fontFamily'));
+    final tokens = File('lib/core/theme/arvin_theme.dart').readAsStringSync();
+    expect(tokens, contains("static const String fontFamily = 'Vazirmatn';"));
   });
 
   test('font registry exposes only the required Vazirmatn option', () {

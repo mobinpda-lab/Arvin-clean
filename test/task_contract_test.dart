@@ -64,7 +64,7 @@ void main() {
     expect(restored.updatedAt, original.updatedAt);
     expect(restored.dueDate, original.dueDate);
     expect(restored.followUpEnabled, original.followUpEnabled);
-    expect(restored.followUpDate, original.followUpDate);
+    expect(restored.followUpDate, isNull);
     expect(restored.tags, original.tags);
     expect(restored.category, original.category);
     expect(restored.checklist, original.checklist);
@@ -75,8 +75,7 @@ void main() {
     expect(restored.followUps.single.id, 'follow-1');
     expect(restored.followUps.single.note, 'یادداشت');
     expect(restored.followUps.single.result, 'نتیجه');
-    expect(restored.followUps.single.nextFollowUp,
-        DateTime.parse('2026-08-06T13:00:00.000'));
+    expect(restored.followUps.single.toJson().containsKey('nextFollowUp'), isFalse);
     expect(restored.recurrence?.frequency, RecurrenceFrequency.monthly);
     expect(restored.recurrence?.interval, 2);
   });
@@ -136,7 +135,7 @@ void main() {
 
     expect(restored.dueDate, due);
     expect(restored.reminderDate, reminder);
-    expect(restored.followUpDate, followUp);
+    expect(restored.followUpDate, isNull);
     expect(restored.followUps.single.dateTime, followUp);
     expect(restored.dueDate, isNot(restored.reminderDate));
   });

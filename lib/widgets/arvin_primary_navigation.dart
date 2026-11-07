@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../arvin_colors.dart';
+
 enum ArvinPrimaryDestination {
   home,
   calendar,
@@ -21,9 +23,9 @@ class ArvinPrimaryNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primary = const Color(0xFF4A4CAB);
-    const background = Color(0xFFFDFDFE);
-    const muted = Color(0xFF80829C);
+    const primary = ArvinColors.primary;
+    const background = ArvinColors.surface;
+    const muted = ArvinColors.textSecondary;
 
     const destinations = [
       (
@@ -62,7 +64,7 @@ class ArvinPrimaryNavigation extends StatelessWidget {
       decoration: const BoxDecoration(
         color: background,
         border: Border(
-          top: BorderSide(color: Color(0xFFE7E7F0), width: 1),
+          top: BorderSide(color: ArvinColors.border, width: 1),
         ),
       ),
       child: SafeArea(
@@ -128,7 +130,7 @@ class _NavigationItem extends StatelessWidget {
           margin: const EdgeInsets.symmetric(horizontal: 3),
           padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
           decoration: BoxDecoration(
-            color: selected ? const Color(0xFFE9EAFF) : Colors.transparent,
+            color: selected ? ArvinColors.primarySoft : Colors.transparent,
             borderRadius: BorderRadius.circular(18),
           ),
           child: Column(

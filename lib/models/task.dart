@@ -1,63 +1,97 @@
 import 'person_reference.dart';
 import 'recurrence.dart';
 
-enum TaskPriority { none, low, medium, high }
+enum TaskPriority { high, medium, low, none }
+
+extension TaskPriorityProduct on TaskPriority {
+  int get sortOrder => switch (this) {
+        TaskPriority.high => 1,
+        TaskPriority.medium => 2,
+        TaskPriority.low => 3,
+        TaskPriority.none => 4,
+      };
+  String get label => switch (this) {
+        TaskPriority.high => 'فوری و مهم',
+        TaskPriority.medium => 'مهم، غیرفوری',
+        TaskPriority.low => 'فوری، غیرمهم',
+        TaskPriority.none => 'غیرفوری و غیرمهم',
+      };
+  String get code => switch (this) {
+        TaskPriority.high => 'P1',
+        TaskPriority.medium => 'P2',
+        TaskPriority.low => 'P3',
+        TaskPriority.none => 'P4',
+      };
+}
 
 enum NotebookItemKind { note, checklist }
 
-class FollowUp {
+String _dateOnlyStorageValue(DateTime value) =>
+    '${value.year.toString().padLeft(4, '0')}-${value.month.toString().padLeft(2, '0')}-${value.day.toString().padLeft(2, '0')}';
+
+class FollowUpRecord {
   final String id;
-  final DateTime dateTime;
+
+  /// Canonical historical timestamp for this record.
+  final DateTime completedAt;
+
+  /// Source-compatible view for older screens; storage and serialization use completedAt.
+  @Deprecated('Use completedAt.')
+  DateTime get dateTime => completedAt;
   final String? title;
   final String note;
   final String? result;
-  final DateTime? reminderDate;
-  final DateTime? nextFollowUp;
   final bool completed;
   final bool waitingForResponse;
   final List<String> personIds;
 
-  const FollowUp({
+  /// Deprecated read-only compatibility projection; future scheduling is not stored.
+  @Deprecated('Follow-up records are historical only.')
+  DateTime? get nextFollowUp => null;
+
+  FollowUpRecord({
     required this.id,
-    required this.dateTime,
+    DateTime? completedAt,
+    @Deprecated('Use completedAt.')
+    DateTime? dateTime,
     this.title,
     this.note = '',
     this.result,
-    this.reminderDate,
-    this.nextFollowUp,
+    // Source-compatibility parameters only. They are intentionally ignored:
+    // reminders belong to TaskReminder, and Follow-up records are historical.
+    @Deprecated('Use TaskReminder on the parent Task.')
+    DateTime? reminderDate,
+    @Deprecated('Use TaskReminder.isAllDay on the parent Task.')
+    bool reminderAllDay = false,
+    @Deprecated('Follow-up records do not schedule future work.')
+    DateTime? nextFollowUp,
     this.completed = false,
     this.waitingForResponse = false,
     this.personIds = const <String>[],
-  });
+  }) : completedAt = completedAt ?? dateTime!;
 
   Map<String, dynamic> toJson() => {
         'id': id,
-        'dateTime': dateTime.toIso8601String(),
+        'completedAt': completedAt.toIso8601String(),
         if (title?.trim().isNotEmpty == true) 'title': title!.trim(),
         'note': note,
         'result': result,
-        'reminderDate': reminderDate?.toIso8601String(),
-        'nextFollowUp': nextFollowUp?.toIso8601String(),
         'completed': completed,
         'waitingForResponse': waitingForResponse,
         if (personIds.isNotEmpty) 'personIds': personIds,
       };
 
-  factory FollowUp.fromJson(Map<String, dynamic> json) {
+  factory FollowUpRecord.fromJson(Map<String, dynamic> json) {
     return FollowUp(
       id: json['id'] as String? ?? '',
-      dateTime: DateTime.parse(json['dateTime'] as String),
+      completedAt: DateTime.parse(
+        (json['completedAt'] ?? json['dateTime']) as String,
+      ),
       title: (json['title'] as String?)?.trim().isEmpty == true
           ? null
           : (json['title'] as String?)?.trim(),
       note: json['note'] as String? ?? '',
       result: json['result'] as String?,
-      reminderDate: json['reminderDate'] == null
-          ? null
-          : DateTime.tryParse(json['reminderDate'] as String),
-      nextFollowUp: json['nextFollowUp'] == null
-          ? null
-          : DateTime.tryParse(json['nextFollowUp'] as String),
       completed: json['completed'] as bool? ?? false,
       waitingForResponse: json['waitingForResponse'] as bool? ?? false,
       personIds: (json['personIds'] as List<dynamic>? ?? const [])
@@ -69,6 +103,9 @@ class FollowUp {
     );
   }
 }
+
+/// Source-compatible type alias; the canonical entity is FollowUpRecord.
+typedef FollowUp = FollowUpRecord;
 
 /// Temporary compatibility alias for the legacy Home load-only boundary.
 /// Remove when HomePage stops using the legacy view model.
@@ -87,6 +124,7 @@ class TaskReminder {
     this.isAllDay = false,
     required this.sequence,
     this.isLegacyTaskReminder = false,
+    this.isEnabled = true,
   });
 
   final String id;
@@ -99,25 +137,37 @@ class TaskReminder {
   /// It retains the old Calendar identity during migration.
   final bool isLegacyTaskReminder;
 
+  /// Whether this independent reminder participates in notification scheduling.
+  /// Missing values in older JSON payloads default to enabled.
+  final bool isEnabled;
+
+  /// Date-only reminders are serialized as YYYY-MM-DD, never synthetic midnight.
+  String get storageDateValue =>
+      isAllDay ? _dateOnlyStorageValue(date) : date.toIso8601String();
+
   TaskReminder copyWith({
+    String? id,
     String? title,
     DateTime? date,
     bool? isAllDay,
+    bool? isEnabled,
   }) => TaskReminder(
-        id: id,
+        id: id ?? this.id,
         title: title ?? this.title,
         date: date ?? this.date,
         isAllDay: isAllDay ?? this.isAllDay,
         sequence: sequence,
         isLegacyTaskReminder: isLegacyTaskReminder,
+        isEnabled: isEnabled ?? this.isEnabled,
       );
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'title': title,
-        'date': date.toIso8601String(),
+        'date': storageDateValue,
         'isAllDay': isAllDay,
         'sequence': sequence,
+        if (!isEnabled) 'isEnabled': false,
         if (isLegacyTaskReminder) 'isLegacyTaskReminder': true,
       };
 
@@ -128,6 +178,7 @@ class TaskReminder {
         isAllDay: json['isAllDay'] as bool? ?? false,
         sequence: (json['sequence'] as num?)?.toInt() ?? 1,
         isLegacyTaskReminder: json['isLegacyTaskReminder'] as bool? ?? false,
+        isEnabled: json['isEnabled'] as bool? ?? true,
       );
 }
 
@@ -139,9 +190,12 @@ class Task {
     this.createdAt,
     this.updatedAt,
     this.dueDate,
+    this.centerId,
     this.allDay = false,
-    this.followUpEnabled = false,
-    this.followUpDate,
+    @Deprecated('Follow-up history is represented by FollowUpRecord entries.')
+    bool followUpEnabled = false,
+    @Deprecated('Follow-up records do not schedule future work.')
+    DateTime? followUpDate,
     this.tags = const [],
     this.category,
     this.checklist = const [],
@@ -149,22 +203,29 @@ class Task {
     this.checklistOccurrences = const {},
     this.occurrenceHistory = const {},
     this.notebookKind,
-    this.reminderDate,
+    @Deprecated('Use independent TaskReminder records.')
+    DateTime? reminderDate,
+    @Deprecated('Use TaskReminder.isAllDay.')
+    bool reminderAllDay = false,
     Iterable<TaskReminder> taskReminders = const [],
     this.nextReminderSequence = 1,
     this.legacyTaskReminderMigrationVersion = 0,
-    this.priority = TaskPriority.none,
+    this.priority = TaskPriority.medium,
     this.archived = false,
     this.trashed = false,
     this.completed = false,
     this.completedAt,
+    this.templateTaskId,
     this.followUps = const [],
     this.recurrence,
     Iterable<PersonReference> people = const [],
   }) : checklistEnabled = checklistEnabled ??
             (checklist.isNotEmpty || notebookKind == NotebookItemKind.checklist),
         people = _normalizePeople(people),
-        taskReminders = List<TaskReminder>.of(taskReminders);
+        taskReminders = List<TaskReminder>.of(taskReminders) {
+    if (reminderDate != null) this.reminderDate = reminderDate;
+    if (reminderAllDay) this.reminderAllDay = true;
+  }
 
   final String id;
   String title;
@@ -172,11 +233,16 @@ class Task {
   DateTime? createdAt;
   DateTime? updatedAt;
   DateTime? dueDate;
+  /// Independent canonical Center reference; Project membership remains separate.
+  String? centerId;
+  /// Date-only tasks serialize their due date as YYYY-MM-DD without a synthetic time.
+  String? get dueDateStorageValue => dueDate == null
+      ? null
+      : (allDay ? _dateOnlyStorageValue(dueDate!) : dueDate!.toIso8601String());
+
   /// True when the due date is intentionally date-only (All-Day).
   /// The timestamp remains for date identity; consumers must not present its time.
   bool allDay;
-  bool followUpEnabled;
-  DateTime? followUpDate;
   List<String> tags;
   String? category;
   List<String> checklist;
@@ -190,9 +256,7 @@ class Task {
   /// scheduled occurrence ISO timestamps. Stored in the canonical Task model.
   Map<String, Map<String, dynamic>> occurrenceHistory;
   NotebookItemKind? notebookKind;
-  /// Legacy singular Task reminder retained for backward compatibility.
-  DateTime? reminderDate;
-  /// New independent reminders stored in the canonical Task JSON envelope.
+  /// Independent reminders; all scheduling is represented in this collection.
   List<TaskReminder> taskReminders;
   /// Monotonic per-Task sequence; removed reminder numbers are never reused.
   int nextReminderSequence;
@@ -204,9 +268,105 @@ class Task {
   bool trashed;
   bool completed;
   DateTime? completedAt;
+  /// Stable source definition ID for a task generated/propagated from a template.
+  String? templateTaskId;
   List<FollowUp> followUps;
   RecurrenceRule? recurrence;
   final List<PersonReference> people;
+
+  /// Legacy compatibility view only. No Follow-up scheduling state is stored.
+  @Deprecated('Use followUps.isNotEmpty.')
+  bool get followUpEnabled => followUps.isNotEmpty;
+
+  @Deprecated('Follow-up history has no future scheduling date.')
+  set followUpEnabled(bool value) {}
+
+  @Deprecated('Follow-up history has no future scheduling date.')
+  DateTime? get followUpDate => null;
+
+  @Deprecated('Follow-up history has no future scheduling date.')
+  set followUpDate(DateTime? value) {}
+
+  /// Canonical primary reminder selected by stable sequence.
+  DateTime? get primaryReminderDate {
+    final enabled = taskReminders.where((item) => item.isEnabled).toList()
+      ..sort((a, b) => a.sequence.compareTo(b.sequence));
+    return enabled.isEmpty ? null : enabled.first.date;
+  }
+
+  set primaryReminderDate(DateTime? value) {
+    final enabled = taskReminders.toList()
+      ..sort((a, b) => a.sequence.compareTo(b.sequence));
+    if (enabled.isEmpty || value == null) return;
+    final primary = enabled.first;
+    final index = taskReminders.indexWhere((item) => item.id == primary.id);
+    taskReminders[index] = primary.copyWith(date: value);
+  }
+
+  /// Compatibility projection for data that has not completed the legacy
+  /// reminder cutover. It never aliases a newly-created independent reminder.
+  @Deprecated('Use taskReminders directly.')
+  DateTime? get reminderDate {
+    for (final reminder in taskReminders) {
+      if (reminder.isLegacyTaskReminder) return reminder.date;
+    }
+    return null;
+  }
+
+  @Deprecated('Use taskReminders directly.')
+  set reminderDate(DateTime? value) {
+    if (legacyTaskReminderMigrationVersion >= 1) return;
+    final index = taskReminders.indexWhere((item) => item.isLegacyTaskReminder);
+    if (value == null) {
+      if (index >= 0) taskReminders.removeAt(index);
+      return;
+    }
+    if (index >= 0) {
+      taskReminders[index] = taskReminders[index].copyWith(
+        id: 'legacy-task-reminder-$id',
+        date: value,
+      );
+    } else {
+      final reminderId = 'legacy-task-reminder-$id';
+      var highestSequence = 0;
+      for (final reminder in taskReminders) {
+        if (reminder.sequence > highestSequence) highestSequence = reminder.sequence;
+      }
+      final sequence = nextReminderSequence > highestSequence
+          ? nextReminderSequence
+          : highestSequence + 1;
+      taskReminders.add(TaskReminder(
+        id: reminderId,
+        title: 'یادآوری: $title',
+        date: value,
+        isAllDay: false,
+        sequence: sequence,
+        isLegacyTaskReminder: true,
+      ));
+      nextReminderSequence = sequence + 1;
+    }
+    legacyTaskReminderMigrationVersion = 1;
+  }
+
+  @Deprecated('Use taskReminders directly.')
+  bool get reminderAllDay {
+    final primary = taskReminders.isEmpty
+        ? null
+        : (List<TaskReminder>.of(taskReminders)
+              ..sort((a, b) => a.sequence.compareTo(b.sequence)))
+            .first;
+    return primary?.isAllDay ?? false;
+  }
+
+  @Deprecated('Use TaskReminder.isAllDay.')
+  set reminderAllDay(bool value) {
+    if (taskReminders.isEmpty) return;
+    final ordered = List<TaskReminder>.of(taskReminders)
+      ..sort((a, b) => a.sequence.compareTo(b.sequence));
+    final primary = ordered.first;
+    final index = taskReminders.indexWhere((item) => item.id == primary.id);
+    taskReminders[index] = primary.copyWith(isAllDay: value);
+  }
 
   /// First completion records a timestamp; repeated completion is idempotent.
   /// Explicit reopening clears it so the next completion records a fresh time.
@@ -316,10 +476,11 @@ class Task {
         'description': description,
         'createdAt': createdAt?.toIso8601String(),
         'updatedAt': updatedAt?.toIso8601String(),
-        'dueDate': dueDate?.toIso8601String(),
+        'dueDate': dueDate == null
+            ? null
+            : (allDay ? _dateOnlyStorageValue(dueDate!) : dueDate!.toIso8601String()),
+        if (centerId != null && centerId!.trim().isNotEmpty) 'centerId': centerId,
         if (allDay) 'allDay': true,
-        'followUpEnabled': followUpEnabled,
-        'followUpDate': followUpDate?.toIso8601String(),
         'tags': tags,
         'category': category,
         'checklist': checklist,
@@ -333,18 +494,18 @@ class Task {
             (key, value) => MapEntry(key, Map<String, dynamic>.from(value)),
           ),
         if (notebookKind != null) 'notebookKind': notebookKind!.name,
-        'reminderDate': reminderDate?.toIso8601String(),
         if (taskReminders.isNotEmpty)
           'taskReminders': taskReminders.map((item) => item.toJson()).toList(),
         if (nextReminderSequence > 1)
           'nextReminderSequence': nextReminderSequence,
         if (legacyTaskReminderMigrationVersion > 0)
           'legacyTaskReminderMigrationVersion': legacyTaskReminderMigrationVersion,
-        if (priority != TaskPriority.none) 'priority': priority.name,
+        'priority': priority.name,
         'archived': archived,
         'trashed': trashed,
         'completed': completed,
         'completedAt': completedAt?.toIso8601String(),
+        if (templateTaskId != null) 'templateTaskId': templateTaskId,
         'followUps': followUps.map((e) => e.toJson()).toList(),
         if (recurrence != null) 'recurrence': recurrence!.toJson(),
         if (people.isNotEmpty)
@@ -372,6 +533,14 @@ class Task {
       }
     }
 
+    for (var index = 0; index < loadedTaskReminders.length; index++) {
+      final reminder = loadedTaskReminders[index];
+      if (reminder.isLegacyTaskReminder && reminder.id == 'legacy-task-reminder') {
+        loadedTaskReminders[index] =
+            reminder.copyWith(id: 'legacy-task-reminder-${json['id'] ?? ''}');
+      }
+    }
+
     final rawLegacyReminderDate = json['reminderDate'];
     final legacyReminderDate = rawLegacyReminderDate == null
         ? null
@@ -394,9 +563,10 @@ class Task {
         final taskTitle = json['title'] as String? ?? '';
         loadedTaskReminders.add(
           TaskReminder(
-            id: 'legacy-task-reminder',
+            id: 'legacy-task-reminder-${json['id'] ?? ''}',
             title: 'یادآوری: $taskTitle',
             date: legacyReminderDate,
+            isAllDay: json['reminderAllDay'] as bool? ?? false,
             sequence: migrationSequence,
             isLegacyTaskReminder: true,
           ),
@@ -405,19 +575,52 @@ class Task {
       migrationVersion = 1;
     }
 
+    // Convert legacy Follow-up-attached reminder dates into independent
+    // TaskReminder rows while decoding old JSON. Future nextFollowUp values
+    // are intentionally discarded because Follow-up is historical only.
+    final rawFollowUps = json['followUps'];
+    if (rawFollowUps is List) {
+      for (var index = 0; index < rawFollowUps.length; index++) {
+        final rawFollowUp = rawFollowUps[index];
+        if (rawFollowUp is! Map) continue;
+        final rawDate = rawFollowUp['reminderDate'];
+        if (rawDate is! String || rawDate.trim().isEmpty) continue;
+        final reminderDate = DateTime.tryParse(rawDate);
+        if (reminderDate == null) continue;
+        final followUpId = (rawFollowUp['id'] as String?)?.trim();
+        final reminderId = 'follow-up-reminder-${json['id'] ?? ''}-${followUpId?.isNotEmpty == true ? followUpId : index}';
+        if (loadedTaskReminders.any((item) => item.id == reminderId)) continue;
+        final highestSequence = loadedTaskReminders.isEmpty
+            ? 0
+            : loadedTaskReminders
+                .map((item) => item.sequence)
+                .reduce((a, b) => a > b ? a : b);
+        loadedTaskReminders.add(
+          TaskReminder(
+            id: reminderId,
+            title: 'یادآور پیگیری',
+            date: reminderDate,
+            isAllDay: rawFollowUp['reminderAllDay'] == true,
+            sequence: highestSequence + 1,
+          ),
+        );
+      }
+    }
+
     final nextReminderSequence = [
       sequenceFromJson,
       if (loadedTaskReminders.isNotEmpty)
         loadedTaskReminders.map((item) => item.sequence).reduce((a, b) => a > b ? a : b) + 1,
     ].reduce((a, b) => a > b ? a : b);
-    final legacyFollowUpDate = json['followUpDate'] == null
-        ? null
-        : DateTime.tryParse(json['followUpDate'] as String);
-    final priorityName = json['priority'] as String?;
-    final loadedPriority = TaskPriority.values.firstWhere(
-      (value) => value.name == priorityName,
-      orElse: () => TaskPriority.none,
-    );
+    final rawPriority = json['priority'];
+    final priorityName = rawPriority is String ? rawPriority.trim().toLowerCase() : '';
+    final loadedPriority = switch (priorityName) {
+      'high' || 'p1' => TaskPriority.high,
+      'medium' || 'p2' => TaskPriority.medium,
+      'low' || 'p3' => TaskPriority.low,
+      'none' || 'p4' || '' => TaskPriority.none,
+      _ => TaskPriority.none,
+    };
 
     return Task(
       id: json['id'] as String? ?? '',
@@ -432,10 +635,10 @@ class Task {
       dueDate: json['dueDate'] == null
           ? null
           : DateTime.tryParse(json['dueDate'] as String),
+      centerId: (json['centerId'] as String?)?.trim().isEmpty == true
+          ? null
+          : (json['centerId'] as String?)?.trim(),
       allDay: json['allDay'] as bool? ?? false,
-      followUpEnabled: json['followUpEnabled'] as bool? ??
-          loadedFollowUps.isNotEmpty || legacyFollowUpDate != null,
-      followUpDate: legacyFollowUpDate,
       tags: (json['tags'] as List<dynamic>? ?? const [])
           .whereType<String>()
           .toList(),
@@ -454,7 +657,6 @@ class Task {
             (value) => value?.name == json['notebookKind'],
             orElse: () => null,
           ),
-      reminderDate: legacyReminderDate,
       taskReminders: loadedTaskReminders,
       nextReminderSequence: nextReminderSequence,
       legacyTaskReminderMigrationVersion: migrationVersion,
@@ -465,6 +667,7 @@ class Task {
       completedAt: json['completedAt'] == null
           ? null
           : DateTime.tryParse(json['completedAt'] as String),
+      templateTaskId: json['templateTaskId'] as String?,
       followUps: loadedFollowUps,
       recurrence: json['recurrence'] is Map
           ? RecurrenceRule.fromJson(
@@ -486,6 +689,7 @@ class Task {
 
   DateTime? get lastFollowUpDate => lastFollowUp?.dateTime;
 
-  DateTime? get legacyHomeFollowUpDate =>
-      followUps.isEmpty ? followUpDate : lastFollowUpDate;
+  /// Compatibility accessor retained for older Home callers. Presentation
+  /// must never infer a recorded FollowUp from legacy scheduling metadata.
+  DateTime? get legacyHomeFollowUpDate => lastFollowUpDate;
 }

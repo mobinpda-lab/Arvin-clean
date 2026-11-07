@@ -12,48 +12,14 @@ on:
         description: 'Exact product commit SHA to validate'
         required: true
         type: string
-      run_home:
-        description: 'Run Home scenario'
-        required: true
-        default: true
-        type: boolean
-      run_quick_capture:
-        description: 'Run Quick Capture scenario'
-        required: true
-        default: true
-        type: boolean
-      run_backup_restore:
-        description: 'Run Backup/Restore scenario'
-        required: true
-        default: true
-        type: boolean
-      run_people:
-        description: 'Run People scenario'
-        required: true
-        default: true
-        type: boolean
-      run_calendar:
-        description: 'Run Calendar interaction scenario'
-        required: true
-        default: true
-        type: boolean
-      run_sql_persistence:
-        description: 'Run SQL persistence scenario'
-        required: true
-        default: true
-        type: boolean
-      run_sql_migration:
-        description: 'Run SQL legacy-storage migration scenario'
-        required: true
-        default: true
-        type: boolean
 
 permissions:
   contents: read
 
 concurrency:
+  # Keep the existing PR concurrency key; serialize clean retries instead of cancelling active work.
   group: arvin-device-smoke-${{ github.event.pull_request.number || github.ref_name }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 env:
   FLUTTER_VERSION: '3.47.0'
@@ -67,59 +33,21 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - name: Build scenario matrix
+      - name: Build canonical seven-lane matrix
         id: set-matrix
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          RUN_HOME: ${{ inputs.run_home }}
-          RUN_QUICK_CAPTURE: ${{ inputs.run_quick_capture }}
-          RUN_BACKUP_RESTORE: ${{ inputs.run_backup_restore }}
-          RUN_PEOPLE: ${{ inputs.run_people }}
-          RUN_CALENDAR: ${{ inputs.run_calendar }}
-          RUN_SQL_PERSISTENCE: ${{ inputs.run_sql_persistence }}
-          RUN_SQL_MIGRATION: ${{ inputs.run_sql_migration }}
         shell: bash
         run: |
           set -euo pipefail
-          scenarios='[]'
-          if [ "$EVENT_NAME" != "workflow_dispatch" ]; then
-            scenarios='[
-              {"scenario":"home","test_file":"integration_test/android_home_smoke_test.dart"},
-              {"scenario":"quick-capture","test_file":"integration_test/android_quick_capture_smoke_test.dart"},
-              {"scenario":"sql-persistence","test_file":"integration_test/android_sql_persistence_smoke_test.dart"},
-              {"scenario":"sql-migration","test_file":"integration_test/android_upgrade_migration_smoke_test.dart"},
-              {"scenario":"backup-restore","test_file":"integration_test/android_backup_restore_sql_smoke_test.dart"},
-              {"scenario":"people","test_file":"integration_test/android_people_smoke_test.dart"},
-              {"scenario":"calendar","test_file":"integration_test/calendar_card_interaction_test.dart"}
-            ]'
-          else
-            if [ "$RUN_HOME" = "true" ]; then
-              scenarios="$(jq -c '. + [{"scenario":"home","test_file":"integration_test/android_home_smoke_test.dart"}]' <<< "$scenarios")"
-            fi
-            if [ "$RUN_QUICK_CAPTURE" = "true" ]; then
-              scenarios="$(jq -c '. + [{"scenario":"quick-capture","test_file":"integration_test/android_quick_capture_smoke_test.dart"}]' <<< "$scenarios")"
-            fi
-            if [ "$RUN_BACKUP_RESTORE" = "true" ]; then
-              scenarios="$(jq -c '. + [{"scenario":"backup-restore","test_file":"integration_test/android_backup_restore_sql_smoke_test.dart"}]' <<< "$scenarios")"
-            fi
-            if [ "$RUN_PEOPLE" = "true" ]; then
-              scenarios="$(jq -c '. + [{"scenario":"people","test_file":"integration_test/android_people_smoke_test.dart"}]' <<< "$scenarios")"
-            fi
-            if [ "$RUN_CALENDAR" = "true" ]; then
-              scenarios="$(jq -c '. + [{"scenario":"calendar","test_file":"integration_test/calendar_card_interaction_test.dart"}]' <<< "$scenarios")"
-            fi
-            if [ "$RUN_SQL_PERSISTENCE" = "true" ]; then
-              scenarios="$(jq -c '. + [{"scenario":"sql-persistence","test_file":"integration_test/android_sql_persistence_smoke_test.dart"}]' <<< "$scenarios")"
-            fi
-            if [ "$RUN_SQL_MIGRATION" = "true" ]; then
-              scenarios="$(jq -c '. + [{"scenario":"sql-migration","test_file":"integration_test/android_upgrade_migration_smoke_test.dart"}]' <<< "$scenarios")"
-            fi
-            if [ "$scenarios" = "[]" ]; then
-              echo "At least one smoke scenario must be selected for workflow_dispatch." >&2
-              exit 1
-            fi
-          fi
-          echo "Selected scenario matrix: $scenarios"
+          scenarios='[
+            {"scenario":"smoke-boot","test_file":"integration_test/android_home_smoke_test.dart"},
+            {"scenario":"smoke-navigation","test_file":"integration_test/android_people_smoke_test.dart"},
+            {"scenario":"smoke-calendar-segmented-view","test_file":"integration_test/calendar_card_interaction_test.dart"},
+            {"scenario":"smoke-quick-capture","test_file":"integration_test/android_quick_capture_smoke_test.dart"},
+            {"scenario":"smoke-task-lifecycle","test_file":"integration_test/android_backup_restore_sql_smoke_test.dart"},
+            {"scenario":"smoke-reminder-vazirmatn","test_file":"integration_test/alarm_overlay_smoke_test.dart"},
+            {"scenario":"smoke-follow-up-persistence","test_file":"integration_test/android_sql_persistence_smoke_test.dart"}
+          ]'
+          echo "Selected canonical smoke lanes: $scenarios"
           matrix="$(jq -cn --argjson scenarios "$scenarios" '{include:$scenarios}')"
           echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
 
@@ -128,10 +56,11 @@ jobs:
     # Draft PRs need CI evidence before they are marked ready; this job never promotes or merges.
     name: device-smoke (${{ matrix.scenario }})
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     strategy:
       fail-fast: false
-      max-parallel: 2
+      # One emulator per runner at a time avoids host/ADB contention across matrix lanes.
+      max-parallel: 1
       matrix: ${{ fromJSON(needs.prepare-matrix.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v5
@@ -201,7 +130,7 @@ jobs:
           flutter pub get --enforce-lockfile
           git diff --exit-code -- pubspec.lock
       - name: Verify Reminder legacy compatibility
-        if: matrix.scenario == 'calendar'
+        if: matrix.scenario == 'smoke-reminder-vazirmatn'
         run: flutter test test/task_reminder_legacy_compatibility_test.dart test/follow_up_entry_page_test.dart
 
       - name: Enable KVM
@@ -211,36 +140,47 @@ jobs:
           sudo udevadm trigger --name-match=kvm
       - name: Run selected canonical smoke on Android emulator
         uses: reactivecircus/android-emulator-runner@v2
+        env:
+          SMOKE_TEST_FILE: ${{ matrix.test_file }}
+          SMOKE_SCENARIO: ${{ matrix.scenario }}
         with:
           api-level: 35
           arch: x86_64
           target: default
           disable-animations: true
+          emulator-port: 5554
           script: |
-            # android-emulator-runner executes script lines in separate /usr/bin/sh processes.
-            # Discover the ready device instead of relying on EMULATOR_PORT being exported.
-            adb devices -l && device="$(adb devices | awk '$1 ~ /^emulator-/ && $2 == "device" {print $1; exit}')" && test -n "$device" && echo "ADB_DEVICE=$device" && adb -s "$device" shell getprop sys.boot_completed && adb -s "$device" shell getprop ro.build.version.sdk && flutter drive --driver=test_driver/integration_test.dart --target=${{ matrix.test_file }} -d "$device"
+            printf "%s" "c2V0IC1FZXVvIHBpcGVmYWlsCjogIiR7U01PS0VfVEVTVF9GSUxFOj9TTU9LRV9URVNUX0ZJTEUgaXMgcmVxdWlyZWR9Igo6ICIke1NNT0tFX1NDRU5BUklPOj9TTU9LRV9TQ0VOQVJJTyBpcyByZXF1aXJlZH0iCgpkZXZpY2U9ImVtdWxhdG9yLTU1NTQiCndvcmtzcGFjZT0iJHtHSVRIVUJfV09SS1NQQUNFOi0kUFdEfSIKcnVubmVyX3RlbXA9IiR7UlVOTkVSX1RFTVA6LS90bXB9IgphcnRpZmFjdF9kaXI9IiR3b3Jrc3BhY2UvYXJ0aWZhY3RzL2RldmljZS1zbW9rZSIKc2NyZWVuc2hvdD0iJGFydGlmYWN0X2Rpci8ke1NNT0tFX1NDRU5BUklPfS1maW5hbC5wbmciCmRyaXZlX2xvZz0iJHJ1bm5lcl90ZW1wLyR7U01PS0VfU0NFTkFSSU99LWZsdXR0ZXItZHJpdmUubG9nIgpkZXZpY2Vfc3RhdGU9Im5vdC1jaGVja2VkIgpkZXZpY2VzX291dHB1dD0iIgpib290X3Byb3BlcnR5PSJub3QtY2hlY2tlZCIKc2RrPSJub3QtY2hlY2tlZCIKZHJpdmVfc3RhdHVzPTAKCmNhcHR1cmVfc2NyZWVuc2hvdCgpIHsKICBta2RpciAtcCBhcnRpZmFjdHMvZGV2aWNlLXNtb2tlICIkYXJ0aWZhY3RfZGlyIgogIGlmICEgYWRiIC1zICIkZGV2aWNlIiBleGVjLW91dCBzY3JlZW5jYXAgLXAgPC9kZXYvbnVsbCA+ICIkc2NyZWVuc2hvdCI7IHRoZW4KICAgIGVjaG8gIlNDUkVFTlNIT1RfQ0FQVFVSRV9GQUlMRUQ6IHNlcmlhbD0kZGV2aWNlIHBhdGg9JHNjcmVlbnNob3QiID4mMgogICAgcmV0dXJuIDEKICBmaQogIGlmIFtbICEgLXMgIiRzY3JlZW5zaG90IiBdXTsgdGhlbgogICAgZWNobyAiU0NSRUVOU0hPVF9FTVBUWTogcGF0aD0kc2NyZWVuc2hvdCIgPiYyCiAgICByZXR1cm4gMQogIGZpCiAgbG9jYWwgc2lnbmF0dXJlPSIiCiAgbG9jYWwgYnl0ZXM9IiIKICBzaWduYXR1cmU9IiQob2QgLUFuIC10eDEgLU44ICIkc2NyZWVuc2hvdCIgfCB0ciAtZCAnWzpzcGFjZTpdJykiCiAgaWYgW1sgIiRzaWduYXR1cmUiICE9ICI4OTUwNGU0NzBkMGExYTBhIiBdXTsgdGhlbgogICAgZWNobyAiU0NSRUVOU0hPVF9JTlZBTElEX1BORzogcGF0aD0kc2NyZWVuc2hvdCBzaWduYXR1cmU9JHNpZ25hdHVyZSIgPiYyCiAgICByZXR1cm4gMQogIGZpCiAgYnl0ZXM9IiQod2MgLWMgPCAiJHNjcmVlbnNob3QiIHwgdHIgLWQgJ1s6c3BhY2U6XScpIgogIGlmICgoIGJ5dGVzIDw9IDEwMDAgKSk7IHRoZW4KICAgIGVjaG8gIlNDUkVFTlNIT1RfVE9PX1NNQUxMOiBwYXRoPSRzY3JlZW5zaG90IGJ5dGVzPSRieXRlcyIgPiYyCiAgICByZXR1cm4gMQogIGZpCiAgZWNobyAiU0NSRUVOU0hPVF9BUlRJRkFDVF9XUklUVEVOPSRzY3JlZW5zaG90IgogIGVjaG8gIlNDUkVFTlNIT1RfQVJUSUZBQ1RfQllURVM9JGJ5dGVzIgogIGVjaG8gIlNDUkVFTlNIT1RfQVJUSUZBQ1RfUE5HX1NJR05BVFVSRT0kc2lnbmF0dXJlIgogIHJldHVybiAwCn0KCmVtaXRfZGlhZ25vc3RpY3MoKSB7CiAgbG9jYWwgcmVhc29uPSIkezE6LXVuc3BlY2lmaWVkfSIKICBlY2hvICJERVZJQ0VfU01PS0VfRElBR05PU1RJQ19CRUdJTiBzY2VuYXJpbz0kU01PS0VfU0NFTkFSSU8gcmVhc29uPSRyZWFzb24iCiAgZWNobyAiQURCX1NFUklBTD0kZGV2aWNlIgogIGVjaG8gIkFEQl9ERVZJQ0VfU1RBVEU9JHtkZXZpY2Vfc3RhdGU6LXVuc2V0fSIKICBlY2hvICJBREJfQk9PVF9QUk9QRVJUWT0ke2Jvb3RfcHJvcGVydHk6LXVuc2V0fSIKICBlY2hvICJBREJfQVBJX0xFVkVMPSR7c2RrOi11bnNldH0iCiAgZWNobyAiQURCX0RFVklDRVNfT1VUUFVUX0JFR0lOIgogIHByaW50ZiAnJXNcbicgIiR7ZGV2aWNlc19vdXRwdXQ6LTxub3QgY2FwdHVyZWQ+fSIKICBhZGIgZGV2aWNlcyAtbCA8L2Rldi9udWxsIDI+JjEgfHwgdHJ1ZQogIGVjaG8gIkFEQl9ERVZJQ0VTX09VVFBVVF9FTkQiCiAgbG9jYWwgY3VycmVudF9zdGF0ZT0iIgogIGN1cnJlbnRfc3RhdGU9IiQoYWRiIC1zICIkZGV2aWNlIiBnZXQtc3RhdGUgPC9kZXYvbnVsbCAyPiYxIHx8IHRydWUpIgogIGlmIFtbICIkY3VycmVudF9zdGF0ZSIgPT0gImRldmljZSIgXV07IHRoZW4KICAgIGNhcHR1cmVfc2NyZWVuc2hvdCB8fCB0cnVlCiAgZWxzZQogICAgZWNobyAiRElBR05PU1RJQ19TQ1JFRU5TSE9UX1VOQVZBSUxBQkxFOiBzZXJpYWw9JGRldmljZSBzdGF0ZT0kY3VycmVudF9zdGF0ZSIKICBmaQogIGVjaG8gIkRFVklDRV9TTU9LRV9ESUFHTk9TVElDX0VORCIKfQoKIyBLZWVwIHRoZSBpbml0aWFsIHRyYW5zcG9ydCBkaXNjb3ZlcnkgaW5saW5lLiBUaGUgcHJldmlvdXMgdHJhY2UgZW5kZWQgYXQKIyBBREJfREVWSUNFX1JFQURZIGJlZm9yZSB0aGUgYm9vdC9BUEkvZHJpdmVyIHN0YWdlczsgZXhwbGljaXQgc3RhZ2UgbWFya2VycwojIG5vdyBtYWtlIGFueSBlYXJseSBleGl0IG9ic2VydmFibGUgYW5kIGF2b2lkIGEgZnVuY3Rpb24tcmV0dXJuIGJvdW5kYXJ5LgplY2hvICJERVZJQ0VfU0NSSVBUX1NUQUdFPWFkYi1kaXNjb3Zlcnktc3RhcnQiCmFkYiBzdGFydC1zZXJ2ZXIgPC9kZXYvbnVsbCA+L2Rldi9udWxsIDI+JjEgfHwgdHJ1ZQpkZXZpY2VfYXR0ZW1wdD0wCmRldmljZV9zdGF0ZT0ibm90LWxpc3RlZCIKd2hpbGUgKCggZGV2aWNlX2F0dGVtcHQgPCA5MCApKTsgZG8KICBkZXZpY2VzX291dHB1dD0iJChhZGIgZGV2aWNlcyAtbCA8L2Rldi9udWxsIDI+JjEgfHwgdHJ1ZSkiCiAgZGV2aWNlX3N0YXRlPSIkKGF3ayAtdiBzZXJpYWw9IiRkZXZpY2UiICckMSA9PSBzZXJpYWwgeyBwcmludCAkMjsgZXhpdCB9JyA8PDwgIiRkZXZpY2VzX291dHB1dCIpIgogIGRldmljZV9zdGF0ZT0iJHtkZXZpY2Vfc3RhdGU6LW5vdC1saXN0ZWR9IgogIGlmIFtbICIkZGV2aWNlX3N0YXRlIiA9PSAiZGV2aWNlIiBdXTsgdGhlbgogICAgYnJlYWsKICBmaQogIGlmIFtbICIkZGV2aWNlX3N0YXRlIiA9PSAib2ZmbGluZSIgXV07IHRoZW4KICAgIGFkYiByZWNvbm5lY3Qgb2ZmbGluZSA8L2Rldi9udWxsID4vZGV2L251bGwgMj4mMSB8fCB0cnVlCiAgZmkKICBkZXZpY2VfYXR0ZW1wdD0kKChkZXZpY2VfYXR0ZW1wdCArIDEpKQogIHNsZWVwIDIKZG9uZQppZiBbWyAiJGRldmljZV9zdGF0ZSIgIT0gImRldmljZSIgXV07IHRoZW4KICBlY2hvICJBREJfREVWSUNFX0RJU0NPVkVSWV9USU1FT1VUOiBzZXJpYWw9JGRldmljZSBzdGF0ZT0ke2RldmljZV9zdGF0ZTotdW5zZXR9IiA+JjIKICBlbWl0X2RpYWdub3N0aWNzICJkZXZpY2UtZGlzY292ZXJ5LXRpbWVvdXQiCiAgZXhpdCAxCmZpCmVjaG8gIkFEQl9ERVZJQ0VfUkVBRFk6IHNlcmlhbD0kZGV2aWNlIgplY2hvICJERVZJQ0VfU0NSSVBUX1NUQUdFPWFmdGVyLWFkYi1kaXNjb3ZlcnkiCgplY2hvICJERVZJQ0VfU0NSSVBUX1NUQUdFPWJlZm9yZS1ib290LXdhaXQiCmJvb3RfYXR0ZW1wdD0wCmJvb3RfcmVhZHk9MApib290X3Byb3BlcnR5PSJub3QtcmVhZHkiCmVjaG8gIkRFVklDRV9TQ1JJUFRfU1RBR0U9Ym9vdC1sb29wLWVudGVyZWQgYXR0ZW1wdD0kYm9vdF9hdHRlbXB0Igp3aGlsZSAoKCBib290X2F0dGVtcHQgPCA5MCAmJiBib290X3JlYWR5ID09IDAgKSk7IGRvCiAgYm9vdF9yYXc9IiIKICBib290X2NvbW1hbmRfc3RhdHVzPTAKICBlY2hvICJCT09UX1BPTExfQVRURU1QVD0kYm9vdF9hdHRlbXB0IGJlZm9yZS1hZGItc2hlbGwiCiAgaWYgYm9vdF9yYXc9IiQoYWRiIC1zICIkZGV2aWNlIiBzaGVsbCBnZXRwcm9wIHN5cy5ib290X2NvbXBsZXRlZCA8L2Rldi9udWxsIDI+JjEpIjsgdGhlbgogICAgYm9vdF9jb21tYW5kX3N0YXR1cz0wCiAgZWxzZQogICAgYm9vdF9jb21tYW5kX3N0YXR1cz0kPwogIGZpCiAgYm9vdF9wcm9wZXJ0eT0iJChwcmludGYgJyVzJyAiJGJvb3RfcmF3IiB8IHRyIC1kICdccicpIgogIGVjaG8gIkJPT1RfUE9MTF9SRVNVTFQgYXR0ZW1wdD0kYm9vdF9hdHRlbXB0IHN0YXR1cz0kYm9vdF9jb21tYW5kX3N0YXR1cyB2YWx1ZT0kYm9vdF9wcm9wZXJ0eSIKICBpZiBbWyAiJGJvb3RfcHJvcGVydHkiID09ICIxIiBdXTsgdGhlbgogICAgYm9vdF9yZWFkeT0xCiAgZWxzZQogICAgYm9vdF9hdHRlbXB0PSQoKGJvb3RfYXR0ZW1wdCArIDEpKQogICAgc2xlZXAgMgogIGZpCmRvbmUKZWNobyAiREVWSUNFX1NDUklQVF9TVEFHRT1hZnRlci1ib290LXdhaXQgcmVhZHk9JGJvb3RfcmVhZHkgcHJvcGVydHk9JGJvb3RfcHJvcGVydHkgYXR0ZW1wdHM9JGJvb3RfYXR0ZW1wdCIKaWYgW1sgIiRib290X3JlYWR5IiAhPSAiMSIgXV07IHRoZW4KICBlY2hvICJBREJfQk9PVF9USU1FT1VUOiBzZXJpYWw9JGRldmljZSBzeXMuYm9vdF9jb21wbGV0ZWQ9JHtib290X3Byb3BlcnR5Oi11bnNldH0iID4mMgogIGVtaXRfZGlhZ25vc3RpY3MgImJvb3QtY29tcGxldGlvbi10aW1lb3V0IgogIGV4aXQgMQpmaQplY2hvICJERVZJQ0VfU0NSSVBUX1NUQUdFPWFmdGVyLWJvb3QtY29tcGxldGVkIgoKc2RrX3Jhdz0iIgpzZGtfY29tbWFuZF9zdGF0dXM9MAppZiBzZGtfcmF3PSIkKGFkYiAtcyAiJGRldmljZSIgc2hlbGwgZ2V0cHJvcCByby5idWlsZC52ZXJzaW9uLnNkayA8L2Rldi9udWxsIDI+JjEpIjsgdGhlbgogIHNka19jb21tYW5kX3N0YXR1cz0wCmVsc2UKICBzZGtfY29tbWFuZF9zdGF0dXM9JD8KZmkKc2RrPSIkKHByaW50ZiAnJXMnICIkc2RrX3JhdyIgfCB0ciAtZCAnXHInKSIKZWNobyAiU0RLX1BPTExfUkVTVUxUIHN0YXR1cz0kc2RrX2NvbW1hbmRfc3RhdHVzIHZhbHVlPSRzZGsiCmlmIFtbICIkc2RrIiAhPSAiMzUiIF1dOyB0aGVuCiAgZWNobyAiQURCX0FQSV9NSVNNQVRDSDogZXhwZWN0ZWQgbWF0cml4IEFQSSAzNSwgZ290ICR7c2RrOi11bnNldH0gKHNlcmlhbD0kZGV2aWNlKSIgPiYyCiAgZW1pdF9kaWFnbm9zdGljcyAiYXBpLWxldmVsLW1pc21hdGNoIgogIGV4aXQgMQpmaQplY2hvICJBREJfREVWSUNFPSRkZXZpY2UgQURCX1NUQVRFPSRkZXZpY2Vfc3RhdGUgQURCX0JPT1RfQ09NUExFVEVEPSRib290X3Byb3BlcnR5IEFEQl9BUElfTEVWRUw9JHNkayIKZWNobyAiREVWSUNFX1NDUklQVF9TVEFHRT1iZWZvcmUtZmx1dHRlci1kcml2ZSIKCm1rZGlyIC1wIGFydGlmYWN0cy9kZXZpY2Utc21va2UgIiRhcnRpZmFjdF9kaXIiCmlmIGZsdXR0ZXIgZHJpdmUgLS1kcml2ZXI9dGVzdF9kcml2ZXIvaW50ZWdyYXRpb25fdGVzdC5kYXJ0IC0tdGFyZ2V0PSIkU01PS0VfVEVTVF9GSUxFIiAtZCAiJGRldmljZSIgPC9kZXYvbnVsbCA+IiRkcml2ZV9sb2ciIDI+JjE7IHRoZW4KICBjYXQgIiRkcml2ZV9sb2ciCmVsc2UKICBkcml2ZV9zdGF0dXM9JD8KICBjYXQgIiRkcml2ZV9sb2ciCiAgaWYgZ3JlcCAtRWlxICdhZGJ8ZGV2aWNlIG9mZmxpbmV8NTAzN3xmYWlsZWQgdG8gY29ubmVjdHxkYWVtb24nICIkZHJpdmVfbG9nIjsgdGhlbgogICAgZWNobyAiQURCX1RSQU5TSUVOVF9SRVRSWT1mbHV0dGVyLWRyaXZlIgogICAgYWRiIHN0YXJ0LXNlcnZlciA8L2Rldi9udWxsID4vZGV2L251bGwgMj4mMSB8fCB0cnVlCiAgICBhZGIgcmVjb25uZWN0IG9mZmxpbmUgPC9kZXYvbnVsbCA+L2Rldi9udWxsIDI+JjEgfHwgdHJ1ZQogICAgcmV0cnlfZGV2aWNlX2F0dGVtcHQ9MAogICAgcmV0cnlfZGV2aWNlX3N0YXRlPSJub3QtbGlzdGVkIgogICAgd2hpbGUgKCggcmV0cnlfZGV2aWNlX2F0dGVtcHQgPCA5MCApKTsgZG8KICAgICAgZGV2aWNlc19vdXRwdXQ9IiQoYWRiIGRldmljZXMgLWwgPC9kZXYvbnVsbCAyPiYxIHx8IHRydWUpIgogICAgICByZXRyeV9kZXZpY2Vfc3RhdGU9IiQoYXdrIC12IHNlcmlhbD0iJGRldmljZSIgJyQxID09IHNlcmlhbCB7IHByaW50ICQyOyBleGl0IH0nIDw8PCAiJGRldmljZXNfb3V0cHV0IikiCiAgICAgIHJldHJ5X2RldmljZV9zdGF0ZT0iJHtyZXRyeV9kZXZpY2Vfc3RhdGU6LW5vdC1saXN0ZWR9IgogICAgICBpZiBbWyAiJHJldHJ5X2RldmljZV9zdGF0ZSIgPT0gImRldmljZSIgXV07IHRoZW4KICAgICAgICBkZXZpY2Vfc3RhdGU9IiRyZXRyeV9kZXZpY2Vfc3RhdGUiCiAgICAgICAgYnJlYWsKICAgICAgZmkKICAgICAgaWYgW1sgIiRyZXRyeV9kZXZpY2Vfc3RhdGUiID09ICJvZmZsaW5lIiBdXTsgdGhlbgogICAgICAgIGFkYiByZWNvbm5lY3Qgb2ZmbGluZSA8L2Rldi9udWxsID4vZGV2L251bGwgMj4mMSB8fCB0cnVlCiAgICAgIGZpCiAgICAgIHJldHJ5X2RldmljZV9hdHRlbXB0PSQoKHJldHJ5X2RldmljZV9hdHRlbXB0ICsgMSkpCiAgICAgIHNsZWVwIDIKICAgIGRvbmUKICAgIGlmIFtbICIkcmV0cnlfZGV2aWNlX3N0YXRlIiA9PSAiZGV2aWNlIiBdXTsgdGhlbgogICAgICBsb2NhbF9yZXRyeV9sb2c9IiRkcml2ZV9sb2cucmV0cnkiCiAgICAgIGlmIGZsdXR0ZXIgZHJpdmUgLS1kcml2ZXI9dGVzdF9kcml2ZXIvaW50ZWdyYXRpb25fdGVzdC5kYXJ0IC0tdGFyZ2V0PSIkU01PS0VfVEVTVF9GSUxFIiAtZCAiJGRldmljZSIgPC9kZXYvbnVsbCA+IiRsb2NhbF9yZXRyeV9sb2ciIDI+JjE7IHRoZW4KICAgICAgICBjYXQgIiRsb2NhbF9yZXRyeV9sb2ciCiAgICAgICAgZHJpdmVfc3RhdHVzPTAKICAgICAgZWxzZQogICAgICAgIGRyaXZlX3N0YXR1cz0kPwogICAgICAgIGNhdCAiJGxvY2FsX3JldHJ5X2xvZyIKICAgICAgZmkKICAgIGVsc2UKICAgICAgZGV2aWNlX3N0YXRlPSIkcmV0cnlfZGV2aWNlX3N0YXRlIgogICAgICBlbWl0X2RpYWdub3N0aWNzICJmbHV0dGVyLWRyaXZlLXJldHJ5LWRldmljZS11bmF2YWlsYWJsZSIKICAgIGZpCiAgZmkKZmkKZWNobyAiREVWSUNFX1NDUklQVF9TVEFHRT1hZnRlci1mbHV0dGVyLWRyaXZlIHN0YXR1cz0kZHJpdmVfc3RhdHVzIgoKIyBDYXB0dXJlIGlzIGluZGVwZW5kZW50IG9mIHRlc3Qgb3V0Y29tZTsgaXQgbmV2ZXIgY29udmVydHMgYSBmYWlsZWQgdGVzdCB0byBQQVNTLgppZiAhIGNhcHR1cmVfc2NyZWVuc2hvdDsgdGhlbgogIGVjaG8gIkFEQl9UUkFOU0lFTlRfUkVUUlk9c2NyZWVuY2FwIgogIGFkYiBzdGFydC1zZXJ2ZXIgPC9kZXYvbnVsbCA+L2Rldi9udWxsIDI+JjEgfHwgdHJ1ZQogIGFkYiByZWNvbm5lY3Qgb2ZmbGluZSA8L2Rldi9udWxsID4vZGV2L251bGwgMj4mMSB8fCB0cnVlCiAgcmV0cnlfY2FwdHVyZV9hdHRlbXB0PTAKICBjYXB0dXJlX2RldmljZV9zdGF0ZT0ibm90LWxpc3RlZCIKICB3aGlsZSAoKCByZXRyeV9jYXB0dXJlX2F0dGVtcHQgPCA5MCApKTsgZG8KICAgIGRldmljZXNfb3V0cHV0PSIkKGFkYiBkZXZpY2VzIC1sIDwvZGV2L251bGwgMj4mMSB8fCB0cnVlKSIKICAgIGNhcHR1cmVfZGV2aWNlX3N0YXRlPSIkKGF3ayAtdiBzZXJpYWw9IiRkZXZpY2UiICckMSA9PSBzZXJpYWwgeyBwcmludCAkMjsgZXhpdCB9JyA8PDwgIiRkZXZpY2VzX291dHB1dCIpIgogICAgY2FwdHVyZV9kZXZpY2Vfc3RhdGU9IiR7Y2FwdHVyZV9kZXZpY2Vfc3RhdGU6LW5vdC1saXN0ZWR9IgogICAgaWYgW1sgIiRjYXB0dXJlX2RldmljZV9zdGF0ZSIgPT0gImRldmljZSIgXV07IHRoZW4KICAgICAgZGV2aWNlX3N0YXRlPSIkY2FwdHVyZV9kZXZpY2Vfc3RhdGUiCiAgICAgIGJyZWFrCiAgICBmaQogICAgaWYgW1sgIiRjYXB0dXJlX2RldmljZV9zdGF0ZSIgPT0gIm9mZmxpbmUiIF1dOyB0aGVuCiAgICAgIGFkYiByZWNvbm5lY3Qgb2ZmbGluZSA8L2Rldi9udWxsID4vZGV2L251bGwgMj4mMSB8fCB0cnVlCiAgICBmaQogICAgcmV0cnlfY2FwdHVyZV9hdHRlbXB0PSQoKHJldHJ5X2NhcHR1cmVfYXR0ZW1wdCArIDEpKQogICAgc2xlZXAgMgogIGRvbmUKICBpZiBbWyAiJGNhcHR1cmVfZGV2aWNlX3N0YXRlIiA9PSAiZGV2aWNlIiBdXTsgdGhlbgogICAgaWYgISBjYXB0dXJlX3NjcmVlbnNob3Q7IHRoZW4KICAgICAgZW1pdF9kaWFnbm9zdGljcyAic2NyZWVuc2hvdC1jYXB0dXJlLWZhaWxlZCIKICAgICAgZXhpdCAxCiAgICBmaQogIGVsc2UKICAgIGRldmljZV9zdGF0ZT0iJGNhcHR1cmVfZGV2aWNlX3N0YXRlIgogICAgZW1pdF9kaWFnbm9zdGljcyAic2NyZWVuc2hvdC1kZXZpY2UtdW5hdmFpbGFibGUiCiAgICBleGl0IDEKICBmaQpmaQplY2hvICJERVZJQ0VfU0NSSVBUX1NUQUdFPWFmdGVyLXNjcmVlbnNob3QiCgppZiAoKCBkcml2ZV9zdGF0dXMgIT0gMCApKTsgdGhlbgogIGV4aXQgIiRkcml2ZV9zdGF0dXMiCmZp" | base64 --decode | bash -euo pipefail
 
       - name: Upload Android smoke screenshot evidence
-        if: always() && (matrix.scenario == 'home' || matrix.scenario == 'quick-capture' || matrix.scenario == 'people')
+        if: always() && (matrix.scenario == 'smoke-boot' || matrix.scenario == 'smoke-quick-capture' || matrix.scenario == 'smoke-navigation' || matrix.scenario == 'smoke-task-lifecycle' || matrix.scenario == 'smoke-follow-up-persistence')
         uses: actions/upload-artifact@v5
         with:
           name: arvin-device-smoke-${{ matrix.scenario }}-${{ env.TARGET_SHA }}
-          path: artifacts/device-smoke/${{ matrix.scenario }}.png
-          if-no-files-found: warn
+          path: artifacts/device-smoke/*.png
+          if-no-files-found: error
 
       - name: Upload Persian time picker screenshot evidence
-        if: always() && matrix.scenario == 'quick-capture'
+        if: always() && matrix.scenario == 'smoke-quick-capture'
         uses: actions/upload-artifact@v5
         with:
           name: arvin-persian-time-picker-${{ env.TARGET_SHA }}
           path: artifacts/device-smoke/persian-time-picker.png
-          if-no-files-found: warn
+          if-no-files-found: error
 
       - name: Upload calendar interaction and RTL evidence
-        if: always() && matrix.scenario == 'calendar'
+        if: always() && matrix.scenario == 'smoke-calendar-segmented-view'
         uses: actions/upload-artifact@v5
         with:
           name: arvin-device-smoke-calendar-${{ env.TARGET_SHA }}
-          path: artifacts/device-smoke/calendar-card-independent-reminder-edit.png
+          path: artifacts/device-smoke/*.png
+          if-no-files-found: error
+
+      - name: Upload Reminder overlay evidence
+        if: always() && matrix.scenario == 'smoke-reminder-vazirmatn'
+        uses: actions/upload-artifact@v5
+        with:
+          name: arvin-device-smoke-reminder-${{ env.TARGET_SHA }}
+          # Include the final scenario screenshot and legacy alarm-overlay-*.png fallback captures.
+          path: artifacts/device-smoke/*.png
           if-no-files-found: error

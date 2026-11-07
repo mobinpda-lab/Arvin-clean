@@ -211,9 +211,9 @@ jobs:
           
           cd android
           bash ./gradlew :calendarProvisioner:assembleDebug :calendarProvisioner:assembleDebugAndroidTest :calendarProvisioner:processDebugManifest
-          # Preserve exact-checkout APKs outside Gradle's build tree before instrumentation teardown.
+          # Preserve exact-checkout APKs inside the workspace so every later step can read them.
           apk_root="../build/calendarProvisioner/outputs/apk"
-          preserved_apk_dir="$RUNNER_TEMP/arvin-provisioner-apks"
+          preserved_apk_dir="$GITHUB_WORKSPACE/arvin-provisioner-artifacts"
           rm -rf "$preserved_apk_dir"
           mkdir -p "$preserved_apk_dir"
           mapfile -d '' -t provisioner_apks < <(find "$apk_root" -type f -name 'calendarProvisioner-debug.apk' -print0)
@@ -226,13 +226,33 @@ jobs:
           cp -- "${provisioner_test_apks[0]}" "$preserved_apk_dir/calendarProvisioner-debug-androidTest.apk"
           test -s "$preserved_apk_dir/calendarProvisioner-debug.apk"
           test -s "$preserved_apk_dir/calendarProvisioner-debug-androidTest.apk"
-          {
-            printf 'CHECKED_OUT_SHA=%s\n' "$(git rev-parse HEAD)"
-            printf 'PROVISIONER_APK_SHA256=%s\n' "$(sha256sum "$preserved_apk_dir/calendarProvisioner-debug.apk" | awk '{print $1}')"
-            printf 'INSTRUMENTATION_APK_SHA256=%s\n' "$(sha256sum "$preserved_apk_dir/calendarProvisioner-debug-androidTest.apk" | awk '{print $1}')"
-            printf 'APK_PRESERVATION=PASS\n'
-          } > "$preserved_apk_dir/manifest.txt"
-          cp "$preserved_apk_dir/manifest.txt" "../$evidence_dir/provisioner-apk-integrity.txt"
+          source_sha="$(git rev-parse HEAD)"
+          python3 - "$source_sha" "$preserved_apk_dir/manifest.json" "${provisioner_apks[0]}" "$preserved_apk_dir/calendarProvisioner-debug.apk" "${provisioner_test_apks[0]}" "$preserved_apk_dir/calendarProvisioner-debug-androidTest.apk" <<'PY'
+          import hashlib, json, pathlib, sys
+          source_sha, manifest_path, *pairs = sys.argv[1:]
+          if len(pairs) != 4:
+              print("APK_MANIFEST=FAIL expected exactly two source/destination pairs", file=sys.stderr)
+              raise SystemExit(42)
+          artifacts = []
+          try:
+              for source, destination in zip(pairs[0::2], pairs[1::2]):
+                  source_path = pathlib.Path(source).resolve(strict=True)
+                  dest_path = pathlib.Path(destination).resolve(strict=True)
+                  source_size = source_path.stat().st_size
+                  dest_size = dest_path.stat().st_size
+                  source_hash = hashlib.sha256(source_path.read_bytes()).hexdigest()
+                  dest_hash = hashlib.sha256(dest_path.read_bytes()).hexdigest()
+                  if source_size != dest_size or source_hash != dest_hash:
+                      raise ValueError(f"copy mismatch source={source_path} dest={dest_path} source_size={source_size} dest_size={dest_size} source_sha256={source_hash} dest_sha256={dest_hash}")
+                  artifacts.append({"file_source_path": str(source_path), "file_dest_path": str(dest_path), "file_size_bytes": dest_size, "sha256_checksum": dest_hash})
+              manifest = {"source_sha": source_sha, "artifacts": artifacts}
+              pathlib.Path(manifest_path).write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+              print(f"APK_MANIFEST=PASS source_sha={source_sha} artifacts={len(artifacts)}")
+          except Exception as exc:
+              print(f"APK_MANIFEST=FAIL {type(exc).__name__}: {exc}", file=sys.stderr)
+              raise SystemExit(42)
+          PY
+          cp "$preserved_apk_dir/manifest.json" "../$evidence_dir/provisioner-apk-integrity.json"
           set +e
           bash ./gradlew :calendarProvisioner:connectedDebugAndroidTest --stacktrace > "../$evidence_dir/provisioner-instrumentation.txt" 2>&1
           gradle_rc=$?
@@ -296,21 +316,48 @@ jobs:
           PY
           cd ..
 
-          # Reuse the immutable APK copies captured before connected instrumentation teardown.
-          preserved_apk_dir="$RUNNER_TEMP/arvin-provisioner-apks"
+          # Reuse workspace-preserved APKs and fail closed on any manifest/read/size/hash error.
+          preserved_apk_dir="$GITHUB_WORKSPACE/arvin-provisioner-artifacts"
           provisioner_apk="$preserved_apk_dir/calendarProvisioner-debug.apk"
           provisioner_test_apk="$preserved_apk_dir/calendarProvisioner-debug-androidTest.apk"
-          if [[ ! -s "$preserved_apk_dir/manifest.txt" || ! -s "$provisioner_apk" || ! -s "$provisioner_test_apk" ]]; then
-            echo "Preserved same-checkout Provisioner APKs or integrity manifest are missing after teardown." >&2
-            exit 1
-          fi
-          expected_app_sha="$(sed -n 's/^PROVISIONER_APK_SHA256=//p' "$preserved_apk_dir/manifest.txt")"
-          expected_test_sha="$(sed -n 's/^INSTRUMENTATION_APK_SHA256=//p' "$preserved_apk_dir/manifest.txt")"
-          actual_app_sha="$(sha256sum "$provisioner_apk" | awk '{print $1}')"
-          actual_test_sha="$(sha256sum "$provisioner_test_apk" | awk '{print $1}')"
-          if [[ "$actual_app_sha" != "$expected_app_sha" || "$actual_test_sha" != "$expected_test_sha" ]]; then
-            echo "Preserved Provisioner APK checksum mismatch after teardown." >&2
-            exit 1
+          manifest_file="$preserved_apk_dir/manifest.json"
+          python3 - "$manifest_file" "$(git rev-parse HEAD)" "$evidence_dir/provisioner-apk-integrity-validation.txt" <<'PY'
+          import hashlib, json, pathlib, sys
+          manifest_path, current_sha, report_path = sys.argv[1:]
+          errors = []
+          try:
+              manifest = json.loads(pathlib.Path(manifest_path).read_text(encoding="utf-8"))
+              if manifest.get("source_sha") != current_sha:
+                  errors.append(f"source_sha mismatch expected={current_sha!r} actual={manifest.get('source_sha')!r}")
+              artifacts = manifest.get("artifacts")
+              if not isinstance(artifacts, list) or len(artifacts) != 2:
+                  errors.append(f"manifest artifacts invalid; expected 2 entries, got {artifacts!r}")
+                  artifacts = artifacts if isinstance(artifacts, list) else []
+              for item in artifacts:
+                  label = item.get("file_dest_path", "<missing destination>")
+                  try:
+                      path = pathlib.Path(item["file_dest_path"])
+                      actual_size = path.stat().st_size
+                      actual_hash = hashlib.sha256(path.read_bytes()).hexdigest()
+                      expected_size = item["file_size_bytes"]
+                      expected_hash = item["sha256_checksum"]
+                      if actual_size != expected_size:
+                          errors.append(f"SIZE_MISMATCH path={path} expected={expected_size} actual={actual_size}")
+                      if actual_hash != expected_hash:
+                          errors.append(f"SHA256_MISMATCH path={path} expected={expected_hash} actual={actual_hash}")
+                  except Exception as exc:
+                      errors.append(f"READ_ERROR path={label} error={type(exc).__name__}: {exc}")
+          except Exception as exc:
+              errors.append(f"MANIFEST_READ_ERROR path={manifest_path} error={type(exc).__name__}: {exc}")
+          report = "\n".join(errors) if errors else "APK_INTEGRITY=PASS"
+          pathlib.Path(report_path).write_text(report + "\n", encoding="utf-8")
+          print(report, file=sys.stderr if errors else sys.stdout)
+          if errors:
+              raise SystemExit(42)
+          PY
+          if [[ ! -s "$provisioner_apk" || ! -s "$provisioner_test_apk" ]]; then
+            echo "APK_INTEGRITY=FAIL missing or empty APK after manifest validation." >&2
+            exit 42
           fi
           {
             printf 'CHECKED_OUT_SHA=%s\n' "$(git rev-parse HEAD)"
@@ -323,6 +370,45 @@ jobs:
 
           adb install -r "$provisioner_apk" | tee "$evidence_dir/provisioner-app-install.txt"
           adb install -t -r "$provisioner_test_apk" | tee "$evidence_dir/provisioner-test-install.txt"
+          # Pull the installed package APKs back from Android and verify their bytes against the manifest.
+          adb shell pm path com.example.arvin.calendarprovisioner | tr -d '\r' > "$evidence_dir/installed-app-apk-path.txt"
+          adb shell pm path com.example.arvin.calendarprovisioner.test | tr -d '\r' > "$evidence_dir/installed-test-apk-path.txt"
+          installed_app_path="$(sed -n 's/^package://p' "$evidence_dir/installed-app-apk-path.txt" | head -n 1)"
+          installed_test_path="$(sed -n 's/^package://p' "$evidence_dir/installed-test-apk-path.txt" | head -n 1)"
+          if [[ -z "$installed_app_path" || -z "$installed_test_path" ]]; then
+            echo "APK_INTEGRITY=FAIL unable to resolve installed APK paths from PackageManager." >&2
+            exit 42
+          fi
+          adb pull "$installed_app_path" "$preserved_apk_dir/installed-calendarProvisioner-debug.apk"
+          adb pull "$installed_test_path" "$preserved_apk_dir/installed-calendarProvisioner-debug-androidTest.apk"
+          python3 - "$manifest_file" "$preserved_apk_dir/installed-calendarProvisioner-debug.apk" "$preserved_apk_dir/installed-calendarProvisioner-debug-androidTest.apk" <<'PY'
+          import hashlib, json, pathlib, sys
+          manifest_path, *installed_paths = sys.argv[1:]
+          try:
+              manifest = json.loads(pathlib.Path(manifest_path).read_text(encoding="utf-8"))
+              expected_artifacts = manifest["artifacts"]
+              if len(expected_artifacts) != 2 or len(installed_paths) != 2:
+                  raise ValueError("expected exactly two manifest entries and two installed APKs")
+              errors = []
+              for expected, installed in zip(expected_artifacts, installed_paths):
+                  path = pathlib.Path(installed)
+                  try:
+                      size = path.stat().st_size
+                      digest = hashlib.sha256(path.read_bytes()).hexdigest()
+                      if size != expected["file_size_bytes"]:
+                          errors.append(f"INSTALLED_SIZE_MISMATCH path={path} expected={expected['file_size_bytes']} actual={size}")
+                      if digest != expected["sha256_checksum"]:
+                          errors.append(f"INSTALLED_SHA256_MISMATCH path={path} expected={expected['sha256_checksum']} actual={digest}")
+                  except Exception as exc:
+                      errors.append(f"INSTALLED_READ_ERROR path={path} error={type(exc).__name__}: {exc}")
+              if errors:
+                  raise RuntimeError("; ".join(errors))
+              print("INSTALLED_APK_INTEGRITY=PASS app_and_instrumentation")
+          except Exception as exc:
+              print(f"INSTALLED_APK_INTEGRITY=FAIL {type(exc).__name__}: {exc}", file=sys.stderr)
+              raise SystemExit(42)
+          PY
+          printf 'INSTALLED_APK_INTEGRITY=PASS\\n' >> "$evidence_dir/provisioner-reinstall.txt"
           adb shell pm list instrumentation | tr -d '\r' | tee "$evidence_dir/available-instrumentation.txt"
           if ! grep -Fq 'com.example.arvin.calendarprovisioner.test/androidx.test.runner.AndroidJUnitRunner' "$evidence_dir/available-instrumentation.txt"; then
             echo "The same-checkout Provisioner instrumentation runner is not registered after installation." >&2

@@ -45,12 +45,13 @@ class TaskTimelineService {
       );
     }
 
-    if (task.reminderDate != null) {
+    for (final reminder in task.taskReminders) {
       entries.add(
         TaskTimelineEntry(
-          id: 'task:${task.id}:reminder',
+          id: 'task:${task.id}:reminder:${reminder.id}',
           kind: TaskTimelineEntryKind.reminder,
-          dateTime: task.reminderDate!,
+          dateTime: reminder.date,
+          note: reminder.title,
         ),
       );
     }

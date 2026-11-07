@@ -2,7 +2,7 @@ import 'package:arvin/models/task.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('FollowUp reminder is optional and survives canonical JSON round-trip', () {
+  test('FollowUp serializes only historical fields', () {
     final followUp = FollowUp(
       id: 'f-reminder',
       dateTime: DateTime(2026, 8, 28, 15, 30),
@@ -10,6 +10,7 @@ void main() {
       note: 'یادداشت تماس با مشتری',
       result: 'منتظر پاسخ',
       reminderDate: DateTime(2026, 8, 28, 15, 15),
+      reminderAllDay: true,
       nextFollowUp: DateTime(2026, 8, 30, 10),
     );
 
@@ -20,8 +21,9 @@ void main() {
     expect(restored.title, followUp.title);
     expect(restored.note, followUp.note);
     expect(restored.result, followUp.result);
-    expect(restored.reminderDate, followUp.reminderDate);
-    expect(restored.nextFollowUp, followUp.nextFollowUp);
+    expect(restored.toJson().containsKey('reminderDate'), isFalse);
+    expect(restored.toJson().containsKey('reminderAllDay'), isFalse);
+    expect(restored.toJson().containsKey('nextFollowUp'), isFalse);
   });
 
   test('legacy FollowUp JSON without reminder remains valid', () {
@@ -34,11 +36,12 @@ void main() {
     });
 
     expect(restored.title, isNull);
-    expect(restored.reminderDate, isNull);
+    expect(restored.toJson().containsKey('reminderDate'), isFalse);
+    expect(restored.toJson().containsKey('nextFollowUp'), isFalse);
     expect(restored.note, 'پیگیری قبلی');
   });
 
-  test('Task envelope preserves FollowUp reminder without a second store', () {
+  test('Task envelope keeps Follow-up history free of reminder scheduling', () {
     final task = Task(
       id: 't1',
       title: 'قرارداد',
@@ -48,6 +51,7 @@ void main() {
           id: 'f1',
           dateTime: DateTime(2026, 8, 28, 12),
           reminderDate: DateTime(2026, 8, 28, 11, 45),
+          reminderAllDay: true,
         ),
       ],
     );
@@ -55,10 +59,34 @@ void main() {
     final restored = Task.fromJson(task.toJson());
 
     expect(restored.followUps, hasLength(1));
-    expect(
-      restored.followUps.single.reminderDate,
-      DateTime(2026, 8, 28, 11, 45),
-    );
+    expect(restored.followUps.single.toJson().containsKey('reminderDate'), isFalse);
+    expect(restored.followUps.single.toJson().containsKey('nextFollowUp'), isFalse);
+  });
+
+  test('legacy Follow-up reminder becomes an independent TaskReminder', () {
+    final task = Task.fromJson({
+      'id': 'follow-up-reminder-migration',
+      'title': 'کار مادر',
+      'followUps': [
+        {
+          'id': 'legacy-follow-up',
+          'dateTime': '2026-10-19T12:00:00.000',
+          'reminderDate': '2026-10-20T09:30:00.000',
+          'reminderAllDay': true,
+          'nextFollowUp': '2026-10-22T10:00:00.000',
+        },
+      ],
+    });
+
+    expect(task.followUps, hasLength(1));
+    expect(task.followUps.single.toJson().containsKey('reminderDate'), isFalse);
+    expect(task.followUps.single.toJson().containsKey('nextFollowUp'), isFalse);
+    expect(task.taskReminders, hasLength(1));
+    expect(task.taskReminders.single.id, 'follow-up-reminder-follow-up-reminder-migration-legacy-follow-up');
+    expect(task.taskReminders.single.date, DateTime(2026, 10, 20, 9, 30));
+    expect(task.taskReminders.single.isAllDay, isTrue);
+    expect(task.toJson().containsKey('followUpDate'), isFalse);
+    expect(task.toJson().containsKey('followUpEnabled'), isFalse);
   });
 
   test('multiple independent Task reminders and monotonic sequence survive JSON round-trip', () {
@@ -90,7 +118,7 @@ void main() {
         reason: 'legacy singular reminder must remain unchanged');
     expect(restored.taskReminders, hasLength(3));
     expect(restored.taskReminders.map((item) => item.id),
-        ['reminder-a', 'reminder-c', 'legacy-task-reminder']);
+        ['reminder-a', 'reminder-c', 'legacy-task-reminder-multi-reminder']);
     final independentAllDay = restored.taskReminders.singleWhere(
       (item) => item.id == 'reminder-c',
     );
@@ -110,7 +138,7 @@ void main() {
 
     expect(restored.reminderDate, DateTime(2026, 10, 20, 9, 30));
     expect(restored.taskReminders, hasLength(1));
-    expect(restored.taskReminders.single.id, 'legacy-task-reminder');
+    expect(restored.taskReminders.single.id, 'legacy-task-reminder-legacy-task');
     expect(restored.taskReminders.single.isLegacyTaskReminder, isTrue);
     expect(restored.taskReminders.single.date, restored.reminderDate);
     expect(restored.taskReminders.single.isAllDay, isFalse,
@@ -121,7 +149,7 @@ void main() {
     final restoredAgain = Task.fromJson(restored.toJson());
     expect(restoredAgain.taskReminders, hasLength(1),
         reason: 'reloading a migrated Task must not create a duplicate');
-    expect(restoredAgain.taskReminders.single.id, 'legacy-task-reminder');
+    expect(restoredAgain.taskReminders.single.id, 'legacy-task-reminder-legacy-task');
     expect(restoredAgain.legacyTaskReminderMigrationVersion, 1);
   });
 
@@ -144,7 +172,7 @@ void main() {
 
     expect(restored.taskReminders, hasLength(2));
     expect(restored.taskReminders.first.id, 'new-reminder');
-    expect(restored.taskReminders.last.id, 'legacy-task-reminder');
+    expect(restored.taskReminders.last.id, 'legacy-task-reminder-legacy-with-new');
     expect(restored.taskReminders.last.sequence, 7,
         reason: 'migration must not recycle previously used sequence numbers');
     expect(restored.nextReminderSequence, 8);
@@ -152,7 +180,7 @@ void main() {
     final restoredAgain = Task.fromJson(restored.toJson());
     expect(restoredAgain.taskReminders, hasLength(2));
     expect(restoredAgain.taskReminders.map((item) => item.id).toSet(),
-        {'new-reminder', 'legacy-task-reminder'});
+        {'new-reminder', 'legacy-task-reminder-legacy-with-new'});
   });
 
   test('Task without a legacy reminder does not prematurely mark migration complete', () {

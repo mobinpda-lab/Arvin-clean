@@ -25,6 +25,7 @@ class OfficialCalendarPage extends StatefulWidget {
     this.onCompleteReminder,
     this.onEditReminder,
     this.onEditTask,
+    this.onOpenTask,
     this.onDeleteTask,
     this.onRegisterTaskToDeviceCalendar,
     this.onConvertReminderToTask,
@@ -48,6 +49,7 @@ class OfficialCalendarPage extends StatefulWidget {
   final Future<void> Function(CalendarReminder reminder)? onCompleteReminder;
   final Future<void> Function(CalendarReminder reminder)? onEditReminder;
   final Future<void> Function(CalendarReminder reminder)? onEditTask;
+  final Future<void> Function(CalendarReminder reminder)? onOpenTask;
   final Future<void> Function(CalendarReminder reminder)? onDeleteTask;
   final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
   final Future<void> Function(CalendarReminder reminder)? onConvertReminderToTask;
@@ -75,6 +77,7 @@ class IranianOfficialCalendarPage extends OfficialCalendarPage {
     super.onCompleteReminder,
     super.onEditReminder,
     super.onEditTask,
+    super.onOpenTask,
     super.onDeleteTask,
     super.onRegisterTaskToDeviceCalendar,
     super.onConvertReminderToTask,
@@ -98,7 +101,8 @@ class IranianOfficialCalendarPage extends OfficialCalendarPage {
        );
 }
 
-class _OfficialCalendarPageState extends State<OfficialCalendarPage> {
+class _OfficialCalendarPageState extends State<OfficialCalendarPage>
+    with WidgetsBindingObserver {
   late Future<List<CalendarReminder>> _loadFuture;
   final PrayerCompletionStore _prayerStore = const PrayerCompletionStore();
   List<PrayerCompletionRecord> _prayerRecords = const [];
@@ -106,8 +110,24 @@ class _OfficialCalendarPageState extends State<OfficialCalendarPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadFuture = _load();
     _loadPrayerRecords();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Re-query the device provider when the user returns from Calendar.
+      // This refreshes only the ephemeral mirror projection, never Arvin Tasks.
+      _retry();
+    }
   }
 
   Future<void> _loadPrayerRecords() async {
@@ -199,7 +219,19 @@ class _OfficialCalendarPageState extends State<OfficialCalendarPage> {
         // Canonical Task reminders must not wait for optional official sources.
         // Keep CalendarPage at a stable tree position so late official/external
         // data merges without resetting the user's selected date or view.
-        final reminders = snapshot.data ?? widget.reminders;
+        // Optional official/provider loading must never replace canonical
+        // Arvin Task reminders. Provider success may legitimately return an
+        // empty list; merge by stable reminder identity and keep canonical
+        // entries authoritative when an ID is already present.
+        final remindersById = <String, CalendarReminder>{
+          for (final reminder in widget.reminders) reminder.id: reminder,
+        };
+        for (final reminder in snapshot.data ?? const <CalendarReminder>[]) {
+          remindersById.putIfAbsent(reminder.id, () => reminder);
+        }
+        final reminders = List<CalendarReminder>.unmodifiable(
+          remindersById.values,
+        );
         return Stack(
           children: [
             CalendarPage(
@@ -208,6 +240,7 @@ class _OfficialCalendarPageState extends State<OfficialCalendarPage> {
               onCompleteReminder: widget.onCompleteReminder,
               onEditReminder: widget.onEditReminder,
               onEditTask: widget.onEditTask,
+              onOpenTask: widget.onOpenTask,
               onDeleteTask: widget.onDeleteTask,
               onRegisterTaskToDeviceCalendar: widget.onRegisterTaskToDeviceCalendar,
               onConvertReminderToTask: widget.onConvertReminderToTask,
