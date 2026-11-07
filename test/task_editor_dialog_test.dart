@@ -56,6 +56,30 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('Task editor stays responsive at 360/390/412dp with keyboard open and closed',
+      (tester) async {
+    tester.platformDispatcher.textScaleFactorTestValue = 1.4;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    await pumpEditor(tester, logicalSize: const Size(390, 844));
+
+    for (final width in [360.0, 390.0, 412.0]) {
+      tester.view.physicalSize = Size(width * 2, 844 * 2);
+      tester.view.viewInsets = FakeViewPadding.zero;
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('task-editor-category-rollbox')), findsOneWidget);
+      expect(find.byKey(const ValueKey('task-editor-project-rollbox')), findsOneWidget);
+      expect(find.byKey(const ValueKey('task-editor-tag-rollbox')), findsOneWidget);
+      expect(tester.takeException(), isNull);
+
+      tester.view.viewInsets = const FakeViewPadding(bottom: 320);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('task-editor-title')), findsOneWidget);
+      expect(find.byKey(const ValueKey('task-editor-due-date-time')), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    }
+    tester.view.resetViewInsets();
+  });
+
   testWidgets('Task editor taxonomy selectors wrap on a narrow RTL phone viewport', (tester) async {
     Task? result;
     await pumpEditor(

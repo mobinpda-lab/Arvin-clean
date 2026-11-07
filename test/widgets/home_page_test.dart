@@ -563,7 +563,19 @@ void main() {
     final filterStrip = find.byKey(const ValueKey('home-compact-filter-wrap'));
     expect(filterStrip, findsOneWidget);
     expect(Directionality.of(tester.element(filterStrip)), TextDirection.rtl);
-    expect(tester.widget<SingleChildScrollView>(filterStrip).scrollDirection, Axis.horizontal);
+    final filterWrap = find.descendant(of: filterStrip, matching: find.byType(Wrap));
+    expect(filterWrap, findsOneWidget);
+    expect(tester.widget<Wrap>(filterWrap).textDirection, TextDirection.rtl);
+    expect(
+      find.descendant(
+        of: filterStrip,
+        matching: find.byWidgetPredicate(
+          (widget) => widget is SingleChildScrollView &&
+              widget.scrollDirection == Axis.horizontal,
+        ),
+      ),
+      findsNothing,
+    );
     expect(tester.takeException(), isNull);
 
     expect(find.byKey(const ValueKey('home-filter-card-project')), findsOneWidget);

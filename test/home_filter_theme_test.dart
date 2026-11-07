@@ -82,6 +82,6 @@ void main() {
     final chipDecoration = chipContainer.decoration! as BoxDecoration;
     expect(chipDecoration.color, ArvinColors.primarySoft);
     expect(chipDecoration.border!.top.color, ArvinColors.primary.withAlpha(65));
-    expect(tester.widget<Text>(find.text('مدرسه')).style?.color, ArvinColors.primary);
+    expect(tester.widget<Text>(find.descendant(of: chipWidget, matching: find.text('مدرسه'))).style?.color, ArvinColors.primary);
   });
 }

@@ -44,6 +44,8 @@ void main() {
     expect(find.byKey(const ValueKey('calendar-day-view')), findsNothing);
     expect(find.byKey(const ValueKey('calendar-month-view')), findsNothing);
     expect(find.byType(GridView), findsNothing);
+    final weekDay = find.byKey(const ValueKey('calendar-week-day-2026-8-12'));
+    expect(tester.getSize(weekDay).height, greaterThanOrEqualTo(48));
     expect(
       tester.getSize(find.byKey(const ValueKey('calendar-week-view'))).height,
       lessThan(80),
@@ -122,6 +124,10 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('calendar-month-view')), findsOneWidget);
     expect(find.byType(GridView), findsOneWidget);
+    expect(
+      tester.getSize(find.byKey(const ValueKey('calendar-month-day-12'))).height,
+      greaterThanOrEqualTo(48),
+    );
     expect(
       tester.getSize(find.byKey(const ValueKey('calendar-month-view'))).height,
       lessThan(280),
