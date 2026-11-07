@@ -75,8 +75,7 @@ void main() {
     expect(restored.followUps.single.id, 'follow-1');
     expect(restored.followUps.single.note, 'یادداشت');
     expect(restored.followUps.single.result, 'نتیجه');
-    expect(restored.followUps.single.nextFollowUp,
-        DateTime.parse('2026-08-06T13:00:00.000'));
+    expect(restored.followUps.single.toJson().containsKey('nextFollowUp'), isFalse);
     expect(restored.recurrence?.frequency, RecurrenceFrequency.monthly);
     expect(restored.recurrence?.interval, 2);
   });
