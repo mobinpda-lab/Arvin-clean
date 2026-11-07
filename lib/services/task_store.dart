@@ -498,6 +498,7 @@ class TaskStore {
     String taskId,
     DateTime date, {
     String title = 'یادآور پیگیری',
+    bool isAllDay = false,
   }) {
     return mutate<TaskReminder>((tasks) {
       final index = tasks.indexWhere((task) => task.id == taskId);
@@ -516,6 +517,7 @@ class TaskStore {
         id: 'reminder-${DateTime.now().microsecondsSinceEpoch}',
         title: title,
         date: date,
+        isAllDay: isAllDay,
         sequence: sequence,
       );
       task.taskReminders = [...task.taskReminders, reminder];

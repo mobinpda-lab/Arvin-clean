@@ -42,6 +42,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
   final _resultController = TextEditingController();
   bool _waitingForResponse = false;
   bool _addReminder = false;
+  bool _reminderAllDay = false;
   bool _isSaving = false;
   late List<PersonReference> _people;
   late Set<String> _selectedPersonIds;
@@ -118,6 +119,35 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
       initialTime: TimeOfDay.fromDateTime(initialDate),
       helpText: helpText,
     );
+  }
+
+  Future<void> _pickTaskReminderDate() async {
+    final picked = await _pickPersianDate(
+      initialDate: _reminderDateTime,
+      firstDate: DateTime.now(),
+      helpText: 'انتخاب تاریخ یادآور',
+    );
+    if (picked == null || !mounted) return;
+
+    final selection = await showUniversalArvinTimeSelectionPicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(_reminderDateTime),
+      helpText: 'انتخاب ساعت یادآور',
+    );
+    if (selection == null || !mounted) return;
+
+    setState(() {
+      _reminderDateTime = selection.isAllDay
+          ? DateTime(picked.year, picked.month, picked.day)
+          : DateTime(
+              picked.year,
+              picked.month,
+              picked.day,
+              selection.time!.hour,
+              selection.time!.minute,
+            );
+      _reminderAllDay = selection.isAllDay;
+    });
   }
 
   Future<void> _pickDate() async {
@@ -232,8 +262,16 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
 
   Future<void> _save() async {
     if (_isSaving) return;
+    final reminderScheduledAt = _reminderAllDay
+        ? DateTime(
+            _reminderDateTime.year,
+            _reminderDateTime.month,
+            _reminderDateTime.day,
+            9,
+          )
+        : _reminderDateTime;
     if (widget.allowAddingReminder && _addReminder && widget.taskId != null &&
-        !_reminderDateTime.isAfter(DateTime.now())) {
+        !reminderScheduledAt.isAfter(DateTime.now())) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('زمان یادآور باید در آینده باشد.')),
       );
@@ -242,7 +280,11 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     setState(() => _isSaving = true);
     if (widget.allowAddingReminder && _addReminder && widget.taskId != null) {
       try {
-        await TaskStore().addTaskReminder(widget.taskId!, _reminderDateTime);
+        await TaskStore().addTaskReminder(
+          widget.taskId!,
+          _reminderDateTime,
+          isAllDay: _reminderAllDay,
+        );
         try {
           await AndroidFollowUpReminderScheduler().reschedule();
         } catch (_) {
@@ -338,49 +380,14 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
                 onChanged: _isSaving ? null : (value) => setState(() => _addReminder = value),
               ),
               if (_addReminder) ...[
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        key: const ValueKey('follow-up-reminder-date'),
-                        onPressed: _isSaving ? null : () async {
-                          final picked = await _pickPersianDate(
-                            initialDate: _reminderDateTime,
-                            firstDate: DateTime.now(),
-                            helpText: 'انتخاب تاریخ یادآور',
-                          );
-                          if (picked != null && mounted) {
-                            setState(() => _reminderDateTime = DateTime(
-                              picked.year, picked.month, picked.day,
-                              _reminderDateTime.hour, _reminderDateTime.minute,
-                            ));
-                          }
-                        },
-                        icon: const Icon(Icons.calendar_month_outlined),
-                        label: Text(_formatDate(_reminderDateTime)),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        key: const ValueKey('follow-up-reminder-time'),
-                        onPressed: _isSaving ? null : () async {
-                          final picked = await _pickClock(
-                            initialDate: _reminderDateTime,
-                            helpText: 'انتخاب ساعت یادآور',
-                          );
-                          if (picked != null && mounted) {
-                            setState(() => _reminderDateTime = DateTime(
-                              _reminderDateTime.year, _reminderDateTime.month,
-                              _reminderDateTime.day, picked.hour, picked.minute,
-                            ));
-                          }
-                        },
-                        icon: const Icon(Icons.schedule_outlined),
-                        label: Text(_formatTime(_reminderDateTime)),
-                      ),
-                    ),
-                  ],
+                OutlinedButton.icon(
+                  key: const ValueKey('follow-up-reminder-date'),
+                  onPressed: _isSaving ? null : _pickTaskReminderDate,
+                  icon: const Icon(Icons.calendar_month_outlined),
+                  label: Text(
+                    '${_formatDate(_reminderDateTime)} • '
+                    '${_reminderAllDay ? 'بدون ساعت' : _formatTime(_reminderDateTime)}',
+                  ),
                 ),
               ],
             ],

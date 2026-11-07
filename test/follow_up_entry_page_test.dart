@@ -485,7 +485,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('follow-up-entry-add-reminder')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('follow-up-reminder-date')), findsOneWidget);
-    expect(find.byKey(const ValueKey('follow-up-reminder-time')), findsOneWidget);
+    expect(find.byKey(const ValueKey('follow-up-reminder-time')), findsNothing);
     await saveEditor(tester);
 
     final saved = (await store.load()).single;
@@ -498,5 +498,49 @@ void main() {
     expect(result!.toJson().containsKey('reminderDate'), isFalse);
     expect(result!.toJson().containsKey('nextFollowUp'), isFalse);
   });
+  testWidgets('Follow-up reminder shortcut stores all-day without a fake time',
+      (tester) async {
+    await TaskStore.resetTestDatabase();
+    SharedPreferences.setMockInitialValues({});
+    final store = TaskStore();
+    await store.save([Task(id: 'follow-up-all-day-reminder', title: 'با یادآور')]);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: ElevatedButton(
+              onPressed: () => Navigator.of(context).push<FollowUp>(
+                MaterialPageRoute(
+                  builder: (_) => const FollowUpEntryPage(
+                    taskId: 'follow-up-all-day-reminder',
+                  ),
+                ),
+              ),
+              child: const Text('open-with-reminder'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open-with-reminder'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('follow-up-entry-add-reminder')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('follow-up-reminder-date')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'تأیید'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('universal-time-no-time')));
+    await tester.pumpAndSettle();
+    await saveEditor(tester);
+
+    final saved = (await store.load()).single;
+    expect(saved.taskReminders, hasLength(1));
+    expect(saved.taskReminders.single.isAllDay, isTrue);
+    expect(saved.taskReminders.single.date.hour, 0);
+    expect(saved.taskReminders.single.date.minute, 0);
+  });
+
 
 }
