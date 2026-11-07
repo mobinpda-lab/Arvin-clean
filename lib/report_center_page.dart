@@ -1486,21 +1486,23 @@ class _MultiSelectChips extends StatelessWidget {
   const _MultiSelectChips({
     required this.allLabel,
     required this.options,
-    this.accentColor = ArvinColors.primary,
+    this.accentColor,
     required this.selected,
     required this.onChanged,
     required this.keyPrefix,
   });
 
   final String allLabel;
-  final Color accentColor;
+  final Color? accentColor;
   final List<MapEntry<String, String>> options;
   final Set<String> selected;
   final ValueChanged<Set<String>> onChanged;
   final String keyPrefix;
 
   @override
-  Widget build(BuildContext context) => Wrap(
+  Widget build(BuildContext context) {
+    final accent = accentColor ?? Theme.of(context).colorScheme.primary;
+    return Wrap(
         spacing: 6,
         runSpacing: 4,
         children: [
@@ -1508,8 +1510,8 @@ class _MultiSelectChips extends StatelessWidget {
             key: ValueKey('$keyPrefix-all'),
             label: Text(allLabel),
             selected: selected.isEmpty,
-            selectedColor: accentColor.withValues(alpha: .16),
-            checkmarkColor: accentColor,
+            selectedColor: accent.withValues(alpha: .16),
+            checkmarkColor: accent,
             onSelected: (_) => onChanged(<String>{}),
           ),
           for (final option in options)
@@ -1517,8 +1519,8 @@ class _MultiSelectChips extends StatelessWidget {
               key: ValueKey('$keyPrefix-${option.key}'),
               label: Text(option.value),
               selected: selected.contains(option.key),
-              selectedColor: accentColor.withValues(alpha: .16),
-              checkmarkColor: accentColor,
+              selectedColor: accent.withValues(alpha: .16),
+              checkmarkColor: accent,
               onSelected: (checked) {
                 final next = <String>{...selected};
                 if (checked) {
@@ -1531,6 +1533,7 @@ class _MultiSelectChips extends StatelessWidget {
             ),
         ],
       );
+  }
 }
 
 class _Section extends StatefulWidget {
