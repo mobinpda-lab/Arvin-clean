@@ -689,3 +689,13 @@ PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ **BLOCKED — RELE
 - آخرین APK استخراج‌شده و هش قبلی فقط متعلق به SHA 11919b87b309897a7b2f59fdd34a327730188e6e است؛ هش آن نباید به HEAD فعلی نسبت داده شود. APK exact-HEAD فعلی هنوز در دسترس نیست.
 - تغییرات آزمون 895c7ad همچنان به‌عنوان افزایش پوشش Wrap/حداقل لمس ارزیابی شده‌اند؛ تستی حذف یا Skip نشده است. تغییرات جدید زمان نیز فقط تست‌های افزوده‌اند.
 - **BLOCKED — RELEASE: NO-GO** تا پاس کامل Build/تمام شاردها/Provider/Persistence/Device Smoke روی یک SHA، بررسی APK همان SHA و تست نصب و کارکرد روی SM-A528B/DS.
+
+## اصلاحیه وضعیت — یادآور تمام‌روز و HEAD کد
+- آخرین HEAD کد پیش از ثبت این اصلاحیه: d969728523d402a72647f608e635dd1c42ed54ab؛ PR #3052 همچنان OPEN / DRAFT / UNMERGED؛ main=45e4202b03a434459e4c021a04efa7e8396359db و بدون تغییر.
+- FollowUpEntryPage میانبر یادآور مستقل را به انتخاب پیوستهٔ تاریخ شمسی و ساعت گرد متصل کرد؛ All-Day داخل دیالوگ انتخاب و به TaskReminder.isAllDay ذخیره می‌شود. اعلان تمام‌روز طبق planner در ۰۹:۰۰ محلی است.
+- یادآورهای مستقل TaskReminder در Task Details نیز به همین قرارداد متصل‌اند. Quick Capture برای موعد سفارشی از All-Day پشتیبانی می‌کند.
+- شکاف‌های باقی‌مانده: فیلد legacy Task.reminderDate و FollowUp.reminderDate هنوز پرچم All-Day ندارند؛ کنترل‌های قدیمی مربوط به آن‌ها باید با قرارداد مهاجرت سازگار تکمیل شوند. فیلترهای گزارش/پشتیبان‌گیری ساعت‌محورند و گزینهٔ All-Day در آن‌ها موضوعیت ندارد.
+- اجرای Device Smoke قدیمی #7233 / 42335301964 CANCELLED است؛ اما اجرای قدیمی‌تر Device Smoke شماره 7268 / run 42346612483 روی SHA db91... پس از انتظار وارد اجرای فعال شده و اجرای جدیدتر را در صف نگه می‌دارد. این run قدیمی‌تر را نباید PASS برای HEAD جدید شمرد؛ اجرای جدید باید پس از پایان آن روی SHA فعلی شروع شود.
+- Build روی SHA 844b794... هنوز PENDING و بدون Job بود؛ Calendar Provider، Draft Review APK و Persistence در حال اجرا بودند؛ Persistence سپس SUCCESS شد. این SHA پیش از تغییر یادآور پیگیری است و نتیجهٔ آن به HEAD d969... منتقل نمی‌شود.
+- برای HEAD d969728... در لحظهٔ ثبت، Run جدیدی در Actions مشاهده نشد؛ بنابراین دروازه‌های آن UNKNOWN / NOT RUN هستند.
+- **BLOCKED — RELEASE: NO-GO** تا Build/تمام شاردها/Provider/Persistence/Device Smoke و نصب و آزمون واقعی گوشی SM-A528B/DS روی یک SHA واحد PASS شوند.

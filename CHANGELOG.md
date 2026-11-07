@@ -983,3 +983,12 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - HEAD: 26e635265593a10afc43759c6457220ccb8f084a; در زمان ثبت Run exact-HEAD هنوز مشاهده نشده است. Runهای والد ae9a6db برای HEAD جدید معتبر نیستند.
 - Run قدیمی Device Smoke #7233 / 42335301964 اکنون CANCELLED است؛ گلوگاه اجرای قدیمی برداشته شده، اما Smoke تازه لازم است.
 - PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched؛ **BLOCKED — RELEASE: NO-GO**.
+
+## ۱۴۰۵/۰۸/۱۶ — یکپارچه‌سازی یادآور پیگیری تمام‌روز
+- میانبر یادآور در فرم ثبت پیگیری به یک جریان پیوستهٔ تقویم شمسی و ساعت گرد تبدیل شد؛ انتخاب «بدون ساعت» داخل دیالوگ انجام می‌شود.
+- ذخیره از مسیر TaskReminder.isAllDay است؛ اعلان All-Day طبق قرارداد planner در ساعت ۰۹:۰۰ محلی برنامه‌ریزی می‌شود.
+- TaskStore.addTaskReminder پارامتر اختیاری isAllDay دریافت می‌کند و سازگاری فراخوانی‌های قدیمی حفظ شده است.
+- تست رفتار کنترل واحد و ذخیرهٔ All-Day افزوده شد؛ هیچ آزمونی حذف یا Skip نشد.
+- HEAD کد: d969728523d402a72647f608e635dd1c42ed54ab؛ CI این SHA هنوز تأیید نشده است.
+- Device Smoke قدیمی #7233 / 42335301964 CANCELLED؛ اجرای قدیمی‌تر شماره 7268 / 42346612483 فعال و در حال مصرف صف بود؛ نتیجهٔ آن برای HEAD جدید معتبر نیست.
+- PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched؛ **BLOCKED — RELEASE: NO-GO**.
