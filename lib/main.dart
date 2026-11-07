@@ -2825,8 +2825,6 @@ class _HomePageState extends State<HomePage> {
           people: people,
           onCreateCenter: _createCenter,
           onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
-        onCreateProjectWithCenter: (title, centerId) =>
-            wave2ProductFastTrack.createProject(title, centerId: centerId),
           onCreateCategory: _createCategory,
           onCreateTag: _createTag,
           onCreatePerson: _createReportPerson,
