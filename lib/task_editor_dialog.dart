@@ -769,7 +769,7 @@ Future<void> _pickDueDateTime() async {
           key: const ValueKey('task-editor-checklist-toggle-container'),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
           decoration: BoxDecoration(
-            color: ArvinColors.primarySoft,
+            color: Color.alphaBlend(_brand.withAlpha(18), Theme.of(context).colorScheme.surface),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: ArvinColors.border),
           ),
@@ -1080,10 +1080,11 @@ Future<void> _pickDueDateTime() async {
     required VoidCallback onClear,
     VoidCallback? onPickDateTime,
     bool unifiedDateTime = false,
-    Color accent = ArvinColors.primary,
+    Color? accent,
     bool allDay = false,
     ValueChanged<bool>? onToggleAllDay,
   }) {
+    final effectiveAccent = accent ?? _brand;
     final selectedLabel = value == null
         ? 'انتخاب تاریخ و ساعت'
         : '${_dateText(value)} • ${allDay ? 'تمام‌روز' : _timeText(value)}';
@@ -1135,7 +1136,7 @@ Future<void> _pickDueDateTime() async {
                   value: value,
                   target: keyPrefix,
                   onCustom: onPickDate,
-                  accent: accent,
+                  accent: effectiveAccent,
                 );
                 final timeControl = OutlinedButton.icon(
                   key: ValueKey('$keyPrefix-time-button'),
@@ -1334,7 +1335,7 @@ Future<void> _pickDueDateTime() async {
                               label: 'مرکز',
                               valueLabel: _selectedCenterLabel,
                               icon: Icons.business_outlined,
-                              color: ArvinColors.primary,
+                              color: _brand,
                               emptyLabel: 'بدون مرکز',
                               createLabel: '+ افزودن مرکز',
                               items: _centers
@@ -1343,7 +1344,7 @@ Future<void> _pickDueDateTime() async {
                                         value: center.id,
                                         label: center.isArchived ? '${center.name} (بایگانی‌شده)' : center.name,
                                         icon: Icons.business_outlined,
-                                        color: center.isArchived ? ArvinColors.textSecondary : ArvinColors.primary,
+                                        color: center.isArchived ? ArvinColors.textSecondary : _brand,
                                       ))
                                   .toList(growable: false),
                               onSelected: (value) => setState(() => _selectedCenterId = value),
@@ -1559,7 +1560,7 @@ Future<void> _pickDueDateTime() async {
                                 ? 'بدون تکرار'
                                 : (!_repeatEnabled ? 'تکرار غیرفعال' : _recurrenceLabel(_recurrence!.frequency)),
                             icon: Icons.repeat_rounded,
-                            color: ArvinColors.primary,
+                            color: _brand,
                             emptyLabel: 'بدون تکرار',
                             items: RecurrenceFrequency.values
                                 .map(
@@ -1567,7 +1568,7 @@ Future<void> _pickDueDateTime() async {
                                     value: frequency,
                                     label: _recurrenceLabel(frequency),
                                     icon: Icons.repeat_rounded,
-                                    color: ArvinColors.primary,
+                                    color: _brand,
                                   ),
                                 )
                                 .toList(growable: false),
@@ -1778,7 +1779,7 @@ Future<void> _pickDueDateTime() async {
                     key: const ValueKey('task-editor-followup-block'),
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: ArvinColors.primarySoft,
+                      color: Color.alphaBlend(_brand.withAlpha(18), Theme.of(context).colorScheme.surface),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: ArvinColors.border),
                     ),
