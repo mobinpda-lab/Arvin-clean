@@ -56,19 +56,20 @@ void main() {
     expect(target.dueDate, DateTime(2026, 8, 30, 14));
     expect(target.allDay, isTrue);
     expect(target.followUpEnabled, isTrue);
-    expect(target.followUpDate, DateTime(2026, 8, 29, 10));
+    expect(target.followUpDate, isNull);
     expect(target.tags, ['مهم', 'مشتری']);
     expect(target.category, 'مشتریان');
     expect(target.checklist, ['یک', 'دو']);
     expect(target.reminderDate, DateTime(2026, 8, 30, 12));
-    expect(target.taskReminders, isEmpty);
+    expect(target.taskReminders, hasLength(1));
+    expect(target.taskReminders.single.date, DateTime(2026, 8, 30, 12));
     expect(target.nextReminderSequence, 1);
     expect(target.priority, TaskPriority.high);
     expect(target.completed, isFalse);
     expect(target.updatedAt, appliedAt);
   });
 
-  test('metadata edits preserve completion timestamp and legacy scheduled fields', () {
+  test('metadata edits preserve completion timestamp without future follow-up schedule', () {
     final completedAt = DateTime(2026, 10, 29, 9, 45);
     final legacyDate = DateTime(2026, 10, 31, 11);
     final target = Task(
@@ -97,7 +98,7 @@ void main() {
     expect(target.priority, TaskPriority.high);
     expect(target.updatedAt, isNotNull);
     expect(target.followUpEnabled, isTrue);
-    expect(target.followUpDate, legacyDate);
+    expect(target.followUpDate, isNull);
   });
 
   test('explicit reopen in editor clears completedAt', () {
