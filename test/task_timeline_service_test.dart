@@ -92,6 +92,34 @@ void main() {
     expect(canonicalTimeline.single.id, 'followup:real');
   });
 
+  test('includes every independent reminder in chronological history', () {
+    final task = Task(
+      id: 'multi-reminder',
+      title: 'چند یادآور',
+      taskReminders: [
+        TaskReminder(
+          id: 'later',
+          title: 'یادآور دیرتر',
+          date: DateTime(2026, 8, 26, 16),
+          sequence: 2,
+        ),
+        TaskReminder(
+          id: 'earlier',
+          title: 'یادآور زودتر',
+          date: DateTime(2026, 8, 26, 9),
+          sequence: 1,
+        ),
+      ],
+    );
+
+    final timeline = service.build(task);
+    expect(
+      timeline.map((entry) => entry.id),
+      ['task:multi-reminder:reminder:earlier', 'task:multi-reminder:reminder:later'],
+    );
+    expect(timeline.map((entry) => entry.note), ['یادآور زودتر', 'یادآور دیرتر']);
+  });
+
   test('orders equal timestamps deterministically', () {
     final sameTime = DateTime(2026, 8, 26, 12);
     final task = Task(
@@ -110,7 +138,7 @@ void main() {
       service.build(task).map((entry) => entry.id).toList(),
       [
         'task:same-time:created',
-        'task:same-time:reminder',
+        'task:same-time:reminder:legacy-task-reminder',
         'followup:a',
         'followup:b',
         'task:same-time:updated',
