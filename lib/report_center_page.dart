@@ -94,7 +94,7 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
           for (final person in task.people)
             if (!activeById.containsKey(person.id))
               person.id: PersonReference(id: person.id, displayName: 'شخص حذف‌شده'),
-      for (final person in widget.people) person.id: person,
+      for (final person in directory) person.id: person,
       for (final task in widget.tasks)
         for (final followUp in task.followUps)
           for (final personId in followUp.personIds)
