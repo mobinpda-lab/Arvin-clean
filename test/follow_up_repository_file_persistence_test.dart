@@ -55,6 +55,7 @@ void main() {
                 id: 'task-reminder-2',
                 title: 'یادآور مستقل دوم',
                 date: _secondTaskReminderAt,
+                isAllDay: true,
                 sequence: 2,
               ),
             ],
