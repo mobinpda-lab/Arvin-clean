@@ -2,6 +2,7 @@ import '../models/task.dart';
 import '../models/goal_project.dart';
 import '../models/recurrence.dart';
 import 'task_list_sort_service.dart';
+import 'task_due_status.dart';
 
 enum ReportTimePreset { all, today, tomorrow, thisWeek, future, past, undated }
 
@@ -284,7 +285,7 @@ class TaskReportFilter {
           !selectedProjects.any((project) => project.itemIds.contains(task.id))) {
         return false;
       }
-      if (!_matchesTime(task.dueDate, now)) return false;
+      if (!_matchesTime(task.dueDate, now, allDay: task.allDay)) return false;
       return true;
     }).toList(growable: false);
     if (timePreset == ReportTimePreset.past) {
@@ -366,10 +367,10 @@ class TaskReportFilter {
     return true;
   }
 
-  bool matchesExternalCalendarDate(DateTime value, {required DateTime now}) =>
-      _matchesTime(value, now);
+  bool matchesExternalCalendarDate(DateTime value, {required DateTime now, bool allDay = false}) =>
+      _matchesTime(value, now, allDay: allDay);
 
-  bool _matchesTime(DateTime? value, DateTime now) {
+  bool _matchesTime(DateTime? value, DateTime now, {bool allDay = false}) {
     if (value == null) {
       final noPreciseRange = fromDate == null &&
           toDate == null &&
@@ -398,7 +399,10 @@ class TaskReportFilter {
       case ReportTimePreset.future:
         if (!day.isAfter(today)) return false;
       case ReportTimePreset.past:
-        if (!day.isBefore(today)) return false;
+        final overdue = allDay
+            ? !localNow.isBefore(DateTime(local.year, local.month, local.day + 1))
+            : local.isBefore(localNow);
+        if (!overdue) return false;
       case ReportTimePreset.undated:
         return false;
     }
