@@ -614,3 +614,12 @@ This is an implementation record following the earlier Wave 7.299 ownership audi
 - TaskStore and the SQL migration writer now read/write stable Person IDs through the normalized relation.
 - Added schema and migration regression coverage, including foreign-key checks.
 - Exact-HEAD CI and physical Samsung SM-A528B/DS Device Smoke remain required; **BLOCKED — RELEASE: NO-GO**.
+
+
+## 2026-11-07 — Floating All-Day date persistence
+
+- All-Day due dates and reminders now serialize and persist as date-only values, not synthetic midnight timestamps.
+- Shared round clock keeps the explicit `بدون ساعت` action inside the dialog; picker cancellation leaves the previously committed value unchanged.
+- Central overdue semantics: timed due datetime; All-Day due from the next local calendar day; completed/undated Tasks never overdue.
+- Added regression tests for date-only model serialization and SQLite reminder storage.
+- Exact-HEAD CI and physical Samsung SM-A528B/DS Device Smoke remain required; **BLOCKED — RELEASE: NO-GO**.
