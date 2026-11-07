@@ -44,7 +44,7 @@ void main() {
       throwsA(isA<StateError>()),
     );
   });
-  test('persists structured waiting-for-response state through canonical SQL storage', () async {
+  test('persists waiting state and person links without Follow-up scheduling', () async {
     SharedPreferences.setMockInitialValues({'arvin.tasks': '[]'});
     await TaskStore.resetTestDatabase();
     try {
@@ -69,8 +69,8 @@ void main() {
 
       expect(loaded.waitingForResponse, isTrue);
       expect(loaded.personIds, ['person-1']);
-      expect(loaded.nextFollowUp, DateTime(2026, 10, 16, 10));
-      expect(loaded.reminderDate, DateTime(2026, 10, 15, 18));
+      expect(loaded.toJson().containsKey('nextFollowUp'), isFalse);
+      expect(loaded.toJson().containsKey('reminderDate'), isFalse);
     } finally {
       await TaskStore.resetTestDatabase();
     }
