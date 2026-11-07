@@ -395,7 +395,7 @@ void main() {
     expect(find.byKey(const ValueKey('report-filter-template-tpl')), findsOneWidget);
     expect(find.byKey(const ValueKey('report-filter-template-search')), findsOneWidget);
   });
-  testWidgets('Report Center Past preset excludes today and shows open tasks first', (tester) async {
+  testWidgets('Report Center Past preset includes elapsed timed tasks today and excludes completed tasks', (tester) async {
     final now = DateTime(2026, 10, 7, 10);
     await tester.pumpWidget(MaterialApp(
       home: ReportCenterPage(
@@ -429,13 +429,15 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('report-filter-apply')));
     await tester.pumpAndSettle();
 
-    expect(find.text('نتیجه: 4 کار'), findsOneWidget);
-    expect(find.byKey(const ValueKey('report-task-card-today')), findsNothing);
+    expect(find.text('نتیجه: 3 کار'), findsOneWidget);
+    expect(find.byKey(const ValueKey('report-task-card-today')), findsOneWidget);
     final openOlder = find.byKey(const ValueKey('report-task-card-open-older'));
     final openNewer = find.byKey(const ValueKey('report-task-card-open-newer'));
-    final doneOlder = find.byKey(const ValueKey('report-task-card-done-older'));
-    final doneNewer = find.byKey(const ValueKey('report-task-card-done-newer'));
+    final todayTimed = find.byKey(const ValueKey('report-task-card-today'));
+    expect(find.byKey(const ValueKey('report-task-card-done-older')), findsNothing);
+    expect(find.byKey(const ValueKey('report-task-card-done-newer')), findsNothing);
     expect(tester.getTopLeft(openOlder).dy, lessThan(tester.getTopLeft(openNewer).dy));
+    expect(tester.getTopLeft(openNewer).dy, lessThan(tester.getTopLeft(todayTimed).dy));
     expect(tester.getTopLeft(openNewer).dy, lessThan(tester.getTopLeft(doneOlder).dy));
     expect(tester.getTopLeft(doneOlder).dy, lessThan(tester.getTopLeft(doneNewer).dy));
   });
