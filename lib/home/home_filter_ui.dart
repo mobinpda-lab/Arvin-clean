@@ -85,7 +85,8 @@ class HomeFilterPill extends StatelessWidget {
         ),
       ),
     );
-  }}
+  }
+}
 
 class HomeFilterCard extends StatelessWidget {
   const HomeFilterCard({
