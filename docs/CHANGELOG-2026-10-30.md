@@ -577,3 +577,13 @@ This is an implementation record following the earlier Wave 7.299 ownership audi
 - Follow-up entry can create an independent TaskReminder on create or edit. Task Timeline and Calendar now project independent reminders; Task Details no longer duplicates the legacy reminder display.
 - Added/updated migration and persistence tests. Exact-head CI is pending; do not mark this wave PASS until the relevant workflows complete.
 - **BLOCKED — RELEASE: NO-GO** until all CI and the seven physical Samsung SM-A528B/DS paths are verified. PR #3052 remains OPEN/DRAFT/UNMERGED; main untouched.
+
+
+## 2026-11-07 — Shared five-way filters and inline entity creation
+
+- Added `ReusableMultiSelectFilterBottomSheet` for shared single/multi-select interactions, checkbox selection, search, clear-all and inline create-and-auto-select.
+- Home's five filter controls now open the shared component; the row remains RTL, single-line, and has no All chip or horizontal scrolling.
+- Quick Add and the full Task editor use the shared selectors for Center, Project, Category and Tag. Task Details inline edit uses it for Category and Tags; full edit exposes Center/Project through the same selector.
+- Reports now exposes a five-way RTL row (Time, Center, Project, Category, Tag), with Person as an additional report dimension. All dimensions use the shared component and inline creation where supported.
+- Added widget tests for shared filter creation and Task Details selectors; updated Report filter tests for the nested shared sheet.
+- Exact-head CI and Samsung SM-A528B/DS physical tests remain required. **BLOCKED — RELEASE: NO-GO**.
