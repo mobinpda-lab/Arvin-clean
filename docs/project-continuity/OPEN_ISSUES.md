@@ -224,3 +224,10 @@ All tests and assertions remain protected: no deletion, skip, weakening, or fabr
 - Device Smoke فیزیکی و تصویر نصب/تعامل روی Samsung SM-A528B/DS تأییدنشده است.
 
 PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main دست‌نخورده؛ بدون Merge یا انتشار؛ فونت Vazirmatn و قرارداد SVG عبارات مقدس حفظ شود. **BLOCKED — RELEASE: NO-GO**.
+
+
+## 2026-11-07 — اصلاح اعتبارسنجی یادآور تمام‌روز در پیگیری
+- در `lib/follow_up_entry_page.dart` اعتبارسنجی یادآور تمام‌روز از ساعت مصنوعی ۹ صبح به مقایسهٔ تاریخ تقویمی تغییر کرد؛ یادآور تمام‌روز برای امروز صرفاً به‌دلیل سپری‌شدن ساعت ۹ رد نمی‌شود. زمان‌دارها همچنان باید در آینده باشند.
+- Source commit: `0e63449dd122065314c97f7d81f320dfccca3460`.
+- آزمون مرتبط `test/follow_up_entry_page_test.dart` از قبل حالت تمام‌روز و ذخیرهٔ Reminder را پوشش می‌دهد؛ اجرای exact-SHA این اصلاح هنوز در انتظار نتیجه است. Run Build `42361252514`، Draft Review APK `42361252886`، Device Smoke `42361252423` و Persistence `42361252554` در زمان ثبت Pending/Queued هستند؛ هیچ‌کدام PASS محسوب نمی‌شوند.
+- PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ **BLOCKED — RELEASE: NO-GO**.
