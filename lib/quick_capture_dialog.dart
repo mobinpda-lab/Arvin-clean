@@ -699,6 +699,7 @@ Future<DateTime?> _pickCustomDue() async {
                               color: ArvinColors.project,
                               emptyLabel: 'بدون پروژه',
                               createLabel: '+ افزودن پروژه',
+                              createItemKey: const ValueKey('quick-capture-create-project'),
                               items: availableProjects.map((project) => ArvinRollItem<String>(
                                 value: project.id,
                                 label: project.isArchived ? '${project.title} (بایگانی‌شده)' : project.title,

@@ -395,9 +395,14 @@ class _CalendarPageState extends State<CalendarPage> {
       year++;
     }
     final first = _dateFormatter.fromJalali(JalaliDate(year, month, 1));
+    final currentDay = _dateFormatter.toJalali(_selectedDay).day;
+    final targetDay = currentDay > _daysInJalaliMonth(year, month)
+        ? _daysInJalaliMonth(year, month)
+        : currentDay;
+    final selected = _dateFormatter.fromJalali(JalaliDate(year, month, targetDay));
     setState(() {
       _month = first;
-      _selectedDay = first;
+      _selectedDay = selected;
     });
   }
 
@@ -734,7 +739,7 @@ class _CalendarPageState extends State<CalendarPage> {
             itemCount: leading + days,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 7,
-              mainAxisExtent: 52,
+              mainAxisExtent: 40,
             ),
             itemBuilder: (_, index) {
               if (index < leading) {
@@ -744,10 +749,8 @@ class _CalendarPageState extends State<CalendarPage> {
               final date = _dateFormatter.fromJalali(JalaliDate(current.year, current.month, day));
               final count = counts[day] ?? 0;
               final isSelected = _sameDay(date, _selectedDay);
-              return Padding(
-                padding: const EdgeInsets.all(1.5),
-                child: InkWell(
-                  key: ValueKey('calendar-month-day-$day'),
+              return InkWell(
+                key: ValueKey('calendar-month-day-$day'),
                   borderRadius: BorderRadius.circular(10),
                   onTap: () => _selectDay(date),
                   onLongPress: widget.onCreateTaskForDate == null
@@ -796,7 +799,6 @@ class _CalendarPageState extends State<CalendarPage> {
                       ],
                     ),
                   ),
-                ),
               );
             },
           ),

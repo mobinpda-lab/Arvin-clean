@@ -616,6 +616,7 @@ class _ReportFilterSheet extends StatefulWidget {
 
 class _ReportFilterSheetState extends State<_ReportFilterSheet> {
   final GlobalKey _timeSectionKey = GlobalKey();
+  final GlobalKey _exactRangeSectionKey = GlobalKey();
   final GlobalKey _centerSectionKey = GlobalKey();
   final GlobalKey _projectSectionKey = GlobalKey();
   final GlobalKey _categorySectionKey = GlobalKey();
@@ -822,7 +823,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
     return SafeArea(
       child: Container(
         constraints: BoxConstraints(
-          maxHeight: MediaQuery.sizeOf(context).height * .88,
+          maxHeight: MediaQuery.sizeOf(context).height * .96,
         ),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
@@ -860,6 +861,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
             const Divider(height: 1),
             Expanded(
               child: ListView(
+                key: const ValueKey('report-filter-scroll'),
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                 children: [
             Padding(
@@ -876,6 +878,15 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                       soft: ArvinColors.timeSoft,
                       active: _timePreset != ReportTimePreset.all || _fromDate != null || _toDate != null || _fromTime != null || _toTime != null,
                       onPressed: () => _jumpToFilter(_timeSectionKey),
+                    ),
+                    HomeFilterPill(
+                      key: const ValueKey('report-home-filter-exact-range'),
+                      label: 'بازه دقیق',
+                      icon: Icons.date_range_outlined,
+                      accent: ArvinColors.time,
+                      soft: ArvinColors.timeSoft,
+                      active: _fromDate != null || _toDate != null || _fromTime != null || _toTime != null,
+                      onPressed: () => _jumpToFilter(_exactRangeSectionKey),
                     ),
                     HomeFilterPill(
                       key: const ValueKey('report-home-filter-center'),
@@ -965,6 +976,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               ),
             ),
             _Section(
+              key: _exactRangeSectionKey,
               title: 'بازه دقیق',
               icon: Icons.date_range_outlined,
               accentColor: ArvinColors.time,

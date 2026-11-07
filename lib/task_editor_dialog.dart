@@ -1637,27 +1637,23 @@ Future<void> _pickDueDate() async {
                               if (_recurrence != null) setState(() => _recurrence = _buildRecurrence());
                             },
                           );
-                          final priority = Row(
+                          final priority = Wrap(
                             key: const ValueKey('task-editor-priority'),
                             textDirection: TextDirection.rtl,
+                            spacing: 4,
+                            runSpacing: 4,
                             children: [
                               for (final option in TaskPriority.values)
-                                Expanded(
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 2),
-                                    child: Tooltip(
-                                      message:
-                                          '${_dateFormatter.toPersianDigits('اولویت ${option.sortOrder}')} — ${option.label}',
-                                      child: ConstrainedBox(
-                                        constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-                                        child: ChoiceChip(
-                                          key: ValueKey('task-editor-priority-${option.name}'),
+                                ConstrainedBox(
+                                  constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                                  child: Tooltip(
+                                    message: '${_dateFormatter.toPersianDigits('اولویت ${option.sortOrder}')} — ${option.label}',
+                                    child: ChoiceChip(
+                                      key: ValueKey('task-editor-priority-${option.name}'),
                                       label: FittedBox(
                                         fit: BoxFit.scaleDown,
                                         child: Text(
-                                          _dateFormatter.toPersianDigits(
-                                            'اولویت ${option.sortOrder}',
-                                          ),
+                                          _dateFormatter.toPersianDigits('اولویت ${option.sortOrder}'),
                                           maxLines: 1,
                                           softWrap: false,
                                         ),
@@ -1675,14 +1671,10 @@ Future<void> _pickDueDate() async {
                                         fontSize: 11,
                                       ),
                                       labelPadding: EdgeInsets.zero,
-                                      padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 8),
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
                                       materialTapTargetSize: MaterialTapTargetSize.padded,
                                       showCheckmark: false,
-                                      onSelected: _saving
-                                          ? null
-                                          : (_) => setState(() => _priority = option),
-                                        ),
-                                      ),
+                                      onSelected: _saving ? null : (_) => setState(() => _priority = option),
                                     ),
                                   ),
                                 ),

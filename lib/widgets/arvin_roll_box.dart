@@ -6,7 +6,8 @@ class ArvinRollBox<T> extends StatelessWidget {
   const ArvinRollBox({
     super.key, required this.label, required this.valueLabel, required this.items,
     required this.onSelected, required this.icon, required this.color,
-    this.emptyLabel, this.onCreate, this.createLabel = 'افزودن', this.compact = false,
+    this.emptyLabel, this.onCreate, this.createLabel = 'افزودن',
+    this.createItemKey, this.compact = false,
   });
   final String label;
   final String valueLabel;
@@ -17,6 +18,7 @@ class ArvinRollBox<T> extends StatelessWidget {
   final String? emptyLabel;
   final Future<T?> Function()? onCreate;
   final String createLabel;
+  final Key? createItemKey;
   final bool compact;
 
   @override
@@ -46,6 +48,7 @@ class ArvinRollBox<T> extends StatelessWidget {
         if (onCreate != null) ...[
           const PopupMenuDivider(),
           PopupMenuItem<Object?>(
+            key: createItemKey,
             value: _ArvinCreateToken.instance,
             child: Row(children: [
               const Icon(Icons.add_circle_outline, size: 18, color: ArvinColors.primary),
