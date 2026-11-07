@@ -880,3 +880,40 @@ PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main دست‌نخورد�
 - This is a product/architecture decision and future-work specification only. **No implementation code, Dart file, database schema, migration, or test was changed for this feature in this phase.** Current release stability takes priority.
 - Gap analysis inspected the branch sources: canonical Notebook records currently reuse Task with `notebook_kind`; Drift has `tasks`, `follow_up_records`, `task_reminders`, project/taxonomy relation tables, but no dedicated Notebook-to-Follow-up link table; `NotebookPage` currently exposes separate Category/Project/Tag selectors and its own search. Fast-capture ergonomics, linked-entry chips, Center filter and shared five-axis filtering remain future verification/implementation items.
 - PR #3052 remains OPEN / DRAFT / UNMERGED; main untouched; **BLOCKED — RELEASE: NO-GO**.
+
+
+---
+
+## TSK-02 — تحلیل تفصیلی ۱۳ شکست شارد ۱ — 2026-11-07
+
+
+### فهرست ۱۳ شکست — job quality (test-1)
+مرجع: [Build run 42407484460](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/42407484460)، job ID `128509578970`، [لاگ job](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/42407484460). Checkout دقیقاً روی SHA `b1ad86a164f9d8f8363e29313163f1be0ee53d4a` انجام شده است. نتیجه: **174 passed / 13 failed**. این گزارش تاریخی است و به HEAD فعلی تعمیم داده نمی‌شود.
+
+| # | تست ناموفق | فایل و خط تست | علت ثبت‌شده در لاگ | دسته |
+|---:|---|---|---|---|
+| 1 | `inline description edit updates updatedAt and preserves completion and Follow-up history` | `test/task_detail_followup_flow_test.dart:151` | زمان تکمیل مورد انتظار `2026-11-02 12:00` بود؛ مقدار واقعی `null` برگشت. | Assertion — مقدار/تاریخچه |
+| 2 | `deleted migrated legacy reminder does not return after SQL and backup restore` | `test/integration_task_reminders_migration_backup_test.dart:36` | شناسه مورد انتظار `legacy-task-reminder-task-reminder-integration` بود؛ شناسه واقعی `legacy-task-reminder-deleted-legacy-reminder` بود. | Assertion — شناسه/بازیابی |
+| 3 | `Home uses the five checkbox filters as combined filters and preserves time grouping` | `test/widgets/home_page_test.dart:197`؛ ویجت مسبب: `lib/widgets/reusable_multi_select_filter_bottom_sheet.dart:82` | `TextEditingController was used after being disposed` هنگام ساخت مجدد TextField. | Widget lifecycle — استفاده پس از dispose |
+| 4 | `search filters the currently loaded legacy tasks` | `test/widgets/home_page_test.dart:221` | خطای چارچوب Flutter: `_dependents.isEmpty` هنگام غیرفعال‌سازی Focus؛ سپس Finder متن «تماس فروش» را پیدا نکرد (۰ مورد به‌جای ۱). | Widget lifecycle / Assertion — وابستگی و نتیجه جست‌وجو |
+| 5 | `Home snapshot deletes omitted items and serializes new items canonically` | `test/services/task_migration_writer_test.dart:122` | مقدار مورد انتظار `true` بود؛ مقدار واقعی `null` بود. | Assertion — خروجی مهاجرت |
+| 6 | `legacy scheduling fields alone never create a Home FollowUp entry` | `test/services/home_today_projection_test.dart:55` | تاریخ مورد انتظار `2026-08-27 08:00` بود؛ مقدار واقعی `null` بود. | Assertion — Projection |
+| 7 | `materializes multiple Task reminders, historical Follow-ups and Persons canonically` | `test/services/g1_drift_schema_test.dart:132` | SQLite: `Expected 3 parameters, got 2` هنگام اجرای INSERT؛ تعداد bindها با placeholderها هم‌خوان نبود. | SQL binding — خطای اجرا |
+| 8 | `retired inbound reconciliation never mutates native Task ownership` | `test/services/calendar_inbound_sync_service_test.dart:54` | مجموعه مورد انتظار شامل `legacy-task-reminder` بود؛ مقدار واقعی `legacy-task-reminder-task-1` داشت. | Assertion — شناسه یادآور |
+| 9 | `appends a FollowUp while preserving the task envelope` | `test/follow_up_repository_test.dart:48` | تاریخ مورد انتظار `2026-08-14 09:30` بود؛ مقدار واقعی `null` بود. | Assertion — داده Follow-up |
+| 10 | `Task editor saves a new follow-up record with separate title and note` | `test/task_editor_dialog_test.dart:220` | انتظار `false` بود؛ مقدار واقعی `true` بود. | Assertion — رفتار ویرایشگر |
+| 11 | `only independent TaskReminder records enter the projection` | `test/follow_up_reminder_projection_test.dart:51` | تعداد مورد انتظار ۱ بود؛ Projection دو `FollowUpReminderCandidate` برگرداند. | Assertion — تعداد/Projection |
+| 12 | `multi-select sheet persists inline-created option and auto-selects it` | `test/reusable_multi_select_filter_bottom_sheet_test.dart`؛ ویجت مسبب: `lib/widgets/reusable_multi_select_filter_bottom_sheet.dart:96` | `TextEditingController was used after being disposed` هنگام ساخت مجدد TextField. | Widget lifecycle — استفاده پس از dispose |
+| 13 | `metadata edits preserve completion timestamp without future follow-up schedule` | `test/task_edit_apply_service_test.dart:100` | انتظار `true` بود؛ مقدار واقعی `false` بود. | Assertion — حفظ وضعیت/زمان تکمیل |
+
+**جمع‌بندی دسته‌ها:** ۹ مورد Assertion/اختلاف داده و خروجی؛ ۲ مورد چرخه عمر Widget/Controller؛ ۱ مورد خطای SQL binding؛ ۱ مورد خطای چارچوب Widget همراه با Finder ناموفق. در لاگ این ۱۳ مورد، Timeout یا Mock failure مشاهده نشد. این دسته‌بندی تشخیص اولیه از خروجی تست است، نه اعلام علت ریشه‌ای قطعی؛ برای تعیین علت نهایی باید کد همان SHA و مسیر داده بررسی شود.
+
+**محدودیت این فاز:** فقط مستندسازی و تحلیل لاگ مجاز است. هیچ تغییری در `lib/` یا `test/`، هیچ اصلاح assertion، حذف/Skip تست یا تغییر اسکیما انجام نشود.
+
+
+## Connected Notebook — وضعیت سند معماری
+
+- فایل `docs/project-continuity/ARCHITECTURE_NOTEBOOK.md` پیش از این به‌روزرسانی در شاخه مجاز موجود بود (Blob SHA: `75b3e24135cd497665dc2f39a5bd8cc75ab62509`). محتوای آن بررسی شد و مشخصات «مغز دوم»، Fast Capture، اتصال دوطرفه، استفاده از فیلتر مشترک و Gap Analysis را پوشش می‌دهد؛ سند تکراری ساخته نشد.
+- سند، چهار محور نام‌برده‌شده مرکز/پروژه/دسته/برچسب را مشخص کرده و به‌درستی یادآور شده که محور پنجم در عبارت درخواست روشن نیست؛ پیش از پیاده‌سازی باید مالک محصول آن را تعیین کند.
+- Gap Analysis فعلی صرفاً نیازمندی فاز بعدی است؛ هیچ کد، جدول Drift، مهاجرت یا تستی در این فاز تغییر نکرده است.
+- وضعیت انتشار همچنان **BLOCKED — RELEASE: NO-GO**؛ PR #3052 باید OPEN / DRAFT / UNMERGED بماند و main دست‌نخورده باشد.
