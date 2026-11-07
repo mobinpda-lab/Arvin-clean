@@ -1593,6 +1593,8 @@ class _HomePageState extends State<HomePage> {
         selectedProjectId: editorContext.selectedProjectId,
         onProjectChanged: (value) => selectedProjectId = value,
         onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
+        onCreateProjectWithCenter: (title, centerId) =>
+            wave2ProductFastTrack.createProject(title, centerId: centerId),
         knownCategories: editorContext.knownCategories,
         knownTags: editorContext.knownTags,
         onCreateCategory: _createCategory,
@@ -1654,6 +1656,8 @@ class _HomePageState extends State<HomePage> {
         selectedProjectId: editorContext.selectedProjectId,
         onProjectChanged: (value) => selectedProjectId = value,
         onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
+        onCreateProjectWithCenter: (title, centerId) =>
+            wave2ProductFastTrack.createProject(title, centerId: centerId),
         knownCategories: editorContext.knownCategories,
         knownTags: editorContext.knownTags,
         onCreateCategory: _createCategory,
@@ -1730,6 +1734,8 @@ class _HomePageState extends State<HomePage> {
               selectedProjectId: selectedProjectId ?? editedContext.selectedProjectId,
               onProjectChanged: (value) => selectedProjectId = value,
         onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
+        onCreateProjectWithCenter: (title, centerId) =>
+            wave2ProductFastTrack.createProject(title, centerId: centerId),
               knownCategories: editedContext.knownCategories,
               knownTags: editedContext.knownTags,
             ),
@@ -1803,6 +1809,8 @@ class _HomePageState extends State<HomePage> {
         selectedProjectId: editorContext.selectedProjectId,
         onProjectChanged: (value) => selectedProjectId = value,
         onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
+        onCreateProjectWithCenter: (title, centerId) =>
+            wave2ProductFastTrack.createProject(title, centerId: centerId),
         knownCategories: editorContext.knownCategories,
         knownTags: editorContext.knownTags,
         onCreateCategory: _createCategory,
@@ -2817,6 +2825,8 @@ class _HomePageState extends State<HomePage> {
           people: people,
           onCreateCenter: _createCenter,
           onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
+        onCreateProjectWithCenter: (title, centerId) =>
+            wave2ProductFastTrack.createProject(title, centerId: centerId),
           onCreateCategory: _createCategory,
           onCreateTag: _createTag,
           onCreatePerson: _createReportPerson,
