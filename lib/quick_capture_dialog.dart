@@ -261,18 +261,6 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
 
   DateTime _now() => widget.now?.call() ?? DateTime.now();
 
-  Future<TimeOfDay?> _pickPersianTime(
-    BuildContext parentContext, {
-    required DateTime initial,
-    required String helpText,
-  }) {
-    return showUniversalArvinTimePicker(
-      context: parentContext,
-      initialTime: TimeOfDay.fromDateTime(initial),
-      helpText: helpText,
-    );
-  }
-
 Future<DateTime?> _pickCustomDue() async {
     _pendingCustomDueAllDay = false;
     final initial = _dueDate ?? widget.now?.call() ?? DateTime.now();
