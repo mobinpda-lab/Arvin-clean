@@ -1186,7 +1186,7 @@ class _HomePageState extends State<HomePage> {
     var fromDate=_fromDateFilter,toDate=_toDateFilter;
     var fromTime=_fromTimeFilter,toTime=_toTimeFilter;
     var customDate=_specificDateFilter;
-    await HomeFilterSheet.show<void>(context,title:'انتخاب زمان',accent:ArvinColors.time,
+    await ReusableMultiSelectFilterBottomSheet.showCustom<void>(context,title:'انتخاب زمان',accent:ArvinColors.time,
       child:StatefulBuilder(builder:(sheetContext,setSheetState){
         Future<bool> pickCustom() async {
           final value=await showPersianDatePicker(context:sheetContext,initialDate:customDate??DateTime.now(),firstDate:DateTime(2020),lastDate:DateTime(2100),helpText:'تاریخ مشخص');
