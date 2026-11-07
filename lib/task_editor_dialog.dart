@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'arvin_colors.dart';
+import 'home/home_filter_ui.dart';
 import 'core/theme/arvin_theme.dart';
 import 'follow_up_entry_page.dart';
 
@@ -1309,28 +1310,21 @@ Future<void> _pickDueDateTime() async {
                         mainAxisSize: MainAxisSize.max,
                         children: [
                           Expanded(
-                            child: ArvinRollBox<DateTime>(
+                            child: HomeFilterPill(
                               key: const ValueKey('task-editor-due-date-time'),
-                              label: 'زمان',
-                              valueLabel: _dueDateTime == null
-                                  ? 'زمان'
+                              label: _dueDateTime == null
+                                  ? 'زمان کار / موعد'
                                   : (_dueAllDay
                                       ? _dateText(_dueDateTime!)
                                       : '${_dateText(_dueDateTime!)} • ${_timeText(_dueDateTime!)}'),
                               icon: Icons.schedule_rounded,
-                              color: ArvinColors.time,
-                              emptyLabel: 'بدون موعد',
-                              items: const <ArvinRollItem<DateTime>>[],
-                              createLabel: 'انتخاب تاریخ و ساعت',
-                              onCreate: _saving
-                                  ? null
-                                  : () async {
-                                      await _pickDueDateTime();
-                                      return _dueDateTime;
-                                    },
-                              onSelected: (value) {
-                                if (value == null) _clearDueTime();
-                              },
+                              accent: Theme.of(context).colorScheme.primary,
+                              soft: Color.alphaBlend(
+                                Theme.of(context).colorScheme.primary.withAlpha(18),
+                                Theme.of(context).colorScheme.surface,
+                              ),
+                              active: _dueDateTime != null,
+                              onPressed: _saving ? () {} : _pickDueDateTime,
                             ),
                           ),
                           const SizedBox(width: 4),
