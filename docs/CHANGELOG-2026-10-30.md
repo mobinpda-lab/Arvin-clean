@@ -623,3 +623,12 @@ This is an implementation record following the earlier Wave 7.299 ownership audi
 - Central overdue semantics: timed due datetime; All-Day due from the next local calendar day; completed/undated Tasks never overdue.
 - Added regression tests for date-only model serialization and SQLite reminder storage.
 - Exact-HEAD CI and physical Samsung SM-A528B/DS Device Smoke remain required; **BLOCKED — RELEASE: NO-GO**.
+
+
+## 2026-11-07 — Drift schema v15 and date-only migration
+
+- Bumped the canonical Drift schema to v15 for normalized Task-to-Person relations.
+- Migrates and retires the former JSON-backed `task_people` table; Person links use stable IDs and foreign keys.
+- Normalizes migrated All-Day Task due dates and reminders to date-only SQLite values.
+- Added/updated tests for v15 schema, Person foreign keys, migration of old Person links, date-only All-Day storage, and reminder persistence.
+- Exact-HEAD CI and physical Samsung SM-A528B/DS Device Smoke remain required; **BLOCKED — RELEASE: NO-GO**.
