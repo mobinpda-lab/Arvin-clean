@@ -1697,11 +1697,12 @@ Future<void> _pickDueDate() async {
                                 priority,
                                 const SizedBox(height: 6),
                                 repeatEnabled,
-                                Row(
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
                                   children: [
-                                    Expanded(child: repeatStart),
-                                    const SizedBox(width: 8),
-                                    Expanded(child: repeatEnd),
+                                    repeatStart,
+                                    const SizedBox(height: 8),
+                                    repeatEnd,
                                   ],
                                 ),
                                 const SizedBox(height: 6),
