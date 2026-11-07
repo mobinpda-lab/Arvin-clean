@@ -961,3 +961,14 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - برای SHA جدید هنوز Workflow run ثبت نشده است؛ بنابراین تمام نتایج Build/Provider/Smoke/APK قبلی فقط به SHA 2553f27f040287b0cf225a4c054777db94821679 تعلق دارند و به HEAD جدید منتقل نمی‌شوند.
 - Device Smoke قدیمی #7233 همچنان مانع صف است و لغو دستی آن توسط مالک لازم است.
 - **BLOCKED — RELEASE: NO-GO** بدون تغییر باقی می‌ماند.
+
+## ۱۴۰۵/۰۸/۱۶ — ممیزی exact-HEAD و APK (ARVIN-DIR-1405/08/16-02-MASTER)
+- HEAD ممیزی‌شده: 11919b87b309897a7b2f59fdd34a327730188e6e؛ PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر.
+- Build run 42343978253 FAILED (سه شارد: 220/2، 182/2 و 302/2 موفق/ناموفق)؛ Calendar Provider 42343978239 SUCCESS؛ Device Smoke 42343978229 PENDING؛ Draft Review APK 42343978230 SUCCESS.
+- شش شکست روی HEAD ثبت شد: ذخیره Quick Capture/history، ارتفاع ماهانه Calendar، توکن‌های رنگ معنایی، رنگ منتخب هفته، جایگاه فیلتر/مرتب‌سازی Home، و رنگ SVG سرصفحه تقویم. اصلاح کد/تست هنوز انجام نشده است.
+- 895c7ad بررسی شد: فقط تست‌های واکنش‌گرایی، حداقل لمس و Wrap تقویت شدند؛ تستی حذف/Skip یا تضعیف نشده است.
+- پالت فیروزه‌ای و Vazirmatn در سورس حاضرند؛ فیلترهای پنج‌گانه و اتصال Person به FollowUp منتظر پاسخ و فیلتر گزارش در سورس موجودند.
+- شکاف زمان: دیالوگ ساعت گرد هنوز «بدون ساعت» داخلی ندارد؛ Quick Capture و Task Editor کنترل بیرونی دارند؛ یادآورهای مستقل تاریخ/ساعت جدا دارند؛ Overdue ساعت‌دار در همان روز در Home محاسبه نمی‌شود.
+- APK staging exact-HEAD استخراج شد؛ SHA-256 بایت‌های APK: cdd8cc9e7b478e8fe485cfac6465f265b3c1b3ae501f78abc40edbbfa80814d6؛ کلید امضای موقت review-only، غیرقابل انتشار و بدون نصب روی گوشی واقعی.
+- Device Smoke قدیمی #7233 / run 42335301964 همچنان صف را قفل می‌کند؛ لغو دستی توسط مبین لازم است.
+- **BLOCKED — RELEASE: NO-GO**؛ بدون ادغام، انتشار یا تغییر main.
