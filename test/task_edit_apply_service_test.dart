@@ -97,7 +97,7 @@ void main() {
     expect(target.category, 'مشتری');
     expect(target.priority, TaskPriority.high);
     expect(target.updatedAt, isNotNull);
-    expect(target.followUpEnabled, isTrue);
+    expect(target.followUpEnabled, isFalse);
     expect(target.followUpDate, isNull);
   });
 
