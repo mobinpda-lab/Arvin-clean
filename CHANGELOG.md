@@ -1017,3 +1017,10 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - HEAD کد پیش از این ثبت: `72963f7f69f9dc5e4846f52880e2a5deb283815d`. CI exact-head در زمان ثبت: Build #10066 PENDING، Provider #2201 QUEUED، Persistence #1224 PENDING، G1 #4693 QUEUED، Draft Review APK #873 PENDING، Device Smoke #7299 PENDING.
 - اجرای قدیمی Device Smoke #7268 / `42346612483` CANCELLED است؛ اجرای جدید هنوز وارد Job دستگاه نشده است.
 - PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ APK exact-head و تست فیزیکی SM-A528B/DS هنوز در انتظارند؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## ۱۴۰۵/۰۸/۱۶ — تکمیل UI یادآور legacy FollowUp
+- ویرایش FollowUp قدیمی اکنون تاریخ یادآور را از تقویم شمسی می‌گیرد و در دیالوگ ساعت امکان انتخاب صریح «بدون ساعت» دارد؛ ذخیره در `reminderAllDay` انجام می‌شود و حذف یادآور هر دو فیلد را پاک می‌کند.
+- تست UI برای انتخاب All-Day و حفظ تاریخ/ساعت قبلی افزوده شد؛ آزمون‌های قبلی بدون حذف یا Skip باقی مانده‌اند.
+- تکمیل کد پیش از این ثبت: `de60c3a53309183a69b3a94b2f74e2ae9b40d7cb`. CI روی SHA نهایی مستندات باید مجدداً بررسی شود.
+- **BLOCKED — RELEASE: NO-GO**؛ نصب فیزیکی روی SM-A528B/DS هنوز انجام نشده است.
