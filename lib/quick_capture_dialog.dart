@@ -77,6 +77,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   TaskPriority _priority = TaskPriority.none;
   DateTime? _dueDate;
   bool _dueAllDay = false;
+  bool _pendingCustomDueAllDay = false;
   DateTime? _reminderDate;
   bool _reminderFollowsDueTime = true;
   RecurrenceRule? _recurrence;
@@ -137,10 +138,10 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     }
   }
 
-  void _setDueDate(DateTime? value) {
+  void _setDueDate(DateTime? value, {bool allDay = false}) {
     setState(() {
       _dueDate = value;
-      _dueAllDay = false;
+      _dueAllDay = value != null && allDay;
       _syncAutomaticReminder();
     });
   }
@@ -279,9 +280,22 @@ Future<DateTime?> _pickCustomDue() async {
       confirmText: 'انتخاب تاریخ',
     );
     if (date == null || !mounted) return null;
-    final time = await _pickPersianTime(context, initial: initial, helpText: 'زمان انجام کار');
-    if (time == null || !mounted) return null;
-    return DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    final selection = await showUniversalArvinTimeSelectionPicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(initial),
+      helpText: 'زمان انجام کار',
+    );
+    if (selection == null || !mounted) return null;
+    _pendingCustomDueAllDay = selection.isAllDay;
+    return selection.isAllDay
+        ? DateTime(date.year, date.month, date.day)
+        : DateTime(
+            date.year,
+            date.month,
+            date.day,
+            selection.time!.hour,
+            selection.time!.minute,
+          );
   }
 
   Future<void> _pickDateOnlyDue() async {
@@ -618,7 +632,15 @@ Future<DateTime?> _pickCustomDue() async {
                             ],
                             createLabel: 'تاریخ و ساعت سفارشی',
                             onCreate: _saving ? null : _pickCustomDue,
-                            onSelected: (value) => _setDueDate(value is DateTime ? value : null),
+                            onSelected: (value) {
+                              final isCustomAllDay = value is DateTime &&
+                                  _pendingCustomDueAllDay;
+                              _setDueDate(
+                                value is DateTime ? value : null,
+                                allDay: isCustomAllDay,
+                              );
+                              _pendingCustomDueAllDay = false;
+                            },
                           )),
                           SizedBox(
                             width: 112,

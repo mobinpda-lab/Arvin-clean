@@ -59,6 +59,37 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('offers an explicit no-time choice inside the circular clock', (tester) async {
+    ArvinTimeSelection? result;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: FilledButton(
+              onPressed: () async {
+                result = await showUniversalArvinTimeSelectionPicker(
+                  context: context,
+                  initialTime: const TimeOfDay(hour: 9, minute: 30),
+                  helpText: 'زمان انجام کار',
+                );
+              },
+              child: const Text('باز کردن'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('باز کردن'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('universal-time-no-time')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('universal-time-no-time')));
+    await tester.pumpAndSettle();
+    expect(result, isNotNull);
+    expect(result!.isAllDay, isTrue);
+    expect(result!.time, isNull);
+  });
+
+
   testWidgets('inner ring 24 maps to midnight 00 without changing storage semantics', (tester) async {
     TimeOfDay? result;
     await tester.pumpWidget(

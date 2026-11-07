@@ -630,6 +630,31 @@ void main() {
     expect(result!.reminderDate, result!.dueDate);
   });
 
+  testWidgets('Task editor saves a real all-day deadline from inside the clock dialog',
+      (tester) async {
+    Task? result;
+    await pumpEditor(tester, onResult: (value) => result = value);
+    final unified = find.byKey(const ValueKey('task-editor-due-date-time'));
+    await tester.ensureVisible(unified);
+    await tester.tap(unified);
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('universal-time-no-time')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.dueDate, isNotNull);
+    expect(result!.dueDate!.hour, 0);
+    expect(result!.dueDate!.minute, 0);
+    expect(result!.allDay, isTrue);
+    expect(result!.reminderDate, isNull);
+  });
+
+
   testWidgets('new Task keeps due date and reminder absent when the unified control is untouched',
       (tester) async {
     Task? result;

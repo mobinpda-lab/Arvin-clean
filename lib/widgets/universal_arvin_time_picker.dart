@@ -5,16 +5,27 @@ import 'package:flutter/material.dart';
 import '../arvin_colors.dart';
 import '../services/persian_date_formatter.dart';
 
-/// Opens Arvin's canonical 24-hour time-only picker.
-///
-/// The result is a [TimeOfDay] so callers can keep their existing canonical
-/// date, Task, reminder, recurrence, and scheduling models unchanged.
-Future<TimeOfDay?> showUniversalArvinTimePicker({
+/// A committed choice from Arvin's shared clock. A null dialog result still
+/// means cancellation; [isAllDay] is an explicit, distinct choice.
+class ArvinTimeSelection {
+  const ArvinTimeSelection._({this.time, this.isAllDay = false});
+
+  const ArvinTimeSelection.timed(TimeOfDay value) : this._(time: value);
+
+  const ArvinTimeSelection.allDay() : this._(isAllDay: true);
+
+  final TimeOfDay? time;
+  final bool isAllDay;
+}
+
+/// Shared 24-hour clock with an optional explicit All-Day action.
+Future<ArvinTimeSelection?> showUniversalArvinTimeSelectionPicker({
   required BuildContext context,
   required TimeOfDay initialTime,
   required String helpText,
+  bool allowAllDay = true,
 }) {
-  return showDialog<TimeOfDay>(
+  return showDialog<ArvinTimeSelection>(
     context: context,
     builder: (dialogContext) => Directionality(
       textDirection: TextDirection.rtl,
@@ -25,20 +36,38 @@ Future<TimeOfDay?> showUniversalArvinTimePicker({
         child: _UniversalArvinTimePickerDialog(
           initialTime: initialTime,
           title: helpText,
+          allowAllDay: allowAllDay,
         ),
       ),
     ),
   );
 }
 
+/// Backward-compatible time-only adapter for clocks that cannot be All-Day.
+Future<TimeOfDay?> showUniversalArvinTimePicker({
+  required BuildContext context,
+  required TimeOfDay initialTime,
+  required String helpText,
+}) async {
+  final selection = await showUniversalArvinTimeSelectionPicker(
+    context: context,
+    initialTime: initialTime,
+    helpText: helpText,
+    allowAllDay: false,
+  );
+  return selection?.time;
+}
+
 class _UniversalArvinTimePickerDialog extends StatefulWidget {
   const _UniversalArvinTimePickerDialog({
     required this.initialTime,
     required this.title,
+    required this.allowAllDay,
   });
 
   final TimeOfDay initialTime;
   final String title;
+  final bool allowAllDay;
 
   @override
   State<_UniversalArvinTimePickerDialog> createState() =>
@@ -255,6 +284,28 @@ class _UniversalArvinTimePickerDialogState
                   label: Text(_manualEntry ? 'صفحه ساعت' : 'ورود ساعت دقیق'),
                 ),
               ),
+              if (widget.allowAllDay) ...[
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    key: const ValueKey('universal-time-no-time'),
+                    onPressed: () => Navigator.of(context).pop(
+                      const ArvinTimeSelection.allDay(),
+                    ),
+                    icon: const Icon(Icons.access_time_rounded),
+                    label: const Text('بدون ساعت'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: ArvinColors.primary,
+                      minimumSize: const Size.fromHeight(48),
+                      side: const BorderSide(color: ArvinColors.primary),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(height: 6),
               Row(
                 children: [
@@ -279,7 +330,9 @@ class _UniversalArvinTimePickerDialogState
                       onPressed: _manualEntry && !_manualValid
                           ? null
                           : () => Navigator.of(context).pop(
-                                TimeOfDay(hour: _hour, minute: _minute),
+                                ArvinTimeSelection.timed(
+                                  TimeOfDay(hour: _hour, minute: _minute),
+                                ),
                               ),
                       style: FilledButton.styleFrom(
                         backgroundColor: ArvinColors.primary,

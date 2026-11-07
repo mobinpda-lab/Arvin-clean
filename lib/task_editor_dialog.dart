@@ -238,18 +238,16 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     );
   }
 
-  Future<DateTime?> _chooseTime(
+  Future<ArvinTimeSelection?> _chooseTime(
     DateTime? current, {
     required String helpText,
-  }) async {
+  }) {
     final base = _baseDateTime(current);
-    final picked = await showUniversalArvinTimePicker(
+    return showUniversalArvinTimeSelectionPicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(base),
       helpText: helpText,
     );
-    if (picked == null) return null;
-    return DateTime(base.year, base.month, base.day, picked.hour, picked.minute);
   }
 
   void _addTaskReminder() {
@@ -294,25 +292,64 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
       confirmText: 'تأیید',
     );
     if (picked == null || !mounted) return;
-    _updateTaskReminder(index, current.copyWith(
-      date: DateTime(
-        picked.year,
-        picked.month,
-        picked.day,
-        current.isAllDay ? 0 : current.date.hour,
-        current.isAllDay ? 0 : current.date.minute,
+    final date = DateTime(
+      picked.year,
+      picked.month,
+      picked.day,
+      current.date.hour,
+      current.date.minute,
+    );
+    final selection = await _chooseTime(
+      date,
+      helpText: 'انتخاب ساعت یادآور',
+    );
+    if (selection == null || !mounted) return;
+    _updateTaskReminder(
+      index,
+      current.copyWith(
+        date: selection.isAllDay
+            ? DateTime(picked.year, picked.month, picked.day)
+            : DateTime(
+                picked.year,
+                picked.month,
+                picked.day,
+                selection.time!.hour,
+                selection.time!.minute,
+              ),
+        isAllDay: selection.isAllDay,
       ),
-    ));
+    );
   }
 
   Future<void> _pickTaskReminderTime(int index) async {
     if (index < 0 || index >= _taskReminders.length) return;
     final current = _taskReminders[index];
-    final value = await _chooseTime(current.date, helpText: 'انتخاب ساعت یادآور');
-    if (value == null || !mounted) return;
+    final selection = await _chooseTime(
+      current.date,
+      helpText: 'انتخاب ساعت یادآور',
+    );
+    if (selection == null || !mounted) return;
     final latestIndex = _taskReminders.indexWhere((item) => item.id == current.id);
     if (latestIndex < 0) return;
-    _updateTaskReminder(latestIndex, current.copyWith(date: value, isAllDay: false));
+    _updateTaskReminder(
+      latestIndex,
+      current.copyWith(
+        date: selection.isAllDay
+            ? DateTime(
+                current.date.year,
+                current.date.month,
+                current.date.day,
+              )
+            : DateTime(
+                current.date.year,
+                current.date.month,
+                current.date.day,
+                selection.time!.hour,
+                selection.time!.minute,
+              ),
+        isAllDay: selection.isAllDay,
+      ),
+    );
   }
 
   Widget _taskRemindersEditor() {
@@ -412,37 +449,14 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                           key: ValueKey('task-editor-reminder-date-$reminderKey'),
                           onPressed: () => _pickTaskReminderDate(index),
                           icon: const Icon(Icons.calendar_month_outlined, size: 18),
-                          label: Text(_dateText(reminder.date)),
-                        ),
-                        if (!reminder.isAllDay)
-                          OutlinedButton.icon(
-                            key: ValueKey('task-editor-reminder-time-$reminderKey'),
-                            onPressed: () => _pickTaskReminderTime(index),
-                            icon: const Icon(Icons.schedule, size: 18),
-                            label: Text(_timeText(reminder.date)),
+                          label: Text(
+                            '${_dateText(reminder.date)} • '
+                            '${reminder.isAllDay ? 'بدون ساعت' : _timeText(reminder.date)}',
                           ),
+                        ),
                       ],
                     ),
-                    Material(
-                      color: ArvinColors.surface,
-                      borderRadius: BorderRadius.circular(8),
-                      child: CheckboxListTile(
-                      key: ValueKey('task-editor-reminder-all-day-$reminderKey'),
-                      contentPadding: EdgeInsets.zero,
-                      controlAffinity: ListTileControlAffinity.leading,
-                      value: reminder.isAllDay,
-                      onChanged: (value) {
-                        final allDay = value ?? false;
-                        _updateTaskReminder(index, reminder.copyWith(
-                          isAllDay: allDay,
-                          date: allDay
-                              ? DateTime(reminder.date.year, reminder.date.month, reminder.date.day)
-                              : reminder.date,
-                        ));
-                      },
-                      title: const Text('تمام‌روز (بدون ساعت)'),
-                      ),
-                    ),
+
                   ],
                 ),
               );
@@ -475,8 +489,20 @@ Future<void> _pickDueDate() async {
     );
     if (value != null && mounted) {
       setState(() {
-        _dueDateTime = value;
-        _dueAllDay = false;
+        _dueDateTime = value.isAllDay
+            ? DateTime(
+                _dueDateTime!.year,
+                _dueDateTime!.month,
+                _dueDateTime!.day,
+              )
+            : DateTime(
+                _dueDateTime!.year,
+                _dueDateTime!.month,
+                _dueDateTime!.day,
+                value.time!.hour,
+                value.time!.minute,
+              );
+        _dueAllDay = value.isAllDay;
         _syncAutomaticReminder();
       });
     }
@@ -509,8 +535,16 @@ Future<void> _pickDueDate() async {
     if (value == null || !mounted) return;
 
     setState(() {
-      _dueDateTime = value;
-      _dueAllDay = false;
+      _dueDateTime = value.isAllDay
+          ? DateTime(date.year, date.month, date.day)
+          : DateTime(
+              date.year,
+              date.month,
+              date.day,
+              value.time!.hour,
+              value.time!.minute,
+            );
+      _dueAllDay = value.isAllDay;
       _syncAutomaticReminder();
     });
   }
