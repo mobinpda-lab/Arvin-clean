@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 abstract final class ArvinTheme {
   static const Color primaryTurquoise = Color(0xFF3A86EF);
   static const Color headerTurquoise = Color(0xFF2D6FC7);
-  static const Color primarySoft = Color(0xFFDDF7F5);
+  static const Color primarySoft = Color(0xFFEAF2FF);
   // Compatibility aliases for older call sites; both resolve to turquoise.
   static const Color primaryPurple = primaryTurquoise;
   static const Color headerPurple = headerTurquoise;
