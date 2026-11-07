@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-
-import '../arvin_colors.dart';
 import '../home/home_filter_ui.dart';
 
 class ArvinRollBox<T> extends StatelessWidget {
