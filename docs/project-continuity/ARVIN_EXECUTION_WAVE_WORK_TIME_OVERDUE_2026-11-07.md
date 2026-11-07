@@ -55,3 +55,21 @@ No tests were deleted or weakened. `main` was not modified. No merge, publicatio
 - Updated stale tests to the approved Calendar phrase, the current waiting-for-others label, the complete Person filter semantics, and timed/all-day overdue boundaries.
 - Home now keeps completed past Tasks visible in a separate «گذشته (انجام‌شده)» group instead of misclassifying them as overdue or hiding them.
 - Rebuilt CI must confirm all updated tests on the exact current HEAD before acceptance.
+
+
+## Storage cutover wave — schema v13/v14
+
+- `G1DriftSchema.version` is now 14.
+- The canonical Task table has been rebuilt without `follow_up_enabled`, `follow_up_date` and singular `reminder_date` columns. Existing Task IDs, content, completion, due date, recurrence and payload data are copied transactionally; foreign keys are disabled only during the rebuild, checked before commit, then re-enabled.
+- The legacy `follow_ups`, `follow_up_people` and `people` tables are copied into `follow_up_records`, `follow_up_record_people` and `persons`, then dropped. Fresh schema creation no longer creates the old tables.
+- The canonical TaskReminder table now owns all reminders. Old Task-level singular reminders and reminders formerly attached to Follow-up history are converted to independent TaskReminder records with Task-scoped stable IDs and preserved all-day state. Legacy future `nextFollowUp` scheduling is intentionally not carried forward.
+- `FollowUpRecord` is now the canonical model name (with a temporary source-compatible `FollowUp` type alias); its canonical timestamp is `completedAt`. Its JSON contains historical fields only, with no reminder or future schedule fields.
+- `Person` is now the canonical model name (with a temporary `PersonReference` alias). TaskStore, SQL migration writer and person directory use the `persons` table.
+- Follow-up editor no longer edits reminder/future scheduling on a historical record. Its optional reminder action creates an independent TaskReminder, including when editing an existing record.
+- Task timeline and Calendar projections now consume independent TaskReminder entries. Task Details no longer renders a duplicate legacy reminder card.
+- Added/updated migration, persistence, timeline and UI regression tests. All source/test changes still require exact-HEAD CI confirmation; no PASS is claimed before those runs complete.
+
+## Remaining cleanup after this cutover
+- Compatibility constructor arguments/getters remain temporarily in the Dart model to keep old call sites source-compatible; they no longer represent persisted Task/Follow-up state. Remove those shims after the remaining test fixtures and consumers are fully migrated.
+- The reusable five-way multi-select filter component and complete reuse across Home, Quick Add, Task Details and Reports are still pending.
+- Physical Samsung SM-A528B/DS seven-path verification remains pending and is a hard release gate.
