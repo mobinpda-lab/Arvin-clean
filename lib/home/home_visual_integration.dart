@@ -16,7 +16,6 @@ class HomeVisualIntegration extends StatelessWidget {
     this.searchHint = 'جست‌وجو در کارها',
   });
 
-
   final Widget body;
   final VoidCallback? onAdd;
   final VoidCallback? onMenu;
@@ -28,12 +27,11 @@ class HomeVisualIntegration extends StatelessWidget {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    final svgColor = isDark
-        ? theme.colorScheme.onSurface
-        : colors.onSurface;
+    final svgColor = isDark ? colors.onSurface : colors.onSurface;
     final capsuleBackground = isDark
-        ? theme.colorScheme.surfaceContainerLow
+        ? colors.surfaceContainerLow
         : Color.alphaBlend(colors.primary.withAlpha(10), colors.surface);
+    final searchBorder = colors.outlineVariant;
     return Scaffold(
       backgroundColor: colors.surface,
       body: SafeArea(
@@ -60,7 +58,7 @@ class HomeVisualIntegration extends StatelessWidget {
                             borderRadius: const BorderRadius.all(Radius.circular(14)),
                           ),
                           child: Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                             child: Semantics(
                               key: const ValueKey('home-bismillah-capsule'),
                               label: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
@@ -70,19 +68,16 @@ class HomeVisualIntegration extends StatelessWidget {
                                 width: 52,
                                 height: 30,
                                 fit: BoxFit.contain,
-                                colorFilter: ColorFilter.mode(
-                                  svgColor,
-                                  BlendMode.srcIn,
-                                ),
+                                colorFilter: ColorFilter.mode(svgColor, BlendMode.srcIn),
                                 excludeFromSemantics: true,
                               ),
                             ),
                           ),
                         ),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         Text(
                           'مدیریت کارها و پیگیری آروین',
-                          key: ValueKey('home-product-title'),
+                          key: const ValueKey('home-product-title'),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: colors.onSurface,
@@ -108,21 +103,21 @@ class HomeVisualIntegration extends StatelessWidget {
                 key: const ValueKey('home-canonical-search'),
                 decoration: InputDecoration(
                   hintText: searchHint,
-                  hintStyle: const TextStyle(color: textSecondary),
+                  hintStyle: TextStyle(color: colors.onSurfaceVariant),
                   prefixIcon: const Icon(Icons.search_rounded),
                   filled: true,
                   fillColor: colors.surface,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: border),
+                    borderSide: BorderSide(color: searchBorder),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: border),
+                    borderSide: BorderSide(color: searchBorder),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: primary, width: 1.4),
+                    borderSide: BorderSide(color: colors.primary, width: 1.4),
                   ),
                 ),
               ),
