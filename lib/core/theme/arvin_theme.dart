@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-/// Shared turquoise brand and surface tokens for Arvin's light, calm UI.
+/// Shared default sky-blue brand and surface tokens for Arvin's light, calm UI.
 /// Keep product semantics (priority, status and taxonomy colors) in ArvinColors.
 abstract final class ArvinTheme {
-  static const Color primaryTurquoise = Color(0xFF078B91);
-  static const Color headerTurquoise = Color(0xFF066F75);
+  static const Color primaryTurquoise = Color(0xFF3A86EF);
+  static const Color headerTurquoise = Color(0xFF2D6FC7);
   static const Color primarySoft = Color(0xFFDDF7F5);
   // Compatibility aliases for older call sites; both resolve to turquoise.
   static const Color primaryPurple = primaryTurquoise;
