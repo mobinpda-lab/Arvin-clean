@@ -8,7 +8,7 @@ import 'models/task.dart';
 abstract final class ArvinColors {
   static const primary = ArvinTheme.primaryTurquoise;
   static const primaryDark = ArvinTheme.headerTurquoise;
-  static const primarySoft = Color(0xFFDDF7F5);
+  static const primarySoft = ArvinTheme.primarySoft;
 
   static const background = ArvinTheme.backgroundLight;
   static const surface = ArvinTheme.cardBackground;
