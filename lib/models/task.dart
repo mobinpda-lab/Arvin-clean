@@ -449,6 +449,38 @@ class Task {
       migrationVersion = 1;
     }
 
+    // Convert legacy Follow-up-attached reminder dates into independent
+    // TaskReminder rows while decoding old JSON. Future nextFollowUp values
+    // are intentionally discarded because Follow-up is historical only.
+    final rawFollowUps = json['followUps'];
+    if (rawFollowUps is List) {
+      for (var index = 0; index < rawFollowUps.length; index++) {
+        final rawFollowUp = rawFollowUps[index];
+        if (rawFollowUp is! Map) continue;
+        final rawDate = rawFollowUp['reminderDate'];
+        if (rawDate is! String || rawDate.trim().isEmpty) continue;
+        final reminderDate = DateTime.tryParse(rawDate);
+        if (reminderDate == null) continue;
+        final followUpId = (rawFollowUp['id'] as String?)?.trim();
+        final reminderId = 'follow-up-reminder-${followUpId?.isNotEmpty == true ? followUpId : index}';
+        if (loadedTaskReminders.any((item) => item.id == reminderId)) continue;
+        final highestSequence = loadedTaskReminders.isEmpty
+            ? 0
+            : loadedTaskReminders
+                .map((item) => item.sequence)
+                .reduce((a, b) => a > b ? a : b);
+        loadedTaskReminders.add(
+          TaskReminder(
+            id: reminderId,
+            title: 'یادآور پیگیری',
+            date: reminderDate,
+            isAllDay: rawFollowUp['reminderAllDay'] == true,
+            sequence: highestSequence + 1,
+          ),
+        );
+      }
+    }
+
     final nextReminderSequence = [
       sequenceFromJson,
       if (loadedTaskReminders.isNotEmpty)
