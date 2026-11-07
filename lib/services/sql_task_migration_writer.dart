@@ -121,22 +121,23 @@ class SqlTaskMigrationWriter {
       );
     }
 
-    for (final reminder in task.taskReminders) {
+    final now = DateTime.now().toIso8601String();
+    for (final person in task.people) {
       await executor.runInsert(
-        '''INSERT INTO task_reminders
-           (id, task_id, title, remind_at, is_all_day, sequence, is_enabled, is_legacy_task_reminder)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
-        <Object?>[
-          reminder.id,
-          task.id,
-          reminder.title,
-          reminder.date.toIso8601String(),
-          _bool(reminder.isAllDay),
-          reminder.sequence,
-          _bool(reminder.isEnabled),
-          _bool(reminder.isLegacyTaskReminder),
-        ],
+        '''INSERT INTO persons (id, name, created_at, updated_at)
+           VALUES (?, ?, ?, ?)
+           ON CONFLICT(id) DO UPDATE SET name = excluded.name, updated_at = excluded.updated_at''',
+        <Object?>[person.id, person.displayName, now, now],
       );
+    }
+    for (final followUp in task.followUps) {
+      for (final personId in followUp.personIds) {
+        await executor.runInsert(
+          '''INSERT OR IGNORE INTO persons (id, name, created_at, updated_at)
+             VALUES (?, '', ?, ?)''',
+          <Object?>[personId, now, now],
+        );
+      }
     }
 
     for (var ordinal = 0; ordinal < task.followUps.length; ordinal++) {
@@ -190,15 +191,8 @@ class SqlTaskMigrationWriter {
         <Object?>[person.id, person.displayName, now, now],
       );
       await executor.runInsert(
-        '''INSERT INTO task_people (
-          task_id, person_id, person_json, ordinal
-        ) VALUES (?, ?, ?, ?)''',
-        <Object?>[
-          task.id,
-          person.id,
-          jsonEncode(person.toJson()),
-          ordinal,
-        ],
+        'INSERT INTO task_persons (task_id, person_id, ordinal) VALUES (?, ?, ?)',
+        <Object?>[task.id, person.id, ordinal],
       );
     }
 
