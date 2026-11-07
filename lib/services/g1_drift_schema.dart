@@ -469,7 +469,7 @@ class G1DriftSchema implements QueryExecutorUser {
       )
     ''');
     await executor.runCustom('''
-      INSERT INTO tasks_canonical_v14 (
+      INSERT INTO tasks_canonical_v15 (
         id, storage_ordinal, title, description, created_at, updated_at, due_date,
         category, notebook_kind, priority, archived, trashed, completed,
         completed_at, recurrence_json, legacy_payload_json
@@ -481,7 +481,7 @@ class G1DriftSchema implements QueryExecutorUser {
       FROM tasks
     ''');
     await executor.runCustom('DROP TABLE tasks');
-    await executor.runCustom('ALTER TABLE tasks_canonical_v14 RENAME TO tasks');
+    await executor.runCustom('ALTER TABLE tasks_canonical_v15 RENAME TO tasks');
   }
 
   static String _dateOnlyStorageValue(DateTime value) =>

@@ -186,7 +186,7 @@ void main() {
     await G1DriftSchema.migrateCanonicalEntities(database);
 
     final reminders = await database.runSelect(
-      'SELECT id, is_all_day FROM task_reminders WHERE task_id = ? ORDER BY sequence',
+      'SELECT id, is_all_day, remind_at FROM task_reminders WHERE task_id = ? ORDER BY sequence',
       <Object?>['canonical-task'],
     );
     expect(reminders.map((row) => row['id']), [
@@ -332,5 +332,8 @@ void main() {
     expect(migratedTask.single['completed'], 1);
     // A pre-timestamp completed task stays unknown; migration must not invent a time.
     expect(migratedTask.single['completed_at'], isNull);
+    expect(columns.map((row) => row['name']), isNot(contains('follow_up_enabled')));
+    expect(columns.map((row) => row['name']), isNot(contains('follow_up_date')));
+    expect(columns.map((row) => row['name']), isNot(contains('reminder_date')));
   });
 }

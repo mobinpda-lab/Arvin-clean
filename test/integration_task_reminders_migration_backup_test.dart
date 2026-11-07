@@ -42,7 +42,8 @@ void main() {
     await store.save(<Task>[task]);
     final afterSql = await store.load();
     expect(afterSql.single.legacyTaskReminderMigrationVersion, 1);
-    expect(afterSql.single.reminderDate, legacyDate);
+    expect(afterSql.single.reminderDate, isNull,
+        reason: 'the canonical reminder was deleted and the migration tombstone prevents legacy resurrection');
     expect(afterSql.single.taskReminders, isEmpty);
 
     final payload = <String, dynamic>{
