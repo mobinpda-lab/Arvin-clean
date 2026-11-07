@@ -110,6 +110,44 @@ void main() {
     );
   });
 
+  test('past filter follows timed and all-day overdue boundaries and excludes completed', () {
+    final timedEarlierToday = Task(
+      id: 'timed-earlier-today',
+      title: 'موعد ساعت‌دار گذشته',
+      dueDate: DateTime(2026, 10, 7, 9),
+    );
+    final allDayToday = Task(
+      id: 'all-day-today',
+      title: 'موعد بدون ساعت امروز',
+      dueDate: DateTime(2026, 10, 7),
+      allDay: true,
+    );
+    final allDayYesterday = Task(
+      id: 'all-day-yesterday',
+      title: 'موعد بدون ساعت دیروز',
+      dueDate: DateTime(2026, 10, 6),
+      allDay: true,
+    );
+    final completedOverdue = Task(
+      id: 'completed-overdue',
+      title: 'کار تکمیل‌شده',
+      dueDate: DateTime(2026, 10, 6, 9),
+      completed: true,
+    );
+
+    final result = const TaskReportFilter(
+      timePreset: ReportTimePreset.past,
+    ).apply(
+      [timedEarlierToday, allDayToday, allDayYesterday, completedOverdue],
+      now: now,
+    );
+
+    expect(
+      result.map((task) => task.id).toSet(),
+      {'timed-earlier-today', 'all-day-yesterday'},
+    );
+  });
+
   test('trashed tasks never enter reports', () {
     final active = Task(id: 'active', title: 'فعال');
     final trashed = Task(id: 'trashed', title: 'سطل زباله');
