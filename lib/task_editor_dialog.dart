@@ -12,7 +12,6 @@ import 'models/task.dart';
 import 'services/persian_date_formatter.dart';
 import 'widgets/persian_date_picker.dart';
 import 'widgets/arvin_roll_box.dart';
-import 'widgets/arvin_task_selector_wrap.dart';
 import 'widgets/universal_arvin_time_picker.dart';
 
 class ArvinTaskEditorDialog extends StatefulWidget {
@@ -1351,36 +1350,44 @@ Future<void> _pickDueDate() async {
                     ),
                   ),
                   const SizedBox(height: 14),
-                  _dateTimeEditor(
-                        keyPrefix: 'task-editor-due',
-                        title: 'تاریخ انجام',
-                        value: _dueDateTime,
-                        onPickDate: _pickDueDate,
-                        onPickTime: _pickDueTime,
-                        onPickDateTime: _pickDueDateTime,
-                        unifiedDateTime: true,
-                        onClear: _clearDueTime,
-                        accent: ArvinColors.time,
-                        allDay: _dueAllDay,
-                        onToggleAllDay: _toggleDueAllDay,
-                      ),
-                  const SizedBox(height: 14),
                   LayoutBuilder(
                     builder: (context, constraints) {
-                      final wide = constraints.maxWidth >= 480;
-                      final largeText = MediaQuery.textScalerOf(context).scale(1) > 1.0;
-                      final threeColumns = wide && !largeText;
-                      final itemWidth = largeText
-                          ? constraints.maxWidth
-                          : threeColumns
-                              ? (constraints.maxWidth - 16) / 3
-                              : (constraints.maxWidth - 8) / 2;
-                      return ArvinTaskSelectorWrap(
-                        spacing: 8,
-                        runSpacing: 8,
+                      return Row(
+                        key: const ValueKey('task-editor-five-filter-row'),
+                        textDirection: TextDirection.rtl,
+                        mainAxisSize: MainAxisSize.max,
                         children: [
-                          SizedBox(
-                            width: itemWidth,
+                          Expanded(
+                            child: ArvinRollBox<DateTime>(
+                              key: const ValueKey('task-editor-due-date-time'),
+                              label: 'زمان',
+                              valueLabel: _dueDateTime == null
+                                  ? 'زمان'
+                                  : (_dueAllDay
+                                      ? _dateText(_dueDateTime!)
+                                      : '${_dateText(_dueDateTime!)} • ${_timeText(_dueDateTime!)}'),
+                              icon: Icons.schedule_rounded,
+                              color: ArvinColors.time,
+                              emptyLabel: 'بدون موعد',
+                              items: const <ArvinRollItem<DateTime>>[],
+                              createLabel: 'انتخاب تاریخ و ساعت',
+                              onCreate: _saving
+                                  ? null
+                                  : () async {
+                                      await _pickDueDateTime();
+                                      return _dueDateTime;
+                                    },
+                              onSelected: (value) {
+                                if (value == null) _clearDueTime();
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                      return Row(
+                        textDirection: TextDirection.rtl,
+                        mainAxisSize: MainAxisSize.max,
+                        children: [
+                          Expanded(
                             child: ArvinRollBox<String>(
                               key: const ValueKey('task-editor-center-rollbox'),
                               label: 'مرکز',
@@ -1420,8 +1427,8 @@ Future<void> _pickDueDate() async {
                                     },
                             ),
                           ),
-                          SizedBox(
-                            width: itemWidth,
+                          const SizedBox(width: 4),
+                          Expanded(
                             child: ArvinRollBox<String>(
                               key: const ValueKey('task-editor-project-rollbox'),
                               label: 'پروژه',
@@ -1529,8 +1536,8 @@ Future<void> _pickDueDate() async {
                               },
                             ),
                           ),
-                          SizedBox(
-                            width: threeColumns ? itemWidth : constraints.maxWidth,
+                          const SizedBox(width: 4),
+                          Expanded(
                             child: ArvinTagRollBox(
                               key: const ValueKey('task-editor-tag-rollbox'),
                               tags: _knownTags,
