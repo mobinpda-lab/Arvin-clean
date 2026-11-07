@@ -99,7 +99,7 @@ class HomeFilterCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: selected
                     ? Color.alphaBlend(selectedAccent.withAlpha(18), selectedSoft)
-                    : soft,
+                    : ArvinColors.surface,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: selected ? selectedAccent.withAlpha(150) : ArvinColors.border,
@@ -225,6 +225,7 @@ class HomeFilterSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.sizeOf(context).height;
+    const brandAccent = ArvinColors.primary;
     return SafeArea(
       top: false,
       child: ConstrainedBox(
@@ -248,7 +249,7 @@ class HomeFilterSheet extends StatelessWidget {
                   width: 42,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: accent.withAlpha(70),
+                    color: brandAccent.withAlpha(70),
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -259,10 +260,10 @@ class HomeFilterSheet extends StatelessWidget {
                       width: 38,
                       height: 38,
                       decoration: BoxDecoration(
-                        color: accent.withAlpha(22),
+                        color: brandAccent.withAlpha(22),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Icon(Icons.tune_rounded, color: accent, size: 20),
+                      child: Icon(Icons.tune_rounded, color: brandAccent, size: 20),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
