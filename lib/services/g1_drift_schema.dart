@@ -33,8 +33,11 @@ class G1DriftSchema implements QueryExecutorUser {
   id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL,
   created_at TEXT NOT NULL, updated_at TEXT NOT NULL)''',
     '''CREATE TABLE IF NOT EXISTS follow_up_record_people (
-  follow_up_id TEXT NOT NULL REFERENCES follow_up_records(id), person_id TEXT NOT NULL,
+  follow_up_id TEXT NOT NULL REFERENCES follow_up_records(id), person_id TEXT NOT NULL REFERENCES persons(id),
   ordinal INTEGER NOT NULL, PRIMARY KEY (follow_up_id, person_id))''',
+    '''CREATE TABLE IF NOT EXISTS task_persons (
+  task_id TEXT NOT NULL REFERENCES tasks(id), person_id TEXT NOT NULL REFERENCES persons(id),
+  ordinal INTEGER NOT NULL, PRIMARY KEY (task_id, person_id))''',
     '''CREATE TABLE IF NOT EXISTS centers (
   id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL,
   is_archived INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL)''',
@@ -75,9 +78,6 @@ class G1DriftSchema implements QueryExecutorUser {
     '''CREATE TABLE IF NOT EXISTS checklist_items (
   task_id TEXT NOT NULL REFERENCES tasks(id), ordinal INTEGER NOT NULL,
   value TEXT NOT NULL, PRIMARY KEY (task_id, ordinal))''',
-    '''CREATE TABLE IF NOT EXISTS task_people (
-  task_id TEXT NOT NULL REFERENCES tasks(id), person_id TEXT NOT NULL,
-  person_json TEXT NOT NULL, ordinal INTEGER NOT NULL, PRIMARY KEY (task_id, person_id))''',
     '''CREATE TABLE IF NOT EXISTS arvin_storage_meta (
   key TEXT NOT NULL PRIMARY KEY, value TEXT NOT NULL)''',
   ];
@@ -207,6 +207,7 @@ class G1DriftSchema implements QueryExecutorUser {
   /// Existing directory rows win for creation time; names are refreshed from
   /// the current task relation. Re-running this migration is safe.
   static Future<void> migrateTaskPeople(QueryExecutor executor) async {
+    if (!await _hasTable(executor, 'task_people')) return;
     final rows = await executor.runSelect(
       'SELECT person_id, person_json FROM task_people ORDER BY task_id, ordinal',
       const [],
@@ -250,6 +251,21 @@ class G1DriftSchema implements QueryExecutorUser {
       }
     }
 
+    final hasLegacyTaskPeople = await _hasTable(executor, 'task_people');
+    if (hasLegacyTaskPeople) {
+      final taskPeopleRows = await executor.runSelect(
+        'SELECT task_id, person_id, ordinal FROM task_people ORDER BY task_id, ordinal',
+        const [],
+      );
+      for (final row in taskPeopleRows) {
+        await executor.runInsert(
+          'INSERT OR IGNORE INTO task_persons (task_id, person_id, ordinal) VALUES (?, ?, ?)',
+          <Object?>[row['task_id'], row['person_id'], row['ordinal']],
+        );
+      }
+      await executor.runCustom('DROP TABLE task_people');
+    }
+
     final hasLegacyFollowUps = await _hasTable(executor, 'follow_ups');
     final hasLegacyFollowUpPeople = await _hasTable(executor, 'follow_up_people');
     if (hasLegacyFollowUps) {
@@ -276,10 +292,21 @@ class G1DriftSchema implements QueryExecutorUser {
         const [],
       );
       for (final row in legacyFollowUpPeople) {
+        final personId = row['person_id'] as String;
+        await executor.runInsert(
+          '''INSERT OR IGNORE INTO persons (id, name, created_at, updated_at)
+             VALUES (?, ?, ?, ?)''',
+          <Object?>[
+            personId,
+            personId,
+            DateTime.now().toIso8601String(),
+            DateTime.now().toIso8601String(),
+          ],
+        );
         await executor.runInsert(
           '''INSERT OR IGNORE INTO follow_up_record_people
              (follow_up_id, person_id, ordinal) VALUES (?, ?, ?)''',
-          <Object?>[row['follow_up_id'], row['person_id'], row['ordinal']],
+          <Object?>[row['follow_up_id'], personId, row['ordinal']],
         );
       }
     }
