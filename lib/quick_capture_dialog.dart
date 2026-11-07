@@ -688,7 +688,7 @@ Future<DateTime?> _pickCustomDue() async {
                                 return createdId;
                               },
                             ),
-                          )),
+                          ),
                           const SizedBox(width: 4),
                           Expanded(
                             child: ArvinRollBox<String>(
