@@ -11,8 +11,6 @@ import 'package:arvin/services/g1_drift_schema.dart';
 import 'package:arvin/services/task_store.dart';
 
 final DateTime _actionAt = DateTime.utc(2026, 8, 15, 10, 15, 42, 123);
-final DateTime _reminderAt = DateTime.utc(2026, 8, 16, 9, 0);
-final DateTime _nextFollowUpAt = DateTime.utc(2026, 8, 20, 10, 15);
 final DateTime _siblingActionAt = DateTime.utc(2026, 8, 10, 8, 30);
 final DateTime _taskDueAt = DateTime.utc(2026, 9, 2, 14, 45);
 final DateTime _legacyReminderAt = DateTime.utc(2026, 8, 18, 11, 20);
@@ -70,8 +68,6 @@ void main() {
                 title: 'پیگیری قرارداد',
                 note: 'شرح کامل اقدام ثبت‌شده',
                 result: 'پاسخ دریافت شد',
-                reminderDate: _reminderAt,
-                nextFollowUp: _nextFollowUpAt,
                 completed: false,
                 waitingForResponse: true,
                 personIds: const <String>['person-1', 'person-2'],
@@ -173,8 +169,9 @@ void main() {
           // Assert canonical SQL rows and relation cardinality as well as the
           // model view, so accidental duplicate writes cannot hide in decoding.
           expect(await _count(active.executor, 'tasks'), 1);
-          expect(await _count(active.executor, 'follow_ups'), 2);
-          expect(await _count(active.executor, 'follow_up_people'), 3);
+          expect(await _count(active.executor, 'follow_up_records'), 2);
+          expect(await _count(active.executor, 'follow_up_record_people'), 3);
+          expect(await _count(active.executor, 'task_reminders'), 2);
           expect(await _count(active.executor, 'task_people'), 1);
 
           await active.close();
@@ -207,8 +204,9 @@ Future<_Harness> _openHarness(String databasePath) async {
 Future<int> _count(QueryExecutor executor, String table) async {
   const allowedTables = <String>{
     'tasks',
-    'follow_ups',
-    'follow_up_people',
+    'follow_up_records',
+    'follow_up_record_people',
+    'task_reminders',
     'task_people',
   };
   if (!allowedTables.contains(table)) {
@@ -227,8 +225,8 @@ void _expectTargetFollowUp(FollowUp followUp, {required bool completed}) {
   expect(followUp.title, 'پیگیری قرارداد');
   expect(followUp.note, 'شرح کامل اقدام ثبت‌شده');
   expect(followUp.result, 'پاسخ دریافت شد');
-  expect(followUp.reminderDate?.toIso8601String(), _reminderAt.toIso8601String());
-  expect(followUp.nextFollowUp?.toIso8601String(), _nextFollowUpAt.toIso8601String());
+  expect(followUp.toJson().containsKey('reminderDate'), isFalse);
+  expect(followUp.toJson().containsKey('nextFollowUp'), isFalse);
   expect(followUp.completed, completed);
   expect(followUp.waitingForResponse, isTrue);
   expect(followUp.personIds, <String>['person-1', 'person-2']);
