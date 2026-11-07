@@ -222,7 +222,8 @@ void main() {
       expect(find.byKey(const ValueKey('quick-capture-checklist-enabled')), findsNothing);
       expect(find.byKey(const ValueKey('quick-capture-checklist-rollbox')), findsNothing);
       expect(find.text('عنوان'), findsNothing);
-      expect(find.text('تاریخ و ساعت'), findsOneWidget);
+      expect(find.text('زمان'), findsOneWidget);
+      expect(find.byKey(const ValueKey('quick-capture-no-time')), findsNothing);
       expect(find.byKey(const ValueKey('quick-capture-full-form')), findsOneWidget);
 
       final input = tester.widget<TextField>(find.byKey(const ValueKey('quick-capture-input')));
@@ -511,11 +512,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('تاریخ و ساعت'), findsOneWidget);
+    expect(find.text('زمان'), findsOneWidget);
     expect(find.text('تکرار'), findsOneWidget);
     expect(find.text('یادآور'), findsOneWidget);
 
-    await tester.tap(find.text('تاریخ و ساعت'));
+    await tester.tap(find.text('زمان'));
     await tester.pumpAndSettle();
     expect(find.text('امروز'), findsOneWidget);
     expect(find.text('تاریخ و ساعت سفارشی'), findsOneWidget);
@@ -585,8 +586,8 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('تاریخ و ساعت'), findsOneWidget);
-    await tester.tap(find.text('تاریخ و ساعت'));
+    expect(find.text('زمان'), findsOneWidget);
+    await tester.tap(find.text('زمان'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('تاریخ و ساعت سفارشی'));
     await tester.pumpAndSettle();
@@ -622,7 +623,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('تاریخ و ساعت'));
+    await tester.tap(find.text('زمان'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('تاریخ و ساعت سفارشی'));
     await tester.pumpAndSettle();
@@ -688,7 +689,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('تاریخ و ساعت'));
+    await tester.tap(find.text('زمان'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('تاریخ و ساعت سفارشی'));
     await tester.pumpAndSettle();
@@ -716,7 +717,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('تاریخ و ساعت'));
+    await tester.tap(find.text('زمان'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('امروز'));
     await tester.pumpAndSettle();
