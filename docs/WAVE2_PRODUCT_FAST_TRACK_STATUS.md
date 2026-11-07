@@ -33,3 +33,11 @@ Next required implementation step: wire the coordinator into the existing Home a
 - آزمون Quick Capture اکنون بازماندن عمدی فرم بعد از ثبت را رعایت می‌کند و پس از بستن فرم، نمایش Task در Home را بررسی می‌کند. پیمایش تست کارت Home نیز به viewport اصلی محدود شده است.
 - این دفتر وضعیت در commit بعدی همگام می‌شود. هیچ PASS از اجرای قبلی به SHA جدید منتقل نمی‌شود؛ Build و Device Smoke کامل و پذیرش گوشی واقعی همچنان الزامی‌اند.
 - **BLOCKED — RELEASE: NO-GO**؛ PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched؛ Merge و انتشار ممنوع.
+
+
+## اصلاحیهٔ نهایی هدف لمس Quick Add — ۱۴۰۵/۰۸/۱۶
+
+- commit کد/آزمون: `c0b3715f16b4fd46e67a2c157559f1de71e2d812`.
+- کنترل‌های چهارگانهٔ اولویت Quick Add اکنون ۴۸dp ارتفاع دارند؛ آزمون responsive در ۳۶۰/۳۹۰/۴۱۲dp و مقیاس متن بزرگ، حداقل عرض و ارتفاع ۴۸dp را برای هر گزینه بررسی می‌کند.
+- این دفتر وضعیت در commit بعدی همگام می‌شود. CI و Device Smoke باید روی HEAD نهایی آن commit دوباره ارزیابی شوند؛ آزمون واقعی گوشی و پذیرش هنوز مانع انتشارند.
+- **BLOCKED — RELEASE: NO-GO**؛ PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched.
