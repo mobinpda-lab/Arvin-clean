@@ -52,7 +52,7 @@ void main() {
   });
 
 
-  test('Report Center person filter returns only Tasks waiting for that stable personId', () {
+  test('Report Center person filter returns all Tasks linked to that stable personId', () {
     final waiting = Task(
       id: 'waiting-for-person',
       title: 'منتظر پاسخ',
@@ -83,7 +83,7 @@ void main() {
       now: DateTime(2026, 11, 6, 12),
     );
 
-    expect(result.map((task) => task.id), ['waiting-for-person']);
+    expect(result.map((task) => task.id).toSet(), {'waiting-for-person', 'not-waiting-for-person'});
   });
 
   test('Person report matches the stable personId saved on a waiting Follow-up', () {
