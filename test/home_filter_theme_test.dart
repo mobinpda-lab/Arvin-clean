@@ -1,13 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:arvin/arvin_colors.dart';
 import 'package:arvin/home/home_filter_ui.dart';
 
+const _accent = Color(0xFF3A86EF);
+
+ThemeData _theme() => ThemeData(
+      colorScheme: const ColorScheme.light(
+        primary: _accent,
+        onPrimary: Colors.white,
+        surface: Colors.white,
+        onSurface: Color(0xFF232433),
+        onSurfaceVariant: Color(0xFF666A80),
+        outline: Color(0xFFD9ECEA),
+      ),
+    );
+
 void main() {
-  testWidgets('active Home filter pill uses the global turquoise selection token', (tester) async {
+  testWidgets('active Home filter pill follows the live theme accent and keeps a 48dp target',
+      (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        theme: _theme(),
         home: Scaffold(
           body: HomeFilterPill(
             label: 'زمان',
@@ -21,15 +35,26 @@ void main() {
       ),
     );
 
-    final chip = tester.widget<ActionChip>(find.byType(ActionChip));
-    expect(chip.backgroundColor, ArvinColors.primarySoft);
-    expect(chip.side?.color, ArvinColors.primary.withAlpha(90));
-    expect(tester.widget<Text>(find.text('زمان')).style?.color, ArvinColors.primary);
+    final pill = find.byType(HomeFilterPill);
+    final material = tester.widget<Material>(
+      find.descendant(of: pill, matching: find.byType(Material)).first,
+    );
+    final scheme = _theme().colorScheme;
+    expect(tester.getSize(pill).height, 48);
+    expect(material.color, Color.alphaBlend(_accent.withAlpha(18), Colors.white));
+    final shape = material.shape! as StadiumBorder;
+    expect(shape.side.color, _accent.withAlpha(90));
+    expect(
+      tester.widget<Text>(find.text('زمان')).style?.color,
+      scheme.primary,
+    );
   });
 
-  testWidgets('active Home filter cards and removable filter chips use turquoise', (tester) async {
+  testWidgets('active Home filter cards and removable chips follow live accent',
+      (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        theme: _theme(),
         home: Scaffold(
           body: Column(
             children: [
@@ -71,7 +96,7 @@ void main() {
     final hasBrandBorder = selectedCardContainers.any((container) {
       final decoration = container.decoration;
       return decoration is BoxDecoration &&
-          decoration.border?.top.color == ArvinColors.primary.withAlpha(150);
+          decoration.border?.top.color == _accent.withAlpha(150);
     });
     expect(hasBrandBorder, isTrue);
 
@@ -80,8 +105,16 @@ void main() {
       find.descendant(of: chipWidget, matching: find.byType(Container)).first,
     );
     final chipDecoration = chipContainer.decoration! as BoxDecoration;
-    expect(chipDecoration.color, ArvinColors.primarySoft);
-    expect(chipDecoration.border!.top.color, ArvinColors.primary.withAlpha(65));
-    expect(tester.widget<Text>(find.descendant(of: chipWidget, matching: find.text('مدرسه'))).style?.color, ArvinColors.primary);
+    expect(
+      chipDecoration.color,
+      Color.alphaBlend(_accent.withAlpha(18), Colors.white),
+    );
+    expect(chipDecoration.border!.top.color, _accent.withAlpha(65));
+    expect(
+      tester.widget<Text>(
+        find.descendant(of: chipWidget, matching: find.text('مدرسه')),
+      ).style?.color,
+      _accent,
+    );
   });
 }
