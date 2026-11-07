@@ -76,8 +76,8 @@ void main() {
       'followUpDate': legacyDate.toIso8601String(),
     });
 
-    expect(task.followUpEnabled, isTrue);
-    expect(task.followUpDate, legacyDate);
+    expect(task.followUpEnabled, isFalse);
+    expect(task.followUpDate, isNull);
     expect(task.followUps, isEmpty);
     expect(task.lastFollowUp, isNull);
   });
