@@ -945,3 +945,11 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - سطح خالی کارت‌های فیلتر و لهجهٔ سربرگ پنل فیلتر نیز به توکن فیروزه‌ای/سطح خنثی مشترک منتقل شد؛ رنگ‌های برند غیر فیروزه‌ای در کنترل‌های فیلتر باقی نماند.
 - آخرین کد پیش از این به‌روزرسانی اسناد: `f255dfdf9e25a600886c5ff07b990f20c3fa6475`. نتیجهٔ CI این SHA تا لحظهٔ ثبت این پیوست هنوز قابل تأیید نیست؛ PASS از SHAهای قبلی به آن منتقل نمی‌شود.
 - PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ بدون Merge/انتشار؛ **BLOCKED — RELEASE: NO-GO**.
+
+## ۱۴۰۵/۰۸/۱۶ — تصمیم محصول زمان کار / موعد (ARVIN-DIR-1405/08/16-02-MASTER)
+- تصمیم مالک محصول ثبت شد: Task.dueDate تنها Deadline است؛ تاریخ و ساعت ورودی یک کنترل واحد هستند و فیلد موعد تکراری در Quick Capture و Task Details ممنوع است.
+- جریان انتخاب: تقویم شمسی، سپس بلافاصله ساعت ۲۴ساعته؛ کنترل دایره‌ای ساعت امکان ثبت تمام‌روز/بدون ساعت را فراهم می‌کند. عبور از ساعت Deadline یا پایان روز محلی در حالت تمام‌روز، مبنای Overdue است.
+- Reminder مستقل از Deadline باقی می‌ماند؛ مدل فعلی dueDate و allDay حفظ می‌شود و فیلد ذخیره‌سازی موازی اضافه نمی‌شود.
+- این ثبت فقط تصمیم محصول است؛ ویجت مشترک، اتصال فرم‌ها، تست‌های همگام و پذیرش موبایل در این checkpoint هنوز پیاده‌سازی/تأیید نشده‌اند.
+- ممیزی exact-HEAD 2553f27f040287b0cf225a4c054777db94821679: Build 42340630768 FAILED؛ Calendar Provider 42340630862 SUCCESS؛ Device Smoke 42340630785 PENDING؛ Draft Review APK 42340630793 SUCCESS.
+- PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched؛ **BLOCKED — RELEASE: NO-GO**.
