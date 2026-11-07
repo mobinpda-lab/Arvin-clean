@@ -622,3 +622,14 @@ PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ هیچ merge یا 
 - A prior assistant message showed a sandbox APK path for SHA 7644fc08; that path was not verified in this execution context. Do not treat it as a valid downloadable artifact. New-head APK and APK SHA-256 remain pending artifact publication and verification.
 - PR #3052 verified OPEN / DRAFT / UNMERGED at HEAD 5f8cfefcb849816f3d16936f4b6bbb0f77c4cf68. No main update or merge.
 - Release remains BLOCKED — RELEASE: NO-GO pending exact-head CI, verified APK artifact and owner physical-device acceptance.
+
+
+## ۱۴۰۵/۰۸/۱۶ — ریشه‌یابی شکست‌های CI و اصلاحات پاسخ‌گو به لاگ (checkpoint)
+
+- مبنای این ثبت: Build run `42335681385` روی SHA دقیق `d2e27baea747ddedf42f744297be09ab86753294`. مجموع شش شارد: ۱۲۳۴ تست موفق و ۲۴ تست ناموفق؛ شاردها به‌ترتیب `test-5: 2`، `test-4: 3`، `test-3: 7`، `test-2: 2`، `test-1: 9` و `test-0: 1` شکست داشتند. Analyze و Visual موفق بودند؛ شکست شش شارد، نتیجه Build را FAIL کرد.
+- تفکیک علت‌ها از لاگ: کلید قدیمی Scroll در تست‌های Home، برچسب قدیمی ساخت پروژه، جست‌وجوی متن Tooltip به‌جای Tooltip finder، انتظار یک ردیف ثابت برای اولویت‌ها و نوع دکمه ذخیره قدیمی، ناسازگاری قرارداد آزمون با رابط فعلی بودند. سرریز ۴ پیکسلی سلول ماه Calendar و سرریز ۵۳ پیکسلی فرم Task Editor خطاهای واقعی layout بودند. خطاهای `No element` و `Too many elements` جداگانه ثبت شدند و تا اجرای مجدد exact-head PASS فرض نمی‌شوند.
+- اصلاحات ثبت‌شده روی شاخه مجاز: `84aa643` افزایش ارتفاع سلول ماه به ۴۸dp و هم‌ترازسازی آزمون ایجاد پروژه؛ `8ada195`، `fc5debd` و `f965448` اصلاح قراردادهای آزمون Home/Calendar/Task Editor؛ `9b8e4cd` چیدمان عمودی کنترل تاریخ/ساعت در عرض بسیار باریک یا مقیاس متن بزرگ؛ `79fee1b` کلید پایدار ساخت مرکز/دسته؛ `2a777fe` هم‌ترازسازی آزمون‌های ایجاد درون‌فرمی؛ `52ecbef` افزودن راهنمای زمینه‌ای Calendar و اصلاح finder آزمون رنگ.
+- این اصلاحات هنوز PASS محسوب نمی‌شوند؛ اجرای Build جدید برای SHA نهایی لازم است. هیچ تست یا قابلیت حذف، Skip یا عمداً تضعیف نشده است.
+- شواهد SHA قدیمی `d2e27ba`: Calendar Provider run `42335681413` SUCCESS؛ Draft Review APK run `42335681420` SUCCESS؛ Device Smoke run `42335681478` CANCELLED. Artifactهای Staging/Debug از Build همان SHA موجودند؛ digest گزارش‌شده GitHub مربوط به ZIP آرشیو است و **SHA-256 خود APK نیست**.
+- SHA فعلی این ثبت: `52ecbef18d7bbc26d2915270e28297d272342634`. Build `42336933347` و Device Smoke `42336933508` در صف و بدون Job؛ Draft Review APK `42336933225` در حال اجرا؛ Calendar Provider `42336933308` در حال اجرا پس از تأیید SHA؛ Follow-up Persistence `42336934664` در حال اجرا. هیچ‌یک هنوز PASS نیستند.
+- PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ Merge و انتشار انجام نشده؛ **BLOCKED — RELEASE: NO-GO** تا قبولی همه دروازه‌ها روی یک SHA، Device Smoke کامل و پذیرش روی گوشی واقعی.
