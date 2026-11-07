@@ -96,10 +96,14 @@ void main() {
     expect(checklist.map((row) => row['value']), ['ارسال قرارداد', 'تماس مجدد']);
 
     final people = await database.runSelect(
-      'SELECT person_id, person_json FROM task_people WHERE task_id = ?',
+      '''SELECT task_persons.person_id, persons.name
+         FROM task_persons
+         JOIN persons ON persons.id = task_persons.person_id
+         WHERE task_persons.task_id = ?''',
       const ['legacy-1'],
     );
     expect(people.single['person_id'], 'person-1');
+    expect(people.single['name'], 'علی رضایی');
 
     final tags = await database.runSelect(
       '''SELECT tags.name
