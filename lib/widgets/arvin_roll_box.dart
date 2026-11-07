@@ -177,17 +177,26 @@ class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
         .toSet()
         .toList()
       ..sort();
-    final create = widget.onCreateWithName ??
-        (widget.onCreate == null
-            ? null
-            : (String _) async {
-                final created = await widget.onCreate!.call();
-                if (created == null || created.trim().isEmpty) return null;
-                return ReusableFilterOption<String>(
-                  value: created.trim(),
-                  label: created.trim(),
-                );
-              });
+    Future<ReusableFilterOption<String>?>? create;
+    if (widget.onCreateWithName != null) {
+      create = (name) async {
+        final created = await widget.onCreateWithName!(name);
+        if (created == null || created.trim().isEmpty) return null;
+        return ReusableFilterOption<String>(
+          value: created.trim(),
+          label: created.trim(),
+        );
+      };
+    } else if (widget.onCreate != null) {
+      create = (_) async {
+        final created = await widget.onCreate!.call();
+        if (created == null || created.trim().isEmpty) return null;
+        return ReusableFilterOption<String>(
+          value: created.trim(),
+          label: created.trim(),
+        );
+      };
+    }
     final applied = await ReusableMultiSelectFilterBottomSheet.showMultiSelect<String>(
       context,
       title: 'انتخاب برچسب',
