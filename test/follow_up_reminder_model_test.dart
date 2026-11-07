@@ -51,6 +51,7 @@ void main() {
           id: 'f1',
           dateTime: DateTime(2026, 8, 28, 12),
           reminderDate: DateTime(2026, 8, 28, 11, 45),
+          reminderAllDay: true,
         ),
       ],
     );
@@ -62,6 +63,7 @@ void main() {
       restored.followUps.single.reminderDate,
       DateTime(2026, 8, 28, 11, 45),
     );
+    expect(restored.followUps.single.reminderAllDay, isTrue);
   });
 
   test('multiple independent Task reminders and monotonic sequence survive JSON round-trip', () {
