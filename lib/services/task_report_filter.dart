@@ -284,6 +284,7 @@ class TaskReportFilter {
           !selectedProjects.any((project) => project.itemIds.contains(task.id))) {
         return false;
       }
+      if (timePreset == ReportTimePreset.past && task.completed) return false;
       if (!_matchesTime(task.dueDate, now, allDay: task.allDay)) return false;
       return true;
     }).toList(growable: false);
