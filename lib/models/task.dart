@@ -28,17 +28,14 @@ enum NotebookItemKind { note, checklist }
 
 class FollowUp {
   final String id;
-  /// Canonical historical completion timestamp. Kept as an alias of the
-  /// legacy persisted dateTime field so existing user history is preserved.
+
+  /// Canonical historical timestamp for this record.
   DateTime get completedAt => dateTime;
 
   final DateTime dateTime;
   final String? title;
   final String note;
   final String? result;
-  final DateTime? reminderDate;
-  final bool reminderAllDay;
-  final DateTime? nextFollowUp;
   final bool completed;
   final bool waitingForResponse;
   final List<String> personIds;
@@ -49,13 +46,27 @@ class FollowUp {
     this.title,
     this.note = '',
     this.result,
-    this.reminderDate,
-    this.reminderAllDay = false,
-    this.nextFollowUp,
+    // Source-compatibility parameters only. They are intentionally ignored:
+    // reminders belong to TaskReminder, and Follow-up records are historical.
+    @Deprecated('Use TaskReminder on the parent Task.')
+    DateTime? reminderDate,
+    @Deprecated('Use TaskReminder.isAllDay on the parent Task.')
+    bool reminderAllDay = false,
+    @Deprecated('Follow-up records do not schedule future work.')
+    DateTime? nextFollowUp,
     this.completed = false,
     this.waitingForResponse = false,
     this.personIds = const <String>[],
   });
+
+  @Deprecated('Use TaskReminder on the parent Task.')
+  DateTime? get reminderDate => null;
+
+  @Deprecated('Use TaskReminder.isAllDay on the parent Task.')
+  bool get reminderAllDay => false;
+
+  @Deprecated('Follow-up records do not schedule future work.')
+  DateTime? get nextFollowUp => null;
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -63,11 +74,6 @@ class FollowUp {
         if (title?.trim().isNotEmpty == true) 'title': title!.trim(),
         'note': note,
         'result': result,
-        if (reminderDate != null)
-          'reminderDate': reminderDate!.toIso8601String(),
-        if (reminderDate != null && reminderAllDay) 'reminderAllDay': true,
-        if (nextFollowUp != null)
-          'nextFollowUp': nextFollowUp!.toIso8601String(),
         'completed': completed,
         'waitingForResponse': waitingForResponse,
         if (personIds.isNotEmpty) 'personIds': personIds,
@@ -82,13 +88,6 @@ class FollowUp {
           : (json['title'] as String?)?.trim(),
       note: json['note'] as String? ?? '',
       result: json['result'] as String?,
-      reminderDate: json['reminderDate'] == null
-          ? null
-          : DateTime.tryParse(json['reminderDate'] as String),
-      reminderAllDay: json['reminderAllDay'] as bool? ?? false,
-      nextFollowUp: json['nextFollowUp'] == null
-          ? null
-          : DateTime.tryParse(json['nextFollowUp'] as String),
       completed: json['completed'] as bool? ?? false,
       waitingForResponse: json['waitingForResponse'] as bool? ?? false,
       personIds: (json['personIds'] as List<dynamic>? ?? const [])
