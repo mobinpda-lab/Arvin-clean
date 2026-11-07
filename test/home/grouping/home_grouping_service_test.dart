@@ -15,6 +15,7 @@ void main() {
     List<String> tags = const [],
     bool completed = false,
     bool trashed = false,
+    bool allDay = false,
   }) {
     return Task(
       id: id,
@@ -24,6 +25,7 @@ void main() {
       tags: tags,
       completed: completed,
       trashed: trashed,
+      allDay: allDay,
     );
   }
 
@@ -67,6 +69,44 @@ void main() {
       groups.singleWhere((group) => group.id == 'no_date').items
           .map((item) => item.id),
       ['no-date'],
+    );
+  });
+
+  test('timed deadlines become overdue immediately; all-day deadlines wait until day end', () {
+    final now = DateTime(2026, 11, 7, 12, 30);
+    final groups = service.buildGroups(
+      HomeGroupMode.time,
+      [
+        task('timed-overdue', dueDate: DateTime(2026, 11, 7, 11, 30)),
+        task('timed-not-yet-due', dueDate: DateTime(2026, 11, 7, 13, 30)),
+        task(
+          'all-day-today',
+          dueDate: DateTime(2026, 11, 7),
+          allDay: true,
+        ),
+        task(
+          'all-day-yesterday',
+          dueDate: DateTime(2026, 11, 6),
+          allDay: true,
+        ),
+        task(
+          'completed-timed-overdue',
+          dueDate: DateTime(2026, 11, 7, 10),
+          completed: true,
+        ),
+      ],
+      now: now,
+    );
+
+    expect(
+      groups.singleWhere((group) => group.id == 'overdue').items
+          .map((item) => item.id),
+      ['timed-overdue', 'all-day-yesterday'],
+    );
+    expect(
+      groups.singleWhere((group) => group.id == 'today').items
+          .map((item) => item.id),
+      ['timed-not-yet-due', 'all-day-today', 'completed-timed-overdue'],
     );
   });
 

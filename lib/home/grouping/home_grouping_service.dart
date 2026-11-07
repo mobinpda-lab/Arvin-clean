@@ -16,12 +16,13 @@ class HomeGroupingService {
     HomeGroupMode mode,
     List<Task> tasks, {
     Iterable<ProjectPlan> projects = const <ProjectPlan>[],
+    DateTime? now,
   }) {
     final activeTasks = tasks.where((task) => !task.trashed).toList();
 
     switch (mode) {
       case HomeGroupMode.time:
-        return _timeGroups(activeTasks);
+        return _timeGroups(activeTasks, now: now ?? IranClock.now());
       case HomeGroupMode.projects:
         return _projectGroups(activeTasks, projects);
       case HomeGroupMode.categories:
@@ -31,30 +32,44 @@ class HomeGroupingService {
     }
   }
 
-  List<HomeGroup<Task>> _timeGroups(List<Task> tasks) {
-    final now = IranClock.now();
+  List<HomeGroup<Task>> _timeGroups(
+    List<Task> tasks, {
+    required DateTime now,
+  }) {
     final today = DateTime(now.year, now.month, now.day);
 
     DateTime dayOf(DateTime value) =>
         DateTime(value.year, value.month, value.day);
 
+    bool isOverdue(Task task) {
+      final due = task.dueDate;
+      if (due == null || task.completed) return false;
+      if (task.allDay) {
+        final dueDay = dayOf(due);
+        final endOfDueDay = DateTime(
+          dueDay.year,
+          dueDay.month,
+          dueDay.day + 1,
+        );
+        return !now.isBefore(endOfDueDay);
+      }
+      return due.isBefore(now);
+    }
+
     return [
       HomeGroup<Task>(
         id: 'overdue',
         title: 'عقب‌افتاده',
-        items: tasks.where((task) {
-          final due = task.dueDate;
-          return due != null &&
-              dayOf(due).isBefore(today) &&
-              !task.completed;
-        }).toList(),
+        items: tasks.where(isOverdue).toList(),
       ),
       HomeGroup<Task>(
         id: 'today',
         title: 'امروز',
         items: tasks.where((task) {
           final due = task.dueDate;
-          return due != null && dayOf(due) == today;
+          return due != null &&
+              dayOf(due) == today &&
+              !isOverdue(task);
         }).toList(),
       ),
       HomeGroup<Task>(
