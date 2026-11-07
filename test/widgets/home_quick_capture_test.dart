@@ -47,7 +47,10 @@ void main() {
     await tester.tap(submit);
     await tester.pumpAndSettle();
 
-    expect(find.text('تماس با علی'), findsOneWidget);
+    // Quick Capture intentionally remains open after persisting so the
+    // user can enter another task. Verify persistence first, then close it
+    // before asserting the Home list projection.
+    expect(find.byKey(const ValueKey('quick-capture-dialog')), findsOneWidget);
 
     final raw = (await TaskStore().load()).map((task) => task.toJson()).toList();
     expect(raw, hasLength(2));
@@ -65,5 +68,10 @@ void main() {
     );
     expect(captured['tags'], ['مهم']);
     expect(DateTime.tryParse(captured['createdAt'] as String? ?? ''), isNotNull);
+
+    await tester.tap(find.byKey(const ValueKey('quick-capture-close')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('quick-capture-dialog')), findsNothing);
+    expect(find.text('تماس با علی'), findsOneWidget);
   });
 }

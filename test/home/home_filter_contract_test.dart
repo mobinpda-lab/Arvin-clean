@@ -11,9 +11,13 @@ import 'package:arvin/home/home_filter_ui.dart';
 import 'package:arvin/services/iran_clock.dart';
 import 'package:arvin/services/persian_date_formatter.dart';
 
-Finder _homeVerticalScrollable() => find.byWidgetPredicate(
-      (widget) => widget is Scrollable &&
-          (widget.axisDirection == AxisDirection.down || widget.axisDirection == AxisDirection.up),
+Finder _homeVerticalScrollable() => find.descendant(
+      of: find.byKey(const ValueKey('home-task-list-viewport')),
+      matching: find.byWidgetPredicate(
+        (widget) => widget is Scrollable &&
+            (widget.axisDirection == AxisDirection.down ||
+                widget.axisDirection == AxisDirection.up),
+      ),
     ).first;
 
 void main() {
