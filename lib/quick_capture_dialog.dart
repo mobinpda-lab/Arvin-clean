@@ -631,7 +631,7 @@ Future<DateTime?> _pickCustomDue() async {
                               compact: true,
                               valueLabel: selectedCenter.isEmpty ? 'مرکز' : selectedCenter.first.name,
                               icon: Icons.business_outlined,
-                              color: ArvinColors.primary,
+                              color: Theme.of(context).colorScheme.primary,
                               emptyLabel: 'بدون محدودیت مرکز',
                               createLabel: '+ افزودن مرکز',
                               createItemKey: const ValueKey('quick-capture-create-center'),
