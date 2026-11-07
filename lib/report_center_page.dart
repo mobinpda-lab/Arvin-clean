@@ -69,22 +69,27 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
   TaskReportFilter _filter = const TaskReportFilter();
   List<CalendarReminder> _externalCalendarEvents = const <CalendarReminder>[];
   bool _loadingExternalCalendarEvents = false;
+  final List<PersonReference> _createdPeople = <PersonReference>[];
 
   DateTime get _now => widget.now ?? DateTime.now();
 
   List<PersonReference> get _peopleDirectory {
+    final directory = <PersonReference>[
+      ...widget.people,
+      ..._createdPeople,
+    ];
     final activeById = <String, PersonReference>{
-      for (final person in widget.people) person.id: person,
+      for (final person in directory) person.id: person,
     };
     final byId = <String, PersonReference>{
-      if (widget.people.isEmpty)
+      if (directory.isEmpty)
         for (final task in widget.tasks)
           for (final person in task.people) person.id: person,
-      if (widget.people.isNotEmpty)
+      if (directory.isNotEmpty)
         for (final task in widget.tasks)
           for (final person in task.people)
             if (activeById.containsKey(person.id)) person.id: activeById[person.id]!,
-      if (widget.people.isNotEmpty)
+      if (directory.isNotEmpty)
         for (final task in widget.tasks)
           for (final person in task.people)
             if (!activeById.containsKey(person.id))
@@ -170,6 +175,17 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
     });
   }
 
+  Future<PersonReference?> _createPersonInReport(String name) async {
+    final person = await widget.onCreatePerson?.call(name);
+    if (person != null && mounted) {
+      setState(() {
+        _createdPeople.removeWhere((item) => item.id == person.id);
+        _createdPeople.add(person);
+      });
+    }
+    return person;
+  }
+
   Future<void> _openFilters() async {
     final result = await showModalBottomSheet<_ReportFilterResult>(
       context: context,
@@ -187,7 +203,7 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
         onCreateProject: widget.onCreateProject,
         onCreateCategory: widget.onCreateCategory,
         onCreateTag: widget.onCreateTag,
-        onCreatePerson: widget.onCreatePerson,
+        onCreatePerson: _createPersonInReport,
       ),
     );
     if (result == null || !mounted) return;
