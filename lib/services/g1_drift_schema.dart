@@ -7,7 +7,7 @@ import '../models/task.dart';
 
 /// G1-DRIFT relational schema foundation.
 class G1DriftSchema implements QueryExecutorUser {
-  static const int version = 12;
+  static const int version = 13;
 
   static const List<String> _statements = <String>[
     '''CREATE TABLE IF NOT EXISTS tasks (
@@ -17,12 +17,6 @@ class G1DriftSchema implements QueryExecutorUser {
   notebook_kind TEXT NULL, reminder_date TEXT NULL, priority TEXT NOT NULL,
   archived INTEGER NOT NULL, trashed INTEGER NOT NULL, completed INTEGER NOT NULL,
   completed_at TEXT NULL, recurrence_json TEXT NULL, legacy_payload_json TEXT NULL)''',
-    '''CREATE TABLE IF NOT EXISTS follow_ups (
-  id TEXT NOT NULL PRIMARY KEY, task_id TEXT NOT NULL REFERENCES tasks(id),
-  date_time TEXT NOT NULL, title TEXT NULL, note TEXT NOT NULL, result TEXT NULL,
-  reminder_date TEXT NULL, next_follow_up TEXT NULL, completed INTEGER NOT NULL,
-  waiting_for_response INTEGER NOT NULL DEFAULT 0,
-  ordinal INTEGER NOT NULL, UNIQUE (task_id, ordinal))''',
     '''CREATE TABLE IF NOT EXISTS task_reminders (
   id TEXT NOT NULL PRIMARY KEY, task_id TEXT NOT NULL REFERENCES tasks(id),
   title TEXT NOT NULL, remind_at TEXT NOT NULL, is_all_day INTEGER NOT NULL DEFAULT 0,
@@ -84,12 +78,6 @@ class G1DriftSchema implements QueryExecutorUser {
     '''CREATE TABLE IF NOT EXISTS task_people (
   task_id TEXT NOT NULL REFERENCES tasks(id), person_id TEXT NOT NULL,
   person_json TEXT NOT NULL, ordinal INTEGER NOT NULL, PRIMARY KEY (task_id, person_id))''',
-    '''CREATE TABLE IF NOT EXISTS people (
-  id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL,
-  created_at TEXT NOT NULL, updated_at TEXT NOT NULL)''',
-    '''CREATE TABLE IF NOT EXISTS follow_up_people (
-  follow_up_id TEXT NOT NULL REFERENCES follow_ups(id), person_id TEXT NOT NULL,
-  ordinal INTEGER NOT NULL, PRIMARY KEY (follow_up_id, person_id))''',
     '''CREATE TABLE IF NOT EXISTS arvin_storage_meta (
   key TEXT NOT NULL PRIMARY KEY, value TEXT NOT NULL)''',
   ];
@@ -161,14 +149,17 @@ class G1DriftSchema implements QueryExecutorUser {
       if (!taskColumns.any((row) => row['name'] == 'completed_at')) {
         await executor.runCustom('ALTER TABLE tasks ADD COLUMN completed_at TEXT NULL');
       }
-      final followUpColumns = await executor.runSelect("PRAGMA table_info('follow_ups')", const []);
-      if (!followUpColumns.any((row) => row['name'] == 'title')) {
-        await executor.runCustom('ALTER TABLE follow_ups ADD COLUMN title TEXT NULL');
-      }
-      if (!followUpColumns.any((row) => row['name'] == 'waiting_for_response')) {
-        await executor.runCustom(
-          'ALTER TABLE follow_ups ADD COLUMN waiting_for_response INTEGER NOT NULL DEFAULT 0',
-        );
+      final legacyFollowUpTable = await _hasTable(executor, 'follow_ups');
+      if (legacyFollowUpTable) {
+        final followUpColumns = await executor.runSelect("PRAGMA table_info('follow_ups')", const []);
+        if (!followUpColumns.any((row) => row['name'] == 'title')) {
+          await executor.runCustom('ALTER TABLE follow_ups ADD COLUMN title TEXT NULL');
+        }
+        if (!followUpColumns.any((row) => row['name'] == 'waiting_for_response')) {
+          await executor.runCustom(
+            'ALTER TABLE follow_ups ADD COLUMN waiting_for_response INTEGER NOT NULL DEFAULT 0',
+          );
+        }
       }
       final projectColumns = await executor.runSelect("PRAGMA table_info('projects')", const []);
       if (!projectColumns.any((row) => row['name'] == 'color_value')) {
@@ -224,11 +215,6 @@ class G1DriftSchema implements QueryExecutorUser {
         final name = (decoded['displayName'] ?? decoded['name']);
         if (name is! String || name.trim().isEmpty) continue;
         await executor.runInsert(
-          '''INSERT INTO people (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)
-             ON CONFLICT(id) DO UPDATE SET name = excluded.name, updated_at = excluded.updated_at''',
-          <Object?>[id.trim(), name.trim(), now, now],
-        );
-        await executor.runInsert(
           '''INSERT INTO persons (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)
              ON CONFLICT(id) DO UPDATE SET name = excluded.name, updated_at = excluded.updated_at''',
           <Object?>[id.trim(), name.trim(), now, now],
@@ -239,48 +225,56 @@ class G1DriftSchema implements QueryExecutorUser {
     }
   }
 
-  /// Materializes independent reminders, historical Follow-up records and
-  /// the unified Person directory in canonical relational tables. Legacy
-  /// tables remain read-compatible until every consumer has moved.
+  /// Moves old Follow-up scheduling and people storage into canonical
+  /// independent tables, then retires the legacy tables. Safe to rerun.
   static Future<void> migrateCanonicalEntities(QueryExecutor executor) async {
-    final directoryRows = await executor.runSelect(
-      'SELECT id, name, created_at, updated_at FROM people',
-      const [],
-    );
-    for (final row in directoryRows) {
-      await executor.runInsert(
-        '''INSERT OR IGNORE INTO persons (id, name, created_at, updated_at)
-           VALUES (?, ?, ?, ?)''',
-        <Object?>[row['id'], row['name'], row['created_at'], row['updated_at']],
+    final hasPeople = await _hasTable(executor, 'people');
+    if (hasPeople) {
+      final directoryRows = await executor.runSelect(
+        'SELECT id, name, created_at, updated_at FROM people',
+        const [],
       );
+      for (final row in directoryRows) {
+        await executor.runInsert(
+          '''INSERT OR IGNORE INTO persons (id, name, created_at, updated_at)
+             VALUES (?, ?, ?, ?)''',
+          <Object?>[row['id'], row['name'], row['created_at'], row['updated_at']],
+        );
+      }
     }
 
-    final legacyFollowUps = await executor.runSelect(
-      'SELECT * FROM follow_ups ORDER BY task_id, ordinal',
-      const [],
-    );
-    for (final row in legacyFollowUps) {
-      await executor.runInsert(
-        '''INSERT OR IGNORE INTO follow_up_records
-           (id, task_id, completed_at, title, note, result, completed, waiting_for_response, ordinal)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-        <Object?>[
-          row['id'], row['task_id'], row['date_time'], row['title'], row['note'],
-          row['result'], row['completed'], row['waiting_for_response'], row['ordinal'],
-        ],
+    final hasLegacyFollowUps = await _hasTable(executor, 'follow_ups');
+    final hasLegacyFollowUpPeople = await _hasTable(executor, 'follow_up_people');
+    if (hasLegacyFollowUps) {
+      final legacyFollowUps = await executor.runSelect(
+        'SELECT * FROM follow_ups ORDER BY task_id, ordinal',
+        const [],
       );
+      for (final row in legacyFollowUps) {
+        await executor.runInsert(
+          '''INSERT OR IGNORE INTO follow_up_records
+             (id, task_id, completed_at, title, note, result, completed, waiting_for_response, ordinal)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+          <Object?>[
+            row['id'], row['task_id'], row['date_time'], row['title'], row['note'],
+            row['result'], row['completed'], row['waiting_for_response'], row['ordinal'],
+          ],
+        );
+      }
     }
 
-    final legacyFollowUpPeople = await executor.runSelect(
-      'SELECT follow_up_id, person_id, ordinal FROM follow_up_people ORDER BY follow_up_id, ordinal',
-      const [],
-    );
-    for (final row in legacyFollowUpPeople) {
-      await executor.runInsert(
-        '''INSERT OR IGNORE INTO follow_up_record_people
-           (follow_up_id, person_id, ordinal) VALUES (?, ?, ?)''',
-        <Object?>[row['follow_up_id'], row['person_id'], row['ordinal']],
+    if (hasLegacyFollowUpPeople) {
+      final legacyFollowUpPeople = await executor.runSelect(
+        'SELECT follow_up_id, person_id, ordinal FROM follow_up_people ORDER BY follow_up_id, ordinal',
+        const [],
       );
+      for (final row in legacyFollowUpPeople) {
+        await executor.runInsert(
+          '''INSERT OR IGNORE INTO follow_up_record_people
+             (follow_up_id, person_id, ordinal) VALUES (?, ?, ?)''',
+          <Object?>[row['follow_up_id'], row['person_id'], row['ordinal']],
+        );
+      }
     }
 
     final taskRows = await executor.runSelect(
@@ -315,53 +309,71 @@ class G1DriftSchema implements QueryExecutorUser {
       }
     }
 
-    // A legacy reminder attached to a Follow-up is not Follow-up scheduling:
-    // convert it into a normal independent TaskReminder before the old fields
-    // are retired. The Follow-up's future nextFollowUp value is intentionally
-    // not carried forward.
-    final legacyFollowUpReminders = await executor.runSelect(
-      'SELECT id, task_id, reminder_date FROM follow_ups WHERE reminder_date IS NOT NULL ORDER BY task_id, ordinal',
-      const [],
-    );
-    for (final legacy in legacyFollowUpReminders) {
-      final taskRows = await executor.runSelect(
-        'SELECT legacy_payload_json FROM tasks WHERE id = ?',
-        <Object?>[legacy['task_id']],
+    // Older SQL Follow-up rows may have a reminder date even when the JSON
+    // envelope predates the TaskReminder conversion. Preserve it independently.
+    if (hasLegacyFollowUps) {
+      final legacyFollowUpReminders = await executor.runSelect(
+        'SELECT id, task_id, reminder_date FROM follow_ups WHERE reminder_date IS NOT NULL ORDER BY task_id, ordinal',
+        const [],
       );
-      var isAllDay = false;
-      if (taskRows.isNotEmpty) {
-        final rawPayload = taskRows.single['legacy_payload_json'];
-        if (rawPayload is String && rawPayload.trim().isNotEmpty) {
-          final decoded = jsonDecode(rawPayload);
-          if (decoded is Map && decoded['followUps'] is List) {
-            for (final rawFollowUp in decoded['followUps'] as List) {
-              if (rawFollowUp is Map && rawFollowUp['id'] == legacy['id']) {
-                isAllDay = rawFollowUp['reminderAllDay'] == true;
-                break;
+      for (final legacy in legacyFollowUpReminders) {
+        final taskRows = await executor.runSelect(
+          'SELECT legacy_payload_json FROM tasks WHERE id = ?',
+          <Object?>[legacy['task_id']],
+        );
+        var isAllDay = false;
+        if (taskRows.isNotEmpty) {
+          final rawPayload = taskRows.single['legacy_payload_json'];
+          if (rawPayload is String && rawPayload.trim().isNotEmpty) {
+            final decoded = jsonDecode(rawPayload);
+            if (decoded is Map && decoded['followUps'] is List) {
+              for (final rawFollowUp in decoded['followUps'] as List) {
+                if (rawFollowUp is Map && rawFollowUp['id'] == legacy['id']) {
+                  isAllDay = rawFollowUp['reminderAllDay'] == true;
+                  break;
+                }
               }
             }
           }
         }
+        final sequenceRows = await executor.runSelect(
+          'SELECT COALESCE(MAX(sequence), 0) + 1 AS next_sequence FROM task_reminders WHERE task_id = ?',
+          <Object?>[legacy['task_id']],
+        );
+        final sequence = (sequenceRows.single['next_sequence'] as num).toInt();
+        await executor.runInsert(
+          '''INSERT OR IGNORE INTO task_reminders
+             (id, task_id, title, remind_at, is_all_day, sequence, is_enabled, is_legacy_task_reminder)
+             VALUES (?, ?, ?, ?, ?, ?, 1, 0)''',
+          <Object?>[
+            'follow-up-reminder-${legacy['id']}',
+            legacy['task_id'],
+            'یادآور پیگیری',
+            legacy['reminder_date'],
+            isAllDay ? 1 : 0,
+            sequence,
+          ],
+        );
       }
-      final sequenceRows = await executor.runSelect(
-        'SELECT COALESCE(MAX(sequence), 0) + 1 AS next_sequence FROM task_reminders WHERE task_id = ?',
-        <Object?>[legacy['task_id']],
-      );
-      final sequence = (sequenceRows.single['next_sequence'] as num).toInt();
-      await executor.runInsert(
-        '''INSERT OR IGNORE INTO task_reminders
-           (id, task_id, title, remind_at, is_all_day, sequence, is_enabled, is_legacy_task_reminder)
-           VALUES (?, ?, ?, ?, ?, ?, 1, 0)''',
-        <Object?>[
-          'follow-up-reminder-${legacy['id']}',
-          legacy['task_id'],
-          'یادآور پیگیری',
-          legacy['reminder_date'],
-          isAllDay ? 1 : 0,
-          sequence,
-        ],
-      );
     }
+
+    if (hasLegacyFollowUpPeople) {
+      await executor.runCustom('DROP TABLE follow_up_people');
+    }
+    if (hasLegacyFollowUps) {
+      await executor.runCustom('DROP TABLE follow_ups');
+    }
+    if (hasPeople) {
+      await executor.runCustom('DROP TABLE people');
+    }
+  }
+
+  static Future<bool> _hasTable(QueryExecutor executor, String table) async {
+    final rows = await executor.runSelect(
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?",
+      <Object?>[table],
+    );
+    return rows.isNotEmpty;
   }
 
   static Future<bool> isLegacyMigrationComplete(QueryExecutor executor) async {
