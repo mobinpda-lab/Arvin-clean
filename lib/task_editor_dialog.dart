@@ -887,29 +887,16 @@ Future<void> _pickDueDateTime() async {
               ? now
               : DateTime(now.year, now.month, now.day + 1);
           setState(() {
-            if (target.contains('reminder')) {
-              _reminderDateTime = DateTime(
-                picked.year,
-                picked.month,
-                picked.day,
-                base.hour,
-                base.minute,
-              );
-              _reminderFollowsDueTime = false;
-              _reminderExplicitlyCleared = false;
-            } else {
-              _dueDateTime = _dueAllDay || value == null
-                  ? DateTime(picked.year, picked.month, picked.day)
-                  : DateTime(
-                      picked.year,
-                      picked.month,
-                      picked.day,
-                      base.hour,
-                      base.minute,
-                    );
-              if (value == null || _dueAllDay) _dueAllDay = true;
-              _syncAutomaticReminder();
-            }
+            _dueDateTime = _dueAllDay || value == null
+                ? DateTime(picked.year, picked.month, picked.day)
+                : DateTime(
+                    picked.year,
+                    picked.month,
+                    picked.day,
+                    base.hour,
+                    base.minute,
+                  );
+            if (value == null || _dueAllDay) _dueAllDay = true;
           });
         },
         onCreate: () async {
