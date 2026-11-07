@@ -49,6 +49,7 @@ import 'services/home_follow_up_presentation_service.dart';
 import 'services/task_due_scope_service.dart';
 import 'services/task_list_scope_service.dart';
 import 'services/task_list_sort_service.dart';
+import 'services/task_due_status.dart';
 import 'services/task_move_to_today_service.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/project_store.dart';
@@ -745,10 +746,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   bool _overdue(Task task) {
-    final date = task.dueDate;
-    if (date == null || task.completed) return false;
-    if (_dismissedOverdueWarnings[task.id] == date) return false;
-    return date.isBefore(DateTime.now());
+    if (!TaskDueStatus.isOverdue(task, now: IranClock.now())) return false;
+    return _dismissedOverdueWarnings[task.id] != task.dueDate;
   }
 
   bool get _homeFilterActive =>
@@ -894,10 +893,15 @@ class _HomePageState extends State<HomePage> {
         grouped['no_date']!.add(task);
       } else {
         final day = dayOf(due);
-        if (day.isBefore(today)) grouped['overdue']!.add(task);
-        else if (day == today) grouped['today']!.add(task);
-        else if (day == tomorrow) grouped['tomorrow']!.add(task);
-        else grouped['future']!.add(task);
+        if (TaskDueStatus.isOverdue(task, now: now)) {
+          grouped['overdue']!.add(task);
+        } else if (day == today) {
+          grouped['today']!.add(task);
+        } else if (day == tomorrow) {
+          grouped['tomorrow']!.add(task);
+        } else {
+          grouped['future']!.add(task);
+        }
       }
     }
     return [
