@@ -453,21 +453,25 @@ class _ArvinAppState extends State<ArvinApp> {
         fontFamily: AppFonts.vazirmatnFamily,
         textTheme: readableDarkTextTheme,
         dividerTheme: const DividerThemeData(color: ArvinColors.darkDivider, thickness: 1),
-        appBarTheme: const AppBarTheme(),
-        inputDecorationTheme: const InputDecorationTheme(
+        appBarTheme: AppBarTheme(
+          backgroundColor: accentColor,
+          foregroundColor: Colors.white,
+          iconTheme: const IconThemeData(color: Colors.white),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: ArvinColors.darkSurface,
-          border: OutlineInputBorder(
+          border: const OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(14)),
             borderSide: BorderSide(color: ArvinColors.darkOutline, width: 1.2),
           ),
-          enabledBorder: OutlineInputBorder(
+          enabledBorder: const OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(14)),
             borderSide: BorderSide(color: ArvinColors.darkOutline, width: 1.2),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(14)),
-            borderSide: BorderSide(color: ArvinColors.darkPrimary, width: 1.8),
+            borderRadius: const BorderRadius.all(Radius.circular(14)),
+            borderSide: BorderSide(color: accentColor, width: 1.8),
           ),
         ),
       ),
