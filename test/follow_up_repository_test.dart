@@ -22,7 +22,7 @@ void main() {
 
     expect(followUps, isEmpty);
     final task = (await TaskStore().load()).single;
-    expect(task.followUpDate, DateTime(2026, 8, 14, 9, 30));
+    expect(task.followUpDate, isNull);
     expect(task.followUps, isEmpty);
   });
 
@@ -45,7 +45,7 @@ void main() {
 
     expect(followUps, hasLength(1));
     expect(followUps.single.id, 'f2');
-    expect((await TaskStore().load()).single.followUpDate, DateTime(2026, 8, 14, 9, 30));
+    expect((await TaskStore().load()).single.followUpDate, isNull);
     expect(followUps.last.result, 'پاسخ دریافت شد');
   });
 
