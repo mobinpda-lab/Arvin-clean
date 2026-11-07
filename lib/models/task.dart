@@ -42,7 +42,11 @@ class FollowUpRecord {
   final bool waitingForResponse;
   final List<String> personIds;
 
-  const FollowUpRecord({
+  /// Deprecated read-only compatibility projection; future scheduling is not stored.
+  @Deprecated('Follow-up records are historical only.')
+  DateTime? get nextFollowUp => null;
+
+  FollowUpRecord({
     required this.id,
     DateTime? completedAt,
     @Deprecated('Use completedAt.')
