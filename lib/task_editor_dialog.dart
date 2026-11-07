@@ -1383,10 +1383,6 @@ Future<void> _pickDueDate() async {
                             ),
                           ),
                           const SizedBox(width: 4),
-                      return Row(
-                        textDirection: TextDirection.rtl,
-                        mainAxisSize: MainAxisSize.max,
-                        children: [
                           Expanded(
                             child: ArvinRollBox<String>(
                               key: const ValueKey('task-editor-center-rollbox'),
@@ -1495,8 +1491,8 @@ Future<void> _pickDueDate() async {
                               },
                             ),
                           ),
-                          SizedBox(
-                            width: itemWidth,
+                          const SizedBox(width: 4),
+                          Expanded(
                             child: ArvinRollBox<String>(
                               key: const ValueKey('task-editor-category-rollbox'),
                               label: 'دسته',
