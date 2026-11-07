@@ -84,16 +84,11 @@ class TaskStore {
       await executor.runCustom('BEGIN');
       try {
         await executor.runCustom('DELETE FROM persons');
-        await executor.runCustom('DELETE FROM people');
         final now = DateTime.now().toIso8601String();
         for (final person in normalized.values) {
           final old = oldById[person.id];
           await executor.runInsert(
             'INSERT INTO persons (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)',
-            <Object?>[person.id, person.displayName, old?['created_at'] ?? now, now],
-          );
-          await executor.runInsert(
-            'INSERT INTO people (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)',
             <Object?>[person.id, person.displayName, old?['created_at'] ?? now, now],
           );
         }
@@ -707,12 +702,6 @@ class TaskStore {
         'SELECT person_id FROM follow_up_record_people WHERE follow_up_id = ? ORDER BY ordinal',
         <Object?>[followUpRow['id']],
       );
-      if (personRows.isEmpty) {
-        personRows = await executor.runSelect(
-          'SELECT person_id FROM follow_up_people WHERE follow_up_id = ? ORDER BY ordinal',
-          <Object?>[followUpRow['id']],
-        );
-      }
       value['personIds'] =
           personRows.map((item) => item['person_id'] as String).toList();
       followUpJson.add(value);
@@ -798,8 +787,6 @@ class TaskStore {
       await executor.runCustom('DELETE FROM task_reminders');
       await executor.runCustom('DELETE FROM follow_up_record_people');
       await executor.runCustom('DELETE FROM follow_up_records');
-      await executor.runCustom('DELETE FROM follow_up_people');
-      await executor.runCustom('DELETE FROM follow_ups');
       await executor.runCustom('DELETE FROM tasks');
 
       for (var ordinal = 0; ordinal < tasks.length; ordinal++) {
@@ -939,11 +926,6 @@ class TaskStore {
       final now = DateTime.now().toIso8601String();
       await executor.runInsert(
         '''INSERT INTO persons (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)
-           ON CONFLICT(id) DO UPDATE SET name = excluded.name, updated_at = excluded.updated_at''',
-        <Object?>[person.id, person.displayName, now, now],
-      );
-      await executor.runInsert(
-        '''INSERT INTO people (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)
            ON CONFLICT(id) DO UPDATE SET name = excluded.name, updated_at = excluded.updated_at''',
         <Object?>[person.id, person.displayName, now, now],
       );
