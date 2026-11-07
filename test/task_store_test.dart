@@ -140,10 +140,7 @@ void main() {
     expect(loaded.single.followUps, hasLength(1));
     expect(loaded.single.followUps.single.id, 'fu-1');
     expect(loaded.single.followUps.single.note, 'Call customer');
-    expect(
-      loaded.single.followUps.single.reminderDate,
-      DateTime.utc(2026, 9, 3, 9, 45),
-    );
+    expect(loaded.single.followUps.single.toJson().containsKey('reminderDate'), isFalse);
     expect(loaded.single.followUps.single.completed, isTrue);
   });
 
@@ -384,7 +381,7 @@ void main() {
       expect(loaded.followUps.single.id, followUp.id);
       expect(loaded.followUps.single.dateTime, followUpDate);
       expect(loaded.followUps.single.note, 'Historical action');
-      expect(loaded.followUps.single.nextFollowUp, nextFollowUp);
+      expect(loaded.followUps.single.toJson().containsKey('nextFollowUp'), isFalse);
       expect(loaded.followUps.single.completed, isTrue);
     } finally {
       await TaskStore.resetTestDatabase();
