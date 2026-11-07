@@ -32,6 +32,13 @@ void main() {
       taskColumns.map((row) => row['name']),
       contains('legacy_payload_json'),
     );
+    expect(
+      taskColumns.map((row) => row['name']),
+      isNot(contains('follow_up_enabled')),
+    );
+    expect(taskColumns.map((row) => row['name']), isNot(contains('follow_up_date')));
+    expect(taskColumns.map((row) => row['name']), isNot(contains('reminder_date')));
+
 
     final projectColumns = await database.runSelect(
       "PRAGMA table_info('projects')",
@@ -109,9 +116,9 @@ void main() {
     };
     await database.runInsert(
       '''INSERT INTO tasks
-         (id, title, description, follow_up_enabled, priority, archived, trashed,
+         (id, title, description, priority, archived, trashed,
           completed, legacy_payload_json)
-         VALUES (?, ?, '', 0, 'none', 0, 0, 0, ?)''',
+         VALUES (?, ?, '', 'none', 0, 0, 0, ?)''',
       <Object?>['canonical-task', jsonEncode(payload)],
     );
     // Recreate the pre-v12 layout to exercise the real upgrade/cutover path.
@@ -230,8 +237,8 @@ void main() {
 
     await database.runCustom(
       "INSERT INTO tasks "
-      "(id, title, description, follow_up_enabled, priority, archived, trashed, completed) "
-      "VALUES ('task-1', 'عنوان', '', 1, 'none', 0, 0, 0)",
+      "(id, title, description, priority, archived, trashed, completed) "
+      "VALUES ('task-1', 'عنوان', '', 'none', 0, 0, 0)",
     );
 
     await database.runCustom(
