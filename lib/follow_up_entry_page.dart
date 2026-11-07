@@ -48,6 +48,8 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
   late Set<String> _selectedPersonIds;
   late Set<String> _initialPersonIds;
   late DateTime _reminderDateTime;
+  DateTime? _legacyReminderDateTime;
+  bool _legacyReminderAllDay = false;
   late DateTime _initialDateTime;
   late String _initialTitle;
   late String _initialNote;
@@ -62,6 +64,8 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     final initial = widget.initialFollowUp;
     _dateTime = initial?.dateTime ?? widget.initialDateTime ?? DateTime.now();
     _reminderDateTime = DateTime.now().add(const Duration(hours: 1));
+    _legacyReminderDateTime = initial?.reminderDate;
+    _legacyReminderAllDay = initial?.reminderAllDay ?? false;
     _titleController.text = initial?.title ?? '';
     _noteController.text = initial?.note ?? '';
     _waitingForResponse = initial?.waitingForResponse == true ||
@@ -150,6 +154,34 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     });
   }
 
+  Future<void> _pickLegacyReminderDateTime() async {
+    final initial = _legacyReminderDateTime ?? DateTime.now();
+    final picked = await _pickPersianDate(
+      initialDate: initial,
+      firstDate: DateTime(2000),
+      helpText: 'انتخاب تاریخ یادآور پیگیری',
+    );
+    if (picked == null || !mounted) return;
+    final selection = await showUniversalArvinTimeSelectionPicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(initial),
+      helpText: 'انتخاب ساعت یادآور پیگیری',
+    );
+    if (selection == null || !mounted) return;
+    setState(() {
+      _legacyReminderDateTime = selection.isAllDay
+          ? DateTime(picked.year, picked.month, picked.day)
+          : DateTime(picked.year, picked.month, picked.day,
+              selection.time!.hour, selection.time!.minute);
+      _legacyReminderAllDay = selection.isAllDay;
+    });
+  }
+
+  void _clearLegacyReminder() => setState(() {
+        _legacyReminderDateTime = null;
+        _legacyReminderAllDay = false;
+      });
+
   Future<void> _pickDate() async {
     final picked = await _pickPersianDate(
       initialDate: _dateTime,
@@ -192,7 +224,9 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
       _resultController.text != _initialResult ||
       _waitingForResponse != _initialWaitingForResponse ||
       !_selectedPersonIds.containsAll(_initialPersonIds) ||
-      !_initialPersonIds.containsAll(_selectedPersonIds);
+      !_initialPersonIds.containsAll(_selectedPersonIds) ||
+      _legacyReminderDateTime != widget.initialFollowUp?.reminderDate ||
+      _legacyReminderAllDay != (widget.initialFollowUp?.reminderAllDay ?? false);
 
   Future<void> _requestClose() async {
     if (!_hasChanges) {
@@ -316,8 +350,8 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
       waitingForResponse: _waitingForResponse,
       personIds: _selectedPersonIds.toList(growable: false),
       // Preserve legacy fields during edits without exposing retired scheduling UI.
-      reminderDate: widget.initialFollowUp?.reminderDate,
-      reminderAllDay: widget.initialFollowUp?.reminderAllDay ?? false,
+      reminderDate: _legacyReminderDateTime,
+      reminderAllDay: _legacyReminderDateTime != null && _legacyReminderAllDay,
       nextFollowUp: widget.initialFollowUp?.nextFollowUp,
     );
     widget.onSaved?.call(followUp);
@@ -371,6 +405,47 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
                 ),
               ],
             ),
+            if (_editing) ...[
+              const SizedBox(height: 12),
+              Container(
+                key: const ValueKey('follow-up-legacy-reminder-editor'),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Theme.of(context).dividerColor),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text('یادآور پیگیری',
+                        style: TextStyle(fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        OutlinedButton.icon(
+                          key: const ValueKey('follow-up-legacy-reminder-date'),
+                          onPressed: _isSaving ? null : _pickLegacyReminderDateTime,
+                          icon: const Icon(Icons.calendar_month_outlined),
+                          label: Text(_legacyReminderDateTime == null
+                              ? 'انتخاب تاریخ و ساعت'
+                              : '${_formatDate(_legacyReminderDateTime!)} • ${_legacyReminderAllDay ? 'بدون ساعت' : _formatTime(_legacyReminderDateTime!)}'),
+                        ),
+                        if (_legacyReminderDateTime != null)
+                          TextButton.icon(
+                            key: const ValueKey('follow-up-legacy-reminder-clear'),
+                            onPressed: _isSaving ? null : _clearLegacyReminder,
+                            icon: const Icon(Icons.close_rounded),
+                            label: const Text('حذف یادآور'),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
             if (widget.allowAddingReminder && widget.taskId != null && !_editing) ...[
               SwitchListTile(
                 key: const ValueKey('follow-up-entry-add-reminder'),
