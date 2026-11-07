@@ -77,7 +77,6 @@ import 'widgets/canonical_calendar_launcher.dart';
 import 'widgets/home_my_tasks_sheet.dart';
 import 'widgets/task_bulk_selection_bar.dart';
 import 'widgets/taxonomy_icon_row.dart';
-import 'widgets/arvin_task_selector_wrap.dart';
 import 'widgets/startup_crash_screen.dart';
 
 class _SettingsTextScaler extends TextScaler {
