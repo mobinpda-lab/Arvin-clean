@@ -657,3 +657,11 @@ PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ **BLOCKED — RELE
 - Device Smoke قدیمی #7233 / run 42335301964 با SHA قدیمی 1c8f0a5c66c2e24b96f84281466ed784d83f17b5 هنوز QUEUED است؛ Workflow از cancel-in-progress: false استفاده می‌کند. برای آزادسازی صف، لغو دستی آن توسط مالک لازم است.
 - قرارداد زمان کار/موعد در این checkpoint به‌صورت تصمیم APPROVED ثبت شد؛ پیاده‌سازی ویجت مشترک، جایگزینی فرم‌ها، آزمون‌های رفتاری و پذیرش آن هنوز NOT VERIFIED هستند. هیچ ادعای پیاده‌سازی یا قبولی برای این بخش ثبت نمی‌شود.
 - وضعیت انتشار بدون تغییر: **BLOCKED — RELEASE: NO-GO** تا همه دروازه‌ها روی یک SHA و پذیرش APK روی دستگاه واقعی.
+
+## اصلاحیه HEAD پس از ثبت تصمیم زمان کار / موعد — ۱۴۰۵/۰۸/۱۶
+- commit مستندسازی: 70b32df0bb903b3647a206fd63dc15e94f0df78e؛ تغییرات فقط در PRODUCT_DECISIONS.md، CURRENT_STATE.md و CHANGELOG.md است.
+- HEAD فعلی شاخه و PR #3052 اکنون 70b32df0bb903b3647a206fd63dc15e94f0df78e است؛ PR همچنان OPEN / DRAFT / UNMERGED و base=main است.
+- این commit صرفاً مستندسازی تصمیم محصول است؛ کد ویجت مشترک و اتصال فرم‌ها در این commit تغییر نکرده‌اند.
+- برای SHA جدید هنوز Workflow run ثبت نشده است؛ بنابراین تمام نتایج Build/Provider/Smoke/APK قبلی فقط به SHA 2553f27f040287b0cf225a4c054777db94821679 تعلق دارند و به HEAD جدید منتقل نمی‌شوند.
+- Device Smoke قدیمی #7233 همچنان مانع صف است و لغو دستی آن توسط مالک لازم است.
+- **BLOCKED — RELEASE: NO-GO** بدون تغییر باقی می‌ماند.

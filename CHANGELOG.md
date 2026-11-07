@@ -953,3 +953,11 @@ All entries below describe changes on the authorized PR branch. They are not rel
 - این ثبت فقط تصمیم محصول است؛ ویجت مشترک، اتصال فرم‌ها، تست‌های همگام و پذیرش موبایل در این checkpoint هنوز پیاده‌سازی/تأیید نشده‌اند.
 - ممیزی exact-HEAD 2553f27f040287b0cf225a4c054777db94821679: Build 42340630768 FAILED؛ Calendar Provider 42340630862 SUCCESS؛ Device Smoke 42340630785 PENDING؛ Draft Review APK 42340630793 SUCCESS.
 - PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched؛ **BLOCKED — RELEASE: NO-GO**.
+
+## اصلاحیه HEAD پس از ثبت تصمیم زمان کار / موعد — ۱۴۰۵/۰۸/۱۶
+- commit مستندسازی: 70b32df0bb903b3647a206fd63dc15e94f0df78e؛ تغییرات فقط در PRODUCT_DECISIONS.md، CURRENT_STATE.md و CHANGELOG.md است.
+- HEAD فعلی شاخه و PR #3052 اکنون 70b32df0bb903b3647a206fd63dc15e94f0df78e است؛ PR همچنان OPEN / DRAFT / UNMERGED و base=main است.
+- این commit صرفاً مستندسازی تصمیم محصول است؛ کد ویجت مشترک و اتصال فرم‌ها در این commit تغییر نکرده‌اند.
+- برای SHA جدید هنوز Workflow run ثبت نشده است؛ بنابراین تمام نتایج Build/Provider/Smoke/APK قبلی فقط به SHA 2553f27f040287b0cf225a4c054777db94821679 تعلق دارند و به HEAD جدید منتقل نمی‌شوند.
+- Device Smoke قدیمی #7233 همچنان مانع صف است و لغو دستی آن توسط مالک لازم است.
+- **BLOCKED — RELEASE: NO-GO** بدون تغییر باقی می‌ماند.
