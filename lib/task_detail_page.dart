@@ -322,12 +322,12 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       helpText: 'انتخاب تاریخ یادآور',
     );
     if (date == null || !mounted) return;
-    final time = await showUniversalArvinTimePicker(
+    final selection = await showUniversalArvinTimeSelectionPicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(initial),
-      helpText: 'انتخاب ساعت یادآور',
+      helpText: 'زمان یادآور',
     );
-    if (time == null || !mounted) return;
+    if (selection == null || !mounted) return;
 
     final highest = _draftReminders.isEmpty
         ? _task.nextReminderSequence - 1
@@ -335,7 +335,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     final reminder = TaskReminder(
       id: 'reminder-${DateTime.now().microsecondsSinceEpoch}',
       title: title,
-      date: DateTime(date.year, date.month, date.day, time.hour, time.minute),
+      date: selection.isAllDay
+          ? DateTime(date.year, date.month, date.day)
+          : DateTime(date.year, date.month, date.day, selection.time!.hour, selection.time!.minute),
+      isAllDay: selection.isAllDay,
       sequence: (highest + 1).clamp(_task.nextReminderSequence, 1 << 30).toInt(),
     );
     setState(() => _draftReminders = [..._draftReminders, reminder]);
@@ -393,22 +396,19 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       helpText: 'تغییر تاریخ یادآور',
     );
     if (date == null || !mounted) return;
-    var hour = reminder.date.hour;
-    var minute = reminder.date.minute;
-    if (!reminder.isAllDay) {
-      final time = await showUniversalArvinTimePicker(
-        context: context,
-        initialTime: TimeOfDay(hour: hour, minute: minute),
-        helpText: 'تغییر ساعت یادآور',
-      );
-      if (time == null || !mounted) return;
-      hour = time.hour;
-      minute = time.minute;
-    }
+    final selection = await showUniversalArvinTimeSelectionPicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(reminder.date),
+      helpText: 'زمان یادآور',
+    );
+    if (selection == null || !mounted) return;
+    final updatedDate = selection.isAllDay
+        ? DateTime(date.year, date.month, date.day)
+        : DateTime(date.year, date.month, date.day, selection.time!.hour, selection.time!.minute);
     setState(() {
       _draftReminders = _draftReminders
           .map((item) => item.id == reminder.id
-              ? item.copyWith(date: DateTime(date.year, date.month, date.day, hour, minute))
+              ? item.copyWith(date: updatedDate, isAllDay: selection.isAllDay)
               : item)
           .toList(growable: false);
     });
@@ -438,52 +438,37 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     }
   }
 
-  Future<void> _pickInlineDueDate() async {
+  Future<void> _pickInlineWorkTime() async {
     final current = _draftDueDate ?? DateTime.now();
-    final picked = await showPersianDatePicker(
+    final pickedDate = await showPersianDatePicker(
       context: context,
       initialDate: current,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
-      helpText: 'انتخاب موعد انجام',
+      helpText: 'انتخاب زمان کار / موعد',
     );
-    if (picked == null || !mounted) return;
-    final wasUnset = _draftDueDate == null;
-    setState(() {
-      _draftDueDate = DateTime(
-        picked.year,
-        picked.month,
-        picked.day,
-        _draftDueDate?.hour ?? 0,
-        _draftDueDate?.minute ?? 0,
-      );
-      if (wasUnset) _draftAllDay = true;
-    });
-  }
+    if (pickedDate == null || !mounted) return;
 
-  Future<void> _pickInlineDueTime() async {
-    final current = _draftDueDate;
-    if (current == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ابتدا تاریخ موعد را انتخاب کنید.')),
-      );
-      return;
-    }
-    final picked = await showUniversalArvinTimePicker(
+    // The date picker is deliberately followed by the round clock. Nothing is
+    // committed until the user confirms a timed or explicit no-time choice.
+    final selection = await showUniversalArvinTimeSelectionPicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(current),
-      helpText: 'انتخاب ساعت موعد انجام',
+      helpText: 'زمان انجام کار',
     );
-    if (picked == null || !mounted) return;
+    if (selection == null || !mounted) return;
+
     setState(() {
-      _draftDueDate = DateTime(
-        current.year,
-        current.month,
-        current.day,
-        picked.hour,
-        picked.minute,
-      );
-      _draftAllDay = false;
+      _draftDueDate = selection.isAllDay
+          ? DateTime(pickedDate.year, pickedDate.month, pickedDate.day)
+          : DateTime(
+              pickedDate.year,
+              pickedDate.month,
+              pickedDate.day,
+              selection.time!.hour,
+              selection.time!.minute,
+            );
+      _draftAllDay = selection.isAllDay;
     });
   }
 
@@ -850,7 +835,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('موعد انجام', style: TextStyle(fontFamily: 'Vazirmatn', color: _muted, fontSize: 12, fontWeight: FontWeight.w600)),
+                    const Text('زمان کار / موعد', style: TextStyle(fontFamily: 'Vazirmatn', color: _muted, fontSize: 12, fontWeight: FontWeight.w600)),
                     Text(
                       dueDate == null
                           ? 'تعیین نشده'
@@ -863,16 +848,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               ),
               if (_isInlineEditing) ...[
                 IconButton(
-                  key: const ValueKey('task-detail-inline-due-date'),
-                  tooltip: 'تغییر تاریخ',
-                  onPressed: _pickInlineDueDate,
+                  key: const ValueKey('task-detail-inline-work-time'),
+                  tooltip: 'تغییر زمان کار / موعد',
+                  onPressed: _pickInlineWorkTime,
                   icon: const Icon(Icons.edit_calendar_outlined),
-                ),
-                IconButton(
-                  key: const ValueKey('task-detail-inline-due-time'),
-                  tooltip: 'تغییر ساعت',
-                  onPressed: dueDate == null ? null : _pickInlineDueTime,
-                  icon: const Icon(Icons.access_time),
                 ),
                 if (dueDate != null)
                   IconButton(
@@ -895,14 +874,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 ),
             ],
           ),
-          if (_isInlineEditing)
-            SwitchListTile(
-              key: const ValueKey('task-detail-inline-all-day'),
-              contentPadding: EdgeInsets.zero,
-              title: const Text('تمام‌روز'),
-              value: allDay,
-              onChanged: (value) => setState(() => _draftAllDay = value),
-            ),
+
         ],
       ),
     );
