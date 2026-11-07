@@ -63,7 +63,7 @@ class ArvinTaskEditorDialog extends StatefulWidget {
 
 class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   static const _dateFormatter = PersianDateFormatter();
-  static const _brand = ArvinColors.primary;
+  Color get _brand => Theme.of(context).colorScheme.primary;
   static const _fieldSurface = ArvinColors.background;
   static const _border = ArvinColors.border;
 
@@ -203,7 +203,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: _brand, width: 1.5),
+        borderSide: BorderSide(color: _brand, width: 1.5),
       ),
     );
   }
@@ -806,7 +806,7 @@ Future<void> _pickDueDateTime() async {
         boxShadow: const [ArvinTheme.shadowStyle],
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        const Row(children: [Icon(Icons.checklist_rounded, color: _brand), SizedBox(width: 8), Text('چک‌لیست', style: TextStyle(color: _brand, fontWeight: FontWeight.w800, fontSize: 16))]),
+        Row(children: [Icon(Icons.checklist_rounded, color: _brand), const SizedBox(width: 8), Text('چک‌لیست', style: TextStyle(color: _brand, fontWeight: FontWeight.w800, fontSize: 16))]),
         const SizedBox(height: 4),
         const Text('مواردی که باید برای این کار یکی‌یکی انجام شوند.'),
         const SizedBox(height: 10),
@@ -1787,7 +1787,7 @@ Future<void> _pickDueDateTime() async {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.timeline_outlined, color: _brand),
+                            Icon(Icons.timeline_outlined, color: _brand),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
@@ -1795,7 +1795,7 @@ Future<void> _pickDueDateTime() async {
                                 style: TextStyle(color: _brand, fontWeight: FontWeight.w800, fontSize: 16),
                               ),
                             ),
-                            Text('${_followUps.length}', style: const TextStyle(color: _brand, fontWeight: FontWeight.w700)),
+                            Text('${_followUps.length}', style: TextStyle(color: _brand, fontWeight: FontWeight.w700)),
                           ],
                         ),
                         const SizedBox(height: 4),
@@ -1808,7 +1808,7 @@ Future<void> _pickDueDateTime() async {
                           ListTile(
                             key: ValueKey('task-editor-followup-${followUp.id}'),
                             contentPadding: EdgeInsets.zero,
-                            leading: const Icon(Icons.event_note_outlined, color: _brand),
+                            leading: Icon(Icons.event_note_outlined, color: _brand),
                             title: Text(
                               followUp.title?.trim().isNotEmpty == true
                                   ? followUp.title!.trim()
