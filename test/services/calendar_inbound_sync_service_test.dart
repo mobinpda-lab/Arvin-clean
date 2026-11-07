@@ -52,7 +52,7 @@ void main() {
     expect(after.dueDate, before.dueDate);
     expect(after.reminderDate, before.reminderDate);
     expect(after.taskReminders.map((item) => item.id).toSet(),
-        {'reminder-1', 'legacy-task-reminder'});
+        {'reminder-1', 'legacy-task-reminder-task-1'});
     final independent = after.taskReminders.singleWhere(
       (item) => item.id == 'reminder-1',
     );
