@@ -556,3 +556,13 @@ This is an implementation record following the earlier Wave 7.299 ownership audi
 - Updated the regression test to cover direct Task-person links, waiting Follow-up links and ordinary Follow-up history.
 - Follow-up entry already exposes Person selection when «منتظر پاسخ دیگران» is enabled; the current flow was verified in source. The remaining shared filter component and canonical schema work are still pending.
 - Exact-head CI is required before this change is marked accepted. PR #3052 remains OPEN/DRAFT/UNMERGED; **BLOCKED — RELEASE: NO-GO**.
+
+
+## 2026-11-07 — Canonical relational storage wave (schema v12)
+
+- Added independent SQL `task_reminders`, historical `follow_up_records` (timestamped by `completed_at`), unified `persons`, and `follow_up_record_people` tables.
+- Schema installation now materializes existing Task reminder JSON, Follow-up history and Person relations into the canonical tables idempotently.
+- TaskStore now persists/loads multi-reminders through the relational table, uses canonical Follow-up history rows and the `persons` directory. Transitional legacy writes/reads remain for still-active UI consumers; legacy columns/tables are intentionally not dropped until those consumers are migrated.
+- Added relational migration and TaskStore persistence tests. Exact-head CI is pending.
+- Updated Home so completed past Tasks remain visible in a separate history group and are never labeled overdue. Updated regression expectations for the current time and Person contracts.
+- Release remains **BLOCKED — RELEASE: NO-GO**; PR #3052 remains OPEN/DRAFT/UNMERGED; main untouched.
