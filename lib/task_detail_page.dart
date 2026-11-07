@@ -218,6 +218,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     _draftDueDate = null;
     _draftAllDay = false;
     _draftCompleted = false;
+    _selectedCenterId = _task.centerId ?? widget.project?.centerId;
+    _selectedProjectId = widget.selectedProjectId ?? widget.project?.id;
     _draftPriority = TaskPriority.medium;
     setState(() => _isInlineEditing = false);
   }
@@ -1765,8 +1767,40 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     final project = widget.project;
     final items = <Widget>[
       _metadataItem(key: const ValueKey('task-detail-metadata-time'), label: 'زمان اجرا', value: 'نامشخص', color: _muted, icon: Icons.schedule_outlined),
-      _metadataItem(key: const ValueKey('task-detail-metadata-center'), label: 'مرکز', value: center?.isNotEmpty == true ? center! : 'نامشخص', color: ArvinColors.category, icon: Icons.apartment_outlined),
-      _metadataItem(key: const ValueKey('task-detail-metadata-project'), label: 'پروژه', value: project?.title.trim().isNotEmpty == true ? project!.title : 'نامشخص', color: project == null ? _muted : Color(project.colorValue), icon: Icons.folder_special_outlined),
+      _metadataItem(
+        key: const ValueKey('task-detail-metadata-center'),
+        label: 'مرکز',
+        value: _selectedCenterId == null
+            ? (center?.isNotEmpty == true ? center! : 'بدون مرکز')
+            : _selectedCenterName,
+        color: ArvinColors.category,
+        icon: Icons.apartment_outlined,
+        editor: _isInlineEditing
+            ? OutlinedButton.icon(
+                key: const ValueKey('task-detail-inline-center'),
+                onPressed: _openInlineCenterSelector,
+                icon: const Icon(Icons.apartment_outlined, size: 18),
+                label: Text(_selectedCenterName),
+              )
+            : null,
+      ),
+      _metadataItem(
+        key: const ValueKey('task-detail-metadata-project'),
+        label: 'پروژه',
+        value: _selectedProjectId == null
+            ? (project?.title.trim().isNotEmpty == true ? project!.title : 'بدون پروژه')
+            : _selectedProjectTitle,
+        color: project == null ? _muted : Color(project.colorValue),
+        icon: Icons.folder_special_outlined,
+        editor: _isInlineEditing
+            ? OutlinedButton.icon(
+                key: const ValueKey('task-detail-inline-project'),
+                onPressed: _openInlineProjectSelector,
+                icon: const Icon(Icons.folder_outlined, size: 18),
+                label: Text(_selectedProjectTitle),
+              )
+            : null,
+      ),
       _metadataItem(
         key: const ValueKey('task-detail-metadata-category'),
         label: 'دسته',
