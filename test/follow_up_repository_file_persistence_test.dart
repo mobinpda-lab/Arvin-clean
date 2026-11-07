@@ -13,7 +13,6 @@ import 'package:arvin/services/task_store.dart';
 final DateTime _actionAt = DateTime.utc(2026, 8, 15, 10, 15, 42, 123);
 final DateTime _siblingActionAt = DateTime.utc(2026, 8, 10, 8, 30);
 final DateTime _taskDueAt = DateTime.utc(2026, 9, 2, 14, 45);
-final DateTime _legacyReminderAt = DateTime.utc(2026, 8, 18, 11, 20);
 final DateTime _firstTaskReminderAt = DateTime.utc(2026, 8, 17, 12, 5);
 final DateTime _secondTaskReminderAt = DateTime.utc(2026, 8, 19, 16, 40);
 
@@ -38,7 +37,6 @@ void main() {
             createdAt: DateTime.utc(2026, 8, 1, 7),
             updatedAt: DateTime.utc(2026, 8, 14, 18),
             dueDate: _taskDueAt,
-            reminderDate: _legacyReminderAt,
             legacyTaskReminderMigrationVersion: 1,
             followUpEnabled: true,
             category: 'فروش',
@@ -111,7 +109,6 @@ void main() {
           expect(task.title, 'قرارداد فروش');
           expect(task.description, 'شرح مستقل Task باید حفظ شود');
           expect(task.dueDate?.toIso8601String(), _taskDueAt.toIso8601String());
-          expect(task.reminderDate?.toIso8601String(), _legacyReminderAt.toIso8601String());
           expect(task.legacyTaskReminderMigrationVersion, 1);
           expect(task.followUpEnabled, isTrue);
           expect(task.category, 'فروش');
@@ -121,6 +118,9 @@ void main() {
           // Independent Task reminders must retain their own IDs, dates and
           // sequence values, without being duplicated by a Follow-up mutation.
           expect(task.taskReminders, hasLength(2));
+          expect(task.taskReminders.every((reminder) => !reminder.isLegacyTaskReminder), isTrue);
+          expect(task.reminderDate, isNull,
+              reason: 'A completed legacy cutover must not resurrect the singular reminder field.');
           expect(
             task.taskReminders.map((reminder) => reminder.id).toSet(),
             <String>{'task-reminder-1', 'task-reminder-2'},
