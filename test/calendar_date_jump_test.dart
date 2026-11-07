@@ -30,7 +30,7 @@ void main() {
     );
 
     expect(find.byKey(const ValueKey('calendar-date-jump')), findsOneWidget);
-    expect(find.text('برو به تاریخ'), findsOneWidget);
+    expect(find.byTooltip('برو به تاریخ'), findsOneWidget);
     expect(find.text('رویداد روز مبنا'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('calendar-date-jump')));

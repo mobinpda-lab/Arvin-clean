@@ -63,7 +63,7 @@ void main() {
 
     expect(find.byKey(const ValueKey('home-filter-card-project')), findsOneWidget);
     expect(find.byType(ActionChip), findsNWidgets(5));
-    expect(find.byKey(const ValueKey('home-compact-filter-scroll')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-compact-filter-wrap')), findsOneWidget);
 
     final add = find.byKey(const ValueKey('home-canonical-add'));
     expect(add, findsOneWidget);
