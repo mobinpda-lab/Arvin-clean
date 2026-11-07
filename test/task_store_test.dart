@@ -267,7 +267,6 @@ void main() {
     final payload = <String, dynamic>{
       'id': 'legacy-repeat',
       'title': 'تکرار قدیمی',
-      'reminderDate': DateTime(2026, 10, 8, 9).toIso8601String(),
       'recurrence': recurrence,
       'archived': false,
       'trashed': false,
@@ -279,13 +278,12 @@ void main() {
     await executor.runInsert(
       '''INSERT INTO tasks (
         id, storage_ordinal, title, description, created_at, updated_at, due_date,
-        follow_up_enabled, follow_up_date, category, notebook_kind, reminder_date,
-        priority, archived, trashed, completed, recurrence_json, legacy_payload_json
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+        category, notebook_kind, priority, archived, trashed, completed,
+        recurrence_json, legacy_payload_json
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
       <Object?>[
         'legacy-repeat', 0, 'تکرار قدیمی', '', null, null, null,
-        0, null, null, null, DateTime(2026, 10, 8, 9).toIso8601String(),
-        'none', 0, 0, 0, null, jsonEncode(payload),
+        null, null, 'none', 0, 0, 0, null, jsonEncode(payload),
       ],
     );
 
