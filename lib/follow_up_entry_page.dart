@@ -296,16 +296,13 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
 
   Future<void> _save() async {
     if (_isSaving) return;
-    final reminderScheduledAt = _reminderAllDay
-        ? DateTime(
-            _reminderDateTime.year,
-            _reminderDateTime.month,
-            _reminderDateTime.day,
-            9,
-          )
-        : _reminderDateTime;
+    final now = DateTime.now();
+    final reminderIsPast = _reminderAllDay
+        ? DateUtils.dateOnly(_reminderDateTime)
+            .isBefore(DateUtils.dateOnly(now))
+        : !_reminderDateTime.isAfter(now);
     if (widget.allowAddingReminder && _addReminder && widget.taskId != null &&
-        !reminderScheduledAt.isAfter(DateTime.now())) {
+        reminderIsPast) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('زمان یادآور باید در آینده باشد.')),
       );
