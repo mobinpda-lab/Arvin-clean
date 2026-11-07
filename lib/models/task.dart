@@ -30,9 +30,11 @@ class FollowUpRecord {
   final String id;
 
   /// Canonical historical timestamp for this record.
-  DateTime get completedAt => dateTime;
+  final DateTime completedAt;
 
-  final DateTime dateTime;
+  /// Source-compatible view for older screens; storage and serialization use completedAt.
+  @Deprecated('Use completedAt.')
+  DateTime get dateTime => completedAt;
   final String? title;
   final String note;
   final String? result;
@@ -42,7 +44,9 @@ class FollowUpRecord {
 
   const FollowUpRecord({
     required this.id,
-    required this.dateTime,
+    DateTime? completedAt,
+    @Deprecated('Use completedAt.')
+    DateTime? dateTime,
     this.title,
     this.note = '',
     this.result,
@@ -57,11 +61,11 @@ class FollowUpRecord {
     this.completed = false,
     this.waitingForResponse = false,
     this.personIds = const <String>[],
-  });
+  }) : completedAt = completedAt ?? dateTime!;
 
   Map<String, dynamic> toJson() => {
         'id': id,
-        'dateTime': dateTime.toIso8601String(),
+        'completedAt': completedAt.toIso8601String(),
         if (title?.trim().isNotEmpty == true) 'title': title!.trim(),
         'note': note,
         'result': result,
@@ -73,7 +77,9 @@ class FollowUpRecord {
   factory FollowUpRecord.fromJson(Map<String, dynamic> json) {
     return FollowUp(
       id: json['id'] as String? ?? '',
-      dateTime: DateTime.parse(json['dateTime'] as String),
+      completedAt: DateTime.parse(
+        (json['completedAt'] ?? json['dateTime']) as String,
+      ),
       title: (json['title'] as String?)?.trim().isEmpty == true
           ? null
           : (json['title'] as String?)?.trim(),
