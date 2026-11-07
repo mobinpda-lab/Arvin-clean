@@ -65,7 +65,7 @@ class FollowUp {
         'result': result,
         if (reminderDate != null)
           'reminderDate': reminderDate!.toIso8601String(),
-        if (reminderAllDay) 'reminderAllDay': true,
+        if (reminderDate != null && reminderAllDay) 'reminderAllDay': true,
         if (nextFollowUp != null)
           'nextFollowUp': nextFollowUp!.toIso8601String(),
         'completed': completed,
