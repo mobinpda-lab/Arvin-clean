@@ -1766,16 +1766,18 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   Widget _metadataCard() {
-    final center = widget.centerName?.trim();
-    final project = widget.project;
+    final selectedProject = _projects.where((item) => item.id == _selectedProjectId);
+    final projectColor = selectedProject.isNotEmpty
+        ? Color(selectedProject.first.colorValue)
+        : widget.project == null
+            ? _muted
+            : Color(widget.project!.colorValue);
     final items = <Widget>[
       _metadataItem(key: const ValueKey('task-detail-metadata-time'), label: 'زمان اجرا', value: 'نامشخص', color: _muted, icon: Icons.schedule_outlined),
       _metadataItem(
         key: const ValueKey('task-detail-metadata-center'),
         label: 'مرکز',
-        value: _isInlineEditing
-            ? _selectedCenterName
-            : (center?.isNotEmpty == true ? center! : _selectedCenterName),
+        value: _selectedCenterName,
         color: ArvinColors.category,
         icon: Icons.apartment_outlined,
         editor: _isInlineEditing
@@ -1790,10 +1792,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       _metadataItem(
         key: const ValueKey('task-detail-metadata-project'),
         label: 'پروژه',
-        value: _isInlineEditing
-            ? _selectedProjectTitle
-            : (project?.title.trim().isNotEmpty == true ? project!.title : _selectedProjectTitle),
-        color: project == null ? _muted : Color(project.colorValue),
+        value: _selectedProjectTitle,
+        color: projectColor,
         icon: Icons.folder_special_outlined,
         editor: _isInlineEditing
             ? OutlinedButton.icon(
