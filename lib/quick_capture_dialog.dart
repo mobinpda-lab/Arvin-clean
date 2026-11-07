@@ -11,7 +11,6 @@ import 'services/persian_date_formatter.dart';
 import 'services/quick_capture_service.dart';
 import 'services/task_project_assignment_service.dart';
 import 'widgets/arvin_roll_box.dart';
-import 'widgets/arvin_task_selector_wrap.dart';
 import 'widgets/universal_arvin_time_picker.dart';
 import 'widgets/persian_date_picker.dart';
 
@@ -297,25 +296,6 @@ Future<DateTime?> _pickCustomDue() async {
             selection.time!.hour,
             selection.time!.minute,
           );
-  }
-
-  Future<void> _pickDateOnlyDue() async {
-    final initial = _dueDate ?? _now();
-    final date = await showPersianDatePicker(
-      context: context,
-      initialDate: initial,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-      helpText: 'انتخاب تاریخ بدون ساعت',
-      cancelText: 'لغو',
-      confirmText: 'انتخاب تاریخ',
-    );
-    if (date == null || !mounted) return;
-    setState(() {
-      _dueDate = DateTime(date.year, date.month, date.day);
-      _dueAllDay = true;
-      _syncAutomaticReminder();
-    });
   }
 
   Future<DateTime?> _pickCustomReminder() async {
@@ -613,12 +593,12 @@ Future<DateTime?> _pickCustomDue() async {
                   _surfaceCard(
                     child: Align(
                       alignment: AlignmentDirectional.centerStart,
-                      child: ArvinTaskSelectorWrap(
-                        key: const ValueKey('quick-capture-categories-wrap'),
-                        spacing: 6,
-                        runSpacing: 6,
+                      child: Row(
+                        key: const ValueKey('quick-capture-five-filter-row'),
+                        textDirection: TextDirection.rtl,
+                        mainAxisSize: MainAxisSize.max,
                         children: [
-                          SizedBox(width: MediaQuery.sizeOf(context).width > 700 ? 248 : 124, child: ArvinRollBox<Object?>(
+                          Expanded(child: ArvinRollBox<Object?>(
                             key: const ValueKey('quick-capture-due-rollbox'),
                             label: 'تاریخ و ساعت',
                             compact: true,
@@ -643,8 +623,8 @@ Future<DateTime?> _pickCustomDue() async {
                               _pendingCustomDueAllDay = false;
                             },
                           )),
-                          SizedBox(
-                            width: 112,
+                          const SizedBox(width: 4),
+                          Expanded(
                             child: ArvinRollBox<String>(
                               key: const ValueKey('quick-capture-center-rollbox'),
                               label: 'مرکز',
@@ -709,8 +689,7 @@ Future<DateTime?> _pickCustomDue() async {
                               },
                             ),
                           ),
-                          SizedBox(
-                            width: 124,
+                          Expanded(
                             child: ArvinRollBox<String>(
                               key: const ValueKey('quick-capture-project-rollbox'),
                               label: 'پروژه',
@@ -782,8 +761,7 @@ Future<DateTime?> _pickCustomDue() async {
                               },
                             ),
                           ),
-                          SizedBox(
-                            width: 128,
+                          Expanded(
                             child: ArvinRollBox<String>(
                               key: const ValueKey('quick-capture-category-rollbox'),
                               label: 'دسته',
@@ -825,8 +803,7 @@ Future<DateTime?> _pickCustomDue() async {
                               },
                             ),
                           ),
-                          SizedBox(
-                            width: 120,
+                          Expanded(
                             child: ArvinTagRollBox(
                               compact: true,
                               key: const ValueKey('quick-capture-tag-rollbox'),
@@ -922,28 +899,6 @@ Future<DateTime?> _pickCustomDue() async {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  Align(
-                    alignment: AlignmentDirectional.centerStart,
-                    child: OutlinedButton.icon(
-                      key: const ValueKey('quick-capture-no-time'),
-                      onPressed: _saving || _dueAllDay
-                          ? null
-                          : _dueDate == null
-                              ? _pickDateOnlyDue
-                              : () => setState(() {
-                                    _dueDate = DateTime(_dueDate!.year, _dueDate!.month, _dueDate!.day);
-                                    _dueAllDay = true;
-                                    _syncAutomaticReminder();
-                                  }),
-                      icon: const Icon(Icons.access_time_rounded, size: 18),
-                      label: const Text('بدون ساعت'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: ArvinColors.time,
-                        side: BorderSide(color: ArvinColors.time.withAlpha(90)),
-                        visualDensity: VisualDensity.compact,
-                      ),
-                    ),
-                  ),
                   const SizedBox(height: 5),
                   _priorityDropdown(),
                   const SizedBox(height: 5),
