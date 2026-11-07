@@ -104,10 +104,15 @@ void main() {
     expect(find.byKey(const ValueKey('task-editor-followup-time-rollbox')), findsNothing);
     expect(find.text('مشتری'), findsOneWidget);
 
-    final save = tester.widget<FilledButton>(
+    final save = tester.widget<IconButton>(
       find.byKey(const ValueKey('task-editor-header-save')),
     );
-    expect(save.style?.backgroundColor?.resolve({}), ArvinColors.primary);
+    expect(save.onPressed, isNotNull);
+    expect(save.color, ArvinColors.primary);
+    expect(tester.widget<Icon>(find.descendant(
+      of: find.byKey(const ValueKey('task-editor-header-save')),
+      matching: find.byIcon(Icons.check_rounded),
+    )).icon, Icons.check_rounded);
   });
 
   testWidgets('saving an ordinary Task does not invent follow-up records or timestamps',
@@ -616,7 +621,7 @@ void main() {
     expect(result!.reminderDate, isNull);
   });
 
-  testWidgets('Task editor priority labels remain one Persian row at narrow width',
+  testWidgets('Task editor priority labels wrap safely at narrow width',
       (tester) async {
     Task? result;
     await pumpEditor(
@@ -641,10 +646,13 @@ void main() {
       rects.add(tester.getRect(finder));
       expect(tester.getSize(finder).height, greaterThanOrEqualTo(48));
     }
-    expect(rects.map((rect) => rect.top).toSet(), hasLength(1));
-    expect(rects[0].center.dx, greaterThan(rects[1].center.dx));
-    expect(rects[1].center.dx, greaterThan(rects[2].center.dx));
-    expect(rects[2].center.dx, greaterThan(rects[3].center.dx));
+    final rowTops = rects.map((rect) => rect.top).toSet();
+    expect(rowTops.length, greaterThan(1));
+    expect(rowTops.length, lessThanOrEqualTo(2));
+    for (final rect in rects) {
+      expect(rect.left, greaterThanOrEqualTo(0));
+      expect(rect.right, lessThanOrEqualTo(320));
+    }
     expect(rects.every((rect) => rect.width >= 48), isTrue);
     for (final label in ['اولویت ۱', 'اولویت ۲', 'اولویت ۳', 'اولویت ۴']) {
       expect(find.text(label), findsOneWidget);

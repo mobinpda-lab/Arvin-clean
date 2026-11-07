@@ -104,7 +104,7 @@ void main() {
         final calendarSvg = tester.widget<SvgPicture>(
           find.byKey(const ValueKey('calendar-sacred-header-svg')),
         );
-        expect(calendarSvg.width, 240);
+        expect(calendarSvg.width, 180);
         expect(calendarSvg.excludeFromSemantics, isTrue);
         expect(find.text(calendarLabel), findsNothing);
   
