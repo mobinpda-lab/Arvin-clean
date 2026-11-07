@@ -25,3 +25,11 @@ Next required implementation step: wire the coordinator into the existing Home a
 - Build شکست‌خوردهٔ `42335681385` متعلق به SHA قدیمی `d2e27baea747ddedf42f744297be09ab86753294` است. اصلاحات پس از آن باید روی HEAD نهایی دوباره اجرا شوند.
 - Release فقط پس از Build/Analyze/تمام شش شارد PASS، Device Smoke کامل، Provider و Persistence PASS روی همان SHA و پذیرش نصب روی گوشی واقعی قابل بازنگری است.
 - وضعیت فعلی: **BLOCKED — RELEASE: NO-GO**؛ PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched.
+
+
+## آخرین اصلاحیه وضعیت محصول — ۱۴۰۵/۰۸/۱۶
+
+- آخرین تغییر کد/آزمون در این چرخه: `467e7f76aced41a123f00a99dd334f32f09ad70c`. ثبت پیوستگی پس از آن در `16c1fc90e1f5e23cbefdb9966680ee4719aa7549` انجام شد.
+- آزمون Quick Capture اکنون بازماندن عمدی فرم بعد از ثبت را رعایت می‌کند و پس از بستن فرم، نمایش Task در Home را بررسی می‌کند. پیمایش تست کارت Home نیز به viewport اصلی محدود شده است.
+- این دفتر وضعیت در commit بعدی همگام می‌شود. هیچ PASS از اجرای قبلی به SHA جدید منتقل نمی‌شود؛ Build و Device Smoke کامل و پذیرش گوشی واقعی همچنان الزامی‌اند.
+- **BLOCKED — RELEASE: NO-GO**؛ PR #3052 OPEN / DRAFT / UNMERGED؛ main untouched؛ Merge و انتشار ممنوع.
