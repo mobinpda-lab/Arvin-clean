@@ -41,14 +41,15 @@ void main() {
       ),
     );
 
-    final tagPill = find.text('برچسب');
-    await tester.ensureVisible(tagPill);
-    await tester.tap(tagPill);
+    final tagSelector = find.byTooltip('برچسب');
+    await tester.tap(tagSelector);
     await tester.pumpAndSettle();
     expect(find.text('انتخاب برچسب'), findsOneWidget);
     expect(find.byType(CheckboxListTile), findsNWidgets(2));
 
-    await tester.tap(find.text('مشتری'));
+    final targetTag = find.widgetWithText(CheckboxListTile, 'مشتری');
+    await tester.ensureVisible(targetTag);
+    await tester.tap(targetTag);
     await tester.pump();
     expect(selected, <String>['مهم']);
 

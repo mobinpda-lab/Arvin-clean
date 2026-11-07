@@ -8,8 +8,12 @@ import 'package:arvin/task_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-Finder _reportFilterVerticalScrollable() =>
-    find.byKey(const ValueKey('report-filter-scroll'));
+Finder _reportFilterVerticalScrollable() => find
+    .ancestor(
+      of: find.byKey(const ValueKey('report-filter-scroll')),
+      matching: find.byType(Scrollable),
+    )
+    .first;
 
 void main() {
   testWidgets('Report Center opens an Arvin bottom-sheet filter panel', (tester) async {
