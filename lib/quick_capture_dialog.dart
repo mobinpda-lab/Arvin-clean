@@ -656,13 +656,13 @@ Future<DateTime?> _pickCustomDue() async {
                                   isScrollControlled: true,
                                   builder: (ctx) => Padding(
                                     padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(ctx).bottom),
-                                    child: Column(mainAxisSize: MainAxisSize.min, children: [
+                                    child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
                                       const Text('مرکز جدید'),
                                       TextField(autofocus: true, onChanged: (text) => draftName = text,
                                         decoration: const InputDecoration(labelText: 'نام مرکز')),
                                       FilledButton(onPressed: () => Navigator.pop(ctx, draftName.trim()),
                                         child: const Text('افزودن')),
-                                    ]),
+                                    ])),
                                   ),
                                 );
                                 final value = name?.trim();
@@ -782,13 +782,13 @@ Future<DateTime?> _pickCustomDue() async {
                                   context: context, isScrollControlled: true,
                                   builder: (ctx) => Padding(
                                     padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(ctx).bottom),
-                                    child: Column(mainAxisSize: MainAxisSize.min, children: [
+                                    child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
                                       const Text('دسته جدید'),
                                       TextField(autofocus: true, onChanged: (text) => draftName = text,
                                         decoration: const InputDecoration(labelText: 'نام')),
                                       FilledButton(onPressed: () => Navigator.pop(ctx, draftName.trim()),
                                         child: const Text('افزودن')),
-                                    ]),
+                                    ])),
                                   ),
                                 );
                                 if (value == null || value.isEmpty) return null;
@@ -819,13 +819,13 @@ Future<DateTime?> _pickCustomDue() async {
                                   context: context, isScrollControlled: true,
                                   builder: (ctx) => Padding(
                                     padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(ctx).bottom),
-                                    child: Column(mainAxisSize: MainAxisSize.min, children: [
+                                    child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
                                       const Text('برچسب جدید'),
                                       TextField(autofocus: true, onChanged: (text) => draftName = text,
                                         decoration: const InputDecoration(labelText: 'نام')),
                                       FilledButton(onPressed: () => Navigator.pop(ctx, draftName.trim()),
                                         child: const Text('افزودن')),
-                                    ]),
+                                    ])),
                                   ),
                                 );
                                 if (value == null || value.isEmpty) return null;

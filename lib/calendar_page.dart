@@ -890,7 +890,7 @@ class _CalendarPageState extends State<CalendarPage> {
     final theme = Theme.of(context);
     final sacredVectorColor = theme.brightness == Brightness.dark
         ? theme.colorScheme.onSurface
-        : const Color(0xFF1A2B4C);
+        : ArvinColors.primary;
     final selectedJalali = _dateFormatter.toJalali(_selectedDay);
     final allSelectedReminders = _forDay(_selectedDay);
     final selectedReminders = _filteredForDay(_selectedDay);

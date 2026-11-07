@@ -28,35 +28,35 @@ abstract final class ArvinColors {
   static const darkDivider = Color(0xFF555B70);
   static const darkOutline = Color(0xFF656B80);
 
-  // Home grouping/status semantic tokens.
-  static const groupingTomorrow = Color(0xFF18A77B);
-  static const groupingFuture = Color(0xFF5A55D6);
-  static const groupingTodaySoft = Color(0xFFEDF5FF);
-  static const groupingTomorrowSoft = Color(0xFFEAF9F4);
-  static const groupingFutureSoft = Color(0xFFF0EEFF);
-  static const groupingNoDateSoft = Color(0xFFF3F4F7);
+  // Brand and grouping accents use the approved light-turquoise system.
+  static const groupingTomorrow = Color(0xFF078B91);
+  static const groupingFuture = Color(0xFF078B91);
+  static const groupingTodaySoft = Color(0xFFDDF7F5);
+  static const groupingTomorrowSoft = Color(0xFFDDF7F5);
+  static const groupingFutureSoft = Color(0xFFDDF7F5);
+  static const groupingNoDateSoft = Color(0xFFF0FAF9);
   static const taskStatusGreen = Color(0xFF409B51);
   static const taskStatusAmber = Color(0xFFDB8B23);
 
-  static const time = Color(0xFF008C74);
-  static const timeDark = Color(0xFF006653);
-  static const timeSoft = Color(0xFFD8F5EC);
+  static const time = ArvinTheme.primaryTurquoise;
+  static const timeDark = ArvinTheme.headerTurquoise;
+  static const timeSoft = ArvinTheme.primarySoft;
 
-  static const reminder = Color(0xFFB96A00);
-  static const reminderDark = Color(0xFF794400);
-  static const reminderSoft = Color(0xFFFFE9C2);
+  static const reminder = ArvinTheme.primaryTurquoise;
+  static const reminderDark = ArvinTheme.headerTurquoise;
+  static const reminderSoft = ArvinTheme.primarySoft;
 
-  static const project = Color(0xFF185CC7);
-  static const projectDark = Color(0xFF154596);
-  static const projectSoft = Color(0xFFDDEAFF);
+  static const project = ArvinTheme.primaryTurquoise;
+  static const projectDark = ArvinTheme.headerTurquoise;
+  static const projectSoft = ArvinTheme.primarySoft;
 
-  static const category = Color(0xFFD84D0C);
-  static const categoryDark = Color(0xFF9E3505);
-  static const categorySoft = Color(0xFFFFE5D8);
+  static const category = ArvinTheme.primaryTurquoise;
+  static const categoryDark = ArvinTheme.headerTurquoise;
+  static const categorySoft = ArvinTheme.primarySoft;
 
-  static const tag = Color(0xFF7133C6);
-  static const tagDark = Color(0xFF542296);
-  static const tagSoft = Color(0xFFEBDDFF);
+  static const tag = ArvinTheme.primaryTurquoise;
+  static const tagDark = ArvinTheme.headerTurquoise;
+  static const tagSoft = ArvinTheme.primarySoft;
 
   static const error = Color(0xFFC62828);
   static const errorDark = Color(0xFF922020);
@@ -78,7 +78,7 @@ abstract final class ArvinColors {
   static const calendarPlannedSoft = Color(0xFFEFF6FF);
   static const calendarOverdue = Color(0xFFDC2626);
   static const calendarOverdueSoft = Color(0xFFFEF2F2);
-  static const calendarSelectedDay = Color(0xFFEDE9FE);
+  static const calendarSelectedDay = ArvinTheme.primarySoft;
   static const priorityP1 = Color(0xFFDC2626);
   static const priorityP2 = Color(0xFF2563EB);
   static const priorityP3 = Color(0xFFD97706);
