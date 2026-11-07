@@ -10,6 +10,7 @@ class TaskReportEntry {
     required this.followUps,
     required this.completed,
     this.reminderDate,
+    this.reminderAllDay = false,
     this.priority = TaskPriority.medium,
   });
 
@@ -21,6 +22,7 @@ class TaskReportEntry {
   final List<String> checklist;
   final bool completed;
   final DateTime? reminderDate;
+  final bool reminderAllDay;
   final TaskPriority priority;
 }
 
@@ -78,6 +80,7 @@ class TaskReportProjection {
             followUps: List<FollowUp>.unmodifiable(task.followUps),
             completed: task.completed,
             reminderDate: task.reminderDate,
+            reminderAllDay: task.reminderAllDay,
             priority: task.priority,
           ),
         )
