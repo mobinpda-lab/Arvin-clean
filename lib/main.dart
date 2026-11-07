@@ -1004,8 +1004,8 @@ class _HomePageState extends State<HomePage> {
                       ? 'زمان'
                       : _timeFilterLabel,
                   icon: Icons.schedule_rounded,
-                  accent: ArvinColors.primary,
-                  soft: ArvinColors.primarySoft,
+                  accent: Theme.of(context).colorScheme.primary,
+                  soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
                   active: _timeFilters.isNotEmpty || _timeFilter == 'customRange',
                   onPressed: _showTimeFilterSheet,
                 ),
@@ -1023,8 +1023,8 @@ class _HomePageState extends State<HomePage> {
                                   'مرکز حذف‌شده'))
                           : 'مرکز (${persianDateFormatter.toPersianDigits('${_centerFilters.length}')})',
                   icon: Icons.location_city_outlined,
-                  accent: ArvinColors.primary,
-                  soft: ArvinColors.primarySoft,
+                  accent: Theme.of(context).colorScheme.primary,
+                  soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
                   active: _centerFilters.isNotEmpty,
                   onPressed: _showCenterFilterSheet,
                 ),
@@ -1042,8 +1042,8 @@ class _HomePageState extends State<HomePage> {
                                   'پروژه حذف‌شده'))
                           : 'پروژه‌ها (${persianDateFormatter.toPersianDigits('${_projectFilters.length}')})',
                   icon: Icons.folder_rounded,
-                  accent: ArvinColors.primary,
-                  soft: ArvinColors.primarySoft,
+                  accent: Theme.of(context).colorScheme.primary,
+                  soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
                   active: _projectFilters.isNotEmpty,
                   onPressed: _showProjectFilterSheet,
                 ),
@@ -1058,8 +1058,8 @@ class _HomePageState extends State<HomePage> {
                           ? _categoryFilters.first
                           : 'دسته‌ها (${persianDateFormatter.toPersianDigits('${_categoryFilters.length}')})',
                   icon: Icons.layers_rounded,
-                  accent: ArvinColors.primary,
-                  soft: ArvinColors.primarySoft,
+                  accent: Theme.of(context).colorScheme.primary,
+                  soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
                   active: _categoryFilters.isNotEmpty,
                   onPressed: _showCategoryFilterSheet,
                 ),
@@ -1072,8 +1072,8 @@ class _HomePageState extends State<HomePage> {
                       ? 'برچسب‌ها'
                       : 'برچسب‌ها (${persianDateFormatter.toPersianDigits('${_tagFilters.length}')})',
                   icon: Icons.sell_rounded,
-                  accent: ArvinColors.primary,
-                  soft: ArvinColors.primarySoft,
+                  accent: Theme.of(context).colorScheme.primary,
+                  soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
                   active: _tagFilters.isNotEmpty,
                   onPressed: _showTagFilterSheet,
                 ),
@@ -1119,7 +1119,7 @@ class _HomePageState extends State<HomePage> {
         }),
       ));
     }
-    if (_centerFilters.isNotEmpty) chips.add(HomeFilterChip(label: _centerFilters.length == 1 ? (_centerFilters.first == '__no_center__' ? 'بدون مرکز' : (_centerName(_centerFilters.first) ?? 'مرکز حذف‌شده')) : 'مرکز (${persianDateFormatter.toPersianDigits('${_centerFilters.length}')})', accent: ArvinColors.primary, soft: ArvinColors.primarySoft, icon: Icons.location_city_outlined, onRemove: () => setState(() => _centerFilters.clear())));
+    if (_centerFilters.isNotEmpty) chips.add(HomeFilterChip(label: _centerFilters.length == 1 ? (_centerFilters.first == '__no_center__' ? 'بدون مرکز' : (_centerName(_centerFilters.first) ?? 'مرکز حذف‌شده')) : 'مرکز (${persianDateFormatter.toPersianDigits('${_centerFilters.length}')})', accent: Theme.of(context).colorScheme.primary, soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface), icon: Icons.location_city_outlined, onRemove: () => setState(() => _centerFilters.clear())));
     if (_projectFilters.isNotEmpty) chips.add(HomeFilterChip(label: _projectFilters.length == 1 ? (_projectFilters.first == '__no_project__' ? 'بدون پروژه' : (_projectTitle(_projectFilters.first) ?? 'پروژه حذف‌شده')) : 'پروژه‌ها (${persianDateFormatter.toPersianDigits('${_projectFilters.length}')})', accent: ArvinColors.project, soft: ArvinColors.projectSoft, icon: Icons.folder_rounded, onRemove: () => setState(() => _projectFilters.clear())));
     if (_categoryFilters.isNotEmpty) chips.add(HomeFilterChip(label: _categoryFilters.length == 1 ? _categoryFilters.first : 'دسته‌بندی‌ها (${persianDateFormatter.toPersianDigits('${_categoryFilters.length}')})', accent: ArvinColors.category, soft: ArvinColors.categorySoft, icon: Icons.layers_rounded, onRemove: () => setState(() => _categoryFilters.clear())));
     if (_tagFilters.isNotEmpty) chips.add(HomeFilterChip(label: _tagFilters.length == 1 ? _tagFilters.first : 'برچسب‌ها (${persianDateFormatter.toPersianDigits('${_tagFilters.length}')})', accent: ArvinColors.tag, soft: ArvinColors.tagSoft, icon: Icons.sell_rounded, onRemove: () => setState(() => _tagFilters.clear())));
@@ -1238,7 +1238,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _showCenterFilterSheet() async {
     String search=''; final draft=<String>{..._centerFilters};
-    await HomeFilterSheet.show<void>(context,title:'انتخاب مرکز',accent:ArvinColors.primary,
+    await HomeFilterSheet.show<void>(context,title:'انتخاب مرکز',accent:Theme.of(context).colorScheme.primary,
       child:StatefulBuilder(builder:(sheetContext,setSheetState){
         final values=centers.toList()..sort((a,b)=>a.name.compareTo(b.name));
         final filtered=values.where((v)=>v.name.toLowerCase().contains(search.toLowerCase())).toList();
@@ -1310,7 +1310,7 @@ class _HomePageState extends State<HomePage> {
       case 'tomorrow': return ArvinColors.groupingTomorrow;
       case 'future': return ArvinColors.groupingFuture;
       case 'no_date': return ArvinColors.neutral;
-      default: return ArvinColors.primary;
+      default: return Theme.of(context).colorScheme.primary;
     }
   }
 
@@ -1321,7 +1321,7 @@ class _HomePageState extends State<HomePage> {
       case 'tomorrow': return ArvinColors.groupingTomorrowSoft;
       case 'future': return ArvinColors.groupingFutureSoft;
       case 'no_date': return ArvinColors.groupingNoDateSoft;
-      default: return ArvinColors.primarySoft;
+      default: return Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface);
     }
   }
 
@@ -3181,7 +3181,7 @@ class _HomePageState extends State<HomePage> {
       children: [
         Row(
           children: [
-            const Icon(Icons.checklist_rounded, size: 15, color: ArvinColors.primary),
+            const Icon(Icons.checklist_rounded, size: 15, color: Theme.of(context).colorScheme.primary),
             const SizedBox(width: 4),
             Text(
               'چک‌لیست: ${persianDateFormatter.toPersianDigits('$completed از $total')}',
@@ -3192,7 +3192,7 @@ class _HomePageState extends State<HomePage> {
         const SizedBox(height: 4),
         ClipRRect(
           borderRadius: BorderRadius.circular(4),
-          child: LinearProgressIndicator(value: progress, minHeight: 5, backgroundColor: ArvinColors.primarySoft),
+          child: LinearProgressIndicator(value: progress, minHeight: 5, backgroundColor: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface)),
         ),
       ],
     );
