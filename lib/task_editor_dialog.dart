@@ -541,12 +541,6 @@ Future<void> _pickDueDateTime() async {
     }
   }
 
-  void _clearDueTime() => setState(() {
-    _dueDateTime = null;
-    _dueAllDay = false;
-    _syncAutomaticReminder();
-  });
-
   void _clearReminderTime() => setState(() {
     _reminderDateTime = null;
     _reminderAllDay = false;
