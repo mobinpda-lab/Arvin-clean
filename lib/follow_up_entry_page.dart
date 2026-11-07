@@ -349,7 +349,7 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
       completed: widget.initialFollowUp?.completed ?? false,
       waitingForResponse: _waitingForResponse,
       personIds: _selectedPersonIds.toList(growable: false),
-      // Preserve legacy fields during edits without exposing retired scheduling UI.
+      // Preserve the legacy reminder date and explicit All-Day state during edits.
       reminderDate: _legacyReminderDateTime,
       reminderAllDay: _legacyReminderDateTime != null && _legacyReminderAllDay,
       nextFollowUp: widget.initialFollowUp?.nextFollowUp,
