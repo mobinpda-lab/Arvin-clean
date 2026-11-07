@@ -13,12 +13,12 @@ class ArvinHomePrimaryAddButton extends StatelessWidget {
     required this.onPressed,
   });
 
-  static const Color brandColor = ArvinColors.primary;
 
   final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
+    final brandColor = Theme.of(context).colorScheme.primary;
     return FloatingActionButton(
       key: const ValueKey('home-primary-add'),
       onPressed: onPressed,
