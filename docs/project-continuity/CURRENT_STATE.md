@@ -789,3 +789,21 @@ PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main دست‌نخورد�
 - Source commit: `0e63449dd122065314c97f7d81f320dfccca3460`.
 - آزمون مرتبط `test/follow_up_entry_page_test.dart` از قبل حالت تمام‌روز و ذخیرهٔ Reminder را پوشش می‌دهد؛ اجرای exact-SHA این اصلاح هنوز در انتظار نتیجه است. Run Build `42361252514`، Draft Review APK `42361252886`، Device Smoke `42361252423` و Persistence `42361252554` در زمان ثبت Pending/Queued هستند؛ هیچ‌کدام PASS محسوب نمی‌شوند.
 - PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## 2026-11-07 — تثبیت تست‌های شش‌شارد و شناسنامه APK بازبینی (abecec1)
+
+- شاخه مجاز: `fix/recovery-calendar-device-smoke-2026-10-31`.
+- Source commit: `abecec1ec895e6c7df83913247c1cc9ecc083d02` — اصلاح Finder تست `issue 1891 tag roll box` بدون حذف یا تضعیف assertionها.
+- Build run `42370095017`: نتیجه کلی SUCCESS؛ Analyze و Visual نیز SUCCESS.
+- شمارش قطعی شش شارد از لاگ‌ها: Shard 0 = 224، Shard 1 = 185، Shard 2 = 308، Shard 3 = 145، Shard 4 = 236، Shard 5 = 173؛ جمع 1,271/1,271؛ ALL SHARDS PASSED = YES.
+- تست `issue 1891 tag roll box supports multi-select with apply/cancel` در Shard 4 موفق شد.
+- Staging review artifact: Run `42370095057`، Artifact ID `13573433210`. APK استخراج و هش روی خود فایل اجرایی محاسبه شد:
+  - File: `Arvin-review-staging-abecec1ec895e6c7df83913247c1cc9ecc083d02.apk`
+  - SHA-256: `6e259567386481fa14621bd35d133a4d7f1959bb9ff6a0820ac4a994c583cbc2`
+  - Size: 79,120,215 bytes = 75.455 MiB (79.120 MB decimal).
+  - applicationId: `com.example.arvin.staging`; `android_debuggable=false`; V2/V3 signature verification passed.
+  - Signing key is ephemeral/review-only; `publishable=false`. This is not a release APK.
+- Device Smoke Run `42370095088` targets the exact source SHA above but remains PENDING; latest job query returned zero jobs. The workflow definition has `pull_request` triggers (opened/synchronize/reopened/ready_for_review) and `workflow_dispatch`; its matrix jobs run on GitHub-hosted `ubuntu-latest` and provision Android API 35 emulator through the emulator-runner action. Therefore no evidence currently indicates a dedicated self-hosted emulator runner is the blocker. The run appears not to have progressed to job creation; the exact scheduler/approval/concurrency cause is not exposed by available run/job evidence and remains UNKNOWN.
+- A manual workflow-dispatch / full-run rerun was not issued: the available GitHub actions expose job-level rerun and failed-job rerun only; this pending run has no jobs to rerun. Do not report a retry as triggered. Manual `workflow_dispatch` with `target_sha=abecec1ec895e6c7df83913247c1cc9ecc083d02` remains the supported workflow-level route when an authorized GitHub Actions dispatch control is available.
+- PR #3052 must remain OPEN / DRAFT / UNMERGED. main remains at `45e4202b03a434459e4c021a04efa7e8396359db`; no merge or main update. Release remains **BLOCKED — RELEASE: NO-GO** until Device Smoke and all remaining acceptance gates pass on one exact candidate SHA.
