@@ -688,7 +688,7 @@ class TaskStore {
     for (final followUpRow in followUps) {
       final value = <String, dynamic>{
         'id': followUpRow['id'],
-        'dateTime': followUpRow['completed_at'],
+        'completedAt': followUpRow['completed_at'],
         'title': followUpRow['title'],
         'note': followUpRow['note'],
         'result': followUpRow['result'],
