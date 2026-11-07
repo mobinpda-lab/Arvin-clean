@@ -425,8 +425,8 @@ void main() {
       expect(persistedTarget.title, originalTarget.title);
       expect(persistedTarget.note, originalTarget.note);
       expect(persistedTarget.result, originalTarget.result);
-      expect(persistedTarget.reminderDate, originalTarget.reminderDate);
-      expect(persistedTarget.nextFollowUp, originalTarget.nextFollowUp);
+      expect(persistedTarget.toJson().containsKey('reminderDate'), isFalse);
+      expect(persistedTarget.toJson().containsKey('nextFollowUp'), isFalse);
       expect(persistedTarget.waitingForResponse, originalTarget.waitingForResponse);
       expect(persistedTarget.personIds, originalTarget.personIds);
       expect(
