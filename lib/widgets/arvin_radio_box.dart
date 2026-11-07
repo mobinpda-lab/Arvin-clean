@@ -30,7 +30,7 @@ class ArvinRadioBox extends StatelessWidget {
       label: label,
       child: Material(
         color: background,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(24),
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(24),
