@@ -78,17 +78,17 @@ class TaskTemplate {
     // its time-of-day only; the calendar date is execution history, not a
     // reusable template default. Do not duplicate a reminder already migrated
     // into the independent reminder collection.
-    if (task.reminderDate != null &&
+    if (task.primaryReminderDate != null &&
         !task.taskReminders.any((reminder) => reminder.isLegacyTaskReminder ||
-            reminder.date.isAtSameMomentAs(task.reminderDate!))) {
+            reminder.date.isAtSameMomentAs(task.primaryReminderDate!))) {
       final sequence = reminderDefinitions.isEmpty
           ? 1
           : reminderDefinitions.map((item) => item.sequence).reduce((a, b) => a > b ? a : b) + 1;
       reminderDefinitions.add(TaskTemplateReminder(
         title: 'یادآور اصلی',
         isAllDay: false,
-        hour: task.reminderDate!.hour,
-        minute: task.reminderDate!.minute,
+        hour: task.primaryReminderDate!.hour,
+        minute: task.primaryReminderDate!.minute,
         isEnabled: true,
         sequence: sequence,
       ));
