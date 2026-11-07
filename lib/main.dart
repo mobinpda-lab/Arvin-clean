@@ -1993,6 +1993,17 @@ class _HomePageState extends State<HomePage> {
           tagOptions: _homeTags,
           onCreateCategory: _createCategory,
           onCreateTag: _createTag,
+          centers: centers,
+          projects: projects,
+          selectedProjectId: _projectForTask(task)?.id,
+          onCreateCenter: _createCenter,
+          onCreateProject: (title, centerId) =>
+              wave2ProductFastTrack.createProject(title, centerId: centerId),
+          onProjectChanged: (projectId) =>
+              wave2ProductFastTrack.persistProjectSelection(
+            taskId: task.id,
+            projectId: projectId,
+          ),
         ),
       ),
     );
