@@ -5,6 +5,8 @@
 **PR:** #3052 — must remain OPEN / DRAFT / UNMERGED  
 **Release:** BLOCKED — RELEASE: NO-GO
 
+**Implementation source checkpoint:** `ccf51e22fcb068cf803237d154cf6f539ad4ac46` (before this documentation synchronization commit)
+
 ## Implemented in source
 
 - Added `AppThemeManager`, a ChangeNotifier-backed owner for the selected accent color.
@@ -13,7 +15,8 @@
 - Unsupported or stale color values are not restored; the manager falls back to the approved default.
 - Added the palette grid to Settings under «انتخاب تم و رنگ اصلی برنامه».
 - Selecting a swatch saves the choice and notifies the app root; light and dark Material color schemes, app bar, navigation, chips, progress indicators, buttons and focused input borders derive from the selected accent.
-- Updated the canonical static fallback brand token from the former turquoise default to vivid sky blue.
+- Updated the canonical static fallback brand token and its soft surface from the former turquoise default to vivid sky blue.
+- The selected accent also drives the dark app bar and focused input border.
 - Added focused tests for the default, supported palette, persistence/restore, invalid color rejection and Settings selection.
 
 ## Important acceptance distinction
