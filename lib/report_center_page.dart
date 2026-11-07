@@ -1087,6 +1087,12 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                 selected: _centerIds,
                 onChanged: (value) => setState(() => _centerIds = value),
                 keyPrefix: 'report-filter-center',
+                onCreate: widget.onCreateCenter == null
+                    ? null
+                    : (name) async {
+                        final id = await widget.onCreateCenter!(name);
+                        return id == null ? null : MapEntry(id, name);
+                      },
                 ),
                 if (_centerIds.isNotEmpty)
                   CheckboxListTile(
@@ -1113,6 +1119,12 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                 selected: _projectIds,
                 onChanged: (value) => setState(() => _projectIds = value),
                 keyPrefix: 'report-filter-project',
+                onCreate: widget.onCreateProject == null
+                    ? null
+                    : (title) async {
+                        final id = await widget.onCreateProject!(title);
+                        return id == null ? null : MapEntry(id, title);
+                      },
               ),
             ),
             _Section(
@@ -1128,6 +1140,12 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                 selected: _categories,
                 onChanged: (value) => setState(() => _categories = value),
                 keyPrefix: 'report-filter-category',
+                onCreate: widget.onCreateCategory == null
+                    ? null
+                    : (name) async {
+                        final value = await widget.onCreateCategory!(name);
+                        return value == null ? null : MapEntry(value, value);
+                      },
               ),
             ),
             _Section(
@@ -1143,6 +1161,12 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                 selected: _tags,
                 onChanged: (value) => setState(() => _tags = value),
                 keyPrefix: 'report-filter-tag',
+                onCreate: widget.onCreateTag == null
+                    ? null
+                    : (name) async {
+                        final value = await widget.onCreateTag!(name);
+                        return value == null ? null : MapEntry(value, value);
+                      },
               ),
             ),
             _Section(
@@ -1248,6 +1272,14 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                 selected: _personIds,
                 onChanged: (value) => setState(() => _personIds = value),
                 keyPrefix: 'report-filter-person',
+                onCreate: widget.onCreatePerson == null
+                    ? null
+                    : (name) async {
+                        final person = await widget.onCreatePerson!(name);
+                        return person == null
+                            ? null
+                            : MapEntry(person.id, person.displayName);
+                      },
               ),
             ),
             _Section(
@@ -1539,6 +1571,7 @@ class _MultiSelectChips extends StatelessWidget {
     required this.selected,
     required this.onChanged,
     required this.keyPrefix,
+    this.onCreate,
   });
 
   final String allLabel;
@@ -1547,41 +1580,51 @@ class _MultiSelectChips extends StatelessWidget {
   final Set<String> selected;
   final ValueChanged<Set<String>> onChanged;
   final String keyPrefix;
+  final Future<MapEntry<String, String>?> Function(String value)? onCreate;
 
   @override
   Widget build(BuildContext context) {
     final accent = accentColor ?? Theme.of(context).colorScheme.primary;
-    return Wrap(
-        spacing: 6,
-        runSpacing: 4,
-        children: [
-          FilterChip(
-            key: ValueKey('$keyPrefix-all'),
-            label: Text(allLabel),
-            selected: selected.isEmpty,
-            selectedColor: accent.withValues(alpha: .16),
-            checkmarkColor: accent,
-            onSelected: (_) => onChanged(<String>{}),
-          ),
-          for (final option in options)
-            FilterChip(
-              key: ValueKey('$keyPrefix-${option.key}'),
-              label: Text(option.value),
-              selected: selected.contains(option.key),
-              selectedColor: accent.withValues(alpha: .16),
-              checkmarkColor: accent,
-              onSelected: (checked) {
-                final next = <String>{...selected};
-                if (checked) {
-                  next.add(option.key);
-                } else {
-                  next.remove(option.key);
-                }
-                onChanged(next);
-              },
-            ),
-        ],
-      );
+    final label = allLabel.replaceFirst('همه ', '');
+    return HomeFilterPill(
+      key: ValueKey('$keyPrefix-button'),
+      label: selected.isEmpty
+          ? label
+          : '$label (${selected.length})',
+      icon: Icons.filter_alt_outlined,
+      accent: accent,
+      soft: Color.alphaBlend(accent.withAlpha(18), Theme.of(context).colorScheme.surface),
+      active: selected.isNotEmpty,
+      onPressed: () async {
+        final applied = await ReusableMultiSelectFilterBottomSheet.showMultiSelect<String>(
+          context,
+          title: allLabel.replaceFirst('همه ', 'انتخاب '),
+          accent: accent,
+          options: options
+              .map((option) => ReusableFilterOption<String>(
+                    value: option.key,
+                    label: option.value,
+                  ))
+              .toList(growable: false),
+          selectedValues: selected,
+          optionKeyPrefix: keyPrefix,
+          searchHint: 'جستجو...',
+          createHint: 'نام مورد جدید',
+          createLabel: 'افزودن و انتخاب',
+          onCreate: onCreate == null
+              ? null
+              : (value) async {
+                  final created = await onCreate!(value);
+                  if (created == null) return null;
+                  return ReusableFilterOption<String>(
+                    value: created.key,
+                    label: created.value,
+                  );
+                },
+        );
+        if (applied != null) onChanged(applied);
+      },
+    );
   }
 }
 
