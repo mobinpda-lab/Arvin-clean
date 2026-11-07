@@ -26,6 +26,7 @@ void main() {
   });
 
   test('TaskStore stores All-Day due dates as date-only SQLite values', () async {
+    SharedPreferences.setMockInitialValues({});
     final executor = NativeDatabase.memory();
     await G1DriftSchema.install(executor);
     await G1DriftSchema.markLegacyMigrationComplete(executor);
