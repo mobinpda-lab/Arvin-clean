@@ -560,7 +560,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         .where((project) =>
             (!project.isArchived || project.id == _selectedProjectId) &&
             (_selectedCenterId == null ||
-                project.centerId == null ||
                 project.centerId == _selectedCenterId))
         .map((project) => ReusableFilterOption<String>(
               value: project.id,
