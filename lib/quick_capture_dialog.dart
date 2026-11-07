@@ -342,7 +342,7 @@ Future<DateTime?> _pickCustomDue() async {
                       RecurrenceFrequency.oncePerDay => 'روز',
                     },
                     icon: Icons.repeat_rounded,
-                    color: ArvinColors.primary,
+                    color: Theme.of(context).colorScheme.primary,
                     items: const [
                       ArvinRollItem(value: RecurrenceFrequency.minutes, label: 'دقیقه', icon: Icons.schedule_rounded),
                       ArvinRollItem(value: RecurrenceFrequency.hours, label: 'ساعت', icon: Icons.access_time_rounded),
@@ -522,7 +522,7 @@ Future<DateTime?> _pickCustomDue() async {
     final selectedProject = _knownProjects.where((project) => project.id == _projectId).toList();
 
     return ColoredBox(
-      color: ArvinColors.background,
+      color: Theme.of(context).colorScheme.surface,
       child: SafeArea(
       child: Align(
         alignment: AlignmentDirectional.topCenter,
@@ -537,7 +537,7 @@ Future<DateTime?> _pickCustomDue() async {
                 children: [
                   Container(
                     decoration: const BoxDecoration(
-                      color: ArvinColors.primaryDark,
+                      color: Theme.of(context).colorScheme.primary,
                       borderRadius: BorderRadius.vertical(bottom: Radius.circular(18)),
                     ),
                     padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
@@ -582,7 +582,7 @@ Future<DateTime?> _pickCustomDue() async {
                       decoration: InputDecoration(
                         hintText: 'عنوان کار را وارد کنید',
                         errorText: _error,
-                        prefixIcon: const Icon(Icons.title_rounded, size: 18, color: ArvinColors.primary),
+                        prefixIcon: Icon(Icons.title_rounded, size: 18, color: Theme.of(context).colorScheme.primary),
                         isDense: true,
                         contentPadding: const EdgeInsets.symmetric(vertical: 4),
                         border: InputBorder.none,
@@ -911,7 +911,7 @@ Future<DateTime?> _pickCustomDue() async {
                       Expanded(child: FilledButton(
                         key: const ValueKey('quick-capture-submit'),
                         style: FilledButton.styleFrom(
-                          backgroundColor: ArvinColors.primary,
+                          backgroundColor: Theme.of(context).colorScheme.primary,
                           foregroundColor: Colors.white,
                           minimumSize: const Size.fromHeight(40),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
