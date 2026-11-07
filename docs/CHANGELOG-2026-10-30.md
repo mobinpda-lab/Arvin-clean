@@ -548,3 +548,11 @@ This is an implementation record following the earlier Wave 7.299 ownership audi
 - Corrected the Calendar tafweez vector label to exact «أُفَوِّضُ أَمْرِي إِلَى اللَّهِ» without a leading waw. Added/updated focused tests for the picker flow and overdue boundaries.
 - Progress and remaining gaps are recorded in `docs/project-continuity/ARVIN_EXECUTION_WAVE_WORK_TIME_OVERDUE_2026-11-07.md`.
 - This source wave is not yet CI-verified. Schema clean-slate, shared five-way filter component, unified Person binding, and physical Samsung SM-A528B/DS seven-path acceptance remain pending. Keep PR #3052 OPEN/DRAFT/UNMERGED; main untouched; **BLOCKED — RELEASE: NO-GO**.
+
+
+## 2026-11-07 — Unified Person filter binding
+
+- Reports Person multi-select now matches tasks associated through the canonical `Task.people` relation and any linked historical Follow-up record through `FollowUp.personIds`; the filter no longer excludes ordinary/completed Follow-up history or tasks linked directly to a Person.
+- Updated the regression test to cover direct Task-person links, waiting Follow-up links and ordinary Follow-up history.
+- Follow-up entry already exposes Person selection when «منتظر پاسخ دیگران» is enabled; the current flow was verified in source. The remaining shared filter component and canonical schema work are still pending.
+- Exact-head CI is required before this change is marked accepted. PR #3052 remains OPEN/DRAFT/UNMERGED; **BLOCKED — RELEASE: NO-GO**.
