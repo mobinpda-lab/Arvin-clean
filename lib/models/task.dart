@@ -37,6 +37,7 @@ class FollowUp {
   final String note;
   final String? result;
   final DateTime? reminderDate;
+  final bool reminderAllDay;
   final DateTime? nextFollowUp;
   final bool completed;
   final bool waitingForResponse;
@@ -49,6 +50,7 @@ class FollowUp {
     this.note = '',
     this.result,
     this.reminderDate,
+    this.reminderAllDay = false,
     this.nextFollowUp,
     this.completed = false,
     this.waitingForResponse = false,
@@ -63,6 +65,7 @@ class FollowUp {
         'result': result,
         if (reminderDate != null)
           'reminderDate': reminderDate!.toIso8601String(),
+        if (reminderAllDay) 'reminderAllDay': true,
         if (nextFollowUp != null)
           'nextFollowUp': nextFollowUp!.toIso8601String(),
         'completed': completed,
@@ -82,6 +85,7 @@ class FollowUp {
       reminderDate: json['reminderDate'] == null
           ? null
           : DateTime.tryParse(json['reminderDate'] as String),
+      reminderAllDay: json['reminderAllDay'] as bool? ?? false,
       nextFollowUp: json['nextFollowUp'] == null
           ? null
           : DateTime.tryParse(json['nextFollowUp'] as String),
@@ -187,6 +191,7 @@ class Task {
     this.occurrenceHistory = const {},
     this.notebookKind,
     this.reminderDate,
+    this.reminderAllDay = false,
     Iterable<TaskReminder> taskReminders = const [],
     this.nextReminderSequence = 1,
     this.legacyTaskReminderMigrationVersion = 0,
@@ -232,6 +237,9 @@ class Task {
   NotebookItemKind? notebookKind;
   /// Legacy singular Task reminder retained for backward compatibility.
   DateTime? reminderDate;
+  /// Explicit date-only state for the legacy singular reminder.
+  /// Midnight timestamps alone never imply All-Day.
+  bool reminderAllDay;
   /// New independent reminders stored in the canonical Task JSON envelope.
   List<TaskReminder> taskReminders;
   /// Monotonic per-Task sequence; removed reminder numbers are never reused.
@@ -377,6 +385,7 @@ class Task {
           ),
         if (notebookKind != null) 'notebookKind': notebookKind!.name,
         'reminderDate': reminderDate?.toIso8601String(),
+        if (reminderAllDay) 'reminderAllDay': true,
         if (taskReminders.isNotEmpty)
           'taskReminders': taskReminders.map((item) => item.toJson()).toList(),
         if (nextReminderSequence > 1)
@@ -441,6 +450,7 @@ class Task {
             id: 'legacy-task-reminder',
             title: 'یادآوری: $taskTitle',
             date: legacyReminderDate,
+            isAllDay: json['reminderAllDay'] as bool? ?? false,
             sequence: migrationSequence,
             isLegacyTaskReminder: true,
           ),
@@ -506,6 +516,7 @@ class Task {
             orElse: () => null,
           ),
       reminderDate: legacyReminderDate,
+      reminderAllDay: json['reminderAllDay'] as bool? ?? false,
       taskReminders: loadedTaskReminders,
       nextReminderSequence: nextReminderSequence,
       legacyTaskReminderMigrationVersion: migrationVersion,
