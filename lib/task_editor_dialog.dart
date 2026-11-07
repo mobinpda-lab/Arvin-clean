@@ -859,55 +859,6 @@ Future<void> _pickDueDateTime() async {
     RecurrenceFrequency.hours => 'ساعتی',
   };
 
-  Widget _dateRollBox({
-    required String keyPrefix,
-    required String label,
-    required DateTime? value,
-    required String target,
-    required VoidCallback onCustom,
-    required Color accent,
-  }) {
-    final now = _baseDateTime(null);
-    final base = value ?? now;
-    final items = <ArvinRollItem<String>>[
-      ArvinRollItem<String>(value: 'today', label: 'امروز', icon: Icons.today_outlined, color: accent),
-      ArvinRollItem<String>(value: 'tomorrow', label: 'فردا', icon: Icons.event_available_outlined, color: accent),
-    ];
-    return KeyedSubtree(
-      key: ValueKey('$keyPrefix-rollbox'),
-      child: ArvinRollBox<String>(
-        label: label,
-        valueLabel: value == null ? 'انتخاب $label' : _dateText(base),
-        icon: Icons.calendar_month_outlined,
-        color: accent,
-        items: items,
-        onSelected: (selection) {
-          if (selection == null) return;
-          final picked = selection == 'today'
-              ? now
-              : DateTime(now.year, now.month, now.day + 1);
-          setState(() {
-            _dueDateTime = _dueAllDay || value == null
-                ? DateTime(picked.year, picked.month, picked.day)
-                : DateTime(
-                    picked.year,
-                    picked.month,
-                    picked.day,
-                    base.hour,
-                    base.minute,
-                  );
-            if (value == null || _dueAllDay) _dueAllDay = true;
-          });
-        },
-        onCreate: () async {
-          onCustom();
-          return null;
-        },
-        createLabel: 'تاریخ سفارشی',
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final editing = widget.task != null;
