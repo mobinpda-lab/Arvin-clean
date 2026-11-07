@@ -36,12 +36,12 @@ void main() {
     await G1DriftSchema.install(database);
 
     await database.runInsert(
-      'INSERT INTO tasks (id, title, description, follow_up_enabled, priority, archived, trashed, completed) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      const ['task-1', 'کار اول', '', 0, 'none', 0, 0, 0],
+      'INSERT INTO tasks (id, title, description, priority, archived, trashed, completed) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      const ['task-1', 'کار اول', '', 'none', 0, 0, 0],
     );
     await database.runInsert(
       'INSERT INTO tasks (id, title, description, follow_up_enabled, priority, archived, trashed, completed) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      const ['task-2', 'کار دوم', '', 0, 'none', 0, 0, 0],
+      const ['task-2', 'کار دوم', '', 'none', 0, 0, 0],
     );
 
     final report = await const SqlProjectMigrationWriter().migrateFromPreferences(
