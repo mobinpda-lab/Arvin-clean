@@ -46,13 +46,25 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('Task editor taxonomy wraps at large text scale', (tester) async {
+  testWidgets('Task editor five filters stay in one row at large text scale', (tester) async {
     tester.platformDispatcher.textScaleFactorTestValue = 1.4;
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
     await pumpEditor(tester, logicalSize: const Size(320, 640));
-    expect(find.byKey(const ValueKey('task-editor-category-rollbox')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-editor-project-rollbox')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-editor-tag-rollbox')), findsOneWidget);
+    final row = find.byKey(const ValueKey('task-editor-five-filter-row'));
+    expect(row, findsOneWidget);
+    final filters = [
+      'task-editor-due-date-time',
+      'task-editor-center-rollbox',
+      'task-editor-project-rollbox',
+      'task-editor-category-rollbox',
+      'task-editor-tag-rollbox',
+    ].map((key) => find.byKey(ValueKey(key))).toList();
+    final first = tester.getRect(filters.first);
+    for (final filter in filters) {
+      expect(filter, findsOneWidget);
+      expect(tester.getRect(filter).height, greaterThanOrEqualTo(48));
+      expect(tester.getRect(filter).top, closeTo(first.top, 0.1));
+    }
     expect(tester.takeException(), isNull);
   });
 
@@ -80,7 +92,7 @@ void main() {
     tester.view.resetViewInsets();
   });
 
-  testWidgets('Task editor taxonomy selectors wrap on a narrow RTL phone viewport', (tester) async {
+  testWidgets('Task editor five filters remain single-row at 360/390/412dp', (tester) async {
     Task? result;
     await pumpEditor(
       tester,
@@ -88,18 +100,33 @@ void main() {
       onResult: (value) => result = value,
     );
 
-    final dueTime = find.byKey(const ValueKey('task-editor-due-date-time'));
-    final project = find.byKey(const ValueKey('task-editor-project-rollbox'));
-    final category = find.byKey(const ValueKey('task-editor-category-rollbox'));
-    final tags = find.byKey(const ValueKey('task-editor-tag-rollbox'));
-    expect(dueTime, findsOneWidget);
-    expect(category, findsOneWidget);
-    expect(project, findsOneWidget);
-    expect(tester.getRect(dueTime).top, lessThan(tester.getRect(project).top));
-    expect(tags, findsOneWidget);
-    expect(tester.getRect(project).top, lessThanOrEqualTo(tester.getRect(category).top));
-    expect(tester.getRect(tags).top, greaterThan(tester.getRect(category).top));
-    expect(tester.takeException(), isNull);
+    for (final width in [360.0, 390.0, 412.0]) {
+      tester.view.physicalSize = Size(width * 2, 640 * 2);
+      tester.view.viewInsets = FakeViewPadding.zero;
+      await tester.pumpAndSettle();
+      final row = find.byKey(const ValueKey('task-editor-five-filter-row'));
+      expect(row, findsOneWidget);
+      final rowRect = tester.getRect(row);
+      final keys = [
+        'task-editor-due-date-time',
+        'task-editor-center-rollbox',
+        'task-editor-project-rollbox',
+        'task-editor-category-rollbox',
+        'task-editor-tag-rollbox',
+      ];
+      final rects = keys.map((key) => tester.getRect(find.byKey(ValueKey(key)))).toList();
+      for (final rect in rects) {
+        expect(rect.height, greaterThanOrEqualTo(48));
+        expect(rect.top, closeTo(rects.first.top, 0.1));
+        expect(rect.left, greaterThanOrEqualTo(rowRect.left));
+        expect(rect.right, lessThanOrEqualTo(rowRect.right));
+      }
+      expect(rects[0].center.dx, greaterThan(rects[1].center.dx));
+      expect(rects[1].center.dx, greaterThan(rects[2].center.dx));
+      expect(rects[2].center.dx, greaterThan(rects[3].center.dx));
+      expect(rects[3].center.dx, greaterThan(rects[4].center.dx));
+      expect(tester.takeException(), isNull);
+    }
     await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
     await tester.pumpAndSettle();
     expect(result, isNotNull);
