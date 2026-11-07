@@ -2,6 +2,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:arvin/models/task.dart';
 
 void main() {
+  test('All-Day due dates serialize as floating calendar dates', () {
+    final task = Task(
+      id: 'all-day-due',
+      title: 'کار بدون ساعت',
+      dueDate: DateTime(2026, 11, 8),
+      allDay: true,
+    );
+
+    expect(task.toJson()['dueDate'], '2026-11-08');
+    expect(task.toJson()['allDay'], isTrue);
+  });
+
   test('an ordinary task without follow-ups is not a Notebook note', () {
     final task = Task(id: 'task-1', title: 'کار عادی');
 
