@@ -12,6 +12,7 @@ import 'services/persian_date_formatter.dart';
 import 'services/quick_capture_service.dart';
 import 'services/task_project_assignment_service.dart';
 import 'widgets/arvin_roll_box.dart';
+import 'widgets/reusable_multi_select_filter_bottom_sheet.dart';
 import 'widgets/universal_arvin_time_picker.dart';
 import 'widgets/persian_date_picker.dart';
 
@@ -653,42 +654,30 @@ Future<DateTime?> _pickCustomDue() async {
                                   }
                                 });
                               },
-                              onCreate: widget.onCreateCenter == null ? null : () async {
-                                _titleFocus.unfocus();
-                                var draftName = '';
-                                final name = await showModalBottomSheet<String>(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  builder: (ctx) => Padding(
-                                    padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(ctx).bottom),
-                                    child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
-                                      const Text('مرکز جدید'),
-                                      TextField(autofocus: true, onChanged: (text) => draftName = text,
-                                        decoration: const InputDecoration(labelText: 'نام مرکز')),
-                                      FilledButton(onPressed: () => Navigator.pop(ctx, draftName.trim()),
-                                        child: const Text('افزودن')),
-                                    ])),
-                                  ),
-                                );
-                                final value = name?.trim();
-                                if (value == null || value.isEmpty) return null;
-                                final createdId = await widget.onCreateCenter!(value);
-                                if (!mounted || createdId == null || createdId.trim().isEmpty) return createdId;
-                                if (!_knownCenters.any((center) => center.id == createdId)) {
-                                  _knownCenters = [..._knownCenters, ArvinCenter(
-                                    id: createdId, name: value, createdAt: _now(),
-                                  )];
-                                }
-                                setState(() {
-                                  _centerId = createdId;
-                                  if (_projectId != null) {
-                                    final current = _knownProjects.where((project) => project.id == _projectId);
-                                    if (current.isEmpty || current.first.centerId != createdId) _projectId = null;
-                                  }
-                                });
-                                widget.onProjectChanged?.call(_projectId);
-                                return createdId;
-                              },
+                              onCreateWithName: widget.onCreateCenter == null
+                                  ? null
+                                  : (value) async {
+                                      _titleFocus.unfocus();
+                                      final createdId = await widget.onCreateCenter!(value);
+                                      if (!mounted || createdId == null || createdId.trim().isEmpty) return null;
+                                      if (!_knownCenters.any((center) => center.id == createdId)) {
+                                        _knownCenters = [..._knownCenters, ArvinCenter(
+                                          id: createdId, name: value, createdAt: _now(),
+                                        )];
+                                      }
+                                      setState(() {
+                                        _centerId = createdId;
+                                        if (_projectId != null) {
+                                          final current = _knownProjects.where((project) => project.id == _projectId);
+                                          if (current.isEmpty || current.first.centerId != createdId) _projectId = null;
+                                        }
+                                      });
+                                      widget.onProjectChanged?.call(_projectId);
+                                      return ReusableFilterOption<String>(
+                                        value: createdId,
+                                        label: value,
+                                      );
+                                    },
                             ),
                           ),
                           const SizedBox(width: 4),
@@ -719,25 +708,7 @@ Future<DateTime?> _pickCustomDue() async {
                                   widget.onProjectChanged?.call(value);
                                 });
                               },
-                              onCreate: () async {
-                                var draftName = '';
-                                final value = await showModalBottomSheet<String>(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  builder: (ctx) => Padding(
-                                    padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(ctx).bottom),
-                                    child: SingleChildScrollView(
-                                      child: Column(mainAxisSize: MainAxisSize.min, children: [
-                                        const Text('پروژه جدید'),
-                                        TextField(autofocus: false, onChanged: (text) => draftName = text,
-                                          decoration: const InputDecoration(labelText: 'نام پروژه')),
-                                        FilledButton(onPressed: () => Navigator.pop(ctx, draftName.trim()),
-                                          child: const Text('افزودن')),
-                                      ]),
-                                    ),
-                                  ),
-                                );
-                                if (value == null || value.isEmpty) return null;
+                              onCreateWithName: (value) async {
                                 final createWithCenter = widget.onCreateProjectWithCenter;
                                 final createProject = widget.onCreateProject;
                                 final createdId = createWithCenter != null
@@ -747,7 +718,7 @@ Future<DateTime?> _pickCustomDue() async {
                                         : await TaskProjectAssignmentService()
                                             .createProject(title: value, centerId: _centerId)
                                             .then((project) => project.id);
-                                if (!mounted || createdId == null) return createdId;
+                                if (!mounted || createdId == null || createdId.trim().isEmpty) return null;
                                 final existing = _knownProjects.where((project) => project.id == createdId).toList();
                                 if (existing.isEmpty) {
                                   _knownProjects = List<ProjectPlan>.of(
@@ -760,7 +731,10 @@ Future<DateTime?> _pickCustomDue() async {
                                   if (created.isNotEmpty) _centerId = created.first.centerId;
                                 });
                                 widget.onProjectChanged?.call(createdId);
-                                return createdId;
+                                return ReusableFilterOption<String>(
+                                  value: createdId,
+                                  label: value,
+                                );
                               },
                             ),
                           ),
@@ -780,30 +754,18 @@ Future<DateTime?> _pickCustomDue() async {
                                     value: v, label: v, icon: Icons.grid_view_rounded, color: ArvinColors.tag,
                                   )).toList(growable: false),
                               onSelected: (v) => setState(() => _categoryController.text = v ?? ''),
-                              onCreate: () async {
+                              onCreateWithName: (value) async {
                                 _titleFocus.unfocus();
-                                var draftName = '';
-                                final value = await showModalBottomSheet<String>(
-                                  context: context, isScrollControlled: true,
-                                  builder: (ctx) => Padding(
-                                    padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(ctx).bottom),
-                                    child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
-                                      const Text('دسته جدید'),
-                                      TextField(autofocus: true, onChanged: (text) => draftName = text,
-                                        decoration: const InputDecoration(labelText: 'نام')),
-                                      FilledButton(onPressed: () => Navigator.pop(ctx, draftName.trim()),
-                                        child: const Text('افزودن')),
-                                    ])),
-                                  ),
-                                );
-                                if (value == null || value.isEmpty) return null;
                                 final created = await widget.onCreateCategory?.call(value) ?? value;
-                                if (!mounted) return created;
+                                if (!mounted) return null;
                                 setState(() {
                                   _categoryController.text = created;
                                   if (!_knownCategories.contains(created)) _knownCategories.add(created);
                                 });
-                                return created;
+                                return ReusableFilterOption<String>(
+                                  value: created,
+                                  label: created,
+                                );
                               },
                             ),
                           ),
@@ -817,25 +779,10 @@ Future<DateTime?> _pickCustomDue() async {
                               onChanged: (values) => setState(() {
                                 _selectedTags..clear()..addAll(values);
                               }),
-                              onCreate: () async {
+                              onCreateWithName: (value) async {
                                 _titleFocus.unfocus();
-                                var draftName = '';
-                                final value = await showModalBottomSheet<String>(
-                                  context: context, isScrollControlled: true,
-                                  builder: (ctx) => Padding(
-                                    padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(ctx).bottom),
-                                    child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
-                                      const Text('برچسب جدید'),
-                                      TextField(autofocus: true, onChanged: (text) => draftName = text,
-                                        decoration: const InputDecoration(labelText: 'نام')),
-                                      FilledButton(onPressed: () => Navigator.pop(ctx, draftName.trim()),
-                                        child: const Text('افزودن')),
-                                    ])),
-                                  ),
-                                );
-                                if (value == null || value.isEmpty) return null;
                                 final created = await widget.onCreateTag?.call(value) ?? value;
-                                if (!mounted) return created;
+                                if (!mounted) return null;
                                 setState(() {
                                   if (!_selectedTags.contains(created)) _selectedTags.add(created);
                                   if (!_knownTags.contains(created)) _knownTags.add(created);
