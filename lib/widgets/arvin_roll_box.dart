@@ -1,14 +1,24 @@
 import 'package:flutter/material.dart';
 
 import '../arvin_colors.dart';
+import '../home/home_filter_ui.dart';
 
 class ArvinRollBox<T> extends StatelessWidget {
   const ArvinRollBox({
-    super.key, required this.label, required this.valueLabel, required this.items,
-    required this.onSelected, required this.icon, required this.color,
-    this.emptyLabel, this.onCreate, this.createLabel = 'افزودن',
-    this.createItemKey, this.compact = false,
+    super.key,
+    required this.label,
+    required this.valueLabel,
+    required this.items,
+    required this.onSelected,
+    required this.icon,
+    required this.color,
+    this.emptyLabel,
+    this.onCreate,
+    this.createLabel = 'افزودن',
+    this.createItemKey,
+    this.compact = false,
   });
+
   final String label;
   final String valueLabel;
   final List<ArvinRollItem<T>> items;
@@ -21,140 +31,246 @@ class ArvinRollBox<T> extends StatelessWidget {
   final Key? createItemKey;
   final bool compact;
 
+  Future<void> _openSelector(BuildContext context) async {
+    Object? currentValue;
+    if (emptyLabel != null && valueLabel == label) {
+      currentValue = _ArvinClearToken.instance;
+    } else {
+      for (final item in items) {
+        if (item.label == valueLabel) {
+          currentValue = item.value;
+          break;
+        }
+      }
+    }
+
+    final choice = await HomeFilterSheet.show<Object?>(
+      context,
+      title: 'انتخاب $label',
+      accent: ArvinColors.primary,
+      child: ListView(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        children: [
+          if (emptyLabel != null)
+            RadioListTile<Object?>(
+              value: _ArvinClearToken.instance,
+              groupValue: currentValue,
+              activeColor: ArvinColors.primary,
+              title: Text(emptyLabel!),
+              onChanged: (value) =>
+                  Navigator.of(context).pop(_ArvinClearToken.instance),
+            ),
+          for (final item in items)
+            RadioListTile<Object?>(
+              value: item.value,
+              groupValue: currentValue,
+              activeColor: ArvinColors.primary,
+              title: Text(item.label),
+              secondary: Icon(
+                item.icon ?? icon,
+                color: ArvinColors.primary,
+                size: 20,
+              ),
+              onChanged: (value) => Navigator.of(context).pop(item.value),
+            ),
+          if (onCreate != null)
+            ListTile(
+              key: createItemKey,
+              leading: const Icon(
+                Icons.add_circle_outline_rounded,
+                color: ArvinColors.primary,
+              ),
+              title: Text(createLabel),
+              onTap: () =>
+                  Navigator.of(context).pop(_ArvinCreateToken.instance),
+            ),
+        ],
+      ),
+    );
+
+    if (!context.mounted || choice == null) return;
+    if (choice is _ArvinClearToken) {
+      onSelected(null);
+      return;
+    }
+    if (choice is _ArvinCreateToken) {
+      final created = await onCreate?.call();
+      if (context.mounted && created != null) onSelected(created);
+      return;
+    }
+    onSelected(choice as T?);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton<Object?>(
-      tooltip: label,
-      constraints: const BoxConstraints(minWidth: 180, maxWidth: 240),
-      onSelected: (value) async {
-        if (value is _ArvinCreateToken) {
-          final created = await onCreate?.call();
-          if (created != null) onSelected(created);
-          return;
-        }
-        if (value is _ArvinClearToken) { onSelected(null); return; }
-        onSelected(value as T?);
-      },
-      itemBuilder: (context) => [
-        if (emptyLabel != null) PopupMenuItem<Object?>(value: _ArvinClearToken.instance, child: Text(emptyLabel!)),
-        ...items.map((item) => PopupMenuItem<T>(
-          value: item.value,
-          child: Row(children: [
-            Icon(item.icon ?? icon, size: 18, color: item.color ?? color),
-            const SizedBox(width: 7),
-            Expanded(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerRight, child: Text(item.label, maxLines: 1, overflow: TextOverflow.ellipsis))),
-          ]),
-        )),
-        if (onCreate != null) ...[
-          const PopupMenuDivider(),
-          PopupMenuItem<Object?>(
-            key: createItemKey,
-            value: _ArvinCreateToken.instance,
-            child: Row(children: [
-              const Icon(Icons.add_circle_outline, size: 18, color: ArvinColors.primary),
-              const SizedBox(width: 9),
-              Expanded(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerRight, child: Text(createLabel, maxLines: 1, overflow: TextOverflow.ellipsis))),
-            ]),
-          ),
-        ],
-      ],
-      child: Container(
-        height: 48,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        decoration: BoxDecoration(
-          color: valueLabel.isNotEmpty && valueLabel != label
-              ? ArvinColors.primarySoft
-              : ArvinColors.surface,
+    final selected = valueLabel.isNotEmpty && valueLabel != label;
+    return Tooltip(
+      message: label,
+      child: Material(
+        color: selected ? ArvinColors.primarySoft : ArvinColors.surface,
+        borderRadius: BorderRadius.circular(24),
+        child: InkWell(
+          key: key,
+          onTap: () => _openSelector(context),
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: valueLabel.isNotEmpty && valueLabel != label
-                ? ArvinColors.primary.withAlpha(90)
-                : ArvinColors.border,
-          ),
-        ),
-        child: Row(children: [
-          Icon(icon, size: 18, color: ArvinColors.primary),
-          SizedBox(width: compact ? 4 : 7),
-          Expanded(
-            child: Text(
-              valueLabel.isEmpty ? label : valueLabel,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: ArvinColors.textPrimary,
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
+          child: Container(
+            height: 48,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: selected
+                    ? ArvinColors.primary.withAlpha(90)
+                    : ArvinColors.border,
               ),
             ),
+            child: Row(
+              children: [
+                Icon(icon, size: 18, color: ArvinColors.primary),
+                SizedBox(width: compact ? 4 : 7),
+                Expanded(
+                  child: Text(
+                    valueLabel.isEmpty ? label : valueLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: ArvinColors.textPrimary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                const Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  size: 18,
+                  color: ArvinColors.primary,
+                ),
+              ],
+            ),
           ),
-          const Icon(Icons.keyboard_arrow_down_rounded,
-              size: 18, color: ArvinColors.primary),
-        ]),
+        ),
       ),
     );
   }
 }
 
 class ArvinRollItem<T> {
-  const ArvinRollItem({required this.value, required this.label, this.icon, this.color});
-  final T value; final String label; final IconData? icon; final Color? color;
+  const ArvinRollItem({
+    required this.value,
+    required this.label,
+    this.icon,
+    this.color,
+  });
+
+  final T value;
+  final String label;
+  final IconData? icon;
+  final Color? color;
 }
 
 class ArvinTagRollBox extends StatefulWidget {
-  const ArvinTagRollBox({super.key, required this.tags, required this.selectedTags, required this.onChanged, this.onCreate, this.compact = false});
+  const ArvinTagRollBox({
+    super.key,
+    required this.tags,
+    required this.selectedTags,
+    required this.onChanged,
+    this.onCreate,
+    this.compact = false,
+  });
+
   final List<String> tags;
   final List<String> selectedTags;
   final ValueChanged<List<String>> onChanged;
   final Future<String?> Function()? onCreate;
-  /// Uses the 40dp selector contract in dense forms such as Quick Capture.
   final bool compact;
 
-  @override State<ArvinTagRollBox> createState() => _ArvinTagRollBoxState();
+  @override
+  State<ArvinTagRollBox> createState() => _ArvinTagRollBoxState();
 }
 
 class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
   Future<void> _openSelector() async {
-    final tags = widget.tags.map((e) => e.trim()).where((e) => e.isNotEmpty).toSet().toList()..sort();
+    final tags = widget.tags
+        .map((value) => value.trim())
+        .where((value) => value.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
     final working = <String>{...widget.selectedTags};
-    final applied = await showDialog<List<String>>(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: const Text('انتخاب برچسب'),
-          content: ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 360),
-            child: SingleChildScrollView(
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                for (final tag in tags)
-                  CheckboxListTile(
-                    dense: true,
-                    value: working.contains(tag),
-                    secondary: const Icon(Icons.sell_outlined, color: ArvinColors.tag),
-                    title: Text(tag),
-                    onChanged: (checked) => setDialogState(() {
-                      if (checked == true) { working.add(tag); } else { working.remove(tag); }
-                    }),
-                  ),
-                if (widget.onCreate != null)
-                  ListTile(
-                    leading: const Icon(Icons.add_circle_outline, color: ArvinColors.primary),
-                    title: const Text('+ افزودن برچسب'),
-                    onTap: () async {
-                      final created = await widget.onCreate!.call();
-                      if (created == null || created.trim().isEmpty) return;
-                      setDialogState(() => working.add(created.trim()));
-                    },
-                  ),
-              ]),
+
+    final applied = await HomeFilterSheet.show<List<String>>(
+      context,
+      title: 'انتخاب برچسب',
+      accent: ArvinColors.primary,
+      child: StatefulBuilder(
+        builder: (sheetContext, setSheetState) => Column(
+          children: [
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                children: [
+                  for (final tag in tags)
+                    CheckboxListTile(
+                      dense: true,
+                      activeColor: ArvinColors.primary,
+                      value: working.contains(tag),
+                      secondary: const Icon(
+                        Icons.sell_outlined,
+                        color: ArvinColors.primary,
+                      ),
+                      title: Text(tag),
+                      onChanged: (checked) => setSheetState(() {
+                        if (checked == true) {
+                          working.add(tag);
+                        } else {
+                          working.remove(tag);
+                        }
+                      }),
+                    ),
+                  if (widget.onCreate != null)
+                    ListTile(
+                      leading: const Icon(
+                        Icons.add_circle_outline,
+                        color: ArvinColors.primary,
+                      ),
+                      title: const Text('+ افزودن برچسب'),
+                      onTap: () async {
+                        final created = await widget.onCreate!.call();
+                        if (!sheetContext.mounted ||
+                            created == null ||
+                            created.trim().isEmpty) {
+                          return;
+                        }
+                        setSheetState(() => working.add(created.trim()));
+                      },
+                    ),
+                ],
+              ),
             ),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('لغو')),
-            FilledButton(onPressed: () => Navigator.pop(dialogContext, working.toList()..sort()), child: const Text('اعمال')),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: () => Navigator.of(sheetContext).pop(),
+                    child: const Text('لغو'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () => Navigator.of(sheetContext)
+                        .pop(working.toList()..sort()),
+                    child: const Text('اعمال'),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
     );
+
     if (!mounted || applied == null) return;
     widget.onChanged(applied);
   }
@@ -162,48 +278,66 @@ class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
   @override
   Widget build(BuildContext context) {
     final selected = widget.selectedTags.toSet();
-    return GestureDetector(
-      onTap: _openSelector,
-      child: Tooltip(
-        message: 'برچسب',
-      child: Semantics(
-        button: true, label: 'برچسب',
-        child: Container(
-          height: 48,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            color: selected.isEmpty ? ArvinColors.surface : ArvinColors.primarySoft,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: selected.isEmpty
-                  ? ArvinColors.border
-                  : ArvinColors.primary.withAlpha(90),
-            ),
-          ),
-          child: Row(children: [
-            Icon(Icons.sell_outlined, size: widget.compact ? 16 : 19, color: ArvinColors.primary),
-            SizedBox(width: widget.compact ? 4 : 7),
-            Expanded(
-              child: Text(
-                selected.isEmpty ? 'برچسب' : '${selected.length} برچسب',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: ArvinColors.textPrimary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                ),
+    return Tooltip(
+      message: 'برچسب',
+      child: Material(
+        color: selected.isEmpty ? ArvinColors.surface : ArvinColors.primarySoft,
+        borderRadius: BorderRadius.circular(24),
+        child: InkWell(
+          key: widget.key,
+          onTap: _openSelector,
+          borderRadius: BorderRadius.circular(24),
+          child: Container(
+            height: 48,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: selected.isEmpty
+                    ? ArvinColors.border
+                    : ArvinColors.primary.withAlpha(90),
               ),
             ),
-            Icon(Icons.keyboard_arrow_down_rounded,
-                size: widget.compact ? 16 : 19, color: ArvinColors.primary),
-          ]),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.sell_outlined,
+                  size: widget.compact ? 16 : 19,
+                  color: ArvinColors.primary,
+                ),
+                SizedBox(width: widget.compact ? 4 : 7),
+                Expanded(
+                  child: Text(
+                    selected.isEmpty ? 'برچسب' : '${selected.length} برچسب',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: ArvinColors.textPrimary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  size: widget.compact ? 16 : 19,
+                  color: ArvinColors.primary,
+                ),
+              ],
+            ),
+          ),
         ),
       ),
-    ),
     );
   }
 }
 
-class _ArvinCreateToken { const _ArvinCreateToken._(); static const instance = _ArvinCreateToken._(); }
-class _ArvinClearToken { const _ArvinClearToken._(); static const instance = _ArvinClearToken._(); }
+class _ArvinCreateToken {
+  const _ArvinCreateToken._();
+  static const instance = _ArvinCreateToken._();
+}
+
+class _ArvinClearToken {
+  const _ArvinClearToken._();
+  static const instance = _ArvinClearToken._();
+}
