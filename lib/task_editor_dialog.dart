@@ -1183,9 +1183,9 @@ Future<void> _pickDueDateTime() async {
                     icon: const Icon(Icons.access_time_rounded),
                     label: const Text('بدون ساعت'),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: accent,
-                      backgroundColor: allDay ? accent.withAlpha(18) : null,
-                      side: BorderSide(color: accent.withAlpha(allDay ? 150 : 70)),
+                      foregroundColor: effectiveAccent,
+                      backgroundColor: allDay ? effectiveAccent.withAlpha(18) : null,
+                      side: BorderSide(color: effectiveAccent.withAlpha(allDay ? 150 : 70)),
                     ),
                   ),
                 ),

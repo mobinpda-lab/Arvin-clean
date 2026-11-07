@@ -3181,7 +3181,7 @@ class _HomePageState extends State<HomePage> {
       children: [
         Row(
           children: [
-            const Icon(Icons.checklist_rounded, size: 15, color: Theme.of(context).colorScheme.primary),
+            Icon(Icons.checklist_rounded, size: 15, color: Theme.of(context).colorScheme.primary),
             const SizedBox(width: 4),
             Text(
               'چک‌لیست: ${persianDateFormatter.toPersianDigits('$completed از $total')}',
