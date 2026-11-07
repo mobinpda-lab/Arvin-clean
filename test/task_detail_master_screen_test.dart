@@ -57,7 +57,7 @@ void main() {
     expect(find.text('عنوان تازه'), findsOneWidget);
   });
 
-  testWidgets('Unified Task Details edits due time and all-day state with canonical pickers', (tester) async {
+  testWidgets('Unified Task Details uses one sequential date and time picker with an in-dialog no-time choice', (tester) async {
     Task? persisted;
     final task = Task(
       id: 'inline-due-date',
@@ -80,19 +80,42 @@ void main() {
     final dueCard = find.byKey(const ValueKey('task-detail-due-date-card'));
     await tester.scrollUntilVisible(dueCard, 240, scrollable: scrollable);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-due-time')));
+
+    expect(find.byKey(const ValueKey('task-detail-inline-work-time')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-inline-due-date')), findsNothing);
+    expect(find.byKey(const ValueKey('task-detail-inline-due-time')), findsNothing);
+    expect(find.byKey(const ValueKey('task-detail-inline-all-day')), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-work-time')));
     await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('persian-date-picker')), findsOneWidget);
+    await tester.tap(find.text('تأیید'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('universal-arvin-time-picker')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('universal-time-manual-toggle')));
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const ValueKey('universal-time-manual-input')), '11:45');
     await tester.tap(find.byKey(const ValueKey('universal-time-save')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-all-day')));
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
+    await tester.pumpAndSettle();
+    expect(persisted?.dueDate, DateTime(2026, 11, 20, 11, 45));
+    expect(persisted?.allDay, isFalse);
+
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
+    await tester.pumpAndSettle();
+    final allDayScrollable = _taskDetailPageScrollable(tester);
+    await tester.scrollUntilVisible(dueCard, 240, scrollable: allDayScrollable);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-detail-inline-work-time')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('تأیید'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('universal-time-no-time')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
     await tester.pumpAndSettle();
-
-    expect(persisted?.dueDate, DateTime(2026, 11, 20, 11, 45));
+    expect(persisted?.dueDate, DateTime(2026, 11, 20));
     expect(persisted?.allDay, isTrue);
 
     await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
