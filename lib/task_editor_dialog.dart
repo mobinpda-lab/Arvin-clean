@@ -13,6 +13,7 @@ import 'models/task.dart';
 import 'services/persian_date_formatter.dart';
 import 'widgets/persian_date_picker.dart';
 import 'widgets/arvin_roll_box.dart';
+import 'widgets/reusable_multi_select_filter_bottom_sheet.dart';
 import 'widgets/universal_arvin_time_picker.dart';
 
 class ArvinTaskEditorDialog extends StatefulWidget {
@@ -1335,13 +1336,11 @@ Future<void> _pickDueDateTime() async {
                                       ))
                                   .toList(growable: false),
                               onSelected: (value) => setState(() => _selectedCenterId = value),
-                              onCreate: widget.onCreateCenter == null
+                              onCreateWithName: widget.onCreateCenter == null
                                   ? null
-                                  : () async {
-                                      final name = await _promptNewName('مرکز جدید');
-                                      if (name == null) return null;
+                                  : (name) async {
                                       final createdId = await widget.onCreateCenter!(name);
-                                      if (!mounted || createdId == null || createdId.trim().isEmpty) return createdId;
+                                      if (!mounted || createdId == null || createdId.trim().isEmpty) return null;
                                       setState(() {
                                         if (!_centers.any((center) => center.id == createdId)) {
                                           _centers = [..._centers, ArvinCenter(
@@ -1352,7 +1351,10 @@ Future<void> _pickDueDateTime() async {
                                         }
                                         _selectedCenterId = createdId;
                                       });
-                                      return createdId;
+                                      return ReusableFilterOption<String>(
+                                        value: createdId,
+                                        label: name,
+                                      );
                                     },
                             ),
                           ),
@@ -1393,35 +1395,32 @@ Future<void> _pickDueDateTime() async {
                                   .toList(),
                               onSelected: (value) =>
                                   setState(() => _selectedProjectId = value),
-                              onCreate: () async {
-                                final title = await _promptNewName('پروژه جدید');
-                                if (title == null || widget.onCreateProject == null) {
-                                  return null;
-                                }
-                                final createdId = await widget.onCreateProject!(title);
-                                if (!mounted ||
-                                    createdId == null ||
-                                    createdId.trim().isEmpty) {
-                                  return createdId;
-                                }
-                                final existing = _projects.indexWhere(
-                                  (project) => project.id == createdId,
-                                );
-                                setState(() {
-                                  if (existing >= 0) {
-                                    _projects[existing] =
-                                        _projects[existing].copyWith(title: title);
-                                  } else {
-                                    _projects = [
-                                      ..._projects,
-                                      ProjectPlan(id: createdId, title: title),
-                                    ];
-                                  }
-                                  _selectedProjectId = createdId;
-                                });
-                                widget.onProjectChanged?.call(createdId);
-                                return createdId;
-                              },
+                              onCreateWithName: widget.onCreateProject == null
+                                  ? null
+                                  : (title) async {
+                                      final createdId = await widget.onCreateProject!(title);
+                                      if (!mounted || createdId == null || createdId.trim().isEmpty) return null;
+                                      final existing = _projects.indexWhere(
+                                        (project) => project.id == createdId,
+                                      );
+                                      setState(() {
+                                        if (existing >= 0) {
+                                          _projects[existing] =
+                                              _projects[existing].copyWith(title: title);
+                                        } else {
+                                          _projects = [
+                                            ..._projects,
+                                            ProjectPlan(id: createdId, title: title),
+                                          ];
+                                        }
+                                        _selectedProjectId = createdId;
+                                      });
+                                      widget.onProjectChanged?.call(createdId);
+                                      return ReusableFilterOption<String>(
+                                        value: createdId,
+                                        label: title,
+                                      );
+                                    },
                             ),
                           ),
                           const SizedBox(width: 4),
@@ -1449,19 +1448,20 @@ Future<void> _pickDueDateTime() async {
                                       ))
                                   .toList(),
                               onSelected: (value) => setState(() => _category = value),
-                              onCreate: () async {
-                                final value = await _promptNewName('دسته جدید');
-                                if (value == null) return null;
+                              onCreateWithName: (value) async {
                                 final created =
                                     await widget.onCreateCategory?.call(value) ?? value;
-                                if (!mounted) return created;
+                                if (!mounted) return null;
                                 setState(() {
                                   _category = created;
                                   if (!_knownCategories.contains(created)) {
                                     _knownCategories.add(created);
                                   }
                                 });
-                                return created;
+                                return ReusableFilterOption<String>(
+                                  value: created,
+                                  label: created,
+                                );
                               },
                             ),
                           ),
@@ -1473,12 +1473,10 @@ Future<void> _pickDueDateTime() async {
                               selectedTags: _tags,
                               onChanged: (value) =>
                                   setState(() => _tags = List<String>.of(value)),
-                              onCreate: () async {
-                                final value = await _promptNewName('برچسب جدید');
-                                if (value == null) return null;
+                              onCreateWithName: (value) async {
                                 final created =
                                     await widget.onCreateTag?.call(value) ?? value;
-                                if (!mounted) return created;
+                                if (!mounted) return null;
                                 setState(() {
                                   if (!_tags.contains(created)) _tags.add(created);
                                   if (!_knownTags.contains(created)) {
