@@ -55,7 +55,7 @@ class AppThemeManager extends ChangeNotifier {
     if (stored != null && !validStored) {
       await preferences.remove(preferenceKey);
     }
-    final next = validStored ? stored!.toUpperCase() : defaultHex;
+    final next = validStored ? stored.toUpperCase() : defaultHex;
     if (_selectedHex == next) return;
     _selectedHex = next;
     notifyListeners();
