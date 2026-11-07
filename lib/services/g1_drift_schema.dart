@@ -139,7 +139,24 @@ class G1DriftSchema implements QueryExecutorUser {
       if (!taskTemplateColumns.any((row) => row['name'] == 'project_id_snapshot')) {
         await executor.runCustom('ALTER TABLE task_templates ADD COLUMN project_id_snapshot TEXT NULL');
       }
-      final taskColumns = await executor.runSelect("PRAGMA table_info('tasks')", const []);
+      // Keep pre-existing canonical relation rows valid when a database was
+    // created by an earlier schema build that did not enforce Person FKs.
+    final linkedPersonRows = await executor.runSelect(
+      '''SELECT person_id FROM follow_up_record_people
+         UNION SELECT person_id FROM task_persons''',
+      const [],
+    );
+    final personTimestamp = DateTime.now().toIso8601String();
+    for (final linkedPerson in linkedPersonRows) {
+      final personId = linkedPerson['person_id'] as String;
+      await executor.runInsert(
+        '''INSERT OR IGNORE INTO persons (id, name, created_at, updated_at)
+           VALUES (?, '', ?, ?)''',
+        <Object?>[personId, personTimestamp, personTimestamp],
+      );
+    }
+
+    final taskColumns = await executor.runSelect("PRAGMA table_info('tasks')", const []);
       if (!taskColumns.any((row) => row['name'] == 'storage_ordinal')) {
         await executor.runCustom('ALTER TABLE tasks ADD COLUMN storage_ordinal INTEGER NOT NULL DEFAULT 0');
       }
