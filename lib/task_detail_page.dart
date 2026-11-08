@@ -912,18 +912,13 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   Widget _dueDateCard() {
     final dueDate = _task.dueDate;
     final allDay = _task.allDay;
-    return LayoutBuilder(
-      builder: (context, constraints) => SizedBox(
-        width: constraints.maxWidth,
-        child: _linearActionRow(
-          key: const ValueKey('task-detail-due-date-card'),
-          valueKey: const ValueKey('task-detail-due-date'),
-          icon: Icons.calendar_month_outlined,
-          title: 'موعد',
-          value: dueDate == null ? 'تعیین نشده' : (allDay ? _date(dueDate) : _dateTime(dueDate)),
-          onTap: widget.onTaskChanged == null ? null : _pickInlineWorkTime,
-        ),
-      ),
+    return _linearActionRow(
+      key: const ValueKey('task-detail-due-date-card'),
+      valueKey: const ValueKey('task-detail-due-date'),
+      icon: Icons.calendar_month_outlined,
+      title: 'موعد',
+      value: dueDate == null ? 'تعیین نشده' : (allDay ? _date(dueDate) : _dateTime(dueDate)),
+      onTap: widget.onTaskChanged == null ? null : _pickInlineWorkTime,
     );
   }
 
@@ -1787,45 +1782,69 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         key: key,
         onTap: onTap,
         borderRadius: BorderRadius.circular(14),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 56),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-            child: Row(
-              children: [
-                Icon(icon, color: _brand, size: 22),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontFamily: 'Vazirmatn', fontWeight: FontWeight.w700),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final trailingWidget = SizedBox(
+              width: 28,
+              child: Center(
+                child: trailing ?? const Icon(Icons.chevron_left, color: _muted, size: 22),
+              ),
+            );
+            final titleWidget = Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontFamily: 'Vazirmatn', fontWeight: FontWeight.w700),
+            );
+            final valueWidget = Text(
+              value,
+              key: valueKey,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontFamily: 'Vazirmatn', color: _muted, fontSize: 12),
+            );
+            final compact = constraints.maxWidth < 320;
+            return ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 56),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                child: compact
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(icon, color: _brand, size: 22),
+                              const SizedBox(width: 12),
+                              Expanded(child: titleWidget),
+                              trailingWidget,
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Padding(
+                            padding: const EdgeInsetsDirectional.only(start: 34, end: 28),
+                            child: valueWidget,
+                          ),
+                        ],
+                      )
+                    : Row(
+                        children: [
+                          Icon(icon, color: _brand, size: 22),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [titleWidget, const SizedBox(height: 2), valueWidget],
+                            ),
+                          ),
+                          trailingWidget,
+                        ],
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        value,
-                        key: valueKey,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontFamily: 'Vazirmatn', color: _muted, fontSize: 12),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(
-                  width: 28,
-                  child: Center(
-                    child: trailing ?? const Icon(Icons.chevron_left, color: _muted, size: 22),
-                  ),
-                ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -2018,7 +2037,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 child: ListView(
                   key: const ValueKey('task-detail-content-list'),
                   controller: _detailScrollController,
-                  padding: const EdgeInsets.fromLTRB(14, 14, 14, 20),
+                  padding: const EdgeInsets.fromLTRB(10, 14, 10, 20),
                   children: [
                     _checklistCard(),
                     const SizedBox(height: 10),
