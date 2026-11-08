@@ -39,7 +39,7 @@ dev_dependencies:
 hooks:
   user_defines:
     sqlite3:
-      url_pattern: "https://github.com/simolus3/sqlite3.dart/releases/download/$RELEASE_TAG/$FILENAME?download=1"
+      url_pattern: "https://github.com/simolus3/sqlite3.dart/releases/download/$RELEASE_TAG/$FILENAME?cachebust=arvin-946e-20261108"
 
 flutter:
   uses-material-design: true
