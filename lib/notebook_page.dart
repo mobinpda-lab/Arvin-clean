@@ -1006,6 +1006,7 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
   bool _saving = false;
   String? _category;
   String? _projectTitle;
+  String? _centerName;
   List<String> _tags = [];
   List<String> _legacyChecklist = [];
   _NotebookInlineTool _inlineTool = _NotebookInlineTool.none;
@@ -1067,6 +1068,13 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
         break;
       }
     }
+    final centers = await CenterStore().load(includeArchived: false);
+    for (final center in centers) {
+      if (center.id == note.centerId) {
+        _centerName = center.name;
+        break;
+      }
+    }
     _title.addListener(_scheduleAutosave);
     _description.addListener(_scheduleAutosave);
     setState(() => _loading = false);
@@ -1105,6 +1113,46 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     }
     if (!mounted) return;
     Navigator.of(context).pop();
+  }
+
+  Future<void> _pickCenter() async {
+    final centers = await CenterStore().load(includeArchived: false);
+    if (!mounted) return;
+    final selected = await ReusableMultiSelectFilterBottomSheet.showSingleSelect<String>(
+      context,
+      title: 'انتخاب مرکز',
+      accent: ArvinColors.primary,
+      options: centers
+          .map((center) => ReusableFilterOption<String>(
+                value: center.id,
+                label: center.name,
+              ))
+          .toList(growable: false),
+      selectedValue: _note?.centerId,
+      emptyLabel: 'بدون مرکز',
+      onCreate: (name) async {
+        final id = 'center-${DateTime.now().microsecondsSinceEpoch}';
+        await CenterStore().create(id: id, name: name);
+        return ReusableFilterOption<String>(value: id, label: name.trim());
+      },
+    );
+    if (!mounted || selected == null) return;
+    final centerId = selected.cleared ? null : selected.value;
+    final updated = await widget.repository.updateCenter(
+      id: widget.noteId,
+      centerId: centerId,
+    );
+    if (!mounted) return;
+    final resolved = centers.where((center) => center.id == centerId).toList();
+    setState(() {
+      _note = updated;
+      _centerName = resolved.isEmpty ? null : resolved.first.name;
+    });
+    if (centerId != null && resolved.isEmpty) {
+      final refreshed = await CenterStore().load(includeArchived: false);
+      final match = refreshed.where((center) => center.id == centerId).toList();
+      if (mounted) setState(() => _centerName = match.isEmpty ? null : match.first.name);
+    }
   }
 
   Future<String?> _promptNewCategory() async {
@@ -1557,34 +1605,16 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextButton.icon(
-                    key: const ValueKey('notebook-category-picker'),
-                    onPressed: _pickCategory,
-                    icon: const Icon(Icons.menu_book_outlined, size: 18, color: ArvinColors.category),
-                    label: Text(
-                      _category == null || _category!.trim().isEmpty
-                          ? 'انتخاب دسته'
-                          : _category!,
-                    ),
+                    key: const ValueKey('notebook-center-picker'),
+                    onPressed: _pickCenter,
+                    icon: const Icon(Icons.apartment_outlined, size: 18, color: ArvinColors.primary),
+                    label: Text(_centerName ?? 'انتخاب مرکز'),
                     style: TextButton.styleFrom(
-                      foregroundColor: ArvinColors.categoryDark,
-                      backgroundColor: ArvinColors.categorySoft,
+                      foregroundColor: ArvinColors.primaryDark,
+                      backgroundColor: ArvinColors.primarySoft,
+                      minimumSize: const Size(48, 48),
                       padding: const EdgeInsets.symmetric(horizontal: 8),
-                      visualDensity: VisualDensity.compact,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  TextButton.icon(
-                    key: const ValueKey('notebook-tags-picker'),
-                    onPressed: _pickTags,
-                    icon: const Icon(Icons.sell_outlined, size: 18, color: ArvinColors.tag),
-                    label: Text(
-                      _tags.isEmpty ? 'برچسب‌ها' : _tags.map((tag) => '#$tag').join(' '),
-                    ),
-                    style: TextButton.styleFrom(
-                      foregroundColor: ArvinColors.tag,
-                      backgroundColor: ArvinColors.tagSoft,
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      visualDensity: VisualDensity.compact,
+                      visualDensity: VisualDensity.standard,
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -1596,12 +1626,39 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
                     style: TextButton.styleFrom(
                       foregroundColor: ArvinColors.projectDark,
                       backgroundColor: ArvinColors.projectSoft,
+                      minimumSize: const Size(48, 48),
                       padding: const EdgeInsets.symmetric(horizontal: 8),
-                      visualDensity: VisualDensity.compact,
+                      visualDensity: VisualDensity.standard,
                     ),
                   ),
-                ],
-              ),
+                  const SizedBox(width: 6),
+                  TextButton.icon(
+                    key: const ValueKey('notebook-category-picker'),
+                    onPressed: _pickCategory,
+                    icon: const Icon(Icons.menu_book_outlined, size: 18, color: ArvinColors.category),
+                    label: Text(_category == null || _category!.trim().isEmpty ? 'انتخاب دسته' : _category!),
+                    style: TextButton.styleFrom(
+                      foregroundColor: ArvinColors.categoryDark,
+                      backgroundColor: ArvinColors.categorySoft,
+                      minimumSize: const Size(48, 48),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      visualDensity: VisualDensity.standard,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  TextButton.icon(
+                    key: const ValueKey('notebook-tags-picker'),
+                    onPressed: _pickTags,
+                    icon: const Icon(Icons.sell_outlined, size: 18, color: ArvinColors.tag),
+                    label: Text(_tags.isEmpty ? 'برچسب‌ها' : _tags.map((tag) => '#$tag').join(' ')),
+                    style: TextButton.styleFrom(
+                      foregroundColor: ArvinColors.tag,
+                      backgroundColor: ArvinColors.tagSoft,
+                      minimumSize: const Size(48, 48),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      visualDensity: VisualDensity.standard,
+                    ),
+                  ),
             ),
             const Divider(height: 16, thickness: 0.5),
             const SizedBox(height: 4),
