@@ -3409,44 +3409,6 @@ class _HomePageState extends State<HomePage> {
       ),
     );  }
 
-  String? _latestFollowUpPreview(Task task) {
-    final followUp = task.lastFollowUp;
-    if (followUp == null) return null;
-    final note = followUp.note.trim();
-    final result = (followUp.result ?? '').trim();
-    if (result.isNotEmpty) return result;
-    if (note.isNotEmpty) return note;
-    return 'پیگیری ثبت‌شده';
-  }
-
-  Widget _homeChecklistProgress(Task task) {
-    final total = task.checklist.length;
-    final completed = task.checklist
-        .where((item) => item.trimLeft().startsWith('[x]'))
-        .length;
-    final progress = total == 0 ? 0.0 : completed / total;
-    return Column(
-      key: ValueKey('task-card-checklist-progress-${task.id}'),
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(Icons.checklist_rounded, size: 15, color: Theme.of(context).colorScheme.primary),
-            const SizedBox(width: 4),
-            Text(
-              'چک‌لیست: ${persianDateFormatter.toPersianDigits('$completed از $total')}',
-              style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w600),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(4),
-          child: LinearProgressIndicator(value: progress, minHeight: 5, backgroundColor: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface)),
-        ),
-      ],
-    );
-  }
   Widget _taskCard(Task task) {
     final lastFollowUpDate = _homeLastFollowUpDate(task);
     final followUpPresentation =
