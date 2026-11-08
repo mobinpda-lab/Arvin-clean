@@ -80,7 +80,7 @@ Focus is an exclusive membership predicate, not a dueDate shortcut. “Today” 
 
 ## 7. Visual and system contracts
 - Vazirmatn is the global UI font.
-- The exact phrases “بسم‌الله الرحمن الرحیم” and “وَأُفَوِّضُ أَمْرِي إِلَى اللَّهِ” are independent SVG vectors.
+- Home header uses `assets/images/branding/bismillah.svg` for «بسم‌الله الرحمن الرحیم», centered above the product name «آروین». The Home header must not use `tafweez.svg` or the phrase «وَأُفَوِّضُ أَمْرِي إِلَى اللَّهِ».
 - Default accent: sky blue #3A86EF. Settings expose a stable nine-color palette; navy and dark-purple options remain excluded.
 - Calendar integration has three layers: internal, local Arvin calendar with ACCOUNT_TYPE_LOCAL, and external.
 - Quick Capture stays compact, without description/checklist fields.
