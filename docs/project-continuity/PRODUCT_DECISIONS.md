@@ -339,3 +339,13 @@ This clarification resolves an asset-to-screen attribution error and does not in
 - Do not swap, duplicate, or cross-assign these two artworks. Do not infer or prescribe any new exact placement, alignment, size, or positioning for the Calendar vector without an approved visual reference.
 - Preserve all other previously approved Home, Calendar, typography, and product decisions. This is a documentation-only correction, not evidence of an application implementation.
 
+## کارهای برگزیدهٔ امروز و یکپارچگی فیلترهای پیگیری — 2026-11-08
+
+- «امروزِ تقویمی» و «کارهای برگزیدهٔ امروز» دو مفهوم مستقل‌اند. امروز تقویمی بر اساس موعد canonical و تاریخ محلی دستگاه است؛ انتخاب تمرکزی امروز فقط با اقدام صریح کاربر ایجاد/برداشته می‌شود و باید پایدار بماند.
+- موعد امروز، انتخاب خودکار برای فهرست تمرکزی ایجاد نمی‌کند. isFavorite نیز جایگزین انتخاب روزانه نیست.
+- در حالت «پیگیری‌دار»، فیلتر زمان باید روی FollowUpRecord.completedAt (timestamp canonical رکورد) اعمال شود، نه Task.dueDate.
+- فیلترهای پنج‌گانه در تمام سطوح مرور مرتبط باید قرارداد مشترک داشته باشند: زمان، مرکز، پروژه، دسته، برچسب؛ OR داخل هر بُعد و AND بین ابعاد؛ استفادهٔ مجدد از ReusableMultiSelectFilterBottomSheet.
+- Task، FollowUpRecord و Person از نظر داده، شمارش و نمایش مستقل می‌مانند. فیلتر رکوردی نباید Task تکراری بسازد؛ شمارش کار بر پایهٔ شناسهٔ یکتای Task است؛ شخص از persons و personIds canonical resolve می‌شود.
+- سلسله‌مراتب مرکز > پروژه > دسته > کار حفظ می‌شود. مالکیت tafweez.svg فقط برای تقویم است.
+- ممیزی SHA `c4444930d1b8053d2081ad3ccd35b40cd0190888` و شکاف‌های احرازشده در `docs/project-continuity/ARVIN_TODAY_FOCUS_AND_FOLLOW_UP_FILTER_CONTRACT_2026-11-08.md` ثبت شده است. این ثبت تصمیم‌ها به معنی پیاده‌سازی یا قبولی آزمون نیست.
+
