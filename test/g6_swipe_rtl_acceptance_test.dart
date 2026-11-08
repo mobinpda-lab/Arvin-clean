@@ -13,6 +13,7 @@ void main() {
     final source = File('lib/settings_page.dart').readAsStringSync();
     expect(source, contains("TaskSwipeAction.complete => 'انجام‌شدن'"));
     expect(source, contains("TaskSwipeAction.convertToFollowUp => 'ثبت پیگیری'"));
+    expect(source, contains("TaskSwipeAction.focusToday => 'کارهای برگزیدهٔ امروز'"));
     expect(source, isNot(contains('where((action) => action != TaskSwipeAction.convertToFollowUp)')));
   });
 
@@ -193,6 +194,58 @@ void main() {
     expect(stored.single.completed, isFalse);
     expect(stored.single.completedAt, isNull);
     expect(find.text(taskTitle), findsOneWidget);
+  });
+
+  testWidgets('configured focus swipe toggles only current-day membership', (tester) async {
+    const taskId = 'focus-swipe-independent';
+    const taskTitle = 'تمرکز مستقل از موعد و علاقه‌مندی';
+    const settings = AppSettings(
+      themeMode: ThemeMode.light,
+      usePersianDate: true,
+      swipeRightAction: TaskSwipeAction.focusToday,
+      swipeLeftAction: TaskSwipeAction.focusToday,
+    );
+    const dueDate = '2030-04-12T10:30:00.000';
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"$taskId","title":"$taskTitle","dueDate":"$dueDate","isFavorite":true,"completed":false}]',
+    });
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: HomePage(settings: settings),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final initial = (await TaskStore().load()).single;
+    expect(initial.isSelectedForToday, isFalse);
+    final right = tester.widget<Dismissible>(find.byType(Dismissible).first);
+    expect(await right.confirmDismiss!(DismissDirection.endToStart), isFalse);
+    await tester.pumpAndSettle();
+
+    var stored = (await TaskStore().load()).single;
+    final now = DateTime.now();
+    expect(stored.focusDate, DateTime(now.year, now.month, now.day));
+    expect(stored.dueDate, initial.dueDate);
+    expect(stored.isFavorite, isTrue);
+    expect(stored.completed, isFalse);
+    expect(stored.followUps, isEmpty);
+    expect(find.byKey(const ValueKey('task-card-focus-marker-$taskId')), findsOneWidget);
+
+    final left = tester.widget<Dismissible>(find.byType(Dismissible).first);
+    expect(await left.confirmDismiss!(DismissDirection.startToEnd), isFalse);
+    await tester.pumpAndSettle();
+
+    stored = (await TaskStore().load()).single;
+    expect(stored.focusDate, isNull);
+    expect(stored.dueDate, initial.dueDate);
+    expect(stored.isFavorite, isTrue);
+    expect(stored.completed, isFalse);
+    expect(find.byKey(const ValueKey('task-card-focus-marker-$taskId')), findsNothing);
   });
 
 }
