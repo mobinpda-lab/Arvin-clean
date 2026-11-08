@@ -2117,158 +2117,467 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     );
   }
 
+  Future<void> _saveDescriptionImmediately(String value) async {
+    final candidate = Task.fromJson(Map<String, dynamic>.from(_task.toJson()))
+      ..description = value
+      ..updatedAt = DateTime.now();
+    final save = widget.onDescriptionChanged;
+    try {
+      final updated = save != null
+          ? await save(_task, value)
+          : await widget.onTaskChanged?.call(candidate);
+      if (!mounted || updated == null) return;
+      setState(() => _task = updated);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ذخیره یادداشت انجام نشد؛ دوباره تلاش کنید')),
+      );
+    }
+  }
+
+  Widget _linearActionRow({
+    required Key key,
+    required IconData icon,
+    required String title,
+    required String value,
+    required VoidCallback? onTap,
+    Widget? trailing,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        key: key,
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 56),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+            child: Row(
+              children: [
+                Icon(icon, color: _brand, size: 22),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(title, style: const TextStyle(fontFamily: 'Vazirmatn', fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 2),
+                      Text(value, style: const TextStyle(fontFamily: 'Vazirmatn', color: _muted, fontSize: 12)),
+                    ],
+                  ),
+                ),
+                trailing ?? const Icon(Icons.chevron_left, color: _muted),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _organizationCard() {
+    Future<void> openSelector(Future<void> Function() open) async {
+      if (!_isInlineEditing) _beginInlineEdit();
+      await open();
+      if (mounted && _isInlineEditing) await _saveInlineEdit();
+    }
+
+    return _card(
+      key: const ValueKey('task-detail-organization-card'),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _sectionTitle('سازماندهی کار', Icons.tune_rounded),
+          const SizedBox(height: 8),
+          _linearActionRow(
+            key: const ValueKey('task-detail-organization-center'),
+            icon: Icons.apartment_outlined,
+            title: 'مرکز',
+            value: _selectedCenterName,
+            onTap: () => openSelector(_openInlineCenterSelector),
+          ),
+          const Divider(height: 1),
+          _linearActionRow(
+            key: const ValueKey('task-detail-organization-project'),
+            icon: Icons.folder_outlined,
+            title: 'پروژه',
+            value: _selectedProjectTitle,
+            onTap: () => openSelector(_openInlineProjectSelector),
+          ),
+          const Divider(height: 1),
+          _linearActionRow(
+            key: const ValueKey('task-detail-organization-category'),
+            icon: Icons.category_outlined,
+            title: 'دسته‌بندی',
+            value: _task.category?.trim().isNotEmpty == true ? _task.category!.trim() : 'بدون دسته',
+            onTap: () => openSelector(_openInlineCategorySelector),
+          ),
+          const Divider(height: 1),
+          _linearActionRow(
+            key: const ValueKey('task-detail-organization-tags'),
+            icon: Icons.sell_outlined,
+            title: 'برچسب‌ها',
+            value: _task.tags.isEmpty ? 'بدون برچسب' : _task.tags.join('، '),
+            onTap: () => openSelector(_openInlineTagSelector),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final latest = _task.lastFollowUp;
     final history = List<FollowUp>.of(_task.followUps)
       ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
     final now = widget.now ?? DateTime.now();
+    final due = _task.dueDate;
+    final dueToday = due != null &&
+        due.year == now.year && due.month == now.month && due.day == now.day;
+    final priority = _isInlineEditing ? _draftPriority : _task.priority;
 
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         key: const ValueKey('task-detail-page'),
         backgroundColor: const Color(0xFFF5F6FA),
-        appBar: AppBar(
-          key: const ValueKey('task-detail-app-bar'),
-          backgroundColor: const Color(0xFF37379B),
-          foregroundColor: Colors.white,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(bottom: Radius.circular(18)),
+        body: SafeArea(
+          child: Column(
+            children: [
+              Material(
+                color: Theme.of(context).colorScheme.primary,
+                child: Padding(
+                  padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 8, 18),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          IconButton(
+                            key: const ValueKey('task-detail-back'),
+                            tooltip: 'بازگشت',
+                            color: Colors.white,
+                            onPressed: () => Navigator.of(context).maybePop(),
+                            icon: const Icon(Icons.arrow_back),
+                          ),
+                          const Spacer(),
+                          if (widget.onRegisterTaskToDeviceCalendar != null)
+                            IconButton(
+                              key: const ValueKey('task-detail-send-device-calendar'),
+                              tooltip: 'ارسال به تقویم دستگاه',
+                              color: Colors.white,
+                              onPressed: _sendToDeviceCalendar,
+                              icon: const Icon(Icons.event_available_outlined),
+                            ),
+                          IconButton(
+                            key: const ValueKey('task-detail-inline-edit-toggle'),
+                            tooltip: _isInlineEditing ? 'ذخیره تغییرات' : 'ویرایش کار',
+                            color: Colors.white,
+                            onPressed: widget.onTaskChanged == null
+                                ? null
+                                : (_isInlineEditing ? _saveInlineEdit : _beginInlineEdit),
+                            icon: Icon(_isInlineEditing ? Icons.save_outlined : Icons.edit_outlined),
+                          ),
+                          IconButton(
+                            key: const ValueKey('task-detail-clone'),
+                            tooltip: 'تکثیر کار',
+                            color: Colors.white,
+                            onPressed: widget.onClone == null ? null : _cloneTask,
+                            icon: const Icon(Icons.copy_all_outlined),
+                          ),
+                          PopupMenuButton<String>(
+                            key: const ValueKey('task-detail-more'),
+                            iconColor: Colors.white,
+                            onSelected: (value) {
+                              if (value == 'report') _openReport();
+                              if (value == 'delete') _deleteTask();
+                            },
+                            itemBuilder: (_) => [
+                              const PopupMenuItem(value: 'report', child: Text('PDF، چاپ و اشتراک‌گذاری')),
+                              PopupMenuItem(
+                                value: 'delete',
+                                enabled: widget.onDelete != null && !_isInlineEditing,
+                                child: const Text('حذف کار'),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: _isInlineEditing
+                                ? TextField(
+                                    key: const ValueKey('task-detail-inline-title'),
+                                    controller: _titleController,
+                                    autofocus: false,
+                                    textDirection: TextDirection.rtl,
+                                    maxLines: 2,
+                                    onSubmitted: (_) => _saveInlineEdit(),
+                                    style: const TextStyle(
+                                      fontFamily: 'Vazirmatn',
+                                      color: Colors.white,
+                                      fontSize: 21,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                    decoration: const InputDecoration(
+                                      hintText: 'عنوان کار',
+                                      hintStyle: TextStyle(color: Colors.white70),
+                                      enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white54)),
+                                      focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white)),
+                                    ),
+                                  )
+                                : Text(
+                                    _task.title,
+                                    key: const ValueKey('task-detail-title'),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontFamily: 'Vazirmatn',
+                                      color: Colors.white,
+                                      fontSize: 21,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                          ),
+                          const SizedBox(width: 8),
+                          PopupMenuButton<TaskPriority>(
+                            key: const ValueKey('task-detail-priority-menu'),
+                            tooltip: 'اولویت کار',
+                            initialValue: priority,
+                            onSelected: (value) {
+                              if (_isInlineEditing) {
+                                setState(() => _draftPriority = value);
+                              } else {
+                                _changePriority(value);
+                              }
+                            },
+                            itemBuilder: (_) => TaskPriority.values
+                                .map((value) => PopupMenuItem(
+                                      value: value,
+                                      child: Text(value.label),
+                                    ))
+                                .toList(growable: false),
+                            child: const Padding(
+                              padding: EdgeInsets.all(10),
+                              child: Icon(Icons.star_outline_rounded, color: Colors.white, size: 27),
+                            ),
+                          ),
+                          IconButton(
+                            key: const ValueKey('task-detail-header-complete'),
+                            tooltip: _task.completed ? 'بازگشت به انجام‌نشده' : 'انجام کار',
+                            onPressed: widget.onComplete == null ? null : _complete,
+                            color: Colors.white,
+                            iconSize: 32,
+                            icon: Icon(_task.completed
+                                ? Icons.check_circle_rounded
+                                : Icons.radio_button_unchecked_rounded),
+                          ),
+                        ],
+                      ),
+                      Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: Padding(
+                          padding: const EdgeInsetsDirectional.only(start: 8, top: 4),
+                          child: Text(
+                            _task.completed ? 'انجام‌شده' : 'در انتظار انجام',
+                            style: const TextStyle(fontFamily: 'Vazirmatn', color: Colors.white70, fontSize: 12),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Expanded(
+                child: ListView(
+                  key: const ValueKey('task-detail-content-list'),
+                  controller: _detailScrollController,
+                  padding: const EdgeInsets.fromLTRB(14, 14, 14, 20),
+                  children: [
+                    _checklistCard(),
+                    const SizedBox(height: 10),
+                    _card(
+                      key: const ValueKey('task-detail-linear-actions'),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _linearActionRow(
+                            key: const ValueKey('task-detail-my-day'),
+                            icon: Icons.wb_sunny_outlined,
+                            title: 'افزودن به روز من',
+                            value: dueToday ? 'برای امروز تنظیم شده' : 'با انتخاب، موعد امروز ثبت می‌شود',
+                            onTap: _isMovingDueDateToToday ? null : _moveDueDateToToday,
+                            trailing: dueToday
+                                ? Icon(Icons.check_circle, color: _brand)
+                                : const Icon(Icons.chevron_left, color: _muted),
+                          ),
+                          const Divider(height: 1),
+                          _linearActionRow(
+                            key: const ValueKey('task-detail-add-reminder-row'),
+                            icon: Icons.notifications_none_rounded,
+                            title: 'افزودن یادآور',
+                            value: _task.taskReminders.isEmpty
+                                ? 'یادآور مستقلی ثبت نشده'
+                                : '${_task.taskReminders.length} یادآور ثبت شده',
+                            onTap: widget.onTaskChanged == null
+                                ? null
+                                : () async {
+                                    if (!_isInlineEditing) _beginInlineEdit();
+                                    await _addInlineReminder();
+                                    if (mounted && _isInlineEditing) await _saveInlineEdit();
+                                  },
+                          ),
+                          const Divider(height: 1),
+                          _linearActionRow(
+                            key: const ValueKey('task-detail-work-time-row'),
+                            icon: Icons.calendar_month_outlined,
+                            title: 'زمان کار / موعد',
+                            value: due == null ? 'تعیین نشده' : (_task.allDay ? _date(due) : _dateTime(due)),
+                            onTap: widget.onTaskChanged == null
+                                ? null
+                                : () async {
+                                    if (!_isInlineEditing) _beginInlineEdit();
+                                    await _pickInlineWorkTime();
+                                    if (mounted && _isInlineEditing) await _saveInlineEdit();
+                                  },
+                          ),
+                          const Divider(height: 1),
+                          _linearActionRow(
+                            key: const ValueKey('task-detail-repeat-row'),
+                            icon: Icons.repeat_rounded,
+                            title: 'تکرار',
+                            value: _task.recurrence == null
+                                ? 'بدون تکرار'
+                                : _recurrenceFrequencyLabel(_task.recurrence!.frequency),
+                            onTap: widget.onTaskChanged == null
+                                ? null
+                                : () {
+                                    if (!_isInlineEditing) _beginInlineEdit();
+                                    setState(() => _recurrenceConfigured = true);
+                                  },
+                          ),
+                          const Divider(height: 1),
+                          _linearActionRow(
+                            key: const ValueKey('task-detail-waiting-person-row'),
+                            icon: Icons.person_outline_rounded,
+                            title: 'منتظر پیگیری دیگران',
+                            value: latest?.waitingForResponse == true ? 'در انتظار پاسخ' : 'ثبت یا مشاهده پیگیری اشخاص',
+                            onTap: widget.onAddFollowUp == null ? null : _addFollowUp,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    _organizationCard(),
+                    const SizedBox(height: 10),
+                    _card(
+                      key: const ValueKey('task-detail-connected-notes'),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _sectionTitle('یادداشت', Icons.sticky_note_2_outlined),
+                          const SizedBox(height: 8),
+                          if (_isInlineEditing)
+                            TextField(
+                              key: const ValueKey('task-detail-connected-notes-field'),
+                              controller: _descriptionController,
+                              minLines: 3,
+                              maxLines: null,
+                              textDirection: TextDirection.rtl,
+                              onSubmitted: _saveDescriptionImmediately,
+                              decoration: const InputDecoration(
+                                hintText: 'یادداشت این کار را بنویسید...',
+                                border: OutlineInputBorder(),
+                              ),
+                            )
+                          else ...[
+                            Text(
+                              _task.description.trim().isEmpty ? 'یادداشتی ثبت نشده است' : _task.description,
+                              key: const ValueKey('task-detail-description'),
+                              style: const TextStyle(fontFamily: 'Vazirmatn', height: 1.7),
+                            ),
+                            Align(
+                              alignment: AlignmentDirectional.centerStart,
+                              child: TextButton.icon(
+                                onPressed: widget.onTaskChanged == null && widget.onDescriptionChanged == null
+                                    ? null
+                                    : _beginInlineEdit,
+                                icon: const Icon(Icons.edit_note_outlined),
+                                label: const Text('ویرایش یادداشت'),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    _remindersCard(),
+                    const SizedBox(height: 10),
+                    _recurrenceCard(now),
+                    const SizedBox(height: 10),
+                    _templateSourceCard(),
+                    const SizedBox(height: 10),
+                    _latestCard(latest, now),
+                    const SizedBox(height: 10),
+                    _timeline(history),
+                    const SizedBox(height: 10),
+                    _card(
+                      key: const ValueKey('task-detail-footer'),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            'تاریخ ایجاد: ${_task.createdAt == null ? 'نامشخص' : _dateTime(_task.createdAt!)}',
+                            key: const ValueKey('task-detail-created-at'),
+                            style: const TextStyle(fontFamily: 'Vazirmatn', color: _muted, fontSize: 12),
+                          ),
+                          if (widget.onDelete != null) ...[
+                            const SizedBox(height: 8),
+                            OutlinedButton.icon(
+                              key: const ValueKey('task-detail-delete-footer'),
+                              onPressed: _isInlineEditing ? null : _deleteTask,
+                              style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFFD04444)),
+                              icon: const Icon(Icons.delete_outline),
+                              label: const Text('حذف کار'),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          title: const Text('مشخصات کار', style: TextStyle(fontFamily: 'Vazirmatn', fontWeight: FontWeight.w700)),
-          actions: [
-            if (widget.onRegisterTaskToDeviceCalendar != null)
-              IconButton(
-                key: const ValueKey('task-detail-send-device-calendar'),
-                tooltip: 'ارسال به تقویم دستگاه',
-                onPressed: _sendToDeviceCalendar,
-                icon: const Icon(Icons.event_available_outlined),
-              ),
-            IconButton(
-              key: const ValueKey('task-detail-inline-edit-toggle'),
-              tooltip: _isInlineEditing ? 'ذخیره ویرایش درجا' : 'ویرایش درجا',
-              onPressed: widget.onTaskChanged == null ? null : (_isInlineEditing ? _saveInlineEdit : _beginInlineEdit),
-              icon: Icon(_isInlineEditing ? Icons.save_outlined : Icons.edit_note_outlined),
-            ),
-            if (_isInlineEditing)
-              IconButton(
-                key: const ValueKey('task-detail-inline-edit-cancel'),
-                tooltip: 'انصراف از ویرایش درجا',
-                onPressed: _isSavingInlineEdit ? null : _cancelInlineEdit,
-                icon: const Icon(Icons.close),
-              ),
-            IconButton(
-              key: const ValueKey('task-detail-convert-template'),
-              tooltip: 'تبدیل به الگو',
-              onPressed: _isInlineEditing || _isSavingTaskTemplate ? null : _convertToTemplate,
-              icon: const Icon(Icons.bookmark_add_outlined),
-            ),
-            IconButton(
-              key: const ValueKey('task-detail-clone'),
-              tooltip: 'تکثیر / کپی کار',
-              onPressed: widget.onClone == null ? null : _cloneTask,
-              icon: const Icon(Icons.copy_all_outlined),
-            ),
-            PopupMenuButton<String>(
-              key: const ValueKey('task-detail-more'),
-              tooltip: 'بیشتر',
-              onSelected: (value) {
-                if (value == 'report') _openReport();
-                if (value == 'delete') _deleteTask();
-              },
-              itemBuilder: (_) => [
-                const PopupMenuItem(
-                  value: 'report',
-                  child: ListTile(
-                    key: ValueKey('task-detail-report'),
-                    contentPadding: EdgeInsets.zero,
-                    leading: Icon(Icons.picture_as_pdf_outlined),
-                    title: Text('PDF، چاپ و اشتراک‌گذاری'),
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'delete',
-                  enabled: widget.onDelete != null && !_isInlineEditing,
-                  child: const ListTile(
-                    key: ValueKey('task-detail-delete-menu'),
-                    contentPadding: EdgeInsets.zero,
-                    leading: Icon(Icons.delete_outline, color: Color(0xFFD04444)),
-                    title: Text('انتقال به سطل زباله'),
-                  ),
-                ),
-              ],
-            ),
-            IconButton(
-              key: const ValueKey('task-detail-back'),
-              tooltip: 'بازگشت',
-              onPressed: () {
-                Navigator.of(context).maybePop();
-              },
-              icon: const Icon(Icons.arrow_back),
-            ),
-          ],
         ),
         bottomNavigationBar: SafeArea(
           key: const ValueKey('task-detail-bottom-actions'),
           minimum: const EdgeInsets.fromLTRB(10, 8, 10, 12),
-          child: Row(children: [
-            Expanded(child: OutlinedButton.icon(
-              key: const ValueKey('task-detail-add-followup-bottom'),
-              onPressed: _isInlineEditing || widget.onAddFollowUp == null
-                  ? null
-                  : _addFollowUp,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: _brand,
-                side: BorderSide(color: _brand),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                padding: const EdgeInsets.symmetric(vertical: 14),
+          child: Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  key: const ValueKey('task-detail-add-followup-bottom'),
+                  onPressed: _isInlineEditing || widget.onAddFollowUp == null ? null : _addFollowUp,
+                  icon: const Icon(Icons.add_comment_outlined),
+                  label: const Text('افزودن پیگیری'),
+                ),
               ),
-              icon: const Icon(Icons.add_comment_outlined),
-              label: const Text('افزودن پیگیری'),
-            )),
-            const SizedBox(width: 7),
-            Expanded(child: FilledButton.icon(
-              key: const ValueKey('task-detail-complete'),
-              onPressed: _isInlineEditing || widget.onComplete == null
-                  ? null
-                  : _complete,
-              style: FilledButton.styleFrom(
-                backgroundColor: _brand,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                padding: const EdgeInsets.symmetric(vertical: 14),
+              const SizedBox(width: 8),
+              Expanded(
+                child: FilledButton.icon(
+                  key: const ValueKey('task-detail-complete'),
+                  onPressed: _isInlineEditing || widget.onComplete == null ? null : _complete,
+                  icon: Icon(_task.completed ? Icons.undo : Icons.check_circle_outline),
+                  label: Text(_task.completed ? 'بازگشت به انجام‌نشده' : 'انجام کار'),
+                ),
               ),
-              icon: Icon(_task.completed ? Icons.undo : Icons.check_circle_outline),
-              label: Text(_task.completed ? 'بازگشت به انجام‌نشده' : 'انجام کار'),
-            )),
-          ]),
-        ),
-        body: ListView(
-          key: const ValueKey('task-detail-content-list'),
-          controller: _detailScrollController,
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 120),
-          children: [
-            _metadataCard(),
-            const SizedBox(height: 10),
-            _summaryCard(),
-            const SizedBox(height: 10),
-            _templateSourceCard(),
-            const SizedBox(height: 10),
-            _dueDateCard(),
-            const SizedBox(height: 10),
-            _assigneeCard(),
-            const SizedBox(height: 10),
-            _remindersCard(),
-            const SizedBox(height: 10),
-            _recurrenceCard(now),
-            const SizedBox(height: 10),
-            _checklistCard(),
-            const SizedBox(height: 10),
-            _latestCard(latest, now),
-            const SizedBox(height: 10),
-            _timeline(history),
-          ],
+            ],
+          ),
         ),
       ),
     );
