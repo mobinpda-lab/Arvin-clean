@@ -881,7 +881,7 @@ class TaskStore {
       'id', 'title', 'description', 'createdAt', 'updatedAt', 'dueDate',
       'followUpEnabled', 'followUpDate', 'tags', 'category', 'checklist',
       'checklistOccurrences', 'occurrenceHistory', 'notebookKind', 'reminderDate', 'priority', 'archived', 'trashed',
-      'completed', 'completedAt', 'isFavorite', 'templateTaskId', 'followUps', 'recurrence', 'people',
+      'completed', 'completedAt', 'isFavorite', 'isSelectedForToday', 'templateTaskId', 'followUps', 'recurrence', 'people',
       'taskReminders',
     };
     final preserved = <String, dynamic>{};
