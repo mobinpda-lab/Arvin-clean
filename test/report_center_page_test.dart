@@ -578,5 +578,67 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+
+  testWidgets('completed follow-up report applies the time filter to each completedAt row', (tester) async {
+    final now = DateTime(2026, 10, 7, 10);
+    await tester.pumpWidget(MaterialApp(
+      home: ReportCenterPage(
+        now: now,
+        tasks: [
+          Task(
+            id: 'follow-up-range-task',
+            title: 'کار با دو پیگیری',
+            dueDate: DateTime(2026, 11, 20),
+            followUps: [
+              FollowUp(
+                id: 'today-record',
+                completedAt: DateTime(2026, 10, 7, 9),
+                personIds: ['person-a'],
+              ),
+              FollowUp(
+                id: 'yesterday-record',
+                completedAt: DateTime(2026, 10, 6, 9),
+                personIds: ['person-b'],
+              ),
+            ],
+          ),
+        ],
+        people: const [
+          PersonReference(id: 'person-a', displayName: 'آنا'),
+          PersonReference(id: 'person-b', displayName: 'رضا'),
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('report-center-filters')));
+    await tester.pumpAndSettle();
+    final todayPreset = find.text('امروز');
+    await _ensureReportFilterTargetVisible(tester, todayPreset);
+    await tester.tap(todayPreset);
+    await tester.pumpAndSettle();
+
+    final completedType = find.byKey(
+      const ValueKey('report-filter-type-completed-follow-ups'),
+    );
+    await _ensureReportFilterTargetVisible(tester, completedType);
+    await tester.tap(completedType);
+    await tester.pumpAndSettle();
+
+    final apply = find.byKey(const ValueKey('report-filter-apply'));
+    await tester.ensureVisible(apply);
+    await tester.tap(apply);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey(
+      'completed-follow-up-record-follow-up-range-task-today-record',
+    )), findsOneWidget);
+    expect(find.byKey(const ValueKey(
+      'completed-follow-up-record-follow-up-range-task-yesterday-record',
+    )), findsNothing);
+    expect(find.text('بازهٔ زمانی انتخاب‌شده در فیلتر گزارش اعمال شده است'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
 }
 
