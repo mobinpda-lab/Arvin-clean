@@ -337,3 +337,14 @@ NOT VERIFIED. GitHub branch data does not reveal uncommitted local modifications
 6. در این فاز به هیچ وجه `lib/`، `test/`، اسکیما یا migration را تغییر نده؛ هیچ تستی حذف، غیرفعال، Skip یا بازنویسی نشود.
 7. مشخصات APK را حفظ کن: حجم `79,185,752` bytes؛ SHA-256 `dd990f90a1441423c3214e915d528f5f78e6d65ce0045b45b75791ddd1873416`؛ artifact `13588285590` از run `42406934575`. این APK از SHA قدیمی `2baad457...` است، نه لزوماً HEAD فعلی.
 8. PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main دست‌نخورده؛ Merge و انتشار ممنوع؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## Next operator — exact-SHA CI failure on d02cb2df
+
+1. The Draft Review APK run `42451351162` failed during staging APK compilation; it uploaded no APK artifact. Do not provide an APK download link or claim package/hash/size for this SHA.
+2. Fix `lib/task_detail_page.dart` compile defects: undefined `due` at lines 1940–1941 and missing `_templateSourceCard()` at line 2182. Analyze also reported unused `_cancelInlineEdit` and `_metadataChip`; resolve warnings without hiding diagnostics.
+3. The same compile defects caused Analyze and Visual failure in Build run `42451350930`, and Calendar Provider run `42451350939`. The six test shards and APK debug/release/staging jobs were still running at the checkpoint; re-query final job results rather than assuming outcomes.
+4. Follow-up File Persistence run `42451350822` passed. Device Smoke run `42451350903` was pending with no jobs; physical-device acceptance remains unverified.
+5. Preserve all tests. No deletion, skip, weakening, timeout or assertion relaxation. After correction, rerun Analyze, all six shards, Visual, Calendar Provider, Follow-up Persistence, Device Smoke and Draft Review APK against one exact SHA.
+6. Diagnostic artifact `13606295730` is Calendar Provider evidence only, not an APK. Draft Review APK run has zero artifacts.
+7. Keep PR #3052 OPEN / DRAFT / UNMERGED; do not touch main; no merge/release. **BLOCKED — RELEASE: NO-GO**.
