@@ -5,14 +5,17 @@ import 'package:flutter/material.dart';
 import 'arvin_colors.dart';
 
 import 'models/goal_project.dart';
+import 'models/arvin_center.dart';
 import 'models/task.dart';
 import 'services/canonical_notebook_repository.dart';
+import 'services/center_store.dart';
 import 'services/persian_date_formatter.dart';
 import 'task_report_page.dart';
 import 'widgets/arvin_radio_box.dart';
 import 'widgets/arvin_roll_box.dart';
 import 'widgets/task_bulk_selection_bar.dart';
 import 'widgets/taxonomy_icon_row.dart';
+import 'widgets/reusable_multi_select_filter_bottom_sheet.dart';
 
 enum _NotebookInlineTool { none, number, tick, checklist }
 
@@ -34,9 +37,11 @@ class _NotebookPageState extends State<NotebookPage> {
   bool _selectionMode = false;
   final Set<String> _selected = <String>{};
   final TextEditingController _search = TextEditingController();
-  String _activeCategory = 'همه';
-  String? _activeProjectId;
-  String? _activeTag;
+  Set<String> _activeCenterIds = <String>{};
+  Set<String> _activeProjectIds = <String>{};
+  Set<String> _activeCategories = <String>{};
+  Set<String> _activeTags = <String>{};
+  List<ArvinCenter> _centers = const [];
   List<ProjectPlan> _projects = const [];
   List<String> _knownTags = const [];
   bool _showTrash = false;
@@ -44,13 +49,35 @@ class _NotebookPageState extends State<NotebookPage> {
   List<Task> get _visibleNotes {
     final query = _search.text.trim().toLowerCase();
     return _notes.where((note) {
-      if (_activeCategory != 'همه' && note.category?.trim() != _activeCategory) return false;
-      final projectId = _activeProjectId;
-      if (projectId != null && !_projects.any((project) => project.id == projectId && project.itemIds.contains(note.id))) return false;
-      final tag = _activeTag;
-      if (tag != null && !note.tags.any((value) => value.trim() == tag)) return false;
+      if (_activeCenterIds.isNotEmpty) {
+        final linkedProjectCenters = _projects
+            .where((project) => project.itemIds.contains(note.id))
+            .map((project) => project.centerId)
+            .whereType<String>();
+        final noteCenterMatches = note.centerId != null &&
+            _activeCenterIds.contains(note.centerId);
+        if (!noteCenterMatches &&
+            !linkedProjectCenters.any(_activeCenterIds.contains)) {
+          return false;
+        }
+      }
+      if (_activeProjectIds.isNotEmpty &&
+          !_projects.any((project) =>
+              _activeProjectIds.contains(project.id) &&
+              project.itemIds.contains(note.id))) {
+        return false;
+      }
+      if (_activeCategories.isNotEmpty &&
+          !_activeCategories.contains(note.category?.trim())) {
+        return false;
+      }
+      if (_activeTags.isNotEmpty &&
+          !note.tags.any((value) => _activeTags.contains(value.trim()))) {
+        return false;
+      }
       if (query.isEmpty) return true;
-      return note.title.toLowerCase().contains(query) || note.description.toLowerCase().contains(query);
+      return note.title.toLowerCase().contains(query) ||
+          note.description.toLowerCase().contains(query);
     }).toList();
   }
 
@@ -61,52 +88,146 @@ class _NotebookPageState extends State<NotebookPage> {
   }
 
   Future<void> _reload() async {
-    final notes = _showTrash ? await widget.repository.loadTrashedNotes() : await widget.repository.loadNotes();
+    final notes = _showTrash
+        ? await widget.repository.loadTrashedNotes()
+        : await widget.repository.loadNotes();
     final projects = await widget.repository.loadProjects();
     final knownTags = await widget.repository.loadTags();
+    final centers = await CenterStore().load(includeArchived: false);
     if (!mounted) return;
     setState(() {
       _notes = notes;
       _projects = projects;
       _knownTags = List<String>.of(knownTags);
+      _centers = centers;
       _loading = false;
     });
   }
 
+  Future<Set<String>?> _openNotebookDimension({
+    required String title,
+    required String keyPrefix,
+    required List<ReusableFilterOption<String>> options,
+    required Set<String> selected,
+    required Color accent,
+    Future<ReusableFilterOption<String>?> Function(String value)? onCreate,
+  }) {
+    return ReusableMultiSelectFilterBottomSheet.showMultiSelect<String>(
+      context,
+      title: title,
+      options: options,
+      selectedValues: selected,
+      accent: accent,
+      optionKeyPrefix: keyPrefix,
+      onCreate: onCreate,
+      createHint: 'نام مورد جدید',
+      createLabel: 'افزودن و انتخاب',
+    );
+  }
+
+  Future<void> _pickNotebookCenter() async {
+    final selected = await _openNotebookDimension(
+      title: 'انتخاب مرکز',
+      keyPrefix: 'notebook-center-filter',
+      options: _centers
+          .map((center) => ReusableFilterOption<String>(
+                value: center.id,
+                label: center.name,
+              ))
+          .toList(growable: false),
+      selected: _activeCenterIds,
+      accent: ArvinColors.primary,
+      onCreate: (name) async {
+        final id = 'center-${DateTime.now().microsecondsSinceEpoch}';
+        await CenterStore().create(id: id, name: name);
+        final created = (await CenterStore().load(includeArchived: false))
+            .where((center) => center.id == id)
+            .firstOrNull;
+        if (created == null) return null;
+        if (mounted) setState(() => _centers = [..._centers, created]);
+        return ReusableFilterOption<String>(value: id, label: created.name);
+      },
+    );
+    if (selected != null && mounted) {
+      setState(() => _activeCenterIds = selected);
+    }
+  }
+
   Future<void> _pickNotebookProject() async {
-    final selected = await showModalBottomSheet<String?>(
-      context: context,
-      builder: (sheetContext) => SafeArea(child: ListView(shrinkWrap: true, padding: const EdgeInsets.all(16), children: [
-        ArvinRadioBox(label: 'همه پروژه‌ها', selected: _activeProjectId == null, icon: Icons.work_outline, accent: ArvinColors.project, onTap: () => Navigator.pop(sheetContext)),
-        const SizedBox(height: 8),
-        for (final project in _projects.where((p) => !p.isArchived)) ...[
-          ArvinRadioBox(key: ValueKey('notebook-project-filter-${project.id}'), label: project.title, selected: project.id == _activeProjectId, icon: Icons.work_outline, accent: ArvinColors.project, onTap: () => Navigator.pop(sheetContext, project.id)),
-          const SizedBox(height: 8),
-        ],
-      ])));
-    if (!mounted) return;
-    setState(() => _activeProjectId = selected);
+    final selected = await _openNotebookDimension(
+      title: 'انتخاب پروژه',
+      keyPrefix: 'notebook-project-filter',
+      options: _projects
+          .where((project) => !project.isArchived)
+          .map((project) => ReusableFilterOption<String>(
+                value: project.id,
+                label: project.title,
+              ))
+          .toList(growable: false),
+      selected: _activeProjectIds,
+      accent: ArvinColors.project,
+      onCreate: (title) async {
+        final project = await widget.repository.createProject(title: title);
+        if (mounted) setState(() => _projects = [..._projects, project]);
+        return ReusableFilterOption<String>(
+          value: project.id,
+          label: project.title,
+        );
+      },
+    );
+    if (selected != null && mounted) {
+      setState(() => _activeProjectIds = selected);
+    }
   }
 
   Future<void> _pickNotebookCategory() async {
-    final categories = _notes.map((note) => note.category?.trim()).whereType<String>().where((v) => v.isNotEmpty).toSet().toList()..sort();
-    final selected = await showModalBottomSheet<String?>(context: context, builder: (sheetContext) => SafeArea(child: ListView(shrinkWrap: true, padding: const EdgeInsets.all(16), children: [
-      ArvinRadioBox(label: 'همه دسته‌ها', selected: _activeCategory == 'همه', icon: Icons.folder_outlined, accent: ArvinColors.category, onTap: () => Navigator.pop(sheetContext, 'همه')),
-      const SizedBox(height: 8),
-      for (final category in categories) ...[ArvinRadioBox(key: ValueKey('notebook-category-filter-$category'), label: category, selected: category == _activeCategory, icon: Icons.folder_outlined, accent: ArvinColors.category, onTap: () => Navigator.pop(sheetContext, category)), const SizedBox(height: 8)],
-    ])));
-    if (!mounted || selected == null) return;
-    setState(() => _activeCategory = selected);
+    final categories = (await widget.repository.loadCategories())
+        .map((value) => value.trim())
+        .where((value) => value.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
+    final selected = await _openNotebookDimension(
+      title: 'انتخاب دسته',
+      keyPrefix: 'notebook-category-filter',
+      options: categories
+          .map((value) => ReusableFilterOption<String>(value: value, label: value))
+          .toList(growable: false),
+      selected: _activeCategories,
+      accent: ArvinColors.category,
+      onCreate: (name) async {
+        final value = await widget.repository.createCategory(name);
+        return ReusableFilterOption<String>(value: value, label: value);
+      },
+    );
+    if (selected != null && mounted) {
+      setState(() => _activeCategories = selected);
+    }
   }
 
   Future<void> _pickNotebookTag() async {
-    final selected = await showModalBottomSheet<String?>(context: context, builder: (sheetContext) => SafeArea(child: ListView(shrinkWrap: true, padding: const EdgeInsets.all(16), children: [
-      ArvinRadioBox(label: 'همه برچسب‌ها', selected: _activeTag == null, icon: Icons.sell_outlined, accent: ArvinColors.time, onTap: () => Navigator.pop(sheetContext)),
-      const SizedBox(height: 8),
-      for (final tag in _knownTags) ...[ArvinRadioBox(key: ValueKey('notebook-tag-filter-$tag'), label: tag, selected: tag == _activeTag, icon: Icons.sell_outlined, accent: ArvinColors.time, onTap: () => Navigator.pop(sheetContext, tag)), const SizedBox(height: 8)],
-    ])));
-    if (!mounted) return;
-    setState(() => _activeTag = selected);
+    final tags = (await widget.repository.loadTags())
+        .map((value) => value.trim())
+        .where((value) => value.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
+    final selected = await _openNotebookDimension(
+      title: 'انتخاب برچسب',
+      keyPrefix: 'notebook-tag-filter',
+      options: tags
+          .map((value) => ReusableFilterOption<String>(value: value, label: value))
+          .toList(growable: false),
+      selected: _activeTags,
+      accent: ArvinColors.time,
+      onCreate: (name) async {
+        final value = await widget.repository.createTag(name);
+        return ReusableFilterOption<String>(value: value, label: value);
+      },
+    );
+    if (selected != null && mounted) {
+      setState(() => _activeTags = selected);
+    }
   }
 
   void _toggleSelection(String id) {
