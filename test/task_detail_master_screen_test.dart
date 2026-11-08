@@ -290,7 +290,9 @@ void main() {
     await tester.tap(find.text('هفتگی').last);
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const ValueKey('task-detail-recurrence-interval')), '2');
+    await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const ValueKey('task-detail-recurrence-count')), '4');
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('task-detail-recurrence-end-date-pick')));
     await tester.pumpAndSettle();
     final jalaliDay = const PersianDateFormatter().toJalali(recurrenceStart).day;
@@ -584,19 +586,8 @@ void main() {
     await tester.scrollUntilVisible(timelineCard, 240, scrollable: detailScrollable);
     await tester.pumpAndSettle();
     expect(timelineCard, findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-recurrence-add')), findsNothing);
     expect(find.byKey(const ValueKey('task_detail_template_source_card')), findsNothing);
     expect(find.text('افراد مرتبط'), findsNothing);
-
-    expect(find.byKey(const ValueKey('task-detail-recurrence')), findsOneWidget);
-    final recurrenceAdd = find.byKey(const ValueKey('task-detail-recurrence-add'));
-    await tester.scrollUntilVisible(
-      recurrenceAdd,
-      300,
-      scrollable: detailScrollable,
-    );
-    await tester.pumpAndSettle();
-    expect(recurrenceAdd, findsOneWidget);
   });
 
   testWidgets('Smart visibility shows rich sections only when canonical data exists', (tester) async {

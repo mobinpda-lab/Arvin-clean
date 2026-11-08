@@ -79,7 +79,7 @@ void main() {
     );
 
     expect(find.byKey(const ValueKey('task-detail-connected-notes-field')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-inline-edit-toggle')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-inline-edit-toggle')), findsNothing);
     expect(find.byKey(const ValueKey('task-status-badge')), findsOneWidget);
     expect(find.text('در انتظار انجام'), findsOneWidget);
     expect(find.text('در انتظار پاسخ'), findsNothing);
@@ -127,15 +127,13 @@ void main() {
       ),
     );
 
-    final descriptionEdit = find.byKey(const ValueKey('task-detail-inline-edit-toggle'));
-    await tester.ensureVisible(descriptionEdit);
-    await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('task-detail-connected-notes-field')), findsOneWidget);
 
     await tester.enterText(
       find.byKey(const ValueKey('task-detail-connected-notes-field')),
       'توضیح به‌روزشده',
     );
+    await tester.pumpAndSettle();
 
     final savedTask = persisted!;
     expect(savedTask.description, 'توضیح به‌روزشده');

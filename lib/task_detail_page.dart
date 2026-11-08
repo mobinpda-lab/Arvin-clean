@@ -141,6 +141,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       _task = widget.task;
       _selectedCenterId = widget.task.centerId ?? widget.project?.centerId;
       _selectedProjectId = widget.selectedProjectId ?? widget.project?.id;
+      _titleController?.text = widget.task.title;
+      _descriptionController?.text = widget.task.description;
+      _recurrenceIntervalController?.text = (widget.task.recurrence?.interval ?? 1).toString();
+      _recurrenceCountController?.text = widget.task.recurrence?.count?.toString() ?? '';
     }
     _centers = List<ArvinCenter>.of(widget.centers);
     _projects = List<ProjectPlan>.of(widget.projects);
@@ -340,22 +344,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   Future<void> _removeDraftReminder(TaskReminder reminder) async {
     final reminders = _task.taskReminders.where((item) => item.id != reminder.id).toList(growable: false);
     await _saveReminders(reminders);
-  }
-
-  Future<void> _toggleReminder(TaskReminder reminder, bool enabled) async {
-    final candidate = Task.fromJson(Map<String, dynamic>.from(_task.toJson()));
-    candidate.taskReminders = candidate.taskReminders
-        .map((item) => item.id == reminder.id ? item.copyWith(isEnabled: enabled) : item)
-        .toList(growable: false);
-    await _persistCandidate(candidate);
-    try {
-      await AndroidFollowUpReminderScheduler().reschedule();
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('یادآور ذخیره شد؛ زمان‌بندی اعلان در اجرای بعدی بازآزمایی می‌شود')),
-      );
-    }
   }
 
   Future<void> _openInlineCenterSelector() async {
