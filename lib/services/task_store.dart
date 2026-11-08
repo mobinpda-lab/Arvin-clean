@@ -417,13 +417,14 @@ class TaskStore {
     await executor.runInsert(
       '''INSERT INTO tasks (id, storage_ordinal, title, description, created_at, updated_at, due_date,
          category, notebook_kind, priority, archived, trashed, completed, completed_at,
-         recurrence_json, legacy_payload_json)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+         is_favorite, recurrence_json, legacy_payload_json)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
       <Object?>[
         task.id, ordinal, task.title, task.description, task.createdAt?.toIso8601String(),
         task.updatedAt?.toIso8601String(), task.dueDateStorageValue, task.category,
         task.notebookKind?.name, task.priority.name, task.archived ? 1 : 0,
         task.trashed ? 1 : 0, task.completed ? 1 : 0, task.completedAt?.toIso8601String(),
+        task.isFavorite ? 1 : 0,
         task.recurrence == null ? null : jsonEncode(task.recurrence!.toJson()),
         jsonEncode(_canonicalEnvelope(task)),
       ],
@@ -654,6 +655,7 @@ class TaskStore {
     envelope['archived'] = (row['archived'] as num?)?.toInt() == 1;
     envelope['trashed'] = (row['trashed'] as num?)?.toInt() == 1;
     envelope['completed'] = (row['completed'] as num?)?.toInt() == 1;
+    envelope['isFavorite'] = (row['is_favorite'] as num?)?.toInt() == 1;
     final completedAt = row['completed_at'];
     if (completedAt is String && completedAt.isNotEmpty) {
       envelope['completedAt'] = completedAt;
@@ -812,8 +814,8 @@ class TaskStore {
           '''INSERT INTO tasks (
             id, storage_ordinal, title, description, created_at, updated_at, due_date,
             category, notebook_kind, priority, archived, trashed, completed, completed_at,
-            recurrence_json, legacy_payload_json
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+            is_favorite, recurrence_json, legacy_payload_json
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
           <Object?>[
             task.id,
             ordinal,
@@ -829,6 +831,7 @@ class TaskStore {
             task.trashed ? 1 : 0,
             task.completed ? 1 : 0,
             task.completedAt?.toIso8601String(),
+            task.isFavorite ? 1 : 0,
             task.recurrence == null ? null : jsonEncode(task.recurrence!.toJson()),
             jsonEncode(envelope),
           ],
@@ -878,7 +881,7 @@ class TaskStore {
       'id', 'title', 'description', 'createdAt', 'updatedAt', 'dueDate',
       'followUpEnabled', 'followUpDate', 'tags', 'category', 'checklist',
       'checklistOccurrences', 'occurrenceHistory', 'notebookKind', 'reminderDate', 'priority', 'archived', 'trashed',
-      'completed', 'completedAt', 'templateTaskId', 'followUps', 'recurrence', 'people',
+      'completed', 'completedAt', 'isFavorite', 'templateTaskId', 'followUps', 'recurrence', 'people',
       'taskReminders',
     };
     final preserved = <String, dynamic>{};
