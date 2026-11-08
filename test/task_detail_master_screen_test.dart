@@ -19,6 +19,31 @@ ScrollController _taskDetailPageController(WidgetTester tester) {
   return controller;
 }
 
+Future<void> _scrollTaskDetailUntilVisible(
+  WidgetTester tester,
+  Finder target,
+  double delta,
+) async {
+  final controller = _taskDetailPageController(tester);
+  for (var pass = 0; pass < 2 && target.evaluate().isEmpty; pass++) {
+    for (var step = 0; step < 40 && target.evaluate().isEmpty; step++) {
+      final max = controller.position.maxScrollExtent;
+      if (controller.offset >= max - 0.5) break;
+      final next = (controller.offset + delta).clamp(0.0, max).toDouble();
+      if (next <= controller.offset) break;
+      controller.jumpTo(next);
+      await tester.pumpAndSettle();
+    }
+    if (target.evaluate().isEmpty && pass == 0 && controller.offset > 0) {
+      controller.jumpTo(0);
+      await tester.pumpAndSettle();
+    }
+  }
+  expect(target, findsOneWidget);
+  await tester.ensureVisible(target);
+  await tester.pumpAndSettle();
+}
+
 void main() {
   testWidgets('Master Task Details saves title and multiline description inline', (tester) async {
     Task? persisted;
@@ -58,7 +83,6 @@ void main() {
         },
       ),
     ));
-    final scrollController = _taskDetailPageController(tester);
     final dueCard = find.byKey(const ValueKey('task-detail-due-date-card'));
     await _scrollTaskDetailUntilVisible(tester, dueCard, 240);
     await tester.pumpAndSettle();
@@ -457,7 +481,7 @@ void main() {
     await tester.pumpAndSettle();
         await tester.drag(find.byKey(const ValueKey('task-detail-content-list')), const Offset(0, -280));
     await tester.pumpAndSettle();
-    final position = scrollController.position;
+    final position = _taskDetailPageController(tester).position;
     final before = position.pixels;
     expect(before, greaterThan(0));
 
@@ -757,7 +781,7 @@ void main() {
     expect(find.byKey(const ValueKey('task-detail-status-menu')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-priority-menu')), findsOneWidget);
 
-        final scrollPosition = detailScrollController.position;
+    final scrollPosition = _taskDetailPageController(tester).position;
     final summaryY = scrollPosition.pixels + tester.getTopLeft(summary).dy;
     final metadataY = scrollPosition.pixels + tester.getTopLeft(metadata).dy;
     final timeX = tester.getCenter(find.byKey(const ValueKey('task-detail-metadata-time'))).dx;
