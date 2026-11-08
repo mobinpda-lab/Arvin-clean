@@ -19,7 +19,6 @@ class TodayFocusToggleButton extends StatelessWidget {
           ? 'برداشتن از برگزیده‌های امروز'
           : 'افزودن به برگزیده‌های امروز',
       constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-      visualDensity: VisualDensity.compact,
       onPressed: onPressed,
       icon: Icon(
         selected ? Icons.push_pin_rounded : Icons.push_pin_outlined,
