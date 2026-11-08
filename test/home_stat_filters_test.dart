@@ -138,6 +138,7 @@ void main() {
     await tester.tap(timeChip);
     await tester.pumpAndSettle();
 
+    expect(find.text('انتخاب‌شده: 0'), findsOneWidget);
     expect(find.widgetWithText(CheckboxListTile, 'کارهای برگزیدهٔ امروز'), findsOneWidget);
     final sheetScrollable = find.byType(Scrollable).last;
     await tester.scrollUntilVisible(find.text('بازهٔ دلخواه'), 300, scrollable: sheetScrollable);
@@ -146,6 +147,7 @@ void main() {
     await tester.ensureVisible(customRange);
     await tester.tap(customRange);
     await tester.pumpAndSettle();
+    expect(find.text('انتخاب‌شده: 1'), findsOneWidget);
     await tester.scrollUntilVisible(find.text('از تاریخ'), 300, scrollable: sheetScrollable);
     expect(find.text('از تاریخ'), findsOneWidget);
     await tester.scrollUntilVisible(find.text('تا تاریخ'), 300, scrollable: sheetScrollable);
@@ -239,5 +241,38 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+
+  testWidgets('five icon filters fit 360, 390 and 412dp without overlap',
+      (tester) async {
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    for (final width in [360.0, 390.0, 412.0]) {
+      tester.view.physicalSize = Size(width, 844);
+      tester.view.devicePixelRatio = 1;
+      await tester.pumpWidget(const ArvinApp());
+      await tester.pumpAndSettle();
+
+      final rects = [
+        for (final key in [
+          'home-filter-card-time',
+          'home-filter-card-center',
+          'home-filter-card-project',
+          'home-filter-card-category',
+          'home-filter-card-tags',
+        ])
+          tester.getRect(find.byKey(ValueKey(key))),
+      ];
+      for (final rect in rects) {
+        expect(rect.width, greaterThanOrEqualTo(48), reason: 'width=$width');
+        expect(rect.height, greaterThanOrEqualTo(48), reason: 'width=$width');
+      }
+      for (var i = 0; i < rects.length; i++) {
+        for (var j = i + 1; j < rects.length; j++) {
+          expect(rects[i].overlaps(rects[j]), isFalse, reason: 'width=$width');
+        }
+      }
+      expect(tester.takeException(), isNull, reason: 'width=$width');
+    }
+  });
 
 }
