@@ -971,6 +971,19 @@ void main() {
 
     expect(find.text('کار برگزیده با موعد آینده'), findsOneWidget);
     expect(find.text('کار انتخاب‌نشده با موعد آینده'), findsNothing);
+
+    final timeFilter = find.byKey(const ValueKey('home-filter-card-time'));
+    await tester.tap(timeFilter);
+    await tester.pumpAndSettle();
+    final focusOption = tester.widget<CheckboxListTile>(
+      find.widgetWithText(CheckboxListTile, 'کارهای برگزیدهٔ امروز'),
+    );
+    expect(focusOption.value, isTrue);
+    await tester.tap(find.text('تأیید / اعمال فیلتر'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('کار برگزیده با موعد آینده'), findsOneWidget);
+    expect(find.text('کار انتخاب‌نشده با موعد آینده'), findsNothing);
     expect((await TaskStore().load()).singleWhere((task) => task.id == 'focus-route-selected').isSelectedForToday, isTrue);
   });
 
