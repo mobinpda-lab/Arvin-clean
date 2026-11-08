@@ -1066,7 +1066,7 @@ class _HomePageState extends State<HomePage> {
                   icon: Icons.location_city_outlined,
                   soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
                   selectedCount: selectedCount: _centerFilters.length,,
-                  accent: ArvinColors.center,
+                  accent: ArvinColors.time,
                   active: _centerFilters.isNotEmpty,
                   onPressed: _showCenterFilterSheet,
                 ),
@@ -1206,6 +1206,7 @@ class _HomePageState extends State<HomePage> {
     ];
     final draft=<String>{..._timeFilters};
     if (_timeFilter == 'customRange') draft.add('customRange');
+    var focusToday = _todayFocusOnly;
     var fromDate=_fromDateFilter,toDate=_toDateFilter;
     var fromTime=_fromTimeFilter,toTime=_toTimeFilter;
     var customDate=_specificDateFilter;
@@ -1221,17 +1222,29 @@ class _HomePageState extends State<HomePage> {
         Future<TimeOfDay?> pickTime(TimeOfDay? initial,String help) => showUniversalArvinTimePicker(context:sheetContext,initialTime:initial??TimeOfDay.now(),helpText:help);
         return Column(children:[
           Expanded(child:ListView(children:[
-            CheckboxListTile(value:draft.isEmpty,title:const Text('همه'),controlAffinity:ListTileControlAffinity.leading,onChanged:(_)=>setSheetState(()=>draft.clear())),
+            CheckboxListTile(value:draft.isEmpty && !focusToday,title:const Text('همه'),controlAffinity:ListTileControlAffinity.leading,onChanged:(_)=>setSheetState(() { draft.clear(); focusToday = false; })),
+            CheckboxListTile(
+              key: const ValueKey('home-time-filter-today-focus'),
+              value: focusToday,
+              title: const Text('کارهای برگزیدهٔ امروز'),
+              controlAffinity: ListTileControlAffinity.leading,
+              secondary: const Icon(Icons.push_pin_outlined,color:ArvinColors.time),
+              onChanged: (checked) => setSheetState(() {
+                focusToday = checked == true;
+                if (focusToday) draft.clear();
+              }),
+            ),
             for(final option in options) CheckboxListTile(
               value:draft.contains(option['id'] as String),title:Text(option['title'] as String),controlAffinity:ListTileControlAffinity.leading,
               secondary:Icon(option['icon'] as IconData,color:ArvinColors.time),
-              onChanged:(v) async {final id=option['id'] as String;if(id=='custom'&&v==true){if(await pickCustom())setSheetState(()=>draft.add(id));}else{setSheetState(()=>v==true?draft.add(id):draft.remove(id));}},
+              onChanged:(v) async {final id=option['id'] as String;if(id=='custom'&&v==true){if(await pickCustom())setSheetState(() { focusToday = false; draft.add(id); });}else{setSheetState(() { focusToday = false; if(v==true) draft.add(id); else draft.remove(id); });}},
             ),
             CheckboxListTile(
               value:draft.contains('customRange'),
               title:const Text('بازهٔ دلخواه'),
               controlAffinity:ListTileControlAffinity.leading,
               onChanged:(checked)=>setSheetState(() {
+                focusToday = false;
                 if(checked==true) draft.add('customRange'); else draft.remove('customRange');
               }),
             ),
@@ -1246,7 +1259,7 @@ class _HomePageState extends State<HomePage> {
           Row(children:[
             Expanded(child:OutlinedButton(onPressed:(){
               setState(() {
-                _timeFilters.clear(); _timeFilter='all'; _specificDateFilter=null;
+                _todayFocusOnly=false; _timeFilters.clear(); _timeFilter='all'; _specificDateFilter=null;
                 _fromDateFilter=null; _toDateFilter=null; _fromTimeFilter=null; _toTimeFilter=null;
               });
               Navigator.pop(sheetContext);
@@ -1261,6 +1274,7 @@ class _HomePageState extends State<HomePage> {
                   ? null
                   : () {
               setState(() {
+                _todayFocusOnly = focusToday;
                 _timeFilters..clear()..addAll(draft);
                 _timeFilter = draft.contains('customRange') ? 'customRange' : 'all';
                 _specificDateFilter = draft.contains('custom') ? customDate : null;
