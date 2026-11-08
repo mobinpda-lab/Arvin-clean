@@ -103,12 +103,12 @@ void main() {
     expect(
       groups.singleWhere((group) => group.id == 'overdue').items
           .map((item) => item.id),
-      ['all-day-yesterday', 'timed-overdue'],
+      ['timed-overdue', 'all-day-yesterday'],
     );
     expect(
       groups.singleWhere((group) => group.id == 'today').items
           .map((item) => item.id),
-      ['all-day-today', 'completed-timed-overdue', 'timed-not-yet-due'],
+      ['timed-not-yet-due', 'all-day-today', 'completed-timed-overdue'],
     );
   });
 
