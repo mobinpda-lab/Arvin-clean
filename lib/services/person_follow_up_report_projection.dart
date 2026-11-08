@@ -29,6 +29,7 @@ class PersonFollowUpReportProjection {
     Set<String> personIds = const <String>{},
     bool waitingForResponseOnly = true,
     bool includeDanglingPeople = true,
+    bool Function(Task task, FollowUpRecord followUp)? followUpPredicate,
   }) {
     final directory = <String, PersonReference>{
       for (final person in people) person.id: person,
@@ -50,6 +51,9 @@ class PersonFollowUpReportProjection {
         continue;
       }
       for (final followUp in task.followUps) {
+        if (followUpPredicate != null && !followUpPredicate(task, followUp)) {
+          continue;
+        }
         if (waitingForResponseOnly &&
             (!followUp.waitingForResponse || followUp.completed)) {
           continue;
