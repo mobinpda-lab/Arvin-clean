@@ -357,6 +357,12 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     await _persistCandidate(candidate);
   }
 
+  Future<void> _toggleFavorite() async {
+    final candidate = Task.fromJson(Map<String, dynamic>.from(_task.toJson()))
+      ..isFavorite = !_task.isFavorite;
+    await _persistCandidate(candidate);
+  }
+
   Future<void> _addInlineReminder() async {
     var titleValue = 'یادآور ${_draftReminders.length + 1}';
     final title = await showDialog<String>(
@@ -2074,7 +2080,15 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Expanded(child: _summaryCard()),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 4),
+                          IconButton(
+                            key: const ValueKey('task-detail-favorite'),
+                            tooltip: _task.isFavorite ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها',
+                            onPressed: widget.onTaskChanged == null ? null : _toggleFavorite,
+                            color: _task.isFavorite ? const Color(0xFFFFD166) : Colors.white,
+                            icon: Icon(_task.isFavorite ? Icons.star_rounded : Icons.star_outline_rounded),
+                          ),
+                          const SizedBox(width: 4),
                           PopupMenuButton<TaskPriority>(
                             key: const ValueKey('task-detail-priority-menu'),
                             tooltip: 'اولویت کار',
