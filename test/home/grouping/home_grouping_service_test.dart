@@ -11,6 +11,7 @@ void main() {
   Task task(
     String id, {
     DateTime? dueDate,
+    DateTime? createdAt,
     String? category,
     List<String> tags = const [],
     bool completed = false,
@@ -21,6 +22,7 @@ void main() {
       id: id,
       title: id,
       dueDate: dueDate,
+      createdAt: createdAt,
       category: category,
       tags: tags,
       completed: completed,
@@ -52,7 +54,7 @@ void main() {
       ['late-today'],
     );
     expect(
-      groups.singleWhere((group) => group.id == 'future').items
+      groups.singleWhere((group) => group.id == 'tomorrow').items
           .map((item) => item.id),
       ['tomorrow'],
     );
@@ -101,12 +103,44 @@ void main() {
     expect(
       groups.singleWhere((group) => group.id == 'overdue').items
           .map((item) => item.id),
-      ['timed-overdue', 'all-day-yesterday'],
+      ['all-day-yesterday', 'timed-overdue'],
     );
     expect(
       groups.singleWhere((group) => group.id == 'today').items
           .map((item) => item.id),
-      ['timed-not-yet-due', 'all-day-today', 'completed-timed-overdue'],
+      ['all-day-today', 'completed-timed-overdue', 'timed-not-yet-due'],
+    );
+  });
+
+  test('time groups keep completed past separate and sort by priority then creation time', () {
+    final now = DateTime(2026, 11, 7, 12);
+    final groups = service.buildGroups(
+      HomeGroupMode.time,
+      [
+        task('newer', dueDate: DateTime(2026, 11, 6, 10), createdAt: DateTime(2026, 11, 2)),
+        task('older', dueDate: DateTime(2026, 11, 6, 10), createdAt: DateTime(2026, 11, 1)),
+        task('completed', dueDate: DateTime(2026, 11, 6, 10), completed: true),
+        task('tomorrow', dueDate: DateTime(2026, 11, 8, 9)),
+        task('undated'),
+      ],
+      now: now,
+    );
+
+    expect(
+      groups.map((group) => group.id),
+      ['overdue', 'completed_past', 'today', 'tomorrow', 'future', 'no_date'],
+    );
+    expect(
+      groups.singleWhere((group) => group.id == 'overdue').items.map((item) => item.id),
+      ['older', 'newer'],
+    );
+    expect(
+      groups.singleWhere((group) => group.id == 'completed_past').items.map((item) => item.id),
+      ['completed'],
+    );
+    expect(
+      groups.singleWhere((group) => group.id == 'no_date').title,
+      'فاقد زمان',
     );
   });
 
