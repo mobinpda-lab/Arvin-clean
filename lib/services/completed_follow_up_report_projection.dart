@@ -37,6 +37,23 @@ class CompletedFollowUpReportProjection {
       }
     }
 
+    return _sortRows(rows);
+  }
+
+  /// Projects every historical Follow-up record; callers apply the canonical
+  /// record-level filter when a custom time range is selected.
+  List<CompletedFollowUpReportRow> all(Iterable<Task> tasks) {
+    final rows = <CompletedFollowUpReportRow>[
+      for (final task in tasks)
+        for (final followUp in task.followUps)
+          CompletedFollowUpReportRow(task: task, followUp: followUp),
+    ];
+    return _sortRows(rows);
+  }
+
+  List<CompletedFollowUpReportRow> _sortRows(
+    List<CompletedFollowUpReportRow> rows,
+  ) {
     rows.sort((a, b) {
       final byTime = a.followUp.completedAt.compareTo(b.followUp.completedAt);
       if (byTime != 0) return byTime;
