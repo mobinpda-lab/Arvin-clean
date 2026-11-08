@@ -490,7 +490,11 @@ class _NotebookPageState extends State<NotebookPage> {
   }
 
   Future<void> _create() async {
-    final note = await widget.repository.createNote(title: 'یادداشت جدید', notebookKind: NotebookItemKind.note, category: _activeCategory == 'همه' ? null : _activeCategory);
+    final note = await widget.repository.createNote(
+      title: 'یادداشت جدید',
+      notebookKind: NotebookItemKind.note,
+      category: _activeCategories.length == 1 ? _activeCategories.single : null,
+    );
     if (!mounted) return;
     await _open(note, startEditing: true);
   }
