@@ -6,7 +6,15 @@ import 'android_follow_up_reminder_scheduler.dart';
 import 'follow_up_entry_page.dart';
 import 'follow_up_repository.dart';
 import 'models/task.dart';
+import 'models/goal_project.dart';
+import 'models/arvin_center.dart';
+import 'models/person_reference.dart';
+import 'services/task_report_filter.dart';
+import 'services/project_store.dart';
+import 'services/center_store.dart';
 import 'services/task_store.dart';
+import 'widgets/reusable_multi_select_filter_bottom_sheet.dart';
+import 'widgets/persian_date_picker.dart';
 import 'services/follow_up_write_coordinator.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/waiting_for_response_service.dart';
@@ -33,8 +41,14 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
   bool _loading = true;
   bool _saving = false;
   bool _showWaitingOnly = false;
+  TaskReportFilter _filter = const TaskReportFilter(hasFollowUp: true);
   List<_TaskOption> _tasks = const [];
   List<_FollowUpRow> _rows = const [];
+  List<ProjectPlan> _projects = const [];
+  List<ArvinCenter> _centers = const [];
+  List<PersonReference> _people = const [];
+  List<String> _categories = const [];
+  List<String> _tags = const [];
 
   @override
   void initState() {
@@ -48,7 +62,13 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
   }
 
   Future<void> _load() async {
-    final canonicalTasks = await TaskStore().load();
+    final store = TaskStore();
+    final canonicalTasks = await store.load();
+    final projects = await ProjectStore().load();
+    final centers = await CenterStore().load();
+    final people = await store.loadPeopleDirectory();
+    final categories = await store.loadCategories();
+    final tags = await store.loadTags();
     final tasks = <_TaskOption>[];
     final rows = <_FollowUpRow>[];
     for (final task in canonicalTasks) {
@@ -63,6 +83,7 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
           task.followUps.isNotEmpty) {
         for (final followUp in task.followUps) {
           rows.add(_FollowUpRow(
+            task: task,
             taskId: id,
             taskTitle: task.title,
             followUp: followUp,
@@ -75,6 +96,11 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
     setState(() {
       _tasks = tasks;
       _rows = rows;
+      _projects = projects;
+      _centers = centers;
+      _people = people;
+      _categories = categories;
+      _tags = tags;
       _loading = false;
     });
   }
@@ -199,8 +225,160 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
   }
 
   List<_FollowUpRow> get _visibleRows {
-    return _showWaitingOnly ? _waitingRows : List<_FollowUpRow>.of(_rows);
+    final source = _showWaitingOnly ? _waitingRows : _rows;
+    return source.where((row) => _filter.matchesFollowUpRecord(
+      row.task,
+      row.followUp,
+      now: DateTime.now(),
+      projects: _projects,
+    )).toList(growable: false);
   }
+
+  Map<String, PersonReference> get _peopleById => {
+    for (final person in _people) person.id: person,
+  };
+
+  Future<void> _openFilters() async {
+    final dimension = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          for (final item in const [
+            ('time', 'زمان'),
+            ('center', 'مرکز'),
+            ('project', 'پروژه'),
+            ('category', 'دسته'),
+            ('tag', 'برچسب'),
+          ])
+            ListTile(
+              title: Text(item.$2),
+              onTap: () => Navigator.of(sheetContext).pop(item.$1),
+            ),
+        ]),
+      ),
+    );
+    if (dimension == null || !mounted) return;
+    if (dimension == 'time') {
+      await _pickTimeFilter();
+      return;
+    }
+    late final List<ReusableFilterOption<String>> options;
+    late final String title;
+    late final Set<String> selected;
+    if (dimension == 'center') {
+      title = 'مرکز';
+      selected = _filter.centerIds;
+      options = _centers.map((item) => ReusableFilterOption<String>(
+        value: item.id, label: item.name,
+      )).toList(growable: false);
+    } else if (dimension == 'project') {
+      title = 'پروژه';
+      selected = _filter.projectIds;
+      options = _projects.map((item) => ReusableFilterOption<String>(
+        value: item.id, label: item.title,
+      )).toList(growable: false);
+    } else if (dimension == 'category') {
+      title = 'دسته';
+      selected = _filter.categories;
+      options = _categories.map((item) => ReusableFilterOption<String>(
+        value: item, label: item,
+      )).toList(growable: false);
+    } else {
+      title = 'برچسب';
+      selected = _filter.tags;
+      options = _tags.map((item) => ReusableFilterOption<String>(
+        value: item, label: item,
+      )).toList(growable: false);
+    }
+    final values = await ReusableMultiSelectFilterBottomSheet.showMultiSelect<String>(
+      context,
+      title: title,
+      options: options,
+      selectedValues: selected,
+      optionKeyPrefix: 'follow-up-office-$dimension',
+    );
+    if (values == null || !mounted) return;
+    setState(() {
+      _filter = switch (dimension) {
+        'center' => _filter.copyWith(centerIds: values),
+        'project' => _filter.copyWith(projectIds: values),
+        'category' => _filter.copyWith(categories: values),
+        _ => _filter.copyWith(tags: values),
+      };
+    });
+  }
+
+  Future<void> _pickTimeFilter() async {
+    var preset = _filter.timePreset;
+    DateTime? from = _filter.fromDate;
+    DateTime? to = _filter.toDate;
+    final result = await ReusableMultiSelectFilterBottomSheet.showCustom<TaskReportFilter>(
+      context,
+      title: 'فیلتر زمان پیگیری',
+      accent: Theme.of(context).colorScheme.primary,
+      child: StatefulBuilder(builder: (sheetContext, setSheetState) => Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Wrap(spacing: 6, runSpacing: 6, children: [
+            for (final entry in const [
+              (ReportTimePreset.all, 'همه'),
+              (ReportTimePreset.today, 'امروز'),
+              (ReportTimePreset.tomorrow, 'فردا'),
+              (ReportTimePreset.thisWeek, 'این هفته'),
+              (ReportTimePreset.future, 'آینده'),
+              (ReportTimePreset.past, 'گذشته'),
+            ])
+              ChoiceChip(
+                label: Text(entry.$2),
+                selected: preset == entry.$1,
+                onSelected: (_) => setSheetState(() => preset = entry.$1),
+              ),
+          ]),
+          Row(children: [
+            Expanded(child: TextButton(
+              onPressed: () async {
+                final value = await showPersianDatePicker(
+                  context: context, initialDate: from ?? DateTime.now(),
+                  firstDate: DateTime(2000), lastDate: DateTime(2100),
+                  helpText: 'شروع بازه پیگیری',
+                );
+                if (value != null) setSheetState(() { from = value; preset = ReportTimePreset.all; });
+              },
+              child: Text(from == null ? 'از تاریخ' : 'از ${_date(from!)}'),
+            )),
+            Expanded(child: TextButton(
+              onPressed: () async {
+                final value = await showPersianDatePicker(
+                  context: context, initialDate: to ?? from ?? DateTime.now(),
+                  firstDate: DateTime(2000), lastDate: DateTime(2100),
+                  helpText: 'پایان بازه پیگیری',
+                );
+                if (value != null) setSheetState(() { to = value; preset = ReportTimePreset.all; });
+              },
+              child: Text(to == null ? 'تا تاریخ' : 'تا ${_date(to!)}'),
+            )),
+          ]),
+          const SizedBox(height: 8),
+          SizedBox(width: double.infinity, height: 48, child: FilledButton(
+            onPressed: () => Navigator.of(sheetContext).pop(_filter.copyWith(
+              timePreset: preset,
+              fromDate: from,
+              clearFromDate: from == null,
+              toDate: to,
+              clearToDate: to == null,
+            )),
+            child: const Text('اعمال فیلتر زمان'),
+          )),
+        ]),
+      )),
+    );
+    if (result != null && mounted) setState(() => _filter = result);
+  }
+
+  void _clearFilters() => setState(() {
+    _filter = const TaskReportFilter(hasFollowUp: true);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -212,6 +390,21 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
         foregroundColor: ArvinColors.textPrimary,
         title: const Text('دفتر پیگیری'),
         actions: [
+          IconButton(
+            key: const ValueKey('follow-up-office-filters'),
+            tooltip: 'فیلترهای پیگیری',
+            onPressed: _openFilters,
+            icon: const Icon(Icons.tune_rounded),
+          ),
+          if (_filter.timePreset != ReportTimePreset.all ||
+              _filter.fromDate != null || _filter.toDate != null ||
+              _filter.centerIds.isNotEmpty || _filter.projectIds.isNotEmpty ||
+              _filter.categories.isNotEmpty || _filter.tags.isNotEmpty)
+            IconButton(
+              tooltip: 'پاک کردن فیلترهای پیگیری',
+              onPressed: _clearFilters,
+              icon: const Icon(Icons.filter_alt_off_outlined),
+            ),
           IconButton(
             tooltip: _showWaitingOnly ? 'نمایش همه پیگیری‌ها' : 'فقط منتظر پاسخ',
             onPressed: () => setState(() {
@@ -301,6 +494,10 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
                                _dateTime(row.dateTime),
                                style: const TextStyle(color: ArvinColors.textSecondary, fontWeight: FontWeight.w600),
                              ),
+                            if (row.followUp.personIds.isNotEmpty) ...[
+                              const SizedBox(height: 6),
+                              Text('اشخاص مرتبط: ${row.followUp.personIds.map((id) => _peopleById[id]?.displayName ?? 'شخص حذف‌شده').join('، ')}'),
+                            ],
                             if (row.note.trim().isNotEmpty) ...[
                               const SizedBox(height: 6),
                               Text(row.note),
@@ -340,11 +537,13 @@ class _TaskOption {
 
 class _FollowUpRow {
   const _FollowUpRow({
+    required this.task,
     required this.taskId,
     required this.taskTitle,
     required this.followUp,
   });
 
+  final Task task;
   final String taskId;
   final String taskTitle;
   final FollowUp followUp;
