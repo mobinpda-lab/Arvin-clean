@@ -854,6 +854,18 @@ void main() {
     expect(find.text('موعد امروز بدون انتخاب'), findsOneWidget);
     expect(find.text('برگزیده با موعد آینده'), findsOneWidget);
 
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('home-more-today-focus')));
+    await tester.pumpAndSettle();
+    expect(find.text('موعد امروز بدون انتخاب'), findsNothing);
+    expect(find.text('برگزیده با موعد آینده'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ListTile, 'امروز'));
+    await tester.pumpAndSettle();
+    expect(find.text('موعد امروز بدون انتخاب'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('task-card-today-focus-calendar-today-only')));
     await tester.pumpAndSettle();
     expect(
