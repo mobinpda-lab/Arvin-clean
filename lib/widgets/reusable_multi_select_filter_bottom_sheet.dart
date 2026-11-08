@@ -88,78 +88,36 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
                 ),
                 if (onCreate != null) ...[
                   const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          key: ValueKey('multi-select-create-$createFieldGeneration'),
-                          textInputAction: TextInputAction.done,
-                          onChanged: (value) => createText = value,
-                          onSubmitted: (_) async {
-                            final value = createText.trim();
-                            if (value.isEmpty || creating) return;
-                            setSheetState(() => creating = true);
-                            try {
-                              final created = await onCreate(value);
-                              if (!sheetContext.mounted || created == null) return;
-                              setSheetState(() {
-                                if (!available.any((item) => item.value == created.value)) {
-                                  available.add(created);
-                                }
-                                working.add(created.value);
-                                createText = '';
-                                      createFieldGeneration++;
-                              });
-                            } finally {
-                              if (sheetContext.mounted) {
-                                setSheetState(() => creating = false);
-                              }
-                            }
-                          },
-                          decoration: InputDecoration(
-                            hintText: createHint,
-                            prefixIcon: const Icon(Icons.add_circle_outline_rounded),
-                            isDense: true,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      SizedBox(
-                        height: 48,
-                        child: FilledButton(
-                          onPressed: creating
-                              ? null
-                              : () async {
-                                  final value = createText.trim();
-                                  if (value.isEmpty) return;
-                                  setSheetState(() => creating = true);
-                                  try {
-                                    final created = await onCreate(value);
-                                    if (!sheetContext.mounted || created == null) return;
-                                    setSheetState(() {
-                                      if (!available.any((item) => item.value == created.value)) {
-                                        available.add(created);
-                                      }
-                                      working.add(created.value);
-                                      createText = '';
-                                      createFieldGeneration++;
-                                    });
-                                  } finally {
-                                    if (sheetContext.mounted) {
-                                      setSheetState(() => creating = false);
-                                    }
-                                  }
-                                },
-                          child: creating
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : Text(createLabel),
-                        ),
-                      ),
-                    ],
+                  TextField(
+                    key: ValueKey('multi-select-create-$createFieldGeneration'),
+                    textInputAction: TextInputAction.done,
+                    onChanged: (value) => createText = value,
+                    onSubmitted: (_) async {
+                      final value = createText.trim();
+                      if (value.isEmpty || creating) return;
+                      setSheetState(() => creating = true);
+                      try {
+                        final created = await onCreate(value);
+                        if (!sheetContext.mounted || created == null) return;
+                        setSheetState(() {
+                          if (!available.any((item) => item.value == created.value)) {
+                            available.add(created);
+                          }
+                          working.add(created.value);
+                          createText = '';
+                          createFieldGeneration++;
+                        });
+                      } finally {
+                        if (sheetContext.mounted) {
+                          setSheetState(() => creating = false);
+                        }
+                      }
+                    },
+                    decoration: InputDecoration(
+                      hintText: createHint,
+                      prefixIcon: const Icon(Icons.add_circle_outline_rounded),
+                      isDense: true,
+                    ),
                   ),
                 ],
                 const SizedBox(height: 6),
@@ -203,6 +161,49 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
                     ],
                   ),
                 ),
+                if (onCreate != null) ...[
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: FilledButton(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFF3A86EF),
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: creating
+                          ? null
+                          : () async {
+                              final value = createText.trim();
+                              if (value.isEmpty) return;
+                              setSheetState(() => creating = true);
+                              try {
+                                final created = await onCreate(value);
+                                if (!sheetContext.mounted || created == null) return;
+                                setSheetState(() {
+                                  if (!available.any((item) => item.value == created.value)) {
+                                    available.add(created);
+                                  }
+                                  working.add(created.value);
+                                  createText = '';
+                                  createFieldGeneration++;
+                                });
+                              } finally {
+                                if (sheetContext.mounted) {
+                                  setSheetState(() => creating = false);
+                                }
+                              }
+                            },
+                      child: creating
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text('+ ایجاد مورد جدید'),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 8),
                 Wrap(
                   alignment: WrapAlignment.spaceBetween,
@@ -292,36 +293,15 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
                 ),
                 if (onCreate != null) ...[
                   const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          textInputAction: TextInputAction.done,
-                          onChanged: (value) => createText = value,
-                          onSubmitted: (_) => createAndSelect(),
-                          decoration: InputDecoration(
-                            hintText: createHint,
-                            prefixIcon: const Icon(Icons.add_circle_outline_rounded),
-                            isDense: true,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      SizedBox(
-                        height: 48,
-                        child: FilledButton(
-                          key: createKey,
-                          onPressed: creating ? null : createAndSelect,
-                          child: creating
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : Text(createLabel),
-                        ),
-                      ),
-                    ],
+                  TextField(
+                    textInputAction: TextInputAction.done,
+                    onChanged: (value) => createText = value,
+                    onSubmitted: (_) => createAndSelect(),
+                    decoration: InputDecoration(
+                      hintText: createHint,
+                      prefixIcon: const Icon(Icons.add_circle_outline_rounded),
+                      isDense: true,
+                    ),
                   ),
                 ],
                 const SizedBox(height: 6),
@@ -367,6 +347,28 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
                     ),
                   ),
                 ),
+                if (onCreate != null) ...[
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: FilledButton(
+                      key: createKey,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFF3A86EF),
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: creating ? null : createAndSelect,
+                      child: creating
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text('+ ایجاد مورد جدید'),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 8),
                 Align(
                   alignment: AlignmentDirectional.centerEnd,
