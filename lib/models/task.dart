@@ -212,7 +212,8 @@ class Task {
     this.legacyTaskReminderMigrationVersion = 0,
     this.priority = TaskPriority.medium,
     this.isFavorite = false,
-    this.isSelectedForToday = false,
+    bool isSelectedForToday = false,
+    DateTime? focusDate,
     this.archived = false,
     this.trashed = false,
     this.completed = false,
@@ -221,7 +222,12 @@ class Task {
     this.followUps = const [],
     this.recurrence,
     Iterable<PersonReference> people = const [],
-  }) : checklistEnabled = checklistEnabled ??
+  }) : focusDate = focusDate == null
+            ? (isSelectedForToday
+                ? DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)
+                : null)
+            : DateTime(focusDate.year, focusDate.month, focusDate.day),
+        checklistEnabled = checklistEnabled ??
             (checklist.isNotEmpty || notebookKind == NotebookItemKind.checklist),
         people = _normalizePeople(people),
         taskReminders = List<TaskReminder>.of(taskReminders) {
@@ -267,8 +273,25 @@ class Task {
   int legacyTaskReminderMigrationVersion;
   TaskPriority priority;
   bool isFavorite;
-  /// Explicit Home focus selection; independent from due date and favorites.
-  bool isSelectedForToday;
+  /// Canonical local-calendar date for this Task's Focus membership.
+  /// A date-only value expires automatically when the local day changes.
+  DateTime? focusDate;
+  /// Backward-compatible view of Focus membership for the current local day.
+  bool get isSelectedForToday {
+    final selected = focusDate;
+    final now = DateTime.now();
+    return selected != null && selected.year == now.year &&
+        selected.month == now.month && selected.day == now.day;
+  }
+
+  set isSelectedForToday(bool selected) {
+    if (!selected) {
+      focusDate = null;
+      return;
+    }
+    final now = DateTime.now();
+    focusDate = DateTime(now.year, now.month, now.day);
+  }
   bool archived;
   bool trashed;
   bool completed;
@@ -514,7 +537,7 @@ class Task {
           'legacyTaskReminderMigrationVersion': legacyTaskReminderMigrationVersion,
         'priority': priority.name,
         'isFavorite': isFavorite,
-        'isSelectedForToday': isSelectedForToday,
+        if (focusDate != null) 'focusDate': _dateOnlyStorageValue(focusDate!),
         'archived': archived,
         'trashed': trashed,
         'completed': completed,
@@ -676,7 +699,9 @@ class Task {
       legacyTaskReminderMigrationVersion: migrationVersion,
       priority: loadedPriority,
       isFavorite: json['isFavorite'] as bool? ?? false,
-      isSelectedForToday: json['isSelectedForToday'] as bool? ?? false,
+      focusDate: json['focusDate'] is String
+          ? DateTime.tryParse(json['focusDate'] as String)
+          : (json['isSelectedForToday'] == true ? DateTime.now() : null),
       archived: json['archived'] as bool? ?? false,
       trashed: json['trashed'] as bool? ?? false,
       completed: json['completed'] as bool? ?? false,
