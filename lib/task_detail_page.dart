@@ -2021,15 +2021,18 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          _linearActionRow(
-                            key: const ValueKey('task-detail-my-day'),
-                            icon: Icons.wb_sunny_outlined,
-                            title: 'افزودن به روز من',
-                            value: dueToday ? 'برای امروز تنظیم شده' : 'با انتخاب، موعد امروز ثبت می‌شود',
-                            onTap: _isMovingDueDateToToday ? null : _moveDueDateToToday,
-                            trailing: dueToday
-                                ? Icon(Icons.check_circle, color: _brand)
-                                : const Icon(Icons.chevron_left, color: _muted),
+                          KeyedSubtree(
+                            key: const ValueKey('task-detail-move-due-date-to-today'),
+                            child: _linearActionRow(
+                              key: const ValueKey('task-detail-my-day'),
+                              icon: Icons.wb_sunny_outlined,
+                              title: 'افزودن به روز من',
+                              value: dueToday ? 'برای امروز تنظیم شده' : 'با انتخاب، موعد امروز ثبت می‌شود',
+                              onTap: _isMovingDueDateToToday ? null : _moveDueDateToToday,
+                              trailing: dueToday
+                                  ? Icon(Icons.check_circle, color: _brand)
+                                  : const Icon(Icons.chevron_left, color: _muted),
+                            ),
                           ),
                           const Divider(height: 1),
                           _linearActionRow(
