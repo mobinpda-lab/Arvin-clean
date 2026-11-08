@@ -15,6 +15,11 @@ void main() {
       dueDate: DateTime(2026, 11, 12, 9),
       isSelectedForToday: true,
     );
+    final favoriteOnly = Task(
+      id: 'favorite-only',
+      title: 'فقط علاقه‌مندی',
+      isFavorite: true,
+    );
     final archived = Task(
       id: 'archived',
       title: 'بایگانی',
@@ -29,7 +34,7 @@ void main() {
     );
 
     final result = const TodayFocusProjection().select([
-      dueTodayNotSelected, selectedDueLater, archived, trashed,
+      dueTodayNotSelected, favoriteOnly, selectedDueLater, archived, trashed,
     ]);
 
     expect(result.map((task) => task.id), ['selected-later']);
