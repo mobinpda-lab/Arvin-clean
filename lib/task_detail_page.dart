@@ -1043,10 +1043,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   Widget _dueDateCard() {
     final dueDate = _isInlineEditing ? _draftDueDate : _task.dueDate;
     final allDay = _isInlineEditing ? _draftAllDay : _task.allDay;
-    return KeyedSubtree(
-      key: const ValueKey('task-detail-due-date-card'),
-      child: _linearActionRow(
-        key: const ValueKey('task-detail-work-time-row'),
+    return _linearActionRow(
+        key: const ValueKey('task-detail-due-date-card'),
         valueKey: const ValueKey('task-detail-due-date'),
         icon: Icons.calendar_month_outlined,
         title: 'موعد',
@@ -1058,8 +1056,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 await _pickInlineWorkTime();
                 if (mounted && _isInlineEditing) await _saveInlineEdit();
               },
-      ),
-    );
+      );
   }
 
   Widget _assigneeCard() {
