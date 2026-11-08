@@ -3313,6 +3313,25 @@ class _HomePageState extends State<HomePage> {
         if (!mounted || followUp == null) return false;
         await _addFollowUpFromDetail(task, followUp);
         return false;
+      case TaskSwipeAction.focusToday:
+        final wasSelected = task.isSelectedForToday;
+        task.isSelectedForToday = !wasSelected;
+        try {
+          await _save();
+        } catch (_) {
+          task.isSelectedForToday = wasSelected;
+          rethrow;
+        }
+        if (mounted) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(SnackBar(
+              content: Text(wasSelected
+                  ? 'از برگزیده‌های امروز برداشته شد'
+                  : 'به برگزیده‌های امروز اضافه شد'),
+            ));
+        }
+        return false;
       case TaskSwipeAction.none:
         return false;
     }
@@ -3326,6 +3345,7 @@ class _HomePageState extends State<HomePage> {
       TaskSwipeAction.moveToToday => Icons.today_outlined,
       TaskSwipeAction.complete => Icons.check_circle_outline,
       TaskSwipeAction.convertToFollowUp => Icons.add_comment_outlined,
+      TaskSwipeAction.focusToday => Icons.push_pin_outlined,
       TaskSwipeAction.none => Icons.block,
     };
     final label = switch (action) {
@@ -3334,6 +3354,7 @@ class _HomePageState extends State<HomePage> {
       TaskSwipeAction.moveToToday => 'انتقال به امروز',
       TaskSwipeAction.complete => 'انجام‌شدن',
       TaskSwipeAction.convertToFollowUp => 'ثبت پیگیری',
+      TaskSwipeAction.focusToday => 'برگزیدهٔ امروز',
       TaskSwipeAction.none => 'بدون عمل',
     };
     return Container(
