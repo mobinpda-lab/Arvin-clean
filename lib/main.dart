@@ -3441,13 +3441,7 @@ class _HomePageState extends State<HomePage> {
                     ..addAll(next);
                   selectionMode = selected.isNotEmpty;
                 })
-              : () => setState(() {
-                  if (expanded) {
-                    _expandedTaskIds.remove(task.id);
-                  } else {
-                    _expandedTaskIds.add(task.id);
-                  }
-                }),
+              : () => _openTaskDetail(task),
           child: Padding(
             // Compact vertical rhythm: save 4 px per card without shrinking text.
             padding: const EdgeInsets.fromLTRB(5, 2, 5, 2),
@@ -3662,11 +3656,23 @@ class _HomePageState extends State<HomePage> {
                         : () => _toggleTodayFocus(task),
                   ),
                   IconButton(
-                    key: ValueKey('task-card-details-${task.id}'),
-                    tooltip: 'جزئیات کامل کار',
-                    visualDensity: VisualDensity.compact,
-                    onPressed: () => _openTaskDetail(task),
-                    icon: const Icon(Icons.open_in_new_rounded, size: 19),
+                    key: ValueKey('task-card-expand-${task.id}'),
+                    tooltip: expanded ? 'بستن خلاصه کار' : 'نمایش خلاصه کار',
+                    constraints: const BoxConstraints(
+                      minWidth: 48,
+                      minHeight: 48,
+                    ),
+                    onPressed: () => setState(() {
+                      if (expanded) {
+                        _expandedTaskIds.remove(task.id);
+                      } else {
+                        _expandedTaskIds.add(task.id);
+                      }
+                    }),
+                    icon: Icon(
+                      expanded ? Icons.expand_less_rounded : Icons.expand_more_rounded,
+                      size: 19,
+                    ),
                   ),
                 ],
               ],
