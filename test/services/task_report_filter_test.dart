@@ -248,4 +248,64 @@ void main() {
     expect(base.apply([centered, legacy], now: now, projects: projects).map((t) => t.id), ['centered']);
     expect(base.copyWith(includeLegacyProjectsWithoutCenter: true).apply([centered, legacy], now: now, projects: projects).map((t) => t.id).toSet(), {'centered', 'legacy-center'});
   });
+
+  test('follow-up time range matches completedAt, not parent dueDate, and returns unique Tasks', () {
+    final now = DateTime(2026, 10, 7, 10);
+    final inRange = Task(
+      id: 'followup-in-range',
+      title: 'پیگیری در بازه',
+      dueDate: DateTime(2026, 11, 20),
+      followUps: [
+        FollowUp(id: 'fu-old', completedAt: DateTime(2026, 10, 1)),
+        FollowUp(id: 'fu-match', completedAt: DateTime(2026, 10, 6, 9)),
+      ],
+    );
+    final dueDateOnly = Task(
+      id: 'due-date-only',
+      title: 'موعد داخل بازه، پیگیری خارج بازه',
+      dueDate: DateTime(2026, 10, 6, 9),
+      followUps: [
+        FollowUp(id: 'fu-outside', completedAt: DateTime(2026, 9, 30)),
+      ],
+    );
+    final result = const TaskReportFilter(
+      hasFollowUp: true,
+      fromDate: DateTime(2026, 10, 5),
+      toDate: DateTime(2026, 10, 7),
+    ).apply([inRange, dueDateOnly], now: now);
+    expect(result.map((task) => task.id), ['followup-in-range']);
+    expect(result, hasLength(1));
+  });
+
+  test('record-level follow-up filter combines dimensions with OR inside and AND between them', () {
+    final task = Task(
+      id: 'filtered-task',
+      title: 'کار فیلترشده',
+      centerId: 'center-a',
+      category: 'تعمیر',
+      tags: ['فوری', 'مهم'],
+      dueDate: DateTime(2026, 12, 1),
+      followUps: [
+        FollowUp(id: 'fu-in', completedAt: DateTime(2026, 10, 6), personIds: ['p1']),
+        FollowUp(id: 'fu-out', completedAt: DateTime(2026, 9, 1), personIds: ['p2']),
+      ],
+    );
+    final filter = const TaskReportFilter(
+      hasFollowUp: true,
+      centerIds: {'center-a', 'center-b'},
+      categories: {'تعمیر', 'فروش'},
+      tags: {'فوری', 'مهم'},
+      personIds: {'p1'},
+      fromDate: DateTime(2026, 10, 1),
+      toDate: DateTime(2026, 10, 7),
+    );
+    expect(filter.matchesFollowUpRecord(
+      task, task.followUps.first, now: DateTime(2026, 10, 7),
+    ), isTrue);
+    expect(filter.matchesFollowUpRecord(
+      task, task.followUps.last, now: DateTime(2026, 10, 7),
+    ), isFalse);
+    expect(filter.apply([task], now: DateTime(2026, 10, 7)), hasLength(1));
+  });
+
 }
