@@ -974,4 +974,31 @@ void main() {
     expect((await TaskStore().load()).singleWhere((task) => task.id == 'focus-route-selected').isSelectedForToday, isTrue);
   });
 
+  testWidgets('Home task card shows category, priority dot, centered date and Focus marker only',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"focus-card-contract","title":"کار نمایشی","category":"شخصی","tags":["محرمانه"],"centerId":"center-hidden","dueDate":"2030-09-20T10:00:00.000","isSelectedForToday":true,"isFavorite":false}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    expect(find.text('کار نمایشی'), findsOneWidget);
+    expect(find.text('شخصی'), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-card-eisenhower-dot-focus-card-contract')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-card-focus-marker-focus-card-contract')), findsOneWidget);
+    expect(find.text('محرمانه'), findsNothing);
+    expect(find.text('مرکز'), findsNothing);
+    expect(find.text('پروژه'), findsNothing);
+
+    final due = find.byWidgetPredicate(
+      (widget) => widget is Text && (widget.data?.startsWith('موعد:') ?? false),
+    );
+    expect(due, findsOneWidget);
+    expect(tester.widget<Text>(due).textAlign, TextAlign.center);
+    expect(tester.widget<Text>(due).style?.fontWeight, FontWeight.w800);
+    expect(tester.takeException(), isNull);
+  });
+
 }
