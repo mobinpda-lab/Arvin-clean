@@ -3148,7 +3148,7 @@ class _HomePageState extends State<HomePage> {
               ),
               ListTile(
                 leading: const Icon(Icons.today_outlined),
-                title: const Text('امروز'),
+                title: const Text('امروز تقویمی'),
                 onTap: () =>
                     Navigator.of(sheetContext).pop(_HomeMoreAction.today),
               ),
