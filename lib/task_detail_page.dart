@@ -1498,7 +1498,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         for (final reminder in reminders)
           Row(
             children: [
-              Expanded(
+              Flexible(
+                fit: FlexFit.tight,
                 child: SwitchListTile(
                   key: ValueKey('task-detail-reminder-${reminder.id}'),
                   contentPadding: EdgeInsets.zero,
@@ -1789,18 +1790,33 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               children: [
                 Icon(icon, color: _brand, size: 22),
                 const SizedBox(width: 12),
-                Expanded(
+                Flexible(
+                  fit: FlexFit.loose,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(title, style: const TextStyle(fontFamily: 'Vazirmatn', fontWeight: FontWeight.w700)),
+                      Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontFamily: 'Vazirmatn', fontWeight: FontWeight.w700),
+                      ),
                       const SizedBox(height: 2),
-                      Text(value, key: valueKey, style: const TextStyle(fontFamily: 'Vazirmatn', color: _muted, fontSize: 12)),
+                      Text(
+                        value,
+                        key: valueKey,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontFamily: 'Vazirmatn', color: _muted, fontSize: 12),
+                      ),
                     ],
                   ),
                 ),
-                trailing ?? const Icon(Icons.chevron_left, color: _muted),
+                Flexible(
+                  fit: FlexFit.loose,
+                  child: trailing ?? const Icon(Icons.chevron_left, color: _muted),
+                ),
               ],
             ),
           ),
