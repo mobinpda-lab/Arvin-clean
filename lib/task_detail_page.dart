@@ -1792,12 +1792,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
             child: Row(
-              mainAxisSize: MainAxisSize.max,
               children: [
                 Icon(icon, color: _brand, size: 22),
                 const SizedBox(width: 12),
-                Flexible(
-                  fit: FlexFit.loose,
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
