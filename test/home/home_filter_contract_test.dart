@@ -143,7 +143,7 @@ void main() {
     await tester.tap(timeFilter);
     await tester.pumpAndSettle();
     expect(find.text('همه'), findsOneWidget);
-    final pastTimeOption = find.widgetWithText(CheckboxListTile, 'گذشته');
+    final pastTimeOption = find.byKey(const ValueKey('home-time-filter-past'));
     await tester.ensureVisible(pastTimeOption);
     await tester.tap(pastTimeOption);
     await tester.pumpAndSettle();
@@ -158,7 +158,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(timeFilter);
     await tester.pumpAndSettle();
-    final allTimeOption = find.widgetWithText(CheckboxListTile, 'همه');
+    final allTimeOption = find.byKey(const ValueKey('home-time-filter-all'));
     await tester.ensureVisible(allTimeOption);
     await tester.tap(allTimeOption);
     await tester.pumpAndSettle();
@@ -173,7 +173,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('انتخاب مرکز'), findsOneWidget);
     expect(find.text('همه'), findsOneWidget);
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'همه'));
+    await tester.tap(find.byKey(const ValueKey('home-time-filter-all')));
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
@@ -183,7 +183,7 @@ void main() {
     await tester.tap(projectFilter);
     await tester.pumpAndSettle();
     expect(find.text('همه'), findsOneWidget);
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'همه'));
+    await tester.tap(find.byKey(const ValueKey('home-time-filter-all')));
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
@@ -193,7 +193,7 @@ void main() {
     await tester.tap(categoryFilter);
     await tester.pumpAndSettle();
     expect(find.text('همه'), findsOneWidget);
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'همه'));
+    await tester.tap(find.byKey(const ValueKey('home-time-filter-all')));
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
@@ -203,7 +203,7 @@ void main() {
     await tester.tap(tagsFilter);
     await tester.pumpAndSettle();
     expect(find.text('همه'), findsOneWidget);
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'همه'));
+    await tester.tap(find.byKey(const ValueKey('home-time-filter-all')));
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
@@ -271,7 +271,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(categoryFilter);
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'همه'));
+    await tester.tap(find.byKey(const ValueKey('home-time-filter-all')));
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
