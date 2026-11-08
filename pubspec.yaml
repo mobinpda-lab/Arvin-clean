@@ -34,6 +34,13 @@ dev_dependencies:
   drift_dev: ^2.32.1
   build_runner: ^2.7.1
 
+# Keep sqlite3's upstream SHA-256 verification enabled while avoiding
+# stale proxy/CDN responses for immutable release assets.
+hooks:
+  user_defines:
+    sqlite3:
+      url_pattern: "https://github.com/simolus3/sqlite3.dart/releases/download/$RELEASE_TAG/$FILENAME?download=1"
+
 flutter:
   uses-material-design: true
   assets:
