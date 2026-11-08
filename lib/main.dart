@@ -79,7 +79,6 @@ import 'widgets/arvin_home_primary_add_button.dart';
 import 'widgets/canonical_calendar_launcher.dart';
 import 'widgets/home_my_tasks_sheet.dart';
 import 'widgets/task_bulk_selection_bar.dart';
-import 'widgets/taxonomy_icon_row.dart';
 import 'widgets/reusable_multi_select_filter_bottom_sheet.dart';
 import 'widgets/startup_crash_screen.dart';
 
