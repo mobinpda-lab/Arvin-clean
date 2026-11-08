@@ -257,7 +257,7 @@ void main() {
       dueDate: DateTime(2026, 11, 20),
       followUps: [
         FollowUp(id: 'fu-old', completedAt: DateTime(2026, 10, 1)),
-        FollowUp(id: 'fu-match', completedAt: DateTime(2026, 10, 6, 9)),
+        FollowUp(id: 'fu-match', completedAt: DateTime(2026, 10, 6, 9), personIds: ['p1']),
       ],
     );
     final dueDateOnly = Task(
