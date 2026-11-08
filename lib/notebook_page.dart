@@ -50,16 +50,15 @@ class _NotebookPageState extends State<NotebookPage> {
     final query = _search.text.trim().toLowerCase();
     return _notes.where((note) {
       if (_activeCenterIds.isNotEmpty) {
-        final linkedProjectCenters = _projects
-            .where((project) => project.itemIds.contains(note.id))
-            .map((project) => project.centerId)
-            .whereType<String>();
-        final noteCenterMatches = note.centerId != null &&
-            _activeCenterIds.contains(note.centerId);
-        if (!noteCenterMatches &&
-            !linkedProjectCenters.any(_activeCenterIds.contains)) {
-          return false;
-        }
+        final noteCenterId = note.centerId;
+        final matchesCenter = noteCenterId != null
+            ? _activeCenterIds.contains(noteCenterId)
+            : _projects
+                .where((project) => project.itemIds.contains(note.id))
+                .map((project) => project.centerId)
+                .whereType<String>()
+                .any(_activeCenterIds.contains);
+        if (!matchesCenter) return false;
       }
       if (_activeProjectIds.isNotEmpty &&
           !_projects.any((project) =>
