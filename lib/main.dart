@@ -888,8 +888,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     final result = scoped.toList(growable: false);
-    if (_timeFilters.contains('past')) return taskListSortService.sortPast(result);
-    return taskListSortService.sort(result, by: _listSort, descending: _sortDescending);
+    return taskListSortService.sortByPriorityThenCreatedAt(result);
   }
 
   List<HomeGroup<Task>> get _homeGroups {
@@ -939,12 +938,12 @@ class _HomePageState extends State<HomePage> {
       }
     }
     return [
-      HomeGroup<Task>(id: 'overdue', title: 'گذشته', items: taskListSortService.sortPast(grouped['overdue']!)),
-      HomeGroup<Task>(id: 'completed_past', title: 'گذشته (انجام‌شده)', items: taskListSortService.sortPast(grouped['completed_past']!)),
-      HomeGroup<Task>(id: 'today', title: 'امروز', items: taskListSortService.sort(grouped['today']!, by: _listSort, descending: _sortDescending)),
-      HomeGroup<Task>(id: 'tomorrow', title: 'فردا', items: taskListSortService.sort(grouped['tomorrow']!, by: _listSort, descending: _sortDescending)),
-      HomeGroup<Task>(id: 'future', title: 'آینده', items: taskListSortService.sort(grouped['future']!, by: _listSort, descending: _sortDescending)),
-      HomeGroup<Task>(id: 'no_date', title: 'فاقد زمان', items: taskListSortService.sort(grouped['no_date']!, by: _listSort, descending: _sortDescending)),
+      HomeGroup<Task>(id: 'overdue', title: 'گذشته', items: taskListSortService.sortByPriorityThenCreatedAt(grouped['overdue']!)),
+      HomeGroup<Task>(id: 'completed_past', title: 'گذشته (انجام‌شده)', items: taskListSortService.sortByPriorityThenCreatedAt(grouped['completed_past']!)),
+      HomeGroup<Task>(id: 'today', title: 'امروز', items: taskListSortService.sortByPriorityThenCreatedAt(grouped['today']!)),
+      HomeGroup<Task>(id: 'tomorrow', title: 'فردا', items: taskListSortService.sortByPriorityThenCreatedAt(grouped['tomorrow']!)),
+      HomeGroup<Task>(id: 'future', title: 'آینده', items: taskListSortService.sortByPriorityThenCreatedAt(grouped['future']!)),
+      HomeGroup<Task>(id: 'no_date', title: 'فاقد زمان', items: taskListSortService.sortByPriorityThenCreatedAt(grouped['no_date']!)),
     ];
   }
 
@@ -1026,7 +1025,7 @@ class _HomePageState extends State<HomePage> {
   Widget _homeFilterCards() {
     return Padding(
       key: const ValueKey('home-compact-filter-wrap'),
-      padding: const EdgeInsetsDirectional.fromSTEB(8, 0, 8, 4),
+      padding: const EdgeInsetsDirectional.fromSTEB(6, 0, 6, 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -1050,7 +1049,7 @@ class _HomePageState extends State<HomePage> {
                   onPressed: _showTimeFilterSheet,
                 ),
               ),
-              const SizedBox(width: 2),
+              const SizedBox(width: 1),
               Expanded(
                 child: HomeFilterPill(
                   key: const ValueKey('home-filter-card-center'),
@@ -1569,23 +1568,63 @@ class _HomePageState extends State<HomePage> {
               onTap: () => setState(() { if (collapsed) _collapsedGroups.remove(group.id); else _collapsedGroups.add(group.id); }),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
-                child: Row(children: [
-                  Icon(collapsed ? Icons.chevron_left_rounded : Icons.expand_more_rounded, size: 21, color: accent),
-                  const SizedBox(width: 5),
-                  Icon(_groupIcon(group.id), size: 18, color: accent),
-                  const SizedBox(width: 7),
-                  Expanded(child: Text(group.title, style: TextStyle(color: accent, fontSize: 14, fontWeight: FontWeight.w800))),
-                  if (groupDate != null) ...[
-                    const SizedBox(width: 6),
-                    Text(groupDate, style: TextStyle(color: accent.withAlpha(190), fontSize: 10, fontWeight: FontWeight.w600)),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Center(
+                      child: Text(
+                        group.title,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: accent,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(
+                          collapsed ? Icons.chevron_left_rounded : Icons.expand_more_rounded,
+                          size: 21,
+                          color: accent,
+                        ),
+                        const SizedBox(width: 5),
+                        Icon(_groupIcon(group.id), size: 18, color: accent),
+                        const Spacer(),
+                        if (groupDate != null) ...[
+                          Text(
+                            groupDate,
+                            style: TextStyle(
+                              color: accent.withAlpha(190),
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                        ],
+                        Container(
+                          constraints: const BoxConstraints(minWidth: 28),
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: ArvinColors.surface.withAlpha(190),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            persianDateFormatter.toPersianDigits('${group.items.length}'),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: accent,
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
-                  Container(
-                    constraints: const BoxConstraints(minWidth: 28),
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                    decoration: BoxDecoration(color: ArvinColors.surface.withAlpha(190), borderRadius: BorderRadius.circular(12)),
-                    child: Text(persianDateFormatter.toPersianDigits('${group.items.length}'), textAlign: TextAlign.center, style: TextStyle(color: accent, fontSize: 11.5, fontWeight: FontWeight.w800)),
-                  ),
-                ]),
+                ),
               ),
             )),
             if (!collapsed) ...[
@@ -3882,7 +3921,7 @@ class _HomePageState extends State<HomePage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
           Padding(
-            padding: EdgeInsets.fromLTRB(12, compactHome ? 4 : 8, 12, 5),
+            padding: EdgeInsets.fromLTRB(10, compactHome ? 4 : 8, 10, 5),
             child: Row(children: [
               IconButton(
                 key: const ValueKey('home-general-filter-button'),
