@@ -98,7 +98,7 @@ jobs:
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
-          cache: true
+          cache: false
 
       - name: Verify repository-owned release inputs for manual validation
         if: github.event_name == 'workflow_dispatch'

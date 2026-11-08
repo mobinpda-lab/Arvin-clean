@@ -89,7 +89,7 @@ jobs:
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
-          cache: true
+          cache: false
       - name: Verify repository-owned Android inputs
         run: |
           set -euo pipefail
@@ -112,15 +112,14 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ~/.pub-cache
-          key: arvin-pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
+          key: arvin-pub-v2-${{ runner.os }}-${{ hashFiles('pubspec.lock', 'pubspec.yaml') }}
           restore-keys: |
-            arvin-pub-${{ runner.os }}-
+            arvin-pub-v2-${{ runner.os }}-
       - name: Cache Flutter SDK artifacts
         uses: actions/cache@v5
         with:
           path: |
             ${{ env.FLUTTER_ROOT }}/bin/cache
-            ${{ env.PUB_CACHE }}
           key: arvin-flutter-artifacts-${{ runner.os }}-${{ env.FLUTTER_VERSION }}
           restore-keys: |
             arvin-flutter-artifacts-${{ runner.os }}-

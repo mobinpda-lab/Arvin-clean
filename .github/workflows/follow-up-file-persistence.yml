@@ -48,7 +48,7 @@ jobs:
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
-          cache: true
+          cache: false
 
       - name: Verify Flutter version and revision
         run: |
@@ -60,9 +60,9 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ~/.pub-cache
-          key: arvin-follow-up-pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
+          key: arvin-follow-up-pub-v2-${{ runner.os }}-${{ hashFiles('pubspec.lock', 'pubspec.yaml') }}
           restore-keys: |
-            arvin-follow-up-pub-${{ runner.os }}-
+            arvin-follow-up-pub-v2-${{ runner.os }}-
 
       - name: Resolve locked dependencies
         run: |

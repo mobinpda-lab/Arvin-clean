@@ -49,7 +49,7 @@ jobs:
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
-          cache: true
+          cache: false
       - name: Verify repository-owned release inputs
         if: matrix.lane == 'analyze'
         run: |
@@ -76,9 +76,9 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ~/.pub-cache
-          key: arvin-pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
+          key: arvin-pub-v2-${{ runner.os }}-${{ hashFiles('pubspec.lock', 'pubspec.yaml') }}
           restore-keys: |
-            arvin-pub-${{ runner.os }}-
+            arvin-pub-v2-${{ runner.os }}-
       - name: Resolve locked dependencies
         run: |
           set -euo pipefail
@@ -112,7 +112,7 @@ jobs:
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
-          cache: true
+          cache: false
       - name: Resolve locked dependencies
         run: |
           set -euo pipefail
@@ -158,7 +158,7 @@ jobs:
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
-          cache: true
+          cache: false
       - name: Verify repository-owned release inputs
         run: |
           set -euo pipefail
