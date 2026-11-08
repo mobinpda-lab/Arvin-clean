@@ -195,4 +195,34 @@ void main() {
     expect(persisted?.description, 'یادداشت ذخیره‌شونده');
   });
 
+  testWidgets('Task Details due-date row fits 360, 390 and 412 dp widths', (tester) async {
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(412, 900);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    for (final width in <double>[360, 390, 412]) {
+      tester.view.physicalSize = Size(width, 900);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(useMaterial3: true, fontFamily: 'Vazirmatn'),
+          home: TaskDetailPage(
+            task: Task(
+              id: 'due-row-width-$width',
+              title: 'آزمون چیدمان موعد',
+              dueDate: DateTime(2026, 11, 12, 9, 30),
+              createdAt: DateTime(2026, 11, 1),
+            ),
+            onTaskChanged: (candidate) async => candidate,
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 350));
+      await tester.pump();
+      final dueCard = find.byKey(const ValueKey('task-detail-due-date-card'));
+      await _scrollTaskDetailUntilVisible(tester, dueCard, 240);
+      expect(tester.takeException(), isNull, reason: 'Due-date row overflowed at $width dp');
+    }
+  });
+
 }
