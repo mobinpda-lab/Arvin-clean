@@ -72,7 +72,7 @@ void main() {
         final homeSvg = tester.widget<SvgPicture>(
           find.byKey(const ValueKey('home-bismillah-svg')),
         );
-        expect(homeSvg.width, 210);
+        expect(homeSvg.width, 118);
         expect(homeSvg.excludeFromSemantics, isTrue);
         expect(find.text(homeLabel), findsNothing);
   
