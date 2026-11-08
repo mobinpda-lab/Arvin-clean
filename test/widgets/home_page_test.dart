@@ -839,4 +839,58 @@ void main() {
     expect(find.byKey(const ValueKey('calendar-date-jump')), findsNothing);
   });
 
+
+  testWidgets('Home separates calendar today from selected focus and persists toggle removal', (tester) async {
+    final today = IranClock.now();
+    final todayIso = DateTime(today.year, today.month, today.day, 10).toIso8601String();
+    final later = DateTime(today.year, today.month, today.day + 4, 10).toIso8601String();
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"calendar-today-only","title":"موعد امروز بدون انتخاب","dueDate":"$todayIso","isFavorite":false},{"id":"focus-later","title":"برگزیده با موعد آینده","dueDate":"$later","isSelectedForToday":true,"isFavorite":false}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+    expect(find.text('موعد امروز بدون انتخاب'), findsOneWidget);
+    expect(find.text('برگزیده با موعد آینده'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('task-card-today-focus-calendar-today-only')));
+    await tester.pumpAndSettle();
+    expect(
+      (await TaskStore().load()).singleWhere((task) => task.id == 'calendar-today-only').isSelectedForToday,
+      isTrue,
+    );
+
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('home-more-today-focus')));
+    await tester.pumpAndSettle();
+    expect(find.text('موعد امروز بدون انتخاب'), findsOneWidget);
+    expect(find.text('برگزیده با موعد آینده'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('task-card-today-focus-calendar-today-only')));
+    await tester.pumpAndSettle();
+    expect(find.text('موعد امروز بدون انتخاب'), findsNothing);
+    expect(find.text('برگزیده با موعد آینده'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('home-more-today-focus')));
+    await tester.pumpAndSettle();
+    expect(find.text('برگزیده با موعد آینده'), findsOneWidget);
+    expect(find.text('موعد امروز بدون انتخاب'), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('task-card-today-focus-focus-later')));
+    await tester.pumpAndSettle();
+    expect(find.text('هنوز کاری برای تمرکز امروز انتخاب نشده است'), findsOneWidget);
+    expect(
+      (await TaskStore().load()).singleWhere((task) => task.id == 'focus-later').isSelectedForToday,
+      isFalse,
+    );
+  });
+
 }
