@@ -1231,6 +1231,14 @@ class _HomePageState extends State<HomePage> {
         Future<DateTime?> pickDate(DateTime? initial,String help) => showPersianDatePicker(context:sheetContext,initialDate:initial??DateTime.now(),firstDate:DateTime(2020),lastDate:DateTime(2100),helpText:help);
         Future<TimeOfDay?> pickTime(TimeOfDay? initial,String help) => showUniversalArvinTimePicker(context:sheetContext,initialTime:initial??TimeOfDay.now(),helpText:help);
         return Column(children:[
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(
+              'انتخاب‌شده: ${draft.length + (focusToday ? 1 : 0)}',
+              key: const ValueKey('home-time-filter-selected-count'),
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+            ),
+          ),
           Expanded(child:ListView(children:[
             CheckboxListTile(value:draft.isEmpty && !focusToday,title:const Text('همه'),controlAffinity:ListTileControlAffinity.leading,onChanged:(_)=>setSheetState(() { draft.clear(); focusToday = false; })),
             CheckboxListTile(
