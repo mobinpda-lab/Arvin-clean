@@ -122,6 +122,8 @@ void main() {
     }
     final createButton = find.widgetWithText(FilledButton, '+ ایجاد مورد جدید');
     expect(tester.getSize(createButton).height, greaterThanOrEqualTo(48));
-    expect(find.byKey(const ValueKey('multi-select-selected-count')), findsOneWidget);
+    final selectedCount = find.byKey(const ValueKey('multi-select-selected-count'));
+    expect(selectedCount, findsOneWidget);
+    expect(tester.getSize(selectedCount).height, greaterThanOrEqualTo(48));
   });
 }
