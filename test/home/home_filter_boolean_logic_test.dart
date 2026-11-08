@@ -28,8 +28,8 @@ void main() {
     await tester.ensureVisible(categoryFilter);
     await tester.tap(categoryFilter);
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'شخصی'));
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'کاری'));
+    await tester.tap(find.byKey(const ValueKey('multi-select-option-شخصی')));
+    await tester.tap(find.byKey(const ValueKey('multi-select-option-کاری')));
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
@@ -37,8 +37,8 @@ void main() {
     await tester.ensureVisible(tagFilter);
     await tester.tap(tagFilter);
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'خانه'));
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'اداری'));
+    await tester.tap(find.byKey(const ValueKey('multi-select-option-خانه')));
+    await tester.tap(find.byKey(const ValueKey('multi-select-option-اداری')));
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
