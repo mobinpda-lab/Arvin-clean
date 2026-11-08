@@ -302,11 +302,15 @@ class TaskReportFilter {
       }
       if (timePreset == ReportTimePreset.past &&
           task.completed &&
-          hasFollowUp != true) return false;
+          hasFollowUp != true) {
+        return false;
+      }
       final matchesTime = hasFollowUp == true
           ? true // The record-level time/person/waiting intersection was checked above.
           : _matchesTime(task.dueDate, now, allDay: task.allDay);
-      if (!matchesTime) return false;
+      if (!matchesTime) {
+        return false;
+      }
       return true;
     }).toList(growable: false);
     if (timePreset == ReportTimePreset.past) {
