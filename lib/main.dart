@@ -825,7 +825,7 @@ class _HomePageState extends State<HomePage> {
     return _timeFilters.any((id) {
       switch (id) {
         case 'past': return day.isBefore(today);
-        case 'today': return day == today;
+        case 'today': return day == today || TaskDueStatus.isOverdue(task, now: now);
         case 'tomorrow': return day == today.add(const Duration(days: 1));
         case 'next7': return !day.isBefore(today) && day.isBefore(today.add(const Duration(days: 7)));
         case 'next30': return !day.isBefore(today) && day.isBefore(today.add(const Duration(days: 30)));
