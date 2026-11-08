@@ -132,4 +132,46 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+  testWidgets('Task Details title and notes persist directly while typing', (tester) async {
+    final task = Task(
+      id: 'task-detail-inline-autosave',
+      title: 'عنوان اولیه',
+      description: 'یادداشت اولیه',
+      createdAt: DateTime(2026, 11, 1),
+    );
+    Task? persisted;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TaskDetailPage(
+          task: task,
+          onTaskChanged: (candidate) async {
+            persisted = candidate;
+            return candidate;
+          },
+          onDescriptionChanged: (current, description) async {
+            final updated = Task.fromJson(Map<String, dynamic>.from(current.toJson()))
+              ..description = description;
+            persisted = updated;
+            return updated;
+          },
+        ),
+      ),
+    );
+    await tester.enterText(find.byKey(const ValueKey('task-detail-title')), 'عنوان ذخیره‌شونده');
+    await tester.pump();
+    expect(persisted?.title, 'عنوان ذخیره‌شونده');
+    expect(find.byKey(const ValueKey('task-detail-inline-edit-toggle')), findsNothing);
+
+    final notes = find.byKey(const ValueKey('task-detail-connected-notes-field'));
+    await tester.scrollUntilVisible(
+      notes,
+      240,
+      scrollable: find.byType(Scrollable).first,
+      maxScrolls: 24,
+    );
+    await tester.enterText(notes, 'یادداشت ذخیره‌شونده');
+    await tester.pump();
+    expect(persisted?.description, 'یادداشت ذخیره‌شونده');
+  });
+
 }

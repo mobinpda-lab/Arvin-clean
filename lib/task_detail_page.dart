@@ -143,6 +143,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     _projects = List<ProjectPlan>.of(widget.projects);
     _selectedCenterId = widget.task.centerId ?? widget.project?.centerId;
     _selectedProjectId = widget.selectedProjectId ?? widget.project?.id;
+    _titleController = TextEditingController(text: _task.title);
+    _descriptionController = TextEditingController(text: _task.description);
   }
 
   @override
@@ -172,10 +174,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   void _beginInlineEdit() {
-    _titleController?.dispose();
-    _descriptionController?.dispose();
-    _titleController = TextEditingController(text: _task.title);
-    _descriptionController = TextEditingController(text: _task.description);
     _categoryController = TextEditingController(text: _task.category ?? '');
     _tagsController = TextEditingController(text: _task.tags.join('، '));
     _selectedCenterId = _task.centerId ?? widget.project?.centerId;
@@ -199,16 +197,12 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   void _cancelInlineEdit() {
-    _titleController?.dispose();
-    _descriptionController?.dispose();
     _categoryController?.dispose();
     _tagsController?.dispose();
     _recurrenceIntervalController?.dispose();
     _recurrenceCountController?.dispose();
     _checklistEditController?.dispose();
     _checklistEditController = null;
-    _titleController = null;
-    _descriptionController = null;
     _categoryController = null;
     _tagsController = null;
     _recurrenceIntervalController = null;
@@ -229,9 +223,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
   Future<void> _saveInlineEdit() async {
     final save = widget.onTaskChanged;
-    final title = _titleController?.text.trim();
-    final description = _descriptionController?.text ?? '';
-    if (save == null || title == null || _isSavingInlineEdit) return;
+    if (save == null || _isSavingInlineEdit) return;
     final category = _categoryController?.text.trim() ?? '';
     final tags = (_tagsController?.text ?? '')
         .split(RegExp(r'[,،]'))
@@ -260,8 +252,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       return;
     }
     final candidate = Task.fromJson(Map<String, dynamic>.from(_task.toJson()))
-      ..title = title.isEmpty ? 'بدون عنوان' : title
-      ..description = description
       ..priority = _draftPriority
       ..category = category.isEmpty ? null : category
       ..tags = tags
@@ -299,16 +289,12 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           );
         }
       }
-      _titleController?.dispose();
-      _descriptionController?.dispose();
       _categoryController?.dispose();
       _tagsController?.dispose();
       _recurrenceIntervalController?.dispose();
       _recurrenceCountController?.dispose();
       _checklistEditController?.dispose();
       _checklistEditController = null;
-      _titleController = null;
-      _descriptionController = null;
       _categoryController = null;
       _tagsController = null;
       _recurrenceIntervalController = null;
@@ -340,6 +326,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         const SnackBar(content: Text('ذخیره تغییرات کار انجام نشد؛ دوباره تلاش کنید')),
       );
     }
+  }
+
+  Future<void> _saveTitleImmediately(String value) async {
+    final title = value.trim();
+    if (title.isEmpty || title == _task.title) return;
+    final candidate = Task.fromJson(Map<String, dynamic>.from(_task.toJson()))
+      ..title = title;
+    await _persistCandidate(candidate);
   }
 
   Future<void> _persistCandidate(Task candidate) async {
@@ -1037,28 +1031,20 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   Widget _summaryCard() {
     return KeyedSubtree(
       key: const ValueKey('task-detail-summary-card'),
-      child: _isInlineEditing
-          ? TextField(
-              key: const ValueKey('task-detail-inline-title'),
-              controller: _titleController,
-              textDirection: TextDirection.rtl,
-              maxLines: 2,
-              onSubmitted: (_) => _saveInlineEdit(),
-              style: const TextStyle(fontFamily: 'Vazirmatn', color: Colors.white, fontSize: 21, fontWeight: FontWeight.w800),
-              decoration: const InputDecoration(
-                hintText: 'عنوان کار',
-                hintStyle: TextStyle(color: Colors.white70),
-                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white54)),
-                focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white)),
-              ),
-            )
-          : Text(
-              _task.title,
-              key: const ValueKey('task-detail-title'),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontFamily: 'Vazirmatn', color: Colors.white, fontSize: 21, fontWeight: FontWeight.w800),
-            ),
+      child: TextField(
+        key: const ValueKey('task-detail-title'),
+        controller: _titleController,
+        textDirection: TextDirection.rtl,
+        maxLines: 2,
+        onChanged: _saveTitleImmediately,
+        style: const TextStyle(fontFamily: 'Vazirmatn', color: Colors.white, fontSize: 21, fontWeight: FontWeight.w800),
+        decoration: const InputDecoration(
+          hintText: 'عنوان کار',
+          hintStyle: TextStyle(color: Colors.white70),
+          enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white54)),
+          focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white)),
+        ),
+      ),
     );
   }
 
@@ -2029,23 +2015,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                               icon: const Icon(Icons.event_available_outlined),
                             ),
                           IconButton(
-                            key: const ValueKey('task-detail-inline-edit-toggle'),
-                            tooltip: _isInlineEditing ? 'ذخیره تغییرات' : 'ویرایش کار',
-                            color: Colors.white,
-                            onPressed: widget.onTaskChanged == null
-                                ? null
-                                : (_isInlineEditing ? _saveInlineEdit : _beginInlineEdit),
-                            icon: Icon(_isInlineEditing ? Icons.save_outlined : Icons.edit_outlined),
-                          ),
-                          if (_isInlineEditing)
-                            IconButton(
-                              key: const ValueKey('task-detail-inline-edit-cancel'),
-                              tooltip: 'لغو ویرایش',
-                              color: Colors.white,
-                              onPressed: _cancelInlineEdit,
-                              icon: const Icon(Icons.close),
-                            ),
-                          IconButton(
                             key: const ValueKey('task-detail-convert-template'),
                             tooltip: 'تبدیل به الگو',
                             color: Colors.white,
@@ -2098,13 +2067,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                             key: const ValueKey('task-detail-priority-menu'),
                             tooltip: 'اولویت کار',
                             initialValue: priority,
-                            onSelected: (value) {
-                              if (_isInlineEditing) {
-                                setState(() => _draftPriority = value);
-                              } else {
-                                _changePriority(value);
-                              }
-                            },
+                            onSelected: _changePriority,
                             itemBuilder: (_) => TaskPriority.values
                                 .map((value) => PopupMenuItem(
                                       value: value,
@@ -2216,39 +2179,19 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                         children: [
                           _sectionTitle('یادداشت', Icons.sticky_note_2_outlined),
                           const SizedBox(height: 8),
-                          if (_isInlineEditing)
-                            TextField(
-                              key: const ValueKey('task-detail-connected-notes-field'),
-                              controller: _descriptionController,
-                              minLines: 3,
-                              maxLines: null,
-                              textDirection: TextDirection.rtl,
-                              onSubmitted: _saveDescriptionImmediately,
-                              onEditingComplete: () => _saveDescriptionImmediately(
-                                _descriptionController?.text ?? _task.description,
-                              ),
-                              decoration: const InputDecoration(
-                                hintText: 'یادداشت این کار را بنویسید...',
-                                border: OutlineInputBorder(),
-                              ),
-                            )
-                          else ...[
-                            Text(
-                              _task.description.trim().isEmpty ? 'یادداشتی ثبت نشده است' : _task.description,
-                              key: const ValueKey('task-detail-description'),
-                              style: const TextStyle(fontFamily: 'Vazirmatn', height: 1.7),
+                          TextField(
+                            key: const ValueKey('task-detail-connected-notes-field'),
+                            controller: _descriptionController,
+                            minLines: 3,
+                            maxLines: null,
+                            textDirection: TextDirection.rtl,
+                            onChanged: _saveDescriptionImmediately,
+                            onSubmitted: _saveDescriptionImmediately,
+                            decoration: const InputDecoration(
+                              hintText: 'یادداشت این کار را بنویسید...',
+                              border: OutlineInputBorder(),
                             ),
-                            Align(
-                              alignment: AlignmentDirectional.centerStart,
-                              child: TextButton.icon(
-                                onPressed: widget.onTaskChanged == null && widget.onDescriptionChanged == null
-                                    ? null
-                                    : _beginInlineEdit,
-                                icon: const Icon(Icons.edit_note_outlined),
-                                label: const Text('ویرایش یادداشت'),
-                              ),
-                            ),
-                          ],
+                          ),
                         ],
                       ),
                     ),
