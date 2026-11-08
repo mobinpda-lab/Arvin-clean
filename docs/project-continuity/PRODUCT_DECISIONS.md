@@ -328,3 +328,14 @@ This registration changes documentation only. No application source, Task/Person
 - This approval is a product specification, not an implementation or test PASS.
 - Release remains **BLOCKED — RELEASE: NO-GO**.
 
+
+
+## SVG asset ownership clarification — 2026-11-08
+
+This clarification resolves an asset-to-screen attribution error and does not introduce a new visual placement decision:
+
+- **Home header:** `assets/images/branding/bismillah.svg` — «بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ», displayed with the product name «آروین» in the approved Home header composition.
+- **Calendar screen:** `assets/images/branding/tafweez.svg` — «وَأُفَوِّضُ أَمْرِي إِلَى اللَّهِ». This vector belongs to the Calendar section, not the Home header.
+- Do not swap, duplicate, or cross-assign these two artworks. Do not infer or prescribe any new exact placement, alignment, size, or positioning for the Calendar vector without an approved visual reference.
+- Preserve all other previously approved Home, Calendar, typography, and product decisions. This is a documentation-only correction, not evidence of an application implementation.
+
