@@ -1790,8 +1790,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               children: [
                 Icon(icon, color: _brand, size: 22),
                 const SizedBox(width: 12),
-                Flexible(
-                  fit: FlexFit.loose,
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
@@ -1813,9 +1812,11 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                     ],
                   ),
                 ),
-                Flexible(
-                  fit: FlexFit.loose,
-                  child: trailing ?? const Icon(Icons.chevron_left, color: _muted),
+                SizedBox(
+                  width: 28,
+                  child: Center(
+                    child: trailing ?? const Icon(Icons.chevron_left, color: _muted, size: 22),
+                  ),
                 ),
               ],
             ),
