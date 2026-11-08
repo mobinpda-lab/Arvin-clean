@@ -3578,49 +3578,63 @@ class _HomePageState extends State<HomePage> {
                       ],
                       if (const HomeListProjection().shouldProjectDueDate(task)) ...[
                         const SizedBox(height: 3),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.calendar_today_outlined,
-                              key: ValueKey('task-card-due-icon-${task.id}'),
-                              size: 15,
-                              color: ArvinColors.textSecondary,
-                            ),
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: Text(
-                                late
-                                    ? 'موعد گذشته: ${_date(task.dueDate!)} • ${_time(task.dueDate!)}'
-                                    : 'موعد: ${_date(task.dueDate!)} • ${_time(task.dueDate!)}',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: late ? ArvinColors.error : ArvinColors.textSecondary,
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w800,
+                        SizedBox(
+                          height: 48,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 42),
+                                  child: Text(
+                                    late
+                                        ? 'موعد گذشته: ${_date(task.dueDate!)} • ${_time(task.dueDate!)}'
+                                        : 'موعد: ${_date(task.dueDate!)} • ${_time(task.dueDate!)}',
+                                    textAlign: TextAlign.center,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: late ? ArvinColors.error : ArvinColors.textSecondary,
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
-                            if (_dismissedOverdueWarnings[task.id] != task.dueDate)
-                              IconButton(
-                                key: ValueKey('task-card-clear-due-${task.id}'),
-                                tooltip: late ? 'بستن هشدار تاریخ گذشته' : 'حذف موعد',
-                                visualDensity: VisualDensity.compact,
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                                onPressed: () async {
-                                  final dueDate = task.dueDate;
-                                  if (dueDate == null) return;
-                                  if (late) {
-                                    setState(() => _dismissedOverdueWarnings[task.id] = dueDate);
-                                    return;
-                                  }
-                                  setState(() => task.dueDate = null);
-                                  await _save();
-                                },
-                                icon: const Icon(Icons.close_rounded, size: 17),
-                                color: ArvinColors.textSecondary,
+                              PositionedDirectional(
+                                start: 0,
+                                child: Icon(
+                                  Icons.calendar_today_outlined,
+                                  key: ValueKey('task-card-due-icon-${task.id}'),
+                                  size: 15,
+                                  color: ArvinColors.textSecondary,
+                                ),
                               ),
-                          ],
+                              if (_dismissedOverdueWarnings[task.id] != task.dueDate)
+                                PositionedDirectional(
+                                  end: 0,
+                                  child: IconButton(
+                                    key: ValueKey('task-card-clear-due-${task.id}'),
+                                    tooltip: late ? 'بستن هشدار تاریخ گذشته' : 'حذف موعد',
+                                    visualDensity: VisualDensity.compact,
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                                    onPressed: () async {
+                                      final dueDate = task.dueDate;
+                                      if (dueDate == null) return;
+                                      if (late) {
+                                        setState(() => _dismissedOverdueWarnings[task.id] = dueDate);
+                                        return;
+                                      }
+                                      setState(() => task.dueDate = null);
+                                      await _save();
+                                    },
+                                    icon: const Icon(Icons.close_rounded, size: 17),
+                                    color: ArvinColors.textSecondary,
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
                       ],
                       if (lastFollowUpDate != null) ...[
