@@ -37,23 +37,11 @@ void main() {
       ),
     ));
 
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byKey(const ValueKey('task-detail-inline-title')), 'عنوان تازه');
-    await tester.enterText(find.byKey(const ValueKey('task-detail-inline-description')), 'خط اول\nخط دوم\nخط سوم');
-    final categoryInput = find.byKey(const ValueKey('task-detail-inline-category'));
-    await tester.ensureVisible(categoryInput);
-    await tester.enterText(categoryInput, 'تعمیرات');
-    final tagsInput = find.byKey(const ValueKey('task-detail-inline-tags'));
-    await tester.ensureVisible(tagsInput);
-    await tester.enterText(tagsInput, 'فوری، برنامه‌ریزی');
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
-    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const ValueKey('task-detail-title')), 'عنوان تازه');
+    await tester.enterText(find.byKey(const ValueKey('task-detail-connected-notes-field')), 'خط اول\nخط دوم\nخط سوم');
 
     expect(persisted?.title, 'عنوان تازه');
     expect(persisted?.description, 'خط اول\nخط دوم\nخط سوم');
-    expect(persisted?.category, 'تعمیرات');
-    expect(persisted?.tags, ['فوری', 'برنامه‌ریزی']);
     expect(find.text('عنوان تازه'), findsOneWidget);
   });
 
@@ -74,19 +62,17 @@ void main() {
         },
       ),
     ));
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
-    await tester.pumpAndSettle();
     final scrollable = _taskDetailPageScrollable(tester);
     final dueCard = find.byKey(const ValueKey('task-detail-due-date-card'));
     await tester.scrollUntilVisible(dueCard, 240, scrollable: scrollable);
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('task-detail-inline-work-time')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-due-date-card')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-inline-due-date')), findsNothing);
     expect(find.byKey(const ValueKey('task-detail-inline-due-time')), findsNothing);
     expect(find.byKey(const ValueKey('task-detail-inline-all-day')), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-work-time')));
+    await tester.tap(find.byKey(const ValueKey('task-detail-due-date-card')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('persian-date-picker')), findsOneWidget);
     await tester.tap(find.text('تأیید'));
@@ -97,38 +83,21 @@ void main() {
     await tester.enterText(find.byKey(const ValueKey('universal-time-manual-input')), '11:45');
     await tester.tap(find.byKey(const ValueKey('universal-time-save')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
-    await tester.pumpAndSettle();
     expect(persisted?.dueDate, DateTime(2026, 11, 20, 11, 45));
     expect(persisted?.allDay, isFalse);
 
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
-    await tester.pumpAndSettle();
     final allDayScrollable = _taskDetailPageScrollable(tester);
     await tester.scrollUntilVisible(dueCard, 240, scrollable: allDayScrollable);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-work-time')));
+    await tester.tap(find.byKey(const ValueKey('task-detail-due-date-card')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('تأیید'));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('universal-time-no-time')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
-    await tester.pumpAndSettle();
     expect(persisted?.dueDate, DateTime(2026, 11, 20));
     expect(persisted?.allDay, isTrue);
 
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
-    await tester.pumpAndSettle();
-    final clearableScroll = _taskDetailPageScrollable(tester);
-    await tester.scrollUntilVisible(dueCard, 240, scrollable: clearableScroll);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-due-clear')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
-    await tester.pumpAndSettle();
-    expect(persisted?.dueDate, isNull);
-    expect(persisted?.allDay, isFalse);
   });
 
   testWidgets('Unified Task Details adds a reminder and saves it with the form', (tester) async {
@@ -143,8 +112,6 @@ void main() {
         },
       ),
     ));
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
-    await tester.pumpAndSettle();
     final scrollable = _taskDetailPageScrollable(tester);
     final addReminder = find.byKey(const ValueKey('task-detail-add-reminder'));
     await tester.scrollUntilVisible(addReminder, 240, scrollable: scrollable);
@@ -159,8 +126,6 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('universal-time-save')));
     await tester.pumpAndSettle();
     expect(find.text('تماس با مشتری'), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
-    await tester.pumpAndSettle();
     expect(persisted?.taskReminders, hasLength(1));
     expect(persisted?.taskReminders.single.title, 'تماس با مشتری');
     expect(persisted?.taskReminders.single.date, isNotNull);
@@ -190,8 +155,6 @@ void main() {
       ),
     ));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
-    await tester.pumpAndSettle();
     final scrollable = _taskDetailPageScrollable(tester);
     final editTitle = find.byKey(const ValueKey('task-detail-reminder-edit-title-reminder-edit-1'));
     await tester.scrollUntilVisible(editTitle, 240, scrollable: scrollable);
@@ -204,9 +167,7 @@ void main() {
     );
     await tester.tap(find.text('ذخیره عنوان'));
     await tester.pumpAndSettle();
-    expect(persisted, isNull);
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
-    await tester.pumpAndSettle();
+    expect(persisted, isNotNull);
     expect(persisted?.taskReminders.single.title, 'عنوان اصلاح‌شده');
   });
 
@@ -240,8 +201,6 @@ void main() {
       ),
     ));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
-    await tester.pumpAndSettle();
     final scrollable = _taskDetailPageScrollable(tester);
     final remove = find.byKey(const ValueKey('task-detail-reminder-remove-reminder-delete-1'));
     await tester.scrollUntilVisible(remove, 240, scrollable: scrollable);
@@ -250,8 +209,6 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('یادآور حذف‌شونده'), findsNothing);
     expect(find.text('یادآور باقی‌مانده'), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
-    await tester.pumpAndSettle();
     expect(persisted?.taskReminders, hasLength(1));
     expect(persisted?.taskReminders.single.id, 'reminder-retained-2');
   });
@@ -280,8 +237,6 @@ void main() {
       ),
     ));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
-    await tester.pumpAndSettle();
     final scrollable = _taskDetailPageScrollable(tester);
     final editSchedule = find.byKey(
       const ValueKey('task-detail-reminder-edit-schedule-reminder-schedule-1'),
@@ -300,8 +255,6 @@ void main() {
       '10:45',
     );
     await tester.tap(find.byKey(const ValueKey('universal-time-save')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
     await tester.pumpAndSettle();
 
     expect(persisted?.taskReminders.single.date, DateTime(2026, 11, 20, 10, 45));
@@ -324,8 +277,6 @@ void main() {
         },
       ),
     ));
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
-    await tester.pumpAndSettle();
 
     final scrollable = _taskDetailPageScrollable(tester);
     final addRule = find.byKey(const ValueKey('task-detail-recurrence-add'));
@@ -347,8 +298,6 @@ void main() {
     await tester.tap(find.text('تأیید'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
-    await tester.pumpAndSettle();
 
     expect(persisted?.recurrence?.frequency, RecurrenceFrequency.weekly);
     expect(persisted?.recurrence?.interval, 2);
@@ -418,7 +367,7 @@ void main() {
     expect(tester.getTopLeft(newest).dy, lessThan(tester.getTopLeft(older).dy));
   });
 
-  testWidgets('Unified Task Details stages checklist edits, reorders and saves or cancels atomically', (tester) async {
+  testWidgets('Task Details persists checklist reorder and additions immediately without changing Follow-up history', (tester) async {
     Task? persisted;
     final source = Task(
       id: 'inline-checklist-draft',
@@ -440,47 +389,29 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
+    final scrollable = _taskDetailPageScrollable(tester);
+    final moveDown = find.byKey(const ValueKey('task-detail-checklist-down-0'));
+    await tester.scrollUntilVisible(moveDown, 240, scrollable: scrollable);
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('task-detail-checklist-down-0')),
-      240,
-      scrollable: _taskDetailPageScrollable(tester),
-    );
+    await tester.tap(moveDown);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('task-detail-checklist-down-0')));
+    expect(persisted?.checklist, ['[ ] مرحله دوم', '[ ] مرحله اول']);
+
+    final add = find.byKey(const ValueKey('task-detail-checklist-add'));
+    await tester.ensureVisible(add);
+    await tester.tap(add);
     await tester.pumpAndSettle();
-    await tester.enterText(find.byKey(const ValueKey('task-detail-checklist-add-input')), 'مرحله سوم');
+    final input = find.byKey(const ValueKey('task-detail-checklist-add-input'));
+    await tester.enterText(input, 'مرحله سوم');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
-    expect(find.text('مرحله دوم'), findsOneWidget);
-    expect(find.text('مرحله اول'), findsOneWidget);
-    expect(find.text('مرحله سوم'), findsOneWidget);
-    expect(persisted, isNull);
 
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-cancel')));
-    await tester.pumpAndSettle();
-    expect(source.checklist, ['[ ] مرحله اول', '[ ] مرحله دوم']);
-    expect(persisted, isNull);
-
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
-    await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('task-detail-checklist-down-0')),
-      240,
-      scrollable: _taskDetailPageScrollable(tester),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('task-detail-checklist-down-0')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
-    await tester.pumpAndSettle();
-
-    expect(persisted?.checklist, ['[ ] مرحله دوم', '[ ] مرحله اول']);
+    expect(persisted?.checklist, ['[ ] مرحله دوم', '[ ] مرحله اول', '[ ] مرحله سوم']);
     expect(persisted?.followUps.single.id, 'history-keep');
+    expect(source.checklist, ['[ ] مرحله اول', '[ ] مرحله دوم']);
   });
 
-  testWidgets('Unified Task Details stages status and priority in the same form until save', (tester) async {
+  testWidgets('Task Details saves priority and completion immediately', (tester) async {
     Task? persisted;
     final task = Task(
       id: 'inline-status-priority',
@@ -494,52 +425,35 @@ void main() {
           persisted = candidate;
           return candidate;
         },
+        onComplete: (candidate) async {
+          final updated = Task.fromJson(Map<String, dynamic>.from(candidate.toJson()));
+          updated.setCompleted(!updated.completed);
+          persisted = updated;
+          return updated;
+        },
       ),
     ));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
-    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('task-detail-priority-menu')));
     await tester.pumpAndSettle();
     await tester.tap(find.text(TaskPriority.high.label).last);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('task-detail-status-menu')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('علامت‌گذاری به‌عنوان انجام‌شده'));
-    await tester.pumpAndSettle();
-
-    expect(persisted, isNull);
-    expect(task.priority, TaskPriority.medium);
-    expect(task.completed, isFalse);
-
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
-    await tester.pumpAndSettle();
     expect(persisted?.priority, TaskPriority.high);
+
+    await tester.tap(find.byKey(const ValueKey('task-detail-header-complete')));
+    await tester.pumpAndSettle();
     expect(persisted?.completed, isTrue);
     expect(persisted?.completedAt, isNotNull);
   });
 
-  testWidgets('Unified Task Details preserves the page scroll offset entering and cancelling edit', (tester) async {
+  testWidgets('Task Details preserves scroll offset while another field autosaves', (tester) async {
     Task? persisted;
     final task = Task(
       id: 'scroll-preservation',
       title: 'کار با جزئیات زیاد',
-      description: 'شرح طولانی',
       checklistEnabled: true,
       checklist: List<String>.generate(12, (index) => '[ ] مرحله شماره ${index + 1}'),
-      taskReminders: List<TaskReminder>.generate(
-        4,
-        (index) => TaskReminder(
-          id: 'scroll-reminder-$index',
-          title: 'یادآور $index',
-          date: DateTime(2026, 11, 5, 10 + index),
-          sequence: index + 1,
-        ),
-      ),
-      followUps: [
-        FollowUp(id: 'scroll-followup', dateTime: DateTime(2026, 11, 4), note: 'پیگیری'),
-      ],
     );
     await tester.pumpWidget(MaterialApp(
       home: TaskDetailPage(
@@ -548,7 +462,6 @@ void main() {
           persisted = value;
           return value;
         },
-        onChecklistChanged: (value, checklist) async => value,
       ),
     ));
     await tester.pumpAndSettle();
@@ -559,21 +472,14 @@ void main() {
     final before = position.pixels;
     expect(before, greaterThan(0));
 
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
+    await tester.tap(find.byKey(const ValueKey('task-detail-priority-menu')));
     await tester.pumpAndSettle();
-    expect(position.pixels, before);
+    await tester.tap(find.text(TaskPriority.high.label).last);
+    await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-cancel')));
-    await tester.pumpAndSettle();
+    expect(persisted?.priority, TaskPriority.high);
     expect(position.pixels, before);
-
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
-    await tester.pumpAndSettle();
-    expect(position.pixels, before);
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
-    await tester.pumpAndSettle();
-    expect(position.pixels, before);
-    expect(persisted, isNotNull);
+    expect(find.byKey(const ValueKey('task-detail-inline-edit-toggle')), findsNothing);
   });
 
   testWidgets('Master Task Details toggles an independent reminder', (tester) async {
@@ -653,7 +559,7 @@ void main() {
     await tester.scrollUntilVisible(recurrenceCard, 240, scrollable: detailScrollable);
     await tester.pumpAndSettle();
     expect(recurrenceCard, findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-recurrence-add')), findsNothing);
+    expect(find.byKey(const ValueKey('task-detail-recurrence-add')), findsOneWidget);
 
     final checklistCard = find.byKey(const ValueKey('task-detail-checklist'));
     await tester.scrollUntilVisible(checklistCard, 240, scrollable: detailScrollable);
@@ -682,8 +588,6 @@ void main() {
     expect(find.byKey(const ValueKey('task_detail_template_source_card')), findsNothing);
     expect(find.text('افراد مرتبط'), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
-    await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('task-detail-recurrence')), findsOneWidget);
     final recurrenceAdd = find.byKey(const ValueKey('task-detail-recurrence-add'));
     await tester.scrollUntilVisible(
@@ -741,10 +645,6 @@ void main() {
       find.byKey(const ValueKey('task-detail-checklist-progress-bar')),
       findsOneWidget,
     );
-    await tester.tap(
-      find.byKey(const ValueKey('task-detail-inline-edit-toggle')),
-    );
-    await tester.pumpAndSettle();
     expect(find.text('افزودن مرحله جدید'), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-latest-followup')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-timeline')), findsOneWidget);

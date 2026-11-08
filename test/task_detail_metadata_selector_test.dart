@@ -27,23 +27,19 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
-    await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-category')));
+    await tester.tap(find.byKey(const ValueKey('task-detail-organization-category')));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(RadioListTile<Object?>, 'شخصی'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-tags')));
+    await tester.tap(find.byKey(const ValueKey('task-detail-organization-tags')));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(CheckboxListTile, 'فوری'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
-    await tester.pumpAndSettle();
 
     expect(saved.category, 'شخصی');
     expect(saved.tags.toSet(), {'مهم', 'فوری'});
@@ -80,21 +76,17 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
-    await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-center')));
+    await tester.tap(find.byKey(const ValueKey('task-detail-organization-center')));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(RadioListTile<Object?>, 'مرکز دو'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-project')));
+    await tester.tap(find.byKey(const ValueKey('task-detail-organization-project')));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(RadioListTile<Object?>, 'پروژه دو'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
-    await tester.pumpAndSettle();
 
     expect(saved.centerId, 'center-2');
     expect(selectedProject, 'project-2');

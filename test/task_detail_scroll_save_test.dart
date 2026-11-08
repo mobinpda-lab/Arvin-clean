@@ -5,7 +5,7 @@ import 'package:arvin/models/task.dart';
 import 'package:arvin/task_detail_page.dart';
 
 void main() {
-  testWidgets('Task Details preserves scroll offset across inline edit entry and successful save', (tester) async {
+  testWidgets('Task Details preserves scroll offset while inline fields autosave', (tester) async {
     Task? persisted;
     final task = Task(
       id: 'scroll-save-contract',
@@ -29,21 +29,20 @@ void main() {
     await tester.pumpAndSettle();
 
     final listFinder = find.byKey(const ValueKey('task-detail-content-list'));
-    final initialList = tester.widget<ListView>(listFinder);
-    final controller = initialList.controller!;
+    final list = tester.widget<ListView>(listFinder);
+    final controller = list.controller!;
     await tester.drag(listFinder, const Offset(0, -420));
     await tester.pumpAndSettle();
     final before = controller.offset;
     expect(before, greaterThan(0));
 
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
+    final title = find.byKey(const ValueKey('task-detail-title'));
+    await tester.ensureVisible(title);
+    await tester.enterText(title, 'عنوان ذخیره‌شده بدون حالت ویرایش');
     await tester.pumpAndSettle();
-    expect(controller.offset, before);
 
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
-    await tester.pumpAndSettle();
-    expect(persisted?.id, task.id);
+    expect(persisted?.title, 'عنوان ذخیره‌شده بدون حالت ویرایش');
     expect(controller.offset, before);
-    expect(find.byKey(const ValueKey('task-detail-inline-edit-cancel')), findsNothing);
+    expect(find.byKey(const ValueKey('task-detail-inline-edit-toggle')), findsNothing);
   });
 }

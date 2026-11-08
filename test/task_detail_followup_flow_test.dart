@@ -52,9 +52,9 @@ void main() {
 
     expect(find.byKey(const ValueKey('task-detail-page')), findsOneWidget);
     expect(find.text('ارسال قرارداد'), findsOneWidget);
-    expect(find.text('نسخه نهایی برای مشتری'), findsOneWidget);
+    expect(tester.widget<TextField>(find.byKey(const ValueKey('task-detail-connected-notes-field'))).controller!.text, 'نسخه نهایی برای مشتری');
     expect(find.byKey(const ValueKey('task-detail-due-date')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-inline-edit-toggle')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-inline-edit-toggle')), findsNothing);
     final addFollowUp = find.byKey(const ValueKey('task-detail-add-followup'));
     await tester.scrollUntilVisible(
       addFollowUp,
@@ -78,7 +78,7 @@ void main() {
       ),
     );
 
-    expect(find.text('توضیحی ثبت نشده است'), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-connected-notes-field')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-inline-edit-toggle')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-status-badge')), findsOneWidget);
     expect(find.text('در انتظار انجام'), findsOneWidget);
@@ -130,16 +130,12 @@ void main() {
     final descriptionEdit = find.byKey(const ValueKey('task-detail-inline-edit-toggle'));
     await tester.ensureVisible(descriptionEdit);
     await tester.pumpAndSettle();
-    await tester.tap(descriptionEdit);
-    await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('task-detail-inline-description')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-detail-connected-notes-field')), findsOneWidget);
 
     await tester.enterText(
-      find.byKey(const ValueKey('task-detail-inline-description')),
+      find.byKey(const ValueKey('task-detail-connected-notes-field')),
       'توضیح به‌روزشده',
     );
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
-    await tester.pumpAndSettle();
 
     final savedTask = persisted!;
     expect(savedTask.description, 'توضیح به‌روزشده');
@@ -154,7 +150,7 @@ void main() {
     expect(savedTask.followUpDate, isNull);
     expect(task.description, 'متن قبلی');
     expect(find.text('توضیح به‌روزشده'), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-inline-description')), findsNothing);
+    expect(find.byKey(const ValueKey('task-detail-connected-notes-field')), findsOneWidget);
     expect(find.text('ثبت یادداشت'), findsNothing);
   });
 
@@ -376,17 +372,13 @@ void main() {
       ),
     );
 
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
-    await tester.pumpAndSettle();
     await tester.enterText(
-      find.byKey(const ValueKey('task-detail-inline-title')),
+      find.byKey(const ValueKey('task-detail-title')),
       'عنوان جدید',
     );
-    await tester.tap(find.byKey(const ValueKey('task-detail-inline-edit-toggle')));
-    await tester.pumpAndSettle();
 
     expect(task.id, 'same-id');
-    expect(find.text('عنوان جدید'), findsOneWidget);
+    expect(tester.widget<TextField>(find.byKey(const ValueKey('task-detail-title'))).controller!.text, 'عنوان جدید');
   });
 
   testWidgets('Task detail explicit Today action sits below due date, persists local day and preserves Task data',
