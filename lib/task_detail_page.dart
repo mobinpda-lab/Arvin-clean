@@ -912,14 +912,19 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   Widget _dueDateCard() {
     final dueDate = _task.dueDate;
     final allDay = _task.allDay;
-    return _linearActionRow(
-        key: const ValueKey('task-detail-due-date-card'),
-        valueKey: const ValueKey('task-detail-due-date'),
-        icon: Icons.calendar_month_outlined,
-        title: 'موعد',
-        value: dueDate == null ? 'تعیین نشده' : (allDay ? _date(dueDate) : _dateTime(dueDate)),
-        onTap: widget.onTaskChanged == null ? null : _pickInlineWorkTime,
-      );
+    return LayoutBuilder(
+      builder: (context, constraints) => SizedBox(
+        width: constraints.maxWidth,
+        child: _linearActionRow(
+          key: const ValueKey('task-detail-due-date-card'),
+          valueKey: const ValueKey('task-detail-due-date'),
+          icon: Icons.calendar_month_outlined,
+          title: 'موعد',
+          value: dueDate == null ? 'تعیین نشده' : (allDay ? _date(dueDate) : _dateTime(dueDate)),
+          onTap: widget.onTaskChanged == null ? null : _pickInlineWorkTime,
+        ),
+      ),
+    );
   }
 
   Widget _assigneeCard() {
@@ -1787,10 +1792,12 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
             child: Row(
+              mainAxisSize: MainAxisSize.max,
               children: [
                 Icon(icon, color: _brand, size: 22),
                 const SizedBox(width: 12),
-                Expanded(
+                Flexible(
+                  fit: FlexFit.loose,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
