@@ -138,6 +138,7 @@ void main() {
     await tester.tap(timeChip);
     await tester.pumpAndSettle();
 
+    expect(find.widgetWithText(CheckboxListTile, 'کارهای برگزیدهٔ امروز'), findsOneWidget);
     final sheetScrollable = find.byType(Scrollable).last;
     await tester.scrollUntilVisible(find.text('بازهٔ دلخواه'), 300, scrollable: sheetScrollable);
     final customRange = find.widgetWithText(CheckboxListTile, 'بازهٔ دلخواه');
