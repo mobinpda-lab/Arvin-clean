@@ -24,6 +24,8 @@ dependencies:
   cryptography: ^2.9.0
   drift: ^2.32.1
   drift_flutter: ^0.3.0
+  # Pin a release with verified native asset digests; 3.5.2 asset downloads fail integrity checks in CI.
+  sqlite3: ^3.6.0
 
 dev_dependencies:
   flutter_test:
