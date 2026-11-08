@@ -73,4 +73,5 @@ PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main دست‌نخورد�
 - Notebook filters now use the shared multi-select sheet for Center, Project, Category and Tag. Selections combine with OR inside each dimension and AND across dimensions; new values can be created from the relevant selector.
 - Notebook notes can be assigned to a canonical Center through the existing Task record, alongside existing Project, Category and Tag links.
 - Report results now identify a selected Center in the results heading. Existing report filters and result/export flow remain in place.
+- Calendar retains the Tafweez SVG exclusively in its header and now exposes the complete verse including the initial «وَ» in its accessibility label.
 - Validation is pending on the exact final branch SHA. No UI acceptance, CI pass or release readiness is claimed until exact-head jobs complete.
