@@ -140,10 +140,11 @@ class _NotebookPageState extends State<NotebookPage> {
       onCreate: (name) async {
         final id = 'center-${DateTime.now().microsecondsSinceEpoch}';
         await CenterStore().create(id: id, name: name);
-        final created = (await CenterStore().load(includeArchived: false))
+        final createdMatches = (await CenterStore().load(includeArchived: false))
             .where((center) => center.id == id)
-            .firstOrNull;
-        if (created == null) return null;
+            .toList(growable: false);
+        if (createdMatches.isEmpty) return null;
+        final created = createdMatches.first;
         if (mounted) setState(() => _centers = [..._centers, created]);
         return ReusableFilterOption<String>(value: id, label: created.name);
       },
@@ -605,38 +606,51 @@ class _NotebookPageState extends State<NotebookPage> {
                     child: Row(
                       children: [
                         _NotebookFilterChip(
-                          key: const ValueKey('notebook-tag-filter'),
-                          label: _activeTag == null ? 'برچسب‌ها: همه' : 'برچسب: $_activeTag',
-                          icon: Icons.sell_outlined,
-                          accent: ArvinColors.time,
-                          soft: ArvinColors.timeSoft,
-                          selected: _activeTag != null,
-                          onTap: _pickNotebookTag,
-                        ),
-                        const SizedBox(width: 8),
-                        _NotebookFilterChip(
-                          key: const ValueKey('notebook-category-filter'),
-                          label: _activeCategory == 'همه' ? 'دسته‌ها: همه' : 'دسته: $_activeCategory',
-                          icon: Icons.layers_outlined,
-                          accent: ArvinColors.reminder,
-                          soft: ArvinColors.reminderSoft,
-                          selected: _activeCategory != 'همه',
-                          onTap: _pickNotebookCategory,
+                          key: const ValueKey('notebook-center-filter'),
+                          label: _activeCenterIds.isEmpty
+                              ? 'مرکز: همه'
+                              : 'مرکز (\${_activeCenterIds.length})',
+                          icon: Icons.apartment_outlined,
+                          accent: ArvinColors.primary,
+                          soft: ArvinColors.primarySoft,
+                          selected: _activeCenterIds.isNotEmpty,
+                          onTap: _pickNotebookCenter,
                         ),
                         const SizedBox(width: 8),
                         _NotebookFilterChip(
                           key: const ValueKey('notebook-project-filter'),
-                          label: _activeProjectId == null
-                              ? 'پروژه‌ها: همه'
-                              : _projects.firstWhere(
-                                  (project) => project.id == _activeProjectId,
-                                  orElse: () => ProjectPlan(id: '', title: 'پروژه'),
-                                ).title,
+                          label: _activeProjectIds.isEmpty
+                              ? 'پروژه: همه'
+                              : 'پروژه (\${_activeProjectIds.length})',
                           icon: Icons.work_outline_rounded,
                           accent: ArvinColors.project,
                           soft: ArvinColors.projectSoft,
-                          selected: _activeProjectId != null,
+                          selected: _activeProjectIds.isNotEmpty,
                           onTap: _pickNotebookProject,
+                        ),
+                        const SizedBox(width: 8),
+                        _NotebookFilterChip(
+                          key: const ValueKey('notebook-category-filter'),
+                          label: _activeCategories.isEmpty
+                              ? 'دسته: همه'
+                              : 'دسته (\${_activeCategories.length})',
+                          icon: Icons.layers_outlined,
+                          accent: ArvinColors.reminder,
+                          soft: ArvinColors.reminderSoft,
+                          selected: _activeCategories.isNotEmpty,
+                          onTap: _pickNotebookCategory,
+                        ),
+                        const SizedBox(width: 8),
+                        _NotebookFilterChip(
+                          key: const ValueKey('notebook-tag-filter'),
+                          label: _activeTags.isEmpty
+                              ? 'برچسب: همه'
+                              : 'برچسب (\${_activeTags.length})',
+                          icon: Icons.sell_outlined,
+                          accent: ArvinColors.time,
+                          soft: ArvinColors.timeSoft,
+                          selected: _activeTags.isNotEmpty,
+                          onTap: _pickNotebookTag,
                         ),
                       ],
                     ),
