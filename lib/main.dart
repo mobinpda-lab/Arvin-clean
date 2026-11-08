@@ -1291,8 +1291,13 @@ class _HomePageState extends State<HomePage> {
                       toTime == null
                   ? null
                   : () {
+              if (focusToday) {
+                Navigator.pop(sheetContext);
+                _selectTodayFocus();
+                return;
+              }
               setState(() {
-                _todayFocusOnly = focusToday;
+                _todayFocusOnly = false;
                 _timeFilters..clear()..addAll(draft);
                 _timeFilter = draft.contains('customRange') ? 'customRange' : 'all';
                 _specificDateFilter = draft.contains('custom') ? customDate : null;
@@ -2308,6 +2313,10 @@ class _HomePageState extends State<HomePage> {
       _timeFilter = 'all';
       _timeFilters.clear();
       _specificDateFilter = null;
+      _fromDateFilter = null;
+      _toDateFilter = null;
+      _fromTimeFilter = null;
+      _toTimeFilter = null;
       selected.clear();
       selectionMode = false;
     });
