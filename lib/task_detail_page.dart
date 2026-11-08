@@ -1804,11 +1804,12 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             final valueWidget = Text(
               value,
               key: valueKey,
-              maxLines: 2,
+              maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(fontFamily: 'Vazirmatn', color: _muted, fontSize: 12),
             );
-            final compact = constraints.maxWidth < 420;
+            final compact = constraints.maxWidth < 480 ||
+                MediaQuery.sizeOf(context).width < 480;
             return ConstrainedBox(
               constraints: const BoxConstraints(minHeight: 56),
               child: Padding(
