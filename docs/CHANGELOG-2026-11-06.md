@@ -62,3 +62,15 @@
 - Device Smoke فیزیکی و تصویر نصب/تعامل روی Samsung SM-A528B/DS تأییدنشده است.
 
 PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main دست‌نخورده؛ بدون Merge یا انتشار؛ فونت Vazirmatn و قرارداد SVG عبارات مقدس حفظ شود. **BLOCKED — RELEASE: NO-GO**.
+
+
+## 2026-11-09 — Home, Notebook, Reports and Task Details recovery
+
+- Home time grouping is delegated from the page to the tested HomeGroupingService; distinct groups cover overdue, completed past, today, tomorrow, future and undated Tasks.
+- Home order remains Eisenhower P1–P4, then oldest createdAt; complete ties preserve original input order.
+- Task Details action rows reserve a fixed trailing-icon width and allow the value column to use the remaining width. Added compact-width coverage at 360, 390 and 412 dp.
+- Removed the global special-case that silently ignored RenderFlex overflow errors; layout faults are no longer hidden by the app entrypoint.
+- Notebook filters now use the shared multi-select sheet for Center, Project, Category and Tag. Selections combine with OR inside each dimension and AND across dimensions; new values can be created from the relevant selector.
+- Notebook notes can be assigned to a canonical Center through the existing Task record, alongside existing Project, Category and Tag links.
+- Report results now identify a selected Center in the results heading. Existing report filters and result/export flow remain in place.
+- Validation is pending on the exact final branch SHA. No UI acceptance, CI pass or release readiness is claimed until exact-head jobs complete.
