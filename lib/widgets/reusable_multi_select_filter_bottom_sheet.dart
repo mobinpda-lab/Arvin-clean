@@ -134,9 +134,7 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     children: [
                       CheckboxListTile(
-                        key: optionKeyPrefix == null
-                            ? null
-                            : ValueKey('$optionKeyPrefix-all'),
+                        key: ValueKey('${optionKeyPrefix ?? 'multi-select-option'}-all'),
                         value: working.isEmpty,
                         activeColor: color,
                         controlAffinity: ListTileControlAffinity.leading,
@@ -145,9 +143,7 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
                       ),
                       for (final option in filtered)
                         CheckboxListTile(
-                          key: optionKeyPrefix == null
-                              ? null
-                              : ValueKey('$optionKeyPrefix-${option.value}'),
+                          key: ValueKey('${optionKeyPrefix ?? 'multi-select-option'}-${option.value}'),
                           value: working.contains(option.value),
                           activeColor: color,
                           controlAffinity: ListTileControlAffinity.leading,
