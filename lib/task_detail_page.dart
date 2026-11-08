@@ -1569,123 +1569,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     );
   }
 
-  Widget _metadataItem({required Key key, required String label, required String value, required Color color, required IconData icon, Widget? editor}) {
-    return SizedBox(
-      key: key,
-      width: 124,
-      child: _card(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(children: [
-              Icon(icon, size: 15, color: color),
-              const SizedBox(width: 5),
-              Expanded(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontFamily: 'Vazirmatn', color: color, fontSize: 11, fontWeight: FontWeight.w700))),
-            ]),
-            const SizedBox(height: 9),
-            if (editor != null)
-              editor
-            else
-              Text(value, maxLines: 2, overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontFamily: 'Vazirmatn', color: Color(0xFF232433), fontSize: 12, fontWeight: FontWeight.w700, height: 1.35)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _statusPriorityCard() {
-    final completed = _isInlineEditing ? _draftCompleted : _task.completed;
-    final priority = _isInlineEditing ? _draftPriority : _task.priority;
-    final waitingForResponse = !completed && !_task.archived && !_task.trashed &&
-        (_task.lastFollowUp?.waitingForResponse == true || _waitingService.isWaiting(_task));
-    final status = _task.trashed
-        ? 'در سطل زباله'
-        : _task.archived
-            ? 'بایگانی‌شده'
-            : completed
-                ? 'انجام‌شده'
-                : waitingForResponse
-                    ? 'در انتظار پاسخ'
-                    : 'در انتظار انجام';
-    final statusColor = completed
-        ? ArvinColors.tag
-        : waitingForResponse
-            ? _waiting
-            : _brand;
-    return Wrap(spacing: 7, runSpacing: 7, children: [
-      PopupMenuButton<String>(
-        key: const ValueKey('task-detail-status-menu'),
-        tooltip: 'تغییر وضعیت کار',
-        enabled: !_task.trashed && !_task.archived,
-        onSelected: (value) {
-          if (value != 'toggle') return;
-          if (_isInlineEditing) {
-            setState(() => _draftCompleted = !_draftCompleted);
-          } else {
-            _complete();
-          }
-        },
-        itemBuilder: (_) => [
-          PopupMenuItem(
-            value: 'toggle',
-            child: Text(completed ? 'بازگشت به انجام‌نشده' : 'علامت‌گذاری به‌عنوان انجام‌شده'),
-          ),
-        ],
-        child: _metadataChip(status, statusColor, icon: Icons.check_circle_outline, key: const ValueKey('task-status-badge')),
-      ),
-      PopupMenuButton<TaskPriority>(
-        key: const ValueKey('task-detail-priority-menu'),
-        tooltip: 'تغییر اولویت',
-        onSelected: (value) {
-          if (_isInlineEditing) {
-            setState(() => _draftPriority = value);
-          } else {
-            _changePriority(value);
-          }
-        },
-        itemBuilder: (_) => TaskPriority.values.map((value) => PopupMenuItem(
-          value: value,
-          child: Text(value.label, style: TextStyle(color: ArvinColors.priorityColor(value))),
-        )).toList(growable: false),
-        child: _metadataChip(priority.label, ArvinColors.priorityColor(priority), icon: Icons.flag_outlined),
-      ),
-    ]);
-  }
-
-  Widget _templateSourceCard() {
-    final templateId = _task.templateTaskId?.trim();
-    if (templateId == null || templateId.isEmpty) {
-      return const SizedBox.shrink();
-    }
-    final snapshot = widget.project?.templateId == templateId
-        ? widget.project?.templateNameSnapshot?.trim()
-        : null;
-    return _card(
-      key: const ValueKey('task_detail_template_source_card'),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.copy_all_outlined, color: _brand),
-          const SizedBox(width: 9),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _sectionTitle('منشأ الگو', Icons.description_outlined),
-                const SizedBox(height: 5),
-                Text(snapshot?.isNotEmpty == true
-                    ? snapshot!
-                    : 'شناسه الگو: $templateId'),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _metadataCard() => _organizationCard();
 
   Widget _remindersCard() {
@@ -2054,7 +1937,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     final history = List<FollowUp>.of(_task.followUps)
       ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
     final now = widget.now ?? DateTime.now();
-    final due = _task.dueDate;
     final dueToday = due != null &&
         due.year == now.year && due.month == now.month && due.day == now.day;
     final priority = _isInlineEditing ? _draftPriority : _task.priority;
@@ -2264,6 +2146,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                               maxLines: null,
                               textDirection: TextDirection.rtl,
                               onSubmitted: _saveDescriptionImmediately,
+                              onEditingComplete: () => _saveDescriptionImmediately(
+                                _descriptionController?.text ?? _task.description,
+                              ),
                               decoration: const InputDecoration(
                                 hintText: 'یادداشت این کار را بنویسید...',
                                 border: OutlineInputBorder(),
