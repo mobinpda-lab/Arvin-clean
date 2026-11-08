@@ -303,4 +303,33 @@ void main() {
     expect(find.text('فقط برگزیدهٔ آینده'), findsNothing);
   });
 
+  testWidgets('time filter calendar Today excludes completed tasks and keeps overdue open work',
+      (tester) async {
+    final now = IranClock.now();
+    final today = DateTime(now.year, now.month, now.day, 10);
+    final yesterday = DateTime(now.year, now.month, now.day)
+        .subtract(const Duration(days: 1))
+        .add(const Duration(hours: 10));
+    final tomorrow = DateTime(now.year, now.month, now.day)
+        .add(const Duration(days: 1))
+        .add(const Duration(hours: 10));
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"time-today-open","title":"کار باز امروز","dueDate":"${today.toIso8601String()}"},{"id":"time-overdue-open","title":"کار باز عقب‌افتاده","dueDate":"${yesterday.toIso8601String()}"},{"id":"time-today-done","title":"کار انجام‌شده امروز","dueDate":"${today.toIso8601String()}","completed":true},{"id":"time-focus-future","title":"فقط تمرکز آینده","dueDate":"${tomorrow.toIso8601String()}","isSelectedForToday":true}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('home-filter-card-time')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'امروز تقویمی'));
+    await tester.tap(find.text('تأیید / اعمال فیلتر'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('کار باز امروز'), findsOneWidget);
+    expect(find.text('کار باز عقب‌افتاده'), findsOneWidget);
+    expect(find.text('کار انجام‌شده امروز'), findsNothing);
+    expect(find.text('فقط تمرکز آینده'), findsNothing);
+  });
+
 }
