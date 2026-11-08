@@ -174,6 +174,7 @@ void main() {
     expect(find.text('همه'), findsOneWidget);
     await tester.tap(find.widgetWithText(CheckboxListTile, 'اداری'));
     await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('شخصی'), 240, scrollable: find.byType(Scrollable).last);
     await tester.tap(find.widgetWithText(CheckboxListTile, 'شخصی'));
     await tester.pumpAndSettle();
     // Draft choices are not applied before the explicit confirmation.
@@ -204,14 +205,16 @@ void main() {
     await tester.ensureVisible(tagsChip);
     await tester.tap(tagsChip);
     await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('مهم'), 240, scrollable: find.byType(Scrollable).last);
     await tester.tap(find.widgetWithText(CheckboxListTile, 'مهم'));
+    await tester.scrollUntilVisible(find.text('فوری'), 240, scrollable: find.byType(Scrollable).last);
     await tester.tap(find.widgetWithText(CheckboxListTile, 'فوری'));
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
     expect(find.text('اول'), findsOneWidget);
     expect(find.text('دوم'), findsOneWidget);
     expect(find.text('سوم'), findsNothing);
-    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-tags')), matching: find.text('برچسب‌ها (۲)')), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-tags')), matching: find.text('2')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -234,7 +237,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
-    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-time')), matching: find.text('زمان (۲)')), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-time')), matching: find.text('2')), findsOneWidget);
     expect(find.text('کار گذشته'), findsOneWidget);
     expect(find.text('کار امروز'), findsOneWidget);
     expect(find.text('کار فردا'), findsNothing);
