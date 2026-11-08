@@ -3352,12 +3352,19 @@ class _HomePageState extends State<HomePage> {
         return false;
       case TaskSwipeAction.focusToday:
         final wasSelected = task.isSelectedForToday;
-        task.isSelectedForToday = !wasSelected;
+        setState(() => task.isSelectedForToday = !wasSelected);
         try {
           await _save();
         } catch (_) {
-          task.isSelectedForToday = wasSelected;
-          rethrow;
+          if (mounted) {
+            setState(() => task.isSelectedForToday = wasSelected);
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(
+                const SnackBar(content: Text('ذخیرهٔ انتخاب امروز انجام نشد؛ دوباره تلاش کنید')),
+              );
+          }
+          return false;
         }
         if (mounted) {
           ScaffoldMessenger.of(context)
