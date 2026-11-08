@@ -1013,138 +1013,59 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   Widget _summaryCard() {
-    return _card(
+    return KeyedSubtree(
       key: const ValueKey('task-detail-summary-card'),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: _isInlineEditing
-                    ? TextField(
-                        key: const ValueKey('task-detail-inline-title'),
-                        controller: _titleController,
-                        textDirection: TextDirection.rtl,
-                        maxLines: 2,
-                        style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900, height: 1.25),
-                        decoration: const InputDecoration(labelText: 'عنوان کار', border: OutlineInputBorder()),
-                      )
-                    : Text(
-                        _task.title,
-                        key: const ValueKey('task-detail-title'),
-                        textAlign: TextAlign.right,
-                        style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900, height: 1.3),
-                      ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          _statusPriorityCard(),
-          const SizedBox(height: 10),
-          if (_isInlineEditing)
-            TextField(
-              key: const ValueKey('task-detail-inline-description'),
-              controller: _descriptionController,
-              minLines: 2,
-              maxLines: null,
+      child: _isInlineEditing
+          ? TextField(
+              key: const ValueKey('task-detail-inline-title'),
+              controller: _titleController,
               textDirection: TextDirection.rtl,
-              decoration: const InputDecoration(labelText: 'توضیحات کامل', border: OutlineInputBorder()),
-            )
-          else
-            KeyedSubtree(
-              key: const ValueKey('task-detail-description-card'),
-              child: Text(
-                _task.description.trim().isEmpty
-                    ? 'توضیحی ثبت نشده است'
-                    : _task.description.trim(),
-                key: const ValueKey('task-detail-description'),
-                style: const TextStyle(fontFamily: 'Vazirmatn', height: 1.6),
+              maxLines: 2,
+              onSubmitted: (_) => _saveInlineEdit(),
+              style: const TextStyle(fontFamily: 'Vazirmatn', color: Colors.white, fontSize: 21, fontWeight: FontWeight.w800),
+              decoration: const InputDecoration(
+                hintText: 'عنوان کار',
+                hintStyle: TextStyle(color: Colors.white70),
+                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white54)),
+                focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white)),
               ),
+            )
+          : Text(
+              _task.title,
+              key: const ValueKey('task-detail-title'),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontFamily: 'Vazirmatn', color: Colors.white, fontSize: 21, fontWeight: FontWeight.w800),
             ),
-        ],
-      ),
     );
   }
 
   Widget _dueDateCard() {
     final dueDate = _isInlineEditing ? _draftDueDate : _task.dueDate;
     final allDay = _isInlineEditing ? _draftAllDay : _task.allDay;
-    return _card(
-      key: const ValueKey('task-detail-due-date-card'),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.calendar_month_outlined, color: _brand),
-              const SizedBox(width: 9),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('زمان کار / موعد', style: TextStyle(fontFamily: 'Vazirmatn', color: _muted, fontSize: 12, fontWeight: FontWeight.w600)),
-                    Text(
-                      dueDate == null
-                          ? 'تعیین نشده'
-                          : (allDay ? _date(dueDate) : _dateTime(dueDate)),
-                      key: const ValueKey('task-detail-due-date'),
-                      style: const TextStyle(fontFamily: 'Vazirmatn', fontWeight: FontWeight.w800),
-                    ),
-                  ],
-                ),
-              ),
-              if (_isInlineEditing) ...[
-                IconButton(
-                  key: const ValueKey('task-detail-inline-work-time'),
-                  tooltip: 'تغییر زمان کار / موعد',
-                  onPressed: _pickInlineWorkTime,
-                  icon: const Icon(Icons.edit_calendar_outlined),
-                ),
-                if (dueDate != null)
-                  IconButton(
-                    key: const ValueKey('task-detail-inline-due-clear'),
-                    tooltip: 'پاک‌کردن موعد',
-                    onPressed: () => setState(() {
-                      _draftDueDate = null;
-                      _draftAllDay = false;
-                    }),
-                    icon: const Icon(Icons.event_busy_outlined),
-                  ),
-              ] else
-                IconButton(
-                  key: const ValueKey('task-detail-move-due-date-to-today'),
-                  tooltip: 'تنظیم موعد برای امروز',
-                  onPressed: _isMovingDueDateToToday ? null : _moveDueDateToToday,
-                  icon: _isMovingDueDateToToday
-                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Icon(Icons.today_outlined),
-                ),
-            ],
-          ),
-
-        ],
-      ),
+    return _linearActionRow(
+      key: const ValueKey('task-detail-work-time-row'),
+      icon: Icons.calendar_month_outlined,
+      title: 'زمان کار / موعد',
+      value: dueDate == null ? 'تعیین نشده' : (allDay ? _date(dueDate) : _dateTime(dueDate)),
+      onTap: widget.onTaskChanged == null
+          ? null
+          : () async {
+              if (!_isInlineEditing) _beginInlineEdit();
+              await _pickInlineWorkTime();
+              if (mounted && _isInlineEditing) await _saveInlineEdit();
+            },
     );
   }
 
   Widget _assigneeCard() {
-    // Task has no canonical assignee relation; related people are not assignees.
-    return _card(
-      key: const ValueKey('task-detail-assignee-card'),
-      child: Row(children: [
-        const Icon(Icons.person_outline, color: _muted),
-        const SizedBox(width: 10),
-        const Expanded(child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('مسئول', style: TextStyle(fontFamily: 'Vazirmatn', color: _muted, fontSize: 12, fontWeight: FontWeight.w700)),
-            SizedBox(height: 4),
-            Text('مسئول مستقلی برای این کار ثبت نشده است', style: TextStyle(fontFamily: 'Vazirmatn', color: Color(0xFF232433), fontWeight: FontWeight.w700)),
-          ],
-        )),
-      ]),
+    final latest = _task.lastFollowUp;
+    return _linearActionRow(
+      key: const ValueKey('task-detail-waiting-person-row'),
+      icon: Icons.person_outline_rounded,
+      title: 'منتظر پیگیری دیگران',
+      value: latest?.waitingForResponse == true ? 'در انتظار پاسخ' : 'ثبت یا مشاهده پیگیری اشخاص',
+      onTap: widget.onAddFollowUp == null ? null : _addFollowUp,
     );
   }
 
@@ -1765,108 +1686,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     );
   }
 
-  Widget _metadataCard() {
-    final selectedProject = _projects.where((item) => item.id == _selectedProjectId);
-    final projectColor = selectedProject.isNotEmpty
-        ? Color(selectedProject.first.colorValue)
-        : widget.project == null
-            ? _muted
-            : Color(widget.project!.colorValue);
-    final items = <Widget>[
-      _metadataItem(key: const ValueKey('task-detail-metadata-time'), label: 'زمان اجرا', value: 'نامشخص', color: _muted, icon: Icons.schedule_outlined),
-      _metadataItem(
-        key: const ValueKey('task-detail-metadata-center'),
-        label: 'مرکز',
-        value: _selectedCenterName,
-        color: ArvinColors.category,
-        icon: Icons.apartment_outlined,
-        editor: _isInlineEditing
-            ? OutlinedButton.icon(
-                key: const ValueKey('task-detail-inline-center'),
-                onPressed: _openInlineCenterSelector,
-                icon: const Icon(Icons.apartment_outlined, size: 18),
-                label: Text(_selectedCenterName),
-              )
-            : null,
-      ),
-      _metadataItem(
-        key: const ValueKey('task-detail-metadata-project'),
-        label: 'پروژه',
-        value: _selectedProjectTitle,
-        color: projectColor,
-        icon: Icons.folder_special_outlined,
-        editor: _isInlineEditing
-            ? OutlinedButton.icon(
-                key: const ValueKey('task-detail-inline-project'),
-                onPressed: _openInlineProjectSelector,
-                icon: const Icon(Icons.folder_outlined, size: 18),
-                label: Text(_selectedProjectTitle),
-              )
-            : null,
-      ),
-      _metadataItem(
-        key: const ValueKey('task-detail-metadata-category'),
-        label: 'دسته',
-        value: _task.category?.trim().isNotEmpty == true ? _task.category!.trim() : 'بدون دسته',
-        color: ArvinColors.category,
-        icon: Icons.folder_outlined,
-        editor: _isInlineEditing
-            ? OutlinedButton.icon(
-                key: const ValueKey('task-detail-inline-category'),
-                onPressed: _openInlineCategorySelector,
-                icon: const Icon(Icons.layers_outlined, size: 18),
-                label: Text(_categoryController?.text.trim().isNotEmpty == true
-                    ? _categoryController!.text.trim()
-                    : 'انتخاب دسته'),
-              )
-            : null,
-      ),
-      _metadataItem(
-        key: const ValueKey('task-detail-metadata-tags'),
-        label: 'برچسب‌ها',
-        value: _task.tags.isNotEmpty ? _task.tags.join('، ') : 'بدون برچسب',
-        color: ArvinColors.tag,
-        icon: Icons.sell_outlined,
-        editor: _isInlineEditing
-            ? OutlinedButton.icon(
-                key: const ValueKey('task-detail-inline-tags'),
-                onPressed: _openInlineTagSelector,
-                icon: const Icon(Icons.sell_outlined, size: 18),
-                label: Text(_tagsController?.text.trim().isNotEmpty == true
-                    ? _tagsController!.text.trim()
-                    : 'انتخاب برچسب‌ها'),
-              )
-            : null,
-      ),
-    ];
-    return Column(
-      key: const ValueKey('task-detail-metadata'),
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        SingleChildScrollView(
-          key: const ValueKey('task-detail-metadata-chips'),
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              for (var index = 0; index < items.length; index++)
-                Padding(
-                  padding: EdgeInsetsDirectional.only(end: index == items.length - 1 ? 0 : 8),
-                  child: items[index],
-                ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 7),
-        Text('تاریخ ایجاد: ${_task.createdAt == null ? 'نامشخص' : _dateTime(_task.createdAt!)}',
-          key: const ValueKey('task-detail-created-at'),
-          style: const TextStyle(fontFamily: 'Vazirmatn', fontSize: 11, color: _muted)),
-        const SizedBox(height: 3),
-        Text('آخرین به‌روزرسانی: ${_task.updatedAt == null ? 'نامشخص' : _dateTime(_task.updatedAt!)}',
-          key: const ValueKey('task-detail-updated-at'),
-          style: const TextStyle(fontFamily: 'Vazirmatn', fontSize: 11, color: _muted)),
-      ],
-    );
-  }
+  Widget _metadataCard() => _organizationCard();
 
   Widget _remindersCard() {
     final reminders = _isInlineEditing ? _draftReminders : _task.taskReminders;
@@ -2281,6 +2101,13 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                             icon: Icon(_isInlineEditing ? Icons.save_outlined : Icons.edit_outlined),
                           ),
                           IconButton(
+                            key: const ValueKey('task-detail-convert-template'),
+                            tooltip: 'تبدیل به الگو',
+                            color: Colors.white,
+                            onPressed: _isInlineEditing || _isSavingTaskTemplate ? null : _convertToTemplate,
+                            icon: const Icon(Icons.bookmark_add_outlined),
+                          ),
+                          IconButton(
                             key: const ValueKey('task-detail-clone'),
                             tooltip: 'تکثیر کار',
                             color: Colors.white,
@@ -2308,41 +2135,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Expanded(
-                            child: _isInlineEditing
-                                ? TextField(
-                                    key: const ValueKey('task-detail-inline-title'),
-                                    controller: _titleController,
-                                    autofocus: false,
-                                    textDirection: TextDirection.rtl,
-                                    maxLines: 2,
-                                    onSubmitted: (_) => _saveInlineEdit(),
-                                    style: const TextStyle(
-                                      fontFamily: 'Vazirmatn',
-                                      color: Colors.white,
-                                      fontSize: 21,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                    decoration: const InputDecoration(
-                                      hintText: 'عنوان کار',
-                                      hintStyle: TextStyle(color: Colors.white70),
-                                      enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white54)),
-                                      focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white)),
-                                    ),
-                                  )
-                                : Text(
-                                    _task.title,
-                                    key: const ValueKey('task-detail-title'),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      fontFamily: 'Vazirmatn',
-                                      color: Colors.white,
-                                      fontSize: 21,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                          ),
+                          Expanded(child: _summaryCard()),
                           const SizedBox(width: 8),
                           PopupMenuButton<TaskPriority>(
                             key: const ValueKey('task-detail-priority-menu'),
@@ -2432,19 +2225,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                   },
                           ),
                           const Divider(height: 1),
-                          _linearActionRow(
-                            key: const ValueKey('task-detail-work-time-row'),
-                            icon: Icons.calendar_month_outlined,
-                            title: 'زمان کار / موعد',
-                            value: due == null ? 'تعیین نشده' : (_task.allDay ? _date(due) : _dateTime(due)),
-                            onTap: widget.onTaskChanged == null
-                                ? null
-                                : () async {
-                                    if (!_isInlineEditing) _beginInlineEdit();
-                                    await _pickInlineWorkTime();
-                                    if (mounted && _isInlineEditing) await _saveInlineEdit();
-                                  },
-                          ),
+                          _dueDateCard(),
                           const Divider(height: 1),
                           _linearActionRow(
                             key: const ValueKey('task-detail-repeat-row'),
@@ -2461,18 +2242,12 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                   },
                           ),
                           const Divider(height: 1),
-                          _linearActionRow(
-                            key: const ValueKey('task-detail-waiting-person-row'),
-                            icon: Icons.person_outline_rounded,
-                            title: 'منتظر پیگیری دیگران',
-                            value: latest?.waitingForResponse == true ? 'در انتظار پاسخ' : 'ثبت یا مشاهده پیگیری اشخاص',
-                            onTap: widget.onAddFollowUp == null ? null : _addFollowUp,
-                          ),
+                          _assigneeCard(),
                         ],
                       ),
                     ),
                     const SizedBox(height: 10),
-                    _organizationCard(),
+                    _metadataCard(),
                     const SizedBox(height: 10),
                     _card(
                       key: const ValueKey('task-detail-connected-notes'),
