@@ -1048,7 +1048,7 @@ class _HomePageState extends State<HomePage> {
                   soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
                   selectedCount: selectedCount: _timeFilters.length + (_timeFilter == 'customRange' ? 1 : 0) + (_todayFocusOnly ? 1 : 0),,
                   accent: ArvinColors.time,
-                  active: _timeFilters.isNotEmpty || _timeFilter == 'customRange',
+                  active: _timeFilters.isNotEmpty || _timeFilter == 'customRange' || _todayFocusOnly,
                   onPressed: _showTimeFilterSheet,
                 ),
               ),
