@@ -6,8 +6,8 @@ import 'models/task.dart';
 /// Canonical semantic palette used across Arvin. Owner-approved brand, surface,
 /// and text tokens stay aligned with the Home visual style lock.
 abstract final class ArvinColors {
-  static const primary = ArvinTheme.primaryTurquoise;
-  static const primaryDark = ArvinTheme.headerTurquoise;
+  static const primary = ArvinTheme.primaryBlue;
+  static const primaryDark = ArvinTheme.headerBlue;
   static const primarySoft = ArvinTheme.primarySoft;
 
   static const background = ArvinTheme.backgroundLight;
@@ -30,32 +30,32 @@ abstract final class ArvinColors {
 
   // Brand and grouping accents use the approved blue system.
   static const groupingTomorrow = Color(0xFF3A86EF);
-  static const groupingFuture = Color(0xFF078B91);
+  static const groupingFuture = Color(0xFF3A86EF);
   static const groupingTodaySoft = Color(0xFFEAF2FF);
-  static const groupingTomorrowSoft = Color(0xFFDDF7F5);
-  static const groupingFutureSoft = Color(0xFFDDF7F5);
+  static const groupingTomorrowSoft = Color(0xFFEAF2FF);
+  static const groupingFutureSoft = Color(0xFFEAF2FF);
   static const groupingNoDateSoft = Color(0xFFF8F8FB);
   static const taskStatusGreen = Color(0xFF409B51);
   static const taskStatusAmber = Color(0xFFDB8B23);
 
-  static const time = ArvinTheme.primaryTurquoise;
-  static const timeDark = ArvinTheme.headerTurquoise;
+  static const time = ArvinTheme.primaryBlue;
+  static const timeDark = ArvinTheme.headerBlue;
   static const timeSoft = ArvinTheme.primarySoft;
 
-  static const reminder = ArvinTheme.primaryTurquoise;
-  static const reminderDark = ArvinTheme.headerTurquoise;
+  static const reminder = ArvinTheme.primaryBlue;
+  static const reminderDark = ArvinTheme.headerBlue;
   static const reminderSoft = ArvinTheme.primarySoft;
 
-  static const project = ArvinTheme.primaryTurquoise;
-  static const projectDark = ArvinTheme.headerTurquoise;
+  static const project = ArvinTheme.primaryBlue;
+  static const projectDark = ArvinTheme.headerBlue;
   static const projectSoft = ArvinTheme.primarySoft;
 
-  static const category = ArvinTheme.primaryTurquoise;
-  static const categoryDark = ArvinTheme.headerTurquoise;
+  static const category = ArvinTheme.primaryBlue;
+  static const categoryDark = ArvinTheme.headerBlue;
   static const categorySoft = ArvinTheme.primarySoft;
 
-  static const tag = ArvinTheme.primaryTurquoise;
-  static const tagDark = ArvinTheme.headerTurquoise;
+  static const tag = ArvinTheme.primaryBlue;
+  static const tagDark = ArvinTheme.headerBlue;
   static const tagSoft = ArvinTheme.primarySoft;
 
   static const error = Color(0xFFC62828);
