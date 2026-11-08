@@ -108,4 +108,20 @@ void main() {
       isEmpty,
     );
   });
+
+  test('all projection keeps one row per historical record in chronological order', () {
+    final task = Task(
+      id: 'many-follow-ups',
+      title: 'کار با چند پیگیری',
+      followUps: [
+        FollowUp(id: 'later', completedAt: DateTime(2026, 10, 12)),
+        FollowUp(id: 'earlier', completedAt: DateTime(2026, 10, 10)),
+      ],
+    );
+    final rows = const CompletedFollowUpReportProjection().all([task]);
+    expect(rows.map((row) => row.followUp.id), ['earlier', 'later']);
+    expect(rows.map((row) => row.taskId).toSet(), {'many-follow-ups'});
+    expect(rows, hasLength(2));
+  });
+
 }
