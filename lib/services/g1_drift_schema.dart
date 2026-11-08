@@ -16,6 +16,7 @@ class G1DriftSchema implements QueryExecutorUser {
   updated_at TEXT NULL, due_date TEXT NULL, category TEXT NULL,
   notebook_kind TEXT NULL, priority TEXT NOT NULL, archived INTEGER NOT NULL,
   trashed INTEGER NOT NULL, completed INTEGER NOT NULL, completed_at TEXT NULL,
+  is_favorite INTEGER NOT NULL DEFAULT 0,
   recurrence_json TEXT NULL, legacy_payload_json TEXT NULL)''',
     '''CREATE TABLE IF NOT EXISTS task_reminders (
   id TEXT NOT NULL PRIMARY KEY, task_id TEXT NOT NULL REFERENCES tasks(id),
@@ -165,6 +166,9 @@ class G1DriftSchema implements QueryExecutorUser {
       }
       if (!taskColumns.any((row) => row['name'] == 'completed_at')) {
         await executor.runCustom('ALTER TABLE tasks ADD COLUMN completed_at TEXT NULL');
+      }
+      if (!taskColumns.any((row) => row['name'] == 'is_favorite')) {
+        await executor.runCustom('ALTER TABLE tasks ADD COLUMN is_favorite INTEGER NOT NULL DEFAULT 0');
       }
       final legacyFollowUpTable = await _hasTable(executor, 'follow_ups');
       if (legacyFollowUpTable) {
@@ -480,6 +484,7 @@ class G1DriftSchema implements QueryExecutorUser {
       source('trashed', '0'),
       source('completed', '0'),
       source('completed_at', 'NULL'),
+      source('is_favorite', '0'),
       source('recurrence_json', 'NULL'),
       source('legacy_payload_json', 'NULL'),
     ];
@@ -501,6 +506,7 @@ class G1DriftSchema implements QueryExecutorUser {
         trashed INTEGER NOT NULL,
         completed INTEGER NOT NULL,
         completed_at TEXT NULL,
+        is_favorite INTEGER NOT NULL DEFAULT 0,
         recurrence_json TEXT NULL,
         legacy_payload_json TEXT NULL
       )
@@ -509,7 +515,7 @@ class G1DriftSchema implements QueryExecutorUser {
       INSERT INTO tasks_canonical_v15 (
         id, storage_ordinal, title, description, created_at, updated_at, due_date,
         category, notebook_kind, priority, archived, trashed, completed,
-        completed_at, recurrence_json, legacy_payload_json
+        completed_at, is_favorite, recurrence_json, legacy_payload_json
       )
       SELECT ${projection.join(', ')} FROM tasks
     ''');
