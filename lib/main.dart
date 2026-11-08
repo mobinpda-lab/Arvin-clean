@@ -132,26 +132,14 @@ void _captureStartupFailure(Object error, StackTrace stackTrace) {
   });
 }
 
-bool _isLayoutOverflow(Object error) =>
-    error is FlutterError &&
-    error.toString().toLowerCase().contains('overflowed by');
-
 void main() {
   runZonedGuarded<void>(() {
     WidgetsFlutterBinding.ensureInitialized();
     FlutterError.onError = (details) {
       FlutterError.presentError(details);
-      if (_isLayoutOverflow(details.exception)) {
-        debugPrint('ARVIN_LAYOUT_OVERFLOW_IGNORED: ${details.exceptionAsString()}');
-        return;
-      }
       _captureStartupFailure(details.exception, details.stack ?? StackTrace.current);
     };
     ui.PlatformDispatcher.instance.onError = (error, stackTrace) {
-      if (_isLayoutOverflow(error)) {
-        debugPrint('ARVIN_LAYOUT_OVERFLOW_IGNORED: $error');
-        return true;
-      }
       _captureStartupFailure(error, stackTrace);
       return true;
     };
