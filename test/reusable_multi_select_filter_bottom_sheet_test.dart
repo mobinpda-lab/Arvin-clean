@@ -90,4 +90,38 @@ void main() {
     expect(result!.cleared, isTrue);
     expect(result!.value, isNull);
   });
+
+  testWidgets('multi-select checkbox rows and inline creation keep 48dp targets', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: Builder(
+          builder: (context) => FilledButton(
+            key: const ValueKey('open-filter-touch-targets'),
+            onPressed: () => ReusableMultiSelectFilterBottomSheet.showMultiSelect<String>(
+              context,
+              title: 'انتخاب برچسب‌ها',
+              options: const [
+                ReusableFilterOption(value: 'one', label: 'مورد یک'),
+              ],
+              selectedValues: const {},
+              onCreate: (name) async =>
+                  ReusableFilterOption(value: name, label: name),
+            ),
+            child: const Text('بازکردن'),
+          ),
+        ),
+      ),
+    ));
+    await tester.tap(find.byKey(const ValueKey('open-filter-touch-targets')));
+    await tester.pumpAndSettle();
+
+    final checkboxRows = find.byType(CheckboxListTile);
+    expect(checkboxRows, findsNWidgets(2));
+    for (var index = 0; index < tester.widgetList(checkboxRows).length; index++) {
+      expect(tester.getSize(checkboxRows.at(index)).height, greaterThanOrEqualTo(48));
+    }
+    final createButton = find.widgetWithText(FilledButton, '+ ایجاد مورد جدید');
+    expect(tester.getSize(createButton).height, greaterThanOrEqualTo(48));
+    expect(find.byKey(const ValueKey('multi-select-selected-count')), findsOneWidget);
+  });
 }
