@@ -241,6 +241,11 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
     for (final person in _people) person.id: person,
   };
 
+  String _personName(String id) {
+    final name = _peopleById[id]?.displayName.trim();
+    return name == null || name.isEmpty ? 'شخص حذف‌شده' : name;
+  }
+
   Future<void> _openFilters() async {
     final dimension = await showModalBottomSheet<String>(
       context: context,
@@ -499,7 +504,7 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
                              ),
                             if (row.followUp.personIds.isNotEmpty) ...[
                               const SizedBox(height: 6),
-                              Text('اشخاص مرتبط: ${row.followUp.personIds.map((id) => _peopleById[id]?.displayName ?? 'شخص حذف‌شده').join('، ')}'),
+                              Text('اشخاص مرتبط: ${row.followUp.personIds.map(_personName).join('، ')}'),
                             ],
                             if (row.note.trim().isNotEmpty) ...[
                               const SizedBox(height: 6),
