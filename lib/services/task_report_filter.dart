@@ -285,7 +285,12 @@ class TaskReportFilter {
         return false;
       }
       if (timePreset == ReportTimePreset.past && task.completed) return false;
-      if (!_matchesTime(task.dueDate, now, allDay: task.allDay)) return false;
+      final matchesTime = hasFollowUp == true
+          ? task.followUps.any(
+              (followUp) => _matchesTime(followUp.completedAt, now),
+            )
+          : _matchesTime(task.dueDate, now, allDay: task.allDay);
+      if (!matchesTime) return false;
       return true;
     }).toList(growable: false);
     if (timePreset == ReportTimePreset.past) {
@@ -365,6 +370,37 @@ class TaskReportFilter {
       }
     }
     return true;
+  }
+
+  /// Matches one historical Follow-up row using the same Task dimensions
+  /// and the record timestamp. Task-level result lists remain unique by Task.
+  bool matchesFollowUpRecord(
+    Task task,
+    FollowUpRecord followUp, {
+    required DateTime now,
+    Iterable<ProjectPlan> projects = const [],
+  }) {
+    if (hasFollowUp == false) return false;
+    final withoutTime = copyWith(
+      timePreset: ReportTimePreset.all,
+      clearFromDate: true,
+      clearToDate: true,
+      clearFromTime: true,
+      clearToTime: true,
+      hasFollowUp: true,
+    );
+    if (withoutTime.apply([task], now: now, projects: projects).isEmpty) {
+      return false;
+    }
+    if (personIds.isNotEmpty &&
+        !followUp.personIds.any(personIds.contains)) {
+      return false;
+    }
+    if (waitingForResponse != null) {
+      final isWaiting = followUp.waitingForResponse && !followUp.completed;
+      if (isWaiting != waitingForResponse) return false;
+    }
+    return _matchesTime(followUp.completedAt, now);
   }
 
   bool matchesExternalCalendarDate(DateTime value, {required DateTime now, bool allDay = false}) =>
