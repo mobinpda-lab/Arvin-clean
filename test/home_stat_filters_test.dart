@@ -74,7 +74,7 @@ void main() {
     expect(find.byKey(const ValueKey('home-search-button')), findsOneWidget);
     final generalFilterCenter = tester.getCenter(find.byKey(const ValueKey('home-general-filter-button')));
     final menuCenter = tester.getCenter(find.byKey(const ValueKey('home-drawer-button')));
-    expect(generalFilterCenter.dx, lessThan(menuCenter.dx));
+    expect(menuCenter.dx, lessThan(generalFilterCenter.dx));
   });
 
   testWidgets('Home keeps core controls reachable on a short Android viewport',
