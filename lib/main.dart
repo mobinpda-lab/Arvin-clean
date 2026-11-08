@@ -28,7 +28,6 @@ import 'models/person_reference.dart';
 import 'models/task.dart';
 import 'home/grouping/home_group.dart';
 import 'home/home_filter_ui.dart';
-import 'services/iran_clock.dart';
 import 'notebook_page.dart';
 import 'quick_capture_dialog.dart';
 import 'report_center_page.dart';
@@ -768,7 +767,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   bool _overdue(Task task) {
-    if (!TaskDueStatus.isOverdue(task, now: IranClock.now())) return false;
+    if (!TaskDueStatus.isOverdue(task, now: DateTime.now())) return false;
     return _dismissedOverdueWarnings[task.id] != task.dueDate;
   }
 
@@ -809,7 +808,7 @@ class _HomePageState extends State<HomePage> {
     if (due == null) return _timeFilters.contains('undated');
     final local = due.toLocal();
     final day = DateTime(local.year, local.month, local.day);
-    final now = IranClock.now();
+    final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     bool matchesRange() {
       if (_timeFilter != 'customRange' || !_timeFilters.contains('customRange')) return false;
@@ -914,7 +913,7 @@ class _HomePageState extends State<HomePage> {
         ),
       ];
     }
-    final now = IranClock.now();
+    final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final tomorrow = today.add(const Duration(days: 1));
     DateTime dayOf(DateTime value) => DateTime(value.year, value.month, value.day);
@@ -1501,7 +1500,7 @@ class _HomePageState extends State<HomePage> {
   };
 
   String? _groupJalaliDate(String id) {
-    final now = IranClock.now();
+    final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final date = switch (id) {
       'today' => today,
