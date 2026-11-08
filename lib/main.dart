@@ -1442,6 +1442,7 @@ class _HomePageState extends State<HomePage> {
       case 'tomorrow':
       case 'future': return Icons.calendar_today_rounded;
       case 'no_date': return Icons.schedule_rounded;
+      case 'today_focus': return Icons.push_pin_rounded;
       default: return Icons.schedule_rounded;
     }
   }
