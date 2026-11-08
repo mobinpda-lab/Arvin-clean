@@ -230,7 +230,7 @@ void main() {
     await tester.tap(timeChip);
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(CheckboxListTile, 'گذشته'));
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'امروز'));
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'امروز تقویمی'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
@@ -294,7 +294,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('home-general-filter-button')));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(ListTile, 'امروز'));
+    await tester.tap(find.widgetWithText(ListTile, 'امروز تقویمی'));
     await tester.pumpAndSettle();
 
     expect(find.text('موعد امروز'), findsOneWidget);
