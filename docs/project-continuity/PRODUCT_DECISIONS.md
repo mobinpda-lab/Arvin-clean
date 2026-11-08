@@ -289,3 +289,42 @@ The governance vocabulary remains: PROPOSED, APPROVED, IN_PROGRESS, IMPLEMENTED,
 | Home visual/system baseline in the 2026-11-08 cumulative directive | APPROVED | Vazirmatn, two SVG sacred phrases, #3A86EF and nine-color palette, three calendar layers, Quick Capture/date-time/All-Day and Person consistency; detailed acceptance is in the linked contract. |
 
 **Implementation status:** APPROVED does not mean IMPLEMENTED or VERIFIED. At the audited baseline SHA `2eb76c3e0d20e0330bda7793a10944f37feb02c5`, no Focus model field/action was found in the focused source inspection. Exact-SHA tests, staging artifact and physical SM-A528B/DS acceptance are still required. PR #3052 remains OPEN / DRAFT / UNMERGED; release remains BLOCKED — RELEASE: NO-GO.
+
+## Final owner-approved Home, funnel, Task-card, Person, and Follow-up decisions — 2026-11-08
+
+**Status:** APPROVED PRODUCT CONTRACT. Implementation and acceptance remain separate and must be evidenced on the exact candidate SHA.
+
+| Decision | Status | Binding product rule |
+|---|---|---|
+| General Home funnel | APPROVED | Keep the global funnel icon separate at the physical upper-left. Its menu contains exactly 13 items in this order: امروز؛ کارهای برگزیده امروز؛ فاقد زمان؛ بایگانی؛ سطل زباله؛ پیگیری‌دار؛ بدون پیگیری؛ انجام‌شده؛ انجام‌نشده؛ فوری-مهم؛ غیرفوری-مهم؛ فوری-غیرمهم؛ غیرفوری-غیرمهم. |
+| Five quick filters | APPROVED | Preserve one RTL row: زمان، مرکز، پروژه، دسته، برچسب. No «همه» chip; no horizontal scrolling; minimum 48dp. Keep sort separate. |
+| Follow-up-bearing Task | APPROVED | «پیگیری‌دار» means at least one persisted historical Follow-up record linked to the Task. «بدون پیگیری» is the inverse. Task due date, TaskReminder, legacy flags, future Next Follow-up, and an enabled toggle do not count as a Follow-up record. |
+| Filter logic | APPROVED | OR within one selected dimension; AND across dimensions. Inline-created values are persisted and immediately selected. Active-count badges belong to filter controls, not Task cards. |
+| Follow-up date filters | APPROVED | Home and Reports expose امروز، دیروز, and محدودهٔ تاریخی دلخواه. Filter by the Follow-up record's canonical historical timestamp (FollowUp.dateTime); never substitute Task due date or Reminder date. |
+| Home Task-card badge removal | APPROVED | Remove decorative status/follow-up badges and redundant metadata from Home cards. Retain title, category, compact Eisenhower priority dot, centered bold task date, and conditional current-day Focus marker. Do not restore textual Center/Project/Tag previews. |
+| Task Details summary badges | APPROVED | Remove the redundant status/follow-up badge from the top summary area. Keep canonical status and priority in the main Task identity section; this is removal of duplication, not removal of Task state. |
+| Unified Person Entity | APPROVED | One canonical Person directory with stable IDs. Follow-up links store canonical Person IDs (FollowUp.personIds); selecting/creating a Person from «منتظر پیگیری دیگران» links that ID. Reports Person filtering covers linked Tasks and Follow-up records. A related Person is not automatically an assignee; require a real canonical assignment relation. |
+| Follow-up Hero card | APPROVED | Task Details prominently shows the latest historical Follow-up: action/title, note/result, actual record timestamp, applicable «در انتظار پاسخ» state, and elapsed time calculated from FollowUp.dateTime. Empty state: «هنوز پیگیری ثبت نشده است». Keep the newest-first historical timeline. No future scheduling inside Follow-up. |
+| Protected Home visual detail | APPROVED | Preserve the separate upper-left funnel icon and the line/detail at the upper-right corner of the approved visual reference. Do not remove or redesign either. |
+| Implementation conformance | REQUIRED | All screens, filter predicates, data relations, and reports must match the approved contracts exactly. No parallel models/stores and no screen-specific semantic divergence. No test deletion, skipping, weakening, bypass, or artificial permissiveness. |
+
+### Canonical boundaries and precedence
+
+- The 13-item funnel is distinct from the five quick-filter row. The funnel does not replace the quick filters; sort is not a sixth filter.
+- Follow-up records are historical only. Future reminders belong to independent TaskReminder records. Follow-up history, Task due date, recurrence, and Reminder schedules remain independent.
+- Person identity is canonical and shared across Task, Follow-up, and Reports. Do not infer a Task assignee from a general related-person link.
+- The Follow-up Hero card is a projection of the latest persisted Follow-up record, not a separate data store or a future-action scheduler.
+- Where older Home specifications show a different filter list, card badges, or metadata previews, this 2026-11-08 owner-approved contract supersedes those older descriptions for the Home redesign. Historical text remains for audit context, not as the active implementation target.
+
+### Documentation-only change and GitHub governance
+
+This registration changes documentation only. No application source, Task/Person/Follow-up model, database schema, migration, test file, workflow, APK, or release configuration is authorized or changed by this record.
+
+- Repository: mobinpda-lab/Arvin-clean
+- Authorized branch only: fix/recovery-calendar-device-smoke-2026-10-31
+- PR #3052 must remain **OPEN / DRAFT / UNMERGED** and **BLOCKED**.
+- main must remain untouched. No merge, Ready-for-Review transition, publication, or release.
+- No tests may be deleted, skipped, weakened, bypassed, or relaxed to simulate acceptance.
+- This approval is a product specification, not an implementation or test PASS.
+- Release remains **BLOCKED — RELEASE: NO-GO**.
+
