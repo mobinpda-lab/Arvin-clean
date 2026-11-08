@@ -1496,42 +1496,47 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             child: Text('یادآوری ثبت نشده است', style: TextStyle(color: _muted)),
           ),
         for (final reminder in reminders)
-          Row(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Flexible(
-                fit: FlexFit.tight,
-                child: SwitchListTile(
-                  key: ValueKey('task-detail-reminder-${reminder.id}'),
-                  contentPadding: EdgeInsets.zero,
-                  value: reminder.isEnabled,
-                  onChanged: widget.onTaskChanged == null
-                      ? null
-                      : (value) => _toggleDraftReminder(reminder, value),
-                  title: Text(reminder.title),
-                  subtitle: Text(reminder.isAllDay ? _date(reminder.date) : _dateTime(reminder.date)),
-                  secondary: Icon(Icons.notifications_outlined, color: reminder.isEnabled ? ArvinColors.reminder : _muted),
-                ),
+              SwitchListTile(
+                key: ValueKey('task-detail-reminder-${reminder.id}'),
+                contentPadding: EdgeInsets.zero,
+                value: reminder.isEnabled,
+                onChanged: widget.onTaskChanged == null
+                    ? null
+                    : (value) => _toggleDraftReminder(reminder, value),
+                title: Text(reminder.title),
+                subtitle: Text(reminder.isAllDay ? _date(reminder.date) : _dateTime(reminder.date)),
+                secondary: Icon(Icons.notifications_outlined, color: reminder.isEnabled ? ArvinColors.reminder : _muted),
               ),
-              if (widget.onTaskChanged != null) ...[
-                IconButton(
-                  key: ValueKey('task-detail-reminder-edit-title-${reminder.id}'),
-                  tooltip: 'ویرایش عنوان یادآور',
-                  onPressed: () => _editDraftReminderTitle(reminder),
-                  icon: const Icon(Icons.edit_outlined),
+              if (widget.onTaskChanged != null)
+                Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: Wrap(
+                    spacing: 4,
+                    children: [
+                      IconButton(
+                        key: ValueKey('task-detail-reminder-edit-title-${reminder.id}'),
+                        tooltip: 'ویرایش عنوان یادآور',
+                        onPressed: () => _editDraftReminderTitle(reminder),
+                        icon: const Icon(Icons.edit_outlined),
+                      ),
+                      IconButton(
+                        key: ValueKey('task-detail-reminder-edit-schedule-${reminder.id}'),
+                        tooltip: 'تغییر زمان یادآور',
+                        onPressed: () => _editDraftReminderSchedule(reminder),
+                        icon: const Icon(Icons.calendar_month_outlined),
+                      ),
+                      IconButton(
+                        key: ValueKey('task-detail-reminder-remove-${reminder.id}'),
+                        tooltip: 'حذف یادآور',
+                        onPressed: () => _removeDraftReminder(reminder),
+                        icon: const Icon(Icons.delete_outline),
+                      ),
+                    ],
+                  ),
                 ),
-                IconButton(
-                  key: ValueKey('task-detail-reminder-edit-schedule-${reminder.id}'),
-                  tooltip: 'تغییر زمان یادآور',
-                  onPressed: () => _editDraftReminderSchedule(reminder),
-                  icon: const Icon(Icons.calendar_month_outlined),
-                ),
-                IconButton(
-                  key: ValueKey('task-detail-reminder-remove-${reminder.id}'),
-                  tooltip: 'حذف یادآور',
-                  onPressed: () => _removeDraftReminder(reminder),
-                  icon: const Icon(Icons.delete_outline),
-                ),
-              ],
             ],
           ),
       ]),
@@ -1803,7 +1808,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(fontFamily: 'Vazirmatn', color: _muted, fontSize: 12),
             );
-            final compact = constraints.maxWidth < 360;
+            final compact = constraints.maxWidth < 420;
             return ConstrainedBox(
               constraints: const BoxConstraints(minHeight: 56),
               child: Padding(
