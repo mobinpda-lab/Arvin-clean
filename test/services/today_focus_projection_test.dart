@@ -1,5 +1,7 @@
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/today_focus_projection.dart';
+import 'package:arvin/services/task_store.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -74,6 +76,27 @@ void main() {
     expect(migrated.focusDate, isNotNull);
     expect(migrated.toJson().containsKey('isSelectedForToday'), isFalse);
     expect(migrated.toJson()['focusDate'], isA<String>());
+  });
+
+  test('TaskStore persists legacy focus as a canonical date-only value', () async {
+    await TaskStore.resetTestDatabase();
+    addTearDown(() async => TaskStore.resetTestDatabase());
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"legacy-store-focus","title":"انتخاب قدیمی","isSelectedForToday":true,"dueDate":"2030-04-12T10:00:00.000","isFavorite":true}]',
+    });
+
+    final store = TaskStore();
+    final firstLoad = (await store.load()).single;
+    final now = DateTime.now();
+    expect(firstLoad.focusDate, DateTime(now.year, now.month, now.day));
+
+    final reloaded = (await store.load()).single;
+    expect(reloaded.isSelectedForToday, isTrue);
+    expect(reloaded.focusDate, firstLoad.focusDate);
+    expect(reloaded.dueDate, firstLoad.dueDate);
+    expect(reloaded.isFavorite, isTrue);
+    expect(reloaded.toJson().containsKey('isSelectedForToday'), isFalse);
   });
 
 }
