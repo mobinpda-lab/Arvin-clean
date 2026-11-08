@@ -3882,7 +3882,7 @@ class _HomePageState extends State<HomePage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
           Padding(
-            padding: EdgeInsets.fromLTRB(16, compactHome ? 4 : 8, 16, 5),
+            padding: EdgeInsets.fromLTRB(12, compactHome ? 4 : 8, 12, 5),
             child: Row(children: [
               IconButton(
                 key: const ValueKey('home-general-filter-button'),
