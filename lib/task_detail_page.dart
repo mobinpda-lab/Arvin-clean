@@ -1043,29 +1043,38 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   Widget _dueDateCard() {
     final dueDate = _isInlineEditing ? _draftDueDate : _task.dueDate;
     final allDay = _isInlineEditing ? _draftAllDay : _task.allDay;
-    return _linearActionRow(
-      key: const ValueKey('task-detail-work-time-row'),
-      icon: Icons.calendar_month_outlined,
-      title: 'زمان کار / موعد',
-      value: dueDate == null ? 'تعیین نشده' : (allDay ? _date(dueDate) : _dateTime(dueDate)),
-      onTap: widget.onTaskChanged == null
-          ? null
-          : () async {
-              if (!_isInlineEditing) _beginInlineEdit();
-              await _pickInlineWorkTime();
-              if (mounted && _isInlineEditing) await _saveInlineEdit();
-            },
+    return KeyedSubtree(
+      key: const ValueKey('task-detail-due-date-card'),
+      child: _linearActionRow(
+        key: const ValueKey('task-detail-work-time-row'),
+        valueKey: const ValueKey('task-detail-due-date'),
+        icon: Icons.calendar_month_outlined,
+        title: 'موعد',
+        value: dueDate == null ? 'تعیین نشده' : (allDay ? _date(dueDate) : _dateTime(dueDate)),
+        onTap: widget.onTaskChanged == null
+            ? null
+            : () async {
+                if (!_isInlineEditing) _beginInlineEdit();
+                await _pickInlineWorkTime();
+                if (mounted && _isInlineEditing) await _saveInlineEdit();
+              },
+      ),
     );
   }
 
   Widget _assigneeCard() {
     final latest = _task.lastFollowUp;
-    return _linearActionRow(
-      key: const ValueKey('task-detail-waiting-person-row'),
-      icon: Icons.person_outline_rounded,
-      title: 'منتظر پیگیری دیگران',
-      value: latest?.waitingForResponse == true ? 'در انتظار پاسخ' : 'ثبت یا مشاهده پیگیری اشخاص',
-      onTap: widget.onAddFollowUp == null ? null : _addFollowUp,
+    return KeyedSubtree(
+      key: const ValueKey('task-detail-assignee-card'),
+      child: _linearActionRow(
+        key: const ValueKey('task-detail-waiting-person-row'),
+        icon: Icons.person_outline_rounded,
+        title: 'مسئول',
+        value: 'مسئول مستقلی برای این کار ثبت نشده است',
+        onTap: latest?.waitingForResponse == true && widget.onAddFollowUp != null
+            ? _addFollowUp
+            : null,
+      ),
     );
   }
 
@@ -1601,7 +1610,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     );
   }
 
-  Widget _metadataCard() => _organizationCard();
+  Widget _metadataCard() => KeyedSubtree(
+        key: const ValueKey('task-detail-metadata'),
+        child: _organizationCard(),
+      );
 
   Widget _remindersCard() {
     final reminders = _isInlineEditing ? _draftReminders : _task.taskReminders;
@@ -1876,6 +1888,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     required IconData icon,
     required String title,
     required String value,
+    Key? valueKey,
     required VoidCallback? onTap,
     Widget? trailing,
   }) {
@@ -1900,7 +1913,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                     children: [
                       Text(title, style: const TextStyle(fontFamily: 'Vazirmatn', fontWeight: FontWeight.w700)),
                       const SizedBox(height: 2),
-                      Text(value, style: const TextStyle(fontFamily: 'Vazirmatn', color: _muted, fontSize: 12)),
+                      Text(value, key: valueKey, style: const TextStyle(fontFamily: 'Vazirmatn', color: _muted, fontSize: 12)),
                     ],
                   ),
                 ),
@@ -2046,7 +2059,11 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                               if (value == 'delete') _deleteTask();
                             },
                             itemBuilder: (_) => [
-                              const PopupMenuItem(value: 'report', child: Text('PDF، چاپ و اشتراک‌گذاری')),
+                              const PopupMenuItem(
+                                key: const ValueKey('task-detail-report'),
+                                value: 'report',
+                                child: Text('PDF، چاپ و اشتراک‌گذاری'),
+                              ),
                               PopupMenuItem(
                                 value: 'delete',
                                 enabled: widget.onDelete != null && !_isInlineEditing,
@@ -2102,6 +2119,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                           padding: const EdgeInsetsDirectional.only(start: 8, top: 4),
                           child: Text(
                             _task.completed ? 'انجام‌شده' : 'در انتظار انجام',
+                            key: const ValueKey('task-status-badge'),
                             style: const TextStyle(fontFamily: 'Vazirmatn', color: Colors.white70, fontSize: 12),
                           ),
                         ),
@@ -2175,8 +2193,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                     _metadataCard(),
                     const SizedBox(height: 10),
                     _card(
-                      key: const ValueKey('task-detail-connected-notes'),
+                      key: const ValueKey('task-detail-description-card'),
                       child: Column(
+                        key: const ValueKey('task-detail-connected-notes'),
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           _sectionTitle('یادداشت', Icons.sticky_note_2_outlined),
