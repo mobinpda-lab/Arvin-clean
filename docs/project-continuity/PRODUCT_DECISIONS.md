@@ -278,3 +278,14 @@ The governance vocabulary remains: PROPOSED, APPROVED, IN_PROGRESS, IMPLEMENTED,
 - فیلترهای پنج‌گانه Home از راست به چپ به ترتیب زمان، مرکز، پروژه، دسته، برچسب نمایش داده می‌شوند؛ آزمون ترتیب بصری نیز حفظ شده است.
 - تست‌های مهاجرت Task، JSON مربوط به FollowUp، ویرایش All-Day در Task و FollowUp و تعامل Selectorها افزوده/به‌روزرسانی شده‌اند؛ تستی حذف یا Skip نشده است.
 - این اصلاحیه جایگزین یادداشت‌های قدیمی این سند دربارهٔ نبود پرچم All-Day در فیلدهای legacy می‌شود. وضعیت پذیرش همچنان فقط با CI روی SHA نهایی و تست گوشی ارتقا می‌یابد.
+
+
+## Owner-approved Focus / My Day contract — 2026-11-08
+| Decision | Status | Basis / boundary |
+|---|---|---|
+| Separate System Today from manually curated “کارهای برگزیده امروز” (Focus / My Day) | APPROVED | System Today is derived from local dueDate (today + overdue open work); Focus is explicit local-day membership and expires at the next local day. A Task may be both. See `ARVIN_FOCUS_MY_DAY_HOME_UX_CONTRACT_2026-11-08.md`. |
+| Focus membership through both Task swipe directions | APPROVED | Independent left/right settings; toggle current local-day membership through canonical Task persistence; preserve all existing actions and unrelated Task fields. |
+| Home filter menu, card and five-filter/header redesign | APPROVED | Exact wording/order, compact RTL five-filter row, OR within each dimension / AND across dimensions, 48dp targets, simplified cards and Detail-only card navigation are defined in the 2026-11-08 contract. |
+| Home visual/system baseline in the 2026-11-08 cumulative directive | APPROVED | Vazirmatn, two SVG sacred phrases, #3A86EF and nine-color palette, three calendar layers, Quick Capture/date-time/All-Day and Person consistency; detailed acceptance is in the linked contract. |
+
+**Implementation status:** APPROVED does not mean IMPLEMENTED or VERIFIED. At the audited baseline SHA `2eb76c3e0d20e0330bda7793a10944f37feb02c5`, no Focus model field/action was found in the focused source inspection. Exact-SHA tests, staging artifact and physical SM-A528B/DS acceptance are still required. PR #3052 remains OPEN / DRAFT / UNMERGED; release remains BLOCKED — RELEASE: NO-GO.
