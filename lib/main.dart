@@ -1074,13 +1074,13 @@ class _HomePageState extends State<HomePage> {
                 child: HomeFilterPill(
                   key: const ValueKey('home-filter-card-project'),
                   label: _projectFilters.isEmpty
-                      ? 'پروژه‌ها'
+                      ? 'پروژه'
                       : _projectFilters.length == 1
                           ? (_projectFilters.first == '__no_project__'
                               ? 'بدون پروژه'
                               : (_projectTitle(_projectFilters.first) ??
                                   'پروژه حذف‌شده'))
-                          : 'پروژه‌ها (${persianDateFormatter.toPersianDigits('${_projectFilters.length}')})',
+                          : 'پروژه (${persianDateFormatter.toPersianDigits('${_projectFilters.length}')})',
                   icon: Icons.folder_rounded,
                   accent: Theme.of(context).colorScheme.primary,
                   soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
@@ -1093,10 +1093,10 @@ class _HomePageState extends State<HomePage> {
                 child: HomeFilterPill(
                   key: const ValueKey('home-filter-card-category'),
                   label: _categoryFilters.isEmpty
-                      ? 'دسته‌ها'
+                      ? 'دسته'
                       : _categoryFilters.length == 1
                           ? _categoryFilters.first
-                          : 'دسته‌ها (${persianDateFormatter.toPersianDigits('${_categoryFilters.length}')})',
+                          : 'دسته (${persianDateFormatter.toPersianDigits('${_categoryFilters.length}')})',
                   icon: Icons.layers_rounded,
                   accent: Theme.of(context).colorScheme.primary,
                   soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
@@ -1109,8 +1109,8 @@ class _HomePageState extends State<HomePage> {
                 child: HomeFilterPill(
                   key: const ValueKey('home-filter-card-tags'),
                   label: _tagFilters.isEmpty
-                      ? 'برچسب‌ها'
-                      : 'برچسب‌ها (${persianDateFormatter.toPersianDigits('${_tagFilters.length}')})',
+                      ? 'برچسب'
+                      : 'برچسب (${persianDateFormatter.toPersianDigits('${_tagFilters.length}')})',
                   icon: Icons.sell_rounded,
                   accent: Theme.of(context).colorScheme.primary,
                   soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
