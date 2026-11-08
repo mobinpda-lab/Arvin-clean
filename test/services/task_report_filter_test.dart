@@ -276,7 +276,7 @@ void main() {
         FollowUp(id: 'fu-date-other-person', completedAt: DateTime(2026, 10, 6), personIds: ['p2']),
       ],
     );
-    final result = const TaskReportFilter(
+    final result = TaskReportFilter(
       hasFollowUp: true,
       personIds: {'p1'},
       fromDate: DateTime(2026, 10, 5),
@@ -317,7 +317,7 @@ void main() {
         FollowUp(id: 'fu-wrong-category', completedAt: DateTime(2026, 10, 6), personIds: ['p1']),
       ],
     );
-    final filter = const TaskReportFilter(
+    final filter = TaskReportFilter(
       hasFollowUp: true,
       centerIds: {'center-a', 'center-b'},
       projectIds: {'project-a', 'project-b'},
