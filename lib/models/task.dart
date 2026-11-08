@@ -699,9 +699,10 @@ class Task {
       legacyTaskReminderMigrationVersion: migrationVersion,
       priority: loadedPriority,
       isFavorite: json['isFavorite'] as bool? ?? false,
-      focusDate: json['focusDate'] is String
-          ? DateTime.tryParse(json['focusDate'] as String)
-          : (json['isSelectedForToday'] == true ? DateTime.now() : null),
+      focusDate: (json['focusDate'] is String
+              ? DateTime.tryParse(json['focusDate'] as String)
+              : null) ??
+          (json['isSelectedForToday'] == true ? DateTime.now() : null),
       archived: json['archived'] as bool? ?? false,
       trashed: json['trashed'] as bool? ?? false,
       completed: json['completed'] as bool? ?? false,
