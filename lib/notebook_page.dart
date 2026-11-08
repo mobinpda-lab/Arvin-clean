@@ -609,7 +609,7 @@ class _NotebookPageState extends State<NotebookPage> {
                           key: const ValueKey('notebook-center-filter'),
                           label: _activeCenterIds.isEmpty
                               ? 'مرکز: همه'
-                              : 'مرکز (\${_activeCenterIds.length})',
+                              : 'مرکز (${_activeCenterIds.length})',
                           icon: Icons.apartment_outlined,
                           accent: ArvinColors.primary,
                           soft: ArvinColors.primarySoft,
@@ -621,7 +621,7 @@ class _NotebookPageState extends State<NotebookPage> {
                           key: const ValueKey('notebook-project-filter'),
                           label: _activeProjectIds.isEmpty
                               ? 'پروژه: همه'
-                              : 'پروژه (\${_activeProjectIds.length})',
+                              : 'پروژه (${_activeProjectIds.length})',
                           icon: Icons.work_outline_rounded,
                           accent: ArvinColors.project,
                           soft: ArvinColors.projectSoft,
@@ -633,7 +633,7 @@ class _NotebookPageState extends State<NotebookPage> {
                           key: const ValueKey('notebook-category-filter'),
                           label: _activeCategories.isEmpty
                               ? 'دسته: همه'
-                              : 'دسته (\${_activeCategories.length})',
+                              : 'دسته (${_activeCategories.length})',
                           icon: Icons.layers_outlined,
                           accent: ArvinColors.reminder,
                           soft: ArvinColors.reminderSoft,
@@ -645,7 +645,7 @@ class _NotebookPageState extends State<NotebookPage> {
                           key: const ValueKey('notebook-tag-filter'),
                           label: _activeTags.isEmpty
                               ? 'برچسب: همه'
-                              : 'برچسب (\${_activeTags.length})',
+                              : 'برچسب (${_activeTags.length})',
                           icon: Icons.sell_outlined,
                           accent: ArvinColors.time,
                           soft: ArvinColors.timeSoft,
