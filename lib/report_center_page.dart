@@ -108,7 +108,7 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
   List<PersonFollowUpReportRow> get _waitingRows {
     final filterWithoutWaitingState = _filter.copyWith(
       clearWaitingForResponse: true,
-      hasFollowUp: true,
+      hasFollowUp: _filter.hasFollowUp ?? true,
     );
     final matchingTasks = filterWithoutWaitingState.apply(
       widget.tasks,
