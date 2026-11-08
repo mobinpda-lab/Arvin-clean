@@ -1046,6 +1046,8 @@ class _HomePageState extends State<HomePage> {
                   icon: Icons.schedule_rounded,
                   accent: Theme.of(context).colorScheme.primary,
                   soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
+                  selectedCount: selectedCount: _timeFilters.length + (_timeFilter == 'customRange' ? 1 : 0),,
+                  accent: ArvinColors.time,
                   active: _timeFilters.isNotEmpty || _timeFilter == 'customRange',
                   onPressed: _showTimeFilterSheet,
                 ),
@@ -1065,6 +1067,8 @@ class _HomePageState extends State<HomePage> {
                   icon: Icons.location_city_outlined,
                   accent: Theme.of(context).colorScheme.primary,
                   soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
+                  selectedCount: selectedCount: _centerFilters.length,,
+                  accent: ArvinColors.center,
                   active: _centerFilters.isNotEmpty,
                   onPressed: _showCenterFilterSheet,
                 ),
@@ -1084,6 +1088,8 @@ class _HomePageState extends State<HomePage> {
                   icon: Icons.folder_rounded,
                   accent: Theme.of(context).colorScheme.primary,
                   soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
+                  selectedCount: selectedCount: _projectFilters.length,,
+                  accent: ArvinColors.project,
                   active: _projectFilters.isNotEmpty,
                   onPressed: _showProjectFilterSheet,
                 ),
@@ -1100,6 +1106,8 @@ class _HomePageState extends State<HomePage> {
                   icon: Icons.layers_rounded,
                   accent: Theme.of(context).colorScheme.primary,
                   soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
+                  selectedCount: selectedCount: _categoryFilters.length,,
+                  accent: ArvinColors.category,
                   active: _categoryFilters.isNotEmpty,
                   onPressed: _showCategoryFilterSheet,
                 ),
@@ -1114,6 +1122,8 @@ class _HomePageState extends State<HomePage> {
                   icon: Icons.sell_rounded,
                   accent: Theme.of(context).colorScheme.primary,
                   soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
+                  selectedCount: selectedCount: _tagFilters.length,,
+                  accent: ArvinColors.tag,
                   active: _tagFilters.isNotEmpty,
                   onPressed: _showTagFilterSheet,
                 ),
@@ -3421,8 +3431,7 @@ class _HomePageState extends State<HomePage> {
     );
     final late = _overdue(task);
     final colors = Theme.of(context).colorScheme;
-    final preview = _latestFollowUpPreview(task);
-    return Dismissible(
+      return Dismissible(
       key: ValueKey(task.id),
       direction: selectionMode
           ? DismissDirection.none
@@ -3511,58 +3520,66 @@ class _HomePageState extends State<HomePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        task.title,
-                        key: ValueKey('task-card-title-${task.id}'),
-                        style: TextStyle(
-                          color: late ? ArvinColors.error : ArvinColors.textPrimary,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14,
-                          decoration: task.completed
-                              ? TextDecoration.lineThrough
-                              : null,
-                        ),
-                      ),
-                      if (preview != null) ...[
-                        const SizedBox(height: 3),
-                        Text(
-                          preview,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: ArvinColors.textSecondary,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ],
-                      if (task.checklistEnabled && task.checklist.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        _homeChecklistProgress(task),
-                      ],
-                      if (_projectTitleForTask(task) != null || task.category?.trim().isNotEmpty == true || task.tags.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        TaxonomyIconRow(
-                          center: _centerNameForTask(task),
-                          project: _projectTitleForTask(task),
-                          category: task.category,
-                          tags: task.tags,
-                          maxTags: 2,
-                        ),
-                      ],
                       Row(
                         children: [
-                          Icon(Icons.flag_rounded, size: 13, color: ArvinColors.priorityColor(task.priority)),
-                          const SizedBox(width: 4),
-                          Flexible(
+                          Expanded(
                             child: Text(
-                              '${task.priority.code} • ${task.priority.label}',
-                              maxLines: 1,
+                              task.title,
+                              key: ValueKey('task-card-title-${task.id}'),
+                              maxLines: 2,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(color: ArvinColors.priorityColor(task.priority), fontSize: 10.5, fontWeight: FontWeight.w700),
+                              style: TextStyle(
+                                color: late ? ArvinColors.error : ArvinColors.textPrimary,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14,
+                                decoration: task.completed
+                                    ? TextDecoration.lineThrough
+                                    : null,
+                              ),
                             ),
                           ),
+                          if (task.isSelectedForToday) ...[
+                            const SizedBox(width: 5),
+                            Icon(
+                              Icons.push_pin_rounded,
+                              key: ValueKey('task-card-focus-marker-${task.id}'),
+                              size: 15,
+                              color: ArvinColors.primary,
+                            ),
+                          ],
                         ],
                       ),
+                      if (task.category?.trim().isNotEmpty == true) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                task.category!.trim(),
+                                key: ValueKey('task-card-category-${task.id}'),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: ArvinColors.textSecondary,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Container(
+                              key: ValueKey('task-card-eisenhower-dot-${task.id}'),
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: ArvinColors.priorityColor(task.priority),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                       if (const HomeListProjection().shouldProjectDueDate(task)) ...[
                         const SizedBox(height: 3),
                         Row(
@@ -3579,10 +3596,11 @@ class _HomePageState extends State<HomePage> {
                                 late
                                     ? 'موعد گذشته: ${_date(task.dueDate!)} • ${_time(task.dueDate!)}'
                                     : 'موعد: ${_date(task.dueDate!)} • ${_time(task.dueDate!)}',
+                                textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: late ? ArvinColors.error : ArvinColors.textSecondary,
-                                  fontSize: 11,
-                                  fontWeight: late ? FontWeight.w800 : FontWeight.w500,
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w800,
                                 ),
                               ),
                             ),
@@ -3859,22 +3877,32 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               Expanded(child: Column(children: [
-                Semantics(
-                  key: const ValueKey('home-bismillah'),
-                  label: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
-                  child: SvgPicture.asset(
-                    'assets/images/branding/bismillah.svg',
-                    key: const ValueKey('home-bismillah-svg'),
-                    width: 210,
-                    colorFilter: ColorFilter.mode(
-                      colors.primary,
-                      BlendMode.srcIn,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Semantics(
+                      key: const ValueKey('home-bismillah'),
+                      label: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
+                      child: SvgPicture.asset(
+                        'assets/images/branding/bismillah.svg',
+                        key: const ValueKey('home-bismillah-svg'),
+                        width: 118,
+                        colorFilter: ColorFilter.mode(
+                          colors.primary,
+                          BlendMode.srcIn,
+                        ),
+                        excludeFromSemantics: true,
+                      ),
                     ),
-                    excludeFromSemantics: true,
-                  ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'آروین',
+                      key: const ValueKey('home-title-block'),
+                      style: TextStyle(color: colors.primary, fontSize: 23, fontWeight: FontWeight.w800),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 1),
-                Text('آروین', key: const ValueKey('home-title-block'), style: TextStyle(color: colors.primary, fontSize: 23, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 2),
                 Text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها', key: const ValueKey('home-subtitle'), textAlign: TextAlign.center, style: TextStyle(color: colors.onSurfaceVariant, fontSize: 11.5, fontWeight: FontWeight.w600)),
               ])),
