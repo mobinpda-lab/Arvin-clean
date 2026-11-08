@@ -5,6 +5,7 @@ import 'package:arvin/notebook_page.dart';
 import 'package:arvin/services/canonical_notebook_repository.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/task_store.dart';
+import 'package:arvin/services/center_store.dart';
 import 'package:arvin/services/task_project_assignment_service.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,7 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     await TaskStore.resetTestDatabase();
+    await CenterStore.resetTestDatabase();
   });
   late NativeDatabase database;
 
@@ -24,6 +26,7 @@ void main() {
 
   tearDown(() async {
     await database.close();
+    await CenterStore.resetTestDatabase();
   });
 
   CanonicalNotebookRepository repositoryAt(DateTime now) {
@@ -84,6 +87,7 @@ void main() {
     expect(find.text('دفترچه'), findsWidgets);
     expect(find.text('یادداشت‌ها و چک‌لیست‌ها'), findsNothing);
     expect(find.byKey(const ValueKey('notebook-search')), findsOneWidget);
+    expect(find.byKey(const ValueKey('notebook-center-filter')), findsOneWidget);
     expect(find.byKey(const ValueKey('notebook-project-filter')), findsOneWidget);
     expect(find.byKey(const ValueKey('notebook-category-filter')), findsOneWidget);
     expect(find.byKey(const ValueKey('notebook-tag-filter')), findsOneWidget);
@@ -104,6 +108,60 @@ void main() {
     expect(find.byKey(const ValueKey('notebook-project-filter')), findsOneWidget);
 
     expect(find.byIcon(Icons.sell_outlined), findsOneWidget);
+  });
+
+  testWidgets('Notebook filters use shared multi-select with OR within dimensions and AND across dimensions', (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 8, 27, 6));
+    await CenterStore().create(id: 'center-a', name: 'مرکز الف');
+    await CenterStore().create(id: 'center-b', name: 'مرکز ب');
+    final first = await repository.createNote(id: 'note-one', title: 'یادداشت یک');
+    final second = await repository.createNote(id: 'note-two', title: 'یادداشت دو');
+    final third = await repository.createNote(id: 'note-three', title: 'یادداشت سه');
+    await repository.updateCenter(id: first.id, centerId: 'center-a');
+    await repository.updateCenter(id: second.id, centerId: 'center-a');
+    await repository.updateCenter(id: third.id, centerId: 'center-b');
+    await repository.updateCategory(id: first.id, category: 'کاری');
+    await repository.updateCategory(id: second.id, category: 'کاری');
+    await repository.updateCategory(id: third.id, category: 'شخصی');
+    await repository.updateTags(id: first.id, tags: ['فوری']);
+    await repository.updateTags(id: second.id, tags: ['مهم']);
+    await repository.updateTags(id: third.id, tags: ['مهم']);
+    final projectOne = await repository.createProject(title: 'پروژه یک');
+    final projectTwo = await repository.createProject(title: 'پروژه دو');
+    await repository.updateProject(id: first.id, projectId: projectOne.id);
+    await repository.updateProject(id: second.id, projectId: projectTwo.id);
+    await repository.updateProject(id: third.id, projectId: projectOne.id);
+
+    await pumpNotebook(tester, repository);
+
+    Future<void> applyOption(String chipKey, List<String> optionKeys) async {
+      await tester.tap(find.byKey(ValueKey(chipKey)));
+      await tester.pumpAndSettle();
+      for (final key in optionKeys) {
+        final option = find.byKey(ValueKey(key));
+        await tester.ensureVisible(option);
+        await tester.tap(option);
+        await tester.pumpAndSettle();
+      }
+      await tester.tap(find.text('تأیید / اعمال فیلتر'));
+      await tester.pumpAndSettle();
+    }
+
+    await applyOption('notebook-center-filter', ['notebook-center-filter-center-a']);
+    await applyOption('notebook-project-filter', [
+      'notebook-project-filter-${projectOne.id}',
+      'notebook-project-filter-${projectTwo.id}',
+    ]);
+    await applyOption('notebook-category-filter', ['notebook-category-filter-کاری']);
+    await applyOption('notebook-tag-filter', [
+      'notebook-tag-filter-فوری',
+      'notebook-tag-filter-مهم',
+    ]);
+
+    expect(find.text('یادداشت یک'), findsOneWidget);
+    expect(find.text('یادداشت دو'), findsOneWidget);
+    expect(find.text('یادداشت سه'), findsNothing);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('Notebook empty state uses the approved title and guidance', (tester) async {
