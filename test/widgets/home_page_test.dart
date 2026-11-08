@@ -944,4 +944,34 @@ void main() {
     });
   }
 
+  testWidgets('Focus Today is reachable from drawer More and global funnel with one result set',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"focus-route-selected","title":"کار برگزیده با موعد آینده","dueDate":"2030-04-12T10:30:00.000","isSelectedForToday":true},{"id":"focus-route-unselected","title":"کار انتخاب‌نشده با موعد آینده","dueDate":"2030-04-13T10:30:00.000"}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('home-drawer-button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ListTile, 'بیشتر'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('home-more-today-focus')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('کار برگزیده با موعد آینده'), findsOneWidget);
+    expect(find.text('کار انتخاب‌نشده با موعد آینده'), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('home-general-filter-button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('home-filter-today-focus')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('کار برگزیده با موعد آینده'), findsOneWidget);
+    expect(find.text('کار انتخاب‌نشده با موعد آینده'), findsNothing);
+    expect((await TaskStore().load()).singleWhere((task) => task.id == 'focus-route-selected').isSelectedForToday, isTrue);
+  });
+
 }
