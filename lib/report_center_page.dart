@@ -2128,39 +2128,39 @@ class _CompletedFollowUpReportDialogState
                     children: [
                       IconButton(
                         key: const ValueKey('completed-follow-up-previous-day'),
-                      tooltip: 'روز قبل',
-                      onPressed: () => _shiftDay(-1),
-                      icon: const Icon(Icons.chevron_right),
-                    ),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        key: const ValueKey('completed-follow-up-date-picker'),
-                        onPressed: _pickDay,
-                        icon: const Icon(Icons.calendar_month_outlined),
-                        label: Text(_formatter.format(
-                          _selectedDay,
-                          usePersianDate: true,
-                        )),
+                        tooltip: 'روز قبل',
+                        onPressed: () => _shiftDay(-1),
+                        icon: const Icon(Icons.chevron_right),
                       ),
-                    ),
-                    IconButton(
-                      key: const ValueKey('completed-follow-up-next-day'),
-                      tooltip: 'روز بعد',
-                      onPressed: () => _shiftDay(1),
-                      icon: const Icon(Icons.chevron_left),
-                    ),
-                    TextButton(
-                      key: const ValueKey('completed-follow-up-today'),
-                      onPressed: () {
-                        final now = DateTime.now().toLocal();
-                        setState(() => _selectedDay =
-                            DateTime(now.year, now.month, now.day));
-                      },
-                      child: const Text('امروز'),
-                    ),
-                  ],
-                ),
-              )
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          key: const ValueKey('completed-follow-up-date-picker'),
+                          onPressed: _pickDay,
+                          icon: const Icon(Icons.calendar_month_outlined),
+                          label: Text(_formatter.format(
+                            _selectedDay,
+                            usePersianDate: true,
+                          )),
+                        ),
+                      ),
+                      IconButton(
+                        key: const ValueKey('completed-follow-up-next-day'),
+                        tooltip: 'روز بعد',
+                        onPressed: () => _shiftDay(1),
+                        icon: const Icon(Icons.chevron_left),
+                      ),
+                      TextButton(
+                        key: const ValueKey('completed-follow-up-today'),
+                        onPressed: () {
+                          final now = DateTime.now().toLocal();
+                          setState(() => _selectedDay =
+                              DateTime(now.year, now.month, now.day));
+                        },
+                        child: const Text('امروز'),
+                      ),
+                    ],
+                  ),
+                )
               else
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
