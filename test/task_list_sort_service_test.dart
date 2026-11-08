@@ -64,6 +64,18 @@ void main() {
     expect(source, <Task>[missingCreation, olderMedium, newestHigh, oldestHigh]);
   });
 
+  test('canonical Home sort preserves source order for complete ties', () {
+    final createdAt = DateTime(2026, 8, 1, 9);
+    final secondId = task('a-id', createdAt: createdAt, priority: TaskPriority.high);
+    final firstId = task('z-id', createdAt: createdAt, priority: TaskPriority.high);
+    final source = <Task>[firstId, secondId];
+
+    final result = const TaskListSortService().sortByPriorityThenCreatedAt(source);
+
+    expect(result, <Task>[firstId, secondId]);
+    expect(source, <Task>[firstId, secondId]);
+  });
+
   test('date sort supports both directions and keeps undated items last', () {
     final early = task('early', dueDate: DateTime(2026, 8, 28, 8));
     final late = task('late', dueDate: DateTime(2026, 8, 29, 8));
