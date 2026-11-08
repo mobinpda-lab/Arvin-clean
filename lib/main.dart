@@ -783,6 +783,7 @@ class _HomePageState extends State<HomePage> {
       _tagFilters.isNotEmpty;
 
   String get _timeFilterLabel {
+    if (_todayFocusOnly) return 'کارهای برگزیدهٔ امروز';
     if (_timeFilters.length > 1) return 'زمان (${persianDateFormatter.toPersianDigits('${_timeFilters.length}')})';
     if (_timeFilter == 'customRange') {
       final from = _fromDateFilter == null ? 'شروع' : _date(_fromDateFilter!);
@@ -1040,12 +1041,12 @@ class _HomePageState extends State<HomePage> {
               Expanded(
                 child: HomeFilterPill(
                   key: const ValueKey('home-filter-card-time'),
-                  label: _timeFilters.isEmpty && _timeFilter != 'customRange'
+                  label: _timeFilters.isEmpty && _timeFilter != 'customRange' && !_todayFocusOnly
                       ? 'زمان'
                       : _timeFilterLabel,
                   icon: Icons.schedule_rounded,
                   soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
-                  selectedCount: selectedCount: _timeFilters.length + (_timeFilter == 'customRange' ? 1 : 0),,
+                  selectedCount: selectedCount: _timeFilters.length + (_timeFilter == 'customRange' ? 1 : 0) + (_todayFocusOnly ? 1 : 0),,
                   accent: ArvinColors.time,
                   active: _timeFilters.isNotEmpty || _timeFilter == 'customRange',
                   onPressed: _showTimeFilterSheet,
@@ -1147,6 +1148,15 @@ class _HomePageState extends State<HomePage> {
   Widget _homeActiveFilterChips() {
     if (!_homeFilterActive) return const SizedBox.shrink();
     final chips = <Widget>[];
+    if (_todayFocusOnly) {
+      chips.add(HomeFilterChip(
+        label: 'کارهای برگزیدهٔ امروز',
+        accent: ArvinColors.time,
+        soft: ArvinColors.timeSoft,
+        icon: Icons.push_pin_outlined,
+        onRemove: () => setState(() => _todayFocusOnly = false),
+      ));
+    }
     if (_timeFilters.isNotEmpty || _timeFilter == 'customRange') {
       chips.add(HomeFilterChip(
         label: _timeFilterLabel,
