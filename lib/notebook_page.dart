@@ -1662,6 +1662,8 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
                       visualDensity: VisualDensity.standard,
                     ),
                   ),
+                ],
+              ),
             ),
             const Divider(height: 16, thickness: 0.5),
             const SizedBox(height: 4),
@@ -1694,7 +1696,6 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
 
         ],
         ),
-      ),
       ),
     );
   }
