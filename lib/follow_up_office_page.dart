@@ -560,7 +560,7 @@ class _FollowUpRow {
   final String taskTitle;
   final FollowUp followUp;
 
-  DateTime get dateTime => followUp.dateTime;
+  DateTime get dateTime => followUp.completedAt;
   String get note => followUp.note;
   String? get result => followUp.result;
 }
