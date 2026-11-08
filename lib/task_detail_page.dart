@@ -357,8 +357,27 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     await _persistCandidate(candidate);
   }
 
+  Future<void> _saveReminders(List<TaskReminder> reminders) async {
+    final ordered = List<TaskReminder>.of(reminders);
+    final highest = ordered.isEmpty
+        ? _task.nextReminderSequence - 1
+        : ordered.map((item) => item.sequence).reduce((a, b) => a > b ? a : b);
+    final candidate = Task.fromJson(Map<String, dynamic>.from(_task.toJson()))
+      ..taskReminders = ordered
+      ..nextReminderSequence = (highest + 1).clamp(_task.nextReminderSequence, 1 << 30).toInt();
+    await _persistCandidate(candidate);
+    try {
+      await AndroidFollowUpReminderScheduler().reschedule();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('یادآور ذخیره شد؛ زمان‌بندی اعلان در اجرای بعدی بازآزمایی می‌شود')),
+      );
+    }
+  }
+
   Future<void> _addInlineReminder() async {
-    var titleValue = 'یادآور ${_draftReminders.length + 1}';
+    var titleValue = 'یادآور ${_task.taskReminders.length + 1}';
     final title = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -399,9 +418,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     );
     if (selection == null || !mounted) return;
 
-    final highest = _draftReminders.isEmpty
+    final highest = _task.taskReminders.isEmpty
         ? _task.nextReminderSequence - 1
-        : _draftReminders.map((item) => item.sequence).reduce((a, b) => a > b ? a : b);
+        : _task.taskReminders.map((item) => item.sequence).reduce((a, b) => a > b ? a : b);
     final reminder = TaskReminder(
       id: 'reminder-${DateTime.now().microsecondsSinceEpoch}',
       title: title,
@@ -411,17 +430,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       isAllDay: selection.isAllDay,
       sequence: (highest + 1).clamp(_task.nextReminderSequence, 1 << 30).toInt(),
     );
-    setState(() => _draftReminders = [..._draftReminders, reminder]);
+    await _saveReminders([..._task.taskReminders, reminder]);
   }
 
-  void _toggleDraftReminder(TaskReminder reminder, bool enabled) {
-    setState(() {
-      _draftReminders = _draftReminders
-          .map((item) => item.id == reminder.id
-              ? item.copyWith(isEnabled: enabled)
-              : item)
-          .toList(growable: false);
-    });
+  Future<void> _toggleDraftReminder(TaskReminder reminder, bool enabled) async {
+    final reminders = _task.taskReminders
+        .map((item) => item.id == reminder.id ? item.copyWith(isEnabled: enabled) : item)
+        .toList(growable: false);
+    await _saveReminders(reminders);
   }
 
   Future<void> _editDraftReminderTitle(TaskReminder reminder) async {
@@ -450,11 +466,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       ),
     );
     if (title == null || !mounted) return;
-    setState(() {
-      _draftReminders = _draftReminders
-          .map((item) => item.id == reminder.id ? item.copyWith(title: title) : item)
-          .toList(growable: false);
-    });
+    final reminders = _task.taskReminders
+        .map((item) => item.id == reminder.id ? item.copyWith(title: title) : item)
+        .toList(growable: false);
+    await _saveReminders(reminders);
   }
 
   Future<void> _editDraftReminderSchedule(TaskReminder reminder) async {
@@ -475,21 +490,17 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     final updatedDate = selection.isAllDay
         ? DateTime(date.year, date.month, date.day)
         : DateTime(date.year, date.month, date.day, selection.time!.hour, selection.time!.minute);
-    setState(() {
-      _draftReminders = _draftReminders
-          .map((item) => item.id == reminder.id
-              ? item.copyWith(date: updatedDate, isAllDay: selection.isAllDay)
-              : item)
-          .toList(growable: false);
-    });
+    final reminders = _task.taskReminders
+        .map((item) => item.id == reminder.id
+            ? item.copyWith(date: updatedDate, isAllDay: selection.isAllDay)
+            : item)
+        .toList(growable: false);
+    await _saveReminders(reminders);
   }
 
-  void _removeDraftReminder(TaskReminder reminder) {
-    setState(() {
-      _draftReminders = _draftReminders
-          .where((item) => item.id != reminder.id)
-          .toList(growable: false);
-    });
+  Future<void> _removeDraftReminder(TaskReminder reminder) async {
+    final reminders = _task.taskReminders.where((item) => item.id != reminder.id).toList(growable: false);
+    await _saveReminders(reminders);
   }
 
   Future<void> _toggleReminder(TaskReminder reminder, bool enabled) async {
@@ -1049,8 +1060,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   Widget _dueDateCard() {
-    final dueDate = _isInlineEditing ? _draftDueDate : _task.dueDate;
-    final allDay = _isInlineEditing ? _draftAllDay : _task.allDay;
+    final dueDate = _task.dueDate;
+    final allDay = _task.allDay;
     return _linearActionRow(
         key: const ValueKey('task-detail-due-date-card'),
         valueKey: const ValueKey('task-detail-due-date'),
@@ -1077,7 +1088,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     );
   }
 
-  List<String> _normalizedChecklist() => (_isInlineEditing ? _draftChecklist : _task.checklist).map((item) {
+  List<String> _normalizedChecklist() => _task.checklist.map((item) {
         final value = item.trim();
         if (value.startsWith('[x] ')) return value;
         if (value.startsWith('[ ] ')) return value;
@@ -1253,7 +1264,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             ),
           ),
           const SizedBox(height: 10),
-          if (_isInlineEditing || _isAddingChecklist) ...[
+          if (_isAddingChecklist) ...[
             TextField(
               key: const ValueKey('task-detail-checklist-add-input'),
               controller: _checklistAddController,
@@ -1311,9 +1322,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                       child: CheckboxListTile(
                         value: items[index].startsWith('[x] '),
                       onChanged: _isSavingChecklist ||
-                              (_isInlineEditing
-                                  ? widget.onTaskChanged == null
-                                  : widget.onChecklistChanged == null)
+                              (widget.onChecklistChanged == null && widget.onTaskChanged == null)
                           ? null
                           : (_) => _toggleChecklistItem(index),
                       controlAffinity: ListTileControlAffinity.leading,
@@ -1323,7 +1332,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                       ),
                     ),
                   ),
-                  if (_isInlineEditing) ...[
+                  if (widget.onTaskChanged != null) ...[
                     IconButton(
                       key: ValueKey('task-detail-checklist-up-$index'),
                       tooltip: 'انتقال به بالا',
@@ -1352,18 +1361,16 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 ],
               ),
           const SizedBox(height: 8),
-          if (_isInlineEditing || widget.onTaskChanged == null)
+          if (widget.onTaskChanged != null || widget.onChecklistChanged != null)
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
                 key: const ValueKey('task-detail-checklist-add'),
                 onPressed: _isSavingChecklist
                     ? null
-                    : _isInlineEditing || _isAddingChecklist
+                    : _isAddingChecklist
                         ? _addChecklistItem
-                        : widget.onChecklistChanged != null
-                            ? () => setState(() => _isAddingChecklist = true)
-                            : null,
+                        : () => setState(() => _isAddingChecklist = true),
                 icon: const Icon(Icons.add),
                 label: const Text('افزودن مرحله جدید'),
               ),
@@ -1614,7 +1621,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       );
 
   Widget _remindersCard() {
-    final reminders = _isInlineEditing ? _draftReminders : _task.taskReminders;
+    final reminders = _task.taskReminders;
     return _card(
       key: const ValueKey('task-detail-independent-reminders'),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -1623,11 +1630,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           const Spacer(),
           TextButton.icon(
             key: const ValueKey('task-detail-add-reminder'),
-            onPressed: _isInlineEditing
-                ? _addInlineReminder
-                : widget.onTaskChanged == null
-                    ? null
-                    : _beginInlineEdit,
+            onPressed: widget.onTaskChanged == null ? null : _addInlineReminder,
             icon: const Icon(Icons.add, size: 17),
             label: const Text('افزودن'),
           ),
@@ -1645,17 +1648,15 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   key: ValueKey('task-detail-reminder-${reminder.id}'),
                   contentPadding: EdgeInsets.zero,
                   value: reminder.isEnabled,
-                  onChanged: _isInlineEditing
-                      ? (value) => _toggleDraftReminder(reminder, value)
-                      : widget.onTaskChanged == null
-                          ? null
-                          : (value) => _toggleReminder(reminder, value),
+                  onChanged: widget.onTaskChanged == null
+                      ? null
+                      : (value) => _toggleDraftReminder(reminder, value),
                   title: Text(reminder.title),
                   subtitle: Text(reminder.isAllDay ? _date(reminder.date) : _dateTime(reminder.date)),
                   secondary: Icon(Icons.notifications_outlined, color: reminder.isEnabled ? ArvinColors.reminder : _muted),
                 ),
               ),
-              if (_isInlineEditing) ...[
+              if (widget.onTaskChanged != null) ...[
                 IconButton(
                   key: ValueKey('task-detail-reminder-edit-title-${reminder.id}'),
                   tooltip: 'ویرایش عنوان یادآور',
@@ -1976,10 +1977,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     final history = List<FollowUp>.of(_task.followUps)
       ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
     final now = widget.now ?? DateTime.now();
-    final due = _isInlineEditing ? _draftDueDate : _task.dueDate;
+    final due = _task.dueDate;
     final dueToday = due != null &&
         due.year == now.year && due.month == now.month && due.day == now.day;
-    final priority = _isInlineEditing ? _draftPriority : _task.priority;
+    final priority = _task.priority;
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -2138,13 +2139,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                             value: _task.taskReminders.isEmpty
                                 ? 'یادآور مستقلی ثبت نشده'
                                 : '${_task.taskReminders.length} یادآور ثبت شده',
-                            onTap: widget.onTaskChanged == null
-                                ? null
-                                : () async {
-                                    if (!_isInlineEditing) _beginInlineEdit();
-                                    await _addInlineReminder();
-                                    if (mounted && _isInlineEditing) await _saveInlineEdit();
-                                  },
+                            onTap: widget.onTaskChanged == null ? null : _addInlineReminder,
                           ),
                           const Divider(height: 1),
                           _dueDateCard(),
@@ -2220,7 +2215,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                             const SizedBox(height: 8),
                             OutlinedButton.icon(
                               key: const ValueKey('task-detail-delete-footer'),
-                              onPressed: _isInlineEditing ? null : _deleteTask,
+                              onPressed: _deleteTask,
                               style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFFD04444)),
                               icon: const Icon(Icons.delete_outline),
                               label: const Text('حذف کار'),
@@ -2243,7 +2238,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               Expanded(
                 child: OutlinedButton.icon(
                   key: const ValueKey('task-detail-add-followup-bottom'),
-                  onPressed: _isInlineEditing || widget.onAddFollowUp == null ? null : _addFollowUp,
+                  onPressed: widget.onAddFollowUp == null ? null : _addFollowUp,
                   icon: const Icon(Icons.add_comment_outlined),
                   label: const Text('افزودن پیگیری'),
                 ),
@@ -2252,7 +2247,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               Expanded(
                 child: FilledButton.icon(
                   key: const ValueKey('task-detail-complete'),
-                  onPressed: _isInlineEditing || widget.onComplete == null ? null : _complete,
+                  onPressed: widget.onComplete == null ? null : _complete,
                   icon: Icon(_task.completed ? Icons.undo : Icons.check_circle_outline),
                   label: Text(_task.completed ? 'بازگشت به انجام‌نشده' : 'انجام کار'),
                 ),
