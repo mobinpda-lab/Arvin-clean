@@ -36,12 +36,6 @@ dev_dependencies:
 
 # Keep sqlite3's upstream SHA-256 verification enabled while avoiding
 # stale proxy/CDN responses for immutable release assets.
-hooks:
-  user_defines:
-    sqlite3:
-      # The mirror is transport-only; sqlite3 still checks the upstream release SHA-256.
-      url_pattern: "https://ghfast.top/https://github.com/simolus3/sqlite3.dart/releases/download/$RELEASE_TAG/$FILENAME"
-
 flutter:
   uses-material-design: true
   assets:
