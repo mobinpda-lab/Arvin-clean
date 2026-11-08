@@ -19,22 +19,22 @@ abstract final class ArvinColors {
   static const shadowDark = Color(0x40000000);
 
   // Dark theme semantic tokens.
-  static const darkPrimary = Color(0xFF5AD6D0);
-  static const darkOnPrimary = Color(0xFF003738);
-  static const darkSecondary = Color(0xFF9BE7E2);
+  static const darkPrimary = Color(0xFF3A86EF);
+  static const darkOnPrimary = Color(0xFFFFFFFF);
+  static const darkSecondary = Color(0xFFA9CCFF);
   static const darkError = Color(0xFFFFB4AB);
   static const darkSurface = Color(0xFF25283A);
   static const darkBorder = Color(0xFF41465B);
   static const darkDivider = Color(0xFF555B70);
   static const darkOutline = Color(0xFF656B80);
 
-  // Brand and grouping accents use the approved light-turquoise system.
-  static const groupingTomorrow = Color(0xFF078B91);
+  // Brand and grouping accents use the approved blue system.
+  static const groupingTomorrow = Color(0xFF3A86EF);
   static const groupingFuture = Color(0xFF078B91);
-  static const groupingTodaySoft = Color(0xFFDDF7F5);
+  static const groupingTodaySoft = Color(0xFFEAF2FF);
   static const groupingTomorrowSoft = Color(0xFFDDF7F5);
   static const groupingFutureSoft = Color(0xFFDDF7F5);
-  static const groupingNoDateSoft = Color(0xFFF0FAF9);
+  static const groupingNoDateSoft = Color(0xFFF8F8FB);
   static const taskStatusGreen = Color(0xFF409B51);
   static const taskStatusAmber = Color(0xFFDB8B23);
 
@@ -80,8 +80,8 @@ abstract final class ArvinColors {
   static const calendarOverdueSoft = Color(0xFFFEF2F2);
   static const calendarSelectedDay = ArvinTheme.primarySoft;
   static const priorityP1 = Color(0xFFDC2626);
-  static const priorityP2 = Color(0xFF2563EB);
-  static const priorityP3 = Color(0xFFD97706);
+  static const priorityP2 = Color(0xFFD97706);
+  static const priorityP3 = Color(0xFF2563EB);
   static const priorityP4 = Color(0xFF80829C);
 
   static Color priorityColor(TaskPriority priority) => switch (priority) {
