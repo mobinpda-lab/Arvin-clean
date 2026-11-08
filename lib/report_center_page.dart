@@ -218,11 +218,7 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
     setState(() => _filter = result.filter);
     if (result.openCompletedFollowUpReport) {
       final followUpFilter = result.filter.copyWith(
-        timePreset: ReportTimePreset.all,
-        clearFromDate: true,
-        clearToDate: true,
-        clearFromTime: true,
-        clearToTime: true,
+        hasFollowUp: result.filter.hasFollowUp ?? true,
       );
       final followUpTasks = followUpFilter.apply(
         widget.tasks,
@@ -234,6 +230,9 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
         builder: (_) => CompletedFollowUpReportDialog(
           tasks: followUpTasks,
           people: _peopleDirectory,
+          projects: widget.projects,
+          filter: followUpFilter,
+          now: _now,
           initialDay: _now.toLocal(),
         ),
       );
@@ -1964,11 +1963,17 @@ class CompletedFollowUpReportDialog extends StatefulWidget {
     super.key,
     required this.tasks,
     required this.people,
+    required this.projects,
+    required this.filter,
+    required this.now,
     required this.initialDay,
   });
 
   final List<Task> tasks;
   final List<PersonReference> people;
+  final List<ProjectPlan> projects;
+  final TaskReportFilter filter;
+  final DateTime now;
   final DateTime initialDay;
 
   @override
@@ -1991,10 +1996,25 @@ class _CompletedFollowUpReportDialogState
     _selectedDay = DateTime(local.year, local.month, local.day);
   }
 
+  bool get _hasExplicitTimeFilter =>
+      widget.filter.timePreset != ReportTimePreset.all ||
+      widget.filter.fromDate != null ||
+      widget.filter.toDate != null ||
+      widget.filter.fromTime != null ||
+      widget.filter.toTime != null;
+
   List<CompletedFollowUpReportRow> get _rows {
     try {
       _failed = false;
-      return _projection.forLocalDay(widget.tasks, _selectedDay);
+      final source = _hasExplicitTimeFilter
+          ? _projection.all(widget.tasks)
+          : _projection.forLocalDay(widget.tasks, _selectedDay);
+      return source.where((row) => widget.filter.matchesFollowUpRecord(
+        row.task,
+        row.followUp,
+        now: widget.now,
+        projects: widget.projects,
+      )).toList(growable: false);
     } catch (_) {
       _failed = true;
       return const <CompletedFollowUpReportRow>[];
@@ -2101,12 +2121,13 @@ class _CompletedFollowUpReportDialogState
                   ],
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Row(
-                  children: [
-                    IconButton(
-                      key: const ValueKey('completed-follow-up-previous-day'),
+              if (!_hasExplicitTimeFilter)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        key: const ValueKey('completed-follow-up-previous-day'),
                       tooltip: 'روز قبل',
                       onPressed: () => _shiftDay(-1),
                       icon: const Icon(Icons.chevron_right),
@@ -2139,7 +2160,15 @@ class _CompletedFollowUpReportDialogState
                     ),
                   ],
                 ),
-              ),
+              )
+              else
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Text('بازهٔ زمانی انتخاب‌شده در فیلتر گزارش اعمال شده است'),
+                  ),
+                ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
                 child: Align(
