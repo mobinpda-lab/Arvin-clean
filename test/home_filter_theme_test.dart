@@ -39,7 +39,6 @@ void main() {
     final material = tester.widget<Material>(
       find.descendant(of: pill, matching: find.byType(Material)).first,
     );
-    final scheme = _theme().colorScheme;
     expect(tester.getSize(pill).height, 48);
     expect(material.color, Color.alphaBlend(Colors.deepPurple.withAlpha(18), Colors.white));
     final shape = material.shape! as StadiumBorder;
