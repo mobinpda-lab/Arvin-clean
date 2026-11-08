@@ -50,6 +50,29 @@ class TaskListSortService {
     return indexed.map((entry) => entry.value).toList(growable: false);
   }
 
+  /// Canonical Home order: Eisenhower priority first, then task creation
+  /// timestamp from oldest to newest. Missing creation timestamps stay last.
+  /// The source iterable is never mutated.
+  List<Task> sortByPriorityThenCreatedAt(Iterable<Task> tasks) {
+    final indexed = tasks.toList(growable: false).asMap().entries.toList();
+    indexed.sort((left, right) {
+      final priorityComparison = left.value.priority.sortOrder.compareTo(
+        right.value.priority.sortOrder,
+      );
+      if (priorityComparison != 0) return priorityComparison;
+      final createdComparison = _compareNullableDate(
+        left.value.createdAt,
+        right.value.createdAt,
+        descending: false,
+      );
+      if (createdComparison != 0) return createdComparison;
+      final idComparison = left.value.id.compareTo(right.value.id);
+      if (idComparison != 0) return idComparison;
+      return left.key.compareTo(right.key);
+    });
+    return indexed.map((entry) => entry.value).toList(growable: false);
+  }
+
   /// Past tasks are grouped by completion state first, then by due date.
   /// Oldest overdue work is shown first within each completion group.
   List<Task> sortPast(Iterable<Task> tasks) {
