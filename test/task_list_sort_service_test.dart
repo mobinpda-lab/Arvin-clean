@@ -34,6 +34,36 @@ void main() {
     expect(const TaskListSortService().sort([p4, p2, p3, p1], by: TaskListSort.date), [p1, p2, p3, p4]);
   });
 
+  test('canonical Home sort uses Eisenhower priority then oldest creation date', () {
+    final oldestHigh = task(
+      'oldest-high',
+      createdAt: DateTime(2026, 8, 1),
+      priority: TaskPriority.high,
+    );
+    final newestHigh = task(
+      'newest-high',
+      createdAt: DateTime(2026, 8, 9),
+      priority: TaskPriority.high,
+    );
+    final olderMedium = task(
+      'older-medium',
+      createdAt: DateTime(2026, 7, 1),
+      priority: TaskPriority.medium,
+    );
+    final missingCreation = task('missing-creation', priority: TaskPriority.medium);
+    final source = <Task>[
+      missingCreation,
+      olderMedium,
+      newestHigh,
+      oldestHigh,
+    ];
+
+    final result = const TaskListSortService().sortByPriorityThenCreatedAt(source);
+
+    expect(result, <Task>[oldestHigh, newestHigh, olderMedium, missingCreation]);
+    expect(source, <Task>[missingCreation, olderMedium, newestHigh, oldestHigh]);
+  });
+
   test('date sort supports both directions and keeps undated items last', () {
     final early = task('early', dueDate: DateTime(2026, 8, 28, 8));
     final late = task('late', dueDate: DateTime(2026, 8, 29, 8));
