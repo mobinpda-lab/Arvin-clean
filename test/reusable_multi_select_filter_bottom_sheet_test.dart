@@ -42,12 +42,12 @@ void main() {
 
     expect(savedName, 'شخصی');
     final createdTile = tester.widget<CheckboxListTile>(
-      find.widgetWithText(CheckboxListTile, 'شخصی'),
+      find.byKey(const ValueKey('multi-select-option-new-شخصی')),
     );
     expect(createdTile.value, isTrue);
     expect(find.text('انتخاب‌شده: 1'), findsOneWidget);
 
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'کاری'));
+    await tester.tap(find.byKey(const ValueKey('multi-select-option-work')));
     await tester.pumpAndSettle();
     expect(find.text('انتخاب‌شده: 2'), findsOneWidget);
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
