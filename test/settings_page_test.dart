@@ -77,6 +77,18 @@ void main() {
       TaskSwipeAction.archive,
     );
 
+    await tester.tap(find.byKey(const ValueKey('swipe-right-action')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('کارهای برگزیدهٔ امروز').last);
+    await tester.pumpAndSettle();
+    expect((await service.load()).swipeRightAction, TaskSwipeAction.focusToday);
+
+    await tester.tap(find.byKey(const ValueKey('swipe-left-action')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('کارهای برگزیدهٔ امروز').last);
+    await tester.pumpAndSettle();
+    expect((await service.load()).swipeLeftAction, TaskSwipeAction.focusToday);
+
     await tester.tap(find.text('تیره'));
     await tester.pumpAndSettle();
     expect((await service.load()).themeMode, ThemeMode.dark);
