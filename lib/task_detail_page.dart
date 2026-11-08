@@ -1983,6 +1983,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           child: Column(
             children: [
               Material(
+                key: const ValueKey('task-detail-app-bar'),
                 color: Theme.of(context).colorScheme.primary,
                 child: Padding(
                   padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 8, 18),
