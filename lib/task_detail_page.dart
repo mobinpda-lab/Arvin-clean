@@ -663,7 +663,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
   Future<void> _openInlineTagSelector() async {
     final current = _task.tags
-        .split('،')
         .map((value) => value.trim())
         .where((value) => value.isNotEmpty)
         .toSet();
