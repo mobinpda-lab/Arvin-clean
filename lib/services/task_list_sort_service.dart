@@ -66,8 +66,7 @@ class TaskListSortService {
         descending: false,
       );
       if (createdComparison != 0) return createdComparison;
-      final idComparison = left.value.id.compareTo(right.value.id);
-      if (idComparison != 0) return idComparison;
+      // When priority and creation time are identical, preserve source order.
       return left.key.compareTo(right.key);
     });
     return indexed.map((entry) => entry.value).toList(growable: false);
