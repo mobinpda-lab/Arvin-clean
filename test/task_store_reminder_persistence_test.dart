@@ -70,6 +70,30 @@ void main() {
     expect(loaded.single.reminderDate, isNull);
   });
 
+  test('TaskStore round-trip persists favorite state in the canonical SQLite column', () async {
+    final executor = NativeDatabase.memory();
+    await G1DriftSchema.install(executor);
+    await G1DriftSchema.markLegacyMigrationComplete(executor);
+    final store = TaskStore(executor: executor);
+    try {
+      final task = Task(id: 'store-favorite-1', title: 'کار موردعلاقه');
+      expect(task.isFavorite, isFalse);
+      task.isFavorite = true;
+
+      await store.save([task]);
+
+      final rows = await executor.runSelect(
+        'SELECT is_favorite FROM tasks WHERE id = ?',
+        const <Object?>['store-favorite-1'],
+      );
+      expect(rows.single['is_favorite'], 1);
+      final loaded = (await store.load()).single;
+      expect(loaded.isFavorite, isTrue);
+    } finally {
+      await executor.close();
+    }
+  });
+
   test('TaskStore updates and removes a migrated legacy reminder', () async {
     SharedPreferences.setMockInitialValues({});
     final store = TaskStore();
