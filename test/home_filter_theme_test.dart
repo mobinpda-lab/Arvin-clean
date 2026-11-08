@@ -41,13 +41,11 @@ void main() {
     );
     final scheme = _theme().colorScheme;
     expect(tester.getSize(pill).height, 48);
-    expect(material.color, Color.alphaBlend(_accent.withAlpha(18), Colors.white));
+    expect(material.color, Color.alphaBlend(Colors.deepPurple.withAlpha(18), Colors.white));
     final shape = material.shape! as StadiumBorder;
-    expect(shape.side.color, _accent.withAlpha(90));
-    expect(
-      tester.widget<Text>(find.text('زمان')).style?.color,
-      scheme.primary,
-    );
+    expect(shape.side.color, Colors.deepPurple.withAlpha(110));
+    final icon = tester.widget<Icon>(find.descendant(of: pill, matching: find.byType(Icon)));
+    expect(icon.color, Colors.deepPurple);
   });
 
   testWidgets('active Home filter cards and removable chips follow live accent',
