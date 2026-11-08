@@ -745,7 +745,19 @@ class TaskStore {
             })
         .toList(growable: false);
 
-    return Task.fromJson(envelope);
+    final task = Task.fromJson(envelope);
+    // Convert the legacy timeless boolean exactly once. Persist the canonical
+    // date-only value during the first read so it cannot be reinterpreted as
+    // a fresh selection on every subsequent local day.
+    if (envelope.containsKey('isSelectedForToday') &&
+        envelope['focusDate'] is! String) {
+      final canonical = _canonicalEnvelope(task, previousPayload: envelope);
+      await executor.runUpdate(
+        'UPDATE tasks SET legacy_payload_json = ? WHERE id = ?',
+        <Object?>[jsonEncode(canonical), task.id],
+      );
+    }
+    return task;
   }
 
   Map<String, dynamic> _decodeEnvelope(Object? raw) {
