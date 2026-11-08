@@ -44,6 +44,7 @@ import 'services/system_calendar_bridge.dart';
 
 import 'services/home_list_projection.dart';
 import 'services/today_focus_projection.dart';
+import 'widgets/today_focus_toggle_button.dart';
 import 'services/home_search_projection.dart';
 import 'services/home_task_filter_matcher.dart';
 import 'services/home_follow_up_presentation_service.dart';
@@ -3652,24 +3653,12 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 if (!selectionMode) ...[
-                  IconButton(
+                  TodayFocusToggleButton(
                     key: ValueKey('task-card-today-focus-${task.id}'),
-                    tooltip: task.isSelectedForToday
-                        ? 'برداشتن از برگزیده‌های امروز'
-                        : 'افزودن به برگزیده‌های امروز',
-                    constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-                    visualDensity: VisualDensity.compact,
+                    selected: task.isSelectedForToday,
                     onPressed: task.archived || task.trashed
                         ? null
                         : () => _toggleTodayFocus(task),
-                    icon: Icon(
-                      task.isSelectedForToday
-                          ? Icons.push_pin_rounded
-                          : Icons.push_pin_outlined,
-                      color: task.isSelectedForToday
-                          ? colors.primary
-                          : colors.onSurfaceVariant,
-                    ),
                   ),
                   IconButton(
                     key: ValueKey('task-card-details-${task.id}'),
