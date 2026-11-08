@@ -1569,6 +1569,38 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     );
   }
 
+  Widget _templateSourceCard() {
+    final templateId = _task.templateTaskId?.trim();
+    if (templateId == null || templateId.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    final snapshot = widget.project?.templateId == templateId
+        ? widget.project?.templateNameSnapshot?.trim()
+        : null;
+    return _card(
+      key: const ValueKey('task_detail_template_source_card'),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.copy_all_outlined, color: _brand),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _sectionTitle('منشأ الگو', Icons.description_outlined),
+                const SizedBox(height: 5),
+                Text(snapshot?.isNotEmpty == true
+                    ? snapshot!
+                    : 'شناسه الگو: $templateId'),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _metadataCard() => _organizationCard();
 
   Widget _remindersCard() {
@@ -1937,6 +1969,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     final history = List<FollowUp>.of(_task.followUps)
       ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
     final now = widget.now ?? DateTime.now();
+    final due = _isInlineEditing ? _draftDueDate : _task.dueDate;
     final dueToday = due != null &&
         due.year == now.year && due.month == now.month && due.day == now.day;
     final priority = _isInlineEditing ? _draftPriority : _task.priority;
@@ -1982,6 +2015,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                 : (_isInlineEditing ? _saveInlineEdit : _beginInlineEdit),
                             icon: Icon(_isInlineEditing ? Icons.save_outlined : Icons.edit_outlined),
                           ),
+                          if (_isInlineEditing)
+                            IconButton(
+                              key: const ValueKey('task-detail-inline-edit-cancel'),
+                              tooltip: 'لغو ویرایش',
+                              color: Colors.white,
+                              onPressed: _cancelInlineEdit,
+                              icon: const Icon(Icons.close),
+                            ),
                           IconButton(
                             key: const ValueKey('task-detail-convert-template'),
                             tooltip: 'تبدیل به الگو',
@@ -2036,9 +2077,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                       child: Text(value.label),
                                     ))
                                 .toList(growable: false),
-                            child: const Padding(
-                              padding: EdgeInsets.all(10),
-                              child: Icon(Icons.star_outline_rounded, color: Colors.white, size: 27),
+                            child: _metadataChip(
+                              priority.label,
+                              ArvinColors.priorityColor(priority),
+                              icon: Icons.flag_outlined,
                             ),
                           ),
                           IconButton(
