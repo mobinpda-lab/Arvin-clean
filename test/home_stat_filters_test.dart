@@ -275,4 +275,32 @@ void main() {
     }
   });
 
+  testWidgets('calendar Today includes due-today and overdue open work, not Focus-only future work',
+      (tester) async {
+    final now = IranClock.now();
+    final today = DateTime(now.year, now.month, now.day, 10);
+    final yesterday = DateTime(now.year, now.month, now.day)
+        .subtract(const Duration(days: 1))
+        .add(const Duration(hours: 10));
+    final tomorrow = DateTime(now.year, now.month, now.day)
+        .add(const Duration(days: 1))
+        .add(const Duration(hours: 10));
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"calendar-today","title":"موعد امروز","dueDate":"${today.toIso8601String()}"},{"id":"calendar-overdue","title":"کار عقب‌افتاده","dueDate":"${yesterday.toIso8601String()}"},{"id":"calendar-completed-overdue","title":"گذشته انجام‌شده","dueDate":"${yesterday.toIso8601String()}","completed":true},{"id":"calendar-focus-future","title":"فقط برگزیدهٔ آینده","dueDate":"${tomorrow.toIso8601String()}","isSelectedForToday":true}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('home-general-filter-button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ListTile, 'امروز'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('موعد امروز'), findsOneWidget);
+    expect(find.text('کار عقب‌افتاده'), findsOneWidget);
+    expect(find.text('گذشته انجام‌شده'), findsNothing);
+    expect(find.text('فقط برگزیدهٔ آینده'), findsNothing);
+  });
+
 }
