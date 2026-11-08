@@ -340,7 +340,11 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
               ChoiceChip(
                 label: Text(entry.$2),
                 selected: preset == entry.$1,
-                onSelected: (_) => setSheetState(() => preset = entry.$1),
+                onSelected: (_) => setSheetState(() {
+                  preset = entry.$1;
+                  from = null;
+                  to = null;
+                }),
               ),
           ]),
           Row(children: [
