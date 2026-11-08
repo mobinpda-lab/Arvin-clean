@@ -43,6 +43,7 @@ import 'services/external_calendar_link_store.dart';
 import 'services/system_calendar_bridge.dart';
 
 import 'services/home_list_projection.dart';
+import 'services/today_focus_projection.dart';
 import 'services/home_search_projection.dart';
 import 'services/home_task_filter_matcher.dart';
 import 'services/home_follow_up_presentation_service.dart';
@@ -546,6 +547,7 @@ class _HomePageState extends State<HomePage> {
   final ScrollController _homeScrollController = ScrollController();
   final Set<String> _expandedTaskIds = <String>{};
   bool _hideBottomNavigation = false;
+  bool _todayFocusOnly = false;
 
   List<Task> tasks = [];
   List<String> _categoryCatalog = const <String>[];
@@ -771,6 +773,7 @@ class _HomePageState extends State<HomePage> {
 
   bool get _homeFilterActive =>
       query.trim().isNotEmpty ||
+      _todayFocusOnly ||
       _timeFilters.isNotEmpty ||
       _timeFilter == 'customRange' ||
       _centerFilters.isNotEmpty ||
@@ -836,6 +839,9 @@ class _HomePageState extends State<HomePage> {
     final searchActive = query.trim().isNotEmpty;
     final matchingIds = searchActive ? homeSearchProjection.matchingIds(_searchSource, query) : null;
     Iterable<Task> scoped = tasks;
+    if (_todayFocusOnly) {
+      scoped = const TodayFocusProjection().select(scoped);
+    }
     if (filter == 'کل') {
       scoped = scoped.where((task) => !task.archived && !task.trashed);
     } else if (filter == 'فعال') {
@@ -889,6 +895,13 @@ class _HomePageState extends State<HomePage> {
   List<HomeGroup<Task>> get _homeGroups {
     if (filter == 'بایگانی' || filter == 'سطل زباله') {
       return [HomeGroup<Task>(id: 'filtered', title: filter, items: visible)];
+    }
+    if (_todayFocusOnly) {
+      return [HomeGroup<Task>(
+        id: 'today_focus',
+        title: 'کارهای برگزیدهٔ امروز',
+        items: visible,
+      )];
     }
     if (_timeFilters.contains('past')) {
       return [
@@ -1163,6 +1176,7 @@ class _HomePageState extends State<HomePage> {
 
   void _clearHomeFilters() {
     setState(() {
+      _todayFocusOnly = false;
       _timeFilter = 'all';
       _timeFilters.clear();
       _specificDateFilter = null;
@@ -1471,7 +1485,9 @@ class _HomePageState extends State<HomePage> {
           Icon(Icons.inbox_outlined, size: compactHome ? 34 : 42, color: ArvinColors.neutral),
           SizedBox(height: compactHome ? 8 : 12),
           Text(
-            (filter == 'سطل زباله' || filter == 'بایگانی')
+            _todayFocusOnly
+                ? 'هنوز کاری برای تمرکز امروز انتخاب نشده است'
+                : (filter == 'سطل زباله' || filter == 'بایگانی')
                 ? _emptyVisibleLabel
                 : (_timeFilters.contains('today') && filter == 'فعال'
                     ? 'کاری برای امروز وجود ندارد'
@@ -2217,6 +2233,7 @@ class _HomePageState extends State<HomePage> {
 
   void _selectHomeStat(String nextFilter) {
     setState(() {
+      _todayFocusOnly = false;
       _listScope = TaskListScope.all;
       _categoryFilters.clear();
       _projectFilters.clear();
@@ -2243,8 +2260,39 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  void _selectTodayFocus() {
+    setState(() {
+      filter = 'فعال';
+      _listScope = TaskListScope.all;
+      _dueScope = null;
+      _todayFocusOnly = true;
+      _timeFilter = 'all';
+      _timeFilters.clear();
+      _specificDateFilter = null;
+      selected.clear();
+      selectionMode = false;
+    });
+  }
+
+  Future<void> _toggleTodayFocus(Task task) async {
+    final previous = task.isSelectedForToday;
+    setState(() => task.isSelectedForToday = !previous);
+    try {
+      await _save();
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => task.isSelectedForToday = previous);
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('ذخیرهٔ انتخاب امروز انجام نشد؛ دوباره تلاش کنید')),
+        );
+    }
+  }
+
   void _selectListScope(TaskListScope scope) {
     setState(() {
+      _todayFocusOnly = false;
       filter = 'کل';
       _listScope = scope;
       _dueScope = null;
@@ -2256,6 +2304,7 @@ class _HomePageState extends State<HomePage> {
 
   void _selectDueScope(TaskDueScope scope) {
     setState(() {
+      _todayFocusOnly = false;
       filter = 'کل';
       _listScope = TaskListScope.all;
       _dueScope = scope;
@@ -2973,6 +3022,12 @@ class _HomePageState extends State<HomePage> {
               onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.today),
             ),
             ListTile(
+              key: const ValueKey('home-filter-today-focus'),
+              leading: const Icon(Icons.push_pin_outlined),
+              title: const Text('کارهای برگزیدهٔ امروز'),
+              onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.todayFocus),
+            ),
+            ListTile(
               leading: const Icon(Icons.event_busy_outlined),
               title: const Text('کارهای فاقد زمان'),
               onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.undated),
@@ -2995,6 +3050,9 @@ class _HomePageState extends State<HomePage> {
     switch (action) {
       case _HomeMoreAction.today:
         _selectHomeStat('امروز');
+        return;
+      case _HomeMoreAction.todayFocus:
+        _selectTodayFocus();
         return;
       case _HomeMoreAction.undated:
         _selectDueScope(TaskDueScope.undated);
@@ -3583,7 +3641,26 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                 ),
-                if (!selectionMode)
+                if (!selectionMode) ...[
+                  IconButton(
+                    key: ValueKey('task-card-today-focus-${task.id}'),
+                    tooltip: task.isSelectedForToday
+                        ? 'برداشتن از برگزیده‌های امروز'
+                        : 'افزودن به برگزیده‌های امروز',
+                    constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                    visualDensity: VisualDensity.compact,
+                    onPressed: task.archived || task.trashed
+                        ? null
+                        : () => _toggleTodayFocus(task),
+                    icon: Icon(
+                      task.isSelectedForToday
+                          ? Icons.push_pin_rounded
+                          : Icons.push_pin_outlined,
+                      color: task.isSelectedForToday
+                          ? colors.primary
+                          : colors.onSurfaceVariant,
+                    ),
+                  ),
                   IconButton(
                     key: ValueKey('task-card-details-${task.id}'),
                     tooltip: 'جزئیات کامل کار',
@@ -3591,6 +3668,7 @@ class _HomePageState extends State<HomePage> {
                     onPressed: () => _openTaskDetail(task),
                     icon: const Icon(Icons.open_in_new_rounded, size: 19),
                   ),
+                ],
               ],
             ),
             AnimatedSize(
@@ -3914,6 +3992,7 @@ class _HomePageState extends State<HomePage> {
 
 enum _HomeMoreAction {
   report,
+  todayFocus,
   quickCapture,
   myTasks,
   today,
