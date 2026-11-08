@@ -32,6 +32,21 @@ void main() {
     expect(find.text('ثبت پیگیری'), findsOneWidget);
   });
 
+  testWidgets('follow-up office exposes the shared five filter dimensions', (tester) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    await tester.pumpWidget(const MaterialApp(home: FollowUpOfficePage()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('follow-up-office-filters')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('زمان'), findsOneWidget);
+    expect(find.text('مرکز'), findsOneWidget);
+    expect(find.text('پروژه'), findsOneWidget);
+    expect(find.text('دسته'), findsOneWidget);
+    expect(find.text('برچسب'), findsOneWidget);
+  });
+
   testWidgets('adds and persists a follow-up for the only task',
       (tester) async {
     SharedPreferences.setMockInitialValues({
