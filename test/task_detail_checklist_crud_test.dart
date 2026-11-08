@@ -6,6 +6,37 @@ import 'package:arvin/models/task.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:arvin/task_detail_page.dart';
 
+Future<void> _scrollTaskDetailUntilVisible(
+  WidgetTester tester,
+  Finder target,
+  double delta,
+) async {
+  final list = tester.widget<ListView>(
+    find.byKey(const ValueKey('task-detail-content-list')),
+  );
+  final controller = list.controller!;
+  expect(controller.hasClients, isTrue);
+
+  for (var pass = 0; pass < 2 && target.evaluate().isEmpty; pass++) {
+    for (var step = 0; step < 40 && target.evaluate().isEmpty; step++) {
+      final max = controller.position.maxScrollExtent;
+      if (controller.offset >= max - 0.5) break;
+      final next = (controller.offset + delta).clamp(0.0, max).toDouble();
+      if (next <= controller.offset) break;
+      controller.jumpTo(next);
+      await tester.pumpAndSettle();
+    }
+    if (target.evaluate().isEmpty && pass == 0 && controller.offset > 0) {
+      controller.jumpTo(0);
+      await tester.pumpAndSettle();
+    }
+  }
+
+  expect(target, findsOneWidget);
+  await tester.ensureVisible(target);
+  await tester.pumpAndSettle();
+}
+
 void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({'arvin.tasks': '[]'});
@@ -66,14 +97,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final detailScrollable = find.descendant(
-        of: find.byKey(const ValueKey('task-detail-content-list')),
-        matching: find.byWidgetPredicate(
-          (widget) => widget is Scrollable && widget.axisDirection == AxisDirection.down,
-        ),
-      ).first;
       final addChecklist = find.byKey(const ValueKey('task-detail-add-checklist'));
-      await tester.scrollUntilVisible(addChecklist, 240, scrollable: detailScrollable);
+      await _scrollTaskDetailUntilVisible(tester, addChecklist, 240);
       await tester.pumpAndSettle();
       await tester.tap(addChecklist);
       await tester.pumpAndSettle();

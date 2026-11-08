@@ -9,18 +9,14 @@ import 'package:arvin/models/person_reference.dart';
 import 'package:arvin/services/persian_date_formatter.dart';
 import 'package:arvin/task_detail_page.dart';
 
-Finder _taskDetailPageScrollable(WidgetTester tester) {
-  final pageScrollable = find.descendant(
-    of: find.byKey(const ValueKey('task-detail-content-list')),
-    matching: find.byWidgetPredicate(
-      (widget) => widget is Scrollable && widget.axisDirection == AxisDirection.down,
-    ),
-  ).first;
-  expect(pageScrollable, findsOneWidget);
-  final state = tester.state<ScrollableState>(pageScrollable);
-  expect(state.position.axisDirection, AxisDirection.down);
-  expect(state.position.maxScrollExtent, greaterThan(0));
-  return pageScrollable;
+ScrollController _taskDetailPageController(WidgetTester tester) {
+  final list = tester.widget<ListView>(
+    find.byKey(const ValueKey('task-detail-content-list')),
+  );
+  final controller = list.controller!;
+  expect(controller.hasClients, isTrue);
+  expect(controller.position.maxScrollExtent, greaterThan(0));
+  return controller;
 }
 
 void main() {
@@ -62,9 +58,9 @@ void main() {
         },
       ),
     ));
-    final scrollable = _taskDetailPageScrollable(tester);
+    final scrollController = _taskDetailPageController(tester);
     final dueCard = find.byKey(const ValueKey('task-detail-due-date-card'));
-    await tester.scrollUntilVisible(dueCard, 240, scrollable: scrollable);
+    await _scrollTaskDetailUntilVisible(tester, dueCard, 240);
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('task-detail-due-date-card')), findsOneWidget);
@@ -86,8 +82,7 @@ void main() {
     expect(persisted?.dueDate, DateTime(2026, 11, 20, 11, 45));
     expect(persisted?.allDay, isFalse);
 
-    final allDayScrollable = _taskDetailPageScrollable(tester);
-    await tester.scrollUntilVisible(dueCard, 240, scrollable: allDayScrollable);
+        await _scrollTaskDetailUntilVisible(tester, dueCard, 240);
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('task-detail-due-date-card')));
     await tester.pumpAndSettle();
@@ -112,9 +107,8 @@ void main() {
         },
       ),
     ));
-    final scrollable = _taskDetailPageScrollable(tester);
-    final addReminder = find.byKey(const ValueKey('task-detail-add-reminder'));
-    await tester.scrollUntilVisible(addReminder, 240, scrollable: scrollable);
+        final addReminder = find.byKey(const ValueKey('task-detail-add-reminder'));
+    await _scrollTaskDetailUntilVisible(tester, addReminder, 240);
     await tester.pumpAndSettle();
     await tester.tap(addReminder);
     await tester.pumpAndSettle();
@@ -155,9 +149,8 @@ void main() {
       ),
     ));
     await tester.pumpAndSettle();
-    final scrollable = _taskDetailPageScrollable(tester);
-    final editTitle = find.byKey(const ValueKey('task-detail-reminder-edit-title-reminder-edit-1'));
-    await tester.scrollUntilVisible(editTitle, 240, scrollable: scrollable);
+        final editTitle = find.byKey(const ValueKey('task-detail-reminder-edit-title-reminder-edit-1'));
+    await _scrollTaskDetailUntilVisible(tester, editTitle, 240);
     await tester.pumpAndSettle();
     await tester.tap(editTitle);
     await tester.pumpAndSettle();
@@ -201,9 +194,8 @@ void main() {
       ),
     ));
     await tester.pumpAndSettle();
-    final scrollable = _taskDetailPageScrollable(tester);
-    final remove = find.byKey(const ValueKey('task-detail-reminder-remove-reminder-delete-1'));
-    await tester.scrollUntilVisible(remove, 240, scrollable: scrollable);
+        final remove = find.byKey(const ValueKey('task-detail-reminder-remove-reminder-delete-1'));
+    await _scrollTaskDetailUntilVisible(tester, remove, 240);
     await tester.pumpAndSettle();
     await tester.tap(remove);
     await tester.pumpAndSettle();
@@ -237,11 +229,10 @@ void main() {
       ),
     ));
     await tester.pumpAndSettle();
-    final scrollable = _taskDetailPageScrollable(tester);
-    final editSchedule = find.byKey(
+        final editSchedule = find.byKey(
       const ValueKey('task-detail-reminder-edit-schedule-reminder-schedule-1'),
     );
-    await tester.scrollUntilVisible(editSchedule, 240, scrollable: scrollable);
+    await _scrollTaskDetailUntilVisible(tester, editSchedule, 240);
     await tester.pumpAndSettle();
     await tester.tap(editSchedule);
     await tester.pumpAndSettle();
@@ -278,9 +269,8 @@ void main() {
       ),
     ));
 
-    final scrollable = _taskDetailPageScrollable(tester);
-    final addRule = find.byKey(const ValueKey('task-detail-recurrence-add'));
-    await tester.scrollUntilVisible(addRule, 240, scrollable: scrollable);
+        final addRule = find.byKey(const ValueKey('task-detail-recurrence-add'));
+    await _scrollTaskDetailUntilVisible(tester, addRule, 240);
     await tester.pumpAndSettle();
     await tester.tap(addRule);
     await tester.pumpAndSettle();
@@ -343,9 +333,8 @@ void main() {
       find.descendant(of: summary, matching: find.text('در انتظار پاسخ')),
       findsOneWidget,
     );
-    final scrollable = _taskDetailPageScrollable(tester);
-    final latest = find.byKey(const ValueKey('task-detail-latest-followup'));
-    await tester.scrollUntilVisible(latest, 240, scrollable: scrollable);
+        final latest = find.byKey(const ValueKey('task-detail-latest-followup'));
+    await _scrollTaskDetailUntilVisible(tester, latest, 240);
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('task-detail-latest-followup-title')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-latest-followup-note')), findsOneWidget);
@@ -360,7 +349,7 @@ void main() {
     expect(find.text('در انتظار پاسخ'), findsAtLeastNWidgets(1));
 
     final timeline = find.byKey(const ValueKey('task-detail-timeline'));
-    await tester.scrollUntilVisible(timeline, 240, scrollable: scrollable);
+    await _scrollTaskDetailUntilVisible(tester, timeline, 240);
     await tester.pumpAndSettle();
     final newest = find.text('تماس با مشتری').last;
     final older = find.text('پیگیری قبلی');
@@ -391,9 +380,8 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    final scrollable = _taskDetailPageScrollable(tester);
-    final moveDown = find.byKey(const ValueKey('task-detail-checklist-down-0'));
-    await tester.scrollUntilVisible(moveDown, 240, scrollable: scrollable);
+        final moveDown = find.byKey(const ValueKey('task-detail-checklist-down-0'));
+    await _scrollTaskDetailUntilVisible(tester, moveDown, 240);
     await tester.pumpAndSettle();
     await tester.tap(moveDown);
     await tester.pumpAndSettle();
@@ -467,10 +455,9 @@ void main() {
       ),
     ));
     await tester.pumpAndSettle();
-    final scrollable = _taskDetailPageScrollable(tester);
-    await tester.drag(find.byKey(const ValueKey('task-detail-content-list')), const Offset(0, -280));
+        await tester.drag(find.byKey(const ValueKey('task-detail-content-list')), const Offset(0, -280));
     await tester.pumpAndSettle();
-    final position = tester.state<ScrollableState>(scrollable).position;
+    final position = scrollController.position;
     final before = position.pixels;
     expect(before, greaterThan(0));
 
@@ -509,11 +496,7 @@ void main() {
     ));
 
     final tile = find.byKey(const ValueKey('task-detail-reminder-reminder-toggle-1'));
-    await tester.scrollUntilVisible(
-      tile,
-      240,
-      scrollable: _taskDetailPageScrollable(tester),
-    );
+    await _scrollTaskDetailUntilVisible(tester, tile, 240);
     await tester.pumpAndSettle();
     expect(tile, findsOneWidget);
     await tester.tap(find.descendant(of: tile, matching: find.byType(Switch)));
@@ -551,39 +534,38 @@ void main() {
       findsOneWidget,
     );
 
-    final detailScrollable = _taskDetailPageScrollable(tester);
-    final addReminder = find.byKey(const ValueKey('task-detail-add-reminder'));
-    await tester.scrollUntilVisible(addReminder, 240, scrollable: detailScrollable);
+        final addReminder = find.byKey(const ValueKey('task-detail-add-reminder'));
+    await _scrollTaskDetailUntilVisible(tester, addReminder, 240);
     await tester.pumpAndSettle();
     expect(addReminder, findsOneWidget);
 
     final recurrenceCard = find.byKey(const ValueKey('task-detail-recurrence'));
-    await tester.scrollUntilVisible(recurrenceCard, 240, scrollable: detailScrollable);
+    await _scrollTaskDetailUntilVisible(tester, recurrenceCard, 240);
     await tester.pumpAndSettle();
     expect(recurrenceCard, findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-recurrence-add')), findsOneWidget);
 
     final checklistCard = find.byKey(const ValueKey('task-detail-checklist'));
-    await tester.scrollUntilVisible(checklistCard, 240, scrollable: detailScrollable);
+    await _scrollTaskDetailUntilVisible(tester, checklistCard, 240);
     await tester.pumpAndSettle();
     expect(checklistCard, findsOneWidget);
     final addChecklist = find.byKey(const ValueKey('task-detail-add-checklist'));
-    await tester.scrollUntilVisible(addChecklist, 240, scrollable: detailScrollable);
+    await _scrollTaskDetailUntilVisible(tester, addChecklist, 240);
     await tester.pumpAndSettle();
     expect(addChecklist, findsOneWidget);
 
     final latestCard = find.byKey(const ValueKey('task-detail-latest-followup'));
-    await tester.scrollUntilVisible(latestCard, 240, scrollable: detailScrollable);
+    await _scrollTaskDetailUntilVisible(tester, latestCard, 240);
     await tester.pumpAndSettle();
     expect(latestCard, findsOneWidget);
     expect(find.text('هنوز پیگیری ثبت نشده است'), findsOneWidget);
     final addFollowUp = find.byKey(const ValueKey('task-detail-add-followup'));
-    await tester.scrollUntilVisible(addFollowUp, 240, scrollable: detailScrollable);
+    await _scrollTaskDetailUntilVisible(tester, addFollowUp, 240);
     await tester.pumpAndSettle();
     expect(addFollowUp, findsOneWidget);
 
     final timelineCard = find.byKey(const ValueKey('task-detail-timeline'));
-    await tester.scrollUntilVisible(timelineCard, 240, scrollable: detailScrollable);
+    await _scrollTaskDetailUntilVisible(tester, timelineCard, 240);
     await tester.pumpAndSettle();
     expect(timelineCard, findsOneWidget);
     expect(find.byKey(const ValueKey('task_detail_template_source_card')), findsNothing);
@@ -618,18 +600,17 @@ void main() {
       ),
     ));
 
-    final detailScrollable = _taskDetailPageScrollable(tester);
-    final templateSource = find.byKey(const ValueKey('task_detail_template_source_card'));
-    await tester.scrollUntilVisible(templateSource, 240, scrollable: detailScrollable);
+        final templateSource = find.byKey(const ValueKey('task_detail_template_source_card'));
+    await _scrollTaskDetailUntilVisible(tester, templateSource, 240);
     await tester.pumpAndSettle();
     expect(templateSource, findsOneWidget);
     final reminders = find.byKey(const ValueKey('task-detail-independent-reminders'));
-    await tester.scrollUntilVisible(reminders, 240, scrollable: detailScrollable);
+    await _scrollTaskDetailUntilVisible(tester, reminders, 240);
     await tester.pumpAndSettle();
     expect(reminders, findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-reminder-smart-reminder')), findsOneWidget);
     final checklist = find.byKey(const ValueKey('task-detail-checklist'));
-    await tester.scrollUntilVisible(checklist, 240, scrollable: detailScrollable);
+    await _scrollTaskDetailUntilVisible(tester, checklist, 240);
     await tester.pumpAndSettle();
     expect(checklist, findsOneWidget);
     expect(
@@ -776,8 +757,7 @@ void main() {
     expect(find.byKey(const ValueKey('task-detail-status-menu')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-priority-menu')), findsOneWidget);
 
-    final detailScrollable = _taskDetailPageScrollable(tester);
-    final scrollPosition = tester.state<ScrollableState>(detailScrollable).position;
+        final scrollPosition = detailScrollController.position;
     final summaryY = scrollPosition.pixels + tester.getTopLeft(summary).dy;
     final metadataY = scrollPosition.pixels + tester.getTopLeft(metadata).dy;
     final timeX = tester.getCenter(find.byKey(const ValueKey('task-detail-metadata-time'))).dx;
@@ -787,7 +767,7 @@ void main() {
     final tagsX = tester.getCenter(find.byKey(const ValueKey('task-detail-metadata-tags'))).dx;
 
     final description = find.byKey(const ValueKey('task-detail-description-card'));
-    await tester.scrollUntilVisible(description, 240, scrollable: detailScrollable);
+    await _scrollTaskDetailUntilVisible(tester, description, 240);
     await tester.pumpAndSettle();
     expect(description, findsOneWidget);
     expect(find.text('شرح مستقل'), findsOneWidget);
@@ -797,13 +777,13 @@ void main() {
       const ValueKey('task_detail_template_source_card'),
     );
     expect(template, findsOneWidget);
-    await tester.scrollUntilVisible(template, 240, scrollable: detailScrollable);
+    await _scrollTaskDetailUntilVisible(tester, template, 240);
     await tester.pumpAndSettle();
     expect(template, findsOneWidget);
     final templateY = scrollPosition.pixels + tester.getTopLeft(template).dy;
 
     final dueDate = find.byKey(const ValueKey('task-detail-due-date-card'));
-    await tester.scrollUntilVisible(dueDate, 240, scrollable: detailScrollable);
+    await _scrollTaskDetailUntilVisible(tester, dueDate, 240);
     await tester.pumpAndSettle();
     expect(dueDate, findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-due-date')), findsOneWidget);
@@ -811,7 +791,7 @@ void main() {
     final dueY = scrollPosition.pixels + tester.getTopLeft(dueDate).dy;
 
     final assignee = find.byKey(const ValueKey('task-detail-assignee-card'));
-    await tester.scrollUntilVisible(assignee, 240, scrollable: detailScrollable);
+    await _scrollTaskDetailUntilVisible(tester, assignee, 240);
     await tester.pumpAndSettle();
     expect(assignee, findsOneWidget);
     expect(find.text('مسئول مستقلی برای این کار ثبت نشده است'), findsOneWidget);
@@ -819,27 +799,27 @@ void main() {
     final assigneeY = scrollPosition.pixels + tester.getTopLeft(assignee).dy;
 
     final reminders = find.byKey(const ValueKey('task-detail-independent-reminders'));
-    await tester.scrollUntilVisible(reminders, 240, scrollable: detailScrollable);
+    await _scrollTaskDetailUntilVisible(tester, reminders, 240);
     await tester.pumpAndSettle();
     final remindersY = scrollPosition.pixels + tester.getTopLeft(reminders).dy;
 
     final recurrence = find.byKey(const ValueKey('task-detail-recurrence'));
-    await tester.scrollUntilVisible(recurrence, 240, scrollable: detailScrollable);
+    await _scrollTaskDetailUntilVisible(tester, recurrence, 240);
     await tester.pumpAndSettle();
     final recurrenceY = scrollPosition.pixels + tester.getTopLeft(recurrence).dy;
 
     final checklist = find.byKey(const ValueKey('task-detail-checklist'));
-    await tester.scrollUntilVisible(checklist, 240, scrollable: detailScrollable);
+    await _scrollTaskDetailUntilVisible(tester, checklist, 240);
     await tester.pumpAndSettle();
     final checklistY = scrollPosition.pixels + tester.getTopLeft(checklist).dy;
 
     final latest = find.byKey(const ValueKey('task-detail-latest-followup'));
-    await tester.scrollUntilVisible(latest, 240, scrollable: detailScrollable);
+    await _scrollTaskDetailUntilVisible(tester, latest, 240);
     await tester.pumpAndSettle();
     final latestY = scrollPosition.pixels + tester.getTopLeft(latest).dy;
 
     final timeline = find.byKey(const ValueKey('task-detail-timeline'));
-    await tester.scrollUntilVisible(timeline, 240, scrollable: detailScrollable);
+    await _scrollTaskDetailUntilVisible(tester, timeline, 240);
     await tester.pumpAndSettle();
     final timelineY = scrollPosition.pixels + tester.getTopLeft(timeline).dy;
 
@@ -889,9 +869,8 @@ void main() {
       ),
     ));
 
-    final detailScrollable = _taskDetailPageScrollable(tester);
-    final addChecklist = find.byKey(const ValueKey('task-detail-add-checklist'));
-    await tester.scrollUntilVisible(addChecklist, 240, scrollable: detailScrollable);
+        final addChecklist = find.byKey(const ValueKey('task-detail-add-checklist'));
+    await _scrollTaskDetailUntilVisible(tester, addChecklist, 240);
     await tester.pumpAndSettle();
     expect(addChecklist, findsOneWidget);
     await tester.tap(addChecklist);

@@ -5,6 +5,37 @@ import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/task_detail_page.dart';
 
+Future<void> _scrollTaskDetailUntilVisible(
+  WidgetTester tester,
+  Finder target,
+  double delta,
+) async {
+  final list = tester.widget<ListView>(
+    find.byKey(const ValueKey('task-detail-content-list')),
+  );
+  final controller = list.controller!;
+  expect(controller.hasClients, isTrue);
+
+  for (var pass = 0; pass < 2 && target.evaluate().isEmpty; pass++) {
+    for (var step = 0; step < 40 && target.evaluate().isEmpty; step++) {
+      final max = controller.position.maxScrollExtent;
+      if (controller.offset >= max - 0.5) break;
+      final next = (controller.offset + delta).clamp(0.0, max).toDouble();
+      if (next <= controller.offset) break;
+      controller.jumpTo(next);
+      await tester.pumpAndSettle();
+    }
+    if (target.evaluate().isEmpty && pass == 0 && controller.offset > 0) {
+      controller.jumpTo(0);
+      await tester.pumpAndSettle();
+    }
+  }
+
+  expect(target, findsOneWidget);
+  await tester.ensureVisible(target);
+  await tester.pumpAndSettle();
+}
+
 void main() {
   testWidgets(
     'Task Details renders all eleven structural surfaces without overflow and scrolls',
@@ -102,12 +133,7 @@ void main() {
         // ListView children are built lazily. Scroll the real content viewport
         // until each off-screen surface is built before asserting its key.
         if (key != 'task-detail-app-bar' && key != 'task-detail-bottom-actions') {
-          await tester.scrollUntilVisible(
-            finder,
-            280,
-            scrollable: find.byType(Scrollable).first,
-            maxScrolls: 24,
-          );
+          await _scrollTaskDetailUntilVisible(tester, finder, 280);
           await tester.pump(const Duration(milliseconds: 50));
         }
         expect(finder, findsOneWidget, reason: 'Missing real Task Details surface: $key');
@@ -163,12 +189,7 @@ void main() {
     expect(find.byKey(const ValueKey('task-detail-inline-edit-toggle')), findsNothing);
 
     final notes = find.byKey(const ValueKey('task-detail-connected-notes-field'));
-    await tester.scrollUntilVisible(
-      notes,
-      240,
-      scrollable: find.byType(Scrollable).first,
-      maxScrolls: 24,
-    );
+    await _scrollTaskDetailUntilVisible(tester, notes, 240);
     await tester.enterText(notes, 'یادداشت ذخیره‌شونده');
     await tester.pump();
     expect(persisted?.description, 'یادداشت ذخیره‌شونده');
