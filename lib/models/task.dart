@@ -211,6 +211,7 @@ class Task {
     this.nextReminderSequence = 1,
     this.legacyTaskReminderMigrationVersion = 0,
     this.priority = TaskPriority.medium,
+    this.isFavorite = false,
     this.archived = false,
     this.trashed = false,
     this.completed = false,
@@ -264,6 +265,7 @@ class Task {
   /// Persisted even after deletion so a stale legacy field cannot resurrect it.
   int legacyTaskReminderMigrationVersion;
   TaskPriority priority;
+  bool isFavorite;
   bool archived;
   bool trashed;
   bool completed;
@@ -508,6 +510,7 @@ class Task {
         if (legacyTaskReminderMigrationVersion > 0)
           'legacyTaskReminderMigrationVersion': legacyTaskReminderMigrationVersion,
         'priority': priority.name,
+        'isFavorite': isFavorite,
         'archived': archived,
         'trashed': trashed,
         'completed': completed,
@@ -668,6 +671,7 @@ class Task {
       nextReminderSequence: nextReminderSequence,
       legacyTaskReminderMigrationVersion: migrationVersion,
       priority: loadedPriority,
+      isFavorite: json['isFavorite'] as bool? ?? false,
       archived: json['archived'] as bool? ?? false,
       trashed: json['trashed'] as bool? ?? false,
       completed: json['completed'] as bool? ?? false,
