@@ -84,6 +84,13 @@ void main() {
     expect(find.byKey(const ValueKey('home-filter-card-category')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-tags')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-group-overdue')), findsOneWidget);
+    final overdueHeader = find.descendant(
+      of: find.byKey(const ValueKey('home-group-overdue')),
+      matching: find.text('گذشته'),
+    );
+    final overdueHeaderText = tester.widget<Text>(overdueHeader);
+    expect(overdueHeaderText.textAlign, TextAlign.center);
+    expect(overdueHeaderText.style?.fontWeight, FontWeight.w800);
     expect(find.byKey(const ValueKey('home-filter-card-all')), findsNothing);
     expect(find.byKey(const ValueKey('home-compact-filter-row')), findsOneWidget);
     expect(find.byType(HomeFilterPill), findsNWidgets(5));
@@ -241,7 +248,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(timeFilter);
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'امروز تقویمی'));
+    await tester.tap(find.byKey(const ValueKey('home-time-filter-today')));
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
