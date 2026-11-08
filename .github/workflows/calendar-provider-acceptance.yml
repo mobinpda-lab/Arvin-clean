@@ -181,6 +181,9 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: false
+      - name: Install Linux SQLite development library
+        if: runner.os == 'Linux'
+        run: sudo apt-get update -qq && sudo apt-get install -y libsqlite3-dev
 
       - name: Resolve locked dependencies
         run: |

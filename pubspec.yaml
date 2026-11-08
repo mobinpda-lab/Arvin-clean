@@ -36,8 +36,15 @@ dev_dependencies:
   drift_dev: ^2.32.1
   build_runner: ^2.7.1
 
-# Keep sqlite3's upstream SHA-256 verification enabled while avoiding
-# stale proxy/CDN responses for immutable release assets.
+# Linux CI uses the runner's SQLite ABI to avoid a broken GitHub asset cache.
+# Android and other targets continue using the checksum-verified sqlite3 release.
+hooks:
+  user_defines:
+    sqlite3:
+      source:
+        linux: system
+        default: sqlite3
+
 flutter:
   uses-material-design: true
   assets:
