@@ -1044,7 +1044,6 @@ class _HomePageState extends State<HomePage> {
                       ? 'زمان'
                       : _timeFilterLabel,
                   icon: Icons.schedule_rounded,
-                  accent: Theme.of(context).colorScheme.primary,
                   soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
                   selectedCount: selectedCount: _timeFilters.length + (_timeFilter == 'customRange' ? 1 : 0),,
                   accent: ArvinColors.time,
@@ -1065,7 +1064,6 @@ class _HomePageState extends State<HomePage> {
                                   'مرکز حذف‌شده'))
                           : 'مرکز (${persianDateFormatter.toPersianDigits('${_centerFilters.length}')})',
                   icon: Icons.location_city_outlined,
-                  accent: Theme.of(context).colorScheme.primary,
                   soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
                   selectedCount: selectedCount: _centerFilters.length,,
                   accent: ArvinColors.center,
@@ -1086,7 +1084,6 @@ class _HomePageState extends State<HomePage> {
                                   'پروژه حذف‌شده'))
                           : 'پروژه (${persianDateFormatter.toPersianDigits('${_projectFilters.length}')})',
                   icon: Icons.folder_rounded,
-                  accent: Theme.of(context).colorScheme.primary,
                   soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
                   selectedCount: selectedCount: _projectFilters.length,,
                   accent: ArvinColors.project,
@@ -1104,7 +1101,6 @@ class _HomePageState extends State<HomePage> {
                           ? _categoryFilters.first
                           : 'دسته (${persianDateFormatter.toPersianDigits('${_categoryFilters.length}')})',
                   icon: Icons.layers_rounded,
-                  accent: Theme.of(context).colorScheme.primary,
                   soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
                   selectedCount: selectedCount: _categoryFilters.length,,
                   accent: ArvinColors.category,
@@ -1120,7 +1116,6 @@ class _HomePageState extends State<HomePage> {
                       ? 'برچسب'
                       : 'برچسب (${persianDateFormatter.toPersianDigits('${_tagFilters.length}')})',
                   icon: Icons.sell_rounded,
-                  accent: Theme.of(context).colorScheme.primary,
                   soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
                   selectedCount: selectedCount: _tagFilters.length,,
                   accent: ArvinColors.tag,
