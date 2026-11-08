@@ -63,7 +63,7 @@ void main() {
     final sacredSvg = tester.widget<SvgPicture>(
       find.byKey(const ValueKey('home-bismillah-svg')),
     );
-    expect(sacredSvg.width, 210);
+    expect(sacredSvg.width, 118);
     expect(
       find.byWidgetPredicate((widget) => widget is SvgPicture &&
           (widget.bytesLoader as dynamic).assetName == 'assets/images/branding/bismillah.svg'),
@@ -130,13 +130,11 @@ void main() {
     }
     tester.view.physicalSize = Size(originalWidth, 1200);
     await tester.pumpAndSettle();
-    expect(
-      find.descendant(
-        of: find.byKey(const ValueKey('home-filter-card-category')),
-        matching: find.text('دسته‌ها'),
-      ),
-      findsOneWidget,
-    );
+    expect(find.bySemanticsLabel('دسته'), findsOneWidget);
+    final bismillahRect = tester.getRect(find.byKey(const ValueKey('home-bismillah-svg')));
+    final arvinTitleRect = tester.getRect(find.byKey(const ValueKey('home-title-block')));
+    expect(bismillahRect.overlaps(arvinTitleRect), isFalse);
+    expect(bismillahRect.center.dy, closeTo(arvinTitleRect.center.dy, 4));
 
     // Each filter keeps its own internal unrestricted choice.
     final timeFilter = find.byKey(const ValueKey('home-filter-card-time'));
