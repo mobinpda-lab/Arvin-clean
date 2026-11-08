@@ -745,12 +745,16 @@ class TaskStore {
             })
         .toList(growable: false);
 
+    final hasLegacyFocus = envelope.containsKey('isSelectedForToday');
+    final rawFocusDate = envelope['focusDate'];
+    final invalidFocusDate = rawFocusDate is String &&
+        DateTime.tryParse(rawFocusDate) == null;
+    if (invalidFocusDate) envelope.remove('focusDate');
     final task = Task.fromJson(envelope);
     // Convert the legacy timeless boolean exactly once. Persist the canonical
     // date-only value during the first read so it cannot be reinterpreted as
     // a fresh selection on every subsequent local day.
-    if (envelope.containsKey('isSelectedForToday') &&
-        envelope['focusDate'] is! String) {
+    if (hasLegacyFocus || invalidFocusDate) {
       final canonical = _canonicalEnvelope(task, previousPayload: envelope);
       await executor.runUpdate(
         'UPDATE tasks SET legacy_payload_json = ? WHERE id = ?',
