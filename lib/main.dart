@@ -1026,7 +1026,7 @@ class _HomePageState extends State<HomePage> {
   Widget _homeFilterCards() {
     return Padding(
       key: const ValueKey('home-compact-filter-wrap'),
-      padding: const EdgeInsetsDirectional.fromSTEB(12, 0, 12, 4),
+      padding: const EdgeInsetsDirectional.fromSTEB(8, 0, 8, 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -1050,7 +1050,7 @@ class _HomePageState extends State<HomePage> {
                   onPressed: _showTimeFilterSheet,
                 ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 2),
               Expanded(
                 child: HomeFilterPill(
                   key: const ValueKey('home-filter-card-center'),
@@ -1070,7 +1070,7 @@ class _HomePageState extends State<HomePage> {
                   onPressed: _showCenterFilterSheet,
                 ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 2),
               Expanded(
                 child: HomeFilterPill(
                   key: const ValueKey('home-filter-card-project'),
@@ -1090,7 +1090,7 @@ class _HomePageState extends State<HomePage> {
                   onPressed: _showProjectFilterSheet,
                 ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 2),
               Expanded(
                 child: HomeFilterPill(
                   key: const ValueKey('home-filter-card-category'),
@@ -1107,7 +1107,7 @@ class _HomePageState extends State<HomePage> {
                   onPressed: _showCategoryFilterSheet,
                 ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 2),
               Expanded(
                 child: HomeFilterPill(
                   key: const ValueKey('home-filter-card-tags'),
