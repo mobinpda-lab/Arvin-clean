@@ -1803,7 +1803,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(fontFamily: 'Vazirmatn', color: _muted, fontSize: 12),
             );
-            final compact = constraints.maxWidth < 320;
+            final compact = constraints.maxWidth < 360;
             return ConstrainedBox(
               constraints: const BoxConstraints(minHeight: 56),
               child: Padding(
