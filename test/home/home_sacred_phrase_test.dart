@@ -75,6 +75,14 @@ void main() {
         expect(homeSvg.width, 118);
         expect(homeSvg.excludeFromSemantics, isTrue);
         expect(find.text(homeLabel), findsNothing);
+        expect(
+          find.byWidgetPredicate((widget) =>
+              widget is SvgPicture &&
+              (widget.bytesLoader as dynamic).assetName ==
+                  'assets/images/branding/tafweez.svg'),
+          findsNothing,
+          reason: 'Calendar tafweez asset must not leak into Home',
+        );
   
         _expectPathOnlySvgAsset('assets/images/branding/tafweez.svg');
   
@@ -88,7 +96,7 @@ void main() {
         );
         await tester.pump();
   
-        const calendarLabel = 'أُفَوِّضُ أَمْرِي إِلَى اللَّهِ';
+        const calendarLabel = 'وَأُفَوِّضُ أَمْرِي إِلَى اللَّهِ';
         final calendarPhrase =
             find.byKey(const ValueKey('calendar-sacred-header'));
         expect(calendarPhrase, findsOneWidget);
@@ -107,6 +115,14 @@ void main() {
         expect(calendarSvg.width, 180);
         expect(calendarSvg.excludeFromSemantics, isTrue);
         expect(find.text(calendarLabel), findsNothing);
+        expect(
+          find.byWidgetPredicate((widget) =>
+              widget is SvgPicture &&
+              (widget.bytesLoader as dynamic).assetName ==
+                  'assets/images/branding/bismillah.svg'),
+          findsNothing,
+          reason: 'Home bismillah asset must not leak into Calendar',
+        );
   
         expect(
           AppFonts.familyForText('متن عادی رابط کاربری'),
