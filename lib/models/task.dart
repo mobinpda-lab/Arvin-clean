@@ -212,6 +212,7 @@ class Task {
     this.legacyTaskReminderMigrationVersion = 0,
     this.priority = TaskPriority.medium,
     this.isFavorite = false,
+    this.isSelectedForToday = false,
     this.archived = false,
     this.trashed = false,
     this.completed = false,
@@ -266,6 +267,8 @@ class Task {
   int legacyTaskReminderMigrationVersion;
   TaskPriority priority;
   bool isFavorite;
+  /// Explicit Home focus selection; independent from due date and favorites.
+  bool isSelectedForToday;
   bool archived;
   bool trashed;
   bool completed;
@@ -511,6 +514,7 @@ class Task {
           'legacyTaskReminderMigrationVersion': legacyTaskReminderMigrationVersion,
         'priority': priority.name,
         'isFavorite': isFavorite,
+        'isSelectedForToday': isSelectedForToday,
         'archived': archived,
         'trashed': trashed,
         'completed': completed,
@@ -672,6 +676,7 @@ class Task {
       legacyTaskReminderMigrationVersion: migrationVersion,
       priority: loadedPriority,
       isFavorite: json['isFavorite'] as bool? ?? false,
+      isSelectedForToday: json['isSelectedForToday'] as bool? ?? false,
       archived: json['archived'] as bool? ?? false,
       trashed: json['trashed'] as bool? ?? false,
       completed: json['completed'] as bool? ?? false,
