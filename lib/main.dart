@@ -1237,7 +1237,13 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           Expanded(child:ListView(children:[
-            CheckboxListTile(value:draft.isEmpty && !focusToday,title:const Text('همه'),controlAffinity:ListTileControlAffinity.leading,onChanged:(_)=>setSheetState(() { draft.clear(); focusToday = false; })),
+            CheckboxListTile(
+              key: const ValueKey('home-time-filter-all'),
+              value: draft.isEmpty && !focusToday,
+              title: const Text('همه'),
+              controlAffinity: ListTileControlAffinity.leading,
+              onChanged: (_) => setSheetState(() { draft.clear(); focusToday = false; }),
+            ),
             CheckboxListTile(
               key: const ValueKey('home-time-filter-today-focus'),
               value: focusToday,
@@ -1249,14 +1255,38 @@ class _HomePageState extends State<HomePage> {
                 if (focusToday) draft.clear();
               }),
             ),
-            for(final option in options) CheckboxListTile(
-              value:draft.contains(option['id'] as String),title:Text(option['title'] as String),controlAffinity:ListTileControlAffinity.leading,
-              secondary:Icon(option['icon'] as IconData,color:ArvinColors.time),
-              onChanged:(v) async {final id=option['id'] as String;if(id=='custom'&&v==true){if(await pickCustom())setSheetState(() { focusToday = false; draft.add(id); });}else{setSheetState(() { focusToday = false; if(v==true) draft.add(id); else draft.remove(id); });}},
-            ),
+            for (final option in options)
+              CheckboxListTile(
+                key: ValueKey('home-time-filter-${option['id']}'),
+                value: draft.contains(option['id'] as String),
+                title: Text(option['title'] as String),
+                controlAffinity: ListTileControlAffinity.leading,
+                secondary: Icon(option['icon'] as IconData, color: ArvinColors.time),
+                onChanged: (value) async {
+                  final id = option['id'] as String;
+                  if (id == 'custom' && value == true) {
+                    if (await pickCustom()) {
+                      setSheetState(() {
+                        focusToday = false;
+                        draft.add(id);
+                      });
+                    }
+                  } else {
+                    setSheetState(() {
+                      focusToday = false;
+                      if (value == true) {
+                        draft.add(id);
+                      } else {
+                        draft.remove(id);
+                      }
+                    });
+                  }
+                },
+              ),
             CheckboxListTile(
-              value:draft.contains('customRange'),
-              title:const Text('بازهٔ دلخواه'),
+              key: const ValueKey('home-time-filter-customRange'),
+              value: draft.contains('customRange'),
+              title: const Text('بازهٔ دلخواه'),
               controlAffinity:ListTileControlAffinity.leading,
               onChanged:(checked)=>setSheetState(() {
                 focusToday = false;
