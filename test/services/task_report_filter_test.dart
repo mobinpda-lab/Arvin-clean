@@ -268,11 +268,20 @@ void main() {
         FollowUp(id: 'fu-outside', completedAt: DateTime(2026, 9, 30)),
       ],
     );
+    final mismatchedRecords = Task(
+      id: 'mismatched-records',
+      title: 'شخص و زمان در دو پیگیری متفاوت',
+      followUps: [
+        FollowUp(id: 'fu-person-outside', completedAt: DateTime(2026, 9, 30), personIds: ['p1']),
+        FollowUp(id: 'fu-date-other-person', completedAt: DateTime(2026, 10, 6), personIds: ['p2']),
+      ],
+    );
     final result = const TaskReportFilter(
       hasFollowUp: true,
+      personIds: {'p1'},
       fromDate: DateTime(2026, 10, 5),
       toDate: DateTime(2026, 10, 7),
-    ).apply([inRange, dueDateOnly], now: now);
+    ).apply([inRange, dueDateOnly, mismatchedRecords], now: now);
     expect(result.map((task) => task.id), ['followup-in-range']);
     expect(result, hasLength(1));
   });
