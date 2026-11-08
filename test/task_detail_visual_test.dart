@@ -225,4 +225,70 @@ void main() {
     }
   });
 
+  testWidgets('Task Details full page has zero overflow at 360, 390 and 412 dp', (tester) async {
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    for (final width in <double>[360, 390, 412]) {
+      tester.view.physicalSize = Size(width, 900);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(useMaterial3: true, fontFamily: 'Vazirmatn'),
+          home: TaskDetailPage(
+            task: Task(
+              id: 'full-page-width-$width',
+              title: 'آماده‌سازی جلسه فردا',
+              description: 'مرور موارد جلسه و آماده‌سازی مستندات موردنیاز',
+              createdAt: DateTime(2026, 11, 1, 8),
+              dueDate: DateTime(2026, 11, 6, 9, 30),
+              category: 'برنامه‌ریزی',
+              tags: const ['جلسه', 'مهم'],
+              checklistEnabled: true,
+              checklist: const ['[x] بررسی دستور جلسه', '[ ] آماده‌سازی مستندات'],
+              taskReminders: [
+                TaskReminder(
+                  id: 'full-page-reminder-$width',
+                  title: 'یادآوری جلسه',
+                  date: DateTime(2026, 11, 6, 8),
+                  sequence: 1,
+                ),
+              ],
+              followUps: [
+                FollowUp(
+                  id: 'full-page-follow-up-$width',
+                  dateTime: DateTime(2026, 11, 4, 16, 30),
+                  note: 'هماهنگی اولیه انجام شد',
+                ),
+              ],
+            ),
+            now: DateTime(2026, 11, 5, 9),
+            onTaskChanged: (candidate) async => candidate,
+            onComplete: (candidate) async => candidate,
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 350));
+      await tester.pump();
+
+      final list = tester.widget<ListView>(
+        find.byKey(const ValueKey('task-detail-content-list')),
+      );
+      final controller = list.controller!;
+      expect(controller.hasClients, isTrue);
+      for (var step = 0; step < 40; step++) {
+        final max = controller.position.maxScrollExtent;
+        if (controller.offset >= max - 0.5) break;
+        controller.jumpTo((controller.offset + 220).clamp(0.0, max).toDouble());
+        await tester.pump(const Duration(milliseconds: 20));
+        expect(
+          tester.takeException(),
+          isNull,
+          reason: 'Task Details overflowed at $width dp, scroll step $step',
+        );
+      }
+      expect(tester.takeException(), isNull, reason: 'Task Details overflowed at $width dp');
+    }
+  });
+
 }
