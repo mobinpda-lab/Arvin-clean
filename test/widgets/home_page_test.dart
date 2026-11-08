@@ -893,4 +893,28 @@ void main() {
     );
   });
 
+
+  for (final width in [360.0, 390.0, 412.0]) {
+    testWidgets('Home focus control remains accessible at ${width.toInt()}dp width', (tester) async {
+      await tester.binding.setSurfaceSize(Size(width, 820));
+      SharedPreferences.setMockInitialValues({
+        'arvin.tasks':
+            '[{"id":"focus-width","title":"کار برگزیده در عرض محدود","isSelectedForToday":true}]',
+      });
+      await tester.pumpWidget(const ArvinApp());
+      await tester.pumpAndSettle();
+
+      final action = find.byKey(const ValueKey('task-card-today-focus-focus-width'));
+      expect(action, findsOneWidget);
+      final size = tester.getSize(action);
+      expect(size.width, greaterThanOrEqualTo(48));
+      expect(size.height, greaterThanOrEqualTo(48));
+      expect(tester.takeException(), isNull);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+      await tester.binding.setSurfaceSize(null);
+    });
+  }
+
 }
