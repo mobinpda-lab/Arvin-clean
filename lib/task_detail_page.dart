@@ -915,7 +915,13 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
   Future<FollowUp?> _openFollowUpEntry({FollowUp? initialFollowUp}) async {
     final store = TaskStore();
+    // Read the canonical Person directory from SQLite before opening the
+    // responsible-person picker. Task-local and caller-provided references
+    // are merged afterwards to preserve names for legacy/historical records.
+    final directoryPeople = await store.loadPeopleDirectory();
+    if (!mounted) return null;
     final peopleById = <String, PersonReference>{
+      for (final person in directoryPeople) person.id: person,
       for (final person in widget.people) person.id: person,
       for (final person in _task.people) person.id: person,
     };
