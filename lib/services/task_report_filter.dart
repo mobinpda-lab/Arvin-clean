@@ -242,18 +242,34 @@ class TaskReportFilter {
                 (includeLegacyProjectsWithoutCenter && project.centerId == null));
         if (!matchesCenter) return false;
       }
-      if (personIds.isNotEmpty &&
-          !task.people.any((person) => personIds.contains(person.id)) &&
-          !task.followUps.any(
-            (followUp) => followUp.personIds.any(personIds.contains),
-          )) {
-        return false;
-      }
-      if (waitingForResponse != null) {
-        final hasWaitingFollowUp = task.followUps.any(
-          (followUp) => followUp.waitingForResponse && !followUp.completed,
-        );
-        if (hasWaitingFollowUp != waitingForResponse) return false;
+      if (hasFollowUp == true) {
+        final hasMatchingFollowUp = task.followUps.any((followUp) {
+          if (personIds.isNotEmpty &&
+              !followUp.personIds.any(personIds.contains)) {
+            return false;
+          }
+          if (waitingForResponse != null) {
+            final isWaiting =
+                followUp.waitingForResponse && !followUp.completed;
+            if (isWaiting != waitingForResponse) return false;
+          }
+          return _matchesTime(followUp.completedAt, now);
+        });
+        if (!hasMatchingFollowUp) return false;
+      } else {
+        if (personIds.isNotEmpty &&
+            !task.people.any((person) => personIds.contains(person.id)) &&
+            !task.followUps.any(
+              (followUp) => followUp.personIds.any(personIds.contains),
+            )) {
+          return false;
+        }
+        if (waitingForResponse != null) {
+          final hasWaitingFollowUp = task.followUps.any(
+            (followUp) => followUp.waitingForResponse && !followUp.completed,
+          );
+          if (hasWaitingFollowUp != waitingForResponse) return false;
+        }
       }
       if (!_matchesStatus(task)) return false;
       if (trackingLevels.isNotEmpty &&
@@ -286,9 +302,7 @@ class TaskReportFilter {
       }
       if (timePreset == ReportTimePreset.past && task.completed) return false;
       final matchesTime = hasFollowUp == true
-          ? task.followUps.any(
-              (followUp) => _matchesTime(followUp.completedAt, now),
-            )
+          ? true // The record-level time/person/waiting intersection was checked above.
           : _matchesTime(task.dueDate, now, allDay: task.allDay);
       if (!matchesTime) return false;
       return true;
