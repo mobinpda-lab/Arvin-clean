@@ -574,8 +574,6 @@ class _HomePageState extends State<HomePage> {
   TimeOfDay? _toTimeFilter;
   final Set<String> _collapsedGroups = <String>{};
   final Map<String, DateTime> _dismissedOverdueWarnings = <String, DateTime>{};
-  TaskListSort _listSort = TaskListSort.lastFollowUp;
-  bool _sortDescending = false;
 
   String get _emptyVisibleLabel => filter == 'سطل زباله'
       ? 'سطل زباله خالی است'
@@ -949,73 +947,37 @@ class _HomePageState extends State<HomePage> {
 
 
   Future<void> _showSortOptions() async {
-    var draftSort = _listSort;
-    var draftDescending = _sortDescending;
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
-      builder: (sheetContext) => StatefulBuilder(
-        builder: (sheetContext, setSheetState) => SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 4, 12, 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('مرتب‌سازی کارها', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-                RadioListTile<TaskListSort>(
-                  value: TaskListSort.lastFollowUp,
-                  groupValue: draftSort,
-                  title: const Text('تاریخ پیگیری'),
-                  onChanged: (value) => setSheetState(() => draftSort = value!),
-                ),
-                RadioListTile<TaskListSort>(
-                  value: TaskListSort.date,
-                  groupValue: draftSort,
-                  title: const Text('تاریخ انجام کار'),
-                  onChanged: (value) => setSheetState(() => draftSort = value!),
-                ),
-                RadioListTile<TaskListSort>(
-                  value: TaskListSort.latest,
-                  groupValue: draftSort,
-                  title: const Text('آخرین تغییرات'),
-                  onChanged: (value) => setSheetState(() => draftSort = value!),
-                ),
-                RadioListTile<TaskListSort>(
-                  value: TaskListSort.title,
-                  groupValue: draftSort,
-                  title: const Text('عنوان کار'),
-                  onChanged: (value) => setSheetState(() => draftSort = value!),
-                ),
-                SwitchListTile(
-                  value: draftDescending,
-                  title: const Text('ترتیب نزولی'),
-                  onChanged: (value) => setSheetState(() => draftDescending = value),
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () => Navigator.of(sheetContext).pop(),
-                        child: const Text('انصراف'),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: FilledButton(
-                        onPressed: () {
-                          setState(() {
-                            _listSort = draftSort;
-                            _sortDescending = draftDescending;
-                          });
-                          Navigator.of(sheetContext).pop();
-                        },
-                        child: const Text('اعمال مرتب‌سازی'),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'ترتیب ثابت نمایش کارها',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                '۱. ابتدا اولویت ماتریس آیزنهاور؛ از فوری و مهم تا غیرفوری و غیرمهم',
+                textAlign: TextAlign.start,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                '۲. سپس تاریخ ثبت کار؛ از قدیمی‌ترین تا جدیدترین',
+                textAlign: TextAlign.start,
+              ),
+              const SizedBox(height: 16),
+              FilledButton(
+                onPressed: () => Navigator.of(sheetContext).pop(),
+                child: const Text('متوجه شدم'),
+              ),
+            ],
           ),
         ),
       ),
