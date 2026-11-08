@@ -199,7 +199,7 @@ void main() {
     await tester.ensureVisible(timeChip);
     await tester.tap(timeChip);
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'امروز تقویمی'));
+    await tester.tap(find.byKey(const ValueKey('home-time-filter-today')));
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
@@ -207,7 +207,7 @@ void main() {
     await tester.ensureVisible(categoryChip);
     await tester.tap(categoryChip);
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'اتاق'));
+    await tester.tap(find.byKey(const ValueKey('multi-select-option-اتاق')));
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
@@ -215,8 +215,8 @@ void main() {
     await tester.ensureVisible(tagsChip);
     await tester.tap(tagsChip);
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'نوزاد'));
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'تعویض'));
+    await tester.tap(find.byKey(const ValueKey('multi-select-option-نوزاد')));
+    await tester.tap(find.byKey(const ValueKey('multi-select-option-تعویض')));
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
@@ -683,7 +683,7 @@ void main() {
     await tester.ensureVisible(timeChip);
     await tester.tap(timeChip);
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'گذشته'));
+    await tester.tap(find.byKey(const ValueKey('home-time-filter-past')));
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
@@ -783,7 +783,7 @@ void main() {
     await tester.ensureVisible(timeChip);
     await tester.tap(timeChip);
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'گذشته'));
+    await tester.tap(find.byKey(const ValueKey('home-time-filter-past')));
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
@@ -976,7 +976,7 @@ void main() {
     await tester.tap(timeFilter);
     await tester.pumpAndSettle();
     final focusOption = tester.widget<CheckboxListTile>(
-      find.widgetWithText(CheckboxListTile, 'کارهای برگزیدهٔ امروز'),
+      find.byKey(const ValueKey('home-time-filter-today-focus')),
     );
     expect(focusOption.value, isTrue);
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
