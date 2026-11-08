@@ -139,3 +139,29 @@ Focus is an exclusive membership predicate, not a dueDate shortcut. “Today” 
 9. Keep PR OPEN / DRAFT / UNMERGED and release NO-GO until all gates and owner acceptance are satisfied.
 
 **Current status of this document:** product contract recorded; implementation, test acceptance, staging artifact and physical-device acceptance remain NOT VERIFIED.
+
+## 11. Additional owner decisions — filters, Follow-ups, and visual reference (2026-11-08)
+
+These decisions supplement the Home UX contract and are product requirements, not evidence of implementation.
+
+### 11.1 Primary filter row and independent filter icon
+- Preserve the five primary filters in this exact right-to-left order: **زمان، مرکز، پروژه، دسته‌بندی، برچسب**.
+- Preserve the separate filter icon at the upper-left area of the Home screen. It is an independent filter affordance and must not be removed or conflated with search or the navigation menu.
+
+### 11.2 Follow-up time filtering
+- The Follow-up filter must be available both on the Home screen and in Reports.
+- Its date choices must include **امروز**, **دیروز**, and **محدودهٔ تاریخی دلخواه**.
+- Filtering is based on the Follow-up record's own recorded/created timestamp. It must not use the linked Task's due date or task scheduling date as a substitute.
+- Date-range boundaries must follow the app's local-calendar semantics consistently in Home and Reports.
+
+### 11.3 Follow-ups as a core product capability
+- Follow-ups and Follow-up reports are core Arvin capabilities, not secondary or optional metadata.
+- Product design must cover Follow-up capture and history in Task Details, and provide coherent Follow-up reporting in the Reports area.
+- Home filtering, Task Details history, and Reports must refer to the same canonical Follow-up records and timestamp semantics; do not create parallel or derived duplicate histories.
+
+### 11.4 Protected visual-reference detail
+- Preserve the line/detail at the **upper-right corner** of the approved visual reference.
+- Do not remove or redesign that detail as part of Home/header/filter redesign unless a later explicit product-owner decision supersedes this requirement.
+
+**Acceptance note:** This section records product decisions only. It does not assert that the UI, filter behavior, data model, or reports have been implemented or tested. No tests may be deleted, skipped, weakened, or bypassed to satisfy these requirements.
+
