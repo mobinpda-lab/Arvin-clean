@@ -99,6 +99,17 @@ void main() {
 
       for (final key in surfaceKeys) {
         final finder = find.byKey(ValueKey<String>(key));
+        // ListView children are built lazily. Scroll the real content viewport
+        // until each off-screen surface is built before asserting its key.
+        if (key != 'task-detail-app-bar' && key != 'task-detail-bottom-actions') {
+          await tester.scrollUntilVisible(
+            finder,
+            280,
+            scrollable: find.byKey(const ValueKey('task-detail-content-list')),
+            maxScrolls: 24,
+          );
+          await tester.pump(const Duration(milliseconds: 50));
+        }
         expect(finder, findsOneWidget, reason: 'Missing real Task Details surface: $key');
         await tester.ensureVisible(finder);
         await tester.pump(const Duration(milliseconds: 50));

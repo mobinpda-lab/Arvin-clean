@@ -694,7 +694,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   Future<void> _pickInlineWorkTime() async {
-    final current = _draftDueDate ?? DateTime.now();
+    final current = _task.dueDate ?? DateTime.now();
     final pickedDate = await showPersianDatePicker(
       context: context,
       initialDate: current,
@@ -704,8 +704,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     );
     if (pickedDate == null || !mounted) return;
 
-    // The date picker is deliberately followed by the round clock. Nothing is
-    // committed until the user confirms a timed or explicit no-time choice.
+    // Confirm the date first, then the round clock (including the explicit
+    // no-time choice). Persist the canonical Task immediately after confirmation.
     final selection = await showUniversalArvinTimeSelectionPicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(current),
@@ -713,18 +713,19 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     );
     if (selection == null || !mounted) return;
 
-    setState(() {
-      _draftDueDate = selection.isAllDay
-          ? DateTime(pickedDate.year, pickedDate.month, pickedDate.day)
-          : DateTime(
-              pickedDate.year,
-              pickedDate.month,
-              pickedDate.day,
-              selection.time!.hour,
-              selection.time!.minute,
-            );
-      _draftAllDay = selection.isAllDay;
-    });
+    final dueDate = selection.isAllDay
+        ? DateTime(pickedDate.year, pickedDate.month, pickedDate.day)
+        : DateTime(
+            pickedDate.year,
+            pickedDate.month,
+            pickedDate.day,
+            selection.time!.hour,
+            selection.time!.minute,
+          );
+    final candidate = Task.fromJson(Map<String, dynamic>.from(_task.toJson()))
+      ..dueDate = dueDate
+      ..allDay = selection.isAllDay;
+    await _persistCandidate(candidate);
   }
 
   Future<void> _toggleRecurrence(bool active) async {
@@ -1055,13 +1056,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         icon: Icons.calendar_month_outlined,
         title: 'موعد',
         value: dueDate == null ? 'تعیین نشده' : (allDay ? _date(dueDate) : _dateTime(dueDate)),
-        onTap: widget.onTaskChanged == null
-            ? null
-            : () async {
-                if (!_isInlineEditing) _beginInlineEdit();
-                await _pickInlineWorkTime();
-                if (mounted && _isInlineEditing) await _saveInlineEdit();
-              },
+        onTap: widget.onTaskChanged == null ? null : _pickInlineWorkTime,
       );
   }
 
@@ -1092,14 +1087,11 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
   Future<void> _saveChecklist(List<String> values) async {
     if (_isSavingChecklist) return;
-    if (_isInlineEditing) {
-      setState(() => _draftChecklist = List<String>.of(values));
-      return;
-    }
     final handler = widget.onChecklistChanged;
-    if (handler == null) return;
+    if (handler == null && widget.onTaskChanged == null) return;
 
-    // Checklist edits are isolated from the historical Follow-up timeline.
+    // Checklist edits are persisted immediately and remain isolated from the
+    // historical Follow-up timeline, regardless of the former edit-mode state.
     final previous = _task;
     final protectedFollowUps = List<FollowUp>.of(previous.followUps);
     final candidate = Task.fromJson(Map<String, dynamic>.from(previous.toJson()))
@@ -1111,7 +1103,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       _isSavingChecklist = true;
     });
     try {
-      final updated = await handler(candidate, List<String>.of(values));
+      final updated = handler != null
+          ? await handler(candidate, List<String>.of(values))
+          : await widget.onTaskChanged?.call(candidate);
       if (!mounted) return;
       if (updated == null) {
         setState(() {
