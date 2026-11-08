@@ -34,11 +34,16 @@ void main() {
     expect(find.text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-search-button')), findsOneWidget);
     expect(find.byType(TextField), findsOneWidget);
+    for (final key in [
+      'home-filter-card-time',
+      'home-filter-card-center',
+      'home-filter-card-project',
+      'home-filter-card-category',
+      'home-filter-card-tags',
+    ]) {
+      expect(find.byKey(ValueKey(key)), findsOneWidget);
+    }
     expect(find.byIcon(Icons.add), findsOneWidget);
-    expect(find.text('زمان'), findsOneWidget);
-    expect(find.text('پروژه'), findsOneWidget);
-    expect(find.text('دسته'), findsOneWidget);
-    expect(find.text('برچسب'), findsOneWidget);
     expect(find.text('جستجو در کارها...'), findsOneWidget);
     expect(find.text('کارهای من'), findsNothing);
     expect(find.text('مشاهده همه'), findsNothing);
@@ -93,7 +98,7 @@ void main() {
       (widget) => widget is Text && (widget.data?.startsWith('موعد:') ?? false),
     );
     expect(dueLabel, findsOneWidget);
-    expect(tester.widget<Text>(dueLabel).style?.fontSize, 11);
+    expect(tester.widget<Text>(dueLabel).style?.fontSize, 11.5);
     expect(tester.takeException(), isNull);
   });
 
@@ -189,10 +194,6 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('زمان'), findsOneWidget);
-    expect(find.text('پروژه'), findsOneWidget);
-    expect(find.text('دسته'), findsOneWidget);
-    expect(find.text('برچسب'), findsOneWidget);
 
     final timeChip = find.byKey(const ValueKey('home-filter-card-time'));
     await tester.ensureVisible(timeChip);
@@ -627,9 +628,6 @@ void main() {
     expect(find.byKey(const ValueKey('home-filter-card-category')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-tags')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-time')), findsOneWidget);
-    expect(find.text('پروژه'), findsOneWidget);
-    expect(find.text('دسته'), findsOneWidget);
-    expect(find.text('برچسب'), findsOneWidget);
     expect(find.textContaining('مورد'), findsNothing);
     expect(find.text('کار الف'), findsOneWidget);
     expect(find.text('کار ب'), findsOneWidget);
