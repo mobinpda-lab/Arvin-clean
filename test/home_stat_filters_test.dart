@@ -139,10 +139,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('انتخاب‌شده: 0'), findsOneWidget);
-    expect(find.widgetWithText(CheckboxListTile, 'کارهای برگزیدهٔ امروز'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-time-filter-today-focus')), findsOneWidget);
     final sheetScrollable = find.byType(Scrollable).last;
     await tester.scrollUntilVisible(find.text('بازهٔ دلخواه'), 300, scrollable: sheetScrollable);
-    final customRange = find.widgetWithText(CheckboxListTile, 'بازهٔ دلخواه');
+    final customRange = find.byKey(const ValueKey('home-time-filter-customRange'));
     expect(customRange, findsOneWidget);
     await tester.ensureVisible(customRange);
     await tester.tap(customRange);
@@ -172,10 +172,10 @@ void main() {
     await tester.tap(categoryChip);
     await tester.pumpAndSettle();
     expect(find.text('همه'), findsOneWidget);
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'اداری'));
+    await tester.tap(find.byKey(const ValueKey('multi-select-option-اداری')));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.text('شخصی'), 240, scrollable: find.byType(Scrollable).last);
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'شخصی'));
+    await tester.tap(find.byKey(const ValueKey('multi-select-option-شخصی')));
     await tester.pumpAndSettle();
     // Draft choices are not applied before the explicit confirmation.
     expect(find.byKey(const ValueKey('task-card-title-three')), findsOneWidget);
@@ -198,7 +198,7 @@ void main() {
     await tester.ensureVisible(categoryChip);
     await tester.tap(categoryChip);
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'اداری'));
+    await tester.tap(find.byKey(const ValueKey('multi-select-option-اداری')));
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
     final tagsChip = find.byKey(const ValueKey('home-filter-card-tags'));
@@ -206,9 +206,9 @@ void main() {
     await tester.tap(tagsChip);
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.text('مهم'), 240, scrollable: find.byType(Scrollable).last);
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'مهم'));
+    await tester.tap(find.byKey(const ValueKey('multi-select-option-مهم')));
     await tester.scrollUntilVisible(find.text('فوری'), 240, scrollable: find.byType(Scrollable).last);
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'فوری'));
+    await tester.tap(find.byKey(const ValueKey('multi-select-option-فوری')));
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
     expect(find.text('اول'), findsOneWidget);
@@ -232,8 +232,8 @@ void main() {
     await tester.ensureVisible(timeChip);
     await tester.tap(timeChip);
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'گذشته'));
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'امروز تقویمی'));
+    await tester.tap(find.byKey(const ValueKey('home-time-filter-past')));
+    await tester.tap(find.byKey(const ValueKey('home-time-filter-today')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
@@ -325,7 +325,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('home-filter-card-time')));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'امروز تقویمی'));
+    await tester.tap(find.byKey(const ValueKey('home-time-filter-today')));
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
