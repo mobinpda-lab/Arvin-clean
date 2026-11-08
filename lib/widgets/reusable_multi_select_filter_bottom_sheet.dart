@@ -144,6 +144,7 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
                       for (final option in filtered)
                         CheckboxListTile(
                           key: ValueKey('${optionKeyPrefix ?? 'multi-select-option'}-${option.value}'),
+                          minTileHeight: 48,
                           value: working.contains(option.value),
                           activeColor: color,
                           controlAffinity: ListTileControlAffinity.leading,
