@@ -40,7 +40,7 @@ void main() {
       const ['task-1', 'کار اول', '', 'none', 0, 0, 0],
     );
     await database.runInsert(
-      'INSERT INTO tasks (id, title, description, follow_up_enabled, priority, archived, trashed, completed) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO tasks (id, title, description, priority, archived, trashed, completed) VALUES (?, ?, ?, ?, ?, ?, ?)',
       const ['task-2', 'کار دوم', '', 'none', 0, 0, 0],
     );
 

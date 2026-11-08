@@ -66,14 +66,24 @@ class TaskTemplate {
   }) {
     final timestamp = now ?? DateTime.now();
     final recurrence = task.recurrence;
-    final reminderDefinitions = task.taskReminders.map((reminder) => TaskTemplateReminder(
-      title: reminder.title,
-      isAllDay: reminder.isAllDay,
-      hour: reminder.date.hour,
-      minute: reminder.date.minute,
-      isEnabled: reminder.isEnabled,
-      sequence: reminder.sequence,
-    )).toList(growable: true);
+    final reminderDefinitions = <TaskTemplateReminder>[];
+    for (final reminder in task.taskReminders) {
+      // When a legacy compatibility reminder and an independent reminder
+      // represent the same instant, the independent record is authoritative.
+      final replacedByIndependent = reminder.isLegacyTaskReminder &&
+          task.taskReminders.any((candidate) =>
+              !candidate.isLegacyTaskReminder &&
+              candidate.date.isAtSameMomentAs(reminder.date));
+      if (replacedByIndependent) continue;
+      reminderDefinitions.add(TaskTemplateReminder(
+        title: reminder.isLegacyTaskReminder ? 'یادآور اصلی' : reminder.title,
+        isAllDay: reminder.isAllDay,
+        hour: reminder.date.hour,
+        minute: reminder.date.minute,
+        isEnabled: reminder.isEnabled,
+        sequence: reminder.sequence,
+      ));
+    }
     // Legacy Task.reminderDate is still canonical input for older Tasks. Copy
     // its time-of-day only; the calendar date is execution history, not a
     // reusable template default. Do not duplicate a reminder already migrated

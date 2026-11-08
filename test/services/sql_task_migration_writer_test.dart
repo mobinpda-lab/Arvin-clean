@@ -103,7 +103,8 @@ void main() {
       const ['legacy-1'],
     );
     expect(people.single['person_id'], 'person-1');
-    expect(people.single['name'], 'علی رضایی');
+    // The migrated display name must match the exact source input.
+    expect(people.single['name'], 'مشتری');
 
     final tags = await database.runSelect(
       '''SELECT tags.name

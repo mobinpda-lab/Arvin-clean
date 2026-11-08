@@ -70,20 +70,26 @@ void main() {
     expect(loaded.single.reminderDate, isNull);
   });
 
-  test('TaskStore persists reminder removal as null', () async {
+  test('TaskStore updates and removes a migrated legacy reminder', () async {
     SharedPreferences.setMockInitialValues({});
     final store = TaskStore();
+    final original = DateTime.parse('2026-08-22T08:00:00.000');
+    final updated = DateTime.parse('2026-08-23T09:15:00.000');
     final task = Task(
       id: 'store-reminder-remove',
-      title: 'حذف یادآوری',
-      reminderDate: DateTime.parse('2026-08-22T08:00:00.000'),
+      title: 'ویرایش و حذف یادآوری',
+      reminderDate: original,
     );
 
     await store.save([task]);
+    task.reminderDate = updated;
+    await store.save([task]);
+    expect((await store.load()).single.reminderDate, updated);
+
     task.reminderDate = null;
     await store.save([task]);
-
     final loaded = await store.load();
     expect(loaded.single.reminderDate, isNull);
+    expect(loaded.single.legacyTaskReminderMigrationVersion, 1);
   });
 }

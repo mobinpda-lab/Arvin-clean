@@ -56,8 +56,6 @@ void main() {
           id: 'canonical-1',
           title: 'عنوان ویرایش‌شده',
           description: 'شرح ویرایش‌شده',
-          followUpEnabled: true,
-          followUpDate: DateTime.parse('2026-08-27T11:00:00.000Z'),
           tags: const <String>['جدید'],
           archived: true,
           completed: true,
@@ -70,14 +68,15 @@ void main() {
     );
     expect(saved['title'], 'عنوان ویرایش‌شده');
     expect(saved['description'], 'شرح ویرایش‌شده');
-    expect(saved['followUpDate'], '2026-08-27T11:00:00.000Z');
     expect(saved['tags'], <String>['جدید']);
     expect(saved['archived'], isTrue);
     expect(saved['completed'], isTrue);
 
+    expect(saved.containsKey('followUpEnabled'), isFalse);
+    expect(saved.containsKey('followUpDate'), isFalse);
+    expect((saved['followUps'] as List).single['id'], 'follow-up-1');
     expect(saved['createdAt'], '2026-08-20T08:00:00.000Z');
     expect(saved['updatedAt'], '2026-08-21T09:00:00.000Z');
-    expect(saved['followUpEnabled'], isTrue);
     expect(saved['category'], 'sales');
     expect(saved['checklist'], <String>['تماس']);
     expect(saved['reminderDate'], '2026-08-26T09:30:00.000Z');
@@ -123,37 +122,33 @@ void main() {
     expect(saved.last['followUps'], isEmpty);
   });
 
-  test('Home can disable an existing canonical follow-up atomically',
+  test('Home projection preserves historical Follow-ups and removes retired scheduling keys',
       () async {
     SharedPreferences.setMockInitialValues(<String, Object>{
-      key:
-          '[{"id":"disable","title":"پیگیری","followUpEnabled":true,"followUpDate":"2026-08-27T11:00:00.000Z"}]',
+      key: '[{"id":"disable","title":"پیگیری","followUpEnabled":true,'
+          '"followUpDate":"2026-08-27T11:00:00.000Z","followUps":[{'
+          '"id":"history-1","dateTime":"2026-08-25T10:00:00.000Z",'
+          '"note":"سابقه محفوظ"}]}]',
     });
     final prefs = await SharedPreferences.getInstance();
 
     await TaskMigrationWriter().saveTo(
       prefs,
-      <Task>[
-        Task(
-          id: 'disable',
-          title: 'پیگیری',
-          followUpEnabled: false,
-          followUpDate: null,
-        ),
-      ],
+      <Task>[Task(id: 'disable', title: 'پیگیری')],
     );
 
     final saved = Map<String, dynamic>.from(
       (jsonDecode(prefs.getString(key)!) as List<dynamic>).single as Map,
     );
-    expect(saved['followUpEnabled'], isFalse);
-    expect(saved['followUpDate'], isNull);
+    expect(saved.containsKey('followUpEnabled'), isFalse);
+    expect(saved.containsKey('followUpDate'), isFalse);
+    expect((saved['followUps'] as List).single['id'], 'history-1');
+    expect((saved['followUps'] as List).single['note'], 'سابقه محفوظ');
   });
 
-  test('Home can enable a canonical follow-up atomically', () async {
+  test('Home projection persists explicitly supplied canonical Follow-up history', () async {
     SharedPreferences.setMockInitialValues(<String, Object>{
-      key:
-          '[{"id":"enable","title":"پیگیری","followUpEnabled":false,"followUpDate":null}]',
+      key: '[{"id":"enable","title":"پیگیری","followUpEnabled":false,"followUpDate":null}]',
     });
     final prefs = await SharedPreferences.getInstance();
     final followUpDate = DateTime.parse('2026-08-28T12:00:00.000Z');
@@ -164,8 +159,13 @@ void main() {
         Task(
           id: 'enable',
           title: 'پیگیری',
-          followUpEnabled: true,
-          followUpDate: followUpDate,
+          followUps: [
+            FollowUp(
+              id: 'history-new',
+              dateTime: followUpDate,
+              note: 'پیگیری ثبت‌شده',
+            ),
+          ],
         ),
       ],
     );
@@ -173,8 +173,10 @@ void main() {
     final saved = Map<String, dynamic>.from(
       (jsonDecode(prefs.getString(key)!) as List<dynamic>).single as Map,
     );
-    expect(saved['followUpEnabled'], isTrue);
-    expect(saved['followUpDate'], followUpDate.toIso8601String());
+    expect(saved.containsKey('followUpEnabled'), isFalse);
+    expect(saved.containsKey('followUpDate'), isFalse);
+    expect((saved['followUps'] as List).single['id'], 'history-new');
+    expect((saved['followUps'] as List).single['dateTime'], followUpDate.toIso8601String());
   });
 
   test('malformed existing storage is rejected without overwriting it',

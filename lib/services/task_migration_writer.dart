@@ -83,11 +83,20 @@ class TaskMigrationWriter {
         'trashed': task.trashed,
         'completed': task.completed,
         'completedAt': task.completedAt?.toIso8601String(),
-        'taskReminders': task.taskReminders.map((item) => item.toJson()).toList(),
+        'taskReminders': task.taskReminders.isNotEmpty
+            ? task.taskReminders.map((item) => item.toJson()).toList()
+            : existing['taskReminders'] ?? const <dynamic>[],
         'nextReminderSequence': task.nextReminderSequence,
-        'legacyTaskReminderMigrationVersion': task.legacyTaskReminderMigrationVersion,
-        'followUps': task.followUps.map((item) => item.toJson()).toList(),
-        'people': task.people.map((person) => person.toJson()).toList(),
+        'legacyTaskReminderMigrationVersion':
+            task.legacyTaskReminderMigrationVersion,
+        // Home is a limited projection and cannot edit relational history.
+        // An empty Home snapshot must not erase canonical Follow-ups/people.
+        'followUps': task.followUps.isNotEmpty
+            ? task.followUps.map((item) => item.toJson()).toList()
+            : existing['followUps'] ?? const <dynamic>[],
+        'people': task.people.isNotEmpty
+            ? task.people.map((person) => person.toJson()).toList()
+            : existing['people'] ?? const <dynamic>[],
       };
       for (final legacyKey in const [
         'followUpEnabled',

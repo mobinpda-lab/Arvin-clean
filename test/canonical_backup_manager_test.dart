@@ -101,8 +101,16 @@ void main() {
           isAllDay: true,
           sequence: 2,
         ),
+        TaskReminder(
+          id: 'legacy-task-reminder-task-full',
+          title: 'یادآوری: کار کامل',
+          date: DateTime(2026, 8, 28, 10, 30),
+          sequence: 3,
+          isLegacyTaskReminder: true,
+        ),
       ]
-      ..nextReminderSequence = 3;
+      ..legacyTaskReminderMigrationVersion = 1
+      ..nextReminderSequence = 4;
     final fileName = await manager.backupCanonicalTasks([task]);
 
     expect(fileName, 'canonical-backup.json');

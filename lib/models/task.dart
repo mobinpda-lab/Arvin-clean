@@ -315,10 +315,12 @@ class Task {
 
   @Deprecated('Use taskReminders directly.')
   set reminderDate(DateTime? value) {
-    if (legacyTaskReminderMigrationVersion >= 1) return;
     final index = taskReminders.indexWhere((item) => item.isLegacyTaskReminder);
     if (value == null) {
       if (index >= 0) taskReminders.removeAt(index);
+      // Keep the migration tombstone after explicit deletion so a stale
+      // legacy JSON field cannot recreate the removed reminder on reload.
+      legacyTaskReminderMigrationVersion = 1;
       return;
     }
     if (index >= 0) {
@@ -326,25 +328,30 @@ class Task {
         id: 'legacy-task-reminder-$id',
         date: value,
       );
-    } else {
-      final reminderId = 'legacy-task-reminder-$id';
-      var highestSequence = 0;
-      for (final reminder in taskReminders) {
-        if (reminder.sequence > highestSequence) highestSequence = reminder.sequence;
-      }
-      final sequence = nextReminderSequence > highestSequence
-          ? nextReminderSequence
-          : highestSequence + 1;
-      taskReminders.add(TaskReminder(
-        id: reminderId,
-        title: 'یادآوری: $title',
-        date: value,
-        isAllDay: false,
-        sequence: sequence,
-        isLegacyTaskReminder: true,
-      ));
-      nextReminderSequence = sequence + 1;
+      legacyTaskReminderMigrationVersion = 1;
+      return;
     }
+    // A migrated Task with no legacy reminder has an intentional tombstone.
+    // Do not let a stale compatibility setter resurrect that deleted record.
+    if (legacyTaskReminderMigrationVersion >= 1) return;
+
+    final reminderId = 'legacy-task-reminder-$id';
+    var highestSequence = 0;
+    for (final reminder in taskReminders) {
+      if (reminder.sequence > highestSequence) highestSequence = reminder.sequence;
+    }
+    final sequence = nextReminderSequence > highestSequence
+        ? nextReminderSequence
+        : highestSequence + 1;
+    taskReminders.add(TaskReminder(
+      id: reminderId,
+      title: 'یادآوری: $title',
+      date: value,
+      isAllDay: false,
+      sequence: sequence,
+      isLegacyTaskReminder: true,
+    ));
+    nextReminderSequence = sequence + 1;
     legacyTaskReminderMigrationVersion = 1;
   }
 
