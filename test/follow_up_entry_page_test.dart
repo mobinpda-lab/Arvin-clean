@@ -207,16 +207,20 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('follow-up-entry-waiting-for-response')));
     await tester.pumpAndSettle();
     expect(find.text('منتظر پیگیری دیگران'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('follow-up-person-picker')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('follow-up-person-person-ana')));
+    await tester.enterText(
+      find.byKey(const ValueKey('multi-select-create-0')),
+      'سارا احمدی',
+    );
+    await tester.tap(find.text('+ ایجاد مورد جدید'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('follow-up-person-add')));
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byKey(const ValueKey('follow-up-person-new-name')), 'سارا احمدی');
-    await tester.tap(find.byKey(const ValueKey('follow-up-person-create')));
+    await tester.tap(find.text('ثبت انتخاب اشخاص'));
     await tester.pumpAndSettle();
 
     expect(people, hasLength(2));
-    expect(find.byKey(ValueKey('follow-up-person-${people.last.id}')), findsOneWidget);
+    expect(find.byKey(ValueKey('follow-up-person-selected-${people.last.id}')), findsOneWidget);
     await saveEditor(tester);
     expect(saved, isNotNull);
     expect(saved!.waitingForResponse, isTrue);
@@ -249,16 +253,12 @@ void main() {
     );
     await tester.tap(find.text('reopen-person-follow-up'));
     await tester.pumpAndSettle();
-    final anaChip = find.byKey(const ValueKey('follow-up-person-person-ana'));
-    await tester.scrollUntilVisible(
-      anaChip,
-      160,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.ensureVisible(anaChip);
+    await tester.tap(find.byKey(const ValueKey('follow-up-person-picker')));
     await tester.pumpAndSettle();
-    expect(tester.widget<FilterChip>(anaChip).selected, isTrue);
-    await tester.tap(anaChip);
+    final anaOption = find.byKey(const ValueKey('follow-up-person-person-ana'));
+    expect(tester.widget<CheckboxListTile>(anaOption).value, isTrue);
+    await tester.tap(anaOption);
+    await tester.tap(find.text('ثبت انتخاب اشخاص'));
     await tester.pumpAndSettle();
     await saveEditor(tester);
     expect(saved!.personIds, isNot(contains('person-ana')));

@@ -8,6 +8,7 @@ import 'services/persian_date_formatter.dart';
 import 'services/waiting_for_response_service.dart';
 import 'widgets/persian_date_picker.dart';
 import 'widgets/universal_arvin_time_picker.dart';
+import 'widgets/reusable_multi_select_filter_bottom_sheet.dart';
 
 class FollowUpEntryPage extends StatefulWidget {
   const FollowUpEntryPage({
@@ -236,30 +237,46 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
     }
   }
 
-  Future<void> _addPerson() async {
-    final name = await showDialog<String>(
-      context: context,
-      builder: (_) => const _FollowUpPersonNameDialog(),
+  Future<void> _selectPeople() async {
+    final createdPeople = <String, PersonReference>{};
+    final selected = await ReusableMultiSelectFilterBottomSheet.showMultiSelect<String>(
+      context,
+      title: 'انتخاب اشخاص پیگیری',
+      options: _people
+          .map((person) => ReusableFilterOption<String>(
+                value: person.id,
+                label: person.displayName,
+              ))
+          .toList(growable: false),
+      selectedValues: Set<String>.of(_selectedPersonIds),
+      accent: const Color(0xFF3A86EF),
+      optionKeyPrefix: 'follow-up-person',
+      searchHint: 'جستجوی اشخاص...',
+      createHint: 'نام شخص جدید',
+      applyLabel: 'ثبت انتخاب اشخاص',
+      onCreate: widget.onCreatePerson == null
+          ? null
+          : (value) async {
+              final normalizedName = value.trim();
+              if (normalizedName.isEmpty) return null;
+              final person = PersonReference(
+                id: 'person:${DateTime.now().microsecondsSinceEpoch}',
+                displayName: normalizedName,
+              );
+              await widget.onCreatePerson!.call(person);
+              createdPeople[person.id] = person;
+              return ReusableFilterOption<String>(
+                value: person.id,
+                label: person.displayName,
+              );
+            },
     );
-    final normalizedName = name?.trim() ?? '';
-    if (normalizedName.isEmpty || !mounted) return;
-    final person = PersonReference(
-      id: 'person:${DateTime.now().microsecondsSinceEpoch}',
-      displayName: normalizedName,
-    );
-    try {
-      await widget.onCreatePerson?.call(person);
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ذخیره شخص انجام نشد؛ دوباره تلاش کنید.')),
-      );
-      return;
-    }
-    if (!mounted) return;
+    if (!mounted || selected == null) return;
     setState(() {
-      _people.add(person);
-      _selectedPersonIds.add(person.id);
+      for (final person in createdPeople.values) {
+        if (!_people.any((item) => item.id == person.id)) _people.add(person);
+      }
+      _selectedPersonIds = Set<String>.of(selected);
     });
   }
 
@@ -432,34 +449,31 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
                 ),
               ),
               const SizedBox(height: 6),
-              Wrap(
-                spacing: 8,
-                runSpacing: 6,
-                children: [
-                  for (final person in _people)
-                    FilterChip(
-                      key: ValueKey('follow-up-person-${person.id}'),
-                      label: Text(person.displayName),
-                      selected: _selectedPersonIds.contains(person.id),
-                      onSelected: _isSaving
-                          ? null
-                          : (selected) => setState(() {
-                                if (selected) {
-                                  _selectedPersonIds.add(person.id);
-                                } else {
-                                  _selectedPersonIds.remove(person.id);
-                                }
-                              }),
-                    ),
-                  if (widget.onCreatePerson != null)
-                    ActionChip(
-                      key: const ValueKey('follow-up-person-add'),
-                      avatar: const Icon(Icons.add, size: 18),
-                      label: const Text('افزودن شخص'),
-                      onPressed: _isSaving ? null : _addPerson,
-                    ),
-                ],
+              OutlinedButton.icon(
+                key: const ValueKey('follow-up-person-picker'),
+                onPressed: _isSaving ? null : _selectPeople,
+                icon: const Icon(Icons.people_outline_rounded),
+                label: Text(_selectedPersonIds.isEmpty
+                    ? 'انتخاب اشخاص'
+                    : 'اشخاص انتخاب‌شده: ${_selectedPersonIds.length}'),
               ),
+              if (_selectedPersonIds.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
+                  children: [
+                    for (final person in _people.where(
+                      (item) => _selectedPersonIds.contains(item.id),
+                    ))
+                      Chip(
+                        key: ValueKey('follow-up-person-selected-${person.id}'),
+                        label: Text(person.displayName),
+                      ),
+                  ],
+                ),
+              ],
+
             ],
             const SizedBox(height: 4),
             TextField(
@@ -495,45 +509,3 @@ class _FollowUpEntryPageState extends State<FollowUpEntryPage> {
   }
 }
 
-class _FollowUpPersonNameDialog extends StatefulWidget {
-  const _FollowUpPersonNameDialog();
-
-  @override
-  State<_FollowUpPersonNameDialog> createState() => _FollowUpPersonNameDialogState();
-}
-
-class _FollowUpPersonNameDialogState extends State<_FollowUpPersonNameDialog> {
-  final TextEditingController _controller = TextEditingController();
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('افزودن شخص'),
-      content: TextField(
-        key: const ValueKey('follow-up-person-new-name'),
-        controller: _controller,
-        autofocus: true,
-        textInputAction: TextInputAction.done,
-        decoration: const InputDecoration(labelText: 'نام شخص'),
-        onSubmitted: (value) => Navigator.of(context).pop(value.trim()),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('انصراف'),
-        ),
-        FilledButton(
-          key: const ValueKey('follow-up-person-create'),
-          onPressed: () => Navigator.of(context).pop(_controller.text.trim()),
-          child: const Text('افزودن'),
-        ),
-      ],
-    );
-  }
-}
