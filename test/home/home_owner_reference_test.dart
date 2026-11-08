@@ -37,11 +37,16 @@ void main() {
     expect(find.text('آروین'), findsOneWidget);
     expect(find.text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-search-button')), findsOneWidget);
+    for (final key in [
+      'home-filter-card-time',
+      'home-filter-card-center',
+      'home-filter-card-project',
+      'home-filter-card-category',
+      'home-filter-card-tags',
+    ]) {
+      expect(find.byKey(ValueKey(key)), findsOneWidget);
+    }
     expect(find.byKey(const ValueKey('home-notifications')), findsNothing);
-    expect(find.text('برچسب‌ها'), findsOneWidget);
-    expect(find.text('دسته‌ها'), findsOneWidget);
-    expect(find.text('پروژه‌ها'), findsOneWidget);
-    expect(find.text('زمان'), findsOneWidget);
     expect(find.text('امروز'), findsWidgets);
     final todayJalali = const PersianDateFormatter().format(today, usePersianDate: true);
     final weekdayName = switch (today.weekday) {
