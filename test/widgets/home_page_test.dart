@@ -199,7 +199,7 @@ void main() {
     await tester.ensureVisible(timeChip);
     await tester.tap(timeChip);
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'امروز'));
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'امروز تقویمی'));
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
@@ -847,7 +847,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
 
-    expect(find.widgetWithText(ListTile, 'امروز'), findsOneWidget);
+    expect(find.widgetWithText(ListTile, 'امروز تقویمی'), findsOneWidget);
     expect(find.widgetWithText(ListTile, 'فیلتر کارها'), findsOneWidget);
     expect(find.widgetWithText(ListTile, 'کارهای فاقد زمان'), findsOneWidget);
     expect(find.byKey(const ValueKey('calendar-today')), findsNothing);
@@ -878,7 +878,7 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(ListTile, 'امروز'));
+    await tester.tap(find.widgetWithText(ListTile, 'امروز تقویمی'));
     await tester.pumpAndSettle();
     expect(find.text('موعد امروز بدون انتخاب'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('task-card-today-focus-calendar-today-only')));
