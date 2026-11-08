@@ -72,6 +72,16 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
 
   DateTime get _now => widget.now ?? DateTime.now();
 
+  String get _reportHeading {
+    final names = widget.centers
+        .where((center) => _filter.centerIds.contains(center.id))
+        .map((center) => center.name)
+        .toList(growable: false);
+    if (names.length == 1) return 'گزارش ' + names.single;
+    if (names.length > 1) return 'گزارش ' + names.length.toString() + ' مرکز';
+    return 'مرکز گزارش آروین';
+  }
+
   List<PersonReference> get _peopleDirectory {
     final directory = <PersonReference>[
       ...widget.people,
@@ -279,7 +289,7 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                 children: [
                   Expanded(
                     child: Text(
-                      'مرکز گزارش آروین',
+                      _reportHeading,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                   ),
