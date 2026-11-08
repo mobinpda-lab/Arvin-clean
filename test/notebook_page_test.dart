@@ -948,4 +948,39 @@ void main() {
     expect(persisted?.tags, const ['مهم']);
   });
 
+  testWidgets('Notebook editor exposes a 48dp Center link and persists its selection', (tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final repository = repositoryAt(DateTime.utc(2026, 8, 27, 6));
+    await repository.createNote(id: 'center-linked-note', title: 'یادداشت دارای مرکز');
+    await CenterStore().create(id: 'center-editor', name: 'مرکز دفترچه');
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: NotebookEditorPage(
+          noteId: 'center-linked-note',
+          repository: repository,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final centerPicker = find.byKey(const ValueKey('notebook-center-picker'));
+    expect(centerPicker, findsOneWidget);
+    expect(tester.getSize(centerPicker).height, greaterThanOrEqualTo(48));
+    await tester.tap(centerPicker);
+    await tester.pumpAndSettle();
+    final centerOption = find.text('مرکز دفترچه');
+    expect(centerOption, findsOneWidget);
+    await tester.tap(centerOption);
+    await tester.pumpAndSettle();
+
+    final saved = await repository.loadNote('center-linked-note');
+    expect(saved?.centerId, 'center-editor');
+    expect(tester.takeException(), isNull);
+  });
+
 }
