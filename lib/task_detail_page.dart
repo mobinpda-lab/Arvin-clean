@@ -100,6 +100,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   static const _waitingService = WaitingForResponseService();
 
   late Task _task;
+  List<PersonReference> _peopleDirectory = const [];
+  Future<void> _taskMutationQueue = Future<void>.value();
   late List<ArvinCenter> _centers;
   late List<ProjectPlan> _projects;
   String? _selectedCenterId;
@@ -118,6 +120,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   TextEditingController? _checklistEditController;
   int? _editingChecklistIndex;
   bool _isSavingChecklist = false;
+  Future<void> _checklistSaveQueue = Future<void>.value();
   bool _isAddingChecklist = false;
 
   @override
@@ -132,6 +135,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     _descriptionController = TextEditingController(text: _task.description);
     _recurrenceIntervalController = TextEditingController(text: (_task.recurrence?.interval ?? 1).toString());
     _recurrenceCountController = TextEditingController(text: _task.recurrence?.count?.toString() ?? '');
+    _peopleDirectory = [...widget.people, ...widget.task.people];
+    if (widget.task.lastFollowUp?.personIds.isNotEmpty == true) _loadPeopleDirectory();
   }
 
   @override
@@ -145,6 +150,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       _descriptionController?.text = widget.task.description;
       _recurrenceIntervalController?.text = (widget.task.recurrence?.interval ?? 1).toString();
       _recurrenceCountController?.text = widget.task.recurrence?.count?.toString() ?? '';
+      _peopleDirectory = [...widget.people, ...widget.task.people];
+      if (widget.task.lastFollowUp?.personIds.isNotEmpty == true) _loadPeopleDirectory();
     }
     _centers = List<ArvinCenter>.of(widget.centers);
     _projects = List<ProjectPlan>.of(widget.projects);
@@ -167,16 +174,31 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   Future<void> _saveTitleImmediately(String value) async {
     final title = value.trim();
     if (title.isEmpty || title == _task.title || widget.onTaskChanged == null) return;
-    final candidate = Task.fromJson(Map<String, dynamic>.from(_task.toJson()))
-      ..title = title;
     try {
-      await _persistCandidate(candidate);
+      await _enqueueTaskMutation((candidate) => candidate.title = title);
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('ذخیره عنوان کار انجام نشد؛ دوباره تلاش کنید')),
       );
     }
+  }
+
+  Future<void> _enqueueTaskMutation(void Function(Task candidate) mutate, {
+    Future<Task?> Function(Task candidate)? persist,
+  }) {
+    final next = _taskMutationQueue.then((_) async {
+      final candidate = Task.fromJson(Map<String, dynamic>.from(_task.toJson()));
+      mutate(candidate);
+      candidate.updatedAt = DateTime.now();
+      final updated = persist != null
+          ? await persist(candidate)
+          : await widget.onTaskChanged?.call(candidate);
+      if (!mounted || updated == null) return;
+      setState(() => _task = updated);
+    });
+    _taskMutationQueue = next.catchError((Object _) {});
+    return next;
   }
 
   Future<void> _persistCandidate(Task candidate) async {
@@ -727,6 +749,20 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     );
   }
 
+  Future<void> _loadPeopleDirectory() async {
+    try {
+      final people = await TaskStore().loadPeopleDirectory();
+      if (!mounted) return;
+      final merged = <String, PersonReference>{
+        for (final person in _peopleDirectory) person.id: person,
+        for (final person in people) person.id: person,
+      };
+      setState(() => _peopleDirectory = merged.values.toList(growable: false));
+    } catch (_) {
+      // Keep existing references usable when the directory is temporarily unavailable.
+    }
+  }
+
   Future<FollowUp?> _openFollowUpEntry({FollowUp? initialFollowUp}) async {
     final store = TaskStore();
     // Read the canonical Person directory from SQLite before opening the
@@ -765,7 +801,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     final followUp = await _openFollowUpEntry();
     if (!mounted || followUp == null) return;
     final updated = await add(_task, followUp);
-    if (mounted) setState(() => _task = updated);
+    if (mounted) {
+      setState(() => _task = updated);
+      if (followUp.personIds.isNotEmpty) _loadPeopleDirectory();
+    }
   }
 
   Future<void> _editFollowUp(FollowUp existing) async {
@@ -786,6 +825,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         _task.followUps = history;
         _task.updatedAt = DateTime.now();
       });
+      if (persisted.personIds.isNotEmpty) _loadPeopleDirectory();
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
@@ -884,16 +924,30 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
   Widget _assigneeCard() {
     final latest = _task.lastFollowUp;
+    final peopleById = <String, PersonReference>{
+      for (final person in _peopleDirectory) person.id: person,
+      for (final person in widget.people) person.id: person,
+      for (final person in _task.people) person.id: person,
+    };
+    final personIds = latest?.personIds ?? const <String>[];
+    final names = personIds
+        .map((id) => peopleById[id]?.displayName)
+        .whereType<String>()
+        .where((name) => name.trim().isNotEmpty)
+        .toList(growable: false);
+    final value = names.isNotEmpty
+        ? names.join('، ')
+        : personIds.isNotEmpty
+            ? '${personIds.length} شخص ثبت‌شده'
+            : 'شخصی برای این پیگیری انتخاب نشده است';
     return KeyedSubtree(
       key: const ValueKey('task-detail-assignee-card'),
       child: _linearActionRow(
         key: const ValueKey('task-detail-waiting-person-row'),
         icon: Icons.person_outline_rounded,
-        title: 'مسئول',
-        value: 'مسئول مستقلی برای این کار ثبت نشده است',
-        onTap: latest?.waitingForResponse == true && widget.onAddFollowUp != null
-            ? _addFollowUp
-            : null,
+        title: 'شخص پیگیری',
+        value: value,
+        onTap: latest == null ? null : () => _editFollowUp(latest),
       ),
     );
   }
@@ -907,52 +961,51 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         return '[ ] $value';
       }).toList();
 
-  Future<void> _saveChecklist(List<String> values) async {
-    if (_isSavingChecklist) return;
-    final handler = widget.onChecklistChanged;
-    if (handler == null && widget.onTaskChanged == null) return;
+  Future<void> _saveChecklist(List<String> values) {
+    final next = _checklistSaveQueue.then((_) async {
+      final previous = _task;
+      final protectedFollowUps = List<FollowUp>.of(previous.followUps);
+      final candidate = Task.fromJson(Map<String, dynamic>.from(previous.toJson()))
+        ..checklist = List<String>.of(values)
+        ..checklistEnabled = true;
 
-    // Checklist edits are persisted immediately and remain isolated from the
-    // historical Follow-up timeline, regardless of the former edit-mode state.
-    final previous = _task;
-    final protectedFollowUps = List<FollowUp>.of(previous.followUps);
-    final candidate = Task.fromJson(Map<String, dynamic>.from(previous.toJson()))
-      ..checklist = List<String>.of(values)
-      ..checklistEnabled = true;
-
-    setState(() {
-      _task = candidate;
-      _isSavingChecklist = true;
-    });
-    try {
-      final updated = handler != null
-          ? await handler(candidate, List<String>.of(values))
-          : await widget.onTaskChanged?.call(candidate);
-      if (!mounted) return;
-      if (updated == null) {
+      setState(() {
+        _task = candidate;
+        _isSavingChecklist = true;
+      });
+      try {
+        final handler = widget.onChecklistChanged;
+        final updated = handler != null
+            ? await handler(candidate, List<String>.of(values))
+            : await widget.onTaskChanged?.call(candidate);
+        if (!mounted) return;
+        if (updated == null) {
+          setState(() {
+            _task = previous;
+            _isSavingChecklist = false;
+          });
+          return;
+        }
+        updated.followUps = protectedFollowUps;
+        setState(() {
+          _task = updated;
+          _isSavingChecklist = false;
+        });
+      } catch (_) {
+        if (!mounted) return;
         setState(() {
           _task = previous;
           _isSavingChecklist = false;
         });
-        return;
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(content: Text('ذخیره چک‌لیست انجام نشد؛ دوباره تلاش کنید')),
+          );
       }
-      updated.followUps = protectedFollowUps;
-      setState(() {
-        _task = updated;
-        _isSavingChecklist = false;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _task = previous;
-        _isSavingChecklist = false;
-      });
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(content: Text('ذخیره چک‌لیست انجام نشد؛ دوباره تلاش کنید')),
-        );
-    }
+    });
+    _checklistSaveQueue = next.catchError((Object _) {});
+    return next;
   }
 
   Future<void> _addChecklistItem() async {
@@ -971,6 +1024,18 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     _checklistEditController?.dispose();
     _checklistEditController = TextEditingController(text: item.substring(4));
     setState(() => _editingChecklistIndex = index);
+  }
+
+  Future<void> _persistChecklistEdit(int index, String value) async {
+    final normalized = value.trim();
+    if (normalized.isEmpty) return;
+    final current = _normalizedChecklist();
+    if (index < 0 || index >= current.length) return;
+    final marker = current[index].startsWith('[x] ') ? '[x]' : '[ ]';
+    final nextValue = '$marker $normalized';
+    if (current[index] == nextValue) return;
+    current[index] = nextValue;
+    await _saveChecklist(current);
   }
 
   Future<void> _saveChecklistEdit(int index) async {
@@ -1090,21 +1155,15 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                     child: TextField(
                       key: ValueKey('task-detail-checklist-edit-input-$index'),
                       controller: _checklistEditController,
-                      enabled: !_isSavingChecklist,
                       autofocus: true,
                       textDirection: TextDirection.rtl,
                       decoration: const InputDecoration(
                         border: OutlineInputBorder(),
                         isDense: true,
                       ),
+                      onChanged: (value) => _persistChecklistEdit(index, value),
                       onSubmitted: (_) => _saveChecklistEdit(index),
                     ),
-                  ),
-                  IconButton(
-                    key: ValueKey('task-detail-checklist-save-$index'),
-                    tooltip: 'ذخیره ویرایش',
-                    onPressed: _isSavingChecklist ? null : () => _saveChecklistEdit(index),
-                    icon: const Icon(Icons.check),
                   ),
                 ],
               )
@@ -1691,16 +1750,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   Future<void> _saveDescriptionImmediately(String value) async {
-    final candidate = Task.fromJson(Map<String, dynamic>.from(_task.toJson()))
-      ..description = value
-      ..updatedAt = DateTime.now();
-    final save = widget.onDescriptionChanged;
+    if (widget.onTaskChanged == null && widget.onDescriptionChanged == null) return;
     try {
-      final updated = save != null
-          ? await save(_task, value)
-          : await widget.onTaskChanged?.call(candidate);
-      if (!mounted || updated == null) return;
-      setState(() => _task = updated);
+      await _enqueueTaskMutation(
+        (candidate) => candidate.description = value,
+        persist: widget.onDescriptionChanged == null
+            ? null
+            : (candidate) => widget.onDescriptionChanged!(candidate, value),
+      );
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

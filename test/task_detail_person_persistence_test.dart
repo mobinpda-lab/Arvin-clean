@@ -55,5 +55,9 @@ void main() {
     expect(reloaded.followUps, hasLength(1));
     expect(reloaded.followUps.single.waitingForResponse, isTrue);
     expect(reloaded.followUps.single.personIds, contains(person.id));
+    final assignee = find.byKey(const ValueKey('task-detail-assignee-card'));
+    await tester.ensureVisible(assignee);
+    await tester.pumpAndSettle();
+    expect(find.text('سارا احمدی'), findsOneWidget);
   });
 }
