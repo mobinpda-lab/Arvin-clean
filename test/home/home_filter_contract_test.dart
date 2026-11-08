@@ -241,7 +241,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(timeFilter);
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'امروز'));
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'امروز تقویمی'));
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
