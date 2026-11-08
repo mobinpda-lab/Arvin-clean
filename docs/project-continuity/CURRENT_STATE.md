@@ -917,3 +917,17 @@ PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main دست‌نخورد�
 - سند، چهار محور نام‌برده‌شده مرکز/پروژه/دسته/برچسب را مشخص کرده و به‌درستی یادآور شده که محور پنجم در عبارت درخواست روشن نیست؛ پیش از پیاده‌سازی باید مالک محصول آن را تعیین کند.
 - Gap Analysis فعلی صرفاً نیازمندی فاز بعدی است؛ هیچ کد، جدول Drift، مهاجرت یا تستی در این فاز تغییر نکرده است.
 - وضعیت انتشار همچنان **BLOCKED — RELEASE: NO-GO**؛ PR #3052 باید OPEN / DRAFT / UNMERGED بماند و main دست‌نخورده باشد.
+
+
+## Exact-SHA CI checkpoint — 2026-11-08 — d02cb2df2a46b6c600158bda35709e7c3854ffbc
+
+- PR #3052 HEAD was verified as this exact SHA; PR remains OPEN / DRAFT / UNMERGED. No main-branch change was made.
+- Draft Review APK run 42451351162 (job 128641055464): FAILURE. The staging APK assembly failed before signature/package/font verification and before artifact upload. The run exposes zero artifacts; no APK filename, package ID, APK SHA-256, or APK size is available for this SHA.
+- Draft Review compiler errors in lib/task_detail_page.dart: undefined getter/name `due` at lines 1940–1941 (four analyzer references) and missing method `_templateSourceCard()` at line 2182. Build log confirms :app:compileFlutterBuildStaging failed.
+- Build run 42451350930 was IN_PROGRESS at the checkpoint. Its Analyze job 128641863102: FAILURE (7 issues: 4 undefined-name diagnostics for due, missing _templateSourceCard method, and unused_element warnings for _cancelInlineEdit and _metadataChip). Visual job 128641863043: FAILURE; task_detail_visual_test.dart could not compile because of the same two source defects; 0 tests passed. Six quality shards test-0 through test-5 were still IN_PROGRESS at the checkpoint; their final conclusions are NOT VERIFIED. APK debug/release/staging jobs were still IN_PROGRESS at the checkpoint; no artifacts were listed for the Build run.
+- Calendar Provider run 42451350939 / job 128641045795: FAILURE. Its instrumentation stage could not compile the app because of the same `due` and `_templateSourceCard` errors. The run uploaded only diagnostic evidence artifact 13606295730 (8,798 bytes; ZIP SHA-256 73db3facfee388a6d0750f2126690ec8f1f98396b7c5943f88eac18c9b32ca8d); this is NOT an APK.
+- Follow-up File Persistence run 42451350822 / job 128641054577: SUCCESS. File-backed repository persistence and alarm-overlay SQLite close/reopen diagnostic tests completed successfully on this SHA.
+- Device Smoke run 42451350903 remained PENDING with no jobs exposed; no device acceptance is verified.
+- Orchestrator, Orchestrator PR Wakeup, Parallel Wave, Production Loop and G1 lock sync runs completed SUCCESS, but these are orchestration outcomes and do not replace app build, test, visual, calendar or device acceptance.
+- Next action: repair the source compilation defects without removing or weakening tests, then rerun every required gate on one exact new candidate SHA. Do not claim the six shards passed until their completed exact-SHA results are available.
+- Governance unchanged: PR #3052 OPEN / DRAFT / UNMERGED; no merge, publication or release; **BLOCKED — RELEASE: NO-GO**.
