@@ -120,12 +120,18 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
                     ),
                   ),
                 ],
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: Text(
-                    'انتخاب‌شده: ${working.length}',
-                    key: const ValueKey('multi-select-selected-count'),
-                    style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 48),
+                    child: Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: Text(
+                        'انتخاب‌شده: ${working.length}',
+                        key: const ValueKey('multi-select-selected-count'),
+                        style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 12),
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 6),
