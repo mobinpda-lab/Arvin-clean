@@ -550,16 +550,20 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       },
     );
     if (!mounted || result == null) return;
+    final nextCenterId = result.cleared ? null : result.value;
+    final selectedProject = _projects.where((project) => project.id == _selectedProjectId);
+    final clearProject = result.cleared ||
+        (selectedProject.isNotEmpty &&
+            nextCenterId != null &&
+            selectedProject.first.centerId != nextCenterId);
     setState(() {
-      _selectedCenterId = result.cleared ? null : result.value;
-      final selectedProject = _projects.where((project) => project.id == _selectedProjectId);
-      if (result.cleared ||
-          (selectedProject.isNotEmpty &&
-              _selectedCenterId != null &&
-              selectedProject.first.centerId != _selectedCenterId)) {
-        _selectedProjectId = null;
-      }
+      _selectedCenterId = nextCenterId;
+      if (clearProject) _selectedProjectId = null;
     });
+    final candidate = Task.fromJson(Map<String, dynamic>.from(_task.toJson()))
+      ..centerId = nextCenterId;
+    await _persistCandidate(candidate);
+    if (clearProject) await widget.onProjectChanged?.call(null);
   }
 
   Future<void> _openInlineProjectSelector() async {
@@ -604,17 +608,23 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       },
     );
     if (!mounted || result == null) return;
+    final nextProjectId = result.cleared ? null : result.value;
+    final selectedProject = _projects.where((project) => project.id == nextProjectId);
+    final nextCenterId = selectedProject.isNotEmpty
+        ? selectedProject.first.centerId
+        : _selectedCenterId;
     setState(() {
-      _selectedProjectId = result.cleared ? null : result.value;
-      final selectedProject = _projects.where((project) => project.id == _selectedProjectId);
-      if (selectedProject.isNotEmpty) {
-        _selectedCenterId = selectedProject.first.centerId;
-      }
+      _selectedProjectId = nextProjectId;
+      _selectedCenterId = nextCenterId;
     });
+    await widget.onProjectChanged?.call(nextProjectId);
+    final candidate = Task.fromJson(Map<String, dynamic>.from(_task.toJson()))
+      ..centerId = nextCenterId;
+    await _persistCandidate(candidate);
   }
 
   Future<void> _openInlineCategorySelector() async {
-    final current = _categoryController?.text.trim() ?? '';
+    final current = _task.category?.trim() ?? '';
     final values = <String>{
       ...widget.categoryOptions.map((value) => value.trim()).where((value) => value.isNotEmpty),
       if (current.isNotEmpty) current,
@@ -646,13 +656,13 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       },
     );
     if (!mounted || result == null) return;
-    setState(() {
-      _categoryController?.text = result.cleared ? '' : result.value ?? '';
-    });
+    final candidate = Task.fromJson(Map<String, dynamic>.from(_task.toJson()))
+      ..category = result.cleared ? null : result.value;
+    await _persistCandidate(candidate);
   }
 
   Future<void> _openInlineTagSelector() async {
-    final current = (_tagsController?.text ?? '')
+    final current = _task.tags
         .split('،')
         .map((value) => value.trim())
         .where((value) => value.isNotEmpty)
@@ -688,9 +698,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       },
     );
     if (!mounted || result == null) return;
-    setState(() {
-      _tagsController?.text = (result.toList()..sort()).join('، ');
-    });
+    final candidate = Task.fromJson(Map<String, dynamic>.from(_task.toJson()))
+      ..tags = (result.toList()..sort());
+    await _persistCandidate(candidate);
   }
 
   Future<void> _pickInlineWorkTime() async {
@@ -1924,11 +1934,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   Widget _organizationCard() {
-    Future<void> openSelector(Future<void> Function() open) async {
-      if (!_isInlineEditing) _beginInlineEdit();
-      await open();
-      if (mounted && _isInlineEditing) await _saveInlineEdit();
-    }
+    Future<void> openSelector(Future<void> Function() open) => open();
 
     return _card(
       key: const ValueKey('task-detail-organization-card'),

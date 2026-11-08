@@ -105,10 +105,7 @@ void main() {
           await tester.scrollUntilVisible(
             finder,
             280,
-            scrollable: find.descendant(
-              of: find.byKey(const ValueKey('task-detail-content-list')),
-              matching: find.byType(Scrollable),
-            ).first,
+            scrollable: find.byType(Scrollable).first,
             maxScrolls: 24,
           );
           await tester.pump(const Duration(milliseconds: 50));
