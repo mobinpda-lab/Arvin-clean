@@ -258,9 +258,9 @@ void main() {
     await tester.tap(categoryFilter);
     await tester.pumpAndSettle();
     final workCategoryOption =
-        find.widgetWithText(CheckboxListTile, 'کاری');
+        find.byKey(const ValueKey('multi-select-option-کاری'));
     final personalCategoryOption =
-        find.widgetWithText(CheckboxListTile, 'شخصی');
+        find.byKey(const ValueKey('multi-select-option-شخصی'));
     await tester.ensureVisible(workCategoryOption);
     await tester.tap(workCategoryOption);
     await tester.pumpAndSettle();
