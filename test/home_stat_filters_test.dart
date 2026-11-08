@@ -277,7 +277,7 @@ void main() {
 
   testWidgets('calendar Today includes due-today and overdue open work, not Focus-only future work',
       (tester) async {
-    final now = IranClock.now();
+    final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day, 10);
     final yesterday = DateTime(now.year, now.month, now.day)
         .subtract(const Duration(days: 1))
@@ -305,7 +305,7 @@ void main() {
 
   testWidgets('time filter calendar Today excludes completed tasks and keeps overdue open work',
       (tester) async {
-    final now = IranClock.now();
+    final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day, 10);
     final yesterday = DateTime(now.year, now.month, now.day)
         .subtract(const Duration(days: 1))
