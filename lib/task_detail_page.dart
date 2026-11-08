@@ -109,18 +109,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       widget.taskTemplateStore ?? TaskTemplateStore();
   TextEditingController? _descriptionController;
   TextEditingController? _titleController;
-  TextEditingController? _categoryController;
-  TextEditingController? _tagsController;
-  bool _isInlineEditing = false;
-  bool _isSavingInlineEdit = false;
-  bool _draftCompleted = false;
-  TaskPriority _draftPriority = TaskPriority.medium;
   bool _isSavingTaskTemplate = false;
-  bool _recurrenceConfigured = false;
-  bool _recurrenceActive = true;
-  DateTime? _draftRecurrenceEndDate;
-  RecurrenceFrequency _recurrenceFrequency = RecurrenceFrequency.daily;
-  RecurrenceTrackingLevel _recurrenceTrackingLevel = RecurrenceTrackingLevel.normal;
   TextEditingController? _recurrenceIntervalController;
   TextEditingController? _recurrenceCountController;
   bool _isMovingDueDateToToday = false;
@@ -130,10 +119,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   int? _editingChecklistIndex;
   bool _isSavingChecklist = false;
   bool _isAddingChecklist = false;
-  List<TaskReminder> _draftReminders = const [];
-  List<String> _draftChecklist = const [];
-  DateTime? _draftDueDate;
-  bool _draftAllDay = false;
 
   @override
   void initState() {
@@ -145,6 +130,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     _selectedProjectId = widget.selectedProjectId ?? widget.project?.id;
     _titleController = TextEditingController(text: _task.title);
     _descriptionController = TextEditingController(text: _task.description);
+    _recurrenceIntervalController = TextEditingController(text: (_task.recurrence?.interval ?? 1).toString());
+    _recurrenceCountController = TextEditingController(text: _task.recurrence?.count?.toString() ?? '');
   }
 
   @override
@@ -173,167 +160,19 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         : widget.projectTitle ?? widget.project?.title ?? 'پروژه انتخاب‌شده';
   }
 
-  void _beginInlineEdit() {
-    _categoryController = TextEditingController(text: _task.category ?? '');
-    _tagsController = TextEditingController(text: _task.tags.join('، '));
-    _selectedCenterId = _task.centerId ?? widget.project?.centerId;
-    _selectedProjectId = widget.selectedProjectId ?? widget.project?.id;
-    _draftReminders = List<TaskReminder>.of(_task.taskReminders);
-    _draftChecklist = List<String>.of(_normalizedChecklist());
-    _isAddingChecklist = _task.checklist.isEmpty;
-    _draftDueDate = _task.dueDate;
-    _draftAllDay = _task.allDay;
-    _draftCompleted = _task.completed;
-    _draftPriority = _task.priority;
-    final rule = _task.recurrence;
-    _recurrenceConfigured = rule != null;
-    _recurrenceActive = rule?.active ?? true;
-    _draftRecurrenceEndDate = rule?.endDate;
-    _recurrenceFrequency = rule?.frequency ?? RecurrenceFrequency.daily;
-    _recurrenceTrackingLevel = rule?.trackingLevel ?? RecurrenceTrackingLevel.normal;
-    _recurrenceIntervalController = TextEditingController(text: (rule?.interval ?? 1).toString());
-    _recurrenceCountController = TextEditingController(text: rule?.count?.toString() ?? '');
-    setState(() => _isInlineEditing = true);
-  }
-
-  void _cancelInlineEdit() {
-    _categoryController?.dispose();
-    _tagsController?.dispose();
-    _recurrenceIntervalController?.dispose();
-    _recurrenceCountController?.dispose();
-    _checklistEditController?.dispose();
-    _checklistEditController = null;
-    _categoryController = null;
-    _tagsController = null;
-    _recurrenceIntervalController = null;
-    _recurrenceCountController = null;
-    _draftRecurrenceEndDate = null;
-    _draftReminders = const [];
-    _draftChecklist = const [];
-    _isAddingChecklist = false;
-    _editingChecklistIndex = null;
-    _draftDueDate = null;
-    _draftAllDay = false;
-    _draftCompleted = false;
-    _selectedCenterId = _task.centerId ?? widget.project?.centerId;
-    _selectedProjectId = widget.selectedProjectId ?? widget.project?.id;
-    _draftPriority = TaskPriority.medium;
-    setState(() => _isInlineEditing = false);
-  }
-
-  Future<void> _saveInlineEdit() async {
-    final save = widget.onTaskChanged;
-    if (save == null || _isSavingInlineEdit) return;
-    final category = _categoryController?.text.trim() ?? '';
-    final tags = (_tagsController?.text ?? '')
-        .split(RegExp(r'[,،]'))
-        .map((value) => value.trim())
-        .where((value) => value.isNotEmpty)
-        .toSet()
-        .toList(growable: false);
-    final recurrenceInterval = int.tryParse(_recurrenceIntervalController?.text.trim() ?? '1') ?? 0;
-    final rawCount = _recurrenceCountController?.text.trim() ?? '';
-    final recurrenceCount = rawCount.isEmpty ? null : int.tryParse(rawCount);
-    final recurrenceAnchor = _task.recurrence?.startDate ?? _draftDueDate;
-    if (_recurrenceConfigured &&
-        _draftRecurrenceEndDate != null &&
-        recurrenceAnchor != null &&
-        _draftRecurrenceEndDate!.isBefore(recurrenceAnchor)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تاریخ پایان تکرار نمی‌تواند قبل از مبدأ تکرار باشد.')),
-      );
-      return;
-    }
-    if (_recurrenceConfigured &&
-        (recurrenceInterval < 1 || (rawCount.isNotEmpty && (recurrenceCount == null || recurrenceCount < 1)))) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('فاصله تکرار و شمارش باید عدد مثبت باشند.')),
-      );
-      return;
-    }
-    final candidate = Task.fromJson(Map<String, dynamic>.from(_task.toJson()))
-      ..priority = _draftPriority
-      ..category = category.isEmpty ? null : category
-      ..tags = tags
-      ..centerId = _selectedCenterId
-      ..taskReminders = List<TaskReminder>.of(_draftReminders)
-      ..checklist = List<String>.of(_draftChecklist)
-      ..checklistEnabled = _task.checklistEnabled || _draftChecklist.isNotEmpty
-      ..dueDate = _draftDueDate
-      ..allDay = _draftAllDay
-      ..nextReminderSequence = _draftReminders.isEmpty
-          ? _task.nextReminderSequence
-          : (_draftReminders.map((item) => item.sequence).reduce((a, b) => a > b ? a : b) + 1).clamp(_task.nextReminderSequence, 1 << 30).toInt()
-      ..recurrence = _recurrenceConfigured ? RecurrenceRule(
-        frequency: _recurrenceFrequency,
-        interval: recurrenceInterval,
-        startDate: _task.recurrence?.startDate,
-        endDate: _draftRecurrenceEndDate,
-        count: recurrenceCount,
-        active: _recurrenceActive,
-        trackingLevel: _recurrenceTrackingLevel,
-      ) : _task.recurrence
-      ..updatedAt = DateTime.now();
-    if (_draftCompleted != _task.completed) candidate.setCompleted(_draftCompleted);
-    setState(() => _isSavingInlineEdit = true);
-    try {
-      final updated = await save(candidate);
-      if (!mounted) return;
-      if (updated == null) throw StateError('Inline Task edit was not persisted.');
-      try {
-        await widget.onProjectChanged?.call(_selectedProjectId);
-      } catch (_) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('کار ذخیره شد؛ اتصال پروژه نیازمند تلاش دوباره است.')),
-          );
-        }
-      }
-      _categoryController?.dispose();
-      _tagsController?.dispose();
-      _recurrenceIntervalController?.dispose();
-      _recurrenceCountController?.dispose();
-      _checklistEditController?.dispose();
-      _checklistEditController = null;
-      _categoryController = null;
-      _tagsController = null;
-      _recurrenceIntervalController = null;
-      _recurrenceCountController = null;
-      _draftRecurrenceEndDate = null;
-      _draftReminders = const [];
-      _draftChecklist = const [];
-      _isAddingChecklist = false;
-      _editingChecklistIndex = null;
-      _draftDueDate = null;
-      _draftAllDay = false;
-      setState(() {
-        _task = updated;
-        _isInlineEditing = false;
-        _isSavingInlineEdit = false;
-      });
-      try {
-        await AndroidFollowUpReminderScheduler().reschedule();
-      } catch (_) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تغییرات ذخیره شد؛ زمان‌بندی اعلان در اجرای بعدی بازآزمایی می‌شود')),
-        );
-      }
-    } catch (_) {
-      if (!mounted) return;
-      setState(() => _isSavingInlineEdit = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ذخیره تغییرات کار انجام نشد؛ دوباره تلاش کنید')),
-      );
-    }
-  }
-
   Future<void> _saveTitleImmediately(String value) async {
     final title = value.trim();
-    if (title.isEmpty || title == _task.title) return;
+    if (title.isEmpty || title == _task.title || widget.onTaskChanged == null) return;
     final candidate = Task.fromJson(Map<String, dynamic>.from(_task.toJson()))
       ..title = title;
-    await _persistCandidate(candidate);
+    try {
+      await _persistCandidate(candidate);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ذخیره عنوان کار انجام نشد؛ دوباره تلاش کنید')),
+      );
+    }
   }
 
   Future<void> _persistCandidate(Task candidate) async {
@@ -742,22 +581,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     await _persistCandidate(candidate);
   }
 
-  Future<void> _toggleRecurrence(bool active) async {
-    final rule = _task.recurrence;
-    if (rule == null) return;
-    final candidate = Task.fromJson(Map<String, dynamic>.from(_task.toJson()))
-      ..recurrence = RecurrenceRule(
-        frequency: rule.frequency,
-        interval: rule.interval,
-        startDate: rule.startDate,
-        endDate: rule.endDate,
-        count: rule.count,
-        active: active,
-        trackingLevel: rule.trackingLevel,
-      );
-    await _persistCandidate(candidate);
-  }
-
   Future<void> _convertToTemplate() async {
     var templateName = _task.title;
     final name = await showDialog<String>(
@@ -864,8 +687,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   void dispose() {
     _descriptionController?.dispose();
     _titleController?.dispose();
-    _categoryController?.dispose();
-    _tagsController?.dispose();
     _checklistAddController.dispose();
     _recurrenceIntervalController?.dispose();
     _recurrenceCountController?.dispose();
@@ -1047,6 +868,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         controller: _titleController,
         textDirection: TextDirection.rtl,
         maxLines: 2,
+        enabled: widget.onTaskChanged != null,
         onChanged: _saveTitleImmediately,
         style: const TextStyle(fontFamily: 'Vazirmatn', color: Colors.white, fontSize: 21, fontWeight: FontWeight.w800),
         decoration: const InputDecoration(
@@ -1163,12 +985,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     setState(() => _editingChecklistIndex = index);
   }
 
-  void _cancelChecklistEdit() {
-    _checklistEditController?.dispose();
-    _checklistEditController = null;
-    setState(() => _editingChecklistIndex = null);
-  }
-
   Future<void> _saveChecklistEdit(int index) async {
     final controller = _checklistEditController;
     if (controller == null) return;
@@ -1222,11 +1038,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               alignment: AlignmentDirectional.centerStart,
               child: TextButton.icon(
                 key: const ValueKey('task-detail-add-checklist'),
-                onPressed: widget.onTaskChanged != null
-                    ? _beginInlineEdit
-                    : widget.onChecklistChanged != null
-                        ? () => setState(() => _isAddingChecklist = true)
-                        : null,
+                onPressed: widget.onTaskChanged != null || widget.onChecklistChanged != null
+                    ? () => setState(() => _isAddingChecklist = true)
+                    : null,
                 icon: const Icon(Icons.add, size: 17),
                 label: const Text('افزودن چک‌لیست'),
               ),
@@ -1303,12 +1117,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                     tooltip: 'ذخیره ویرایش',
                     onPressed: _isSavingChecklist ? null : () => _saveChecklistEdit(index),
                     icon: const Icon(Icons.check),
-                  ),
-                  IconButton(
-                    key: ValueKey('task-detail-checklist-cancel-$index'),
-                    tooltip: 'انصراف',
-                    onPressed: _isSavingChecklist ? null : _cancelChecklistEdit,
-                    icon: const Icon(Icons.close),
                   ),
                 ],
               )
@@ -1692,173 +1500,204 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     RecurrenceFrequency.hours => 'ساعتی',
   };
 
-  Future<void> _pickInlineRecurrenceEndDate() async {
-    final initial = _draftRecurrenceEndDate ??
-        _draftDueDate ??
-        DateTime.now().add(const Duration(days: 30));
+  Future<void> _saveRecurrenceRule(RecurrenceRule? rule) async {
+    final candidate = Task.fromJson(Map<String, dynamic>.from(_task.toJson()))
+      ..recurrence = rule;
+    await _persistCandidate(candidate);
+    try {
+      await AndroidFollowUpReminderScheduler().reschedule();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('قاعده تکرار ذخیره شد؛ زمان‌بندی اعلان در اجرای بعدی بازآزمایی می‌شود')),
+      );
+    }
+  }
+
+  Future<void> _pickRecurrenceEndDate() async {
+    final rule = _task.recurrence;
+    if (rule == null) return;
     final picked = await showPersianDatePicker(
       context: context,
-      initialDate: initial,
+      initialDate: rule.endDate ?? _task.dueDate ?? DateTime.now().add(const Duration(days: 30)),
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
       helpText: 'انتخاب پایان تکرار',
     );
     if (picked == null || !mounted) return;
-    setState(() {
-      _draftRecurrenceEndDate = DateTime(
-        picked.year, picked.month, picked.day, 23, 59, 59, 999,
-      );
-    });
+    await _saveRecurrenceRule(RecurrenceRule(
+      frequency: rule.frequency,
+      interval: rule.interval,
+      startDate: rule.startDate ?? _task.dueDate,
+      endDate: DateTime(picked.year, picked.month, picked.day, 23, 59, 59, 999),
+      count: rule.count,
+      active: rule.active,
+      trackingLevel: rule.trackingLevel,
+    ));
+  }
+
+  Future<void> _clearRecurrenceEndDate() async {
+    final rule = _task.recurrence;
+    if (rule == null) return;
+    await _saveRecurrenceRule(RecurrenceRule(
+      frequency: rule.frequency,
+      interval: rule.interval,
+      startDate: rule.startDate ?? _task.dueDate,
+      count: rule.count,
+      active: rule.active,
+      trackingLevel: rule.trackingLevel,
+    ));
+  }
+
+  Future<void> _updateRecurrence({
+    RecurrenceFrequency? frequency,
+    int? interval,
+    int? count,
+    bool clearCount = false,
+    bool? active,
+    RecurrenceTrackingLevel? trackingLevel,
+  }) async {
+    final current = _task.recurrence;
+    await _saveRecurrenceRule(RecurrenceRule(
+      frequency: frequency ?? current?.frequency ?? RecurrenceFrequency.daily,
+      interval: interval ?? current?.interval ?? 1,
+      startDate: current?.startDate ?? _task.dueDate,
+      endDate: current?.endDate,
+      count: clearCount ? null : (count ?? current?.count),
+      active: active ?? current?.active ?? true,
+      trackingLevel: trackingLevel ?? current?.trackingLevel ?? RecurrenceTrackingLevel.normal,
+    ));
   }
 
   Widget _recurrenceCard(DateTime now) {
     final rule = _task.recurrence;
-    final configured = rule != null || (_isInlineEditing && _recurrenceConfigured);
-    if (!configured) {
+    if (rule == null) {
       return _card(
         key: const ValueKey('task-detail-recurrence'),
-        child: Row(
-          children: [
-            Expanded(child: _sectionTitle('تکرار کار', Icons.repeat)),
-            const Text('بدون تکرار', style: TextStyle(color: _muted)),
-            if (_isInlineEditing)
-              TextButton.icon(
-                key: const ValueKey('task-detail-recurrence-add'),
-                onPressed: () => setState(() => _recurrenceConfigured = true),
-                icon: const Icon(Icons.add, size: 17),
-                label: const Text('افزودن قاعده'),
-              ),
-          ],
-        ),
+        child: Row(children: [
+          Expanded(child: _sectionTitle('تکرار کار', Icons.repeat)),
+          TextButton.icon(
+            key: const ValueKey('task-detail-recurrence-add'),
+            onPressed: widget.onTaskChanged == null
+                ? null
+                : () => _saveRecurrenceRule(RecurrenceRule(
+                      frequency: RecurrenceFrequency.daily,
+                      interval: 1,
+                      startDate: _task.dueDate,
+                    )),
+            icon: const Icon(Icons.add, size: 17),
+            label: const Text('افزودن قاعده'),
+          ),
+        ]),
       );
     }
-
-    final frequency = _isInlineEditing ? _recurrenceFrequency : rule!.frequency;
-    final interval = _isInlineEditing
-        ? (_recurrenceIntervalController?.text ?? '1')
-        : rule!.interval.toString();
-    final active = _isInlineEditing ? _recurrenceActive : rule!.active;
-    final anchor = rule?.startDate ?? _task.dueDate;
-    final upcoming = !_isInlineEditing && rule != null && anchor != null
-        ? rule.occurrencesBetween(
+    final anchor = rule.startDate ?? _task.dueDate;
+    final upcoming = anchor == null
+        ? const <DateTime>[]
+        : rule.occurrencesBetween(
             anchor: anchor,
             from: now,
             to: now.add(const Duration(days: 30)),
-          ).take(5).toList(growable: false)
-        : const <DateTime>[];
-    final unit = switch (frequency) {
-      RecurrenceFrequency.daily || RecurrenceFrequency.oncePerDay => 'روز',
-      RecurrenceFrequency.weekly => 'هفته',
-      RecurrenceFrequency.monthly => 'ماه',
-      RecurrenceFrequency.yearly => 'سال',
-      RecurrenceFrequency.minutes => 'دقیقه',
-      RecurrenceFrequency.hours => 'ساعت',
-    };
-
+          ).take(5).toList(growable: false);
     return _card(
       key: const ValueKey('task-detail-recurrence'),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           Expanded(child: _sectionTitle('تکرار کار', Icons.repeat)),
-          if (_isInlineEditing)
-            Switch(
-              key: const ValueKey('task-detail-recurrence-enabled'),
-              value: active,
-              onChanged: (value) => setState(() => _recurrenceActive = value),
-            )
-          else if (rule != null)
-            Switch(
-              key: const ValueKey('task-detail-recurrence-enabled'),
-              value: rule.active,
-              onChanged: widget.onTaskChanged == null ? null : _toggleRecurrence,
+          Switch(
+            key: const ValueKey('task-detail-recurrence-enabled'),
+            value: rule.active,
+            onChanged: widget.onTaskChanged == null ? null : (value) => _updateRecurrence(active: value),
+          ),
+        ]),
+        DropdownButtonFormField<RecurrenceFrequency>(
+          key: const ValueKey('task-detail-recurrence-frequency'),
+          initialValue: rule.frequency,
+          decoration: const InputDecoration(labelText: 'نوع تکرار'),
+          items: RecurrenceFrequency.values.map((value) => DropdownMenuItem(
+            value: value,
+            child: Text(_recurrenceFrequencyLabel(value)),
+          )).toList(growable: false),
+          onChanged: widget.onTaskChanged == null || !rule.active
+              ? null
+              : (value) { if (value != null) _updateRecurrence(frequency: value); },
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          key: const ValueKey('task-detail-recurrence-interval'),
+          controller: _recurrenceIntervalController,
+          enabled: widget.onTaskChanged != null && rule.active,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(labelText: 'فاصله تکرار', helperText: 'مثلاً ۲ برای هر دو هفته'),
+          onChanged: (value) {
+            final parsed = int.tryParse(value.trim());
+            if (parsed != null && parsed > 0) _updateRecurrence(interval: parsed);
+          },
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          key: const ValueKey('task-detail-recurrence-count'),
+          controller: _recurrenceCountController,
+          enabled: widget.onTaskChanged != null && rule.active,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(labelText: 'تعداد دفعات (اختیاری)'),
+          onChanged: (value) {
+            final normalized = value.trim();
+            if (normalized.isEmpty) {
+              _updateRecurrence(clearCount: true);
+            } else {
+              final parsed = int.tryParse(normalized);
+              if (parsed != null && parsed > 0) _updateRecurrence(count: parsed);
+            }
+          },
+        ),
+        const SizedBox(height: 8),
+        Row(children: [
+          Expanded(child: Text(
+            rule.endDate == null ? 'پایان تکرار: بدون محدودیت تاریخ' : 'پایان تکرار: ${_date(rule.endDate!)}',
+            key: const ValueKey('task-detail-recurrence-end-date'),
+          )),
+          TextButton(
+            key: const ValueKey('task-detail-recurrence-end-date-pick'),
+            onPressed: widget.onTaskChanged == null || !rule.active ? null : _pickRecurrenceEndDate,
+            child: const Text('انتخاب پایان'),
+          ),
+          if (rule.endDate != null)
+            IconButton(
+              key: const ValueKey('task-detail-recurrence-end-date-clear'),
+              tooltip: 'حذف پایان تکرار',
+              onPressed: widget.onTaskChanged == null || !rule.active ? null : _clearRecurrenceEndDate,
+              icon: const Icon(Icons.close),
             ),
         ]),
-        if (_isInlineEditing) ...[
-          DropdownButtonFormField<RecurrenceFrequency>(
-            key: const ValueKey('task-detail-recurrence-frequency'),
-            initialValue: _recurrenceFrequency,
-            decoration: const InputDecoration(labelText: 'نوع تکرار'),
-            items: RecurrenceFrequency.values.map((value) => DropdownMenuItem(
-              value: value,
-              child: Text(_recurrenceFrequencyLabel(value)),
-            )).toList(growable: false),
-            onChanged: (value) {
-              if (value != null) setState(() => _recurrenceFrequency = value);
-            },
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            key: const ValueKey('task-detail-recurrence-interval'),
-            controller: _recurrenceIntervalController,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'فاصله تکرار', helperText: 'مثلاً ۲ برای هر دو هفته'),
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            key: const ValueKey('task-detail-recurrence-count'),
-            controller: _recurrenceCountController,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'تعداد دفعات (اختیاری)'),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  _draftRecurrenceEndDate == null
-                      ? 'پایان تکرار: بدون محدودیت تاریخ'
-                      : 'پایان تکرار: ${_date(_draftRecurrenceEndDate!)}',
-                  key: const ValueKey('task-detail-recurrence-end-date'),
-                ),
-              ),
-              TextButton(
-                key: const ValueKey('task-detail-recurrence-end-date-pick'),
-                onPressed: _pickInlineRecurrenceEndDate,
-                child: const Text('انتخاب پایان'),
-              ),
-              if (_draftRecurrenceEndDate != null)
-                IconButton(
-                  key: const ValueKey('task-detail-recurrence-end-date-clear'),
-                  tooltip: 'حذف پایان تکرار',
-                  onPressed: () => setState(() => _draftRecurrenceEndDate = null),
-                  icon: const Icon(Icons.close),
-                ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          DropdownButtonFormField<RecurrenceTrackingLevel>(
-            key: const ValueKey('task-detail-recurrence-tracking'),
-            initialValue: _recurrenceTrackingLevel,
-            decoration: const InputDecoration(labelText: 'سطح پیگیری'),
-            items: RecurrenceTrackingLevel.values.map((value) => DropdownMenuItem(
-              value: value,
-              child: Text(value == RecurrenceTrackingLevel.tracking ? 'با ثبت سابقه' : 'عادی'),
-            )).toList(growable: false),
-            onChanged: (value) {
-              if (value != null) setState(() => _recurrenceTrackingLevel = value);
-            },
-          ),
-        ] else if (rule != null) ...[
-          Text('قاعده: هر $interval $unit'),
-          if (rule.endDate != null)
-            Text('پایان تکرار: ${_date(rule.endDate!)}', key: const ValueKey('task-detail-recurrence-end-date')),
-          const SizedBox(height: 4),
-          Text(rule.active ? 'تکرار فعال است' : 'تکرار غیرفعال است', style: const TextStyle(color: _muted)),
-          const SizedBox(height: 6),
-          const Text('رویدادهای آینده (۳۰ روز، حداکثر ۵ مورد):', style: TextStyle(fontWeight: FontWeight.w700)),
-          if (anchor == null)
-            const Text('مبدأ تکرار ثبت نشده است', style: TextStyle(color: _muted))
-          else if (upcoming.isEmpty)
-            const Text('رویداد آینده‌ای در این بازه وجود ندارد', style: TextStyle(color: _muted))
-          else
-            for (final date in upcoming)
-              ListTile(
-                dense: true,
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.event_repeat_outlined),
-                title: Text(_task.allDay ? _date(date) : _dateTime(date)),
-              ),
-        ],
+        const SizedBox(height: 8),
+        DropdownButtonFormField<RecurrenceTrackingLevel>(
+          key: const ValueKey('task-detail-recurrence-tracking'),
+          initialValue: rule.trackingLevel,
+          decoration: const InputDecoration(labelText: 'سطح پیگیری'),
+          items: RecurrenceTrackingLevel.values.map((value) => DropdownMenuItem(
+            value: value,
+            child: Text(value == RecurrenceTrackingLevel.tracking ? 'با ثبت سابقه' : 'عادی'),
+          )).toList(growable: false),
+          onChanged: widget.onTaskChanged == null || !rule.active
+              ? null
+              : (value) { if (value != null) _updateRecurrence(trackingLevel: value); },
+        ),
+        const SizedBox(height: 6),
+        Text('قاعده: هر ${rule.interval} ${_recurrenceFrequencyLabel(rule.frequency)}'),
+        const Text('رویدادهای آینده (۳۰ روز، حداکثر ۵ مورد):', style: TextStyle(fontWeight: FontWeight.w700)),
+        if (anchor == null)
+          const Text('مبدأ تکرار ثبت نشده است', style: TextStyle(color: _muted))
+        else if (upcoming.isEmpty)
+          const Text('رویداد آینده‌ای در این بازه وجود ندارد', style: TextStyle(color: _muted))
+        else
+          for (final date in upcoming)
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.event_repeat_outlined),
+              title: Text(_task.allDay ? _date(date) : _dateTime(date)),
+            ),
       ]),
     );
   }
@@ -2019,7 +1858,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                             key: const ValueKey('task-detail-convert-template'),
                             tooltip: 'تبدیل به الگو',
                             color: Colors.white,
-                            onPressed: _isInlineEditing || _isSavingTaskTemplate ? null : _convertToTemplate,
+                            onPressed: _isSavingTaskTemplate ? null : _convertToTemplate,
                             icon: const Icon(Icons.bookmark_add_outlined),
                           ),
                           IconButton(
@@ -2044,7 +1883,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                               ),
                               PopupMenuItem(
                                 value: 'delete',
-                                enabled: widget.onDelete != null && !_isInlineEditing,
+                                enabled: widget.onDelete != null,
                                 child: const Text('حذف کار'),
                               ),
                             ],
@@ -2153,10 +1992,11 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                 : _recurrenceFrequencyLabel(_task.recurrence!.frequency),
                             onTap: widget.onTaskChanged == null
                                 ? null
-                                : () {
-                                    if (!_isInlineEditing) _beginInlineEdit();
-                                    setState(() => _recurrenceConfigured = true);
-                                  },
+                                : () => _saveRecurrenceRule(RecurrenceRule(
+                                       frequency: RecurrenceFrequency.daily,
+                                       interval: 1,
+                                       startDate: _task.dueDate,
+                                     )),
                           ),
                           const Divider(height: 1),
                           _assigneeCard(),
@@ -2180,6 +2020,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                             minLines: 3,
                             maxLines: null,
                             textDirection: TextDirection.rtl,
+                            enabled: widget.onTaskChanged != null || widget.onDescriptionChanged != null,
                             onChanged: _saveDescriptionImmediately,
                             onSubmitted: _saveDescriptionImmediately,
                             decoration: const InputDecoration(
