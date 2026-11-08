@@ -290,9 +290,28 @@ void main() {
         FollowUp(id: 'fu-out', completedAt: DateTime(2026, 9, 1), personIds: ['p2']),
       ],
     );
+    final projects = [
+      ProjectPlan(
+        id: 'project-a',
+        title: 'پروژه الف',
+        centerId: 'center-a',
+        itemIds: ['filtered-task', 'wrong-category'],
+      ),
+    ];
+    final wrongCategory = Task(
+      id: 'wrong-category',
+      title: 'دسته ناسازگار',
+      centerId: 'center-a',
+      category: 'اداری',
+      tags: ['فوری'],
+      followUps: [
+        FollowUp(id: 'fu-wrong-category', completedAt: DateTime(2026, 10, 6), personIds: ['p1']),
+      ],
+    );
     final filter = const TaskReportFilter(
       hasFollowUp: true,
       centerIds: {'center-a', 'center-b'},
+      projectIds: {'project-a', 'project-b'},
       categories: {'تعمیر', 'فروش'},
       tags: {'فوری', 'مهم'},
       personIds: {'p1'},
@@ -300,12 +319,16 @@ void main() {
       toDate: DateTime(2026, 10, 7),
     );
     expect(filter.matchesFollowUpRecord(
-      task, task.followUps.first, now: DateTime(2026, 10, 7),
+      task, task.followUps.first, now: DateTime(2026, 10, 7), projects: projects,
     ), isTrue);
     expect(filter.matchesFollowUpRecord(
-      task, task.followUps.last, now: DateTime(2026, 10, 7),
+      task, task.followUps.last, now: DateTime(2026, 10, 7), projects: projects,
     ), isFalse);
-    expect(filter.apply([task], now: DateTime(2026, 10, 7)), hasLength(1));
+    expect(filter.matchesFollowUpRecord(
+      wrongCategory, wrongCategory.followUps.single,
+      now: DateTime(2026, 10, 7), projects: projects,
+    ), isFalse);
+    expect(filter.apply([task, wrongCategory], now: DateTime(2026, 10, 7), projects: projects), hasLength(1));
   });
 
 }
