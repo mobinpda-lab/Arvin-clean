@@ -151,4 +151,30 @@ void main() {
     expect(rows.every((row) => row.people.isNotEmpty), isTrue);
   });
 
+
+  test('record predicate filters individual Follow-ups without duplicating their Task', () {
+    final task = Task(
+      id: 'record-filter-task',
+      title: 'یک کار با چند پیگیری',
+      followUps: [
+        waiting('in-range', ['ana']),
+        FollowUp(
+          id: 'out-of-range',
+          dateTime: DateTime(2026, 10, 1),
+          personIds: ['ana'],
+          waitingForResponse: true,
+        ),
+      ],
+    );
+    final rows = const PersonFollowUpReportProjection().project(
+      [task],
+      people: directory,
+      followUpPredicate: (task, followUp) =>
+          !followUp.completedAt.isBefore(DateTime(2026, 10, 10)),
+    );
+    expect(rows, hasLength(1));
+    expect(rows.single.task.id, 'record-filter-task');
+    expect(rows.single.followUp.id, 'in-range');
+  });
+
 }
