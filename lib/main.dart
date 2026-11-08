@@ -3886,14 +3886,12 @@ class _HomePageState extends State<HomePage> {
           Padding(
             padding: EdgeInsets.fromLTRB(16, compactHome ? 4 : 8, 16, 5),
             child: Row(children: [
-              Builder(
-                builder: (buttonContext) => IconButton(
-                  key: const ValueKey('home-drawer-button'),
-                  tooltip: 'منوی آروین',
-                  onPressed: () => Scaffold.of(buttonContext).openDrawer(),
-                  icon: const Icon(Icons.menu_rounded),
-                  style: IconButton.styleFrom(backgroundColor: colors.surface, foregroundColor: colors.onSurfaceVariant),
-                ),
+              IconButton(
+                key: const ValueKey('home-general-filter-button'),
+                tooltip: 'فیلترهای عمومی',
+                onPressed: _showHomeFilterMenu,
+                icon: const Icon(Icons.filter_alt_outlined),
+                style: IconButton.styleFrom(backgroundColor: colors.surface, foregroundColor: colors.onSurfaceVariant),
               ),
               Expanded(child: Column(children: [
                 Row(
@@ -3925,12 +3923,14 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(height: 2),
                 Text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها', key: const ValueKey('home-subtitle'), textAlign: TextAlign.center, style: TextStyle(color: colors.onSurfaceVariant, fontSize: 11.5, fontWeight: FontWeight.w600)),
               ])),
-              IconButton(
-                key: const ValueKey('home-general-filter-button'),
-                tooltip: 'فیلترهای عمومی',
-                onPressed: _showHomeFilterMenu,
-                icon: const Icon(Icons.filter_alt_outlined),
-                style: IconButton.styleFrom(backgroundColor: colors.surface, foregroundColor: colors.onSurfaceVariant),
+              Builder(
+                builder: (buttonContext) => IconButton(
+                  key: const ValueKey('home-drawer-button'),
+                  tooltip: 'منوی آروین',
+                  onPressed: () => Scaffold.of(buttonContext).openDrawer(),
+                  icon: const Icon(Icons.menu_rounded),
+                  style: IconButton.styleFrom(backgroundColor: colors.surface, foregroundColor: colors.onSurfaceVariant),
+                ),
               ),
             ]),
           ),
