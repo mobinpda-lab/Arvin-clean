@@ -121,6 +121,7 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
                   ),
                 ],
                 SizedBox(
+                  key: const ValueKey('multi-select-selected-count-target'),
                   width: double.infinity,
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(minHeight: 48),
