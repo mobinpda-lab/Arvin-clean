@@ -340,4 +340,26 @@ void main() {
     expect(filter.apply([task, wrongCategory], now: DateTime(2026, 10, 7), projects: projects), hasLength(1));
   });
 
+
+  test('past follow-up report keeps history when the parent Task is completed', () {
+    final completedTask = Task(
+      id: 'completed-parent',
+      title: 'کار تکمیل‌شده با سابقه',
+      completed: true,
+      dueDate: DateTime(2026, 12, 20),
+      followUps: [
+        FollowUp(
+          id: 'completed-parent-history',
+          completedAt: DateTime(2026, 10, 1),
+          completed: true,
+        ),
+      ],
+    );
+    final result = const TaskReportFilter(
+      hasFollowUp: true,
+      timePreset: ReportTimePreset.past,
+    ).apply([completedTask], now: DateTime(2026, 10, 7));
+    expect(result.map((task) => task.id), ['completed-parent']);
+  });
+
 }
