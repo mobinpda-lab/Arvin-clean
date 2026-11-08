@@ -43,7 +43,6 @@ class _NotebookPageState extends State<NotebookPage> {
   Set<String> _activeTags = <String>{};
   List<ArvinCenter> _centers = const [];
   List<ProjectPlan> _projects = const [];
-  List<String> _knownTags = const [];
   bool _showTrash = false;
 
   List<Task> get _visibleNotes {
@@ -91,13 +90,11 @@ class _NotebookPageState extends State<NotebookPage> {
         ? await widget.repository.loadTrashedNotes()
         : await widget.repository.loadNotes();
     final projects = await widget.repository.loadProjects();
-    final knownTags = await widget.repository.loadTags();
     final centers = await CenterStore().load(includeArchived: false);
     if (!mounted) return;
     setState(() {
       _notes = notes;
       _projects = projects;
-      _knownTags = List<String>.of(knownTags);
       _centers = centers;
       _loading = false;
     });
@@ -1696,6 +1693,7 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
 
         ],
         ),
+      ),
       ),
     );
   }
