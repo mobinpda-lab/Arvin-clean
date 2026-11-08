@@ -18,7 +18,7 @@ This is the canonical Home-screen contract. It records the fourteen approved req
 - No standalone search icon in the Home header.
 
 ## 2. Bismillah treatment
-Display the fully vocalized phrase «بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ» above «آروین», using a restrained, elegant Naskh-style treatment. Keep it visually delicate and minimal; it must not compete with the product title. This treatment is separate from the app's Vazirmatn UI typography.
+Display the fully vocalized phrase «بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ» above «آروین», using the dedicated `assets/images/branding/bismillah.svg` vector and a restrained, elegant Naskh-style treatment. This is the Home header artwork; `tafweez.svg` and «وَأُفَوِّضُ أَمْرِي إِلَى اللَّهِ» do not belong to the Home header. Keep it visually delicate and minimal; it must not compete with the product title. This treatment is separate from the app's Vazirmatn UI typography.
 
 ## 3. Independent search field
 - Keep a dedicated search field immediately below the header.
