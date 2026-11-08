@@ -165,3 +165,83 @@ These decisions supplement the Home UX contract and are product requirements, no
 
 **Acceptance note:** This section records product decisions only. It does not assert that the UI, filter behavior, data model, or reports have been implemented or tested. No tests may be deleted, skipped, weakened, or bypassed to satisfy these requirements.
 
+## 12. Final owner-approved funnel, card, Person, and Follow-up Hero contract — 2026-11-08
+
+This section consolidates the final Home funnel and the connected Task Details / Follow-up / Person decisions. It is authoritative where older Home notes describe a different menu or card presentation. It is a product contract only; it does not assert implementation or test acceptance.
+
+### 12.1 Separate global funnel from the five quick filters
+
+- Keep the **global funnel/filter icon** as an independent control at the physical upper-left of the Home screen. It opens the general 13-item filter menu below; it is not one of the five quick filters, not search, and not sort.
+- Preserve the separate five-filter quick row in exact RTL order: **زمان، مرکز، پروژه، دسته، برچسب**. Keep it as one compact row, with no «همه» chip and no horizontal scrolling; each actionable target is at least 48dp.
+- The quick-filter row and global funnel serve different scopes and must not be merged or substituted for one another.
+- Keep the approved line/detail at the upper-right corner of the visual reference unchanged; do not delete, simplify away, or redesign it.
+
+### 12.2 Exact 13-item global funnel menu
+
+The general funnel menu contains exactly these 13 items in this order:
+
+1. **امروز** — system calendar view: open Tasks due today plus overdue open Tasks, using the canonical local due-date/overdue rules.
+2. **کارهای برگزیده امروز** — manually selected Focus membership for the current local day only; independent of dueDate and not carried forward to the next day.
+3. **فاقد زمان** — Tasks without a canonical due date/time.
+4. **بایگانی** — archived Tasks.
+5. **سطل زباله** — trashed Tasks.
+6. **پیگیری‌دار** — Tasks with at least one persisted, canonical historical Follow-up record linked to that Task.
+7. **بدون پیگیری** — Tasks with no persisted canonical historical Follow-up record linked to that Task.
+8. **انجام‌شده** — completed Tasks.
+9. **انجام‌نشده** — incomplete Tasks.
+10. **فوری-مهم** — Eisenhower urgent + important.
+11. **غیرفوری-مهم** — Eisenhower not urgent + important.
+12. **فوری-غیرمهم** — Eisenhower urgent + not important.
+13. **غیرفوری-غیرمهم** — Eisenhower not urgent + not important.
+
+**Canonical «پیگیری‌دار» predicate:**
+- A Task is Follow-up-bearing if and only if one or more real, persisted historical Follow-up records are linked to it.
+- The predicate is based on the existence of historical Follow-up records, not on Task dueDate, Reminder date, legacy followUpEnabled / followUpDate, a future Next Follow-up value, or a merely enabled UI toggle.
+- A TaskReminder does not count as a Follow-up. A future reminder remains a Reminder, not a Follow-up.
+- «بدون پیگیری» is the inverse of that same canonical record-existence predicate.
+- When the Follow-up date filter is also applied, the matching record must additionally fall within the selected local-calendar date interval; use the Follow-up record's canonical timestamp, never the Task due date.
+- Follow-up records are historical only. Future scheduling belongs to independent TaskReminder records; do not create or revive Next Follow-up scheduling state.
+
+### 12.3 Shared multi-select and cross-filter semantics
+
+- Reuse ReusableMultiSelectFilterBottomSheet wherever the relevant filter dimension is available.
+- Checkbox multi-select: **OR** among selected values inside one dimension; **AND** between different dimensions.
+- Inline creation saves the new taxonomy/person value through its canonical boundary and selects it immediately.
+- Active selection-count badges belong to the filter controls; this does not authorize decorative status/follow-up badges on Task cards.
+- The five quick filters remain Time, Center, Project, Category, Tag. Sort remains a separate control and is not a sixth filter.
+- Follow-up time filtering is available on Home and Reports with **امروز، دیروز، محدودهٔ تاریخی دلخواه**. Its source is the Follow-up record's canonical historical timestamp (FollowUp.dateTime; completedAt is only a compatibility alias where applicable), with consistent local-calendar half-open date boundaries.
+
+### 12.4 Task cards and badge removal
+
+- Remove decorative status/follow-up badges from Home Task cards. Do not show a redundant badge stack or duplicate status metadata on the card.
+- Home cards retain the Task title, category, the compact Eisenhower priority dot, centered bold task date, and the subtle Focus marker only when Focus membership is true for the current local day.
+- Do not restore textual Center, Project, or Tag previews on Home cards.
+- A non-action tap anywhere on the card opens Task Details only; independent controls retain separate hit targets.
+- In Task Details, remove the redundant status/follow-up badge from the top summary area. The canonical identity section remains the place for the actual Task status and priority; this decision removes duplication, not the underlying status/priority data.
+- Do not remove selected-count badges from filter controls or count badges from collapsible time-group headings; those are separate navigation/grouping affordances, not Task-card status badges.
+
+### 12.5 Unified Person Entity contract
+
+- Person is one canonical entity/directory with stable persistent IDs; do not create screen-specific people lists or parallel person stores.
+- Task/person links and Follow-up/person links must use canonical persisted relationships. Follow-up links retain stable IDs (the canonical FollowUp.personIds relation); the directory owns the Person records.
+- Enabling **«منتظر پیگیری دیگران»** immediately exposes the associated Person selector in that flow. The user can select an existing Person or create a new Person; creation merges into the canonical people directory and the selected stable ID is linked to the Follow-up.
+- Editing a Follow-up restores its previously linked people. Removing a person link removes the relation, not the canonical Person record. If a linked Person was deleted, preserve a truthful historical deleted-person representation rather than silently attaching a different Person.
+- The Reports Person filter must include Tasks and historical Follow-up records linked to the selected canonical Person.
+- A linked/related Person must not automatically be labelled as the Task's مسئول. Show a responsible person only where a real canonical assignee/assignment relationship exists; never infer an assignee from Task.people or FollowUp.personIds.
+
+### 12.6 Follow-up Hero box and historical timeline
+
+- Task Details contains a visually prominent **آخرین پیگیری** Hero card, distinct from ordinary metadata cards.
+- The Hero card projects the latest persisted historical Follow-up record and displays its action/title, note/result, actual Follow-up timestamp, applicable «در انتظار پاسخ» state, and elapsed time calculated dynamically from that record's canonical timestamp.
+- The elapsed-time value must be derived from FollowUp.dateTime; do not substitute page-open time, edit time, Task.updatedAt, or an unrelated creation timestamp.
+- If no historical Follow-up exists, show the explicit empty state: **«هنوز پیگیری ثبت نشده است»**.
+- Beneath/alongside the Hero summary, preserve the vertical Follow-up history timeline, newest first by canonical Follow-up timestamp. Each record remains independently viewable/editable/deletable according to the existing canonical history contract; editing one record must not rewrite another record's timestamp or content.
+- Adding a Follow-up is an explicit historical-record action and only persists after Save. It must not schedule future work or mutate Task dueDate, recurrence, or independent TaskReminder entries.
+
+### 12.7 Exact implementation and acceptance boundary
+
+- UI, filters, data relationships, reports, and interactions must match this contract exactly; no divergent screen-specific interpretation or parallel model/store is permitted.
+- Preserve all existing tests and assertions. No test may be deleted, skipped, weakened, bypassed, or made artificially permissive. Add/adjust coverage only to assert the approved behavior.
+- This update is documentation-only. No application source, model, schema, migration, test, workflow, APK, or release setting is changed by recording this contract.
+- PR #3052 must remain **OPEN / DRAFT / UNMERGED** and **BLOCKED**. Do not edit main, merge, publish, or release. Release remains **BLOCKED — RELEASE: NO-GO**.
+
