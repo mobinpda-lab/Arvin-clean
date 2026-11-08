@@ -3,6 +3,8 @@ import '../../models/task.dart';
 import 'home_group.dart';
 import 'home_group_mode.dart';
 import '../../services/iran_clock.dart';
+import '../../services/task_due_status.dart';
+import '../../services/task_list_sort_service.dart';
 
 /// Creates Home projections from existing canonical application data.
 ///
@@ -37,54 +39,56 @@ class HomeGroupingService {
     required DateTime now,
   }) {
     final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = today.add(const Duration(days: 1));
 
     DateTime dayOf(DateTime value) =>
         DateTime(value.year, value.month, value.day);
 
-    bool isOverdue(Task task) {
+    final grouped = <String, List<Task>>{
+      'overdue': <Task>[],
+      'completed_past': <Task>[],
+      'today': <Task>[],
+      'tomorrow': <Task>[],
+      'future': <Task>[],
+      'no_date': <Task>[],
+    };
+
+    for (final task in tasks) {
       final due = task.dueDate;
-      if (due == null || task.completed) return false;
-      if (task.allDay) {
-        final dueDay = dayOf(due);
-        final endOfDueDay = DateTime(
-          dueDay.year,
-          dueDay.month,
-          dueDay.day + 1,
-        );
-        return !now.isBefore(endOfDueDay);
+      if (due == null) {
+        grouped['no_date']!.add(task);
+        continue;
       }
-      return due.isBefore(now);
+
+      final day = dayOf(due);
+      if (task.completed && day.isBefore(today)) {
+        grouped['completed_past']!.add(task);
+      } else if (TaskDueStatus.isOverdue(task, now: now)) {
+        grouped['overdue']!.add(task);
+      } else if (day == today) {
+        grouped['today']!.add(task);
+      } else if (day == tomorrow) {
+        grouped['tomorrow']!.add(task);
+      } else {
+        grouped['future']!.add(task);
+      }
     }
 
+    const sorter = TaskListSortService();
+    List<Task> ordered(String key) =>
+        sorter.sortByPriorityThenCreatedAt(grouped[key]!);
+
     return [
+      HomeGroup<Task>(id: 'overdue', title: 'گذشته', items: ordered('overdue')),
       HomeGroup<Task>(
-        id: 'overdue',
-        title: 'عقب‌افتاده',
-        items: tasks.where(isOverdue).toList(),
+        id: 'completed_past',
+        title: 'گذشته (انجام‌شده)',
+        items: ordered('completed_past'),
       ),
-      HomeGroup<Task>(
-        id: 'today',
-        title: 'امروز',
-        items: tasks.where((task) {
-          final due = task.dueDate;
-          return due != null &&
-              dayOf(due) == today &&
-              !isOverdue(task);
-        }).toList(),
-      ),
-      HomeGroup<Task>(
-        id: 'future',
-        title: 'آینده',
-        items: tasks.where((task) {
-          final due = task.dueDate;
-          return due != null && dayOf(due).isAfter(today);
-        }).toList(),
-      ),
-      HomeGroup<Task>(
-        id: 'no_date',
-        title: 'بدون موعد',
-        items: tasks.where((task) => task.dueDate == null).toList(),
-      ),
+      HomeGroup<Task>(id: 'today', title: 'امروز', items: ordered('today')),
+      HomeGroup<Task>(id: 'tomorrow', title: 'فردا', items: ordered('tomorrow')),
+      HomeGroup<Task>(id: 'future', title: 'آینده', items: ordered('future')),
+      HomeGroup<Task>(id: 'no_date', title: 'فاقد زمان', items: ordered('no_date')),
     ];
   }
 
