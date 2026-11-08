@@ -77,8 +77,8 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
         .where((center) => _filter.centerIds.contains(center.id))
         .map((center) => center.name)
         .toList(growable: false);
-    if (names.length == 1) return 'گزارش ' + names.single;
-    if (names.length > 1) return 'گزارش ' + names.length.toString() + ' مرکز';
+    if (names.length == 1) return 'گزارش ${names.single}';
+    if (names.length > 1) return 'گزارش ${names.length} مرکز';
     return 'مرکز گزارش آروین';
   }
 
