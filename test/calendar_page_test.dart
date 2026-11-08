@@ -36,7 +36,7 @@ void main() {
     final phrase = find.byKey(const ValueKey('calendar-sacred-header'));
     expect(phrase, findsOneWidget);
     expect(tester.widget<Semantics>(phrase).properties.label,
-        'أُفَوِّضُ أَمْرِي إِلَى اللَّهِ');
+        'وَأُفَوِّضُ أَمْرِي إِلَى اللَّهِ');
     expect(find.byType(SvgPicture), findsOneWidget);
     expect(find.byKey(const ValueKey('calendar-sacred-header-svg')), findsOneWidget);
     expect(
