@@ -13,72 +13,68 @@ class HomeFilterPill extends StatelessWidget {
     required this.soft,
     required this.active,
     required this.onPressed,
+    this.selectedCount = 0,
   });
 
+  /// Accessibility-only name; the compact Home row shows icons, not labels.
   final String label;
   final IconData icon;
   final Color accent;
   final Color soft;
   final bool active;
   final VoidCallback onPressed;
+  final int selectedCount;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final selectedAccent = colors.primary;
-    final selectedSurface = Color.alphaBlend(selectedAccent.withAlpha(18), colors.surface);
+    final selectedSurface = Color.alphaBlend(accent.withAlpha(18), colors.surface);
     return Semantics(
       button: true,
-      label: label,
+      label: selectedCount > 0 ? '$label، $selectedCount انتخاب' : label,
       child: SizedBox(
         height: 48,
         child: Material(
           color: active ? selectedSurface : colors.surface,
           shape: StadiumBorder(
             side: BorderSide(
-              color: active
-                  ? selectedAccent.withAlpha(90)
-                  : colors.outline,
+              color: active ? accent.withAlpha(110) : colors.outline,
             ),
           ),
           child: InkWell(
             onTap: onPressed,
             customBorder: const StadiumBorder(),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 3),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  Icon(
-                    icon,
-                    size: 14,
-                    color: active
-                        ? selectedAccent
-                        : colors.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 3),
-                  Flexible(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Icon(
+                  icon,
+                  size: 20,
+                  color: active ? accent : accent.withAlpha(205),
+                ),
+                if (selectedCount > 0)
+                  Positioned(
+                    top: 1,
+                    right: 2,
+                    child: Container(
+                      constraints: const BoxConstraints(minWidth: 17, minHeight: 17),
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: accent,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      alignment: Alignment.center,
                       child: Text(
-                        label,
-                        maxLines: 1,
-                        softWrap: false,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: active
-                              ? selectedAccent
-                              : colors.onSurface,
-                          fontSize: 10.5,
-                          fontWeight:
-                              active ? FontWeight.w700 : FontWeight.w500,
+                        selectedCount.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
                     ),
                   ),
-                ],
-              ),
+              ],
             ),
           ),
         ),
