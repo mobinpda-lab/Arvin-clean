@@ -42,9 +42,14 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('follow-up-entry-waiting-for-response')));
     await tester.pumpAndSettle();
-    final personChip = find.byKey(const ValueKey('follow-up-person-person-canonical-42'));
-    await tester.ensureVisible(personChip);
-    await tester.tap(personChip);
+    await tester.tap(find.byKey(const ValueKey('follow-up-person-picker')));
+    await tester.pumpAndSettle();
+    final personOption = find.byKey(
+      const ValueKey('follow-up-person-person-canonical-42'),
+    );
+    expect(tester.widget<CheckboxListTile>(personOption).value, isFalse);
+    await tester.tap(personOption);
+    await tester.tap(find.text('ثبت انتخاب اشخاص'));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('follow-up-entry-save')));
     await tester.pumpAndSettle();
