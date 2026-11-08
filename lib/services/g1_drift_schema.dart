@@ -448,6 +448,43 @@ class G1DriftSchema implements QueryExecutorUser {
     const retired = {'follow_up_enabled', 'follow_up_date', 'reminder_date'};
     if (!columns.any((row) => retired.contains(row['name']))) return;
 
+    final available = columns
+        .map((row) => row['name'])
+        .whereType<String>()
+        .toSet();
+    if (!available.contains('id') || !available.contains('title')) {
+      throw StateError(
+        'Cannot migrate legacy tasks table without required id and title columns.',
+      );
+    }
+    String source(String name, String fallback) =>
+        available.contains(name) ? '"$name"' : fallback;
+
+    // Older releases created materially different task tables. Build the
+    // canonical row from columns that actually exist instead of assuming
+    // created_at / storage_ordinal / completed_at were present in every
+    // historical schema. Missing optional values remain nullable or use the
+    // canonical model defaults; retired scheduling columns are never copied.
+    final projection = <String>[
+      source('id', "''"),
+      source('storage_ordinal', '0'),
+      source('title', "''"),
+      source('description', "''"),
+      source('created_at', 'NULL'),
+      source('updated_at', 'NULL'),
+      source('due_date', 'NULL'),
+      source('category', 'NULL'),
+      source('notebook_kind', 'NULL'),
+      source('priority', "'medium'"),
+      source('archived', '0'),
+      source('trashed', '0'),
+      source('completed', '0'),
+      source('completed_at', 'NULL'),
+      source('recurrence_json', 'NULL'),
+      source('legacy_payload_json', 'NULL'),
+    ];
+
+    await executor.runCustom('DROP TABLE IF EXISTS tasks_canonical_v15');
     await executor.runCustom('''
       CREATE TABLE tasks_canonical_v15 (
         id TEXT NOT NULL PRIMARY KEY,
@@ -474,11 +511,7 @@ class G1DriftSchema implements QueryExecutorUser {
         category, notebook_kind, priority, archived, trashed, completed,
         completed_at, recurrence_json, legacy_payload_json
       )
-      SELECT
-        id, storage_ordinal, title, description, created_at, updated_at, due_date,
-        category, notebook_kind, priority, archived, trashed, completed,
-        completed_at, recurrence_json, legacy_payload_json
-      FROM tasks
+      SELECT ${projection.join(', ')} FROM tasks
     ''');
     await executor.runCustom('DROP TABLE tasks');
     await executor.runCustom('ALTER TABLE tasks_canonical_v15 RENAME TO tasks');

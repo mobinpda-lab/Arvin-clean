@@ -92,7 +92,10 @@ class TaskStore {
         for (final person in normalized.values) {
           final old = oldById[person.id];
           await executor.runInsert(
-            'INSERT INTO persons (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)',
+            '''INSERT INTO persons (id, name, created_at, updated_at)
+               VALUES (?, ?, ?, ?)
+               ON CONFLICT(id) DO UPDATE
+                 SET name = excluded.name, updated_at = excluded.updated_at''',
             <Object?>[person.id, person.displayName, old?['created_at'] ?? now, now],
           );
         }
@@ -818,7 +821,7 @@ class TaskStore {
             task.description,
             task.createdAt?.toIso8601String(),
             task.updatedAt?.toIso8601String(),
-            task.dueDate?.toIso8601String(),
+            task.dueDateStorageValue,
             task.category,
             task.notebookKind?.name,
             task.priority.name,

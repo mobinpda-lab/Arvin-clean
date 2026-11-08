@@ -92,7 +92,6 @@ class TaskMigrationWriter {
       for (final legacyKey in const [
         'followUpEnabled',
         'followUpDate',
-        'reminderDate',
         'reminderAllDay',
       ]) {
         mergedTask.remove(legacyKey);

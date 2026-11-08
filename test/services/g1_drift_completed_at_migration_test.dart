@@ -17,8 +17,8 @@ void main() {
         legacy_payload_json TEXT NULL
       )''');
       await database.runInsert(
-        'INSERT INTO tasks (id, title, description, priority, archived, trashed, completed) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        ['old-task', 'قدیمی', '', 'none', 0, 0, 1],
+        'INSERT INTO tasks (id, title, description, follow_up_enabled, priority, archived, trashed, completed) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        ['old-task', 'قدیمی', '', 0, 'none', 0, 0, 1],
       );
       await G1DriftSchema.install(database);
       final columns = await database.runSelect("PRAGMA table_info('tasks')", const []);
