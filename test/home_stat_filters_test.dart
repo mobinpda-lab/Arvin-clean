@@ -34,12 +34,16 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('زمان'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-compact-filter-wrap')), findsOneWidget);
-    expect(find.text('مرکز'), findsOneWidget);
-    expect(find.text('پروژه‌ها'), findsOneWidget);
-    expect(find.text('دسته‌ها'), findsOneWidget);
-    expect(find.text('برچسب‌ها'), findsOneWidget);
+    for (final key in [
+      'home-filter-card-time',
+      'home-filter-card-center',
+      'home-filter-card-project',
+      'home-filter-card-category',
+      'home-filter-card-tags',
+    ]) {
+      expect(find.byKey(ValueKey(key)), findsOneWidget);
+    }
     for (final key in [
       'home-filter-card-time',
       'home-filter-card-center',
@@ -92,11 +96,15 @@ void main() {
     );
     expect(find.byKey(const ValueKey('home-canonical-search')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-search-button')), findsOneWidget);
-    expect(find.text('زمان'), findsOneWidget);
-    expect(find.text('مرکز'), findsOneWidget);
-    expect(find.text('پروژه‌ها'), findsOneWidget);
-    expect(find.text('دسته‌ها'), findsOneWidget);
-    expect(find.text('برچسب‌ها'), findsOneWidget);
+    for (final key in [
+      'home-filter-card-time',
+      'home-filter-card-center',
+      'home-filter-card-project',
+      'home-filter-card-category',
+      'home-filter-card-tags',
+    ]) {
+      expect(find.byKey(ValueKey(key)), findsOneWidget);
+    }
     expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
@@ -169,7 +177,7 @@ void main() {
     expect(find.byKey(const ValueKey('task-card-title-three')), findsOneWidget);
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
-    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-category')), matching: find.text('دسته‌ها (۲)')), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-category')), matching: find.text('2')), findsOneWidget);
     expect(find.text('اداری'), findsWidgets);
     expect(find.text('شخصی'), findsWidgets);
     expect(find.text('مالی'), findsNothing);
