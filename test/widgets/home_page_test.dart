@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:arvin/main.dart';
+import 'package:arvin/task_detail_page.dart';
 import 'package:arvin/home/home_filter_ui.dart';
 import 'package:arvin/arvin_colors.dart';
 import 'package:arvin/services/app_settings_service.dart';
@@ -41,6 +42,22 @@ void main() {
     expect(find.text('جستجو در کارها...'), findsOneWidget);
     expect(find.text('کارهای من'), findsNothing);
     expect(find.text('مشاهده همه'), findsNothing);
+  });
+
+  testWidgets('tapping a Home task card opens details for that same Task', (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"home-card-detail","title":"جزئیات همین کار"}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('task-card-title-home-card-detail')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(TaskDetailPage), findsOneWidget);
+    expect(find.text('جزئیات همین کار'), findsOneWidget);
   });
 
   testWidgets('loads an existing legacy task from arvin.tasks', (tester) async {
