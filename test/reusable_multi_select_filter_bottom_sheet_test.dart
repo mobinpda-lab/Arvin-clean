@@ -35,6 +35,7 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('open-filter')));
     await tester.pumpAndSettle();
+    expect(find.text('انتخاب‌شده: 0'), findsOneWidget);
     await tester.enterText(find.byType(TextField).last, 'شخصی');
     await tester.tap(find.text('افزودن'));
     await tester.pumpAndSettle();
@@ -44,9 +45,11 @@ void main() {
       find.widgetWithText(CheckboxListTile, 'شخصی'),
     );
     expect(createdTile.value, isTrue);
+    expect(find.text('انتخاب‌شده: 1'), findsOneWidget);
 
     await tester.tap(find.widgetWithText(CheckboxListTile, 'کاری'));
     await tester.pumpAndSettle();
+    expect(find.text('انتخاب‌شده: 2'), findsOneWidget);
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
