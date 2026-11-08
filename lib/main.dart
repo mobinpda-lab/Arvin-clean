@@ -27,6 +27,8 @@ import 'models/arvin_center.dart';
 import 'models/person_reference.dart';
 import 'models/task.dart';
 import 'home/grouping/home_group.dart';
+import 'home/grouping/home_grouping_service.dart';
+import 'home/grouping/home_group_mode.dart';
 import 'home/home_filter_ui.dart';
 import 'notebook_page.dart';
 import 'quick_capture_dialog.dart';
@@ -897,40 +899,11 @@ class _HomePageState extends State<HomePage> {
         ),
       ];
     }
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final tomorrow = today.add(const Duration(days: 1));
-    DateTime dayOf(DateTime value) => DateTime(value.year, value.month, value.day);
-    final grouped = <String, List<Task>>{
-      'overdue': <Task>[], 'completed_past': <Task>[], 'today': <Task>[], 'tomorrow': <Task>[], 'future': <Task>[], 'no_date': <Task>[],
-    };
-    for (final task in visible) {
-      final due = task.dueDate;
-      if (due == null) {
-        grouped['no_date']!.add(task);
-      } else {
-        final day = dayOf(due);
-        if (task.completed && day.isBefore(today)) {
-          grouped['completed_past']!.add(task);
-        } else if (TaskDueStatus.isOverdue(task, now: now)) {
-          grouped['overdue']!.add(task);
-        } else if (day == today) {
-          grouped['today']!.add(task);
-        } else if (day == tomorrow) {
-          grouped['tomorrow']!.add(task);
-        } else {
-          grouped['future']!.add(task);
-        }
-      }
-    }
-    return [
-      HomeGroup<Task>(id: 'overdue', title: 'گذشته', items: taskListSortService.sortByPriorityThenCreatedAt(grouped['overdue']!)),
-      HomeGroup<Task>(id: 'completed_past', title: 'گذشته (انجام‌شده)', items: taskListSortService.sortByPriorityThenCreatedAt(grouped['completed_past']!)),
-      HomeGroup<Task>(id: 'today', title: 'امروز', items: taskListSortService.sortByPriorityThenCreatedAt(grouped['today']!)),
-      HomeGroup<Task>(id: 'tomorrow', title: 'فردا', items: taskListSortService.sortByPriorityThenCreatedAt(grouped['tomorrow']!)),
-      HomeGroup<Task>(id: 'future', title: 'آینده', items: taskListSortService.sortByPriorityThenCreatedAt(grouped['future']!)),
-      HomeGroup<Task>(id: 'no_date', title: 'فاقد زمان', items: taskListSortService.sortByPriorityThenCreatedAt(grouped['no_date']!)),
-    ];
+    return const HomeGroupingService().buildGroups(
+      HomeGroupMode.time,
+      visible,
+      now: DateTime.now(),
+    );
   }
 
 
