@@ -791,7 +791,7 @@ class _HomePageState extends State<HomePage> {
       return '$from تا $to';
     }
     if (_timeFilters.isEmpty) return 'همه';
-    const labels = <String, String>{'past':'گذشته','today':'امروز','tomorrow':'فردا','next7':'۷ روز آینده','next30':'۳۰ روز آینده','custom':'تاریخ مشخص','undated':'فاقد زمان'};
+    const labels = <String, String>{'past':'گذشته','today':'امروز تقویمی','tomorrow':'فردا','next7':'۷ روز آینده','next30':'۳۰ روز آینده','custom':'تاریخ مشخص','undated':'فاقد زمان'};
     return labels[_timeFilters.first] ?? 'همه';
   }
 
@@ -1209,7 +1209,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _showTimeFilterSheet() async {
     const options = <Map<String,Object>>[
-      {'id':'past','title':'گذشته','icon':Icons.history_rounded},{'id':'today','title':'امروز','icon':Icons.today_rounded},
+      {'id':'past','title':'گذشته','icon':Icons.history_rounded},{'id':'today','title':'امروز تقویمی','icon':Icons.today_rounded},
       {'id':'tomorrow','title':'فردا','icon':Icons.event_rounded},{'id':'next7','title':'۷ روز آینده','icon':Icons.date_range_rounded},
       {'id':'next30','title':'۳۰ روز آینده','icon':Icons.calendar_month_rounded},{'id':'custom','title':'تاریخ مشخص','icon':Icons.event_rounded},
       {'id':'undated','title':'فاقد زمان','icon':Icons.event_busy_rounded},
@@ -3066,7 +3066,7 @@ class _HomePageState extends State<HomePage> {
           children: [
             ListTile(
               leading: const Icon(Icons.today_outlined),
-              title: const Text('امروز'),
+              title: const Text('امروز تقویمی'),
               onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.today),
             ),
             ListTile(
