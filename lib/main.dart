@@ -3105,6 +3105,12 @@ class _HomePageState extends State<HomePage> {
                     Navigator.of(sheetContext).pop(_HomeMoreAction.today),
               ),
               ListTile(
+                key: const ValueKey('home-more-today-focus'),
+                leading: const Icon(Icons.push_pin_outlined),
+                title: const Text('کارهای برگزیدهٔ امروز'),
+                onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.todayFocus),
+              ),
+              ListTile(
                 key: const ValueKey('home-more-undated'),
                 leading: const Icon(Icons.event_busy_outlined),
                 title: const Text('کارهای فاقد زمان'),
@@ -3175,6 +3181,10 @@ class _HomePageState extends State<HomePage> {
       case _HomeMoreAction.today:
         Navigator.of(context).popUntil((route) => route.isFirst);
         _selectHomeStat('امروز');
+        return;
+      case _HomeMoreAction.todayFocus:
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        _selectTodayFocus();
         return;
       case _HomeMoreAction.undated:
         Navigator.of(context).popUntil((route) => route.isFirst);
