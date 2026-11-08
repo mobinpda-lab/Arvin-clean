@@ -603,7 +603,7 @@ void main() {
             ],
           ),
         ],
-        people: const [
+        people: [
           PersonReference(id: 'person-a', displayName: 'آنا'),
           PersonReference(id: 'person-b', displayName: 'رضا'),
         ],
