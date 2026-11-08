@@ -300,7 +300,9 @@ class TaskReportFilter {
           !selectedProjects.any((project) => project.itemIds.contains(task.id))) {
         return false;
       }
-      if (timePreset == ReportTimePreset.past && task.completed) return false;
+      if (timePreset == ReportTimePreset.past &&
+          task.completed &&
+          hasFollowUp != true) return false;
       final matchesTime = hasFollowUp == true
           ? true // The record-level time/person/waiting intersection was checked above.
           : _matchesTime(task.dueDate, now, allDay: task.allDay);
