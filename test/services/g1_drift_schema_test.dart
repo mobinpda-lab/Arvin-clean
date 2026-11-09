@@ -19,7 +19,7 @@ void main() {
     final directory = await Directory.systemTemp.createTemp('arvin-person-directory-cutover-');
     final file = File('${directory.path}/arvin.sqlite');
     var first = NativeDatabase(file);
-    await first.ensureOpen();
+    await first.ensureOpen(G1DriftSchema());
     await first.runCustom(
       '''CREATE TABLE persons (
          id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL,
