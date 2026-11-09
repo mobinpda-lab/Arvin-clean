@@ -389,7 +389,7 @@ void main() {
       title: 'کار موعددار',
       description: 'توضیح محفوظ',
       dueDate: DateTime(2026, 8, 20, 14, 35),
-      reminderDate: DateTime(2026, 8, 19, 9, 15),
+      taskReminders: [TaskReminder(id: 'detail-reminder', title: 'یادآور موعددار', date: DateTime(2026, 8, 19, 9, 15), sequence: 1)],
       followUpEnabled: true,
       followUpDate: DateTime(2026, 8, 21, 10),
       category: 'مشتریان',
