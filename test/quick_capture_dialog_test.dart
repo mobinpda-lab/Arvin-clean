@@ -1360,9 +1360,14 @@ void main() {
     await _openQuickCaptureDueTimePicker(tester);
     await tester.tap(find.byKey(const ValueKey('universal-time-save')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('quick-capture-reminder-rollbox')));
+    final relativeReminderControl =
+        find.byKey(const ValueKey('quick-capture-reminder-rollbox'));
+    await tester.ensureVisible(relativeReminderControl);
+    await tester.tap(relativeReminderControl);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('۱۵ دقیقه قبل'));
+    final fifteenMinutesBefore = find.text('۱۵ دقیقه قبل');
+    await tester.ensureVisible(fifteenMinutesBefore);
+    await tester.tap(fifteenMinutesBefore);
     await tester.pumpAndSettle();
     expect(find.textContaining('۱۴:۲۰'), findsOneWidget);
 
