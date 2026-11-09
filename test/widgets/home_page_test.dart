@@ -989,7 +989,13 @@ void main() {
     expect(find.text('کار برگزیده با موعد آینده'), findsOneWidget);
     expect(find.text('کار انتخاب‌نشده با موعد آینده'), findsNothing);
 
+    // The global funnel is a staged filter sheet; apply and dismiss it before
+    // interacting with the separate quick Time filter.
+    await tester.tap(find.text('تأیید / اعمال فیلتر'));
+    await tester.pumpAndSettle();
+
     final timeFilter = find.byKey(const ValueKey('home-filter-card-time'));
+    await tester.ensureVisible(timeFilter);
     await tester.tap(timeFilter);
     await tester.pumpAndSettle();
     final focusOption = tester.widget<CheckboxListTile>(
