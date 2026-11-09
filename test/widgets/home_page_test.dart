@@ -1000,12 +1000,6 @@ void main() {
     expect(find.text('کار نمایشی'), findsOneWidget);
     expect(find.text('شخصی'), findsOneWidget);
     expect(find.byKey(const ValueKey('task-card-eisenhower-dot-focus-card-contract')), findsOneWidget);
-    await tester.scrollUntilVisible(
-      find.text('بدون دسته'),
-      240,
-      scrollable: find.byType(Scrollable).last,
-    );
-    expect(find.byKey(const ValueKey('task-card-eisenhower-dot-no-category-priority')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-card-focus-marker-focus-card-contract')), findsOneWidget);
     expect(find.text('خلاصه آخرین پیگیری'), findsNothing);
     expect(find.textContaining('آخرین پیگیری:'), findsNothing);
@@ -1020,6 +1014,13 @@ void main() {
     expect(due, findsOneWidget);
     expect(tester.widget<Text>(due).textAlign, TextAlign.center);
     expect(tester.widget<Text>(due).style?.fontWeight, FontWeight.w800);
+
+    await tester.scrollUntilVisible(
+      find.text('بدون دسته'),
+      240,
+      scrollable: find.byType(Scrollable).last,
+    );
+    expect(find.byKey(const ValueKey('task-card-eisenhower-dot-no-category-priority')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
