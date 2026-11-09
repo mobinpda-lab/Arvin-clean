@@ -306,12 +306,25 @@ class G1DriftSchema implements QueryExecutorUser {
 
     final hasLegacyFollowUps = await _hasTable(executor, 'follow_ups');
     final hasLegacyFollowUpPeople = await _hasTable(executor, 'follow_up_people');
+    final legacyFollowUpMetadataByTask = <String, List<Map<String, dynamic>>>{};
     if (hasLegacyFollowUps) {
       final legacyFollowUps = await executor.runSelect(
         'SELECT * FROM follow_ups ORDER BY task_id, ordinal',
         const [],
       );
       for (final row in legacyFollowUps) {
+        final rawNextFollowUp = row['next_follow_up'];
+        if (rawNextFollowUp != null) {
+          final taskId = row['task_id'] as String;
+          legacyFollowUpMetadataByTask
+              .putIfAbsent(taskId, () => <Map<String, dynamic>>[])
+              .add(<String, dynamic>{
+            'id': row['id'],
+            'nextFollowUp': rawNextFollowUp,
+            if (row['next_follow_up_all_day'] != null)
+              'nextFollowUpAllDay': row['next_follow_up_all_day'],
+          });
+        }
         await executor.runInsert(
           '''INSERT OR IGNORE INTO follow_up_records
              (id, task_id, completed_at, title, note, result, completed, waiting_for_response, ordinal)
@@ -401,6 +414,33 @@ class G1DriftSchema implements QueryExecutorUser {
       payload['followUpDate'] ??= row['follow_up_date'];
       payload['followUpEnabled'] ??=
           (row['follow_up_enabled'] as num?)?.toInt() == 1;
+      final legacyRecords = legacyFollowUpMetadataByTask[row['id']];
+      if (legacyRecords != null && legacyRecords.isNotEmpty) {
+        final rawMetadata = payload['legacyFollowUpMetadata'];
+        final metadata = rawMetadata is Map
+            ? Map<String, dynamic>.from(rawMetadata)
+            : <String, dynamic>{};
+        final rawRecords = metadata['followUps'];
+        final records = rawRecords is List
+            ? rawRecords
+                .whereType<Map>()
+                .map(Map<String, dynamic>.from)
+                .toList(growable: true)
+            : <Map<String, dynamic>>[];
+        for (final record in legacyRecords) {
+          final id = record['id'];
+          final existingIndex = records.indexWhere(
+            (item) => id != null && item['id'] == id,
+          );
+          if (existingIndex < 0) {
+            records.add(record);
+          } else {
+            records[existingIndex] = record;
+          }
+        }
+        metadata['followUps'] = records;
+        payload['legacyFollowUpMetadata'] = metadata;
+      }
       final task = Task.fromLegacyJson(payload);
       for (final reminder in task.taskReminders) {
         await executor.runInsert(
