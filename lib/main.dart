@@ -1499,16 +1499,29 @@ class _HomePageState extends State<HomePage> {
     _ => '',
   };
 
-  String? _groupJalaliDate(String id) {
+  String? _groupJalaliDate(String id, List<Task> items) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final date = switch (id) {
+    DateTime? date = switch (id) {
       'today' => today,
       'tomorrow' => today.add(const Duration(days: 1)),
+      'overdue' || 'completed_past' || 'future' => null,
       _ => null,
     };
+    if (date == null && (id == 'overdue' || id == 'completed_past' || id == 'future')) {
+      final dated = items.where((task) => task.dueDate != null).map((task) => DateTime(task.dueDate!.year, task.dueDate!.month, task.dueDate!.day)).toList(growable: false);
+      if (dated.isNotEmpty) {
+        dated.sort();
+        date = id == 'future' ? dated.first : dated.first;
+      }
+    }
     if (date == null) return null;
-    return '${_weekdayName(date.weekday)} ${persianDateFormatter.format(date, usePersianDate: true)}';
+    final formatted = '${_weekdayName(date.weekday)} ${persianDateFormatter.format(date, usePersianDate: true)}';
+    return id == 'overdue' || id == 'completed_past'
+        ? 'قدیمی‌ترین: $formatted'
+        : id == 'future'
+            ? 'نزدیک‌ترین: $formatted'
+            : formatted;
   }
 
   Widget _groupedTaskList() {
@@ -1561,7 +1574,7 @@ class _HomePageState extends State<HomePage> {
         final collapsed = _collapsedGroups.contains(group.id);
         final accent = _groupAccent(group.id);
         final soft = _groupSoft(group.id);
-        final groupDate = _groupJalaliDate(group.id);
+        final groupDate = _groupJalaliDate(group.id, group.items);
         return Padding(
           padding: const EdgeInsets.only(bottom: 8),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
