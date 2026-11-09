@@ -7,6 +7,9 @@ class TodayFocusProjection {
 
   List<Task> select(Iterable<Task> tasks) => tasks
       .where((task) =>
-          task.isSelectedForToday && !task.archived && !task.trashed)
+          task.isSelectedForToday &&
+          !task.completed &&
+          !task.archived &&
+          !task.trashed)
       .toList(growable: false);
 }
