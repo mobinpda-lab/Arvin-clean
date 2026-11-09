@@ -6,8 +6,8 @@ import 'models/task.dart';
 /// Canonical semantic palette used across Arvin. Owner-approved brand, surface,
 /// and text tokens stay aligned with the Home visual style lock.
 abstract final class ArvinColors {
-  static const primary = ArvinTheme.primaryBlue;
-  static const primaryDark = ArvinTheme.headerBlue;
+  static const primary = ArvinTheme.primaryTeal;
+  static const primaryDark = ArvinTheme.headerTeal;
   static const primarySoft = ArvinTheme.primarySoft;
 
   static const background = ArvinTheme.backgroundLight;
@@ -16,12 +16,12 @@ abstract final class ArvinColors {
   static const textSecondary = Color(0xFF80829C);
   static const border = ArvinTheme.cardBorder;
   static const shadowSoft = ArvinTheme.primaryGlow;
-  static const shadowDark = Color(0x403A86EF);
+  static const shadowDark = Color(0x400F766E);
 
   // Dark theme semantic tokens.
-  static const darkPrimary = Color(0xFF3A86EF);
+  static const darkPrimary = Color(0xFF14B8A6);
   static const darkOnPrimary = Color(0xFFFFFFFF);
-  static const darkSecondary = Color(0xFFA9CCFF);
+  static const darkSecondary = Color(0xFFA7F3D0);
   static const darkError = Color(0xFFFFB4AB);
   static const darkSurface = Color(0xFF25283A);
   static const darkBorder = Color(0xFF41465B);
@@ -29,34 +29,34 @@ abstract final class ArvinColors {
   static const darkOutline = Color(0xFF656B80);
 
   // Brand and grouping accents use the approved blue system.
-  static const groupingTomorrow = Color(0xFF3A86EF);
-  static const groupingFuture = Color(0xFF3A86EF);
-  static const groupingTodaySoft = Color(0xFFEAF2FF);
-  static const groupingTomorrowSoft = Color(0xFFEAF2FF);
-  static const groupingFutureSoft = Color(0xFFEAF2FF);
+  static const groupingTomorrow = Color(0xFF2563EB);
+  static const groupingFuture = Color(0xFF7C3AED);
+  static const groupingTodaySoft = Color(0xFFDDF3EF);
+  static const groupingTomorrowSoft = Color(0xFFDBEAFE);
+  static const groupingFutureSoft = Color(0xFFEDE9FE);
   static const groupingNoDateSoft = Color(0xFFF8F8FB);
   static const taskStatusGreen = Color(0xFF409B51);
   static const taskStatusAmber = Color(0xFFDB8B23);
 
-  static const time = ArvinTheme.primaryBlue;
-  static const timeDark = ArvinTheme.headerBlue;
+  static const time = ArvinTheme.primaryTeal;
+  static const timeDark = ArvinTheme.headerTeal;
   static const timeSoft = ArvinTheme.primarySoft;
 
-  static const reminder = ArvinTheme.primaryBlue;
-  static const reminderDark = ArvinTheme.headerBlue;
-  static const reminderSoft = ArvinTheme.primarySoft;
+  static const reminder = Color(0xFFD97706);
+  static const reminderDark = Color(0xFFB45309);
+  static const reminderSoft = Color(0xFFFEF3C7);
 
-  static const project = ArvinTheme.primaryBlue;
-  static const projectDark = ArvinTheme.headerBlue;
-  static const projectSoft = ArvinTheme.primarySoft;
+  static const project = Color(0xFF7C3AED);
+  static const projectDark = Color(0xFF6D28D9);
+  static const projectSoft = Color(0xFFEDE9FE);
 
-  static const category = ArvinTheme.primaryBlue;
-  static const categoryDark = ArvinTheme.headerBlue;
-  static const categorySoft = ArvinTheme.primarySoft;
+  static const category = Color(0xFF2563EB);
+  static const categoryDark = Color(0xFF1D4ED8);
+  static const categorySoft = Color(0xFFDBEAFE);
 
-  static const tag = ArvinTheme.primaryBlue;
-  static const tagDark = ArvinTheme.headerBlue;
-  static const tagSoft = ArvinTheme.primarySoft;
+  static const tag = Color(0xFF16A34A);
+  static const tagDark = Color(0xFF15803D);
+  static const tagSoft = Color(0xFFDCFCE7);
 
   static const error = Color(0xFFC62828);
   static const errorDark = Color(0xFF922020);

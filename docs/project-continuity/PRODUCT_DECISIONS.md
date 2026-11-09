@@ -349,3 +349,11 @@ This clarification resolves an asset-to-screen attribution error and does not in
 - سلسله‌مراتب مرکز > پروژه > دسته > کار حفظ می‌شود. مالکیت tafweez.svg فقط برای تقویم است.
 - ممیزی SHA `c4444930d1b8053d2081ad3ccd35b40cd0190888` و شکاف‌های احرازشده در `docs/project-continuity/ARVIN_TODAY_FOCUS_AND_FOLLOW_UP_FILTER_CONTRACT_2026-11-08.md` ثبت شده است. این ثبت تصمیم‌ها به معنی پیاده‌سازی یا قبولی آزمون نیست.
 
+
+
+## Persian Teal brand system — 2026-11-09
+- **APPROVED:** Persian Teal (#0F766E) is the default brand accent, with a deeper teal header. The accent system must remain multicolor: time/brand teal, reminder amber, project violet, category blue and tag green.
+- Eisenhower priority semantics remain four distinct colors: P1 red, P2 orange/amber, P3 blue, P4 neutral gray. Navigation destinations keep independent icon colors.
+- The app continues to use Vazirmatn globally. Card surfaces remain matte with transparent surface tint and a subtle 0.8dp border.
+- Existing saved legacy blue selections are no longer a supported palette entry; unsupported stored selections fall back to the new Persian Teal default through the existing theme preference loader.
+- This entry records the initial theme-token implementation only. Global filter rollout, Task Details layout, Quick Capture redesign, reminder-source audit, and full CI recovery remain separate acceptance gates.

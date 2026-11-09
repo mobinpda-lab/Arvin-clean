@@ -931,3 +931,12 @@ PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main دست‌نخورد�
 - Orchestrator, Orchestrator PR Wakeup, Parallel Wave, Production Loop and G1 lock sync runs completed SUCCESS, but these are orchestration outcomes and do not replace app build, test, visual, calendar or device acceptance.
 - Next action: repair the source compilation defects without removing or weakening tests, then rerun every required gate on one exact new candidate SHA. Do not claim the six shards passed until their completed exact-SHA results are available.
 - Governance unchanged: PR #3052 OPEN / DRAFT / UNMERGED; no merge, publication or release; **BLOCKED — RELEASE: NO-GO**.
+
+
+## Persian Teal foundation — 2026-11-09
+- On the authorized PR branch, the default brand accent now starts from Persian Teal (#0F766E) with a deeper teal header and matching soft/glow surfaces. Legacy theme token names remain compatibility aliases to the new brand token.
+- Taxonomy and grouping accents are separated instead of inheriting one blue: time/brand teal, reminders amber, projects violet, categories blue, tags green; Eisenhower priorities retain red, amber, blue and neutral-gray semantics.
+- The five visible primary-navigation icons retain independent colors; Home now uses the Persian Teal brand token. The shared multi-select create actions now use their supplied semantic accent instead of a hard-coded blue.
+- Vazirmatn and the existing 0.8dp card outline / transparent surface tint are preserved. This is the first bounded visual-foundation slice, not completion of the full MASTER-FINAL directive.
+- Validation baseline before this commit (SHA f561465c): Analyze PASS; Debug, Release and Staging APK jobs PASS; all six test shards FAILED (test-0: 22; test-1: 23; test-2: 23; test-3: 20; test-4: 13; test-5: 13 failing tests). Device Smoke was still running at the checkpoint and had failures including a SQLite native-asset hash mismatch. Fresh exact-head CI is required after this commit.
+- No test was removed, skipped or weakened. The navigation color assertion was updated only to match the new approved brand color.

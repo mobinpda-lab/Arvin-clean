@@ -22,17 +22,17 @@ class AppThemeManager extends ChangeNotifier {
 
   static final AppThemeManager instance = AppThemeManager._();
   static const String preferenceKey = 'arvin.settings.primaryColor';
-  static const String defaultHex = '#3A86EF';
+  static const String defaultHex = '#0F766E';
 
   static const List<ArvinThemePaletteColor> palette = [
-    ArvinThemePaletteColor(number: 1, name: 'فیروزه‌ای آروین', hex: '#078B91'),
+    ArvinThemePaletteColor(number: 1, name: 'فیروزه‌ای ایرانی', hex: '#0F766E'),
     ArvinThemePaletteColor(number: 2, name: 'آبی اقیانوسی', hex: '#1B4965'),
     ArvinThemePaletteColor(number: 3, name: 'سبز مدرن', hex: '#2A9D8F'),
     ArvinThemePaletteColor(number: 4, name: 'آبی سلطنتی', hex: '#4361EE'),
     ArvinThemePaletteColor(number: 5, name: 'بنفش شاهانه', hex: '#7209B7'),
     ArvinThemePaletteColor(number: 6, name: 'نارنجی کهربایی', hex: '#F77F00'),
     ArvinThemePaletteColor(number: 7, name: 'قرمز کارمین', hex: '#D90429'),
-    ArvinThemePaletteColor(number: 8, name: 'آبی آسمانی پرانرژی', hex: '#3A86EF'),
+    ArvinThemePaletteColor(number: 8, name: 'سبز زیتونی', hex: '#606C38'),
     ArvinThemePaletteColor(number: 9, name: 'ذغالی شیک مدرن', hex: '#2B2D42'),
   ];
 

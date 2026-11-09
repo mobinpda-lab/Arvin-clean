@@ -181,7 +181,7 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
                     height: 48,
                     child: FilledButton(
                       style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFF3A86EF),
+                        backgroundColor: color,
                         foregroundColor: Colors.white,
                       ),
                       onPressed: creating
@@ -368,7 +368,7 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
                     child: FilledButton(
                       key: createKey,
                       style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFF3A86EF),
+                        backgroundColor: color,
                         foregroundColor: Colors.white,
                       ),
                       onPressed: creating ? null : createAndSelect,
