@@ -56,7 +56,7 @@ void main() {
         tags: const ['جلسه', 'مهم'],
         templateTaskId: 'layout-template',
         checklistEnabled: true,
-        checklist: const ['[x] بررسی دستور جلسه', '[ ] آماده‌سازی مستندات'],
+        checklist: const ['[x] بررسی دستور جلسه و هماهنگی با اعضای جلسه', '[ ] آماده‌سازی مستندات تکمیلی و فایل‌های موردنیاز برای ارائه'],
         taskReminders: [
           TaskReminder(
             id: 'layout-reminder',
@@ -221,6 +221,9 @@ void main() {
       await tester.pump();
       final dueCard = find.byKey(const ValueKey('task-detail-due-date-card'));
       await _scrollTaskDetailUntilVisible(tester, dueCard, 240);
+      final dueRect = tester.getRect(dueCard);
+      expect(dueRect.height, greaterThanOrEqualTo(48), reason: 'Due-date row must keep a 48dp minimum hit target at $width dp');
+      expect(dueRect.width, lessThanOrEqualTo(width), reason: 'Due-date row must stay inside the viewport at $width dp');
       expect(tester.takeException(), isNull, reason: 'Due-date row overflowed at $width dp');
     }
   });
@@ -245,7 +248,7 @@ void main() {
               category: 'برنامه‌ریزی',
               tags: const ['جلسه', 'مهم'],
               checklistEnabled: true,
-              checklist: const ['[x] بررسی دستور جلسه', '[ ] آماده‌سازی مستندات'],
+              checklist: const ['[x] بررسی دستور جلسه و هماهنگی با اعضای جلسه', '[ ] آماده‌سازی مستندات تکمیلی و فایل‌های موردنیاز برای ارائه'],
               taskReminders: [
                 TaskReminder(
                   id: 'full-page-reminder-$width',
