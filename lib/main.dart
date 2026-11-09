@@ -55,6 +55,7 @@ import 'services/task_list_sort_service.dart';
 import 'services/task_due_status.dart';
 import 'services/task_move_to_today_service.dart';
 import 'services/persian_date_formatter.dart';
+import 'services/iran_clock.dart';
 import 'services/project_store.dart';
 import 'services/center_store.dart';
 import 'services/project_template_store.dart';
@@ -790,8 +791,24 @@ class _HomePageState extends State<HomePage> {
     return null;
   }
 
+  /// Returns Iran's wall-clock components as a local DateTime so due-date
+  /// comparisons remain correct even when the host OS/CI timezone is UTC.
+  DateTime _iranWallClockNow() {
+    final iran = IranClock.now();
+    return DateTime(
+      iran.year,
+      iran.month,
+      iran.day,
+      iran.hour,
+      iran.minute,
+      iran.second,
+      iran.millisecond,
+      iran.microsecond,
+    );
+  }
+
   bool _overdue(Task task) {
-    if (!TaskDueStatus.isOverdue(task, now: DateTime.now())) return false;
+    if (!TaskDueStatus.isOverdue(task, now: _iranWallClockNow())) return false;
     return _dismissedOverdueWarnings[task.id] != task.dueDate;
   }
 
@@ -832,7 +849,7 @@ class _HomePageState extends State<HomePage> {
     if (due == null) return _timeFilters.contains('undated');
     final local = due.toLocal();
     final day = DateTime(local.year, local.month, local.day);
-    final now = DateTime.now();
+    final now = _iranWallClockNow();
     final today = DateTime(now.year, now.month, now.day);
     bool matchesRange() {
       if (_timeFilter != 'customRange' || !_timeFilters.contains('customRange')) return false;
