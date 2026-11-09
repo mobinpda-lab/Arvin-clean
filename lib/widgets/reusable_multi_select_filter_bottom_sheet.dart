@@ -33,6 +33,7 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
     required Color accent,
     required Widget child,
     double heightFactor = 0.82,
+    bool expandToMaxHeight = false,
   }) {
     return HomeFilterSheet.show<R>(
       context,
@@ -40,6 +41,7 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
       accent: accent,
       child: child,
       heightFactor: heightFactor,
+      expandToMaxHeight: expandToMaxHeight,
     );
   }
 
@@ -70,6 +72,8 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
         context,
         title: title,
         accent: color,
+        heightFactor: 0.90,
+        expandToMaxHeight: true,
         child: StatefulBuilder(
           builder: (sheetContext, setSheetState) {
             final filtered = available
@@ -271,6 +275,8 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
         context,
         title: title,
         accent: color,
+        heightFactor: 0.90,
+        expandToMaxHeight: true,
         child: StatefulBuilder(
           builder: (sheetContext, setSheetState) {
             final filtered = available

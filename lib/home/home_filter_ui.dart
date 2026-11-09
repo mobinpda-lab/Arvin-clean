@@ -255,12 +255,14 @@ class HomeFilterSheet extends StatelessWidget {
     required this.accent,
     required this.child,
     this.heightFactor = .76,
+    this.expandToMaxHeight = false,
   });
 
   final String title;
   final Color accent;
   final Widget child;
   final double heightFactor;
+  final bool expandToMaxHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -284,7 +286,9 @@ class HomeFilterSheet extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisSize: expandToMaxHeight
+                  ? MainAxisSize.max
+                  : MainAxisSize.min,
               children: [
                 Container(
                   width: 42,
@@ -339,6 +343,7 @@ class HomeFilterSheet extends StatelessWidget {
     required Color accent,
     required Widget child,
     double heightFactor = .76,
+    bool expandToMaxHeight = false,
   }) {
     return showModalBottomSheet<T>(
       context: context,
@@ -350,6 +355,7 @@ class HomeFilterSheet extends StatelessWidget {
         title: title,
         accent: accent,
         heightFactor: heightFactor,
+        expandToMaxHeight: expandToMaxHeight,
         child: child,
       ),
     );

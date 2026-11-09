@@ -675,6 +675,7 @@ class _ReportFilterSheet extends StatefulWidget {
 }
 
 class _ReportFilterSheetState extends State<_ReportFilterSheet> {
+  final ScrollController _filterScrollController = ScrollController();
   final GlobalKey _timeSectionKey = GlobalKey();
   final GlobalKey _exactRangeSectionKey = GlobalKey();
   final GlobalKey _centerSectionKey = GlobalKey();
@@ -978,6 +979,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
 
   @override
   void dispose() {
+    _filterScrollController.dispose();
     _noteQueryController.dispose();
     super.dispose();
   }
@@ -1150,6 +1152,10 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
             Expanded(
               child: ListView(
                 key: const ValueKey('report-filter-scroll'),
+                controller: _filterScrollController,
+                primary: false,
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                 children: [
             Column(
