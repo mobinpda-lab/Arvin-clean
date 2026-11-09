@@ -247,6 +247,23 @@ void main() {
     expect(reminders.map((item) => item.id), contains('task-due:task-reminder'));
   });
 
+  test('due date and explicit reminder at the same instant remain separate', () {
+    final sameDateTime = DateTime(2026, 12, 5, 9, 30);
+    final task = Task(
+      id: 'same-instant',
+      title: 'موعد و یادآور مستقل',
+      dueDate: sameDateTime,
+      reminderDate: sameDateTime,
+    );
+
+    final reminders = projection.project(<Task>[task]);
+
+    expect(reminders, hasLength(2));
+    expect(reminders.map((item) => item.id), contains('task-reminder:same-instant'));
+    expect(reminders.map((item) => item.id), contains('task-due:same-instant'));
+    expect(reminders.map((item) => item.date), everyElement(sameDateTime));
+  });
+
   test('projects a canonical task reminder independently from its due date', () {
     final reminderDate = DateTime(2026, 10, 6, 8, 30);
     final task = Task(

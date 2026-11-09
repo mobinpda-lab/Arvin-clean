@@ -685,8 +685,6 @@ class TaskStore {
       'isAllDay': (reminder['is_all_day'] as num?)?.toInt() == 1,
       'sequence': reminder['sequence'],
       'isEnabled': (reminder['is_enabled'] as num?)?.toInt() != 0,
-      if ((reminder['is_legacy_task_reminder'] as num?)?.toInt() == 1)
-        'isLegacyTaskReminder': true,
     }).toList(growable: false);
 
     final followUps = await executor.runSelect(
@@ -934,12 +932,11 @@ class TaskStore {
     for (final reminder in task.taskReminders) {
       await executor.runInsert(
         '''INSERT INTO task_reminders
-           (id, task_id, title, remind_at, is_all_day, sequence, is_enabled, is_legacy_task_reminder)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+           (id, task_id, title, remind_at, is_all_day, sequence, is_enabled)
+           VALUES (?, ?, ?, ?, ?, ?, ?)''',
         <Object?>[
           reminder.id, task.id, reminder.title, reminder.storageDateValue,
           reminder.isAllDay ? 1 : 0, reminder.sequence, reminder.isEnabled ? 1 : 0,
-          reminder.isLegacyTaskReminder ? 1 : 0,
         ],
       );
     }

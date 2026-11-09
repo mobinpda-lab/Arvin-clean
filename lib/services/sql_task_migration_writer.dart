@@ -107,8 +107,8 @@ class SqlTaskMigrationWriter {
     for (final reminder in task.taskReminders) {
       await executor.runInsert(
         '''INSERT INTO task_reminders
-           (id, task_id, title, remind_at, is_all_day, sequence, is_enabled, is_legacy_task_reminder)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+           (id, task_id, title, remind_at, is_all_day, sequence, is_enabled)
+           VALUES (?, ?, ?, ?, ?, ?, ?)''',
         <Object?>[
           reminder.id,
           task.id,
@@ -117,7 +117,6 @@ class SqlTaskMigrationWriter {
           _bool(reminder.isAllDay),
           reminder.sequence,
           _bool(reminder.isEnabled),
-          _bool(reminder.isLegacyTaskReminder),
         ],
       );
     }

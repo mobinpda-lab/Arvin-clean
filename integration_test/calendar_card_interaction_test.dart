@@ -76,7 +76,7 @@ void main() {
       expect(reloadedTasks.single.taskReminders, hasLength(2));
       expect(
         reloadedTasks.single.taskReminders.every(
-          (item) => !item.isLegacyTaskReminder,
+          (item) => item.id != 'legacy-task-reminder-$taskId',
         ),
         isTrue,
         reason: 'Due Date must not turn independent reminders into legacy reminders',
@@ -95,7 +95,7 @@ void main() {
           debugPrint(
             'CALENDAR_DIAG_A: taskId=${task.id} '
             'reminderId=${reminder.id} '
-            'type=${reminder.isLegacyTaskReminder ? 'legacy' : 'independent'} '
+            'type=${reminder.id == 'legacy-task-reminder-$taskId' ? 'migrated' : 'independent'} '
             'date=${reminder.date.toIso8601String()}',
           );
         }

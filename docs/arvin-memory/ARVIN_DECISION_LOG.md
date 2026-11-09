@@ -225,3 +225,12 @@ Both required exact-head gates for `ba2306cfc66ad982f8e8ab73b838a4a8d6ed6b55` ar
 - **Exact-head CI evidence observed:** On the target Build run, Analyze and all six test shards completed successfully. The `test-1` job reports the unlinked-Reminder conflict test passing as part of 161 passing tests in that shard. Debug/Release APK builds were still in progress at this checkpoint; Calendar Provider Acceptance and Device Smoke were also not yet complete.
 - **Acceptance boundary:** This record documents the diagnosis, implementation and observed partial CI evidence. It does not declare full Wave 7.61 acceptance. APK artifacts, provider evidence and all seven Device Smoke lanes must be reviewed on the exact final PR head.
 - **Governance:** PR #2995 remains OPEN and must remain DRAFT/UNMERGED; Issue #2102 remains OPEN. Release remains `BLOCKED — RELEASE: NO-GO` until every required exact-head suite and product acceptance gate is green.
+
+## 2026-11-09 — Owner decision: TaskReminder single source of truth
+
+- **Decision:** all active Task reminder data is stored only in `Task.taskReminders`. No per-reminder legacy classification flag is part of the model or persistence contract.
+- **Computed compatibility:** `Task.reminderDate` is read-only and returns the earliest `date` among enabled TaskReminders, or null when none are enabled. It does not prioritize migration origin or sequence.
+- **Deadline independence:** `Task.dueDate` is independent. Selecting/changing/removing a due date never creates, changes, or deletes a TaskReminder; Calendar may project the deadline and an explicit reminder as separate entries even when their timestamps match.
+- **Legacy import:** old Task and FollowUp reminder JSON fields are accepted only at decoding/migration boundaries and normalized into the parent Task's `taskReminders`. The per-Task migration marker remains only to prevent stale pre-migration payloads from resurrecting a deleted reminder; it is not a reminder classification or reminder content.
+- **Identity safety:** stable migrated reminder IDs preserve existing Calendar event and scheduler delivery identities. SQLite schema v16 removes the `is_legacy_task_reminder` column while preserving IDs, timestamps, sequence, enabled state and All-Day semantics.
+- **Forms:** Quick Capture and Task Editor continue to create/edit explicit TaskReminder rows only. No tests may rely on the removed per-reminder flag or legacy getter precedence.

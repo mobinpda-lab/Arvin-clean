@@ -65,7 +65,7 @@ class FollowUpCalendarProjection {
         }
       } else {
         for (final reminder in task.taskReminders) {
-          if (!reminder.isLegacyTaskReminder) continue;
+          if (!isMigratedTaskReminder(task, reminder)) continue;
           if (target != null) return null;
           target = reminder;
         }
@@ -105,7 +105,7 @@ class FollowUpCalendarProjection {
           for (final reminder in task.taskReminders) {
             debugPrint(
               'CALENDAR_DIAG_B: taskId=${task.id} reminderId=${reminder.id} '
-              'type=${reminder.isLegacyTaskReminder ? 'legacy' : 'independent'} '
+              'type=${isMigratedTaskReminder(task, reminder) ? 'migrated' : 'independent'} '
               'date=${reminder.date.toIso8601String()} DROP_REASON=task_archived_or_trashed',
             );
           }
@@ -121,7 +121,7 @@ class FollowUpCalendarProjection {
             // The migrated legacy reminder keeps its old external identity so
             // provider sync updates the existing event instead of creating a
             // second event under the new collection namespace.
-            id: reminder.isLegacyTaskReminder
+            id: isMigratedTaskReminder(task, reminder)
                 ? taskReminderIdFor(task)
                 : independentTaskReminderIdFor(task, reminder),
             title: reminder.title,
@@ -134,14 +134,10 @@ class FollowUpCalendarProjection {
         if (task.id == 'calendar-smoke-task') {
           debugPrint(
             'CALENDAR_DIAG_B: taskId=${task.id} '
-            'outputReminderId=${reminder.isLegacyTaskReminder ? taskReminderIdFor(task) : independentTaskReminderIdFor(task, reminder)} '
-            'type=${reminder.isLegacyTaskReminder ? 'legacy' : 'independent'} '
+            'outputReminderId=${isMigratedTaskReminder(task, reminder) ? taskReminderIdFor(task) : independentTaskReminderIdFor(task, reminder)} '
+            'type=${isMigratedTaskReminder(task, reminder) ? 'migrated' : 'independent'} '
             'date=${reminder.date.toIso8601String()} RESULT=PROJECTED',
           );
-        }
-        if (reminder.isLegacyTaskReminder) {
-          // Preserve the legacy projection's due-date de-duplication behavior.
-          taskDatesAlreadyProjected.add(reminder.date);
         }
       }
 

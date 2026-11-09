@@ -254,7 +254,7 @@ void main() {
     expect(result!.reminderDate, isNotNull);
     expect(result!.reminderDate!.hour, 0);
     expect(result!.reminderDate!.minute, 0);
-    expect(result!.reminderAllDay, isTrue);
+    expect(result!.taskReminders.single.isAllDay, isTrue);
   });
 
   testWidgets('full Task editor adds independent numbered reminders without replacing legacy reminder', (tester) async {
@@ -302,7 +302,7 @@ void main() {
     await openEditor(tester, task: task, onResult: (value) => result = value);
 
     final migratedTitle = find.byKey(
-      const ValueKey('task-editor-reminder-title-legacy-task-reminder-full-entry'),
+      const ValueKey('task-editor-reminder-title-legacy-task-reminder-editor-migrated-legacy'),
     );
     expect(migratedTitle, findsOneWidget);
     await tester.enterText(migratedTitle, 'یادآور مستقل ویرایش‌شده');
@@ -317,8 +317,7 @@ void main() {
     expect(result!.reminderDate, legacyDate);
     expect(result!.legacyTaskReminderMigrationVersion, 1);
     expect(result!.taskReminders, hasLength(1));
-    expect(result!.taskReminders.single.id, 'legacy-task-reminder-full-entry');
-    expect(result!.taskReminders.single.isLegacyTaskReminder, isTrue);
+    expect(result!.taskReminders.single.id, 'legacy-task-reminder-editor-migrated-legacy');
     expect(result!.taskReminders.single.title, 'یادآور مستقل ویرایش‌شده');
   });
 }

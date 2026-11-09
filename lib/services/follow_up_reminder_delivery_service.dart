@@ -30,7 +30,7 @@ class FollowUpReminderDeliveryService {
         final candidate = FollowUpReminderCandidate.task(
           taskId: task.id,
           taskTitle: task.title,
-          taskReminderId: reminder.isLegacyTaskReminder ? null : reminder.id,
+          taskReminderId: isMigratedTaskReminder(task, reminder) ? null : reminder.id,
           label: reminder.title.trim().isEmpty
               ? 'یادآور ${reminder.sequence}'
               : reminder.title,

@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:arvin/models/task.dart';
 
 void main() {
-  group('TaskReminder legacy compatibility', () {
+  group('TaskReminder canonical compatibility', () {
     test('a Due Date alone does not synthesize a reminder', () {
       final dueAt = DateTime.utc(2026, 10, 28, 9, 30);
       final task = Task.fromJson(<String, dynamic>{
@@ -24,16 +24,14 @@ void main() {
         'reminderDate': date.toIso8601String(),
         'reminderAllDay': true,
       });
-      expect(task.reminderAllDay, isTrue);
       expect(task.taskReminders.single.isAllDay, isTrue);
       final restored = Task.fromJson(task.toJson());
-      expect(restored.reminderAllDay, isTrue);
       expect(restored.taskReminders.single.isAllDay, isTrue);
       expect(restored.taskReminders.single.date, date);
     });
 
  
-    test('an explicitly configured independent reminder is exposed by the legacy getter', () {
+    test('an explicitly configured independent reminder is exposed by the computed getter', () {
       final first = DateTime(2026, 11, 2, 8, 15);
       final second = DateTime(2026, 11, 3, 9, 30);
       final task = Task(
@@ -66,9 +64,9 @@ void main() {
       expect(restored.taskReminders, hasLength(2));
     });
 
-    test('legacy reminder takes precedence over independent reminder fallback', () {
-      final legacyAt = DateTime(2026, 11, 1, 7);
-      final independentAt = DateTime(2026, 11, 2, 8);
+    test('computed getter returns the earliest enabled reminder regardless of origin', () {
+      final legacyAt = DateTime(2026, 11, 2, 8);
+      final independentAt = DateTime(2026, 11, 1, 7);
       final task = Task(
         id: 'legacy-precedence',
         title: 'Legacy precedence',
@@ -83,7 +81,77 @@ void main() {
         ],
       );
 
-      expect(task.reminderDate, legacyAt);
+      expect(task.reminderDate, independentAt);
+    });
+
+    test('computed getter chooses the earliest enabled datetime, not sequence order', () {
+      final task = Task(
+        id: 'earliest-reminder',
+        title: 'Earliest reminder',
+        taskReminders: [
+          TaskReminder(
+            id: 'later-sequence-first',
+            title: 'Later',
+            date: DateTime(2026, 11, 3, 11),
+            sequence: 1,
+          ),
+          TaskReminder(
+            id: 'earlier-sequence-second',
+            title: 'Earlier',
+            date: DateTime(2026, 11, 3, 8),
+            sequence: 2,
+          ),
+          TaskReminder(
+            id: 'disabled-earliest',
+            title: 'Disabled',
+            date: DateTime(2026, 11, 3, 7),
+            sequence: 3,
+            isEnabled: false,
+          ),
+        ],
+      );
+
+      expect(task.reminderDate, DateTime(2026, 11, 3, 8));
+    });
+
+    test('old per-reminder legacy metadata is ignored and never re-serialized', () {
+      final task = Task.fromJson({
+        'id': 'legacy-flag-input',
+        'title': 'Old reminder metadata',
+        'legacyTaskReminderMigrationVersion': 1,
+        'taskReminders': [
+          {
+            'id': 'legacy-task-reminder-legacy-flag-input',
+            'title': 'یادآوری قدیمی',
+            'date': '2026-11-03T08:00:00.000',
+            'sequence': 1,
+            'isLegacyTaskReminder': true,
+          },
+        ],
+      });
+
+      expect(task.reminderDate, DateTime(2026, 11, 3, 8));
+      final serializedReminder =
+          (task.toJson()['taskReminders'] as List).single as Map;
+      expect(serializedReminder.containsKey('isLegacyTaskReminder'), isFalse);
+    });
+
+    test('computed getter is null when every reminder is disabled', () {
+      final task = Task(
+        id: 'disabled-reminders',
+        title: 'Disabled reminders',
+        taskReminders: [
+          TaskReminder(
+            id: 'disabled-only',
+            title: 'Disabled',
+            date: DateTime(2026, 11, 3, 8),
+            sequence: 1,
+            isEnabled: false,
+          ),
+        ],
+      );
+
+      expect(task.reminderDate, isNull);
     });
 
     test('a valid legacy reminder retains identity and date after reload', () {
@@ -100,14 +168,12 @@ void main() {
       expect(migrated.taskReminders, hasLength(1));
       expect(migrated.taskReminders.single.id, 'legacy-task-reminder-legacy-reminder-task');
       expect(migrated.taskReminders.single.date, legacyReminderAt);
-      expect(migrated.taskReminders.single.isLegacyTaskReminder, isTrue);
       expect(migrated.dueDate, dueAt);
 
       final reloaded = Task.fromJson(migrated.toJson());
       expect(reloaded.taskReminders, hasLength(1));
       expect(reloaded.taskReminders.single.id, 'legacy-task-reminder-legacy-reminder-task');
       expect(reloaded.taskReminders.single.date, legacyReminderAt);
-      expect(reloaded.taskReminders.single.isLegacyTaskReminder, isTrue);
       expect(reloaded.dueDate, dueAt);
     });
   });

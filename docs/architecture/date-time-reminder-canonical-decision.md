@@ -1,20 +1,20 @@
 # Arvin Date/Time/Reminder Canonical Decision
 
-Status: Proposed architecture decision for #2301
+Status: Authoritative owner override dated 2026-11-09; supersedes the earlier due-time auto-reminder contract
 Base: main `81ed798d6a6d30316f2347242bc478b59e7caa20`
 Date: 2026-10-05
 
-## Product contract
+## Product contract — authoritative owner override, 2026-11-09
 
 1. Date only means a true All-Day Task. It must not be represented to the user as 00:00.
-2. Date + Time means a timed Task and exactly one canonical automatic Reminder at the same timestamp.
-3. No Date means no due-based automatic Reminder/Event.
-4. Date-only <-> Date+Time transitions must be reversible and idempotent.
-5. Changing/removing date or time must reconcile the existing canonical Reminder/Calendar projection without duplicates.
-6. A manually created Reminder must not be silently overwritten by the automatic due-time Reminder.
-7. Provider integrations may use 00:00 only as an adapter compatibility value when required; Arvin UI/domain semantics must remain All-Day.
-8. Existing Task identity, historical data, backup/restore compatibility and canonical Reminder/Scheduler/Calendar infrastructure must be preserved.
-
+2. Date + Time remains a timed Task deadline; selecting it must not create a TaskReminder automatically.
+3. No Date means no due-date projection.
+4. Changing or removing dueDate must not create, modify, or remove an explicitly configured TaskReminder.
+5. A TaskReminder is created, edited, enabled, disabled, or removed only through the explicit reminder controls.
+6. The canonical Task model stores reminder records only in `taskReminders`.
+7. `Task.reminderDate` is a read-only computed compatibility getter: it returns the earliest date/time among enabled TaskReminders, or null when none are enabled.
+8. Calendar and notification integrations must project the same canonical TaskReminder records; they must not infer reminders from dueDate or Follow-up history.
+9. Existing Task identity, reminder IDs, timestamps, backup/restore compatibility and scheduler delivery state must be preserved during migration.
 ## Implementation boundary
 
 The implementation must use the existing canonical Task, Reminder/Scheduler and Calendar projection infrastructure. No parallel Task, Reminder, Calendar, repository, storage or recurrence engine may be introduced.

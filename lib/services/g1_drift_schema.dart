@@ -7,7 +7,7 @@ import '../models/task.dart';
 
 /// G1-DRIFT relational schema foundation.
 class G1DriftSchema implements QueryExecutorUser {
-  static const int version = 15;
+  static const int version = 16;
 
   static const List<String> _statements = <String>[
     '''CREATE TABLE IF NOT EXISTS tasks (
@@ -22,7 +22,6 @@ class G1DriftSchema implements QueryExecutorUser {
   id TEXT NOT NULL PRIMARY KEY, task_id TEXT NOT NULL REFERENCES tasks(id),
   title TEXT NOT NULL, remind_at TEXT NOT NULL, is_all_day INTEGER NOT NULL DEFAULT 0,
   sequence INTEGER NOT NULL, is_enabled INTEGER NOT NULL DEFAULT 1,
-  is_legacy_task_reminder INTEGER NOT NULL DEFAULT 0,
   UNIQUE (task_id, sequence))''',
     '''CREATE TABLE IF NOT EXISTS follow_up_records (
   id TEXT NOT NULL PRIMARY KEY, task_id TEXT NOT NULL REFERENCES tasks(id),
@@ -123,6 +122,7 @@ class G1DriftSchema implements QueryExecutorUser {
       for (final statement in _statements) {
         await executor.runCustom(statement);
       }
+      await _rebuildTaskRemindersWithoutLegacyFlag(executor);
       final projectTemplateColumns = await executor.runSelect("PRAGMA table_info('project_templates')", const []);
       if (!projectTemplateColumns.any((row) => row['name'] == 'center_id')) {
         await executor.runCustom('ALTER TABLE project_templates ADD COLUMN center_id TEXT NULL');
@@ -372,12 +372,11 @@ class G1DriftSchema implements QueryExecutorUser {
       for (final reminder in task.taskReminders) {
         await executor.runInsert(
           '''INSERT OR IGNORE INTO task_reminders
-             (id, task_id, title, remind_at, is_all_day, sequence, is_enabled, is_legacy_task_reminder)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+             (id, task_id, title, remind_at, is_all_day, sequence, is_enabled)
+             VALUES (?, ?, ?, ?, ?, ?, ?)''',
           <Object?>[
             reminder.id, task.id, reminder.title, reminder.storageDateValue,
             reminder.isAllDay ? 1 : 0, reminder.sequence, reminder.isEnabled ? 1 : 0,
-            reminder.isLegacyTaskReminder ? 1 : 0,
           ],
         );
       }
@@ -417,8 +416,8 @@ class G1DriftSchema implements QueryExecutorUser {
         final sequence = (sequenceRows.single['next_sequence'] as num).toInt();
         await executor.runInsert(
           '''INSERT OR IGNORE INTO task_reminders
-             (id, task_id, title, remind_at, is_all_day, sequence, is_enabled, is_legacy_task_reminder)
-             VALUES (?, ?, ?, ?, ?, ?, 1, 0)''',
+             (id, task_id, title, remind_at, is_all_day, sequence, is_enabled)
+             VALUES (?, ?, ?, ?, ?, ?, 1)''',
           <Object?>[
             'follow-up-reminder-${legacy['task_id']}-${legacy['id']}',
             legacy['task_id'],
@@ -443,6 +442,42 @@ class G1DriftSchema implements QueryExecutorUser {
     if (hasPeople) {
       await executor.runCustom('DROP TABLE people');
     }
+  }
+
+  /// Removes the temporary per-reminder legacy marker while preserving
+  /// every canonical reminder row and its stable ID.
+  static Future<void> _rebuildTaskRemindersWithoutLegacyFlag(
+    QueryExecutor executor,
+  ) async {
+    final columns = await executor.runSelect(
+      "PRAGMA table_info('task_reminders')",
+      const [],
+    );
+    if (!columns.any((row) => row['name'] == 'is_legacy_task_reminder')) return;
+
+    await executor.runCustom('DROP TABLE IF EXISTS task_reminders_canonical_v16');
+    await executor.runCustom('''
+      CREATE TABLE task_reminders_canonical_v16 (
+        id TEXT NOT NULL PRIMARY KEY,
+        task_id TEXT NOT NULL REFERENCES tasks(id),
+        title TEXT NOT NULL,
+        remind_at TEXT NOT NULL,
+        is_all_day INTEGER NOT NULL DEFAULT 0,
+        sequence INTEGER NOT NULL,
+        is_enabled INTEGER NOT NULL DEFAULT 1,
+        UNIQUE (task_id, sequence)
+      )
+    ''');
+    await executor.runCustom('''
+      INSERT INTO task_reminders_canonical_v16
+        (id, task_id, title, remind_at, is_all_day, sequence, is_enabled)
+      SELECT id, task_id, title, remind_at, is_all_day, sequence, is_enabled
+      FROM task_reminders
+    ''');
+    await executor.runCustom('DROP TABLE task_reminders');
+    await executor.runCustom(
+      'ALTER TABLE task_reminders_canonical_v16 RENAME TO task_reminders',
+    );
   }
 
   static Future<void> _rebuildTaskTableWithoutLegacyScheduleColumns(
@@ -489,9 +524,9 @@ class G1DriftSchema implements QueryExecutorUser {
       source('legacy_payload_json', 'NULL'),
     ];
 
-    await executor.runCustom('DROP TABLE IF EXISTS tasks_canonical_v15');
+    await executor.runCustom('DROP TABLE IF EXISTS tasks_canonical_v16');
     await executor.runCustom('''
-      CREATE TABLE tasks_canonical_v15 (
+      CREATE TABLE tasks_canonical_v16 (
         id TEXT NOT NULL PRIMARY KEY,
         storage_ordinal INTEGER NOT NULL DEFAULT 0,
         title TEXT NOT NULL,
@@ -512,7 +547,7 @@ class G1DriftSchema implements QueryExecutorUser {
       )
     ''');
     await executor.runCustom('''
-      INSERT INTO tasks_canonical_v15 (
+      INSERT INTO tasks_canonical_v16 (
         id, storage_ordinal, title, description, created_at, updated_at, due_date,
         category, notebook_kind, priority, archived, trashed, completed,
         completed_at, is_favorite, recurrence_json, legacy_payload_json
@@ -520,7 +555,7 @@ class G1DriftSchema implements QueryExecutorUser {
       SELECT ${projection.join(', ')} FROM tasks
     ''');
     await executor.runCustom('DROP TABLE tasks');
-    await executor.runCustom('ALTER TABLE tasks_canonical_v15 RENAME TO tasks');
+    await executor.runCustom('ALTER TABLE tasks_canonical_v16 RENAME TO tasks');
   }
 
   static String _dateOnlyStorageValue(DateTime value) =>

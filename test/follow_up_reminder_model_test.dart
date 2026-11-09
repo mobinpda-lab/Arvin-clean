@@ -124,7 +124,7 @@ void main() {
     );
     expect(independentAllDay.isAllDay, isTrue);
     expect(independentAllDay.date, DateTime(2026, 10, 22));
-    expect(restored.taskReminders.last.isLegacyTaskReminder, isTrue);
+    expect(restored.taskReminders.last.id, 'legacy-task-reminder-multi-reminder');
     expect(restored.taskReminders.last.date, task.reminderDate);
     expect(restored.nextReminderSequence, 5);
   });
@@ -139,7 +139,6 @@ void main() {
     expect(restored.reminderDate, DateTime(2026, 10, 20, 9, 30));
     expect(restored.taskReminders, hasLength(1));
     expect(restored.taskReminders.single.id, 'legacy-task-reminder-legacy-task');
-    expect(restored.taskReminders.single.isLegacyTaskReminder, isTrue);
     expect(restored.taskReminders.single.date, restored.reminderDate);
     expect(restored.taskReminders.single.isAllDay, isFalse,
         reason: 'legacy reminders default to timed semantics without explicit all-day metadata');
@@ -205,7 +204,7 @@ void main() {
 
     expect(restored.taskReminders, isEmpty);
     expect(restored.legacyTaskReminderMigrationVersion, 1);
-    expect(restored.reminderDate, DateTime(2026, 10, 20, 9, 30));
+    expect(restored.reminderDate, isNull);
   });
 
   test('legacy midnight reminder is not inferred to be all-day', () {

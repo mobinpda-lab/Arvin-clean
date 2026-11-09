@@ -32,7 +32,7 @@ class FollowUpReminderAlarmPlanner {
             : reminder.date;
         // The migrated legacy reminder must continue to use the old delivery
         // identity so already-delivered state remains effective after upgrade.
-        final identity = reminder.isLegacyTaskReminder
+        final identity = isMigratedTaskReminder(task, reminder)
             ? 'task:${task.id}@${scheduledAt.toIso8601String()}'
             : 'task:${task.id}:reminder:${reminder.id}@${scheduledAt.toIso8601String()}';
         if (!delivered.contains(identity)) candidates.add(scheduledAt);

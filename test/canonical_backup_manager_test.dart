@@ -106,7 +106,6 @@ void main() {
           title: 'یادآوری: کار کامل',
           date: DateTime(2026, 8, 28, 10, 30),
           sequence: 3,
-          isLegacyTaskReminder: true,
         ),
       ]
       ..legacyTaskReminderMigrationVersion = 1
@@ -130,7 +129,6 @@ void main() {
       'legacy-task-reminder-task-full',
     ]);
     expect(restored.taskReminders[1].isAllDay, isTrue);
-    expect(restored.taskReminders.last.isLegacyTaskReminder, isTrue);
     expect(restored.taskReminders.last.date, restored.reminderDate);
     expect(restored.legacyTaskReminderMigrationVersion, 1);
     expect(restored.nextReminderSequence, 4);

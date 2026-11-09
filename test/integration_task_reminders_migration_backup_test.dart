@@ -37,7 +37,7 @@ void main() {
         <String>['legacy-task-reminder-deleted-legacy-reminder']);
 
     // Deletion is represented by an empty canonical collection plus the
-    // persisted migration tombstone; the old compatibility field stays intact.
+    // migration marker, which blocks stale legacy payload resurrection.
     task.taskReminders.clear();
     await store.save(<Task>[task]);
     final afterSql = await store.load();
@@ -84,7 +84,7 @@ void main() {
 
     expect(oldTask.taskReminders, hasLength(1));
     expect(oldTask.taskReminders.single.id, 'legacy-task-reminder-task-reminder-integration');
-    expect(oldTask.taskReminders.single.isLegacyTaskReminder, isTrue);
+    
 
     oldTask.taskReminders.addAll(<TaskReminder>[
       TaskReminder(
@@ -158,7 +158,7 @@ void main() {
       'task-reminder-integration:reminder:3',
     });
     expect(task.legacyTaskReminderMigrationVersion, 1);
-    expect(task.taskReminders.singleWhere((r) => r.isLegacyTaskReminder).date,
+    expect(task.taskReminders.singleWhere((r) => r.id == 'legacy-task-reminder-${task.id}').date,
         legacyDate);
 
     final restoredLinks = (decoded['calendarLinks'] as List)
