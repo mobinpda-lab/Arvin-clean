@@ -1187,12 +1187,13 @@ class _DailyContentCard extends StatelessWidget {
   }
 }
 
-bool _isOverdueCalendarItem(CalendarReminder item) =>
-    !item.completed &&
-    !item.isAllDay &&
-    DateUtils.dateOnly(item.date).isBefore(
-      DateUtils.dateOnly(IranClock.now()),
-    );
+bool _isOverdueCalendarItem(CalendarReminder item) {
+  if (item.completed) return false;
+  final now = IranClock.now();
+  final pastDate = DateUtils.dateOnly(item.date).isBefore(DateUtils.dateOnly(now));
+  final pastTimeToday = !item.isAllDay && item.date.isBefore(now);
+  return pastDate || pastTimeToday;
+}
 
 Color _calendarStatusColor(CalendarReminder item) {
   if (item.completed) return ArvinColors.calendarCompleted;
@@ -1492,10 +1493,10 @@ class _ReminderCardState extends State<_ReminderCard> {
         ? prayerState
         : item.completed
         ? 'انجام‌شده'
-        : item.isAllDay
-        ? 'تمام‌روز'
         : _isOverdueCalendarItem(item)
         ? 'عقب‌افتاده'
+        : item.isAllDay
+        ? 'تمام‌روز'
         : (item.id.startsWith('task-followup:') ||
                 item.id.startsWith('followup:'))
             ? 'در انتظار پیگیری'
