@@ -59,5 +59,6 @@ void main() {
       <String>['#0F766E', '#1B4965', '#2A9D8F', '#4361EE', '#7209B7', '#F77F00', '#D90429', '#606C38', '#2B2D42'],
     );
     expect(AppThemeManager.palette[7].hex, '#606C38');
+    expect(AppThemeManager.palette.any((entry) => entry.hex == '#3A86EF'), isFalse);
   });
 }
