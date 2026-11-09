@@ -660,8 +660,6 @@ void main() {
     await tester.ensureVisible(unified);
     await tester.tap(unified);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('انتخاب تاریخ و ساعت'));
-    await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
     await tester.pumpAndSettle();
 
