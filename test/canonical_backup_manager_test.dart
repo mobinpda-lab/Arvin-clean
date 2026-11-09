@@ -982,6 +982,39 @@ void main() {
     }
   });
 
+  test('saving active Task people seeds directory but preserves removed membership as historical', () async {
+    await TaskStore.resetTestDatabase();
+    try {
+      final store = TaskStore();
+      final person = PersonReference(id: 'person-directory-lifecycle', displayName: 'همکار');
+      final task = Task.fromJson({
+        ..._completeTask().toJson(),
+        'people': [person.toJson()],
+      });
+
+      await store.save([task]);
+      expect(
+        (await store.loadPeopleDirectory()).map((value) => value.id),
+        contains(person.id),
+      );
+
+      await store.savePeopleDirectory(const []);
+      final afterRemoval = (await store.load()).single;
+      expect(afterRemoval.people.single.id, person.id);
+      expect(afterRemoval.people.single.isDeleted, isTrue);
+
+      await store.save([afterRemoval]);
+      expect(await store.loadPeopleDirectory(), isEmpty);
+
+      final persisted = (await store.load()).single;
+      expect(persisted.people, hasLength(1));
+      expect(persisted.people.single.id, person.id);
+      expect(persisted.people.single.isDeleted, isTrue);
+    } finally {
+      await TaskStore.resetTestDatabase();
+    }
+  });
+
   test('legacy backup without peopleDirectory restores and migrates task people', () async {
     await TaskStore.resetTestDatabase();
     try {
