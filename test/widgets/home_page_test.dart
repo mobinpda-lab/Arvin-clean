@@ -166,9 +166,17 @@ void main() {
 
     // «همه کارها»: a completed task with an old due date must remain visible.
     expect(find.text('کار انجام‌شده قدیمی'), findsOneWidget);
-    await tester.scrollUntilVisible(find.text('کار انجام‌نشده'), 400, scrollable: find.byType(Scrollable).last);
+    final homeList = find.byKey(const ValueKey('home-task-list-viewport'));
+    await tester.scrollUntilVisible(
+      find.text('کار انجام‌نشده'),
+      400,
+      scrollable: homeList,
+    );
     expect(find.text('کار انجام‌نشده'), findsOneWidget);
-    expect(find.text('کار انجام‌نشده'), findsOneWidget);
+    // The bottom navigation intentionally hides while the Home list is
+    // scrolled; return to the top before opening its More destination.
+    await tester.drag(homeList, const Offset(0, 1200));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('home-more-task-filters')));
