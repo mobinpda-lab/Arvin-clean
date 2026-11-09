@@ -11,7 +11,7 @@ void main() {
     final task = Task(
       id: 'task-1',
       title: 'کار',
-      reminderDate: at,
+      taskReminders: [TaskReminder(id: 'r1', title: 'یادآوری', date: at, sequence: 1)],
     );
 
     expect(
@@ -30,7 +30,7 @@ void main() {
     final task = Task(
       id: 'task-1',
       title: 'کار',
-      reminderDate: taskReminder,
+      taskReminders: [TaskReminder(id: 'r1', title: 'یادآوری', date: taskReminder, sequence: 1)],
       followUps: [
         FollowUp(
           id: 'fu-1',
@@ -56,7 +56,7 @@ void main() {
       id: 'task-1',
       title: 'کار',
       completed: true,
-      reminderDate: now.add(const Duration(hours: 1)),
+      taskReminders: [TaskReminder(id: 'r1', title: 'یادآوری', date: now.add(const Duration(hours: 1)), sequence: 1)],
     );
 
     expect(
@@ -106,7 +106,7 @@ void main() {
 
   test('migrated legacy Task reminder keeps delivery identity and is not scheduled twice', () {
     final at = now.add(const Duration(hours: 1));
-    final migrated = Task.fromJson({
+    final migrated = Task.fromLegacyJson({
       'id': 'legacy-task',
       'title': 'کار قدیمی',
       'reminderDate': at.toIso8601String(),

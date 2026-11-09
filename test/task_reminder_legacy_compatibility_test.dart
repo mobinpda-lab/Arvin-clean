@@ -3,6 +3,17 @@ import 'package:arvin/models/task.dart';
 
 void main() {
   group('TaskReminder canonical compatibility', () {
+    test('ordinary Task construction never migrates the deprecated reminderDate argument', () {
+      final task = Task(id: 'ordinary-construction', title: 'کار جدید', reminderDate: DateTime(2026, 11, 3, 8));
+      expect(task.taskReminders, isEmpty);
+      expect(task.legacyTaskReminderMigrationVersion, 0);
+    });
+
+    test('current-schema JSON ignores a stale legacy reminder field', () {
+      final task = Task.fromJson({'id': 'current-schema', 'title': 'کار فعلی', 'legacyTaskReminderMigrationVersion': 1, 'reminderDate': '2026-11-03T08:00:00.000'});
+      expect(task.taskReminders, isEmpty);
+      expect(task.legacyTaskReminderMigrationVersion, 1);
+    });
     test('a Due Date alone does not synthesize a reminder', () {
       final dueAt = DateTime.utc(2026, 10, 28, 9, 30);
       final task = Task.fromJson(<String, dynamic>{
@@ -18,7 +29,7 @@ void main() {
 
     test('legacy Task reminder All-Day flag migrates and survives round-trip', () {
       final date = DateTime(2026, 10, 30);
-      final task = Task.fromJson({
+      final task = Task.fromLegacyJson({
         'id': 'legacy-all-day',
         'title': 'یادآور تمام‌روز',
         'reminderDate': date.toIso8601String(),
@@ -164,7 +175,7 @@ void main() {
         'reminderDate': legacyReminderAt.toIso8601String(),
       };
 
-      final migrated = Task.fromJson(legacyJson);
+      final migrated = Task.fromLegacyJson(legacyJson);
       expect(migrated.taskReminders, hasLength(1));
       expect(migrated.taskReminders.single.id, 'legacy-task-reminder-legacy-reminder-task');
       expect(migrated.taskReminders.single.date, legacyReminderAt);

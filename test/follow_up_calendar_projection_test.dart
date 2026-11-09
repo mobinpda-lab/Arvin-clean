@@ -495,7 +495,7 @@ void main() {
   });
 
   test('migrated legacy Task reminder keeps the existing Calendar identity once', () {
-    final task = Task.fromJson({
+    final task = Task.fromLegacyJson({
       'id': 'legacy-calendar-task',
       'title': 'کار قدیمی',
       'reminderDate': '2026-12-05T09:30:00.000',

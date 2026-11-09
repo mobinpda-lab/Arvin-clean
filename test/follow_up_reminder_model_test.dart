@@ -64,7 +64,7 @@ void main() {
   });
 
   test('legacy Follow-up reminder becomes an independent TaskReminder', () {
-    final task = Task.fromJson({
+    final task = Task.fromLegacyJson({
       'id': 'follow-up-reminder-migration',
       'title': 'کار مادر',
       'followUps': [
@@ -90,11 +90,11 @@ void main() {
   });
 
   test('multiple independent Task reminders and monotonic sequence survive JSON round-trip', () {
-    final task = Task(
-      id: 'multi-reminder',
-      title: 'خرید فرش',
-      reminderDate: DateTime(2026, 10, 20, 9),
-      taskReminders: [
+    final task = Task.fromLegacyJson({
+      'id': 'multi-reminder',
+      'title': 'خرید فرش',
+      'reminderDate': DateTime(2026, 10, 20, 9).toIso8601String(),
+      'taskReminders': [
         TaskReminder(
           id: 'reminder-a',
           title: 'خرید فرش — یادآور 1',
@@ -109,8 +109,8 @@ void main() {
           sequence: 3,
         ),
       ],
-      nextReminderSequence: 4,
-    );
+      'nextReminderSequence': 4,
+    });
 
     final restored = Task.fromJson(task.toJson());
 
@@ -130,7 +130,7 @@ void main() {
   });
 
   test('legacy Task reminder migrates once and preserves its timestamp', () {
-    final restored = Task.fromJson({
+    final restored = Task.fromLegacyJson({
       'id': 'legacy-task',
       'title': 'کار قدیمی',
       'reminderDate': '2026-10-20T09:30:00.000',
@@ -153,7 +153,7 @@ void main() {
   });
 
   test('legacy migration appends after existing reminders without overwriting them', () {
-    final restored = Task.fromJson({
+    final restored = Task.fromLegacyJson({
       'id': 'legacy-with-new',
       'title': 'کار ترکیبی',
       'reminderDate': '2026-10-20T09:30:00.000',
@@ -193,7 +193,7 @@ void main() {
   });
 
   test('deleted migrated reminder does not reappear from the retained legacy field', () {
-    final migrated = Task.fromJson({
+    final migrated = Task.fromLegacyJson({
       'id': 'deleted-legacy',
       'title': 'کار قدیمی',
       'reminderDate': '2026-10-20T09:30:00.000',
@@ -208,7 +208,7 @@ void main() {
   });
 
   test('legacy midnight reminder is not inferred to be all-day', () {
-    final restored = Task.fromJson({
+    final restored = Task.fromLegacyJson({
       'id': 'legacy-midnight',
       'title': 'کار نیمه‌شب',
       'reminderDate': '2026-10-20T00:00:00.000',

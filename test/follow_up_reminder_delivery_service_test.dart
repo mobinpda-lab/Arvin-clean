@@ -88,7 +88,7 @@ void main() {
   });
 
   test('decoded legacy Task reminder is scheduled through its migrated TaskReminder', () {
-    final migrated = Task.fromJson({
+    final migrated = Task.fromLegacyJson({
       'id': 'one',
       'title': 'Task one',
       'reminderDate': now.subtract(const Duration(minutes: 1)).toIso8601String(),

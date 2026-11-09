@@ -62,7 +62,7 @@ void main() {
   });
 
   test('legacy Task reminder enters only through the approved decode migration', () {
-    final decoded = Task.fromJson({
+    final decoded = Task.fromLegacyJson({
       'id': 'legacy-task',
       'title': 'کار قدیمی',
       'reminderDate': '2026-08-28T17:00:00.000',
