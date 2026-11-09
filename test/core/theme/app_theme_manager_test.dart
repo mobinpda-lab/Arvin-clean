@@ -35,6 +35,16 @@ void main() {
     expect(preferences.getString(AppThemeManager.preferenceKey), isNull);
   });
 
+  test('migrates a saved retired sky-blue preference to Persian Teal', () async {
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setString(AppThemeManager.preferenceKey, '#3A86EF');
+
+    await AppThemeManager.instance.load();
+
+    expect(AppThemeManager.instance.selectedHex, '#0F766E');
+    expect(preferences.getString(AppThemeManager.preferenceKey), isNull);
+  });
+
   test('rejects colors outside the approved nine-color palette', () async {
     expect(
       () => AppThemeManager.instance.select('#000080'),
