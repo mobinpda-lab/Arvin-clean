@@ -1587,18 +1587,21 @@ class _HomePageState extends State<HomePage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        group.title,
+                        textAlign: TextAlign.right,
+                        style: TextStyle(color: accent, fontSize: 15, fontWeight: FontWeight.w900),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(
-                          collapsed ? Icons.chevron_left_rounded : Icons.expand_more_rounded,
-                          size: 21,
-                          color: accent,
-                        ),
+                        Icon(collapsed ? Icons.chevron_left_rounded : Icons.expand_more_rounded, size: 21, color: accent),
                         const SizedBox(width: 5),
                         Icon(_groupIcon(group.id), size: 18, color: accent),
                         const Spacer(),
-                        Text(group.title, textAlign: TextAlign.right, style: TextStyle(color: accent, fontSize: 15, fontWeight: FontWeight.w900)),
-                        const SizedBox(width: 8),
                         Container(
                           constraints: const BoxConstraints(minWidth: 28),
                           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
