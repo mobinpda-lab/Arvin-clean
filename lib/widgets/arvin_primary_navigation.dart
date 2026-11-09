@@ -7,7 +7,6 @@ enum ArvinPrimaryDestination {
   calendar,
   notebook,
   reports,
-  nextAction,
   more,
 }
 
