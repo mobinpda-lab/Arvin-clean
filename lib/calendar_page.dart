@@ -939,7 +939,7 @@ class _CalendarPageState extends State<CalendarPage> {
           centerTitle: true,
           title: Semantics(
             key: const ValueKey('calendar-sacred-header'),
-            label: 'وَأُفَوِّضُ أَمْرِي إِلَى اللَّهِ',
+            label: 'أُفَوِّضُ أَمْرِي إِلَى اللَّهِ',
             child: SvgPicture.asset(
               'assets/images/branding/tafweez.svg',
               key: const ValueKey('calendar-sacred-header-svg'),

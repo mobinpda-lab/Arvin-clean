@@ -926,15 +926,6 @@ class _HomePageState extends State<HomePage> {
         items: visible,
       )];
     }
-    if (_timeFilters.contains('past')) {
-      return [
-        HomeGroup<Task>(
-          id: 'past',
-          title: _timeFilters.length == 1 ? 'گذشته' : 'زمان‌های انتخاب‌شده',
-          items: visible,
-        ),
-      ];
-    }
     return const HomeGroupingService().buildGroups(
       HomeGroupMode.time,
       visible,
@@ -1099,21 +1090,19 @@ class _HomePageState extends State<HomePage> {
                   onPressed: _showTagFilterSheet,
                 ),
               ),
-            ],
-          ),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Semantics(
-              button: true,
-              label: 'مرتب‌سازی کارها',
-              child: IconButton(
-                key: const ValueKey('home-sort-button'),
-                tooltip: 'مرتب‌سازی کارها',
-                constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-                onPressed: _showSortOptions,
-                icon: const Icon(Icons.sort_rounded),
+              const SizedBox(width: 1),
+              Semantics(
+                button: true,
+                label: 'مرتب‌سازی کارها',
+                child: IconButton(
+                  key: const ValueKey('home-sort-button'),
+                  tooltip: 'مرتب‌سازی کارها',
+                  constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                  onPressed: _showSortOptions,
+                  icon: const Icon(Icons.sort_rounded),
+                ),
               ),
-            ),
+            ],
           ),
         ],
       ),
@@ -3941,33 +3930,32 @@ class _HomePageState extends State<HomePage> {
                   style: IconButton.styleFrom(backgroundColor: colors.surface, foregroundColor: colors.onSurfaceVariant),
                 ),
               ),
-              Expanded(child: Column(children: [
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Semantics(
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Semantics(
                         key: const ValueKey('home-bismillah'),
                         label: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
                         child: SvgPicture.asset(
                           'assets/images/branding/bismillah.svg',
                           key: const ValueKey('home-bismillah-svg'),
-                          width: 118,
+                          width: 210,
                           fit: BoxFit.contain,
                           colorFilter: ColorFilter.mode(colors.primary, BlendMode.srcIn),
                           excludeFromSemantics: true,
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Text('آروین', key: const ValueKey('home-title-block'), maxLines: 1, softWrap: false, style: TextStyle(color: colors.primary, fontSize: 23, fontWeight: FontWeight.w800)),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text('آروین', key: const ValueKey('home-title-block'), maxLines: 1, softWrap: false, style: TextStyle(color: colors.primary, fontSize: 23, fontWeight: FontWeight.w800)),
+                    const SizedBox(height: 2),
+                    Text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها', key: const ValueKey('home-subtitle'), textAlign: TextAlign.center, style: TextStyle(color: colors.onSurfaceVariant, fontSize: 11.5, fontWeight: FontWeight.w600)),
+                  ],
                 ),
-                const SizedBox(height: 2),
-                Text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها', key: const ValueKey('home-subtitle'), textAlign: TextAlign.center, style: TextStyle(color: colors.onSurfaceVariant, fontSize: 11.5, fontWeight: FontWeight.w600)),
-              ])),
+              ),
               IconButton(
                 key: const ValueKey('home-general-filter-button'),
                 tooltip: 'فیلترهای عمومی',

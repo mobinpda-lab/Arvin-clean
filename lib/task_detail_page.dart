@@ -16,7 +16,6 @@ import 'services/follow_up_elapsed_formatter.dart';
 import 'services/follow_up_write_coordinator.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/task_template_store.dart';
-import 'services/task_move_to_today_service.dart';
 import 'services/waiting_for_response_service.dart';
 import 'task_report_page.dart';
 import 'widgets/persian_date_picker.dart';
@@ -114,7 +113,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   bool _isSavingTaskTemplate = false;
   TextEditingController? _recurrenceIntervalController;
   TextEditingController? _recurrenceCountController;
-  bool _isMovingDueDateToToday = false;
+  bool _isTogglingFocusToday = false;
   final TextEditingController _checklistAddController = TextEditingController();
   final ScrollController _detailScrollController = ScrollController();
   TextEditingController? _checklistEditController;
@@ -705,35 +704,35 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     super.dispose();
   }
 
-  Future<void> _moveDueDateToToday() async {
-    final move = widget.onMoveDueDateToToday;
-    if (_isMovingDueDateToToday) return;
-    setState(() => _isMovingDueDateToToday = true);
+  Future<void> _toggleFocusToday() async {
+    if (_isTogglingFocusToday || widget.onTaskChanged == null) return;
+    final wasSelected = _task.isSelectedForToday;
+    final target = !wasSelected;
+    setState(() => _isTogglingFocusToday = true);
     try {
-      final Task updated;
-      if (move != null) {
-        final result = await move(_task);
-        if (result == null) {
-          throw StateError('Task due-date update was not persisted.');
-        }
-        updated = result;
-      } else {
-        updated = await TaskMoveToTodayService().move(_task.id);
-      }
+      await _enqueueTaskMutation(
+        (candidate) => candidate.isSelectedForToday = target,
+      );
       if (!mounted) return;
-      setState(() {
-        _task = updated;
-        _isMovingDueDateToToday = false;
-      });
+      if (_task.isSelectedForToday != target) {
+        throw StateError('Focus membership was not persisted.');
+      }
+      setState(() => _isTogglingFocusToday = false);
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(content: Text('موعد انجام کار برای امروز تنظیم شد')));
+        ..showSnackBar(SnackBar(
+          content: Text(target
+              ? 'به برگزیده‌های امروز اضافه شد'
+              : 'از برگزیده‌های امروز برداشته شد'),
+        ));
     } catch (_) {
       if (!mounted) return;
-      setState(() => _isMovingDueDateToToday = false);
+      setState(() => _isTogglingFocusToday = false);
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(content: Text('تنظیم موعد برای امروز انجام نشد؛ دوباره تلاش کنید')));
+        ..showSnackBar(const SnackBar(
+          content: Text('ذخیرهٔ انتخاب امروز انجام نشد؛ دوباره تلاش کنید'),
+        ));
     }
   }
 
@@ -1243,7 +1242,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                key: const ValueKey('task-detail-checklist-add'),
+                key: const ValueKey('task-detail-add-checklist'),
                 onPressed: _isSavingChecklist
                     ? null
                     : _isAddingChecklist
@@ -1916,9 +1915,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     final history = List<FollowUp>.of(_task.followUps)
       ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
     final now = widget.now ?? DateTime.now();
-    final due = _task.dueDate;
-    final dueToday = due != null &&
-        due.year == now.year && due.month == now.month && due.day == now.day;
+    final focusToday = _task.isSelectedForToday;
     final priority = _task.priority;
 
     return Directionality(
@@ -2059,16 +2056,23 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           KeyedSubtree(
-                            key: const ValueKey('task-detail-move-due-date-to-today'),
-                            child: _linearActionRow(
-                              key: const ValueKey('task-detail-my-day'),
-                              icon: Icons.wb_sunny_outlined,
-                              title: 'افزودن به روز من',
-                              value: dueToday ? 'برای امروز تنظیم شده' : 'با انتخاب، موعد امروز ثبت می‌شود',
-                              onTap: _isMovingDueDateToToday ? null : _moveDueDateToToday,
-                              trailing: dueToday
-                                  ? Icon(Icons.check_circle, color: _brand)
-                                  : const Icon(Icons.chevron_left, color: _muted),
+                            key: const ValueKey('task-detail-toggle-focus-today'),
+                            child: KeyedSubtree(
+                              key: const ValueKey('task-detail-move-due-date-to-today'),
+                              child: _linearActionRow(
+                                key: const ValueKey('task-detail-my-day'),
+                                icon: Icons.push_pin_outlined,
+                                title: 'کارهای برگزیدهٔ امروز',
+                                value: focusToday
+                                    ? 'در برگزیده‌های امروز است'
+                                    : 'با انتخاب، به تمرکز امروز اضافه می‌شود',
+                                onTap: _isTogglingFocusToday || widget.onTaskChanged == null
+                                    ? null
+                                    : _toggleFocusToday,
+                                trailing: focusToday
+                                    ? Icon(Icons.check_circle, color: _brand)
+                                    : const Icon(Icons.chevron_left, color: _muted),
+                              ),
                             ),
                           ),
                           const Divider(height: 1),
