@@ -955,7 +955,7 @@ class _HomePageState extends State<HomePage> {
     final groups = const HomeGroupingService().buildGroups(
       HomeGroupMode.time,
       visible,
-      now: DateTime.now(),
+      now: _iranWallClockNow(),
     );
     if (!_timeFilters.contains('past')) return groups;
     return groups.map((group) {
