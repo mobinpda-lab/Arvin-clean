@@ -26,6 +26,13 @@ class ArvinPrimaryNavigation extends StatelessWidget {
     const primary = ArvinColors.primary;
     const background = ArvinColors.surface;
     const muted = ArvinColors.textSecondary;
+    const iconColors = <ArvinPrimaryDestination, Color>{
+      ArvinPrimaryDestination.home: Color(0xFF3A86EF),
+      ArvinPrimaryDestination.calendar: Color(0xFF2A9D8F),
+      ArvinPrimaryDestination.notebook: Color(0xFFF4A261),
+      ArvinPrimaryDestination.reports: Color(0xFF8E6CCF),
+      ArvinPrimaryDestination.more: Color(0xFF219EBC),
+    };
 
     const destinations = [
       (
@@ -88,6 +95,7 @@ class ArvinPrimaryNavigation extends StatelessWidget {
                     label: destination.$4,
                     primary: primary,
                     muted: muted,
+                    iconColor: iconColors[destination.$1]!,
                     onTap: () => onSelected(destination.$1),
                   ),
                 ),
@@ -107,6 +115,7 @@ class _NavigationItem extends StatelessWidget {
     required this.label,
     required this.primary,
     required this.muted,
+    required this.iconColor,
     required this.onTap,
   });
 
@@ -115,6 +124,7 @@ class _NavigationItem extends StatelessWidget {
   final String label;
   final Color primary;
   final Color muted;
+  final Color iconColor;
   final VoidCallback onTap;
 
   @override
@@ -139,7 +149,7 @@ class _NavigationItem extends StatelessWidget {
               Icon(
                 icon,
                 size: 22,
-                color: selected ? primary : muted,
+                color: iconColor,
               ),
               const SizedBox(height: 2),
               Text(
