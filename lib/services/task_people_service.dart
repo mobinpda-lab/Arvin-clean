@@ -70,6 +70,47 @@ class TaskPeopleService {
     return updated;
   }
 
+  Future<Task> updatePerson({
+    required String taskId,
+    required String personId,
+    required String displayName,
+  }) async {
+    final normalizedPersonId = personId.trim();
+    final normalizedName = displayName.trim();
+    if (normalizedPersonId.isEmpty) {
+      throw ArgumentError.value(
+        personId,
+        'personId',
+        'Person id must not be empty',
+      );
+    }
+    if (normalizedName.isEmpty) {
+      throw ArgumentError.value(
+        displayName,
+        'displayName',
+        'Person display name must not be empty',
+      );
+    }
+
+    final task = await loadRequiredTask(taskId);
+    final matches = task.people.where((person) => person.id == normalizedPersonId);
+    if (matches.isEmpty) {
+      throw StateError('Person is not linked to Task: $normalizedPersonId');
+    }
+    final existing = matches.first;
+    if (existing.isDeleted) {
+      throw StateError('Cannot edit a Person removed from the active directory');
+    }
+
+    // Person identity is shared across Task references. Updating the canonical
+    // directory row updates every historical/current Task projection without
+    // replacing IDs or creating a second Person store.
+    await _store.mergePeopleDirectory([
+      PersonReference(id: existing.id, displayName: normalizedName),
+    ]);
+    return loadRequiredTask(taskId);
+  }
+
   Future<Task> removePerson({
     required String taskId,
     required String personId,

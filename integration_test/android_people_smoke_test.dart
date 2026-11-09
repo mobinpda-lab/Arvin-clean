@@ -165,6 +165,21 @@ void main() {
     persisted = (await store.load())
         .singleWhere((task) => task.title == taskTitle);
     expect(persisted.people.single.displayName, 'علی رضایی اندروید');
+
+    await tester.tap(
+      find.byKey(ValueKey('people-edit-${persisted.people.single.id}')),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('people-name-input')),
+      'علی رضایی ویرایش‌شده اندروید',
+    );
+    await tester.tap(find.byKey(const ValueKey('people-edit-save')));
+    await tester.pumpAndSettle();
+    persisted = (await store.load())
+        .singleWhere((task) => task.title == taskTitle);
+    expect(persisted.people.single.displayName, 'علی رضایی ویرایش‌شده اندروید');
+
     final personRow =
         find.byKey(ValueKey('people-row-${persisted.people.single.id}'));
     for (var attempt = 0; attempt < 20 && personRow.evaluate().isEmpty; attempt++) {

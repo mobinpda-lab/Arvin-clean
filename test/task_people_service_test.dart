@@ -75,6 +75,31 @@ void main() {
     expect(reloaded.completed, original.completed);
   });
 
+  test('update Person changes the canonical directory label across Task references', () async {
+    final store = TaskStore();
+    final person = PersonReference(id: 'person-shared', displayName: 'سارا');
+    await store.save([
+      Task(id: 'task-1', title: 'کار اول', people: [person]),
+      Task(id: 'task-2', title: 'کار دوم', people: [person]),
+    ]);
+    final service = TaskPeopleService(store: store);
+
+    final updated = await service.updatePerson(
+      taskId: 'task-1',
+      personId: person.id,
+      displayName: '  سارا احمدی  ',
+    );
+
+    expect(updated.people.single.displayName, 'سارا احمدی');
+    final tasks = await store.load();
+    expect(tasks.map((task) => task.people.single.displayName),
+        ['سارا احمدی', 'سارا احمدی']);
+    final directory = await store.loadPeopleDirectory();
+    expect(directory, hasLength(1));
+    expect(directory.single.id, person.id);
+    expect(directory.single.displayName, 'سارا احمدی');
+  });
+
   test('duplicate Person id is rejected without overwriting Task', () async {
     final store = TaskStore();
     final original = richTask(
