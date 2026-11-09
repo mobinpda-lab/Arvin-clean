@@ -72,6 +72,24 @@ class TaskListSortService {
     return indexed.map((entry) => entry.value).toList(growable: false);
   }
 
+  /// Stable creation-time ordering with null timestamps kept at the end.
+  List<Task> sortByCreatedAt(
+    Iterable<Task> tasks, {
+    bool descending = false,
+  }) {
+    final indexed = tasks.toList(growable: false).asMap().entries.toList();
+    indexed.sort((left, right) {
+      final comparison = _compareNullableDate(
+        left.value.createdAt,
+        right.value.createdAt,
+        descending: descending,
+      );
+      if (comparison != 0) return comparison;
+      return left.key.compareTo(right.key);
+    });
+    return indexed.map((entry) => entry.value).toList(growable: false);
+  }
+
   /// Past tasks are grouped by completion state first, then by due date.
   /// Oldest overdue work is shown first within each completion group.
   List<Task> sortPast(Iterable<Task> tasks) {
