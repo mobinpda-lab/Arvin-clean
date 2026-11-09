@@ -33,9 +33,11 @@ class TaskMigrationAdapter {
     }
 
     final task = Task.fromLegacyJson(json);
+    final sourceEnvelope = Map<String, dynamic>.from(json)
+      ..addAll(task.toJson());
     return TaskMigrationRecord(
       task: task,
-      sourceJson: Map<String, dynamic>.from(json),
+      sourceJson: sourceEnvelope,
     );
   }
 

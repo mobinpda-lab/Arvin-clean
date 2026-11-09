@@ -16,7 +16,7 @@ void main() {
 
   test('creates the complete G1 relational schema', () async {
     await G1DriftSchema.install(database);
-    expect(G1DriftSchema.version, 15);
+    expect(G1DriftSchema.version, 16);
 
     final tables = await database.runSelect(
       "SELECT name FROM sqlite_master "
@@ -61,6 +61,7 @@ void main() {
         'follow_up_records',
         'task_reminders',
         'persons',
+        'person_directory',
         'follow_up_record_people',
         'projects',
         'project_items',
@@ -246,6 +247,38 @@ void main() {
       const [],
     );
     expect(retiredTables, isEmpty);
+  });
+
+  test('legacy Task reminder migration persists its marker and is idempotent', () async {
+    await G1DriftSchema.install(database);
+    await database.runCustom('ALTER TABLE tasks ADD COLUMN reminder_date TEXT NULL');
+    final payload = <String, dynamic>{
+      'id': 'legacy-reminder-task',
+      'title': 'یادآور قدیمی',
+      'reminderDate': '2026-11-08T09:00:00.000',
+    };
+    await database.runInsert(
+      '''INSERT INTO tasks
+         (id, title, description, priority, archived, trashed, completed, legacy_payload_json)
+         VALUES (?, ?, '', 'none', 0, 0, 0, ?)''',
+      <Object?>['legacy-reminder-task', 'یادآور قدیمی', jsonEncode(payload)],
+    );
+
+    await G1DriftSchema.migrateCanonicalEntities(database);
+    await G1DriftSchema.migrateCanonicalEntities(database);
+
+    final reminders = await database.runSelect(
+      'SELECT id FROM task_reminders WHERE task_id = ?',
+      const <Object?>['legacy-reminder-task'],
+    );
+    expect(reminders.map((row) => row['id']), ['legacy-task-reminder-legacy-reminder-task']);
+    final stored = await database.runSelect(
+      'SELECT legacy_payload_json FROM tasks WHERE id = ?',
+      const <Object?>['legacy-reminder-task'],
+    );
+    final storedPayload = jsonDecode(stored.single['legacy_payload_json'] as String) as Map<String, dynamic>;
+    expect(storedPayload['legacyTaskReminderMigrationVersion'], 1);
+    expect(storedPayload['taskReminders'], isA<List<dynamic>>());
   });
 
   test('concurrent stores share one serialized schema installation', () async {

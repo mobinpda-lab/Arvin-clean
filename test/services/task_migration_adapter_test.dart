@@ -176,6 +176,16 @@ void main() {
     expect(record.sourceJsonEncoded, contains('"futureScalar":"preserve-me"'));
   });
 
+  test('legacy reminder migration marker is persisted in the source envelope', () {
+    const raw = '[{"id":"legacy-reminder","title":"قدیمی","reminderDate":"2026-11-08T09:00:00.000"}]';
+    final record = adapter.decodeLegacyRecords(raw).single;
+    expect(record.task.taskReminders, hasLength(1));
+    expect(record.task.legacyTaskReminderMigrationVersion, 1);
+    expect(record.sourceJson['legacyTaskReminderMigrationVersion'], 1);
+    expect(record.sourceJson['taskReminders'], isA<List<dynamic>>());
+    expect(record.sourceJson['reminderDate'], '2026-11-08T09:00:00.000');
+  });
+
   test('migration boundary has no dependency on legacy Home UI', () {
     final adapterSource =
         File('lib/services/task_migration_adapter.dart').readAsStringSync();

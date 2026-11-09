@@ -390,6 +390,14 @@ class G1DriftSchema implements QueryExecutorUser {
           ],
         );
       }
+      // Persist the migration marker and canonical reminder collection in the
+      // legacy envelope so subsequent installs do not re-run this conversion.
+      final migratedEnvelope = Map<String, dynamic>.from(payload)
+        ..addAll(task.toJson());
+      await executor.runUpdate(
+        'UPDATE tasks SET legacy_payload_json = ? WHERE id = ?',
+        <Object?>[jsonEncode(migratedEnvelope), task.id],
+      );
     }
 
     // Older SQL Follow-up rows may have a reminder date even when the JSON
