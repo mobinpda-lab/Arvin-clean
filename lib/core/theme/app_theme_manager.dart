@@ -22,10 +22,10 @@ class AppThemeManager extends ChangeNotifier {
 
   static final AppThemeManager instance = AppThemeManager._();
   static const String preferenceKey = 'arvin.settings.primaryColor';
-  static const String defaultHex = '#0F766E';
+  static const String defaultHex = '#008080';
 
   static const List<ArvinThemePaletteColor> palette = [
-    ArvinThemePaletteColor(number: 1, name: 'فیروزه‌ای ایرانی', hex: '#0F766E'),
+    ArvinThemePaletteColor(number: 1, name: 'فیروزه‌ای ایرانی', hex: '#008080'),
     ArvinThemePaletteColor(number: 2, name: 'آبی اقیانوسی', hex: '#1B4965'),
     ArvinThemePaletteColor(number: 3, name: 'سبز مدرن', hex: '#2A9D8F'),
     ArvinThemePaletteColor(number: 4, name: 'آبی سلطنتی', hex: '#4361EE'),
