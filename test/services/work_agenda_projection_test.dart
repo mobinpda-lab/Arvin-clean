@@ -13,7 +13,14 @@ void main() {
       id: 'task-1',
       title: 'کار اصلی',
       dueDate: DateTime(2026, 8, 28, 9),
-      reminderDate: DateTime(2026, 8, 28, 8, 30),
+      taskReminders: [
+        TaskReminder(
+          id: 'task-reminder',
+          title: 'یادآور کار',
+          date: DateTime(2026, 8, 28, 8, 30),
+          sequence: 1,
+        ),
+      ],
       followUpEnabled: true,
       followUps: [
         FollowUp(
@@ -50,7 +57,18 @@ void main() {
   test('inclusive range groups by local day and keeps deterministic order', () {
     final tasks = [
       Task(id: 'b', title: 'ب', dueDate: DateTime(2026, 8, 29, 9)),
-      Task(id: 'a', title: 'الف', reminderDate: DateTime(2026, 8, 28, 10)),
+      Task(
+        id: 'a',
+        title: 'الف',
+        taskReminders: [
+          TaskReminder(
+            id: 'a-reminder',
+            title: 'یادآور الف',
+            date: DateTime(2026, 8, 28, 10),
+            sequence: 1,
+          ),
+        ],
+      ),
       Task(id: 'c', title: 'ج', dueDate: DateTime(2026, 8, 30, 8)),
       Task(id: 'aa', title: 'الف دوم', dueDate: DateTime(2026, 8, 28, 10)),
     ];
@@ -75,7 +93,14 @@ void main() {
       id: 'task',
       title: 'چندروزه',
       dueDate: DateTime(2026, 8, 28, 9),
-      reminderDate: DateTime(2026, 8, 29, 8),
+      taskReminders: [
+        TaskReminder(
+          id: 'task-reminder',
+          title: 'یادآور کار',
+          date: DateTime(2026, 8, 29, 8),
+          sequence: 1,
+        ),
+      ],
     );
 
     final result = projection.forRange(
