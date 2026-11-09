@@ -73,7 +73,6 @@ import 'settings_page.dart';
 import 'task_detail_page.dart';
 import 'follow_up_entry_page.dart';
 import 'task_editor_dialog.dart';
-import 'task_next_action_page.dart';
 import 'task_report_page.dart';
 import 'widgets/persian_date_picker.dart';
 import 'widgets/arvin_primary_navigation.dart';
@@ -2940,17 +2939,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _primaryNextActionShell() {
-    return ArvinPrimaryPageShell(
-      selected: ArvinPrimaryDestination.nextAction,
-      onSelected: (destination) => _onPrimaryChildDestinationSelected(
-        destination,
-        current: ArvinPrimaryDestination.nextAction,
-      ),
-      child: TaskNextActionPage(tasks: _searchSource),
-    );
-  }
-
   Future<void> _openPrimaryNotebook() async {
     if (!mounted) return;
     await Navigator.of(context).push<void>(
@@ -2977,13 +2965,6 @@ class _HomePageState extends State<HomePage> {
           onCreatePerson: _createReportPerson,
         ),
       ),
-    );
-  }
-
-  Future<void> _openPrimaryNextAction() async {
-    if (!mounted) return;
-    await Navigator.of(context).push<void>(
-      MaterialPageRoute<void>(builder: (_) => _primaryNextActionShell()),
     );
   }
 
@@ -3016,11 +2997,6 @@ class _HomePageState extends State<HomePage> {
         return;
       case ArvinPrimaryDestination.reports:
         _openPrimaryReports();
-        return;
-      case ArvinPrimaryDestination.nextAction:
-        Navigator.of(context).pushReplacement<void, void>(
-          MaterialPageRoute<void>(builder: (_) => _primaryNextActionShell()),
-        );
         return;
       case ArvinPrimaryDestination.more:
         _openPrimaryMore();
@@ -3233,14 +3209,6 @@ class _HomePageState extends State<HomePage> {
                     Navigator.of(sheetContext).pop(_HomeMoreAction.backup),
               ),
               ListTile(
-                key: const ValueKey('home-more-next-action'),
-                leading: const Icon(Icons.next_plan_outlined),
-                title: const Text('اقدام بعدی'),
-                subtitle: const Text('پیشنهاد بهترین کار بعدی'),
-                onTap: () =>
-                    Navigator.of(sheetContext).pop(_HomeMoreAction.nextAction),
-              ),
-              ListTile(
                 key: const ValueKey('home-more-report'),
                 leading: const Icon(Icons.assessment_outlined),
                 title: const Text('گزارش‌ها'),
@@ -3300,9 +3268,6 @@ class _HomePageState extends State<HomePage> {
       case _HomeMoreAction.settings:
         await _openPrimarySettings();
         return;
-      case _HomeMoreAction.nextAction:
-        await _openPrimaryNextAction();
-        return;
       case _HomeMoreAction.report:
         await _openPrimaryReports();
         return;
@@ -3324,9 +3289,6 @@ class _HomePageState extends State<HomePage> {
         return;
       case ArvinPrimaryDestination.reports:
         _openPrimaryReports();
-        return;
-      case ArvinPrimaryDestination.nextAction:
-        _openPrimaryNextAction();
         return;
       case ArvinPrimaryDestination.more:
         _openPrimaryMore();
@@ -4121,7 +4083,6 @@ enum _HomeMoreAction {
   trash,
   backup,
   settings,
-  nextAction,
   about,
 }
 
