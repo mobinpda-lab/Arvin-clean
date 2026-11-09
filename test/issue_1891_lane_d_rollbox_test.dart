@@ -6,22 +6,23 @@ import 'package:arvin/home/home_filter_ui.dart';
 import 'package:arvin/widgets/arvin_roll_box.dart';
 
 void main() {
-  test('issue 1891 interactive domain tokens use the approved turquoise palette', () {
-    expect(ArvinColors.time, ArvinColors.primary);
-    expect(ArvinColors.reminder, ArvinColors.primary);
-    expect(ArvinColors.project, ArvinColors.primary);
-    expect(ArvinColors.category, ArvinColors.primary);
-    expect(ArvinColors.tag, ArvinColors.primary);
-    expect(ArvinColors.timeDark, ArvinColors.primaryDark);
-    expect(ArvinColors.reminderDark, ArvinColors.primaryDark);
-    expect(ArvinColors.projectDark, ArvinColors.primaryDark);
-    expect(ArvinColors.categoryDark, ArvinColors.primaryDark);
-    expect(ArvinColors.tagDark, ArvinColors.primaryDark);
-    expect(ArvinColors.timeSoft, ArvinColors.primarySoft);
-    expect(ArvinColors.reminderSoft, ArvinColors.primarySoft);
-    expect(ArvinColors.projectSoft, ArvinColors.primarySoft);
-    expect(ArvinColors.categorySoft, ArvinColors.primarySoft);
-    expect(ArvinColors.tagSoft, ArvinColors.primarySoft);
+  test('interactive domain tokens retain semantic accents independently of the blue brand', () {
+    expect(ArvinColors.primary, const Color(0xFF4169A1));
+    expect(ArvinColors.time, const Color(0xFF008080));
+    expect(ArvinColors.reminder, const Color(0xFFD97706));
+    expect(ArvinColors.project, const Color(0xFF7C3AED));
+    expect(ArvinColors.category, const Color(0xFF2563EB));
+    expect(ArvinColors.tag, const Color(0xFF16A34A));
+    expect(ArvinColors.timeDark, const Color(0xFF008B8B));
+    expect(ArvinColors.reminderDark, const Color(0xFFB45309));
+    expect(ArvinColors.projectDark, const Color(0xFF6D28D9));
+    expect(ArvinColors.categoryDark, const Color(0xFF1D4ED8));
+    expect(ArvinColors.tagDark, const Color(0xFF15803D));
+    expect(ArvinColors.timeSoft, const Color(0xFFD9F0EE));
+    expect(ArvinColors.reminderSoft, const Color(0xFFFEF3C7));
+    expect(ArvinColors.projectSoft, const Color(0xFFEDE9FE));
+    expect(ArvinColors.categorySoft, const Color(0xFFDBEAFE));
+    expect(ArvinColors.tagSoft, const Color(0xFFDCFCE7));
     expect(ArvinColors.error, isNot(ArvinColors.neutral));
     expect(ArvinColors.primary, isNot(ArvinColors.background));
   });

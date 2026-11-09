@@ -16,11 +16,11 @@ abstract final class ArvinColors {
   static const textSecondary = Color(0xFF80829C);
   static const border = ArvinTheme.cardBorder;
   static const shadowSoft = ArvinTheme.primaryGlow;
-  static const shadowDark = Color(0x40008080);
+  static const shadowDark = ArvinTheme.primaryGlow;
 
   // Dark theme semantic tokens.
-  static const darkBrandPrimary = Color(0xFF008080);
-  static const darkPrimary = Color(0xFF14B8A6);
+  static const darkBrandPrimary = ArvinTheme.primaryBlue;
+  static const darkPrimary = ArvinTheme.primaryBlue;
   static const darkOnPrimary = Color(0xFFFFFFFF);
   static const darkSecondary = Color(0xFFA7F3D0);
   static const darkError = Color(0xFFFFB4AB);
