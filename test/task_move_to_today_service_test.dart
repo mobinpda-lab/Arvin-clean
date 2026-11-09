@@ -19,7 +19,15 @@ void main() {
       title: 'پیگیری مشتری',
       description: 'شرح',
       dueDate: DateTime(2026, 8, 20, 14, 35),
-      reminderDate: DateTime(2026, 8, 19, 9, 15),
+      taskReminders: [
+        TaskReminder(
+          id: 'reminder-1',
+          title: 'یادآوری مشتری',
+          date: DateTime(2026, 8, 19, 9, 15),
+          sequence: 1,
+        ),
+      ],
+      nextReminderSequence: 2,
       followUpEnabled: true,
       followUpDate: DateTime(2026, 8, 21, 10),
       category: 'مشتریان',
