@@ -19,9 +19,10 @@ void main() {
       expect(ArvinTheme.backgroundLight, const Color(0xFFF4F6F9));
       expect(ArvinTheme.iceBlue, const Color(0xFFF0F5FC));
       expect(ArvinTheme.cardBackground, const Color(0xFFFFFFFF));
-  expect(ArvinTheme.primaryGlow, const Color(0x404169A1));
-  expect(ArvinTheme.shadowStyle.color, const Color(0x404169A1));
-  expect(ArvinColors.shadowSoft, const Color(0x404169A1));
+  expect(ArvinTheme.primaryGlow, const Color(0x40008080));
+      expect(ArvinTheme.brandGlow, const Color(0x404169A1));
+  expect(ArvinTheme.shadowStyle.color, const Color(0x40008080));
+  expect(ArvinColors.shadowSoft, const Color(0x40008080));
   expect(ArvinColors.shadowDark, const Color(0x40008080));
       expect(ArvinTheme.cardBorderRadius, BorderRadius.circular(16));
       expect(ArvinTheme.shadowStyle.blurRadius, 10);

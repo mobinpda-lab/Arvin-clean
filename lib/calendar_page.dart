@@ -1521,7 +1521,7 @@ class _ReminderCardState extends State<_ReminderCard> {
       color: _calendarStatusBackground(item),
       elevation: 1,
       surfaceTintColor: Colors.transparent,
-      shadowColor: ArvinTheme.primaryGlow,
+      shadowColor: ArvinTheme.shadowFor(context),
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
       shape: RoundedRectangleBorder(
         borderRadius: ArvinTheme.cardBorderRadius,

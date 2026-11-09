@@ -175,7 +175,7 @@ class HomeFilterCard extends StatelessWidget {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: ArvinTheme.primaryGlow,
+                    color: ArvinTheme.shadowFor(context),
                     blurRadius: selected ? 9 : 6,
                     offset: const Offset(0, 2),
                   ),
@@ -321,8 +321,8 @@ class HomeFilterSheet extends StatelessWidget {
         ),
         child: Material(
           color: colors.surface,
-          elevation: 12,
-          shadowColor: ArvinTheme.primaryGlow,
+          elevation: 2,
+          shadowColor: ArvinTheme.shadowFor(context),
           borderRadius: BorderRadius.circular(28),
           clipBehavior: Clip.antiAlias,
           child: Padding(

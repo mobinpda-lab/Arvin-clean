@@ -345,14 +345,14 @@ class _ArvinAppState extends State<ArvinApp> {
           onSurface: ArvinColors.textPrimary,
           outline: ArvinColors.border,
           surfaceTint: Colors.transparent,
-          shadow: ArvinTheme.primaryGlow,
+          shadow: ArvinTheme.brandGlow,
         ),
         scaffoldBackgroundColor: ArvinColors.background,
         cardTheme: CardThemeData(
           color: ArvinTheme.cardBackground,
           elevation: 1,
           surfaceTintColor: Colors.transparent,
-          shadowColor: ArvinTheme.primaryGlow,
+          shadowColor: ArvinTheme.brandGlow,
           margin: const EdgeInsets.symmetric(vertical: 2),
           shape: RoundedRectangleBorder(
             borderRadius: ArvinTheme.cardBorderRadius,
@@ -369,7 +369,7 @@ class _ArvinAppState extends State<ArvinApp> {
             backgroundColor: brandPrimary,
             foregroundColor: Colors.white,
             elevation: 1,
-            shadowColor: ArvinTheme.primaryGlow,
+            shadowColor: ArvinTheme.brandGlow,
           ),
         ),
         chipTheme: ChipThemeData(
@@ -3500,7 +3500,7 @@ class _HomePageState extends State<HomePage> {
       child: Material(
         color: ArvinColors.surface,
         elevation: 1,
-        shadowColor: ArvinTheme.primaryGlow,
+        shadowColor: ArvinTheme.shadowFor(context),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: const BorderSide(color: ArvinColors.border, width: 0.8),
