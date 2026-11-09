@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:arvin/models/task.dart';
 import 'package:arvin/quick_capture_dialog.dart';
+import 'package:arvin/services/task_store.dart';
 
 Future<void> _openQuickCaptureDueTimePicker(WidgetTester tester) async {
   final dueControl = find.byKey(const ValueKey('quick-capture-due-rollbox'));
@@ -61,7 +62,10 @@ void main() {
               createdName = name;
               return 'center-inline';
             },
-            onCaptured: (task) async => captured = task,
+            onCaptured: (task) async {
+              captured = task;
+              await store.mutate<void>((tasks) => tasks.add(task));
+            },
           ),
         ),
       ),
@@ -1287,8 +1291,11 @@ void main() {
     expect(find.text('تاریخ و ساعت سفارشی'), findsOneWidget);
   });
 
-  testWidgets('all-day Quick Capture preserves an independent custom reminder through JSON reopen',
+  testWidgets('all-day Quick Capture persists an independent custom reminder across store reopen',
       (tester) async {
+    await TaskStore.resetTestDatabase();
+    addTearDown(TaskStore.resetTestDatabase);
+    final store = TaskStore();
     Task? captured;
     await tester.pumpWidget(MaterialApp(
       home: Directionality(
@@ -1320,7 +1327,9 @@ void main() {
     expect(captured!.allDay, isTrue);
     expect(captured!.taskReminders, hasLength(1));
     expect(captured!.taskReminders.single.isAllDay, isFalse);
-    final reopened = Task.fromJson(captured!.toJson());
+    final reopenedTasks = await TaskStore().load();
+    expect(reopenedTasks, hasLength(1));
+    final reopened = reopenedTasks.single;
     expect(reopened.allDay, isTrue);
     expect(reopened.taskReminders, hasLength(1));
     expect(reopened.taskReminders.single.date, captured!.taskReminders.single.date);
@@ -1367,7 +1376,7 @@ void main() {
     await tester.pumpAndSettle();
 
     await _openQuickCaptureCustomReminderPicker(tester);
-    final customReminderDate = DateTime(2026, 9, 27, 14, 35);
+    final customReminderDate = DateTime(2026, 9, 27);
     await _openQuickCaptureDueTimePicker(tester);
     await tester.tap(find.byKey(const ValueKey('universal-time-save')));
     await tester.pumpAndSettle();
