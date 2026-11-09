@@ -455,13 +455,13 @@ class _ArvinAppState extends State<ArvinApp> {
           secondary: ArvinColors.darkBrandPrimary,
           error: ArvinColors.darkError,
           surfaceTint: Colors.transparent,
-          shadow: ArvinTheme.primaryGlow,
+          shadow: ArvinColors.shadowDark,
         ),
         cardTheme: CardThemeData(
           color: ArvinColors.darkSurface,
           elevation: 1,
           surfaceTintColor: Colors.transparent,
-          shadowColor: ArvinTheme.primaryGlow,
+          shadowColor: ArvinColors.shadowDark,
           margin: EdgeInsets.symmetric(vertical: 4),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(16)),
