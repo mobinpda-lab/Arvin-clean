@@ -337,6 +337,9 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                           itemBuilder: (_, index) {
                             final row = waitingRows[index];
                             return Card(
+                              key: ValueKey(
+                                'report-waiting-row-${row.task.id}-${row.followUp.id}',
+                              ),
                               child: ListTile(
                                 onTap: () => Navigator.of(context).push<void>(
                                   MaterialPageRoute<void>(
@@ -707,31 +710,49 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
   Future<void> _openQuickPresets() async {
     final selected = await showModalBottomSheet<ReportTimePreset>(
       context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
       showDragHandle: true,
-      builder: (sheetContext) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Padding(
-              padding: EdgeInsetsDirectional.fromSTEB(20, 4, 20, 12),
-              child: Text('پیش‌تنظیمات سریع زمان'),
+      builder: (sheetContext) {
+        final media = MediaQuery.of(sheetContext);
+        final availableHeight = media.size.height -
+            media.padding.top -
+            media.padding.bottom -
+            media.viewInsets.bottom;
+        return Padding(
+          padding: EdgeInsets.only(bottom: media.viewInsets.bottom),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: availableHeight * 0.85,
             ),
-            for (final preset in ReportTimePreset.values)
-              ListTile(
-                key: ValueKey('report-quick-preset-${preset.name}'),
-                minTileHeight: 48,
-                leading: const Icon(Icons.schedule_outlined),
-                title: Text(_timeLabel(preset)),
-                trailing: preset == _timePreset
-                    ? const Icon(Icons.check_rounded)
-                    : null,
-                onTap: () => Navigator.of(sheetContext).pop(preset),
+            child: SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Padding(
+                    padding: EdgeInsetsDirectional.fromSTEB(20, 4, 20, 12),
+                    child: Text('پیش‌تنظیمات سریع زمان'),
+                  ),
+                  for (final preset in ReportTimePreset.values)
+                    ListTile(
+                      key: ValueKey('report-quick-preset-${preset.name}'),
+                      minTileHeight: 48,
+                      leading: const Icon(Icons.schedule_outlined),
+                      title: Text(_timeLabel(preset)),
+                      trailing: preset == _timePreset
+                          ? const Icon(Icons.check_rounded)
+                          : null,
+                      onTap: () => Navigator.of(sheetContext).pop(preset),
+                    ),
+                ],
               ),
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
+            ),
+          ),
+        );
+      },
     );
     if (!mounted || selected == null) return;
     setState(() {
