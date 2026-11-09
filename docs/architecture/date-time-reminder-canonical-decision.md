@@ -2,7 +2,7 @@
 
 Status: Authoritative owner override dated 2026-11-09; supersedes the earlier due-time auto-reminder contract
 Base: main `81ed798d6a6d30316f2347242bc478b59e7caa20`
-Date: 2026-10-05
+Date: 2026-11-09
 
 ## Product contract — authoritative owner override, 2026-11-09
 
