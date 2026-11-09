@@ -232,6 +232,10 @@ class _CalendarPageState extends State<CalendarPage> {
 
   bool _matchesSourceFilter(CalendarReminder item) {
     final id = item.id;
+    // Prayer times are a dedicated Calendar overlay and appear only in All.
+    if (id.startsWith('prayer-') && _sourceFilter != _CalendarSourceFilter.all) {
+      return false;
+    }
     switch (_sourceFilter) {
       case _CalendarSourceFilter.all:
         return true;
@@ -1512,11 +1516,13 @@ class _ReminderCardState extends State<_ReminderCard> {
       child: Card(
       key: ValueKey('calendar-pastel-card-${item.id}'),
       color: _calendarStatusBackground(item),
-      elevation: 2,
-      shadowColor: ArvinTheme.shadowStyle.color,
+      elevation: 1,
+      surfaceTintColor: Colors.transparent,
+      shadowColor: ArvinTheme.primaryGlow,
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
       shape: RoundedRectangleBorder(
         borderRadius: ArvinTheme.cardBorderRadius,
+        side: const BorderSide(color: ArvinTheme.cardBorder, width: 0.8),
       ),
       clipBehavior: Clip.antiAlias,
       child: Container(
