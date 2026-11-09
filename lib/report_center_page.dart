@@ -1253,6 +1253,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () => _pickDate(true),
+                          style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)),
                           child: Text(_dateLabel(_fromDate, 'از تاریخ')),
                         ),
                       ),
@@ -1260,6 +1261,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () => _pickDate(false),
+                          style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)),
                           child: Text(_dateLabel(_toDate, 'تا تاریخ')),
                         ),
                       ),
@@ -1271,6 +1273,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () => _pickTime(true),
+                          style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)),
                           child: Text(_timeLabelOf(_fromTime, 'از ساعت')),
                         ),
                       ),
@@ -1278,6 +1281,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () => _pickTime(false),
+                          style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)),
                           child: Text(_timeLabelOf(_toTime, 'تا ساعت')),
                         ),
                       ),
@@ -1574,6 +1578,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () => _pickNoteDate(true),
+                          style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)),
                           child: Text(_dateLabel(_noteFromDate, 'از تاریخ')),
                         ),
                       ),
@@ -1581,6 +1586,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () => _pickNoteDate(false),
+                          style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)),
                           child: Text(_dateLabel(_noteToDate, 'تا تاریخ')),
                         ),
                       ),
