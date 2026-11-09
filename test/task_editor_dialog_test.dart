@@ -564,7 +564,7 @@ void main() {
     expect(result!.recurrence!.active, isFalse);
   });
 
-  testWidgets('timed task automatically gets one reminder at the same time',
+  testWidgets('timed task does not create a reminder unless the user configures one',
       (tester) async {
     Task? result;
     await pumpEditor(tester, onResult: (value) => result = value);
@@ -593,7 +593,8 @@ void main() {
     expect(result, isNotNull);
     expect(result!.dueDate, isNotNull);
     expect(result!.allDay, isFalse);
-    expect(result!.reminderDate, result!.dueDate);
+    expect(result!.taskReminders, isEmpty);
+    expect(result!.reminderDate, isNull);
   });
 
   testWidgets('manual reminder is not overwritten when due time changes',
@@ -603,7 +604,14 @@ void main() {
       id: 'manual-reminder',
       title: 'کار با یادآوری دستی',
       dueDate: DateTime(2026, 8, 27, 10),
-      reminderDate: DateTime(2026, 8, 27, 9),
+      taskReminders: [
+        TaskReminder(
+          id: 'manual-reminder-record',
+          title: 'یادآوری دستی',
+          date: DateTime(2026, 8, 27, 9),
+          sequence: 1,
+        ),
+      ],
       allDay: false,
     );
 
@@ -674,7 +682,8 @@ void main() {
     expect(result!.dueDate!.hour, 10);
     expect(result!.dueDate!.minute, 30);
     expect(result!.allDay, isFalse);
-    expect(result!.reminderDate, result!.dueDate);
+    expect(result!.taskReminders, isEmpty);
+    expect(result!.reminderDate, isNull);
   });
 
   testWidgets('Task editor saves a real all-day deadline from inside the clock dialog',

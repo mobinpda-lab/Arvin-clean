@@ -32,6 +32,60 @@ void main() {
       expect(restored.taskReminders.single.date, date);
     });
 
+ 
+    test('an explicitly configured independent reminder is exposed by the legacy getter', () {
+      final first = DateTime(2026, 11, 2, 8, 15);
+      final second = DateTime(2026, 11, 3, 9, 30);
+      final task = Task(
+        id: 'independent-reminder-fallback',
+        title: 'Independent reminder',
+        dueDate: DateTime(2026, 11, 4, 10),
+        taskReminders: [
+          TaskReminder(
+            id: 'disabled-reminder',
+            title: 'Disabled',
+            date: first,
+            sequence: 1,
+            isEnabled: false,
+          ),
+          TaskReminder(
+            id: 'active-reminder-2',
+            title: 'Active second',
+            date: second,
+            sequence: 2,
+          ),
+        ],
+      );
+
+      expect(task.reminderDate, second);
+      expect(task.dueDate, DateTime(2026, 11, 4, 10));
+      expect(task.taskReminders, hasLength(2));
+
+      final restored = Task.fromJson(task.toJson());
+      expect(restored.reminderDate, second);
+      expect(restored.taskReminders, hasLength(2));
+    });
+
+    test('legacy reminder takes precedence over independent reminder fallback', () {
+      final legacyAt = DateTime(2026, 11, 1, 7);
+      final independentAt = DateTime(2026, 11, 2, 8);
+      final task = Task(
+        id: 'legacy-precedence',
+        title: 'Legacy precedence',
+        reminderDate: legacyAt,
+        taskReminders: [
+          TaskReminder(
+            id: 'independent',
+            title: 'Independent',
+            date: independentAt,
+            sequence: 2,
+          ),
+        ],
+      );
+
+      expect(task.reminderDate, legacyAt);
+    });
+
     test('a valid legacy reminder retains identity and date after reload', () {
       final dueAt = DateTime.utc(2026, 10, 29, 12);
       final legacyReminderAt = DateTime.utc(2026, 10, 28, 8, 15);

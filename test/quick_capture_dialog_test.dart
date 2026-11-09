@@ -803,7 +803,7 @@ void main() {
   });
 
 
-  testWidgets('timed Quick Add automatically uses the due time as reminder',
+  testWidgets('timed Quick Add keeps the due time independent without an explicit reminder',
       (tester) async {
     Task? captured;
     final fixedNow = DateTime(2026, 8, 26, 12, 0);
@@ -849,7 +849,8 @@ void main() {
 
     expect(captured, isNotNull);
     expect(captured!.dueDate, fixedNow);
-    expect(captured!.reminderDate, fixedNow);
+    expect(captured!.taskReminders, isEmpty);
+    expect(captured!.reminderDate, isNull);
   });
 
   testWidgets('Quick Add manual reminder remains independent from due time',
@@ -1016,7 +1017,8 @@ void main() {
 
     expect(captured, isNotNull);
     expect(captured!.dueDate, DateTime(2026, 9, 27, 10, 30));
-    expect(captured!.reminderDate, captured!.dueDate);
+    expect(captured!.taskReminders, isEmpty);
+    expect(captured!.reminderDate, isNull);
   });
 
   testWidgets('Quick Capture stores a custom all-day deadline without a clock time',

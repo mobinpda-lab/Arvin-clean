@@ -331,14 +331,20 @@ class Task {
     taskReminders[index] = primary.copyWith(date: value);
   }
 
-  /// Compatibility projection for data that has not completed the legacy
-  /// reminder cutover. It never aliases a newly-created independent reminder.
+  /// Backward-compatible projection of the primary explicitly configured
+  /// reminder. A legacy reminder keeps precedence; otherwise the first
+  /// enabled independent reminder is exposed to older callers.
+  ///
+  /// Due dates never participate in this projection and cannot create a
+  /// reminder implicitly.
   @Deprecated('Use taskReminders directly.')
   DateTime? get reminderDate {
     for (final reminder in taskReminders) {
       if (reminder.isLegacyTaskReminder) return reminder.date;
     }
-    return null;
+    final enabled = taskReminders.where((item) => item.isEnabled).toList()
+      ..sort((a, b) => a.sequence.compareTo(b.sequence));
+    return enabled.isEmpty ? null : enabled.first.date;
   }
 
   @Deprecated('Use taskReminders directly.')
