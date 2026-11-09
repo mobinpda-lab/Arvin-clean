@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:arvin/calendar_page.dart';
 import 'package:arvin/arvin_colors.dart';
+import 'package:arvin/core/theme/arvin_theme.dart';
 import 'package:arvin/theme/app_fonts.dart';
 import 'package:arvin/services/iran_clock.dart';
 import 'package:arvin/services/calendar_swipe_settings_service.dart';
@@ -203,7 +204,7 @@ void main() {
     expect(selectedDayWidget.decoration, isA<BoxDecoration>());
     expect(
       (selectedDayWidget.decoration! as BoxDecoration).color,
-      const Color(0xFFDDF7F5),
+      ArvinTheme.primarySoft,
     );
   });
 

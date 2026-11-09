@@ -1109,7 +1109,6 @@ class _HomePageState extends State<HomePage> {
               child: IconButton(
                 key: const ValueKey('home-sort-button'),
                 tooltip: 'مرتب‌سازی کارها',
-                visualDensity: VisualDensity.compact,
                 constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
                 onPressed: _showSortOptions,
                 icon: const Icon(Icons.sort_rounded),

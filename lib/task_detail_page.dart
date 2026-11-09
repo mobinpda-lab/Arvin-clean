@@ -1090,6 +1090,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   Widget _checklistCard() {
+    if (!_task.checklistEnabled) return const SizedBox.shrink();
     final items = _normalizedChecklist();
     if (!_isAddingChecklist && items.isEmpty) {
       return _card(

@@ -34,7 +34,8 @@ class HomeFilterPill extends StatelessWidget {
     return Semantics(
       button: true,
       label: selectedCount > 0 ? '$label، $selectedCount انتخاب' : label,
-      child: SizedBox(
+      child: Container(
+        constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
         height: 48,
         child: Material(
           color: active ? selectedSurface : colors.surface,
