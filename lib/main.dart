@@ -356,6 +356,14 @@ class _ArvinAppState extends State<ArvinApp> {
         ),
         fontFamily: AppFonts.vazirmatnFamily,
         textTheme: readableLightTextTheme,
+        filledButtonTheme: FilledButtonThemeData(
+          style: FilledButton.styleFrom(
+            backgroundColor: accentColor,
+            foregroundColor: Colors.white,
+            elevation: 1,
+            shadowColor: accentColor.withValues(alpha: 0.25),
+          ),
+        ),
         chipTheme: ChipThemeData(
           selectedColor: accentSoft,
           secondarySelectedColor: accentSoft,
