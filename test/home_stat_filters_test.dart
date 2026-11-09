@@ -55,13 +55,44 @@ void main() {
     }
     expect(tester.takeException(), isNull);
 
-    final scrollable = find.byType(Scrollable).last;
-    await tester.scrollUntilVisible(find.byKey(const ValueKey('active')), 400, scrollable: scrollable);
-    expect(find.text('کار فعال'), findsOneWidget);
-    await tester.scrollUntilVisible(find.byKey(const ValueKey('done')), 400, scrollable: scrollable);
-    expect(find.text('کار انجام شده'), findsOneWidget);
-    await tester.scrollUntilVisible(find.byKey(const ValueKey('late')), 400, scrollable: scrollable);
+    final taskListScrollable = find.descendant(
+      of: find.byKey(const ValueKey('home-task-list-viewport')),
+      matching: find.byWidgetPredicate(
+        (widget) => widget is Scrollable &&
+            widget.axisDirection == AxisDirection.down,
+      ),
+    );
+    expect(taskListScrollable, findsOneWidget);
+
+    // Overdue work is intentionally grouped before active and completed work.
+    // Visit it first: scrollUntilVisible advances in one direction and cannot
+    // return to this leading group after scrolling down to later groups.
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('late')),
+      400,
+      scrollable: taskListScrollable,
+      maxScrolls: 20,
+      scrollDirection: Axis.vertical,
+    );
     expect(find.text('کار عقب افتاده'), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('active')),
+      400,
+      scrollable: taskListScrollable,
+      maxScrolls: 20,
+      scrollDirection: Axis.vertical,
+    );
+    expect(find.text('کار فعال'), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('done')),
+      400,
+      scrollable: taskListScrollable,
+      maxScrolls: 20,
+      scrollDirection: Axis.vertical,
+    );
+    expect(find.text('کار انجام شده'), findsOneWidget);
 
     expect(find.text('کار بایگانی'), findsNothing);
   });
