@@ -930,19 +930,25 @@ class TaskStore {
           <Object?>[person.id, person.displayName, now, now],
         );
       } else {
+        final existingPerson = await executor.runSelect(
+          'SELECT id FROM persons WHERE id = ?',
+          <Object?>[person.id],
+        );
         await executor.runInsert(
           '''INSERT INTO persons (id, name, created_at, updated_at)
              VALUES (?, ?, ?, ?)
              ON CONFLICT(id) DO UPDATE SET name = excluded.name, updated_at = excluded.updated_at''',
           <Object?>[person.id, person.displayName, now, now],
         );
-        // An active Person referenced by a saved Task must be discoverable in
-        // the active directory. Deleted historical references are handled
-        // above and must never be reactivated by an ordinary Task rewrite.
-        await executor.runInsert(
-          'INSERT OR IGNORE INTO person_directory (person_id) VALUES (?)',
-          <Object?>[person.id],
-        );
+        // Seed directory membership only when this is a genuinely new Person.
+        // A stale Task snapshot must not silently re-add someone whose active
+        // directory membership was removed after that snapshot was loaded.
+        if (existingPerson.isEmpty) {
+          await executor.runInsert(
+            'INSERT OR IGNORE INTO person_directory (person_id) VALUES (?)',
+            <Object?>[person.id],
+          );
+        }
       }
     }
     for (final followUp in task.followUps) {
