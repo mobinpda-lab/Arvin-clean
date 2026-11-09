@@ -32,6 +32,8 @@ class NotebookPage extends StatefulWidget {
 }
 
 class _NotebookPageState extends State<NotebookPage> {
+  Color get _brand => Theme.of(context).colorScheme.primary;
+  Color get _brandSoft => Theme.of(context).colorScheme.secondaryContainer;
   bool _loading = true;
   List<Task> _notes = const [];
   bool _selectionMode = false;
@@ -132,7 +134,7 @@ class _NotebookPageState extends State<NotebookPage> {
               ))
           .toList(growable: false),
       selected: _activeCenterIds,
-      accent: ArvinColors.primary,
+      accent: _brand,
       onCreate: (name) async {
         final id = 'center-${DateTime.now().microsecondsSinceEpoch}';
         await CenterStore().create(id: id, name: name);
@@ -549,7 +551,7 @@ class _NotebookPageState extends State<NotebookPage> {
                       borderRadius: BorderRadius.circular(28),
                       boxShadow: [
                         BoxShadow(
-                          color: ArvinColors.primary.withValues(alpha: 0.09),
+                          color: _brand.withValues(alpha: 0.09),
                           blurRadius: 18,
                           offset: const Offset(0, 5),
                         ),
@@ -566,7 +568,7 @@ class _NotebookPageState extends State<NotebookPage> {
                         hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: ArvinColors.textSecondary,
                             ),
-                        prefixIcon: const Icon(Icons.search_rounded, color: ArvinColors.primary),
+                        prefixIcon: Icon(Icons.search_rounded, color: _brand),
                         suffixIcon: _search.text.isEmpty
                             ? null
                             : IconButton(
@@ -591,7 +593,7 @@ class _NotebookPageState extends State<NotebookPage> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(28),
-                          borderSide: const BorderSide(color: ArvinColors.primary, width: 1.4),
+                          borderSide: BorderSide(color: _brand, width: 1.4),
                         ),
                       ),
                     ),
@@ -611,8 +613,8 @@ class _NotebookPageState extends State<NotebookPage> {
                               ? 'مرکز: همه'
                               : 'مرکز (${_activeCenterIds.length})',
                           icon: Icons.apartment_outlined,
-                          accent: ArvinColors.primary,
-                          soft: ArvinColors.primarySoft,
+                          accent: _brand,
+                          soft: _brandSoft,
                           selected: _activeCenterIds.isNotEmpty,
                           onTap: _pickNotebookCenter,
                         ),
@@ -674,8 +676,8 @@ class _NotebookPageState extends State<NotebookPage> {
                                       Container(
                                         width: 116,
                                         height: 116,
-                                        decoration: const BoxDecoration(
-                                          color: ArvinColors.primarySoft,
+                                        decoration: BoxDecoration(
+                                          color: _brandSoft,
                                           shape: BoxShape.circle,
                                         ),
                                       ),
@@ -709,19 +711,19 @@ class _NotebookPageState extends State<NotebookPage> {
                                         decoration: BoxDecoration(
                                           color: ArvinColors.surface,
                                           borderRadius: BorderRadius.circular(20),
-                                          border: Border.all(color: ArvinColors.primary.withValues(alpha: 0.18)),
+                                          border: Border.all(color: _brand.withValues(alpha: 0.18)),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: ArvinColors.primary.withValues(alpha: 0.12),
+                                              color: _brand.withValues(alpha: 0.12),
                                               blurRadius: 14,
                                               offset: const Offset(0, 5),
                                             ),
                                           ],
                                         ),
-                                        child: const Icon(
+                                        child: Icon(
                                           Icons.note_alt_rounded,
                                           size: 42,
-                                          color: ArvinColors.primary,
+                                          color: _brand,
                                         ),
                                       ),
                                     ],
@@ -771,7 +773,7 @@ class _NotebookPageState extends State<NotebookPage> {
                               key: ValueKey('notebook-note-card-${note.id}'),
                               color: note.isNotebookChecklist
                                   ? ArvinColors.timeSoft
-                                  : ArvinColors.primarySoft,
+                                  : _brandSoft,
                               child: ListTile(
                                 key: ValueKey('notebook-note-${note.id}'),
                                 dense: true,
@@ -1121,7 +1123,7 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     final selected = await ReusableMultiSelectFilterBottomSheet.showSingleSelect<String>(
       context,
       title: 'انتخاب مرکز',
-      accent: ArvinColors.primary,
+      accent: _brand,
       options: centers
           .map((center) => ReusableFilterOption<String>(
                 value: center.id,
@@ -1607,11 +1609,11 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
                   TextButton.icon(
                     key: const ValueKey('notebook-center-picker'),
                     onPressed: _pickCenter,
-                    icon: const Icon(Icons.apartment_outlined, size: 18, color: ArvinColors.primary),
+                    icon: Icon(Icons.apartment_outlined, size: 18, color: _brand),
                     label: Text(_centerName ?? 'انتخاب مرکز'),
                     style: TextButton.styleFrom(
-                      foregroundColor: ArvinColors.primaryDark,
-                      backgroundColor: ArvinColors.primarySoft,
+                      foregroundColor: _brand,
+                      backgroundColor: _brandSoft,
                       minimumSize: const Size(48, 48),
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       visualDensity: VisualDensity.standard,

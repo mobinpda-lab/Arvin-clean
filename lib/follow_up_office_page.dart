@@ -497,7 +497,7 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
                                   onPressed: _saving || row.taskId.isEmpty
                                       ? null
                                       : () => _editFollowUp(row),
-                                  icon: const Icon(Icons.edit_outlined, color: ArvinColors.primary),
+                                  icon: Icon(Icons.edit_outlined, color: Theme.of(context).colorScheme.primary),
                                 ),
                               ],
                             ),
@@ -525,7 +525,7 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
                   },
                 ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: ArvinColors.primary,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         onPressed: _loading || _saving ? null : _addFollowUp,
         icon: _saving

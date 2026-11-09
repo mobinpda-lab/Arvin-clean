@@ -982,7 +982,7 @@ class _HomePageState extends State<HomePage> {
                     contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                     value: option.$1,
                     groupValue: _homeSortMode,
-                    secondary: Icon(option.$3, color: ArvinColors.primary),
+                    secondary: Icon(option.$3, color: Theme.of(context).colorScheme.primary),
                     title: Text(option.$2),
                     onChanged: (value) {
                       if (value == null) return;
@@ -3598,7 +3598,7 @@ class _HomePageState extends State<HomePage> {
                               Icons.push_pin_rounded,
                               key: ValueKey('task-card-focus-marker-${task.id}'),
                               size: 15,
-                              color: ArvinColors.primary,
+                              color: Theme.of(context).colorScheme.primary,
                             ),
                           ],
                         ],

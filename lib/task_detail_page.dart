@@ -379,7 +379,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     final result = await ReusableMultiSelectFilterBottomSheet.showSingleSelect<String>(
       context,
       title: 'انتخاب مرکز',
-      accent: ArvinColors.primary,
+      accent: _brand,
       options: options,
       selectedValue: _selectedCenterId,
       emptyLabel: 'بدون مرکز',
@@ -1908,9 +1908,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   value,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Vazirmatn',
-                    color: ArvinColors.textPrimary,
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                   ),
