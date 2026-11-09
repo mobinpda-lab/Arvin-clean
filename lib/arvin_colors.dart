@@ -29,7 +29,7 @@ abstract final class ArvinColors {
   static const darkDivider = Color(0xFF555B70);
   static const darkOutline = Color(0xFF656B80);
 
-  // Brand uses Persian Teal; grouping and taxonomy retain distinct semantic accents.
+  // Grouping and taxonomy retain distinct semantic accents independent of brand.
   static const groupingTomorrow = Color(0xFF2563EB);
   static const groupingFuture = Color(0xFF7C3AED);
   static const groupingTodaySoft = Color(0xFFDDF3EF);

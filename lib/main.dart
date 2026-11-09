@@ -283,7 +283,7 @@ class _ArvinAppState extends State<ArvinApp> {
     final secondaryAccentColor = themeManager.selectedAccentColor;
     final secondaryAccentSoft = Color.lerp(Colors.white, secondaryAccentColor, 0.14)!;
     const brandPrimary = ArvinColors.primary;
-    const brandSoft = ArvinColors.primarySoft;
+    const brandSoft = ArvinTheme.iceBlue;
     final lightBaseTextTheme = ThemeData.light().textTheme.apply(
       fontFamily: ArvinTheme.fontFamily,
       bodyColor: ArvinColors.textPrimary,
@@ -412,15 +412,21 @@ class _ArvinAppState extends State<ArvinApp> {
           circularTrackColor: brandSoft,
         ),
         iconTheme: const IconThemeData(color: ArvinColors.neutral, size: 24),
+        iconButtonTheme: IconButtonThemeData(
+          style: IconButton.styleFrom(
+            minimumSize: const Size(48, 48),
+            tapTargetSize: MaterialTapTargetSize.padded,
+          ),
+        ),
         dividerTheme: const DividerThemeData(color: ArvinColors.border, thickness: 1),
         appBarTheme: AppBarTheme(
           surfaceTintColor: Colors.transparent,
-          backgroundColor: brandPrimary,
-          foregroundColor: Colors.white,
-          iconTheme: const IconThemeData(color: Colors.white),
+          backgroundColor: Colors.white,
+          foregroundColor: ArvinColors.textPrimary,
+          iconTheme: const IconThemeData(color: brandPrimary),
           titleTextStyle: TextStyle(
             fontFamily: ArvinTheme.fontFamily,
-            color: Colors.white,
+            color: ArvinColors.textPrimary,
             fontSize: 20,
             fontWeight: FontWeight.w700,
           ),
