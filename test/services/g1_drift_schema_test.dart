@@ -227,9 +227,8 @@ void main() {
       'reminder-one',
       'reminder-two',
       'follow-up-reminder-canonical-task-legacy-follow-up',
-      'follow-up-next-reminder-canonical-task-legacy-follow-up',
     ]);
-    expect(reminders.map((row) => row['is_all_day']), [0, 1, 0, 0]);
+    expect(reminders.map((row) => row['is_all_day']), [0, 1, 0]);
     expect(reminders[1]['remind_at'], '2026-11-09');
     final migratedDueDate = await database.runSelect(
       'SELECT due_date FROM tasks WHERE id = ?',
@@ -242,13 +241,10 @@ void main() {
     );
     expect(migratedFollowUpReminder.single['remind_at'], '2026-11-07T09:00:00.000');
     final migratedNextFollowUpReminder = await database.runSelect(
-      'SELECT remind_at FROM task_reminders WHERE id = ?',
-      <Object?>['follow-up-next-reminder-canonical-task-legacy-follow-up'],
+      'SELECT id FROM task_reminders WHERE id LIKE ?',
+      const <Object?>['follow-up-next-reminder-%'],
     );
-    expect(
-      migratedNextFollowUpReminder.single['remind_at'],
-      '2026-11-10T09:00:00.000',
-    );
+    expect(migratedNextFollowUpReminder, isEmpty);
 
     final records = await database.runSelect(
       'SELECT id, completed_at FROM follow_up_records WHERE task_id = ?',

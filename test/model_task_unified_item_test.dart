@@ -119,7 +119,7 @@ void main() {
     expect(task.followUpDate, isNull);
   });
 
-  test('legacy Follow-up next action dates become independent TaskReminders', () {
+  test('legacy Follow-up nextFollowUp alone does not seed a Reminder', () {
     final task = Task.fromLegacyJson({
       'id': 'legacy-follow-up',
       'title': 'پیگیری مشتری',
@@ -127,7 +127,6 @@ void main() {
         {
           'id': 'follow-up-1',
           'dateTime': '2026-08-13T12:00:00.000',
-          'reminderDate': '2026-08-14T09:00:00.000',
           'nextFollowUp': '2026-08-15T10:30:00.000',
         },
       ],
@@ -135,21 +134,7 @@ void main() {
 
     expect(task.followUps, hasLength(1));
     expect(task.followUps.single.nextFollowUp, isNull);
-    expect(task.taskReminders, hasLength(2));
-    expect(
-      task.taskReminders.map((reminder) => reminder.id),
-      containsAll([
-        'follow-up-reminder-legacy-follow-up-follow-up-1',
-        'follow-up-next-reminder-legacy-follow-up-follow-up-1',
-      ]),
-    );
-    expect(
-      task.taskReminders.map((reminder) => reminder.date),
-      containsAll([
-        DateTime(2026, 8, 14, 9),
-        DateTime(2026, 8, 15, 10, 30),
-      ]),
-    );
+    expect(task.taskReminders, isEmpty);
   });
 
   test('missing category remains backward-compatible with legacy data', () {

@@ -588,65 +588,40 @@ class Task {
       migrationVersion = 2;
     }
 
-    // Legacy Follow-up reminder and next-action dates are moved into the same
-    // independent TaskReminder collection. Follow-up records remain history.
+    // Explicit legacy Follow-up reminder dates are migrated to the same
+    // independent TaskReminder collection. nextFollowUp alone is not an
+    // opt-in reminder and must never schedule delivery.
     final rawFollowUps = json['followUps'];
     if (migrateLegacyReminders && rawFollowUps is List) {
       for (var index = 0; index < rawFollowUps.length; index++) {
         final rawFollowUp = rawFollowUps[index];
         if (rawFollowUp is! Map) continue;
+        final rawDate = rawFollowUp['reminderDate'];
+        if (rawDate is! String || rawDate.trim().isEmpty) continue;
+        final reminderDate = DateTime.tryParse(rawDate);
+        if (reminderDate == null) {
+          throw FormatException('Invalid legacy Follow-up reminder date: $rawDate');
+        }
         final followUpId = (rawFollowUp['id'] as String?)?.trim();
         final identity = followUpId?.isNotEmpty == true ? followUpId! : '$index';
-
-        void addLegacySchedule({
-          required String rawDate,
-          required String idPrefix,
-          required String title,
-          required bool isAllDay,
-        }) {
-          final parsedDate = DateTime.tryParse(rawDate);
-          if (parsedDate == null) {
-            throw FormatException('Invalid legacy Follow-up schedule date: $rawDate');
-          }
-          final reminderId = '$idPrefix-${json['id'] ?? ''}-$identity';
-          if (loadedTaskReminders.any((item) => item.id == reminderId)) return;
-          final highestSequence = loadedTaskReminders.isEmpty
-              ? 0
-              : loadedTaskReminders
-                  .map((item) => item.sequence)
-                  .reduce((a, b) => a > b ? a : b);
-          loadedTaskReminders.add(
-            TaskReminder(
-              id: reminderId,
-              title: title,
-              date: parsedDate,
-              isAllDay: isAllDay,
-              sequence: highestSequence + 1,
-            ),
-          );
-          if (migrationVersion < 2) migrationVersion = 2;
-        }
-
-        final rawReminderDate = rawFollowUp['reminderDate'];
-        if (rawReminderDate is String && rawReminderDate.trim().isNotEmpty) {
-          addLegacySchedule(
-            rawDate: rawReminderDate,
-            idPrefix: 'follow-up-reminder',
+        final reminderId = 'follow-up-reminder-${json['id'] ?? ''}-$identity';
+        if (loadedTaskReminders.any((item) => item.id == reminderId)) continue;
+        final highestSequence = loadedTaskReminders.isEmpty
+            ? 0
+            : loadedTaskReminders
+                .map((item) => item.sequence)
+                .reduce((a, b) => a > b ? a : b);
+        loadedTaskReminders.add(
+          TaskReminder(
+            id: reminderId,
             title: 'یادآور پیگیری',
+            date: reminderDate,
             isAllDay: rawFollowUp['reminderAllDay'] == true ||
-                _isDateOnlyStorageValue(rawReminderDate),
-          );
-        }
-        final rawNextFollowUp = rawFollowUp['nextFollowUp'];
-        if (rawNextFollowUp is String && rawNextFollowUp.trim().isNotEmpty) {
-          addLegacySchedule(
-            rawDate: rawNextFollowUp,
-            idPrefix: 'follow-up-next-reminder',
-            title: 'یادآوری اقدام بعدی',
-            isAllDay: rawFollowUp['nextFollowUpAllDay'] == true ||
-                _isDateOnlyStorageValue(rawNextFollowUp),
-          );
-        }
+                _isDateOnlyStorageValue(rawDate),
+            sequence: highestSequence + 1,
+          ),
+        );
+        if (migrationVersion < 2) migrationVersion = 2;
       }
     }
 

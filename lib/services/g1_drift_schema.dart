@@ -433,33 +433,18 @@ class G1DriftSchema implements QueryExecutorUser {
       final hasLegacyFollowUpReminder = legacyFollowUpColumns.any(
         (row) => row['name'] == 'reminder_date',
       );
-      final hasLegacyNextFollowUp = legacyFollowUpColumns.any(
-        (row) => row['name'] == 'next_follow_up',
-      );
-      final reminderDateColumn = hasLegacyFollowUpReminder
-          ? 'reminder_date'
-          : 'NULL AS reminder_date';
-      final nextFollowUpColumn = hasLegacyNextFollowUp
-          ? 'next_follow_up'
-          : 'NULL AS next_follow_up';
-      final legacySchedulePredicates = <String>[
-        if (hasLegacyFollowUpReminder) 'reminder_date IS NOT NULL',
-        if (hasLegacyNextFollowUp) 'next_follow_up IS NOT NULL',
-      ];
-      if (legacySchedulePredicates.isNotEmpty) {
-        final legacyFollowUpSchedules = await executor.runSelect(
-          'SELECT id, task_id, $reminderDateColumn, $nextFollowUpColumn '
-          'FROM follow_ups WHERE ${legacySchedulePredicates.join(' OR ')} '
-          'ORDER BY task_id, ordinal',
+      if (hasLegacyFollowUpReminder) {
+        final legacyFollowUpReminders = await executor.runSelect(
+          'SELECT id, task_id, reminder_date FROM follow_ups '
+          'WHERE reminder_date IS NOT NULL ORDER BY task_id, ordinal',
           const [],
         );
-        for (final legacy in legacyFollowUpSchedules) {
+        for (final legacy in legacyFollowUpReminders) {
           final taskRows = await executor.runSelect(
             'SELECT legacy_payload_json FROM tasks WHERE id = ?',
             <Object?>[legacy['task_id']],
           );
-          var reminderAllDay = false;
-          var nextFollowUpAllDay = false;
+          var isAllDay = _isDateOnlyStorageValue(legacy['reminder_date']);
           if (taskRows.isNotEmpty) {
             final rawPayload = taskRows.single['legacy_payload_json'];
             if (rawPayload is String && rawPayload.trim().isNotEmpty) {
@@ -467,63 +452,39 @@ class G1DriftSchema implements QueryExecutorUser {
               if (decoded is Map && decoded['followUps'] is List) {
                 for (final rawFollowUp in decoded['followUps'] as List) {
                   if (rawFollowUp is Map && rawFollowUp['id'] == legacy['id']) {
-                    reminderAllDay = rawFollowUp['reminderAllDay'] == true ||
-                        _isDateOnlyStorageValue(legacy['reminder_date']);
-                    nextFollowUpAllDay = rawFollowUp['nextFollowUpAllDay'] == true ||
-                        _isDateOnlyStorageValue(legacy['next_follow_up']);
+                    isAllDay = isAllDay || rawFollowUp['reminderAllDay'] == true;
                     break;
                   }
                 }
               }
             }
           }
-
-          Future<void> insertLegacySchedule({
-            required Object? rawDate,
-            required String idPrefix,
-            required String title,
-            required bool isAllDay,
-          }) async {
-            if (rawDate == null) return;
-            if (rawDate is! String || rawDate.trim().isEmpty) {
-              throw FormatException('Invalid legacy Follow-up schedule for ${legacy['id']}');
-            }
-            final parsed = DateTime.tryParse(rawDate);
-            if (parsed == null) {
-              throw FormatException('Invalid legacy Follow-up schedule date: $rawDate');
-            }
-            final sequenceRows = await executor.runSelect(
-              'SELECT COALESCE(MAX(sequence), 0) + 1 AS next_sequence '
-              'FROM task_reminders WHERE task_id = ?',
-              <Object?>[legacy['task_id']],
-            );
-            final sequence = (sequenceRows.single['next_sequence'] as num).toInt();
-            await executor.runInsert(
-              '''INSERT OR IGNORE INTO task_reminders
-                 (id, task_id, title, remind_at, is_all_day, sequence, is_enabled)
-                 VALUES (?, ?, ?, ?, ?, ?, 1)''',
-              <Object?>[
-                '$idPrefix-${legacy['task_id']}-${legacy['id']}',
-                legacy['task_id'],
-                title,
-                isAllDay ? _dateOnlyStorageValue(parsed) : parsed.toIso8601String(),
-                isAllDay ? 1 : 0,
-                sequence,
-              ],
-            );
+          final rawDate = legacy['reminder_date'];
+          if (rawDate is! String || rawDate.trim().isEmpty) {
+            throw FormatException('Invalid legacy Follow-up reminder for ${legacy['id']}');
           }
-
-          await insertLegacySchedule(
-            rawDate: legacy['reminder_date'],
-            idPrefix: 'follow-up-reminder',
-            title: 'یادآور پیگیری',
-            isAllDay: reminderAllDay,
+          final parsed = DateTime.tryParse(rawDate);
+          if (parsed == null) {
+            throw FormatException('Invalid legacy Follow-up reminder date: $rawDate');
+          }
+          final sequenceRows = await executor.runSelect(
+            'SELECT COALESCE(MAX(sequence), 0) + 1 AS next_sequence '
+            'FROM task_reminders WHERE task_id = ?',
+            <Object?>[legacy['task_id']],
           );
-          await insertLegacySchedule(
-            rawDate: legacy['next_follow_up'],
-            idPrefix: 'follow-up-next-reminder',
-            title: 'یادآوری اقدام بعدی',
-            isAllDay: nextFollowUpAllDay,
+          final sequence = (sequenceRows.single['next_sequence'] as num).toInt();
+          await executor.runInsert(
+            '''INSERT OR IGNORE INTO task_reminders
+               (id, task_id, title, remind_at, is_all_day, sequence, is_enabled)
+               VALUES (?, ?, ?, ?, ?, ?, 1)''',
+            <Object?>[
+              'follow-up-reminder-${legacy['task_id']}-${legacy['id']}',
+              legacy['task_id'],
+              'یادآور پیگیری',
+              isAllDay ? _dateOnlyStorageValue(parsed) : parsed.toIso8601String(),
+              isAllDay ? 1 : 0,
+              sequence,
+            ],
           );
         }
       }
