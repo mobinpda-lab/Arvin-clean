@@ -21,6 +21,32 @@ Future<void> _openQuickCaptureDueTimePicker(WidgetTester tester) async {
   expect(find.byKey(const ValueKey('universal-time-no-time')), findsOneWidget);
 }
 
+
+Future<void> _openQuickCaptureCustomReminderPicker(WidgetTester tester) async {
+  final reminderControl = find.byKey(const ValueKey('quick-capture-reminder-rollbox'));
+  await tester.ensureVisible(reminderControl);
+  await tester.tap(reminderControl);
+  await tester.pumpAndSettle();
+  final customReminder = find.text('تاریخ و ساعت سفارشی');
+  expect(customReminder, findsOneWidget);
+  await tester.ensureVisible(customReminder);
+  await tester.tap(customReminder);
+  await tester.pumpAndSettle();
+
+  final datePicker = find.byKey(const ValueKey('persian-date-picker'));
+  expect(datePicker, findsOneWidget);
+  final confirmDate = find.descendant(
+    of: datePicker,
+    matching: find.text('انتخاب تاریخ'),
+  ).last;
+  await tester.ensureVisible(confirmDate);
+  await tester.tap(confirmDate);
+  await tester.pumpAndSettle();
+  expect(find.text('زمان یادآوری'), findsWidgets);
+  await tester.tap(find.byKey(const ValueKey('universal-time-save')));
+  await tester.pumpAndSettle();
+}
+
 void main() {
 
   testWidgets('Quick Capture can create a center inline and immediately select it', (tester) async {
@@ -1226,6 +1252,178 @@ void main() {
       await tester.ensureVisible(find.byKey(const ValueKey('quick-capture-tag-rollbox')));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
+    }
+  });
+
+
+  testWidgets('all-day Quick Capture hides relative reminder presets but keeps custom reminders',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Directionality(
+        textDirection: TextDirection.rtl,
+        child: Scaffold(
+          body: QuickCaptureDialog(now: () => DateTime(2026, 9, 27, 14, 35)),
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await _openQuickCaptureDueTimePicker(tester);
+    await tester.tap(find.byKey(const ValueKey('universal-time-no-time')));
+    await tester.pumpAndSettle();
+
+    final reminderControl = find.byKey(const ValueKey('quick-capture-reminder-rollbox'));
+    await tester.ensureVisible(reminderControl);
+    await tester.tap(reminderControl);
+    await tester.pumpAndSettle();
+    for (final label in [
+      'همان زمان موعد',
+      '۱۵ دقیقه قبل',
+      'یک ساعت قبل',
+      'یک روز قبل',
+      'یک هفته قبل',
+    ]) {
+      expect(find.text(label), findsNothing);
+    }
+    expect(find.text('تاریخ و ساعت سفارشی'), findsOneWidget);
+  });
+
+  testWidgets('all-day Quick Capture preserves an independent custom reminder through JSON reopen',
+      (tester) async {
+    Task? captured;
+    await tester.pumpWidget(MaterialApp(
+      home: Directionality(
+        textDirection: TextDirection.rtl,
+        child: Scaffold(
+          body: QuickCaptureDialog(
+            idFactory: () => 'quick-all-day-custom-reminder',
+            now: () => DateTime(2026, 9, 27, 14, 35),
+            onCaptured: (task) async => captured = task,
+          ),
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('quick-capture-input')),
+      'کار تمام‌روز با یادآور مستقل',
+    );
+    await _openQuickCaptureDueTimePicker(tester);
+    await tester.tap(find.byKey(const ValueKey('universal-time-no-time')));
+    await tester.pumpAndSettle();
+    await _openQuickCaptureCustomReminderPicker(tester);
+
+    await tester.ensureVisible(find.byKey(const ValueKey('quick-capture-submit')));
+    await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
+    await tester.pumpAndSettle();
+
+    expect(captured, isNotNull);
+    expect(captured!.allDay, isTrue);
+    expect(captured!.taskReminders, hasLength(1));
+    expect(captured!.taskReminders.single.isAllDay, isFalse);
+    final reopened = Task.fromJson(captured!.toJson());
+    expect(reopened.allDay, isTrue);
+    expect(reopened.taskReminders, hasLength(1));
+    expect(reopened.taskReminders.single.date, captured!.taskReminders.single.date);
+  });
+
+  testWidgets('timed-to-all-day clears a relative reminder and all-day-to-timed preserves custom reminder',
+      (tester) async {
+    Task? captured;
+    final fixedNow = DateTime(2026, 9, 27, 14, 35);
+    await tester.pumpWidget(MaterialApp(
+      home: Directionality(
+        textDirection: TextDirection.rtl,
+        child: Scaffold(
+          body: QuickCaptureDialog(
+            idFactory: () => 'quick-transition-reminder',
+            now: () => fixedNow,
+            onCaptured: (task) async => captured = task,
+          ),
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('quick-capture-input')),
+      'کار با تغییر نوع موعد',
+    );
+
+    await _openQuickCaptureDueTimePicker(tester);
+    await tester.tap(find.byKey(const ValueKey('universal-time-save')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('quick-capture-reminder-rollbox')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('۱۵ دقیقه قبل'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('۱۴:۲۰'), findsOneWidget);
+
+    await _openQuickCaptureDueTimePicker(tester);
+    await tester.tap(find.byKey(const ValueKey('universal-time-no-time')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('quick-capture-reminder-rollbox')));
+    await tester.pumpAndSettle();
+    expect(find.text('۱۵ دقیقه قبل'), findsNothing);
+    await tester.tapAt(const Offset(12, 12));
+    await tester.pumpAndSettle();
+
+    await _openQuickCaptureCustomReminderPicker(tester);
+    final customReminderDate = DateTime(2026, 9, 27, 14, 35);
+    await _openQuickCaptureDueTimePicker(tester);
+    await tester.tap(find.byKey(const ValueKey('universal-time-save')));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.byKey(const ValueKey('quick-capture-submit')));
+    await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
+    await tester.pumpAndSettle();
+    expect(captured, isNotNull);
+    expect(captured!.allDay, isFalse);
+    expect(captured!.taskReminders, hasLength(1));
+    expect(captured!.taskReminders.single.date, customReminderDate);
+  });
+
+  testWidgets('each timed relative reminder preset stores its exact offset from the due time',
+      (tester) async {
+    final fixedNow = DateTime(2026, 9, 27, 14, 35);
+    final presets = <String, Duration>{
+      'همان زمان موعد': Duration.zero,
+      '۱۵ دقیقه قبل': const Duration(minutes: -15),
+      'یک ساعت قبل': const Duration(hours: -1),
+      'یک روز قبل': const Duration(days: -1),
+      'یک هفته قبل': const Duration(days: -7),
+    };
+    for (final entry in presets.entries) {
+      Task? captured;
+      await tester.pumpWidget(MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            body: QuickCaptureDialog(
+              idFactory: () => 'quick-preset-${entry.key.hashCode}',
+              now: () => fixedNow,
+              onCaptured: (task) async => captured = task,
+            ),
+          ),
+        ),
+      ));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const ValueKey('quick-capture-input')),
+        'کار زمان‌دار',
+      );
+      await _openQuickCaptureDueTimePicker(tester);
+      await tester.tap(find.byKey(const ValueKey('universal-time-save')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('quick-capture-reminder-rollbox')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(entry.key));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(const ValueKey('quick-capture-submit')));
+      await tester.tap(find.byKey(const ValueKey('quick-capture-submit')));
+      await tester.pumpAndSettle();
+
+      expect(captured, isNotNull, reason: entry.key);
+      expect(captured!.dueDate, fixedNow, reason: entry.key);
+      expect(captured!.taskReminders.single.date, fixedNow.add(entry.value), reason: entry.key);
     }
   });
 
