@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'core/theme/arvin_theme.dart';
 import 'models/task.dart';
 
-/// Canonical semantic palette used across Arvin. Owner-approved brand, surface,
-/// and text tokens stay aligned with the Home visual style lock.
+/// Canonical semantic palette used across Arvin. Brand tokens are fixed Blue & White;
+/// product semantics (priority, status and taxonomy) remain independently defined.
 abstract final class ArvinColors {
   static const primary = ArvinTheme.primaryTeal;
   static const primaryDark = ArvinTheme.headerTeal;
@@ -39,9 +39,9 @@ abstract final class ArvinColors {
   static const taskStatusGreen = Color(0xFF409B51);
   static const taskStatusAmber = Color(0xFFDB8B23);
 
-  static const time = ArvinTheme.primaryTeal;
-  static const timeDark = ArvinTheme.headerTeal;
-  static const timeSoft = ArvinTheme.primarySoft;
+  static const time = Color(0xFF008080);
+  static const timeDark = Color(0xFF008B8B);
+  static const timeSoft = Color(0xFFD9F0EE);
 
   static const reminder = Color(0xFFD97706);
   static const reminderDark = Color(0xFFB45309);

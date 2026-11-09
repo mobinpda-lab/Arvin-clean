@@ -302,13 +302,13 @@ class _ArvinAppState extends State<ArvinApp> {
       labelLarge: lightBaseTextTheme.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w700, height: 1.5),
     );
     final readableDarkTextTheme = darkBaseTextTheme.copyWith(
-      bodyLarge: darkBaseTextTheme.bodyLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w600, height: 1.5),
-      bodyMedium: darkBaseTextTheme.bodyMedium?.copyWith(fontSize: 16, fontWeight: FontWeight.w500, height: 1.5),
-      bodySmall: darkBaseTextTheme.bodySmall?.copyWith(fontSize: 14, fontWeight: FontWeight.w500, height: 1.5),
-      titleLarge: darkBaseTextTheme.titleLarge?.copyWith(fontSize: 22, fontWeight: FontWeight.w700, height: 1.5),
-      titleMedium: darkBaseTextTheme.titleMedium?.copyWith(fontSize: 18, fontWeight: FontWeight.w700, height: 1.5),
-      titleSmall: darkBaseTextTheme.titleSmall?.copyWith(fontSize: 16, fontWeight: FontWeight.w700, height: 1.5),
-      labelLarge: darkBaseTextTheme.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w700, height: 1.5),
+      bodyLarge: darkBaseTextTheme.bodyLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w600),
+      bodyMedium: darkBaseTextTheme.bodyMedium?.copyWith(fontSize: 16, fontWeight: FontWeight.w500),
+      bodySmall: darkBaseTextTheme.bodySmall?.copyWith(fontSize: 14, fontWeight: FontWeight.w500),
+      titleLarge: darkBaseTextTheme.titleLarge?.copyWith(fontSize: 22, fontWeight: FontWeight.w700),
+      titleMedium: darkBaseTextTheme.titleMedium?.copyWith(fontSize: 18, fontWeight: FontWeight.w700),
+      titleSmall: darkBaseTextTheme.titleSmall?.copyWith(fontSize: 16, fontWeight: FontWeight.w700),
+      labelLarge: darkBaseTextTheme.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w700),
     );
     return MaterialApp(
       navigatorKey: arvinNavigatorKey,
@@ -408,8 +408,8 @@ class _ArvinAppState extends State<ArvinApp> {
         ),
         progressIndicatorTheme: ProgressIndicatorThemeData(
           color: brandPrimary,
-          linearTrackColor: accentSoft,
-          circularTrackColor: accentSoft,
+          linearTrackColor: brandSoft,
+          circularTrackColor: brandSoft,
         ),
         iconTheme: const IconThemeData(color: ArvinColors.neutral, size: 24),
         dividerTheme: const DividerThemeData(color: ArvinColors.border, thickness: 1),

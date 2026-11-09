@@ -22,7 +22,7 @@ void main() {
   expect(ArvinTheme.primaryGlow, const Color(0x404169A1));
   expect(ArvinTheme.shadowStyle.color, const Color(0x404169A1));
   expect(ArvinColors.shadowSoft, const Color(0x404169A1));
-  expect(ArvinColors.shadowDark, const Color(0x404169A1));
+  expect(ArvinColors.shadowDark, const Color(0x40008080));
       expect(ArvinTheme.cardBorderRadius, BorderRadius.circular(16));
       expect(ArvinTheme.shadowStyle.blurRadius, 10);
       expect(ArvinTheme.shadowStyle.offset, const Offset(0, 4));
@@ -45,6 +45,7 @@ void main() {
       expect(ArvinColors.priorityP3, const Color(0xFF2563EB));
       expect(ArvinColors.priorityP4, const Color(0xFF80829C));
       expect(ArvinColors.time, const Color(0xFF008080));
+      expect(ArvinColors.primary, const Color(0xFF4169A1));
       expect(ArvinColors.reminder, const Color(0xFFD97706));
       expect(ArvinColors.project, const Color(0xFF7C3AED));
       expect(ArvinColors.category, const Color(0xFF2563EB));
