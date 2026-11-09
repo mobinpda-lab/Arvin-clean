@@ -10,8 +10,8 @@ void main() {
     await AppThemeManager.instance.load();
   });
 
-  test('uses vivid sky blue as the default when no color was selected', () async {
-    expect(AppThemeManager.instance.selectedHex, '#3A86EF');
+  test('uses Persian Teal as the default when no color was selected', () async {
+    expect(AppThemeManager.instance.selectedHex, '#0F766E');
     final preferences = await SharedPreferences.getInstance();
     expect(preferences.getString(AppThemeManager.preferenceKey), isNull);
   });
@@ -21,7 +21,7 @@ void main() {
     final preferences = await SharedPreferences.getInstance();
     expect(preferences.getString(AppThemeManager.preferenceKey), '#7209B7');
 
-    await AppThemeManager.instance.select('#3A86EF');
+    await AppThemeManager.instance.select('#606C38');
     await preferences.setString(AppThemeManager.preferenceKey, '#7209B7');
     await AppThemeManager.instance.load();
     expect(AppThemeManager.instance.selectedHex, '#7209B7');
@@ -31,7 +31,7 @@ void main() {
     final preferences = await SharedPreferences.getInstance();
     await preferences.setString(AppThemeManager.preferenceKey, '#000080');
     await AppThemeManager.instance.load();
-    expect(AppThemeManager.instance.selectedHex, '#3A86EF');
+    expect(AppThemeManager.instance.selectedHex, '#0F766E');
     expect(preferences.getString(AppThemeManager.preferenceKey), isNull);
   });
 
@@ -42,8 +42,8 @@ void main() {
     );
     expect(
       AppThemeManager.palette.map((entry) => entry.hex).toList(),
-      <String>['#078B91', '#1B4965', '#2A9D8F', '#4361EE', '#7209B7', '#F77F00', '#D90429', '#3A86EF', '#2B2D42'],
+      <String>['#0F766E', '#1B4965', '#2A9D8F', '#4361EE', '#7209B7', '#F77F00', '#D90429', '#606C38', '#2B2D42'],
     );
-    expect(AppThemeManager.palette[7].hex, '#3A86EF');
+    expect(AppThemeManager.palette[7].hex, '#606C38');
   });
 }
