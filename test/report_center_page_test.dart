@@ -674,7 +674,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('پیش‌تنظیمات سریع زمان'), findsOneWidget);
     expect(find.text('این هفته'), findsOneWidget);
-    await tester.tap(find.text('امروز').last);
+    await tester.tap(find.byKey(const ValueKey('report-quick-preset-today')));
     await tester.pumpAndSettle();
     expect(find.text('امروز'), findsWidgets);
   });
