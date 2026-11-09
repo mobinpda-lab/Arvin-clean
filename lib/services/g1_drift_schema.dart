@@ -351,9 +351,17 @@ class G1DriftSchema implements QueryExecutorUser {
 
     final taskColumns = await executor.runSelect("PRAGMA table_info('tasks')", const []);
     final hasLegacyTaskReminder = taskColumns.any((row) => row['name'] == 'reminder_date');
+    final hasLegacyTaskFollowUpEnabled = taskColumns.any((row) => row['name'] == 'follow_up_enabled');
+    final hasLegacyTaskFollowUpDate = taskColumns.any((row) => row['name'] == 'follow_up_date');
     final reminderColumn = hasLegacyTaskReminder ? 'reminder_date' : 'NULL AS reminder_date';
+    final followUpEnabledColumn = hasLegacyTaskFollowUpEnabled
+        ? 'follow_up_enabled'
+        : '0 AS follow_up_enabled';
+    final followUpDateColumn = hasLegacyTaskFollowUpDate
+        ? 'follow_up_date'
+        : 'NULL AS follow_up_date';
     final taskRows = await executor.runSelect(
-      'SELECT id, title, $reminderColumn, legacy_payload_json FROM tasks ORDER BY storage_ordinal, id',
+      'SELECT id, title, $reminderColumn, $followUpEnabledColumn, $followUpDateColumn, legacy_payload_json FROM tasks ORDER BY storage_ordinal, id',
       const [],
     );
     // Normalize legacy All-Day due dates to floating date-only values.
@@ -385,6 +393,9 @@ class G1DriftSchema implements QueryExecutorUser {
       payload['id'] = row['id'];
       payload['title'] = row['title'];
       payload['reminderDate'] ??= row['reminder_date'];
+      payload['followUpDate'] ??= row['follow_up_date'];
+      payload['followUpEnabled'] ??=
+          (row['follow_up_enabled'] as num?)?.toInt() == 1;
       final task = Task.fromLegacyJson(payload);
       for (final reminder in task.taskReminders) {
         await executor.runInsert(
@@ -410,51 +421,104 @@ class G1DriftSchema implements QueryExecutorUser {
     // Older SQL Follow-up rows may have a reminder date even when the JSON
     // envelope predates the TaskReminder conversion. Preserve it independently.
     if (hasLegacyFollowUps) {
-      final legacyFollowUpReminders = await executor.runSelect(
-        'SELECT id, task_id, reminder_date FROM follow_ups WHERE reminder_date IS NOT NULL ORDER BY task_id, ordinal',
+      final legacyFollowUpColumns = await executor.runSelect(
+        "PRAGMA table_info('follow_ups')",
         const [],
       );
-      for (final legacy in legacyFollowUpReminders) {
-        final taskRows = await executor.runSelect(
-          'SELECT legacy_payload_json FROM tasks WHERE id = ?',
-          <Object?>[legacy['task_id']],
+      final hasLegacyFollowUpReminder = legacyFollowUpColumns.any(
+        (row) => row['name'] == 'reminder_date',
+      );
+      final hasLegacyNextFollowUp = legacyFollowUpColumns.any(
+        (row) => row['name'] == 'next_follow_up',
+      );
+      final reminderDateColumn = hasLegacyFollowUpReminder
+          ? 'reminder_date'
+          : 'NULL AS reminder_date';
+      final nextFollowUpColumn = hasLegacyNextFollowUp
+          ? 'next_follow_up'
+          : 'NULL AS next_follow_up';
+      final legacySchedulePredicates = <String>[
+        if (hasLegacyFollowUpReminder) 'reminder_date IS NOT NULL',
+        if (hasLegacyNextFollowUp) 'next_follow_up IS NOT NULL',
+      ];
+      if (legacySchedulePredicates.isNotEmpty) {
+        final legacyFollowUpSchedules = await executor.runSelect(
+          'SELECT id, task_id, $reminderDateColumn, $nextFollowUpColumn '
+          'FROM follow_ups WHERE ${legacySchedulePredicates.join(' OR ')} '
+          'ORDER BY task_id, ordinal',
+          const [],
         );
-        var isAllDay = false;
-        if (taskRows.isNotEmpty) {
-          final rawPayload = taskRows.single['legacy_payload_json'];
-          if (rawPayload is String && rawPayload.trim().isNotEmpty) {
-            final decoded = jsonDecode(rawPayload);
-            if (decoded is Map && decoded['followUps'] is List) {
-              for (final rawFollowUp in decoded['followUps'] as List) {
-                if (rawFollowUp is Map && rawFollowUp['id'] == legacy['id']) {
-                  isAllDay = rawFollowUp['reminderAllDay'] == true;
-                  break;
+        for (final legacy in legacyFollowUpSchedules) {
+          final taskRows = await executor.runSelect(
+            'SELECT legacy_payload_json FROM tasks WHERE id = ?',
+            <Object?>[legacy['task_id']],
+          );
+          var reminderAllDay = false;
+          var nextFollowUpAllDay = false;
+          if (taskRows.isNotEmpty) {
+            final rawPayload = taskRows.single['legacy_payload_json'];
+            if (rawPayload is String && rawPayload.trim().isNotEmpty) {
+              final decoded = jsonDecode(rawPayload);
+              if (decoded is Map && decoded['followUps'] is List) {
+                for (final rawFollowUp in decoded['followUps'] as List) {
+                  if (rawFollowUp is Map && rawFollowUp['id'] == legacy['id']) {
+                    reminderAllDay = rawFollowUp['reminderAllDay'] == true;
+                    nextFollowUpAllDay = rawFollowUp['nextFollowUpAllDay'] == true;
+                    break;
+                  }
                 }
               }
             }
           }
+
+          Future<void> insertLegacySchedule({
+            required Object? rawDate,
+            required String idPrefix,
+            required String title,
+            required bool isAllDay,
+          }) async {
+            if (rawDate == null) return;
+            if (rawDate is! String || rawDate.trim().isEmpty) {
+              throw FormatException('Invalid legacy Follow-up schedule for ${legacy['id']}');
+            }
+            final parsed = DateTime.tryParse(rawDate);
+            if (parsed == null) {
+              throw FormatException('Invalid legacy Follow-up schedule date: $rawDate');
+            }
+            final sequenceRows = await executor.runSelect(
+              'SELECT COALESCE(MAX(sequence), 0) + 1 AS next_sequence '
+              'FROM task_reminders WHERE task_id = ?',
+              <Object?>[legacy['task_id']],
+            );
+            final sequence = (sequenceRows.single['next_sequence'] as num).toInt();
+            await executor.runInsert(
+              '''INSERT OR IGNORE INTO task_reminders
+                 (id, task_id, title, remind_at, is_all_day, sequence, is_enabled)
+                 VALUES (?, ?, ?, ?, ?, ?, 1)''',
+              <Object?>[
+                '$idPrefix-${legacy['task_id']}-${legacy['id']}',
+                legacy['task_id'],
+                title,
+                isAllDay ? _dateOnlyStorageValue(parsed) : parsed.toIso8601String(),
+                isAllDay ? 1 : 0,
+                sequence,
+              ],
+            );
+          }
+
+          await insertLegacySchedule(
+            rawDate: legacy['reminder_date'],
+            idPrefix: 'follow-up-reminder',
+            title: 'یادآور پیگیری',
+            isAllDay: reminderAllDay,
+          );
+          await insertLegacySchedule(
+            rawDate: legacy['next_follow_up'],
+            idPrefix: 'follow-up-next-reminder',
+            title: 'یادآوری اقدام بعدی',
+            isAllDay: nextFollowUpAllDay,
+          );
         }
-        final sequenceRows = await executor.runSelect(
-          'SELECT COALESCE(MAX(sequence), 0) + 1 AS next_sequence FROM task_reminders WHERE task_id = ?',
-          <Object?>[legacy['task_id']],
-        );
-        final sequence = (sequenceRows.single['next_sequence'] as num).toInt();
-        await executor.runInsert(
-          '''INSERT OR IGNORE INTO task_reminders
-             (id, task_id, title, remind_at, is_all_day, sequence, is_enabled)
-             VALUES (?, ?, ?, ?, ?, ?, 1)''',
-          <Object?>[
-            'follow-up-reminder-${legacy['task_id']}-${legacy['id']}',
-            legacy['task_id'],
-            'یادآور پیگیری',
-            isAllDay && legacy['reminder_date'] is String &&
-                    DateTime.tryParse(legacy['reminder_date'] as String) != null
-                ? _dateOnlyStorageValue(DateTime.parse(legacy['reminder_date'] as String))
-                : legacy['reminder_date'],
-            isAllDay ? 1 : 0,
-            sequence,
-          ],
-        );
       }
     }
 
