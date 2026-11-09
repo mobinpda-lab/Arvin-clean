@@ -341,6 +341,7 @@ class _ArvinAppState extends State<ArvinApp> {
           onSurface: ArvinColors.textPrimary,
           outline: ArvinColors.border,
           surfaceTint: Colors.transparent,
+          shadow: accentColor.withValues(alpha: 0.25),
         ),
         scaffoldBackgroundColor: ArvinColors.background,
         cardTheme: CardThemeData(
@@ -354,6 +355,7 @@ class _ArvinAppState extends State<ArvinApp> {
             side: const BorderSide(color: ArvinColors.border, width: 0.8),
           ),
         ),
+        dialogTheme: const DialogThemeData(surfaceTintColor: Colors.transparent),
         fontFamily: AppFonts.vazirmatnFamily,
         textTheme: readableLightTextTheme,
         filledButtonTheme: FilledButtonThemeData(
@@ -376,7 +378,6 @@ class _ArvinAppState extends State<ArvinApp> {
           hoverElevation: 5,
           focusElevation: 5,
           highlightElevation: 2,
-          shadowColor: accentColor.withValues(alpha: 0.25),
         ),
         navigationBarTheme: NavigationBarThemeData(
           backgroundColor: ArvinColors.surface,
@@ -448,6 +449,7 @@ class _ArvinAppState extends State<ArvinApp> {
           secondary: accentColor,
           error: ArvinColors.darkError,
           surfaceTint: Colors.transparent,
+          shadow: accentColor.withValues(alpha: 0.25),
         ),
         cardTheme: CardThemeData(
           color: ArvinColors.darkSurface,
@@ -460,6 +462,7 @@ class _ArvinAppState extends State<ArvinApp> {
             side: BorderSide(color: ArvinColors.darkBorder, width: 0.8),
           ),
         ),
+        dialogTheme: const DialogThemeData(surfaceTintColor: Colors.transparent),
         fontFamily: AppFonts.vazirmatnFamily,
         textTheme: readableDarkTextTheme,
         dividerTheme: const DividerThemeData(color: ArvinColors.darkDivider, thickness: 1),
@@ -486,7 +489,6 @@ class _ArvinAppState extends State<ArvinApp> {
           ),
         ),
       ),
-      dialogTheme: const DialogThemeData(surfaceTintColor: Colors.transparent),
       themeMode: settings.themeMode,
       home: Directionality(
         textDirection: TextDirection.rtl,
