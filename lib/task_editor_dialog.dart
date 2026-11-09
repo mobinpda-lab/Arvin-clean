@@ -388,6 +388,27 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                           ),
                         ),
                         IconButton(
+                          key: ValueKey('task-editor-toggle-reminder-$reminderKey'),
+                          tooltip: reminder.isEnabled
+                              ? 'غیرفعال کردن یادآور'
+                              : 'فعال کردن یادآور',
+                          onPressed: () => setState(() {
+                            final updated = List<TaskReminder>.of(_taskReminders);
+                            updated[index] = reminder.copyWith(
+                              isEnabled: !reminder.isEnabled,
+                            );
+                            _taskReminders = updated;
+                          }),
+                          icon: Icon(
+                            reminder.isEnabled
+                                ? Icons.notifications_active_outlined
+                                : Icons.notifications_off_outlined,
+                            color: reminder.isEnabled
+                                ? ArvinColors.reminder
+                                : Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        IconButton(
                           key: ValueKey('task-editor-remove-reminder-$reminderKey'),
                           tooltip: 'حذف این یادآور',
                           onPressed: () => setState(() {

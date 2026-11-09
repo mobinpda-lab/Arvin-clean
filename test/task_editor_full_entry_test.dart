@@ -234,6 +234,59 @@ void main() {
   });
 
 
+  testWidgets('independent reminders can be disabled and re-enabled',
+      (tester) async {
+    Task? disabledResult;
+    Task? reenabledResult;
+    final task = Task(
+      id: 'toggle-reminder-task',
+      title: 'یادآور قابل کنترل',
+      taskReminders: [
+        TaskReminder(
+          id: 'toggle-reminder',
+          title: 'یادآوری',
+          date: DateTime(2026, 10, 19, 9, 30),
+          sequence: 1,
+        ),
+      ],
+      nextReminderSequence: 2,
+    );
+
+    await openEditor(
+      tester,
+      task: task,
+      onResult: (value) => disabledResult = value,
+    );
+    final toggle = find.byKey(
+      const ValueKey('task-editor-toggle-reminder-toggle-reminder'),
+    );
+    expect(find.byTooltip('غیرفعال کردن یادآور'), findsOneWidget);
+    await tester.tap(toggle);
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('فعال کردن یادآور'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(disabledResult, isNotNull);
+    expect(disabledResult!.taskReminders.single.isEnabled, isFalse);
+
+    await openEditor(
+      tester,
+      task: disabledResult,
+      onResult: (value) => reenabledResult = value,
+    );
+    expect(find.byTooltip('فعال کردن یادآور'), findsOneWidget);
+    await tester.tap(find.byKey(
+      const ValueKey('task-editor-toggle-reminder-toggle-reminder'),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(reenabledResult, isNotNull);
+    expect(reenabledResult!.taskReminders.single.isEnabled, isTrue);
+  });
+
   testWidgets('legacy Task reminder can be explicitly changed to All-Day', (tester) async {
     Task? result;
     final task = Task.fromLegacyJson({
