@@ -1910,7 +1910,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontFamily: 'Vazirmatn',
-                    color: Color(0xFF232433),
+                    color: ArvinColors.textPrimary,
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                   ),

@@ -1,24 +1,26 @@
 import 'package:flutter/material.dart';
 
-/// Shared Persian Teal brand and calm surface tokens for Arvin.
-/// Product semantics (priority, status and taxonomy colors) stay in ArvinColors.
+/// Canonical Arvin Blue & White brand tokens.
+/// User-selectable palette colors are secondary accents only and never brand tokens.
 abstract final class ArvinTheme {
-  static const Color primaryTeal = Color(0xFF008080);
-  static const Color headerTeal = Color(0xFF008B8B);
-  static const Color primarySoft = Color(0xFFD9F0EE);
+  static const Color primaryBlue = Color(0xFF4169A1);
+  static const Color headerBlue = Color(0xFF355782);
+  static const Color primarySoft = Color(0xFFE5EDF8);
+  static const Color iceBlue = Color(0xFFF0F5FC);
+  static const Color lightNeutral = Color(0xFFF4F6F9);
 
-  // Compatibility aliases for older call sites; all resolve to Persian Teal.
-  static const Color primaryBlue = primaryTeal;
-  static const Color headerBlue = headerTeal;
-  static const Color primaryTurquoise = primaryTeal;
-  static const Color headerTurquoise = headerTeal;
-  static const Color primaryPurple = primaryTeal;
-  static const Color headerPurple = headerTeal;
+  // Compatibility aliases retained for existing semantic call sites.
+  static const Color primaryTeal = primaryBlue;
+  static const Color headerTeal = headerBlue;
+  static const Color primaryTurquoise = primaryBlue;
+  static const Color headerTurquoise = headerBlue;
+  static const Color primaryPurple = primaryBlue;
+  static const Color headerPurple = headerBlue;
 
-  static const Color backgroundLight = Color(0xFFF8F8FB);
-  static const Color cardBackground = Color(0xFFFDFDFE);
-  static const Color cardBorder = Color(0xFFE5E7F0);
-  static const Color primaryGlow = Color(0x40008080);
+  static const Color backgroundLight = lightNeutral;
+  static const Color cardBackground = Color(0xFFFFFFFF);
+  static const Color cardBorder = Color(0xFFE5EDF8);
+  static const Color primaryGlow = Color(0x404169A1);
   static const BorderRadius cardBorderRadius =
       BorderRadius.all(Radius.circular(16.0));
   static const String fontFamily = 'Vazirmatn';

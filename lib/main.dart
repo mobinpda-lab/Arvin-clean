@@ -278,8 +278,12 @@ class _ArvinAppState extends State<ArvinApp> {
 
   @override
   Widget build(BuildContext context) {
-    final accentColor = themeManager.selectedColor;
-    final accentSoft = Color.lerp(Colors.white, accentColor, 0.14)!;
+    // The nine-color palette is restricted to secondary Chip selection accents.
+    // Brand identity, primary actions, navigation and focus remain fixed Arvin Blue.
+    final secondaryAccentColor = themeManager.selectedAccentColor;
+    final secondaryAccentSoft = Color.lerp(Colors.white, secondaryAccentColor, 0.14)!;
+    const brandPrimary = ArvinColors.primary;
+    const brandSoft = ArvinColors.primarySoft;
     final lightBaseTextTheme = ThemeData.light().textTheme.apply(
       fontFamily: ArvinTheme.fontFamily,
       bodyColor: ArvinColors.textPrimary,
@@ -289,22 +293,22 @@ class _ArvinAppState extends State<ArvinApp> {
       fontFamily: ArvinTheme.fontFamily,
     );
     final readableLightTextTheme = lightBaseTextTheme.copyWith(
-      bodyLarge: lightBaseTextTheme.bodyLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w600),
-      bodyMedium: lightBaseTextTheme.bodyMedium?.copyWith(fontSize: 16, fontWeight: FontWeight.w500),
-      bodySmall: lightBaseTextTheme.bodySmall?.copyWith(fontSize: 14, fontWeight: FontWeight.w500),
-      titleLarge: lightBaseTextTheme.titleLarge?.copyWith(fontSize: 22, fontWeight: FontWeight.w700),
-      titleMedium: lightBaseTextTheme.titleMedium?.copyWith(fontSize: 18, fontWeight: FontWeight.w700),
-      titleSmall: lightBaseTextTheme.titleSmall?.copyWith(fontSize: 16, fontWeight: FontWeight.w700),
-      labelLarge: lightBaseTextTheme.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w700),
+      bodyLarge: lightBaseTextTheme.bodyLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w600, height: 1.5),
+      bodyMedium: lightBaseTextTheme.bodyMedium?.copyWith(fontSize: 16, fontWeight: FontWeight.w500, height: 1.5),
+      bodySmall: lightBaseTextTheme.bodySmall?.copyWith(fontSize: 14, fontWeight: FontWeight.w500, height: 1.5),
+      titleLarge: lightBaseTextTheme.titleLarge?.copyWith(fontSize: 22, fontWeight: FontWeight.w700, height: 1.5),
+      titleMedium: lightBaseTextTheme.titleMedium?.copyWith(fontSize: 18, fontWeight: FontWeight.w700, height: 1.5),
+      titleSmall: lightBaseTextTheme.titleSmall?.copyWith(fontSize: 16, fontWeight: FontWeight.w700, height: 1.5),
+      labelLarge: lightBaseTextTheme.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w700, height: 1.5),
     );
     final readableDarkTextTheme = darkBaseTextTheme.copyWith(
-      bodyLarge: darkBaseTextTheme.bodyLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w600),
-      bodyMedium: darkBaseTextTheme.bodyMedium?.copyWith(fontSize: 16, fontWeight: FontWeight.w500),
-      bodySmall: darkBaseTextTheme.bodySmall?.copyWith(fontSize: 14, fontWeight: FontWeight.w500),
-      titleLarge: darkBaseTextTheme.titleLarge?.copyWith(fontSize: 22, fontWeight: FontWeight.w700),
-      titleMedium: darkBaseTextTheme.titleMedium?.copyWith(fontSize: 18, fontWeight: FontWeight.w700),
-      titleSmall: darkBaseTextTheme.titleSmall?.copyWith(fontSize: 16, fontWeight: FontWeight.w700),
-      labelLarge: darkBaseTextTheme.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w700),
+      bodyLarge: darkBaseTextTheme.bodyLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w600, height: 1.5),
+      bodyMedium: darkBaseTextTheme.bodyMedium?.copyWith(fontSize: 16, fontWeight: FontWeight.w500, height: 1.5),
+      bodySmall: darkBaseTextTheme.bodySmall?.copyWith(fontSize: 14, fontWeight: FontWeight.w500, height: 1.5),
+      titleLarge: darkBaseTextTheme.titleLarge?.copyWith(fontSize: 22, fontWeight: FontWeight.w700, height: 1.5),
+      titleMedium: darkBaseTextTheme.titleMedium?.copyWith(fontSize: 18, fontWeight: FontWeight.w700, height: 1.5),
+      titleSmall: darkBaseTextTheme.titleSmall?.copyWith(fontSize: 16, fontWeight: FontWeight.w700, height: 1.5),
+      labelLarge: darkBaseTextTheme.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w700, height: 1.5),
     );
     return MaterialApp(
       navigatorKey: arvinNavigatorKey,
@@ -326,14 +330,14 @@ class _ArvinAppState extends State<ArvinApp> {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: accentColor,
+          seedColor: brandPrimary,
           brightness: Brightness.light,
         ).copyWith(
-          primary: accentColor,
+          primary: brandPrimary,
           onPrimary: ArvinColors.surface,
-          secondary: accentColor,
+          secondary: brandPrimary,
           onSecondary: ArvinColors.surface,
-          secondaryContainer: accentSoft,
+          secondaryContainer: brandSoft,
           onSecondaryContainer: ArvinColors.textPrimary,
           error: ArvinColors.error,
           onError: ArvinColors.surface,
@@ -362,19 +366,19 @@ class _ArvinAppState extends State<ArvinApp> {
         textTheme: readableLightTextTheme,
         filledButtonTheme: FilledButtonThemeData(
           style: FilledButton.styleFrom(
-            backgroundColor: accentColor,
+            backgroundColor: brandPrimary,
             foregroundColor: Colors.white,
             elevation: 1,
             shadowColor: ArvinTheme.primaryGlow,
           ),
         ),
         chipTheme: ChipThemeData(
-          selectedColor: accentSoft,
-          secondarySelectedColor: accentSoft,
-          checkmarkColor: accentColor,
+          selectedColor: secondaryAccentSoft,
+          secondarySelectedColor: secondaryAccentSoft,
+          checkmarkColor: secondaryAccentColor,
         ),
         floatingActionButtonTheme: FloatingActionButtonThemeData(
-          backgroundColor: accentColor,
+          backgroundColor: brandPrimary,
           foregroundColor: ArvinColors.surface,
           elevation: 4,
           hoverElevation: 5,
@@ -383,18 +387,18 @@ class _ArvinAppState extends State<ArvinApp> {
         ),
         navigationBarTheme: NavigationBarThemeData(
           backgroundColor: ArvinColors.surface,
-          indicatorColor: accentSoft,
+          indicatorColor: brandSoft,
           iconTheme: WidgetStateProperty.resolveWith(
             (states) => IconThemeData(
               color: states.contains(WidgetState.selected)
-                  ? accentColor
+                  ? brandPrimary
                   : ArvinColors.textSecondary,
             ),
           ),
           labelTextStyle: WidgetStateProperty.resolveWith(
             (states) => TextStyle(
               color: states.contains(WidgetState.selected)
-                  ? accentColor
+                  ? brandPrimary
                   : ArvinColors.textSecondary,
               fontWeight: states.contains(WidgetState.selected)
                   ? FontWeight.w700
@@ -403,7 +407,7 @@ class _ArvinAppState extends State<ArvinApp> {
           ),
         ),
         progressIndicatorTheme: ProgressIndicatorThemeData(
-          color: accentColor,
+          color: brandPrimary,
           linearTrackColor: accentSoft,
           circularTrackColor: accentSoft,
         ),
@@ -411,7 +415,7 @@ class _ArvinAppState extends State<ArvinApp> {
         dividerTheme: const DividerThemeData(color: ArvinColors.border, thickness: 1),
         appBarTheme: AppBarTheme(
           surfaceTintColor: Colors.transparent,
-          backgroundColor: accentColor,
+          backgroundColor: brandPrimary,
           foregroundColor: Colors.white,
           iconTheme: const IconThemeData(color: Colors.white),
           titleTextStyle: TextStyle(
@@ -436,19 +440,19 @@ class _ArvinAppState extends State<ArvinApp> {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(14)),
-            borderSide: BorderSide(color: accentColor, width: 1.8),
+            borderSide: BorderSide(color: brandPrimary, width: 1.8),
           ),
         ),
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: accentColor,
+          seedColor: ArvinColors.darkBrandPrimary,
           brightness: Brightness.dark,
         ).copyWith(
-          primary: accentColor,
+          primary: ArvinColors.darkBrandPrimary,
           onPrimary: Colors.white,
-          secondary: accentColor,
+          secondary: ArvinColors.darkBrandPrimary,
           error: ArvinColors.darkError,
           surfaceTint: Colors.transparent,
           shadow: ArvinTheme.primaryGlow,
@@ -472,7 +476,7 @@ class _ArvinAppState extends State<ArvinApp> {
         dividerTheme: const DividerThemeData(color: ArvinColors.darkDivider, thickness: 1),
         appBarTheme: AppBarTheme(
           surfaceTintColor: Colors.transparent,
-          backgroundColor: accentColor,
+          backgroundColor: ArvinColors.darkBrandPrimary,
           foregroundColor: Colors.white,
           iconTheme: const IconThemeData(color: Colors.white),
         ),
@@ -489,7 +493,7 @@ class _ArvinAppState extends State<ArvinApp> {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: const BorderRadius.all(Radius.circular(14)),
-            borderSide: BorderSide(color: accentColor, width: 1.8),
+            borderSide: BorderSide(color: ArvinColors.darkBrandPrimary, width: 1.8),
           ),
         ),
       ),

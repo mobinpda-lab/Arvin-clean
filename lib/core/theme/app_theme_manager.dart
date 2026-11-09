@@ -15,8 +15,8 @@ class ArvinThemePaletteColor {
   Color get color => AppThemeManager.colorFromHex(hex);
 }
 
-/// Owns the user's primary accent selection and persists it independently of
-/// the broader application settings model.
+/// Owns the user's secondary personalization accent. This selection must never
+/// be used as or override the canonical Arvin brand color.
 class AppThemeManager extends ChangeNotifier {
   AppThemeManager._();
 
@@ -38,7 +38,11 @@ class AppThemeManager extends ChangeNotifier {
 
   String _selectedHex = defaultHex;
   String get selectedHex => _selectedHex;
-  Color get selectedColor => colorFromHex(_selectedHex);
+  Color get selectedAccentColor => colorFromHex(_selectedHex);
+
+  /// Backward-compatible alias. Use only for approved secondary accent surfaces.
+  @Deprecated('Use selectedAccentColor; this is not the brand primary color.')
+  Color get selectedColor => selectedAccentColor;
 
   static Color colorFromHex(String hex) {
     final normalized = hex.replaceFirst('#', '');

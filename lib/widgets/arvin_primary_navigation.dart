@@ -27,7 +27,7 @@ class ArvinPrimaryNavigation extends StatelessWidget {
     const background = ArvinColors.surface;
     const muted = ArvinColors.textSecondary;
     const iconColors = <ArvinPrimaryDestination, Color>{
-      ArvinPrimaryDestination.home: ArvinColors.primary,
+      ArvinPrimaryDestination.home: Color(0xFF0F766E),
       ArvinPrimaryDestination.calendar: Color(0xFF2A9D8F),
       ArvinPrimaryDestination.notebook: Color(0xFFF4A261),
       ArvinPrimaryDestination.nextAction: Color(0xFF8E6CCF),
@@ -135,7 +135,7 @@ class _NavigationItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         onTap: onTap,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
+          duration: const Duration(milliseconds: 250),
           curve: Curves.easeOutCubic,
           margin: const EdgeInsets.symmetric(horizontal: 3),
           padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),

@@ -74,7 +74,9 @@ class _SettingsPageState extends State<SettingsPage> {
     final current = settings;
     return Directionality(textDirection: TextDirection.rtl, child: Scaffold(appBar: AppBar(title: const Text('تنظیمات')), body: current == null ? const Center(child: CircularProgressIndicator()) : ListView(key: const ValueKey('settings-page-scroll'), padding: const EdgeInsets.all(16), children: [
       const Text('ظاهر و نمایش', style: TextStyle(fontWeight: FontWeight.bold)), const SizedBox(height: 8),
-      const Text('انتخاب تم و رنگ اصلی برنامه', key: ValueKey('theme-palette-title'), style: TextStyle(fontWeight: FontWeight.w700)),
+      const Text('انتخاب رنگ تأکیدی ثانویه', key: ValueKey('theme-palette-title'), style: TextStyle(fontWeight: FontWeight.w700)),
+      const SizedBox(height: 6),
+      const Text('رنگ برند آروین و اقدامات اصلی همیشه آبی سلطنتی ثابت هستند؛ این پالت فقط رنگ تأکیدی ثانویه را تغییر می‌دهد.'),
       const SizedBox(height: 10),
       Wrap(
         key: const ValueKey('theme-palette-grid'),
