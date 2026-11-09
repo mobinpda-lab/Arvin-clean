@@ -16,7 +16,6 @@ void main() {
         id: 'task-1',
         title: 'کار مالک آروین',
         dueDate: DateTime(2026, 10, 8, 10),
-        reminderDate: DateTime(2026, 10, 8, 9),
         taskReminders: [
           TaskReminder(
             id: 'reminder-1',
@@ -52,7 +51,7 @@ void main() {
     expect(after.dueDate, before.dueDate);
     expect(after.reminderDate, before.reminderDate);
     expect(after.taskReminders.map((item) => item.id).toSet(),
-        {'reminder-1', 'legacy-task-reminder-task-1'});
+        {'reminder-1'});
     final independent = after.taskReminders.singleWhere(
       (item) => item.id == 'reminder-1',
     );
