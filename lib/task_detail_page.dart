@@ -8,6 +8,7 @@ import 'follow_up_entry_page.dart';
 import 'models/person_reference.dart';
 import 'models/arvin_center.dart';
 import 'services/task_store.dart';
+import 'services/task_move_to_today_service.dart';
 import 'follow_up_repository.dart';
 import 'models/task.dart';
 import 'models/goal_project.dart';
@@ -113,7 +114,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   bool _isSavingTaskTemplate = false;
   TextEditingController? _recurrenceIntervalController;
   TextEditingController? _recurrenceCountController;
-  bool _isTogglingFocusToday = false;
+  bool _isMovingDueDateToToday = false;
   final TextEditingController _checklistAddController = TextEditingController();
   final ScrollController _detailScrollController = ScrollController();
   TextEditingController? _checklistEditController;
@@ -704,35 +705,35 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     super.dispose();
   }
 
-  Future<void> _toggleFocusToday() async {
-    if (_isTogglingFocusToday || widget.onTaskChanged == null) return;
-    final wasSelected = _task.isSelectedForToday;
-    final target = !wasSelected;
-    setState(() => _isTogglingFocusToday = true);
+  Future<void> _moveDueDateToToday() async {
+    final move = widget.onMoveDueDateToToday;
+    if (_isMovingDueDateToToday) return;
+    setState(() => _isMovingDueDateToToday = true);
     try {
-      await _enqueueTaskMutation(
-        (candidate) => candidate.isSelectedForToday = target,
-      );
-      if (!mounted) return;
-      if (_task.isSelectedForToday != target) {
-        throw StateError('Focus membership was not persisted.');
+      final Task updated;
+      if (move != null) {
+        final result = await move(_task);
+        if (result == null) {
+          throw StateError('Task due-date update was not persisted.');
+        }
+        updated = result;
+      } else {
+        updated = await TaskMoveToTodayService().move(_task.id);
       }
-      setState(() => _isTogglingFocusToday = false);
+      if (!mounted) return;
+      setState(() {
+        _task = updated;
+        _isMovingDueDateToToday = false;
+      });
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(
-          content: Text(target
-              ? 'به برگزیده‌های امروز اضافه شد'
-              : 'از برگزیده‌های امروز برداشته شد'),
-        ));
+        ..showSnackBar(const SnackBar(content: Text('موعد انجام کار برای امروز تنظیم شد')));
     } catch (_) {
       if (!mounted) return;
-      setState(() => _isTogglingFocusToday = false);
+      setState(() => _isMovingDueDateToToday = false);
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(
-          content: Text('ذخیرهٔ انتخاب امروز انجام نشد؛ دوباره تلاش کنید'),
-        ));
+        ..showSnackBar(const SnackBar(content: Text('تنظیم موعد برای امروز انجام نشد؛ دوباره تلاش کنید')));
     }
   }
 
@@ -1089,7 +1090,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   Widget _checklistCard() {
-    if (!_task.checklistEnabled) return const SizedBox.shrink();
     final items = _normalizedChecklist();
     if (!_isAddingChecklist && items.isEmpty) {
       return _card(
@@ -1863,51 +1863,143 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     );
   }
 
+  Widget _metadataTile({
+    required Key key,
+    required String title,
+    required String value,
+    required Color accent,
+    required Widget icon,
+    VoidCallback? onTap,
+  }) {
+    return SizedBox(
+      width: 112,
+      height: 82,
+      child: Material(
+        color: accent.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          key: key,
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                icon,
+                Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontFamily: 'Vazirmatn',
+                    color: _muted,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontFamily: 'Vazirmatn',
+                    color: Color(0xFF232433),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _organizationCard() {
     Future<void> openSelector(Future<void> Function() open) => open();
 
     return _card(
       key: const ValueKey('task-detail-organization-card'),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _sectionTitle('سازماندهی کار', Icons.tune_rounded),
-          const SizedBox(height: 8),
-          _linearActionRow(
-            key: const ValueKey('task-detail-organization-center'),
-            icon: Icons.apartment_outlined,
-            title: 'مرکز',
-            value: _selectedCenterName,
-            onTap: () => openSelector(_openInlineCenterSelector),
-          ),
-          const Divider(height: 1),
-          _linearActionRow(
-            key: const ValueKey('task-detail-organization-project'),
-            icon: Icons.folder_outlined,
-            title: 'پروژه',
-            value: _selectedProjectTitle,
-            onTap: () => openSelector(_openInlineProjectSelector),
-          ),
-          const Divider(height: 1),
-          _linearActionRow(
-            key: const ValueKey('task-detail-organization-category'),
-            icon: Icons.category_outlined,
-            title: 'دسته‌بندی',
-            value: _task.category?.trim().isNotEmpty == true ? _task.category!.trim() : 'بدون دسته',
-            onTap: () => openSelector(_openInlineCategorySelector),
-          ),
-          const Divider(height: 1),
-          _linearActionRow(
-            key: const ValueKey('task-detail-organization-tags'),
-            icon: Icons.sell_outlined,
-            title: 'برچسب‌ها',
-            value: _task.tags.isEmpty ? 'بدون برچسب' : _task.tags.join('، '),
-            onTap: () => openSelector(_openInlineTagSelector),
-          ),
-        ],
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          key: const ValueKey('task-detail-metadata-chips'),
+          textDirection: TextDirection.rtl,
+          children: [
+            KeyedSubtree(
+              key: const ValueKey('task-detail-metadata-time'),
+              child: _metadataTile(
+                key: const ValueKey('task-detail-metadata-time-tile'),
+                title: 'زمان اجرا',
+                value: 'نامشخص',
+                accent: ArvinColors.time,
+                icon: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.calendar_month_outlined, size: 17, color: ArvinColors.time),
+                    SizedBox(width: 4),
+                    Icon(Icons.access_time_rounded, size: 17, color: ArvinColors.time),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            KeyedSubtree(
+              key: const ValueKey('task-detail-metadata-center'),
+              child: _metadataTile(
+                key: const ValueKey('task-detail-organization-center'),
+                title: 'مرکز',
+                value: _selectedCenterName,
+                accent: ArvinColors.neutral,
+                icon: const Icon(Icons.apartment_outlined, size: 17, color: ArvinColors.neutral),
+                onTap: () => openSelector(_openInlineCenterSelector),
+              ),
+            ),
+            const SizedBox(width: 8),
+            KeyedSubtree(
+              key: const ValueKey('task-detail-metadata-project'),
+              child: _metadataTile(
+                key: const ValueKey('task-detail-organization-project'),
+                title: 'پروژه',
+                value: _selectedProjectTitle,
+                accent: ArvinColors.project,
+                icon: const Icon(Icons.folder_outlined, size: 17, color: ArvinColors.project),
+                onTap: () => openSelector(_openInlineProjectSelector),
+              ),
+            ),
+            const SizedBox(width: 8),
+            KeyedSubtree(
+              key: const ValueKey('task-detail-metadata-category'),
+              child: _metadataTile(
+                key: const ValueKey('task-detail-organization-category'),
+                title: 'دسته‌بندی',
+                value: _task.category?.trim().isNotEmpty == true ? _task.category!.trim() : 'بدون دسته',
+                accent: ArvinColors.category,
+                icon: const Icon(Icons.category_outlined, size: 17, color: ArvinColors.category),
+                onTap: () => openSelector(_openInlineCategorySelector),
+              ),
+            ),
+            const SizedBox(width: 8),
+            KeyedSubtree(
+              key: const ValueKey('task-detail-metadata-tags'),
+              child: _metadataTile(
+                key: const ValueKey('task-detail-organization-tags'),
+                title: 'برچسب‌ها',
+                value: _task.tags.isEmpty ? 'بدون برچسب' : _task.tags.join('، '),
+                accent: ArvinColors.tag,
+                icon: const Icon(Icons.sell_outlined, size: 17, color: ArvinColors.tag),
+                onTap: () => openSelector(_openInlineTagSelector),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -1915,7 +2007,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     final history = List<FollowUp>.of(_task.followUps)
       ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
     final now = widget.now ?? DateTime.now();
-    final focusToday = _task.isSelectedForToday;
+    final due = _task.dueDate;
+    final dueToday = due != null &&
+        due.year == now.year && due.month == now.month && due.day == now.day;
     final priority = _task.priority;
 
     return Directionality(
@@ -1977,6 +2071,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                 child: Text('PDF، چاپ و اشتراک‌گذاری'),
                               ),
                               PopupMenuItem(
+                                key: const ValueKey('task-detail-delete-menu'),
                                 value: 'delete',
                                 enabled: widget.onDelete != null,
                                 child: const Text('حذف کار'),
@@ -2046,70 +2141,29 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 child: ListView(
                   key: const ValueKey('task-detail-content-list'),
                   controller: _detailScrollController,
-                  padding: const EdgeInsets.fromLTRB(10, 14, 10, 20),
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 120),
                   children: [
-                    _checklistCard(),
+                    _metadataCard(),
+                    const SizedBox(height: 10),
+                    _card(
+                      child: _dueDateCard(),
+                    ),
                     const SizedBox(height: 10),
                     _card(
                       key: const ValueKey('task-detail-linear-actions'),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          KeyedSubtree(
-                            key: const ValueKey('task-detail-toggle-focus-today'),
-                            child: KeyedSubtree(
-                              key: const ValueKey('task-detail-move-due-date-to-today'),
-                              child: _linearActionRow(
-                                key: const ValueKey('task-detail-my-day'),
-                                icon: Icons.push_pin_outlined,
-                                title: 'کارهای برگزیدهٔ امروز',
-                                value: focusToday
-                                    ? 'در برگزیده‌های امروز است'
-                                    : 'با انتخاب، به تمرکز امروز اضافه می‌شود',
-                                onTap: _isTogglingFocusToday || widget.onTaskChanged == null
-                                    ? null
-                                    : _toggleFocusToday,
-                                trailing: focusToday
-                                    ? Icon(Icons.check_circle, color: _brand)
-                                    : const Icon(Icons.chevron_left, color: _muted),
-                              ),
-                            ),
-                          ),
-                          const Divider(height: 1),
-                          _linearActionRow(
-                            key: const ValueKey('task-detail-add-reminder-row'),
-                            icon: Icons.notifications_none_rounded,
-                            title: 'افزودن یادآور',
-                            value: _task.taskReminders.isEmpty
-                                ? 'یادآور مستقلی ثبت نشده'
-                                : '${_task.taskReminders.length} یادآور ثبت شده',
-                            onTap: widget.onTaskChanged == null ? null : _addInlineReminder,
-                          ),
-                          const Divider(height: 1),
-                          _dueDateCard(),
-                          const Divider(height: 1),
-                          _linearActionRow(
-                            key: const ValueKey('task-detail-repeat-row'),
-                            icon: Icons.repeat_rounded,
-                            title: 'تکرار',
-                            value: _task.recurrence == null
-                                ? 'بدون تکرار'
-                                : _recurrenceFrequencyLabel(_task.recurrence!.frequency),
-                            onTap: widget.onTaskChanged == null
-                                ? null
-                                : () => _saveRecurrenceRule(RecurrenceRule(
-                                       frequency: RecurrenceFrequency.daily,
-                                       interval: 1,
-                                       startDate: _task.dueDate,
-                                     )),
-                          ),
-                          const Divider(height: 1),
-                          _assigneeCard(),
-                        ],
+                      child: _linearActionRow(
+                        key: const ValueKey('task-detail-my-day'),
+                        icon: Icons.today_outlined,
+                        title: 'انتقال موعد به امروز',
+                        value: dueToday
+                            ? 'موعد برای امروز تنظیم شده'
+                            : 'با انتخاب، موعد کار به امروز منتقل می‌شود',
+                        onTap: _isMovingDueDateToToday ? null : _moveDueDateToToday,
+                        trailing: dueToday
+                            ? Icon(Icons.check_circle, color: _brand)
+                            : const Icon(Icons.chevron_left, color: _muted),
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    _metadataCard(),
                     const SizedBox(height: 10),
                     _card(
                       key: const ValueKey('task-detail-description-card'),
@@ -2137,9 +2191,13 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                       ),
                     ),
                     const SizedBox(height: 10),
+                    _assigneeCard(),
+                    const SizedBox(height: 10),
                     _remindersCard(),
                     const SizedBox(height: 10),
                     _recurrenceCard(now),
+                    const SizedBox(height: 10),
+                    _checklistCard(),
                     const SizedBox(height: 10),
                     _templateSourceCard(),
                     const SizedBox(height: 10),
