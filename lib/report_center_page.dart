@@ -297,9 +297,9 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                     key: const ValueKey('report-center-filters'),
                     onPressed: _openFilters,
                     style: FilledButton.styleFrom(
-                      minimumSize: const Size(0, 40),
+                      minimumSize: const Size(0, 48),
                       padding: const EdgeInsets.symmetric(horizontal: 12),
-                      visualDensity: VisualDensity.compact,
+                      visualDensity: VisualDensity.standard,
                     ),
                     icon: const Icon(Icons.tune, size: 18),
                     label: const Text('فیلترها'),
@@ -704,6 +704,44 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
     });
   }
 
+  Future<void> _openQuickPresets() async {
+    final selected = await showModalBottomSheet<ReportTimePreset>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Padding(
+              padding: EdgeInsetsDirectional.fromSTEB(20, 4, 20, 12),
+              child: Text('پیش‌تنظیمات سریع زمان'),
+            ),
+            for (final preset in ReportTimePreset.values)
+              ListTile(
+                minTileHeight: 48,
+                leading: const Icon(Icons.schedule_outlined),
+                title: Text(_timeLabel(preset)),
+                trailing: preset == _timePreset
+                    ? const Icon(Icons.check_rounded)
+                    : null,
+                onTap: () => Navigator.of(sheetContext).pop(preset),
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (!mounted || selected == null) return;
+    setState(() {
+      _timePreset = selected;
+      _fromDate = null;
+      _toDate = null;
+      _fromTime = null;
+      _toTime = null;
+    });
+  }
+
   Future<void> _openDimensionFilter({
     required String title,
     required String keyPrefix,
@@ -1092,93 +1130,63 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                 key: const ValueKey('report-filter-scroll'),
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                 children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                textDirection: TextDirection.rtl,
-                children: [
-                  Expanded(
-                    child: HomeFilterPill(
-                      key: const ValueKey('report-home-filter-time'),
-                      label: _timePreset == ReportTimePreset.all &&
-                              _fromDate == null && _toDate == null &&
-                              _fromTime == null && _toTime == null
-                          ? 'زمان'
-                          : _timeLabel(_timePreset),
-                      icon: Icons.schedule_rounded,
-                      accent: Theme.of(context).colorScheme.primary,
-                      soft: Color.alphaBlend(
-                        Theme.of(context).colorScheme.primary.withAlpha(18),
-                        Theme.of(context).colorScheme.surface,
-                      ),
-                      active: _timePreset != ReportTimePreset.all ||
-                          _fromDate != null || _toDate != null ||
-                          _fromTime != null || _toTime != null,
-                      onPressed: _openTimePresetFilter,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: HomeFilterPill(
-                      key: const ValueKey('report-home-filter-center'),
-                      label: _centerIds.isEmpty ? 'مرکز' : 'مرکز (${_centerIds.length})',
-                      icon: Icons.location_city_outlined,
-                      accent: Theme.of(context).colorScheme.primary,
-                      soft: Color.alphaBlend(
-                        Theme.of(context).colorScheme.primary.withAlpha(18),
-                        Theme.of(context).colorScheme.surface,
-                      ),
-                      active: _centerIds.isNotEmpty,
-                      onPressed: _openCenterFilter,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: HomeFilterPill(
-                      key: const ValueKey('report-home-filter-project'),
-                      label: _projectIds.isEmpty ? 'پروژه' : 'پروژه (${_projectIds.length})',
-                      icon: Icons.folder_rounded,
-                      accent: Theme.of(context).colorScheme.primary,
-                      soft: Color.alphaBlend(
-                        Theme.of(context).colorScheme.primary.withAlpha(18),
-                        Theme.of(context).colorScheme.surface,
-                      ),
-                      active: _projectIds.isNotEmpty,
-                      onPressed: _openProjectFilter,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: HomeFilterPill(
-                      key: const ValueKey('report-home-filter-category'),
-                      label: _categories.isEmpty ? 'دسته' : 'دسته (${_categories.length})',
-                      icon: Icons.layers_rounded,
-                      accent: Theme.of(context).colorScheme.primary,
-                      soft: Color.alphaBlend(
-                        Theme.of(context).colorScheme.primary.withAlpha(18),
-                        Theme.of(context).colorScheme.surface,
-                      ),
-                      active: _categories.isNotEmpty,
-                      onPressed: _openCategoryFilter,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: HomeFilterPill(
-                      key: const ValueKey('report-home-filter-tags'),
-                      label: _tags.isEmpty ? 'برچسب' : 'برچسب (${_tags.length})',
-                      icon: Icons.sell_rounded,
-                      accent: Theme.of(context).colorScheme.primary,
-                      soft: Color.alphaBlend(
-                        Theme.of(context).colorScheme.primary.withAlpha(18),
-                        Theme.of(context).colorScheme.surface,
-                      ),
-                      active: _tags.isNotEmpty,
-                      onPressed: _openTagFilter,
-                    ),
-                  ),
-                ],
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _ReportFilterActionRow(
+                  key: const ValueKey('report-home-filter-time'),
+                  title: 'زمان',
+                  subtitle: _timePreset == ReportTimePreset.all &&
+                          _fromDate == null && _toDate == null &&
+                          _fromTime == null && _toTime == null
+                      ? 'همه زمان‌ها'
+                      : _timeLabel(_timePreset),
+                  icon: Icons.schedule_rounded,
+                  selectedCount: (_timePreset != ReportTimePreset.all ? 1 : 0) +
+                      (_fromDate != null || _toDate != null ? 1 : 0) +
+                      (_fromTime != null || _toTime != null ? 1 : 0),
+                  onTap: _openTimePresetFilter,
+                ),
+                _ReportFilterActionRow(
+                  key: const ValueKey('report-home-filter-center'),
+                  title: 'مرکز',
+                  subtitle: _centerIds.isEmpty ? 'همه مراکز' : '${_centerIds.length} مرکز انتخاب‌شده',
+                  icon: Icons.location_city_outlined,
+                  selectedCount: _centerIds.length,
+                  onTap: _openCenterFilter,
+                ),
+                _ReportFilterActionRow(
+                  key: const ValueKey('report-home-filter-project'),
+                  title: 'پروژه',
+                  subtitle: _projectIds.isEmpty ? 'همه پروژه‌ها' : '${_projectIds.length} پروژه انتخاب‌شده',
+                  icon: Icons.folder_open_outlined,
+                  selectedCount: _projectIds.length,
+                  onTap: _openProjectFilter,
+                ),
+                _ReportFilterActionRow(
+                  key: const ValueKey('report-home-filter-category'),
+                  title: 'دسته',
+                  subtitle: _categories.isEmpty ? 'همه دسته‌ها' : '${_categories.length} دسته انتخاب‌شده',
+                  icon: Icons.category_outlined,
+                  selectedCount: _categories.length,
+                  onTap: _openCategoryFilter,
+                ),
+                _ReportFilterActionRow(
+                  key: const ValueKey('report-home-filter-tag'),
+                  title: 'برچسب',
+                  subtitle: _tags.isEmpty ? 'همه برچسب‌ها' : '${_tags.length} برچسب انتخاب‌شده',
+                  icon: Icons.sell_outlined,
+                  selectedCount: _tags.length,
+                  onTap: _openTagFilter,
+                ),
+                _ReportFilterActionRow(
+                  key: const ValueKey('report-home-filter-presets'),
+                  title: 'پیش‌تنظیمات سریع',
+                  subtitle: 'اعمال فوری بازه‌های پرکاربرد',
+                  icon: Icons.bolt_outlined,
+                  onTap: _openQuickPresets,
+                ),
+              ],
             ),
             _Section(
               title: 'نوع گزارش',
@@ -1749,7 +1757,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                           _hasFollowUp = null;
                           _hasChecklist = null;
                         }),
-                        style: OutlinedButton.styleFrom(minimumSize: const Size(0, 44)),
+                        style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)),
                         child: const Text('بازنشانی'),
                       ),
                     ),
@@ -1838,6 +1846,75 @@ class _MultiSelectChips extends StatelessWidget {
   }
 }
 
+class _ReportFilterActionRow extends StatelessWidget {
+  const _ReportFilterActionRow({
+    super.key,
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.onTap,
+    this.selectedCount = 0,
+  });
+
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final VoidCallback onTap;
+  final int selectedCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      constraints: const BoxConstraints(minHeight: 48),
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colors.outlineVariant, width: 0.8),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              children: [
+                Icon(icon, color: colors.primary),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(title, style: Theme.of(context).textTheme.titleSmall),
+                      const SizedBox(height: 2),
+                      Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
+                    ],
+                  ),
+                ),
+                if (selectedCount > 0)
+                  Padding(
+                    padding: const EdgeInsetsDirectional.only(end: 8),
+                    child: Text(
+                      selectedCount.toString(),
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            color: colors.primary,
+                          ),
+                    ),
+                  ),
+                Icon(Icons.chevron_left_rounded, color: colors.onSurfaceVariant),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _Section extends StatefulWidget {
   const _Section({
     super.key,
@@ -1874,7 +1951,7 @@ class _SectionState extends State<_Section> {
       color: colors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: (widget.accentColor ?? colors.outlineVariant).withValues(alpha: .18)),
+        side: BorderSide(color: (widget.accentColor ?? colors.outlineVariant).withValues(alpha: .18), width: 0.8),
       ),
       clipBehavior: Clip.antiAlias,
       child: ExpansionTile(
