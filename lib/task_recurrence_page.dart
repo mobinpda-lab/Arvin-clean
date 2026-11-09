@@ -80,7 +80,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
   }
 
   Future<void> _loadLifecycle(Task? task) async {
-    if (task == null || task.recurrence == null || task.primaryReminderDate == null) {
+    if (task == null || task.recurrence == null || task.reminderDate == null) {
       if (mounted) {
         setState(() {
         _progress = const {};
@@ -94,7 +94,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
     final now = widget.repository.now();
     final progress = await widget.repository.progress(task.id, from: task.recurrence!.startDate);
     final rule = task.recurrence!;
-    final anchor = task.primaryReminderDate!;
+    final anchor = task.reminderDate!;
     DateTime? next;
     var cursor = rule.startDate ?? anchor;
     var guard = 0;
@@ -132,7 +132,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
     if (task == null || _saving) return;
     final interval = int.tryParse(_interval.text.trim());
     final count = int.tryParse(_count.text.trim());
-    final startDate = _startDate ?? task.primaryReminderDate;
+    final startDate = _startDate ?? task.reminderDate;
     if (_enabled && (interval == null || interval < 1)) {
       _message('فاصله تکرار باید حداقل ۱ باشد');
       return;
@@ -195,7 +195,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
 
   Future<void> _resumeFromToday() async {
     final task = _selectedTask;
-    if (task == null || task.recurrence == null || task.primaryReminderDate == null || _saving) return;
+    if (task == null || task.recurrence == null || task.reminderDate == null || _saving) return;
     setState(() => _saving = true);
     try {
       await widget.repository.resumeFromToday(task.id);
@@ -211,7 +211,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
   Future<void> _chooseStartDate() async {
     final picked = await showPersianDatePicker(
       context: context,
-      initialDate: _startDate ?? _selectedTask?.primaryReminderDate ?? DateTime.now(),
+      initialDate: _startDate ?? _selectedTask?.reminderDate ?? DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
       helpText: 'تاریخ شروع تکرار',
@@ -224,7 +224,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
   Future<void> _chooseEndDate() async {
     final picked = await showPersianDatePicker(
       context: context,
-      initialDate: _endDate ?? _startDate ?? _selectedTask?.primaryReminderDate ?? DateTime.now(),
+      initialDate: _endDate ?? _startDate ?? _selectedTask?.reminderDate ?? DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
       helpText: 'تاریخ پایان تکرار',
@@ -421,7 +421,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
                         key: const ValueKey('recurrence-start-date'),
                         onPressed: !_enabled || _saving ? null : _chooseStartDate,
                         icon: const Icon(Icons.event_outlined),
-                        label: Text('شروع: ${_date(_startDate ?? task?.primaryReminderDate ?? widget.repository.now())}'),
+                        label: Text('شروع: ${_date(_startDate ?? task?.reminderDate ?? widget.repository.now())}'),
                       ),
                       const SizedBox(height: 8),
                       Row(
@@ -463,11 +463,11 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
                         icon: const Icon(Icons.save_outlined),
                         label: const Text('ذخیره تکرار'),
                       ),
-                      if (task?.primaryReminderDate != null) ...[
+                      if (task?.reminderDate != null) ...[
                         const SizedBox(height: 12),
-                        Text('زمان فعلی یادآوری: ${_date(task!.primaryReminderDate!)}'),
+                        Text('زمان فعلی یادآوری: ${_date(task!.reminderDate!)}'),
                       ],
-                      if (_enabled && task?.primaryReminderDate != null) ...[
+                      if (_enabled && task?.reminderDate != null) ...[
                         const SizedBox(height: 12),
                         OutlinedButton.icon(
                           key: const ValueKey('recurrence-resume-today'),

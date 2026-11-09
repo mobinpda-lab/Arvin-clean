@@ -180,20 +180,25 @@ void main() {
     expect(task.toJson()['reminderDate'], isNull);
   });
 
-  test('reminderDate can be added, changed and removed without affecting Task identity', () {
+  test('taskReminders are added, changed and removed while reminderDate stays computed', () {
     final first = DateTime.parse('2026-08-10T09:00:00.000');
     final second = DateTime.parse('2026-08-11T14:30:00.000');
     final task = Task(id: 'reminder-lifecycle', title: 'یادآوری');
 
-    task.reminderDate = first;
+    task.taskReminders.add(TaskReminder(
+      id: 'reminder-lifecycle-record',
+      title: 'یادآوری',
+      date: first,
+      sequence: 1,
+    ));
     expect(Task.fromJson(task.toJson()).reminderDate, first);
 
-    task.reminderDate = second;
+    task.taskReminders[0] = task.taskReminders[0].copyWith(date: second);
     final changed = Task.fromJson(task.toJson());
     expect(changed.id, 'reminder-lifecycle');
     expect(changed.reminderDate, second);
 
-    task.reminderDate = null;
+    task.taskReminders.clear();
     expect(Task.fromJson(task.toJson()).reminderDate, isNull);
   });
 

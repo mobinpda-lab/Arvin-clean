@@ -330,16 +330,7 @@ class Task {
   /// Computed compatibility view of the earliest enabled reminder.
   /// The canonical reminder data lives only in [taskReminders]; dueDate is
   /// intentionally independent and never participates in this projection.
-  DateTime? get reminderDate {
-    DateTime? earliest;
-    for (final reminder in taskReminders) {
-      if (!reminder.isEnabled) continue;
-      if (earliest == null || reminder.date.isBefore(earliest)) {
-        earliest = reminder.date;
-      }
-    }
-    return earliest;
-  }
+  DateTime? get reminderDate => earliestEnabledTaskReminder(this)?.date;
 
   /// First completion records a timestamp; repeated completion is idempotent.
   /// Explicit reopening clears it so the next completion records a fresh time.
@@ -680,4 +671,16 @@ String migratedTaskReminderId(String taskId) =>
 /// per-reminder legacy classification flag.
 bool isMigratedTaskReminder(Task task, TaskReminder reminder) =>
     reminder.id == migratedTaskReminderId(task.id);
+
+/// Returns the canonical earliest enabled reminder record, if one exists.
+TaskReminder? earliestEnabledTaskReminder(Task task) {
+  TaskReminder? earliest;
+  for (final reminder in task.taskReminders) {
+    if (!reminder.isEnabled) continue;
+    if (earliest == null || reminder.date.isBefore(earliest.date)) {
+      earliest = reminder;
+    }
+  }
+  return earliest;
+}
 

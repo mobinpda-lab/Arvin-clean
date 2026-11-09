@@ -478,7 +478,7 @@ void main() {
     expect(saved.taskReminders, hasLength(1));
     expect(saved.taskReminders.single.title, 'یادآور پیگیری');
     expect(saved.taskReminders.single.date.isAfter(DateTime.now()), isTrue);
-    expect(saved.taskReminders.single.isLegacyTaskReminder, isFalse);
+    expect(isMigratedTaskReminder(saved, saved.taskReminders.single), isFalse);
     expect(result!.toJson().containsKey('reminderDate'), isFalse);
     expect(result!.toJson().containsKey('nextFollowUp'), isFalse);
   });

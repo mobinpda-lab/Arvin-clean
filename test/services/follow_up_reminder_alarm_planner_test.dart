@@ -57,23 +57,23 @@ void main() {
     );
   });
 
-  test('legacy reminder toggle also suppresses its pre-migration date', () {
+  test('a migrated reminder remains unscheduled when its canonical record is disabled', () {
     final at = DateTime(2026, 9, 8, 15);
-    final task = Task(
-      id: 'legacy-reminder-disabled',
-      title: 'یادآور قدیمی',
-      reminderDate: at,
-      taskReminders: [
-        TaskReminder(
-          id: 'legacy-r',
-          title: 'یادآور قدیمی',
-          date: at,
-          sequence: 1,
-          isLegacyTaskReminder: true,
-          isEnabled: false,
-        ),
+    final task = Task.fromJson({
+      'id': 'legacy-reminder-disabled',
+      'title': 'یادآور قدیمی',
+      'reminderDate': at.toIso8601String(),
+      'legacyTaskReminderMigrationVersion': 1,
+      'taskReminders': [
+        {
+          'id': migratedTaskReminderId('legacy-reminder-disabled'),
+          'title': 'یادآور قدیمی',
+          'date': at.toIso8601String(),
+          'sequence': 1,
+          'isEnabled': false,
+        },
       ],
-    );
+    });
     expect(
       planner.nextAlarmAt([task], deliveredState: const {}, now: DateTime(2026, 9, 8, 12)),
       isNull,

@@ -70,37 +70,18 @@ class TaskTemplate {
     for (final reminder in task.taskReminders) {
       // When a legacy compatibility reminder and an independent reminder
       // represent the same instant, the independent record is authoritative.
-      final replacedByIndependent = reminder.isLegacyTaskReminder &&
+      final replacedByIndependent = isMigratedTaskReminder(task, reminder) &&
           task.taskReminders.any((candidate) =>
-              !candidate.isLegacyTaskReminder &&
+              !isMigratedTaskReminder(task, candidate) &&
               candidate.date.isAtSameMomentAs(reminder.date));
       if (replacedByIndependent) continue;
       reminderDefinitions.add(TaskTemplateReminder(
-        title: reminder.isLegacyTaskReminder ? 'یادآور اصلی' : reminder.title,
+        title: isMigratedTaskReminder(task, reminder) ? 'یادآور اصلی' : reminder.title,
         isAllDay: reminder.isAllDay,
         hour: reminder.date.hour,
         minute: reminder.date.minute,
         isEnabled: reminder.isEnabled,
         sequence: reminder.sequence,
-      ));
-    }
-    // Legacy Task.reminderDate is still canonical input for older Tasks. Copy
-    // its time-of-day only; the calendar date is execution history, not a
-    // reusable template default. Do not duplicate a reminder already migrated
-    // into the independent reminder collection.
-    if (task.primaryReminderDate != null &&
-        !task.taskReminders.any((reminder) => reminder.isLegacyTaskReminder ||
-            reminder.date.isAtSameMomentAs(task.primaryReminderDate!))) {
-      final sequence = reminderDefinitions.isEmpty
-          ? 1
-          : reminderDefinitions.map((item) => item.sequence).reduce((a, b) => a > b ? a : b) + 1;
-      reminderDefinitions.add(TaskTemplateReminder(
-        title: 'یادآور اصلی',
-        isAllDay: false,
-        hour: task.primaryReminderDate!.hour,
-        minute: task.primaryReminderDate!.minute,
-        isEnabled: true,
-        sequence: sequence,
       ));
     }
     return TaskTemplate(

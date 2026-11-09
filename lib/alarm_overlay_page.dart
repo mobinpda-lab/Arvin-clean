@@ -107,7 +107,7 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
       final matches = task.taskReminders.where((item) =>
           widget.taskReminderId != null
               ? item.id == widget.taskReminderId
-              : item.isLegacyTaskReminder);
+              : isMigratedTaskReminder(task, item));
       if (matches.length != 1) {
         throw StateError('شناسه یادآور فعال معتبر نیست.');
       }
