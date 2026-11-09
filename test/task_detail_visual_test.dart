@@ -5,6 +5,80 @@ import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/task_detail_page.dart';
 
+void _installRenderFlexOverflowProbe(WidgetTester tester, String scenario) {
+  final previousHandler = FlutterError.onError;
+  FlutterError.onError = (details) {
+    final message = details.exceptionAsString();
+    if (message.contains('RenderFlex') && message.contains('overflowed')) {
+      // ignore: avoid_print
+      print('\\n===== RENDERFLEX_OVERFLOW_BEGIN [$scenario] =====');
+      // ignore: avoid_print
+      print(details.toString());
+      // The full render dump preserves the offending RenderFlex constraints,
+      // its parent chain, and the widget creator information in CI logs.
+      debugDumpRenderTree();
+      // ignore: avoid_print
+      print('===== RENDERFLEX_OVERFLOW_END [$scenario] =====\\n');
+    }
+    previousHandler?.call(details);
+  };
+  addTearDown(() => FlutterError.onError = previousHandler);
+}
+
+void _dumpVisibleRenderSubtree(
+  WidgetTester tester, {
+  required String label,
+}) {
+  final viewport = Rect.fromLTWH(
+    0,
+    0,
+    tester.view.physicalSize.width / tester.view.devicePixelRatio,
+    tester.view.physicalSize.height / tester.view.devicePixelRatio,
+  );
+  var emitted = 0;
+  // ignore: avoid_print
+  print('\\n===== VISIBLE_RENDER_SUBTREE_BEGIN [$label] =====');
+  for (final element in tester.allElements) {
+    final renderObject = element.findRenderObject();
+    if (renderObject is! RenderBox ||
+        !renderObject.attached ||
+        !renderObject.hasSize) {
+      continue;
+    }
+    final rect = renderObject.localToGlobal(Offset.zero) & renderObject.size;
+    if (!rect.overlaps(viewport)) continue;
+    final parents = <String>[];
+    RenderObject? parent = renderObject.parent;
+    for (var depth = 0; parent != null && depth < 5; depth++) {
+      if (parent is RenderBox && parent.hasSize) {
+        parents.add(
+          '${parent.runtimeType}(constraints: ${parent.constraints})',
+        );
+      } else {
+        parents.add(parent.runtimeType.toString());
+      }
+      parent = parent.parent;
+    }
+    // ignore: avoid_print
+    print(
+      'VISIBLE widget=${element.widget.runtimeType} '
+      'key=${element.widget.key} rect=$rect '
+      'constraints=${renderObject.constraints} '
+      'parents=${parents.join(' <- ')}',
+    );
+    emitted++;
+    if (emitted >= 240) {
+      // ignore: avoid_print
+      print('VISIBLE_SUBTREE_TRUNCATED after 240 render boxes');
+      break;
+    }
+  }
+  // ignore: avoid_print
+  print('VISIBLE_RENDER_BOX_COUNT=$emitted');
+  // ignore: avoid_print
+  print('===== VISIBLE_RENDER_SUBTREE_END [$label] =====\\n');
+}
+
 Future<void> _scrollTaskDetailUntilVisible(
   WidgetTester tester,
   Finder target,
@@ -40,6 +114,7 @@ void main() {
   testWidgets(
     'Task Details renders all eleven structural surfaces without overflow and scrolls',
     (tester) async {
+      _installRenderFlexOverflowProbe(tester, 'task-detail-structural-412dp');
       tester.view.physicalSize = const Size(412, 900);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -229,6 +304,7 @@ void main() {
   });
 
   testWidgets('Task Details full page has zero overflow at 360, 390 and 412 dp', (tester) async {
+    _installRenderFlexOverflowProbe(tester, 'task-detail-full-page-widths');
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -284,6 +360,12 @@ void main() {
         if (controller.offset >= max - 0.5) break;
         controller.jumpTo((controller.offset + 220).clamp(0.0, max).toDouble());
         await tester.pump(const Duration(milliseconds: 20));
+        if (width == 360 && step == 3) {
+          _dumpVisibleRenderSubtree(
+            tester,
+            label: 'task-detail-360dp-scroll-step-3',
+          );
+        }
         expect(
           tester.takeException(),
           isNull,
