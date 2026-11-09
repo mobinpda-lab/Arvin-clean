@@ -38,6 +38,63 @@ bool _isDateOnlyStorageValue(Object? value) {
       int.tryParse(value.substring(8, 10)) != null;
 }
 
+Map<String, dynamic> _decodeLegacyFollowUpMetadata(
+  Map<String, dynamic> json,
+) {
+  final metadata = <String, dynamic>{};
+  final rawMetadata = json['legacyFollowUpMetadata'];
+  if (rawMetadata is Map) {
+    metadata.addAll(Map<String, dynamic>.from(rawMetadata));
+  }
+
+  final taskLevel = <String, dynamic>{};
+  if (json.containsKey('followUpEnabled')) {
+    taskLevel['followUpEnabled'] = json['followUpEnabled'];
+  }
+  if (json.containsKey('followUpDate')) {
+    taskLevel['followUpDate'] = json['followUpDate'];
+  }
+  if (taskLevel.isNotEmpty) {
+    final existing = metadata['taskLevel'];
+    metadata['taskLevel'] = <String, dynamic>{
+      if (existing is Map) ...Map<String, dynamic>.from(existing),
+      ...taskLevel,
+    };
+  }
+
+  final rawFollowUps = json['followUps'];
+  if (rawFollowUps is List) {
+    final records = <Map<String, dynamic>>[];
+    final existing = metadata['followUps'];
+    if (existing is List) {
+      for (final raw in existing) {
+        if (raw is Map) records.add(Map<String, dynamic>.from(raw));
+      }
+    }
+    for (final raw in rawFollowUps) {
+      if (raw is! Map || raw['nextFollowUp'] == null) continue;
+      final record = <String, dynamic>{
+        if (raw['id'] != null) 'id': raw['id'],
+        'nextFollowUp': raw['nextFollowUp'],
+        if (raw['nextFollowUpAllDay'] != null)
+          'nextFollowUpAllDay': raw['nextFollowUpAllDay'],
+      };
+      final id = raw['id'];
+      final existingIndex = records.indexWhere(
+        (item) => id != null && item['id'] == id,
+      );
+      if (existingIndex < 0) {
+        records.add(record);
+      } else {
+        records[existingIndex] = record;
+      }
+    }
+    if (records.isNotEmpty) metadata['followUps'] = records;
+  }
+
+  return metadata;
+}
+
 class FollowUpRecord {
   final String id;
 
@@ -211,6 +268,7 @@ class Task {
     Iterable<TaskReminder> taskReminders = const [],
     this.nextReminderSequence = 1,
     this.legacyTaskReminderMigrationVersion = 0,
+    this.legacyFollowUpMetadata = const <String, dynamic>{},
     this.priority = TaskPriority.medium,
     this.isFavorite = false,
     bool isSelectedForToday = false,
@@ -269,6 +327,9 @@ class Task {
   /// Version 1 means legacy Task.reminderDate was considered for migration.
   /// Persisted even after deletion so a stale legacy field cannot resurrect it.
   int legacyTaskReminderMigrationVersion;
+  /// Opaque, non-scheduling compatibility payload for retired Follow-up dates.
+  /// Never read by notification or calendar scheduling services.
+  Map<String, dynamic> legacyFollowUpMetadata;
   TaskPriority priority;
   bool isFavorite;
   /// Canonical local-calendar date for this Task's Focus membership.
@@ -450,6 +511,8 @@ class Task {
           'nextReminderSequence': nextReminderSequence,
         if (legacyTaskReminderMigrationVersion > 0)
           'legacyTaskReminderMigrationVersion': legacyTaskReminderMigrationVersion,
+        if (legacyFollowUpMetadata.isNotEmpty)
+          'legacyFollowUpMetadata': Map<String, dynamic>.from(legacyFollowUpMetadata),
         'priority': priority.name,
         'isFavorite': isFavorite,
         if (focusDate != null) 'focusDate': _dateOnlyStorageValue(focusDate!),
@@ -484,6 +547,7 @@ class Task {
     }
 
     final loadedPeople = _decodePeople(json['people']);
+    final legacyFollowUpMetadata = _decodeLegacyFollowUpMetadata(json);
     final loadedTaskReminders = <TaskReminder>[];
     final rawTaskReminders = json['taskReminders'];
     if (rawTaskReminders is List) {
@@ -516,19 +580,6 @@ class Task {
         'Invalid legacy Task reminderDate; refusing silent schedule loss.',
       );
     }
-    final rawLegacyFollowUpDate = json['followUpDate'];
-    final legacyFollowUpDate = migrateLegacyReminders && rawLegacyFollowUpDate is String
-        ? DateTime.tryParse(rawLegacyFollowUpDate)
-        : null;
-    if (migrateLegacyReminders &&
-        rawLegacyFollowUpDate is String &&
-        rawLegacyFollowUpDate.trim().isNotEmpty &&
-        legacyFollowUpDate == null) {
-      throw const FormatException(
-        'Invalid legacy Task followUpDate; refusing silent schedule loss.',
-      );
-    }
-    final legacyFollowUpEnabled = json['followUpEnabled'] == true;
     final storedSequence = (json['nextReminderSequence'] as num?)?.toInt() ?? 1;
     final sequenceFromJson = storedSequence < 1 ? 1 : storedSequence;
     final storedMigrationVersion =
@@ -557,35 +608,6 @@ class Task {
         );
       }
       migrationVersion = 1;
-    }
-
-    // Retired Task-level Follow-up scheduling is migrated to an independent
-    // Reminder. The legacy fields remain compatibility inputs only.
-    if (migrationVersion < 2 && legacyFollowUpDate != null) {
-      final taskId = json['id'] as String? ?? '';
-      final reminderId = migratedLegacyFollowUpReminderId(taskId);
-      if (!loadedTaskReminders.any((item) => item.id == reminderId)) {
-        final highestSequence = loadedTaskReminders.isEmpty
-            ? 0
-            : loadedTaskReminders
-                .map((item) => item.sequence)
-                .reduce((a, b) => a > b ? a : b);
-        final migrationSequence = highestSequence + 1 > sequenceFromJson
-            ? highestSequence + 1
-            : sequenceFromJson;
-        loadedTaskReminders.add(
-          TaskReminder(
-            id: reminderId,
-            title: 'یادآوری پیگیری: ${json['title'] as String? ?? ''}',
-            date: legacyFollowUpDate,
-            isAllDay: json['followUpAllDay'] == true ||
-                _isDateOnlyStorageValue(rawLegacyFollowUpDate),
-            sequence: migrationSequence,
-            isEnabled: legacyFollowUpEnabled,
-          ),
-        );
-      }
-      migrationVersion = 2;
     }
 
     // Explicit legacy Follow-up reminder dates are migrated to the same
@@ -678,6 +700,7 @@ class Task {
       taskReminders: loadedTaskReminders,
       nextReminderSequence: nextReminderSequence,
       legacyTaskReminderMigrationVersion: migrationVersion,
+      legacyFollowUpMetadata: legacyFollowUpMetadata,
       priority: loadedPriority,
       isFavorite: json['isFavorite'] as bool? ?? false,
       focusDate: (json['focusDate'] is String
@@ -719,9 +742,6 @@ class Task {
 /// Stable ID retained for reminders migrated from pre-collection Task JSON.
 String migratedTaskReminderId(String taskId) =>
     'legacy-task-reminder-$taskId';
-
-String migratedLegacyFollowUpReminderId(String taskId) =>
-    'legacy-task-follow-up-reminder-$taskId';
 
 /// Recognizes a migrated record by its stable ID, without persisting a
 /// per-reminder legacy classification flag.
