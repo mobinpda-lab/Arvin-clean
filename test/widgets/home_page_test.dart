@@ -991,7 +991,7 @@ void main() {
       (tester) async {
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
-          '[{"id":"focus-card-contract","title":"کار نمایشی","category":"شخصی","tags":["محرمانه"],"centerId":"center-hidden","dueDate":"2030-09-20T10:00:00.000","isSelectedForToday":true,"isFavorite":false,"followUps":[{"id":"follow-up-summary","dateTime":"2026-11-08T10:00:00.000","note":"خلاصه آخرین پیگیری"}]}]',
+          '[{"id":"focus-card-contract","title":"کار نمایشی","category":"شخصی","tags":["محرمانه"],"centerId":"center-hidden","dueDate":"2030-09-20T10:00:00.000","isSelectedForToday":true,"isFavorite":false,"followUps":[{"id":"follow-up-summary","dateTime":"2026-11-08T10:00:00.000","note":"خلاصه آخرین پیگیری"}]},{"id":"no-category-priority","title":"بدون دسته"}]',
     });
 
     await tester.pumpWidget(const ArvinApp());
@@ -1000,6 +1000,7 @@ void main() {
     expect(find.text('کار نمایشی'), findsOneWidget);
     expect(find.text('شخصی'), findsOneWidget);
     expect(find.byKey(const ValueKey('task-card-eisenhower-dot-focus-card-contract')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-card-eisenhower-dot-no-category-priority')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-card-focus-marker-focus-card-contract')), findsOneWidget);
     expect(find.text('خلاصه آخرین پیگیری'), findsOneWidget);
     expect(find.textContaining('آخرین پیگیری:'), findsOneWidget);
