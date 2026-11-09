@@ -175,6 +175,38 @@ void main() {
     expect(service.due([task], now: now), isEmpty);
   });
 
+  test('completed Tasks never deliver canonical reminders', () {
+    final result = service.due(
+      [task('done-reminder', completed: true, taskReminders: [
+        TaskReminder(id: 'r1', title: 'یادآور', date: now.subtract(const Duration(minutes: 1)), sequence: 1),
+      ])],
+      now: now,
+    );
+    expect(result, isEmpty);
+  });
+
+  test('an overdue Task still delivers its independent Reminder', () {
+    final overdue = Task(
+      id: 'overdue-task',
+      title: 'کار عقب‌افتاده',
+      dueDate: now.subtract(const Duration(days: 2)),
+      taskReminders: [
+        TaskReminder(id: 'r1', title: 'یادآور مستقل', date: now.subtract(const Duration(minutes: 1)), sequence: 1),
+      ],
+    );
+    expect(service.due([overdue], now: now), hasLength(1));
+  });
+
+  test('an already delivered identity cannot be scheduled a second time', () {
+    final at = now.subtract(const Duration(minutes: 1));
+    final reminderTask = task('duplicate', taskReminders: [
+      TaskReminder(id: 'r1', title: 'یادآور', date: at, sequence: 1),
+    ]);
+    final candidate = service.due([reminderTask], now: now).single;
+    final identity = service.deliveryIdentity(candidate);
+    expect(service.due([reminderTask], now: now, deliveredIdentities: {identity}), isEmpty);
+  });
+
   test('date-only reminder notification uses 9 AM, not an inferred midnight time', () {
     final result = service.due(
       [

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:arvin/backup_manager.dart';
@@ -8,6 +9,8 @@ import 'package:arvin/models/task.dart';
 import 'package:arvin/services/calendar_sync_plan_service.dart';
 import 'package:arvin/services/external_calendar_link_store.dart';
 import 'package:arvin/services/follow_up_reminder_delivery_service.dart';
+import 'package:arvin/services/follow_up_reminder_projection.dart';
+import 'package:arvin/services/follow_up_reminder_alarm_planner.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,6 +21,40 @@ void main() {
 
   setUp(() async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
+  });
+
+  test('disabled reminders stay disabled after database close and application restart', () async {
+    final directory = await Directory.systemTemp.createTemp('arvin-disabled-reminder-reopen-');
+    final databaseFile = File('${directory.path}/arvin.sqlite');
+    var executor = NativeDatabase(databaseFile);
+    final now = DateTime(2026, 11, 8, 10);
+    final original = Task(
+      id: 'disabled-after-restart',
+      title: 'یادآورهای خاموش',
+      taskReminders: [
+        TaskReminder(id: 'future-off', title: 'آینده خاموش', date: now.add(const Duration(hours: 1)), sequence: 1, isEnabled: false),
+        TaskReminder(id: 'past-off', title: 'گذشته خاموش', date: now.subtract(const Duration(hours: 1)), sequence: 2, isEnabled: false),
+      ],
+    );
+    await TaskStore(executor: executor).save([original]);
+    await executor.close();
+
+    executor = NativeDatabase(databaseFile);
+    try {
+      final restored = (await TaskStore(executor: executor).load()).single;
+      expect(restored.taskReminders.map((item) => item.isEnabled), [false, false]);
+      expect(const FollowUpReminderProjection().pending([restored], now: now), isEmpty);
+      expect(const FollowUpReminderDeliveryService().due([restored], now: now), isEmpty);
+      expect(
+        const FollowUpReminderAlarmPlanner().nextAlarmAt(
+          [restored], deliveredState: const <String, String>{}, now: now,
+        ),
+        isNull,
+      );
+    } finally {
+      await executor.close();
+      await directory.delete(recursive: true);
+    }
   });
 
   test('deleted migrated legacy reminder does not return after SQL and backup restore',
