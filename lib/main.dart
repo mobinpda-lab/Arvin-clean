@@ -3599,6 +3599,31 @@ class _HomePageState extends State<HomePage> {
                           ],
                         ],
                       ),
+                      if (lastFollowUpDate != null) ...[
+                        const SizedBox(height: 7),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.event_outlined,
+                              size: 15,
+                              color: ArvinColors.textSecondary,
+                            ),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                'آخرین پیگیری: ${_date(lastFollowUpDate)} • ${_time(lastFollowUpDate)}${followUpPresentation?.relative == null ? '' : ' • ${followUpPresentation!.relative}'}',
+                                style: TextStyle(
+                                  color: ArvinColors.textSecondary,
+                                  fontSize: 11,
+                                  fontWeight: late
+                                      ? FontWeight.w600
+                                      : FontWeight.w400,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                       const SizedBox(height: 4),
                       Row(
                         mainAxisSize: MainAxisSize.min,
@@ -3681,31 +3706,6 @@ class _HomePageState extends State<HomePage> {
                                 ),
                             ],
                           ),
-                        ),
-                      ],
-                      if (lastFollowUpDate != null) ...[
-                        const SizedBox(height: 7),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.event_outlined,
-                              size: 15,
-                              color: ArvinColors.textSecondary,
-                            ),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                'آخرین پیگیری: ${_date(lastFollowUpDate)} • ${_time(lastFollowUpDate)}${followUpPresentation?.relative == null ? '' : ' • ${followUpPresentation!.relative}'}',
-                                style: TextStyle(
-                                  color: ArvinColors.textSecondary,
-                                  fontSize: 11,
-                                  fontWeight: late
-                                      ? FontWeight.w600
-                                      : FontWeight.w400,
-                                ),
-                              ),
-                            ),
-                          ],
                         ),
                       ],
                       if (!expanded && summaryPreview.trim().isNotEmpty)
