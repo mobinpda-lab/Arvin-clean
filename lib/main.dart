@@ -537,6 +537,8 @@ class _HomePageState extends State<HomePage> {
   final Set<String> _expandedTaskIds = <String>{};
   bool _hideBottomNavigation = false;
   bool _todayFocusOnly = false;
+  String _homeSortMode = 'eisenhower';
+  bool _homeSortDescending = false;
 
   List<Task> tasks = [];
   List<String> _categoryCatalog = const <String>[];
@@ -876,7 +878,15 @@ class _HomePageState extends State<HomePage> {
     }
 
     final result = scoped.toList(growable: false);
-    return taskListSortService.sortByPriorityThenCreatedAt(result);
+    return switch (_homeSortMode) {
+      'alphabetical' => taskListSortService.sort(result, by: TaskListSort.title, descending: _homeSortDescending),
+      'date' => taskListSortService.sort(result, by: TaskListSort.date, descending: _homeSortDescending),
+      'oldest' => taskListSortService.sortByCreatedAt(result, descending: _homeSortDescending),
+      'newest' => taskListSortService.sortByCreatedAt(result, descending: !_homeSortDescending),
+      _ => _homeSortDescending
+          ? taskListSortService.sortByPriorityThenCreatedAt(result).reversed.toList(growable: false)
+          : taskListSortService.sortByPriorityThenCreatedAt(result),
+    };
   }
 
   List<HomeGroup<Task>> get _homeGroups {
@@ -908,37 +918,56 @@ class _HomePageState extends State<HomePage> {
 
 
   Future<void> _showSortOptions() async {
+    const options = <(String, String, IconData)>[
+      ('eisenhower', 'اولویت آیزنهاور', Icons.grid_view_rounded),
+      ('alphabetical', 'حروف الفبا', Icons.sort_by_alpha_rounded),
+      ('date', 'تاریخ موعد', Icons.calendar_month_rounded),
+      ('oldest', 'قدیمی‌ترین ثبت', Icons.history_rounded),
+      ('newest', 'جدیدترین ثبت', Icons.update_rounded),
+    ];
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
-      builder: (sheetContext) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'ترتیب ثابت نمایش کارها',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                '۱. ابتدا اولویت ماتریس آیزنهاور؛ از فوری و مهم تا غیرفوری و غیرمهم',
-                textAlign: TextAlign.start,
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                '۲. سپس تاریخ ثبت کار؛ از قدیمی‌ترین تا جدیدترین',
-                textAlign: TextAlign.start,
-              ),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: () => Navigator.of(sheetContext).pop(),
-                child: const Text('متوجه شدم'),
-              ),
-            ],
+      isScrollControlled: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (context, setSheetState) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 4, 12, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text('مرتب‌سازی کارها', textAlign: TextAlign.center, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 8),
+                for (final option in options)
+                  RadioListTile<String>(
+                    dense: true,
+                    visualDensity: VisualDensity.compact,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                    value: option.$1,
+                    groupValue: _homeSortMode,
+                    secondary: Icon(option.$3, color: ArvinColors.primary),
+                    title: Text(option.$2),
+                    onChanged: (value) {
+                      if (value == null) return;
+                      setState(() => _homeSortMode = value);
+                      setSheetState(() {});
+                    },
+                  ),
+                SwitchListTile(
+                  dense: true,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                  value: _homeSortDescending,
+                  title: const Text('نمایش به ترتیب معکوس'),
+                  onChanged: (value) {
+                    setState(() => _homeSortDescending = value);
+                    setSheetState(() {});
+                  },
+                ),
+                const SizedBox(height: 8),
+                FilledButton(onPressed: () => Navigator.of(sheetContext).pop(), child: const Text('تأیید')),
+              ],
+            ),
           ),
         ),
       ),
@@ -1524,18 +1553,6 @@ class _HomePageState extends State<HomePage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Center(
-                      child: Text(
-                        group.title,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: accent,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
                     Row(
                       children: [
                         Icon(
@@ -1546,17 +1563,8 @@ class _HomePageState extends State<HomePage> {
                         const SizedBox(width: 5),
                         Icon(_groupIcon(group.id), size: 18, color: accent),
                         const Spacer(),
-                        if (groupDate != null) ...[
-                          Text(
-                            groupDate,
-                            style: TextStyle(
-                              color: accent.withAlpha(190),
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                        ],
+                        Text(group.title, textAlign: TextAlign.right, style: TextStyle(color: accent, fontSize: 15, fontWeight: FontWeight.w900)),
+                        const SizedBox(width: 8),
                         Container(
                           constraints: const BoxConstraints(minWidth: 28),
                           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
@@ -1576,6 +1584,10 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ],
                     ),
+                    if (groupDate != null) ...[
+                      const SizedBox(height: 5),
+                      Center(child: Text(groupDate, key: ValueKey('home-group-date-\${group.id}'), textAlign: TextAlign.center, style: TextStyle(color: accent, fontSize: 14, fontWeight: FontWeight.w900))),
+                    ],
                   ],
                 ),
               ),
@@ -3440,11 +3452,11 @@ class _HomePageState extends State<HomePage> {
           : _swipeBackground(widget.settings.swipeRightAction),
       child: Material(
         color: ArvinColors.surface,
-        elevation: 0,
-        shadowColor: Colors.transparent,
+        elevation: 1,
+        shadowColor: ArvinTheme.primaryGlow,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide.none,
+          side: const BorderSide(color: ArvinColors.border, width: 0.8),
         ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -3884,31 +3896,28 @@ class _HomePageState extends State<HomePage> {
                 style: IconButton.styleFrom(backgroundColor: colors.surface, foregroundColor: colors.onSurfaceVariant),
               ),
               Expanded(child: Column(children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Semantics(
-                      key: const ValueKey('home-bismillah'),
-                      label: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
-                      child: SvgPicture.asset(
-                        'assets/images/branding/bismillah.svg',
-                        key: const ValueKey('home-bismillah-svg'),
-                        width: 118,
-                        colorFilter: ColorFilter.mode(
-                          colors.primary,
-                          BlendMode.srcIn,
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Semantics(
+                        key: const ValueKey('home-bismillah'),
+                        label: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
+                        child: SvgPicture.asset(
+                          'assets/images/branding/bismillah.svg',
+                          key: const ValueKey('home-bismillah-svg'),
+                          width: 118,
+                          fit: BoxFit.contain,
+                          colorFilter: ColorFilter.mode(colors.primary, BlendMode.srcIn),
+                          excludeFromSemantics: true,
                         ),
-                        excludeFromSemantics: true,
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'آروین',
-                      key: const ValueKey('home-title-block'),
-                      style: TextStyle(color: colors.primary, fontSize: 23, fontWeight: FontWeight.w800),
-                    ),
-                  ],
+                      const SizedBox(width: 8),
+                      Text('آروین', key: const ValueKey('home-title-block'), maxLines: 1, softWrap: false, style: TextStyle(color: colors.primary, fontSize: 23, fontWeight: FontWeight.w800)),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها', key: const ValueKey('home-subtitle'), textAlign: TextAlign.center, style: TextStyle(color: colors.onSurfaceVariant, fontSize: 11.5, fontWeight: FontWeight.w600)),
