@@ -10,7 +10,14 @@ void main() {
       id: 'task-1',
       title: 'پرونده مشتری',
       createdAt: DateTime(2026, 8, 26, 8),
-      reminderDate: DateTime(2026, 8, 26, 12),
+      taskReminders: [
+        TaskReminder(
+          id: 'timeline-reminder',
+          title: 'یادآور',
+          date: DateTime(2026, 8, 26, 12),
+          sequence: 1,
+        ),
+      ],
       updatedAt: DateTime(2026, 8, 26, 15),
       followUps: [
         FollowUp(
@@ -126,7 +133,14 @@ void main() {
       id: 'same-time',
       title: 'هم‌زمان',
       createdAt: sameTime,
-      reminderDate: sameTime,
+      taskReminders: [
+        TaskReminder(
+          id: 'legacy-task-reminder-same-time',
+          title: 'یادآور',
+          date: sameTime,
+          sequence: 1,
+        ),
+      ],
       updatedAt: sameTime,
       followUps: [
         FollowUp(id: 'b', dateTime: sameTime),
