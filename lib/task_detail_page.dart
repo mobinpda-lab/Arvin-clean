@@ -1820,12 +1820,12 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             return ConstrainedBox(
               constraints: const BoxConstraints(minHeight: 56),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                padding: EdgeInsets.symmetric(horizontal: compact ? 10 : 12, vertical: 9),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Icon(icon, color: _brand, size: 22),
-                    const SizedBox(width: 10),
+                    SizedBox(width: compact ? 8 : 10),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
