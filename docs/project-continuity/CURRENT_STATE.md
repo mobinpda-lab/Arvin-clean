@@ -940,3 +940,5 @@ PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main دست‌نخورد�
 - Vazirmatn and the existing 0.8dp card outline / transparent surface tint are preserved. This is the first bounded visual-foundation slice, not completion of the full MASTER-FINAL directive.
 - Validation baseline before this commit (SHA f561465c): Analyze PASS; Debug, Release and Staging APK jobs PASS; all six test shards FAILED (test-0: 22; test-1: 23; test-2: 23; test-3: 20; test-4: 13; test-5: 13 failing tests). Device Smoke was still running at the checkpoint and had failures including a SQLite native-asset hash mismatch. Fresh exact-head CI is required after this commit.
 - No test was removed, skipped or weakened. The navigation color assertion was updated only to match the new approved brand color.
+
+- Follow-up test-contract update: the retired sky-blue palette value (#3A86EF) is explicitly rejected; the default and first palette choice are Persian Teal (#0F766E). Theme token and preference-manager tests now assert the approved multicolor semantics and the retired-value fallback. This is an assertion correction, not a skipped or softened test.
