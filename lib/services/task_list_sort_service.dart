@@ -72,6 +72,31 @@ class TaskListSortService {
     return indexed.map((entry) => entry.value).toList(growable: false);
   }
 
+  /// Pure alphabetical ordering, independent of Eisenhower priority.
+  List<Task> sortByTitle(Iterable<Task> tasks, {bool descending = false}) {
+    final indexed = tasks.toList(growable: false).asMap().entries.toList();
+    indexed.sort((left, right) {
+      final comparison = _directional(
+        _normalizeTitle(left.value.title).compareTo(_normalizeTitle(right.value.title)),
+        descending,
+      );
+      if (comparison != 0) return comparison;
+      return left.key.compareTo(right.key);
+    });
+    return indexed.map((entry) => entry.value).toList(growable: false);
+  }
+
+  /// Due-date ordering, independent of Eisenhower priority; undated tasks stay last.
+  List<Task> sortByDueDate(Iterable<Task> tasks, {bool descending = false}) {
+    final indexed = tasks.toList(growable: false).asMap().entries.toList();
+    indexed.sort((left, right) {
+      final comparison = _compareNullableDate(left.value.dueDate, right.value.dueDate, descending: descending);
+      if (comparison != 0) return comparison;
+      return left.key.compareTo(right.key);
+    });
+    return indexed.map((entry) => entry.value).toList(growable: false);
+  }
+
   /// Stable creation-time ordering with null timestamps kept at the end.
   List<Task> sortByCreatedAt(
     Iterable<Task> tasks, {
