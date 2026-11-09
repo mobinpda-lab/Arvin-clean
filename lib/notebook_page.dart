@@ -32,8 +32,10 @@ class NotebookPage extends StatefulWidget {
 }
 
 class _NotebookPageState extends State<NotebookPage> {
-  Color get _brand => Theme.of(context).colorScheme.primary;
-  Color get _brandSoft => Theme.of(context).colorScheme.secondaryContainer;
+  Color get _brand => ArvinColors.notebookOrange;
+  Color get _brandSoft => Theme.of(context).brightness == Brightness.dark
+      ? ArvinColors.notebookOrangeDarkSoft
+      : ArvinColors.notebookOrangeSoft;
   bool _loading = true;
   List<Task> _notes = const [];
   bool _selectionMode = false;
@@ -992,8 +994,10 @@ class NotebookEditorPage extends StatefulWidget {
 }
 
 class _NotebookEditorPageState extends State<NotebookEditorPage> {
-  Color get _brand => Theme.of(context).colorScheme.primary;
-  Color get _brandSoft => Theme.of(context).colorScheme.secondaryContainer;
+  Color get _brand => ArvinColors.notebookOrange;
+  Color get _brandSoft => Theme.of(context).brightness == Brightness.dark
+      ? ArvinColors.notebookOrangeDarkSoft
+      : ArvinColors.notebookOrangeSoft;
 
   final _title = TextEditingController();
   final _description = TextEditingController();
