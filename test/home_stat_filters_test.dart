@@ -72,7 +72,6 @@ void main() {
       400,
       scrollable: taskListScrollable,
       maxScrolls: 20,
-      scrollDirection: Axis.vertical,
     );
     expect(find.text('کار عقب افتاده'), findsOneWidget);
 
@@ -81,7 +80,6 @@ void main() {
       400,
       scrollable: taskListScrollable,
       maxScrolls: 20,
-      scrollDirection: Axis.vertical,
     );
     expect(find.text('کار فعال'), findsOneWidget);
 
@@ -90,7 +88,6 @@ void main() {
       400,
       scrollable: taskListScrollable,
       maxScrolls: 20,
-      scrollDirection: Axis.vertical,
     );
     expect(find.text('کار انجام شده'), findsOneWidget);
 

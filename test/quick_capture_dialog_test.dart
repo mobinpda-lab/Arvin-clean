@@ -1,3 +1,4 @@
+import 'package:arvin/arvin_colors.dart';
 import 'package:arvin/models/arvin_center.dart';
 import 'package:arvin/models/goal_project.dart';
 import 'package:flutter/material.dart';
@@ -156,8 +157,27 @@ void main() {
     for (final hint in ['فوری و مهم', 'مهم و غیرفوری', 'فوری و غیرمهم', 'غیرفوری و غیرمهم']) {
       expect(find.text(hint), findsOneWidget);
     }
-    for (final code in ['P1', 'P2', 'P3', 'P4']) {
-      expect(find.text(code), findsNothing);
+    final expectedPriorityColors = [
+      ArvinColors.priorityP1,
+      ArvinColors.priorityP2,
+      ArvinColors.priorityP3,
+      ArvinColors.priorityP4,
+    ];
+    for (var index = 0; index < expectedPriorityColors.length; index++) {
+      final option = find.byKey(
+        ValueKey('quick-capture-priority-option-${index + 1}'),
+      );
+      final chip = tester.widget<AnimatedContainer>(
+        find.descendant(of: option, matching: find.byType(AnimatedContainer)),
+      );
+      final decoration = chip.decoration! as BoxDecoration;
+      final selected = index == 3;
+      expect(
+        decoration.color,
+        expectedPriorityColors[index].withValues(
+          alpha: selected ? 0.18 : 0.09,
+        ),
+      );
     }
 
     final priorityOne = find.byKey(const ValueKey('quick-capture-priority-option-1'));
@@ -977,6 +997,39 @@ void main() {
     expect(find.text('دارای پیگیری'), findsNothing);
   });
 
+  testWidgets(
+    'Quick Capture due picker offers both Jalali and Gregorian calendars',
+    (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Directionality(
+            textDirection: TextDirection.rtl,
+            child: Scaffold(body: QuickCaptureDialog()),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final due = find.byKey(const ValueKey('quick-capture-due-rollbox'));
+      await tester.ensureVisible(due);
+      await tester.tap(due);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('persian-date-picker')), findsOneWidget);
+
+      await tester.tap(
+        find.byKey(const ValueKey('persian-date-gregorian-toggle')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(DatePickerDialog), findsOneWidget);
+      expect(find.text('انتخاب تاریخ میلادی'), findsOneWidget);
+
+      await tester.tap(find.text('لغو').last);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('persian-date-picker')), findsOneWidget);
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
+
   testWidgets('Quick Capture custom due uses the canonical circular clock and saves a local DateTime',
       (tester) async {
     Task? captured;
@@ -1158,6 +1211,7 @@ void main() {
       ];
       final filterRects = filterKeys.map((key) => tester.getRect(find.byKey(ValueKey(key)))).toList();
       for (final rect in filterRects) {
+        expect(rect.width, greaterThanOrEqualTo(48));
         expect(rect.height, greaterThanOrEqualTo(48));
         expect(rect.top, closeTo(filterRects.first.top, 0.1));
         expect(rect.left, greaterThanOrEqualTo(rowRect.left));
