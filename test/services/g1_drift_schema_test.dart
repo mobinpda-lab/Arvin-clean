@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:arvin/services/g1_drift_schema.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,6 +13,37 @@ void main() {
 
   tearDown(() async {
     await database.close();
+  });
+
+  test('seeds pre-existing directory membership once and never resurrects deleted entries', () async {
+    final directory = await Directory.systemTemp.createTemp('arvin-person-directory-cutover-');
+    final file = File('${directory.path}/arvin.sqlite');
+    var first = NativeDatabase(file);
+    await first.runCustom(
+      '''CREATE TABLE persons (
+         id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL,
+         created_at TEXT NOT NULL, updated_at TEXT NOT NULL)''',
+    );
+    await first.runInsert(
+      'INSERT INTO persons (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)',
+      const <Object?>['legacy-person', 'شخص قدیمی', '2026-11-01', '2026-11-01'],
+    );
+    await G1DriftSchema.install(first);
+    final seeded = await first.runSelect('SELECT person_id FROM person_directory', const []);
+    expect(seeded.map((row) => row['person_id']), ['legacy-person']);
+    await first.runCustom('DELETE FROM person_directory');
+    await first.close();
+
+    final reopened = NativeDatabase(file);
+    try {
+      await G1DriftSchema.install(reopened);
+      expect(await reopened.runSelect('SELECT person_id FROM person_directory', const []), isEmpty);
+      final historical = await reopened.runSelect('SELECT id, name FROM persons WHERE id = ?', const ['legacy-person']);
+      expect(historical.single['name'], 'شخص قدیمی');
+    } finally {
+      await reopened.close();
+      await directory.delete(recursive: true);
+    }
   });
 
   test('creates the complete G1 relational schema', () async {

@@ -118,7 +118,6 @@ class G1DriftSchema implements QueryExecutorUser {
     await executor.ensureOpen(schema);
     // Seed the new active-directory relation exactly once from the pre-split
     // Persons table. Subsequent installs must never resurrect deleted entries.
-    final hadPersonDirectory = await _hasTable(executor, 'person_directory');
     await executor.runCustom('PRAGMA foreign_keys = OFF');
     await executor.runCustom('PRAGMA busy_timeout = 5000');
     await executor.runCustom('PRAGMA synchronous = NORMAL');
@@ -209,9 +208,17 @@ class G1DriftSchema implements QueryExecutorUser {
       }
       await migrateTaskPeople(executor);
       await migrateCanonicalEntities(executor);
-      if (!hadPersonDirectory) {
+      final directorySeed = await executor.runSelect(
+        "SELECT value FROM arvin_storage_meta WHERE key = 'person_directory_seeded_v1'",
+        const [],
+      );
+      if (directorySeed.isEmpty) {
         await executor.runCustom(
           'INSERT OR IGNORE INTO person_directory (person_id) SELECT id FROM persons',
+        );
+        await executor.runCustom(
+          "INSERT INTO arvin_storage_meta (key, value) VALUES ('person_directory_seeded_v1', '1') "
+          "ON CONFLICT(key) DO UPDATE SET value = '1'",
         );
       }
       await _rebuildTaskTableWithoutLegacyScheduleColumns(executor);
@@ -234,9 +241,9 @@ class G1DriftSchema implements QueryExecutorUser {
     }
   }
 
-  /// Copies historical task-person identities into the canonical directory.
-  /// Existing directory rows win for creation time; names are refreshed from
-  /// the current task relation. Re-running this migration is safe.
+  /// Copies historical Task-person identities into canonical Person and
+  /// relation tables. Active directory membership is seeded once at cutover;
+  /// later migration passes must never reactivate a deleted Person.
   static Future<void> migrateTaskPeople(QueryExecutor executor) async {
     if (!await _hasTable(executor, 'task_people')) return;
     final rows = await executor.runSelect(
