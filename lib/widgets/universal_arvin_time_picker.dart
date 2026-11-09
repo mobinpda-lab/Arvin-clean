@@ -314,7 +314,7 @@ class _UniversalArvinTimePickerDialogState
                       key: const ValueKey('universal-time-cancel'),
                       onPressed: () => Navigator.of(context).pop(),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: ArvinColors.textPrimary,
+                        foregroundColor: Theme.of(context).colorScheme.onSurface,
                         minimumSize: const Size.fromHeight(48),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
@@ -416,7 +416,7 @@ class _ClockFace extends StatelessWidget {
       Positioned(
         left: center - 2,
         top: center - 2,
-        child: const DecoratedBox(
+        child: DecoratedBox(
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.primary,
             shape: BoxShape.circle,
@@ -473,7 +473,7 @@ class _ClockFace extends StatelessWidget {
                 child: Text(
                   labelValue,
                   style: TextStyle(
-                    color: isSelected ? Colors.white : ArvinColors.textPrimary,
+                    color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface,
                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                     fontSize: 13,
                   ),
