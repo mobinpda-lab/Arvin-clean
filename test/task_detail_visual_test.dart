@@ -5,7 +5,7 @@ import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/task_detail_page.dart';
 
-void _installRenderFlexOverflowProbe(WidgetTester tester, String scenario) {
+void _installRenderFlexOverflowProbe(String scenario) {
   final previousHandler = FlutterError.onError;
   FlutterError.onError = (details) {
     final message = details.exceptionAsString();
@@ -114,7 +114,7 @@ void main() {
   testWidgets(
     'Task Details renders all eleven structural surfaces without overflow and scrolls',
     (tester) async {
-      _installRenderFlexOverflowProbe(tester, 'task-detail-structural-412dp');
+      _installRenderFlexOverflowProbe('task-detail-structural-412dp');
       tester.view.physicalSize = const Size(412, 900);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -304,7 +304,7 @@ void main() {
   });
 
   testWidgets('Task Details full page has zero overflow at 360, 390 and 412 dp', (tester) async {
-    _installRenderFlexOverflowProbe(tester, 'task-detail-full-page-widths');
+    _installRenderFlexOverflowProbe('task-detail-full-page-widths');
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
