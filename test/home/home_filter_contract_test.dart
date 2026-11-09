@@ -89,12 +89,21 @@ void main() {
       matching: find.text('گذشته'),
     );
     final overdueHeaderText = tester.widget<Text>(overdueHeader);
-    expect(overdueHeaderText.textAlign, TextAlign.center);
+    expect(overdueHeaderText.textAlign, TextAlign.right);
     expect(overdueHeaderText.style?.fontWeight, FontWeight.w800);
     expect(find.byKey(const ValueKey('home-filter-card-all')), findsNothing);
     expect(find.byKey(const ValueKey('home-compact-filter-row')), findsOneWidget);
     expect(find.byType(HomeFilterPill), findsNWidgets(5));
-    expect(find.byKey(const ValueKey('home-sort-button')), findsOneWidget);
+    final sortButton = find.byKey(const ValueKey('home-sort-button'));
+    expect(sortButton, findsOneWidget);
+    expect(tester.getSize(sortButton).width, greaterThanOrEqualTo(48));
+    await tester.tap(sortButton);
+    await tester.pumpAndSettle();
+    for (final option in ['اولویت آیزنهاور', 'حروف الفبا', 'تاریخ موعد', 'قدیمی‌ترین ثبت', 'جدیدترین ثبت', 'نمایش به ترتیب معکوس']) {
+      expect(find.text(option), findsOneWidget);
+    }
+    await tester.tap(find.text('تأیید'));
+    await tester.pumpAndSettle();
     final originalWidth = tester.view.physicalSize.width;
     for (final width in [360.0, 390.0, 412.0]) {
       tester.view.physicalSize = Size(width, 1200);
@@ -142,6 +151,7 @@ void main() {
     final arvinTitleRect = tester.getRect(find.byKey(const ValueKey('home-title-block')));
     expect(bismillahRect.overlaps(arvinTitleRect), isFalse);
     expect(bismillahRect.center.dy, closeTo(arvinTitleRect.center.dy, 4));
+    expect(find.byKey(const ValueKey('home-group-date-today')), findsOneWidget);
 
     // Each filter keeps its own internal unrestricted choice.
     final timeFilter = find.byKey(const ValueKey('home-filter-card-time'));
