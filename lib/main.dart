@@ -766,8 +766,6 @@ class _HomePageState extends State<HomePage> {
 
 
 
-  DateTime? _homeLastFollowUpDate(Task task) => task.lastFollowUp?.dateTime;
-
   String? _projectTitleForTask(Task task) {
     for (final project in projects) {
       if (project.itemIds.contains(task.id)) return project.title.trim();
@@ -3453,15 +3451,7 @@ class _HomePageState extends State<HomePage> {
     );  }
 
   Widget _taskCard(Task task) {
-    final lastFollowUpDate = _homeLastFollowUpDate(task);
-    final followUpPresentation =
-        const HomeFollowUpPresentationService().project(task);
-    final summaryPreview = followUpPresentation?.title ?? task.description.trim();
     final expanded = _expandedTaskIds.contains(task.id);
-    final projectedReminders = const HomeListProjection().projectReminders(
-      task.taskReminders,
-      followUpDate: lastFollowUpDate,
-    );
     final late = _overdue(task);
     final colors = Theme.of(context).colorScheme;
       return Dismissible(
@@ -3582,31 +3572,6 @@ class _HomePageState extends State<HomePage> {
                           ],
                         ],
                       ),
-                      if (lastFollowUpDate != null) ...[
-                        const SizedBox(height: 7),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.event_outlined,
-                              size: 15,
-                              color: ArvinColors.textSecondary,
-                            ),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                'آخرین پیگیری: ${_date(lastFollowUpDate)} • ${_time(lastFollowUpDate)}${followUpPresentation?.relative == null ? '' : ' • ${followUpPresentation!.relative}'}',
-                                style: TextStyle(
-                                  color: ArvinColors.textSecondary,
-                                  fontSize: 11,
-                                  fontWeight: late
-                                      ? FontWeight.w600
-                                      : FontWeight.w400,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
                       const SizedBox(height: 4),
                       Row(
                         mainAxisSize: MainAxisSize.min,
@@ -3691,46 +3656,6 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ],
-                      if (!expanded && summaryPreview.trim().isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsetsDirectional.fromSTEB(19, 0, 8, 5),
-                          child: Align(
-                            alignment: AlignmentDirectional.centerStart,
-                            child: Text(
-                              summaryPreview.trim(),
-                              key: ValueKey('task-card-summary-preview-${task.id}'),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 11),
-                            ),
-                          ),
-                        ),
-                      for (final reminder in projectedReminders) ...[
-                        const SizedBox(height: 3),
-                        Row(
-                          key: ValueKey('task-card-reminder-${task.id}-${reminder.id}'),
-                          children: [
-                            const Icon(
-                              Icons.notifications_active_outlined,
-                              size: 14,
-                              color: ArvinColors.textSecondary,
-                            ),
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: Text(
-                                "${reminder.title.trim().isEmpty ? 'یادآور' : reminder.title.trim()}: ${_date(reminder.date)} • ${_time(reminder.date)}",
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: ArvinColors.textSecondary,
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
                       if (task.trashed || task.archived)
                         TextButton(
                           onPressed: () => _restore(task),
@@ -3789,41 +3714,6 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                 ),
                               ],
-                            ),
-                          ],
-                          if (followUpPresentation != null) ...[
-                            if (task.description.trim().isNotEmpty || task.dueDate != null)
-                              const SizedBox(height: 7),
-                            Container(
-                              key: ValueKey('task-card-follow-up-${task.id}'),
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFEAF5ED),
-                                borderRadius: BorderRadius.circular(11),
-                              ),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Icon(Icons.history_rounded, size: 16, color: Color(0xFF397A50)),
-                                  const SizedBox(width: 6),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'آخرین پیگیری: ${followUpPresentation.title}',
-                                          style: const TextStyle(color: Color(0xFF28643E), fontSize: 11, fontWeight: FontWeight.w700),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          [followUpPresentation.exactDateTime, if (followUpPresentation.relative != null) '🕒 ${followUpPresentation.relative}'].join(' • '),
-                                          style: const TextStyle(color: Color(0xFF397A50), fontSize: 10.5, fontWeight: FontWeight.w500),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
                             ),
                           ],
                         ],

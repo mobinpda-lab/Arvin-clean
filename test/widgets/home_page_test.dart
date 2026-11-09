@@ -1000,11 +1000,15 @@ void main() {
     expect(find.text('کار نمایشی'), findsOneWidget);
     expect(find.text('شخصی'), findsOneWidget);
     expect(find.byKey(const ValueKey('task-card-eisenhower-dot-focus-card-contract')), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('بدون دسته'),
+      240,
+      scrollable: find.byType(Scrollable).last,
+    );
     expect(find.byKey(const ValueKey('task-card-eisenhower-dot-no-category-priority')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-card-focus-marker-focus-card-contract')), findsOneWidget);
-    expect(find.text('خلاصه آخرین پیگیری'), findsOneWidget);
-    expect(find.textContaining('آخرین پیگیری:'), findsOneWidget);
-    expect(find.textContaining('پیش'), findsOneWidget);
+    expect(find.text('خلاصه آخرین پیگیری'), findsNothing);
+    expect(find.textContaining('آخرین پیگیری:'), findsNothing);
     expect(tester.getSize(find.byKey(const ValueKey('task-card-expand-focus-card-contract'))).height, greaterThanOrEqualTo(48));
     expect(find.text('محرمانه'), findsNothing);
     expect(find.text('مرکز'), findsNothing);
