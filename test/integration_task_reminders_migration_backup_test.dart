@@ -26,7 +26,7 @@ void main() {
     addTearDown(executor.close);
     final store = TaskStore(executor: executor);
     final legacyDate = DateTime(2026, 10, 10, 8, 30);
-    final task = Task.fromJson(<String, dynamic>{
+    final task = Task.fromLegacyJson(<String, dynamic>{
       'id': 'deleted-legacy-reminder',
       'title': 'یادآور حذف‌شده',
       'reminderDate': legacyDate.toIso8601String(),
@@ -73,7 +73,7 @@ void main() {
     addTearDown(executor.close);
     final store = TaskStore(executor: executor);
     final legacyDate = DateTime(2026, 10, 10, 8, 30);
-    final oldTask = Task.fromJson(<String, dynamic>{
+    final oldTask = Task.fromLegacyJson(<String, dynamic>{
       'id': 'task-reminder-integration',
       'title': 'پیگیری قرارداد',
       'reminderDate': legacyDate.toIso8601String(),

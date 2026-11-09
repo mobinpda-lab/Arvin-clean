@@ -11,11 +11,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final store = TaskStore();
     final reminder = DateTime.parse('2026-08-22T16:45:00.000');
-    final task = Task(
-      id: 'store-reminder-1',
-      title: 'یادآوری ذخیره‌شده',
-      reminderDate: reminder,
-    );
+    final task = Task.fromLegacyJson({'id': 'store-reminder-1', 'title': 'یادآوری ذخیره‌شده', 'reminderDate': reminder.toIso8601String()});
 
     await store.save([task]);
     final loaded = await store.load();
@@ -217,11 +213,7 @@ void main() {
     final store = TaskStore();
     final original = DateTime.parse('2026-08-22T08:00:00.000');
     final updated = DateTime.parse('2026-08-23T09:15:00.000');
-    final task = Task(
-      id: 'store-reminder-remove',
-      title: 'ویرایش و حذف یادآوری',
-      reminderDate: original,
-    );
+    final task = Task.fromLegacyJson({'id': 'store-reminder-remove', 'title': 'ویرایش و حذف یادآوری', 'reminderDate': original.toIso8601String()});
 
     await store.save([task]);
     task.taskReminders[0] = task.taskReminders[0].copyWith(date: updated);
