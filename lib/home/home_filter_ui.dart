@@ -2,6 +2,8 @@
 
 import 'package:flutter/material.dart';
 
+import '../core/theme/arvin_theme.dart';
+
 enum HomeFilterDimension { time, center, project, category, tags }
 
 class HomeFilterPill extends StatelessWidget {
@@ -139,7 +141,7 @@ class HomeFilterCard extends StatelessWidget {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withAlpha(selected ? 13 : 7),
+                    color: ArvinTheme.primaryGlow,
                     blurRadius: selected ? 9 : 6,
                     offset: const Offset(0, 2),
                   ),
@@ -275,7 +277,7 @@ class HomeFilterSheet extends StatelessWidget {
         child: Material(
           color: colors.surface,
           elevation: 12,
-          shadowColor: Colors.black.withAlpha(35),
+          shadowColor: ArvinTheme.primaryGlow,
           borderRadius: BorderRadius.circular(28),
           clipBehavior: Clip.antiAlias,
           child: Padding(
