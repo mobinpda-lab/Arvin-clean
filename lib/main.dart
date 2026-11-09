@@ -464,6 +464,7 @@ class _ArvinAppState extends State<ArvinApp> {
         textTheme: readableDarkTextTheme,
         dividerTheme: const DividerThemeData(color: ArvinColors.darkDivider, thickness: 1),
         appBarTheme: AppBarTheme(
+          surfaceTintColor: Colors.transparent,
           backgroundColor: accentColor,
           foregroundColor: Colors.white,
           iconTheme: const IconThemeData(color: Colors.white),
@@ -1512,7 +1513,7 @@ class _HomePageState extends State<HomePage> {
       final dated = items.where((task) => task.dueDate != null).map((task) => DateTime(task.dueDate!.year, task.dueDate!.month, task.dueDate!.day)).toList(growable: false);
       if (dated.isNotEmpty) {
         dated.sort();
-        date = id == 'future' ? dated.first : dated.first;
+        date = dated.first;
       }
     }
     if (date == null) return null;
