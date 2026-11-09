@@ -29,7 +29,6 @@ void main() {
     final task = Task(
       id: 'task-1',
       title: 'کار',
-      reminderDate: now.add(const Duration(hours: 1)),
       followUps: [
         FollowUp(
           id: 'fu-1',
@@ -48,14 +47,10 @@ void main() {
     );
 
     final result = projection.pending([task], now: now);
-    expect(result, hasLength(2));
+    expect(result, hasLength(1));
     final byKey = {for (final item in result) item.stableKey: item};
-    expect(byKey.keys, containsAll([
-      'task:task-1',
-      'task:task-1:reminder:r1',
-    ]));
-    expect(byKey['task:task-1']!.taskReminderId, isNull);
-    expect(byKey['task:task-1']!.scheduledAt, now.add(const Duration(hours: 1)));
+    expect(byKey.keys, contains('task:task-1:reminder:r1'));
+    expect(byKey.containsKey('task:task-1'), isFalse);
     expect(byKey['task:task-1:reminder:r1']!.taskReminderId, 'r1');
     expect(byKey['task:task-1:reminder:r1']!.scheduledAt,
         now.add(const Duration(hours: 3)));
