@@ -154,6 +154,27 @@ void main() {
     expect(result.map((item) => item.label), ['یادآور اول', 'یادآور دوم']);
   });
 
+  test('disabled reminders never produce delivery events, including mixed sets', () {
+    final at = now.subtract(const Duration(minutes: 2));
+    final result = service.due(
+      [task('mixed', taskReminders: [
+        TaskReminder(id: 'off', title: 'خاموش', date: at, sequence: 1, isEnabled: false),
+        TaskReminder(id: 'on', title: 'روشن', date: at, sequence: 2),
+      ])],
+      now: now,
+    );
+    expect(result.map((candidate) => candidate.taskReminderId), ['on']);
+  });
+
+  test('deleted reminders cannot produce delivery events', () {
+    final task = task('deleted', taskReminders: [
+      TaskReminder(id: 'deleted-reminder', title: 'حذف‌شده',
+        date: now.subtract(const Duration(minutes: 1)), sequence: 1),
+    ]);
+    task.taskReminders.clear();
+    expect(service.due([task], now: now), isEmpty);
+  });
+
   test('date-only reminder notification uses 9 AM, not an inferred midnight time', () {
     final result = service.due(
       [

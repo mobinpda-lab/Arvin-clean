@@ -20,12 +20,9 @@ class FollowUpReminderDeliveryService {
     final result = <FollowUpReminderCandidate>[];
 
     for (final task in tasks) {
-      if (task.completed || task.archived || task.trashed) continue;
-
       for (final reminder in task.taskReminders) {
-        final scheduledAt = reminder.isAllDay
-            ? DateTime(reminder.date.year, reminder.date.month, reminder.date.day, 9)
-            : reminder.date;
+        if (!isTaskReminderEligible(task, reminder)) continue;
+        final scheduledAt = taskReminderScheduledAt(reminder);
         if (scheduledAt.isAfter(now)) continue;
         final candidate = FollowUpReminderCandidate.task(
           taskId: task.id,

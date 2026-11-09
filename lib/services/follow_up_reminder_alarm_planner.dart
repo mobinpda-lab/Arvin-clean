@@ -20,16 +20,12 @@ class FollowUpReminderAlarmPlanner {
 
     final candidates = <DateTime>[];
     for (final task in tasks) {
-      if (task.completed || task.archived || task.trashed) continue;
-
-      // TaskReminder is the sole scheduling source. Task.fromJson migrates
-      // legacy Task.reminderDate into this collection; FollowUp history is
-      // never treated as a future reminder.
+      // TaskReminder is the sole scheduling source. FollowUp history is
+      // never treated as a future reminder. Eligibility is shared with the
+      // foreground projection and background delivery service.
       for (final reminder in task.taskReminders) {
-        if (!reminder.isEnabled) continue;
-        final scheduledAt = reminder.isAllDay
-            ? DateTime(reminder.date.year, reminder.date.month, reminder.date.day, 9)
-            : reminder.date;
+        if (!isTaskReminderEligible(task, reminder)) continue;
+        final scheduledAt = taskReminderScheduledAt(reminder);
         // The migrated legacy reminder must continue to use the old delivery
         // identity so already-delivered state remains effective after upgrade.
         final identity = isMigratedTaskReminder(task, reminder)

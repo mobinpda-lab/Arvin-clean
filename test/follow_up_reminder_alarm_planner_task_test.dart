@@ -87,6 +87,23 @@ void main() {
     );
   });
 
+  test('disabled Task reminders are excluded from the canonical alarm planner', () {
+    final task = Task(
+      id: 'disabled-alarm',
+      title: 'یادآور غیرفعال',
+      taskReminders: [
+        TaskReminder(
+          id: 'off', title: 'خاموش', date: now.add(const Duration(hours: 1)),
+          sequence: 1, isEnabled: false,
+        ),
+      ],
+    );
+    expect(
+      planner.nextAlarmAt([task], deliveredState: const {}, now: now),
+      isNull,
+    );
+  });
+
   test('migrated legacy Task reminder keeps delivery identity and is not scheduled twice', () {
     final at = now.add(const Duration(hours: 1));
     final migrated = Task.fromJson({

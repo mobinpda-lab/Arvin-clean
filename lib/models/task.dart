@@ -672,6 +672,18 @@ String migratedTaskReminderId(String taskId) =>
 bool isMigratedTaskReminder(Task task, TaskReminder reminder) =>
     reminder.id == migratedTaskReminderId(task.id);
 
+/// Canonical eligibility rule shared by every reminder scheduling and
+/// delivery entry point. A reminder is never eligible when disabled or when
+/// its owning Task is completed, archived, or trashed.
+bool isTaskReminderEligible(Task task, TaskReminder reminder) =>
+    reminder.isEnabled && !task.completed && !task.archived && !task.trashed;
+
+/// Resolves the actual alarm timestamp for a canonical TaskReminder.
+/// Date-only reminders intentionally fire at 09:00 local time.
+DateTime taskReminderScheduledAt(TaskReminder reminder) => reminder.isAllDay
+    ? DateTime(reminder.date.year, reminder.date.month, reminder.date.day, 9)
+    : reminder.date;
+
 /// Returns the canonical earliest enabled reminder record, if one exists.
 TaskReminder? earliestEnabledTaskReminder(Task task) {
   TaskReminder? earliest;

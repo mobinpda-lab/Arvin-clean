@@ -95,6 +95,37 @@ void main() {
     expect(projection.pending(tasks, now: now), isEmpty);
   });
 
+  test('disabled reminders never become scheduling candidates, including mixed sets', () {
+    final at = now.add(const Duration(hours: 1));
+    final task = Task(
+      id: 'mixed-enabled',
+      title: 'ترکیبی',
+      taskReminders: [
+        TaskReminder(id: 'off', title: 'خاموش', date: at, sequence: 1, isEnabled: false),
+        TaskReminder(id: 'on', title: 'روشن', date: at.add(const Duration(minutes: 1)), sequence: 2),
+      ],
+    );
+
+    final result = projection.pending([task], now: now);
+    expect(result.map((candidate) => candidate.taskReminderId), ['on']);
+  });
+
+  test('disabled reminders remain excluded after Task JSON persistence round-trip', () {
+    final task = Task(
+      id: 'disabled-round-trip',
+      title: 'یادآور خاموش',
+      taskReminders: [
+        TaskReminder(
+          id: 'off', title: 'خاموش', date: now.add(const Duration(hours: 1)),
+          sequence: 1, isEnabled: false,
+        ),
+      ],
+    );
+    final restored = Task.fromJson(task.toJson());
+    expect(restored.taskReminders.single.isEnabled, isFalse);
+    expect(projection.pending([restored], now: now), isEmpty);
+  });
+
   test('sorts independent reminders deterministically and uses 9 AM for all-day', () {
     final task = Task(
       id: 'multi',
