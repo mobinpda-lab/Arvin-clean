@@ -72,7 +72,7 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
         context,
         title: title,
         accent: color,
-        heightFactor: 0.90,
+        heightFactor: 0.96,
         expandToMaxHeight: true,
         child: StatefulBuilder(
           builder: (sheetContext, setSheetState) {

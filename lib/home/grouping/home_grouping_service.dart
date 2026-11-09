@@ -76,9 +76,7 @@ class HomeGroupingService {
 
     const sorter = TaskListSortService();
     List<Task> ordered(String key) =>
-        key == 'overdue' || key == 'completed_past'
-            ? sorter.sortPast(grouped[key]!)
-            : sorter.sortByPriorityThenCreatedAt(grouped[key]!);
+        sorter.sortByPriorityThenCreatedAt(grouped[key]!);
 
     return [
       HomeGroup<Task>(id: 'overdue', title: 'گذشته', items: ordered('overdue')),

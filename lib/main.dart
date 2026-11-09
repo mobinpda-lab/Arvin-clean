@@ -926,11 +926,20 @@ class _HomePageState extends State<HomePage> {
         items: visible,
       )];
     }
-    return const HomeGroupingService().buildGroups(
+    final groups = const HomeGroupingService().buildGroups(
       HomeGroupMode.time,
       visible,
       now: DateTime.now(),
     );
+    if (!_timeFilters.contains('past')) return groups;
+    return groups.map((group) {
+      if (group.id != 'overdue' && group.id != 'completed_past') return group;
+      return HomeGroup<Task>(
+        id: group.id,
+        title: group.title,
+        items: TaskListSortService().sortPast(group.items),
+      );
+    }).toList(growable: false);
   }
 
 

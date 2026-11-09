@@ -1090,6 +1090,11 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   Widget _checklistCard() {
+    if (!_task.checklistEnabled &&
+        widget.onTaskChanged == null &&
+        widget.onChecklistChanged == null) {
+      return const SizedBox.shrink();
+    }
     final items = _normalizedChecklist();
     if (!_isAddingChecklist && items.isEmpty) {
       return _card(
@@ -1875,7 +1880,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       width: 112,
       height: 82,
       child: Material(
-        color: accent.withOpacity(0.08),
+        color: accent.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
         child: InkWell(
           key: key,
@@ -2151,7 +2156,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                     const SizedBox(height: 10),
                     _card(
                       key: const ValueKey('task-detail-linear-actions'),
-                      child: _linearActionRow(
+                      child: KeyedSubtree(
+                        key: const ValueKey('task-detail-move-due-date-to-today'),
+                        child: _linearActionRow(
                         key: const ValueKey('task-detail-my-day'),
                         icon: Icons.today_outlined,
                         title: 'انتقال موعد به امروز',
@@ -2162,6 +2169,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                         trailing: dueToday
                             ? Icon(Icons.check_circle, color: _brand)
                             : const Icon(Icons.chevron_left, color: _muted),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 10),
