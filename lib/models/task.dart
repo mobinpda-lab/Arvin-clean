@@ -223,7 +223,7 @@ class Task {
             (checklist.isNotEmpty || notebookKind == NotebookItemKind.checklist),
         people = _normalizePeople(people),
         taskReminders = List<TaskReminder>.of(taskReminders) {
-    if (reminderDate != null && this.legacyTaskReminderMigrationVersion < 1) {
+    if (reminderDate != null && legacyTaskReminderMigrationVersion < 1) {
       final reminderId = migratedTaskReminderId(id);
       if (!this.taskReminders.any((item) => item.id == reminderId)) {
         final highestSequence = this.taskReminders.isEmpty
@@ -231,8 +231,8 @@ class Task {
             : this.taskReminders
                 .map((item) => item.sequence)
                 .reduce((a, b) => a > b ? a : b);
-        final sequence = this.nextReminderSequence > highestSequence
-            ? this.nextReminderSequence
+        final sequence = nextReminderSequence > highestSequence
+            ? nextReminderSequence
             : highestSequence + 1;
         this.taskReminders.add(TaskReminder(
           id: reminderId,
@@ -241,9 +241,9 @@ class Task {
           isAllDay: reminderAllDay,
           sequence: sequence,
         ));
-        this.nextReminderSequence = sequence + 1;
+        nextReminderSequence = sequence + 1;
       }
-      this.legacyTaskReminderMigrationVersion = 1;
+      legacyTaskReminderMigrationVersion = 1;
     }
   }
 
