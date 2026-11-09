@@ -61,11 +61,14 @@ class FollowUpCalendarProjection {
       TaskReminder? target;
       if (reminderRecordId != null) {
         for (final reminder in task.taskReminders) {
-          if (reminder.id == reminderRecordId) { target = reminder; break; }
+          if (reminder.id == reminderRecordId && reminder.isEnabled) {
+            target = reminder;
+            break;
+          }
         }
       } else {
         for (final reminder in task.taskReminders) {
-          if (!isMigratedTaskReminder(task, reminder)) continue;
+          if (!reminder.isEnabled || !isMigratedTaskReminder(task, reminder)) continue;
           if (target != null) return null;
           target = reminder;
         }
@@ -116,6 +119,9 @@ class FollowUpCalendarProjection {
       final taskDatesAlreadyProjected = <DateTime>[];
 
       for (final reminder in task.taskReminders) {
+        // Disabled reminders remain persisted but are not active Calendar or
+        // external-provider events.
+        if (!reminder.isEnabled) continue;
         reminders.add(
           CalendarReminder(
             // The migrated legacy reminder keeps its old external identity so

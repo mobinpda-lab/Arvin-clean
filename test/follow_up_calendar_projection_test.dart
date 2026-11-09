@@ -230,6 +230,31 @@ void main() {
     expect(reminders, isEmpty);
   });
 
+  test('disabled TaskReminders are neither projected nor resolvable Calendar targets', () {
+    final task = Task(
+      id: 'disabled-calendar-reminder',
+      title: 'یادآور غیرفعال',
+      taskReminders: [
+        TaskReminder(
+          id: 'disabled-item',
+          title: 'خاموش',
+          date: DateTime(2026, 12, 5, 9),
+          sequence: 1,
+          isEnabled: false,
+        ),
+      ],
+    );
+
+    expect(projection.project([task]), isEmpty);
+    expect(
+      projection.resolveTaskReminderTarget(
+        [task],
+        projection.independentTaskReminderIdFor(task, task.taskReminders.single),
+      ),
+      isNull,
+    );
+  });
+
   test('projects a canonical task reminder separately from its due date', () {
     final reminderDate = DateTime(2026, 12, 5, 9);
     final dueDate = DateTime(2026, 12, 5, 14);
