@@ -18,7 +18,6 @@ void main() {
       title: 'بازبینی دستگاه',
       description: 'شرح پایدار',
       dueDate: dueDate,
-      reminderDate: reminderDate,
       category: 'فنی',
       tags: const ['روزانه', 'ایمنی'],
       checklistEnabled: true,
@@ -174,7 +173,7 @@ void main() {
     final task = Task(
       id: 'legacy-reminder-source',
       title: 'کار دارای یادآور قدیمی',
-      reminderDate: executionDate,
+      taskReminders: [TaskReminder(id: 'legacy-reminder', title: 'یادآور اصلی', date: executionDate, sequence: 1)],
     );
 
     final saved = await store.createFromTask(
