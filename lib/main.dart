@@ -376,7 +376,6 @@ class _ArvinAppState extends State<ArvinApp> {
         floatingActionButtonTheme: FloatingActionButtonThemeData(
           backgroundColor: accentColor,
           foregroundColor: ArvinColors.surface,
-          shadowColor: ArvinTheme.primaryGlow,
           elevation: 4,
           hoverElevation: 5,
           focusElevation: 5,
