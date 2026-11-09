@@ -167,12 +167,12 @@ void main() {
   });
 
   test('deleted reminders cannot produce delivery events', () {
-    final task = task('deleted', taskReminders: [
+    final deletedTask = task('deleted', taskReminders: [
       TaskReminder(id: 'deleted-reminder', title: 'حذف‌شده',
         date: now.subtract(const Duration(minutes: 1)), sequence: 1),
     ]);
-    task.taskReminders.clear();
-    expect(service.due([task], now: now), isEmpty);
+    deletedTask.taskReminders.clear();
+    expect(service.due([deletedTask], now: now), isEmpty);
   });
 
   test('completed Tasks never deliver canonical reminders', () {
