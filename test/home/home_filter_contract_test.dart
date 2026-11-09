@@ -147,6 +147,9 @@ void main() {
     tester.view.physicalSize = Size(originalWidth, 1200);
     await tester.pumpAndSettle();
     expect(find.bySemanticsLabel('دسته'), findsOneWidget);
+    final menuRect = tester.getRect(find.byKey(const ValueKey('home-drawer-button')));
+    final filterRect = tester.getRect(find.byKey(const ValueKey('home-general-filter-button')));
+    expect(menuRect.center.dx, greaterThan(filterRect.center.dx));
     final bismillahRect = tester.getRect(find.byKey(const ValueKey('home-bismillah-svg')));
     final arvinTitleRect = tester.getRect(find.byKey(const ValueKey('home-title-block')));
     expect(bismillahRect.overlaps(arvinTitleRect), isFalse);
