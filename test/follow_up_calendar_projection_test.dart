@@ -261,7 +261,7 @@ void main() {
     final task = Task(
       id: 'task-reminder',
       title: 'تماس',
-      reminderDate: reminderDate,
+      taskReminders: [TaskReminder(id: 'canonical-reminder', title: 'یادآور', date: reminderDate, sequence: 1)],
       dueDate: dueDate,
     );
 
@@ -278,7 +278,7 @@ void main() {
       id: 'same-instant',
       title: 'موعد و یادآور مستقل',
       dueDate: sameDateTime,
-      reminderDate: sameDateTime,
+      taskReminders: [TaskReminder(id: 'same-instant-reminder', title: 'یادآور مستقل', date: sameDateTime, sequence: 1)],
     );
 
     final reminders = projection.project(<Task>[task]);
@@ -294,7 +294,7 @@ void main() {
     final task = Task(
       id: 'task-reminder',
       title: 'تماس صبحگاهی',
-      reminderDate: reminderDate,
+      taskReminders: [TaskReminder(id: 'morning-reminder', title: 'یادآور صبحگاهی', date: reminderDate, sequence: 1)],
       dueDate: DateTime(2026, 10, 6, 17),
     );
 
@@ -551,7 +551,7 @@ void main() {
       title: 'تماس',
       description: 'شرح جدید کار',
       dueDate: DateTime(2026, 11, 5, 10),
-      reminderDate: DateTime(2026, 11, 5, 9),
+      taskReminders: [TaskReminder(id: 'described-reminder', title: 'یادآور تماس', date: DateTime(2026, 11, 5, 9), sequence: 1)],
     );
     final reminders = projection.project([task]);
     expect(reminders, hasLength(2));
