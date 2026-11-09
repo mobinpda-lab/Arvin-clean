@@ -62,10 +62,7 @@ void main() {
               createdName = name;
               return 'center-inline';
             },
-            onCaptured: (task) async {
-              captured = task;
-              await store.mutate<void>((tasks) => tasks.add(task));
-            },
+            onCaptured: (task) async => captured = task,
           ),
         ),
       ),
@@ -1304,7 +1301,10 @@ void main() {
           body: QuickCaptureDialog(
             idFactory: () => 'quick-all-day-custom-reminder',
             now: () => DateTime(2026, 9, 27, 14, 35),
-            onCaptured: (task) async => captured = task,
+            onCaptured: (task) async {
+              captured = task;
+              await store.mutate<void>((tasks) => tasks.add(task));
+            },
           ),
         ),
       ),
