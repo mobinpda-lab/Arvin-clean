@@ -883,7 +883,18 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       children: [
         Icon(icon, size: 19, color: _brand),
         const SizedBox(width: 7),
-        Text(title, style: const TextStyle(fontFamily: 'Vazirmatn', fontSize: 16, fontWeight: FontWeight.w800)),
+        Expanded(
+          child: Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontFamily: 'Vazirmatn',
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
       ],
     );
   }
