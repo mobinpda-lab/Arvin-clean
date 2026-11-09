@@ -19,7 +19,7 @@ abstract final class ArvinTheme {
   static const String fontFamily = 'Vazirmatn';
   static const BoxShadow shadowStyle = BoxShadow(
     color: primaryGlow,
-    blurRadius: 14,
+    blurRadius: 10,
     spreadRadius: 0.5,
     offset: Offset(0, 4),
   );
