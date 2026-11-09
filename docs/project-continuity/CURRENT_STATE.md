@@ -942,3 +942,58 @@ PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main دست‌نخورد�
 - No test was removed, skipped or weakened. The navigation color assertion was updated only to match the new approved brand color.
 
 - Follow-up test-contract update: the retired sky-blue palette value (#3A86EF) is explicitly rejected; the default and first palette choice are Persian Teal (#0F766E). Theme token and preference-manager tests now assert the approved multicolor semantics and the retired-value fallback. This is an assertion correction, not a skipped or softened test.
+
+
+---
+
+## ممیزی زنده CI و قراردادهای Notebook / Template / Triple Calendar — ۱۴۰۵/۰۸/۱۸ — 2026-11-09
+
+**مرجع دقیق ممیزی:** PR #3052 و شاخه `fix/recovery-calendar-device-smoke-2026-10-31` روی HEAD `76a89e72956325149c090a25caf9cf9e642f3dc7`. HEAD شاخه با HEAD PR برابر بود؛ `main` روی `45e4202b03a434459e4c021a04efa7e8396359db` باقی بود.
+
+### وضعیت قطعی Build #10646 — run `42589063339`
+
+| Job | Job ID | نتیجه دقیق |
+|---|---:|---|
+| Analyze + Android V2 audit | `129066729343` | SUCCESS؛ هر دو Step موفق |
+| Visual | `129066729085` | SUCCESS؛ Task Details structural smoke و upload موفق |
+| Shard 0 | `129066729337` | FAILURE — 213 passed / 20 failed |
+| Shard 1 | `129066729221` | FAILURE — 186 passed / 10 failed |
+| Shard 2 | `129066729550` | FAILURE — 294 passed / 24 failed |
+| Shard 3 | `129066729233` | FAILURE — 138 passed / 19 failed |
+| Shard 4 | `129066729332` | FAILURE — 227 passed / 14 failed |
+| Shard 5 | `129066728935` | FAILURE — 175 passed / 13 failed |
+| APK Staging | `129066728729` | SUCCESS؛ Build، signature/manifest، font audit، verify و upload موفق |
+| APK Debug | `129066728942` | SUCCESS؛ Build، font audit و verify موفق |
+| APK Release | `129066729321` | SUCCESS؛ Build، font audit و verify موفق |
+
+**جمع شش شارد:** 1,233 تست موفق، 100 تست ناموفق، 1,333 تست اجراشده. Build workflow به علت شکست شاردها در سطح کلی SUCCESS نیست.
+
+### دروازه‌های مستقل روی همین SHA
+
+| Workflow | Run / Job | نتیجه |
+|---|---|---|
+| Device Smoke #7866 | run `42589063306` | PENDING؛ در آخرین بررسی هیچ Job قابل مشاهده نبود؛ پذیرش دستگاهی VERIFIED نیست |
+| Draft Review APK #1439 | run `42589063190` / job `129065910125` | SUCCESS؛ staging review APK non-debuggable، signature/package/font checks و artifact upload موفق |
+| Calendar Provider #2766 | run `42589063376` / job `129065910586` | SUCCESS؛ Provider instrumentation و acceptance موفق |
+| Follow-up File Persistence #1789 | run `42589063325` / job `129065910382` | SUCCESS؛ file-backed persistence و close/reopen diagnostic موفق |
+| G1 lock sync #5258 | run `42589063294` / job `129065909311` | SUCCESS |
+
+موفقیت APK یا Provider جایگزین Device Smoke و پذیرش فیزیکی Samsung SM-A528B/DS نیست. امضای Review/Staging نیز مجوز انتشار محسوب نمی‌شود.
+
+### وضعیت شکست شاردها
+- شارد ۰: از جمله `Bad state: No element` در تست ساخت مرکز در Quick Capture و نبودن متن مورد انتظار «زمان کار / موعد».
+- شارد ۱: از جمله نبودن گزینه «پروژه» در تست ثبت سریع و شکست تست گزارش ردیف‌های انتظار شخص‌محور.
+- شارد ۲ و ۳: شکست تست‌های Quick Capture در مسیرهای موعد، Reminder، تکرار و نمایش ساعت انتخاب‌شده.
+- شارد ۴ و ۵: شکست‌های متعدد در تقویم، Task Details، فیلترها و گزارش‌ها.
+- مجموع شکست‌ها باید بر اساس لاگ هر تست اصلاح شود؛ این فهرست دسته‌بندی اولیه است و جایگزین تحلیل ریشه‌ای همه 100 مورد نیست.
+
+### قراردادهای محصولی ثبت‌شده
+- Notebook: Fast Capture، استخراج عنوان فقط در اولین auto-save، دو حالت مستقل/متصل، unlink و حذف Task بدون حذف Note، تبدیل غیرمخرب به Task جدید.
+- روابط: Center/Project/Category هرکدام حداکثر یک انتخاب و اختیاری؛ Tags چندانتخابی؛ زنجیره Center→Project→Category.
+- Templates: تکثیر عمیق فیلدهای مصوب، حذف تاریخچه و وضعیت اجرا، جابه‌جایی Due Date/Reminder بر اساس offset نسبت به تاریخ مبنای جدید.
+- Calendar: شمسی پیش‌فرض، قمری و میلادی در همه انتخابگرها و تبدیل به تاریخ canonical داخلی.
+
+### مرز تغییرات این مرحله
+این ثبت و هم‌راستاسازی فقط مستندات است. هیچ کد، تست، schema، migration، workflow یا APK تغییر نکرده است. نتایج CI بالا متعلق به SHA دقیق ذکرشده‌اند و به commit مستندات بعدی منتقل نمی‌شوند.
+
+**حاکمیت:** PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ **BLOCKED — RELEASE: NO-GO**.

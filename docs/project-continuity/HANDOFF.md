@@ -348,3 +348,22 @@ NOT VERIFIED. GitHub branch data does not reveal uncommitted local modifications
 5. Preserve all tests. No deletion, skip, weakening, timeout or assertion relaxation. After correction, rerun Analyze, all six shards, Visual, Calendar Provider, Follow-up Persistence, Device Smoke and Draft Review APK against one exact SHA.
 6. Diagnostic artifact `13606295730` is Calendar Provider evidence only, not an APK. Draft Review APK run has zero artifacts.
 7. Keep PR #3052 OPEN / DRAFT / UNMERGED; do not touch main; no merge/release. **BLOCKED — RELEASE: NO-GO**.
+
+
+---
+
+## Handoff جاری — ممیزی CI و قراردادهای Notebook/Template/Calendar — 2026-11-09
+
+**نقطه شروع اجباری:** ابتدا HEAD زنده شاخه و PR #3052 را دوباره بررسی کن. آخرین SHA ممیزی‌شده پیش از این handoff برابر `76a89e72956325149c090a25caf9cf9e642f3dc7` بود؛ main در `45e4202b03a434459e4c021a04efa7e8396359db`. هر تغییر HEAD یعنی تمام شواهد exact-SHA باید دوباره استخراج شوند.
+
+1. سند مرجع Notebook: `docs/project-continuity/ARCHITECTURE_NOTEBOOK.md` نسخه 2.0؛ این فایل پیش‌تر وجود داشت و اکنون با قرارداد بقای یادداشت، Fast Capture، کاردینالیتی، آبشار taxonomy، فیلتر پنج‌گانه و Gap Analysis به‌روزرسانی شده است.
+2. قرارداد الگو: `docs/project-continuity/TASK_TEMPLATE_DATA_CONTRACT.md` نسخه 2.0؛ این نسخه بندهای قدیمیِ عدم انتقال Due Date/انتخاب مجدد دستی Reminder را supersede می‌کند و انتقال offset را الزام می‌داند.
+3. `CURRENT_STATE.md` و همین `HANDOFF.md` شامل ممیزی exact-SHA Build #10646 و گیت‌های مستقل هستند. شش شارد 100 شکست دارند؛ Analyze و Visual موفق‌اند؛ APKهای Build و Review موفق‌اند؛ Provider و File Persistence موفق‌اند؛ Device Smoke هنوز PENDING و بدون Job قابل مشاهده است.
+4. مجموع شاردها: 1,233 passed / 100 failed از 1,333 تست. هیچ تستی نباید حذف، Skip، تضعیف یا دور زده شود. برای هر شکست لاگ همان Job را بخوان و نقص محصول را در مسیر اصلی رفع کن.
+5. وضعیت فعلی Notebook: Task canonical + CanonicalNotebookRepository؛ جدول/رابطه مستقل Note↔Task وجود ندارد. حذف کار و unlink غیرمخرب هنوز به‌صورت قرارداد محصول ثبت شده و نیازمند طراحی و تست است.
+6. وضعیت فعلی taxonomy: Center اختیاری در Task، Project membership canonical از ProjectPlan.itemIds و سرویس تخصیص تک‌پروژه، Category تک‌مقداری و Tags چندمقداری. جدول taxonomy_categories فعلاً project_id ندارد؛ آبشار Category از Project gap است.
+7. وضعیت Template: G1 Drift v16 و task_templates موجود؛ مدل فعلی anchor و offset تاریخ ندارد؛ Reminder Template فقط hour/minute نگه می‌دارد؛ TaskCloneService dueDate را جابه‌جا نمی‌کند و taskReminders را خالی می‌کند. Deep Clone زمان‌محور هنوز پیاده‌سازی/تأیید نشده است.
+8. وضعیت Calendar: PersianDatePicker در HEAD مبنا شمسی + میلادی است و گزینه قمری ندارد. مشخصات Calendar سه‌گانه مصوب است؛ همه انتخابگرها باید سه تقویم را پشتیبانی کنند و تاریخ canonical داخلی را حفظ کنند.
+9. این مرحله فقط مستندسازی است؛ هیچ فایل .dart، تست، schema، migration یا workflow تغییر نکرده است. برای پیاده‌سازی‌های بعدی ابتدا شکاف‌ها و migration plan را به تفکیک بررسی کن؛ هیچ DDL مخرب یا حدس در تبدیل تاریخ مجاز نیست.
+10. Device Smoke و نصب/پذیرش واقعی Samsung SM-A528B/DS جداگانه الزامی‌اند. موفقیت ساخت APK یا Review Artifact، پذیرش فیزیکی را ثابت نمی‌کند.
+11. PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main دست‌نخورده؛ بدون Merge، انتشار یا انتشار عمومی. **BLOCKED — RELEASE: NO-GO**.
