@@ -867,7 +867,16 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
     expect(find.text('موعد امروز بدون انتخاب'), findsOneWidget);
+    final homeList = find.byKey(const ValueKey('home-task-list-viewport'));
+    await tester.scrollUntilVisible(
+      find.text('برگزیده با موعد آینده'),
+      240,
+      scrollable: homeList,
+    );
     expect(find.text('برگزیده با موعد آینده'), findsOneWidget);
+    // The canonical bottom navigation hides while the Home list is scrolled.
+    await tester.drag(homeList, const Offset(0, 1200));
+    await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
