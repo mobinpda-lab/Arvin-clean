@@ -52,7 +52,15 @@ void main() {
       id: 'full-entry',
       title: 'کار کامل',
       dueDate: due,
-      reminderDate: reminder,
+      taskReminders: [
+        TaskReminder(
+          id: 'full-entry-reminder',
+          title: 'یادآوری: کار کامل',
+          date: reminder,
+          sequence: 1,
+        ),
+      ],
+      nextReminderSequence: 2,
       recurrence: const RecurrenceRule(
         frequency: RecurrenceFrequency.weekly,
         interval: 2,
@@ -71,7 +79,9 @@ void main() {
 
     expect(find.byKey(const ValueKey('task-editor-more-details')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-due-date-time')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-editor-reminder-date-time')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-multiple-reminders')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-reminder-full-entry-reminder')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-editor-reminder-date-full-entry-reminder')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-recurrence')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-priority')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-editor-completed')), findsOneWidget);
@@ -226,19 +236,20 @@ void main() {
 
   testWidgets('legacy Task reminder can be explicitly changed to All-Day', (tester) async {
     Task? result;
-    final task = Task(
-      id: 'legacy-all-day-editor',
-      title: 'یادآور قدیمی',
-      reminderDate: DateTime(2026, 10, 19, 9, 30),
-    );
+    final task = Task.fromLegacyJson({
+      'id': 'legacy-all-day-editor',
+      'title': 'یادآور قدیمی',
+      'reminderDate': DateTime(2026, 10, 19, 9, 30).toIso8601String(),
+    });
     await openEditor(tester, task: task, onResult: (value) => result = value);
 
-    final reminderButton =
-        find.byKey(const ValueKey('task-editor-reminder-date-time'));
+    final reminderButton = find.byKey(
+      const ValueKey('task-editor-reminder-date-legacy-task-reminder-legacy-all-day-editor'),
+    );
     await tester.ensureVisible(reminderButton);
     await tester.tap(reminderButton);
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
+    await tester.tap(find.widgetWithText(FilledButton, 'تأیید'));
     await tester.pumpAndSettle();
     final noTime = find.byKey(const ValueKey('universal-time-no-time'));
     expect(noTime, findsOneWidget);
@@ -260,11 +271,11 @@ void main() {
   testWidgets('full Task editor adds independent numbered reminders without replacing legacy reminder', (tester) async {
     Task? result;
     final legacyDate = DateTime(2026, 10, 20, 9, 30);
-    final task = Task(
-      id: 'editor-multi',
-      title: 'خرید فرش',
-      reminderDate: legacyDate,
-    );
+    final task = Task.fromLegacyJson({
+      'id': 'editor-multi',
+      'title': 'خرید فرش',
+      'reminderDate': legacyDate.toIso8601String(),
+    });
     await openEditor(tester, task: task, onResult: (value) => result = value);
 
     final add = find.byKey(const ValueKey('task-editor-add-reminder'));
@@ -282,18 +293,18 @@ void main() {
 
     expect(result, isNotNull);
     expect(result!.reminderDate, legacyDate);
-    expect(result!.taskReminders, hasLength(2));
-    expect(result!.taskReminders.map((item) => item.sequence), [1, 2]);
-    expect(result!.taskReminders.map((item) => item.id).toSet().length, 2);
-    expect(result!.taskReminders.first.title, 'خرید فرش — یادآور ۱');
-    expect(result!.nextReminderSequence, 3);
+    expect(result!.taskReminders, hasLength(3));
+    expect(result!.taskReminders.map((item) => item.sequence), [1, 2, 3]);
+    expect(result!.taskReminders.map((item) => item.id).toSet().length, 3);
+    expect(result!.taskReminders.first.title, 'یادآوری: خرید فرش');
+    expect(result!.nextReminderSequence, 4);
   });
 
 
   testWidgets('editor keeps a migrated legacy reminder in the independent collection', (tester) async {
     Task? result;
     final legacyDate = DateTime(2026, 10, 20, 9, 30);
-    final task = Task.fromJson({
+    final task = Task.fromLegacyJson({
       'id': 'editor-migrated-legacy',
       'title': 'کار قدیمی',
       'reminderDate': legacyDate.toIso8601String(),
