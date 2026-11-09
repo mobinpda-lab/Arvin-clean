@@ -508,6 +508,14 @@ class Task {
     final legacyReminderDate = migrateLegacyReminders && rawLegacyReminderDate is String
         ? DateTime.tryParse(rawLegacyReminderDate)
         : null;
+    if (migrateLegacyReminders &&
+        rawLegacyReminderDate is String &&
+        rawLegacyReminderDate.trim().isNotEmpty &&
+        legacyReminderDate == null) {
+      throw const FormatException(
+        'Invalid legacy Task reminderDate; refusing silent schedule loss.',
+      );
+    }
     final rawLegacyFollowUpDate = json['followUpDate'];
     final legacyFollowUpDate = migrateLegacyReminders && rawLegacyFollowUpDate is String
         ? DateTime.tryParse(rawLegacyFollowUpDate)

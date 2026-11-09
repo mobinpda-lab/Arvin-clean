@@ -360,8 +360,13 @@ class G1DriftSchema implements QueryExecutorUser {
     final followUpDateColumn = hasLegacyTaskFollowUpDate
         ? 'follow_up_date'
         : 'NULL AS follow_up_date';
+    final taskOrderColumn = taskColumns.any(
+      (row) => row['name'] == 'storage_ordinal',
+    )
+        ? 'storage_ordinal'
+        : 'id';
     final taskRows = await executor.runSelect(
-      'SELECT id, title, $reminderColumn, $followUpEnabledColumn, $followUpDateColumn, legacy_payload_json FROM tasks ORDER BY storage_ordinal, id',
+      'SELECT id, title, $reminderColumn, $followUpEnabledColumn, $followUpDateColumn, legacy_payload_json FROM tasks ORDER BY $taskOrderColumn, id',
       const [],
     );
     // Normalize legacy All-Day due dates to floating date-only values.
