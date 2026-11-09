@@ -129,6 +129,10 @@ class SqlTaskMigrationWriter {
            ON CONFLICT(id) DO UPDATE SET name = excluded.name, updated_at = excluded.updated_at''',
         <Object?>[person.id, person.displayName, now, now],
       );
+      await executor.runInsert(
+        'INSERT OR IGNORE INTO person_directory (person_id) VALUES (?)',
+        <Object?>[person.id],
+      );
     }
     for (final followUp in task.followUps) {
       for (final personId in followUp.personIds) {

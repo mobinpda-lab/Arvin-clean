@@ -32,6 +32,8 @@ class G1DriftSchema implements QueryExecutorUser {
     '''CREATE TABLE IF NOT EXISTS persons (
   id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL,
   created_at TEXT NOT NULL, updated_at TEXT NOT NULL)''',
+    '''CREATE TABLE IF NOT EXISTS person_directory (
+  person_id TEXT NOT NULL PRIMARY KEY REFERENCES persons(id))''',
     '''CREATE TABLE IF NOT EXISTS follow_up_record_people (
   follow_up_id TEXT NOT NULL REFERENCES follow_up_records(id), person_id TEXT NOT NULL REFERENCES persons(id),
   ordinal INTEGER NOT NULL, PRIMARY KEY (follow_up_id, person_id))''',
@@ -114,6 +116,9 @@ class G1DriftSchema implements QueryExecutorUser {
   static Future<void> _installSchema(QueryExecutor executor) async {
     final schema = G1DriftSchema();
     await executor.ensureOpen(schema);
+    // Seed the new active-directory relation exactly once from the pre-split
+    // Persons table. Subsequent installs must never resurrect deleted entries.
+    final hadPersonDirectory = await _hasTable(executor, 'person_directory');
     await executor.runCustom('PRAGMA foreign_keys = OFF');
     await executor.runCustom('PRAGMA busy_timeout = 5000');
     await executor.runCustom('PRAGMA synchronous = NORMAL');
@@ -204,6 +209,11 @@ class G1DriftSchema implements QueryExecutorUser {
       }
       await migrateTaskPeople(executor);
       await migrateCanonicalEntities(executor);
+      if (!hadPersonDirectory) {
+        await executor.runCustom(
+          'INSERT OR IGNORE INTO person_directory (person_id) SELECT id FROM persons',
+        );
+      }
       await _rebuildTaskTableWithoutLegacyScheduleColumns(executor);
       // Do not write PRAGMA user_version here. The canonical migration marker
       // is arvin_storage_meta, and this install path can be reached by more

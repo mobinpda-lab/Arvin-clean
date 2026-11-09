@@ -206,14 +206,16 @@ class _TaskPeoplePageState extends State<TaskPeoplePage> {
                               leading: const CircleAvatar(
                                 child: Icon(Icons.person_outline),
                               ),
-                              title: Text(person.displayName),
-                              subtitle: const Text('شناسه محلی آروین'),
+                              title: Text(person.displayLabel),
+                              subtitle: Text(person.isDeleted
+                                  ? 'این شخص از فهرست فعال حذف شده است'
+                                  : 'شناسه محلی آروین'),
                               trailing: IconButton(
                                 key: ValueKey('people-remove-${person.id}'),
                                 tooltip: 'حذف ارتباط',
                                 onPressed: () => _removePerson(
                                   person.id,
-                                  person.displayName,
+                                  person.displayLabel,
                                 ),
                                 icon: const Icon(Icons.link_off_outlined),
                               ),

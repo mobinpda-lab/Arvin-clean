@@ -56,7 +56,12 @@ class TaskStore {
     return TaskStorageLock.synchronized<List<PersonReference>>(() async {
       final executor = _database;
       await _ensureReady();
-      final rows = await executor.runSelect('SELECT id, name FROM persons ORDER BY name, id', const []);
+      final rows = await executor.runSelect(
+        '''SELECT persons.id, persons.name FROM person_directory
+           JOIN persons ON persons.id = person_directory.person_id
+           ORDER BY persons.name, persons.id''',
+        const [],
+      );
       return rows.map((row) => PersonReference(
         id: row['id'] as String,
         displayName: row['name'] as String,
@@ -64,8 +69,8 @@ class TaskStore {
     });
   }
 
-  /// Replaces unreferenced directory entries atomically. Task and Follow-up
-  /// links remain in normalized relation tables; referenced Persons are retained.
+  /// Replaces only the active directory membership atomically. Historical
+  /// Person rows and Task/Follow-up relations are never deleted.
   Future<void> savePeopleDirectory(Iterable<PersonReference> people) async {
     final normalized = <String, PersonReference>{};
     for (final person in people) {
@@ -83,11 +88,7 @@ class TaskStore {
       };
       await executor.runCustom('BEGIN');
       try {
-        await executor.runCustom(
-          '''DELETE FROM persons
-             WHERE id NOT IN (SELECT person_id FROM task_persons
-                              UNION SELECT person_id FROM follow_up_record_people)''',
-        );
+        await executor.runCustom('DELETE FROM person_directory');
         final now = DateTime.now().toIso8601String();
         for (final person in normalized.values) {
           final old = oldById[person.id];
@@ -97,6 +98,10 @@ class TaskStore {
                ON CONFLICT(id) DO UPDATE
                  SET name = excluded.name, updated_at = excluded.updated_at''',
             <Object?>[person.id, person.displayName, old?['created_at'] ?? now, now],
+          );
+          await executor.runInsert(
+            'INSERT OR IGNORE INTO person_directory (person_id) VALUES (?)',
+            <Object?>[person.id],
           );
         }
         await executor.runCustom('COMMIT');
@@ -729,9 +734,11 @@ class TaskStore {
     envelope['tags'] = tags.map((item) => item['name'] as String).toList();
 
     final people = await executor.runSelect(
-      '''SELECT persons.id, persons.name
+      '''SELECT persons.id, persons.name,
+                CASE WHEN person_directory.person_id IS NULL THEN 1 ELSE 0 END AS is_deleted
          FROM task_persons
          JOIN persons ON persons.id = task_persons.person_id
+         LEFT JOIN person_directory ON person_directory.person_id = persons.id
          WHERE task_persons.task_id = ?
          ORDER BY task_persons.ordinal''',
       <Object?>[row['id']],
@@ -740,6 +747,7 @@ class TaskStore {
         .map((item) => <String, dynamic>{
               'id': item['id'],
               'displayName': item['name'],
+              'isDeleted': (item['is_deleted'] as num?)?.toInt() == 1,
             })
         .toList(growable: false);
 
@@ -913,12 +921,22 @@ class TaskStore {
   Future<void> _writeRelations(QueryExecutor executor, Task task) async {
     final now = DateTime.now().toIso8601String();
     for (final person in task.people) {
-      await executor.runInsert(
-        '''INSERT INTO persons (id, name, created_at, updated_at)
-           VALUES (?, ?, ?, ?)
-           ON CONFLICT(id) DO UPDATE SET name = excluded.name, updated_at = excluded.updated_at''',
-        <Object?>[person.id, person.displayName, now, now],
-      );
+      if (person.isDeleted) {
+        // A historical relation may be rewritten without reactivating the
+        // Person in the directory or overwriting its last known display name.
+        await executor.runInsert(
+          '''INSERT OR IGNORE INTO persons (id, name, created_at, updated_at)
+             VALUES (?, ?, ?, ?)''',
+          <Object?>[person.id, person.displayName, now, now],
+        );
+      } else {
+        await executor.runInsert(
+          '''INSERT INTO persons (id, name, created_at, updated_at)
+             VALUES (?, ?, ?, ?)
+             ON CONFLICT(id) DO UPDATE SET name = excluded.name, updated_at = excluded.updated_at''',
+          <Object?>[person.id, person.displayName, now, now],
+        );
+      }
     }
     for (final followUp in task.followUps) {
       for (final personId in followUp.personIds) {

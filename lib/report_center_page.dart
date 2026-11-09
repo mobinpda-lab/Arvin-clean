@@ -354,7 +354,7 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                                 subtitle: Text([
                                   if (row.followUp.note.trim().isNotEmpty) row.followUp.note.trim(),
                                   if (row.followUp.result?.trim().isNotEmpty == true) 'نتیجه: ${row.followUp.result!.trim()}',
-                                  'افراد: ${row.people.map((person) => person.displayName).join('، ')}',
+                                  'افراد: ${row.people.map((person) => person.displayLabel).join('، ')}',
                                 ].join(' • ')),
                               ),
                             );

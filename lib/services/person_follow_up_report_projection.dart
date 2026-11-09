@@ -69,7 +69,7 @@ class PersonFollowUpReportProjection {
               (id) =>
                   directory[id] ??
                   (includeDanglingPeople
-                      ? PersonReference(id: id, displayName: 'شخص حذف‌شده')
+                      ? PersonReference(id: id, displayName: 'شخص حذف‌شده', isDeleted: true)
                       : null),
             )
             .whereType<PersonReference>()

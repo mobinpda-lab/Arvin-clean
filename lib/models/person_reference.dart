@@ -4,6 +4,7 @@ class Person {
   factory Person({
     required String id,
     required String displayName,
+    bool isDeleted = false,
   }) {
     final normalizedId = id.trim();
     final normalizedName = displayName.trim();
@@ -20,12 +21,14 @@ class Person {
     return Person._(
       id: normalizedId,
       displayName: normalizedName,
+      isDeleted: isDeleted,
     );
   }
 
   const Person._({
     required this.id,
     required this.displayName,
+    this.isDeleted = false,
   });
 
   /// Stable Arvin-owned identity. It is deliberately not a phone number,
@@ -35,20 +38,33 @@ class Person {
   /// Offline-safe label for rendering the relation without provider access.
   final String displayName;
 
+  /// Historical relation whose identity remains, but which is no longer in
+  /// the active People Directory.
+  final bool isDeleted;
+
+  String get displayLabel => isDeleted ? 'شخص حذف‌شده' : displayName;
+
   Map<String, dynamic> toJson() => <String, dynamic>{
         'id': id,
         'displayName': displayName,
+        if (isDeleted) 'isDeleted': true,
       };
 
   factory Person.fromJson(Map<String, dynamic> json) {
     final rawId = json['id'];
     final rawDisplayName = json['displayName'];
-    if (rawId is! String || rawDisplayName is! String) {
+    final rawIsDeleted = json['isDeleted'];
+    if (rawId is! String || rawDisplayName is! String ||
+        (rawIsDeleted != null && rawIsDeleted is! bool)) {
       throw const FormatException('Invalid Person reference');
     }
 
     try {
-      return Person(id: rawId, displayName: rawDisplayName);
+      return Person(
+        id: rawId,
+        displayName: rawDisplayName,
+        isDeleted: rawIsDeleted as bool? ?? false,
+      );
     } on ArgumentError {
       throw const FormatException('Invalid Person reference');
     }
