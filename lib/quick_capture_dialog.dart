@@ -82,6 +82,8 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   DateTime? _reminderDate;
   bool _reminderAllDay = false;
   bool _pendingCustomReminderAllDay = false;
+  bool _pendingCustomReminder = false;
+  Duration? _relativeReminderOffset;
   RecurrenceRule? _recurrence;
   String? _projectId;
   String? _centerId;
@@ -125,6 +127,8 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     _reminderDate = null;
     _reminderAllDay = false;
     _pendingCustomReminderAllDay = false;
+    _pendingCustomReminder = false;
+    _relativeReminderOffset = null;
     _recurrence = null;
     _projectId = null;
     _centerId = null;
@@ -162,6 +166,18 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     setState(() {
       _dueDate = value;
       _dueAllDay = value != null && allDay;
+      if (_relativeReminderOffset != null) {
+        if (_dueAllDay) {
+          // A relative preset cannot be anchored to a date-only deadline.
+          // Clear only that derived reminder; custom reminders remain independent.
+          _reminderDate = null;
+          _reminderAllDay = false;
+          _relativeReminderOffset = null;
+        } else {
+          _reminderDate = (value ?? _now()).add(_relativeReminderOffset!);
+          _reminderAllDay = false;
+        }
+      }
     });
   }
 
@@ -177,18 +193,23 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     task.dueDate = _dueDate;
     task.centerId = _centerId;
     task.allDay = _dueDate != null && _dueAllDay;
-    task.taskReminders = _reminderDate == null
+    // Defensive serialization guard: even if state is changed by a future
+    // caller, a relative timestamp must never be persisted against an all-day due.
+    final reminderDate = _dueAllDay && _relativeReminderOffset != null
+        ? null
+        : _reminderDate;
+    task.taskReminders = reminderDate == null
         ? <TaskReminder>[]
         : <TaskReminder>[
             TaskReminder(
               id: 'quick-capture-reminder-${task.id}',
               title: 'یادآوری: ${task.title}',
-              date: _reminderDate!,
+              date: reminderDate,
               isAllDay: _reminderAllDay,
               sequence: 1,
             ),
           ];
-    task.nextReminderSequence = _reminderDate == null ? 1 : 2;
+    task.nextReminderSequence = reminderDate == null ? 1 : 2;
     task.recurrence = _recurrence;
     final category = _categoryController.text.trim();
     task.category = category.isEmpty ? null : category;
@@ -334,6 +355,7 @@ Future<DateTime?> _pickCustomDue() async {
     );
     if (selection == null || !mounted) return null;
     _pendingCustomReminderAllDay = selection.isAllDay;
+    _pendingCustomReminder = true;
     return selection.isAllDay
         ? DateTime(date.year, date.month, date.day)
         : DateTime(date.year, date.month, date.day, selection.time!.hour, selection.time!.minute);
@@ -853,20 +875,29 @@ Future<DateTime?> _pickCustomDue() async {
                             icon: Icons.notifications_none_outlined,
                             color: ArvinColors.reminder,
                             emptyLabel: 'بدون یادآور',
-                            items: [
-                              ArvinRollItem<Object?>(value: _dueDate ?? _now(), label: 'همان زمان موعد', icon: Icons.notifications_active_outlined, color: ArvinColors.reminder),
-                              ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(minutes: 15)), label: '۱۵ دقیقه قبل', icon: Icons.notifications_active_outlined, color: ArvinColors.reminder),
-                              ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(hours: 1)), label: 'یک ساعت قبل', icon: Icons.notifications_active_outlined, color: ArvinColors.reminder),
-                              ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(days: 1)), label: 'یک روز قبل', icon: Icons.notifications_active_outlined, color: ArvinColors.reminder),
-                              ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(days: 7)), label: 'یک هفته قبل', icon: Icons.notifications_active_outlined, color: ArvinColors.reminder),
-                            ],
+                            items: _dueAllDay
+                                ? <ArvinRollItem<Object?>>[]
+                                : [
+                                    ArvinRollItem<Object?>(value: _dueDate ?? _now(), label: 'همان زمان موعد', icon: Icons.notifications_active_outlined, color: ArvinColors.reminder),
+                                    ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(minutes: 15)), label: '۱۵ دقیقه قبل', icon: Icons.notifications_active_outlined, color: ArvinColors.reminder),
+                                    ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(hours: 1)), label: 'یک ساعت قبل', icon: Icons.notifications_active_outlined, color: ArvinColors.reminder),
+                                    ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(days: 1)), label: 'یک روز قبل', icon: Icons.notifications_active_outlined, color: ArvinColors.reminder),
+                                    ArvinRollItem<Object?>(value: (_dueDate ?? _now()).subtract(const Duration(days: 7)), label: 'یک هفته قبل', icon: Icons.notifications_active_outlined, color: ArvinColors.reminder),
+                                  ],
                             createLabel: 'تاریخ و ساعت سفارشی',
                             onCreate: _saving ? null : _pickCustomReminder,
                             onSelected: (value) {
                               setState(() {
-                                _reminderDate = value is DateTime ? value : null;
-                                _reminderAllDay = _reminderDate != null && _pendingCustomReminderAllDay;
+                                final selectedDate = value is DateTime ? value : null;
+                                final isCustom = _pendingCustomReminder;
+                                _reminderDate = selectedDate;
+                                _relativeReminderOffset = selectedDate == null || isCustom
+                                    ? null
+                                    : selectedDate.difference(_dueDate ?? _now());
+                                _reminderAllDay = selectedDate != null &&
+                                    isCustom && _pendingCustomReminderAllDay;
                                 _pendingCustomReminderAllDay = false;
+                                _pendingCustomReminder = false;
                               });
                             },
                           )),
