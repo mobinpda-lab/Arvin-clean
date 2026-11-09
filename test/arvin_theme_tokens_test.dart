@@ -7,25 +7,25 @@ import 'package:arvin/core/theme/arvin_theme.dart';
 void main() {
   group('Arvin design tokens', () {
     test('matches the owner-approved light card palette and typography', () {
-      expect(ArvinTheme.primaryTeal, const Color(0xFF0F766E));
+      expect(ArvinTheme.primaryTeal, const Color(0xFF008080));
       expect(ArvinTheme.primaryBlue, ArvinTheme.primaryTeal);
       expect(ArvinTheme.primaryPurple, ArvinTheme.primaryBlue);
-      expect(ArvinTheme.headerTeal, const Color(0xFF115E59));
+      expect(ArvinTheme.headerTeal, const Color(0xFF008B8B));
       expect(ArvinTheme.headerBlue, ArvinTheme.headerTeal);
       expect(ArvinTheme.headerPurple, ArvinTheme.headerBlue);
       expect(ArvinTheme.backgroundLight, const Color(0xFFF8F8FB));
       expect(ArvinTheme.cardBackground, const Color(0xFFFDFDFE));
-  expect(ArvinTheme.primaryGlow, const Color(0x400F766E));
-  expect(ArvinTheme.shadowStyle.color, const Color(0x400F766E));
-  expect(ArvinColors.shadowSoft, const Color(0x400F766E));
-  expect(ArvinColors.shadowDark, const Color(0x400F766E));
+  expect(ArvinTheme.primaryGlow, const Color(0x40008080));
+  expect(ArvinTheme.shadowStyle.color, const Color(0x40008080));
+  expect(ArvinColors.shadowSoft, const Color(0x40008080));
+  expect(ArvinColors.shadowDark, const Color(0x40008080));
       expect(ArvinTheme.cardBorderRadius, BorderRadius.circular(16));
       expect(ArvinTheme.shadowStyle.blurRadius, 10);
       expect(ArvinTheme.shadowStyle.offset, const Offset(0, 4));
       expect(ArvinTheme.fontFamily, 'Vazirmatn');
       expect(ArvinColors.primary, ArvinTheme.primaryBlue);
       expect(ArvinColors.primaryDark, ArvinTheme.headerBlue);
-      expect(ArvinColors.primarySoft, const Color(0xFFDDF3EF));
+      expect(ArvinColors.primarySoft, const Color(0xFFD9F0EE));
     });
 
     test('keeps semantic priority and taxonomy colors separate from brand tokens', () {
@@ -33,7 +33,7 @@ void main() {
       expect(ArvinColors.priorityP2, const Color(0xFFD97706));
       expect(ArvinColors.priorityP3, const Color(0xFF2563EB));
       expect(ArvinColors.priorityP4, const Color(0xFF80829C));
-      expect(ArvinColors.time, const Color(0xFF0F766E));
+      expect(ArvinColors.time, const Color(0xFF008080));
       expect(ArvinColors.reminder, const Color(0xFFD97706));
       expect(ArvinColors.project, const Color(0xFF7C3AED));
       expect(ArvinColors.category, const Color(0xFF2563EB));
