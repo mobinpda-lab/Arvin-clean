@@ -227,8 +227,9 @@ void main() {
       'reminder-one',
       'reminder-two',
       'follow-up-reminder-canonical-task-legacy-follow-up',
+      'follow-up-next-reminder-canonical-task-legacy-follow-up',
     ]);
-    expect(reminders.map((row) => row['is_all_day']), [0, 1, 0]);
+    expect(reminders.map((row) => row['is_all_day']), [0, 1, 0, 0]);
     expect(reminders[1]['remind_at'], '2026-11-09');
     final migratedDueDate = await database.runSelect(
       'SELECT due_date FROM tasks WHERE id = ?',
@@ -240,6 +241,14 @@ void main() {
       <Object?>['follow-up-reminder-canonical-task-legacy-follow-up'],
     );
     expect(migratedFollowUpReminder.single['remind_at'], '2026-11-07T09:00:00.000');
+    final migratedNextFollowUpReminder = await database.runSelect(
+      'SELECT remind_at FROM task_reminders WHERE id = ?',
+      <Object?>['follow-up-next-reminder-canonical-task-legacy-follow-up'],
+    );
+    expect(
+      migratedNextFollowUpReminder.single['remind_at'],
+      '2026-11-10T09:00:00.000',
+    );
 
     final records = await database.runSelect(
       'SELECT id, completed_at FROM follow_up_records WHERE task_id = ?',
@@ -386,6 +395,14 @@ void main() {
     await database.ensureOpen(G1DriftSchema());
     await database.runCustom("CREATE TABLE tasks (id TEXT NOT NULL PRIMARY KEY, storage_ordinal INTEGER NOT NULL DEFAULT 0, title TEXT NOT NULL, description TEXT NOT NULL, created_at TEXT NULL, updated_at TEXT NULL, due_date TEXT NULL, follow_up_enabled INTEGER NOT NULL, follow_up_date TEXT NULL, category TEXT NULL, notebook_kind TEXT NULL, reminder_date TEXT NULL, priority TEXT NOT NULL, archived INTEGER NOT NULL, trashed INTEGER NOT NULL, completed INTEGER NOT NULL, recurrence_json TEXT NULL)");
     await database.runCustom("INSERT INTO tasks (id, title, description, follow_up_enabled, priority, archived, trashed, completed) VALUES ('legacy-task', 'قدیمی', '', 0, 'none', 0, 0, 1)");
+    await database.runCustom(
+      "INSERT INTO tasks (id, title, description, follow_up_enabled, follow_up_date, priority, archived, trashed, completed) "
+      "VALUES ('legacy-followup-enabled', 'پیگیری فعال', '', 1, '2026-11-10T10:30:00.000', 'none', 0, 0, 0)",
+    );
+    await database.runCustom(
+      "INSERT INTO tasks (id, title, description, follow_up_enabled, follow_up_date, priority, archived, trashed, completed) "
+      "VALUES ('legacy-followup-disabled', 'پیگیری غیرفعال', '', 0, '2026-11-11T09:00:00.000', 'none', 0, 0, 0)",
+    );
     await G1DriftSchema.install(database);
     final taxonomyTables = await database.runSelect("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'taxonomy_categories'", const []);
     expect(taxonomyTables, hasLength(1));
@@ -401,5 +418,28 @@ void main() {
     expect(columns.map((row) => row['name']), isNot(contains('follow_up_enabled')));
     expect(columns.map((row) => row['name']), isNot(contains('follow_up_date')));
     expect(columns.map((row) => row['name']), isNot(contains('reminder_date')));
+
+    final migratedSchedules = await database.runSelect(
+      'SELECT id, remind_at, is_enabled FROM task_reminders '
+      'WHERE task_id IN (?, ?) ORDER BY task_id',
+      const <Object?>['legacy-followup-disabled', 'legacy-followup-enabled'],
+    );
+    expect(migratedSchedules, hasLength(2));
+    expect(migratedSchedules.map((row) => row['id']), [
+      'legacy-task-follow-up-reminder-legacy-followup-disabled',
+      'legacy-task-follow-up-reminder-legacy-followup-enabled',
+    ]);
+    expect(migratedSchedules.map((row) => row['remind_at']), [
+      '2026-11-11T09:00:00.000',
+      '2026-11-10T10:30:00.000',
+    ]);
+    expect(migratedSchedules.map((row) => row['is_enabled']), [0, 1]);
+
+    await G1DriftSchema.migrateCanonicalEntities(database);
+    final repeated = await database.runSelect(
+      'SELECT id FROM task_reminders WHERE task_id = ?',
+      const <Object?>['legacy-followup-enabled'],
+    );
+    expect(repeated, hasLength(1));
   });
 }
