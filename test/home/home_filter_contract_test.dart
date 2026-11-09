@@ -94,6 +94,10 @@ void main() {
     expect(find.byKey(const ValueKey('home-filter-card-all')), findsNothing);
     expect(find.byKey(const ValueKey('home-compact-filter-row')), findsOneWidget);
     expect(find.byType(HomeFilterPill), findsNWidgets(5));
+    final filterRow = tester.widget<Row>(
+      find.byKey(const ValueKey('home-compact-filter-row')),
+    );
+    expect(filterRow.textDirection, TextDirection.rtl);
     for (final id in ['time', 'center', 'project', 'category', 'tags']) {
       final pill = find.byKey(ValueKey('home-filter-card-$id'));
       expect(tester.getSize(pill).width, greaterThanOrEqualTo(48));
