@@ -368,7 +368,7 @@ class G1DriftSchema implements QueryExecutorUser {
       payload['id'] = row['id'];
       payload['title'] = row['title'];
       payload['reminderDate'] ??= row['reminder_date'];
-      final task = Task.fromJson(payload);
+      final task = Task.fromLegacyJson(payload);
       for (final reminder in task.taskReminders) {
         await executor.runInsert(
           '''INSERT OR IGNORE INTO task_reminders

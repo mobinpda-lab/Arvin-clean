@@ -270,7 +270,9 @@ class ArvinBackupManager {
       if (raw is! Map) {
         throw const FormatException('Arvin backup task entry is invalid');
       }
-      final task = Task.fromJson(Map<String, dynamic>.from(raw));
+      // Backup format v1 is the explicit backward-compatible import boundary.
+      // Canonical payloads carry independent TaskReminders and a migration marker.
+      final task = Task.fromLegacyJson(Map<String, dynamic>.from(raw));
       if (task.id.trim().isEmpty) {
         throw const FormatException('Arvin backup contains an empty task id');
       }

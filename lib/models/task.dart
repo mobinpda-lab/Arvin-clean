@@ -222,30 +222,7 @@ class Task {
         checklistEnabled = checklistEnabled ??
             (checklist.isNotEmpty || notebookKind == NotebookItemKind.checklist),
         people = _normalizePeople(people),
-        taskReminders = List<TaskReminder>.of(taskReminders) {
-    if (reminderDate != null && legacyTaskReminderMigrationVersion < 1) {
-      final reminderId = migratedTaskReminderId(id);
-      if (!this.taskReminders.any((item) => item.id == reminderId)) {
-        final highestSequence = this.taskReminders.isEmpty
-            ? 0
-            : this.taskReminders
-                .map((item) => item.sequence)
-                .reduce((a, b) => a > b ? a : b);
-        final sequence = nextReminderSequence > highestSequence
-            ? nextReminderSequence
-            : highestSequence + 1;
-        this.taskReminders.add(TaskReminder(
-          id: reminderId,
-          title: 'یادآوری: $title',
-          date: reminderDate,
-          isAllDay: reminderAllDay,
-          sequence: sequence,
-        ));
-        nextReminderSequence = sequence + 1;
-      }
-      legacyTaskReminderMigrationVersion = 1;
-    }
-  }
+        taskReminders = List<TaskReminder>.of(taskReminders);
 
   final String id;
   String title;
@@ -478,7 +455,18 @@ class Task {
           'people': people.map((person) => person.toJson()).toList(),
       };
 
-  factory Task.fromJson(Map<String, dynamic> json) {
+  /// Decodes current canonical Task JSON without running legacy migrations.
+  factory Task.fromJson(Map<String, dynamic> json) => Task._decodeJson(json);
+
+  /// Explicit compatibility boundary for sources known to contain legacy
+  /// Task/Follow-up reminder fields.
+  factory Task.fromLegacyJson(Map<String, dynamic> json) =>
+      Task._decodeJson(json, migrateLegacyReminders: true);
+
+  static Task _decodeJson(
+    Map<String, dynamic> json, {
+    bool migrateLegacyReminders = false,
+  }) {
     var loadedFollowUps = <FollowUp>[];
     if (json['followUps'] is List) {
       loadedFollowUps = (json['followUps'] as List)
@@ -508,9 +496,9 @@ class Task {
     }
 
     final rawLegacyReminderDate = json['reminderDate'];
-    final legacyReminderDate = rawLegacyReminderDate == null
-        ? null
-        : DateTime.tryParse(rawLegacyReminderDate as String);
+    final legacyReminderDate = migrateLegacyReminders && rawLegacyReminderDate is String
+        ? DateTime.tryParse(rawLegacyReminderDate)
+        : null;
     final storedSequence = (json['nextReminderSequence'] as num?)?.toInt() ?? 1;
     final sequenceFromJson = storedSequence < 1 ? 1 : storedSequence;
     final storedMigrationVersion =
@@ -544,7 +532,7 @@ class Task {
     // TaskReminder rows while decoding old JSON. Future nextFollowUp values
     // are intentionally discarded because Follow-up is historical only.
     final rawFollowUps = json['followUps'];
-    if (rawFollowUps is List) {
+    if (migrateLegacyReminders && rawFollowUps is List) {
       for (var index = 0; index < rawFollowUps.length; index++) {
         final rawFollowUp = rawFollowUps[index];
         if (rawFollowUp is! Map) continue;
