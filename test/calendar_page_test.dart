@@ -729,6 +729,22 @@ void main() {
   });
 
 
+  testWidgets('prayer times appear only in All and overdue prayer times are red', (tester) async {
+    final now = DateTime.now();
+    final pastPrayer = DateTime(now.year, now.month, now.day, now.hour).subtract(const Duration(hours: 2));
+    await tester.pumpWidget(MaterialApp(home: CalendarPage(
+      initialSelectedDay: pastPrayer,
+      reminders: [CalendarReminder(id: 'prayer-fajr', title: 'نماز صبح', date: pastPrayer)],
+    )));
+    await tester.pumpAndSettle();
+    expect(find.text('نماز صبح'), findsOneWidget);
+    final overdue = tester.widget<Text>(find.text('عقب‌افتاده'));
+    expect(overdue.style?.color, ArvinColors.calendarOverdue);
+    await tester.tap(find.text('تقویم آروین'));
+    await tester.pumpAndSettle();
+    expect(find.text('نماز صبح'), findsNothing);
+  });
+
   testWidgets('calendar swipe actions are independent and external items are isolated', (tester) async {
     final day = DateTime(2030, 5, 1);
     var editCount = 0;
