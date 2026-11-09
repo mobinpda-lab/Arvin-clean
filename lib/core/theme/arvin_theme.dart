@@ -19,7 +19,7 @@ abstract final class ArvinTheme {
 
   static const Color backgroundLight = lightNeutral;
   static const Color cardBackground = Color(0xFFFFFFFF);
-  static const Color cardBorder = Color(0xFFE5EDF8);
+  static const Color cardBorder = Color(0xFFE5E7F0);
   // Keep the legacy shadow token for Dark Mode; use brandGlow in Light Mode.
   static const Color primaryGlow = Color(0x40008080);
   static const Color brandGlow = Color(0x404169A1);

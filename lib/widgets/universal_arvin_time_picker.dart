@@ -188,8 +188,8 @@ class _UniversalArvinTimePickerDialogState
                 alignment: Alignment.centerRight,
                 child: Text(
                   widget.title,
-                  style: const TextStyle(
-                    color: ArvinColors.textPrimary,
+                  style: TextStyle(
+                    color: colors.onSurface,
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
                   ),
@@ -200,7 +200,7 @@ class _UniversalArvinTimePickerDialogState
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 decoration: BoxDecoration(
-                  color: ArvinColors.primary,
+                  color: primary,
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: Semantics(
@@ -296,9 +296,9 @@ class _UniversalArvinTimePickerDialogState
                     icon: const Icon(Icons.access_time_rounded),
                     label: const Text('بدون ساعت'),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: ArvinColors.primary,
+                      foregroundColor: primary,
                       minimumSize: const Size.fromHeight(48),
-                      side: const BorderSide(color: ArvinColors.primary),
+                      side: BorderSide(color: primary),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
@@ -335,7 +335,7 @@ class _UniversalArvinTimePickerDialogState
                                 ),
                               ),
                       style: FilledButton.styleFrom(
-                        backgroundColor: ArvinColors.primary,
+                        backgroundColor: primary,
                         minimumSize: const Size.fromHeight(46),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
@@ -376,13 +376,13 @@ class _UniversalArvinTimePickerDialogState
       label: Text(label),
       selected: selected,
       onSelected: (_) => onPressed(),
-      selectedColor: ArvinColors.primarySoft,
+      selectedColor: primarySoft,
       labelStyle: TextStyle(
-        color: selected ? ArvinColors.primary : ArvinColors.textSecondary,
+        color: selected ? Theme.of(context).colorScheme.primary : ArvinColors.textSecondary,
         fontWeight: FontWeight.w600,
       ),
       side: BorderSide(
-        color: selected ? ArvinColors.primary : ArvinColors.border,
+        color: selected ? Theme.of(context).colorScheme.primary : ArvinColors.border,
       ),
     );
   }
@@ -418,7 +418,7 @@ class _ClockFace extends StatelessWidget {
         top: center - 2,
         child: const DecoratedBox(
           decoration: BoxDecoration(
-            color: ArvinColors.primary,
+            color: Theme.of(context).colorScheme.primary,
             shape: BoxShape.circle,
           ),
           child: SizedBox(width: 4, height: 4),
@@ -467,7 +467,7 @@ class _ClockFace extends StatelessWidget {
                 height: 38,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: isSelected ? ArvinColors.primary : Colors.transparent,
+                  color: isSelected ? Theme.of(context).colorScheme.primary : Colors.transparent,
                   shape: BoxShape.circle,
                 ),
                 child: Text(
@@ -513,13 +513,13 @@ class _ClockFace extends StatelessWidget {
                   height: 32,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: isSelected ? ArvinColors.primary : ArvinColors.primarySoft,
+                    color: isSelected ? Theme.of(context).colorScheme.primary : (Theme.of(context).brightness == Brightness.dark ? const Color(0xFFD9F0EE) : ArvinColors.primarySoft),
                     shape: BoxShape.circle,
                   ),
                   child: Text(
                     display,
                     style: TextStyle(
-                      color: isSelected ? Colors.white : ArvinColors.primary,
+                      color: isSelected ? Colors.white : Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.w600,
                       fontSize: 11,
                     ),
