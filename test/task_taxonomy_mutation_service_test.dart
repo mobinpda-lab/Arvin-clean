@@ -17,7 +17,15 @@ void main() {
         category: category,
         tags: List<String>.of(tags),
         dueDate: DateTime(2026, 8, 30, 9),
-        reminderDate: DateTime(2026, 8, 29, 9),
+        taskReminders: [
+          TaskReminder(
+            id: 'reminder-$id',
+            title: 'یادآور $id',
+            date: DateTime(2026, 8, 29, 9),
+            sequence: 1,
+          ),
+        ],
+        nextReminderSequence: 2,
         followUps: [
           FollowUp(id: 'fu-$id', dateTime: DateTime(2026, 8, 28, 12)),
         ],
