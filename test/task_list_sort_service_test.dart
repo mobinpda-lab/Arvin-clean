@@ -96,6 +96,16 @@ void main() {
     );
   });
 
+  test('explicit alphabetical and due-date modes ignore Eisenhower priority', () {
+    final urgentLater = task('urgent-later', title: 'Zulu', dueDate: DateTime(2026, 8, 29), priority: TaskPriority.high);
+    final lowEarlier = task('low-earlier', title: 'Alpha', dueDate: DateTime(2026, 8, 20), priority: TaskPriority.low);
+    const service = TaskListSortService();
+    expect(service.sortByTitle([urgentLater, lowEarlier]), <Task>[lowEarlier, urgentLater]);
+    expect(service.sortByDueDate([urgentLater, lowEarlier]), <Task>[lowEarlier, urgentLater]);
+    expect(service.sortByTitle([lowEarlier, urgentLater], descending: true), <Task>[urgentLater, lowEarlier]);
+    expect(service.sortByDueDate([lowEarlier, urgentLater], descending: true), <Task>[urgentLater, lowEarlier]);
+  });
+
   test('latest sort uses newest meaningful task or follow-up timestamp', () {
     final created = task('created', createdAt: DateTime(2026, 8, 25));
     final updated = task(
