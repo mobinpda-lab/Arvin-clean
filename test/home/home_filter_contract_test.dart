@@ -90,7 +90,7 @@ void main() {
     );
     final overdueHeaderText = tester.widget<Text>(overdueHeader);
     expect(overdueHeaderText.textAlign, TextAlign.right);
-    expect(overdueHeaderText.style?.fontWeight, FontWeight.w800);
+    expect(overdueHeaderText.style?.fontWeight, FontWeight.w900);
     expect(find.byKey(const ValueKey('home-filter-card-all')), findsNothing);
     expect(find.byKey(const ValueKey('home-compact-filter-row')), findsOneWidget);
     expect(find.byType(HomeFilterPill), findsNWidgets(5));
