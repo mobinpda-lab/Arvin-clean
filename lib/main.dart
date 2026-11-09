@@ -340,16 +340,18 @@ class _ArvinAppState extends State<ArvinApp> {
           surface: ArvinColors.surface,
           onSurface: ArvinColors.textPrimary,
           outline: ArvinColors.border,
+          surfaceTint: Colors.transparent,
         ),
         scaffoldBackgroundColor: ArvinColors.background,
         cardTheme: CardThemeData(
           color: ArvinTheme.cardBackground,
-          elevation: 2,
-          shadowColor: ArvinTheme.shadowStyle.color,
+          elevation: 1,
+          surfaceTintColor: Colors.transparent,
+          shadowColor: accentColor.withValues(alpha: 0.22),
           margin: const EdgeInsets.symmetric(vertical: 2),
           shape: RoundedRectangleBorder(
             borderRadius: ArvinTheme.cardBorderRadius,
-            side: const BorderSide(color: ArvinColors.border),
+            side: const BorderSide(color: ArvinColors.border, width: 0.8),
           ),
         ),
         fontFamily: AppFonts.vazirmatnFamily,
@@ -362,6 +364,11 @@ class _ArvinAppState extends State<ArvinApp> {
         floatingActionButtonTheme: FloatingActionButtonThemeData(
           backgroundColor: accentColor,
           foregroundColor: ArvinColors.surface,
+          elevation: 4,
+          hoverElevation: 5,
+          focusElevation: 5,
+          highlightElevation: 2,
+          shadowColor: accentColor.withValues(alpha: 0.25),
         ),
         navigationBarTheme: NavigationBarThemeData(
           backgroundColor: ArvinColors.surface,
@@ -392,6 +399,7 @@ class _ArvinAppState extends State<ArvinApp> {
         iconTheme: const IconThemeData(color: ArvinColors.neutral, size: 24),
         dividerTheme: const DividerThemeData(color: ArvinColors.border, thickness: 1),
         appBarTheme: AppBarTheme(
+          surfaceTintColor: Colors.transparent,
           backgroundColor: accentColor,
           foregroundColor: Colors.white,
           iconTheme: const IconThemeData(color: Colors.white),
@@ -431,15 +439,17 @@ class _ArvinAppState extends State<ArvinApp> {
           onPrimary: Colors.white,
           secondary: accentColor,
           error: ArvinColors.darkError,
+          surfaceTint: Colors.transparent,
         ),
-        cardTheme: const CardThemeData(
+        cardTheme: CardThemeData(
           color: ArvinColors.darkSurface,
           elevation: 1,
-          shadowColor: ArvinColors.shadowDark,
+          surfaceTintColor: Colors.transparent,
+          shadowColor: accentColor.withValues(alpha: 0.22),
           margin: EdgeInsets.symmetric(vertical: 4),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(16)),
-            side: BorderSide(color: ArvinColors.darkBorder),
+            side: BorderSide(color: ArvinColors.darkBorder, width: 0.8),
           ),
         ),
         fontFamily: AppFonts.vazirmatnFamily,
@@ -467,6 +477,7 @@ class _ArvinAppState extends State<ArvinApp> {
           ),
         ),
       ),
+      dialogTheme: const DialogThemeData(surfaceTintColor: Colors.transparent),
       themeMode: settings.themeMode,
       home: Directionality(
         textDirection: TextDirection.rtl,
@@ -3556,33 +3567,28 @@ class _HomePageState extends State<HomePage> {
                           ],
                         ],
                       ),
-                      if (task.category?.trim().isNotEmpty == true) ...[
+                      if (task.category?.trim().isNotEmpty == true ||
+                          task.priority != TaskPriority.none) ...[
                         const SizedBox(height: 4),
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Flexible(
-                              child: Text(
-                                task.category!.trim(),
-                                key: ValueKey('task-card-category-${task.id}'),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: ArvinColors.textSecondary,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
+                            if (task.category?.trim().isNotEmpty == true)
+                              Flexible(
+                                child: Text(
+                                  task.category!.trim(),
+                                  key: ValueKey('task-card-category-${task.id}'),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w600),
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 6),
+                            if (task.category?.trim().isNotEmpty == true) const SizedBox(width: 6),
                             Container(
                               key: ValueKey('task-card-eisenhower-dot-${task.id}'),
                               width: 8,
                               height: 8,
-                              decoration: BoxDecoration(
-                                color: ArvinColors.priorityColor(task.priority),
-                                shape: BoxShape.circle,
-                              ),
+                              decoration: BoxDecoration(color: ArvinColors.priorityColor(task.priority), shape: BoxShape.circle),
                             ),
                           ],
                         ),
@@ -3715,25 +3721,7 @@ class _HomePageState extends State<HomePage> {
                         ? null
                         : () => _toggleTodayFocus(task),
                   ),
-                  IconButton(
-                    key: ValueKey('task-card-expand-${task.id}'),
-                    tooltip: expanded ? 'بستن خلاصه کار' : 'نمایش خلاصه کار',
-                    constraints: const BoxConstraints(
-                      minWidth: 48,
-                      minHeight: 48,
-                    ),
-                    onPressed: () => setState(() {
-                      if (expanded) {
-                        _expandedTaskIds.remove(task.id);
-                      } else {
-                        _expandedTaskIds.add(task.id);
-                      }
-                    }),
-                    icon: Icon(
-                      expanded ? Icons.expand_less_rounded : Icons.expand_more_rounded,
-                      size: 19,
-                    ),
-                  ),
+
                 ],
               ],
             ),
@@ -3817,6 +3805,24 @@ class _HomePageState extends State<HomePage> {
                     )
                   : const SizedBox.shrink(),
             ),
+            if (!expanded && task.description.trim().isNotEmpty)
+              Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(42, 0, 10, 5),
+                child: Align(alignment: AlignmentDirectional.centerStart, child: Text(task.description.trim(), key: ValueKey('task-card-summary-preview-${task.id}'), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 11))),
+              ),
+            if (!selectionMode)
+              Material(
+                color: const Color(0xFFEAF5ED),
+                borderRadius: BorderRadius.circular(10),
+                child: InkWell(
+                  key: ValueKey('task-card-expand-${task.id}'),
+                  borderRadius: BorderRadius.circular(10),
+                  onTap: () => setState(() {
+                    if (expanded) { _expandedTaskIds.remove(task.id); } else { _expandedTaskIds.add(task.id); }
+                  }),
+                  child: SizedBox(height: 48, width: double.infinity, child: Icon(expanded ? Icons.expand_less_rounded : Icons.keyboard_arrow_down_rounded, color: const Color(0xFF397A50), size: 25)),
+                ),
+              ),
               ],
             ),
           ),
