@@ -69,6 +69,19 @@ void main() {
     expect(result[candidate.stableKey], deliveryService.deliveryIdentity(candidate));
   });
 
+  test('reconcile preserves the legacy delivery key for a migrated Task reminder', () {
+    final migrated = Task.fromLegacyJson({
+      'id': 'legacy-state',
+      'title': 'یادآور قدیمی',
+      'reminderDate': '2026-08-28T11:00:00.000',
+    });
+    final state = <String, String>{
+      'task:legacy-state': 'task:legacy-state@2026-08-28T11:00:00.000',
+    };
+    final result = stateService.reconcile(state, [migrated]);
+    expect(result, state);
+  });
+
   test('reconcile removes disabled reminder delivery markers without deleting canonical data', () {
     final disabled = task(
       'disabled',

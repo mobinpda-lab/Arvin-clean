@@ -78,7 +78,11 @@ class FollowUpReminderDeliveryState {
     for (final task in tasks) {
       for (final reminder in task.taskReminders) {
         if (!reminder.isEnabled) continue;
-        liveKeys.add('task:${task.id}:reminder:${reminder.id}');
+        liveKeys.add(
+          isMigratedTaskReminder(task, reminder)
+              ? 'task:${task.id}'
+              : 'task:${task.id}:reminder:${reminder.id}',
+        );
       }
     }
 
