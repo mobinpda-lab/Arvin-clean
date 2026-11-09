@@ -880,10 +880,12 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
   Widget _sectionTitle(String title, IconData icon) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Icon(icon, size: 19, color: _brand),
         const SizedBox(width: 7),
-        Expanded(
+        Flexible(
+          fit: FlexFit.loose,
           child: Text(
             title,
             maxLines: 1,
@@ -1121,7 +1123,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         children: [
           Row(
             children: [
-              _sectionTitle('چک‌لیست', Icons.checklist_rounded),
+              Expanded(
+                child: _sectionTitle('چک‌لیست', Icons.checklist_rounded),
+              ),
               const Spacer(),
               Text(
                 '$completed/${items.length}',
@@ -1281,7 +1285,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            _sectionTitle('آخرین پیگیری', Icons.bolt_outlined),
+            Expanded(
+              child: _sectionTitle('آخرین پیگیری', Icons.bolt_outlined),
+            ),
             const Spacer(),
             if (!_task.completed)
               IconButton(
@@ -1499,7 +1505,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       key: const ValueKey('task-detail-independent-reminders'),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          _sectionTitle('یادآوری‌ها', Icons.notifications_active_outlined),
+          Expanded(
+            child: _sectionTitle('یادآوری‌ها', Icons.notifications_active_outlined),
+          ),
           const Spacer(),
           TextButton.icon(
             key: const ValueKey('task-detail-add-reminder'),
