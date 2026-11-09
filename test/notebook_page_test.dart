@@ -269,6 +269,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('notebook-category-filter-شخصی')));
     await tester.pumpAndSettle();
+    await tester.tap(find.text('تأیید / اعمال فیلتر'));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('notebook-create')));
     await tester.pumpAndSettle();
 
@@ -944,7 +946,6 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('مهم'), findsOneWidget);
     await tester.tap(find.text('مهم').last);
-    await tester.tap(find.text('اعمال'));
     await tester.pumpAndSettle();
 
     final persisted = await repository.loadNote('taxonomy-note');
