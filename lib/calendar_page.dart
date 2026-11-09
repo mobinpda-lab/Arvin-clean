@@ -1490,7 +1490,9 @@ class _ReminderCardState extends State<_ReminderCard> {
       null => 'ثبت نشده',
     };
     final statusLabel = widget.isPrayer
-        ? prayerState
+        ? (widget.prayerStatus == null && _isOverdueCalendarItem(item)
+            ? 'عقب‌افتاده'
+            : prayerState)
         : item.completed
         ? 'انجام‌شده'
         : _isOverdueCalendarItem(item)
