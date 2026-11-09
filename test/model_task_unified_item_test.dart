@@ -63,7 +63,7 @@ void main() {
       category: 'پیگیری مشتری',
       followUpEnabled: true,
       checklist: const ['تماس', 'ثبت نتیجه'],
-      reminderDate: reminder,
+      taskReminders: [TaskReminder(id: 'roundtrip-reminder', title: 'یادآوری', date: reminder, sequence: 1)],
       followUps: [
         FollowUp(id: 'f1', dateTime: created, note: 'تماس انجام شد'),
       ],
