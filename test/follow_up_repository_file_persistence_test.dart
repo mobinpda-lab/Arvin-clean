@@ -120,8 +120,8 @@ void main() {
           // sequence values, without being duplicated by a Follow-up mutation.
           expect(task.taskReminders, hasLength(2));
           expect(task.taskReminders.every((reminder) => !isMigratedTaskReminder(task, reminder)), isTrue);
-          expect(task.reminderDate, isNull,
-              reason: 'A completed legacy cutover must not resurrect the singular reminder field.');
+          expect(task.reminderDate, _firstTaskReminderAt,
+              reason: 'The computed getter must expose the earliest enabled canonical reminder.');
           expect(
             task.taskReminders.map((reminder) => reminder.id).toSet(),
             <String>{'task-reminder-1', 'task-reminder-2'},
