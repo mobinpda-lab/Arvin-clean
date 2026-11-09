@@ -584,7 +584,7 @@ Future<DateTime?> _pickCustomDue() async {
                       decoration: InputDecoration(
                         hintText: 'عنوان کار را وارد کنید',
                         errorText: _error,
-                        prefixIcon: Icon(Icons.title_rounded, size: 18, color: Theme.of(context).colorScheme.primary),
+                        prefixIcon: Icon(Icons.title_rounded, size: 18, color: ArvinColors.priorityColor(_priority)),
                         isDense: true,
                         contentPadding: const EdgeInsets.symmetric(vertical: 4),
                         border: InputBorder.none,
@@ -847,13 +847,12 @@ Future<DateTime?> _pickCustomDue() async {
                             onCreate: _saving ? null : _pickCustomRecurrence,
                             onSelected: (value) => setState(() => _recurrence = value),
                           )),
+                          _priorityDropdown(),
                         ],
                       ),
                     ),
                   ),
                   const SizedBox(height: 6),
-                  const SizedBox(height: 5),
-                  _priorityDropdown(),
                   const SizedBox(height: 5),
                   Row(
                     textDirection: TextDirection.rtl,
