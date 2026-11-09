@@ -1795,9 +1795,7 @@ class _HomePageState extends State<HomePage> {
 
     final editorContext = await wave2ProductFastTrack.prepareEditor(tasks: tasks);
     if (!mounted) return;
-    String? selectedProjectId = editorContext.selectedProjectId;
-    final selectedProject = editorContext.projects.where((project) => project.id == selectedProjectId);
-    final selectedCenterId = selectedProject.isEmpty ? null : selectedProject.first.centerId;
+    String? selectedProjectId;
 
     await showModalBottomSheet<void>(
       context: context,
@@ -1811,7 +1809,6 @@ class _HomePageState extends State<HomePage> {
         child: QuickCaptureDialog(
         projects: editorContext.projects,
         centers: centers,
-        initialCenterId: selectedCenterId,
         onCreateProjectWithCenter: (title, centerId) =>
             wave2ProductFastTrack.createProject(title, centerId: centerId),
         onCreateCenter: _createCenter,
@@ -1819,7 +1816,6 @@ class _HomePageState extends State<HomePage> {
         knownTags: editorContext.knownTags,
         onCreateCategory: _createCategory,
         onCreateTag: _createTag,
-        initialProjectId: selectedProjectId,
         onProjectChanged: (value) => selectedProjectId = value,
         onFullForm: (draft) async {
           final editedContext = await wave2ProductFastTrack.prepareEditor(
@@ -1835,7 +1831,7 @@ class _HomePageState extends State<HomePage> {
               centers: centers,
               selectedCenterId: draft.centerId,
               onCreateCenter: _createCenter,
-              selectedProjectId: selectedProjectId ?? editedContext.selectedProjectId,
+              selectedProjectId: selectedProjectId,
               onProjectChanged: (value) => selectedProjectId = value,
         onCreateProject: (title) => wave2ProductFastTrack.createProject(title),
         onCreateProjectWithCenter: (title, centerId) =>

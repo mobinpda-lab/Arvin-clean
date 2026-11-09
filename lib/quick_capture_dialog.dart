@@ -91,10 +91,13 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   late List<ArvinCenter> _knownCenters;
   late List<String> _knownCategories;
   late List<String> _knownTags;
+  late String _draftId;
+  late DateTime _draftCreatedAt;
 
   @override
   void initState() {
     super.initState();
+    _startNewDraftIdentity();
     _projectId = widget.initialProjectId;
     _knownCategories = List<String>.of(widget.knownCategories);
     _knownTags = List<String>.of(widget.knownTags);
@@ -103,6 +106,30 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     final selectedProject = _knownProjects.where((project) => project.id == _projectId);
     _centerId = widget.initialCenterId ??
         (selectedProject.isEmpty ? null : selectedProject.first.centerId);
+  }
+
+  void _startNewDraftIdentity() {
+    _draftCreatedAt = widget.now?.call() ?? DateTime.now();
+    _draftId = widget.idFactory?.call() ??
+        DateTime.now().microsecondsSinceEpoch.toString();
+  }
+
+  void _resetDraftFields() {
+    _controller.clear();
+    _categoryController.clear();
+    _selectedTags.clear();
+    _priority = TaskPriority.none;
+    _dueDate = null;
+    _dueAllDay = false;
+    _pendingCustomDueAllDay = false;
+    _reminderDate = null;
+    _reminderAllDay = false;
+    _pendingCustomReminderAllDay = false;
+    _recurrence = null;
+    _projectId = null;
+    _centerId = null;
+    _error = null;
+    _startNewDraftIdentity();
   }
 
   Future<void> _handleBack() async {
@@ -139,11 +166,10 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
   }
 
   Task? _buildDraft() {
-    final createdAt = widget.now?.call() ?? DateTime.now();
     final task = widget.service.capture(
       _controller.text,
-      id: widget.idFactory?.call() ?? createdAt.microsecondsSinceEpoch.toString(),
-      createdAt: createdAt,
+      id: _draftId,
+      createdAt: _draftCreatedAt,
     );
     if (task == null) return null;
     task.priority = _priority;
@@ -201,11 +227,12 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       widget.onProjectChanged?.call(_projectId);
       await onCaptured(task);
       if (!mounted) return;
-      _controller.clear();
       setState(() {
-        _priority = TaskPriority.none;
+        _resetDraftFields();
         _saving = false;
       });
+      widget.onProjectChanged?.call(null);
+      widget.onCenterChanged?.call(null);
     } catch (_) {
       if (!mounted) return;
       setState(() {
@@ -232,13 +259,14 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       widget.onProjectChanged?.call(_projectId);
       final saved = await onFullForm(draft);
       if (!mounted) return;
-      if (saved) {
-        _controller.clear();
-      }
       setState(() {
-        if (saved) _priority = TaskPriority.medium;
+        if (saved) _resetDraftFields();
         _saving = false;
       });
+      if (saved) {
+        widget.onProjectChanged?.call(null);
+        widget.onCenterChanged?.call(null);
+      }
     } catch (_) {
       if (!mounted) return;
       setState(() {
