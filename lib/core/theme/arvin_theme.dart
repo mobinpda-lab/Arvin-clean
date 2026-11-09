@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 /// Shared Persian Teal brand and calm surface tokens for Arvin.
 /// Product semantics (priority, status and taxonomy colors) stay in ArvinColors.
 abstract final class ArvinTheme {
-  static const Color primaryTeal = Color(0xFF0F766E);
-  static const Color headerTeal = Color(0xFF115E59);
-  static const Color primarySoft = Color(0xFFDDF3EF);
+  static const Color primaryTeal = Color(0xFF008080);
+  static const Color headerTeal = Color(0xFF008B8B);
+  static const Color primarySoft = Color(0xFFD9F0EE);
 
   // Compatibility aliases for older call sites; all resolve to Persian Teal.
   static const Color primaryBlue = primaryTeal;
@@ -18,7 +18,7 @@ abstract final class ArvinTheme {
   static const Color backgroundLight = Color(0xFFF8F8FB);
   static const Color cardBackground = Color(0xFFFDFDFE);
   static const Color cardBorder = Color(0xFFE5E7F0);
-  static const Color primaryGlow = Color(0x400F766E);
+  static const Color primaryGlow = Color(0x40008080);
   static const BorderRadius cardBorderRadius =
       BorderRadius.all(Radius.circular(16.0));
   static const String fontFamily = 'Vazirmatn';
