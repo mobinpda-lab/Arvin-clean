@@ -56,7 +56,9 @@ void main() {
     expect(source, contains('onSelected: _onPrimaryDestinationSelected'));
     expect(source, contains('ArvinPrimaryPageShell('));
     expect(source, contains('_primaryNotebookShell'));
-    expect(source, contains('_primaryNextActionShell'));
+    expect(source, isNot(contains('_primaryNextActionShell')));
+    expect(source, isNot(contains('home-more-next-action')));
+    expect(source, isNot(contains('ArvinPrimaryDestination.nextAction')));
     expect(source, contains('FilledButton.icon('));
     expect(source, contains('TaskBulkSelectionBar('));
   });
