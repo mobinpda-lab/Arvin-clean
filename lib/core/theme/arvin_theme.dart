@@ -18,8 +18,9 @@ abstract final class ArvinTheme {
   static const BorderRadius cardBorderRadius = BorderRadius.all(Radius.circular(16.0));
   static const String fontFamily = 'Vazirmatn';
   static const BoxShadow shadowStyle = BoxShadow(
-    color: Color(0x0A000000),
-    blurRadius: 10,
+    color: primaryGlow,
+    blurRadius: 14,
+    spreadRadius: 0.5,
     offset: Offset(0, 4),
   );
 }
