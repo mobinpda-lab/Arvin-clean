@@ -67,10 +67,14 @@ void main() {
     await pumpNotebook(tester, repository);
 
     expect(
+      tester.widget<Icon>(find.byIcon(Icons.search_rounded)).color,
+      ArvinColors.notebookOrange,
+    );
+    expect(
       tester.widget<Card>(
         find.byKey(const ValueKey('notebook-note-card-pastel-note')),
       ).color,
-      ArvinColors.primarySoft,
+      ArvinColors.notebookOrangeSoft,
     );
     expect(
       tester.widget<Card>(
