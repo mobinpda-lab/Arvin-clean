@@ -936,6 +936,13 @@ class TaskStore {
              ON CONFLICT(id) DO UPDATE SET name = excluded.name, updated_at = excluded.updated_at''',
           <Object?>[person.id, person.displayName, now, now],
         );
+        // An active Person referenced by a saved Task must be discoverable in
+        // the active directory. Deleted historical references are handled
+        // above and must never be reactivated by an ordinary Task rewrite.
+        await executor.runInsert(
+          'INSERT OR IGNORE INTO person_directory (person_id) VALUES (?)',
+          <Object?>[person.id],
+        );
       }
     }
     for (final followUp in task.followUps) {
