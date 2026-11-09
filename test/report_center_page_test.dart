@@ -44,6 +44,26 @@ void main() {
     expect(find.text('فیلتر گزارش‌ها'), findsOneWidget);
     expect(find.text('اهمیت'), findsNothing);
     expect(find.byKey(const ValueKey('report-home-filter-time')), findsOneWidget);
+    final filterKeys = [
+      'report-home-filter-time',
+      'report-home-filter-center',
+      'report-home-filter-project',
+      'report-home-filter-category',
+      'report-home-filter-tag',
+    ];
+    final filterRects = <Rect>[];
+    for (final key in filterKeys) {
+      final finder = find.byKey(ValueKey(key));
+      expect(finder, findsOneWidget);
+      final rect = tester.getRect(finder);
+      expect(rect.height, greaterThanOrEqualTo(48));
+      filterRects.add(rect);
+    }
+    for (var index = 1; index < filterRects.length; index++) {
+      expect(filterRects[index].top, greaterThan(filterRects[index - 1].top));
+    }
+    expect(find.byKey(const ValueKey('report-home-filter-presets')), findsOneWidget);
+
     final todayPreset = find.text('امروز');
     await _ensureReportFilterTargetVisible(tester, todayPreset);
     expect(todayPreset, findsOneWidget);
@@ -638,6 +658,25 @@ void main() {
     )), findsNothing);
     expect(find.text('بازهٔ زمانی انتخاب‌شده در فیلتر گزارش اعمال شده است'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Report Center quick presets apply from a dedicated bottom sheet', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: ReportCenterPage(
+        now: DateTime(2026, 11, 9, 10),
+        tasks: [Task(id: 'today', title: 'کار امروز', dueDate: DateTime(2026, 11, 9, 15))],
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('report-center-filters')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('report-home-filter-presets')));
+    await tester.pumpAndSettle();
+    expect(find.text('پیش‌تنظیمات سریع زمان'), findsOneWidget);
+    expect(find.text('این هفته'), findsOneWidget);
+    await tester.tap(find.text('امروز').last);
+    await tester.pumpAndSettle();
+    expect(find.text('امروز'), findsWidgets);
   });
 
 }
