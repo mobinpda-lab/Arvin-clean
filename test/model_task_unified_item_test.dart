@@ -80,43 +80,40 @@ void main() {
     expect(restored.followUps.single.note, 'تماس انجام شد');
   });
 
-  test('legacy followUpDate migrates to an independent Reminder, not Follow-up history', () {
-    final legacyDate = DateTime(2026, 8, 13, 12);
+  test('legacy Task follow-up schedule survives as non-scheduling metadata', () {
+    const legacyDate = '2026-08-13T12:00:00.000';
     final task = Task.fromLegacyJson({
       'id': 'legacy',
       'title': 'قدیمی',
       'followUpEnabled': true,
-      'followUpDate': legacyDate.toIso8601String(),
+      'followUpDate': legacyDate,
     });
 
-    expect(task.followUpEnabled, isFalse);
-    expect(task.followUpDate, isNull);
-    expect(task.followUps, isEmpty);
-    expect(task.lastFollowUp, isNull);
-    expect(task.taskReminders, hasLength(1));
-    expect(task.taskReminders.single.id, 'legacy-task-follow-up-reminder-legacy');
-    expect(task.taskReminders.single.date, legacyDate);
-    expect(task.taskReminders.single.isEnabled, isTrue);
-    expect(task.legacyTaskReminderMigrationVersion, 2);
+    expect(task.taskReminders, isEmpty);
+    expect(task.legacyFollowUpMetadata['taskLevel'], {
+      'followUpEnabled': true,
+      'followUpDate': legacyDate,
+    });
 
     final reopened = Task.fromJson(task.toJson());
-    expect(reopened.taskReminders, hasLength(1));
-    expect(reopened.taskReminders.single.date, legacyDate);
+    expect(reopened.legacyFollowUpMetadata, task.legacyFollowUpMetadata);
+    expect(reopened.taskReminders, isEmpty);
   });
 
-  test('legacy disabled followUpDate remains a disabled independent Reminder', () {
-    final legacyDate = DateTime(2026, 8, 14, 9);
+  test('disabled legacy Task follow-up metadata is also retained without scheduling', () {
+    const legacyDate = '2026-08-14T09:00:00.000';
     final task = Task.fromLegacyJson({
       'id': 'legacy-disabled',
       'title': 'پیگیری غیرفعال',
       'followUpEnabled': false,
-      'followUpDate': legacyDate.toIso8601String(),
+      'followUpDate': legacyDate,
     });
 
-    expect(task.taskReminders, hasLength(1));
-    expect(task.taskReminders.single.date, legacyDate);
-    expect(task.taskReminders.single.isEnabled, isFalse);
-    expect(task.followUpDate, isNull);
+    expect(task.taskReminders, isEmpty);
+    expect(task.legacyFollowUpMetadata['taskLevel'], {
+      'followUpEnabled': false,
+      'followUpDate': legacyDate,
+    });
   });
 
   test('legacy Follow-up nextFollowUp alone does not seed a Reminder', () {
@@ -135,6 +132,14 @@ void main() {
     expect(task.followUps, hasLength(1));
     expect(task.followUps.single.nextFollowUp, isNull);
     expect(task.taskReminders, isEmpty);
+    expect(task.legacyFollowUpMetadata['followUps'], [
+      {
+        'id': 'follow-up-1',
+        'nextFollowUp': '2026-08-15T10:30:00.000',
+      },
+    ]);
+    final reopened = Task.fromJson(task.toJson());
+    expect(reopened.legacyFollowUpMetadata, task.legacyFollowUpMetadata);
   });
 
   test('missing category remains backward-compatible with legacy data', () {

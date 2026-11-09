@@ -145,6 +145,37 @@ void main() {
     expect(restored.completedAt, completedAt);
   });
 
+  test('canonical backup round-trips retired Follow-up dates as inert metadata', () async {
+    final service = _FakeBackupService();
+    final manager = ArvinBackupManager(service: service);
+    await manager.setDirectory('content://arvin-backups');
+    final task = Task(
+      id: 'legacy-metadata-backup',
+      title: 'سابقه قدیمی',
+      legacyFollowUpMetadata: {
+        'taskLevel': {
+          'followUpEnabled': true,
+          'followUpDate': '2026-08-13T12:00:00.000',
+        },
+        'followUps': [
+          {
+            'id': 'follow-up-1',
+            'nextFollowUp': '2026-08-15T10:30:00.000',
+          },
+        ],
+      },
+    );
+
+    await manager.backupCanonicalTasks([task]);
+
+    final tasks = service.writtenPayload!['tasks'] as List;
+    final restored = Task.fromLegacyJson(
+      Map<String, dynamic>.from(tasks.single as Map),
+    );
+    expect(restored.legacyFollowUpMetadata, task.legacyFollowUpMetadata);
+    expect(restored.taskReminders, isEmpty);
+  });
+
   test('canonical backup preserves unassigned Category and Tag catalog entries', () async {
     final service = _FakeBackupService();
     final manager = ArvinBackupManager(service: service);

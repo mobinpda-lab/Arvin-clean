@@ -240,11 +240,20 @@ void main() {
       <Object?>['follow-up-reminder-canonical-task-legacy-follow-up'],
     );
     expect(migratedFollowUpReminder.single['remind_at'], '2026-11-07T09:00:00.000');
-    final migratedNextFollowUpReminder = await database.runSelect(
-      'SELECT id FROM task_reminders WHERE id LIKE ?',
-      const <Object?>['follow-up-next-reminder-%'],
+    final legacyPayloadRows = await database.runSelect(
+      'SELECT legacy_payload_json FROM tasks WHERE id = ?',
+      const <Object?>['canonical-task'],
     );
-    expect(migratedNextFollowUpReminder, isEmpty);
+    final legacyPayload = Map<String, dynamic>.from(
+      jsonDecode(legacyPayloadRows.single['legacy_payload_json'] as String) as Map,
+    );
+    final compatibility = legacyPayload['legacyFollowUpMetadata'] as Map;
+    expect(compatibility['followUps'], [
+      {
+        'id': 'legacy-follow-up',
+        'nextFollowUp': '2026-11-10T09:00:00.000',
+      },
+    ]);
 
     final records = await database.runSelect(
       'SELECT id, completed_at FROM follow_up_records WHERE task_id = ?',
@@ -415,27 +424,49 @@ void main() {
     expect(columns.map((row) => row['name']), isNot(contains('follow_up_date')));
     expect(columns.map((row) => row['name']), isNot(contains('reminder_date')));
 
-    final migratedSchedules = await database.runSelect(
-      'SELECT id, remind_at, is_enabled FROM task_reminders '
-      'WHERE task_id IN (?, ?) ORDER BY task_id',
+    final migratedPayloads = await database.runSelect(
+      'SELECT id, legacy_payload_json FROM tasks '
+      'WHERE id IN (?, ?) ORDER BY id',
       const <Object?>['legacy-followup-disabled', 'legacy-followup-enabled'],
     );
-    expect(migratedSchedules, hasLength(2));
-    expect(migratedSchedules.map((row) => row['id']), [
-      'legacy-task-follow-up-reminder-legacy-followup-disabled',
-      'legacy-task-follow-up-reminder-legacy-followup-enabled',
-    ]);
-    expect(migratedSchedules.map((row) => row['remind_at']), [
-      '2026-11-11T09:00:00.000',
-      '2026-11-10T10:30:00.000',
-    ]);
-    expect(migratedSchedules.map((row) => row['is_enabled']), [0, 1]);
+    expect(migratedPayloads, hasLength(2));
+    final payloadById = <String, Map<String, dynamic>>{
+      for (final row in migratedPayloads)
+        row['id'] as String:
+            Map<String, dynamic>.from(jsonDecode(row['legacy_payload_json'] as String) as Map),
+    };
+    expect(
+      (payloadById['legacy-followup-enabled']!['legacyFollowUpMetadata'] as Map)['taskLevel'],
+      {
+        'followUpEnabled': true,
+        'followUpDate': '2026-11-10T10:30:00.000',
+      },
+    );
+    expect(
+      (payloadById['legacy-followup-disabled']!['legacyFollowUpMetadata'] as Map)['taskLevel'],
+      {
+        'followUpEnabled': false,
+        'followUpDate': '2026-11-11T09:00:00.000',
+      },
+    );
+    final migratedSchedules = await database.runSelect(
+      'SELECT id FROM task_reminders '
+      'WHERE task_id IN (?, ?)',
+      const <Object?>['legacy-followup-disabled', 'legacy-followup-enabled'],
+    );
+    expect(migratedSchedules, isEmpty);
 
     await G1DriftSchema.migrateCanonicalEntities(database);
-    final repeated = await database.runSelect(
-      'SELECT id FROM task_reminders WHERE task_id = ?',
+    final repeatedPayload = await database.runSelect(
+      'SELECT legacy_payload_json FROM tasks WHERE id = ?',
       const <Object?>['legacy-followup-enabled'],
     );
-    expect(repeated, hasLength(1));
+    final repeatedMetadata = Map<String, dynamic>.from(
+      (jsonDecode(repeatedPayload.single['legacy_payload_json'] as String) as Map),
+    )['legacyFollowUpMetadata'] as Map;
+    expect(repeatedMetadata['taskLevel'], {
+      'followUpEnabled': true,
+      'followUpDate': '2026-11-10T10:30:00.000',
+    });
   });
 }
