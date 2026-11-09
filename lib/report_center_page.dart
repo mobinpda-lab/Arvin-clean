@@ -719,6 +719,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
             ),
             for (final preset in ReportTimePreset.values)
               ListTile(
+                key: ValueKey('report-quick-preset-${preset.name}'),
                 minTileHeight: 48,
                 leading: const Icon(Icons.schedule_outlined),
                 title: Text(_timeLabel(preset)),
