@@ -48,11 +48,13 @@ Map<String, dynamic> _decodeLegacyFollowUpMetadata(
   }
 
   final taskLevel = <String, dynamic>{};
-  if (json.containsKey('followUpEnabled')) {
-    taskLevel['followUpEnabled'] = json['followUpEnabled'];
+  final rawFollowUpDate = json['followUpDate'];
+  final rawFollowUpEnabled = json['followUpEnabled'];
+  if (rawFollowUpDate != null) {
+    taskLevel['followUpDate'] = rawFollowUpDate;
   }
-  if (json.containsKey('followUpDate')) {
-    taskLevel['followUpDate'] = json['followUpDate'];
+  if (rawFollowUpEnabled == true || rawFollowUpDate != null) {
+    taskLevel['followUpEnabled'] = rawFollowUpEnabled;
   }
   if (taskLevel.isNotEmpty) {
     final existing = metadata['taskLevel'];
