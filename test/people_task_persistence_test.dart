@@ -5,6 +5,7 @@ import 'package:arvin/backup_service.dart';
 import 'package:arvin/models/person_reference.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/task_migration_writer.dart';
+import 'package:arvin/services/person_follow_up_report_projection.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -160,6 +161,55 @@ void main() {
     ]);
     expect(loaded.single.taskReminders.last.isAllDay, isTrue);
     expect(loaded.single.nextReminderSequence, 3);
+  });
+
+  test('deleting a directory Person preserves historical Task and Follow-up references without resurrection', () async {
+    final store = TaskStore();
+    final person = _person('person-history-1', 'سارا احمدی');
+    await store.mergePeopleDirectory([person]);
+    await store.save([
+      Task(
+        id: 'task-person-history',
+        title: 'پرونده تاریخی',
+        people: [person],
+        followUps: [
+          FollowUp(
+            id: 'follow-up-person-history',
+            dateTime: DateTime(2026, 11, 1, 10),
+            note: 'ارتباط تاریخی',
+            waitingForResponse: true,
+            personIds: [person.id],
+          ),
+        ],
+      ),
+    ]);
+
+    expect((await store.loadPeopleDirectory()).map((value) => value.id), [person.id]);
+    await store.savePeopleDirectory(const <PersonReference>[]);
+
+    expect(await store.loadPeopleDirectory(), isEmpty);
+    var loaded = (await store.load()).single;
+    expect(loaded.people, hasLength(1));
+    expect(loaded.people.single.id, person.id);
+    expect(loaded.people.single.isDeleted, isTrue);
+    expect(loaded.people.single.displayLabel, 'شخص حذف‌شده');
+    expect(loaded.followUps.single.id, 'follow-up-person-history');
+    expect(loaded.followUps.single.personIds, [person.id]);
+
+    final reportRows = const PersonFollowUpReportProjection().project(
+      [loaded],
+      people: const <PersonReference>[],
+    );
+    expect(reportRows, hasLength(1));
+    expect(reportRows.single.people.single.displayLabel, 'شخص حذف‌شده');
+    expect(reportRows.single.people.single.isDeleted, isTrue);
+
+    // A normal Task rewrite must not silently restore active membership.
+    await store.save([loaded]);
+    loaded = (await store.load()).single;
+    expect(await store.loadPeopleDirectory(), isEmpty);
+    expect(loaded.people.single.isDeleted, isTrue);
+    expect(loaded.followUps.single.personIds, [person.id]);
   });
 
   test('Home migration write preserves existing people during edit', () {

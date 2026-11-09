@@ -60,6 +60,7 @@ void main() {
 
     final reloaded = (await store.load()).single;
     expect(reloaded.people.single.id, 'person-1');
+    expect((await store.loadPeopleDirectory()).map((person) => person.id), contains('person-1'));
     expect(reloaded.title, original.title);
     expect(reloaded.description, original.description);
     expect(reloaded.tags, original.tags);
