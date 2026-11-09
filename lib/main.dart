@@ -1597,7 +1597,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                     if (groupDate != null) ...[
                       const SizedBox(height: 5),
-                      Center(child: Text(groupDate, key: ValueKey('home-group-date-\${group.id}'), textAlign: TextAlign.center, style: TextStyle(color: accent, fontSize: 14, fontWeight: FontWeight.w900))),
+                      Center(child: Text(groupDate, key: ValueKey('home-group-date-${group.id}'), textAlign: TextAlign.center, style: TextStyle(color: accent, fontSize: 14, fontWeight: FontWeight.w900))),
                     ],
                   ],
                 ),
@@ -3567,32 +3567,29 @@ class _HomePageState extends State<HomePage> {
                           ],
                         ],
                       ),
-                      if (task.category?.trim().isNotEmpty == true ||
-                          task.priority != TaskPriority.none) ...[
-                        const SizedBox(height: 4),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (task.category?.trim().isNotEmpty == true)
-                              Flexible(
-                                child: Text(
-                                  task.category!.trim(),
-                                  key: ValueKey('task-card-category-${task.id}'),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w600),
-                                ),
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (task.category?.trim().isNotEmpty == true)
+                            Flexible(
+                              child: Text(
+                                task.category!.trim(),
+                                key: ValueKey('task-card-category-${task.id}'),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w600),
                               ),
-                            if (task.category?.trim().isNotEmpty == true) const SizedBox(width: 6),
-                            Container(
-                              key: ValueKey('task-card-eisenhower-dot-${task.id}'),
-                              width: 8,
-                              height: 8,
-                              decoration: BoxDecoration(color: ArvinColors.priorityColor(task.priority), shape: BoxShape.circle),
                             ),
-                          ],
-                        ),
-                      ],
+                          if (task.category?.trim().isNotEmpty == true) const SizedBox(width: 6),
+                          Container(
+                            key: ValueKey('task-card-eisenhower-dot-${task.id}'),
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(color: ArvinColors.priorityColor(task.priority), shape: BoxShape.circle),
+                          ),
+                        ],
+                      ),
                       if (const HomeListProjection().shouldProjectDueDate(task)) ...[
                         const SizedBox(height: 3),
                         SizedBox(
@@ -3666,7 +3663,7 @@ class _HomePageState extends State<HomePage> {
                             const SizedBox(width: 4),
                             Flexible(
                               child: Text(
-                                'آخرین پیگیری: ${_date(lastFollowUpDate)} • ${_time(lastFollowUpDate)}',
+                                'آخرین پیگیری: ${_date(lastFollowUpDate)} • ${_time(lastFollowUpDate)}${followUpPresentation?.relative == null ? '' : ' • ${followUpPresentation!.relative}'}',
                                 style: TextStyle(
                                   color: ArvinColors.textSecondary,
                                   fontSize: 11,
@@ -3679,6 +3676,20 @@ class _HomePageState extends State<HomePage> {
                           ],
                         ),
                       ],
+                      if (!expanded && task.description.trim().isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsetsDirectional.fromSTEB(19, 0, 8, 5),
+                          child: Align(
+                            alignment: AlignmentDirectional.centerStart,
+                            child: Text(
+                              task.description.trim(),
+                              key: ValueKey('task-card-summary-preview-${task.id}'),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 11),
+                            ),
+                          ),
+                        ),
                       for (final reminder in projectedReminders) ...[
                         const SizedBox(height: 3),
                         Row(
