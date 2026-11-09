@@ -42,7 +42,15 @@ void main() {
     final source = File('pubspec.yaml').readAsStringSync();
 
     expect(source, contains('assets/fonts/'));
+    expect(source, contains('Vazirmatn-Light.ttf'));
     expect(source, contains('Vazirmatn-Regular.ttf'));
+    expect(source, contains('Vazirmatn-Medium.ttf'));
+    expect(source, contains('Vazirmatn-SemiBold.ttf'));
     expect(source, contains('Vazirmatn-Bold.ttf'));
+    expect(source, contains('weight: 300'));
+    expect(source, contains('weight: 400'));
+    expect(source, contains('weight: 500'));
+    expect(source, contains('weight: 600'));
+    expect(source, contains('weight: 700'));
   });
 }
