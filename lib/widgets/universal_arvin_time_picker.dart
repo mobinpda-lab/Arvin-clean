@@ -379,7 +379,7 @@ class _UniversalArvinTimePickerDialogState
       label: Text(label),
       selected: selected,
       onSelected: (_) => onPressed(),
-      selectedColor: primarySoft,
+      selectedColor: Theme.of(context).colorScheme.secondaryContainer,
       labelStyle: TextStyle(
         color: selected ? Theme.of(context).colorScheme.primary : ArvinColors.textSecondary,
         fontWeight: FontWeight.w600,
