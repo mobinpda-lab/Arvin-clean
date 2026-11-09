@@ -1005,6 +1005,7 @@ void main() {
     expect(find.text('خلاصه آخرین پیگیری'), findsOneWidget);
     expect(find.textContaining('آخرین پیگیری:'), findsOneWidget);
     expect(find.textContaining('پیش'), findsOneWidget);
+    expect(tester.getSize(find.byKey(const ValueKey('task-card-expand-focus-card-contract'))).height, greaterThanOrEqualTo(48));
     expect(find.text('محرمانه'), findsNothing);
     expect(find.text('مرکز'), findsNothing);
     expect(find.text('پروژه'), findsNothing);
