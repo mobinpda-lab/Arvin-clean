@@ -497,11 +497,15 @@ Future<DateTime?> _pickCustomDue() async {
 
   Widget _surfaceCard({required Widget child, EdgeInsets padding = const EdgeInsets.all(6)}) {
     return Card(
-      elevation: 2,
-      shadowColor: ArvinTheme.shadowStyle.color,
+      elevation: 1,
+      surfaceTintColor: Colors.transparent,
+      shadowColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.22),
       color: ArvinTheme.cardBackground,
       margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: ArvinTheme.cardBorderRadius),
+      shape: RoundedRectangleBorder(
+        borderRadius: ArvinTheme.cardBorderRadius,
+        side: const BorderSide(color: ArvinTheme.cardBorder, width: 0.8),
+      ),
       child: Padding(padding: padding, child: child),
     );
   }
