@@ -420,6 +420,8 @@ void main() {
     await _pumpRouteTransition(tester);
 
     expect(find.byType(TaskNextActionPage), findsOneWidget);
+    // Next Action is an auxiliary page, not a sixth primary destination.
+    expect(find.byType(ArvinPrimaryNavigation), findsNothing);
     expect(find.text('تماس فوری'), findsOneWidget);
     expect(find.text('کار آزاد'), findsOneWidget);
   });
