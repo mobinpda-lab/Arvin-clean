@@ -890,8 +890,8 @@ class _HomePageState extends State<HomePage> {
 
     final result = scoped.toList(growable: false);
     return switch (_homeSortMode) {
-      'alphabetical' => taskListSortService.sort(result, by: TaskListSort.title, descending: _homeSortDescending),
-      'date' => taskListSortService.sort(result, by: TaskListSort.date, descending: _homeSortDescending),
+      'alphabetical' => taskListSortService.sortByTitle(result, descending: _homeSortDescending),
+      'date' => taskListSortService.sortByDueDate(result, descending: _homeSortDescending),
       'oldest' => taskListSortService.sortByCreatedAt(result, descending: _homeSortDescending),
       'newest' => taskListSortService.sortByCreatedAt(result, descending: !_homeSortDescending),
       _ => _homeSortDescending
