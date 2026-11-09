@@ -59,6 +59,11 @@ abstract final class ArvinColors {
   static const tagDark = Color(0xFF15803D);
   static const tagSoft = Color(0xFFDCFCE7);
 
+  // Notebook owns a warm orange identity independent of the global brand and priority palette.
+  static const notebookOrange = Color(0xFFC76B16);
+  static const notebookOrangeSoft = Color(0xFFFFF1E4);
+  static const notebookOrangeDarkSoft = Color(0xFF4B321D);
+
   static const error = Color(0xFFC62828);
   static const errorDark = Color(0xFF922020);
   static const errorSoft = Color(0xFFFFE0E2);
