@@ -176,7 +176,6 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     task.description = '';
     task.dueDate = _dueDate;
     task.centerId = _centerId;
-    task.projectId = _projectId;
     task.allDay = _dueDate != null && _dueAllDay;
     task.taskReminders = _reminderDate == null
         ? <TaskReminder>[]
@@ -232,7 +231,6 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
         _saving = false;
       });
       widget.onProjectChanged?.call(null);
-      widget.onCenterChanged?.call(null);
     } catch (_) {
       if (!mounted) return;
       setState(() {
@@ -265,7 +263,6 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
       });
       if (saved) {
         widget.onProjectChanged?.call(null);
-        widget.onCenterChanged?.call(null);
       }
     } catch (_) {
       if (!mounted) return;

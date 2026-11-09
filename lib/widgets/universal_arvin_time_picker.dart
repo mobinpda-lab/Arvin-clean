@@ -165,6 +165,9 @@ class _UniversalArvinTimePickerDialogState
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final primary = colors.primary;
+    final primarySoft = colors.secondaryContainer;
     return Dialog(
       backgroundColor: ArvinColors.surface,
       surfaceTintColor: Colors.transparent,

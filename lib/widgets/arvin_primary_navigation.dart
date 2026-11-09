@@ -33,7 +33,7 @@ class ArvinPrimaryNavigation extends StatelessWidget {
       ArvinPrimaryDestination.home: Color(0xFF0F766E),
       ArvinPrimaryDestination.calendar: Color(0xFF2A9D8F),
       ArvinPrimaryDestination.notebook: Color(0xFFC76B16),
-      ArvinPrimaryDestination.nextAction: Color(0xFF8E6CCF),
+      ArvinPrimaryDestination.reports: Color(0xFF8E6CCF),
       ArvinPrimaryDestination.more: Color(0xFF219EBC),
     };
 
@@ -57,10 +57,10 @@ class ArvinPrimaryNavigation extends StatelessWidget {
         'دفترچه',
       ),
       (
-        ArvinPrimaryDestination.nextAction,
-        Icons.task_alt_outlined,
-        Icons.task_alt_rounded,
-        'اقدام بعدی',
+        ArvinPrimaryDestination.reports,
+        Icons.assessment_outlined,
+        Icons.assessment_rounded,
+        'گزارش‌ها',
       ),
       (
         ArvinPrimaryDestination.more,

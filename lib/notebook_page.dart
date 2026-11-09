@@ -992,6 +992,9 @@ class NotebookEditorPage extends StatefulWidget {
 }
 
 class _NotebookEditorPageState extends State<NotebookEditorPage> {
+  Color get _brand => Theme.of(context).colorScheme.primary;
+  Color get _brandSoft => Theme.of(context).colorScheme.secondaryContainer;
+
   final _title = TextEditingController();
   final _description = TextEditingController();
   final _titleFocus = FocusNode();

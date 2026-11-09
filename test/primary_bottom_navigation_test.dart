@@ -24,8 +24,8 @@ void main() {
     expect(find.text('خانه'), findsOneWidget);
     expect(find.text('تقویم'), findsOneWidget);
     expect(find.text('دفترچه'), findsOneWidget);
-    expect(find.text('اقدام بعدی'), findsOneWidget);
-    expect(find.text('گزارش‌ها'), findsNothing);
+    expect(find.text('گزارش‌ها'), findsOneWidget);
+    expect(find.text('اقدام بعدی'), findsNothing);
     expect(find.byType(Expanded), findsNWidgets(5));
     expect(find.text('بیشتر'), findsOneWidget);
     final iconColors = tester.widgetList<Icon>(find.byType(Icon)).take(5).map((icon) => icon.color).toSet();
