@@ -29,6 +29,15 @@ enum NotebookItemKind { note, checklist }
 String _dateOnlyStorageValue(DateTime value) =>
     '${value.year.toString().padLeft(4, '0')}-${value.month.toString().padLeft(2, '0')}-${value.day.toString().padLeft(2, '0')}';
 
+bool _isDateOnlyStorageValue(Object? value) {
+  if (value is! String || value.length != 10) return false;
+  return value[4] == '-' &&
+      value[7] == '-' &&
+      int.tryParse(value.substring(0, 4)) != null &&
+      int.tryParse(value.substring(5, 7)) != null &&
+      int.tryParse(value.substring(8, 10)) != null;
+}
+
 class FollowUpRecord {
   final String id;
 
@@ -533,7 +542,8 @@ class Task {
             id: migratedTaskReminderId(json['id'] as String? ?? ''),
             title: 'یادآوری: $taskTitle',
             date: legacyReminderDate,
-            isAllDay: json['reminderAllDay'] as bool? ?? false,
+            isAllDay: json['reminderAllDay'] == true ||
+                _isDateOnlyStorageValue(rawLegacyReminderDate),
             sequence: migrationSequence,
           ),
         );
@@ -560,7 +570,8 @@ class Task {
             id: reminderId,
             title: 'یادآوری پیگیری: ${json['title'] as String? ?? ''}',
             date: legacyFollowUpDate,
-            isAllDay: json['followUpAllDay'] == true,
+            isAllDay: json['followUpAllDay'] == true ||
+                _isDateOnlyStorageValue(rawLegacyFollowUpDate),
             sequence: migrationSequence,
             isEnabled: legacyFollowUpEnabled,
           ),
@@ -614,7 +625,8 @@ class Task {
             rawDate: rawReminderDate,
             idPrefix: 'follow-up-reminder',
             title: 'یادآور پیگیری',
-            isAllDay: rawFollowUp['reminderAllDay'] == true,
+            isAllDay: rawFollowUp['reminderAllDay'] == true ||
+                _isDateOnlyStorageValue(rawReminderDate),
           );
         }
         final rawNextFollowUp = rawFollowUp['nextFollowUp'];
@@ -624,7 +636,7 @@ class Task {
             idPrefix: 'follow-up-next-reminder',
             title: 'یادآوری اقدام بعدی',
             isAllDay: rawFollowUp['nextFollowUpAllDay'] == true ||
-                RegExp(r'^\d{4}-\d{2}-\d{2}
+                _isDateOnlyStorageValue(rawNextFollowUp),
 
     final nextReminderSequence = [
       sequenceFromJson,

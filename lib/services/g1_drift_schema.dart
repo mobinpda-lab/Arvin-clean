@@ -462,8 +462,10 @@ class G1DriftSchema implements QueryExecutorUser {
               if (decoded is Map && decoded['followUps'] is List) {
                 for (final rawFollowUp in decoded['followUps'] as List) {
                   if (rawFollowUp is Map && rawFollowUp['id'] == legacy['id']) {
-                    reminderAllDay = rawFollowUp['reminderAllDay'] == true;
-                    nextFollowUpAllDay = rawFollowUp['nextFollowUpAllDay'] == true;
+                    reminderAllDay = rawFollowUp['reminderAllDay'] == true ||
+                        _isDateOnlyStorageValue(legacy['reminder_date']);
+                    nextFollowUpAllDay = rawFollowUp['nextFollowUpAllDay'] == true ||
+                        _isDateOnlyStorageValue(legacy['next_follow_up']);
                     break;
                   }
                 }
@@ -649,6 +651,15 @@ class G1DriftSchema implements QueryExecutorUser {
 
   static String _dateOnlyStorageValue(DateTime value) =>
       '${value.year.toString().padLeft(4, '0')}-${value.month.toString().padLeft(2, '0')}-${value.day.toString().padLeft(2, '0')}';
+
+  static bool _isDateOnlyStorageValue(Object? value) {
+    if (value is! String || value.length != 10) return false;
+    return value[4] == '-' &&
+        value[7] == '-' &&
+        int.tryParse(value.substring(0, 4)) != null &&
+        int.tryParse(value.substring(5, 7)) != null &&
+        int.tryParse(value.substring(8, 10)) != null;
+  }
 
   static Future<bool> _hasTable(QueryExecutor executor, String table) async {
     final rows = await executor.runSelect(
