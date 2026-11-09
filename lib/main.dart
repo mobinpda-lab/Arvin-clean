@@ -1103,6 +1103,7 @@ class _HomePageState extends State<HomePage> {
                 key: const ValueKey('home-sort-button'),
                 tooltip: 'مرتب‌سازی کارها',
                 visualDensity: VisualDensity.compact,
+                constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
                 onPressed: _showSortOptions,
                 icon: const Icon(Icons.sort_rounded),
               ),
@@ -3450,6 +3451,7 @@ class _HomePageState extends State<HomePage> {
     final lastFollowUpDate = _homeLastFollowUpDate(task);
     final followUpPresentation =
         const HomeFollowUpPresentationService().project(task);
+    final summaryPreview = followUpPresentation?.title ?? task.description.trim();
     final expanded = _expandedTaskIds.contains(task.id);
     final projectedReminders = const HomeListProjection().projectReminders(
       task.taskReminders,
@@ -3684,13 +3686,13 @@ class _HomePageState extends State<HomePage> {
                           ],
                         ),
                       ],
-                      if (!expanded && task.description.trim().isNotEmpty)
+                      if (!expanded && summaryPreview.trim().isNotEmpty)
                         Padding(
                           padding: const EdgeInsetsDirectional.fromSTEB(19, 0, 8, 5),
                           child: Align(
                             alignment: AlignmentDirectional.centerStart,
                             child: Text(
-                              task.description.trim(),
+                              summaryPreview.trim(),
                               key: ValueKey('task-card-summary-preview-${task.id}'),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -3824,11 +3826,6 @@ class _HomePageState extends State<HomePage> {
                     )
                   : const SizedBox.shrink(),
             ),
-            if (!expanded && task.description.trim().isNotEmpty)
-              Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(42, 0, 10, 5),
-                child: Align(alignment: AlignmentDirectional.centerStart, child: Text(task.description.trim(), key: ValueKey('task-card-summary-preview-${task.id}'), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 11))),
-              ),
             if (!selectionMode)
               Material(
                 color: const Color(0xFFEAF5ED),
