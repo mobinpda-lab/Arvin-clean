@@ -365,7 +365,7 @@ class _ArvinAppState extends State<ArvinApp> {
             backgroundColor: accentColor,
             foregroundColor: Colors.white,
             elevation: 1,
-            shadowColor: accentColor.withValues(alpha: 0.25),
+            shadowColor: ArvinTheme.primaryGlow,
           ),
         ),
         chipTheme: ChipThemeData(
@@ -376,6 +376,7 @@ class _ArvinAppState extends State<ArvinApp> {
         floatingActionButtonTheme: FloatingActionButtonThemeData(
           backgroundColor: accentColor,
           foregroundColor: ArvinColors.surface,
+          shadowColor: ArvinTheme.primaryGlow,
           elevation: 4,
           hoverElevation: 5,
           focusElevation: 5,
