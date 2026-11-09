@@ -16,7 +16,7 @@ abstract final class ArvinColors {
   static const textSecondary = Color(0xFF80829C);
   static const border = ArvinTheme.cardBorder;
   static const shadowSoft = ArvinTheme.primaryGlow;
-  static const shadowDark = Color(0x400F766E);
+  static const shadowDark = Color(0x40008080);
 
   // Dark theme semantic tokens.
   static const darkPrimary = Color(0xFF14B8A6);
@@ -28,7 +28,7 @@ abstract final class ArvinColors {
   static const darkDivider = Color(0xFF555B70);
   static const darkOutline = Color(0xFF656B80);
 
-  // Brand and grouping accents use the approved blue system.
+  // Brand uses Persian Teal; grouping and taxonomy retain distinct semantic accents.
   static const groupingTomorrow = Color(0xFF2563EB);
   static const groupingFuture = Color(0xFF7C3AED);
   static const groupingTodaySoft = Color(0xFFDDF3EF);
