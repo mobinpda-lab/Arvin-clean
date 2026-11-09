@@ -351,29 +351,13 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
     );
   }
 
-  Widget _nextActionShell(
-    BuildContext context,
-    List<CalendarReminder> reminders,
-  ) {
-    return ArvinPrimaryPageShell(
-      selected: ArvinPrimaryDestination.nextAction,
-      onSelected: (destination) => _onChildDestinationSelected(
-        context,
-        destination,
-        reminders,
-        current: ArvinPrimaryDestination.nextAction,
-      ),
-      child: TaskNextActionPage(tasks: _tasks),
-    );
-  }
-
   Future<void> _openNextAction(
     BuildContext context,
     List<CalendarReminder> reminders,
   ) async {
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
-        builder: (_) => _nextActionShell(context, reminders),
+        builder: (_) => TaskNextActionPage(tasks: _tasks),
       ),
     );
   }
@@ -417,13 +401,6 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
         Navigator.of(context).pushReplacement<void, void>(
           MaterialPageRoute<void>(
             builder: (_) => _notebookShell(context, reminders),
-          ),
-        );
-        return;
-      case ArvinPrimaryDestination.nextAction:
-        Navigator.of(context).pushReplacement<void, void>(
-          MaterialPageRoute<void>(
-            builder: (_) => _nextActionShell(context, reminders),
           ),
         );
         return;
@@ -694,9 +671,6 @@ class _CanonicalCalendarLauncherState extends State<CanonicalCalendarLauncher> {
         return;
       case ArvinPrimaryDestination.reports:
         _openReportsFromCalendar(context);
-        return;
-      case ArvinPrimaryDestination.nextAction:
-        _openNextAction(context, reminders);
         return;
       case ArvinPrimaryDestination.more:
         _openMore(context, reminders);
