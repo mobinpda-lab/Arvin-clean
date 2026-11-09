@@ -632,7 +632,7 @@ class _CalendarPageState extends State<CalendarPage> {
                     child: Container(
                       constraints: const BoxConstraints(minHeight: 68),
                       decoration: BoxDecoration(
-                        color: selected ? Theme.of(context).colorScheme.secondaryContainer : Colors.transparent,
+                        color: selected ? ArvinColors.calendarSelectedDay : Colors.transparent,
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: Column(

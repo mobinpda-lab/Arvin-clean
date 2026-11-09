@@ -183,7 +183,7 @@ void main() {
     expect(find.text('عقب‌افتاده'), findsOneWidget);
   });
 
-  testWidgets('week date bar keeps a 68-pixel minimum and highlights selected day in pastel turquoise', (tester) async {
+  testWidgets('week date bar keeps a 68-pixel minimum and highlights selected day with the approved blue-soft token', (tester) async {
     final selectedDay = DateTime(2030, 5, 1);
     await tester.pumpWidget(
       MaterialApp(
