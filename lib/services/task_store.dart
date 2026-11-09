@@ -934,10 +934,12 @@ class TaskStore {
           'SELECT id FROM persons WHERE id = ?',
           <Object?>[person.id],
         );
+        // The Person row owns the canonical display name. Task snapshots
+        // may be stale, so relation writes must not overwrite an explicit
+        // directory rename with an older embedded displayName.
         await executor.runInsert(
-          '''INSERT INTO persons (id, name, created_at, updated_at)
-             VALUES (?, ?, ?, ?)
-             ON CONFLICT(id) DO UPDATE SET name = excluded.name, updated_at = excluded.updated_at''',
+          '''INSERT OR IGNORE INTO persons (id, name, created_at, updated_at)
+             VALUES (?, ?, ?, ?)''',
           <Object?>[person.id, person.displayName, now, now],
         );
         // Seed directory membership only when this is a genuinely new Person.

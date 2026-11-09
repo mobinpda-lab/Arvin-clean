@@ -6,9 +6,10 @@ typedef PersonIdFactory = String Function();
 
 /// Task-facing People operations that reuse the existing canonical TaskStore.
 ///
-/// This service deliberately does not own a People repository, database, device
-/// Contacts provider, phone/email payload, or sync path. Person references live
-/// only inside the canonical Task JSON.
+/// This service deliberately does not own a parallel People repository, device
+/// Contacts provider, phone/email payload, or sync path. Task associations,
+/// Person identity, and active-directory membership remain in TaskStore's
+/// canonical SQLite tables.
 class TaskPeopleService {
   TaskPeopleService({
     TaskStore? store,

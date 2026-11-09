@@ -83,6 +83,7 @@ void main() {
       Task(id: 'task-2', title: 'کار دوم', people: [person]),
     ]);
     final service = TaskPeopleService(store: store);
+    final staleTaskSnapshot = (await store.load()).first;
 
     final updated = await service.updatePerson(
       taskId: 'task-1',
@@ -91,6 +92,9 @@ void main() {
     );
 
     expect(updated.people.single.displayName, 'سارا احمدی');
+    // A Task snapshot captured before the rename must not roll the canonical
+    // Person display name back when it is saved later.
+    await store.save([staleTaskSnapshot]);
     final tasks = await store.load();
     expect(tasks.map((task) => task.people.single.displayName),
         ['سارا احمدی', 'سارا احمدی']);
