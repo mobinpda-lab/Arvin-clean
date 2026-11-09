@@ -41,6 +41,10 @@ void main() {
       throwsArgumentError,
     );
     expect(
+      () => AppThemeManager.instance.select('#3A86EF'),
+      throwsArgumentError,
+    );
+    expect(
       AppThemeManager.palette.map((entry) => entry.hex).toList(),
       <String>['#0F766E', '#1B4965', '#2A9D8F', '#4361EE', '#7209B7', '#F77F00', '#D90429', '#606C38', '#2B2D42'],
     );
