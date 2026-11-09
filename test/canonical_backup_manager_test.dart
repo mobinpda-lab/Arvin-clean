@@ -999,6 +999,13 @@ void main() {
       );
 
       await store.savePeopleDirectory(const []);
+
+      // A Task object loaded before directory removal is a stale snapshot.
+      // Saving it must preserve the removal rather than silently reviving the
+      // Person in the active directory.
+      await store.save([task]);
+      expect(await store.loadPeopleDirectory(), isEmpty);
+
       final afterRemoval = (await store.load()).single;
       expect(afterRemoval.people.single.id, person.id);
       expect(afterRemoval.people.single.isDeleted, isTrue);
