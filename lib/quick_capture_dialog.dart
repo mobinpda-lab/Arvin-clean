@@ -495,7 +495,11 @@ Future<DateTime?> _pickCustomDue() async {
     );
   }
 
-  Widget _surfaceCard({required Widget child, EdgeInsets padding = const EdgeInsets.all(6)}) {
+  Widget _surfaceCard({
+    required Widget child,
+    EdgeInsets padding = const EdgeInsets.all(6),
+    Color? borderColor,
+  }) {
     return Card(
       elevation: 1,
       surfaceTintColor: Colors.transparent,
@@ -504,7 +508,7 @@ Future<DateTime?> _pickCustomDue() async {
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
         borderRadius: ArvinTheme.cardBorderRadius,
-        side: const BorderSide(color: ArvinTheme.cardBorder, width: 0.8),
+        side: BorderSide(color: borderColor ?? ArvinTheme.cardBorder, width: 0.8),
       ),
       child: Padding(padding: padding, child: child),
     );
@@ -571,6 +575,7 @@ Future<DateTime?> _pickCustomDue() async {
                   ),
                   const SizedBox(height: 5),
                   _surfaceCard(
+                    borderColor: ArvinColors.priorityColor(_priority).withValues(alpha: 0.55),
                     child: TextField(
                       key: const ValueKey('quick-capture-input'),
                       controller: _controller,
