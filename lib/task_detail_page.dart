@@ -1822,12 +1822,19 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                           Row(
                             children: [
                               Icon(icon, color: _brand, size: 22),
-                              const SizedBox(width: 12),
-                              Expanded(child: titleWidget),
+                              const Spacer(),
                               trailingWidget,
                             ],
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 3),
+                          Align(
+                            alignment: AlignmentDirectional.centerStart,
+                            child: Padding(
+                              padding: const EdgeInsetsDirectional.only(start: 34, end: 28),
+                              child: titleWidget,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
                           Padding(
                             padding: const EdgeInsetsDirectional.only(start: 34, end: 28),
                             child: valueWidget,
