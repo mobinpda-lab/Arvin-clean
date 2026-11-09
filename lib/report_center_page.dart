@@ -1156,8 +1156,34 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                 primary: false,
                 keyboardDismissBehavior:
                     ScrollViewKeyboardDismissBehavior.onDrag,
+                physics: const ClampingScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                 children: [
+            _Section(
+              title: 'نوع گزارش',
+              icon: Icons.assessment_outlined,
+              accentColor: Theme.of(context).colorScheme.primary,
+              selectedCount: _openCompletedFollowUpReport ? 1 : 0,
+              initiallyExpanded: true,
+              child: Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: [
+                  ChoiceChip(
+                    key: const ValueKey('report-filter-type-tasks'),
+                    label: const Text('گزارش کارها'),
+                    selected: !_openCompletedFollowUpReport,
+                    onSelected: (_) => setState(() => _openCompletedFollowUpReport = false),
+                  ),
+                  ChoiceChip(
+                    key: const ValueKey('report-filter-type-completed-follow-ups'),
+                    label: const Text('گزارش پیگیری‌های انجام‌شده'),
+                    selected: _openCompletedFollowUpReport,
+                    onSelected: (_) => setState(() => _openCompletedFollowUpReport = true),
+                  ),
+                ],
+              ),
+            ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -1215,31 +1241,6 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                   onTap: _openQuickPresets,
                 ),
               ],
-            ),
-            _Section(
-              title: 'نوع گزارش',
-              icon: Icons.assessment_outlined,
-              accentColor: Theme.of(context).colorScheme.primary,
-              selectedCount: _openCompletedFollowUpReport ? 1 : 0,
-              initiallyExpanded: true,
-              child: Wrap(
-                spacing: 6,
-                runSpacing: 4,
-                children: [
-                  ChoiceChip(
-                    key: const ValueKey('report-filter-type-tasks'),
-                    label: const Text('گزارش کارها'),
-                    selected: !_openCompletedFollowUpReport,
-                    onSelected: (_) => setState(() => _openCompletedFollowUpReport = false),
-                  ),
-                  ChoiceChip(
-                    key: const ValueKey('report-filter-type-completed-follow-ups'),
-                    label: const Text('گزارش پیگیری‌های انجام‌شده'),
-                    selected: _openCompletedFollowUpReport,
-                    onSelected: (_) => setState(() => _openCompletedFollowUpReport = true),
-                  ),
-                ],
-              ),
             ),
             _Section(
               key: _timeSectionKey,
@@ -1989,6 +1990,7 @@ class _SectionState extends State<_Section> {
       ),
       clipBehavior: Clip.antiAlias,
       child: ExpansionTile(
+        maintainState: true,
         initiallyExpanded: _expanded,
         onExpansionChanged: (value) => setState(() => _expanded = value),
         tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),

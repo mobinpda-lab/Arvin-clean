@@ -1938,12 +1938,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                     children: [
                       Row(
                         children: [
-                          IconButton(
+                          BackButton(
                             key: const ValueKey('task-detail-back'),
-                            tooltip: 'بازگشت',
                             color: Colors.white,
                             onPressed: () => Navigator.of(context).maybePop(),
-                            icon: const Icon(Icons.arrow_back),
                           ),
                           const Spacer(),
                           if (widget.onRegisterTaskToDeviceCalendar != null)
