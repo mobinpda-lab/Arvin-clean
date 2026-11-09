@@ -23,9 +23,12 @@ class ArvinPrimaryNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const primary = ArvinColors.primary;
+    final primary = Theme.of(context).colorScheme.primary;
     const background = ArvinColors.surface;
     const muted = ArvinColors.textSecondary;
+    final selectedSurface = Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFFD9F0EE)
+        : ArvinColors.primarySoft;
     const iconColors = <ArvinPrimaryDestination, Color>{
       ArvinPrimaryDestination.home: Color(0xFF0F766E),
       ArvinPrimaryDestination.calendar: Color(0xFF2A9D8F),
@@ -140,7 +143,7 @@ class _NavigationItem extends StatelessWidget {
           margin: const EdgeInsets.symmetric(horizontal: 3),
           padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
           decoration: BoxDecoration(
-            color: selected ? ArvinColors.primarySoft : Colors.transparent,
+            color: selected ? selectedSurface : Colors.transparent,
             borderRadius: BorderRadius.circular(18),
           ),
           child: Column(
