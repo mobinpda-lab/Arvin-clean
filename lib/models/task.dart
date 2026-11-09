@@ -637,6 +637,10 @@ class Task {
             title: 'یادآوری اقدام بعدی',
             isAllDay: rawFollowUp['nextFollowUpAllDay'] == true ||
                 _isDateOnlyStorageValue(rawNextFollowUp),
+          );
+        }
+      }
+    }
 
     final nextReminderSequence = [
       sequenceFromJson,
