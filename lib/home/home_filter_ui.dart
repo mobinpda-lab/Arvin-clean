@@ -16,6 +16,8 @@ class HomeFilterPill extends StatelessWidget {
     required this.active,
     required this.onPressed,
     this.selectedCount = 0,
+    this.showLabel = false,
+    this.iconWidget,
   });
 
   /// Accessibility-only name; the compact Home row shows icons, not labels.
@@ -26,6 +28,8 @@ class HomeFilterPill extends StatelessWidget {
   final bool active;
   final VoidCallback onPressed;
   final int selectedCount;
+  final bool showLabel;
+  final Widget? iconWidget;
 
   @override
   Widget build(BuildContext context) {
@@ -50,10 +54,39 @@ class HomeFilterPill extends StatelessWidget {
             child: Stack(
               alignment: Alignment.center,
               children: [
-                Icon(
-                  icon,
-                  size: 20,
-                  color: active ? accent : accent.withAlpha(205),
+                Center(
+                  child: showLabel
+                      ? Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            iconWidget ??
+                                Icon(
+                                  icon,
+                                  size: 18,
+                                  color: active ? accent : accent.withAlpha(205),
+                                ),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                label,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontFamily: 'Vazirmatn',
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: active ? accent : accent.withAlpha(205),
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      : iconWidget ??
+                          Icon(
+                            icon,
+                            size: 20,
+                            color: active ? accent : accent.withAlpha(205),
+                          ),
                 ),
                 if (selectedCount > 0)
                   Positioned(
@@ -267,6 +300,15 @@ class HomeFilterSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.sizeOf(context).height;
+    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+    final availableHeight = height - keyboardInset;
+    final requestedHeight = availableHeight * heightFactor;
+    final sheetHeight = requestedHeight < 220
+        ? (availableHeight < 220 ? availableHeight : 220.0)
+        : requestedHeight;
+    final minSheetHeight = expandToMaxHeight
+        ? sheetHeight
+        : (sheetHeight < 220 ? sheetHeight : 220.0);
     final colors = Theme.of(context).colorScheme;
     final brandAccent = colors.primary;
     return SafeArea(
@@ -274,8 +316,8 @@ class HomeFilterSheet extends StatelessWidget {
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxWidth: 520,
-          maxHeight: height * heightFactor,
-          minHeight: 220,
+          maxHeight: sheetHeight,
+          minHeight: minSheetHeight,
         ),
         child: Material(
           color: colors.surface,

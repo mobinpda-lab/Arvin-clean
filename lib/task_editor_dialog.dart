@@ -970,6 +970,15 @@ Future<void> _pickDueDateTime() async {
                                       ? _dateText(_dueDateTime!)
                                       : '${_dateText(_dueDateTime!)} • ${_timeText(_dueDateTime!)}'),
                               icon: Icons.schedule_rounded,
+                              iconWidget: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.calendar_month_outlined, size: 14),
+                                  SizedBox(width: 2),
+                                  Icon(Icons.access_time_rounded, size: 14),
+                                ],
+                              ),
+                              showLabel: true,
                               accent: Theme.of(context).colorScheme.primary,
                               soft: Color.alphaBlend(
                                 Theme.of(context).colorScheme.primary.withAlpha(18),
@@ -982,6 +991,7 @@ Future<void> _pickDueDateTime() async {
                           const SizedBox(width: 4),
                           Expanded(
                             child: ArvinRollBox<String>(
+                              showLabel: true,
                               key: const ValueKey('task-editor-center-rollbox'),
                               label: 'مرکز',
                               valueLabel: _selectedCenterLabel,
@@ -1155,6 +1165,7 @@ Future<void> _pickDueDateTime() async {
                           const SizedBox(width: 4),
                           Expanded(
                             child: ArvinTagRollBox(
+                              showLabel: true,
                               key: const ValueKey('task-editor-tag-rollbox'),
                               tags: _knownTags,
                               selectedTags: _tags,

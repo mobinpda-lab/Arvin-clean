@@ -17,6 +17,7 @@ class ArvinRollBox<T> extends StatelessWidget {
     this.createLabel = 'افزودن',
     this.createItemKey,
     this.compact = false,
+    this.showLabel = false,
   });
 
   final String label;
@@ -31,6 +32,7 @@ class ArvinRollBox<T> extends StatelessWidget {
   final String createLabel;
   final Key? createItemKey;
   final bool compact;
+  final bool showLabel;
 
   Future<void> _openSelector(BuildContext context) async {
     Object? currentValue;
@@ -128,6 +130,7 @@ class ArvinRollBox<T> extends StatelessWidget {
       accent: Theme.of(context).colorScheme.primary,
       soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
       active: selected,
+      showLabel: showLabel,
       onPressed: () => _openSelector(context),
     );
   }
@@ -156,6 +159,7 @@ class ArvinTagRollBox extends StatefulWidget {
     this.onCreate,
     this.onCreateWithName,
     this.compact = false,
+    this.showLabel = false,
   });
 
   final List<String> tags;
@@ -164,6 +168,7 @@ class ArvinTagRollBox extends StatefulWidget {
   final Future<String?> Function()? onCreate;
   final Future<String?> Function(String value)? onCreateWithName;
   final bool compact;
+  final bool showLabel;
 
   @override
   State<ArvinTagRollBox> createState() => _ArvinTagRollBoxState();
@@ -228,6 +233,7 @@ class _ArvinTagRollBoxState extends State<ArvinTagRollBox> {
       accent: Theme.of(context).colorScheme.primary,
       soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
       active: selected.isNotEmpty,
+      showLabel: widget.showLabel,
       onPressed: _openSelector,
     );
   }

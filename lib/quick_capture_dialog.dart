@@ -150,6 +150,7 @@ class _QuickCaptureDialogState extends State<QuickCaptureDialog> {
     task.description = '';
     task.dueDate = _dueDate;
     task.centerId = _centerId;
+    task.projectId = _projectId;
     task.allDay = _dueDate != null && _dueAllDay;
     task.taskReminders = _reminderDate == null
         ? <TaskReminder>[]
@@ -612,6 +613,15 @@ Future<DateTime?> _pickCustomDue() async {
                                   ? 'زمان کار / موعد'
                                   : _dateLabel(_dueDate, dateOnly: _dueAllDay),
                               icon: Icons.calendar_today_outlined,
+                              iconWidget: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.calendar_month_outlined, size: 14),
+                                  SizedBox(width: 2),
+                                  Icon(Icons.access_time_rounded, size: 14),
+                                ],
+                              ),
+                              showLabel: true,
                               accent: Theme.of(context).colorScheme.primary,
                               soft: Color.alphaBlend(
                                 Theme.of(context).colorScheme.primary.withAlpha(18),
@@ -637,6 +647,7 @@ Future<DateTime?> _pickCustomDue() async {
                               key: const ValueKey('quick-capture-center-rollbox'),
                               label: 'مرکز',
                               compact: true,
+                              showLabel: true,
                               valueLabel: selectedCenter.isEmpty ? 'مرکز' : selectedCenter.first.name,
                               icon: Icons.business_outlined,
                               color: Theme.of(context).colorScheme.primary,

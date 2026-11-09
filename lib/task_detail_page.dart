@@ -2151,25 +2151,32 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                     _metadataCard(),
                     const SizedBox(height: 10),
                     _card(
-                      child: _dueDateCard(),
-                    ),
-                    const SizedBox(height: 10),
-                    _card(
                       key: const ValueKey('task-detail-linear-actions'),
-                      child: KeyedSubtree(
-                        key: const ValueKey('task-detail-move-due-date-to-today'),
-                        child: _linearActionRow(
-                        key: const ValueKey('task-detail-my-day'),
-                        icon: Icons.today_outlined,
-                        title: 'انتقال موعد به امروز',
-                        value: dueToday
-                            ? 'موعد برای امروز تنظیم شده'
-                            : 'با انتخاب، موعد کار به امروز منتقل می‌شود',
-                        onTap: _isMovingDueDateToToday ? null : _moveDueDateToToday,
-                        trailing: dueToday
-                            ? Icon(Icons.check_circle, color: _brand)
-                            : const Icon(Icons.chevron_left, color: _muted),
-                        ),
+                      child: Row(
+                        textDirection: TextDirection.rtl,
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: _dueDateCard(),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            flex: 2,
+                            child: KeyedSubtree(
+                              key: const ValueKey('task-detail-move-due-date-to-today'),
+                              child: _linearActionRow(
+                                key: const ValueKey('task-detail-my-day'),
+                                icon: Icons.today_outlined,
+                                title: 'انتقال موعد',
+                                value: dueToday ? 'موعد امروز' : 'به امروز',
+                                onTap: _isMovingDueDateToToday ? null : _moveDueDateToToday,
+                                trailing: dueToday
+                                    ? Icon(Icons.check_circle, color: _brand)
+                                    : const Icon(Icons.chevron_left, color: _muted),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 10),
