@@ -633,16 +633,19 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('report-center-filters')));
     await tester.pumpAndSettle();
-    final todayPreset = find.text('امروز');
-    await _ensureReportFilterTargetVisible(tester, todayPreset);
-    await tester.tap(todayPreset);
-    await tester.pumpAndSettle();
-
+    // Select the report type while the top section is still in view; then
+    // scroll to the time section. Reversing this order disposes the top chip
+    // from the lazy list before it can be selected.
     final completedType = find.byKey(
       const ValueKey('report-filter-type-completed-follow-ups'),
     );
     await _ensureReportFilterTargetVisible(tester, completedType);
     await tester.tap(completedType);
+    await tester.pumpAndSettle();
+
+    final todayPreset = find.text('امروز');
+    await _ensureReportFilterTargetVisible(tester, todayPreset);
+    await tester.tap(todayPreset);
     await tester.pumpAndSettle();
 
     final apply = find.byKey(const ValueKey('report-filter-apply'));
@@ -670,7 +673,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('report-center-filters')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('report-home-filter-presets')));
+    final presets = find.byKey(const ValueKey('report-home-filter-presets'));
+    await tester.ensureVisible(presets);
+    await tester.tap(presets);
     await tester.pumpAndSettle();
     expect(find.text('پیش‌تنظیمات سریع زمان'), findsOneWidget);
     expect(find.text('این هفته'), findsOneWidget);
