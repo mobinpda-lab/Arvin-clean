@@ -1168,14 +1168,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 ],
               )
             else
-              Row(
+              Column(
                 key: ValueKey('task-detail-checklist-item-$index'),
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: Material(
-                      type: MaterialType.transparency,
-                      child: CheckboxListTile(
-                        value: items[index].startsWith('[x] '),
+                  Material(
+                    type: MaterialType.transparency,
+                    child: CheckboxListTile(
+                      value: items[index].startsWith('[x] '),
                       onChanged: _isSavingChecklist ||
                               (widget.onChecklistChanged == null && widget.onTaskChanged == null)
                           ? null
@@ -1183,36 +1183,43 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                       controlAffinity: ListTileControlAffinity.leading,
                       contentPadding: EdgeInsets.zero,
                       dense: true,
-                        title: Text(items[index].substring(4)),
-                      ),
+                      title: Text(items[index].substring(4)),
                     ),
                   ),
-                  if (widget.onTaskChanged != null) ...[
-                    IconButton(
-                      key: ValueKey('task-detail-checklist-up-$index'),
-                      tooltip: 'انتقال به بالا',
-                      onPressed: _isSavingChecklist || index == 0 ? null : () => _moveChecklistItem(index, -1),
-                      icon: const Icon(Icons.arrow_upward, size: 17),
+                  if (widget.onTaskChanged != null)
+                    Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: Wrap(
+                        spacing: 2,
+                        runSpacing: 0,
+                        children: [
+                          IconButton(
+                            key: ValueKey('task-detail-checklist-up-$index'),
+                            tooltip: 'انتقال به بالا',
+                            onPressed: _isSavingChecklist || index == 0 ? null : () => _moveChecklistItem(index, -1),
+                            icon: const Icon(Icons.arrow_upward, size: 17),
+                          ),
+                          IconButton(
+                            key: ValueKey('task-detail-checklist-down-$index'),
+                            tooltip: 'انتقال به پایین',
+                            onPressed: _isSavingChecklist || index == items.length - 1 ? null : () => _moveChecklistItem(index, 1),
+                            icon: const Icon(Icons.arrow_downward, size: 17),
+                          ),
+                          IconButton(
+                            key: ValueKey('task-detail-checklist-edit-$index'),
+                            tooltip: 'ویرایش مورد',
+                            onPressed: _isSavingChecklist ? null : () => _beginChecklistEdit(index, items[index]),
+                            icon: const Icon(Icons.edit_outlined, size: 18),
+                          ),
+                          IconButton(
+                            key: ValueKey('task-detail-checklist-delete-$index'),
+                            tooltip: 'حذف مورد',
+                            onPressed: _isSavingChecklist ? null : () => _deleteChecklistItem(index),
+                            icon: const Icon(Icons.delete_outline, size: 18),
+                          ),
+                        ],
+                      ),
                     ),
-                    IconButton(
-                      key: ValueKey('task-detail-checklist-down-$index'),
-                      tooltip: 'انتقال به پایین',
-                      onPressed: _isSavingChecklist || index == items.length - 1 ? null : () => _moveChecklistItem(index, 1),
-                      icon: const Icon(Icons.arrow_downward, size: 17),
-                    ),
-                    IconButton(
-                      key: ValueKey('task-detail-checklist-edit-$index'),
-                      tooltip: 'ویرایش مورد',
-                      onPressed: _isSavingChecklist ? null : () => _beginChecklistEdit(index, items[index]),
-                      icon: const Icon(Icons.edit_outlined, size: 18),
-                    ),
-                    IconButton(
-                      key: ValueKey('task-detail-checklist-delete-$index'),
-                      tooltip: 'حذف مورد',
-                      onPressed: _isSavingChecklist ? null : () => _deleteChecklistItem(index),
-                      icon: const Icon(Icons.delete_outline, size: 18),
-                    ),
-                  ],
                 ],
               ),
           const SizedBox(height: 8),
@@ -1814,47 +1821,21 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               constraints: const BoxConstraints(minHeight: 56),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-                child: compact
-                    ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Icon(icon, color: _brand, size: 22),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(icon, color: _brand, size: 22),
-                              const Spacer(),
-                              trailingWidget,
-                            ],
-                          ),
-                          const SizedBox(height: 3),
-                          Align(
-                            alignment: AlignmentDirectional.centerStart,
-                            child: Padding(
-                              padding: const EdgeInsetsDirectional.only(start: 34, end: 28),
-                              child: titleWidget,
-                            ),
-                          ),
-                          const SizedBox(height: 3),
-                          Padding(
-                            padding: const EdgeInsetsDirectional.only(start: 34, end: 28),
-                            child: valueWidget,
-                          ),
-                        ],
-                      )
-                    : Row(
-                        children: [
-                          Icon(icon, color: _brand, size: 22),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [titleWidget, const SizedBox(height: 2), valueWidget],
-                            ),
-                          ),
-                          trailingWidget,
-                        ],
+                        children: [titleWidget, const SizedBox(height: 2), valueWidget],
                       ),
+                    ),
+                    trailingWidget,
+                  ],
+                ),
               ),
             );
           },
