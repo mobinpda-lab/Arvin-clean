@@ -20,7 +20,15 @@ void main() {
       Task(
         id: id,
         title: id,
-        reminderDate: anchor ?? DateTime(2026, 10, 15),
+        taskReminders: [
+          TaskReminder(
+            id: 'recurrence-anchor',
+            title: 'یادآوری تکرار',
+            date: anchor ?? DateTime(2026, 10, 15),
+            sequence: 1,
+          ),
+        ],
+        nextReminderSequence: 2,
         recurrence: rule ?? const RecurrenceRule(frequency: RecurrenceFrequency.daily),
         completed: completed,
         allDay: allDay,
