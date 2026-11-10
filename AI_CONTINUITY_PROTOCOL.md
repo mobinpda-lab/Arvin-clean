@@ -145,3 +145,10 @@ The next agent must not start a new feature or unrelated cleanup before reconcil
 
 ---
 This protocol remains mandatory until Mobin changes it through an explicit, recorded instruction.
+
+
+## WAVE 4 REV8 execution authorization supersession — 2026-11-10
+
+Mobin's latest explicit command authorizes **AUDIT + IMPLEMENTATION + TESTING** for WAVE 4, including source code, schema, migrations, tests, requested audit reports and necessary workflow corrections. This supersedes the earlier checkpoint's read-only WAVE 4 status and its restriction on editing WAVE 4 deliverables.
+
+Scope remains limited to `fix/recovery-calendar-device-smoke-2026-10-31`. Main remains READ-ONLY; PR #3052 remains OPEN / DRAFT / UNMERGED. No force push, history rewrite, test deletion/skip/bypass/weakening, merge, release, or legacy data retirement without the exact proof gates. The latest owner command is the controlling authorization; do not ask for repetitive approval for in-scope technical fixes.
