@@ -323,6 +323,10 @@ class ArvinBackupManager {
   ) {
     final knownIds = people.map((person) => person.id).toSet();
     for (final task in tasks) {
+      // Historical Task relations remain valid even after the Person is
+      // removed from the active directory. The Task backup carries the
+      // stable identity and display label needed to restore that history.
+      knownIds.addAll(task.people.map((person) => person.id));
       for (final followUp in task.followUps) {
         for (final personId in followUp.personIds) {
           if (!knownIds.contains(personId)) {
