@@ -63,3 +63,7 @@ NIRA is a separate factory/control-plane repository. Arvin remains the product. 
 
 ## 9. Handoff contract
 Every handoff must include live Main SHA, branch/PR/head SHA, changed-file scope, exact checks, unresolved conflicts, release gate and one next action. Release remains BLOCKED — RELEASE: NO-GO until all REV9 gates and explicit owner approval are met.
+
+
+## 10. Agent adapter compatibility
+See [AI_ADAPTER_COMPATIBILITY.md](AI_ADAPTER_COMPATIBILITY.md) for the verified repository paths and the Windsurf Cascade compatibility assessment. Agent-specific files are thin pointers only; this policy remains the sole canonical AI instruction source.

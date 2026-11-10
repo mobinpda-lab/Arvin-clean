@@ -266,3 +266,6 @@ The latest owner authorization supersedes the earlier read-only Wave 4 checkpoin
 
 ## Current mission boundary
 The REV9 deployment branch is documentation-only. PR #3052 is untouched and remains open/draft/unmerged. No merge or release is authorized.
+
+
+- [AI adapter compatibility assessment](AI_ADAPTER_COMPATIBILITY.md) — agent-specific file paths and Windsurf support status.
