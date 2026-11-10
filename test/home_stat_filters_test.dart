@@ -26,7 +26,7 @@ void main() {
     await CenterStore.resetTestDatabase();
   });
 
-  testWidgets('Home exposes the five canonical filter controls', (tester) async {
+  testWidgets('Home exposes the four canonical REV5 filter controls', (tester) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -37,8 +37,7 @@ void main() {
     expect(find.byKey(const ValueKey('home-compact-filter-wrap')), findsOneWidget);
     for (final key in [
       'home-filter-card-time',
-      'home-filter-card-center',
-      'home-filter-card-project',
+      '      'home-filter-card-project',
       'home-filter-card-category',
       'home-filter-card-tags',
     ]) {
@@ -94,7 +93,7 @@ void main() {
     expect(find.text('کار بایگانی'), findsNothing);
   });
 
-  testWidgets('Home header omits notification bell and keeps general filter left of menu in RTL',
+  testWidgets('Home header keeps general filter left of menu in RTL',
       (tester) async {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
@@ -209,7 +208,8 @@ void main() {
     expect(find.byKey(const ValueKey('task-card-title-three')), findsOneWidget);
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
-    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-category')), matching: find.text('2')), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-category')), matching: find.text('2')), findsNothing);
+    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-category')), matching: find.text('دسته')), findsOneWidget);
     expect(find.text('اداری'), findsWidgets);
     expect(find.text('شخصی'), findsWidgets);
     expect(find.text('مالی'), findsNothing);
@@ -242,11 +242,12 @@ void main() {
     expect(find.text('اول'), findsOneWidget);
     expect(find.text('دوم'), findsOneWidget);
     expect(find.text('سوم'), findsNothing);
-    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-tags')), matching: find.text('2')), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-tags')), matching: find.text('2')), findsNothing);
+    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-tags')), matching: find.text('برچسب')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('time checkbox selections use OR and show the selected count', (tester) async {
+  testWidgets('time checkbox selections use OR without a numeric badge', (tester) async {
     final iranNow = IranClock.now();
     final now = DateTime(iranNow.year, iranNow.month, iranNow.day, 12);
     final yesterday = now.subtract(const Duration(days: 1));
@@ -265,7 +266,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
-    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-time')), matching: find.text('2')), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-time')), matching: find.text('2')), findsNothing);
+    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-time')), matching: find.text('زمان')), findsOneWidget);
     expect(find.text('کار گذشته'), findsOneWidget);
     expect(find.text('کار امروز'), findsOneWidget);
     expect(find.text('کار فردا'), findsNothing);
@@ -273,7 +275,7 @@ void main() {
   });
 
 
-  testWidgets('five icon filters fit 360, 390 and 412dp without overlap',
+  testWidgets('four REV5 icon filters fit 360, 390 and 412dp without overlap',
       (tester) async {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
