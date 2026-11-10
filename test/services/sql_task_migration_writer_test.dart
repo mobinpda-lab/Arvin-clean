@@ -177,6 +177,59 @@ void main() {
     expect(count.single['count'], 1);
   });
 
+  test('stores Recurrence rules in relational SQL rather than Task JSON', () async {
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setString('arvin.tasks', jsonEncode([
+      {
+        'id': 'recurrence-task',
+        'title': 'کار زمان‌بندی‌شده',
+        'recurrence': {
+          'frequency': 'weekly',
+          'interval': 2,
+          'startDate': '2026-10-01T08:00:00.000Z',
+          'endDate': '2026-12-01T08:00:00.000Z',
+          'count': 5,
+          'active': true,
+          'trackingLevel': 'tracking',
+        },
+      },
+    ]));
+
+    await const SqlTaskMigrationWriter().migrateFromPreferences(
+      executor: database,
+      preferences: preferences,
+    );
+
+    final rule = (await database.runSelect(
+      'SELECT frequency, interval, start_date, end_date, occurrence_count, active, tracking_level '
+      'FROM task_recurrence_rules WHERE task_id = ?',
+      const ['recurrence-task'],
+    )).single;
+    expect(rule['frequency'], 'weekly');
+    expect(rule['interval'], 2);
+    expect(rule['occurrence_count'], 5);
+    expect(rule['tracking_level'], 'tracking');
+
+    final taskRow = (await database.runSelect(
+      'SELECT recurrence_json, legacy_payload_json FROM tasks WHERE id = ?',
+      const ['recurrence-task'],
+    )).single;
+    expect(taskRow['recurrence_json'], isNull);
+    final envelope = jsonDecode(taskRow['legacy_payload_json'] as String) as Map<String, dynamic>;
+    expect(envelope.containsKey('recurrence'), isFalse);
+
+    final loaded = await TaskStore(executor: database).load();
+    expect(loaded.single.recurrence?.frequency.name, 'weekly');
+    expect(loaded.single.recurrence?.interval, 2);
+    expect(loaded.single.recurrence?.trackingLevel.name, 'tracking');
+    await TaskStore(executor: database).save(loaded);
+    final afterSave = await database.runSelect(
+      'SELECT task_id, frequency FROM task_recurrence_rules WHERE task_id = ?',
+      const ['recurrence-task'],
+    );
+    expect(afterSave.single['frequency'], 'weekly');
+  });
+
   test('migrates Occurrence history and per-Occurrence checklists into relational SQL', () async {
     const first = '2026-10-01T08:00:00.000Z';
     const second = '2026-10-02T08:00:00.000Z';
