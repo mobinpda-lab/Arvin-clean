@@ -13,6 +13,7 @@ import '../models/goal_project.dart';
 import 'project_plan_codec.dart';
 import 'g1_drift_schema.dart';
 import 'occurrence_sql_codec.dart';
+import 'recurrence_sql_codec.dart';
 import 'sql_task_migration_writer.dart';
 import 'task_storage_lock.dart';
 
@@ -634,17 +635,22 @@ class TaskStore {
       envelope['completedAt'] = completedAt;
     }
 
-    final recurrence = row['recurrence_json'];
-    // Backward compatibility: older canonical rows may not have the dedicated
-    // recurrence column populated, while their preserved legacy envelope still
-    // contains the valid canonical recurrence definition. Prefer the dedicated
-    // column when present; otherwise retain the existing envelope value.
-    if (recurrence is String && recurrence.trim().isNotEmpty) {
-      envelope['recurrence'] = jsonDecode(recurrence);
-    } else if (envelope['recurrence'] is Map) {
-      envelope['recurrence'] = Map<String, dynamic>.from(envelope['recurrence'] as Map);
+    final recurrenceRule = await RecurrenceSqlCodec.readTask(
+      executor,
+      row['id'] as String,
+    );
+    if (recurrenceRule != null) {
+      envelope['recurrence'] = recurrenceRule.toJson();
     } else {
-      envelope['recurrence'] = null;
+      // Read-only fallback for databases that predate the normalized rule table.
+      final recurrence = row['recurrence_json'];
+      if (recurrence is String && recurrence.trim().isNotEmpty) {
+        envelope['recurrence'] = jsonDecode(recurrence);
+      } else if (envelope['recurrence'] is Map) {
+        envelope['recurrence'] = Map<String, dynamic>.from(envelope['recurrence'] as Map);
+      } else {
+        envelope['recurrence'] = null;
+      }
     }
 
     final reminderRows = await executor.runSelect(
@@ -777,11 +783,15 @@ class TaskStore {
       // Read them before deleting the task rows; otherwise _canonicalEnvelope
       // cannot recover the previous envelope after the DELETE.
       final legacyPayloads = <String, Map<String, dynamic>>{};
+      final legacyRecurrencePayloads = <String, Object?>{};
       final existingTasks = await executor.runSelect(
-        'SELECT id, legacy_payload_json FROM tasks',
+        'SELECT id, legacy_payload_json, recurrence_json FROM tasks',
         const [],
       );
       for (final row in existingTasks) {
+        if (row['id'] is String && row['recurrence_json'] != null) {
+          legacyRecurrencePayloads[row['id'] as String] = row['recurrence_json'];
+        }
         final raw = row['legacy_payload_json'];
         if (row['id'] is String && raw is String && raw.trim().isNotEmpty) {
           final decoded = jsonDecode(raw);
@@ -798,6 +808,7 @@ class TaskStore {
       await executor.runCustom('DELETE FROM checklist_items');
       await executor.runCustom('DELETE FROM occurrence_checklist_items');
       await executor.runCustom('DELETE FROM task_occurrences');
+      await executor.runCustom('DELETE FROM task_recurrence_rules');
       await executor.runCustom('DELETE FROM task_reminders');
       await executor.runCustom('DELETE FROM follow_up_record_people');
       await executor.runCustom('DELETE FROM follow_up_records');
@@ -831,7 +842,7 @@ class TaskStore {
             task.completed ? 1 : 0,
             task.completedAt?.toIso8601String(),
             task.isFavorite ? 1 : 0,
-            task.recurrence == null ? null : jsonEncode(task.recurrence!.toJson()),
+            legacyRecurrencePayloads[task.id],
             jsonEncode(envelope),
           ],
         );
@@ -891,6 +902,7 @@ class TaskStore {
       }
     }
     final canonical = Map<String, dynamic>.from(task.toJson())
+      ..remove('recurrence')
       ..remove('occurrenceHistory')
       ..remove('checklistOccurrences');
     preserved.addAll(canonical);
@@ -997,6 +1009,7 @@ class TaskStore {
       );
     }
     await OccurrenceSqlCodec.writeTask(executor, task);
+    await RecurrenceSqlCodec.writeTask(executor, task);
   }
 
   static String _tagId(String value) =>
