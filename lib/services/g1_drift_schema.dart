@@ -126,7 +126,6 @@ class G1DriftSchema implements QueryExecutorUser {
       for (final statement in _statements) {
         await executor.runCustom(statement);
       }
-      await _rebuildTaskRemindersWithoutLegacyFlag(executor);
       final projectTemplateColumns = await executor.runSelect("PRAGMA table_info('project_templates')", const []);
       if (!projectTemplateColumns.any((row) => row['name'] == 'center_id')) {
         await executor.runCustom('ALTER TABLE project_templates ADD COLUMN center_id TEXT NULL');
@@ -221,7 +220,6 @@ class G1DriftSchema implements QueryExecutorUser {
           "ON CONFLICT(key) DO UPDATE SET value = '1'",
         );
       }
-      await _rebuildTaskTableWithoutLegacyScheduleColumns(executor);
       // Do not write PRAGMA user_version here. The canonical migration marker
       // is arvin_storage_meta, and this install path can be reached by more
       // than one SQLite connection (for example app + Android smoke tooling).
@@ -338,7 +336,6 @@ class G1DriftSchema implements QueryExecutorUser {
           <Object?>[row['task_id'], row['person_id'], row['ordinal']],
         );
       }
-      await executor.runCustom('DROP TABLE task_people');
     }
 
     final hasLegacyFollowUps = await _hasTable(executor, 'follow_ups');
@@ -568,130 +565,15 @@ class G1DriftSchema implements QueryExecutorUser {
     }
 
     if (hasLegacyFollowUpPeople) {
-      await executor.runCustom('DROP TABLE follow_up_people');
     }
     if (hasLegacyFollowUps) {
-      await executor.runCustom('DROP TABLE follow_ups');
     }
     if (hasPeople) {
-      await executor.runCustom('DROP TABLE people');
     }
   }
 
   /// Removes the temporary per-reminder legacy marker while preserving
   /// every canonical reminder row and its stable ID.
-  static Future<void> _rebuildTaskRemindersWithoutLegacyFlag(
-    QueryExecutor executor,
-  ) async {
-    final columns = await executor.runSelect(
-      "PRAGMA table_info('task_reminders')",
-      const [],
-    );
-    if (!columns.any((row) => row['name'] == 'is_legacy_task_reminder')) return;
-
-    await executor.runCustom('DROP TABLE IF EXISTS task_reminders_canonical_v16');
-    await executor.runCustom('''
-      CREATE TABLE task_reminders_canonical_v16 (
-        id TEXT NOT NULL PRIMARY KEY,
-        task_id TEXT NOT NULL REFERENCES tasks(id),
-        title TEXT NOT NULL,
-        remind_at TEXT NOT NULL,
-        is_all_day INTEGER NOT NULL DEFAULT 0,
-        sequence INTEGER NOT NULL,
-        is_enabled INTEGER NOT NULL DEFAULT 1,
-        UNIQUE (task_id, sequence)
-      )
-    ''');
-    await executor.runCustom('''
-      INSERT INTO task_reminders_canonical_v16
-        (id, task_id, title, remind_at, is_all_day, sequence, is_enabled)
-      SELECT id, task_id, title, remind_at, is_all_day, sequence, is_enabled
-      FROM task_reminders
-    ''');
-    await executor.runCustom('DROP TABLE task_reminders');
-    await executor.runCustom(
-      'ALTER TABLE task_reminders_canonical_v16 RENAME TO task_reminders',
-    );
-  }
-
-  static Future<void> _rebuildTaskTableWithoutLegacyScheduleColumns(
-    QueryExecutor executor,
-  ) async {
-    final columns = await executor.runSelect("PRAGMA table_info('tasks')", const []);
-    const retired = {'follow_up_enabled', 'follow_up_date', 'reminder_date'};
-    if (!columns.any((row) => retired.contains(row['name']))) return;
-
-    final available = columns
-        .map((row) => row['name'])
-        .whereType<String>()
-        .toSet();
-    if (!available.contains('id') || !available.contains('title')) {
-      throw StateError(
-        'Cannot migrate legacy tasks table without required id and title columns.',
-      );
-    }
-    String source(String name, String fallback) =>
-        available.contains(name) ? '"$name"' : fallback;
-
-    // Older releases created materially different task tables. Build the
-    // canonical row from columns that actually exist instead of assuming
-    // created_at / storage_ordinal / completed_at were present in every
-    // historical schema. Missing optional values remain nullable or use the
-    // canonical model defaults; retired scheduling columns are never copied.
-    final projection = <String>[
-      source('id', "''"),
-      source('storage_ordinal', '0'),
-      source('title', "''"),
-      source('description', "''"),
-      source('created_at', 'NULL'),
-      source('updated_at', 'NULL'),
-      source('due_date', 'NULL'),
-      source('category', 'NULL'),
-      source('notebook_kind', 'NULL'),
-      source('priority', "'medium'"),
-      source('archived', '0'),
-      source('trashed', '0'),
-      source('completed', '0'),
-      source('completed_at', 'NULL'),
-      source('is_favorite', '0'),
-      source('recurrence_json', 'NULL'),
-      source('legacy_payload_json', 'NULL'),
-    ];
-
-    await executor.runCustom('DROP TABLE IF EXISTS tasks_canonical_v16');
-    await executor.runCustom('''
-      CREATE TABLE tasks_canonical_v16 (
-        id TEXT NOT NULL PRIMARY KEY,
-        storage_ordinal INTEGER NOT NULL DEFAULT 0,
-        title TEXT NOT NULL,
-        description TEXT NOT NULL,
-        created_at TEXT NULL,
-        updated_at TEXT NULL,
-        due_date TEXT NULL,
-        category TEXT NULL,
-        notebook_kind TEXT NULL,
-        priority TEXT NOT NULL,
-        archived INTEGER NOT NULL,
-        trashed INTEGER NOT NULL,
-        completed INTEGER NOT NULL,
-        completed_at TEXT NULL,
-        is_favorite INTEGER NOT NULL DEFAULT 0,
-        recurrence_json TEXT NULL,
-        legacy_payload_json TEXT NULL
-      )
-    ''');
-    await executor.runCustom('''
-      INSERT INTO tasks_canonical_v16 (
-        id, storage_ordinal, title, description, created_at, updated_at, due_date,
-        category, notebook_kind, priority, archived, trashed, completed,
-        completed_at, is_favorite, recurrence_json, legacy_payload_json
-      )
-      SELECT ${projection.join(', ')} FROM tasks
-    ''');
-    await executor.runCustom('DROP TABLE tasks');
-    await executor.runCustom('ALTER TABLE tasks_canonical_v16 RENAME TO tasks');
-  }
-
   static String _dateOnlyStorageValue(DateTime value) =>
       '${value.year.toString().padLeft(4, '0')}-${value.month.toString().padLeft(2, '0')}-${value.day.toString().padLeft(2, '0')}';
 
