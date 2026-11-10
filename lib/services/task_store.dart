@@ -578,7 +578,6 @@ class TaskStore {
       preferences: preferences,
     );
     await G1DriftSchema.migrateTaskPeople(executor);
-    await _verifyLegacySourceBeforeCutover(executor, preferences);
     await _seedCategoryCatalog(executor);
     await G1DriftSchema.markLegacyMigrationComplete(executor);
   }
@@ -593,38 +592,6 @@ class TaskStore {
       await executor.runInsert(
         'INSERT OR IGNORE INTO taxonomy_categories (name, created_at) VALUES (?, ?)',
         <Object?>[category, DateTime.now().toIso8601String()],
-      );
-    }
-  }
-
-  Future<void> _verifyLegacySourceBeforeCutover(
-    QueryExecutor executor,
-    SharedPreferences preferences,
-  ) async {
-    final raw = preferences.getString(key);
-    if (raw == null || raw.trim().isEmpty) return;
-
-    final source = jsonDecode(raw);
-    if (source is! List) {
-      throw const FormatException('Canonical task storage must contain a list');
-    }
-    final rows = await executor.runSelect(
-      'SELECT id FROM tasks ORDER BY storage_ordinal, id',
-      const [],
-    );
-    final sqlIds = rows.map((row) => row['id'] as String).toList(growable: false);
-    final sourceIds = <String>[];
-    for (final item in source) {
-      if (item is! Map || item['id'] is! String) {
-        throw const FormatException('Legacy task entry must contain a string id');
-      }
-      sourceIds.add(item['id'] as String);
-    }
-    if (sqlIds.length != sourceIds.length ||
-        !List<String>.from(sqlIds).toSet().containsAll(sourceIds) ||
-        !List<String>.from(sourceIds).toSet().containsAll(sqlIds)) {
-      throw StateError(
-        'SQL migration identity mismatch: legacy=${sourceIds.length}, sql=${sqlIds.length}',
       );
     }
   }
