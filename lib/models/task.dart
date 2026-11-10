@@ -322,7 +322,7 @@ class Task {
         if (raw is Map) records.add(Map<String, dynamic>.from(raw));
       }
     }
-    for (final followUp in this.followUps) {
+    for (final followUp in followUps) {
       final nextFollowUp = followUp._legacyNextFollowUp;
       if (nextFollowUp == null) continue;
       final record = <String, dynamic>{
