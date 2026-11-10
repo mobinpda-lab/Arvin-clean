@@ -99,6 +99,17 @@ void main() {
     expect(count.single['count'], 1);
   });
 
+  test('same Project ID with different content is a conflict, not a skip', () async {
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setString('arvin.projects','[{"id":"project-conflict","title":"نسخه منبع","itemIds":[]}]');
+    final writer=const SqlProjectMigrationWriter();
+    await writer.migrateFromPreferences(executor:database,preferences:preferences);
+    await database.runUpdate('UPDATE projects SET name=? WHERE id=?',const ['نسخه مقصد','project-conflict']);
+    await expectLater(writer.migrateFromPreferences(executor:database,preferences:preferences),throwsA(isA<StateError>()));
+    final row=(await database.runSelect('SELECT name FROM projects WHERE id=?',const ['project-conflict'])).single;
+    expect(row['name'],'نسخه مقصد');
+  });
+
   test('rolls back project and membership rows when a referenced Task is missing',
       () async {
     final preferences = await SharedPreferences.getInstance();
