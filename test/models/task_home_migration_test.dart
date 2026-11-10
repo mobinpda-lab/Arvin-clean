@@ -4,17 +4,21 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   test('does not project a legacy Home follow-up date without a real record', () {
     final date = DateTime(2026, 8, 25, 9);
-    final task = Task(
-      id: 'legacy-date',
-      title: 'پیگیری',
-      followUpEnabled: true,
-      followUpDate: date,
-    );
+    final task = Task.fromLegacyJson({
+      'id': 'legacy-date',
+      'title': 'پیگیری',
+      'followUpEnabled': true,
+      'followUpDate': date.toIso8601String(),
+    });
 
     expect(task.legacyHomeFollowUpDate, isNull);
     expect(task.lastFollowUp, isNull);
-    expect(task.followUpDate, date);
-    expect(task.followUpEnabled, isTrue);
+    expect(task.followUpDate, isNull);
+    expect(task.followUpEnabled, isFalse);
+    expect(task.legacyFollowUpMetadata['taskLevel'], {
+      'followUpEnabled': true,
+      'followUpDate': date.toIso8601String(),
+    });
   });
 
   test('uses the latest follow-up for the Home view when history exists', () {
