@@ -177,6 +177,17 @@ void main() {
     expect(count.single['count'], 1);
   });
 
+  test('same ID with different content is a conflict and never skipped', () async {
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setString('arvin.tasks','[{"id":"conflict-task","title":"نسخه منبع","futureField":{"version":1}}]');
+    final writer=const SqlTaskMigrationWriter();
+    await writer.migrateFromPreferences(executor:database,preferences:preferences);
+    await database.runUpdate('UPDATE tasks SET title=? WHERE id=?',const ['نسخه مقصد متفاوت','conflict-task']);
+    await expectLater(writer.migrateFromPreferences(executor:database,preferences:preferences),throwsA(isA<StateError>()));
+    final row=(await database.runSelect('SELECT title FROM tasks WHERE id=?',const ['conflict-task'])).single;
+    expect(row['title'],'نسخه مقصد متفاوت');
+  });
+
   test('transaction rolls back all rows when one relation violates SQL constraints',
       () async {
     final raw = jsonEncode([
