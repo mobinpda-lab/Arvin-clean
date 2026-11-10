@@ -1,3 +1,15 @@
+## Post-audit documentation tree refresh — 2026-11-10
+
+At working SHA `a934cabebc814aea13c1800ab151821d12714226`, recursive tree is complete (953 entries; not truncated):
+- docs/: 271 files, including 266 Markdown.
+- docs/project-continuity/: 45 files.
+- Whole repository Markdown: 285 files.
+- Main docs/: 209 files, including 204 Markdown.
+- Prior count of 259 working docs and 33 continuity files is the pre-a934 snapshot.
+- All 12 REV8 audit deliverables exist and are indexed from canonical README. No historical doc was deleted.
+
+---
+
 # Arvin Documentation Reconciliation — REV8
 
 **Snapshot:** 2026-11-10  

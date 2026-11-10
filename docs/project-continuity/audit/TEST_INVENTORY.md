@@ -1,3 +1,13 @@
+## Current exact-head test refresh — 2026-11-10
+
+Exact SHA: `a934cabebc814aea13c1800ab151821d12714226`; Build `42801502260`.
+- Inventory: 302 Dart test files (293 under test/, 9 under integration_test/).
+- Shards: 0=299 passed/25 failed; 1=194/6; 2=184/10; 3=148/12; 4=231/14; 5=240/11.
+- Total: 1,296 passed / 78 failed executions. All 78 labels remain ACTIVE_FAILING pending assertion-to-contract review.
+- Do not mark tests obsolete or contract-mismatched without comparing the assertion, owner decision and implementation on a934. No test was deleted, skipped, bypassed or weakened.
+
+---
+
 # Arvin Test Inventory & Governance — REV8
 
 **Exact Arvin SHA:** `9846f10850031c63964fdc81ae0ab1cdb3028517`

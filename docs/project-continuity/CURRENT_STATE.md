@@ -1,3 +1,16 @@
+## REV8 post-audit exact-head refresh — 2026-11-10 11:10 UTC
+
+- Main: `45e4202b03a434459e4c021a04efa7e8396359db`; protected=true.
+- Working branch / PR #3052 HEAD: `a934cabebc814aea13c1800ab151821d12714226`; parent `9846f10850031c63964fdc81ae0ab1cdb3028517`.
+- PR #3052: OPEN / DRAFT / UNMERGED; 2,131 ahead / 0 behind; 380 changed files; 0 reviews.
+- Build `42801502260`: FAILURE; six shards 1,296 passed / 78 failed. Shards: 0=299/25, 1=194/6, 2=184/10, 3=148/12, 4=231/14, 5=240/11.
+- Device Smoke `42801502310`: PENDING. Calendar Provider `42801502275`: SUCCESS. Follow-up Persistence `42801502256`: SUCCESS. Draft Review APK `42801502270`: SUCCESS.
+- Tree: 953 entries; 302 Dart test files (293 test/, 9 integration_test/); 25 workflows; docs/ 271 files (266 Markdown); project-continuity 45 files.
+- NIRA Main: `7a27ee63b65d343e45c5786f782f2567611722dc`; latest Queue Scheduler `42803607805` FAILED while reporting to issue #162 (HTTP 403; >2,500 comments). L10 remains UNVERIFIED.
+- Earlier 9846-based snapshots below are historical. Release: BLOCKED — RELEASE: NO-GO.
+
+---
+
 ## REV8 live checkpoint — 2026-11-10
 
 Repository: mobinpda-lab/Arvin-clean

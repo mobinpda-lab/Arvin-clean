@@ -1,3 +1,16 @@
+## REV8 current snapshot refresh — 2026-11-10
+
+Active branch: `fix/recovery-calendar-device-smoke-2026-10-31`  
+Current branch / PR #3052 HEAD: `a934cabebc814aea13c1800ab151821d12714226`  
+Main HEAD: `45e4202b03a434459e4c021a04efa7e8396359db`  
+PR #3052: OPEN / DRAFT / UNMERGED · 2,131 ahead · 380 changed files  
+Current Build: FAILURE · 1,296 passed / 78 failed · Device Smoke PENDING  
+Release: BLOCKED — RELEASE: NO-GO
+
+The REV8 audit index below remains canonical. Earlier 9846-based snapshots are historical.
+
+---
+
 # Arvin Project Continuity — REV8
 Last reviewed: 2026-11-10 (REV8 live GitHub audit)
 Repository: mobinpda-lab/Arvin-clean

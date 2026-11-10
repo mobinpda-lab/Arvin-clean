@@ -1,3 +1,15 @@
+## Post-audit conflicts — 2026-11-10
+
+| ID | Conflict | Current evidence | Status |
+|---|---|---|---|
+| CR-022 | Audit snapshot vs live branch HEAD | Earlier snapshot 9846; live branch/PR now a934, parent 9846 | RESOLVED by refresh; retain 9846 historically |
+| CR-023 | SHA-scoped Build failures | 79 on b789; 78 on 9846; current a934 Build 42801502260 also 78 | SHA-scoped; do not transfer results |
+| CR-024 | PR changed-file count | 368 pre-a934; current PR API reports 380 | Current count reconciled; old count historical |
+| CR-025 | Device Smoke | Run 42801502310 on a934 is PENDING | OPEN; no device acceptance |
+| CR-026 | NIRA scheduler | Latest run 42803607805 fails posting to issue #162 (>2,500 comments) | BLOCKED; dispatch root cause not proven |
+
+---
+
 # Arvin Conflict Register — REV8
 
 **Authority:** latest explicit Mobin decision; current REV8 execution order.  

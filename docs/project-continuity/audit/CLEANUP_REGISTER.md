@@ -1,3 +1,9 @@
+## Post-audit safety refresh — 2026-11-10
+
+Live branch head is a934. Duplicate branch-head, repeated PR-head, repeated commit-subject/tree groups and 99 stale-open-PR candidates remain review candidates only. No branch/PR/commit/tag/release/workflow/test/migration/table/data deletion, history rewrite, merge, or ruleset change is authorized or performed. Main is protected and READ-ONLY; working branch is unprotected.
+
+---
+
 # Arvin Cleanup Register — REV8
 
 **Policy:** identify first; preserve history; do not delete without explicit Mobin approval.

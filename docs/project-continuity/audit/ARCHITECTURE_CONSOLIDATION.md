@@ -1,3 +1,9 @@
+## Post-audit source-tree note — 2026-11-10
+
+Current HEAD `a934cabebc814aea13c1800ab151821d12714226` is a documentation-only commit whose parent is `9846f10850031c63964fdc81ae0ab1cdb3028517`. Source, tests, workflows, schema and migration trees were not changed by a934; code observations below, inspected at 9846, remain the same source-tree snapshot. Current verification is updated in CI_HISTORY_AUDIT.md and TEST_INVENTORY.md. No technical remediation is claimed.
+
+---
+
 # Arvin Codebase & Architecture Consolidation — REV8
 
 **Inspected SHA:** `9846f10850031c63964fdc81ae0ab1cdb3028517`

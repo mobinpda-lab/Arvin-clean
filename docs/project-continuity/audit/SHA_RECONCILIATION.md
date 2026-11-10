@@ -1,3 +1,20 @@
+## Post-audit exact SHA refresh — 2026-11-10
+
+| Role | SHA / evidence | Status |
+|---|---|---|
+| Main HEAD / PR base | `45e4202b03a434459e4c021a04efa7e8396359db` | Current; protected |
+| Working HEAD / PR #3052 head | `a934cabebc814aea13c1800ab151821d12714226` | Current; unprotected |
+| a934 parent | `9846f10850031c63964fdc81ae0ab1cdb3028517` | Historical parent |
+| Build | `42801502260` on a934 | FAILURE; 1,296 passed / 78 failed |
+| Device Smoke | `42801502310` on a934 | PENDING |
+| Calendar Provider | `42801502275` on a934 | SUCCESS |
+| Follow-up Persistence | `42801502256` on a934 | SUCCESS |
+| Draft Review APK | `42801502270` on a934 | SUCCESS |
+
+No result from SHA 9846 or b789 is transferred to a934. The a934 commit is documentation-only; source tree is unchanged from its parent.
+
+---
+
 # Arvin SHA Reconciliation — REV8
 
 **Snapshot:** 2026-11-10

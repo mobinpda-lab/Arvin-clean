@@ -1,3 +1,24 @@
+## Current exact-head CI refresh — 2026-11-10
+
+All Arvin runs below target `a934cabebc814aea13c1800ab151821d12714226`.
+
+| Workflow | Run ID | Result |
+|---|---:|---|
+| Arvin Build | 42801502260 | FAILURE — 6 shards, 1,296 passed / 78 failed |
+| Device Smoke | 42801502310 | PENDING |
+| Calendar Provider Acceptance | 42801502275 | SUCCESS |
+| Follow-up File Persistence | 42801502256 | SUCCESS |
+| Draft Review APK | 42801502270 | SUCCESS |
+| G1 lock sync | 42801502295 | SUCCESS |
+| Orchestrator PR Wakeup | 42801502306 | SUCCESS |
+| Production Loop | 42801502548 | SUCCESS |
+| Parallel Wave | 42801502735 | SUCCESS |
+| Orchestrator | 42801502768 | SUCCESS |
+
+Shard pass/fail: 0=299/25, 1=194/6, 2=184/10, 3=148/12, 4=231/14, 5=240/11. Device Smoke job list was empty while pending; no device acceptance is inferred.
+
+---
+
 # Arvin CI History Audit — REV8
 
 **Current exact SHA:** `9846f10850031c63964fdc81ae0ab1cdb3028517`

@@ -1,3 +1,25 @@
+## REV8 post-audit current snapshot — 2026-11-10 11:10 UTC
+
+**Working/PR SHA:** `a934cabebc814aea13c1800ab151821d12714226`  
+**Main SHA:** `45e4202b03a434459e4c021a04efa7e8396359db`  
+**Release:** BLOCKED — RELEASE: NO-GO.
+
+### Current verified counts
+- Arvin branches: 1,412; Main protected=true; working branch protected=false.
+- PRs: 100 open, 1,138 closed. PR #3052 OPEN / DRAFT / UNMERGED; 2,131 ahead / 0 behind; 380 changed files; 0 reviews.
+- Main history: 1,812 commits; authorized branch ahead: 2,131 commits.
+- Tests: 302 Dart files (293 test/, 9 integration_test/); workflows: 25 working branch / 23 Main.
+- docs/: 271 files / 266 Markdown; project-continuity: 45 files; Main docs/: 209 files / 204 Markdown.
+- Current Build 42801502260 on a934: 1,296 passed / 78 failed across six shards. Device Smoke 42801502310 PENDING. Calendar Provider 42801502275 SUCCESS; Follow-up Persistence 42801502256 SUCCESS.
+- NIRA: 112 branches; 7 open / 381 closed PRs; 132 Main commits; 26 workflows; 23 factory tests; 30,007 runs. Latest 100: 53 success / 11 failure / 27 cancelled / 9 skipped. Queue Scheduler 42803607805 FAILED on issue #162 comment-limit reporting path; L10 UNVERIFIED.
+
+### Limitations
+a934 is documentation-only; the prior 9846 code tree is unchanged, but current CI is the a934 evidence above. The 78 failures are not automatically obsolete or contract-mismatched. Per-branch last-commit dates are unavailable, so 1,312 branches without open PRs cannot safely be called stale. Full semantic review of every PR-ahead commit, individual CI/reviews for all PRs, physical-device acceptance, real DB backup/restore and NIRA L10 E2E remain incomplete.
+
+No executable source, tests, schema, migrations, workflows, branches, PR state, tags, releases, Main, user data or rulesets were modified. No destructive action occurred.
+
+---
+
 # Arvin Final Repository Health Report — REV8
 
 **Snapshot:** 2026-11-10  

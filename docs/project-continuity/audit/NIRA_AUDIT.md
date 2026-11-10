@@ -1,3 +1,15 @@
+## NIRA live run refresh — 2026-11-10 11:00 UTC
+
+- Main: `7a27ee63b65d343e45c5786f782f2567611722dc`.
+- Inventory recheck: 112 branches, 7 open PRs, 381 closed PRs, 132 Main commits, 26 workflows, 23 factory tests, 30,007 workflow runs.
+- Latest 100 runs: 53 success, 11 failure, 27 cancelled, 9 skipped.
+- Latest Queue Scheduler `42803607805` on Main completed FAILURE. Job `schedule` failed at “Prioritize capacity and dispatch canonical leases”. Log reports AI capacity 0/1 and provider pressure 7, then failure reporting to issue #162 returned HTTP 403 because comments are disabled after 2,500. Terminal error is proven; underlying dispatch cause is not.
+- Earlier Failure Feedback and Production Orchestrator successes do not establish L10/E2E acceptance.
+- PR #797 remains OPEN / READY on `nira/state-sync`, head `98f2c4c200cab4ea450deef884e1986ce5480602`. State-sync PR churn remains unresolved.
+- L10 and registered-client E2E remain UNVERIFIED. NIRA and Arvin remain separate repositories.
+
+---
+
 # NIRA Repository Audit — REV8
 
 **Repository:** `mobinpda-lab/NIRA`  

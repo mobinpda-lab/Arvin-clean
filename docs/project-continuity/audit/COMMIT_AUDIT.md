@@ -1,3 +1,12 @@
+## Post-audit exact-head refresh — 2026-11-10
+
+- Current branch HEAD: `a934cabebc814aea13c1800ab151821d12714226`; parent: `9846f10850031c63964fdc81ae0ab1cdb3028517`.
+- Commit: `docs(audit): reconcile repository history and project governance REV8`; documentation-only, 20 paths under docs/project-continuity/.
+- Main history: 1,812 commits. Compare Main...authorized branch: 2,131 ahead / 0 behind. Reachable total by compare semantics: 3,943.
+- Earlier 2,130-ahead count is the pre-a934 snapshot. Patch-level semantic review of every PR-ahead commit is not complete; repeated subjects/tree SHAs remain candidates, not proof of duplicates.
+
+---
+
 # Arvin Commit Audit — REV8
 
 **Snapshot:** 2026-11-10  
