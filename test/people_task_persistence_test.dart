@@ -1,4 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
+
+import 'package:drift/native.dart';
 
 import 'package:arvin/backup_manager.dart';
 import 'package:arvin/backup_service.dart';
@@ -161,6 +164,53 @@ void main() {
     ]);
     expect(loaded.single.taskReminders.last.isAllDay, isTrue);
     expect(loaded.single.nextReminderSequence, 3);
+  });
+
+
+  test('Task and Person links survive database close and reopen with valid foreign keys', () async {
+    final directory = await Directory.systemTemp.createTemp('arvin-task-people-reopen-');
+    final file = File('${directory.path}/arvin.sqlite');
+    var database = NativeDatabase(file);
+    try {
+      final store = TaskStore(executor: database);
+      final person = _person('person-restart', 'همکار پایدار');
+      await store.save([
+        Task(
+          id: 'task-restart',
+          title: 'رابطه پایدار پس از بازگشایی',
+          people: [person],
+        ),
+      ]);
+      expect(
+        (await store.loadPeopleDirectory()).map((value) => value.id),
+        ['person-restart'],
+      );
+
+      await database.close();
+      database = NativeDatabase(file);
+      final reopenedStore = TaskStore(executor: database);
+      final restoredTask = (await reopenedStore.load()).single;
+      expect(restoredTask.id, 'task-restart');
+      expect(restoredTask.people.single.id, 'person-restart');
+      expect(restoredTask.people.single.displayName, 'همکار پایدار');
+      expect(
+        (await reopenedStore.loadPeopleDirectory()).map((value) => value.id),
+        ['person-restart'],
+      );
+      expect(
+        await database.runSelect('PRAGMA foreign_key_check', const []),
+        isEmpty,
+      );
+      final relation = await database.runSelect(
+        'SELECT task_id, person_id FROM task_persons WHERE task_id = ?',
+        const ['task-restart'],
+      );
+      expect(relation, hasLength(1));
+      expect(relation.single['person_id'], 'person-restart');
+    } finally {
+      await database.close();
+      await directory.delete(recursive: true);
+    }
   });
 
   test('deleting a directory Person preserves historical Task and Follow-up references without resurrection', () async {

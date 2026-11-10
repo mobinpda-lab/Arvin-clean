@@ -1086,4 +1086,52 @@ void main() {
     }
   });
 
+
+  test('restoring the same People backup repeatedly does not duplicate identities or links', () async {
+    await TaskStore.resetTestDatabase();
+    try {
+      final sourceStore = TaskStore();
+      final person = PersonReference(
+        id: 'person-repeat-restore',
+        displayName: 'شخص پایدار',
+      );
+      await sourceStore.save([
+        Task(
+          id: 'task-repeat-restore',
+          title: 'بازیابی چندباره',
+          people: [person],
+        ),
+      ]);
+      final service = _FakeBackupService();
+      final manager = ArvinBackupManager(service: service);
+      await manager.backupCanonicalTasks(
+        await sourceStore.load(),
+        people: await sourceStore.loadPeopleDirectory(),
+      );
+      service.restoreDocument = service.writtenPayload;
+
+      for (var attempt = 0; attempt < 2; attempt++) {
+        await TaskStore.resetTestDatabase();
+        final candidate = await manager.restoreCanonicalBackup();
+        expect(candidate, isNotNull);
+        expect(candidate!.hasPeople, isTrue);
+
+        final restoredStore = TaskStore();
+        await restoredStore.save(candidate.tasks);
+        await restoredStore.savePeopleDirectory(candidate.people!);
+
+        final tasks = await restoredStore.load();
+        expect(tasks, hasLength(1));
+        expect(tasks.single.people.map((value) => value.id), ['person-repeat-restore']);
+        final directoryPeople = await restoredStore.loadPeopleDirectory();
+        expect(directoryPeople, hasLength(1));
+        expect(directoryPeople.single.id, 'person-repeat-restore');
+        expect(directoryPeople.single.displayName, 'شخص پایدار');
+      }
+    } finally {
+      await TaskStore.resetTestDatabase();
+    }
+  });
+
+
 }
