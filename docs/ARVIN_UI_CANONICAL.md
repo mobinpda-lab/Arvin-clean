@@ -140,7 +140,7 @@ Recovery Wave #848 additionally requires create/edit behavior to support title-o
 
 ## Navigation Contract
 
-Current verified shared implementation uses `خانه | تقویم | دفترچه | اقدام بعدی | بیشتر` through `ArvinPrimaryNavigation`.
+Current verified shared implementation uses `خانه | تقویم | دفترچه | گزارش‌ها | بیشتر` through `ArvinPrimaryNavigation`. `اقدام بعدی` remains an auxiliary route in the Calendar launcher, not a sixth or primary navigation destination.
 
 The 2026-09-12 owner decision specifically makes `بیشتر` the home of the work-list filters/categories formerly shown as `کارهای من` on Home. It does not, by itself, change the five primary destinations above.
 
