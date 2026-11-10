@@ -80,7 +80,7 @@ void main() {
 
     expect(saved['note'], 'تماس با مشتری');
     expect(saved['result'], 'پاسخ دریافت شد');
-    expect(DateTime.tryParse(saved['dateTime'] as String), isNotNull);
+    expect(DateTime.tryParse(saved['completedAt'] as String), isNotNull);
     expect(find.text('تماس با مشتری'), findsOneWidget);
   });
 
