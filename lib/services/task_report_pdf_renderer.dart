@@ -194,6 +194,10 @@ class TaskReportPdfRenderer {
         pw.SizedBox(height: 4),
         pw.Text(entry.description),
       ],
+      if (entry.dueDate != null)
+        pw.Text(
+          'موعد: ${entry.allDay ? formatDay(entry.dueDate!) : formatDateTime(entry.dueDate!)}',
+        ),
       pw.SizedBox(height: 6),
       ...leadingRows,
       pw.Text('وضعیت: ${entry.completed ? 'انجام‌شده' : 'باز'}'),
