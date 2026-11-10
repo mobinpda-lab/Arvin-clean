@@ -36,7 +36,11 @@ void main() {
     await tester.pumpAndSettle();
 
     final add = find.byKey(const ValueKey('task-detail-add-followup'));
-    await tester.ensureVisible(add);
+    await tester.scrollUntilVisible(
+      add,
+      240,
+      scrollable: find.byKey(const ValueKey('task-detail-content-list')),
+    );
     await tester.tap(add);
     await tester.pumpAndSettle();
 
