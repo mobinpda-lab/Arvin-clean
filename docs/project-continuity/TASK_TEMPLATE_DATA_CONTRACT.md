@@ -93,3 +93,17 @@ newDateTime = newBaseDateTime + offset
 این سند در این مرحله فقط قرارداد محصول و Gap Analysis را ثبت می‌کند. هیچ فایل کد، تست، اسکیما یا migration در این تغییر مستنداتی اصلاح نمی‌شود. هیچ تستی حذف، Skip، تضعیف یا دور زده نمی‌شود.
 
 PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ `main` دست‌نخورده؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## 10. WAVE 4 REV8 relational ownership addendum
+
+The approved SQL-only architecture requires Recurrence, Occurrence and each Occurrence checklist to have independent relational ownership.
+
+Current implementation adds:
+- `task_recurrence_rules`: one normalized recurrence rule per owning Task, with frequency, interval, start/end, count, active and tracking-level fields.
+- `task_occurrences`: stable occurrence identity, Task FK, scheduled timestamp, status, completion timestamp, result and ordinal.
+- `occurrence_checklist_items`: per-occurrence checklist rows with independent order and state.
+
+TaskStore reads/writes these relations; legacy Task envelope maps are migrated and parity-checked before being removed from newly written envelopes. Backup JSON remains a transfer representation only.
+
+**Still open:** Task/Project legacy envelopes, Task Template JSON arrays, Project Template task JSON arrays, and complete template field-by-field normalization. These are not SQL-only COMPLETE. Preserve unknown fields and legacy sources until full parity and backup/restore acceptance.
