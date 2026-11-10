@@ -1,4 +1,22 @@
-## REV8 typography authority reconciliation — source review 2026-11-10
+# REV9 — CURRENT OWNER DECISION REGISTER ADDENDUM (2026-11-10)
+
+## ARVIN-DEC-2026-11-10-LOCAL-FIRST — LOCAL-FIRST / SYNC SUSPENDED
+
+| Field | Decision |
+|---|---|
+| Status | APPROVED — explicit latest Product Owner direction |
+| Product architecture | Arvin is a standalone LOCAL-FIRST product; essential business features work locally and offline |
+| Durable data | Local SQL remains the sole source of truth for persistent product data |
+| Multi-device synchronization | SUSPENDED — no Local P2P, LAN, Cloud, Dropbox, remote sync, pairing, conflict engine or sync automation |
+| Reopening | Requires a separate explicit Mobin authorization |
+| Supersedes | Earlier Local P2P Phase 1 / Cloud Phase 2 planning rows and sync implementation proposals |
+| Preservation | Historical specs and decisions remain; do not delete or treat as active authorization |
+
+**Safe rule:** local-first product capabilities may continue only within their separately authorized product scope. Synchronization work is not active and must not be started, implemented, tested as a feature, or placed on an active delivery roadmap without new owner authorization.
+
+---
+
+## Historical REV8 typography authority reconciliation — source review 2026-11-10
 
 A material source conflict remains open; do not silently treat the current code or a test name as proof of product approval.
 - Direct owner instruction located in prior conversation on 2026-09-06: standardize all projects on **VazirHarf v34.003**, replace every Vazirmatn reference including documentation; the owner supplied the source revision `3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8`.
@@ -18,7 +36,7 @@ Canonical register for durable product decisions. Detailed implementation and hi
 | Product hierarchy is Center > Project > Category > Task | APPROVED | Owner-confirmed product hierarchy; use the Persian term «مرکز», not «واحد», for the top level. |
 | Official UI font baseline is Vazirmatn | APPROVED | Every UI element uses Vazirmatn except the two exact owner-approved sacred Arabic phrases recorded below. |
 | PR #3052 stays OPEN / DRAFT / UNMERGED; main untouched; release NO-GO | APPROVED | Binding governance constraints for the active delivery stream. |
-| Phase 1 sync direction is local-network, offline Local P2P; cloud/Dropbox is a separate future Phase 2 | APPROVED | Product direction only. This does not approve a particular pairing or conflict algorithm. |
+| Earlier Phase 1 local-network P2P / future Cloud Phase 2 direction | SUPERSEDED — HISTORICAL | Earlier approved direction retained for traceability. Superseded by Mobin's 2026-11-10 LOCAL-FIRST standalone-product decision: all multi-device sync (P2P/LAN/Cloud/Dropbox/remote) is SUSPENDED until separately authorized. |
 | Task due date, independent TaskReminder, recurrence and historical FollowUp remain separate concepts | APPROVED | Canonical product/data semantics; no conflation or parallel storage. |
 | Task Templates are reusable definitions stored in the existing G1 Drift database, separate from executable Tasks; execution state and Follow-up history are excluded, while reusable recurrence pattern (frequency, interval, count, active, tracking level) and Reminder time definitions are retained; source execution dates/history are excluded | APPROVED | Owner directive for Issue #823; contract and non-destructive G1 v11 migration are recorded in `TASK_TEMPLATE_DATA_CONTRACT.md`. Source-context IDs are provenance snapshots only, not automatic project reassignment. |
 | Report Center completed-follow-up report remains available through unified Filters rather than a separate top-level action | IMPLEMENTED | The change and tests are recorded at SHA 9b52d43; current HEAD must be rerun before claiming current-SHA verification. |

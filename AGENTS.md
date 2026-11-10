@@ -49,3 +49,14 @@ Non-negotiable limits remain: only `fix/recovery-calendar-device-smoke-2026-10-3
 ## REV9 authorization override — documentation-only (2026-11-10)
 
 The latest explicit Mobin authorization for this branch is the REV9 documentation deployment. It supersedes the older WAVE 4 implementation authorization for this branch and mission. **Only documentation and AI instruction files may change here.** No Dart/source, SQL/schema, migration, test, workflow, user-data, Main, PR #3052, merge or release changes are authorized. PR #3052 remains OPEN / DRAFT / UNMERGED. See `docs/project-continuity/AI_GOVERNANCE_POLICY.md` for the permanent rules.
+
+
+## REV9 Repository Cleanup — latest owner authorization (2026-11-10)
+
+- Active mission: REPOSITORY CLEANUP PROGRAM — WAVE 0, Live Repository Baseline.
+- Authorized write scope: documentation-only on `docs/rev9-governance-continuity-2026-11-10` / PR #3340. Do not create a branch.
+- Main and PR #3052 are protected. No source, SQL/schema, migration, test, workflow, product feature, branch deletion, PR closure, merge or release changes.
+- Product direction is LOCAL-FIRST standalone. Local SQL is the sole durable source of truth. All multi-device synchronization (P2P/LAN/Cloud/Dropbox/remote) is SUSPENDED until a separate explicit owner authorization.
+- Use only the official cleanup sequence: WAVE 0 Live Repository Baseline; WAVE 1 Git History Forensic Audit; WAVE 2 Test Governance & CI Audit; WAVE 3 Architecture & Documentation Audit; WAVE 4 Safe Cleanup & Consolidation.
+- Preserve REV8, old decisions, historical reports, branches and PRs. No deletion without dependency analysis and separate authorization.
+- Every handoff must include exact Main/branch/PR SHAs, diff scope, validation evidence, remaining risks and one next action. A commit alone does not complete a wave.

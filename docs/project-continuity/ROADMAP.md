@@ -1,6 +1,39 @@
-# REV8 Wave Roadmap — current state
+# ARVIN — REPOSITORY CLEANUP PROGRAM
+## REV9 — OFFICIAL WAVE SEQUENCE
 
-## REV8 live checkpoint — 2026-11-10
+**Current product direction:** LOCAL-FIRST standalone product. Essential business capabilities operate locally/offline. Local SQL is the durable source of truth. **All multi-device sync is SUSPENDED** (Local P2P, LAN, Cloud, Dropbox and remote sync) pending separate explicit owner authorization.
+
+**Current authorized write scope:** documentation-only on `docs/rev9-governance-continuity-2026-11-10` / PR #3340. Main and PR #3052 are protected. No source, schema, migration, tests, workflows, features, branch deletion, PR closure, merge or release.
+
+### Official repository-cleanup waves — one active sequence
+
+| Wave | Official name | Required deliverable / exit gate |
+|---|---|---|
+| WAVE 0 | Live Repository Baseline | Exact live Main/Branch/PR/CI baseline, complete tree inventory, canonical documents, AI entry points, duplicate/link candidate register, baseline SHA and handoff |
+| WAVE 1 | Git History Forensic Audit | Commit/branch/PR ancestry, duplicate-head and repeated-tree analysis, historical refs, dependency mapping; no deletion without owner approval |
+| WAVE 2 | Test Governance & CI Audit | Workflow inventory, exact-SHA test evidence, shard/job reliability, test ownership and acceptance-governance audit; no test weakening |
+| WAVE 3 | Architecture & Documentation Audit | Canonical authority, local-first architecture, SQL ownership, documentation map, stale/conflicting records, cross-repository boundary |
+| WAVE 4 | Safe Cleanup & Consolidation | Approved documentation consolidation, link repair, status labelling and only separately authorized non-destructive cleanup with before/after evidence |
+
+**Numbering rule:** this is the sole active sequence for the Repository Cleanup Program. Historical REV8 engineering waves and REV9 product-evolution taxonomy below are retained as source history/reference; they are not a second cleanup sequence and must not be used to renumber these waves.
+
+### Current Wave 0 disposition
+
+- Main: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- PR #3340: OPEN / READY FOR REVIEW / UNMERGED; head `5f934bfb4ee0cfa96d838f1d61f08c794c0676ed` at baseline.
+- PR #3052: OPEN / DRAFT / UNMERGED; head `aba68e44be0fcac7d4ad425b58fbe75e5aba264e`.
+- Baseline inventory: 1,413 branches; 35 duplicate-head groups / 109 refs; 101 open PRs, 75 drafts; 99 open PRs last updated before 2026-11-01.
+- PR #3340 contains 66 changed files, all Markdown/agent-instruction files; no non-documentation files.
+- One broken internal link was identified in MASTER_GOVERNANCE.md and is corrected in this documentation cleanup.
+- No branch, PR, historical document, code, test, workflow, schema or data is deleted.
+
+**Wave 0 does not authorize code changes or release.** Broader history, CI and architecture work belongs to WAVE 1–3; broader consolidation remains WAVE 4 and requires its own evidence and authorization.
+
+---
+
+## Historical REV8 engineering roadmap — retained for traceability; not the active repository-cleanup sequence
+
+### Historical REV8 live checkpoint — 2026-11-10 (not current)
 
 Repository: mobinpda-lab/Arvin-clean
 Main HEAD / PR base: 45e4202b03a434459e4c021a04efa7e8396359db (Main READ-ONLY).
@@ -14,7 +47,7 @@ NIRA: 112 branches, 7 open PRs, 381 closed PRs, 132 Main commits, 26 workflows, 
 Release: BLOCKED — RELEASE: NO-GO.
 GitHub API does not expose local working-tree state or physical device state; both remain NOT VERIFIED.
 
-## Wave readiness
+### Historical REV8 engineering-wave readiness — not the current repository-cleanup sequence
 
 | Wave | Current status | Gate / dependency |
 |---|---|---|
@@ -374,7 +407,7 @@ Remaining sequence:
 
 ---
 
-## REV9 product roadmap taxonomy — 2026-11-10
+## REV9 product evolution taxonomy — reference only; not repository-cleanup sequencing
 
 The following is the **product evolution taxonomy** from REV9 §42. It does not overwrite or renumber the historical REV8 engineering execution waves; those remain a separate delivery/engineering sequence.
 

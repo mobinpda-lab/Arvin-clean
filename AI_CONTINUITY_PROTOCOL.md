@@ -159,3 +159,21 @@ Scope remains limited to `fix/recovery-calendar-device-smoke-2026-10-31`. Main r
 ## REV9 permanent continuity policy — 2026-11-10
 
 REV9 is the active product and governance baseline. Every future agent must read `AGENTS.md`, `PROJECT_STATE.md`, and `docs/project-continuity/AI_GOVERNANCE_POLICY.md` before acting, then follow its full mandatory sequence. Live GitHub is required at mission start and before every write. The latest explicit owner authorization controls scope; the current mission is documentation-only. Historical WAVE 4 implementation authorization is not permission for this documentation branch. No claim of implementation, verification, merge or release may be made without exact-SHA evidence and explicit owner approval where required.
+
+
+## REV9 Repository Cleanup Program — latest authorization supersession (2026-11-10)
+
+Mobin's latest command starts the Repository Cleanup Program at **WAVE 0 — Live Repository Baseline**. It supersedes the earlier REV8 WAVE 4 implementation authorization for this mission. The only permitted writes are documentation-only corrections on the existing branch `docs/rev9-governance-continuity-2026-11-10` / PR #3340. Do not create a branch.
+
+**Protected:** Main, PR #3052, source code, SQL/schema, migrations, tests, workflows, product features, branch deletion, PR closure, merge, release, Cloud Sync and P2P implementation.
+
+**Product direction:** Arvin is LOCAL-FIRST and standalone; essential business capabilities operate locally/offline; local SQL is the sole durable source of truth. All multi-device synchronization (Local P2P, LAN, Cloud, Dropbox and remote sync) is SUSPENDED pending separate explicit owner authorization.
+
+**Official cleanup waves only:**
+0. Live Repository Baseline
+1. Git History Forensic Audit
+2. Test Governance & CI Audit
+3. Architecture & Documentation Audit
+4. Safe Cleanup & Consolidation
+
+No parallel numbering. Preserve historical REV8 records and all branches/PRs. Each wave requires Baseline, Change Register, Before/After, Validation Evidence, Remaining Risks and Handoff; commit success alone is not completion.

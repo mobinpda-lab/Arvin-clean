@@ -67,3 +67,25 @@ Every handoff must include live Main SHA, branch/PR/head SHA, changed-file scope
 
 ## 10. Agent adapter compatibility
 See [AI_ADAPTER_COMPATIBILITY.md](AI_ADAPTER_COMPATIBILITY.md) for the verified repository paths and the Windsurf Cascade compatibility assessment. Agent-specific files are thin pointers only; this policy remains the sole canonical AI instruction source.
+
+
+## 10. Current owner direction — LOCAL-FIRST / SYNC SUSPENDED (2026-11-10)
+
+- Arvin is a standalone LOCAL-FIRST product. Essential business capabilities must operate on the local device without Internet, cloud account, remote server or another Arvin installation.
+- Local SQL remains the sole durable source of truth for product data.
+- All multi-device synchronization is SUSPENDED: Local P2P, LAN/device-to-device, Cloud, Dropbox, remote transport, pairing, conflict resolution and sync automation.
+- Do not implement, migrate, test as a product feature, schedule or expand synchronization while suspended. Existing specifications and decisions remain historical records.
+- The previous Local P2P Phase 1 / Cloud Phase 2 plan is SUPERSEDED as active direction. Reopening requires a separate explicit Mobin authorization.
+
+## 11. Repository Cleanup Program — official wave sequence
+
+The only active Repository Cleanup Program sequence is:
+- WAVE 0 — Live Repository Baseline
+- WAVE 1 — Git History Forensic Audit
+- WAVE 2 — Test Governance & CI Audit
+- WAVE 3 — Architecture & Documentation Audit
+- WAVE 4 — Safe Cleanup & Consolidation
+
+Do not create parallel cleanup-wave numbering. Each wave requires Baseline, Change Register, Before/After, Validation Evidence, Remaining Risks and Handoff. A successful commit alone does not complete a wave.
+
+**Current authorization:** documentation-only changes on PR #3340's existing documentation branch. Main, PR #3052, source, SQL/schema, migrations, tests, workflows, product features, branch/PR deletion, merge and release remain outside scope.

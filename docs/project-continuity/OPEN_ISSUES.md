@@ -1,4 +1,37 @@
-# REV8 Open Issues — current exact-head register
+# REV9 — LIVE OPEN ISSUES & REPOSITORY CLEANUP REGISTER
+**Baseline timestamp:** 2026-11-10 (GitHub live audit)
+**Main:** `45e4202b03a434459e4c021a04efa7e8396359db`
+**PR #3340:** OPEN / READY FOR REVIEW / UNMERGED — baseline HEAD `5f934bfb4ee0cfa96d838f1d61f08c794c0676ed`
+**PR #3052:** OPEN / DRAFT / UNMERGED — HEAD `aba68e44be0fcac7d4ad425b58fbe75e5aba264e`
+**Release:** BLOCKED — RELEASE: NO-GO
+
+## Current owner direction
+- Product: LOCAL-FIRST, standalone; essential business features must work locally/offline.
+- Local SQL: sole durable product-data source of truth.
+- All multi-device synchronization (Local P2P, LAN, Cloud, Dropbox, remote) is **SUSPENDED** until separate explicit owner authorization.
+- No sync implementation, migration, feature work or active delivery planning is authorized.
+
+## WAVE 0 — live repository cleanup findings
+
+| ID | Severity | Status | Finding / safe next action |
+|---|---|---|---|
+| CLEAN-001 | P0 | IN PROGRESS | Correct the broken REV9 archive link and deployment-status wording in MASTER_GOVERNANCE.md; preserve REV8 archive. |
+| CLEAN-002 | P0 | IN PROGRESS | Replace stale active REV8 snapshots in README, ROADMAP, CURRENT_STATE, PROJECT_STATE, HANDOFF and IMPLEMENTATION_LOG with a current REV9 pointer; retain dated historical records. |
+| CLEAN-003 | P0 | APPROVED | Register LOCAL-FIRST / SYNC SUSPENDED and supersede earlier P2P/Cloud Phase 1/2 planning without deleting its history. |
+| CLEAN-004 | P1 | NEEDS WAVE 1 | 1,413 branches; 35 duplicate-head groups / 109 refs. Inventory ancestry and PR dependencies before considering any ref cleanup. No deletion. |
+| CLEAN-005 | P1 | NEEDS WAVE 1 | 101 open PRs; 75 drafts; 99 were last updated before 2026-11-01. Review individually; no automatic closure. |
+| CLEAN-006 | P1 | NEEDS WAVE 3 | Multiple historical governance/product/UI documents and competing open documentation PRs; classify authority and status before any consolidation. |
+| CLEAN-007 | P1 | NEEDS WAVE 3 | Same-basename UI references and mixed naming conventions; determine scope and inbound links before renaming. |
+| CLEAN-008 | P2 | IN PROGRESS | Exact duplicate AI adapter content is intentional for tool-specific entry points; keep thin adapters and one canonical policy. |
+| CLEAN-009 | P2 | IN PROGRESS | Fix and revalidate internal links in the changed governance set; no bulk link rewrite. |
+| CLEAN-010 | P1 | BLOCKED | PR #3052 remains protected; engineering failures and WAVE 4 status are outside this documentation-only authorization. |
+
+## Historical issue inventory
+The REV8 issue table below is retained as historical evidence. Its old SHA, workflow IDs, counts and issue statuses must not be treated as current unless independently reverified against live GitHub.
+
+---
+
+## Historical REV8 Open Issues snapshot — preserved; not the live REV9 register
 
 Snapshot: 2026-11-10
 Working SHA before audit commit: 9846f10850031c63964fdc81ae0ab1cdb3028517

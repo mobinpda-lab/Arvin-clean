@@ -1,10 +1,12 @@
+> **OWNER STATUS — SUSPENDED (2026-11-10):** Arvin is a LOCAL-FIRST standalone product. All multi-device synchronization is suspended, including this Local P2P proposal, LAN pairing/transport, Cloud/Dropbox and remote sync. This document is preserved as historical design material only. Do not implement, schedule, test as an active product feature, or treat any phase here as authorized until Mobin issues a separate explicit authorization.
+
 # Arvin Local P2P Sync — Phase 1 Design Specification
 
 - Reference: `ARVIN-EXEC-1405/08/14-LOCAL-P2P-SYNC`
 - Repository: `mobinpda-lab/Arvin-clean`
 - Authorized branch: `fix/recovery-calendar-device-smoke-2026-10-31`
 - PR: `#3052` (must remain OPEN / DRAFT / UNMERGED)
-- Design status: **PHASE 1 DESIGN DRAFT — IMPLEMENTATION NOT VERIFIED**
+- Design status: **HISTORICAL DESIGN DRAFT — SUSPENDED BY OWNER; IMPLEMENTATION NOT AUTHORIZED**
 - Release status: **BLOCKED — RELEASE: NO-GO**
 - Document scope: Phase 1 local-network device-to-device synchronization only
 

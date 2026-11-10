@@ -1,4 +1,24 @@
 # ARVIN — PROJECT STATE
+
+## CURRENT LIVE POINTER — REPOSITORY CLEANUP WAVE 0 (2026-11-10)
+
+- Repository: `mobinpda-lab/Arvin-clean`; default branch: `main`.
+- Main HEAD: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Authorized documentation branch: `docs/rev9-governance-continuity-2026-11-10`.
+- PR #3340: OPEN / READY FOR REVIEW / UNMERGED; baseline HEAD `5f934bfb4ee0cfa96d838f1d61f08c794c0676ed`.
+- Protected engineering PR #3052: OPEN / DRAFT / UNMERGED; HEAD `aba68e44be0fcac7d4ad425b58fbe75e5aba264e`.
+- Repository baseline: 1,413 branches; 35 duplicate-head groups / 109 refs; 101 open PRs (75 drafts); 99 open PRs last updated before 2026-11-01.
+- PR #3340 baseline diff: 66 Markdown/agent-instruction files; zero non-documentation files.
+- Exact-SHA CI: PR #3340 Build and Device Smoke workflows SUCCESS on `5f934bfb4ee0cfa96d838f1d61f08c794c0676ed`; PR #3052 Build FAILURE and Device Smoke incomplete on `aba68e44...`. See WAVE0 baseline report for run IDs and jobs.
+- Product direction: LOCAL-FIRST standalone; local SQL sole durable source of truth; all multi-device sync SUSPENDED until separately authorized.
+- Active cleanup sequence: WAVE 0 Live Repository Baseline → WAVE 1 Git History Forensic Audit → WAVE 2 Test Governance & CI Audit → WAVE 3 Architecture & Documentation Audit → WAVE 4 Safe Cleanup & Consolidation.
+- Current write authorization: documentation-only on PR #3340 branch. Main, PR #3052, code, schema, migrations, tests, workflows, features, branch/PR deletion, merge and release are protected.
+- Baseline and cleanup audit: `docs/project-continuity/audit/REPOSITORY_CLEANUP_WAVE0_BASELINE.md`.
+- This pointer is a checkpoint, not continuous monitoring. Re-fetch live GitHub before any subsequent action.
+- Release: BLOCKED — RELEASE: NO-GO.
+
+> All sections below are preserved historical checkpoints. Their SHAs, counts and CI results are not current unless reverified against live GitHub.
+
 **Owner:** Mobin — Product Owner & Product Director  
 **Repository:** `mobinpda-lab/Arvin-clean`  
 **Checkpoint created:** 2026-11-10  

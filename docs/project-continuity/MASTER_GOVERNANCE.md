@@ -9,7 +9,7 @@
 **Deployment base:** main `45e4202b03a434459e4c021a04efa7e8396359db`  
 **Release:** BLOCKED — RELEASE: NO-GO
 
-> REV9 is the active product/governance baseline. This file preserves the complete source text below. Historical REV8 is retained separately at [archive/MASTER_GOVERNANCE_REV8.md](archive/MASTER_GOVERNANCE_REV8.md). Decision conflicts and live execution state are tracked in PRODUCT_DECISIONS.md, CURRENT_STATE.md and audit/CONFLICT_REGISTER.md.
+> REV9 is the active product/governance baseline. This file preserves the complete source text below. Historical REV8 is retained separately at [MASTER_GOVERNANCE_REV8_ARCHIVE.md](archive/MASTER_GOVERNANCE_REV8.md). Decision conflicts and live execution state are tracked in PRODUCT_DECISIONS.md, CURRENT_STATE.md and audit/CONFLICT_REGISTER.md.
 
 ---
 
@@ -1154,3 +1154,21 @@ DOCUMENT: ARVIN MASTER PRODUCT, DESIGN & GOVERNANCE CHARTER — REV9
 ‫یادداشت استقرار‪ :‬این فایل یک سند تدوین‌شده است؛ هنوز در ‪ Repository‬ثبت‪ Commit، Push ،‬یا به‌عنوان سند‬
  ‫‪ Canonical‬فعال نشده است‪ .‬استقرار آن نیازمند بررسی وضعیت زنده ‪ ،GitHub‬تطبیق با اسناد ‪ Canonical‬و مجوز‬
 ‫اجرایی مستقل مبین است‪.‬‬
+
+
+---
+
+## REV9 owner decision addendum — 2026-11-10
+### LOCAL-FIRST PRODUCT / MULTI-DEVICE SYNC SUSPENDED
+
+**Status:** APPROVED — latest explicit Product Owner direction.
+
+1. Arvin is a LOCAL-FIRST, standalone product. Its essential business capabilities must operate on the local device without requiring Internet, a cloud account, a remote server, or another Arvin installation.
+2. The local SQL database remains the sole durable source of truth for product data. Local-first is the active product architecture; it is not permission to introduce a second persistence path.
+3. **All multi-device synchronization is SUSPENDED** until a separate, explicit Product Owner authorization. This includes Local P2P, LAN/device-to-device sync, Cloud Sync, Dropbox, remote transport, pairing, conflict resolution, and sync automation.
+4. No sync implementation, migration, workflow, dependency, architecture expansion, or active roadmap work may proceed while this suspension is in force.
+5. Existing synchronization specifications and historical decisions must be preserved and labelled HISTORICAL / SUSPENDED. They are not current implementation authorization.
+6. This owner decision supersedes earlier planning language that described Local P2P as Phase 1 and Cloud/Dropbox as a later Phase 2. The older wording remains part of the source/history and must not be silently deleted.
+7. Reopening synchronization requires a new, explicit authorization from Mobin defining the permitted scope.
+
+**Deployment boundary:** REV9 is present on PR #3340's documentation branch only. Main remains unchanged. Release remains BLOCKED — RELEASE: NO-GO.
