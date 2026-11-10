@@ -430,3 +430,16 @@ NOT VERIFIED. GitHub branch data does not reveal uncommitted local modifications
 9. این مرحله فقط مستندسازی است؛ هیچ فایل .dart، تست، schema، migration یا workflow تغییر نکرده است. برای پیاده‌سازی‌های بعدی ابتدا شکاف‌ها و migration plan را به تفکیک بررسی کن؛ هیچ DDL مخرب یا حدس در تبدیل تاریخ مجاز نیست.
 10. Device Smoke و نصب/پذیرش واقعی Samsung SM-A528B/DS جداگانه الزامی‌اند. موفقیت ساخت APK یا Review Artifact، پذیرش فیزیکی را ثابت نمی‌کند.
 11. PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main دست‌نخورده؛ بدون Merge، انتشار یا انتشار عمومی. **BLOCKED — RELEASE: NO-GO**.
+
+
+## WAVE 4 REV8 execution handoff — 2026-11-10
+
+**Authorization:** Mobin explicitly authorized AUDIT + IMPLEMENTATION + TESTING. This supersedes older read-only handoff language.
+
+**Implementation checkpoint:** `dbfcdb02879ed3939cb6a69d3a150e2237283a51`. Source changes: Task migration pre-COMMIT parity and conflict detection; Project migration consolidation, ordering and unknown-field retention; legacy drops/rebuilds deferred; relational Recurrence and Occurrence/checklist storage added. Seven Wave 4 audit reports were created under `docs/project-continuity/audit/`.
+
+**Do next:** fetch the latest live PR HEAD; inspect Build run `42864431438` and Device Smoke run `42864430851` (pending at the checkpoint); repair any failures without changing test strength; then complete G1 Follow-up/Person field parity, atomic migration orchestration, remaining SQL ownership, and full Backup/Restore.
+
+**Unresolved owner decision:** four Reminder states and their transitions/terminal/snooze semantics. Do not invent them.
+
+Main READ-ONLY. PR #3052 OPEN / DRAFT / UNMERGED. No force push, merge, release or legacy deletion. Release NO-GO.
