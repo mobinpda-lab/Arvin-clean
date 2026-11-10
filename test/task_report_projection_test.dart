@@ -42,6 +42,7 @@ void main() {
             id: 'separate-reminder',
             title: 'یادآور مستقل',
             date: reminderAt,
+            sequence: 1,
           ),
         ],
       ),
