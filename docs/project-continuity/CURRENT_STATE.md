@@ -1075,3 +1075,14 @@ PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main دست‌نخورد�
 این ثبت و هم‌راستاسازی فقط مستندات است. هیچ کد، تست، schema، migration، workflow یا APK تغییر نکرده است. نتایج CI بالا متعلق به SHA دقیق ذکرشده‌اند و به commit مستندات بعدی منتقل نمی‌شوند.
 
 **حاکمیت:** PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## WAVE 4 REV8 live implementation addendum — 2026-11-10
+
+Mobin has now explicitly authorized implementation and testing, superseding the earlier read-only Wave 4 status.
+
+Implementation checkpoint: `dbfcdb02879ed3939cb6a69d3a150e2237283a51`. Changes include pre-COMMIT Task/Project migration parity, same-ID conflict detection, deferred legacy drops/rebuilds, relational Project ordering, unknown Project field retention, and relational Recurrence/Occurrence/per-occurrence checklist storage.
+
+Verification is NOT YET PASS: Build run `42864431438` and Device Smoke run `42864430851` were pending at the last exact-SHA lookup; Calendar Provider `42864431259` and Follow-up Persistence `42864430953` were queued. No local Flutter tests were run. See `audit/P0_C_IMPLEMENTATION_REPORT.md`, `audit/MIGRATION_PARITY_REPORT.md`, `audit/OCCURRENCE_DATA_OWNERSHIP_REPORT.md` and `audit/TEST_VALIDATION_REPORT.md`.
+
+Remaining: G1 legacy relation parity, a single multi-source transaction, remaining JSON/SharedPreferences owners, full Backup/Restore, complete test/Android evidence, and the four Reminder states decision. Legacy sources remain. PR #3052 OPEN / DRAFT / UNMERGED; Main READ-ONLY; Release NO-GO.
