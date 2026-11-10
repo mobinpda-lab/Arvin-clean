@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 
 import '../models/task.dart';
+import '../models/recurrence.dart';
 
 /// Relational persistence boundary for recurring Task Occurrences.
 ///
@@ -26,8 +27,9 @@ class OccurrenceSqlCodec {
         throw FormatException('Duplicate occurrence timestamp for Task ${task.id}: $scheduledAt');
       }
       final status = state['status'];
-      if (status is! String || status.trim().isEmpty) {
-        throw FormatException('Occurrence status is missing for Task ${task.id}: $scheduledAt');
+      if (status is! String ||
+          !RecurrenceOccurrenceStatus.values.any((value) => value.name == status)) {
+        throw FormatException('Occurrence status is invalid for Task ${task.id}: $scheduledAt');
       }
       await _ensureOccurrence(
         executor,
@@ -157,6 +159,12 @@ class OccurrenceSqlCodec {
           }
           checklists[entry.key as String] = List<String>.from(entry.value as List);
         }
+      }
+      for (final scheduledAt in checklists.keys) {
+        history.putIfAbsent(scheduledAt, () => <String, dynamic>{
+          'scheduledDate': scheduledAt,
+          'status': RecurrenceOccurrenceStatus.pending.name,
+        });
       }
       final task = Task(
         id: taskId,
