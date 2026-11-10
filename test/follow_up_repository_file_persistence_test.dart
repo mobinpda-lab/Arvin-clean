@@ -18,6 +18,122 @@ final DateTime _secondTaskReminderAt = DateTime.utc(2026, 8, 19);
 
 void main() {
   test(
+    'independent Task Reminder create, edit, disable, delete and re-enable survives SQLite reopen',
+    () async {
+      final directory =
+          await Directory.systemTemp.createTemp('arvin-reminder-crud-persistence-');
+      final databasePath = '${directory.path}/arvin.sqlite';
+      _Harness? active;
+      final dueAt = DateTime.utc(2026, 9, 4, 16);
+      final firstAt = DateTime.utc(2026, 9, 1, 8);
+      final secondAt = DateTime.utc(2026, 9, 2, 9);
+      final thirdAt = DateTime.utc(2026, 9, 3, 10);
+      final editedAt = DateTime.utc(2026, 9, 1, 11);
+
+      try {
+        active = await _openHarness(databasePath);
+        await active.store.save([
+          Task(
+            id: 'reminder-crud-task',
+            title: 'یادآورهای مستقل',
+            dueDate: dueAt,
+            taskReminders: [
+              TaskReminder(
+                id: 'reminder-crud-1',
+                title: 'اول',
+                date: firstAt,
+                sequence: 1,
+              ),
+              TaskReminder(
+                id: 'reminder-crud-2',
+                title: 'دوم',
+                date: secondAt,
+                sequence: 2,
+              ),
+              TaskReminder(
+                id: 'reminder-crud-3',
+                title: 'سوم',
+                date: thirdAt,
+                sequence: 3,
+              ),
+            ],
+            nextReminderSequence: 4,
+          ),
+        ]);
+        await active.close();
+        active = null;
+
+        active = await _openHarness(databasePath);
+        final task = (await active.store.load()).single;
+        task.taskReminders[0] = task.taskReminders[0].copyWith(
+          title: 'اول ویرایش‌شده',
+          date: editedAt,
+        );
+        task.taskReminders[1] =
+            task.taskReminders[1].copyWith(isEnabled: false);
+        task.taskReminders.removeWhere((reminder) => reminder.id == 'reminder-crud-3');
+        await active.store.save([task]);
+        await active.close();
+        active = null;
+
+        active = await _openHarness(databasePath);
+        final afterEdit = (await active.store.load()).single;
+        expect(afterEdit.dueDate, dueAt);
+        expect(afterEdit.taskReminders, hasLength(2));
+        expect(
+          afterEdit.taskReminders.map((reminder) => reminder.id).toSet(),
+          {'reminder-crud-1', 'reminder-crud-2'},
+        );
+        final edited = afterEdit.taskReminders.singleWhere(
+          (reminder) => reminder.id == 'reminder-crud-1',
+        );
+        expect(edited.title, 'اول ویرایش‌شده');
+        expect(edited.date, editedAt);
+        final disabled = afterEdit.taskReminders.singleWhere(
+          (reminder) => reminder.id == 'reminder-crud-2',
+        );
+        expect(disabled.isEnabled, isFalse);
+        expect(
+          await _count(active.executor, 'task_reminders'),
+          2,
+        );
+
+        afterEdit.taskReminders[afterEdit.taskReminders.indexWhere(
+          (reminder) => reminder.id == 'reminder-crud-2',
+        )] = disabled.copyWith(isEnabled: true);
+        await active.store.save([afterEdit]);
+        await active.close();
+        active = null;
+
+        active = await _openHarness(databasePath);
+        final reopened = (await active.store.load()).single;
+        expect(reopened.dueDate, dueAt);
+        expect(reopened.taskReminders, hasLength(2));
+        expect(
+          reopened.taskReminders.singleWhere(
+            (reminder) => reminder.id == 'reminder-crud-1',
+          ).date,
+          editedAt,
+        );
+        expect(
+          reopened.taskReminders.singleWhere(
+            (reminder) => reminder.id == 'reminder-crud-2',
+          ).isEnabled,
+          isTrue,
+        );
+        expect(
+          await _count(active.executor, 'task_reminders'),
+          2,
+          reason: 'deleting a reminder must not leave a duplicate or tombstone row',
+        );
+      } finally {
+        if (active != null) await active.close();
+        await directory.delete(recursive: true);
+      }
+    },
+  );
+
+  test(
     'completion true -> false -> true survives closing and reopening the same SQLite file',
     () async {
       final directory =
