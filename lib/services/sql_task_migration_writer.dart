@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'g1_drift_schema.dart';
 import 'task_migration_adapter.dart';
 import 'task_migration_reader.dart';
+import 'occurrence_sql_codec.dart';
 
 /// One-way migration writer from the canonical legacy task document to SQL.
 ///
@@ -110,7 +111,7 @@ class SqlTaskMigrationWriter {
         task.completedAt?.toIso8601String(),
         _bool(task.isFavorite),
         task.recurrence == null ? null : jsonEncode(task.recurrence!.toJson()),
-        record.sourceJsonEncoded,
+        jsonEncode(_storageEnvelope(record)),
       ],
     );
 
@@ -223,8 +224,14 @@ class SqlTaskMigrationWriter {
         <Object?>[task.id, tagId, ordinal],
       );
     }
+    await OccurrenceSqlCodec.writeTask(executor, task);
   }
 
+  Map<String, dynamic> _storageEnvelope(TaskMigrationRecord record) {
+    return Map<String, dynamic>.from(record.sourceJson)
+      ..remove('occurrenceHistory')
+      ..remove('checklistOccurrences');
+  }
 
   Future<void> _validateMigratedSnapshot(QueryExecutor executor, List<TaskMigrationRecord> records) async {
     final rows = await executor.runSelect(
@@ -268,7 +275,7 @@ class SqlTaskMigrationWriter {
       }
     }
     final envelope = row['legacy_payload_json'];
-    if (envelope is! String || _canonicalJson(jsonDecode(envelope)) != _canonicalJson(record.sourceJson)) {
+    if (envelope is! String || _canonicalJson(jsonDecode(envelope)) != _canonicalJson(_storageEnvelope(record))) {
       throw StateError('Task envelope/unknown-field conflict for ${task.id}.');
     }
 
@@ -310,6 +317,11 @@ class SqlTaskMigrationWriter {
       'SELECT p.follow_up_id AS follow_up_id,p.person_id AS person_id,p.ordinal AS ordinal FROM follow_up_record_people p JOIN follow_up_records f ON f.id=p.follow_up_id WHERE f.task_id=? ORDER BY f.ordinal,p.ordinal',
       [task.id], ['follow_up_id','person_id','ordinal'], people,
       'Follow-up-Person', task.id);
+    final occurrenceData = await OccurrenceSqlCodec.readTask(executor, task.id);
+    if (_canonicalJson(occurrenceData.history) != _canonicalJson(task.occurrenceHistory) ||
+        _canonicalJson(occurrenceData.checklists) != _canonicalJson(task.checklistOccurrences)) {
+      throw StateError('Occurrence/occurrence-checklist parity mismatch for Task ${task.id}.');
+    }
   }
 
   Future<void> _assertRows(
