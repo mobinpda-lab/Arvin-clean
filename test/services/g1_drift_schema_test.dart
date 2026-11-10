@@ -469,4 +469,123 @@ void main() {
       'followUpDate': '2026-11-10T10:30:00.000',
     });
   });
+
+  test('legacy task_people migration preserves canonical names and stable Task links', () async {
+    await database.ensureOpen(G1DriftSchema());
+    await database.runCustom(
+      '''CREATE TABLE tasks (
+        id TEXT NOT NULL PRIMARY KEY, storage_ordinal INTEGER NOT NULL DEFAULT 0,
+        title TEXT NOT NULL, description TEXT NOT NULL, created_at TEXT NULL,
+        updated_at TEXT NULL, due_date TEXT NULL, category TEXT NULL,
+        notebook_kind TEXT NULL, priority TEXT NOT NULL, archived INTEGER NOT NULL,
+        trashed INTEGER NOT NULL, completed INTEGER NOT NULL, completed_at TEXT NULL,
+        is_favorite INTEGER NOT NULL DEFAULT 0, recurrence_json TEXT NULL,
+        legacy_payload_json TEXT NULL)''',
+    );
+    await database.runInsert(
+      '''INSERT INTO tasks
+         (id, storage_ordinal, title, description, priority, archived, trashed,
+          completed, legacy_payload_json)
+         VALUES (?, 0, ?, '', 'none', 0, 0, 0, ?)''',
+      <Object?>[
+        'migration-task',
+        'کار مهاجرت',
+        jsonEncode(<String, dynamic>{
+          'id': 'migration-task',
+          'title': 'کار مهاجرت',
+          'futureField': <String, dynamic>{'keep': true},
+        }),
+      ],
+    );
+    await database.runCustom(
+      '''CREATE TABLE persons (
+         id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL,
+         created_at TEXT NOT NULL, updated_at TEXT NOT NULL)''',
+    );
+    await database.runCustom(
+      '''INSERT INTO persons (id, name, created_at, updated_at)
+         VALUES ('stable-person', 'نام کانونی جدید', '2026-11-01', '2026-11-09')''',
+    );
+    await database.runCustom(
+      '''CREATE TABLE task_people (
+         task_id TEXT NOT NULL, person_id TEXT NOT NULL,
+         person_json TEXT NOT NULL, ordinal INTEGER NOT NULL,
+         PRIMARY KEY (task_id, person_id))''',
+    );
+    await database.runCustom(
+      '''INSERT INTO task_people (task_id, person_id, person_json, ordinal)
+         VALUES ('migration-task', 'stable-person',
+                 '{"id":"stable-person","displayName":"نام قدیمی در Task"}', 0)''',
+    );
+
+    await G1DriftSchema.install(database);
+
+    final person = await database.runSelect(
+      'SELECT id, name FROM persons WHERE id = ?',
+      const <Object?>['stable-person'],
+    );
+    expect(person.single['name'], 'نام کانونی جدید');
+    final relation = await database.runSelect(
+      'SELECT task_id, person_id FROM task_persons WHERE task_id = ?',
+      const <Object?>['migration-task'],
+    );
+    expect(relation, hasLength(1));
+    expect(relation.single['person_id'], 'stable-person');
+    final directory = await database.runSelect(
+      'SELECT person_id FROM person_directory WHERE person_id = ?',
+      const <Object?>['stable-person'],
+    );
+    expect(directory, hasLength(1));
+    final payloadRows = await database.runSelect(
+      'SELECT legacy_payload_json FROM tasks WHERE id = ?',
+      const <Object?>['migration-task'],
+    );
+    final payload = jsonDecode(payloadRows.single['legacy_payload_json'] as String)
+        as Map<String, dynamic>;
+    expect(payload['futureField'], <String, dynamic>{'keep': true});
+    final retiredSource = await database.runSelect(
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'task_people'",
+      const [],
+    );
+    expect(retiredSource, isEmpty);
+    expect(
+      await database.runSelect('PRAGMA foreign_key_check', const []),
+      isEmpty,
+    );
+  });
+
+  test('malformed legacy task_people payload aborts migration without retiring source rows', () async {
+    await database.ensureOpen(G1DriftSchema());
+    await database.runCustom(
+      '''CREATE TABLE task_people (
+         task_id TEXT NOT NULL, person_id TEXT NOT NULL,
+         person_json TEXT NOT NULL, ordinal INTEGER NOT NULL,
+         PRIMARY KEY (task_id, person_id))''',
+    );
+    await database.runCustom(
+      '''INSERT INTO task_people (task_id, person_id, person_json, ordinal)
+         VALUES ('legacy-task', 'broken-person', 'not-json', 0)''',
+    );
+
+    await expectLater(
+      G1DriftSchema.install(database),
+      throwsA(isA<FormatException>()),
+    );
+
+    final source = await database.runSelect(
+      'SELECT person_id, person_json FROM task_people',
+      const [],
+    );
+    expect(source, hasLength(1));
+    expect(source.single['person_id'], 'broken-person');
+    expect(source.single['person_json'], 'not-json');
+    final foreignKeys = await database.runSelect('PRAGMA foreign_keys', const []);
+    expect(foreignKeys.single['foreign_keys'], 1);
+    final canonicalTables = await database.runSelect(
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'persons'",
+      const [],
+    );
+    expect(canonicalTables, isEmpty);
+  });
+
 }

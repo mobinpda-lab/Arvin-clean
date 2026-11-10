@@ -250,24 +250,61 @@ class G1DriftSchema implements QueryExecutorUser {
       'SELECT person_id, person_json FROM task_people ORDER BY task_id, ordinal',
       const [],
     );
-    final now = DateTime.now().toIso8601String();
+
+    // Validate the complete legacy source before writing any canonical Person.
+    // Silently skipping a malformed row is unsafe because the following
+    // migration retires task_people; fail closed so the enclosing install
+    // transaction can roll back and retain the original source table.
+    final decodedPeople = <Map<String, String>>[];
     for (final row in rows) {
-      final id = row['person_id'];
-      final raw = row['person_json'];
-      if (id is! String || id.trim().isEmpty || raw is! String) continue;
-      try {
-        final decoded = jsonDecode(raw);
-        if (decoded is! Map) continue;
-        final name = (decoded['displayName'] ?? decoded['name']);
-        if (name is! String || name.trim().isEmpty) continue;
-        await executor.runInsert(
-          '''INSERT INTO persons (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)
-             ON CONFLICT(id) DO UPDATE SET name = excluded.name, updated_at = excluded.updated_at''',
-          <Object?>[id.trim(), name.trim(), now, now],
+      final rawId = row['person_id'];
+      final rawJson = row['person_json'];
+      if (rawId is! String || rawId.trim().isEmpty || rawJson is! String) {
+        throw const FormatException(
+          'Legacy Task-person row has an invalid identity or payload.',
         );
-      } on FormatException {
-        continue;
       }
+      final personId = rawId.trim();
+      late final Object? decoded;
+      try {
+        decoded = jsonDecode(rawJson);
+      } on FormatException {
+        throw FormatException(
+          'Legacy Task-person payload is invalid for Person $personId.',
+        );
+      }
+      if (decoded is! Map) {
+        throw FormatException(
+          'Legacy Task-person payload must be an object for Person $personId.',
+        );
+      }
+      final name = decoded['displayName'] ?? decoded['name'];
+      if (name is! String || name.trim().isEmpty) {
+        throw FormatException(
+          'Legacy Task-person display name is missing for Person $personId.',
+        );
+      }
+      decodedPeople.add(<String, String>{
+        'id': personId,
+        'name': name.trim(),
+      });
+    }
+
+    final now = DateTime.now().toIso8601String();
+    for (final person in decodedPeople) {
+      // A Person row may already contain a newer canonical directory name.
+      // Legacy Task snapshots must only fill a missing/blank name, never
+      // overwrite the shared identity's current display name.
+      await executor.runInsert(
+        '''INSERT OR IGNORE INTO persons (id, name, created_at, updated_at)
+           VALUES (?, ?, ?, ?)''',
+        <Object?>[person['id'], person['name'], now, now],
+      );
+      await executor.runUpdate(
+        '''UPDATE persons SET name = ?, updated_at = ?
+           WHERE id = ? AND TRIM(name) = ?''',
+        <Object?>[person['name'], now, person['id'], ''],
+      );
     }
   }
 
