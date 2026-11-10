@@ -53,44 +53,15 @@ class _TaskPeoplePageState extends State<TaskPeoplePage> {
     required String title,
     required String saveKey,
     String initialValue = '',
-  }) async {
-    final controller = TextEditingController(text: initialValue);
-    try {
-      return await showDialog<String>(
-        context: context,
-        builder: (dialogContext) => Directionality(
-          textDirection: TextDirection.rtl,
-          child: AlertDialog(
-            title: Text(title),
-            content: TextField(
-              key: const ValueKey('people-name-input'),
-              controller: controller,
-              autofocus: true,
-              textInputAction: TextInputAction.done,
-              decoration: const InputDecoration(
-                labelText: 'نام نمایشی',
-                hintText: 'مثلاً علی رضایی',
-              ),
-              onSubmitted: (value) => Navigator.pop(dialogContext, value),
-            ),
-            actions: [
-              TextButton(
-                key: const ValueKey('people-add-cancel'),
-                onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('لغو'),
-              ),
-              FilledButton(
-                key: ValueKey(saveKey),
-                onPressed: () => Navigator.pop(dialogContext, controller.text),
-                child: const Text('ذخیره'),
-              ),
-            ],
-          ),
-        ),
-      );
-    } finally {
-      controller.dispose();
-    }
+  }) {
+    return showDialog<String>(
+      context: context,
+      builder: (_) => _PersonNameDialog(
+        title: title,
+        saveKey: saveKey,
+        initialValue: initialValue,
+      ),
+    );
   }
 
   Future<void> _addPerson() async {
@@ -281,4 +252,67 @@ class _TaskPeoplePageState extends State<TaskPeoplePage> {
       ),
     );
   }
+}
+
+ 
+class _PersonNameDialog extends StatefulWidget {
+  const _PersonNameDialog({
+    required this.title,
+    required this.saveKey,
+    required this.initialValue,
+  });
+
+  final String title;
+  final String saveKey;
+  final String initialValue;
+
+  @override
+  State<_PersonNameDialog> createState() => _PersonNameDialogState();
+}
+
+class _PersonNameDialogState extends State<_PersonNameDialog> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialValue);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: AlertDialog(
+          title: Text(widget.title),
+          content: TextField(
+            key: const ValueKey('people-name-input'),
+            controller: _controller,
+            autofocus: true,
+            textInputAction: TextInputAction.done,
+            decoration: const InputDecoration(
+              labelText: 'نام نمایشی',
+              hintText: 'مثلاً علی رضایی',
+            ),
+            onSubmitted: (value) => Navigator.pop(context, value),
+          ),
+          actions: [
+            TextButton(
+              key: const ValueKey('people-add-cancel'),
+              onPressed: () => Navigator.pop(context),
+              child: const Text('لغو'),
+            ),
+            FilledButton(
+              key: ValueKey(widget.saveKey),
+              onPressed: () => Navigator.pop(context, _controller.text),
+              child: const Text('ذخیره'),
+            ),
+          ],
+        ),
+      );
 }
