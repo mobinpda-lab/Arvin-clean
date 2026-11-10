@@ -12,6 +12,7 @@ import 'models/task.dart';
 import 'services/app_settings_service.dart';
 import 'services/external_calendar_event_projection.dart';
 import 'services/external_calendar_link_store.dart';
+import 'services/iran_clock.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/system_calendar_bridge.dart';
 import 'services/task_report_filter.dart';
@@ -70,7 +71,7 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
   bool _loadingExternalCalendarEvents = false;
   final List<PersonReference> _createdPeople = <PersonReference>[];
 
-  DateTime get _now => widget.now ?? DateTime.now();
+  DateTime get _now => widget.now ?? IranClock.now();
 
   String get _reportHeading {
     final names = widget.centers
@@ -2275,7 +2276,7 @@ class _CompletedFollowUpReportDialogState
                       TextButton(
                         key: const ValueKey('completed-follow-up-today'),
                         onPressed: () {
-                          final now = DateTime.now().toLocal();
+                          final now = widget.now;
                           setState(() => _selectedDay =
                               DateTime(now.year, now.month, now.day));
                         },
