@@ -821,13 +821,13 @@ class _HomePageState extends State<HomePage> {
 
   String get _timeFilterLabel {
     if (_todayFocusOnly) return 'کارهای برگزیدهٔ امروز';
-    if (_timeFilters.length > 1) return 'زمان (${persianDateFormatter.toPersianDigits('${_timeFilters.length}')})';
+    if (_timeFilters.length > 1) return 'زمان';
     if (_timeFilter == 'customRange') {
       final from = _fromDateFilter == null ? 'شروع' : _date(_fromDateFilter!);
       final to = _toDateFilter == null ? 'پایان' : _date(_toDateFilter!);
       return '$from تا $to';
     }
-    if (_timeFilters.isEmpty) return 'همه';
+    if (_timeFilters.isEmpty) return 'زمان';
     const labels = <String, String>{'past':'گذشته','today':'امروز تقویمی','tomorrow':'فردا','next7':'۷ روز آینده','next30':'۳۰ روز آینده','custom':'تاریخ مشخص','undated':'فاقد زمان'};
     return labels[_timeFilters.first] ?? 'همه';
   }
@@ -1044,30 +1044,9 @@ class _HomePageState extends State<HomePage> {
                       : _timeFilterLabel,
                   icon: Icons.schedule_rounded,
                   soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
-                  selectedCount: _timeFilters.length + (_timeFilter == 'customRange' ? 1 : 0) + (_todayFocusOnly ? 1 : 0),
                   accent: ArvinColors.time,
                   active: _timeFilters.isNotEmpty || _timeFilter == 'customRange' || _todayFocusOnly,
                   onPressed: _showTimeFilterSheet,
-                ),
-              ),
-              const SizedBox(width: 1),
-              Expanded(
-                child: HomeFilterPill(
-                  key: const ValueKey('home-filter-card-center'),
-                  label: _centerFilters.isEmpty
-                      ? 'مرکز'
-                      : _centerFilters.length == 1
-                          ? (_centerFilters.first == '__no_center__'
-                              ? 'بدون مرکز'
-                              : (_centerName(_centerFilters.first) ??
-                                  'مرکز حذف‌شده'))
-                          : 'مرکز (${persianDateFormatter.toPersianDigits('${_centerFilters.length}')})',
-                  icon: Icons.location_city_outlined,
-                  soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
-                  selectedCount: _centerFilters.length,
-                  accent: ArvinColors.time,
-                  active: _centerFilters.isNotEmpty,
-                  onPressed: _showCenterFilterSheet,
                 ),
               ),
               const SizedBox(width: 2),
@@ -1081,10 +1060,9 @@ class _HomePageState extends State<HomePage> {
                               ? 'بدون پروژه'
                               : (_projectTitle(_projectFilters.first) ??
                                   'پروژه حذف‌شده'))
-                          : 'پروژه (${persianDateFormatter.toPersianDigits('${_projectFilters.length}')})',
+                          : 'پروژه',
                   icon: Icons.folder_rounded,
                   soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
-                  selectedCount: _projectFilters.length,
                   accent: ArvinColors.project,
                   active: _projectFilters.isNotEmpty,
                   onPressed: _showProjectFilterSheet,
@@ -1098,10 +1076,9 @@ class _HomePageState extends State<HomePage> {
                       ? 'دسته'
                       : _categoryFilters.length == 1
                           ? _categoryFilters.first
-                          : 'دسته (${persianDateFormatter.toPersianDigits('${_categoryFilters.length}')})',
+                          : 'دسته',
                   icon: Icons.layers_rounded,
                   soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
-                  selectedCount: _categoryFilters.length,
                   accent: ArvinColors.category,
                   active: _categoryFilters.isNotEmpty,
                   onPressed: _showCategoryFilterSheet,
@@ -1113,10 +1090,9 @@ class _HomePageState extends State<HomePage> {
                   key: const ValueKey('home-filter-card-tags'),
                   label: _tagFilters.isEmpty
                       ? 'برچسب'
-                      : 'برچسب (${persianDateFormatter.toPersianDigits('${_tagFilters.length}')})',
+                      : 'برچسب',
                   icon: Icons.sell_rounded,
                   soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
-                  selectedCount: _tagFilters.length,
                   accent: ArvinColors.tag,
                   active: _tagFilters.isNotEmpty,
                   onPressed: _showTagFilterSheet,
@@ -3185,6 +3161,13 @@ class _HomePageState extends State<HomePage> {
                 onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.myTasks),
               ),
               ListTile(
+                key: const ValueKey('home-more-center-filter'),
+                leading: const Icon(Icons.location_city_outlined),
+                title: const Text('فیلتر مرکز'),
+                subtitle: Text(_centerFilters.isEmpty ? 'همه مراکز' : 'مرکز انتخاب شده'),
+                onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.centerFilter),
+              ),
+              ListTile(
                 leading: const Icon(Icons.today_outlined),
                 title: const Text('امروز تقویمی'),
                 onTap: () =>
@@ -3255,6 +3238,9 @@ class _HomePageState extends State<HomePage> {
         return;
       case _HomeMoreAction.myTasks:
         await _openMyTasks();
+        return;
+      case _HomeMoreAction.centerFilter:
+        await _showCenterFilterSheet();
         return;
       case _HomeMoreAction.today:
         Navigator.of(context).popUntil((route) => route.isFirst);
@@ -3983,6 +3969,7 @@ enum _HomeMoreAction {
   todayFocus,
   quickCapture,
   myTasks,
+  centerFilter,
   today,
   undated,
   archive,
