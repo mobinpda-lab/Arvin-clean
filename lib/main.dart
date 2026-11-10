@@ -3814,7 +3814,7 @@ class _HomePageState extends State<HomePage> {
                         child: SvgPicture.asset(
                           'assets/images/branding/bismillah.svg',
                           key: const ValueKey('home-bismillah-svg'),
-                          width: 210,
+                          width: 118,
                           fit: BoxFit.contain,
                           colorFilter: ColorFilter.mode(colors.primary, BlendMode.srcIn),
                           excludeFromSemantics: true,
