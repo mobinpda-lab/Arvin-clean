@@ -55,11 +55,28 @@ class OccurrenceSqlCodec {
         known.add(scheduledAt);
       }
       final occurrenceIdValue = occurrenceId(task.id, scheduledAt);
-      for (var index = 0; index < entry.value.length; index++) {
-        await executor.runInsert(
-          'INSERT INTO occurrence_checklist_items (occurrence_id, ordinal, value) VALUES (?, ?, ?)',
-          <Object?>[occurrenceIdValue, index, entry.value[index]],
-        );
+      final existingItems = await executor.runSelect(
+        'SELECT ordinal, value FROM occurrence_checklist_items '
+        'WHERE occurrence_id = ? ORDER BY ordinal',
+        <Object?>[occurrenceIdValue],
+      );
+      final expectedItems = List.generate(
+        entry.value.length,
+        (index) => <String, Object?>{'ordinal': index, 'value': entry.value[index]},
+      );
+      final actualItems = existingItems.map((row) => <String, Object?>{
+        'ordinal': row['ordinal'],
+        'value': row['value'],
+      }).toList();
+      if (existingItems.isEmpty) {
+        for (var index = 0; index < entry.value.length; index++) {
+          await executor.runInsert(
+            'INSERT INTO occurrence_checklist_items (occurrence_id, ordinal, value) VALUES (?, ?, ?)',
+            <Object?>[occurrenceIdValue, index, entry.value[index]],
+          );
+        }
+      } else if (_canonicalJson(actualItems) != _canonicalJson(expectedItems)) {
+        throw StateError('Occurrence checklist conflict for Task ${task.id} at $scheduledAt');
       }
     }
   }
