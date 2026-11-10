@@ -303,7 +303,7 @@ void main() {
     expect(reminders, hasLength(2));
     expect(
       reminders.map((item) => item.id),
-      contains('task-reminder:task-reminder'),
+      contains('task-reminder-item:task-reminder:morning-reminder'),
     );
     expect(
       reminders.firstWhere((item) => item.id == 'task-reminder-item:task-reminder:morning-reminder').date,
