@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:drift/drift.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -43,6 +44,7 @@ class SqlTaskMigrationWriter {
           <Object?>[record.task.id],
         );
         if (exists.isNotEmpty) {
+          await _assertExistingTaskParity(executor, record, storageOrdinal);
           skippedExisting++;
           continue;
         }
@@ -51,6 +53,14 @@ class SqlTaskMigrationWriter {
         inserted++;
       }
 
+      // Run complete parity validation before commit so any mismatch rolls
+      // back all task and relation writes.
+      await _validateMigratedSnapshot(executor, records);
+      final foreignKeyViolations =
+          await executor.runSelect('PRAGMA foreign_key_check', const []);
+      if (foreignKeyViolations.isNotEmpty) {
+        throw StateError('Task migration foreign-key violations: $foreignKeyViolations');
+      }
       await executor.runCustom('COMMIT');
     } catch (_) {
       await executor.runCustom('ROLLBACK');
@@ -214,6 +224,112 @@ class SqlTaskMigrationWriter {
       );
     }
   }
+
+
+  Future<void> _validateMigratedSnapshot(QueryExecutor executor, List<TaskMigrationRecord> records) async {
+    final rows = await executor.runSelect(
+      'SELECT id, storage_ordinal FROM tasks ORDER BY storage_ordinal, id', const [],
+    );
+    if (rows.length != records.length) {
+      throw StateError('Task row-count mismatch before commit: source=${records.length}, target=${rows.length}');
+    }
+    for (var i = 0; i < records.length; i++) {
+      if (rows[i]['id'] != records[i].task.id ||
+          (rows[i]['storage_ordinal'] as num?)?.toInt() != i) {
+        throw StateError('Task ID/order mismatch at ordinal $i before commit.');
+      }
+      await _assertExistingTaskParity(executor, records[i], i);
+    }
+  }
+
+  Future<void> _assertExistingTaskParity(
+    QueryExecutor executor, TaskMigrationRecord record, int storageOrdinal,
+  ) async {
+    final task = record.task;
+    final rows = await executor.runSelect('SELECT * FROM tasks WHERE id = ?', [task.id]);
+    if (rows.length != 1) throw StateError('Missing or duplicate target Task ${task.id}.');
+    final row = rows.single;
+    final fields = <String, Object?>{
+      'storage_ordinal': storageOrdinal, 'title': task.title,
+      'description': task.description,
+      'created_at': task.createdAt?.toIso8601String(),
+      'updated_at': task.updatedAt?.toIso8601String(),
+      'due_date': task.dueDateStorageValue, 'category': task.category,
+      'notebook_kind': task.notebookKind?.name, 'priority': task.priority.name,
+      'archived': task.archived ? 1 : 0, 'trashed': task.trashed ? 1 : 0,
+      'completed': task.completed ? 1 : 0,
+      'completed_at': task.completedAt?.toIso8601String(),
+      'is_favorite': task.isFavorite ? 1 : 0,
+      'recurrence_json': task.recurrence == null ? null : jsonEncode(task.recurrence!.toJson()),
+    };
+    for (final entry in fields.entries) {
+      if (row[entry.key] != entry.value) {
+        throw StateError('Task field conflict ${task.id}.${entry.key}: source=${entry.value}, target=${row[entry.key]}');
+      }
+    }
+    final envelope = row['legacy_payload_json'];
+    if (envelope is! String || _canonicalJson(jsonDecode(envelope)) != _canonicalJson(record.sourceJson)) {
+      throw StateError('Task envelope/unknown-field conflict for ${task.id}.');
+    }
+
+    final reminders = task.taskReminders.toList()
+      ..sort((a,b) => a.sequence != b.sequence ? a.sequence.compareTo(b.sequence) : a.id.compareTo(b.id));
+    await _assertRows(executor,
+      'SELECT id,title,remind_at,is_all_day,sequence,is_enabled FROM task_reminders WHERE task_id=? ORDER BY sequence,id',
+      [task.id], ['id','title','remind_at','is_all_day','sequence','is_enabled'],
+      reminders.map((r) => <String,Object?>{'id':r.id,'title':r.title,'remind_at':r.storageDateValue,'is_all_day':r.isAllDay?1:0,'sequence':r.sequence,'is_enabled':r.isEnabled?1:0}).toList(),
+      'TaskReminder', task.id);
+
+    await _assertRows(executor,
+      'SELECT id,completed_at,title,note,result,completed,waiting_for_response,ordinal FROM follow_up_records WHERE task_id=? ORDER BY ordinal',
+      [task.id], ['id','completed_at','title','note','result','completed','waiting_for_response','ordinal'],
+      List.generate(task.followUps.length,(i){final f=task.followUps[i];return <String,Object?>{'id':f.id,'completed_at':f.completedAt.toIso8601String(),'title':f.title,'note':f.note,'result':f.result,'completed':f.completed?1:0,'waiting_for_response':f.waitingForResponse?1:0,'ordinal':i};}),
+      'Follow-up history', task.id);
+
+    await _assertRows(executor,
+      'SELECT ordinal,value FROM checklist_items WHERE task_id=? ORDER BY ordinal',
+      [task.id], ['ordinal','value'],
+      List.generate(task.checklist.length,(i)=><String,Object?>{'ordinal':i,'value':task.checklist[i]}),
+      'Checklist', task.id);
+
+    await _assertRows(executor,
+      'SELECT person_id,ordinal FROM task_persons WHERE task_id=? ORDER BY ordinal',
+      [task.id], ['person_id','ordinal'],
+      List.generate(task.people.length,(i)=><String,Object?>{'person_id':task.people[i].id,'ordinal':i}),
+      'Task-Person', task.id);
+
+    await _assertRows(executor,
+      'SELECT tags.name AS name,task_tags.ordinal AS ordinal FROM task_tags JOIN tags ON tags.id=task_tags.tag_id WHERE task_tags.task_id=? ORDER BY task_tags.ordinal',
+      [task.id], ['name','ordinal'],
+      List.generate(task.tags.length,(i)=><String,Object?>{'name':task.tags[i],'ordinal':i}),
+      'Task-Tag', task.id);
+
+    final people=<Map<String,Object?>>[];
+    for(final f in task.followUps){for(var i=0;i<f.personIds.length;i++){people.add(<String,Object?>{'follow_up_id':f.id,'person_id':f.personIds[i],'ordinal':i});}}
+    await _assertRows(executor,
+      'SELECT p.follow_up_id AS follow_up_id,p.person_id AS person_id,p.ordinal AS ordinal FROM follow_up_record_people p JOIN follow_up_records f ON f.id=p.follow_up_id WHERE f.task_id=? ORDER BY f.ordinal,p.ordinal',
+      [task.id], ['follow_up_id','person_id','ordinal'], people,
+      'Follow-up-Person', task.id);
+  }
+
+  Future<void> _assertRows(
+    QueryExecutor executor, String sql, List<Object?> variables,
+    List<String> fields, List<Map<String,Object?>> expected,
+    String relation, String taskId,
+  ) async {
+    final rows=await executor.runSelect(sql,variables);
+    final actual=rows.map((r)=><String,Object?>{for(final f in fields) f:r[f]}).toList();
+    if(_canonicalJson(actual)!=_canonicalJson(expected)){
+      throw StateError('$relation parity mismatch for Task $taskId before commit.');
+    }
+  }
+
+  Object? _canonicalize(Object? value){
+    if(value is Map){final keys=value.keys.map((k)=>k.toString()).toList()..sort();return <String,Object?>{for(final k in keys)k:_canonicalize(value[k])};}
+    if(value is List)return value.map(_canonicalize).toList(growable:false);
+    return value;
+  }
+  String _canonicalJson(Object? value)=>jsonEncode(_canonicalize(value));
 
   static int _bool(bool value) => value ? 1 : 0;
 
