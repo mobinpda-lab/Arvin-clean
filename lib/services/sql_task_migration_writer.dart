@@ -327,7 +327,18 @@ class SqlTaskMigrationWriter {
       [task.id], ['follow_up_id','person_id','ordinal'], people,
       'Follow-up-Person', task.id);
     final occurrenceData = await OccurrenceSqlCodec.readTask(executor, task.id);
-    if (_canonicalJson(occurrenceData.history) != _canonicalJson(task.occurrenceHistory) ||
+    final expectedOccurrenceHistory =
+        Map<String, Map<String, dynamic>>.from(task.occurrenceHistory);
+    for (final scheduledAt in task.checklistOccurrences.keys) {
+      expectedOccurrenceHistory.putIfAbsent(
+        scheduledAt,
+        () => <String, dynamic>{
+          'scheduledDate': scheduledAt,
+          'status': 'pending',
+        },
+      );
+    }
+    if (_canonicalJson(occurrenceData.history) != _canonicalJson(expectedOccurrenceHistory) ||
         _canonicalJson(occurrenceData.checklists) != _canonicalJson(task.checklistOccurrences)) {
       throw StateError('Occurrence/occurrence-checklist parity mismatch for Task ${task.id}.');
     }
