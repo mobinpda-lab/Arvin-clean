@@ -9,6 +9,7 @@ import 'services/app_settings_service.dart';
 import 'services/calendar_swipe_settings_service.dart';
 import 'services/external_calendar_event_projection.dart';
 import 'services/external_calendar_link_store.dart';
+import 'services/iran_clock.dart';
 import 'services/prayer_completion_projection.dart';
 import 'services/prayer_completion_store.dart';
 import 'services/system_calendar_bridge.dart';
@@ -154,7 +155,7 @@ class _OfficialCalendarPageState extends State<OfficialCalendarPage>
 
       final calendarIds = integration.visibleCalendarIds.toList()..sort();
       final boundedIds = calendarIds.take(SystemCalendarBridge.maxEventQueryCalendars).toList(growable: false);
-      final now = DateTime.now().toLocal();
+      final now = IranClock.now();
       final today = DateTime(now.year, now.month, now.day);
       final start = today.subtract(const Duration(days: 31));
       final events = await bridge.listDeviceCalendarEvents(
