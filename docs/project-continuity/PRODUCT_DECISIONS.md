@@ -354,3 +354,30 @@ This clarification resolves an asset-to-screen attribution error and does not in
 - The app continues to use Vazirmatn globally. Card surfaces remain matte with transparent surface tint and a subtle 0.8dp border.
 - Existing saved legacy blue selections are no longer a supported palette entry; unsupported stored selections fall back to the new Persian Teal default through the existing theme preference loader.
 - This entry records the initial theme-token implementation only. Global filter rollout, Task Details layout, Quick Capture redesign, reminder-source audit, and full CI recovery remain separate acceptance gates.
+
+
+# REV7.2 Owner Decision Register Addendum — 2026-11-10
+
+## ARVIN-DEC-2026-11-10-001 — Task Details always-editable auto-save
+
+- Product Approval: APPROVED.
+- Decision authority: Mobin, Product Owner & Product Director, explicit REV7.2 directive.
+- Decision: remove the independent edit form and standalone Edit Mode; keep Task Details continuously editable; automatically persist each permitted field change through the existing TaskStore/Repository path; serialize/coordinate writes; do not expose partially committed state; confirmed changes must survive navigation away; do not introduce a parallel model or store. Adding a Follow-up and completing a Task remain independent operations.
+- Implementation: PARTIAL. The reviewed Task Details source has immediate title save, queued Task mutation, field-specific persistence, reminder persistence and checklist persistence paths. This does not establish that every permitted field is covered or that every navigation/interrupt path is durable.
+- Verification: PARTIAL. Build run 42763952581 Analyze and Visual PASS, but all six test shards fail. Current failure in test/task_detail_master_screen_test.dart reports the expected key task-detail-inline-edit-toggle was not found; this is a test/runtime contract discrepancy to resolve without deleting or weakening the test. Full auto-save acceptance remains NOT VERIFIED.
+- Source evidence: lib/task_detail_page.dart; lib/services/task_store.dart; test/task_detail_master_screen_test.dart; exact SHA b789343c9699ca440d043d71d47db3dcdfafa57c.
+- This decision supersedes any earlier independent-edit-mode direction. Historical records remain retained.
+
+## Active source-of-truth and status contract
+
+- Product Approval values: APPROVED / SUPERSEDED.
+- Implementation values: IMPLEMENTED / PARTIAL / MISSING / BLOCKED.
+- Verification values: VERIFIED / PARTIAL / NOT VERIFIED.
+- Historical statuses in older register rows remain as historical vocabulary and are not silently rewritten. New REV7.2 entries use the three-axis contract above.
+- Reminder product requirement: a four-state Reminder model is required by the owner brief. The four state names and transition semantics are not defined by the inspected TaskReminder model; do not infer them. Product Approval applies to the requirement, not to any invented state mapping.
+
+## Design authority snapshot
+
+- Active Brand Primary: Blue #4169A1, supported by lib/core/theme/arvin_theme.dart at b789343c9699ca440d043d71d47db3dcdfafa57c.
+- Historical Persian Teal #008080 remains in the secondary accent palette; it is not the current brand primary. Historical #3A86EF remains a historical design reference and is not promoted to primary.
+- The existing code's primaryGlow/brandGlow is #404169A1. This differs from the historical sample shadow value discussed in earlier governance; record the discrepancy rather than silently changing tokens.

@@ -1,5 +1,5 @@
 # Arvin Project Continuity
-Last reviewed: ۱۴۰۵/۰۸/۱۴ — 2026-11-05 02:38 Asia/Tehran
+Last reviewed: ۱۴۰۵/۰۸/۱۹ — 2026-11-10 (REV7.2 live GitHub checkpoint)
 Repository: mobinpda-lab/Arvin-clean
 Active branch: fix/recovery-calendar-device-smoke-2026-10-31
 Related PR: #3052
@@ -139,3 +139,14 @@ For this checkpoint, the authoritative live files are the branch HEAD, PR #3052,
 - سطح خالی کارت‌های فیلتر و لهجهٔ سربرگ پنل فیلتر نیز به توکن فیروزه‌ای/سطح خنثی مشترک منتقل شد؛ رنگ‌های برند غیر فیروزه‌ای در کنترل‌های فیلتر باقی نماند.
 - آخرین کد پیش از این به‌روزرسانی اسناد: `f255dfdf9e25a600886c5ff07b990f20c3fa6475`. نتیجهٔ CI این SHA تا لحظهٔ ثبت این پیوست هنوز قابل تأیید نیست؛ PASS از SHAهای قبلی به آن منتقل نمی‌شود.
 - PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ بدون Merge/انتشار؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+## REV7.2 — canonical authority update
+
+- Start with MASTER_GOVERNANCE.md. It is the single canonical governance authority.
+- GitHub live repository and exact branch SHA are the operational source of truth. Historical Source ZIP is archive-only and not a prerequisite.
+- Current audited branch: fix/recovery-calendar-device-smoke-2026-10-31; SHA b789343c9699ca440d043d71d47db3dcdfafa57c; PR #3052 OPEN/DRAFT/UNMERGED; Main SHA 45e4202b03a434459e4c021a04efa7e8396359db.
+- Release: BLOCKED — RELEASE: NO-GO.
+- Status axes: Product Approval (APPROVED/SUPERSEDED), Implementation (IMPLEMENTED/PARTIAL/MISSING/BLOCKED), Verification (VERIFIED/PARTIAL/NOT VERIFIED).
+- Read CURRENT_STATE.md for exact CI; OPEN_ISSUES.md for all 79 shard failures and blockers; PRODUCT_DECISIONS.md for Decision IDs; ROADMAP.md for Waves 0–5; HANDOFF.md for the next safe action.
+- All previous history below remains retained.

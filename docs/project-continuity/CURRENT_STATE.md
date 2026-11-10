@@ -1,3 +1,50 @@
+# CURRENT STATE — REV7.2 live checkpoint
+
+Last audited: 2026-11-10
+
+
+
+## REV7.2 live checkpoint — 2026-11-10
+
+- Repository: mobinpda-lab/Arvin-clean
+- Branch: fix/recovery-calendar-device-smoke-2026-10-31
+- Exact source SHA: b789343c9699ca440d043d71d47db3dcdfafa57c
+- Main/base SHA: 45e4202b03a434459e4c021a04efa7e8396359db
+- PR #3052: OPEN / DRAFT / UNMERGED; base main; head matches this branch.
+- Compare: 2,129 commits ahead, 0 behind. Existing PR diff: 367 files, including 61 docs files and 32 docs/project-continuity files. These are pre-existing PR changes, not this governance commit.
+- Source of Truth: live GitHub Repository, exact branch HEAD, code/schema/migrations/tests/workflows and exact-SHA Actions evidence. Historical Source ZIP is archive-only and is not a prerequisite. Do not request or wait for it.
+- Main remains read-only. No executable code, test, schema, migration, workflow, security configuration, PR metadata, merge or release changes are authorized by this checkpoint.
+- GitHub cannot reveal the operator's local working tree; local clean/dirty status is NOT VERIFIED.
+- Main protection ruleset main-protection is active. It blocks deletion and non-fast-forward updates and requires PR-based changes. The ruleset permits zero required approvals; this is not evidence of owner acceptance for release.
+- Canonical master governance is docs/project-continuity/MASTER_GOVERNANCE.md. No MASTER_CHARTER.md exists at the checked canonical path; no legacy charter content was available to migrate.
+
+### Exact-SHA CI checkpoint
+
+- Build run 42763952581 on this SHA: FAILURE. Analyze PASS; Visual structural smoke PASS; Debug APK PASS; Release APK build PASS; Staging APK build/signature/manifest/font audit PASS; all six test shards FAIL.
+- Shard 0: 231 passed / 14 failed. Shard 1: 195 / 5. Shard 2: 299 / 25. Shard 3: 148 / 12. Shard 4: 240 / 11. Shard 5: 182 / 12. Total: 1,295 passed / 79 failed.
+- Follow-up File Persistence run 42763952346: SUCCESS on this SHA.
+- Calendar Provider Acceptance run 42763952813: SUCCESS on this SHA; the run executed the Android Provider instrumentation acceptance path.
+- Device Smoke run 42763952498: incomplete at last poll (updated 2026-11-10T09:17:55Z). Preparation PASS; Boot IN_PROGRESS; Navigation, Quick Capture, Follow-up Persistence, Reminder/Vazirmatn, Task Lifecycle and Calendar Segmented View QUEUED. No seven-lane completion claim and no physical-device acceptance claim.
+- Other orchestration runs may be green, but they do not override the failed exact-head Build or incomplete Device Smoke.
+- Release remains BLOCKED — RELEASE: NO-GO.
+
+
+## Product architecture checkpoint
+
+- Task, TaskReminder and historical Follow-up are distinct in Task model and Drift tables. TaskReminder does not define the required four-state lifecycle.
+- G1DriftSchema schemaVersion is 16. TaskStore uses the shared Drift executor and transaction-based persistence. Migration code copies legacy Follow-up records/people before dropping legacy tables; no real user DB or backup was inspected.
+- Recurrence repository stores occurrence history and per-occurrence checklist states. A new occurrence starts with unchecked checklist definitions.
+- Shared filters support single/multi select, inline creation and auto-selection, selection count and 48dp list controls. Full global order/responsive acceptance is incomplete.
+- Home time grouping uses Task.dueDate and includes overdue/today/tomorrow/future/no-date plus a separate completed-past group. Sort service has helper methods; the complete approved user-facing sort menu is not proven.
+- Notebook uses canonical Task identity and soft trash/restore. Hard deletion/unlink preservation and auto-title on first save remain unverified.
+- Task Templates share G1 Drift; they store definitions but not Task dueDate. Current instantiation restores reminder date/time, category/tags/priority/checklist/people/recurrence but does not assign Center/Project membership in the reviewed path.
+- Calendar Provider workflow passed on exact SHA; physical device and all internal/external/prayer/tafweez acceptance remains incomplete.
+- Report/PDF source exists; report-related tests fail in current Build shards.
+- NIRA L10 remains UNVERIFIED.
+
+## Exact-SHA status matrix
+
+See MASTER_GOVERNANCE.md §9 for the complete three-axis matrix and file/test evidence. All product claims remain evidence-bound; no feature is VERIFIED solely because its class or file exists.
 - Follow-up compact pass commit message: `ui(quick-capture): compact vertical padding and tighter icon/chip sizing matching reference layout`.
 ## Quick Capture tighter visual compression — 2026-11-04
 - Follow-up UI-only pass on the existing compact Quick Capture form. No field order, row membership, widget keys, horizontal selector structure, selected values, priority enum, color palette, Vazirmatn font family, semantics, callbacks, validation, task construction or persistence behavior was changed.

@@ -231,3 +231,135 @@ PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main دست‌نخورد�
 - Source commit: `0e63449dd122065314c97f7d81f320dfccca3460`.
 - آزمون مرتبط `test/follow_up_entry_page_test.dart` از قبل حالت تمام‌روز و ذخیرهٔ Reminder را پوشش می‌دهد؛ اجرای exact-SHA این اصلاح هنوز در انتظار نتیجه است. Run Build `42361252514`، Draft Review APK `42361252886`، Device Smoke `42361252423` و Persistence `42361252554` در زمان ثبت Pending/Queued هستند؛ هیچ‌کدام PASS محسوب نمی‌شوند.
 - PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+# REV7.2 Live Issue Ledger — 2026-11-10 — exact SHA b789343c9699ca440d043d71d47db3dcdfafa57c
+
+## Blocking status
+
+| ID | Severity | Status | Evidence | Next action / dependency |
+|---|---|---|---|---|
+| ARV-REV72-001 | Critical | BLOCKED | Build 42763952581: six test shards fail (79 failures). | Diagnose each failing contract; preserve every test; rerun exact candidate SHA. |
+| ARV-REV72-002 | Critical | BLOCKED | Device Smoke 42763952498: preparation PASS, Boot IN_PROGRESS, six lanes QUEUED. | Complete all seven lanes on one exact SHA and retain artifacts; physical-device acceptance separately. |
+| ARV-REV72-003 | High | BLOCKED | TaskReminder model only has isEnabled/isAllDay. | Obtain explicit four-state names, transitions and persistence semantics from product owner before code. |
+| ARV-REV72-004 | High | PARTIAL | Task Details field-specific saves exist; complete always-editable auto-save not verified; missing edit-toggle finder in test. | Align tests with approved decision without weakening; add full field/exit/reopen acceptance in authorized code mission. |
+| ARV-REV72-005 | High | PARTIAL | TaskTemplate lacks dueDate; template creation/instantiation does not restore center/project assignment in reviewed path. | Define date-shift and taxonomy assignment semantics; implement only in later authorized code scope. |
+| ARV-REV72-006 | High | NOT VERIFIED | Notebook same-ID conversion and soft trash exist; hard-delete/unlink preservation and first-save title behavior not proven. | Add lifecycle acceptance using canonical store and real reopen tests. |
+| ARV-REV72-007 | High | PARTIAL | Shared filter has 48dp controls; Quick Capture test contract includes 40dp. | Enforce >=48dp and test 360/390/412dp in a later code mission. |
+| ARV-REV72-008 | High | PARTIAL | Sort service helpers exist, but complete user-facing sort choices not proven. | Verify UI options for alphabetical/date/priority/oldest/newest/reverse. |
+| ARV-REV72-009 | High | PARTIAL | G1 schema v16 and migration code present; actual user DB and backup not inspected. | Inspect real DB row counts and backup, build rollback/data-conversion plan before any destructive migration. |
+| ARV-REV72-010 | High | NOT VERIFIED | NIRA L10 explicitly UNVERIFIED; latest Queue Scheduler run failed. | Repair scheduler, run registered-client E2E with failure/fencing/recovery and promotion evidence. |
+| ARV-REV72-011 | Medium | PARTIAL | Report Center/PDF code exists; report and PDF tests fail in current shards. | Diagnose report projection/UI/PDF failures and reconcile output with canonical records. |
+| ARV-REV72-012 | Medium | NOT VERIFIED | Internal/external Calendar separation exists; Provider workflow passed but full physical/calendar layer acceptance incomplete. | Complete seven-lane Device Smoke and physical-device calendar acceptance; verify prayer/tafweez isolation. |
+| ARV-REV72-013 | Medium | BLOCKED | MASTER_GOVERNANCE.md was absent before this deployment; seven supporting docs stale. | Deploy and verify all eight canonical docs on authorized branch. |
+| ARV-REV72-014 | Medium | NOT VERIFIED | Local working tree is not exposed by GitHub API. | Do not infer local clean state; inspect only if an actual local workspace becomes available. |
+
+## Exact-SHA failed tests — Build run 42763952581
+
+Counts: Shard 0 231 passed / 14 failed; Shard 1 195 / 5; Shard 2 299 / 25; Shard 3 148 / 12; Shard 4 240 / 11; Shard 5 182 / 12. Total 1,295 passed / 79 failed.
+
+1. Shard 0 — test/task_detail_checklist_flow_test.dart — task detail displays checklist and toggles an item
+2. Shard 0 — test/widgets/task_dialog_test.dart — creates a task with trimmed text and a unique tag
+3. Shard 0 — test/widgets/home_page_test.dart — renders the current canonical HomePage shell
+4. Shard 0 — test/quick_capture_dialog_test.dart — Quick Capture can create a center inline and immediately select it
+5. Shard 0 — test/task_detail_due_date_action_test.dart — Task Details explicit today action aligns with Due Date and persists only the date change
+6. Shard 0 — test/services/task_report_filter_test.dart — combined filters use AND semantics without mutating tasks
+7. Shard 0 — test/device_feedback_home_regression_test.dart — Home keeps backup in the More menu instead of the header
+8. Shard 0 — test/primary_bottom_navigation_test.dart — primary navigation exposes exactly five canonical destinations
+9. Shard 0 — test/home/home_filter_contract_test.dart — Home keeps completed past tasks visible in a separate non-overdue group
+10. Shard 0 — test/follow_up_office_page_test.dart — follow-up office exposes the shared five filter dimensions
+11. Shard 0 — test/canonical_home_boundary_test.dart — Home owns canonical Task state without legacy ArvinTask projection
+12. Shard 0 — test/task_people_page_test.dart — empty People UI adds and removes a local Person explicitly
+13. Shard 0 — test/task_editor_category_project_integration_test.dart — new task saves typed category without an extra apply step
+14. Shard 0 — test/home_today_about_test.dart — Today menu action shows only active canonical tasks due today
+15. Shard 1 — test/widgets/home_page_test.dart — completed tasks remain visible in All and Completed filters
+16. Shard 1 — test/quick_capture_dialog_test.dart — canonical capture keeps title-only path and optional choices
+17. Shard 1 — test/quick_capture_dialog_test.dart — Quick Add scheduling uses the canonical circular date/time picker
+18. Shard 1 — test/task_timeline_page_test.dart — renders canonical task history in chronological order
+19. Shard 1 — test/calendar_explicit_export_contract_test.dart — normal Task save, capture, edit and completion contain no outbound sync
+20. Shard 2 — test/settings_page_test.dart — settings exposes date, swipe, projects and canonical backup controls
+21. Shard 2 — test/widgets/home_quick_capture_test.dart — Home primary add persists canonical task and preserves history
+22. Shard 2 — test/quick_capture_dialog_test.dart — Quick Add opens an independent Persian reminder date/time picker
+23. Shard 2 — test/quick_capture_dialog_test.dart — Quick Add shows the selected scheduling time and uses injected now
+24. Shard 2 — test/follow_up_entry_page_test.dart — waiting FollowUp can add, select, reopen and remove a stable person
+25. Shard 2 — test/home_last_follow_up_real_record_test.dart — Home shows last FollowUp only for a real record and does not create one
+26. Shard 2 — test/task_contract_test.dart — due date stays independent from reminder and follow-up timestamps
+27. Shard 2 — test/widget_test.dart — Home exposes the canonical workflow controls
+28. Shard 2 — test/task_editor_dialog_test.dart — Back-style close prompts and can save Task edits without data loss
+29. Shard 2 — test/release_critical_path_test.dart — critical capture to independent reminder path survives canonical persistence
+30. Shard 2 — test/home/home_owner_reference_test.dart — Home follows the owner header, real summary values and Today navigation
+31. Shard 2 — test/home/home_filter_boolean_logic_test.dart — Home filters combine OR within each dimension and AND across dimensions
+32. Shard 2 — test/task_editor_due_date_preservation_test.dart — editing preserves canonical due date independently
+33. Shard 2 — test/follow_up_office_page_test.dart — selects one of multiple tasks and persists only to that task
+34. Shard 2 — test/task_detail_person_persistence_test.dart — Task Details Follow-up person selection persists through canonical Person and relation tables
+35. Shard 2 — test/task_detail_master_screen_test.dart — Task Details presents canonical follow-up title, note and waiting-for-response state
+36. Shard 2 — test/task_detail_master_screen_test.dart — Task Details persists checklist reorder and additions immediately without changing Follow-up history
+37. Shard 2 — test/home_wave2_editor_wiring_guard_test.dart — Home add/edit stay wired to the canonical Wave 2 coordinator
+38. Shard 2 — test/notebook_page_test.dart — editor tag picker replaces tags on the same canonical note
+39. Shard 2 — test/canonical_home_boundary_test.dart — normal save, Quick Capture, edit and completion never export automatically
+40. Shard 2 — test/task_detail_checklist_crud_test.dart — checklist add, inline edit and delete persist immediately and preserve legacy follow-up timestamps
+41. Shard 2 — test/home_today_about_test.dart — Today menu action has a dedicated empty state
+42. Shard 2 — test/quick_capture_project_create_test.dart — Quick Add offers Project create-new and selects the created project
+43. Shard 2 — test/report_center_page_test.dart — Report Center exposes center and searchable task controls
+44. Shard 2 — test/home_stat_filters_test.dart — category checkbox selection applies OR only after confirmation
+45. Shard 3 — test/widgets/home_page_test.dart — RTL Move-to-Today does not dismiss and None is a no-op
+46. Shard 3 — test/widgets/home_page_test.dart — Home five filters stay in one RTL row without horizontal scrolling at phone widths and with keyboard
+47. Shard 3 — test/widgets/home_page_test.dart — Home Past time filter excludes today and prioritizes incomplete tasks
+48. Shard 3 — test/quick_capture_dialog_test.dart — Quick Add reminder presets match the product contract
+49. Shard 3 — test/quick_capture_dialog_test.dart — Quick Add custom recurrence exposes every canonical time unit
+50. Shard 3 — test/services/task_migration_writer_test.dart — Home projection persists explicitly supplied canonical Follow-up history
+51. Shard 3 — test/device_feedback_home_regression_test.dart — normal-height Home keeps empty groups and floating add action
+52. Shard 3 — test/task_editor_dialog_test.dart — task editor recurrence uses RollBox and preserves interval
+53. Shard 3 — test/home/home_filter_contract_test.dart — Home task card expands in place with real FollowUp history and preserves details route
+54. Shard 3 — test/follow_up_office_page_test.dart — legacy Next Follow-up dates never create an automatic due filter
+55. Shard 3 — test/task_detail_master_screen_test.dart — Smart visibility keeps an ordinary Task detail compact
+56. Shard 3 — test/home_stat_filters_test.dart — tag choices are OR within Tags and AND with Category
+57. Shard 4 — test/widgets/home_page_test.dart — overdue active task uses red text while card and icons stay neutral
+58. Shard 4 — test/g6_swipe_rtl_acceptance_test.dart — configured left and right swipes open Follow-up form and write only after save
+59. Shard 4 — test/task_editor_dialog_test.dart — Task editor saves a real all-day deadline from inside the clock dialog
+60. Shard 4 — test/work_agenda_pdf_renderer_test.dart — existing PDF renderer builds grouped Work Agenda bytes
+61. Shard 4 — test/unified_item_migration_test.dart — Unified Task JSON preserves reminder and recurrence fields
+62. Shard 4 — test/task_detail_master_screen_test.dart — Smart visibility shows rich sections only when canonical data exists
+63. Shard 4 — test/task_detail_master_screen_test.dart — Task Details presents summary, metadata and due date once in RTL order
+64. Shard 4 — test/issue_1891_lane_d_rollbox_test.dart — issue 1891 tag roll box supports multi-select with apply/cancel
+65. Shard 4 — test/home_today_about_test.dart — About menu action opens the built-in Arvin about dialog
+66. Shard 4 — test/calendar_page_test.dart — prayer cards use mosque icon and subdued unregistered status
+67. Shard 4 — test/home_stat_filters_test.dart — time checkbox selections use OR without a numeric badge
+68. Shard 5 — test/widgets/home_page_test.dart — Home separates calendar today from selected focus and persists toggle removal
+69. Shard 5 — test/widgets/home_page_test.dart — Focus Today is reachable from drawer More and global funnel with one result set
+70. Shard 5 — test/quick_capture_dialog_test.dart — timed-to-all-day clears a relative reminder and all-day-to-timed preserves custom reminder
+71. Shard 5 — test/widget_test.dart — HomePage shows the empty-state message after loading
+72. Shard 5 — test/task_editor_dialog_test.dart — Task editor cancelling the circular clock does not commit a partial date
+73. Shard 5 — test/follow_up_office_page_test.dart — asks the user to create a task when the list is empty
+74. Shard 5 — test/task_detail_master_screen_test.dart — Task Details does not present related people as assignees and keeps bottom content clear
+75. Shard 5 — test/notebook_page_test.dart — Notebook selectors use canonical Task taxonomy, including unused-by-Notebook entries
+76. Shard 5 — test/canonical_calendar_launcher_test.dart — repeat occurrence actions resolve back to the canonical Task
+77. Shard 5 — test/report_center_page_test.dart — Report Center quick presets apply from a dedicated bottom sheet
+78. Shard 5 — test/home_stat_filters_test.dart — calendar Today includes due-today and overdue open work, not Focus-only future work
+79. Shard 5 — test/home_stat_filters_test.dart — time filter calendar Today excludes completed tasks and keeps overdue open work
+
+## Failure symptom classification (root cause not established)
+
+- Home/navigation/filter: missing keys/text, expected five HomeFilterPill widgets but found four, missing groups or changed count, Focus Today/Calendar Today expectation mismatches.
+- Quick Capture/editor: missing or duplicate finders, picker/recurrence control expectations, date/time values null or different, all-day transition assertions.
+- Task Details/checklist/people: missing checklist/detail/people widgets, missing edit-toggle key, wrong visibility/metadata expectations, date or persistence mismatches.
+- Follow-up/Notebook/Reports: missing last Follow-up/waiting labels, filter dimension mismatch, person persistence/empty-state assertions, Notebook taxonomy/tag picker, report preset and PDF failures.
+- Data/migration: due-date or recurrence preservation mismatches, migration writer expectations.
+- Visual/geometry: color expectation differs from actual; some geometry expectation mismatch.
+- Runtime: RangeError (end) observed in multiple shards with end index -1; originating source scan/path and root cause need investigation.
+
+These classifications describe logs only. Do not declare a shared root cause until a reproducible failing test and source path prove it. Do not remove, skip, bypass or weaken any test.
+
+## Other current evidence
+
+- Analyze, Visual structural smoke, Debug APK, Release APK build and Staging APK audit succeeded on exact SHA b789343c9699ca440d043d71d47db3dcdfafa57c; these do not override shard failures.
+- Follow-up Persistence run 42763952346 SUCCESS.
+- Calendar Provider Acceptance run 42763952813 SUCCESS.
+- Device Smoke run 42763952498 remains incomplete at last poll; no full seven-lane or physical-device pass.
+- NIRA main SHA 7a27ee63b65d343e45c5786f782f2567611722dc: Main Closure run 42777826931 SUCCESS; Queue Scheduler run 42777810609 FAILURE. NIRA README explicitly keeps L10 UNVERIFIED.
+
+## Owner decisions still required
+
+- Four Reminder state names, transitions, terminal behavior, snooze/re-enable semantics and persistence contract.
+- Any new change to the active Blue brand primary or to the historical sample shadow interpretation.
+- Any additional semantics for Inbox beyond storing unclassified work without forced taxonomy.

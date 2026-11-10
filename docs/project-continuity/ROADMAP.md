@@ -240,3 +240,50 @@ Current checkpoint: Smoke run `42169009238` remains IN_PROGRESS with cancelled B
 - سطح خالی کارت‌های فیلتر و لهجهٔ سربرگ پنل فیلتر نیز به توکن فیروزه‌ای/سطح خنثی مشترک منتقل شد؛ رنگ‌های برند غیر فیروزه‌ای در کنترل‌های فیلتر باقی نماند.
 - آخرین کد پیش از این به‌روزرسانی اسناد: `f255dfdf9e25a600886c5ff07b990f20c3fa6475`. نتیجهٔ CI این SHA تا لحظهٔ ثبت این پیوست هنوز قابل تأیید نیست؛ PASS از SHAهای قبلی به آن منتقل نمی‌شود.
 - PR #3052 OPEN / DRAFT / UNMERGED؛ main بدون تغییر؛ بدون Merge/انتشار؛ **BLOCKED — RELEASE: NO-GO**.
+
+
+# REV7.2 Wave Roadmap — 2026-11-10
+
+## Wave 0 — Governance & Source of Truth
+- Goal: establish one master governance source, synchronized decision register, exact-SHA current state, issue ledger, roadmap, implementation log and handoff.
+- Dependencies: none beyond live GitHub read access and authorized branch.
+- Files: all eight canonical files in docs/project-continuity/.
+- Acceptance: eight canonical files exist; master links to the seven supporting files; prior history retained; no source ZIP gate; commit is a single documentation-only commit on the authorized branch; verify branch SHA after push.
+- Tests/evidence: GitHub file fetches, diff review, internal-link/path check, parent SHA lease, post-push ref and file fetch.
+- Status: READY for documentation-only deployment on the authorized branch; Main remains read-only.
+
+## Wave 1 — Data Integrity & Architecture
+- Goal: settle four-state Reminder semantics; verify Task/Reminder/Follow-up separation; review Drift v16 migrations, backups, restore, referential integrity, data-loss and rollback behavior.
+- Dependencies: Wave 0 baseline; explicit product semantics for the four Reminder states; inspection of an actual user DB and backup before any destructive migration.
+- Files: lib/models/task.dart; lib/services/g1_drift_schema.dart; lib/services/task_store.dart; lib/services/canonical_backup_manager.dart or active backup implementation; migration/backup tests.
+- Acceptance: state-transition table approved; no parallel store; schema/backup compatibility tests; real DB row-count and backup evidence; injected failure/rollback tests; no data loss.
+- Status: BLOCKED for execution pending Reminder-state contract and real-data/backup inspection. Audit findings are documented; no code changes authorized here.
+
+## Wave 2 — Core Task Lifecycle
+- Goal: complete always-editable auto-save, due date, independent Reminder, Follow-up, recurrence, occurrence history and per-occurrence checklist behavior.
+- Dependencies: Wave 1 data invariants; REV7.2 decision ARVIN-DEC-2026-11-10-001.
+- Files: lib/task_detail_page.dart; lib/models/task.dart; lib/services/task_store.dart; lib/services/task_recurrence_repository.dart; follow-up/reminder services and focused tests.
+- Acceptance: every field persists via canonical store; no separate edit mode; no partial writes; exit/reopen preserves confirmed values; recurrence history immutable; reminder and due date independent; Follow-up remains historical and independent.
+- Tests: Task Details widget tests; task contract; reminder persistence; recurrence repository; checklist occurrence; follow-up persistence; restart/close-reopen tests.
+- Status: PARTIAL / BLOCKED by six failing test shards and incomplete auto-save proof. No tests may be removed or weakened.
+
+## Wave 3 — Home, Quick Capture & Filters
+- Goal: complete five filters in required order, OR within group/AND across groups, full sort options, Inbox behavior, Home grouping, Follow-up summaries and responsive geometry.
+- Dependencies: Wave 1 hierarchy/data contract and Wave 2 lifecycle semantics.
+- Files: lib/main.dart; lib/home/home_filter_ui.dart; lib/home/grouping/home_grouping_service.dart; lib/services/task_list_sort_service.dart; lib/widgets/reusable_multi_select_filter_bottom_sheet.dart; lib/quick_capture_dialog.dart; related tests.
+- Acceptance: time → center → project → category → tag; single-select Center/Project/Category; multi-select Tags; no mandatory classification; Inbox contract; complete alphabetical/date/priority/oldest/newest/reverse sorting; 360/390/412dp tests; all touch targets >=48dp.
+- Status: PARTIAL / BLOCKED by failing Home and Quick Capture tests and incomplete 48dp/viewport proof.
+
+## Wave 4 — Notebook, Calendar & Templates
+- Goal: preserve independent/linked notes, safe deletion/unlink, first-save title behavior, deep template cloning and full internal/external calendar separation.
+- Dependencies: Waves 1–3; template membership contract and Notebook deletion semantics.
+- Files: lib/notebook_page.dart; lib/services/canonical_notebook_repository.dart; lib/models/task_template.dart; lib/task_template_management_page.dart; lib/calendar_page.dart; lib/services/system_calendar_bridge.dart; lib/services/calendar_provider_sync_executor.dart.
+- Acceptance: note survives Task deletion/unlink; convert preserves text; title generated only at first save; templates preserve requested definition fields and omit execution history; new dates shift correctly; external event deletion never deletes internal Task; Jalali/Hijri/Gregorian and prayer/tafweez layers independently accepted.
+- Status: PARTIAL. Calendar Provider run PASS on exact SHA; Notebook/template edge contracts and physical calendar acceptance remain NOT VERIFIED.
+
+## Wave 5 — Reports, Sync & Enterprise Acceptance
+- Goal: correct reports/PDF/instalments, validate data accuracy, establish Local P2P end-to-end and close full product/device/security acceptance.
+- Dependencies: Waves 1–4; approved sync threat model and conflict semantics; NIRA end-to-end proof.
+- Files: lib/report_center_page.dart; lib/services/task_report_pdf_renderer.dart; sync services/specifications; NIRA client adapter and evidence workflows.
+- Acceptance: report totals reconcile to canonical rows; PDF/print/share evidence; secure pairing and conflict tests; exact-SHA Build, all six test shards, seven Device Smoke lanes, Calendar Provider, Follow-up Persistence, backup/restore, security and owner acceptance.
+- Status: BLOCKED. Report-related tests fail; Local P2P E2E and NIRA L10 remain NOT VERIFIED; Device Smoke incomplete.

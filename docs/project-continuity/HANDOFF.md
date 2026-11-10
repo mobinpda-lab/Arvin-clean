@@ -1,3 +1,30 @@
+# REV7.2 NEXT-AGENT HANDOFF — 2026-11-10
+
+## First action
+1. Read MASTER_GOVERNANCE.md, then CURRENT_STATE.md, OPEN_ISSUES.md and PRODUCT_DECISIONS.md.
+2. Re-read live Main and branch refs before any write. Expected authorized branch: fix/recovery-calendar-device-smoke-2026-10-31; last audited head: b789343c9699ca440d043d71d47db3dcdfafa57c; Main: 45e4202b03a434459e4c021a04efa7e8396359db.
+3. Confirm PR #3052 is still OPEN/DRAFT/UNMERGED. Main is read-only.
+4. Check exact-head Build, six shards, Device Smoke, Calendar Provider and Follow-up Persistence. Do not transfer a PASS across SHAs.
+5. Continue only the documentation deployment if it was not yet completed; if completed, verify the single commit and all eight files before any further work.
+6. Do not change code/tests/schema/migrations/workflows/security, PR metadata, Main, merge or release under this governance order.
+
+## Current blockers
+- Build 42763952581 failed all six test shards (79 failures); logs and test names are in OPEN_ISSUES.md.
+- Device Smoke 42763952498 is incomplete; only preparation passed, Boot was in progress and six lanes queued at last poll.
+- Reminder four-state semantics are not defined in the reviewed TaskReminder model; do not guess.
+- Auto-save is APPROVED (ARVIN-DEC-2026-11-10-001) but full-field and exit/reopen acceptance is not verified.
+- Template due-date/center/project propagation and Notebook hard-delete/unlink/title-on-first-save remain gaps.
+- Actual user database and backup have not been inspected; do not run destructive migrations.
+- NIRA L10 remains UNVERIFIED; Queue Scheduler last run failed.
+
+## Execution order
+Wave 0 docs first; Wave 1 data integrity next after Reminder semantics and real DB/backup inspection; Wave 2 core lifecycle; Wave 3 Home/Quick Capture/filters; Wave 4 Notebook/Calendar/Templates; Wave 5 reports/sync/NIRA and enterprise acceptance. See ROADMAP.md for detailed acceptance criteria.
+
+## Release gate
+BLOCKED — RELEASE: NO-GO. No merge or release without all exact-SHA gates, physical-device acceptance, data/security evidence and explicit Mobin acceptance.
+
+---
+
 ## Quick Capture tighter visual compression — 2026-11-04
 - Follow-up UI-only pass on the existing compact Quick Capture form. No field order, row membership, widget keys, horizontal selector structure, selected values, priority enum, color palette, Vazirmatn font family, semantics, callbacks, validation, task construction or persistence behavior was changed.
 - Compact ArvinRollBox and ArvinTagRollBox controls reduced from 42dp to 40dp; compact icons reduced from 18dp to 16dp, icon/text gap from 6dp to 4dp, horizontal inset from 10dp to 8dp, compact label size from 11.5sp to 10.5sp. The 40dp minimum touch target is retained.

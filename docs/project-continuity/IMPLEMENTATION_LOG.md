@@ -778,3 +778,19 @@ PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main دست‌نخورد�
 - The Shard 1 UI overflow is now directly localized in the reusable filter sheet: the log for `test/reusable_multi_select_filter_bottom_sheet_test.dart` identifies `Row` at `lib/widgets/reusable_multi_select_filter_bottom_sheet.dart:206:17` and reports `A RenderFlex overflowed by 158 pixels on the right`. This is confirmed for that test. Other UI tests report missed hit-tests at filter/apply controls; verify each affected screen against the shared component before assigning a common cause.
 - Shard 1 is therefore **not green**. The source Analyze fix is verified, but the full quality gate remains failed until all 14 regressions are fixed without weakening tests.
 - Documentation commit `cb89261753adc2d935798e85d0a3ed8b9ef66b37` was created after the source run; no workflow run for that documentation SHA was visible at the time of this addendum. Re-check exact-SHA CI for the documentation commit; do not transfer PASS from source SHA `6fa57ce` to the documentation SHA.
+
+
+## REV7.2 documentation and live audit checkpoint — 2026-11-10
+
+- Audited live GitHub refs for Main, authorized branch and PR #3052. Main SHA 45e4202b03a434459e4c021a04efa7e8396359db; branch/PR head b789343c9699ca440d043d71d47db3dcdfafa57c. PR remains OPEN/DRAFT/UNMERGED; compare 2,129 ahead / 0 behind.
+- Confirmed active Main protection ruleset main-protection; Main remains read-only. No local working-tree evidence is available from GitHub.
+- Reconciled source-of-truth authority: live GitHub is operational truth; historical ZIP is archive-only and not a prerequisite.
+- Read all seven existing continuity documents. MASTER_GOVERNANCE.md was absent; MASTER_CHARTER.md was also absent at the checked canonical path. No history was deleted; existing docs receive this checkpoint addendum.
+- Audited Task/Reminder/Follow-up, Drift schema v16, TaskStore, recurrence/checklist history, filters, Home grouping/sorting, Notebook, Task Templates, Calendar Provider and reports on exact SHA b789343c9699ca440d043d71d47db3dcdfafa57c.
+- Key gaps: no four-state Reminder semantics in TaskReminder; TaskTemplate omits Task dueDate and reviewed instantiation does not assign center/project membership; Notebook hard-delete/unlink and first-save auto-title not proven; app-wide 48dp compliance not proven; complete Home sort surface not proven; actual user DB migration/backup not inspected.
+- Registered owner decision ARVIN-DEC-2026-11-10-001: Task Details always-editable auto-save, APPROVED. Implementation and verification remain PARTIAL pending exact tests.
+- Build run 42763952581: Analyze, Visual, Debug APK, Release APK build, Staging APK audit PASS; all six test shards FAIL, 1,295 passed / 79 failed. Exact failures listed in OPEN_ISSUES.md.
+- Follow-up Persistence 42763952346 PASS; Calendar Provider Acceptance 42763952813 PASS; Device Smoke 42763952498 incomplete (Preparation PASS, Boot IN_PROGRESS, six lanes queued).
+- NIRA: main SHA 7a27ee63b65d343e45c5786f782f2567611722dc; Main Closure 42777826931 PASS; Queue Scheduler 42777810609 FAIL; L10 remains UNVERIFIED per NIRA README.
+- No executable code, test, schema, migration, workflow or security configuration changed. This record is documentation-only.
+- Release remains BLOCKED — RELEASE: NO-GO.
