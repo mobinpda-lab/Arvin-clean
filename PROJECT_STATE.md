@@ -163,3 +163,14 @@ Exact-SHA workflows on implementation SHA `dbfcdb02879ed3939cb6a69d3a150e2237283
 - CI status is not inferred from an empty combined-status response; no PASS is claimed here.
 
 Older snapshots in this file remain HISTORICAL and must not be deleted.
+
+
+---
+
+## Documentation PR created — 2026-11-10
+
+- PR: [#3340 — REV9 governance and permanent AI continuity](https://github.com/mobinpda-lab/Arvin-clean/pull/3340).
+- State at creation: OPEN / UNMERGED; base `main`; head branch `docs/rev9-governance-continuity-2026-11-10`.
+- PR creation head SHA: `b9dc37804a69cd2292a071e008b50bd261bae512`. A subsequent documentation-only follow-up commit updates this state record; always fetch the live PR/branch head before continuing.
+- PR #3052 remains OPEN / DRAFT / UNMERGED and untouched.
+- Review requested from Mobin; no merge or release is authorized.

@@ -471,3 +471,14 @@ Main READ-ONLY. PR #3052 OPEN / DRAFT / UNMERGED. No force push, merge, release 
 
 ## Next action
 Review the independent documentation PR, verify the final diff contains only approved documentation/agent instruction files, and request Mobin's review. Do not merge.
+
+
+---
+
+## PR #3340 — owner review handoff
+
+- Review this PR: https://github.com/mobinpda-lab/Arvin-clean/pull/3340
+- State at creation: OPEN / UNMERGED. Head at creation: `b9dc37804a69cd2292a071e008b50bd261bae512`; one documentation-only follow-up commit updates continuity records after PR creation, so fetch the live head now.
+- Verify changed files remain documentation/agent-instruction only; PR #3052 must remain unchanged and OPEN / DRAFT / UNMERGED.
+- Do not merge, release, change code/schema/tests/workflows, or resolve typography without explicit Mobin authorization.
+- Next action: Mobin reviews PR #3340 and decides whether to approve or request documentation revisions.

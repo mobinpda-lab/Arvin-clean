@@ -93,3 +93,17 @@ No Main ref was modified.
 | Combined CI status queried on PR #3052 head | No status records returned by combined-status endpoint. | No PASS inferred; inspect workflow runs/checks directly before any gate change. |
 
 The final documentation PR head and changed-file list must be added after the final commit and PR creation. Historical SHAs elsewhere in this file remain historical snapshots.
+
+
+---
+
+## PR #3340 — creation checkpoint
+
+| Role | Ref / SHA | Status |
+|---|---|---|
+| Main base | `45e4202b03a434459e4c021a04efa7e8396359db` | Verified at branch creation and pre-PR check. |
+| REV9 documentation branch | `docs/rev9-governance-continuity-2026-11-10` | Created from Main. |
+| PR #3340 head at creation | `b9dc37804a69cd2292a071e008b50bd261bae512` | OPEN / UNMERGED; a docs-only follow-up commit advances the branch after this checkpoint. Fetch live PR head for current value. |
+| Source PR #3052 | `aba68e44be0fcac7d4ad425b58fbe75e5aba264e` | OPEN / DRAFT / UNMERGED; untouched. |
+
+Do not reuse the PR-creation head as current after subsequent commits. Live ref is authoritative.

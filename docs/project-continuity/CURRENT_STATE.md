@@ -1095,3 +1095,15 @@ Remaining: G1 legacy relation parity, a single multi-source transaction, remaini
 **Decision status:** REV9 APPROVED as the current owner-supplied master charter. **Implementation status:** not established by this documentation deployment. **Verification status:** UNVERIFIED unless exact-SHA evidence is cited.
 
 Live repository facts at deployment start: Main `45e4202b03a434459e4c021a04efa7e8396359db`; PR #3052 OPEN / DRAFT / UNMERGED at `aba68e44be0fcac7d4ad425b58fbe75e5aba264e`; independent documentation branch `docs/rev9-governance-continuity-2026-11-10` based on that Main SHA. No changes were made to PR #3052. Related PRs #3022, #2598, #2600 and #2866 remain open/unmerged and are recorded as competing/proposed documentation sources, not merged truth. Font issue #2974 records the earlier Vazirmatn owner decision; REV9 is newer and explicitly reopens the Vazirmatn/VazirHarf conflict as NEEDS OWNER DECISION. Release remains BLOCKED — RELEASE: NO-GO.
+
+
+---
+
+## Post-PR deployment checkpoint — 2026-11-10
+
+- Separate documentation PR created: #3340, OPEN / UNMERGED, base `main`, branch `docs/rev9-governance-continuity-2026-11-10`.
+- Head at PR creation: `b9dc37804a69cd2292a071e008b50bd261bae512`; a follow-up docs-only commit is being added to record the PR link and handoff. Re-fetch live branch HEAD before any further action.
+- Main base: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- PR #3052: OPEN / DRAFT / UNMERGED, head `aba68e44be0fcac7d4ad425b58fbe75e5aba264e`; unchanged.
+- The final pre-PR diff contained 66 files, all Markdown/agent-instruction files; 0 non-documentation files.
+- Release remains BLOCKED — RELEASE: NO-GO.

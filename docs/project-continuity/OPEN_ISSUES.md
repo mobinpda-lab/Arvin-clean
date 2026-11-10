@@ -434,3 +434,13 @@ Do not retire legacy sources until parity, round-trip, backup/restore, rollback,
 
 ### Release gate
 BLOCKED — RELEASE: NO-GO. Documentation deployment does not establish product implementation, device acceptance, CI success or release readiness.
+
+
+---
+
+## Documentation review pending — 2026-11-10
+
+- PR #3340: https://github.com/mobinpda-lab/Arvin-clean/pull/3340 — OPEN / UNMERGED, awaiting Mobin review.
+- Branch: `docs/rev9-governance-continuity-2026-11-10`; created from Main `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Pre-PR diff: 66 Markdown/agent-instruction files; zero non-documentation files.
+- Do not merge or release until explicit owner approval. PR #3052 remains unchanged and OPEN / DRAFT / UNMERGED.
