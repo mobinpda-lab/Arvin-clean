@@ -395,3 +395,16 @@ These classifications describe logs only. Do not declare a shared root cause unt
 - Four Reminder state names, transitions, terminal behavior, snooze/re-enable semantics and persistence contract.
 - Any new change to the active Blue brand primary or to the historical sample shadow interpretation.
 - Any additional semantics for Inbox beyond storing unclassified work without forced taxonomy.
+
+
+## WAVE 4 REV8 — remaining blockers (2026-11-10)
+
+1. G1 legacy Follow-up, Person and relation migrations still need full source/target field, null/empty, order and conflict parity.
+2. Task and Project preference migrations are improved but are not yet one atomic transaction with every schema/store migration.
+3. Task and Project legacy envelopes remain; template JSON columns remain; other SharedPreferences owners remain.
+4. Settings, Calendar integration, Prayer Completion, Notification State and remote Sync need complete persistence ownership inventory and SQL migration.
+5. Backup/Restore does not yet prove Center, both template families, Notification State, Prayer Completion, migration markers and all operational state.
+6. Occurrence/Recurrence relational tests and all existing tests require exact-SHA CI PASS; Device Smoke is not yet verified.
+7. Four Reminder state names/transitions and snooze/re-enable semantics still require Mobin's explicit decision.
+
+Do not retire legacy sources until parity, round-trip, backup/restore, rollback, independent tests and owner acceptance all pass.
