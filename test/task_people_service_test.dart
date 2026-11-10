@@ -94,7 +94,13 @@ void main() {
     expect(updated.people.single.displayName, 'سارا احمدی');
     // A Task snapshot captured before the rename must not roll the canonical
     // Person display name back when it is saved later.
-    await store.save([staleTaskSnapshot]);
+    // TaskStore.save replaces the complete Task collection. Preserve the
+    // second Task while replaying the stale snapshot of the first one.
+    final currentTasks = await store.load();
+    await store.save([
+      staleTaskSnapshot,
+      ...currentTasks.where((task) => task.id != staleTaskSnapshot.id),
+    ]);
     final tasks = await store.load();
     expect(tasks.map((task) => task.people.single.displayName),
         ['سارا احمدی', 'سارا احمدی']);
