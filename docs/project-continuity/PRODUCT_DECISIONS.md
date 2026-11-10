@@ -402,3 +402,13 @@ This clarification resolves an asset-to-screen attribution error and does not in
 - Active brand primary remains Blue #4169A1 under the latest explicit owner direction. Persian Teal and #3A86EF entries remain historical records; no historical entry is deleted.
 - Four-state Reminder remains a product requirement, but state names/transitions are not defined by the inspected model. Do not infer them; request explicit Mobin definition before implementation.
 - Full evidence: audit/SHA_RECONCILIATION.md, audit/TEST_INVENTORY.md and audit/CONFLICT_REGISTER.md.
+
+
+## WAVE 4 REV8 — reaffirmed and newly recorded decisions (2026-11-10)
+
+- **SQL-ONLY remains FINAL / CANONICAL:** SQL is the sole permanent source of truth for all product entities, relations, histories and operational states. JSON is limited to Backup, Import/Export, transfer and temporary payload boundaries.
+- Recurrence rules, Occurrences and per-Occurrence checklist state are separate relational owners; they must not be collapsed into a Task JSON envelope.
+- Project order is durable and represented by a relational ordinal.
+- Unknown Project fields must be preserved during migration and ordinary Project updates; an ID match alone never establishes content parity.
+- No legacy source may be physically retired before all owner-defined parity, round-trip, backup/restore, rollback, independent-test and Mobin-acceptance gates pass.
+- **Reminder four-state contract remains DECISION REQUIRED.** Names, transitions, terminal behavior, snooze and re-enable semantics must not be guessed.
