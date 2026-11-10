@@ -9,7 +9,7 @@
 **Deployment base:** main `45e4202b03a434459e4c021a04efa7e8396359db`  
 **Release:** BLOCKED — RELEASE: NO-GO
 
-> REV9 is the active product/governance baseline. This file preserves the complete source text below. Historical REV8 is retained separately at [MASTER_GOVERNANCE_REV8_ARCHIVE.md](archive/MASTER_GOVERNANCE_REV8.md). Decision conflicts and live execution state are tracked in PRODUCT_DECISIONS.md, CURRENT_STATE.md and audit/CONFLICT_REGISTER.md.
+> REV9 is the active product/governance baseline. This file preserves the complete source text below. Historical REV8 is retained separately at [MASTER_GOVERNANCE_REV8_ARCHIVE.md](MASTER_GOVERNANCE_REV8_ARCHIVE.md). Decision conflicts and live execution state are tracked in PRODUCT_DECISIONS.md, CURRENT_STATE.md and audit/CONFLICT_REGISTER.md.
 
 ---
 
@@ -1170,3 +1170,12 @@ DOCUMENT: ARVIN MASTER PRODUCT, DESIGN & GOVERNANCE CHARTER — REV9
 7. Reopening synchronization requires a new, explicit authorization from Mobin defining the permitted scope.
 
 **Deployment boundary:** REV9 is present on PR #3340's documentation branch only. Main remains unchanged. Release remains BLOCKED — RELEASE: NO-GO.
+
+
+---
+
+## Deployment note status correction — 2026-11-10
+
+The preceding Persian deployment note is preserved verbatim as part of the supplied REV9 source transcription. It describes the document's status at the time that source text was authored and is now **HISTORICAL / SUPERSEDED**.
+
+The full REV9 charter has since been committed and pushed to the existing documentation branch `docs/rev9-governance-continuity-2026-11-10` and is presented for owner review in PR #3340. It is the active governance baseline on that branch. It is **not yet present in Main** because PR #3340 remains OPEN / UNMERGED. Do not interpret the old note as the current deployment state.

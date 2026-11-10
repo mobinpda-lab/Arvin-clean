@@ -114,7 +114,7 @@ The combined-status endpoint returned an empty statuses list for both SHAs; work
 - All 66 changed Markdown/agent-instruction files were scanned for relative Markdown links against the PR branch tree.
 - One broken path was found: `docs/project-continuity/MASTER_GOVERNANCE.md` linked to `archive/MASTER_GOVERNANCE_REV8.md`, which did not exist.
 - The actual retained archive is `docs/project-continuity/MASTER_GOVERNANCE_REV8_ARCHIVE.md`.
-- The broken link was corrected in the authorized documentation pass. Other relative Markdown links in the 66-file changed set resolved against the branch tree during the baseline scan. This does not claim a full link audit of all 290 docs.
+- The broken link target was corrected to the retained archive filename in the final authorized documentation pass; the final 67-file changed set was re-scanned against the final branch tree. Other relative Markdown links in the 66-file changed set resolved against the branch tree during the baseline scan. This does not claim a full link audit of all 290 docs.
 
 ### Conflicting governance and stale snapshots
 - `MASTER_GOVERNANCE.md`: incorrect REV8 archive link and deployment note still claimed REV9 was not registered/committed.
