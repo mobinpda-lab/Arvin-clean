@@ -15,3 +15,20 @@
 
 ---
 *مرجع: این سند بخشی از مستندات تداوم پروژه (Project Continuity) است.*
+
+
+---
+
+## REV9 decision record — 2026-11-10
+
+- **REV9-001 — APPROVED:** REV9 is the active unified product/design/governance charter. REV8 is retained as a historical archive.
+- **REV9-002 — APPROVED:** SQL-only durable product-data source of truth; JSON only for backup, import/export, transfer and temporary payloads.
+- **REV9-003 — APPROVED:** Primary brand color #4169A1; historical teal-primary records remain preserved but are superseded where conflicting.
+- **REV9-004 — NEEDS OWNER DECISION:** Vazirmatn vs VazirHarf, reopened explicitly by REV9 §32 despite older Issue #2974 / PR records.
+- **REV9-005 — APPROVED:** 48dp × 48dp minimum interactive hit target.
+- **REV9-006 — PROPOSAL:** Five Follow-up completeness loops; audit before owner approval and implementation.
+- **REV9-007 — PROPOSAL:** Commitment as central domain concept; no new model/table authorized.
+- **REV9-008 — PRODUCT SCOPE:** Product evolution waves 0–4; engineering execution waves remain separately archived.
+- **REV9-009 — NEEDS OWNER DECISION:** Exact four Reminder states and transitions.
+
+The complete clauses and definitions are in `MASTER_GOVERNANCE.md`. This summary does not replace or abbreviate the canonical charter.

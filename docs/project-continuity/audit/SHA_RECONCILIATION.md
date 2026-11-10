@@ -77,3 +77,19 @@ The historical 79 failures are not the current failure count. Current Build on `
 - The current PR base/head relationship is internally consistent. The documentation checkpoint was stale until this REV8 addendum.
 
 No Main ref was modified.
+
+
+---
+
+## REV9 deployment SHA reconciliation — 2026-11-10
+
+| Role | Ref / SHA | Status |
+|---|---|---|
+| Main at deployment start | `45e4202b03a434459e4c021a04efa7e8396359db` | Live ref verified before branch creation. |
+| Source PR #3052 | `fix/recovery-calendar-device-smoke-2026-10-31` / `aba68e44be0fcac7d4ad425b58fbe75e5aba264e` | OPEN / DRAFT / UNMERGED; unchanged. |
+| New documentation branch | `docs/rev9-governance-continuity-2026-11-10` | Created from exact Main SHA above. |
+| Documentation commit 1 | `1a849751b931028581f6ce721952aaa987474053` | REV9 master, REV8 archive, AI policy and adapters. |
+| Documentation commit 2 | `4825e04335292dcc20dedbed39d614969a85f4cb` | Authority, state, decisions and product roadmap reconciliation. |
+| Combined CI status queried on PR #3052 head | No status records returned by combined-status endpoint. | No PASS inferred; inspect workflow runs/checks directly before any gate change. |
+
+The final documentation PR head and changed-file list must be added after the final commit and PR creation. Historical SHAs elsewhere in this file remain historical snapshots.

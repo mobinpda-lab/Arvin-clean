@@ -408,3 +408,29 @@ These classifications describe logs only. Do not declare a shared root cause unt
 7. Four Reminder state names/transitions and snooze/re-enable semantics still require Mobin's explicit decision.
 
 Do not retire legacy sources until parity, round-trip, backup/restore, rollback, independent tests and owner acceptance all pass.
+
+
+---
+
+## REV9 deployment open register — 2026-11-10
+
+### Live documentation coordination
+- This independent documentation branch is based on verified Main `45e4202b03a434459e4c021a04efa7e8396359db`.
+- PR #3052 remains OPEN / DRAFT / UNMERGED at `aba68e44be0fcac7d4ad425b58fbe75e5aba264e`; no changes were made to it.
+- Related unmerged docs/proposal PRs: #3022, #2598, #2600, #2866. Their content is retained as proposed/historical input only; none is treated as merged canonical truth.
+
+### Owner decisions still required
+1. **Typography:** REV9 §32 marks Vazirmatn vs VazirHarf NEEDS OWNER DECISION, notwithstanding earlier Issue #2974 and PR #2918/#2975/#2932 approval records. Do not select a font until a newer explicit owner decision resolves the conflict.
+2. **Reminder state machine:** exact four states and transitions are not established by the accessible canonical evidence; NEEDS OWNER DECISION.
+3. **Commitment model:** central concept remains PROPOSAL; no new model/table authorized.
+4. **Waiting For / Next Action contract and person roles:** proposals require schema audit and owner decision.
+5. **Staleness definition/thresholds, Resolution Note/Proof requirements, Quick Export content/access policy:** PROPOSAL / NEEDS OWNER DECISION as applicable.
+6. **Financial scope and accounting boundary; P2P conflict resolution protocol:** NEEDS OWNER DECISION.
+7. **Five navigation color mapping:** exact mapping remains NEEDS OWNER DECISION; no guess.
+
+### Product quality gaps to verify
+- REV9 requires 48dp × 48dp minimum interactive hit targets. Historical 40dp controls are not compliant evidence; implementation status is not changed by this docs PR.
+- Visual QA requires real-device screenshots, typography/RTL/Jalali/accessibility and visual-regression evidence tied to exact SHA.
+
+### Release gate
+BLOCKED — RELEASE: NO-GO. Documentation deployment does not establish product implementation, device acceptance, CI success or release readiness.

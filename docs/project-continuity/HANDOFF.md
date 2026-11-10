@@ -443,3 +443,31 @@ NOT VERIFIED. GitHub branch data does not reveal uncommitted local modifications
 **Unresolved owner decision:** four Reminder states and their transitions/terminal/snooze semantics. Do not invent them.
 
 Main READ-ONLY. PR #3052 OPEN / DRAFT / UNMERGED. No force push, merge, release or legacy deletion. Release NO-GO.
+
+
+---
+
+# REV9 — Next-agent handoff (2026-11-10)
+
+## Mandatory first actions
+1. Read root `AGENTS.md`, `AI_CONTINUITY_PROTOCOL.md`, `PROJECT_STATE.md`.
+2. Read `docs/project-continuity/AI_GOVERNANCE_POLICY.md` and its complete mandatory reading sequence.
+3. Re-fetch live Main, this branch HEAD, PR #3052, the new documentation PR, related open documentation PRs and exact-SHA CI/check evidence.
+4. Read the full REV9 charter in `MASTER_GOVERNANCE.md`; read `MASTER_GOVERNANCE_REV8_ARCHIVE.md` only for historical context.
+5. Preserve every decision and status label. Never promote a proposal to approved or an implementation to verified without evidence.
+
+## Verified deployment baseline
+- Main at branch creation: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Source PR #3052: OPEN / DRAFT / UNMERGED, head `aba68e44be0fcac7d4ad425b58fbe75e5aba264e`; untouched.
+- Documentation branch: `docs/rev9-governance-continuity-2026-11-10`.
+- Initial commit: `1a849751b931028581f6ce721952aaa987474053`; reconciliation commit: `4825e04335292dcc20dedbed39d614969a85f4cb`; later commit(s) are recorded in the PR.
+- Related PRs #3022, #2598, #2600 and #2866 remain open/unmerged; PR #2918/#2975/#2932 and Issue #2974 are historical typography authority inputs now reopened by REV9 §32.
+
+## Guardrails
+- Current authorization: DOCUMENTATION-ONLY on this branch. No product code, SQL/schema, migration, tests, workflows, Main, PR #3052, merge or release.
+- Keep font unresolved until Mobin decides. Keep Reminder four-state machine unresolved. Do not add a Commitment model/table.
+- SQL-only durable source of truth remains approved. Preserve historical data and decision records.
+- Release remains BLOCKED — RELEASE: NO-GO.
+
+## Next action
+Review the independent documentation PR, verify the final diff contains only approved documentation/agent instruction files, and request Mobin's review. Do not merge.

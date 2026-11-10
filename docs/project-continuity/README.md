@@ -239,3 +239,30 @@ The latest owner authorization supersedes the earlier read-only Wave 4 checkpoin
 - [Test Validation Report](audit/TEST_VALIDATION_REPORT.md)
 - [Legacy Retirement Register](audit/LEGACY_RETIREMENT_REGISTER.md)
 - [WAVE 4 Final Report](audit/WAVE4_FINAL_REPORT.md)
+
+
+---
+
+# Arvin — Project Continuity Index (REV9)
+
+## Authority
+- Active canonical charter: [MASTER_GOVERNANCE.md](MASTER_GOVERNANCE.md) — REV9.
+- Permanent AI instructions: [AI_GOVERNANCE_POLICY.md](AI_GOVERNANCE_POLICY.md).
+- Historical master: [MASTER_GOVERNANCE_REV8_ARCHIVE.md](MASTER_GOVERNANCE_REV8_ARCHIVE.md) — archive only; not current authority.
+
+## Mandatory continuity records
+- [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) — decisions, approvals and supersession history.
+- [CURRENT_STATE.md](CURRENT_STATE.md) — live/recent verified project state; historical snapshots remain labelled.
+- [ROADMAP.md](ROADMAP.md) — REV9 product waves and separate historical engineering sequencing.
+- [OPEN_ISSUES.md](OPEN_ISSUES.md) — unresolved decisions, risks and blockers.
+- [IMPLEMENTATION_LOG.md](IMPLEMENTATION_LOG.md) — dated evidence and delivery records.
+- [HANDOFF.md](HANDOFF.md) — mandatory next-agent handoff.
+- [DECISIONS.md](DECISIONS.md) — technical decision history.
+- [audit/CONFLICT_REGISTER.md](audit/CONFLICT_REGISTER.md) — source conflicts and safe disposition.
+- [audit/SHA_RECONCILIATION.md](audit/SHA_RECONCILIATION.md) — exact commit and branch reconciliation.
+
+## Root AI entrypoints
+`AGENTS.md`, `AI_CONTINUITY_PROTOCOL.md`, `PROJECT_STATE.md`, `CLAUDE.md`, `GEMINI.md`, `.github/copilot-instructions.md`, `.cursor/rules/arvin-governance.mdc`, `.windsurf/rules/arvin-governance.md` are thin adapters. They point to the single canonical policy; do not maintain parallel policy copies.
+
+## Current mission boundary
+The REV9 deployment branch is documentation-only. PR #3052 is untouched and remains open/draft/unmerged. No merge or release is authorized.

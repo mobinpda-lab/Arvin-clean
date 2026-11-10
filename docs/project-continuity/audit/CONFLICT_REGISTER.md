@@ -50,3 +50,19 @@ Source implementation: `pubspec.yaml`, `lib/theme/app_fonts.dart`, `lib/core/the
 | CR-021 | NIRA state-sync PR churn | 292 of 381 closed PRs share title/branch nira/state-sync; 289 unmerged | Do not close/merge automatically; repair scheduler/PR idempotency | OPEN — NIRA governance |
 
 No conflict was hidden by deleting historical records. No code or test was changed in this audit.
+
+
+---
+
+## REV9 source conflict reconciliation — 2026-11-10
+
+| ID | Conflict | Evidence | Current classification | Safe disposition |
+|---|---|---|---|---|
+| CR-028 | Primary brand color | REV9 §33 specifies Primary Blue #4169A1 and explicitly rejects old teal as primary; PRODUCT_DECISIONS.md contains a 2026-11-09 Persian Teal record but also records Blue #4169A1 as active under the latest owner direction. | APPROVED: #4169A1; teal primary record HISTORICAL/SUPERSEDED where conflicting. | Preserve teal history; use #4169A1 as current charter token. |
+| CR-029 | Vazirmatn vs VazirHarf | Issue #2974 and PR #2918/#2975/#2932 record earlier Vazirmatn approval; REV9 §32 explicitly says conflict remains NEEDS OWNER DECISION. | NEEDS OWNER DECISION under latest owner charter. | Do not choose or alter font. Await explicit Mobin resolution. |
+| CR-030 | Multiple open documentation authorities | PR #3022, #2598, #2600, #2866 remain open/unmerged; their documents propose distinct governance/product references. | HISTORICAL / PROPOSAL until owner reconciliation. | Preserve links and do not silently merge their authority. |
+| CR-031 | 48dp hit-target standard vs historical 40dp controls | REV9 §31 sets 48dp × 48dp; historical continuity records include smaller controls. | APPROVED requirement; implementation gap to verify. | No code/test change in docs-only mission; record future UX audit. |
+| CR-032 | REV9 product waves 0–4 vs REV8 engineering waves 0–5 | REV9 §42 defines product taxonomy; REV8 roadmap tracks engineering execution. | Both retained with distinct meanings. | Do not overwrite engineering history or conflate it with product taxonomy. |
+| CR-033 | Reminder four-state state machine | REV9 §12 states exact four-state names/transitions are not established by accessible canonical source. | NEEDS OWNER DECISION. | No guessed states or transitions. |
+
+No historical decision has been deleted. Status changes are explicit and traceable.
