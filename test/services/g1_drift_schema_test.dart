@@ -103,6 +103,8 @@ void main() {
         'tags',
         'task_tags',
         'checklist_items',
+        'task_occurrences',
+        'occurrence_checklist_items',
         'task_persons',
       ]),
     );
