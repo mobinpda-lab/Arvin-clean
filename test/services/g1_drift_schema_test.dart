@@ -105,6 +105,7 @@ void main() {
         'checklist_items',
         'task_occurrences',
         'occurrence_checklist_items',
+        'task_recurrence_rules',
         'task_persons',
       ]),
     );
