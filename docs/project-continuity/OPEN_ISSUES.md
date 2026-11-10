@@ -1,3 +1,35 @@
+# REV8 Open Issues — current exact-head register
+
+Snapshot: 2026-11-10
+Working SHA before audit commit: 9846f10850031c63964fdc81ae0ab1cdb3028517
+Release: BLOCKED — RELEASE: NO-GO
+
+| ID | Severity | Status | Evidence / next action |
+|---|---|---|---|
+| REV8-001 | P0 | BLOCKED | Build 42795405617 failed 78 distinct test labels across six shards. Fix root causes; no test deletion/skip/weakening. |
+| REV8-002 | P0 | BLOCKED | Device Smoke 42795405388 is PENDING; no physical-device acceptance. Complete all lanes on exact candidate SHA. |
+| REV8-003 | P0 | BLOCKED | Four-state Reminder requirement lacks state names/transitions in TaskReminder. Obtain explicit Mobin definition before code. |
+| REV8-004 | P0 | PARTIAL | Auto-Save approved (ARVIN-DEC-2026-11-10-001), but all-field/navigation durability acceptance is incomplete. |
+| REV8-005 | P1 | BLOCKED | Home five-filter, OR/AND, sorting, Focus Today and Quick Capture failures; repair implementation and regression tests. |
+| REV8-006 | P1 | PARTIAL | Notebook hard-delete/unlink preservation and first-save title behavior are not fully verified. |
+| REV8-007 | P1 | PARTIAL | Template Deep Clone lacks proven due-date base and center/project/people assignment parity. |
+| REV8-008 | P1 | PARTIAL | Recurrence/occurrence/checklist history exists but current tests fail and full persistence proof is incomplete. |
+| REV8-009 | P1 | PARTIAL | Calendar Provider passed on current SHA; Device Smoke pending; physical acceptance missing. |
+| REV8-010 | P1 | NOT VERIFIED | Backup/Restore and all Drift v16 migration paths not verified against a real historical DB/backup set. |
+| REV8-011 | P1 | NOT VERIFIED | Local P2P/Cloud Sync end-to-end evidence not established. |
+| REV8-012 | P1 | NEEDS REVIEW | 35 duplicate branch-head groups (109 refs); no deletion without explicit approval. |
+| REV8-013 | P1 | NEEDS REVIEW | 99 open PRs not updated since 2026-11-01; review individually; no automatic closure. |
+| REV8-014 | P1 | NEEDS REVIEW | NIRA Queue Scheduler failure 42777810609; error reporting fails on issue #162 (>2,500 comments), potentially masking dispatch error. |
+| REV8-015 | P1 | NEEDS REVIEW | NIRA state-sync PR churn: 292 of 381 closed PRs share same title/branch; 289 unmerged. Repair idempotency in separate authorized technical wave. |
+| REV8-016 | P2 | NEEDS REVIEW | Generic lib/core/storage/task_store.dart appears test-only; verify references before any code cleanup. |
+| REV8-017 | P2 | NEEDS REVIEW | TaskDetailPage.onEdit callback is declared/passed but no page-body invocation found; verify before cleanup. |
+| REV8-018 | P2 | NEEDS REVIEW | 226 docs outside canonical continuity were not fully link-checked; mark old docs historical and continue inventory. |
+| REV8-019 | P2 | NEEDS REVIEW | Working branch is unprotected; only Main is protected in observed branch API. Review policy; do not alter ruleset without authorization. |
+
+---
+
+## Historical issue snapshot (preserved)
+
 # Open Issues and Blockers
 Snapshot: 1405/08/13 — 2026-11-04 12:53 Asia/Tehran. Recheck live GitHub before acting.
 

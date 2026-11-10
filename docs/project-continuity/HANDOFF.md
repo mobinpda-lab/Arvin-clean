@@ -1,3 +1,39 @@
+# REV8 NEXT-AGENT HANDOFF — 2026-11-10
+
+## First actions
+1. Read MASTER_GOVERNANCE.md, CURRENT_STATE.md, OPEN_ISSUES.md, PRODUCT_DECISIONS.md, then audit/FINAL_REPOSITORY_HEALTH_REPORT.md.
+2. Re-read live Main and authorized branch refs. Main expected 45e4202b03a434459e4c021a04efa7e8396359db; working branch was 9846f10850031c63964fdc81ae0ab1cdb3028517 before this audit commit. Never assume it is still current without fetching.
+3. Confirm PR #3052 remains OPEN / DRAFT / UNMERGED. Main is READ-ONLY.
+4. Recheck Build, six shards, Device Smoke, Calendar Provider and Follow-up Persistence on one exact SHA. Current recorded Build failed 78 distinct labels; Device Smoke is pending.
+5. Do not transfer older 79-failure results from SHA b789 to the current SHA.
+6. No code/test/schema/migration/workflow/security changes are authorized by this documentation audit. Wait for a valid technical implementation authorization before modifying executable code.
+7. Do not delete branches/PRs/commits/tags/releases, tests, migrations, tables or workflows. Review cleanup candidates with Mobin first.
+
+## Current blockers
+- Build 42795405617 on SHA 9846 failed six shards (1,296 passed / 78 failed).
+- Device Smoke 42795405388 is PENDING; no physical-device acceptance.
+- Reminder four-state semantics are undefined; do not guess.
+- Auto-Save is APPROVED but full-field durability remains PARTIAL.
+- Home/Quick Capture/filter, Follow-up/People, Checklist, Notebook and Report acceptance have failing tests.
+- Notebook hard-delete preservation, Template deep clone/date-base, full Backup/Restore integrity and Sync/P2P E2E are NOT VERIFIED.
+- NIRA Queue Scheduler failed while reporting on issue #162 (>2,500 comments); underlying dispatch error may be masked.
+- NIRA state-sync PR churn and L10 remain unresolved/UNVERIFIED.
+
+## Recommended next execution order
+1. Obtain explicit Reminder state names/transitions from Mobin.
+2. Diagnose current 78 failing tests; fix root causes only under valid authorization, never weaken tests.
+3. Complete Device Smoke and physical-device acceptance on the exact candidate SHA.
+4. Verify migration/Backup/Restore, Notebook deletion, Template Deep Clone and occurrence/checklist history.
+5. Repair NIRA scheduler feedback and state-sync idempotency in NIRA's own authorized lane.
+6. Review duplicate branch/PR/code cleanup candidates; destructive actions require separate explicit approval.
+
+## Release gate
+BLOCKED — RELEASE: NO-GO. No merge or release without all exact-SHA gates, physical-device acceptance, data/security evidence and explicit Mobin acceptance.
+
+---
+
+## Historical handoff entries (preserved)
+
 # REV7.2 NEXT-AGENT HANDOFF — 2026-11-10
 
 ## First action

@@ -1,3 +1,61 @@
+# Arvin Project Continuity — REV8
+Last reviewed: 2026-11-10 (REV8 live GitHub audit)
+Repository: mobinpda-lab/Arvin-clean
+Active branch: fix/recovery-calendar-device-smoke-2026-10-31
+Related PR: #3052
+
+## Current source of truth
+The live GitHub repository, exact branch HEAD, code/schema/migrations/tests/workflows, and exact-SHA Actions evidence are operational truth. Main is READ-ONLY. PR #3052 remains OPEN / DRAFT / UNMERGED. Release remains BLOCKED — RELEASE: NO-GO.
+
+## Start here
+1. MASTER_GOVERNANCE.md — single current governance authority.
+2. CURRENT_STATE.md — latest exact-SHA state.
+3. HANDOFF.md — next safe actions.
+4. OPEN_ISSUES.md — verified blockers.
+5. PRODUCT_DECISIONS.md — active product decision ledger.
+6. ROADMAP.md — Wave 0–5 execution plan.
+7. IMPLEMENTATION_LOG.md — dated evidence and implementation record.
+8. TASK_TEMPLATE_DATA_CONTRACT.md — template data contract.
+9. task_home_screen_spec.md — current approved Home contract.
+10. task_detail_ui_ux_spec.md — Task Details reference; REV7.2 Auto-Save supersedes older independent Edit Mode direction.
+11. calendar_ui_ux_spec.md — dated owner-approved Calendar UI/UX reference.
+
+## REV8 forensic audit index
+
+- [COMMIT_AUDIT.md](audit/COMMIT_AUDIT.md)
+- [BRANCH_AUDIT.md](audit/BRANCH_AUDIT.md)
+- [PULL_REQUEST_AUDIT.md](audit/PULL_REQUEST_AUDIT.md)
+- [SHA_RECONCILIATION.md](audit/SHA_RECONCILIATION.md)
+- [TEST_INVENTORY.md](audit/TEST_INVENTORY.md)
+- [CI_HISTORY_AUDIT.md](audit/CI_HISTORY_AUDIT.md)
+- [DOCUMENTATION_AUDIT.md](audit/DOCUMENTATION_AUDIT.md)
+- [ARCHITECTURE_CONSOLIDATION.md](audit/ARCHITECTURE_CONSOLIDATION.md)
+- [CONFLICT_REGISTER.md](audit/CONFLICT_REGISTER.md)
+- [CLEANUP_REGISTER.md](audit/CLEANUP_REGISTER.md)
+- [NIRA_AUDIT.md](audit/NIRA_AUDIT.md)
+- [FINAL_REPOSITORY_HEALTH_REPORT.md](audit/FINAL_REPOSITORY_HEALTH_REPORT.md)
+
+## Historical records — preserve, do not treat as current authority
+- DECISIONS.md is retained as a historical/technical decision archive. Active product decisions belong in PRODUCT_DECISIONS.md.
+- CALENDAR_UIUX_SPEC.md is an older Calendar proposal. The dated owner-approved reference is calendar_ui_ux_spec.md.
+- TODO.md is a working backlog snapshot; reconcile entries into OPEN_ISSUES.md/ROADMAP.md before treating them as current.
+- Older root docs and prior checkpoints are historical evidence. References to ArvinTask/TaskRepository describe earlier migration stages; current implementation authority is Task + TaskStore/Drift.
+
+## Evidence and status rules
+- Every PASS/FAIL applies only to its exact SHA.
+- Product approval, implementation and verification are separate axes.
+- Do not infer verification from a file/class or from a green orchestrator workflow.
+- Never delete, skip, bypass, weaken or artificially timeout tests.
+- Preserve backward-compatible migrations and user data; no destructive schema action without a separate approved plan.
+- Local working-tree state and physical-device state are NOT VERIFIED unless directly observed.
+
+## Time convention
+Project reports use Asia/Tehran time and Gregorian plus Hijri Shamsi dates. Last reviewed is a checkpoint, not continuous monitoring.
+
+---
+
+## Previous continuity README history (preserved)
+
 # Arvin Project Continuity
 Last reviewed: ۱۴۰۵/۰۸/۱۹ — 2026-11-10 (REV7.2 live GitHub checkpoint)
 Repository: mobinpda-lab/Arvin-clean

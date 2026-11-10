@@ -1,0 +1,451 @@
+# Arvin Test Inventory & Governance — REV8
+
+**Exact Arvin SHA:** `9846f10850031c63964fdc81ae0ab1cdb3028517`
+**Current Build:** [42795405617](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/42795405617)
+
+## Inventory
+
+- Arvin test files: **302**.
+- Under `test/`: **293**.
+- Under `integration_test/`: **9**.
+- `test/services/`: 44; `test/widgets/`: 3; `test/home/`: 6; `test/core/`: 2; `test/models/`: 2; root `test/` files: 236.
+- Visual/golden-named candidates: test/home/home_visual_integration_test.dart, test/task_detail_visual_test.dart. No separate golden-test directory was found in the path inventory.
+- NIRA factory test files: **23** under `factory/tests/` (separate from Arvin test suite).
+
+## Exact-head Build results
+
+| Shard | Job ID | Passed | Failed |
+|---|---:|---:|---:|
+| 0 | 129759216113 | 231 | 14 |
+| 1 | 129759216673 | 194 | 6 |
+| 2 | 129759216164 | 299 | 25 |
+| 3 | 129759215931 | 148 | 12 |
+| 4 | 129759215878 | 240 | 11 |
+| 5 | 129759216126 | 184 | 10 |
+| **Total** | | **1,296** | **78** |
+
+- Failed test labels extracted from the six shard logs: **78**; unique labels: **78**; repeated labels across shards: **0**.
+- 78 means distinct failing test labels in this exact Build run, not a historical total. No test was removed, skipped, bypassed or weakened by this audit.
+- The nine integration_test files are inventoried separately; their execution must be evidenced by their own integration/device workflows, not inferred from the six quality shards.
+
+## Current failed test labels
+
+- **Shard 0:** `test/task_detail_checklist_flow_test.dart: task detail displays checklist and toggles an item`
+- **Shard 0:** `test/widgets/task_dialog_test.dart: creates a task with trimmed text and a unique tag`
+- **Shard 0:** `test/widgets/home_page_test.dart: renders the current canonical HomePage shell`
+- **Shard 0:** `test/quick_capture_dialog_test.dart: Quick Capture can create a center inline and immediately select it`
+- **Shard 0:** `test/task_detail_due_date_action_test.dart: Task Details explicit today action aligns with Due Date and persists only the date change`
+- **Shard 0:** `test/services/task_report_filter_test.dart: combined filters use AND semantics without mutating tasks`
+- **Shard 0:** `test/device_feedback_home_regression_test.dart: Home keeps backup in the More menu instead of the header`
+- **Shard 0:** `test/primary_bottom_navigation_test.dart: primary navigation exposes exactly five canonical destinations`
+- **Shard 0:** `test/home/home_filter_contract_test.dart: Home keeps completed past tasks visible in a separate non-overdue group`
+- **Shard 0:** `test/follow_up_office_page_test.dart: follow-up office exposes the shared five filter dimensions`
+- **Shard 0:** `test/canonical_home_boundary_test.dart: Home owns canonical Task state without legacy ArvinTask projection`
+- **Shard 0:** `test/task_people_page_test.dart: empty People UI adds and removes a local Person explicitly`
+- **Shard 0:** `test/task_editor_category_project_integration_test.dart: new task saves typed category without an extra apply step`
+- **Shard 0:** `test/home_today_about_test.dart: Today menu action shows only active canonical tasks due today`
+- **Shard 1:** `test/widgets/home_page_test.dart: completed tasks remain visible in All and Completed filters`
+- **Shard 1:** `test/widgets/home_page_test.dart: Home uses the five checkbox filters as combined filters and preserves time grouping`
+- **Shard 1:** `test/quick_capture_dialog_test.dart: canonical capture keeps title-only path and optional choices`
+- **Shard 1:** `test/quick_capture_dialog_test.dart: Quick Add scheduling uses the canonical circular date/time picker`
+- **Shard 1:** `test/task_timeline_page_test.dart: renders canonical task history in chronological order`
+- **Shard 1:** `test/calendar_explicit_export_contract_test.dart: normal Task save, capture, edit and completion contain no outbound sync`
+- **Shard 2:** `test/settings_page_test.dart: settings exposes date, swipe, projects and canonical backup controls`
+- **Shard 2:** `test/widgets/home_quick_capture_test.dart: Home primary add persists canonical task and preserves history`
+- **Shard 2:** `test/quick_capture_dialog_test.dart: Quick Add opens an independent Persian reminder date/time picker`
+- **Shard 2:** `test/quick_capture_dialog_test.dart: Quick Add shows the selected scheduling time and uses injected now`
+- **Shard 2:** `test/follow_up_entry_page_test.dart: waiting FollowUp can add, select, reopen and remove a stable person`
+- **Shard 2:** `test/home_last_follow_up_real_record_test.dart: Home shows last FollowUp only for a real record and does not create one`
+- **Shard 2:** `test/task_contract_test.dart: due date stays independent from reminder and follow-up timestamps`
+- **Shard 2:** `test/widget_test.dart: Home exposes the canonical workflow controls`
+- **Shard 2:** `test/task_editor_dialog_test.dart: Back-style close prompts and can save Task edits without data loss`
+- **Shard 2:** `test/release_critical_path_test.dart: critical capture to independent reminder path survives canonical persistence`
+- **Shard 2:** `test/home/home_owner_reference_test.dart: Home follows the owner header, real summary values and Today navigation`
+- **Shard 2:** `test/home/home_filter_boolean_logic_test.dart: Home filters combine OR within each dimension and AND across dimensions`
+- **Shard 2:** `test/task_editor_due_date_preservation_test.dart: editing preserves canonical due date independently`
+- **Shard 2:** `test/follow_up_office_page_test.dart: selects one of multiple tasks and persists only to that task`
+- **Shard 2:** `test/task_detail_person_persistence_test.dart: Task Details Follow-up person selection persists through canonical Person and relation tables`
+- **Shard 2:** `test/task_detail_master_screen_test.dart: Task Details presents canonical follow-up title, note and waiting-for-response state`
+- **Shard 2:** `test/task_detail_master_screen_test.dart: Task Details persists checklist reorder and additions immediately without changing Follow-up history`
+- **Shard 2:** `test/home_wave2_editor_wiring_guard_test.dart: Home add/edit stay wired to the canonical Wave 2 coordinator`
+- **Shard 2:** `test/notebook_page_test.dart: editor tag picker replaces tags on the same canonical note`
+- **Shard 2:** `test/canonical_home_boundary_test.dart: normal save, Quick Capture, edit and completion never export automatically`
+- **Shard 2:** `test/task_detail_checklist_crud_test.dart: checklist add, inline edit and delete persist immediately and preserve legacy follow-up timestamps`
+- **Shard 2:** `test/home_today_about_test.dart: Today menu action has a dedicated empty state`
+- **Shard 2:** `test/quick_capture_project_create_test.dart: Quick Add offers Project create-new and selects the created project`
+- **Shard 2:** `test/report_center_page_test.dart: Report Center exposes center and searchable task controls`
+- **Shard 2:** `test/home_stat_filters_test.dart: category checkbox selection applies OR only after confirmation`
+- **Shard 3:** `test/widgets/home_page_test.dart: RTL Move-to-Today does not dismiss and None is a no-op`
+- **Shard 3:** `test/widgets/home_page_test.dart: Home five filters stay in one RTL row without horizontal scrolling at phone widths and with keyboard`
+- **Shard 3:** `test/widgets/home_page_test.dart: Home Past time filter excludes today and prioritizes incomplete tasks`
+- **Shard 3:** `test/quick_capture_dialog_test.dart: Quick Add reminder presets match the product contract`
+- **Shard 3:** `test/quick_capture_dialog_test.dart: Quick Add custom recurrence exposes every canonical time unit`
+- **Shard 3:** `test/services/task_migration_writer_test.dart: Home projection persists explicitly supplied canonical Follow-up history`
+- **Shard 3:** `test/device_feedback_home_regression_test.dart: normal-height Home keeps empty groups and floating add action`
+- **Shard 3:** `test/task_editor_dialog_test.dart: task editor recurrence uses RollBox and preserves interval`
+- **Shard 3:** `test/home/home_filter_contract_test.dart: Home task card expands in place with real FollowUp history and preserves details route`
+- **Shard 3:** `test/follow_up_office_page_test.dart: legacy Next Follow-up dates never create an automatic due filter`
+- **Shard 3:** `test/task_detail_master_screen_test.dart: Smart visibility keeps an ordinary Task detail compact`
+- **Shard 3:** `test/home_stat_filters_test.dart: tag choices are OR within Tags and AND with Category`
+- **Shard 4:** `test/widgets/home_page_test.dart: overdue active task uses red text while card and icons stay neutral`
+- **Shard 4:** `test/g6_swipe_rtl_acceptance_test.dart: configured left and right swipes open Follow-up form and write only after save`
+- **Shard 4:** `test/task_editor_dialog_test.dart: Task editor saves a real all-day deadline from inside the clock dialog`
+- **Shard 4:** `test/work_agenda_pdf_renderer_test.dart: existing PDF renderer builds grouped Work Agenda bytes`
+- **Shard 4:** `test/unified_item_migration_test.dart: Unified Task JSON preserves reminder and recurrence fields`
+- **Shard 4:** `test/task_detail_master_screen_test.dart: Smart visibility shows rich sections only when canonical data exists`
+- **Shard 4:** `test/task_detail_master_screen_test.dart: Task Details presents summary, metadata and due date once in RTL order`
+- **Shard 4:** `test/issue_1891_lane_d_rollbox_test.dart: issue 1891 tag roll box supports multi-select with apply/cancel`
+- **Shard 4:** `test/home_today_about_test.dart: About menu action opens the built-in Arvin about dialog`
+- **Shard 4:** `test/calendar_page_test.dart: prayer cards use mosque icon and subdued unregistered status`
+- **Shard 4:** `test/home_stat_filters_test.dart: time checkbox selections use OR without a numeric badge`
+- **Shard 5:** `test/widgets/home_page_test.dart: Home separates calendar today from selected focus and persists toggle removal`
+- **Shard 5:** `test/widgets/home_page_test.dart: Focus Today is reachable from drawer More and global funnel with one result set`
+- **Shard 5:** `test/quick_capture_dialog_test.dart: timed-to-all-day clears a relative reminder and all-day-to-timed preserves custom reminder`
+- **Shard 5:** `test/widget_test.dart: HomePage shows the empty-state message after loading`
+- **Shard 5:** `test/task_editor_dialog_test.dart: Task editor cancelling the circular clock does not commit a partial date`
+- **Shard 5:** `test/follow_up_office_page_test.dart: asks the user to create a task when the list is empty`
+- **Shard 5:** `test/task_detail_master_screen_test.dart: Task Details does not present related people as assignees and keeps bottom content clear`
+- **Shard 5:** `test/notebook_page_test.dart: Notebook selectors use canonical Task taxonomy, including unused-by-Notebook entries`
+- **Shard 5:** `test/canonical_calendar_launcher_test.dart: repeat occurrence actions resolve back to the canonical Task`
+- **Shard 5:** `test/report_center_page_test.dart: Report Center quick presets apply from a dedicated bottom sheet`
+
+## Classification policy
+
+| Classification | Current finding |
+|---|---|
+| ACTIVE_FAILING | 78 distinct test labels failed on exact SHA above. |
+| ACTIVE_VALID | 1,296 test executions passed on exact SHA above; not a claim that every test file passed. |
+| NOT_EXECUTED | Per-file execution state for integration_test files is not established by the six Build shards. |
+| CONTRACT_MISMATCH | No test has been conclusively classified as obsolete/contract-mismatched from the evidence reviewed. Investigate each assertion before changing it. |
+| HISTORICAL / DUPLICATE_CANDIDATE / OBSOLETE_CANDIDATE / FLAKY / BLOCKED | Not globally assigned. Repeated filenames, old SHA references or failures alone are insufficient evidence. |
+
+## Complete Arvin test-file inventory
+
+- `integration_test/alarm_overlay_smoke_test.dart`
+- `integration_test/android_backup_restore_sql_smoke_test.dart`
+- `integration_test/android_calendar_provider_acceptance_test.dart`
+- `integration_test/android_home_smoke_test.dart`
+- `integration_test/android_people_smoke_test.dart`
+- `integration_test/android_quick_capture_smoke_test.dart`
+- `integration_test/android_sql_persistence_smoke_test.dart`
+- `integration_test/android_upgrade_migration_smoke_test.dart`
+- `integration_test/calendar_card_interaction_test.dart`
+- `test/ai_worker_provider_contract_test.dart`
+- `test/ai_worker_runtime_behavior_test.dart`
+- `test/alarm_overlay_file_persistence_test.dart`
+- `test/alarm_overlay_page_test.dart`
+- `test/android_alarm_manifest_contract_test.dart`
+- `test/android_backup_scheduler_test.dart`
+- `test/android_widget_contract_test.dart`
+- `test/android_widget_jalali_contract_test.dart`
+- `test/arvin_home_primary_add_button_test.dart`
+- `test/arvin_persian_time_picker_test.dart`
+- `test/arvin_theme_tokens_test.dart`
+- `test/automatic_follow_up_background_runner_test.dart`
+- `test/automatic_follow_up_service_test.dart`
+- `test/backup_background_runner_test.dart`
+- `test/backup_notification_test.dart`
+- `test/backup_page_encryption_ux_test.dart`
+- `test/backup_reconciliation_test.dart`
+- `test/backup_schedule_page_test.dart`
+- `test/backup_schedule_test.dart`
+- `test/backup_scheduler_adapter_test.dart`
+- `test/backup_service_test.dart`
+- `test/build_staging_artifact_path_contract_test.dart`
+- `test/calendar_bottom_navigation_contract_test.dart`
+- `test/calendar_date_jump_test.dart`
+- `test/calendar_explicit_export_contract_test.dart`
+- `test/calendar_integration_settings_page_test.dart`
+- `test/calendar_jalali_time_test.dart`
+- `test/calendar_jalali_visible_date_test.dart`
+- `test/calendar_official_reminders_test.dart`
+- `test/calendar_page_test.dart`
+- `test/calendar_provider_android_contract_test.dart`
+- `test/calendar_provider_write_android_contract_test.dart`
+- `test/calendar_release_acceptance_test.dart`
+- `test/calendar_rescheduling_advisor_test.dart`
+- `test/calendar_runtime_actions_fast_track_test.dart`
+- `test/calendar_schedule_projection_test.dart`
+- `test/calendar_swipe_settings_service_test.dart`
+- `test/calendar_sync_plan_service_test.dart`
+- `test/calendar_uiux_contract_test.dart`
+- `test/calendar_view_modes_test.dart`
+- `test/canonical_backup_home_wiring_test.dart`
+- `test/canonical_backup_manager_test.dart`
+- `test/canonical_calendar_launcher_test.dart`
+- `test/canonical_home_boundary_test.dart`
+- `test/canonical_notebook_repository_test.dart`
+- `test/center_project_association_test.dart`
+- `test/ci_concurrency_contract_test.dart`
+- `test/cloud_backup_provider_test.dart`
+- `test/completed_follow_up_report_page_test.dart`
+- `test/contextual_guide_test.dart`
+- `test/core/task_store_test.dart`
+- `test/core/theme/app_theme_manager_test.dart`
+- `test/daily_content_calendar_ui_test.dart`
+- `test/daily_content_notification_service_test.dart`
+- `test/daily_content_pack_cache_test.dart`
+- `test/daily_content_pack_codec_test.dart`
+- `test/daily_content_preferences_service_test.dart`
+- `test/daily_content_selector_test.dart`
+- `test/device_feedback_home_regression_test.dart`
+- `test/device_smoke_workflow_contract_test.dart`
+- `test/dropbox_cloud_backup_provider_test.dart`
+- `test/encrypted_backup_envelope_test.dart`
+- `test/encrypted_backup_service_integration_test.dart`
+- `test/external_calendar_page_projection_test.dart`
+- `test/flutter_test_config.dart`
+- `test/follow_up_calendar_projection_test.dart`
+- `test/follow_up_canonical_lifecycle_test.dart`
+- `test/follow_up_elapsed_formatter_test.dart`
+- `test/follow_up_entry_page_test.dart`
+- `test/follow_up_internal_calendar_projection_test.dart`
+- `test/follow_up_office_jalali_test.dart`
+- `test/follow_up_office_page_test.dart`
+- `test/follow_up_office_reschedule_test.dart`
+- `test/follow_up_reminder_alarm_planner_task_test.dart`
+- `test/follow_up_reminder_delivery_service_test.dart`
+- `test/follow_up_reminder_model_test.dart`
+- `test/follow_up_reminder_projection_test.dart`
+- `test/follow_up_reminder_runtime_contract_test.dart`
+- `test/follow_up_repository_file_persistence_test.dart`
+- `test/follow_up_repository_test.dart`
+- `test/g6_swipe_rtl_acceptance_test.dart`
+- `test/goal_project_progress_service_test.dart`
+- `test/goal_project_service_test.dart`
+- `test/home/grouping/home_grouping_service_test.dart`
+- `test/home/home_filter_boolean_logic_test.dart`
+- `test/home/home_filter_contract_test.dart`
+- `test/home/home_owner_reference_test.dart`
+- `test/home/home_sacred_phrase_test.dart`
+- `test/home/home_visual_integration_test.dart`
+- `test/home_backup_settings_contract_test.dart`
+- `test/home_bulk_taxonomy_wiring_test.dart`
+- `test/home_calendar_navigation_test.dart`
+- `test/home_canonical_calendar_contract_test.dart`
+- `test/home_filter_theme_test.dart`
+- `test/home_filter_ui_test.dart`
+- `test/home_follow_up_presentation_service_test.dart`
+- `test/home_interactive_guide_test.dart`
+- `test/home_last_follow_up_real_record_test.dart`
+- `test/home_list_projection_completed_scope_test.dart`
+- `test/home_list_projection_test.dart`
+- `test/home_loaded_add_task_regression_test.dart`
+- `test/home_more_my_tasks_test.dart`
+- `test/home_mutable_task_list_contract_test.dart`
+- `test/home_restore_orchestration_test.dart`
+- `test/home_search_projection_test.dart`
+- `test/home_search_service_contract_test.dart`
+- `test/home_settings_integration_test.dart`
+- `test/home_stat_filters_test.dart`
+- `test/home_task_filter_matcher_test.dart`
+- `test/home_today_about_test.dart`
+- `test/home_wave2_editor_wiring_guard_test.dart`
+- `test/integration_task_reminders_migration_backup_test.dart`
+- `test/interactive_guide_service_test.dart`
+- `test/iranian_official_holiday_source_test.dart`
+- `test/iranian_prayer_time_source_test.dart`
+- `test/issue_1891_lane_d_rollbox_test.dart`
+- `test/model_task_unified_item_test.dart`
+- `test/models/recurrence_test.dart`
+- `test/models/task_home_migration_test.dart`
+- `test/notebook_page_test.dart`
+- `test/notebook_project_membership_test.dart`
+- `test/official_calendar_page_test.dart`
+- `test/official_calendar_prayer_actions_test.dart`
+- `test/people_contacts_boundary_contract_test.dart`
+- `test/people_task_persistence_test.dart`
+- `test/persian_date_formatter_release_test.dart`
+- `test/persian_date_picker_test.dart`
+- `test/person_reference_contract_test.dart`
+- `test/prayer_completion_report_page_test.dart`
+- `test/prayer_task_counter_isolation_test.dart`
+- `test/primary_bottom_navigation_test.dart`
+- `test/privacy_backup_boundary_contract_test.dart`
+- `test/production_orchestrator_contract_test.dart`
+- `test/project_backup_portability_test.dart`
+- `test/project_detail_page_test.dart`
+- `test/project_lifecycle_service_test.dart`
+- `test/project_plan_codec_test.dart`
+- `test/project_selector_field_test.dart`
+- `test/project_store_test.dart`
+- `test/project_template_service_test.dart`
+- `test/projects_launcher_test.dart`
+- `test/projects_page_test.dart`
+- `test/quick_capture_back_test.dart`
+- `test/quick_capture_consecutive_tasks_test.dart`
+- `test/quick_capture_dialog_test.dart`
+- `test/quick_capture_project_create_test.dart`
+- `test/quick_capture_service_test.dart`
+- `test/recovery_authority_contract_test.dart`
+- `test/recovery_wave_auto_advance_contract_test.dart`
+- `test/recurrence_resume_today_test.dart`
+- `test/recurrence_task_test.dart`
+- `test/release_closure_product_gate_test.dart`
+- `test/release_critical_path_test.dart`
+- `test/report_center_page_test.dart`
+- `test/report_typography_canonical_test.dart`
+- `test/rescheduling_planner_test.dart`
+- `test/reusable_multi_select_filter_bottom_sheet_test.dart`
+- `test/schedule_conflict_service_test.dart`
+- `test/services/app_settings_service_test.dart`
+- `test/services/automatic_follow_up_alarm_planner_test.dart`
+- `test/services/calendar_inbound_sync_service_test.dart`
+- `test/services/calendar_integration_settings_contract_test.dart`
+- `test/services/calendar_outbound_sync_service_test.dart`
+- `test/services/calendar_provider_sync_executor_test.dart`
+- `test/services/calendar_reschedule_apply_service_test.dart`
+- `test/services/calendar_swipe_settings_service_test.dart`
+- `test/services/completed_follow_up_report_projection_test.dart`
+- `test/services/completed_task_report_projection_test.dart`
+- `test/services/external_calendar_event_projection_test.dart`
+- `test/services/external_calendar_import_registration_test.dart`
+- `test/services/follow_up_reminder_alarm_planner_test.dart`
+- `test/services/follow_up_reminder_delivery_state_test.dart`
+- `test/services/follow_up_write_coordinator_test.dart`
+- `test/services/g1_drift_completed_at_migration_test.dart`
+- `test/services/g1_drift_schema_test.dart`
+- `test/services/home_task_editor_context_service_test.dart`
+- `test/services/home_today_projection_test.dart`
+- `test/services/iran_clock_test.dart`
+- `test/services/persian_date_formatter_test.dart`
+- `test/services/person_follow_up_report_projection_test.dart`
+- `test/services/prayer_completion_projection_test.dart`
+- `test/services/prayer_completion_report_projection_test.dart`
+- `test/services/prayer_completion_store_test.dart`
+- `test/services/project_backup_bridge_test.dart`
+- `test/services/recurring_triple_window_projection_test.dart`
+- `test/services/sql_project_migration_writer_test.dart`
+- `test/services/sql_task_migration_writer_test.dart`
+- `test/services/system_calendar_event_read_test.dart`
+- `test/services/system_calendar_provider_discovery_test.dart`
+- `test/services/task_clone_service_test.dart`
+- `test/services/task_due_status_test.dart`
+- `test/services/task_migration_adapter_test.dart`
+- `test/services/task_migration_reader_mutability_test.dart`
+- `test/services/task_migration_reader_test.dart`
+- `test/services/task_migration_writer_test.dart`
+- `test/services/task_report_filter_test.dart`
+- `test/services/task_taxonomy_lifecycle_service_test.dart`
+- `test/services/task_template_store_test.dart`
+- `test/services/today_focus_projection_test.dart`
+- `test/services/wave2_product_fast_track_test.dart`
+- `test/services/work_agenda_projection_test.dart`
+- `test/services/work_agenda_report_adapter_test.dart`
+- `test/settings_page_test.dart`
+- `test/settings_template_tabs_test.dart`
+- `test/sql_task_store_cutover_test.dart`
+- `test/startup_crash_screen_test.dart`
+- `test/startup_permission_service_test.dart`
+- `test/sync_merge_service_test.dart`
+- `test/system_calendar_android_contract_test.dart`
+- `test/system_calendar_bridge_test.dart`
+- `test/system_calendar_export_identity_test.dart`
+- `test/system_calendar_launcher_contract_test.dart`
+- `test/task_bulk_mutation_service_test.dart`
+- `test/task_bulk_report_service_test.dart`
+- `test/task_bulk_selection_bar_test.dart`
+- `test/task_bulk_selection_service_test.dart`
+- `test/task_category_field_test.dart`
+- `test/task_center_followup_report_contract_test.dart`
+- `test/task_contract_test.dart`
+- `test/task_detail_calendar_export_action_test.dart`
+- `test/task_detail_checklist_crud_test.dart`
+- `test/task_detail_checklist_flow_test.dart`
+- `test/task_detail_completion_toggle_test.dart`
+- `test/task_detail_due_date_action_test.dart`
+- `test/task_detail_followup_flow_test.dart`
+- `test/task_detail_master_screen_test.dart`
+- `test/task_detail_metadata_selector_test.dart`
+- `test/task_detail_person_persistence_test.dart`
+- `test/task_detail_report_entry_test.dart`
+- `test/task_detail_scroll_save_test.dart`
+- `test/task_detail_template_conversion_test.dart`
+- `test/task_detail_visual_test.dart`
+- `test/task_due_scope_service_test.dart`
+- `test/task_edit_apply_service_test.dart`
+- `test/task_editor_category_project_integration_test.dart`
+- `test/task_editor_dialog_test.dart`
+- `test/task_editor_due_date_preservation_test.dart`
+- `test/task_editor_full_entry_test.dart`
+- `test/task_item_contract_test.dart`
+- `test/task_legacy_follow_up_migration_test.dart`
+- `test/task_list_scope_service_test.dart`
+- `test/task_list_sort_service_test.dart`
+- `test/task_move_to_today_service_test.dart`
+- `test/task_next_action_page_test.dart`
+- `test/task_next_action_service_test.dart`
+- `test/task_people_page_test.dart`
+- `test/task_people_service_test.dart`
+- `test/task_priority_compatibility_test.dart`
+- `test/task_project_assignment_service_test.dart`
+- `test/task_recurrence_page_test.dart`
+- `test/task_recurrence_repository_test.dart`
+- `test/task_reminder_legacy_compatibility_test.dart`
+- `test/task_report_filter_test.dart`
+- `test/task_report_page_test.dart`
+- `test/task_report_pdf_renderer_test.dart`
+- `test/task_report_projection_test.dart`
+- `test/task_report_text_renderer_test.dart`
+- `test/task_report_vazirmatn_contract_test.dart`
+- `test/task_search_service_test.dart`
+- `test/task_store_completed_at_persistence_test.dart`
+- `test/task_store_followup_test.dart`
+- `test/task_store_reminder_persistence_test.dart`
+- `test/task_store_sql_runtime_migration_test.dart`
+- `test/task_store_test.dart`
+- `test/task_sync_apply_service_test.dart`
+- `test/task_sync_plan_service_test.dart`
+- `test/task_sync_remote_transport_test.dart`
+- `test/task_sync_revision_service_test.dart`
+- `test/task_taxonomy_management_page_test.dart`
+- `test/task_taxonomy_mutation_service_test.dart`
+- `test/task_template_management_page_test.dart`
+- `test/task_timeline_page_test.dart`
+- `test/task_timeline_service_test.dart`
+- `test/taxonomy_icon_row_test.dart`
+- `test/today_focus_persistence_test.dart`
+- `test/today_focus_toggle_button_test.dart`
+- `test/unified_item_migration_test.dart`
+- `test/user_guide_page_test.dart`
+- `test/vazirharf_settings_convergence_test.dart`
+- `test/waiting_for_response_service_test.dart`
+- `test/wave2_product_fast_track_guard_test.dart`
+- `test/wave2_product_fast_track_status_test.dart`
+- `test/wave2_product_fast_track_test.dart`
+- `test/wave2_task_editor_ime_save_guard_test.dart`
+- `test/widget_follow_up_projection_test.dart`
+- `test/widget_task_bridge_test.dart`
+- `test/widget_task_selection_service_test.dart`
+- `test/widget_test.dart`
+- `test/widgets/home_page_test.dart`
+- `test/widgets/home_quick_capture_test.dart`
+- `test/widgets/task_dialog_test.dart`
+- `test/work_agenda_page_test.dart`
+- `test/work_agenda_pdf_renderer_test.dart`
+
+## NIRA factory test-file inventory
+
+- `factory/tests/test_adaptive_capacity.py`
+- `factory/tests/test_autonomous_self_completion.py`
+- `factory/tests/test_client_native_validation.py`
+- `factory/tests/test_control_plane_contracts.py`
+- `factory/tests/test_failure_feedback.py`
+- `factory/tests/test_failure_intelligence.py`
+- `factory/tests/test_github_evidence_collector.py`
+- `factory/tests/test_global_reconcile.py`
+- `factory/tests/test_impact_routing.py`
+- `factory/tests/test_intelligence_operational_contracts.py`
+- `factory/tests/test_multi_provider_router.py`
+- `factory/tests/test_nira_arvin_control_plane.py`
+- `factory/tests/test_nira_first_l10_gate.py`
+- `factory/tests/test_nira_identity_contract.py`
+- `factory/tests/test_operational_scheduler_feedback.py`
+- `factory/tests/test_provider_capacity_auto_resume.py`
+- `factory/tests/test_provider_pressure.py`
+- `factory/tests/test_recovery_idempotency_current_head.py`
+- `factory/tests/test_registered_client_e2e.py`
+- `factory/tests/test_release_monitoring.py`
+- `factory/tests/test_scheduler_policy.py`
+- `factory/tests/test_worker_contract.py`
+- `factory/tests/test_worker_roles.py`

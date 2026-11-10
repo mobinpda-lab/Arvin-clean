@@ -1,4 +1,22 @@
-# CURRENT STATE — REV7.2 live checkpoint
+## REV8 live checkpoint — 2026-11-10
+
+Repository: mobinpda-lab/Arvin-clean
+Main HEAD / PR base: 45e4202b03a434459e4c021a04efa7e8396359db (Main READ-ONLY).
+Authorized branch: fix/recovery-calendar-device-smoke-2026-10-31.
+Working HEAD / PR #3052 head before this documentation commit: 9846f10850031c63964fdc81ae0ab1cdb3028517.
+PR #3052: OPEN / DRAFT / UNMERGED; 2,130 ahead / 0 behind; 368 changed files; 0 review submissions; 51 issue comments.
+Repository inventory: 1,412 branches; 1,238 PRs (100 open, 1,138 closed); 1,812 Main commits; 302 Arvin test files; 25 working-branch workflows; 259 docs files.
+Current Build 42795405617: FAILURE; six shards: 1,296 passed / 78 distinct failed labels. Analyze, Visual, Debug APK, Release APK and Staging APK succeeded.
+Calendar Provider 42795405362: SUCCESS. Follow-up Persistence 42795405561: SUCCESS. Device Smoke 42795405388: PENDING; no device acceptance claim.
+NIRA: 112 branches, 7 open PRs, 381 closed PRs, 132 Main commits, 26 workflows, 23 factory tests; L10 UNVERIFIED. Queue Scheduler run 42777810609 failed while commenting on issue #162 (>2,500 comments).
+Release: BLOCKED — RELEASE: NO-GO.
+GitHub API does not expose local working-tree state or physical device state; both remain NOT VERIFIED.
+
+---
+
+## Historical REV7.2 checkpoint — SHA b789 (preserved)
+
+# CURRENT STATE — REV8 live checkpoint
 
 Last audited: 2026-11-10
 

@@ -794,3 +794,15 @@ PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main دست‌نخورد�
 - NIRA: main SHA 7a27ee63b65d343e45c5786f782f2567611722dc; Main Closure 42777826931 PASS; Queue Scheduler 42777810609 FAIL; L10 remains UNVERIFIED per NIRA README.
 - No executable code, test, schema, migration, workflow or security configuration changed. This record is documentation-only.
 - Release remains BLOCKED — RELEASE: NO-GO.
+
+
+## REV8 — Repository-wide forensic inventory and documentation consolidation — 2026-11-10
+
+- Source SHA before this audit documentation commit: 9846f10850031c63964fdc81ae0ab1cdb3028517; Main SHA: 45e4202b03a434459e4c021a04efa7e8396359db.
+- Enumerated all 1,412 Arvin branches, all 1,238 PRs, 1,812 Main-reachable commits, and 2,130 PR-ahead commits via GitHub pagination/Compare API.
+- Inventoried 302 Arvin test files and 23 NIRA factory test files. Current Build exact-head result: 1,296 passed / 78 distinct failed labels.
+- Reconciled 25 working-branch workflows vs 23 Main workflows; 259 docs files vs 209 Main; 33 continuity docs; 99 internal continuity links checked, zero broken.
+- Registered 35 duplicate branch-head groups/109 refs, 33 reused PR-head branch groups/72 PR records, repeated commit subjects/tree-SHA candidates, legacy docs, and NIRA state-sync churn.
+- NIRA: 112 branches, 7 open PRs, 381 closed PRs, 132 Main commits, 26 workflows, 23 factory tests; Queue Scheduler run 42777810609 failed on issue #162 comment limit; L10 remains UNVERIFIED.
+- Documentation-only audit artifacts are stored under docs/project-continuity/audit/. No executable source, tests, schema, migrations, workflows, security settings, branch/PR metadata, Main, merge, release or user data were changed.
+- Exact current CI evidence is in audit/CI_HISTORY_AUDIT.md; all SHA references and their scope are in audit/SHA_RECONCILIATION.md.

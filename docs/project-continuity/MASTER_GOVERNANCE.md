@@ -1,4 +1,30 @@
-# ARVIN MASTER GOVERNANCE — REV7.2
+# ARVIN MASTER GOVERNANCE — REV8
+
+Authority: Mobin — Product Owner & Product Director
+Repository: mobinpda-lab/Arvin-clean
+Main SHA: 45e4202b03a434459e4c021a04efa7e8396359db
+Authorized branch: fix/recovery-calendar-device-smoke-2026-10-31
+Working HEAD before REV8 docs commit: 9846f10850031c63964fdc81ae0ab1cdb3028517
+PR #3052: OPEN / DRAFT / UNMERGED
+Release: BLOCKED — RELEASE: NO-GO
+
+## REV8 authority and reconciliation addendum
+
+REV8 supersedes REV7.2 wherever their current-state snapshots or cleanup inventories differ. REV7.2 content below is preserved as historical governance evidence. Live GitHub repository, exact branch HEAD, code/schema/migrations/tests/workflows and exact-SHA Actions evidence remain operational truth.
+
+- Main is READ-ONLY. No merge, release, force-push, rebase, history rewrite, branch/PR deletion, test deletion, migration/table deletion, workflow deletion or security-ruleset change is authorized by this audit.
+- REV8 authorizes non-destructive documentation reconciliation on the authorized working branch. Technical changes remain subject to a separate valid implementation authorization.
+- Branch inventory: 1,412 branches; only main is protected in the observed branch API result. The authorized working branch is unprotected.
+- PR inventory: 1,238 records; 100 open, 1,138 closed. PR #3052 remains OPEN / DRAFT / UNMERGED.
+- Current Build 42795405617 on SHA 9846f108... failed with 78 distinct test labels. Device Smoke 42795405388 is pending. Calendar Provider and Follow-up Persistence passed on the same SHA.
+- All 12 REV8 audit deliverables are stored under docs/project-continuity/audit/ and indexed by README.md.
+- Do not call branches without open PRs stale/abandoned without last-commit-date and dependency evidence. Do not classify repeated subjects or identical trees as duplicate commits without patch/parent review.
+- Release remains BLOCKED — RELEASE: NO-GO.
+
+---
+
+## Historical REV7.2 governance text (preserved)
+
 
 **Authority:** Mobin — Product Owner & Product Director  
 **Repository:** mobinpda-lab/Arvin-clean  
@@ -24,7 +50,7 @@ This order does not authorize changes to executable source, tests, schemas, migr
 
 GitHub API cannot prove the local uncommitted working tree. Report local state as NOT VERIFIED unless an actual local workspace is available.
 
-## 3. Live Repository Baseline — 2026-11-10
+## 3. Historical REV7.2 Repository Baseline — 2026-11-10 (superseded by REV8)
 
 - Main HEAD: 45e4202b03a434459e4c021a04efa7e8396359db.
 - Authorized branch HEAD: b789343c9699ca440d043d71d47db3dcdfafa57c.

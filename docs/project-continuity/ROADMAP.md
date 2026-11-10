@@ -1,3 +1,72 @@
+# REV8 Wave Roadmap — current state
+
+## REV8 live checkpoint — 2026-11-10
+
+Repository: mobinpda-lab/Arvin-clean
+Main HEAD / PR base: 45e4202b03a434459e4c021a04efa7e8396359db (Main READ-ONLY).
+Authorized branch: fix/recovery-calendar-device-smoke-2026-10-31.
+Working HEAD / PR #3052 head before this documentation commit: 9846f10850031c63964fdc81ae0ab1cdb3028517.
+PR #3052: OPEN / DRAFT / UNMERGED; 2,130 ahead / 0 behind; 368 changed files; 0 review submissions; 51 issue comments.
+Repository inventory: 1,412 branches; 1,238 PRs (100 open, 1,138 closed); 1,812 Main commits; 302 Arvin test files; 25 working-branch workflows; 259 docs files.
+Current Build 42795405617: FAILURE; six shards: 1,296 passed / 78 distinct failed labels. Analyze, Visual, Debug APK, Release APK and Staging APK succeeded.
+Calendar Provider 42795405362: SUCCESS. Follow-up Persistence 42795405561: SUCCESS. Device Smoke 42795405388: PENDING; no device acceptance claim.
+NIRA: 112 branches, 7 open PRs, 381 closed PRs, 132 Main commits, 26 workflows, 23 factory tests; L10 UNVERIFIED. Queue Scheduler run 42777810609 failed while commenting on issue #162 (>2,500 comments).
+Release: BLOCKED — RELEASE: NO-GO.
+GitHub API does not expose local working-tree state or physical device state; both remain NOT VERIFIED.
+
+## Wave readiness
+
+| Wave | Current status | Gate / dependency |
+|---|---|---|
+| Wave 0 — Governance & Source of Truth | COMPLETE for audit documentation | 12 audit inventories and canonical index; verify final pushed HEAD after commit. |
+| Wave 1 — Data Integrity & Architecture | BLOCKED | Define four Reminder states; verify Drift v16 migrations and real Backup/Restore integrity before data changes. |
+| Wave 2 — Core Task Lifecycle | PARTIAL / BLOCKED | Auto-Save full-field acceptance, Due Date/Reminder/Follow-up boundaries, recurrence and checklist regressions. |
+| Wave 3 — Home, Quick Capture & Filters | BLOCKED | Fix current Home, Quick Capture, five-filter OR/AND and taxonomy failures without weakening tests. |
+| Wave 4 — Notebook, Calendar & Templates | PARTIAL | Calendar Provider passed; Device Smoke pending; verify Notebook hard-delete preservation and Template date/assignment semantics. |
+| Wave 5 — Reports, Sync & Enterprise Acceptance | BLOCKED | Report/PDF failures, P2P/Sync E2E and NIRA L10 remain unverified. |
+
+## Wave acceptance criteria
+
+### Wave 0 — Governance & Source of Truth
+- Goal: one canonical authority and traceable branch/PR/commit/test/CI inventories.
+- Acceptance: current SHAs, exact CI, inventories, internal links and safety restrictions recorded.
+- Status: audit documentation prepared for the authorized branch.
+
+### Wave 1 — Data Integrity & Architecture
+- Goal: canonical TaskStore/Drift integrity, Reminder states, migrations, Backup/Restore.
+- Dependencies: explicit four-state Reminder contract; real DB/backup fixture and migration plan.
+- Acceptance: no parallel store; lossless migration/restore; foreign keys and occurrence history validated.
+- Tests: Drift migration, file-backed persistence, backup/restore round-trip, data-integrity regression.
+- Status: BLOCKED pending Reminder semantics and full DB evidence.
+
+### Wave 2 — Core Task Lifecycle
+- Goal: Task, Due Date, Reminder, Follow-up, recurrence, occurrence and checklist lifecycle.
+- Acceptance: independent timestamps; Follow-up is historical action; Reminder is future scheduling; Auto-Save is durable.
+- Tests: Task contract, reminder persistence, follow-up persistence, recurrence and checklist occurrence tests.
+- Status: PARTIAL; current Build failures remain.
+
+### Wave 3 — Home, Quick Capture & Filters
+- Goal: five filters, OR within dimensions, AND across dimensions, inline taxonomy creation, sorting, Focus Today and Inbox.
+- Acceptance: 360/390/412dp RTL, 48dp touch target, no horizontal overflow, unclassified quick capture supported.
+- Tests: Home, Quick Capture, filter Boolean logic, category/project integration and accessibility.
+- Status: BLOCKED by current shard failures.
+
+### Wave 4 — Notebook, Calendar & Templates
+- Goal: note preservation, deep clone, calendar separation and provider safety.
+- Acceptance: deleting/unlinking Task never destroys independent note; template excludes execution history; external event deletion cannot delete internal Task.
+- Tests: Notebook deletion/restore/convert, template deep clone/date-base, Calendar provider, Device Smoke.
+- Status: PARTIAL; Provider pass, Device Smoke pending, other acceptance incomplete.
+
+### Wave 5 — Reports, Sync & Enterprise Acceptance
+- Goal: management reports, Follow-up Office, PDF, sync/P2P, NIRA E2E and L10.
+- Acceptance: accurate reports, idempotent sync, reconstructible registered-client E2E, L10 evidence.
+- Tests: report/PDF suites, sync conflict/transport, NIRA factory tests and actual registered-client run.
+- Status: BLOCKED; NIRA L10 UNVERIFIED.
+
+---
+
+## Historical roadmap (preserved)
+
 # Product Roadmap
 This roadmap orders work by release risk and verified dependencies. It does not authorize scope expansion beyond the owner-approved PR/issue scope.
 
