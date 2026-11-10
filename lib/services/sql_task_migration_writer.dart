@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:drift/drift.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -229,11 +228,26 @@ class SqlTaskMigrationWriter {
     await RecurrenceSqlCodec.writeTask(executor, task);
   }
 
+  static const Set<String> _sqlOwnedTaskKeys = <String>{
+    'id', 'title', 'description', 'createdAt', 'updatedAt', 'dueDate',
+    'category', 'notebookKind', 'priority', 'archived', 'trashed',
+    'completed', 'completedAt', 'isFavorite', 'tags', 'checklist',
+    'followUps', 'people', 'taskReminders', 'recurrence',
+    'occurrenceHistory', 'checklistOccurrences',
+  };
+
   Map<String, dynamic> _storageEnvelope(TaskMigrationRecord record) {
-    return Map<String, dynamic>.from(record.sourceJson)
-      ..remove('recurrence')
-      ..remove('occurrenceHistory')
-      ..remove('checklistOccurrences');
+    final canonical = Map<String, dynamic>.from(record.task.toJson());
+    for (final key in _sqlOwnedTaskKeys) {
+      canonical.remove(key);
+    }
+    final known = <String>{...record.task.toJson().keys, ..._sqlOwnedTaskKeys,
+      'legacyTaskReminderMigrationVersion'};
+    final unknown = <String, dynamic>{
+      for (final entry in record.sourceJson.entries)
+        if (!known.contains(entry.key)) entry.key: entry.value,
+    };
+    return <String, dynamic>{...unknown, ...canonical};
   }
 
   Future<void> _validateMigratedSnapshot(QueryExecutor executor, List<TaskMigrationRecord> records) async {
@@ -280,11 +294,14 @@ class SqlTaskMigrationWriter {
     if (rawEnvelope is! String) {
       throw StateError('Task envelope is missing for ${task.id}.');
     }
-    final existingEnvelope = Map<String, dynamic>.from(jsonDecode(rawEnvelope) as Map)
-      ..remove('recurrence')
-      ..remove('occurrenceHistory')
-      ..remove('checklistOccurrences');
-    if (_canonicalJson(existingEnvelope) != _canonicalJson(_storageEnvelope(record))) {
+    final existingEnvelope = Map<String, dynamic>.from(jsonDecode(rawEnvelope) as Map);
+    for (final key in _sqlOwnedTaskKeys) {
+      existingEnvelope.remove(key);
+    }
+    existingEnvelope.remove('legacyTaskReminderMigrationVersion');
+    final expectedEnvelope = _storageEnvelope(record)
+      ..remove('legacyTaskReminderMigrationVersion');
+    if (_canonicalJson(existingEnvelope) != _canonicalJson(expectedEnvelope)) {
       throw StateError('Task envelope/unknown-field conflict for ${task.id}.');
     }
 
