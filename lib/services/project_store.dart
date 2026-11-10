@@ -101,11 +101,25 @@ class ProjectStore {
       final templateApplications = await executor.runSelect(
         'SELECT template_task_id, project_id, task_id FROM template_task_applications', const [],
       );
+      final legacyEnvelopeRows = await executor.runSelect(
+        'SELECT id, legacy_payload_json FROM projects', const [],
+      );
+      final preservedProjectFields = <String, Map<String, dynamic>>{};
+      for (final row in legacyEnvelopeRows) {
+        final raw = row['legacy_payload_json'];
+        if (raw is! String || raw.trim().isEmpty) continue;
+        final decoded = jsonDecode(raw);
+        if (decoded is! Map) {
+          throw FormatException('Project legacy envelope is invalid for ${row['id']}');
+        }
+        preservedProjectFields[row['id'] as String] =
+            Map<String, dynamic>.from(decoded);
+      }
       await executor.runCustom('DELETE FROM template_task_applications');
       await executor.runCustom('DELETE FROM project_items');
       await executor.runCustom('DELETE FROM projects');
       for (var ordinal = 0; ordinal < values.length; ordinal++) {
-        await _insertProject(executor, values[ordinal], ordinal);
+        await _insertProject(executor, values[ordinal], ordinal, preservedProjectFields[values[ordinal].id]);
       }
       for (final row in templateApplications) {
         await executor.runInsert(
@@ -123,7 +137,7 @@ class ProjectStore {
 
   Future<void> clear() => save(const <ProjectPlan>[]);
 
-  Future<void> _insertProject(QueryExecutor executor, ProjectPlan project, int storageOrdinal) async {
+  Future<void> _insertProject(QueryExecutor executor, ProjectPlan project, int storageOrdinal, [Map<String, dynamic>? preservedFields]) async {
     await executor.runInsert(
       '''INSERT INTO projects
          (id, storage_ordinal, name, color_value, is_archived, center_id, template_id, template_name_snapshot, legacy_payload_json)
@@ -137,7 +151,7 @@ class ProjectStore {
         project.centerId,
         project.templateId,
         project.templateNameSnapshot,
-        jsonEncode(codec.encode(project)),
+        jsonEncode(<String, dynamic>{...?preservedFields, ...codec.encode(project)}),
       ],
     );
     for (var ordinal = 0; ordinal < project.itemIds.length; ordinal++) {
