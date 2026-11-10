@@ -181,3 +181,12 @@ Detailed goals, dependencies, files, acceptance, tests and evidence are in ROADM
 ## 13. Release and Final Authority
 
 Release remains BLOCKED — RELEASE: NO-GO until all mandatory acceptance gates pass on one exact candidate SHA, seven Device Smoke lanes finish, all six test shards pass, Calendar Provider and Follow-up Persistence pass, physical-device acceptance is recorded, data integrity/security gates close and Mobin explicitly accepts the candidate. This document does not authorize Main changes, merge or release. Mobin remains the final authority for product decisions.
+
+
+## 14. WAVE 4 REV8 — latest owner authorization and current execution
+
+On 2026-11-10 Mobin explicitly authorized WAVE 4 as **AUDIT + IMPLEMENTATION + TESTING**. This supersedes older read-only Wave 4 checkpoint language and authorizes in-scope source, schema, migration, test, workflow and audit-report edits on the approved working branch.
+
+Current implementation checkpoint: `dbfcdb02879ed3939cb6a69d3a150e2237283a51`. The implementation is PARTIAL: Task and Project migration parity was strengthened; Recurrence and Occurrence have relational SQL ownership; unproven legacy retirement paths were disabled. Global SQL-only consolidation, full G1 parity, Backup/Restore, exact-SHA tests and Android acceptance remain open.
+
+Main stays READ-ONLY; PR #3052 stays OPEN / DRAFT / UNMERGED; no force push, merge, release, test weakening or unproven legacy deletion. Four Reminder states remain an explicit Mobin decision. Release remains BLOCKED — NO-GO.
