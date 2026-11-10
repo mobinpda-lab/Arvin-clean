@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/goal_project.dart';
 import 'g1_drift_schema.dart';
 import 'project_plan_codec.dart';
+import 'sql_project_migration_writer.dart';
 import 'task_store.dart';
 
 /// Canonical local persistence for Arvin Projects.
@@ -57,26 +58,10 @@ class ProjectStore {
     );
     if (marker.isNotEmpty && marker.single['value'] == '1') return;
 
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(key);
-    if (raw != null && raw.trim().isNotEmpty) {
-      final projects = codec.decodeList(jsonDecode(raw));
-      await executor.runCustom('BEGIN');
-      try {
-        for (var ordinal = 0; ordinal < projects.length; ordinal++) {
-          final project = projects[ordinal];
-          await _insertProject(executor, project);
-        }
-        await executor.runCustom('COMMIT');
-      } catch (_) {
-        try { await executor.runCustom('ROLLBACK'); } catch (_) {}
-        rethrow;
-      }
-    }
-
-    await executor.runCustom(
-      "INSERT INTO arvin_storage_meta (key, value) VALUES ('legacy_projects_migrated', '1') "
-      "ON CONFLICT(key) DO UPDATE SET value = '1'",
+    final preferences = await SharedPreferences.getInstance();
+    await SqlProjectMigrationWriter(codec: codec).migrateFromPreferences(
+      executor: executor,
+      preferences: preferences,
     );
   }
 
@@ -84,7 +69,7 @@ class ProjectStore {
     final executor = _database;
     await _ensureReady();
     final rows = await executor.runSelect(
-      'SELECT * FROM projects ORDER BY id',
+      'SELECT * FROM projects ORDER BY storage_ordinal, id',
       const [],
     );
     final result = <ProjectPlan>[];
@@ -119,8 +104,8 @@ class ProjectStore {
       await executor.runCustom('DELETE FROM template_task_applications');
       await executor.runCustom('DELETE FROM project_items');
       await executor.runCustom('DELETE FROM projects');
-      for (final project in values) {
-        await _insertProject(executor, project);
+      for (var ordinal = 0; ordinal < values.length; ordinal++) {
+        await _insertProject(executor, values[ordinal], ordinal);
       }
       for (final row in templateApplications) {
         await executor.runInsert(
@@ -138,13 +123,14 @@ class ProjectStore {
 
   Future<void> clear() => save(const <ProjectPlan>[]);
 
-  Future<void> _insertProject(QueryExecutor executor, ProjectPlan project) async {
+  Future<void> _insertProject(QueryExecutor executor, ProjectPlan project, int storageOrdinal) async {
     await executor.runInsert(
       '''INSERT INTO projects
-         (id, name, color_value, is_archived, center_id, template_id, template_name_snapshot, legacy_payload_json)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+         (id, storage_ordinal, name, color_value, is_archived, center_id, template_id, template_name_snapshot, legacy_payload_json)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
       <Object?>[
         project.id,
+        storageOrdinal,
         project.title,
         project.colorValue,
         project.isArchived ? 1 : 0,
