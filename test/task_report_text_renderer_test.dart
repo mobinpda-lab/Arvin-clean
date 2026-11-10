@@ -20,6 +20,7 @@ void main() {
           checklist: const ['تماس', 'ثبت نتیجه'],
           followUps: const [],
           completed: false,
+          dueDate: DateTime(2026, 8, 31, 14, 20),
           reminders: [
             TaskReminder(
               id: 'report-reminder-1',
@@ -38,6 +39,7 @@ void main() {
     expect(text, contains('تاریخ تولید:'));
     expect(text, contains('1. تماس با مشتری'));
     expect(text, contains('وضعیت: باز'));
+    expect(text, contains('موعد: ۱۴۰۵/۰۶/۰۹ ۱۴:۲۰'));
     expect(text, contains('توضیحات: پیگیری وضعیت قرارداد'));
     expect(text, contains('برچسب‌ها: فروش، مهم'));
     expect(text, contains('چک‌لیست:'));
@@ -45,6 +47,22 @@ void main() {
     expect(text, contains('• ثبت نتیجه'));
     expect(text, contains('یادآوری:'));
     expect(text, isNot(contains('2026')));
+  });
+
+  test('renders all-day Task due dates without a clock time', () {
+    final report = const TaskReportProjection().project([
+      Task(
+        id: 'all-day-report',
+        title: 'موعد تمام‌روز',
+        dueDate: DateTime(2026, 8, 30),
+        allDay: true,
+      ),
+    ]);
+
+    final output = renderer.render(report);
+
+    expect(output, contains('موعد: ۱۴۰۵/۰۶/۰۸'));
+    expect(output, isNot(contains('۱۴۰۵/۰۶/۰۸ ۰۰:۰۰')));
   });
 
   test('renders an explicit empty-report message', () {
