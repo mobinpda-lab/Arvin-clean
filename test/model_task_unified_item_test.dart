@@ -73,7 +73,7 @@ void main() {
     expect(reopened.legacyFollowUpMetadata, task.legacyFollowUpMetadata);
   });
 
-  test('enabling follow-up keeps the same item and exposes follow-up state', {
+  test('enabling follow-up keeps the same item and exposes follow-up state', () {
     final task = Task(
       id: '1',
       title: 'کار',
