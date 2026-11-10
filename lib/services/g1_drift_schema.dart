@@ -9,7 +9,7 @@ import 'recurrence_sql_codec.dart';
 
 /// G1-DRIFT relational schema foundation.
 class G1DriftSchema implements QueryExecutorUser {
-  static const int version = 16;
+  static const int version = 17;
 
   static const List<String> _statements = <String>[
     '''CREATE TABLE IF NOT EXISTS tasks (
@@ -181,6 +181,9 @@ class G1DriftSchema implements QueryExecutorUser {
       }
       if (!taskColumns.any((row) => row['name'] == 'legacy_payload_json')) {
         await executor.runCustom('ALTER TABLE tasks ADD COLUMN legacy_payload_json TEXT NULL');
+      }
+      if (!taskColumns.any((row) => row['name'] == 'recurrence_json')) {
+        await executor.runCustom('ALTER TABLE tasks ADD COLUMN recurrence_json TEXT NULL');
       }
       if (!taskColumns.any((row) => row['name'] == 'completed_at')) {
         await executor.runCustom('ALTER TABLE tasks ADD COLUMN completed_at TEXT NULL');
