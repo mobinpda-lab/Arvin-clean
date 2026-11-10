@@ -1,3 +1,14 @@
+## Mandatory AI continuity entrypoint
+
+Before any AI agent, automation, or contributor continues work, read:
+1. [AGENTS.md](AGENTS.md)
+2. [AI_CONTINUITY_PROTOCOL.md](AI_CONTINUITY_PROTOCOL.md)
+3. [PROJECT_STATE.md](PROJECT_STATE.md)
+
+These are mandatory. Reconcile the checkpoint with live GitHub before acting; never continue from chat memory or a stale SHA. The detailed product and architecture records remain under [docs/project-continuity/](docs/project-continuity/).
+
+---
+
 # Arvin — Clean Project
 
 نرم‌افزار مدیریت کارها و پیگیری‌ها برای اندروید، ساخته‌شده با Flutter.

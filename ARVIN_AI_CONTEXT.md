@@ -1,3 +1,7 @@
+> **MANDATORY FIRST READ:** All AI agents and future sessions must read the repository-root [AGENTS.md](AGENTS.md), [AI_CONTINUITY_PROTOCOL.md](AI_CONTINUITY_PROTOCOL.md), and [PROJECT_STATE.md](PROJECT_STATE.md), then reconcile them with live GitHub before taking any action. The protocol is the cross-session operating rule; the state file is the current checkpoint.
+
+---
+
 # Arvin — AI Evaluation & Continuity Guide
 
 > Purpose: make Arvin independently understandable and reviewable when the repository is exported as a ZIP and provided to an AI assistant in a new conversation or account.

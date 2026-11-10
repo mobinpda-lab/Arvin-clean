@@ -1,3 +1,7 @@
+> **Root continuity protocol is mandatory:** before continuing, read [../../AGENTS.md](../../AGENTS.md), [../../AI_CONTINUITY_PROTOCOL.md](../../AI_CONTINUITY_PROTOCOL.md), and [../../PROJECT_STATE.md](../../PROJECT_STATE.md), then re-fetch live GitHub. This directory remains the canonical home for detailed product decisions, governance, roadmap, issues, implementation evidence, and handoff history. If an older checkpoint here conflicts with live GitHub or the root current checkpoint, reconcile it; do not silently rewrite history.
+
+---
+
 ## REV8 current snapshot refresh — 2026-11-10
 
 Active branch: `fix/recovery-calendar-device-smoke-2026-10-31`  
