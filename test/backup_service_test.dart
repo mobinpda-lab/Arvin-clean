@@ -66,7 +66,7 @@ void main() {
       });
     });
 
-    test('round-trips optional Calendar links and Category/Tag catalogs', () {
+    test('round-trips optional Calendar links, Category/Tag catalogs and People directory', () {
       final bytes = ArvinBackupService.encodeBackupDocument({
         'tasks': <dynamic>[
           <String, dynamic>{'id': 'task-1', 'title': 'کار نمونه'},
@@ -81,6 +81,9 @@ void main() {
         ],
         'categories': <String>['خانه', 'مالی'],
         'tags': <String>['مهم', 'پیگیری'],
+        'peopleDirectory': <Map<String, dynamic>>[
+          <String, dynamic>{'id': 'person-1', 'displayName': 'سارا احمدی'},
+        ],
       });
       final document = ArvinBackupService.validateBackupDocument(
         jsonDecode(utf8.decode(bytes)),
@@ -93,10 +96,13 @@ void main() {
       );
       expect(document['categories'], <String>['خانه', 'مالی']);
       expect(document['tags'], <String>['مهم', 'پیگیری']);
+      expect(document['peopleDirectory'], [
+        <String, dynamic>{'id': 'person-1', 'displayName': 'سارا احمدی'},
+      ]);
     });
 
     test('rejects malformed optional Calendar link and taxonomy containers', () {
-      for (final key in ['calendarLinks', 'categories', 'tags']) {
+      for (final key in ['calendarLinks', 'categories', 'tags', 'peopleDirectory']) {
         expect(
           () => ArvinBackupService.encodeBackupDocument({
             'tasks': <dynamic>[],

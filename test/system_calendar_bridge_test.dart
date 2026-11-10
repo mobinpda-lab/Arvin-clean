@@ -7,25 +7,15 @@ import 'package:arvin/services/system_calendar_bridge.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('only active canonical FollowUp reminders are export eligible', () {
-    final followUp = CalendarReminder(
-      id: 'followup:task-1:fu-1',
-      title: 'پیگیری مشتری',
-      date: DateTime(2026, 8, 26, 10),
-    );
-    final official = CalendarReminder(
-      id: 'prayer:tehran:2026-08-26:fajr',
-      title: 'اذان صبح',
-      date: DateTime(2026, 8, 26, 4),
-    );
-    final completed = CalendarReminder(
-      id: 'followup:task-1:fu-2',
-      title: 'انجام شده',
-      date: DateTime(2026, 8, 26, 11),
-      completed: true,
-    );
-
-    expect(SystemCalendarBridge.isEligible(followUp), isTrue);
+  test('only active canonical Task and TaskReminder items are export eligible', () {
+    final due = CalendarReminder(id: 'task-due:task-1', title: 'موعد کار', date: DateTime(2026, 8, 26, 10));
+    final followUpHistory = CalendarReminder(id: 'followup:task-1:fu-1', title: 'تاریخچه', date: DateTime(2026, 8, 26, 10));
+    final taskFollowUpHistory = CalendarReminder(id: 'task-followup:task-1:fu-2', title: 'تاریخچه', date: DateTime(2026, 8, 26, 11));
+    final official = CalendarReminder(id: 'prayer:tehran:2026-08-26:fajr', title: 'اذان صبح', date: DateTime(2026, 8, 26, 4));
+    final completed = CalendarReminder(id: 'task-due:task-2', title: 'انجام شده', date: DateTime(2026, 8, 26, 11), completed: true);
+    expect(SystemCalendarBridge.isEligible(due), isTrue);
+    expect(SystemCalendarBridge.isEligible(followUpHistory), isFalse);
+    expect(SystemCalendarBridge.isEligible(taskFollowUpHistory), isFalse);
     expect(SystemCalendarBridge.isEligible(official), isFalse);
     expect(SystemCalendarBridge.isEligible(completed), isFalse);
   });
@@ -48,24 +38,37 @@ void main() {
 
     final bridge = SystemCalendarBridge();
     expect(
-      await bridge.verifyProviderEventIdentity(calendarId: '42', eventId: '7'),
+      await bridge.verifyProviderEventIdentity(reminderId: 'task-due:task-1', calendarId: '42', eventId: '7'),
       isTrue,
     );
     expect(calls.single.method, SystemCalendarBridge.verifyProviderEventIdentityMethod);
-    expect(calls.single.arguments, {'calendarId': '42', 'eventId': '7'});
+    expect(calls.single.arguments, {'reminderId': 'task-due:task-1', 'calendarId': '42', 'eventId': '7'});
     expect(
-      await bridge.verifyProviderEventIdentity(calendarId: '', eventId: '7'),
+      await bridge.verifyProviderEventIdentity(reminderId: 'task-due:task-1', calendarId: '', eventId: '7'),
       isFalse,
     );
   });
 
-  test('eligible reminder is sent through the existing platform boundary', () async {
+  test('eligible reminder is inserted into the app-owned Arvin calendar', () async {
     const channel = MethodChannel(SystemCalendarBridge.channelName);
     final calls = <MethodCall>[];
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (call) async {
       calls.add(call);
-      return true;
+      if (call.method == SystemCalendarBridge.writePermissionStatusMethod) {
+        return true;
+      }
+      if (call.method == SystemCalendarBridge.ensureArvinLocalCalendarMethod) {
+        return <String, Object?>{
+          'id': 'arvin-local',
+          'displayName': 'Arvin',
+          'isArvinLocal': true,
+        };
+      }
+      if (call.method == SystemCalendarBridge.createProviderEventMethod) {
+        return 'event-1';
+      }
+      return null;
     });
     addTearDown(() {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -73,15 +76,51 @@ void main() {
     });
 
     final reminder = CalendarReminder(
-      id: 'followup:task-1:fu-1',
-      title: 'پیگیری مشتری',
+      id: 'task-due:task-1',
+      title: 'موعد کار',
       date: DateTime(2026, 8, 26, 10, 15),
     );
 
     expect(await SystemCalendarBridge(channel: channel).insert(reminder), isTrue);
-    expect(calls, hasLength(1));
-    expect(calls.single.method, SystemCalendarBridge.insertMethod);
-    expect(calls.single.arguments, isA<Map<Object?, Object?>>());
+    expect(calls.map((call) => call.method), [
+      SystemCalendarBridge.writePermissionStatusMethod,
+      SystemCalendarBridge.ensureArvinLocalCalendarMethod,
+      SystemCalendarBridge.createProviderEventMethod,
+    ]);
+    expect(
+      (calls.last.arguments as Map<Object?, Object?>)['calendarId'],
+      'arvin-local',
+    );
+  });
+
+  test('local Arvin calendar identity is carried from the native boundary', () async {
+    const channel = MethodChannel(SystemCalendarBridge.channelName);
+    final calls = <MethodCall>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+      calls.add(call);
+      if (call.method == SystemCalendarBridge.ensureArvinLocalCalendarMethod) {
+        return <String, Object?>{
+          'id': 'local-1',
+          'displayName': 'Arvin',
+          'accountName': 'com.example.arvin',
+          'accountType': 'LOCAL',
+          'ownerAccount': 'com.example.arvin',
+          'isArvinLocal': true,
+        };
+      }
+      return null;
+    });
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    });
+
+    final calendar = await SystemCalendarBridge(channel: channel)
+        .ensureArvinLocalCalendar();
+    expect(calendar?.id, 'local-1');
+    expect(calendar?.isArvinLocal, isTrue);
+    expect(calls.single.method, SystemCalendarBridge.ensureArvinLocalCalendarMethod);
   });
 
   test('opens the selected phone-owned event in its native calendar editor', () async {

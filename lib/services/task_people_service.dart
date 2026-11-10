@@ -6,9 +6,10 @@ typedef PersonIdFactory = String Function();
 
 /// Task-facing People operations that reuse the existing canonical TaskStore.
 ///
-/// This service deliberately does not own a People repository, database, device
-/// Contacts provider, phone/email payload, or sync path. Person references live
-/// only inside the canonical Task JSON.
+/// This service deliberately does not own a parallel People repository, device
+/// Contacts provider, phone/email payload, or sync path. Task associations,
+/// Person identity, and active-directory membership remain in TaskStore's
+/// canonical SQLite tables.
 class TaskPeopleService {
   TaskPeopleService({
     TaskStore? store,
@@ -48,13 +49,13 @@ class TaskPeopleService {
       );
     }
 
-    return _store.mutate<Task>((tasks) {
+    final person = PersonReference(
+      id: personId ?? _personIdFactory(),
+      displayName: normalizedName,
+    );
+    final updated = await _store.mutate<Task>((tasks) {
       final index = _requiredTaskIndex(tasks, taskId);
       final task = tasks[index];
-      final person = PersonReference(
-        id: personId ?? _personIdFactory(),
-        displayName: normalizedName,
-      );
 
       if (task.people.any((existing) => existing.id == person.id)) {
         throw StateError('Person already linked to Task: ${person.id}');
@@ -64,6 +65,51 @@ class TaskPeopleService {
       tasks[index] = updated;
       return updated;
     });
+    // Creating a Person from this explicit People action adds active directory
+    // membership; ordinary Task relation rewrites never do so.
+    await _store.mergePeopleDirectory([person]);
+    return updated;
+  }
+
+  Future<Task> updatePerson({
+    required String taskId,
+    required String personId,
+    required String displayName,
+  }) async {
+    final normalizedPersonId = personId.trim();
+    final normalizedName = displayName.trim();
+    if (normalizedPersonId.isEmpty) {
+      throw ArgumentError.value(
+        personId,
+        'personId',
+        'Person id must not be empty',
+      );
+    }
+    if (normalizedName.isEmpty) {
+      throw ArgumentError.value(
+        displayName,
+        'displayName',
+        'Person display name must not be empty',
+      );
+    }
+
+    final task = await loadRequiredTask(taskId);
+    final matches = task.people.where((person) => person.id == normalizedPersonId);
+    if (matches.isEmpty) {
+      throw StateError('Person is not linked to Task: $normalizedPersonId');
+    }
+    final existing = matches.first;
+    if (existing.isDeleted) {
+      throw StateError('Cannot edit a Person removed from the active directory');
+    }
+
+    // Person identity is shared across Task references. Updating the canonical
+    // directory row updates every historical/current Task projection without
+    // replacing IDs or creating a second Person store.
+    await _store.mergePeopleDirectory([
+      PersonReference(id: existing.id, displayName: normalizedName),
+    ]);
+    return loadRequiredTask(taskId);
   }
 
   Future<Task> removePerson({

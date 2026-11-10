@@ -1,5 +1,6 @@
 import 'package:arvin/main.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,11 +16,11 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('home-menu')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-search-button')), findsOneWidget);
     expect(find.byTooltip('پشتیبان'), findsNothing);
     expect(find.byIcon(Icons.backup_outlined), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
 
     expect(find.byIcon(Icons.backup_outlined), findsOneWidget);
@@ -32,12 +33,20 @@ void main() {
 
     expect(find.byType(AppBar), findsNothing);
     expect(find.byKey(const ValueKey('home-bismillah')), findsOneWidget);
-    expect(find.text('بسم الله الرحمن الرحیم'), findsOneWidget);
+    expect(find.byType(SvgPicture), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-bismillah-svg')), findsOneWidget);
+    expect(
+      find.byWidgetPredicate((widget) => widget is SvgPicture &&
+          (widget.bytesLoader as dynamic).assetName == 'assets/images/branding/bismillah.svg'),
+      findsOneWidget,
+    );
     expect(find.byKey(const ValueKey('home-title-block')), findsOneWidget);
-    expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
+    expect(find.text('آروین'), findsOneWidget);
+    expect(find.text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-search')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-notifications')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-menu')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-controls-vertical-scroll')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-notifications')), findsNothing);
+    expect(find.byKey(const ValueKey('home-search-button')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
   });
 
@@ -96,11 +105,12 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
-    expect(find.text('تاریخ‌گذشته'), findsOneWidget);
-    expect(find.text('امروز'), findsOneWidget);
+    expect(find.text('گذشته'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-group-today')), findsOneWidget);
     expect(find.text('فردا'), findsOneWidget);
     expect(find.text('آینده'), findsOneWidget);
     expect(find.text('فاقد زمان'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-compact-filter-wrap')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -136,7 +146,7 @@ void main() {
     expect(find.text('برای بایگانی'), findsNothing);
     expect(find.text('برای حذف'), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ListTile, 'بایگانی'));
     await tester.pumpAndSettle();
@@ -147,5 +157,28 @@ void main() {
 
     expect(find.text('برای بایگانی'), findsOneWidget);
     expect(find.text('برای حذف'), findsOneWidget);
+  });
+
+  testWidgets('Home handles fractional logical width, large text and keyboard insets',
+      (tester) async {
+    tester.view.physicalSize = const Size(1081, 1920);
+    tester.view.devicePixelRatio = 3;
+    tester.view.viewInsets = const FakeViewPadding(bottom: 240);
+    tester.platformDispatcher.textScaleFactorTestValue = 1.4;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetViewInsets);
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': '[{"id":"fractional-home","title":"کار در اندازه باریک"}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('home-drawer-button')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-canonical-search')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-compact-filter-wrap')), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

@@ -36,7 +36,7 @@ void main() {
     expect(value.title, 'هماهنگی انجام شد');
     expect(value.exactDateTime, '۱۴۰۵/۰۶/۰۶ • ساعت ۱۰:۴۵');
     expect(value.relative, '۳ روز پیش');
-    expect(value.dateTime, isNot(task.followUpDate));
+    expect(value.dateTime, DateTime(2026, 8, 28, 10, 45));
   });
 
   test('Home does not fabricate latest FollowUp when only legacy date exists', () {
@@ -48,6 +48,9 @@ void main() {
     );
 
     expect(service.project(task, now: DateTime(2026, 8, 31)), isNull);
+    expect(task.followUps, isEmpty);
+    expect(task.followUpDate, isNull);
+    expect(task.followUpEnabled, isFalse);
   });
 
   test('blank FollowUp note presents canonical default title', () {

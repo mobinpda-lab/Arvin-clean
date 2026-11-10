@@ -141,6 +141,7 @@ class ArvinBackupService {
     final rawCalendarLinks = payload['calendarLinks'];
     final rawCategories = payload['categories'];
     final rawTags = payload['tags'];
+    final rawPeopleDirectory = payload['peopleDirectory'];
     if (rawSettings != null && rawSettings is! Map) {
       throw const FormatException('Arvin backup settings are invalid');
     }
@@ -155,6 +156,9 @@ class ArvinBackupService {
     }
     if (rawTags != null && rawTags is! List) {
       throw const FormatException('Arvin backup Tag catalog is invalid');
+    }
+    if (rawPeopleDirectory != null && rawPeopleDirectory is! List) {
+      throw const FormatException('Arvin backup People directory is invalid');
     }
 
     final document = <String, dynamic>{
@@ -171,6 +175,8 @@ class ArvinBackupService {
       if (rawCategories is List)
         'categories': List<dynamic>.from(rawCategories),
       if (rawTags is List) 'tags': List<dynamic>.from(rawTags),
+      if (rawPeopleDirectory is List)
+        'peopleDirectory': List<dynamic>.from(rawPeopleDirectory),
     };
 
     return Uint8List.fromList(
@@ -223,11 +229,18 @@ class ArvinBackupService {
       document['categories'] = List<dynamic>.from(rawCategories);
     }
     final rawTags = document['tags'];
+    final rawPeopleDirectory = document['peopleDirectory'];
     if (rawTags != null && rawTags is! List) {
       throw const FormatException('Arvin backup Tag catalog is invalid');
     }
     if (rawTags is List) {
       document['tags'] = List<dynamic>.from(rawTags);
+    }
+    if (rawPeopleDirectory != null && rawPeopleDirectory is! List) {
+      throw const FormatException('Arvin backup People directory is invalid');
+    }
+    if (rawPeopleDirectory is List) {
+      document['peopleDirectory'] = List<dynamic>.from(rawPeopleDirectory);
     }
 
     return document;

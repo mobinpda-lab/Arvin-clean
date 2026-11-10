@@ -23,9 +23,15 @@ void main() {
       tags: List<String>.of(tags),
       trashed: trashed,
       dueDate: DateTime(2026, 9, 1, 9),
-      reminderDate: DateTime(2026, 9, 1, 8),
-      followUpEnabled: true,
-      followUpDate: DateTime(2026, 9, 2, 10),
+      taskReminders: [
+        TaskReminder(
+          id: 'bulk-reminder-$id',
+          title: 'یادآوری',
+          date: DateTime(2026, 9, 1, 8),
+          sequence: 1,
+        ),
+      ],
+      nextReminderSequence: 2,
       followUps: [
         FollowUp(
           id: 'f-$id',

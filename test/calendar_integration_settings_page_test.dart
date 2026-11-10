@@ -79,12 +79,8 @@ void main() {
       isFalse,
     );
 
-    final deleteSwitch = find.byKey(const ValueKey('calendar-delete-linked'));
-    await _scrollUntilVisible(tester, deleteSwitch);
-    expect(
-      tester.widget<SwitchListTile>(deleteSwitch).value,
-      isFalse,
-    );
+    // Deleting linked device-calendar events is intentionally not exposed.
+    expect(find.byKey(const ValueKey('calendar-delete-linked')), findsNothing);
     expect(service.calendarSaveCount, 0);
   });
 
@@ -171,10 +167,29 @@ void main() {
       (tester) async {
     messenger.setMockMethodCallHandler(calendarChannel, (call) async {
       switch (call.method) {
-        case SystemCalendarBridge.requestPermissionMethod:
+        case SystemCalendarBridge.requestAccessPermissionsMethod:
           return true;
+        case SystemCalendarBridge.ensureArvinLocalCalendarMethod:
+          return <String, Object?>{
+            'id': 'local-1',
+            'displayName': 'Arvin',
+            'accountName': 'com.example.arvin',
+            'accountType': 'LOCAL',
+            'ownerAccount': 'com.example.arvin',
+            'isArvinLocal': true,
+          };
         case SystemCalendarBridge.listCalendarsMethod:
           return <Map<String, Object?>>[
+            <String, Object?>{
+              'id': 'local-1',
+              'displayName': 'Arvin',
+              'accountName': 'com.example.arvin',
+              'accountType': 'LOCAL',
+              'ownerAccount': 'com.example.arvin',
+              'isArvinLocal': true,
+              'visible': true,
+              'syncEvents': false,
+            },
             <String, Object?>{
               'id': '12',
               'displayName': 'Personal',
@@ -218,12 +233,13 @@ void main() {
 
     expect(find.text('Personal'), findsOneWidget);
     expect(find.text('Samsung Calendar'), findsWidgets);
+    expect(find.byKey(const ValueKey('calendar-provider-arvin-local')), findsOneWidget);
+    expect(find.byKey(const ValueKey('calendar-target-local-1')), findsNothing);
+    expect(find.byKey(const ValueKey('calendar-visible-local-1')), findsNothing);
     expect(find.text('Google Calendar • user@example.com'), findsOneWidget);
 
-    final target = find.byKey(const ValueKey('calendar-target-12'));
-    await _scrollUntilVisible(tester, target);
-    await tester.tap(target);
-    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('calendar-target-12')), findsNothing);
+    expect(find.text('فقط نمایش رویدادها (Read-only)'), findsNWidgets(2));
 
     final visible = find.byKey(const ValueKey('calendar-visible-21'));
     await _scrollUntilVisible(tester, visible);
@@ -231,16 +247,16 @@ void main() {
     await tester.pumpAndSettle();
 
     final saved = service.current.calendarIntegration;
-    expect(saved.targetCalendarId, '12');
+    expect(saved.targetCalendarId, isNull);
     expect(saved.visibleCalendarIds, contains('21'));
-    expect(service.calendarSaveCount, 2);
+    expect(service.calendarSaveCount, 1);
   });
 
-  testWidgets('selected target status shows discovered calendar label',
+  testWidgets('write destination status is fixed to local Arvin',
       (tester) async {
     messenger.setMockMethodCallHandler(calendarChannel, (call) async {
       switch (call.method) {
-        case SystemCalendarBridge.requestPermissionMethod:
+        case SystemCalendarBridge.requestAccessPermissionsMethod:
           return true;
         case SystemCalendarBridge.listCalendarsMethod:
           return <Map<String, Object?>>[
@@ -291,7 +307,7 @@ void main() {
     expect(statusTile.subtitle, isA<Text>());
     expect(
       (statusTile.subtitle! as Text).data,
-      'Personal • Google Calendar • user@example.com',
+      'تقویم محلی Arvin؛ تقویم‌های خارجی فقط خواندنی هستند.',
     );
     expect(find.textContaining('شناسه فعلی: 12'), findsNothing);
     expect(service.calendarSaveCount, 0);
@@ -301,7 +317,7 @@ void main() {
       (tester) async {
     messenger.setMockMethodCallHandler(calendarChannel, (call) async {
       switch (call.method) {
-        case SystemCalendarBridge.requestPermissionMethod:
+        case SystemCalendarBridge.requestAccessPermissionsMethod:
           return true;
         case SystemCalendarBridge.listCalendarsMethod:
           return <Map<String, Object?>>[
@@ -341,7 +357,7 @@ void main() {
       (tester) async {
     messenger.setMockMethodCallHandler(calendarChannel, (call) async {
       switch (call.method) {
-        case SystemCalendarBridge.requestPermissionMethod:
+        case SystemCalendarBridge.requestAccessPermissionsMethod:
           return false;
         case SystemCalendarBridge.listCalendarsMethod:
           fail('calendar discovery must not run after permission denial');

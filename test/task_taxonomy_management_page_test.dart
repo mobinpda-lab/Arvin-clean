@@ -49,6 +49,36 @@ void main() {
     expect(loaded.map((task) => task.id), containsAll(<String>['1', '2']));
     expect(loaded.every((task) => task.category == 'مشتریان'), isTrue);
     expect(loaded.first.tags, <String>['مهم']);
+    expect(find.text('مشتریان'), findsOneWidget);
+    expect(find.text('فروش'), findsNothing);
+    expect(await TaskStore().loadCategories(), contains('مشتریان'));
+    expect(await TaskStore().loadCategories(), isNot(contains('فروش')));
+  });
+
+  testWidgets('rename tag refreshes management list and canonical catalog',
+      (tester) async {
+    await pumpPage(
+      tester,
+      tasks: <Task>[
+        Task(id: '1', title: 'A', tags: <String>['قدیمی']),
+      ],
+    );
+
+    await tester.tap(find.byKey(const ValueKey('taxonomy-tag-rename-قدیمی')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('taxonomy-tag-rename-input')),
+      'جدید',
+    );
+    await tester.tap(find.text('ذخیره'));
+    await tester.pumpAndSettle();
+
+    final loaded = await TaskStore().load();
+    expect(loaded.single.tags, <String>['جدید']);
+    expect(find.text('جدید'), findsOneWidget);
+    expect(find.text('قدیمی'), findsNothing);
+    expect(await TaskStore().loadTags(), contains('جدید'));
+    expect(await TaskStore().loadTags(), isNot(contains('قدیمی')));
   });
 
   testWidgets('referenced tag deletion is blocked and data stays intact',
@@ -69,13 +99,19 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('قابل حذف نیست'), findsOneWidget);
-    expect(find.textContaining('ابتدا موارد را منتقل/تغییرنام دهید'), findsOneWidget);
+    expect(
+      find.text(
+        'برچسب «مهم» در 1 کار سابقه ارجاع دارد و قابل حذف نیست؛ برای حفظ سوابق، حذف آن مسدود شده است.',
+      ),
+      findsOneWidget,
+    );
 
     final loaded = await TaskStore().load();
     expect(loaded, hasLength(1));
     expect(loaded.single.id, '1');
     expect(loaded.single.category, 'فروش');
     expect(loaded.single.tags, <String>['مهم', 'مشتری']);
+    expect(await TaskStore().loadTags(), contains('مهم'));
   });
 
   testWidgets('referenced category deletion is blocked and data stays intact',
@@ -93,11 +129,17 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('در 2 مورد استفاده می‌شود'), findsOneWidget);
+    expect(
+      find.text(
+        'دسته «فروش» در 2 کار سابقه ارجاع دارد و قابل حذف نیست؛ برای حفظ سوابق، حذف آن مسدود شده است.',
+      ),
+      findsOneWidget,
+    );
 
     final loaded = await TaskStore().load();
     expect(loaded, hasLength(2));
     expect(loaded.every((task) => task.category == 'فروش'), isTrue);
+    expect(await TaskStore().loadCategories(), contains('فروش'));
   });
   testWidgets('new unused category stays visible and selectable in management',
       (tester) async {

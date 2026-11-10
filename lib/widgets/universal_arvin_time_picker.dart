@@ -5,16 +5,27 @@ import 'package:flutter/material.dart';
 import '../arvin_colors.dart';
 import '../services/persian_date_formatter.dart';
 
-/// Opens Arvin's canonical 24-hour time-only picker.
-///
-/// The result is a [TimeOfDay] so callers can keep their existing canonical
-/// date, Task, reminder, recurrence, and scheduling models unchanged.
-Future<TimeOfDay?> showUniversalArvinTimePicker({
+/// A committed choice from Arvin's shared clock. A null dialog result still
+/// means cancellation; [isAllDay] is an explicit, distinct choice.
+class ArvinTimeSelection {
+  const ArvinTimeSelection._({this.time, this.isAllDay = false});
+
+  const ArvinTimeSelection.timed(TimeOfDay value) : this._(time: value);
+
+  const ArvinTimeSelection.allDay() : this._(isAllDay: true);
+
+  final TimeOfDay? time;
+  final bool isAllDay;
+}
+
+/// Shared 24-hour clock with an optional explicit All-Day action.
+Future<ArvinTimeSelection?> showUniversalArvinTimeSelectionPicker({
   required BuildContext context,
   required TimeOfDay initialTime,
   required String helpText,
+  bool allowAllDay = true,
 }) {
-  return showDialog<TimeOfDay>(
+  return showDialog<ArvinTimeSelection>(
     context: context,
     builder: (dialogContext) => Directionality(
       textDirection: TextDirection.rtl,
@@ -25,20 +36,38 @@ Future<TimeOfDay?> showUniversalArvinTimePicker({
         child: _UniversalArvinTimePickerDialog(
           initialTime: initialTime,
           title: helpText,
+          allowAllDay: allowAllDay,
         ),
       ),
     ),
   );
 }
 
+/// Backward-compatible time-only adapter for clocks that cannot be All-Day.
+Future<TimeOfDay?> showUniversalArvinTimePicker({
+  required BuildContext context,
+  required TimeOfDay initialTime,
+  required String helpText,
+}) async {
+  final selection = await showUniversalArvinTimeSelectionPicker(
+    context: context,
+    initialTime: initialTime,
+    helpText: helpText,
+    allowAllDay: false,
+  );
+  return selection?.time;
+}
+
 class _UniversalArvinTimePickerDialog extends StatefulWidget {
   const _UniversalArvinTimePickerDialog({
     required this.initialTime,
     required this.title,
+    required this.allowAllDay,
   });
 
   final TimeOfDay initialTime;
   final String title;
+  final bool allowAllDay;
 
   @override
   State<_UniversalArvinTimePickerDialog> createState() =>
@@ -136,6 +165,8 @@ class _UniversalArvinTimePickerDialogState
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final primary = colors.primary;
     return Dialog(
       backgroundColor: ArvinColors.surface,
       surfaceTintColor: Colors.transparent,
@@ -159,8 +190,8 @@ class _UniversalArvinTimePickerDialogState
                 alignment: Alignment.centerRight,
                 child: Text(
                   widget.title,
-                  style: const TextStyle(
-                    color: ArvinColors.textPrimary,
+                  style: TextStyle(
+                    color: colors.onSurface,
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
                   ),
@@ -171,7 +202,7 @@ class _UniversalArvinTimePickerDialogState
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 decoration: BoxDecoration(
-                  color: ArvinColors.primary,
+                  color: primary,
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: Semantics(
@@ -255,6 +286,28 @@ class _UniversalArvinTimePickerDialogState
                   label: Text(_manualEntry ? 'صفحه ساعت' : 'ورود ساعت دقیق'),
                 ),
               ),
+              if (widget.allowAllDay) ...[
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    key: const ValueKey('universal-time-no-time'),
+                    onPressed: () => Navigator.of(context).pop(
+                      const ArvinTimeSelection.allDay(),
+                    ),
+                    icon: const Icon(Icons.access_time_rounded),
+                    label: const Text('بدون ساعت'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: primary,
+                      minimumSize: const Size.fromHeight(48),
+                      side: BorderSide(color: primary),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(height: 6),
               Row(
                 children: [
@@ -263,7 +316,7 @@ class _UniversalArvinTimePickerDialogState
                       key: const ValueKey('universal-time-cancel'),
                       onPressed: () => Navigator.of(context).pop(),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: ArvinColors.textPrimary,
+                        foregroundColor: Theme.of(context).colorScheme.onSurface,
                         minimumSize: const Size.fromHeight(48),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
@@ -279,10 +332,12 @@ class _UniversalArvinTimePickerDialogState
                       onPressed: _manualEntry && !_manualValid
                           ? null
                           : () => Navigator.of(context).pop(
-                                TimeOfDay(hour: _hour, minute: _minute),
+                                ArvinTimeSelection.timed(
+                                  TimeOfDay(hour: _hour, minute: _minute),
+                                ),
                               ),
                       style: FilledButton.styleFrom(
-                        backgroundColor: ArvinColors.primary,
+                        backgroundColor: primary,
                         minimumSize: const Size.fromHeight(46),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
@@ -323,13 +378,13 @@ class _UniversalArvinTimePickerDialogState
       label: Text(label),
       selected: selected,
       onSelected: (_) => onPressed(),
-      selectedColor: ArvinColors.primarySoft,
+      selectedColor: Theme.of(context).colorScheme.secondaryContainer,
       labelStyle: TextStyle(
-        color: selected ? ArvinColors.primary : ArvinColors.textSecondary,
+        color: selected ? Theme.of(context).colorScheme.primary : ArvinColors.textSecondary,
         fontWeight: FontWeight.w600,
       ),
       side: BorderSide(
-        color: selected ? ArvinColors.primary : ArvinColors.border,
+        color: selected ? Theme.of(context).colorScheme.primary : ArvinColors.border,
       ),
     );
   }
@@ -363,9 +418,9 @@ class _ClockFace extends StatelessWidget {
       Positioned(
         left: center - 2,
         top: center - 2,
-        child: const DecoratedBox(
+        child: DecoratedBox(
           decoration: BoxDecoration(
-            color: ArvinColors.primary,
+            color: Theme.of(context).colorScheme.primary,
             shape: BoxShape.circle,
           ),
           child: SizedBox(width: 4, height: 4),
@@ -414,13 +469,13 @@ class _ClockFace extends StatelessWidget {
                 height: 38,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: isSelected ? ArvinColors.primary : Colors.transparent,
+                  color: isSelected ? Theme.of(context).colorScheme.primary : Colors.transparent,
                   shape: BoxShape.circle,
                 ),
                 child: Text(
                   labelValue,
                   style: TextStyle(
-                    color: isSelected ? Colors.white : ArvinColors.textPrimary,
+                    color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface,
                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                     fontSize: 13,
                   ),
@@ -460,13 +515,13 @@ class _ClockFace extends StatelessWidget {
                   height: 32,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: isSelected ? ArvinColors.primary : ArvinColors.primarySoft,
+                    color: isSelected ? Theme.of(context).colorScheme.primary : (Theme.of(context).brightness == Brightness.dark ? const Color(0xFFD9F0EE) : ArvinColors.primarySoft),
                     shape: BoxShape.circle,
                   ),
                   child: Text(
                     display,
                     style: TextStyle(
-                      color: isSelected ? Colors.white : ArvinColors.primary,
+                      color: isSelected ? Colors.white : Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.w600,
                       fontSize: 11,
                     ),

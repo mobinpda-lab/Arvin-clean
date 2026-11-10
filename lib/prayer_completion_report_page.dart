@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'services/iran_clock.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/prayer_completion_projection.dart';
 import 'services/prayer_completion_report_projection.dart';
@@ -23,7 +24,7 @@ class _PrayerCompletionReportPageState extends State<PrayerCompletionReportPage>
   late DateTime _rangeStart;
   late DateTime _rangeEnd;
   PrayerReportScope _scope = PrayerReportScope.today;
-  DateTime get _now => widget.now ?? DateTime.now();
+  DateTime get _now => widget.now ?? IranClock.now();
 
   @override
   void initState() {

@@ -1,5 +1,8 @@
 # Arvin Canonical UI Reference
 
+> **یادداشت تقدم REV5 — EXEC-06 (۱۴۰۵/۰۸/۱۸):** این سند برای بخش‌های سازگار، مرجع تاریخی باقی می‌ماند؛ اما در هر تعارض با REV5، قرارداد REV5 و EXEC-06 مقدم است. فونت VazirHarf و رنگ اصلی `#4A4CAB` در این سند منسوخ‌اند. فونت مصوب فعلی Vazirmatn با وزن‌های Light 300، Regular 400، Medium 500، SemiBold 600 و Bold 700 است و رنگ اصلی `#4169A1` است. از بندهای قدیمی این سند برای بازگرداندن فونت یا پالت قبلی استفاده نشود.
+
+
 ## Canonical ontology — owner decision 2026-10-10
 
 The only domain entities in this taxonomy are **Project / پروژه**, **Category / دسته** and **Tag / برچسب**. In Persian product language, «گروه» is a synonym for «دسته», not a fourth entity. Category and Tag remain distinct. Home's Time / Project / Category / Tag controls are four filters/views, not four domain entities. «گروه‌بندی» is allowed only for presentation/layout (for example, grouping Tasks by date), never as a separate data model. No Group model/store/repository or parallel management path may be introduced.
@@ -137,7 +140,7 @@ Recovery Wave #848 additionally requires create/edit behavior to support title-o
 
 ## Navigation Contract
 
-Current verified shared implementation uses `خانه | تقویم | دفترچه | اقدام بعدی | بیشتر` through `ArvinPrimaryNavigation`.
+Current verified shared implementation uses `خانه | تقویم | دفترچه | گزارش‌ها | بیشتر` through `ArvinPrimaryNavigation`. `اقدام بعدی` remains an auxiliary route in the Calendar launcher, not a sixth or primary navigation destination.
 
 The 2026-09-12 owner decision specifically makes `بیشتر` the home of the work-list filters/categories formerly shown as `کارهای من` on Home. It does not, by itself, change the five primary destinations above.
 

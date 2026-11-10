@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/goal_project.dart';
 import 'g1_drift_schema.dart';
 import 'project_plan_codec.dart';
+import 'sql_project_migration_writer.dart';
 import 'task_store.dart';
 
 /// Canonical local persistence for Arvin Projects.
@@ -57,26 +58,10 @@ class ProjectStore {
     );
     if (marker.isNotEmpty && marker.single['value'] == '1') return;
 
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(key);
-    if (raw != null && raw.trim().isNotEmpty) {
-      final projects = codec.decodeList(jsonDecode(raw));
-      await executor.runCustom('BEGIN');
-      try {
-        for (var ordinal = 0; ordinal < projects.length; ordinal++) {
-          final project = projects[ordinal];
-          await _insertProject(executor, project);
-        }
-        await executor.runCustom('COMMIT');
-      } catch (_) {
-        try { await executor.runCustom('ROLLBACK'); } catch (_) {}
-        rethrow;
-      }
-    }
-
-    await executor.runCustom(
-      "INSERT INTO arvin_storage_meta (key, value) VALUES ('legacy_projects_migrated', '1') "
-      "ON CONFLICT(key) DO UPDATE SET value = '1'",
+    final preferences = await SharedPreferences.getInstance();
+    await SqlProjectMigrationWriter(codec: codec).migrateFromPreferences(
+      executor: executor,
+      preferences: preferences,
     );
   }
 
@@ -84,7 +69,7 @@ class ProjectStore {
     final executor = _database;
     await _ensureReady();
     final rows = await executor.runSelect(
-      'SELECT * FROM projects ORDER BY id',
+      'SELECT * FROM projects ORDER BY storage_ordinal, id',
       const [],
     );
     final result = <ProjectPlan>[];
@@ -98,6 +83,9 @@ class ProjectStore {
         'title': row['name'],
         'colorValue': row['color_value'],
         'isArchived': (row['is_archived'] as num?)?.toInt() == 1,
+        'centerId': row['center_id'] as String?,
+        'templateId': row['template_id'] as String?,
+        'templateNameSnapshot': row['template_name_snapshot'] as String?,
         'itemIds': itemRows.map((item) => item['task_id'] as String).toList(),
       }));
     }
@@ -110,10 +98,35 @@ class ProjectStore {
     final values = List<ProjectPlan>.of(projects);
     await executor.runCustom('BEGIN');
     try {
+      final templateApplications = await executor.runSelect(
+        'SELECT template_task_id, project_id, task_id FROM template_task_applications', const [],
+      );
+      final legacyEnvelopeRows = await executor.runSelect(
+        'SELECT id, legacy_payload_json FROM projects', const [],
+      );
+      final preservedProjectFields = <String, Map<String, dynamic>>{};
+      for (final row in legacyEnvelopeRows) {
+        final raw = row['legacy_payload_json'];
+        if (raw is! String || raw.trim().isEmpty) continue;
+        final decoded = jsonDecode(raw);
+        if (decoded is! Map) {
+          throw FormatException('Project legacy envelope is invalid for ${row['id']}');
+        }
+        preservedProjectFields[row['id'] as String] =
+            Map<String, dynamic>.from(decoded);
+      }
+      await executor.runCustom('DELETE FROM template_task_applications');
       await executor.runCustom('DELETE FROM project_items');
       await executor.runCustom('DELETE FROM projects');
-      for (final project in values) {
-        await _insertProject(executor, project);
+      for (var ordinal = 0; ordinal < values.length; ordinal++) {
+        await _insertProject(executor, values[ordinal], ordinal, preservedProjectFields[values[ordinal].id]);
+      }
+      for (final row in templateApplications) {
+        await executor.runInsert(
+          '''INSERT OR IGNORE INTO template_task_applications (template_task_id, project_id, task_id)
+             SELECT ?, ?, ? WHERE EXISTS (SELECT 1 FROM project_items WHERE project_id = ? AND task_id = ?)''',
+          <Object?>[row['template_task_id'], row['project_id'], row['task_id'], row['project_id'], row['task_id']],
+        );
       }
       await executor.runCustom('COMMIT');
     } catch (_) {
@@ -124,17 +137,21 @@ class ProjectStore {
 
   Future<void> clear() => save(const <ProjectPlan>[]);
 
-  Future<void> _insertProject(QueryExecutor executor, ProjectPlan project) async {
+  Future<void> _insertProject(QueryExecutor executor, ProjectPlan project, int storageOrdinal, [Map<String, dynamic>? preservedFields]) async {
     await executor.runInsert(
       '''INSERT INTO projects
-         (id, name, color_value, is_archived, legacy_payload_json)
-         VALUES (?, ?, ?, ?, ?)''',
+         (id, storage_ordinal, name, color_value, is_archived, center_id, template_id, template_name_snapshot, legacy_payload_json)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
       <Object?>[
         project.id,
+        storageOrdinal,
         project.title,
         project.colorValue,
         project.isArchived ? 1 : 0,
-        jsonEncode(codec.encode(project)),
+        project.centerId,
+        project.templateId,
+        project.templateNameSnapshot,
+        jsonEncode(<String, dynamic>{...?preservedFields, ...codec.encode(project)}),
       ],
     );
     for (var ordinal = 0; ordinal < project.itemIds.length; ordinal++) {

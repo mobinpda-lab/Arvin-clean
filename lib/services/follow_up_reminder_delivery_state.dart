@@ -67,20 +67,22 @@ class FollowUpReminderDeliveryState {
     return next;
   }
 
-  /// Removes metadata only when its canonical FollowUp reminder no longer
-  /// exists. Completed/archived Tasks intentionally keep their marker so a
-  /// reversible lifecycle change cannot cause a duplicate old notification.
+  /// Removes metadata when its canonical reminder is deleted or disabled.
+  /// Completed/archived Tasks intentionally keep enabled reminder markers so
+  /// a reversible lifecycle change cannot cause a duplicate old notification.
   Map<String, String> reconcile(
     Map<String, String> state,
     Iterable<Task> tasks,
   ) {
     final liveKeys = <String>{};
     for (final task in tasks) {
-      if (task.reminderDate != null) {
-        liveKeys.add('task:${task.id}');
-      }
       for (final reminder in task.taskReminders) {
-        liveKeys.add('task:${task.id}:reminder:${reminder.id}');
+        if (!reminder.isEnabled) continue;
+        liveKeys.add(
+          isMigratedTaskReminder(task, reminder)
+              ? 'task:${task.id}'
+              : 'task:${task.id}:reminder:${reminder.id}',
+        );
       }
     }
 

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:arvin/arvin_colors.dart';
+import 'package:arvin/core/theme/arvin_theme.dart';
 import 'theme/app_fonts.dart';
 
 import 'daily_content.dart';
@@ -35,6 +37,8 @@ class CalendarReminder {
 
 enum _CalendarViewMode { day, week, month, year }
 
+enum _CalendarSourceFilter { all, arvinCalendar, deviceCalendar, reminders, incomplete }
+
 class CalendarPage extends StatefulWidget {
   const CalendarPage({
     super.key,
@@ -44,6 +48,7 @@ class CalendarPage extends StatefulWidget {
     this.onCompleteReminder,
     this.onEditReminder,
     this.onEditTask,
+    this.onOpenTask,
     this.onDeleteTask,
     this.onRegisterTaskToDeviceCalendar,
     this.onConvertReminderToTask,
@@ -64,6 +69,7 @@ class CalendarPage extends StatefulWidget {
   final Future<void> Function(CalendarReminder reminder)? onCompleteReminder;
   final Future<void> Function(CalendarReminder reminder)? onEditReminder;
   final Future<void> Function(CalendarReminder reminder)? onEditTask;
+  final Future<void> Function(CalendarReminder reminder)? onOpenTask;
   final Future<void> Function(CalendarReminder reminder)? onDeleteTask;
   final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
   final Future<void> Function(CalendarReminder reminder)?
@@ -104,7 +110,10 @@ class _CalendarPageState extends State<CalendarPage> {
   late DateTime _month;
   late DateTime _selectedDay;
   _CalendarViewMode _viewMode = _CalendarViewMode.week;
+  _CalendarSourceFilter _sourceFilter = _CalendarSourceFilter.all;
   bool _wave796DiagnosticLogged = false;
+  bool _showSearch = false;
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -119,6 +128,53 @@ class _CalendarPageState extends State<CalendarPage> {
     final j = _dateFormatter.toJalali(date);
     return _dateFormatter.toPersianDigits(
       '${j.year}/${j.month.toString().padLeft(2, '0')}/${j.day.toString().padLeft(2, '0')}',
+    );
+  }
+
+  String _gregorianDate(DateTime date) => _dateFormatter.toPersianDigits(
+    '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}',
+  );
+
+  String _gregorianDateWithoutYear(DateTime date) => _dateFormatter.toPersianDigits(
+    '${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}',
+  );
+
+  String _hijriDate(DateTime date) {
+    // Tabular Islamic civil calendar: deterministic display, not moon-sighting authority.
+    final a = (14 - date.month) ~/ 12;
+    final y = date.year + 4800 - a;
+    final m = date.month + 12 * a - 3;
+    final julianDay = date.day + ((153 * m + 2) ~/ 5) + 365 * y +
+        y ~/ 4 - y ~/ 100 + y ~/ 400 - 32045;
+    var l = julianDay - 1948440 + 10632;
+    final n = (l - 1) ~/ 10631;
+    l = l - 10631 * n + 354;
+    final j = ((10985 - l) ~/ 5316) * ((50 * l) ~/ 17719) +
+        (l ~/ 5670) * ((43 * l) ~/ 15238);
+    l = l - ((30 - j) ~/ 15) * ((17719 * j) ~/ 50) -
+        (j ~/ 16) * ((15238 * j) ~/ 43) + 29;
+    final month = (24 * l) ~/ 709;
+    final day = l - (709 * month) ~/ 24;
+    final year = 30 * n + j - 30;
+    return _dateFormatter.toPersianDigits(
+      '$year/${month.toString().padLeft(2, '0')}/${day.toString().padLeft(2, '0')}',
+    );
+  }
+
+  Widget _buildSelectedDateTriplet() {
+    final selected = _selectedDay;
+    return Padding(
+      key: const ValueKey('calendar-date-triplet'),
+      padding: const EdgeInsets.fromLTRB(14, 4, 14, 8),
+      child: Row(
+        children: [
+          Expanded(child: _DateTier(label: 'میلادی', value: _gregorianDateWithoutYear(selected))),
+          const SizedBox(width: 8),
+          Expanded(child: _DateTier(label: 'شمسی', value: _date(selected), prominent: true)),
+          const SizedBox(width: 8),
+          Expanded(child: _DateTier(label: 'قمری', value: _hijriDate(selected))),
+        ],
+      ),
     );
   }
 
@@ -148,17 +204,23 @@ class _CalendarPageState extends State<CalendarPage> {
     }
   }
 
+  bool _isHistoricalFollowUpCalendarItem(CalendarReminder item) =>
+      item.id.startsWith('followup:') || item.id.startsWith('task-followup:');
+
   List<CalendarReminder> _calendarReminders() {
     final range = _visibleRange();
-    final projected = widget.visibleReminderProjection?.call(range.$1, range.$2) ?? const <CalendarReminder>[];
-    if (projected.isEmpty) return widget.reminders;
-    final merged = <CalendarReminder>[...widget.reminders];
-    final existing = merged.map((item) => item.id).toSet();
+    final canonicalItems = widget.reminders
+        .where((item) => !_isHistoricalFollowUpCalendarItem(item))
+        .toList(growable: true);
+    final projected = (widget.visibleReminderProjection?.call(range.$1, range.$2) ??
+            const <CalendarReminder>[])
+        .where((item) => !_isHistoricalFollowUpCalendarItem(item));
+    final existing = canonicalItems.map((item) => item.id).toSet();
     for (final item in projected) {
-      if (existing.add(item.id)) merged.add(item);
+      if (existing.add(item.id)) canonicalItems.add(item);
     }
-    merged.sort((a, b) => a.date.compareTo(b.date));
-    return List<CalendarReminder>.unmodifiable(merged);
+    canonicalItems.sort((a, b) => a.date.compareTo(b.date));
+    return List<CalendarReminder>.unmodifiable(canonicalItems);
   }
 
   bool _sameDay(DateTime a, DateTime b) =>
@@ -167,6 +229,100 @@ class _CalendarPageState extends State<CalendarPage> {
   List<CalendarReminder> _forDay(DateTime day) => _calendarReminders()
       .where((item) => _sameDay(item.date, day))
       .toList(growable: false);
+
+  bool _matchesSourceFilter(CalendarReminder item) {
+    final id = item.id;
+    // Prayer times are a dedicated Calendar overlay and appear only in All.
+    if (id.startsWith('prayer-') && _sourceFilter != _CalendarSourceFilter.all) {
+      return false;
+    }
+    switch (_sourceFilter) {
+      case _CalendarSourceFilter.all:
+        return true;
+      case _CalendarSourceFilter.arvinCalendar:
+        return !id.startsWith('external-calendar:');
+      case _CalendarSourceFilter.deviceCalendar:
+        return id.startsWith('external-calendar:');
+      case _CalendarSourceFilter.reminders:
+        // All-day items have no exact reminder time and must not be mixed
+        // into the timed Reminder source, even when projected from a Task.
+        return !item.isAllDay &&
+            (id.startsWith('task-reminder-item:') ||
+                id.startsWith('task-reminder:') ||
+                id.startsWith('task-due:') ||
+                id.startsWith('task-recurrence:'));
+      case _CalendarSourceFilter.incomplete:
+        return !item.completed;
+    }
+  }
+
+  List<CalendarReminder> _filteredForDay(DateTime day) {
+    final query = _searchQuery.trim().toLowerCase();
+    final items = _forDay(day).where((item) {
+      if (!_matchesSourceFilter(item)) return false;
+      if (query.isEmpty) return true;
+      return item.title.toLowerCase().contains(query) ||
+          (item.description?.toLowerCase().contains(query) ?? false);
+    }).toList();
+    // Date-only / all-day entries lead the daily list; timed entries retain
+    // chronological order after them.
+    items.sort((a, b) {
+      if (a.isAllDay != b.isAllDay) return a.isAllDay ? -1 : 1;
+      return a.date.compareTo(b.date);
+    });
+    return List<CalendarReminder>.unmodifiable(items);
+  }
+
+  Widget _buildSourceFilter() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 2, 10, 8),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: SegmentedButton<_CalendarSourceFilter>(
+          key: const ValueKey('calendar-source-filter'),
+          showSelectedIcon: false,
+          style: const ButtonStyle(
+            visualDensity: VisualDensity.compact,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            textStyle: WidgetStatePropertyAll(
+              TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                fontFamily: AppFonts.vazirmatnFamily,
+              ),
+            ),
+          ),
+          segments: const [
+            ButtonSegment<_CalendarSourceFilter>(
+              value: _CalendarSourceFilter.all,
+              label: Text('همه'),
+            ),
+            ButtonSegment<_CalendarSourceFilter>(
+              value: _CalendarSourceFilter.arvinCalendar,
+              label: Text('تقویم آروین'),
+            ),
+            ButtonSegment<_CalendarSourceFilter>(
+              value: _CalendarSourceFilter.deviceCalendar,
+              label: Text('تقویم گوشی'),
+            ),
+            ButtonSegment<_CalendarSourceFilter>(
+              value: _CalendarSourceFilter.reminders,
+              label: Text('یادآورها'),
+            ),
+            ButtonSegment<_CalendarSourceFilter>(
+              value: _CalendarSourceFilter.incomplete,
+              label: Text('انجام‌نشده'),
+            ),
+          ],
+          selected: <_CalendarSourceFilter>{_sourceFilter},
+          onSelectionChanged: (selection) {
+            if (selection.isEmpty) return;
+            setState(() => _sourceFilter = selection.first);
+          },
+        ),
+      ),
+    );
+  }
 
   Map<int, int> _countsForMonth() {
     final counts = <int, int>{};
@@ -243,9 +399,14 @@ class _CalendarPageState extends State<CalendarPage> {
       year++;
     }
     final first = _dateFormatter.fromJalali(JalaliDate(year, month, 1));
+    final currentDay = _dateFormatter.toJalali(_selectedDay).day;
+    final targetDay = currentDay > _daysInJalaliMonth(year, month)
+        ? _daysInJalaliMonth(year, month)
+        : currentDay;
+    final selected = _dateFormatter.fromJalali(JalaliDate(year, month, targetDay));
     setState(() {
       _month = first;
-      _selectedDay = first;
+      _selectedDay = selected;
     });
   }
 
@@ -447,7 +608,7 @@ class _CalendarPageState extends State<CalendarPage> {
 
     return Padding(
       key: const ValueKey('calendar-week-view'),
-      padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
+      padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
       child: Row(
         children: [
           for (var offset = 0; offset < 7; offset++) ...[
@@ -469,12 +630,13 @@ class _CalendarPageState extends State<CalendarPage> {
                         ? null
                         : () => widget.onCreateTaskForDate!(date),
                     child: Container(
-                      height: 56,
+                      constraints: const BoxConstraints(minHeight: 68),
                       decoration: BoxDecoration(
                         color: selected ? ArvinColors.calendarSelectedDay : Colors.transparent,
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
@@ -484,7 +646,15 @@ class _CalendarPageState extends State<CalendarPage> {
                               color: selected ? ArvinColors.tag : ArvinColors.textSecondary,
                             ),
                           ),
-                          const SizedBox(height: 2),
+                          const SizedBox(height: 1),
+                          Text(
+                            _gregorianDate(date).split('/').skip(1).join('/'),
+                            style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 8),
+                          ),
+                          Text(
+                            _hijriDate(date).split('/').skip(1).join('/'),
+                            style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 8),
+                          ),
                           FittedBox(
                             fit: BoxFit.scaleDown,
                             child: Row(
@@ -573,7 +743,7 @@ class _CalendarPageState extends State<CalendarPage> {
             itemCount: leading + days,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 7,
-              mainAxisExtent: 38,
+              mainAxisExtent: 48,
             ),
             itemBuilder: (_, index) {
               if (index < leading) {
@@ -583,10 +753,8 @@ class _CalendarPageState extends State<CalendarPage> {
               final date = _dateFormatter.fromJalali(JalaliDate(current.year, current.month, day));
               final count = counts[day] ?? 0;
               final isSelected = _sameDay(date, _selectedDay);
-              return Padding(
-                padding: const EdgeInsets.all(1.5),
-                child: InkWell(
-                  key: ValueKey('calendar-month-day-$day'),
+              return InkWell(
+                key: ValueKey('calendar-month-day-$day'),
                   borderRadius: BorderRadius.circular(10),
                   onTap: () => _selectDay(date),
                   onLongPress: widget.onCreateTaskForDate == null
@@ -606,25 +774,26 @@ class _CalendarPageState extends State<CalendarPage> {
                             )
                           : null,
                     ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(_dateFormatter.toPersianDigits('$day')),
-                        if (count > 0)
-                          Text(
-                            _dateFormatter.toPersianDigits('$count'),
-                            style: TextStyle(
-                              fontSize: 10,
-                              height: 1,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
-                      ],
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(_dateFormatter.toPersianDigits('$day'),
+                              style: const TextStyle(fontWeight: FontWeight.w700, height: 1)),
+                          Text(_gregorianDate(date).split('/').skip(1).join('/'),
+                              style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 7, height: 1)),
+                          Text(_hijriDate(date).split('/').skip(1).join('/'),
+                              style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 7, height: 1)),
+                          if (count > 0)
+                            Text(_dateFormatter.toPersianDigits('$count'),
+                                style: TextStyle(fontSize: 8, height: 1, fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).colorScheme.primary)),
+                        ],
+                      ),
                     ),
                   ),
-                ),
               );
             },
           ),
@@ -722,8 +891,15 @@ class _CalendarPageState extends State<CalendarPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    // Preserve the approved brand SVG color in light mode; only dark mode
+    // adapts to onSurface. The SVG path itself remains untouched.
+    final sacredVectorColor = theme.brightness == Brightness.dark
+        ? theme.colorScheme.onSurface
+        : const Color(0xFF1A2B4C);
     final selectedJalali = _dateFormatter.toJalali(_selectedDay);
-    final selectedReminders = _forDay(_selectedDay);
+    final allSelectedReminders = _forDay(_selectedDay);
+    final selectedReminders = _filteredForDay(_selectedDay);
     final selectedDailyContent = widget.dailyContentForDate?.call(_selectedDay);
     if (!_wave796DiagnosticLogged) {
       _wave796DiagnosticLogged = true;
@@ -741,7 +917,7 @@ class _CalendarPageState extends State<CalendarPage> {
       );
     }
     final hasSelectedItems =
-        selectedDailyContent != null || selectedReminders.isNotEmpty;
+        selectedDailyContent != null || allSelectedReminders.isNotEmpty;
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -751,166 +927,237 @@ class _CalendarPageState extends State<CalendarPage> {
         ),
         child: Scaffold(
         appBar: AppBar(
-          title: const Text('تقویم پیگیری'),
+          leading: IconButton(
+            key: const ValueKey('calendar-search-toggle'),
+            tooltip: 'جستجو',
+            onPressed: () => setState(() {
+              _showSearch = !_showSearch;
+              if (!_showSearch) _searchQuery = '';
+            }),
+            icon: const Icon(Icons.search),
+          ),
+          centerTitle: true,
+          title: Semantics(
+            key: const ValueKey('calendar-sacred-header'),
+            label: 'وَأُفَوِّضُ أَمْرِي إِلَى اللَّهِ',
+            child: SvgPicture.asset(
+              'assets/images/branding/tafweez.svg',
+              key: const ValueKey('calendar-sacred-header-svg'),
+              width: 180,
+              colorFilter: ColorFilter.mode(
+                sacredVectorColor,
+                BlendMode.srcIn,
+              ),
+              excludeFromSemantics: true,
+            ),
+          ),
           actions: [
             TextButton(
-              key: const ValueKey('calendar-date-jump'),
-              onPressed: _jumpToDate,
-              child: const Text('برو به تاریخ'),
+              key: const ValueKey('calendar-today'),
+              onPressed: _today,
+              child: Text(_date(IranClock.now())),
             ),
-            Padding(
-              padding: const EdgeInsetsDirectional.only(end: 8),
-              child: TextButton.icon(
-                key: const ValueKey('calendar-today'),
-                onPressed: _today,
-                icon: const Icon(Icons.today_outlined, size: 18),
-                label: const Text('امروز'),
-              ),
+            IconButton(
+              key: const ValueKey('calendar-date-jump'),
+              tooltip: 'برو به تاریخ',
+              onPressed: _jumpToDate,
+              icon: const Icon(Icons.event_available_outlined),
             ),
           ],
         ),
-        body: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
-              child: Material(
-                color: Theme.of(context).colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(18),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        key: const ValueKey('calendar-period-previous'),
-                        onPressed: () => _movePeriod(-1),
-                        tooltip: 'بازه قبل',
-                        icon: const Icon(Icons.chevron_right),
-                      ),
-                      Expanded(
-                        child: Center(
-                          child: Semantics(
-                            header: true,
-                            label: 'ماه ${_jalaliMonthYear(selectedJalali)}',
-                            child: Text(
-                              _jalaliMonthYear(selectedJalali),
-                              key: const ValueKey('calendar-month-year-header'),
-                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
+        body: SingleChildScrollView(
+          // Keep every calendar control in one vertically scrollable viewport.
+          // This avoids fractional-pixel RenderFlex overflows on short screens
+          // and when the system text scale is increased.
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
+                child: Material(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(18),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          key: const ValueKey('calendar-period-previous'),
+                          onPressed: () => _movePeriod(-1),
+                          tooltip: 'بازه قبل',
+                          icon: const Icon(Icons.chevron_right),
+                        ),
+                        Expanded(
+                          child: Center(
+                            child: Semantics(
+                              header: true,
+                              label: 'ماه ${_jalaliMonthYear(selectedJalali)}',
+                              child: Text(
+                                _jalaliMonthYear(selectedJalali),
+                                key: const ValueKey('calendar-month-year-header'),
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                      IconButton(
-                        key: const ValueKey('calendar-period-next'),
-                        onPressed: () => _movePeriod(1),
-                        tooltip: 'بازه بعد',
-                        icon: const Icon(Icons.chevron_left),
-                      ),
-                    ],
+                        IconButton(
+                          key: const ValueKey('calendar-period-next'),
+                          onPressed: () => _movePeriod(1),
+                          tooltip: 'بازه بعد',
+                          icon: const Icon(Icons.chevron_left),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            _buildViewModeSelector(),
-            GestureDetector(
-              key: const ValueKey('calendar-swipe-surface'),
-              behavior: HitTestBehavior.opaque,
-              onHorizontalDragEnd: _handleHorizontalSwipe,
-              onLongPress:
-                  _viewMode == _CalendarViewMode.day &&
-                      widget.onCreateTaskForDate != null
-                  ? () => widget.onCreateTaskForDate!(_selectedDay)
-                  : null,
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 180),
-                child: _buildCalendarSurface(),
-              ),
-            ),
-            const Divider(height: 1),
-            Expanded(
-              child: !hasSelectedItems
-                  ? Center(
-                      child: Text(
-                        'برای این روز یادآوری ثبت نشده است',
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                    )
-                  : ListView(
-                      key: const ValueKey('calendar-selected-day-list'),
-                      padding: const EdgeInsets.fromLTRB(12, 10, 12, 16),
-                      children: [
-                        if (selectedDailyContent != null) ...[
-                          _DailyContentCard(
-                            item: selectedDailyContent,
-                            onTap: () =>
-                                _showDailyContent(selectedDailyContent),
-                          ),
-                          if (selectedReminders.isNotEmpty)
-                            const SizedBox(height: 10),
-                        ],
-                        for (
-                          var index = 0;
-                          index < selectedReminders.length;
-                          index++
-                        ) ...[
-                          if (index > 0) const SizedBox(height: 6),
-                          _ReminderCard(
-                            item: selectedReminders[index],
-                            dateLabel: _date(selectedReminders[index].date),
-                            timeLabel: _time(selectedReminders[index].date),
-                            onComplete:
-                                (widget.canMutateReminder?.call(
-                                      selectedReminders[index],
-                                    ) ??
-                                    true)
-                                ? widget.onCompleteReminder
-                                : null,
-                            onEdit:
-                                (widget.canMutateReminder?.call(
-                                      selectedReminders[index],
-                                    ) ??
-                                    true)
-                                ? widget.onEditReminder
-                                : null,
-                            onEditTask: _isTaskRecordCalendarItemId(
-                                  selectedReminders[index].id,
-                                )
-                                ? widget.onEditTask
-                                : null,
-                            onDeleteTask: _isTaskRecordCalendarItemId(
-                                  selectedReminders[index].id,
-                                )
-                                ? widget.onDeleteTask
-                                : null,
-                            onRegisterTaskToDeviceCalendar:
-                                _isTaskRecordCalendarItemId(selectedReminders[index].id)
-                                ? widget.onRegisterTaskToDeviceCalendar
-                                : null,
-                            onConvertToTask: widget.onConvertReminderToTask,
-                            onOpenExternal: selectedReminders[index].id.startsWith('external-calendar:')
-                                ? widget.onOpenExternalReminder
-                                : null,
-                            onCreateTaskFromCalendarEvent: selectedReminders[index].id.startsWith('external-calendar:')
-                                ? widget.onCreateTaskFromCalendarEvent
-                                : null,
-                            prayerStatus: widget.prayerStatusFor?.call(
-                              selectedReminders[index],
-                            ),
-                            onPrayerCompleted: widget.onPrayerCompleted,
-                            onPrayerNotCompleted: widget.onPrayerNotCompleted,
-                            swipeRightAction: widget.calendarSwipeRightAction,
-                            swipeLeftAction: widget.calendarSwipeLeftAction,
-                          ),
-                        ],
-                      ],
+              if (_showSearch)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 2, 12, 8),
+                  child: TextField(
+                    key: const ValueKey('calendar-search-field'),
+                    autofocus: true,
+                    textDirection: TextDirection.rtl,
+                    decoration: const InputDecoration(
+                      prefixIcon: Icon(Icons.search),
+                      hintText: 'جستجو در کارها و یادآورها',
+                      isDense: true,
+                      border: OutlineInputBorder(),
                     ),
-            ),
-          ],
+                    onChanged: (value) => setState(() => _searchQuery = value),
+                  ),
+                ),
+              _buildSelectedDateTriplet(),
+              _buildViewModeSelector(),
+              GestureDetector(
+                key: const ValueKey('calendar-swipe-surface'),
+                behavior: HitTestBehavior.opaque,
+                onHorizontalDragEnd: _handleHorizontalSwipe,
+                onLongPress:
+                    _viewMode == _CalendarViewMode.day &&
+                        widget.onCreateTaskForDate != null
+                    ? () => widget.onCreateTaskForDate!(_selectedDay)
+                    : null,
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 180),
+                  child: _buildCalendarSurface(),
+                ),
+              ),
+              _buildSourceFilter(),
+              const Divider(height: 1),
+              if (!hasSelectedItems)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 28),
+                  child: Center(
+                    child: Text(
+                      'برای این روز یادآوری ثبت نشده است',
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                  ),
+                )
+              else
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 16),
+                  child: Column(
+                    key: const ValueKey('calendar-selected-day-list'),
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (allSelectedReminders.isNotEmpty && selectedReminders.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 28),
+                          child: Center(child: Text('برای این روز موردی در این فیلتر نیست')),
+                        ),
+                      if (selectedDailyContent != null) ...[
+                        _DailyContentCard(
+                          item: selectedDailyContent,
+                          onTap: () => _showDailyContent(selectedDailyContent),
+                        ),
+                        if (selectedReminders.isNotEmpty)
+                          const SizedBox(height: 10),
+                      ],
+                      for (var index = 0; index < selectedReminders.length; index++) ...[
+                        if (index > 0) const SizedBox(height: 6),
+                        _ReminderCard(
+                          item: selectedReminders[index],
+                          dateLabel: _date(selectedReminders[index].date),
+                          timeLabel: _time(selectedReminders[index].date),
+                          onComplete:
+                              (widget.canMutateReminder?.call(selectedReminders[index]) ?? true)
+                                  ? widget.onCompleteReminder
+                                  : null,
+                          onEdit:
+                              (widget.canMutateReminder?.call(selectedReminders[index]) ?? true)
+                                  ? widget.onEditReminder
+                                  : null,
+                          onOpenTask: _isTaskCalendarItemId(selectedReminders[index].id)
+                              ? widget.onOpenTask
+                              : null,
+                          onDeleteTask: _isTaskRecordCalendarItemId(selectedReminders[index].id)
+                              ? widget.onDeleteTask
+                              : null,
+                          onRegisterTaskToDeviceCalendar:
+                              _isTaskRecordCalendarItemId(selectedReminders[index].id)
+                                  ? widget.onRegisterTaskToDeviceCalendar
+                                  : null,
+                          onConvertToTask: widget.onConvertReminderToTask,
+                          onOpenExternal: selectedReminders[index].id.startsWith('external-calendar:')
+                              ? widget.onOpenExternalReminder
+                              : null,
+                          onCreateTaskFromCalendarEvent:
+                              selectedReminders[index].id.startsWith('external-calendar:')
+                                  ? widget.onCreateTaskFromCalendarEvent
+                                  : null,
+                          prayerStatus: widget.prayerStatusFor?.call(selectedReminders[index]),
+                          onPrayerCompleted: widget.onPrayerCompleted,
+                          onPrayerNotCompleted: widget.onPrayerNotCompleted,
+                          swipeRightAction: widget.calendarSwipeRightAction,
+                          swipeLeftAction: widget.calendarSwipeLeftAction,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
       ),
+    );
+  }
+}
+
+class _DateTier extends StatelessWidget {
+  const _DateTier({
+    required this.label,
+    required this.value,
+    this.prominent = false,
+  });
+
+  final String label;
+  final String value;
+  final bool prominent;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(label, style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+        const SizedBox(height: 2),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            value,
+            maxLines: 1,
+            style: (prominent ? theme.textTheme.titleMedium : theme.textTheme.bodySmall)
+                ?.copyWith(fontWeight: prominent ? FontWeight.w800 : FontWeight.w500),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -940,12 +1187,13 @@ class _DailyContentCard extends StatelessWidget {
   }
 }
 
-bool _isOverdueCalendarItem(CalendarReminder item) =>
-    !item.completed &&
-    !item.isAllDay &&
-    DateUtils.dateOnly(item.date).isBefore(
-      DateUtils.dateOnly(IranClock.now()),
-    );
+bool _isOverdueCalendarItem(CalendarReminder item) {
+  if (item.completed) return false;
+  final now = IranClock.now();
+  final pastDate = DateUtils.dateOnly(item.date).isBefore(DateUtils.dateOnly(now));
+  final pastTimeToday = !item.isAllDay && item.date.isBefore(now);
+  return pastDate || pastTimeToday;
+}
 
 Color _calendarStatusColor(CalendarReminder item) {
   if (item.completed) return ArvinColors.calendarCompleted;
@@ -986,7 +1234,9 @@ bool _isTaskRecordCalendarItemId(String id) =>
     id.startsWith('task-reminder:');
 
 bool _isFollowUpCalendarItemId(String id) =>
-    id.startsWith('task-followup:') || id.startsWith('followup:');
+    id.startsWith('task-followup-action:') ||
+    id.startsWith('task-followup:') ||
+    id.startsWith('followup:');
 
 bool _isTaskCalendarItemId(String id) =>
     _isTaskRecordCalendarItemId(id) || _isFollowUpCalendarItemId(id);
@@ -1039,7 +1289,7 @@ class _ReminderCard extends StatefulWidget {
     required this.timeLabel,
     this.onComplete,
     this.onEdit,
-    this.onEditTask,
+    this.onOpenTask,
     this.onDeleteTask,
     this.onRegisterTaskToDeviceCalendar,
     this.onConvertToTask,
@@ -1057,7 +1307,7 @@ class _ReminderCard extends StatefulWidget {
   final String timeLabel;
   final Future<void> Function(CalendarReminder reminder)? onComplete;
   final Future<void> Function(CalendarReminder reminder)? onEdit;
-  final Future<void> Function(CalendarReminder reminder)? onEditTask;
+  final Future<void> Function(CalendarReminder reminder)? onOpenTask;
   final Future<void> Function(CalendarReminder reminder)? onDeleteTask;
   final Future<void> Function(CalendarReminder reminder)? onRegisterTaskToDeviceCalendar;
   final Future<void> Function(CalendarReminder reminder)? onConvertToTask;
@@ -1077,15 +1327,13 @@ class _ReminderCard extends StatefulWidget {
 class _ReminderCardState extends State<_ReminderCard> {
   bool get _isTaskCalendarItem => _isTaskCalendarItemId(widget.item.id);
   bool get _isTaskRecord => _isTaskRecordCalendarItemId(widget.item.id);
-  bool get _isFollowUp => _isFollowUpCalendarItemId(widget.item.id);
 
   bool get _hasActions =>
       (widget.isPrayer &&
           (widget.onPrayerCompleted != null ||
               widget.onPrayerNotCompleted != null)) ||
       (!widget.isPrayer &&
-          (widget.onEditTask != null ||
-              widget.onDeleteTask != null ||
+          (widget.onDeleteTask != null ||
               widget.onRegisterTaskToDeviceCalendar != null ||
               widget.onComplete != null ||
               widget.onEdit != null ||
@@ -1112,22 +1360,19 @@ class _ReminderCardState extends State<_ReminderCard> {
     if (velocity.abs() < 250 ||
         widget.item.id.startsWith('external-calendar:') ||
         widget.item.externalCalendarId != null ||
-        widget.item.externalEventId != null) {
+        widget.item.externalEventId != null ||
+        !_isTaskRecord) {
       return;
     }
-    if (!_isTaskRecord && !_isFollowUp) return;
     final action = velocity > 0 ? widget.swipeRightAction : widget.swipeLeftAction;
     switch (action) {
-      case CalendarSwipeAction.edit:
-        await _run(_isTaskRecord ? widget.onEditTask : widget.onEdit);
-        return;
-      case CalendarSwipeAction.trash:
-        if (_isTaskRecord) await _run(widget.onDeleteTask);
-        return;
       case CalendarSwipeAction.sync:
-        if (_isTaskRecord) await _run(widget.onRegisterTaskToDeviceCalendar);
+        await _run(widget.onRegisterTaskToDeviceCalendar);
         return;
+      case CalendarSwipeAction.edit:
+      case CalendarSwipeAction.trash:
       case CalendarSwipeAction.none:
+        // Retired swipe actions are inert; only explicit Device Calendar export remains.
         return;
     }
   }
@@ -1195,19 +1440,7 @@ class _ReminderCardState extends State<_ReminderCard> {
                     _run(widget.onComplete);
                   },
                 ),
-              if ((widget.item.id.startsWith('followup:') ||
-                      widget.item.id.startsWith('task-followup:')) &&
-                  widget.onEdit != null)
-                ListTile(
-                  key: ValueKey('reminder-edit-${widget.item.id}'),
-                  leading: const Icon(Icons.edit_outlined),
-                  title: const Text('ویرایش پیگیری'),
-                  onTap: () {
-                    Navigator.of(sheetContext).pop();
-                    _run(widget.onEdit);
-                  },
-                )
-              else if (!_isTaskCalendarItem &&
+              if (!_isTaskCalendarItem &&
                   !widget.isPrayer &&
                   widget.onEdit != null)
                 ListTile(
@@ -1219,16 +1452,6 @@ class _ReminderCardState extends State<_ReminderCard> {
                     _run(widget.onEdit);
                   },
                 ),
-              if (_isTaskCalendarItem && widget.onEditTask != null)
-                ListTile(
-                  key: ValueKey('task-due-edit-${widget.item.id}'),
-                  leading: const Icon(Icons.edit_outlined),
-                  title: const Text('ویرایش'),
-                  onTap: () {
-                    Navigator.of(sheetContext).pop();
-                    _run(widget.onEditTask);
-                  },
-                ),
               if (_isTaskCalendarItem && widget.onDeleteTask != null)
                 ListTile(
                   key: ValueKey('task-due-delete-${widget.item.id}'),
@@ -1237,17 +1460,6 @@ class _ReminderCardState extends State<_ReminderCard> {
                   onTap: () {
                     Navigator.of(sheetContext).pop();
                     _run(widget.onDeleteTask);
-                  },
-                ),
-              if (_isTaskCalendarItem &&
-                  widget.onRegisterTaskToDeviceCalendar != null)
-                ListTile(
-                  key: ValueKey('task-due-device-calendar-${widget.item.id}'),
-                  leading: const Icon(Icons.event_available_outlined),
-                  title: const Text('ثبت در تقویم گوشی'),
-                  onTap: () {
-                    Navigator.of(sheetContext).pop();
-                    _run(widget.onRegisterTaskToDeviceCalendar);
                   },
                 ),
               if (!_isTaskCalendarItem &&
@@ -1278,13 +1490,15 @@ class _ReminderCardState extends State<_ReminderCard> {
       null => 'ثبت نشده',
     };
     final statusLabel = widget.isPrayer
-        ? prayerState
+        ? (widget.prayerStatus == null && _isOverdueCalendarItem(item)
+            ? 'عقب‌افتاده'
+            : prayerState)
         : item.completed
         ? 'انجام‌شده'
-        : item.isAllDay
-        ? 'تمام‌روز'
         : _isOverdueCalendarItem(item)
         ? 'عقب‌افتاده'
+        : item.isAllDay
+        ? 'تمام‌روز'
         : (item.id.startsWith('task-followup:') ||
                 item.id.startsWith('followup:'))
             ? 'در انتظار پیگیری'
@@ -1306,16 +1520,18 @@ class _ReminderCardState extends State<_ReminderCard> {
       key: ValueKey('calendar-pastel-card-${item.id}'),
       color: _calendarStatusBackground(item),
       elevation: 1,
-      shadowColor: statusColor.withValues(alpha: 0.12),
+      surfaceTintColor: Colors.transparent,
+      shadowColor: ArvinTheme.shadowFor(context),
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: ArvinTheme.cardBorderRadius,
+        side: const BorderSide(color: ArvinTheme.cardBorder, width: 0.8),
       ),
       clipBehavior: Clip.antiAlias,
       child: Container(
         decoration: BoxDecoration(
           border: BorderDirectional(start: BorderSide(color: statusColor, width: 4)),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: ArvinTheme.cardBorderRadius,
         ),
         child: Column(
         children: [
@@ -1325,19 +1541,17 @@ class _ReminderCardState extends State<_ReminderCard> {
             visualDensity: const VisualDensity(horizontal: -2, vertical: -3),
             minVerticalPadding: 2,
             contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-            // A short tap opens the canonical item's available detail/edit
-            // route. Quick actions are available only through long-press.
-            onTap: isFollowUpItem
-                ? (widget.onEdit == null ? null : () => _run(widget.onEdit))
-                : _isTaskCalendarItem
-                    ? (widget.onEditTask == null ? null : () => _run(widget.onEditTask))
-                    : widget.item.id.startsWith('external-calendar:')
-                        ? (widget.onOpenExternal == null
-                            ? null
-                            : () => _run(widget.onOpenExternal))
-                        : (widget.onEdit == null || widget.isPrayer
-                            ? null
-                            : () => _run(widget.onEdit)),
+            // Task and Follow-up cards open their canonical Task Details.
+            // Edit remains available only from the explicit Details action.
+            onTap: _isTaskCalendarItem
+                ? (widget.onOpenTask == null ? null : () => _run(widget.onOpenTask))
+                : widget.item.id.startsWith('external-calendar:')
+                    ? (widget.onOpenExternal == null
+                        ? null
+                        : () => _run(widget.onOpenExternal))
+                    : (widget.onEdit == null || widget.isPrayer
+                        ? null
+                        : () => _run(widget.onEdit)),
             onLongPress: _hasActions ? _showTaskActions : null,
             leading: CircleAvatar(
               key: ValueKey('calendar-item-icon-${item.id}'),

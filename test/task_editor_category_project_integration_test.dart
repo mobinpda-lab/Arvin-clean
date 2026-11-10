@@ -68,9 +68,9 @@ void main() {
       find.byKey(const ValueKey('task-editor-title')),
       'کار دسته‌بندی‌شده',
     );
-    await tester.tap(find.byTooltip('دسته'));
+    await tester.tap(find.byKey(const ValueKey('task-editor-category-rollbox')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('افزودن').last);
+    await tester.tap(find.byKey(const ValueKey('task-editor-create-category')));
     await tester.pumpAndSettle();
     await tester.enterText(find.widgetWithText(TextField, 'نام'), '  مشتری ویژه  ');
     await tester.tap(find.text('افزودن').last);
@@ -97,7 +97,7 @@ void main() {
       onResult: (value) => result = value,
     );
 
-    await tester.tap(find.byTooltip('دسته'));
+    await tester.tap(find.byKey(const ValueKey('task-editor-category-rollbox')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('بدون دسته'));
     await tester.pump();
@@ -124,7 +124,7 @@ void main() {
       onResult: (value) => result = value,
     );
 
-    final projectRollBox = find.byTooltip('پروژه');
+    final projectRollBox = find.byKey(const ValueKey('task-editor-project-rollbox'));
     await tester.tap(projectRollBox);
     await tester.pumpAndSettle();
     expect(find.text('کاری'), findsWidgets);
@@ -156,7 +156,7 @@ void main() {
       onResult: (value) => result = value,
     );
 
-    await tester.tap(find.byTooltip('پروژه'));
+    await tester.tap(find.byKey(const ValueKey('task-editor-project-rollbox')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('بدون پروژه'));
     await tester.pump();

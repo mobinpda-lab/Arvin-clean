@@ -83,7 +83,7 @@ void main() {
     expect(restoredEnvelope['futureField'], {'keep': true});
 
     final followUps = await database.runSelect(
-      'SELECT task_id, note, result, ordinal FROM follow_ups WHERE task_id = ?',
+      'SELECT task_id, note, result, ordinal FROM follow_up_records WHERE task_id = ?',
       const ['legacy-1'],
     );
     expect(followUps.single['note'], 'تماس شد');
@@ -96,10 +96,15 @@ void main() {
     expect(checklist.map((row) => row['value']), ['ارسال قرارداد', 'تماس مجدد']);
 
     final people = await database.runSelect(
-      'SELECT person_id, person_json FROM task_people WHERE task_id = ?',
+      '''SELECT task_persons.person_id, persons.name
+         FROM task_persons
+         JOIN persons ON persons.id = task_persons.person_id
+         WHERE task_persons.task_id = ?''',
       const ['legacy-1'],
     );
     expect(people.single['person_id'], 'person-1');
+    // The migrated display name must match the exact source input.
+    expect(people.single['name'], 'مشتری');
 
     final tags = await database.runSelect(
       '''SELECT tags.name
@@ -172,6 +177,145 @@ void main() {
     expect(count.single['count'], 1);
   });
 
+  test('stores Recurrence rules in relational SQL rather than Task JSON', () async {
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setString('arvin.tasks', jsonEncode([
+      {
+        'id': 'recurrence-task',
+        'title': 'کار زمان‌بندی‌شده',
+        'recurrence': {
+          'frequency': 'weekly',
+          'interval': 2,
+          'startDate': '2026-10-01T08:00:00.000Z',
+          'endDate': '2026-12-01T08:00:00.000Z',
+          'count': 5,
+          'active': true,
+          'trackingLevel': 'tracking',
+        },
+      },
+    ]));
+
+    await const SqlTaskMigrationWriter().migrateFromPreferences(
+      executor: database,
+      preferences: preferences,
+    );
+
+    final rule = (await database.runSelect(
+      'SELECT frequency, interval, start_date, end_date, occurrence_count, active, tracking_level '
+      'FROM task_recurrence_rules WHERE task_id = ?',
+      const ['recurrence-task'],
+    )).single;
+    expect(rule['frequency'], 'weekly');
+    expect(rule['interval'], 2);
+    expect(rule['occurrence_count'], 5);
+    expect(rule['tracking_level'], 'tracking');
+
+    final taskRow = (await database.runSelect(
+      'SELECT recurrence_json, legacy_payload_json FROM tasks WHERE id = ?',
+      const ['recurrence-task'],
+    )).single;
+    expect(taskRow['recurrence_json'], isNull);
+    final envelope = jsonDecode(taskRow['legacy_payload_json'] as String) as Map<String, dynamic>;
+    expect(envelope.containsKey('recurrence'), isFalse);
+
+    final loaded = await TaskStore(executor: database).load();
+    expect(loaded.single.recurrence?.frequency.name, 'weekly');
+    expect(loaded.single.recurrence?.interval, 2);
+    expect(loaded.single.recurrence?.trackingLevel.name, 'tracking');
+    await TaskStore(executor: database).save(loaded);
+    final afterSave = await database.runSelect(
+      'SELECT task_id, frequency FROM task_recurrence_rules WHERE task_id = ?',
+      const ['recurrence-task'],
+    );
+    expect(afterSave.single['frequency'], 'weekly');
+  });
+
+  test('migrates Occurrence history and per-Occurrence checklists into relational SQL', () async {
+    const first = '2026-10-01T08:00:00.000Z';
+    const second = '2026-10-02T08:00:00.000Z';
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setString('arvin.tasks', jsonEncode([
+      {
+        'id': 'occurrence-task',
+        'title': 'کار تکرارشونده',
+        'occurrenceHistory': {
+          first: {
+            'scheduledDate': first,
+            'status': 'completed',
+            'completionDate': '2026-10-01T08:30:00.000Z',
+            'result': 'انجام شد',
+          },
+          second: {
+            'scheduledDate': second,
+            'status': 'skipped',
+            'result': 'تعطیل بود',
+          },
+        },
+        'checklistOccurrences': {
+          first: ['[x] مرحله اول', '[ ] مرحله دوم'],
+          second: ['[ ] مرحله اول'],
+        },
+      },
+    ]));
+
+    await const SqlTaskMigrationWriter().migrateFromPreferences(
+      executor: database,
+      preferences: preferences,
+    );
+
+    final occurrences = await database.runSelect(
+      'SELECT scheduled_at, status, completed_at, result FROM task_occurrences '
+      'WHERE task_id = ? ORDER BY ordinal',
+      const ['occurrence-task'],
+    );
+    expect(occurrences, hasLength(2));
+    expect(occurrences[0]['scheduled_at'], first);
+    expect(occurrences[0]['status'], 'completed');
+    expect(occurrences[0]['completed_at'], '2026-10-01T08:30:00.000Z');
+    expect(occurrences[1]['status'], 'skipped');
+    expect(occurrences[1]['result'], 'تعطیل بود');
+
+    final checklistRows = await database.runSelect(
+      'SELECT o.scheduled_at, c.ordinal, c.value FROM task_occurrences o '
+      'JOIN occurrence_checklist_items c ON c.occurrence_id = o.id '
+      'WHERE o.task_id = ? ORDER BY o.ordinal, c.ordinal',
+      const ['occurrence-task'],
+    );
+    expect(checklistRows.map((row) => row['value']), [
+      '[x] مرحله اول',
+      '[ ] مرحله دوم',
+      '[ ] مرحله اول',
+    ]);
+
+    final storedEnvelope = (await database.runSelect(
+      'SELECT legacy_payload_json FROM tasks WHERE id = ?',
+      const ['occurrence-task'],
+    )).single;
+    final envelope = jsonDecode(storedEnvelope['legacy_payload_json'] as String) as Map<String, dynamic>;
+    expect(envelope.containsKey('occurrenceHistory'), isFalse);
+    expect(envelope.containsKey('checklistOccurrences'), isFalse);
+
+    final store = TaskStore(executor: database);
+    final loaded = await store.load();
+    expect(loaded.single.occurrenceHistory[first]?['status'], 'completed');
+    expect(loaded.single.occurrenceHistory[second]?['status'], 'skipped');
+    expect(loaded.single.checklistOccurrences[first], ['[x] مرحله اول', '[ ] مرحله دوم']);
+    await store.save(loaded);
+    final reopened = await store.load();
+    expect(reopened.single.checklistOccurrences[second], ['[ ] مرحله اول']);
+  });
+
+  test('same ID with different content is a conflict and never skipped', () async {
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setString('arvin.tasks','[{"id":"conflict-task","title":"نسخه منبع","futureField":{"version":1}}]');
+    final writer=const SqlTaskMigrationWriter();
+    await writer.migrateFromPreferences(executor:database,preferences:preferences);
+    await database.runUpdate('UPDATE tasks SET title=? WHERE id=?',const ['نسخه مقصد متفاوت','conflict-task']);
+    await expectLater(writer.migrateFromPreferences(executor:database,preferences:preferences),throwsA(isA<StateError>()));
+    final row=(await database.runSelect('SELECT title FROM tasks WHERE id=?',const ['conflict-task'])).single;
+    expect(row['title'],'نسخه مقصد متفاوت');
+  });
+
   test('transaction rolls back all rows when one relation violates SQL constraints',
       () async {
     final raw = jsonEncode([
@@ -215,7 +359,7 @@ void main() {
       const [],
     );
     final followUps = await database.runSelect(
-      'SELECT COUNT(*) AS count FROM follow_ups',
+      'SELECT COUNT(*) AS count FROM follow_up_records',
       const [],
     );
     expect(tasks.single['count'], 0);
@@ -425,8 +569,8 @@ void main() {
       expect(persistedTarget.title, originalTarget.title);
       expect(persistedTarget.note, originalTarget.note);
       expect(persistedTarget.result, originalTarget.result);
-      expect(persistedTarget.reminderDate, originalTarget.reminderDate);
-      expect(persistedTarget.nextFollowUp, originalTarget.nextFollowUp);
+      expect(persistedTarget.toJson().containsKey('reminderDate'), isFalse);
+      expect(persistedTarget.toJson().containsKey('nextFollowUp'), isFalse);
       expect(persistedTarget.waitingForResponse, originalTarget.waitingForResponse);
       expect(persistedTarget.personIds, originalTarget.personIds);
       expect(
@@ -435,7 +579,7 @@ void main() {
       );
 
       final sqlCompleted = await database.runSelect(
-        'SELECT completed FROM follow_ups WHERE id = ? AND task_id = ?',
+        'SELECT completed FROM follow_up_records WHERE id = ? AND task_id = ?',
         const [targetFollowUpId, originalTaskId],
       );
       expect(sqlCompleted, hasLength(1));

@@ -32,10 +32,12 @@ class TaskMigrationAdapter {
       throw const FormatException('Legacy task title must be a string');
     }
 
-    final task = Task.fromJson(json);
+    final task = Task.fromLegacyJson(json);
+    final sourceEnvelope = Map<String, dynamic>.from(json)
+      ..addAll(task.toJson());
     return TaskMigrationRecord(
       task: task,
-      sourceJson: Map<String, dynamic>.from(json),
+      sourceJson: sourceEnvelope,
     );
   }
 

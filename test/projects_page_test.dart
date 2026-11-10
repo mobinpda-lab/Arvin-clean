@@ -28,7 +28,7 @@ void main() {
     expect(find.text('پروژه‌ها'), findsOneWidget);
     expect(find.text('کاری'), findsOneWidget);
     expect(find.text('شخصی'), findsOneWidget);
-    expect(find.text('1 مورد'), findsOneWidget);
+    expect(find.textContaining('1 مورد'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('project-delete-work')));
     await tester.pump();
@@ -47,6 +47,23 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('project-delete-personal')));
     await tester.pump();
     expect(changed.map((item) => item.id), ['work']);
+  });
+
+  testWidgets('new Project dialog starts with the canonical turquoise color', (tester) async {
+    var changed = <ProjectPlan>[];
+    await tester.pumpWidget(MaterialApp(
+      home: ProjectsPage(
+        projects: const [],
+        onChanged: (value) async { changed = value; },
+      ),
+    ));
+    await tester.tap(find.byKey(const ValueKey('projects-add')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('project-color-4278747020')), findsOneWidget);
+    await tester.enterText(find.byKey(const ValueKey('project-title-input')), 'پروژه فیروزه‌ای');
+    await tester.tap(find.byKey(const ValueKey('project-dialog-save')));
+    await tester.pumpAndSettle();
+    expect(changed.single.colorValue, 0xFF087F8C);
   });
 
   testWidgets('can add a project with title and selected color', (tester) async {

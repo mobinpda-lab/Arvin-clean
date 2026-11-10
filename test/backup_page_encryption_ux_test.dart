@@ -4,6 +4,7 @@ import 'package:arvin/backup_service.dart';
 import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/task_store.dart';
+import 'package:drift/native.dart';
 import 'package:arvin/services/calendar_sync_plan_service.dart';
 import 'package:arvin/services/external_calendar_link_store.dart';
 import 'package:flutter/material.dart';
@@ -50,10 +51,12 @@ Widget _app({
   Future<List<Map<String, dynamic>>> Function()? loadTasks,
   Future<void> Function(List<Map<String, dynamic>> tasks)? replaceTasks,
   Future<void> Function(String stage)? restoreStageHook,
+  ProjectStore? projectStore,
 }) {
   return MaterialApp(
     home: BackupPage(
       manager: ArvinBackupManager(service: service),
+      projectStore: projectStore,
       loadTasks: loadTasks ??
           () async => <Map<String, dynamic>>[
                 <String, dynamic>{'id': 'task-1', 'title': 'کار نمونه'},
@@ -104,7 +107,11 @@ void main() {
   testWidgets('encrypted backup requires matching non-empty confirmation',
       (tester) async {
     final service = _FakeBackupService();
-    await tester.pumpWidget(_app(service: service));
+    final projectDatabase = NativeDatabase.memory();
+    addTearDown(projectDatabase.close);
+    final projectStore = ProjectStore(executor: projectDatabase);
+    await projectStore.load();
+    await tester.pumpWidget(_app(service: service, projectStore: projectStore));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('backup_encryption_toggle')));

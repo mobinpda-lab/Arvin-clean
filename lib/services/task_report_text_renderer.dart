@@ -1,4 +1,5 @@
 import 'persian_date_formatter.dart';
+import '../models/task.dart';
 import 'task_report_projection.dart';
 
 /// Pure plain-text renderer over the canonical [TaskReport] projection.
@@ -22,18 +23,33 @@ class TaskReportTextRenderer {
       return buffer.toString();
     }
 
-    for (var index = 0; index < report.entries.length; index++) {
-      final entry = report.entries[index];
+    var index = 0;
+    for (final group in report.priorityGroups) {
       buffer
         ..writeln()
-        ..writeln('${index + 1}. ${entry.title}')
+        ..writeln('${group.priority.code} — ${group.priority.label}');
+      for (final entry in group.entries) {
+        index++;
+      buffer
+        ..writeln()
+        ..writeln('$index. ${entry.title}')
         ..writeln('وضعیت: ${entry.completed ? 'انجام‌شده' : 'باز'}');
 
       if (entry.description.trim().isNotEmpty) {
         buffer.writeln('توضیحات: ${entry.description.trim()}');
       }
-      if (entry.reminderDate != null) {
-        buffer.writeln('یادآوری: ${formatDateTime(entry.reminderDate!)}');
+      if (entry.dueDate != null) {
+        final due = entry.allDay
+            ? formatDate(entry.dueDate!)
+            : formatDateTime(entry.dueDate!);
+        buffer.writeln('موعد: $due');
+      }
+      for (final reminder in entry.reminders) {
+        final due = reminder.isAllDay
+            ? formatDate(reminder.date)
+            : formatDateTime(reminder.date);
+        final enabled = reminder.isEnabled ? '' : ' (غیرفعال)';
+        buffer.writeln('یادآوری: ${reminder.title} — $due$enabled');
       }
       if (entry.tags.isNotEmpty) {
         buffer.writeln('برچسب‌ها: ${entry.tags.join('، ')}');
@@ -53,10 +69,14 @@ class TaskReportTextRenderer {
           );
         }
       }
+      }
     }
 
     return buffer.toString().trimRight();
   }
+
+  static String formatDate(DateTime value) =>
+      _dateFormatter.format(value, usePersianDate: true);
 
   static String formatDateTime(DateTime value) {
     final date = _dateFormatter.format(value, usePersianDate: true);

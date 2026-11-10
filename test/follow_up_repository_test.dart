@@ -22,7 +22,7 @@ void main() {
 
     expect(followUps, isEmpty);
     final task = (await TaskStore().load()).single;
-    expect(task.followUpDate, DateTime(2026, 8, 14, 9, 30));
+    expect(task.followUpDate, isNull);
     expect(task.followUps, isEmpty);
   });
 
@@ -45,7 +45,7 @@ void main() {
 
     expect(followUps, hasLength(1));
     expect(followUps.single.id, 'f2');
-    expect((await TaskStore().load()).single.followUpDate, DateTime(2026, 8, 14, 9, 30));
+    expect((await TaskStore().load()).single.followUpDate, isNull);
     expect(followUps.last.result, 'پاسخ دریافت شد');
   });
 
@@ -133,8 +133,8 @@ void main() {
     expect(updated.dateTime, DateTime(2026, 8, 15, 10, 15));
     expect(updated.note, 'شرح کامل');
     expect(updated.result, 'پاسخ دریافت شد');
-    expect(updated.reminderDate, DateTime(2026, 8, 16, 9));
-    expect(updated.nextFollowUp, DateTime(2026, 8, 20, 10, 15));
+    expect(updated.toJson().containsKey('reminderDate'), isFalse);
+    expect(updated.toJson().containsKey('nextFollowUp'), isFalse);
     expect(updated.waitingForResponse, isTrue);
     expect(updated.personIds, ['person-1', 'person-2']);
 

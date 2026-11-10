@@ -23,7 +23,7 @@ void main() {
     expect((await AppSettingsService().load()).fontSize, 20.0);
 
     // The same scaler must reach pushed routes, not only Home.
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
       find.text('تنظیمات'),
@@ -82,7 +82,7 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byIcon(Icons.menu_rounded));
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('home-more-task-filters')), findsOneWidget);
 

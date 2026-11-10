@@ -8,8 +8,6 @@ void main() {
     final task = Task(
       id: 'task-1',
       title: 'پیگیری مشتری',
-      followUpEnabled: true,
-      reminderDate: DateTime(2026, 9, 20, 10),
       followUps: [
         FollowUp(id: 'follow-1', dateTime: first, note: 'تماس اول'),
         FollowUp(id: 'follow-2', dateTime: second, note: 'تماس دوم'),
@@ -20,7 +18,7 @@ void main() {
     expect(task.followUps, hasLength(2));
     expect(task.lastFollowUp?.id, 'follow-2');
     expect(task.lastFollowUpDate, second);
-    expect(task.reminderDate, DateTime(2026, 9, 20, 10));
+    expect(task.reminderDate, isNull);
   });
 
   test('follow-up history survives serialization without changing task identity', () {

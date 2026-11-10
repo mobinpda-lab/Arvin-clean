@@ -248,12 +248,13 @@ class TaskRecurrenceRepository {
     return _store.mutate<Task>((tasks) {
       final task = _find(tasks, taskId);
       final rule = task.recurrence;
-      final scheduledFrom = task.reminderDate;
+      final scheduledReminder = earliestEnabledTaskReminder(task);
+      final scheduledFrom = scheduledReminder?.date;
 
       if (rule == null) {
         throw StateError('Task has no recurrence: $taskId');
       }
-      if (scheduledFrom == null) {
+      if (scheduledReminder == null || scheduledFrom == null) {
         throw StateError('Task has no reminder schedule: $taskId');
       }
 
@@ -261,7 +262,13 @@ class TaskRecurrenceRepository {
         scheduledFrom: scheduledFrom,
         target: target ?? _now(),
       );
-      task.reminderDate = next;
+      final reminderIndex = task.taskReminders.indexWhere(
+        (item) => item.id == scheduledReminder.id,
+      );
+      if (reminderIndex < 0) {
+        throw StateError('Task reminder disappeared during recurrence update: $taskId');
+      }
+      task.taskReminders[reminderIndex] = scheduledReminder.copyWith(date: next);
       task.updatedAt = _now();
       return task;
     });

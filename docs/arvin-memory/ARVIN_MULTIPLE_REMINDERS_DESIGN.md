@@ -60,3 +60,17 @@ This section supersedes the earlier compatibility bullets above wherever they co
 - Keep this data embedded in canonical Task JSON and use the existing SQL, backup/restore, Calendar and notification foundations; do not add a parallel store.
 - This override changes the previous design statement that migration must not occur. All other requirements (stable independent IDs, monotonic numbering, no cross-reminder mutation, tests, and release gates) remain in force.
 - Validation status is determined by the latest exact PR head and its recorded evidence, not by this design note. Emulator CI is not physical-device acceptance; release remains NO-GO until integrated acceptance is complete.
+
+## AUTHORITATIVE ROOT REFACTOR — 2026-11-09
+
+This owner directive supersedes all earlier statements in this document that require a per-reminder `isLegacyTaskReminder` flag or legacy-first getter precedence.
+
+- `Task.taskReminders` is the sole canonical collection for reminder records. The model no longer stores or reads a per-reminder legacy classification flag.
+- The computed `Task.reminderDate` compatibility getter returns the earliest `date` among enabled reminders, independent of sequence or origin; it returns null when no enabled reminder exists. It has no setter.
+- Legacy JSON `reminderDate` is accepted only at the decoding boundary and normalized into a regular TaskReminder with stable ID `legacy-task-reminder-<taskId>`. The migration marker remains only as a one-time tombstone while stale legacy payloads may still exist; it is not reminder data or a per-reminder classification.
+- The old Calendar event identity and scheduler delivery identity are retained by recognizing that deterministic reminder ID, not by storing a Boolean legacy flag.
+- SQLite schema v16 removes `is_legacy_task_reminder` from `task_reminders`, rebuilding the table while preserving every existing reminder ID, timestamp, sequence, enabled state and All-Day value.
+- DueDate and TaskReminder remain independent. Selecting or changing dueDate never creates, edits, or deletes a TaskReminder.
+- QuickCaptureDialog and TaskEditorDialog continue to create and edit only explicit TaskReminder records. Tests must assert the collection and computed getter, never a legacy classification flag.
+
+No reminder row may be deleted or recreated merely to change its classification. Preserve existing user data and delivery/calendar identity throughout the schema transition.

@@ -2,14 +2,18 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'arvin_colors.dart';
+import 'home/home_filter_ui.dart';
+import 'core/theme/arvin_theme.dart';
 import 'follow_up_entry_page.dart';
 
 import 'models/goal_project.dart';
+import 'models/arvin_center.dart';
 import 'models/recurrence.dart';
 import 'models/task.dart';
 import 'services/persian_date_formatter.dart';
 import 'widgets/persian_date_picker.dart';
 import 'widgets/arvin_roll_box.dart';
+import 'widgets/reusable_multi_select_filter_bottom_sheet.dart';
 import 'widgets/universal_arvin_time_picker.dart';
 
 class ArvinTaskEditorDialog extends StatefulWidget {
@@ -20,9 +24,13 @@ class ArvinTaskEditorDialog extends StatefulWidget {
     this.initialTitle,
     this.initialDescription,
     this.projects = const [],
+    this.centers = const [],
+    this.selectedCenterId,
+    this.onCreateCenter,
     this.selectedProjectId,
     this.onProjectChanged,
     this.onCreateProject,
+    this.onCreateProjectWithCenter,
     this.knownCategories = const [],
     this.knownTags = const [],
     this.onCreateCategory,
@@ -38,9 +46,13 @@ class ArvinTaskEditorDialog extends StatefulWidget {
   /// The editor owns no Project persistence; callers persist the selected id
   /// through canonical ProjectPlan.itemIds after a successful Task save.
   final List<ProjectPlan> projects;
+  final List<ArvinCenter> centers;
+  final String? selectedCenterId;
+  final Future<String?> Function(String name)? onCreateCenter;
   final String? selectedProjectId;
   final ValueChanged<String?>? onProjectChanged;
   final Future<String?> Function(String title)? onCreateProject;
+  final Future<String?> Function(String title, String? centerId)? onCreateProjectWithCenter;
 
   /// Existing canonical Task categories offered as quick choices.
   final List<String> knownCategories;
@@ -54,7 +66,7 @@ class ArvinTaskEditorDialog extends StatefulWidget {
 
 class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   static const _dateFormatter = PersianDateFormatter();
-  static const _brand = ArvinColors.primary;
+  Color get _brand => Theme.of(context).colorScheme.primary;
   static const _fieldSurface = ArvinColors.background;
   static const _border = ArvinColors.border;
 
@@ -66,10 +78,6 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   late final FocusNode _titleFocusNode;
   DateTime? _dueDateTime;
   late bool _dueAllDay;
-  DateTime? _reminderDateTime;
-  bool _reminderFollowsDueTime = true;
-  bool _reminderExplicitlyCleared = false;
-  DateTime? _initialReminderDateTime;
   late List<TaskReminder> _taskReminders;
   late List<FollowUp> _followUps;
   late int _nextReminderSequence;
@@ -80,6 +88,8 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   late List<String> _knownCategories;
   late List<String> _knownTags;
   late List<ProjectPlan> _projects;
+  late List<ArvinCenter> _centers;
+  late String? _selectedCenterId;
   late String? _category;
   late String? _selectedProjectId;
   late RecurrenceRule? _recurrence;
@@ -107,12 +117,6 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _titleFocusNode = FocusNode();
     _dueDateTime = task?.dueDate ?? widget.initialDueDate;
     _dueAllDay = task?.allDay ?? false;
-    _reminderDateTime = task?.legacyTaskReminderMigrationVersion == 1
-        ? null
-        : task?.reminderDate;
-    _initialReminderDateTime = task?.legacyTaskReminderMigrationVersion == 1
-        ? null
-        : task?.reminderDate;
     _taskReminders = List<TaskReminder>.of(task?.taskReminders ?? const []);
     _followUps = List<FollowUp>.of(task?.followUps ?? const []);
     _nextReminderSequence = task?.nextReminderSequence ?? 1;
@@ -125,12 +129,6 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
         _nextReminderSequence = highest + 1;
       }
     }
-    _reminderFollowsDueTime = task == null ||
-        (task.legacyTaskReminderMigrationVersion < 1 &&
-            task.reminderDate != null &&
-            task.dueDate != null &&
-            !task.allDay &&
-            task.reminderDate == task.dueDate);
     _completed = task?.completed ?? false;
     _tags = List<String>.of(task?.tags ?? const []);
     _checklist = List<String>.of(task?.checklist ?? const []);
@@ -138,8 +136,10 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _knownCategories = List<String>.of(widget.knownCategories);
     _knownTags = List<String>.of(widget.knownTags);
     _projects = List<ProjectPlan>.of(widget.projects);
+    _centers = List<ArvinCenter>.of(widget.centers);
     _category = task?.category;
     _selectedProjectId = widget.selectedProjectId;
+    _selectedCenterId = widget.selectedCenterId ?? task?.centerId;
     _recurrence = task?.recurrence;
     _repeatEnabled = task?.recurrence?.active ?? false;
     _recurrenceStartDate = task?.recurrence?.startDate;
@@ -150,7 +150,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _recurrenceCountController = TextEditingController(
       text: task?.recurrence?.count?.toString() ?? '',
     );
-    _priority = task?.priority ?? TaskPriority.none;
+    _priority = task?.priority ?? TaskPriority.medium;
   }
 
   @override
@@ -187,7 +187,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: _brand, width: 1.5),
+        borderSide: BorderSide(color: _brand, width: 1.5),
       ),
     );
   }
@@ -225,18 +225,16 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     );
   }
 
-  Future<DateTime?> _chooseTime(
+  Future<ArvinTimeSelection?> _chooseTime(
     DateTime? current, {
     required String helpText,
-  }) async {
+  }) {
     final base = _baseDateTime(current);
-    final picked = await showUniversalArvinTimePicker(
+    return showUniversalArvinTimeSelectionPicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(base),
       helpText: helpText,
     );
-    if (picked == null) return null;
-    return DateTime(base.year, base.month, base.day, picked.hour, picked.minute);
   }
 
   void _addTaskReminder() {
@@ -281,51 +279,75 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
       confirmText: 'تأیید',
     );
     if (picked == null || !mounted) return;
-    _updateTaskReminder(index, current.copyWith(
-      date: DateTime(
-        picked.year,
-        picked.month,
-        picked.day,
-        current.isAllDay ? 0 : current.date.hour,
-        current.isAllDay ? 0 : current.date.minute,
+    final date = DateTime(
+      picked.year,
+      picked.month,
+      picked.day,
+      current.date.hour,
+      current.date.minute,
+    );
+    final selection = await _chooseTime(
+      date,
+      helpText: 'انتخاب ساعت یادآور',
+    );
+    if (selection == null || !mounted) return;
+    _updateTaskReminder(
+      index,
+      current.copyWith(
+        date: selection.isAllDay
+            ? DateTime(picked.year, picked.month, picked.day)
+            : DateTime(
+                picked.year,
+                picked.month,
+                picked.day,
+                selection.time!.hour,
+                selection.time!.minute,
+              ),
+        isAllDay: selection.isAllDay,
       ),
-    ));
+    );
   }
 
-  Future<void> _pickTaskReminderTime(int index) async {
-    if (index < 0 || index >= _taskReminders.length) return;
-    final current = _taskReminders[index];
-    final value = await _chooseTime(current.date, helpText: 'انتخاب ساعت یادآور');
-    if (value == null || !mounted) return;
-    final latestIndex = _taskReminders.indexWhere((item) => item.id == current.id);
-    if (latestIndex < 0) return;
-    _updateTaskReminder(latestIndex, current.copyWith(date: value, isAllDay: false));
-  }
 
   Widget _taskRemindersEditor() {
     return Container(
       key: const ValueKey('task-editor-multiple-reminders'),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: _fieldSurface,
-        borderRadius: BorderRadius.circular(18),
+        color: ArvinColors.surface,
+        borderRadius: ArvinTheme.cardBorderRadius,
         border: Border.all(color: _border),
+        boxShadow: const [ArvinTheme.shadowStyle],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              const Expanded(
-                child: Text('یادآورهای مستقل', style: TextStyle(fontWeight: FontWeight.w800)),
-              ),
-              FilledButton.tonalIcon(
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final addButton = FilledButton.tonalIcon(
                 key: const ValueKey('task-editor-add-reminder'),
                 onPressed: _addTaskReminder,
                 icon: const Icon(Icons.add, size: 18),
                 label: const Text('افزودن یادآور'),
-              ),
-            ],
+              );
+              if (constraints.maxWidth < 360 ||
+                  MediaQuery.textScalerOf(context).scale(1) > 1.2) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text('یادآورهای مستقل', style: TextStyle(fontWeight: FontWeight.w800)),
+                    const SizedBox(height: 6),
+                    Align(alignment: AlignmentDirectional.centerStart, child: addButton),
+                  ],
+                );
+              }
+              return Row(
+                children: [
+                  const Expanded(child: Text('یادآورهای مستقل', style: TextStyle(fontWeight: FontWeight.w800))),
+                  addButton,
+                ],
+              );
+            },
           ),
           const SizedBox(height: 4),
           const Text('هر یادآور مستقل است و می‌تواند عنوان و زمان جداگانه داشته باشد.'),
@@ -366,6 +388,27 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                           ),
                         ),
                         IconButton(
+                          key: ValueKey('task-editor-toggle-reminder-$reminderKey'),
+                          tooltip: reminder.isEnabled
+                              ? 'غیرفعال کردن یادآور'
+                              : 'فعال کردن یادآور',
+                          onPressed: () => setState(() {
+                            final updated = List<TaskReminder>.of(_taskReminders);
+                            updated[index] = reminder.copyWith(
+                              isEnabled: !reminder.isEnabled,
+                            );
+                            _taskReminders = updated;
+                          }),
+                          icon: Icon(
+                            reminder.isEnabled
+                                ? Icons.notifications_active_outlined
+                                : Icons.notifications_off_outlined,
+                            color: reminder.isEnabled
+                                ? ArvinColors.reminder
+                                : Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        IconButton(
                           key: ValueKey('task-editor-remove-reminder-$reminderKey'),
                           tooltip: 'حذف این یادآور',
                           onPressed: () => setState(() {
@@ -384,37 +427,14 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                           key: ValueKey('task-editor-reminder-date-$reminderKey'),
                           onPressed: () => _pickTaskReminderDate(index),
                           icon: const Icon(Icons.calendar_month_outlined, size: 18),
-                          label: Text(_dateText(reminder.date)),
-                        ),
-                        if (!reminder.isAllDay)
-                          OutlinedButton.icon(
-                            key: ValueKey('task-editor-reminder-time-$reminderKey'),
-                            onPressed: () => _pickTaskReminderTime(index),
-                            icon: const Icon(Icons.schedule, size: 18),
-                            label: Text(_timeText(reminder.date)),
+                          label: Text(
+                            '${_dateText(reminder.date)} • '
+                            '${reminder.isAllDay ? 'بدون ساعت' : _timeText(reminder.date)}',
                           ),
+                        ),
                       ],
                     ),
-                    Material(
-                      color: ArvinColors.surface,
-                      borderRadius: BorderRadius.circular(8),
-                      child: CheckboxListTile(
-                      key: ValueKey('task-editor-reminder-all-day-$reminderKey'),
-                      contentPadding: EdgeInsets.zero,
-                      controlAffinity: ListTileControlAffinity.leading,
-                      value: reminder.isAllDay,
-                      onChanged: (value) {
-                        final allDay = value ?? false;
-                        _updateTaskReminder(index, reminder.copyWith(
-                          isAllDay: allDay,
-                          date: allDay
-                              ? DateTime(reminder.date.year, reminder.date.month, reminder.date.day)
-                              : reminder.date,
-                        ));
-                      },
-                      title: const Text('تمام‌روز (بدون ساعت)'),
-                      ),
-                    ),
+
                   ],
                 ),
               );
@@ -424,123 +444,46 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     );
   }
 
-Future<void> _pickDueDate() async {
-    final value = await _chooseDate(
-      _dueDateTime,
+Future<void> _pickDueDateTime() async {
+    final initial = _baseDateTime(_dueDateTime);
+    final date = await showPersianDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
       helpText: 'انتخاب تاریخ انجام کار',
+      cancelText: 'لغو',
+      confirmText: 'انتخاب تاریخ',
     );
-    if (value != null && mounted) {
-      setState(() {
-        _dueDateTime = _dueDateTime == null
-            ? DateTime(value.year, value.month, value.day)
-            : DateTime(value.year, value.month, value.day, _dueDateTime!.hour, _dueDateTime!.minute);
-        if (_dueDateTime != null && widget.task == null) _dueAllDay = true;
-        _syncAutomaticReminder();
-      });
-    }
-  }
+    if (date == null || !mounted) return;
 
-  Future<void> _pickDueTime() async {
+    final dateWithInitialTime = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      initial.hour,
+      initial.minute,
+    );
     final value = await _chooseTime(
-      _dueDateTime,
+      dateWithInitialTime,
       helpText: 'انتخاب ساعت انجام کار',
     );
-    if (value != null && mounted) {
-      setState(() {
-        _dueDateTime = value;
-        _dueAllDay = false;
-        _syncAutomaticReminder();
-      });
-    }
-  }
+    if (value == null || !mounted) return;
 
-  Future<void> _pickReminderDate() async {
-    final value = await _chooseDate(
-      _reminderDateTime,
-      helpText: 'انتخاب تاریخ یادآوری',
-    );
-    if (value != null && mounted) {
-      setState(() {
-        _reminderDateTime = value;
-        _reminderFollowsDueTime = false;
-        _reminderExplicitlyCleared = false;
-      });
-    }
-  }
-
-  Future<void> _pickReminderTime() async {
-    final value = await _chooseTime(
-      _reminderDateTime,
-      helpText: 'انتخاب ساعت یادآوری',
-    );
-    if (value != null && mounted) {
-      setState(() {
-        _reminderDateTime = value;
-        _reminderFollowsDueTime = false;
-        _reminderExplicitlyCleared = false;
-      });
-    }
-  }
-
-  void _syncAutomaticReminder() {
-    if (!_reminderFollowsDueTime) {
-      return;
-    }
-    if (_dueDateTime == null || _dueAllDay) {
-      _reminderDateTime = null;
-    } else {
-      _reminderDateTime = _dueDateTime;
-    }
-  }
-
-  void _clearDueTime() => setState(() {
-    _dueDateTime = null;
-    _dueAllDay = false;
-    _syncAutomaticReminder();
-  });
-
-  void _toggleDueAllDay(bool value) {
-    if (_dueDateTime == null) return;
     setState(() {
-      _dueAllDay = value;
-      if (value) {
-        _dueDateTime = DateTime(_dueDateTime!.year, _dueDateTime!.month, _dueDateTime!.day);
-      }
-      _syncAutomaticReminder();
+      _dueDateTime = value.isAllDay
+          ? DateTime(date.year, date.month, date.day)
+          : DateTime(
+              date.year,
+              date.month,
+              date.day,
+              value.time!.hour,
+              value.time!.minute,
+            );
+      _dueAllDay = value.isAllDay;
     });
   }
-  void _clearReminderTime() => setState(() {
-    _reminderDateTime = null;
-    _reminderFollowsDueTime = false;
-    _reminderExplicitlyCleared = true;
-  });
 
-  Future<String?> _promptNewName(String title) async {
-    final controller = TextEditingController();
-    final result = await showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: ArvinColors.surface,
-      builder: (sheetContext) => Padding(
-        padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(sheetContext).bottom),
-        child: Directionality(
-          textDirection: TextDirection.rtl,
-          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 12),
-            TextField(controller: controller, autofocus: true, decoration: const InputDecoration(labelText: 'نام', border: OutlineInputBorder())),
-            const SizedBox(height: 12),
-            FilledButton(onPressed: () => Navigator.of(sheetContext).pop(controller.text.trim()), child: const Text('افزودن')),
-          ]),
-        ),
-      ),
-    );
-    // The bottom-sheet route can still perform a final rebuild while its
-    // closing animation is completing. Defer disposal so the TextField never
-    // observes a controller that was disposed during that transition.
-    WidgetsBinding.instance.addPostFrameCallback((_) => controller.dispose());
-    return result?.trim().isEmpty == true ? null : result?.trim();
-  }
   bool _sameRecurrence(RecurrenceRule? a, RecurrenceRule? b) {
     if (identical(a, b)) return true;
     if (a == null || b == null) return false;
@@ -580,8 +523,6 @@ Future<void> _pickDueDate() async {
           left.dateTime != right.dateTime ||
           left.note != right.note ||
           left.result != right.result ||
-          left.reminderDate != right.reminderDate ||
-          left.nextFollowUp != right.nextFollowUp ||
           left.completed != right.completed ||
           left.waitingForResponse != right.waitingForResponse ||
           !listEquals(left.personIds, right.personIds)) {
@@ -611,6 +552,11 @@ Future<void> _pickDueDate() async {
     });
   }
 
+  String get _selectedCenterLabel {
+    final matches = _centers.where((center) => center.id == _selectedCenterId);
+    return matches.isEmpty ? 'مرکز' : matches.first.name;
+  }
+
   bool get _hasChanges {
     final existing = widget.task;
     final title = _titleController.text;
@@ -625,14 +571,14 @@ Future<void> _pickDueDate() async {
           _checklist.isNotEmpty ||
           _checklistEnabled ||
           _category != null ||
+          _selectedCenterId != widget.selectedCenterId ||
           _selectedProjectId != widget.selectedProjectId ||
           _dueDateTime != null ||
           _dueAllDay ||
-          _reminderDateTime != null ||
           _taskReminders.isNotEmpty ||
           _followUps.isNotEmpty ||
           _recurrence != null ||
-          _priority != TaskPriority.none ||
+          _priority != TaskPriority.medium ||
           _completed;
     }
 
@@ -643,10 +589,10 @@ Future<void> _pickDueDate() async {
         !listEquals(_checklist, existing.checklist) ||
         _checklistEnabled != existing.checklistEnabled ||
         _category != existing.category ||
+        _selectedCenterId != existing.centerId ||
         _selectedProjectId != widget.selectedProjectId ||
         _dueDateTime != existing.dueDate ||
         _dueAllDay != existing.allDay ||
-        _reminderDateTime != existing.reminderDate ||
         !_sameTaskReminders(_taskReminders, existing.taskReminders) ||
         !_sameFollowUps(_followUps, existing.followUps) ||
         !_sameRecurrence(_recurrence, existing.recurrence) ||
@@ -720,7 +666,7 @@ Future<void> _pickDueDate() async {
           key: const ValueKey('task-editor-checklist-toggle-container'),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
           decoration: BoxDecoration(
-            color: ArvinColors.primarySoft,
+            color: Color.alphaBlend(_brand.withAlpha(18), Theme.of(context).colorScheme.surface),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: ArvinColors.border),
           ),
@@ -750,9 +696,14 @@ Future<void> _pickDueDate() async {
     return Container(
       key: const ValueKey('task-editor-checklist-block'),
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: ArvinColors.projectSoft, borderRadius: BorderRadius.circular(20), border: Border.all(color: ArvinColors.border)),
+      decoration: BoxDecoration(
+        color: ArvinColors.surface,
+        borderRadius: ArvinTheme.cardBorderRadius,
+        border: Border.all(color: ArvinColors.border),
+        boxShadow: const [ArvinTheme.shadowStyle],
+      ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        const Row(children: [Icon(Icons.checklist_rounded, color: _brand), SizedBox(width: 8), Text('چک‌لیست', style: TextStyle(color: _brand, fontWeight: FontWeight.w800, fontSize: 16))]),
+        Row(children: [Icon(Icons.checklist_rounded, color: _brand), const SizedBox(width: 8), Text('چک‌لیست', style: TextStyle(color: _brand, fontWeight: FontWeight.w800, fontSize: 16))]),
         const SizedBox(height: 4),
         const Text('مواردی که باید برای این کار یکی‌یکی انجام شوند.'),
         const SizedBox(height: 10),
@@ -880,18 +831,6 @@ Future<void> _pickDueDate() async {
     }
     final now = DateTime.now();
     final existing = widget.task;
-    _syncAutomaticReminder();
-    final reminderDate = _reminderFollowsDueTime && _dueDateTime != null && !_dueAllDay
-        ? _dueDateTime
-        : (_reminderDateTime ??
-            (!_reminderExplicitlyCleared ? _initialReminderDateTime : null));
-    DateTime? migratedLegacyReminderDate;
-    for (final reminder in _taskReminders) {
-      if (reminder.isLegacyTaskReminder) {
-        migratedLegacyReminderDate = reminder.date;
-        break;
-      }
-    }
     final id = existing?.id ?? now.microsecondsSinceEpoch.toString();
     widget.onProjectChanged?.call(_selectedProjectId);
     Navigator.of(context).pop(
@@ -902,15 +841,12 @@ Future<void> _pickDueDate() async {
             : _titleController.text.trim(),
         description: _descriptionController.text.trim(),
         dueDate: _dueDateTime,
+        centerId: _selectedCenterId,
         allDay: _dueDateTime != null && _dueAllDay,
         tags: List<String>.of(_tags),
         category: _category,
         checklist: List<String>.of(_checklist),
         checklistEnabled: _checklistEnabled,
-        reminderDate: existing != null &&
-                existing.legacyTaskReminderMigrationVersion >= 1
-            ? migratedLegacyReminderDate
-            : reminderDate,
         taskReminders: List<TaskReminder>.of(_taskReminders),
         nextReminderSequence: _nextReminderSequence,
         legacyTaskReminderMigrationVersion:
@@ -919,10 +855,6 @@ Future<void> _pickDueDate() async {
         archived: existing?.archived ?? false,
         trashed: existing?.trashed ?? false,
         completed: _completed,
-        // Preserve legacy compatibility metadata without exposing a retired
-        // Next Follow-up editor or erasing it during unrelated Task edits.
-        followUpEnabled: existing?.followUpEnabled ?? false,
-        followUpDate: existing?.followUpDate,
         followUps: List<FollowUp>.of(_followUps),
         recurrence: _buildRecurrence(),
         people: existing?.people ?? const [],
@@ -938,13 +870,6 @@ Future<void> _pickDueDate() async {
   String _timeText(DateTime value) =>
       _dateFormatter.formatTime(value.hour, value.minute);
 
-  String _priorityLabel(TaskPriority priority) => switch (priority) {
-    TaskPriority.none => 'بدون اولویت',
-    TaskPriority.low => 'کم',
-    TaskPriority.medium => 'متوسط',
-    TaskPriority.high => 'زیاد',
-  };
-
   String _recurrenceLabel(RecurrenceFrequency frequency) => switch (frequency) {
     RecurrenceFrequency.daily => 'روزانه',
     RecurrenceFrequency.weekly => 'هفتگی',
@@ -954,141 +879,6 @@ Future<void> _pickDueDate() async {
     RecurrenceFrequency.minutes => 'دقیقه‌ای',
     RecurrenceFrequency.hours => 'ساعتی',
   };
-
-  Widget _dateTimeRollBox({    required String keyPrefix,
-    required String label,
-    required DateTime? value,
-    required bool isDate,
-    required String target,
-    required VoidCallback onCustom,
-    required Color accent,
-  }) {
-    final now = _baseDateTime(null);
-    final base = value ?? now;
-    final items = isDate
-        ? <ArvinRollItem<String>>[
-            ArvinRollItem<String>(value: 'today', label: 'امروز', icon: Icons.today_outlined, color: accent),
-            ArvinRollItem<String>(value: 'tomorrow', label: 'فردا', icon: Icons.event_available_outlined, color: accent),
-          ]
-        : <ArvinRollItem<String>>[
-            for (final minutes in const [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 360, 390, 420, 450, 480, 510, 540, 570, 600, 630, 660, 690, 720, 750, 780, 810, 840, 870, 900, 930, 960, 990, 1020, 1050, 1080, 1110, 1140, 1170, 1200, 1230, 1260, 1290, 1320, 1350, 1380, 1410])
-              ArvinRollItem<String>(
-                value: '$minutes',
-                label: _timeText(DateTime(2000, 1, 1, minutes ~/ 60, minutes % 60)),
-                icon: Icons.schedule_outlined,
-                color: accent,
-              ),
-          ];
-    final currentLabel = isDate ? _dateText(base) : _timeText(base);
-    return KeyedSubtree(
-      key: ValueKey('$keyPrefix-rollbox'),
-      child: ArvinRollBox<String>(
-        label: label,
-        valueLabel: value == null ? 'انتخاب $label' : currentLabel,
-        icon: isDate ? Icons.calendar_month_outlined : Icons.schedule_outlined,
-        color: accent,
-        items: items,
-        onSelected: (selection) {
-          if (selection == null) return;
-          if (isDate) {
-            final picked = selection == 'today' ? now : DateTime(now.year, now.month, now.day + 1, now.hour, now.minute);
-            setState(() {
-              if (target.contains('reminder')) {
-                _reminderDateTime = DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
-                _reminderFollowsDueTime = false;
-              } else {
-                _dueDateTime = _dueAllDay || value == null
-                    ? DateTime(picked.year, picked.month, picked.day)
-                    : DateTime(picked.year, picked.month, picked.day, base.hour, base.minute);
-                if (value == null || _dueAllDay) _dueAllDay = true;
-                _syncAutomaticReminder();
-              }
-            });
-          } else {
-            final minutes = int.tryParse(selection) ?? 0;
-            setState(() {
-              final next = DateTime(base.year, base.month, base.day, minutes ~/ 60, minutes % 60);
-              if (target.contains('reminder')) {
-                _reminderDateTime = next;
-                _reminderFollowsDueTime = false;
-              } else {
-                _dueDateTime = next;
-                _dueAllDay = false;
-                _syncAutomaticReminder();
-              }
-            });
-          }
-        },
-        onCreate: () async {
-          onCustom();
-          return null;
-        },
-        createLabel: isDate ? 'تاریخ سفارشی' : 'ساعت سفارشی',
-      ),
-    );
-  }
-
-  Widget _dateTimeEditor({
-    required String keyPrefix,
-    required String title,
-    required DateTime? value,
-    required VoidCallback onPickDate,
-    required VoidCallback onPickTime,
-    required VoidCallback onClear,
-    Color accent = ArvinColors.primary,
-    bool allDay = false,
-    ValueChanged<bool>? onToggleAllDay,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: _fieldSurface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.w800))),
-              if (value != null)
-                TextButton.icon(
-                  key: ValueKey('$keyPrefix-clear'),
-                  onPressed: onClear,
-                  icon: const Icon(Icons.close, size: 16),
-                  label: const Text('حذف'),
-                  style: TextButton.styleFrom(minimumSize: Size.zero, padding: const EdgeInsets.symmetric(horizontal: 4), tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-                ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              Expanded(child: _dateTimeRollBox(keyPrefix: '$keyPrefix-date', label: 'تاریخ', value: value, isDate: true, target: keyPrefix, onCustom: onPickDate, accent: accent)),
-              const SizedBox(width: 10),
-              Expanded(child: _dateTimeRollBox(keyPrefix: '$keyPrefix-time', label: 'ساعت', value: allDay ? null : value, isDate: false, target: keyPrefix, onCustom: onPickTime, accent: accent)),
-            ],
-          ),
-          if (onToggleAllDay != null && value != null) ...[
-            const SizedBox(height: 4),
-            Material(
-              color: Colors.transparent,
-              child: CheckboxListTile(
-                key: ValueKey('$keyPrefix-all-day'),
-                contentPadding: EdgeInsets.zero,
-                controlAffinity: ListTileControlAffinity.leading,
-                value: allDay,
-                onChanged: (next) => onToggleAllDay(next ?? false),
-                title: const Text('تمام‌روز'),
-                subtitle: const Text('بدون ساعت؛ ساعت جعلی مثل ۰۰:۰۰ نمایش داده نمی‌شود.'),
-              ),
-            ),
-            ],
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -1112,27 +902,41 @@ Future<void> _pickDueDate() async {
                     color: ArvinColors.surface,
                     border: Border(bottom: BorderSide(color: _border)),
                   ),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        key: const ValueKey('task-editor-close'),
-                        tooltip: 'بستن',
-                        onPressed: _requestClose,
-                        icon: const Icon(Icons.close_rounded),
-                      ),
-                      const Expanded(
-                        child: Center(
-                          child: Text('ویرایش کار', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-                        ),
-                      ),
-                      FilledButton.icon(
-                        key: const ValueKey('task-editor-header-save'),
-                        onPressed: _save,
-                        icon: const Icon(Icons.check_rounded, size: 18),
-                        label: const Text('ذخیره'),
-                        style: FilledButton.styleFrom(backgroundColor: _brand, foregroundColor: ArvinColors.surface),
-                      ),
-                    ],
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final compact = constraints.maxWidth < 420;
+                      return Row(
+                        children: [
+                          IconButton(
+                            key: const ValueKey('task-editor-close'),
+                            tooltip: 'بستن',
+                            onPressed: _requestClose,
+                            icon: const Icon(Icons.close_rounded),
+                          ),
+                          const Expanded(
+                            child: Center(
+                              child: Text('ویرایش کار', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                            ),
+                          ),
+                          if (compact)
+                            IconButton(
+                              key: const ValueKey('task-editor-header-save'),
+                              tooltip: 'ذخیره',
+                              onPressed: _save,
+                              icon: const Icon(Icons.check_rounded),
+                              color: _brand,
+                            )
+                          else
+                            FilledButton.icon(
+                              key: const ValueKey('task-editor-header-save'),
+                              onPressed: _save,
+                              icon: const Icon(Icons.check_rounded, size: 18),
+                              label: const Text('ذخیره'),
+                              style: FilledButton.styleFrom(backgroundColor: _brand, foregroundColor: ArvinColors.surface),
+                            ),
+                        ],
+                      );
+                    },
                   ),
                 ),
                 Expanded(
@@ -1171,89 +975,240 @@ Future<void> _pickDueDate() async {
                     ),
                   ),
                   const SizedBox(height: 14),
-                  Row(
-                    children: [
-                      Expanded(                        child: ArvinRollBox<String>(
-                          label: 'دسته',
-                          valueLabel: _category?.trim().isNotEmpty == true ? _category!.trim() : 'دسته',
-                          icon: Icons.grid_view_rounded,
-                          color: ArvinColors.category,
-                          emptyLabel: 'بدون دسته',
-                          items: _knownCategories.map((value) => value.trim()).where((value) => value.isNotEmpty).toSet().toList()
-                              .map((value) => ArvinRollItem<String>(value: value, label: value, icon: Icons.grid_view_rounded, color: ArvinColors.category)).toList(),
-                          onSelected: (value) => setState(() => _category = value),
-                          onCreate: () async {
-                            final value = await _promptNewName('دسته جدید');
-                            if (value == null) return null;
-                            final created = await widget.onCreateCategory?.call(value) ?? value;
-                            if (!mounted) return created;
-                            setState(() {
-                              _category = created;
-                              if (!_knownCategories.contains(created)) _knownCategories.add(created);
-                            });
-                            return created;
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: ArvinRollBox<String>(
-                          label: 'پروژه',
-                          valueLabel: _selectedProjectId == null ? 'پروژه' : _projects.where((p) => p.id == _selectedProjectId).map((p) => p.title).isEmpty ? 'پروژه' : _projects.where((p) => p.id == _selectedProjectId).map((p) => p.title).first,
-                          icon: Icons.folder_outlined,
-                          color: ArvinColors.project,
-                          emptyLabel: 'بدون پروژه',
-                          items: _projects.where((project) => !project.isArchived || project.id == _selectedProjectId).map((project) => ArvinRollItem<String>(
-                            value: project.id,
-                            label: project.isArchived ? '${project.title} (بایگانی‌شده)' : project.title,
-                            icon: Icons.folder_outlined,
-                            color: project.isArchived ? ArvinColors.neutral : ArvinColors.project,
-                          )).toList(),
-                          onSelected: (value) => setState(() => _selectedProjectId = value),
-                          onCreate: () async {
-                            final title = await _promptNewName('پروژه جدید');
-                            if (title == null || widget.onCreateProject == null) return null;
-                            final createdId = await widget.onCreateProject!(title);
-                            if (!mounted || createdId == null || createdId.trim().isEmpty) {
-                              return createdId;
-                            }
-                            final existing = _projects.indexWhere((project) => project.id == createdId);
-                            setState(() {
-                              if (existing >= 0) {
-                                _projects[existing] = _projects[existing].copyWith(title: title);
-                              } else {
-                                _projects = [
-                                  ..._projects,
-                                  ProjectPlan(id: createdId, title: title),
-                                ];
-                              }
-                              _selectedProjectId = createdId;
-                            });
-                            widget.onProjectChanged?.call(createdId);
-                            return createdId;
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: ArvinTagRollBox(
-                          tags: _knownTags,
-                          selectedTags: _tags,
-                          onChanged: (value) => setState(() => _tags = List<String>.of(value)),
-                          onCreate: () async {
-                            final value = await _promptNewName('برچسب جدید');
-                            if (value == null) return null;
-                            final created = await widget.onCreateTag?.call(value) ?? value;
-                            if (!mounted) return created;
-                            setState(() {
-                              if (!_tags.contains(created)) _tags.add(created);
-                              if (!_knownTags.contains(created)) _knownTags.add(created);
-                            });
-                            return created;
-                          },
-                        ),
-                      ),
-                    ],
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      return Row(
+                        key: const ValueKey('task-editor-five-filter-row'),
+                        textDirection: TextDirection.rtl,
+                        mainAxisSize: MainAxisSize.max,
+                        children: [
+                          Expanded(
+                            child: HomeFilterPill(
+                              key: const ValueKey('task-editor-due-date-time'),
+                              label: _dueDateTime == null
+                                  ? 'زمان کار / موعد'
+                                  : (_dueAllDay
+                                      ? _dateText(_dueDateTime!)
+                                      : '${_dateText(_dueDateTime!)} • ${_timeText(_dueDateTime!)}'),
+                              icon: Icons.schedule_rounded,
+                              iconWidget: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.calendar_month_outlined, size: 14),
+                                  SizedBox(width: 2),
+                                  Icon(Icons.access_time_rounded, size: 14),
+                                ],
+                              ),
+                              showLabel: true,
+                              accent: Theme.of(context).colorScheme.primary,
+                              soft: Color.alphaBlend(
+                                Theme.of(context).colorScheme.primary.withAlpha(18),
+                                Theme.of(context).colorScheme.surface,
+                              ),
+                              active: _dueDateTime != null,
+                              onPressed: _saving ? () {} : _pickDueDateTime,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: ArvinRollBox<String>(
+                              showLabel: true,
+                              key: const ValueKey('task-editor-center-rollbox'),
+                              label: 'مرکز',
+                              valueLabel: _selectedCenterLabel,
+                              icon: Icons.business_outlined,
+                              color: _brand,
+                              emptyLabel: 'بدون مرکز',
+                              createLabel: '+ افزودن مرکز',
+                              items: _centers
+                                  .where((center) => !center.isArchived || center.id == _selectedCenterId)
+                                  .map((center) => ArvinRollItem<String>(
+                                        value: center.id,
+                                        label: center.isArchived ? '${center.name} (بایگانی‌شده)' : center.name,
+                                        icon: Icons.business_outlined,
+                                        color: center.isArchived ? ArvinColors.textSecondary : _brand,
+                                      ))
+                                  .toList(growable: false),
+                              onSelected: (value) {
+                                setState(() {
+                                  _selectedCenterId = value;
+                                  final selectedProject = _projects.where(
+                                    (project) => project.id == _selectedProjectId,
+                                  );
+                                  if (value == null ||
+                                      (selectedProject.isNotEmpty &&
+                                          selectedProject.first.centerId != value)) {
+                                    _selectedProjectId = null;
+                                  }
+                                });
+                              },
+                              onCreateWithName: widget.onCreateCenter == null
+                                  ? null
+                                  : (name) async {
+                                      final createdId = await widget.onCreateCenter!(name);
+                                      if (!mounted || createdId == null || createdId.trim().isEmpty) return null;
+                                      setState(() {
+                                        if (!_centers.any((center) => center.id == createdId)) {
+                                          _centers = [..._centers, ArvinCenter(
+                                            id: createdId,
+                                            name: name,
+                                            createdAt: DateTime.now(),
+                                          )];
+                                        }
+                                        _selectedCenterId = createdId;
+                                      });
+                                      return ReusableFilterOption<String>(
+                                        value: createdId,
+                                        label: name,
+                                      );
+                                    },
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: ArvinRollBox<String>(
+                              key: const ValueKey('task-editor-project-rollbox'),
+                              label: 'پروژه',
+                              valueLabel: _selectedProjectId == null
+                                  ? 'پروژه'
+                                  : _projects
+                                          .where((p) => p.id == _selectedProjectId)
+                                          .map((p) => p.title)
+                                          .isEmpty
+                                      ? 'پروژه'
+                                      : _projects
+                                          .where((p) => p.id == _selectedProjectId)
+                                          .map((p) => p.title)
+                                          .first,
+                              icon: Icons.folder_outlined,
+                              color: ArvinColors.project,
+                              emptyLabel: 'بدون پروژه',
+                              createLabel: '+ افزودن پروژه',
+                              items: _projects
+                                  .where((project) =>
+                                      (!project.isArchived ||
+                                          project.id == _selectedProjectId) &&
+                                      (_selectedCenterId == null ||
+                                          project.centerId == _selectedCenterId))
+                                  .map((project) => ArvinRollItem<String>(
+                                        value: project.id,
+                                        label: project.isArchived
+                                            ? '${project.title} (بایگانی‌شده)'
+                                            : project.title,
+                                        icon: Icons.folder_outlined,
+                                        color: project.isArchived
+                                            ? ArvinColors.neutral
+                                            : ArvinColors.project,
+                                      ))
+                                  .toList(),
+                              onSelected: (value) {
+                                final selectedProject = _projects.where((item) => item.id == value);
+                                setState(() {
+                                  _selectedProjectId = value;
+                                  if (selectedProject.isNotEmpty) {
+                                    _selectedCenterId = selectedProject.first.centerId;
+                                  }
+                                });
+                              },
+                              onCreateWithName: widget.onCreateProjectWithCenter == null &&
+                                      widget.onCreateProject == null
+                                  ? null
+                                  : (title) async {
+                                      final createdId = widget.onCreateProjectWithCenter != null
+                                          ? await widget.onCreateProjectWithCenter!(title, _selectedCenterId)
+                                          : await widget.onCreateProject!(title);
+                                      if (!mounted || createdId == null || createdId.trim().isEmpty) return null;
+                                      final existing = _projects.indexWhere(
+                                        (project) => project.id == createdId,
+                                      );
+                                      setState(() {
+                                        if (existing >= 0) {
+                                          _projects[existing] =
+                                              _projects[existing].copyWith(title: title);
+                                        } else {
+                                          _projects = [
+                                            ..._projects,
+                                            ProjectPlan(id: createdId, title: title, centerId: _selectedCenterId),
+                                          ];
+                                        }
+                                        _selectedProjectId = createdId;
+                                      });
+                                      widget.onProjectChanged?.call(createdId);
+                                      return ReusableFilterOption<String>(
+                                        value: createdId,
+                                        label: title,
+                                      );
+                                    },
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: ArvinRollBox<String>(
+                              key: const ValueKey('task-editor-category-rollbox'),
+                              label: 'دسته',
+                              valueLabel: _category?.trim().isNotEmpty == true
+                                  ? _category!.trim()
+                                  : 'دسته',
+                              icon: Icons.grid_view_rounded,
+                              color: ArvinColors.category,
+                              emptyLabel: 'بدون دسته',
+                              createLabel: '+ افزودن دسته',
+                              createItemKey: const ValueKey('task-editor-create-category'),
+                              items: _knownCategories
+                                  .map((value) => value.trim())
+                                  .where((value) => value.isNotEmpty)
+                                  .toSet()
+                                  .map((value) => ArvinRollItem<String>(
+                                        value: value,
+                                        label: value,
+                                        icon: Icons.grid_view_rounded,
+                                        color: ArvinColors.category,
+                                      ))
+                                  .toList(),
+                              onSelected: (value) => setState(() => _category = value),
+                              onCreateWithName: (value) async {
+                                final created =
+                                    await widget.onCreateCategory?.call(value) ?? value;
+                                if (!mounted) return null;
+                                setState(() {
+                                  _category = created;
+                                  if (!_knownCategories.contains(created)) {
+                                    _knownCategories.add(created);
+                                  }
+                                });
+                                return ReusableFilterOption<String>(
+                                  value: created,
+                                  label: created,
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: ArvinTagRollBox(
+                              showLabel: true,
+                              key: const ValueKey('task-editor-tag-rollbox'),
+                              tags: _knownTags,
+                              selectedTags: _tags,
+                              onChanged: (value) =>
+                                  setState(() => _tags = List<String>.of(value)),
+                              onCreateWithName: (value) async {
+                                final created =
+                                    await widget.onCreateTag?.call(value) ?? value;
+                                if (!mounted) return null;
+                                setState(() {
+                                  if (!_tags.contains(created)) _tags.add(created);
+                                  if (!_knownTags.contains(created)) {
+                                    _knownTags.add(created);
+                                  }
+                                });
+                                return created;
+                              },
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                   if (_tags.isNotEmpty) ...[
                     const SizedBox(height: 8),
@@ -1282,30 +1237,7 @@ Future<void> _pickDueDate() async {
                       'تاریخ انجام، یادآوری، تکرار، اولویت و وضعیت',
                     ),
                     children: [
-                      _dateTimeEditor(
-                        keyPrefix: 'task-editor-due',
-                        title: 'تاریخ انجام',
-                        value: _dueDateTime,
-                        onPickDate: _pickDueDate,
-                        onPickTime: _pickDueTime,
-                        onClear: _clearDueTime,
-                        accent: ArvinColors.time,
-                        allDay: _dueAllDay,
-                        onToggleAllDay: _toggleDueAllDay,
-                      ),
                       const SizedBox(height: 10),
-                      if (widget.task?.legacyTaskReminderMigrationVersion != 1) ...[
-                        _dateTimeEditor(
-                          keyPrefix: 'task-editor-reminder',
-                          title: 'یادآوری',
-                          value: _reminderDateTime,
-                          onPickDate: _pickReminderDate,
-                          onPickTime: _pickReminderTime,
-                          onClear: _clearReminderTime,
-                          accent: ArvinColors.reminder,
-                        ),
-                        const SizedBox(height: 10),
-                      ],
                       _taskRemindersEditor(),
                       const SizedBox(height: 10),
                       LayoutBuilder(
@@ -1317,7 +1249,7 @@ Future<void> _pickDueDate() async {
                                 ? 'بدون تکرار'
                                 : (!_repeatEnabled ? 'تکرار غیرفعال' : _recurrenceLabel(_recurrence!.frequency)),
                             icon: Icons.repeat_rounded,
-                            color: ArvinColors.primary,
+                            color: _brand,
                             emptyLabel: 'بدون تکرار',
                             items: RecurrenceFrequency.values
                                 .map(
@@ -1325,7 +1257,7 @@ Future<void> _pickDueDate() async {
                                     value: frequency,
                                     label: _recurrenceLabel(frequency),
                                     icon: Icons.repeat_rounded,
-                                    color: ArvinColors.primary,
+                                    color: _brand,
                                   ),
                                 )
                                 .toList(growable: false),
@@ -1412,26 +1344,50 @@ Future<void> _pickDueDate() async {
                               if (_recurrence != null) setState(() => _recurrence = _buildRecurrence());
                             },
                           );
-                          final priority = DropdownButtonFormField<TaskPriority>(
+                          final priority = Wrap(
                             key: const ValueKey('task-editor-priority'),
-                            isExpanded: true,
-                            initialValue: _priority,
-                            decoration: _fieldDecoration(label: 'اولویت'),
-                            items: TaskPriority.values
-                                .map(
-                                  (priority) => DropdownMenuItem<TaskPriority>(
-                                    value: priority,
-                                    child: Text(_priorityLabel(priority)),
+                            textDirection: TextDirection.rtl,
+                            spacing: 4,
+                            runSpacing: 4,
+                            children: [
+                              for (final option in TaskPriority.values)
+                                ConstrainedBox(
+                                  constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                                  child: Tooltip(
+                                    message: '${_dateFormatter.toPersianDigits('اولویت ${option.sortOrder}')} — ${option.label}',
+                                    child: ChoiceChip(
+                                      key: ValueKey('task-editor-priority-${option.name}'),
+                                      label: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          _dateFormatter.toPersianDigits('اولویت ${option.sortOrder}'),
+                                          maxLines: 1,
+                                          softWrap: false,
+                                        ),
+                                      ),
+                                      selected: _priority == option,
+                                      selectedColor: ArvinColors.priorityColor(option).withValues(alpha: 0.14),
+                                      side: BorderSide(
+                                        color: ArvinColors.priorityColor(option).withValues(
+                                          alpha: _priority == option ? 0.9 : 0.35,
+                                        ),
+                                      ),
+                                      labelStyle: TextStyle(
+                                        color: ArvinColors.priorityColor(option),
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 11,
+                                      ),
+                                      labelPadding: EdgeInsets.zero,
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                                      materialTapTargetSize: MaterialTapTargetSize.padded,
+                                      showCheckmark: false,
+                                      onSelected: _saving ? null : (_) => setState(() => _priority = option),
+                                    ),
                                   ),
-                                )
-                                .toList(growable: false),
-                            onChanged: (priority) {
-                              if (priority != null) {
-                                setState(() => _priority = priority);
-                              }
-                            },
+                                ),
+                            ],
                           );
-                          if (constraints.maxWidth < 400) {
+                          if (constraints.maxWidth < 560) {
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
@@ -1448,11 +1404,12 @@ Future<void> _pickDueDate() async {
                                 priority,
                                 const SizedBox(height: 6),
                                 repeatEnabled,
-                                Row(
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
                                   children: [
-                                    Expanded(child: repeatStart),
-                                    const SizedBox(width: 8),
-                                    Expanded(child: repeatEnd),
+                                    repeatStart,
+                                    const SizedBox(height: 8),
+                                    repeatEnd,
                                   ],
                                 ),
                                 const SizedBox(height: 6),
@@ -1511,7 +1468,7 @@ Future<void> _pickDueDate() async {
                     key: const ValueKey('task-editor-followup-block'),
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: ArvinColors.primarySoft,
+                      color: Color.alphaBlend(_brand.withAlpha(18), Theme.of(context).colorScheme.surface),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: ArvinColors.border),
                     ),
@@ -1520,7 +1477,7 @@ Future<void> _pickDueDate() async {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.timeline_outlined, color: _brand),
+                            Icon(Icons.timeline_outlined, color: _brand),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
@@ -1528,7 +1485,7 @@ Future<void> _pickDueDate() async {
                                 style: TextStyle(color: _brand, fontWeight: FontWeight.w800, fontSize: 16),
                               ),
                             ),
-                            Text('${_followUps.length}', style: const TextStyle(color: _brand, fontWeight: FontWeight.w700)),
+                            Text('${_followUps.length}', style: TextStyle(color: _brand, fontWeight: FontWeight.w700)),
                           ],
                         ),
                         const SizedBox(height: 4),
@@ -1541,7 +1498,7 @@ Future<void> _pickDueDate() async {
                           ListTile(
                             key: ValueKey('task-editor-followup-${followUp.id}'),
                             contentPadding: EdgeInsets.zero,
-                            leading: const Icon(Icons.event_note_outlined, color: _brand),
+                            leading: Icon(Icons.event_note_outlined, color: _brand),
                             title: Text(
                               followUp.title?.trim().isNotEmpty == true
                                   ? followUp.title!.trim()

@@ -68,7 +68,7 @@ void main() {
     final bridge = _CalendarBridge(permissionGranted: false, events: const []);
     await tester.pumpWidget(MaterialApp(home: OfficialCalendarPage(service: const OfficialCalendarReminderService([]), years: <int>[now.year], initialSelectedDay: now, settingsService: _SettingsService(const CalendarIntegrationSettings(enabled: true, showExternalEvents: true, visibleCalendarIds: {'calendar-7'})), calendarBridge: bridge, externalLinkStore: _LinkStore())));
     await tester.pump(const Duration(milliseconds: 250));
-    expect(find.text('تقویم پیگیری'), findsOneWidget);
+    expect(find.byKey(const ValueKey('calendar-sacred-header')), findsOneWidget);
     expect(bridge.listedEvents, isFalse);
     expect(bridge.requestedPermission, isFalse);
   });

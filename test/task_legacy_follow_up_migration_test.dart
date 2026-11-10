@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:arvin/models/task.dart';
 
 void main() {
-  test('legacy followUpDate remains scheduling data, not fabricated history', () {
+  test('legacy followUpDate is retired without fabricating historical records', () {
     final task = Task.fromJson({
       'id': 'legacy-1',
       'title': 'Legacy reminder',
@@ -10,10 +10,10 @@ void main() {
     });
 
     expect(task.followUps, isEmpty);
-    expect(task.followUpDate, DateTime(2026, 8, 18, 9, 30));
-    expect(task.followUpEnabled, isTrue);
+    expect(task.followUpDate, isNull);
+    expect(task.followUpEnabled, isFalse);
     expect(task.lastFollowUp, isNull);
-    expect(task.legacyHomeFollowUpDate, DateTime(2026, 8, 18, 9, 30));
+    expect(task.legacyHomeFollowUpDate, isNull);
   });
 
   test('current followUps remain authoritative when legacy date is also present', () {
@@ -36,7 +36,7 @@ void main() {
     expect(task.lastFollowUp?.id, 'fu-1');
   });
 
-  test('legacy Task fields and FollowUp nextFollowUp survive JSON round-trip', () {
+  test('legacy Task fields survive while Follow-up future scheduling is retired', () {
     final original = Task(
       id: 'legacy-round-trip',
       title: 'Legacy metadata',
@@ -54,11 +54,10 @@ void main() {
     final restored = Task.fromJson(original.toJson());
 
     expect(restored.followUpEnabled, isTrue);
-    expect(restored.followUpDate, DateTime(2026, 8, 18, 9, 30));
+    expect(restored.followUpDate, isNull);
+    expect(restored.toJson().containsKey('followUpDate'), isFalse);
+    expect(restored.toJson().containsKey('followUpEnabled'), isFalse);
     expect(restored.followUps, hasLength(1));
-    expect(
-      restored.followUps.single.nextFollowUp,
-      DateTime(2026, 8, 20, 11),
-    );
+    expect(restored.followUps.single.toJson().containsKey('nextFollowUp'), isFalse);
   });
 }

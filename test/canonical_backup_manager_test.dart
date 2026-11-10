@@ -51,7 +51,7 @@ Task _completeTask() {
     tags: const ['مهم', 'مشتری'],
     category: 'فروش',
     checklist: const ['تماس', 'ارسال فایل'],
-    reminderDate: DateTime(2026, 8, 28, 10, 30),
+    taskReminders: [TaskReminder(id: 'backup-reminder', title: 'یادآور کار', date: DateTime(2026, 8, 28, 10, 30), sequence: 1)],
     archived: false,
     trashed: false,
     completed: false,
@@ -101,8 +101,15 @@ void main() {
           isAllDay: true,
           sequence: 2,
         ),
+        TaskReminder(
+          id: 'legacy-task-reminder-task-full',
+          title: 'یادآوری: کار کامل',
+          date: DateTime(2026, 8, 28, 10, 30),
+          sequence: 3,
+        ),
       ]
-      ..nextReminderSequence = 3;
+      ..legacyTaskReminderMigrationVersion = 1
+      ..nextReminderSequence = 4;
     final fileName = await manager.backupCanonicalTasks([task]);
 
     expect(fileName, 'canonical-backup.json');
@@ -119,30 +126,54 @@ void main() {
     expect(restored.taskReminders.map((item) => item.id), [
       'backup-r1',
       'backup-r2',
-      'legacy-task-reminder',
+      'legacy-task-reminder-task-full',
     ]);
     expect(restored.taskReminders[1].isAllDay, isTrue);
-    expect(restored.taskReminders.last.isLegacyTaskReminder, isTrue);
     expect(restored.taskReminders.last.date, restored.reminderDate);
     expect(restored.legacyTaskReminderMigrationVersion, 1);
     expect(restored.nextReminderSequence, 4);
     expect(restored.followUps, hasLength(1));
     expect(restored.followUps.single.note, 'تماس اول');
     expect(restored.followUps.single.result, 'منتظر پاسخ');
-    expect(
-      restored.followUps.single.reminderDate,
-      DateTime(2026, 8, 28, 10, 15),
-    );
-    expect(
-      restored.followUps.single.nextFollowUp,
-      DateTime(2026, 8, 28, 10, 30),
-    );
+    expect(restored.followUps.single.toJson().containsKey('reminderDate'), isFalse);
+    expect(restored.followUps.single.toJson().containsKey('nextFollowUp'), isFalse);
     expect(restored.recurrence?.frequency, RecurrenceFrequency.weekly);
     expect(restored.recurrence?.interval, 2);
     expect(restored.createdAt, DateTime(2026, 8, 20, 8));
     expect(restored.updatedAt, DateTime(2026, 8, 26, 12));
     expect(restored.completed, isTrue);
     expect(restored.completedAt, completedAt);
+  });
+
+  test('canonical backup round-trips retired Follow-up dates as inert metadata', () async {
+    final service = _FakeBackupService();
+    final manager = ArvinBackupManager(service: service);
+    await manager.setDirectory('content://arvin-backups');
+    final task = Task(
+      id: 'legacy-metadata-backup',
+      title: 'سابقه قدیمی',
+      legacyFollowUpMetadata: {
+        'taskLevel': {
+          'followUpEnabled': true,
+          'followUpDate': '2026-08-13T12:00:00.000',
+        },
+        'followUps': [
+          {
+            'id': 'follow-up-1',
+            'nextFollowUp': '2026-08-15T10:30:00.000',
+          },
+        ],
+      },
+    );
+
+    await manager.backupCanonicalTasks([task]);
+
+    final tasks = service.writtenPayload!['tasks'] as List;
+    final restored = Task.fromLegacyJson(
+      Map<String, dynamic>.from(tasks.single as Map),
+    );
+    expect(restored.legacyFollowUpMetadata, task.legacyFollowUpMetadata);
+    expect(restored.taskReminders, isEmpty);
   });
 
   test('canonical backup preserves unassigned Category and Tag catalog entries', () async {
@@ -323,6 +354,45 @@ void main() {
     expect(candidate.people, isNull);
   });
 
+  test('canonical restore preserves Follow-up references to removed directory people', () async {
+    final historicalPerson = PersonReference(
+      id: 'person-removed-from-directory',
+      displayName: 'همکار پیشین',
+      isDeleted: true,
+    );
+    final task = Task(
+      id: 'task-with-historical-person',
+      title: 'سابقه تماس',
+      people: [historicalPerson],
+      followUps: [
+        FollowUp(
+          id: 'follow-up-with-historical-person',
+          completedAt: DateTime(2026, 11, 9, 10),
+          personIds: [historicalPerson.id],
+        ),
+      ],
+    );
+    final service = _FakeBackupService()
+      ..restoreDocument = {
+        'type': ArvinBackupService.backupType,
+        'formatVersion': ArvinBackupService.backupFormatVersion,
+        'tasks': [task.toJson()],
+        'peopleDirectory': <Map<String, dynamic>>[],
+      };
+
+    final candidate = await ArvinBackupManager(service: service)
+        .restoreCanonicalBackup();
+
+    expect(candidate, isNotNull);
+    expect(candidate!.people, isEmpty);
+    expect(candidate.tasks.single.people.single.id, historicalPerson.id);
+    expect(candidate.tasks.single.people.single.isDeleted, isTrue);
+    expect(
+      candidate.tasks.single.followUps.single.personIds,
+      [historicalPerson.id],
+    );
+  });
+
   test('canonical restore rejects duplicate calendar link identities', () async {
     final link = ExternalCalendarEventLink(
       reminderId: 'task-due:task-full',
@@ -497,7 +567,7 @@ void main() {
       createdAt: DateTime(2026, 10, 7, 8, 0),
       updatedAt: DateTime(2026, 10, 7, 8, 30),
       dueDate: DateTime(2026, 10, 8, 9, 15),
-      reminderDate: DateTime(2026, 10, 8, 9),
+      taskReminders: [TaskReminder(id: 'golden-reminder', title: 'یادآور جلسه', date: DateTime(2026, 10, 8, 9), sequence: 1)],
       followUpEnabled: true,
       followUpDate: DateTime(2026, 10, 9, 10),
       tags: const ['مهم', 'جلسه'],
@@ -580,7 +650,7 @@ void main() {
     expect(restored.recurrence?.frequency, RecurrenceFrequency.daily);
     expect(restored.recurrence?.interval, 2);
     expect(restored.followUps.single.id, 'golden-flow-followup');
-    expect(restored.followUps.single.nextFollowUp, DateTime(2026, 10, 10, 11));
+    expect(restored.followUps.single.toJson().containsKey('nextFollowUp'), isFalse);
   });
 
   test('restore distinguishes omitted, null, and explicit empty Projects fields', () async {
@@ -951,6 +1021,46 @@ void main() {
     }
   });
 
+  test('saving active Task people seeds directory but preserves removed membership as historical', () async {
+    await TaskStore.resetTestDatabase();
+    try {
+      final store = TaskStore();
+      final person = PersonReference(id: 'person-directory-lifecycle', displayName: 'همکار');
+      final task = Task.fromJson({
+        ..._completeTask().toJson(),
+        'people': [person.toJson()],
+      });
+
+      await store.save([task]);
+      expect(
+        (await store.loadPeopleDirectory()).map((value) => value.id),
+        contains(person.id),
+      );
+
+      await store.savePeopleDirectory(const []);
+
+      // A Task object loaded before directory removal is a stale snapshot.
+      // Saving it must preserve the removal rather than silently reviving the
+      // Person in the active directory.
+      await store.save([task]);
+      expect(await store.loadPeopleDirectory(), isEmpty);
+
+      final afterRemoval = (await store.load()).single;
+      expect(afterRemoval.people.single.id, person.id);
+      expect(afterRemoval.people.single.isDeleted, isTrue);
+
+      await store.save([afterRemoval]);
+      expect(await store.loadPeopleDirectory(), isEmpty);
+
+      final persisted = (await store.load()).single;
+      expect(persisted.people, hasLength(1));
+      expect(persisted.people.single.id, person.id);
+      expect(persisted.people.single.isDeleted, isTrue);
+    } finally {
+      await TaskStore.resetTestDatabase();
+    }
+  });
+
   test('legacy backup without peopleDirectory restores and migrates task people', () async {
     await TaskStore.resetTestDatabase();
     try {
@@ -975,5 +1085,53 @@ void main() {
       await TaskStore.resetTestDatabase();
     }
   });
+
+
+  test('restoring the same People backup repeatedly does not duplicate identities or links', () async {
+    await TaskStore.resetTestDatabase();
+    try {
+      final sourceStore = TaskStore();
+      final person = PersonReference(
+        id: 'person-repeat-restore',
+        displayName: 'شخص پایدار',
+      );
+      await sourceStore.save([
+        Task(
+          id: 'task-repeat-restore',
+          title: 'بازیابی چندباره',
+          people: [person],
+        ),
+      ]);
+      final service = _FakeBackupService();
+      final manager = ArvinBackupManager(service: service);
+      await manager.backupCanonicalTasks(
+        await sourceStore.load(),
+        people: await sourceStore.loadPeopleDirectory(),
+      );
+      service.restoreDocument = service.writtenPayload;
+
+      for (var attempt = 0; attempt < 2; attempt++) {
+        await TaskStore.resetTestDatabase();
+        final candidate = await manager.restoreCanonicalBackup();
+        expect(candidate, isNotNull);
+        expect(candidate!.hasPeople, isTrue);
+
+        final restoredStore = TaskStore();
+        await restoredStore.save(candidate.tasks);
+        await restoredStore.savePeopleDirectory(candidate.people!);
+
+        final tasks = await restoredStore.load();
+        expect(tasks, hasLength(1));
+        expect(tasks.single.people.map((value) => value.id), ['person-repeat-restore']);
+        final directoryPeople = await restoredStore.loadPeopleDirectory();
+        expect(directoryPeople, hasLength(1));
+        expect(directoryPeople.single.id, 'person-repeat-restore');
+        expect(directoryPeople.single.displayName, 'شخص پایدار');
+      }
+    } finally {
+      await TaskStore.resetTestDatabase();
+    }
+  });
+
 
 }

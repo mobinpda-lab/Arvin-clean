@@ -1,23 +1,30 @@
 import 'package:flutter/material.dart';
 import 'arvin_colors.dart';
 import 'calendar_page.dart';
+import 'home/home_filter_ui.dart';
 
 import 'models/goal_project.dart';
+import 'models/arvin_center.dart';
+import 'models/project_template.dart';
 import 'models/person_reference.dart';
 import 'models/recurrence.dart';
 import 'models/task.dart';
 import 'services/app_settings_service.dart';
 import 'services/external_calendar_event_projection.dart';
 import 'services/external_calendar_link_store.dart';
+import 'services/iran_clock.dart';
 import 'services/persian_date_formatter.dart';
 import 'services/system_calendar_bridge.dart';
 import 'services/task_report_filter.dart';
-import 'services/completed_task_report_projection.dart';
+import 'services/task_due_status.dart';
+import 'services/task_store.dart';
+import 'services/completed_follow_up_report_projection.dart';
 import 'services/person_follow_up_report_projection.dart';
 import 'task_detail_page.dart';
 import 'task_report_page.dart';
 import 'widgets/persian_date_picker.dart';
 import 'widgets/universal_arvin_time_picker.dart';
+import 'widgets/reusable_multi_select_filter_bottom_sheet.dart';
 
 String _reportDateTimeLabel(DateTime value) {
   const formatter = PersianDateFormatter();
@@ -31,12 +38,26 @@ class ReportCenterPage extends StatefulWidget {
     super.key,
     required this.tasks,
     this.projects = const [],
+    this.centers = const [],
+    this.templates = const [],
     this.people = const [],
     this.now,
+    this.onCreateCenter,
+    this.onCreateProject,
+    this.onCreateCategory,
+    this.onCreateTag,
+    this.onCreatePerson,
   });
 
+  final Future<String?> Function(String name)? onCreateCenter;
+  final Future<String?> Function(String title)? onCreateProject;
+  final Future<String?> Function(String name)? onCreateCategory;
+  final Future<String?> Function(String name)? onCreateTag;
+  final Future<PersonReference?> Function(String name)? onCreatePerson;
   final List<Task> tasks;
   final List<ProjectPlan> projects;
+  final List<ArvinCenter> centers;
+  final List<ProjectTemplate> templates;
   final List<PersonReference> people;
   final DateTime? now;
 
@@ -48,27 +69,42 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
   TaskReportFilter _filter = const TaskReportFilter();
   List<CalendarReminder> _externalCalendarEvents = const <CalendarReminder>[];
   bool _loadingExternalCalendarEvents = false;
+  final List<PersonReference> _createdPeople = <PersonReference>[];
 
-  DateTime get _now => widget.now ?? DateTime.now();
+  DateTime get _now => widget.now ?? IranClock.now();
+
+  String get _reportHeading {
+    final names = widget.centers
+        .where((center) => _filter.centerIds.contains(center.id))
+        .map((center) => center.name)
+        .toList(growable: false);
+    if (names.length == 1) return 'گزارش ${names.single}';
+    if (names.length > 1) return 'گزارش ${names.length} مرکز';
+    return 'مرکز گزارش آروین';
+  }
 
   List<PersonReference> get _peopleDirectory {
+    final directory = <PersonReference>[
+      ...widget.people,
+      ..._createdPeople,
+    ];
     final activeById = <String, PersonReference>{
-      for (final person in widget.people) person.id: person,
+      for (final person in directory) person.id: person,
     };
     final byId = <String, PersonReference>{
-      if (widget.people.isEmpty)
+      if (directory.isEmpty)
         for (final task in widget.tasks)
           for (final person in task.people) person.id: person,
-      if (widget.people.isNotEmpty)
+      if (directory.isNotEmpty)
         for (final task in widget.tasks)
           for (final person in task.people)
             if (activeById.containsKey(person.id)) person.id: activeById[person.id]!,
-      if (widget.people.isNotEmpty)
+      if (directory.isNotEmpty)
         for (final task in widget.tasks)
           for (final person in task.people)
             if (!activeById.containsKey(person.id))
               person.id: PersonReference(id: person.id, displayName: 'شخص حذف‌شده'),
-      for (final person in widget.people) person.id: person,
+      for (final person in directory) person.id: person,
       for (final task in widget.tasks)
         for (final followUp in task.followUps)
           for (final personId in followUp.personIds)
@@ -81,8 +117,10 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
   }
 
   List<PersonFollowUpReportRow> get _waitingRows {
-    final filterWithoutWaitingState =
-        _filter.copyWith(clearWaitingForResponse: true);
+    final filterWithoutWaitingState = _filter.copyWith(
+      clearWaitingForResponse: true,
+      hasFollowUp: _filter.hasFollowUp ?? true,
+    );
     final matchingTasks = filterWithoutWaitingState.apply(
       widget.tasks,
       now: _now,
@@ -92,6 +130,13 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
       matchingTasks,
       people: _peopleDirectory,
       personIds: _filter.personIds,
+      followUpPredicate: (task, followUp) =>
+          filterWithoutWaitingState.matchesFollowUpRecord(
+        task,
+        followUp,
+        now: _now,
+        projects: widget.projects,
+      ),
     );
   }
 
@@ -149,87 +194,69 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
     });
   }
 
+  Future<PersonReference?> _createPersonInReport(String name) async {
+    final person = await widget.onCreatePerson?.call(name);
+    if (person != null && mounted) {
+      setState(() {
+        _createdPeople.removeWhere((item) => item.id == person.id);
+        _createdPeople.add(person);
+      });
+    }
+    return person;
+  }
+
   Future<void> _openFilters() async {
-    final result = await showModalBottomSheet<TaskReportFilter>(
+    final result = await showModalBottomSheet<_ReportFilterResult>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => _ReportFilterSheet(
         initial: _filter,
         projects: widget.projects,
+        centers: widget.centers,
+        templates: widget.templates,
         tasks: widget.tasks,
         people: _peopleDirectory,
         now: _now,
+        onCreateCenter: widget.onCreateCenter,
+        onCreateProject: widget.onCreateProject,
+        onCreateCategory: widget.onCreateCategory,
+        onCreateTag: widget.onCreateTag,
+        onCreatePerson: _createPersonInReport,
       ),
     );
-    if (result != null) {
-      setState(() => _filter = result);
-      if (result.showExternalCalendarEvents) {
-        await _refreshUnimportedDeviceEvents();
-      }
+    if (result == null || !mounted) return;
+    setState(() => _filter = result.filter);
+    if (result.openCompletedFollowUpReport) {
+      final followUpFilter = result.filter.copyWith(
+        hasFollowUp: result.filter.hasFollowUp ?? true,
+      );
+      final followUpTasks = followUpFilter.apply(
+        widget.tasks,
+        now: _now,
+        projects: widget.projects,
+      );
+      await showDialog<void>(
+        context: context,
+        builder: (_) => CompletedFollowUpReportDialog(
+          tasks: followUpTasks,
+          people: _peopleDirectory,
+          projects: widget.projects,
+          filter: followUpFilter,
+          now: _now,
+          initialDay: _now.toLocal(),
+        ),
+      );
+      return;
+    }
+    if (result.filter.showExternalCalendarEvents) {
+      await _refreshUnimportedDeviceEvents();
     }
   }
 
   void _clear() => setState(() {
         _filter = const TaskReportFilter();
       });
-
-  Future<void> _openCompletedFollowUpReport() async {
-    final initial = _now.toLocal();
-    final picked = await showPersianDatePicker(
-      context: context,
-      initialDate: DateTime(initial.year, initial.month, initial.day),
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2100),
-      helpText: 'انتخاب روز گزارش پیگیری‌های انجام‌شده',
-    );
-    if (picked == null || !mounted) return;
-
-    final completedTasks = const CompletedTaskReportProjection().forJalaliDay(
-      widget.tasks,
-      picked,
-    );
-    await showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text('گزارش پیگیری‌های انجام‌شده • ${const PersianDateFormatter().format(picked, usePersianDate: true)}'),
-        content: SizedBox(
-          width: 480,
-          child: completedTasks.isEmpty
-              ? const Text('در این روز تکمیل ثبت‌شده‌ای وجود ندارد.')
-              : ConstrainedBox(
-                  constraints: const BoxConstraints(maxHeight: 420),
-                  child: ListView(
-                    shrinkWrap: true,
-                    children: [
-                      for (final task in completedTasks)
-                        ListTile(
-                          key: ValueKey('completed-follow-up-task-${task.id}'),
-                          title: Text(task.title.trim().isEmpty ? 'بدون عنوان' : task.title),
-                          subtitle: Text(_reportDateTimeLabel(task.completedAt!)),
-                          onTap: () {
-                            Navigator.of(dialogContext).pop();
-                            Navigator.of(context).push<void>(
-                              MaterialPageRoute<void>(
-                                builder: (_) => TaskDetailPage(task: task),
-                              ),
-                            );
-                          },
-                        ),
-                    ],
-                  ),
-                ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('بستن'),
-          ),
-        ],
-      ),
-    );
-  }
-
 
   @override
   Widget build(BuildContext context) {
@@ -263,7 +290,7 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                 children: [
                   Expanded(
                     child: Text(
-                      'مرکز گزارش آروین',
+                      _reportHeading,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                   ),
@@ -271,9 +298,9 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                     key: const ValueKey('report-center-filters'),
                     onPressed: _openFilters,
                     style: FilledButton.styleFrom(
-                      minimumSize: const Size(0, 40),
+                      minimumSize: const Size(0, 48),
                       padding: const EdgeInsets.symmetric(horizontal: 12),
-                      visualDensity: VisualDensity.compact,
+                      visualDensity: VisualDensity.standard,
                     ),
                     icon: const Icon(Icons.tune, size: 18),
                     label: const Text('فیلترها'),
@@ -281,22 +308,13 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  key: const ValueKey('report-center-completed-follow-ups'),
-                  onPressed: _openCompletedFollowUpReport,
-                  icon: const Icon(Icons.task_alt_outlined),
-                  label: const Text('گزارش پیگیری‌های انجام‌شده'),
-                ),
-              ),
-            ),
             if (_filter.isActive)
               _ActiveFilterChips(
                 filter: _filter,
                 people: _peopleDirectory,
+                tasks: widget.tasks,
+                centers: widget.centers,
+                templates: widget.templates,
                 onClear: _clear,
                 onChanged: (filter) => setState(() => _filter = filter),
               ),
@@ -320,17 +338,24 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                           itemBuilder: (_, index) {
                             final row = waitingRows[index];
                             return Card(
+                              key: ValueKey(
+                                'report-waiting-row-${row.task.id}-${row.followUp.id}',
+                              ),
                               child: ListTile(
                                 onTap: () => Navigator.of(context).push<void>(
                                   MaterialPageRoute<void>(
-                                    builder: (_) => TaskDetailPage(task: row.task),
+                                    builder: (_) => TaskDetailPage(
+                                      task: row.task,
+                                      people: _peopleDirectory,
+                                      onCreatePerson: (person) => TaskStore().mergePeopleDirectory([person]),
+                                    ),
                                   ),
                                 ),
                                 title: Text(row.task.title.trim().isEmpty ? 'بدون عنوان' : row.task.title),
                                 subtitle: Text([
                                   if (row.followUp.note.trim().isNotEmpty) row.followUp.note.trim(),
                                   if (row.followUp.result?.trim().isNotEmpty == true) 'نتیجه: ${row.followUp.result!.trim()}',
-                                  'افراد: ${row.people.map((person) => person.displayName).join('، ')}',
+                                  'افراد: ${row.people.map((person) => person.displayLabel).join('، ')}',
                                 ].join(' • ')),
                               ),
                             );
@@ -359,10 +384,7 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                         final task = tasks[index - externalEvents.length];
                         final cardColor = task.completed
                             ? ArvinColors.timeSoft
-                            : task.dueDate != null &&
-                                  DateUtils.dateOnly(task.dueDate!).isBefore(
-                                    DateUtils.dateOnly(_now),
-                                  )
+                            : TaskDueStatus.isOverdue(task, now: _now)
                             ? ArvinColors.errorSoft
                             : task.followUps.isNotEmpty
                             ? ArvinColors.reminderSoft
@@ -373,7 +395,11 @@ class _ReportCenterPageState extends State<ReportCenterPage> {
                           child: ListTile(
                             onTap: () => Navigator.of(context).push<void>(
                               MaterialPageRoute<void>(
-                                builder: (_) => TaskDetailPage(task: task),
+                                builder: (_) => TaskDetailPage(
+                                  task: task,
+                                  people: _peopleDirectory,
+                                  onCreatePerson: (person) => TaskStore().mergePeopleDirectory([person]),
+                                ),
                               ),
                             ),
                             dense: true,
@@ -422,17 +448,27 @@ class _ActiveFilterChips extends StatelessWidget {
   const _ActiveFilterChips({
     required this.filter,
     required this.people,
+    required this.tasks,
+    required this.centers,
+    required this.templates,
     required this.onClear,
     required this.onChanged,
   });
 
   final TaskReportFilter filter;
   final List<PersonReference> people;
+  final List<Task> tasks;
+  final List<ArvinCenter> centers;
+  final List<ProjectTemplate> templates;
   final VoidCallback onClear;
   final ValueChanged<TaskReportFilter> onChanged;
 
   @override
   Widget build(BuildContext context) {
+    final taskById = <String, Task>{for (final task in tasks) task.id: task};
+    final centerById = <String, ArvinCenter>{for (final center in centers) center.id: center};
+    final templateById = <String, ProjectTemplate>{for (final template in templates) template.id: template};
+    final templateTaskById = <String, ProjectTemplateTask>{for (final template in templates) for (final task in template.tasks) task.id: task};
     final peopleById = <String, PersonReference>{
       for (final person in people) person.id: person,
     };
@@ -461,6 +497,16 @@ class _ActiveFilterChips extends StatelessWidget {
               label: Text(_timeLabel(filter.timePreset)),
               onDeleted: () => onChanged(filter.copyWith(timePreset: ReportTimePreset.all)),
             ),
+          for (final id in filter.centerIds)
+            InputChip(key: ValueKey('report-active-center-$id'), label: Text(centerById[id]?.name ?? 'مرکز حذف‌شده'), onDeleted: () { final ids = <String>{...filter.centerIds}..remove(id); onChanged(filter.copyWith(centerIds: ids)); }),
+          if (filter.includeLegacyProjectsWithoutCenter)
+            InputChip(label: const Text('شامل پروژه‌های قدیمی بدون مرکز'), onDeleted: () => onChanged(filter.copyWith(includeLegacyProjectsWithoutCenter: false))),
+          if (filter.taskId != null || filter.templateTaskId != null)
+            InputChip(key: const ValueKey('report-active-task'), label: Text(filter.taskId != null ? (taskById[filter.taskId]?.title ?? 'کار حذف‌شده') : (templateTaskById[filter.templateTaskId]?.title ?? 'کار قالب حذف‌شده')), onDeleted: () => onChanged(filter.copyWith(clearTaskId: true, clearTemplateTaskId: true))),
+          for (final id in filter.templateIds)
+            InputChip(key: ValueKey('report-active-template-$id'), label: Text(templateById[id]?.name ?? 'قالب حذف‌شده'), onDeleted: () { final ids = <String>{...filter.templateIds}..remove(id); onChanged(filter.copyWith(templateIds: ids)); }),
+          if (filter.includeLegacyProjectsWithoutTemplate)
+            InputChip(label: const Text('شامل پروژه‌های قدیمی بدون قالب'), onDeleted: () => onChanged(filter.copyWith(includeLegacyProjectsWithoutTemplate: false))),
           if (filter.projectId != null || filter.projectIds.isNotEmpty)
             InputChip(
               label: Text('پروژه: ${filter.projectIds.length + (filter.projectId == null ? 0 : 1)}'),
@@ -522,11 +568,6 @@ class _ActiveFilterChips extends StatelessWidget {
                   status: filter.status == value ? ReportStatusFilter.all : filter.status,
                 ));
               },
-            ),
-          if (filter.priority != null)
-            InputChip(
-              label: Text(_priorityLabel(filter.priority!)),
-              onDeleted: () => onChanged(filter.copyWith(clearPriority: true)),
             ),
           if (filter.hasRepeat != null)
             InputChip(
@@ -591,17 +632,41 @@ class _ActiveFilterChips extends StatelessWidget {
 }
 
 
+class _ReportFilterResult {
+  const _ReportFilterResult({
+    required this.filter,
+    this.openCompletedFollowUpReport = false,
+  });
+
+  final TaskReportFilter filter;
+  final bool openCompletedFollowUpReport;
+}
+
 class _ReportFilterSheet extends StatefulWidget {
   const _ReportFilterSheet({
     required this.initial,
     required this.projects,
+    required this.centers,
+    required this.templates,
     required this.tasks,
     required this.people,
     required this.now,
+    this.onCreateCenter,
+    this.onCreateProject,
+    this.onCreateCategory,
+    this.onCreateTag,
+    this.onCreatePerson,
   });
 
+  final Future<String?> Function(String name)? onCreateCenter;
+  final Future<String?> Function(String title)? onCreateProject;
+  final Future<String?> Function(String name)? onCreateCategory;
+  final Future<String?> Function(String name)? onCreateTag;
+  final Future<PersonReference?> Function(String name)? onCreatePerson;
   final TaskReportFilter initial;
   final List<ProjectPlan> projects;
+  final List<ArvinCenter> centers;
+  final List<ProjectTemplate> templates;
   final List<Task> tasks;
   final List<PersonReference> people;
   final DateTime now;
@@ -611,15 +676,258 @@ class _ReportFilterSheet extends StatefulWidget {
 }
 
 class _ReportFilterSheetState extends State<_ReportFilterSheet> {
+  final ScrollController _filterScrollController = ScrollController();
+  final GlobalKey _timeSectionKey = GlobalKey();
+  final GlobalKey _exactRangeSectionKey = GlobalKey();
+  final GlobalKey _centerSectionKey = GlobalKey();
+  final GlobalKey _projectSectionKey = GlobalKey();
+  final GlobalKey _categorySectionKey = GlobalKey();
+  final GlobalKey _tagSectionKey = GlobalKey();
+
+  Future<void> _openTimePresetFilter() async {
+    final result = await ReusableMultiSelectFilterBottomSheet.showSingleSelect<ReportTimePreset>(
+      context,
+      title: 'انتخاب زمان',
+      accent: ArvinColors.time,
+      options: ReportTimePreset.values
+          .map((preset) => ReusableFilterOption<ReportTimePreset>(
+                value: preset,
+                label: _timeLabel(preset),
+                icon: Icons.schedule_outlined,
+              ))
+          .toList(growable: false),
+      selectedValue: _timePreset,
+      emptyLabel: 'همه زمان‌ها',
+    );
+    if (!mounted || result == null) return;
+    setState(() {
+      _timePreset = result.cleared ? ReportTimePreset.all : result.value ?? ReportTimePreset.all;
+      _fromDate = null;
+      _toDate = null;
+      _fromTime = null;
+      _toTime = null;
+    });
+  }
+
+  Future<void> _openQuickPresets() async {
+    final selected = await showModalBottomSheet<ReportTimePreset>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        final media = MediaQuery.of(sheetContext);
+        final availableHeight = media.size.height -
+            media.padding.top -
+            media.padding.bottom -
+            media.viewInsets.bottom;
+        return Padding(
+          padding: EdgeInsets.only(bottom: media.viewInsets.bottom),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: availableHeight * 0.85,
+            ),
+            child: SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Padding(
+                    padding: EdgeInsetsDirectional.fromSTEB(20, 4, 20, 12),
+                    child: Text('پیش‌تنظیمات سریع زمان'),
+                  ),
+                  for (final preset in ReportTimePreset.values)
+                    ListTile(
+                      key: ValueKey('report-quick-preset-${preset.name}'),
+                      minTileHeight: 48,
+                      leading: const Icon(Icons.schedule_outlined),
+                      title: Text(_timeLabel(preset)),
+                      trailing: preset == _timePreset
+                          ? const Icon(Icons.check_rounded)
+                          : null,
+                      onTap: () => Navigator.of(sheetContext).pop(preset),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+    if (!mounted || selected == null) return;
+    setState(() {
+      _timePreset = selected;
+      _fromDate = null;
+      _toDate = null;
+      _fromTime = null;
+      _toTime = null;
+    });
+  }
+
+  Future<void> _openDimensionFilter({
+    required String title,
+    required String keyPrefix,
+    required List<MapEntry<String, String>> options,
+    required Set<String> selected,
+    required ValueChanged<Set<String>> onChanged,
+    required Color accent,
+    Future<MapEntry<String, String>?> Function(String value)? onCreate,
+  }) async {
+    final applied = await ReusableMultiSelectFilterBottomSheet.showMultiSelect<String>(
+      context,
+      title: title,
+      accent: accent,
+      options: options
+          .map((option) => ReusableFilterOption<String>(
+                value: option.key,
+                label: option.value,
+              ))
+          .toList(growable: false),
+      selectedValues: selected,
+      optionKeyPrefix: keyPrefix,
+      searchHint: 'جستجو...',
+      createHint: 'نام مورد جدید',
+      createLabel: 'افزودن و انتخاب',
+      onCreate: onCreate == null
+          ? null
+          : (value) async {
+              final created = await onCreate(value);
+              if (created == null) return null;
+              return ReusableFilterOption<String>(
+                value: created.key,
+                label: created.value,
+              );
+            },
+    );
+    if (mounted && applied != null) onChanged(applied);
+  }
+
+  Future<void> _openCenterFilter() async {
+    final options = <MapEntry<String, String>>[
+      ...widget.centers.map((center) => MapEntry(center.id, center.name)),
+      ..._createdCenters.entries,
+    ];
+    await _openDimensionFilter(
+      title: 'انتخاب مرکز',
+      keyPrefix: 'report-filter-center',
+      options: options,
+      selected: _centerIds,
+      onChanged: (value) => setState(() => _centerIds = value),
+      accent: Theme.of(context).colorScheme.primary,
+      onCreate: widget.onCreateCenter == null
+          ? null
+          : (name) async {
+              final id = await widget.onCreateCenter!(name);
+              if (id == null) return null;
+              if (mounted) setState(() => _createdCenters[id] = name);
+              return MapEntry(id, name);
+            },
+    );
+  }
+
+  Future<void> _openProjectFilter() async {
+    final options = <MapEntry<String, String>>[
+      ...widget.projects.map((project) => MapEntry(project.id, project.title)),
+      ..._createdProjects.entries,
+    ];
+    await _openDimensionFilter(
+      title: 'انتخاب پروژه',
+      keyPrefix: 'report-filter-project',
+      options: options,
+      selected: _projectIds,
+      onChanged: (value) => setState(() => _projectIds = value),
+      accent: ArvinColors.project,
+      onCreate: widget.onCreateProject == null
+          ? null
+          : (title) async {
+              final id = await widget.onCreateProject!(title);
+              if (id == null) return null;
+              if (mounted) setState(() => _createdProjects[id] = title);
+              return MapEntry(id, title);
+            },
+    );
+  }
+
+  Future<void> _openCategoryFilter() async {
+    final options = <MapEntry<String, String>>[
+      ...widget.tasks
+          .map((task) => task.category?.trim())
+          .whereType<String>()
+          .where((value) => value.isNotEmpty)
+          .toSet()
+          .map((value) => MapEntry(value, value)),
+      ..._createdCategories.entries,
+    ];
+    await _openDimensionFilter(
+      title: 'انتخاب دسته',
+      keyPrefix: 'report-filter-category',
+      options: options,
+      selected: _categories,
+      onChanged: (value) => setState(() => _categories = value),
+      accent: ArvinColors.category,
+      onCreate: widget.onCreateCategory == null
+          ? null
+          : (name) async {
+              final value = await widget.onCreateCategory!(name);
+              if (value == null) return null;
+              if (mounted) setState(() => _createdCategories[value] = value);
+              return MapEntry(value, value);
+            },
+    );
+  }
+
+  Future<void> _openTagFilter() async {
+    final options = <MapEntry<String, String>>[
+      ...widget.tasks
+          .expand((task) => task.tags)
+          .map((value) => value.trim())
+          .where((value) => value.isNotEmpty)
+          .toSet()
+          .map((value) => MapEntry(value, value)),
+      ..._createdTags.entries,
+    ];
+    await _openDimensionFilter(
+      title: 'انتخاب برچسب‌ها',
+      keyPrefix: 'report-filter-tag',
+      options: options,
+      selected: _tags,
+      onChanged: (value) => setState(() => _tags = value),
+      accent: ArvinColors.tag,
+      onCreate: widget.onCreateTag == null
+          ? null
+          : (name) async {
+              final value = await widget.onCreateTag!(name);
+              if (value == null) return null;
+              if (mounted) setState(() => _createdTags[value] = value);
+              return MapEntry(value, value);
+            },
+    );
+  }
+
   late ReportTimePreset _timePreset;
   DateTime? _fromDate;
   DateTime? _toDate;
   TimeOfDay? _fromTime;
   TimeOfDay? _toTime;
+  Set<String> _centerIds = <String>{};
+  bool _includeLegacyProjectsWithoutCenter = false;
+  String? _taskId;
+  String? _templateTaskId;
+  String _taskSearch = '';
+  Set<String> _templateIds = <String>{};
+  String _templateSearch = '';
+  bool _includeLegacyProjectsWithoutTemplate = false;
   Set<String> _projectIds = <String>{};
   Set<String> _categories = <String>{};
   Set<String> _tags = <String>{};
   Set<String> _personIds = <String>{};
+  final Map<String, String> _createdCenters = <String, String>{};
+  final Map<String, String> _createdProjects = <String, String>{};
+  final Map<String, String> _createdCategories = <String, String>{};
+  final Map<String, String> _createdTags = <String, String>{};
+  final Map<String, PersonReference> _createdPeople = <String, PersonReference>{};
   Set<ReportStatusFilter> _statuses = <ReportStatusFilter>{};
   Set<RecurrenceTrackingLevel> _trackingLevels = <RecurrenceTrackingLevel>{};
   Set<NotebookItemKind> _noteKinds = <NotebookItemKind>{};
@@ -627,11 +935,11 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
   ReportNoteDateField? _noteDateField;
   DateTime? _noteFromDate;
   DateTime? _noteToDate;
-  TaskPriority? _priority;
   bool? _hasRepeat;
   bool? _hasFollowUp;
   bool? _waitingForResponse;
   bool _showExternalCalendarEvents = false;
+  bool _openCompletedFollowUpReport = false;
   bool? _hasChecklist;
 
   @override
@@ -643,6 +951,12 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
     _toDate = f.toDate;
     _fromTime = f.fromTime == null ? null : _toTimeOfDay(f.fromTime!);
     _toTime = f.toTime == null ? null : _toTimeOfDay(f.toTime!);
+    _centerIds = <String>{...f.centerIds};
+    _includeLegacyProjectsWithoutCenter = f.includeLegacyProjectsWithoutCenter;
+    _taskId = f.taskId;
+    _templateTaskId = f.templateTaskId;
+    _templateIds = <String>{...f.templateIds};
+    _includeLegacyProjectsWithoutTemplate = f.includeLegacyProjectsWithoutTemplate;
     _projectIds = <String>{...f.projectIds, if (f.projectId != null) f.projectId!};
     _categories = <String>{...f.categories, if (f.category != null) f.category!};
     _tags = <String>{...f.tags, if (f.tag != null) f.tag!};
@@ -659,7 +973,6 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
     _noteDateField = f.noteDateField;
     _noteFromDate = f.noteFromDate;
     _noteToDate = f.noteToDate;
-    _priority = f.priority;
     _hasRepeat = f.hasRepeat;
     _hasFollowUp = f.hasFollowUp;
     _hasChecklist = f.hasChecklist;
@@ -667,6 +980,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
 
   @override
   void dispose() {
+    _filterScrollController.dispose();
     _noteQueryController.dispose();
     super.dispose();
   }
@@ -731,7 +1045,9 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
 
   void _apply() {
     Navigator.of(context).pop(
-      TaskReportFilter(
+      _ReportFilterResult(
+        openCompletedFollowUpReport: _openCompletedFollowUpReport,
+        filter: TaskReportFilter(
         timePreset: _timePreset,
         fromDate: _fromDate,
         toDate: _toDate,
@@ -741,6 +1057,12 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
         toTime: _toTime == null
             ? null
             : Duration(hours: _toTime!.hour, minutes: _toTime!.minute),
+        centerIds: Set<String>.of(_centerIds),
+        includeLegacyProjectsWithoutCenter: _includeLegacyProjectsWithoutCenter,
+        taskId: _taskId,
+        templateTaskId: _templateTaskId,
+        templateIds: Set<String>.of(_templateIds),
+        includeLegacyProjectsWithoutTemplate: _includeLegacyProjectsWithoutTemplate,
         projectIds: Set<String>.of(_projectIds),
         categories: Set<String>.of(_categories),
         tags: Set<String>.of(_tags),
@@ -755,10 +1077,10 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
         noteDateField: _noteDateField,
         noteFromDate: _noteFromDate,
         noteToDate: _noteToDate,
-        priority: _priority,
         hasRepeat: _hasRepeat,
         hasFollowUp: _hasFollowUp,
         hasChecklist: _hasChecklist,
+        ),
       ),
     );
   }
@@ -777,10 +1099,22 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
         .where((value) => value.isNotEmpty)
         .toSet()
         .toList()..sort();
+    categories.addAll(_createdCategories.keys);
+    categories.sort();
+    tags.addAll(_createdTags.keys);
+    tags.sort();
+    final centerOptions = <MapEntry<String, String>>[
+      ...widget.centers.map((center) => MapEntry(center.id, center.name)),
+      ..._createdCenters.entries,
+    ];
+    final projectOptions = <MapEntry<String, String>>[
+      ...widget.projects.map((project) => MapEntry(project.id, project.title)),
+      ..._createdProjects.entries,
+    ];
     return SafeArea(
       child: Container(
         constraints: BoxConstraints(
-          maxHeight: MediaQuery.sizeOf(context).height * .88,
+          maxHeight: MediaQuery.sizeOf(context).height * .96,
         ),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
@@ -818,9 +1152,99 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
             const Divider(height: 1),
             Expanded(
               child: ListView(
+                key: const ValueKey('report-filter-scroll'),
+                controller: _filterScrollController,
+                primary: false,
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                physics: const ClampingScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                 children: [
             _Section(
+              title: 'نوع گزارش',
+              icon: Icons.assessment_outlined,
+              accentColor: Theme.of(context).colorScheme.primary,
+              selectedCount: _openCompletedFollowUpReport ? 1 : 0,
+              initiallyExpanded: true,
+              child: Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: [
+                  ChoiceChip(
+                    key: const ValueKey('report-filter-type-tasks'),
+                    label: const Text('گزارش کارها'),
+                    selected: !_openCompletedFollowUpReport,
+                    onSelected: (_) => setState(() => _openCompletedFollowUpReport = false),
+                  ),
+                  ChoiceChip(
+                    key: const ValueKey('report-filter-type-completed-follow-ups'),
+                    label: const Text('گزارش پیگیری‌های انجام‌شده'),
+                    selected: _openCompletedFollowUpReport,
+                    onSelected: (_) => setState(() => _openCompletedFollowUpReport = true),
+                  ),
+                ],
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _ReportFilterActionRow(
+                  key: const ValueKey('report-home-filter-time'),
+                  title: 'زمان',
+                  subtitle: _timePreset == ReportTimePreset.all &&
+                          _fromDate == null && _toDate == null &&
+                          _fromTime == null && _toTime == null
+                      ? 'همه زمان‌ها'
+                      : _timeLabel(_timePreset),
+                  icon: Icons.schedule_rounded,
+                  selectedCount: (_timePreset != ReportTimePreset.all ? 1 : 0) +
+                      (_fromDate != null || _toDate != null ? 1 : 0) +
+                      (_fromTime != null || _toTime != null ? 1 : 0),
+                  onTap: _openTimePresetFilter,
+                ),
+                _ReportFilterActionRow(
+                  key: const ValueKey('report-home-filter-center'),
+                  title: 'مرکز',
+                  subtitle: _centerIds.isEmpty ? 'همه مراکز' : '${_centerIds.length} مرکز انتخاب‌شده',
+                  icon: Icons.location_city_outlined,
+                  selectedCount: _centerIds.length,
+                  onTap: _openCenterFilter,
+                ),
+                _ReportFilterActionRow(
+                  key: const ValueKey('report-home-filter-project'),
+                  title: 'پروژه',
+                  subtitle: _projectIds.isEmpty ? 'همه پروژه‌ها' : '${_projectIds.length} پروژه انتخاب‌شده',
+                  icon: Icons.folder_open_outlined,
+                  selectedCount: _projectIds.length,
+                  onTap: _openProjectFilter,
+                ),
+                _ReportFilterActionRow(
+                  key: const ValueKey('report-home-filter-category'),
+                  title: 'دسته',
+                  subtitle: _categories.isEmpty ? 'همه دسته‌ها' : '${_categories.length} دسته انتخاب‌شده',
+                  icon: Icons.category_outlined,
+                  selectedCount: _categories.length,
+                  onTap: _openCategoryFilter,
+                ),
+                _ReportFilterActionRow(
+                  key: const ValueKey('report-home-filter-tag'),
+                  title: 'برچسب',
+                  subtitle: _tags.isEmpty ? 'همه برچسب‌ها' : '${_tags.length} برچسب انتخاب‌شده',
+                  icon: Icons.sell_outlined,
+                  selectedCount: _tags.length,
+                  onTap: _openTagFilter,
+                ),
+                _ReportFilterActionRow(
+                  key: const ValueKey('report-home-filter-presets'),
+                  title: 'پیش‌تنظیمات سریع',
+                  subtitle: 'اعمال فوری بازه‌های پرکاربرد',
+                  icon: Icons.bolt_outlined,
+                  onTap: _openQuickPresets,
+                ),
+              ],
+            ),
+            _Section(
+              key: _timeSectionKey,
               title: 'زمان',
               icon: Icons.schedule_outlined,
               accentColor: ArvinColors.time,
@@ -843,6 +1267,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               ),
             ),
             _Section(
+              key: _exactRangeSectionKey,
               title: 'بازه دقیق',
               icon: Icons.date_range_outlined,
               accentColor: ArvinColors.time,
@@ -857,6 +1282,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () => _pickDate(true),
+                          style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)),
                           child: Text(_dateLabel(_fromDate, 'از تاریخ')),
                         ),
                       ),
@@ -864,6 +1290,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () => _pickDate(false),
+                          style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)),
                           child: Text(_dateLabel(_toDate, 'تا تاریخ')),
                         ),
                       ),
@@ -875,6 +1302,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () => _pickTime(true),
+                          style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)),
                           child: Text(_timeLabelOf(_fromTime, 'از ساعت')),
                         ),
                       ),
@@ -882,6 +1310,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () => _pickTime(false),
+                          style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)),
                           child: Text(_timeLabelOf(_toTime, 'تا ساعت')),
                         ),
                       ),
@@ -891,6 +1320,40 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               ),
             ),
             _Section(
+              key: _centerSectionKey,
+              title: 'مرکز',
+              icon: Icons.location_city_outlined,
+              accentColor: Theme.of(context).colorScheme.primary,
+              selectedCount: _centerIds.length + (_includeLegacyProjectsWithoutCenter ? 1 : 0),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                _MultiSelectChips(
+                allLabel: 'همه مراکز',
+                accentColor: Theme.of(context).colorScheme.primary,
+                options: centerOptions,
+                selected: _centerIds,
+                onChanged: (value) => setState(() => _centerIds = value),
+                keyPrefix: 'report-filter-center',
+                onCreate: widget.onCreateCenter == null
+                    ? null
+                    : (name) async {
+                        final id = await widget.onCreateCenter!(name);
+                        if (id == null) return null;
+                        if (mounted) setState(() => _createdCenters[id] = name);
+                        return MapEntry(id, name);
+                      },
+                ),
+                if (_centerIds.isNotEmpty)
+                  CheckboxListTile(
+                    key: const ValueKey('report-filter-center-include-legacy'),
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('شامل پروژه‌های قدیمی بدون مرکز'),
+                    value: _includeLegacyProjectsWithoutCenter,
+                    onChanged: (value) => setState(() => _includeLegacyProjectsWithoutCenter = value ?? false),
+                  ),
+              ]),
+            ),
+            _Section(
+              key: _projectSectionKey,
               title: 'پروژه',
               icon: Icons.folder_open_outlined,
               accentColor: ArvinColors.project,
@@ -898,31 +1361,22 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               child: _MultiSelectChips(
                 allLabel: 'همه پروژه‌ها',
                 accentColor: ArvinColors.project,
-                options: widget.projects
-                    .map((project) => MapEntry(project.id, project.title))
-                    .toList(growable: false),
+                options: projectOptions,
                 selected: _projectIds,
                 onChanged: (value) => setState(() => _projectIds = value),
                 keyPrefix: 'report-filter-project',
+                onCreate: widget.onCreateProject == null
+                    ? null
+                    : (title) async {
+                        final id = await widget.onCreateProject!(title);
+                        if (id == null) return null;
+                        if (mounted) setState(() => _createdProjects[id] = title);
+                        return MapEntry(id, title);
+                      },
               ),
             ),
             _Section(
-              title: 'اشخاص',
-              icon: Icons.people_outline,
-              accentColor: ArvinColors.primary,
-              selectedCount: _personIds.length,
-              child: _MultiSelectChips(
-                allLabel: 'همه اشخاص',
-                accentColor: ArvinColors.primary,
-                options: widget.people
-                    .map((person) => MapEntry(person.id, person.displayName))
-                    .toList(growable: false),
-                selected: _personIds,
-                onChanged: (value) => setState(() => _personIds = value),
-                keyPrefix: 'report-filter-person',
-              ),
-            ),
-            _Section(
+              key: _categorySectionKey,
               title: 'دسته',
               icon: Icons.category_outlined,
               accentColor: ArvinColors.category,
@@ -934,9 +1388,18 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                 selected: _categories,
                 onChanged: (value) => setState(() => _categories = value),
                 keyPrefix: 'report-filter-category',
+                onCreate: widget.onCreateCategory == null
+                    ? null
+                    : (name) async {
+                        final value = await widget.onCreateCategory!(name);
+                        if (value == null) return null;
+                        if (mounted) setState(() => _createdCategories[value] = value);
+                        return MapEntry(value, value);
+                      },
               ),
             ),
             _Section(
+              key: _tagSectionKey,
               title: 'برچسب',
               icon: Icons.sell_outlined,
               accentColor: ArvinColors.tag,
@@ -948,12 +1411,133 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                 selected: _tags,
                 onChanged: (value) => setState(() => _tags = value),
                 keyPrefix: 'report-filter-tag',
+                onCreate: widget.onCreateTag == null
+                    ? null
+                    : (name) async {
+                        final value = await widget.onCreateTag!(name);
+                        if (value == null) return null;
+                        if (mounted) setState(() => _createdTags[value] = value);
+                        return MapEntry(value, value);
+                      },
+              ),
+            ),
+            _Section(
+              title: 'کار',
+              icon: Icons.task_alt_outlined,
+              accentColor: ArvinColors.reminder,
+              selectedCount: _taskId == null && _templateTaskId == null ? 0 : 1,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
+                    key: const ValueKey('report-filter-task-search'),
+                    decoration: const InputDecoration(labelText: 'جستجو در کارها', prefixIcon: Icon(Icons.search)),
+                    onChanged: (value) => setState(() => _taskSearch = value.trim().toLowerCase()),
+                  ),
+                  ListTile(
+                    key: const ValueKey('report-filter-task-all'),
+                    title: const Text('همه کارها'),
+                    leading: const Icon(Icons.all_inclusive),
+                    onTap: () => setState(() { _taskId = null; _templateTaskId = null; }),
+                  ),
+                  RadioGroup<String>(
+                    groupValue: _taskId,
+                    onChanged: (value) => setState(() {
+                      _taskId = value;
+                      _templateTaskId = null;
+                    }),
+                    child: Column(
+                      children: [
+                        for (final task in (widget.tasks.where((task) => task.title.toLowerCase().contains(_taskSearch)).toList()..sort((a, b) => a.title.compareTo(b.title))))
+                          RadioListTile<String>(
+                            key: ValueKey('report-filter-task-${task.id}'),
+                            value: task.id,
+                            title: Text(task.title.trim().isEmpty ? 'بدون عنوان' : task.title),
+                            subtitle: const Text('کار مستقل'),
+                          ),
+                      ],
+                    ),
+                  ),
+                  RadioGroup<String>(
+                    groupValue: _templateTaskId,
+                    onChanged: (value) => setState(() {
+                      _templateTaskId = value;
+                      _taskId = null;
+                    }),
+                    child: Column(
+                      children: [
+                        for (final template in widget.templates)
+                          for (final definition in template.tasks.where((item) => item.title.toLowerCase().contains(_taskSearch)))
+                            RadioListTile<String>(
+                              key: ValueKey('report-filter-template-task-${definition.id}'),
+                              value: definition.id,
+                              title: Text(definition.title),
+                              subtitle: Text('قالب: ${template.name}'),
+                            ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            _Section(
+              title: 'قالب پروژه',
+              icon: Icons.library_books_outlined,
+              accentColor: ArvinColors.project,
+              selectedCount: _templateIds.length + (_includeLegacyProjectsWithoutTemplate ? 1 : 0),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                TextField(
+                  key: const ValueKey('report-filter-template-search'),
+                  decoration: const InputDecoration(labelText: 'جستجو در نام قالب‌ها', prefixIcon: Icon(Icons.search)),
+                  onChanged: (value) => setState(() => _templateSearch = value.trim().toLowerCase()),
+                ),
+                const SizedBox(height: 8),
+                _MultiSelectChips(
+                  allLabel: 'همه قالب‌ها',
+                  accentColor: ArvinColors.project,
+                  options: widget.templates.where((template) => template.name.toLowerCase().contains(_templateSearch)).map((template) => MapEntry(template.id, template.name)).toList(growable: false),
+                  selected: _templateIds,
+                  onChanged: (value) => setState(() => _templateIds = value),
+                  keyPrefix: 'report-filter-template',
+                ),
+                if (_templateIds.isNotEmpty)
+                  CheckboxListTile(
+                    key: const ValueKey('report-filter-template-include-legacy'),
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('شامل پروژه‌های قدیمی بدون قالب'),
+                    value: _includeLegacyProjectsWithoutTemplate,
+                    onChanged: (value) => setState(() => _includeLegacyProjectsWithoutTemplate = value ?? false),
+                  ),
+              ]),
+            ),
+            _Section(
+              title: 'اشخاص',
+              icon: Icons.people_outline,
+              accentColor: Theme.of(context).colorScheme.primary,
+              selectedCount: _personIds.length,
+              child: _MultiSelectChips(
+                allLabel: 'همه اشخاص',
+                accentColor: Theme.of(context).colorScheme.primary,
+                options: widget.people
+                    .map((person) => MapEntry(person.id, person.displayName))
+                    .toList(growable: false),
+                selected: _personIds,
+                onChanged: (value) => setState(() => _personIds = value),
+                keyPrefix: 'report-filter-person',
+                onCreate: widget.onCreatePerson == null
+                    ? null
+                    : (name) async {
+                        final person = await widget.onCreatePerson!(name);
+                        if (person == null) return null;
+                        if (mounted) setState(() => _createdPeople[person.id] = person);
+                        return MapEntry(person.id, person.displayName);
+                      },
               ),
             ),
             _Section(
               title: 'یادداشت',
               icon: Icons.sticky_note_2_outlined,
-              accentColor: ArvinColors.primary,
+              accentColor: Theme.of(context).colorScheme.primary,
               selectedCount: _noteKinds.length +
                   (_noteQueryController.text.trim().isNotEmpty ? 1 : 0) +
                   (_noteFromDate != null || _noteToDate != null ? 1 : 0),
@@ -978,8 +1562,8 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                         key: const ValueKey('report-filter-note-kind-note'),
                         label: const Text('یادداشت'),
                         selected: _noteKinds.contains(NotebookItemKind.note),
-                        selectedColor: ArvinColors.primarySoft,
-                        checkmarkColor: ArvinColors.primary,
+                        selectedColor: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
+                        checkmarkColor: Theme.of(context).colorScheme.primary,
                         onSelected: (selected) => setState(() {
                           selected
                               ? _noteKinds.add(NotebookItemKind.note)
@@ -1023,6 +1607,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () => _pickNoteDate(true),
+                          style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)),
                           child: Text(_dateLabel(_noteFromDate, 'از تاریخ')),
                         ),
                       ),
@@ -1030,6 +1615,7 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () => _pickNoteDate(false),
+                          style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)),
                           child: Text(_dateLabel(_noteToDate, 'تا تاریخ')),
                         ),
                       ),
@@ -1062,13 +1648,13 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                         ReportStatusFilter.open => ArvinColors.projectSoft,
                         ReportStatusFilter.completed => ArvinColors.timeSoft,
                         ReportStatusFilter.archived => ArvinColors.neutralSoft,
-                        ReportStatusFilter.all => ArvinColors.primarySoft,
+                        ReportStatusFilter.all => Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
                       },
                       checkmarkColor: switch (value) {
                         ReportStatusFilter.open => ArvinColors.project,
                         ReportStatusFilter.completed => ArvinColors.time,
                         ReportStatusFilter.archived => ArvinColors.neutral,
-                        ReportStatusFilter.all => ArvinColors.primary,
+                        ReportStatusFilter.all => Theme.of(context).colorScheme.primary,
                       },
                       onSelected: (selected) => setState(() {
                         selected ? _statuses.add(value) : _statuses.remove(value);
@@ -1147,28 +1733,6 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
               ),
             ),
             _Section(
-              title: 'اهمیت',
-              icon: Icons.star_border_rounded,
-              accentColor: ArvinColors.tag,
-              selectedCount: _priority == null ? 0 : 1,
-              child: Wrap(
-                spacing: 6,
-                children: [
-                  ChoiceChip(
-                    label: const Text('همه'),
-                    selected: _priority == null,
-                    onSelected: (_) => setState(() => _priority = null),
-                  ),
-                  for (final value in TaskPriority.values.where((v) => v != TaskPriority.none))
-                    ChoiceChip(
-                      label: Text(_priorityLabel(value)),
-                      selected: _priority == value,
-                      onSelected: (_) => setState(() => _priority = value),
-                    ),
-                ],
-              ),
-            ),
-            _Section(
               title: 'ویژگی‌های کار',
               icon: Icons.checklist_outlined,
               accentColor: ArvinColors.category,
@@ -1225,12 +1789,11 @@ class _ReportFilterSheetState extends State<_ReportFilterSheet> {
                           _noteDateField = null;
                           _noteFromDate = null;
                           _noteToDate = null;
-                          _priority = null;
                           _hasRepeat = null;
                           _hasFollowUp = null;
                           _hasChecklist = null;
                         }),
-                        style: OutlinedButton.styleFrom(minimumSize: const Size(0, 44)),
+                        style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)),
                         child: const Text('بازنشانی'),
                       ),
                     ),
@@ -1258,55 +1821,139 @@ class _MultiSelectChips extends StatelessWidget {
   const _MultiSelectChips({
     required this.allLabel,
     required this.options,
-    this.accentColor = ArvinColors.primary,
+    this.accentColor,
     required this.selected,
     required this.onChanged,
     required this.keyPrefix,
+    this.onCreate,
   });
 
   final String allLabel;
-  final Color accentColor;
+  final Color? accentColor;
   final List<MapEntry<String, String>> options;
   final Set<String> selected;
   final ValueChanged<Set<String>> onChanged;
   final String keyPrefix;
+  final Future<MapEntry<String, String>?> Function(String value)? onCreate;
 
   @override
-  Widget build(BuildContext context) => Wrap(
-        spacing: 6,
-        runSpacing: 4,
-        children: [
-          FilterChip(
-            key: ValueKey('$keyPrefix-all'),
-            label: Text(allLabel),
-            selected: selected.isEmpty,
-            selectedColor: accentColor.withValues(alpha: .16),
-            checkmarkColor: accentColor,
-            onSelected: (_) => onChanged(<String>{}),
-          ),
-          for (final option in options)
-            FilterChip(
-              key: ValueKey('$keyPrefix-${option.key}'),
-              label: Text(option.value),
-              selected: selected.contains(option.key),
-              selectedColor: accentColor.withValues(alpha: .16),
-              checkmarkColor: accentColor,
-              onSelected: (checked) {
-                final next = <String>{...selected};
-                if (checked) {
-                  next.add(option.key);
-                } else {
-                  next.remove(option.key);
-                }
-                onChanged(next);
-              },
+  Widget build(BuildContext context) {
+    final accent = accentColor ?? Theme.of(context).colorScheme.primary;
+    final label = allLabel.replaceFirst('همه ', '');
+    return HomeFilterPill(
+      key: ValueKey('$keyPrefix-button'),
+      label: selected.isEmpty
+          ? label
+          : '$label (${selected.length})',
+      icon: Icons.filter_alt_outlined,
+      accent: accent,
+      soft: Color.alphaBlend(accent.withAlpha(18), Theme.of(context).colorScheme.surface),
+      active: selected.isNotEmpty,
+      onPressed: () async {
+        final applied = await ReusableMultiSelectFilterBottomSheet.showMultiSelect<String>(
+          context,
+          title: allLabel.replaceFirst('همه ', 'انتخاب '),
+          accent: accent,
+          options: options
+              .map((option) => ReusableFilterOption<String>(
+                    value: option.key,
+                    label: option.value,
+                  ))
+              .toList(growable: false),
+          selectedValues: selected,
+          optionKeyPrefix: keyPrefix,
+          searchHint: 'جستجو...',
+          createHint: 'نام مورد جدید',
+          createLabel: 'افزودن و انتخاب',
+          onCreate: onCreate == null
+              ? null
+              : (value) async {
+                  final created = await onCreate!(value);
+                  if (created == null) return null;
+                  return ReusableFilterOption<String>(
+                    value: created.key,
+                    label: created.value,
+                  );
+                },
+        );
+        if (applied != null) onChanged(applied);
+      },
+    );
+  }
+}
+
+class _ReportFilterActionRow extends StatelessWidget {
+  const _ReportFilterActionRow({
+    super.key,
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.onTap,
+    this.selectedCount = 0,
+  });
+
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final VoidCallback onTap;
+  final int selectedCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      constraints: const BoxConstraints(minHeight: 48),
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colors.outlineVariant, width: 0.8),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              children: [
+                Icon(icon, color: colors.primary),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(title, style: Theme.of(context).textTheme.titleSmall),
+                      const SizedBox(height: 2),
+                      Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
+                    ],
+                  ),
+                ),
+                if (selectedCount > 0)
+                  Padding(
+                    padding: const EdgeInsetsDirectional.only(end: 8),
+                    child: Text(
+                      selectedCount.toString(),
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            color: colors.primary,
+                          ),
+                    ),
+                  ),
+                Icon(Icons.chevron_left_rounded, color: colors.onSurfaceVariant),
+              ],
             ),
-        ],
-      );
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _Section extends StatefulWidget {
   const _Section({
+    super.key,
     required this.title,
     required this.child,
     this.icon = Icons.tune_outlined,
@@ -1340,10 +1987,11 @@ class _SectionState extends State<_Section> {
       color: colors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: (widget.accentColor ?? colors.outlineVariant).withValues(alpha: .18)),
+        side: BorderSide(color: (widget.accentColor ?? colors.outlineVariant).withValues(alpha: .18), width: 0.8),
       ),
       clipBehavior: Clip.antiAlias,
       child: ExpansionTile(
+        maintainState: true,
         initiallyExpanded: _expanded,
         onExpansionChanged: (value) => setState(() => _expanded = value),
         tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
@@ -1418,13 +2066,6 @@ String _statusLabel(ReportStatusFilter value) => switch (value) {
       ReportStatusFilter.archived => 'بایگانی',
     };
 
-String _priorityLabel(TaskPriority value) => switch (value) {
-      TaskPriority.none => 'بدون اهمیت',
-      TaskPriority.low => 'کم',
-      TaskPriority.medium => 'متوسط',
-      TaskPriority.high => 'زیاد',
-    };
-
 String _dateLabel(DateTime? value, String empty) {
   if (value == null) return empty;
   return const PersianDateFormatter().format(value, usePersianDate: true);
@@ -1437,3 +2078,293 @@ String _timeLabelOf(TimeOfDay? value, String empty) {
 
 TimeOfDay _toTimeOfDay(Duration value) =>
     TimeOfDay(hour: value.inHours % 24, minute: value.inMinutes % 60);
+
+
+enum _CompletedFollowUpViewMode { chronological, byTask }
+
+class CompletedFollowUpReportDialog extends StatefulWidget {
+  const CompletedFollowUpReportDialog({
+    super.key,
+    required this.tasks,
+    required this.people,
+    required this.projects,
+    required this.filter,
+    required this.now,
+    required this.initialDay,
+  });
+
+  final List<Task> tasks;
+  final List<PersonReference> people;
+  final List<ProjectPlan> projects;
+  final TaskReportFilter filter;
+  final DateTime now;
+  final DateTime initialDay;
+
+  @override
+  State<CompletedFollowUpReportDialog> createState() =>
+      _CompletedFollowUpReportDialogState();
+}
+
+class _CompletedFollowUpReportDialogState
+    extends State<CompletedFollowUpReportDialog> {
+  static const _projection = CompletedFollowUpReportProjection();
+  static const _formatter = PersianDateFormatter();
+  late DateTime _selectedDay;
+  _CompletedFollowUpViewMode _mode = _CompletedFollowUpViewMode.chronological;
+  bool _failed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final local = widget.initialDay.toLocal();
+    _selectedDay = DateTime(local.year, local.month, local.day);
+  }
+
+  bool get _hasExplicitTimeFilter =>
+      widget.filter.timePreset != ReportTimePreset.all ||
+      widget.filter.fromDate != null ||
+      widget.filter.toDate != null ||
+      widget.filter.fromTime != null ||
+      widget.filter.toTime != null;
+
+  List<CompletedFollowUpReportRow> get _rows {
+    try {
+      _failed = false;
+      final source = _hasExplicitTimeFilter
+          ? _projection.all(widget.tasks)
+          : _projection.forLocalDay(widget.tasks, _selectedDay);
+      return source.where((row) => widget.filter.matchesFollowUpRecord(
+        row.task,
+        row.followUp,
+        now: widget.now,
+        projects: widget.projects,
+      )).toList(growable: false);
+    } catch (_) {
+      _failed = true;
+      return const <CompletedFollowUpReportRow>[];
+    }
+  }
+
+  String _time(DateTime value) =>
+      _formatter.formatTime(value.toLocal().hour, value.toLocal().minute);
+
+  String _followUpText(FollowUp followUp) {
+    final parts = <String>[
+      if (followUp.note.trim().isNotEmpty) followUp.note.trim(),
+      if (followUp.result?.trim().isNotEmpty == true)
+        'نتیجه: ${followUp.result!.trim()}',
+    ];
+    return parts.isEmpty ? 'بدون توضیح' : parts.join(' • ');
+  }
+
+  String _peopleLabel(FollowUp followUp) {
+    if (followUp.personIds.isEmpty) return '';
+    final byId = <String, PersonReference>{
+      for (final person in widget.people) person.id: person,
+    };
+    final names = followUp.personIds
+        .map((id) => byId[id]?.displayName)
+        .whereType<String>()
+        .toList(growable: false);
+    return names.isEmpty ? '' : 'افراد: ${names.join('، ')}';
+  }
+
+  Future<void> _pickDay() async {
+    final picked = await showPersianDatePicker(
+      context: context,
+      initialDate: _selectedDay,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2100),
+      helpText: 'انتخاب روز گزارش پیگیری‌های انجام‌شده',
+    );
+    if (picked == null || !mounted) return;
+    setState(() => _selectedDay =
+        DateTime(picked.year, picked.month, picked.day));
+  }
+
+  void _shiftDay(int days) {
+    setState(() => _selectedDay =
+        DateTime(_selectedDay.year, _selectedDay.month, _selectedDay.day + days));
+  }
+
+  void _openTask(CompletedFollowUpReportRow row) {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => TaskDetailPage(task: row.task),
+      ),
+    );
+  }
+
+  Widget _recordTile(CompletedFollowUpReportRow row) {
+    final people = _peopleLabel(row.followUp);
+    return ListTile(
+      key: ValueKey('completed-follow-up-record-${row.taskId}-${row.followUp.id}'),
+      dense: true,
+      title: Text(row.task.title.trim().isEmpty ? 'بدون عنوان' : row.task.title),
+      subtitle: Text([
+        _followUpText(row.followUp),
+        if (people.isNotEmpty) people,
+      ].join(' • ')),
+      trailing: Text(_time(row.followUp.completedAt)),
+      onTap: () => _openTask(row),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final rows = _rows;
+    final taskCount = rows.map((row) => row.taskId).toSet().length;
+    final grouped = <String, List<CompletedFollowUpReportRow>>{};
+    for (final row in rows) {
+      (grouped[row.taskId] ??= <CompletedFollowUpReportRow>[]).add(row);
+    }
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Dialog(
+        insetPadding: const EdgeInsets.all(16),
+        child: SizedBox(
+          width: 620,
+          height: 620,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'گزارش پیگیری‌های انجام‌شده',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'بستن',
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
+                ),
+              ),
+              if (!_hasExplicitTimeFilter)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        key: const ValueKey('completed-follow-up-previous-day'),
+                        tooltip: 'روز قبل',
+                        onPressed: () => _shiftDay(-1),
+                        icon: const Icon(Icons.chevron_right),
+                      ),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          key: const ValueKey('completed-follow-up-date-picker'),
+                          onPressed: _pickDay,
+                          icon: const Icon(Icons.calendar_month_outlined),
+                          label: Text(_formatter.format(
+                            _selectedDay,
+                            usePersianDate: true,
+                          )),
+                        ),
+                      ),
+                      IconButton(
+                        key: const ValueKey('completed-follow-up-next-day'),
+                        tooltip: 'روز بعد',
+                        onPressed: () => _shiftDay(1),
+                        icon: const Icon(Icons.chevron_left),
+                      ),
+                      TextButton(
+                        key: const ValueKey('completed-follow-up-today'),
+                        onPressed: () {
+                          final now = widget.now;
+                          setState(() => _selectedDay =
+                              DateTime(now.year, now.month, now.day));
+                        },
+                        child: const Text('امروز'),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Text('بازهٔ زمانی انتخاب‌شده در فیلتر گزارش اعمال شده است'),
+                  ),
+                ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(_formatter.toPersianDigits('${rows.length} پیگیری برای $taskCount کار')),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: SegmentedButton<_CompletedFollowUpViewMode>(
+                  segments: const [
+                    ButtonSegment(
+                      value: _CompletedFollowUpViewMode.chronological,
+                      label: Text('به‌ترتیب ساعت'),
+                      icon: Icon(Icons.schedule),
+                    ),
+                    ButtonSegment(
+                      value: _CompletedFollowUpViewMode.byTask,
+                      label: Text('بر اساس کار'),
+                      icon: Icon(Icons.work_outline),
+                    ),
+                  ],
+                  selected: <_CompletedFollowUpViewMode>{_mode},
+                  onSelectionChanged: (values) =>
+                      setState(() => _mode = values.first),
+                ),
+              ),
+              const Divider(height: 16),
+              Expanded(
+                child: _failed
+                    ? const Center(
+                        child: Text('گزارش دریافت نشد. دوباره تلاش کنید.'),
+                      )
+                    : rows.isEmpty
+                        ? const Center(
+                            child: Text('برای این روز پیگیری‌ای ثبت نشده است.'),
+                          )
+                        : _mode == _CompletedFollowUpViewMode.chronological
+                            ? ListView.separated(
+                                itemCount: rows.length,
+                                separatorBuilder: (_, __) =>
+                                    const Divider(height: 1),
+                                itemBuilder: (_, index) =>
+                                    _recordTile(rows[index]),
+                              )
+                            : ListView(
+                                children: [
+                                  for (final entry in grouped.entries)
+                                    ExpansionTile(
+                                      key: ValueKey(
+                                        'completed-follow-up-task-group-${entry.key}',
+                                      ),
+                                      title: Text(entry.value.first.task.title
+                                              .trim()
+                                              .isEmpty
+                                          ? 'بدون عنوان'
+                                          : entry.value.first.task.title),
+                                      subtitle: Text(
+                                        '${entry.value.length} پیگیری',
+                                      ),
+                                      children: [
+                                        for (final row in entry.value)
+                                          _recordTile(row),
+                                      ],
+                                    ),
+                                ],
+                              ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

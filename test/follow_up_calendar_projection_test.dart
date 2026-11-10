@@ -230,21 +230,63 @@ void main() {
     expect(reminders, isEmpty);
   });
 
+  test('disabled TaskReminders are neither projected nor resolvable Calendar targets', () {
+    final task = Task(
+      id: 'disabled-calendar-reminder',
+      title: 'یادآور غیرفعال',
+      taskReminders: [
+        TaskReminder(
+          id: 'disabled-item',
+          title: 'خاموش',
+          date: DateTime(2026, 12, 5, 9),
+          sequence: 1,
+          isEnabled: false,
+        ),
+      ],
+    );
+
+    expect(projection.project([task]), isEmpty);
+    expect(
+      projection.resolveTaskReminderTarget(
+        [task],
+        projection.independentTaskReminderIdFor(task, task.taskReminders.single),
+      ),
+      isNull,
+    );
+  });
+
   test('projects a canonical task reminder separately from its due date', () {
     final reminderDate = DateTime(2026, 12, 5, 9);
     final dueDate = DateTime(2026, 12, 5, 14);
     final task = Task(
       id: 'task-reminder',
       title: 'تماس',
-      reminderDate: reminderDate,
+      taskReminders: [TaskReminder(id: 'canonical-reminder', title: 'یادآور', date: reminderDate, sequence: 1)],
       dueDate: dueDate,
     );
 
     final reminders = projection.project(<Task>[task]);
 
     expect(reminders, hasLength(2));
-    expect(reminders.map((item) => item.id), contains('task-reminder:task-reminder'));
+    expect(reminders.map((item) => item.id), contains('task-reminder-item:task-reminder:canonical-reminder'));
     expect(reminders.map((item) => item.id), contains('task-due:task-reminder'));
+  });
+
+  test('due date and explicit reminder at the same instant remain separate', () {
+    final sameDateTime = DateTime(2026, 12, 5, 9, 30);
+    final task = Task(
+      id: 'same-instant',
+      title: 'موعد و یادآور مستقل',
+      dueDate: sameDateTime,
+      taskReminders: [TaskReminder(id: 'same-instant-reminder', title: 'یادآور مستقل', date: sameDateTime, sequence: 1)],
+    );
+
+    final reminders = projection.project(<Task>[task]);
+
+    expect(reminders, hasLength(2));
+    expect(reminders.map((item) => item.id), contains('task-reminder-item:same-instant:same-instant-reminder'));
+    expect(reminders.map((item) => item.id), contains('task-due:same-instant'));
+    expect(reminders.map((item) => item.date), everyElement(sameDateTime));
   });
 
   test('projects a canonical task reminder independently from its due date', () {
@@ -252,7 +294,7 @@ void main() {
     final task = Task(
       id: 'task-reminder',
       title: 'تماس صبحگاهی',
-      reminderDate: reminderDate,
+      taskReminders: [TaskReminder(id: 'morning-reminder', title: 'یادآور صبحگاهی', date: reminderDate, sequence: 1)],
       dueDate: DateTime(2026, 10, 6, 17),
     );
 
@@ -261,10 +303,10 @@ void main() {
     expect(reminders, hasLength(2));
     expect(
       reminders.map((item) => item.id),
-      contains('task-reminder:task-reminder'),
+      contains('task-reminder-item:task-reminder:morning-reminder'),
     );
     expect(
-      reminders.firstWhere((item) => item.id == 'task-reminder:task-reminder').date,
+      reminders.firstWhere((item) => item.id == 'task-reminder-item:task-reminder:morning-reminder').date,
       reminderDate,
     );
   });
@@ -478,7 +520,7 @@ void main() {
   });
 
   test('migrated legacy Task reminder keeps the existing Calendar identity once', () {
-    final task = Task.fromJson({
+    final task = Task.fromLegacyJson({
       'id': 'legacy-calendar-task',
       'title': 'کار قدیمی',
       'reminderDate': '2026-12-05T09:30:00.000',
@@ -492,4 +534,28 @@ void main() {
     expect(reminders.single.date, DateTime(2026, 12, 5, 9, 30));
     expect(reminders.single.isAllDay, isFalse);
   });
+  test('archived Tasks are removed from the writable calendar projection', () {
+    final archived = Task(
+      id: 'archived-task',
+      title: 'کار بایگانی‌شده',
+      description: 'شرح محفوظ',
+      dueDate: DateTime(2026, 11, 4, 9),
+      archived: true,
+    );
+    expect(projection.project([archived]), isEmpty);
+  });
+
+  test('Task description is included in due-date and reminder projections', () {
+    final task = Task(
+      id: 'described-task',
+      title: 'تماس',
+      description: 'شرح جدید کار',
+      dueDate: DateTime(2026, 11, 5, 10),
+      taskReminders: [TaskReminder(id: 'described-reminder', title: 'یادآور تماس', date: DateTime(2026, 11, 5, 9), sequence: 1)],
+    );
+    final reminders = projection.project([task]);
+    expect(reminders, hasLength(2));
+    expect(reminders.every((item) => item.description == 'شرح جدید کار'), isTrue);
+  });
+
 }

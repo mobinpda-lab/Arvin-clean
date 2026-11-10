@@ -9,11 +9,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/person_reference.dart';
 import '../models/task.dart';
+import '../models/goal_project.dart';
+import 'project_plan_codec.dart';
 import 'g1_drift_schema.dart';
+import 'occurrence_sql_codec.dart';
+import 'recurrence_sql_codec.dart';
 import 'sql_task_migration_writer.dart';
 import 'task_storage_lock.dart';
 
 typedef TaskMutation<T> = T Function(List<Task> tasks);
+
+enum TemplateTaskAppendResult { appended, alreadyPresent, ineligible }
 
 class TaskStore {
   static const key = 'arvin.tasks';
@@ -52,7 +58,12 @@ class TaskStore {
     return TaskStorageLock.synchronized<List<PersonReference>>(() async {
       final executor = _database;
       await _ensureReady();
-      final rows = await executor.runSelect('SELECT id, name FROM people ORDER BY name, id', const []);
+      final rows = await executor.runSelect(
+        '''SELECT persons.id, persons.name FROM person_directory
+           JOIN persons ON persons.id = person_directory.person_id
+           ORDER BY persons.name, persons.id''',
+        const [],
+      );
       return rows.map((row) => PersonReference(
         id: row['id'] as String,
         displayName: row['name'] as String,
@@ -60,8 +71,8 @@ class TaskStore {
     });
   }
 
-  /// Replaces the canonical directory atomically. Task relations remain in
-  /// task_people; the directory is independent and can contain orphan people.
+  /// Replaces only the active directory membership atomically. Historical
+  /// Person rows and Task/Follow-up relations are never deleted.
   Future<void> savePeopleDirectory(Iterable<PersonReference> people) async {
     final normalized = <String, PersonReference>{};
     for (final person in people) {
@@ -73,19 +84,26 @@ class TaskStore {
     await TaskStorageLock.synchronized<void>(() async {
       final executor = _database;
       await _ensureReady();
-      final oldRows = await executor.runSelect('SELECT id, created_at, updated_at FROM people', const []);
+      final oldRows = await executor.runSelect('SELECT id, created_at, updated_at FROM persons', const []);
       final oldById = <String, Map<String, Object?>>{
         for (final row in oldRows) row['id'] as String: row,
       };
       await executor.runCustom('BEGIN');
       try {
-        await executor.runCustom('DELETE FROM people');
+        await executor.runCustom('DELETE FROM person_directory');
         final now = DateTime.now().toIso8601String();
         for (final person in normalized.values) {
           final old = oldById[person.id];
           await executor.runInsert(
-            'INSERT INTO people (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)',
+            '''INSERT INTO persons (id, name, created_at, updated_at)
+               VALUES (?, ?, ?, ?)
+               ON CONFLICT(id) DO UPDATE
+                 SET name = excluded.name, updated_at = excluded.updated_at''',
             <Object?>[person.id, person.displayName, old?['created_at'] ?? now, now],
+          );
+          await executor.runInsert(
+            'INSERT OR IGNORE INTO person_directory (person_id) VALUES (?)',
+            <Object?>[person.id],
           );
         }
         await executor.runCustom('COMMIT');
@@ -260,8 +278,219 @@ class TaskStore {
     });
   }
 
+  /// Persists Task reference changes and the matching taxonomy catalog rename
+  /// in the same SQLite transaction. Either both changes commit or neither does.
+  Future<void> renameCategoryAndTasks(
+    List<Task> tasks, {
+    required String from,
+    required String to,
+  }) async {
+    final source = from.trim();
+    final target = to.trim();
+    if (source.isEmpty || target.isEmpty || source == target) return;
+    await TaskStorageLock.synchronized<void>(() => _saveUnlocked(
+          tasks,
+          beforeCommit: (executor) async {
+            await executor.runInsert(
+              'INSERT OR IGNORE INTO taxonomy_categories (name, created_at) VALUES (?, ?)',
+              <Object?>[target, DateTime.now().toIso8601String()],
+            );
+            await executor.runDelete(
+              'DELETE FROM taxonomy_categories WHERE name = ?',
+              <Object?>[source],
+            );
+          },
+        ));
+  }
+
+  /// Persists Task reference changes and the matching taxonomy catalog rename
+  /// in the same SQLite transaction. Either both changes commit or neither does.
+  Future<void> renameTagAndTasks(
+    List<Task> tasks, {
+    required String from,
+    required String to,
+  }) async {
+    final source = from.trim();
+    final target = to.trim();
+    if (source.isEmpty || target.isEmpty || source == target) return;
+    await TaskStorageLock.synchronized<void>(() => _saveUnlocked(
+          tasks,
+          beforeCommit: (executor) async {
+            await executor.runInsert(
+              'INSERT OR IGNORE INTO tags (id, name) VALUES (?, ?)',
+              <Object?>[_tagId(target), target],
+            );
+            await executor.runDelete(
+              'DELETE FROM tags WHERE name = ?',
+              <Object?>[source],
+            );
+          },
+        ));
+  }
+
   Future<void> save(List<Task> tasks) =>
       TaskStorageLock.synchronized<void>(() => _saveUnlocked(tasks));
+
+  /// Creates one generated Project and all its independent canonical Tasks in
+  /// a single SQLite transaction. The partial unique index on active
+  /// (template_id, center_id) is the final duplicate/concurrency guard.
+  Future<void> createProjectFromTemplate(ProjectPlan project, List<Task> tasks) {
+    return TaskStorageLock.synchronized<void>(() async {
+      if (project.centerId == null || project.templateId == null) {
+        throw ArgumentError('Generated Projects require Center and Template identities.');
+      }
+      if (tasks.any((task) => task.templateTaskId == null)) {
+        throw ArgumentError('Every generated Task must retain its template-task origin.');
+      }
+      final executor = _database;
+      await _ensureReady();
+      await executor.runCustom('BEGIN');
+      try {
+        for (final task in tasks) { await _insertNewTask(executor, task); }
+        await executor.runInsert(
+          '''INSERT INTO projects
+             (id, name, color_value, is_archived, center_id, template_id, template_name_snapshot, legacy_payload_json)
+             VALUES (?, ?, ?, 0, ?, ?, ?, ?)''',
+          <Object?>[project.id, project.title, project.colorValue, project.centerId,
+            project.templateId, project.templateNameSnapshot, jsonEncode(const ProjectPlanCodec().encode(project))],
+        );
+        for (var i = 0; i < project.itemIds.length; i++) {
+          await executor.runInsert('INSERT INTO project_items (project_id, task_id, ordinal) VALUES (?, ?, ?)',
+            <Object?>[project.id, project.itemIds[i], i]);
+          final task = tasks.firstWhere((item) => item.id == project.itemIds[i]);
+          await executor.runInsert('INSERT INTO template_task_applications (template_task_id, project_id, task_id) VALUES (?, ?, ?)',
+            <Object?>[task.templateTaskId, project.id, task.id]);
+        }
+        await executor.runCustom('COMMIT');
+      } catch (_) { try { await executor.runCustom('ROLLBACK'); } catch (_) {} rethrow; }
+    });
+  }
+
+  /// Append-only and idempotent: checks the destination's real persisted state
+  /// and origin mapping inside the same transaction as Task + membership writes.
+  Future<TemplateTaskAppendResult> appendTemplateTaskToProject({
+    required String projectId,
+    required String templateId,
+    required Task task,
+  }) {
+    return TaskStorageLock.synchronized<TemplateTaskAppendResult>(() async {
+      final originId = task.templateTaskId;
+      if (originId == null || originId.trim().isEmpty) throw ArgumentError('Template origin is required.');
+      final executor = _database;
+      await _ensureReady();
+      await executor.runCustom('BEGIN');
+      try {
+        final existing = await executor.runSelect(
+          'SELECT task_id FROM template_task_applications WHERE template_task_id = ? AND project_id = ?',
+          <Object?>[originId, projectId],
+        );
+        if (existing.isNotEmpty) { await executor.runCustom('COMMIT'); return TemplateTaskAppendResult.alreadyPresent; }
+        final projectRows = await executor.runSelect(
+          'SELECT template_id, is_archived FROM projects WHERE id = ?', <Object?>[projectId]);
+        if (projectRows.isEmpty || projectRows.single['template_id'] != templateId ||
+            (projectRows.single['is_archived'] as num).toInt() == 1) {
+          await executor.runCustom('COMMIT'); return TemplateTaskAppendResult.ineligible;
+        }
+        final activeRows = await executor.runSelect(
+          '''SELECT COUNT(*) AS count FROM project_items pi JOIN tasks t ON t.id = pi.task_id
+             WHERE pi.project_id = ? AND t.completed = 0 AND t.archived = 0 AND t.trashed = 0''',
+          <Object?>[projectId],
+        );
+        if ((activeRows.single['count'] as num).toInt() == 0) {
+          await executor.runCustom('COMMIT'); return TemplateTaskAppendResult.ineligible;
+        }
+        await _insertNewTask(executor, task);
+        final ordinalRows = await executor.runSelect(
+          'SELECT COALESCE(MAX(ordinal), -1) + 1 AS next_ordinal FROM project_items WHERE project_id = ?',
+          <Object?>[projectId],
+        );
+        await executor.runInsert(
+          'INSERT INTO project_items (project_id, task_id, ordinal) VALUES (?, ?, ?)',
+          <Object?>[projectId, task.id, (ordinalRows.single['next_ordinal'] as num).toInt()],
+        );
+        await executor.runInsert(
+          'INSERT INTO template_task_applications (template_task_id, project_id, task_id) VALUES (?, ?, ?)',
+          <Object?>[originId, projectId, task.id],
+        );
+        await executor.runCustom('COMMIT');
+        return TemplateTaskAppendResult.appended;
+      } catch (_) { try { await executor.runCustom('ROLLBACK'); } catch (_) {} rethrow; }
+    });
+  }
+
+  Future<void> _insertNewTask(QueryExecutor executor, Task task) async {
+    final rows = await executor.runSelect('SELECT COALESCE(MAX(storage_ordinal), -1) + 1 AS next_ordinal FROM tasks', const []);
+    final ordinal = (rows.single['next_ordinal'] as num).toInt();
+    await executor.runInsert(
+      '''INSERT INTO tasks (id, storage_ordinal, title, description, created_at, updated_at, due_date,
+         category, notebook_kind, priority, archived, trashed, completed, completed_at,
+         is_favorite, recurrence_json, legacy_payload_json)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+      <Object?>[
+        task.id, ordinal, task.title, task.description, task.createdAt?.toIso8601String(),
+        task.updatedAt?.toIso8601String(), task.dueDateStorageValue, task.category,
+        task.notebookKind?.name, task.priority.name, task.archived ? 1 : 0,
+        task.trashed ? 1 : 0, task.completed ? 1 : 0, task.completedAt?.toIso8601String(),
+        task.isFavorite ? 1 : 0,
+        task.recurrence == null ? null : jsonEncode(task.recurrence!.toJson()),
+        jsonEncode(_canonicalEnvelope(task)),
+      ],
+    );
+    await _writeRelations(executor, task);
+    final category = task.category?.trim();
+    if (category != null && category.isNotEmpty) {
+      await executor.runInsert('INSERT OR IGNORE INTO taxonomy_categories (name, created_at) VALUES (?, ?)',
+        <Object?>[category, DateTime.now().toIso8601String()]);
+    }
+  }
+
+  /// Updates only Task description metadata without rewriting relation tables.
+  /// In particular, historical Follow-up rows are never deleted/reinserted here.
+  Future<void> updateDescription(
+    String taskId,
+    String description,
+    DateTime updatedAt,
+  ) {
+    return TaskStorageLock.synchronized<void>(() async {
+      final executor = _database;
+      await _ensureReady();
+      final rows = await executor.runSelect(
+        'SELECT legacy_payload_json FROM tasks WHERE id = ?',
+        <Object?>[taskId],
+      );
+      if (rows.isEmpty) {
+        throw StateError('Task not found: $taskId');
+      }
+
+      final rawPayload = rows.single['legacy_payload_json'];
+      final payload = <String, dynamic>{};
+      if (rawPayload is String && rawPayload.trim().isNotEmpty) {
+        final decoded = jsonDecode(rawPayload);
+        if (decoded is! Map) {
+          throw const FormatException('Task legacy payload is not a JSON object.');
+        }
+        payload.addAll(Map<String, dynamic>.from(decoded));
+      }
+      payload['description'] = description;
+      payload['updatedAt'] = updatedAt.toIso8601String();
+
+      final changed = await executor.runUpdate(
+        '''UPDATE tasks
+           SET description = ?, updated_at = ?, legacy_payload_json = ?
+           WHERE id = ?''',
+        <Object?>[
+          description,
+          updatedAt.toIso8601String(),
+          jsonEncode(payload),
+          taskId,
+        ],
+      );
+      if (changed != 1) {
+        throw StateError('Task description update affected $changed rows.');
+      }
+    });
+  }
+
 
   Future<T> mutate<T>(TaskMutation<T> mutation) {
     return TaskStorageLock.synchronized<T>(() async {
@@ -279,6 +508,39 @@ class TaskStore {
       final task = tasks[index];
       task.followUps = [...task.followUps, followUp];
       task.updatedAt = DateTime.now();
+    });
+  }
+
+  Future<TaskReminder> addTaskReminder(
+    String taskId,
+    DateTime date, {
+    String title = 'یادآور پیگیری',
+    bool isAllDay = false,
+  }) {
+    return mutate<TaskReminder>((tasks) {
+      final index = tasks.indexWhere((task) => task.id == taskId);
+      if (index < 0) throw StateError('Task not found: $taskId');
+      final task = tasks[index];
+      final highestSequence = task.taskReminders.isEmpty
+          ? 0
+          : task.taskReminders
+              .map((item) => item.sequence)
+              .reduce((a, b) => a > b ? a : b);
+      final sequence = [
+        task.nextReminderSequence,
+        highestSequence + 1,
+      ].reduce((a, b) => a > b ? a : b);
+      final reminder = TaskReminder(
+        id: 'reminder-${DateTime.now().microsecondsSinceEpoch}',
+        title: title,
+        date: date,
+        isAllDay: isAllDay,
+        sequence: sequence,
+      );
+      task.taskReminders = [...task.taskReminders, reminder];
+      task.nextReminderSequence = sequence + 1;
+      task.updatedAt = DateTime.now();
+      return reminder;
     });
   }
 
@@ -318,7 +580,6 @@ class TaskStore {
       preferences: preferences,
     );
     await G1DriftSchema.migrateTaskPeople(executor);
-    await _verifyLegacySourceBeforeCutover(executor, preferences);
     await _seedCategoryCatalog(executor);
     await G1DriftSchema.markLegacyMigrationComplete(executor);
   }
@@ -333,38 +594,6 @@ class TaskStore {
       await executor.runInsert(
         'INSERT OR IGNORE INTO taxonomy_categories (name, created_at) VALUES (?, ?)',
         <Object?>[category, DateTime.now().toIso8601String()],
-      );
-    }
-  }
-
-  Future<void> _verifyLegacySourceBeforeCutover(
-    QueryExecutor executor,
-    SharedPreferences preferences,
-  ) async {
-    final raw = preferences.getString(key);
-    if (raw == null || raw.trim().isEmpty) return;
-
-    final source = jsonDecode(raw);
-    if (source is! List) {
-      throw const FormatException('Canonical task storage must contain a list');
-    }
-    final rows = await executor.runSelect(
-      'SELECT id FROM tasks ORDER BY storage_ordinal, id',
-      const [],
-    );
-    final sqlIds = rows.map((row) => row['id'] as String).toList(growable: false);
-    final sourceIds = <String>[];
-    for (final item in source) {
-      if (item is! Map || item['id'] is! String) {
-        throw const FormatException('Legacy task entry must contain a string id');
-      }
-      sourceIds.add(item['id'] as String);
-    }
-    if (sqlIds.length != sourceIds.length ||
-        !List<String>.from(sqlIds).toSet().containsAll(sourceIds) ||
-        !List<String>.from(sourceIds).toSet().containsAll(sqlIds)) {
-      throw StateError(
-        'SQL migration identity mismatch: legacy=${sourceIds.length}, sql=${sqlIds.length}',
       );
     }
   }
@@ -394,46 +623,71 @@ class TaskStore {
     envelope['createdAt'] = row['created_at'];
     envelope['updatedAt'] = row['updated_at'];
     envelope['dueDate'] = row['due_date'];
-    envelope['followUpEnabled'] =
-        (row['follow_up_enabled'] as num?)?.toInt() == 1;
-    envelope['followUpDate'] = row['follow_up_date'];
     envelope['category'] = row['category'];
     envelope['notebookKind'] = row['notebook_kind'];
-    envelope['reminderDate'] = row['reminder_date'];
     envelope['priority'] = row['priority'];
     envelope['archived'] = (row['archived'] as num?)?.toInt() == 1;
     envelope['trashed'] = (row['trashed'] as num?)?.toInt() == 1;
     envelope['completed'] = (row['completed'] as num?)?.toInt() == 1;
+    envelope['isFavorite'] = (row['is_favorite'] as num?)?.toInt() == 1;
     final completedAt = row['completed_at'];
     if (completedAt is String && completedAt.isNotEmpty) {
       envelope['completedAt'] = completedAt;
     }
 
-    final recurrence = row['recurrence_json'];
-    // Backward compatibility: older canonical rows may not have the dedicated
-    // recurrence column populated, while their preserved legacy envelope still
-    // contains the valid canonical recurrence definition. Prefer the dedicated
-    // column when present; otherwise retain the existing envelope value.
-    if (recurrence is String && recurrence.trim().isNotEmpty) {
-      envelope['recurrence'] = jsonDecode(recurrence);
-    } else if (envelope['recurrence'] is Map) {
-      envelope['recurrence'] = Map<String, dynamic>.from(envelope['recurrence'] as Map);
+    final recurrenceRule = await RecurrenceSqlCodec.readTask(
+      executor,
+      row['id'] as String,
+    );
+    if (recurrenceRule != null) {
+      envelope['recurrence'] = recurrenceRule.toJson();
     } else {
-      envelope['recurrence'] = null;
+      // Read-only fallback for databases that predate the normalized rule table.
+      final recurrence = row['recurrence_json'];
+      if (recurrence is String && recurrence.trim().isNotEmpty) {
+        envelope['recurrence'] = jsonDecode(recurrence);
+      } else if (envelope['recurrence'] is Map) {
+        envelope['recurrence'] = Map<String, dynamic>.from(envelope['recurrence'] as Map);
+      } else {
+        envelope['recurrence'] = null;
+      }
     }
 
+    final reminderRows = await executor.runSelect(
+      'SELECT * FROM task_reminders WHERE task_id = ? ORDER BY sequence, id',
+      <Object?>[row['id']],
+    );
+    envelope['taskReminders'] = reminderRows.map((reminder) => <String, dynamic>{
+      'id': reminder['id'],
+      'title': reminder['title'],
+      'date': reminder['remind_at'],
+      'isAllDay': (reminder['is_all_day'] as num?)?.toInt() == 1,
+      'sequence': reminder['sequence'],
+      'isEnabled': (reminder['is_enabled'] as num?)?.toInt() != 0,
+    }).toList(growable: false);
+
     final followUps = await executor.runSelect(
-      'SELECT * FROM follow_ups WHERE task_id = ? ORDER BY ordinal',
+      'SELECT * FROM follow_up_records WHERE task_id = ? ORDER BY ordinal',
       <Object?>[row['id']],
     );
     final followUpJson = <Map<String, dynamic>>[];
     for (final followUpRow in followUps) {
-      final personRows = await executor.runSelect(
-        'SELECT person_id FROM follow_up_people WHERE follow_up_id = ? ORDER BY ordinal',
+      final value = <String, dynamic>{
+        'id': followUpRow['id'],
+        'completedAt': followUpRow['completed_at'],
+        'title': followUpRow['title'],
+        'note': followUpRow['note'],
+        'result': followUpRow['result'],
+        'completed': (followUpRow['completed'] as num?)?.toInt() == 1,
+        'waitingForResponse':
+            (followUpRow['waiting_for_response'] as num?)?.toInt() == 1,
+      };
+      var personRows = await executor.runSelect(
+        'SELECT person_id FROM follow_up_record_people WHERE follow_up_id = ? ORDER BY ordinal',
         <Object?>[followUpRow['id']],
       );
-      final value = _followUpJson(followUpRow);
-      value['personIds'] = personRows.map((item) => item['person_id'] as String).toList();
+      value['personIds'] =
+          personRows.map((item) => item['person_id'] as String).toList();
       followUpJson.add(value);
     }
     envelope['followUps'] = followUpJson;
@@ -454,13 +708,47 @@ class TaskStore {
     envelope['tags'] = tags.map((item) => item['name'] as String).toList();
 
     final people = await executor.runSelect(
-      'SELECT person_json FROM task_people WHERE task_id = ? ORDER BY ordinal',
+      '''SELECT persons.id, persons.name,
+                CASE WHEN person_directory.person_id IS NULL THEN 1 ELSE 0 END AS is_deleted
+         FROM task_persons
+         JOIN persons ON persons.id = task_persons.person_id
+         LEFT JOIN person_directory ON person_directory.person_id = persons.id
+         WHERE task_persons.task_id = ?
+         ORDER BY task_persons.ordinal''',
       <Object?>[row['id']],
     );
-    envelope['people'] =
-        people.map((item) => jsonDecode(item['person_json'] as String)).toList();
+    envelope['people'] = people
+        .map((item) => <String, dynamic>{
+              'id': item['id'],
+              'displayName': item['name'],
+              'isDeleted': (item['is_deleted'] as num?)?.toInt() == 1,
+            })
+        .toList(growable: false);
 
-    return Task.fromJson(envelope);
+    final occurrenceData = await OccurrenceSqlCodec.readTask(
+      executor,
+      row['id'] as String,
+    );
+    envelope['occurrenceHistory'] = occurrenceData.history;
+    envelope['checklistOccurrences'] = occurrenceData.checklists;
+
+    final hasLegacyFocus = envelope.containsKey('isSelectedForToday');
+    final rawFocusDate = envelope['focusDate'];
+    final invalidFocusDate = rawFocusDate is String &&
+        DateTime.tryParse(rawFocusDate) == null;
+    if (invalidFocusDate) envelope.remove('focusDate');
+    final task = Task.fromJson(envelope);
+    // Convert the legacy timeless boolean exactly once. Persist the canonical
+    // date-only value during the first read so it cannot be reinterpreted as
+    // a fresh selection on every subsequent local day.
+    if (hasLegacyFocus || invalidFocusDate) {
+      final canonical = _canonicalEnvelope(task, previousPayload: envelope);
+      await executor.runUpdate(
+        'UPDATE tasks SET legacy_payload_json = ? WHERE id = ?',
+        <Object?>[jsonEncode(canonical), task.id],
+      );
+    }
+    return task;
   }
 
   Map<String, dynamic> _decodeEnvelope(Object? raw) {
@@ -472,20 +760,10 @@ class TaskStore {
     return Map<String, dynamic>.from(decoded);
   }
 
-  Map<String, dynamic> _followUpJson(Map<String, Object?> row) =>
-      <String, dynamic>{
-        'id': row['id'],
-        'dateTime': row['date_time'],
-        'title': row['title'],
-        'note': row['note'],
-        'result': row['result'],
-        'reminderDate': row['reminder_date'],
-        'nextFollowUp': row['next_follow_up'],
-        'completed': (row['completed'] as num?)?.toInt() == 1,
-        'waitingForResponse': (row['waiting_for_response'] as num?)?.toInt() == 1,
-      };
-
-  Future<void> _saveUnlocked(List<Task> tasks) async {
+  Future<void> _saveUnlocked(
+    List<Task> tasks, {
+    Future<void> Function(QueryExecutor executor)? beforeCommit,
+  }) async {
     final executor = _database;
     await _ensureReady();
 
@@ -494,6 +772,9 @@ class TaskStore {
       // Project membership is canonical SQL data owned by ProjectStore, but
       // project_items references tasks. Preserve those relationship rows while
       // this legacy-compatible TaskStore rewrite replaces the task rows.
+      final templateApplications = await executor.runSelect(
+        'SELECT template_task_id, project_id, task_id FROM template_task_applications', const [],
+      );
       final projectItems = await executor.runSelect(
         'SELECT project_id, task_id, ordinal FROM project_items ORDER BY project_id, ordinal',
         const [],
@@ -502,11 +783,15 @@ class TaskStore {
       // Read them before deleting the task rows; otherwise _canonicalEnvelope
       // cannot recover the previous envelope after the DELETE.
       final legacyPayloads = <String, Map<String, dynamic>>{};
+      final legacyRecurrencePayloads = <String, Object?>{};
       final existingTasks = await executor.runSelect(
-        'SELECT id, legacy_payload_json FROM tasks',
+        'SELECT id, legacy_payload_json, recurrence_json FROM tasks',
         const [],
       );
       for (final row in existingTasks) {
+        if (row['id'] is String && row['recurrence_json'] != null) {
+          legacyRecurrencePayloads[row['id'] as String] = row['recurrence_json'];
+        }
         final raw = row['legacy_payload_json'];
         if (row['id'] is String && raw is String && raw.trim().isNotEmpty) {
           final decoded = jsonDecode(raw);
@@ -516,12 +801,17 @@ class TaskStore {
           }
         }
       }
+      await executor.runCustom('DELETE FROM template_task_applications');
       await executor.runCustom('DELETE FROM project_items');
       await executor.runCustom('DELETE FROM task_tags');
-      await executor.runCustom('DELETE FROM task_people');
+      await executor.runCustom('DELETE FROM task_persons');
       await executor.runCustom('DELETE FROM checklist_items');
-      await executor.runCustom('DELETE FROM follow_up_people');
-      await executor.runCustom('DELETE FROM follow_ups');
+      await executor.runCustom('DELETE FROM occurrence_checklist_items');
+      await executor.runCustom('DELETE FROM task_occurrences');
+      await executor.runCustom('DELETE FROM task_recurrence_rules');
+      await executor.runCustom('DELETE FROM task_reminders');
+      await executor.runCustom('DELETE FROM follow_up_record_people');
+      await executor.runCustom('DELETE FROM follow_up_records');
       await executor.runCustom('DELETE FROM tasks');
 
       for (var ordinal = 0; ordinal < tasks.length; ordinal++) {
@@ -533,9 +823,9 @@ class TaskStore {
         await executor.runInsert(
           '''INSERT INTO tasks (
             id, storage_ordinal, title, description, created_at, updated_at, due_date,
-            follow_up_enabled, follow_up_date, category, notebook_kind, reminder_date,
-            priority, archived, trashed, completed, completed_at, recurrence_json, legacy_payload_json
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+            category, notebook_kind, priority, archived, trashed, completed, completed_at,
+            is_favorite, recurrence_json, legacy_payload_json
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
           <Object?>[
             task.id,
             ordinal,
@@ -543,18 +833,16 @@ class TaskStore {
             task.description,
             task.createdAt?.toIso8601String(),
             task.updatedAt?.toIso8601String(),
-            task.dueDate?.toIso8601String(),
-            task.followUpEnabled ? 1 : 0,
-            task.followUpDate?.toIso8601String(),
+            task.dueDateStorageValue,
             task.category,
             task.notebookKind?.name,
-            task.reminderDate?.toIso8601String(),
             task.priority.name,
             task.archived ? 1 : 0,
             task.trashed ? 1 : 0,
             task.completed ? 1 : 0,
             task.completedAt?.toIso8601String(),
-            task.recurrence == null ? null : jsonEncode(task.recurrence!.toJson()),
+            task.isFavorite ? 1 : 0,
+            legacyRecurrencePayloads[task.id],
             jsonEncode(envelope),
           ],
         );
@@ -568,6 +856,12 @@ class TaskStore {
           <Object?>[row['project_id'], row['task_id'], row['ordinal']],
         );
       }
+      for (final row in templateApplications) {
+        await executor.runInsert(
+          'INSERT INTO template_task_applications (template_task_id, project_id, task_id) VALUES (?, ?, ?)',
+          <Object?>[row['template_task_id'], row['project_id'], row['task_id']],
+        );
+      }
       // Keep categories used by canonical Tasks visible in the independent catalog.
       for (final task in tasks) {
         final category = task.category?.trim();
@@ -579,6 +873,7 @@ class TaskStore {
         }
       }
 
+      await beforeCommit?.call(executor);
       await executor.runCustom('COMMIT');
     } catch (_) {
       try {
@@ -596,8 +891,8 @@ class TaskStore {
       'id', 'title', 'description', 'createdAt', 'updatedAt', 'dueDate',
       'followUpEnabled', 'followUpDate', 'tags', 'category', 'checklist',
       'checklistOccurrences', 'occurrenceHistory', 'notebookKind', 'reminderDate', 'priority', 'archived', 'trashed',
-      'completed', 'completedAt', 'followUps', 'recurrence', 'people',
-      'taskReminders',
+      'completed', 'completedAt', 'isFavorite', 'isSelectedForToday', 'focusDate', 'templateTaskId', 'followUps', 'recurrence', 'people',
+      'taskReminders', 'legacyFollowUpMetadata',
     };
     final preserved = <String, dynamic>{};
     final previous = previousPayload;
@@ -606,28 +901,103 @@ class TaskStore {
         if (!knownKeys.contains(entry.key)) preserved[entry.key] = entry.value;
       }
     }
-    final canonical = Map<String, dynamic>.from(task.toJson());
+    final canonical = Map<String, dynamic>.from(task.toJson())
+      ..remove('id')
+      ..remove('title')
+      ..remove('description')
+      ..remove('createdAt')
+      ..remove('updatedAt')
+      ..remove('dueDate')
+      ..remove('category')
+      ..remove('notebookKind')
+      ..remove('priority')
+      ..remove('archived')
+      ..remove('trashed')
+      ..remove('completed')
+      ..remove('completedAt')
+      ..remove('isFavorite')
+      ..remove('tags')
+      ..remove('checklist')
+      ..remove('followUps')
+      ..remove('people')
+      ..remove('taskReminders')
+      ..remove('recurrence')
+      ..remove('occurrenceHistory')
+      ..remove('checklistOccurrences');
     preserved.addAll(canonical);
     return preserved;
   }
 
   Future<void> _writeRelations(QueryExecutor executor, Task task) async {
+    final now = DateTime.now().toIso8601String();
+    for (final person in task.people) {
+      if (person.isDeleted) {
+        // A historical relation may be rewritten without reactivating the
+        // Person in the directory or overwriting its last known display name.
+        await executor.runInsert(
+          '''INSERT OR IGNORE INTO persons (id, name, created_at, updated_at)
+             VALUES (?, ?, ?, ?)''',
+          <Object?>[person.id, person.displayName, now, now],
+        );
+      } else {
+        final existingPerson = await executor.runSelect(
+          'SELECT id FROM persons WHERE id = ?',
+          <Object?>[person.id],
+        );
+        // The Person row owns the canonical display name. Task snapshots
+        // may be stale, so relation writes must not overwrite an explicit
+        // directory rename with an older embedded displayName.
+        await executor.runInsert(
+          '''INSERT OR IGNORE INTO persons (id, name, created_at, updated_at)
+             VALUES (?, ?, ?, ?)''',
+          <Object?>[person.id, person.displayName, now, now],
+        );
+        // Seed directory membership only when this is a genuinely new Person.
+        // A stale Task snapshot must not silently re-add someone whose active
+        // directory membership was removed after that snapshot was loaded.
+        if (existingPerson.isEmpty) {
+          await executor.runInsert(
+            'INSERT OR IGNORE INTO person_directory (person_id) VALUES (?)',
+            <Object?>[person.id],
+          );
+        }
+      }
+    }
+    for (final followUp in task.followUps) {
+      for (final personId in followUp.personIds) {
+        await executor.runInsert(
+          '''INSERT OR IGNORE INTO persons (id, name, created_at, updated_at)
+             VALUES (?, '', ?, ?)''',
+          <Object?>[personId, now, now],
+        );
+      }
+    }
+    for (final reminder in task.taskReminders) {
+      await executor.runInsert(
+        '''INSERT INTO task_reminders
+           (id, task_id, title, remind_at, is_all_day, sequence, is_enabled)
+           VALUES (?, ?, ?, ?, ?, ?, ?)''',
+        <Object?>[
+          reminder.id, task.id, reminder.title, reminder.storageDateValue,
+          reminder.isAllDay ? 1 : 0, reminder.sequence, reminder.isEnabled ? 1 : 0,
+        ],
+      );
+    }
     for (var ordinal = 0; ordinal < task.followUps.length; ordinal++) {
       final followUp = task.followUps[ordinal];
       await executor.runInsert(
-        '''INSERT INTO follow_ups
-           (id, task_id, date_time, title, note, result, reminder_date, next_follow_up, completed, waiting_for_response, ordinal)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+        '''INSERT INTO follow_up_records
+           (id, task_id, completed_at, title, note, result, completed, waiting_for_response, ordinal)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
         <Object?>[
-          followUp.id, task.id, followUp.dateTime.toIso8601String(), followUp.title,
-          followUp.note, followUp.result, followUp.reminderDate?.toIso8601String(),
-          followUp.nextFollowUp?.toIso8601String(), followUp.completed ? 1 : 0,
-          followUp.waitingForResponse ? 1 : 0, ordinal,
+          followUp.id, task.id, followUp.completedAt.toIso8601String(),
+          followUp.title, followUp.note, followUp.result,
+          followUp.completed ? 1 : 0, followUp.waitingForResponse ? 1 : 0, ordinal,
         ],
       );
       for (var personOrdinal = 0; personOrdinal < followUp.personIds.length; personOrdinal++) {
         await executor.runInsert(
-          'INSERT INTO follow_up_people (follow_up_id, person_id, ordinal) VALUES (?, ?, ?)',
+          'INSERT INTO follow_up_record_people (follow_up_id, person_id, ordinal) VALUES (?, ?, ?)',
           <Object?>[followUp.id, followUp.personIds[personOrdinal], personOrdinal],
         );
       }
@@ -641,8 +1011,8 @@ class TaskStore {
     for (var ordinal = 0; ordinal < task.people.length; ordinal++) {
       final person = task.people[ordinal];
       await executor.runInsert(
-        'INSERT INTO task_people (task_id, person_id, person_json, ordinal) VALUES (?, ?, ?, ?)',
-        <Object?>[task.id, person.id, jsonEncode(person.toJson()), ordinal],
+        'INSERT INTO task_persons (task_id, person_id, ordinal) VALUES (?, ?, ?)',
+        <Object?>[task.id, person.id, ordinal],
       );
     }
     for (var ordinal = 0; ordinal < task.tags.length; ordinal++) {
@@ -657,6 +1027,8 @@ class TaskStore {
         <Object?>[task.id, tagId, ordinal],
       );
     }
+    await OccurrenceSqlCodec.writeTask(executor, task);
+    await RecurrenceSqlCodec.writeTask(executor, task);
   }
 
   static String _tagId(String value) =>

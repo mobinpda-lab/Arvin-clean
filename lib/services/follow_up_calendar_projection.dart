@@ -61,11 +61,14 @@ class FollowUpCalendarProjection {
       TaskReminder? target;
       if (reminderRecordId != null) {
         for (final reminder in task.taskReminders) {
-          if (reminder.id == reminderRecordId) { target = reminder; break; }
+          if (reminder.id == reminderRecordId && reminder.isEnabled) {
+            target = reminder;
+            break;
+          }
         }
       } else {
         for (final reminder in task.taskReminders) {
-          if (!reminder.isLegacyTaskReminder) continue;
+          if (!reminder.isEnabled || !isMigratedTaskReminder(task, reminder)) continue;
           if (target != null) return null;
           target = reminder;
         }
@@ -100,13 +103,13 @@ class FollowUpCalendarProjection {
     );
 
     for (final task in taskList) {
-      if (task.trashed) {
+      if (task.trashed || task.archived) {
         if (task.id == 'calendar-smoke-task') {
           for (final reminder in task.taskReminders) {
             debugPrint(
               'CALENDAR_DIAG_B: taskId=${task.id} reminderId=${reminder.id} '
-              'type=${reminder.isLegacyTaskReminder ? 'legacy' : 'independent'} '
-              'date=${reminder.date.toIso8601String()} DROP_REASON=task_trashed',
+              'type=${isMigratedTaskReminder(task, reminder) ? 'migrated' : 'independent'} '
+              'date=${reminder.date.toIso8601String()} DROP_REASON=task_archived_or_trashed',
             );
           }
         }
@@ -116,47 +119,32 @@ class FollowUpCalendarProjection {
       final taskDatesAlreadyProjected = <DateTime>[];
 
       for (final reminder in task.taskReminders) {
+        // Disabled reminders remain persisted but are not active Calendar or
+        // external-provider events.
+        if (!reminder.isEnabled) continue;
         reminders.add(
           CalendarReminder(
             // The migrated legacy reminder keeps its old external identity so
             // provider sync updates the existing event instead of creating a
             // second event under the new collection namespace.
-            id: reminder.isLegacyTaskReminder
+            id: isMigratedTaskReminder(task, reminder)
                 ? taskReminderIdFor(task)
                 : independentTaskReminderIdFor(task, reminder),
             title: reminder.title,
             date: reminder.date,
             completed: task.completed,
             isAllDay: reminder.isAllDay,
+            description: task.description,
           ),
         );
         if (task.id == 'calendar-smoke-task') {
           debugPrint(
             'CALENDAR_DIAG_B: taskId=${task.id} '
-            'outputReminderId=${reminder.isLegacyTaskReminder ? taskReminderIdFor(task) : independentTaskReminderIdFor(task, reminder)} '
-            'type=${reminder.isLegacyTaskReminder ? 'legacy' : 'independent'} '
+            'outputReminderId=${isMigratedTaskReminder(task, reminder) ? taskReminderIdFor(task) : independentTaskReminderIdFor(task, reminder)} '
+            'type=${isMigratedTaskReminder(task, reminder) ? 'migrated' : 'independent'} '
             'date=${reminder.date.toIso8601String()} RESULT=PROJECTED',
           );
         }
-        if (reminder.isLegacyTaskReminder) {
-          // Preserve the legacy projection's due-date de-duplication behavior.
-          taskDatesAlreadyProjected.add(reminder.date);
-        }
-      }
-
-      final taskReminderDate = task.reminderDate;
-      if (task.legacyTaskReminderMigrationVersion < 1 &&
-          taskReminderDate != null &&
-          !taskDatesAlreadyProjected.any((date) => _sameInstant(date, taskReminderDate))) {
-        reminders.add(
-          CalendarReminder(
-            id: taskReminderIdFor(task),
-            title: 'یادآوری: ${task.title}',
-            date: taskReminderDate,
-            completed: task.completed,
-          ),
-        );
-        taskDatesAlreadyProjected.add(taskReminderDate);
       }
 
       final dueDate = task.dueDate;
@@ -183,6 +171,7 @@ class FollowUpCalendarProjection {
             title: task.title,
             date: occurrence,
             completed: completed,
+            description: task.description,
           ));
           taskDatesAlreadyProjected.add(occurrence);
         }
@@ -195,13 +184,12 @@ class FollowUpCalendarProjection {
             date: dueDate,
             completed: task.completed,
             isAllDay: _isDateOnly(dueDate),
+            description: task.description,
           ),
         );
         taskDatesAlreadyProjected.add(dueDate);
       }
 
-      // Legacy followUpDate is a schedule/history value, not proof that an
-      // independent reminder exists. Do not project it into Calendar.
     }
 
     reminders.sort((a, b) => a.date.compareTo(b.date));
