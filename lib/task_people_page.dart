@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/material.dart';
 
 import 'models/task.dart';
@@ -81,7 +83,13 @@ class _TaskPeoplePageState extends State<TaskPeoplePage> {
         ..showSnackBar(
           const SnackBar(content: Text('نام شخص را وارد کنید')),
         );
-    } catch (_) {
+    } catch (error, stackTrace) {
+      developer.log(
+        'Adding a local Person failed',
+        name: 'arvin.people',
+        error: error,
+        stackTrace: stackTrace,
+      );
       if (!mounted) return;
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
