@@ -102,3 +102,38 @@ Continue WAVE 4 as a **READ-ONLY** audit from the newly committed live HEAD:
 7. Do not change code, schema, migrations, tests, workflows, Main, PR metadata, merge, or release.
 
 **Release gate:** BLOCKED — RELEASE: NO-GO.
+
+
+## WAVE 4 REV8 — implementation checkpoint (2026-11-10)
+
+**Owner authorization:** Mobin explicitly superseded the former read-only Wave 4 task and authorized audit, implementation and testing on the working branch.
+
+### Live checkpoint at the time of this entry
+- Implementation checkpoint SHA: `dbfcdb02879ed3939cb6a69d3a150e2237283a51`.
+- Documentation/report checkpoint before this addendum: `8f43c5273920bba738479484a53e5e9d1eff8fd4`.
+- Branch: `fix/recovery-calendar-device-smoke-2026-10-31`.
+- PR #3052: OPEN / DRAFT / UNMERGED; base Main SHA `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Main remains READ-ONLY; Release remains BLOCKED — NO-GO.
+
+### Work implemented in source
+- Task migration validates row count, ordered IDs, storage ordinals, scalar fields, unknown-field envelope, TaskReminder, Follow-up, checklist, Person/Tag relations, Occurrence and Recurrence parity, plus foreign keys before COMMIT.
+- Existing same-ID rows are compared; content conflicts fail instead of being skipped.
+- The post-COMMIT ID-only Task validator was removed.
+- Unproven legacy table drops and Task/Reminder table rebuilds were disabled; legacy source tables/columns remain.
+- Project migration is unified through SqlProjectMigrationWriter with field, membership, ordering, unknown-field and FK checks; ProjectStore preserves unknown Project fields and persists order.
+- Recurrence rules and Occurrence/per-occurrence checklist state now have relational SQL tables and TaskStore read/write paths.
+- Added migration conflict, ordering, unknown-field, Recurrence and Occurrence round-trip tests.
+
+### Verification
+Exact-SHA workflows on implementation SHA `dbfcdb02879ed3939cb6a69d3a150e2237283a51` were PENDING/QUEUED at the last lookup: Build run `42864431438`, Device Smoke run `42864430851`, Calendar Provider `42864431259`, Follow-up Persistence `42864430953`, Draft APK `42864431042`. No local Flutter command was run; local workspace state is NOT VERIFIED. Do not claim test PASS.
+
+### Remaining blockers
+- Full field/relation parity for G1 legacy Follow-up/Person migrations.
+- One atomic transaction across all legacy sources and stores.
+- Complete SQL normalization of Task/Project envelopes and template JSON fields.
+- Settings, Calendar, Prayer Completion, Notification State and Sync ownership.
+- Complete Backup/Restore coverage and round-trip proof.
+- Exact-SHA CI, integration and Android Device Smoke acceptance.
+- Four Reminder state names/transitions remain a Mobin decision.
+
+**Next action:** inspect exact-SHA Build and Device Smoke outcomes, repair failures without weakening tests, then continue G1 parity and full Backup/Restore coverage. Preserve all legacy sources until every retirement gate and Mobin acceptance is proven.
