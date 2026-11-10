@@ -126,9 +126,13 @@ class RecurrenceSqlCodec {
           envelopeRule = Map<String, dynamic>.from(rawRule);
         }
       }
-      if (columnRule != null && envelopeRule != null &&
-          _canonicalJson(columnRule) != _canonicalJson(envelopeRule)) {
-        throw StateError('Legacy recurrence sources conflict for Task $taskId');
+      if (columnRule != null && envelopeRule != null) {
+        final columnDecoded = _decodeStrict(columnRule, taskId);
+        final envelopeDecoded = _decodeStrict(envelopeRule, taskId);
+        if (_canonicalJson(columnDecoded.toJson()) !=
+            _canonicalJson(envelopeDecoded.toJson())) {
+          throw StateError('Legacy recurrence sources conflict for Task $taskId');
+        }
       }
       final source = columnRule ?? envelopeRule;
       if (source == null) continue;
