@@ -7,6 +7,7 @@ import 'g1_drift_schema.dart';
 import 'task_migration_adapter.dart';
 import 'task_migration_reader.dart';
 import 'occurrence_sql_codec.dart';
+import 'recurrence_sql_codec.dart';
 
 /// One-way migration writer from the canonical legacy task document to SQL.
 ///
@@ -110,7 +111,7 @@ class SqlTaskMigrationWriter {
         _bool(task.completed),
         task.completedAt?.toIso8601String(),
         _bool(task.isFavorite),
-        task.recurrence == null ? null : jsonEncode(task.recurrence!.toJson()),
+        null,
         jsonEncode(_storageEnvelope(record)),
       ],
     );
@@ -225,10 +226,12 @@ class SqlTaskMigrationWriter {
       );
     }
     await OccurrenceSqlCodec.writeTask(executor, task);
+    await RecurrenceSqlCodec.writeTask(executor, task);
   }
 
   Map<String, dynamic> _storageEnvelope(TaskMigrationRecord record) {
     return Map<String, dynamic>.from(record.sourceJson)
+      ..remove('recurrence')
       ..remove('occurrenceHistory')
       ..remove('checklistOccurrences');
   }
@@ -267,16 +270,29 @@ class SqlTaskMigrationWriter {
       'completed': task.completed ? 1 : 0,
       'completed_at': task.completedAt?.toIso8601String(),
       'is_favorite': task.isFavorite ? 1 : 0,
-      'recurrence_json': task.recurrence == null ? null : jsonEncode(task.recurrence!.toJson()),
     };
     for (final entry in fields.entries) {
       if (row[entry.key] != entry.value) {
         throw StateError('Task field conflict ${task.id}.${entry.key}: source=${entry.value}, target=${row[entry.key]}');
       }
     }
-    final envelope = row['legacy_payload_json'];
-    if (envelope is! String || _canonicalJson(jsonDecode(envelope)) != _canonicalJson(_storageEnvelope(record))) {
+    final rawEnvelope = row['legacy_payload_json'];
+    if (rawEnvelope is! String) {
+      throw StateError('Task envelope is missing for ${task.id}.');
+    }
+    final existingEnvelope = Map<String, dynamic>.from(jsonDecode(rawEnvelope) as Map)
+      ..remove('recurrence')
+      ..remove('occurrenceHistory')
+      ..remove('checklistOccurrences');
+    if (_canonicalJson(existingEnvelope) != _canonicalJson(_storageEnvelope(record))) {
       throw StateError('Task envelope/unknown-field conflict for ${task.id}.');
+    }
+    final legacyRecurrence = row['recurrence_json'];
+    if (legacyRecurrence != null &&
+        (task.recurrence == null ||
+         _canonicalJson(jsonDecode(legacyRecurrence as String)) !=
+             _canonicalJson(task.recurrence!.toJson()))) {
+      throw StateError('Legacy recurrence conflict for Task ${task.id}.');
     }
 
     final reminders = task.taskReminders.toList()
@@ -321,6 +337,11 @@ class SqlTaskMigrationWriter {
     if (_canonicalJson(occurrenceData.history) != _canonicalJson(task.occurrenceHistory) ||
         _canonicalJson(occurrenceData.checklists) != _canonicalJson(task.checklistOccurrences)) {
       throw StateError('Occurrence/occurrence-checklist parity mismatch for Task ${task.id}.');
+    }
+    final recurrenceRule = await RecurrenceSqlCodec.readTask(executor, task.id);
+    if (_canonicalJson(recurrenceRule?.toJson()) !=
+        _canonicalJson(task.recurrence?.toJson())) {
+      throw StateError('Recurrence relational parity mismatch for Task ${task.id}.');
     }
   }
 
