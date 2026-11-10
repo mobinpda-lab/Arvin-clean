@@ -404,7 +404,7 @@ void main() {
     await database.ensureOpen(G1DriftSchema());
     // Pre-taxonomy layout intentionally lacks recurrence_json. The G1 upgrade
     // must add the column before importing the recurrence envelope.
-    await database.runCustom("CREATE TABLE tasks (id TEXT NOT NULL PRIMARY KEY, title TEXT NOT NULL, description TEXT NOT NULL, created_at TEXT NULL, updated_at TEXT NULL, due_date TEXT NULL, follow_up_enabled INTEGER NOT NULL, follow_up_date TEXT NULL, category TEXT NULL, notebook_kind TEXT NULL, reminder_date TEXT NULL, priority TEXT NOT NULL, archived INTEGER NOT NULL, trashed INTEGER NOT NULL, completed INTEGER NOT NULL, legacy_payload_json TEXT NULL)");
+    await database.runCustom("CREATE TABLE tasks (id TEXT NOT NULL PRIMARY KEY, title TEXT NOT NULL, description TEXT NOT NULL, created_at TEXT NULL, updated_at TEXT NULL, due_date TEXT NULL, follow_up_enabled INTEGER NOT NULL, follow_up_date TEXT NULL, category TEXT NULL, notebook_kind TEXT NULL, reminder_date TEXT NULL, priority TEXT NOT NULL, archived INTEGER NOT NULL, trashed INTEGER NOT NULL, completed INTEGER NOT NULL, storage_ordinal INTEGER NOT NULL DEFAULT 0, legacy_payload_json TEXT NULL)");
     const legacyOccurrenceDate = '2026-11-01T08:00:00.000Z';
     await database.runInsert(
       '''INSERT INTO tasks (
