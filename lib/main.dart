@@ -2154,11 +2154,6 @@ class _HomePageState extends State<HomePage> {
       selectionMode = false;
     });
     await _save();
-    try {
-      await AndroidFollowUpReminderScheduler().reschedule();
-    } catch (_) {
-      // Completion is already persisted; a later scheduler pass can retry.
-    }
     if (!mounted) return;
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
