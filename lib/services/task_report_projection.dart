@@ -1,4 +1,5 @@
 import '../models/task.dart';
+import 'iran_clock.dart';
 
 class TaskReportEntry {
   const TaskReportEntry({
@@ -11,6 +12,8 @@ class TaskReportEntry {
     required this.completed,
     this.reminders = const <TaskReminder>[],
     this.priority = TaskPriority.medium,
+    this.dueDate,
+    this.allDay = false,
   });
 
   final String id;
@@ -22,6 +25,8 @@ class TaskReportEntry {
   final bool completed;
   final List<TaskReminder> reminders;
   final TaskPriority priority;
+  final DateTime? dueDate;
+  final bool allDay;
 }
 
 class TaskReportPriorityGroup {
@@ -79,13 +84,15 @@ class TaskReportProjection {
             completed: task.completed,
             reminders: List<TaskReminder>.unmodifiable(task.taskReminders),
             priority: task.priority,
+            dueDate: task.dueDate,
+            allDay: task.allDay,
           ),
         )
         .toList(growable: false);
 
     return TaskReport(
       title: title,
-      generatedAt: generatedAt ?? DateTime.now(),
+      generatedAt: generatedAt ?? IranClock.now(),
       entries: entries,
     );
   }
