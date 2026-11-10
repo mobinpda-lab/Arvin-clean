@@ -402,8 +402,40 @@ void main() {
   });
   test('upgrades an existing pre-taxonomy schema without losing task data', () async {
     await database.ensureOpen(G1DriftSchema());
-    await database.runCustom("CREATE TABLE tasks (id TEXT NOT NULL PRIMARY KEY, title TEXT NOT NULL, description TEXT NOT NULL, created_at TEXT NULL, updated_at TEXT NULL, due_date TEXT NULL, follow_up_enabled INTEGER NOT NULL, follow_up_date TEXT NULL, category TEXT NULL, notebook_kind TEXT NULL, reminder_date TEXT NULL, priority TEXT NOT NULL, archived INTEGER NOT NULL, trashed INTEGER NOT NULL, completed INTEGER NOT NULL, recurrence_json TEXT NULL)");
-    await database.runCustom("INSERT INTO tasks (id, title, description, follow_up_enabled, priority, archived, trashed, completed) VALUES ('legacy-task', 'قدیمی', '', 0, 'none', 0, 0, 1)");
+    // Pre-taxonomy layout intentionally lacks recurrence_json. The G1 upgrade
+    // must add the column before importing the recurrence envelope.
+    await database.runCustom("CREATE TABLE tasks (id TEXT NOT NULL PRIMARY KEY, title TEXT NOT NULL, description TEXT NOT NULL, created_at TEXT NULL, updated_at TEXT NULL, due_date TEXT NULL, follow_up_enabled INTEGER NOT NULL, follow_up_date TEXT NULL, category TEXT NULL, notebook_kind TEXT NULL, reminder_date TEXT NULL, priority TEXT NOT NULL, archived INTEGER NOT NULL, trashed INTEGER NOT NULL, completed INTEGER NOT NULL, legacy_payload_json TEXT NULL)");
+    const legacyOccurrenceDate = '2026-11-01T08:00:00.000Z';
+    await database.runInsert(
+      '''INSERT INTO tasks (
+        id, title, description, follow_up_enabled, priority, archived,
+        trashed, completed, legacy_payload_json
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+      <Object?>[
+        'legacy-task', 'قدیمی', '', 0, 'none', 0, 0, 1,
+        jsonEncode(<String, dynamic>{
+          'id': 'legacy-task',
+          'title': 'قدیمی',
+          'recurrence': <String, dynamic>{
+            'frequency': 'daily',
+            'interval': 1,
+            'active': true,
+            'trackingLevel': 'normal',
+          },
+          'occurrenceHistory': <String, dynamic>{
+            legacyOccurrenceDate: <String, dynamic>{
+              'scheduledDate': legacyOccurrenceDate,
+              'status': 'completed',
+              'completionDate': '2026-11-01T09:00:00.000Z',
+              'result': 'done',
+            },
+          },
+          'checklistOccurrences': <String, dynamic>{
+            legacyOccurrenceDate: <String>['[x] مرحله اول'],
+          },
+        }),
+      ],
+    );
     await database.runCustom(
       "INSERT INTO tasks (id, title, description, follow_up_enabled, follow_up_date, priority, archived, trashed, completed) "
       "VALUES ('legacy-followup-enabled', 'پیگیری فعال', '', 1, '2026-11-10T10:30:00.000', 'none', 0, 0, 0)",
@@ -420,6 +452,30 @@ void main() {
     expect(tasks.single['title'], 'قدیمی');
     final columns = await database.runSelect("PRAGMA table_info('tasks')", const []);
     expect(columns.map((row) => row['name']), containsAll(<String>['legacy_payload_json', 'completed_at']));
+    expect(columns.map((row) => row['name']), contains('recurrence_json'));
+    final recurrenceRule = await database.runSelect(
+      'SELECT frequency FROM task_recurrence_rules WHERE task_id = ?',
+      const <Object?>['legacy-task'],
+    );
+    expect(recurrenceRule.single['frequency'], 'daily');
+    final occurrenceRows = await database.runSelect(
+      'SELECT scheduled_at, status FROM task_occurrences WHERE task_id = ?',
+      const <Object?>['legacy-task'],
+    );
+    expect(occurrenceRows.single['scheduled_at'], legacyOccurrenceDate);
+    expect(occurrenceRows.single['status'], 'completed');
+    final occurrenceChecklist = await database.runSelect(
+      'SELECT value FROM occurrence_checklist_items',
+      const [],
+    );
+    expect(occurrenceChecklist.single['value'], '[x] مرحله اول');
+    final migratedEnvelope = (await database.runSelect(
+      'SELECT legacy_payload_json FROM tasks WHERE id = ?',
+      const <Object?>['legacy-task'],
+    )).single;
+    final migratedJson = jsonDecode(migratedEnvelope['legacy_payload_json'] as String) as Map<String, dynamic>;
+    expect(migratedJson.containsKey('occurrenceHistory'), isFalse);
+    expect(migratedJson.containsKey('checklistOccurrences'), isFalse);
     final migratedTask = await database.runSelect('SELECT completed, completed_at FROM tasks WHERE id = ?', <Object?>['legacy-task']);
     expect(migratedTask.single['completed'], 1);
     // A pre-timestamp completed task stays unknown; migration must not invent a time.
