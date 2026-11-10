@@ -29,6 +29,42 @@ void main() {
     expect(entry.tags, ['مهم']);
     expect(entry.checklist, ['[x] ارسال']);
   });
+  test('projects dueDate and all-day state independently from Task reminders', () {
+    final dueAt = DateTime(2026, 8, 31, 14, 20);
+    final reminderAt = DateTime(2026, 9, 1, 9);
+    final tasks = [
+      Task(
+        id: 'timed-due',
+        title: 'موعد زمان‌دار',
+        dueDate: dueAt,
+        taskReminders: [
+          TaskReminder(
+            id: 'separate-reminder',
+            title: 'یادآور مستقل',
+            date: reminderAt,
+          ),
+        ],
+      ),
+      Task(
+        id: 'all-day-due',
+        title: 'موعد تمام‌روز',
+        dueDate: DateTime(2026, 9, 2),
+        allDay: true,
+      ),
+    ];
+
+    final entries = projection.project(tasks).entries;
+    final timed = entries.firstWhere((entry) => entry.id == 'timed-due');
+    final allDay = entries.firstWhere((entry) => entry.id == 'all-day-due');
+
+    expect(timed.dueDate, dueAt);
+    expect(timed.allDay, isFalse);
+    expect(timed.reminders.single.date, reminderAt);
+    expect(allDay.dueDate, DateTime(2026, 9, 2));
+    expect(allDay.allDay, isTrue);
+    expect(allDay.reminders, isEmpty);
+  });
+
   test('disabled checklist rows remain on Task but are excluded from reports', () {
     final task = Task(
       id: 'disabled-report-checklist',
