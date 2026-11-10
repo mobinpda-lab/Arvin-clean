@@ -53,7 +53,6 @@ class TaskPeopleService {
       id: personId ?? _personIdFactory(),
       displayName: normalizedName,
     );
-    print('[ARVIN_PEOPLE_DIAG] add start task=$taskId person=${person.id}');
     final updated = await _store.mutate<Task>((tasks) {
       final index = _requiredTaskIndex(tasks, taskId);
       final task = tasks[index];
@@ -66,12 +65,9 @@ class TaskPeopleService {
       tasks[index] = updated;
       return updated;
     });
-    print('[ARVIN_PEOPLE_DIAG] task mutation complete task=$taskId people=${updated.people.length}');
     // Creating a Person from this explicit People action adds active directory
     // membership; ordinary Task relation rewrites never do so.
-    print('[ARVIN_PEOPLE_DIAG] directory merge start task=$taskId');
     await _store.mergePeopleDirectory([person]);
-    print('[ARVIN_PEOPLE_DIAG] directory merge complete task=$taskId');
     return updated;
   }
 

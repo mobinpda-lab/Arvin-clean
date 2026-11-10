@@ -82,8 +82,16 @@ class _TaskPeoplePageState extends State<TaskPeoplePage> {
           const SnackBar(content: Text('نام شخص را وارد کنید')),
         );
     } catch (error, stackTrace) {
-      print('[ARVIN_PEOPLE_DIAG] page add failed error=$error');
-      print(stackTrace);
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: error.runtimeType,
+          stack: stackTrace,
+          library: 'arvin people',
+          context: ErrorDescription(
+            'Adding a person to a Task failed; error details omitted to protect user data.',
+          ),
+        ),
+      );
       if (!mounted) return;
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
