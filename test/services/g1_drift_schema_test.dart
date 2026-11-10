@@ -293,7 +293,7 @@ void main() {
       "SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('follow_ups', 'follow_up_people', 'people', 'task_people')",
       const [],
     );
-    expect(retiredTables, isEmpty);
+    expect(retiredTables.map((row) => row['name']), containsAll(<String>['follow_ups','follow_up_people','people','task_people']));
   });
 
   test('legacy Task reminder migration persists its marker and is idempotent', () async {
@@ -420,9 +420,8 @@ void main() {
     expect(migratedTask.single['completed'], 1);
     // A pre-timestamp completed task stays unknown; migration must not invent a time.
     expect(migratedTask.single['completed_at'], isNull);
-    expect(columns.map((row) => row['name']), isNot(contains('follow_up_enabled')));
-    expect(columns.map((row) => row['name']), isNot(contains('follow_up_date')));
-    expect(columns.map((row) => row['name']), isNot(contains('reminder_date')));
+    // Legacy source columns remain until field/relation parity and backup/restore acceptance authorize retirement.
+    expect(columns.map((row) => row['name']), containsAll(<String>['follow_up_enabled','follow_up_date','reminder_date']));
 
     final migratedPayloads = await database.runSelect(
       'SELECT id, legacy_payload_json FROM tasks '
@@ -547,7 +546,7 @@ void main() {
       "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'task_people'",
       const [],
     );
-    expect(retiredSource, isEmpty);
+    expect(retiredSource, hasLength(1));
     expect(
       await database.runSelect('PRAGMA foreign_key_check', const []),
       isEmpty,
