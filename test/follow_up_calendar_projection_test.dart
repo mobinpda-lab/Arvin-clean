@@ -268,7 +268,7 @@ void main() {
     final reminders = projection.project(<Task>[task]);
 
     expect(reminders, hasLength(2));
-    expect(reminders.map((item) => item.id), contains('task-reminder:task-reminder'));
+    expect(reminders.map((item) => item.id), contains('task-reminder-item:task-reminder:canonical-reminder'));
     expect(reminders.map((item) => item.id), contains('task-due:task-reminder'));
   });
 
@@ -284,7 +284,7 @@ void main() {
     final reminders = projection.project(<Task>[task]);
 
     expect(reminders, hasLength(2));
-    expect(reminders.map((item) => item.id), contains('task-reminder:same-instant'));
+    expect(reminders.map((item) => item.id), contains('task-reminder-item:same-instant:same-instant-reminder'));
     expect(reminders.map((item) => item.id), contains('task-due:same-instant'));
     expect(reminders.map((item) => item.date), everyElement(sameDateTime));
   });
@@ -306,7 +306,7 @@ void main() {
       contains('task-reminder:task-reminder'),
     );
     expect(
-      reminders.firstWhere((item) => item.id == 'task-reminder:task-reminder').date,
+      reminders.firstWhere((item) => item.id == 'task-reminder-item:task-reminder:morning-reminder').date,
       reminderDate,
     );
   });
