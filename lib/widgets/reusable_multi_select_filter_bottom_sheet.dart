@@ -54,7 +54,7 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
     String searchHint = 'جستجو...',
     String allLabel = 'همه',
     String createHint = 'نام مورد جدید',
-    String createLabel = 'افزودن و انتخاب',
+    String createLabel = '+ ایجاد مورد جدید',
     String applyLabel = 'تأیید / اعمال فیلتر',
     String? optionKeyPrefix,
     Future<ReusableFilterOption<T>?> Function(String value)? onCreate,
@@ -217,7 +217,7 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
                               height: 18,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Text('+ ایجاد مورد جدید'),
+                          : Text(createLabel),
                     ),
                   ),
                 ],
