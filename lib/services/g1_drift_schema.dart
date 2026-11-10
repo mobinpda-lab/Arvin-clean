@@ -60,7 +60,7 @@ class G1DriftSchema implements QueryExecutorUser {
   tags_json TEXT NOT NULL DEFAULT '[]', checklist_json TEXT NOT NULL DEFAULT '[]', ordinal INTEGER NOT NULL,
   UNIQUE(template_id, ordinal))''',
     '''CREATE TABLE IF NOT EXISTS projects (
-  id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL,
+  id TEXT NOT NULL PRIMARY KEY, storage_ordinal INTEGER NOT NULL DEFAULT 0, name TEXT NOT NULL,
   color_value INTEGER NOT NULL DEFAULT 4283059371, is_archived INTEGER NOT NULL DEFAULT 0,
   center_id TEXT NULL REFERENCES centers(id), template_id TEXT NULL,
   template_name_snapshot TEXT NULL, legacy_payload_json TEXT NULL)''',
@@ -186,6 +186,9 @@ class G1DriftSchema implements QueryExecutorUser {
         }
       }
       final projectColumns = await executor.runSelect("PRAGMA table_info('projects')", const []);
+      if (!projectColumns.any((row) => row['name'] == 'storage_ordinal')) {
+        await executor.runCustom('ALTER TABLE projects ADD COLUMN storage_ordinal INTEGER NOT NULL DEFAULT 0');
+      }
       if (!projectColumns.any((row) => row['name'] == 'color_value')) {
         await executor.runCustom('ALTER TABLE projects ADD COLUMN color_value INTEGER NOT NULL DEFAULT 4283059371');
       }
