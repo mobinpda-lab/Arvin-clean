@@ -26,3 +26,17 @@ Official documentation consulted on 2026-11-10:
 ## Single-source rule
 
 All agent-specific files are thin pointers. They must not contain independent copies of product rules. The only canonical AI policy is `AI_GOVERNANCE_POLICY.md`; the active product charter is `MASTER_GOVERNANCE.md`. Changes to the policy belong in those canonical files, followed by a check that every adapter still points to them.
+
+
+## Adapter duplication and preservation rule — 2026-11-10
+
+The following three entry-point files currently have identical blob content by design:
+- `CLAUDE.md`
+- `GEMINI.md`
+- `.github/copilot-instructions.md`
+
+They are separate tool-discovery entry points that intentionally share the same thin-pointer text. This is not duplicate product documentation and is not a cleanup deletion target. Keep the one-policy architecture; update the canonical AI policy first and only change adapter text when a tool-specific bootstrap requirement is proven.
+
+The two UI documents named `ARVIN_UI_CANONICAL.md` are not exact duplicates: `docs/ARVIN_UI_CANONICAL.md` and `docs/UI/ARVIN_UI_CANONICAL.md` differ in content, length and purpose. Do not merge or rename them until inbound links and authority are audited in WAVE 3.
+
+Runtime pickup of Claude, Gemini, Copilot, Cursor and Windsurf rules remains NOT VERIFIED. File presence and matching adapter text do not prove runtime activation.

@@ -1,3 +1,5 @@
+> **HISTORICAL BACKLOG SNAPSHOT — NOT THE ACTIVE TASK REGISTER.** This file preserves the earlier REV8 / PR #3052 work list and its historical SHA/CI values. Do not treat its branch, dates, colors, run IDs or pending statuses as current. Current repository cleanup work is governed by [ROADMAP.md](ROADMAP.md), current issues by [OPEN_ISSUES.md](OPEN_ISSUES.md), and live status by GitHub. No task in this historical list authorizes code or sync work.
+
 # TODO — دفتر کارهای باز آروین
 
 **مخزن:** `mobinpda-lab/Arvin-clean`  

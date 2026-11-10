@@ -1,8 +1,40 @@
+# Arvin Project Continuity — REV9
+**Current baseline:** 2026-11-10 · Repository Cleanup WAVE 0
+**Main HEAD:** `45e4202b03a434459e4c021a04efa7e8396359db`
+**Documentation PR:** [#3340](https://github.com/mobinpda-lab/Arvin-clean/pull/3340) · OPEN / READY FOR REVIEW / UNMERGED
+**Protected engineering PR:** [#3052](https://github.com/mobinpda-lab/Arvin-clean/pull/3052) · OPEN / DRAFT / UNMERGED
+**Product direction:** LOCAL-FIRST standalone; local SQL sole durable source of truth; multi-device sync SUSPENDED.
+
+## Official Repository Cleanup Program
+0. Live Repository Baseline
+1. Git History Forensic Audit
+2. Test Governance & CI Audit
+3. Architecture & Documentation Audit
+4. Safe Cleanup & Consolidation
+
+This is the only active cleanup-wave sequence. Preserve historical REV8 engineering waves and REV9 product evolution taxonomy as separately labelled references; do not use them to renumber this program.
+
+## Current starting points
+1. [MASTER_GOVERNANCE.md](MASTER_GOVERNANCE.md) — REV9 charter; deployed on PR #3340 branch, not yet in Main.
+2. [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) — current owner decisions and historical/superseded records.
+3. [CURRENT_STATE.md](CURRENT_STATE.md) — live baseline pointer plus historical snapshots.
+4. [ROADMAP.md](ROADMAP.md) — official cleanup waves 0–4 and preserved historical roadmaps.
+5. [OPEN_ISSUES.md](OPEN_ISSUES.md) — live cleanup findings and historical issue snapshots.
+6. [IMPLEMENTATION_LOG.md](IMPLEMENTATION_LOG.md) — dated evidence, exact-SHA records and changes.
+7. [HANDOFF.md](HANDOFF.md) — latest next-agent handoff.
+8. [AI_GOVERNANCE_POLICY.md](AI_GOVERNANCE_POLICY.md) — sole canonical AI policy.
+9. [AI_ADAPTER_COMPATIBILITY.md](AI_ADAPTER_COMPATIBILITY.md) — tool-specific thin adapters and runtime verification status.
+10. [audit/REPOSITORY_CLEANUP_WAVE0_BASELINE.md](audit/REPOSITORY_CLEANUP_WAVE0_BASELINE.md) — Wave 0 baseline, register, validation and risks.
+
+**Historical records:** DECISIONS.md, TODO.md, REV8 snapshots, prior audit reports and old design specifications are preserved. Their presence does not make them current authority. Do not delete or promote them without evidence and authorization.
+
+---
+
 > **Root continuity protocol is mandatory:** before continuing, read [../../AGENTS.md](../../AGENTS.md), [../../AI_CONTINUITY_PROTOCOL.md](../../AI_CONTINUITY_PROTOCOL.md), and [../../PROJECT_STATE.md](../../PROJECT_STATE.md), then re-fetch live GitHub. This directory remains the canonical home for detailed product decisions, governance, roadmap, issues, implementation evidence, and handoff history. If an older checkpoint here conflicts with live GitHub or the root current checkpoint, reconcile it; do not silently rewrite history.
 
 ---
 
-## REV8 current snapshot refresh — 2026-11-10
+## Historical REV8 snapshot — preserved; not the live REV9 baseline
 
 Active branch: `fix/recovery-calendar-device-smoke-2026-10-31`  
 Current branch / PR #3052 HEAD: `a934cabebc814aea13c1800ab151821d12714226`  
@@ -15,8 +47,8 @@ The REV8 audit index below remains canonical. Earlier 9846-based snapshots are h
 
 ---
 
-# Arvin Project Continuity — REV8
-Last reviewed: 2026-11-10 (REV8 live GitHub audit)
+# Arvin Project Continuity — REV9
+Last reviewed: 2026-11-10 (REV9 Repository Cleanup WAVE 0 baseline)
 Repository: mobinpda-lab/Arvin-clean
 Active branch: fix/recovery-calendar-device-smoke-2026-10-31
 Related PR: #3052

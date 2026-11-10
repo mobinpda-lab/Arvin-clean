@@ -1,3 +1,21 @@
+# REV9 — CURRENT LIVE STATE / REPOSITORY CLEANUP WAVE 0
+**Live baseline date:** 2026-11-10
+**Main HEAD:** `45e4202b03a434459e4c021a04efa7e8396359db`
+**Documentation branch:** `docs/rev9-governance-continuity-2026-11-10`
+**PR #3340:** OPEN / READY FOR REVIEW / UNMERGED; HEAD before this update `fe85e64199cfdb468228830ecfff3bcf3d8bea5c`
+**Protected PR #3052:** OPEN / DRAFT / UNMERGED; HEAD `aba68e44be0fcac7d4ad425b58fbe75e5aba264e`
+**Repository inventory:** 1,413 branches; 35 duplicate-head groups / 109 refs; 101 open PRs; 75 drafts; 99 open PRs last updated before 2026-11-01.
+**PR #3340 baseline diff:** 66 Markdown/agent-instruction files; zero non-documentation files.
+**Product direction:** LOCAL-FIRST standalone; local SQL is the sole durable source of truth; all multi-device sync is SUSPENDED pending separate explicit authorization.
+**Active cleanup sequence:** WAVE 0 Live Repository Baseline → WAVE 1 Git History Forensic Audit → WAVE 2 Test Governance & CI Audit → WAVE 3 Architecture & Documentation Audit → WAVE 4 Safe Cleanup & Consolidation.
+**Current authorization:** documentation-only on PR #3340's existing branch. Main, PR #3052, source, schema, migration, tests, workflows, features, branch/PR deletion, merge and release are protected.
+**Baseline report:** [REPOSITORY_CLEANUP_WAVE0_BASELINE.md](audit/REPOSITORY_CLEANUP_WAVE0_BASELINE.md)
+**Release:** BLOCKED — RELEASE: NO-GO.
+
+> The REV8 snapshots below are preserved historical evidence. Their SHAs, counts, workflow IDs and status labels are not current unless reverified against live GitHub.
+
+---
+
 ## REV8 post-audit exact-head refresh — 2026-11-10 11:10 UTC
 
 - Main: `45e4202b03a434459e4c021a04efa7e8396359db`; protected=true.

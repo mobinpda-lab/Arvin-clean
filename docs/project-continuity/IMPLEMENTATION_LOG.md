@@ -847,3 +847,18 @@ Verification on the implementation checkpoint was pending at last lookup; no tes
 - PR #3052 remained unchanged and OPEN / DRAFT / UNMERGED.
 - Final pre-PR compare: 66 changed files; all .md/.mdc; no source, schema, migration, test, workflow or binary changes; 5 commits ahead / 0 behind Main.
 - No tests/builds/device checks or release acceptance are claimed for this documentation-only PR.
+
+
+---
+
+## 2026-11-10 — Repository Cleanup Program / WAVE 0 baseline and documentation reconciliation
+
+- Owner authorization: documentation-only updates on `docs/rev9-governance-continuity-2026-11-10` / PR #3340. Main and PR #3052 remain protected.
+- Live baseline before cleanup: Main `45e4202b03a434459e4c021a04efa7e8396359db`; PR #3340 head `5f934bfb4ee0cfa96d838f1d61f08c794c0676ed`; PR #3052 head `aba68e44be0fcac7d4ad425b58fbe75e5aba264e`.
+- WAVE 0 inventory: 1,413 branches; 35 duplicate-head groups / 109 refs; 101 open PRs (75 drafts); 99 open PRs last updated before 2026-11-01.
+- PR #3340 baseline contained 66 changed files, all `.md` / `.mdc`; no non-documentation files.
+- Exact-SHA workflow evidence: PR #3340 Build and Device Smoke succeeded on `5f934bfb...`; PR #3052 Build failed and Device Smoke remained incomplete on `aba68e44...`. These results do not transfer to later commits.
+- First docs-only reconciliation commit: `fe85e64199cfdb468228830ecfff3bcf3d8bea5c`. It records the latest LOCAL-FIRST / SYNC SUSPENDED owner direction, official cleanup waves, fixes the REV8 archive link and clarifies branch-vs-Main canonical status.
+- No code, SQL/schema, migration, tests, workflows, data, branch deletion, PR closure, merge or release changes.
+- Full baseline, duplicate/link findings, CI run IDs, Change Register and remaining risks: `audit/REPOSITORY_CLEANUP_WAVE0_BASELINE.md`.
+- Validation for the final documentation commit must be re-run against its exact HEAD; no prior-SHA result transfers.

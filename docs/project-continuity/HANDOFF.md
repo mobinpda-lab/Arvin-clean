@@ -482,3 +482,32 @@ Review the independent documentation PR, verify the final diff contains only app
 - Verify changed files remain documentation/agent-instruction only; PR #3052 must remain unchanged and OPEN / DRAFT / UNMERGED.
 - Do not merge, release, change code/schema/tests/workflows, or resolve typography without explicit Mobin authorization.
 - Next action: Mobin reviews PR #3340 and decides whether to approve or request documentation revisions.
+
+
+---
+
+# REV9 — Repository Cleanup WAVE 0 handoff (2026-11-10)
+
+## Current verified baseline
+- Main: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- PR #3340: OPEN / READY FOR REVIEW / UNMERGED; branch `docs/rev9-governance-continuity-2026-11-10`; pre-update HEAD `fe85e64199cfdb468228830ecfff3bcf3d8bea5c`.
+- PR #3052: OPEN / DRAFT / UNMERGED; HEAD `aba68e44be0fcac7d4ad425b58fbe75e5aba264e`; protected and untouched.
+- 1,413 branches; 35 duplicate-head groups / 109 refs; 101 open PRs (75 drafts); 99 stale-open-PR candidates by last-update date before 2026-11-01.
+- PR #3340 baseline diff: 66 Markdown/agent-instruction files; zero non-documentation files.
+
+## Latest owner direction
+- Arvin is LOCAL-FIRST and standalone. Essential product capabilities must work locally/offline; local SQL is the sole durable source of truth.
+- All multi-device synchronization (P2P, LAN, Cloud, Dropbox, remote) is SUSPENDED pending separate explicit Mobin authorization.
+- The only active Repository Cleanup Program sequence is WAVE 0–4 as recorded in ROADMAP.md. Do not create parallel numbering.
+
+## Changes in this authorized documentation pass
+- Corrected REV8 archive link and clarified that REV9 is on PR #3340's branch, not yet in Main.
+- Recorded LOCAL-FIRST / SYNC SUSPENDED in the decision ledger, roadmap, AI governance and P2P specification.
+- Added current live baseline and historical-snapshot labels to continuity documents.
+- No historical document, branch, PR or implementation file was deleted.
+
+## Protected boundaries
+No Main or PR #3052 change; no source/schema/migration/test/workflow/feature change; no branch deletion, PR closure, merge or release. Release remains NO-GO.
+
+## Next action
+Re-fetch the final PR #3340 HEAD and validate the docs-only diff and internal links. Review remaining documentation candidates in WAVE 3 before any consolidation. Git-history analysis belongs to WAVE 1; CI/test governance to WAVE 2. No sync work is active.
