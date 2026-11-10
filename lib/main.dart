@@ -2732,6 +2732,14 @@ class _HomePageState extends State<HomePage> {
             }
           }
           await taskStore.savePeopleDirectory(previousPeople ?? const <PersonReference>[]);
+          // The apply phase may already have replaced the device alarm plan.
+          // Reconcile alarms again after restoring the previous canonical Tasks.
+          try {
+            await AndroidFollowUpReminderScheduler().reschedule();
+          } catch (_) {
+            // Preserve the data rollback; the scheduler can retry on next startup.
+          }
+          await widget.restoreStageHook?.call('rollback-reminders');
           final appliedSettings = await appSettingsService.load();
           if (mounted) widget.onSettingsChanged?.call(appliedSettings);
           await _load();
