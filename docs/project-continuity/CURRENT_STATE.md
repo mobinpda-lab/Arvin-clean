@@ -1086,3 +1086,12 @@ Implementation checkpoint: `dbfcdb02879ed3939cb6a69d3a150e2237283a51`. Changes i
 Verification is NOT YET PASS: Build run `42864431438` and Device Smoke run `42864430851` were pending at the last exact-SHA lookup; Calendar Provider `42864431259` and Follow-up Persistence `42864430953` were queued. No local Flutter tests were run. See `audit/P0_C_IMPLEMENTATION_REPORT.md`, `audit/MIGRATION_PARITY_REPORT.md`, `audit/OCCURRENCE_DATA_OWNERSHIP_REPORT.md` and `audit/TEST_VALIDATION_REPORT.md`.
 
 Remaining: G1 legacy relation parity, a single multi-source transaction, remaining JSON/SharedPreferences owners, full Backup/Restore, complete test/Android evidence, and the four Reminder states decision. Legacy sources remain. PR #3052 OPEN / DRAFT / UNMERGED; Main READ-ONLY; Release NO-GO.
+
+
+---
+
+## REV9 deployment baseline — 2026-11-10
+
+**Decision status:** REV9 APPROVED as the current owner-supplied master charter. **Implementation status:** not established by this documentation deployment. **Verification status:** UNVERIFIED unless exact-SHA evidence is cited.
+
+Live repository facts at deployment start: Main `45e4202b03a434459e4c021a04efa7e8396359db`; PR #3052 OPEN / DRAFT / UNMERGED at `aba68e44be0fcac7d4ad425b58fbe75e5aba264e`; independent documentation branch `docs/rev9-governance-continuity-2026-11-10` based on that Main SHA. No changes were made to PR #3052. Related PRs #3022, #2598, #2600 and #2866 remain open/unmerged and are recorded as competing/proposed documentation sources, not merged truth. Font issue #2974 records the earlier Vazirmatn owner decision; REV9 is newer and explicitly reopens the Vazirmatn/VazirHarf conflict as NEEDS OWNER DECISION. Release remains BLOCKED — RELEASE: NO-GO.

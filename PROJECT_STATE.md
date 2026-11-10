@@ -146,3 +146,20 @@ Exact-SHA workflows on implementation SHA `dbfcdb02879ed3939cb6a69d3a150e2237283
 - Latest implementation candidate remains PARTIAL / BLOCKED; exact-SHA Build `42866834521` and Device Smoke `42866834509` were PENDING at the time of the report.
 - Subsequent commits in this documentation checkpoint are documentation-only; no source change was made after implementation candidate SHA `271633dcf1793773738097ad6021ceca98ad1784`.
 - PR #3052 remains OPEN / DRAFT / UNMERGED. Main remains READ-ONLY. Release remains NO-GO.
+
+
+---
+
+## REV9 live checkpoint — 2026-11-10
+
+- Repository: `mobinpda-lab/Arvin-clean`; default branch: `main`.
+- Verified Main HEAD at deployment start: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Documentation branch: `docs/rev9-governance-continuity-2026-11-10`.
+- First documentation commit: `1a849751b931028581f6ce721952aaa987474053`.
+- PR #3052: OPEN / DRAFT / UNMERGED; head `aba68e44be0fcac7d4ad425b58fbe75e5aba264e`; untouched by this mission.
+- Related open documentation/proposal PRs: #3022 (canonical product reference v1.4), #2598 (AMPOP governance foundation), #2600 (autonomous memory), #2866 (product concepts). They remain unmerged proposals and are not silently promoted to canonical authority.
+- Font decision conflict: Issue #2974 and PRs #2918/#2975/#2932 record an earlier owner-approved Vazirmatn direction; REV9 (newer owner charter) explicitly marks Vazirmatn vs VazirHarf as NEEDS OWNER DECISION. Keep the font unresolved pending a new explicit owner decision.
+- Release: BLOCKED — RELEASE: NO-GO.
+- CI status is not inferred from an empty combined-status response; no PASS is claimed here.
+
+Older snapshots in this file remain HISTORICAL and must not be deleted.

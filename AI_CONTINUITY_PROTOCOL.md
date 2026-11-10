@@ -152,3 +152,10 @@ This protocol remains mandatory until Mobin changes it through an explicit, reco
 Mobin's latest explicit command authorizes **AUDIT + IMPLEMENTATION + TESTING** for WAVE 4, including source code, schema, migrations, tests, requested audit reports and necessary workflow corrections. This supersedes the earlier checkpoint's read-only WAVE 4 status and its restriction on editing WAVE 4 deliverables.
 
 Scope remains limited to `fix/recovery-calendar-device-smoke-2026-10-31`. Main remains READ-ONLY; PR #3052 remains OPEN / DRAFT / UNMERGED. No force push, history rewrite, test deletion/skip/bypass/weakening, merge, release, or legacy data retirement without the exact proof gates. The latest owner command is the controlling authorization; do not ask for repetitive approval for in-scope technical fixes.
+
+
+---
+
+## REV9 permanent continuity policy — 2026-11-10
+
+REV9 is the active product and governance baseline. Every future agent must read `AGENTS.md`, `PROJECT_STATE.md`, and `docs/project-continuity/AI_GOVERNANCE_POLICY.md` before acting, then follow its full mandatory sequence. Live GitHub is required at mission start and before every write. The latest explicit owner authorization controls scope; the current mission is documentation-only. Historical WAVE 4 implementation authorization is not permission for this documentation branch. No claim of implementation, verification, merge or release may be made without exact-SHA evidence and explicit owner approval where required.

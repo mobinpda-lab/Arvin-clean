@@ -42,3 +42,10 @@ The latest recorded active task is the WAVE 4 SQL-ONLY read-only data ownership 
 Mobin has explicitly authorized **AUDIT + IMPLEMENTATION + TESTING** for WAVE 4 SQL consolidation on this working branch. This latest owner instruction supersedes the older read-only Wave 4 reminder and the prior restriction on editing Wave 4 deliverables. Source, Schema, Migration, Tests, Workflows where necessary, and the requested audit reports may be changed within the authorization.
 
 Non-negotiable limits remain: only `fix/recovery-calendar-device-smoke-2026-10-31`; Main READ-ONLY; PR #3052 OPEN / DRAFT / UNMERGED; no force-push, merge, release, test weakening or unproven legacy deletion. Re-fetch the live head and PR before writes. WAVE 4 is not COMPLETE until exact-SHA tests, backup/restore, full parity and owner gates are proven.
+
+
+---
+
+## REV9 authorization override — documentation-only (2026-11-10)
+
+The latest explicit Mobin authorization for this branch is the REV9 documentation deployment. It supersedes the older WAVE 4 implementation authorization for this branch and mission. **Only documentation and AI instruction files may change here.** No Dart/source, SQL/schema, migration, test, workflow, user-data, Main, PR #3052, merge or release changes are authorized. PR #3052 remains OPEN / DRAFT / UNMERGED. See `docs/project-continuity/AI_GOVERNANCE_POLICY.md` for the permanent rules.

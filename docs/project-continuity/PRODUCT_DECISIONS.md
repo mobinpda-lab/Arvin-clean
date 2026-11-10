@@ -412,3 +412,23 @@ This clarification resolves an asset-to-screen attribution error and does not in
 - Unknown Project fields must be preserved during migration and ordinary Project updates; an ID match alone never establishes content parity.
 - No legacy source may be physically retired before all owner-defined parity, round-trip, backup/restore, rollback, independent-test and Mobin-acceptance gates pass.
 - **Reminder four-state contract remains DECISION REQUIRED.** Names, transitions, terminal behavior, snooze and re-enable semantics must not be guessed.
+
+
+---
+
+## REV9 decision ledger addendum — 2026-11-10
+
+| ID | Decision / rule | Status | Authority and reconciliation |
+|---|---|---|---|
+| REV9-001 | REV9 is the active unified product, design and governance charter. | APPROVED | Latest owner-supplied REV9; supersedes REV8 as active master while REV8 is retained as archive. |
+| REV9-002 | SQL is the sole durable product-data source of truth; JSON is limited to backup, import/export, transfer and temporary payloads. | APPROVED | REV9 §26–28; preserve prior matching SQL-only decisions. |
+| REV9-003 | Brand primary is REV9 Primary Blue #4169A1; semantic colors must not replace brand primary; old teal-primary direction is superseded where conflicting. | APPROVED | REV9 §33; do not erase the historical teal decision. |
+| REV9-004 | Final UI font: Vazirmatn vs VazirHarf. | NEEDS OWNER DECISION | REV9 §32 explicitly reopens this conflict. Issue #2974 / PR #2918 / #2975 / #2932 contain earlier Vazirmatn approval records; retain them as HISTORICAL/SUPERSEDED for current resolution, do not silently choose. |
+| REV9-005 | Minimum interactive hit target 48dp × 48dp across current and future modules. | APPROVED | REV9 §31; 40dp historical controls are implementation gaps, not compliant evidence. |
+| REV9-006 | Five Follow-up completion loops (person roles, Waiting For/Next Action, Staleness, Resolution Note/Proof, Quick Export). | PROPOSAL | REV9 §11; requires audit and explicit approval before implementation. |
+| REV9-007 | Commitment as a central domain concept/new model. | PROPOSAL | REV9 §4 explicitly does not authorize a new table/model. Inspect existing SQL schema first. |
+| REV9-008 | Five product evolution waves 0–4. | PRODUCT SCOPE | REV9 §42; preserve REV8 engineering execution waves separately as historical/engineering sequencing. |
+| REV9-009 | Exact four-state Reminder machine/transitions. | NEEDS OWNER DECISION | REV9 §12; no inferred states or transitions. |
+| REV9-010 | Product and technical status must remain separate (Decision / Implementation / Verification). | APPROVED | REV9 §40; no implementation/verification claims from product approval alone. |
+
+The full REV9 clauses remain in `MASTER_GOVERNANCE.md`; prior decisions and supersession history remain in this file.

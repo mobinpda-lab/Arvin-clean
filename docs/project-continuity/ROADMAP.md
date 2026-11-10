@@ -370,3 +370,20 @@ Remaining sequence:
 5. Complete Backup/Restore for all approved entities and verify close/reopen round-trip.
 6. Prove every legacy retirement gate and obtain Mobin acceptance.
 7. Keep Release NO-GO until every acceptance gate passes.
+
+
+---
+
+## REV9 product roadmap taxonomy — 2026-11-10
+
+The following is the **product evolution taxonomy** from REV9 §42. It does not overwrite or renumber the historical REV8 engineering execution waves; those remain a separate delivery/engineering sequence.
+
+| Product wave | Name | Product scope | Execution rule |
+|---|---|---|---|
+| Wave 0 | Foundation & Trust | SQL-only persistence, migration, data integrity, backup/restore, persistence, semantic separation of Task/Reminder/Follow-up and histories. | No release claim until data parity and recovery are proven. |
+| Wave 1 | Core Follow-up Engine | Inbox, Task, Reminder, Follow-up, People, Waiting For, Next Action, person roles, history and ambiguity control. | Audit current SQL/schema first; proposed loops remain proposals. |
+| Wave 2 | Complete Workspace | Home, Calendar, Projects, Centers, Notebook, Templates, Financial Tracking, Filters and Reports. | Preserve current capabilities; no parallel models. |
+| Wave 3 | Enterprise Follow-up Intelligence | Staleness intelligence, resolution proof, quick export, automation and analytics. | Proposal items require owner approval and explicit contracts. |
+| Wave 4 | Advanced Platform | Dependency management, team collaboration, remote sync and integrations. | Scope and architecture require separate approval. |
+
+The five-loop priority order in REV9 §43 is a product proposal, not an execution authorization. The earlier REV8 WAVE 0–5 engineering plan is retained as historical execution planning and must be reconciled against live GitHub before use.
