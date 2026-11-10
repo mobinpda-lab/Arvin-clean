@@ -41,7 +41,39 @@ void main() {
     expect(task.isNotebookItem, isTrue);
   });
 
-  test('enabling follow-up keeps the same item and exposes follow-up state', () {
+  test('direct legacy Follow-up constructor inputs survive as inert metadata', () {
+    final legacyTaskDate = DateTime(2026, 8, 14, 9, 30);
+    final legacyNextDate = DateTime(2026, 8, 16, 11, 45);
+    final task = Task(
+      id: 'direct-legacy-follow-up',
+      title: 'حفظ سازگاری',
+      followUpEnabled: true,
+      followUpDate: legacyTaskDate,
+      followUps: [
+        FollowUp(
+          id: 'legacy-follow-up-record',
+          completedAt: DateTime(2026, 8, 12, 8),
+          nextFollowUp: legacyNextDate,
+        ),
+      ],
+    );
+    expect(task.taskReminders, isEmpty);
+    expect(task.legacyFollowUpMetadata['taskLevel'], {
+      'followUpEnabled': true,
+      'followUpDate': legacyTaskDate.toIso8601String(),
+    });
+    expect(task.legacyFollowUpMetadata['followUps'], [
+      {
+        'id': 'legacy-follow-up-record',
+        'nextFollowUp': legacyNextDate.toIso8601String(),
+      },
+    ]);
+    final reopened = Task.fromJson(task.toJson());
+    expect(reopened.taskReminders, isEmpty);
+    expect(reopened.legacyFollowUpMetadata, task.legacyFollowUpMetadata);
+  });
+
+  test('enabling follow-up keeps the same item and exposes follow-up state', {
     final task = Task(
       id: '1',
       title: 'کار',

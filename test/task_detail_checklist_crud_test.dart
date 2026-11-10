@@ -74,12 +74,22 @@ void main() {
           .toList(growable: false);
 
       void expectFollowUpHistoryUnchanged(Task saved) {
-        expect(saved.followUpDate, legacyFollowUpDate);
+        expect(saved.taskReminders, isEmpty);
+        expect(saved.legacyFollowUpMetadata['taskLevel'], {
+          'followUpEnabled': true,
+          'followUpDate': legacyFollowUpDate.toIso8601String(),
+        });
         expect(
           saved.followUps.map((followUp) => followUp.toJson()).toList(),
           expectedHistoricalFollowUps,
         );
-        expect(saved.followUps.single.nextFollowUp, legacyNextFollowUp);
+        expect(saved.legacyFollowUpMetadata['followUps'], [
+          {
+            'id': 'legacy-follow-up',
+            'nextFollowUp': legacyNextFollowUp.toIso8601String(),
+          },
+        ]);
+        expect(saved.followUps.single.nextFollowUp, isNull);
       }
 
       Future<Task?> persistTask(Task candidate) async {

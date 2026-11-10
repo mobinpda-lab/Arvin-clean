@@ -113,6 +113,10 @@ class FollowUpRecord {
   final bool waitingForResponse;
   final List<String> personIds;
 
+  /// Retained only to serialize legacy dates as inert Task metadata.
+  /// Never read by Reminder projection, delivery, Calendar, or alarm scheduling.
+  final DateTime? _legacyNextFollowUp;
+
   /// Deprecated read-only compatibility projection; future scheduling is not stored.
   @Deprecated('Follow-up records are historical only.')
   DateTime? get nextFollowUp => null;
@@ -136,7 +140,8 @@ class FollowUpRecord {
     this.completed = false,
     this.waitingForResponse = false,
     this.personIds = const <String>[],
-  }) : completedAt = completedAt ?? dateTime!;
+  })  : completedAt = completedAt ?? dateTime!,
+        _legacyNextFollowUp = nextFollowUp;
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -291,7 +296,51 @@ class Task {
         checklistEnabled = checklistEnabled ??
             (checklist.isNotEmpty || notebookKind == NotebookItemKind.checklist),
         people = _normalizePeople(people),
-        taskReminders = List<TaskReminder>.of(taskReminders);
+        taskReminders = List<TaskReminder>.of(taskReminders) {
+    // Direct legacy constructor inputs must not disappear before serialization.
+    // Keep retired Task-level dates as inert metadata; they are never converted
+    // into TaskReminder records and therefore cannot schedule delivery.
+    final metadata = Map<String, dynamic>.from(legacyFollowUpMetadata);
+    final taskLevel = <String, dynamic>{};
+    if (followUpDate != null) {
+      taskLevel['followUpDate'] = followUpDate.toIso8601String();
+    }
+    if (followUpEnabled || followUpDate != null) {
+      taskLevel['followUpEnabled'] = followUpEnabled;
+    }
+    if (taskLevel.isNotEmpty) {
+      final existing = metadata['taskLevel'];
+      metadata['taskLevel'] = <String, dynamic>{
+        if (existing is Map) ...Map<String, dynamic>.from(existing),
+        ...taskLevel,
+      };
+    }
+    final records = <Map<String, dynamic>>[];
+    final existingRecords = metadata['followUps'];
+    if (existingRecords is List) {
+      for (final raw in existingRecords) {
+        if (raw is Map) records.add(Map<String, dynamic>.from(raw));
+      }
+    }
+    for (final followUp in this.followUps) {
+      final nextFollowUp = followUp._legacyNextFollowUp;
+      if (nextFollowUp == null) continue;
+      final record = <String, dynamic>{
+        'id': followUp.id,
+        'nextFollowUp': nextFollowUp.toIso8601String(),
+      };
+      final existingIndex = records.indexWhere(
+        (item) => item['id'] == followUp.id,
+      );
+      if (existingIndex < 0) {
+        records.add(record);
+      } else {
+        records[existingIndex] = record;
+      }
+    }
+    if (records.isNotEmpty) metadata['followUps'] = records;
+    legacyFollowUpMetadata = metadata;
+  }
 
   final String id;
   String title;
