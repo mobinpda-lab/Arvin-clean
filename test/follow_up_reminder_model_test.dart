@@ -100,14 +100,14 @@ void main() {
           title: 'خرید فرش — یادآور 1',
           date: DateTime(2026, 10, 20, 10),
           sequence: 1,
-        ),
+        ).toJson(),
         TaskReminder(
           id: 'reminder-c',
           title: 'خرید فرش — یادآور 3',
           date: DateTime(2026, 10, 22),
           isAllDay: true,
           sequence: 3,
-        ),
+        ).toJson(),
       ],
       'nextReminderSequence': 4,
     });
