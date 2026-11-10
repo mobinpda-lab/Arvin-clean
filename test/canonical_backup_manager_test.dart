@@ -354,6 +354,45 @@ void main() {
     expect(candidate.people, isNull);
   });
 
+  test('canonical restore preserves Follow-up references to removed directory people', () async {
+    final historicalPerson = PersonReference(
+      id: 'person-removed-from-directory',
+      displayName: 'همکار پیشین',
+      isDeleted: true,
+    );
+    final task = Task(
+      id: 'task-with-historical-person',
+      title: 'سابقه تماس',
+      people: [historicalPerson],
+      followUps: [
+        FollowUp(
+          id: 'follow-up-with-historical-person',
+          completedAt: DateTime(2026, 11, 9, 10),
+          personIds: [historicalPerson.id],
+        ),
+      ],
+    );
+    final service = _FakeBackupService()
+      ..restoreDocument = {
+        'type': ArvinBackupService.backupType,
+        'formatVersion': ArvinBackupService.backupFormatVersion,
+        'tasks': [task.toJson()],
+        'peopleDirectory': <Map<String, dynamic>>[],
+      };
+
+    final candidate = await ArvinBackupManager(service: service)
+        .restoreCanonicalBackup();
+
+    expect(candidate, isNotNull);
+    expect(candidate!.people, isEmpty);
+    expect(candidate.tasks.single.people.single.id, historicalPerson.id);
+    expect(candidate.tasks.single.people.single.isDeleted, isTrue);
+    expect(
+      candidate.tasks.single.followUps.single.personIds,
+      [historicalPerson.id],
+    );
+  });
+
   test('canonical restore rejects duplicate calendar link identities', () async {
     final link = ExternalCalendarEventLink(
       reminderId: 'task-due:task-full',
