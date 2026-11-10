@@ -137,3 +137,12 @@ Exact-SHA workflows on implementation SHA `dbfcdb02879ed3939cb6a69d3a150e2237283
 - Four Reminder state names/transitions remain a Mobin decision.
 
 **Next action:** inspect exact-SHA Build and Device Smoke outcomes, repair failures without weakening tests, then continue G1 parity and full Backup/Restore coverage. Preserve all legacy sources until every retirement gate and Mobin acceptance is proven.
+
+## WAVE 4 final report checkpoint — 2026-11-10
+
+- Implementation candidate SHA: `271633dcf1793773738097ad6021ceca98ad1784`.
+- WAVE 4 final report: `docs/project-continuity/audit/WAVE4_FINAL_REPORT.md`.
+- Report creation commit: `b0a8db484d6fea8c68d13b41e059f8b24ee97a9d`.
+- Latest implementation candidate remains PARTIAL / BLOCKED; exact-SHA Build `42866834521` and Device Smoke `42866834509` were PENDING at the time of the report.
+- Subsequent commits in this documentation checkpoint are documentation-only; no source change was made after implementation candidate SHA `271633dcf1793773738097ad6021ceca98ad1784`.
+- PR #3052 remains OPEN / DRAFT / UNMERGED. Main remains READ-ONLY. Release remains NO-GO.
