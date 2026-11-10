@@ -511,3 +511,15 @@ No Main or PR #3052 change; no source/schema/migration/test/workflow/feature cha
 
 ## Next action
 Re-fetch the final PR #3340 HEAD and validate the docs-only diff and internal links. Review remaining documentation candidates in WAVE 3 before any consolidation. Git-history analysis belongs to WAVE 1; CI/test governance to WAVE 2. No sync work is active.
+
+
+---
+
+## WAVE 0 final pre-handoff checkpoint — 2026-11-10
+
+- Latest verified PR #3340 branch HEAD before this final handoff record: `cd1d52e752ac10c0040738f655d5a288d2523399`.
+- Main remains `45e4202b03a434459e4c021a04efa7e8396359db`.
+- PR #3052 remains OPEN / DRAFT / UNMERGED at `aba68e44be0fcac7d4ad425b58fbe75e5aba264e`; untouched.
+- Documentation reconciliation commits: `fe85e64199cfdb468228830ecfff3bcf3d8bea5c` and `cd1d52e752ac10c0040738f655d5a288d2523399`.
+- The commit containing this handoff advances PR #3340; always re-fetch the live PR head after this commit.
+- Next action: validate the final tree and present PR #3340 for Mobin's review. No merge.

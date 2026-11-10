@@ -862,3 +862,11 @@ Verification on the implementation checkpoint was pending at last lookup; no tes
 - No code, SQL/schema, migration, tests, workflows, data, branch deletion, PR closure, merge or release changes.
 - Full baseline, duplicate/link findings, CI run IDs, Change Register and remaining risks: `audit/REPOSITORY_CLEANUP_WAVE0_BASELINE.md`.
 - Validation for the final documentation commit must be re-run against its exact HEAD; no prior-SHA result transfers.
+
+
+## 2026-11-10 — WAVE 0 final documentation reconciliation checkpoint
+
+- First reconciliation commit: `fe85e64199cfdb468228830ecfff3bcf3d8bea5c`.
+- Baseline/register/handoff commit: `cd1d52e752ac10c0040738f655d5a288d2523399`.
+- The latest pass corrects the remaining Persian deployment note in MASTER_GOVERNANCE.md and clarifies that PR #3340's diff changed through the authorized existing branch, while PR metadata itself was not edited.
+- Final validation must be tied to the post-handoff branch HEAD. Do not transfer any earlier CI PASS.

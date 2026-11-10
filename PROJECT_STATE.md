@@ -194,3 +194,13 @@ Older snapshots in this file remain HISTORICAL and must not be deleted.
 - PR creation head SHA: `b9dc37804a69cd2292a071e008b50bd261bae512`. A subsequent documentation-only follow-up commit updates this state record; always fetch the live PR/branch head before continuing.
 - PR #3052 remains OPEN / DRAFT / UNMERGED and untouched.
 - Review requested from Mobin; no merge or release is authorized.
+
+
+---
+
+## WAVE 0 final handoff pointer — 2026-11-10
+
+- Last verified PR #3340 HEAD before this final handoff record: `cd1d52e752ac10c0040738f655d5a288d2523399`.
+- Documentation reconciliation commits: `fe85e64199cfdb468228830ecfff3bcf3d8bea5c`, `cd1d52e752ac10c0040738f655d5a288d2523399`.
+- The current commit updates the handoff and advances the branch; fetch the live PR head before any further action.
+- Main `45e4202b03a434459e4c021a04efa7e8396359db` and PR #3052 `aba68e44be0fcac7d4ad425b58fbe75e5aba264e` remain untouched.

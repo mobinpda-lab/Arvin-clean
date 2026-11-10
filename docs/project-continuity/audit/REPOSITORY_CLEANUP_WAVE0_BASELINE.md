@@ -167,7 +167,7 @@ No parallel cleanup numbering is created. Historical REV8 engineering waves and 
 - CI evidence is recorded above and belongs only to the listed exact SHAs.
 - No code, SQL/schema, migration, tests, workflows, product features or data were changed.
 - No branch was created or deleted.
-- No PR was created, edited, closed or merged as part of the mission; PR #3340 is the already-authorized target.
+- No PR metadata/body/state was edited, and no PR was closed or merged. PR #3340's changed-file diff was updated only through the explicitly authorized documentation commits on its existing branch.
 - Main and PR #3052 were not modified.
 - No tests or migrations were executed by this mission.
 - No merge or release occurred.

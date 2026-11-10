@@ -1125,3 +1125,14 @@ Live repository facts at deployment start: Main `45e4202b03a434459e4c021a04efa7e
 - PR #3052: OPEN / DRAFT / UNMERGED, head `aba68e44be0fcac7d4ad425b58fbe75e5aba264e`; unchanged.
 - The final pre-PR diff contained 66 files, all Markdown/agent-instruction files; 0 non-documentation files.
 - Release remains BLOCKED — RELEASE: NO-GO.
+
+
+---
+
+## WAVE 0 pre-final validation checkpoint — 2026-11-10
+
+- Last verified branch HEAD before this final handoff record: `cd1d52e752ac10c0040738f655d5a288d2523399`.
+- PR #3340 remains OPEN / READY FOR REVIEW / UNMERGED; base Main `45e4202b03a434459e4c021a04efa7e8396359db`.
+- PR #3052 remains OPEN / DRAFT / UNMERGED at `aba68e44be0fcac7d4ad425b58fbe75e5aba264e`.
+- Final diff must remain documentation-only. Re-fetch final HEAD and exact-SHA workflow state after the handoff commit.
+- No source/test/schema/migration/workflow change, Main write, PR #3052 write, merge or release.
