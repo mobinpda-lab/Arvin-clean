@@ -12,6 +12,7 @@ import '../models/task.dart';
 import '../models/goal_project.dart';
 import 'project_plan_codec.dart';
 import 'g1_drift_schema.dart';
+import 'occurrence_sql_codec.dart';
 import 'sql_task_migration_writer.dart';
 import 'task_storage_lock.dart';
 
@@ -718,6 +719,13 @@ class TaskStore {
             })
         .toList(growable: false);
 
+    final occurrenceData = await OccurrenceSqlCodec.readTask(
+      executor,
+      row['id'] as String,
+    );
+    envelope['occurrenceHistory'] = occurrenceData.history;
+    envelope['checklistOccurrences'] = occurrenceData.checklists;
+
     final hasLegacyFocus = envelope.containsKey('isSelectedForToday');
     final rawFocusDate = envelope['focusDate'];
     final invalidFocusDate = rawFocusDate is String &&
@@ -788,6 +796,8 @@ class TaskStore {
       await executor.runCustom('DELETE FROM task_tags');
       await executor.runCustom('DELETE FROM task_persons');
       await executor.runCustom('DELETE FROM checklist_items');
+      await executor.runCustom('DELETE FROM occurrence_checklist_items');
+      await executor.runCustom('DELETE FROM task_occurrences');
       await executor.runCustom('DELETE FROM task_reminders');
       await executor.runCustom('DELETE FROM follow_up_record_people');
       await executor.runCustom('DELETE FROM follow_up_records');
@@ -880,7 +890,9 @@ class TaskStore {
         if (!knownKeys.contains(entry.key)) preserved[entry.key] = entry.value;
       }
     }
-    final canonical = Map<String, dynamic>.from(task.toJson());
+    final canonical = Map<String, dynamic>.from(task.toJson())
+      ..remove('occurrenceHistory')
+      ..remove('checklistOccurrences');
     preserved.addAll(canonical);
     return preserved;
   }
@@ -984,6 +996,7 @@ class TaskStore {
         <Object?>[task.id, tagId, ordinal],
       );
     }
+    await OccurrenceSqlCodec.writeTask(executor, task);
   }
 
   static String _tagId(String value) =>
