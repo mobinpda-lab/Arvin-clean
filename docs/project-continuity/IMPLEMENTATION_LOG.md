@@ -806,3 +806,20 @@ PR #3052 باید OPEN / DRAFT / UNMERGED بماند؛ main دست‌نخورد�
 - NIRA: 112 branches, 7 open PRs, 381 closed PRs, 132 Main commits, 26 workflows, 23 factory tests; Queue Scheduler run 42777810609 failed on issue #162 comment limit; L10 remains UNVERIFIED.
 - Documentation-only audit artifacts are stored under docs/project-continuity/audit/. No executable source, tests, schema, migrations, workflows, security settings, branch/PR metadata, Main, merge, release or user data were changed.
 - Exact current CI evidence is in audit/CI_HISTORY_AUDIT.md; all SHA references and their scope are in audit/SHA_RECONCILIATION.md.
+
+
+## WAVE 4 REV8 implementation entry — 2026-11-10
+
+Owner authorization: AUDIT + IMPLEMENTATION + TESTING; prior read-only Wave 4 status superseded.
+
+Implementation checkpoint SHA: `dbfcdb02879ed3939cb6a69d3a150e2237283a51`.
+
+Changed source areas:
+- `lib/services/sql_task_migration_writer.dart`: pre-COMMIT row/field/relation/envelope/foreign-key parity and same-ID conflict rejection.
+- `lib/services/task_store.dart`: removed post-COMMIT ID-only validator; relational Recurrence and Occurrence reads/writes; retained legacy recurrence payloads during the retirement gate.
+- `lib/services/g1_drift_schema.dart`: Recurrence/Occurrence tables and legacy migration; disabled unproven table drops/rebuilds.
+- `lib/services/project_store.dart` and `sql_project_migration_writer.dart`: unified migration writer, relational Project ordering, parity and unknown-field preservation.
+- New `occurrence_sql_codec.dart` and `recurrence_sql_codec.dart`.
+- Added/updated Task migration, Project migration, schema and round-trip tests.
+
+Verification on the implementation checkpoint was pending at last lookup; no test PASS is claimed. Reports: P0_C_IMPLEMENTATION_REPORT, SQL_ONLY_CONSOLIDATION_REPORT, MIGRATION_PARITY_REPORT, OCCURRENCE_DATA_OWNERSHIP_REPORT, BACKUP_RESTORE_VALIDATION, TEST_VALIDATION_REPORT and LEGACY_RETIREMENT_REGISTER under `audit/`.
