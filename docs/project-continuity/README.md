@@ -225,3 +225,17 @@ For this checkpoint, the authoritative live files are the branch HEAD, PR #3052,
 - Status axes: Product Approval (APPROVED/SUPERSEDED), Implementation (IMPLEMENTED/PARTIAL/MISSING/BLOCKED), Verification (VERIFIED/PARTIAL/NOT VERIFIED).
 - Read CURRENT_STATE.md for exact CI; OPEN_ISSUES.md for all 79 shard failures and blockers; PRODUCT_DECISIONS.md for Decision IDs; ROADMAP.md for Waves 0–5; HANDOFF.md for the next safe action.
 - All previous history below remains retained.
+
+
+## WAVE 4 REV8 execution reports
+
+The latest owner authorization supersedes the earlier read-only Wave 4 checkpoint. Current implementation is PARTIAL; exact-SHA verification and release gates remain open.
+
+- [P0-C Implementation Report](audit/P0_C_IMPLEMENTATION_REPORT.md)
+- [SQL-ONLY Consolidation Report](audit/SQL_ONLY_CONSOLIDATION_REPORT.md)
+- [Migration Parity Report](audit/MIGRATION_PARITY_REPORT.md)
+- [Occurrence Data Ownership Report](audit/OCCURRENCE_DATA_OWNERSHIP_REPORT.md)
+- [Backup/Restore Validation](audit/BACKUP_RESTORE_VALIDATION.md)
+- [Test Validation Report](audit/TEST_VALIDATION_REPORT.md)
+- [Legacy Retirement Register](audit/LEGACY_RETIREMENT_REGISTER.md)
+- WAVE4 Final Report will be added after the current documentation checkpoint is reconciled.
