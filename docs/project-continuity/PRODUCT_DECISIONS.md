@@ -1,3 +1,14 @@
+## REV8 typography authority reconciliation — source review 2026-11-10
+
+A material source conflict remains open; do not silently treat the current code or a test name as proof of product approval.
+- Direct owner instruction located in prior conversation on 2026-09-06: standardize all projects on **VazirHarf v34.003**, replace every Vazirmatn reference including documentation; the owner supplied the source revision `3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8`.
+- The current ledger below contains later APPROVED Vazirmatn entries dated 2026-11-05 and 2026-11-08, but the inspected rows provide no Decision ID or linked primary owner message. A later direct owner instruction superseding 2026-09-06 was not independently located in the conversation evidence available to this audit.
+- Therefore the conflict is **NEEDS OWNER-SOURCE RECONCILIATION**; do not declare either later ledger entry fully source-verified. Do not delete historical records.
+- Current implementation on the audited source tree is Vazirmatn in `pubspec.yaml`, `lib/theme/app_fonts.dart`, and `lib/core/theme/arvin_theme.dart`; the PDF renderer/tests also assert Vazirmatn. This is implementation evidence, not product approval.
+- No font code/assets/tests were changed in REV8. A font migration must be a separate technical wave after the governing decision is resolved.
+
+---
+
 # Product Decisions Register
 Canonical register for durable product decisions. Detailed implementation and historical evidence live in IMPLEMENTATION_LOG.md and root CHANGELOG.md.
 

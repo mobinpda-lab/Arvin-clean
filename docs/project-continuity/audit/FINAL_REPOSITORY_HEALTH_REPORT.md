@@ -1,3 +1,9 @@
+## Additional product-governance conflict — typography
+
+One additional owner-decision conflict was found: the direct 2026-09-06 instruction located in prior conversation selects VazirHarf v34.003 and requires removing Vazirmatn references across projects, while the current GitHub decision ledger records later Vazirmatn approvals dated 2026-11-05/08 without a Decision ID or linked primary owner message. The current code and tests enforce Vazirmatn. This is **NEEDS OWNER-SOURCE RECONCILIATION**, not an implementation pass. No font code/assets/tests were changed. The separate typography wave must wait until the latest direct owner source is traceable.
+
+---
+
 ## REV8 post-audit current snapshot — 2026-11-10 11:10 UTC
 
 **Working/PR SHA:** `a934cabebc814aea13c1800ab151821d12714226`  

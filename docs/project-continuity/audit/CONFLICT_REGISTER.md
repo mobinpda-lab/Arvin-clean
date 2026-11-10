@@ -1,3 +1,13 @@
+## Additional source conflict — typography
+
+| ID | Conflict | Evidence | Current classification | Safe action |
+|---|---|---|---|---|
+| CR-027 | VazirHarf v34.003 vs Vazirmatn | Direct owner instruction 2026-09-06: VazirHarf v34.003, replace all Vazirmatn references; current PRODUCT_DECISIONS.md claims later Vazirmatn approvals on 2026-11-05/08 without Decision ID or linked primary source. Code uses Vazirmatn. | NEEDS OWNER-SOURCE RECONCILIATION | Preserve both histories; do not alter font assets/code until the latest direct decision is traceable. |
+
+Source implementation: `pubspec.yaml`, `lib/theme/app_fonts.dart`, `lib/core/theme/arvin_theme.dart`; `test/vazirharf_settings_convergence_test.dart` currently asserts Vazirmatn despite its VazirHarf-oriented filename. Open font-related PRs include #2975, #2918 and #2932; review their scope against the final owner decision. No font code or tests were changed.
+
+---
+
 ## Post-audit conflicts — 2026-11-10
 
 | ID | Conflict | Current evidence | Status |

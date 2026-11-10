@@ -1,3 +1,13 @@
+## Typography authority / implementation conflict — 2026-11-10
+
+| Domain | Product approval | Implementation | Verification | Evidence / gap |
+|---|---|---|---|---|
+| UI typography | NEEDS OWNER-SOURCE RECONCILIATION | IMPLEMENTED (Vazirmatn) | PARTIAL | Direct owner instruction 2026-09-06 selected VazirHarf v34.003 and required replacing Vazirmatn references; current PRODUCT_DECISIONS.md claims later Vazirmatn approvals on 2026-11-05/08 without a Decision ID or linked primary message. Current pubspec, AppFonts, ArvinTheme and PDF tests all use Vazirmatn. The test named vazirharf_settings_convergence_test.dart also asserts Vazirmatn. Do not infer product approval from code/tests. |
+
+No font assets, code or tests were modified. Resolve the source authority before a separate typography remediation wave.
+
+---
+
 ## Post-audit source-tree note — 2026-11-10
 
 Current HEAD `a934cabebc814aea13c1800ab151821d12714226` is a documentation-only commit whose parent is `9846f10850031c63964fdc81ae0ab1cdb3028517`. Source, tests, workflows, schema and migration trees were not changed by a934; code observations below, inspected at 9846, remain the same source-tree snapshot. Current verification is updated in CI_HISTORY_AUDIT.md and TEST_INVENTORY.md. No technical remediation is claimed.

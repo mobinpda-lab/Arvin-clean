@@ -1,3 +1,11 @@
+## Additional non-destructive review candidate — typography
+
+| ID | Candidate | Evidence | Safe action | Boundary | Status |
+|---|---|---|---|---|---|
+| CL-017 | Typography decision / implementation divergence | Owner instruction 2026-09-06 says VazirHarf v34.003; later ledger rows claim Vazirmatn approval without Decision ID/source; current code and tests enforce Vazirmatn. | Reconcile primary owner source and register the governing decision; map affected code/tests/PRs. | No font asset/code/test removal or replacement in this audit. | NEEDS OWNER-SOURCE RECONCILIATION |
+
+---
+
 ## Post-audit safety refresh — 2026-11-10
 
 Live branch head is a934. Duplicate branch-head, repeated PR-head, repeated commit-subject/tree groups and 99 stale-open-PR candidates remain review candidates only. No branch/PR/commit/tag/release/workflow/test/migration/table/data deletion, history rewrite, merge, or ruleset change is authorized or performed. Main is protected and READ-ONLY; working branch is unprotected.
