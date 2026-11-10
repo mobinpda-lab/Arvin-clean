@@ -287,13 +287,6 @@ class SqlTaskMigrationWriter {
     if (_canonicalJson(existingEnvelope) != _canonicalJson(_storageEnvelope(record))) {
       throw StateError('Task envelope/unknown-field conflict for ${task.id}.');
     }
-    final legacyRecurrence = row['recurrence_json'];
-    if (legacyRecurrence != null &&
-        (task.recurrence == null ||
-         _canonicalJson(jsonDecode(legacyRecurrence as String)) !=
-             _canonicalJson(task.recurrence!.toJson()))) {
-      throw StateError('Legacy recurrence conflict for Task ${task.id}.');
-    }
 
     final reminders = task.taskReminders.toList()
       ..sort((a,b) => a.sequence != b.sequence ? a.sequence.compareTo(b.sequence) : a.id.compareTo(b.id));
