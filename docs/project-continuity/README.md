@@ -238,4 +238,4 @@ The latest owner authorization supersedes the earlier read-only Wave 4 checkpoin
 - [Backup/Restore Validation](audit/BACKUP_RESTORE_VALIDATION.md)
 - [Test Validation Report](audit/TEST_VALIDATION_REPORT.md)
 - [Legacy Retirement Register](audit/LEGACY_RETIREMENT_REGISTER.md)
-- WAVE4 Final Report will be added after the current documentation checkpoint is reconciled.
+- [WAVE 4 Final Report](audit/WAVE4_FINAL_REPORT.md)
