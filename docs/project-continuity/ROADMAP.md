@@ -356,3 +356,17 @@ Current checkpoint: Smoke run `42169009238` remains IN_PROGRESS with cancelled B
 - Files: lib/report_center_page.dart; lib/services/task_report_pdf_renderer.dart; sync services/specifications; NIRA client adapter and evidence workflows.
 - Acceptance: report totals reconcile to canonical rows; PDF/print/share evidence; secure pairing and conflict tests; exact-SHA Build, all six test shards, seven Device Smoke lanes, Calendar Provider, Follow-up Persistence, backup/restore, security and owner acceptance.
 - Status: BLOCKED. Report-related tests fail; Local P2P E2E and NIRA L10 remain NOT VERIFIED; Device Smoke incomplete.
+
+
+## WAVE 4 REV8 — SQL consolidation delivery status (2026-11-10)
+
+**Status: PARTIAL / BLOCKED.** Task and Project migration conflict/parity checks, relational Project ordering, unknown Project field preservation, Recurrence SQL and Occurrence/per-occurrence checklist SQL have been implemented in the working branch. Destructive legacy retirement was deferred.
+
+Remaining sequence:
+1. Complete exact-SHA Build, test-shard, integration and Device Smoke validation.
+2. Add full parity/conflict checks to G1 legacy Follow-up, Person and relation migration.
+3. Build one recoverable multi-source migration transaction.
+4. Normalize remaining Task/Project envelopes, template JSON columns and SharedPreferences owners.
+5. Complete Backup/Restore for all approved entities and verify close/reopen round-trip.
+6. Prove every legacy retirement gate and obtain Mobin acceptance.
+7. Keep Release NO-GO until every acceptance gate passes.
