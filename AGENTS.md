@@ -35,3 +35,10 @@ If any mandatory file is missing or unreadable, stop and report the gap. Do not 
 The latest recorded active task is the WAVE 4 SQL-ONLY read-only data ownership and migration audit. Its previous report is interim. Complete the evidence inventory before claiming the audit is comprehensive. Do not modify Wave 4 deliverable documents unless separately authorized.
 
 **No agent is permitted to ignore these instructions or proceed without reading the current project state.**
+
+
+## WAVE 4 REV8 — explicit owner authorization addendum (2026-11-10)
+
+Mobin has explicitly authorized **AUDIT + IMPLEMENTATION + TESTING** for WAVE 4 SQL consolidation on this working branch. This latest owner instruction supersedes the older read-only Wave 4 reminder and the prior restriction on editing Wave 4 deliverables. Source, Schema, Migration, Tests, Workflows where necessary, and the requested audit reports may be changed within the authorization.
+
+Non-negotiable limits remain: only `fix/recovery-calendar-device-smoke-2026-10-31`; Main READ-ONLY; PR #3052 OPEN / DRAFT / UNMERGED; no force-push, merge, release, test weakening or unproven legacy deletion. Re-fetch the live head and PR before writes. WAVE 4 is not COMPLETE until exact-SHA tests, backup/restore, full parity and owner gates are proven.
