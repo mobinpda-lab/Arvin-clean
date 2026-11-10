@@ -177,6 +177,81 @@ void main() {
     expect(count.single['count'], 1);
   });
 
+  test('migrates Occurrence history and per-Occurrence checklists into relational SQL', () async {
+    const first = '2026-10-01T08:00:00.000Z';
+    const second = '2026-10-02T08:00:00.000Z';
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setString('arvin.tasks', jsonEncode([
+      {
+        'id': 'occurrence-task',
+        'title': 'کار تکرارشونده',
+        'occurrenceHistory': {
+          first: {
+            'scheduledDate': first,
+            'status': 'completed',
+            'completionDate': '2026-10-01T08:30:00.000Z',
+            'result': 'انجام شد',
+          },
+          second: {
+            'scheduledDate': second,
+            'status': 'skipped',
+            'result': 'تعطیل بود',
+          },
+        },
+        'checklistOccurrences': {
+          first: ['[x] مرحله اول', '[ ] مرحله دوم'],
+          second: ['[ ] مرحله اول'],
+        },
+      },
+    ]));
+
+    await const SqlTaskMigrationWriter().migrateFromPreferences(
+      executor: database,
+      preferences: preferences,
+    );
+
+    final occurrences = await database.runSelect(
+      'SELECT scheduled_at, status, completed_at, result FROM task_occurrences '
+      'WHERE task_id = ? ORDER BY ordinal',
+      const ['occurrence-task'],
+    );
+    expect(occurrences, hasLength(2));
+    expect(occurrences[0]['scheduled_at'], first);
+    expect(occurrences[0]['status'], 'completed');
+    expect(occurrences[0]['completed_at'], '2026-10-01T08:30:00.000Z');
+    expect(occurrences[1]['status'], 'skipped');
+    expect(occurrences[1]['result'], 'تعطیل بود');
+
+    final checklistRows = await database.runSelect(
+      'SELECT o.scheduled_at, c.ordinal, c.value FROM task_occurrences o '
+      'JOIN occurrence_checklist_items c ON c.occurrence_id = o.id '
+      'WHERE o.task_id = ? ORDER BY o.ordinal, c.ordinal',
+      const ['occurrence-task'],
+    );
+    expect(checklistRows.map((row) => row['value']), [
+      '[x] مرحله اول',
+      '[ ] مرحله دوم',
+      '[ ] مرحله اول',
+    ]);
+
+    final storedEnvelope = (await database.runSelect(
+      'SELECT legacy_payload_json FROM tasks WHERE id = ?',
+      const ['occurrence-task'],
+    )).single;
+    final envelope = jsonDecode(storedEnvelope['legacy_payload_json'] as String) as Map<String, dynamic>;
+    expect(envelope.containsKey('occurrenceHistory'), isFalse);
+    expect(envelope.containsKey('checklistOccurrences'), isFalse);
+
+    final store = TaskStore(executor: database);
+    final loaded = await store.load();
+    expect(loaded.single.occurrenceHistory[first]?['status'], 'completed');
+    expect(loaded.single.occurrenceHistory[second]?['status'], 'skipped');
+    expect(loaded.single.checklistOccurrences[first], ['[x] مرحله اول', '[ ] مرحله دوم']);
+    await store.save(loaded);
+    final reopened = await store.load();
+    expect(reopened.single.checklistOccurrences[second], ['[ ] مرحله اول']);
+  });
+
   test('same ID with different content is a conflict and never skipped', () async {
     final preferences = await SharedPreferences.getInstance();
     await preferences.setString('arvin.tasks','[{"id":"conflict-task","title":"نسخه منبع","futureField":{"version":1}}]');
