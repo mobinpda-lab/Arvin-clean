@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:arvin/services/sql_project_migration_writer.dart';
 import 'package:arvin/services/g1_drift_schema.dart';
+import 'package:arvin/services/project_store.dart';
 
 void main() {
   late NativeDatabase database;
@@ -69,6 +70,17 @@ void main() {
     );
     expect(memberships.map((row) => row['task_id']), ['task-1', 'task-2']);
     expect(memberships.map((row) => row['ordinal']), [0, 1]);
+
+    // A normal Project save must retain fields unknown to the current model.
+    final store = ProjectStore(executor: database);
+    final loaded = await store.load();
+    await store.save([loaded.single.copyWith(title: 'فروش اصلاح‌شده')]);
+    final updated = (await database.runSelect(
+      'SELECT legacy_payload_json FROM projects WHERE id = ?',
+      const ['project-1'],
+    )).single;
+    final updatedEnvelope = jsonDecode(updated['legacy_payload_json'] as String) as Map<String, dynamic>;
+    expect(updatedEnvelope['futureField'], {'keep': true});
   });
 
   test('re-running the same project migration is idempotent', () async {
@@ -97,6 +109,20 @@ void main() {
       const [],
     );
     expect(count.single['count'], 1);
+  });
+
+  test('Project migration and Store preserve source ordering', () async {
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setString(
+      'arvin.projects',
+      '[{"id":"project-z","title":"اول","itemIds":[]},{"id":"project-a","title":"دوم","itemIds":[]}]',
+    );
+    await const SqlProjectMigrationWriter().migrateFromPreferences(
+      executor: database,
+      preferences: preferences,
+    );
+    final projects = await ProjectStore(executor: database).load();
+    expect(projects.map((project) => project.id), ['project-z', 'project-a']);
   });
 
   test('same Project ID with different content is a conflict, not a skip', () async {
