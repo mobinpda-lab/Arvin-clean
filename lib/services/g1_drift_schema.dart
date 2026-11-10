@@ -5,6 +5,7 @@ import 'package:drift/drift.dart';
 
 import '../models/task.dart';
 import 'occurrence_sql_codec.dart';
+import 'recurrence_sql_codec.dart';
 
 /// G1-DRIFT relational schema foundation.
 class G1DriftSchema implements QueryExecutorUser {
@@ -89,6 +90,11 @@ class G1DriftSchema implements QueryExecutorUser {
   occurrence_id TEXT NOT NULL REFERENCES task_occurrences(id),
   ordinal INTEGER NOT NULL, value TEXT NOT NULL,
   PRIMARY KEY(occurrence_id, ordinal))''',
+    '''CREATE TABLE IF NOT EXISTS task_recurrence_rules (
+  task_id TEXT NOT NULL PRIMARY KEY REFERENCES tasks(id),
+  frequency TEXT NOT NULL, interval INTEGER NOT NULL,
+  start_date TEXT NULL, end_date TEXT NULL, occurrence_count INTEGER NULL,
+  active INTEGER NOT NULL, tracking_level TEXT NOT NULL)''',
     '''CREATE TABLE IF NOT EXISTS arvin_storage_meta (
   key TEXT NOT NULL PRIMARY KEY, value TEXT NOT NULL)''',
   ];
@@ -220,6 +226,7 @@ class G1DriftSchema implements QueryExecutorUser {
       await migrateTaskPeople(executor);
       await migrateCanonicalEntities(executor);
       await OccurrenceSqlCodec.migrateLegacyEnvelopes(executor);
+      await RecurrenceSqlCodec.migrateLegacyRules(executor);
       final directorySeed = await executor.runSelect(
         "SELECT value FROM arvin_storage_meta WHERE key = 'person_directory_seeded_v1'",
         const [],
