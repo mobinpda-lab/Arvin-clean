@@ -143,7 +143,13 @@ void main() {
 
       await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('پشتیبان‌گیری'));
+      final backupAction = find.text('پشتیبان‌گیری');
+      await tester.scrollUntilVisible(
+        backupAction,
+        180,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.tap(backupAction);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Restore از فایل'));
       await tester.pumpAndSettle();
