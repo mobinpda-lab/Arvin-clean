@@ -126,12 +126,14 @@ void main() {
         'tags': <String>['برچسب بازیابی‌شده'],
       });
       final manager = ArvinBackupManager(service: backupService);
+      final restoreStages = <String>[];
 
       await tester.pumpWidget(
         MaterialApp(
           home: HomePage(
             backupManager: manager,
             restoreStageHook: (stage) async {
+              restoreStages.add(stage);
               if (stage == 'catalogs') throw StateError('injected after catalogs');
             },
           ),
@@ -170,6 +172,11 @@ void main() {
       expect(scheduleAfter.hour, scheduleBefore.hour);
       expect(scheduleAfter.minute, scheduleBefore.minute);
       expect(scheduleAfter.frequency, scheduleBefore.frequency);
+      expect(restoreStages, contains('rollback-reminders'));
+      expect(
+        restoreStages.indexOf('rollback-reminders'),
+        greaterThan(restoreStages.indexOf('catalogs')),
+      );
       expect(
         find.text('بازیابی کامل نشد؛ اطلاعات قبلی به حالت پیشین بازگردانده شد.'),
         findsOneWidget,
