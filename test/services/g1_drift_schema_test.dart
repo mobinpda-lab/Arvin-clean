@@ -81,6 +81,7 @@ void main() {
     expect(
       projectColumns.map((row) => row['name']),
       containsAll(<String>[
+        'storage_ordinal',
         'color_value',
         'is_archived',
         'legacy_payload_json',
