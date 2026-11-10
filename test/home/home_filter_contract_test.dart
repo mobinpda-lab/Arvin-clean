@@ -79,7 +79,8 @@ void main() {
     );
     expect(homeTitle.style?.fontFamily, isNull);
     expect(find.byKey(const ValueKey('home-filter-card-time')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-filter-card-center')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-filter-card-center')), findsNothing);
+    expect(find.byKey(const ValueKey('home-more-center-filter')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-project')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-category')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-tags')), findsOneWidget);
@@ -93,12 +94,12 @@ void main() {
     expect(overdueHeaderText.style?.fontWeight, FontWeight.w900);
     expect(find.byKey(const ValueKey('home-filter-card-all')), findsNothing);
     expect(find.byKey(const ValueKey('home-compact-filter-row')), findsOneWidget);
-    expect(find.byType(HomeFilterPill), findsNWidgets(5));
+    expect(find.byType(HomeFilterPill), findsNWidgets(4));
     final filterRow = tester.widget<Row>(
       find.byKey(const ValueKey('home-compact-filter-row')),
     );
     expect(filterRow.textDirection, TextDirection.rtl);
-    for (final id in ['time', 'center', 'project', 'category', 'tags']) {
+    for (final id in ['time', 'project', 'category', 'tags']) {
       final pill = find.byKey(ValueKey('home-filter-card-$id'));
       expect(tester.getSize(pill).width, greaterThanOrEqualTo(48));
       expect(tester.getSize(pill).height, greaterThanOrEqualTo(48));
@@ -119,7 +120,6 @@ void main() {
       await tester.pumpAndSettle();
       final filterKeys = [
         'time',
-        'center',
         'project',
         'category',
         'tags',
@@ -195,9 +195,12 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('انتخاب زمان'), findsNothing);
 
-        final centerFilter = find.byKey(const ValueKey('home-filter-card-center'));
-    await tester.ensureVisible(centerFilter);
+    final moreNavigation = find.byKey(const ValueKey('primary-nav-more'));
+    await tester.ensureVisible(moreNavigation);
+    await tester.tap(moreNavigation);
     await tester.pumpAndSettle();
+    final centerFilter = find.byKey(const ValueKey('home-more-center-filter'));
+    await tester.ensureVisible(centerFilter);
     await tester.tap(centerFilter);
     await tester.pumpAndSettle();
     expect(find.text('انتخاب مرکز'), findsOneWidget);
