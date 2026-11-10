@@ -38,6 +38,12 @@ class TaskReportTextRenderer {
       if (entry.description.trim().isNotEmpty) {
         buffer.writeln('توضیحات: ${entry.description.trim()}');
       }
+      if (entry.dueDate != null) {
+        final due = entry.allDay
+            ? formatDate(entry.dueDate!)
+            : formatDateTime(entry.dueDate!);
+        buffer.writeln('موعد: $due');
+      }
       for (final reminder in entry.reminders) {
         final due = reminder.isAllDay
             ? formatDate(reminder.date)
