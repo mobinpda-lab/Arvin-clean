@@ -77,10 +77,8 @@ Exact-head Build run `42966000663`: SUCCESS.
 
 Exact-head Device Smoke run `42966000635`: IN PROGRESS at last poll.
 - Preparation: PASS.
-- Home: PASS.
-- Quick Capture: PASS.
-- SQL Persistence and SQL Migration: IN PROGRESS.
-- Calendar, People and Backup/Restore: QUEUED.
+- Home, Quick Capture, People, Backup/Restore, SQL Persistence and SQL Migration: PASS.
+- Calendar: IN PROGRESS.
 - Full Device Smoke is not yet PASS.
 
 Parallel Wave run `42966000643`: FAILED at the Fast Lane workflow-contract validator. The validator reports that `.github/workflows/device-smoke.yml` is missing the expected exact-ref expression:
