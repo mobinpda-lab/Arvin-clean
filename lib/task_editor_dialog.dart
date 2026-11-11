@@ -851,10 +851,25 @@ Future<void> _pickDueDateTime() async {
         nextReminderSequence: _nextReminderSequence,
         legacyTaskReminderMigrationVersion:
             existing?.legacyTaskReminderMigrationVersion ?? 0,
+        legacyFollowUpMetadata:
+            existing?.legacyFollowUpMetadata ?? const <String, dynamic>{},
         priority: _priority,
+        isFavorite: existing?.isFavorite ?? false,
+        focusDate: existing?.focusDate,
+        notebookKind: existing?.notebookKind,
+        checklistOccurrences:
+            existing?.checklistOccurrences ?? const <String, List<String>>{},
+        occurrenceHistory:
+            existing?.occurrenceHistory ?? const <String, Map<String, dynamic>>{},
         archived: existing?.archived ?? false,
         trashed: existing?.trashed ?? false,
         completed: _completed,
+        completedAt: _completed
+            ? (existing?.completed == true
+                ? existing?.completedAt ?? now
+                : now)
+            : null,
+        templateTaskId: existing?.templateTaskId,
         followUps: List<FollowUp>.of(_followUps),
         recurrence: _buildRecurrence(),
         people: existing?.people ?? const [],
