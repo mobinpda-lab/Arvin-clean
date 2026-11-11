@@ -440,8 +440,8 @@ void main() {
     database = NativeDatabase(databaseFile);
 
     const raw = '''
-      [{"id":"persist-task","title":"پیگیری قرارداد","followUps":[
-        {"id":"history-1","dateTime":"2026-09-21T10:00:00.000Z","title":"تماس اول","note":"شرح اول","result":"منتظر پاسخ","completed":true,"waitingForResponse":true,"personIds":["person-1","person-2"]},
+      [{"id":"persist-task","title":"پیگیری قرارداد","futureTaskField":{"retain":true},"followUps":[
+        {"id":"history-1","dateTime":"2026-09-21T10:00:00.000Z","title":"تماس اول","note":"شرح اول","result":"منتظر پاسخ","completed":true,"waitingForResponse":true,"personIds":["person-1","person-2"],"futureFollowUpField":{"retain":true}},
         {"id":"history-2","dateTime":"2026-09-22T11:30:00.000Z","title":"تماس دوم","note":"شرح دوم","result":"پاسخ دریافت شد","completed":false,"waitingForResponse":false,"personIds":["person-3"]}
       ]}]
     ''';
@@ -473,6 +473,17 @@ void main() {
       ['person-1', 'person-2'],
       ['person-3'],
     ]);
+    final legacyMetadata = reopenedTasks.single.legacyFollowUpMetadata;
+    expect(legacyMetadata['unknownFields'], {
+      'futureTaskField': {'retain': true},
+    });
+    final legacyFollowUps = legacyMetadata['followUps'] as List;
+    expect(
+      legacyFollowUps.whereType<Map>().any(
+        (item) => item['futureFollowUpField'] == {'retain': true},
+      ),
+      isTrue,
+    );
 
     await database.close();
     database = NativeDatabase.memory();
