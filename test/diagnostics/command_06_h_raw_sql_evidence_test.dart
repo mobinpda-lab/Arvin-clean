@@ -126,6 +126,10 @@ void main() {
       final hashLine = (hashResult.stdout as String).trim();
       final hashFile = File('${artifactDirectory.path}/raw-sql-evidence.json.sha256');
       await hashFile.writeAsString('$hashLine\n', flush: true);
+      final verifyResult = await Process.run('sha256sum', ['-c', hashFile.path]);
+      if (verifyResult.exitCode != 0) {
+        throw StateError('SHA256 verification failed: ${verifyResult.stdout} ${verifyResult.stderr}');
+      }
 
       print('ARVIN_COMMAND_06_H_RAW_SQL_EVIDENCE_BEGIN');
       print(const JsonEncoder.withIndent('  ').convert(evidence));
