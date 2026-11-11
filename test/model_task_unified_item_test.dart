@@ -448,4 +448,45 @@ void main() {
     }
   });
 
+
+
+  test('D02: unknown Task-level fields survive independent round trips', () {
+    final decoded = Task.fromLegacyJson({
+      'id': 'd02-unknown-task-only',
+      'title': 'unknown task field',
+      'futureTaskOnly': {'enabled': false, 'nullable': null},
+    });
+    final unknown =
+        decoded.legacyFollowUpMetadata['unknownFields'] as Map<String, dynamic>;
+    expect(unknown, {'futureTaskOnly': {'enabled': false, 'nullable': null}});
+
+    final restored = Task.fromJson(decoded.toJson());
+    expect(
+      restored.legacyFollowUpMetadata['unknownFields'],
+      {'futureTaskOnly': {'enabled': false, 'nullable': null}},
+    );
+  });
+
+  test('D02: unknown Follow-up fields survive independent round trips', () {
+    final decoded = Task.fromLegacyJson({
+      'id': 'd02-unknown-follow-up-only',
+      'title': 'unknown Follow-up field',
+      'followUps': [{
+        'id': 'unknown-follow-up-only',
+        'dateTime': '2026-11-11T12:00:00.000',
+        'futureFollowUpOnly': {'value': null, 'items': ['x', 'y']},
+      }],
+    });
+    expect(decoded.legacyFollowUpMetadata['followUps'], [{
+      'id': 'unknown-follow-up-only',
+      'futureFollowUpOnly': {'value': null, 'items': ['x', 'y']},
+    }]);
+
+    final restored = Task.fromJson(decoded.toJson());
+    expect(restored.legacyFollowUpMetadata['followUps'], [{
+      'id': 'unknown-follow-up-only',
+      'futureFollowUpOnly': {'value': null, 'items': ['x', 'y']},
+    }]);
+  });
+
 }
