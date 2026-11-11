@@ -657,7 +657,7 @@ void main() {
     database = NativeDatabase.memory();
     await directory.delete(recursive: true);
   });
-
+}
 
 // Test-only SQL interception for COMMAND 06. Captures the actual row returned
 // by SQLite before parity validation throws and the migration rolls back.
@@ -776,4 +776,3 @@ Map<String, Object?> _diagnosticDiff(
   };
 }
 
-}
