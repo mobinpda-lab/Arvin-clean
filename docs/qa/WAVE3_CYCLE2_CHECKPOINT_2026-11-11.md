@@ -222,3 +222,32 @@ Compared each recorded group HEAD against current Main SHA `45e4202b...`. Classi
 - Chunk 3 was upgraded from normalized metadata to raw REST records, restoring the actual numeric IDs; all 10 PR numbers matched the prior checkpoint exactly.
 - Added Chunk 4 raw JSON at `docs/qa/historical-recovery/page-4-chunk-4-index-30-39.json`: page 4, `slice(30,40)`, 10 unique records with raw IDs present. Actual PR numbers in source order: #437, #439, #440, #441, #442, #443, #445, #448, #449, #450. Gaps are present in the raw page slice and were not filled by inference.
 - Historical Set A (198 IDs) and Set B (509 members) original source artifacts still not located; membership/intersection remain UNVERIFIED.
+
+
+### Cycle 3 latest refresh — 2026-11-11 (UTC event times in Actions)
+
+#### SQLite regression follow-up
+- PR #3364 was advanced to `2238fa063faf781ea905f861fb0ae8f58ccf6d57`.
+- On the immediately preceding head `d98f19b...`, exact-head logs showed these targeted regressions PASS:
+  - complete Follow-up history survives closing/reopening the same SQLite file;
+  - explicit legacy `followUpEnabled=false` survives as inert metadata;
+  - G1 pre-taxonomy upgrade preserves task data;
+  - legacy disabled reminders remain disabled after database close/application restart;
+  - migrated reminder backup/restore does not resurrect deleted reminders;
+  - SQL migration preserves original JSON envelope byte-for-byte and is idempotent.
+- That run also exposed one legacy Home serializer test asserting retired `dateTime`; canonical Follow-up serialization uses `completedAt`. The test now asserts `completedAt` and absence of `dateTime` in commit `2238fa0...`.
+- New exact-head Build run `42978067648`, Device Smoke `42978067622`, and Follow-up persistence run `42978067609` were PENDING/QUEUED at last poll. Do not treat the preceding targeted green tests as a pass for the new SHA until rerun completes.
+- The previous full Build on `d98f19b...` still failed six test shards for a mix of legacy Home/Quick Capture/Settings/Task Editor widget assertions and the now-corrected Follow-up timestamp assertion; Analyze passed, APK jobs were still running at last poll. The corrected test has not yet been revalidated.
+
+#### Device validation
+- PR #3365 exact head `50f99c743b6dc5192b01fc87733d3a1eaa4e7a51`: all seven Device Smoke lanes now terminal SUCCESS, including Calendar. Its Build remains SUCCESS. This is the first complete green Device Smoke set for this Cycle 3 Calendar repair.
+- PR #3348 original head remains unchanged and its Device Smoke remains FAILED on Calendar due immediate assertion before route/FutureBuilder completion. The downstream #3365 branch adds a bounded wait for the actual selected-day list and proves all lanes green. #3348 remains OPEN/DRAFT pending integration/revalidation; not accepted as independently green.
+
+#### Product editor branch
+- PR #3366 latest head `a9c2b8711be76738c7dda08c7befe6969b4c88a5`; Analyze had passed on the prior build, test shards/APKs remained running, File Persistence passed, Device Smoke pending. Exact-head terminal result still required.
+
+#### History page 4 — continued
+- Chunk 4 stored at `docs/qa/historical-recovery/page-4-chunk-4-index-30-39.json`: 10 raw REST records, 10 unique PRs, IDs present; PR numbers #437, #439, #440, #441, #442, #443, #445, #448, #449, #450.
+- Chunk 5 stored at `docs/qa/historical-recovery/page-4-chunk-5-index-40-49.json`: 10 raw REST records, 10 unique PRs, IDs present; PR numbers #451–#459 and #461 (no inferred #460).
+- Chunk 3 was revalidated against the same raw page and updated to include true REST numeric IDs. Its PR list #427–#436 exactly matches the earlier checkpoint.
+- Historical Set A / Set B source membership remains UNVERIFIED.
