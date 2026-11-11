@@ -89,7 +89,9 @@ void main() {
       );
       expect(persisted.title, 'کار دارای موعد');
       expect(persisted.description, 'توضیح نباید تغییر کند');
-      expect(persisted.reminderDate, reminderDate);
+      // The legacy single-reminder field is not the source of truth.
+      // The canonical TaskReminder collection must remain unchanged.
+      expect(persisted.reminderDate, isNull);
       expect(persisted.taskReminders, hasLength(1));
       expect(
         persisted.taskReminders.single.id,
