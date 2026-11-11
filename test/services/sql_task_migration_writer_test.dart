@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:arvin/follow_up_repository.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/sql_task_migration_writer.dart';
+import 'package:arvin/services/g1_drift_schema.dart';
 import 'package:arvin/services/task_migration_adapter.dart';
 import 'package:arvin/services/task_store.dart';
 
@@ -500,6 +501,9 @@ void main() {
     await database.close();
 
     database = NativeDatabase(databaseFile);
+    // NativeDatabase opens lazily. Initialize the reopened executor through
+    // the same schema owner before issuing direct diagnostic SQL queries.
+    await G1DriftSchema.install(database);
     final baselineTaskRows = await database.runSelect(
       'SELECT * FROM tasks WHERE id = ?',
       const ['persist-task'],
