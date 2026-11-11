@@ -108,15 +108,15 @@ void main() {
         find.byKey(const ValueKey('primary-nav-calendar')),
       );
       // Route replacement and the official-calendar FutureBuilder can settle
-      // after the first pump; wait for the canonical Calendar surface explicitly.
+      // after the first pump; wait for the actual selected-day list surface.
       for (var attempt = 0; attempt < 40; attempt++) {
         await tester.pump(const Duration(milliseconds: 100));
-        if (find.byKey(const ValueKey('calendar-date-triplet')).evaluate().isNotEmpty) {
+        if (find.byKey(const ValueKey('calendar-selected-day-list')).evaluate().isNotEmpty) {
           break;
         }
       }
       expect(find.text('تقویم پیگیری'), findsOneWidget);
-      expect(find.byKey(const ValueKey('calendar-date-triplet')), findsOneWidget);
+      expect(find.byKey(const ValueKey('calendar-selected-day-list')), findsOneWidget);
 
       final cardKey = const ValueKey(
         'reminder-card-task-reminder-item:calendar-smoke-task:calendar-smoke-reminder',
