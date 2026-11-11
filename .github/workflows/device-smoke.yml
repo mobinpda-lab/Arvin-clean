@@ -157,6 +157,7 @@ jobs:
           git cat-file -e "$TARGET_SHA^{commit}"
           actual="$(git rev-parse HEAD)"
           echo "EXPECTED_TARGET_SHA=$TARGET_SHA"
+          echo "CHECKOUT_SHA=$actual"
           echo "CHECKED_OUT_SHA=$actual"
           if [ "$actual" != "$TARGET_SHA" ]; then
             echo "CHECKOUT SHA mismatch: expected $TARGET_SHA, got $actual" >&2
