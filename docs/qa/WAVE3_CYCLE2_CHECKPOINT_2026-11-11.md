@@ -162,3 +162,12 @@ Compared each recorded group HEAD against current Main SHA `45e4202b...`. Classi
 - PR #3364 latest pushed head: `06c57bc20ec9bc415e705684206a52cd95e82dad`. Build run `42973881233` queued at checkpoint refresh; result pending.
 - PR #3365 head `4508902e0c772c80f975fc86a49d19a4f5c814a5`: exact-head Build run `42972151218` passed Analyze, all six test shards and Debug/Release APKs. Device Smoke run `42972151243` remained queued.
 - PR #3366 latest head: `c1118f0803e1cefdaeaa468793e255647b9e70ac`. The canonical editor regression passed. The inherited Task Detail Due Date test fixture has been changed to use an explicit canonical TaskReminder rather than deprecated direct constructor input; exact-head CI after this update is pending.
+
+
+### Latest Cycle 3 checkpoint refresh — 2026-11-11 09:45 Iran time
+- Documentation/evidence continuation submitted as draft PR #3369, base `docs/wave-3-cycle-2-evidence-2026-11-11`, head branch `docs/wave3-cycle3-historical-recovery`. PR head before this refresh: `b19def8f11f3b148c796177663f183b15602f57e`; this checkpoint update advances the branch again.
+- PR #3364 latest head `c1fef37096138485a8f906b748b1622bf4ceea8e`: root-cause patch now avoids synthetic false and null legacy metadata; parity diagnostics distinguish missing vs explicit null. Exact-head Build run `42974329525` had not started jobs yet; Follow-up file-backed persistence run `42974329448` queued. Final regression result pending.
+- PR #3365 latest head `4508902e0c772c80f975fc86a49d19a4f5c814a5`: Build run `42972151218` SUCCESS (Analyze, six test shards, Debug and Release APK). Device Smoke run `42972151243`: prepare, People, Backup/Restore, SQL Persistence, Home, Quick Capture and SQL Migration SUCCESS; Calendar job `130362894801` still IN_PROGRESS. Device validation is not complete.
+- PR #3366 latest head `c1118f0803e1cefdaeaa468793e255647b9e70ac`: canonical Task Editor regression and Task Detail Due Date/Reminder fixture updated. Build run `42973888541`: test shard 3 IN_PROGRESS; remaining shards and APK jobs queued. Final result pending.
+- Protected PR state rechecked: #3052 OPEN/DRAFT, #3340 OPEN/READY, #3348 OPEN/DRAFT, #3356 OPEN/DRAFT. No changes to their heads.
+- Cycle 3 remains INCOMPLETE; Release remains NO-GO. No merge, closure, archive, deletion, or Main update.
