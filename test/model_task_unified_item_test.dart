@@ -489,4 +489,124 @@ void main() {
     }]);
   });
 
+
+
+  test('D01 direct Task constructor preserves omitted, NULL, FALSE and TRUE', () {
+    final omitted = Task(id: 'direct-omitted', title: 'omitted');
+    expect(omitted.legacyFollowUpMetadata['taskLevel'], isNull);
+
+    final explicitFalseAndNull = Task(
+      id: 'direct-false-null',
+      title: 'explicit false and null date',
+      followUpEnabled: false,
+      followUpDate: null,
+    );
+    expect(explicitFalseAndNull.legacyFollowUpMetadata['taskLevel'], {
+      'followUpEnabled': false,
+      'followUpDate': null,
+    });
+
+    final explicitNull = Task(
+      id: 'direct-null',
+      title: 'explicit null flag',
+      followUpEnabled: null,
+    );
+    expect(explicitNull.legacyFollowUpMetadata['taskLevel'], {
+      'followUpEnabled': null,
+    });
+
+    final explicitTrueAndDate = Task(
+      id: 'direct-true-date',
+      title: 'explicit true and date',
+      followUpEnabled: true,
+      followUpDate: DateTime(2026, 11, 12, 10, 30),
+    );
+    expect(explicitTrueAndDate.legacyFollowUpMetadata['taskLevel'], {
+      'followUpEnabled': true,
+      'followUpDate': '2026-11-12T10:30:00.000',
+    });
+
+    for (final task in [
+      explicitFalseAndNull,
+      explicitNull,
+      explicitTrueAndDate,
+    ]) {
+      final encoded = task.toJson();
+      final restored = Task.fromJson(encoded);
+      expect(restored.legacyFollowUpMetadata, task.legacyFollowUpMetadata);
+      expect(restored.followUpEnabled, isFalse);
+    }
+  });
+
+  test('D02 direct Task constructor merges colliding Follow-up metadata', () {
+    final oldNextDate = DateTime(2026, 11, 13, 8);
+    final newNextDate = DateTime(2026, 11, 14, 9);
+    final task = Task(
+      id: 'direct-follow-up-collision',
+      title: 'direct collision',
+      legacyFollowUpMetadata: {
+        'taskLevel': {'followUpEnabled': false, 'legacyNote': 'keep'},
+        'unknownFields': {'futureTaskField': {'keep': true}},
+        'followUps': [
+          {
+            'id': 'same-id',
+            'unknownOldField': {'preserve': true},
+            'nextFollowUp': oldNextDate.toIso8601String(),
+          },
+          {
+            'id': 'same-id',
+            'secondOldField': 'merge duplicate',
+          },
+        ],
+        'unrelatedEnvelopeField': 'preserve envelope',
+      },
+      followUps: [
+        FollowUp(
+          id: 'same-id',
+          completedAt: DateTime(2026, 11, 11, 12),
+          nextFollowUp: newNextDate,
+        ),
+        FollowUp(
+          id: 'explicit-null-id',
+          completedAt: DateTime(2026, 11, 11, 13),
+          nextFollowUp: null,
+        ),
+      ],
+    );
+
+    expect(task.legacyFollowUpMetadata['taskLevel'], {
+      'followUpEnabled': false,
+      'legacyNote': 'keep',
+    });
+    expect(task.legacyFollowUpMetadata['unknownFields'], {
+      'futureTaskField': {'keep': true},
+    });
+    expect(task.legacyFollowUpMetadata['unrelatedEnvelopeField'], 'preserve envelope');
+    final records = task.legacyFollowUpMetadata['followUps'] as List;
+    expect(records, hasLength(2));
+    expect(records[0], {
+      'id': 'same-id',
+      'unknownOldField': {'preserve': true},
+      'nextFollowUp': newNextDate.toIso8601String(),
+      'secondOldField': 'merge duplicate',
+    });
+    expect(records[1], {
+      'id': 'explicit-null-id',
+      'nextFollowUp': null,
+    });
+
+    var restored = Task.fromJson(task.toJson());
+    for (var cycle = 1; cycle <= 5; cycle++) {
+      final encoded = restored.toJson();
+      final roundTrip = Task.fromJson(encoded);
+      expect(roundTrip.legacyFollowUpMetadata, task.legacyFollowUpMetadata,
+          reason: 'direct-constructor round trip $cycle');
+      expect(
+        (roundTrip.legacyFollowUpMetadata['followUps'] as List).length,
+        2,
+      );
+      restored = roundTrip;
+    }
+  });
+
 }
