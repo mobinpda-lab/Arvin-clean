@@ -26,7 +26,7 @@ void main() {
   });
 
   test('Unified Task JSON preserves reminder and recurrence fields', () {
-    final task = Task.fromJson({
+    final task = Task.fromLegacyJson({
       'id': 'unified-1',
       'title': 'کار جدید',
       'reminderDate': '2026-08-21T10:00:00.000',
