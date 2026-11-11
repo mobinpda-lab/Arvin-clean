@@ -98,3 +98,46 @@ Compared each recorded group HEAD against current Main SHA `45e4202b...`. Classi
 - No data or historical source deleted.
 - No schema/migration behavior changed.
 - No merge/release, branch deletion, branch archival, or PR closure.
+
+
+## WAVE 3 / CYCLE 3 — execution update (2026-11-11)
+
+### Workstream A — P0 SQLite
+- Created independent child branch `fix/wave3-cycle3-followup-envelope` from diagnostic child #3356.
+- Root cause is now localized: `G1DriftSchema.migrateCanonicalEntities` synthesizes `followUpEnabled: false` even when the original SQL schema has no `follow_up_enabled` column. On the next migration pass, the synthetic key conflicts with a source envelope where the key is absent.
+- Implemented conditional preservation: materialize the value only if the legacy SQL column exists.
+- Updated Task legacy metadata decoding to preserve an explicitly stored `false` value as inert metadata.
+- Added regression coverage for fresh-schema reopen parity, independent Due Date, no reminder creation from Follow-up history, and false-value model round-trip.
+- Draft PR #3364 created against the #3356 branch. Exact-head SHA: `dfff2ffb5e15272f614b2126ad4237441281138d`.
+- Tests/CI on this SHA: PENDING. No merge.
+
+### Workstream B — PR #3348 Device Smoke recovery
+- Verified #3348 exact head `2b3bc278b444f45ffd522f7a06a6480a2c59cd68`: 1,094 tests passed; Analyze and Debug/Release builds passed; Calendar Device Smoke failed before interaction at the missing selected-day list.
+- The Task and two independent Reminder records had already survived a fresh TaskStore reload. The failure is before the UI card assertion; it is not evidence of SQLite data loss.
+- Created isolated branch `test/wave3-cycle3-device-smoke-recovery` and draft PR #3365 against #3348.
+- Changes: satisfy the exact Fast Lane checkout contract without using PR merge refs; add stable primary-navigation destination keys; navigate to Calendar by key and wait for the Calendar surface before asserting.
+- Exact-head SHA: `4508902e0c772c80f975fc86a49d19a4f5c814a5`. CI: PENDING. #3348 remains unchanged and open/draft.
+
+### Workstream C — product editor repair
+- Created isolated branch `fix/wave3-cycle3-calendar-product-repair` from protected #3052 head.
+- Found an existing editor regression gap: editor save omitted `legacyFollowUpMetadata`, so unrelated edits could discard retained legacy compatibility metadata.
+- Updated editor save to retain this metadata without activating legacy Follow-up scheduling.
+- Corrected the regression fixture to use a canonical `TaskReminder`; the deprecated direct constructor `reminderDate` is intentionally not an active Reminder.
+- Added assertions that Due Date, independent Reminder, inert legacy metadata and Follow-up history survive editor save.
+- Draft PR #3366 created against protected #3052 branch. Exact-head SHA: `d4b16b1600b5daaf721f3f007584ae6d0b70e961`. CI: PENDING. No merge.
+
+### Workstream D — historical recovery
+- Verified the saved Page 4 / Chunk 2 JSON: 10 records, PR #417–#426, 10 unique numbers; all required checkpoint fields present. Existing JSON path unchanged.
+- Continued with PR #427–#436 and saved a separate normalized extraction at `docs/qa/historical-recovery/page-4-chunk-3-prs-427-436.json`.
+- Important provenance limitation: the GitHub connector exposes normalized per-PR fields but not the REST numeric `id` or the raw 100-record list page. Those IDs are explicitly null and no raw-response equivalence is claimed.
+- Slice findings: #427, #428, #430, #432 and #435 are merged; #429, #431, #433, #434 and #436 are closed unmerged. #429 says superseded by #433; #433's single-alarm arbiter and #431's notification reuse still need current-Main equivalence/dependency checks. #434's due-date editor needs comparison with current Main; #436's archive action needs current UI equivalence.
+- Historical Set A (198 IDs) source and Set B (509 IDs) membership remain unproven. No intersection/difference arithmetic is valid.
+- 35 duplicate-HEAD groups remain non-destructive: 18 archive candidates and 17 investigate groups from prior evidence. Dependency/product-equivalence mapping still pending.
+
+### Current guardrails
+- Main remains untouched at `45e4202b03a434459e4c021a04efa7e8396359db`.
+- PR #3052 and #3340 remain untouched/open.
+- #3348 remains open/draft.
+- New PRs #3364, #3365 and #3366 are open/draft; no merge or release.
+- No PR closed, branch deleted/archived, test skipped, or migration data removed.
+- Release remains NO-GO.
