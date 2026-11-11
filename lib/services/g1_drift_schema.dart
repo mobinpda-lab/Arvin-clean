@@ -470,10 +470,10 @@ class G1DriftSchema implements QueryExecutorUser {
       // Legacy compatibility values are materialized only when their
       // source SQL columns existed. NULL aliases for absent columns are not
       // historical values and must not be injected into a fresh envelope.
-      if (hasLegacyTaskReminder) {
+      if (hasLegacyTaskReminder && row['reminder_date'] != null) {
         payload['reminderDate'] ??= row['reminder_date'];
       }
-      if (hasLegacyTaskFollowUpDate) {
+      if (hasLegacyTaskFollowUpDate && row['follow_up_date'] != null) {
         payload['followUpDate'] ??= row['follow_up_date'];
       }
       // The retired flag is inert metadata; preserve its actual legacy value,
