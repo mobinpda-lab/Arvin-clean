@@ -26,6 +26,9 @@ extension TaskPriorityProduct on TaskPriority {
 
 enum NotebookItemKind { note, checklist }
 
+// Distinguishes omitted legacy constructor arguments from explicit null values.
+const Object _legacyValueNotProvided = Object();
+
 String _dateOnlyStorageValue(DateTime value) =>
     '${value.year.toString().padLeft(4, '0')}-${value.month.toString().padLeft(2, '0')}-${value.day.toString().padLeft(2, '0')}';
 
@@ -164,7 +167,7 @@ class FollowUpRecord {
 
   /// Retained only to serialize legacy dates as inert Task metadata.
   /// Never read by Reminder projection, delivery, Calendar, or alarm scheduling.
-  final DateTime? _legacyNextFollowUp;
+  final Object? _legacyNextFollowUp;
 
   /// Deprecated read-only compatibility projection; future scheduling is not stored.
   @Deprecated('Follow-up records are historical only.')
@@ -185,7 +188,7 @@ class FollowUpRecord {
     @Deprecated('Use TaskReminder.isAllDay on the parent Task.')
     bool reminderAllDay = false,
     @Deprecated('Follow-up records do not schedule future work.')
-    DateTime? nextFollowUp,
+    Object? nextFollowUp = _legacyValueNotProvided,
     this.completed = false,
     this.waitingForResponse = false,
     this.personIds = const <String>[],
@@ -307,9 +310,9 @@ class Task {
     this.centerId,
     this.allDay = false,
     @Deprecated('Follow-up history is represented by FollowUpRecord entries.')
-    bool followUpEnabled = false,
+    Object? followUpEnabled = _legacyValueNotProvided,
     @Deprecated('Follow-up records do not schedule future work.')
-    DateTime? followUpDate,
+    Object? followUpDate = _legacyValueNotProvided,
     this.tags = const [],
     this.category,
     this.checklist = const [],
@@ -351,11 +354,21 @@ class Task {
     // into TaskReminder records and therefore cannot schedule delivery.
     final metadata = Map<String, dynamic>.from(legacyFollowUpMetadata);
     final taskLevel = <String, dynamic>{};
-    if (followUpDate != null) {
-      taskLevel['followUpDate'] = followUpDate.toIso8601String();
+    if (!identical(followUpDate, _legacyValueNotProvided)) {
+      if (followUpDate == null) {
+        taskLevel['followUpDate'] = null;
+      } else if (followUpDate is DateTime) {
+        taskLevel['followUpDate'] = followUpDate.toIso8601String();
+      } else {
+        throw ArgumentError.value(followUpDate, 'followUpDate', 'Expected DateTime or null.');
+      }
     }
-    if (followUpEnabled || followUpDate != null) {
-      taskLevel['followUpEnabled'] = followUpEnabled;
+    if (!identical(followUpEnabled, _legacyValueNotProvided)) {
+      if (followUpEnabled == null || followUpEnabled is bool) {
+        taskLevel['followUpEnabled'] = followUpEnabled;
+      } else {
+        throw ArgumentError.value(followUpEnabled, 'followUpEnabled', 'Expected bool or null.');
+      }
     }
     if (taskLevel.isNotEmpty) {
       final existing = metadata['taskLevel'];
@@ -373,10 +386,12 @@ class Task {
     }
     for (final followUp in followUps) {
       final nextFollowUp = followUp._legacyNextFollowUp;
-      if (nextFollowUp == null) continue;
+      if (identical(nextFollowUp, _legacyValueNotProvided)) continue;
       final record = <String, dynamic>{
         'id': followUp.id,
-        'nextFollowUp': nextFollowUp.toIso8601String(),
+        'nextFollowUp': nextFollowUp is DateTime
+            ? nextFollowUp.toIso8601String()
+            : null,
       };
       final existingIndex = records.indexWhere(
         (item) => item['id'] == followUp.id,
@@ -384,7 +399,10 @@ class Task {
       if (existingIndex < 0) {
         records.add(record);
       } else {
-        records[existingIndex] = record;
+        records[existingIndex] = <String, dynamic>{
+          ...records[existingIndex],
+          ...record,
+        };
       }
     }
     if (records.isNotEmpty) metadata['followUps'] = records;
