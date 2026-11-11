@@ -318,3 +318,22 @@ All newly stored slices contain 10 records, 10 unique PR numbers and actual REST
 - PR #3366 advanced to `8c4c23f0c2a4f9b2374a2092c931782c4455fd41` after updating stale tests to use the explicit legacy decoder and canonical TaskReminder records. No exact-head run was returned at last poll; validation is pending.
 - PR #3365 remains green at `50f99c743b6dc5192b01fc87733d3a1eaa4e7a51`: Build and all seven Device Smoke lanes SUCCESS.
 - PR #3369 docs branch current head `175d57b64a05c7344bf88fa440dfe5d32e4fad6f`; docs-only evidence branch Build/Device runs QUEUED. Keep Draft.
+
+
+### Final refresh before report — 2026-11-11 07:18 UTC
+
+- Main was re-read: `45e4202b03a434459e4c021a04efa7e8396359db`; no direct Main changes were made.
+- Protected PR #3052 remains OPEN/DRAFT at `aba68e44be0fcac7d4ad425b58fbe75e5aba264e`; #3340 remains OPEN/non-draft at `28f2a57c8feb61c8e587e93955f32685b930b2d7`. Neither head was modified.
+- PR #3348's automated follow-up has advanced it to `17bb931225cf5c48a1271dd0a31a76d549f19704`; its Build `42978508446` and Device Smoke `42978508698` are QUEUED, Follow-up file persistence `42978508344` SUCCESS, Parallel Wave `42978508466` SUCCESS. Latest head remains unvalidated until Build + all Device lanes finish.
+- PR #3364 head `2238fa063faf781ea905f861fb0ae8f58ccf6d57`; Follow-up file persistence `42978067609` SUCCESS, Build `42978067648` QUEUED, Device Smoke `42978067622` PENDING. Core migration regression evidence on parent `d98f19b...` passed; canonical serializer test was corrected afterward, but latest exact-head Build has not run yet.
+- PR #3365 remains fully green on `50f99c743b6dc5192b01fc87733d3a1eaa4e7a51`: Build `42974843650` SUCCESS and Device Smoke `42974843683` SUCCESS (all seven lanes).
+- PR #3366 head `8c4c23f0c2a4f9b2374a2092c931782c4455fd41`; Build `42978762000` PENDING, Device Smoke `42978762152` PENDING, Follow-up file persistence `42978762123` QUEUED. New tests now use canonical TaskReminder data for Due Date independence and explicit `Task.fromLegacyJson` for legacy reminder decoding.
+- Page 4 chunks 6–10 were stored with raw REST IDs:
+  - Chunk 6 / slice 50–59: #462–#471.
+  - Chunk 7 / slice 60–69: #472–#481.
+  - Chunk 8 / slice 70–79: #482–#491.
+  - Chunk 9 / slice 80–89: #492–#501.
+  - Chunk 10 / slice 90–99: #502, #504–#512.
+- Page 4 recovery from #417 through the final 10 records is now preserved in ten-record chunks; source-order gaps are retained exactly.
+- PR #3369 documentation branch was updated to head `7efbc91389fae53ee2280cf6f5d61fcede086675`; its own docs-branch CI was pending/queued at last poll. It remains OPEN/DRAFT.
+- Release remains NO-GO. No PR was merged or closed; no branch deleted or archived; Multi-device Sync remains off.
