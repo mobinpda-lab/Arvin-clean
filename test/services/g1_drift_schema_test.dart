@@ -47,9 +47,134 @@ void main() {
     }
   });
 
+  test('legacy Task metadata preserves missing, explicit NULL and concrete values', () async {
+    final missingDatabase = NativeDatabase.memory();
+    await missingDatabase.ensureOpen(G1DriftSchema());
+    await missingDatabase.runCustom('''
+      CREATE TABLE tasks (
+        id TEXT NOT NULL PRIMARY KEY,
+        title TEXT NOT NULL,
+        description TEXT NOT NULL DEFAULT '',
+        priority TEXT NOT NULL DEFAULT 'none',
+        archived INTEGER NOT NULL DEFAULT 0,
+        trashed INTEGER NOT NULL DEFAULT 0,
+        completed INTEGER NOT NULL DEFAULT 0,
+        legacy_payload_json TEXT NULL
+      )
+    ''');
+    await missingDatabase.runInsert(
+      'INSERT INTO tasks (id, title, legacy_payload_json) VALUES (?, ?, ?)',
+      const <Object?>[
+        'metadata-missing',
+        'فیلد غایب',
+        '{"id":"metadata-missing","title":"فیلد غایب"}',
+      ],
+    );
+    await G1DriftSchema.install(missingDatabase);
+    final missingRow = await missingDatabase.runSelect(
+      'SELECT legacy_payload_json FROM tasks WHERE id = ?',
+      const <Object?>['metadata-missing'],
+    );
+    final missing = jsonDecode(
+      missingRow.single['legacy_payload_json'] as String,
+    ) as Map<String, dynamic>;
+    expect(missing.containsKey('reminderDate'), isFalse);
+    expect(missing.containsKey('followUpDate'), isFalse);
+    expect(missing.containsKey('followUpEnabled'), isFalse);
+    await missingDatabase.close();
+
+    final legacyDatabase = NativeDatabase.memory();
+    await legacyDatabase.ensureOpen(G1DriftSchema());
+    await legacyDatabase.runCustom('''
+      CREATE TABLE tasks (
+        id TEXT NOT NULL PRIMARY KEY,
+        title TEXT NOT NULL,
+        description TEXT NOT NULL DEFAULT '',
+        follow_up_enabled INTEGER NULL,
+        follow_up_date TEXT NULL,
+        reminder_date TEXT NULL,
+        priority TEXT NOT NULL DEFAULT 'none',
+        archived INTEGER NOT NULL DEFAULT 0,
+        trashed INTEGER NOT NULL DEFAULT 0,
+        completed INTEGER NOT NULL DEFAULT 0,
+        legacy_payload_json TEXT NULL
+      )
+    ''');
+    await legacyDatabase.runInsert(
+      '''INSERT INTO tasks
+         (id, title, follow_up_enabled, follow_up_date, reminder_date, legacy_payload_json)
+         VALUES (?, ?, ?, ?, ?, ?)''',
+      <Object?>[
+        'metadata-explicit-null',
+        'خالی صریح',
+        1,
+        '2026-11-10T10:00:00.000',
+        '2026-11-11T10:00:00.000',
+        '{"id":"metadata-explicit-null","title":"خالی صریح","followUpEnabled":null,"followUpDate":null,"reminderDate":null}',
+      ],
+    );
+    await legacyDatabase.runInsert(
+      '''INSERT INTO tasks
+         (id, title, follow_up_enabled, follow_up_date, reminder_date, legacy_payload_json)
+         VALUES (?, ?, ?, ?, ?, ?)''',
+      <Object?>[
+        'metadata-concrete',
+        'مقدار اصلی',
+        1,
+        '2026-11-12T10:00:00.000',
+        '2026-11-13T10:00:00.000',
+        '{"id":"metadata-concrete","title":"مقدار اصلی","followUpEnabled":false,"followUpDate":"2026-11-14T10:00:00.000","reminderDate":"2026-11-15T10:00:00.000"}',
+      ],
+    );
+    await legacyDatabase.runInsert(
+      '''INSERT INTO tasks
+         (id, title, follow_up_enabled, follow_up_date, reminder_date, legacy_payload_json)
+         VALUES (?, ?, ?, ?, ?, ?)''',
+      <Object?>[
+        'metadata-sql-fallback',
+        'مقدار ستون قدیمی',
+        0,
+        '2026-11-16T10:00:00.000',
+        '2026-11-17T10:00:00.000',
+        '{"id":"metadata-sql-fallback","title":"مقدار ستون قدیمی"}',
+      ],
+    );
+    await G1DriftSchema.install(legacyDatabase);
+
+    final rows = await legacyDatabase.runSelect(
+      'SELECT id, legacy_payload_json FROM tasks ORDER BY id',
+      const [],
+    );
+    final byId = <String, Map<String, dynamic>>{
+      for (final row in rows)
+        row['id'] as String: jsonDecode(
+          row['legacy_payload_json'] as String,
+        ) as Map<String, dynamic>,
+    };
+    final explicitNull = byId['metadata-explicit-null']!;
+    expect(explicitNull.containsKey('followUpEnabled'), isTrue);
+    expect(explicitNull['followUpEnabled'], isNull);
+    expect(explicitNull.containsKey('followUpDate'), isTrue);
+    expect(explicitNull['followUpDate'], isNull);
+    expect(explicitNull.containsKey('reminderDate'), isTrue);
+    expect(explicitNull['reminderDate'], isNull);
+
+    final concrete = byId['metadata-concrete']!;
+    expect(concrete['followUpEnabled'], isFalse);
+    expect(concrete['followUpDate'], '2026-11-14T10:00:00.000');
+    expect(concrete['reminderDate'], '2026-11-15T10:00:00.000');
+    expect(concrete['taskReminders'], isA<List<dynamic>>());
+
+    final sqlFallback = byId['metadata-sql-fallback']!;
+    expect(sqlFallback['followUpEnabled'], isFalse);
+    expect(sqlFallback['followUpDate'], '2026-11-16T10:00:00.000');
+    expect(sqlFallback['reminderDate'], '2026-11-17T10:00:00.000');
+    await legacyDatabase.close();
+  });
+
   test('creates the complete G1 relational schema', () async {
     await G1DriftSchema.install(database);
-    expect(G1DriftSchema.version, 17);
+    expect(G1DriftSchema.version, 18);
 
     final tables = await database.runSelect(
       "SELECT name FROM sqlite_master "
