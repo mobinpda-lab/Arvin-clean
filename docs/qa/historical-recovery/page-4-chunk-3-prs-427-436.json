@@ -1,0 +1,267 @@
+{
+  "source": "GitHub connector normalized per-PR metadata from fetch_pr; body/issue summaries cross-checked with fetch_issue/search_prs",
+  "page": "4",
+  "slice": "nominal continuation slice(20,30), PR #427–#436; individually fetched rather than raw list-page response",
+  "page_record_count": null,
+  "records": [
+    {
+      "id": null,
+      "number": 427,
+      "state": "closed",
+      "merged": true,
+      "draft": false,
+      "title": "feat(home): wire canonical Task editor apply path",
+      "created_at": "2026-08-28T14:49:43Z",
+      "updated_at": "2026-08-28T15:40:16Z",
+      "closed_at": "2026-08-28T15:40:16Z",
+      "merged_at": "2026-08-28T15:40:16Z",
+      "head": {
+        "ref": "feat/home-canonical-edit-apply",
+        "sha": "3a2d5bba2d0f79aaceea8d8b06f498dc954a36c3"
+      },
+      "base": {
+        "ref": "main",
+        "sha": "af928b5ae409fb9c352ac22076a1b04dee445919"
+      },
+      "changed_files": 2,
+      "additions": 12,
+      "deletions": 12,
+      "body": "Home edit wired through TaskEditApplyService; preserves Task identity and canonical Home persistence; dueDate/category/checklist/reminder/recurrence use same apply path."
+    },
+    {
+      "id": null,
+      "number": 428,
+      "state": "closed",
+      "merged": true,
+      "draft": false,
+      "title": "feat(followup): project due reminder deliveries",
+      "created_at": "2026-08-28T14:52:35Z",
+      "updated_at": "2026-08-28T15:05:05Z",
+      "closed_at": "2026-08-28T15:05:04Z",
+      "merged_at": "2026-08-28T15:05:04Z",
+      "head": {
+        "ref": "feat/followup-reminder-due-delivery",
+        "sha": "c915ac235956db618688732ba5f733d94da25fe5"
+      },
+      "base": {
+        "ref": "main",
+        "sha": "2e68e05cf82f6f5817b4eb12f793460c19dec6c7"
+      },
+      "changed_files": 2,
+      "additions": 188,
+      "deletions": 0,
+      "body": "Projects canonical FollowUp.reminderDate due/overdue candidates; skips completed/archived/trashed Tasks; exact delivery identity includes Task + FollowUp + timestamp; pure projection, no scheduler side effects."
+    },
+    {
+      "id": null,
+      "number": 429,
+      "state": "closed",
+      "merged": false,
+      "draft": true,
+      "title": "feat(followup): rebuild reminder alarm planner after editor merge",
+      "created_at": "2026-08-28T14:59:32Z",
+      "updated_at": "2026-09-07T19:33:50Z",
+      "closed_at": "2026-09-07T19:33:50Z",
+      "merged_at": null,
+      "head": {
+        "ref": "feat/followup-reminder-alarm-planner-post-editor",
+        "sha": "5f3ee41b734192ace0140968f3338433d37392f1"
+      },
+      "base": {
+        "ref": "main",
+        "sha": "af928b5ae409fb9c352ac22076a1b04dee445919"
+      },
+      "changed_files": 2,
+      "additions": 140,
+      "deletions": 0,
+      "body": "Pure planner for nearest pending canonical FollowUp.reminderDate; skips delivered identities; changed timestamps become new work; no platform side effects. Body states superseded by #433."
+    },
+    {
+      "id": null,
+      "number": 430,
+      "state": "closed",
+      "merged": true,
+      "draft": false,
+      "title": "feat(bulk): rebuild preselected report export on current main",
+      "created_at": "2026-08-28T15:01:14Z",
+      "updated_at": "2026-08-28T16:25:13Z",
+      "closed_at": "2026-08-28T16:25:13Z",
+      "merged_at": "2026-08-28T16:25:13Z",
+      "head": {
+        "ref": "feat/bulk-report-preselected-post-reminder",
+        "sha": "ee239a34066f124d26a661d5652a1cbff88def65"
+      },
+      "base": {
+        "ref": "main",
+        "sha": "c0e78bdaa33441cadbe0a230b4866503813083ec"
+      },
+      "changed_files": 2,
+      "additions": 74,
+      "deletions": 1,
+      "body": "Reuses existing PDF/print/share report page with canonical Task ids; copies caller selection; preserves single/selected/all report behavior; no new report model/store/renderer."
+    },
+    {
+      "id": null,
+      "number": 431,
+      "state": "closed",
+      "merged": false,
+      "draft": true,
+      "title": "feat(followup): reuse existing notification channel for reminders",
+      "created_at": "2026-08-28T15:04:38Z",
+      "updated_at": "2026-08-28T17:49:31Z",
+      "closed_at": "2026-09-07T19:33:50Z",
+      "merged_at": null,
+      "head": {
+        "ref": "feat/followup-reminder-notification-reuse",
+        "sha": "1e57db5e9244ad3300a65942e8b8bd1f741bc9ac"
+      },
+      "base": {
+        "ref": "main",
+        "sha": "7dd9aa6bf5af73013c1bf202387dc4137f1ae9ba"
+      },
+      "changed_files": 4,
+      "additions": 96,
+      "deletions": 206,
+      "body": "Extends existing AutomaticFollowUpNotificationService to deliver canonical FollowUp Reminder candidates using the existing notification plugin/channel; no second service/channel/store. Closed unmerged; current-main equivalence still to verify."
+    },
+    {
+      "id": null,
+      "number": 432,
+      "state": "closed",
+      "merged": true,
+      "draft": false,
+      "title": "fix(followup): ignore inactive reminder scheduling",
+      "created_at": "2026-08-28T15:36:21Z",
+      "updated_at": "2026-08-28T17:42:52Z",
+      "closed_at": "2026-08-28T17:42:52Z",
+      "merged_at": "2026-08-28T17:42:52Z",
+      "head": {
+        "ref": "fix/followup-reminder-inactive-projection",
+        "sha": "1a7bd393eb5a53ed78f223f4f1f313cea6f1d6e4"
+      },
+      "base": {
+        "ref": "main",
+        "sha": "4e2fe43737a47df2c03fc4a313df387e641c4a1e"
+      },
+      "changed_files": 2,
+      "additions": 23,
+      "deletions": 18,
+      "body": "Ensures pending FollowUp reminder projection excludes completed, archived and trashed Tasks consistently; regression coverage for inactive Tasks; no model/store/alarm/notification changes."
+    },
+    {
+      "id": null,
+      "number": 433,
+      "state": "closed",
+      "merged": false,
+      "draft": true,
+      "title": "feat(followup): arbitrate one alarm for all followup schedules",
+      "created_at": "2026-08-28T15:39:54Z",
+      "updated_at": "2026-08-28T17:48:27Z",
+      "closed_at": "2026-09-07T19:33:50Z",
+      "merged_at": null,
+      "head": {
+        "ref": "feat/followup-single-alarm-arbiter",
+        "sha": "75f22be6e7ba52f57b434009d07c9b67c1e563e9"
+      },
+      "base": {
+        "ref": "main",
+        "sha": "7dd9aa6bf5af73013c1bf202387dc4137f1ae9ba"
+      },
+      "changed_files": 4,
+      "additions": 256,
+      "deletions": 194,
+      "body": "Pure arbiter chooses one nearest schedule across automatic FollowUp and independent FollowUp reminders, reuses single Android alarm foundation; no model/storage/platform side effects. Current-main equivalence still to verify."
+    },
+    {
+      "id": null,
+      "number": 434,
+      "state": "closed",
+      "merged": false,
+      "draft": true,
+      "title": "feat(task): rebuild due-date editor after Home integration",
+      "created_at": "2026-08-28T15:45:19Z",
+      "updated_at": "2026-09-07T19:33:38Z",
+      "closed_at": "2026-09-07T19:33:38Z",
+      "merged_at": null,
+      "head": {
+        "ref": "feat/issue-375-due-date-post-home",
+        "sha": "1e66c3f1736795530e497f2632fc97698f5aa30a"
+      },
+      "base": {
+        "ref": "main",
+        "sha": "7dd9aa6bf5af73013c1bf202387dc4137f1ae9ba"
+      },
+      "changed_files": 6,
+      "additions": 330,
+      "deletions": 278,
+      "body": "Dedicated Jalali Due Date editor, independent of Task Reminder and FollowUp; create/edit/preserve/clear through Task.dueDate; body says fresh rebuild after #427 and earlier #422."
+    },
+    {
+      "id": null,
+      "number": 435,
+      "state": "closed",
+      "merged": true,
+      "draft": false,
+      "title": "feat(followup): add reminder delivery metadata state",
+      "created_at": "2026-08-28T15:51:14Z",
+      "updated_at": "2026-08-28T16:41:52Z",
+      "closed_at": "2026-08-28T16:41:52Z",
+      "merged_at": "2026-08-28T16:41:52Z",
+      "head": {
+        "ref": "feat/followup-reminder-delivery-state",
+        "sha": "053c41c58b3ef6924884d40e15801f0d04278331"
+      },
+      "base": {
+        "ref": "main",
+        "sha": "c0e78bdaa33441cadbe0a230b4866503813083ec"
+      },
+      "changed_files": 4,
+      "additions": 268,
+      "deletions": 1,
+      "body": "Metadata-only delivery state for independent FollowUp reminders, persisted via one SharedPreferences metadata key, no second domain store or TaskStore schema change; reconciles metadata when canonical reminder is removed."
+    },
+    {
+      "id": null,
+      "number": 436,
+      "state": "closed",
+      "merged": false,
+      "draft": true,
+      "title": "feat(bulk): expose archive in shared selection bar",
+      "created_at": "2026-08-28T16:33:42Z",
+      "updated_at": "2026-09-07T19:33:45Z",
+      "closed_at": "2026-09-07T19:33:45Z",
+      "merged_at": null,
+      "head": {
+        "ref": "feat/bulk-selection-archive-action-current-main",
+        "sha": "40e20b5c7d411183a209e33344453c453cb8a9f3"
+      },
+      "base": {
+        "ref": "main",
+        "sha": "9826176b0c5eb6760198650322f59a22aac5f6f1"
+      },
+      "changed_files": 2,
+      "additions": 28,
+      "deletions": 25,
+      "body": "Adds Archive action to existing shared TaskBulkSelectionBar while preserving Trash/Category/Tags/Share and compact-width safety; no Home wiring in this slice."
+    }
+  ],
+  "integrity": {
+    "record_count": 10,
+    "unique_pr_numbers": 10,
+    "pr_numbers": [
+      427,
+      428,
+      429,
+      430,
+      431,
+      432,
+      433,
+      434,
+      435,
+      436
+    ],
+    "required_fields_present": true,
+    "rest_numeric_id": "not exposed by the connector; stored as null, not inferred",
+    "raw_page_response": false
+  }
+}
