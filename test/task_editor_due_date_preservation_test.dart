@@ -66,7 +66,7 @@ void main() {
     expect(result, isNotNull);
     expect(result!.id, 'due-safe');
     expect(result!.dueDate, DateTime(2026, 9, 11, 14, 45));
-    expect(result!.reminderDate, DateTime(2026, 9, 10, 9, 30));
+    expect(result!.reminderDate, isNull);
     expect(result!.taskReminders, hasLength(1));
     expect(result!.taskReminders.single.id, 'reminder-due-safe');
     expect(result!.taskReminders.single.date, DateTime(2026, 9, 10, 9, 30));
