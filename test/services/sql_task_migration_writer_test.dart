@@ -13,6 +13,40 @@ import 'package:arvin/services/task_migration_adapter.dart';
 import 'package:arvin/services/task_store.dart';
 
 void main() {
+  group('diagnostic diff semantics', () {
+    test('classifies a key present only in Actual as extra_in_actual', () {
+      final diff = _diagnosticDiff(
+        <String, dynamic>{'actualOnly': false},
+        <String, dynamic>{},
+      );
+      expect(diff['extra_in_actual'], ['actualOnly']);
+      expect(diff['missing_from_actual'], isEmpty);
+      expect(diff['changed_values'], isEmpty);
+    });
+
+    test('distinguishes absent from an explicitly null value', () {
+      final diff = _diagnosticDiff(
+        <String, dynamic>{},
+        <String, dynamic>{'explicitNull': null},
+      );
+      expect(diff['extra_in_actual'], isEmpty);
+      expect(diff['missing_from_actual'], ['explicitNull']);
+      expect(diff['changed_values'], isEmpty);
+    });
+
+    test('preserves false and detects false versus null as changed', () {
+      final diff = _diagnosticDiff(
+        <String, dynamic>{'flag': false},
+        <String, dynamic>{'flag': null},
+      );
+      expect(diff['extra_in_actual'], isEmpty);
+      expect(diff['missing_from_actual'], isEmpty);
+      expect(diff['changed_values'], {
+        'flag': {'actual': false, 'expected': null},
+      });
+    });
+  });
+
   late NativeDatabase database;
 
   setUp(() async {
@@ -461,63 +495,80 @@ void main() {
     final capture = _PersistTaskEnvelopeCapture();
     final interceptedExecutor = database.interceptWith(capture);
 
+    Object? migrationError;
+    StackTrace? migrationStack;
     try {
       await const SqlTaskMigrationWriter().migrateFromPreferences(
         executor: interceptedExecutor,
         preferences: preferences,
       );
     } catch (error, stackTrace) {
-      final actualRow = capture.actualTaskRow;
-      final actualRaw = actualRow?['legacy_payload_json'];
-      final actualEnvelope = actualRaw is String
-          ? Map<String, dynamic>.from(jsonDecode(actualRaw) as Map)
-          : null;
-      final expectedBeforeNormalization =
-          Map<String, dynamic>.from(expectedEnvelope);
-      final actualBeforeNormalization = actualEnvelope == null
-          ? null
-          : Map<String, dynamic>.from(actualEnvelope);
-      final actualAfterNormalization = actualEnvelope == null
-          ? null
-          : _diagnosticNormalizeEnvelope(actualEnvelope);
-      final expectedAfterNormalization =
-          _diagnosticNormalizeEnvelope(expectedEnvelope);
-
-      print('ARVIN_ENVELOPE_FORENSICS_BEGIN task=persist-task');
-      print('ORIGINAL_LEGACY_JSON:');
-      print(const JsonEncoder.withIndent('  ').convert(jsonDecode(raw)));
-      print('DECODER_OUTPUT_TASK_TO_JSON:');
-      print(const JsonEncoder.withIndent('  ').convert(diagnosticRecord.task.toJson()));
-      print('TASK_TO_JSON:');
-      print(const JsonEncoder.withIndent('  ').convert(diagnosticRecord.task.toJson()));
-      print('SOURCE_ENVELOPE:');
-      print(const JsonEncoder.withIndent('  ').convert(diagnosticRecord.sourceJson));
-      print('EXPECTED_SQL_ENVELOPE:');
-      print(const JsonEncoder.withIndent('  ').convert(expectedBeforeNormalization));
-      print('ACTUAL_SQL_ROW:');
-      print(actualRow == null
-          ? 'UNKNOWN: no SELECT * row captured'
-          : const JsonEncoder.withIndent('  ').convert(actualRow));
-      print('ACTUAL_SQL_ENVELOPE:');
-      print(actualEnvelope == null
-          ? 'UNKNOWN: legacy_payload_json unavailable'
-          : const JsonEncoder.withIndent('  ').convert(actualEnvelope));
-      print('DIFF_BEFORE_NORMALIZATION:');
-      print(_diagnosticDiff(actualBeforeNormalization, expectedBeforeNormalization));
-      print('ACTUAL_ENVELOPE_AFTER_NORMALIZATION:');
-      print(actualAfterNormalization == null
-          ? 'UNKNOWN'
-          : const JsonEncoder.withIndent('  ').convert(actualAfterNormalization));
-      print('EXPECTED_ENVELOPE_AFTER_NORMALIZATION:');
-      print(const JsonEncoder.withIndent('  ').convert(expectedAfterNormalization));
-      print('DIFF_AFTER_NORMALIZATION:');
-      print(_diagnosticDiff(actualAfterNormalization, expectedAfterNormalization));
-      print('ROLLBACK_OBSERVED: ${capture.rollbackObserved}');
-      print('MIGRATION_ERROR: $error');
-      print('MIGRATION_STACK: $stackTrace');
-      print('ARVIN_ENVELOPE_FORENSICS_END');
-      rethrow;
+      migrationError = error;
+      migrationStack = stackTrace;
     }
+
+    final actualRow = capture.actualTaskRow;
+    final actualRaw = actualRow?['legacy_payload_json'];
+    final actualEnvelope = actualRaw is String
+        ? Map<String, dynamic>.from(jsonDecode(actualRaw) as Map)
+        : null;
+    final expectedBeforeNormalization =
+        Map<String, dynamic>.from(expectedEnvelope);
+    final actualBeforeNormalization = actualEnvelope == null
+        ? null
+        : Map<String, dynamic>.from(actualEnvelope);
+    final actualAfterNormalization = actualEnvelope == null
+        ? null
+        : _diagnosticNormalizeEnvelope(actualEnvelope);
+    final expectedAfterNormalization =
+        _diagnosticNormalizeEnvelope(expectedEnvelope);
+
+    print('ARVIN_ENVELOPE_FORENSICS_BEGIN task=persist-task');
+    print('ORIGINAL_LEGACY_JSON:');
+    print(const JsonEncoder.withIndent('  ').convert(jsonDecode(raw)));
+    print('DECODER_OUTPUT:');
+    print(const JsonEncoder.withIndent('  ').convert(diagnosticRecord.task.toJson()));
+    print('TASK_TO_JSON:');
+    print(const JsonEncoder.withIndent('  ').convert(diagnosticRecord.task.toJson()));
+    print('SOURCE_ENVELOPE:');
+    print(const JsonEncoder.withIndent('  ').convert(diagnosticRecord.sourceJson));
+    print('EXPECTED_SQL_ENVELOPE:');
+    print(const JsonEncoder.withIndent('  ').convert(expectedBeforeNormalization));
+    print('ACTUAL_SQL_ROW_SOURCE: ${capture.actualTaskRow == null ? 'NOT_CAPTURED' : 'SQLITE_QUERY_RESULT'}');
+    print('ACTUAL_SQL_ROW:');
+    print(actualRow == null
+        ? 'UNKNOWN: no SELECT * row captured'
+        : const JsonEncoder.withIndent('  ').convert(actualRow));
+    print('ACTUAL_SQL_ENVELOPE:');
+    print(actualEnvelope == null
+        ? 'UNKNOWN: legacy_payload_json unavailable'
+        : const JsonEncoder.withIndent('  ').convert(actualEnvelope));
+    print('DIFF_BEFORE_NORMALIZATION:');
+    print(_diagnosticDiff(actualBeforeNormalization, expectedBeforeNormalization));
+    print('ACTUAL_ENVELOPE_AFTER_NORMALIZATION:');
+    print(actualAfterNormalization == null
+        ? 'UNKNOWN'
+        : const JsonEncoder.withIndent('  ').convert(actualAfterNormalization));
+    print('EXPECTED_ENVELOPE_AFTER_NORMALIZATION:');
+    print(const JsonEncoder.withIndent('  ').convert(expectedAfterNormalization));
+    print('DIFF_AFTER_NORMALIZATION:');
+    print(_diagnosticDiff(actualAfterNormalization, expectedAfterNormalization));
+    print('ROLLBACK_REQUESTED: ${capture.rollbackRequested}');
+    print('ROLLBACK_EXECUTION_RESULT: ${capture.rollbackExecutionResult}');
+    final rollbackVerified = capture.rollbackRequested &&
+        capture.rollbackExecutionResult == 'SUCCESS'
+        ? await _verifyDiagnosticRollback(database)
+        : null;
+    print('ROLLBACK_VERIFIED: ${rollbackVerified == null ? 'NOT_VERIFIED' : rollbackVerified ? 'PASS' : 'FAIL'}');
+    if (migrationError != null) {
+      print('MIGRATION_ERROR: $migrationError');
+      print('MIGRATION_STACK: $migrationStack');
+    }
+    print('ARVIN_ENVELOPE_FORENSICS_END');
+    if (migrationError != null) {
+      Error.throwWithStackTrace(migrationError, migrationStack!);
+    }
+
 
     await database.close();
 
@@ -663,7 +714,8 @@ void main() {
 // by SQLite before parity validation throws and the migration rolls back.
 class _PersistTaskEnvelopeCapture extends QueryInterceptor {
   Map<String, Object?>? actualTaskRow;
-  bool rollbackObserved = false;
+  bool rollbackRequested = false;
+  String rollbackExecutionResult = 'NOT_REQUESTED';
 
   @override
   Future<List<Map<String, Object?>>> runSelect(
@@ -689,7 +741,15 @@ class _PersistTaskEnvelopeCapture extends QueryInterceptor {
     List<Object?> args,
   ) async {
     if (statement.trim().toUpperCase() == 'ROLLBACK') {
-      rollbackObserved = true;
+      rollbackRequested = true;
+      try {
+        await executor.runCustom(statement, args);
+        rollbackExecutionResult = 'SUCCESS';
+      } catch (error) {
+        rollbackExecutionResult = 'FAILURE: $error';
+        rethrow;
+      }
+      return;
     }
     await executor.runCustom(statement, args);
   }
@@ -757,12 +817,14 @@ Map<String, Object?> _diagnosticDiff(
   final removed = <String>[];
   final changed = <String, Object?>{};
   for (final key in keys) {
-    if (!actual.containsKey(key)) {
+    if (actual.containsKey(key) && !expected.containsKey(key)) {
       added.add(key);
-    } else if (!expected.containsKey(key)) {
+    } else if (!actual.containsKey(key) && expected.containsKey(key)) {
       removed.add(key);
-    } else if (_diagnosticCanonicalJson(actual[key]) !=
-        _diagnosticCanonicalJson(expected[key])) {
+    } else if (actual.containsKey(key) &&
+        expected.containsKey(key) &&
+        _diagnosticCanonicalJson(actual[key]) !=
+            _diagnosticCanonicalJson(expected[key])) {
       changed[key] = <String, Object?>{
         'actual': actual[key],
         'expected': expected[key],
@@ -772,7 +834,20 @@ Map<String, Object?> _diagnosticDiff(
   return <String, Object?>{
     'extra_in_actual': added,
     'missing_from_actual': removed,
-    'changed': changed,
+    'changed_values': changed,
   };
 }
 
+
+Future<bool> _verifyDiagnosticRollback(QueryExecutor executor) async {
+  final taskRows = await executor.runSelect(
+    'SELECT COUNT(*) AS count FROM tasks WHERE id = ?',
+    const ['persist-task'],
+  );
+  final followUpRows = await executor.runSelect(
+    'SELECT COUNT(*) AS count FROM follow_up_records WHERE task_id = ?',
+    const ['persist-task'],
+  );
+  return (taskRows.single['count'] as num).toInt() == 0 &&
+      (followUpRows.single['count'] as num).toInt() == 0;
+}
