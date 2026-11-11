@@ -53,7 +53,9 @@ Map<String, dynamic> _decodeLegacyFollowUpMetadata(
   if (rawFollowUpDate != null) {
     taskLevel['followUpDate'] = rawFollowUpDate;
   }
-  if (rawFollowUpEnabled == true || rawFollowUpDate != null) {
+  // Preserve an explicitly stored legacy value, including false, as
+  // inert compatibility metadata. Absence is different from false.
+  if (json.containsKey('followUpEnabled') || rawFollowUpDate != null) {
     taskLevel['followUpEnabled'] = rawFollowUpEnabled;
   }
   if (taskLevel.isNotEmpty) {
