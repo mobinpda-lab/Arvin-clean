@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,9 +9,45 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:arvin/follow_up_repository.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/sql_task_migration_writer.dart';
+import 'package:arvin/services/g1_drift_schema.dart';
+import 'package:arvin/services/task_migration_adapter.dart';
 import 'package:arvin/services/task_store.dart';
 
 void main() {
+  group('diagnostic diff semantics', () {
+    test('classifies a key present only in Actual as extra_in_actual', () {
+      final diff = _diagnosticDiff(
+        <String, dynamic>{'actualOnly': false},
+        <String, dynamic>{},
+      );
+      expect(diff['extra_in_actual'], ['actualOnly']);
+      expect(diff['missing_from_actual'], isEmpty);
+      expect(diff['changed_values'], isEmpty);
+    });
+
+    test('distinguishes absent from an explicitly null value', () {
+      final diff = _diagnosticDiff(
+        <String, dynamic>{},
+        <String, dynamic>{'explicitNull': null},
+      );
+      expect(diff['extra_in_actual'], isEmpty);
+      expect(diff['missing_from_actual'], ['explicitNull']);
+      expect(diff['changed_values'], isEmpty);
+    });
+
+    test('preserves false and detects false versus null as changed', () {
+      final diff = _diagnosticDiff(
+        <String, dynamic>{'flag': false},
+        <String, dynamic>{'flag': null},
+      );
+      expect(diff['extra_in_actual'], isEmpty);
+      expect(diff['missing_from_actual'], isEmpty);
+      expect(diff['changed_values'], {
+        'flag': {'actual': false, 'expected': null},
+      });
+    });
+  });
+
   late NativeDatabase database;
 
   setUp(() async {
@@ -448,14 +485,116 @@ void main() {
     final preferences = await SharedPreferences.getInstance();
     await preferences.setString('arvin.tasks', raw);
 
+    // Diagnostic-only interception: capture the real tasks row returned by
+    // SQLite immediately before the existing envelope parity assertion.
+    // No production code, schema, migration, or assertion is changed.
+    final decodedLegacy =
+        Map<String, dynamic>.from((jsonDecode(raw) as List).single as Map);
+    final diagnosticRecord =
+        const TaskMigrationAdapter().recordFromLegacyJson(decodedLegacy);
+    final expectedEnvelope = _diagnosticStorageEnvelope(diagnosticRecord);
     await const SqlTaskMigrationWriter().migrateFromPreferences(
       executor: database,
       preferences: preferences,
     );
+
     await database.close();
 
     database = NativeDatabase(databaseFile);
-    final reopenedTasks = await TaskStore(executor: database).load();
+    // NativeDatabase opens lazily. Initialize the reopened executor through
+    // the same schema owner before issuing direct diagnostic SQL queries.
+    await G1DriftSchema.install(database);
+    final baselineTaskRows = await database.runSelect(
+      'SELECT * FROM tasks WHERE id = ?',
+      const ['persist-task'],
+    );
+    final baselineFollowUpRows = await database.runSelect(
+      'SELECT * FROM follow_up_records WHERE task_id = ? ORDER BY ordinal',
+      const ['persist-task'],
+    );
+    final capture = _PersistTaskEnvelopeCapture();
+    final interceptedReopenExecutor = database.interceptWith(capture);
+    Object? reopenError;
+    StackTrace? reopenStack;
+    List<Task> reopenedTasks = const <Task>[];
+    try {
+      reopenedTasks =
+          await TaskStore(executor: interceptedReopenExecutor).load();
+    } catch (error, stackTrace) {
+      reopenError = error;
+      reopenStack = stackTrace;
+    }
+
+    final actualRow = capture.actualTaskRow;
+    final actualRaw = actualRow?['legacy_payload_json'];
+    final actualEnvelope = actualRaw is String
+        ? Map<String, dynamic>.from(jsonDecode(actualRaw) as Map)
+        : null;
+    final expectedBeforeNormalization =
+        Map<String, dynamic>.from(expectedEnvelope);
+    final actualBeforeNormalization = actualEnvelope == null
+        ? null
+        : Map<String, dynamic>.from(actualEnvelope);
+    final actualAfterNormalization = actualEnvelope == null
+        ? null
+        : _diagnosticNormalizeEnvelope(actualEnvelope);
+    final expectedAfterNormalization =
+        _diagnosticNormalizeEnvelope(expectedEnvelope);
+
+    print('ARVIN_ENVELOPE_FORENSICS_BEGIN task=persist-task phase=reopen');
+    print('ORIGINAL_LEGACY_JSON:');
+    print(const JsonEncoder.withIndent('  ').convert(jsonDecode(raw)));
+    print('DECODER_OUTPUT:');
+    print(const JsonEncoder.withIndent('  ').convert(diagnosticRecord.task.toJson()));
+    print('TASK_TO_JSON:');
+    print(const JsonEncoder.withIndent('  ').convert(diagnosticRecord.task.toJson()));
+    print('SOURCE_ENVELOPE:');
+    print(const JsonEncoder.withIndent('  ').convert(diagnosticRecord.sourceJson));
+    print('EXPECTED_SQL_ENVELOPE:');
+    print(const JsonEncoder.withIndent('  ').convert(expectedBeforeNormalization));
+    print('ACTUAL_SQL_QUERY: SELECT * FROM tasks WHERE id = ? [persist-task]');
+    print('ACTUAL_SQL_ROW_SOURCE: ${capture.actualTaskRow == null ? 'NOT_CAPTURED' : 'SQLITE_QUERY_RESULT'}');
+    print('ACTUAL_SQL_ROW:');
+    print(actualRow == null
+        ? 'UNKNOWN: no SELECT * row captured during reopened TaskStore.load'
+        : const JsonEncoder.withIndent('  ').convert(actualRow));
+    print('ACTUAL_SQL_ENVELOPE:');
+    print(actualEnvelope == null
+        ? 'UNKNOWN: legacy_payload_json unavailable'
+        : const JsonEncoder.withIndent('  ').convert(actualEnvelope));
+    print('DIFF_BEFORE_NORMALIZATION:');
+    print(_diagnosticDiff(actualBeforeNormalization, expectedBeforeNormalization));
+    print('ACTUAL_ENVELOPE_AFTER_NORMALIZATION:');
+    print(actualAfterNormalization == null
+        ? 'UNKNOWN'
+        : const JsonEncoder.withIndent('  ').convert(actualAfterNormalization));
+    print('EXPECTED_ENVELOPE_AFTER_NORMALIZATION:');
+    print(const JsonEncoder.withIndent('  ').convert(expectedAfterNormalization));
+    print('DIFF_AFTER_NORMALIZATION:');
+    print(_diagnosticDiff(actualAfterNormalization, expectedAfterNormalization));
+    print('ROLLBACK_REQUESTED: ${capture.rollbackRequested}');
+    print('ROLLBACK_EXECUTION_RESULT: ${capture.rollbackExecutionResult}');
+    final rollbackVerified = capture.rollbackRequested &&
+            capture.rollbackExecutionResult == 'SUCCESS' &&
+            baselineTaskRows.length == 1
+        ? await _verifyDiagnosticRollback(
+            database,
+            Map<String, Object?>.from(baselineTaskRows.single),
+            baselineFollowUpRows
+                .map((row) => Map<String, Object?>.from(row))
+                .toList(growable: false),
+          )
+        : null;
+    print('ROLLBACK_VERIFIED: ${rollbackVerified == null ? 'NOT_VERIFIED' : rollbackVerified ? 'PASS' : 'FAIL'}');
+    if (reopenError != null) {
+      print('REOPEN_ERROR: $reopenError');
+      print('REOPEN_STACK: $reopenStack');
+    }
+    print('ARVIN_ENVELOPE_FORENSICS_END');
+    if (reopenError != null) {
+      Error.throwWithStackTrace(reopenError, reopenStack!);
+    }
+
     expect(reopenedTasks, hasLength(1));
     final history = reopenedTasks.single.followUps;
     expect(history, hasLength(2));
@@ -590,5 +729,153 @@ void main() {
     database = NativeDatabase.memory();
     await directory.delete(recursive: true);
   });
+}
 
+// Test-only SQL interception for COMMAND 06. Captures the actual row returned
+// by SQLite before parity validation throws and the migration rolls back.
+class _PersistTaskEnvelopeCapture extends QueryInterceptor {
+  Map<String, Object?>? actualTaskRow;
+  bool rollbackRequested = false;
+  String rollbackExecutionResult = 'NOT_REQUESTED';
+
+  @override
+  Future<List<Map<String, Object?>>> runSelect(
+    QueryExecutor executor,
+    String statement,
+    List<Object?> args,
+  ) async {
+    final rows = await executor.runSelect(statement, args);
+    if (statement.trim().toLowerCase() ==
+            'select * from tasks where id = ?' &&
+        args.isNotEmpty &&
+        args.first == 'persist-task' &&
+        rows.isNotEmpty) {
+      actualTaskRow = Map<String, Object?>.from(rows.single);
+    }
+    return rows;
+  }
+
+  @override
+  Future<void> runCustom(
+    QueryExecutor executor,
+    String statement,
+    List<Object?> args,
+  ) async {
+    if (statement.trim().toUpperCase() == 'ROLLBACK') {
+      rollbackRequested = true;
+      try {
+        await executor.runCustom(statement, args);
+        rollbackExecutionResult = 'SUCCESS';
+      } catch (error) {
+        rollbackExecutionResult = 'FAILURE: $error';
+        rethrow;
+      }
+      return;
+    }
+    await executor.runCustom(statement, args);
+  }
+}
+
+const Set<String> _diagnosticSqlOwnedTaskKeys = <String>{
+  'id', 'title', 'description', 'createdAt', 'updatedAt', 'dueDate',
+  'category', 'notebookKind', 'priority', 'archived', 'trashed',
+  'completed', 'completedAt', 'isFavorite', 'tags', 'checklist',
+  'followUps', 'people', 'taskReminders', 'recurrence',
+  'occurrenceHistory', 'checklistOccurrences',
+};
+
+Map<String, dynamic> _diagnosticStorageEnvelope(TaskMigrationRecord record) {
+  final canonical = Map<String, dynamic>.from(record.task.toJson());
+  for (final key in _diagnosticSqlOwnedTaskKeys) {
+    canonical.remove(key);
+  }
+  final known = <String>{
+    ...record.task.toJson().keys,
+    ..._diagnosticSqlOwnedTaskKeys,
+    'legacyTaskReminderMigrationVersion',
+  };
+  final unknown = <String, dynamic>{
+    for (final entry in record.sourceJson.entries)
+      if (!known.contains(entry.key)) entry.key: entry.value,
+  };
+  return <String, dynamic>{...unknown, ...canonical};
+}
+
+Map<String, dynamic> _diagnosticNormalizeEnvelope(
+  Map<String, dynamic> envelope,
+) {
+  final normalized = Map<String, dynamic>.from(envelope);
+  for (final key in _diagnosticSqlOwnedTaskKeys) {
+    normalized.remove(key);
+  }
+  normalized.remove('legacyTaskReminderMigrationVersion');
+  return normalized;
+}
+
+Object? _diagnosticCanonicalize(Object? value) {
+  if (value is Map) {
+    final keys = value.keys.map((key) => key.toString()).toList()..sort();
+    return <String, Object?>{
+      for (final key in keys) key: _diagnosticCanonicalize(value[key]),
+    };
+  }
+  if (value is List) {
+    return value.map(_diagnosticCanonicalize).toList(growable: false);
+  }
+  return value;
+}
+
+String _diagnosticCanonicalJson(Object? value) =>
+    jsonEncode(_diagnosticCanonicalize(value));
+
+Map<String, Object?> _diagnosticDiff(
+  Map<String, dynamic>? actual,
+  Map<String, dynamic> expected,
+) {
+  if (actual == null) return <String, Object?>{'status': 'UNKNOWN'};
+  final keys = <String>{...actual.keys, ...expected.keys}.toList()..sort();
+  final added = <String>[];
+  final removed = <String>[];
+  final changed = <String, Object?>{};
+  for (final key in keys) {
+    if (actual.containsKey(key) && !expected.containsKey(key)) {
+      added.add(key);
+    } else if (!actual.containsKey(key) && expected.containsKey(key)) {
+      removed.add(key);
+    } else if (actual.containsKey(key) &&
+        expected.containsKey(key) &&
+        _diagnosticCanonicalJson(actual[key]) !=
+            _diagnosticCanonicalJson(expected[key])) {
+      changed[key] = <String, Object?>{
+        'actual': actual[key],
+        'expected': expected[key],
+      };
+    }
+  }
+  return <String, Object?>{
+    'extra_in_actual': added,
+    'missing_from_actual': removed,
+    'changed_values': changed,
+  };
+}
+
+
+Future<bool> _verifyDiagnosticRollback(
+  QueryExecutor executor,
+  Map<String, Object?> baselineTaskRow,
+  List<Map<String, Object?>> baselineFollowUpRows,
+) async {
+  final taskRows = await executor.runSelect(
+    'SELECT * FROM tasks WHERE id = ?',
+    const ['persist-task'],
+  );
+  final followUpRows = await executor.runSelect(
+    'SELECT * FROM follow_up_records WHERE task_id = ? ORDER BY ordinal',
+    const ['persist-task'],
+  );
+  return taskRows.length == 1 &&
+      _diagnosticCanonicalJson(taskRows.single) ==
+          _diagnosticCanonicalJson(baselineTaskRow) &&
+      _diagnosticCanonicalJson(followUpRows) ==
+          _diagnosticCanonicalJson(baselineFollowUpRows);
 }

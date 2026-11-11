@@ -1,0 +1,64 @@
+name: Arvin COMMAND 06-C Diagnostic Harness
+
+on:
+  pull_request:
+    branches:
+      - fix/wave3-cycle3-calendar-product-repair
+    paths:
+      - test/services/sql_task_migration_writer_test.dart
+      - .github/workflows/arvin-command06c-diagnostic.yml
+  push:
+    branches:
+      - diagnostic/w3-c3-command06-envelope-forensics
+    paths:
+      - test/services/sql_task_migration_writer_test.dart
+      - .github/workflows/arvin-command06c-diagnostic.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: arvin-command06c-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  diagnostic-sqlite-envelope:
+    name: Diagnostic diff + persist-task reopen test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout diagnostic HEAD
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Flutter stable
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Verify diagnostic branch and SHA
+        shell: bash
+        run: |
+          echo "EXPECTED_DIAGNOSTIC_SHA=${{ github.event.pull_request.head.sha || github.sha }}"
+          git rev-parse HEAD
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+
+      - name: Resolve Flutter dependencies
+        run: flutter pub get
+
+      - name: Run complete migration writer test file
+        shell: bash
+        run: |
+          set -o pipefail
+          flutter test test/services/sql_task_migration_writer_test.dart --reporter expanded 2>&1 | tee command06c-diagnostic-test.log
+
+      - name: Upload diagnostic test log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: command06c-envelope-forensics-log
+          path: command06c-diagnostic-test.log
+          if-no-files-found: warn
+          retention-days: 14
