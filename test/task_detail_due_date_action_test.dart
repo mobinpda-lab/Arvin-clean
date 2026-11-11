@@ -21,25 +21,27 @@ void main() {
       final oldDueDate = DateTime(2026, 10, 20, 14, 35, 12);
       final reminderDate = DateTime(2026, 11, 8, 9, 10);
       final followUpDate = DateTime(2026, 10, 18, 11, 20);
-      final followUp = FollowUp(
-        id: 'due-action-history',
-        dateTime: followUpDate,
-        note: 'سابقه باید محفوظ بماند',
-        nextFollowUp: DateTime(2026, 11, 12, 8),
-        completed: true,
-      );
-      final task = Task(
-        id: 'due-action-task',
-        title: 'کار دارای موعد',
-        description: 'توضیح نباید تغییر کند',
-        dueDate: oldDueDate,
-        reminderDate: reminderDate,
-        allDay: false,
-        checklist: const <String>['[ ] مورد اول', '[x] مورد دوم'],
-        followUpEnabled: true,
-        followUpDate: followUpDate,
-        followUps: <FollowUp>[followUp],
-      );
+      final nextFollowUp = DateTime(2026, 11, 12, 8);
+      final task = Task.fromLegacyJson(<String, dynamic>{
+        'id': 'due-action-task',
+        'title': 'کار دارای موعد',
+        'description': 'توضیح نباید تغییر کند',
+        'dueDate': oldDueDate.toIso8601String(),
+        'reminderDate': reminderDate.toIso8601String(),
+        'allDay': false,
+        'checklist': <String>['[ ] مورد اول', '[x] مورد دوم'],
+        'followUpEnabled': true,
+        'followUpDate': followUpDate.toIso8601String(),
+        'followUps': <Map<String, dynamic>>[
+          <String, dynamic>{
+            'id': 'due-action-history',
+            'dateTime': followUpDate.toIso8601String(),
+            'note': 'سابقه باید محفوظ بماند',
+            'nextFollowUp': nextFollowUp.toIso8601String(),
+            'completed': true,
+          },
+        ],
+      });
       await store.save(<Task>[task]);
 
       final fixedNow = DateTime(2026, 11, 3, 18, 45);
@@ -83,18 +85,33 @@ void main() {
       expect(persisted.title, 'کار دارای موعد');
       expect(persisted.description, 'توضیح نباید تغییر کند');
       expect(persisted.reminderDate, reminderDate);
+      expect(persisted.taskReminders, hasLength(1));
+      expect(persisted.taskReminders.single.isLegacyTaskReminder, isTrue);
+      expect(persisted.legacyTaskReminderMigrationVersion, 1);
       expect(persisted.allDay, isFalse);
       expect(persisted.checklist, const <String>['[ ] مورد اول', '[x] مورد دوم']);
       expect(persisted.followUpEnabled, isTrue);
-      expect(persisted.followUpDate, followUpDate);
+
+      // Retired Task-level Follow-up dates remain inert compatibility metadata.
+      // They must survive unrelated writes but never become active scheduling.
+      final legacyTaskLevel =
+          persisted.legacyFollowUpMetadata['taskLevel'] as Map<String, dynamic>;
+      expect(legacyTaskLevel['followUpDate'], followUpDate.toIso8601String());
+      expect(legacyTaskLevel['followUpEnabled'], isTrue);
+      expect(persisted.followUpDate, isNull);
+
       expect(persisted.followUps, hasLength(1));
       expect(persisted.followUps.single.id, 'due-action-history');
       expect(persisted.followUps.single.dateTime, followUpDate);
       expect(persisted.followUps.single.note, 'سابقه باید محفوظ بماند');
-      expect(
-        persisted.followUps.single.nextFollowUp,
-        DateTime(2026, 11, 12, 8),
-      );
+      expect(persisted.followUps.single.nextFollowUp, isNull);
+      final legacyFollowUps =
+          persisted.legacyFollowUpMetadata['followUps'] as List<dynamic>;
+      expect(legacyFollowUps, hasLength(1));
+      final legacyFollowUp =
+          Map<String, dynamic>.from(legacyFollowUps.single as Map);
+      expect(legacyFollowUp['id'], 'due-action-history');
+      expect(legacyFollowUp['nextFollowUp'], nextFollowUp.toIso8601String());
     },
   );
 
