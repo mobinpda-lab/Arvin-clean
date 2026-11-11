@@ -469,8 +469,13 @@ class G1DriftSchema implements QueryExecutorUser {
       payload['title'] = row['title'];
       payload['reminderDate'] ??= row['reminder_date'];
       payload['followUpDate'] ??= row['follow_up_date'];
-      payload['followUpEnabled'] ??=
-          (row['follow_up_enabled'] as num?)?.toInt() == 1;
+      // The retired flag is legacy metadata only. Preserve it only when the
+      // source SQL schema actually had the column; a fresh schema must not
+      // synthesize a false value that breaks idempotent envelope parity.
+      if (hasLegacyTaskFollowUpEnabled) {
+        payload['followUpEnabled'] ??=
+            (row['follow_up_enabled'] as num?)?.toInt() == 1;
+      }
       final legacyRecords = legacyFollowUpMetadataByTask[row['id']];
       if (legacyRecords != null && legacyRecords.isNotEmpty) {
         final rawMetadata = payload['legacyFollowUpMetadata'];
