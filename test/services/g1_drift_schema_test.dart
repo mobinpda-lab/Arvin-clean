@@ -496,7 +496,7 @@ void main() {
         'legacy-followup-no-date',
       ],
     );
-    expect(migratedPayloads, hasLength(2));
+    expect(migratedPayloads, hasLength(3));
     final payloadById = <String, Map<String, dynamic>>{
       for (final row in migratedPayloads)
         row['id'] as String:
