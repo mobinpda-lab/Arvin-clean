@@ -286,3 +286,14 @@ Compared each recorded group HEAD against current Main SHA `45e4202b...`. Classi
 - PR #3348 remains OPEN/DRAFT with new exact-head CI queued.
 - PR #3364/#3365/#3366/#3369 remain OPEN/DRAFT. No PR closed/merged; Main unchanged; no branch deleted/archived; no test skipped.
 - CYCLE 3 remains INCOMPLETE. Release remains NO-GO.
+
+
+### Checkpoint refresh — exact heads after final fixture/workflow corrections
+- Current Main verified again: `45e4202b03a434459e4c021a04efa7e8396359db` (unchanged).
+- PR #3052 remains OPEN/DRAFT at `aba68e44be0fcac7d4ad425b58fbe75e5aba264e`; PR #3340 OPEN/READY at `28f2a57c8feb61c8e587e93955f32685b930b2d7`; PR #3356 OPEN/DRAFT at `f9cb078953e31e3f99f2685d689a0b1a5cb581fa`. All three remain untouched.
+- PR #3348 branch repair head `17bb931225cf5c48a1271dd0a31a76d549f19704`. Earlier exact head `701f01bb578df66fccd87ba007273c838ba8b6ce` had a Fast Lane contract failure because the validator requires the exact literal output `echo "CHECKOUT_SHA=$actual"`; the workflow now emits that required line and retains the explicit `CHECKED_OUT_SHA` output. New Build, Device Smoke and Parallel Wave runs are queued/pending. The #3365 predecessor head `50f99c743b6dc5192b01fc87733d3a1eaa4e7a51` remains green on Build and all 7 Device Smoke scenarios.
+- PR #3364 latest head `2238fa063faf781ea905f861fb0ae8f58ccf6d57`; exact-head Follow-up File Persistence SUCCESS. Its previous full Build `42977362768` had Analyze SUCCESS but six test shards FAILED on unrelated Home/Quick Add/Follow-up/report regressions; the specific SQLite migration regressions passed, including explicit legacy false, no-date legacy metadata, existing pre-taxonomy upgrade, and full Follow-up history across close/reopen. Latest Build run `42978067648` queued; Device Smoke `42978067622` pending.
+- PR #3365 head `50f99c743b6dc5192b01fc87733d3a1eaa4e7a51`: Build SUCCESS and Device Smoke SUCCESS; all 7 scenarios green. No merge.
+- PR #3366 latest head `53fad2d87b5ab5cda03e7ee99e1d94a931b31096`. It now asserts canonical `TaskReminder` persistence and legacy `reminderDate == null` in both Task Detail and Task Editor due-date regressions. Previous run logs included failures from the earlier fixture revision and unrelated UI tests; exact-head Build `42978391078` pending, Follow-up File Persistence `42978391133` in progress, Device Smoke `42978391279` pending.
+- PR #3369 documentation head is advanced by this checkpoint and Chunk 4 JSON; Build/Device/Follow-up runs are pending. It remains OPEN/DRAFT.
+- No PR merged/closed, no branch removed, no test skipped, no direct Main change. CYCLE 3 remains INCOMPLETE and Release NO-GO.
