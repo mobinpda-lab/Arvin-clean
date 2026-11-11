@@ -294,7 +294,7 @@ void main() {
 
     for (final scenario in scenarios) {
       final decoded = Task.fromLegacyJson({
-        'id': 'd01-' + scenario.name,
+        'id': 'd01-${scenario.name}',
         'title': scenario.name,
         ...scenario.fields,
       });
@@ -302,14 +302,14 @@ void main() {
       final encodedMetadata = encoded['legacyFollowUpMetadata'] as Map<String, dynamic>?;
       final encodedTaskLevel = encodedMetadata?['taskLevel'] as Map<String, dynamic>?;
       expect(encodedTaskLevel ?? <String, dynamic>{}, scenario.expected,
-          reason: scenario.name + ': serialized historical presence');
+          reason: '${scenario.name}: serialized historical presence');
 
       final restored = Task.fromJson(encoded);
       final restoredTaskLevel = restored.legacyFollowUpMetadata['taskLevel'] as Map<String, dynamic>?;
       expect(restoredTaskLevel ?? <String, dynamic>{}, scenario.expected,
-          reason: scenario.name + ': decoded historical presence');
+          reason: '${scenario.name}: decoded historical presence');
       expect(restored.followUpEnabled, isFalse,
-          reason: scenario.name + ': computed getter uses actual history');
+          reason: '${scenario.name}: computed getter uses actual history');
     }
   });
 
@@ -346,7 +346,7 @@ void main() {
     for (final legacyFields in cases) {
       final followUpFields = Map<String, dynamic>.from(legacyFields)..remove('id');
       final decoded = Task.fromLegacyJson({
-        'id': 'd02-' + (legacyFields['id'] as String),
+        'id': 'd02-${legacyFields['id']}',
         'title': 'D02 presence',
         'followUps': [{
           'id': legacyFields['id'],
@@ -359,8 +359,8 @@ void main() {
       final record = records.single as Map<String, dynamic>;
       for (final key in const ['nextFollowUp', 'nextFollowUpAllDay']) {
         if (legacyFields.containsKey(key)) {
-          expect(record.containsKey(key), isTrue, reason: key + ' presence');
-          expect(record[key], legacyFields[key], reason: key + ' value');
+          expect(record.containsKey(key), isTrue, reason: '$key presence');
+          expect(record[key], legacyFields[key], reason: '$key value');
         }
       }
       var restored = Task.fromJson(encoded);
@@ -439,10 +439,10 @@ void main() {
     var current = Task.fromJson(firstJson);
     for (var cycle = 1; cycle <= 5; cycle++) {
       final encoded = current.toJson();
-      expect(encoded, firstJson, reason: 'encode cycle ' + cycle.toString());
+      expect(encoded, firstJson, reason: 'encode cycle $cycle');
       current = Task.fromJson(encoded);
       expect(current.legacyFollowUpMetadata, initial.legacyFollowUpMetadata,
-          reason: 'decode cycle ' + cycle.toString());
+          reason: 'decode cycle $cycle');
       final records = current.legacyFollowUpMetadata['followUps'] as List;
       expect(records, hasLength(1), reason: 'no duplicate metadata records');
     }
