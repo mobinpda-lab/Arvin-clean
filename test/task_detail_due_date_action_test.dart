@@ -33,7 +33,14 @@ void main() {
         title: 'کار دارای موعد',
         description: 'توضیح نباید تغییر کند',
         dueDate: oldDueDate,
-        reminderDate: reminderDate,
+        taskReminders: <TaskReminder>[
+          TaskReminder(
+            id: 'due-action-independent-reminder',
+            title: 'یادآور مستقل',
+            date: reminderDate,
+            sequence: 1,
+          ),
+        ],
         allDay: false,
         checklist: const <String>['[ ] مورد اول', '[x] مورد دوم'],
         followUpEnabled: true,
@@ -82,7 +89,15 @@ void main() {
       );
       expect(persisted.title, 'کار دارای موعد');
       expect(persisted.description, 'توضیح نباید تغییر کند');
-      expect(persisted.reminderDate, reminderDate);
+      // The legacy single-reminder field is not the source of truth.
+      // The canonical TaskReminder collection must remain unchanged.
+      expect(persisted.reminderDate, isNull);
+      expect(persisted.taskReminders, hasLength(1));
+      expect(
+        persisted.taskReminders.single.id,
+        'due-action-independent-reminder',
+      );
+      expect(persisted.taskReminders.single.date, reminderDate);
       expect(persisted.allDay, isFalse);
       expect(persisted.checklist, const <String>['[ ] مورد اول', '[x] مورد دوم']);
       expect(persisted.followUpEnabled, isTrue);

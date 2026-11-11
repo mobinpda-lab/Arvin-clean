@@ -123,9 +123,14 @@ void main() {
       id: 'due-independent-1',
       title: 'استقلال تاریخ‌ها',
       dueDate: due,
-      reminderDate: reminder,
-      followUpEnabled: true,
-      followUpDate: followUp,
+      taskReminders: [
+        TaskReminder(
+          id: 'reminder-1',
+          title: 'یادآور مستقل',
+          date: reminder,
+          sequence: 1,
+        ),
+      ],
       followUps: [
         FollowUp(id: 'f1', dateTime: followUp, note: 'پیگیری'),
       ],

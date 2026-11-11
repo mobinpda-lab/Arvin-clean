@@ -851,6 +851,10 @@ Future<void> _pickDueDateTime() async {
         nextReminderSequence: _nextReminderSequence,
         legacyTaskReminderMigrationVersion:
             existing?.legacyTaskReminderMigrationVersion ?? 0,
+        // Unrelated Task edits must retain retired Follow-up values as inert
+        // compatibility metadata; they never become active reminders.
+        legacyFollowUpMetadata:
+            existing?.legacyFollowUpMetadata ?? const <String, dynamic>{},
         priority: _priority,
         archived: existing?.archived ?? false,
         trashed: existing?.trashed ?? false,

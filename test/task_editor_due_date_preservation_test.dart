@@ -17,7 +17,14 @@ void main() {
       id: 'due-safe',
       title: 'تحویل قرارداد',
       dueDate: DateTime(2026, 9, 11, 14, 45),
-      reminderDate: DateTime(2026, 9, 10, 9, 30),
+      taskReminders: <TaskReminder>[
+        TaskReminder(
+          id: 'reminder-due-safe',
+          title: 'یادآور مستقل',
+          date: DateTime(2026, 9, 10, 9, 30),
+          sequence: 1,
+        ),
+      ],
       followUpEnabled: true,
       followUpDate: DateTime(2026, 9, 12, 11),
       followUps: <FollowUp>[
@@ -59,7 +66,15 @@ void main() {
     expect(result, isNotNull);
     expect(result!.id, 'due-safe');
     expect(result!.dueDate, DateTime(2026, 9, 11, 14, 45));
-    expect(result!.reminderDate, DateTime(2026, 9, 10, 9, 30));
+    expect(result!.reminderDate, isNull);
+    expect(result!.taskReminders, hasLength(1));
+    expect(result!.taskReminders.single.id, 'reminder-due-safe');
+    expect(result!.taskReminders.single.date, DateTime(2026, 9, 10, 9, 30));
+    expect(
+      result!.legacyFollowUpMetadata,
+      task.legacyFollowUpMetadata,
+      reason: 'editing must preserve retired Follow-up values as inert metadata',
+    );
     expect(result!.followUps, hasLength(1));
     expect(result!.followUps.single.dateTime, DateTime(2026, 9, 8, 10));
     expect(result!.followUps.single.note, 'تماس اولیه');
