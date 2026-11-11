@@ -141,3 +141,24 @@ Compared each recorded group HEAD against current Main SHA `45e4202b...`. Classi
 - New PRs #3364, #3365 and #3366 are open/draft; no merge or release.
 - No PR closed, branch deleted/archived, test skipped, or migration data removed.
 - Release remains NO-GO.
+
+
+### 35 duplicate-HEAD groups — CYCLE 3 verification completed
+- Rechecked all 35 representative refs against Main SHA `45e4202b03a434459e4c021a04efa7e8396359db`; each ahead/behind count exactly matches the recorded inventory.
+- Verified all 109 branch names still exist.
+- Compared all 74 non-representative branch refs against their group representative; every comparison returned `identical`, 0 ahead / 0 behind.
+- Confirmed 18 groups have zero commits ahead of Main and 17 have unique ancestry ahead.
+- Product/dependency review is recorded in `docs/qa/WAVE3_CYCLE3_DUPLICATE_HEAD_REVIEW_2026-11-11.md`.
+- Important dependencies/equivalence: #2913/#2918 open and preserved; #2989 open diagnostic-only and preserved; #357 completed; #464/#670 and #1532/#197/#209/#326 merged equivalents; #32 tombstone test file exactly matches Main; group 34's legacy Follow-up-history projection test conflicts with the current canonical Calendar contract and must not be ported.
+- No group is authorized for deletion or archival. No branch, PR or ref was changed.
+
+### Historical Set A / Set B search
+- Exact-label, ID-count and likely artifact-name searches returned no original 198-ID Set A source and no original 509-member Set B artifact.
+- Set A identities and Set B membership remain UNVERIFIED; no intersection/difference arithmetic is valid.
+
+### Exact-head CI observations after first Cycle 3 implementation
+- PR #3364 first implementation head `dfff2ffb5e15272f614b2126ad4237441281138d`: Analyze and APK builds passed, but test shards remained red. The explicit legacy `followUpEnabled=false` metadata regression passed. Reopen parity still failed; its top-level mismatch diagnostic reported an empty key list, exposing a second synthetic-null issue.
+- Root cause refinement: schema migration also inserted `reminderDate:null` and `followUpDate:null` from absent SQL-column aliases. Those are not historical values and produce an envelope mismatch with no differing non-null key. The fix now preserves these fields only if their source SQL columns existed.
+- PR #3364 latest pushed head: `06c57bc20ec9bc415e705684206a52cd95e82dad`. Build run `42973881233` queued at checkpoint refresh; result pending.
+- PR #3365 head `4508902e0c772c80f975fc86a49d19a4f5c814a5`: exact-head Build run `42972151218` passed Analyze, all six test shards and Debug/Release APKs. Device Smoke run `42972151243` remained queued.
+- PR #3366 latest head: `c1118f0803e1cefdaeaa468793e255647b9e70ac`. The canonical editor regression passed. The inherited Task Detail Due Date test fixture has been changed to use an explicit canonical TaskReminder rather than deprecated direct constructor input; exact-head CI after this update is pending.
