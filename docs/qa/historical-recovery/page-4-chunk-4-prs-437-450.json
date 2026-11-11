@@ -1,0 +1,252 @@
+{
+  "source": "GitHub connector normalized per-PR metadata from fetch_pr; not a raw REST list-page response",
+  "page": "4",
+  "slice": "chronological continuation after PR #427–#436; next 10 available PR records #437, #439–#443, #445, #448–#450",
+  "page_record_count": null,
+  "records": [
+    {
+      "id": null,
+      "number": 437,
+      "state": "closed",
+      "merged": false,
+      "draft": true,
+      "title": "feat(bulk): add shared category and tag dialogs",
+      "created_at": "2026-08-28T16:41:16Z",
+      "updated_at": "2026-09-07T19:33:41Z",
+      "closed_at": "2026-09-07T19:33:41Z",
+      "merged_at": null,
+      "head": {
+        "ref": "feat/bulk-category-tag-dialogs"
+      },
+      "base": {
+        "ref": "main"
+      },
+      "changed_files": 2,
+      "additions": 248,
+      "deletions": 0,
+      "body": "Refs #367 #403.\n\nFresh Maximum Parallel UI lane from production main `9826176b0c5eb6760198650322f59a22aac5f6f1`.\n\n## Scope\n- add one shared category dialog with explicit clear-category semantics\n- add one shared multi-tag dialog supporting Persian/Latin commas and new lines\n- trim and deterministically de-duplicate tag input\n- require at least one tag before Apply\n- focused pure/widget coverage\n\n## Safety\n- exactly two new UI/test files\n- no Task mutation, TaskStore, persistence key or report path changes\n- dialogs only return normalized user intent; canonical mutation stays owned by existing `TaskBulkMutationService`\n- reusable by Home and Notebook without duplicate storage or business logic\n- no force merge\n\nKeep Draft for exact-head Fast. Promote only after Fast and current-main sanity; require full Build/APK/Device before production merge."
+    },
+    {
+      "id": null,
+      "number": 439,
+      "state": "closed",
+      "merged": false,
+      "draft": true,
+      "title": "docs: reconcile comprehensive Arvin product contract with current capabilities",
+      "created_at": "2026-08-28T17:20:07Z",
+      "updated_at": "2026-09-07T19:33:24Z",
+      "closed_at": "2026-09-07T19:33:24Z",
+      "merged_at": null,
+      "head": {
+        "ref": "docs/reconcile-date-agenda-comprehensive"
+      },
+      "base": {
+        "ref": "main"
+      },
+      "changed_files": 2,
+      "additions": 164,
+      "deletions": 53,
+      "body": "Refs #403 #357 #361 #367 #369 #370 #371 #372 #375 #389 #394 #438.\n\nComprehensive documentation review after the owner requested a full reconciliation of this conversation and the rolling two-day Arvin history while software production continues in parallel.\n\n## Scope now covered\n- re-audit `docs/PRODUCT_CONTRACT_MATRIX.md` against live main, current code/tests, owner Issues and meaningful Aug 27–28 delivery\n- keep the matrix as Arvin's comprehensive cross-surface product contract/status registry; no competing comprehensive document\n- record Home approved identity plus #369 scopes/sorting/Move-to-Today\n- record #370 safe Back/autosave contract and explicit Cancel zero-write boundary\n- record #371 category/tag lifecycle and bulk reuse\n- retain final FollowUp contract: add/edit/history, blank→`پیگیری`, derived elapsed/inter-FollowUp intervals, latest-real-FollowUp semantics and Jalali/Persian presentation\n- retain canonical dueDate independence, recurrence/Resume From Today, Reminder delivery convergence and Widget/Lock Screen requirements\n- retain Vazirmatn production/PDF typography\n- retain Prayer Times and Daily Content as existing informational Calendar capabilities while excluding them from #438 work-only reports\n- reconcile #438 Today/selected-day/date-range work agenda with existing report/PDF/Print/Share foundations\n- refresh `docs/DOCUMENT_AUTHORITY_INDEX.md` with active two-day owner/implementation references and the separation between product truth vs operational automation/CI authority\n\n## Governance / automation review\n`docs/ARVIN_PROJECT_OPERATING_PACKAGE.md` v49.0 remains the canonical execution/automation authority and already requires reuse-before-add, Maximum Parallel safety, exact evidence and no duplicate foundations. Operational rules are referenced rather than duplicated into the product matrix. The existing hourly `Arvin Maximum Parallel` automation has been re-enabled/strengthened to reconcile recent owner decisions into canonical docs in parallel with product delivery without blocking healthy lanes.\n\n## Safety\n- documentation-only\n- no product code/model/store/storage/workflow changes in this PR\n- no competing comprehensive document\n- historical records preserved\n- temporary audit marker removed; final diff remains canonical docs only\n\nKeep Draft for exact-head Fast and current-main reconciliation. Merge only when it will not unnecessarily stale healthier production lanes."
+    },
+    {
+      "id": null,
+      "number": 440,
+      "state": "closed",
+      "merged": false,
+      "draft": true,
+      "title": "feat(reports): compose canonical work agenda for day and date range",
+      "created_at": "2026-08-28T17:38:16Z",
+      "updated_at": "2026-08-28T18:29:21Z",
+      "closed_at": "2026-08-28T18:29:20Z",
+      "merged_at": null,
+      "head": {
+        "ref": "feat/work-agenda-date-range-projection"
+      },
+      "base": {
+        "ref": "main"
+      },
+      "changed_files": 2,
+      "additions": 430,
+      "deletions": 0,
+      "body": "Refs #438 #367 #372 #375 #403.\n\nHistorical validated implementation of the canonical work-agenda projection. This branch became stale after production main advanced to `7dd9aa6bf5af73013c1bf202387dc4137f1ae9ba`.\n\nDo not merge this historical tree. It is safely superseded by fresh current-main rebuild #443, preserving this PR as recoverable evidence/history."
+    },
+    {
+      "id": null,
+      "number": 441,
+      "state": "closed",
+      "merged": false,
+      "draft": false,
+      "title": "feat(followup): rebuild single alarm arbiter on production main",
+      "created_at": "2026-08-28T17:48:10Z",
+      "updated_at": "2026-09-07T19:33:33Z",
+      "closed_at": "2026-09-07T19:33:33Z",
+      "merged_at": null,
+      "head": {
+        "ref": "feat/followup-single-alarm-arbiter-current-main-v2"
+      },
+      "base": {
+        "ref": "main"
+      },
+      "changed_files": 2,
+      "additions": 256,
+      "deletions": 0,
+      "body": "Refs #372 #403. Supersedes #433 safely after current-main sanity found that its historical tree would remove newer production delivery-state files.\n\nFresh rebuild from production main `7dd9aa6bf5af73013c1bf202387dc4137f1ae9ba`.\n\n## Scope\n- same pure single-alarm arbiter validated in #433\n- choose nearest existing automatic FollowUp schedule vs independent FollowUp reminder\n- retry overdue undelivered reminder after safe minimum delay\n- skip delivered reminder identities\n- deterministic tie keeps existing automatic FollowUp first\n\n## Safety\n- exactly two added pure service/test files on top of current production tree\n- current #430/#435/#432 files remain intact by construction\n- no model/store/storage/alarm/notification side effect\n- no force update/history rewrite\n\nKeep Draft for exact-head Fast; then current-main sanity and full Build/APK/Device before merge."
+    },
+    {
+      "id": null,
+      "number": 442,
+      "state": "closed",
+      "merged": false,
+      "draft": false,
+      "title": "feat(followup): rebuild reminder notification reuse on production main",
+      "created_at": "2026-08-28T17:49:13Z",
+      "updated_at": "2026-09-07T19:33:28Z",
+      "closed_at": "2026-09-07T19:33:28Z",
+      "merged_at": null,
+      "head": {
+        "ref": "feat/followup-reminder-notification-current-main-v2"
+      },
+      "base": {
+        "ref": "main"
+      },
+      "changed_files": 2,
+      "additions": 96,
+      "deletions": 12,
+      "body": "Refs #372 #403. Supersedes #431 safely after current-main sanity found its historical tree would remove newer production delivery-state files.\n\nFresh rebuild from production main `7dd9aa6bf5af73013c1bf202387dc4137f1ae9ba`.\n\n## Scope\n- reuse existing `AutomaticFollowUpNotificationService` and the same Android notification channel for independent FollowUp reminders\n- stable reminder notification id from canonical Task + FollowUp identity\n- reminder body identifies parent Task + FollowUp label with safe Persian fallbacks\n- preserve existing automatic FollowUp notification behavior\n\n## Safety\n- exactly one existing notification service + one focused test file\n- current #430/#435/#432 production files remain intact by construction\n- no second channel/scheduler/store\n- no force update/history rewrite\n\nKeep Draft for exact-head Fast; then current-main sanity and full Build/APK/Device before merge."
+    },
+    {
+      "id": null,
+      "number": 443,
+      "state": "closed",
+      "merged": true,
+      "draft": false,
+      "title": "feat(reports): rebuild canonical work agenda on current main",
+      "created_at": "2026-08-28T18:29:08Z",
+      "updated_at": "2026-08-28T19:50:53Z",
+      "closed_at": "2026-08-28T19:50:53Z",
+      "merged_at": "2026-08-28T19:50:53Z",
+      "head": {
+        "ref": "feat/work-agenda-date-range-projection-main-v2"
+      },
+      "base": {
+        "ref": "main"
+      },
+      "changed_files": 2,
+      "additions": 390,
+      "deletions": 0,
+      "body": "Refs #438 #403. Supersedes stale #440 without force-updating history.\n\nFresh rebuild from production main `7dd9aa6bf5af73013c1bf202387dc4137f1ae9ba`.\n\nScope:\n- canonical read-only Today / selected-day / inclusive date-range work projection\n- Task dueDate + Task reminder + latest real FollowUp nextFollowUp + independent FollowUp reminderDate\n- same-day Task de-duplication with all matching reasons preserved\n- FollowUp ids retained\n- archived/trashed excluded; completed scheduled work preserved truthfully\n- legacy Task.followUpDate ignored as non-history\n- focused regression coverage\n\nSafety:\n- exactly two added pure service/test files\n- no Task/FollowUp model, store, storage key, PDF, Calendar, alarm or notification mutation\n- no second report foundation\n- rebuilt from current main rather than merging a branch that was one commit behind\n\nKeep Draft for exact-head Fast. Promote only after exact-head Fast and current-main sanity; require full Build/APK/Device before production merge."
+    },
+    {
+      "id": null,
+      "number": 445,
+      "state": "closed",
+      "merged": false,
+      "draft": false,
+      "title": "feat(projects): add colored project lifecycle core",
+      "created_at": "2026-08-28T19:23:16Z",
+      "updated_at": "2026-08-28T19:52:14Z",
+      "closed_at": "2026-08-28T19:52:13Z",
+      "merged_at": null,
+      "head": {
+        "ref": "feat/project-core-lifecycle-444"
+      },
+      "base": {
+        "ref": "main"
+      },
+      "changed_files": 2,
+      "additions": 203,
+      "deletions": 0,
+      "body": "Superseded safely by #449 after #443 advanced production main. Historical implementation and CI evidence are preserved here; no force update or stale-history merge. Continue on fresh current-main rebuild #449."
+    },
+    {
+      "id": null,
+      "number": 448,
+      "state": "closed",
+      "merged": false,
+      "draft": true,
+      "title": "feat(projects-ui): add colored project selector foundation",
+      "created_at": "2026-08-28T19:33:27Z",
+      "updated_at": "2026-08-28T19:53:05Z",
+      "closed_at": "2026-08-28T19:53:05Z",
+      "merged_at": null,
+      "head": {
+        "ref": "feat/project-selector-ui-447"
+      },
+      "base": {
+        "ref": "feat/project-core-lifecycle-444"
+      },
+      "changed_files": 2,
+      "additions": 181,
+      "deletions": 0,
+      "body": "Superseded safely by #450 after the Project core was rebuilt on current production main as #449. Historical implementation and CI evidence remain preserved; no force update or stale-history merge."
+    },
+    {
+      "id": null,
+      "number": 449,
+      "state": "closed",
+      "merged": true,
+      "draft": false,
+      "title": "feat(projects): rebuild colored project lifecycle on current main",
+      "created_at": "2026-08-28T19:52:08Z",
+      "updated_at": "2026-08-28T20:29:41Z",
+      "closed_at": "2026-08-28T20:29:41Z",
+      "merged_at": "2026-08-28T20:29:41Z",
+      "head": {
+        "ref": "feat/project-core-lifecycle-main-v2"
+      },
+      "base": {
+        "ref": "main"
+      },
+      "changed_files": 2,
+      "additions": 203,
+      "deletions": 0,
+      "body": "Refs #444. Supersedes #445 safely after #443 advanced production main.\n\nFresh rebuild from current main `b4315367edc7d32766b70784267a792dbba99f48`.\n\n## Scope\n- reuse existing `ProjectPlan`; no second Project model\n- project-owned persistable ARGB color\n- immutable copy semantics preserving canonical Task-id references\n- pure add/edit/delete/Task assignment lifecycle\n- hard-block deletion of any non-empty Project\n- moving Tasks between Projects and explicit unassigned state\n- no change to Category/Tag/FollowUp semantics\n- focused tests\n\n## Safety\n- no force-update or stale-history merge\n- no Task payload duplication\n- no Task model/store/storage-key change\n- no FollowUp/reminder/category/tag mutation\n\nDraft Fast first; promote only after exact-head Fast, then Build/APK/Device and current-main sanity."
+    },
+    {
+      "id": null,
+      "number": 450,
+      "state": "closed",
+      "merged": false,
+      "draft": true,
+      "title": "feat(projects-ui): rebuild colored project selector on current stack",
+      "created_at": "2026-08-28T19:52:58Z",
+      "updated_at": "2026-08-28T20:35:02Z",
+      "closed_at": "2026-08-28T20:35:01Z",
+      "merged_at": null,
+      "head": {
+        "ref": "feat/project-selector-ui-main-v2"
+      },
+      "base": {
+        "ref": "main"
+      },
+      "changed_files": 4,
+      "additions": 384,
+      "deletions": 0,
+      "body": "Superseded safely by #453 after #449 was squash-merged and #451 advanced production main. Retargeting the old stacked branch exposed duplicate core history, so it is preserved here for audit only. No force update or stale merge."
+    }
+  ],
+  "integrity": {
+    "record_count": 10,
+    "unique_pr_numbers": 10,
+    "numbers": [
+      437,
+      439,
+      440,
+      441,
+      442,
+      443,
+      445,
+      448,
+      449,
+      450
+    ],
+    "numeric_rest_ids": "not exposed by connector; represented as null",
+    "omitted_numbers_with_pull_request_404": [
+      438,
+      444,
+      446,
+      447
+    ],
+    "no_raw_page_equivalence_claimed": true
+  }
+}
