@@ -183,4 +183,95 @@ void main() {
     expect(task.category, isNull);
     expect(task.toJson()['category'], isNull);
   });
+
+
+  test('legacy presence preserves Missing, NULL, FALSE and TRUE independently', () {
+    final missing = Task.fromLegacyJson({
+      'id': 'presence-missing',
+      'title': 'بدون فیلد',
+    });
+    expect(missing.legacyFollowUpMetadata['taskLevel'], isNull);
+
+    final explicitNull = Task.fromLegacyJson({
+      'id': 'presence-null',
+      'title': 'مقدار تهی',
+      'reminderDate': null,
+      'followUpDate': null,
+      'followUpEnabled': null,
+      'followUps': [
+        {
+          'id': 'follow-null',
+          'dateTime': '2026-11-11T08:00:00.000',
+          'nextFollowUp': null,
+        },
+      ],
+    });
+    final nullTaskLevel =
+        explicitNull.legacyFollowUpMetadata['taskLevel'] as Map;
+    for (final field in const ['reminderDate', 'followUpDate', 'followUpEnabled']) {
+      expect(nullTaskLevel.containsKey(field), isTrue);
+      expect(nullTaskLevel[field], isNull);
+    }
+    expect(
+      (explicitNull.legacyFollowUpMetadata['followUps'] as List).single,
+      containsPair('nextFollowUp', null),
+    );
+
+    final explicitFalse = Task.fromLegacyJson({
+      'id': 'presence-false',
+      'title': 'غیرفعال',
+      'followUpEnabled': false,
+    });
+    final falseLevel =
+        explicitFalse.legacyFollowUpMetadata['taskLevel'] as Map;
+    expect(falseLevel.containsKey('followUpEnabled'), isTrue);
+    expect(falseLevel['followUpEnabled'], isFalse);
+
+    final explicitTrue = Task.fromLegacyJson({
+      'id': 'presence-true',
+      'title': 'فعال',
+      'followUpEnabled': true,
+    });
+    final trueLevel =
+        explicitTrue.legacyFollowUpMetadata['taskLevel'] as Map;
+    expect(trueLevel.containsKey('followUpEnabled'), isTrue);
+    expect(trueLevel['followUpEnabled'], isTrue);
+
+    for (final task in [explicitNull, explicitFalse, explicitTrue]) {
+      final restored = Task.fromJson(task.toJson());
+      expect(
+        restored.legacyFollowUpMetadata,
+        task.legacyFollowUpMetadata,
+      );
+    }
+  });
+
+  test('unknown legacy Task and Follow-up fields survive serialization', () {
+    final task = Task.fromLegacyJson({
+      'id': 'unknown-legacy',
+      'title': 'فیلد ناشناخته',
+      'futureTaskFlag': {'enabled': false, 'note': null},
+      'followUps': [
+        {
+          'id': 'future-follow-up',
+          'dateTime': '2026-11-11T09:00:00.000',
+          'nextFollowUp': null,
+          'futureFollowUpPayload': ['a', 'b'],
+        },
+      ],
+    });
+
+    final restored = Task.fromJson(task.toJson());
+    expect(
+      (restored.legacyFollowUpMetadata['unknownFields'] as Map)
+          ['futureTaskFlag'],
+      {'enabled': false, 'note': null},
+    );
+    expect(
+      (restored.legacyFollowUpMetadata['followUps'] as List).single
+          ['futureFollowUpPayload'],
+      ['a', 'b'],
+    );
+    expect(restored.legacyFollowUpMetadata, task.legacyFollowUpMetadata);
+  });
 }
