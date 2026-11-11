@@ -452,6 +452,16 @@ void main() {
       executor: database,
       preferences: preferences,
     );
+    final envelopeRows = await database.runSelect(
+      'SELECT legacy_payload_json FROM tasks WHERE id = ?',
+      const <Object?>['persist-task'],
+    );
+    final storedEnvelope = jsonDecode(
+      envelopeRows.single['legacy_payload_json'] as String,
+    ) as Map<String, dynamic>;
+    expect(storedEnvelope.containsKey('reminderDate'), isFalse);
+    expect(storedEnvelope.containsKey('followUpDate'), isFalse);
+    expect(storedEnvelope.containsKey('followUpEnabled'), isFalse);
     await database.close();
 
     database = NativeDatabase(databaseFile);
