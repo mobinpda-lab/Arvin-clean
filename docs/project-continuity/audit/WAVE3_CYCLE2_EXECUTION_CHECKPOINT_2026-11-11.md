@@ -31,14 +31,16 @@ Latest inspected six-shard totals:
 
 Analyze and Debug/Release APK jobs passed on this inspected run; the six test shards did not. The previous 82-failure count belongs to an older run; do not reuse it.
 
-**Confirmed regression (not the whole 81-failure root cause):**
-- Two test failures were initially mislabelled as due-date loss. Exact test assertions show that `Task.dueDate` is preserved; the lost field is legacy `Task.reminderDate`.
-- On the protected #3052 HEAD, the editor save result omits legacy `reminderDate` and some legacy Follow-up compatibility fields.
-- Current Main's editor preserves the legacy compatibility values. The existing `test/task_editor_due_date_preservation_test.dart` passed in the current-Main-based #3348 Build validation.
-- This is a data-loss regression on #3052, not a proven Main defect.
-- Other observed failures span Home filters/labels, Quick Capture, Notebook, People/Follow-up and UI interaction expectations. Only 38 explicit TestFailure blocks were extracted from the logs so far; full per-failure classification of all 81 is not complete.
+**Root-cause correction and verified P0 risk:**
+- The tests `task_contract_test.dart`, `task_editor_due_date_preservation_test.dart` and `task_detail_due_date_action_test.dart` construct Tasks with deprecated constructor parameters such as `reminderDate` / `followUpDate`, then expect the old first-class fields to round-trip. The new #3052 model intentionally ignores those direct legacy constructor inputs; actual legacy migration is an explicit `Task.fromLegacyJson` / migration-adapter boundary. These assertions are fixture/contract mismatches, not proof of due-date loss.
+- `release_critical_path_test.dart` also expects the computed `reminderDate` compatibility getter to be null while a canonical `TaskReminder` exists; the assertion should inspect canonical reminder state and the legacy migration marker instead.
+- A separate, real data-integrity risk is visible in `ArvinTaskEditorDialog._save`: it creates a new Task but does not carry forward existing `completedAt`, `isFavorite`, `focusDate`, `templateTaskId`, `checklistOccurrences`, `occurrenceHistory`, or `legacyFollowUpMetadata`. TaskStore treats these as known canonical keys, not unknown envelope fields, and rewrites relational occurrence state from the returned Task. Editing an existing Task can therefore reset/drop these values. This is a static code-path finding; a dedicated runtime regression test is still required.
+- The SQL migration writer's close/reopen test fails on the second migration pass with `Task envelope/unknown-field conflict for persist-task`. The writer is intended to be idempotent, so this remains a migration blocker until the exact envelope mismatch is isolated.
+- Two source-contract tests fail with `RangeError` from brittle `String.substring` checks; these are test implementation defects, not runtime export failures.
+- Migration tests expect retired columns to disappear, while the current migration copies legacy values into the envelope / canonical Reminder boundary but leaves the old columns present. Do not drop those columns until data parity, backup and restore are proven.
+- All 81 failed test names have now been enumerated. Major repeated files: Home page (9), Quick Capture dialog (8), Task Detail master screen (6), Task Editor dialog (4), Follow-up Office (4), Home Today menu (3), Home stat filters (3). Full classification into product defects versus outdated test contracts is still open.
 
-**Disposition:** keep #3052 protected and unmodified. Do not merge this regression. Before any future integration, reconcile its editor implementation with current Main and rerun exact-head tests.
+**Disposition:** keep #3052 protected and unmodified. Do not merge until the TaskEditor preservation gaps, SQL migration idempotency, legacy-schema transition and remaining UI/test contract mismatches are resolved on an independently reviewable path.
 
 ### A2. PR #1901 selective recovery
 - PR #1901 remains OPEN / READY / UNMERGED.
