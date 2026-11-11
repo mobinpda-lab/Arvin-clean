@@ -1,0 +1,36 @@
+name: Arvin COMMAND 06-H Raw SQLite Evidence
+
+on:
+  pull_request:
+    paths:
+      - 'test/diagnostics/command_06_h_raw_sql_evidence_test.dart'
+      - '.github/workflows/arvin-command-06-h-raw-sql-evidence.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  raw-sql-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Capture independent reopened SQLite evidence
+        run: flutter test test/diagnostics/command_06_h_raw_sql_evidence_test.dart --reporter expanded
+      - name: Archive raw SQL evidence and SHA256
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arvin-command-06-h-raw-sql-evidence
+          path: |
+            build/arvin-command-06-h/raw-sql-evidence.json
+            build/arvin-command-06-h/raw-sql-evidence.json.sha256
+            build/arvin-command-06-h/task-store-load-result.json
+          if-no-files-found: warn
+          retention-days: 30
