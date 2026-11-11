@@ -346,7 +346,7 @@ void main() {
     for (final legacyFields in cases) {
       final followUpFields = Map<String, dynamic>.from(legacyFields)..remove('id');
       final decoded = Task.fromLegacyJson({
-        'id': 'd02-' + legacyFields['id'] as String,
+        'id': 'd02-' + (legacyFields['id'] as String),
         'title': 'D02 presence',
         'followUps': [{
           'id': legacyFields['id'],
