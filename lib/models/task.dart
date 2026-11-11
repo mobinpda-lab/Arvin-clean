@@ -381,7 +381,20 @@ class Task {
     final existingRecords = metadata['followUps'];
     if (existingRecords is List) {
       for (final raw in existingRecords) {
-        if (raw is Map) records.add(Map<String, dynamic>.from(raw));
+        if (raw is! Map) continue;
+        final record = Map<String, dynamic>.from(raw);
+        final recordId = record['id'];
+        final existingIndex = records.indexWhere(
+          (item) => recordId != null && item['id'] == recordId,
+        );
+        if (existingIndex < 0) {
+          records.add(record);
+        } else {
+          records[existingIndex] = <String, dynamic>{
+            ...records[existingIndex],
+            ...record,
+          };
+        }
       }
     }
     for (final followUp in followUps) {
