@@ -492,19 +492,33 @@ void main() {
     final diagnosticRecord =
         const TaskMigrationAdapter().recordFromLegacyJson(decodedLegacy);
     final expectedEnvelope = _diagnosticStorageEnvelope(diagnosticRecord);
-    final capture = _PersistTaskEnvelopeCapture();
-    final interceptedExecutor = database.interceptWith(capture);
+    await const SqlTaskMigrationWriter().migrateFromPreferences(
+      executor: database,
+      preferences: preferences,
+    );
 
-    Object? migrationError;
-    StackTrace? migrationStack;
+    await database.close();
+
+    database = NativeDatabase(databaseFile);
+    final baselineTaskRows = await database.runSelect(
+      'SELECT * FROM tasks WHERE id = ?',
+      const ['persist-task'],
+    );
+    final baselineFollowUpRows = await database.runSelect(
+      'SELECT * FROM follow_up_records WHERE task_id = ? ORDER BY ordinal',
+      const ['persist-task'],
+    );
+    final capture = _PersistTaskEnvelopeCapture();
+    final interceptedReopenExecutor = database.interceptWith(capture);
+    Object? reopenError;
+    StackTrace? reopenStack;
+    List<Task> reopenedTasks = const <Task>[];
     try {
-      await const SqlTaskMigrationWriter().migrateFromPreferences(
-        executor: interceptedExecutor,
-        preferences: preferences,
-      );
+      reopenedTasks =
+          await TaskStore(executor: interceptedReopenExecutor).load();
     } catch (error, stackTrace) {
-      migrationError = error;
-      migrationStack = stackTrace;
+      reopenError = error;
+      reopenStack = stackTrace;
     }
 
     final actualRow = capture.actualTaskRow;
@@ -523,7 +537,7 @@ void main() {
     final expectedAfterNormalization =
         _diagnosticNormalizeEnvelope(expectedEnvelope);
 
-    print('ARVIN_ENVELOPE_FORENSICS_BEGIN task=persist-task');
+    print('ARVIN_ENVELOPE_FORENSICS_BEGIN task=persist-task phase=reopen');
     print('ORIGINAL_LEGACY_JSON:');
     print(const JsonEncoder.withIndent('  ').convert(jsonDecode(raw)));
     print('DECODER_OUTPUT:');
@@ -534,10 +548,11 @@ void main() {
     print(const JsonEncoder.withIndent('  ').convert(diagnosticRecord.sourceJson));
     print('EXPECTED_SQL_ENVELOPE:');
     print(const JsonEncoder.withIndent('  ').convert(expectedBeforeNormalization));
+    print('ACTUAL_SQL_QUERY: SELECT * FROM tasks WHERE id = ? [persist-task]');
     print('ACTUAL_SQL_ROW_SOURCE: ${capture.actualTaskRow == null ? 'NOT_CAPTURED' : 'SQLITE_QUERY_RESULT'}');
     print('ACTUAL_SQL_ROW:');
     print(actualRow == null
-        ? 'UNKNOWN: no SELECT * row captured'
+        ? 'UNKNOWN: no SELECT * row captured during reopened TaskStore.load'
         : const JsonEncoder.withIndent('  ').convert(actualRow));
     print('ACTUAL_SQL_ENVELOPE:');
     print(actualEnvelope == null
@@ -556,24 +571,26 @@ void main() {
     print('ROLLBACK_REQUESTED: ${capture.rollbackRequested}');
     print('ROLLBACK_EXECUTION_RESULT: ${capture.rollbackExecutionResult}');
     final rollbackVerified = capture.rollbackRequested &&
-        capture.rollbackExecutionResult == 'SUCCESS'
-        ? await _verifyDiagnosticRollback(database)
+            capture.rollbackExecutionResult == 'SUCCESS' &&
+            baselineTaskRows.length == 1
+        ? await _verifyDiagnosticRollback(
+            database,
+            Map<String, Object?>.from(baselineTaskRows.single),
+            baselineFollowUpRows
+                .map((row) => Map<String, Object?>.from(row))
+                .toList(growable: false),
+          )
         : null;
     print('ROLLBACK_VERIFIED: ${rollbackVerified == null ? 'NOT_VERIFIED' : rollbackVerified ? 'PASS' : 'FAIL'}');
-    if (migrationError != null) {
-      print('MIGRATION_ERROR: $migrationError');
-      print('MIGRATION_STACK: $migrationStack');
+    if (reopenError != null) {
+      print('REOPEN_ERROR: $reopenError');
+      print('REOPEN_STACK: $reopenStack');
     }
     print('ARVIN_ENVELOPE_FORENSICS_END');
-    if (migrationError != null) {
-      Error.throwWithStackTrace(migrationError, migrationStack!);
+    if (reopenError != null) {
+      Error.throwWithStackTrace(reopenError, reopenStack!);
     }
 
-
-    await database.close();
-
-    database = NativeDatabase(databaseFile);
-    final reopenedTasks = await TaskStore(executor: database).load();
     expect(reopenedTasks, hasLength(1));
     final history = reopenedTasks.single.followUps;
     expect(history, hasLength(2));
@@ -839,15 +856,22 @@ Map<String, Object?> _diagnosticDiff(
 }
 
 
-Future<bool> _verifyDiagnosticRollback(QueryExecutor executor) async {
+Future<bool> _verifyDiagnosticRollback(
+  QueryExecutor executor,
+  Map<String, Object?> baselineTaskRow,
+  List<Map<String, Object?>> baselineFollowUpRows,
+) async {
   final taskRows = await executor.runSelect(
-    'SELECT COUNT(*) AS count FROM tasks WHERE id = ?',
+    'SELECT * FROM tasks WHERE id = ?',
     const ['persist-task'],
   );
   final followUpRows = await executor.runSelect(
-    'SELECT COUNT(*) AS count FROM follow_up_records WHERE task_id = ?',
+    'SELECT * FROM follow_up_records WHERE task_id = ? ORDER BY ordinal',
     const ['persist-task'],
   );
-  return (taskRows.single['count'] as num).toInt() == 0 &&
-      (followUpRows.single['count'] as num).toInt() == 0;
+  return taskRows.length == 1 &&
+      _diagnosticCanonicalJson(taskRows.single) ==
+          _diagnosticCanonicalJson(baselineTaskRow) &&
+      _diagnosticCanonicalJson(followUpRows) ==
+          _diagnosticCanonicalJson(baselineFollowUpRows);
 }
