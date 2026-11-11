@@ -9,7 +9,7 @@ import 'recurrence_sql_codec.dart';
 
 /// G1-DRIFT relational schema foundation.
 class G1DriftSchema implements QueryExecutorUser {
-  static const int version = 17;
+  static const int version = 18;
 
   static const List<String> _statements = <String>[
     '''CREATE TABLE IF NOT EXISTS tasks (
@@ -227,6 +227,7 @@ class G1DriftSchema implements QueryExecutorUser {
         await executor.runCustom('ALTER TABLE projects ADD COLUMN legacy_payload_json TEXT NULL');
       }
       await migrateTaskPeople(executor);
+      await _removeLegacyTaskReminderMarker(executor);
       await migrateCanonicalEntities(executor);
       await OccurrenceSqlCodec.migrateLegacyEnvelopes(executor);
       await RecurrenceSqlCodec.migrateLegacyRules(executor);
@@ -327,6 +328,115 @@ class G1DriftSchema implements QueryExecutorUser {
         <Object?>[person['name'], now, person['id'], ''],
       );
     }
+  }
+
+  /// Removes the retired per-row legacy reminder marker without changing
+  /// any canonical reminder value. Rebuild instead of DROP COLUMN so this
+  /// migration also works on Android SQLite versions that predate DROP COLUMN.
+  /// Unexpected columns, indexes, or triggers fail closed rather than being
+  /// silently discarded during the rebuild.
+  static Future<void> _removeLegacyTaskReminderMarker(
+    QueryExecutor executor,
+  ) async {
+    if (!await _hasTable(executor, 'task_reminders')) return;
+    const marker = 'is_legacy_task_reminder';
+    const canonicalColumns = <String>[
+      'id', 'task_id', 'title', 'remind_at', 'is_all_day', 'sequence', 'is_enabled',
+    ];
+    final columnRows = await executor.runSelect(
+      "PRAGMA table_info('task_reminders')",
+      const [],
+    );
+    final columnNames = columnRows.map((row) => row['name'] as String).toSet();
+    if (!columnNames.contains(marker)) return;
+    final missing = canonicalColumns.where((name) => !columnNames.contains(name));
+    if (missing.isNotEmpty) {
+      throw StateError(
+        'Cannot safely migrate task_reminders: missing canonical columns $missing.',
+      );
+    }
+    final unexpected = columnNames
+        .where((name) => !canonicalColumns.contains(name) && name != marker)
+        .toList()
+      ..sort();
+    if (unexpected.isNotEmpty) {
+      throw StateError(
+        'Cannot safely rebuild task_reminders: unrecognized columns $unexpected.',
+      );
+    }
+    final customIndexes = await executor.runSelect(
+      "SELECT name FROM sqlite_master WHERE type = 'index' "
+      "AND tbl_name = 'task_reminders' AND sql IS NOT NULL",
+      const [],
+    );
+    if (customIndexes.isNotEmpty) {
+      throw StateError(
+        'Cannot safely rebuild task_reminders with custom indexes: $customIndexes',
+      );
+    }
+    final triggers = await executor.runSelect(
+      "SELECT name FROM sqlite_master WHERE type = 'trigger' "
+      "AND tbl_name = 'task_reminders'",
+      const [],
+    );
+    if (triggers.isNotEmpty) {
+      throw StateError(
+        'Cannot safely rebuild task_reminders with triggers: $triggers',
+      );
+    }
+    const retiredTable = 'task_reminders__legacy_marker_v1';
+    if (await _hasTable(executor, retiredTable)) {
+      throw StateError(
+        'Cannot safely migrate task_reminders: temporary table $retiredTable already exists.',
+      );
+    }
+
+    final before = await executor.runSelect(
+      'SELECT id, task_id, title, remind_at, is_all_day, sequence, is_enabled '
+      'FROM task_reminders ORDER BY sequence, id',
+      const [],
+    );
+    await executor.runCustom(
+      'ALTER TABLE task_reminders RENAME TO $retiredTable',
+    );
+    await executor.runCustom('''
+      CREATE TABLE task_reminders (
+        id TEXT NOT NULL PRIMARY KEY,
+        task_id TEXT NOT NULL REFERENCES tasks(id),
+        title TEXT NOT NULL,
+        remind_at TEXT NOT NULL,
+        is_all_day INTEGER NOT NULL DEFAULT 0,
+        sequence INTEGER NOT NULL,
+        is_enabled INTEGER NOT NULL DEFAULT 1,
+        UNIQUE (task_id, sequence)
+      )
+    ''');
+    await executor.runCustom(
+      'INSERT INTO task_reminders '
+      '(id, task_id, title, remind_at, is_all_day, sequence, is_enabled) '
+      'SELECT id, task_id, title, remind_at, is_all_day, sequence, is_enabled '
+      'FROM $retiredTable ORDER BY sequence, id',
+    );
+    final after = await executor.runSelect(
+      'SELECT id, task_id, title, remind_at, is_all_day, sequence, is_enabled '
+      'FROM task_reminders ORDER BY sequence, id',
+      const [],
+    );
+    if (before.length != after.length) {
+      throw StateError(
+        'Reminder migration row-count mismatch: before=${before.length}, after=${after.length}.',
+      );
+    }
+    for (var index = 0; index < before.length; index++) {
+      for (final column in canonicalColumns) {
+        if (before[index][column] != after[index][column]) {
+          throw StateError(
+            'Reminder migration changed row ${before[index]['id']} column $column.',
+          );
+        }
+      }
+    }
+    await executor.runCustom('DROP TABLE $retiredTable');
   }
 
   /// Moves old Follow-up scheduling and people storage into canonical
@@ -467,10 +577,22 @@ class G1DriftSchema implements QueryExecutorUser {
       }
       payload['id'] = row['id'];
       payload['title'] = row['title'];
-      payload['reminderDate'] ??= row['reminder_date'];
-      payload['followUpDate'] ??= row['follow_up_date'];
-      payload['followUpEnabled'] ??=
-          (row['follow_up_enabled'] as num?)?.toInt() == 1;
+      // Preserve source presence exactly. A missing legacy SQL column is not
+      // equivalent to a present column containing NULL, and explicit JSON
+      // NULL must not be overwritten by a stale SQL compatibility value.
+      if (!payload.containsKey('reminderDate') && hasLegacyTaskReminder) {
+        payload['reminderDate'] = row['reminder_date'];
+      }
+      if (!payload.containsKey('followUpDate') && hasLegacyTaskFollowUpDate) {
+        payload['followUpDate'] = row['follow_up_date'];
+      }
+      if (!payload.containsKey('followUpEnabled') &&
+          hasLegacyTaskFollowUpEnabled) {
+        final rawEnabled = row['follow_up_enabled'];
+        payload['followUpEnabled'] = rawEnabled == null
+            ? null
+            : (rawEnabled as num).toInt() == 1;
+      }
       final legacyRecords = legacyFollowUpMetadataByTask[row['id']];
       if (legacyRecords != null && legacyRecords.isNotEmpty) {
         final rawMetadata = payload['legacyFollowUpMetadata'];
