@@ -297,3 +297,24 @@ Compared each recorded group HEAD against current Main SHA `45e4202b...`. Classi
 - PR #3366 latest head `53fad2d87b5ab5cda03e7ee99e1d94a931b31096`. It now asserts canonical `TaskReminder` persistence and legacy `reminderDate == null` in both Task Detail and Task Editor due-date regressions. Previous run logs included failures from the earlier fixture revision and unrelated UI tests; exact-head Build `42978391078` pending, Follow-up File Persistence `42978391133` in progress, Device Smoke `42978391279` pending.
 - PR #3369 documentation head is advanced by this checkpoint and Chunk 4 JSON; Build/Device/Follow-up runs are pending. It remains OPEN/DRAFT.
 - No PR merged/closed, no branch removed, no test skipped, no direct Main change. CYCLE 3 remains INCOMPLETE and Release NO-GO.
+
+
+### Page 4 history recovery — continuation through chunk 10
+Raw GitHub REST page 4 (100 records) has now been preserved in normalized 10-record slices:
+- Chunk 2: #417–#426 (pre-existing checkpoint).
+- Chunk 3: #427–#436 (revalidated against raw REST; raw numeric IDs restored).
+- Chunk 4, slice 30–39: #437, #439, #440, #441, #442, #443, #445, #448, #449, #450.
+- Chunk 5, slice 40–49: #451, #452, #453, #454, #455, #456, #457, #458, #459, #461.
+- Chunk 6, slice 50–59: #462–#471.
+- Chunk 7, slice 60–69: #472–#481.
+- Chunk 8, slice 70–79: #482–#491.
+- Chunk 9, slice 80–89: #492–#501.
+- Chunk 10, slice 90–99: #502, #504–#512.
+All newly stored slices contain 10 records, 10 unique PR numbers and actual REST numeric IDs. Gaps (#438, #444, #446–#447, #460, #503) reflect the source list's actual records and are not inferred or filled. Paths are under `docs/qa/historical-recovery/`.
+
+### Current exact-head queue refresh
+- PR #3348 has been automatically advanced after the Calendar navigation-key repair. Current head `17bb931225cf5c48a1271dd0a31a76d549f19704`; Build `42978508446` and Device Smoke `42978508698` are QUEUED; Follow-up file persistence `42978508344` SUCCESS. Earlier commit `701f01b...` made the Calendar navigation keys stable for all destinations; do not assume the newest head is green until its queued exact-head runs finish.
+- PR #3364 remains at `2238fa063faf781ea905f861fb0ae8f58ccf6d57`; Follow-up file persistence `42978067609` SUCCESS; Build `42978067648` QUEUED and Device Smoke `42978067622` PENDING.
+- PR #3366 advanced to `8c4c23f0c2a4f9b2374a2092c931782c4455fd41` after updating stale tests to use the explicit legacy decoder and canonical TaskReminder records. No exact-head run was returned at last poll; validation is pending.
+- PR #3365 remains green at `50f99c743b6dc5192b01fc87733d3a1eaa4e7a51`: Build and all seven Device Smoke lanes SUCCESS.
+- PR #3369 docs branch current head `175d57b64a05c7344bf88fa440dfe5d32e4fad6f`; docs-only evidence branch Build/Device runs QUEUED. Keep Draft.
