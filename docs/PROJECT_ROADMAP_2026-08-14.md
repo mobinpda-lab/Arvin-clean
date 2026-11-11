@@ -144,3 +144,29 @@
 
 ## Definition of Done
 هر قابلیت زمانی Done است که domain/application، persistence، UI واقعی، RTL/شمسی/فونت، regression tests، CI سبز و APK قابل استفاده داشته باشد و مستندات/AI handoff آن به‌روز باشد.
+
+
+## WAVE 0 — CURRENT PRIORITY OVERRIDE (2026-11-11)
+
+This live addendum supersedes the dated status snapshot above where it conflicts. The earlier roadmap remains historical context, not proof of current completion.
+
+### Gate 0 — Canonical governance and continuity
+- Preserve the existing v49.1 operating package and documentation layout.
+- Keep repository state, exact SHA, PRs, Actions results, SQLite blockers and next action discoverable without conversation history.
+- Record only verified GitHub evidence. Do not inflate completion from unmerged code or green non-product orchestration runs.
+- WAVE 0 completion requires a Draft documentation PR containing the six functional document roles mapped in the canonical operating package.
+
+### P0 — SQLite data integrity (must remain first product gate)
+1. D01: define the exact legacy/new schema contract for `follow_up_enabled`; identify all dependencies; prove safe rebuild/upgrade, data retention, reopen and idempotency.
+2. D02: define and test the four distinct states Missing, Explicit NULL, FALSE and TRUE. Do not convert absence into NULL or add defaults without source evidence.
+3. D03: compare source envelope, SQL rows and decoded object across close/reopen; locate the exact unknown Follow-up metadata loss point; preserve Follow-up IDs/order/timestamps/description/status and Person relations.
+4. Complete Reminder migration acceptance independently of the Follow-up persistence workflow.
+5. Prove five complete save/close/reopen/compare rounds on one resulting SHA.
+6. Prove Backup/Restore, transaction rollback and Migration Recovery without weakening existing tests.
+
+### Dependencies and acceptance
+- Root-cause diagnosis precedes each repair; no speculative patch after a failed test.
+- No production/schema/serializer/TaskStore changes until the exact root cause and safe data-preserving approach are established.
+- Every implementation commit must have exact-SHA tests and relevant build/device evidence. Pending, skipped, stale or different-SHA runs do not pass.
+- Only after all SQLite gates pass may the next dependent product lane be proposed. Release remains NO-GO until separate release/device/owner gates are met.
+- WAVE 0 itself is documentation-only; it does not dispatch CI or validate production behavior.

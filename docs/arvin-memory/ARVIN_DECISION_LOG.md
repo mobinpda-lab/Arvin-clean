@@ -225,3 +225,14 @@ Both required exact-head gates for `ba2306cfc66ad982f8e8ab73b838a4a8d6ed6b55` ar
 - **Exact-head CI evidence observed:** On the target Build run, Analyze and all six test shards completed successfully. The `test-1` job reports the unlinked-Reminder conflict test passing as part of 161 passing tests in that shard. Debug/Release APK builds were still in progress at this checkpoint; Calendar Provider Acceptance and Device Smoke were also not yet complete.
 - **Acceptance boundary:** This record documents the diagnosis, implementation and observed partial CI evidence. It does not declare full Wave 7.61 acceptance. APK artifacts, provider evidence and all seven Device Smoke lanes must be reviewed on the exact final PR head.
 - **Governance:** PR #2995 remains OPEN and must remain DRAFT/UNMERGED; Issue #2102 remains OPEN. Release remains `BLOCKED — RELEASE: NO-GO` until every required exact-head suite and product acceptance gate is green.
+
+
+## 2026-11-11 — WAVE 0 canonical governance and SQLite hold
+
+- **Problem:** The repository contains a v49.1 canonical operating package and an established `docs/arvin-memory/` continuity system, but the requested generic six document filenames are not present as a matching set. A repository file named `ARVIN-MASTER-CHARTER-REV9` was not found in the audited main tree.
+- **Decision:** Preserve the established documentation layout and map the six functional roles to existing canonical files; do not create duplicate generic root-level documents. The mapping is recorded in `docs/ARVIN_PROJECT_OPERATING_PACKAGE.md`.
+- **Reason:** The existing package states that it is the single operational reference and that historical records must be preserved. Unnecessary parallel governance files would create competing sources of truth.
+- **Scope:** Documentation-only branch from exact main SHA `45e4202b03a434459e4c021a04efa7e8396359db`; no application, schema, migration, serializer, TaskStore, test or workflow changes.
+- **PR safety:** PRs #3380, #3382 and #3384 remain OPEN / DRAFT / UNMERGED and are not modified by this WAVE.
+- **SQLite acceptance decision:** D01, D02 and D03 remain NOT ACCEPTED. D01 has a schema/test mismatch; D02 has a Missing-versus-NULL test-contract conflict; D03 still loses an unknown Follow-up field after close/reopen and its exact loss point is not yet proven.
+- **Release decision:** NO-GO. Merge, release and deployment are not authorized. Do not advance to a dependent implementation wave until the SQLite acceptance criteria are proven on a final exact SHA.

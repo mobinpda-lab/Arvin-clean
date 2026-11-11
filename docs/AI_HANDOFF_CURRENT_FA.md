@@ -156,3 +156,36 @@ Repository reality always overrides conversation memory.
 - Task remains the core actionable entity. A Task can have 0/1 Project, 0/1 Category and multiple Tags. Project/Category/Tag filters remain distinct and combine with AND.
 - Before changing Task/Project/Category/Group/Tag/Filter/Search/Report/Calendar/Repeat/Backup/Restore, read the ADR, inspect current main and related PRs/issues, and link the ADR in the PR. Date-based grouping is presentation-only.
 - Current-code caveat: Project membership and Category catalog are represented separately; do not claim a physical Project→Category foreign key exists. This conformance question is part of Issue #2580.
+
+
+## WAVE 0 — CURRENT HANDOFF — 2026-11-11
+
+### Verified repository checkpoint
+- Repository: `mobinpda-lab/Arvin-clean`.
+- Default branch and WAVE 0 base: `main` at `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Documentation branch: `docs/wave-0-canonical-governance`, created from that exact main SHA.
+- PRs #3380, #3382 and #3384 were verified OPEN / DRAFT / UNMERGED and were not changed.
+- SQLite PR #3384 current head at audit: `c8996bae351d9aede87a251d57141456b945d0a8`; Build failed (six shards, 79 failures), narrow Follow-up persistence run succeeded, Device Smoke remained pending with no jobs.
+
+### Read before any next work
+1. `docs/ARVIN_PROJECT_OPERATING_PACKAGE.md` — canonical v49.1 operating standard and WAVE 0 governance mapping.
+2. `docs/ARVIN_PROJECT_STATE.md` — live repository/PR/CI/SQLite status.
+3. `docs/arvin-memory/ARVIN_DECISION_LOG.md` — accepted decisions and WAVE 0 hold.
+4. `docs/arvin-memory/ARVIN_EVIDENCE_MAP.md` — exact SHA and run evidence.
+5. `docs/PROJECT_ROADMAP_2026-08-14.md` — read the 2026-11-11 override, not the old dated snapshot.
+6. This handoff and the relevant PR/CI logs from live GitHub.
+
+### Immediate next task (not authorized by this WAVE)
+Resume SQLite P0 only after an authorized follow-on command. First perform root-cause diagnosis on the exact current #3384 head:
+- D01: trace `follow_up_enabled` schema ownership, all migration versions, table rebuild logic, and dependent indexes/triggers/foreign keys.
+- D02: settle test/source semantics for absent key vs explicit NULL, then test Missing, NULL, FALSE and TRUE independently.
+- D03: capture the same source JSON envelope, SQL rows and deserialized object before/after close/reopen; identify exactly where `futureFollowUpField` is dropped.
+- Do not patch until the root cause is proven. Preserve all existing tests and assertions.
+- Recheck live GitHub refs and CI first; never reuse this snapshot as current without refresh.
+
+### Hard boundaries
+- This WAVE is documentation-only. Do not change production, tests, schema, serializers, TaskStore, workflows or application configuration.
+- No CI rerun/dispatch, cancellation, merge, release, deployment, main modification or history rewrite.
+- Keep PR #3380, #3382 and #3384 untouched.
+- SQLite P0 remains OPEN; Release NO-GO; Merge NOT AUTHORIZED.
+- Stop after this documentation PR is created and its exact head/status/CI state is recorded.

@@ -39,3 +39,46 @@ Older status files and dated reports remain historical records. They must not be
 - Category and Group are synonyms, not separate entities. Standard Persian UI term: «دسته».
 - Do not introduce parallel models/stores or a separate Group concept. Review the ADR before changes to Task, filters, search, reports, calendar, repeat or backup/restore.
 - The semantic Project → Category → Task diagram does not prove a database Category-to-Project foreign key; that relationship remains an explicit audit question until evidenced and decided.
+
+
+## AUTHORITATIVE LIVE STATE — WAVE 0 AUDIT — 2026-11-11
+
+This section supersedes older live-status claims in this file where they conflict. Historical entries remain historical evidence.
+
+### Repository and refs
+- Repository: `mobinpda-lab/Arvin-clean`; default branch: `main`.
+- Main base SHA used for WAVE 0: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Main commit date/message: 2026-10-31, merge of PR #2995 (Wave 7.61 Calendar conflict background-widget isolation).
+- Documentation branch created from that exact main SHA: `docs/wave-0-canonical-governance`.
+- SQLite execution branch: `feature/command-07-a-sqlite-contract-remediation`, PR #3384 head `c8996bae351d9aede87a251d57141456b945d0a8`.
+
+### Active PR snapshot
+- #3380: OPEN / DRAFT / UNMERGED; head `33a8fb14a9979d0d86775cb5457970c7e445077b`; branch `diagnostic/w3-c3-command06e-harness-recovery`.
+- #3382: OPEN / DRAFT / UNMERGED; head `adee525e94fa2daec617255d57f9cfb65e3efe66`; branch `diagnostic/command-06-h-raw-sql-evidence`.
+- #3384: OPEN / DRAFT / UNMERGED; head `c8996bae351d9aede87a251d57141456b945d0a8`; branch `feature/command-07-a-sqlite-contract-remediation`; base `fix/wave3-cycle3-calendar-product-repair`. Its current PR diff is six files; its history contains 12 commits. No review submissions were returned at audit time.
+- None of these PRs was modified by WAVE 0.
+
+### Latest relevant Actions evidence (no rerun requested or initiated)
+- Build run [43076778275](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43076778275), exact SHA `c8996bae...`: COMPLETED / FAILURE. Analyze and Visual passed; all six test shards failed; Debug, Staging and Release APK jobs succeeded. Total shard test count recorded: 1,312 passed / 79 failed / 1,391 total.
+- Follow-up file-backed persistence run [43076778148](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43076778148): COMPLETED / SUCCESS. This does not override the failed migration/history regression tests.
+- Device Smoke [43076778211](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43076778211): PENDING at the audit; no jobs/steps/artifacts were available.
+- Main-branch orchestration activity on 2026-11-11 includes successful runs [43079261584](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43079261584) and [43079306186](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43079306186), both on main SHA `45e4202b...`. These are orchestration/queue runs, not application Build or Device Smoke acceptance.
+- Main-branch Release Closure / Final Head Release Validation runs observed around the PR activity were SKIPPED, including [43076793035](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43076793035) and [43076806994](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43076806994).
+
+### SQLite P0 register
+- D01 — FAIL / NOT ACCEPTED: `follow_up_enabled` remains in the legacy `tasks` schema; the current migration addition targets a different legacy reminder column. Schema/index/trigger/relation preservation is not accepted.
+- D02 — NOT ACCEPTED / CONTRACT CONFLICT: a reader test expects `followUpEnabled: null` for an input where the key is absent. Missing and explicit NULL must remain distinct; this test expectation requires contract clarification, not a default insertion.
+- D03 — FAIL / ROOT CAUSE OPEN: `futureFollowUpField` is not retained as expected after SQLite close/reopen in `sql_task_migration_writer_test.dart` (expected true, actual false). Exact field-loss point remains unproven.
+- Five-round serialization: NOT VERIFIED.
+- Reminder migration: NOT ACCEPTED by final acceptance; the successful follow-up persistence workflow is not the complete migration gate.
+- Person relations: database-level close/reopen coverage had a passing case, but related UI tests failed; complete acceptance NOT VERIFIED.
+- Backup/Restore: NOT VERIFIED for this target.
+- Migration Recovery: NOT VERIFIED.
+- Transaction rollback/idempotency have passing individual historical/current tests in some slices, but this is not a complete SQLite acceptance pass.
+
+### Release and change boundary
+- Release: **NO-GO**.
+- Merge: **NOT AUTHORIZED**.
+- Production code/schema/test/workflow changes: none in WAVE 0.
+- No CI was manually rerun by WAVE 0.
+- See `docs/arvin-memory/ARVIN_EVIDENCE_MAP.md` for the run-specific evidence record and `docs/AI_HANDOFF_CURRENT_FA.md` for continuation instructions.

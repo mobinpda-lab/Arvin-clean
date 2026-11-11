@@ -388,3 +388,31 @@ v48.1 = execution optimization and parallel-speed enhancement.
 v48.2 = approved integrated/editorial operational reference.
 v49.0 = unified canonical software-production standard incorporating governance, execution, architecture, Sync, UI, quality, recovery, documentation, continuity and communication.
 v49.1 = lightweight important-change traceability standard; automated evidence preferred, with stronger documentation required only for important/high-risk changes.
+
+
+## WAVE 0 — Canonical Governance Continuity Addendum (2026-11-11)
+
+This addendum records the repository audit and the explicit WAVE 0 controls. It is additive; it does not erase version lineage or rewrite historical decisions.
+
+### Governance authority and document mapping
+- The live canonical operating reference at the WAVE 0 base is this file, **v49.1**. Its rule remains: GitHub is authoritative for executed state; architecture/decisions are governed by approved project records; historical records are retained.
+- The user-supplied governance reference is `ARVIN-MASTER-CHARTER-REV9`. A repository file with that exact name/version was not located in the audited `main` tree. Do not claim that the unseen REV9 text was independently audited. For this WAVE, apply the explicit controls in the supplied W0-01 command together with the existing v49.1 canonical rules. Reconcile the full REV9 text when it is committed or supplied.
+- Preserve the existing documentation architecture; do not create duplicate root-level files merely to match generic names. Functional mapping:
+  - MASTER_GOVERNANCE → `docs/ARVIN_PROJECT_OPERATING_PACKAGE.md`
+  - CURRENT_STATE → `docs/ARVIN_PROJECT_STATE.md`
+  - ROADMAP → `docs/PROJECT_ROADMAP_2026-08-14.md`
+  - DECISIONS → `docs/arvin-memory/ARVIN_DECISION_LOG.md`
+  - IMPLEMENTATION_LOG / evidence ledger → `docs/arvin-memory/ARVIN_EVIDENCE_MAP.md`
+  - HANDOFF → `docs/AI_HANDOFF_CURRENT_FA.md`
+- Existing `docs/arvin-memory/ARVIN_AUTONOMOUS_DELIVERY_EVOLUTION_COMMAND_V8.md`, `ARVIN_EXECUTION_STATE.md`, `ARVIN_PROJECT_KNOWLEDGE.md`, and `ARVIN_PROBLEM_REGISTER.md` remain supporting continuity sources, not replacements for the v49.1 canonical operating reference.
+
+### WAVE 0 immutable controls
+- Local-first data integrity is P0. Existing user data, stable IDs, JSON/SQL compatibility, reminders, Follow-up history, relations and backup/restore must not be silently discarded or normalized.
+- Never mark an unverified migration, test, build, artifact, device result or recovery path PASS. Evidence is commit/ref-specific.
+- Work only on the authorized feature/documentation branch. No direct main development, history rewrite, force push, merge, release or deployment.
+- For this WAVE, only governance/continuity documents may change. Production code, tests, workflows and application configuration are out of scope.
+- PRs #3380, #3382 and #3384 are independent active work and must remain untouched.
+- A Draft documentation PR is the handoff boundary. Stop after creating it and reporting its exact head, PR, CI state and unresolved gates.
+
+### Current release gate
+SQLite P0 remains open. D01 (legacy-column retirement), D02 (Missing vs Explicit NULL), and D03 (Follow-up metadata/history after reopen) are not accepted. Five-round serialization, full Reminder migration, Backup/Restore and Migration Recovery are not verified. Release remains **NO-GO**; merge is not authorized by WAVE 0.

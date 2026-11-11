@@ -463,3 +463,43 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Prior exact-head Build | Run [38859380955](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38859380955), SHA `2d04631dd9d1939bd3feafa12aa7d68bec349b58` | Debug/Release APK jobs succeeded; multiple test shards failed | Re-run on final SHA; old success is not release evidence |
 | Final head Build / Device Smoke / Calendar Provider | Runs are regenerated when the branch head changes | Pending validation | All six device-smoke lanes, Calendar Provider Acceptance, artifacts and screenshot review |
 | Font / physical device | VazirHarf declared; Vazirmatn asset not found in project assets; no new physical-device evidence | OPEN / NO-GO | Add licensed font asset if Vazirmatn is mandatory; separate physical-device acceptance |
+
+
+## WAVE 0 — LIVE GITHUB EVIDENCE SNAPSHOT — 2026-11-11
+
+All evidence below is ref-specific. This documentation snapshot did not dispatch, rerun, cancel or modify any workflow.
+
+### Repository and PRs
+- Default branch: `main`; base commit: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- #3380: OPEN / DRAFT / UNMERGED; head `33a8fb14a9979d0d86775cb5457970c7e445077b`.
+- #3382: OPEN / DRAFT / UNMERGED; head `adee525e94fa2daec617255d57f9cfb65e3efe66`.
+- #3384: OPEN / DRAFT / UNMERGED; head `c8996bae351d9aede87a251d57141456b945d0a8`; 12 commits, six changed files.
+- #3384 changed files at audit: `lib/models/task.dart`, `lib/services/g1_drift_schema.dart`, `test/model_task_unified_item_test.dart`, `test/services/g1_drift_schema_test.dart`, `test/services/sql_task_migration_writer_test.dart`, `test/task_store_reminder_persistence_test.dart`.
+
+### Exact-head Actions
+- [Build 43076778275](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43076778275) on `c8996bae...`: COMPLETED / FAILURE.
+  - Analyze: PASS; Visual: PASS.
+  - Test shard 0: 234 passed / 14 failed.
+  - Test shard 1: 197 passed / 6 failed.
+  - Test shard 2: 301 passed / 26 failed.
+  - Test shard 3: 151 passed / 11 failed.
+  - Test shard 4: 243 passed / 11 failed.
+  - Test shard 5: 186 passed / 11 failed.
+  - Total: 1,312 passed / 79 failed / 1,391 total.
+  - Debug, Staging and Release APK jobs: SUCCESS. Build conclusion remains FAILURE due to test shards.
+- [Follow-up File Persistence 43076778148](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43076778148): COMPLETED / SUCCESS; this workflow is not a replacement for the full SQLite migration suite.
+- [Device Smoke 43076778211](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43076778211): PENDING; zero jobs and no device artifacts available at audit time.
+- Main orchestration: [43079261584](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43079261584) and [43079306186](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43079306186) SUCCESS on main SHA `45e4202b...`; these are orchestration/queue evidence only. Main Release Closure and Final Head validation were SKIPPED (for example runs 43076793035 and 43076806994). No new Build or Device Smoke was run by this WAVE.
+
+### SQLite regression evidence
+- D01: `test/services/g1_drift_completed_at_migration_test.dart` fails because `follow_up_enabled` remains present after migration. The new migration path visible in the PR addresses `task_reminders.is_legacy_task_reminder`, not this legacy Task column.
+- D02: `test/services/task_migration_reader_test.dart` fails with expected `followUpEnabled: null` but actual key absent. Because the source input lacks that key, the expectation conflicts with the required Missing/Explicit-NULL distinction.
+- D03: `test/services/sql_task_migration_writer_test.dart` fails at approximately line 481: expected preservation condition `true`, actual `false` for `futureFollowUpField` after close/reopen.
+- Additional observed failures include a schema metadata expectation mismatch involving `reminderDate`, a Follow-up person UI finder failure, and a Task detail widget error (`ListView` is not a subtype of `Scrollable`).
+- Individual idempotency and rollback/recovery tests passed in the inspected suite, but this does not establish full regression acceptance. Five-round serialization, complete Backup/Restore, and Migration Recovery remain NOT VERIFIED.
+- A database-level Person-link close/reopen test passed; UI-level Person-related tests failed. Overall Person relation acceptance remains NOT VERIFIED.
+
+### Evidence limits
+- No result from this snapshot may be attributed to a SHA other than the one explicitly listed.
+- APK artifact digests were recorded in the preceding SQLite audit; this WAVE did not create or download new artifacts.
+- A green orchestration run, a successful narrow persistence workflow, an APK build, or a pending Device Smoke run does not establish SQLite data-integrity acceptance.
