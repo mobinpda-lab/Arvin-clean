@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:arvin/follow_up_repository.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/sql_task_migration_writer.dart';
+import 'package:arvin/services/task_migration_adapter.dart';
 import 'package:arvin/services/task_store.dart';
 
 void main() {
@@ -448,10 +450,75 @@ void main() {
     final preferences = await SharedPreferences.getInstance();
     await preferences.setString('arvin.tasks', raw);
 
-    await const SqlTaskMigrationWriter().migrateFromPreferences(
-      executor: database,
-      preferences: preferences,
-    );
+    // Diagnostic-only interception: capture the real tasks row returned by
+    // SQLite immediately before the existing envelope parity assertion.
+    // No production code, schema, migration, or assertion is changed.
+    final decodedLegacy =
+        Map<String, dynamic>.from((jsonDecode(raw) as List).single as Map);
+    final diagnosticRecord =
+        const TaskMigrationAdapter().recordFromLegacyJson(decodedLegacy);
+    final expectedEnvelope = _diagnosticStorageEnvelope(diagnosticRecord);
+    final capture = _PersistTaskEnvelopeCapture();
+    final interceptedExecutor = database.interceptWith(capture);
+
+    try {
+      await const SqlTaskMigrationWriter().migrateFromPreferences(
+        executor: interceptedExecutor,
+        preferences: preferences,
+      );
+    } catch (error, stackTrace) {
+      final actualRow = capture.actualTaskRow;
+      final actualRaw = actualRow?['legacy_payload_json'];
+      final actualEnvelope = actualRaw is String
+          ? Map<String, dynamic>.from(jsonDecode(actualRaw) as Map)
+          : null;
+      final expectedBeforeNormalization =
+          Map<String, dynamic>.from(expectedEnvelope);
+      final actualBeforeNormalization = actualEnvelope == null
+          ? null
+          : Map<String, dynamic>.from(actualEnvelope);
+      final actualAfterNormalization = actualEnvelope == null
+          ? null
+          : _diagnosticNormalizeEnvelope(actualEnvelope);
+      final expectedAfterNormalization =
+          _diagnosticNormalizeEnvelope(expectedEnvelope);
+
+      print('ARVIN_ENVELOPE_FORENSICS_BEGIN task=persist-task');
+      print('ORIGINAL_LEGACY_JSON:');
+      print(const JsonEncoder.withIndent('  ').convert(jsonDecode(raw)));
+      print('DECODER_OUTPUT_TASK_TO_JSON:');
+      print(const JsonEncoder.withIndent('  ').convert(diagnosticRecord.task.toJson()));
+      print('TASK_TO_JSON:');
+      print(const JsonEncoder.withIndent('  ').convert(diagnosticRecord.task.toJson()));
+      print('SOURCE_ENVELOPE:');
+      print(const JsonEncoder.withIndent('  ').convert(diagnosticRecord.sourceJson));
+      print('EXPECTED_SQL_ENVELOPE:');
+      print(const JsonEncoder.withIndent('  ').convert(expectedBeforeNormalization));
+      print('ACTUAL_SQL_ROW:');
+      print(actualRow == null
+          ? 'UNKNOWN: no SELECT * row captured'
+          : const JsonEncoder.withIndent('  ').convert(actualRow));
+      print('ACTUAL_SQL_ENVELOPE:');
+      print(actualEnvelope == null
+          ? 'UNKNOWN: legacy_payload_json unavailable'
+          : const JsonEncoder.withIndent('  ').convert(actualEnvelope));
+      print('DIFF_BEFORE_NORMALIZATION:');
+      print(_diagnosticDiff(actualBeforeNormalization, expectedBeforeNormalization));
+      print('ACTUAL_ENVELOPE_AFTER_NORMALIZATION:');
+      print(actualAfterNormalization == null
+          ? 'UNKNOWN'
+          : const JsonEncoder.withIndent('  ').convert(actualAfterNormalization));
+      print('EXPECTED_ENVELOPE_AFTER_NORMALIZATION:');
+      print(const JsonEncoder.withIndent('  ').convert(expectedAfterNormalization));
+      print('DIFF_AFTER_NORMALIZATION:');
+      print(_diagnosticDiff(actualAfterNormalization, expectedAfterNormalization));
+      print('ROLLBACK_OBSERVED: ${capture.rollbackObserved}');
+      print('MIGRATION_ERROR: $error');
+      print('MIGRATION_STACK: $stackTrace');
+      print('ARVIN_ENVELOPE_FORENSICS_END');
+      rethrow;
+    }
+
     await database.close();
 
     database = NativeDatabase(databaseFile);
@@ -590,5 +657,123 @@ void main() {
     database = NativeDatabase.memory();
     await directory.delete(recursive: true);
   });
+
+
+// Test-only SQL interception for COMMAND 06. Captures the actual row returned
+// by SQLite before parity validation throws and the migration rolls back.
+class _PersistTaskEnvelopeCapture extends QueryInterceptor {
+  Map<String, Object?>? actualTaskRow;
+  bool rollbackObserved = false;
+
+  @override
+  Future<List<Map<String, Object?>>> runSelect(
+    QueryExecutor executor,
+    String statement,
+    List<Object?> args,
+  ) async {
+    final rows = await executor.runSelect(statement, args);
+    if (statement.trim().toLowerCase() ==
+            'select * from tasks where id = ?' &&
+        args.isNotEmpty &&
+        args.first == 'persist-task' &&
+        rows.isNotEmpty) {
+      actualTaskRow = Map<String, Object?>.from(rows.single);
+    }
+    return rows;
+  }
+
+  @override
+  Future<void> runCustom(
+    QueryExecutor executor,
+    String statement,
+    List<Object?> args,
+  ) async {
+    if (statement.trim().toUpperCase() == 'ROLLBACK') {
+      rollbackObserved = true;
+    }
+    await executor.runCustom(statement, args);
+  }
+}
+
+const Set<String> _diagnosticSqlOwnedTaskKeys = <String>{
+  'id', 'title', 'description', 'createdAt', 'updatedAt', 'dueDate',
+  'category', 'notebookKind', 'priority', 'archived', 'trashed',
+  'completed', 'completedAt', 'isFavorite', 'tags', 'checklist',
+  'followUps', 'people', 'taskReminders', 'recurrence',
+  'occurrenceHistory', 'checklistOccurrences',
+};
+
+Map<String, dynamic> _diagnosticStorageEnvelope(TaskMigrationRecord record) {
+  final canonical = Map<String, dynamic>.from(record.task.toJson());
+  for (final key in _diagnosticSqlOwnedTaskKeys) {
+    canonical.remove(key);
+  }
+  final known = <String>{
+    ...record.task.toJson().keys,
+    ..._diagnosticSqlOwnedTaskKeys,
+    'legacyTaskReminderMigrationVersion',
+  };
+  final unknown = <String, dynamic>{
+    for (final entry in record.sourceJson.entries)
+      if (!known.contains(entry.key)) entry.key: entry.value,
+  };
+  return <String, dynamic>{...unknown, ...canonical};
+}
+
+Map<String, dynamic> _diagnosticNormalizeEnvelope(
+  Map<String, dynamic> envelope,
+) {
+  final normalized = Map<String, dynamic>.from(envelope);
+  for (final key in _diagnosticSqlOwnedTaskKeys) {
+    normalized.remove(key);
+  }
+  normalized.remove('legacyTaskReminderMigrationVersion');
+  return normalized;
+}
+
+Object? _diagnosticCanonicalize(Object? value) {
+  if (value is Map) {
+    final keys = value.keys.map((key) => key.toString()).toList()..sort();
+    return <String, Object?>{
+      for (final key in keys) key: _diagnosticCanonicalize(value[key]),
+    };
+  }
+  if (value is List) {
+    return value.map(_diagnosticCanonicalize).toList(growable: false);
+  }
+  return value;
+}
+
+String _diagnosticCanonicalJson(Object? value) =>
+    jsonEncode(_diagnosticCanonicalize(value));
+
+Map<String, Object?> _diagnosticDiff(
+  Map<String, dynamic>? actual,
+  Map<String, dynamic> expected,
+) {
+  if (actual == null) return <String, Object?>{'status': 'UNKNOWN'};
+  final keys = <String>{...actual.keys, ...expected.keys}.toList()..sort();
+  final added = <String>[];
+  final removed = <String>[];
+  final changed = <String, Object?>{};
+  for (final key in keys) {
+    if (!actual.containsKey(key)) {
+      added.add(key);
+    } else if (!expected.containsKey(key)) {
+      removed.add(key);
+    } else if (_diagnosticCanonicalJson(actual[key]) !=
+        _diagnosticCanonicalJson(expected[key])) {
+      changed[key] = <String, Object?>{
+        'actual': actual[key],
+        'expected': expected[key],
+      };
+    }
+  }
+  return <String, Object?>{
+    'extra_in_actual': added,
+    'missing_from_actual': removed,
+    'changed': changed,
+  };
+}
 
 }
