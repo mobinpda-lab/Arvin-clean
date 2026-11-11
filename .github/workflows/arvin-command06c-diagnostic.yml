@@ -29,6 +29,8 @@ jobs:
     steps:
       - name: Checkout diagnostic HEAD
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Set up Flutter stable
         uses: subosito/flutter-action@v2
@@ -39,9 +41,9 @@ jobs:
       - name: Verify diagnostic branch and SHA
         shell: bash
         run: |
-          echo "GITHUB_SHA=$GITHUB_SHA"
+          echo "EXPECTED_DIAGNOSTIC_SHA=${{ github.event.pull_request.head.sha || github.sha }}"
           git rev-parse HEAD
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
 
       - name: Resolve Flutter dependencies
         run: flutter pub get
