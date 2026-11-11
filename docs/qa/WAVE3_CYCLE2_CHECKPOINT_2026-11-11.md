@@ -186,3 +186,39 @@ Compared each recorded group HEAD against current Main SHA `45e4202b...`. Classi
   - Build run `42973888541` QUEUED; Device Smoke `42973888770` PENDING. Updated Task Detail fixture now uses a canonical TaskReminder; the new exact-head regression result remains pending.
 - PR #3369 documentation head was advanced by this checkpoint update; it remains OPEN/DRAFT, based on the Cycle 2 evidence branch.
 - No product or device acceptance gate is green end-to-end yet. Cycle 3 remains INCOMPLETE and Release NO-GO.
+
+
+### Cycle 3 continuation — refreshed exact-head evidence and historical page 4
+
+#### Workstream A — SQLite / Follow-up
+- Source-of-truth boundary: `follow_up_enabled` is a retired legacy SQL compatibility field, preserved only as inert metadata when the legacy source column exists. The actual boolean value `false` is preserved; it must not create or enable a Reminder. Canonical Follow-up history remains the append-only FollowUp records, not the legacy flag/date.
+- Legacy schema regression was extended with a third fixture: legacy `follow_up_enabled=0` and no `follow_up_date`. The previous exact-head run failed because the test still expected 2 rows after introducing 3 fixtures. Corrected the expected count to 3; this is a test-fixture count correction, not a production-data mutation.
+- PR #3364 latest head: `d98f19b025b649f9de3b92fd9f9a28a4514c9f80`.
+  - Follow-up file-backed SQLite persistence run `42977362567`: SUCCESS.
+  - Build run `42977362768`: Analyze SUCCESS; visual SUCCESS; test shards and APK staging/debug/release still IN PROGRESS at last poll.
+  - Device Smoke run `42977362644`: PENDING.
+  - Therefore the new three-fixture regression and Reopen envelope parity are not yet proven green on the latest head.
+- Previous Build run on parent head `c1fef37096138485a8f906b748b1622bf4ceea8e` exposed the test fixture count mismatch in `g1_drift_schema_test.dart`; this was fixed in `d98f19b...`. It also showed multiple existing UI/widget test failures. Do not claim the parent-head CI is passing.
+
+#### Workstream B — PR #3348 Device Smoke completion path
+- Original PR #3348 head `2b3bc278b444f45ffd522f7a06a6480a2c59cd68`: Build SUCCESS, but Device Smoke run `42968820801` FAILED only in Calendar; Home, Quick Capture, People, SQL Migration, SQL Persistence and Backup/Restore passed.
+- The Calendar failure was a route/FutureBuilder timing race: the integration test asserted `calendar-selected-day-list` immediately after navigation, before the official Calendar surface mounted.
+- Follow-up PR #3365 head `50f99c743b6dc5192b01fc87733d3a1eaa4e7a51`: Build run `42974843650` SUCCESS; Device Smoke run `42974843683` SUCCESS across all seven lanes: Home, Quick Capture, People, SQL Migration, SQL Persistence, Backup/Restore and Calendar.
+- PR #3348 itself remains OPEN/DRAFT and its original exact-head smoke remains red. PR #3365 supplies a green downstream repair/evidence branch; do not describe #3348 as independently green or ready for acceptance until its own target head is validated.
+
+#### Workstream C — editor / due-date separation
+- PR #3366 latest head: `a9c2b8711be76738c7dda08c7befe6969b4c88a5`.
+- Its exact-head Build run `42977379696`: Analyze SUCCESS; six test shards and APK staging/debug/release jobs queued/in progress at last poll. File-backed Follow-up persistence run `42977380150`: SUCCESS. Device Smoke `42977380188`: PENDING.
+- This branch includes `lib/task_editor_dialog.dart` plus regression tests. Existing focused tests on the preceding head confirmed manual Reminder is not overwritten by Due Time changes and canonical Due Date is independently preserved; the final branch still requires full exact-head CI and Device Smoke.
+
+#### Protected PRs / release gates
+- #3052 remains OPEN/DRAFT, head `aba68e44be0fcac7d4ad425b58fbe75e5aba264e`; exact-head Build FAILED and Device Smoke CANCELLED. Protected; unchanged.
+- #3340 remains OPEN/READY (non-draft), head `28f2a57c8feb61c8e587e93955f32685b930b2d7`; Build and Device Smoke SUCCESS. Protected; unchanged.
+- #3356 remains OPEN/DRAFT, head `f9cb078953e31e3f99f2685d689a0b1a5cb581fa`; Build FAILED, Device Smoke QUEUED. Unchanged.
+- Release remains NO-GO. No merge, close, deletion, archive, direct Main update, or Multi-device Sync activation.
+
+#### Historical recovery — page 4
+- Verified existing Chunk 2 file (#417–#426) and Chunk 3 file (#427–#436) against the exact page-4 raw REST list response.
+- Chunk 3 was upgraded from normalized metadata to raw REST records, restoring the actual numeric IDs; all 10 PR numbers matched the prior checkpoint exactly.
+- Added Chunk 4 raw JSON at `docs/qa/historical-recovery/page-4-chunk-4-index-30-39.json`: page 4, `slice(30,40)`, 10 unique records with raw IDs present. Actual PR numbers in source order: #437, #439, #440, #441, #442, #443, #445, #448, #449, #450. Gaps are present in the raw page slice and were not filled by inference.
+- Historical Set A (198 IDs) and Set B (509 members) original source artifacts still not located; membership/intersection remain UNVERIFIED.
