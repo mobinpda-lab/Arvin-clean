@@ -176,7 +176,8 @@ void main() {
     expect(saved.containsKey('followUpEnabled'), isFalse);
     expect(saved.containsKey('followUpDate'), isFalse);
     expect((saved['followUps'] as List).single['id'], 'history-new');
-    expect((saved['followUps'] as List).single['dateTime'], followUpDate.toIso8601String());
+    expect((saved['followUps'] as List).single['completedAt'], followUpDate.toIso8601String());
+    expect((saved['followUps'] as List).single.containsKey('dateTime'), isFalse);
   });
 
   test('malformed existing storage is rejected without overwriting it',

@@ -444,6 +444,10 @@ void main() {
       "INSERT INTO tasks (id, title, description, follow_up_enabled, follow_up_date, priority, archived, trashed, completed) "
       "VALUES ('legacy-followup-disabled', 'پیگیری غیرفعال', '', 0, '2026-11-11T09:00:00.000', 'none', 0, 0, 0)",
     );
+    await database.runCustom(
+      "INSERT INTO tasks (id, title, description, follow_up_enabled, priority, archived, trashed, completed) "
+      "VALUES ('legacy-followup-no-date', 'بدون تاریخ پیگیری', '', 0, 'none', 0, 0, 0)",
+    );
     await G1DriftSchema.install(database);
     final taxonomyTables = await database.runSelect("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'taxonomy_categories'", const []);
     expect(taxonomyTables, hasLength(1));
@@ -485,10 +489,14 @@ void main() {
 
     final migratedPayloads = await database.runSelect(
       'SELECT id, legacy_payload_json FROM tasks '
-      'WHERE id IN (?, ?) ORDER BY id',
-      const <Object?>['legacy-followup-disabled', 'legacy-followup-enabled'],
+      'WHERE id IN (?, ?, ?) ORDER BY id',
+      const <Object?>[
+        'legacy-followup-disabled',
+        'legacy-followup-enabled',
+        'legacy-followup-no-date',
+      ],
     );
-    expect(migratedPayloads, hasLength(2));
+    expect(migratedPayloads, hasLength(3));
     final payloadById = <String, Map<String, dynamic>>{
       for (final row in migratedPayloads)
         row['id'] as String:
@@ -507,6 +515,17 @@ void main() {
         'followUpEnabled': false,
         'followUpDate': '2026-11-11T09:00:00.000',
       },
+    );
+    expect(
+      (payloadById['legacy-followup-no-date']!['legacyFollowUpMetadata'] as Map)['taskLevel'],
+      {'followUpEnabled': false},
+    );
+    for (final payload in payloadById.values) {
+      expect(payload.containsKey('reminderDate'), isFalse);
+    }
+    expect(
+      payloadById['legacy-followup-no-date']!.containsKey('followUpDate'),
+      isFalse,
     );
     final migratedSchedules = await database.runSelect(
       'SELECT id FROM task_reminders '

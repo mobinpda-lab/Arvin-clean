@@ -306,6 +306,7 @@ class SqlTaskMigrationWriter {
     if (existingEnvelopeJson != expectedEnvelopeJson) {
       final envelopeKeys = <String>{...existingEnvelope.keys, ...expectedEnvelope.keys}.toList()..sort();
       final mismatchedKeys = envelopeKeys.where((key) =>
+        existingEnvelope.containsKey(key) != expectedEnvelope.containsKey(key) ||
         _canonicalJson(existingEnvelope[key]) != _canonicalJson(expectedEnvelope[key])
       ).toList(growable: false);
       throw StateError('Task envelope/unknown-field conflict; mismatched keys: ${mismatchedKeys.join(', ')}.');

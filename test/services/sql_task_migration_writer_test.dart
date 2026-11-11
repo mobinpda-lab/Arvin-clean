@@ -440,7 +440,7 @@ void main() {
     database = NativeDatabase(databaseFile);
 
     const raw = '''
-      [{"id":"persist-task","title":"پیگیری قرارداد","followUps":[
+      [{"id":"persist-task","title":"پیگیری قرارداد","dueDate":"2026-09-25T08:00:00.000Z","followUps":[
         {"id":"history-1","dateTime":"2026-09-21T10:00:00.000Z","title":"تماس اول","note":"شرح اول","result":"منتظر پاسخ","completed":true,"waitingForResponse":true,"personIds":["person-1","person-2"]},
         {"id":"history-2","dateTime":"2026-09-22T11:30:00.000Z","title":"تماس دوم","note":"شرح دوم","result":"پاسخ دریافت شد","completed":false,"waitingForResponse":false,"personIds":["person-3"]}
       ]}]
@@ -452,11 +452,31 @@ void main() {
       executor: database,
       preferences: preferences,
     );
+    final envelopeRows = await database.runSelect(
+      'SELECT legacy_payload_json FROM tasks WHERE id = ?',
+      const <Object?>['persist-task'],
+    );
+    final storedEnvelope = jsonDecode(
+      envelopeRows.single['legacy_payload_json'] as String,
+    ) as Map<String, dynamic>;
+    expect(storedEnvelope.containsKey('reminderDate'), isFalse);
+    expect(storedEnvelope.containsKey('followUpDate'), isFalse);
+    expect(storedEnvelope.containsKey('followUpEnabled'), isFalse);
     await database.close();
 
     database = NativeDatabase(databaseFile);
     final reopenedTasks = await TaskStore(executor: database).load();
     expect(reopenedTasks, hasLength(1));
+    expect(
+      reopenedTasks.single.dueDate,
+      DateTime.parse('2026-09-25T08:00:00.000Z'),
+      reason: 'Follow-up history must not replace the independent Task due date',
+    );
+    expect(
+      reopenedTasks.single.taskReminders,
+      isEmpty,
+      reason: 'historical Follow-up records must not create active reminders',
+    );
     final history = reopenedTasks.single.followUps;
     expect(history, hasLength(2));
     expect(history.map((item) => item.id), ['history-1', 'history-2']);
@@ -589,6 +609,29 @@ void main() {
     await database.close();
     database = NativeDatabase.memory();
     await directory.delete(recursive: true);
+  });
+
+  test('explicit legacy followUpEnabled false survives as inert metadata', () {
+    final original = Task.fromLegacyJson(<String, dynamic>{
+      'id': 'legacy-follow-up-false',
+      'title': 'رکورد قدیمی',
+      'followUpEnabled': false,
+      'dueDate': '2026-09-25T08:00:00.000Z',
+    });
+
+    expect(
+      original.legacyFollowUpMetadata['taskLevel'],
+      <String, dynamic>{'followUpEnabled': false},
+    );
+    expect(original.taskReminders, isEmpty);
+
+    final reopened = Task.fromJson(original.toJson());
+    expect(
+      reopened.legacyFollowUpMetadata['taskLevel'],
+      <String, dynamic>{'followUpEnabled': false},
+    );
+    expect(reopened.taskReminders, isEmpty);
+    expect(reopened.dueDate, DateTime.parse('2026-09-25T08:00:00.000Z'));
   });
 
 }
