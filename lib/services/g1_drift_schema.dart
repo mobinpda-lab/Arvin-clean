@@ -467,11 +467,17 @@ class G1DriftSchema implements QueryExecutorUser {
       }
       payload['id'] = row['id'];
       payload['title'] = row['title'];
-      payload['reminderDate'] ??= row['reminder_date'];
-      payload['followUpDate'] ??= row['follow_up_date'];
-      // The retired flag is legacy metadata only. Preserve it only when the
-      // source SQL schema actually had the column; a fresh schema must not
-      // synthesize a false value that breaks idempotent envelope parity.
+      // Legacy compatibility values are materialized only when their
+      // source SQL columns existed. NULL aliases for absent columns are not
+      // historical values and must not be injected into a fresh envelope.
+      if (hasLegacyTaskReminder) {
+        payload['reminderDate'] ??= row['reminder_date'];
+      }
+      if (hasLegacyTaskFollowUpDate) {
+        payload['followUpDate'] ??= row['follow_up_date'];
+      }
+      // The retired flag is inert metadata; preserve its actual legacy value,
+      // including false, only when the source SQL schema had the column.
       if (hasLegacyTaskFollowUpEnabled) {
         payload['followUpEnabled'] ??=
             (row['follow_up_enabled'] as num?)?.toInt() == 1;
