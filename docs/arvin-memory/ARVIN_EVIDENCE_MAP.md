@@ -766,3 +766,9 @@ The docs PR #3388 CODEOWNERS file was expanded to cover the canonical typography
 - Seven Device Smoke scenarios: NOT VERIFIED.
 - System Default after OS-level Force Stop: NOT VERIFIED.
 - Merge / Release / Deployment: NOT AUTHORIZED.
+
+### Staging artifact completion correction — previous candidate `46f7b28...`
+
+- [Build run 43238200093](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43238200093) Staging job `131251173638` subsequently completed SUCCESS (the earlier QUEUED/IN_PROGRESS note was an interim poll).
+- Staging APK artifact ID `13957987267`; artifact ZIP SHA-256 `d380b5f028799fa3f3c7fafd5e80c79d56b1c1a151036ea8073c6e7ee35258f8`; extracted APK SHA-256 `b61bc476b29c5a862c007c493729f9b7d74f394a995fb8edd09981b27869b875`; APK size 80,373,632 bytes.
+- All five embedded Vazirmatn hashes in Staging match source SHA-256 values in the typography contract. Font provenance, APK content, legacy purge, SIL OFL 1.1 and five-weight packaging gates reported PASS. This does not transfer to `492a5c4...`.
