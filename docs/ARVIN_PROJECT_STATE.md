@@ -357,3 +357,14 @@ The docs PR #3388 CODEOWNERS file was expanded to cover the canonical typography
 - System Default has only app-root reinitialization evidence in historical documentation; OS-level Force Stop/process termination and relaunch remain NOT VERIFIED.
 - No Merge, Release or Deployment is authorized. PR #3384 and #3388 remain Draft and unmerged.
 - Next: complete the `492a5c4...` Build, all six regression shards, seven Device Smoke scenarios, Staging APK, then run only the missing D01-D05 acceptance probes against the same final SHA. Reconcile all dependent artifacts again if any source commit advances.
+### SQLite subtest evidence refinement — previous exact SHA `46f7b28...`
+
+The completed Regression shard logs also expose the following narrower acceptance results. These are historical subtest results on `46f7b28...` and must be rerun on `492a5c4...` before they count toward the current Candidate:
+
+- D01 supporting tests: `creates the complete G1 relational schema`, `upgrades an existing pre-taxonomy schema without losing task data`, and five-cycle A-D snapshot all reported PASS. Full supported historical-version migration coverage is still not signed off.
+- D02: `legacy presence preserves Missing, NULL, FALSE and TRUE independently` and `legacy Task metadata preserves missing, explicit NULL and concrete values` both reported PASS.
+- D03 supporting test `round-trips canonical task JSON, IDs, order, and follow-up history through TaskStore` reported PASS. The more demanding test `preserves complete Follow-up history across closing and reopening SQLite`, including the unknown per-record `futureFollowUpField`, has no PASS line in the completed-shard logs; therefore it remains unverified.
+- D04 supporting test `deleted migrated legacy reminder does not return after SQL and backup restore` reported PASS. The full file-backed test `canonical backup file restores multiple Reminders and Follow-up Person links into a new SQLite file` has no PASS line in the completed-shard logs; therefore the complete seven-step D04 sequence remains unverified.
+- D05 supporting tests `failed migration leaves the complete legacy document unchanged`, `transaction rolls back all rows when one relation violates SQL constraints`, and `re-running the same migration is idempotent` reported PASS. Interrupted migration/recovery after an injected mid-flight interruption remains unverified.
+
+These distinctions prevent a narrow passing test from being promoted into a full D01, D03, D04 or D05 acceptance claim.
