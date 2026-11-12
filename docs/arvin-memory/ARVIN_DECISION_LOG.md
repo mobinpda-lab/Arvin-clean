@@ -236,3 +236,10 @@ Both required exact-head gates for `ba2306cfc66ad982f8e8ab73b838a4a8d6ed6b55` ar
 - **PR safety:** PRs #3380, #3382 and #3384 remain OPEN / DRAFT / UNMERGED and are not modified by this WAVE.
 - **SQLite acceptance decision:** D01, D02 and D03 remain NOT ACCEPTED. D01 has a schema/test mismatch; D02 has a Missing-versus-NULL test-contract conflict; D03 still loses an unknown Follow-up field after close/reopen and its exact loss point is not yet proven.
 - **Release decision:** NO-GO. Merge, release and deployment are not authorized. Do not advance to a dependent implementation wave until the SQLite acceptance criteria are proven on a final exact SHA.
+
+
+## 2026-11-12 — Product Owner typography decision supersession (COMMAND 07-A.2.24)
+
+**APPROVED / OWNER CONTROLLED:** Vazirmatn is the only official and default font of Arvin. VazirHarf is not an official/default application font and must not be retained as a fallback brand option. The only user choices are Vazirmatn (Official Default) and System Default (Optional User Preference). The System Default choice is not an alternative brand font. Any change to this decision requires Mobin's explicit written approval.
+
+This entry supersedes conflicting historical font decisions; earlier entries remain preserved as historical evidence and must not be deleted. Canonical technical contract: `docs/architecture/ARVIN_TYPOGRAPHY_CONTRACT.md`.
