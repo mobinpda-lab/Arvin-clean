@@ -628,3 +628,47 @@ Do not copy old SHA results onto the new candidate. Poll for a fresh exact-head 
 8. Never merge, release, deploy, delete branches, rewrite history, or destructively modify user data without explicit Mobin authorization.
 
 **Status:** IMPLEMENTATION IN PROGRESS / ACCEPTANCE BLOCKED.
+
+
+---
+
+## COMMAND 07-A.2.34 — latest live handoff (2026-11-12)
+
+### Exact execution identity
+- Current execution PR: #3384 OPEN / DRAFT / UNMERGED.
+- Branch: `feature/command-07-a-sqlite-contract-remediation`.
+- Current HEAD at this checkpoint: `1f4ff4898a5a9278e067c795a8fc14791b8ecbed`.
+- Base branch/SHA: `fix/wave3-cycle3-calendar-product-repair` / `8c4c23f0c2a4f9b2374a2092c931782c4455fd41`.
+- Main: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Do not switch to `staging/command-07-a2-33-recovery`: it compares 2,371 ahead / 0 behind Main and is not the active execution lane.
+
+### Current exact-head Actions
+- Arvin Draft Review APK (1f4ff4898a5a9278e067c795a8fc14791b8ecbed) — Run `43291144596`: **COMPLETED/SKIPPED**.
+- Arvin Device Smoke — Run `43291144527`: **QUEUED**.
+- Arvin Build (1f4ff4898a5a9278e067c795a8fc14791b8ecbed) — Run `43291144776`: **PENDING**.
+- Arvin Follow-up File Persistence — Run `43291144575`: **PENDING**.
+- Arvin COMMAND 07-A.2.20 SQLite Snapshot Evidence — Run `43291144675`: **QUEUED**.
+- ARVIN Orchestrator — Run `43291144442`: **PENDING**.
+- ARVIN Orchestrator PR Wakeup — Run `43291144484`: **PENDING**.
+- ARVIN Production Loop — Run `43291144513`: **QUEUED**.
+- Build run has no allocated jobs; Device Smoke and SQLite Snapshot are queued; Follow-up Persistence is pending with its job queued.
+- No current-head artifacts or passing scenario jobs are available. A queued/pending workflow is not a PASS.
+- The 6914b55 head's Build/Follow-up/Orchestrator runs were cancelled after later commits; do not reuse them.
+
+### Historical failure correction
+The 61 failure records on `eea746d...` are distributed as shard 0=11, 1=1, 2=21, 3=9, 4=9, 5=10. Use the original six logs/job IDs in the implementation log; a prior document distribution was transposed. Do not transfer the historical count to the current candidate.
+
+### New product-integrity issue to fix
+`ProjectTemplateManagementPage` still uses free-text Category and Tags. Reusable Task/Project templates persist taxonomy snapshots, but the current deletion checks only account for Task references. Before C01/C03/C04/C05 acceptance:
+1. Replace free-text template Category/Tag entry with the canonical SQLite-backed selectors.
+2. Define a fail-closed rule for deleting taxonomy values referenced by Task Templates or Project Templates; preserve historical template payloads.
+3. Add tests for template selection, rename consistency, blocked deletion and generated Task catalog parity.
+4. Re-run focused tests and full exact-head validation on the resulting SHA.
+
+### Other consolidation candidates
+- `TaskTaxonomyLifecycleService` overlaps `TaskTaxonomyMutationService`; management UI currently uses MutationService. Audit references and tests before consolidating.
+- `TagStore` still contains a SharedPreferences path; current Home/management flows use TaskStore/SQLite. Prove no active compatibility use before retirement.
+- Preserve PR #3380 and #3382 diagnostic evidence; #3382 is stacked on #3380.
+- Keep PR #3340 as the REV9 canonical docs lane. PR #3388 is a parallel v49-era docs/CODEOWNERS lane and remains an authority conflict; do not merge either without owner review.
+
+**Status:** IMPLEMENTATION IN PROGRESS / ACCEPTANCE BLOCKED. No merge, release or deployment.
