@@ -779,3 +779,9 @@ The docs PR #3388 CODEOWNERS file was expanded to cover the canonical typography
 - `manifest-audit.txt` and `release-manifest.json` bind the Staging APK to source SHA `46f7b28...`; APK SHA-256 `b61bc476b29c5a862c007c493729f9b7d74f394a995fb8edd09981b27869b875`; `android_debuggable=false`; `publishable=false`; signing key class `EPHEMERAL_TEST_ONLY_NOT_PRODUCTION`.
 - Raw `apksigner-verify.log` confirms V2 and V3 signatures verified, V1 false, one RSA-2048 signer, certificate SHA-256 `cb57c0c635c87eec37d87e3bf23e0e8ae465b353c84e5ad0467984a8706f9cae`.
 - The manifest field `signer_certificate_sha256` remains `NOT_AVAILABLE` despite the certificate digest in the raw log; keep this as an evidence-parser gap, not a signing failure.
+
+### Release APK signing audit boundary
+
+- Release artifact `13956310335` contains `app-release.apk` with SHA-256 `eb3b681fa1e7030eeb6a09ef74c1aacb7527f1170cdafa76f1d94e289a2d16c3`.
+- Binary inspection of the APK ZIP central-directory boundary found no `APK Sig Block 42`; this Release APK is unsigned. It is a build/font-packaging artifact only, not installable as a signed update and not publishable.
+- `android/app/build.gradle.kts` only sets the `production` signing config when all protected production inputs are present. No production signing proof is available for this workflow. Do not infer production signing from the successful Release build job.
