@@ -420,3 +420,26 @@ The following is the **product evolution taxonomy** from REV9 §42. It does not 
 | Wave 4 | Advanced Platform | Dependency management, team collaboration, remote sync and integrations. | Scope and architecture require separate approval. |
 
 The five-loop priority order in REV9 §43 is a product proposal, not an execution authorization. The earlier REV8 WAVE 0–5 engineering plan is retained as historical execution planning and must be reconciled against live GitHub before use.
+
+
+
+---
+
+## COMMAND 07-A.2.33 — live continuity addendum (2026-11-12)
+
+## COMMAND 07-A.2.33 execution lane
+
+| Lane | Current disposition | Exit evidence still required |
+|---|---|---|
+| SQLite migration P0 | IN PROGRESS | Repair and rerun malformed legacy Task-person fixture; validate migration transaction, rollback, retry, FK integrity and recovery on one exact SHA. |
+| D01 Schema compatibility | INCOMPLETE | Historical schema/index/trigger/FK compatibility and data preservation. |
+| D02 Missing / NULL / FALSE / TRUE | PARTIAL | Four independent states and full round-trip assertions on exact SHA. |
+| D03 Follow-up metadata | PARTIAL | Identity, order, Person links, unknown metadata and field presence across SQL migration/reopen. |
+| D04 Backup / Restore | NOT ACCEPTED | Real backup, isolated restore, independent reopen and record-level comparison. |
+| D05 Atomicity / Recovery | INCOMPLETE | Injected interruption, rollback, retained source rows, repair/retry and no inconsistent partial state. |
+| Regression matrix | INCOMPLETE | Review all 61 prior-candidate failures; rerun each applicable test on the new candidate. |
+| Home clock | NOT VERIFIED | One injectable nowProvider shared by wall-clock and Jalali grouping; fixed 09:00 / 10:00 test. |
+| Device Smoke | QUEUED on eea746d at last poll | Seven scenarios, all checkout SHA markers equal to the same candidate. |
+| Repository consolidation | IN PROGRESS | Non-destructive inventory, dependency/PR overlap analysis and one canonical audit report. |
+
+Do not promote a prior-candidate PASS to the new candidate. No release gate can be marked ACCEPTED from a workflow name or queued run.
