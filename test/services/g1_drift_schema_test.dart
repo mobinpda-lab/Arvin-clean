@@ -764,9 +764,21 @@ void main() {
 
   test('malformed legacy task_people payload aborts migration without retiring source rows', () async {
     await database.ensureOpen(G1DriftSchema());
-    // The canonical task_persons table has a real FK to tasks(id). Keep this
-    // malformed-payload fixture relationally valid so the test reaches JSON
-    // validation rather than failing later with an unrelated orphan FK.
+    // Open the executor without installing the canonical schema: the
+    // malformed legacy source must exist before install() starts its
+    // transactional migration. Seed only the canonical parent table needed
+    // by the Task-person FK, using the current production column contract.
+    await database.runCustom(
+      '''CREATE TABLE tasks (
+        id TEXT NOT NULL PRIMARY KEY, storage_ordinal INTEGER NOT NULL DEFAULT 0,
+        title TEXT NOT NULL, description TEXT NOT NULL, created_at TEXT NULL,
+        updated_at TEXT NULL, due_date TEXT NULL, category TEXT NULL,
+        notebook_kind TEXT NULL, priority TEXT NOT NULL, archived INTEGER NOT NULL,
+        trashed INTEGER NOT NULL, completed INTEGER NOT NULL, completed_at TEXT NULL,
+        is_favorite INTEGER NOT NULL DEFAULT 0,
+        recurrence_json TEXT NULL, legacy_payload_json TEXT NULL
+      )''',
+    );
     await database.runInsert(
       '''INSERT INTO tasks (id, title, description, priority, archived, trashed, completed)
          VALUES (?, ?, ?, ?, ?, ?, ?)''',
