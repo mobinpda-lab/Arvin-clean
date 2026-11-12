@@ -1197,3 +1197,19 @@ This addendum records a direct, current Product Owner instruction and does not a
 - This owner clarification is dated 2026-11-12 and is later than the REV9 source snapshot dated 2026-11-10.
 
 No merge, release or deployment is authorized.
+
+
+---
+
+## Owner decision — official Arvin typography (2026-11-12)
+
+This explicit Product Owner instruction supersedes the earlier REV9 §32 typography ambiguity for current Arvin implementation and acceptance:
+
+- **Official and default product font: Vazirmatn only.**
+- **System Default** may be offered as a user preference; it is not a second branded font.
+- VazirHarf is not an authorized official font. Preserve its historical source/provenance only; do not register or package it as the active product font.
+- Required Vazirmatn weights: 300, 400, 500, 600, 700.
+- One centralized Theme must own typography; verify light/dark behavior, RTL, Persian/Latin mixed text, half-space, digits, Jalali dates and small-screen rendering.
+- Verify font preference persistence, PDF font embedding/rendering and actual APK asset packaging before acceptance.
+
+This decision records product authority, not implementation acceptance. PDF, APK, visual and device evidence remain required.
