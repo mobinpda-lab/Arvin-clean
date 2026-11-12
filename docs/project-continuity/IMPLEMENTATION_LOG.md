@@ -894,3 +894,13 @@ Verification on the implementation checkpoint was pending at last lookup; no tes
 - Follow-up Persistence `43269800526` and Orchestrator `43269800263` passed on the new candidate.
 - Build `43269800292` remains in progress/queued by shard at the latest poll; Device Smoke `43269800280` remains queued. No completion claim.
 - Additional failure triage: three test harness issues and two test contract issues are identified as pending fixes; 55 of the old 61 records remain unresolved. No old-candidate result is promoted to the new candidate.
+
+
+
+---
+
+## COMMAND 07-A.2.33 — Home clock regression evidence (2026-11-12)
+
+- Build `43269800292`, test-1: FAILURE (202 passed / 1 failed) on exact candidate `eea746d...`. Failure is Home time grouping in `test/widgets/home_page_test.dart`.
+- Source root cause: Home has split clock sources: `_iranWallClockNow()` uses `IranClock.now()`; `_groupJalaliDate()` uses `DateTime.now()`. No `nowProvider` injection exists. A test fixture uses a 10:00 due time while the live CI clock is later, making the Task overdue and breaking the expected today grouping.
+- Classification: PRODUCTION DEFECT / DETERMINISTIC CLOCK CONTRACT. Planned correction: add one injectable `nowProvider` through `ArvinApp` → `HomePage`; use it for both methods; add fixed 09:00 current / 10:00 due test. Do not change the test to accept random live-clock behavior.
