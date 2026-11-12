@@ -891,7 +891,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              fontFamily: 'Vazirmatn',
+              fontFamily: 'VazirHarf',
               fontSize: 16,
               fontWeight: FontWeight.w800,
             ),
@@ -911,7 +911,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         maxLines: 2,
         enabled: widget.onTaskChanged != null,
         onChanged: _saveTitleImmediately,
-        style: const TextStyle(fontFamily: 'Vazirmatn', color: Colors.white, fontSize: 21, fontWeight: FontWeight.w800),
+        style: const TextStyle(fontFamily: 'VazirHarf', color: Colors.white, fontSize: 21, fontWeight: FontWeight.w800),
         decoration: const InputDecoration(
           hintText: 'عنوان کار',
           hintStyle: TextStyle(color: Colors.white70),
@@ -1462,7 +1462,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         Icon(icon, size: 14, color: color),
         const SizedBox(width: 5),
-        Text(label, style: TextStyle(fontFamily: 'Vazirmatn', color: color, fontSize: 11, fontWeight: FontWeight.w700)),
+        Text(label, style: TextStyle(fontFamily: 'VazirHarf', color: color, fontSize: 11, fontWeight: FontWeight.w700)),
       ]),
     );
   }
@@ -1830,14 +1830,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontFamily: 'Vazirmatn', fontWeight: FontWeight.w700),
+              style: const TextStyle(fontFamily: 'VazirHarf', fontWeight: FontWeight.w700),
             );
             final valueWidget = Text(
               value,
               key: valueKey,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontFamily: 'Vazirmatn', color: _muted, fontSize: 12),
+              style: const TextStyle(fontFamily: 'VazirHarf', color: _muted, fontSize: 12),
             );
             final compact = constraints.maxWidth < 480 ||
                 MediaQuery.sizeOf(context).width < 480;
@@ -1898,7 +1898,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontFamily: 'Vazirmatn',
+                    fontFamily: 'VazirHarf',
                     color: _muted,
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
@@ -1909,7 +1909,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontFamily: 'Vazirmatn',
+                    fontFamily: 'VazirHarf',
                     color: Theme.of(context).colorScheme.onSurface,
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
@@ -2134,7 +2134,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                           child: Text(
                             _task.completed ? 'انجام‌شده' : 'در انتظار انجام',
                             key: const ValueKey('task-status-badge'),
-                            style: const TextStyle(fontFamily: 'Vazirmatn', color: Colors.white70, fontSize: 12),
+                            style: const TextStyle(fontFamily: 'VazirHarf', color: Colors.white70, fontSize: 12),
                           ),
                         ),
                       ),
@@ -2228,7 +2228,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                           Text(
                             'تاریخ ایجاد: ${_task.createdAt == null ? 'نامشخص' : _dateTime(_task.createdAt!)}',
                             key: const ValueKey('task-detail-created-at'),
-                            style: const TextStyle(fontFamily: 'Vazirmatn', color: _muted, fontSize: 12),
+                            style: const TextStyle(fontFamily: 'VazirHarf', color: _muted, fontSize: 12),
                           ),
                           if (widget.onDelete != null) ...[
                             const SizedBox(height: 8),
