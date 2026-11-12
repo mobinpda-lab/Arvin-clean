@@ -883,3 +883,14 @@ Verification on the implementation checkpoint was pending at last lookup; no tes
 - New-candidate Follow-up persistence run `43269800526` succeeded. New-candidate Build `43269800292`, Device Smoke `43269800280` and SQLite Snapshot `43269800257` were queued at last poll; outcomes remain pending.
 - Previous-candidate artifact inventory is retained in the execution report; artifact IDs and digests are bound to SHA `492a5c4...` only and are not acceptance evidence for `eea746d...`.
 - No merge, release or deployment was performed.
+
+
+
+---
+
+## COMMAND 07-A.2.33 — evidence refresh (2026-11-12, later poll)
+
+- SQLite Snapshot `43269800257` passed on exact candidate `eea746dbf2a58cd4f04c66a149ae3441264da5b2`; artifact `13966864535`; digest `sha256:74a1b84cd67b932177da14982fe82256df68c79b6a0ae5a4451d970f42bc6f72`. Five close/reopen cycles and A–D snapshots are recorded; D05 is still not proven.
+- Follow-up Persistence `43269800526` and Orchestrator `43269800263` passed on the new candidate.
+- Build `43269800292` remains in progress/queued by shard at the latest poll; Device Smoke `43269800280` remains queued. No completion claim.
+- Additional failure triage: three test harness issues and two test contract issues are identified as pending fixes; 55 of the old 61 records remain unresolved. No old-candidate result is promoted to the new candidate.
