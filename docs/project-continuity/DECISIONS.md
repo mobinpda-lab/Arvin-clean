@@ -50,3 +50,14 @@ The complete clauses and definitions are in `MASTER_GOVERNANCE.md`. This summary
 - A user's font selection must survive Force Stop and application restart.
 
 This direct owner instruction dated 2026-11-12 resolves the typography question left open by REV9 §32 (dated 2026-11-10). Preserve the original REV9 clause as historical source text; this dated decision is the later controlling addendum.
+
+
+---
+
+## 2026-11-12 — Official typography decision for COMMAND 07-A.2.34
+
+**Status:** ACCEPTED OWNER DECISION / IMPLEMENTATION VERIFICATION PENDING.
+
+Mobin explicitly confirms Vazirmatn as the only official and default Arvin font. System Default is an optional preference only. VazirHarf is not an authorized official font and remains historical/inactive. Required font weights are 300, 400, 500, 600 and 700. Centralized Theme, persistent preference, PDF embedding/rendering and APK packaging audit remain acceptance gates.
+
+This resolves the typography authority ambiguity for the current command without deleting or rewriting the earlier REV9 decision history.
