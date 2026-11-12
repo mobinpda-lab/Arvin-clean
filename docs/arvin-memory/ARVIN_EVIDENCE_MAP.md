@@ -657,3 +657,14 @@ Do not report PDF or APK acceptance on the current candidate until the exact-hea
 ### PDF extraction normalization follow-up — 2026-11-12
 
 Manual extraction of the actual PDF from Run `43224808961` showed Poppler returns shaped Arabic glyphs in presentation-form code points, while the rendered PNG is visually connected and legible. Raw extraction is retained. Commit `ee200b573ef70df8101c77de2a68241192898244` now creates a second NFKC-normalized extraction artifact before semantic assertions, preserving both raw and normalized evidence. This is a harness normalization step; it does not change the PDF renderer or its font binaries. Re-run the complete PDF workflow on the current exact product SHA before claiming PDF acceptance.
+
+### Vazirmatn upstream binary provenance — independently cross-checked
+
+Upstream repository `rastikerdar/vazirmatn`, exact source commit `6e553e33489a8f9dfaccc76860a2e3f3c1e66de7` (2023-05-01), was checked through its Git tree. The five upstream TTF blob object IDs exactly match the expected blob IDs now enforced by the APK audit:
+- Light — `2dfd5c35ed4c26f7ce9f3ba753f11d9a38356c42` (122,920 bytes)
+- Regular — `64e4a8189557a17b63fd7a77794207483e592972` (122,752 bytes)
+- Medium — `1e08dd54d90a4879451ef0f80fe0d8068fb7462f` (122,656 bytes)
+- SemiBold — `6b3842aca6055c8258404b1758133b81c961a13f` (122,920 bytes)
+- Bold — `efa9b095da01d299310bdcae293e24e657fe6da9` (123,036 bytes)
+
+This establishes exact upstream Git-object identity for the five files. Per-file SHA-256 output and APK inclusion still require successful exact-head build jobs; the upstream Git blob SHA-1 values are not presented as SHA-256.
