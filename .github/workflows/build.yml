@@ -126,6 +126,36 @@ jobs:
           git diff --exit-code -- pubspec.lock
       - name: Task Details structural layout smoke
         run: flutter test test/task_detail_visual_test.dart
+      - name: Generate Persian PDF acceptance sample and verify embedded fonts
+        run: flutter test test/report_typography_canonical_test.dart --reporter expanded
+      - name: Render PDF and inspect embedded font resources
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y poppler-utils
+          evidence="build/arvin-command-07-a2/pdf"
+          pdf="$evidence/vazirmatn-persian-acceptance.pdf"
+          test -s "$pdf"
+          pdffonts "$pdf" | tee "$evidence/pdffonts.txt"
+          awk 'NR > 2 && /Vazirmatn/ { count++; if ($4 != "yes" || $6 != "yes") bad=1 } END { if (count < 2 || bad) exit 1 }' "$evidence/pdffonts.txt"
+          pdftotext -layout "$pdf" "$evidence/extracted-text.txt"
+          grep -Fq 'می‌خواهم' "$evidence/extracted-text.txt"
+          grep -Fq '۱۴۰۵/۰۸/۲۱' "$evidence/extracted-text.txt"
+          grep -Fq '2026-11-12' "$evidence/extracted-text.txt"
+          grep -Fq 'Example Ltd.' "$evidence/extracted-text.txt"
+          pdftoppm -png -r 144 -f 1 -singlefile "$pdf" "$evidence/vazirmatn-persian-preview"
+          sha256sum "$pdf" | tee "$evidence/pdf.sha256"
+          echo "PDF_FONT_EMBEDDING=PASS"
+          echo "PDF_UNICODE_EXTRACTION=PASS"
+          echo "PDF_RENDER=PASS"
+      - name: Upload PDF acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: arvin-vazirmatn-persian-pdf-${{ github.run_id }}
+          path: build/arvin-command-07-a2/pdf/
+          if-no-files-found: warn
       - name: Upload Task Details visual evidence
         if: always()
         uses: actions/upload-artifact@v5

@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:arvin/services/task_report_pdf_renderer.dart';
 import 'package:arvin/services/task_report_projection.dart';
 import 'package:arvin/theme/font_registry.dart';
@@ -35,17 +38,21 @@ void main() {
     );
   });
 
-  test('default PDF renderer embeds canonical Persian Vazirmatn fonts', () async {
+  test('PDF embeds Vazirmatn fonts and emits a reproducible Persian acceptance sample', () async {
     final report = TaskReport(
-      title: 'گزارش آروین',
-      generatedAt: DateTime(2026, 8, 29, 11, 30),
+      title: 'گزارش پذیرش PDF آروین — Arvin PDF Acceptance',
+      generatedAt: DateTime(2026, 11, 12, 13, 30),
       entries: const [
         TaskReportEntry(
-          id: 'task-1',
-          title: 'پیگیری قرارداد ۱۲۳، ۴۵۶؟',
-          description: 'نمونه متن فارسی و اعداد فارسی برای کنترل تایپوگرافی گزارش',
-          tags: ['گزارش'],
-          checklist: [],
+          id: 'pdf-acceptance-task-1',
+          title: 'پیگیری قرارداد Example Ltd. — نسخه v1.2.3',
+          description: 'متن فارسی با نیم‌فاصله: می‌خواهم خانه‌ها را بررسی کنم. '
+              'اعداد فارسی ۱۴۰۵/۰۸/۲۱ و ۱۲۳۴۵۶؛ اعداد انگلیسی 2026-11-12 و 123456. '
+              'ترکیب فارسی و English mixed text باید خوانا بماند. '
+              'این پاراگراف بلند برای بررسی شکست خطوط، جهت نوشتار و پیوستگی حروف فارسی '
+              'در خروجی گزارش تولید شده است.',
+          tags: ['آزمون PDF', 'نیم‌فاصله', 'RTL', 'Example'],
+          checklist: ['متن عادی Regular', 'متن برجسته Bold'],
           followUps: [],
           completed: false,
         ),
@@ -53,8 +60,22 @@ void main() {
     );
 
     final bytes = await TaskReportPdfRenderer().build(report);
+    final rawPdf = latin1.decode(bytes, allowInvalid: true);
 
     expect(bytes.length, greaterThan(1000));
     expect(String.fromCharCodes(bytes.take(4)), '%PDF');
+    expect(rawPdf, contains('/FontFile2'),
+        reason: 'The PDF must embed TrueType font programs, not reference external fonts.');
+    expect(rawPdf, contains('/ToUnicode'),
+        reason: 'Embedded fonts must include Unicode mappings for Persian extraction.');
+    expect(rawPdf, contains('/FontDescriptor'));
+    expect(rawPdf, contains('Vazirmatn'));
+
+    final outputDirectory = Directory('build/arvin-command-07-a2/pdf');
+    await outputDirectory.create(recursive: true);
+    final sample = File('${outputDirectory.path}/vazirmatn-persian-acceptance.pdf');
+    await sample.writeAsBytes(bytes, flush: true);
+    stdout.writeln('ARVIN_PDF_ACCEPTANCE_SAMPLE_PATH=${sample.path}');
+    stdout.writeln('ARVIN_PDF_ACCEPTANCE_SAMPLE_BYTES=${bytes.length}');
   });
 }
