@@ -454,3 +454,15 @@ Main READ-ONLY. PR #3052 OPEN / DRAFT / UNMERGED. No force push, merge, release 
 5. Verify the APK artifacts and their SHA256 digests, and confirm the APK contents package VazirHarf UI-FD fonts, not the retained legacy Vazirmatn assets.
 6. D01 custom index/trigger/outgoing FK tests and D05 rollback test exist. D04 Backup/Restore evidence and migration recovery evidence still require explicit confirmation.
 7. Update this handoff only after exact-SHA outcomes are known. Keep Release NO-GO; no merge, release or deployment without Mobin's explicit approval.
+
+
+## COMMAND 07-A.2.24 next-agent handoff — 2026-11-12
+
+1. Refresh live main, PR #3384/#3388, branch refs and exact-SHA Actions before every write.
+2. Vazirmatn is the only official/default font by latest Product Owner decision. PR #3384 currently contradicts this in pubspec, AppFonts, ArvinTheme, PDF renderer and tests. Correct the implementation without deleting historical evidence.
+3. PR #3388 contains the proposed canonical typography contract and CODEOWNERS file; it remains OPEN/DRAFT/UNMERGED and does not yet protect this branch.
+4. Main has only three Vazirmatn weights in its asset tree; obtain and verify Light 300 and SemiBold 600, source provenance, license and SHA-256.
+5. Implement exactly two font choices with persistence, central Theme, global accessibility-preserving rendering, APK audit, actual PDF inspection and device validation.
+6. Continue SQLite D01-D05, five independent save/close/reopen cycles, six regression shards, Visual, three APK variants and seven Device Smoke lanes on one exact acceptance SHA.
+7. Build run 43202151547 failed; Snapshot run 43202151552 passed only its scoped evidence; Device Smoke run 43202151481 was queued at audit time. Do not transfer PASS across SHAs or weaken assertions.
+8. Ruleset currently has zero required approving reviews and does not require CODEOWNER approval. Merge, release and production deployment remain unauthorized. Preserve data, history, tests and artifacts.
