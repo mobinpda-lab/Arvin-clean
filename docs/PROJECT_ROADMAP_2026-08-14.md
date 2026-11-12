@@ -218,3 +218,14 @@ Candidate SHA: `551ecdc0542bb00f72c21167b4c721094b3a3cba`.
 - D05 coverage expanded with a deliberate malformed-source migration failure, preservation of source data, repair, retry and post-recovery FK verification.
 
 The expanded tests have not yet run on this candidate SHA. The exact-head Build is PENDING and Snapshot/Follow-up/Device workflows are QUEUED. Continue polling; do not declare D01/D04/D05 PASS from test existence.
+
+
+## COMMAND 07-A.2.28.3 — remaining P0 validation (2026-11-12)
+
+Candidate SHA: `75737f4fb95b4357e8b6e0511ee2443c6aa5aff4`.
+
+- PDF sample and embedded-font/Unicode checks are implemented; CI now uses Poppler to inspect font embedding, extract Persian text and render a PNG preview. Execution is pending.
+- APK Font Audit verifies all five Git blob IDs against upstream and logs SHA-256 and byte size for Debug/Staging/Release. Execution is pending.
+- Expanded D01 full schema catalog, D04 file-based Restore into a separate SQLite file, and D05 migration-recovery tests are included but not yet executed on this candidate.
+- Build is PENDING; SQLite Snapshot, Follow-up and Device Smoke are QUEUED. Continue polling without duplicate runs.
+- No PDF, APK or Device Smoke acceptance is issued until exact-head jobs complete and artifacts/logs are inspected.
