@@ -1100,3 +1100,12 @@ Remaining: G1 legacy relation parity, a single multi-source transaction, remaini
 - CI جدید روی 9a48 در checkpoint: SQLite snapshot و Follow-up persistence در حال اجرا؛ Device Smoke در صف/در حال اجرا؛ Build pending. نتیجه نهایی این SHA هنوز نامشخص است.
 - هیچ‌یک از PASSهای b9 به SHA 9a منتقل نمی‌شود. Build، شش Shard، Visual، سه APK و هفت Device Smoke باید روی یک SHA نهایی واحد تکرار شوند.
 - Release: BLOCKED / NO-GO تا تکمیل تمام گیت‌ها.
+
+
+## COMMAND 07-A.2.24 live GitHub state — 2026-11-12
+
+- Main HEAD: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- This PR branch HEAD at audit: `cbf7d241e588c6b4b6051dea5bb3d309a8c3cb05`; PR #3384 OPEN / DRAFT / UNMERGED; base SHA `8c4c23f0c2a4f9b2374a2092c931782c4455fd41`.
+- Build run 43202151547: FAILURE. SQLite Snapshot 43202151552: SUCCESS. Follow-up File Persistence 43202151499: SUCCESS. Device Smoke 43202151481: QUEUED. Draft Review APK 43202151478: SKIPPED.
+- Snapshot PASS is not D01-D05 acceptance. Build failure and queued Device Smoke remain unresolved.
+- Typography source on this branch is VazirHarf and conflicts with the latest owner-approved Vazirmatn-only decision. Main itself currently declares Vazirmatn but contains only three weights (400/500/700).
