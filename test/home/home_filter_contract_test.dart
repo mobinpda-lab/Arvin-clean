@@ -8,7 +8,6 @@ import 'package:arvin/theme/app_fonts.dart';
 import 'package:arvin/arvin_colors.dart';
 import 'package:arvin/widgets/arvin_primary_navigation.dart';
 import 'package:arvin/home/home_filter_ui.dart';
-import 'package:arvin/services/iran_clock.dart';
 import 'package:arvin/services/persian_date_formatter.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:arvin/services/project_store.dart';
@@ -109,7 +108,7 @@ void main() {
     expect(overdueHeaderText.style?.fontWeight, FontWeight.w900);
     expect(find.byKey(const ValueKey('home-filter-card-all')), findsNothing);
     expect(find.byKey(const ValueKey('home-compact-filter-row')), findsOneWidget);
-    expect(find.byType(HomeFilterPill), findsNWidgets(4));
+    expect(find.byType(HomeFilterPill), findsNWidgets(5));
     final filterRow = tester.widget<Row>(
       find.byKey(const ValueKey('home-compact-filter-row')),
     );
