@@ -51,7 +51,7 @@ void main() {
 
       await fontSettings.saveFontPreference('vazirmatn');
       await tester.pumpWidget(const SizedBox.shrink());
-      await tester.pumpAndSettle();
+      await _pumpFrames(tester);
       app.main();
       await _pumpFrames(tester, frames: 15);
       rootApp = tester.widget<MaterialApp>(find.byType(MaterialApp).first);
