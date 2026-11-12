@@ -279,12 +279,13 @@ class _ArvinAppState extends State<ArvinApp> {
   Widget build(BuildContext context) {
     // The nine-color palette is restricted to secondary Chip selection accents.
     // Brand identity, primary actions, navigation and focus remain fixed Arvin Blue.
+    final selectedFontFamily = settings.fontPreference == 'system-default' ? null : AppFonts.vazirmatnFamily;
     final secondaryAccentColor = themeManager.selectedAccentColor;
     final secondaryAccentSoft = Color.lerp(Colors.white, secondaryAccentColor, 0.14)!;
     const brandPrimary = ArvinColors.primary;
     const brandSoft = ArvinTheme.iceBlue;
     final lightBaseTextTheme = ThemeData.light().textTheme.apply(
-      fontFamily: ArvinTheme.fontFamily,
+      fontFamily: selectedFontFamily,
       bodyColor: ArvinColors.textPrimary,
       displayColor: ArvinColors.textPrimary,
     );
@@ -361,7 +362,7 @@ class _ArvinAppState extends State<ArvinApp> {
         dialogTheme: const DialogThemeData(surfaceTintColor: Colors.transparent),
         bottomSheetTheme: const BottomSheetThemeData(surfaceTintColor: Colors.transparent),
         popupMenuTheme: const PopupMenuThemeData(surfaceTintColor: Colors.transparent),
-        fontFamily: AppFonts.vazirHarfFamily,
+        fontFamily: selectedFontFamily,
         textTheme: readableLightTextTheme,
         filledButtonTheme: FilledButtonThemeData(
           style: FilledButton.styleFrom(
@@ -476,7 +477,7 @@ class _ArvinAppState extends State<ArvinApp> {
         dialogTheme: const DialogThemeData(surfaceTintColor: Colors.transparent),
         bottomSheetTheme: const BottomSheetThemeData(surfaceTintColor: Colors.transparent),
         popupMenuTheme: const PopupMenuThemeData(surfaceTintColor: Colors.transparent),
-        fontFamily: AppFonts.vazirHarfFamily,
+        fontFamily: AppFonts.vazirmatnFamily,
         textTheme: readableDarkTextTheme,
         dividerTheme: const DividerThemeData(color: ArvinColors.darkDivider, thickness: 1),
         appBarTheme: AppBarTheme(
