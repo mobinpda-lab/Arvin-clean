@@ -423,3 +423,49 @@ No result transfers to a later product SHA.
 Live repository Ruleset `main-protection` (ID `20952260`) remains ACTIVE on `refs/heads/main`, but its pull-request rule currently has `required_approving_review_count=0` and `require_code_owner_review=false`; bypass actors are empty. Deletion and non-fast-forward protections are enabled. No repository security setting was changed.
 
 The docs PR #3388 CODEOWNERS file was expanded to cover the canonical typography contract, Vazirmatn assets, pubspec registration, both theme directories, PDF renderer, app root, Settings, Alarm Overlay, build workflow, typography/PDF tests and Android typography smoke. It is still an unmerged PR; the current main branch does not yet contain this CODEOWNERS file. Therefore effective CODEOWNER enforcement is **NOT VERIFIED / NOT ACTIVE**. Enabling required approval and CODEOWNER review remains a separate product-owner-controlled repository settings action.
+
+## وضعیت اجرای زنده — COMMAND 07-A.2.30 | 2026-11-12
+
+### هویت و پیوستگی شاخه‌ها
+
+- PR اجرایی #3384 همچنان OPEN / DRAFT / UNMERGED است. HEAD فعلی: `492a5c433ee215d0188a6075b159d4d72329d35e`.
+- Commit جدید `492a5c4...` اصلاح Production برای جلوگیری از نمایش دوباره عنوان Reminder در Task Timeline است. این اصلاح باید روی Build و Regression همین SHA تأیید شود.
+- Base شاخه اجرایی `fix/wave3-cycle3-calendar-product-repair` با SHA `8c4c23f...` است. این Base نسبت به main با SHA `45e4202...`، ۲۲۰۰ Commit جلوتر و صفر Commit عقب‌تر است؛ این تفاوت عمدی و برای جلوگیری از واردشدن اختلاف ۲۲۰۰ Commit به PR اجرایی است.
+- PR مستندات #3388 روی main با SHA `45e4202...` قرار دارد و همچنان Draft است.
+
+### شواهد Candidate فعلی `492a5c4...`
+
+- SQLite Snapshot: Run `43247842246`، PASS؛ پنج چرخه بستن و بازکردن دیتابیس فایل‌محور؛ ۲۲ جدول، ۲۸ ایندکس، صفر Trigger، Foreign Key فعال، خروجی `foreign_key_check` خالی؛ داده، Schema و FK در Snapshotهای A/B/C/D یکسان.
+- Artifact SQLite: ID `13958416974`؛ ZIP SHA-256 برابر `0e57caf9e4357d8d4d43e82ad0f60377f69d3ebd4c7cbaefb89b6818fa93565b`؛ SHA-256 فایل JSON برابر `445a3b733834ef118a0d7ae79e91b7b5f867538aa6e77910ea3a3752e47c7721`.
+- Follow-up File Persistence: Run `43247842181`، PASS.
+- Build: Run `43247842294`، در آخرین بررسی PENDING و هنوز Job تخصیص نیافته بود.
+- Device Smoke: Run `43247842521`، QUEUED؛ هیچ‌یک از هفت سناریو هنوز نتیجه PASS ندارد.
+
+### نتایج Candidate قبلی `46f7b28...` — صرفاً تاریخی
+
+- Analyze و Visual/PDF: PASS.
+- Debug و Release APK: PASS؛ Staging در آخرین بررسی در حال اجرا بود.
+- چهار Regression Shard تکمیل‌شده مجموعاً ۴۳ رکورد شکست داشتند: Shard 0 برابر ۱۱، Shard 1 برابر ۲، Shard 2 برابر ۲۱ و Shard 4 برابر ۹. Shardهای 3 و 5 پس از جلو رفتن PR لغو شدند؛ لغو به معنی PASS نیست.
+- Device Smoke در حالت QUEUED بود و سناریوها اجرا نشده بودند.
+- Follow-up File Persistence و SQLite Snapshot در همان SHA قبلی PASS شدند؛ این نتایج به SHA جدید منتقل نمی‌شوند.
+- PDF واقعی با SHA-256 `0b276df9ed223a31033ace1fed04daadb3bd21a962a476b69c6a4bca8bf4dccb` دریافت و از نظر Embed فونت Regular/Bold، Unicode Mapping، استخراج متن و تصویر رندرشده بررسی شد. نمونه PDF از نظر اتصال حروف فارسی، RTL، نیم‌فاصله، ارقام و متن ترکیبی قابل‌قبول بود.
+
+### وضعیت D01 تا D05
+
+- D01: فقط Snapshot A-D و پنج Reopen تأیید شده است؛ پذیرش کامل Migration نسخه‌های قدیمی هنوز کامل نیست.
+- D02: پذیرش مستقل چهار حالت Missing / NULL / FALSE / TRUE هنوز کامل نشده است.
+- D03: حفظ کامل Metadata ناشناخته Follow-up در چرخه مستقل بستن و بازکردن هنوز اثبات نشده است.
+- D04: زنجیره کامل Backup فایل‌محور، Restore به دیتابیس مستقل، Reopen و تطبیق روابط هنوز PASS نشده است.
+- D05: Rollback، شکست و قطع‌شدن Migration، Recovery و عدم تخریب دیتابیس مبدأ هنوز PASS نشده است.
+
+### فونت و ریسک‌ها
+
+- Source Commit فونت Vazirmatn: `6e553e33489a8f9dfaccc76860a2e3f3c1e66de7`؛ مجوز SIL OFL 1.1.
+- پنج SHA-256 اصلاح‌شده و تأییدشده از منبع و APK در بخش‌های ۱۶ و ۲۱ سند `docs/architecture/ARVIN_TYPOGRAPHY_CONTRACT.md` ثبت شده‌اند.
+- بسته‌بندی فونت در Debug و Release روی SHA قبلی تأیید شد؛ Staging و همه APKها روی SHA فعلی هنوز نیازمند تأیید هستند.
+- System Default پس از Force Stop واقعی و اجرای مجدد Process هنوز NOT VERIFIED است.
+- Merge، Release و Deployment مجاز نیستند. هیچ نتیجه‌ای از SHA قبلی به SHA جدید منتقل نمی‌شود.
+
+### ادامه اجرا
+
+Build و شش Regression Shard روی `492a5c4...` را تکمیل کن؛ سپس هفت Device Smoke، Staging APK و Gateهای مستقل D01 تا D05 را فقط روی Candidate نهایی اجرا و ثبت کن. خطاهای Regression باید مستقل به FIXED، TEST CONTRACT CORRECTED، VERIFIED NOT A PRODUCT DEFECT یا BLOCKED WITH EVIDENCE برسند. Assertion حذف یا تضعیف نشود.
