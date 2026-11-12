@@ -46,6 +46,7 @@ void main() {
     }
     for (final key in [
       'home-filter-card-time',
+      'home-filter-card-center',
       'home-filter-card-project',
       'home-filter-card-category',
       'home-filter-card-tags',
