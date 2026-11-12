@@ -392,3 +392,8 @@ Remaining sequence:
 
 ### Exit gates
 Analyze، شش Shard، Visual، Debug/Staging/Release APK، هفت Device Smoke و Artifact SHA256 باید همگی روی یک SHA واحد موفق باشند. Merge/Release/Deployment مجاز نیست.
+
+
+## COMMAND 07-A.2.24 — typography acceptance lane
+
+Add a blocking owner-approved typography lane: restore Vazirmatn as the only official default; inventory/pin upstream source and license; bundle five local weights with verified SHA-256; centralize Theme and explicit weight mapping; implement accessibility-preserving global rendering; expose exactly Vazirmatn and System Default preferences with restart persistence; audit actual APK assets; inspect actual PDF font embedding; and validate Persian/RTL on device. A source registration or test-only assertion is not acceptance. The detailed contract is proposed in PR #3388 at `docs/architecture/ARVIN_TYPOGRAPHY_CONTRACT.md`.
