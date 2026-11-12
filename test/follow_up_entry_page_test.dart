@@ -226,7 +226,14 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(people, hasLength(2));
-    expect(find.byKey(ValueKey('follow-up-person-selected-${people.last.id}')), findsOneWidget);
+    final createdPersonChip =
+        find.byKey(ValueKey('follow-up-person-selected-${people.last.id}'));
+    await tester.scrollUntilVisible(
+      createdPersonChip,
+      160,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(createdPersonChip, findsOneWidget);
     await saveEditor(tester);
     expect(saved, isNotNull);
     expect(saved!.waitingForResponse, isTrue);
