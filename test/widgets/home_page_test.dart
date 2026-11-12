@@ -636,6 +636,7 @@ void main() {
     expect(find.byKey(const ValueKey('home-compact-filter-row')), findsOneWidget);
     expect(tester.takeException(), isNull);
 
+    expect(find.byKey(const ValueKey('home-filter-card-center')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-project')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-category')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-tags')), findsOneWidget);
