@@ -91,7 +91,7 @@ The fixture inserted a legacy `task_people` row with `task_id='legacy-task'` but
 Correction on #3384: insert the parent Task in the fixture before adding the malformed JSON relation. Commit `eea746dbf2a58cd4f04c66a149ae3441264da5b2`. No production migration, FK, rollback or assertion was weakened. Rerun on the new SHA is pending Build `43269800292`.
 
 ## 6. Previous-candidate 61 Failure Records
-All 61 test failure records from Build `43247842294` are preserved below. Six records now have a grounded initial classification: one TEST HARNESS DEFECT corrected in `eea746d...`; three additional TEST HARNESS DEFECTS identified for correction; two TEST CONTRACT DEFECTS identified for correction; the remaining 55 are UNRESOLVED pending root-cause inspection. The list is historical to SHA `492a5c4...` and must not be carried forward as the new candidate's result.
+All 61 test failure records from Build `43247842294` are preserved below. Six records now have a grounded initial classification: one TEST HARNESS DEFECT corrected in `eea746d...`; three additional TEST HARNESS DEFECTS identified for correction; two TEST CONTRACT DEFECTS identified for correction; the remaining 54 are UNRESOLVED pending root-cause inspection. The list is historical to SHA `492a5c4...` and must not be carried forward as the new candidate's result.
 
 | # | Shard | File | Test | Classification |
 |---:|---:|---|---|---|
@@ -106,7 +106,7 @@ All 61 test failure records from Build `43247842294` are preserved below. Six re
 | 9 | 0 | `test/task_people_page_test.dart` | empty People UI adds and removes a local Person explicitly | UNRESOLVED — RETEST REQUIRED |
 | 10 | 0 | `test/task_editor_category_project_integration_test.dart` | new task saves typed category without an extra apply step | TEST HARNESS DEFECT — FIX PENDING: widgetWithText cannot find InputDecoration hintText |
 | 11 | 0 | `test/home_today_about_test.dart` | Today menu action shows only active canonical tasks due today | UNRESOLVED — RETEST REQUIRED |
-| 12 | 1 | `test/widgets/home_page_test.dart` | Home uses the five checkbox filters as combined filters and preserves time grouping | UNRESOLVED — RETEST REQUIRED |
+| 12 | 1 | `test/widgets/home_page_test.dart` | Home uses the five checkbox filters as combined filters and preserves time grouping | PRODUCTION DEFECT — FIX PENDING: injectable Home nowProvider missing; live clock makes 10:00 due overdue |
 | 13 | 2 | `test/settings_page_test.dart` | settings exposes date, swipe, projects and canonical backup controls | UNRESOLVED — RETEST REQUIRED |
 | 14 | 2 | `test/widgets/home_quick_capture_test.dart` | Home primary add persists canonical task and preserves history | UNRESOLVED — RETEST REQUIRED |
 | 15 | 2 | `test/quick_capture_dialog_test.dart` | Quick Add shows the selected scheduling time and uses injected now | UNRESOLVED — RETEST REQUIRED |
@@ -159,7 +159,7 @@ All 61 test failure records from Build `43247842294` are preserved below. Six re
 
 ## 7. Product regression status
 The failed test set spans Task/Person persistence, Home filters and grouping, Follow-up Office, Checklist CRUD, Quick Capture and Project creation, Due Date preservation, Calendar, RTL swipe, RollBox, Reports, Navigation, Settings and Device Smoke workflow contracts. Presence of a Widget or class is not acceptance. Each failure needs source location, root cause, corrective commit and exact-SHA retest. No assertion was removed or weakened.
-- Home clock contract (`_iranWallClockNow` / `_groupJalaliDate`): NOT VERIFIED. Require one injectable `nowProvider` and deterministic 09:00 current / 10:00 due test.
+- Home clock contract (`_iranWallClockNow` / `_groupJalaliDate`): PRODUCTION DEFECT CONFIRMED. `_iranWallClockNow()` reads `IranClock.now()` while `_groupJalaliDate()` reads `DateTime.now()`; no injectable `nowProvider` exists. New Build run `43269800292` on `eea746d...` failed the Home time-group test (202 passed / 1 failed in test-1) because its 10:00 due fixture is evaluated against the live later clock. Implement one injected source for both paths and a fixed 09:00 current / 10:00 due test.
 - Person/Task relation migration: INCOMPLETE pending malformed-payload retry and valid-parent/foreign-key tests.
 - Follow-up Office, Checklist, Quick Capture, Project creation, Boolean filters, Due Date, Calendar, RTL Swipe, RollBox, Reports and Navigation: INCOMPLETE / UNRESOLVED against the 61 old failure records.
 - Real physical device behavior: NOT VERIFIED.
