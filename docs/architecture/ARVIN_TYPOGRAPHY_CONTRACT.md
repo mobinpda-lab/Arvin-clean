@@ -380,3 +380,8 @@ The extracted Debug and Release APKs each contain the five Vazirmatn weights and
 ### Staging completion correction — COMMAND 07-A.2.30
 
 The earlier note that Staging was queued was an interim observation. The staging job `131251173638` subsequently completed successfully on the same exact candidate SHA `46f7b28e6631310b4617da5e717565470f7ecdbe`. Staging APK artifact ID `13957987267` has ZIP SHA-256 `d380b5f028799fa3f3c7fafd5e80c79d56b1c1a151036ea8073c6e7ee35258f8`; extracted `app-staging.apk` is 80,373,632 bytes with SHA-256 `b61bc476b29c5a862c007c493729f9b7d74f394a995fb8edd09981b27869b875`. Its five embedded Vazirmatn SHA-256 values match the corrected §16 values exactly, and the workflow reported `FONT_PROVENANCE=PASS`, `APK_FONT_CONTENT=PASS`, `FONT_LEGACY_PURGE=PASS`, `FONT_LICENSE=PASS_OFL_1_1` and `FONT_GATE=PASS_VAZIRMATN_5_WEIGHTS_BUNDLED`. This staging evidence remains scoped to `46f7b28...` and does not validate the newer `492a5c4...` candidate.
+
+
+### Staging signature verification and publishability
+
+The Staging verification artifact ID `13957842406` binds to source SHA `46f7b28...` and APK SHA-256 `b61bc476b29c5a862c007c493729f9b7d74f394a995fb8edd09981b27869b875`. `apksigner` verifies V2/V3 and reports one RSA-2048 signer; V1 is absent. The manifest confirms `android_debuggable=false`, but also explicitly sets `signing_key_class=EPHEMERAL_TEST_ONLY_NOT_PRODUCTION` and `publishable=false`. Therefore this Staging APK is valid for build verification only, not production distribution. The raw signer certificate digest is `cb57c0c635c87eec37d87e3bf23e0e8ae465b353c84e5ad0467984a8706f9cae`; the manifest's `signer_certificate_sha256=NOT_AVAILABLE` field is an evidence-generation gap.
