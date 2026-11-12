@@ -417,3 +417,7 @@ These are the current exact-head failure records, not the older 22-item report. 
 - `task_detail_person_persistence_test.dart` passes a ListView key where Flutter's scrolling helpers require the descendant Scrollable; `task_detail_checklist_flow_test.dart` similarly selects the first nested Scrollable instead of the task content list.
 - `home_today_about_test.dart` assumes a ListTile ancestor for a Today menu item that is implemented as a popup menu entry.
 - Several async widget tests assert immediately after `pumpAndSettle`; this may return before file-backed SQLite futures finish when no frame is scheduled. Their assertions must remain and wait for the actual completion/UI state.
+
+### Release APK signing boundary — 46f7b28...
+
+The Release APK artifact `13956310335` is a successful build/font-packaging artifact, not a signed release deliverable. The extracted APK has SHA-256 `eb3b681fa1e7030eeb6a09ef74c1aacb7527f1170cdafa76f1d94e289a2d16c3`; binary APK Signing Block inspection found no `APK Sig Block 42`, so the APK is unsigned. The Gradle contract only assigns the production signing config when all protected production inputs are present; no production signing evidence is present in this workflow. Keep Release distribution/installation blocked. Debug and Staging have APK signing blocks; Staging is explicitly test-key-only and non-publishable.
