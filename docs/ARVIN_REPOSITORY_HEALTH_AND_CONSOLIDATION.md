@@ -100,7 +100,7 @@ Test: `test/services/g1_drift_schema_test.dart` — `malformed legacy task_peopl
 
 The fixture inserted a legacy `task_people` row with `task_id='legacy-task'` but did not insert the parent Task. Migration correctly copied the relation into `task_persons`, whose schema has a real FK to `tasks(id)`; `PRAGMA foreign_key_check` correctly detected the orphan. This is a TEST HARNESS DEFECT, not evidence that the FK check is wrong.
 
-Correction on #3384: insert the parent Task in the fixture before adding the malformed JSON relation. Commit `eea746dbf2a58cd4f04c66a149ae3441264da5b2`. No production migration, FK, rollback or assertion was weakened. Rerun on the new SHA is pending Build `43269800292`.
+Attempted correction on #3384: commit `eea746dbf2a58cd4f04c66a149ae3441264da5b2` inserted the parent Task but did not create the `tasks` table first. New Build `43269800292`, test-5, proves the fixture still fails with `SqliteException: no such table: tasks`. This attempt is INCOMPLETE, not fixed. Next correction must create a schema-compatible parent `tasks` table in the fixture, insert the parent row, then create the malformed relation; preserve the FK check and retry/rollback assertions. No production migration or FK assertion was weakened.
 
 ## 6. Previous-candidate 61 Failure Records
 All 61 test failure records from Build `43247842294` are preserved below. Six records now have a grounded initial classification: one TEST HARNESS DEFECT corrected in `eea746d...`; three additional TEST HARNESS DEFECTS identified for correction; two TEST CONTRACT DEFECTS identified for correction; the remaining 54 are UNRESOLVED pending root-cause inspection. The list is historical to SHA `492a5c4...` and must not be carried forward as the new candidate's result.
@@ -160,7 +160,7 @@ All 61 test failure records from Build `43247842294` are preserved below. Six re
 | 51 | 4 | `test/home_stat_filters_test.dart` | time checkbox selections use OR without a numeric badge | UNRESOLVED — RETEST REQUIRED |
 | 52 | 5 | `test/widgets/home_page_test.dart` | Focus Today is reachable from drawer More and global funnel with one result set | UNRESOLVED — RETEST REQUIRED |
 | 53 | 5 | `test/quick_capture_dialog_test.dart` | timed-to-all-day clears a relative reminder and all-day-to-timed preserves custom reminder | UNRESOLVED — RETEST REQUIRED |
-| 54 | 5 | `test/services/g1_drift_schema_test.dart` | malformed legacy task_people payload aborts migration without retiring source rows | TEST HARNESS DEFECT — FIXED IN eea746d |
+| 54 | 5 | `test/services/g1_drift_schema_test.dart` | malformed legacy task_people payload aborts migration without retiring source rows | TEST HARNESS DEFECT — INCOMPLETE: eea746d insert failed because tasks table was absent |
 | 55 | 5 | `test/widget_test.dart` | HomePage shows the empty-state message after loading | UNRESOLVED — RETEST REQUIRED |
 | 56 | 5 | `test/task_editor_dialog_test.dart` | Task Editor cancelling the circular clock does not commit a partial date | UNRESOLVED — RETEST REQUIRED |
 | 57 | 5 | `test/follow_up_office_page_test.dart` | asks the user to create a task when the list is empty | UNRESOLVED — RETEST REQUIRED |
@@ -239,4 +239,4 @@ No duplicate Repository/Service/Widget/Helper class was deleted in this pass. Fu
 
 ## 14. Final decision
 **NO-GO — NOT ACCEPTANCE READY.**  
-The fixture defect has a corrective commit, but new-candidate Build/Device Smoke/SQLite Snapshot were not complete at the last poll. D01–D05 are not all accepted; 60 prior failure records remain unresolved; real Backup/Restore, D05 interruption/recovery, Home clock, physical-device acceptance and production signing remain open. No merge, release or deployment is authorized.
+The fixture defect has an attempted but failed correction; new-candidate Build has three failed shards and Device Smoke remains queued, while SQLite Snapshot passed. D01–D05 are not all accepted; 60 prior failure records remain unresolved; real Backup/Restore, D05 interruption/recovery, Home clock, physical-device acceptance and production signing remain open. No merge, release or deployment is authorized.
