@@ -785,3 +785,8 @@ The docs PR #3388 CODEOWNERS file was expanded to cover the canonical typography
 - Release artifact `13956310335` contains `app-release.apk` with SHA-256 `eb3b681fa1e7030eeb6a09ef74c1aacb7527f1170cdafa76f1d94e289a2d16c3`.
 - Binary inspection of the APK ZIP central-directory boundary found no `APK Sig Block 42`; this Release APK is unsigned. It is a build/font-packaging artifact only, not installable as a signed update and not publishable.
 - `android/app/build.gradle.kts` only sets the `production` signing config when all protected production inputs are present. No production signing proof is available for this workflow. Do not infer production signing from the successful Release build job.
+
+### Original 22 Regression inventory — exact source
+
+- [Build run 43232240534](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43232240534), checkout SHA `0aa1645999e38e32506bf3d3c15f900865428f90`, shard job `131238073327` contains the 22 failure records referenced by the earlier report. The complete 22-row disposition table is in `docs/ARVIN_PROJECT_STATE.md` under “Original 22 Regression failures — exact historical inventory”.
+- Do not conflate this historical 22-record Shard 2 inventory with the later 43 failure records across four completed shards on `46f7b28...` or the 21 failure records in Shard 2 on current candidate `492a5c4...`.
