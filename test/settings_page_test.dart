@@ -33,7 +33,7 @@ void main() {
     expect(find.text('راهنمای تعاملی صفحه اصلی'), findsNothing);
 
     expect(find.text('تنظیمات'), findsOneWidget);
-    expect(find.text('انتخاب تم و رنگ اصلی برنامه'), findsOneWidget);
+    expect(find.text('انتخاب رنگ تأکیدی ثانویه'), findsOneWidget);
     expect(find.byKey(const ValueKey('theme-palette-grid')), findsOneWidget);
     expect(find.byKey(const ValueKey('theme-color-8')), findsOneWidget);
     expect(AppThemeManager.instance.selectedHex, AppThemeManager.defaultHex);
