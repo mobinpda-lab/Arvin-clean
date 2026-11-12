@@ -128,6 +128,7 @@ void main() {
       await tester.pumpAndSettle();
       final editInput = find.byKey(const ValueKey('task-detail-checklist-edit-input-0'));
       await tester.enterText(editInput, 'تماس با مشتری (اصلاح‌شده)');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle();
 
       saved = (await store.load()).single;
