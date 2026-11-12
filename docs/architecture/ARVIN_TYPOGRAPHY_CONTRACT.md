@@ -199,3 +199,31 @@ The implementation branch retains a separate `assets/fonts/ui/vazirharf/` direct
 The actual OpenType `name` table was decoded from each of the five checked-in TTF binaries on PR #3384 candidate SHA `b78488c0347e1a97a7a25f56c914a48761d44a25`. All five report **Version 33.003** (name ID 5: `Version 33.003`; name ID 3 includes `33.003`). The source project identified in the bundled license and font asset policy is [rastikerdar/vazirmatn](https://github.com/rastikerdar/vazirmatn), and the bundled license is SIL OFL 1.1.
 
 This establishes the embedded font binary version metadata, not the exact upstream Git commit/tag from which these binaries were copied. The upstream source commit/tag and a reproducible source-to-binary comparison remain PENDING. The five SHA-256 values in §16 remain the actual binary checksums. No claim is made that an APK has yet passed its packaging audit.
+
+
+## 18. Upstream binary provenance — COMMAND 07-A.2.28
+
+The five Vazirmatn TTF assets in the PR #3384 execution branch were compared against the upstream repository tree at the pinned source commit:
+
+- **Upstream repository:** `rastikerdar/vazirmatn`
+- **Pinned source commit:** `6e553e33489a8f9dfaccc76860a2e3f3c1e66de7`
+- **Upstream paths:** `fonts/ttf/Vazirmatn-*.ttf`
+- **Arvin paths:** `assets/fonts/ui/vazirmatn/Vazirmatn-*.ttf`
+
+Git blob object IDs and byte sizes match exactly for all five files:
+
+| Weight | Git blob SHA (both repositories) | Bytes | Result |
+|---:|---|---:|---|
+| 300 Light | `2dfd5c35ed4c26f7ce9f3ba753f11d9a38356c42` | 122,920 | IDENTICAL |
+| 400 Regular | `64e4a8189557a17b63fd7a77794207483e592972` | 122,752 | IDENTICAL |
+| 500 Medium | `1e08dd54d90a4879451ef0f80fe0d8068fb7462f` | 122,656 | IDENTICAL |
+| 600 SemiBold | `6b3842aca6055c8258404b1758133b81c961a13f` | 122,920 | IDENTICAL |
+| 700 Bold | `efa9b095da01d299310bdcae293e24e657fe6da9` | 123,036 | IDENTICAL |
+
+The upstream `OFL.txt` Git blob is `be66b3824e9772e75141e631695c5256f105fb57`; Arvin's `assets/fonts/ui/vazirmatn/LICENSE.txt` has the same blob ID and byte size (4,391 bytes). This confirms that the bundled license file is byte-for-byte identical to the upstream license at the pinned source tree.
+
+All five binaries report OpenType version metadata `33.003`, consistent with the candidate asset inventory in §16–17. Git blob equality establishes byte-for-byte provenance for the five font files and license at the pinned source commit. It is not an APK packaging or PDF rendering acceptance result.
+
+**Evidence scope:** the comparison was made against the unmerged PR #3384 branch tree at SHA `af2e8a697ed88be8ed924cf0a94ad30023197dec`, and upstream tree commit `6e553e33489a8f9dfaccc76860a2e3f3c1e66de7`. It does not claim that the assets are present on `main`, packaged in a verified APK, or accepted for release.
+
+The SHA-256 values previously recorded in §16 remain historical checksum records; this command's independent provenance proof is the exact Git blob identity comparison above. Recalculation from downloaded binary bytes remains a separate integrity step if the SHA-256 records are to be re-certified.
