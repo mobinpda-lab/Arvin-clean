@@ -849,7 +849,7 @@ class _HomePageState extends State<HomePage> {
     final now = _iranWallClockNow();
     final today = DateTime(now.year, now.month, now.day);
     if (_timeFilters.contains('today')) {
-      debugPrint(
+      print(
         'HOME_TODAY_FILTER id=${task.id} due=${due.toIso8601String()} '
         'isUtc=${due.isUtc} local=${local.toIso8601String()} '
         'day=$day today=$today completed=${task.completed} '
@@ -936,9 +936,10 @@ class _HomePageState extends State<HomePage> {
 
     final result = scoped.toList(growable: false);
     if (_timeFilters.contains('today')) {
-      debugPrint(
+      print(
         'HOME_TODAY_VISIBLE filter=$filter timeFilters=$_timeFilters '
-        'ids=${result.map((task) => task.id).join(',')}',
+        'center=$_centerFilters category=$_categoryFilters project=$_projectFilters tags=$_tagFilters '
+        'todayFocus=$_todayFocusOnly ids=${result.map((task) => task.id).join(',')}',
       );
     }
     return switch (_homeSortMode) {
@@ -2348,7 +2349,7 @@ class _HomePageState extends State<HomePage> {
       selected.clear();
       selectionMode = false;
     });
-    debugPrint(
+    print(
       'HOME_SELECT_STAT next=$nextFilter filter=$filter '
       'timeFilters=$_timeFilters todayFocus=$_todayFocusOnly dueScope=$_dueScope',
     );
@@ -3092,6 +3093,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _showHomeFilterMenu() async {
+    print('HOME_FILTER_MENU_ENTER mounted=$mounted');
     final action = await showModalBottomSheet<_HomeMoreAction>(
       context: context,
       showDragHandle: true,
@@ -3102,7 +3104,10 @@ class _HomePageState extends State<HomePage> {
             ListTile(
               leading: const Icon(Icons.today_outlined),
               title: const Text('امروز تقویمی'),
-              onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.today),
+              onTap: () {
+                print('HOME_TODAY_TILE_TAPPED');
+                Navigator.of(sheetContext).pop(_HomeMoreAction.today);
+              },
             ),
             ListTile(
               key: const ValueKey('home-filter-today-focus'),
@@ -3129,6 +3134,7 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+    print('HOME_FILTER_MENU_RESULT action=$action mounted=$mounted');
     if (action == null || !mounted) return;
     switch (action) {
       case _HomeMoreAction.today:

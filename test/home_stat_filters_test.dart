@@ -367,6 +367,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ListTile, 'امروز تقویمی'));
     await tester.pumpAndSettle();
+    expect(find.text('امروز تقویمی'), findsNothing);
 
     final taskListScrollable = find.descendant(
       of: find.byKey(const ValueKey('home-task-list-viewport')),
