@@ -138,7 +138,9 @@ jobs:
           pdf="$evidence/vazirmatn-persian-acceptance.pdf"
           test -s "$pdf"
           pdffonts "$pdf" | tee "$evidence/pdffonts.txt"
-          awk 'NR > 2 && /Vazirmatn/ { count++; if ($4 != "yes" || $6 != "yes") bad=1 } END { if (count < 2 || bad) exit 1 }' "$evidence/pdffonts.txt"
+          # pdffonts columns are name, type, encoding, emb, sub, uni, object.
+          # Whitespace tokenization therefore places emb at $5 and uni at $7.
+          awk 'NR > 2 && /Vazirmatn/ { count++; if ($5 != "yes" || $7 != "yes") bad=1 } END { if (count < 2 || bad) exit 1 }' "$evidence/pdffonts.txt"
           pdftotext -layout "$pdf" "$evidence/extracted-text.txt"
           grep -Fq 'می‌خواهم' "$evidence/extracted-text.txt"
           grep -Fq '۱۴۰۵/۰۸/۲۱' "$evidence/extracted-text.txt"
