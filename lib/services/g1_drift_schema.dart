@@ -501,7 +501,7 @@ class G1DriftSchema implements QueryExecutorUser {
     );
     final tableDefinition = tableDefinitionRows.single['sql'] as String? ?? '';
     if (RegExp(
-      r'\\b(CHECK|COLLATE|GENERATED|UNIQUE|WITHOUT\\s+ROWID)\\b',
+      r'\b(CHECK|COLLATE|GENERATED|UNIQUE|WITHOUT\s+ROWID)\b',
       caseSensitive: false,
     ).hasMatch(tableDefinition)) {
       await _deferLegacyTaskColumnRetirement(
