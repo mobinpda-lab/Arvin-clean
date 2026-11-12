@@ -672,3 +672,18 @@ The 61 failure records on `eea746d...` are distributed as shard 0=11, 1=1, 2=21,
 - Keep PR #3340 as the REV9 canonical docs lane. PR #3388 is a parallel v49-era docs/CODEOWNERS lane and remains an authority conflict; do not merge either without owner review.
 
 **Status:** IMPLEMENTATION IN PROGRESS / ACCEPTANCE BLOCKED. No merge, release or deployment.
+
+
+---
+
+## P0 handoff — complete taxonomy/template consistency
+
+The taxonomy audit is deeper than the editor-field finding:
+1. Replace free-text Category/Tags in `ProjectTemplateManagementPage` with canonical TaskStore-backed selectors. A newly created value must be written to the central catalog.
+2. Make Category rename update `tasks`, `task_templates` and `project_template_tasks` in the same SQLite transaction.
+3. Make Tag rename update `task_tags`, `task_templates.tags_json` and `project_template_tasks.tags_json` in the same SQLite transaction, preserving order and de-duplicating only the renamed collision.
+4. Make Category/Tag deletion fail closed if referenced by Tasks, Task Templates or Project Template tasks. Include archived templates; do not erase historical definitions.
+5. Add file-backed and focused tests for each reference domain, rename atomicity/rollback, blocked deletion, and Task generation from the renamed template.
+6. Keep `TaskTaxonomyLifecycleService`, `TaskTaxonomyMutationService` and `TagStore` intact until their reference/compatibility audit is complete.
+
+No production code correction for this finding has yet been committed. Treat C01/C03/C04/C05 as BLOCKED until the above tests pass on one exact candidate SHA.
