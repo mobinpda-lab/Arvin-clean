@@ -1334,3 +1334,54 @@ A deeper source pass confirmed that the Project Template inconsistency affects m
 - `ProjectTemplateManagementPage._taskDialog` still uses free-text Category and Tags, so it can create taxonomy values outside the central catalog.
 
 This is a confirmed C01/C03/C04/C05 product-integrity defect, not a test-only issue. The corrective contract is: use the canonical SQLite-backed selectors; update Task and both template domains atomically on rename; block deletion while any Task, Task Template or Project Template definition references the value; preserve all historical template snapshots. Add tests for rename, blocked deletion and generated-Task parity before acceptance.
+
+
+---
+
+## COMMAND 07-A.2.34 — follow-up checkpoint (2026-11-12)
+
+**Latest execution branch HEAD:** `1f4ff4898a5a9278e067c795a8fc14791b8ecbed`  
+**Execution branch:** `feature/command-07-a-sqlite-contract-remediation`  
+**Main HEAD at last live check:** `45e4202b03a434459e4c021a04efa7e8396359db`  
+**Status:** IMPLEMENTATION IN PROGRESS / ACCEPTANCE BLOCKED.
+
+### Additional commits after the previous checkpoint
+- `bc37933ca591b135b4b943d4187e1f19c695e4b1` — latest real Follow-up now appears in the compact Home Task card, not only after expansion. The Home record test expects this compact presentation.
+- `1f4ff4898a5a9278e067c795a8fc14791b8ecbed` — Task Detail Person persistence test now passes the actual descendant Scrollable to `scrollUntilVisible`.
+
+### Exact-head Actions at last poll
+For `1f4ff4898a5a9278e067c795a8fc14791b8ecbed`:
+- Build: `43291144776` — PENDING, no jobs started at last poll.
+- Device Smoke: `43291144527` — QUEUED.
+- SQLite Snapshot: `43291144675` — QUEUED.
+- Follow-up File Persistence: `43291144575` — PENDING.
+- Orchestrator: `43291144442` — PENDING.
+- Production Loop: `43291144513` — PENDING.
+- Orchestrator PR Wakeup: `43291144484` — PENDING.
+- Draft Review APK: `43291144596` — SKIPPED.
+
+No result above is a PASS. Do not use historical SHA results as current acceptance evidence.
+
+### Additional root-cause classifications from historical 61-failure inventory
+- G1 malformed legacy relation fixture: TEST HARNESS DEFECT; corrected fixture committed.
+- Home clock source mismatch: PRODUCTION DEFECT; injectable shared clock committed.
+- Home latest real Follow-up absent from Task card: PRODUCTION DEFECT; compact-card integration committed.
+- Home accordion test used the wrong interaction/key: TEST CONTRACT DEFECT; now uses canonical expand control and widget keys.
+- Quick Capture Project selector finder used hidden text instead of icon-only control key: TEST HARNESS DEFECT; corrected.
+- Task Editor taxonomy create finder used a stale TextField label: TEST HARNESS DEFECT; corrected to the real create-field key.
+- Device Smoke contract rejected unbounded `pumpAndSettle` in an integration smoke test: TEST HARNESS DEFECT; replaced with bounded frames.
+- Bottom Navigation test did not rebuild its selected destination: TEST HARNESS DEFECT; StatefulBuilder added.
+- Task Detail Person test passed a ListView finder where a Scrollable was required: TEST HARNESS DEFECT; corrected.
+- Follow-up Entry selected-person assertion still fails on the historical candidate and remains UNRESOLVED pending exact-head CI and deeper reproduction.
+
+### Remaining acceptance gaps
+- D04 remains RED: existing backup format is a portable JSON document; no test yet proves restore into an independent SQLite file, close/reopen of that restored file, and integrity/FK checks with Reminder, Follow-up and Person relations.
+- D01 custom legacy Index/Trigger preservation lacks a focused fixture test. Migration code fails closed when unsafe custom objects prevent table retirement; preserve this behavior.
+- C07 comprehensive end-to-end workflow across Category, Project, Tags, Person, Task, Reminder, Follow-up, Home, Calendar, Search, Reports and controlled deletion has not been demonstrated as one isolated-database scenario.
+- CODEOWNERS was not found at root, `.github/CODEOWNERS` or `docs/CODEOWNERS`. Rulesets/branch protection remain unverified because no direct repository ruleset action was available.
+
+### Repository topology
+- PR #3384 base relationship reported as `fix/wave3-cycle3-calendar-product-repair`; execution branch compares 120 commits ahead / 0 behind that base.
+- Execution branch compares 2,320 commits ahead / 0 behind Main; do not treat this as a direct merge candidate.
+- PR #3380 and #3382 remain separate diagnostic/evidence lanes.
+- PR #3388 remains the v49-era documentation lane; REV9 PR #3340 remains the canonical documentation lane. Preserve both pending explicit reconciliation.
