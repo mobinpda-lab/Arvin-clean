@@ -1,0 +1,9 @@
+# Arvin typography governance — Product Owner review required.
+# Verified repository owner account: @mobinpda-lab
+/docs/architecture/ARVIN_TYPOGRAPHY_CONTRACT.md @mobinpda-lab
+/assets/fonts/ui/vazirmatn/ @mobinpda-lab
+/pubspec.yaml @mobinpda-lab
+/lib/theme/ @mobinpda-lab
+/lib/core/theme/ @mobinpda-lab
+/lib/services/task_report_pdf_renderer.dart @mobinpda-lab
+/.github/CODEOWNERS @mobinpda-lab
