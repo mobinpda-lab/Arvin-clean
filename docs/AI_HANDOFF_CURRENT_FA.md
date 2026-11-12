@@ -387,3 +387,7 @@ Source inspection found the previous root ThemeData mapping did not match the ap
 The Android Reminder + Persian Typography smoke now exercises the actual Android SharedPreferences plugin: it saves System Default, recreates the app root and verifies both theme families are not forced; then saves Vazirmatn, recreates the root again, verifies both themes use Vazirmatn and checks the inherited overlay typography. This is app-root reinitialization on Android; a separate OS-level force-stop/process-kill persistence test remains NOT VERIFIED.
 
 Exact-head Analyze, regression, typography and Device Smoke results remain pending until their jobs complete on `63c67ea...`.
+
+### APK font audit strengthened — exact candidate `0aa1645999e38e32506bf3d3c15f900865428f90`
+
+The APK packaging audit now extracts each of the five font entries directly from the built APK using `unzip -p`, computes SHA-256 over the embedded bytes, and compares that digest with the source font's SHA-256. A missing asset or content mismatch fails the job. This is stricter than archive-path presence alone. Debug, Staging and Release must each pass this check on the same final acceptance SHA; results are pending.
