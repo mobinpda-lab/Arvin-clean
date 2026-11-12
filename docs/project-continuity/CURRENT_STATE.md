@@ -1322,3 +1322,15 @@ This is confirmed by the six original job logs: 131362983437, 131362983185, 1313
 - `.github/CODEOWNERS` is absent from Main. A typography-scoped CODEOWNERS file exists only on unmerged PR #3388; it is not effective on Main.
 
 No branch, PR, artifact, source history, user data, rule or release was deleted or rewritten. No merge, release or deployment was performed.
+
+
+---
+
+## COMMAND 07-A.2.34 — taxonomy template-reference follow-up (2026-11-12)
+
+A deeper source pass confirmed that the Project Template inconsistency affects more than its editor UI:
+- `TaskStore.renameCategoryAndTasks` and `renameTagAndTasks` update canonical Task rows/catalogs in their transaction, but do not rewrite `task_templates.category`, `task_templates.tags_json`, `project_template_tasks.category` or `project_template_tasks.tags_json`.
+- `deleteCategoryCatalog` and `deleteTagCatalog` currently delete catalog rows without checking Task Template or Project Template references.
+- `ProjectTemplateManagementPage._taskDialog` still uses free-text Category and Tags, so it can create taxonomy values outside the central catalog.
+
+This is a confirmed C01/C03/C04/C05 product-integrity defect, not a test-only issue. The corrective contract is: use the canonical SQLite-backed selectors; update Task and both template domains atomically on rename; block deletion while any Task, Task Template or Project Template definition references the value; preserve all historical template snapshots. Add tests for rename, blocked deletion and generated-Task parity before acceptance.
