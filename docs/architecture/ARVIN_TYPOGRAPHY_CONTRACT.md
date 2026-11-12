@@ -227,3 +227,31 @@ All five binaries report OpenType version metadata `33.003`, consistent with the
 **Evidence scope:** the comparison was made against the unmerged PR #3384 branch tree at SHA `af2e8a697ed88be8ed924cf0a94ad30023197dec`, and upstream tree commit `6e553e33489a8f9dfaccc76860a2e3f3c1e66de7`. It does not claim that the assets are present on `main`, packaged in a verified APK, or accepted for release.
 
 The SHA-256 values previously recorded in §16 remain historical checksum records; this command's independent provenance proof is the exact Git blob identity comparison above. Recalculation from downloaded binary bytes remains a separate integrity step if the SHA-256 records are to be re-certified.
+
+
+## 19. Candidate implementation update — COMMAND 07-A.2.28
+
+**Observed product candidate:** 0aa1645999e38e32506bf3d3c15f900865428f90 (PR #3384, unmerged).
+
+The code-level font family source is lib/theme/app_fonts.dart:
+- AppFonts.vazirmatnFamily is the single canonical family constant.
+- ArvinTheme.fontFamily and font_registry.dart alias that constant rather than declaring duplicate family literals.
+- Flutter's required asset-family declaration remains in pubspec.yaml.
+
+Both root themes now map the contract weights consistently:
+- body/minor/calendar text: 400;
+- card/task title styles: 600;
+- page title: 700;
+- labels and controls: 500.
+
+The Android Reminder + Persian Typography smoke now uses the real Android SharedPreferences plugin to store System Default, recreate the app root and verify neither theme forces a family, then store Vazirmatn and recreate the root again to verify both themes and the inherited Alarm Overlay use the official family. This is app-root reinitialization; OS-level force-stop/process-kill persistence remains NOT VERIFIED.
+
+The PDF artifact from Run 43224808961 (prior candidate 75737f4...) was downloaded and independently inspected:
+- PDF bytes: 18,334; PDF SHA-256: 9cd1f26a4e565be2b8e1e29b67aedaaa0266e73c5ec7a3fb439b4a817d3147cb.
+- Poppler reports Vazirmatn-Bold and Vazirmatn-Regular as embedded with Unicode maps.
+- The rendered PNG was visually inspected; Persian shaping/connection and RTL layout are legible.
+- The first workflow failure was a faulty awk field index, not PDF generation. Subsequent fixes correct the pdffonts column parser, account for Poppler's mixed-direction extraction order, and preserve raw plus NFKC-normalized extracted text. These corrected checks require a successful rerun on the final exact SHA.
+
+The APK font audit now verifies the five expected entries exist in each APK and compares SHA-256 of each extracted APK font entry against its source asset. The audit also checks the pinned upstream Git blob IDs and OFL license. This audit is not yet PASS until Debug, Staging and Release jobs complete on one exact SHA and publish verifiable artifacts.
+
+**Current acceptance state:** implementation and audit coverage expanded; exact-head CI, APK packaging, all seven device smoke jobs, D01-D05 complete acceptance, and OS-level process restart remain pending. This section records candidate implementation progress and does not alter the binding product decision in §1–2.
