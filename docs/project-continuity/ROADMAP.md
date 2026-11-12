@@ -537,3 +537,14 @@ P1 consolidation remains continuous: preserve #3380/#3382 diagnostic evidence, r
 - **Follow-up Entry:** resolve selected-Person creation/persistence failure without changing user-selected state semantics.
 
 All are IN PROGRESS or NOT YET VERIFIED. The latest exact candidate is `1f4ff4898a5a9278e067c795a8fc14791b8ecbed`; current Build/Device/SQLite runs are pending or queued.
+
+
+---
+
+## COMMAND 07-A.2.34 — D01/D04 validation queue (2026-11-12)
+
+- D01 custom Index/Trigger preservation fixture committed; validate fail-closed migration deferral and actual trigger execution.
+- D04 independent SQLite file restore fixture committed; validate portable backup restore into a separate database file, close/reopen, Task/Reminder/Follow-up/Person/Project relationships, and SQLite integrity/FK checks.
+- Both remain **YELLOW / VALIDATION PENDING** on candidate `fd22fe37f0190818084f011bfcce00e241da6933`.
+- C07 comprehensive cross-feature scenario remains **GRAY / NOT YET TESTED**.
+- Follow-up Entry selected-Person creation failure remains **UNRESOLVED**.
