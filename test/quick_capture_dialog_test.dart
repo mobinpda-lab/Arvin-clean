@@ -540,9 +540,9 @@ void main() {
 
     expect(find.text('ثبت سریع کار'), findsOneWidget);
     expect(find.byKey(const ValueKey('quick-capture-description')), findsNothing);
-    expect(find.text('پروژه'), findsOneWidget);
-    expect(find.text('یادآور'), findsOneWidget);
-    expect(find.text('تکرار'), findsOneWidget);
+    expect(find.bySemanticsLabel('پروژه'), findsOneWidget);
+    expect(find.bySemanticsLabel('یادآور'), findsOneWidget);
+    expect(find.bySemanticsLabel('تکرار'), findsOneWidget);
 
     await tester.enterText(
       find.byKey(const ValueKey('quick-capture-input')),
@@ -574,8 +574,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('quick-capture-due-rollbox')), findsOneWidget);
-    expect(find.text('تکرار'), findsOneWidget);
-    expect(find.text('یادآور'), findsOneWidget);
+    expect(find.bySemanticsLabel('تکرار'), findsOneWidget);
+    expect(find.bySemanticsLabel('یادآور'), findsOneWidget);
 
     final dueControl = find.byKey(const ValueKey('quick-capture-due-rollbox'));
     await tester.ensureVisible(dueControl);
@@ -706,7 +706,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('یادآور'));
+    await tester.tap(find.byKey(const ValueKey('quick-capture-reminder-rollbox')));
     await tester.pumpAndSettle();
     final customReminder = find.text('تاریخ و ساعت سفارشی');
     expect(customReminder, findsOneWidget);
@@ -796,7 +796,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('یادآور'));
+    await tester.tap(find.byKey(const ValueKey('quick-capture-reminder-rollbox')));
     await tester.pumpAndSettle();
 
     expect(find.text('همان زمان موعد'), findsOneWidget);
@@ -822,7 +822,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('تکرار'));
+    await tester.tap(find.byKey(const ValueKey('quick-capture-recurrence-rollbox')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('تکرار سفارشی'));
     await tester.pumpAndSettle();

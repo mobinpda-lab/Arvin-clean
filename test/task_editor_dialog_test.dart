@@ -497,7 +497,7 @@ void main() {
 
     final rollBox = find.byKey(const ValueKey('task-editor-recurrence'));
     expect(rollBox, findsOneWidget);
-    expect(find.text('روزانه'), findsWidgets);
+    expect(find.bySemanticsLabel('روزانه'), findsOneWidget);
 
     await tester.ensureVisible(rollBox);
     await tester.tap(rollBox);

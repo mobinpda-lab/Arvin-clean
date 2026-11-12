@@ -241,7 +241,7 @@ void main() {
     expect(find.text('دوم'), findsOneWidget);
     expect(find.text('سوم'), findsNothing);
     expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-tags')), matching: find.text('2')), findsNothing);
-    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-tags')), matching: find.text('برچسب')), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-tags')), matching: find.bySemanticsLabel('برچسب')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

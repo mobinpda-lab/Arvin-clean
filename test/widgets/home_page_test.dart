@@ -576,7 +576,7 @@ void main() {
   });
 
 
-  testWidgets('Home five filters stay in one RTL row without horizontal scrolling at phone widths and with keyboard',
+  testWidgets('Home four filters stay in one RTL row without horizontal scrolling at phone widths and with keyboard',
       (tester) async {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -621,7 +621,7 @@ void main() {
         of: filterStrip,
         matching: find.byType(HomeFilterPill),
       );
-      expect(controls, findsNWidgets(5));
+      expect(controls, findsNWidgets(4));
       for (final control in controls.evaluate()) {
         final size = tester.getSize(find.byWidget(control.widget));
         expect(size.height, greaterThanOrEqualTo(48));
