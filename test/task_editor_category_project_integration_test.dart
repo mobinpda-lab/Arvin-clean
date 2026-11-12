@@ -72,7 +72,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('task-editor-create-category')));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField).last, '  مشتری ویژه  ');
+    await tester.enterText(find.byType(TextField, skipOffstage: false).last, '  مشتری ویژه  ');
     await tester.tap(find.text('افزودن').last);
     await tester.pumpAndSettle();
     await save(tester);
