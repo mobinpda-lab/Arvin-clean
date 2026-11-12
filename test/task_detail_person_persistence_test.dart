@@ -36,10 +36,15 @@ void main() {
     await tester.pumpAndSettle();
 
     final add = find.byKey(const ValueKey('task-detail-add-followup'));
+    final detailScrollable = find.descendant(
+      of: find.byKey(const ValueKey('task-detail-content-list')),
+      matching: find.byType(Scrollable),
+    );
+    expect(detailScrollable, findsOneWidget);
     await tester.scrollUntilVisible(
       add,
       240,
-      scrollable: find.byKey(const ValueKey('task-detail-content-list')),
+      scrollable: detailScrollable,
     );
     await tester.tap(add);
     await tester.pumpAndSettle();
