@@ -456,3 +456,20 @@ Source: Build run `43232240534`, checkout SHA `0aa1645999e38e32506bf3d3c15f90086
 | 22 | home_stat_filters_test.dart — category checkbox OR selection after confirmation | **BLOCKED WITH EVIDENCE** | The test finder matches multiple Scrollables and the option is not hit-testable. Scope the finder to the filter sheet's vertical options list; preserve the OR/confirmation assertions. |
 
 Status meanings: `VERIFIED NOT A PRODUCT DEFECT` means the failure is explained by a stale assertion or test harness mismatch against the canonical product contract. `BLOCKED WITH EVIDENCE` means the product behavior or required test has not yet been conclusively verified. No row is marked `FIXED` or `TEST CONTRACT CORRECTED` until a corrective commit and exact-head passing evidence exist.
+### Current candidate Shard 0 failure inventory — `492a5c4...`
+
+Build run `43247842294`, job `131289156604`, completed FAIL with 11 records. Exact tests:
+
+1. `task_detail_checklist_flow_test.dart` — Task Detail displays checklist and toggles an item.
+2. `widgets/task_dialog_test.dart` — creates a Task with trimmed text and a unique tag.
+3. `quick_capture_dialog_test.dart` — Quick Capture can create a Center inline and immediately select it.
+4. `task_detail_due_date_action_test.dart` — Task Details Today action preserves Due Date and related data.
+5. `device_feedback_home_regression_test.dart` — Home keeps backup in More rather than the header.
+6. `primary_bottom_navigation_test.dart` — primary navigation exposes five canonical destinations.
+7. `home/home_filter_contract_test.dart` — completed past tasks remain visible in a separate non-overdue group.
+8. `follow_up_office_page_test.dart` — Follow-up Office exposes shared filter dimensions.
+9. `task_people_page_test.dart` — empty People UI adds and removes a local Person explicitly.
+10. `task_editor_category_project_integration_test.dart` — new Task saves typed Category without an extra apply step.
+11. `home_today_about_test.dart` — Today menu action shows only active canonical tasks due today.
+
+Shard 0 and Shard 2 together account for the current 32 failure records on `492a5c4...`; Shards 1, 3, 4 and 5 remain queued. This inventory is current-candidate evidence and is distinct from the original 22 historical failures.
