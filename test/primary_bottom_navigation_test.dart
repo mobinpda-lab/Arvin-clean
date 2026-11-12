@@ -8,14 +8,16 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   testWidgets('primary navigation exposes exactly five canonical destinations',
       (tester) async {
-    ArvinPrimaryDestination? selected;
+    var selected = ArvinPrimaryDestination.home;
 
     await tester.pumpWidget(
       MaterialApp(
-        home: Scaffold(
-          bottomNavigationBar: ArvinPrimaryNavigation(
-            selected: ArvinPrimaryDestination.home,
-            onSelected: (value) => selected = value,
+        home: StatefulBuilder(
+          builder: (context, setState) => Scaffold(
+            bottomNavigationBar: ArvinPrimaryNavigation(
+              selected: selected,
+              onSelected: (value) => setState(() => selected = value),
+            ),
           ),
         ),
       ),
