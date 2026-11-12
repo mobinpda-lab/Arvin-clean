@@ -504,10 +504,12 @@ void main() {
         'futureTaskField': {'retain': true},
       });
       final legacyFollowUps = legacyMetadata['followUps'] as List;
+      final preservedFollowUp = legacyFollowUps.whereType<Map>().singleWhere(
+        (item) => item['id'] == 'history-1',
+      );
+      expect(preservedFollowUp['futureFollowUpField'], isA<Map>());
       expect(
-        legacyFollowUps.whereType<Map>().any(
-          (item) => item['futureFollowUpField'] == {'retain': true},
-        ),
+        (preservedFollowUp['futureFollowUpField'] as Map)['retain'],
         isTrue,
       );
     }
