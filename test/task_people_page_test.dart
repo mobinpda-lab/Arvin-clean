@@ -57,9 +57,12 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('people-add-save')));
     await tester.pumpAndSettle();
 
-    expect(find.text('علی رضایی'), findsOneWidget);
+    // Verify canonical persistence before asserting the refreshed page projection.
     var reloaded = (await store.load()).single;
     expect(reloaded.people.single.displayName, 'علی رضایی');
+    expect(find.text('افزودن شخص انجام نشد؛ دوباره تلاش کنید'), findsNothing);
+    expect(find.text('نام شخص را وارد کنید'), findsNothing);
+    expect(find.text('علی رضایی'), findsOneWidget);
     expect(reloaded.description, 'توضیح محفوظ');
     expect(reloaded.tags, ['مهم']);
     expect(reloaded.checklist, ['مرحله یک']);
