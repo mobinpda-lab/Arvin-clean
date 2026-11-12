@@ -674,7 +674,12 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('report-center-filters')));
     await tester.pumpAndSettle();
     final presets = find.byKey(const ValueKey('report-home-filter-presets'));
-    await tester.ensureVisible(presets);
+    await tester.scrollUntilVisible(
+      presets,
+      180,
+      scrollable: find.byKey(const ValueKey('report-filter-scroll')),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(presets);
     await tester.pumpAndSettle();
     expect(find.text('پیش‌تنظیمات سریع زمان'), findsOneWidget);
