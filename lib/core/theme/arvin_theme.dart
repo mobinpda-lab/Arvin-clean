@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/app_fonts.dart';
+
 /// Canonical Arvin Blue & White brand tokens.
 /// User-selectable palette colors are secondary accents only and never brand tokens.
 abstract final class ArvinTheme {
@@ -27,7 +29,7 @@ abstract final class ArvinTheme {
       Theme.of(context).brightness == Brightness.dark ? primaryGlow : brandGlow;
   static const BorderRadius cardBorderRadius =
       BorderRadius.all(Radius.circular(16.0));
-  static const String fontFamily = 'Vazirmatn';
+  static const String fontFamily = AppFonts.vazirmatnFamily;
   static const BoxShadow shadowStyle = BoxShadow(
     color: primaryGlow,
     blurRadius: 10,

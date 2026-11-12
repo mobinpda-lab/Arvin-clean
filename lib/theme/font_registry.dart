@@ -1,3 +1,5 @@
+import 'app_fonts.dart';
+
 class ArvinFontOption {
   final String id;
   final String nameFa;
@@ -21,7 +23,7 @@ const ArvinFontOption _vazirmatn = ArvinFontOption(
   nameFa: 'وزیرمتن',
   description: 'فونت رسمی و پیش‌فرض رابط کاربری آروین',
   category: 'رسمی',
-  fontFamily: 'Vazirmatn',
+  fontFamily: AppFonts.vazirmatnFamily,
 );
 
 const ArvinFontOption _systemDefault = ArvinFontOption(

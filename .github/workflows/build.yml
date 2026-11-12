@@ -460,7 +460,9 @@ jobs:
           test -s assets/fonts/ui/vazirmatn/LICENSE.txt
           grep -Fq 'SIL OPEN FONT LICENSE Version 1.1' assets/fonts/ui/vazirmatn/LICENSE.txt
           grep -Fq 'family: Vazirmatn' pubspec.yaml
-          grep -Fq "static const String fontFamily = 'Vazirmatn';" lib/core/theme/arvin_theme.dart
+          grep -Fq "static const String vazirmatnFamily = 'Vazirmatn';" lib/theme/app_fonts.dart
+          grep -Fq 'static const String fontFamily = AppFonts.vazirmatnFamily;' lib/core/theme/arvin_theme.dart
+          grep -Fq 'fontFamily: AppFonts.vazirmatnFamily,' lib/theme/font_registry.dart
           echo "FONT_LICENSE=PASS_OFL_1_1"
           echo "FONT_FAMILY=PASS_VAZIRMATN"
           echo "FONT_GATE=PASS_VAZIRMATN_5_WEIGHTS_BUNDLED"

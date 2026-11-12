@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:arvin/arvin_colors.dart';
 import 'package:arvin/core/theme/arvin_theme.dart';
 import 'package:arvin/core/theme/app_theme_manager.dart';
+import 'package:arvin/theme/app_fonts.dart';
 
 void main() {
   group('Arvin design tokens', () {
@@ -27,7 +28,8 @@ void main() {
       expect(ArvinTheme.cardBorderRadius, BorderRadius.circular(16));
       expect(ArvinTheme.shadowStyle.blurRadius, 10);
       expect(ArvinTheme.shadowStyle.offset, const Offset(0, 4));
-      expect(ArvinTheme.fontFamily, 'Vazirmatn');
+      expect(AppFonts.vazirmatnFamily, 'Vazirmatn');
+      expect(ArvinTheme.fontFamily, AppFonts.vazirmatnFamily);
       expect(ArvinColors.primary, ArvinTheme.primaryBlue);
       expect(ArvinColors.primaryDark, ArvinTheme.headerBlue);
       expect(ArvinColors.darkBrandPrimary, ArvinTheme.primaryBlue);
