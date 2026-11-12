@@ -375,8 +375,10 @@ jobs:
           fi
           test -s "$apk"
           for font in \
+            assets/fonts/ui/vazirmatn/Vazirmatn-Light.ttf \
             assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf \
             assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf \
+            assets/fonts/ui/vazirmatn/Vazirmatn-SemiBold.ttf \
             assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf; do
             if ! unzip -Z1 "$apk" | grep -Fxq "assets/flutter_assets/$font"; then
               echo "FONT_ASSET_BUNDLED=FAIL missing=$font" >&2
