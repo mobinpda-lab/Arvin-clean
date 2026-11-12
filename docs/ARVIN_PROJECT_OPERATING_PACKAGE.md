@@ -423,3 +423,7 @@ SQLite P0 remains open. D01 (legacy-column retirement), D02 (Missing vs Explicit
 The Product Owner's latest explicit decision supersedes all historical conflicting font decisions: **Vazirmatn is the only official/default Arvin font.** VazirHarf is not an official or fallback brand font. The canonical contract is [ARVIN_TYPOGRAPHY_CONTRACT.md](architecture/ARVIN_TYPOGRAPHY_CONTRACT.md). Protected paths are defined in `.github/CODEOWNERS` and require effective Ruleset verification; CODEOWNERS presence alone is not enforcement.
 
 Live audit found main SHA `45e4202b03a434459e4c021a04efa7e8396359db` currently registers Vazirmatn in app_fonts, font_registry, pubspec and PDF renderer, but main only has Regular/Medium/Bold assets. SHA `cbf7d241e588c6b4b6051dea5bb3d309a8c3cb05` on PR #3384 changes runtime registration, theme, PDF and tests to VazirHarf, creating a direct conflict with this latest owner decision. This must be remediated on a controlled development branch; no acceptance is implied.
+
+
+## Binding typography and release controls — COMMAND 07-A.2.26
+The canonical product typography contract is `docs/architecture/ARVIN_TYPOGRAPHY_CONTRACT.md`: Vazirmatn only as official/default; System Default remains optional. Product acceptance candidate SHA is `b78488c0347e1a97a7a25f56c914a48761d44a25`; acceptance remains in progress and release is NO-GO. Do not merge, release or deploy without Mobin's explicit approval.
