@@ -1169,3 +1169,14 @@ Live repository facts at deployment start: Main `45e4202b03a434459e4c021a04efa7e
 - Source-level review of prior-candidate failures identified six grounded classifications: one TEST HARNESS DEFECT fixed in `eea746d...`; three additional TEST HARNESS DEFECTS pending correction (two bad TextField finders using `widgetWithText` against InputDecoration hint/label text, and one `scrollUntilVisible` call passing a ListView instead of its Scrollable); two TEST CONTRACT DEFECTS pending correction (alarm smoke uses forbidden unbounded `pumpAndSettle`; due-date test expects null from a compatibility getter that projects the enabled reminder). Remaining 55 records are UNRESOLVED. All classifications remain historical to SHA `492a5c4...` until independently retested.
 - PR ancestry: #3382 is stacked three commits on #3380. #3384 is a sibling implementation branch from common base `8c4c23f...`, 110 commits ahead and does not include #3380's eight unique commits; both #3380 and #3384 change `test/services/sql_task_migration_writer_test.dart`. Resolve this overlap before integration.
 - Documentation audit report is on PR #3388 at `docs/ARVIN_REPOSITORY_HEALTH_AND_CONSOLIDATION.md`; #3388's state page now points to REV9 PR #3340 as the canonical documentation candidate, still unmerged.
+
+
+
+---
+
+## COMMAND 07-A.2.33 — Home clock regression evidence (2026-11-12)
+
+- Build run `43269800292` on candidate `eea746dbf2a58cd4f04c66a149ae3441264da5b2`: quality test-1 completed FAILURE, 202 passed / 1 failed. Failing test: `test/widgets/home_page_test.dart — Home uses the five checkbox filters as combined filters and preserves time grouping`.
+- Root cause confirmed by source inspection: `_iranWallClockNow()` reads `IranClock.now()`, while `_groupJalaliDate()` reads `DateTime.now()`; HomePage/ArvinApp have no injectable `nowProvider`. The failing fixture sets due time to 10:00 based on today's date; the live CI Iran clock is later, so the item is correctly classified overdue instead of today's group. This is a PRODUCTION DEFECT in deterministic clock ownership and a time-dependent test fixture, not a reason to weaken the assertion.
+- Required fix per COMMAND 07-A.2.33: inject one `nowProvider` into Home and use it in both clock paths; test fixed current time 09:00 with due time 10:00. Keep the five-filter contract (Time, Center, Project, Category, Tag) from the later 2026-11-10 owner directive; do not remove Center based on older four-filter wording.
+- SQLite Snapshot `43269800257` and Follow-up Persistence `43269800526` remain SUCCESS on this candidate; Device Smoke `43269800280` remains QUEUED. Build is still incomplete and failed at least one shard.
