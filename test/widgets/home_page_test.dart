@@ -528,7 +528,6 @@ void main() {
 
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('move')), findsOneWidget);
-    expect(find.byKey(const ValueKey('none')), findsOneWidget);
     final moveCard = tester.widget<Dismissible>(
       find.byKey(const ValueKey('move')),
     );
@@ -545,9 +544,17 @@ void main() {
     expect(moved.dueDate?.month, today.month);
     expect(moved.dueDate?.day, today.day);
 
-    final noneCard = tester.widget<Dismissible>(
-      find.byKey(const ValueKey('none')),
+    final noneCardFinder = find.byKey(const ValueKey('none'));
+    final homeTaskScrollable = find.descendant(
+      of: find.byKey(const ValueKey('home-task-list-viewport')),
+      matching: find.byType(Scrollable),
+    ).last;
+    await tester.scrollUntilVisible(
+      noneCardFinder,
+      180,
+      scrollable: homeTaskScrollable,
     );
+    final noneCard = tester.widget<Dismissible>(noneCardFinder);
     expect(
       await noneCard.confirmDismiss!(DismissDirection.startToEnd),
       isFalse,
