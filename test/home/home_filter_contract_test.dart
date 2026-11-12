@@ -371,11 +371,11 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('task-card-details-accordion-real')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-card-expand-accordion-real')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-card-accordion-accordion-real')), findsOneWidget);
     expect(find.text('شرح دقیق کار'), findsNothing);
 
-    await tester.tap(find.text('کار آکاردئونی'));
+    await tester.tap(find.byKey(const ValueKey('task-card-expand-accordion-real')));
     await tester.pumpAndSettle();
 
     expect(find.text('شرح دقیق کار'), findsOneWidget);
@@ -387,10 +387,10 @@ void main() {
     await tester.scrollUntilVisible(legacyOnlyTitle, 240, scrollable: _homeVerticalScrollable());
     await tester.pumpAndSettle();
     expect(legacyOnlyTitle, findsOneWidget);
-    await tester.tap(legacyOnlyTitle);
+    await tester.tap(find.byKey(const ValueKey('task-card-expand-legacy-only')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('task-card-follow-up-legacy-only')), findsNothing);
-    final legacyOnlyDetails = find.byKey(const ValueKey('task-card-details-legacy-only'));
+    expect(find.byKey(const ValueKey('task-card-follow-up-accordion-legacy-only')), findsNothing);
+    final legacyOnlyDetails = find.byKey(const ValueKey('task-card-accordion-legacy-only'));
     await tester.scrollUntilVisible(legacyOnlyDetails, 240, scrollable: _homeVerticalScrollable());
     await tester.pumpAndSettle();
     expect(legacyOnlyDetails, findsOneWidget);
