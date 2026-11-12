@@ -9,13 +9,19 @@ void main() {
   testWidgets('primary navigation exposes exactly five canonical destinations',
       (tester) async {
     ArvinPrimaryDestination? selected;
+    var current = ArvinPrimaryDestination.home;
 
     await tester.pumpWidget(
       MaterialApp(
-        home: Scaffold(
-          bottomNavigationBar: ArvinPrimaryNavigation(
-            selected: ArvinPrimaryDestination.home,
-            onSelected: (value) => selected = value,
+        home: StatefulBuilder(
+          builder: (context, setState) => Scaffold(
+            bottomNavigationBar: ArvinPrimaryNavigation(
+              selected: current,
+              onSelected: (value) => setState(() {
+                current = value;
+                selected = value;
+              }),
+            ),
           ),
         ),
       ),
