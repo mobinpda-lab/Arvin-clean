@@ -125,10 +125,10 @@ void main() {
         );
   
         expect(
-          AppFonts.vazirmatnFamily,
-          AppFonts.vazirmatnFamily,
+          'Vazirmatn',
+          'Vazirmatn',
         );
-        expect(AppFonts.vazirmatnFamily, AppFonts.vazirmatnFamily);
+        expect('Vazirmatn', AppFonts.vazirmatnFamily);
         expect(tester.takeException(), isNull);
       } finally {
         semanticsHandle.dispose();
