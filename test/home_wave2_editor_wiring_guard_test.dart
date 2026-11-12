@@ -17,10 +17,11 @@ void main() {
       5,
     );
     expect(
+      // Includes the Task Details project selector as well as Home add/edit flows.
       RegExp(r'wave2ProductFastTrack\.persistProjectSelection\(')
           .allMatches(source)
           .length,
-      5,
+      6,
     );
     expect(source, contains('projects: editorContext.projects'));
     expect(source, contains('knownCategories: editorContext.knownCategories'));
