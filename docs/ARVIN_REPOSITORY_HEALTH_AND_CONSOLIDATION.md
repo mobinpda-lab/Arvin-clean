@@ -269,4 +269,6 @@ Build `43269800292` has not completed. At the latest poll, three shards had comp
 | 19 | 5 | `test/canonical_calendar_launcher_test.dart` | repeat occurrence actions resolve back to the canonical Task | UNRESOLVED |
 | 20 | 5 | `test/report_center_page_test.dart` | Report Center quick presets apply from a dedicated bottom sheet | UNRESOLVED |
 
+Exact checkout evidence: completed Build jobs test-1 (131362983185), test-3 (131362983229), test-5 (131362983153), Analyze (131362983287), Debug APK (131362982640) and Visual (131362983182) each emitted `EXACT_TARGET_SHA=eea746dbf2a58cd4f04c66a149ae3441264da5b2`. The remaining test-0/test-4 jobs were IN_PROGRESS and test-2/Staging/Release jobs QUEUED at last poll. Device Smoke `43269800280` was still QUEUED.
+
 Do not declare the new candidate's full failure count until every shard completes. The SQLite Snapshot and Follow-up Persistence passes do not override these Build failures.
