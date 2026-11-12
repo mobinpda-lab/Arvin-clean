@@ -319,6 +319,17 @@ void main() {
       'arvin.tasks':
           '[{"id":"calendar-today","title":"موعد امروز","dueDate":"${today.toIso8601String()}"},{"id":"calendar-overdue","title":"کار عقب‌افتاده","dueDate":"${yesterday.toIso8601String()}"},{"id":"calendar-completed-overdue","title":"گذشته انجام‌شده","dueDate":"${yesterday.toIso8601String()}","completed":true},{"id":"calendar-focus-future","title":"فقط برگزیدهٔ آینده","dueDate":"${tomorrow.toIso8601String()}","isSelectedForToday":true}]',
     });
+    final storedTasks = await TaskStore().load();
+    expect(storedTasks.map((task) => task.id), containsAll([
+      'calendar-today',
+      'calendar-overdue',
+      'calendar-completed-overdue',
+      'calendar-focus-future',
+    ]));
+    expect(
+      storedTasks.singleWhere((task) => task.id == 'calendar-today').dueDate,
+      isNotNull,
+    );
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
@@ -347,6 +358,17 @@ void main() {
       'arvin.tasks':
           '[{"id":"time-today-open","title":"کار باز امروز","dueDate":"${today.toIso8601String()}"},{"id":"time-overdue-open","title":"کار باز عقب‌افتاده","dueDate":"${yesterday.toIso8601String()}"},{"id":"time-today-done","title":"کار انجام‌شده امروز","dueDate":"${today.toIso8601String()}","completed":true},{"id":"time-focus-future","title":"فقط تمرکز آینده","dueDate":"${tomorrow.toIso8601String()}","isSelectedForToday":true}]',
     });
+    final storedTasks = await TaskStore().load();
+    expect(storedTasks.map((task) => task.id), containsAll([
+      'time-today-open',
+      'time-overdue-open',
+      'time-today-done',
+      'time-focus-future',
+    ]));
+    expect(
+      storedTasks.singleWhere((task) => task.id == 'time-today-open').dueDate,
+      isNotNull,
+    );
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
