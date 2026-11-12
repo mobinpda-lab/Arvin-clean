@@ -224,4 +224,127 @@ void main() {
     expect(dueAfterRestore, isEmpty,
         reason: 'a previously delivered legacy alarm must not be reactivated');
   });
+
+  test('canonical backup file restores multiple Reminders and Follow-up Person links into a new SQLite file',
+      () async {
+    final directory = await Directory.systemTemp.createTemp(
+      'arvin-file-backup-restore-acceptance-',
+    );
+    final sourceFile = File('${directory.path}/source.sqlite');
+    final restoredFile = File('${directory.path}/restored.sqlite');
+    final backupFile = File('${directory.path}/Arvin_Backup_acceptance.json');
+    NativeDatabase? sourceDatabase;
+    NativeDatabase? restoredDatabase;
+    final person = PersonReference(
+      id: 'backup-restore-person-1',
+      displayName: 'مخاطب بازیابی',
+    );
+    final sourceTask = Task(
+      id: 'backup-restore-task-1',
+      title: 'اعتبارسنجی بازیابی فایل',
+      people: [person],
+      taskReminders: [
+        TaskReminder(
+          id: 'backup-restore-reminder-1',
+          title: 'یادآور خاموش',
+          date: DateTime(2026, 11, 13, 9),
+          sequence: 1,
+          isEnabled: false,
+        ),
+        TaskReminder(
+          id: 'backup-restore-reminder-2',
+          title: 'یادآور فعال',
+          date: DateTime(2026, 11, 14, 10),
+          sequence: 2,
+          isEnabled: true,
+        ),
+      ],
+      followUps: [
+        FollowUp(
+          id: 'backup-restore-follow-up-1',
+          completedAt: DateTime(2026, 11, 12, 11),
+          title: 'تماس ثبت‌شده',
+          note: 'سوابق باید بعد از Restore باقی بمانند',
+          result: 'منتظر پاسخ',
+          completed: true,
+          waitingForResponse: true,
+          personIds: const ['backup-restore-person-1'],
+        ),
+      ],
+    );
+
+    try {
+      // Source: persist to a real SQLite file and close it before producing
+      // the portable backup from the reloaded canonical records.
+      sourceDatabase = NativeDatabase(sourceFile);
+      await TaskStore(executor: sourceDatabase).save([sourceTask]);
+      final sourceReloaded = await TaskStore(executor: sourceDatabase).load();
+      expect(sourceReloaded, hasLength(1));
+      expect(sourceReloaded.single.taskReminders, hasLength(2));
+      expect(sourceReloaded.single.followUps.single.personIds,
+          ['backup-restore-person-1']);
+
+      final payload = <String, dynamic>{
+        'tasks': sourceReloaded.map((task) => task.toJson()).toList(),
+        'peopleDirectory': [person.toJson()],
+      };
+      final backupBytes = ArvinBackupService.encodeBackupDocument(payload);
+      await backupFile.writeAsBytes(backupBytes, flush: true);
+      await sourceDatabase.close();
+      sourceDatabase = null;
+
+      // Read and validate the actual backup file from disk, then restore into
+      // a different file-backed database rather than the original executor.
+      final bytesFromDisk = await backupFile.readAsBytes();
+      final document = await ArvinBackupService().decodeBackupBytes(
+        Uint8List.fromList(bytesFromDisk),
+      );
+      final restoredTasks = (document['tasks'] as List)
+          .map((value) => Task.fromLegacyJson(
+                Map<String, dynamic>.from(value as Map),
+              ))
+          .toList(growable: false);
+      expect(restoredTasks, hasLength(1));
+
+      restoredDatabase = NativeDatabase(restoredFile);
+      await TaskStore(executor: restoredDatabase).save(restoredTasks);
+      await restoredDatabase.close();
+      restoredDatabase = null;
+
+      // A second close/reopen verifies the restored database itself, not only
+      // the in-memory objects produced by decoding the backup document.
+      restoredDatabase = NativeDatabase(restoredFile);
+      final afterRestore = await TaskStore(executor: restoredDatabase).load();
+      expect(afterRestore, hasLength(1));
+      final restored = afterRestore.single;
+      expect(restored.id, 'backup-restore-task-1');
+      expect(restored.taskReminders.map((item) => item.id), [
+        'backup-restore-reminder-1',
+        'backup-restore-reminder-2',
+      ]);
+      expect(restored.taskReminders.map((item) => item.sequence), [1, 2]);
+      expect(restored.taskReminders.map((item) => item.isEnabled), [false, true]);
+      expect(restored.followUps.map((item) => item.id),
+          ['backup-restore-follow-up-1']);
+      expect(restored.followUps.single.personIds,
+          ['backup-restore-person-1']);
+      expect(restored.followUps.single.waitingForResponse, isTrue);
+      expect(restored.people.map((item) => item.id),
+          ['backup-restore-person-1']);
+      expect(
+        await restoredDatabase.runSelect('PRAGMA foreign_key_check', const []),
+        isEmpty,
+      );
+      final foreignKeys = await restoredDatabase.runSelect(
+        'PRAGMA foreign_keys',
+        const [],
+      );
+      expect(foreignKeys.single['foreign_keys'], 1);
+    } finally {
+      if (sourceDatabase != null) await sourceDatabase.close();
+      if (restoredDatabase != null) await restoredDatabase.close();
+      await directory.delete(recursive: true);
+    }
+  });
+
 }
