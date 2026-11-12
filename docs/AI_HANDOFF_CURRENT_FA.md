@@ -201,3 +201,30 @@ Resume SQLite P0 only after an authorized follow-on command. First perform root-
 6. Inspect the failed Build run and queued Device Smoke without cancelling valid jobs or weakening assertions.
 7. Effective Ruleset enforcement for CODEOWNER review remains pending; current ruleset requires zero approvals and does not require CODEOWNER review.
 8. Do not merge, release, deploy, rewrite history, delete user data or destroy historical evidence. Release remains NO-GO.
+
+
+## COMMAND 07-A.2.25 — continuation handoff (2026-11-12)
+
+Read the canonical typography decision first: [`docs/architecture/ARVIN_TYPOGRAPHY_CONTRACT.md`](architecture/ARVIN_TYPOGRAPHY_CONTRACT.md). Vazirmatn remains the only official/default font; System Default is the only optional preference. Historical VazirHarf assets are not active registration or branding.
+
+### Current live refs
+- PR #3384: `feature/command-07-a-sqlite-contract-remediation`, HEAD `2ac3580985a23e6ac5342d49c33343c8b4f01816`, OPEN / DRAFT / UNMERGED.
+- PR #3388: `docs/wave-0-canonical-governance`, HEAD `fe7e001ec93446d78ad327a03771c849dfd81a48`, OPEN / DRAFT / UNMERGED.
+- Main: `45e4202b03a434459e4c021a04efa7e8396359db`.
+
+### Implemented in PR #3384 since e941054
+- Replaced stale `AppFonts.vazirHarfFamily` runtime/test references with the official Vazirmatn contract.
+- Removed local forced font-family overrides from Alarm Overlay and Calendar so both inherit the root Theme and respect System Default.
+- Aligned Device Smoke scenario name to `smoke-reminder-vazirmatn` and its workflow contract test.
+- Candidate five-weight asset SHA-256 values are recorded in typography contract §16; upstream source release/commit remains to be pinned.
+
+### Immediate continuation
+1. Poll the four exact-head workflows listed in `ARVIN_PROJECT_STATE.md`; inspect Build logs and every Device Smoke lane.
+2. Confirm the full branch no longer references removed `AppFonts.vazirHarfFamily` / `familyForText` APIs. Keep unused historical VazirHarf files only as classified evidence; do not register or package them.
+3. Run the five-weight asset test, actual APK font audit on Debug/Release, PDF output inspection and Persian/RTL checks on the same acceptance SHA.
+4. Continue D01-D05 from existing snapshots. Preserve Missing/NULL/FALSE/TRUE, unknown metadata, IDs/order/person links, reminder migration, backup/restore, rollback and recovery. Do not infer acceptance from the older e941054 snapshot run.
+5. Complete all seven Device Smoke lanes on the same exact SHA.
+6. Ruleset update is still required: the active ruleset currently has zero required approvals and `require_code_owner_review=false`; CODEOWNERS alone is insufficient.
+7. Keep both PRs Draft. No merge, release, deployment, destructive data operation or history rewrite.
+
+Release: NO-GO until every required gate passes on one exact SHA.
