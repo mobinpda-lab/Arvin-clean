@@ -134,6 +134,33 @@ void main() {
         "PRAGMA index_list('tasks')",
         const [],
       );
+      // Capture the complete SQLite catalog, not only Task columns/indexes.
+      // This makes D01 evidence cover every table, explicit/automatic index,
+      // trigger definition and declared FK relationship on the same file.
+      final schemaObjects = await database.runSelect(
+        "SELECT type, name, tbl_name, sql FROM sqlite_master "
+        "WHERE type IN ('table', 'index', 'trigger') ORDER BY type, name",
+        const [],
+      );
+      final schemaTableNames = schemaObjects
+          .where((row) => row['type'] == 'table')
+          .map((row) => row['name'] as String)
+          .where((name) => !name.startsWith('sqlite_'))
+          .toList(growable: false);
+      final foreignKeyDefinitions = <String, Object?>{};
+      for (final tableName in schemaTableNames) {
+        final rows = await database.runSelect(
+          "PRAGMA foreign_key_list('$tableName')",
+          const [],
+        );
+        if (rows.isNotEmpty) foreignKeyDefinitions[tableName] = rows;
+      }
+      final schemaIndexes = schemaObjects
+          .where((row) => row['type'] == 'index')
+          .toList(growable: false);
+      final schemaTriggers = schemaObjects
+          .where((row) => row['type'] == 'trigger')
+          .toList(growable: false);
 
       return <String, Object?>{
         'phase': phase,
@@ -146,6 +173,10 @@ void main() {
         'foreign_keys_enabled': foreignKeys.single['foreign_keys'],
         'task_columns': taskColumns.map((row) => row['name']).toList(),
         'task_indexes': taskIndexes.map((row) => row['name']).toList(),
+        'schema_objects': schemaObjects,
+        'schema_indexes': schemaIndexes,
+        'schema_triggers': schemaTriggers,
+        'foreign_key_definitions': foreignKeyDefinitions,
       };
     }
 
@@ -200,6 +231,10 @@ void main() {
             'foreign_keys_enabled',
             'task_columns',
             'task_indexes',
+            'schema_objects',
+            'schema_indexes',
+            'schema_triggers',
+            'foreign_key_definitions',
           ])
             key: snapshot[key],
         };
@@ -219,9 +254,29 @@ void main() {
       expect(snapshotA['foreign_key_check'], isEmpty);
       expect(snapshotA['foreign_keys_enabled'], 1);
       expect(
-        (snapshotA['task_columns'] as List).contains('follow_up_enabled'),
-        isFalse,
+        (snapshotA['task_columns'] as List).toSet().intersection({
+          'follow_up_enabled',
+          'follow_up_date',
+          'reminder_date',
+        }),
+        isEmpty,
       );
+      final schemaNames = (snapshotA['schema_objects'] as List)
+          .whereType<Map>()
+          .map((row) => row['name'])
+          .toSet();
+      expect(schemaNames, containsAll({
+        'tasks',
+        'task_reminders',
+        'follow_up_records',
+        'follow_up_record_people',
+        'persons',
+      }));
+      final foreignKeyDefinitions =
+          snapshotA['foreign_key_definitions'] as Map<String, Object?>;
+      expect(foreignKeyDefinitions['task_reminders'], isNotEmpty);
+      expect(foreignKeyDefinitions['follow_up_records'], isNotEmpty);
+      expect(foreignKeyDefinitions['follow_up_record_people'], isNotEmpty);
 
       var store = TaskStore(executor: database);
       var loaded = await store.load();
@@ -284,7 +339,7 @@ void main() {
           'C': snapshotCValue,
           'D': snapshotDValue,
         },
-        'comparison': 'B, C and D match A for Task compatibility metadata, Reminder rows, Follow-up rows/order, Person links, Person identities, schema columns/indexes and foreign-key integrity',
+        'comparison': 'B, C and D match A for Task compatibility metadata, Reminder rows, Follow-up rows/order, Person links, Person identities, full sqlite_master catalog (tables/indexes/triggers), declared foreign-key definitions, columns and foreign-key integrity',
       };
 
       final artifactDirectory = Directory('build/arvin-command-07-a2-20');
