@@ -26,7 +26,7 @@ void main() {
     await CenterStore.resetTestDatabase();
   });
 
-  testWidgets('Home exposes the four canonical REV5 filter controls', (tester) async {
+  testWidgets('Home exposes the five canonical owner-approved filter controls', (tester) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
