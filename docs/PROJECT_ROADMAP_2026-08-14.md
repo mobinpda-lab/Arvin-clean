@@ -229,3 +229,27 @@ Candidate SHA: `75737f4fb95b4357e8b6e0511ee2443c6aa5aff4`.
 - Expanded D01 full schema catalog, D04 file-based Restore into a separate SQLite file, and D05 migration-recovery tests are included but not yet executed on this candidate.
 - Build is PENDING; SQLite Snapshot, Follow-up and Device Smoke are QUEUED. Continue polling without duplicate runs.
 - No PDF, APK or Device Smoke acceptance is issued until exact-head jobs complete and artifacts/logs are inspected.
+
+## COMMAND 07-A.2.28.3 — PDF audit root-cause and exact-head continuation (2026-11-12)
+
+Current product branch candidate at documentation checkpoint: `9a07f4680c49bc8c4246e2bf30b2cd4eaddd2e4e`.
+
+### PDF evidence from prior candidate `75737f4...`
+- PDF sample was generated successfully by the PDF typography test; size 18,334 bytes.
+- `pdffonts` reported `Vazirmatn-Bold` and `Vazirmatn-Regular`, both embedded (`emb=yes`) with Unicode mapping (`uni=yes`).
+- The actual PDF was downloaded from the run artifact, extracted with Poppler, and rendered to PNG. Manual visual inspection showed connected Persian glyphs, readable RTL layout, half-space text, Persian digits, mixed Persian/English, and Regular/Bold content.
+- PDF file SHA-256: `9cd1f26a4e565be2b8e1e29b67aedaaa0266e73c5ec7a3fb439b4a817d3147cb`.
+- Artifact ZIP SHA-256: `bd3fdcbe83b0ffdf2ffad819b05bec8d7769c01ea2000c6b76bfe178f0c2c7e3`; artifact ID `13949126911`; Run `43224808961`.
+
+### Harness defects found and corrected
+The visual job failed after the PDF generation test itself passed. Root cause 1: the `pdffonts` awk audit used incorrect whitespace-token field positions for `emb` and `uni`. Corrected in commit `97effacf705ae10e43760eec4e50d0905def11fa` (`$5` = emb, `$7` = uni).
+Manual Poppler extraction then confirmed mixed-direction text is emitted in visual order inside the RTL paragraph; the English date appears as `12-11-2026`, and the company label as `Example Ltd`. The extraction assertions were aligned with that observed output in commit `9a07f4680c49bc8c4246e2bf30b2cd4eaddd2e4e`. No product assertions were removed.
+
+The visual PASS from the previous candidate is not transferable. The complete PDF audit must pass again on `9a07f468...` or the later exact candidate, including embedded font check, text extraction, PNG rendering and preserved artifact.
+
+### Latest relevant candidate commits
+- `75737f4...`: build workflow added upstream Vazirmatn Git blob provenance, per-file SHA-256 reporting, OFL license check, APK asset path audit, and legacy runtime-reference guard.
+- `97effacf...`: corrected PDF font audit column parsing.
+- `9a07f468...`: aligned mixed RTL text extraction checks with observed Poppler output.
+
+Do not report PDF or APK acceptance on the current candidate until the exact-head Build workflow completes successfully and all three APK jobs plus font packaging audits produce verifiable artifacts.
