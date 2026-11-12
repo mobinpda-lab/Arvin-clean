@@ -78,6 +78,7 @@ class AppSettings {
     required this.themeMode,
     required this.usePersianDate,
     this.fontSize = 16.0,
+    this.fontPreference = 'vazirmatn',
     this.swipeRightAction = TaskSwipeAction.trash,
     this.swipeLeftAction = TaskSwipeAction.archive,
     this.calendarIntegration = const CalendarIntegrationSettings(),
@@ -86,6 +87,7 @@ class AppSettings {
   final ThemeMode themeMode;
   final bool usePersianDate;
   final double fontSize;
+  final String fontPreference;
   final TaskSwipeAction swipeRightAction;
   final TaskSwipeAction swipeLeftAction;
   final CalendarIntegrationSettings calendarIntegration;
@@ -94,6 +96,7 @@ class AppSettings {
     ThemeMode? themeMode,
     bool? usePersianDate,
     double? fontSize,
+    String? fontPreference,
     TaskSwipeAction? swipeRightAction,
     TaskSwipeAction? swipeLeftAction,
     CalendarIntegrationSettings? calendarIntegration,
@@ -102,6 +105,7 @@ class AppSettings {
       themeMode: themeMode ?? this.themeMode,
       usePersianDate: usePersianDate ?? this.usePersianDate,
       fontSize: fontSize ?? this.fontSize,
+      fontPreference: fontPreference ?? this.fontPreference,
       swipeRightAction: swipeRightAction ?? this.swipeRightAction,
       swipeLeftAction: swipeLeftAction ?? this.swipeLeftAction,
       calendarIntegration: calendarIntegration ?? this.calendarIntegration,
@@ -113,6 +117,7 @@ class AppSettingsService {
   static const _themeModeKey = 'arvin.settings.themeMode';
   static const _persianDateKey = 'arvin.settings.usePersianDate';
   static const _fontSizeKey = 'arvin.settings.fontSize';
+  static const _fontPreferenceKey = 'arvin.settings.fontPreference';
   static const _swipeRightKey = 'arvin.settings.swipeRightAction';
   static const _swipeLeftKey = 'arvin.settings.swipeLeftAction';
 
@@ -143,6 +148,7 @@ class AppSettingsService {
       themeMode: _decodeThemeMode(preferences.getString(_themeModeKey)),
       usePersianDate: preferences.getBool(_persianDateKey) ?? true,
       fontSize: _normalizeFontSize(preferences.getDouble(_fontSizeKey)),
+      fontPreference: _decodeFontPreference(preferences.getString(_fontPreferenceKey)),
       swipeRightAction: _decodeSwipeAction(
         preferences.getString(_swipeRightKey),
         fallback: TaskSwipeAction.trash,
@@ -163,6 +169,14 @@ class AppSettingsService {
   Future<void> saveUsePersianDate(bool enabled) async {
     final preferences = await SharedPreferences.getInstance();
     await preferences.setBool(_persianDateKey, enabled);
+  }
+
+  Future<void> saveFontPreference(String preference) async {
+    if (preference != 'vazirmatn' && preference != 'system-default') {
+      throw ArgumentError.value(preference, 'preference', 'Unsupported Arvin font preference');
+    }
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setString(_fontPreferenceKey, preference);
   }
 
   Future<void> saveFontSize(double size) async {
@@ -391,6 +405,7 @@ class AppSettingsService {
     await preferences.setString(_themeModeKey, settings.themeMode.name);
     await preferences.setBool(_persianDateKey, settings.usePersianDate);
     await preferences.setDouble(_fontSizeKey, _normalizeFontSize(settings.fontSize));
+    await preferences.setString(_fontPreferenceKey, _decodeFontPreference(settings.fontPreference));
     await preferences.setString(_swipeRightKey, _normalizeSwipeAction(settings.swipeRightAction).name);
     await preferences.setString(_swipeLeftKey, _normalizeSwipeAction(settings.swipeLeftAction).name);
   }
@@ -432,6 +447,9 @@ class AppSettingsService {
           preferences.getBool(_calendarDeleteLinkedKey) ?? false,
     );
   }
+
+  String _decodeFontPreference(String? raw) =>
+      raw == 'system-default' ? 'system-default' : 'vazirmatn';
 
   ThemeMode _decodeThemeMode(String? raw) {
     return ThemeMode.values.where((mode) => mode.name == raw).firstOrNull ??
