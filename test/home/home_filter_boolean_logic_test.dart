@@ -44,6 +44,8 @@ void main() {
     await tester.ensureVisible(categoryFilter);
     await tester.tap(categoryFilter);
     await tester.pumpAndSettle();
+    tester.testTextInput.hide();
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('multi-select-option-شخصی')));
     await tester.tap(find.byKey(const ValueKey('multi-select-option-کاری')));
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
@@ -52,6 +54,8 @@ void main() {
     final tagFilter = find.byKey(const ValueKey('home-filter-card-tags'));
     await tester.ensureVisible(tagFilter);
     await tester.tap(tagFilter);
+    await tester.pumpAndSettle();
+    tester.testTextInput.hide();
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('multi-select-option-خانه')));
     await tester.tap(find.byKey(const ValueKey('multi-select-option-اداری')));
