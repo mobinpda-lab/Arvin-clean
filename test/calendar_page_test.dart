@@ -725,6 +725,12 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    final prayerTitle = find.text('نماز صبح');
+    await tester.scrollUntilVisible(
+      prayerTitle,
+      180,
+      scrollable: find.byType(Scrollable).last,
+    );
     expect(find.byIcon(Icons.mosque), findsWidgets);
     final status = tester.widget<Text>(find.text('ثبت نشده'));
     expect(status.style?.fontSize, 11);
