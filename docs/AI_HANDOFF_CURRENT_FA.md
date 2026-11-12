@@ -354,3 +354,7 @@ The visual PASS from the previous candidate is not transferable. The complete PD
 - `9a07f468...`: aligned mixed RTL text extraction checks with observed Poppler output.
 
 Do not report PDF or APK acceptance on the current candidate until the exact-head Build workflow completes successfully and all three APK jobs plus font packaging audits produce verifiable artifacts.
+
+### PDF extraction normalization follow-up — 2026-11-12
+
+Manual extraction of the actual PDF from Run `43224808961` showed Poppler returns shaped Arabic glyphs in presentation-form code points, while the rendered PNG is visually connected and legible. Raw extraction is retained. Commit `ee200b573ef70df8101c77de2a68241192898244` now creates a second NFKC-normalized extraction artifact before semantic assertions, preserving both raw and normalized evidence. This is a harness normalization step; it does not change the PDF renderer or its font binaries. Re-run the complete PDF workflow on the current exact product SHA before claiming PDF acceptance.
