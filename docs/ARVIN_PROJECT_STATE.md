@@ -368,3 +368,7 @@ The completed Regression shard logs also expose the following narrower acceptanc
 - D05 supporting tests `failed migration leaves the complete legacy document unchanged`, `transaction rolls back all rows when one relation violates SQL constraints`, and `re-running the same migration is idempotent` reported PASS. Interrupted migration/recovery after an injected mid-flight interruption remains unverified.
 
 These distinctions prevent a narrow passing test from being promoted into a full D01, D03, D04 or D05 acceptance claim.
+
+### Staging completion correction — 46f7b28... (later poll)
+
+The earlier interim statement that Staging was still running has been superseded. Staging job `131251173638` completed SUCCESS on `46f7b28e6631310b4617da5e717565470f7ecdbe`. Staging APK artifact ID `13957987267`; artifact ZIP SHA-256 `d380b5f028799fa3f3c7fafd5e80c79d56b1c1a151036ea8073c6e7ee35258f8`; extracted APK size 80,373,632 bytes; APK SHA-256 `b61bc476b29c5a862c007c493729f9b7d74f394a995fb8edd09981b27869b875`. The extracted Staging APK contains all five Vazirmatn weights and LICENSE.txt; all five embedded font hashes match the corrected source hashes. The staging workflow explicitly reported the provenance, APK content, legacy-font purge, OFL 1.1 license and Vazirmatn five-weight gate as PASS. This closes the Staging APK artifact requirement only for the historical `46f7b28...` candidate; the current `492a5c4...` still needs its own Staging build.
