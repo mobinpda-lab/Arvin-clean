@@ -503,3 +503,13 @@ All evidence below is ref-specific. This documentation snapshot did not dispatch
 - No result from this snapshot may be attributed to a SHA other than the one explicitly listed.
 - APK artifact digests were recorded in the preceding SQLite audit; this WAVE did not create or download new artifacts.
 - A green orchestration run, a successful narrow persistence workflow, an APK build, or a pending Device Smoke run does not establish SQLite data-integrity acceptance.
+
+
+## COMMAND 07-A.2.24 evidence addendum — 2026-11-12
+
+- Main HEAD: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- PR #3384 exact head: `cbf7d241e588c6b4b6051dea5bb3d309a8c3cb05`.
+- Build run 43202151547 = failure; SQLite Snapshot 43202151552 = success; Follow-up File Persistence 43202151499 = success; Device Smoke 43202151481 = queued; Draft Review APK 43202151478 = skipped.
+- No exact-SHA APK artifact digest, five-weight APK inspection, PDF font resource inspection, or device visual acceptance is established by this addendum.
+- Ruleset `main-protection` is active but currently has zero required approving reviews and `require_code_owner_review=false`; bypass actors list is empty and current user can bypass is `never`. CODEOWNERS has been added to the docs branch but effective enforcement is not yet enabled.
+- Historical evidence must not be transferred between SHAs.
