@@ -24,6 +24,11 @@ Future<void> _ensureReportFilterTargetVisible(
   await tester.pumpAndSettle();
 }
 
+Finder _reportFilterScrollable() => find.descendant(
+      of: find.byKey(const ValueKey('report-filter-scroll')),
+      matching: find.byType(Scrollable),
+    ).last;
+
 void main() {
   testWidgets('Report Center opens an Arvin bottom-sheet filter panel', (tester) async {
     await tester.pumpWidget(
@@ -144,7 +149,7 @@ void main() {
       await tester.scrollUntilVisible(
         find.byKey(const ValueKey('report-filter-category-کار')),
         200,
-        scrollable: find.byType(Scrollable).last,
+        scrollable: _reportFilterScrollable(),
       );
       await tester.tap(find.byKey(const ValueKey('report-filter-category-کار')));
       await tester.pumpAndSettle();
@@ -154,7 +159,7 @@ void main() {
       await tester.scrollUntilVisible(
         find.byKey(const ValueKey('report-filter-apply')),
         200,
-        scrollable: find.byType(Scrollable).last,
+        scrollable: _reportFilterScrollable(),
       );
       await tester.tap(find.byKey(const ValueKey('report-filter-apply')));
       await tester.pumpAndSettle();
@@ -217,14 +222,14 @@ void main() {
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('report-filter-section-نوع')),
       200,
-      scrollable: find.byType(Scrollable).last,
+      scrollable: _reportFilterScrollable(),
     );
     await tester.tap(find.byKey(const ValueKey('report-filter-section-نوع')));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
       find.text('منتظر پاسخ'),
       200,
-      scrollable: find.byType(Scrollable).last,
+      scrollable: _reportFilterScrollable(),
     );
     await tester.tap(find.byKey(const ValueKey('report-filter-section-نوع')));
     await tester.pumpAndSettle();
@@ -233,7 +238,7 @@ void main() {
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('report-filter-apply')),
       200,
-      scrollable: find.byType(Scrollable).last,
+      scrollable: _reportFilterScrollable(),
     );
     await tester.tap(find.byKey(const ValueKey('report-filter-apply')));
     await tester.pumpAndSettle();
@@ -259,7 +264,7 @@ void main() {
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('report-filter-person-ana')),
       200,
-      scrollable: find.byType(Scrollable).last,
+      scrollable: _reportFilterScrollable(),
     );
     await tester.tap(find.byKey(const ValueKey('report-filter-person-ana')));
     await tester.pumpAndSettle();
@@ -268,7 +273,7 @@ void main() {
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('report-filter-apply')),
       200,
-      scrollable: find.byType(Scrollable).last,
+      scrollable: _reportFilterScrollable(),
     );
     await tester.tap(find.byKey(const ValueKey('report-filter-apply')));
     await tester.pumpAndSettle();
@@ -321,7 +326,7 @@ void main() {
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('report-filter-person-person-deleted-stable-id')),
       200,
-      scrollable: find.byType(Scrollable).last,
+      scrollable: _reportFilterScrollable(),
     );
 
     expect(find.text('شخص حذف‌شده'), findsOneWidget);
@@ -370,7 +375,7 @@ void main() {
     await tester.scrollUntilVisible(
       typeSection,
       200,
-      scrollable: find.byType(Scrollable).last,
+      scrollable: _reportFilterScrollable(),
     );
     await tester.ensureVisible(typeSection);
     await tester.pumpAndSettle();
@@ -404,28 +409,28 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('report-center-filters')));
     await tester.pumpAndSettle();
     final centerSection = find.byKey(const ValueKey('report-filter-section-مرکز'));
-    await tester.scrollUntilVisible(centerSection, 240, scrollable: find.byType(Scrollable).last);
+    await tester.scrollUntilVisible(centerSection, 240, scrollable: _reportFilterScrollable());
     await tester.ensureVisible(centerSection);
     await tester.pumpAndSettle();
     await tester.tap(centerSection);
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('report-filter-center-button')));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-center-511')), 240, scrollable: find.byType(Scrollable).last);
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-center-511')), 240, scrollable: _reportFilterScrollable());
     expect(find.byKey(const ValueKey('report-filter-center-511')), findsOneWidget);
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
     final taskSection = find.byKey(const ValueKey('report-filter-section-کار'));
-    await tester.scrollUntilVisible(taskSection, 240, scrollable: find.byType(Scrollable).last);
+    await tester.scrollUntilVisible(taskSection, 240, scrollable: _reportFilterScrollable());
     await tester.tap(taskSection);
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-task-search')), 240, scrollable: find.byType(Scrollable).last);
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-task-search')), 240, scrollable: _reportFilterScrollable());
     expect(find.byKey(const ValueKey('report-filter-task-search')), findsOneWidget);
     expect(find.byKey(const ValueKey('report-filter-task-t511')), findsOneWidget);
-    await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-section-قالب پروژه')), 240, scrollable: find.byType(Scrollable).last);
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-section-قالب پروژه')), 240, scrollable: _reportFilterScrollable());
     await tester.tap(find.byKey(const ValueKey('report-filter-section-قالب پروژه')));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-template-tpl')), 240, scrollable: find.byType(Scrollable).last);
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-template-tpl')), 240, scrollable: _reportFilterScrollable());
     expect(find.byKey(const ValueKey('report-filter-template-tpl')), findsOneWidget);
     expect(find.byKey(const ValueKey('report-filter-template-search')), findsOneWidget);
   });
@@ -497,43 +502,43 @@ void main() {
     await tester.pumpAndSettle();
 
     final categorySection = find.byKey(const ValueKey('report-filter-section-دسته'));
-    await tester.scrollUntilVisible(categorySection, 180, scrollable: find.byType(Scrollable).last);
+    await tester.scrollUntilVisible(categorySection, 180, scrollable: _reportFilterScrollable());
     await tester.tap(categorySection);
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('report-filter-category-button')));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-category-اداری')), 180, scrollable: find.byType(Scrollable).last);
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-category-اداری')), 180, scrollable: _reportFilterScrollable());
     await tester.tap(find.byKey(const ValueKey('report-filter-category-اداری')));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-category-شخصی')), 180, scrollable: find.byType(Scrollable).last);
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-category-شخصی')), 180, scrollable: _reportFilterScrollable());
     await tester.tap(find.byKey(const ValueKey('report-filter-category-شخصی')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
     final tagSection = find.byKey(const ValueKey('report-filter-section-برچسب'));
-    await tester.scrollUntilVisible(tagSection, 180, scrollable: find.byType(Scrollable).last);
+    await tester.scrollUntilVisible(tagSection, 180, scrollable: _reportFilterScrollable());
     await tester.tap(tagSection);
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('report-filter-tag-button')));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-tag-مهم')), 180, scrollable: find.byType(Scrollable).last);
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-tag-مهم')), 180, scrollable: _reportFilterScrollable());
     await tester.tap(find.byKey(const ValueKey('report-filter-tag-مهم')));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-tag-فوری')), 180, scrollable: find.byType(Scrollable).last);
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-tag-فوری')), 180, scrollable: _reportFilterScrollable());
     await tester.tap(find.byKey(const ValueKey('report-filter-tag-فوری')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
     final statusSection = find.byKey(const ValueKey('report-filter-section-وضعیت کار'));
-    await tester.scrollUntilVisible(statusSection, 180, scrollable: find.byType(Scrollable).last);
+    await tester.scrollUntilVisible(statusSection, 180, scrollable: _reportFilterScrollable());
     await tester.tap(statusSection);
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-status-open')), 180, scrollable: find.byType(Scrollable).last);
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-status-open')), 180, scrollable: _reportFilterScrollable());
     await tester.tap(find.byKey(const ValueKey('report-filter-status-open')));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-status-completed')), 180, scrollable: find.byType(Scrollable).last);
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('report-filter-status-completed')), 180, scrollable: _reportFilterScrollable());
     await tester.tap(find.byKey(const ValueKey('report-filter-status-completed')));
     await tester.pumpAndSettle();
 
@@ -677,7 +682,7 @@ void main() {
     await tester.scrollUntilVisible(
       presets,
       180,
-      scrollable: find.byKey(const ValueKey('report-filter-scroll')),
+      scrollable: _reportFilterScrollable(),
     );
     await tester.pumpAndSettle();
     await tester.tap(presets);
