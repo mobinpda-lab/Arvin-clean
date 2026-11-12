@@ -39,7 +39,7 @@ void main() {
     expect(source, contains('effectiveFontFamily'));
   });
 
-  test('pubspec declares the pinned VazirHarf UI Persian-digit weights', () {
+  test('pubspec declares the official Vazirmatn five-weight family', () {
     final source = File('pubspec.yaml').readAsStringSync();
 
     expect(source, contains('family: Vazirmatn'));
