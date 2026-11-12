@@ -75,7 +75,7 @@ void main() {
     expect(
       Theme.of(tester.element(find.byKey(const ValueKey('home-title-block'))))
           .textTheme.titleLarge?.fontFamily,
-      AppFonts.vazirmatnFamily,
+      AppFonts.vazirHarfFamily,
     );
     expect(homeTitle.style?.fontFamily, isNull);
     expect(find.byKey(const ValueKey('home-filter-card-time')), findsOneWidget);

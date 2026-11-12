@@ -240,7 +240,7 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
     final baseTheme = Theme.of(context);
     final themed = baseTheme.copyWith(
       textTheme: baseTheme.textTheme.apply(
-        fontFamily: AppFonts.vazirmatnFamily,
+        fontFamily: AppFonts.vazirHarfFamily,
       ),
     );
     return Theme(
@@ -405,7 +405,7 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
               side: BorderSide(color: foreground, width: 1.5),
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
               textStyle: textTheme.labelLarge?.copyWith(
-                fontFamily: AppFonts.vazirmatnFamily,
+                fontFamily: AppFonts.vazirHarfFamily,
                 fontWeight: FontWeight.w600,
               ),
             )
@@ -414,7 +414,7 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
               foregroundColor: foreground,
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
               textStyle: textTheme.labelLarge?.copyWith(
-                fontFamily: AppFonts.vazirmatnFamily,
+                fontFamily: AppFonts.vazirHarfFamily,
                 fontWeight: FontWeight.w600,
               ),
             );
@@ -484,7 +484,7 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: textTheme.titleLarge?.copyWith(
-                                  fontFamily: AppFonts.vazirmatnFamily,
+                                  fontFamily: AppFonts.vazirHarfFamily,
                                   fontSize: 23,
                                   fontWeight: FontWeight.w700,
                                   color: const Color(0xFF25243A),
@@ -498,7 +498,7 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: textTheme.bodyMedium?.copyWith(
-                                  fontFamily: AppFonts.vazirmatnFamily,
+                                  fontFamily: AppFonts.vazirHarfFamily,
                                   fontSize: 14,
                                   color: const Color(0xFF777487),
                                 ),
@@ -515,7 +515,7 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
                           key: const ValueKey('alarm-overlay-reminder-time'),
                           textAlign: TextAlign.left,
                           style: textTheme.headlineSmall?.copyWith(
-                            fontFamily: AppFonts.vazirmatnFamily,
+                            fontFamily: AppFonts.vazirHarfFamily,
                             fontSize: 27,
                             fontWeight: FontWeight.w800,
                             color: const Color(0xFF25243A),

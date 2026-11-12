@@ -126,9 +126,9 @@ void main() {
   
         expect(
           AppFonts.familyForText('متن عادی رابط کاربری'),
-          AppFonts.vazirmatnFamily,
+          AppFonts.vazirHarfFamily,
         );
-        expect(AppFonts.familyForText('آروین'), AppFonts.vazirmatnFamily);
+        expect(AppFonts.familyForText('آروین'), AppFonts.vazirHarfFamily);
         expect(tester.takeException(), isNull);
       } finally {
         semanticsHandle.dispose();

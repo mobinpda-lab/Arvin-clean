@@ -77,7 +77,7 @@ void main() {
         find.byKey(const ValueKey('alarm-overlay-task-title')),
       );
       expect(title.style?.fontFamily, AppFonts.vazirHarfFamily);
-      expect(Directionality.of(tester.element(title)), TextDirection.rtl);
+      expect(Directionality.of(tester.element(find.byKey(const ValueKey('alarm-overlay-task-title')))), TextDirection.rtl);
       expect(title.data, contains('آزمون نمایش یادآور'));
 
       await binding.convertFlutterSurfaceToImage();
