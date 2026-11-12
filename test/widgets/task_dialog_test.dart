@@ -40,7 +40,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('+ افزودن برچسب'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField).last, 'مهم');
+    await tester.enterText(find.byType(TextField, skipOffstage: false).last, 'مهم');
     await tester.tap(find.text('افزودن').last);
     await tester.pumpAndSettle();
     await tester.tap(find.text('اعمال'));
