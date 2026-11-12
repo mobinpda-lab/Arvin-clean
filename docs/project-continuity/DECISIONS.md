@@ -20,3 +20,6 @@
 | 2026-11-12 | فونت رسمی رابط کاربری | VazirHarf v34.003 از variant UI-Farsi-Digits، پنج وزن 300/400/500/600/700 و مجوز OFL 1.1، فونت canonical برنامه است. فایل‌های Vazirmatn حذف نمی‌شوند و فقط از runtime خارج می‌مانند. | انطباق با تصمیم مالک محصول و منبع/مجوز واقعی؛ جلوگیری از حذف فایل‌های legacy بدون بررسی سازگاری. |
 | 2026-11-12 | SQLite P0 و شواهد Reopen | Snapshotهای A-D و پنج چرخه file-backed Reopen روی SHA دقیق ثبت می‌شوند؛ حفظ Missing/NULL/boolean، metadata ناشناخته، شناسه/ترتیب Reminder و Follow-up و Person links باید قابل اثبات باشد. | جلوگیری از پذیرش مبتنی بر تست‌های قدیمی یا جابه‌جایی شواهد میان SHAها. |
 | 2026-11-12 | سیاست پذیرش COMMAND 07-A.2.21 | Analyze، شش Shard، Visual، سه APK و هفت Device Smoke باید روی یک SHA واحد موفق باشند. | نتیجه موفق یک workflow یا SHA دیگر به‌تنهایی مجوز پذیرش نیست. |
+
+
+| 2026-11-12 | Owner-approved official typography — COMMAND 07-A.2.24 | Vazirmatn is the only official/default font. VazirHarf is not an official or fallback brand font. Exactly two user choices are permitted: Vazirmatn (Official Default) and System Default (Optional User Preference). | Latest explicit written Product Owner decision; supersedes conflicting historical font decisions without deleting their records. Any future change requires Mobin's explicit written approval. |
