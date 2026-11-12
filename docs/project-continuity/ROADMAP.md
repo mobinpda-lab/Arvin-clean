@@ -474,3 +474,23 @@ Do not promote a prior-candidate PASS to the new candidate. No release gate can 
 - First attempt `eea746d...` is INCOMPLETE: it inserts a parent row into `tasks` before the fixture creates that table; test-5 fails with `no such table: tasks`.
 - Next attempt must create the schema-compatible `tasks` table first, insert the parent, then add the malformed relation. Keep the actual Foreign Key and rollback assertions enabled.
 - D01 and D05 remain INCOMPLETE. Do not report Migration recovery as fixed until malformed-payload failure, source retention, FK check, repair/retry and same-executor reopen pass on one exact SHA.
+
+
+---
+
+## COMMAND 07-A.2.34 — live execution priorities (2026-11-12)
+
+### P0 — active
+1. SQLite D01–D05: schema compatibility, four-state value semantics, Follow-up/Person parity, independent Backup/Restore, atomic rollback/recovery and retry.
+2. Regression recovery: 61 failure records remain on historical candidate `eea746d...`; classify individually and validate all fixes on a new exact SHA.
+3. Home clock consistency: injectable Iran clock committed; CI verification pending.
+4. Home Follow-up: latest real Follow-up presentation integrated into expanded Task card; CI verification pending.
+5. Category / Project / Tag CRUD, relationship integrity, deletion policy and cross-feature workflows.
+6. Vazirmatn-only typography, PDF validation, APK font audit and seven Device Smoke scenarios.
+
+### P1 — continuous
+- Evidence-based repository/workflow/branch/PR consolidation.
+- Preserve diagnostic PRs #3380 and #3382 and their unique evidence.
+- Resolve the documentation authority conflict between REV9 PR #3340 and v49-era PR #3388 without merging or deleting either lane.
+
+No gate is accepted by implementation alone. All final evidence must be reproduced on one exact candidate SHA.
