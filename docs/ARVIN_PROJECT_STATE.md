@@ -495,3 +495,45 @@ Shard 0 and Shard 2 together account for the current 32 failure records on `492a
 - SQLite Snapshot `43269800257` and Follow-up Persistence `43269800526` passed on `eea746d...`; Device Smoke `43269800280` remains queued.
 - Home clock defect remains open: `_iranWallClockNow()` uses `IranClock.now()`, `_groupJalaliDate()` uses `DateTime.now()`; add one injectable `nowProvider` and the 09:00/10:00 test.
 - Current disposition: NO-GO. No merge, release or deployment.
+
+
+## COMMAND 07-A.2.34 — live continuity checkpoint (2026-11-12)
+
+### Verified repository refs
+- Main HEAD: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Prior staging branch `staging/command-07-a2-33-recovery` still exists; current HEAD: `1db6675958b27674e9f46d9c9ea68009f546f96d`. The previously reported starting SHA is historical, not its current HEAD.
+- Execution PR #3384 remains OPEN / DRAFT / UNMERGED. Head branch `feature/command-07-a-sqlite-contract-remediation`, exact HEAD `eea746dbf2a58cd4f04c66a149ae3441264da5b2`, base `fix/wave3-cycle3-calendar-product-repair` at `8c4c23f0c2a4f9b2374a2092c931782c4455fd41`.
+- Diagnostic PR #3380 remains OPEN / DRAFT / UNMERGED at `33a8fb14a9979d0d86775cb5457970c7e445077b`.
+- Diagnostic PR #3382 remains OPEN / DRAFT / UNMERGED at `adee525e94fa2daec617255d57f9cfb65e3efe66`; its base is PR #3380's branch.
+- Documentation PR #3388 remains OPEN / DRAFT / UNMERGED at `428f311e79670b87cd781689c781757e15c42b7f`, based on Main `45e4202b03a434459e4c021a04efa7e8396359db`.
+- No merge, release, deployment, force-push, branch deletion or PR closure was performed.
+
+### Exact-SHA CI evidence — execution candidate eea746d
+- Build run `43269800292`: Analyze PASS; all six test shards completed with 1,338 passed and 61 failed. Shard failures: test-0 11, test-1 1, test-2 21, test-3 9, test-4 9, test-5 10. The historical 61-record inventory is still applicable to this candidate.
+- SQLite Snapshot run `43269800257`: PASS; artifact `13966864535`. The workflow records A-D SQL snapshots and five file-backed reopen cycles; it does not alone establish full D01-D05 acceptance.
+- Follow-up file persistence run `43269800526`: PASS.
+- Device Smoke run `43269800280`: preparation PASS; all seven scenario jobs were QUEUED at the recorded poll. No seven-scenario PASS.
+- Build run `43269800292` jobs: Debug APK PASS, Staging APK PASS (signature and font audit steps passed), Release APK build PASS, Visual/PDF PASS. These are build/validation results only and do not authorize publication or release.
+- Artifacts on run `43269800292`: Debug APK `13967359845`; Staging APK `13970421345`; Staging audit candidate `13970940761`; staging verification `13970775906`; Release APK build output `13970182012`; Persian PDF `13968003602`. APK/font SHA256 extraction and provenance reconciliation remain to be recorded.
+- The current six-shard failures include missing-widget/finders, data/date expectation mismatches, StateErrors and a SQLite `no such table: tasks` fixture error. Do not classify all failures as harness defects; each requires test identity, source inspection and root-cause evidence.
+
+### SQLite and typography disposition
+- D01-D04 have partial supporting implementation/tests and snapshot evidence, but are not accepted as complete gates. D05 controlled failure injection, source preservation, rollback, corrected-fixture retry and reopened recovery remain NOT VERIFIED.
+- Candidate source includes transaction/rollback handling, a pre-commit `PRAGMA foreign_key_check`, and fail-closed handling for unknown Task schema objects during legacy-column retirement. Source inspection is not a substitute for D05 execution.
+- Candidate `pubspec.yaml` declares five Vazirmatn weights (300/400/500/600/700) and the registry offers only Vazirmatn and System Default. The candidate tree still contains unreferenced VazirHarf assets/provenance files; retain them pending a documented historical/effective-use decision, but do not treat VazirHarf as an official or bundled font.
+- PDF generation/render/font inspection succeeded in the Visual job on this SHA. Actual independent SHA256 values for APK and font files remain to be recorded.
+
+### Governance and repository structure
+- Active repository ruleset `main-protection` applies to `refs/heads/main` and blocks deletion and non-fast-forward updates; PR rule is active. The ruleset currently requires zero approving reviews and does not require CODEOWNER review.
+- `.github/CODEOWNERS` is absent from Main and is proposed by documentation PR #3388; it is not active on Main before merge.
+- Existing six continuity files are under `docs/project-continuity/` on the execution branch. PR #3388 updates a parallel set of documents under `docs/`. Map document roles and resolve the competing governance line before any documentation merge; do not create duplicate generic root files.
+- Main-side scheduled/queued orchestration runs are not acceptance evidence for execution SHA `eea746d...`.
+
+### Current disposition and next actions
+- Mission status: IMPLEMENTATION IN PROGRESS; acceptance remains BLOCKED.
+- First P0 action: inspect and repair the 61 failures individually, beginning with the SQLite fixture failure and data/date expectation mismatches, without deleting or weakening assertions.
+- In parallel, finish isolated D01-D05 execution including injected failure/rollback/retry and independent-file Backup/Restore; record actual tested SHA for each gate.
+- Complete seven Device Smoke scenarios and record device/emulator, OS, logs and exact SHA.
+- Reconcile Vazirmatn APK/font SHA256 provenance and the unused VazirHarf assets without destroying historical evidence.
+- Continue product-process tests for Category, Project, Tag, Person, Task, Reminder and Follow-up relationships; document referenced-entity deletion policy.
+- Keep all PRs Draft and unmerged. No release/deployment authorization is implied.
