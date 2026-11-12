@@ -339,3 +339,40 @@ No result from candidate SHA `0aa1645...` transfers to `46f7b28...`. The new exa
 - Font preference after OS-level process termination/restart: PENDING.
 - CODEOWNERS file exists on the documentation PR branch, but effective GitHub Ruleset enforcement and bypass restrictions are not verified by this evidence.
 - PR #3384 and PR #3388 remain Draft and unmerged.
+
+## 21. Exact-head font checksum and artifact verification — COMMAND 07-A.2.30
+
+**Product candidate checked:** `46f7b28e6631310b4617da5e717565470f7ecdbe`  
+**Upstream repository:** `rastikerdar/vazirmatn`  
+**Exact upstream source commit:** `6e553e33489a8f9dfaccc76860a2e3f3c1e66de7`  
+**Build workflow:** `43238200093`
+
+The five source TTF SHA-256 values below were emitted by the exact-head APK font audit and independently matched against the five font entries extracted from both Debug and Release APKs. The source Git blob IDs and byte lengths also matched the pinned upstream commit.
+
+| Weight | Source file | Bytes | Upstream Git blob SHA | Source SHA-256 | Embedded APK SHA-256 |
+|---:|---|---:|---|---|---|
+| 300 Light | `Vazirmatn-Light.ttf` | 122,920 | `2dfd5c35ed4c26f7ce9f3ba753f11d9a38356c42` | `9ab4f094b861b7d4e318f01953b9771ddeb189d7c79bbb3989d5a95a4b07ff60` | Same — PASS |
+| 400 Regular | `Vazirmatn-Regular.ttf` | 122,752 | `64e4a8189557a17b63fd7a77794207483e592972` | `b69fd4c680b8f3f225feabcc655a2c585d97627b8f5f5c0f9985e894069f3a56` | Same — PASS |
+| 500 Medium | `Vazirmatn-Medium.ttf` | 122,656 | `1e08dd54d90a4879451ef0f80fe0d8068fb7462f` | `b986623e4ddef10755e04be39f8ea7bcb1dc08bfe8dd0aa6af395736f256ad4a` | Same — PASS |
+| 600 SemiBold | `Vazirmatn-SemiBold.ttf` | 122,920 | `6b3842aca6055c8258404b1758133b81c961a13f` | `3f239d8364c14ee32c46b6839fa197c28958358b82a9673d2c6acc8506d78bc5` | Same — PASS |
+| 700 Bold | `Vazirmatn-Bold.ttf` | 123,036 | `efa9b095da01d299310bdcae293e24e657fe6da9` | `f635fdbea28f265de395ba83b4b1570dcf2f58d13c65469e61903b1c2d2ae723` | Same — PASS |
+
+### Candidate APK evidence on `46f7b28...`
+
+| Variant | Workflow job | Artifact ID | Artifact ZIP SHA-256 | APK SHA-256 | Packaging audit |
+|---|---:|---:|---|---|---|
+| Debug | `131251173696` | `13953344600` | `c3844157fdc84e3c731bec9881f4a5ce3b8c63455962dcde5d07955145b16bd8` | `41924a4be7470bb425d19baa76bb6781f9b3dbebbd9e31bc3716073adeacb16a` | PASS |
+| Release | `131251173744` | `13956310335` | `f68610edd91855f4bf80577c5c9710c248fc3395f681417f47198541ffa5c8df` | `eb3b681fa1e7030eeb6a09ef74c1aacb7527f1170cdafa76f1d94e289a2d16c3` | PASS |
+| Staging | `131251173638` | Not available | Not available | Not available | QUEUED at last exact-head check |
+
+The extracted Debug and Release APKs each contain the five Vazirmatn weights and `LICENSE.txt`; no VazirHarf runtime asset was found in either APK. The build audit reported the pinned upstream provenance, SIL OFL 1.1, centralized family declaration and legacy-font purge as PASS. The Staging result is not inferred from Debug or Release.
+
+### PDF acceptance sample on `46f7b28...`
+
+- Workflow run: `43238200093`; visual job: PASS.
+- Artifact ID: `13953438208`; ZIP digest: `05ade08cf47cd3ff2866406c685e56b3398c9a8240ad8fcfc3be5ba9e9d32b86`.
+- PDF: `vazirmatn-persian-acceptance.pdf`, 18,334 bytes; SHA-256: `0b276df9ed223a31033ace1fed04daadb3bd21a962a476b69c6a4bca8bf4dccb`.
+- Poppler reports embedded `Vazirmatn-Bold` and `Vazirmatn-Regular` CID TrueType fonts with Unicode maps.
+- Extracted text and the rendered PNG were independently inspected: connected Persian glyphs, RTL alignment, ZWNJ, Persian/Latin digits, Jalali date and mixed Persian/English text are readable in the sample.
+
+**Scope boundary:** These results belong only to `46f7b28...`. The current product PR head has advanced to `492a5c433ee215d0188a6075b159d4d72329d35e`; the timeline fix and every dependent font/APK/PDF gate require new exact-head results. No result transfers to the newer SHA. The old incorrect §16 SHA-256 values were: Light `c33eb953...`, Regular `447d349f...`, Medium `fcb0a3b0...`, SemiBold `f50b7587...`, Bold `dad307bf...`; they are superseded and must not be reused.
