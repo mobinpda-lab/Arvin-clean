@@ -376,3 +376,44 @@ The earlier interim statement that Staging was still running has been superseded
 ### Staging signing-scope detail
 
 The Staging verification artifact `13957842406` records `source_sha=46f7b28...`, `apk_status=PASS`, APK SHA-256 `b61bc476b29c5a862c007c493729f9b7d74f394a995fb8edd09981b27869b875`, `android_debuggable_value=false`, and `publishable=false`. `apksigner` verified V2 and V3; V1 was not present. The signing class is explicitly `EPHEMERAL_TEST_ONLY_NOT_PRODUCTION`; this is a build-validation APK, not a production-signable deliverable. The manifest reports `signer_certificate_sha256=NOT_AVAILABLE` although the raw apksigner log contains the certificate SHA-256; the manifest field should be reconciled in a future validator improvement.
+### Build status correction — current candidate `492a5c4...`
+
+The initial PENDING observation has been superseded. Build run `43247842294` now has Analyze PASS and Regression Shard 2 FAIL (job `131289156187`, 21 failure records). Shards 0, 1, 3, 4 and 5 remain QUEUED; Visual/PDF and all three APK jobs remain QUEUED. Device Smoke run `43247842521` remains QUEUED. The current run is not complete.
+
+**Exact failed test records in Shard 2:**
+
+1. `settings_page_test.dart` — settings exposes date, swipe, projects and canonical backup controls.
+2. `widgets/home_quick_capture_test.dart` — Home primary add persists canonical task and preserves history.
+3. `quick_capture_dialog_test.dart` — Quick Add shows the selected scheduling time and uses injected now.
+4. `follow_up_entry_page_test.dart` — waiting FollowUp can add, select, reopen and remove a stable person.
+5. `home_last_follow_up_real_record_test.dart` — Home shows last FollowUp only for a real record and does not create one.
+6. `device_smoke_workflow_contract_test.dart` — device smoke defines exactly seven canonical lanes on one exact target SHA.
+7. `widget_test.dart` — Home exposes the canonical workflow controls.
+8. `task_editor_dialog_test.dart` — Back-style close prompts and can save Task edits without data loss.
+9. `home/home_owner_reference_test.dart` — Home follows the owner header, real summary values and Today navigation.
+10. `home/home_filter_boolean_logic_test.dart` — Home filters combine OR within each dimension and AND across dimensions.
+11. `task_editor_due_date_preservation_test.dart` — editing preserves canonical due date independently.
+12. `follow_up_office_page_test.dart` — selects one of multiple tasks and persists only to that task.
+13. `task_detail_person_persistence_test.dart` — Task Details Follow-up person selection persists through canonical Person and relation tables.
+14. `task_detail_master_screen_test.dart` — Task Details persists checklist reorder and additions immediately without changing Follow-up history.
+15. `notebook_page_test.dart` — editor tag picker replaces tags on the same canonical note.
+16. `task_detail_checklist_crud_test.dart` — checklist add, inline edit and delete persist immediately and preserve legacy follow-up timestamps.
+17. `home_today_about_test.dart` — Today menu action has a dedicated empty state.
+18. `quick_capture_project_create_test.dart` — Quick Add offers Project create-new and selects the created project.
+19. `report_center_page_test.dart` — Report Center exposes center and searchable task controls.
+20. `home_stat_filters_test.dart` — Home time filter exposes precise date and time range controls.
+21. `home_stat_filters_test.dart` — category checkbox selection applies OR only after confirmation.
+
+These are the current exact-head failure records, not the older 22-item report. The test Timeline duplicate-title case is not in Shard 2's failure list; its result remains pending until the shard containing that test completes. No assertion is removed or reclassified as fixed solely because its failure did not occur in this shard.
+
+### Known test-contract defects identified for the next patch (not yet committed)
+
+- `device_smoke_workflow_contract_test.dart` rejects `pumpAndSettle` in the device smoke integration source; `integration_test/alarm_overlay_smoke_test.dart` still contains one unbounded call despite the existing bounded `_pumpFrames` helper.
+- `validate_fast_lane.py` requires `max-parallel: 1` while `device-smoke.yml` intentionally declares `max-parallel: 2`; exact 40-hex `TARGET_SHA` validation and checkout equality checks must remain fail-closed while this stale parallelism assertion is corrected.
+- `task_editor_due_date_preservation_test.dart` treats the compatibility `reminderDate` getter as a null legacy field even though it projects the first canonical Reminder; the assertion should target the canonical Reminder date.
+- `task_detail_checklist_crud_test.dart` and `task_detail_due_date_action_test.dart` assert the retired `followUpDate` getter. The supported contract is `followUpDate == null` with original legacy value preserved in `legacyFollowUpMetadata.taskLevel`.
+- `widget_test.dart` and `home_stat_filters_test.dart` expect visible text for icon-only filter controls that expose accessible Semantics labels; assertions should target Semantics.
+- `home_owner_reference_test.dart` expects a Center filter that is absent from the approved four-dimension Home filter contract (Time, Project, Category, Tag).
+- `task_detail_person_persistence_test.dart` passes a ListView key where Flutter's scrolling helpers require the descendant Scrollable; `task_detail_checklist_flow_test.dart` similarly selects the first nested Scrollable instead of the task content list.
+- `home_today_about_test.dart` assumes a ListTile ancestor for a Today menu item that is implemented as a popup menu entry.
+- Several async widget tests assert immediately after `pumpAndSettle`; this may return before file-backed SQLite futures finish when no frame is scheduled. Their assertions must remain and wait for the actual completion/UI state.
