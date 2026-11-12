@@ -1,7 +1,6 @@
 abstract final class AppFonts {
-  /// Canonical Persian UI font: VazirHarf v34.003.
-  static const String vazirHarfFamily = 'VazirHarf';
-
-  /// Compatibility helper for existing call sites.
-  static String familyForText(String text) => vazirHarfFamily;
+  /// Sole official Arvin font family.
+  static const String vazirmatnFamily = 'Vazirmatn';
+  static const String officialPreference = 'vazirmatn';
+  static const String systemDefaultPreference = 'system-default';
 }
