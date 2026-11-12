@@ -595,3 +595,22 @@ The blob identity comparison is byte-for-byte provenance, not APK/PDF acceptance
 | Device Smoke `43223035920` | same | QUEUED | Seven scenario jobs not yet executed |
 
 D01-D05 are not blanket-PASS. Snapshot evidence contributes to D02/D03 and selected D01/D04 observations, but does not prove complete schema objects, Backup/Restore or forced interruption/recovery. Historical run results on `b78488c...` remain historical.
+
+
+## COMMAND 07-A.2.28.2 — new candidate and expanded acceptance coverage (2026-11-12)
+
+**Current product candidate:** `551ecdc0542bb00f72c21167b4c721094b3a3cba`.
+
+| Run | SHA | Status | Scope |
+|---|---|---|---|
+| Build `43224398615` | `551ecdc...` | PENDING | No jobs allocated at last poll |
+| SQLite Snapshot `43224398076` | same | QUEUED | Expanded full schema catalog, all FK definitions, A-D comparison and five reopen cycles |
+| Follow-up Persistence `43224398303` | same | QUEUED | File-backed persistence and Alarm Overlay close/reopen |
+| Device Smoke `43224398160` | same | QUEUED | Scenario preparation not yet executed |
+
+New code/test commits after the `a6d2d58...` exact-head successes:
+- `45c39211...`: complete SQLite schema catalog and FK definition capture in Snapshot A-D.
+- `7d3466f8...`: file-based backup JSON restored into a different file-backed SQLite database, followed by a second close/reopen and relation/Reminder verification.
+- `551ecdc0...`: deliberate malformed source failure followed by source repair and safe retry of schema installation.
+
+The successful Snapshot `43223035907` and Follow-up `43223035880` are tied to `a6d2d58...` only. They cannot validate `551ecdc...`. New tests are not accepted until their exact-head runs complete.

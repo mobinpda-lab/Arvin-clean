@@ -300,3 +300,21 @@ New exact-head successes:
 Still poll Build Run `43223035750` (PENDING, no jobs at last poll) and Device Smoke Run `43223035920` (QUEUED). Do not dispatch duplicates while pending/queued.
 
 Do not call D01-D05 complete from Snapshot alone: verify full schema objects, actual Backup/Restore and D05 interruption/recovery. Continue PDF validation and APK audits after the current Build workflow produces jobs/results. No merge, release or deployment.
+
+
+## COMMAND 07-A.2.28.2 — current candidate handoff (2026-11-12)
+
+Current product SHA: `551ecdc0542bb00f72c21167b4c721094b3a3cba`.
+
+New acceptance coverage committed:
+1. `45c39211ece595b23ce0ea0d3f18525cfbbe854e`: complete SQLite schema catalog, all non-system FK definitions, trigger/index inventory and retired-column assertions included in A-D snapshot comparison.
+2. `7d3466f8b46ee27d2312efcd41c0fa8090dccbad`: real backup file read and restore into a different file-backed SQLite database, then close/reopen and verify Reminder/Follow-up/Person data.
+3. `551ecdc0542bb00f72c21167b4c721094b3a3cba`: malformed legacy migration failure now tests recovery by repairing source and retrying schema installation on the same executor.
+
+Poll exact-head runs:
+- Build `43224398615`
+- SQLite Snapshot `43224398076`
+- Follow-up Persistence `43224398303`
+- Device Smoke `43224398160`
+
+All were PENDING/QUEUED at last inspection. Do not reuse `a6d2d58...` PASS results. If the new tests fail, inspect the logs and fix the underlying migration/restore behavior rather than removing assertions.

@@ -207,3 +207,14 @@ Release remains NO-GO. No merge, release or deployment is authorized.
 The five Vazirmatn font assets now have byte-for-byte upstream Git blob provenance pinned in typography contract §18. This does not replace APK or PDF validation.
 
 Do not transfer PASS results across SHAs. Merge, Release and Deployment remain unauthorized.
+
+
+## COMMAND 07-A.2.28.2 — P0 SQLite validation expansion (2026-11-12)
+
+Candidate SHA: `551ecdc0542bb00f72c21167b4c721094b3a3cba`.
+
+- D01 evidence expanded to capture all SQLite catalog objects and declared foreign-key definitions across five real reopen cycles.
+- D04 coverage expanded with an actual backup file read and restore into a separate file-backed SQLite database, followed by close/reopen and reminder/relationship verification.
+- D05 coverage expanded with a deliberate malformed-source migration failure, preservation of source data, repair, retry and post-recovery FK verification.
+
+The expanded tests have not yet run on this candidate SHA. The exact-head Build is PENDING and Snapshot/Follow-up/Device workflows are QUEUED. Continue polling; do not declare D01/D04/D05 PASS from test existence.

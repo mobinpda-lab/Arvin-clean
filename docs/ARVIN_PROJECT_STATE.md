@@ -173,3 +173,23 @@ On candidate SHA `a6d2d58d87530bfa184c93220cc329b819aca809`:
 - Follow-up File Persistence Run `43223035880`: SUCCESS. File-backed repository persistence and Alarm Overlay Snooze → close/dispose → reopen same SQLite file → reload → Complete → notification cancellation all completed.
 
 These passes are exact to `a6d2d58...`. D01-D05 remain separately assessed: full schema/trigger/index inventory, actual Backup/Restore, and forced interruption/recovery are not proven by the Snapshot workflow alone. Build Run `43223035750` remains PENDING with no jobs at last poll; Device Smoke Run `43223035920` remains QUEUED.
+
+
+## COMMAND 07-A.2.28.2 — expanded SQLite acceptance candidate (2026-11-12)
+
+The product branch has advanced to candidate SHA `551ecdc0542bb00f72c21167b4c721094b3a3cba`. PR #3384 remains OPEN / DRAFT / UNMERGED; Main remains `45e4202b03a434459e4c021a04efa7e8396359db`.
+
+Additional test-only work since `a6d2d58...`:
+- Commit `45c39211ece595b23ce0ea0d3f18525cfbbe854e`: SQLite A-D diagnostic now captures the complete `sqlite_master` catalog (tables, indexes, triggers), every non-system table's declared Foreign Key definitions, and checks all three retired Task columns are absent. The catalog is included in A-D comparisons.
+- Commit `7d3466f8b46ee27d2312efcd41c0fa8090dccbad`: adds a real file-based Backup → decode from disk → restore into a different file-backed SQLite database → close/reopen → verify test for multiple Reminder IDs/order/enabled states and Follow-up Person relations.
+- Commit `551ecdc0542bb00f72c21167b4c721094b3a3cba`: extends malformed legacy Task-person migration coverage to repair the preserved source row and retry schema installation on the same executor, verifying the Person row and FK integrity after recovery.
+
+These are implementation/test additions, not PASS results. All exact-head validation must run on `551ecdc...`.
+
+Exact-head workflows at last observation:
+- Build Run `43224398615`: PENDING, no jobs allocated.
+- SQLite Snapshot Run `43224398076`: QUEUED.
+- Follow-up File Persistence Run `43224398303`: QUEUED.
+- Device Smoke Run `43224398160`: QUEUED.
+
+The prior exact-head Snapshot and Follow-up successes on `a6d2d58...` remain historical. No D01-D05 acceptance is claimed for `551ecdc...` until the new diagnostic and full test suite pass.
