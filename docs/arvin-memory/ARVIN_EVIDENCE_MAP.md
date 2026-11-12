@@ -722,3 +722,47 @@ No result transfers to a later product SHA.
 Live repository Ruleset `main-protection` (ID `20952260`) remains ACTIVE on `refs/heads/main`, but its pull-request rule currently has `required_approving_review_count=0` and `require_code_owner_review=false`; bypass actors are empty. Deletion and non-fast-forward protections are enabled. No repository security setting was changed.
 
 The docs PR #3388 CODEOWNERS file was expanded to cover the canonical typography contract, Vazirmatn assets, pubspec registration, both theme directories, PDF renderer, app root, Settings, Alarm Overlay, build workflow, typography/PDF tests and Android typography smoke. It is still an unmerged PR; the current main branch does not yet contain this CODEOWNERS file. Therefore effective CODEOWNER enforcement is **NOT VERIFIED / NOT ACTIVE**. Enabling required approval and CODEOWNER review remains a separate product-owner-controlled repository settings action.
+
+## COMMAND 07-A.2.30 — raw evidence index (2026-11-12)
+
+### Product candidate and PR graph
+
+- [Execution PR #3384](https://github.com/mobinpda-lab/Arvin-clean/pull/3384): current head `492a5c433ee215d0188a6075b159d4d72329d35e`; base branch `fix/wave3-cycle3-calendar-product-repair` at `8c4c23f0c2a4f9b2374a2092c931782c4455fd41`; OPEN / DRAFT / UNMERGED.
+- [Documentation PR #3388](https://github.com/mobinpda-lab/Arvin-clean/pull/3388): base `main` at `45e4202b03a434459e4c021a04efa7e8396359db`; OPEN / DRAFT / UNMERGED.
+- Main HEAD observed: `45e4202b03a434459e4c021a04efa7e8396359db`. Compare main → PR #3384 base: 2,200 commits ahead, 0 behind. Compare PR #3384 base → previous candidate `46f7b28...`: 108 commits ahead, 0 behind.
+- [Timeline remediation commit `492a5c4`](https://github.com/mobinpda-lab/Arvin-clean/commit/492a5c433ee215d0188a6075b159d4d72329d35e): avoids rendering a Reminder note when it duplicates the Reminder heading.
+
+### Current candidate `492a5c4...` — completed evidence
+
+- [SQLite Snapshot run 43247842246](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43247842246): SUCCESS; job `131285215042`; artifact ID `13958416974`; ZIP digest `sha256:0e57caf9e4357d8d4d43e82ad0f60377f69d3ebd4c7cbaefb89b6818fa93565b`.
+- Downloaded SQLite JSON artifact SHA-256: `445a3b733834ef118a0d7ae79e91b7b5f867538aa6e77910ea3a3752e47c7721`. Contents: source SHA `492a5c4...`; five file-backed reopen cycles; 22 tables; 28 indexes; zero triggers; FK enabled; empty `foreign_key_check`; A/B/C/D data/schema/FK definitions identical.
+- [Follow-up File Persistence run 43247842181](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43247842181): SUCCESS; job `131285224802`; no artifact published.
+- [Build run 43247842294](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43247842294): PENDING at last poll; no jobs allocated.
+- [Device Smoke run 43247842521](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43247842521): QUEUED; preparation job `131285216498` queued; no device scenario result.
+
+### Previous candidate `46f7b28...` — historical, not transferable
+
+- [Build run 43238200093](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43238200093): Analyze and Visual PASS; Debug and Release APK jobs PASS; Staging job was IN_PROGRESS at last poll; Regression shards 0/1/2/4 had 43 failure records (11/2/21/9); shards 3 and 5 were cancelled after PR synchronization and are not PASS.
+- [Device Smoke run 43238200496](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43238200496): preparation job remained QUEUED.
+- [Follow-up File Persistence run 43238200586](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43238200586): SUCCESS.
+- [SQLite Snapshot run 43238200490](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43238200490): SUCCESS; artifact ID `13952699032`; ZIP SHA-256 `bdb0d42bcb7473bd91501a0a4e3c261d2c9001f95122b8db47356cc364089d5a`; JSON SHA-256 `fe64bc1b9a8275ab018ac3683e29d8b3d0462dc48f6eaec38572c05bfe465e2c`.
+- Debug APK artifact ID `13953344600`; APK SHA-256 `41924a4be7470bb425d19baa76bb6781f9b3dbebbd9e31bc3716073adeacb16a`; ZIP SHA-256 `c3844157fdc84e3c731bec9881f4a5ce3b8c63455962dcde5d07955145b16bd8`.
+- Release APK artifact ID `13956310335`; APK SHA-256 `eb3b681fa1e7030eeb6a09ef74c1aacb7527f1170cdafa76f1d94e289a2d16c3`; ZIP SHA-256 `f68610edd91855f4bf80577c5c9710c248fc3395f681417f47198541ffa5c8df`.
+- PDF artifact ID `13953438208`; PDF SHA-256 `0b276df9ed223a31033ace1fed04daadb3bd21a962a476b69c6a4bca8bf4dccb`; ZIP SHA-256 `05ade08cf47cd3ff2866406c685e56b3398c9a8240ad8fcfc3be5ba9e9d32b86`. The PDF and rendered PNG were downloaded and independently inspected; Poppler confirmed embedded Vazirmatn Regular/Bold with Unicode maps.
+
+### Typography source and corrected SHA-256
+
+- Upstream source commit: `6e553e33489a8f9dfaccc76860a2e3f3c1e66de7` in `rastikerdar/vazirmatn`; SIL OFL 1.1.
+- Correct SHA-256 values for Light/Regular/Medium/SemiBold/Bold: `9ab4f094b861b7d4e318f01953b9771ddeb189d7c79bbb3989d5a95a4b07ff60`, `b69fd4c680b8f3f225feabcc655a2c585d97627b8f5f5c0f9985e894069f3a56`, `b986623e4ddef10755e04be39f8ea7bcb1dc08bfe8dd0aa6af395736f256ad4a`, `3f239d8364c14ee32c46b6839fa197c28958358b82a9673d2c6acc8506d78bc5`, `f635fdbea28f265de395ba83b4b1570dcf2f58d13c65469e61903b1c2d2ae723`.
+- Exact-head Debug/Release build logs confirmed each embedded font SHA-256 equals its source file SHA-256 and the legacy-font purge passed. Staging remains unverified.
+
+### Acceptance status
+
+- D01: snapshot diagnostic PASS only; full historical migration acceptance NOT COMPLETE.
+- D02: NOT ACCEPTED (four-state Missing/NULL/FALSE/TRUE contract still requires independent exact-head closure).
+- D03: NOT ACCEPTED (full Follow-up metadata/unknown-field close-reopen parity not proven).
+- D04: NOT ACCEPTED (complete file-backed Backup/Restore/reopen parity not proven).
+- D05: NOT ACCEPTED (interrupted migration, rollback and recovery/non-destruction not proven).
+- Seven Device Smoke scenarios: NOT VERIFIED.
+- System Default after OS-level Force Stop: NOT VERIFIED.
+- Merge / Release / Deployment: NOT AUTHORIZED.
