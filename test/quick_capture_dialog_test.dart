@@ -844,7 +844,7 @@ void main() {
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pump();
     await tester.tap(find.text('ثبت'));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     expect(find.text('هر ۵ دقیقه'), findsOneWidget);
   });
