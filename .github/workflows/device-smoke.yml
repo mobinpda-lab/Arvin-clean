@@ -17,8 +17,9 @@ permissions:
   contents: read
 
 concurrency:
-  # Keep the existing PR concurrency key; serialize clean retries instead of cancelling active work.
-  group: arvin-device-smoke-${{ github.event.pull_request.number || github.ref_name }}
+  # A newer exact SHA must not wait behind a stale, slow emulator matrix for this PR.
+  # Retries for the same SHA remain serialized and active evidence is never cancelled.
+  group: arvin-device-smoke-${{ inputs.target_sha || github.event.pull_request.head.sha || github.sha }}
   cancel-in-progress: false
 
 env:
@@ -59,8 +60,9 @@ jobs:
     timeout-minutes: 60
     strategy:
       fail-fast: false
-      # One emulator per runner at a time avoids host/ADB contention across matrix lanes.
-      max-parallel: 1
+      # Each matrix job owns an isolated GitHub-hosted runner and Android emulator.
+      # Two lanes balance queue latency against emulator startup/resource pressure.
+      max-parallel: 2
       matrix: ${{ fromJSON(needs.prepare-matrix.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v5

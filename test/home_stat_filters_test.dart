@@ -334,8 +334,27 @@ void main() {
       DateTime(today.year, today.month, today.day),
     );
 
+    // Exercise every store read performed by HomePage._load before mounting
+    // the UI. This distinguishes a startup dependency failure from a filter
+    // projection failure without weakening the visible-task assertions.
+    await ProjectStore().load();
+    await CenterStore().load();
+    await TaskStore().loadCategories();
+    await TaskStore().loadTags();
+    expect(
+      (await TaskStore().load()).map((task) => task.id),
+      containsAll([
+        'calendar-today',
+        'calendar-overdue',
+        'calendar-completed-overdue',
+        'calendar-focus-future',
+      ]),
+    );
+
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
+    expect(find.text('داده‌های کارها قابل خواندن نیست'), findsNothing);
+    expect(find.text('موعد امروز'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('home-general-filter-button')));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ListTile, 'امروز تقویمی'));
@@ -376,8 +395,24 @@ void main() {
       DateTime(today.year, today.month, today.day),
     );
 
+    await ProjectStore().load();
+    await CenterStore().load();
+    await TaskStore().loadCategories();
+    await TaskStore().loadTags();
+    expect(
+      (await TaskStore().load()).map((task) => task.id),
+      containsAll([
+        'time-today-open',
+        'time-overdue-open',
+        'time-today-done',
+        'time-focus-future',
+      ]),
+    );
+
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
+    expect(find.text('داده‌های کارها قابل خواندن نیست'), findsNothing);
+    expect(find.text('کار باز امروز'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('home-filter-card-time')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('home-time-filter-today')));
