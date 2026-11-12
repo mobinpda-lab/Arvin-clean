@@ -248,12 +248,14 @@ void main() {
         }
       }
 
-      expect(snapshotC, isNotNull);
-      expect(snapshotD, isNotNull);
+      final snapshotCValue = snapshotC ??
+          (throw StateError('Snapshot C was not captured after cycle 1'));
+      final snapshotDValue = snapshotD ??
+          (throw StateError('Snapshot D was not captured after cycle 5'));
       for (final entry in <String, Map<String, Object?>>{
         'B': snapshotB,
-        'C': snapshotC,
-        'D': snapshotD,
+        'C': snapshotCValue,
+        'D': snapshotDValue,
       }.entries) {
         expect(
           canonicalJson(comparableSnapshot(entry.value)),
@@ -261,8 +263,8 @@ void main() {
           reason: 'SQLite relational/metadata snapshot changed at ${entry.key}.',
         );
       }
-      expect(snapshotD['foreign_key_check'], isEmpty);
-      expect(snapshotD['foreign_keys_enabled'], 1);
+      expect(snapshotDValue['foreign_key_check'], isEmpty);
+      expect(snapshotDValue['foreign_keys_enabled'], 1);
 
       final evidence = <String, Object?>{
         'command': '07-A.2.20',
@@ -279,8 +281,8 @@ void main() {
         'snapshots': {
           'A': snapshotA,
           'B': snapshotB,
-          'C': snapshotC,
-          'D': snapshotD,
+          'C': snapshotCValue,
+          'D': snapshotDValue,
         },
         'comparison': 'B, C and D match A for Task compatibility metadata, Reminder rows, Follow-up rows/order, Person links, Person identities, schema columns/indexes and foreign-key integrity',
       };
