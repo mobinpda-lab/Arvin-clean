@@ -13,7 +13,11 @@ void main() {
     );
     expect(
       device,
-      contains(r'github.event.pull_request.number || github.ref_name'),
+      contains(r'inputs.target_sha || github.event.pull_request.head.sha || github.sha'),
+    );
+    expect(
+      device,
+      isNot(contains(r'github.event.pull_request.number || github.ref_name')),
     );
     expect(build, contains('branches: [main, master]'));
     expect(build, contains('types: [opened, synchronize, reopened]'));
@@ -21,7 +25,7 @@ void main() {
     expect(device, contains('branches: [main, master]'));
     expect(build, contains('cancel-in-progress: true'));
     expect(device, contains('cancel-in-progress: false'));
-    expect(device, contains('max-parallel: 1'));
+    expect(device, contains('max-parallel: 2'));
     expect(
       build,
       isNot(contains(r'github.event.pull_request.number || github.run_id')),

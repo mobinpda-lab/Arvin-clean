@@ -360,8 +360,24 @@ void main() {
     await tester.tap(find.widgetWithText(ListTile, 'امروز تقویمی'));
     await tester.pumpAndSettle();
 
-    expect(find.text('موعد امروز'), findsOneWidget);
+    final taskListScrollable = find.descendant(
+      of: find.byKey(const ValueKey('home-task-list-viewport')),
+      matching: find.byWidgetPredicate(
+        (widget) =>
+            widget is Scrollable &&
+            widget.axisDirection == AxisDirection.down,
+      ),
+    );
+    // The overdue group is first; scroll to the later Today group because
+    // Home uses ListView.builder and off-screen task cards are not built yet.
     expect(find.text('کار عقب‌افتاده'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('موعد امروز'),
+      300,
+      scrollable: taskListScrollable,
+      maxScrolls: 10,
+    );
+    expect(find.text('موعد امروز'), findsOneWidget);
     expect(find.text('گذشته انجام‌شده'), findsNothing);
     expect(find.text('فقط برگزیدهٔ آینده'), findsNothing);
   });
@@ -419,8 +435,22 @@ void main() {
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
-    expect(find.text('کار باز امروز'), findsOneWidget);
+    final taskListScrollable = find.descendant(
+      of: find.byKey(const ValueKey('home-task-list-viewport')),
+      matching: find.byWidgetPredicate(
+        (widget) =>
+            widget is Scrollable &&
+            widget.axisDirection == AxisDirection.down,
+      ),
+    );
     expect(find.text('کار باز عقب‌افتاده'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('کار باز امروز'),
+      300,
+      scrollable: taskListScrollable,
+      maxScrolls: 10,
+    );
+    expect(find.text('کار باز امروز'), findsOneWidget);
     expect(find.text('کار انجام‌شده امروز'), findsNothing);
     expect(find.text('فقط تمرکز آینده'), findsNothing);
   });
