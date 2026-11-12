@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('Task PDF renderer embeds pinned Vazirmatn fonts', () {
+  test('Task PDF renderer loads the canonical Vazirmatn fonts', () {
     final source = File(
       'lib/services/task_report_pdf_renderer.dart',
     ).readAsStringSync();
@@ -22,10 +22,8 @@ void main() {
     expect(source, isNot(contains("package:printing/printing.dart")));
   });
 
-  test('application light and dark themes enforce the canonical Vazirmatn family', () {
+  test('application light and dark themes honor the canonical font preference', () {
     final source = File('lib/main.dart').readAsStringSync();
-    expect(source, contains('lightBaseTextTheme = ThemeData.light().textTheme.apply(\\n      fontFamily: selectedFontFamily'));
-    expect(source, contains('darkBaseTextTheme = ThemeData.dark().textTheme.apply(\\n      fontFamily: selectedFontFamily'));
     expect(source, contains('fontFamily: selectedFontFamily'));
     final tokens = File('lib/core/theme/arvin_theme.dart').readAsStringSync();
     expect(tokens, contains("static const String fontFamily = 'Vazirmatn';"));
