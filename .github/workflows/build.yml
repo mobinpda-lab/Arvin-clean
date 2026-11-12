@@ -404,6 +404,14 @@ jobs:
             apk="build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk"
           fi
           test -s "$apk"
+          declare -A expected_blob=(
+            ["assets/fonts/ui/vazirmatn/Vazirmatn-Light.ttf"]="2dfd5c35ed4c26f7ce9f3ba753f11d9a38356c42"
+            ["assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf"]="64e4a8189557a17b63fd7a77794207483e592972"
+            ["assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf"]="1e08dd54d90a4879451ef0f80fe0d8068fb7462f"
+            ["assets/fonts/ui/vazirmatn/Vazirmatn-SemiBold.ttf"]="6b3842aca6055c8258404b1758133b81c961a13f"
+            ["assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf"]="efa9b095da01d299310bdcae293e24e657fe6da9"
+          )
+          echo "FONT_UPSTREAM_COMMIT=6e553e33489a8f9dfaccc76860a2e3f3c1e66de7"
           for font in \
             assets/fonts/ui/vazirmatn/Vazirmatn-Light.ttf \
             assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf \
@@ -414,7 +422,15 @@ jobs:
               echo "FONT_ASSET_BUNDLED=FAIL missing=$font" >&2
               exit 1
             fi
+            actual_blob="$(git hash-object "$font")"
+            if [[ "$actual_blob" != "${expected_blob[$font]}" ]]; then
+              echo "FONT_PROVENANCE=FAIL file=$font expected=${expected_blob[$font]} actual=$actual_blob" >&2
+              exit 1
+            fi
+            font_sha256="$(sha256sum "$font" | awk '{print $1}')"
+            font_bytes="$(stat -c '%s' "$font")"
             echo "FONT_ASSET_BUNDLED=PASS $font"
+            echo "FONT_PROVENANCE=PASS file=$font git_blob=$actual_blob bytes=$font_bytes sha256=$font_sha256"
           done
           if grep -R -n -E "VazirHarf|vazirharf" lib pubspec.yaml; then
             echo "FONT_LEGACY_PURGE=FAIL retired VazirHarf runtime reference remains" >&2
