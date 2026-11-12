@@ -950,3 +950,15 @@ Historical Build `43269800292` on `eea746dbf2a58cd4f04c66a149ae3441264da5b2` fai
 - Consolidation candidates: overlapping `TaskTaxonomyLifecycleService` / `TaskTaxonomyMutationService`; legacy SharedPreferences `TagStore` requires a complete reference audit before retirement. No source or test was deleted.
 - Repository inventory: 1,430 branches, 1,356 unique heads, 35 duplicate-head groups / 109 refs; 117 open PRs. Main ruleset is active but currently requires zero approvals and no CODEOWNER review. CODEOWNERS exists only in unmerged #3388, not Main.
 - No merge, release, deployment, branch deletion, history rewrite or user-data mutation occurred.
+
+
+---
+
+## COMMAND 07-A.2.34 — additional implementation entries (2026-11-12)
+
+- `bc37933ca591b135b4b943d4187e1f19c695e4b1` — moved latest real Follow-up presentation into the compact Home Task card so it is visible without expanding the card. The presentation still uses `HomeFollowUpPresentationService`, preserving chronological selection and rejecting legacy-only metadata.
+- `1f4ff4898a5a9278e067c795a8fc14791b8ecbed` — corrected Task Detail Person test harness to use the Scrollable descendant of the keyed content ListView.
+
+Historical CI remains tied to older SHAs. Current exact-head Build `43291144776`, Device Smoke `43291144527`, SQLite Snapshot `43291144675` and Follow-up Persistence `43291144575` were pending/queued at the last poll; no acceptance result is recorded.
+
+Static audit found D04 independent SQLite-file restore evidence missing and C07 full product workflow evidence incomplete. These are active P0 gaps, not accepted.
