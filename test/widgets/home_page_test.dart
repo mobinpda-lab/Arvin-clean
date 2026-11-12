@@ -589,7 +589,7 @@ void main() {
       'arvin.projects': '[{"id":"active-project","title":"پروژه فعال","isArchived":false,"itemIds":[]},{"id":"archived-project","title":"پروژه بایگانی","isArchived":true,"itemIds":[]}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpWidget(ArvinApp(nowProvider: () => DateTime(2026, 11, 12, 9)));
     for (final width in <double>[360, 390, 412]) {
       tester.view.physicalSize = Size(width, 760);
       tester.view.viewInsets = const FakeViewPadding();
