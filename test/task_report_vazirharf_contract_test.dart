@@ -24,16 +24,17 @@ void main() {
 
   test('application light and dark themes enforce the canonical Vazirmatn family', () {
     final source = File('lib/main.dart').readAsStringSync();
-    expect(source, contains('lightBaseTextTheme = ThemeData.light().textTheme.apply(\\n      fontFamily: ArvinTheme.fontFamily'));
-    expect(source, contains('darkBaseTextTheme = ThemeData.dark().textTheme.apply(\\n      fontFamily: ArvinTheme.fontFamily'));
-    expect(source, contains('fontFamily: ArvinTheme.fontFamily'));
+    expect(source, contains('lightBaseTextTheme = ThemeData.light().textTheme.apply(\\n      fontFamily: selectedFontFamily'));
+    expect(source, contains('darkBaseTextTheme = ThemeData.dark().textTheme.apply(\\n      fontFamily: selectedFontFamily'));
+    expect(source, contains('fontFamily: selectedFontFamily'));
     final tokens = File('lib/core/theme/arvin_theme.dart').readAsStringSync();
     expect(tokens, contains("static const String fontFamily = 'Vazirmatn';"));
   });
 
-  test('font registry exposes only the canonical VazirHarf option', () {
+  test('font registry exposes only the approved Vazirmatn and System Default options', () {
     final source = File('lib/theme/font_registry.dart').readAsStringSync();
     expect(source, contains("id: 'vazirmatn'"));
+    expect(source, contains("id: 'system-default'"));
     expect(source, contains("fontFamily: 'Vazirmatn'"));
     expect(source, contains('effectiveFontFamily'));
   });
