@@ -904,3 +904,13 @@ Verification on the implementation checkpoint was pending at last lookup; no tes
 - Build `43269800292`, test-1: FAILURE (202 passed / 1 failed) on exact candidate `eea746d...`. Failure is Home time grouping in `test/widgets/home_page_test.dart`.
 - Source root cause: Home has split clock sources: `_iranWallClockNow()` uses `IranClock.now()`; `_groupJalaliDate()` uses `DateTime.now()`. No `nowProvider` injection exists. A test fixture uses a 10:00 due time while the live CI clock is later, making the Task overdue and breaking the expected today grouping.
 - Classification: PRODUCTION DEFECT / DETERMINISTIC CLOCK CONTRACT. Planned correction: add one injectable `nowProvider` through `ArvinApp` → `HomePage`; use it for both methods; add fixed 09:00 current / 10:00 due test. Do not change the test to accept random live-clock behavior.
+
+
+
+---
+
+## COMMAND 07-A.2.33 — correction to G1 fixture disposition (2026-11-12)
+
+- Reclassified commit `eea746dbf2a58cd4f04c66a149ae3441264da5b2` as an incomplete fixture attempt, not a successful fix. New Build `43269800292`, test-5, failed with `SqliteException: no such table: tasks` at the parent Task insert.
+- The fixture must create a schema-compatible `tasks` table first; then insert the parent Task and malformed `task_people` row. Preserve all FK, rollback, source-retention and retry assertions. No production code or FK checks should be weakened.
+- New candidate Build has three failed shards at latest poll: test-1 202/1, test-3 155/9, test-5 189/10. Snapshot and Follow-up Persistence pass; Device Smoke is queued.
