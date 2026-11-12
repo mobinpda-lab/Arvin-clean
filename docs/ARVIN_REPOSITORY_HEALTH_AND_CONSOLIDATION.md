@@ -91,12 +91,12 @@ The fixture inserted a legacy `task_people` row with `task_id='legacy-task'` but
 Correction on #3384: insert the parent Task in the fixture before adding the malformed JSON relation. Commit `eea746dbf2a58cd4f04c66a149ae3441264da5b2`. No production migration, FK, rollback or assertion was weakened. Rerun on the new SHA is pending Build `43269800292`.
 
 ## 6. Previous-candidate 61 Failure Records
-All 61 test failure records from Build `43247842294` are preserved below. Three records now have a grounded initial classification: one TEST HARNESS DEFECT corrected in `eea746d...`; two TEST CONTRACT DEFECTS identified for correction; the remaining 57 are UNRESOLVED pending root-cause inspection. The list is historical to SHA `492a5c4...` and must not be carried forward as the new candidate's result.
+All 61 test failure records from Build `43247842294` are preserved below. Six records now have a grounded initial classification: one TEST HARNESS DEFECT corrected in `eea746d...`; three additional TEST HARNESS DEFECTS identified for correction; two TEST CONTRACT DEFECTS identified for correction; the remaining 55 are UNRESOLVED pending root-cause inspection. The list is historical to SHA `492a5c4...` and must not be carried forward as the new candidate's result.
 
 | # | Shard | File | Test | Classification |
 |---:|---:|---|---|---|
 | 1 | 0 | `test/task_detail_checklist_flow_test.dart` | task detail displays checklist and toggles an item | UNRESOLVED — RETEST REQUIRED |
-| 2 | 0 | `test/widgets/task_dialog_test.dart` | creates a task with trimmed text and a unique tag | UNRESOLVED — RETEST REQUIRED |
+| 2 | 0 | `test/widgets/task_dialog_test.dart` | creates a task with trimmed text and a unique tag | TEST HARNESS DEFECT — FIX PENDING: widgetWithText cannot find InputDecoration hintText |
 | 3 | 0 | `test/quick_capture_dialog_test.dart` | Quick Capture can create a center inline and immediately select it | UNRESOLVED — RETEST REQUIRED |
 | 4 | 0 | `test/task_detail_due_date_action_test.dart` | Task Details explicit today action aligns with Due Date and persists only the date change | UNRESOLVED — RETEST REQUIRED |
 | 5 | 0 | `test/device_feedback_home_regression_test.dart` | Home keeps backup in the More menu instead of the header | UNRESOLVED — RETEST REQUIRED |
@@ -104,7 +104,7 @@ All 61 test failure records from Build `43247842294` are preserved below. Three 
 | 7 | 0 | `test/home/home_filter_contract_test.dart` | Home keeps completed past tasks visible in a separate non-overdue group | UNRESOLVED — RETEST REQUIRED |
 | 8 | 0 | `test/follow_up_office_page_test.dart` | follow-up office exposes the shared five filter dimensions | UNRESOLVED — RETEST REQUIRED |
 | 9 | 0 | `test/task_people_page_test.dart` | empty People UI adds and removes a local Person explicitly | UNRESOLVED — RETEST REQUIRED |
-| 10 | 0 | `test/task_editor_category_project_integration_test.dart` | new task saves typed category without an extra apply step | UNRESOLVED — RETEST REQUIRED |
+| 10 | 0 | `test/task_editor_category_project_integration_test.dart` | new task saves typed category without an extra apply step | TEST HARNESS DEFECT — FIX PENDING: widgetWithText cannot find InputDecoration hintText |
 | 11 | 0 | `test/home_today_about_test.dart` | Today menu action shows only active canonical tasks due today | UNRESOLVED — RETEST REQUIRED |
 | 12 | 1 | `test/widgets/home_page_test.dart` | Home uses the five checkbox filters as combined filters and preserves time grouping | UNRESOLVED — RETEST REQUIRED |
 | 13 | 2 | `test/settings_page_test.dart` | settings exposes date, swipe, projects and canonical backup controls | UNRESOLVED — RETEST REQUIRED |
