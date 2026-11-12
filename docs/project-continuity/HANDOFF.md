@@ -578,3 +578,53 @@ Current typography owner decision (2026-11-12): Vazirmatn only; VazirHarf is not
 - In `test/services/g1_drift_schema_test.dart`, create the complete schema-compatible `tasks` table first (matching the canonical task table columns used by `G1DriftSchema`), insert the `legacy-task` parent row, then create the malformed `task_people` row.
 - Re-run the test and prove it reaches the expected FormatException, preserves the source row, rolls back canonical writes, leaves FK enforcement enabled, repairs the JSON and retries successfully on the same executor.
 - Do not remove `PRAGMA foreign_key_check`, alter production FK definitions, or claim the migration is fixed before the test passes.
+
+
+---
+
+## COMMAND 07-A.2.34 handoff — 2026-11-12
+
+### Current execution lane
+- Repository: `mobinpda-lab/Arvin-clean`
+- Execution PR: #3384
+- Execution branch: `feature/command-07-a-sqlite-contract-remediation`
+- Latest recorded execution SHA: `ee703dfa82e356039ef32c0b2a9f1bc9a00dc1e9`
+- Main baseline: `45e4202b03a434459e4c021a04efa7e8396359db`
+- Do not switch to `staging/command-07-a2-33-recovery` without a fresh dependency audit; its Main comparison is 2,371 ahead / 0 behind.
+
+### Work already committed, not yet accepted
+1. G1 malformed `task_people` fixture creates the canonical `tasks` parent table before inserting the parent Task.
+2. Home time grouping and Jalali date labels share an injectable Iran wall-clock provider.
+3. Home clock widget regression covers 09:00 and 10:00.
+4. Expanded Home Task card displays the latest real Follow-up via `HomeFollowUpPresentationService`; legacy date metadata alone remains excluded.
+5. Home test now uses the actual expand control and canonical widget keys.
+
+Relevant commits:
+- `446f04a6f8cc94871eea0982d9f0f896b8fba8fe`
+- `ab06e7bdf3233d3d971aa64d11782efff71089f1`
+- `235bfb98e45af68f0d68b00099f97d599504b575`
+- `5af39a34ee19e090de30cf6d3e0a5848852fab48`
+- `ee703dfa82e356039ef32c0b2a9f1bc9a00dc1e9`
+
+### CI state and evidence boundary
+The last completed full Build run is `43269800292` on historical SHA `eea746dbf2a58cd4f04c66a149ae3441264da5b2`, not the current execution SHA:
+- Analyze / Visual / Debug APK / Staging APK / Release APK build: SUCCESS.
+- All six test shards: FAILURE; 1,338 passed / 61 failed.
+- SQLite Snapshot `43269800257`: SUCCESS, but not D01–D05 acceptance.
+- Follow-up Persistence `43269800526`: SUCCESS, narrow scope.
+- Device Smoke `43269800280`: all seven scenario jobs were QUEUED at last inspection.
+- Orchestrator Wakeup `43288112147` was later CANCELLED after the branch advanced; no new Build or Device Smoke run was returned for `ee703dfa...` at handoff creation.
+
+Do not copy old SHA results onto the new candidate. Poll for a fresh exact-head run before treating any new change as validated.
+
+### Mandatory continuation sequence
+1. Recheck live #3384 head and Actions. Confirm checkout SHA, not only PR title or branch name.
+2. Validate the new G1 fixture test. If it fails, inspect transaction state, source-table retention, canonical table rollback, FK state and retry behavior; do not weaken assertions.
+3. Validate the new Home clock test and Follow-up presentation integration.
+4. Triage all 61 historical failure records individually. Keep original assertion, classification, root cause, code/test change, focused result and run ID.
+5. Continue D01–D05, then Category / Project / Tag workflows and cross-feature consistency.
+6. Verify Vazirmatn weights, persistent font preference, PDF embedding/rendering, APK font audit and all seven Device Smoke scenarios on one candidate SHA.
+7. Update the canonical six documents on this REV9 branch as decisions/evidence mature. Keep PR #3388's v49-era documentation lane separate until its authority conflict is reconciled.
+8. Never merge, release, deploy, delete branches, rewrite history, or destructively modify user data without explicit Mobin authorization.
+
+**Status:** IMPLEMENTATION IN PROGRESS / ACCEPTANCE BLOCKED.
