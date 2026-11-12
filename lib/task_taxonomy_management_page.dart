@@ -33,6 +33,8 @@ class _TaskTaxonomyManagementPageState
   List<Task> tasks = const <Task>[];
   List<String> categoryNames = const <String>[];
   List<String> tagNames = const <String>[];
+  Map<String, int> templateCategoryReferences = const <String, int>{};
+  Map<String, int> templateTagReferences = const <String, int>{};
   bool loading = true;
   bool saving = false;
   Object? loadFailure;
@@ -51,11 +53,15 @@ class _TaskTaxonomyManagementPageState
       final loaded = await store.load();
       final loadedCategories = await store.loadCategories();
       final loadedTags = await store.loadTags();
+      final loadedTemplateCategories = await store.loadTemplateCategoryReferenceCounts();
+      final loadedTemplateTags = await store.loadTemplateTagReferenceCounts();
       if (!mounted) return;
       setState(() {
         tasks = List<Task>.of(loaded);
         categoryNames = List<String>.of(loadedCategories);
         tagNames = List<String>.of(loadedTags);
+        templateCategoryReferences = loadedTemplateCategories;
+        templateTagReferences = loadedTemplateTags;
         loading = false;
         loadFailure = null;
       });
@@ -80,6 +86,9 @@ class _TaskTaxonomyManagementPageState
       }
       counts[category] = (counts[category] ?? 0) + 1;
     }
+    for (final entry in templateCategoryReferences.entries) {
+      counts[entry.key] = (counts[entry.key] ?? 0) + entry.value;
+    }
     return Map<String, int>.fromEntries(
       counts.entries.toList()..sort((a, b) => a.key.compareTo(b.key)),
     );
@@ -91,13 +100,16 @@ class _TaskTaxonomyManagementPageState
       counts[tag] = 0;
     }
     for (final task in tasks) {
-      for (final raw in task.tags) {
-        final tag = raw.trim();
-        if (tag.isEmpty) {
-          continue;
-        }
+      final uniqueTaskTags = task.tags
+          .map((raw) => raw.trim())
+          .where((tag) => tag.isNotEmpty)
+          .toSet();
+      for (final tag in uniqueTaskTags) {
         counts[tag] = (counts[tag] ?? 0) + 1;
       }
+    }
+    for (final entry in templateTagReferences.entries) {
+      counts[entry.key] = (counts[entry.key] ?? 0) + entry.value;
     }
     return Map<String, int>.fromEntries(
       counts.entries.toList()..sort((a, b) => a.key.compareTo(b.key)),
@@ -236,9 +248,13 @@ class _TaskTaxonomyManagementPageState
       _pendingChanged = changed;
     });
     final changed = _takePendingChanged();
+    final templateCount = templateCategoryReferences[category] ?? 0;
+    final message = templateCount == 0
+        ? '$changed مورد به «$next» منتقل شد'
+        : '$changed کار و $templateCount مورد در الگوها/قالب‌های پروژه به «$next» منتقل شد';
     await _persistMutation(
       changed,
-      '$changed مورد به «$next» منتقل شد',
+      message,
       persist: (snapshot) => store.renameCategoryAndTasks(
         snapshot,
         from: category,
@@ -254,7 +270,7 @@ class _TaskTaxonomyManagementPageState
       ..showSnackBar(
         SnackBar(
           content: Text(
-            '$kind «${error.value}» در ${error.referenceCount} کار سابقه ارجاع دارد و قابل حذف نیست؛ برای حفظ سوابق، حذف آن مسدود شده است.',
+            '$kind «${error.value}» در ${error.referenceCount} مورد از کارها، الگوها یا قالب‌های پروژه سابقه ارجاع دارد و قابل حذف نیست؛ برای حفظ سوابق، حذف آن مسدود شده است.',
           ),
         ),
       );
@@ -263,7 +279,11 @@ class _TaskTaxonomyManagementPageState
   Future<void> _deleteCategory(String category) async {
     if (saving) return;
     try {
-      mutationService.deleteCategory(tasks, category);
+      mutationService.deleteCategory(
+        tasks,
+        category,
+        additionalReferenceCount: templateCategoryReferences[category] ?? 0,
+      );
       await store.deleteCategoryCatalog(category);
       await _load();
     } on TaskTaxonomyDeleteBlocked catch (error) {
@@ -287,9 +307,13 @@ class _TaskTaxonomyManagementPageState
       );
     });
     final changed = _takePendingChanged();
+    final templateCount = templateTagReferences[tag] ?? 0;
+    final message = templateCount == 0
+        ? '$changed مورد با برچسب «$next» به‌روز شد'
+        : '$changed کار و $templateCount مورد در الگوها/قالب‌های پروژه با برچسب «$next» به‌روز شد';
     await _persistMutation(
       changed,
-      '$changed مورد با برچسب «$next» به‌روز شد',
+      message,
       persist: (snapshot) => store.renameTagAndTasks(
         snapshot,
         from: tag,
@@ -301,7 +325,11 @@ class _TaskTaxonomyManagementPageState
   Future<void> _deleteTag(String tag) async {
     if (saving) return;
     try {
-      mutationService.deleteTag(tasks, tag);
+      mutationService.deleteTag(
+        tasks,
+        tag,
+        additionalReferenceCount: templateTagReferences[tag] ?? 0,
+      );
       await store.deleteTagCatalog(tag);
       await _load();
     } on TaskTaxonomyDeleteBlocked catch (error) {
@@ -399,7 +427,7 @@ class _TaskTaxonomyManagementPageState
                         child: Padding(
                           padding: EdgeInsets.all(12),
                           child: Text(
-                            'دسته یا برچسب جدید هنگام ویرایش کار/یادداشت ساخته می‌شود. موردی که در کار یا یادداشت استفاده شده باشد حذف نمی‌شود؛ برای جابه‌جایی امن، آن را تغییرنام/منتقل کنید تا هیچ داده‌ای بی‌دسته یا بی‌برچسب نشود.',
+                            'دسته یا برچسب جدید هنگام ویرایش کار/یادداشت یا قالب ساخته می‌شود. موردی که در کار، یادداشت، الگو یا قالب پروژه استفاده شده باشد حذف نمی‌شود؛ برای جابه‌جایی امن، آن را تغییرنام دهید تا هیچ سابقه‌ای بی‌دسته یا بی‌برچسب نشود.',
                           ),
                         ),
                       ),

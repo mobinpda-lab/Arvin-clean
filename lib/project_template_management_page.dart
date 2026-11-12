@@ -4,6 +4,8 @@ import 'models/project_template.dart';
 import 'models/goal_project.dart';
 import 'services/center_store.dart';
 import 'services/project_template_service.dart';
+import 'widgets/arvin_roll_box.dart';
+import 'widgets/reusable_multi_select_filter_bottom_sheet.dart';
 
 class ProjectTemplateManagementPage extends StatefulWidget {
   const ProjectTemplateManagementPage({super.key, this.service, this.embedded = false});
@@ -13,10 +15,12 @@ class ProjectTemplateManagementPage extends StatefulWidget {
 }
 class _ProjectTemplateManagementPageState extends State<ProjectTemplateManagementPage> {
   late final ProjectTemplateService _service = widget.service ?? ProjectTemplateService();
-  final CenterStore _centersStore = CenterStore();
+  late final CenterStore _centersStore = _service.centerStore;
   List<ProjectTemplate> _templates = const [];
   List<ArvinCenter> _centers = const [];
   List<ProjectPlan> _projects = const [];
+  List<String> _categories = const [];
+  List<String> _tags = const [];
   bool _loading = true, _busy = false;
   @override void initState() { super.initState(); _load(); }
   Future<void> _load() async {
@@ -25,11 +29,15 @@ class _ProjectTemplateManagementPageState extends State<ProjectTemplateManagemen
       final templates = await _service.templateStore.load();
       final centers = await _centersStore.load(includeArchived: true);
       final projects = await _service.projectStore.load();
+      final categories = await _service.taskStore.loadCategories();
+      final tags = await _service.taskStore.loadTags();
       if (!mounted) return;
       setState(() {
         _templates = templates;
         _centers = centers;
         _projects = projects;
+        _categories = categories;
+        _tags = tags;
         _loading = false;
       });
     } catch (error) {
@@ -64,30 +72,138 @@ class _ProjectTemplateManagementPageState extends State<ProjectTemplateManagemen
   Future<ProjectTemplateTask?> _taskDialog({ProjectTemplateTask? existing}) async {
     final title = TextEditingController(text: existing?.title ?? '');
     final description = TextEditingController(text: existing?.description ?? '');
-    final category = TextEditingController(text: existing?.category ?? '');
-    final tags = TextEditingController(text: existing?.tags.join(', ') ?? '');
     final checklist = TextEditingController(text: existing?.checklist.join('\n') ?? '');
-    final result = await showDialog<ProjectTemplateTask>(context: context, builder: (ctx) => AlertDialog(
-      title: Text(existing == null ? 'کار جدید در قالب' : 'ویرایش کار قالب'),
-      content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
-        TextField(controller: title, decoration: const InputDecoration(labelText: 'عنوان کار')),
-        TextField(controller: description, decoration: const InputDecoration(labelText: 'توضیحات')),
-        TextField(controller: category, decoration: const InputDecoration(labelText: 'دسته (اختیاری)')),
-        TextField(controller: tags, decoration: const InputDecoration(labelText: 'برچسب‌ها (با ویرگول جدا شوند)')),
-        TextField(controller: checklist, minLines: 2, maxLines: 4, decoration: const InputDecoration(labelText: 'چک‌لیست (هر مورد در یک خط)')),
-      ])),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
-        FilledButton(onPressed: () { if (title.text.trim().isEmpty) return; Navigator.pop(ctx, ProjectTemplateTask(
-          id: existing?.id ?? 'template-task-${DateTime.now().microsecondsSinceEpoch}',
-          title: title.text.trim(), description: description.text.trim(),
-          category: category.text.trim().isEmpty ? null : category.text.trim(),
-          tags: tags.text.split(',').map((value) => value.trim()).where((value) => value.isNotEmpty).toSet().toList(),
-          checklist: checklist.text.split('\n').map((value) => value.trim()).where((value) => value.isNotEmpty).toList(),
-        )); }, child: const Text('ذخیره کار')),
-      ],
-    ));
-    title.dispose(); description.dispose(); category.dispose(); tags.dispose(); checklist.dispose(); return result;
+    var selectedCategory = existing?.category;
+    final selectedTags = <String>{...(existing?.tags ?? const <String>[])};
+    final result = await showDialog<ProjectTemplateTask>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          final categoryOptions = <String>{
+            ..._categories,
+            if (selectedCategory != null && selectedCategory!.trim().isNotEmpty)
+              selectedCategory!.trim(),
+          }.toList()..sort();
+          final tagOptions = <String>{..._tags, ...selectedTags}.toList()..sort();
+          return AlertDialog(
+            title: Text(existing == null ? 'کار جدید در قالب' : 'ویرایش کار قالب'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
+                    controller: title,
+                    decoration: const InputDecoration(labelText: 'عنوان کار'),
+                  ),
+                  TextField(
+                    controller: description,
+                    decoration: const InputDecoration(labelText: 'توضیحات'),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text('دسته'),
+                  const SizedBox(height: 6),
+                  ArvinRollBox<String>(
+                    key: const ValueKey('project-template-task-category-rollbox'),
+                    label: 'دسته',
+                    valueLabel: selectedCategory ?? 'دسته',
+                    items: categoryOptions
+                        .map((value) => ArvinRollItem<String>(
+                              value: value,
+                              label: value,
+                              icon: Icons.layers_outlined,
+                            ))
+                        .toList(growable: false),
+                    onSelected: (value) =>
+                        setDialogState(() => selectedCategory = value),
+                    icon: Icons.layers_outlined,
+                    color: Theme.of(ctx).colorScheme.primary,
+                    emptyLabel: 'بدون دسته',
+                    createLabel: 'افزودن دسته',
+                    createItemKey: const ValueKey('project-template-task-category-create'),
+                    showLabel: true,
+                    onCreateWithName: (name) async {
+                      final created = await _service.taskStore.createCategory(name);
+                      if (!mounted) return null;
+                      setState(() {
+                        _categories = <String>{..._categories, created}.toList()..sort();
+                      });
+                      return ReusableFilterOption<String>(
+                        value: created,
+                        label: created,
+                        icon: Icons.layers_outlined,
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  const Text('برچسب‌ها'),
+                  const SizedBox(height: 6),
+                  ArvinTagRollBox(
+                    key: const ValueKey('project-template-task-tag-rollbox'),
+                    tags: tagOptions,
+                    selectedTags: selectedTags.toList()..sort(),
+                    showLabel: true,
+                    onChanged: (values) => setDialogState(() {
+                      selectedTags..clear()..addAll(values);
+                    }),
+                    onCreateWithName: (name) async {
+                      final created = await _service.taskStore.createTag(name);
+                      if (!mounted) return null;
+                      setState(() {
+                        _tags = <String>{..._tags, created}.toList()..sort();
+                      });
+                      return created;
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: checklist,
+                    minLines: 2,
+                    maxLines: 4,
+                    decoration: const InputDecoration(
+                      labelText: 'چک‌لیست (هر مورد در یک خط)',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('انصراف'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  if (title.text.trim().isEmpty) return;
+                  Navigator.pop(
+                    ctx,
+                    ProjectTemplateTask(
+                      id: existing?.id ??
+                          'template-task-' +
+                              DateTime.now().microsecondsSinceEpoch.toString(),
+                      title: title.text.trim(),
+                      description: description.text.trim(),
+                      category: selectedCategory,
+                      tags: selectedTags.toList()..sort(),
+                      checklist: checklist.text
+                          .split('\n')
+                          .map((value) => value.trim())
+                          .where((value) => value.isNotEmpty)
+                          .toList(),
+                    ),
+                  );
+                },
+                child: const Text('ذخیره کار'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+    title.dispose();
+    description.dispose();
+    checklist.dispose();
+    return result;
   }
   Future<void> _addTask(ProjectTemplate template, {ProjectTemplateTask? existing}) async {
     final definition = await _taskDialog(existing: existing); if (definition == null) return;

@@ -15,6 +15,7 @@ import 'g1_drift_schema.dart';
 import 'occurrence_sql_codec.dart';
 import 'recurrence_sql_codec.dart';
 import 'sql_task_migration_writer.dart';
+import 'task_taxonomy_mutation_service.dart';
 import 'task_storage_lock.dart';
 
 typedef TaskMutation<T> = T Function(List<Task> tasks);
@@ -136,6 +137,126 @@ class TaskStore {
     });
   }
 
+  Future<Map<String, int>> loadTemplateCategoryReferenceCounts() async {
+    return TaskStorageLock.synchronized<Map<String, int>>(() async {
+      final executor = _database;
+      await _ensureReady();
+      return _loadTemplateCategoryReferenceCountsUnlocked(executor);
+    });
+  }
+
+  Future<Map<String, int>> loadTemplateTagReferenceCounts() async {
+    return TaskStorageLock.synchronized<Map<String, int>>(() async {
+      final executor = _database;
+      await _ensureReady();
+      return _loadTemplateTagReferenceCountsUnlocked(executor);
+    });
+  }
+
+  Future<Map<String, int>> _loadTemplateCategoryReferenceCountsUnlocked(
+    QueryExecutor executor,
+  ) async {
+    final rows = await executor.runSelect(
+      '''SELECT category FROM task_templates WHERE category IS NOT NULL
+         UNION ALL
+         SELECT category FROM project_template_tasks WHERE category IS NOT NULL''',
+      const [],
+    );
+    final counts = <String, int>{};
+    for (final row in rows) {
+      final value = (row['category'] as String?)?.trim();
+      if (value == null || value.isEmpty) continue;
+      counts[value] = (counts[value] ?? 0) + 1;
+    }
+    return Map<String, int>.unmodifiable(counts);
+  }
+
+  Future<Map<String, int>> _loadTemplateTagReferenceCountsUnlocked(
+    QueryExecutor executor,
+  ) async {
+    final rows = await executor.runSelect(
+      '''SELECT tags_json FROM task_templates
+         UNION ALL
+         SELECT tags_json FROM project_template_tasks''',
+      const [],
+    );
+    final counts = <String, int>{};
+    for (final row in rows) {
+      final raw = row['tags_json'];
+      if (raw is! String || raw.isEmpty) continue;
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) {
+        throw const FormatException('Template taxonomy tags must be a JSON list.');
+      }
+      final rowTags = <String>{};
+      for (final item in decoded) {
+        if (item is! String) continue;
+        final value = item.trim();
+        if (value.isNotEmpty) rowTags.add(value);
+      }
+      for (final value in rowTags) {
+        counts[value] = (counts[value] ?? 0) + 1;
+      }
+    }
+    return Map<String, int>.unmodifiable(counts);
+  }
+
+  Future<int> _taskCategoryReferenceCount(
+    QueryExecutor executor,
+    String category,
+  ) async {
+    final rows = await executor.runSelect(
+      'SELECT COUNT(*) AS count FROM tasks WHERE TRIM(category) = ?',
+      <Object?>[category],
+    );
+    return (rows.single['count'] as num).toInt();
+  }
+
+  Future<int> _taskTagReferenceCount(
+    QueryExecutor executor,
+    String tag,
+  ) async {
+    final rows = await executor.runSelect(
+      '''SELECT COUNT(DISTINCT task_tags.task_id) AS count
+         FROM task_tags JOIN tags ON tags.id = task_tags.tag_id
+         WHERE tags.name = ?''',
+      <Object?>[tag],
+    );
+    return (rows.single['count'] as num).toInt();
+  }
+
+  Future<void> _renameTemplateTagReferences(
+    QueryExecutor executor, {
+    required String table,
+    required String from,
+    required String to,
+  }) async {
+    final rows = await executor.runSelect('SELECT id, tags_json FROM $table', const []);
+    for (final row in rows) {
+      final raw = row['tags_json'];
+      if (raw is! String || raw.isEmpty) continue;
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) throw FormatException('Invalid tags_json in $table');
+      if (!decoded.any((value) => value == from)) continue;
+      final updated = <dynamic>[];
+      var targetWritten = false;
+      for (final value in decoded) {
+        if (value == from || value == to) {
+          if (!targetWritten) {
+            updated.add(to);
+            targetWritten = true;
+          }
+        } else {
+          updated.add(value);
+        }
+      }
+      await executor.runUpdate(
+        'UPDATE $table SET tags_json = ? WHERE id = ?',
+        <Object?>[jsonEncode(updated), row['id']],
+      );
+    }
+  }
+
   Future<String> createCategory(String value) async {
     final name = value.trim();
     if (name.isEmpty) throw ArgumentError.value(value, 'value');
@@ -240,10 +361,27 @@ class TaskStore {
     await TaskStorageLock.synchronized<void>(() async {
       final executor = _database;
       await _ensureReady();
-      await executor.runDelete(
-        'DELETE FROM taxonomy_categories WHERE name = ?',
-        <Object?>[name],
-      );
+      await executor.runCustom('BEGIN');
+      try {
+        final taskCount = await _taskCategoryReferenceCount(executor, name);
+        final templateCounts = await _loadTemplateCategoryReferenceCountsUnlocked(executor);
+        final count = taskCount + (templateCounts[name] ?? 0);
+        if (count > 0) {
+          throw TaskTaxonomyDeleteBlocked(
+            kind: 'category',
+            value: name,
+            referenceCount: count,
+          );
+        }
+        await executor.runDelete(
+          'DELETE FROM taxonomy_categories WHERE name = ?',
+          <Object?>[name],
+        );
+        await executor.runCustom('COMMIT');
+      } catch (_) {
+        try { await executor.runCustom('ROLLBACK'); } catch (_) {}
+        rethrow;
+      }
     });
   }
 
@@ -271,10 +409,27 @@ class TaskStore {
     await TaskStorageLock.synchronized<void>(() async {
       final executor = _database;
       await _ensureReady();
-      await executor.runDelete(
-        'DELETE FROM tags WHERE name = ?',
-        <Object?>[name],
-      );
+      await executor.runCustom('BEGIN');
+      try {
+        final taskCount = await _taskTagReferenceCount(executor, name);
+        final templateCounts = await _loadTemplateTagReferenceCountsUnlocked(executor);
+        final count = taskCount + (templateCounts[name] ?? 0);
+        if (count > 0) {
+          throw TaskTaxonomyDeleteBlocked(
+            kind: 'tag',
+            value: name,
+            referenceCount: count,
+          );
+        }
+        await executor.runDelete(
+          'DELETE FROM tags WHERE name = ?',
+          <Object?>[name],
+        );
+        await executor.runCustom('COMMIT');
+      } catch (_) {
+        try { await executor.runCustom('ROLLBACK'); } catch (_) {}
+        rethrow;
+      }
     });
   }
 
@@ -294,6 +449,14 @@ class TaskStore {
             await executor.runInsert(
               'INSERT OR IGNORE INTO taxonomy_categories (name, created_at) VALUES (?, ?)',
               <Object?>[target, DateTime.now().toIso8601String()],
+            );
+            await executor.runUpdate(
+              'UPDATE task_templates SET category = ? WHERE TRIM(category) = ?',
+              <Object?>[target, source],
+            );
+            await executor.runUpdate(
+              'UPDATE project_template_tasks SET category = ? WHERE TRIM(category) = ?',
+              <Object?>[target, source],
             );
             await executor.runDelete(
               'DELETE FROM taxonomy_categories WHERE name = ?',
@@ -319,6 +482,18 @@ class TaskStore {
             await executor.runInsert(
               'INSERT OR IGNORE INTO tags (id, name) VALUES (?, ?)',
               <Object?>[_tagId(target), target],
+            );
+            await _renameTemplateTagReferences(
+              executor,
+              table: 'task_templates',
+              from: source,
+              to: target,
+            );
+            await _renameTemplateTagReferences(
+              executor,
+              table: 'project_template_tasks',
+              from: source,
+              to: target,
             );
             await executor.runDelete(
               'DELETE FROM tags WHERE name = ?',
