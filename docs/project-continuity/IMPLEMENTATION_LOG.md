@@ -870,3 +870,16 @@ Verification on the implementation checkpoint was pending at last lookup; no tes
 - Baseline/register/handoff commit: `cd1d52e752ac10c0040738f655d5a288d2523399`.
 - The latest pass corrects the remaining Persian deployment note in MASTER_GOVERNANCE.md and clarifies that PR #3340's diff changed through the authorized existing branch, while PR metadata itself was not edited.
 - Final validation must be tied to the post-handoff branch HEAD. Do not transfer any earlier CI PASS.
+
+
+
+---
+
+## COMMAND 07-A.2.33 — live continuity addendum (2026-11-12)
+
+- Live Main observed at `45e4202b03a434459e4c021a04efa7e8396359db`; execution branch is `feature/command-07-a-sqlite-contract-remediation`.
+- On prior candidate `492a5c433ee215d0188a6075b159d4d72329d35e`, Build run `43247842294` failed with 61 distinct test failure records (1,338 passed). The malformed `task_people` payload test failed because its fixture created `task_id=legacy-task` without a parent row in `tasks`; canonical `task_persons.task_id` has a real FK to `tasks(id)`.
+- Corrected only the fixture in `test/services/g1_drift_schema_test.dart` by inserting the parent Task before creating the malformed relation row. Commit: `eea746dbf2a58cd4f04c66a149ae3441264da5b2`. No production code or FK assertion changed.
+- New-candidate Follow-up persistence run `43269800526` succeeded. New-candidate Build `43269800292`, Device Smoke `43269800280` and SQLite Snapshot `43269800257` were queued at last poll; outcomes remain pending.
+- Previous-candidate artifact inventory is retained in the execution report; artifact IDs and digests are bound to SHA `492a5c4...` only and are not acceptance evidence for `eea746d...`.
+- No merge, release or deployment was performed.
