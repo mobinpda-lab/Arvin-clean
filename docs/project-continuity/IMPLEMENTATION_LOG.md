@@ -934,3 +934,19 @@ Verification on the implementation checkpoint was pending at last lookup; no tes
 These commits were confirmed present on the execution branch. No focused CI result or full Build run for the latest execution head was available at log update time. All new changes remain IMPLEMENTED / VALIDATION PENDING, not accepted.
 
 Historical Build `43269800292` on `eea746dbf2a58cd4f04c66a149ae3441264da5b2` failed all six test shards (1,338 passed / 61 failed); it is not evidence against the new head. SQLite Snapshot `43269800257` and Follow-up Persistence `43269800526` succeeded on that older SHA only.
+
+
+---
+
+## COMMAND 07-A.2.34 — exact-head refresh and product audit (2026-11-12)
+
+- Live execution PR #3384 is OPEN / DRAFT / UNMERGED. Branch `feature/command-07-a-sqlite-contract-remediation`, current HEAD `1f4ff4898a5a9278e067c795a8fc14791b8ecbed`, base `fix/wave3-cycle3-calendar-product-repair` at `8c4c23f0c2a4f9b2374a2092c931782c4455fd41`; 121 commits / 73 changed files.
+- Latest committed changes since the earlier handoff: Quick Capture Project selector finder (`019b477f...`), Task Editor taxonomy finder (`fb135349...`), bounded font-preference smoke pump (`4171071...`), Navigation widget harness (`6914b55...`), compact Home latest real Follow-up placement (`bc37933...`), and actual Scrollable targeting in Task Details (`1f4ff4898a5a9278e067c795a8fc14791b8ecbed`).
+- Exact-head Actions: Arvin Draft Review APK (1f4ff4898a5a9278e067c795a8fc14791b8ecbed) 43291144596=COMPLETED/SKIPPED; Arvin Device Smoke 43291144527=QUEUED; Arvin Build (1f4ff4898a5a9278e067c795a8fc14791b8ecbed) 43291144776=PENDING; Arvin Follow-up File Persistence 43291144575=PENDING; Arvin COMMAND 07-A.2.20 SQLite Snapshot Evidence 43291144675=QUEUED; ARVIN Orchestrator 43291144442=PENDING; ARVIN Orchestrator PR Wakeup 43291144484=PENDING; ARVIN Production Loop 43291144513=QUEUED. No current-head artifacts exist. The Build has no jobs allocated; Device Smoke and SQLite Snapshot are queued; Follow-up Persistence is pending/queued. No PASS is claimed.
+- The preceding 6914b55 head's Build/Follow-up/Orchestrator attempts were cancelled after the branch advanced. Those attempts do not validate the current SHA.
+- Corrected historical 61-failure distribution for Build `43269800292` / SHA `eea746d...`: shard 0=11, 1=1, 2=21, 3=9, 4=9, 5=10. Original job logs: 131362983437, 131362983185, 131362983684, 131362983229, 131362983512, 131362983153. This corrects a transposed shard distribution in a prior state note.
+- Static review confirms D02 state-preservation tests, D03 Follow-up/Person/unknown-field tests, a file-backed independent D04 backup/restore test, and a D05 malformed-source rollback/repair/retry test. All remain VALIDATION PENDING on the current head; D01 full schema parity remains open.
+- Product audit found a real taxonomy consistency gap: Project Template task editing still uses free-text Category/Tags, and taxonomy deletion checks do not yet account for Task/Project Template snapshots. Fix and test this before C01/C03/C04/C05 acceptance.
+- Consolidation candidates: overlapping `TaskTaxonomyLifecycleService` / `TaskTaxonomyMutationService`; legacy SharedPreferences `TagStore` requires a complete reference audit before retirement. No source or test was deleted.
+- Repository inventory: 1,430 branches, 1,356 unique heads, 35 duplicate-head groups / 109 refs; 117 open PRs. Main ruleset is active but currently requires zero approvals and no CODEOWNER review. CODEOWNERS exists only in unmerged #3388, not Main.
+- No merge, release, deployment, branch deletion, history rewrite or user-data mutation occurred.
