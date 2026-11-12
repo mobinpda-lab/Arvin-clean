@@ -3,7 +3,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:arvin/arvin_colors.dart';
 import 'package:arvin/core/theme/arvin_theme.dart';
-import 'theme/app_fonts.dart';
 
 import 'daily_content.dart';
 import 'services/prayer_completion_projection.dart';
@@ -524,7 +523,7 @@ class _CalendarPageState extends State<CalendarPage> {
             visualDensity: VisualDensity.compact,
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             textStyle: WidgetStatePropertyAll(
-              TextStyle(fontSize: 14, fontWeight: FontWeight.w500, fontFamily: AppFonts.vazirmatnFamily),
+              TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
             ),
           ),
           segments: const [
@@ -923,7 +922,6 @@ class _CalendarPageState extends State<CalendarPage> {
       textDirection: TextDirection.rtl,
       child: Theme(
         data: Theme.of(context).copyWith(
-          textTheme: Theme.of(context).textTheme.apply(fontFamily: AppFonts.vazirmatnFamily),
         ),
         child: Scaffold(
         appBar: AppBar(
