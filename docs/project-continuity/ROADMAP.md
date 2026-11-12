@@ -524,3 +524,16 @@ No gate is accepted by implementation alone. All final evidence must be reproduc
 6. Complete all seven Device Smoke scenarios and PDF/APK font evidence on one final candidate SHA.
 
 P1 consolidation remains continuous: preserve #3380/#3382 diagnostic evidence, reconcile #3340 REV9 with #3388 v49-era documentation, and review duplicate code/services/workflows without deleting unique coverage or history.
+
+
+---
+
+## COMMAND 07-A.2.34 — acceptance gap refinement (2026-11-12)
+
+### P0 additions
+- **D04:** build an end-to-end backup/restore test using separate source and destination SQLite files. Verify Task identity, Reminder, Follow-up, Person and Project relationships after destination close/reopen, plus integrity and foreign-key checks.
+- **D01:** add legacy custom Index/Trigger fixtures and prove preservation or explicit fail-closed rollback.
+- **C07:** add one isolated-database product workflow covering Category, Project, multiple Tags, Person, Task, Reminder, Follow-up, persistence, Home/Calendar, Search/Filters, Reports and controlled deletion.
+- **Follow-up Entry:** resolve selected-Person creation/persistence failure without changing user-selected state semantics.
+
+All are IN PROGRESS or NOT YET VERIFIED. The latest exact candidate is `1f4ff4898a5a9278e067c795a8fc14791b8ecbed`; current Build/Device/SQLite runs are pending or queued.
