@@ -192,3 +192,10 @@ The following binary files were fetched from the exact PR #3384 implementation b
 The implementation branch retains a separate `assets/fonts/ui/vazirharf/` directory from its historical work. Its files are not registered by the current `pubspec.yaml` family declaration. Runtime and packaged-APK exclusion still require exact-head tests and artifact inspection.
 
 **Still pending:** pin the upstream Vazirmatn release/tag or source commit; verify the bundled license against that source; inspect actual Debug/Release APK contents; inspect actual generated PDF font resources and Persian shaping; validate on Android. Do not promote these candidate-branch checksums to a main/release claim.
+
+
+## 17. Font binary provenance refinement — COMMAND 07-A.2.26
+
+The actual OpenType `name` table was decoded from each of the five checked-in TTF binaries on PR #3384 candidate SHA `b78488c0347e1a97a7a25f56c914a48761d44a25`. All five report **Version 33.003** (name ID 5: `Version 33.003`; name ID 3 includes `33.003`). The source project identified in the bundled license and font asset policy is [rastikerdar/vazirmatn](https://github.com/rastikerdar/vazirmatn), and the bundled license is SIL OFL 1.1.
+
+This establishes the embedded font binary version metadata, not the exact upstream Git commit/tag from which these binaries were copied. The upstream source commit/tag and a reproducible source-to-binary comparison remain PENDING. The five SHA-256 values in §16 remain the actual binary checksums. No claim is made that an APK has yet passed its packaging audit.
