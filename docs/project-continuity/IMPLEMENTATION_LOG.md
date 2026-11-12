@@ -914,3 +914,23 @@ Verification on the implementation checkpoint was pending at last lookup; no tes
 - Reclassified commit `eea746dbf2a58cd4f04c66a149ae3441264da5b2` as an incomplete fixture attempt, not a successful fix. New Build `43269800292`, test-5, failed with `SqliteException: no such table: tasks` at the parent Task insert.
 - The fixture must create a schema-compatible `tasks` table first; then insert the parent Task and malformed `task_people` row. Preserve all FK, rollback, source-retention and retry assertions. No production code or FK checks should be weakened.
 - New candidate Build has three failed shards at latest poll: test-1 202/1, test-3 155/9, test-5 189/10. Snapshot and Follow-up Persistence pass; Device Smoke is queued.
+
+
+---
+
+## COMMAND 07-A.2.34 implementation log — 2026-11-12
+
+### Execution branch
+`feature/command-07-a-sqlite-contract-remediation`
+
+### Commits
+- `446f04a6f8cc94871eea0982d9f0f896b8fba8fe` — creates canonical `tasks` parent table in malformed legacy relation recovery fixture.
+- `ab06e7bdf3233d3d971aa64d11782efff71089f1` — unifies Home grouping and Jalali group-date clock source with injectable Iran time.
+- `235bfb98e45af68f0d68b00099f97d599504b575` — adds deterministic Home clock test for 09:00 and 10:00.
+- `5af39a34ee19e090de30cf6d3e0a5848852fab48` — displays latest real Follow-up in expanded Home Task card using the canonical presentation service.
+- `ee703dfa82e356039ef32c0b2a9f1bc9a00dc1e9` — aligns Home test interaction and keys with the existing canonical expand control.
+
+### Verification boundary
+These commits were confirmed present on the execution branch. No focused CI result or full Build run for the latest execution head was available at log update time. All new changes remain IMPLEMENTED / VALIDATION PENDING, not accepted.
+
+Historical Build `43269800292` on `eea746dbf2a58cd4f04c66a149ae3441264da5b2` failed all six test shards (1,338 passed / 61 failed); it is not evidence against the new head. SQLite Snapshot `43269800257` and Follow-up Persistence `43269800526` succeeded on that older SHA only.
