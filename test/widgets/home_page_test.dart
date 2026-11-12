@@ -897,7 +897,10 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('home-more-today-focus')));
+    final todayFocusMenuItem = find.byKey(const ValueKey('home-more-today-focus'));
+    await tester.ensureVisible(todayFocusMenuItem);
+    await tester.pumpAndSettle();
+    await tester.tap(todayFocusMenuItem);
     await tester.pumpAndSettle();
     expect(find.text('موعد امروز بدون انتخاب'), findsNothing);
     expect(find.text('برگزیده با موعد آینده'), findsOneWidget);
@@ -992,7 +995,10 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('home-general-filter-button')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('home-filter-today-focus')));
+    final globalFocusFilter = find.byKey(const ValueKey('home-filter-today-focus'));
+    await tester.ensureVisible(globalFocusFilter);
+    await tester.pumpAndSettle();
+    await tester.tap(globalFocusFilter);
     await tester.pumpAndSettle();
 
     expect(find.text('کار برگزیده با موعد آینده'), findsOneWidget);
