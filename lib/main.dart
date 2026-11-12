@@ -1268,7 +1268,7 @@ class _HomePageState extends State<HomePage> {
               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
             ),
           ),
-          Expanded(child:ListView(children:[
+          Expanded(child:ListView(key: const ValueKey('home-time-filter-list'), children:[
             CheckboxListTile(
               key: const ValueKey('home-time-filter-all'),
               value: draft.isEmpty && !focusToday,
