@@ -405,7 +405,6 @@ class AppSettingsService {
     await preferences.setString(_themeModeKey, settings.themeMode.name);
     await preferences.setBool(_persianDateKey, settings.usePersianDate);
     await preferences.setDouble(_fontSizeKey, _normalizeFontSize(settings.fontSize));
-    await preferences.setString(_fontPreferenceKey, _decodeFontPreference(settings.fontPreference));
     await preferences.setString(_swipeRightKey, _normalizeSwipeAction(settings.swipeRightAction).name);
     await preferences.setString(_swipeLeftKey, _normalizeSwipeAction(settings.swipeLeftAction).name);
   }
