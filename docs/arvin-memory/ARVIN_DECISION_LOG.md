@@ -268,3 +268,15 @@ Release remains NO-GO. No merge, release or deployment is authorized.
 **Implementation correction:** Explicit VazirHarf runtime font overrides were removed from Task Details, Home filter UI and Quick Capture so those surfaces inherit the centralized Theme and preserve the optional System Default choice. Stale test APIs/finders were corrected without removing product assertions.
 
 **Acceptance boundary:** This provenance and source cleanup do not establish APK packaging, PDF shaping/rendering, device acceptance, or complete SQLite D01-D05. The exact candidate SHA remains under validation; no acceptance or release is declared.
+
+
+## 2026-11-12 — COMMAND 07-A.2.28.3 validation additions
+
+The controlling typography decision remains unchanged: Vazirmatn is the sole official/default font; System Default is an optional preference; VazirHarf is not a runtime font.
+
+The active candidate `75737f4fb95b4357e8b6e0511ee2443c6aa5aff4` adds:
+- PDF acceptance sample and automated embedded font/Unicode checks, plus Poppler extraction and rendering in CI;
+- APK font provenance checks against the five exact upstream Git blob IDs and SHA-256 output;
+- expanded SQLite schema-catalog, file-based Backup/Restore and migration-recovery tests.
+
+These are validation improvements only. They do not establish acceptance until exact-head workflows complete. No release authorization is implied.

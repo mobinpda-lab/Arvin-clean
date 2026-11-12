@@ -438,3 +438,17 @@ The approved product typography decision remains binding: Vazirmatn is the only 
 The five checked-in Vazirmatn TTF files were compared with upstream `rastikerdar/vazirmatn` at commit `6e553e33489a8f9dfaccc76860a2e3f3c1e66de7`; all five Git blob IDs and sizes match exactly. The bundled OFL license blob also matches upstream. Details are in the typography contract §18.
 
 This checkpoint does not accept the product. Exact-head Build, six regression shards, APK audits, Device Smoke, PDF rendering, and full SQLite D01-D05 acceptance remain open until actual results are inspected. No merge, release or deployment is authorized.
+
+
+## COMMAND 07-A.2.28.3 — execution continuation (2026-11-12)
+
+The current product candidate has advanced to `75737f4fb95b4357e8b6e0511ee2443c6aa5aff4`. Since the earlier checkpoint, the execution branch adds:
+- full SQLite schema-catalog and foreign-key-definition evidence;
+- a file-based Backup/Restore test into a separate SQLite database;
+- migration failure recovery by source repair and safe retry;
+- a real Persian PDF sample with embedded-font, ToUnicode, extraction and rendered-preview validation;
+- APK font audit against five pinned upstream Git blob IDs, with SHA-256 and byte-size logging.
+
+Exact-head Build remains PENDING without jobs; Snapshot, Follow-up and Device Smoke remain QUEUED. These additions are not accepted until their workflows execute on the current SHA. The prior SQLite PASS results on `a6d2d58...` remain historical.
+
+Product font decision is unchanged: Vazirmatn official/default; System Default optional; VazirHarf not a runtime font. PR #3384 and PR #3388 remain draft and unmerged. Merge, Release and Deployment are not authorized.
