@@ -36,13 +36,13 @@ void main() {
     expect(find.byType(TextField), findsOneWidget);
     for (final key in [
       'home-filter-card-time',
-      'home-filter-card-center',
       'home-filter-card-project',
       'home-filter-card-category',
       'home-filter-card-tags',
     ]) {
       expect(find.byKey(ValueKey(key)), findsOneWidget);
     }
+    expect(find.byKey(const ValueKey('home-filter-card-center')), findsNothing);
     expect(find.byIcon(Icons.add), findsOneWidget);
     expect(find.text('جستجو در کارها...'), findsOneWidget);
     expect(find.text('کارهای من'), findsNothing);
@@ -170,7 +170,10 @@ void main() {
     await tester.scrollUntilVisible(
       find.text('کار انجام‌نشده'),
       400,
-      scrollable: homeList,
+      scrollable: find.descendant(
+        of: homeList,
+        matching: find.byType(Scrollable),
+      ).first,
     );
     expect(find.text('کار انجام‌نشده'), findsOneWidget);
     // The bottom navigation intentionally hides while the Home list is
@@ -879,7 +882,10 @@ void main() {
     await tester.scrollUntilVisible(
       find.text('برگزیده با موعد آینده'),
       240,
-      scrollable: homeList,
+      scrollable: find.descendant(
+        of: homeList,
+        matching: find.byType(Scrollable),
+      ).first,
     );
     expect(find.text('برگزیده با موعد آینده'), findsOneWidget);
     // The canonical bottom navigation hides while the Home list is scrolled.

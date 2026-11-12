@@ -25,13 +25,18 @@ void main() {
       title: 'تحویل قرارداد',
       description: 'نسخه نهایی',
       dueDate: DateTime(2026, 8, 29, 10),
-      reminderDate: DateTime(2026, 8, 29, 9),
+      taskReminders: [
+        TaskReminder(
+          id: 'task-reminder-1',
+          title: 'یادآور مستقل',
+          date: DateTime(2026, 8, 29, 9),
+          sequence: 1,
+        ),
+      ],
       followUps: [
         FollowUp(
           id: 'fu-1',
           dateTime: DateTime(2026, 8, 28, 12),
-          nextFollowUp: DateTime(2026, 8, 29, 11),
-          reminderDate: DateTime(2026, 8, 29, 10, 30),
         ),
       ],
     );

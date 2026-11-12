@@ -2,6 +2,32 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+Future<void> _scrollTaskDetailUntilVisible(
+  WidgetTester tester,
+  Finder target,
+) async {
+  final list = tester.widget<ListView>(
+    find.byKey(const ValueKey('task-detail-content-list')),
+  );
+  final controller = list.controller!;
+  for (var pass = 0; pass < 2 && target.evaluate().isEmpty; pass++) {
+    for (var step = 0; step < 40 && target.evaluate().isEmpty; step++) {
+      final max = controller.position.maxScrollExtent;
+      if (controller.offset >= max - 0.5) break;
+      controller.jumpTo((controller.offset + 220).clamp(0.0, max).toDouble());
+      await tester.pumpAndSettle();
+    }
+    if (target.evaluate().isEmpty && pass == 0 && controller.offset > 0) {
+      controller.jumpTo(0);
+      await tester.pumpAndSettle();
+    }
+  }
+  expect(target, findsOneWidget);
+  await tester.ensureVisible(target);
+  await tester.pumpAndSettle();
+}
+
+
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:arvin/task_detail_page.dart';
@@ -124,7 +150,7 @@ void main() {
       expectFollowUpHistoryUnchanged(saved);
 
       final editChecklist = find.byKey(const ValueKey('task-detail-checklist-edit-0'));
-      await tester.ensureVisible(editChecklist);
+      await _scrollTaskDetailUntilVisible(tester, editChecklist);
       await tester.tap(editChecklist);
       await tester.pumpAndSettle();
       final editInput = find.byKey(const ValueKey('task-detail-checklist-edit-input-0'));
@@ -136,7 +162,7 @@ void main() {
       expectFollowUpHistoryUnchanged(saved);
 
       final deleteChecklist = find.byKey(const ValueKey('task-detail-checklist-delete-0'));
-      await tester.ensureVisible(deleteChecklist);
+      await _scrollTaskDetailUntilVisible(tester, deleteChecklist);
       await tester.tap(deleteChecklist);
       await tester.pumpAndSettle();
 

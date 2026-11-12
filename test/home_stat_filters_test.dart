@@ -165,7 +165,7 @@ void main() {
 
     expect(find.text('انتخاب‌شده: 0'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-time-filter-today-focus')), findsOneWidget);
-    final sheetScrollable = find.byType(Scrollable).last;
+    final sheetScrollable = find.byType(Scrollable).at(1);
     await tester.scrollUntilVisible(find.text('بازهٔ دلخواه'), 300, scrollable: sheetScrollable);
     final customRange = find.byKey(const ValueKey('home-time-filter-customRange'));
     expect(customRange, findsOneWidget);
@@ -199,7 +199,7 @@ void main() {
     expect(find.text('همه'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('multi-select-option-اداری')));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.text('شخصی'), 240, scrollable: find.byType(Scrollable).last);
+    await tester.scrollUntilVisible(find.text('شخصی'), 240, scrollable: find.byType(Scrollable).at(1));
     await tester.tap(find.byKey(const ValueKey('multi-select-option-شخصی')));
     await tester.pumpAndSettle();
     // Draft choices are not applied before the explicit confirmation.
@@ -231,9 +231,9 @@ void main() {
     await tester.ensureVisible(tagsChip);
     await tester.tap(tagsChip);
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.text('مهم'), 240, scrollable: find.byType(Scrollable).last);
+    await tester.scrollUntilVisible(find.text('مهم'), 240, scrollable: find.byType(Scrollable).at(1));
     await tester.tap(find.byKey(const ValueKey('multi-select-option-مهم')));
-    await tester.scrollUntilVisible(find.text('فوری'), 240, scrollable: find.byType(Scrollable).last);
+    await tester.scrollUntilVisible(find.text('فوری'), 240, scrollable: find.byType(Scrollable).at(1));
     await tester.tap(find.byKey(const ValueKey('multi-select-option-فوری')));
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();

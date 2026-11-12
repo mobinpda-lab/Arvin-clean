@@ -352,14 +352,13 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    final summary = find.byKey(const ValueKey('task-detail-summary-card'));
-    expect(
-      find.descendant(of: summary, matching: find.text('در انتظار پاسخ')),
-      findsOneWidget,
-    );
-        final latest = find.byKey(const ValueKey('task-detail-latest-followup'));
+    final latest = find.byKey(const ValueKey('task-detail-latest-followup'));
     await _scrollTaskDetailUntilVisible(tester, latest, 240);
     await tester.pumpAndSettle();
+    expect(
+      find.descendant(of: latest, matching: find.text('در انتظار پاسخ')),
+      findsOneWidget,
+    );
     expect(find.byKey(const ValueKey('task-detail-latest-followup-title')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-latest-followup-note')), findsOneWidget);
     expect(find.text('تماس با مشتری'), findsNWidgets(2));
@@ -412,7 +411,7 @@ void main() {
     expect(persisted?.checklist, ['[ ] مرحله دوم', '[ ] مرحله اول']);
 
     final add = find.byKey(const ValueKey('task-detail-checklist-add'));
-    await tester.ensureVisible(add);
+    await _scrollTaskDetailUntilVisible(tester, add, 240);
     await tester.tap(add);
     await tester.pumpAndSettle();
     final input = find.byKey(const ValueKey('task-detail-checklist-add-input'));
