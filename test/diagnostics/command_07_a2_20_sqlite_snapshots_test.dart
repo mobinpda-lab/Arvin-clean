@@ -39,7 +39,7 @@ void main() {
     await preferences.setString('arvin.tasks', rawLegacyTasks);
 
     final directory = await Directory.systemTemp.createTemp('arvin-command-07-a2-20-');
-    final databaseFile = File(directory.path + '/arvin.sqlite');
+    final databaseFile = File('${directory.path}/arvin.sqlite');
     var database = NativeDatabase(databaseFile);
     var databaseOpen = true;
 
@@ -237,7 +237,7 @@ void main() {
         await reopenDatabase();
         store = TaskStore(executor: database);
         loaded = await store.load();
-        verifyLoadedTask(loaded, 'cycle ' + cycle.toString());
+        verifyLoadedTask(loaded, 'cycle $cycle');
         if (cycle == 1) {
           // C: after the first full save/close/reopen/load cycle.
           snapshotC = await captureSnapshot('C_after_cycle_1');
@@ -252,17 +252,17 @@ void main() {
       expect(snapshotD, isNotNull);
       for (final entry in <String, Map<String, Object?>>{
         'B': snapshotB,
-        'C': snapshotC!,
-        'D': snapshotD!,
+        'C': snapshotC,
+        'D': snapshotD,
       }.entries) {
         expect(
           canonicalJson(comparableSnapshot(entry.value)),
           canonicalJson(comparableSnapshot(snapshotA)),
-          reason: 'SQLite relational/metadata snapshot changed at ' + entry.key + '.',
+          reason: 'SQLite relational/metadata snapshot changed at ${entry.key}.',
         );
       }
-      expect(snapshotD!['foreign_key_check'], isEmpty);
-      expect(snapshotD!['foreign_keys_enabled'], 1);
+      expect(snapshotD['foreign_key_check'], isEmpty);
+      expect(snapshotD['foreign_keys_enabled'], 1);
 
       final evidence = <String, Object?>{
         'command': '07-A.2.20',
@@ -279,32 +279,32 @@ void main() {
         'snapshots': {
           'A': snapshotA,
           'B': snapshotB,
-          'C': snapshotC!,
-          'D': snapshotD!,
+          'C': snapshotC,
+          'D': snapshotD,
         },
         'comparison': 'B, C and D match A for Task compatibility metadata, Reminder rows, Follow-up rows/order, Person links, Person identities, schema columns/indexes and foreign-key integrity',
       };
 
       final artifactDirectory = Directory('build/arvin-command-07-a2-20');
       await artifactDirectory.create(recursive: true);
-      final artifact = File(artifactDirectory.path + '/sqlite-snapshots-A-D.json');
+      final artifact = File('${artifactDirectory.path}/sqlite-snapshots-A-D.json');
       await artifact.writeAsString(
         const JsonEncoder.withIndent('  ').convert(evidence),
         flush: true,
       );
       final hashResult = await Process.run('sha256sum', [artifact.path]);
-      expect(hashResult.exitCode, 0, reason: hashResult.stderr.toString());
+      expect(hashResult.exitCode, 0, reason: '${hashResult.stderr}');
       final hashLine = (hashResult.stdout as String).trim();
-      final hashFile = File(artifact.path + '.sha256');
+      final hashFile = File('${artifact.path}.sha256');
       await hashFile.writeAsString('$hashLine\n', flush: true);
       final verifyResult = await Process.run('sha256sum', ['-c', hashFile.path]);
-      expect(verifyResult.exitCode, 0, reason: verifyResult.stdout.toString() + verifyResult.stderr.toString());
+      expect(verifyResult.exitCode, 0, reason: '${verifyResult.stdout}${verifyResult.stderr}');
 
-      print('ARVIN_COMMAND_07_A2_20_SQLITE_SNAPSHOTS_BEGIN');
-      print(const JsonEncoder.withIndent('  ').convert(evidence));
-      print('ARTIFACT_PATH: ' + artifact.path);
-      print('SHA256: ' + hashLine);
-      print('ARVIN_COMMAND_07_A2_20_SQLITE_SNAPSHOTS_END');
+      stdout.writeln('ARVIN_COMMAND_07_A2_20_SQLITE_SNAPSHOTS_BEGIN');
+      stdout.writeln(const JsonEncoder.withIndent('  ').convert(evidence));
+      stdout.writeln('ARTIFACT_PATH: ${artifact.path}');
+      stdout.writeln('SHA256: $hashLine');
+      stdout.writeln('ARVIN_COMMAND_07_A2_20_SQLITE_SNAPSHOTS_END');
     } finally {
       await closeDatabase();
       await directory.delete(recursive: true);
