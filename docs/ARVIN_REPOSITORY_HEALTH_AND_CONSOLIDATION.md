@@ -89,7 +89,7 @@ The fixture inserted a legacy `task_people` row with `task_id='legacy-task'` but
 Correction on #3384: insert the parent Task in the fixture before adding the malformed JSON relation. Commit `eea746dbf2a58cd4f04c66a149ae3441264da5b2`. No production migration, FK, rollback or assertion was weakened. Rerun on the new SHA is pending Build `43269800292`.
 
 ## 6. Previous-candidate 61 Failure Records
-All 61 test failure records from Build `43247842294` are preserved below. Three records now have a grounded initial classification: one TEST HARNESS DEFECT corrected in `eea746d...`; two TEST CONTRACT DEFECTS identified for correction; the remaining 58 are UNRESOLVED pending root-cause inspection. The list is historical to SHA `492a5c4...` and must not be carried forward as the new candidate's result.
+All 61 test failure records from Build `43247842294` are preserved below. Three records now have a grounded initial classification: one TEST HARNESS DEFECT corrected in `eea746d...`; two TEST CONTRACT DEFECTS identified for correction; the remaining 57 are UNRESOLVED pending root-cause inspection. The list is historical to SHA `492a5c4...` and must not be carried forward as the new candidate's result.
 
 | # | Shard | File | Test | Classification |
 |---:|---:|---|---|---|
@@ -117,7 +117,7 @@ All 61 test failure records from Build `43247842294` are preserved below. Three 
 | 22 | 2 | `test/home/home_filter_boolean_logic_test.dart` | Home filters combine OR within each dimension and AND across dimensions | UNRESOLVED — RETEST REQUIRED |
 | 23 | 2 | `test/task_editor_due_date_preservation_test.dart` | editing preserves canonical due date independently | TEST CONTRACT DEFECT — FIX PENDING: getter is reminder projection |
 | 24 | 2 | `test/follow_up_office_page_test.dart` | selects one of multiple tasks and persists only to that task | UNRESOLVED — RETEST REQUIRED |
-| 25 | 2 | `test/task_detail_person_persistence_test.dart` | Task Details Follow-up person selection persists through canonical Person and relation tables | UNRESOLVED — RETEST REQUIRED |
+| 25 | 2 | `test/task_detail_person_persistence_test.dart` | Task Details Follow-up person selection persists through canonical Person and relation tables | TEST HARNESS DEFECT — FIX PENDING: scrollUntilVisible expects Scrollable, test passes ListView |
 | 26 | 2 | `test/task_detail_master_screen_test.dart` | Task Details persists checklist reorder and additions immediately without changing Follow-up history | UNRESOLVED — RETEST REQUIRED |
 | 27 | 2 | `test/notebook_page_test.dart` | editor tag picker replaces tags on the same canonical note | UNRESOLVED — RETEST REQUIRED |
 | 28 | 2 | `test/task_detail_checklist_crud_test.dart` | checklist add, inline edit and delete persist immediately and preserve legacy follow-up timestamps | UNRESOLVED — RETEST REQUIRED |
