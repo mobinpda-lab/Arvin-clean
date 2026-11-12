@@ -863,7 +863,7 @@ void main() {
       AFTER UPDATE OF title ON tasks
       BEGIN
         INSERT INTO task_audit(task_id, title) VALUES (NEW.id, NEW.title);
-      END
+      END;
     ''');
     await database.runInsert(
       'INSERT INTO tasks (id, title) VALUES (?, ?)',
