@@ -440,9 +440,15 @@ jobs:
               exit 1
             fi
             font_sha256="$(sha256sum "$font" | awk '{print $1}')"
+            embedded_sha256="$(unzip -p "$apk" "assets/flutter_assets/$font" | sha256sum | awk '{print $1}')"
+            if [[ "$embedded_sha256" != "$font_sha256" ]]; then
+              echo "APK_FONT_CONTENT=FAIL file=$font source_sha256=$font_sha256 embedded_sha256=$embedded_sha256" >&2
+              exit 1
+            fi
             font_bytes="$(stat -c '%s' "$font")"
             echo "FONT_ASSET_BUNDLED=PASS $font"
             echo "FONT_PROVENANCE=PASS file=$font git_blob=$actual_blob bytes=$font_bytes sha256=$font_sha256"
+            echo "APK_FONT_CONTENT=PASS file=$font embedded_sha256=$embedded_sha256"
           done
           if grep -R -n -E "VazirHarf|vazirharf" lib pubspec.yaml; then
             echo "FONT_LEGACY_PURGE=FAIL retired VazirHarf runtime reference remains" >&2
