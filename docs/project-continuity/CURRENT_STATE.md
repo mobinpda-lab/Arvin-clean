@@ -1214,7 +1214,7 @@ Live repository facts at deployment start: Main `45e4202b03a434459e4c021a04efa7e
 Build run `43269800292` tested `eea746dbf2a58cd4f04c66a149ae3441264da5b2`, not the new candidate:
 - Analyze: PASS; Visual: PASS.
 - Test shards 0–5: all FAILED; 1,338 passed / 61 failed.
-- Shard failure counts: 0=1, 1=9, 2=10, 3=11, 4=9, 5=21.
+- Shard failure counts: 0=11, 1=1, 2=21, 3=9, 4=9, 5=10.
 - Debug, Staging and Release APK build jobs: SUCCESS. This does not establish release approval or complete artifact acceptance.
 - SQLite Snapshot run `43269800257`: SUCCESS, artifact `13966864535`; this is not D01–D05 acceptance.
 - Follow-up File Persistence run `43269800526`: SUCCESS; narrow scope only.
@@ -1240,3 +1240,85 @@ The six-shard failure inventory remains exactly 61 on the tested historical cand
 4. Complete Category / Project / Tag cross-feature workflows and relationship/deletion policy.
 5. Complete PDF, APK font audit, and all seven Device Smoke scenarios on one exact SHA.
 6. Keep all changes unmerged and preserve all branches, PRs, artifacts and source data.
+
+
+---
+
+## COMMAND 07-A.2.34 — live repository checkpoint (2026-11-12)
+
+**Disposition:** IMPLEMENTATION IN PROGRESS / ACCEPTANCE BLOCKED.  
+**Main HEAD:** `45e4202b03a434459e4c021a04efa7e8396359db`.  
+**Execution PR:** #3384 — OPEN / DRAFT / UNMERGED.  
+**Execution branch:** `feature/command-07-a-sqlite-contract-remediation`.  
+**Current execution SHA:** `1f4ff4898a5a9278e067c795a8fc14791b8ecbed`.  
+**PR base:** `fix/wave3-cycle3-calendar-product-repair` at `8c4c23f0c2a4f9b2374a2092c931782c4455fd41`.  
+**PR size at checkpoint:** 121 commits / 73 changed files.  
+**Merge / Release / Deployment:** NOT AUTHORIZED.
+
+### Exact-head Actions state
+
+All runs below target the current execution SHA `1f4ff4898a5a9278e067c795a8fc14791b8ecbed`:
+- Arvin Draft Review APK (1f4ff4898a5a9278e067c795a8fc14791b8ecbed) — Run `43291144596`: **COMPLETED/SKIPPED**.
+- Arvin Device Smoke — Run `43291144527`: **QUEUED**.
+- Arvin Build (1f4ff4898a5a9278e067c795a8fc14791b8ecbed) — Run `43291144776`: **PENDING**.
+- Arvin Follow-up File Persistence — Run `43291144575`: **PENDING**.
+- Arvin COMMAND 07-A.2.20 SQLite Snapshot Evidence — Run `43291144675`: **QUEUED**.
+- ARVIN Orchestrator — Run `43291144442`: **PENDING**.
+- ARVIN Orchestrator PR Wakeup — Run `43291144484`: **PENDING**.
+- ARVIN Production Loop — Run `43291144513`: **QUEUED**.
+- The Build run has no allocated jobs yet; pending is not a test result.
+- Device Smoke has not allocated the seven scenario jobs yet; preparation queued is not Device Smoke PASS.
+- SQLite Snapshot and Follow-up Persistence remain queued/pending; no artifacts are attached to this exact head.
+- The previous head `6914b55a...` had Build/Follow-up/Orchestrator runs cancelled after the branch advanced. Its outcomes do not validate the current SHA.
+- No current-head APK, PDF, SQLite snapshot or Device Smoke artifact is available.
+
+### New commits since the previous 07-A.2.34 checkpoint
+
+- `019b477f5a9a577a456f208c0389aee91542dd39` — Quick Capture test locates the icon-only Project selector by its canonical key.
+- `fb135349869fdcd6916db1e07a1635ae148940e5` — Task Editor test targets the canonical taxonomy create field.
+- `41710714ffc2c9678dc1675d9ae9159611c91e30` — Device Smoke font-preference reboot test uses bounded frames.
+- `6914b55a887fba26ab387bdf4a111bc533102411` — Navigation test rebuilds the selected destination in its widget harness.
+- `bc37933ca591b135b4b943d4187e1f19c695e4b1` — Home displays the latest real Follow-up in the compact Task card.
+- `1f4ff4898a5a9278e067c795a8fc14791b8ecbed` — Task Details test passes the actual Scrollable to `scrollUntilVisible`.
+
+These commits are IMPLEMENTED; none is accepted until its focused and exact-head regression evidence is available.
+
+### Historical 61-failure inventory — shard-count correction
+
+The verified distribution on historical Build `43269800292`, SHA `eea746dbf2a58cd4f04c66a149ae3441264da5b2`, is:
+
+| Shard | Failure records |
+|---|---:|
+| 0 | 11 |
+| 1 | 1 |
+| 2 | 21 |
+| 3 | 9 |
+| 4 | 9 |
+| 5 | 10 |
+| **Total** | **61** |
+
+This is confirmed by the six original job logs: 131362983437, 131362983185, 131362983684, 131362983229, 131362983512 and 131362983153. A prior shard distribution written in this document was transposed; the table above is the corrected source-of-truth distribution. The records remain historical to `eea746d...`; the current candidate must be judged only by its own run.
+
+### Static product-integrity findings
+
+- **SQLite:** D02 has explicit Missing / NULL / FALSE / TRUE preservation coverage. D03 has Follow-up ID/order/unknown-field and Person-link coverage. D04 has a real backup file read and restore into a different file-backed SQLite database, followed by close/reopen and Reminder/Follow-up/Person/FK assertions. D05 has a malformed `task_people` source test for rollback, source retention, FK re-enable, repair and same-executor retry. These are test implementations, not accepted gates until executed on `1f4ff4898a5a9278e067c795a8fc14791b8ecbed`. D01 still requires full historical schema/index/trigger/FK parity acceptance.
+- **Category / Tag:** canonical runtime reads and writes use `TaskStore` and SQLite. Referenced Task values are protected from deletion.
+- **Project:** `ProjectStore` persists Project and Task-ID membership in the canonical SQL database. Non-empty Projects are not deletable; archive preserves their item references.
+- **Confirmed cross-feature gap:** `ProjectTemplateManagementPage` still edits template Category and Tags through free-text fields, rather than the canonical Category/Tag selectors. Task/Project template snapshots also retain Category/Tag values, while current catalog deletion checks only inspect canonical Task references. This leaves template-to-catalog consistency and deletion semantics unresolved. Fix the UI and add template-reference-aware deletion tests before C01/C03/C04/C05 can be accepted.
+- **Consolidation candidates:** `TaskTaxonomyLifecycleService` overlaps `TaskTaxonomyMutationService` (the management page uses the latter; the former has a separate unit-test file). `TagStore` still contains a SharedPreferences implementation while current runtime catalog operations are in `TaskStore`; do not delete either until a complete reference/compatibility audit proves it safe.
+- **Typography:** the candidate declares Vazirmatn weights 300/400/500/600/700 and optional System Default. VazirHarf assets remain historical files, not registered in `pubspec.yaml`; current-head PDF/APK packaging evidence is still pending.
+
+### Repository / governance inventory
+
+- Branch API inventory: **1,430 branches**, **1,356 unique head SHAs**, **35 duplicate-head groups covering 109 refs**. Duplicate heads are review candidates only; no branch is presumed safe to delete.
+- Open PR count: **117**.
+- PR #3380 remains OPEN / DRAFT and contains the diagnostic executor-lifecycle evidence.
+- PR #3382 remains OPEN / DRAFT and is stacked on #3380; it carries separate raw-SQL diagnostic evidence.
+- PR #3384 is the active execution lane described above.
+- PR #3340 remains the REV9 canonical documentation lane (OPEN, not merged).
+- PR #3388 remains a parallel v49-era documentation/CODEOWNERS lane (OPEN / DRAFT, not merged); preserve its unique evidence while resolving its authority conflict with REV9.
+- `staging/command-07-a2-33-recovery` remains present at `1db6675958b27674e9f46d9c9ea68009f546f96d`; its Main comparison is 2,371 ahead / 0 behind. It is not the selected execution lane.
+- Main ruleset `main-protection` (ID 20952260) is ACTIVE, with deletion and non-fast-forward protections. It currently requires zero approving reviews and `require_code_owner_review=false`.
+- `.github/CODEOWNERS` is absent from Main. A typography-scoped CODEOWNERS file exists only on unmerged PR #3388; it is not effective on Main.
+
+No branch, PR, artifact, source history, user data, rule or release was deleted or rewritten. No merge, release or deployment was performed.
