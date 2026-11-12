@@ -78,6 +78,16 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('quick-capture-close')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('quick-capture-dialog')), findsNothing);
-    expect(find.text('تماس با علی'), findsOneWidget);
+    final capturedTaskTitle = find.text('تماس با علی');
+    final homeTaskScrollable = find.descendant(
+      of: find.byKey(const ValueKey('home-task-list-viewport')),
+      matching: find.byType(Scrollable),
+    ).first;
+    await tester.scrollUntilVisible(
+      capturedTaskTitle,
+      180,
+      scrollable: homeTaskScrollable,
+    );
+    expect(capturedTaskTitle, findsOneWidget);
   });
 }
