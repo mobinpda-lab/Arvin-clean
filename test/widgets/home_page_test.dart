@@ -746,7 +746,7 @@ void main() {
     );
     final statusIcon = statusButton.icon as Icon;
     expect(statusIcon.icon, Icons.radio_button_unchecked_rounded);
-    expect(statusIcon.color, const Color(0xFF3A86EF));
+    expect(statusIcon.color, Theme.of(tester.element(find.byKey(const ValueKey('task-card-toggle-red-overdue')))).colorScheme.primary);
     expect(tester.takeException(), isNull);
   });
 
