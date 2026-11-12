@@ -3,18 +3,18 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('Task PDF renderer embeds pinned VazirHarf v34.003 UI-FD fonts', () {
+  test('Task PDF renderer embeds pinned Vazirmatn fonts', () {
     final source = File(
       'lib/services/task_report_pdf_renderer.dart',
     ).readAsStringSync();
 
     expect(
       source,
-      contains('assets/fonts/ui/vazirharf/Vazirharf-UI-FD-Regular.ttf'),
+      contains('assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf'),
     );
     expect(
       source,
-      contains('assets/fonts/ui/vazirharf/Vazirharf-UI-FD-Bold.ttf'),
+      contains('assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf'),
     );
     expect(source, contains('rootBundle.load(_regularFontAsset)'));
     expect(source, contains('rootBundle.load(_boldFontAsset)'));
@@ -22,31 +22,31 @@ void main() {
     expect(source, isNot(contains("package:printing/printing.dart")));
   });
 
-  test('application light and dark themes enforce the canonical VazirHarf family', () {
+  test('application light and dark themes enforce the canonical Vazirmatn family', () {
     final source = File('lib/main.dart').readAsStringSync();
     expect(source, contains('lightBaseTextTheme = ThemeData.light().textTheme.apply(\\n      fontFamily: ArvinTheme.fontFamily'));
     expect(source, contains('darkBaseTextTheme = ThemeData.dark().textTheme.apply(\\n      fontFamily: ArvinTheme.fontFamily'));
     expect(source, contains('fontFamily: ArvinTheme.fontFamily'));
     final tokens = File('lib/core/theme/arvin_theme.dart').readAsStringSync();
-    expect(tokens, contains("static const String fontFamily = 'VazirHarf';"));
+    expect(tokens, contains("static const String fontFamily = 'Vazirmatn';"));
   });
 
   test('font registry exposes only the canonical VazirHarf option', () {
     final source = File('lib/theme/font_registry.dart').readAsStringSync();
-    expect(source, contains("id: 'vazirharf'"));
-    expect(source, contains("fontFamily: 'VazirHarf'"));
+    expect(source, contains("id: 'vazirmatn'"));
+    expect(source, contains("fontFamily: 'Vazirmatn'"));
     expect(source, contains('effectiveFontFamily'));
   });
 
   test('pubspec declares the pinned VazirHarf UI Persian-digit weights', () {
     final source = File('pubspec.yaml').readAsStringSync();
 
-    expect(source, contains('family: VazirHarf'));
-    expect(source, contains('Vazirharf-UI-FD-Light.ttf'));
-    expect(source, contains('Vazirharf-UI-FD-Regular.ttf'));
-    expect(source, contains('Vazirharf-UI-FD-Medium.ttf'));
-    expect(source, contains('Vazirharf-UI-FD-SemiBold.ttf'));
-    expect(source, contains('Vazirharf-UI-FD-Bold.ttf'));
+    expect(source, contains('family: Vazirmatn'));
+    expect(source, contains('Vazirmatn-Light.ttf'));
+    expect(source, contains('Vazirmatn-Regular.ttf'));
+    expect(source, contains('Vazirmatn-Medium.ttf'));
+    expect(source, contains('Vazirmatn-SemiBold.ttf'));
+    expect(source, contains('Vazirmatn-Bold.ttf'));
     expect(source, contains('weight: 300'));
     expect(source, contains('weight: 400'));
     expect(source, contains('weight: 500'));
