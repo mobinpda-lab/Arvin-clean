@@ -46,8 +46,8 @@ void main() {
       app.main();
       await _pumpFrames(tester, frames: 15);
       var rootApp = tester.widget<MaterialApp>(find.byType(MaterialApp).first);
-      expect(rootApp.theme?.fontFamily, isNull);
-      expect(rootApp.darkTheme?.fontFamily, isNull);
+      expect(rootApp.theme?.textTheme.bodyLarge?.fontFamily, isNull);
+      expect(rootApp.darkTheme?.textTheme.bodyLarge?.fontFamily, isNull);
 
       await fontSettings.saveFontPreference('vazirmatn');
       await tester.pumpWidget(const SizedBox.shrink());
@@ -55,8 +55,8 @@ void main() {
       app.main();
       await _pumpFrames(tester, frames: 15);
       rootApp = tester.widget<MaterialApp>(find.byType(MaterialApp).first);
-      expect(rootApp.theme?.fontFamily, AppFonts.vazirmatnFamily);
-      expect(rootApp.darkTheme?.fontFamily, AppFonts.vazirmatnFamily);
+      expect(rootApp.theme?.textTheme.bodyLarge?.fontFamily, AppFonts.vazirmatnFamily);
+      expect(rootApp.darkTheme?.textTheme.bodyLarge?.fontFamily, AppFonts.vazirmatnFamily);
       for (final theme in <ThemeData>[rootApp.theme!, rootApp.darkTheme!]) {
         expect(theme.textTheme.bodyLarge?.fontWeight, FontWeight.w400);
         expect(theme.textTheme.bodyMedium?.fontWeight, FontWeight.w400);
