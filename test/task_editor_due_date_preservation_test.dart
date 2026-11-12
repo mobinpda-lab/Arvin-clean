@@ -66,7 +66,11 @@ void main() {
     expect(result, isNotNull);
     expect(result!.id, 'due-safe');
     expect(result!.dueDate, DateTime(2026, 9, 11, 14, 45));
-    expect(result!.reminderDate, isNull);
+    expect(
+      result!.reminderDate,
+      DateTime(2026, 9, 10, 9, 30),
+      reason: 'the legacy compatibility getter projects the earliest enabled reminder; it must not alias the Task due date',
+    );
     expect(result!.taskReminders, hasLength(1));
     expect(result!.taskReminders.single.id, 'reminder-due-safe');
     expect(result!.taskReminders.single.date, DateTime(2026, 9, 10, 9, 30));
