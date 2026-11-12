@@ -7,3 +7,16 @@
 /lib/core/theme/ @mobinpda-lab
 /lib/services/task_report_pdf_renderer.dart @mobinpda-lab
 /.github/CODEOWNERS @mobinpda-lab
+
+# Root font selection, global guard, settings and overlay integration.
+/lib/main.dart @mobinpda-lab
+/lib/settings_page.dart @mobinpda-lab
+/lib/alarm_overlay_page.dart @mobinpda-lab
+
+# Font/PDF contracts, binary integrity and real-device acceptance.
+/.github/workflows/build.yml @mobinpda-lab
+/test/report_typography_canonical_test.dart @mobinpda-lab
+/test/task_report_pdf_renderer_test.dart @mobinpda-lab
+/test/vazirmatn_font_preference_persistence_test.dart @mobinpda-lab
+/test/vazirharf_settings_convergence_test.dart @mobinpda-lab
+/integration_test/alarm_overlay_smoke_test.dart @mobinpda-lab
