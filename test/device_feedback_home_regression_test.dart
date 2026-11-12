@@ -35,6 +35,12 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
 
+    final backup = find.text('پشتیبان‌گیری');
+    await tester.scrollUntilVisible(
+      backup,
+      240,
+      scrollable: find.byType(Scrollable).last,
+    );
     expect(find.byIcon(Icons.backup_outlined), findsOneWidget);
     expect(find.text('پشتیبان‌گیری'), findsOneWidget);
   });
