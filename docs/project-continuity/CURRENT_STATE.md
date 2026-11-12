@@ -1156,3 +1156,16 @@ Live repository facts at deployment start: Main `45e4202b03a434459e4c021a04efa7e
 - PR #3340's REV9 branch contains the canonical six-document set and prior audit reports. PR #3388 changes a different set of governance/state files and its state document still references v49.0; treat this as a documentation-authority conflict, not as a second canonical source.
 - Typography owner clarification dated 2026-11-12: Vazirmatn only; VazirHarf not official; System Default optional; weights 300/400/500/600/700.
 - Release remains BLOCKED — RELEASE: NO-GO. No merge, release, deployment, destructive cleanup or history rewrite.
+
+
+
+---
+
+## COMMAND 07-A.2.33 — evidence refresh (2026-11-12, later poll)
+
+- New-candidate SQLite Snapshot run `43269800257` completed SUCCESS on `eea746dbf2a58cd4f04c66a149ae3441264da5b2`; artifact `13966864535`, SHA-256 `74a1b84cd67b932177da14982fe82256df68c79b6a0ae5a4451d970f42bc6f72`. It contains A–D snapshot evidence and five reopen cycles; it does not complete D05 interruption/recovery or D04 independent Backup/Restore.
+- New-candidate Follow-up Persistence run `43269800526` completed SUCCESS. Orchestrator `43269800263` completed SUCCESS.
+- New-candidate Build `43269800292`: at latest poll, test-1/test-5 and Debug APK were IN_PROGRESS; remaining quality, Visual, Staging and Release jobs were QUEUED. Device Smoke `43269800280` remained QUEUED. These are not acceptance results yet.
+- Source-level review of prior-candidate failures identified six grounded classifications: one TEST HARNESS DEFECT fixed in `eea746d...`; three additional TEST HARNESS DEFECTS pending correction (two bad TextField finders using `widgetWithText` against InputDecoration hint/label text, and one `scrollUntilVisible` call passing a ListView instead of its Scrollable); two TEST CONTRACT DEFECTS pending correction (alarm smoke uses forbidden unbounded `pumpAndSettle`; due-date test expects null from a compatibility getter that projects the enabled reminder). Remaining 55 records are UNRESOLVED. All classifications remain historical to SHA `492a5c4...` until independently retested.
+- PR ancestry: #3382 is stacked three commits on #3380. #3384 is a sibling implementation branch from common base `8c4c23f...`, 110 commits ahead and does not include #3380's eight unique commits; both #3380 and #3384 change `test/services/sql_task_migration_writer_test.dart`. Resolve this overlap before integration.
+- Documentation audit report is on PR #3388 at `docs/ARVIN_REPOSITORY_HEALTH_AND_CONSOLIDATION.md`; #3388's state page now points to REV9 PR #3340 as the canonical documentation candidate, still unmerged.
