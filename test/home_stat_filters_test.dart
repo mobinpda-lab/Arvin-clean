@@ -167,7 +167,10 @@ void main() {
 
     expect(find.text('انتخاب‌شده: 0'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-time-filter-today-focus')), findsOneWidget);
-    final sheetScrollable = find.byType(Scrollable).at(1);
+    final sheetScrollable = find.descendant(
+      of: find.byKey(const ValueKey('home-time-filter-list')),
+      matching: find.byType(Scrollable),
+    ).last;
     await tester.scrollUntilVisible(find.text('بازهٔ دلخواه'), 300, scrollable: sheetScrollable);
     final customRange = find.byKey(const ValueKey('home-time-filter-customRange'));
     expect(customRange, findsOneWidget);
