@@ -716,3 +716,9 @@ At the same candidate's last poll:
 - Device Smoke Run `43232240252`: QUEUED.
 - Build/Regression Run `43232240534`: PENDING; no jobs allocated yet.
 No result transfers to a later product SHA.
+
+### Governance verification — COMMAND 07-A.2.28
+
+Live repository Ruleset `main-protection` (ID `20952260`) remains ACTIVE on `refs/heads/main`, but its pull-request rule currently has `required_approving_review_count=0` and `require_code_owner_review=false`; bypass actors are empty. Deletion and non-fast-forward protections are enabled. No repository security setting was changed.
+
+The docs PR #3388 CODEOWNERS file was expanded to cover the canonical typography contract, Vazirmatn assets, pubspec registration, both theme directories, PDF renderer, app root, Settings, Alarm Overlay, build workflow, typography/PDF tests and Android typography smoke. It is still an unmerged PR; the current main branch does not yet contain this CODEOWNERS file. Therefore effective CODEOWNER enforcement is **NOT VERIFIED / NOT ACTIVE**. Enabling required approval and CODEOWNER review remains a separate product-owner-controlled repository settings action.
