@@ -142,6 +142,7 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
                 const SizedBox(height: 6),
                 Expanded(
                   child: ListView(
+                    key: const ValueKey('reusable-multi-select-options-list'),
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     children: [
                       CheckboxListTile(
