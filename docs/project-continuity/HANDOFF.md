@@ -687,3 +687,33 @@ The taxonomy audit is deeper than the editor-field finding:
 6. Keep `TaskTaxonomyLifecycleService`, `TaskTaxonomyMutationService` and `TagStore` intact until their reference/compatibility audit is complete.
 
 No production code correction for this finding has yet been committed. Treat C01/C03/C04/C05 as BLOCKED until the above tests pass on one exact candidate SHA.
+
+
+---
+
+## COMMAND 07-A.2.34 handoff refresh — 2026-11-12
+
+**Current execution HEAD:** `1f4ff4898a5a9278e067c795a8fc14791b8ecbed` on `feature/command-07-a-sqlite-contract-remediation`.
+
+### Current exact-head runs
+- Build `43291144776`: PENDING.
+- Device Smoke `43291144527`: QUEUED.
+- SQLite Snapshot `43291144675`: QUEUED.
+- Follow-up File Persistence `43291144575`: PENDING.
+- Orchestrator `43291144442`: PENDING.
+- Production Loop `43291144513`: PENDING.
+- Orchestrator PR Wakeup `43291144484`: PENDING.
+
+### Newly committed work
+- `bc37933ca591b135b4b943d4187e1f19c695e4b1`: Home compact Task card shows latest real Follow-up.
+- `1f4ff4898a5a9278e067c795a8fc14791b8ecbed`: Task Detail Person test uses the actual Scrollable finder.
+- Earlier checkpoint commits are recorded above; all new changes remain unvalidated until exact-head Actions finish.
+
+### Next safe work while CI is queued
+1. Do not mutate the execution branch until the current exact-head Build result is available unless a confirmed P0 data-loss/security defect requires immediate repair.
+2. Prepare D04 test using two disposable `NativeDatabase(File)` instances: source SQLite → portable backup file → restore candidate → independent destination SQLite → close/reopen → Task/Reminder/Follow-up/Person/Project verification → `PRAGMA integrity_check` and `PRAGMA foreign_key_check`.
+3. Add D01 fixtures with custom Index and Trigger objects to prove either safe preservation or explicit fail-closed rollback without dropping them.
+4. Investigate the remaining Follow-up Entry person-selection failure; do not override a user's deliberate deselection and do not weaken assertions.
+5. Build the C07 isolated end-to-end scenario using the canonical TaskStore, ProjectStore, taxonomy mutation service and feature projections.
+6. Poll exact-head Build/Device/SQLite/Follow-up runs. If any new commit is made, discard no history; the acceptance SHA changes and affected gates must rerun.
+7. Keep Merge, Release and Deployment unauthorized.
