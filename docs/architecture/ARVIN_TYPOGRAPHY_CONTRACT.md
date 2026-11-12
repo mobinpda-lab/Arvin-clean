@@ -183,11 +183,11 @@ The following binary files were fetched from the exact PR #3384 implementation b
 
 | Weight | File | Bytes | Git blob SHA | SHA-256 |
 |---:|---|---:|---|---|
-| 300 Light | `Vazirmatn-Light.ttf` | 124,971 | `2dfd5c35ed4c26f7ce9f3ba753f11d9a38356c42` | `c33eb953aaa07b69cb5b97c9926f54e5f57fb95207b64eb2f2639f6289075366` |
-| 400 Regular | `Vazirmatn-Regular.ttf` | 124,800 | `64e4a8189557a17b63fd7a77794207483e592972` | `447d349f593b58dedb25f17afe0ec25c3cfc428aaf031e8a4e6c101b7b4f78a9` |
-| 500 Medium | `Vazirmatn-Medium.ttf` | 124,702 | `1e08dd54d90a4879451ef0f80fe0d8068fb7462f` | `fcb0a3b08c6fe26e0316e7bbb32b907e1336efa5db05ee735cca7109bf28cbc6` |
+| 300 Light | `Vazirmatn-Light.ttf` | 122,920 | `2dfd5c35ed4c26f7ce9f3ba753f11d9a38356c42` | `c33eb953aaa07b69cb5b97c9926f54e5f57fb95207b64eb2f2639f6289075366` |
+| 400 Regular | `Vazirmatn-Regular.ttf` | 122,752 | `64e4a8189557a17b63fd7a77794207483e592972` | `447d349f593b58dedb25f17afe0ec25c3cfc428aaf031e8a4e6c101b7b4f78a9` |
+| 500 Medium | `Vazirmatn-Medium.ttf` | 122,656 | `1e08dd54d90a4879451ef0f80fe0d8068fb7462f` | `fcb0a3b08c6fe26e0316e7bbb32b907e1336efa5db05ee735cca7109bf28cbc6` |
 | 600 SemiBold | `Vazirmatn-SemiBold.ttf` | 124,971 | `6b3842aca6055c8258404b1758133b81c961a13f` | `f50b7587fa62356c09bdbfe24fb70e66eea882502c92efe243df4d5b6ea8c61a` |
-| 700 Bold | `Vazirmatn-Bold.ttf` | 125,087 | `efa9b095da01d299310bdcae293e24e657fe6da9` | `dad307bfe9baf4d92326183f743ecfc091576224cb8f6a4a0623bfc48eb24c13` |
+| 700 Bold | `Vazirmatn-Bold.ttf` | 123,036 | `efa9b095da01d299310bdcae293e24e657fe6da9` | `dad307bfe9baf4d92326183f743ecfc091576224cb8f6a4a0623bfc48eb24c13` |
 
 The implementation branch retains a separate `assets/fonts/ui/vazirharf/` directory from its historical work. Its files are not registered by the current `pubspec.yaml` family declaration. Runtime and packaged-APK exclusion still require exact-head tests and artifact inspection.
 
