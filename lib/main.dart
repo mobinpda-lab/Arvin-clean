@@ -3508,6 +3508,13 @@ class _HomePageState extends State<HomePage> {
     final expanded = _expandedTaskIds.contains(task.id);
     final late = _overdue(task);
     final colors = Theme.of(context).colorScheme;
+    final latestFollowUp = task.followUps.isEmpty
+        ? null
+        : task.followUps.reduce(
+            (current, next) => next.dateTime.isAfter(current.dateTime)
+                ? next
+                : current,
+          );
       return Dismissible(
       key: ValueKey(task.id),
       direction: selectionMode
@@ -3649,6 +3656,22 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ],
                       ),
+                      if (latestFollowUp != null) ...[
+                        const SizedBox(height: 3),
+                        Text(
+                          'آخرین پیگیری: ${_date(latestFollowUp.dateTime)} • '
+                          '${_time(latestFollowUp.dateTime)}'
+                          '${latestFollowUp.note.trim().isEmpty ? '' : ' • ${latestFollowUp.note.trim()}'}',
+                          key: ValueKey('task-card-last-follow-up-${task.id}'),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: ArvinColors.textSecondary,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                       if (const HomeListProjection().shouldProjectDueDate(task)) ...[
                         const SizedBox(height: 3),
                         SizedBox(
