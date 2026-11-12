@@ -131,6 +131,19 @@ void main() {
          (id, title, follow_up_enabled, follow_up_date, reminder_date, legacy_payload_json)
          VALUES (?, ?, ?, ?, ?, ?)''',
       <Object?>[
+        'metadata-explicit-true',
+        'مقدار درست صریح',
+        1,
+        '2026-11-18T10:00:00.000',
+        '2026-11-19T10:00:00.000',
+        '{"id":"metadata-explicit-true","title":"مقدار درست صریح","followUpEnabled":true,"followUpDate":"2026-11-20T10:00:00.000","reminderDate":"2026-11-21T10:00:00.000"}',
+      ],
+    );
+    await legacyDatabase.runInsert(
+      '''INSERT INTO tasks
+         (id, title, follow_up_enabled, follow_up_date, reminder_date, legacy_payload_json)
+         VALUES (?, ?, ?, ?, ?, ?)''',
+      <Object?>[
         'metadata-sql-fallback',
         'مقدار ستون قدیمی',
         0,
@@ -164,6 +177,11 @@ void main() {
     expect(concrete['followUpDate'], '2026-11-14T10:00:00.000');
     expect(concrete['reminderDate'], '2026-11-15T10:00:00.000');
     expect(concrete['taskReminders'], isA<List<dynamic>>());
+
+    final explicitTrue = byId['metadata-explicit-true']!;
+    expect(explicitTrue['followUpEnabled'], isTrue);
+    expect(explicitTrue['followUpDate'], '2026-11-20T10:00:00.000');
+    expect(explicitTrue['reminderDate'], '2026-11-21T10:00:00.000');
 
     final sqlFallback = byId['metadata-sql-fallback']!;
     expect(sqlFallback['followUpEnabled'], isFalse);

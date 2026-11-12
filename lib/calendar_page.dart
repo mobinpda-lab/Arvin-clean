@@ -288,7 +288,7 @@ class _CalendarPageState extends State<CalendarPage> {
               TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                fontFamily: AppFonts.vazirmatnFamily,
+                fontFamily: AppFonts.vazirHarfFamily,
               ),
             ),
           ),
@@ -524,7 +524,7 @@ class _CalendarPageState extends State<CalendarPage> {
             visualDensity: VisualDensity.compact,
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             textStyle: WidgetStatePropertyAll(
-              TextStyle(fontSize: 14, fontWeight: FontWeight.w500, fontFamily: AppFonts.vazirmatnFamily),
+              TextStyle(fontSize: 14, fontWeight: FontWeight.w500, fontFamily: AppFonts.vazirHarfFamily),
             ),
           ),
           segments: const [
@@ -923,7 +923,7 @@ class _CalendarPageState extends State<CalendarPage> {
       textDirection: TextDirection.rtl,
       child: Theme(
         data: Theme.of(context).copyWith(
-          textTheme: Theme.of(context).textTheme.apply(fontFamily: AppFonts.vazirmatnFamily),
+          textTheme: Theme.of(context).textTheme.apply(fontFamily: AppFonts.vazirHarfFamily),
         ),
         child: Scaffold(
         appBar: AppBar(

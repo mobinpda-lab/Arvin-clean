@@ -1,18 +1,21 @@
-# Licensed IRANSansX assets
+# Font asset policy
 
-This public repository intentionally does not contain the proprietary IRANSansX binary files.
+## Canonical public/default application font
 
-For a licensed local/private build, place these two files in this directory with the exact names below:
+Arvin bundles **VazirHarf v34.003** from:
 
-- `IRANSansXFaNum-Regular.ttf`
-- `IRANSansXFaNum-Bold.ttf`
+- Repository: https://github.com/nadalaba/vazirharf
+- Pinned source commit: `3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8`
+- Variant: `misc/UI-Farsi-Digits/fonts/ttf` (UI-optimized TTF with Persian digits)
+- License: SIL Open Font License 1.1; the exact upstream `OFL.txt` is bundled beside the font assets.
+- Flutter family: `VazirHarf`
 
-The project loads them at startup as the `IRANSansXFaNum` family and falls back safely to the platform font when they are absent (for example in public CI).
+The five registered weights are Light 300, Regular 400, Medium 500, SemiBold 600 and Bold 700. PDF rendering uses the same bundled Regular and Bold assets.
 
-You can install the files from the purchased `IranSansX(Eco).zip` package by running:
+## Legacy Vazirmatn assets
 
-```bash
-bash tool/install_iransansx.sh /path/to/IranSansX\(Eco\).zip
-```
+The previous `assets/fonts/ui/vazirmatn/` files and their license are retained in the repository for historical/source audit. They are not declared by `pubspec.yaml`, are not loaded by application code, and must not be packaged in current APKs. Do not delete them without a separate compatibility review.
 
-If your FontIran license requires a project-specific license code or `FontLicense.txt`, keep that licensing material with the private build assets as required by your issued license; do not publish proprietary font binaries through this public repository.
+## Licensed/private IRANSansX assets
+
+This public repository intentionally does not contain proprietary IRANSansX binary files. For a licensed local/private build, keep the required license material and use the dedicated installation process. These files do not replace the canonical public/default VazirHarf family.

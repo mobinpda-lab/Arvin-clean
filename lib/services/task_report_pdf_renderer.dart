@@ -24,9 +24,9 @@ class TaskReportPdfRenderer {
 
   static const _dateFormatter = PersianDateFormatter();
   static const _regularFontAsset =
-      'assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf';
+      'assets/fonts/ui/vazirharf/Vazirharf-UI-FD-Regular.ttf';
   static const _boldFontAsset =
-      'assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf';
+      'assets/fonts/ui/vazirharf/Vazirharf-UI-FD-Bold.ttf';
 
   final TaskReportFontLoader _fontLoader;
 

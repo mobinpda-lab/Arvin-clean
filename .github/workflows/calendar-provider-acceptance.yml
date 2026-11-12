@@ -470,21 +470,27 @@ jobs:
           mkdir -p "$apk_extract_dir"
           unzip -q "$apk" -d "$apk_extract_dir"
           for font in \
-            assets/flutter_assets/assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf \
-            assets/flutter_assets/assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf \
-            assets/flutter_assets/assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf; do
+            assets/flutter_assets/assets/fonts/ui/vazirharf/Vazirharf-UI-FD-Regular.ttf \
+            assets/flutter_assets/assets/fonts/ui/vazirharf/Vazirharf-UI-FD-Medium.ttf \
+            assets/flutter_assets/assets/fonts/ui/vazirharf/Vazirharf-UI-FD-Bold.ttf; do
             if [[ ! -s "$apk_extract_dir/$font" ]]; then
               echo "FONT_ASSET_BUNDLED=FAIL missing=$font" >&2
               exit 1
             fi
             echo "FONT_ASSET_BUNDLED=PASS $font"
           done
-          if grep -R -n -E "VazirHarf|vazirharf|font-option-system|System Default|fontFamily:[[:space:]]*['\"]system['\"]" lib pubspec.yaml; then
-            echo "FONT_SOURCE_PURGE=FAIL legacy font or System Default reference remains" >&2
+          if grep -R -n -E "Vazirmatn|vazirmatn|font-option-system|System Default|fontFamily:[[:space:]]*['\"]system['\"]" lib pubspec.yaml; then
+            echo "FONT_LEGACY_PURGE=FAIL retired font or System Default reference remains" >&2
             exit 1
           fi
-          echo "FONT_SOURCE_PURGE=PASS"
-          echo "FONT_GATE=PASS_VAZIRMATN_BUNDLED_SYSTEM_DEFAULT_PURGED"
+          echo "FONT_LEGACY_PURGE=PASS"
+          test -s assets/fonts/ui/vazirharf/OFL.txt
+          grep -Fq 'SIL OPEN FONT LICENSE Version 1.1' assets/fonts/ui/vazirharf/OFL.txt
+          grep -Fq 'family: VazirHarf' pubspec.yaml
+          grep -Fq "static const String fontFamily = 'VazirHarf';" lib/core/theme/arvin_theme.dart
+          echo "FONT_LICENSE=PASS_OFL_1_1"
+          echo "FONT_FAMILY=PASS_VAZIRHARF"
+          echo "FONT_GATE=PASS_VAZIRHARF_V34_003_UI_FD_BUNDLED"
           adb install -r build/app/outputs/flutter-apk/app-debug.apk
           adb shell pm grant com.example.arvin android.permission.READ_CALENDAR
           adb shell pm grant com.example.arvin android.permission.WRITE_CALENDAR

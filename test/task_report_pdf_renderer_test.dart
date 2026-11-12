@@ -12,9 +12,9 @@ void main() {
     );
   });
 
-  test('default renderer uses bundled Vazirmatn fonts', () async {
+  test('default renderer uses bundled VazirHarf v34.003 fonts', () async {
     final report = const TaskReportProjection().project(
-      [Task(id: 'font-default', title: 'آزمون وزیرمتن')],
+      [Task(id: 'font-default', title: 'آزمون وزیرحرف')],
       generatedAt: DateTime.utc(2026, 10, 30),
       title: 'گزارش فونت',
     );

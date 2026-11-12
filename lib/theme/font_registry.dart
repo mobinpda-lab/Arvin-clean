@@ -16,16 +16,16 @@ class ArvinFontOption {
   String get effectiveFontFamily => fontFamily;
 }
 
-const ArvinFontOption _vazirmatn = ArvinFontOption(
-  id: 'vazirmatn',
-  nameFa: 'وزیرمتن',
-  description: 'فونت استاندارد و یکپارچه رابط کاربری آروین',
+const ArvinFontOption _vazirHarf = ArvinFontOption(
+  id: 'vazirharf',
+  nameFa: 'وزیرحرف',
+  description: 'فونت رسمی فارسی رابط کاربری آروین، نسخه ۳۴٫۰۰۳',
   category: 'عمومی',
-  fontFamily: 'Vazirmatn',
+  fontFamily: 'VazirHarf',
 );
 
 const List<ArvinFontOption> kAvailableArvinFonts = <ArvinFontOption>[
-  _vazirmatn,
+  _vazirHarf,
 ];
 
-ArvinFontOption arvinFontById(String? id) => _vazirmatn;
+ArvinFontOption arvinFontById(String? id) => _vazirHarf;

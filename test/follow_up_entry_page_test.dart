@@ -216,7 +216,13 @@ void main() {
     );
     await tester.tap(find.text('+ ایجاد مورد جدید'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('ثبت انتخاب اشخاص'));
+    // Hide the keyboard before applying; otherwise the tap can hit the
+    // modal barrier and dismiss the sheet with a null result.
+    tester.testTextInput.hide();
+    await tester.pumpAndSettle();
+    final applyPeople = find.text('ثبت انتخاب اشخاص');
+    expect(applyPeople.hitTestable(), findsOneWidget);
+    await tester.tap(applyPeople);
     await tester.pumpAndSettle();
 
     expect(people, hasLength(2));

@@ -361,7 +361,7 @@ class _ArvinAppState extends State<ArvinApp> {
         dialogTheme: const DialogThemeData(surfaceTintColor: Colors.transparent),
         bottomSheetTheme: const BottomSheetThemeData(surfaceTintColor: Colors.transparent),
         popupMenuTheme: const PopupMenuThemeData(surfaceTintColor: Colors.transparent),
-        fontFamily: AppFonts.vazirmatnFamily,
+        fontFamily: AppFonts.vazirHarfFamily,
         textTheme: readableLightTextTheme,
         filledButtonTheme: FilledButtonThemeData(
           style: FilledButton.styleFrom(
@@ -476,7 +476,7 @@ class _ArvinAppState extends State<ArvinApp> {
         dialogTheme: const DialogThemeData(surfaceTintColor: Colors.transparent),
         bottomSheetTheme: const BottomSheetThemeData(surfaceTintColor: Colors.transparent),
         popupMenuTheme: const PopupMenuThemeData(surfaceTintColor: Colors.transparent),
-        fontFamily: AppFonts.vazirmatnFamily,
+        fontFamily: AppFonts.vazirHarfFamily,
         textTheme: readableDarkTextTheme,
         dividerTheme: const DividerThemeData(color: ArvinColors.darkDivider, thickness: 1),
         appBarTheme: AppBarTheme(

@@ -16,7 +16,7 @@ void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets(
-    'Android renders the dedicated Alarm Overlay with Vazirmatn and Persian Reminder time',
+    'Android renders the dedicated Alarm Overlay with VazirHarf v34.003 and Persian Reminder time',
     (tester) async {
       final store = TaskStore();
       await store.save(<Task>[
@@ -76,7 +76,9 @@ void main() {
       final title = tester.widget<Text>(
         find.byKey(const ValueKey('alarm-overlay-task-title')),
       );
-      expect(title.style?.fontFamily, AppFonts.vazirmatnFamily);
+      expect(title.style?.fontFamily, AppFonts.vazirHarfFamily);
+      expect(Directionality.of(tester.element(title)), TextDirection.rtl);
+      expect(title.data, contains('آزمون نمایش یادآور'));
 
       await binding.convertFlutterSurfaceToImage();
       await _pumpFrames(tester);
