@@ -3,6 +3,7 @@ import 'package:arvin/main.dart' as app;
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:arvin/theme/app_fonts.dart';
+import 'package:arvin/services/app_settings_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -36,8 +37,26 @@ void main() {
         ),
       ]);
 
+      // Exercise the real Android SharedPreferences plugin, not only the
+      // mocked unit-test store. Recreate the app root to verify both supported
+      // choices are reloaded into light/dark themes and the overlay's inherited
+      // typography contract.
+      final fontSettings = AppSettingsService();
+      await fontSettings.saveFontPreference('system-default');
       app.main();
       await _pumpFrames(tester, frames: 15);
+      var rootApp = tester.widget<MaterialApp>(find.byType(MaterialApp).first);
+      expect(rootApp.theme?.fontFamily, isNull);
+      expect(rootApp.darkTheme?.fontFamily, isNull);
+
+      await fontSettings.saveFontPreference('vazirmatn');
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+      app.main();
+      await _pumpFrames(tester, frames: 15);
+      rootApp = tester.widget<MaterialApp>(find.byType(MaterialApp).first);
+      expect(rootApp.theme?.fontFamily, AppFonts.vazirmatnFamily);
+      expect(rootApp.darkTheme?.fontFamily, AppFonts.vazirmatnFamily);
 
       final skipGuide = find.text('رد کردن');
       if (skipGuide.evaluate().isNotEmpty) {
