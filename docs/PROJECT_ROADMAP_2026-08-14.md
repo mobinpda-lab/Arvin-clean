@@ -170,3 +170,8 @@ This live addendum supersedes the dated status snapshot above where it conflicts
 - Every implementation commit must have exact-SHA tests and relevant build/device evidence. Pending, skipped, stale or different-SHA runs do not pass.
 - Only after all SQLite gates pass may the next dependent product lane be proposed. Release remains NO-GO until separate release/device/owner gates are met.
 - WAVE 0 itself is documentation-only; it does not dispatch CI or validate production behavior.
+
+
+## COMMAND 07-A.2.24 typography roadmap gate — 2026-11-12
+
+Add a blocking typography acceptance lane alongside SQLite P0: restore/retain Vazirmatn as the sole official default, provide five locally bundled weights and license with verified SHA-256, centralize Theme/weight mapping, implement accessibility-preserving global rendering policy, exactly two persisted choices (Vazirmatn and System Default), inspect actual APK contents, inspect actual PDF font embedding, and complete Persian/RTL device validation. Do not claim acceptance from source registration or widget tests alone. Canonical specification: `docs/architecture/ARVIN_TYPOGRAPHY_CONTRACT.md`.
