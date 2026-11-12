@@ -89,7 +89,7 @@ The fixture inserted a legacy `task_people` row with `task_id='legacy-task'` but
 Correction on #3384: insert the parent Task in the fixture before adding the malformed JSON relation. Commit `eea746dbf2a58cd4f04c66a149ae3441264da5b2`. No production migration, FK, rollback or assertion was weakened. Rerun on the new SHA is pending Build `43269800292`.
 
 ## 6. Previous-candidate 61 Failure Records
-All 61 test failure records from Build `43247842294` are preserved below. Exactly one is classified TEST HARNESS DEFECT and corrected in `eea746d...`; the other 60 remain UNRESOLVED pending root-cause inspection. The list is historical to SHA `492a5c4...` and must not be carried forward as the new candidate's result.
+All 61 test failure records from Build `43247842294` are preserved below. Three records now have a grounded initial classification: one TEST HARNESS DEFECT corrected in `eea746d...`; two TEST CONTRACT DEFECTS identified for correction; the remaining 58 are UNRESOLVED pending root-cause inspection. The list is historical to SHA `492a5c4...` and must not be carried forward as the new candidate's result.
 
 | # | Shard | File | Test | Classification |
 |---:|---:|---|---|---|
@@ -110,12 +110,12 @@ All 61 test failure records from Build `43247842294` are preserved below. Exactl
 | 15 | 2 | `test/quick_capture_dialog_test.dart` | Quick Add shows the selected scheduling time and uses injected now | UNRESOLVED — RETEST REQUIRED |
 | 16 | 2 | `test/follow_up_entry_page_test.dart` | waiting FollowUp can add, select, reopen and remove a stable person | UNRESOLVED — RETEST REQUIRED |
 | 17 | 2 | `test/home_last_follow_up_real_record_test.dart` | Home shows last FollowUp only for a real record and does not create one | UNRESOLVED — RETEST REQUIRED |
-| 18 | 2 | `test/device_smoke_workflow_contract_test.dart` | device smoke defines exactly seven canonical lanes on one exact target SHA | UNRESOLVED — RETEST REQUIRED |
+| 18 | 2 | `test/device_smoke_workflow_contract_test.dart` | device smoke defines exactly seven canonical lanes on one exact target SHA | TEST CONTRACT DEFECT — FIX PENDING: smoke uses pumpAndSettle |
 | 19 | 2 | `test/widget_test.dart` | Home exposes the canonical workflow controls | UNRESOLVED — RETEST REQUIRED |
 | 20 | 2 | `test/task_editor_dialog_test.dart` | Back-style close prompts and can save Task edits without data loss | UNRESOLVED — RETEST REQUIRED |
 | 21 | 2 | `test/home/home_owner_reference_test.dart` | Home follows the owner header, real summary values and Today navigation | UNRESOLVED — RETEST REQUIRED |
 | 22 | 2 | `test/home/home_filter_boolean_logic_test.dart` | Home filters combine OR within each dimension and AND across dimensions | UNRESOLVED — RETEST REQUIRED |
-| 23 | 2 | `test/task_editor_due_date_preservation_test.dart` | editing preserves canonical due date independently | UNRESOLVED — RETEST REQUIRED |
+| 23 | 2 | `test/task_editor_due_date_preservation_test.dart` | editing preserves canonical due date independently | TEST CONTRACT DEFECT — FIX PENDING: getter is reminder projection |
 | 24 | 2 | `test/follow_up_office_page_test.dart` | selects one of multiple tasks and persists only to that task | UNRESOLVED — RETEST REQUIRED |
 | 25 | 2 | `test/task_detail_person_persistence_test.dart` | Task Details Follow-up person selection persists through canonical Person and relation tables | UNRESOLVED — RETEST REQUIRED |
 | 26 | 2 | `test/task_detail_master_screen_test.dart` | Task Details persists checklist reorder and additions immediately without changing Follow-up history | UNRESOLVED — RETEST REQUIRED |
