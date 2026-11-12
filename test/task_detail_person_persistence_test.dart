@@ -39,7 +39,10 @@ void main() {
     await tester.scrollUntilVisible(
       add,
       240,
-      scrollable: find.byKey(const ValueKey('task-detail-content-list')),
+      scrollable: find.descendant(
+        of: find.byKey(const ValueKey('task-detail-content-list')),
+        matching: find.byType(Scrollable),
+      ),
     );
     await tester.tap(add);
     await tester.pumpAndSettle();
