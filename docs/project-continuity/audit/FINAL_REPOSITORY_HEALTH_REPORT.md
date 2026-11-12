@@ -135,3 +135,41 @@ No executable source, tests, schema, migrations, workflows, branches, PR state, 
 5. Verify Notebook deletion preservation, Template deep clone, recurrence/checklist history and real Backup/Restore integrity.
 6. Repair NIRA scheduler feedback for issue #162 and make state-sync PR creation idempotent.
 7. Review duplicate branches/PRs and dead-code candidates; request explicit approval before destructive cleanup.
+
+
+---
+
+## COMMAND 07-A.2.34 — live inventory refresh (2026-11-12)
+
+This addendum supersedes only the live inventory figures above; historical snapshots remain preserved.
+
+### Current repository inventory
+- Branches: **1,430**.
+- Unique branch head SHAs: **1,356**.
+- Duplicate-head groups: **35**, covering **109 branch refs**.
+- Open PRs: **117**.
+- No branch or PR was deleted or closed. Duplicate head is not proof of obsolescence; each group still requires dependency, commit-date and unique-evidence review.
+
+### Current active lanes
+| PR | State | Branch | Head | Relationship / disposition |
+|---|---|---|---|---|
+| #3380 | OPEN / DRAFT / UNMERGED | `diagnostic/w3-c3-command06e-harness-recovery` | `33a8fb14a9979d0d86775cb5457970c7e445077b` | Diagnostic executor-lifecycle evidence; preserve. |
+| #3382 | OPEN / DRAFT / UNMERGED | `diagnostic/command-06-h-raw-sql-evidence` | `adee525e94fa2daec617255d57f9cfb65e3efe66` | Stacked on #3380; separate raw-SQL diagnostic evidence; preserve. |
+| #3384 | OPEN / DRAFT / UNMERGED | `feature/command-07-a-sqlite-contract-remediation` | `1f4ff4898a5a9278e067c795a8fc14791b8ecbed` | Active product execution lane; base is `fix/wave3-cycle3-calendar-product-repair`. |
+| #3340 | OPEN / non-draft / UNMERGED | `docs/rev9-governance-continuity-2026-11-10` | `94c6aa1c21400a4c911adf16be2f1cb2ba0c808d` | REV9 canonical six-document lane. |
+| #3388 | OPEN / DRAFT / UNMERGED | `docs/wave-0-canonical-governance` | `44570ecb815c825221a269193ae3bca56ae92de8` | Parallel v49-era governance package and CODEOWNERS; preserve pending authority reconciliation. |
+
+### Branch and protection findings
+- `staging/command-07-a2-33-recovery` remains at `1db6675958b27674e9f46d9c9ea68009f546f96d`; it is 2,371 commits ahead / 0 behind Main and is not the active execution lane.
+- Main ruleset `main-protection` ID 20952260 is ACTIVE. It enforces deletion and non-fast-forward protection, but the pull-request rule requires **0 approving reviews** and `require_code_owner_review=false`.
+- `.github/CODEOWNERS` is absent from Main. A typography-scoped CODEOWNERS file exists on unmerged #3388 only; it is not effective on Main.
+- No ruleset, protection, CODEOWNERS file, secret or credential was changed.
+
+### Current #3384 validation boundary
+Current candidate SHA: `1f4ff4898a5a9278e067c795a8fc14791b8ecbed`. Build, Device Smoke, SQLite Snapshot and Follow-up Persistence runs are pending/queued; no current-head artifacts are available. Do not transfer historical artifacts or results to this SHA.
+
+### Product integrity / consolidation observations
+- Canonical Category/Tag catalog operations in current Home and management flows use TaskStore/SQLite; ProjectStore persists Projects and Task-ID membership in SQL.
+- Project Template task editor still exposes free-text Category/Tags, and template snapshot references are not included in the current taxonomy deletion guard. This is an open C01/C03/C04/C05 consistency defect.
+- `TaskTaxonomyLifecycleService` and `TaskTaxonomyMutationService` overlap; the management page uses MutationService. `TagStore` still contains a SharedPreferences implementation. Both are audit candidates, not approved deletions.
+- Keep all unique test coverage, migration sources, diagnostic PRs, artifacts and branch history until a dependency/evidence review justifies any retirement.
