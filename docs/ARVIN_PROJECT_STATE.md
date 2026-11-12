@@ -82,3 +82,13 @@ This section supersedes older live-status claims in this file where they conflic
 - Production code/schema/test/workflow changes: none in WAVE 0.
 - No CI was manually rerun by WAVE 0.
 - See `docs/arvin-memory/ARVIN_EVIDENCE_MAP.md` for the run-specific evidence record and `docs/AI_HANDOFF_CURRENT_FA.md` for continuation instructions.
+
+
+## COMMAND 07-A.2.24 live status addendum — 2026-11-12
+
+- Main HEAD: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- PR #3384: OPEN / DRAFT / UNMERGED; head `cbf7d241e588c6b4b6051dea5bb3d309a8c3cb05`, base `8c4c23f0c2a4f9b2374a2092c931782c4455fd41`.
+- Exact-head Build run 43202151547: FAILURE; SQLite Snapshot 43202151552: SUCCESS; Follow-up File Persistence 43202151499: SUCCESS; Device Smoke 43202151481: QUEUED; Draft Review APK 43202151478: SKIPPED.
+- SQLite Snapshot PASS is not D01-D05 acceptance. Build failure and queued Device Smoke remain unresolved.
+- Typography owner decision: Vazirmatn only. See canonical contract. Main has three registered weights/assets; Light 300 and SemiBold 600 are not yet present on main.
+- Merge and Release remain unauthorized; Release NO-GO.
