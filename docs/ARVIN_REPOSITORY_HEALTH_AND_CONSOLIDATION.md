@@ -146,9 +146,9 @@ All 61 test failure records from Build `43247842294` are preserved below. Exactl
 | 51 | 4 | `test/home_stat_filters_test.dart` | time checkbox selections use OR without a numeric badge | UNRESOLVED — RETEST REQUIRED |
 | 52 | 5 | `test/widgets/home_page_test.dart` | Focus Today is reachable from drawer More and global funnel with one result set | UNRESOLVED — RETEST REQUIRED |
 | 53 | 5 | `test/quick_capture_dialog_test.dart` | timed-to-all-day clears a relative reminder and all-day-to-timed preserves custom reminder | UNRESOLVED — RETEST REQUIRED |
-| 54 | 5 | `test/services/g1_drift_schema_test.dart` | malformed legacy task_people payload aborts migration without retiring source rows | UNRESOLVED — RETEST REQUIRED |
+| 54 | 5 | `test/services/g1_drift_schema_test.dart` | malformed legacy task_people payload aborts migration without retiring source rows | TEST HARNESS DEFECT — FIXED IN eea746d |
 | 55 | 5 | `test/widget_test.dart` | HomePage shows the empty-state message after loading | UNRESOLVED — RETEST REQUIRED |
-| 56 | 5 | `test/task_editor_dialog_test.dart` | Task Editor cancelling the circular clock does not commit a partial date | TEST HARNESS DEFECT — FIXED IN eea746d |
+| 56 | 5 | `test/task_editor_dialog_test.dart` | Task Editor cancelling the circular clock does not commit a partial date | UNRESOLVED — RETEST REQUIRED |
 | 57 | 5 | `test/follow_up_office_page_test.dart` | asks the user to create a task when the list is empty | UNRESOLVED — RETEST REQUIRED |
 | 58 | 5 | `test/task_detail_master_screen_test.dart` | Task Details does not present related people as assignees and keeps bottom content clear | UNRESOLVED — RETEST REQUIRED |
 | 59 | 5 | `test/notebook_page_test.dart` | Notebook selectors use canonical Task taxonomy, including unused-by-Notebook entries | UNRESOLVED — RETEST REQUIRED |
