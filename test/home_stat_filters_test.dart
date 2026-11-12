@@ -372,7 +372,12 @@ void main() {
     expect(find.text('کارهای برگزیدهٔ امروز'), findsOneWidget);
     await tester.tap(find.widgetWithText(ListTile, 'امروز تقویمی'));
     await tester.pumpAndSettle();
-    expect(find.text('امروز تقویمی'), findsNothing);
+    // The menu closes, while the applied filter remains visible as an active chip.
+    expect(
+      find.widgetWithText(ListTile, 'امروز تقویمی'),
+      findsNothing,
+    );
+    expect(find.text('امروز تقویمی'), findsOneWidget);
 
     final taskListScrollable = find.descendant(
       of: find.byKey(const ValueKey('home-task-list-viewport')),
