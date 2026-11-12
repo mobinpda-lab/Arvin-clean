@@ -948,10 +948,11 @@ void main() {
     expect(find.byKey(const ValueKey('task-detail-back')), findsOneWidget);
     final page = tester.widget<Scaffold>(find.byKey(const ValueKey('task-detail-page')));
     expect(page.backgroundColor, const Color(0xFFF5F6FA));
-    final summary = tester.widget<Container>(find.byKey(const ValueKey('task-detail-summary-card')));
-    final summaryDecoration = summary.decoration! as BoxDecoration;
-    expect(summaryDecoration.color, Colors.white);
-    expect(summaryDecoration.borderRadius, BorderRadius.circular(16));
+    expect(find.byKey(const ValueKey('task-detail-summary-card')), findsOneWidget);
+    final summaryTitle = tester.widget<TextField>(
+      find.byKey(const ValueKey('task-detail-title')),
+    );
+    expect(summaryTitle.style?.color, Colors.white);
     final completeButton = tester.widget<FilledButton>(
       find.byKey(const ValueKey('task-detail-complete')),
     );
