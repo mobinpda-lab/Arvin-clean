@@ -823,3 +823,15 @@ Changed source areas:
 - Added/updated Task migration, Project migration, schema and round-trip tests.
 
 Verification on the implementation checkpoint was pending at last lookup; no test PASS is claimed. Reports: P0_C_IMPLEMENTATION_REPORT, SQL_ONLY_CONSOLIDATION_REPORT, MIGRATION_PARITY_REPORT, OCCURRENCE_DATA_OWNERSHIP_REPORT, BACKUP_RESTORE_VALIDATION, TEST_VALIDATION_REPORT and LEGACY_RETIREMENT_REGISTER under `audit/`.
+
+
+## 2026-11-12 — COMMAND 07-A.2.21 typography / SQLite checkpoint
+
+- Canonical typography updated to VazirHarf v34.003 UI-Farsi-Digits, five approved weights, upstream pinned source and bundled SIL OFL 1.1 license. Historical Vazirmatn files were retained, not deleted.
+- Commit 7ca218a8a533c4faf68a2895d7740b241535a447 restored canonical font assets/configuration and expanded D02 explicit-true coverage.
+- Commit 907df7568bd9c1a46a6307e9a587d740a9f3afcb aligned remaining runtime font references and analyzer lint.
+- Commit 3490d753d0bbbc87eef489e641ab8c9f46892197 adjusted Home, checklist and PDF test fixtures to the active product contracts.
+- Commit a1e6ff7bfa0183983b63a6fc8e59b80f8c0b28f3 removed SQLite snapshot test lint without weakening assertions.
+- Commit b9d88bf0381030b5d2fd21aa82436678a65b518a restored typed Snapshot C/D guards. On this SHA, the five-cycle SQLite snapshot workflow and file-backed Follow-up persistence workflow passed. Artifact digests are recorded in CURRENT_STATE.
+- Build Analyze on b9 failed because Checklist test imports followed a declaration and the scroll helper was duplicated; Commit 9a48e1527e3180380982c4d9af2e1e2724d59f36 removed the duplicate and restored imports to the directive section. Fresh exact-SHA Analyze is pending.
+- No Merge, Release or Deployment was performed. No production/user database was accessed; SQLite evidence uses isolated temporary file-backed fixtures.

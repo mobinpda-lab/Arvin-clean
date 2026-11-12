@@ -1086,3 +1086,17 @@ Implementation checkpoint: `dbfcdb02879ed3939cb6a69d3a150e2237283a51`. Changes i
 Verification is NOT YET PASS: Build run `42864431438` and Device Smoke run `42864430851` were pending at the last exact-SHA lookup; Calendar Provider `42864431259` and Follow-up Persistence `42864430953` were queued. No local Flutter tests were run. See `audit/P0_C_IMPLEMENTATION_REPORT.md`, `audit/MIGRATION_PARITY_REPORT.md`, `audit/OCCURRENCE_DATA_OWNERSHIP_REPORT.md` and `audit/TEST_VALIDATION_REPORT.md`.
 
 Remaining: G1 legacy relation parity, a single multi-source transaction, remaining JSON/SharedPreferences owners, full Backup/Restore, complete test/Android evidence, and the four Reminder states decision. Legacy sources remain. PR #3052 OPEN / DRAFT / UNMERGED; Main READ-ONLY; Release NO-GO.
+
+
+## COMMAND 07-A.2.21 — Exact-head checkpoint (2026-11-12 10:33 UTC)
+
+- Branch: feature/command-07-a-sqlite-contract-remediation.
+- HEAD: 9a48e1527e3180380982c4d9af2e1e2724d59f36؛ PR #3384 OPEN / DRAFT / UNMERGED.
+- PR base at checkpoint: 8c4c23f0c2a4f9b2374a2092c931782c4455fd41.
+- فونت رسمی به VazirHarf v34.003 تغییر کرده؛ پنج وزن UI-FD و OFL 1.1 در مخزن ثبت شده‌اند. Vazirmatnهای تاریخی حذف نشده‌اند.
+- روی SHA قبلی b9d88bf: SQLite A-D snapshot workflow و Follow-up file persistence هر دو PASS شدند. پنج چرخه واقعی روی یک فایل موقت file-backed SQLite ثبت شد؛ داده‌های Task، Reminder، Follow-up، Person links و futureFollowUpField در A/B/C/D یکسان ماندند و foreign_key_check خالی بود.
+- Artifact Snapshot روی b9d88bf: ZIP SHA256 644bcfd362607b3045ae7261d3c6894bb970fac2ab4d8f1d1d3f2f7f878b8d6d؛ JSON SHA256 191a2bc66af9a42035b978cdc022b097484fb9a27baa809bc7a9f64cde18c86c.
+- همان SHA در Analyze شکست داشت: سه خطای directive-after-declaration، یک duplicate helper، یک unused helper و یک extra positional argument در تست Checklist. اصلاح ساختار تست در Commit 9a48e1527e3180380982c4d9af2e1e2724d59f36 ثبت شد.
+- CI جدید روی 9a48 در checkpoint: SQLite snapshot و Follow-up persistence در حال اجرا؛ Device Smoke در صف/در حال اجرا؛ Build pending. نتیجه نهایی این SHA هنوز نامشخص است.
+- هیچ‌یک از PASSهای b9 به SHA 9a منتقل نمی‌شود. Build، شش Shard، Visual، سه APK و هفت Device Smoke باید روی یک SHA نهایی واحد تکرار شوند.
+- Release: BLOCKED / NO-GO تا تکمیل تمام گیت‌ها.

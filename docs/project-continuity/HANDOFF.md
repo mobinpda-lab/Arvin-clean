@@ -443,3 +443,14 @@ NOT VERIFIED. GitHub branch data does not reveal uncommitted local modifications
 **Unresolved owner decision:** four Reminder states and their transitions/terminal/snooze semantics. Do not invent them.
 
 Main READ-ONLY. PR #3052 OPEN / DRAFT / UNMERGED. No force push, merge, release or legacy deletion. Release NO-GO.
+
+
+## COMMAND 07-A.2.21 — handoff 2026-11-12
+
+1. Fetch branch HEAD and PR #3384 again before any further write. At this checkpoint HEAD was 9a48e1527e3180380982c4d9af2e1e2724d59f36; PR was OPEN / DRAFT / UNMERGED.
+2. Do not transfer the successful SQLite A-D / five-cycle result from b9 to 9a. Artifact SHA256 on b9: ZIP 644bcfd362607b3045ae7261d3c6894bb970fac2ab4d8f1d1d3f2f7f878b8d6d; JSON 191a2bc66af9a42035b978cdc022b097484fb9a27baa809bc7a9f64cde18c86c.
+3. Check the new Build run for 9a. Analyze failed on b9 due to duplicate _scrollTaskDetailUntilVisible and misplaced imports; the fix is in 9a. Confirm Analyze before interpreting the six shards.
+4. Wait for six Shards, Visual, Debug/Staging/Release APK and all seven Device Smoke scenarios on one exact SHA. Any subsequent code/docs commit changes the target SHA and requires fresh validation.
+5. Verify the APK artifacts and their SHA256 digests, and confirm the APK contents package VazirHarf UI-FD fonts, not the retained legacy Vazirmatn assets.
+6. D01 custom index/trigger/outgoing FK tests and D05 rollback test exist. D04 Backup/Restore evidence and migration recovery evidence still require explicit confirmation.
+7. Update this handoff only after exact-SHA outcomes are known. Keep Release NO-GO; no merge, release or deployment without Mobin's explicit approval.

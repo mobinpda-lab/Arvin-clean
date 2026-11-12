@@ -190,3 +190,15 @@ On 2026-11-10 Mobin explicitly authorized WAVE 4 as **AUDIT + IMPLEMENTATION + T
 Current implementation checkpoint: `dbfcdb02879ed3939cb6a69d3a150e2237283a51`. The implementation is PARTIAL: Task and Project migration parity was strengthened; Recurrence and Occurrence have relational SQL ownership; unproven legacy retirement paths were disabled. Global SQL-only consolidation, full G1 parity, Backup/Restore, exact-SHA tests and Android acceptance remain open.
 
 Main stays READ-ONLY; PR #3052 stays OPEN / DRAFT / UNMERGED; no force push, merge, release, test weakening or unproven legacy deletion. Four Reminder states remain an explicit Mobin decision. Release remains BLOCKED — NO-GO.
+
+
+## COMMAND 07-A.2.21 — فونت و SQLite / وضعیت اجرایی 2026-11-12
+
+این الحاقیه تصمیم و محدودیت‌های این مأموریت را ثبت می‌کند؛ جایگزین تاریخچه قبلی نیست.
+
+- فونت رسمی برنامه: **VazirHarf v34.003**، شاخه UI-Farsi-Digits، پنج وزن 300/400/500/600/700، با مجوز SIL OFL 1.1.
+- منبع فونت به Commit ثابت upstream با SHA 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8 pin شده و فایل مجوز در assets/fonts/ui/vazirharf/OFL.txt نگهداری می‌شود.
+- فایل‌های Vazirmatn حذف نشده‌اند؛ فقط از فهرست فونت‌های runtime در pubspec خارج شده‌اند و برای ممیزی تاریخی باقی می‌مانند.
+- هیچ ادعای پذیرش Android/RTL یا انتشار APK بدون تست موفق روی SHA نهایی مجاز نیست.
+- Merge، Release و Deployment همچنان فقط با تأیید صریح مالک محصول مجاز است.
+- شواهد SQLite هرگز بین SHAها منتقل نمی‌شوند. Snapshot پنج‌چرخه ثبت‌شده روی b9d88bf0381030b5d2fd21aa82436678a65b518a فقط به همان SHA تعلق دارد.
