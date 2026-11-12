@@ -1385,3 +1385,32 @@ No result above is a PASS. Do not use historical SHA results as current acceptan
 - Execution branch compares 2,320 commits ahead / 0 behind Main; do not treat this as a direct merge candidate.
 - PR #3380 and #3382 remain separate diagnostic/evidence lanes.
 - PR #3388 remains the v49-era documentation lane; REV9 PR #3340 remains the canonical documentation lane. Preserve both pending explicit reconciliation.
+
+
+---
+
+## COMMAND 07-A.2.34 — SQLite acceptance test additions (2026-11-12)
+
+**Latest execution candidate:** `fd22fe37f0190818084f011bfcce00e241da6933`  
+**Execution branch:** `feature/command-07-a-sqlite-contract-remediation`  
+**Status:** IMPLEMENTATION IN PROGRESS / ACCEPTANCE BLOCKED.
+
+### New P0 tests committed
+- `f6db4d9a043b93d3477fa96ae9f88c4f504385a0` — added `test/services/sqlite_backup_restore_file_test.dart`. It creates separate source and destination `NativeDatabase(File)` files, writes the canonical portable backup document, restores into the independent destination database, closes/reopens it, and verifies Task, TaskReminder, Follow-up, Person, Project, Category/Tag relationships, `PRAGMA integrity_check`, `PRAGMA foreign_key_check` and enabled foreign keys.
+- `1bc1cc99c8562d42917ba27f4fa5110faa955515` — added a G1 migration fixture with a custom Task index and trigger. The expected safe behavior is fail-closed deferral of legacy column retirement, preserving both custom objects and proving the trigger still fires.
+- `fd22fe37f0190818084f011bfcce00e241da6933` — explicitly terminates the custom trigger fixture SQL statement.
+
+These are test additions, not acceptance results. D01 and D04 remain YELLOW until focused tests and full exact-head Build pass.
+
+### Exact-head Actions
+For `fd22fe37f0190818084f011bfcce00e241da6933`:
+- Build `43293411996`: PENDING.
+- Device Smoke `43293412058`: QUEUED.
+- SQLite Snapshot `43293411971`: QUEUED.
+- Follow-up File Persistence `43293412060`: QUEUED.
+- Orchestrator PR Wakeup `43293411950`: QUEUED.
+- Orchestrator `43293412413`: QUEUED.
+- Production Loop `43293411953`: PENDING.
+- Draft Review APK `43293412082`: SKIPPED.
+
+No PASS is recorded for this candidate. All historical evidence remains tied to its original SHA.
