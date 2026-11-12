@@ -410,7 +410,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(persisted?.checklist, ['[ ] مرحله دوم', '[ ] مرحله اول']);
 
-    final add = find.byKey(const ValueKey('task-detail-checklist-add'));
+    final add = find.byKey(const ValueKey('task-detail-add-checklist'));
     await _scrollTaskDetailUntilVisible(tester, add, 240);
     await tester.tap(add);
     await tester.pumpAndSettle();
