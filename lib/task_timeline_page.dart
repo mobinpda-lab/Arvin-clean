@@ -104,9 +104,10 @@ class TaskTimelinePage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(_formatDateTime(entry.dateTime)),
-                          if (entry.note.trim().isNotEmpty) ...[
+                          if (entry.note.trim().isNotEmpty &&
+                              entry.note.trim() != _label(entry.kind)) ...[
                             const SizedBox(height: 4),
-                            Text(entry.note),
+                            Text(entry.note.trim()),
                           ],
                           if (entry.result?.trim().isNotEmpty == true) ...[
                             const SizedBox(height: 4),
