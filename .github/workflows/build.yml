@@ -375,27 +375,35 @@ jobs:
           fi
           test -s "$apk"
           for font in \
-            assets/fonts/ui/vazirharf/Vazirharf-UI-FD-Regular.ttf \
-            assets/fonts/ui/vazirharf/Vazirharf-UI-FD-Medium.ttf \
-            assets/fonts/ui/vazirharf/Vazirharf-UI-FD-Bold.ttf; do
+            assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf \
+            assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf \
+            assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf; do
             if ! unzip -Z1 "$apk" | grep -Fxq "assets/flutter_assets/$font"; then
               echo "FONT_ASSET_BUNDLED=FAIL missing=$font" >&2
               exit 1
             fi
             echo "FONT_ASSET_BUNDLED=PASS $font"
           done
-          if grep -R -n -E "Vazirmatn|vazirmatn|font-option-system|System Default|fontFamily:[[:space:]]*['\"]system['\"]" lib pubspec.yaml; then
-            echo "FONT_LEGACY_PURGE=FAIL retired font or System Default reference remains" >&2
+          if grep -R -n -E "VazirHarf|vazirharf" lib pubspec.yaml; then
+            echo "FONT_LEGACY_PURGE=FAIL retired VazirHarf runtime reference remains" >&2
             exit 1
           fi
           echo "FONT_LEGACY_PURGE=PASS"
-          test -s assets/fonts/ui/vazirharf/OFL.txt
-          grep -Fq 'SIL OPEN FONT LICENSE Version 1.1' assets/fonts/ui/vazirharf/OFL.txt
-          grep -Fq 'family: VazirHarf' pubspec.yaml
-          grep -Fq "static const String fontFamily = 'VazirHarf';" lib/core/theme/arvin_theme.dart
+          for font in \
+            assets/fonts/ui/vazirmatn/Vazirmatn-Light.ttf \
+            assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf \
+            assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf \
+            assets/fonts/ui/vazirmatn/Vazirmatn-SemiBold.ttf \
+            assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf; do
+            test -s "$font"
+          done
+          test -s assets/fonts/ui/vazirmatn/LICENSE.txt
+          grep -Fq 'SIL OPEN FONT LICENSE Version 1.1' assets/fonts/ui/vazirmatn/LICENSE.txt
+          grep -Fq 'family: Vazirmatn' pubspec.yaml
+          grep -Fq "static const String fontFamily = 'Vazirmatn';" lib/core/theme/arvin_theme.dart
           echo "FONT_LICENSE=PASS_OFL_1_1"
-          echo "FONT_FAMILY=PASS_VAZIRHARF"
-          echo "FONT_GATE=PASS_VAZIRHARF_V34_003_UI_FD_BUNDLED"
+          echo "FONT_FAMILY=PASS_VAZIRMATN"
+          echo "FONT_GATE=PASS_VAZIRMATN_5_WEIGHTS_BUNDLED"
 
       - name: Verify APK
         if: always() && steps.build-apk.outcome == 'success'
