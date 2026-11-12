@@ -280,3 +280,7 @@ The active candidate `75737f4fb95b4357e8b6e0511ee2443c6aa5aff4` adds:
 - expanded SQLite schema-catalog, file-based Backup/Restore and migration-recovery tests.
 
 These are validation improvements only. They do not establish acceptance until exact-head workflows complete. No release authorization is implied.
+
+### Typography single-source refinement — current product candidate `3768b4e39f1235bd993337da8009349d632aa05d`
+
+A duplicate Vazirmatn family literal existed in the canonical theme token and font option registry alongside `AppFonts`. Commit `3768b4e39f1235bd993337da8009349d632aa05d` now makes `lib/theme/app_fonts.dart` the single code-level family source; `ArvinTheme.fontFamily` and the user font registry alias `AppFonts.vazirmatnFamily`. The theme token test and build-time font audit now assert this relationship. This is a behavior-preserving refactor; exact-head Analyze, Typography tests and build audit remain required.

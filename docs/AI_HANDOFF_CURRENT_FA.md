@@ -369,3 +369,7 @@ Upstream repository `rastikerdar/vazirmatn`, exact source commit `6e553e33489a8f
 - Bold — `efa9b095da01d299310bdcae293e24e657fe6da9` (123,036 bytes)
 
 This establishes exact upstream Git-object identity for the five files. Per-file SHA-256 output and APK inclusion still require successful exact-head build jobs; the upstream Git blob SHA-1 values are not presented as SHA-256.
+
+### Typography single-source refinement — current product candidate `3768b4e39f1235bd993337da8009349d632aa05d`
+
+A duplicate Vazirmatn family literal existed in the canonical theme token and font option registry alongside `AppFonts`. Commit `3768b4e39f1235bd993337da8009349d632aa05d` now makes `lib/theme/app_fonts.dart` the single code-level family source; `ArvinTheme.fontFamily` and the user font registry alias `AppFonts.vazirmatnFamily`. The theme token test and build-time font audit now assert this relationship. This is a behavior-preserving refactor; exact-head Analyze, Typography tests and build audit remain required.
