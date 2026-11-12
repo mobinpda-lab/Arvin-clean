@@ -1180,3 +1180,14 @@ Live repository facts at deployment start: Main `45e4202b03a434459e4c021a04efa7e
 - Root cause confirmed by source inspection: `_iranWallClockNow()` reads `IranClock.now()`, while `_groupJalaliDate()` reads `DateTime.now()`; HomePage/ArvinApp have no injectable `nowProvider`. The failing fixture sets due time to 10:00 based on today's date; the live CI Iran clock is later, so the item is correctly classified overdue instead of today's group. This is a PRODUCTION DEFECT in deterministic clock ownership and a time-dependent test fixture, not a reason to weaken the assertion.
 - Required fix per COMMAND 07-A.2.33: inject one `nowProvider` into Home and use it in both clock paths; test fixed current time 09:00 with due time 10:00. Keep the five-filter contract (Time, Center, Project, Category, Tag) from the later 2026-11-10 owner directive; do not remove Center based on older four-filter wording.
 - SQLite Snapshot `43269800257` and Follow-up Persistence `43269800526` remain SUCCESS on this candidate; Device Smoke `43269800280` remains QUEUED. Build is still incomplete and failed at least one shard.
+
+
+
+---
+
+## COMMAND 07-A.2.33 — correction to G1 fixture disposition (2026-11-12)
+
+- Correction: the earlier description of commit `eea746d...` as a fixed G1 fixture was premature. New Build `43269800292`, test-5, proves the fixture still fails before Migration with `SqliteException: no such table: tasks` because the fixture attempts to insert its parent before creating the table.
+- Therefore G1 malformed-payload fixture remains TEST HARNESS DEFECT / INCOMPLETE. The production FK check was not the failure in this new run; the test setup failed at its parent insert. No D01/D05 acceptance is claimed.
+- Correct next step: create a schema-compatible `tasks` table in the fixture before inserting `legacy-task`; then create `task_people` with malformed JSON; verify FormatException, transaction rollback, retained source, FK enforcement, JSON repair and same-executor retry.
+- Build `43269800292`: test-1 FAILURE (202/1), test-3 FAILURE (155/9), test-5 FAILURE (189/10; includes the G1 fixture error); Debug APK SUCCESS; remaining jobs QUEUED at latest poll. SQLite Snapshot `43269800257` and Follow-up Persistence `43269800526` SUCCESS. Device Smoke `43269800280` QUEUED.
