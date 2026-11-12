@@ -9,7 +9,6 @@ import 'services/task_store.dart';
 import 'services/project_store.dart';
 import 'services/calendar_outbound_sync_service.dart';
 import 'services/follow_up_calendar_projection.dart';
-import 'theme/app_fonts.dart';
 
 abstract interface class AlarmOverlayNotificationController {
   Future<void> cancel(int notificationId);
@@ -238,11 +237,7 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
   @override
   Widget build(BuildContext context) {
     final baseTheme = Theme.of(context);
-    final themed = baseTheme.copyWith(
-      textTheme: baseTheme.textTheme.apply(
-        fontFamily: AppFonts.vazirmatnFamily,
-      ),
-    );
+    final themed = baseTheme;
     return Theme(
       data: themed,
       child: Directionality(
@@ -405,7 +400,6 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
               side: BorderSide(color: foreground, width: 1.5),
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
               textStyle: textTheme.labelLarge?.copyWith(
-                fontFamily: AppFonts.vazirmatnFamily,
                 fontWeight: FontWeight.w600,
               ),
             )
@@ -414,7 +408,6 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
               foregroundColor: foreground,
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
               textStyle: textTheme.labelLarge?.copyWith(
-                fontFamily: AppFonts.vazirmatnFamily,
                 fontWeight: FontWeight.w600,
               ),
             );
@@ -484,8 +477,7 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: textTheme.titleLarge?.copyWith(
-                                  fontFamily: AppFonts.vazirmatnFamily,
-                                  fontSize: 23,
+                                                    fontSize: 23,
                                   fontWeight: FontWeight.w700,
                                   color: const Color(0xFF25243A),
                                 ),
@@ -498,8 +490,7 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: textTheme.bodyMedium?.copyWith(
-                                  fontFamily: AppFonts.vazirmatnFamily,
-                                  fontSize: 14,
+                                                    fontSize: 14,
                                   color: const Color(0xFF777487),
                                 ),
                               ),
@@ -515,8 +506,7 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
                           key: const ValueKey('alarm-overlay-reminder-time'),
                           textAlign: TextAlign.left,
                           style: textTheme.headlineSmall?.copyWith(
-                            fontFamily: AppFonts.vazirmatnFamily,
-                            fontSize: 27,
+                                        fontSize: 27,
                             fontWeight: FontWeight.w800,
                             color: const Color(0xFF25243A),
                           ),
