@@ -46,7 +46,7 @@ void main() {
           (widget.bytesLoader as dynamic).assetName == 'assets/images/branding/tafweez.svg'),
       findsOneWidget,
     );
-    expect(AppFonts.vazirmatnFamily, AppFonts.vazirmatnFamily);
+    expect(AppFonts.vazirmatnFamily, 'Vazirmatn');
   });
 
   testWidgets('source filters separate all-day items, timed reminders, phone events and unfinished tasks', (tester) async {
