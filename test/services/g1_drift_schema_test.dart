@@ -835,4 +835,87 @@ void main() {
     );
   });
 
+  test('legacy Task retirement preserves custom indexes and triggers by deferring cleanup', () async {
+    await database.ensureOpen(G1DriftSchema());
+    await database.runCustom('''
+      CREATE TABLE tasks (
+        id TEXT NOT NULL PRIMARY KEY,
+        title TEXT NOT NULL,
+        description TEXT NOT NULL DEFAULT '',
+        follow_up_enabled INTEGER NULL,
+        follow_up_date TEXT NULL,
+        reminder_date TEXT NULL,
+        priority TEXT NOT NULL DEFAULT 'none',
+        archived INTEGER NOT NULL DEFAULT 0,
+        trashed INTEGER NOT NULL DEFAULT 0,
+        completed INTEGER NOT NULL DEFAULT 0,
+        legacy_payload_json TEXT NULL
+      )
+    ''');
+    await database.runCustom(
+      'CREATE TABLE task_audit (task_id TEXT NOT NULL, title TEXT NOT NULL)',
+    );
+    await database.runCustom(
+      'CREATE INDEX custom_tasks_title_idx ON tasks(title)',
+    );
+    await database.runCustom('''
+      CREATE TRIGGER custom_tasks_title_audit
+      AFTER UPDATE OF title ON tasks
+      BEGIN
+        INSERT INTO task_audit(task_id, title) VALUES (NEW.id, NEW.title);
+      END
+    ''');
+    await database.runInsert(
+      'INSERT INTO tasks (id, title) VALUES (?, ?)',
+      const <Object?>['task-custom-objects', 'عنوان اولیه'],
+    );
+
+    await G1DriftSchema.install(database);
+
+    final customObjects = await database.runSelect(
+      "SELECT type, name FROM sqlite_master WHERE name IN (?, ?)",
+      const <Object?>[
+        'custom_tasks_title_idx',
+        'custom_tasks_title_audit',
+      ],
+    );
+    expect(
+      customObjects.map((row) => row['name']),
+      containsAll(['custom_tasks_title_idx', 'custom_tasks_title_audit']),
+    );
+    expect(
+      customObjects.map((row) => row['type']),
+      containsAll(['index', 'trigger']),
+    );
+
+    final taskColumns = await database.runSelect(
+      'PRAGMA table_info(tasks)',
+      const [],
+    );
+    expect(
+      taskColumns.map((row) => row['name']),
+      containsAll([
+        'follow_up_enabled',
+        'follow_up_date',
+        'reminder_date',
+      ]),
+    );
+
+    await database.runUpdate(
+      'UPDATE tasks SET title = ? WHERE id = ?',
+      const <Object?>['عنوان به‌روزشده', 'task-custom-objects'],
+    );
+    final audit = await database.runSelect(
+      'SELECT task_id, title FROM task_audit',
+      const [],
+    );
+    expect(audit, hasLength(1));
+    expect(audit.single['task_id'], 'task-custom-objects');
+    expect(audit.single['title'], 'عنوان به‌روزشده');
+    expect(
+      await database.runSelect('PRAGMA foreign_key_check', const []),
+      isEmpty,
+    );
+  });
+
 }
