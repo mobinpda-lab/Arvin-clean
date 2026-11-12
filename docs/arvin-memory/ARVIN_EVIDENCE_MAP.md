@@ -531,3 +531,14 @@ Canonical typography contract: [`docs/architecture/ARVIN_TYPOGRAPHY_CONTRACT.md`
 | Follow-up File Persistence `43212724255` | `e94105443e7516ed38eda6feaaee125d92fabaf4` | FAILURE | File-backed repository test passed; Alarm Overlay diagnostic failed at compile time |
 
 Never transfer successful evidence from `e941054...` to `2ac358...`. The five-weight font SHA-256 inventory is in typography contract §16 and applies to candidate branch assets only. The active Ruleset still has zero required approvals and does not require CODEOWNER review.
+
+
+## COMMAND 07-A.2.25 — post-documentation HEAD refresh (2026-11-12)
+
+- PR #3384 latest observed HEAD is now `318c9d7651299ecd0d1bfcda2653c52be87fb81f` (86 commits, 62 changed files), OPEN / DRAFT / UNMERGED. This SHA advanced after synchronizing the six existing `docs/project-continuity/` records; it supersedes the earlier 2ac358... checkpoint for current branch identity only.
+- A fresh `actions/runs?head_sha=318c9d7651299ecd0d1bfcda2653c52be87fb81f` query returned no workflow runs at the time of this refresh. All Build/Device/SQLite/Persistence results on 2ac358... or older SHAs are historical and do not validate 318c9d....
+- PR #3388 remains OPEN / DRAFT / UNMERGED; current observed HEAD `93f65ad4c42a2f9565a92b49058e68ff8b4eb3d7`.
+- The five Vazirmatn binary SHA-256 values in typography contract §16 remain tied to the unchanged font blobs listed there; they do not establish APK inclusion or release readiness.
+- Next action: wait for or trigger exact-head validation on 318c9d... using the repository's supported CI path, then inspect Build, SQLite Snapshot, Follow-up Persistence and all seven Device Smoke lanes. Do not reuse prior run outcomes.
+
+Release remains NO-GO. Merge, release and deployment remain unauthorized.
