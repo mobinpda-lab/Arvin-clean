@@ -32,3 +32,21 @@
 - **REV9-009 — NEEDS OWNER DECISION:** Exact four Reminder states and transitions.
 
 The complete clauses and definitions are in `MASTER_GOVERNANCE.md`. This summary does not replace or abbreviate the canonical charter.
+
+
+
+---
+
+## Owner decision — 2026-11-12 — official Arvin typography (COMMAND 07-A.2.33)
+
+**Status: APPROVED / binding current decision.**
+
+- Vazirmatn is the only official and default Arvin UI font.
+- VazirHarf is not an official font.
+- System Default is an optional user-selected fallback, not a product default.
+- Preserve weights 300, 400, 500, 600 and 700.
+- Theme is the single source of truth; Dialog and Overlay surfaces must follow it.
+- PDF embedding is independently validated; the official font must be packaged in the APK.
+- A user's font selection must survive Force Stop and application restart.
+
+This direct owner instruction dated 2026-11-12 resolves the typography question left open by REV9 §32 (dated 2026-11-10). Preserve the original REV9 clause as historical source text; this dated decision is the later controlling addendum.
