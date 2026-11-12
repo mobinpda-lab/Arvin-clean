@@ -3693,6 +3693,32 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ],
+                      if (latestFollowUp != null) ...[
+                        const SizedBox(height: 4),
+                        Column(
+                          key: ValueKey('task-card-follow-up-accordion-${task.id}'),
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'آخرین پیگیری: ${latestFollowUp.title}',
+                              key: ValueKey('task-card-last-follow-up-${task.id}'),
+                              style: const TextStyle(
+                                color: ArvinColors.textPrimary,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              latestFollowUp.exactDateTime,
+                              style: const TextStyle(
+                                color: ArvinColors.textSecondary,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                       if (task.trashed || task.archived)
                         TextButton(
                           onPressed: () => _restore(task),
@@ -3753,40 +3779,7 @@ class _HomePageState extends State<HomePage> {
                               ],
                             ),
                           ],
-                          if (latestFollowUp != null) ...[
-                            const SizedBox(height: 7),
-                            Column(
-                              key: ValueKey('task-card-follow-up-accordion-${task.id}'),
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'آخرین پیگیری: ${latestFollowUp.title}',
-                                  key: ValueKey('task-card-last-follow-up-${task.id}'),
-                                  style: const TextStyle(
-                                    color: ArvinColors.textPrimary,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                const SizedBox(height: 3),
-                                Text(
-                                  latestFollowUp.exactDateTime,
-                                  style: const TextStyle(
-                                    color: ArvinColors.textSecondary,
-                                    fontSize: 11,
-                                  ),
-                                ),
-                                if (latestFollowUp.relative != null)
-                                  Text(
-                                    latestFollowUp.relative!,
-                                    style: const TextStyle(
-                                      color: ArvinColors.textSecondary,
-                                      fontSize: 11,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ],
+
                         ],
                       ),
                     )
