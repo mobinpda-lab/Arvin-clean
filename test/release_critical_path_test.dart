@@ -42,7 +42,7 @@ void main() {
     expect(restored.id, 'release-critical-1');
     expect(restored.title, 'تماس با مشتری');
     expect(restored.tags, ['فوری', 'فروش']);
-    expect(restored.reminderDate, isNull);
+    expect(restored.reminderDate, reminderAt);
     expect(restored.createdAt, createdAt);
     expect(restored.followUpEnabled, isFalse);
     expect(restored.followUps, isEmpty);
@@ -57,6 +57,6 @@ void main() {
     expect(persisted.followUps, isEmpty);
     expect(persisted.taskReminders.single.id, 'release-reminder-1');
     expect(persisted.recurrence, isNotNull);
-    expect(persisted.reminderDate, isNull);
+    expect(persisted.reminderDate, reminderAt);
   });
 }

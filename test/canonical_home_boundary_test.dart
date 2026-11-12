@@ -12,7 +12,7 @@ void main() {
     expect(source, contains('await taskStore.save(snapshot);'));
     final save = source.substring(
       source.indexOf('Future<void> _save()'),
-      source.indexOf('DateTime? _homeLastFollowUpDate'),
+      source.indexOf('String? _projectTitleForTask'),
     );
     expect(save, isNot(contains('CalendarOutboundSyncService')));
     expect(save, isNot(contains('syncTaskLifecycle')));
@@ -23,7 +23,7 @@ void main() {
     final source = File('lib/main.dart').readAsStringSync();
     final save = source.substring(
       source.indexOf('Future<void> _save()'),
-      source.indexOf('DateTime? _homeLastFollowUpDate'),
+      source.indexOf('String? _projectTitleForTask'),
     );
     expect(save, isNot(contains('CalendarOutboundSyncService')));
     expect(save, isNot(contains('calendarOutboundSyncService')));
