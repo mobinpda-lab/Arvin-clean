@@ -363,8 +363,13 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('داده‌های کارها قابل خواندن نیست'), findsNothing);
     expect(find.text('موعد امروز'), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('home-general-filter-button')));
+    final filterButton = find.byKey(const ValueKey('home-general-filter-button'));
+    expect(filterButton, findsOneWidget);
+    expect(tester.widget<IconButton>(filterButton).onPressed, isNotNull);
+    await tester.tap(filterButton);
     await tester.pumpAndSettle();
+    expect(find.text('امروز تقویمی'), findsOneWidget);
+    expect(find.text('کارهای برگزیدهٔ امروز'), findsOneWidget);
     await tester.tap(find.widgetWithText(ListTile, 'امروز تقویمی'));
     await tester.pumpAndSettle();
     expect(find.text('امروز تقویمی'), findsNothing);

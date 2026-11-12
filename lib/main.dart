@@ -849,7 +849,7 @@ class _HomePageState extends State<HomePage> {
     final now = _iranWallClockNow();
     final today = DateTime(now.year, now.month, now.day);
     if (_timeFilters.contains('today')) {
-      print(
+      debugPrint(
         'HOME_TODAY_FILTER id=${task.id} due=${due.toIso8601String()} '
         'isUtc=${due.isUtc} local=${local.toIso8601String()} '
         'day=$day today=$today completed=${task.completed} '
@@ -936,7 +936,7 @@ class _HomePageState extends State<HomePage> {
 
     final result = scoped.toList(growable: false);
     if (_timeFilters.contains('today')) {
-      print(
+      debugPrint(
         'HOME_TODAY_VISIBLE filter=$filter timeFilters=$_timeFilters '
         'center=$_centerFilters category=$_categoryFilters project=$_projectFilters tags=$_tagFilters '
         'todayFocus=$_todayFocusOnly ids=${result.map((task) => task.id).join(',')}',
@@ -2349,7 +2349,7 @@ class _HomePageState extends State<HomePage> {
       selected.clear();
       selectionMode = false;
     });
-    print(
+    debugPrint(
       'HOME_SELECT_STAT next=$nextFilter filter=$filter '
       'timeFilters=$_timeFilters todayFocus=$_todayFocusOnly dueScope=$_dueScope',
     );
@@ -3093,7 +3093,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _showHomeFilterMenu() async {
-    print('HOME_FILTER_MENU_ENTER mounted=$mounted');
+    debugPrint('HOME_FILTER_MENU_ENTER mounted=$mounted');
     final action = await showModalBottomSheet<_HomeMoreAction>(
       context: context,
       showDragHandle: true,
@@ -3105,7 +3105,7 @@ class _HomePageState extends State<HomePage> {
               leading: const Icon(Icons.today_outlined),
               title: const Text('امروز تقویمی'),
               onTap: () {
-                print('HOME_TODAY_TILE_TAPPED');
+                debugPrint('HOME_TODAY_TILE_TAPPED');
                 Navigator.of(sheetContext).pop(_HomeMoreAction.today);
               },
             ),
@@ -3134,7 +3134,7 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
-    print('HOME_FILTER_MENU_RESULT action=$action mounted=$mounted');
+    debugPrint('HOME_FILTER_MENU_RESULT action=$action mounted=$mounted');
     if (action == null || !mounted) return;
     switch (action) {
       case _HomeMoreAction.today:
@@ -3855,7 +3855,10 @@ class _HomePageState extends State<HomePage> {
               IconButton(
                 key: const ValueKey('home-general-filter-button'),
                 tooltip: 'فیلترهای عمومی',
-                onPressed: _showHomeFilterMenu,
+                onPressed: () {
+                  debugPrint('HOME_FILTER_BUTTON_TAPPED');
+                  _showHomeFilterMenu();
+                },
                 icon: const Icon(Icons.filter_alt_outlined),
                 style: IconButton.styleFrom(backgroundColor: colors.surface, foregroundColor: colors.onSurfaceVariant),
               ),
