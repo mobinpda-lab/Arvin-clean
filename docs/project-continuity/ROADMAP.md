@@ -494,3 +494,33 @@ Do not promote a prior-candidate PASS to the new candidate. No release gate can 
 - Resolve the documentation authority conflict between REV9 PR #3340 and v49-era PR #3388 without merging or deleting either lane.
 
 No gate is accepted by implementation alone. All final evidence must be reproduced on one exact candidate SHA.
+
+
+---
+
+## COMMAND 07-A.2.34 — live gate reconciliation (2026-11-12)
+
+**Current candidate:** `1f4ff4898a5a9278e067c795a8fc14791b8ecbed` on PR #3384. **Status:** IMPLEMENTATION IN PROGRESS / ACCEPTANCE BLOCKED.
+
+| Gate | Current evidence state | Acceptance |
+|---|---|---|
+| D01 Schema compatibility | Versioned Drift schema and legacy migration tests exist; full supported-old-schema/index/trigger/FK parity is not yet proven on the current SHA. | YELLOW |
+| D02 Missing / NULL / FALSE / TRUE | Explicit state-preservation test exists in `g1_drift_schema_test.dart`; current-head execution pending. | YELLOW |
+| D03 Follow-up / Person / unknown metadata | ID/order/person/unknown-field coverage exists in schema and snapshot tests; current-head execution pending. | YELLOW |
+| D04 Backup / Restore | File-backed backup is read from disk and restored into a separate SQLite file, then reopened and checked for Reminder/Follow-up/Person/FK parity. Current-head execution pending. | YELLOW |
+| D05 Rollback / recovery | Malformed legacy-source fixture now creates the parent table, expects rollback/source retention/FK re-enable, repairs JSON and retries on the same executor. Current-head execution pending. | YELLOW |
+| 61 historical failures | Historical inventory is 0=11, 1=1, 2=21, 3=9, 4=9, 5=10 on `eea746d...`; do not transfer these counts to the current candidate. | YELLOW |
+| Product process integrity | Category/Tag/Project foundations exist; Project Template Category/Tag free-text UI and template-reference deletion policy remain open. | YELLOW |
+| Typography / PDF / APK | Vazirmatn-only runtime contract and five-weight APK audit are implemented; exact-head PDF/APK evidence pending. | YELLOW |
+| Device Smoke | Run `43291144527` is QUEUED on the current SHA; seven scenario jobs have not yet started. | YELLOW |
+| Repository integrity | 1,430 branches / 35 duplicate-head groups / 109 duplicate refs; 117 open PRs; no destructive cleanup authorized. | YELLOW |
+
+### Next P0 work
+1. Poll Build, SQLite Snapshot, Follow-up Persistence and Device Smoke for exact checkout `1f4ff4898a5a9278e067c795a8fc14791b8ecbed`; no result is accepted without checkout-SHA proof.
+2. Complete D01 schema parity and retain all D02–D05 assertions; do not infer acceptance from the A–D snapshot alone.
+3. Repair Project Template Category/Tag selection to use the canonical TaskStore catalog and define a fail-closed policy for taxonomy values referenced by reusable templates.
+4. Continue individual triage of the historical 61 records and the fresh current-head shard failures, if any.
+5. Validate Home clock and real Follow-up presentation end-to-end.
+6. Complete all seven Device Smoke scenarios and PDF/APK font evidence on one final candidate SHA.
+
+P1 consolidation remains continuous: preserve #3380/#3382 diagnostic evidence, reconcile #3340 REV9 with #3388 v49-era documentation, and review duplicate code/services/workflows without deleting unique coverage or history.
