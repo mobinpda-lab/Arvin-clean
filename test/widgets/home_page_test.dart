@@ -36,13 +36,14 @@ void main() {
     expect(find.byType(TextField), findsOneWidget);
     for (final key in [
       'home-filter-card-time',
+      'home-filter-card-center',
       'home-filter-card-project',
       'home-filter-card-category',
       'home-filter-card-tags',
     ]) {
       expect(find.byKey(ValueKey(key)), findsOneWidget);
     }
-    expect(find.byKey(const ValueKey('home-filter-card-center')), findsNothing);
+    expect(find.byKey(const ValueKey('home-filter-card-center')), findsOneWidget);
     expect(find.byIcon(Icons.add), findsOneWidget);
     expect(find.text('جستجو در کارها...'), findsOneWidget);
     expect(find.text('کارهای من'), findsNothing);
