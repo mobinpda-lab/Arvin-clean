@@ -37,6 +37,7 @@ import 'widgets/universal_arvin_time_picker.dart';
 import 'services/app_settings_service.dart';
 import 'services/daily_content_preferences_service.dart';
 import 'services/follow_up_calendar_projection.dart';
+import 'services/home_follow_up_presentation_service.dart';
 
 import 'services/calendar_sync_plan_service.dart';
 import 'services/calendar_outbound_sync_service.dart';
@@ -3486,6 +3487,10 @@ class _HomePageState extends State<HomePage> {
     final expanded = _expandedTaskIds.contains(task.id);
     final late = _overdue(task);
     final colors = Theme.of(context).colorScheme;
+    final latestFollowUp = const HomeFollowUpPresentationService().project(
+      task,
+      now: _iranWallClockNow(),
+    );
       return Dismissible(
       key: ValueKey(task.id),
       direction: selectionMode
@@ -3745,6 +3750,40 @@ class _HomePageState extends State<HomePage> {
                                     style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w600),
                                   ),
                                 ),
+                              ],
+                            ),
+                          ],
+                          if (latestFollowUp != null) ...[
+                            const SizedBox(height: 7),
+                            Column(
+                              key: ValueKey('task-card-follow-up-accordion-${task.id}'),
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'آخرین پیگیری: ${latestFollowUp.title}',
+                                  key: ValueKey('task-card-last-follow-up-${task.id}'),
+                                  style: const TextStyle(
+                                    color: ArvinColors.textPrimary,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const SizedBox(height: 3),
+                                Text(
+                                  latestFollowUp.exactDateTime,
+                                  style: const TextStyle(
+                                    color: ArvinColors.textSecondary,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                                if (latestFollowUp.relative != null)
+                                  Text(
+                                    latestFollowUp.relative!,
+                                    style: const TextStyle(
+                                      color: ArvinColors.textSecondary,
+                                      fontSize: 11,
+                                    ),
+                                  ),
                               ],
                             ),
                           ],
