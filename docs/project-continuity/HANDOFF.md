@@ -717,3 +717,32 @@ No production code correction for this finding has yet been committed. Treat C01
 5. Build the C07 isolated end-to-end scenario using the canonical TaskStore, ProjectStore, taxonomy mutation service and feature projections.
 6. Poll exact-head Build/Device/SQLite/Follow-up runs. If any new commit is made, discard no history; the acceptance SHA changes and affected gates must rerun.
 7. Keep Merge, Release and Deployment unauthorized.
+
+
+---
+
+## COMMAND 07-A.2.34 — D01/D04 test handoff (2026-11-12)
+
+**Current execution HEAD:** `fd22fe37f0190818084f011bfcce00e241da6933`.
+
+### Newly added tests
+- `test/services/sqlite_backup_restore_file_test.dart`: separate source and destination SQLite files; portable backup; restore into destination; destination close/reopen; Task, Reminder, Follow-up, Person and Project relation checks; category/tag catalog checks; SQLite integrity and FK checks.
+- `test/services/g1_drift_schema_test.dart`: legacy Task fixture with custom index and trigger; verify safe migration deferral preserves both objects and the trigger remains operational.
+
+### Current exact-head workflow state
+- Build `43293411996`: PENDING.
+- Device Smoke `43293412058`: QUEUED.
+- SQLite Snapshot `43293411971`: QUEUED.
+- Follow-up Persistence `43293412060`: QUEUED.
+- Orchestrator Wakeup `43293411950`: QUEUED.
+- Orchestrator `43293412413`: QUEUED.
+- Production Loop `43293411953`: PENDING.
+- Draft Review APK `43293412082`: SKIPPED.
+
+### Validation instructions
+1. Wait for the latest exact-head Build to start; confirm its checkout SHA equals `fd22fe37...`.
+2. Run focused tests for `sqlite_backup_restore_file_test.dart` and the custom Index/Trigger fixture.
+3. If D04 fails, inspect restore ordering, FK parent creation, Person directory membership, Follow-up relation restoration, Project membership and destination close/reopen. Do not weaken checks.
+4. If D01 fails, preserve the original database and investigate whether any migration path drops a custom object; do not bypass the fail-closed guard.
+5. Re-run all required gates on the final candidate after any correction.
+6. C07 full cross-feature workflow and unresolved Follow-up Entry Person selection still require separate work.
