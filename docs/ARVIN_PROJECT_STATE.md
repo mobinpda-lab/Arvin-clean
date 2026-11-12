@@ -304,3 +304,56 @@ No result transfers to a later product SHA.
 Live repository Ruleset `main-protection` (ID `20952260`) remains ACTIVE on `refs/heads/main`, but its pull-request rule currently has `required_approving_review_count=0` and `require_code_owner_review=false`; bypass actors are empty. Deletion and non-fast-forward protections are enabled. No repository security setting was changed.
 
 The docs PR #3388 CODEOWNERS file was expanded to cover the canonical typography contract, Vazirmatn assets, pubspec registration, both theme directories, PDF renderer, app root, Settings, Alarm Overlay, build workflow, typography/PDF tests and Android typography smoke. It is still an unmerged PR; the current main branch does not yet contain this CODEOWNERS file. Therefore effective CODEOWNER enforcement is **NOT VERIFIED / NOT ACTIVE**. Enabling required approval and CODEOWNER review remains a separate product-owner-controlled repository settings action.
+
+## COMMAND 07-A.2.30 — exact-head execution checkpoint (2026-11-12)
+
+### Git continuity and candidate identity
+
+- Main observed HEAD: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- PR #3384 remains OPEN / DRAFT / UNMERGED. Its base branch is `fix/wave3-cycle3-calendar-product-repair` at `8c4c23f0c2a4f9b2374a2092c931782c4455fd41`; the implementation branch was 108 commits ahead of that base at the prior checkpoint. The base branch itself is 2,200 commits ahead of main and 0 behind main. This is the deliberate branch strategy recorded in the PR body to avoid proposing an unrelated 2,200-commit diff directly against main.
+- The previous exact-head candidate `46f7b28e6631310b4617da5e717565470f7ecdbe` was advanced by commit `492a5c433ee215d0188a6075b159d4d72329d35e` (`fix(timeline): avoid repeating reminder heading as note`). PR #3384 now has 109 commits and 68 changed files.
+- Commit `492a5c4...` changes `lib/task_timeline_page.dart`: a reminder note is omitted when it duplicates the rendered `یادآور` heading. This is the production correction for the duplicate Reminder title regression. All dependent gates must be evaluated on `492a5c4...`; no result transfers from `46f7b28...`.
+- PR #3388 remains OPEN / DRAFT / UNMERGED, based on main `45e4202...`; it now has 48 commits and 8 changed files. This documentation update is append-only except for the explicitly corrected five font SHA-256 values in the typography contract.
+
+### Exact-head workflow evidence on previous candidate `46f7b28...`
+
+- Build run `43238200093`: Analyze PASS; Visual/PDF PASS; Debug APK PASS; Release APK PASS; Staging was IN_PROGRESS at the last poll. Regression shards 0, 1, 2 and 4 completed with 43 failure records total (11 + 2 + 21 + 9). Shards 3 and 5 were cancelled when the PR advanced to the next SHA; they are not PASS and the full regression run is incomplete.
+- Device Smoke run `43238200496`: the prepare-selected-scenarios job remained QUEUED; none of the seven device scenarios can be marked PASS.
+- Follow-up file-backed persistence run `43238200586`: SUCCESS on exact SHA `46f7b28...`.
+- SQLite A-D snapshot run `43238200490`: SUCCESS on exact SHA `46f7b28...`; artifact ID `13952699032`; ZIP SHA-256 `bdb0d42bcb7473bd91501a0a4e3c261d2c9001f95122b8db47356cc364089d5a`; JSON SHA-256 `fe64bc1b9a8275ab018ac3683e29d8b3d0462dc48f6eaec38572c05bfe465e2c`.
+- The SQLite snapshot artifact contains 22 tables, 28 indexes, zero triggers, enabled foreign keys, empty `foreign_key_check`, and identical A/B/C/D data/schema/FK definitions across five file-backed reopen cycles. This is a PASS for the A-D snapshot diagnostic only, not full D01 or D01-D05 acceptance.
+
+### Current candidate `492a5c4...` — latest exact-head evidence
+
+- SQLite snapshot run `43247842246`: SUCCESS; job `131285215042`; artifact ID `13958416974`; artifact ZIP digest `0e57caf9e4357d8d4d43e82ad0f60377f69d3ebd4c7cbaefb89b6818fa93565b`; JSON SHA-256 `445a3b733834ef118a0d7ae79e91b7b5f867538aa6e77910ea3a3752e47c7721`.
+- The new `492a5c4...` snapshot again records 22 tables, 28 indexes, zero triggers, FK enforcement enabled, an empty foreign-key check, and identical A/B/C/D data/schema/FK definitions across five reopen cycles.
+- Follow-up file-backed SQLite persistence run `43247842181`: SUCCESS; job `131285224802`.
+- Build run `43247842294`: PENDING / no jobs allocated at the last poll.
+- Device Smoke run `43247842521`: QUEUED; the preparation job is still queued and no scenario has a result.
+- No Debug, Staging or Release APK artifact has yet been verified for `492a5c4...`; the successful Debug and Release APK evidence below belongs only to `46f7b28...`.
+
+### D01-D05 acceptance boundary
+
+- D01: PARTIAL. Exact-head A-D snapshot and five reopen cycles pass on `492a5c4...`; full fresh-schema and supported historical-version migration acceptance is not yet established.
+- D02: NOT ACCEPTED. The snapshot covers explicit NULL and FALSE metadata examples, but the independent Missing / NULL / FALSE / TRUE contract has not yet been signed off as a complete exact-head acceptance gate.
+- D03: NOT ACCEPTED. Stable IDs, order, titles, notes, results, waiting-response flags and person links appear in the snapshot; full unknown Follow-up metadata preservation through independent close/reopen remains unproven.
+- D04: NOT ACCEPTED. No current exact-head evidence yet proves the complete file-based Backup → independent Restore → close/reopen → relational/data comparison sequence.
+- D05: NOT ACCEPTED. No current exact-head evidence yet proves interrupted-migration recovery, transaction rollback, or source-database non-destruction under injected failure.
+
+### Typography, PDF and APK evidence on `46f7b28...`
+
+- Upstream source commit: `6e553e33489a8f9dfaccc76860a2e3f3c1e66de7` in `rastikerdar/vazirmatn`; bundled license: SIL OFL 1.1.
+- The corrected source/embedded SHA-256 values for all five weights are recorded in `docs/architecture/ARVIN_TYPOGRAPHY_CONTRACT.md` §16 and §21. Exact-head Debug and Release audits verified all five embedded font hashes against their source files and passed the legacy-font purge.
+- Debug artifact ID `13953344600`; APK SHA-256 `41924a4be7470bb425d19baa76bb6781f9b3dbebbd9e31bc3716073adeacb16a`; artifact ZIP digest `c3844157fdc84e3c731bec9881f4a5ce3b8c63455962dcde5d07955145b16bd8`.
+- Release artifact ID `13956310335`; APK SHA-256 `eb3b681fa1e7030eeb6a09ef74c1aacb7527f1170cdafa76f1d94e289a2d16c3`; artifact ZIP digest `f68610edd91855f4bf80577c5c9710c248fc3395f681417f47198541ffa5c8df`.
+- Staging remained in progress at the last poll; no Staging artifact or APK SHA-256 is available.
+- PDF artifact ID `13953438208`; PDF SHA-256 `0b276df9ed223a31033ace1fed04daadb3bd21a962a476b69c6a4bca8bf4dccb`; ZIP digest `05ade08cf47cd3ff2866406c685e56b3398c9a8240ad8fcfc3be5ba9e9d32b86`. The PDF sample passed the visual workflow, Poppler confirmed embedded Regular/Bold CID TrueType fonts with Unicode maps, extracted text preserved the tested Persian/RTL/ZWNJ/numeric/mixed-direction content, and the rendered PNG was independently inspected.
+
+### Remaining blockers and next execution
+
+- The 43 observed Regression failure records on `46f7b28...` still require individual disposition; the two cancelled shards have no result. No failed assertion may be deleted or weakened. Test-contract corrections must preserve the product contract.
+- The Task Timeline duplicate Reminder heading is fixed in `492a5c4...`; verify it on the new exact-head Build run.
+- Task People visibility/persistence, Checklist scrolling, Quick Capture create/select and time rendering, Home due-date grouping and filter semantics, Follow-up Office timeout, editor/calendar/navigation and RTL swipe failures remain under investigation.
+- System Default has only app-root reinitialization evidence in historical documentation; OS-level Force Stop/process termination and relaunch remain NOT VERIFIED.
+- No Merge, Release or Deployment is authorized. PR #3384 and #3388 remain Draft and unmerged.
+- Next: complete the `492a5c4...` Build, all six regression shards, seven Device Smoke scenarios, Staging APK, then run only the missing D01-D05 acceptance probes against the same final SHA. Reconcile all dependent artifacts again if any source commit advances.
