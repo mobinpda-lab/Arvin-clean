@@ -95,7 +95,7 @@ The live branch search returned 1,429 branch names. Prefix counts (not a stale/a
 | D04 Backup / Restore | NOT ACCEPTED | Actual backup, isolated restore, independent reopen and record-level parity. |
 | D05 Atomicity / Recovery | INCOMPLETE | Injected interruption, rollback, retained source, repair/retry and no inconsistent partial state. |
 
-### Root cause confirmed and corrected
+### Root cause confirmed; first fixture correction incomplete
 Test: `test/services/g1_drift_schema_test.dart` — `malformed legacy task_people payload aborts migration without retiring source rows`.
 
 The fixture inserted a legacy `task_people` row with `task_id='legacy-task'` but did not insert the parent Task. Migration correctly copied the relation into `task_persons`, whose schema has a real FK to `tasks(id)`; `PRAGMA foreign_key_check` correctly detected the orphan. This is a TEST HARNESS DEFECT, not evidence that the FK check is wrong.
@@ -103,7 +103,7 @@ The fixture inserted a legacy `task_people` row with `task_id='legacy-task'` but
 Attempted correction on #3384: commit `eea746dbf2a58cd4f04c66a149ae3441264da5b2` inserted the parent Task but did not create the `tasks` table first. New Build `43269800292`, test-5, proves the fixture still fails with `SqliteException: no such table: tasks`. This attempt is INCOMPLETE, not fixed. Next correction must create a schema-compatible parent `tasks` table in the fixture, insert the parent row, then create the malformed relation; preserve the FK check and retry/rollback assertions. No production migration or FK assertion was weakened.
 
 ## 6. Previous-candidate 61 Failure Records
-All 61 test failure records from Build `43247842294` are preserved below. Six records now have a grounded initial classification: one TEST HARNESS DEFECT corrected in `eea746d...`; three additional TEST HARNESS DEFECTS identified for correction; two TEST CONTRACT DEFECTS identified for correction; the remaining 54 are UNRESOLVED pending root-cause inspection. The list is historical to SHA `492a5c4...` and must not be carried forward as the new candidate's result.
+All 61 test failure records from Build `43247842294` are preserved below. Seven records now have a grounded initial classification: one TEST HARNESS DEFECT with an incomplete/failed attempted correction in `eea746d...`; three additional TEST HARNESS DEFECTS identified for correction; two TEST CONTRACT DEFECTS identified for correction; one PRODUCTION DEFECT confirmed; the remaining 54 are UNRESOLVED pending root-cause inspection. The list is historical to SHA `492a5c4...` and must not be carried forward as the new candidate's result.
 
 | # | Shard | File | Test | Classification |
 |---:|---:|---|---|---|
@@ -171,7 +171,7 @@ All 61 test failure records from Build `43247842294` are preserved below. Six re
 
 ## 7. Product regression status
 The failed test set spans Task/Person persistence, Home filters and grouping, Follow-up Office, Checklist CRUD, Quick Capture and Project creation, Due Date preservation, Calendar, RTL swipe, RollBox, Reports, Navigation, Settings and Device Smoke workflow contracts. Presence of a Widget or class is not acceptance. Each failure needs source location, root cause, corrective commit and exact-SHA retest. No assertion was removed or weakened.
-- Home clock contract (`_iranWallClockNow` / `_groupJalaliDate`): PRODUCTION DEFECT CONFIRMED. `_iranWallClockNow()` reads `IranClock.now()` while `_groupJalaliDate()` reads `DateTime.now()`; no injectable `nowProvider` exists. New Build run `43269800292` on `eea746d...` failed the Home time-group test (202 passed / 1 failed in test-1) because its 10:00 due fixture is evaluated against the live later clock. Implement one injected source for both paths and a fixed 09:00 current / 10:00 due test.
+- Home clock contract (`_iranWallClockNow` / `_groupJalaliDate`): PRODUCTION DEFECT CONFIRMED. `_iranWallClockNow()` reads `IranClock.now()` while `_groupJalaliDate()` reads `DateTime.now()`; no injectable `nowProvider` exists. New Build run `43269800292` on `eea746d...` failed test-1 (202 passed / 1 failed, Home time grouping), test-3 (155 passed / 9 failed) and test-5 (189 passed / 10 failed, including G1 fixture `no such table: tasks`). Debug APK succeeded; remaining jobs were queued at last poll. Implement one injected source for both paths and a fixed 09:00 current / 10:00 due test.
 - Person/Task relation migration: INCOMPLETE pending malformed-payload retry and valid-parent/foreign-key tests.
 - Follow-up Office, Checklist, Quick Capture, Project creation, Boolean filters, Due Date, Calendar, RTL Swipe, RollBox, Reports and Navigation: INCOMPLETE / UNRESOLVED against the 61 old failure records.
 - Real physical device behavior: NOT VERIFIED.
@@ -239,4 +239,4 @@ No duplicate Repository/Service/Widget/Helper class was deleted in this pass. Fu
 
 ## 14. Final decision
 **NO-GO — NOT ACCEPTANCE READY.**  
-The fixture defect has an attempted but failed correction; new-candidate Build has three failed shards and Device Smoke remains queued, while SQLite Snapshot passed. D01–D05 are not all accepted; 60 prior failure records remain unresolved; real Backup/Restore, D05 interruption/recovery, Home clock, physical-device acceptance and production signing remain open. No merge, release or deployment is authorized.
+The fixture defect has an attempted but failed correction; new-candidate Build has three failed shards and Device Smoke remains queued, while SQLite Snapshot and Follow-up Persistence passed. D01–D05 are not all accepted; 60 prior failure records remain unresolved; real Backup/Restore, D05 interruption/recovery, Home clock, physical-device acceptance and production signing remain open. No merge, release or deployment is authorized.
