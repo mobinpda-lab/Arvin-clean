@@ -1088,6 +1088,27 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(width: 2),
               Expanded(
                 child: HomeFilterPill(
+                  key: const ValueKey('home-filter-card-center'),
+                  label: _centerFilters.isEmpty
+                      ? 'مرکز'
+                      : _centerFilters.length == 1
+                          ? (_centerFilters.first == '__no_center__'
+                              ? 'بدون مرکز'
+                              : (_centerName(_centerFilters.first) ?? 'مرکز حذف‌شده'))
+                          : 'مرکز',
+                  icon: Icons.location_city_outlined,
+                  soft: Color.alphaBlend(
+                    Theme.of(context).colorScheme.primary.withAlpha(18),
+                    Theme.of(context).colorScheme.surface,
+                  ),
+                  accent: Theme.of(context).colorScheme.primary,
+                  active: _centerFilters.isNotEmpty,
+                  onPressed: _showCenterFilterSheet,
+                ),
+              ),
+              const SizedBox(width: 2),
+              Expanded(
+                child: HomeFilterPill(
                   key: const ValueKey('home-filter-card-project'),
                   label: _projectFilters.isEmpty
                       ? 'پروژه'
