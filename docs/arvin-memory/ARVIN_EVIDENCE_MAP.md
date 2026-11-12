@@ -672,3 +672,17 @@ This establishes exact upstream Git-object identity for the five files. Per-file
 ### Typography single-source refinement — current product candidate `3768b4e39f1235bd993337da8009349d632aa05d`
 
 A duplicate Vazirmatn family literal existed in the canonical theme token and font option registry alongside `AppFonts`. Commit `3768b4e39f1235bd993337da8009349d632aa05d` now makes `lib/theme/app_fonts.dart` the single code-level family source; `ArvinTheme.fontFamily` and the user font registry alias `AppFonts.vazirmatnFamily`. The theme token test and build-time font audit now assert this relationship. This is a behavior-preserving refactor; exact-head Analyze, Typography tests and build audit remain required.
+
+### Light/dark typography weight correction and Android preference reload coverage
+
+Current product candidate: `63c67ea3a6788c8c33a7234c8c291c9607f1d299`.
+
+Source inspection found the previous root ThemeData mapping did not match the approved weight contract (body text was 500/600, titleMedium/titleSmall 700, and labelLarge 700). Commit `63c67ea3a6788c8c33a7234c8c291c9607f1d299` aligns both light and dark themes:
+- body/minor/calendar text: 400;
+- card/task title styles: 600;
+- page title: 700;
+- labels/controls: 500.
+
+The Android Reminder + Persian Typography smoke now exercises the actual Android SharedPreferences plugin: it saves System Default, recreates the app root and verifies both theme families are not forced; then saves Vazirmatn, recreates the root again, verifies both themes use Vazirmatn and checks the inherited overlay typography. This is app-root reinitialization on Android; a separate OS-level force-stop/process-kill persistence test remains NOT VERIFIED.
+
+Exact-head Analyze, regression, typography and Device Smoke results remain pending until their jobs complete on `63c67ea...`.
