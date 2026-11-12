@@ -541,3 +541,17 @@ Re-fetch the final PR #3340 HEAD and validate the docs-only diff and internal li
 8. Preserve all historical branches, PRs, artifacts and test assertions. No destructive cleanup, merge, release or deployment.
 
 Current typography owner decision (2026-11-12): Vazirmatn only; VazirHarf is not official; System Default is optional; preserve weights 300/400/500/600/700.
+
+
+
+---
+
+## COMMAND 07-A.2.33 — evidence refresh (2026-11-12, later poll)
+
+1. Poll Build `43269800292` and Device Smoke `43269800280`; verify actual checkout SHA for every job. SQLite Snapshot `43269800257` and Follow-up Persistence `43269800526` have passed on `eea746d...`.
+2. Before the next implementation commit, allow current Build to finish; do not cancel it to free queue capacity.
+3. Fix the three proven harness defects without weakening assertions: use the create TextField finder directly instead of `widgetWithText(TextField, ...)`; locate the actual Scrollable under `task-detail-content-list` for `scrollUntilVisible`.
+4. Fix the two test-contract defects: replace `pumpAndSettle` in alarm overlay smoke with the existing bounded frame pump helper; assert the Task reminder compatibility projection instead of incorrectly expecting a null getter while an enabled reminder exists.
+5. Re-run affected tests and the full Build on the resulting new SHA. Then re-run Device Smoke and SQLite Snapshot on that same final candidate.
+6. Continue D01–D05, real Backup/Restore, D05 injected interruption/retry, Home clock injection and 55 unresolved regression records.
+7. Reconcile PR #3380/#3382/#3384 shared migration-writer test; reconcile PR #3388 documentation package with REV9 PR #3340. Preserve all PRs and history until owner review.
