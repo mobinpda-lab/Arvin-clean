@@ -485,3 +485,13 @@ Shard 0 and Shard 2 together account for the current 32 failure records on `492a
 - New-candidate SQLite Snapshot `43269800257` passed on exact SHA `eea746dbf2a58cd4f04c66a149ae3441264da5b2`; artifact `13966864535`, SHA-256 `74a1b84cd67b932177da14982fe82256df68c79b6a0ae5a4451d970f42bc6f72`. Build `43269800292` was in progress and Device Smoke `43269800280` remained queued at last poll; Follow-up Persistence `43269800526` passed. Recheck before claiming acceptance.
 - Current owner typography instruction (2026-11-12): Vazirmatn only; VazirHarf is not official; System Default is optional; preserve weights 300/400/500/600/700; Theme is the source of truth; validate PDF and APK packaging and persist user selection.
 - No merge, release, deployment, branch deletion or destructive cleanup is authorized.
+
+
+## COMMAND 07-A.2.33 — correction to G1 fixture and latest Build status (2026-11-12)
+
+- Commit `eea746d...` is an incomplete fixture attempt, not a successful G1 fix. Build test-5 failed with `SqliteException: no such table: tasks` because the fixture inserted the parent before creating the table.
+- The next fixture correction must create a schema-compatible `tasks` table first, then insert the parent Task and malformed `task_people` relation. Keep FK checks, rollback, source retention and repair/retry assertions.
+- Build `43269800292`: test-1 FAILURE (202 passed / 1 failed), test-3 FAILURE (155 passed / 9 failed), test-5 FAILURE (189 passed / 10 failed; includes G1 fixture). Debug APK SUCCESS; remaining jobs were queued at last poll.
+- SQLite Snapshot `43269800257` and Follow-up Persistence `43269800526` passed on `eea746d...`; Device Smoke `43269800280` remains queued.
+- Home clock defect remains open: `_iranWallClockNow()` uses `IranClock.now()`, `_groupJalaliDate()` uses `DateTime.now()`; add one injectable `nowProvider` and the 09:00/10:00 test.
+- Current disposition: NO-GO. No merge, release or deployment.
