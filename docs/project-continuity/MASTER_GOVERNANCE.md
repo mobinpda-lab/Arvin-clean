@@ -202,3 +202,10 @@ Main stays READ-ONLY; PR #3052 stays OPEN / DRAFT / UNMERGED; no force push, mer
 - هیچ ادعای پذیرش Android/RTL یا انتشار APK بدون تست موفق روی SHA نهایی مجاز نیست.
 - Merge، Release و Deployment همچنان فقط با تأیید صریح مالک محصول مجاز است.
 - شواهد SQLite هرگز بین SHAها منتقل نمی‌شوند. Snapshot پنج‌چرخه ثبت‌شده روی b9d88bf0381030b5d2fd21aa82436678a65b518a فقط به همان SHA تعلق دارد.
+
+
+## COMMAND 07-A.2.24 owner typography override — 2026-11-12
+
+The latest explicit Product Owner decision supersedes earlier conflicting font decisions: **Vazirmatn is the only official/default Arvin font.** VazirHarf is not an official or fallback brand font. The canonical technical contract and owner CODEOWNERS proposal are being tracked in PR #3388 at `docs/architecture/ARVIN_TYPOGRAPHY_CONTRACT.md` and `.github/CODEOWNERS`. These are separate unmerged changes and do not yet affect this branch's runtime.
+
+Current branch `cbf7d241e588c6b4b6051dea5bb3d309a8c3cb05` explicitly registers VazirHarf in pubspec, AppFonts, ArvinTheme, PDF renderer and typography tests. This is a confirmed contradiction requiring remediation; do not call the current implementation compliant.
