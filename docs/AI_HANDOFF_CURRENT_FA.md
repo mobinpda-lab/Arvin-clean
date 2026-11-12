@@ -477,3 +477,7 @@ Build و شش Regression Shard روی `492a5c4...` را تکمیل کن؛ سپس
 ### رگرسیون نمایش آخرین Follow-up در Home
 
 قرارداد مرجع `docs/FOLLOWUP_FINAL_OWNER_CONTRACT_2026-08-28.md` در بند #357 نمایش Timestamp آخرین Follow-up واقعی را در کارت Home الزامی می‌کند و استفاده از `followUpDate` قدیمی به‌عنوان تاریخ پیگیری واقعی را ممنوع می‌داند. در SHA فعلی `492a5c4...` این خط نمایش در کارت Home وجود ندارد، در حالی که تست `home_last_follow_up_real_record_test.dart` آن را انتظار دارد. اصلاح محصول باید فقط از `task.lastFollowUp?.dateTime` استفاده کند؛ بدون ساختن Follow-up جدید و بدون تغییر dueDate یا Reminder. Assertion مربوط به getter قدیمی نیز باید با قرارداد canonical اصلاح شود: `followUpDate == null` و مقدار قدیمی در `legacyFollowUpMetadata.taskLevel` حفظ شود.
+
+### بازیابی فهرست اصلی ۲۲ شکست
+
+فهرست دقیق ۲۲ شکست گزارش قبلی از Run `43232240534`، Checkout SHA برابر `0aa1645999e38e32506bf3d3c15f900865428f90` و Job برابر `131238073327` بازیابی شد. جدول کامل ۲۲ مورد و وضعیت هرکدام در `docs/ARVIN_PROJECT_STATE.md` ثبت شده است. این فهرست تاریخی را نباید با ۴۳ شکست ثبت‌شده روی `46f7b28...` یا ۲۱ شکست Shard 2 روی Candidate فعلی `492a5c4...` یکی دانست.
