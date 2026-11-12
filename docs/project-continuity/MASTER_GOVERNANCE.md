@@ -1179,3 +1179,21 @@ DOCUMENT: ARVIN MASTER PRODUCT, DESIGN & GOVERNANCE CHARTER — REV9
 The preceding Persian deployment note is preserved verbatim as part of the supplied REV9 source transcription. It describes the document's status at the time that source text was authored and is now **HISTORICAL / SUPERSEDED**.
 
 The full REV9 charter has since been committed and pushed to the existing documentation branch `docs/rev9-governance-continuity-2026-11-10` and is presented for owner review in PR #3340. It is the active governance baseline on that branch. It is **not yet present in Main** because PR #3340 remains OPEN / UNMERGED. Do not interpret the old note as the current deployment state.
+
+
+
+---
+
+## COMMAND 07-A.2.33 — live continuity addendum (2026-11-12)
+
+This addendum records a direct, current Product Owner instruction and does not alter or remove the verbatim REV9 source transcription above. It supersedes the unresolved typography status in REV9 §32 for current implementation decisions:
+
+- **APPROVED — Vazirmatn is Arvin's sole official and default UI font.**
+- VazirHarf is not an official font. System Default is an optional user choice only.
+- Preserve weights 300, 400, 500, 600 and 700.
+- Theme is the single source of truth; Dialogs and Overlays follow the same contract.
+- Validate PDF font embedding independently; bundle the font in APKs.
+- Persist the selected user option across Force Stop and restart.
+- This owner clarification is dated 2026-11-12 and is later than the REV9 source snapshot dated 2026-11-10.
+
+No merge, release or deployment is authorized.
