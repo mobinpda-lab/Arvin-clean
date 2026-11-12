@@ -189,3 +189,15 @@ Resume SQLite P0 only after an authorized follow-on command. First perform root-
 - Keep PR #3380, #3382 and #3384 untouched.
 - SQLite P0 remains OPEN; Release NO-GO; Merge NOT AUTHORIZED.
 - Stop after this documentation PR is created and its exact head/status/CI state is recorded.
+
+
+## COMMAND 07-A.2.24 continuation handoff — 2026-11-12
+
+1. Re-read live main, PR #3384, PR #3388 and their exact branch refs before any further write.
+2. Treat `docs/architecture/ARVIN_TYPOGRAPHY_CONTRACT.md` as the canonical font decision: Vazirmatn only; System Default is the sole optional user preference.
+3. Resolve the VazirHarf contradiction introduced on PR #3384 before considering typography acceptance. Do not delete historical assets/evidence blindly.
+4. Complete font provenance, all five weights, checksums, centralized Theme, accessibility-preserving global rendering, preference persistence, APK asset inspection and actual PDF inspection.
+5. Continue SQLite D01-D05 and five independent persistence cycles on a single exact acceptance SHA. The current Snapshot PASS is insufficient.
+6. Inspect the failed Build run and queued Device Smoke without cancelling valid jobs or weakening assertions.
+7. Effective Ruleset enforcement for CODEOWNER review remains pending; current ruleset requires zero approvals and does not require CODEOWNER review.
+8. Do not merge, release, deploy, rewrite history, delete user data or destroy historical evidence. Release remains NO-GO.
