@@ -567,3 +567,14 @@ Current typography owner decision (2026-11-12): Vazirmatn only; VazirHarf is not
 - Add/adjust the deterministic test: now=09:00, due=10:00. Do not use current live time for a fixed-time assertion and do not weaken the group assertion.
 - Preserve the later owner-approved five Home filters in RTL order: Time, Center, Project, Category, Tag. Older four-filter wording is superseded.
 - The current candidate `eea746d...` is not accepted: Build test-1 failed; wait for the other jobs, then commit the clock correction and rerun full Build/Device Smoke/SQLite Snapshot on the new SHA.
+
+
+
+---
+
+## G1 fixture correction — immediate next step (2026-11-12)
+
+- Do not treat `eea746d...` as a successful G1 fix. Build test-5 proves the fixture fails with `no such table: tasks` before Migration begins.
+- In `test/services/g1_drift_schema_test.dart`, create the complete schema-compatible `tasks` table first (matching the canonical task table columns used by `G1DriftSchema`), insert the `legacy-task` parent row, then create the malformed `task_people` row.
+- Re-run the test and prove it reaches the expected FormatException, preserves the source row, rolls back canonical writes, leaves FK enforcement enabled, repairs the JSON and retries successfully on the same executor.
+- Do not remove `PRAGMA foreign_key_check`, alter production FK definitions, or claim the migration is fixed before the test passes.
