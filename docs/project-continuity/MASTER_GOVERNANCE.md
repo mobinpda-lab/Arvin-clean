@@ -209,3 +209,7 @@ Main stays READ-ONLY; PR #3052 stays OPEN / DRAFT / UNMERGED; no force push, mer
 The latest explicit Product Owner decision supersedes earlier conflicting font decisions: **Vazirmatn is the only official/default Arvin font.** VazirHarf is not an official or fallback brand font. The canonical technical contract and owner CODEOWNERS proposal are being tracked in PR #3388 at `docs/architecture/ARVIN_TYPOGRAPHY_CONTRACT.md` and `.github/CODEOWNERS`. These are separate unmerged changes and do not yet affect this branch's runtime.
 
 Current branch `cbf7d241e588c6b4b6051dea5bb3d309a8c3cb05` explicitly registers VazirHarf in pubspec, AppFonts, ArvinTheme, PDF renderer and typography tests. This is a confirmed contradiction requiring remediation; do not call the current implementation compliant.
+
+
+## Typography authority supersession — COMMAND 07-A.2.25
+The binding product decision is defined in `docs/architecture/ARVIN_TYPOGRAPHY_CONTRACT.md`: Vazirmatn only as official/default; System Default is optional. The owner decision supersedes conflicting historical font choices, which remain preserved. CODEOWNERS alone is not enforcement; verify the live Ruleset before claiming required owner review.
