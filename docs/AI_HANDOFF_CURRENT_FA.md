@@ -318,3 +318,15 @@ Poll exact-head runs:
 - Device Smoke `43224398160`
 
 All were PENDING/QUEUED at last inspection. Do not reuse `a6d2d58...` PASS results. If the new tests fail, inspect the logs and fix the underlying migration/restore behavior rather than removing assertions.
+
+
+## COMMAND 07-A.2.28.3 — latest candidate handoff (2026-11-12)
+
+Current product candidate SHA: `75737f4fb95b4357e8b6e0511ee2443c6aa5aff4`.
+
+- `cb0b2c1b0a29cd6ac022e9bbc68701b96068e1b0`: PDF Persian acceptance sample, embedded-font/ToUnicode checks, Poppler font inspection, text extraction and PNG preview.
+- `75737f4fb95b4357e8b6e0511ee2443c6aa5aff4`: APK font audit checks five expected Git blob IDs and emits actual SHA-256 and file size.
+
+Poll exact-head runs: Build `43224808961` (PENDING, no jobs allocated), SQLite Snapshot `43224809374` (QUEUED), Follow-up Persistence `43224808860` (QUEUED), Device Smoke `43224808776` (QUEUED). Draft Review APK `43224808804` was SKIPPED.
+
+The new D01/D04/D05 and PDF checks have not executed. Do not transfer earlier `a6d2d58...` passes. Investigate any PDF marker, text extraction or Poppler render failure rather than relaxing assertions.
