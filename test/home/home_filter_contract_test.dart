@@ -10,6 +10,8 @@ import 'package:arvin/widgets/arvin_primary_navigation.dart';
 import 'package:arvin/home/home_filter_ui.dart';
 import 'package:arvin/services/iran_clock.dart';
 import 'package:arvin/services/persian_date_formatter.dart';
+import 'package:arvin/services/project_store.dart';
+import 'package:arvin/services/task_store.dart';
 
 Finder _homeVerticalScrollable() => find.descendant(
       of: find.byKey(const ValueKey('home-task-list-viewport')),
@@ -429,6 +431,79 @@ void main() {
 
     expect(find.byType(ArvinPrimaryNavigation), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Home uses one injected Iran clock for time grouping and Jalali date labels', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await TaskStore.resetTestDatabase();
+    await ProjectStore.resetTestDatabase();
+    final dueAt = DateTime(2026, 11, 12, 9, 30);
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': jsonEncode([
+        {
+          'id': 'clock-contract-task',
+          'title': 'کار ساعت آزمایشی',
+          'dueDate': dueAt.toIso8601String(),
+        },
+      ]),
+    });
+
+    final formatter = const PersianDateFormatter();
+    final fixedDay = DateTime(2026, 11, 12);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: HomePage(
+            key: const ValueKey('home-clock-0900'),
+            nowProvider: () => DateTime(2026, 11, 12, 9),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final taskTitle = find.text('کار ساعت آزمایشی');
+    expect(
+      find.ancestor(
+        of: taskTitle,
+        matching: find.byKey(const ValueKey('home-group-today')),
+      ),
+      findsOneWidget,
+    );
+    final todayLabel = tester.widget<Text>(
+      find.byKey(const ValueKey('home-group-date-today')),
+    );
+    expect(
+      todayLabel.data,
+      contains(formatter.format(fixedDay, usePersianDate: true)),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: HomePage(
+            key: const ValueKey('home-clock-1000'),
+            nowProvider: () => DateTime(2026, 11, 12, 10),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.ancestor(
+        of: find.text('کار ساعت آزمایشی'),
+        matching: find.byKey(const ValueKey('home-group-overdue')),
+      ),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
   });
 
