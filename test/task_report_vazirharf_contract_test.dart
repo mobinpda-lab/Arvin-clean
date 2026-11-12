@@ -26,14 +26,14 @@ void main() {
     final source = File('lib/main.dart').readAsStringSync();
     expect(source, contains('fontFamily: selectedFontFamily'));
     final tokens = File('lib/core/theme/arvin_theme.dart').readAsStringSync();
-    expect(tokens, contains("static const String fontFamily = 'Vazirmatn';"));
+    expect(tokens, contains('static const String fontFamily = AppFonts.vazirmatnFamily;'));
   });
 
   test('font registry exposes only the approved Vazirmatn and System Default options', () {
     final source = File('lib/theme/font_registry.dart').readAsStringSync();
     expect(source, contains("id: 'vazirmatn'"));
     expect(source, contains("id: 'system-default'"));
-    expect(source, contains("fontFamily: 'Vazirmatn'"));
+    expect(source, contains('fontFamily: AppFonts.vazirmatnFamily'));
     expect(source, contains('effectiveFontFamily'));
   });
 
