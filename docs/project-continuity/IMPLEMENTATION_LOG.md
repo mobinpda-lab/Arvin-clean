@@ -962,3 +962,14 @@ Historical Build `43269800292` on `eea746dbf2a58cd4f04c66a149ae3441264da5b2` fai
 Historical CI remains tied to older SHAs. Current exact-head Build `43291144776`, Device Smoke `43291144527`, SQLite Snapshot `43291144675` and Follow-up Persistence `43291144575` were pending/queued at the last poll; no acceptance result is recorded.
 
 Static audit found D04 independent SQLite-file restore evidence missing and C07 full product workflow evidence incomplete. These are active P0 gaps, not accepted.
+
+
+---
+
+## COMMAND 07-A.2.34 — SQLite acceptance test log (2026-11-12)
+
+- `f6db4d9a043b93d3477fa96ae9f88c4f504385a0`: added independent-file backup/restore test with two disposable SQLite files, a portable backup document, destination reopen, canonical relationships and SQLite integrity/FK assertions.
+- `1bc1cc99c8562d42917ba27f4fa5110faa955515`: added legacy custom Index/Trigger preservation test for G1 schema migration; verifies fail-closed deferral and trigger execution.
+- `fd22fe37f0190818084f011bfcce00e241da6933`: finalized SQL trigger terminator in the test fixture.
+
+Exact-head validation is pending on candidate `fd22fe37f0190818084f011bfcce00e241da6933`: Build `43293411996`, Device Smoke `43293412058`, SQLite Snapshot `43293411971`, Follow-up Persistence `43293412060`. No gate is accepted yet.
