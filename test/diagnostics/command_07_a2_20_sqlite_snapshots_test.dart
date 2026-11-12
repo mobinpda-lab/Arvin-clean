@@ -262,7 +262,7 @@ void main() {
         );
       }
       expect(snapshotD!['foreign_key_check'], isEmpty);
-      expect(snapshotD['foreign_keys_enabled'], 1);
+      expect(snapshotD!['foreign_keys_enabled'], 1);
 
       final evidence = <String, Object?>{
         'command': '07-A.2.20',
@@ -279,8 +279,8 @@ void main() {
         'snapshots': {
           'A': snapshotA,
           'B': snapshotB,
-          'C': snapshotC,
-          'D': snapshotD,
+          'C': snapshotC!,
+          'D': snapshotD!,
         },
         'comparison': 'B, C and D match A for Task compatibility metadata, Reminder rows, Follow-up rows/order, Person links, Person identities, schema columns/indexes and foreign-key integrity',
       };
