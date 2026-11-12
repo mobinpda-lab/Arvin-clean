@@ -33,7 +33,7 @@ Operational evidence is SHA-specific. The repository's live code, workflows, art
 
 The checked-in Vazirmatn license identifies The Vazirmatn Project Authors and the upstream project at https://github.com/rastikerdar/vazirmatn. The checked-in license is SIL Open Font License 1.1 and permits embedding and redistribution subject to its terms. The complete license must remain bundled with the font assets.
 
-The repository currently does not record a pinned upstream release/tag or source commit for its Vazirmatn binary set. That provenance must be established before the asset migration is accepted. Do not infer a release version from filenames.
+The upstream source commit is pinned as `6e553e33489a8f9dfaccc76860a2e3f3c1e66de7`; all five font Git blob identities and the bundled OFL license match that source tree byte-for-byte as recorded in §18. Do not infer a release version from filenames.
 
 ## 4. Asset inventory and integrity
 
@@ -142,7 +142,7 @@ At the audited main HEAD:
 - the PDF renderer loads Vazirmatn Regular and Bold.
 - no verified persisted System Default font preference was established in this audit.
 - no verified APK packaging audit for all five weights was established.
-- a separate unmerged SQLite branch changes runtime references and tests to VazirHarf, conflicting with this approved decision and requiring remediation.
+- the unmerged SQLite execution branch previously contained explicit VazirHarf widget overrides; COMMAND 07-A.2.28 removed those overrides from Task Details, Home filter UI and Quick Capture. Exact-head Build and APK audit remain pending.
 
 These are source inspections, not acceptance passes. Global render guard, all-surface coverage, complete five-weight packaging, PDF output inspection, preference restart persistence, and device validation remain pending.
 
@@ -189,9 +189,9 @@ The following binary files were fetched from the exact PR #3384 implementation b
 | 600 SemiBold | `Vazirmatn-SemiBold.ttf` | 122,920 | `6b3842aca6055c8258404b1758133b81c961a13f` | `f50b7587fa62356c09bdbfe24fb70e66eea882502c92efe243df4d5b6ea8c61a` |
 | 700 Bold | `Vazirmatn-Bold.ttf` | 123,036 | `efa9b095da01d299310bdcae293e24e657fe6da9` | `dad307bfe9baf4d92326183f743ecfc091576224cb8f6a4a0623bfc48eb24c13` |
 
-The implementation branch retains a separate `assets/fonts/ui/vazirharf/` directory from its historical work. Its files are not registered by the current `pubspec.yaml` family declaration. Runtime and packaged-APK exclusion still require exact-head tests and artifact inspection.
+The implementation branch retains a separate `assets/fonts/ui/vazirharf/` directory as historical material. Its files are not registered by the current `pubspec.yaml` family declaration. Explicit runtime font-family overrides were removed from Task Details, Home filter UI and Quick Capture on candidate SHA `a6d2d58d87530bfa184c93220cc329b819aca809`; exact-head Build and packaged-APK exclusion still require successful workflow evidence.
 
-**Still pending:** pin the upstream Vazirmatn release/tag or source commit; verify the bundled license against that source; inspect actual Debug/Release APK contents; inspect actual generated PDF font resources and Persian shaping; validate on Android. Do not promote these candidate-branch checksums to a main/release claim.
+**Resolved in §18:** upstream source commit is pinned and all five font blobs plus the bundled OFL license match byte-for-byte. **Still pending:** independently re-certify the historical SHA-256 values from downloaded binary bytes; inspect actual Debug/Staging/Release APK contents; inspect generated PDF font resources and Persian shaping; validate on Android. Do not promote these candidate-branch checksums to a main/release claim.
 
 
 ## 17. Font binary provenance refinement — COMMAND 07-A.2.26
