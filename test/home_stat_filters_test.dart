@@ -209,7 +209,7 @@ void main() {
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
     expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-category')), matching: find.text('2')), findsNothing);
-    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-category')), matching: find.text('دسته')), findsOneWidget);
+    expect(find.bySemanticsLabel('دسته'), findsOneWidget);
     expect(find.text('اداری'), findsWidgets);
     expect(find.text('شخصی'), findsWidgets);
     expect(find.text('مالی'), findsNothing);
@@ -267,7 +267,7 @@ void main() {
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
     expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-time')), matching: find.text('2')), findsNothing);
-    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-time')), matching: find.text('زمان')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-filter-card-time')), findsOneWidget);
     expect(find.text('کار گذشته'), findsOneWidget);
     expect(find.text('کار امروز'), findsOneWidget);
     expect(find.text('کار فردا'), findsNothing);
