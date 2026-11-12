@@ -416,3 +416,10 @@ This addendum records the repository audit and the explicit WAVE 0 controls. It 
 
 ### Current release gate
 SQLite P0 remains open. D01 (legacy-column retirement), D02 (Missing vs Explicit NULL), and D03 (Follow-up metadata/history after reopen) are not accepted. Five-round serialization, full Reminder migration, Backup/Restore and Migration Recovery are not verified. Release remains **NO-GO**; merge is not authorized by WAVE 0.
+
+
+## COMMAND 07-A.2.24 typography authority addendum — 2026-11-12
+
+The Product Owner's latest explicit decision supersedes all historical conflicting font decisions: **Vazirmatn is the only official/default Arvin font.** VazirHarf is not an official or fallback brand font. The canonical contract is [ARVIN_TYPOGRAPHY_CONTRACT.md](architecture/ARVIN_TYPOGRAPHY_CONTRACT.md). Protected paths are defined in `.github/CODEOWNERS` and require effective Ruleset verification; CODEOWNERS presence alone is not enforcement.
+
+Live audit found main SHA `45e4202b03a434459e4c021a04efa7e8396359db` currently registers Vazirmatn in app_fonts, font_registry, pubspec and PDF renderer, but main only has Regular/Medium/Bold assets. SHA `cbf7d241e588c6b4b6051dea5bb3d309a8c3cb05` on PR #3384 changes runtime registration, theme, PDF and tests to VazirHarf, creating a direct conflict with this latest owner decision. This must be remediated on a controlled development branch; no acceptance is implied.
