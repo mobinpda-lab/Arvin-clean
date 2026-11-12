@@ -453,3 +453,14 @@ Do not promote a prior-candidate PASS to the new candidate. No release gate can 
 - Follow-up Persistence `43269800526` and Orchestrator `43269800263`: SUCCESS on the same candidate.
 - Build `43269800292`: IN PROGRESS / QUEUED by job at latest poll. Device Smoke `43269800280`: QUEUED. Do not mark either gate accepted until every job completes and actual checkout SHA matches.
 - Failure triage on the previous candidate: one harness defect fixed; three more harness defects and two test-contract defects identified for correction; 55 records remain unresolved. These are not new-candidate failures until rerun.
+
+
+
+---
+
+## Home clock contract — production defect confirmed (2026-11-12)
+
+- `_iranWallClockNow()` and `_groupJalaliDate()` currently read different clock sources (`IranClock.now()` versus `DateTime.now()`). This violates the single-source-of-truth contract and makes Home time grouping timezone/timing dependent.
+- Add an injectable `nowProvider` to the Home entry path and route both operations through the same Iran-local wall-clock value.
+- Acceptance test: injected current time 09:00, Task due time 10:00; Home grouping and due-state classification must both say upcoming/today, independent of CI system time.
+- New Build `43269800292` test-1 failed this contract (202 passed / 1 failed) on `eea746d...`. Status: INCOMPLETE / NOT ACCEPTED.
