@@ -473,3 +473,7 @@ Build و شش Regression Shard روی `492a5c4...` را تکمیل کن؛ سپس
 ### اصلاح وضعیت Staging — Candidate قبلی `46f7b28...`
 
 در بررسی بعدی، Job مربوط به Staging با شناسه `131251173638` تکمیل و PASS شد؛ گزارش قبلی QUEUED/IN_PROGRESS صرفاً وضعیت موقت زمان بررسی بود. Artifact ID برابر `13957987267`، SHA-256 فایل APK استخراج‌شده برابر `b61bc476b29c5a862c007c493729f9b7d74f394a995fb8edd09981b27869b875` و SHA-256 فایل ZIP برابر `d380b5f028799fa3f3c7fafd5e80c79d56b1c1a151036ea8073c6e7ee35258f8` است. پنج فونت Vazirmatn داخل Staging با Source تطبیق دارند و تمام Gateهای بسته‌بندی فونت PASS شده‌اند. این موفقیت فقط متعلق به SHA قبلی `46f7b28...` است؛ Candidate فعلی `492a5c4...` همچنان به Staging مستقل نیاز دارد.
+
+### رگرسیون نمایش آخرین Follow-up در Home
+
+قرارداد مرجع `docs/FOLLOWUP_FINAL_OWNER_CONTRACT_2026-08-28.md` در بند #357 نمایش Timestamp آخرین Follow-up واقعی را در کارت Home الزامی می‌کند و استفاده از `followUpDate` قدیمی به‌عنوان تاریخ پیگیری واقعی را ممنوع می‌داند. در SHA فعلی `492a5c4...` این خط نمایش در کارت Home وجود ندارد، در حالی که تست `home_last_follow_up_real_record_test.dart` آن را انتظار دارد. اصلاح محصول باید فقط از `task.lastFollowUp?.dateTime` استفاده کند؛ بدون ساختن Follow-up جدید و بدون تغییر dueDate یا Reminder. Assertion مربوط به getter قدیمی نیز باید با قرارداد canonical اصلاح شود: `followUpDate == null` و مقدار قدیمی در `legacyFollowUpMetadata.taskLevel` حفظ شود.
