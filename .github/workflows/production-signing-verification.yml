@@ -24,8 +24,18 @@ jobs:
       - name: Validate target is the selected protected default-branch commit
         env:
           TARGET_SHA: ${{ inputs.target_sha }}
+          WORKFLOW_REF: ${{ github.ref }}
+          REF_PROTECTED: ${{ github.ref_protected }}
         run: |
           set -euo pipefail
+          if [[ "$WORKFLOW_REF" != "refs/heads/main" ]]; then
+            echo "::error::Production signing may only run from the protected main branch."
+            exit 1
+          fi
+          if [[ "$REF_PROTECTED" != "true" ]]; then
+            echo "::error::Production signing requires an actively protected branch/ruleset."
+            exit 1
+          fi
           if [[ ! "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]; then
             echo "::error::target_sha must be a 40-character lowercase commit SHA"
             exit 1
