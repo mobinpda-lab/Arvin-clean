@@ -469,3 +469,7 @@ The docs PR #3388 CODEOWNERS file was expanded to cover the canonical typography
 ### ادامه اجرا
 
 Build و شش Regression Shard روی `492a5c4...` را تکمیل کن؛ سپس هفت Device Smoke، Staging APK و Gateهای مستقل D01 تا D05 را فقط روی Candidate نهایی اجرا و ثبت کن. خطاهای Regression باید مستقل به FIXED، TEST CONTRACT CORRECTED، VERIFIED NOT A PRODUCT DEFECT یا BLOCKED WITH EVIDENCE برسند. Assertion حذف یا تضعیف نشود.
+
+### اصلاح وضعیت Staging — Candidate قبلی `46f7b28...`
+
+در بررسی بعدی، Job مربوط به Staging با شناسه `131251173638` تکمیل و PASS شد؛ گزارش قبلی QUEUED/IN_PROGRESS صرفاً وضعیت موقت زمان بررسی بود. Artifact ID برابر `13957987267`، SHA-256 فایل APK استخراج‌شده برابر `b61bc476b29c5a862c007c493729f9b7d74f394a995fb8edd09981b27869b875` و SHA-256 فایل ZIP برابر `d380b5f028799fa3f3c7fafd5e80c79d56b1c1a151036ea8073c6e7ee35258f8` است. پنج فونت Vazirmatn داخل Staging با Source تطبیق دارند و تمام Gateهای بسته‌بندی فونت PASS شده‌اند. این موفقیت فقط متعلق به SHA قبلی `46f7b28...` است؛ Candidate فعلی `492a5c4...` همچنان به Staging مستقل نیاز دارد.
