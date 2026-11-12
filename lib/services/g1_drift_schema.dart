@@ -469,7 +469,13 @@ class G1DriftSchema implements QueryExecutorUser {
       const [],
     );
     final columnNames = columnRows.map((row) => row['name'] as String).toSet();
-    if (!columnNames.any(retiredColumns.contains)) return;
+    if (!columnNames.any(retiredColumns.contains)) {
+      await executor.runDelete(
+        'DELETE FROM arvin_storage_meta WHERE key = ?',
+        const <Object?>['legacy_task_columns_retirement_deferred_v19'],
+      );
+      return;
+    }
 
     final missing = canonicalColumns.where((name) => !columnNames.contains(name));
     if (missing.isNotEmpty) {
@@ -482,43 +488,70 @@ class G1DriftSchema implements QueryExecutorUser {
         .toList()
       ..sort();
     if (unexpected.isNotEmpty) {
-      throw StateError(
-        'Cannot safely rebuild tasks: unrecognized columns $unexpected.',
+      await _deferLegacyTaskColumnRetirement(
+        executor,
+        'unrecognized columns: $unexpected',
       );
+      return;
     }
 
+    final tableDefinitionRows = await executor.runSelect(
+      "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'tasks'",
+      const [],
+    );
+    final tableDefinition = tableDefinitionRows.single['sql'] as String? ?? '';
+    if (RegExp(
+      r'\\b(CHECK|COLLATE|GENERATED|UNIQUE|WITHOUT\\s+ROWID)\\b',
+      caseSensitive: false,
+    ).hasMatch(tableDefinition)) {
+      await _deferLegacyTaskColumnRetirement(
+        executor,
+        'unrecognized table constraint or collation',
+      );
+      return;
+    }
     final customIndexes = await executor.runSelect(
       "SELECT name FROM sqlite_master WHERE type = 'index' "
       "AND tbl_name = 'tasks' AND sql IS NOT NULL",
       const [],
     );
     if (customIndexes.isNotEmpty) {
-      throw StateError(
-        'Cannot safely rebuild tasks with custom indexes: $customIndexes',
+      await _deferLegacyTaskColumnRetirement(
+        executor,
+        'custom indexes: $customIndexes',
       );
+      return;
     }
     final triggers = await executor.runSelect(
       "SELECT name FROM sqlite_master WHERE type = 'trigger' AND tbl_name = 'tasks'",
       const [],
     );
     if (triggers.isNotEmpty) {
-      throw StateError('Cannot safely rebuild tasks with triggers: $triggers');
+      await _deferLegacyTaskColumnRetirement(
+        executor,
+        'triggers: $triggers',
+      );
+      return;
     }
     final outgoingForeignKeys = await executor.runSelect(
       "PRAGMA foreign_key_list('tasks')",
       const [],
     );
     if (outgoingForeignKeys.isNotEmpty) {
-      throw StateError(
-        'Cannot safely rebuild tasks with outgoing foreign keys: $outgoingForeignKeys',
+      await _deferLegacyTaskColumnRetirement(
+        executor,
+        'outgoing foreign keys: $outgoingForeignKeys',
       );
+      return;
     }
 
     const replacement = 'tasks__canonical_v19';
     if (await _hasTable(executor, replacement)) {
-      throw StateError(
-        'Cannot safely rebuild tasks: temporary table $replacement already exists.',
+      await _deferLegacyTaskColumnRetirement(
+        executor,
+        'temporary table $replacement already exists',
       );
+      return;
     }
     final projection = canonicalColumns.join(', ');
     final before = await executor.runSelect(
@@ -580,6 +613,21 @@ class G1DriftSchema implements QueryExecutorUser {
         canonicalColumns.any((name) => !finalNames.contains(name))) {
       throw StateError('Task schema retirement verification failed: $finalNames');
     }
+    await executor.runDelete(
+      'DELETE FROM arvin_storage_meta WHERE key = ?',
+      const <Object?>['legacy_task_columns_retirement_deferred_v19'],
+    );
+  }
+
+  static Future<void> _deferLegacyTaskColumnRetirement(
+    QueryExecutor executor,
+    String reason,
+  ) async {
+    await executor.runInsert(
+      '''INSERT INTO arvin_storage_meta (key, value) VALUES (?, ?)
+         ON CONFLICT(key) DO UPDATE SET value = excluded.value''',
+      <Object?>['legacy_task_columns_retirement_deferred_v19', reason],
+    );
   }
 
   /// Moves old Follow-up scheduling and people storage into canonical
