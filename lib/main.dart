@@ -292,23 +292,30 @@ class _ArvinAppState extends State<ArvinApp> {
     final darkBaseTextTheme = ThemeData.dark().textTheme.apply(
       fontFamily: selectedFontFamily,
     );
+    // One weight contract for both themes:
+    // body/minor/calendar micro text 400; card/task titles 600;
+    // page titles 700; controls and labels 500.
     final readableLightTextTheme = lightBaseTextTheme.copyWith(
-      bodyLarge: lightBaseTextTheme.bodyLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w600, height: 1.5),
-      bodyMedium: lightBaseTextTheme.bodyMedium?.copyWith(fontSize: 16, fontWeight: FontWeight.w500, height: 1.5),
-      bodySmall: lightBaseTextTheme.bodySmall?.copyWith(fontSize: 14, fontWeight: FontWeight.w500, height: 1.5),
+      bodyLarge: lightBaseTextTheme.bodyLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w400, height: 1.5),
+      bodyMedium: lightBaseTextTheme.bodyMedium?.copyWith(fontSize: 16, fontWeight: FontWeight.w400, height: 1.5),
+      bodySmall: lightBaseTextTheme.bodySmall?.copyWith(fontSize: 14, fontWeight: FontWeight.w400, height: 1.5),
       titleLarge: lightBaseTextTheme.titleLarge?.copyWith(fontSize: 22, fontWeight: FontWeight.w700, height: 1.5),
-      titleMedium: lightBaseTextTheme.titleMedium?.copyWith(fontSize: 18, fontWeight: FontWeight.w700, height: 1.5),
-      titleSmall: lightBaseTextTheme.titleSmall?.copyWith(fontSize: 16, fontWeight: FontWeight.w700, height: 1.5),
-      labelLarge: lightBaseTextTheme.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w700, height: 1.5),
+      titleMedium: lightBaseTextTheme.titleMedium?.copyWith(fontSize: 18, fontWeight: FontWeight.w600, height: 1.5),
+      titleSmall: lightBaseTextTheme.titleSmall?.copyWith(fontSize: 16, fontWeight: FontWeight.w600, height: 1.5),
+      labelLarge: lightBaseTextTheme.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w500, height: 1.5),
+      labelMedium: lightBaseTextTheme.labelMedium?.copyWith(fontWeight: FontWeight.w500, height: 1.5),
+      labelSmall: lightBaseTextTheme.labelSmall?.copyWith(fontWeight: FontWeight.w500, height: 1.5),
     );
     final readableDarkTextTheme = darkBaseTextTheme.copyWith(
-      bodyLarge: darkBaseTextTheme.bodyLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w600),
-      bodyMedium: darkBaseTextTheme.bodyMedium?.copyWith(fontSize: 16, fontWeight: FontWeight.w500),
-      bodySmall: darkBaseTextTheme.bodySmall?.copyWith(fontSize: 14, fontWeight: FontWeight.w500),
-      titleLarge: darkBaseTextTheme.titleLarge?.copyWith(fontSize: 22, fontWeight: FontWeight.w700),
-      titleMedium: darkBaseTextTheme.titleMedium?.copyWith(fontSize: 18, fontWeight: FontWeight.w700),
-      titleSmall: darkBaseTextTheme.titleSmall?.copyWith(fontSize: 16, fontWeight: FontWeight.w700),
-      labelLarge: darkBaseTextTheme.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w700),
+      bodyLarge: darkBaseTextTheme.bodyLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w400, height: 1.5),
+      bodyMedium: darkBaseTextTheme.bodyMedium?.copyWith(fontSize: 16, fontWeight: FontWeight.w400, height: 1.5),
+      bodySmall: darkBaseTextTheme.bodySmall?.copyWith(fontSize: 14, fontWeight: FontWeight.w400, height: 1.5),
+      titleLarge: darkBaseTextTheme.titleLarge?.copyWith(fontSize: 22, fontWeight: FontWeight.w700, height: 1.5),
+      titleMedium: darkBaseTextTheme.titleMedium?.copyWith(fontSize: 18, fontWeight: FontWeight.w600, height: 1.5),
+      titleSmall: darkBaseTextTheme.titleSmall?.copyWith(fontSize: 16, fontWeight: FontWeight.w600, height: 1.5),
+      labelLarge: darkBaseTextTheme.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w500, height: 1.5),
+      labelMedium: darkBaseTextTheme.labelMedium?.copyWith(fontWeight: FontWeight.w500, height: 1.5),
+      labelSmall: darkBaseTextTheme.labelSmall?.copyWith(fontWeight: FontWeight.w500, height: 1.5),
     );
     return MaterialApp(
       navigatorKey: arvinNavigatorKey,
