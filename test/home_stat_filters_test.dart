@@ -275,7 +275,7 @@ void main() {
   });
 
 
-  testWidgets('four REV5 icon filters fit 360, 390 and 412dp without overlap',
+  testWidgets('five owner-approved icon filters fit 360, 390 and 412dp without overlap',
       (tester) async {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -288,6 +288,7 @@ void main() {
       final rects = [
         for (final key in [
           'home-filter-card-time',
+          'home-filter-card-center',
           'home-filter-card-project',
           'home-filter-card-category',
           'home-filter-card-tags',
