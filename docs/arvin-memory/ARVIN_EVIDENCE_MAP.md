@@ -614,3 +614,18 @@ New code/test commits after the `a6d2d58...` exact-head successes:
 - `551ecdc0...`: deliberate malformed source failure followed by source repair and safe retry of schema installation.
 
 The successful Snapshot `43223035907` and Follow-up `43223035880` are tied to `a6d2d58...` only. They cannot validate `551ecdc...`. New tests are not accepted until their exact-head runs complete.
+
+
+## COMMAND 07-A.2.28.3 — current candidate PDF/font gates (2026-11-12)
+
+**Candidate SHA:** `75737f4fb95b4357e8b6e0511ee2443c6aa5aff4`.
+
+| Run | SHA | Status | Scope |
+|---|---|---|---|
+| Build `43224808961` | candidate | PENDING | No jobs allocated |
+| SQLite Snapshot `43224809374` | candidate | QUEUED | Full schema catalog, FK definitions and five reopen cycles |
+| Follow-up Persistence `43224808860` | candidate | QUEUED | File-backed Alarm Overlay persistence |
+| Device Smoke `43224808776` | candidate | QUEUED | Seven-scenario preparation not started |
+| Draft Review APK `43224808804` | candidate | SKIPPED | No Artifact |
+
+Added but not yet executed: Persian PDF sample with embedded-font/ToUnicode checks and Poppler render; APK audit that verifies all five Git blob IDs against upstream commit `6e553e33489a8f9dfaccc76860a2e3f3c1e66de7` and logs SHA-256/size; expanded D01 schema catalog; D04 separate-file Backup/Restore; D05 failed-migration repair and retry. These are pending implementation checks, not PASS evidence.
