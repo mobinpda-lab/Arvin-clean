@@ -290,7 +290,7 @@ class _ArvinAppState extends State<ArvinApp> {
       displayColor: ArvinColors.textPrimary,
     );
     final darkBaseTextTheme = ThemeData.dark().textTheme.apply(
-      fontFamily: ArvinTheme.fontFamily,
+      fontFamily: selectedFontFamily,
     );
     final readableLightTextTheme = lightBaseTextTheme.copyWith(
       bodyLarge: lightBaseTextTheme.bodyLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w600, height: 1.5),
@@ -425,7 +425,7 @@ class _ArvinAppState extends State<ArvinApp> {
           foregroundColor: ArvinColors.textPrimary,
           iconTheme: const IconThemeData(color: brandPrimary),
           titleTextStyle: TextStyle(
-            fontFamily: ArvinTheme.fontFamily,
+            fontFamily: selectedFontFamily,
             color: ArvinColors.textPrimary,
             fontSize: 20,
             fontWeight: FontWeight.w700,
@@ -477,7 +477,7 @@ class _ArvinAppState extends State<ArvinApp> {
         dialogTheme: const DialogThemeData(surfaceTintColor: Colors.transparent),
         bottomSheetTheme: const BottomSheetThemeData(surfaceTintColor: Colors.transparent),
         popupMenuTheme: const PopupMenuThemeData(surfaceTintColor: Colors.transparent),
-        fontFamily: AppFonts.vazirmatnFamily,
+        fontFamily: selectedFontFamily,
         textTheme: readableDarkTextTheme,
         dividerTheme: const DividerThemeData(color: ArvinColors.darkDivider, thickness: 1),
         appBarTheme: AppBarTheme(
