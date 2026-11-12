@@ -540,6 +540,7 @@ class HomePage extends StatefulWidget {
     this.enableFirstRunGuide = false,
     this.backupManager,
     this.restoreStageHook,
+    this.nowProvider,
   });
 
   final AppSettings settings;
@@ -550,6 +551,10 @@ class HomePage extends StatefulWidget {
   /// Production callers continue to use the canonical default manager.
   final ArvinBackupManager? backupManager;
   final Future<void> Function(String stage)? restoreStageHook;
+
+  /// Test seam for the single Iran wall-clock source used by Home projections.
+  /// The returned DateTime's components are interpreted as Iran local time.
+  final DateTime Function()? nowProvider;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -806,7 +811,7 @@ class _HomePageState extends State<HomePage> {
   /// Returns Iran's wall-clock components as a local DateTime so due-date
   /// comparisons remain correct even when the host OS/CI timezone is UTC.
   DateTime _iranWallClockNow() {
-    final iran = IranClock.now();
+    final iran = widget.nowProvider?.call() ?? IranClock.now();
     return DateTime(
       iran.year,
       iran.month,
@@ -1533,7 +1538,7 @@ class _HomePageState extends State<HomePage> {
   };
 
   String? _groupJalaliDate(String id, List<Task> items) {
-    final now = DateTime.now();
+    final now = _iranWallClockNow();
     final today = DateTime(now.year, now.month, now.day);
     DateTime? date = switch (id) {
       'today' => today,
