@@ -287,3 +287,16 @@ All were PENDING/QUEUED at the last inspection. Poll them before making another 
 7. CODEOWNERS exists on docs branch, but main Ruleset still does not require approval or CODEOWNER review. Security setting changes require owner authorization.
 
 Keep PRs #3384 and #3388 Draft and unmerged. No merge, release or deployment.
+
+
+## COMMAND 07-A.2.28.1 — latest exact-head SQLite checkpoint (2026-11-12)
+
+Current product SHA remains `a6d2d58d87530bfa184c93220cc329b819aca809`.
+
+New exact-head successes:
+- SQLite Snapshot Run `43223035907`, Job `131199160903`: five Close/Reopen cycles and A-D comparison passed. Artifact `13946956406`; JSON SHA-256 `0d828bfb57417da75570f39186e55c4e65fb639c50440b46f421b9520ea9c574`; archive digest `a436ec262c87fde240c4065f650d47f80c861b75d37a146840af895e52c93efc`.
+- Follow-up Persistence Run `43223035880`, Job `131199161718`: file-backed persistence and real Alarm Overlay Snooze/close/reopen/Complete/notification cancellation passed.
+
+Still poll Build Run `43223035750` (PENDING, no jobs at last poll) and Device Smoke Run `43223035920` (QUEUED). Do not dispatch duplicates while pending/queued.
+
+Do not call D01-D05 complete from Snapshot alone: verify full schema objects, actual Backup/Restore and D05 interruption/recovery. Continue PDF validation and APK audits after the current Build workflow produces jobs/results. No merge, release or deployment.

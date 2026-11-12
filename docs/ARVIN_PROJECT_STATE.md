@@ -162,3 +162,14 @@ The prior Build Run `43219196600` on SHA `b78488c0347e1a97a7a25f56c914a48761d44a
 The older SQLite Snapshot Run `43219196466` and Follow-up Persistence Run `43219196583` passed on `b78488c...`; neither result is transferred to `a6d2d58...`.
 
 Release remains NO-GO. D01-D05, all seven Device Smoke scenarios, PDF output validation, and the three APK artifacts remain unaccepted.
+
+
+## COMMAND 07-A.2.28.1 — exact-head SQLite results (2026-11-12)
+
+On candidate SHA `a6d2d58d87530bfa184c93220cc329b819aca809`:
+- SQLite Snapshot Run `43223035907`: SUCCESS. Job `131199160903`; five real Save/Close/Reopen/Verify cycles; A-D snapshot comparison; unknown Task/Follow-up future fields, two Reminder rows and their states/order, Follow-up records/order, Person relations, and foreign-key integrity preserved. `foreign_key_check=[]`; `foreign_keys_enabled=1`.
+- Snapshot JSON SHA-256: `0d828bfb57417da75570f39186e55c4e65fb639c50440b46f421b9520ea9c574`.
+- Artifact ID `13946956406`; archive digest `a436ec262c87fde240c4065f650d47f80c861b75d37a146840af895e52c93efc`.
+- Follow-up File Persistence Run `43223035880`: SUCCESS. File-backed repository persistence and Alarm Overlay Snooze → close/dispose → reopen same SQLite file → reload → Complete → notification cancellation all completed.
+
+These passes are exact to `a6d2d58...`. D01-D05 remain separately assessed: full schema/trigger/index inventory, actual Backup/Restore, and forced interruption/recovery are not proven by the Snapshot workflow alone. Build Run `43223035750` remains PENDING with no jobs at last poll; Device Smoke Run `43223035920` remains QUEUED.

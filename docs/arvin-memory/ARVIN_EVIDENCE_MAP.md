@@ -582,3 +582,16 @@ Release remains NO-GO. No merge, release or deployment is authorized.
 - Bundled OFL license blob: `be66b3824e9772e75141e631695c5256f105fb57`, identical to upstream.
 
 The blob identity comparison is byte-for-byte provenance, not APK/PDF acceptance. Do not promote any historical PASS to the current SHA.
+
+
+## COMMAND 07-A.2.28.1 — exact-head SQLite success addendum (2026-11-12)
+
+| Run / Job | Exact SHA | Result | Evidence |
+|---|---|---|---|
+| SQLite Snapshot `43223035907` / `131199160903` | `a6d2d58d87530bfa184c93220cc329b819aca809` | SUCCESS | Five Save/Close/Reopen/Verify cycles; A-D comparison; unknown future fields, multiple Reminder states/order, Follow-up order and Person links retained; FK check empty and FK enforcement enabled |
+| SQLite Snapshot Artifact `13946956406` | same | AVAILABLE | JSON SHA-256 `0d828bfb57417da75570f39186e55c4e65fb639c50440b46f421b9520ea9c574`; ZIP digest `a436ec262c87fde240c4065f650d47f80c861b75d37a146840af895e52c93efc` |
+| Follow-up Persistence `43223035880` / `131199161718` | same | SUCCESS | File-backed persistence; actual Alarm Overlay Snooze, first connection close, second connection reopen, reload, Complete and notification cancellation |
+| Build `43223035750` | same | PENDING | No jobs allocated at last poll |
+| Device Smoke `43223035920` | same | QUEUED | Seven scenario jobs not yet executed |
+
+D01-D05 are not blanket-PASS. Snapshot evidence contributes to D02/D03 and selected D01/D04 observations, but does not prove complete schema objects, Backup/Restore or forced interruption/recovery. Historical run results on `b78488c...` remain historical.
