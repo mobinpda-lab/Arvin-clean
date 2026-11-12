@@ -27,7 +27,7 @@ abstract final class ArvinTheme {
       Theme.of(context).brightness == Brightness.dark ? primaryGlow : brandGlow;
   static const BorderRadius cardBorderRadius =
       BorderRadius.all(Radius.circular(16.0));
-  static const String fontFamily = 'VazirHarf';
+  static const String fontFamily = 'Vazirmatn';
   static const BoxShadow shadowStyle = BoxShadow(
     color: primaryGlow,
     blurRadius: 10,
