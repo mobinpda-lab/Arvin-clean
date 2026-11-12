@@ -764,13 +764,36 @@ void main() {
 
   test('malformed legacy task_people payload aborts migration without retiring source rows', () async {
     await database.ensureOpen(G1DriftSchema());
-    // The canonical task_persons table has a real FK to tasks(id). Keep this
-    // malformed-payload fixture relationally valid so the test reaches JSON
-    // validation rather than failing later with an unrelated orphan FK.
+    // task_people is migrated into task_persons, whose task_id is a real
+    // FK to tasks(id). Build a valid parent table/row before adding the
+    // malformed relation so the test reaches JSON decoding, not a missing
+    // table or orphan-FK failure.
+    await database.runCustom('''
+      CREATE TABLE tasks (
+        id TEXT NOT NULL PRIMARY KEY,
+        storage_ordinal INTEGER NOT NULL DEFAULT 0,
+        title TEXT NOT NULL,
+        description TEXT NOT NULL,
+        created_at TEXT NULL,
+        updated_at TEXT NULL,
+        due_date TEXT NULL,
+        category TEXT NULL,
+        notebook_kind TEXT NULL,
+        priority TEXT NOT NULL,
+        archived INTEGER NOT NULL,
+        trashed INTEGER NOT NULL,
+        completed INTEGER NOT NULL,
+        completed_at TEXT NULL,
+        is_favorite INTEGER NOT NULL DEFAULT 0,
+        recurrence_json TEXT NULL,
+        legacy_payload_json TEXT NULL
+      )
+    ''');
     await database.runInsert(
-      '''INSERT INTO tasks (id, title, description, priority, archived, trashed, completed)
-         VALUES (?, ?, ?, ?, ?, ?, ?)''',
-      const <Object?>['legacy-task', 'کار قدیمی', '', 'P4', 0, 0, 0],
+      '''INSERT INTO tasks
+         (id, storage_ordinal, title, description, priority, archived, trashed, completed)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+      const <Object?>['legacy-task', 0, 'کار قدیمی', '', 'P4', 0, 0, 0],
     );
     await database.runCustom(
       '''CREATE TABLE task_people (
