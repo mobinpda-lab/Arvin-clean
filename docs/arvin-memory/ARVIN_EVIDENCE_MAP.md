@@ -556,3 +556,29 @@ Product candidate SHA: `b78488c0347e1a97a7a25f56c914a48761d44a25` on `feature/co
 - Earlier SHA results are historical and must not be promoted to this candidate SHA.
 
 Release remains NO-GO. No merge, release or deployment is authorized.
+
+
+## COMMAND 07-A.2.28 — exact-SHA evidence addendum (2026-11-12)
+
+**Current candidate SHA:** `a6d2d58d87530bfa184c93220cc329b819aca809` on `feature/command-07-a-sqlite-contract-remediation`.
+
+| Run / Ref | SHA | Observed result | Evidence boundary |
+|---|---|---|---|
+| Build `43223035750` | `a6d2d58d87530bfa184c93220cc329b819aca809` | PENDING | No jobs allocated at last poll |
+| Device Smoke `43223035920` | same | QUEUED | Seven scenario jobs not yet executed |
+| SQLite Snapshot `43223035907` | same | QUEUED | No new snapshot result yet |
+| Follow-up Persistence `43223035880` | same | QUEUED | No new file-backed result yet |
+| Build `43219196600` | `b78488c0347e1a97a7a25f56c914a48761d44a25` | FAILURE | Analyze and six shards failed; Debug/Release font purge failed; Visual passed. Historical only |
+| SQLite Snapshot `43219196466` | `b78488c...` | SUCCESS | Five real Close/Reopen cycles and A-D snapshot comparison. Historical only |
+| Follow-up Persistence `43219196583` | `b78488c...` | SUCCESS | File-backed Follow-up and Alarm Overlay close/reopen scenario. Historical only |
+
+### Upstream font provenance
+- Upstream: `rastikerdar/vazirmatn`, commit `6e553e33489a8f9dfaccc76860a2e3f3c1e66de7`.
+- Light: `2dfd5c35ed4c26f7ce9f3ba753f11d9a38356c42`, 122,920 bytes.
+- Regular: `64e4a8189557a17b63fd7a77794207483e592972`, 122,752 bytes.
+- Medium: `1e08dd54d90a4879451ef0f80fe0d8068fb7462f`, 122,656 bytes.
+- SemiBold: `6b3842aca6055c8258404b1758133b81c961a13f`, 122,920 bytes.
+- Bold: `efa9b095da01d299310bdcae293e24e657fe6da9`, 123,036 bytes.
+- Bundled OFL license blob: `be66b3824e9772e75141e631695c5256f105fb57`, identical to upstream.
+
+The blob identity comparison is byte-for-byte provenance, not APK/PDF acceptance. Do not promote any historical PASS to the current SHA.

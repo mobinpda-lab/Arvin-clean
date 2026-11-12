@@ -427,3 +427,14 @@ Live audit found main SHA `45e4202b03a434459e4c021a04efa7e8396359db` currently r
 
 ## Binding typography and release controls — COMMAND 07-A.2.26
 The canonical product typography contract is `docs/architecture/ARVIN_TYPOGRAPHY_CONTRACT.md`: Vazirmatn only as official/default; System Default remains optional. Product acceptance candidate SHA is `b78488c0347e1a97a7a25f56c914a48761d44a25`; acceptance remains in progress and release is NO-GO. Do not merge, release or deploy without Mobin's explicit approval.
+
+
+## COMMAND 07-A.2.28 — continuous execution checkpoint (2026-11-12)
+
+The active product execution branch is `feature/command-07-a-sqlite-contract-remediation`, PR #3384, current observed HEAD `a6d2d58d87530bfa184c93220cc329b819aca809`. PR #3384 remains OPEN / DRAFT / UNMERGED. Documentation remains in PR #3388, also OPEN / DRAFT / UNMERGED.
+
+The approved product typography decision remains binding: Vazirmatn is the only official/default family; System Default is an optional user preference; VazirHarf is not a runtime font. COMMAND 07-A.2.28 retired the remaining explicit VazirHarf font overrides from Task Details, Home filter UI and Quick Capture, allowing the centralized root Theme to apply and preserving System Default.
+
+The five checked-in Vazirmatn TTF files were compared with upstream `rastikerdar/vazirmatn` at commit `6e553e33489a8f9dfaccc76860a2e3f3c1e66de7`; all five Git blob IDs and sizes match exactly. The bundled OFL license blob also matches upstream. Details are in the typography contract §18.
+
+This checkpoint does not accept the product. Exact-head Build, six regression shards, APK audits, Device Smoke, PDF rendering, and full SQLite D01-D05 acceptance remain open until actual results are inspected. No merge, release or deployment is authorized.

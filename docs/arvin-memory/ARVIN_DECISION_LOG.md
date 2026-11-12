@@ -257,3 +257,14 @@ Product candidate SHA: `b78488c0347e1a97a7a25f56c914a48761d44a25` on `feature/co
 - Earlier SHA results are historical and must not be promoted to this candidate SHA.
 
 Release remains NO-GO. No merge, release or deployment is authorized.
+
+
+## 2026-11-12 — Vazirmatn upstream binary provenance pinned (COMMAND 07-A.2.28)
+
+**Decision record:** Keep the existing product decision unchanged: Vazirmatn is the sole official/default Arvin font; System Default remains an optional user preference; VazirHarf is not a runtime font.
+
+**Evidence:** The five TTF blobs in PR #3384 candidate tree `a6d2d58d87530bfa184c93220cc329b819aca809` match the corresponding blobs in upstream `rastikerdar/vazirmatn` commit `6e553e33489a8f9dfaccc76860a2e3f3c1e66de7` byte-for-byte by Git blob SHA and file size. The bundled OFL.txt/LICENSE.txt blob also matches. All five TTF OpenType name tables report version 33.003.
+
+**Implementation correction:** Explicit VazirHarf runtime font overrides were removed from Task Details, Home filter UI and Quick Capture so those surfaces inherit the centralized Theme and preserve the optional System Default choice. Stale test APIs/finders were corrected without removing product assertions.
+
+**Acceptance boundary:** This provenance and source cleanup do not establish APK packaging, PDF shaping/rendering, device acceptance, or complete SQLite D01-D05. The exact candidate SHA remains under validation; no acceptance or release is declared.

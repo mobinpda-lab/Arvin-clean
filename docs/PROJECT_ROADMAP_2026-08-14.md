@@ -189,3 +189,21 @@ Product candidate SHA: `b78488c0347e1a97a7a25f56c914a48761d44a25` on `feature/co
 - Earlier SHA results are historical and must not be promoted to this candidate SHA.
 
 Release remains NO-GO. No merge, release or deployment is authorized.
+
+
+## COMMAND 07-A.2.28 — active P0 execution queue (2026-11-12)
+
+**Current product candidate:** `a6d2d58d87530bfa184c93220cc329b819aca809` (PR #3384, OPEN / DRAFT).
+
+1. Poll Build Run `43223035750` and inspect Analyze, every Regression shard, Visual and all three APK jobs individually. Do not dispatch a duplicate while the exact-head run is pending.
+2. Poll Device Smoke Run `43223035920`; collect results and screenshots for all seven scenarios.
+3. Poll SQLite Snapshot Run `43223035907` and Follow-up Persistence Run `43223035880`. Use only results whose checked-out SHA equals the candidate SHA.
+4. Investigate every remaining UI failure from the previous Build. Preserve assertions and change tests only where the actual approved UI contract or stable semantic/key finder proves the old expectation stale.
+5. Complete D01 structural audit (including triggers, indexes, PK/FK and constraints), D02 four-state semantics, D03 unknown metadata and person relations, D04 file-based Backup/Restore, and D05 interruption/recovery. Snapshot success alone is insufficient.
+6. Produce deterministic Persian PDF evidence and verify embedded font resources, text mapping/shaping, RTL and rendered output. The current PDF signature/size unit test is not acceptance evidence.
+7. Verify actual Debug, Staging and Release APK archives, five-font packaging, file sizes, SHA-256 and exact source SHA.
+8. Keep CODEOWNER Ruleset enforcement as a separately owner-controlled repository-security action; continue all independent work.
+
+The five Vazirmatn font assets now have byte-for-byte upstream Git blob provenance pinned in typography contract §18. This does not replace APK or PDF validation.
+
+Do not transfer PASS results across SHAs. Merge, Release and Deployment remain unauthorized.

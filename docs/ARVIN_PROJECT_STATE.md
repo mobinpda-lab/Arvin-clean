@@ -134,3 +134,31 @@ Product candidate SHA: `b78488c0347e1a97a7a25f56c914a48761d44a25` on `feature/co
 - Earlier SHA results are historical and must not be promoted to this candidate SHA.
 
 Release remains NO-GO. No merge, release or deployment is authorized.
+
+
+## COMMAND 07-A.2.28 — continuous execution checkpoint (2026-11-12)
+
+### Product candidate and PRs
+- Main HEAD: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- PR #3384: OPEN / DRAFT / UNMERGED; base `fix/wave3-cycle3-calendar-product-repair` at `8c4c23f0c2a4f9b2374a2092c931782c4455fd41`; execution branch `feature/command-07-a-sqlite-contract-remediation`; current HEAD `a6d2d58d87530bfa184c93220cc329b819aca809`; 94 commits / 64 changed files at this refresh.
+- PR #3388: OPEN / DRAFT / UNMERGED; branch `docs/wave-0-canonical-governance`; latest docs commit before this state update `7d438fb9afa8d6038a8244f1d1dc69673cc6cf6c`; base main `45e4202b03a434459e4c021a04efa7e8396359db`.
+
+### Changes committed on PR #3384
+- Removed explicit `fontFamily: 'VazirHarf'` overrides from `lib/task_detail_page.dart`, `lib/home/home_filter_ui.dart` and `lib/quick_capture_dialog.dart`; these widgets now inherit the centralized Theme and do not override the System Default preference.
+- Updated the Home visual integration test to assert the current Vazirmatn family contract rather than retired `familyForText` / `vazirHarfFamily` APIs.
+- Corrected two Checklist test helper calls to provide the required scroll delta.
+- Updated stale test finders to use semantic labels or stable widget keys for icon-only RollBox controls. Corrected the Home filter count assertion from five to four visible Home filter controls, matching the current Home layout contract.
+- Corrected the typography contract test to inspect the actual Theme implementation rather than an escaped-newline source string that never matched.
+
+### Exact-head workflows at observation time
+All listed runs target exactly `a6d2d58d87530bfa184c93220cc329b819aca809`; they were queued/pending when inspected:
+- Build / Analyze / six shards / Visual / Debug-Staging-Release: Run `43223035750` — PENDING, no jobs allocated at last poll.
+- Device Smoke: Run `43223035920` — QUEUED; preparation job queued, seven scenario jobs not yet allocated.
+- SQLite A-D five-cycle Snapshot: Run `43223035907` — QUEUED.
+- Follow-up file-backed persistence: Run `43223035880` — QUEUED.
+
+The prior Build Run `43219196600` on SHA `b78488c0347e1a97a7a25f56c914a48761d44a25` failed: six regression shards and Analyze reported failures; Debug and Release APK jobs failed because the runtime VazirHarf purge check found explicit overrides; Visual passed. Those results are historical to the old SHA and are not current-head outcomes.
+
+The older SQLite Snapshot Run `43219196466` and Follow-up Persistence Run `43219196583` passed on `b78488c...`; neither result is transferred to `a6d2d58...`.
+
+Release remains NO-GO. D01-D05, all seven Device Smoke scenarios, PDF output validation, and the three APK artifacts remain unaccepted.

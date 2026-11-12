@@ -253,3 +253,37 @@ Product candidate SHA: `b78488c0347e1a97a7a25f56c914a48761d44a25` on `feature/co
 - Earlier SHA results are historical and must not be promoted to this candidate SHA.
 
 Release remains NO-GO. No merge, release or deployment is authorized.
+
+
+## COMMAND 07-A.2.28 — current handoff (2026-11-12)
+
+### Product candidate
+- Repo: `mobinpda-lab/Arvin-clean`
+- PR #3384: OPEN / DRAFT / UNMERGED; branch `feature/command-07-a-sqlite-contract-remediation`; exact HEAD `a6d2d58d87530bfa184c93220cc329b819aca809`; base SHA `8c4c23f0c2a4f9b2374a2092c931782c4455fd41`.
+- Main HEAD: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- PR #3388: OPEN / DRAFT / UNMERGED; branch `docs/wave-0-canonical-governance`.
+
+### Recent authorized fixes
+- Removed explicit VazirHarf font overrides from Task Details, Home filter UI and Quick Capture. Theme inheritance now controls those surfaces.
+- Corrected stale font test APIs and Checklist helper arguments.
+- Updated icon-only RollBox tests to use semantic labels and stable keys; corrected Home's visible filter count to four.
+- Pinned upstream Vazirmatn source commit and exact Git blob identities in typography contract §18.
+
+### Exact-head runs to poll
+- Build: `43223035750`
+- Device Smoke: `43223035920`
+- SQLite Snapshot: `43223035907`
+- Follow-up Persistence: `43223035880`
+
+All were PENDING/QUEUED at the last inspection. Poll them before making another product-code commit. If any failure is source-related, fix it without weakening assertions, then establish a new candidate SHA and rerun affected gates.
+
+### Remaining acceptance work
+1. Inspect all six Regression shards and Analyze; resolve failures by evidence.
+2. Inspect Debug, Staging and Release APKs and verify all five packaged fonts and SHA-256.
+3. Complete seven Android Device Smoke scenarios and collect logs/screenshots.
+4. Complete SQLite D01-D05; existing five-cycle Snapshot is not sufficient for all gates.
+5. Validate a real generated PDF for embedded fonts, Persian shaping, ZWNJ, mixed scripts, RTL and visual rendering.
+6. Verify persisted font preference across restart and overlay compatibility.
+7. CODEOWNERS exists on docs branch, but main Ruleset still does not require approval or CODEOWNER review. Security setting changes require owner authorization.
+
+Keep PRs #3384 and #3388 Draft and unmerged. No merge, release or deployment.
