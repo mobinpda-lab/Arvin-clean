@@ -255,3 +255,87 @@ The PDF artifact from Run 43224808961 (prior candidate 75737f4...) was downloade
 The APK font audit now verifies the five expected entries exist in each APK and compares SHA-256 of each extracted APK font entry against its source asset. The audit also checks the pinned upstream Git blob IDs and OFL license. This audit is not yet PASS until Debug, Staging and Release jobs complete on one exact SHA and publish verifiable artifacts.
 
 **Current acceptance state:** implementation and audit coverage expanded; exact-head CI, APK packaging, all seven device smoke jobs, D01-D05 complete acceptance, and OS-level process restart remain pending. This section records candidate implementation progress and does not alter the binding product decision in §1–2.
+
+
+## 20. Exact candidate evidence update — COMMAND 07-A.2.28 execution
+
+This section is append-only evidence and supersedes the pending statements in §19 where the same candidate SHA is concerned. It does not claim final acceptance.
+
+### Candidate SHA and Build Run
+
+- **Product candidate SHA:** `0aa1645999e38e32506bf3d3c15f900865428f90`
+- **Build workflow:** `43232240534`
+- **Run conclusion:** FAILURE (Analyze and Regression Shards 0–5 failed)
+- **Visual job:** PASS
+- **Debug, Staging and Release APK build jobs:** PASS
+- **Font Packaging Audit:** PASS for all three APK variants.
+- **APK asset integrity:** all five embedded Vazirmatn font entries were found and their SHA-256 values matched their corresponding source files.
+- **Runtime legacy-font scan:** PASS; no VazirHarf runtime references remained in `lib/` or `pubspec.yaml`.
+- **OFL 1.1 and family declaration checks:** PASS.
+
+The Build run is not a full product acceptance because Analyze and all six regression shards failed. The APKs below are verified candidate artifacts for this SHA only; they must not be represented as artifacts of a later SHA.
+
+### APK artifact evidence — candidate SHA `0aa1645...`
+
+| Variant | Artifact ID | Artifact ZIP digest (SHA-256) | APK filename | APK bytes | APK SHA-256 |
+|---|---:|---|---|---:|---|
+| Debug | `13952591224` | `08068a724956971a7fb83e3750bd0e0645b519ec87c1cd93ddd3c80daa1565d9` | `app-debug.apk` | 177,130,600 | `382d975a2a12a24913b7813a652313367312266a79f9afe542ad02048830f08d` |
+| Staging | `13952377083` | `169f97436cc8c0cdabb179bd13cf28af269a66295eb2b4026f0cf9c929a6ae17` | `app-staging.apk` | 80,373,625 | `9716c353cc5a7c1f070c4f46f27c1b73927897ced50f661649d8649a06ac7820` |
+| Release | `13952466733` | `c4f3ab2766fc650804a6c1cc9e05ef3945bf446890968668ce8f3e8f33fa1f0b` | `app-release.apk` | 78,673,590 | `eb3b681fa1e7030eeb6a09ef74c1aacb7527f1170cdafa76f1d94e289a2d16c3` |
+
+The APK archives were downloaded and inspected. Each APK contains:
+- `Vazirmatn-Light.ttf`
+- `Vazirmatn-Regular.ttf`
+- `Vazirmatn-Medium.ttf`
+- `Vazirmatn-SemiBold.ttf`
+- `Vazirmatn-Bold.ttf`
+
+All five embedded asset hashes matched source hashes in the Build job log. The Staging audit-candidate artifact is a duplicate verification copy and is not a separate APK variant.
+
+### PDF artifact evidence — candidate SHA `0aa1645...`
+
+- **Workflow Run:** `43232240534`
+- **Artifact ID:** `13951483274`
+- **Artifact ZIP SHA-256:** `5c2dc77f9e83d137a63d47c1aca83ac99b67a5a58761240e697e9398a43e1eb1`
+- **PDF filename:** `vazirmatn-persian-acceptance.pdf`
+- **PDF size:** 18,334 bytes
+- **PDF SHA-256:** `18e9a9dd0471cca5d3ea60149d2ad973772938f11641babf04e45ccc34f4d24a`
+
+Independent artifact inspection established:
+- Poppler `pdffonts` identifies `Vazirmatn-Bold` and `Vazirmatn-Regular` as embedded CID TrueType fonts with Unicode maps.
+- `pdftotext -layout` extraction contains Persian connected text, ZWNJ, Persian digits, Latin digits, Jalali date, mixed Persian/English, and long text.
+- The generated PDF opens and renders to a PNG page.
+- The rendered page was visually inspected; Persian glyphs are connected, RTL alignment is legible, and mixed-direction text is readable.
+
+**PDF result:** PASS for the deterministic sample on candidate SHA `0aa1645...`. This does not replace full report-template coverage or device-level PDF acceptance.
+
+### Regression and Analyze defects
+
+The same candidate Build failed Analyze because `integration_test/alarm_overlay_smoke_test.dart` attempted to read a nonexistent `ThemeData.fontFamily` getter. The test has been corrected to inspect the effective family through `ThemeData.textTheme.bodyLarge.fontFamily`, preserving the assertions for System Default and Vazirmatn.
+
+The registry contract test also contained stale string-literal expectations despite the implementation correctly using the centralized `AppFonts.vazirmatnFamily` constant. Its assertions now target the centralized token rather than a duplicated literal.
+
+These two test-only corrections were committed to the execution branch:
+- `0babdf3a32ee05a1aa47e7a0932190a15f6e8349`
+- `46f7b28e6631310b4617da5e717565470f7ecdbe`
+
+### Current exact-head rerun
+
+**Current PR #3384 head:** `46f7b28e6631310b4617da5e717565470f7ecdbe`
+
+New exact-head workflows were created automatically and are queued/in progress:
+- Build: `43238200093`
+- Device Smoke: `43238200496`
+- SQLite Snapshot A-D: `43238200490`
+- Follow-up File Persistence: `43238200586`
+
+No result from candidate SHA `0aa1645...` transfers to `46f7b28...`. The new exact-head jobs must finish before their gates can be assessed.
+
+### Remaining acceptance
+
+- Analyze and Regression Shards 0–5 on `46f7b28...`: PENDING.
+- Seven Device Smoke scenarios on `46f7b28...`: PENDING.
+- D01–D05 full acceptance: PARTIAL; snapshot and file-backed persistence workflows alone do not prove all migration, semantic, backup/restore, atomicity and recovery requirements.
+- Font preference after OS-level process termination/restart: PENDING.
+- CODEOWNERS file exists on the documentation PR branch, but effective GitHub Ruleset enforcement and bypass restrictions are not verified by this evidence.
+- PR #3384 and PR #3388 remain Draft and unmerged.
