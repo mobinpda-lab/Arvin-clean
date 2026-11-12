@@ -183,11 +183,11 @@ The following binary files were fetched from the exact PR #3384 implementation b
 
 | Weight | File | Bytes | Git blob SHA | SHA-256 |
 |---:|---|---:|---|---|
-| 300 Light | `Vazirmatn-Light.ttf` | 122,920 | `2dfd5c35ed4c26f7ce9f3ba753f11d9a38356c42` | `c33eb953aaa07b69cb5b97c9926f54e5f57fb95207b64eb2f2639f6289075366` |
-| 400 Regular | `Vazirmatn-Regular.ttf` | 122,752 | `64e4a8189557a17b63fd7a77794207483e592972` | `447d349f593b58dedb25f17afe0ec25c3cfc428aaf031e8a4e6c101b7b4f78a9` |
-| 500 Medium | `Vazirmatn-Medium.ttf` | 122,656 | `1e08dd54d90a4879451ef0f80fe0d8068fb7462f` | `fcb0a3b08c6fe26e0316e7bbb32b907e1336efa5db05ee735cca7109bf28cbc6` |
-| 600 SemiBold | `Vazirmatn-SemiBold.ttf` | 122,920 | `6b3842aca6055c8258404b1758133b81c961a13f` | `f50b7587fa62356c09bdbfe24fb70e66eea882502c92efe243df4d5b6ea8c61a` |
-| 700 Bold | `Vazirmatn-Bold.ttf` | 123,036 | `efa9b095da01d299310bdcae293e24e657fe6da9` | `dad307bfe9baf4d92326183f743ecfc091576224cb8f6a4a0623bfc48eb24c13` |
+| 300 Light | `Vazirmatn-Light.ttf` | 122,920 | `2dfd5c35ed4c26f7ce9f3ba753f11d9a38356c42` | `9ab4f094b861b7d4e318f01953b9771ddeb189d7c79bbb3989d5a95a4b07ff60` |
+| 400 Regular | `Vazirmatn-Regular.ttf` | 122,752 | `64e4a8189557a17b63fd7a77794207483e592972` | `b69fd4c680b8f3f225feabcc655a2c585d97627b8f5f5c0f9985e894069f3a56` |
+| 500 Medium | `Vazirmatn-Medium.ttf` | 122,656 | `1e08dd54d90a4879451ef0f80fe0d8068fb7462f` | `b986623e4ddef10755e04be39f8ea7bcb1dc08bfe8dd0aa6af395736f256ad4a` |
+| 600 SemiBold | `Vazirmatn-SemiBold.ttf` | 122,920 | `6b3842aca6055c8258404b1758133b81c961a13f` | `3f239d8364c14ee32c46b6839fa197c28958358b82a9673d2c6acc8506d78bc5` |
+| 700 Bold | `Vazirmatn-Bold.ttf` | 123,036 | `efa9b095da01d299310bdcae293e24e657fe6da9` | `f635fdbea28f265de395ba83b4b1570dcf2f58d13c65469e61903b1c2d2ae723` |
 
 The implementation branch retains a separate `assets/fonts/ui/vazirharf/` directory as historical material. Its files are not registered by the current `pubspec.yaml` family declaration. Explicit runtime font-family overrides were removed from Task Details, Home filter UI and Quick Capture on candidate SHA `a6d2d58d87530bfa184c93220cc329b819aca809`; exact-head Build and packaged-APK exclusion still require successful workflow evidence.
 
@@ -226,7 +226,7 @@ All five binaries report OpenType version metadata `33.003`, consistent with the
 
 **Evidence scope:** the comparison was made against the unmerged PR #3384 branch tree at SHA `af2e8a697ed88be8ed924cf0a94ad30023197dec`, and upstream tree commit `6e553e33489a8f9dfaccc76860a2e3f3c1e66de7`. It does not claim that the assets are present on `main`, packaged in a verified APK, or accepted for release.
 
-The SHA-256 values previously recorded in §16 remain historical checksum records; this command's independent provenance proof is the exact Git blob identity comparison above. Recalculation from downloaded binary bytes remains a separate integrity step if the SHA-256 records are to be re-certified.
+The SHA-256 values in §16 were independently recalculated from the source files and rechecked against the embedded APK bytes on candidate 46f7b28e6631310b4617da5e717565470f7ecdbe. The corrected values are authoritative; the earlier incorrect values are retained in the COMMAND 07-A.2.30 correction note for audit traceability.
 
 
 ## 19. Candidate implementation update — COMMAND 07-A.2.28
