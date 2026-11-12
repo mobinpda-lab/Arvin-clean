@@ -443,3 +443,13 @@ The five-loop priority order in REV9 §43 is a product proposal, not an executio
 | Repository consolidation | IN PROGRESS | Non-destructive inventory, dependency/PR overlap analysis and one canonical audit report. |
 
 Do not promote a prior-candidate PASS to the new candidate. No release gate can be marked ACCEPTED from a workflow name or queued run.
+
+
+---
+
+## Evidence refresh — COMMAND 07-A.2.33 (2026-11-12)
+
+- SQLite Snapshot run `43269800257`: SUCCESS on candidate `eea746dbf2a58cd4f04c66a149ae3441264da5b2`, artifact `13966864535`, SHA-256 `74a1b84cd67b932177da14982fe82256df68c79b6a0ae5a4451d970f42bc6f72`. This validates the workflow's A–D snapshot path and five reopen cycles only; D04 and D05 remain open.
+- Follow-up Persistence `43269800526` and Orchestrator `43269800263`: SUCCESS on the same candidate.
+- Build `43269800292`: IN PROGRESS / QUEUED by job at latest poll. Device Smoke `43269800280`: QUEUED. Do not mark either gate accepted until every job completes and actual checkout SHA matches.
+- Failure triage on the previous candidate: one harness defect fixed; three more harness defects and two test-contract defects identified for correction; 55 records remain unresolved. These are not new-candidate failures until rerun.
