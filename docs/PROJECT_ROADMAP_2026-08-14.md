@@ -144,3 +144,152 @@
 
 ## Definition of Done
 هر قابلیت زمانی Done است که domain/application، persistence، UI واقعی، RTL/شمسی/فونت، regression tests، CI سبز و APK قابل استفاده داشته باشد و مستندات/AI handoff آن به‌روز باشد.
+
+
+## WAVE 0 — CURRENT PRIORITY OVERRIDE (2026-11-11)
+
+This live addendum supersedes the dated status snapshot above where it conflicts. The earlier roadmap remains historical context, not proof of current completion.
+
+### Gate 0 — Canonical governance and continuity
+- Preserve the existing v49.1 operating package and documentation layout.
+- Keep repository state, exact SHA, PRs, Actions results, SQLite blockers and next action discoverable without conversation history.
+- Record only verified GitHub evidence. Do not inflate completion from unmerged code or green non-product orchestration runs.
+- WAVE 0 completion requires a Draft documentation PR containing the six functional document roles mapped in the canonical operating package.
+
+### P0 — SQLite data integrity (must remain first product gate)
+1. D01: define the exact legacy/new schema contract for `follow_up_enabled`; identify all dependencies; prove safe rebuild/upgrade, data retention, reopen and idempotency.
+2. D02: define and test the four distinct states Missing, Explicit NULL, FALSE and TRUE. Do not convert absence into NULL or add defaults without source evidence.
+3. D03: compare source envelope, SQL rows and decoded object across close/reopen; locate the exact unknown Follow-up metadata loss point; preserve Follow-up IDs/order/timestamps/description/status and Person relations.
+4. Complete Reminder migration acceptance independently of the Follow-up persistence workflow.
+5. Prove five complete save/close/reopen/compare rounds on one resulting SHA.
+6. Prove Backup/Restore, transaction rollback and Migration Recovery without weakening existing tests.
+
+### Dependencies and acceptance
+- Root-cause diagnosis precedes each repair; no speculative patch after a failed test.
+- No production/schema/serializer/TaskStore changes until the exact root cause and safe data-preserving approach are established.
+- Every implementation commit must have exact-SHA tests and relevant build/device evidence. Pending, skipped, stale or different-SHA runs do not pass.
+- Only after all SQLite gates pass may the next dependent product lane be proposed. Release remains NO-GO until separate release/device/owner gates are met.
+- WAVE 0 itself is documentation-only; it does not dispatch CI or validate production behavior.
+
+
+## COMMAND 07-A.2.24 typography roadmap gate — 2026-11-12
+
+Add a blocking typography acceptance lane alongside SQLite P0: restore/retain Vazirmatn as the sole official default, provide five locally bundled weights and license with verified SHA-256, centralize Theme/weight mapping, implement accessibility-preserving global rendering policy, exactly two persisted choices (Vazirmatn and System Default), inspect actual APK contents, inspect actual PDF font embedding, and complete Persian/RTL device validation. Do not claim acceptance from source registration or widget tests alone. Canonical specification: `docs/architecture/ARVIN_TYPOGRAPHY_CONTRACT.md`.
+
+
+## COMMAND 07-A.2.26 — exact-head checkpoint (2026-11-12)
+
+Product candidate SHA: `b78488c0347e1a97a7a25f56c914a48761d44a25` on `feature/command-07-a-sqlite-contract-remediation`; PR #3384 OPEN / DRAFT / UNMERGED (87 commits, 62 files at last observed refresh). This supersedes 318c9d for current product validation only.
+
+- Commit `b78488c0347e1a97a7a25f56c914a48761d44a25` corrected the PDF test's stale VazirHarf description/sample to Vazirmatn; assertions were preserved.
+- All five actual TTF OpenType name tables report Version 33.003. Source repository: `rastikerdar/vazirmatn`; bundled license: SIL OFL 1.1. Exact upstream commit/tag and source-to-binary reproducibility remain pending. SHA-256 values remain in typography contract §16.
+- Follow-up Persistence run `43219196583` is SUCCESS on this exact SHA. Both file-backed Repository Persistence and Alarm Overlay close/reopen diagnostic passed. The latter exercised Snooze, disposing the first overlay/SQLite connection, reopening the same file, loading the overlay again, tapping Complete and observing notification cancellation.
+- Build `43219196600`: PENDING, no jobs allocated at last poll. SQLite A-D five-cycle run `43219196466`: QUEUED. Device Smoke run `43219196537`: QUEUED. Production Loop `43219196556`: SUCCESS. Orchestrator `43219196378`: SUCCESS.
+- Existing schema tests cover Missing / explicit NULL / FALSE / TRUE metadata, retired-column absence, FK constraints and malformed-source migration preservation. The exact-head SQLite workflow is not yet complete; D01-D05 are not accepted as a whole. Snapshot A-D does not independently prove all triggers/indexes, backup/restore or forced interruption/recovery.
+- Earlier SHA results are historical and must not be promoted to this candidate SHA.
+
+Release remains NO-GO. No merge, release or deployment is authorized.
+
+
+## COMMAND 07-A.2.28 — active P0 execution queue (2026-11-12)
+
+**Current product candidate:** `a6d2d58d87530bfa184c93220cc329b819aca809` (PR #3384, OPEN / DRAFT).
+
+1. Poll Build Run `43223035750` and inspect Analyze, every Regression shard, Visual and all three APK jobs individually. Do not dispatch a duplicate while the exact-head run is pending.
+2. Poll Device Smoke Run `43223035920`; collect results and screenshots for all seven scenarios.
+3. Poll SQLite Snapshot Run `43223035907` and Follow-up Persistence Run `43223035880`. Use only results whose checked-out SHA equals the candidate SHA.
+4. Investigate every remaining UI failure from the previous Build. Preserve assertions and change tests only where the actual approved UI contract or stable semantic/key finder proves the old expectation stale.
+5. Complete D01 structural audit (including triggers, indexes, PK/FK and constraints), D02 four-state semantics, D03 unknown metadata and person relations, D04 file-based Backup/Restore, and D05 interruption/recovery. Snapshot success alone is insufficient.
+6. Produce deterministic Persian PDF evidence and verify embedded font resources, text mapping/shaping, RTL and rendered output. The current PDF signature/size unit test is not acceptance evidence.
+7. Verify actual Debug, Staging and Release APK archives, five-font packaging, file sizes, SHA-256 and exact source SHA.
+8. Keep CODEOWNER Ruleset enforcement as a separately owner-controlled repository-security action; continue all independent work.
+
+The five Vazirmatn font assets now have byte-for-byte upstream Git blob provenance pinned in typography contract §18. This does not replace APK or PDF validation.
+
+Do not transfer PASS results across SHAs. Merge, Release and Deployment remain unauthorized.
+
+
+## COMMAND 07-A.2.28.2 — P0 SQLite validation expansion (2026-11-12)
+
+Candidate SHA: `551ecdc0542bb00f72c21167b4c721094b3a3cba`.
+
+- D01 evidence expanded to capture all SQLite catalog objects and declared foreign-key definitions across five real reopen cycles.
+- D04 coverage expanded with an actual backup file read and restore into a separate file-backed SQLite database, followed by close/reopen and reminder/relationship verification.
+- D05 coverage expanded with a deliberate malformed-source migration failure, preservation of source data, repair, retry and post-recovery FK verification.
+
+The expanded tests have not yet run on this candidate SHA. The exact-head Build is PENDING and Snapshot/Follow-up/Device workflows are QUEUED. Continue polling; do not declare D01/D04/D05 PASS from test existence.
+
+
+## COMMAND 07-A.2.28.3 — remaining P0 validation (2026-11-12)
+
+Candidate SHA: `75737f4fb95b4357e8b6e0511ee2443c6aa5aff4`.
+
+- PDF sample and embedded-font/Unicode checks are implemented; CI now uses Poppler to inspect font embedding, extract Persian text and render a PNG preview. Execution is pending.
+- APK Font Audit verifies all five Git blob IDs against upstream and logs SHA-256 and byte size for Debug/Staging/Release. Execution is pending.
+- Expanded D01 full schema catalog, D04 file-based Restore into a separate SQLite file, and D05 migration-recovery tests are included but not yet executed on this candidate.
+- Build is PENDING; SQLite Snapshot, Follow-up and Device Smoke are QUEUED. Continue polling without duplicate runs.
+- No PDF, APK or Device Smoke acceptance is issued until exact-head jobs complete and artifacts/logs are inspected.
+
+## COMMAND 07-A.2.28.3 — PDF audit root-cause and exact-head continuation (2026-11-12)
+
+Current product branch candidate at documentation checkpoint: `9a07f4680c49bc8c4246e2bf30b2cd4eaddd2e4e`.
+
+### PDF evidence from prior candidate `75737f4...`
+- PDF sample was generated successfully by the PDF typography test; size 18,334 bytes.
+- `pdffonts` reported `Vazirmatn-Bold` and `Vazirmatn-Regular`, both embedded (`emb=yes`) with Unicode mapping (`uni=yes`).
+- The actual PDF was downloaded from the run artifact, extracted with Poppler, and rendered to PNG. Manual visual inspection showed connected Persian glyphs, readable RTL layout, half-space text, Persian digits, mixed Persian/English, and Regular/Bold content.
+- PDF file SHA-256: `9cd1f26a4e565be2b8e1e29b67aedaaa0266e73c5ec7a3fb439b4a817d3147cb`.
+- Artifact ZIP SHA-256: `bd3fdcbe83b0ffdf2ffad819b05bec8d7769c01ea2000c6b76bfe178f0c2c7e3`; artifact ID `13949126911`; Run `43224808961`.
+
+### Harness defects found and corrected
+The visual job failed after the PDF generation test itself passed. Root cause 1: the `pdffonts` awk audit used incorrect whitespace-token field positions for `emb` and `uni`. Corrected in commit `97effacf705ae10e43760eec4e50d0905def11fa` (`$5` = emb, `$7` = uni).
+Manual Poppler extraction then confirmed mixed-direction text is emitted in visual order inside the RTL paragraph; the English date appears as `12-11-2026`, and the company label as `Example Ltd`. The extraction assertions were aligned with that observed output in commit `9a07f4680c49bc8c4246e2bf30b2cd4eaddd2e4e`. No product assertions were removed.
+
+The visual PASS from the previous candidate is not transferable. The complete PDF audit must pass again on `9a07f468...` or the later exact candidate, including embedded font check, text extraction, PNG rendering and preserved artifact.
+
+### Latest relevant candidate commits
+- `75737f4...`: build workflow added upstream Vazirmatn Git blob provenance, per-file SHA-256 reporting, OFL license check, APK asset path audit, and legacy runtime-reference guard.
+- `97effacf...`: corrected PDF font audit column parsing.
+- `9a07f468...`: aligned mixed RTL text extraction checks with observed Poppler output.
+
+Do not report PDF or APK acceptance on the current candidate until the exact-head Build workflow completes successfully and all three APK jobs plus font packaging audits produce verifiable artifacts.
+
+### Light/dark typography weight correction and Android preference reload coverage
+
+Current product candidate: `63c67ea3a6788c8c33a7234c8c291c9607f1d299`.
+
+Source inspection found the previous root ThemeData mapping did not match the approved weight contract (body text was 500/600, titleMedium/titleSmall 700, and labelLarge 700). Commit `63c67ea3a6788c8c33a7234c8c291c9607f1d299` aligns both light and dark themes:
+- body/minor/calendar text: 400;
+- card/task title styles: 600;
+- page title: 700;
+- labels/controls: 500.
+
+The Android Reminder + Persian Typography smoke now exercises the actual Android SharedPreferences plugin: it saves System Default, recreates the app root and verifies both theme families are not forced; then saves Vazirmatn, recreates the root again, verifies both themes use Vazirmatn and checks the inherited overlay typography. This is app-root reinitialization on Android; a separate OS-level force-stop/process-kill persistence test remains NOT VERIFIED.
+
+Exact-head Analyze, regression, typography and Device Smoke results remain pending until their jobs complete on `63c67ea...`.
+
+## Exact-head SQLite Snapshot result — COMMAND 07-A.2.28
+
+**Tested product SHA:** `0aa1645999e38e32506bf3d3c15f900865428f90`  
+**Snapshot workflow:** `43232240309` — SUCCESS  
+**Job:** SQLite A-D snapshots (five real reopen cycles) — SUCCESS  
+**Artifact ID:** `13950118322`  
+**Artifact:** `arvin-command-07-a2-20-sqlite-snapshots-0aa1645999e38e32506bf3d3c15f900865428f90`  
+**Artifact ZIP SHA-256:** `0452e415dfe87b7a2b0ac797440fc5bdfd5f9998e91be44d8bd0214f0fb8d071`
+
+The downloaded JSON artifact was independently parsed:
+- A/B/C/D snapshots all contain one Task, two Reminder rows, two Follow-up records, three Follow-up-Person links and three Person records.
+- Five file-backed close/reopen cycles completed.
+- All four snapshots have an empty `foreign_key_check`; foreign-key enforcement reports enabled.
+- The three retired Task columns are absent.
+- 50 sqlite_master objects were captured: 28 indexes and zero triggers.
+- Declared Foreign Key definitions were captured for 14 tables.
+- Snapshot comparison reports A/B/C/D consistency for data, full schema catalog and FK definitions.
+
+This is a **PASS for the Snapshot A-D diagnostic only** on SHA `0aa164...`. It is not full D01 acceptance (fresh schema and all supported historical upgrades still require complete suite evidence), and it does not establish D02-D05 by itself.
+
+At the same candidate's last poll:
+- Follow-up File Persistence Run `43232240334`: IN_PROGRESS; repository persistence test executing, Alarm Overlay close/reopen step pending.
+- Device Smoke Run `43232240252`: QUEUED.
+- Build/Regression Run `43232240534`: PENDING; no jobs allocated yet.
+No result transfers to a later product SHA.

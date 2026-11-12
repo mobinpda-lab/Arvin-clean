@@ -463,3 +463,330 @@ PR #2650 is documentation-only and must be revalidated on its final exact head; 
 | Prior exact-head Build | Run [38859380955](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/38859380955), SHA `2d04631dd9d1939bd3feafa12aa7d68bec349b58` | Debug/Release APK jobs succeeded; multiple test shards failed | Re-run on final SHA; old success is not release evidence |
 | Final head Build / Device Smoke / Calendar Provider | Runs are regenerated when the branch head changes | Pending validation | All six device-smoke lanes, Calendar Provider Acceptance, artifacts and screenshot review |
 | Font / physical device | VazirHarf declared; Vazirmatn asset not found in project assets; no new physical-device evidence | OPEN / NO-GO | Add licensed font asset if Vazirmatn is mandatory; separate physical-device acceptance |
+
+
+## WAVE 0 — LIVE GITHUB EVIDENCE SNAPSHOT — 2026-11-11
+
+All evidence below is ref-specific. This documentation snapshot did not dispatch, rerun, cancel or modify any workflow.
+
+### Repository and PRs
+- Default branch: `main`; base commit: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- #3380: OPEN / DRAFT / UNMERGED; head `33a8fb14a9979d0d86775cb5457970c7e445077b`.
+- #3382: OPEN / DRAFT / UNMERGED; head `adee525e94fa2daec617255d57f9cfb65e3efe66`.
+- #3384: OPEN / DRAFT / UNMERGED; head `c8996bae351d9aede87a251d57141456b945d0a8`; 12 commits, six changed files.
+- #3384 changed files at audit: `lib/models/task.dart`, `lib/services/g1_drift_schema.dart`, `test/model_task_unified_item_test.dart`, `test/services/g1_drift_schema_test.dart`, `test/services/sql_task_migration_writer_test.dart`, `test/task_store_reminder_persistence_test.dart`.
+
+### Exact-head Actions
+- [Build 43076778275](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43076778275) on `c8996bae...`: COMPLETED / FAILURE.
+  - Analyze: PASS; Visual: PASS.
+  - Test shard 0: 234 passed / 14 failed.
+  - Test shard 1: 197 passed / 6 failed.
+  - Test shard 2: 301 passed / 26 failed.
+  - Test shard 3: 151 passed / 11 failed.
+  - Test shard 4: 243 passed / 11 failed.
+  - Test shard 5: 186 passed / 11 failed.
+  - Total: 1,312 passed / 79 failed / 1,391 total.
+  - Debug, Staging and Release APK jobs: SUCCESS. Build conclusion remains FAILURE due to test shards.
+- [Follow-up File Persistence 43076778148](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43076778148): COMPLETED / SUCCESS; this workflow is not a replacement for the full SQLite migration suite.
+- [Device Smoke 43076778211](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43076778211): PENDING; zero jobs and no device artifacts available at audit time.
+- Main orchestration: [43079261584](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43079261584) and [43079306186](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43079306186) SUCCESS on main SHA `45e4202b...`; these are orchestration/queue evidence only. Main Release Closure and Final Head validation were SKIPPED (for example runs 43076793035 and 43076806994). No new Build or Device Smoke was run by this WAVE.
+
+### SQLite regression evidence
+- D01: `test/services/g1_drift_completed_at_migration_test.dart` fails because `follow_up_enabled` remains present after migration. The new migration path visible in the PR addresses `task_reminders.is_legacy_task_reminder`, not this legacy Task column.
+- D02: `test/services/task_migration_reader_test.dart` fails with expected `followUpEnabled: null` but actual key absent. Because the source input lacks that key, the expectation conflicts with the required Missing/Explicit-NULL distinction.
+- D03: `test/services/sql_task_migration_writer_test.dart` fails at approximately line 481: expected preservation condition `true`, actual `false` for `futureFollowUpField` after close/reopen.
+- Additional observed failures include a schema metadata expectation mismatch involving `reminderDate`, a Follow-up person UI finder failure, and a Task detail widget error (`ListView` is not a subtype of `Scrollable`).
+- Individual idempotency and rollback/recovery tests passed in the inspected suite, but this does not establish full regression acceptance. Five-round serialization, complete Backup/Restore, and Migration Recovery remain NOT VERIFIED.
+- A database-level Person-link close/reopen test passed; UI-level Person-related tests failed. Overall Person relation acceptance remains NOT VERIFIED.
+
+### Evidence limits
+- No result from this snapshot may be attributed to a SHA other than the one explicitly listed.
+- APK artifact digests were recorded in the preceding SQLite audit; this WAVE did not create or download new artifacts.
+- A green orchestration run, a successful narrow persistence workflow, an APK build, or a pending Device Smoke run does not establish SQLite data-integrity acceptance.
+
+
+## COMMAND 07-A.2.24 evidence addendum — 2026-11-12
+
+- Main HEAD: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- PR #3384 exact head: `cbf7d241e588c6b4b6051dea5bb3d309a8c3cb05`.
+- Build run 43202151547 = failure; SQLite Snapshot 43202151552 = success; Follow-up File Persistence 43202151499 = success; Device Smoke 43202151481 = queued; Draft Review APK 43202151478 = skipped.
+- No exact-SHA APK artifact digest, five-weight APK inspection, PDF font resource inspection, or device visual acceptance is established by this addendum.
+- Ruleset `main-protection` is active but currently has zero required approving reviews and `require_code_owner_review=false`; bypass actors list is empty and current user can bypass is `never`. CODEOWNERS has been added to the docs branch but effective enforcement is not yet enabled.
+- Historical evidence must not be transferred between SHAs.
+
+
+## COMMAND 07-A.2.25 — exact-ref evidence addendum (2026-11-12)
+
+Canonical typography contract: [`docs/architecture/ARVIN_TYPOGRAPHY_CONTRACT.md`](../architecture/ARVIN_TYPOGRAPHY_CONTRACT.md).
+
+| Ref / Run | Exact SHA | Result | Evidence boundary |
+|---|---|---|---|
+| PR #3384 latest observed head | `2ac3580985a23e6ac5342d49c33343c8b4f01816` | OPEN / DRAFT | 80 commits, 60 files; no merge |
+| Build `43217473284` | `2ac3580985a23e6ac5342d49c33343c8b4f01816` | PENDING | No test/build outcome yet |
+| Device Smoke `43217473090` | `2ac3580985a23e6ac5342d49c33343c8b4f01816` | QUEUED | Seven lanes not yet run |
+| SQLite Snapshot `43217473138` | `2ac3580985a23e6ac5342d49c33343c8b4f01816` | QUEUED | No new A-D result yet |
+| Follow-up File Persistence `43217473064` | `2ac3580985a23e6ac5342d49c33343c8b4f01816` | QUEUED | No new persistence result yet |
+| SQLite Snapshot `43212724352` | `e94105443e7516ed38eda6feaaee125d92fabaf4` | SUCCESS | A-D snapshot and five close/reopen cycles; not current-head evidence |
+| Build `43212724211` | `e94105443e7516ed38eda6feaaee125d92fabaf4` | FAILURE | Analyze and test compilation errors from stale VazirHarf identifiers; APK builds failed before font audit |
+| Follow-up File Persistence `43212724255` | `e94105443e7516ed38eda6feaaee125d92fabaf4` | FAILURE | File-backed repository test passed; Alarm Overlay diagnostic failed at compile time |
+
+Never transfer successful evidence from `e941054...` to `2ac358...`. The five-weight font SHA-256 inventory is in typography contract §16 and applies to candidate branch assets only. The active Ruleset still has zero required approvals and does not require CODEOWNER review.
+
+
+## COMMAND 07-A.2.25 — post-documentation HEAD refresh (2026-11-12)
+
+- PR #3384 latest observed HEAD is now `318c9d7651299ecd0d1bfcda2653c52be87fb81f` (86 commits, 62 changed files), OPEN / DRAFT / UNMERGED. This SHA advanced after synchronizing the six existing `docs/project-continuity/` records; it supersedes the earlier 2ac358... checkpoint for current branch identity only.
+- A fresh `actions/runs?head_sha=318c9d7651299ecd0d1bfcda2653c52be87fb81f` query returned no workflow runs at the time of this refresh. All Build/Device/SQLite/Persistence results on 2ac358... or older SHAs are historical and do not validate 318c9d....
+- PR #3388 remains OPEN / DRAFT / UNMERGED; current observed HEAD `93f65ad4c42a2f9565a92b49058e68ff8b4eb3d7`.
+- The five Vazirmatn binary SHA-256 values in typography contract §16 remain tied to the unchanged font blobs listed there; they do not establish APK inclusion or release readiness.
+- Next action: wait for or trigger exact-head validation on 318c9d... using the repository's supported CI path, then inspect Build, SQLite Snapshot, Follow-up Persistence and all seven Device Smoke lanes. Do not reuse prior run outcomes.
+
+Release remains NO-GO. Merge, release and deployment remain unauthorized.
+
+
+## COMMAND 07-A.2.26 — exact-head checkpoint (2026-11-12)
+
+Product candidate SHA: `b78488c0347e1a97a7a25f56c914a48761d44a25` on `feature/command-07-a-sqlite-contract-remediation`; PR #3384 OPEN / DRAFT / UNMERGED (87 commits, 62 files at last observed refresh). This supersedes 318c9d for current product validation only.
+
+- Commit `b78488c0347e1a97a7a25f56c914a48761d44a25` corrected the PDF test's stale VazirHarf description/sample to Vazirmatn; assertions were preserved.
+- All five actual TTF OpenType name tables report Version 33.003. Source repository: `rastikerdar/vazirmatn`; bundled license: SIL OFL 1.1. Exact upstream commit/tag and source-to-binary reproducibility remain pending. SHA-256 values remain in typography contract §16.
+- Follow-up Persistence run `43219196583` is SUCCESS on this exact SHA. Both file-backed Repository Persistence and Alarm Overlay close/reopen diagnostic passed. The latter exercised Snooze, disposing the first overlay/SQLite connection, reopening the same file, loading the overlay again, tapping Complete and observing notification cancellation.
+- Build `43219196600`: PENDING, no jobs allocated at last poll. SQLite A-D five-cycle run `43219196466`: QUEUED. Device Smoke run `43219196537`: QUEUED. Production Loop `43219196556`: SUCCESS. Orchestrator `43219196378`: SUCCESS.
+- Existing schema tests cover Missing / explicit NULL / FALSE / TRUE metadata, retired-column absence, FK constraints and malformed-source migration preservation. The exact-head SQLite workflow is not yet complete; D01-D05 are not accepted as a whole. Snapshot A-D does not independently prove all triggers/indexes, backup/restore or forced interruption/recovery.
+- Earlier SHA results are historical and must not be promoted to this candidate SHA.
+
+Release remains NO-GO. No merge, release or deployment is authorized.
+
+
+## COMMAND 07-A.2.28 — exact-SHA evidence addendum (2026-11-12)
+
+**Current candidate SHA:** `a6d2d58d87530bfa184c93220cc329b819aca809` on `feature/command-07-a-sqlite-contract-remediation`.
+
+| Run / Ref | SHA | Observed result | Evidence boundary |
+|---|---|---|---|
+| Build `43223035750` | `a6d2d58d87530bfa184c93220cc329b819aca809` | PENDING | No jobs allocated at last poll |
+| Device Smoke `43223035920` | same | QUEUED | Seven scenario jobs not yet executed |
+| SQLite Snapshot `43223035907` | same | QUEUED | No new snapshot result yet |
+| Follow-up Persistence `43223035880` | same | QUEUED | No new file-backed result yet |
+| Build `43219196600` | `b78488c0347e1a97a7a25f56c914a48761d44a25` | FAILURE | Analyze and six shards failed; Debug/Release font purge failed; Visual passed. Historical only |
+| SQLite Snapshot `43219196466` | `b78488c...` | SUCCESS | Five real Close/Reopen cycles and A-D snapshot comparison. Historical only |
+| Follow-up Persistence `43219196583` | `b78488c...` | SUCCESS | File-backed Follow-up and Alarm Overlay close/reopen scenario. Historical only |
+
+### Upstream font provenance
+- Upstream: `rastikerdar/vazirmatn`, commit `6e553e33489a8f9dfaccc76860a2e3f3c1e66de7`.
+- Light: `2dfd5c35ed4c26f7ce9f3ba753f11d9a38356c42`, 122,920 bytes.
+- Regular: `64e4a8189557a17b63fd7a77794207483e592972`, 122,752 bytes.
+- Medium: `1e08dd54d90a4879451ef0f80fe0d8068fb7462f`, 122,656 bytes.
+- SemiBold: `6b3842aca6055c8258404b1758133b81c961a13f`, 122,920 bytes.
+- Bold: `efa9b095da01d299310bdcae293e24e657fe6da9`, 123,036 bytes.
+- Bundled OFL license blob: `be66b3824e9772e75141e631695c5256f105fb57`, identical to upstream.
+
+The blob identity comparison is byte-for-byte provenance, not APK/PDF acceptance. Do not promote any historical PASS to the current SHA.
+
+
+## COMMAND 07-A.2.28.1 — exact-head SQLite success addendum (2026-11-12)
+
+| Run / Job | Exact SHA | Result | Evidence |
+|---|---|---|---|
+| SQLite Snapshot `43223035907` / `131199160903` | `a6d2d58d87530bfa184c93220cc329b819aca809` | SUCCESS | Five Save/Close/Reopen/Verify cycles; A-D comparison; unknown future fields, multiple Reminder states/order, Follow-up order and Person links retained; FK check empty and FK enforcement enabled |
+| SQLite Snapshot Artifact `13946956406` | same | AVAILABLE | JSON SHA-256 `0d828bfb57417da75570f39186e55c4e65fb639c50440b46f421b9520ea9c574`; ZIP digest `a436ec262c87fde240c4065f650d47f80c861b75d37a146840af895e52c93efc` |
+| Follow-up Persistence `43223035880` / `131199161718` | same | SUCCESS | File-backed persistence; actual Alarm Overlay Snooze, first connection close, second connection reopen, reload, Complete and notification cancellation |
+| Build `43223035750` | same | PENDING | No jobs allocated at last poll |
+| Device Smoke `43223035920` | same | QUEUED | Seven scenario jobs not yet executed |
+
+D01-D05 are not blanket-PASS. Snapshot evidence contributes to D02/D03 and selected D01/D04 observations, but does not prove complete schema objects, Backup/Restore or forced interruption/recovery. Historical run results on `b78488c...` remain historical.
+
+
+## COMMAND 07-A.2.28.2 — new candidate and expanded acceptance coverage (2026-11-12)
+
+**Current product candidate:** `551ecdc0542bb00f72c21167b4c721094b3a3cba`.
+
+| Run | SHA | Status | Scope |
+|---|---|---|---|
+| Build `43224398615` | `551ecdc...` | PENDING | No jobs allocated at last poll |
+| SQLite Snapshot `43224398076` | same | QUEUED | Expanded full schema catalog, all FK definitions, A-D comparison and five reopen cycles |
+| Follow-up Persistence `43224398303` | same | QUEUED | File-backed persistence and Alarm Overlay close/reopen |
+| Device Smoke `43224398160` | same | QUEUED | Scenario preparation not yet executed |
+
+New code/test commits after the `a6d2d58...` exact-head successes:
+- `45c39211...`: complete SQLite schema catalog and FK definition capture in Snapshot A-D.
+- `7d3466f8...`: file-based backup JSON restored into a different file-backed SQLite database, followed by a second close/reopen and relation/Reminder verification.
+- `551ecdc0...`: deliberate malformed source failure followed by source repair and safe retry of schema installation.
+
+The successful Snapshot `43223035907` and Follow-up `43223035880` are tied to `a6d2d58...` only. They cannot validate `551ecdc...`. New tests are not accepted until their exact-head runs complete.
+
+
+## COMMAND 07-A.2.28.3 — current candidate PDF/font gates (2026-11-12)
+
+**Candidate SHA:** `75737f4fb95b4357e8b6e0511ee2443c6aa5aff4`.
+
+| Run | SHA | Status | Scope |
+|---|---|---|---|
+| Build `43224808961` | candidate | PENDING | No jobs allocated |
+| SQLite Snapshot `43224809374` | candidate | QUEUED | Full schema catalog, FK definitions and five reopen cycles |
+| Follow-up Persistence `43224808860` | candidate | QUEUED | File-backed Alarm Overlay persistence |
+| Device Smoke `43224808776` | candidate | QUEUED | Seven-scenario preparation not started |
+| Draft Review APK `43224808804` | candidate | SKIPPED | No Artifact |
+
+Added but not yet executed: Persian PDF sample with embedded-font/ToUnicode checks and Poppler render; APK audit that verifies all five Git blob IDs against upstream commit `6e553e33489a8f9dfaccc76860a2e3f3c1e66de7` and logs SHA-256/size; expanded D01 schema catalog; D04 separate-file Backup/Restore; D05 failed-migration repair and retry. These are pending implementation checks, not PASS evidence.
+
+## COMMAND 07-A.2.28.3 — PDF audit root-cause and exact-head continuation (2026-11-12)
+
+Current product branch candidate at documentation checkpoint: `9a07f4680c49bc8c4246e2bf30b2cd4eaddd2e4e`.
+
+### PDF evidence from prior candidate `75737f4...`
+- PDF sample was generated successfully by the PDF typography test; size 18,334 bytes.
+- `pdffonts` reported `Vazirmatn-Bold` and `Vazirmatn-Regular`, both embedded (`emb=yes`) with Unicode mapping (`uni=yes`).
+- The actual PDF was downloaded from the run artifact, extracted with Poppler, and rendered to PNG. Manual visual inspection showed connected Persian glyphs, readable RTL layout, half-space text, Persian digits, mixed Persian/English, and Regular/Bold content.
+- PDF file SHA-256: `9cd1f26a4e565be2b8e1e29b67aedaaa0266e73c5ec7a3fb439b4a817d3147cb`.
+- Artifact ZIP SHA-256: `bd3fdcbe83b0ffdf2ffad819b05bec8d7769c01ea2000c6b76bfe178f0c2c7e3`; artifact ID `13949126911`; Run `43224808961`.
+
+### Harness defects found and corrected
+The visual job failed after the PDF generation test itself passed. Root cause 1: the `pdffonts` awk audit used incorrect whitespace-token field positions for `emb` and `uni`. Corrected in commit `97effacf705ae10e43760eec4e50d0905def11fa` (`$5` = emb, `$7` = uni).
+Manual Poppler extraction then confirmed mixed-direction text is emitted in visual order inside the RTL paragraph; the English date appears as `12-11-2026`, and the company label as `Example Ltd`. The extraction assertions were aligned with that observed output in commit `9a07f4680c49bc8c4246e2bf30b2cd4eaddd2e4e`. No product assertions were removed.
+
+The visual PASS from the previous candidate is not transferable. The complete PDF audit must pass again on `9a07f468...` or the later exact candidate, including embedded font check, text extraction, PNG rendering and preserved artifact.
+
+### Latest relevant candidate commits
+- `75737f4...`: build workflow added upstream Vazirmatn Git blob provenance, per-file SHA-256 reporting, OFL license check, APK asset path audit, and legacy runtime-reference guard.
+- `97effacf...`: corrected PDF font audit column parsing.
+- `9a07f468...`: aligned mixed RTL text extraction checks with observed Poppler output.
+
+Do not report PDF or APK acceptance on the current candidate until the exact-head Build workflow completes successfully and all three APK jobs plus font packaging audits produce verifiable artifacts.
+
+### PDF extraction normalization follow-up — 2026-11-12
+
+Manual extraction of the actual PDF from Run `43224808961` showed Poppler returns shaped Arabic glyphs in presentation-form code points, while the rendered PNG is visually connected and legible. Raw extraction is retained. Commit `ee200b573ef70df8101c77de2a68241192898244` now creates a second NFKC-normalized extraction artifact before semantic assertions, preserving both raw and normalized evidence. This is a harness normalization step; it does not change the PDF renderer or its font binaries. Re-run the complete PDF workflow on the current exact product SHA before claiming PDF acceptance.
+
+### Vazirmatn upstream binary provenance — independently cross-checked
+
+Upstream repository `rastikerdar/vazirmatn`, exact source commit `6e553e33489a8f9dfaccc76860a2e3f3c1e66de7` (2023-05-01), was checked through its Git tree. The five upstream TTF blob object IDs exactly match the expected blob IDs now enforced by the APK audit:
+- Light — `2dfd5c35ed4c26f7ce9f3ba753f11d9a38356c42` (122,920 bytes)
+- Regular — `64e4a8189557a17b63fd7a77794207483e592972` (122,752 bytes)
+- Medium — `1e08dd54d90a4879451ef0f80fe0d8068fb7462f` (122,656 bytes)
+- SemiBold — `6b3842aca6055c8258404b1758133b81c961a13f` (122,920 bytes)
+- Bold — `efa9b095da01d299310bdcae293e24e657fe6da9` (123,036 bytes)
+
+This establishes exact upstream Git-object identity for the five files. Per-file SHA-256 output and APK inclusion still require successful exact-head build jobs; the upstream Git blob SHA-1 values are not presented as SHA-256.
+
+### Typography single-source refinement — current product candidate `3768b4e39f1235bd993337da8009349d632aa05d`
+
+A duplicate Vazirmatn family literal existed in the canonical theme token and font option registry alongside `AppFonts`. Commit `3768b4e39f1235bd993337da8009349d632aa05d` now makes `lib/theme/app_fonts.dart` the single code-level family source; `ArvinTheme.fontFamily` and the user font registry alias `AppFonts.vazirmatnFamily`. The theme token test and build-time font audit now assert this relationship. This is a behavior-preserving refactor; exact-head Analyze, Typography tests and build audit remain required.
+
+### Light/dark typography weight correction and Android preference reload coverage
+
+Current product candidate: `63c67ea3a6788c8c33a7234c8c291c9607f1d299`.
+
+Source inspection found the previous root ThemeData mapping did not match the approved weight contract (body text was 500/600, titleMedium/titleSmall 700, and labelLarge 700). Commit `63c67ea3a6788c8c33a7234c8c291c9607f1d299` aligns both light and dark themes:
+- body/minor/calendar text: 400;
+- card/task title styles: 600;
+- page title: 700;
+- labels/controls: 500.
+
+The Android Reminder + Persian Typography smoke now exercises the actual Android SharedPreferences plugin: it saves System Default, recreates the app root and verifies both theme families are not forced; then saves Vazirmatn, recreates the root again, verifies both themes use Vazirmatn and checks the inherited overlay typography. This is app-root reinitialization on Android; a separate OS-level force-stop/process-kill persistence test remains NOT VERIFIED.
+
+Exact-head Analyze, regression, typography and Device Smoke results remain pending until their jobs complete on `63c67ea...`.
+
+### APK font audit strengthened — exact candidate `0aa1645999e38e32506bf3d3c15f900865428f90`
+
+The APK packaging audit now extracts each of the five font entries directly from the built APK using `unzip -p`, computes SHA-256 over the embedded bytes, and compares that digest with the source font's SHA-256. A missing asset or content mismatch fails the job. This is stricter than archive-path presence alone. Debug, Staging and Release must each pass this check on the same final acceptance SHA; results are pending.
+
+## Exact-head SQLite Snapshot result — COMMAND 07-A.2.28
+
+**Tested product SHA:** `0aa1645999e38e32506bf3d3c15f900865428f90`  
+**Snapshot workflow:** `43232240309` — SUCCESS  
+**Job:** SQLite A-D snapshots (five real reopen cycles) — SUCCESS  
+**Artifact ID:** `13950118322`  
+**Artifact:** `arvin-command-07-a2-20-sqlite-snapshots-0aa1645999e38e32506bf3d3c15f900865428f90`  
+**Artifact ZIP SHA-256:** `0452e415dfe87b7a2b0ac797440fc5bdfd5f9998e91be44d8bd0214f0fb8d071`
+
+The downloaded JSON artifact was independently parsed:
+- A/B/C/D snapshots all contain one Task, two Reminder rows, two Follow-up records, three Follow-up-Person links and three Person records.
+- Five file-backed close/reopen cycles completed.
+- All four snapshots have an empty `foreign_key_check`; foreign-key enforcement reports enabled.
+- The three retired Task columns are absent.
+- 50 sqlite_master objects were captured: 28 indexes and zero triggers.
+- Declared Foreign Key definitions were captured for 14 tables.
+- Snapshot comparison reports A/B/C/D consistency for data, full schema catalog and FK definitions.
+
+This is a **PASS for the Snapshot A-D diagnostic only** on SHA `0aa164...`. It is not full D01 acceptance (fresh schema and all supported historical upgrades still require complete suite evidence), and it does not establish D02-D05 by itself.
+
+At the same candidate's last poll:
+- Follow-up File Persistence Run `43232240334`: IN_PROGRESS; repository persistence test executing, Alarm Overlay close/reopen step pending.
+- Device Smoke Run `43232240252`: QUEUED.
+- Build/Regression Run `43232240534`: PENDING; no jobs allocated yet.
+No result transfers to a later product SHA.
+
+### Governance verification — COMMAND 07-A.2.28
+
+Live repository Ruleset `main-protection` (ID `20952260`) remains ACTIVE on `refs/heads/main`, but its pull-request rule currently has `required_approving_review_count=0` and `require_code_owner_review=false`; bypass actors are empty. Deletion and non-fast-forward protections are enabled. No repository security setting was changed.
+
+The docs PR #3388 CODEOWNERS file was expanded to cover the canonical typography contract, Vazirmatn assets, pubspec registration, both theme directories, PDF renderer, app root, Settings, Alarm Overlay, build workflow, typography/PDF tests and Android typography smoke. It is still an unmerged PR; the current main branch does not yet contain this CODEOWNERS file. Therefore effective CODEOWNER enforcement is **NOT VERIFIED / NOT ACTIVE**. Enabling required approval and CODEOWNER review remains a separate product-owner-controlled repository settings action.
+
+## COMMAND 07-A.2.30 — raw evidence index (2026-11-12)
+
+### Product candidate and PR graph
+
+- [Execution PR #3384](https://github.com/mobinpda-lab/Arvin-clean/pull/3384): current head `492a5c433ee215d0188a6075b159d4d72329d35e`; base branch `fix/wave3-cycle3-calendar-product-repair` at `8c4c23f0c2a4f9b2374a2092c931782c4455fd41`; OPEN / DRAFT / UNMERGED.
+- [Documentation PR #3388](https://github.com/mobinpda-lab/Arvin-clean/pull/3388): base `main` at `45e4202b03a434459e4c021a04efa7e8396359db`; OPEN / DRAFT / UNMERGED.
+- Main HEAD observed: `45e4202b03a434459e4c021a04efa7e8396359db`. Compare main → PR #3384 base: 2,200 commits ahead, 0 behind. Compare PR #3384 base → previous candidate `46f7b28...`: 108 commits ahead, 0 behind.
+- [Timeline remediation commit `492a5c4`](https://github.com/mobinpda-lab/Arvin-clean/commit/492a5c433ee215d0188a6075b159d4d72329d35e): avoids rendering a Reminder note when it duplicates the Reminder heading.
+
+### Current candidate `492a5c4...` — completed evidence
+
+- [SQLite Snapshot run 43247842246](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43247842246): SUCCESS; job `131285215042`; artifact ID `13958416974`; ZIP digest `sha256:0e57caf9e4357d8d4d43e82ad0f60377f69d3ebd4c7cbaefb89b6818fa93565b`.
+- Downloaded SQLite JSON artifact SHA-256: `445a3b733834ef118a0d7ae79e91b7b5f867538aa6e77910ea3a3752e47c7721`. Contents: source SHA `492a5c4...`; five file-backed reopen cycles; 22 tables; 28 indexes; zero triggers; FK enabled; empty `foreign_key_check`; A/B/C/D data/schema/FK definitions identical.
+- [Follow-up File Persistence run 43247842181](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43247842181): SUCCESS; job `131285224802`; no artifact published.
+- [Build run 43247842294](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43247842294): PENDING at last poll; no jobs allocated.
+- [Device Smoke run 43247842521](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43247842521): QUEUED; preparation job `131285216498` queued; no device scenario result.
+
+### Previous candidate `46f7b28...` — historical, not transferable
+
+- [Build run 43238200093](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43238200093): Analyze and Visual PASS; Debug and Release APK jobs PASS; Staging job was IN_PROGRESS at last poll; Regression shards 0/1/2/4 had 43 failure records (11/2/21/9); shards 3 and 5 were cancelled after PR synchronization and are not PASS.
+- [Device Smoke run 43238200496](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43238200496): preparation job remained QUEUED.
+- [Follow-up File Persistence run 43238200586](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43238200586): SUCCESS.
+- [SQLite Snapshot run 43238200490](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43238200490): SUCCESS; artifact ID `13952699032`; ZIP SHA-256 `bdb0d42bcb7473bd91501a0a4e3c261d2c9001f95122b8db47356cc364089d5a`; JSON SHA-256 `fe64bc1b9a8275ab018ac3683e29d8b3d0462dc48f6eaec38572c05bfe465e2c`.
+- Debug APK artifact ID `13953344600`; APK SHA-256 `41924a4be7470bb425d19baa76bb6781f9b3dbebbd9e31bc3716073adeacb16a`; ZIP SHA-256 `c3844157fdc84e3c731bec9881f4a5ce3b8c63455962dcde5d07955145b16bd8`.
+- Release APK artifact ID `13956310335`; APK SHA-256 `eb3b681fa1e7030eeb6a09ef74c1aacb7527f1170cdafa76f1d94e289a2d16c3`; ZIP SHA-256 `f68610edd91855f4bf80577c5c9710c248fc3395f681417f47198541ffa5c8df`.
+- PDF artifact ID `13953438208`; PDF SHA-256 `0b276df9ed223a31033ace1fed04daadb3bd21a962a476b69c6a4bca8bf4dccb`; ZIP SHA-256 `05ade08cf47cd3ff2866406c685e56b3398c9a8240ad8fcfc3be5ba9e9d32b86`. The PDF and rendered PNG were downloaded and independently inspected; Poppler confirmed embedded Vazirmatn Regular/Bold with Unicode maps.
+
+### Typography source and corrected SHA-256
+
+- Upstream source commit: `6e553e33489a8f9dfaccc76860a2e3f3c1e66de7` in `rastikerdar/vazirmatn`; SIL OFL 1.1.
+- Correct SHA-256 values for Light/Regular/Medium/SemiBold/Bold: `9ab4f094b861b7d4e318f01953b9771ddeb189d7c79bbb3989d5a95a4b07ff60`, `b69fd4c680b8f3f225feabcc655a2c585d97627b8f5f5c0f9985e894069f3a56`, `b986623e4ddef10755e04be39f8ea7bcb1dc08bfe8dd0aa6af395736f256ad4a`, `3f239d8364c14ee32c46b6839fa197c28958358b82a9673d2c6acc8506d78bc5`, `f635fdbea28f265de395ba83b4b1570dcf2f58d13c65469e61903b1c2d2ae723`.
+- Exact-head Debug/Release build logs confirmed each embedded font SHA-256 equals its source file SHA-256 and the legacy-font purge passed. Staging remains unverified.
+
+### Acceptance status
+
+- D01: snapshot diagnostic PASS only; full historical migration acceptance NOT COMPLETE.
+- D02: NOT ACCEPTED (four-state Missing/NULL/FALSE/TRUE contract still requires independent exact-head closure).
+- D03: NOT ACCEPTED (full Follow-up metadata/unknown-field close-reopen parity not proven).
+- D04: NOT ACCEPTED (complete file-backed Backup/Restore/reopen parity not proven).
+- D05: NOT ACCEPTED (interrupted migration, rollback and recovery/non-destruction not proven).
+- Seven Device Smoke scenarios: NOT VERIFIED.
+- System Default after OS-level Force Stop: NOT VERIFIED.
+- Merge / Release / Deployment: NOT AUTHORIZED.
+
+### Staging artifact completion correction — previous candidate `46f7b28...`
+
+- [Build run 43238200093](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43238200093) Staging job `131251173638` subsequently completed SUCCESS (the earlier QUEUED/IN_PROGRESS note was an interim poll).
+- Staging APK artifact ID `13957987267`; artifact ZIP SHA-256 `d380b5f028799fa3f3c7fafd5e80c79d56b1c1a151036ea8073c6e7ee35258f8`; extracted APK SHA-256 `b61bc476b29c5a862c007c493729f9b7d74f394a995fb8edd09981b27869b875`; APK size 80,373,632 bytes.
+- All five embedded Vazirmatn hashes in Staging match source SHA-256 values in the typography contract. Font provenance, APK content, legacy purge, SIL OFL 1.1 and five-weight packaging gates reported PASS. This does not transfer to `492a5c4...`.
+
+### Staging signature and publishability evidence
+
+- Verification artifact ID `13957842406`; artifact ZIP SHA-256 `4cf84b5be1bc0846bc51a9cd67de5c709fbb4e428d24870a647dbab95cfb1c3c`.
+- `manifest-audit.txt` and `release-manifest.json` bind the Staging APK to source SHA `46f7b28...`; APK SHA-256 `b61bc476b29c5a862c007c493729f9b7d74f394a995fb8edd09981b27869b875`; `android_debuggable=false`; `publishable=false`; signing key class `EPHEMERAL_TEST_ONLY_NOT_PRODUCTION`.
+- Raw `apksigner-verify.log` confirms V2 and V3 signatures verified, V1 false, one RSA-2048 signer, certificate SHA-256 `cb57c0c635c87eec37d87e3bf23e0e8ae465b353c84e5ad0467984a8706f9cae`.
+- The manifest field `signer_certificate_sha256` remains `NOT_AVAILABLE` despite the certificate digest in the raw log; keep this as an evidence-parser gap, not a signing failure.
+
+### Release APK signing audit boundary
+
+- Release artifact `13956310335` contains `app-release.apk` with SHA-256 `eb3b681fa1e7030eeb6a09ef74c1aacb7527f1170cdafa76f1d94e289a2d16c3`.
+- Binary inspection of the APK ZIP central-directory boundary found no `APK Sig Block 42`; this Release APK is unsigned. It is a build/font-packaging artifact only, not installable as a signed update and not publishable.
+- `android/app/build.gradle.kts` only sets the `production` signing config when all protected production inputs are present. No production signing proof is available for this workflow. Do not infer production signing from the successful Release build job.
+
+### Original 22 Regression inventory — exact source
+
+- [Build run 43232240534](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/43232240534), checkout SHA `0aa1645999e38e32506bf3d3c15f900865428f90`, shard job `131238073327` contains the 22 failure records referenced by the earlier report. The complete 22-row disposition table is in `docs/ARVIN_PROJECT_STATE.md` under “Original 22 Regression failures — exact historical inventory”.
+- Do not conflate this historical 22-record Shard 2 inventory with the later 43 failure records across four completed shards on `46f7b28...` or the 21 failure records in Shard 2 on current candidate `492a5c4...`.

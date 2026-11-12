@@ -388,3 +388,67 @@ v48.1 = execution optimization and parallel-speed enhancement.
 v48.2 = approved integrated/editorial operational reference.
 v49.0 = unified canonical software-production standard incorporating governance, execution, architecture, Sync, UI, quality, recovery, documentation, continuity and communication.
 v49.1 = lightweight important-change traceability standard; automated evidence preferred, with stronger documentation required only for important/high-risk changes.
+
+
+## WAVE 0 — Canonical Governance Continuity Addendum (2026-11-11)
+
+This addendum records the repository audit and the explicit WAVE 0 controls. It is additive; it does not erase version lineage or rewrite historical decisions.
+
+### Governance authority and document mapping
+- The live canonical operating reference at the WAVE 0 base is this file, **v49.1**. Its rule remains: GitHub is authoritative for executed state; architecture/decisions are governed by approved project records; historical records are retained.
+- The user-supplied governance reference is `ARVIN-MASTER-CHARTER-REV9`. A repository file with that exact name/version was not located in the audited `main` tree. Do not claim that the unseen REV9 text was independently audited. For this WAVE, apply the explicit controls in the supplied W0-01 command together with the existing v49.1 canonical rules. Reconcile the full REV9 text when it is committed or supplied.
+- Preserve the existing documentation architecture; do not create duplicate root-level files merely to match generic names. Functional mapping:
+  - MASTER_GOVERNANCE → `docs/ARVIN_PROJECT_OPERATING_PACKAGE.md`
+  - CURRENT_STATE → `docs/ARVIN_PROJECT_STATE.md`
+  - ROADMAP → `docs/PROJECT_ROADMAP_2026-08-14.md`
+  - DECISIONS → `docs/arvin-memory/ARVIN_DECISION_LOG.md`
+  - IMPLEMENTATION_LOG / evidence ledger → `docs/arvin-memory/ARVIN_EVIDENCE_MAP.md`
+  - HANDOFF → `docs/AI_HANDOFF_CURRENT_FA.md`
+- Existing `docs/arvin-memory/ARVIN_AUTONOMOUS_DELIVERY_EVOLUTION_COMMAND_V8.md`, `ARVIN_EXECUTION_STATE.md`, `ARVIN_PROJECT_KNOWLEDGE.md`, and `ARVIN_PROBLEM_REGISTER.md` remain supporting continuity sources, not replacements for the v49.1 canonical operating reference.
+
+### WAVE 0 immutable controls
+- Local-first data integrity is P0. Existing user data, stable IDs, JSON/SQL compatibility, reminders, Follow-up history, relations and backup/restore must not be silently discarded or normalized.
+- Never mark an unverified migration, test, build, artifact, device result or recovery path PASS. Evidence is commit/ref-specific.
+- Work only on the authorized feature/documentation branch. No direct main development, history rewrite, force push, merge, release or deployment.
+- For this WAVE, only governance/continuity documents may change. Production code, tests, workflows and application configuration are out of scope.
+- PRs #3380, #3382 and #3384 are independent active work and must remain untouched.
+- A Draft documentation PR is the handoff boundary. Stop after creating it and reporting its exact head, PR, CI state and unresolved gates.
+
+### Current release gate
+SQLite P0 remains open. D01 (legacy-column retirement), D02 (Missing vs Explicit NULL), and D03 (Follow-up metadata/history after reopen) are not accepted. Five-round serialization, full Reminder migration, Backup/Restore and Migration Recovery are not verified. Release remains **NO-GO**; merge is not authorized by WAVE 0.
+
+
+## COMMAND 07-A.2.24 typography authority addendum — 2026-11-12
+
+The Product Owner's latest explicit decision supersedes all historical conflicting font decisions: **Vazirmatn is the only official/default Arvin font.** VazirHarf is not an official or fallback brand font. The canonical contract is [ARVIN_TYPOGRAPHY_CONTRACT.md](architecture/ARVIN_TYPOGRAPHY_CONTRACT.md). Protected paths are defined in `.github/CODEOWNERS` and require effective Ruleset verification; CODEOWNERS presence alone is not enforcement.
+
+Live audit found main SHA `45e4202b03a434459e4c021a04efa7e8396359db` currently registers Vazirmatn in app_fonts, font_registry, pubspec and PDF renderer, but main only has Regular/Medium/Bold assets. SHA `cbf7d241e588c6b4b6051dea5bb3d309a8c3cb05` on PR #3384 changes runtime registration, theme, PDF and tests to VazirHarf, creating a direct conflict with this latest owner decision. This must be remediated on a controlled development branch; no acceptance is implied.
+
+
+## Binding typography and release controls — COMMAND 07-A.2.26
+The canonical product typography contract is `docs/architecture/ARVIN_TYPOGRAPHY_CONTRACT.md`: Vazirmatn only as official/default; System Default remains optional. Product acceptance candidate SHA is `b78488c0347e1a97a7a25f56c914a48761d44a25`; acceptance remains in progress and release is NO-GO. Do not merge, release or deploy without Mobin's explicit approval.
+
+
+## COMMAND 07-A.2.28 — continuous execution checkpoint (2026-11-12)
+
+The active product execution branch is `feature/command-07-a-sqlite-contract-remediation`, PR #3384, current observed HEAD `a6d2d58d87530bfa184c93220cc329b819aca809`. PR #3384 remains OPEN / DRAFT / UNMERGED. Documentation remains in PR #3388, also OPEN / DRAFT / UNMERGED.
+
+The approved product typography decision remains binding: Vazirmatn is the only official/default family; System Default is an optional user preference; VazirHarf is not a runtime font. COMMAND 07-A.2.28 retired the remaining explicit VazirHarf font overrides from Task Details, Home filter UI and Quick Capture, allowing the centralized root Theme to apply and preserving System Default.
+
+The five checked-in Vazirmatn TTF files were compared with upstream `rastikerdar/vazirmatn` at commit `6e553e33489a8f9dfaccc76860a2e3f3c1e66de7`; all five Git blob IDs and sizes match exactly. The bundled OFL license blob also matches upstream. Details are in the typography contract §18.
+
+This checkpoint does not accept the product. Exact-head Build, six regression shards, APK audits, Device Smoke, PDF rendering, and full SQLite D01-D05 acceptance remain open until actual results are inspected. No merge, release or deployment is authorized.
+
+
+## COMMAND 07-A.2.28.3 — execution continuation (2026-11-12)
+
+The current product candidate has advanced to `75737f4fb95b4357e8b6e0511ee2443c6aa5aff4`. Since the earlier checkpoint, the execution branch adds:
+- full SQLite schema-catalog and foreign-key-definition evidence;
+- a file-based Backup/Restore test into a separate SQLite database;
+- migration failure recovery by source repair and safe retry;
+- a real Persian PDF sample with embedded-font, ToUnicode, extraction and rendered-preview validation;
+- APK font audit against five pinned upstream Git blob IDs, with SHA-256 and byte-size logging.
+
+Exact-head Build remains PENDING without jobs; Snapshot, Follow-up and Device Smoke remain QUEUED. These additions are not accepted until their workflows execute on the current SHA. The prior SQLite PASS results on `a6d2d58...` remain historical.
+
+Product font decision is unchanged: Vazirmatn official/default; System Default optional; VazirHarf not a runtime font. PR #3384 and PR #3388 remain draft and unmerged. Merge, Release and Deployment are not authorized.

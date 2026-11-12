@@ -225,3 +225,62 @@ Both required exact-head gates for `ba2306cfc66ad982f8e8ab73b838a4a8d6ed6b55` ar
 - **Exact-head CI evidence observed:** On the target Build run, Analyze and all six test shards completed successfully. The `test-1` job reports the unlinked-Reminder conflict test passing as part of 161 passing tests in that shard. Debug/Release APK builds were still in progress at this checkpoint; Calendar Provider Acceptance and Device Smoke were also not yet complete.
 - **Acceptance boundary:** This record documents the diagnosis, implementation and observed partial CI evidence. It does not declare full Wave 7.61 acceptance. APK artifacts, provider evidence and all seven Device Smoke lanes must be reviewed on the exact final PR head.
 - **Governance:** PR #2995 remains OPEN and must remain DRAFT/UNMERGED; Issue #2102 remains OPEN. Release remains `BLOCKED — RELEASE: NO-GO` until every required exact-head suite and product acceptance gate is green.
+
+
+## 2026-11-11 — WAVE 0 canonical governance and SQLite hold
+
+- **Problem:** The repository contains a v49.1 canonical operating package and an established `docs/arvin-memory/` continuity system, but the requested generic six document filenames are not present as a matching set. A repository file named `ARVIN-MASTER-CHARTER-REV9` was not found in the audited main tree.
+- **Decision:** Preserve the established documentation layout and map the six functional roles to existing canonical files; do not create duplicate generic root-level documents. The mapping is recorded in `docs/ARVIN_PROJECT_OPERATING_PACKAGE.md`.
+- **Reason:** The existing package states that it is the single operational reference and that historical records must be preserved. Unnecessary parallel governance files would create competing sources of truth.
+- **Scope:** Documentation-only branch from exact main SHA `45e4202b03a434459e4c021a04efa7e8396359db`; no application, schema, migration, serializer, TaskStore, test or workflow changes.
+- **PR safety:** PRs #3380, #3382 and #3384 remain OPEN / DRAFT / UNMERGED and are not modified by this WAVE.
+- **SQLite acceptance decision:** D01, D02 and D03 remain NOT ACCEPTED. D01 has a schema/test mismatch; D02 has a Missing-versus-NULL test-contract conflict; D03 still loses an unknown Follow-up field after close/reopen and its exact loss point is not yet proven.
+- **Release decision:** NO-GO. Merge, release and deployment are not authorized. Do not advance to a dependent implementation wave until the SQLite acceptance criteria are proven on a final exact SHA.
+
+
+## 2026-11-12 — Product Owner typography decision supersession (COMMAND 07-A.2.24)
+
+**APPROVED / OWNER CONTROLLED:** Vazirmatn is the only official and default font of Arvin. VazirHarf is not an official/default application font and must not be retained as a fallback brand option. The only user choices are Vazirmatn (Official Default) and System Default (Optional User Preference). The System Default choice is not an alternative brand font. Any change to this decision requires Mobin's explicit written approval.
+
+This entry supersedes conflicting historical font decisions; earlier entries remain preserved as historical evidence and must not be deleted. Canonical technical contract: `docs/architecture/ARVIN_TYPOGRAPHY_CONTRACT.md`.
+
+
+## COMMAND 07-A.2.26 — exact-head checkpoint (2026-11-12)
+
+Product candidate SHA: `b78488c0347e1a97a7a25f56c914a48761d44a25` on `feature/command-07-a-sqlite-contract-remediation`; PR #3384 OPEN / DRAFT / UNMERGED (87 commits, 62 files at last observed refresh). This supersedes 318c9d for current product validation only.
+
+- Commit `b78488c0347e1a97a7a25f56c914a48761d44a25` corrected the PDF test's stale VazirHarf description/sample to Vazirmatn; assertions were preserved.
+- All five actual TTF OpenType name tables report Version 33.003. Source repository: `rastikerdar/vazirmatn`; bundled license: SIL OFL 1.1. Exact upstream commit/tag and source-to-binary reproducibility remain pending. SHA-256 values remain in typography contract §16.
+- Follow-up Persistence run `43219196583` is SUCCESS on this exact SHA. Both file-backed Repository Persistence and Alarm Overlay close/reopen diagnostic passed. The latter exercised Snooze, disposing the first overlay/SQLite connection, reopening the same file, loading the overlay again, tapping Complete and observing notification cancellation.
+- Build `43219196600`: PENDING, no jobs allocated at last poll. SQLite A-D five-cycle run `43219196466`: QUEUED. Device Smoke run `43219196537`: QUEUED. Production Loop `43219196556`: SUCCESS. Orchestrator `43219196378`: SUCCESS.
+- Existing schema tests cover Missing / explicit NULL / FALSE / TRUE metadata, retired-column absence, FK constraints and malformed-source migration preservation. The exact-head SQLite workflow is not yet complete; D01-D05 are not accepted as a whole. Snapshot A-D does not independently prove all triggers/indexes, backup/restore or forced interruption/recovery.
+- Earlier SHA results are historical and must not be promoted to this candidate SHA.
+
+Release remains NO-GO. No merge, release or deployment is authorized.
+
+
+## 2026-11-12 — Vazirmatn upstream binary provenance pinned (COMMAND 07-A.2.28)
+
+**Decision record:** Keep the existing product decision unchanged: Vazirmatn is the sole official/default Arvin font; System Default remains an optional user preference; VazirHarf is not a runtime font.
+
+**Evidence:** The five TTF blobs in PR #3384 candidate tree `a6d2d58d87530bfa184c93220cc329b819aca809` match the corresponding blobs in upstream `rastikerdar/vazirmatn` commit `6e553e33489a8f9dfaccc76860a2e3f3c1e66de7` byte-for-byte by Git blob SHA and file size. The bundled OFL.txt/LICENSE.txt blob also matches. All five TTF OpenType name tables report version 33.003.
+
+**Implementation correction:** Explicit VazirHarf runtime font overrides were removed from Task Details, Home filter UI and Quick Capture so those surfaces inherit the centralized Theme and preserve the optional System Default choice. Stale test APIs/finders were corrected without removing product assertions.
+
+**Acceptance boundary:** This provenance and source cleanup do not establish APK packaging, PDF shaping/rendering, device acceptance, or complete SQLite D01-D05. The exact candidate SHA remains under validation; no acceptance or release is declared.
+
+
+## 2026-11-12 — COMMAND 07-A.2.28.3 validation additions
+
+The controlling typography decision remains unchanged: Vazirmatn is the sole official/default font; System Default is an optional preference; VazirHarf is not a runtime font.
+
+The active candidate `75737f4fb95b4357e8b6e0511ee2443c6aa5aff4` adds:
+- PDF acceptance sample and automated embedded font/Unicode checks, plus Poppler extraction and rendering in CI;
+- APK font provenance checks against the five exact upstream Git blob IDs and SHA-256 output;
+- expanded SQLite schema-catalog, file-based Backup/Restore and migration-recovery tests.
+
+These are validation improvements only. They do not establish acceptance until exact-head workflows complete. No release authorization is implied.
+
+### Typography single-source refinement — current product candidate `3768b4e39f1235bd993337da8009349d632aa05d`
+
+A duplicate Vazirmatn family literal existed in the canonical theme token and font option registry alongside `AppFonts`. Commit `3768b4e39f1235bd993337da8009349d632aa05d` now makes `lib/theme/app_fonts.dart` the single code-level family source; `ArvinTheme.fontFamily` and the user font registry alias `AppFonts.vazirmatnFamily`. The theme token test and build-time font audit now assert this relationship. This is a behavior-preserving refactor; exact-head Analyze, Typography tests and build audit remain required.
