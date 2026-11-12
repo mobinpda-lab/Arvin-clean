@@ -1191,3 +1191,52 @@ Live repository facts at deployment start: Main `45e4202b03a434459e4c021a04efa7e
 - Therefore G1 malformed-payload fixture remains TEST HARNESS DEFECT / INCOMPLETE. The production FK check was not the failure in this new run; the test setup failed at its parent insert. No D01/D05 acceptance is claimed.
 - Correct next step: create a schema-compatible `tasks` table in the fixture before inserting `legacy-task`; then create `task_people` with malformed JSON; verify FormatException, transaction rollback, retained source, FK enforcement, JSON repair and same-executor retry.
 - Build `43269800292`: test-1 FAILURE (202/1), test-3 FAILURE (155/9), test-5 FAILURE (189/10; includes the G1 fixture error); Debug APK SUCCESS; remaining jobs QUEUED at latest poll. SQLite Snapshot `43269800257` and Follow-up Persistence `43269800526` SUCCESS. Device Smoke `43269800280` QUEUED.
+
+
+---
+
+## COMMAND 07-A.2.34 — execution continuity addendum (2026-11-12)
+
+**Disposition:** IMPLEMENTATION IN PROGRESS / ACCEPTANCE BLOCKED.  
+**Main HEAD verified at start:** `45e4202b03a434459e4c021a04efa7e8396359db`.  
+**Execution PR:** #3384, branch `feature/command-07-a-sqlite-contract-remediation`.  
+**Latest recorded execution commit:** `ee703dfa82e356039ef32c0b2a9f1bc9a00dc1e9`.  
+**Merge / Release / Deployment:** NOT AUTHORIZED.
+
+### New implementation commits (not yet CI-accepted)
+- `446f04a6f8cc94871eea0982d9f0f896b8fba8fe` — G1 malformed legacy relation fixture now creates the canonical parent `tasks` table before inserting the parent row. This is a test-fixture correction; migration rollback/retry acceptance remains pending.
+- `ab06e7bdf3233d3d971aa64d11782efff71089f1` — Home due-status and Jalali group-date projection now share the injectable Iran wall-clock source.
+- `235bfb98e45af68f0d68b00099f97d599504b575` — deterministic Home clock widget coverage added for 09:00 and 10:00.
+- `5af39a34ee19e090de30cf6d3e0a5848852fab48` — Home expanded Task card now presents the chronologically latest real Follow-up through `HomeFollowUpPresentationService`; legacy Follow-up date metadata does not fabricate a record.
+- `ee703dfa82e356039ef32c0b2a9f1bc9a00dc1e9` — Home regression test now activates the canonical expand control and uses the existing accordion keys; assertions remain present.
+
+### Exact-SHA evidence available before these commits
+Build run `43269800292` tested `eea746dbf2a58cd4f04c66a149ae3441264da5b2`, not the new candidate:
+- Analyze: PASS; Visual: PASS.
+- Test shards 0–5: all FAILED; 1,338 passed / 61 failed.
+- Shard failure counts: 0=1, 1=9, 2=10, 3=11, 4=9, 5=21.
+- Debug, Staging and Release APK build jobs: SUCCESS. This does not establish release approval or complete artifact acceptance.
+- SQLite Snapshot run `43269800257`: SUCCESS, artifact `13966864535`; this is not D01–D05 acceptance.
+- Follow-up File Persistence run `43269800526`: SUCCESS; narrow scope only.
+- Device Smoke run `43269800280`: preparation succeeded; all seven scenario jobs remained QUEUED at the last inspection.
+
+The six-shard failure inventory remains exactly 61 on the tested historical candidate. Each failure still requires individual root-cause classification; test failures are not presumed to be test defects.
+
+### Clock and Home Follow-up
+- Previous clock discrepancy was confirmed in `lib/main.dart`: `_iranWallClockNow()` used `IranClock.now()`, while `_groupJalaliDate()` used `DateTime.now()`.
+- The new provider seam makes both projections use the same Iran-local components. New widget tests are committed but not yet executed by CI.
+- The Home Follow-up presentation service and its focused unit tests already existed; the Home Task card had not wired the service into the expanded card. The new integration is committed; end-to-end acceptance is pending.
+
+### Governance and preservation
+- The old staging branch `staging/command-07-a2-33-recovery` exists but compares 2,371 commits ahead / 0 behind Main; it is not the selected execution lane.
+- PRs #3380 and #3382 remain diagnostic evidence lanes and are preserved.
+- PR #3388 remains a parallel governance documentation lane with a v49-era authority statement. REV9 on PR #3340 remains the canonical documentation lane; resolve the authority conflict before any documentation integration.
+- Vazirmatn is the active owner-directed product font for this command. VazirHarf remains historical/inactive; APK/PDF verification is still required.
+
+### Next actions
+1. Obtain CI on the latest execution head `ee703dfa...`; verify the G1 fixture, Home clock and Follow-up integration before further edits.
+2. Reclassify all 61 failures from their exact assertions and production contracts; retain coverage.
+3. Complete D01–D05 independently, including Backup/Restore and interrupted migration recovery.
+4. Complete Category / Project / Tag cross-feature workflows and relationship/deletion policy.
+5. Complete PDF, APK font audit, and all seven Device Smoke scenarios on one exact SHA.
+6. Keep all changes unmerged and preserve all branches, PRs, artifacts and source data.
