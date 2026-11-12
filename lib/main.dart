@@ -317,6 +317,13 @@ class _ArvinAppState extends State<ArvinApp> {
       title: 'مدیریت کارها و پیگیری آروین',
       builder: (context, child) {
         final mediaQuery = MediaQuery.of(context);
+        final appChild = child ?? const SizedBox.shrink();
+        final guardedChild = selectedFontFamily == null
+            ? appChild
+            : DefaultTextStyle.merge(
+                style: TextStyle(fontFamily: selectedFontFamily),
+                child: appChild,
+              );
         return MediaQuery(
           data: mediaQuery.copyWith(
             textScaler: _SettingsTextScaler(
@@ -324,7 +331,7 @@ class _ArvinAppState extends State<ArvinApp> {
               userScale: settings.fontSize / 16.0,
             ),
           ),
-          child: child ?? const SizedBox.shrink(),
+          child: guardedChild,
         );
       },
       theme: ThemeData(
