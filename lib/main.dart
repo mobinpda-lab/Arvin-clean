@@ -848,6 +848,14 @@ class _HomePageState extends State<HomePage> {
     final day = DateTime(local.year, local.month, local.day);
     final now = _iranWallClockNow();
     final today = DateTime(now.year, now.month, now.day);
+    if (_timeFilters.contains('today')) {
+      debugPrint(
+        'HOME_TODAY_FILTER id=${task.id} due=${due.toIso8601String()} '
+        'isUtc=${due.isUtc} local=${local.toIso8601String()} '
+        'day=$day today=$today completed=${task.completed} '
+        'allDay=${task.allDay} overdue=${TaskDueStatus.isOverdue(task, now: now)}',
+      );
+    }
     bool matchesRange() {
       if (_timeFilter != 'customRange' || !_timeFilters.contains('customRange')) return false;
       final from = _fromDateFilter == null ? null : DateTime(_fromDateFilter!.year, _fromDateFilter!.month, _fromDateFilter!.day);
@@ -927,6 +935,12 @@ class _HomePageState extends State<HomePage> {
     }
 
     final result = scoped.toList(growable: false);
+    if (_timeFilters.contains('today')) {
+      debugPrint(
+        'HOME_TODAY_VISIBLE filter=$filter timeFilters=$_timeFilters '
+        'ids=${result.map((task) => task.id).join(',')}',
+      );
+    }
     return switch (_homeSortMode) {
       'alphabetical' => taskListSortService.sortByTitle(result, descending: _homeSortDescending),
       'date' => taskListSortService.sortByDueDate(result, descending: _homeSortDescending),
@@ -2334,6 +2348,10 @@ class _HomePageState extends State<HomePage> {
       selected.clear();
       selectionMode = false;
     });
+    debugPrint(
+      'HOME_SELECT_STAT next=$nextFilter filter=$filter '
+      'timeFilters=$_timeFilters todayFocus=$_todayFocusOnly dueScope=$_dueScope',
+    );
   }
 
   void _selectTodayFocus() {

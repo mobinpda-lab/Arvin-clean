@@ -333,6 +333,14 @@ void main() {
       DateTime(calendarDueDate.year, calendarDueDate.month, calendarDueDate.day),
       DateTime(today.year, today.month, today.day),
     );
+    expect(
+      storedTasks.singleWhere((task) => task.id == 'calendar-today').completed,
+      isFalse,
+    );
+    expect(
+      storedTasks.singleWhere((task) => task.id == 'calendar-overdue').completed,
+      isFalse,
+    );
 
     // Exercise every store read performed by HomePage._load before mounting
     // the UI. This distinguishes a startup dependency failure from a filter
