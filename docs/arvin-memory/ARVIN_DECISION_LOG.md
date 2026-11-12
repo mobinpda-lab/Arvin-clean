@@ -243,3 +243,17 @@ Both required exact-head gates for `ba2306cfc66ad982f8e8ab73b838a4a8d6ed6b55` ar
 **APPROVED / OWNER CONTROLLED:** Vazirmatn is the only official and default font of Arvin. VazirHarf is not an official/default application font and must not be retained as a fallback brand option. The only user choices are Vazirmatn (Official Default) and System Default (Optional User Preference). The System Default choice is not an alternative brand font. Any change to this decision requires Mobin's explicit written approval.
 
 This entry supersedes conflicting historical font decisions; earlier entries remain preserved as historical evidence and must not be deleted. Canonical technical contract: `docs/architecture/ARVIN_TYPOGRAPHY_CONTRACT.md`.
+
+
+## COMMAND 07-A.2.26 — exact-head checkpoint (2026-11-12)
+
+Product candidate SHA: `b78488c0347e1a97a7a25f56c914a48761d44a25` on `feature/command-07-a-sqlite-contract-remediation`; PR #3384 OPEN / DRAFT / UNMERGED (87 commits, 62 files at last observed refresh). This supersedes 318c9d for current product validation only.
+
+- Commit `b78488c0347e1a97a7a25f56c914a48761d44a25` corrected the PDF test's stale VazirHarf description/sample to Vazirmatn; assertions were preserved.
+- All five actual TTF OpenType name tables report Version 33.003. Source repository: `rastikerdar/vazirmatn`; bundled license: SIL OFL 1.1. Exact upstream commit/tag and source-to-binary reproducibility remain pending. SHA-256 values remain in typography contract §16.
+- Follow-up Persistence run `43219196583` is SUCCESS on this exact SHA. Both file-backed Repository Persistence and Alarm Overlay close/reopen diagnostic passed. The latter exercised Snooze, disposing the first overlay/SQLite connection, reopening the same file, loading the overlay again, tapping Complete and observing notification cancellation.
+- Build `43219196600`: PENDING, no jobs allocated at last poll. SQLite A-D five-cycle run `43219196466`: QUEUED. Device Smoke run `43219196537`: QUEUED. Production Loop `43219196556`: SUCCESS. Orchestrator `43219196378`: SUCCESS.
+- Existing schema tests cover Missing / explicit NULL / FALSE / TRUE metadata, retired-column absence, FK constraints and malformed-source migration preservation. The exact-head SQLite workflow is not yet complete; D01-D05 are not accepted as a whole. Snapshot A-D does not independently prove all triggers/indexes, backup/restore or forced interruption/recovery.
+- Earlier SHA results are historical and must not be promoted to this candidate SHA.
+
+Release remains NO-GO. No merge, release or deployment is authorized.
