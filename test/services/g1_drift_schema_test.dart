@@ -174,7 +174,7 @@ void main() {
 
   test('creates the complete G1 relational schema', () async {
     await G1DriftSchema.install(database);
-    expect(G1DriftSchema.version, 18);
+    expect(G1DriftSchema.version, 19);
 
     final tables = await database.runSelect(
       "SELECT name FROM sqlite_master "
@@ -635,6 +635,7 @@ void main() {
       {
         'followUpEnabled': false,
         'followUpDate': '2026-11-11T09:00:00.000',
+        'reminderDate': null,
       },
     );
     final migratedSchedules = await database.runSelect(
@@ -655,6 +656,7 @@ void main() {
     expect(repeatedMetadata['taskLevel'], {
       'followUpEnabled': true,
       'followUpDate': '2026-11-10T10:30:00.000',
+      'reminderDate': null,
     });
   });
 
