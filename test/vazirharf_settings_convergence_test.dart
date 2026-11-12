@@ -4,21 +4,21 @@ import 'package:arvin/theme/app_fonts.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('canonical app theme locks typography to bundled VazirHarf v34.003', () {
+  test('canonical app theme locks typography to bundled Vazirmatn', () {
     final mainSource = File('lib/main.dart').readAsStringSync();
     final settingsSource = File('lib/settings_page.dart').readAsStringSync();
     final pubspec = File('pubspec.yaml').readAsStringSync();
 
-    expect(AppFonts.vazirHarfFamily, 'VazirHarf');
+    expect(AppFonts.vazirmatnFamily, 'Vazirmatn');
     expect(mainSource, contains("import 'theme/app_fonts.dart';"));
-    expect(mainSource, contains('fontFamily: AppFonts.vazirHarfFamily'));
-    expect(mainSource, isNot(contains('Vazirmatn')));
+    expect(mainSource, contains('fontFamily: selectedFontFamily'));
+    expect(mainSource, isNot(contains('VazirHarf')));
     expect(settingsSource, contains("ValueKey('font-settings-entry')"));
     expect(settingsSource, contains("Text('اندازه متن')"));
-    expect(settingsSource, isNot(contains('font-option-')));
-    expect(settingsSource, isNot(contains('انتخاب فونت')));
-    expect(pubspec, contains('family: VazirHarf'));
-    expect(pubspec, contains('Vazirharf-UI-FD-Regular.ttf'));
+    expect(settingsSource, contains('font-preference-selector'));
+    expect(settingsSource, contains('system-default'));
+    expect(pubspec, contains('family: Vazirmatn'));
+    expect(pubspec, contains('Vazirmatn-Regular.ttf'));
   });
 
   test('portable settings retain one canonical font and ignore legacy selections', () {
@@ -30,14 +30,14 @@ void main() {
     final portableMethod = source.substring(start, end);
     expect(portableMethod, isNot(contains('fontFamily')));
     expect(source, contains("merged.remove('fontFamily')"));
-    expect(AppFonts.vazirHarfFamily, 'VazirHarf');
+    expect(AppFonts.vazirmatnFamily, 'Vazirmatn');
   });
 
-  test('release APK builds the canonical VazirHarf app entrypoint', () {
+  test('release APK builds the canonical Vazirmatn app entrypoint', () {
     final workflow = File('.github/workflows/build.yml').readAsStringSync();
 
     expect(workflow, contains(r'flutter build apk --${{ matrix.variant }} -t lib/main.dart'));
-    expect(workflow, contains('FONT_GATE=PASS_VAZIRHARF_V34_003_UI_FD_BUNDLED'));
+    expect(workflow, contains('FONT_GATE=PASS_VAZIRMATN_5_WEIGHTS_BUNDLED'));
     expect(workflow, isNot(contains('-t lib/main_iransans.dart')));
     expect(workflow, isNot(contains('IRANSANSX_FANUM_REGULAR_B64')));
     expect(workflow, isNot(contains('IRANSANSX_FANUM_BOLD_B64')));
