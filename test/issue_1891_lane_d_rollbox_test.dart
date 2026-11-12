@@ -51,7 +51,7 @@ void main() {
     // tree being enabled by the test binding.
     final tagSelector = find.byType(HomeFilterPill);
     expect(tagSelector, findsOneWidget);
-    expect(find.text('1 برچسب'), findsOneWidget);
+    expect(tester.widget<HomeFilterPill>(tagSelector).label, '1 برچسب');
     await tester.tap(tagSelector);
     await tester.pumpAndSettle();
     expect(find.text('انتخاب برچسب'), findsOneWidget);
