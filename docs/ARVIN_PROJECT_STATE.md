@@ -92,3 +92,20 @@ This section supersedes older live-status claims in this file where they conflic
 - SQLite Snapshot PASS is not D01-D05 acceptance. Build failure and queued Device Smoke remain unresolved.
 - Typography owner decision: Vazirmatn only. See canonical contract. Main has three registered weights/assets; Light 300 and SemiBold 600 are not yet present on main.
 - Merge and Release remain unauthorized; Release NO-GO.
+
+
+## COMMAND 07-A.2.25 — live continuation checkpoint (2026-11-12)
+
+Canonical typography authority: [`docs/architecture/ARVIN_TYPOGRAPHY_CONTRACT.md`](architecture/ARVIN_TYPOGRAPHY_CONTRACT.md). This section supersedes earlier status snapshots below only for the refs and evidence explicitly listed here; historical records remain intact.
+
+- Main HEAD remains `45e4202b03a434459e4c021a04efa7e8396359db`.
+- PR #3384 remains OPEN / DRAFT / UNMERGED. Branch `feature/command-07-a-sqlite-contract-remediation`; latest observed HEAD `2ac3580985a23e6ac5342d49c33343c8b4f01816`; 80 commits; 60 changed files; no merge/release/deployment.
+- PR #3388 remains OPEN / DRAFT / UNMERGED. Branch `docs/wave-0-canonical-governance`; latest observed HEAD `fe7e001ec93446d78ad327a03771c849dfd81a48` after recording candidate Vazirmatn asset checksums.
+- On PR #3384, exact-head fixes align Alarm Overlay and Calendar with the official Vazirmatn family and inherit the app-level font preference rather than forcing Vazirmatn locally. The Device Smoke scenario identifier was aligned from `smoke-reminder-vazirharf` to `smoke-reminder-vazirmatn` to match its contract test.
+- The prior e941054 build failed due unresolved `AppFonts.vazirHarfFamily` references in runtime/test sources; the related test shards and APK builds were blocked by compilation. The same run's narrow file-backed persistence test passed, while its Alarm Overlay close/reopen diagnostic did not compile.
+- New exact-head workflows for `2ac3580985a23e6ac5342d49c33343c8b4f01816`: Build `43217473284` PENDING; Device Smoke `43217473090` QUEUED; SQLite Snapshot `43217473138` QUEUED; Follow-up File Persistence `43217473064` QUEUED. These are not passes.
+- Ruleset `main-protection` is active but still requires zero approving reviews and `require_code_owner_review=false`; CODEOWNERS exists on the documentation PR branch, but effective owner-review enforcement remains NOT VERIFIED / NOT ENABLED.
+- Candidate Vazirmatn five-weight binary SHA-256 values are recorded in the canonical typography contract section 16. These are source-asset checksums, not APK packaging evidence.
+- SQLite Snapshot A-D run `43212724352` passed on older SHA `e94105443e7516ed38eda6feaaee125d92fabaf4`; its five-cycle evidence is historical to that SHA and cannot be promoted to the newer acceptance SHA.
+
+Release remains NO-GO. No artifact, PDF, device, or full SQLite acceptance is claimed for the current HEAD.
