@@ -326,9 +326,12 @@ void main() {
       'calendar-completed-overdue',
       'calendar-focus-future',
     ]));
+    final calendarDueDate = storedTasks
+        .singleWhere((task) => task.id == 'calendar-today')
+        .dueDate!;
     expect(
-      storedTasks.singleWhere((task) => task.id == 'calendar-today').dueDate,
-      isNotNull,
+      DateTime(calendarDueDate.year, calendarDueDate.month, calendarDueDate.day),
+      DateTime(today.year, today.month, today.day),
     );
 
     await tester.pumpWidget(const ArvinApp());
@@ -365,9 +368,12 @@ void main() {
       'time-today-done',
       'time-focus-future',
     ]));
+    final timeDueDate = storedTasks
+        .singleWhere((task) => task.id == 'time-today-open')
+        .dueDate!;
     expect(
-      storedTasks.singleWhere((task) => task.id == 'time-today-open').dueDate,
-      isNotNull,
+      DateTime(timeDueDate.year, timeDueDate.month, timeDueDate.day),
+      DateTime(today.year, today.month, today.day),
     );
 
     await tester.pumpWidget(const ArvinApp());
