@@ -75,7 +75,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('quick-capture-create-center')));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField).last, 'مرکز تازه');
+    await tester.enterText(find.byType(TextField, skipOffstage: false).last, 'مرکز تازه');
     await tester.tap(find.widgetWithText(FilledButton, 'افزودن').last);
     await tester.pumpAndSettle();
 
@@ -839,7 +839,7 @@ void main() {
     await tester.tap(find.text('دقیقه').last);
     await tester.pumpAndSettle();
 
-    final interval = find.byType(TextField).last;
+    final interval = find.byType(TextField, skipOffstage: false).last;
     await tester.enterText(interval, '5');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pump();
