@@ -605,8 +605,11 @@ void main() {
     expect(migratedTask.single['completed'], 1);
     // A pre-timestamp completed task stays unknown; migration must not invent a time.
     expect(migratedTask.single['completed_at'], isNull);
-    // Legacy source columns remain until field/relation parity and backup/restore acceptance authorize retirement.
-    expect(columns.map((row) => row['name']), containsAll(<String>['follow_up_enabled','follow_up_date','reminder_date']));
+    // Retired Task-level scheduling columns are removed only after their
+    // values have been preserved in the inert compatibility envelope.
+    expect(columns.map((row) => row['name']), isNot(contains('follow_up_enabled')));
+    expect(columns.map((row) => row['name']), isNot(contains('follow_up_date')));
+    expect(columns.map((row) => row['name']), isNot(contains('reminder_date')));
 
     final migratedPayloads = await database.runSelect(
       'SELECT id, legacy_payload_json FROM tasks '
@@ -624,6 +627,7 @@ void main() {
       {
         'followUpEnabled': true,
         'followUpDate': '2026-11-10T10:30:00.000',
+        'reminderDate': null,
       },
     );
     expect(

@@ -45,7 +45,6 @@ void main() {
     expect(task.lastFollowUp, isNull);
     expect(task.legacyFollowUpMetadata['taskLevel'], {
       'followUpDate': legacyDate,
-      'followUpEnabled': null,
     });
   });
 

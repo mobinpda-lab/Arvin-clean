@@ -666,6 +666,14 @@ class TaskStore {
       'isEnabled': (reminder['is_enabled'] as num?)?.toInt() != 0,
     }).toList(growable: false);
 
+    // Capture retired fields from the original JSON Follow-up list before
+    // the canonical SQL records replace that list below. Otherwise unknown
+    // per-record metadata is irretrievably hidden from the model decoder.
+    final legacyFollowUpMetadata = decodeLegacyFollowUpMetadata(envelope);
+    if (legacyFollowUpMetadata.isNotEmpty) {
+      envelope['legacyFollowUpMetadata'] = legacyFollowUpMetadata;
+    }
+
     final followUps = await executor.runSelect(
       'SELECT * FROM follow_up_records WHERE task_id = ? ORDER BY ordinal',
       <Object?>[row['id']],

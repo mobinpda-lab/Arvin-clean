@@ -9,7 +9,7 @@ import 'recurrence_sql_codec.dart';
 
 /// G1-DRIFT relational schema foundation.
 class G1DriftSchema implements QueryExecutorUser {
-  static const int version = 18;
+  static const int version = 19;
 
   static const List<String> _statements = <String>[
     '''CREATE TABLE IF NOT EXISTS tasks (
@@ -176,20 +176,29 @@ class G1DriftSchema implements QueryExecutorUser {
     }
 
     final taskColumns = await executor.runSelect("PRAGMA table_info('tasks')", const []);
-      if (!taskColumns.any((row) => row['name'] == 'storage_ordinal')) {
-        await executor.runCustom('ALTER TABLE tasks ADD COLUMN storage_ordinal INTEGER NOT NULL DEFAULT 0');
-      }
-      if (!taskColumns.any((row) => row['name'] == 'legacy_payload_json')) {
-        await executor.runCustom('ALTER TABLE tasks ADD COLUMN legacy_payload_json TEXT NULL');
-      }
-      if (!taskColumns.any((row) => row['name'] == 'recurrence_json')) {
-        await executor.runCustom('ALTER TABLE tasks ADD COLUMN recurrence_json TEXT NULL');
-      }
-      if (!taskColumns.any((row) => row['name'] == 'completed_at')) {
-        await executor.runCustom('ALTER TABLE tasks ADD COLUMN completed_at TEXT NULL');
-      }
-      if (!taskColumns.any((row) => row['name'] == 'is_favorite')) {
-        await executor.runCustom('ALTER TABLE tasks ADD COLUMN is_favorite INTEGER NOT NULL DEFAULT 0');
+      const taskColumnAdditions = <String, String>{
+        'storage_ordinal': 'INTEGER NOT NULL DEFAULT 0',
+        'description': "TEXT NOT NULL DEFAULT ''",
+        'created_at': 'TEXT NULL',
+        'updated_at': 'TEXT NULL',
+        'due_date': 'TEXT NULL',
+        'category': 'TEXT NULL',
+        'notebook_kind': 'TEXT NULL',
+        'priority': "TEXT NOT NULL DEFAULT 'medium'",
+        'archived': 'INTEGER NOT NULL DEFAULT 0',
+        'trashed': 'INTEGER NOT NULL DEFAULT 0',
+        'completed': 'INTEGER NOT NULL DEFAULT 0',
+        'completed_at': 'TEXT NULL',
+        'is_favorite': 'INTEGER NOT NULL DEFAULT 0',
+        'recurrence_json': 'TEXT NULL',
+        'legacy_payload_json': 'TEXT NULL',
+      };
+      for (final entry in taskColumnAdditions.entries) {
+        if (!taskColumns.any((row) => row['name'] == entry.key)) {
+          await executor.runCustom(
+            'ALTER TABLE tasks ADD COLUMN ${entry.key} ${entry.value}',
+          );
+        }
       }
       final legacyFollowUpTable = await _hasTable(executor, 'follow_ups');
       if (legacyFollowUpTable) {
@@ -229,6 +238,7 @@ class G1DriftSchema implements QueryExecutorUser {
       await migrateTaskPeople(executor);
       await _removeLegacyTaskReminderMarker(executor);
       await migrateCanonicalEntities(executor);
+      await _retireLegacyTaskColumns(executor);
       await OccurrenceSqlCodec.migrateLegacyEnvelopes(executor);
       await RecurrenceSqlCodec.migrateLegacyRules(executor);
       final directorySeed = await executor.runSelect(
@@ -439,6 +449,139 @@ class G1DriftSchema implements QueryExecutorUser {
     await executor.runCustom('DROP TABLE $retiredTable');
   }
 
+  /// Removes retired Task-level SQL columns after their values have been
+  /// copied into legacy_payload_json by migrateCanonicalEntities.
+  /// Rebuilds only the known canonical shape; unknown columns, custom indexes,
+  /// triggers, or outgoing foreign keys fail closed instead of being dropped.
+  static Future<void> _retireLegacyTaskColumns(QueryExecutor executor) async {
+    if (!await _hasTable(executor, 'tasks')) return;
+    const canonicalColumns = <String>[
+      'id', 'storage_ordinal', 'title', 'description', 'created_at',
+      'updated_at', 'due_date', 'category', 'notebook_kind', 'priority',
+      'archived', 'trashed', 'completed', 'completed_at', 'is_favorite',
+      'recurrence_json', 'legacy_payload_json',
+    ];
+    const retiredColumns = <String>{
+      'follow_up_enabled', 'follow_up_date', 'reminder_date',
+    };
+    final columnRows = await executor.runSelect(
+      "PRAGMA table_info('tasks')",
+      const [],
+    );
+    final columnNames = columnRows.map((row) => row['name'] as String).toSet();
+    if (!columnNames.any(retiredColumns.contains)) return;
+
+    final missing = canonicalColumns.where((name) => !columnNames.contains(name));
+    if (missing.isNotEmpty) {
+      throw StateError(
+        'Cannot safely retire legacy Task columns: missing canonical columns $missing.',
+      );
+    }
+    final unexpected = columnNames
+        .where((name) => !canonicalColumns.contains(name) && !retiredColumns.contains(name))
+        .toList()
+      ..sort();
+    if (unexpected.isNotEmpty) {
+      throw StateError(
+        'Cannot safely rebuild tasks: unrecognized columns $unexpected.',
+      );
+    }
+
+    final customIndexes = await executor.runSelect(
+      "SELECT name FROM sqlite_master WHERE type = 'index' "
+      "AND tbl_name = 'tasks' AND sql IS NOT NULL",
+      const [],
+    );
+    if (customIndexes.isNotEmpty) {
+      throw StateError(
+        'Cannot safely rebuild tasks with custom indexes: $customIndexes',
+      );
+    }
+    final triggers = await executor.runSelect(
+      "SELECT name FROM sqlite_master WHERE type = 'trigger' AND tbl_name = 'tasks'",
+      const [],
+    );
+    if (triggers.isNotEmpty) {
+      throw StateError('Cannot safely rebuild tasks with triggers: $triggers');
+    }
+    final outgoingForeignKeys = await executor.runSelect(
+      "PRAGMA foreign_key_list('tasks')",
+      const [],
+    );
+    if (outgoingForeignKeys.isNotEmpty) {
+      throw StateError(
+        'Cannot safely rebuild tasks with outgoing foreign keys: $outgoingForeignKeys',
+      );
+    }
+
+    const replacement = 'tasks__canonical_v19';
+    if (await _hasTable(executor, replacement)) {
+      throw StateError(
+        'Cannot safely rebuild tasks: temporary table $replacement already exists.',
+      );
+    }
+    final projection = canonicalColumns.join(', ');
+    final before = await executor.runSelect(
+      'SELECT $projection FROM tasks ORDER BY storage_ordinal, id',
+      const [],
+    );
+    await executor.runCustom('''
+      CREATE TABLE $replacement (
+        id TEXT NOT NULL PRIMARY KEY,
+        storage_ordinal INTEGER NOT NULL DEFAULT 0,
+        title TEXT NOT NULL,
+        description TEXT NOT NULL,
+        created_at TEXT NULL,
+        updated_at TEXT NULL,
+        due_date TEXT NULL,
+        category TEXT NULL,
+        notebook_kind TEXT NULL,
+        priority TEXT NOT NULL,
+        archived INTEGER NOT NULL,
+        trashed INTEGER NOT NULL,
+        completed INTEGER NOT NULL,
+        completed_at TEXT NULL,
+        is_favorite INTEGER NOT NULL DEFAULT 0,
+        recurrence_json TEXT NULL,
+        legacy_payload_json TEXT NULL
+      )
+    ''');
+    await executor.runCustom(
+      'INSERT INTO $replacement ($projection) '
+      'SELECT $projection FROM tasks ORDER BY storage_ordinal, id',
+    );
+    final after = await executor.runSelect(
+      'SELECT $projection FROM $replacement ORDER BY storage_ordinal, id',
+      const [],
+    );
+    if (before.length != after.length) {
+      throw StateError(
+        'Task schema rebuild row-count mismatch: before=${before.length}, after=${after.length}.',
+      );
+    }
+    for (var index = 0; index < before.length; index++) {
+      for (final column in canonicalColumns) {
+        if (before[index][column] != after[index][column]) {
+          throw StateError(
+            'Task schema rebuild changed row ${before[index]['id']} column $column.',
+          );
+        }
+      }
+    }
+
+    await executor.runCustom('DROP TABLE tasks');
+    await executor.runCustom('ALTER TABLE $replacement RENAME TO tasks');
+    final finalColumns = await executor.runSelect(
+      "PRAGMA table_info('tasks')",
+      const [],
+    );
+    final finalNames = finalColumns.map((row) => row['name'] as String).toSet();
+    if (retiredColumns.any(finalNames.contains) ||
+        canonicalColumns.any((name) => !finalNames.contains(name))) {
+      throw StateError('Task schema retirement verification failed: $finalNames');
+    }
+  }
+
   /// Moves old Follow-up scheduling and people storage into canonical
   /// independent tables, then retires the legacy tables. Safe to rerun.
   static Future<void> migrateCanonicalEntities(QueryExecutor executor) async {
@@ -614,7 +757,10 @@ class G1DriftSchema implements QueryExecutorUser {
           if (existingIndex < 0) {
             records.add(record);
           } else {
-            records[existingIndex] = record;
+            records[existingIndex] = <String, dynamic>{
+              ...records[existingIndex],
+              ...record,
+            };
           }
         }
         metadata['followUps'] = records;

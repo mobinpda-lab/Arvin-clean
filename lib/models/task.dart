@@ -41,7 +41,7 @@ bool _isDateOnlyStorageValue(Object? value) {
       int.tryParse(value.substring(8, 10)) != null;
 }
 
-Map<String, dynamic> _decodeLegacyFollowUpMetadata(
+Map<String, dynamic> decodeLegacyFollowUpMetadata(
   Map<String, dynamic> json,
 ) {
   final metadata = <String, dynamic>{};
@@ -678,7 +678,7 @@ class Task {
     }
 
     final loadedPeople = _decodePeople(json['people']);
-    final legacyFollowUpMetadata = _decodeLegacyFollowUpMetadata(json);
+    final legacyFollowUpMetadata = decodeLegacyFollowUpMetadata(json);
     final loadedTaskReminders = <TaskReminder>[];
     final rawTaskReminders = json['taskReminders'];
     if (rawTaskReminders is List) {
