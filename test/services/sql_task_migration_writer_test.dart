@@ -440,10 +440,22 @@ void main() {
     database = NativeDatabase(databaseFile);
 
     const raw = '''
-      [{"id":"persist-task","title":"پیگیری قرارداد","futureTaskField":{"retain":true},"followUps":[
-        {"id":"history-1","dateTime":"2026-09-21T10:00:00.000Z","title":"تماس اول","note":"شرح اول","result":"منتظر پاسخ","completed":true,"waitingForResponse":true,"personIds":["person-1","person-2"],"futureFollowUpField":{"retain":true}},
-        {"id":"history-2","dateTime":"2026-09-22T11:30:00.000Z","title":"تماس دوم","note":"شرح دوم","result":"پاسخ دریافت شد","completed":false,"waitingForResponse":false,"personIds":["person-3"]}
-      ]}]
+      [{
+        "id":"persist-task",
+        "title":"پیگیری قرارداد",
+        "futureTaskField":{"retain":true},
+        "followUpEnabled":false,
+        "followUpDate":null,
+        "reminderDate":null,
+        "taskReminders":[
+          {"id":"reminder-1","title":"یادآور اول","date":"2026-10-01T08:00:00.000Z","sequence":1,"isEnabled":false},
+          {"id":"reminder-2","title":"یادآور دوم","date":"2026-10-02T08:00:00.000Z","sequence":2,"isEnabled":true}
+        ],
+        "followUps":[
+          {"id":"history-1","dateTime":"2026-09-21T10:00:00.000Z","title":"تماس اول","note":"شرح اول","result":"منتظر پاسخ","completed":true,"waitingForResponse":true,"personIds":["person-1","person-2"],"futureFollowUpField":{"retain":true}},
+          {"id":"history-2","dateTime":"2026-09-22T11:30:00.000Z","title":"تماس دوم","note":"شرح دوم","result":"پاسخ دریافت شد","completed":false,"waitingForResponse":false,"personIds":["person-3"]}
+        ]
+      }]
     ''';
     final preferences = await SharedPreferences.getInstance();
     await preferences.setString('arvin.tasks', raw);
@@ -455,35 +467,64 @@ void main() {
     await database.close();
 
     database = NativeDatabase(databaseFile);
-    final reopenedTasks = await TaskStore(executor: database).load();
-    expect(reopenedTasks, hasLength(1));
-    final history = reopenedTasks.single.followUps;
-    expect(history, hasLength(2));
-    expect(history.map((item) => item.id), ['history-1', 'history-2']);
-    expect(history.map((item) => item.dateTime), [
-      DateTime.parse('2026-09-21T10:00:00.000Z'),
-      DateTime.parse('2026-09-22T11:30:00.000Z'),
-    ]);
-    expect(history.map((item) => item.title), ['تماس اول', 'تماس دوم']);
-    expect(history.map((item) => item.note), ['شرح اول', 'شرح دوم']);
-    expect(history.map((item) => item.result), ['منتظر پاسخ', 'پاسخ دریافت شد']);
-    expect(history.map((item) => item.completed), [true, false]);
-    expect(history.map((item) => item.waitingForResponse), [true, false]);
-    expect(history.map((item) => item.personIds), [
-      ['person-1', 'person-2'],
-      ['person-3'],
-    ]);
-    final legacyMetadata = reopenedTasks.single.legacyFollowUpMetadata;
-    expect(legacyMetadata['unknownFields'], {
-      'futureTaskField': {'retain': true},
-    });
-    final legacyFollowUps = legacyMetadata['followUps'] as List;
-    expect(
-      legacyFollowUps.whereType<Map>().any(
-        (item) => item['futureFollowUpField'] == {'retain': true},
-      ),
-      isTrue,
-    );
+    var store = TaskStore(executor: database);
+
+    void verifyRoundTrip(List<Task> tasks) {
+      expect(tasks, hasLength(1));
+      final task = tasks.single;
+      final history = task.followUps;
+      expect(history, hasLength(2));
+      expect(history.map((item) => item.id), ['history-1', 'history-2']);
+      expect(history.map((item) => item.dateTime), [
+        DateTime.parse('2026-09-21T10:00:00.000Z'),
+        DateTime.parse('2026-09-22T11:30:00.000Z'),
+      ]);
+      expect(history.map((item) => item.title), ['تماس اول', 'تماس دوم']);
+      expect(history.map((item) => item.note), ['شرح اول', 'شرح دوم']);
+      expect(history.map((item) => item.result), ['منتظر پاسخ', 'پاسخ دریافت شد']);
+      expect(history.map((item) => item.completed), [true, false]);
+      expect(history.map((item) => item.waitingForResponse), [true, false]);
+      expect(history.map((item) => item.personIds), [
+        ['person-1', 'person-2'],
+        ['person-3'],
+      ]);
+      expect(task.taskReminders.map((item) => item.id), [
+        'reminder-1',
+        'reminder-2',
+      ]);
+      expect(task.taskReminders.map((item) => item.sequence), [1, 2]);
+      expect(task.taskReminders.map((item) => item.isEnabled), [false, true]);
+      expect(task.legacyFollowUpMetadata['taskLevel'], {
+        'followUpEnabled': false,
+        'followUpDate': null,
+        'reminderDate': null,
+      });
+      final legacyMetadata = task.legacyFollowUpMetadata;
+      expect(legacyMetadata['unknownFields'], {
+        'futureTaskField': {'retain': true},
+      });
+      final legacyFollowUps = legacyMetadata['followUps'] as List;
+      expect(
+        legacyFollowUps.whereType<Map>().any(
+          (item) => item['futureFollowUpField'] == {'retain': true},
+        ),
+        isTrue,
+      );
+    }
+
+    var reopenedTasks = await store.load();
+    verifyRoundTrip(reopenedTasks);
+    // Five independent save -> close -> reopen -> load cycles. Every cycle
+    // validates Follow-up IDs/order/person links, Reminder identity/order and
+    // the opaque Missing/NULL/boolean and future-field compatibility payload.
+    for (var cycle = 1; cycle <= 5; cycle++) {
+      await store.save(reopenedTasks);
+      await database.close();
+      database = NativeDatabase(databaseFile);
+      store = TaskStore(executor: database);
+      reopenedTasks = await store.load();
+      verifyRoundTrip(reopenedTasks);
+    }
 
     await database.close();
     database = NativeDatabase.memory();
