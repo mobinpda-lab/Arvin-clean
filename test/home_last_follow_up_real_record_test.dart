@@ -39,16 +39,37 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('فقط داده قدیمی'), findsOneWidget);
-    expect(find.text('سابقه واقعی'), findsOneWidget);
+    final homeTaskScrollable = find.descendant(
+      of: find.byKey(const ValueKey('home-task-list-viewport')),
+      matching: find.byType(Scrollable),
+    ).first;
+    final legacyTitle = find.text('فقط داده قدیمی');
+    await tester.scrollUntilVisible(
+      legacyTitle,
+      180,
+      scrollable: homeTaskScrollable,
+    );
+    expect(legacyTitle, findsOneWidget);
+
+    final realTitle = find.text('سابقه واقعی');
+    await tester.scrollUntilVisible(
+      realTitle,
+      180,
+      scrollable: homeTaskScrollable,
+    );
+    expect(realTitle, findsOneWidget);
     expect(find.textContaining('آخرین پیگیری:'), findsOneWidget);
 
     final persisted = await TaskStore().load();
     final legacyTask = persisted.singleWhere((task) => task.id == 'legacy-only');
     final realTask = persisted.singleWhere((task) => task.id == 'real-history');
     expect(legacyTask.followUps, isEmpty);
-    expect(legacyTask.followUpDate, legacyDate);
-    expect(legacyTask.followUpEnabled, isTrue);
+    expect(legacyTask.followUpDate, isNull);
+    expect(legacyTask.followUpEnabled, isFalse);
+    final legacyTaskLevel = Map<String, dynamic>.from(
+      legacyTask.legacyFollowUpMetadata['taskLevel'] as Map,
+    );
+    expect(legacyTaskLevel['followUpDate'], legacyDate.toIso8601String());
     expect(realTask.followUps, hasLength(1));
     expect(realTask.followUps.single.id, 'real-followup');
     expect(realTask.followUps.single.dateTime, realDate);
