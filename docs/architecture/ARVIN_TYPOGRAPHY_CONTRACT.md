@@ -363,7 +363,7 @@ The five source TTF SHA-256 values below were emitted by the exact-head APK font
 |---|---:|---:|---|---|---|
 | Debug | `131251173696` | `13953344600` | `c3844157fdc84e3c731bec9881f4a5ce3b8c63455962dcde5d07955145b16bd8` | `41924a4be7470bb425d19baa76bb6781f9b3dbebbd9e31bc3716073adeacb16a` | PASS |
 | Release | `131251173744` | `13956310335` | `f68610edd91855f4bf80577c5c9710c248fc3395f681417f47198541ffa5c8df` | `eb3b681fa1e7030eeb6a09ef74c1aacb7527f1170cdafa76f1d94e289a2d16c3` | PASS |
-| Staging | `131251173638` | Not available | Not available | Not available | QUEUED at last exact-head check |
+| Staging | `131251173638` | `13957987267` | `d380b5f028799fa3f3c7fafd5e80c79d56b1c1a151036ea8073c6e7ee35258f8` | `b61bc476b29c5a862c007c493729f9b7d74f394a995fb8edd09981b27869b875` | PASS |
 
 The extracted Debug and Release APKs each contain the five Vazirmatn weights and `LICENSE.txt`; no VazirHarf runtime asset was found in either APK. The build audit reported the pinned upstream provenance, SIL OFL 1.1, centralized family declaration and legacy-font purge as PASS. The Staging result is not inferred from Debug or Release.
 
@@ -376,3 +376,7 @@ The extracted Debug and Release APKs each contain the five Vazirmatn weights and
 - Extracted text and the rendered PNG were independently inspected: connected Persian glyphs, RTL alignment, ZWNJ, Persian/Latin digits, Jalali date and mixed Persian/English text are readable in the sample.
 
 **Scope boundary:** These results belong only to `46f7b28...`. The current product PR head has advanced to `492a5c433ee215d0188a6075b159d4d72329d35e`; the timeline fix and every dependent font/APK/PDF gate require new exact-head results. No result transfers to the newer SHA. The old incorrect §16 SHA-256 values were: Light `c33eb953...`, Regular `447d349f...`, Medium `fcb0a3b0...`, SemiBold `f50b7587...`, Bold `dad307bf...`; they are superseded and must not be reused.
+
+### Staging completion correction — COMMAND 07-A.2.30
+
+The earlier note that Staging was queued was an interim observation. The staging job `131251173638` subsequently completed successfully on the same exact candidate SHA `46f7b28e6631310b4617da5e717565470f7ecdbe`. Staging APK artifact ID `13957987267` has ZIP SHA-256 `d380b5f028799fa3f3c7fafd5e80c79d56b1c1a151036ea8073c6e7ee35258f8`; extracted `app-staging.apk` is 80,373,632 bytes with SHA-256 `b61bc476b29c5a862c007c493729f9b7d74f394a995fb8edd09981b27869b875`. Its five embedded Vazirmatn SHA-256 values match the corrected §16 values exactly, and the workflow reported `FONT_PROVENANCE=PASS`, `APK_FONT_CONTENT=PASS`, `FONT_LEGACY_PURGE=PASS`, `FONT_LICENSE=PASS_OFL_1_1` and `FONT_GATE=PASS_VAZIRMATN_5_WEIGHTS_BUNDLED`. This staging evidence remains scoped to `46f7b28...` and does not validate the newer `492a5c4...` candidate.
