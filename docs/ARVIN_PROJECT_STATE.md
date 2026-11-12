@@ -193,3 +193,21 @@ Exact-head workflows at last observation:
 - Device Smoke Run `43224398160`: QUEUED.
 
 The prior exact-head Snapshot and Follow-up successes on `a6d2d58...` remain historical. No D01-D05 acceptance is claimed for `551ecdc...` until the new diagnostic and full test suite pass.
+
+
+## COMMAND 07-A.2.28.3 — PDF and font-integrity candidate (2026-11-12)
+
+Current product candidate: `75737f4fb95b4357e8b6e0511ee2443c6aa5aff4`, PR #3384 OPEN / DRAFT / UNMERGED.
+
+New changes since `551ecdc...`:
+- Commit `cb0b2c1b0a29cd6ac022e9bbc68701b96068e1b0`: PDF test builds a Persian acceptance sample with ZWNJ, Jalali date, Persian/English numerals and mixed text; checks FontFile2, FontDescriptor, ToUnicode and Vazirmatn markers; CI runs Poppler font inspection, text extraction and PNG rendering.
+- Commit `75737f4fb95b4357e8b6e0511ee2443c6aa5aff4`: APK Font Packaging Audit compares each TTF Git blob with the pinned upstream commit and logs actual byte size and SHA-256.
+
+Exact-head runs at last observation:
+- Build `43224808961`: PENDING, no jobs allocated.
+- SQLite Snapshot `43224809374`: QUEUED.
+- Follow-up Persistence `43224808860`: QUEUED.
+- Device Smoke `43224808776`: QUEUED; preparation job not yet run.
+- Draft Review APK `43224808804`: SKIPPED; no APK artifact.
+
+The expanded D01 schema catalog, D04 file-based restore and D05 recovery tests are present but have not executed on this candidate. The PDF checks and SHA-256 reporting are also pending. Earlier SQLite passes on `a6d2d58...` remain historical.
