@@ -794,6 +794,25 @@ void main() {
       const [],
     );
     expect(canonicalTables, isEmpty);
+
+    // Repair the retained source row and retry on the same executor. The
+    // failed install must have rolled back every canonical write and reset
+    // its per-executor installation guard so recovery can proceed safely.
+    await database.runUpdate(
+      'UPDATE task_people SET person_json = ? WHERE person_id = ?',
+      const ['{"displayName":"مخاطب بازیابی"}', 'broken-person'],
+    );
+    await G1DriftSchema.install(database);
+    final recoveredPerson = await database.runSelect(
+      'SELECT id, name FROM persons WHERE id = ?',
+      const ['broken-person'],
+    );
+    expect(recoveredPerson, hasLength(1));
+    expect(recoveredPerson.single['name'], 'مخاطب بازیابی');
+    expect(
+      await database.runSelect('PRAGMA foreign_key_check', const []),
+      isEmpty,
+    );
   });
 
 }
