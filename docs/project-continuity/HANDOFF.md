@@ -523,3 +523,21 @@ Re-fetch the final PR #3340 HEAD and validate the docs-only diff and internal li
 - Documentation reconciliation commits: `fe85e64199cfdb468228830ecfff3bcf3d8bea5c` and `cd1d52e752ac10c0040738f655d5a288d2523399`.
 - The commit containing this handoff advances PR #3340; always re-fetch the live PR head after this commit.
 - Next action: validate the final tree and present PR #3340 for Mobin's review. No merge.
+
+
+
+---
+
+## COMMAND 07-A.2.33 — live continuity addendum (2026-11-12)
+
+## First actions for the next execution pass
+1. Re-read live refs and verify execution branch HEAD is still `eea746dbf2a58cd4f04c66a149ae3441264da5b2`; do not assume this SHA remains current.
+2. Poll Build run `43269800292`, Device Smoke `43269800280`, SQLite Snapshot `43269800257` and Follow-up Persistence `43269800526`; verify every job's actual checkout SHA.
+3. Confirm the malformed `task_people` payload test now reaches the expected `FormatException`, preserves source rows, rolls back canonical writes, allows repair/retry and leaves `PRAGMA foreign_key_check` empty.
+4. Review the remaining 60 old-candidate failure records independently. Their status is UNRESOLVED until root cause, source location and retest evidence are documented.
+5. Complete D01–D05 independently, including real Backup/Restore and injected interruption/recovery. Do not use the A–D snapshot or five reopen cycles as a substitute for D05.
+6. Complete the Home clock injection contract and the seven Device Smoke lanes on one exact SHA.
+7. Reconcile #3388's parallel documentation package with REV9 on #3340. Keep one canonical source per domain; do not merge either PR without explicit owner authorization.
+8. Preserve all historical branches, PRs, artifacts and test assertions. No destructive cleanup, merge, release or deployment.
+
+Current typography owner decision (2026-11-12): Vazirmatn only; VazirHarf is not official; System Default is optional; preserve weights 300/400/500/600/700.
