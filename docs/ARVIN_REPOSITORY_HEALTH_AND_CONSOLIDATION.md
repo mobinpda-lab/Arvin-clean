@@ -240,3 +240,33 @@ No duplicate Repository/Service/Widget/Helper class was deleted in this pass. Fu
 ## 14. Final decision
 **NO-GO — NOT ACCEPTANCE READY.**  
 The fixture defect has an attempted but failed correction; new-candidate Build has three failed shards and Device Smoke remains queued, while SQLite Snapshot and Follow-up Persistence passed. D01–D05 are not all accepted; 60 prior failure records remain unresolved; real Backup/Restore, D05 interruption/recovery, Home clock, physical-device acceptance and production signing remain open. No merge, release or deployment is authorized.
+
+
+## 15. New-candidate failure records — SHA eea746d
+
+Build `43269800292` has not completed. At the latest poll, three shards had completed with failures: test-1 (202 passed / 1 failed), test-3 (155 passed / 9 failed), test-5 (189 passed / 10 failed). Debug APK succeeded; Analyze, test-0, test-2, test-4, Visual, Staging APK and Release APK were still queued. Device Smoke `43269800280` remained queued. The 20 observed failures below belong to candidate `eea746dbf2a58cd4f04c66a149ae3441264da5b2` and are separate from the 61 old-candidate records.
+
+| # | Shard | File | Test | Classification |
+|---:|---:|---|---|---|
+| 1 | 1 | `test/widgets/home_page_test.dart` | Home uses the five checkbox filters as combined filters and preserves time grouping | PRODUCTION DEFECT — shared nowProvider missing |
+| 2 | 3 | `test/quick_capture_dialog_test.dart` | Quick Add custom recurrence exposes every canonical time unit | UNRESOLVED |
+| 3 | 3 | `test/task_detail_master_screen_test.dart` | Smart visibility keeps an ordinary Task detail compact | UNRESOLVED |
+| 4 | 3 | `test/device_feedback_home_regression_test.dart` | normal-height Home keeps empty groups and floating add action | UNRESOLVED |
+| 5 | 3 | `test/task_editor_dialog_test.dart` | task editor recurrence uses RollBox and preserves interval | UNRESOLVED |
+| 6 | 3 | `test/home/home_filter_contract_test.dart` | Home task card expands in place with real FollowUp history and preserves details route | UNRESOLVED |
+| 7 | 3 | `test/widgets/home_page_test.dart` | RTL Move-to-Today does not dismiss and None is a no-op | UNRESOLVED |
+| 8 | 3 | `test/widgets/home_page_test.dart` | Home four filters stay in one RTL row without horizontal scrolling at phone widths and with keyboard | UNRESOLVED |
+| 9 | 3 | `test/widgets/home_page_test.dart` | Home Past time filter excludes today and prioritizes incomplete tasks | UNRESOLVED |
+| 10 | 3 | `test/follow_up_office_page_test.dart` | legacy Next Follow-up dates never create an automatic due filter | UNRESOLVED — pumpAndSettle timeout requires timing analysis |
+| 11 | 5 | `test/widgets/home_page_test.dart` | Focus Today is reachable from drawer More and global funnel with one result set | UNRESOLVED |
+| 12 | 5 | `test/quick_capture_dialog_test.dart` | timed-to-all-day clears a relative reminder and all-day-to-timed preserves custom reminder | UNRESOLVED |
+| 13 | 5 | `test/services/g1_drift_schema_test.dart` | malformed legacy task_people payload aborts migration without retiring source rows | TEST HARNESS DEFECT — incomplete fixture correction, no such table: tasks |
+| 14 | 5 | `test/widget_test.dart` | HomePage shows the empty-state message after loading | UNRESOLVED |
+| 15 | 5 | `test/task_editor_dialog_test.dart` | Task Editor cancelling the circular clock does not commit a partial date | UNRESOLVED |
+| 16 | 5 | `test/follow_up_office_page_test.dart` | asks the user to create a task when the list is empty | UNRESOLVED — pumpAndSettle timeout requires timing analysis |
+| 17 | 5 | `test/task_detail_master_screen_test.dart` | Task Details does not present related people as assignees and keeps bottom content clear | UNRESOLVED |
+| 18 | 5 | `test/notebook_page_test.dart` | Notebook selectors use canonical Task taxonomy, including unused-by-Notebook entries | UNRESOLVED |
+| 19 | 5 | `test/canonical_calendar_launcher_test.dart` | repeat occurrence actions resolve back to the canonical Task | UNRESOLVED |
+| 20 | 5 | `test/report_center_page_test.dart` | Report Center quick presets apply from a dedicated bottom sheet | UNRESOLVED |
+
+Do not declare the new candidate's full failure count until every shard completes. The SQLite Snapshot and Follow-up Persistence passes do not override these Build failures.
