@@ -555,3 +555,15 @@ Current typography owner decision (2026-11-12): Vazirmatn only; VazirHarf is not
 5. Re-run affected tests and the full Build on the resulting new SHA. Then re-run Device Smoke and SQLite Snapshot on that same final candidate.
 6. Continue D01–D05, real Backup/Restore, D05 injected interruption/retry, Home clock injection and 55 unresolved regression records.
 7. Reconcile PR #3380/#3382/#3384 shared migration-writer test; reconcile PR #3388 documentation package with REV9 PR #3340. Preserve all PRs and history until owner review.
+
+
+
+---
+
+## Immediate P0/P1 correction — Home clock (2026-11-12)
+
+- Before the next full acceptance candidate, add one injectable `nowProvider` through `ArvinApp` and `HomePage`.
+- Replace the direct `DateTime.now()` in `_groupJalaliDate()` with the shared `_iranWallClockNow()` source; ensure both grouping and overdue checks use the exact same injected instant.
+- Add/adjust the deterministic test: now=09:00, due=10:00. Do not use current live time for a fixed-time assertion and do not weaken the group assertion.
+- Preserve the later owner-approved five Home filters in RTL order: Time, Center, Project, Category, Tag. Older four-filter wording is superseded.
+- The current candidate `eea746d...` is not accepted: Build test-1 failed; wait for the other jobs, then commit the clock correction and rerun full Build/Device Smoke/SQLite Snapshot on the new SHA.
