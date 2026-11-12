@@ -385,3 +385,7 @@ The earlier note that Staging was queued was an interim observation. The staging
 ### Staging signature verification and publishability
 
 The Staging verification artifact ID `13957842406` binds to source SHA `46f7b28...` and APK SHA-256 `b61bc476b29c5a862c007c493729f9b7d74f394a995fb8edd09981b27869b875`. `apksigner` verifies V2/V3 and reports one RSA-2048 signer; V1 is absent. The manifest confirms `android_debuggable=false`, but also explicitly sets `signing_key_class=EPHEMERAL_TEST_ONLY_NOT_PRODUCTION` and `publishable=false`. Therefore this Staging APK is valid for build verification only, not production distribution. The raw signer certificate digest is `cb57c0c635c87eec37d87e3bf23e0e8ae465b353c84e5ad0467984a8706f9cae`; the manifest's `signer_certificate_sha256=NOT_AVAILABLE` field is an evidence-generation gap.
+
+### Release APK signing boundary
+
+Release artifact `13956310335` built successfully and passed the Vazirmatn font packaging audit, but the extracted `app-release.apk` is unsigned: binary inspection found no APK Signing Block magic (`APK Sig Block 42`). Its SHA-256 is `eb3b681fa1e7030eeb6a09ef74c1aacb7527f1170cdafa76f1d94e289a2d16c3`. The Gradle configuration assigns production signing only when all protected production inputs are present. No production-signing proof exists for this run. Therefore this artifact is not a release deliverable; retain the existing NO RELEASE / NO DEPLOYMENT restriction.
