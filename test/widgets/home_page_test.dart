@@ -202,7 +202,8 @@ void main() {
           '[{"id":"match","title":"کار منطبق","category":"اتاق","tags":["نوزاد","تعویض"],"completed":false,"dueDate":"$isoToday"},{"id":"tomorrow","title":"کار فردا","category":"اتاق","tags":["نوزاد","تعویض"],"completed":false,"dueDate":"$isoTomorrow"},{"id":"other","title":"کار نامرتبط","category":"اداری","tags":["نوزاد"],"completed":false,"dueDate":"$isoToday"}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
+    final fixedNow = DateTime(today.year, today.month, today.day, 9);
+    await tester.pumpWidget(ArvinApp(nowProvider: () => fixedNow));
     await tester.pumpAndSettle();
 
 
