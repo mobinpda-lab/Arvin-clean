@@ -142,11 +142,20 @@ jobs:
           # Whitespace tokenization therefore places emb at $5 and uni at $7.
           awk 'NR > 2 && /Vazirmatn/ { count++; if ($5 != "yes" || $7 != "yes") bad=1 } END { if (count < 2 || bad) exit 1 }' "$evidence/pdffonts.txt"
           pdftotext -layout "$pdf" "$evidence/extracted-text.txt"
-          grep -Fq 'می‌خواهم' "$evidence/extracted-text.txt"
-          grep -Fq '۱۴۰۵/۰۸/۲۱' "$evidence/extracted-text.txt"
-          # Poppler's bidi extraction emits this LTR date in visual order inside the RTL paragraph.
-          grep -Fq '12-11-2026' "$evidence/extracted-text.txt"
-          grep -Fq 'Example Ltd' "$evidence/extracted-text.txt"
+          # Preserve Poppler's raw glyph mapping and also normalize Arabic presentation
+          # forms to canonical Unicode before checking semantic text content.
+          python3 - <<'PY'
+          import pathlib
+          import unicodedata
+          source = pathlib.Path("build/arvin-command-07-a2/pdf/extracted-text.txt")
+          target = pathlib.Path("build/arvin-command-07-a2/pdf/extracted-text-normalized.txt")
+          target.write_text(unicodedata.normalize("NFKC", source.read_text(encoding="utf-8")), encoding="utf-8")
+          PY
+          grep -Fq 'می‌خواهم' "$evidence/extracted-text-normalized.txt"
+          grep -Fq '۱۴۰۵/۰۸/۲۱' "$evidence/extracted-text-normalized.txt"
+          # Poppler emits the LTR date in visual order inside the RTL paragraph.
+          grep -Fq '12-11-2026' "$evidence/extracted-text-normalized.txt"
+          grep -Fq 'Example Ltd' "$evidence/extracted-text-normalized.txt"
           pdftoppm -png -r 144 -f 1 -singlefile "$pdf" "$evidence/vazirmatn-persian-preview"
           sha256sum "$pdf" | tee "$evidence/pdf.sha256"
           echo "PDF_FONT_EMBEDDING=PASS"
