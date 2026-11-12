@@ -642,8 +642,14 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('افزودن مرحله جدید'), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-latest-followup')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-timeline')), findsOneWidget);
+    final latestFollowUp = find.byKey(const ValueKey('task-detail-latest-followup'));
+    await _scrollTaskDetailUntilVisible(tester, latestFollowUp, 240);
+    await tester.pumpAndSettle();
+    expect(latestFollowUp, findsOneWidget);
+    final timeline = find.byKey(const ValueKey('task-detail-timeline'));
+    await _scrollTaskDetailUntilVisible(tester, timeline, 240);
+    await tester.pumpAndSettle();
+    expect(timeline, findsOneWidget);
   });
 
   testWidgets('Task Details converts a Task to a persisted template without mutating source', (tester) async {
@@ -776,7 +782,7 @@ void main() {
     expect(find.byKey(const ValueKey('task-detail-metadata-project')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-metadata-category')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-metadata-tags')), findsOneWidget);
-    expect(find.text('مشخصات کار'), findsOneWidget);
+    expect(find.text('مشخصات کار'), findsNothing);
     // These controls belong to the summary card; assert them before lazy-list scrolling.
     expect(find.byKey(const ValueKey('task-detail-status-menu')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-priority-menu')), findsOneWidget);
