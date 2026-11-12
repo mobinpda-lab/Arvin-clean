@@ -287,7 +287,6 @@ class _CalendarPageState extends State<CalendarPage> {
               TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                fontFamily: AppFonts.vazirmatnFamily,
               ),
             ),
           ),
