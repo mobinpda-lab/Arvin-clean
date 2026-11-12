@@ -30,7 +30,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final projectPill = find.text('پروژه');
+    final projectPill = find.byKey(const ValueKey('quick-capture-project-rollbox'));
     await tester.ensureVisible(projectPill);
     await tester.tap(projectPill);
     await tester.pumpAndSettle();
