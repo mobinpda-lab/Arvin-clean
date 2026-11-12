@@ -682,6 +682,8 @@ void main() {
   });
 
   testWidgets('Home Past time filter excludes today and prioritizes incomplete tasks', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1200));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
     final now = IranClock.now();
     String due(int daysAgo, int hour) => DateTime(
       now.year,
@@ -698,7 +700,7 @@ void main() {
           '{"id":"today","title":"موعد امروز","completed":false,"dueDate":"${DateTime(now.year, now.month, now.day, 8).toIso8601String()}"}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpWidget(ArvinApp(nowProvider: () => DateTime(now.year, now.month, now.day, 9)));
     await tester.pumpAndSettle();
     final timeChip = find.byKey(const ValueKey('home-filter-card-time'));
     await tester.ensureVisible(timeChip);
