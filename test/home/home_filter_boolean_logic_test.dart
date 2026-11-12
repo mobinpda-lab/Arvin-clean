@@ -3,8 +3,24 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:arvin/main.dart';
+import 'package:arvin/services/task_store.dart';
+import 'package:arvin/services/project_store.dart';
+import 'package:arvin/services/center_store.dart';
 
 void main() {
+  setUp(() async {
+    await TaskStore.resetTestDatabase();
+    await ProjectStore.resetTestDatabase();
+    await CenterStore.resetTestDatabase();
+    SharedPreferences.setMockInitialValues({});
+  });
+
+  tearDown(() async {
+    await TaskStore.resetTestDatabase();
+    await ProjectStore.resetTestDatabase();
+    await CenterStore.resetTestDatabase();
+  });
+
   testWidgets('Home filters combine OR within each dimension and AND across dimensions', (tester) async {
     final today = DateTime(2026, 11, 5, 10);
     final due = today.toIso8601String();
@@ -21,7 +37,7 @@ void main() {
 ''',
     });
 
-    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpWidget(ArvinApp(nowProvider: () => DateTime(2026, 11, 5, 9)));
     await tester.pumpAndSettle();
 
     final categoryFilter = find.byKey(const ValueKey('home-filter-card-category'));
