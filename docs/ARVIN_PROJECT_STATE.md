@@ -473,3 +473,15 @@ Build run `43247842294`, job `131289156604`, completed FAIL with 11 records. Exa
 11. `home_today_about_test.dart` — Today menu action shows only active canonical tasks due today.
 
 Shard 0 and Shard 2 together account for the current 32 failure records on `492a5c4...`; Shards 1, 3, 4 and 5 remain queued. This inventory is current-candidate evidence and is distinct from the original 22 historical failures.
+
+---
+
+## COMMAND 07-A.2.33 — authority and live execution reconciliation (2026-11-12)
+
+- Repository health and consolidation report: [ARVIN_REPOSITORY_HEALTH_AND_CONSOLIDATION.md](ARVIN_REPOSITORY_HEALTH_AND_CONSOLIDATION.md).
+- The owner-authorized REV9 master and six canonical continuity documents are carried by PR #3340 on `docs/rev9-governance-continuity-2026-11-10`. PR #3340 is still unmerged; this is the current canonical documentation candidate for owner review, not a claim that Main already contains REV9.
+- This PR #3388's v49.0 operating-package references are a parallel historical governance line. Do not treat v49.0 and REV9 as simultaneous active authorities. Reconcile the conflict before any documentation merge.
+- Execution PR #3384 branch `feature/command-07-a-sqlite-contract-remediation` now has candidate `eea746dbf2a58cd4f04c66a149ae3441264da5b2`; previous candidate `492a5c4...` is historical after the new commit.
+- New-candidate Build `43269800292`, Device Smoke `43269800280` and SQLite Snapshot `43269800257` were queued/in progress at last poll; Follow-up Persistence `43269800526` passed. Recheck before claiming acceptance.
+- Current owner typography instruction (2026-11-12): Vazirmatn only; VazirHarf is not official; System Default is optional; preserve weights 300/400/500/600/700; Theme is the source of truth; validate PDF and APK packaging and persist user selection.
+- No merge, release, deployment, branch deletion or destructive cleanup is authorized.
