@@ -464,3 +464,13 @@ Do not promote a prior-candidate PASS to the new candidate. No release gate can 
 - Add an injectable `nowProvider` to the Home entry path and route both operations through the same Iran-local wall-clock value.
 - Acceptance test: injected current time 09:00, Task due time 10:00; Home grouping and due-state classification must both say upcoming/today, independent of CI system time.
 - New Build `43269800292` test-1 failed this contract (202 passed / 1 failed) on `eea746d...`. Status: INCOMPLETE / NOT ACCEPTED.
+
+
+
+---
+
+## G1 malformed-payload fixture correction — status update (2026-11-12)
+
+- First attempt `eea746d...` is INCOMPLETE: it inserts a parent row into `tasks` before the fixture creates that table; test-5 fails with `no such table: tasks`.
+- Next attempt must create the schema-compatible `tasks` table first, insert the parent, then add the malformed relation. Keep the actual Foreign Key and rollback assertions enabled.
+- D01 and D05 remain INCOMPLETE. Do not report Migration recovery as fixed until malformed-payload failure, source retention, FK check, repair/retry and same-executor reopen pass on one exact SHA.
