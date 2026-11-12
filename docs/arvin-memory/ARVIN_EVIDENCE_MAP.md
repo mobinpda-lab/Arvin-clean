@@ -690,3 +690,29 @@ Exact-head Analyze, regression, typography and Device Smoke results remain pendi
 ### APK font audit strengthened — exact candidate `0aa1645999e38e32506bf3d3c15f900865428f90`
 
 The APK packaging audit now extracts each of the five font entries directly from the built APK using `unzip -p`, computes SHA-256 over the embedded bytes, and compares that digest with the source font's SHA-256. A missing asset or content mismatch fails the job. This is stricter than archive-path presence alone. Debug, Staging and Release must each pass this check on the same final acceptance SHA; results are pending.
+
+## Exact-head SQLite Snapshot result — COMMAND 07-A.2.28
+
+**Tested product SHA:** `0aa1645999e38e32506bf3d3c15f900865428f90`  
+**Snapshot workflow:** `43232240309` — SUCCESS  
+**Job:** SQLite A-D snapshots (five real reopen cycles) — SUCCESS  
+**Artifact ID:** `13950118322`  
+**Artifact:** `arvin-command-07-a2-20-sqlite-snapshots-0aa1645999e38e32506bf3d3c15f900865428f90`  
+**Artifact ZIP SHA-256:** `0452e415dfe87b7a2b0ac797440fc5bdfd5f9998e91be44d8bd0214f0fb8d071`
+
+The downloaded JSON artifact was independently parsed:
+- A/B/C/D snapshots all contain one Task, two Reminder rows, two Follow-up records, three Follow-up-Person links and three Person records.
+- Five file-backed close/reopen cycles completed.
+- All four snapshots have an empty `foreign_key_check`; foreign-key enforcement reports enabled.
+- The three retired Task columns are absent.
+- 50 sqlite_master objects were captured: 28 indexes and zero triggers.
+- Declared Foreign Key definitions were captured for 14 tables.
+- Snapshot comparison reports A/B/C/D consistency for data, full schema catalog and FK definitions.
+
+This is a **PASS for the Snapshot A-D diagnostic only** on SHA `0aa164...`. It is not full D01 acceptance (fresh schema and all supported historical upgrades still require complete suite evidence), and it does not establish D02-D05 by itself.
+
+At the same candidate's last poll:
+- Follow-up File Persistence Run `43232240334`: IN_PROGRESS; repository persistence test executing, Alarm Overlay close/reopen step pending.
+- Device Smoke Run `43232240252`: QUEUED.
+- Build/Regression Run `43232240534`: PENDING; no jobs allocated yet.
+No result transfers to a later product SHA.
