@@ -178,7 +178,10 @@ class _CrashAwareRoot extends StatelessWidget {
 }
 
 class ArvinApp extends StatefulWidget {
-  const ArvinApp({super.key});
+  const ArvinApp({super.key, this.nowProvider});
+
+  /// Optional deterministic Iran wall-clock source for Home acceptance tests.
+  final DateTime Function()? nowProvider;
 
   @override
   State<ArvinApp> createState() => _ArvinAppState();
@@ -523,6 +526,7 @@ class _ArvinAppState extends State<ArvinApp> {
         child: HomePage(
           settings: settings,
           onSettingsChanged: _updateSettings,
+          nowProvider: widget.nowProvider,
         ),
       ),
     );
@@ -537,6 +541,7 @@ class HomePage extends StatefulWidget {
       usePersianDate: true,
       ),
     this.onSettingsChanged,
+    this.nowProvider,
     this.enableFirstRunGuide = false,
     this.backupManager,
     this.restoreStageHook,
@@ -544,6 +549,7 @@ class HomePage extends StatefulWidget {
 
   final AppSettings settings;
   final ValueChanged<AppSettings>? onSettingsChanged;
+  final DateTime Function()? nowProvider;
   final bool enableFirstRunGuide;
 
   /// Optional seam for exercising the existing Home restore flow in tests.
@@ -806,7 +812,7 @@ class _HomePageState extends State<HomePage> {
   /// Returns Iran's wall-clock components as a local DateTime so due-date
   /// comparisons remain correct even when the host OS/CI timezone is UTC.
   DateTime _iranWallClockNow() {
-    final iran = IranClock.now();
+    final iran = widget.nowProvider?.call() ?? IranClock.now();
     return DateTime(
       iran.year,
       iran.month,
@@ -1533,7 +1539,7 @@ class _HomePageState extends State<HomePage> {
   };
 
   String? _groupJalaliDate(String id, List<Task> items) {
-    final now = DateTime.now();
+    final now = _iranWallClockNow();
     final today = DateTime(now.year, now.month, now.day);
     DateTime? date = switch (id) {
       'today' => today,
