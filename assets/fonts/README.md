@@ -2,20 +2,20 @@
 
 ## Canonical public/default application font
 
-Arvin bundles **VazirHarf v34.003** from:
+Arvin's only official/default application font is **Vazirmatn**.
 
-- Repository: https://github.com/nadalaba/vazirharf
-- Pinned source commit: `3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8`
-- Variant: `misc/UI-Farsi-Digits/fonts/ttf` (UI-optimized TTF with Persian digits)
-- License: SIL Open Font License 1.1; the exact upstream `OFL.txt` is bundled beside the font assets.
-- Flutter family: `VazirHarf`
+- Upstream project: https://github.com/rastikerdar/vazirmatn
+- License: SIL Open Font License 1.1; the complete `LICENSE.txt` is bundled beside the font files.
+- Flutter family: `Vazirmatn`
+- Required local weights: Light 300, Regular 400, Medium 500, SemiBold 600, Bold 700.
+- Runtime and PDF rendering must use these locally bundled assets; network font loading is prohibited.
 
-The five registered weights are Light 300, Regular 400, Medium 500, SemiBold 600 and Bold 700. PDF rendering uses the same bundled Regular and Bold assets.
+The only optional user preference is **System Default**. It is an accessibility/platform choice, not an alternative Arvin brand font.
 
-## Legacy Vazirmatn assets
+## Historical VazirHarf assets
 
-The previous `assets/fonts/ui/vazirmatn/` files and their license are retained in the repository for historical/source audit. They are not declared by `pubspec.yaml`, are not loaded by application code, and must not be packaged in current APKs. Do not delete them without a separate compatibility review.
+VazirHarf is not the official or default font. Any retained VazirHarf files or provenance records are historical evidence only and must not be registered, loaded, or packaged as the active application font. Do not delete historical files without a separate compatibility and evidence review.
 
-## Licensed/private IRANSansX assets
+## Licensing
 
-This public repository intentionally does not contain proprietary IRANSansX binary files. For a licensed local/private build, keep the required license material and use the dedicated installation process. These files do not replace the canonical public/default VazirHarf family.
+Keep the full SIL OFL 1.1 license with the Vazirmatn assets. Verify the upstream source revision and SHA-256 checksums of all distributed binary files before final acceptance.
