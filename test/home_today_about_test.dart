@@ -47,10 +47,10 @@ void main() {
       ),
     ]);
 
-    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpWidget(ArvinApp(nowProvider: () => DateTime(now.year, now.month, now.day, 9)));
     await tester.pumpAndSettle();
     await openMore(tester);
-    await tester.tap(find.widgetWithText(ListTile, 'امروز'));
+    await tester.tap(find.widgetWithText(ListTile, 'امروز تقویمی'));
     await tester.pumpAndSettle();
 
     expect(find.text('کار امروز'), findsOneWidget);
@@ -62,7 +62,7 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
     await openMore(tester);
-    await tester.tap(find.widgetWithText(ListTile, 'امروز'));
+    await tester.tap(find.widgetWithText(ListTile, 'امروز تقویمی'));
     await tester.pumpAndSettle();
 
     expect(find.text('کاری برای امروز وجود ندارد'), findsOneWidget);
