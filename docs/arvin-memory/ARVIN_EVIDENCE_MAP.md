@@ -513,3 +513,21 @@ All evidence below is ref-specific. This documentation snapshot did not dispatch
 - No exact-SHA APK artifact digest, five-weight APK inspection, PDF font resource inspection, or device visual acceptance is established by this addendum.
 - Ruleset `main-protection` is active but currently has zero required approving reviews and `require_code_owner_review=false`; bypass actors list is empty and current user can bypass is `never`. CODEOWNERS has been added to the docs branch but effective enforcement is not yet enabled.
 - Historical evidence must not be transferred between SHAs.
+
+
+## COMMAND 07-A.2.25 — exact-ref evidence addendum (2026-11-12)
+
+Canonical typography contract: [`docs/architecture/ARVIN_TYPOGRAPHY_CONTRACT.md`](../architecture/ARVIN_TYPOGRAPHY_CONTRACT.md).
+
+| Ref / Run | Exact SHA | Result | Evidence boundary |
+|---|---|---|---|
+| PR #3384 latest observed head | `2ac3580985a23e6ac5342d49c33343c8b4f01816` | OPEN / DRAFT | 80 commits, 60 files; no merge |
+| Build `43217473284` | `2ac3580985a23e6ac5342d49c33343c8b4f01816` | PENDING | No test/build outcome yet |
+| Device Smoke `43217473090` | `2ac3580985a23e6ac5342d49c33343c8b4f01816` | QUEUED | Seven lanes not yet run |
+| SQLite Snapshot `43217473138` | `2ac3580985a23e6ac5342d49c33343c8b4f01816` | QUEUED | No new A-D result yet |
+| Follow-up File Persistence `43217473064` | `2ac3580985a23e6ac5342d49c33343c8b4f01816` | QUEUED | No new persistence result yet |
+| SQLite Snapshot `43212724352` | `e94105443e7516ed38eda6feaaee125d92fabaf4` | SUCCESS | A-D snapshot and five close/reopen cycles; not current-head evidence |
+| Build `43212724211` | `e94105443e7516ed38eda6feaaee125d92fabaf4` | FAILURE | Analyze and test compilation errors from stale VazirHarf identifiers; APK builds failed before font audit |
+| Follow-up File Persistence `43212724255` | `e94105443e7516ed38eda6feaaee125d92fabaf4` | FAILURE | File-backed repository test passed; Alarm Overlay diagnostic failed at compile time |
+
+Never transfer successful evidence from `e941054...` to `2ac358...`. The five-weight font SHA-256 inventory is in typography contract §16 and applies to candidate branch assets only. The active Ruleset still has zero required approvals and does not require CODEOWNER review.
