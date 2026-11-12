@@ -577,7 +577,7 @@ void main() {
   });
 
 
-  testWidgets('Home four filters stay in one RTL row without horizontal scrolling at phone widths and with keyboard',
+  testWidgets('Home five filters stay in one RTL row without horizontal scrolling at phone widths and with keyboard',
       (tester) async {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
