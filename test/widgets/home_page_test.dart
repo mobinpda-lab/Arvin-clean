@@ -36,13 +36,13 @@ void main() {
     expect(find.byType(TextField), findsOneWidget);
     for (final key in [
       'home-filter-card-time',
+      'home-filter-card-center',
       'home-filter-card-project',
       'home-filter-card-category',
       'home-filter-card-tags',
     ]) {
       expect(find.byKey(ValueKey(key)), findsOneWidget);
     }
-    expect(find.byKey(const ValueKey('home-filter-card-center')), findsNothing);
     expect(find.byIcon(Icons.add), findsOneWidget);
     expect(find.text('جستجو در کارها...'), findsOneWidget);
     expect(find.text('کارهای من'), findsNothing);
@@ -578,7 +578,7 @@ void main() {
   });
 
 
-  testWidgets('Home four filters stay in one RTL row without horizontal scrolling at phone widths and with keyboard',
+  testWidgets('Home five filters stay in one horizontally scrollable RTL row at phone widths and with keyboard',
       (tester) async {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -609,21 +609,37 @@ void main() {
         ),
         findsNothing,
       );
+      final horizontalScroll = find.descendant(
+        of: filterStrip,
+        matching: find.byKey(const ValueKey('home-filter-horizontal-scroll')),
+      );
+      expect(horizontalScroll, findsOneWidget);
       expect(
-        find.descendant(
-          of: filterStrip,
-          matching: find.byWidgetPredicate(
-            (widget) => widget is SingleChildScrollView &&
-                widget.scrollDirection == Axis.horizontal,
-          ),
-        ),
-        findsNothing,
+        tester.widget<SingleChildScrollView>(horizontalScroll).scrollDirection,
+        Axis.horizontal,
       );
       final controls = find.descendant(
         of: filterStrip,
         matching: find.byType(HomeFilterPill),
       );
-      expect(controls, findsNWidgets(4));
+      expect(controls, findsNWidgets(5));
+      final orderedKeys = [
+        'home-filter-card-time',
+        'home-filter-card-center',
+        'home-filter-card-project',
+        'home-filter-card-category',
+        'home-filter-card-tags',
+      ];
+      final xPositions = orderedKeys
+          .map((key) => tester.getCenter(find.byKey(ValueKey(key))).dx)
+          .toList();
+      for (var index = 0; index < xPositions.length - 1; index++) {
+        expect(
+          xPositions[index],
+          greaterThan(xPositions[index + 1]),
+          reason: 'Home filters must follow Time → Center → Project → Category → Tag in RTL order.',
+        );
+      }
       for (final control in controls.evaluate()) {
         final size = tester.getSize(find.byWidget(control.widget));
         expect(size.height, greaterThanOrEqualTo(48));
