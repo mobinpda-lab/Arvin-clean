@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 
 /// Isolated REV10 hierarchy candidate for file-backed migration tests.
@@ -120,11 +122,13 @@ class G1HierarchyCandidateSchema {
     await executor.runCustom('''
       CREATE TRIGGER IF NOT EXISTS rev10_projects_owner_change_guard
       BEFORE UPDATE OF center_id ON projects
-      WHEN NEW.center_id IS NOT OLD.center_id
+      WHEN OLD.center_id IS NOT NULL
+        AND NEW.center_id IS NOT OLD.center_id
         AND (
           EXISTS(SELECT 1 FROM project_items pi WHERE pi.project_id = OLD.id)
           OR EXISTS(SELECT 1 FROM categories c WHERE c.project_id = OLD.id)
           OR EXISTS(SELECT 1 FROM tasks t WHERE t.project_id = OLD.id)
+          OR EXISTS(SELECT 1 FROM template_task_applications a WHERE a.project_id = OLD.id)
         )
       BEGIN
         SELECT RAISE(ABORT, 'Project Center change requires explicit dependent migration');
@@ -174,6 +178,23 @@ class G1HierarchyCandidateSchema {
     ''');
   }
 
+  Future<void> _insertException(
+    QueryExecutor executor, {
+    required String key,
+    required String type,
+    required String id,
+    required String code,
+    required String evidence,
+    required String now,
+  }) async {
+    await executor.runInsert(
+      '''INSERT OR IGNORE INTO arvin_hierarchy_migration_exceptions
+         (exception_key, entity_type, entity_id, issue_code, source_evidence, detected_at)
+         VALUES (?, ?, ?, ?, ?, ?)''',
+      <Object?>[key, type, id, code, evidence, now],
+    );
+  }
+
   Future<void> _recordExceptions(QueryExecutor executor) async {
     final now = DateTime.now().toUtc().toIso8601String();
     await executor.runInsert(
@@ -211,6 +232,87 @@ class G1HierarchyCandidateSchema {
            (exception_key, entity_type, entity_id, issue_code, source_evidence, detected_at)
            VALUES (?, 'legacy_category', ?, 'CATEGORY_PROJECT_OWNER_UNKNOWN', ?, ?)''',
         <Object?>['legacy_category:$name:owner_unknown', name, name, now],
+      );
+    }
+
+    // Preserve and classify Task-side Center evidence stored in the legacy
+    // envelope. It must never silently override the Project's owner.
+    final linkedTasks = await executor.runSelect(
+      '''SELECT t.id, t.legacy_payload_json, p.id AS project_id, p.center_id AS project_center_id
+         FROM tasks t
+         JOIN project_items pi ON pi.task_id = t.id
+         JOIN projects p ON p.id = pi.project_id
+         GROUP BY t.id
+         HAVING COUNT(*) = 1''',
+      const [],
+    );
+    for (final row in linkedTasks) {
+      final taskId = row['id'] as String;
+      final raw = row['legacy_payload_json'];
+      if (raw is! String || raw.trim().isEmpty) continue;
+      try {
+        final decoded = jsonDecode(raw);
+        if (decoded is! Map) {
+          throw const FormatException('Task legacy payload is not an object');
+        }
+        final legacyCenter = decoded['centerId'];
+        if (legacyCenter is! String || legacyCenter.trim().isEmpty) continue;
+        final projectCenter = row['project_center_id'];
+        if (projectCenter is! String || projectCenter.isEmpty) {
+          await _insertException(
+            executor,
+            key: 'task:$taskId:project_owner_missing',
+            type: 'task',
+            id: taskId,
+            code: 'TASK_PROJECT_OWNER_MISSING',
+            evidence: 'legacy_center=$legacyCenter;project=${row['project_id']}',
+            now: now,
+          );
+        } else if (legacyCenter != projectCenter) {
+          await _insertException(
+            executor,
+            key: 'task:$taskId:center_project_conflict',
+            type: 'task',
+            id: taskId,
+            code: 'TASK_CENTER_PROJECT_CONFLICT',
+            evidence: 'legacy_center=$legacyCenter;project_center=$projectCenter;project=${row['project_id']}',
+            now: now,
+          );
+        }
+      } on FormatException {
+        await _insertException(
+          executor,
+          key: 'task:$taskId:legacy_payload_invalid',
+          type: 'task',
+          id: taskId,
+          code: 'TASK_LEGACY_PAYLOAD_INVALID',
+          evidence: raw,
+          now: now,
+        );
+      }
+    }
+
+    final categoryTasks = await executor.runSelect(
+      '''SELECT t.id, t.category, COUNT(pi.project_id) AS project_count,
+                group_concat(pi.project_id, ',') AS project_ids
+         FROM tasks t LEFT JOIN project_items pi ON pi.task_id = t.id
+         WHERE t.category IS NOT NULL AND TRIM(t.category) <> ''
+         GROUP BY t.id''',
+      const [],
+    );
+    for (final row in categoryTasks) {
+      final taskId = row['id'] as String;
+      final count = (row['project_count'] as num).toInt();
+      await _insertException(
+        executor,
+        key: 'task:$taskId:legacy_category_mapping',
+        type: 'task',
+        id: taskId,
+        code: count == 1
+            ? 'TASK_CATEGORY_CANONICAL_MAPPING_PENDING'
+            : 'TASK_CATEGORY_PROJECT_OWNER_UNKNOWN',
+        evidence: 'category=${row['category']};project_count=$count;projects=${row['project_ids']}',
+        now: now,
       );
     }
 
