@@ -664,6 +664,12 @@ void main() {
   });
 
   testWidgets('Report Center quick presets apply from a dedicated bottom sheet', (tester) async {
+    // Use a mobile viewport tall enough for the bottom-sheet controls; the
+    // default 800x600 test surface places the preset row below the hit-test area.
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(MaterialApp(
       home: ReportCenterPage(
         now: DateTime(2026, 11, 9, 10),
