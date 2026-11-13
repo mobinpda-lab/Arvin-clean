@@ -479,3 +479,32 @@ Implementation changes on PR #3384: corrected Alarm Overlay and Calendar font-fa
 Exact-head CI at `2ac3580985a23e6ac5342d49c33343c8b4f01816`: Build run `43217473284` PENDING; Device Smoke `43217473090` QUEUED; SQLite Snapshot `43217473138` QUEUED; Follow-up File Persistence `43217473064` IN_PROGRESS. No outcome is claimed. Older Snapshot run `43212724352` passed on `e94105443e7516ed38eda6feaaee125d92fabaf4` only and cannot be transferred to the current SHA.
 
 The active `main-protection` ruleset remains insufficient: zero required approvals and `require_code_owner_review=false`. CODEOWNERS is present on PR #3388 but effective enforcement is not yet enabled. Release remains NO-GO; no merge, release, deployment, data-destructive operation or history rewrite is authorized.
+
+
+## COMMAND 07-A.2.55 — LIVE RECOVERY CHECKPOINT (2026-11-13 17:42 Asia/Tehran)
+
+- Live Main HEAD: `45e4202b03a434459e4c021a04efa7e8396359db` (unchanged during this checkpoint).
+- Execution branch: `feature/command-07-a-sqlite-contract-remediation`.
+- PR #3384: OPEN / DRAFT / UNMERGED; base `fix/wave3-cycle3-calendar-product-repair` at `8c4c23f0c2a4f9b2374a2092c931782c4455fd41`.
+- Current code-only remediation commit: `32159f4f2ca13e78bcd2a383c5f384a1a4bd3905`; changed only `test/services/g1_hierarchy_candidate_schema_test.dart` to replace three string-concatenated file paths with interpolation after exact-SHA analyzer output identified three lint findings. Assertions and test semantics were unchanged. The new commit was re-fetched and confirmed; no workflow run or status was yet returned for this SHA, so the change is IMPLEMENTED, NOT RETESTED.
+- Main-to-candidate comparison is not a valid PR diff: PR #3384 is intentionally based on the separate Wave 3 repair branch. Exact PR-base comparison before the lint-only commit was 167 commits ahead / 0 behind; after it, 168 ahead / 0 behind. Do not retarget or merge as part of this checkpoint.
+
+### Exact-SHA CI evidence observed on predecessor candidate
+
+Candidate `e017eeadf85f3043fb3fdfbb456486fd8e07bc10`:
+- Run `43438369612`, SQLite A-D snapshots: SUCCESS; artifact `14044636632`, digest `sha256:025dcd3113669574f49c2605c228be55bcc61987e9c9c4b203c327a45c4c605b`.
+- Run `43438369355`, optional Task links / G1 hierarchy candidate: SUCCESS; artifact `14045530922`, digest `sha256:5a1e5030bfcf9494f79608cc86a798f1d42f4aa3eb4ff4734d9e89c551c7c45e`.
+- Build run `43438369432`: analyzer job failed with three info-level interpolation lints in the candidate-schema test; test shards reported 9, 7, 8 and 10 failures respectively (34 shard-reported failures; unique count not established). At observation, release APK was IN_PROGRESS and one test shard QUEUED. Device Smoke run `43438369594` was QUEUED. These are observations for `e017...`, not results for the new commit.
+- Failure log examples include Home filter/layout assertions, Task Details/Person UI expectations, calendar interactions, recurrence and reminder behavior. Each failure remains UNRESOLVED pending root-cause and current-contract review; no assertion was weakened.
+
+### Recovered source architecture facts (execution branch)
+
+- Production `G1DriftSchema.version` is 19. It remains an additive/idempotent installer, not a sequential migration ledger.
+- The production schema still has nullable `projects.center_id`; Categories remain global `taxonomy_categories(name)`; Task Center is in `legacy_payload_json`; Project membership is many-to-many through `project_items`; Task Category is legacy nullable text. These do not yet satisfy the approved Center → Project → Category → Task ownership/cardinality contract.
+- `G1HierarchyCandidateSchema` is isolated and explicitly not called by production startup. Its passing test workflow and file-backed test artifact validate only the candidate fixture/test scope, not production migration acceptance.
+- Existing source includes CenterStore/CenterManagementPage, ProjectStore, TaskStore, TagStore as a TaskStore facade, ProjectTemplateStore/ProjectTemplateService and TaskTemplateStore. A `task_template_service.dart` path was not present on this branch; broader history/consumer search is still required before classifying a TaskTemplateService as NOT FOUND.
+- The REV10 migration inventory's earlier inspected SHA `34f6fb1a42e5adb6255a1d56ce8c07ac7567ead2` is historical and must not be treated as current. Current checkpoint supersedes its live-state pointers only; its source findings remain useful pending re-audit.
+
+### Acceptance boundary
+
+D01–D05 remain NOT ACCEPTED. No production startup switch, destructive migration, Main write, merge, release, deployment, branch deletion or history rewrite occurred. Cross-Center reporting and complete Deep Clone acceptance remain unverified. Continue from the exact branch HEAD and re-run targeted analyzer/schema tests before any broader acceptance claim.
