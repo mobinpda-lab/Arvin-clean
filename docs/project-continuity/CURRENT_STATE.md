@@ -1538,3 +1538,21 @@ No PASS is recorded for this candidate. All historical evidence remains tied to 
 - Device Smoke: NOT ACCEPTED.
 - Merge / Release / Deployment: NOT AUTHORIZED.
 
+
+
+## REV10 WAVE 1 source audit addendum — 2026-11-13
+
+Inspected product SHA: `3f471e6b88764446eabd33752d0aa3d820f52628`.
+
+- G1 schema is version 19.
+- Task `centerId` is stored in `legacy_payload_json`, not a normalized SQL FK column.
+- Task has no direct Project/Category ID fields in the inspected model/schema.
+- `project_items` is many-to-many; it does not satisfy REV10 Task → Project 0..1 cardinality.
+- `taxonomy_categories` is a global name catalog without Project ownership.
+- `projects.center_id` is nullable; mandatory Project → Center ownership is not yet enforced.
+- Tags and Person have SQL relation tables, but the five-entity management UI and full lifecycle requirements remain incomplete.
+- The 07-A.2.47 optional-link test creates a miniature fixture schema, not the real G1 production schema.
+
+Detailed source/blob evidence and safe migration sequence: `audit/REV10_WAVE1_DATA_ARCHITECTURE_BASELINE_2026-11-13.md`.
+
+**Wave 1 status:** source audit for the listed files COMPLETE; target hierarchy NOT IMPLEMENTED; production migration NOT EXECUTED; user-data inventory UNKNOWN; D01–D05 NOT ACCEPTED.
