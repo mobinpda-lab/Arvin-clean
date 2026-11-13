@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:drift/native.dart';
+import 'package:arvin/services/g1_drift_schema.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const _taskGuard = '''
@@ -18,6 +19,10 @@ SELECT CASE WHEN NEW.center_id IS NOT NULL AND NEW.category_id IS NOT NULL
 
 Future<NativeDatabase> _open(File file, {bool install = false}) async {
   final db = NativeDatabase(file);
+  // NativeDatabase opens lazily; initialize the executor with the canonical
+  // schema owner before issuing direct SQL. Do not install the production
+  // schema here: this diagnostic intentionally creates its own minimal schema.
+  await db.ensureOpen(G1DriftSchema());
   await db.runCustom('PRAGMA foreign_keys = ON');
   expect((await db.runSelect('PRAGMA foreign_keys', const [])).single.values.single, 1);
   if (!install) return db;
