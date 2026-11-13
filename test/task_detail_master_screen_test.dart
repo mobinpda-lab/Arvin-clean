@@ -954,8 +954,8 @@ void main() {
       find.byKey(const ValueKey('task-detail-title')),
     );
     expect(summaryTitle.style?.color, Colors.white);
-    expect(summaryTitle.decoration.enabledBorder, isA<UnderlineInputBorder>());
-    expect(summaryTitle.decoration.focusedBorder, isA<UnderlineInputBorder>());
+    expect(summaryTitle.decoration?.enabledBorder, isA<UnderlineInputBorder>());
+    expect(summaryTitle.decoration?.focusedBorder, isA<UnderlineInputBorder>());
     final completeButton = tester.widget<FilledButton>(
       find.byKey(const ValueKey('task-detail-complete')),
     );
