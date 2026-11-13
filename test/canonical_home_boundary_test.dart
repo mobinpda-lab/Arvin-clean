@@ -8,7 +8,7 @@ void main() {
     expect(source, isNot(contains('_legacyViewOf')));
     expect(source, isNot(contains('_canonicalSnapshotOf')));
     expect(source, contains('List<Task> tasks = [];'));
-    expect(source, contains('final TaskStore taskStore = TaskStore();'));
+    expect(source, contains('late final TaskStore taskStore = widget.taskStore ?? TaskStore();'));
     expect(source, contains('await taskStore.save(snapshot);'));
     final save = source.substring(
       source.indexOf('Future<void> _save()'),
