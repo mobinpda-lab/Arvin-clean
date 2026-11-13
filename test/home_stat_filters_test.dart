@@ -8,6 +8,14 @@ import 'package:arvin/services/task_store.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/center_store.dart';
 
+Finder _filterSheetVerticalScrollable() => find.descendant(
+      of: find.byType(BottomSheet),
+      matching: find.byWidgetPredicate(
+        (widget) => widget is Scrollable &&
+            widget.axisDirection == AxisDirection.down,
+      ),
+    ).first;
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -168,7 +176,7 @@ void main() {
 
     expect(find.text('انتخاب‌شده: 0'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-time-filter-today-focus')), findsOneWidget);
-    final sheetScrollable = find.byType(Scrollable).at(1);
+    final sheetScrollable = _filterSheetVerticalScrollable();
     await tester.scrollUntilVisible(find.text('بازهٔ دلخواه'), 300, scrollable: sheetScrollable);
     final customRange = find.byKey(const ValueKey('home-time-filter-customRange'));
     expect(customRange, findsOneWidget);
@@ -202,7 +210,7 @@ void main() {
     expect(find.text('همه'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('multi-select-option-اداری')));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.text('شخصی'), 240, scrollable: find.byType(Scrollable).at(1));
+    await tester.scrollUntilVisible(find.text('شخصی'), 240, scrollable: _filterSheetVerticalScrollable());
     await tester.tap(find.byKey(const ValueKey('multi-select-option-شخصی')));
     await tester.pumpAndSettle();
     // Draft choices are not applied before the explicit confirmation.
@@ -234,9 +242,9 @@ void main() {
     await tester.ensureVisible(tagsChip);
     await tester.tap(tagsChip);
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.text('مهم'), 240, scrollable: find.byType(Scrollable).at(1));
+    await tester.scrollUntilVisible(find.text('مهم'), 240, scrollable: _filterSheetVerticalScrollable());
     await tester.tap(find.byKey(const ValueKey('multi-select-option-مهم')));
-    await tester.scrollUntilVisible(find.text('فوری'), 240, scrollable: find.byType(Scrollable).at(1));
+    await tester.scrollUntilVisible(find.text('فوری'), 240, scrollable: _filterSheetVerticalScrollable());
     await tester.tap(find.byKey(const ValueKey('multi-select-option-فوری')));
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
@@ -268,7 +276,13 @@ void main() {
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
     expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-time')), matching: find.text('2')), findsNothing);
-    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-time')), matching: find.text('زمان')), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('home-filter-card-time')),
+        matching: find.byIcon(Icons.schedule_rounded),
+      ),
+      findsOneWidget,
+    );
     expect(find.text('کار گذشته'), findsOneWidget);
     expect(find.text('کار امروز'), findsOneWidget);
     expect(find.text('کار فردا'), findsNothing);
