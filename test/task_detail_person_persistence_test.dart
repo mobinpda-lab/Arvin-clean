@@ -77,7 +77,7 @@ void main() {
     expect(reloaded.followUps.single.waitingForResponse, isTrue);
     expect(reloaded.followUps.single.personIds, contains(person.id));
     final assignee = find.byKey(const ValueKey('task-detail-assignee-card'));
-    await tester.ensureVisible(assignee);
+    await tester.scrollUntilVisible(assignee, 240, scrollable: detailScrollable);
     await tester.pumpAndSettle();
     expect(find.text('سارا احمدی'), findsOneWidget);
   });
