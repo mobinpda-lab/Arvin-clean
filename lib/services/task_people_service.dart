@@ -53,22 +53,7 @@ class TaskPeopleService {
       id: personId ?? _personIdFactory(),
       displayName: normalizedName,
     );
-    final updated = await _store.mutate<Task>((tasks) {
-      final index = _requiredTaskIndex(tasks, taskId);
-      final task = tasks[index];
-
-      if (task.people.any((existing) => existing.id == person.id)) {
-        throw StateError('Person already linked to Task: ${person.id}');
-      }
-
-      final updated = _withPeople(task, [...task.people, person]);
-      tasks[index] = updated;
-      return updated;
-    });
-    // Creating a Person from this explicit People action adds active directory
-    // membership; ordinary Task relation rewrites never do so.
-    await _store.mergePeopleDirectory([person]);
-    return updated;
+    return _store.addPersonToTask(taskId: taskId, person: person);
   }
 
   Future<Task> updatePerson({
