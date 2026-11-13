@@ -18,6 +18,8 @@ void main() {
       'title': 'تحویل قرارداد',
       'dueDate': DateTime(2026, 9, 11, 14, 45).toIso8601String(),
       'reminderDate': DateTime(2026, 9, 10, 9, 30).toIso8601String(),
+      'reminderAllDay': false,
+      'legacyCustomFlag': <String, dynamic>{'source': 'legacy-import-v1', 'enabled': false},
       'followUpEnabled': true,
       'followUpDate': DateTime(2026, 9, 12, 11).toIso8601String(),
       'tags': <String>['قرارداد'],
@@ -80,7 +82,21 @@ void main() {
     expect(result!.dueDate, DateTime(2026, 9, 11, 14, 45));
     expect(result!.reminderDate, DateTime(2026, 9, 10, 9, 30));
     expect(result!.taskReminders, hasLength(1));
-    expect(result!.taskReminders.single.isLegacyTaskReminder, isTrue);
+    final reminder = result!.taskReminders.single;
+    expect(reminder.id, migratedTaskReminderId('due-safe'));
+    expect(isMigratedTaskReminder(result!, reminder), isTrue);
+    expect(reminder.title, 'یادآوری: تحویل قرارداد');
+    expect(reminder.date, DateTime(2026, 9, 10, 9, 30));
+    expect(reminder.isAllDay, isFalse);
+    expect(reminder.sequence, 1);
+    expect(reminder.isEnabled, isTrue);
+    expect(reminder.toJson(), <String, dynamic>{
+      'id': migratedTaskReminderId('due-safe'),
+      'title': 'یادآوری: تحویل قرارداد',
+      'date': DateTime(2026, 9, 10, 9, 30).toIso8601String(),
+      'isAllDay': false,
+      'sequence': 1,
+    });
     expect(result!.legacyTaskReminderMigrationVersion, 1);
 
     final legacyTaskLevel =
@@ -88,6 +104,9 @@ void main() {
     expect(legacyTaskLevel['followUpDate'],
         DateTime(2026, 9, 12, 11).toIso8601String());
     expect(legacyTaskLevel['followUpEnabled'], isTrue);
+    expect(legacyTaskLevel['reminderAllDay'], isFalse);
+    final unknownFields = result!.legacyFollowUpMetadata['unknownFields'] as Map<String, dynamic>;
+    expect(unknownFields['legacyCustomFlag'], <String, dynamic>{'source': 'legacy-import-v1', 'enabled': false});
 
     expect(result!.followUps, hasLength(1));
     expect(result!.followUps.single.dateTime, DateTime(2026, 9, 8, 10));
