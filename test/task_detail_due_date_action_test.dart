@@ -101,17 +101,24 @@ void main() {
       expect(persisted.allDay, isFalse);
       expect(persisted.checklist, const <String>['[ ] مورد اول', '[x] مورد دوم']);
       expect(persisted.followUpEnabled, isTrue);
-      // Follow-up scheduling was retired; the historical nextFollowUp is
-      // preserved on the FollowUp record and verified below.
+      // Legacy Task-level followUpDate is preserved in the opaque metadata
+      // envelope; the deprecated compatibility getter intentionally returns null.
+      final taskLevelMetadata = Map<String, dynamic>.from(
+        persisted.legacyFollowUpMetadata['taskLevel'] as Map,
+      );
+      expect(taskLevelMetadata['followUpDate'], followUpDate.toIso8601String());
       expect(persisted.followUpDate, isNull);
       expect(persisted.followUps, hasLength(1));
       expect(persisted.followUps.single.id, 'due-action-history');
       expect(persisted.followUps.single.dateTime, followUpDate);
       expect(persisted.followUps.single.note, 'سابقه باید محفوظ بماند');
-      expect(
-        persisted.followUps.single.nextFollowUp,
-        DateTime(2026, 11, 12, 8),
+      // Per-record nextFollowUp is retained as opaque legacy metadata.
+      final legacyFollowUpRows =
+          (persisted.legacyFollowUpMetadata['followUps'] as List).cast<Map>();
+      final legacyFollowUp = legacyFollowUpRows.singleWhere(
+        (row) => row['id'] == 'due-action-history',
       );
+      expect(legacyFollowUp['nextFollowUp'], DateTime(2026, 11, 12, 8).toIso8601String());
     },
   );
 

@@ -36,24 +36,27 @@ void main() {
     await tester.pumpAndSettle();
 
     final add = find.byKey(const ValueKey('task-detail-add-followup'));
+    final detailScrollable = find.descendant(
+      of: find.byKey(const ValueKey('task-detail-content-list')),
+      matching: find.byType(Scrollable),
+    );
+    expect(detailScrollable, findsOneWidget);
     await tester.scrollUntilVisible(
       add,
       240,
-      // Task Details contains nested scrollables; scrollUntilVisible requires
-      // one concrete scrollable, not the multi-match descendant finder.
-      scrollable: find
-          .descendant(
-            of: find.byKey(const ValueKey('task-detail-content-list')),
-            matching: find.byType(Scrollable),
-          )
-          .first,
+      scrollable: detailScrollable,
     );
     await tester.tap(add);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('follow-up-entry-waiting-for-response')));
+    final waitingToggle =
+        find.byKey(const ValueKey('follow-up-entry-waiting-for-response'));
+    await tester.ensureVisible(waitingToggle);
+    await tester.tap(waitingToggle);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('follow-up-person-picker')));
+    final personPicker = find.byKey(const ValueKey('follow-up-person-picker'));
+    await tester.ensureVisible(personPicker);
+    await tester.tap(personPicker);
     await tester.pumpAndSettle();
     final personOption = find.byKey(
       const ValueKey('follow-up-person-person-canonical-42'),

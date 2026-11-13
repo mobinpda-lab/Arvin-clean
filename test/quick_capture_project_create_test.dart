@@ -36,12 +36,11 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('quick-capture-create-project')), findsOneWidget);
 
+    expect(find.text('+ افزودن پروژه'), findsOneWidget);
+    final createProjectInput =
+        find.byType(TextField, skipOffstage: false).last;
+    await tester.enterText(createProjectInput, 'پروژه آزمایشی');
     await tester.tap(find.byKey(const ValueKey('quick-capture-create-project')));
-    await tester.pumpAndSettle();
-    expect(find.text('پروژه جدید'), findsOneWidget);
-
-    await tester.enterText(find.byType(TextField).last, 'پروژه آزمایشی');
-    await tester.tap(find.text('افزودن'));
     // The modal closes while the text field may still be composing; a single
     // frame is enough for Quick Capture to apply the created project.
     await tester.pump();

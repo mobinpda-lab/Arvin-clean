@@ -179,7 +179,9 @@ class _CrashAwareRoot extends StatelessWidget {
 }
 
 class ArvinApp extends StatefulWidget {
-  const ArvinApp({super.key});
+  const ArvinApp({super.key, this.nowProvider});
+
+  final DateTime Function()? nowProvider;
 
   @override
   State<ArvinApp> createState() => _ArvinAppState();
@@ -524,6 +526,7 @@ class _ArvinAppState extends State<ArvinApp> {
         child: HomePage(
           settings: settings,
           onSettingsChanged: _updateSettings,
+          nowProvider: widget.nowProvider,
         ),
       ),
     );
