@@ -1,0 +1,17 @@
+---
+description: Mandatory Arvin project governance and continuity rules
+alwaysApply: true
+---
+
+# Arvin — Cursor Governance Adapter
+
+This is a thin adapter. Do not duplicate the policy.
+
+- Before acting, read root `AGENTS.md`, `AI_CONTINUITY_PROTOCOL.md`, `PROJECT_STATE.md`, then `docs/project-continuity/AI_GOVERNANCE_POLICY.md` and its mandatory reading sequence.
+- Verify live GitHub Main, branch, PR, exact HEAD and checks before claims or writes.
+- Latest explicit Mobin authorization controls scope. Documentation-only is not code permission.
+- Preserve historical decisions; unresolved conflicts remain NEEDS OWNER DECISION.
+- SQL is the only durable product source of truth; no parallel durable JSON storage.
+- No direct Main writes, force push, merge, release, test weakening or destructive migration without separate explicit authorization.
+
+Canonical policy: `docs/project-continuity/AI_GOVERNANCE_POLICY.md`.
