@@ -982,3 +982,13 @@ Exact-head validation is pending on candidate `fd22fe37f0190818084f011bfcce00e24
 - Commits: `b13f72628272b9d172fd84d297c6417abf1e2a9e` and `cde28b0925708439f48a49a9b85257ef40ccc4ef`; final branch HEAD `cde28b0925708439f48a49a9b85257ef40ccc4ef`.
 - No test assertions were removed, reduced or skipped. No new exact-SHA Actions result was available for the final commit at this checkpoint; analyzer success is therefore NOT VERIFIED.
 - The latest observed test shards on the previous SHA still reported 61 failures. The Follow-up Person selection smoke test fails to render the selected-person chip after create/apply; this is UNRESOLVED pending focused reproduction and source-level root cause.
+
+
+## COMMAND 07-A.2.34 — exact-head CI progress (2026-11-13)
+
+**Implementation SHA:** `cde28b0925708439f48a49a9b85257ef40ccc4ef`.
+- Build run `43337010522`: Analyze job `131595610619` **PASS** on the exact implementation SHA. All six test shards remain IN_PROGRESS at this poll. Debug, Staging and Release APK jobs and Visual structural smoke remain IN_PROGRESS.
+- SQLite Snapshot run `43337010196`: exact checkout verified; A–D snapshot/five-reopen capture step completed; artifact upload still IN_PROGRESS. Overall run not yet complete.
+- Follow-up Persistence run `43337010442`: exact checkout verified; file-backed persistence test IN_PROGRESS.
+- Device Smoke run `43337010594`: preparation PASS; Boot and Navigation IN_PROGRESS; Reminder/Vazirmatn, Task Lifecycle, Quick Capture, Follow-up Persistence and Calendar Segmented View QUEUED. No seven-scenario acceptance claim.
+- This is live job progress, not final acceptance. Preserve the exact run IDs and poll their final conclusions before updating gate status.
