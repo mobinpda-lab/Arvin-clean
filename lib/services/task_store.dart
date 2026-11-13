@@ -676,6 +676,60 @@ class TaskStore {
     });
   }
 
+  /// Adds a Person relation and activates its directory membership in the
+  /// same SQLite transaction. A failed directory write must not leave a
+  /// partially linked Task or rename a Person referenced by Follow-up history.
+  Future<Task> addPersonToTask({
+    required String taskId,
+    required PersonReference person,
+  }) {
+    return TaskStorageLock.synchronized<Task>(() async {
+      if (person.isDeleted) {
+        throw StateError('A deleted Person cannot be newly linked to a Task.');
+      }
+      final normalizedTaskId = taskId.trim();
+      if (normalizedTaskId.isEmpty) {
+        throw ArgumentError.value(taskId, 'taskId', 'Task id must not be empty');
+      }
+
+      final tasks = await _loadUnlocked();
+      final index = tasks.indexWhere((task) => task.id == normalizedTaskId);
+      if (index < 0) throw StateError('Task not found: $normalizedTaskId');
+      final current = tasks[index];
+      if (current.people.any((existing) => existing.id == person.id)) {
+        throw StateError('Person already linked to Task: ${person.id}');
+      }
+
+      final payload = Map<String, dynamic>.from(current.toJson());
+      payload['people'] = <Map<String, dynamic>>[
+        ...current.people.map((existing) => existing.toJson()),
+        person.toJson(),
+      ];
+      final updated = Task.fromJson(payload);
+      tasks[index] = updated;
+
+      await _saveUnlocked(
+        tasks,
+        beforeCommit: (executor) async {
+          final now = DateTime.now().toIso8601String();
+          await executor.runInsert(
+            '''INSERT INTO persons (id, name, created_at, updated_at)
+               VALUES (?, ?, ?, ?)
+               ON CONFLICT(id) DO UPDATE SET
+                 name = excluded.name,
+                 updated_at = excluded.updated_at''',
+            <Object?>[person.id, person.displayName, now, now],
+          );
+          await executor.runInsert(
+            'INSERT OR IGNORE INTO person_directory (person_id) VALUES (?)',
+            <Object?>[person.id],
+          );
+        },
+      );
+      return updated;
+    });
+  }
+
   Future<void> addFollowUp(String taskId, FollowUp followUp) async {
     await mutate<void>((tasks) {
       final index = tasks.indexWhere((task) => task.id == taskId);
