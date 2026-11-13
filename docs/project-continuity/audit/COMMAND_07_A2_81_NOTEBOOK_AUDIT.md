@@ -2,7 +2,8 @@
 
 **Repository:** mobinpda-lab/Arvin-clean  
 **Audited branch:** feature/command-07-a-sqlite-contract-remediation  
-**Exact audited HEAD:** df384ba5acbed3b3e4ae125a65706c5ff2fe5e5e  
+**Source audit baseline:** df384ba5acbed3b3e4ae125a65706c5ff2fe5e5e  
+**Audit documentation commit:** 52a88ee9c49c522e6cc3e88b1685e63aca451f26  
 **PR:** #3384 — OPEN / DRAFT / UNMERGED  
 **PR base:** fix/wave3-cycle3-calendar-product-repair @ 8c4c23f0c2a4f9b2374a2092c931782c4455fd41  
 **Main:** READ-ONLY. No merge/release/deployment.
@@ -44,11 +45,11 @@ No product code was changed in this audit. This is intentional: the missing rela
 
 | Capability | Status | Evidence / reason |
 |---|---|---|
-| Existing Notebook page and editor | IMPLEMENTED AND VERIFIED (source/test coverage) | lib/notebook_page.dart; test/notebook_page_test.dart |
-| Canonical TaskStore persistence | IMPLEMENTED AND VERIFIED (repository test coverage) | lib/services/canonical_notebook_repository.dart; test/canonical_notebook_repository_test.dart |
-| Simple Note and Checklist distinction | IMPLEMENTED AND VERIFIED (model/test coverage) | lib/models/task.dart; test/notebook_page_test.dart |
+| Existing Notebook page and editor | IMPLEMENTED BUT NOT VERIFIED (source/test coverage; exact-head execution unavailable) | lib/notebook_page.dart; test/notebook_page_test.dart |
+| Canonical TaskStore persistence | IMPLEMENTED BUT NOT VERIFIED (repository test coverage; exact-head execution unavailable) | lib/services/canonical_notebook_repository.dart; test/canonical_notebook_repository_test.dart |
+| Simple Note and Checklist distinction | IMPLEMENTED BUT NOT VERIFIED (model/test coverage; exact-head execution unavailable) | lib/models/task.dart; test/notebook_page_test.dart |
 | Center / Project / Category / Tag filters | PARTIALLY IMPLEMENTED | Present in lib/notebook_page.dart; Time filter absent; no single five-dimension filter strip verified |
-| Immediate text search | IMPLEMENTED AND VERIFIED for title/body substring | NotebookPage._visibleNotes; test/notebook_page_test.dart |
+| Immediate text search | IMPLEMENTED BUT NOT VERIFIED for title/body substring | NotebookPage._visibleNotes; test/notebook_page_test.dart |
 | Phone-number search normalization / contact-phone indexing | UNKNOWN | Search checks title and description only; no dedicated phone normalization or phone metadata projection verified |
 | Note type filters: all / ideas / instructions / task notes | NOT IMPLEMENTED | No corresponding type discriminator or filter controls; current kind is note/checklist |
 | Fast Capture FAB | PARTIALLY IMPLEMENTED | FAB exists, but _create creates “یادداشت جدید” and opens editor; test expects that placeholder |
@@ -62,10 +63,10 @@ No product code was changed in this audit. This is intentional: the missing rela
 | Convert note to Task preserving source as separate identity | PARTIALLY IMPLEMENTED | convertNoteToTask mutates same Task ID in place; source body is not removed, but no independent source/destination identity or provenance link |
 | Prevent duplicate linked notes | UNKNOWN | No canonical link identity or uniqueness constraint exists |
 | Close/Reopen SQL durability for Notebook | IMPLEMENTED BUT NOT VERIFIED | TaskStore/G1 SQL path exists; canonical Notebook tests use NativeDatabase.memory; no Notebook-specific file-backed reopen test identified |
-| Stable Note ID | IMPLEMENTED AND VERIFIED for existing canonical Task identity | Task.id and repository tests |
+| Stable Note ID | IMPLEMENTED BUT NOT VERIFIED for existing canonical Task identity | Task.id and repository tests |
 | Task deletion preserving linked-note history | NOT IMPLEMENTED for the requested linked-note model | TaskStore._saveUnlocked deletes and rewrites Task/Follow-up rows from the supplied Task list; no independent Note record or detach policy exists |
-| Follow-up persistence | IMPLEMENTED AND VERIFIED at repository/schema test level | follow_up_records and related tests |
-| G1 Drift schema | IMPLEMENTED AND VERIFIED at schema test level | G1DriftSchema.version == 19; test/services/g1_drift_schema_test.dart |
+| Follow-up persistence | IMPLEMENTED BUT NOT VERIFIED at repository/schema test level | follow_up_records and related tests |
+| G1 Drift schema | IMPLEMENTED BUT NOT VERIFIED at schema test level | G1DriftSchema.version == 19; test/services/g1_drift_schema_test.dart |
 | Notebook-specific exact-head CI | UNKNOWN | No status entries or PR workflow runs returned for df384ba5acbed3b3e4ae125a65706c5ff2fe5e5e |
 
 ## Fast Capture findings
