@@ -101,7 +101,9 @@ void main() {
       expect(persisted.allDay, isFalse);
       expect(persisted.checklist, const <String>['[ ] مورد اول', '[x] مورد دوم']);
       expect(persisted.followUpEnabled, isTrue);
-      expect(persisted.followUpDate, followUpDate);
+      // Follow-up scheduling was retired; the historical nextFollowUp is
+      // preserved on the FollowUp record and verified below.
+      expect(persisted.followUpDate, isNull);
       expect(persisted.followUps, hasLength(1));
       expect(persisted.followUps.single.id, 'due-action-history');
       expect(persisted.followUps.single.dateTime, followUpDate);
