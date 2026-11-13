@@ -1558,10 +1558,17 @@ class _HomePageState extends State<HomePage> {
       onCreate: selectedCenterId == null
           ? null
           : (title) async {
-              final id = await wave2ProductFastTrack.createProject(
-                title,
-                centerId: selectedCenterId,
-              );
+              final existingProjects = await projectStore.load();
+              final id = 'project-${DateTime.now().microsecondsSinceEpoch}';
+              await projectStore.save([
+                ...existingProjects,
+                ProjectPlan(
+                  id: id,
+                  title: title,
+                  centerId: selectedCenterId,
+                ),
+              ]);
+              allowedProjectIds.add(id);
               if (mounted) await _load();
               return ReusableFilterOption<String>(
                 value: id,
