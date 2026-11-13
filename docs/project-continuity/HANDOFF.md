@@ -811,3 +811,12 @@ Read `MASTER_GOVERNANCE.md` (REV10) first. REV9 is preserved verbatim in `MASTER
 - D01–D05 are not accepted as complete.
 - Device Smoke is not accepted.
 - NIRA factory progress is not Arvin product progress.
+
+
+## Wave 1 data architecture findings — 2026-11-13
+
+See `audit/REV10_WAVE1_DATA_ARCHITECTURE_BASELINE_2026-11-13.md`.
+
+Critical implementation gaps: Task Center is only inside the JSON envelope; direct Task Project/Category IDs are absent; Project membership is many-to-many; Categories are global/unowned; Project Center is nullable. The optional-link CI test is a miniature fixture, not the real production schema.
+
+Next safe work: read-only consumer and legacy-data inventory, then additive candidate schema and exact-G1 file-backed migration tests. Preserve `project_items` and `taxonomy_categories` until every consumer is migrated and D01–D05 pass. No cutover or destructive retirement.
