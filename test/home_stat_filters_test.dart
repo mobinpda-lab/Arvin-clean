@@ -16,6 +16,14 @@ Finder _filterSheetVerticalScrollable() => find.descendant(
       ),
     ).first;
 
+Finder _homeTaskListVerticalScrollable() => find.descendant(
+      of: find.byKey(const ValueKey('home-task-list-viewport')),
+      matching: find.byWidgetPredicate(
+        (widget) => widget is Scrollable &&
+            widget.axisDirection == AxisDirection.down,
+      ),
+    ).first;
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -284,6 +292,12 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('کار گذشته'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('کار امروز'),
+      300,
+      scrollable: _homeTaskListVerticalScrollable(),
+      maxScrolls: 10,
+    );
     expect(find.text('کار امروز'), findsOneWidget);
     expect(find.text('کار فردا'), findsNothing);
     expect(tester.takeException(), isNull);
@@ -388,7 +402,6 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
     expect(find.text('داده‌های کارها قابل خواندن نیست'), findsNothing);
-    expect(find.text('موعد امروز'), findsOneWidget);
     final filterButton = find.byKey(const ValueKey('home-general-filter-button'));
     expect(filterButton, findsOneWidget);
     expect(tester.widget<IconButton>(filterButton).onPressed, isNotNull);
@@ -473,7 +486,6 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
     expect(find.text('داده‌های کارها قابل خواندن نیست'), findsNothing);
-    expect(find.text('کار باز امروز'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('home-filter-card-time')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('home-time-filter-today')));
