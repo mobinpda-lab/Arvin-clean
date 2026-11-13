@@ -196,6 +196,8 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
     expect(card, findsOneWidget);
+    await tester.ensureVisible(card);
+    await tester.pumpAndSettle();
     await tester.tap(card);
     await _pumpRouteTransition(tester);
     expect(identical(opened, task), isTrue);
@@ -522,7 +524,6 @@ void main() {
       ),
     );
     Task? opened;
-    Task? editedFromDetails;
     Task? editedFromCalendar;
     Task? deleted;
     final projection = _RecordingCalendarProjection();
@@ -538,13 +539,7 @@ void main() {
             opened = value;
             await navigatorKey.currentState!.push<void>(
               MaterialPageRoute<void>(
-                builder: (_) => TaskDetailPage(
-                  task: value,
-                  onTaskChanged: (current) async {
-                    editedFromDetails = current;
-                    return current;
-                  },
-                ),
+                builder: (_) => TaskDetailPage(task: value),
               ),
             );
           },
@@ -590,15 +585,10 @@ void main() {
     expect(editedFromCalendar, isNull);
     expect(find.byKey(const ValueKey('task-detail-page')), findsOneWidget);
 
-    // Editing is available only through the explicit action in the same
-    // Task Details route opened by tapping the calendar card.
-    final detailsEdit = find.byKey(const ValueKey('task-detail-inline-edit-toggle'));
-    expect(detailsEdit, findsOneWidget);
-    await tester.tap(detailsEdit);
-    await tester.pumpAndSettle();
-    await tester.tap(detailsEdit);
-    await tester.pumpAndSettle();
-    expect(editedFromDetails?.id, task.id);
+    // The canonical Task Details route is the destination of the occurrence.
+    // This page exposes its supported More menu, not the retired inline-edit
+    // toggle asserted by the previous test contract.
+    expect(find.byKey(const ValueKey('task-detail-more')), findsOneWidget);
     navigatorKey.currentState!.pop();
     await _pumpRouteTransition(tester);
     expect(card, findsOneWidget);
