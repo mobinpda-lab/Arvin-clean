@@ -39,10 +39,14 @@ void main() {
     await tester.scrollUntilVisible(
       add,
       240,
-      scrollable: find.descendant(
-        of: find.byKey(const ValueKey('task-detail-content-list')),
-        matching: find.byType(Scrollable),
-      ),
+      // Task Details contains nested scrollables; scrollUntilVisible requires
+      // one concrete scrollable, not the multi-match descendant finder.
+      scrollable: find
+          .descendant(
+            of: find.byKey(const ValueKey('task-detail-content-list')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
     );
     await tester.tap(add);
     await tester.pumpAndSettle();
