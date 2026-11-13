@@ -245,3 +245,51 @@ The official optional Task relationship contract is accepted as the governing pr
 ## 9. Evidence boundary at design commit
 
 This commit records the proposal and the official optional Task relationship correction only. No schema, migration writer, production database, backup or user data is changed. No D01–D05 gate is declared passed by this document. Implementation requires a separate reviewed change after inventory and exception policy are agreed.
+
+
+---
+
+## REV10 authorization and live production-schema audit — 2026-11-13
+
+**Authority:** ARVIN MASTER PRODUCT, DESIGN & GOVERNANCE CHARTER REV10  
+**Latest inspected product SHA:** `3f471e6b88764446eabd33752d0aa3d820f52628`  
+**Disposition:** controlled implementation and non-destructive migration work are AUTHORIZED; destructive cutover, legacy retirement and acceptance remain gated.
+
+REV10 supersedes the earlier sentence that treated all implementation as awaiting a separate authorization. It does not waive the safety conditions in M0–M4, D01–D05, migration exception resolution, exact-SHA evidence or the explicit restrictions on irreversible production operations.
+
+### Live source facts at the inspected SHA
+
+1. `G1DriftSchema.version` is 19.
+2. The canonical `tasks` table has no normalized `center_id`, `project_id` or `category_id` columns. It has a nullable legacy `category` text column.
+3. `Task.centerId` exists in the Dart model and is serialized by `Task.toJson()`; `TaskStore._decodeTask()` reads it from `legacy_payload_json`. It is not currently a normalized SQL foreign-key relation.
+4. The Task model has no direct `projectId` or `categoryId` fields in the inspected model contract.
+5. `projects.center_id` exists but is nullable; therefore mandatory Project → Center ownership is not yet enforced.
+6. `taxonomy_categories(name)` is a global name catalog. It has no stable Category ID or Project owner.
+7. `project_items(project_id, task_id, ordinal)` is the current many-to-many Project/Task membership relation. It permits a Task to be linked to multiple Projects and is not equivalent to the REV10 0..1 Task → Project contract.
+8. `task_tags`, `task_persons` and `follow_up_record_people` are normalized SQL relation tables. Person records are persisted in `persons`; active directory membership is separate in `person_directory`.
+9. `TaskTaxonomyManagementPage` manages Category and Tag catalogs; it is not the REV10 five-entity Entity Management Center.
+10. `ProjectStore.save()` rewrites Project and `project_items` rows transactionally and preserves selected legacy payload fields. It remains an active consumer that must be migrated before retiring `project_items`.
+
+### Consequence
+
+The current code is Local-First and uses SQLite for canonical core tables, but the REV10 hierarchy is **NOT IMPLEMENTED** in the normalized schema. The optional-relationship prototype workflow uses a test-created miniature schema; it does not instantiate or validate the real G1 production schema. Its eventual PASS can prove the SQL constraint prototype only, not the production cutover.
+
+### Required safe sequence
+
+- M0: inventory actual source schemas and all consumers; no writes.
+- M1: add canonical Category ownership and nullable Task FKs in an isolated candidate; preserve old tables/payloads.
+- M2: map only exact, unambiguous legacy relationships; record all ambiguous cases as exceptions.
+- M3: parity, ownership triggers, direct SQLite positive/negative tests and rollback checks.
+- M4: repeatability, independent physical backup/restore and recovery.
+- Update all writers/readers, filters, reports, templates and tests to one canonical relationship boundary.
+- Only after D01–D05 and explicit exception resolution may legacy membership/catalog retirement be considered. No destructive production cutover is authorized by this audit.
+
+### High-risk unresolved data questions
+
+- Existing Projects with `center_id IS NULL` cannot be assigned to a Center by name or guess.
+- Tasks with zero `project_items` memberships are valid unorganized Tasks.
+- Tasks with more than one Project membership are ambiguous under the new 0..1 contract; preserve all old memberships and request resolution rather than choosing one.
+- Legacy Category text without a uniquely evidenced owning Project cannot be converted into a canonical Project-owned Category automatically.
+- Category normalization and Project movement policy remain unresolved.
+
+This addendum is a source audit and authorization reconciliation. It does not claim schema implementation, migration, production-data inventory or D01–D05 acceptance.
