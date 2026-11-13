@@ -1,14 +1,14 @@
 # COMMAND 07-A.2.45 — Canonical Data Model & Safe SQLite Migration Design
 
-**Status:** DESIGN RECORDED — NOT IMPLEMENTED / NOT MIGRATED  
+**Status:** DESIGN RECORDED — OFFICIAL OPTIONAL TASK RELATIONSHIP CONTRACT INCORPORATED — NOT IMPLEMENTED / NOT MIGRATED  
 **Repository:** `mobinpda-lab/Arvin-clean`  
 **Design branch:** `feature/command-07-a-sqlite-contract-remediation`  
 **Design base HEAD:** `b79f8d60e2a3b72630cf6d34095ecc30af340c6d`  
 **Schema source inspected:** `lib/services/g1_drift_schema.dart`, declared version 19  
-**Product contract:** Center → Project → Category → Task; Tags remain cross-cutting  
+**Product contract:** Center → Projects → Categories → Tasks; Task links to Center / Project / Category are independently optional (0..1 each); Tags are independently many-to-many (0..N)  
 **Merge / Release / Deployment:** NOT AUTHORIZED
 
-This document records the proposed target schema and migration protocol before any schema implementation. It is not evidence of a completed migration or of production data inventory.
+This document records the proposed target schema and migration protocol before any schema implementation. The official cardinality and optional relationship contract supplied after the initial design supersedes any earlier proposal that made Task hierarchy fields mandatory. It is not evidence of a completed migration or of production data inventory.
 
 ## 1. Current schema facts
 
@@ -49,21 +49,45 @@ At the inspected design base:
 - `UNIQUE(project_id, normalized_name)` (normalization algorithm must be fixed and tested before implementation)
 - index `(project_id, is_archived, name)`
 
-### 2.2 Task hierarchy constraints
+### 2.2 Official Task cardinality and optional relationship constraints
 
-Add canonical `project_id` and `category_id` columns to `tasks`.
+The Task-side links are independently optional and must remain nullable in the final schema:
 
-The required composite constraint is:
+- `tasks.center_id`: `NULL` or one existing Center.
+- `tasks.project_id`: `NULL` or one existing Project.
+- `tasks.category_id`: `NULL` or one existing Category.
+- `task_tags`: zero or more Tag links.
+
+No Task requires any of these links to be created, saved, reopened or edited. The all-null Task is a valid canonical state. A Task may also have only Center, only Project, only Category, or only Tags. Do not add a CHECK that requires Project and Category to be populated together, and do not make any Task hierarchy column NOT NULL.
+
+Use independent nullable foreign keys for existence:
 
 ```sql
-FOREIGN KEY (project_id, category_id)
-  REFERENCES categories(project_id, id)
+FOREIGN KEY (center_id) REFERENCES centers(id)
+  ON UPDATE RESTRICT ON DELETE RESTRICT,
+FOREIGN KEY (project_id) REFERENCES projects(id)
+  ON UPDATE RESTRICT ON DELETE RESTRICT,
+FOREIGN KEY (category_id) REFERENCES categories(id)
   ON UPDATE RESTRICT ON DELETE RESTRICT
 ```
 
-This prevents a Task from referencing a Category owned by a different Project. Since Category has a restrictive FK to Project and Project has a non-null restrictive FK to Center, the Task's Center is derived through the same validated chain; no separately editable Task Center is needed.
+These FKs validate that each selected entity exists. They do not by themselves validate cross-parent consistency. Add SQLite `BEFORE INSERT` and `BEFORE UPDATE OF center_id, project_id, category_id` validation triggers (or an equivalently strong constraint design supported by the actual Drift schema) with the following rules:
 
-The final accepted schema requires both Task columns NOT NULL. During the safe staging phase only, both may be NULL together for explicitly quarantined legacy exceptions. A CHECK must reject half-populated pairs. A `task_hierarchy_migration_exceptions` row must reference each staged Task lacking a resolvable hierarchy. This transitional allowance is not acceptance of an unassigned Task. Final NOT NULL rebuild is prohibited until the exception set is empty or the product owner explicitly approves a separately specified exception policy.
+1. If `center_id` and `project_id` are both non-NULL, the selected Project must belong to that Center.
+2. If `project_id` and `category_id` are both non-NULL, the selected Category must belong to that Project.
+3. If `center_id` and `category_id` are both non-NULL while `project_id` is NULL, the Category's owning Project must belong to that Center.
+4. If all three are non-NULL, all three ownership links must match.
+5. If only Project is supplied, accept it and derive its Center for display/reporting; do not force-write `center_id` onto the Task.
+6. If only Category is supplied, accept it and derive its Project and Center for display/reporting; do not force-write either derived value onto the Task.
+7. If any one or all three are NULL, that absence is valid. A non-NULL reference must still satisfy its FK.
+
+This permits explicit optional direct selections while preserving the ownership chain. The effective/derived Center and Project used by filters and reports must be resolved by joins without silently materializing extra Task-side selections. Keep the distinction between a directly selected value and an ancestor derived through ownership.
+
+The parent ownership rules remain mandatory: every Project has exactly one Center and every Category has exactly one Project. Optionality applies only to Task-to-parent links. Use RESTRICT for parent deletion; do not cascade-delete Tasks or hierarchy records.
+
+When a user selects a new parent in the UI, any now-incompatible child selection must be surfaced explicitly. The application must not silently erase a selected relation or silently rewrite it. Offer a clear keep-compatible / clear-child / cancel decision, and perform any accepted update atomically.
+
+Migration exceptions are for ambiguous legacy evidence, not for the valid all-null or partially populated Task states. Never create placeholder Center, Project or Category rows to fill nullable fields.
 
 ### 2.3 Tags, People and shared activity identity
 
@@ -117,22 +141,26 @@ Real installed-user data counts remain **UNKNOWN** until a read-only inventory i
 
 **M1 — Isolated candidate schema**
 - Copy the source database to a temporary file-backed test database.
-- Create new parent/category structures and staging hierarchy columns.
+- Create new parent/category structures and nullable Task `center_id`, `project_id`, and `category_id` columns.
+- Add independent FKs and cross-parent validation triggers; verify enforcement with foreign keys enabled on every connection.
 - Preserve all original tables and payload envelopes.
-- Add exception tables and deterministic mapping audit rows.
+- Add exception tables and deterministic mapping audit rows for ambiguous legacy data only.
 - Do not drop or rename legacy relations in this phase.
 
 **M2 — Deterministic backfill**
-- Backfill Center/Project/Category/Task hierarchy only from unambiguous stable IDs and exact legacy Category values.
-- Preserve every unresolved record and source relation in exception evidence.
-- Do not assign a default Center, Project or Category.
+- Backfill each Task-side optional link independently only where the legacy source proves that exact relationship.
+- A legacy Task with no relationship remains valid with NULL in the corresponding canonical column; do not treat absence as a migration error.
+- Preserve every ambiguous or contradictory legacy record and source relation in exception evidence.
+- Do not infer a Center from a name, invent a Project, or create a Category merely to populate a nullable Task field.
 
 **M3 — Integrity and parity**
 - Compare row counts and identity sets before/after for every entity and relation.
 - Compare Task payloads, Tag links, Person links, Follow-up metadata and ordering.
 - Run `PRAGMA foreign_key_check`, `PRAGMA integrity_check`, and explicit cross-parent mismatch queries.
-- Verify invalid cross-Center Project selection and cross-Project Category selection fail at SQL level.
+- Verify invalid Center/Project, Project/Category, and Center/Category combinations fail at SQL level.
+- Verify valid all-null, Center-only, Project-only, Category-only, Tag-only and valid paired/triple combinations succeed.
 - Verify moving Task parents is atomic and rollback restores the prior hierarchy.
+- Verify clearing all optional Task links and reopening SQLite preserves the all-null state.
 
 **M4 — Repeatability and recovery**
 - Run migration twice; second run must be a no-op with identical row counts and identities.
@@ -142,7 +170,7 @@ Real installed-user data counts remain **UNKNOWN** until a read-only inventory i
 
 **M5 — Cutover (not authorized by this design document)**
 - Only after all exception rows have explicit resolution, parity and D01–D05 pass, and the owner approves.
-- Rebuild final tables with required NOT NULL constraints.
+- Enforce NOT NULL only on mandatory parent ownership (`projects.center_id`, `categories.project_id`). Task-side `center_id`, `project_id`, and `category_id` remain nullable permanently under this contract.
 - Move all application reads/writes to the canonical hierarchy.
 - Retire `project_items` only after all consumers are proven migrated; do not remove compatibility paths merely because a new schema exists.
 - Preserve rollback/restore artifact and prior schema compatibility.
@@ -152,7 +180,8 @@ Real installed-user data counts remain **UNKNOWN** until a read-only inventory i
 At minimum evaluate and test:
 - `projects(center_id, is_archived, storage_ordinal)`
 - `categories(project_id, is_archived, name)`
-- `tasks(project_id, category_id, due_date, completed, archived, trashed)`
+- `tasks(center_id, project_id, category_id, due_date, completed, archived, trashed)`
+- `categories(project_id, id)` and `projects(center_id, id)` unique parent keys if required by the selected composite-FK/trigger implementation
 - `task_tags(tag_id, task_id)` and `task_tags(task_id, tag_id)`
 - `task_persons(person_id, task_id)` and `task_persons(task_id, person_id)`
 - `follow_up_record_people(person_id, follow_up_id)`
@@ -187,13 +216,13 @@ Each gate requires a dedicated test invocation, run ID, actual checkout SHA, tes
 
 ## 8. Current blockers / owner decisions
 
-The following require inventory or explicit owner resolution; they must not be guessed:
-- Which existing Center should own each legacy Project with `center_id = NULL`.
-- How to resolve Task records with no Project membership or multiple memberships.
-- How to resolve Tasks with no Category or conflicting Center/Project evidence.
+The official optional Task relationship contract is accepted as the governing product rule; no further decision is needed to keep Task links nullable. The following legacy-data questions still require inventory or explicit owner resolution and must not be guessed:
+- Which existing Center should own each legacy Project with `center_id = NULL`; Project ownership itself remains mandatory.
+- How to resolve legacy Tasks with zero or multiple `project_items` memberships when mapping historical membership into the new optional direct `project_id` field. Zero membership is not an error and may map to NULL; multiple memberships are ambiguous and must be preserved for owner review.
+- How to resolve Tasks with missing Category text or conflicting Center/Project/Category evidence. Missing Category may legitimately map to NULL; conflicting evidence must be preserved as an exception.
 - Whether category name normalization is case-sensitive and how Persian ZWNJ/Arabic-vs-Persian character variants are handled.
 - Whether a Project may ever be moved between Centers after it has generated cross-Center Template instances.
 
 ## 9. Evidence boundary at design commit
 
-This commit records the proposal only. No schema, migration writer, production database, backup or user data is changed. No D01–D05 gate is declared passed by this document. Implementation requires a separate reviewed change after inventory and exception policy are agreed.
+This commit records the proposal and the official optional Task relationship correction only. No schema, migration writer, production database, backup or user data is changed. No D01–D05 gate is declared passed by this document. Implementation requires a separate reviewed change after inventory and exception policy are agreed.
