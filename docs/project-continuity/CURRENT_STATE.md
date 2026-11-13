@@ -1199,3 +1199,27 @@ The log reports A/B/C/D equality for Task compatibility metadata, Reminder rows,
 
 ### Acceptance boundary
 D01–D05: NOT ACCEPTED. Entity Management Center: NOT ACCEPTED. Deep Clone: NOT ACCEPTED. Cross-Center E2E: NOT ACCEPTED. APK packaging and Device Smoke: NOT ACCEPTED. No Main write, production cutover, destructive migration, merge, release, deployment, branch deletion or history rewrite occurred.
+
+
+## COMMAND 07-A.2.57 — G1 Candidate Completion Update (2026-11-13 14:34 UTC)
+
+This section supersedes the earlier QUEUED observation for the G1 candidate run only. The execution source SHA remains `13a09af3815d7271ffb11e67eeac7b2592eb18bd`; documentation-only HEAD may be newer.
+
+- Workflow run: `43441067534` — SUCCESS.
+- Job: `131938477824` — Optional Task links and database-level integrity — SUCCESS.
+- Artifact ID: `14047546927`.
+- Artifact name: `arvin-command-07-a2-50-g1-hierarchy-13a09af3815d7271ffb11e67eeac7b2592eb18bd`.
+- Artifact ZIP SHA256 (GitHub digest and local downloaded file): `cfedf1fd850f50ee7f36204ac4dd26b3e95ec20ed0baf3bde0e98334a333faf7`.
+- Artifact evidence manifest SHA256: `ed4cd57bd6fa02fd5239e47299db960db9fec40786cbc65504b7fc495db1f2c6`.
+- Legacy optional-relationship SQL test log SHA256: `83c6c073d2ba9bbafd84ba19a038ec616f7eba3090ef18c2e90d5537c1fbe726`; 19 tests passed. Coverage includes independent optional Task links, clearing to NULL after reopen, mismatch rejection, dependent-owner change/delete restrictions, nullable FK columns and clean integrity.
+- Real G1 hierarchy candidate test log SHA256: `ac713a170fcc9fabe89e717c0411f983ab624a35ba14017a8183c8d8a87d3625`; 13 tests passed. Coverage includes all-null/partial/full optional links, SQL ownership mismatch rejection, required Project/Category owners, idempotency/five reopen cycles, Tag/Person/Follow-up identity preservation, update triggers, dependency restrictions, injected migration rollback/retry, independent-file backup/restore, indexes and triggers.
+- Target SHA file confirms `13a09af3815d7271ffb11e67eeac7b2592eb18bd`.
+
+Interpretation: the G1 candidate and legacy optional-link test suites are TESTED and pass on the exact source SHA. This is strong candidate-level evidence for hierarchy constraints, optional links, rollback/retry and a narrow independent-file restore scenario. It does NOT switch the candidate into production startup, prove migration of actual user databases, prove full D01–D05, prove four-state Missing/NULL/FALSE/TRUE semantics, or constitute final acceptance.
+
+### Build and Device Smoke remain open
+- Build run `43441067582` is still QUEUED at workflow level. Jobs include release/staging/debug APK QUEUED; quality shards 0,1,3,4,5 and visual/analyze were CANCELLED; shard 2 was observed IN_PROGRESS then CANCELLED. No overall Build PASS or FAIL is claimed; analyze did not complete.
+- Device Smoke run `43441067685`: job `131938478429` remains QUEUED. No device scenario or APK acceptance is claimed.
+- SQLite snapshot run `43441067604` remains SUCCESS with artifact `14046601552`; same-file five-reopen scope as recorded above.
+- Follow-up persistence run `43441067590` remains SUCCESS.
+- Do not duplicate these runs while they remain queued or until a final conclusion is returned.
