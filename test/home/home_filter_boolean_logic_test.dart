@@ -9,6 +9,7 @@ import 'package:arvin/models/task.dart';
 import 'package:arvin/services/center_store.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/task_store.dart';
+import 'package:drift/native.dart';
 
 void main() {
   testWidgets('Home filters combine OR within each dimension and AND across dimensions', (tester) async {
@@ -59,17 +60,10 @@ void main() {
   testWidgets(
     'Center limits Project options, Project limits Category options, and parent changes clear invalid descendants',
     (tester) async {
-      await TaskStore.resetTestDatabase();
-      await ProjectStore.resetTestDatabase();
-      await CenterStore.resetTestDatabase();
-      addTearDown(() async {
-        await TaskStore.resetTestDatabase();
-        await ProjectStore.resetTestDatabase();
-        await CenterStore.resetTestDatabase();
-      });
       SharedPreferences.setMockInitialValues(<String, Object>{});
-
-      final taskStore = TaskStore();
+      final database = NativeDatabase.memory();
+      addTearDown(database.close);
+      final taskStore = TaskStore(executor: database);
       await taskStore.save([
         Task(
           id: 'task-center-a',
@@ -84,10 +78,11 @@ void main() {
           category: 'دسته ب',
         ),
       ]);
-      final centerStore = CenterStore();
+      final centerStore = CenterStore(executor: database);
       await centerStore.create(id: 'center-a', name: 'مرکز الف');
       await centerStore.create(id: 'center-b', name: 'مرکز ب');
-      await ProjectStore().save([
+      final projectStore = ProjectStore(executor: database);
+      await projectStore.save([
         ProjectPlan(
           id: 'project-a',
           title: 'پروژه الف',
@@ -102,7 +97,18 @@ void main() {
         ),
       ]);
 
-      await tester.pumpWidget(const ArvinApp());
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Directionality(
+            textDirection: TextDirection.rtl,
+            child: HomePage(
+              taskStore: taskStore,
+              projectStore: projectStore,
+              centerStore: centerStore,
+            ),
+          ),
+        ),
+      );
       await tester.pumpAndSettle();
 
       final centerFilter = find.byKey(const ValueKey('home-filter-card-center'));

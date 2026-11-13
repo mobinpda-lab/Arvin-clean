@@ -545,6 +545,9 @@ class HomePage extends StatefulWidget {
     this.backupManager,
     this.restoreStageHook,
     this.nowProvider,
+    this.taskStore,
+    this.projectStore,
+    this.centerStore,
   });
 
   final AppSettings settings;
@@ -559,6 +562,9 @@ class HomePage extends StatefulWidget {
   /// Test seam for the single Iran wall-clock source used by Home projections.
   /// The returned DateTime's components are interpreted as Iran local time.
   final DateTime Function()? nowProvider;
+  final TaskStore? taskStore;
+  final ProjectStore? projectStore;
+  final CenterStore? centerStore;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -566,8 +572,9 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final TaskEditApplyService taskEditApplyService = TaskEditApplyService();
-  final TaskStore taskStore = TaskStore();
-  final ProjectStore projectStore = ProjectStore();
+  late final TaskStore taskStore = widget.taskStore ?? TaskStore();
+  late final ProjectStore projectStore = widget.projectStore ?? ProjectStore();
+  late final CenterStore centerStore = widget.centerStore ?? CenterStore();
   final Wave2ProductFastTrack wave2ProductFastTrack = Wave2ProductFastTrack();
   late final ArvinBackupManager backupManager =
       widget.backupManager ?? ArvinBackupManager();
@@ -689,7 +696,7 @@ class _HomePageState extends State<HomePage> {
     try {
       final value = await taskStore.load();
       final loadedProjects = await projectStore.load();
-      final loadedCenters = await CenterStore().load();
+      final loadedCenters = await centerStore.load();
       final loadedCategories = await taskStore.loadCategories();
       final loadedTags = await taskStore.loadTags();
       if (!mounted) return;
@@ -751,7 +758,7 @@ class _HomePageState extends State<HomePage> {
     final existing = centers.where((center) => center.name.trim().toLowerCase() == name.toLowerCase());
     if (existing.isNotEmpty) return existing.first.id;
     final id = 'center_${DateTime.now().microsecondsSinceEpoch}';
-    await CenterStore().create(id: id, name: name);
+    await centerStore.create(id: id, name: name);
     if (mounted) await _load();
     return id;
   }
@@ -2698,7 +2705,7 @@ class _HomePageState extends State<HomePage> {
       final fileName = await backupManager.backupCanonicalTasks(
         await taskStore.load(),
         settings: await _portableBackupSettings(),
-        projects: await ProjectStore().load(),
+        projects: await projectStore.load(),
         calendarLinks: await ExternalCalendarLinkStore().load(),
         categories: await taskStore.loadCategories(),
         tags: await taskStore.loadTags(),
@@ -2761,7 +2768,7 @@ class _HomePageState extends State<HomePage> {
       }
       final tasksBeforeRestore = await taskStore.load();
       previousTasks = tasksBeforeRestore;
-      final projectsBeforeRestore = await ProjectStore().load();
+      final projectsBeforeRestore = await projectStore.load();
       previousProjects = projectsBeforeRestore;
       final calendarLinksBeforeRestore = await ExternalCalendarLinkStore().load();
       previousCalendarLinks = calendarLinksBeforeRestore;
@@ -2852,7 +2859,7 @@ class _HomePageState extends State<HomePage> {
             // can retry on the next lifecycle/scheduler trigger.
           }
           if (candidate.hasProjects) {
-            await ProjectStore().save(reconciledProjects);
+            await projectStore.save(reconciledProjects);
           }
           await widget.restoreStageHook?.call('projects');
           await ExternalCalendarLinkStore().restoreForTasks(
@@ -2897,7 +2904,7 @@ class _HomePageState extends State<HomePage> {
         },
         rollback: () async {
           await taskStore.save(previousTasks!);
-          await ProjectStore().save(previousProjects!);
+          await projectStore.save(previousProjects!);
           await ExternalCalendarLinkStore().save(previousCalendarLinks!);
           await appSettingsService.restorePortableJson(previousSettings!);
           final oldSchedule = previousSettings!['backupSchedule'];
@@ -3215,7 +3222,7 @@ class _HomePageState extends State<HomePage> {
                 Navigator.of(context).push<void>(
                   MaterialPageRoute<void>(
                     builder: (_) => BackupSchedulePage(
-                      loadTasks: () async => (await TaskStore().load())
+                      loadTasks: () async => (await taskStore.load())
                           .map((task) => task.toJson())
                           .toList(growable: false),
                     ),
