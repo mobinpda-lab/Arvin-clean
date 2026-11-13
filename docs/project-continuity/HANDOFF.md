@@ -746,3 +746,15 @@ No production code correction for this finding has yet been committed. Treat C01
 4. If D01 fails, preserve the original database and investigate whether any migration path drops a custom object; do not bypass the fail-closed guard.
 5. Re-run all required gates on the final candidate after any correction.
 6. C07 full cross-feature workflow and unresolved Follow-up Entry Person selection still require separate work.
+
+
+## COMMAND 07-A.2.34 — next continuation (2026-11-13)
+
+1. Fetch the live head of `feature/command-07-a-sqlite-contract-remediation`; expected last observed SHA is `cde28b0925708439f48a49a9b85257ef40ccc4ef`. Never assume it remains current.
+2. Obtain exact-SHA Analyze/Test/Build evidence for the two analyzer corrections. The previous Build SHA `d6af169...` failed Analyze and all six test shards; do not transfer any result to `cde28b...`.
+3. Diagnose the Follow-up Entry selected-Person chip failure and remaining 60 regression records individually; do not weaken assertions.
+4. Complete D01 schema/index/trigger parity, D04 independent-file backup/restore, and D05 controlled failure/rollback/retry/reopen evidence.
+5. Complete seven Device Smoke scenarios on one exact candidate SHA and record emulator/device, OS, logs and artifacts.
+6. Continue Category/Project/Tag cross-feature tests, including Task Template and Project Template references; preserve historical task/template data.
+7. Validate Vazirmatn-only packaging, PDF embedding/rendering and independent APK/font SHA256 values. System Default remains optional; VazirHarf remains inactive historical provenance.
+8. Keep PRs #3380/#3382/#3384/#3388 and historical evidence intact. No merge, release, deployment, branch deletion or history rewrite.
