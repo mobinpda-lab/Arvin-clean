@@ -1,10 +1,12 @@
-name: Arvin COMMAND 07-A.2.47 Optional Relationship SQLite Prototype
+name: Arvin COMMAND 07-A.2.50 Wave 1 G1 Hierarchy Candidate
 
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - 'test/diagnostics/command_07_a2_47_optional_relationship_sqlite_test.dart'
+      - 'lib/services/g1_hierarchy_candidate_schema.dart'
+      - 'test/services/g1_hierarchy_candidate_schema_test.dart'
       - '.github/workflows/arvin-command-07-a2-47-optional-relationships.yml'
   workflow_dispatch:
     inputs:
@@ -53,17 +55,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p build/arvin-command-07-a2-47
+          mkdir -p build/arvin-command-07-a2-50
           flutter test test/diagnostics/command_07_a2_47_optional_relationship_sqlite_test.dart \
-            --reporter expanded 2>&1 | tee build/arvin-command-07-a2-47/sqlite-prototype-test.log
-          printf '%s\n' "$TARGET_SHA" > build/arvin-command-07-a2-47/target-sha.txt
-          sha256sum build/arvin-command-07-a2-47/sqlite-prototype-test.log \
-            | tee build/arvin-command-07-a2-47/evidence.sha256
+            --reporter expanded 2>&1 | tee build/arvin-command-07-a2-50/legacy-prototype-test.log
+          flutter test test/services/g1_hierarchy_candidate_schema_test.dart \
+            --reporter expanded 2>&1 | tee build/arvin-command-07-a2-50/real-g1-hierarchy-test.log
+          printf '%s\n' "$TARGET_SHA" > build/arvin-command-07-a2-50/target-sha.txt
+          sha256sum build/arvin-command-07-a2-50/*.log \
+            | tee build/arvin-command-07-a2-50/evidence.sha256
       - name: Upload SQLite prototype evidence
         if: always()
         uses: actions/upload-artifact@v5
         with:
-          name: arvin-command-07-a2-47-optional-relationships-${{ env.TARGET_SHA }}
-          path: build/arvin-command-07-a2-47/
+          name: arvin-command-07-a2-50-g1-hierarchy-${{ env.TARGET_SHA }}
+          path: build/arvin-command-07-a2-50/
           if-no-files-found: warn
           retention-days: 90
