@@ -94,7 +94,7 @@ void main() {
     );
     expect(homeTitle.style?.fontFamily, isNull);
     expect(find.byKey(const ValueKey('home-filter-card-time')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-filter-card-center')), findsNothing);
+    expect(find.byKey(const ValueKey('home-filter-card-center')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-project')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-category')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-tags')), findsOneWidget);
@@ -108,12 +108,17 @@ void main() {
     expect(overdueHeaderText.style?.fontWeight, FontWeight.w900);
     expect(find.byKey(const ValueKey('home-filter-card-all')), findsNothing);
     expect(find.byKey(const ValueKey('home-compact-filter-row')), findsOneWidget);
-    expect(find.byType(HomeFilterPill), findsNWidgets(4));
+    expect(find.byType(HomeFilterPill), findsNWidgets(5));
     final filterRow = tester.widget<Row>(
       find.byKey(const ValueKey('home-compact-filter-row')),
     );
     expect(filterRow.textDirection, TextDirection.rtl);
-    for (final id in ['time', 'project', 'category', 'tags']) {
+    final orderedPills = tester.widgetList<HomeFilterPill>(find.byType(HomeFilterPill)).toList();
+    expect(
+      orderedPills.map((pill) => (pill.key as ValueKey).value).toList(),
+      ['home-filter-card-time', 'home-filter-card-center', 'home-filter-card-project', 'home-filter-card-category', 'home-filter-card-tags'],
+    );
+    for (final id in ['time', 'center', 'project', 'category', 'tags']) {
       final pill = find.byKey(ValueKey('home-filter-card-$id'));
       expect(tester.getSize(pill).width, greaterThanOrEqualTo(48));
       expect(tester.getSize(pill).height, greaterThanOrEqualTo(48));
@@ -132,40 +137,27 @@ void main() {
     for (final width in [360.0, 390.0, 412.0]) {
       tester.view.physicalSize = Size(width, 1200);
       await tester.pumpAndSettle();
-      final filterKeys = [
-        'time',
-        'project',
-        'category',
-        'tags',
-      ];
-      final filterRects = filterKeys
-          .map((id) => tester.getRect(
-                find.byKey(ValueKey('home-filter-card-$id')),
-              ))
-          .toList(growable: false);
-      for (final rect in filterRects) {
-        expect(rect.height, greaterThanOrEqualTo(48));
-        expect(rect.left, greaterThanOrEqualTo(0));
-        expect(rect.right, lessThanOrEqualTo(width));
-      }
-      for (var index = 1; index < filterRects.length; index++) {
-        expect(filterRects[index].top, closeTo(filterRects.first.top, 0.1));
-        expect(filterRects[index].bottom, closeTo(filterRects.first.bottom, 0.1));
-        expect(filterRects[index - 1].center.dx,
-            greaterThan(filterRects[index].center.dx));
-      }
-      expect(
-        find.descendant(
-          of: find.byKey(const ValueKey('home-compact-filter-row')),
-          matching: find.byWidgetPredicate(
-            (widget) =>
-                widget is Scrollable &&
-                (widget.axisDirection == AxisDirection.left ||
-                    widget.axisDirection == AxisDirection.right),
-          ),
+      final horizontalScroll = find.descendant(
+        of: find.byKey(const ValueKey('home-compact-filter-row')),
+        matching: find.byWidgetPredicate(
+          (widget) =>
+              widget is Scrollable &&
+              (widget.axisDirection == AxisDirection.left ||
+                  widget.axisDirection == AxisDirection.right),
         ),
-        findsNothing,
       );
+      expect(horizontalScroll, findsOneWidget);
+      for (final id in ['time', 'center', 'project', 'category', 'tags']) {
+        final pill = find.byKey(ValueKey('home-filter-card-$id'));
+        await tester.ensureVisible(pill);
+        await tester.pumpAndSettle();
+        final rect = tester.getRect(pill);
+        expect(rect.width, greaterThanOrEqualTo(48), reason: '$id width=$width');
+        expect(rect.height, greaterThanOrEqualTo(48), reason: '$id width=$width');
+        expect(rect.left, greaterThanOrEqualTo(0), reason: '$id width=$width');
+        expect(rect.right, lessThanOrEqualTo(width), reason: '$id width=$width');
+      }
+      expect(tester.takeException(), isNull, reason: 'width=$width');
     }
     tester.view.physicalSize = Size(originalWidth, 1200);
     await tester.pumpAndSettle();
@@ -209,11 +201,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('انتخاب زمان'), findsNothing);
 
-    final moreNavigation = find.byKey(const ValueKey('primary-nav-more'));
-    await tester.ensureVisible(moreNavigation);
-    await tester.tap(moreNavigation);
-    await tester.pumpAndSettle();
-    final centerFilter = find.byKey(const ValueKey('home-more-center-filter'));
+    final centerFilter = find.byKey(const ValueKey('home-filter-card-center'));
     await tester.ensureVisible(centerFilter);
     await tester.tap(centerFilter);
     await tester.pumpAndSettle();

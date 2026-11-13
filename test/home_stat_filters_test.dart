@@ -26,7 +26,7 @@ void main() {
     await CenterStore.resetTestDatabase();
   });
 
-  testWidgets('Home exposes the four canonical REV5 filter controls', (tester) async {
+  testWidgets('Home exposes the five canonical filters in product order', (tester) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -37,6 +37,7 @@ void main() {
     expect(find.byKey(const ValueKey('home-compact-filter-wrap')), findsOneWidget);
     for (final key in [
       'home-filter-card-time',
+      'home-filter-card-center',
       'home-filter-card-project',
       'home-filter-card-category',
       'home-filter-card-tags',
@@ -45,6 +46,7 @@ void main() {
     }
     for (final key in [
       'home-filter-card-time',
+      'home-filter-card-center',
       'home-filter-card-project',
       'home-filter-card-category',
       'home-filter-card-tags',
@@ -124,6 +126,7 @@ void main() {
     expect(find.byKey(const ValueKey('home-search-button')), findsOneWidget);
     for (final key in [
       'home-filter-card-time',
+      'home-filter-card-center',
       'home-filter-card-project',
       'home-filter-card-category',
       'home-filter-card-tags',
@@ -273,7 +276,7 @@ void main() {
   });
 
 
-  testWidgets('four REV5 icon filters fit 360, 390 and 412dp without overlap',
+  testWidgets('five canonical filters remain reachable in one RTL row at phone widths',
       (tester) async {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -283,23 +286,32 @@ void main() {
       await tester.pumpWidget(const ArvinApp());
       await tester.pumpAndSettle();
 
-      final rects = [
-        for (final key in [
-          'home-filter-card-time',
-          'home-filter-card-project',
-          'home-filter-card-category',
-          'home-filter-card-tags',
-        ])
-          tester.getRect(find.byKey(ValueKey(key))),
-      ];
-      for (final rect in rects) {
-        expect(rect.width, greaterThanOrEqualTo(48), reason: 'width=$width');
-        expect(rect.height, greaterThanOrEqualTo(48), reason: 'width=$width');
-      }
-      for (var i = 0; i < rects.length; i++) {
-        for (var j = i + 1; j < rects.length; j++) {
-          expect(rects[i].overlaps(rects[j]), isFalse, reason: 'width=$width');
-        }
+      final row = find.byKey(const ValueKey('home-compact-filter-row'));
+      final horizontalScroll = find.descendant(
+        of: row,
+        matching: find.byWidgetPredicate(
+          (widget) => widget is Scrollable &&
+              (widget.axisDirection == AxisDirection.left ||
+                  widget.axisDirection == AxisDirection.right),
+        ),
+      );
+      expect(horizontalScroll, findsOneWidget, reason: 'width=$width');
+      for (final key in [
+        'home-filter-card-time',
+        'home-filter-card-center',
+        'home-filter-card-project',
+        'home-filter-card-category',
+        'home-filter-card-tags',
+      ]) {
+        final pill = find.byKey(ValueKey(key));
+        expect(pill, findsOneWidget, reason: 'width=$width key=$key');
+        await tester.ensureVisible(pill);
+        await tester.pumpAndSettle();
+        final rect = tester.getRect(pill);
+        expect(rect.width, greaterThanOrEqualTo(48), reason: 'width=$width key=$key');
+        expect(rect.height, greaterThanOrEqualTo(48), reason: 'width=$width key=$key');
+        expect(rect.left, greaterThanOrEqualTo(0), reason: 'width=$width key=$key');
+        expect(rect.right, lessThanOrEqualTo(width), reason: 'width=$width key=$key');
       }
       expect(tester.takeException(), isNull, reason: 'width=$width');
     }

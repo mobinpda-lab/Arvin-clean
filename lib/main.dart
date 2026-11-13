@@ -1063,93 +1063,129 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _homeFilterCards() {
+    final colors = Theme.of(context).colorScheme;
+    final soft = Color.alphaBlend(colors.primary.withAlpha(18), colors.surface);
+
+    Widget filterPill({
+      required String id,
+      required String label,
+      required IconData icon,
+      required Color accent,
+      required bool active,
+      required VoidCallback onPressed,
+    }) {
+      return SizedBox(
+        width: 60,
+        child: HomeFilterPill(
+          key: ValueKey('home-filter-card-$id'),
+          label: label,
+          icon: icon,
+          soft: soft,
+          accent: accent,
+          active: active,
+          onPressed: onPressed,
+        ),
+      );
+    }
+
+    final centerLabel = _centerFilters.isEmpty
+        ? 'مرکز'
+        : _centerFilters.length == 1
+            ? (_centerFilters.first == '__no_center__'
+                ? 'بدون مرکز'
+                : (_centerName(_centerFilters.first) ?? 'مرکز حذف‌شده'))
+            : 'مرکز';
+
     return Padding(
       key: const ValueKey('home-compact-filter-wrap'),
       padding: const EdgeInsetsDirectional.fromSTEB(6, 0, 6, 4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: Row(
+        key: const ValueKey('home-compact-filter-row'),
+        textDirection: TextDirection.rtl,
         children: [
-          Row(
-            key: const ValueKey('home-compact-filter-row'),
-            textDirection: TextDirection.rtl,
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: HomeFilterPill(
-                  key: const ValueKey('home-filter-card-time'),
-                  label: _timeFilters.isEmpty && _timeFilter != 'customRange' && !_todayFocusOnly
-                      ? 'زمان'
-                      : _timeFilterLabel,
-                  icon: Icons.schedule_rounded,
-                  soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
-                  accent: ArvinColors.time,
-                  active: _timeFilters.isNotEmpty || _timeFilter == 'customRange' || _todayFocusOnly,
-                  onPressed: _showTimeFilterSheet,
-                ),
+          Expanded(
+            child: SingleChildScrollView(
+              key: const ValueKey('home-filter-horizontal-scroll'),
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                textDirection: TextDirection.rtl,
+                children: [
+                  filterPill(
+                    id: 'time',
+                    label: _timeFilters.isEmpty &&
+                            _timeFilter != 'customRange' &&
+                            !_todayFocusOnly
+                        ? 'زمان'
+                        : _timeFilterLabel,
+                    icon: Icons.schedule_rounded,
+                    accent: ArvinColors.time,
+                    active: _timeFilters.isNotEmpty ||
+                        _timeFilter == 'customRange' ||
+                        _todayFocusOnly,
+                    onPressed: _showTimeFilterSheet,
+                  ),
+                  const SizedBox(width: 6),
+                  filterPill(
+                    id: 'center',
+                    label: centerLabel,
+                    icon: Icons.business_rounded,
+                    accent: colors.primary,
+                    active: _centerFilters.isNotEmpty,
+                    onPressed: _showCenterFilterSheet,
+                  ),
+                  const SizedBox(width: 6),
+                  filterPill(
+                    id: 'project',
+                    label: _projectFilters.isEmpty
+                        ? 'پروژه'
+                        : _projectFilters.length == 1
+                            ? (_projectFilters.first == '__no_project__'
+                                ? 'بدون پروژه'
+                                : (_projectTitle(_projectFilters.first) ??
+                                    'پروژه حذف‌شده'))
+                            : 'پروژه',
+                    icon: Icons.folder_rounded,
+                    accent: ArvinColors.project,
+                    active: _projectFilters.isNotEmpty,
+                    onPressed: _showProjectFilterSheet,
+                  ),
+                  const SizedBox(width: 6),
+                  filterPill(
+                    id: 'category',
+                    label: _categoryFilters.isEmpty
+                        ? 'دسته'
+                        : _categoryFilters.length == 1
+                            ? _categoryFilters.first
+                            : 'دسته',
+                    icon: Icons.layers_rounded,
+                    accent: ArvinColors.category,
+                    active: _categoryFilters.isNotEmpty,
+                    onPressed: _showCategoryFilterSheet,
+                  ),
+                  const SizedBox(width: 6),
+                  filterPill(
+                    id: 'tags',
+                    label: 'برچسب',
+                    icon: Icons.sell_rounded,
+                    accent: ArvinColors.tag,
+                    active: _tagFilters.isNotEmpty,
+                    onPressed: _showTagFilterSheet,
+                  ),
+                ],
               ),
-              const SizedBox(width: 2),
-              Expanded(
-                child: HomeFilterPill(
-                  key: const ValueKey('home-filter-card-project'),
-                  label: _projectFilters.isEmpty
-                      ? 'پروژه'
-                      : _projectFilters.length == 1
-                          ? (_projectFilters.first == '__no_project__'
-                              ? 'بدون پروژه'
-                              : (_projectTitle(_projectFilters.first) ??
-                                  'پروژه حذف‌شده'))
-                          : 'پروژه',
-                  icon: Icons.folder_rounded,
-                  soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
-                  accent: ArvinColors.project,
-                  active: _projectFilters.isNotEmpty,
-                  onPressed: _showProjectFilterSheet,
-                ),
-              ),
-              const SizedBox(width: 2),
-              Expanded(
-                child: HomeFilterPill(
-                  key: const ValueKey('home-filter-card-category'),
-                  label: _categoryFilters.isEmpty
-                      ? 'دسته'
-                      : _categoryFilters.length == 1
-                          ? _categoryFilters.first
-                          : 'دسته',
-                  icon: Icons.layers_rounded,
-                  soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
-                  accent: ArvinColors.category,
-                  active: _categoryFilters.isNotEmpty,
-                  onPressed: _showCategoryFilterSheet,
-                ),
-              ),
-              const SizedBox(width: 2),
-              Expanded(
-                child: HomeFilterPill(
-                  key: const ValueKey('home-filter-card-tags'),
-                  label: _tagFilters.isEmpty
-                      ? 'برچسب'
-                      : 'برچسب',
-                  icon: Icons.sell_rounded,
-                  soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
-                  accent: ArvinColors.tag,
-                  active: _tagFilters.isNotEmpty,
-                  onPressed: _showTagFilterSheet,
-                ),
-              ),
-              const SizedBox(width: 1),
-              Semantics(
-                button: true,
-                label: 'مرتب‌سازی کارها',
-                child: IconButton(
-                  key: const ValueKey('home-sort-button'),
-                  tooltip: 'مرتب‌سازی کارها',
-                  constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-                  onPressed: _showSortOptions,
-                  icon: const Icon(Icons.sort_rounded),
-                ),
-              ),
-            ],
+            ),
+          ),
+          const SizedBox(width: 1),
+          Semantics(
+            button: true,
+            label: 'مرتب‌سازی کارها',
+            child: IconButton(
+              key: const ValueKey('home-sort-button'),
+              tooltip: 'مرتب‌سازی کارها',
+              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+              onPressed: _showSortOptions,
+              icon: const Icon(Icons.sort_rounded),
+            ),
           ),
         ],
       ),
