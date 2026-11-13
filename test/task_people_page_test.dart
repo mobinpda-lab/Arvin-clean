@@ -85,7 +85,7 @@ void main() {
     expect(find.text('حذف ارتباط'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('people-remove-cancel')));
     await tester.pumpAndSettle();
-    expect(find.text('علی رضایی'), findsOneWidget);
+    expect(find.text('علی رضایی ویرایش‌شده'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('people-remove-person-1')));
     await tester.pumpAndSettle();
