@@ -746,17 +746,58 @@ class TaskStore {
     await G1DriftSchema.install(executor);
     if (await G1DriftSchema.isLegacyMigrationComplete(executor)) {
       await G1DriftSchema.migrateTaskPeople(executor);
-      return;
+    } else {
+      final preferences = await SharedPreferences.getInstance();
+      await const SqlTaskMigrationWriter().migrateFromPreferences(
+        executor: executor,
+        preferences: preferences,
+      );
+      await G1DriftSchema.migrateTaskPeople(executor);
+      await _seedCategoryCatalog(executor);
+      await G1DriftSchema.markLegacyMigrationComplete(executor);
     }
+    await _migrateLegacyTagCatalog(executor);
+  }
+
+  /// One-way, idempotent migration of the retired SharedPreferences Tag
+  /// catalog. The legacy key is deliberately retained as recovery evidence;
+  /// the SQLite marker and catalog rows commit atomically so an interrupted
+  /// migration can be retried without duplicate entries or data loss.
+  Future<void> _migrateLegacyTagCatalog(QueryExecutor executor) async {
+    final marker = await executor.runSelect(
+      "SELECT value FROM arvin_storage_meta WHERE key = 'legacy_tags_migrated'",
+      const [],
+    );
+    if (marker.isNotEmpty && marker.single['value'] == '1') return;
 
     final preferences = await SharedPreferences.getInstance();
-    await const SqlTaskMigrationWriter().migrateFromPreferences(
-      executor: executor,
-      preferences: preferences,
-    );
-    await G1DriftSchema.migrateTaskPeople(executor);
-    await _seedCategoryCatalog(executor);
-    await G1DriftSchema.markLegacyMigrationComplete(executor);
+    final legacyValues = preferences.getStringList('arvin.tags') ?? const <String>[];
+    final normalized = <String>{
+      for (final raw in legacyValues)
+        if (raw.trim().isNotEmpty) raw.trim(),
+    };
+
+    await executor.runCustom('BEGIN');
+    try {
+      for (final name in normalized) {
+        await executor.runInsert(
+          'INSERT OR IGNORE INTO tags (id, name) VALUES (?, ?)',
+          <Object?>[_tagId(name), name],
+        );
+      }
+      await executor.runInsert(
+        '''INSERT INTO arvin_storage_meta (key, value)
+           VALUES ('legacy_tags_migrated', '1')
+           ON CONFLICT(key) DO UPDATE SET value = '1' ''',
+        const [],
+      );
+      await executor.runCustom('COMMIT');
+    } catch (_) {
+      try {
+        await executor.runCustom('ROLLBACK');
+      } catch (_) {}
+      rethrow;
+    }
   }
 
   Future<void> _seedCategoryCatalog(QueryExecutor executor) async {
