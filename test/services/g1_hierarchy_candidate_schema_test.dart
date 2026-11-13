@@ -24,7 +24,7 @@ Future<void> _insertTask(
 
 Future<({Directory directory, File file, NativeDatabase db})> _openCandidate() async {
   final directory = await Directory.systemTemp.createTemp('arvin-g1-hierarchy-');
-  final file = File(directory.path + '/candidate.sqlite');
+  final file = File('${directory.path}/candidate.sqlite');
   final db = NativeDatabase(file);
   await G1DriftSchema.install(db);
 
@@ -332,7 +332,7 @@ void main() {
 
   test('injected migration interruption rolls back and a retry recovers', () async {
     final directory = await Directory.systemTemp.createTemp('arvin-g1-hierarchy-rollback-');
-    final file = File(directory.path + '/rollback.sqlite');
+    final file = File('${directory.path}/rollback.sqlite');
     final db = NativeDatabase(file);
     try {
       await G1DriftSchema.install(db);
@@ -359,7 +359,7 @@ void main() {
 
   test('physical SQLite backup restores into an independent file', () async {
     final f = await _openCandidate();
-    final backup = File(f.directory.path + '/restored.sqlite');
+    final backup = File('${f.directory.path}/restored.sqlite');
     var sourceClosed = false;
     try {
       await _insertTask(f.db, 'task-backup', centerId: 'center-a');
