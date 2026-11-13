@@ -179,8 +179,7 @@ class _ProjectTemplateManagementPageState extends State<ProjectTemplateManagemen
                     ctx,
                     ProjectTemplateTask(
                       id: existing?.id ??
-                          'template-task-' +
-                              DateTime.now().microsecondsSinceEpoch.toString(),
+                          'template-task-${DateTime.now().microsecondsSinceEpoch}',
                       title: title.text.trim(),
                       description: description.text.trim(),
                       category: selectedCategory,
