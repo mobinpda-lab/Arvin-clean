@@ -1499,3 +1499,42 @@ No PASS is recorded for this candidate. All historical evidence remains tied to 
 - Follow-up Person creation/selection failure remains unresolved: `follow_up_entry_page_test.dart:229` does not find the newly selected Person chip after the multi-select sheet closes. The code path was inspected, but the root cause is not proven; no production change was made.
 - `task_detail_person_persistence_test.dart` must be rerun on SHA `bb08f21...` before its Person/SQLite assertions can be evaluated. The prior failure was the test harness finder, not evidence of a Person persistence failure.
 - Main remains `45e4202b03a434459e4c021a04efa7e8396359db`. No merge/release/deployment, workflow rerun, branch deletion, history rewrite or production-data operation occurred.
+
+
+---
+
+## REV10 live execution checkpoint — 2026-11-13 16:37 Asia/Tehran
+
+### Verified repository refs
+- Arvin Main: `45e4202b03a434459e4c021a04efa7e8396359db` (unchanged during this mission).
+- REV9 documentation branch: `docs/rev9-governance-continuity-2026-11-10` at `5bdb451674e6bbe7832f903b1215cbf39608c730`.
+- REV10 branch: `docs/rev10-master-charter-2026-11-13`; the latest verified branch HEAD before this checkpoint update was `b65d614681a603f026095a2bcbde6145732bea8d`. The checkpoint append itself will create a new HEAD; re-fetch it before reporting final state.
+- SQLite execution branch: `feature/command-07-a-sqlite-contract-remediation` at `3f471e6b88764446eabd33752d0aa3d820f52628`.
+- PR #3340 (REV9) and PR #3388 (parallel Wave 0/v49.1 documentation) remain separate unmerged documentation lines. Do not merge them blindly.
+- PR #3384 remains the SQLite/product execution stream; no merge is authorized.
+- NIRA Main: `7a27ee63b65d343e45c5786f782f2567611722dc`. NIRA README confirms it is a separate generic factory/control plane; its factory maturity is not Arvin product acceptance.
+
+### REV10 documentation changes
+- Created `MASTER_GOVERNANCE_REV9_ARCHIVE.md` as a verbatim preservation of the REV9 master.
+- Replaced the active `MASTER_GOVERNANCE.md` with REV10.
+- Added REV10 decision traceability and supersession entries to PRODUCT_DECISIONS.md.
+- Aligned AI_GOVERNANCE_POLICY.md with REV10 continuous-development authority and protected-operation boundaries.
+- Updated README and conflict register to identify REV10 as active and preserve competing governance history.
+- No Main change, merge, release, deployment or historical PR closure.
+
+### SQLite optional-relationship test correction
+- The 07-A.2.47 diagnostic failed on SHA `0b36f1a67a7a16fb7be93cd27dc73573bca04af1` because the lazily opened NativeDatabase executor was used before `ensureOpen`.
+- Corrected the test harness to initialize the executor with the canonical G1 schema owner without installing the full production schema into the independent fixture.
+- Correction commit: `3f471e6b88764446eabd33752d0aa3d820f52628`.
+- Exact-head optional-relationship workflow Run `43431160695` was QUEUED at last poll; Build Run `43431160736` was PENDING with no jobs allocated. No PASS is claimed.
+- Earlier Snapshot and Follow-up Persistence passes on `0b36f1a...` are historical and do not transfer to `3f471e6...`.
+- Earlier Device Smoke run `43428949428` was queued on `0b36f1a...`; it does not validate the newer SHA.
+
+### Current acceptance disposition
+- REV10 document: IMPLEMENTED on the development branch; PR review and documentation synchronization remain pending.
+- Optional relationship SQLite diagnostic: YELLOW / exact-head run pending after harness correction.
+- D01–D05: NOT ACCEPTED as complete gates.
+- Product regression matrix: incomplete; re-inventory current exact-head failures.
+- Device Smoke: NOT ACCEPTED.
+- Merge / Release / Deployment: NOT AUTHORIZED.
+
