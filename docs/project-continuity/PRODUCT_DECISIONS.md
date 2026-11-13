@@ -1,4 +1,22 @@
-## REV8 typography authority reconciliation — source review 2026-11-10
+# REV9 — CURRENT OWNER DECISION REGISTER ADDENDUM (2026-11-10)
+
+## ARVIN-DEC-2026-11-10-LOCAL-FIRST — LOCAL-FIRST / SYNC SUSPENDED
+
+| Field | Decision |
+|---|---|
+| Status | APPROVED — explicit latest Product Owner direction |
+| Product architecture | Arvin is a standalone LOCAL-FIRST product; essential business features work locally and offline |
+| Durable data | Local SQL remains the sole source of truth for persistent product data |
+| Multi-device synchronization | SUSPENDED — no Local P2P, LAN, Cloud, Dropbox, remote sync, pairing, conflict engine or sync automation |
+| Reopening | Requires a separate explicit Mobin authorization |
+| Supersedes | Earlier Local P2P Phase 1 / Cloud Phase 2 planning rows and sync implementation proposals |
+| Preservation | Historical specs and decisions remain; do not delete or treat as active authorization |
+
+**Safe rule:** local-first product capabilities may continue only within their separately authorized product scope. Synchronization work is not active and must not be started, implemented, tested as a feature, or placed on an active delivery roadmap without new owner authorization.
+
+---
+
+## Historical REV8 typography authority reconciliation — source review 2026-11-10
 
 A material source conflict remains open; do not silently treat the current code or a test name as proof of product approval.
 - Direct owner instruction located in prior conversation on 2026-09-06: standardize all projects on **VazirHarf v34.003**, replace every Vazirmatn reference including documentation; the owner supplied the source revision `3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8`.
@@ -18,7 +36,7 @@ Canonical register for durable product decisions. Detailed implementation and hi
 | Product hierarchy is Center > Project > Category > Task | APPROVED | Owner-confirmed product hierarchy; use the Persian term «مرکز», not «واحد», for the top level. |
 | Official UI font baseline is Vazirmatn | APPROVED | Every UI element uses Vazirmatn except the two exact owner-approved sacred Arabic phrases recorded below. |
 | PR #3052 stays OPEN / DRAFT / UNMERGED; main untouched; release NO-GO | APPROVED | Binding governance constraints for the active delivery stream. |
-| Phase 1 sync direction is local-network, offline Local P2P; cloud/Dropbox is a separate future Phase 2 | APPROVED | Product direction only. This does not approve a particular pairing or conflict algorithm. |
+| Earlier Phase 1 local-network P2P / future Cloud Phase 2 direction | SUPERSEDED — HISTORICAL | Earlier approved direction retained for traceability. Superseded by Mobin's 2026-11-10 LOCAL-FIRST standalone-product decision: all multi-device sync (P2P/LAN/Cloud/Dropbox/remote) is SUSPENDED until separately authorized. |
 | Task due date, independent TaskReminder, recurrence and historical FollowUp remain separate concepts | APPROVED | Canonical product/data semantics; no conflation or parallel storage. |
 | Task Templates are reusable definitions stored in the existing G1 Drift database, separate from executable Tasks; execution state and Follow-up history are excluded, while reusable recurrence pattern (frequency, interval, count, active, tracking level) and Reminder time definitions are retained; source execution dates/history are excluded | APPROVED | Owner directive for Issue #823; contract and non-destructive G1 v11 migration are recorded in `TASK_TEMPLATE_DATA_CONTRACT.md`. Source-context IDs are provenance snapshots only, not automatic project reassignment. |
 | Report Center completed-follow-up report remains available through unified Filters rather than a separate top-level action | IMPLEMENTED | The change and tests are recorded at SHA 9b52d43; current HEAD must be rerun before claiming current-SHA verification. |
@@ -414,18 +432,66 @@ This clarification resolves an asset-to-screen attribution error and does not in
 - **Reminder four-state contract remains DECISION REQUIRED.** Names, transitions, terminal behavior, snooze and re-enable semantics must not be guessed.
 
 
-## COMMAND 07-A.2.57 — Product Owner Supersession Addendum (2026-11-13)
+---
 
-The following explicit Product Owner decisions are authoritative over conflicting historical text in REV8/REV9/REV10 and older specifications. Historical entries remain intact and are superseded only where they conflict.
+## REV9 decision ledger addendum — 2026-11-10
 
-1. Canonical hierarchy: Center → Project → Category → Task. Each Project has exactly one owning Center; each Category has exactly one owning Project. Task relationships to Center, Project and Category are independently optional (0..1); Tags are 0..N. A Task may be fully unassigned.
-2. Parent resolution is derived, not materialized by creating missing entities: Project-only resolves its Center; Category-only resolves Project and Center. Center-only creates neither Project nor Category. Direct and derived parent IDs must agree.
-3. SQLite and repository boundaries must reject inconsistent Center/Project/Category ownership. Optional Task foreign keys remain nullable. Tag remains many-to-many. Person remains a first-class identity with Task and Follow-up relations.
-4. Canonical product terminology is «مرکز». «شعبه» is historical synonym only, never a second product entity or filter.
-5. Home filters are one RTL horizontal row in the exact order Time, Center, Project, Category, Tag; narrow widths scroll horizontally. Task Details uses the approved single-column focus detail, with fields ordered Time, Center, Project, Category, Tag. Center/Project/Category are single-select and clearable; Tags are multi-select.
-6. Entity Management Center is the single coherent destination for Center, Project, Category, Tag and Person lifecycle operations. Existing screens remain until every consumer is migrated and acceptance is demonstrated.
-7. Templates must reuse ProjectTemplateStore, TaskTemplateStore, ProjectTemplateService, template_task_applications and Task.templateTaskId. No parallel template engine or activity identity. Cross-Center reporting uses existing template identity and application records.
-8. Official font is Vazirmatn, including PDF/Android packaging requirements, unless a later explicit owner decision supersedes it.
-9. D01–D05 and all product acceptance gates require exact-SHA evidence. Candidate-only tests do not authorize production startup cutover.
+| ID | Decision / rule | Status | Authority and reconciliation |
+|---|---|---|---|
+| REV9-001 | REV9 is the active unified product, design and governance charter. | APPROVED | Latest owner-supplied REV9; supersedes REV8 as active master while REV8 is retained as archive. |
+| REV9-002 | SQL is the sole durable product-data source of truth; JSON is limited to backup, import/export, transfer and temporary payloads. | APPROVED | REV9 §26–28; preserve prior matching SQL-only decisions. |
+| REV9-003 | Brand primary is REV9 Primary Blue #4169A1; semantic colors must not replace brand primary; old teal-primary direction is superseded where conflicting. | APPROVED | REV9 §33; do not erase the historical teal decision. |
+| REV9-004 | Final UI font: Vazirmatn vs VazirHarf. | NEEDS OWNER DECISION | REV9 §32 explicitly reopens this conflict. Issue #2974 / PR #2918 / #2975 / #2932 contain earlier Vazirmatn approval records; retain them as HISTORICAL/SUPERSEDED for current resolution, do not silently choose. |
+| REV9-005 | Minimum interactive hit target 48dp × 48dp across current and future modules. | APPROVED | REV9 §31; 40dp historical controls are implementation gaps, not compliant evidence. |
+| REV9-006 | Five Follow-up completion loops (person roles, Waiting For/Next Action, Staleness, Resolution Note/Proof, Quick Export). | PROPOSAL | REV9 §11; requires audit and explicit approval before implementation. |
+| REV9-007 | Commitment as a central domain concept/new model. | PROPOSAL | REV9 §4 explicitly does not authorize a new table/model. Inspect existing SQL schema first. |
+| REV9-008 | Five product evolution waves 0–4. | PRODUCT SCOPE | REV9 §42; preserve REV8 engineering execution waves separately as historical/engineering sequencing. |
+| REV9-009 | Exact four-state Reminder machine/transitions. | NEEDS OWNER DECISION | REV9 §12; no inferred states or transitions. |
+| REV9-010 | Product and technical status must remain separate (Decision / Implementation / Verification). | APPROVED | REV9 §40; no implementation/verification claims from product approval alone. |
 
-Supersession rationale: this addendum consolidates the explicit 07-A.2.57 owner contract. Older implementation snapshots and specifications describe historical architecture, not permission to preserve contradictory product behavior. Migration must remain lossless and incremental; no historical data is deleted by this decision.
+The full REV9 clauses remain in `MASTER_GOVERNANCE.md`; prior decisions and supersession history remain in this file.
+
+
+## COMMAND 07-A.2.34 — typography decision resolution (2026-11-13)
+
+The Product Owner's explicit command issued 2026-11-13 resolves REV9-004 without deleting the historical REV9 ambiguity record:
+- **Decision: APPROVED — Vazirmatn is the sole official and default Arvin product font.**
+- **System Default** is an optional user preference only; it is not a second branded font.
+- VazirHarf is not an authorized official font. Preserve source/provenance and historical assets as evidence; do not register or package it as the active product font.
+- Required weights: 300, 400, 500, 600, 700.
+- A centralized Theme owns typography. Acceptance still requires light/dark, RTL, Persian/Latin mixed text, half-space, digits, Jalali dates, small-screen, preference persistence, PDF embedding/rendering and APK asset/hash verification.
+- This decision supersedes the unresolved status in REV9-004 for current implementation. It does not retroactively convert historical font evidence into current-SHA acceptance.
+
+
+---
+
+## REV10 owner-authorized decision reconciliation — 2026-11-13
+
+| ID | Decision | Status | Supersession / implementation boundary |
+|---|---|---|---|
+| REV10-001 | Latest explicit Product Owner decisions outrank REV9 and older operational documents. | APPROVED | REV9 remains a verbatim archive; REV10 is the active master. |
+| REV10-002 | Arvin is Local-First / SQL-Only with one canonical durable database. | APPROVED | Preserve valid REV9 SQL-only requirements; no parallel permanent JSON or database. |
+| REV10-003 | Canonical ownership is Center → Project → Category → Task. | APPROVED | Project requires one Center; Category requires one Project; Task organization links remain optional. |
+| REV10-004 | Task Center, Project and Category links are each 0..1; Tags are 0..N. | APPROVED | Do not force Task project/category links to NOT NULL; enforce cross-parent consistency at SQL level. |
+| REV10-005 | Entity Management Center manages Center, Project, Category, Tag and Person coherently. | APPROVED | Distinct entity tables and identities remain separate; all durable operations use canonical SQL services. |
+| REV10-006 | Global filter order is Time, Center, Project, Category, Tag. | APPROVED | SUPERSEDES the older four-dimension Home filter contract and any Branch-as-fifth-filter instruction. |
+| REV10-007 | Task Details is single-column with Center → Project → Category → Tag ordering and direct Auto-Save. | APPROVED | Independent Edit Mode remains retired; no silent save failures or lost concurrent writes. |
+| REV10-008 | Person selection must be a real Person entity and persisted SQL relationship. | APPROVED | Static display text is not evidence of a persisted relationship. |
+| REV10-009 | Equivalent activities across Centers need stable shared identity and independent execution records. | APPROVED | Task title alone is not a stable identity; do not merge Task execution state. |
+| REV10-010 | Templates support selected hierarchy scope and independent Deep Clone. | APPROVED | New IDs, fresh unchecked checklists, no copied execution history or reused Follow-up/Reminder IDs. |
+| REV10-011 | D01–D05 are independent SQLite migration/recovery acceptance gates. | APPROVED | A snapshot or JSON copy does not substitute for physical SQLite backup/restore or injected rollback/recovery. |
+| REV10-012 | Regression fixes must preserve valid tests and classify root cause. | APPROVED | No deleting, skipping, bypassing or weakening valid tests to obtain green CI. |
+| REV10-013 | Vazirmatn is the sole official/default Arvin font; System Default is optional. | APPROVED | SUPERSEDES REV9-004's NEEDS OWNER DECISION and prior VazirHarf-as-official-font directions; preserve history/assets as historical evidence. |
+| REV10-014 | Continuous development is authorized within the stated autonomy boundary. | APPROVED | Ordinary implementation, tests, controlled migrations, commits and PRs allowed; merge/release/deployment and irreversible operations remain restricted. |
+| REV10-015 | Acceptance is Single SHA and requires exact checkout/workflow/job/artifact evidence. | APPROVED | No historical PASS transfers to a later SHA. |
+| REV10-016 | Main merge, release and deployment are not authorized. | APPROVED | Development PRs remain unmerged unless Mobin later explicitly authorizes promotion. |
+
+### REV10 unresolved decisions — do not infer
+- Template relative-date behavior must be checked against the canonical Option A decision record before clone implementation.
+- Entity-specific permanent-delete, duplicate merge and archival dependency policies require evidence or explicit owner resolution.
+- Person-role cardinality and role semantics beyond real Person relationships remain unresolved where no approved record exists.
+- Shared activity identity lifecycle/equivalence and report denominator definitions must be documented before implementation/reporting.
+- Category normalization, Persian/Arabic character equivalence and Project reassignment after Template instantiation remain unresolved.
+- Ambiguous legacy relationships must be preserved as exceptions, not guessed.
+
+REV10 approval does not imply implementation or verification. Exact-SHA source, test and workflow evidence remain mandatory.

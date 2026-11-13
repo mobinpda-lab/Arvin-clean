@@ -1,3 +1,20 @@
+# REV10 ACTIVE PRODUCT CONTRACT OVERLAY — 2026-11-13
+
+REV10 is the active owner-approved product authority. The older rows below remain useful discovery/history but must be read through these current contracts:
+- Hierarchy: Center → Project → Category → Task. Project requires exactly one Center; Category requires exactly one Project.
+- Task links are independently optional: Center 0..1, Project 0..1, Category 0..1, Tags 0..N. A Task with all links absent is valid. SQL must reject inconsistent parent relationships.
+- Unified Entity Management coordinates Center, Project, Category, Tag and Person using existing canonical repositories and storage; no parallel stores.
+- Home has five filters, in RTL order: Time → Center → Project → Category → Tag. One horizontal row; horizontal scrolling on narrow screens. OR within a dimension and AND across dimensions, with dependent parent/child options.
+- Task Details uses Single-Column Focus Detail View, Actionable Linear List and Quick Presets; details are vertical. Task form time/calendar icons share one row. Task fields use canonical Auto-Save and must survive close/reopen.
+- Template Deep Clone must preserve reusable structure and create independent identities; Checklist, Person, Reminder, Recurrence, Tags and due-date behavior require exact reopen tests.
+- Cross-Center reporting uses the existing stable Template Task origin/application identity; each Center's Task execution remains independent.
+- D01–D05 are separate acceptance gates. No gate is PASS without exact-SHA tests and reviewable artifacts. No user database migration is authorized here.
+- Typography: Vazirmatn is the sole official/default UI font; prior VazirHarf-as-official statements are SUPERSEDED.
+
+Feature status is not implied by the presence of a row or class. Implementation and verification remain separate and require exact-SHA evidence.
+
+---
+
 # Arvin Product Contract Matrix
 
 ## Canonical ontology — owner decision 2026-10-10

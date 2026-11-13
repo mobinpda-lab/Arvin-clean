@@ -1,3 +1,9 @@
+# REV10 HOME CONTRACT — 2026-11-13
+
+REV10 supersedes conflicting historical Home instructions below. The official filters are Time → Center → Project → Category → Tag in one horizontal RTL row; narrow screens scroll horizontally. The old four-filter/wrap-without-scroll note is historical and no longer active. «مرکز» is the only official term; no Branch/شعبه filter or entity is introduced. Official UI font: Vazirmatn.
+
+---
+
 # TaskHomeScreen — Final Product and UI Specification
 
 **Status:** APPROVED — PRODUCT OWNER SPECIFICATION  
@@ -180,7 +186,7 @@ Classification uses Due Date only. Completed tasks with past Due Dates remain in
 - فونت یگانه رابط: **Vazirmatn**؛ بررسی `pubspec.yaml`، `lib/theme/app_fonts.dart` و `lib/theme/font_registry.dart` فقط همین خانواده را نشان می‌دهد.
 - تم روشن فیروزه‌ای: Primary `#078B91`، Header `#066F75`، Soft `#DDF7F5`، Background `#F0FAF9`، Border `#D9ECEA`. رنگ‌های خطا/اولویت و وضعیت برای معنای وضعیت حفظ می‌شوند.
 - SVG بسم‌الله با عرض نمایشی `210dp` حفظ شده؛ آزمون عرض ۲۱۰dp اضافه شده است.
-- ترتیب فیلترهای Home: زمان ← مرکز ← پروژه ← دسته ← برچسب؛ مرتب‌سازی جدا و پس از پنج فیلتر است؛ Wrap راست‌به‌چپ و بدون پیمایش افقی.
+- ترتیب فیلترهای Home: زمان ← مرکز ← پروژه ← دسته ← برچسب؛ هر پنج فیلتر در یک ردیف افقی RTL قرار می‌گیرند؛ در عرض کم پیمایش افقی فعال است؛ مرتب‌سازی مستقل و پس از پنج فیلتر می‌آید.
 - «پیگیری‌های انجام‌شده» فقط از بخش «نوع گزارش» در پنل فیلترها انتخاب می‌شود؛ دکمهٔ بالای صفحه وجود ندارد و آزمون آن را کنترل می‌کند.
 - Calendar: محتوای سلول ماه درون سلول مقیاس می‌شود و هدف لمس حداقل ۴۸dp حفظ می‌شود؛ ارتفاع اضافهٔ نمای هفتگی کاهش یافته است.
 - Task Editor و Quick Capture برای ۳۶۰/۳۹۰/۴۱۲dp، کیبورد باز/بسته و متن بزرگ پوشش آزمون دارند؛ کنترل‌های اولویت Quick Add حداقل ۴۸dp هستند.

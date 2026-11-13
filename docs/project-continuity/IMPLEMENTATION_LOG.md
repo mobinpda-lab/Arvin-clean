@@ -946,3 +946,18 @@ The current execution branch is not the only source of valid work. The following
 - Do not create a Person SQL table or independent store before reviewing #2695/#2696 and current G1 schema. Current Person tables/relations are already present.
 - Do not create a second Notebook taxonomy or Report Center.
 - The existence of merged historical PRs proves prior implementation lineage, not present-day acceptance of the new five-entity management center or Cross-Center reporting.
+
+## COMMAND 07-A.2.65 — live GitHub checkpoint (2026-11-13)
+**Main HEAD:** 45e4202b03a434459e4c021a04efa7e8396359db (READ-ONLY)
+**Execution branch HEAD / PR #3384 Head:** ef6cfa4cb1f073d44371951ad45086fe929cdbda
+**PR #3384:** OPEN / DRAFT / UNMERGED; base fix/wave3-cycle3-calendar-product-repair at 8c4c23f0c2a4f9b2374a2092c931782c4455fd41.
+**Acceptance SHA:** NOT ESTABLISHED.
+**Build 43460214591:** workflow-level QUEUED; Visual, Staging APK and Release APK SUCCESS; Debug APK IN_PROGRESS; test-0 FAILURE (246/9); test-4 FAILURE (254/9); test-1/2/3/5 and Analyze QUEUED.
+**Device Smoke 43460214241:** QUEUED; no device scenario started.
+**SQLite Snapshot 43460214382:** SUCCESS; five file-backed reopen cycles; artifact 14054969896; archive digest 777d35bffeb91da1724bf9e19642a31acfeb1c7324496b53f5773a09dede117a.
+**G1 Hierarchy 43460214765:** SUCCESS; 13 isolated candidate tests; artifact 14055398328; archive digest 9d43ba571546003ac7c8be0857bafcd3dd1a2c645cca43170ee6795f099ed3e6. Not production schema acceptance.
+**Follow-up Persistence 43460214411:** SUCCESS; file-backed repository persistence and close/reopen diagnostics; no artifact.
+**Artifact digests:** Release APK 2123adf835b11350431246d79ee48aaf1dbc31116d82fa440afb2d3639c8f801; Staging APK 0aaa89ef541d9e6e4fced65d542796af3e636c491e4cf67109d0f75588177d66; staging verification 87b858402e632ef72eb0d376b8b22140ce09e965ecbf161172b0eebc38405e2e; PDF 3e1161893ea99f134c560927438698037d548ae74131800c416bf4af1f4bbc86. These are archive digests, not APK file SHA256; independent APK SHA256 NOT VERIFIED.
+**Failures:** test-0 and test-4 have 9 failures each. Home Center filter and Orchestrator merge/ready expectations conflict with approved contracts; other failures require source-level diagnosis. Analyze and four remaining shards have no terminal result. No runner-capacity cause is proven.
+**Governance:** PR #3448 is OPEN / DRAFT / UNMERGED and is the REV10 source. Main Orchestrator merge-capable logic remains a critical blocker. D01–D05 remain PARTIAL / NOT ACCEPTED. No user database migration, merge, release or deployment is authorized.
+This checkpoint does not transfer PASS to a later SHA or declare product acceptance.
