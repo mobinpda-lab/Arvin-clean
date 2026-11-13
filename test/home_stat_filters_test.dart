@@ -210,7 +210,7 @@ void main() {
     expect(find.text('همه'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('multi-select-option-اداری')));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.text('شخصی'), 240, scrollable: _filterSheetVerticalScrollable());
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('multi-select-option-شخصی')), 240, scrollable: _filterSheetVerticalScrollable());
     await tester.tap(find.byKey(const ValueKey('multi-select-option-شخصی')));
     await tester.pumpAndSettle();
     // Draft choices are not applied before the explicit confirmation.
