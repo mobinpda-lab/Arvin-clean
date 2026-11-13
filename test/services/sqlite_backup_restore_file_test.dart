@@ -144,7 +144,7 @@ void main() {
           candidate.people ?? const <PersonReference>[],
         );
         await destinationProjects.save(
-          candidate.projects ?? const <ProjectPlan>[],
+          candidate.projects,
         );
 
         await destinationExecutor.close();
