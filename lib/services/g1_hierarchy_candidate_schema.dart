@@ -60,6 +60,8 @@ class G1HierarchyCandidateSchema {
         }
       }
 
+      await _validateCandidateShape(executor);
+
       final indexes = <String>[
         'CREATE INDEX IF NOT EXISTS idx_projects_center_archive_order ON projects(center_id, is_archived, storage_ordinal)',
         'CREATE INDEX IF NOT EXISTS idx_categories_project_archive_order ON categories(project_id, is_archived, storage_ordinal)',
@@ -101,6 +103,47 @@ class G1HierarchyCandidateSchema {
     } catch (_) {
       try { await executor.runCustom('ROLLBACK'); } catch (_) {}
       rethrow;
+    }
+  }
+
+  Future<void> _validateCandidateShape(QueryExecutor executor) async {
+    final taskColumns = await executor.runSelect("PRAGMA table_info('tasks')", const []);
+    final taskForeignKeys = await executor.runSelect("PRAGMA foreign_key_list('tasks')", const []);
+    const taskParents = <String, String>{
+      'center_id': 'centers',
+      'project_id': 'projects',
+      'category_id': 'categories',
+    };
+    for (final entry in taskParents.entries) {
+      final column = taskColumns.where((row) => row['name'] == entry.key);
+      if (column.length != 1 || (column.single['notnull'] as num).toInt() != 0) {
+        throw StateError('Task ${entry.key} must exist and remain nullable.');
+      }
+      if (!taskForeignKeys.any(
+        (row) => row['from'] == entry.key && row['table'] == entry.value,
+      )) {
+        throw StateError('Task ${entry.key} is missing its SQL foreign key to ${entry.value}.');
+      }
+    }
+
+    final projectColumns = await executor.runSelect("PRAGMA table_info('projects')", const []);
+    final projectCenter = projectColumns.where((row) => row['name'] == 'center_id');
+    if (projectCenter.length != 1 || (projectCenter.single['notnull'] as num).toInt() != 0) {
+      throw StateError('Legacy projects.center_id must remain nullable until exception resolution.');
+    }
+
+    final categoryColumns = await executor.runSelect("PRAGMA table_info('categories')", const []);
+    for (final name in ['id', 'project_id', 'name', 'created_at', 'updated_at']) {
+      final column = categoryColumns.where((row) => row['name'] == name);
+      if (column.length != 1 || (column.single['notnull'] as num).toInt() != 1) {
+        throw StateError('Canonical Category column $name must be present and NOT NULL.');
+      }
+    }
+    final categoryForeignKeys = await executor.runSelect("PRAGMA foreign_key_list('categories')", const []);
+    if (!categoryForeignKeys.any(
+      (row) => row['from'] == 'project_id' && row['table'] == 'projects',
+    )) {
+      throw StateError('Category.project_id is missing its SQL Project foreign key.');
     }
   }
 
