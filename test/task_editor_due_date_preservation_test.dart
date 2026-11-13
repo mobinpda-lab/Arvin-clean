@@ -13,28 +13,40 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     Task? result;
-    final task = Task(
-      id: 'due-safe',
-      title: 'تحویل قرارداد',
-      dueDate: DateTime(2026, 9, 11, 14, 45),
-      taskReminders: <TaskReminder>[
-        TaskReminder(
-          id: 'reminder-due-safe',
-          title: 'یادآور مستقل',
-          date: DateTime(2026, 9, 10, 9, 30),
-          sequence: 1,
-        ),
+    final task = Task.fromLegacyJson(<String, dynamic>{
+      'id': 'due-safe',
+      'title': 'تحویل قرارداد',
+      'dueDate': DateTime(2026, 9, 11, 14, 45).toIso8601String(),
+      'reminderDate': DateTime(2026, 9, 10, 9, 30).toIso8601String(),
+      'followUpEnabled': true,
+      'followUpDate': DateTime(2026, 9, 12, 11).toIso8601String(),
+      'tags': <String>['قرارداد'],
+      'checklist': <String>['[ ] بند اول'],
+      'checklistEnabled': true,
+      'checklistOccurrences': <String, dynamic>{
+        '2026-09-11T14:45:00.000': <String>['[x] بند اول'],
+      },
+      'occurrenceHistory': <String, dynamic>{
+        '2026-09-11T14:45:00.000': <String, dynamic>{
+          'completed': true,
+          'note': 'سابقه باید محفوظ بماند',
+        },
+      },
+      'notebookKind': 'checklist',
+      'isFavorite': true,
+      'focusDate': DateTime(2026, 9, 9).toIso8601String(),
+      'templateTaskId': 'template-preserve-1',
+      'completed': true,
+      'completedAt': DateTime(2026, 9, 8, 12).toIso8601String(),
+      'priority': 'high',
+      'followUps': <Map<String, dynamic>>[
+        <String, dynamic>{
+          'id': 'f1',
+          'dateTime': DateTime(2026, 9, 8, 10).toIso8601String(),
+          'note': 'تماس اولیه',
+        },
       ],
-      followUpEnabled: true,
-      followUpDate: DateTime(2026, 9, 12, 11),
-      followUps: <FollowUp>[
-        FollowUp(
-          id: 'f1',
-          dateTime: DateTime(2026, 9, 8, 10),
-          note: 'تماس اولیه',
-        ),
-      ],
-    );
+    });
 
     await tester.pumpWidget(
       MaterialApp(
@@ -66,17 +78,30 @@ void main() {
     expect(result, isNotNull);
     expect(result!.id, 'due-safe');
     expect(result!.dueDate, DateTime(2026, 9, 11, 14, 45));
-    expect(result!.reminderDate, isNull);
+    expect(result!.reminderDate, DateTime(2026, 9, 10, 9, 30));
     expect(result!.taskReminders, hasLength(1));
-    expect(result!.taskReminders.single.id, 'reminder-due-safe');
-    expect(result!.taskReminders.single.date, DateTime(2026, 9, 10, 9, 30));
-    expect(
-      result!.legacyFollowUpMetadata,
-      task.legacyFollowUpMetadata,
-      reason: 'editing must preserve retired Follow-up values as inert metadata',
-    );
+    expect(result!.taskReminders.single.isLegacyTaskReminder, isTrue);
+    expect(result!.legacyTaskReminderMigrationVersion, 1);
+
+    final legacyTaskLevel =
+        result!.legacyFollowUpMetadata['taskLevel'] as Map<String, dynamic>;
+    expect(legacyTaskLevel['followUpDate'],
+        DateTime(2026, 9, 12, 11).toIso8601String());
+    expect(legacyTaskLevel['followUpEnabled'], isTrue);
+
     expect(result!.followUps, hasLength(1));
     expect(result!.followUps.single.dateTime, DateTime(2026, 9, 8, 10));
     expect(result!.followUps.single.note, 'تماس اولیه');
+    expect(result!.checklistOccurrences, {
+      '2026-09-11T14:45:00.000': <String>['[x] بند اول'],
+    });
+    expect(result!.occurrenceHistory['2026-09-11T14:45:00.000']?['completed'], true);
+    expect(result!.notebookKind, NotebookItemKind.checklist);
+    expect(result!.isFavorite, isTrue);
+    expect(result!.focusDate, DateTime(2026, 9, 9));
+    expect(result!.templateTaskId, 'template-preserve-1');
+    expect(result!.completed, isTrue);
+    expect(result!.completedAt, DateTime(2026, 9, 8, 12));
+    expect(result!.priority, TaskPriority.high);
   });
 }
