@@ -1439,3 +1439,52 @@ No PASS is recorded for this candidate. All historical evidence remains tied to 
 - Follow-up Persistence run `43337010442`: exact checkout verified; file-backed persistence test IN_PROGRESS.
 - Device Smoke run `43337010594`: preparation PASS; Boot and Navigation IN_PROGRESS; Reminder/Vazirmatn, Task Lifecycle, Quick Capture, Follow-up Persistence and Calendar Segmented View QUEUED. No seven-scenario acceptance claim.
 - This is live job progress, not final acceptance. Preserve the exact run IDs and poll their final conclusions before updating gate status.
+
+
+## COMMAND 07-A.2.35 — live evidence checkpoint (2026-11-13)
+
+**Execution branch:** `feature/command-07-a-sqlite-contract-remediation`  
+**Execution SHA:** `cde28b0925708439f48a49a9b85257ef40ccc4ef` (re-fetched; unchanged)  
+**Main SHA:** `45e4202b03a434459e4c021a04efa7e8396359db`  
+**Documentation branch before this update:** `40ae588136854ef817f378a3cd1a03240b2a1576`.
+
+### CI exact-SHA results
+- Build `43337010522`: FAILURE. Analyze job `131595610619`: PASS. APK Debug, Staging, Release build and Visual jobs: PASS. Five of six test shards failed.
+- Shard failure counts: shard 0 = 11; shard 1 = 0; shard 2 = 9; shard 3 = 8; shard 4 = 21; shard 5 = 13. **Total = 62**. This supersedes the historical 61-record inventory for this candidate. The complete failed-test inventory and first failure signatures are appended in IMPLEMENTATION_LOG.md.
+- SQLite Snapshot `43337010196`: job `131595608070` PASS; artifact `13998061310`, file-backed JSON captured on exact SHA, five close/reopen cycles. Snapshot A–D report equal schema catalog, FK declarations, rows/order/relations and foreign-key checks. Fixture has one migrated task, two reminders, two Follow-ups and three Person relations; person names in the fixture are empty and custom triggers list is empty. This is partial D01/D02/D03 evidence only.
+- Follow-up Persistence `43337010442`: job `131595609263` PASS on exact SHA.
+- Device Smoke `43337010594`: preparation PASS; Task Lifecycle and Follow-up Persistence PASS; Reminder/Vazirmatn FAIL; Boot, Navigation, Quick Capture and Calendar Segmented View CANCELLED. Only 2/7 scenarios PASS. Screenshot artifact `14003933852` is a notification permission dialog capture; it does not establish complete scenario success.
+
+### Actual artifact audit (all artifacts from Build 43337010522 / source SHA cde28b...)
+- Debug APK artifact `13998591393`: 177,150,208 bytes; SHA-256 `25a065e4117266dcd47172f3afc2b1958a01cbb8edb78cecdf4dee1db078f23c`.
+- Staging APK artifact `13997732373`: 80,455,550 bytes; SHA-256 `c06771aab8da745861165eef5fc85ee29d07c1797c4309a4b15cade1e8c6f8f5`. Verification artifact `13997433376`: apksigner v2/v3 PASS, v1 FAIL; android:debuggable=false; ephemeral test-only signing key; publishable=false. This is a staging candidate, not a production-signed/releasable artifact.
+- Release APK build artifact `13997767836`: 78,755,510 bytes; SHA-256 `9423fdc242351cc21e3c527e243b04c3b9374a7550ddb3b2e22f6df351b3f5f5`. Build success is not release authorization or release-signing acceptance.
+- All three APKs contain Vazirmatn font manifest weights 300/400/500/600/700. APK-embedded font SHA-256 values match the source font file SHA-256 values at this exact SHA:
+  - Light 300: `9ab4f094b861b7d4e318f01953b9771ddeb189d7c79bbb3989d5a95a4b07ff60`
+  - Regular 400: `b69fd4c680b8f3f225feabcc655a2c585d97627b8f5f5c0f9985e894069f3a56`
+  - Medium 500: `b986623e4ddef10755e04be39f8ea7bcb1dc08bfe8dd0aa6af395736f256ad4a`
+  - SemiBold 600: `3f239d8364c14ee32c46b6839fa197c28958358b82a9673d2c6acc8506d78bc5`
+  - Bold 700: `f635fdbea28f265de395ba83b4b1570dcf2f58d13c65469e61903b1c2d2ae723`
+- PDF artifact `13998370513`: PDF SHA-256 `ae11880c8ad01d8f3eb0ec16d461232e0b7ee5db7003a79a6e9ba702f3ee777f`. pdffonts confirms Vazirmatn Regular and Bold embedded with Unicode maps; extracted text and preview confirm Persian/Latin mixed content and connected Persian glyphs. This is artifact validation, not all typography/device acceptance.
+
+### Gate status
+| Gate | Status | Evidence / gap |
+|---|---|---|
+| Analyze | GREEN | Job 131595610619 PASS |
+| D01 Schema | YELLOW | Snapshot catalog/columns/FK integrity and five reopen cycles; old/current schema full compatibility not fully proven |
+| D02 four-state semantics | YELLOW | Snapshot includes NULL and FALSE; all Missing/NULL/FALSE/TRUE states not demonstrated by this artifact |
+| D03 Follow-up/Person | YELLOW | IDs/order/relations survive; fixture Person names empty; complete metadata and real names not proven |
+| D04 Backup/Restore | GRAY | No independent restore artifact/result in this run |
+| D05 Atomicity/Recovery | GRAY | No controlled interruption/rollback/retry evidence in this run |
+| Regression | RED | 62 failures across five shards |
+| Product process integrity | RED | Multiple Home/Quick Capture/Task Detail/Person/Checklist/Taxonomy tests fail; C07 not executed |
+| Typography / APK font audit | GREEN for package audit only | Three APK manifests and embedded/source SHA256 match; rendering guard/device not accepted |
+| PDF | GREEN for artifact validation | embedded fonts and extracted/rendered text verified |
+| Device Smoke | RED | 2/7 PASS; one FAIL; four CANCELLED |
+| Repository consolidation | GRAY | No code/test/workflow deletion or consolidation performed; historical evidence preserved |
+| Single-SHA acceptance | RED | Build and Device Smoke failed; D04/D05 and product E2E incomplete |
+
+### Safety and classification
+- No production code, test assertion, migration or workflow was modified in this checkpoint. No regression was weakened.
+- PRs, branches, artifacts and historical records were preserved. No merge, release, deployment, history rewrite or destructive user-data operation occurred.
+- Do not carry the prior 61 count forward; the verified current failure inventory is 62 for SHA cde28b...
