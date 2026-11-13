@@ -1488,3 +1488,14 @@ No PASS is recorded for this candidate. All historical evidence remains tied to 
 - No production code, test assertion, migration or workflow was modified in this checkpoint. No regression was weakened.
 - PRs, branches, artifacts and historical records were preserved. No merge, release, deployment, history rewrite or destructive user-data operation occurred.
 - Do not carry the prior 61 count forward; the verified current failure inventory is 62 for SHA cde28b...
+
+
+## COMMAND 07-A.2.35 — post-checkpoint test-harness correction (2026-11-13)
+
+- Execution branch moved from `cde28b0925708439f48a49a9b85257ef40ccc4ef` to `bb08f21bd2a5ab2a7f7affe4c8e5e3bc28c81c96` by one test-only commit: `test: disambiguate nested Task Details scrollable finder`.
+- Confirmed classification: `TEST HARNESS DEFECT` in `test/task_detail_person_persistence_test.dart`. The failure was thrown inside Flutter's `WidgetController.scrollUntilVisible` via `Iterable.single` at test line 39, before the Person picker or persistence assertions ran. The supplied descendant finder matched multiple Scrollable widgets. The test now selects the first matching descendant Scrollable; no assertion, expected behavior or coverage was removed.
+- New SHA `bb08f21bd2a5ab2a7f7affe4c8e5e3bc28c81c96` currently has no workflow runs returned by the commit-run lookup and no status checks. Therefore the test-harness correction is IMPLEMENTED / NOT YET VERIFIED. Do not report it as fixed until the focused test passes on this exact SHA.
+- Source audit found canonical taxonomy operations in TaskStore: create Category/Tag; category/tag rename paths; deletion guards count Task and template references; `renameCategoryAndTasks` / `renameTagAndTasks` update Task/Template references transactionally. ProjectStore persists canonical Project records and memberships in a transaction, retaining template application rows only where memberships still exist. These are source-inspection findings, not end-to-end acceptance. The distinct catalog-only rename methods and their call sites still require audit; no destructive cleanup was performed.
+- Follow-up Person creation/selection failure remains unresolved: `follow_up_entry_page_test.dart:229` does not find the newly selected Person chip after the multi-select sheet closes. The code path was inspected, but the root cause is not proven; no production change was made.
+- `task_detail_person_persistence_test.dart` must be rerun on SHA `bb08f21...` before its Person/SQLite assertions can be evaluated. The prior failure was the test harness finder, not evidence of a Person persistence failure.
+- Main remains `45e4202b03a434459e4c021a04efa7e8396359db`. No merge/release/deployment, workflow rerun, branch deletion, history rewrite or production-data operation occurred.
