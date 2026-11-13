@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -73,6 +76,87 @@ void main() {
     expect(reloaded.archived, original.archived);
     expect(reloaded.trashed, original.trashed);
     expect(reloaded.completed, original.completed);
+  });
+
+  test('Person creation and Task linking roll back together and survive file reopen', () async {
+    final directory = await Directory.systemTemp.createTemp('arvin-person-atomic-');
+    final file = File('${directory.path}/arvin.sqlite');
+    var executor = NativeDatabase(file);
+    addTearDown(() async {
+      try {
+        await executor.close();
+      } catch (_) {}
+      if (await directory.exists()) {
+        await directory.delete(recursive: true);
+      }
+    });
+
+    const personId = 'person-from-follow-up';
+    final store = TaskStore(executor: executor);
+    await store.save([
+      Task(
+        id: 'task-person-atomic',
+        title: 'کار دارای سابقه پیگیری',
+        followUps: [
+          FollowUp(
+            id: 'follow-up-person-atomic',
+            dateTime: DateTime(2026, 8, 20, 12),
+            note: 'سابقه مستقل شخص',
+            personIds: const [personId],
+          ),
+        ],
+      ),
+    ]);
+    final service = TaskPeopleService(
+      store: store,
+      personIdFactory: () => personId,
+    );
+
+    await executor.runCustom('''
+      CREATE TRIGGER reject_person_directory_insert
+      BEFORE INSERT ON person_directory
+      BEGIN
+        SELECT RAISE(ABORT, 'injected directory write failure');
+      END
+    ''');
+
+    await expectLater(
+      service.addLocalPerson(
+        taskId: 'task-person-atomic',
+        displayName: 'سارا احمدی',
+      ),
+      throwsA(anything),
+    );
+
+    final rolledBack = (await store.load()).single;
+    expect(rolledBack.people, isEmpty);
+    expect(rolledBack.followUps.single.personIds, [personId]);
+    expect(await store.loadPeopleDirectory(), isEmpty);
+    final unchangedPerson = await executor.runSelect(
+      'SELECT name FROM persons WHERE id = ?',
+      const [personId],
+    );
+    expect(unchangedPerson.single['name'], '');
+
+    await executor.runCustom('DROP TRIGGER reject_person_directory_insert');
+    await service.addLocalPerson(
+      taskId: 'task-person-atomic',
+      displayName: 'سارا احمدی',
+    );
+
+    await executor.close();
+    executor = NativeDatabase(file);
+    final reopenedStore = TaskStore(executor: executor);
+    final reopenedTask = (await reopenedStore.load()).single;
+    final directoryPeople = await reopenedStore.loadPeopleDirectory();
+
+    expect(reopenedTask.people, hasLength(1));
+    expect(reopenedTask.people.single.id, personId);
+    expect(reopenedTask.people.single.displayName, 'سارا احمدی');
+    expect(reopenedTask.followUps.single.personIds, [personId]);
+    expect(directoryPeople, hasLength(1));
+    expect(directoryPeople.single.id, personId);
+    expect(directoryPeople.single.displayName, 'سارا احمدی');
   });
 
   test('update Person changes the canonical directory label across Task references', () async {
