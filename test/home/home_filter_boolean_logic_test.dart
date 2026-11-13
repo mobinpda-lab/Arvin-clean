@@ -9,12 +9,15 @@ import 'package:arvin/models/task.dart';
 import 'package:arvin/services/center_store.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/task_store.dart';
+import 'package:arvin/services/iran_clock.dart';
 import 'package:drift/native.dart';
 
 void main() {
   testWidgets('Home filters combine OR within each dimension and AND across dimensions', (tester) async {
-    final today = DateTime(2026, 11, 5, 10);
-    final due = today.toIso8601String();
+    final now = IranClock.now();
+    // Use the active Iran date and a late same-day time. A stale fixed date
+    // turns this filter-only fixture into an unrelated overdue-data fixture.
+    final due = DateTime(now.year, now.month, now.day, 23, 59).toIso8601String();
     SharedPreferences.setMockInitialValues(<String, Object>{
       'arvin.tasks': '''
 [
@@ -35,8 +38,13 @@ void main() {
     await tester.ensureVisible(categoryFilter);
     await tester.tap(categoryFilter);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('multi-select-option-شخصی')));
-    await tester.tap(find.byKey(const ValueKey('multi-select-option-کاری')));
+    final personalOption = find.byKey(const ValueKey('multi-select-option-شخصی'));
+    await tester.ensureVisible(personalOption);
+    await tester.tap(personalOption);
+    await tester.pumpAndSettle();
+    final workOption = find.byKey(const ValueKey('multi-select-option-کاری'));
+    await tester.ensureVisible(workOption);
+    await tester.tap(workOption);
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
@@ -44,8 +52,13 @@ void main() {
     await tester.ensureVisible(tagFilter);
     await tester.tap(tagFilter);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('multi-select-option-خانه')));
-    await tester.tap(find.byKey(const ValueKey('multi-select-option-اداری')));
+    final homeOption = find.byKey(const ValueKey('multi-select-option-خانه'));
+    await tester.ensureVisible(homeOption);
+    await tester.tap(homeOption);
+    await tester.pumpAndSettle();
+    final officeOption = find.byKey(const ValueKey('multi-select-option-اداری'));
+    await tester.ensureVisible(officeOption);
+    await tester.tap(officeOption);
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
