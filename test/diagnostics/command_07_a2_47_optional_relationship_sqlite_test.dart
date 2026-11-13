@@ -109,7 +109,7 @@ Future<NativeDatabase> _open(File file, {bool install = false}) async {
 
 Future<({Directory dir, File file, NativeDatabase db})> _fixture() async {
   final dir = await Directory.systemTemp.createTemp('arvin-optional-links-');
-  final file = File(dir.path + '/candidate.sqlite');
+  final file = File('${dir.path}/candidate.sqlite');
   return (dir: dir, file: file, db: await _open(file, install: true));
 }
 
@@ -131,7 +131,7 @@ void main() {
   ];
 
   for (final s in scenarios) {
-    test('file-backed SQLite scenario ' + s.name, () async {
+    test('file-backed SQLite scenario ${s.name}', () async {
       final f = await _fixture();
       var db = f.db;
       try {
@@ -276,7 +276,7 @@ void main() {
       final columns = await f.db.runSelect("PRAGMA table_info('tasks')", const []);
       for (final name in ['center_id', 'project_id', 'category_id']) {
         final column = columns.singleWhere((r) => r['name'] == name);
-        expect(column['notnull'], 0, reason: name + ' must remain nullable');
+        expect(column['notnull'], 0, reason: '$name must remain nullable');
       }
       expect(await f.db.runSelect('PRAGMA foreign_key_check', const []), isEmpty);
       expect((await f.db.runSelect('PRAGMA integrity_check', const [])).single.values.single, 'ok');
