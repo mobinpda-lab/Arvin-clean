@@ -973,3 +973,12 @@ Static audit found D04 independent SQLite-file restore evidence missing and C07 
 - `fd22fe37f0190818084f011bfcce00e241da6933`: finalized SQL trigger terminator in the test fixture.
 
 Exact-head validation is pending on candidate `fd22fe37f0190818084f011bfcce00e241da6933`: Build `43293411996`, Device Smoke `43293412058`, SQLite Snapshot `43293411971`, Follow-up Persistence `43293412060`. No gate is accepted yet.
+
+
+## COMMAND 07-A.2.34 — analyzer correction and exact-head handoff (2026-11-13)
+
+- Inspected Build run `43295216022` on `d6af169ca5eab6a639a2251a5da658936fa119a5`. Analyze failed on exactly two reported diagnostics: `prefer_interpolation_to_compose_strings` in `lib/project_template_management_page.dart:182`, and `dead_null_aware_expression` in `test/services/sqlite_backup_restore_file_test.dart:147`.
+- Corrected the string construction using interpolation and removed the unreachable null-aware fallback from the non-nullable `candidate.projects` value.
+- Commits: `b13f72628272b9d172fd84d297c6417abf1e2a9e` and `cde28b0925708439f48a49a9b85257ef40ccc4ef`; final branch HEAD `cde28b0925708439f48a49a9b85257ef40ccc4ef`.
+- No test assertions were removed, reduced or skipped. No new exact-SHA Actions result was available for the final commit at this checkpoint; analyzer success is therefore NOT VERIFIED.
+- The latest observed test shards on the previous SHA still reported 61 failures. The Follow-up Person selection smoke test fails to render the selected-person chip after create/apply; this is UNRESOLVED pending focused reproduction and source-level root cause.
