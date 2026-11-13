@@ -6,7 +6,7 @@
 - Main HEAD: `45e4202b03a434459e4c021a04efa7e8396359db`.
 - Active master charter: `docs/project-continuity/MASTER_GOVERNANCE.md` — REV10 on development branch, not yet in Main.
 - REV9 archive: `docs/project-continuity/MASTER_GOVERNANCE_REV9_ARCHIVE.md`.
-- REV10 branch: `docs/rev10-master-charter-2026-11-13`; initial base REV9 branch HEAD `5bdb451674e6bbe7832f903b1215cbf39608c730`.
+- REV10 branch: `docs/rev10-master-charter-2026-11-13`; current HEAD before this root checkpoint update `a13abcef702422750f54533476c94de134fd8db4`; initial base REV9 branch HEAD `5bdb451674e6bbe7832f903b1215cbf39608c730`.
 - SQLite execution branch: `feature/command-07-a-sqlite-contract-remediation`; latest verified HEAD at this checkpoint `3f471e6b88764446eabd33752d0aa3d820f52628`.
 - PR #3340 (REV9) and PR #3388 (v49.1/Wave 0) remain unmerged competing documentation lines; reconcile before promotion.
 - PR #3384 remains the SQLite/product execution stream; no merge is authorized.
@@ -14,7 +14,7 @@
 - Optional relationship test Run `43431160695`: QUEUED on `3f471e6...`; Build Run `43431160736`: PENDING/no jobs at last poll.
 - D01–D05: NOT ACCEPTED as complete gates. Device Smoke: NOT ACCEPTED. Product regression matrix: incomplete.
 - Current authorization: continuous development on non-main branches. Main merge, release, deployment and irreversible operations remain prohibited.
-- Current next action: poll exact-head SQLite/Build workflows, inspect failure logs, then continue Wave 1 data architecture and update this pointer.
+- Current next action: poll exact-head SQLite/Build workflows, inspect failure logs, then continue Wave 1 data architecture and update this pointer. Wave 1 source audit: `docs/project-continuity/audit/REV10_WAVE1_DATA_ARCHITECTURE_BASELINE_2026-11-13.md`.
 - Release: BLOCKED — RELEASE: NO-GO.
 
 > All sections below are preserved historical checkpoints. Their SHAs, counts and CI results are not current unless reverified against live GitHub.
