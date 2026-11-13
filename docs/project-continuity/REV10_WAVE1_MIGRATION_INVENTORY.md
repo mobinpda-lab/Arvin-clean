@@ -374,3 +374,26 @@ Interpretation: the G1 candidate and legacy optional-link test suites are TESTED
 - SQLite snapshot run `43441067604` remains SUCCESS with artifact `14046601552`; same-file five-reopen scope as recorded above.
 - Follow-up persistence run `43441067590` remains SUCCESS.
 - Do not duplicate these runs while they remain queued or until a final conclusion is returned.
+
+
+## COMMAND 07-A.2.57 — Historical implementation recovery map (2026-11-13)
+
+The current execution branch is not the only source of valid work. The following historical PR evidence must be reviewed before implementing equivalent functionality. No historical branch is deleted or merged by this record.
+
+| Area | Historical source | Actual state | Reuse / restriction |
+|---|---|---|---|
+| Person directory UI | PR #2745, branch `feat/person-directory-settings-current-main-20261016`, head `01a905ed6543bdd6f73cd0e4044b65fc6cf0bc29` | OPEN / DRAFT / UNMERGED; based on Main SHA `d2267190ee83b7e462483f5d114395626c55e150` | Adds PersonDirectoryPage and reuses TaskStore.loadPeopleDirectory/savePeopleDirectory for create/edit/search/confirmed delete. Recover UI and tests only after diffing against current TaskStore and current Main; it is not a new PersonRepository. |
+| Person SQL + backup/report integration | PR #2695, branch `integration/person-directory-safe-port-20261014-v2`, head `44810fcf5bb96db8c028a1574889e3f2d45af75f` | OPEN / DRAFT / UNMERGED; stacked on PR #2666 at base `ad762774009e5b5c7ee341146a8160c52e2b9bb2` | Contains Person directory CRUD, structured Follow-up waiting/person IDs, backup/restore, report filters/projection. Do not port wholesale: same-name projection conflict with existing mainline projection is explicitly documented. |
+| Person persistence slice | PR #2696, branch `integration/person-directory-persistence-slice-20261014`, head `94f47f5c70558c6ff250ec1989bdcde761d04df5` | OPEN / DRAFT / UNMERGED; stacked on older parent SHA `e626daeecb3851024f2ceab820d1868ba582c860` | Earlier G1 v6 people_directory and TaskStore APIs. Overlaps with later Person integration; use as history, not a second table/repository. |
+| Deleted Person history | PR #2744, branch `fix/report-preserve-deleted-person-history-20261016`, head `31b9cfa61efc1323f10e038be22efa1226c4d8ad` | CLOSED / NOT MERGED | Contains stable deleted-person placeholder/report projection behavior. Verify whether equivalent fix reached current Main before reuse. |
+| Notebook canonical taxonomy | PR #2037, merge commit `36f05599e17ea5359f92ad62667aac76abccb301` | MERGED | Reuses TaskStore canonical Category/Tag catalogs from Notebook. Preserve; do not build Notebook taxonomy storage. |
+| Shared taxonomy UI | PR #2185, merge commit `4816b9e121ca856828efdb37da6eab0c7a39f195` | MERGED | Shared taxonomy icon row. Preserve and reconcile with new Home/Task Details layout, not replace blindly. |
+| Report Center filters | PR #2406, merge commit `d34dc6be87d702c0c3769482586862d7c0e1416b` | MERGED | Existing Report Center and AND filter surface. Reuse for current report requirements. |
+| Canonical navigation/reports/calendar polish | PR #2751, merge commit `9e30d508f778f7ea91a44168b99098755b8c4934` | MERGED | Reuse current Main implementation; exact current behavior still needs test/device acceptance. |
+| Earlier Home contract | PR #2319 | CLOSED / NOT MERGED | Historical Home implementation and tests; superseded by later Home work. Recover tests/ideas only after current Main diff. |
+
+### Recovery decision
+- Do not create a new Person directory UI before reviewing PR #2745 against current Main and current execution branch.
+- Do not create a Person SQL table or independent store before reviewing #2695/#2696 and current G1 schema. Current Person tables/relations are already present.
+- Do not create a second Notebook taxonomy or Report Center.
+- The existence of merged historical PRs proves prior implementation lineage, not present-day acceptance of the new five-entity management center or Cross-Center reporting.
