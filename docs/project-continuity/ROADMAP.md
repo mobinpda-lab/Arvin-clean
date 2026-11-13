@@ -548,3 +548,22 @@ All are IN PROGRESS or NOT YET VERIFIED. The latest exact candidate is `1f4ff489
 - Both remain **YELLOW / VALIDATION PENDING** on candidate `fd22fe37f0190818084f011bfcce00e241da6933`.
 - C07 comprehensive cross-feature scenario remains **GRAY / NOT YET TESTED**.
 - Follow-up Entry selected-Person creation failure remains **UNRESOLVED**.
+
+ 
+---
+
+## REV10 product execution waves — owner-authorized 2026-11-13
+
+The following product waves supersede conflicting older active execution orderings. Historical cleanup waves and REV9 product evolution waves remain preserved as history and must not be silently renumbered.
+
+0. Governance and live baseline — reconcile REV9, newer decisions, branches, PRs and exact-SHA CI.
+1. Data architecture — canonical Center/Project/Category ownership, optional Task links, Tags, People, SQL integrity and migration/recovery.
+2. Entity Management Center — Center, Project, Category, Tag and Person CRUD/lifecycle/search/dependency views.
+3. Home and Task Details — five global filters, horizontal RTL Home row, single-column Task Details and reliable Auto-Save.
+4. Templates Engine — selected hierarchy scope and independent Deep Clone.
+5. Cross-Center Reporting — stable activity identity and independent Center execution/reporting.
+6. Product regression and UX — all core modules, RTL, visual and accessibility acceptance.
+7. Typography, PDF and device — Vazirmatn, real PDF rendering, APK and seven Device Smoke scenarios.
+8. Final consolidation — repository/workflow/documentation audit and Single SHA acceptance.
+
+Parallelize independent work only after file, schema, service and test ownership is explicit. No result transfers across SHAs. Merge, release and deployment are not authorized by this roadmap.
