@@ -679,6 +679,17 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     setState(() => _task = updated);
   }
 
+  Future<void> _setCompletionFromStatusMenu(bool completed) async {
+    if (completed == _task.completed) return;
+    if (widget.onComplete != null) {
+      await _complete();
+      return;
+    }
+    final candidate = Task.fromJson(Map<String, dynamic>.from(_task.toJson()))
+      ..completed = completed;
+    await _persistCandidate(candidate);
+  }
+
   String _date(DateTime value) => _formatter.format(value, usePersianDate: true);
 
   String _time(DateTime value) => _formatter.toPersianDigits(
@@ -902,22 +913,52 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   Widget _summaryCard() {
+    final statusLabel = _task.completed ? 'انجام‌شده' : 'در انتظار انجام';
     return KeyedSubtree(
       key: const ValueKey('task-detail-summary-card'),
-      child: TextField(
-        key: const ValueKey('task-detail-title'),
-        controller: _titleController,
-        textDirection: TextDirection.rtl,
-        maxLines: 2,
-        enabled: widget.onTaskChanged != null,
-        onChanged: _saveTitleImmediately,
-        style: const TextStyle( color: Colors.white, fontSize: 21, fontWeight: FontWeight.w800),
-        decoration: const InputDecoration(
-          hintText: 'عنوان کار',
-          hintStyle: TextStyle(color: Colors.white70),
-          enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white54)),
-          focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white)),
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            key: const ValueKey('task-detail-title'),
+            controller: _titleController,
+            textDirection: TextDirection.rtl,
+            maxLines: 2,
+            enabled: widget.onTaskChanged != null,
+            onChanged: _saveTitleImmediately,
+            style: const TextStyle(color: Colors.white, fontSize: 21, fontWeight: FontWeight.w800),
+            decoration: const InputDecoration(
+              hintText: 'عنوان کار',
+              hintStyle: TextStyle(color: Colors.white70),
+              enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white54)),
+              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white)),
+            ),
+          ),
+          const SizedBox(height: 5),
+          PopupMenuButton<bool>(
+            key: const ValueKey('task-detail-status-menu'),
+            tooltip: 'وضعیت کار',
+            initialValue: _task.completed,
+            enabled: widget.onComplete != null || widget.onTaskChanged != null,
+            onSelected: _setCompletionFromStatusMenu,
+            itemBuilder: (_) => const [
+              PopupMenuItem<bool>(
+                value: false,
+                child: Text('در انتظار انجام'),
+              ),
+              PopupMenuItem<bool>(
+                value: true,
+                child: Text('انجام‌شده'),
+              ),
+            ],
+            child: _metadataChip(
+              statusLabel,
+              Colors.white,
+              icon: _task.completed ? Icons.check_circle_outline : Icons.radio_button_unchecked,
+              key: const ValueKey('task-status-badge'),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -2126,17 +2167,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                 : Icons.radio_button_unchecked_rounded),
                           ),
                         ],
-                      ),
-                      Align(
-                        alignment: AlignmentDirectional.centerStart,
-                        child: Padding(
-                          padding: const EdgeInsetsDirectional.only(start: 8, top: 4),
-                          child: Text(
-                            _task.completed ? 'انجام‌شده' : 'در انتظار انجام',
-                            key: const ValueKey('task-status-badge'),
-                            style: const TextStyle( color: Colors.white70, fontSize: 12),
-                          ),
-                        ),
                       ),
                     ],
                   ),
