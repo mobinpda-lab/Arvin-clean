@@ -38,8 +38,10 @@ void main() {
     final add = find.byKey(const ValueKey('task-detail-add-followup'));
     final detailScrollable = find.descendant(
       of: find.byKey(const ValueKey('task-detail-content-list')),
-      matching: find.byType(Scrollable),
-    );
+      matching: find.byWidgetPredicate(
+        (widget) => widget is Scrollable && widget.axisDirection == AxisDirection.down,
+      ),
+    ).first;
     expect(detailScrollable, findsOneWidget);
     await tester.scrollUntilVisible(
       add,
