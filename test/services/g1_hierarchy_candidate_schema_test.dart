@@ -143,8 +143,10 @@ void main() {
       await _insertTask(f.db, 'task-project', projectId: 'project-a');
       await _insertTask(f.db, 'task-category', categoryId: 'category-a');
       await f.db.runInsert('INSERT INTO tags(id, name) VALUES (?, ?)', const ['tag-a', 'مهم']);
+      await f.db.runInsert('INSERT INTO tags(id, name) VALUES (?, ?)', const ['tag-b', 'فوری']);
       await _insertTask(f.db, 'task-tag-only');
       await f.db.runInsert('INSERT INTO task_tags(task_id, tag_id, ordinal) VALUES (?, ?, ?)', const ['task-tag-only', 'tag-a', 0]);
+      await f.db.runInsert('INSERT INTO task_tags(task_id, tag_id, ordinal) VALUES (?, ?, ?)', const ['task-tag-only', 'tag-b', 1]);
 
       final rows = await f.db.runSelect(
         "SELECT id, center_id, project_id, category_id FROM tasks WHERE id IN ('task-null', 'task-center', 'task-project', 'task-category', 'task-tag-only') ORDER BY id",
@@ -158,7 +160,7 @@ void main() {
       expect(rows.singleWhere((r) => r['id'] == 'task-center')['center_id'], 'center-a');
       expect(rows.singleWhere((r) => r['id'] == 'task-project')['project_id'], 'project-a');
       expect(rows.singleWhere((r) => r['id'] == 'task-category')['category_id'], 'category-a');
-      expect(await f.db.runSelect('SELECT * FROM task_tags WHERE task_id = ?', const ['task-tag-only']), hasLength(1));
+      expect(await f.db.runSelect('SELECT * FROM task_tags WHERE task_id = ?', const ['task-tag-only']), hasLength(2));
     } finally {
       await f.db.close();
       await f.directory.delete(recursive: true);
@@ -342,9 +344,11 @@ void main() {
   test('physical SQLite backup restores into an independent file', () async {
     final f = await _openCandidate();
     final backup = File(f.directory.path + '/restored.sqlite');
+    var sourceClosed = false;
     try {
       await _insertTask(f.db, 'task-backup', centerId: 'center-a');
       await f.db.close();
+      sourceClosed = true;
       await f.file.copy(backup.path);
       final restored = NativeDatabase(backup);
       await restored.ensureOpen(G1DriftSchema());
@@ -355,7 +359,7 @@ void main() {
       expect((await restored.runSelect('PRAGMA integrity_check', const [])).single.values.single, 'ok');
       await restored.close();
     } finally {
-      if (f.db.isOpen) await f.db.close();
+      if (!sourceClosed) await f.db.close();
       await f.directory.delete(recursive: true);
     }
   });
