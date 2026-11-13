@@ -195,8 +195,10 @@ void main() {
   testWidgets('Home uses the five checkbox filters as combined filters and preserves time grouping',
       (tester) async {
     final today = IranClock.now();
-    final isoToday = DateTime(today.year, today.month, today.day, 10).toIso8601String();
-    final isoTomorrow = DateTime(today.year, today.month, today.day + 1, 10).toIso8601String();
+    // Keep the timed fixture later than the current Iran wall clock so this
+    // test exercises calendar grouping rather than becoming overdue in CI.
+    final isoToday = DateTime(today.year, today.month, today.day, 23, 59).toIso8601String();
+    final isoTomorrow = DateTime(today.year, today.month, today.day + 1, 23, 59).toIso8601String();
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
           '[{"id":"match","title":"کار منطبق","category":"اتاق","tags":["نوزاد","تعویض"],"completed":false,"dueDate":"$isoToday"},{"id":"tomorrow","title":"کار فردا","category":"اتاق","tags":["نوزاد","تعویض"],"completed":false,"dueDate":"$isoTomorrow"},{"id":"other","title":"کار نامرتبط","category":"اداری","tags":["نوزاد"],"completed":false,"dueDate":"$isoToday"}]',
