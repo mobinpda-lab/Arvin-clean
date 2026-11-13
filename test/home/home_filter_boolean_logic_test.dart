@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:arvin/main.dart';
-import 'package:arvin/models/arvin_center.dart';
 import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/center_store.dart';
