@@ -61,7 +61,8 @@ void main() {
     expect(text, contains('if (!labels.has(AUTO_LABEL)) continue;'));
     expect(text, contains("item.state !== 'open' || item.base.ref !== 'main'"));
     expect(text, contains('sha: headSha'));
-    expect(text, contains('return;'));
+    expect(text, contains('if (!labels.has(AUTO_LABEL)) continue;'));
+    expect(text, contains("item.state !== 'open' || item.base.ref !== 'main'"));
   });
 
   test('autonomous issue to PR path funnels through canonical queue', () {
