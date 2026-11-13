@@ -450,3 +450,14 @@ This clarification resolves an asset-to-screen attribution error and does not in
 | REV9-010 | Product and technical status must remain separate (Decision / Implementation / Verification). | APPROVED | REV9 §40; no implementation/verification claims from product approval alone. |
 
 The full REV9 clauses remain in `MASTER_GOVERNANCE.md`; prior decisions and supersession history remain in this file.
+
+
+## COMMAND 07-A.2.34 — typography decision resolution (2026-11-13)
+
+The Product Owner's explicit command issued 2026-11-13 resolves REV9-004 without deleting the historical REV9 ambiguity record:
+- **Decision: APPROVED — Vazirmatn is the sole official and default Arvin product font.**
+- **System Default** is an optional user preference only; it is not a second branded font.
+- VazirHarf is not an authorized official font. Preserve source/provenance and historical assets as evidence; do not register or package it as the active product font.
+- Required weights: 300, 400, 500, 600, 700.
+- A centralized Theme owns typography. Acceptance still requires light/dark, RTL, Persian/Latin mixed text, half-space, digits, Jalali dates, small-screen, preference persistence, PDF embedding/rendering and APK asset/hash verification.
+- This decision supersedes the unresolved status in REV9-004 for current implementation. It does not retroactively convert historical font evidence into current-SHA acceptance.
