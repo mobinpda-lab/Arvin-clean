@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:arvin/services/center_store.dart';
+import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/task_store.dart';
 
 import 'package:arvin/follow_up_entry_page.dart';
@@ -13,6 +15,14 @@ import 'package:arvin/models/follow_up.dart';
 void main() {
   setUp(() async {
     await TaskStore.resetTestDatabase();
+    await ProjectStore.resetTestDatabase();
+    await CenterStore.resetTestDatabase();
+  });
+
+  tearDown(() async {
+    await TaskStore.resetTestDatabase();
+    await ProjectStore.resetTestDatabase();
+    await CenterStore.resetTestDatabase();
   });
   Future<void> tapVisible(WidgetTester tester, String label) async {
     final finder = find.text(label);

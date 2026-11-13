@@ -438,9 +438,13 @@ void main() {
     expect(find.byKey(const ValueKey('notebook-tags-picker')), findsOneWidget);
     expect(find.text('#قدیمی #مهم #مشتری'), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey('notebook-tags-picker')));
+    final tagsPicker = find.byKey(const ValueKey('notebook-tags-picker'));
+    await tester.ensureVisible(tagsPicker);
+    await tester.tap(tagsPicker);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('notebook-tags-rollbox')));
+    final tagsRollBox = find.byKey(const ValueKey('notebook-tags-rollbox'));
+    await tester.ensureVisible(tagsRollBox);
+    await tester.tap(tagsRollBox);
     await tester.pumpAndSettle();
     await tester.tap(find.text('قدیمی').last);
     await tester.pumpAndSettle();
@@ -940,9 +944,13 @@ void main() {
     await tester.tap(find.text('کاری').last);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('notebook-tags-picker')));
+    final tagsPicker = find.byKey(const ValueKey('notebook-tags-picker'));
+    await tester.ensureVisible(tagsPicker);
+    await tester.tap(tagsPicker);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('notebook-tags-rollbox')));
+    final tagsRollBox = find.byKey(const ValueKey('notebook-tags-rollbox'));
+    await tester.ensureVisible(tagsRollBox);
+    await tester.tap(tagsRollBox);
     await tester.pumpAndSettle();
     expect(find.text('مهم'), findsOneWidget);
     await tester.tap(find.text('مهم').last);

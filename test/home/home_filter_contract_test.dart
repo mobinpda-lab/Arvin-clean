@@ -8,8 +8,8 @@ import 'package:arvin/theme/app_fonts.dart';
 import 'package:arvin/arvin_colors.dart';
 import 'package:arvin/widgets/arvin_primary_navigation.dart';
 import 'package:arvin/home/home_filter_ui.dart';
-import 'package:arvin/services/iran_clock.dart';
 import 'package:arvin/services/persian_date_formatter.dart';
+import 'package:arvin/services/center_store.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/task_store.dart';
 
@@ -23,13 +23,26 @@ Finder _homeVerticalScrollable() => find.descendant(
     ).first;
 
 void main() {
+  setUp(() async {
+    await TaskStore.resetTestDatabase();
+    await ProjectStore.resetTestDatabase();
+    await CenterStore.resetTestDatabase();
+    SharedPreferences.setMockInitialValues({});
+  });
+
+  tearDown(() async {
+    await TaskStore.resetTestDatabase();
+    await ProjectStore.resetTestDatabase();
+    await CenterStore.resetTestDatabase();
+  });
+
   testWidgets('Home keeps completed past tasks visible in a separate non-overdue group', (tester) async {
     tester.view.physicalSize = const Size(390, 1200);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    final now = IranClock.now();
+    final now = DateTime(2026, 11, 12, 9);
     final today = DateTime(now.year, now.month, now.day, 10);
     final tomorrow = today.add(const Duration(days: 1));
     final future = today.add(const Duration(days: 4));
@@ -39,7 +52,7 @@ void main() {
     await prefs.setString('arvin.tasks',
       '[{"id":"past","title":"کار عقب‌افتاده","dueDate":"${past.toIso8601String()}","category":"شخصی","tags":["خانه"]},{"id":"completed-past","title":"کار گذشته انجام‌شده","dueDate":"${past.toIso8601String()}","completed":true,"completedAt":"${past.toIso8601String()}"},{"id":"today","title":"امروز","dueDate":"${today.toIso8601String()}","category":"کاری","tags":["اداری"]},{"id":"today-personal","title":"کار امروز شخصی","dueDate":"${today.toIso8601String()}","category":"شخصی","tags":["خانه"]},{"id":"tomorrow","title":"کار فردا","dueDate":"${tomorrow.toIso8601String()}","category":"شخصی"},{"id":"future","title":"آینده","dueDate":"${future.toIso8601String()}","category":"کاری"},{"id":"none","title":"بی‌زمان","category":"کاری"}]');
 
-    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpWidget(ArvinApp(nowProvider: () => DateTime(2026, 11, 12, 9)));
     await tester.pumpAndSettle();
 
     expect(find.text('کار عقب‌افتاده'), findsOneWidget);
@@ -368,7 +381,7 @@ void main() {
       'arvin.tasks': '[{"id":"accordion-real","title":"کار آکاردئونی","description":"شرح دقیق کار","dueDate":"2026-11-02T12:30:00.000","followUps":[{"id":"follow-up-real","dateTime":"${actualFollowUpAt.toIso8601String()}","note":"تماس واقعی","completed":true}]},{"id":"legacy-only","title":"بدون سابقه واقعی","followUpDate":"2026-11-02T09:00:00.000"}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpWidget(ArvinApp(nowProvider: () => DateTime(2026, 11, 12, 9)));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('task-card-expand-accordion-real')), findsOneWidget);
@@ -413,7 +426,7 @@ void main() {
     );
     SharedPreferences.setMockInitialValues({'arvin.tasks': jsonEncode(tasks)});
 
-    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpWidget(ArvinApp(nowProvider: () => DateTime(2026, 11, 12, 9)));
     await tester.pumpAndSettle();
 
     expect(find.byType(ArvinPrimaryNavigation), findsOneWidget);

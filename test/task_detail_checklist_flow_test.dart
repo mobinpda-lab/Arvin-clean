@@ -27,7 +27,7 @@ void main() {
     );
 
     final detailScrollable = find.descendant(
-      of: find.byKey(const ValueKey('task-detail-page')),
+      of: find.byKey(const ValueKey('task-detail-content-list')),
       matching: find.byType(Scrollable),
     ).first;
     final checklistCard = find.byKey(const ValueKey('task-detail-checklist'));
