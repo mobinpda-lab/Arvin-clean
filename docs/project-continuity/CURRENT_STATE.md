@@ -1151,3 +1151,51 @@ Candidate `e017eeadf85f3043fb3fdfbb456486fd8e07bc10`:
 ### Acceptance boundary
 
 D01–D05 remain NOT ACCEPTED. No production startup switch, destructive migration, Main write, merge, release, deployment, branch deletion or history rewrite occurred. Cross-Center reporting and complete Deep Clone acceptance remain unverified. Continue from the exact branch HEAD and re-run targeted analyzer/schema tests before any broader acceptance claim.
+
+
+## COMMAND 07-A.2.57 — Live Exact-Head Checkpoint (2026-11-13 14:31 UTC)
+
+Repository: `mobinpda-lab/Arvin-clean`
+Main HEAD: `45e4202b03a434459e4c021a04efa7e8396359db` (unchanged)
+Execution branch: `feature/command-07-a-sqlite-contract-remediation`
+Execution HEAD at audit start: `13a09af3815d7271ffb11e67eeac7b2592eb18bd`
+Compare from reported SHA to live branch: identical, 0 ahead / 0 behind.
+PR #3384: OPEN / DRAFT / UNMERGED; base `fix/wave3-cycle3-calendar-product-repair` at `8c4c23f0c2a4f9b2374a2092c931782c4455fd41`.
+
+### PR topology
+- #3380: OPEN / DRAFT; diagnostics branch `diagnostic/w3-c3-command06e-harness-recovery`, base Wave 3 Cycle 3.
+- #3382: OPEN / DRAFT; raw SQL evidence branch based on #3380 head.
+- #3384: OPEN / DRAFT; SQLite contract remediation, independent execution branch.
+- #3388: OPEN / DRAFT; Wave 0 governance, base Main.
+- #3340: OPEN; REV9 historical documentation, base Main.
+- #3448: OPEN / DRAFT; REV10 governance, base REV9 (#3340).
+No PR was merged, closed, retargeted or rebased.
+
+### Current SHA CI (13a09af...)
+- Run 43441067534, Wave 1 G1 hierarchy candidate: QUEUED; job 131938477824 QUEUED.
+- Run 43441067582, Build: PENDING; no jobs returned at audit time.
+- Run 43441067685, Device Smoke: QUEUED; job 131938478429 QUEUED.
+- Run 43441067623, Orchestrator: PENDING; route job queued.
+- Run 43441067604, SQLite A-D snapshot: SUCCESS; job 131938478464 SUCCESS.
+- Run 43441067590, Follow-up File Persistence: SUCCESS.
+- Run 43441067521, Orchestrator PR Wakeup: SUCCESS.
+- Run 43441067498, Production Loop: QUEUED at first observation; later analyze-and-queue job completed SUCCESS, feedback-loop SKIPPED.
+No current-SHA Build, Device Smoke or G1 candidate PASS is claimed.
+
+### Snapshot artifact — exact SHA 13a09af...
+Run: `43441067604`; job: `131938478464`; artifact ID: `14046601552`.
+Artifact: `arvin-command-07-a2-20-sqlite-snapshots-13a09af3815d7271ffb11e67eeac7b2592eb18bd`.
+GitHub ZIP digest and locally downloaded ZIP SHA256: `da890a5b7fbc5b8da0f4dbf86103b6671f35e8fe037cccaa5b192dcaf8f074c1`.
+JSON payload SHA256 (confirmed against embedded .sha256 file): `6ee103c73c74ace68bbc208af7c765e5f5ae81c81c97290ad33febb01af301fb`.
+The log reports A/B/C/D equality for Task compatibility metadata, Reminder rows, Follow-up rows/order, Person links/identities, sqlite_master catalog, declared FK definitions, columns and FK integrity. Five reopen cycles were recorded on the same temporary file-backed SQLite database. This is scoped snapshot/reopen evidence only; it is not independent backup/restore acceptance or production migration acceptance.
+
+### Source architecture facts at this SHA
+- Production G1 schema is version 19 and remains an additive/idempotent installer.
+- Candidate `G1HierarchyCandidateSchema` is explicitly isolated and not called by production startup.
+- Production currently retains nullable `projects.center_id`, global `taxonomy_categories(name)`, Task Center in legacy payload, Project membership via `project_items`, and Task Category as legacy nullable text. The approved canonical hierarchy is not yet implemented in production.
+- Existing canonical candidates: CenterStore, ProjectStore, TaskStore; TagStore is a TaskStore compatibility facade. Person SQL tables and relationships exist, but no independent PersonStore/PersonRepository file was found at this branch path. No CategoryStore/CategoryRepository file was found. This is a current-branch finding, not a historical NOT FOUND claim.
+- Both `TaskTaxonomyMutationService` and `TaskTaxonomyLifecycleService` exist; consumer/behavior consolidation is unresolved.
+- ProjectTemplateStore, TaskTemplateStore and ProjectTemplateService exist. `Task.templateTaskId`, `template_task_applications`, TaskReportFilter.templateTaskId and TaskReportProjection exist. Their full deep-clone and cross-center behavior is not accepted.
+
+### Acceptance boundary
+D01–D05: NOT ACCEPTED. Entity Management Center: NOT ACCEPTED. Deep Clone: NOT ACCEPTED. Cross-Center E2E: NOT ACCEPTED. APK packaging and Device Smoke: NOT ACCEPTED. No Main write, production cutover, destructive migration, merge, release, deployment, branch deletion or history rewrite occurred.

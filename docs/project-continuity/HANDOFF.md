@@ -508,3 +508,38 @@ Candidate `e017eeadf85f3043fb3fdfbb456486fd8e07bc10`:
 ### Acceptance boundary
 
 D01–D05 remain NOT ACCEPTED. No production startup switch, destructive migration, Main write, merge, release, deployment, branch deletion or history rewrite occurred. Cross-Center reporting and complete Deep Clone acceptance remain unverified. Continue from the exact branch HEAD and re-run targeted analyzer/schema tests before any broader acceptance claim.
+
+
+## COMMAND 07-A.2.57 — Next execution handoff (live baseline 2026-11-13)
+
+### Exact baseline
+- Main: `45e4202b03a434459e4c021a04efa7e8396359db` (READ-ONLY).
+- Execution branch HEAD at handoff baseline: `13a09af3815d7271ffb11e67eeac7b2592eb18bd`.
+- PR #3384: OPEN / DRAFT / UNMERGED; base `fix/wave3-cycle3-calendar-product-repair` at `8c4c23f0c2a4f9b2374a2092c931782c4455fd41`.
+- Re-fetch refs before every write; if branch HEAD changes, stop and reconcile rather than overwriting.
+
+### Do not duplicate running work
+At audit time on this SHA:
+- G1 hierarchy candidate run 43441067534 queued.
+- Build run 43441067582 pending.
+- Device Smoke run 43441067685 queued.
+- SQLite snapshot run 43441067604 succeeded; artifact 14046601552 retained.
+Do not dispatch overlapping equivalent runs. Poll the existing runs first.
+
+### P0 next actions
+1. Poll current-SHA G1 candidate, Build and Device Smoke; fetch jobs, logs and artifacts after completion.
+2. Diagnose exact Build failures from current-SHA logs; preserve assertions and classify each failure.
+3. Run targeted Analyzer/schema tests only after the current queued G1 job resolves, avoiding redundant concurrent workflows.
+4. Inspect the current Candidate test's full assertions against D01–D05. Distinguish same-file reopen from independent backup/restore.
+5. Preserve snapshot artifact and both SHA256 values in the evidence ledger.
+
+### P1 architecture order
+1. Inventory every Category consumer and legacy `taxonomy_categories` read/write path.
+2. Design one canonical Category repository against the accepted canonical table only after migration mapping is proven; do not create a competing schema.
+3. Inventory Person SQL access and Task/Follow-up relations before introducing a Person repository.
+4. Trace all consumers of TaskTaxonomyMutationService and TaskTaxonomyLifecycleService before consolidating.
+5. Preserve TagStore as a compatibility facade; do not add a second writer.
+6. Complete template/reporting consumer inventory before modifying template identity or report projections.
+
+### Guardrails
+No Main writes, Merge, Release, Deployment, production startup cutover, destructive migration, branch deletion, force push, history rewrite, test deletion or assertion weakening. Candidate-only success cannot authorize production migration.

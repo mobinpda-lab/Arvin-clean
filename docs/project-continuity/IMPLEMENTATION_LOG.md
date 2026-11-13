@@ -886,3 +886,16 @@ Candidate `e017eeadf85f3043fb3fdfbb456486fd8e07bc10`:
 ### Acceptance boundary
 
 D01–D05 remain NOT ACCEPTED. No production startup switch, destructive migration, Main write, merge, release, deployment, branch deletion or history rewrite occurred. Cross-Center reporting and complete Deep Clone acceptance remain unverified. Continue from the exact branch HEAD and re-run targeted analyzer/schema tests before any broader acceptance claim.
+
+
+## 2026-11-13 — COMMAND 07-A.2.57 live recovery and evidence reconciliation
+
+- Re-fetched Main, execution branch and PR refs before any modification. Main remained `45e4202b03a434459e4c021a04efa7e8396359db`; execution branch remained `13a09af3815d7271ffb11e67eeac7b2592eb18bd`, identical to the reported checkpoint.
+- Reconfirmed PR #3380/#3382/#3384/#3388/#3340/#3448 states, bases and heads. Preserved all open PRs and branch relationships.
+- Inspected current-SHA Actions. G1 candidate and Device Smoke remain queued; Build pending; SQLite A-D snapshot and Follow-up persistence succeeded. No duplicate workflows were launched.
+- Downloaded artifact 14046601552. Verified ZIP SHA256 `da890a5b7fbc5b8da0f4dbf86103b6671f35e8fe037cccaa5b192dcaf8f074c1` against GitHub digest. Verified embedded JSON SHA256 `6ee103c73c74ace68bbc208af7c765e5f5ae81c81c97290ad33febb01af301fb`.
+- Snapshot evidence confirms five reopen cycles on one file-backed DB and equality of the recorded Task compatibility metadata, reminders, follow-up records/order, Person links/identities, schema catalog, FK declarations and FK checks across A/B/C/D. It does not test independent physical backup/restore and does not prove production migration acceptance.
+- Source review reconfirmed production G1 schema v19 and isolated Candidate schema. Production ownership and Task relationship storage still diverge from the owner-approved Center → Project → Category → Task contract.
+- Recovered existing taxonomy mutation/lifecycle services, reporting filter/projection, ProjectTemplateStore, TaskTemplateStore, ProjectTemplateService and template application infrastructure. No third template engine or activity identity was created.
+- Current branch path lookup found no CategoryStore/CategoryRepository or PersonStore/PersonRepository file. Historical absence is not asserted. Both taxonomy services have consumers/tests requiring a complete reference audit before consolidation.
+- No code, test, schema, workflow or runtime file was changed in this checkpoint. No tests were weakened or deleted. Documentation updates are append-only and preserve prior evidence.

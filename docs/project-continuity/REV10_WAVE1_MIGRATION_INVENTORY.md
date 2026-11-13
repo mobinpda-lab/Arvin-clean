@@ -303,3 +303,50 @@ Candidate `e017eeadf85f3043fb3fdfbb456486fd8e07bc10`:
 ### Acceptance boundary
 
 D01–D05 remain NOT ACCEPTED. No production startup switch, destructive migration, Main write, merge, release, deployment, branch deletion or history rewrite occurred. Cross-Center reporting and complete Deep Clone acceptance remain unverified. Continue from the exact branch HEAD and re-run targeted analyzer/schema tests before any broader acceptance claim.
+
+
+## COMMAND 07-A.2.57 — Evidence Ledger and Product Recovery Addendum (2026-11-13)
+
+### Live source pointer
+The current source checkpoint for this addendum is `13a09af3815d7271ffb11e67eeac7b2592eb18bd`. Main remains `45e4202b03a434459e4c021a04efa7e8396359db`. Older inspected SHAs in this document remain historical and must not be presented as current.
+
+### Four independent status dimensions
+IMPLEMENTED means source behavior exists; TESTED means a test was executed on the cited SHA; VERIFIED means its relevant behavior and dependencies were examined with sufficient evidence; ACCEPTED means the Product Owner's acceptance gates are met. A source file or test file alone is not proof of the later statuses.
+
+| Capability | IMPLEMENTED | TESTED on 13a09af | VERIFIED | ACCEPTED | Current evidence / gap |
+|---|---|---|---|---|---|
+| Center storage | Yes | Partial | Partial | No | CenterStore and SQL table; hierarchy ownership gate pending |
+| Project storage | Yes | Partial | Partial | No | ProjectStore; owner is nullable in production schema |
+| Category | Legacy only | No current exact-SHA result | No | No | taxonomy_categories is global; Candidate categories table is isolated |
+| Tag | Yes | Partial | Partial | No | tags/task_tags exist; TagStore is compatibility facade |
+| Person | SQL entities/relations | Snapshot tested | Partial | No | persons and Task/Follow-up relations preserved in snapshot; no independent repo |
+| Unified Entity Management | Partial screens | No | No | No | Five-entity single management flow not proven |
+| Home filters | Implemented | Not run in current checkpoint | No | No | Contract tests exist; exact-SHA CI result pending |
+| Task Details | Implemented | Not run in current checkpoint | No | No | Full editor contract and autosave/reopen acceptance pending |
+| Task autosave | Partial | Not accepted | No | No | Full-field durability after reopen not proven |
+| Reminder / Follow-up | Existing implementation | Follow-up persistence SUCCESS | Partial | No | Snapshot records and file-persistence run; complete D03 remains open |
+| Checklist / Notebook | Existing implementation | No current exact-SHA result | No | No | Full regression and persistence acceptance pending |
+| Project Template | Existing | No current exact-SHA result | No | No | Store and service exist; independent deep clone not proven |
+| Task Template | Existing store | No current exact-SHA result | No | No | Store and application table exist; service/consumer graph needs review |
+| Cross-Center reporting | Partial infrastructure | No | No | No | templateTaskId filter/projection exists; E2E across two Centers absent |
+| Production SQLite schema | Implemented v19 | Snapshot tested | Partial | No | Additive installer; does not satisfy new hierarchy |
+| Isolated hierarchy candidate | Implemented | G1 workflow queued | No | No | Not called at production startup |
+| Backup / Restore | Existing paths | Snapshot only | No | No | Same-file reopen is not independent restore |
+| D05 rollback/recovery | Candidate tests exist | No current run result | No | No | Need exact-SHA injected-failure and retry evidence |
+| PDF / Vazirmatn | Existing path | Historical evidence only | Partial | No | APK font packaging and device RTL checks pending |
+| Android APK / Device Smoke | Build workflow exists | Pending/queued | No | No | Debug/Staging/Release and device scenarios not accepted |
+
+### Current-SHA artifact ledger
+- Run 43441067604; job 131938478464; artifact 14046601552.
+- ZIP SHA256: `da890a5b7fbc5b8da0f4dbf86103b6671f35e8fe037cccaa5b192dcaf8f074c1`.
+- JSON SHA256: `6ee103c73c74ace68bbc208af7c765e5f5ae81c81c97290ad33febb01af301fb`.
+- Source SHA: `13a09af3815d7271ffb11e67eeac7b2592eb18bd`.
+- Database kind: temporary file-backed SQLite, same file reopened five times.
+- Verified scope: snapshot A/B/C/D equality for selected Task metadata, Reminder rows, Follow-up rows/order, Person links/identities, schema catalog, FK definitions and FK integrity.
+- Explicit non-coverage: independent backup/restore into a separately created DB; full four-state Missing/NULL/FALSE/TRUE matrix; production hierarchy cutover; full D01–D05 acceptance.
+
+### Known source duplication / consolidation queue
+- `TaskTaxonomyMutationService` and `TaskTaxonomyLifecycleService` both exist. No removal until all consumers and behavior are mapped.
+- TaskStore currently owns category/tag catalog operations; TagStore remains compatibility facade. No second writer.
+- Category and Person repository paths were not found on this branch; historical NOT FOUND is not asserted.
+- `TaskReportFilter.templateTaskId`, `TaskReportProjection`, `ProjectTemplateStore`, `TaskTemplateStore`, `ProjectTemplateService` and `template_task_applications` already exist. Extend rather than replace.

@@ -412,3 +412,20 @@ This clarification resolves an asset-to-screen attribution error and does not in
 - Unknown Project fields must be preserved during migration and ordinary Project updates; an ID match alone never establishes content parity.
 - No legacy source may be physically retired before all owner-defined parity, round-trip, backup/restore, rollback, independent-test and Mobin-acceptance gates pass.
 - **Reminder four-state contract remains DECISION REQUIRED.** Names, transitions, terminal behavior, snooze and re-enable semantics must not be guessed.
+
+
+## COMMAND 07-A.2.57 — Product Owner Supersession Addendum (2026-11-13)
+
+The following explicit Product Owner decisions are authoritative over conflicting historical text in REV8/REV9/REV10 and older specifications. Historical entries remain intact and are superseded only where they conflict.
+
+1. Canonical hierarchy: Center → Project → Category → Task. Each Project has exactly one owning Center; each Category has exactly one owning Project. Task relationships to Center, Project and Category are independently optional (0..1); Tags are 0..N. A Task may be fully unassigned.
+2. Parent resolution is derived, not materialized by creating missing entities: Project-only resolves its Center; Category-only resolves Project and Center. Center-only creates neither Project nor Category. Direct and derived parent IDs must agree.
+3. SQLite and repository boundaries must reject inconsistent Center/Project/Category ownership. Optional Task foreign keys remain nullable. Tag remains many-to-many. Person remains a first-class identity with Task and Follow-up relations.
+4. Canonical product terminology is «مرکز». «شعبه» is historical synonym only, never a second product entity or filter.
+5. Home filters are one RTL horizontal row in the exact order Time, Center, Project, Category, Tag; narrow widths scroll horizontally. Task Details uses the approved single-column focus detail, with fields ordered Time, Center, Project, Category, Tag. Center/Project/Category are single-select and clearable; Tags are multi-select.
+6. Entity Management Center is the single coherent destination for Center, Project, Category, Tag and Person lifecycle operations. Existing screens remain until every consumer is migrated and acceptance is demonstrated.
+7. Templates must reuse ProjectTemplateStore, TaskTemplateStore, ProjectTemplateService, template_task_applications and Task.templateTaskId. No parallel template engine or activity identity. Cross-Center reporting uses existing template identity and application records.
+8. Official font is Vazirmatn, including PDF/Android packaging requirements, unless a later explicit owner decision supersedes it.
+9. D01–D05 and all product acceptance gates require exact-SHA evidence. Candidate-only tests do not authorize production startup cutover.
+
+Supersession rationale: this addendum consolidates the explicit 07-A.2.57 owner contract. Older implementation snapshots and specifications describe historical architecture, not permission to preserve contradictory product behavior. Migration must remain lossless and incremental; no historical data is deleted by this decision.

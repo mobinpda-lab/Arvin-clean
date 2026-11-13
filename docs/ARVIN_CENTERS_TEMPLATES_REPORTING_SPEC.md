@@ -317,3 +317,26 @@ PR #3052 باید OPEN / DRAFT / UNMERGED بماند. main بدون تغییر. 
 
 **وضعیت در زمان ثبت:** این commit فقط سند محصول را ثبت می‌کند. پیاده‌سازی Center، Template، propagation و گزارش‌های توسعه‌یافته در HEAD مبنا NOT IMPLEMENTED / NOT VERIFIED هستند.  
 **حکم انتشار:** **BLOCKED — RELEASE: NO-GO**.
+
+
+## COMMAND 07-A.2.57 — Authoritative Product Contract Addendum
+
+This addendum supersedes conflicting implementation assumptions in the earlier baseline of this specification. Historical code and data remain compatibility inputs, not a second product contract.
+
+### Canonical hierarchy and optional Task links
+Center → Project → Category → Task. A Project has exactly one Center owner; a Category has exactly one Project owner. Task has independently optional Center, Project and Category links (each 0..1) and zero or more Tags. A Task may have no organizational links. Category selection may resolve its owning Project and Center; Project selection may resolve its Center. Center-only selection must not synthesize descendants. Direct and derived ownership must match. All optional Task FK columns remain nullable.
+
+### Entity ownership
+One canonical owner per domain: CenterStore, ProjectStore, a future canonical Category repository on the accepted Category table, TagStore as a compatibility facade over the existing canonical Tag owner, and a Person repository over existing Person SQL tables and relations. Do not create a second Category table, Tag writer, Person identity, or independent entity store. Archive/restore and safe delete must inspect dependencies and preserve historical links.
+
+### Entity Management Center
+A single coherent product destination must manage Center, Project, Category, Tag and Person. Existing screens remain until all consumers have migrated and the new experience passes UI, repository and SQLite acceptance. Hierarchical detail views must show owning and child entities; Person detail must show related Tasks and Follow-ups.
+
+### Home and Task Details
+Home filter order is Time → Center → Project → Category → Tag, in one RTL row with horizontal scrolling at narrow widths. Task Details is a single-column focus detail with fields ordered Time, Center, Project, Category, Tag. Center/Project/Category are clearable single-select; Tag is clearable multi-select. Parent changes must not silently rewrite child relationships.
+
+### Templates and reporting
+Reuse ProjectTemplateStore, TaskTemplateStore, ProjectTemplateService, Task.templateTaskId and template_task_applications. Preserve independent copies and metadata, prevent accidental duplicate instantiation, and prove independence after database close/reopen. Cross-Center activity identity must be the existing template identity; do not introduce a parallel Activity table/identity. Complete TaskReportFilter and TaskReportProjection and prove the Isfahan/Shiraz E2E lifecycle.
+
+### Acceptance remains gated
+No item is accepted by source presence alone. D01–D05, independent backup/restore, production migration, deep clone, cross-center reporting, PDF packaging, APK variants and Device Smoke require exact-SHA evidence and a consistent acceptance candidate.
