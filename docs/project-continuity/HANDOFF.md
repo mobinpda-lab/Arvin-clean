@@ -780,3 +780,34 @@ No production code correction for this finding has yet been committed. Treat C01
 - Follow-up Person creation/selection failure remains unresolved: `follow_up_entry_page_test.dart:229` does not find the newly selected Person chip after the multi-select sheet closes. The code path was inspected, but the root cause is not proven; no production change was made.
 - `task_detail_person_persistence_test.dart` must be rerun on SHA `bb08f21...` before its Person/SQLite assertions can be evaluated. The prior failure was the test harness finder, not evidence of a Person persistence failure.
 - Main remains `45e4202b03a434459e4c021a04efa7e8396359db`. No merge/release/deployment, workflow rerun, branch deletion, history rewrite or production-data operation occurred.
+
+
+
+# REV10 continuation handoff — 2026-11-13
+
+## Active authority
+Read `MASTER_GOVERNANCE.md` (REV10) first. REV9 is preserved verbatim in `MASTER_GOVERNANCE_REV9_ARCHIVE.md`. The current authority order and decision statuses are recorded in `PRODUCT_DECISIONS.md`; conflict reconciliation is in `audit/CONFLICT_REGISTER.md`.
+
+## Live refs at checkpoint
+- Arvin Main: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- REV10 docs branch: `docs/rev10-master-charter-2026-11-13`.
+- SQLite execution branch: `feature/command-07-a-sqlite-contract-remediation` at `3f471e6b88764446eabd33752d0aa3d820f52628`.
+- NIRA Main: `7a27ee63b65d343e45c5786f782f2567611722dc`; separate factory only.
+- PR #3340 and #3388 remain unmerged competing governance lines; #3384 remains unmerged product execution.
+
+## Immediate next actions
+1. Poll optional-relationship Run `43431160695` and Build Run `43431160736` on exact SHA `3f471e6...`; inspect job logs and artifacts. Do not reuse earlier SHA results.
+2. If the corrected harness passes, inspect the test's actual coverage against the real production schema and distinguish diagnostic fixture evidence from production schema acceptance.
+3. Inspect the current PR #3384 head, base and exact checks. Do not merge.
+4. Create/update a Draft REV10 PR based on the REV9 documentation branch; keep PR #3340 as its dependency and do not merge either without explicit approval.
+5. Reconcile #3388's six canonical docs, v49.1 operating package, adapters and CODEOWNERS proposal into the REV10 structure without duplicate generic files.
+6. Continue WAVE 1: audit actual G1 schema, Center/Project/Category ownership, optional Task links, Tag and Person relationships, then implement only evidenced gaps.
+7. Continue independent D01–D05, regression, typography/PDF and device lanes in parallel where file ownership permits.
+8. Keep Main unchanged. Merge, release and deployment remain prohibited.
+
+## Evidence boundaries
+- REV10 docs are implemented on the REV10 branch; they are not in Main.
+- Run `43431160695` was queued and Run `43431160736` pending at last poll.
+- D01–D05 are not accepted as complete.
+- Device Smoke is not accepted.
+- NIRA factory progress is not Arvin product progress.
