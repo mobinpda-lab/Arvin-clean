@@ -53,9 +53,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('center-row-center-with-project')), findsOneWidget);
-    expect(find.textContaining('۱ پروژه وابسته است'), findsNothing);
-    expect(find.textContaining('1 پروژه وابسته است'), findsNothing);
-    expect(find.textContaining('پروژه وابسته'), findsOneWidget);
+    expect(find.textContaining('1 پروژه وابسته است'), findsOneWidget);
     expect((await centers.load()).single.id, 'center-with-project');
   });
 }
