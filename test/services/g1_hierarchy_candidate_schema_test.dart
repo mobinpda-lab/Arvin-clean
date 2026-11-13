@@ -198,7 +198,8 @@ void main() {
       for (var i = 0; i < 5; i++) {
         await db.close();
         db = NativeDatabase(f.file);
-        await G1DriftSchema.install(db);
+        await db.ensureOpen(G1DriftSchema());
+        await db.runCustom('PRAGMA foreign_keys = ON');
         await const G1HierarchyCandidateSchema().install(db);
         final after = await db.runSelect('SELECT exception_key FROM arvin_hierarchy_migration_exceptions ORDER BY exception_key', const []);
         expect(after, before, reason: 'reopen cycle $i changed exception identities');
