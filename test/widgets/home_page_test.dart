@@ -585,8 +585,9 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     addTearDown(tester.view.resetViewInsets);
 
+    final futureDue = DateTime(2030, 1, 1, 12).toIso8601String();
     SharedPreferences.setMockInitialValues({
-      'arvin.tasks': '[{"id":"a","title":"کار الف","category":"مشتری","tags":["مهم","تماس"]},{"id":"b","title":"کار ب","category":"فروش","tags":["مهم"]}]',
+      'arvin.tasks': '[{"id":"a","title":"کار الف","dueDate":"$futureDue","category":"مشتری","tags":["مهم","تماس"]},{"id":"b","title":"کار ب","dueDate":"$futureDue","category":"فروش","tags":["مهم"]}]',
       'arvin.projects': '[{"id":"active-project","title":"پروژه فعال","isArchived":false,"itemIds":[]},{"id":"archived-project","title":"پروژه بایگانی","isArchived":true,"itemIds":[]}]',
     });
 
@@ -690,6 +691,12 @@ void main() {
   });
 
   testWidgets('Home Past time filter excludes today and prioritizes incomplete tasks', (tester) async {
+    // This test checks filtering and sort order, not viewport clipping. A tall
+    // viewport keeps all lazy-list rows available while comparing their order.
+    tester.view.physicalSize = const Size(390, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     final now = IranClock.now();
     String due(int daysAgo, int hour) => DateTime(
       now.year,
