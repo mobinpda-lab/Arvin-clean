@@ -758,3 +758,14 @@ No production code correction for this finding has yet been committed. Treat C01
 6. Continue Category/Project/Tag cross-feature tests, including Task Template and Project Template references; preserve historical task/template data.
 7. Validate Vazirmatn-only packaging, PDF embedding/rendering and independent APK/font SHA256 values. System Default remains optional; VazirHarf remains inactive historical provenance.
 8. Keep PRs #3380/#3382/#3384/#3388 and historical evidence intact. No merge, release, deployment, branch deletion or history rewrite.
+
+
+## COMMAND 07-A.2.35 — continuation handoff (2026-11-13)
+
+- Re-fetch execution branch before work. Last observed HEAD: `cde28b0925708439f48a49a9b85257ef40ccc4ef`; main: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Build run `43337010522`: Analyze PASS; shards 0/2/3/4/5 FAIL with 11/9/8/21/13 failures respectively; shard 1 PASS. Total **62** failed records. Read each raw job log and compare test contract with canonical product specs before classifying or changing source/tests.
+- SQLite Snapshot `43337010196` PASS with five reopen cycles but is partial evidence only. D04 independent backup/restore and D05 controlled rollback/interrupted migration/retry remain unproven. Fixture Person names are empty; check Person-name migration separately.
+- Follow-up Persistence `43337010442` PASS. Device Smoke `43337010594`: only Task Lifecycle and Follow-up Persistence PASS; Reminder/Vazirmatn FAIL; Boot/Navigation/Quick Capture/Calendar CANCELLED.
+- Artifact audit: staging APK SHA256 `c06771aab8da745861165eef5fc85ee29d07c1797c4309a4b15cade1e8c6f8f5`; debug `25a065e4117266dcd47172f3afc2b1958a01cbb8edb78cecdf4dee1db078f23c`; release build `9423fdc242351cc21e3c527e243b04c3b9374a7550ddb3b2e22f6df351b3f5f5`. Staging uses an ephemeral test-only key and is not publishable.
+- All APKs contain Vazirmatn 300/400/500/600/700; embedded font hashes match source font hashes. PDF artifact `13998370513` validates embedded Regular/Bold and Persian text. Physical-device typography acceptance remains pending.
+- Next: root-cause the 62 tests (do not weaken assertions); diagnose Reminder/Vazirmatn smoke; run D04/D05; execute Category/Project/Tag and Person/Checklist/Task/Reminder/Follow-up E2E on isolated DB; then consolidate only with evidence. Preserve PR/branch/history. No merge/release/deployment.
