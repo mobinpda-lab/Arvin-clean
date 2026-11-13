@@ -70,7 +70,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
   testWidgets(
-    'Center limits Project options, Project limits Category options, and parent changes clear invalid descendants',
+    'Center filters support multi-select, constrain descendants and clear invalid descendants',
     (tester) async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
       final database = NativeDatabase.memory();
@@ -127,16 +127,23 @@ void main() {
       await tester.ensureVisible(centerFilter);
       await tester.tap(centerFilter);
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('multi-select-option-center-a')));
+      final centerAInitial = find.byKey(const ValueKey('multi-select-option-center-a'));
+      final centerBInitial = find.byKey(const ValueKey('multi-select-option-center-b'));
+      await tester.tap(centerAInitial);
+      await tester.ensureVisible(centerBInitial);
+      await tester.pumpAndSettle();
+      await tester.tap(centerBInitial);
       await tester.tap(find.text('تأیید / اعمال فیلتر'));
       await tester.pumpAndSettle();
+      expect(find.text('فعالیت مرکز الف'), findsOneWidget);
+      expect(find.text('فعالیت مرکز ب'), findsOneWidget);
 
       final projectFilter = find.byKey(const ValueKey('home-filter-card-project'));
       await tester.ensureVisible(projectFilter);
       await tester.tap(projectFilter);
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('multi-select-option-project-a')), findsOneWidget);
-      expect(find.byKey(const ValueKey('multi-select-option-project-b')), findsNothing);
+      expect(find.byKey(const ValueKey('multi-select-option-project-b')), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('multi-select-option-project-a')));
       await tester.tap(find.text('تأیید / اعمال فیلتر'));
       await tester.pumpAndSettle();
@@ -159,10 +166,6 @@ void main() {
       final centerAOption = find.byKey(const ValueKey('multi-select-option-center-a'));
       await tester.ensureVisible(centerAOption);
       await tester.tap(centerAOption);
-      final centerBOption = find.byKey(const ValueKey('multi-select-option-center-b'));
-      await tester.ensureVisible(centerBOption);
-      await tester.pumpAndSettle();
-      await tester.tap(centerBOption);
       await tester.tap(find.text('تأیید / اعمال فیلتر'));
       await tester.pumpAndSettle();
 
@@ -187,5 +190,97 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+
+  testWidgets('Project filter supports multiple projects and clears independently of Category',
+      (tester) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final database = NativeDatabase.memory();
+    addTearDown(database.close);
+    final taskStore = TaskStore(executor: database);
+    final due = DateTime(2030, 1, 1, 12);
+    await taskStore.save([
+      Task(id: 'project-task-a', title: 'فعالیت پروژه الف', centerId: 'center-shared',
+          category: 'دسته مشترک', dueDate: due),
+      Task(id: 'project-task-b', title: 'فعالیت پروژه ب', centerId: 'center-shared',
+          category: 'دسته مشترک', dueDate: due),
+      Task(id: 'project-task-c', title: 'فعالیت پروژه ج', centerId: 'center-shared',
+          category: 'دسته دیگر', dueDate: due),
+    ]);
+    final centerStore = CenterStore(executor: database);
+    await centerStore.create(id: 'center-shared', name: 'مرکز مشترک');
+    final projectStore = ProjectStore(executor: database);
+    await projectStore.save([
+      ProjectPlan(id: 'project-a', title: 'پروژه الف', centerId: 'center-shared',
+          itemIds: const ['project-task-a']),
+      ProjectPlan(id: 'project-b', title: 'پروژه ب', centerId: 'center-shared',
+          itemIds: const ['project-task-b']),
+      ProjectPlan(id: 'project-c', title: 'پروژه ج', centerId: 'center-shared',
+          itemIds: const ['project-task-c']),
+    ]);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: HomePage(
+            taskStore: taskStore,
+            projectStore: projectStore,
+            centerStore: centerStore,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final projectFilter = find.byKey(const ValueKey('home-filter-card-project'));
+    await tester.ensureVisible(projectFilter);
+    await tester.tap(projectFilter);
+    await tester.pumpAndSettle();
+    final projectA = find.byKey(const ValueKey('multi-select-option-project-a'));
+    final projectB = find.byKey(const ValueKey('multi-select-option-project-b'));
+    await tester.ensureVisible(projectA);
+    await tester.tap(projectA);
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(projectB);
+    await tester.tap(projectB);
+    await tester.tap(find.text('تأیید / اعمال فیلتر'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('فعالیت پروژه الف'), findsOneWidget);
+    expect(find.text('فعالیت پروژه ب'), findsOneWidget);
+    expect(find.text('فعالیت پروژه ج'), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('task-card-title-project-task-a')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('task-detail-page')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('task-detail-back')));
+    await tester.pumpAndSettle();
+    expect(find.text('فعالیت پروژه الف'), findsOneWidget);
+    expect(find.text('فعالیت پروژه ب'), findsOneWidget);
+    expect(find.text('فعالیت پروژه ج'), findsNothing);
+
+    final categoryFilter = find.byKey(const ValueKey('home-filter-card-category'));
+    await tester.ensureVisible(categoryFilter);
+    await tester.tap(categoryFilter);
+    await tester.pumpAndSettle();
+    final sharedCategory = find.byKey(const ValueKey('multi-select-option-دسته مشترک'));
+    await tester.ensureVisible(sharedCategory);
+    await tester.tap(sharedCategory);
+    await tester.tap(find.text('تأیید / اعمال فیلتر'));
+    await tester.pumpAndSettle();
+
+    final removeFilterButtons = find.byTooltip('حذف فیلتر');
+    expect(removeFilterButtons, findsNWidgets(2));
+    await tester.ensureVisible(removeFilterButtons.first);
+    await tester.tap(removeFilterButtons.first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('فعالیت پروژه الف'), findsOneWidget);
+    expect(find.text('فعالیت پروژه ب'), findsOneWidget);
+    expect(find.text('فعالیت پروژه ج'), findsNothing);
+    expect(find.byTooltip('حذف فیلتر'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 
 }
