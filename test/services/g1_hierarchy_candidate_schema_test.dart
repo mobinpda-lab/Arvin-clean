@@ -68,6 +68,17 @@ Future<({Directory directory, File file, NativeDatabase db})> _openCandidate() a
     const ['project-a', 'legacy-multi', 0],
   );
   await db.runInsert(
+    '''INSERT INTO tasks
+       (id, storage_ordinal, title, description, priority, archived, trashed, completed, category, legacy_payload_json)
+       VALUES ('legacy-single', 2, 'کار تک‌پروژه‌ای', '', 'none', 0, 0, 0, 'عملیات', '{"centerId":"center-b"}')''',
+    const [],
+  );
+  await db.runInsert(
+    'INSERT INTO project_items(project_id, task_id, ordinal) VALUES (?, ?, ?)',
+    const ['project-a', 'legacy-single', 0],
+  );
+
+  await db.runInsert(
     'INSERT INTO project_items(project_id, task_id, ordinal) VALUES (?, ?, ?)',
     const ['project-b', 'legacy-multi', 0],
   );
@@ -122,6 +133,11 @@ void main() {
       expect(exceptions.any((r) => r['entity_id'] == 'legacy-null-center' && r['issue_code'] == 'PROJECT_CENTER_MISSING'), isTrue);
       expect(exceptions.any((r) => r['entity_id'] == 'legacy-multi' && r['issue_code'] == 'TASK_MULTIPLE_PROJECTS'), isTrue);
       expect(exceptions.any((r) => r['entity_id'] == 'عملیات' && r['issue_code'] == 'CATEGORY_PROJECT_OWNER_UNKNOWN'), isTrue);
+      expect(exceptions.any((r) => r['entity_id'] == 'legacy-single' && r['issue_code'] == 'TASK_CENTER_PROJECT_CONFLICT'), isTrue);
+      expect(exceptions.any((r) => r['entity_id'] == 'legacy-single' && r['issue_code'] == 'TASK_CATEGORY_CANONICAL_MAPPING_PENDING'), isTrue);
+      await f.db.runUpdate('UPDATE projects SET center_id = ? WHERE id = ?', const ['center-a', 'legacy-null-center']);
+      final assignedOwner = (await f.db.runSelect('SELECT center_id FROM projects WHERE id = ?', const ['legacy-null-center'])).single;
+      expect(assignedOwner['center_id'], 'center-a');
       expect(await f.db.runSelect('SELECT * FROM project_items WHERE task_id = ?', const ['legacy-multi']), hasLength(2));
     } finally {
       await f.db.close();
