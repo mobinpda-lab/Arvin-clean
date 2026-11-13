@@ -204,6 +204,25 @@ Query plans and real fixture cardinalities must justify final index selection; a
 
 Project membership writes must converge into one Task hierarchy assignment boundary. ProjectStore's current `itemIds` compatibility API may remain temporarily, but must delegate to that boundary; it must not independently maintain a competing membership truth. Consumer inventory is required before retiring any old service/API.
 
+## 7. Independent optional-relationship acceptance matrix
+
+These cases are independent required tests and must run against the file-backed candidate SQLite database with foreign keys enabled:
+
+1. Create/save/reopen a Task with no Center, Project, Category or Tag.
+2. Task with Center only.
+3. Task with Project only; effective Center is derived from Project without writing a direct Task Center.
+4. Task with Category only; effective Project and Center are derived through ownership without writing direct Task ancestors.
+5. Task with Tag(s) only and no hierarchy links.
+6. Task with Center + Project where the Project belongs to that Center.
+7. Task with Project + Category where the Category belongs to that Project.
+8. Task with Center + Project + Category where the complete chain is consistent.
+9. Task with multiple Tags, including shared Tags used by Tasks in different Centers.
+10. Clear all optional selections, save, close/reopen SQLite, and verify all three Task-side links remain NULL and Tag links match the explicit user action.
+
+Additional negative cases must reject: Center + unrelated Project; Project + Category owned by another Project; Center + Category whose owning Project belongs to another Center; and any non-existent FK target. These failures must be tested at database level, not only through UI validation.
+
+UI acceptance must independently verify a visible empty/clear-selection affordance for Center, Project and Category. When a parent change conflicts with a selected child, the UI must explain the conflict and obtain an explicit user choice to clear the child, keep the prior parent, or cancel. No relationship may be silently removed or rewritten. A Task with all four organization fields empty must save successfully.
+
 ## 7. Independent acceptance gates
 
 - **D01 Schema Compatibility:** old supported DB shapes open and migrate; schema catalog, constraints and indexes match the approved design.
