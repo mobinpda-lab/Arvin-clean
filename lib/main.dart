@@ -1581,11 +1581,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _showCategoryFilterSheet() async {
-    final scopedCategories = _categoryOptionsForSelection(
+    final allowedCategories = _categoryOptionsForSelection(
       centerIds: _centerFilters,
       projectIds: _projectFilters,
-    ).toList()
-      ..sort();
+    );
+    final scopedCategories = allowedCategories.toList()..sort();
     final options = scopedCategories
         .map((value) => ReusableFilterOption<String>(
               value: value,
@@ -1605,6 +1605,7 @@ class _HomePageState extends State<HomePage> {
       onCreate: (name) async {
         final created = await _createCategory(name);
         if (created == null) return null;
+        allowedCategories.add(created);
         return ReusableFilterOption<String>(
           value: created,
           label: created,
@@ -1615,7 +1616,7 @@ class _HomePageState extends State<HomePage> {
     if (!mounted || applied == null) return;
     setState(() => _categoryFilters
       ..clear()
-      ..addAll(applied.where(scopedCategories.contains)));
+      ..addAll(applied.where(allowedCategories.contains)));
   }
 
   Future<void> _showTagFilterSheet() async {

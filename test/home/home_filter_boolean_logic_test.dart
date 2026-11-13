@@ -62,6 +62,11 @@ void main() {
       await TaskStore.resetTestDatabase();
       await ProjectStore.resetTestDatabase();
       await CenterStore.resetTestDatabase();
+      addTearDown(() async {
+        await TaskStore.resetTestDatabase();
+        await ProjectStore.resetTestDatabase();
+        await CenterStore.resetTestDatabase();
+      });
       SharedPreferences.setMockInitialValues(<String, Object>{});
 
       final taskStore = TaskStore();
@@ -157,9 +162,6 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      await TaskStore.resetTestDatabase();
-      await ProjectStore.resetTestDatabase();
-      await CenterStore.resetTestDatabase();
     },
   );
 
