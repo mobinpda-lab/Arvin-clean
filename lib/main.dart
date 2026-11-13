@@ -940,16 +940,21 @@ class _HomePageState extends State<HomePage> {
         }).map((task) => task.id).toSet();
         scoped = scoped.where((task) => ids.contains(task.id));
       }
-      if (_categoryFilters.isNotEmpty) {
-        scoped = scoped.where((task) => _categoryFilters.contains(task.category?.trim()));
-      }
       if (_projectFilters.isNotEmpty) {
-        final assigned = projects.expand((p) => p.itemIds).toSet();
+        final assigned = projects.expand((project) => project.itemIds).toSet();
         final ids = <String>{
-          if (_projectFilters.contains('__no_project__')) ...tasks.where((t) => !assigned.contains(t.id)).map((t) => t.id),
-          ...projects.where((p) => _projectFilters.contains(p.id)).expand((p) => p.itemIds),
+          if (_projectFilters.contains('__no_project__'))
+            ...tasks.where((task) => !assigned.contains(task.id)).map((task) => task.id),
+          ...projects
+              .where((project) => _projectFilters.contains(project.id))
+              .expand((project) => project.itemIds),
         };
         scoped = scoped.where((task) => ids.contains(task.id));
+      }
+      if (_categoryFilters.isNotEmpty) {
+        scoped = scoped.where(
+          (task) => _categoryFilters.contains(task.category?.trim()),
+        );
       }
       if (_tagFilters.isNotEmpty) {
         scoped = scoped.where(
@@ -1396,6 +1401,72 @@ class _HomePageState extends State<HomePage> {
     return null;
   }
 
+  Set<String> _activeProjectIdsForCenters(Set<String> centerIds) {
+    return projects
+        .where((project) => !project.isArchived)
+        .where((project) =>
+            centerIds.isEmpty ||
+            centerIds.contains(project.centerId ?? '__no_center__'))
+        .map((project) => project.id)
+        .toSet();
+  }
+
+  bool _taskMatchesCenterSelection(Task task, Set<String> centerIds) {
+    if (centerIds.isEmpty) return true;
+    if (task.centerId != null) return centerIds.contains(task.centerId);
+    final linkedProjects = projects
+        .where((project) => project.itemIds.contains(task.id))
+        .toList(growable: false);
+    if (linkedProjects.isEmpty) return centerIds.contains('__no_center__');
+    return linkedProjects.any(
+      (project) => centerIds.contains(project.centerId ?? '__no_center__'),
+    );
+  }
+
+  Set<String> _categoryOptionsForSelection({
+    required Set<String> centerIds,
+    required Set<String> projectIds,
+  }) {
+    final allowedProjectIds = _activeProjectIdsForCenters(centerIds);
+    final selectedProjectIds =
+        projectIds.where(allowedProjectIds.contains).toSet();
+    final assignedTaskIds = projects.expand((project) => project.itemIds).toSet();
+    final selectedTaskIds = <String>{};
+
+    if (selectedProjectIds.isNotEmpty) {
+      selectedTaskIds.addAll(
+        projects
+            .where((project) => selectedProjectIds.contains(project.id))
+            .expand((project) => project.itemIds),
+      );
+    } else if (projectIds.isEmpty && centerIds.isEmpty) {
+      selectedTaskIds.addAll(tasks.map((task) => task.id));
+    } else if (projectIds.isEmpty) {
+      selectedTaskIds.addAll(
+        tasks
+            .where((task) => _taskMatchesCenterSelection(task, centerIds))
+            .map((task) => task.id),
+      );
+    }
+
+    if (projectIds.contains('__no_project__')) {
+      selectedTaskIds.addAll(
+        tasks
+            .where((task) =>
+                !assignedTaskIds.contains(task.id) &&
+                _taskMatchesCenterSelection(task, centerIds))
+            .map((task) => task.id),
+      );
+    }
+
+    return tasks
+        .where((task) => selectedTaskIds.contains(task.id))
+        .map((task) => task.category?.trim())
+        .whereType<String>()
+        .where((category) => category.isNotEmpty)
+        .toSet();
+  }
+
   Future<void> _showCenterFilterSheet() async {
     final sortedCenters = centers.toList()
       ..sort((a, b) => a.name.compareTo(b.name));
@@ -1432,20 +1503,42 @@ class _HomePageState extends State<HomePage> {
       },
     );
     if (!mounted || applied == null) return;
-    setState(() => _centerFilters..clear()..addAll(applied));
+
+    final validProjectIds = _activeProjectIdsForCenters(applied);
+    final nextProjectFilters = _projectFilters
+        .where((id) => id == '__no_project__' || validProjectIds.contains(id))
+        .toSet();
+    final validCategories = _categoryOptionsForSelection(
+      centerIds: applied,
+      projectIds: nextProjectFilters,
+    );
+    setState(() {
+      _centerFilters
+        ..clear()
+        ..addAll(applied);
+      _projectFilters
+        ..clear()
+        ..addAll(nextProjectFilters);
+      _categoryFilters.removeWhere((value) => !validCategories.contains(value));
+    });
   }
 
   Future<void> _showProjectFilterSheet() async {
+    final allowedProjectIds = _activeProjectIdsForCenters(_centerFilters);
     final options = <ReusableFilterOption<String>>[
       const ReusableFilterOption(value: '__no_project__', label: 'بدون پروژه'),
       ...projects
-          .where((project) => !project.isArchived)
+          .where((project) => allowedProjectIds.contains(project.id))
           .map((project) => ReusableFilterOption<String>(
                 value: project.id,
                 label: project.title,
                 icon: Icons.folder_outlined,
               )),
     ];
+    final selectedCenterId = _centerFilters.length == 1 &&
+            _centerFilters.single != '__no_center__'
+        ? _centerFilters.single
+        : null;
     final applied = await ReusableMultiSelectFilterBottomSheet.showMultiSelect<String>(
       context,
       title: 'انتخاب پروژه',
@@ -1455,22 +1548,45 @@ class _HomePageState extends State<HomePage> {
       searchHint: 'جستجو در پروژه‌ها...',
       createHint: 'نام پروژه جدید',
       createLabel: 'افزودن پروژه',
-      onCreate: (title) async {
-        final id = await wave2ProductFastTrack.createProject(title);
-        if (mounted) await _load();
-        return ReusableFilterOption<String>(
-          value: id,
-          label: title,
-          icon: Icons.folder_outlined,
-        );
-      },
+      onCreate: selectedCenterId == null
+          ? null
+          : (title) async {
+              final id = await wave2ProductFastTrack.createProject(
+                title,
+                centerId: selectedCenterId,
+              );
+              if (mounted) await _load();
+              return ReusableFilterOption<String>(
+                value: id,
+                label: title,
+                icon: Icons.folder_outlined,
+              );
+            },
     );
     if (!mounted || applied == null) return;
-    setState(() => _projectFilters..clear()..addAll(applied));
+
+    final nextProjectFilters = applied
+        .where((id) => id == '__no_project__' || allowedProjectIds.contains(id))
+        .toSet();
+    final validCategories = _categoryOptionsForSelection(
+      centerIds: _centerFilters,
+      projectIds: nextProjectFilters,
+    );
+    setState(() {
+      _projectFilters
+        ..clear()
+        ..addAll(nextProjectFilters);
+      _categoryFilters.removeWhere((value) => !validCategories.contains(value));
+    });
   }
 
   Future<void> _showCategoryFilterSheet() async {
-    final options = _homeCategories
+    final scopedCategories = _categoryOptionsForSelection(
+      centerIds: _centerFilters,
+      projectIds: _projectFilters,
+    ).toList()
+      ..sort();
+    final options = scopedCategories
         .map((value) => ReusableFilterOption<String>(
               value: value,
               label: value,
@@ -1497,7 +1613,9 @@ class _HomePageState extends State<HomePage> {
       },
     );
     if (!mounted || applied == null) return;
-    setState(() => _categoryFilters..clear()..addAll(applied));
+    setState(() => _categoryFilters
+      ..clear()
+      ..addAll(applied.where(scopedCategories.contains)));
   }
 
   Future<void> _showTagFilterSheet() async {

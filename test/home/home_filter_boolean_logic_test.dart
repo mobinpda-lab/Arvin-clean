@@ -3,6 +3,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:arvin/main.dart';
+import 'package:arvin/models/arvin_center.dart';
+import 'package:arvin/models/goal_project.dart';
+import 'package:arvin/models/task.dart';
+import 'package:arvin/services/center_store.dart';
+import 'package:arvin/services/project_store.dart';
+import 'package:arvin/services/task_store.dart';
 
 void main() {
   testWidgets('Home filters combine OR within each dimension and AND across dimensions', (tester) async {
@@ -50,4 +56,111 @@ void main() {
     expect(find.text('شخصی متفرقه'), findsNothing);
     expect(tester.takeException(), isNull);
   });
+  testWidgets(
+    'Center limits Project options, Project limits Category options, and parent changes clear invalid descendants',
+    (tester) async {
+      await TaskStore.resetTestDatabase();
+      await ProjectStore.resetTestDatabase();
+      await CenterStore.resetTestDatabase();
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+
+      final taskStore = TaskStore();
+      await taskStore.save([
+        Task(
+          id: 'task-center-a',
+          title: 'فعالیت مرکز الف',
+          centerId: 'center-a',
+          category: 'دسته الف',
+        ),
+        Task(
+          id: 'task-center-b',
+          title: 'فعالیت مرکز ب',
+          centerId: 'center-b',
+          category: 'دسته ب',
+        ),
+      ]);
+      final centerStore = CenterStore();
+      await centerStore.create(id: 'center-a', name: 'مرکز الف');
+      await centerStore.create(id: 'center-b', name: 'مرکز ب');
+      await ProjectStore().save([
+        ProjectPlan(
+          id: 'project-a',
+          title: 'پروژه الف',
+          centerId: 'center-a',
+          itemIds: const ['task-center-a'],
+        ),
+        ProjectPlan(
+          id: 'project-b',
+          title: 'پروژه ب',
+          centerId: 'center-b',
+          itemIds: const ['task-center-b'],
+        ),
+      ]);
+
+      await tester.pumpWidget(const ArvinApp());
+      await tester.pumpAndSettle();
+
+      final centerFilter = find.byKey(const ValueKey('home-filter-card-center'));
+      await tester.ensureVisible(centerFilter);
+      await tester.tap(centerFilter);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('multi-select-option-center-a')));
+      await tester.tap(find.text('تأیید / اعمال فیلتر'));
+      await tester.pumpAndSettle();
+
+      final projectFilter = find.byKey(const ValueKey('home-filter-card-project'));
+      await tester.ensureVisible(projectFilter);
+      await tester.tap(projectFilter);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('multi-select-option-project-a')), findsOneWidget);
+      expect(find.byKey(const ValueKey('multi-select-option-project-b')), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('multi-select-option-project-a')));
+      await tester.tap(find.text('تأیید / اعمال فیلتر'));
+      await tester.pumpAndSettle();
+
+      final categoryFilter = find.byKey(const ValueKey('home-filter-card-category'));
+      await tester.ensureVisible(categoryFilter);
+      await tester.tap(categoryFilter);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('multi-select-option-دسته الف')), findsOneWidget);
+      expect(find.byKey(const ValueKey('multi-select-option-دسته ب')), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('multi-select-option-دسته الف')));
+      await tester.tap(find.text('تأیید / اعمال فیلتر'));
+      await tester.pumpAndSettle();
+      expect(find.text('فعالیت مرکز الف'), findsOneWidget);
+      expect(find.text('فعالیت مرکز ب'), findsNothing);
+
+      await tester.ensureVisible(centerFilter);
+      await tester.tap(centerFilter);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('multi-select-option-center-a')));
+      await tester.tap(find.byKey(const ValueKey('multi-select-option-center-b')));
+      await tester.tap(find.text('تأیید / اعمال فیلتر'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('فعالیت مرکز الف'), findsNothing);
+      expect(find.text('فعالیت مرکز ب'), findsOneWidget);
+      await tester.ensureVisible(projectFilter);
+      await tester.tap(projectFilter);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('multi-select-option-project-a')), findsNothing);
+      expect(find.byKey(const ValueKey('multi-select-option-project-b')), findsOneWidget);
+      await tester.tap(find.text('لغو'));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(categoryFilter);
+      await tester.tap(categoryFilter);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('multi-select-option-دسته الف')), findsNothing);
+      expect(find.byKey(const ValueKey('multi-select-option-دسته ب')), findsOneWidget);
+      await tester.tap(find.text('لغو'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      await TaskStore.resetTestDatabase();
+      await ProjectStore.resetTestDatabase();
+      await CenterStore.resetTestDatabase();
+    },
+  );
+
 }
