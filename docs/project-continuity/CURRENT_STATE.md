@@ -1556,3 +1556,13 @@ Inspected product SHA: `3f471e6b88764446eabd33752d0aa3d820f52628`.
 Detailed source/blob evidence and safe migration sequence: `audit/REV10_WAVE1_DATA_ARCHITECTURE_BASELINE_2026-11-13.md`.
 
 **Wave 1 status:** source audit for the listed files COMPLETE; target hierarchy NOT IMPLEMENTED; production migration NOT EXECUTED; user-data inventory UNKNOWN; D01–D05 NOT ACCEPTED.
+
+
+## Final live ref reconciliation — 2026-11-13
+
+- REV10 documentation branch HEAD before this reconciliation: `156a43c66a35793d24302b6617f678b23444b786`.
+- SQLite execution branch HEAD: `34f6fb1a42e5adb6255a1d56ce8c07ac7567ead2`.
+- Latest source audit was performed on `3f471e6b88764446eabd33752d0aa3d820f52628`; the later `34f6fb1a42e5adb6255a1d56ce8c07ac7567ead2` commit changes only the migration design document.
+- Optional relationship workflow Run `43431160695`: QUEUED; Build Run `43431160736`: PENDING/no jobs; Device Smoke Run `43431160732`: QUEUED.
+- Snapshot Run `43431160811` and Follow-up Persistence Run `43431160654` succeeded on `3f471e6...`; they are supporting evidence only and do not constitute full D01–D05 acceptance.
+- The corrected optional-relationship test has not yet produced a terminal result. No exact-head PASS is claimed.
