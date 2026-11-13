@@ -454,6 +454,18 @@ void main() {
       ]),
     });
 
+    // Initialize every canonical store before mounting HomePage so this
+    // contract isolates the injected Iran clock from first-open migration.
+    await TaskStore().load();
+    await ProjectStore().load();
+    await CenterStore().load();
+    await TaskStore().loadCategories();
+    await TaskStore().loadTags();
+    expect(
+      (await TaskStore().load()).map((task) => task.id),
+      contains('clock-contract-task'),
+    );
+
     final formatter = const PersianDateFormatter();
     final fixedDay = DateTime(2026, 11, 12);
     await tester.pumpWidget(
