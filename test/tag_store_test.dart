@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/tag_store.dart';
 import 'package:arvin/services/task_store.dart';
+import 'package:arvin/services/task_taxonomy_mutation_service.dart';
 
 void main() {
   test('TagStore facade reads and mutates only the canonical SQLite catalog',
