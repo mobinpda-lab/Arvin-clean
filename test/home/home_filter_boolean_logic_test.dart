@@ -161,6 +161,7 @@ void main() {
       await tester.tap(centerAOption);
       final centerBOption = find.byKey(const ValueKey('multi-select-option-center-b'));
       await tester.ensureVisible(centerBOption);
+      await tester.pumpAndSettle();
       await tester.tap(centerBOption);
       await tester.tap(find.text('تأیید / اعمال فیلتر'));
       await tester.pumpAndSettle();
