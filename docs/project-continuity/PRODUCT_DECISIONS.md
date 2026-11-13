@@ -461,3 +461,37 @@ The Product Owner's explicit command issued 2026-11-13 resolves REV9-004 without
 - Required weights: 300, 400, 500, 600, 700.
 - A centralized Theme owns typography. Acceptance still requires light/dark, RTL, Persian/Latin mixed text, half-space, digits, Jalali dates, small-screen, preference persistence, PDF embedding/rendering and APK asset/hash verification.
 - This decision supersedes the unresolved status in REV9-004 for current implementation. It does not retroactively convert historical font evidence into current-SHA acceptance.
+
+
+---
+
+## REV10 owner-authorized decision reconciliation — 2026-11-13
+
+| ID | Decision | Status | Supersession / implementation boundary |
+|---|---|---|---|
+| REV10-001 | Latest explicit Product Owner decisions outrank REV9 and older operational documents. | APPROVED | REV9 remains a verbatim archive; REV10 is the active master. |
+| REV10-002 | Arvin is Local-First / SQL-Only with one canonical durable database. | APPROVED | Preserve valid REV9 SQL-only requirements; no parallel permanent JSON or database. |
+| REV10-003 | Canonical ownership is Center → Project → Category → Task. | APPROVED | Project requires one Center; Category requires one Project; Task organization links remain optional. |
+| REV10-004 | Task Center, Project and Category links are each 0..1; Tags are 0..N. | APPROVED | Do not force Task project/category links to NOT NULL; enforce cross-parent consistency at SQL level. |
+| REV10-005 | Entity Management Center manages Center, Project, Category, Tag and Person coherently. | APPROVED | Distinct entity tables and identities remain separate; all durable operations use canonical SQL services. |
+| REV10-006 | Global filter order is Time, Center, Project, Category, Tag. | APPROVED | SUPERSEDES the older four-dimension Home filter contract and any Branch-as-fifth-filter instruction. |
+| REV10-007 | Task Details is single-column with Center → Project → Category → Tag ordering and direct Auto-Save. | APPROVED | Independent Edit Mode remains retired; no silent save failures or lost concurrent writes. |
+| REV10-008 | Person selection must be a real Person entity and persisted SQL relationship. | APPROVED | Static display text is not evidence of a persisted relationship. |
+| REV10-009 | Equivalent activities across Centers need stable shared identity and independent execution records. | APPROVED | Task title alone is not a stable identity; do not merge Task execution state. |
+| REV10-010 | Templates support selected hierarchy scope and independent Deep Clone. | APPROVED | New IDs, fresh unchecked checklists, no copied execution history or reused Follow-up/Reminder IDs. |
+| REV10-011 | D01–D05 are independent SQLite migration/recovery acceptance gates. | APPROVED | A snapshot or JSON copy does not substitute for physical SQLite backup/restore or injected rollback/recovery. |
+| REV10-012 | Regression fixes must preserve valid tests and classify root cause. | APPROVED | No deleting, skipping, bypassing or weakening valid tests to obtain green CI. |
+| REV10-013 | Vazirmatn is the sole official/default Arvin font; System Default is optional. | APPROVED | SUPERSEDES REV9-004's NEEDS OWNER DECISION and prior VazirHarf-as-official-font directions; preserve history/assets as historical evidence. |
+| REV10-014 | Continuous development is authorized within the stated autonomy boundary. | APPROVED | Ordinary implementation, tests, controlled migrations, commits and PRs allowed; merge/release/deployment and irreversible operations remain restricted. |
+| REV10-015 | Acceptance is Single SHA and requires exact checkout/workflow/job/artifact evidence. | APPROVED | No historical PASS transfers to a later SHA. |
+| REV10-016 | Main merge, release and deployment are not authorized. | APPROVED | Development PRs remain unmerged unless Mobin later explicitly authorizes promotion. |
+
+### REV10 unresolved decisions — do not infer
+- Template relative-date behavior must be checked against the canonical Option A decision record before clone implementation.
+- Entity-specific permanent-delete, duplicate merge and archival dependency policies require evidence or explicit owner resolution.
+- Person-role cardinality and role semantics beyond real Person relationships remain unresolved where no approved record exists.
+- Shared activity identity lifecycle/equivalence and report denominator definitions must be documented before implementation/reporting.
+- Category normalization, Persian/Arabic character equivalence and Project reassignment after Template instantiation remain unresolved.
+- Ambiguous legacy relationships must be preserved as exceptions, not guessed.
+
+REV10 approval does not imply implementation or verification. Exact-SHA source, test and workflow evidence remain mandatory.
