@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:arvin/services/g1_drift_schema.dart';
+import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -19,7 +20,7 @@ void main() {
     final directory = await Directory.systemTemp.createTemp('arvin-person-directory-cutover-');
     final file = File('${directory.path}/arvin.sqlite');
     var first = NativeDatabase(file);
-    await first.ensureOpen(G1DriftSchema());
+    await first.ensureOpen(_V19TestUser());
     await first.runCustom(
       '''CREATE TABLE persons (
          id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL,
@@ -49,7 +50,7 @@ void main() {
 
   test('legacy Task metadata preserves missing, explicit NULL and concrete values', () async {
     final missingDatabase = NativeDatabase.memory();
-    await missingDatabase.ensureOpen(G1DriftSchema());
+    await missingDatabase.ensureOpen(_V19TestUser());
     await missingDatabase.runCustom('''
       CREATE TABLE tasks (
         id TEXT NOT NULL PRIMARY KEY,
@@ -84,7 +85,7 @@ void main() {
     await missingDatabase.close();
 
     final legacyDatabase = NativeDatabase.memory();
-    await legacyDatabase.ensureOpen(G1DriftSchema());
+    await legacyDatabase.ensureOpen(_V19TestUser());
     await legacyDatabase.runCustom('''
       CREATE TABLE tasks (
         id TEXT NOT NULL PRIMARY KEY,
@@ -192,7 +193,7 @@ void main() {
 
   test('creates the complete G1 relational schema', () async {
     await G1DriftSchema.install(database);
-    expect(G1DriftSchema.version, 19);
+    expect(G1DriftSchema.version, 20);
 
     final tables = await database.runSelect(
       "SELECT name FROM sqlite_master "
@@ -544,7 +545,7 @@ void main() {
     );
   });
   test('upgrades an existing pre-taxonomy schema without losing task data', () async {
-    await database.ensureOpen(G1DriftSchema());
+    await database.ensureOpen(_V19TestUser());
     // Pre-taxonomy layout intentionally lacks recurrence_json. The G1 upgrade
     // must add the column before importing the recurrence envelope.
     await database.runCustom("CREATE TABLE tasks (id TEXT NOT NULL PRIMARY KEY, title TEXT NOT NULL, description TEXT NOT NULL, created_at TEXT NULL, updated_at TEXT NULL, due_date TEXT NULL, follow_up_enabled INTEGER NOT NULL, follow_up_date TEXT NULL, category TEXT NULL, notebook_kind TEXT NULL, reminder_date TEXT NULL, priority TEXT NOT NULL, archived INTEGER NOT NULL, trashed INTEGER NOT NULL, completed INTEGER NOT NULL, storage_ordinal INTEGER NOT NULL DEFAULT 0, legacy_payload_json TEXT NULL)");
@@ -679,7 +680,7 @@ void main() {
   });
 
   test('legacy task_people migration preserves canonical names and stable Task links', () async {
-    await database.ensureOpen(G1DriftSchema());
+    await database.ensureOpen(_V19TestUser());
     await database.runCustom(
       '''CREATE TABLE tasks (
         id TEXT NOT NULL PRIMARY KEY, storage_ordinal INTEGER NOT NULL DEFAULT 0,
@@ -763,7 +764,7 @@ void main() {
   });
 
   test('malformed legacy task_people payload aborts migration without retiring source rows', () async {
-    await database.ensureOpen(G1DriftSchema());
+    await database.ensureOpen(_V19TestUser());
     // Open the executor without installing the canonical schema: the
     // malformed legacy source must exist before install() starts its
     // transactional migration. Seed only the canonical parent table needed
@@ -836,7 +837,7 @@ void main() {
   });
 
   test('legacy Task retirement preserves custom indexes and triggers by deferring cleanup', () async {
-    await database.ensureOpen(G1DriftSchema());
+    await database.ensureOpen(_V19TestUser());
     await database.runCustom('''
       CREATE TABLE tasks (
         id TEXT NOT NULL PRIMARY KEY,
@@ -918,4 +919,12 @@ void main() {
     );
   });
 
+}
+
+class _V19TestUser implements QueryExecutorUser {
+  @override
+  int get schemaVersion => 19;
+
+  @override
+  Future<void> beforeOpen(QueryExecutor executor, OpeningDetails details) async {}
 }
