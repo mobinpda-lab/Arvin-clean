@@ -1,7 +1,5 @@
 ## 2026-11-14 — Active REV10 SQLite v20 delivery lane
 
-## 2026-11-14 — Active REV10 SQLite v20 delivery lane
-
 **Primary execution:** PR #3463 / `rev10-m2m-v19-test-expansion`.  
 **Main:** read-only. **Merge / Release / Deployment:** not authorized.  
 **Approved architecture:** Center↔Project M2M; Project↔Category M2M; Task→Center/Project/Category each optional 0..1; Task↔Tag M2M.
@@ -13,7 +11,7 @@
 4. Failure injection at every lifecycle boundary, transaction rollback and interrupted post-commit recovery.
 5. Physical SQLite backup and independent-file restore of the migrated v20 database.
 6. Independent D01–D05 acceptance on one exact SHA.
-7. Canonical Repository Integration: CenterStore, ProjectStore, Category, TaskStore, Entity Management, selectors, Home/Calendar/Reports filters, Search and Backup/Restore.
+7. Canonical Repository Integration: first repair CenterStore/ProjectStore/TaskStore and Category CRUD against the M2M joins; then Entity Management, selectors, Home/Calendar/Reports filters, Search and production Backup/Restore. ProjectStore's current full-table delete conflicts with the new RESTRICT join FKs and must be replaced by transaction-safe edge-aware upserts before real migration is enabled.
 8. Update the seven canonical continuity documents and preserve dated history.
 
 ### Acceptance gates
@@ -109,7 +107,7 @@ This roadmap orders work by release risk and verified dependencies. It does not 
 ## P1 — Product correctness and usability
 1. Resolve the Quick Capture empty-title feedback decision with the product owner; preserve compact layout and validation.
 2. Retain unified Report Center Filters and verify all filter dimensions and combinations with focused tests and fresh screenshots.
-3. Audit Center > Project > Category > Task terminology and behavior across every relevant creation, edit, selection, report and filter flow.
+3. Audit the approved Center↔Project↔Category relationship graph and its optional Task links across every relevant creation, edit, selection, report and filter flow.
 4. Continue only explicitly authorized Task Details / inline-edit / clone work under the current PR scope and its acceptance requirements.
 5. Preserve Reminder, Follow-up, recurrence and calendar independence; no legacy-field removal or destructive migration without real-data inspection and a safe migration plan.
 
@@ -170,7 +168,7 @@ A feature mentioned only as an illustrative example (such as periodic tasks or a
 5. **Acceptance:** run focused tests and all required exact-SHA workflows after any authorized code change. This registration does not authorize source, schema, migration or test changes.
 ## UI design system rollout — 2026-11-05 09:56 Asia/Tehran — ۱۴۰۵/۰۸/۱۴
 1. **P1 / Cross-screen card audit:** inventory every custom card-like Container/BoxDecoration in Task Lists, Task Details read-only/edit, Calendar and Quick Entry; migrate only presentation to shared card tokens without changing behavior.
-2. **P1 / Visual regression:** add/retain widget assertions for token application, Persian RTL labels, contextual icons, P1–P4 semantic mapping, status and Center → Project → Category → Tags chips. Do not remove or weaken existing scenarios.
+2. **P1 / Visual regression:** add/retain widget assertions for token application, Persian RTL labels, contextual icons, P1–P4 semantic mapping, status and Center → Project → Category → Tags display order. This is visual order only; M2M cardinality is authoritative. Do not remove or weaken existing scenarios.
 3. **P1 / Device visual acceptance:** compare all four target surfaces on the physical Android device at supported viewport/text scales. Until then, whole-app uniformity remains NOT VERIFIED.
 
 ### Remaining visual rollout
