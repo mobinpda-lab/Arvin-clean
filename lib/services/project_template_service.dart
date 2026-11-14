@@ -114,7 +114,15 @@ class ProjectTemplateService {
         itemIds: generatedTasks.map((task) => task.id),
       );
       try {
-        await taskStore.createProjectFromTemplate(project, generatedTasks);
+        await taskStore.createProjectFromTemplate(
+          project,
+          generatedTasks,
+          persistProject: (executor, value) => projectStore.upsertWithinTransaction(
+            executor,
+            value,
+            persistTaskMembership: false,
+          ),
+        );
         created.add(centerId);
       } catch (error) {
         final current = await projectStore.load();
