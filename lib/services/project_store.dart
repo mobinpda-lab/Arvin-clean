@@ -99,6 +99,7 @@ class ProjectStore {
         'colorValue': row['color_value'],
         'isArchived': (row['is_archived'] as num?)?.toInt() == 1,
         'centerIds': centerRows.map((item) => item['center_id'] as String).toList(),
+        'centerId': centerRows.length == 1 ? centerRows.single['center_id'] : null,
         'categoryIds': categoryRows.map((item) => item['category_id'] as String).toList(),
         'templateId': row['template_id'],
         'templateNameSnapshot': row['template_name_snapshot'],
@@ -125,7 +126,7 @@ class ProjectStore {
     try {
       for (final project in values) {
         final existing = await executor.runSelect(
-          'SELECT id, storage_ordinal, legacy_payload_json FROM projects WHERE id = ?',
+          'SELECT id, storage_ordinal, center_id, template_id, template_name_snapshot, legacy_payload_json FROM projects WHERE id = ?',
           <Object?>[project.id],
         );
         final isNew = existing.isEmpty;
@@ -140,6 +141,14 @@ class ProjectStore {
           ...project.legacyFields,
           ...codec.encode(project),
         };
+        if (project.centerRelationshipsSpecified) {
+          payload.remove('centerId');
+          if (project.centerId != null) payload['centerId'] = project.centerId;
+        }
+        if (project.templateIdSpecified && project.templateId == null) payload.remove('templateId');
+        if (project.templateNameSnapshotSpecified && project.templateNameSnapshot == null) {
+          payload.remove('templateNameSnapshot');
+        }
 
         if (isNew) {
           await executor.runInsert(
@@ -162,8 +171,10 @@ class ProjectStore {
             <Object?>[
               project.title, project.colorValue, project.isArchived ? 1 : 0,
               project.centerRelationshipsSpecified
-                  ? project.centerId : oldEnvelope['centerId'],
-              project.templateId, project.templateNameSnapshot,
+                  ? project.centerId : existing.single['center_id'],
+              project.templateIdSpecified ? project.templateId : existing.single['template_id'],
+              project.templateNameSnapshotSpecified
+                  ? project.templateNameSnapshot : existing.single['template_name_snapshot'],
               jsonEncode(payload), project.id,
             ],
           );
