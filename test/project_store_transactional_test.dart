@@ -16,35 +16,6 @@ Future<void> _seedCategory(NativeDatabase db, String id) async {
        VALUES (?, ?, NULL, 0, 0, '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z')''',
     <Object?>[id, id],
   );
-  test('explicit collection snapshot removes only unreferenced omitted Projects', () async {
-    final db = NativeDatabase.memory();
-    addTearDown(db.close);
-    final store = ProjectStore(executor: db);
-    await store.save([
-      ProjectPlan(id: 'keep', title: 'ماندگار'),
-      ProjectPlan(id: 'remove', title: 'حذف صریح'),
-    ]);
-
-    await store.saveCollection([ProjectPlan(id: 'keep', title: 'ماندگار')]);
-
-    expect((await store.load()).map((project) => project.id), ['keep']);
-  });
-
-  test('collection removal refuses Projects with historical Task membership', () async {
-    final db = NativeDatabase.memory();
-    addTearDown(db.close);
-    final tasks = TaskStore(executor: db);
-    await tasks.save([Task(id: 'task-a', title: 'کار')]);
-    final store = ProjectStore(executor: db);
-    await store.save([
-      ProjectPlan(id: 'referenced', title: 'دارای سابقه', itemIds: const ['task-a']),
-    ]);
-
-    await expectLater(store.saveCollection(const <ProjectPlan>[]), throwsA(isA<ProjectDeleteBlocked>()));
-    expect((await store.load()).single.id, 'referenced');
-    expect((await tasks.load()).single.id, 'task-a');
-  });
-
 }
 
 void main() {
@@ -64,7 +35,6 @@ void main() {
       ),
     ]);
     await store.save([ProjectPlan(id: 'stable-project', title: 'نسخه دوم')]);
-
     final rows = await db.runSelect('SELECT id, COUNT(*) AS count FROM projects GROUP BY id', const []);
     expect(rows, hasLength(1));
     expect(rows.single['id'], 'stable-project');
@@ -82,17 +52,14 @@ void main() {
     await centers.create(id: 'center-b', name: 'مرکز ب');
     await _seedCategory(db, 'category-a');
     final store = ProjectStore(executor: db);
-
     await store.save([
       ProjectPlan(
-        id: 'project-a',
-        title: 'اول',
+        id: 'project-a', title: 'اول',
         centerIds: const ['center-a', 'center-b'],
         categoryIds: const ['category-a'],
       ),
     ]);
     await store.save([ProjectPlan(id: 'project-a', title: 'ویرایش جزئی')]);
-
     final project = (await store.load()).single;
     expect(project.centerIds, ['center-a', 'center-b']);
     expect(project.categoryIds, ['category-a']);
@@ -110,16 +77,13 @@ void main() {
     final store = ProjectStore(executor: db);
     await store.save([
       ProjectPlan(
-        id: 'project-a',
-        title: 'پروژه',
+        id: 'project-a', title: 'پروژه',
         centerIds: const ['center-a', 'center-b'],
         categoryIds: const ['category-a', 'category-b'],
       ),
     ]);
-
     final current = (await store.load()).single;
     await store.save([current.removeCenter('center-a').removeCategory('category-a')]);
-
     final restored = (await store.load()).single;
     expect(restored.centerIds, ['center-b']);
     expect(restored.categoryIds, ['category-b']);
@@ -132,17 +96,12 @@ void main() {
     final tasks = TaskStore(executor: db);
     await tasks.save([Task(id: 'task-a', title: 'کار تاریخی')]);
     final store = ProjectStore(executor: db);
-    await store.save([
-      ProjectPlan(id: 'project-a', title: 'پروژه', itemIds: const ['task-a']),
-    ]);
-
+    await store.save([ProjectPlan(id: 'project-a', title: 'پروژه', itemIds: const ['task-a'])]);
     await store.save([ProjectPlan(id: 'project-a', title: 'ویرایش بدون عضویت')]);
-
     expect((await store.load()).single.itemIds, ['task-a']);
     expect((await tasks.load()).single.id, 'task-a');
     expect(await db.runSelect(
-      'SELECT task_id FROM project_items WHERE project_id = ?',
-      const ['project-a'],
+      'SELECT task_id FROM project_items WHERE project_id = ?', const ['project-a'],
     ), hasLength(1));
   });
 
@@ -157,11 +116,8 @@ void main() {
         if (stage == 'after_project_project-a') throw StateError('controlled failure');
       },
     );
-
     await expectLater(
-      failing.save([
-        ProjectPlan(id: 'project-a', title: 'پروژه', centerIds: const ['center-a']),
-      ]),
+      failing.save([ProjectPlan(id: 'project-a', title: 'پروژه', centerIds: const ['center-a'])]),
       throwsStateError,
     );
     expect(await db.runSelect('SELECT id FROM projects', const []), isEmpty);
@@ -193,7 +149,6 @@ void main() {
       ProjectPlan(id: 'project-a', title: 'ماندگار', centerIds: const ['center-a']),
     ]);
     await firstDb.close();
-
     final reopenedDb = NativeDatabase(file);
     addTearDown(reopenedDb.close);
     final reopened = ProjectStore(executor: reopenedDb);
@@ -217,9 +172,7 @@ void main() {
          VALUES ('template-task-a', 'project-template', 'task-template')''',
       const [],
     );
-
     await store.save([ProjectPlan(id: 'project-template', title: 'ویرایش')]);
-
     expect(await db.runSelect(
       'SELECT template_task_id FROM template_task_applications WHERE project_id = ?',
       const ['project-template'],
@@ -237,14 +190,40 @@ void main() {
     await store.save([
       ProjectPlan(id: 'extra', title: 'افزوده ناموفق', itemIds: const ['task-extra']),
     ]);
-
     await store.restoreSnapshot(snapshot);
-
     expect((await store.load()).map((project) => project.id), ['before']);
     expect((await tasks.load()).map((task) => task.id), ['task-extra']);
     expect(await db.runSelect(
-      'SELECT * FROM project_items WHERE project_id = ?',
-      const ['extra'],
+      'SELECT * FROM project_items WHERE project_id = ?', const ['extra'],
     ), isEmpty);
+  });
+
+  test('explicit collection snapshot removes only unreferenced omitted Projects', () async {
+    final db = NativeDatabase.memory();
+    addTearDown(db.close);
+    final store = ProjectStore(executor: db);
+    await store.save([
+      ProjectPlan(id: 'keep', title: 'ماندگار'),
+      ProjectPlan(id: 'remove', title: 'حذف صریح'),
+    ]);
+    await store.saveCollection([ProjectPlan(id: 'keep', title: 'ماندگار')]);
+    expect((await store.load()).map((project) => project.id), ['keep']);
+  });
+
+  test('collection removal refuses Projects with historical Task membership', () async {
+    final db = NativeDatabase.memory();
+    addTearDown(db.close);
+    final tasks = TaskStore(executor: db);
+    await tasks.save([Task(id: 'task-a', title: 'کار')]);
+    final store = ProjectStore(executor: db);
+    await store.save([
+      ProjectPlan(id: 'referenced', title: 'دارای سابقه', itemIds: const ['task-a']),
+    ]);
+    await expectLater(
+      store.saveCollection(const <ProjectPlan>[]),
+      throwsA(isA<ProjectDeleteBlocked>()),
+    );
+    expect((await store.load()).single.id, 'referenced');
+    expect((await tasks.load()).single.id, 'task-a');
   });
 }
