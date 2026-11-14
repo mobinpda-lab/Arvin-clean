@@ -508,7 +508,7 @@ Record each question, its source, affected schema/UX/tests, safe interim behavio
 
 - **REV8:** preserved historical master; no longer active authority.
 - **REV9:** previous unified master; preserved verbatim at `MASTER_GOVERNANCE_REV9_ARCHIVE.md`. It remains the historical starting point and source of non-conflicting inherited requirements.
-- **REV10 (2026-11-13):** current owner-authorized master. Adds Center → Project → Category → Task ownership, optional Task links, five-entity management, five global filters, single-column Auto-Save Task Details, Cross-Center activity identity/reporting, Deep Clone, independent D01–D05 acceptance, current regression policy, Vazirmatn-only official typography and continuous development governance.
+- **REV10 (2026-11-13; M2M supersession 2026-11-14):** current owner-authorized master. The earlier single-parent Center → Project → Category rule is SUPERSEDED by Center↔Project and Project↔Category Many-to-Many relations, with independently optional Task links and Task↔Tag Many-to-Many. Other REV10 product, UX, D01–D05, regression, typography and continuous-development requirements remain subject to exact-SHA implementation and verification.
 
 **Final directive:** Build the complete product. Preserve every valid decision and historical record. Make the data model consistent. Make every module work together. Prove every important result. Never confuse implementation with acceptance.
 
