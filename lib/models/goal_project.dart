@@ -11,13 +11,15 @@ class ProjectPlan {
     bool? categoryRelationshipsSpecified,
     this.templateId,
     this.templateNameSnapshot,
-    Iterable<String> itemIds = const [],
+    Iterable<String>? itemIds,
+    bool? itemIdsSpecified,
     Map<String, dynamic> legacyFields = const {},
   })  : centerIds = _stableIds(centerIds ?? (centerId == null ? const [] : [centerId])),
         centerRelationshipsSpecified = centerRelationshipsSpecified ?? (centerIds != null || centerId != null),
         categoryIds = _stableIds(categoryIds ?? const []),
         categoryRelationshipsSpecified = categoryRelationshipsSpecified ?? (categoryIds != null),
-        itemIds = List.unmodifiable(itemIds),
+        itemIds = List.unmodifiable(itemIds ?? const []),
+        itemIdsSpecified = itemIdsSpecified ?? itemIds != null,
         legacyFields = Map.unmodifiable(Map<String, dynamic>.from(legacyFields));
 
   static List<String> _stableIds(Iterable<String> values) {
@@ -45,6 +47,7 @@ class ProjectPlan {
   final String? templateId;
   final String? templateNameSnapshot;
   final List<String> itemIds;
+  final bool itemIdsSpecified;
 
   /// Unknown fields from historical JSON/backup envelopes are carried through
   /// codec round-trips but are never used as relational storage.
@@ -94,6 +97,7 @@ class ProjectPlan {
           ? null
           : templateNameSnapshot ?? this.templateNameSnapshot,
       itemIds: itemIds ?? this.itemIds,
+      itemIdsSpecified: itemIds != null ? true : itemIdsSpecified,
       legacyFields: legacyFields ?? this.legacyFields,
     );
   }
@@ -125,6 +129,7 @@ class ProjectPlan {
           other.templateId == templateId &&
           other.templateNameSnapshot == templateNameSnapshot &&
           _same(itemIds, other.itemIds) &&
+          other.itemIdsSpecified == itemIdsSpecified &&
           _mapSame(legacyFields, other.legacyFields);
 
   @override
@@ -132,7 +137,7 @@ class ProjectPlan {
         id, title, colorValue, isArchived,
         Object.hashAll(centerIds), Object.hashAll(categoryIds),
         centerRelationshipsSpecified, categoryRelationshipsSpecified,
-        templateId, templateNameSnapshot, Object.hashAll(itemIds),
+        templateId, templateNameSnapshot, Object.hashAll(itemIds), itemIdsSpecified,
         Object.hashAll(legacyFields.entries.map((entry) => Object.hash(entry.key, entry.value))),
       );
 
