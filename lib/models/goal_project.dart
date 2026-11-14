@@ -7,14 +7,16 @@ class ProjectPlan {
     String? centerId,
     Iterable<String>? centerIds,
     Iterable<String>? categoryIds,
+    bool? centerRelationshipsSpecified,
+    bool? categoryRelationshipsSpecified,
     this.templateId,
     this.templateNameSnapshot,
     Iterable<String> itemIds = const [],
     Map<String, dynamic> legacyFields = const {},
   })  : centerIds = _stableIds(centerIds ?? (centerId == null ? const [] : [centerId])),
-        centerRelationshipsSpecified = centerIds != null || centerId != null,
+        centerRelationshipsSpecified = centerRelationshipsSpecified ?? (centerIds != null || centerId != null),
         categoryIds = _stableIds(categoryIds ?? const []),
-        categoryRelationshipsSpecified = categoryIds != null,
+        categoryRelationshipsSpecified = categoryRelationshipsSpecified ?? (categoryIds != null),
         itemIds = List.unmodifiable(itemIds),
         legacyFields = Map.unmodifiable(Map<String, dynamic>.from(legacyFields));
 
@@ -82,6 +84,10 @@ class ProjectPlan {
       isArchived: isArchived ?? this.isArchived,
       centerIds: nextCenters,
       categoryIds: replaceCategoryIds ? categoryIds ?? const [] : categoryIds ?? this.categoryIds,
+      centerRelationshipsSpecified: replaceCenterIds || clearCenterId || centerId != null || centerIds != null
+          ? true : centerRelationshipsSpecified,
+      categoryRelationshipsSpecified: replaceCategoryIds || categoryIds != null
+          ? true : categoryRelationshipsSpecified,
 
       templateId: clearTemplateId ? null : templateId ?? this.templateId,
       templateNameSnapshot: clearTemplateNameSnapshot
