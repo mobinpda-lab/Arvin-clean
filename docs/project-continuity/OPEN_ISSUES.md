@@ -1,3 +1,35 @@
+## COMMAND 07-A.2.81 — active blocker reconciliation — 2026-11-14
+
+- **P0 — Exact-SHA acceptance pending:** source SHA before this documentation sync was `444c8ae6dfe640ee47d254ccc08990fac47b5e5e`; this documentation commit changes HEAD. Poll the new live branch SHA and rerun all required workflows. Prior results are not transferable.
+- **P0 — Historical parity correction pending verification:** production migration now preserves metadata identity for every Follow-up row; parity assertion maps legacy `date_time` to canonical `completed_at`. Commits: `9bd415e`, `435ee4e`.
+- **P0 — Task FK fixture correction pending verification:** test now expects custom `custom_refs` plus the three v20 Task links. Commit: `aca9f44`.
+- **P1 — Legacy test fixture corrections pending verification:** v15 Reminder and v11 Task Template fixtures now open at their legacy schema versions before creating historical tables. Commits: `8f73900`, `444c8ae`.
+- **P0 — Inherited regression baseline:** Build run `43575749904` on exact PR base `310c0e20...` had 41 failing labels. The same 41 labels reappeared on `b3d6fc4`; five additional failures introduced by the SQLite test/migration wave were identified and corrected. The inherited 41 remain unresolved blockers and must not be hidden, skipped or weakened.
+- **P0 — Device Smoke:** run `43589784304` was queued; none of the seven scenarios is accepted. A fresh seven-scenario run is required on the final candidate SHA.
+- **P1 — Product Backup/Restore:** physical SQLite copy/restore test and production product backup integration are distinct acceptance levels. Product-level JSON-oriented path has not been migrated/accepted for v20.
+- **P1 — PR documentation consolidation:** PR #3448 is divergent from PR #3463's base (2,418 ahead / 98 behind). The M2M ADR is byte-identical; seven overlapping canonical docs differ. Reconcile by content, not blind cherry-pick.
+- **Governance:** Main remains read-only; no merge, release, deployment, branch deletion, NIRA change or history rewrite.
+
+Historical run detail and exact job IDs are recorded in CURRENT_STATE.md and IMPLEMENTATION_LOG.md.
+
+
+## 2026-11-14 — COMMAND 07-A.2.80-D active blockers
+
+| ID | Priority | Status | Required action |
+|---|---|---|---|
+| SQLITE-80D-01 | P0 | BLOCKED | Run Build, Analyze, SQLite v20 acceptance, Follow-up Persistence, Snapshot and Device Smoke on the final exact PR #3463 SHA. |
+| SQLITE-80D-02 | P0 | BLOCKED | Prove full v19 source/destination parity for Center, Project, Task, Tags, Person, Follow-up, Reminder, metadata, NULL/FALSE/TRUE and invalid/ambiguous references. |
+| SQLITE-80D-03 | P0 | BLOCKED | Execute all seven failure-injection stages through real Drift beforeOpen; prove rollback or committed-marker recovery and retry idempotency. |
+| SQLITE-80D-04 | P0 | BLOCKED | Execute physical SQLite backup from migrated v20 into a distinct file; reopen and verify schema, joins, entities, history and FK integrity. |
+| SQLITE-80D-05 | P0 | BLOCKED | CenterStore.delete counts `projects.center_id`; ProjectStore still loads/saves one `centerId`, omits both join tables, and `DELETE FROM projects` conflicts with `center_projects` RESTRICT FKs; TaskStore does not write the new Task hierarchy columns; Category CRUD still uses `taxonomy_categories`/Task text. Replace these paths with canonical transactional M2M-aware repositories and parity tests. |
+| SQLITE-80D-06 | P1 | NEEDS BASELINE COMPARISON | Two Notebook test failures appeared in Build on SHA 035721a. Notebook files were not part of PR #3463; compare exact base SHA before assigning ownership or changing unrelated code. |
+| SQLITE-80D-07 | P1 | BLOCKED | Update Home, Calendar and Reports selectors/filters to query M2M relationships without assuming single parents. |
+| SQLITE-80D-08 | P1 | BLOCKED | Search, Entity Management and production Backup/Restore do not yet prove preservation of both join relations; current product backup path is JSON-oriented. Keep D04 physical SQLite test separate from production backup integration. |
+
+The superseded single-parent candidate implementation and its tests were removed from this execution branch and replaced with canonical M2M tests. This is architecture supersession, not permission to skip valid acceptance scenarios.
+
+---
+
 # REV8 Open Issues — current exact-head register
 
 Snapshot: 2026-11-10
@@ -408,3 +440,110 @@ These classifications describe logs only. Do not declare a shared root cause unt
 7. Four Reminder state names/transitions and snooze/re-enable semantics still require Mobin's explicit decision.
 
 Do not retire legacy sources until parity, round-trip, backup/restore, rollback, independent tests and owner acceptance all pass.
+
+## COMMAND 07-A.2.82 — open P0 blockers and forensic register
+
+### A. 41 inherited Build failures
+Baseline: exact PR #3463 base SHA 310c0e20e3447c488c1e1c102c38bea5040708ca, Build run 43575749904; six test shards failed. This proves inheritance relative to PR #3463, not that the tests are harmless or obsolete. For each row below, classification remains INHERITED / ROOT CAUSE NOT YET ADJUDICATED unless the observed assertion is described; do not skip, delete or weaken tests. Exact stack traces remain in the cited Job logs.
+
+**Shard test-1 — Job 132389472941 (2 failures)**
+1. notebook_page_test.dart:242 — انتظار عنوان تازه، مقدار واقعی عنوان مشتق؛ تعارض مقدار نمایشی/ذخیره‌شده هنوز تعیین تکلیف نشده.
+2. notebook_page_test.dart:362 — firstWhere بدون نتیجه برای دسته؛ ریشه در داده یا انتخابگر Notebook هنوز تعیین نشده.
+
+**Shard test-2 — Job 132389473079 (13 failures)**
+3. settings_page_test.dart:36 — متن «انتخاب تم و رنگ اصلی برنامه» پیدا نشد؛ احتمال تعارض متن آزمون با تنظیمات فعلی.
+4. widgets/home_quick_capture_test.dart:81 — متن «تماس با علی» پس از ثبت پیدا نشد؛ مسیر ثبت/نمایش داده باید بررسی شود.
+5. quick_capture_dialog_test.dart:769 — انتظار دو نمایش زمان ۱۴:۳۵، فقط یک مورد پیدا شد.
+6. home_last_follow_up_real_record_test.dart:50 — انتظار تاریخ 2026-10-30 09:00، مقدار واقعی null؛ نقص احتمالی خواندن/نمایش آخرین پیگیری.
+7. widget_test.dart:45 — کنترل «پروژه‌ها» پیدا نشد؛ باید با ساختار مصوب Home تطبیق شود.
+8. task_editor_dialog_test.dart:329 — هدف لمس مورد انتظار در ویرایش‌گر پیدا نشد.
+9. home/home_owner_reference_test.dart:64 — متن «کار واقعی ب» پیدا نشد؛ داده نمونه/نمایش Home بررسی نشده.
+10. home/home_filter_contract_test.dart:384 — کلید task-card-follow-up-accordion-real پیدا نشد.
+11. task_detail_person_persistence_test.dart:80 — dragUntilVisible با Iterable.single شکست خورد؛ هدف پیمایش/نمایش انتخاب شخص پیدا نشد.
+12. notebook_page_test.dart:536 — هدف لمس انتخابگر برچسب پیدا نشد.
+13. home_today_about_test.dart:65 — هدف لمس منوی Today پیدا نشد.
+14. report_center_page_test.dart:428 — dragUntilVisible با Iterable.single شکست خورد؛ کنترل گزارش مورد انتظار پیدا نشد.
+15. home_stat_filters_test.dart:229 — برچسب «دسته» در محدوده فیلتر پیدا نشد.
+
+**Shard test-0 — Job 132389473086 (4 failures)**
+16. widgets/task_dialog_test.dart:43 — showKeyboard با Iterable.single شکست خورد؛ finder فیلد ورودی یکتا نیست یا کنترل مورد انتظار وجود ندارد.
+17. device_feedback_home_regression_test.dart:26 — آیکون U+0EEB6 پیدا نشد؛ احتمال تغییر آیکون/جایگاه پشتیبان.
+18. home/home_filter_contract_test.dart:171 — انتظار اندازه 94.93 با تلورانس 4، مقدار واقعی 41.71؛ اختلاف واقعی در اندازه/چیدمان.
+19. home_today_about_test.dart:53 — هدف لمس Today پیدا نشد.
+
+**Shard test-5 — Job 132389473118 (10 failures)**
+20. widgets/home_page_test.dart:1025 — هدف لمس ورود به Focus Today پیدا نشد.
+21. widgets/home_page_test.dart:1059 — آزمون انتظار نداشت «آخرین پیگیری» نمایش داده شود، اما یک مورد پیدا کرد.
+22. quick_capture_dialog_test.dart:1370 — انتظار زمان ۱۴:۲۰، هیچ موردی پیدا نشد.
+23. widget_test.dart:99 — متن «پروژه‌ها» در حالت خالی Home پیدا نشد.
+24. task_editor_dialog_test.dart:808 — هدف لمس لغو ساعت دایره‌ای پیدا نشد.
+25. home/home_filter_contract_test.dart:485 — کلید home-group-today به‌عنوان ancestor پیدا نشد.
+26. task_detail_master_screen_test.dart:962 — TypeError در آزمون عدم نمایش افراد مرتبط به‌عنوان مسئول؛ نوع/داده ورودی باید از stack کامل بازبینی شود.
+27. notebook_page_test.dart:1046 — انتظار ['مهم']، نتیجه واقعی []؛ اتصال دسته/برچسب Notebook به فهرست اصلی نقص احتمالی دارد.
+28. canonical_calendar_launcher_test.dart — آزمون تبدیل رخداد تکرارشونده به Task اصلی شکست خورد؛ جزئیات stack در لاگ همان Job باید بازبینی شود.
+29. report_center_page_test.dart:687 — انتظار یک «این هفته»، دو مورد پیدا شد.
+
+**Shard test-4 — Job 132389473179 (7 failures)**
+30. widgets/home_page_test.dart:771 — رنگ مورد انتظار #3A86EF، مقدار واقعی #4169A1؛ احتمال تعارض رنگ قدیمی آزمون با رنگ فعلی برند.
+31. g6_swipe_rtl_acceptance_test.dart:193 — انتظار false، مقدار واقعی true؛ احتمال ثبت زودهنگام پیگیری پیش از تأیید کاربر، نقص رفتاری مهم.
+32. task_editor_dialog_test.dart:701 — هدف لمس ثبت مهلت تمام‌روز در گفت‌وگوی ساعت پیدا نشد.
+33. task_detail_master_screen_test.dart:811 — کلید task_detail_template_source_card پیدا نشد.
+34. issue_1891_lane_d_rollbox_test.dart:54 — متن «1 برچسب» پیدا نشد.
+35. home_today_about_test.dart:82 — لمس گزینه درباره برنامه به hit-test معتبر نرسید.
+36. calendar_page_test.dart:729 — Iterable.single برای کارت نماز شکست خورد؛ تعداد/وجود ویجت مورد انتظار باید از لاگ کامل تعیین شود.
+
+**Shard test-3 — Job 132389473234 (5 failures)**
+37. widgets/home_page_test.dart:531 — کلید none در انتخاب انتقال به امروز پیدا نشد.
+38. widgets/home_page_test.dart:662 — متن «کار الف» در ردیف پنج فیلتر RTL پیدا نشد.
+39. quick_capture_dialog_test.dart:847 — واحد تکرار «هر ۵ دقیقه» پیدا نشد.
+40. device_feedback_home_regression_test.dart:111 — گروه «آینده» پیدا نشد.
+41. task_editor_dialog_test.dart:518 — گزینه «هفتگی» در RollBox تکرار پیدا نشد.
+
+The next investigation must compare each assertion to the approved current product/UI contract and inspect the referenced production widget/service. Missing finder results are not automatically test bugs; the null last-Follow-up result, early swipe write, missing Notebook taxonomy and incorrect grouping remain possible production defects. The current candidate's Build is pending; do not claim these 41 still reproduce until its shards finish.
+
+### تطبیق ۲۴ آزمون تاریخی حذف‌شده با پوشش فعلی
+دو فایل تاریخی پیش از حذف بازیابی و بررسی شدند: ۱۳ آزمون در آزمون schema نامزد و ۱۱ آزمون در آزمون تشخیصی SQLite.
+
+| رفتار تاریخی | پوشش فعلی / تصمیم |
+|---|---|
+| ساختار واقعی G1 و ثبت ابهام‌ها | آزمون مهاجرت v19 و نگهداری شواهد استثناها در g1_many_to_many_hierarchy_migration_test. |
+| حالت‌های NULL و پیوندهای اختیاری Task | ماتریس پیوندهای اختیاری مستقل Center/Project/Category و Task مستقل در g1_m2m_hierarchy_acceptance_test. |
+| رد پیوند ناسازگار و مقصد ناموجود | آزمون جدید insert/update guard به‌همراه آزمون رد FK. |
+| اجباری بودن مالک یگانه Project/Category | منسوخ‌شده به‌علت تصمیم M2M؛ آزمون‌های cardinality چندپیوندی جایگزین آن‌اند. |
+| نصب idempotent و پنج چرخه بازگشایی | آزمون idempotency در g1_drift_schema_test و Snapshot پنج چرخه واقعی. |
+| حفظ هویت Tag/Person/Follow-up | برابری تاریخی D03 و بازیابی فیزیکی D04. |
+| پیوندهای جزئی/کامل و پاک‌کردن پیوندها | آزمون اختیاری بودن Task، بازگشایی عادی و حذف edge بدون حذف endpoint. |
+| Trigger به‌روزرسانی Task برای پیوند ناسازگار | آزمون جدید commit 3cb6ddc41adbe20e8f4395b0018a9256af60e1aa؛ مسیر insert و update. |
+| جلوگیری از تغییر مالک یگانه Project/Category | منسوخ‌شده؛ در M2M مفهوم مالک یگانه وجود ندارد. رفتار صحیح جدید، حذف edge بدون حذف endpoint است و آزموده شده. |
+| توقف مهاجرت، rollback و retry | تزریق هفت مرحله شکست در D05. |
+| کپی فیزیکی SQLite و بازیابی مستقل | آزمون فایل مستقل D04. |
+| نصب Index و Trigger | آزمون sqlite_master در commit 1cb51888651550cd80b2901923291af441110498. |
+| محدودیت حذف Center/Category متصل | آزمون endpoint deletion در commit 3cb6ddc41adbe20e8f4395b0018a9256af60e1aa؛ محدودیت مستقیم Task→Category در commit 26c8d6e449a2204edd95728e739dd07983263eb6. |
+| ماتریس ۹ حالت اختیاری و Tag | ماتریس فعلی Task مستقل، پیوندهای تک‌گانه/ترکیبی و Tag-only/multi-Tag. |
+| پاک‌کردن همه پیوندها و حفظ NULL پس از بازگشایی | آزمون پیوندهای اختیاری و بازگشایی. |
+| ناسازگاری Center/Project | آزمون جدید guard در insert/update. |
+| ناسازگاری Project/Category | آزمون جدید guard در insert/update. |
+| Center/Category بدون مسیر معتبر Project | آزمون جدید guard در insert/update. |
+| تغییر مالک Project و جابه‌جایی Category | منسوخ‌شده؛ edgeهای M2M جایگزین مالک یگانه‌اند. |
+| حذف Center/Project/Category دارای وابستگی | آزمون endpoint deletion؛ Category هم از طریق edge و هم FK مستقیم Task بررسی می‌شود. |
+| nullable FKها و یکپارچگی تمیز | ماتریس پیوندهای اختیاری، FK check در D01/D04 و integrity check بازیابی فیزیکی. |
+
+نتیجه تطبیق: برای تمام رفتارهای معتبر، آزمون جایگزین مشخص شده یا رفتار قدیمی صریحاً به‌علت تصمیم M2M منسوخ شده است. چهار رفتار صرفاً تک‌والدی تکرار نمی‌شوند، چون با مدل مصوب تناقض دارند. این تطبیق نوشته شده، اما اجرای exact-SHA روی candidate جاری هنوز لازم است.
+
+### Canonical repository integration — P0, read-only inventory
+- CenterStore reads/writes centers, but safe deletion counts only legacy projects.center_id, not center_projects.
+- ProjectStore retains one centerId, uses projects.center_id and project_items, and save clears/recreates Projects. It neither reads nor writes center_projects / project_categories; its delete path conflicts with M2M ON DELETE RESTRICT edges.
+- TaskStore still loads category names from taxonomy_categories and stores Task category text/legacy JSON; its new Task insert path does not persist canonical tasks.center_id/project_id/category_id assignments end-to-end.
+- TagStore delegates to TaskStore; Tags use tags / task_tags. CanonicalNotebookRepository also delegates to TaskStore/ProjectStore, so it inherits those ownership boundaries.
+- Project selector and Home filters still consume single-parent ProjectPlan/Task models. Calendar, Reports and Search consume existing Task projections/services rather than joining canonical M2M tables consistently.
+- Product BackupService and ArvinBackupManager remain JSON/SharedPreferences-oriented; D04 is a physical SQLite test, not a production physical-backup workflow.
+- Broad integration remains blocked until D01–D05 are accepted on one SHA. Preserve projects.center_id, project_items, taxonomy_categories, legacy payloads and IDs until all consumers are migrated and parity is proven.
+
+### Vazirmatn typography — P0 verification gap
+- Font assets present: Vazirmatn Light 300 (122,920 bytes; blob 2dfd5c35ed4c26f7ce9f3ba753f11d9a38356c42), Regular 400 (122,752; 64e4a8189557a17b63fd7a77794207483e592972), Medium 500 (122,656; 1e08dd54d90a4879451ef0f80fe0d8068fb7462f), SemiBold 600 (122,920; 6b3842aca6055c8258404b1758133b81c961a13f), Bold 700 (123,036; efa9b095da01d299310bdcae293e24e657fe6da9); OFL license present.
+- pubspec maps 300/400/500/600/700. ThemeData maps body 400, primary title 700, secondary title 600, labels 500. AppFonts and FontRegistry identify Vazirmatn as official; System Default remains optional.
+- Custom screen code contains w800/w900 requests beyond the declared family maximum. Review/normalize these call sites to approved 700 heading weight unless a documented exception exists.
+- PDF renderer explicitly loads Regular and Bold and the test checks embedded FontFile2, ToUnicode and FontDescriptor. Current-candidate PDF and actual screen rendering remain unverified while Build/Device Smoke are pending. Bundling is not proof of visual shaping/rendering.
+
+### Exact-SHA CI boundary
+Current candidate 26c8d6e449a2204edd95728e739dd07983263eb6: SQLite run 43597689187 QUEUED; Snapshot 43597689287 QUEUED; Device Smoke 43597689185 QUEUED; Follow-up 43597689251 QUEUED; Build 43597689254 PENDING; Production Loop 43597689184 PENDING; Orchestrator 43597689232 QUEUED; PR Wakeup 43597689214 QUEUED; Draft APK 43597689198 SKIPPED. No current-SHA PASS or artifact.

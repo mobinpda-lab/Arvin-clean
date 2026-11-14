@@ -6,10 +6,17 @@ import 'package:drift/drift.dart';
 import '../models/task.dart';
 import 'occurrence_sql_codec.dart';
 import 'recurrence_sql_codec.dart';
+import 'g1_many_to_many_hierarchy_migration.dart';
 
 /// G1-DRIFT relational schema foundation.
 class G1DriftSchema implements QueryExecutorUser {
-  static const int version = 19;
+  G1DriftSchema({G1SqliteFailureInjector? failureInjector})
+      : _failureInjector = failureInjector;
+
+  static const int version = 20;
+
+  final G1SqliteFailureInjector? _failureInjector;
+  bool _lifecycleCompleted = false;
 
   static const List<String> _statements = <String>[
     '''CREATE TABLE IF NOT EXISTS tasks (
@@ -103,7 +110,23 @@ class G1DriftSchema implements QueryExecutorUser {
   int get schemaVersion => version;
 
   @override
-  Future<void> beforeOpen(QueryExecutor executor, OpeningDetails details) async {}
+  Future<void> beforeOpen(QueryExecutor executor, OpeningDetails details) async {
+    // Drift supplies a _BeforeOpeningExecutor here. It deliberately starts
+    // unopened so beforeOpen can opt into its non-blocking executor context.
+    // Mark this callback executor open before issuing raw SQL; this does not
+    // reopen the underlying database or advance the schema version.
+    await executor.ensureOpen(this);
+    await _runLifecycle(
+      executor,
+      versionBefore: details.versionBefore,
+      failureInjector: _failureInjector,
+    );
+    // Drift writes PRAGMA user_version only after beforeOpen returns. This
+    // seam deliberately models a process interruption after migration commit
+    // and all lifecycle checks, but before Drift registers schema v20.
+    await _failureInjector?.call('after_migration_commit_before_drift_version');
+    _lifecycleCompleted = true;
+  }
 
   // Store constructors may request the same schema concurrently (for example
   // both operational template tabs are mounted by TabBarView). Serialize the
@@ -118,7 +141,25 @@ class G1DriftSchema implements QueryExecutorUser {
     _installations[executor] = completer.future;
     () async {
       try {
-        await _installSchema(executor);
+        final schema = G1DriftSchema();
+        await executor.ensureOpen(schema);
+        // Executors can be opened earlier by legacy importers and tests. In
+        // that case Drift does not invoke beforeOpen again, so complete the
+        // same lifecycle here before any store query is allowed to proceed.
+        if (!schema._lifecycleCompleted) {
+          final rows = await executor.runSelect('PRAGMA user_version', const []);
+          final before = rows.isEmpty ? null : (rows.single.values.first as num).toInt();
+          await _runLifecycle(
+            executor,
+            versionBefore: before,
+            failureInjector: schema._failureInjector,
+          );
+          await schema._failureInjector?.call(
+            'after_migration_commit_before_drift_version',
+          );
+          await executor.runCustom('PRAGMA user_version = 20');
+          schema._lifecycleCompleted = true;
+        }
         completer.complete();
       } catch (error, stackTrace) {
         _installations[executor] = null;
@@ -128,12 +169,78 @@ class G1DriftSchema implements QueryExecutorUser {
     return completer.future;
   }
 
+  static Future<void> _runLifecycle(
+    QueryExecutor executor, {
+    required int? versionBefore,
+    G1SqliteFailureInjector? failureInjector,
+  }) async {
+    if (versionBefore != null && versionBefore > version) {
+      throw StateError('Database schema $versionBefore is newer than supported $version.');
+    }
+    await _installSchema(executor);
+    final foreignKeys = await executor.runSelect('PRAGMA foreign_keys', const []);
+    if (foreignKeys.isEmpty || (foreignKeys.single.values.first as num).toInt() != 1) {
+      throw StateError('SQLite foreign keys must be enabled before REV10 v20 migration.');
+    }
+    final marker = await executor.runSelect(
+      'SELECT value FROM arvin_storage_meta WHERE key = ?',
+      const [G1ManyToManyHierarchyMigration.markerKey],
+    );
+    if (versionBefore != null && versionBefore >= version && marker.isEmpty) {
+      throw StateError('Schema version is $version but the REV10 migration marker is missing.');
+    }
+    await failureInjector?.call('before_migration');
+    await G1ManyToManyHierarchyMigration(
+      failureInjector: failureInjector,
+    ).migrate(executor);
+    final completed = await executor.runSelect(
+      'SELECT value FROM arvin_storage_meta WHERE key = ?',
+      const [G1ManyToManyHierarchyMigration.markerKey],
+    );
+    if (completed.length != 1 || completed.single['value'] != '$version') {
+      throw StateError('REV10 v20 migration completion marker is invalid: $completed');
+    }
+    for (final table in ['center_projects', 'project_categories']) {
+      final rows = await executor.runSelect(
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?",
+        <Object?>[table],
+      );
+      if (rows.isEmpty) throw StateError('Required v20 relation table is missing: $table');
+    }
+    final taskColumns = await executor.runSelect("PRAGMA table_info('tasks')", const []);
+    final names = taskColumns.map((row) => row['name']).toSet();
+    for (final column in ['center_id', 'project_id', 'category_id']) {
+      if (!names.contains(column)) throw StateError('Required v20 Task column is missing: $column');
+    }
+    final violations = await executor.runSelect('PRAGMA foreign_key_check', const []);
+    // Legacy v19 references are retained as evidence by the migration. Only
+    // new canonical hierarchy tables and Task direct links must be clean.
+    final hierarchyViolations = <Map<String, Object?>>[];
+    for (final table in ['center_projects', 'project_categories', 'tasks']) {
+      hierarchyViolations.addAll(await executor.runSelect('PRAGMA foreign_key_check($table)', const []));
+    }
+    if (hierarchyViolations.isNotEmpty) {
+      throw StateError('REV10 v20 foreign-key verification failed: $hierarchyViolations');
+    }
+    if (violations.isNotEmpty) {
+      // Keep unrelated historical violations visible; do not silently rewrite v19 evidence.
+    }
+  }
+
   static Future<void> _installSchema(QueryExecutor executor) async {
-    final schema = G1DriftSchema();
-    await executor.ensureOpen(schema);
     // Seed the new active-directory relation exactly once from the pre-split
     // Persons table. Subsequent installs must never resurrect deleted entries.
     await executor.runCustom('PRAGMA foreign_keys = OFF');
+    // Preserve pre-existing v19 FK exceptions as historical evidence. The
+    // schema cutover may add canonical relations, but it must not reject or
+    // erase a database merely because an older source row was already orphaned.
+    final preexistingForeignKeyViolations = await executor.runSelect(
+      'PRAGMA foreign_key_check',
+      const [],
+    );
+    final preexistingForeignKeyKeys = preexistingForeignKeyViolations
+        .map((row) => '${row['table']}|${row['rowid']}|${row['parent']}|${row['fkid']}')
+        .toSet();
     await executor.runCustom('PRAGMA busy_timeout = 5000');
     await executor.runCustom('PRAGMA synchronous = NORMAL');
     await executor.runCustom('BEGIN');
@@ -235,9 +342,13 @@ class G1DriftSchema implements QueryExecutorUser {
       if (!projectColumns.any((row) => row['name'] == 'legacy_payload_json')) {
         await executor.runCustom('ALTER TABLE projects ADD COLUMN legacy_payload_json TEXT NULL');
       }
-      await migrateTaskPeople(executor);
       await _removeLegacyTaskReminderMarker(executor);
+      // Import the canonical People directory before Task-person snapshots.
+      // Otherwise migrateTaskPeople could create a placeholder row first and
+      // INSERT OR IGNORE would preserve its synthetic timestamps/name instead
+      // of the historical canonical Person record.
       await migrateCanonicalEntities(executor);
+      await migrateTaskPeople(executor);
       await _retireLegacyTaskColumns(executor);
       await OccurrenceSqlCodec.migrateLegacyEnvelopes(executor);
       await RecurrenceSqlCodec.migrateLegacyRules(executor);
@@ -254,15 +365,20 @@ class G1DriftSchema implements QueryExecutorUser {
           "ON CONFLICT(key) DO UPDATE SET value = '1'",
         );
       }
-      // Do not write PRAGMA user_version here. The canonical migration marker
-      // is arvin_storage_meta, and this install path can be reached by more
-      // than one SQLite connection (for example app + Android smoke tooling).
-      // A user_version write acquires a database-wide lock and can fail even
-      // though the schema itself is already installed. Schema DDL above is
-      // idempotent and the marker remains the canonical cutover boundary.
+      // The base schema transaction deliberately does not advance user_version.
+      // Drift writes the authoritative schema version only after beforeOpen
+      // completes; the M2M marker is an atomic migration-completion checkpoint.
       final foreignKeyViolations = await executor.runSelect('PRAGMA foreign_key_check', const []);
-      if (foreignKeyViolations.isNotEmpty) {
-        throw StateError('Canonical schema rebuild produced foreign-key violations: $foreignKeyViolations');
+      final newlyIntroducedForeignKeyViolations = foreignKeyViolations
+          .where((row) => !preexistingForeignKeyKeys.contains(
+                '${row['table']}|${row['rowid']}|${row['parent']}|${row['fkid']}',
+              ))
+          .toList(growable: false);
+      if (newlyIntroducedForeignKeyViolations.isNotEmpty) {
+        throw StateError(
+          'Canonical schema rebuild introduced foreign-key violations: '
+          '$newlyIntroducedForeignKeyViolations',
+        );
       }
       await executor.runCustom('COMMIT');
       await executor.runCustom('PRAGMA foreign_keys = ON');
@@ -671,18 +787,21 @@ class G1DriftSchema implements QueryExecutorUser {
         const [],
       );
       for (final row in legacyFollowUps) {
+        final taskId = row['task_id'] as String;
+        // Preserve an entry for every historical Follow-up, even when that
+        // record has no next-follow-up date. Scheduling fields remain
+        // optional; absence must not erase the historical record identity.
+        final metadataRecord = <String, dynamic>{'id': row['id']};
         final rawNextFollowUp = row['next_follow_up'];
         if (rawNextFollowUp != null) {
-          final taskId = row['task_id'] as String;
-          legacyFollowUpMetadataByTask
-              .putIfAbsent(taskId, () => <Map<String, dynamic>>[])
-              .add(<String, dynamic>{
-            'id': row['id'],
-            'nextFollowUp': rawNextFollowUp,
-            if (row['next_follow_up_all_day'] != null)
-              'nextFollowUpAllDay': row['next_follow_up_all_day'],
-          });
+          metadataRecord['nextFollowUp'] = rawNextFollowUp;
+          if (row['next_follow_up_all_day'] != null) {
+            metadataRecord['nextFollowUpAllDay'] = row['next_follow_up_all_day'];
+          }
         }
+        legacyFollowUpMetadataByTask
+            .putIfAbsent(taskId, () => <Map<String, dynamic>>[])
+            .add(metadataRecord);
         await executor.runInsert(
           '''INSERT OR IGNORE INTO follow_up_records
              (id, task_id, completed_at, title, note, result, completed, waiting_for_response, ordinal)

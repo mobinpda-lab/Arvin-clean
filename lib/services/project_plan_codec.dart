@@ -1,101 +1,115 @@
 import '../models/goal_project.dart';
 
-/// Lossless JSON-shape codec for Arvin's canonical [ProjectPlan].
-///
-/// This is intentionally storage-agnostic. It defines one portable Project
-/// representation without introducing a second Task store, Task projectId, or
-/// persistence key. A later persistence/backup lane can reuse this exact shape.
+/// Single portable codec for the canonical Project model and backup boundary.
 class ProjectPlanCodec {
   const ProjectPlanCodec();
-
   static const int defaultColorValue = 0xFF087F8C;
+
+  static const Set<String> _known = {
+    'id', 'title', 'colorValue', 'isArchived', 'centerId', 'centerIds',
+    'categoryIds', 'templateId', 'templateNameSnapshot', 'itemIds',
+  };
 
   Map<String, dynamic> encode(ProjectPlan project) {
     return <String, dynamic>{
+      ...project.legacyFields,
       'id': project.id,
       'title': project.title,
-      'colorValue': project.colorValue,
-      'isArchived': project.isArchived,
-      if (project.centerId != null) 'centerId': project.centerId,
-      if (project.templateId != null) 'templateId': project.templateId,
-      if (project.templateNameSnapshot != null) 'templateNameSnapshot': project.templateNameSnapshot,
-      'itemIds': List<String>.of(project.itemIds),
+      if (project.colorValueSpecified) 'colorValue': project.colorValue,
+      if (project.isArchivedSpecified) 'isArchived': project.isArchived,
+      if (project.centerRelationshipsSpecified) 'centerIds': List<String>.of(project.centerIds),
+      if (project.categoryRelationshipsSpecified) 'categoryIds': List<String>.of(project.categoryIds),
+      if (project.centerRelationshipsSpecified && project.centerId != null) 'centerId': project.centerId,
+      if (project.templateIdSpecified) 'templateId': project.templateId,
+      if (project.templateNameSnapshotSpecified) 'templateNameSnapshot': project.templateNameSnapshot,
+      if (project.itemIdsSpecified) 'itemIds': List<String>.of(project.itemIds),
     };
   }
 
   ProjectPlan decode(Object? raw) {
-    if (raw is! Map) {
-      throw const FormatException('Project must be a JSON object');
-    }
-
+    if (raw is! Map) throw const FormatException('Project must be a JSON object');
     final map = Map<String, dynamic>.from(raw);
     final id = map['id'];
     final title = map['title'];
     if (id is! String || id.trim().isEmpty) {
       throw const FormatException('Project id must be a non-empty string');
     }
-    if (title is! String) {
-      throw const FormatException('Project title must be a string');
-    }
+    if (title is! String) throw const FormatException('Project title must be a string');
 
     final rawColor = map['colorValue'];
-    final colorValue = rawColor is int ? rawColor : defaultColorValue;
-
+    if (rawColor != null && rawColor is! int) {
+      throw const FormatException('Project colorValue must be an integer');
+    }
     final rawArchived = map['isArchived'];
     if (rawArchived != null && rawArchived is! bool) {
       throw const FormatException('Project isArchived must be a boolean');
     }
-    final isArchived = rawArchived is bool ? rawArchived : false;
 
-    final rawCenterId = map['centerId'];
-    if (rawCenterId != null && (rawCenterId is! String || rawCenterId.trim().isEmpty)) {
+    final legacyCenter = map['centerId'];
+    if (legacyCenter != null &&
+        (legacyCenter is! String || legacyCenter.trim().isEmpty)) {
       throw const FormatException('Project centerId must be a non-empty string when present');
     }
+    final centers = map.containsKey('centerIds')
+        ? (map['centerIds'] == null ? const <String>[] : _decodeIds(map['centerIds'], 'centerIds'))
+        : !map.containsKey('centerId') ? null
+            : legacyCenter == null ? const <String>[] : <String>[legacyCenter as String];
+    if (legacyCenter != null && centers != null && !centers.contains(legacyCenter)) {
+      throw const FormatException('Project centerId conflicts with centerIds');
+    }
+
+    final categories = map.containsKey('categoryIds')
+        ? (map['categoryIds'] == null ? const <String>[] : _decodeIds(map['categoryIds'], 'categoryIds'))
+        : null;
     final rawTemplateId = map['templateId'];
     final rawTemplateName = map['templateNameSnapshot'];
-    if (rawTemplateId != null && (rawTemplateId is! String || rawTemplateId.trim().isEmpty)) throw const FormatException('Project templateId must be non-empty when present');
-    if (rawTemplateName != null && rawTemplateName is! String) throw const FormatException('Project templateNameSnapshot must be a string');
-    final rawItemIds = map['itemIds'];
-    final itemIds = rawItemIds == null
-        ? const <String>[]
-        : _decodeItemIds(rawItemIds);
+    if (rawTemplateId != null &&
+        (rawTemplateId is! String || rawTemplateId.trim().isEmpty)) {
+      throw const FormatException('Project templateId must be non-empty when present');
+    }
+    if (rawTemplateName != null && rawTemplateName is! String) {
+      throw const FormatException('Project templateNameSnapshot must be a string');
+    }
 
+    final unknown = <String, dynamic>{
+      for (final entry in map.entries)
+        if (!_known.contains(entry.key)) entry.key: entry.value,
+    };
     return ProjectPlan(
       id: id,
       title: title,
-      colorValue: colorValue,
-      isArchived: isArchived,
-      centerId: rawCenterId as String?,
+      colorValue: rawColor as int?,
+      isArchived: rawArchived as bool?,
+      colorValueSpecified: map.containsKey('colorValue'),
+      isArchivedSpecified: map.containsKey('isArchived'),
+      centerIds: centers,
+      categoryIds: categories,
       templateId: rawTemplateId as String?,
       templateNameSnapshot: rawTemplateName as String?,
-      itemIds: itemIds,
+      templateIdSpecified: map.containsKey('templateId'),
+      templateNameSnapshotSpecified: map.containsKey('templateNameSnapshot'),
+      itemIds: !map.containsKey('itemIds') ? null : map['itemIds'] == null ? const <String>[] : _decodeIds(map['itemIds'], 'itemIds'),
+      legacyFields: unknown,
     );
   }
 
-  List<Map<String, dynamic>> encodeList(Iterable<ProjectPlan> projects) {
-    return projects.map(encode).toList(growable: false);
+  List<String> _decodeIds(Object? raw, String field) {
+    if (raw is! List) throw FormatException('Project $field must be a JSON list');
+    final values = <String>[];
+    for (final value in raw) {
+      if (value is! String || value.trim().isEmpty) {
+        throw FormatException('Project $field must contain only non-empty strings');
+      }
+      values.add(value);
+    }
+    return values;
   }
+
+  List<Map<String, dynamic>> encodeList(Iterable<ProjectPlan> projects) =>
+      projects.map(encode).toList(growable: false);
 
   List<ProjectPlan> decodeList(Object? raw) {
-    if (raw is! List) {
-      throw const FormatException('Projects must be a JSON list');
-    }
+    if (raw is! List) throw const FormatException('Projects must be a JSON list');
     return List<ProjectPlan>.unmodifiable(raw.map(decode));
-  }
-
-  List<String> _decodeItemIds(Object raw) {
-    if (raw is! List) {
-      throw const FormatException('Project itemIds must be a JSON list');
-    }
-    final result = <String>[];
-    for (final value in raw) {
-      if (value is! String || value.isEmpty) {
-        throw const FormatException(
-          'Project itemIds must contain only non-empty strings',
-        );
-      }
-      result.add(value);
-    }
-    return List<String>.unmodifiable(result);
   }
 }

@@ -1,3 +1,107 @@
+## COMMAND 07-A.2.81 — live evidence checkpoint — 2026-11-14
+
+**Repository:** mobinpda-lab/Arvin-clean  
+**Main:** `45e4202b03a434459e4c021a04efa7e8396359db` — unchanged.  
+**Primary route:** PR #3463, OPEN / DRAFT / UNMERGED; branch `rev10-m2m-v19-test-expansion`; base `310c0e20e3447c488c1e1c102c38bea5040708ca`.  
+**Pre-documentation source checkpoint:** `444c8ae6dfe640ee47d254ccc08990fac47b5e5e`. This documentation synchronization changes the branch HEAD; fetch the live ref after this commit and rerun exact-SHA acceptance. No earlier PASS transfers.
+
+### Verified findings
+
+- Commit `b3d6fc4283632d5f7dd5f4954ab7c32cd90850a5` removed the incompatible const constructor. Its Build run `43589784306` completed APK staging, release-variant, debug, visual/PDF and font checks successfully; the overall workflow failed because Analyze and six regression shards failed. The original compile diagnostic did not recur.
+- Analyze job `132431921330` failed only on an unused import in `test/services/g1_many_to_many_hierarchy_migration_test.dart`; removed in commit `1e92416b8555310ba4e16be0ab3c331fbb00a0f5`.
+- SQLite acceptance run `43589784286`, job `132431853651`: migration helper (2 tests), M2M acceptance (5 tests), seven-stage failure recovery (7 tests), and Drift lifecycle/schema suite (17 tests) passed. Historical parity suite failed two assertions; completed-at migration suite failed one assertion. The D04 physical file-copy/independent-restore test and D02 four-state test passed individually within the historical suite.
+- Root causes and corrections on the same development branch:
+  - `9bd415ea7450d9863a1a72941e8f56701954d3a0`: preserve a metadata entry for every historical Follow-up, including records without a next-follow-up date.
+  - `435ee4e29bd40fb90783400283cd22a405dca5e4`: compare legacy `date_time` with canonical `completed_at` in the parity test.
+  - `aca9f446191e31667237c27886a8f837e3b62845`: assert the original custom Task FK plus the three approved v20 optional Task FKs.
+  - `8f73900736fe52edae6130116074629addc42dfd` and `444c8ae6dfe640ee47d254ccc08990fac47b5e5e`: construct genuine v15/v11 test fixtures before invoking the v20 schema installer; avoid creating `tasks` after v20 installation has already created it.
+- Baseline Build on the exact PR #3463 base SHA `310c0e20e3447c488c1e1c102c38bea5040708ca`, run `43575749904`, had 41 failing test labels across six shards. All 41 labels reappeared unchanged on `b3d6fc4283632d5f7dd5f4954ab7c32cd90850a5`; five additional failures were isolated to the migration/test changes listed above and have been corrected. The inherited 41 failures remain real Build blockers; baseline comparison does not make them acceptable or prove they are harmless.
+- Snapshot run `43589784284` / job `132431853695` passed on `b3d6...`; Follow-up Persistence run `43589784210` / job `132431853760` passed on `b3d6...`. These are historical evidence only.
+- Device Smoke run `43589784304` remained queued; no one of its seven scenarios is accepted.
+
+### Current evidence boundary
+
+The workflows triggered for source SHA `444c8ae6dfe640ee47d254ccc08990fac47b5e5e` were queued/pending at the last live poll: SQLite `43592572106`, Build `43592572088`, Snapshot `43592572377`, Follow-up Persistence `43592572358`, Device Smoke `43592572074`, Production Loop `43592572075`, Orchestrator `43592572384`. The documentation commit below changes the SHA again; none of these runs can establish final acceptance for the post-documentation head.
+
+### PR and consolidation findings
+
+- PR #3384 is OPEN / DRAFT / UNMERGED; its head `310c0e20...` is the exact base of PR #3463. It is a parent dependency, not an unrelated candidate.
+- PR #3448 is OPEN / DRAFT / UNMERGED on a separate documentation branch. Its branch diverges from PR #3463's base (compare: 2,418 ahead / 98 behind). The M2M ADR blob is byte-identical on both branches; the seven overlapping canonical continuity documents have different blob SHAs and require content-level reconciliation. No cherry-pick, retarget or merge was performed.
+- Issue #3458 remains OPEN with `factory:ready` and `priority:core` labels.
+- Repository metadata reports Admin/Maintain/Push/Triage/Pull access and permits auto-merge at repository level; PR #3463 has `auto_merge=null`. The branch-protection endpoint returned HTTP 403 to this connection, so its exact rules are NOT VERIFIED.
+- NIRA was not modified. No Main write, merge, release, deployment, destructive data operation or history rewrite occurred.
+
+### Acceptance status
+
+D01–D05 are NOT ACCEPTED. D01 lifecycle subtests and D05 seven-stage recovery passed on the historical `b3d6...` SHA, D04 physical restore passed as an individual test, and D02 value preservation passed as an individual test; D03/history parity failed. All must be rerun on one final post-documentation SHA. Product-level Backup/Restore integration and canonical repository integration remain separate, unaccepted work.
+
+**Next action:** poll the live post-documentation SHA's exact workflow runs; diagnose any remaining migration failures; complete all D01–D05, Build and seven Device Smoke scenarios on that same SHA. Keep Main read-only and PR #3463 draft/unmerged.
+
+
+## Post-checkpoint source update — 2026-11-14
+
+- After the first documentation synchronization, two source/test commits were added: `b49659321a1b155e7f7f17c45661075c863e19dc` preserves the public `const G1DriftSchema()` construction contract; `5764d4a82ebef6c3f2eb33a0703f09abe3e545e4` adds further optional Task link combinations and ordinary file-backed reopen assertions.
+- Exact code candidate after the full D01–D05 test authoring wave: `d0c4c90ffd4aa8a62c948123b3a799cfbe471673`. Current CI runs on this SHA: Build `43584316965`, COMMAND 07-A.2.80-D `43584317136`, Device Smoke `43584317383`, Follow-up Persistence `43584316946`, SQLite Snapshot `43584316958`. Build/Follow-up were PENDING and the dedicated/Device/Snapshot jobs QUEUED at last poll; no result is transferable from older SHAs.
+- D02 and D03 now have separate acceptance tests; D04 has a separate physical SQLite file-copy/restore test against a migrated v20 file; D05 has seven separate injected lifecycle failure cases. The dedicated v20 workflow runs all suites even when one fails and retains per-suite logs.
+- Drift 2.35.0 source inspection confirms `_runMigrations` awaits `user.beforeOpen(...)` before calling `DynamicVersionDelegate.setSchemaVersion(currentVersion)`; this validates the lifecycle failure seam's target boundary. The application uses `QueryExecutorUser.beforeOpen` rather than a generated `MigrationStrategy.onCreate/onUpgrade` class.
+- The two Notebook failures in Build test-1 also occurred on the exact base SHA `310c0e20e3447c488c1e1c102c38bea5040708ca`; both the Notebook page and test file have identical blob SHAs on the PR branch and base. They are inherited base failures, not SQLite PR changes; leave them untouched in this migration lane and keep them visible as upstream Build blockers.
+
+---
+
+## COMMAND 07-A.2.80-D — live SQLite v20 execution checkpoint — 2026-11-14 13:21 +03:30
+
+**Authority:** REV10 plus owner-approved Many-to-Many decision ARVIN-DEC-2026-11-14-CENTER-PROJECT-CATEGORY-M2M.  
+**Repository:** mobinpda-lab/Arvin-clean.  
+**Main HEAD:** `45e4202b03a434459e4c021a04efa7e8396359db` — unchanged / read-only.  
+**Primary PR:** #3463 — OPEN / DRAFT / UNMERGED; branch `rev10-m2m-v19-test-expansion`; base PR #3384 at `310c0e20e3447c488c1e1c102c38bea5040708ca`.  
+**Code candidate before this documentation synchronization:** `0408486fd50a04648e405f82cdf8b906c3e53977`. Documentation commits change the PR HEAD; all acceptance runs must be re-fetched on the final live SHA.  
+**PR #3384:** OPEN / DRAFT / UNMERGED. **PR #3448:** OPEN / DRAFT / UNMERGED and remains the REV10 documentation source. **PRs #3459–#3462:** CLOSED / UNMERGED; historical commits remain preserved in Git; no cherry-pick or merge was performed.  
+**Related NIRA:** Main `7a27ee63b65d343e45c5786f782f2567611722dc`; separate factory only; no NIRA files changed.
+
+### Live implementation changes on the execution branch
+- G1 Drift schema is version 20; the existing M2M helper is invoked from the canonical `beforeOpen` lifecycle.
+- Drift's callback-scoped Executor is opened before lifecycle SQL; the authoritative schema version remains registered by Drift only after `beforeOpen` returns.
+- The base schema transaction now records pre-existing v19 foreign-key violations and rejects only newly introduced violations; historical orphan evidence is retained for the M2M exception ledger.
+- Canonical People rows are imported before Task-person snapshots, preventing synthetic placeholder timestamps/names from winning over historical Person records.
+- A deterministic optional failure-injection seam now covers lifecycle boundaries; production callers omit it.
+- The superseded single-parent candidate schema and its incompatible miniature tests were retired from this branch. Their acceptance intent is replaced by tests against the canonical v20 schema and M2M join tables.
+
+### New acceptance evidence authored; execution still pending
+- `test/services/g1_m2m_hierarchy_acceptance_test.dart`: canonical v20 Many-to-Many cardinality, nullable Task links, Task↔Tag, duplicate/orphan rejection, link-only deletion and physical restore coverage.
+- `test/services/g1_v19_historical_parity_test.dart`: independent v19 file fixture with Center, Project, Task, legacy memberships, Category catalog, Tags, Person, Task-person links, multi-step Follow-ups, Follow-up-person links, Reminder, metadata, NULL/FALSE/TRUE, ambiguous memberships and invalid historical references; source/destination parity assertions.
+- `test/services/g1_v20_failure_recovery_test.dart`: seven controlled failures through the real Drift lifecycle, followed by readability, marker/version and retry/idempotency checks.
+- The D04 test copies the closed, migrated SQLite file to a distinct physical file and reopens it; it is not a JSON backup substitute.
+
+### CI evidence boundary
+- On SHA `035721adb2cc4ccbb631bd4d231e5800e2547854`, Follow-up Persistence and SQLite Snapshot passed, but Build had failures. The stack trace identified Drift's unopened `beforeOpen` Executor; the callback was fixed and Follow-up Persistence passed on that SHA. Those results do not transfer to later SHAs.
+- The same Build run also exposed import ambiguity, superseded single-parent tests, a duplicate-table diagnostic fixture and two Notebook failures. The import ambiguity and obsolete hierarchy fixtures were corrected/replaced; Notebook tests were not modified pending baseline comparison.
+- On the then-current SHA `ba054015f1382c9fc38b0b044a6a0550a0102b17`, new Build, Follow-up, Snapshot, Device Smoke and COMMAND 07-A.2.80-D workflows were queued/pending. Subsequent documentation commits require another exact-SHA poll.
+- No PASS is claimed for the newly authored parity, physical restore or failure-injection tests until their exact-SHA jobs finish.
+
+### D01–D05 status at this checkpoint
+| Gate | State | Evidence boundary |
+|---|---|---|
+| D01 Schema / Migration Compatibility | BLOCKED | Lifecycle and migration tests exist; current exact-SHA execution pending. |
+| D02 Missing / NULL / FALSE / TRUE | BLOCKED | Historical parity assertions authored; not yet executed. |
+| D03 Person / Follow-up / Reminder / Metadata | BLOCKED | Full v19 fixture and parity assertions authored; not yet executed. |
+| D04 Physical SQLite Backup / Restore | BLOCKED | Physical file-copy/restore test authored against migrated v20; not yet executed. |
+| D05 Atomicity / Rollback / Recovery | BLOCKED | Seven lifecycle injection stages authored; not yet executed. |
+
+### Repository integration audit — read-only findings on the same source tree
+
+- `CenterStore.delete` still counts `projects.center_id`; it does not query `center_projects`.
+- `ProjectStore.load/save` still represents one `centerId`, reads/writes `projects.center_id`, and rebuilds `projects`/ `project_items`. It does not read or write `center_projects` or `project_categories`. Its `DELETE FROM projects` path will conflict with the new `ON DELETE RESTRICT` Center–Project edges once those edges exist; this is a concrete integration blocker, not a hypothetical style issue.
+- `ProjectPlan` still exposes a single nullable `centerId`, not a collection of Center links.
+- `Task` currently has a `centerId` snapshot but no canonical `projectId` / `categoryId` fields. `TaskStore._insertNewTask` does not write the new `tasks.center_id/project_id/category_id` columns, and `_writeRelations` does not persist these hierarchy links.
+- Task category CRUD still uses `taxonomy_categories` and Task text; no dedicated CategoryStore or Project↔Category writer was found in the source tree.
+- Existing product backup code remains a JSON-oriented export/import path. The new D04 test proves a physical SQLite file copy/restore in tests, but does not yet add a production physical-backup action.
+
+These findings define the next Canonical Repository Integration wave. Do not delete or rewrite `project_items`, `projects.center_id`, `taxonomy_categories` or legacy evidence until the canonical stores and all consumers are migrated and parity is proven.
+
+**Safety:** Main unchanged. No merge, release, deployment, production database migration, destructive cleanup or NIRA change.
+
+---
+
 # REV9 — CURRENT LIVE STATE / REPOSITORY CLEANUP WAVE 0
 **Live baseline date:** 2026-11-10
 **Main HEAD:** `45e4202b03a434459e4c021a04efa7e8396359db`
@@ -1581,3 +1685,19 @@ Detailed source/blob evidence and safe migration sequence: `audit/REV10_WAVE1_DA
 **Failures:** test-0 and test-4 have 9 failures each. Home Center filter and Orchestrator merge/ready expectations conflict with approved contracts; other failures require source-level diagnosis. Analyze and four remaining shards have no terminal result. No runner-capacity cause is proven.
 **Governance:** PR #3448 is OPEN / DRAFT / UNMERGED and is the REV10 source. Main Orchestrator merge-capable logic remains a critical blocker. D01–D05 remain PARTIAL / NOT ACCEPTED. No user database migration, merge, release or deployment is authorized.
 This checkpoint does not transfer PASS to a later SHA or declare product acceptance.
+
+## COMMAND 07-A.2.82 — exact-SHA acceptance and audit checkpoint — 2026-11-14
+
+- Repository: mobinpda-lab/Arvin-clean.
+- Main HEAD: 45e4202b03a434459e4c021a04efa7e8396359db — unchanged and read-only.
+- PR #3463: OPEN / DRAFT / UNMERGED; branch rev10-m2m-v19-test-expansion; base SHA 310c0e20e3447c488c1e1c102c38bea5040708ca; current candidate SHA 26c8d6e449a2204edd95728e739dd07983263eb6.
+- PR #3384: OPEN / DRAFT / UNMERGED; head 310c0e20e3447c488c1e1c102c38bea5040708ca; base fix/wave3-cycle3-calendar-product-repair at 8c4c23f0c2a4f9b2374a2092c931782c4455fd41. PR #3384 is the direct parent/base of PR #3463.
+- Latest workflows on this candidate: SQLite v20 run 43597689187 QUEUED; Snapshot 43597689287 QUEUED; Device Smoke 43597689185 QUEUED; Follow-up Persistence 43597689251 QUEUED; Build 43597689254 PENDING; Production Loop 43597689184 PENDING; Orchestrator 43597689232 QUEUED; Orchestrator PR Wakeup 43597689214 QUEUED; Draft Review APK 43597689198 SKIPPED. No run on this SHA is PASS yet; no artifact is claimed.
+- Historical D01–D05 evidence on parent SHA 06bf4bc80c630570094fbcc2eb2b6bd3b6c3c8f7: SQLite run 43593027688 / job 132441600894 SUCCESS; Snapshot run 43593027733 / job 132441600829 SUCCESS. These prove the parent candidate only and do not transfer to 26c8d6e.
+- On parent SHA, D01 fresh install/v19 upgrade/reopen/repeated install passed; D02 missing/NULL/FALSE/TRUE passed; D03 historical Person/Follow-up/Reminder/Tag/metadata parity passed; D04 independent physical SQLite restore passed; D05 all seven injected failure stages passed. The dedicated workflow's six test suites completed successfully.
+- Three test-only commits on the current candidate add coverage for Task insert/update M2M guard paths, endpoint deletion restrictions, canonical join indexes/triggers and direct Task→Category delete restriction. No production source or Main files changed in these commits.
+- The exact base SHA Build run 43575749904 had 41 failing test labels across six shards. The test names, observed assertions and stack locations are recorded in OPEN_ISSUES. They remain unresolved blockers; baseline status does not make them acceptable.
+- Historical coverage reconciliation: 24 tests recovered from the retired single-parent files. Valid intent is mapped to current M2M/SQLite suites; four single-parent-only semantics are explicitly superseded by the approved M2M decision. The mapping awaits execution on the current SHA.
+- Typography static audit: five Vazirmatn TTF files are present with Git blob identities and OFL license; pubspec maps 300/400/500/600/700; ThemeData body uses 400, primary title 700, secondary titles 600, labels 500. Several custom widgets request w800/w900 beyond the declared family weights. PDF renderer loads Regular and Bold and has embedding/ToUnicode tests. Actual rendered-device and PDF visual validation are not yet accepted because current Build/Device Smoke remain pending/queued.
+- Read-only repository inventory confirms CenterStore/ProjectStore/TaskStore/Category CRUD and UI consumers still use legacy single-parent columns, project_items, taxonomy_categories and Task JSON snapshots; the new M2M schema is not yet the universal source of truth. Product JSON backup remains separate from D04 test-only physical SQLite copy. Do not start broad repository integration until D01–D05 are re-verified on one SHA.
+- NIRA was not modified. No merge, release, deployment, destructive database operation or history rewrite occurred.

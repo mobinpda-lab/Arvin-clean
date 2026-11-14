@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:arvin/services/g1_drift_schema.dart';
+import 'package:arvin/services/g1_many_to_many_hierarchy_migration.dart';
+import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -19,7 +21,7 @@ void main() {
     final directory = await Directory.systemTemp.createTemp('arvin-person-directory-cutover-');
     final file = File('${directory.path}/arvin.sqlite');
     var first = NativeDatabase(file);
-    await first.ensureOpen(G1DriftSchema());
+    await first.ensureOpen(_V19TestUser());
     await first.runCustom(
       '''CREATE TABLE persons (
          id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL,
@@ -49,7 +51,7 @@ void main() {
 
   test('legacy Task metadata preserves missing, explicit NULL and concrete values', () async {
     final missingDatabase = NativeDatabase.memory();
-    await missingDatabase.ensureOpen(G1DriftSchema());
+    await missingDatabase.ensureOpen(_V19TestUser());
     await missingDatabase.runCustom('''
       CREATE TABLE tasks (
         id TEXT NOT NULL PRIMARY KEY,
@@ -84,7 +86,7 @@ void main() {
     await missingDatabase.close();
 
     final legacyDatabase = NativeDatabase.memory();
-    await legacyDatabase.ensureOpen(G1DriftSchema());
+    await legacyDatabase.ensureOpen(_V19TestUser());
     await legacyDatabase.runCustom('''
       CREATE TABLE tasks (
         id TEXT NOT NULL PRIMARY KEY,
@@ -190,9 +192,169 @@ void main() {
     await legacyDatabase.close();
   });
 
+  test('D01 fresh install: real Drift beforeOpen registers v20 after lifecycle success', () async {
+    final executor = NativeDatabase.memory();
+    final schema = _ObservedG1DriftSchema(executor);
+    try {
+      await executor.ensureOpen(schema);
+
+      expect(schema.callbackCount, 1);
+      expect(schema.executorWasDriftCallbackExecutor, isTrue);
+      expect(schema.runtimeExecutorType, contains('BeforeOpeningExecutor'));
+      expect(schema.detailsVersionBefore, isNull);
+      expect(schema.sqliteVersionBeforeMigration, 0);
+      expect(schema.foreignKeysAfterLifecycle, 1);
+      expect(
+        (await executor.runSelect('PRAGMA user_version', const [])).single.values.first,
+        20,
+      );
+      expect(
+        await executor.runSelect(
+          'SELECT value FROM arvin_storage_meta WHERE key = ?',
+          const [G1ManyToManyHierarchyMigration.markerKey],
+        ),
+        [ {'value': '20'} ],
+      );
+    } finally {
+      await executor.close();
+    }
+  });
+
+  test('D01 pre-opened executor: v19 upgrades once and repeated install is idempotent', () async {
+    final executor = NativeDatabase.memory();
+    await executor.ensureOpen(_V19TestUser());
+    await executor.runCustom('PRAGMA foreign_keys = ON');
+    await executor.runCustom('''CREATE TABLE centers (
+      id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL,
+      is_archived INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL
+    )''');
+    await executor.runCustom('''CREATE TABLE projects (
+      id TEXT NOT NULL PRIMARY KEY, center_id TEXT NULL,
+      name TEXT NOT NULL DEFAULT ''
+    )''');
+    await executor.runCustom('''CREATE TABLE tasks (
+      id TEXT NOT NULL PRIMARY KEY, title TEXT NOT NULL DEFAULT '',
+      description TEXT NOT NULL DEFAULT '', priority TEXT NOT NULL DEFAULT 'none',
+      archived INTEGER NOT NULL DEFAULT 0, trashed INTEGER NOT NULL DEFAULT 0,
+      completed INTEGER NOT NULL DEFAULT 0, category TEXT NULL
+    )''');
+    await executor.runCustom('''CREATE TABLE project_items (
+      project_id TEXT NOT NULL, task_id TEXT NOT NULL, ordinal INTEGER NOT NULL,
+      PRIMARY KEY(project_id, task_id)
+    )''');
+    await executor.runCustom('''CREATE TABLE taxonomy_categories (
+      name TEXT NOT NULL PRIMARY KEY, created_at TEXT NOT NULL
+    )''');
+    await executor.runCustom("INSERT INTO centers VALUES ('center-preopened', 'مرکز', 0, '2026-11-01')");
+    await executor.runCustom("INSERT INTO projects(id, center_id, name) VALUES ('project-preopened', 'center-preopened', 'پروژه')");
+    await executor.runCustom("INSERT INTO tasks(id, title) VALUES ('task-preopened', 'کار')");
+    await executor.runCustom("INSERT INTO project_items VALUES ('project-preopened', 'task-preopened', 0)");
+    try {
+      expect(
+        (await executor.runSelect('PRAGMA user_version', const [])).single.values.first,
+        19,
+      );
+      await G1DriftSchema.install(executor);
+      await G1DriftSchema.install(executor);
+
+      expect(
+        (await executor.runSelect('PRAGMA user_version', const [])).single.values.first,
+        20,
+      );
+      expect(
+        await executor.runSelect('SELECT center_id, project_id FROM center_projects', const []),
+        [ {'center_id': 'center-preopened', 'project_id': 'project-preopened'} ],
+      );
+      expect(
+        await executor.runSelect('SELECT COUNT(*) AS count FROM center_projects', const []),
+        [ {'count': 1} ],
+      );
+      expect(
+        await executor.runSelect('PRAGMA foreign_keys', const []),
+        [ {'foreign_keys': 1} ],
+      );
+      expect(
+        await executor.runSelect(
+          'SELECT value FROM arvin_storage_meta WHERE key = ?',
+          const [G1ManyToManyHierarchyMigration.markerKey],
+        ),
+        [ {'value': '20'} ],
+      );
+    } finally {
+      await executor.close();
+    }
+  });
+
+  test('D01 v19 compatibility: independently created file upgrades and reopens', () async {
+    final directory = await Directory.systemTemp.createTemp('arvin-v19-to-v20-');
+    final file = File('${directory.path}/historical-v19.sqlite');
+    final historical = NativeDatabase(file);
+    await historical.ensureOpen(_V19TestUser());
+    await historical.runCustom('PRAGMA foreign_keys = ON');
+    await historical.runCustom('''CREATE TABLE centers (
+      id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL,
+      is_archived INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL
+    )''');
+    await historical.runCustom('''CREATE TABLE projects (
+      id TEXT NOT NULL PRIMARY KEY, storage_ordinal INTEGER NOT NULL DEFAULT 0,
+      name TEXT NOT NULL, color_value INTEGER NOT NULL DEFAULT 4283059371,
+      is_archived INTEGER NOT NULL DEFAULT 0,
+      center_id TEXT NULL REFERENCES centers(id), template_id TEXT NULL,
+      template_name_snapshot TEXT NULL, legacy_payload_json TEXT NULL
+    )''');
+    await historical.runCustom('''CREATE TABLE tasks (
+      id TEXT NOT NULL PRIMARY KEY, storage_ordinal INTEGER NOT NULL DEFAULT 0,
+      title TEXT NOT NULL, description TEXT NOT NULL, created_at TEXT NULL,
+      updated_at TEXT NULL, due_date TEXT NULL, category TEXT NULL,
+      notebook_kind TEXT NULL, priority TEXT NOT NULL, archived INTEGER NOT NULL,
+      trashed INTEGER NOT NULL, completed INTEGER NOT NULL, completed_at TEXT NULL,
+      is_favorite INTEGER NOT NULL DEFAULT 0, recurrence_json TEXT NULL,
+      legacy_payload_json TEXT NULL
+    )''');
+    await historical.runCustom('''CREATE TABLE project_items (
+      project_id TEXT NOT NULL REFERENCES projects(id),
+      task_id TEXT NOT NULL REFERENCES tasks(id), ordinal INTEGER NOT NULL,
+      PRIMARY KEY(project_id, task_id)
+    )''');
+    await historical.runCustom('''CREATE TABLE taxonomy_categories (
+      name TEXT NOT NULL PRIMARY KEY, created_at TEXT NOT NULL
+    )''');
+    await historical.runCustom('''CREATE TABLE arvin_storage_meta (
+      key TEXT NOT NULL PRIMARY KEY, value TEXT NOT NULL
+    )''');
+    await historical.runCustom("INSERT INTO centers VALUES ('center-v19', 'مرکز تاریخی', 0, '2026-11-01')");
+    await historical.runCustom("INSERT INTO projects(id, storage_ordinal, name, color_value, is_archived, center_id) VALUES ('project-v19', 0, 'پروژه تاریخی', 0, 0, 'center-v19')");
+    await historical.runCustom("INSERT INTO tasks(id, title, description, priority, archived, trashed, completed, category, legacy_payload_json) VALUES ('task-v19', 'کار تاریخی', '', 'none', 0, 0, 0, 'عملیات', '{\"followUpEnabled\":false}')");
+    await historical.runCustom("INSERT INTO project_items VALUES ('project-v19', 'task-v19', 0)");
+    await historical.runCustom("INSERT INTO taxonomy_categories VALUES ('عملیات', '2026-11-01')");
+    final sourceVersion = await historical.runSelect('PRAGMA user_version', const []);
+    expect((sourceVersion.single.values.first as num).toInt(), 19);
+    await historical.close();
+
+    final upgraded = NativeDatabase(file);
+    await G1DriftSchema.install(upgraded);
+    expect((await upgraded.runSelect('PRAGMA user_version', const [])).single.values.first, 20);
+    expect((await upgraded.runSelect('SELECT id FROM tasks', const [])).single['id'], 'task-v19');
+    expect((await upgraded.runSelect('SELECT center_id, project_id FROM tasks WHERE id = ?', const ['task-v19'])).single['project_id'], 'project-v19');
+    expect(await upgraded.runSelect('SELECT center_id, project_id FROM center_projects', const []), [
+      {'center_id': 'center-v19', 'project_id': 'project-v19'}
+    ]);
+    expect(await upgraded.runSelect('PRAGMA foreign_key_check(center_projects)', const []), isEmpty);
+    await upgraded.close();
+
+    final reopened = NativeDatabase(file);
+    await G1DriftSchema.install(reopened);
+    expect((await reopened.runSelect('PRAGMA user_version', const [])).single.values.first, 20);
+    expect(await reopened.runSelect('SELECT * FROM center_projects', const []), hasLength(1));
+    expect(await reopened.runSelect('SELECT * FROM project_categories', const []), isEmpty,
+        reason: 'A category label on a Task is not proof of a Project–Category relationship.');
+    await reopened.close();
+    await directory.delete(recursive: true);
+  });
+
   test('creates the complete G1 relational schema', () async {
     await G1DriftSchema.install(database);
-    expect(G1DriftSchema.version, 19);
+    expect(G1DriftSchema.version, 20);
 
     final tables = await database.runSelect(
       "SELECT name FROM sqlite_master "
@@ -544,7 +706,7 @@ void main() {
     );
   });
   test('upgrades an existing pre-taxonomy schema without losing task data', () async {
-    await database.ensureOpen(G1DriftSchema());
+    await database.ensureOpen(_V19TestUser());
     // Pre-taxonomy layout intentionally lacks recurrence_json. The G1 upgrade
     // must add the column before importing the recurrence envelope.
     await database.runCustom("CREATE TABLE tasks (id TEXT NOT NULL PRIMARY KEY, title TEXT NOT NULL, description TEXT NOT NULL, created_at TEXT NULL, updated_at TEXT NULL, due_date TEXT NULL, follow_up_enabled INTEGER NOT NULL, follow_up_date TEXT NULL, category TEXT NULL, notebook_kind TEXT NULL, reminder_date TEXT NULL, priority TEXT NOT NULL, archived INTEGER NOT NULL, trashed INTEGER NOT NULL, completed INTEGER NOT NULL, storage_ordinal INTEGER NOT NULL DEFAULT 0, legacy_payload_json TEXT NULL)");
@@ -679,7 +841,7 @@ void main() {
   });
 
   test('legacy task_people migration preserves canonical names and stable Task links', () async {
-    await database.ensureOpen(G1DriftSchema());
+    await database.ensureOpen(_V19TestUser());
     await database.runCustom(
       '''CREATE TABLE tasks (
         id TEXT NOT NULL PRIMARY KEY, storage_ordinal INTEGER NOT NULL DEFAULT 0,
@@ -763,7 +925,7 @@ void main() {
   });
 
   test('malformed legacy task_people payload aborts migration without retiring source rows', () async {
-    await database.ensureOpen(G1DriftSchema());
+    await database.ensureOpen(_V19TestUser());
     // Open the executor without installing the canonical schema: the
     // malformed legacy source must exist before install() starts its
     // transactional migration. Seed only the canonical parent table needed
@@ -836,7 +998,7 @@ void main() {
   });
 
   test('legacy Task retirement preserves custom indexes and triggers by deferring cleanup', () async {
-    await database.ensureOpen(G1DriftSchema());
+    await database.ensureOpen(_V19TestUser());
     await database.runCustom('''
       CREATE TABLE tasks (
         id TEXT NOT NULL PRIMARY KEY,
@@ -918,4 +1080,40 @@ void main() {
     );
   });
 
+}
+
+class _ObservedG1DriftSchema extends G1DriftSchema {
+  _ObservedG1DriftSchema(this.originalExecutor);
+
+  final QueryExecutor originalExecutor;
+  int callbackCount = 0;
+  bool executorWasDriftCallbackExecutor = false;
+  String runtimeExecutorType = '';
+  int? detailsVersionBefore;
+  int? sqliteVersionBeforeMigration;
+  int? foreignKeysAfterLifecycle;
+
+  @override
+  Future<void> beforeOpen(QueryExecutor executor, OpeningDetails details) async {
+    callbackCount++;
+    executorWasDriftCallbackExecutor = !identical(executor, originalExecutor);
+    runtimeExecutorType = executor.runtimeType.toString();
+    detailsVersionBefore = details.versionBefore;
+    await executor.ensureOpen(this);
+    final version = await executor.runSelect('PRAGMA user_version', const []);
+    sqliteVersionBeforeMigration =
+        (version.single.values.first as num).toInt();
+    await super.beforeOpen(executor, details);
+    final foreignKeys = await executor.runSelect('PRAGMA foreign_keys', const []);
+    foreignKeysAfterLifecycle =
+        (foreignKeys.single.values.first as num).toInt();
+  }
+}
+
+class _V19TestUser implements QueryExecutorUser {
+  @override
+  int get schemaVersion => 19;
+
+  @override
+  Future<void> beforeOpen(QueryExecutor executor, OpeningDetails details) async {}
 }

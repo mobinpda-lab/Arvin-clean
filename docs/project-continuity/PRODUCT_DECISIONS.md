@@ -1,3 +1,31 @@
+## 2026-11-14 — implementation status for approved M2M decision
+
+The approved relationship contract remains unchanged: Center↔Project and Project↔Category are Many-to-Many; Task→Center/Project/Category are independently optional 0..1; Task↔Tag is Many-to-Many.
+
+**Status separation:** the v20 schema/migration and corresponding tests are IMPLEMENTED on the PR #3463 development branch. Historical parity and full D01–D05 acceptance are NOT VERIFIED/NOT ACCEPTED on a single current SHA. Canonical Store/UI integration and production Backup/Restore integration remain incomplete. The approval of the architecture must not be interpreted as acceptance or release authorization.
+
+
+# REV10 — CURRENT OWNER DECISION REGISTER ADDENDUM (2026-11-14)
+
+## ARVIN-DEC-2026-11-14-CENTER-PROJECT-CATEGORY-M2M
+
+| Field | Decision |
+|---|---|
+| Status | APPROVED — explicit Product Owner confirmation, 2026-11-14 |
+| Center ↔ Project | Many-to-Many; zero-to-many links from either side |
+| Project ↔ Category | Many-to-Many; zero-to-many links from either side |
+| Task → Center / Project / Category | Each independently optional, zero or one direct assignment |
+| Task ↔ Tag | Many-to-Many |
+| Supersedes | REV10 single-parent Center→Project and Project→Category rules; unresolved Project↔Category scoping in ADR-2026-10-10 |
+| Data safety | Preserve IDs, valid existing links, Task assignments and history; never guess missing Category↔Project links |
+| Implementation | APPROVED decision; schema, migration, UI and verification remain NOT VERIFIED |
+
+The canonical model is a relationship graph, not a mandatory single-parent tree. Task may remain standalone. Removing a link must not delete either endpoint. See docs/ADR/ADR-2026-11-14-CENTER-PROJECT-CATEGORY-M2M.md.
+
+Historical decisions remain preserved and must be marked SUPERSEDED, not erased.
+
+---
+
 # REV9 — CURRENT OWNER DECISION REGISTER ADDENDUM (2026-11-10)
 
 ## ARVIN-DEC-2026-11-10-LOCAL-FIRST — LOCAL-FIRST / SYNC SUSPENDED
@@ -33,7 +61,7 @@ Canonical register for durable product decisions. Detailed implementation and hi
 ## Approved
 | Decision | Status | Basis / boundary |
 |---|---|---|
-| Product hierarchy is Center > Project > Category > Task | APPROVED | Owner-confirmed product hierarchy; use the Persian term «مرکز», not «واحد», for the top level. |
+| Canonical relationship graph is Center↔Project M2M and Project↔Category M2M; Task direct links are independently optional; Task↔Tag is M2M | APPROVED — 2026-11-14 | See ARVIN-DEC-2026-11-14-CENTER-PROJECT-CATEGORY-M2M. The former single-parent interpretation is SUPERSEDED; «مرکز» remains the approved Persian term. |
 | Official UI font baseline is Vazirmatn | APPROVED | Every UI element uses Vazirmatn except the two exact owner-approved sacred Arabic phrases recorded below. |
 | PR #3052 stays OPEN / DRAFT / UNMERGED; main untouched; release NO-GO | APPROVED | Binding governance constraints for the active delivery stream. |
 | Earlier Phase 1 local-network P2P / future Cloud Phase 2 direction | SUPERSEDED — HISTORICAL | Earlier approved direction retained for traceability. Superseded by Mobin's 2026-11-10 LOCAL-FIRST standalone-product decision: all multi-device sync (P2P/LAN/Cloud/Dropbox/remote) is SUSPENDED until separately authorized. |
@@ -108,7 +136,7 @@ PROPOSED = candidate only; APPROVED = explicit owner decision; IN_PROGRESS = wor
 - Canonical implementation entry point: `lib/core/theme/arvin_theme.dart`; `ArvinColors` remains the semantic compatibility palette and maps shared primary/background/surface tokens to the new values.
 - Shared Flutter `CardThemeData` and app-bar theme use the new light card/header tokens. Shared Home shell, navigation, radio/project selector and recurrence chip surfaces consume the central token aliases.
 - Priority semantics stay unchanged: P1=high/red, P2=medium/blue, P3=low/amber, P4=none/neutral. User-facing labels remain Persian «اولویت ۱» … «اولویت ۴»; do not render literal English P1–P4 unless a later explicit UI decision authorizes it.
-- Status chips retain their existing semantic states/colors; taxonomy remains Center → Project → Category → Tags, with contextual icons and separate existing semantic accent colors. No entity/model or priority enum remapping is authorized.
+- Status chips retain their existing semantic states/colors; visual/selection order remains Center → Project → Category → Tags, with contextual icons and separate existing semantic accent colors; this order does not imply single-parent ownership. No entity/model or priority enum remapping is authorized.
 - **Coverage status:** foundation implemented; exhaustive conversion of every custom BoxDecoration/card-like surface across all screens and physical visual acceptance remain IN_PROGRESS / NOT VERIFIED. Do not describe the entire app as uniformly migrated until the cross-screen inventory and visual tests pass.
 - Governance unchanged: PR #3052 OPEN / DRAFT / UNMERGED; main untouched; no merge/release; BLOCKED — RELEASE: NO-GO.
 
@@ -194,7 +222,7 @@ PROPOSED = candidate only; APPROVED = explicit owner decision; IN_PROGRESS = wor
 - UI text everywhere uses Vazirmatn only. No Amiri, system serif, Naskh font, secondary family or text fallback is allowed.
 - Bismillah in Home and Tafweez in Calendar are dedicated transparent SVG path artworks, navy #1A2B4C, not text widgets; each has one accessible semantic label and no duplicate screen-reader announcement.
 - Exact approved reference images are required for final calligraphy approval. If unavailable, matching is NOT VERIFIED; do not claim a guessed design matches.
-- Home taxonomy order: Center > Project > Category > Task. Filter controls use checkboxes; selections within one dimension are OR, dimensions combine with AND. Time filter prioritizes Overdue.
+- Home taxonomy display order: Center > Project > Category > Task (display order only; not parent cardinality). The current global filter dimension order is Time → Center → Project → Category → Tag. Filter controls use checkboxes; selections within one dimension are OR, dimensions combine with AND. Time filter prioritizes Overdue.
 - Calendar retains three separate layers: view-mode/navigation, date-grid selection/projection, and selected-date agenda/content projection. Persistence and source filters remain separate.
 - PR #3052 remains OPEN/DRAFT/UNMERGED; main untouched; release NO-GO.
 
@@ -202,7 +230,7 @@ PROPOSED = candidate only; APPROVED = explicit owner decision; IN_PROGRESS = wor
 ## Decision register additions / checkpoint — ۱۴۰۵/۰۸/۱۵ — ۱۰:۰۱ (Asia/Tehran) / 2026-11-06
 | Decision | Status | Evidence / boundary |
 |---|---|---|
-| Product hierarchy: Center > Project > Category > Task | APPROVED / IMPLEMENTED | Owner-approved hierarchy; canonical product language and current implementation are to be audited page-by-page before VERIFIED. |
+| Product relationship graph: Center↔Project M2M; Project↔Category M2M; Task direct links optional; Task↔Tag M2M | APPROVED / IMPLEMENTATION IN PROGRESS | Owner-approved 2026-11-14 graph; UI ordering is separate from relationship cardinality. Canonical stores and consumers remain unverified. |
 | Completed Follow-up report is selected only inside the comprehensive Report Filters sheet; no separate top-level button | APPROVED / IMPLEMENTED | Source: `lib/report_center_page.dart`; regression: `test/report_center_page_test.dart` verifies the standalone action is absent and the unified filter path works. Exact-SHA full acceptance remains tied to current CI. |
 | Official UI font is Vazirmatn; the two owner-designated sacred phrases are SVG vectors and must not introduce a secondary font | APPROVED | Font policy is binding. SVG implementation status must be recorded only against actual SVG assets and rendering tests; do not infer it from approval. |
 | Calendar architecture uses three local layers | APPROVED | Architecture decision only; implementation/acceptance remain separate statuses and must be backed by source plus exact-SHA tests. |
@@ -471,7 +499,7 @@ The Product Owner's explicit command issued 2026-11-13 resolves REV9-004 without
 |---|---|---|---|
 | REV10-001 | Latest explicit Product Owner decisions outrank REV9 and older operational documents. | APPROVED | REV9 remains a verbatim archive; REV10 is the active master. |
 | REV10-002 | Arvin is Local-First / SQL-Only with one canonical durable database. | APPROVED | Preserve valid REV9 SQL-only requirements; no parallel permanent JSON or database. |
-| REV10-003 | Canonical ownership is Center → Project → Category → Task. | APPROVED | Project requires one Center; Category requires one Project; Task organization links remain optional. |
+| REV10-003 | Single-parent Center→Project and Project→Category ownership. | SUPERSEDED — 2026-11-14 | Replaced by ARVIN-DEC-2026-11-14-CENTER-PROJECT-CATEGORY-M2M; preserve this row as historical decision evidence only. |
 | REV10-004 | Task Center, Project and Category links are each 0..1; Tags are 0..N. | APPROVED | Do not force Task project/category links to NOT NULL; enforce cross-parent consistency at SQL level. |
 | REV10-005 | Entity Management Center manages Center, Project, Category, Tag and Person coherently. | APPROVED | Distinct entity tables and identities remain separate; all durable operations use canonical SQL services. |
 | REV10-006 | Global filter order is Time, Center, Project, Category, Tag. | APPROVED | SUPERSEDES the older four-dimension Home filter contract and any Branch-as-fifth-filter instruction. |
@@ -495,3 +523,7 @@ The Product Owner's explicit command issued 2026-11-13 resolves REV9-004 without
 - Ambiguous legacy relationships must be preserved as exceptions, not guessed.
 
 REV10 approval does not imply implementation or verification. Exact-SHA source, test and workflow evidence remain mandatory.
+
+## 2026-11-14 — M2M implementation and historical test coverage clarification
+
+The approved cardinalities remain: Center↔Project M2M; Project↔Category M2M; Task→Center/Project/Category independently optional 0..1; Task↔Tag M2M. Single-parent mandatory ownership and parent-mutation assertions are superseded, not copied into the new model. Their valid safety intent is preserved through junction uniqueness, cross-path Task guards, endpoint deletion restrictions, relationship-only unlinking and migration parity tests. This clarification does not declare implementation or acceptance complete; all tests and gates require exact-SHA evidence.

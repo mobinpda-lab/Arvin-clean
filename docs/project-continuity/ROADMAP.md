@@ -1,3 +1,49 @@
+## COMMAND 07-A.2.81 — current delivery status — 2026-11-14
+
+1. Complete exact-SHA rerun after the historical parity, FK assertion, Analyze and legacy fixture corrections.
+2. Require D01–D05 independent evidence on one final post-documentation SHA.
+3. Complete seven Device Smoke scenarios on that same SHA.
+4. Resolve inherited regression blockers: exact base Build run `43575749904` had 41 failing labels, all reproduced on b3d6; do not delete, skip or weaken these tests. Diagnose their product/test-contract causes after SQLite scope is stable.
+5. Only after SQLite v20 acceptance, begin Canonical Repository Integration: CenterStore, ProjectStore, CategoryStore, TaskStore, Entity Management, selectors, Home/Calendar/Reports filters, Search and product Backup/Restore.
+
+### Gate status evidence boundary
+
+- D01: YELLOW — real Drift lifecycle and fresh/v19 tests passed on b3d6; final-SHA rerun pending.
+- D02: YELLOW — four-state value test passed on b3d6; full historical parity test failed on b3d6 and has a corrected comparison awaiting rerun.
+- D03: RED on b3d6 — historical Person/Follow-up/Reminder/Metadata parity assertion failed; migration metadata preservation corrected, rerun pending.
+- D04: YELLOW — independent physical SQLite file-copy/restore test passed on b3d6; full final-SHA evidence pending and product integration remains separate.
+- D05: YELLOW — all seven real lifecycle failure-injection/recovery cases passed on b3d6; final-SHA rerun pending.
+
+No gate is accepted until all mandatory checks pass on one exact SHA.
+
+
+## 2026-11-14 — Active REV10 SQLite v20 delivery lane
+
+**Primary execution:** PR #3463 / `rev10-m2m-v19-test-expansion`.  
+**Main:** read-only. **Merge / Release / Deployment:** not authorized.  
+**Approved architecture:** Center↔Project M2M; Project↔Category M2M; Task→Center/Project/Category each optional 0..1; Task↔Tag M2M.
+
+### Current wave order
+1. Exact-SHA CI reconciliation and root-cause repair.
+2. Real Drift lifecycle acceptance: fresh install, v19 upgrade, pre-opened Executor, version registration and reopen.
+3. Historical v19 data parity across entities, relationships, NULL/FALSE/TRUE and unresolved references.
+4. Failure injection at every lifecycle boundary, transaction rollback and interrupted post-commit recovery.
+5. Physical SQLite backup and independent-file restore of the migrated v20 database.
+6. Independent D01–D05 acceptance on one exact SHA.
+7. Canonical Repository Integration: first repair CenterStore/ProjectStore/TaskStore and Category CRUD against the M2M joins; then Entity Management, selectors, Home/Calendar/Reports filters, Search and production Backup/Restore. ProjectStore's current full-table delete conflicts with the new RESTRICT join FKs and must be replaced by transaction-safe edge-aware upserts before real migration is enabled.
+8. Update the seven canonical continuity documents and preserve dated history.
+
+### Acceptance gates
+- D01: Schema and Migration Compatibility — BLOCKED pending exact-SHA lifecycle test results.
+- D02: Missing / NULL / FALSE / TRUE — BLOCKED pending historical parity run.
+- D03: Person / Follow-up / Reminder / Metadata — BLOCKED pending historical parity run.
+- D04: Physical SQLite Backup / Independent Restore — BLOCKED pending physical-file test.
+- D05: Atomicity / Rollback / Recovery — BLOCKED pending seven-stage failure-injection run.
+
+Do not promote authored tests to VERIFIED. No old single-parent candidate is an active architecture. No relationship may be guessed from Task text. Preserve all unresolved historical evidence.
+
+---
+
 # REV8 Wave Roadmap — current state
 
 ## REV8 live checkpoint — 2026-11-10
@@ -80,7 +126,7 @@ This roadmap orders work by release risk and verified dependencies. It does not 
 ## P1 — Product correctness and usability
 1. Resolve the Quick Capture empty-title feedback decision with the product owner; preserve compact layout and validation.
 2. Retain unified Report Center Filters and verify all filter dimensions and combinations with focused tests and fresh screenshots.
-3. Audit Center > Project > Category > Task terminology and behavior across every relevant creation, edit, selection, report and filter flow.
+3. Audit the approved Center↔Project↔Category relationship graph and its optional Task links across every relevant creation, edit, selection, report and filter flow.
 4. Continue only explicitly authorized Task Details / inline-edit / clone work under the current PR scope and its acceptance requirements.
 5. Preserve Reminder, Follow-up, recurrence and calendar independence; no legacy-field removal or destructive migration without real-data inspection and a safe migration plan.
 
@@ -141,7 +187,7 @@ A feature mentioned only as an illustrative example (such as periodic tasks or a
 5. **Acceptance:** run focused tests and all required exact-SHA workflows after any authorized code change. This registration does not authorize source, schema, migration or test changes.
 ## UI design system rollout — 2026-11-05 09:56 Asia/Tehran — ۱۴۰۵/۰۸/۱۴
 1. **P1 / Cross-screen card audit:** inventory every custom card-like Container/BoxDecoration in Task Lists, Task Details read-only/edit, Calendar and Quick Entry; migrate only presentation to shared card tokens without changing behavior.
-2. **P1 / Visual regression:** add/retain widget assertions for token application, Persian RTL labels, contextual icons, P1–P4 semantic mapping, status and Center → Project → Category → Tags chips. Do not remove or weaken existing scenarios.
+2. **P1 / Visual regression:** add/retain widget assertions for token application, Persian RTL labels, contextual icons, P1–P4 semantic mapping, status and Center → Project → Category → Tags display order. This is visual order only; M2M cardinality is authoritative. Do not remove or weaken existing scenarios.
 3. **P1 / Device visual acceptance:** compare all four target surfaces on the physical Android device at supported viewport/text scales. Until then, whole-app uniformity remains NOT VERIFIED.
 
 ### Remaining visual rollout
@@ -416,3 +462,14 @@ The active `main-protection` ruleset remains insufficient: zero required approva
 - Complete five-weight APK audit for Debug/Release and actual PDF embedding/shaping validation.
 - Complete SQLite D01-D05 and five persistence cycles on one exact SHA; do not transfer older snapshot evidence.
 - Enable required CODEOWNER approval in the active Ruleset; current ruleset remains at zero approvals and code-owner review disabled.
+
+## COMMAND 07-A.2.82 — prioritized delivery sequence — 2026-11-14
+
+1. P0 — Exact-SHA SQLite acceptance: poll and complete D01–D05, Snapshot, Follow-up Persistence and Build on one current candidate. Never transfer parent SHA PASS.
+2. P0 — Regression recovery: investigate the 41 inherited test failures individually; distinguish production defects from outdated expectations only with approved contract evidence.
+3. P0 — Coverage preservation: execute the 24-test historical coverage reconciliation; preserve M2M equivalents and explicitly document only the four superseded single-parent behaviors.
+4. P0 — Typography: normalize w800/w900 custom styles where no approved exception exists; run exact-SHA Analyze, APK, PDF embed/Unicode and actual rendered-device validation.
+5. P1 — Canonical repository integration after SQLite acceptance: migrate CenterStore, ProjectStore, TaskStore, Category CRUD, selectors, Home filters, Calendar, Reports, Search, Notebook and Backup/Restore to one M2M SQL source of truth. No parallel repositories or destructive legacy retirement.
+6. P1 — Product backup parity: integrate physical SQLite backup/restore in the production service path and verify independent restore, IDs, metadata, foreign keys and rollback.
+
+Release remains NO-GO. No merge, deployment or production data migration is authorized.

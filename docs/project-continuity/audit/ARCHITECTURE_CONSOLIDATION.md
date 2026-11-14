@@ -82,3 +82,109 @@ Current HEAD `a934cabebc814aea13c1800ab151821d12714226` is a documentation-only 
 - No table, column, migration, or stored data was removed in REV8.
 
 No duplicate canonical Task model was proven. The only clear same-name storage abstraction candidate is the generic test-only TaskStore interface versus the concrete service.
+
+
+---
+
+# REV10 — Single Product Architecture Audit (COMMAND 07-A.2.93)
+
+**Audit date:** 2026-11-14  
+**Inspected source HEAD before this documentation update:** `ba1c97206939941ab57d16f36a2b7418a32c369e`  
+**Branch / PR:** `rev10-m2m-v19-test-expansion` / #3463  
+**Schema declaration:** `G1DriftSchema.version = 20`  
+**Scope:** read-only source inspection. No installed-user database was opened. No production rows, device behavior, or cross-device restore outcome are inferred.
+
+## Canonical ownership map — observed source, not target architecture
+
+| Domain | Current model / owner | SQL or storage surface | Actual status and unresolved boundary |
+|---|---|---|---|
+| Task | `Task` / `TaskStore` | `tasks`, `task_reminders`, `follow_up_records`, `task_tags`, checklist/recurrence relations | One main Task model and one concrete production TaskStore are present. P0 gap: the REV10 migration adds nullable `tasks.center_id/project_id/category_id`, but Task has no `projectId/categoryId`; TaskStore's row decoder does not hydrate these columns and its Task INSERT omits them. The existing `centerId` is model/legacy-envelope data, not an end-to-end direct SQL relationship. |
+| Project | `ProjectPlan` / `ProjectStore` | `projects`, `project_items`, `center_projects`, `project_categories` | ProjectStore currently reads the two M2M junctions and its Upsert path writes explicitly supplied Center/Category edges. `project_items` remains the Task membership relation. Do not confuse the compatibility `projects.center_id` column with the canonical Center↔Project graph. |
+| Center | `ArvinCenter` / `CenterStore` | `centers`, `center_projects`; Task direct FK column added by REV10 migration | CenterStore reads and writes Center↔Project edges. Its current delete guard checks both `center_projects` and the legacy `projects.center_id` projection, plus `tasks.center_id`. TaskStore does not yet maintain the Task direct FK end-to-end. |
+| Category | No canonical Category model/store/CRUD boundary found | Legacy Task taxonomy: `taxonomy_categories`; canonical Project catalog: `categories`; edge: `project_categories`; Task direct FK column added by migration | Two distinct concepts currently coexist: legacy Task category text and stable-ID Project Category entities. Task taxonomy UI/CRUD still targets the legacy text catalog. Migration seeds canonical Category rows, but no single production Category repository/CRUD and Project selector were established by this audit. |
+| Tag | Task tag values / `TaskStore`; `TagStore` is a facade | `tags`, `task_tags` | TagStore delegates to TaskStore; it is not a second catalog. Preserve the existing many-to-many SQL relation and template references. |
+| Follow-up | `FollowUpRecord` (source-compatible alias `FollowUp`); `FollowUpRepository` / `FollowUpWriteCoordinator` | `follow_up_records`, `follow_up_record_people` | Historical Follow-up writes have a repository boundary. Follow-up history is not the future Reminder scheduler; deprecated next-follow-up values are compatibility metadata only. |
+| Reminder | `TaskReminder` on Task; TaskStore plus reminder projection/delivery services | `task_reminders` | This is the active Reminder data path. Keep it independent from Due Date and historical Follow-up records. Full product/device scheduling acceptance remains separate from model/schema existence. |
+| Notebook | `CanonicalNotebookRepository` | Same canonical TaskStore / `tasks` | Notebook intentionally owns no separate Task database or model. Its Task writes delegate to TaskStore; Project membership delegates to TaskProjectAssignmentService. |
+| Calendar | `CalendarPage` plus internal schedule projections and Android provider bridge | Task/Follow-up projections; external calendar link store for provider links | Calendar is a projection/integration surface, not another owner of Task or Follow-up records. End-to-end provider/device parity is not established by this source audit. |
+| Reports | Report pages and Task/Follow-up report projections/renderers | Read models over canonical records | Derived/read-only layer; no second Task persistence owner identified. Report UI/PDF acceptance remains unverified here. |
+| Backup / Restore | `ArvinBackupManager`, `ProjectBackupBridge`, `BackupPage` | Existing portable JSON backup document plus store-specific restore operations | This is the active UI path found. It includes Tasks, Projects, legacy Category names, Tags, People and calendar links. It does not export/import the canonical stable-ID `categories` entity catalog; therefore Project↔Category cross-device restoration is not proven. `BackupService` is a separate SharedPreferences JSON v1 implementation and must be classified by consumer search before removal or continued product use. |
+
+## Source corrections and stale documentation
+
+The current PR #3463 description contains earlier audit statements that no longer match the inspected source:
+- It says CenterStore deletion checks only the legacy `projects.center_id`; current `CenterStore.delete` also counts `center_projects`.
+- It says ProjectStore ignores the M2M joins and deletes/recreates Projects; current ProjectStore loads both junction tables and has an additive Upsert path, with explicit collection/snapshot deletion methods kept separate.
+- These source-level improvements are real implementation evidence, but they do not establish complete product acceptance. PR body and older status documents should be reconciled rather than used as substitutes for current source.
+
+## P0 consolidation order
+
+1. Complete Task relationship ownership in the existing Task model/TaskStore: preserve Missing vs explicit NULL, hydrate and write the three nullable SQL FK columns, validate the approved graph, and keep `project_items` as a compatibility projection without dual authority. No name-based inference.
+2. Establish one canonical Category entity API over the existing `categories` table; keep legacy Task taxonomy separate. Wire Project Category selection and all required consumers to stable Category IDs.
+3. Extend the existing backup document/restore flow with a versioned canonical Category catalog. Restore Category entities before Project↔Category edges; retain the legacy `categories` name list for old backup compatibility; fail and roll back on unresolved IDs.
+4. Verify Project/Center CRUD, archive/delete, template, Task editor, Home, Notebook, Calendar and Reports against the same canonical relations. Do not remove compatibility fields/tables until all consumers and historical parity gates pass.
+5. Reconcile stale PR descriptions and existing continuity documents after source and exact-SHA evidence is updated.
+
+## Acceptance boundary
+
+- **IMPLEMENTED (source only):** schema v20 lifecycle and M2M migration candidate; ProjectPlan/ProjectStore Center and Category edge support; CenterStore M2M-aware deletion guard; TaskStore canonical Task/Reminder/Follow-up/Tag persistence; Notebook delegation to TaskStore; Follow-up repository boundary.
+- **NOT IMPLEMENTED / NOT VERIFIED:** Task direct Center/Project/Category model-to-SQL round trip; canonical Category CRUD and Project selector; canonical Category catalog backup/restore; complete product-wide consumer convergence; installed-user data parity; device acceptance.
+- **CI at inspected SHA:** Build, SQLite v20 acceptance, SQLite snapshot, Follow-up persistence, Device Smoke and orchestrator-related runs were queued/pending; Draft Review APK was skipped. No PASS is claimed for this SHA.
+- **Development environment:** this audit was performed through GitHub source APIs only. Flutter/Dart execution, Dart Analyze, Flutter tests and local APK/device validation were not run in this environment.
+- **Safety:** Main remains read-only. PRs #3384, #3463 and #3470 remain open/draft/unmerged. No merge, release, deployment, destructive migration or NIRA change was performed.
+
+
+---
+
+# REV10 — Task Persistence Repair Gate (COMMAND 07-A.2.94)
+
+**Audit date:** 2026-11-14  
+**Starting PR #3463 SHA:** `d9438a81e6353b56350ccb99769d111846ef6766`  
+**Main SHA:** `45e4202b03a434459e4c021a04efa7e8396359db`  
+**Execution branch:** `rev10-m2m-v19-test-expansion`  
+**Result:** BLOCKED — no production-code changes or tests were performed.
+
+## Environment gate
+
+The available execution environment was checked again:
+- No Flutter, Dart, Android Debug Bridge (`adb`), or GitHub CLI executable is installed.
+- No Flutter/Dart SDK exists in the previously checked standard installation paths.
+- DNS resolution for `github.com` is unavailable from the shell environment.
+- The available tool catalog exposes GitHub source/PR/workflow APIs but no Codespaces/Workspace provisioner, remote terminal, shell-on-Codespace, workflow dispatch, or Dart/Flutter execution action.
+- The GitHub Codespaces user endpoint is not accessible through the available GitHub fetch wrapper. No existing Codespace can therefore be enumerated or attached through this execution surface.
+
+**Exact requirement to unblock:** provide an already-created Codespace/connected workspace and its supported terminal or coding-agent connection in this conversation, with this repository checked out on `rev10-m2m-v19-test-expansion`. It must have network access, Flutter and Dart SDKs, Git write access to the existing branch, and the ability to run project tests/builds. No paid infrastructure was created or requested.
+
+## Reconfirmed P0 source findings
+
+At the starting SHA, the existing `Task` model exposes `centerId` but has no `projectId` or `categoryId` fields. The existing `TaskStore._decodeTask` hydrates ordinary Task columns and the legacy JSON envelope, but does not hydrate `tasks.center_id/project_id/category_id` as canonical model fields. The Task INSERT statements omit those three SQL columns. The legacy `Task.category` remains a text value and is not a stable-ID Category relationship.
+
+The existing `TaskStore._saveUnlocked` path clears and rebuilds the Task collection and a number of normalized relations inside its transaction, while snapshotting/restoring `project_items` and `template_task_applications`. This is a broad rewrite path, not evidence of a targeted Task Upsert or proof that every historical relation survives. It must not be modified through blind API text edits without compiling and exercising the real transaction behavior.
+
+The existing `ProjectStore` reads `center_projects` and `project_categories` and has an additive Upsert path. `ProjectBackupBridge` currently exports legacy Task category names through `TaskStore.loadCategories()` and restores Projects through `ProjectStore.save()`; this source does not demonstrate export/restore of the stable-ID canonical Category catalog.
+
+## CI evidence at the inspected starting SHA
+
+PR-triggered runs returned for `d9438a81e6353b56350ccb99769d111846ef6766`:
+- Build: run `43629582304` — pending.
+- SQLite v20 lifecycle/M2M acceptance: `43629582368` — queued.
+- SQLite snapshot: `43629582314` — queued.
+- Follow-up persistence: `43629582360` — queued.
+- Device Smoke: `43629582359` — queued.
+- Orchestrator and Production Loop: `43629582344`, `43629582346` — pending.
+- Orchestrator PR Wakeup: `43629582339` — queued.
+- Draft Review APK: `43629582397` — skipped.
+
+No PASS is established by these states. No test was run locally. The historical green SQLite evidence belongs to its original historical SHA only and is not transferred to this candidate.
+
+## Protected scope
+
+Main remained unchanged. PRs #3384, #3463 and #3470 remained open, draft and unmerged at the end of the source audit. No database belonging to an installed user was accessed. No merge, release, deployment, NIRA change, or paid environment provisioning occurred.
+
+## Required implementation sequence after workspace connection
+
+1. Add presence-aware optional relationship fields to the existing Task model/codec, distinguishing omitted from explicit null for Center, Project and Category without treating the legacy Task category string as a Category ID.
+2. Implement targeted transactional Task persistence in the existing TaskStore; select one authoritative Task↔Project relation and maintain the other representation only as a validated compatibility projection. Reject conflicting or unresolved IDs rather than guessing.
+3. Add canonical Category CRUD over the existing `categories` table and wire the existing Project form selector to stable IDs; do not merge it with `taxonomy_categories`.
+4. Extend the existing canonical backup format with a versioned stable-ID Category catalog; restore Category entities before dependent Project edges and rollback on unresolved IDs while preserving old backup versions.
+5. Add and run the ten COMMAND 07-A.2.94 acceptance cases plus Analyze, full Flutter tests, build and device smoke where available. Record results against the exact final SHA before marking any item PASS.

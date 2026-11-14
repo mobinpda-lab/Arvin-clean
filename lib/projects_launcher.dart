@@ -81,7 +81,7 @@ class _ProjectsLauncherState extends State<ProjectsLauncher> with RouteAware {
     final snapshot = List<ProjectPlan>.of(projects);
     // Do not publish the optimistic list as saved. The page awaits this
     // Future and only commits its visible state after SQLite confirms success.
-    await _store.save(snapshot);
+    await _store.saveCollection(snapshot);
     if (!mounted) return;
     setState(() => _projects = snapshot);
   }

@@ -1,3 +1,59 @@
+## COMMAND 07-A.2.81 — production fix verification and historical parity remediation — 2026-11-14
+
+### Verified historical evidence on SHA b3d6fc4283632d5f7dd5f4954ab7c32cd90850a5
+
+- Build run `43589784306`: staging, release-variant and debug APK jobs passed; visual/PDF/Vazirmatn job passed. Analyze job `132431921330` failed on one unused import. Six regression shards had 46 failures.
+- SQLite acceptance run `43589784286`, job `132431853651`: migration helper 2/2, M2M acceptance 5/5, failure recovery 7/7, Drift lifecycle/schema 17/17 passed. Historical parity suite failed 2 tests; completed-at migration suite failed 1 test.
+- Snapshot run `43589784284`, job `132431853695`, passed; Follow-up Persistence run `43589784210`, job `132431853760`, passed. Device Smoke `43589784304` remained queued.
+- Exact base Build run `43575749904` on SHA `310c0e20e3447c488c1e1c102c38bea5040708ca` had 41 failing test labels; all 41 were reproduced unchanged on `b3d6...`. Five extra failures were specific to the SQLite wave.
+
+### Corrective commits
+
+| Commit | Change |
+|---|---|
+| `9bd415ea7450d9863a1a72941e8f56701954d3a0` | Preserve a metadata record for every historical Follow-up, even when next_follow_up is NULL. |
+| `435ee4e29bd40fb90783400283cd22a405dca5e4` | Compare legacy date_time to canonical completed_at in the historical parity test. |
+| `aca9f446191e31667237c27886a8f837e3b62845` | Correct Task FK assertion to retain custom and canonical FK relations. |
+| `1e92416b8555310ba4e16be0ab3c331fbb00a0f5` | Remove unused import causing Analyze failure. |
+| `8f73900736fe52edae6130116074629addc42dfd` | Open the historical v15 reminder fixture before creating its legacy tables. |
+| `444c8ae6dfe640ee47d254ccc08990fac47b5e5e` | Open the historical v11 template fixture before creating its legacy tables. |
+
+These changes have not yet been accepted by CI on their resulting source SHA. The documentation synchronization below changes the branch HEAD again and requires a new exact-SHA run.
+
+
+## 2026-11-14 — exact-SHA lifecycle boundary and test compatibility addendum
+
+- Preserved the source-compatible `const G1DriftSchema()` constructor while keeping the optional test failure injector.
+- Expanded canonical M2M acceptance for Center+Project, Project+Category, Center+Category path and full hierarchy Task combinations, plus ordinary file-backed database reopen.
+- Inspected Drift 2.35.0 `engines.dart`: `_runMigrations` awaits `user.beforeOpen(_BeforeOpeningExecutor(...), openingDetails)` and only then calls `versionDelegate.setSchemaVersion(currentVersion)`. The post-commit interruption test targets this exact boundary.
+- Confirmed Notebook page and test blobs are identical on the #3463 branch and base SHA `310c0e20e3447c488c1e1c102c38bea5040708ca`. Base Build `43575749904` also failed test-1 on that base; the Notebook assertions are inherited, not introduced by the SQLite diff. No unrelated Notebook test was edited or skipped.
+- Candidate SHA `d0c4c90ffd4aa8a62c948123b3a799cfbe471673` has Build `43584316965`, D-v20 `43584317136`, Device Smoke `43584317383`, Follow-up `43584316946` and Snapshot `43584316958` queued/pending at last poll; no exact-SHA PASS is yet available.
+
+- Split the acceptance evidence into independent D02 and D03 tests; added an explicit missing-field v19 fixture alongside explicit NULL/FALSE/TRUE, plus Follow-up next-action metadata and disabled/all-day Reminder parity.
+- Added the D04 physical SQLite restore against the migrated historical v20 file; D05 includes seven independent lifecycle failure points and verifies historical Task metadata after base-phase commit and retry.
+- Read-only store audit found integration blockers: CenterStore checks only legacy `projects.center_id`; ProjectStore still models one Center and `DELETE FROM projects` conflicts with M2M RESTRICT edges; TaskStore does not write Task Center/Project/Category columns; Category CRUD still targets legacy `taxonomy_categories`. No store code was changed before D01–D05 acceptance.
+
+---
+
+## 2026-11-14 — COMMAND 07-A.2.80-D SQLite v20 lifecycle and parity wave
+
+- Reconciled live refs: Main remained `45e4202b03a434459e4c021a04efa7e8396359db`; PR #3463 remained OPEN / DRAFT / UNMERGED on `rev10-m2m-v19-test-expansion`, based on #3384 at `310c0e20e3447c488c1e1c102c38bea5040708ca`.
+- Diagnosed Build on SHA `035721adb2cc4ccbb631bd4d231e5800e2547854`: three Drift/Matcher `isNull` import ambiguities; tests expecting superseded mandatory single-parent Category ownership; a diagnostic fixture that installed production tables then recreated them; and two Notebook failures outside the PR file diff.
+- Fixed the three import ambiguities by hiding Drift's `isNull` symbol, without removing assertions.
+- Retired `G1HierarchyCandidateSchema`, its single-parent tests and the old miniature diagnostic suite. Replaced them with canonical v20 M2M tests against `G1DriftSchema`, including M2M cardinality, optional Task links, duplicate/orphan rejection, link deletion and physical restore.
+- Corrected base schema FK validation: capture pre-existing v19 FK exceptions before the base transaction and reject only newly introduced violations. This allows historical invalid references to remain intact and be classified by the M2M exception ledger.
+- Reordered canonical entity import so the historical People directory is copied before Task-person snapshots; otherwise a synthetic placeholder could win via `INSERT OR IGNORE` and lose original name/timestamps.
+- Added optional deterministic failure injection to the existing migration and canonical Drift lifecycle. No alternate initializer or migration was added.
+- Added an independent v19 historical fixture and parity checks for Center, Project, Task, legacy project_items, Category catalog, Tags, Person, Task-person links, multi-step Follow-ups, Follow-up-person links, Reminder, metadata, NULL/FALSE/TRUE, ambiguous relationships and invalid references.
+- Added a physical SQLite backup/restore test that copies the closed migrated v20 database to a separate file and reopens it; no JSON serialization is used for D04.
+- Added seven lifecycle failure tests: before migration, after each junction table, after relationship transfer, during FK validation, before marker insertion and after migration commit but before Drift version registration.
+- Updated the existing optional-relationship workflow to execute canonical migration, M2M, historical parity, failure recovery and lifecycle suites on an exact target SHA.
+- Synchronized the REV10 M2M decision and ADR into the execution branch's canonical governance documents. Historical single-parent statements are explicitly SUPERSEDED.
+- CI on SHA `035721a...` showed Follow-up Persistence and Snapshot PASS, but Build failed; those results do not transfer. New exact-SHA workflows after code/documentation updates must complete before any acceptance claim.
+- No Main writes, merge, release, deployment, NIRA changes, test skipping or assertion weakening.
+
+---
+
 ## 2026-11-05 — Home test-2 regression diagnosis
 
 - Historical test-2 failure on SHA 9d073ad: Home owner-reference test used an exact finder for the Jalali date alone, but the active Home header renders weekday + date together in one Text widget. It also expected the superseded Category label «دسته‌بندی‌ها».
@@ -961,3 +1017,12 @@ The current execution branch is not the only source of valid work. The following
 **Failures:** test-0 and test-4 have 9 failures each. Home Center filter and Orchestrator merge/ready expectations conflict with approved contracts; other failures require source-level diagnosis. Analyze and four remaining shards have no terminal result. No runner-capacity cause is proven.
 **Governance:** PR #3448 is OPEN / DRAFT / UNMERGED and is the REV10 source. Main Orchestrator merge-capable logic remains a critical blocker. D01–D05 remain PARTIAL / NOT ACCEPTED. No user database migration, merge, release or deployment is authorized.
 This checkpoint does not transfer PASS to a later SHA or declare product acceptance.
+
+## COMMAND 07-A.2.82 — implementation log — 2026-11-14
+
+- 3cb6ddc41adbe20e8f4395b0018a9256af60e1aa: added regression coverage for Task M2M insert/update compatibility paths and endpoint deletion restrictions.
+- 1cb51888651550cd80b2901923291af441110498: added explicit sqlite_master assertions for canonical M2M indexes and insert/update guard triggers.
+- 26c8d6e449a2204edd95728e739dd07983263eb6: extended Category endpoint deletion coverage to prove a direct Task→Category FK also restricts deletion after M2M edges are removed.
+- These are test-only changes. No production implementation, Main, PR #3384 or NIRA was modified.
+- Parent SHA 06bf4bc80c630570094fbcc2eb2b6bd3b6c3c8f7 had successful SQLite v20 run 43593027688 and five-cycle Snapshot run 43593027733; these results are historical and not transferred to the current candidate.
+- Current candidate SHA 26c8d6e449a2204edd95728e739dd07983263eb6 has SQLite/Device/Snapshot/Follow-up runs queued and Build pending. Exact-SHA acceptance remains pending.

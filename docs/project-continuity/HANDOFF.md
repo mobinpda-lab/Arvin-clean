@@ -1,3 +1,54 @@
+## COMMAND 07-A.2.81 — next execution handoff — 2026-11-14
+
+1. Fetch live Main, PR #3463 and `rev10-m2m-v19-test-expansion` HEAD. The pre-documentation source SHA was `444c8ae6dfe640ee47d254ccc08990fac47b5e5e`; this documentation commit advances it. Do not assume either is current without reading the branch ref.
+2. Poll Build, SQLite v20 Acceptance, Snapshot, Follow-up Persistence, Device Smoke, Production Loop and Orchestrator for the post-documentation SHA. A queued, pending, skipped or cancelled result is not PASS.
+3. Inspect the two historical parity tests, completed-at migration test, v15/v11 fixture tests and Analyze on the new SHA. The source and test corrections are commits `9bd415e`, `435ee4e`, `aca9f44`, `1e92416`, `8f73900`, `444c8ae`.
+4. Preserve the exact baseline comparison: Build `43575749904` on base SHA `310c0e20...` had 41 failing labels; all 41 reappeared on `b3d6fc4`. The five additional SQLite-wave failures were corrected but require rerun. Do not label the inherited failures harmless; they remain blockers.
+5. Device Smoke has not completed. Verify all seven scenarios independently on the final SHA; distinguish product failure from emulator/ADB infrastructure.
+6. D01–D05 are not accepted. Historical b3d6 evidence: D01 lifecycle suite passed; D02 value test passed but combined parity test failed; D03 failed; D04 physical restore test passed; D05 seven failure stages passed. None transfers to the new SHA.
+7. Keep PR #3463 OPEN / DRAFT / UNMERGED and Main untouched. PR #3384 is its direct parent base. PR #3448 is a divergent documentation branch; its ADR matches byte-for-byte but seven canonical docs differ. Do not cherry-pick blindly.
+8. Do not modify NIRA. Do not merge, release, deploy, delete historical refs or rewrite Git history.
+
+
+## Exact-SHA follow-up after source compatibility update — 2026-11-14
+
+- Latest code candidate before this documentation refresh: `d0c4c90ffd4aa8a62c948123b3a799cfbe471673`. Current CI: Build `43584316965`, D-v20 `43584317136`, Follow-up `43584316946`, Snapshot `43584316958`, Device Smoke `43584317383`; queued/pending at last poll. Re-fetch the live PR head after the documentation commit before testing.
+- Drift 2.35.0 source order was verified: `beforeOpen` returns before Drift calls `setSchemaVersion`. The failure-injection test covers the post-migration-commit / pre-version-registration boundary.
+- Two Notebook failures are inherited: Notebook page and test file blob SHAs are identical on #3463 and base #3384 SHA `310c0e20e3447c488c1e1c102c38bea5040708ca`; base Build test-1 also failed on that base. Do not mix those unrelated failures into the SQLite migration root cause.
+- Poll exact-SHA Build `43584316965`, dedicated D-v20 `43584317136`, Follow-up Persistence `43584316946`, SQLite Snapshot `43584316958` and Device Smoke `43584317383` on `d0c4c90...`; all were queued/pending at last poll.
+- D02/D03 are now independent tests; D04 physical restore and D05 seven-stage failure recovery are authored but not yet executed. No D01–D05 gate is accepted yet.
+
+---
+
+## COMMAND 07-A.2.80-D — next-agent handoff — 2026-11-14
+
+### First actions
+1. Re-fetch Main, PR #3463, branch HEAD and Base SHA. The SHA recorded in this handoff is a checkpoint, not a substitute for live verification.
+2. Poll Build, Analyze, Device Smoke, Follow-up Persistence, SQLite Snapshot and the dedicated COMMAND 07-A.2.80-D workflow on the same exact SHA. Inspect failing job logs and artifacts.
+3. Run the dedicated v20 workflow suites: migration helper, canonical M2M acceptance, historical v19 parity, failure recovery and G1 Drift lifecycle.
+4. If historical parity fails, fix production migration behavior or fixture schema only with source evidence; do not weaken parity assertions.
+5. If any injected failure leaves a partial state, correct transaction boundaries and prove recovery/retry.
+6. Re-run the physical SQLite restore test after migration and compare the restored file with the migrated source.
+7. Only after D01–D05 pass, continue Canonical Repository Integration across CenterStore, ProjectStore, TaskStore, Category operations, selectors, Entity Management, Home/Calendar/Reports, Search and Backup/Restore.
+8. Keep legacy tables/columns and unresolved evidence until every consumer and exact-SHA gate is accepted.
+
+### Live governance boundary at last reconciliation
+- Arvin Main: `45e4202b03a434459e4c021a04efa7e8396359db`; read-only.
+- PR #3463: OPEN / DRAFT / UNMERGED; branch `rev10-m2m-v19-test-expansion`; code candidate before documentation synchronization `0408486fd50a04648e405f82cdf8b906c3e53977`.
+- PR #3384 remains OPEN / DRAFT / UNMERGED and is the base dependency.
+- PR #3448 remains OPEN / DRAFT / UNMERGED and is the REV10 documentation source.
+- PRs #3459–#3462 are CLOSED / UNMERGED; preserve their history and do not merge them separately.
+- NIRA Main `7a27ee63b65d343e45c5786f782f2567611722dc`; separate factory. No NIRA changes in this wave.
+- D01–D05 remain BLOCKED until exact-SHA execution evidence is complete.
+
+### Canonical repository integration blockers discovered
+CenterStore still counts `projects.center_id`; ProjectStore still models one `centerId` and deletes/recreates projects without join-edge handling; TaskStore does not write `tasks.center_id/project_id/category_id`; Category CRUD still uses `taxonomy_categories` and Task text; production backup remains JSON-oriented. ProjectStore's delete path is blocked by `center_projects` RESTRICT FKs once M2M edges exist. Resolve these only after D01–D05 gates are proven on one SHA.
+
+### Non-negotiable
+No Main merge, release, deployment, history rewrite, deletion of historical refs, production database migration or NIRA runtime dependency. Keep one canonical SQL implementation per domain.
+
+---
+
 # REV8 NEXT-AGENT HANDOFF — 2026-11-10
 
 ## First actions
@@ -842,3 +893,14 @@ Next safe work: read-only consumer and legacy-data inventory, then additive cand
 7. Continue read-only consumer inventory and additive schema work against existing G1. Preserve legacy tables, IDs, payloads and consumers until parity and backup/restore are proven.
 8. Main Orchestrator merge-capable logic remains a blocker. No Main/settings change without explicit owner approval.
 9. No merge, release, deployment or production data migration. Exact-SHA acceptance is NOT ESTABLISHED.
+
+## COMMAND 07-A.2.82 — active handoff
+1. Reconcile live PR #3463 HEAD before every action. Current candidate at this checkpoint: 26c8d6e449a2204edd95728e739dd07983263eb6; Main remains read-only.
+2. Poll only the exact candidate's Build, SQLite v20, Snapshot, Follow-up Persistence and Device Smoke runs listed in CURRENT_STATE. Queued/pending/skipped is never PASS.
+3. Re-run/verify the newly added Task insert/update guards, M2M index/trigger assertions, endpoint delete restrictions and direct Task→Category FK restriction.
+4. Do not transfer D01–D05 PASS from parent SHA 06bf4bc; rerun all gates on one final SHA.
+5. Diagnose the 41 baseline regression failures individually using OPEN_ISSUES and the exact run/job logs. Preserve assertions until the approved product contract proves a test obsolete.
+6. The 24 historical test coverage mapping is in OPEN_ISSUES. Four single-parent semantics are superseded by M2M; verify all remaining mappings on exact-SHA CI.
+7. Typography: retain Vazirmatn Regular 400 / Bold 700 as canonical; review w800/w900 call sites, verify actual APK rendering, run PDF embed/Unicode and visual checks, then seven Device Smoke scenarios.
+8. Architecture integration stays read-only until D01–D05 are reaccepted: migrate CenterStore, ProjectStore, TaskStore, Category CRUD, selectors, Home, Calendar, Reports, Search and Backup/Restore to the same M2M SQL model without parallel repositories.
+9. Keep PR #3463 and PR #3384 OPEN / DRAFT / UNMERGED. No Main write, merge, release, deployment, production database migration or history rewrite.
