@@ -199,8 +199,15 @@ void main() {
         "PRAGMA foreign_key_list('tasks')",
         const [],
       );
-      expect(foreignKeys, hasLength(1));
-      expect(foreignKeys.single['table'], 'custom_refs');
+      expect(
+        foreignKeys.map((row) => row['table']).toSet(),
+        {'custom_refs', 'centers', 'projects', 'categories'},
+      );
+      expect(
+        foreignKeys.any((row) => row['table'] == 'custom_refs'),
+        isTrue,
+        reason: 'The original outgoing reference must remain intact alongside v20 Task links.',
+      );
       final row = await database.runSelect(
         'SELECT id, title, legacy_payload_json FROM tasks WHERE id = ?',
         const <Object?>['foreign-task'],
