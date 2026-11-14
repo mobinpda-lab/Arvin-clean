@@ -54,7 +54,7 @@ Canonical register for durable product decisions. Detailed implementation and hi
 ## Approved
 | Decision | Status | Basis / boundary |
 |---|---|---|
-| Product hierarchy is Center > Project > Category > Task | APPROVED | Owner-confirmed product hierarchy; use the Persian term «مرکز», not «واحد», for the top level. |
+| Canonical relationship graph is Center↔Project M2M and Project↔Category M2M; Task direct links are independently optional; Task↔Tag is M2M | APPROVED — 2026-11-14 | See ARVIN-DEC-2026-11-14-CENTER-PROJECT-CATEGORY-M2M. The former single-parent interpretation is SUPERSEDED; «مرکز» remains the approved Persian term. |
 | Official UI font baseline is Vazirmatn | APPROVED | Every UI element uses Vazirmatn except the two exact owner-approved sacred Arabic phrases recorded below. |
 | PR #3052 stays OPEN / DRAFT / UNMERGED; main untouched; release NO-GO | APPROVED | Binding governance constraints for the active delivery stream. |
 | Earlier Phase 1 local-network P2P / future Cloud Phase 2 direction | SUPERSEDED — HISTORICAL | Earlier approved direction retained for traceability. Superseded by Mobin's 2026-11-10 LOCAL-FIRST standalone-product decision: all multi-device sync (P2P/LAN/Cloud/Dropbox/remote) is SUSPENDED until separately authorized. |
@@ -129,7 +129,7 @@ PROPOSED = candidate only; APPROVED = explicit owner decision; IN_PROGRESS = wor
 - Canonical implementation entry point: `lib/core/theme/arvin_theme.dart`; `ArvinColors` remains the semantic compatibility palette and maps shared primary/background/surface tokens to the new values.
 - Shared Flutter `CardThemeData` and app-bar theme use the new light card/header tokens. Shared Home shell, navigation, radio/project selector and recurrence chip surfaces consume the central token aliases.
 - Priority semantics stay unchanged: P1=high/red, P2=medium/blue, P3=low/amber, P4=none/neutral. User-facing labels remain Persian «اولویت ۱» … «اولویت ۴»; do not render literal English P1–P4 unless a later explicit UI decision authorizes it.
-- Status chips retain their existing semantic states/colors; taxonomy remains Center → Project → Category → Tags, with contextual icons and separate existing semantic accent colors. No entity/model or priority enum remapping is authorized.
+- Status chips retain their existing semantic states/colors; visual/selection order remains Center → Project → Category → Tags, with contextual icons and separate existing semantic accent colors; this order does not imply single-parent ownership. No entity/model or priority enum remapping is authorized.
 - **Coverage status:** foundation implemented; exhaustive conversion of every custom BoxDecoration/card-like surface across all screens and physical visual acceptance remain IN_PROGRESS / NOT VERIFIED. Do not describe the entire app as uniformly migrated until the cross-screen inventory and visual tests pass.
 - Governance unchanged: PR #3052 OPEN / DRAFT / UNMERGED; main untouched; no merge/release; BLOCKED — RELEASE: NO-GO.
 
@@ -223,7 +223,7 @@ PROPOSED = candidate only; APPROVED = explicit owner decision; IN_PROGRESS = wor
 ## Decision register additions / checkpoint — ۱۴۰۵/۰۸/۱۵ — ۱۰:۰۱ (Asia/Tehran) / 2026-11-06
 | Decision | Status | Evidence / boundary |
 |---|---|---|
-| Product hierarchy: Center > Project > Category > Task | APPROVED / IMPLEMENTED | Owner-approved hierarchy; canonical product language and current implementation are to be audited page-by-page before VERIFIED. |
+| Product relationship graph: Center↔Project M2M; Project↔Category M2M; Task direct links optional; Task↔Tag M2M | APPROVED / IMPLEMENTATION IN PROGRESS | Owner-approved 2026-11-14 graph; UI ordering is separate from relationship cardinality. Canonical stores and consumers remain unverified. |
 | Completed Follow-up report is selected only inside the comprehensive Report Filters sheet; no separate top-level button | APPROVED / IMPLEMENTED | Source: `lib/report_center_page.dart`; regression: `test/report_center_page_test.dart` verifies the standalone action is absent and the unified filter path works. Exact-SHA full acceptance remains tied to current CI. |
 | Official UI font is Vazirmatn; the two owner-designated sacred phrases are SVG vectors and must not introduce a secondary font | APPROVED | Font policy is binding. SVG implementation status must be recorded only against actual SVG assets and rendering tests; do not infer it from approval. |
 | Calendar architecture uses three local layers | APPROVED | Architecture decision only; implementation/acceptance remain separate statuses and must be backed by source plus exact-SHA tests. |
