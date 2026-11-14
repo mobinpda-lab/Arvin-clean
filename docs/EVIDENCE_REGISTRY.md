@@ -181,3 +181,108 @@ No PASS is attributed to SHA `9c4d...` yet. The registry update itself advances 
 - Main remained read-only. PR #3384 remains Draft. Merge, release and deployment are not authorized.
 
 **Disposition:** PRODUCT ACCEPTANCE BLOCKED. RELEASE NO-GO. This registry records evidence and gaps; it does not authorize merge, release, deployment or production migration.
+
+
+---
+
+## COMMAND 07-A.2.84 — Continuity + Notebook N1 Fast Capture checkpoint
+
+**Reconciled:** 2026-11-14  
+**Repository:** `mobinpda-lab/Arvin-clean`  
+**Execution branch:** `feature/command-07-a-sqlite-contract-remediation`  
+**Main HEAD observed before this registry append:** `45e4202b03a434459e4c021a04efa7e8396359db`  
+**Source-code candidate before this registry append:** `5f9128717309573888a0a08ec0a6cad58f1c5180`  
+**PR #3384:** OPEN / DRAFT / UNMERGED; base `fix/wave3-cycle3-calendar-product-repair` @ `8c4c23f0c2a4f9b2374a2092c931782c4455fd41`.  
+**Main:** READ-ONLY. No merge, release, deployment or user-database migration.
+
+### Continuity reconciliation
+
+| Reference | Live state |
+|---|---|
+| Main | `45e4202b03a434459e4c021a04efa7e8396359db` |
+| Execution branch before registry append | `5f9128717309573888a0a08ec0a6cad58f1c5180` |
+| PR #3384 | OPEN / DRAFT / UNMERGED |
+| PR #3052 | OPEN / DRAFT / UNMERGED |
+| PR #3380 | OPEN / DRAFT / UNMERGED |
+| PR #3382 | OPEN / DRAFT / UNMERGED |
+| PR #3388 | OPEN / DRAFT / UNMERGED |
+| PR #3448 | OPEN / DRAFT / UNMERGED |
+
+The live PR #3384 base remains unchanged. No parallel acceptance branch was created.
+
+### COMMAND 07-A.2.80–83 report recovery
+
+- COMMAND 07-A.2.81 report is present at `docs/project-continuity/audit/COMMAND_07_A2_81_NOTEBOOK_AUDIT.md`.
+- COMMAND 07-A.2.80 evidence is represented by prior registry sections and exact-SHA rows in this file.
+- No matching GitHub issue or report path was found for COMMAND 07-A.2.82 or 07-A.2.83 in the current branch tree or issue search. Their contents/status remain UNKNOWN; no missing content is reconstructed from assumptions.
+- Notebook documentation commits `52a88ee9c49c522e6cc3e88b1685e63aca451f26` and `6fc3392a33bd5c2a7e436301117a97a2f8852d7c` are ancestors of the current execution branch history and remain documentation-only.
+
+### Actual source changes in this checkpoint
+
+| Commit | Files | Change |
+|---|---|---|
+| `e4f201a0afd0f5491566ecccfa8534ab4bea6cac` | `lib/notebook_page.dart` | Fast Capture opens a blank-title note and requests focus on the body / keyboard |
+| `8966618fd4094ebbcb47d072bf8612aa1113583c` | `lib/services/canonical_notebook_repository.dart` | Canonical repository preserves an empty manual-title field instead of replacing it with a placeholder |
+| `3fc5e5b1f87542b4a977e53323b521c28941ccaf` | `test/notebook_page_test.dart` | Added Fast Capture focus, first-line display title, manual title precedence, multiline body, empty body and single-note assertions |
+| `55c669fa187da3af2539cd8c412851a8e7840b2b` | `lib/notebook_page.dart` | Corrected first-line parsing to split on actual line breaks |
+| `5f9128717309573888a0a08ec0a6cad58f1c5180` | `test/notebook_page_test.dart` | Tightened multiline preview assertion without changing its acceptance intent |
+
+No schema, TaskStore, Note identity, Follow-up, backup or migration code changed in this slice. Existing Notebook canonical storage and identifiers remain the source of truth.
+
+### Exact-SHA workflow evidence
+
+The workflow set was automatically triggered for source candidate `5f9128717309573888a0a08ec0a6cad58f1c5180`. At registry reconciliation:
+
+| Workstream | Run ID | Status | Result |
+|---|---:|---|---|
+| Full Build / Analyze / six test shards / APK | 43531236157 | PENDING | NOT VERIFIED |
+| Device Smoke (seven scenarios) | 43531236200 | QUEUED | NOT VERIFIED |
+| Follow-up file persistence | 43531236399 | QUEUED | NOT VERIFIED |
+| SQLite snapshot evidence | 43531236350 | QUEUED | NOT VERIFIED |
+| G1 hierarchy diagnostic | 43531236218 | QUEUED | NOT VERIFIED |
+| Draft Review APK | 43531236347 | COMPLETED / SKIPPED | No artifact |
+
+No PASS is attributed to candidate `5f912...` at this point. Run/job/artifact identifiers and SHA256 values are not inferred.
+
+### Historical failure evidence — exact SHA only
+
+Full Build run `43530326246` on previous SHA `d77efb130d1b782e35a5913a2c2481e19eda9ce0` produced successful Release and Staging APK jobs, but did not complete the full quality gate:
+
+- Test shard 4 failed: 7 tests.
+- Test shard 5 failed: 12 tests.
+- Test shards 0–3 and Analyze were cancelled before completion.
+- Debug APK job was still queued in the retrieved job snapshot.
+- Visual job was cancelled.
+- Device Smoke run `43530326452` had prepared its seven-scenario matrix, but all seven device jobs were queued.
+
+Observed failing test symptoms include Calendar prayer-card missing element; Task Details missing template source card; Tag roll-box count label absent; swipe/Follow-up state mismatch; Task Editor missing date-time selector; Home overdue color mismatch; About dialog tap outside viewport; missing Home project label; Quick Capture expected time absent; null Person widget value; duplicated Report Center label; Calendar repeat Task not resolved in fixture; Notebook canonical Tag assignment returned empty; Home Today group absent; Home Focus apply action missing; unexpected last Follow-up preview; and Task Details horizontal overflow at 360dp.
+
+These are classified as **ROOT CAUSE UNKNOWN / INVESTIGATION REQUIRED** until each is reproduced on a current SHA and traced to production code, test contract, fixture, migration or infrastructure. None is closed or waived. The historical failures do not establish failure of the later `5f912...` candidate.
+
+### SQLite D01–D05
+
+Historical diagnostics on `df384ba5acbed3b3e4ae125a65706c5ff2fe5e5e` remain bounded evidence only:
+- D01–D04: partial A–D snapshot / schema / relationship / reopen evidence, not full gate acceptance.
+- D05 atomicity, rollback and recovery: NOT VERIFIED.
+- No D01–D05 PASS is transferred to `5f912...`.
+
+### Notebook N1–N4
+
+| Gate | Status at source candidate `5f912...` |
+|---|---|
+| N1 Fast Capture | IMPLEMENTED IN SOURCE; exact-SHA tests PENDING |
+| N2 Note identity and bidirectional integration | NOT IMPLEMENTED |
+| N3 Notebook search and filters | PARTIAL |
+| N4 Notebook data safety / file-backed close-reopen / backup-restore | NOT VERIFIED |
+
+N1 stores the manual title as empty when not supplied. The first non-empty body line is a display-only derived title; the body remains unchanged. A non-empty manual title takes precedence. Focus and keyboard are requested on the body for a newly created note. These behaviors are pending CI and device verification.
+
+### Security and governance
+
+- Repository `allow_auto_merge=true`.
+- Active main ruleset `20952260` named `main-protection`.
+- Ruleset requires branch deletion and non-fast-forward protection, but required approving review count is 0; code-owner review and last-push approval are not required.
+- Branch protection endpoint returned 403 to the integration, so no additional branch-protection settings are asserted.
+- Auto-Merge remains a material governance risk. No security setting was changed.
+
+**Disposition:** One active candidate only. Product acceptance BLOCKED. Release NO-GO. No user database migration. All workflow results for the source candidate remain pending until their exact-SHA conclusions are fetched. The registry append itself creates a new commit and therefore a new candidate; the next reconciliation must read that commit's exact SHA and its own workflow runs, without inheriting any result from `5f912...`.
