@@ -37,11 +37,13 @@ void main() {
          VALUES ('project-b', 1, 'پروژه ب', 0, 0, 'center-b')''',
       const [],
     );
+    await db.runCustom('PRAGMA foreign_keys = OFF');
     await db.runInsert(
       '''INSERT INTO projects(id, storage_ordinal, name, color_value, is_archived, center_id)
          VALUES ('project-orphan', 2, 'پروژه با مرکز ناموجود', 0, 0, 'missing-center')''',
       const [],
     );
+    await db.runCustom('PRAGMA foreign_keys = ON');
     await db.runInsert(
       '''INSERT INTO taxonomy_categories(name, created_at) VALUES ('عملیات', ?)''',
       [now],
