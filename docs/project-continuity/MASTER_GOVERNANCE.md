@@ -1,3 +1,33 @@
+## OWNER-APPROVED ARCHITECTURE SUPERSESSION — 2026-11-14
+
+**Decision ID:** ARVIN-ADR-2026-11-14-CENTER-PROJECT-CATEGORY-M2M
+**Status:** APPROVED — explicit Product Owner confirmation on 2026-11-14.
+**Authority:** This addendum supersedes every conflicting single-parent Center→Project and Project→Category rule in this document.
+
+### Canonical relationship contract
+- Center ↔ Project: many-to-many; each side may have zero or many links.
+- Project ↔ Category: many-to-many; each side may have zero or many links.
+- Task → Center: optional, zero or one direct assignment.
+- Task → Project: optional, zero or one direct assignment.
+- Task → Category: optional, zero or one direct assignment.
+- Task ↔ Tag: many-to-many.
+
+Task may remain fully standalone. Where a Task directly selects both endpoints of a defined association, that pair must exist in the corresponding canonical SQL join relation. A Center+Category pair without an explicit Project is valid only if at least one associated Project provides a path between them. Do not derive and persist duplicate ancestor assignments.
+
+### SQL and migration requirements
+- Use one canonical normalized join relation for Center↔Project and one for Project↔Category.
+- Enforce endpoint foreign keys, unique pairs, bidirectional indexes and transaction-safe relationship writes.
+- Removing a link must not delete either endpoint or unrelated links.
+- Preserve every existing entity ID, Task assignment, history and proven relationship.
+- Migrate existing Center→Project ownership as one edge. Never guess Project↔Category links from names, labels or unrelated Task text.
+- Preserve unassigned/ambiguous Categories until a safe mapping is proven.
+- Backup/restore must preserve both join relations and exact pair parity.
+- Schema, migration, UI, query and test implementation remain unverified until exact-SHA evidence exists.
+
+**Historical single-parent language is SUPERSEDED, not erased.** Merge, release and deployment remain unauthorized.
+
+---
+
 # ARVIN — MASTER PRODUCT, DESIGN & GOVERNANCE CHARTER
 ## REV10 — Unified Local-First Product, Data Architecture & Execution Governance
 
@@ -68,43 +98,35 @@ Foundational principles:
 
 Multi-device synchronization, cloud transport and remote sync remain suspended unless Mobin explicitly reauthorizes them. NIRA is a separate development factory, not a runtime dependency or product authority for Arvin.
 
-## 3. Canonical entity hierarchy and cardinality
+## 3. Canonical relationship graph and cardinality
 
-The approved business hierarchy is:
+The owner-approved relationship model is a graph, not a mandatory single-parent tree:
 
-`Center → Project → Category → Task`
+- Center ↔ Project: Many-to-Many; either side may have zero or many links.
+- Project ↔ Category: Many-to-Many; either side may have zero or many links.
+- Task → Center: optional, zero or one direct assignment.
+- Task → Project: optional, zero or one direct assignment.
+- Task → Category: optional, zero or one direct assignment.
+- Task ↔ Tag: Many-to-Many.
+- Person remains an independent reusable entity with persisted Task and Follow-up relationships.
 
-Ownership:
-- One Center can contain multiple Projects.
-- Every Project belongs to exactly one Center.
-- One Project can contain multiple Categories.
-- Every Category belongs to exactly one Project.
-- One Category can contain multiple Tasks.
-- Tags are independent entities with many-to-many Task assignments.
-- Person is an independent reusable entity with persisted relationships to Tasks and Follow-up records where supported by the approved model.
+Task may remain entirely standalone. A Task may select any one of Center, Project or Category independently. If it selects both endpoints of a defined association, the corresponding pair must exist in the canonical SQL join table. A Center+Category selection without a direct Project is valid only when an associated Project provides a path between them.
 
-Task relationships are optional and do not define whether a Task is valid:
-- Center: zero or one.
-- Project: zero or one.
-- Category: zero or one.
-- Tags: zero to many.
+Relationship rules:
+- Never infer Project↔Category edges from Task category text, names, labels or unrelated metadata.
+- Preserve existing valid Center→Project links as edges from the historical source field.
+- Preserve unassigned or ambiguous Categories until a safe Project mapping is proven.
+- Removing a relationship deletes only that edge; it must not delete either endpoint or unrelated edges.
+- Keep Task direct links nullable and independent; do not convert optional fields into mandatory organizational ownership.
+- Derived ancestor context may be displayed, but must not be written as duplicate direct Task relationships.
 
-Valid examples include an entirely unorganized Task, Center-only, Project-only, Category-only, Tags-only, and every ownership-compatible combination.
-
-Ownership derivation:
-- A Task assigned to a Category can derive its Project and Center through Category → Project → Center.
-- A Task assigned to a Project can derive its Center.
-- Derived ancestors must not be written as direct Task relationships merely to duplicate ownership.
-- Any directly selected relationships must be consistent with actual ownership.
-- Do not force Task `project_id` or `category_id` to NOT NULL.
-
-Filtering multiple Centers or Projects does not change the cardinality of an individual Task relationship.
+**SUPERSEDED:** the earlier rule that every Project belongs to exactly one Center and every Category belongs to exactly one Project. Historical language remains in the document for traceability but is not active authority.
 
 ## 4. Database integrity and SQL-only architecture
 
 Audit the actual SQLite/Drift schema before changing it. The canonical schema must support:
 - Nullable Task relationship columns.
-- Mandatory Project → Center and Category → Project ownership.
+- Canonical Center↔Project and Project↔Category junction tables with endpoint foreign keys, unique pairs, bidirectional indexes and transaction-safe writes.
 - Foreign-key integrity and cross-parent consistency.
 - Independent Tag relations.
 - Real Person and relationship persistence.
@@ -138,7 +160,7 @@ For each entity, inspect and implement the applicable operations:
 - Prevent duplicates where the domain contract requires it.
 - Preserve historical references and auditability.
 
-The hierarchy must be understandable as Center → Projects → Categories → Tasks. Tags remain independent and reusable across Tasks. People remain independent and reusable across Task and Follow-up relationships.
+The relationship graph must be understandable across Centers, Projects, Categories and Tasks without assuming a single parent. Tags remain independent and reusable across Tasks. People remain independent and reusable across Task and Follow-up relationships. Entity management must create, inspect and remove individual Center↔Project and Project↔Category links.
 
 Before destructive operations:
 - Inspect dependent records.
@@ -173,7 +195,7 @@ Home layout:
 Filter logic:
 - OR within one filter group.
 - AND between different filter groups.
-- Hierarchical filters constrain descendants: Center constrains Projects and Categories; Project constrains Categories.
+- Relationship-aware filters use the approved graph: a selected Center can constrain associated Projects and Categories; a selected Project can constrain associated Categories. Multiple links must be handled without assuming unique parents.
 - Contradictory combinations must not be produced.
 - Filter multi-selection does not change Task relationship cardinality.
 
