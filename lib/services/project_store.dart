@@ -116,85 +116,140 @@ class ProjectStore {
     final executor = _database;
     await _ensureReady();
     final values = List<ProjectPlan>.of(projects);
-    final ids = <String>{};
-    for (final project in values) {
-      if (project.id.trim().isEmpty || !ids.add(project.id)) {
-        throw ArgumentError('Project IDs must be non-empty and unique in one save.');
-      }
-    }
-
+    _validateUniqueIds(values);
     await executor.runCustom('BEGIN');
     try {
       for (final project in values) {
-        final existing = await executor.runSelect(
-          'SELECT id, storage_ordinal, center_id, color_value, is_archived, template_id, template_name_snapshot, legacy_payload_json FROM projects WHERE id = ?',
-          <Object?>[project.id],
-        );
-        final isNew = existing.isEmpty;
-        final ordinal = isNew
-            ? await _nextOrdinal(executor)
-            : (existing.single['storage_ordinal'] as num).toInt();
-        final oldEnvelope = isNew
-            ? <String, dynamic>{}
-            : _decodeEnvelope(existing.single['legacy_payload_json'], project.id);
-        final payload = <String, dynamic>{
-          ...oldEnvelope,
-          ...project.legacyFields,
-          ...codec.encode(project),
-        };
-        if (project.centerRelationshipsSpecified) {
-          payload.remove('centerId');
-          if (project.centerId != null) payload['centerId'] = project.centerId;
-        }
-        if (project.templateIdSpecified && project.templateId == null) payload.remove('templateId');
-        if (project.templateNameSnapshotSpecified && project.templateNameSnapshot == null) {
-          payload.remove('templateNameSnapshot');
-        }
-
-        if (isNew) {
-          await executor.runInsert(
-            '''INSERT INTO projects
-               (id, storage_ordinal, name, color_value, is_archived, center_id,
-                template_id, template_name_snapshot, legacy_payload_json)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-            <Object?>[
-              project.id, ordinal, project.title, project.colorValue,
-              project.isArchived ? 1 : 0,
-              project.centerRelationshipsSpecified ? project.centerId : null,
-              project.templateId, project.templateNameSnapshot, jsonEncode(payload),
-            ],
-          );
-        } else {
-          await executor.runUpdate(
-            '''UPDATE projects SET name = ?, color_value = ?, is_archived = ?,
-               center_id = ?, template_id = ?, template_name_snapshot = ?,
-               legacy_payload_json = ? WHERE id = ?''',
-            <Object?>[
-              project.title,
-              project.colorValueSpecified ? project.colorValue : existing.single['color_value'],
-              project.isArchivedSpecified ? (project.isArchived ? 1 : 0) : existing.single['is_archived'],
-              project.centerRelationshipsSpecified
-                  ? project.centerId : existing.single['center_id'],
-              project.templateIdSpecified ? project.templateId : existing.single['template_id'],
-              project.templateNameSnapshotSpecified
-                  ? project.templateNameSnapshot : existing.single['template_name_snapshot'],
-              jsonEncode(payload), project.id,
-            ],
-          );
-        }
-
-        if (project.centerRelationshipsSpecified) {
-          await _replaceCenters(executor, project.id, project.centerIds);
-        }
-        if (project.categoryRelationshipsSpecified) {
-          await _replaceCategories(executor, project.id, project.categoryIds);
-        }
-        if (project.itemIdsSpecified) {
-          await _replaceItems(executor, project.id, project.itemIds);
-        }
-        await _inject('after_project_${project.id}');
+        await _upsertProject(executor, project);
       }
       await _inject('before_commit');
+      await executor.runCustom('COMMIT');
+    } catch (_) {
+      try { await executor.runCustom('ROLLBACK'); } catch (_) {}
+      rethrow;
+    }
+  }
+
+  void _validateUniqueIds(List<ProjectPlan> values) {
+    final ids = <String>{};
+    for (final project in values) {
+      if (project.id.trim().isEmpty || !ids.add(project.id)) {
+        throw ArgumentError('Project IDs must be non-empty and unique in one write.');
+      }
+    }
+  }
+
+  Future<void> _upsertProject(QueryExecutor executor, ProjectPlan project) async {
+    final existing = await executor.runSelect(
+      'SELECT id, storage_ordinal, center_id, color_value, is_archived, template_id, template_name_snapshot, legacy_payload_json FROM projects WHERE id = ?',
+      <Object?>[project.id],
+    );
+    final isNew = existing.isEmpty;
+    final ordinal = isNew
+        ? await _nextOrdinal(executor)
+        : (existing.single['storage_ordinal'] as num).toInt();
+    final oldEnvelope = isNew
+        ? <String, dynamic>{}
+        : _decodeEnvelope(existing.single['legacy_payload_json'], project.id);
+    final payload = <String, dynamic>{
+      ...oldEnvelope,
+      ...project.legacyFields,
+      ...codec.encode(project),
+    };
+    if (project.centerRelationshipsSpecified) {
+      payload.remove('centerId');
+      if (project.centerId != null) payload['centerId'] = project.centerId;
+    }
+    if (project.templateIdSpecified && project.templateId == null) payload.remove('templateId');
+    if (project.templateNameSnapshotSpecified && project.templateNameSnapshot == null) {
+      payload.remove('templateNameSnapshot');
+    }
+
+    if (isNew) {
+      await executor.runInsert(
+        '''INSERT INTO projects
+           (id, storage_ordinal, name, color_value, is_archived, center_id,
+            template_id, template_name_snapshot, legacy_payload_json)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+        <Object?>[
+          project.id, ordinal, project.title, project.colorValue,
+          project.isArchived ? 1 : 0,
+          project.centerRelationshipsSpecified ? project.centerId : null,
+          project.templateId, project.templateNameSnapshot, jsonEncode(payload),
+        ],
+      );
+    } else {
+      await executor.runUpdate(
+        '''UPDATE projects SET name = ?, color_value = ?, is_archived = ?,
+           center_id = ?, template_id = ?, template_name_snapshot = ?,
+           legacy_payload_json = ? WHERE id = ?''',
+        <Object?>[
+          project.title,
+          project.colorValueSpecified ? project.colorValue : existing.single['color_value'],
+          project.isArchivedSpecified ? (project.isArchived ? 1 : 0) : existing.single['is_archived'],
+          project.centerRelationshipsSpecified
+              ? project.centerId : existing.single['center_id'],
+          project.templateIdSpecified ? project.templateId : existing.single['template_id'],
+          project.templateNameSnapshotSpecified
+              ? project.templateNameSnapshot : existing.single['template_name_snapshot'],
+          jsonEncode(payload), project.id,
+        ],
+      );
+    }
+
+    if (project.centerRelationshipsSpecified) {
+      await _replaceCenters(executor, project.id, project.centerIds);
+    }
+    if (project.categoryRelationshipsSpecified) {
+      await _replaceCategories(executor, project.id, project.categoryIds);
+    }
+    if (project.itemIdsSpecified) {
+      await _replaceItems(executor, project.id, project.itemIds);
+    }
+    await _inject('after_project_${project.id}');
+  }
+
+  /// Restores an exact previously captured Project snapshot during rollback.
+  /// It is deliberately separate from save(): extra Projects created by the
+  /// failed restore are removed in the same transaction, while Task rows and
+  /// template application history are never deleted.
+  Future<void> restoreSnapshot(Iterable<ProjectPlan> snapshot) async {
+    final executor = _database;
+    await _ensureReady();
+    final values = List<ProjectPlan>.of(snapshot);
+    _validateUniqueIds(values);
+    final keepIds = values.map((project) => project.id).toSet();
+    final currentRows = await executor.runSelect('SELECT id FROM projects', const []);
+    final extraIds = currentRows
+        .map((row) => row['id'] as String)
+        .where((id) => !keepIds.contains(id))
+        .toList(growable: false);
+
+    await executor.runCustom('BEGIN');
+    try {
+      for (final id in extraIds) {
+        final refs = await executor.runSelect(
+          '''SELECT
+            (SELECT COUNT(*) FROM template_task_applications WHERE project_id = ?) AS templates,
+            (SELECT COUNT(*) FROM tasks WHERE project_id = ?) AS task_refs''',
+          <Object?>[id, id],
+        );
+        final row = refs.single;
+        if ((row['templates'] as num).toInt() > 0 ||
+            (row['task_refs'] as num).toInt() > 0) {
+          throw ProjectDeleteBlocked(id);
+        }
+        // These memberships belong to the extra Project introduced by the
+        // failed restore; remove only the edge rows, never the Task records.
+        await executor.runDelete('DELETE FROM project_items WHERE project_id = ?', [id]);
+        await executor.runDelete('DELETE FROM center_projects WHERE project_id = ?', [id]);
+        await executor.runDelete('DELETE FROM project_categories WHERE project_id = ?', [id]);
+        await executor.runDelete('DELETE FROM projects WHERE id = ?', [id]);
+      }
+      for (final project in values) {
+        await _upsertProject(executor, project);
+      }
+      await _inject('before_snapshot_restore_commit');
       await executor.runCustom('COMMIT');
     } catch (_) {
       try { await executor.runCustom('ROLLBACK'); } catch (_) {}
