@@ -38,6 +38,11 @@ void main() {
       const [],
     );
     await db.runInsert(
+      '''INSERT INTO projects(id, storage_ordinal, name, color_value, is_archived, center_id)
+         VALUES ('project-orphan', 2, 'پروژه با مرکز ناموجود', 0, 0, 'missing-center')''',
+      const [],
+    );
+    await db.runInsert(
       '''INSERT INTO taxonomy_categories(name, created_at) VALUES ('عملیات', ?)''',
       [now],
     );
@@ -100,10 +105,18 @@ void main() {
     )).single;
     expect(ambiguous['project_id'], isNull);
     final exceptions = await db.runSelect(
-      'SELECT issue_code FROM rev10_hierarchy_migration_exceptions WHERE entity_type = 'task' AND entity_id = ?',
+      '''SELECT issue_code FROM rev10_hierarchy_migration_exceptions
+         WHERE entity_type = 'task' AND entity_id = ?''',
       const ['task-ambiguous'],
     );
     expect(exceptions.map((r) => r['issue_code']), contains('TASK_MULTIPLE_LEGACY_PROJECTS'));
+    final projectExceptions = await db.runSelect(
+      '''SELECT issue_code FROM rev10_hierarchy_migration_exceptions
+         WHERE entity_type = 'project' AND entity_id = 'project-orphan' ''',
+      const [],
+    );
+    expect(projectExceptions.map((r) => r['issue_code']),
+        contains('PROJECT_CENTER_REFERENCE_MISSING'));
 
     // The old relationship rows remain available as historical evidence.
     expect(
