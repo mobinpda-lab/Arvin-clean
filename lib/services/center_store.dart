@@ -92,10 +92,25 @@ class CenterStore {
 
   Future<void> addProjectRelationship({required String centerId, required String projectId}) async {
     await _ready();
-    await _database.runInsert(
-      'INSERT OR IGNORE INTO center_projects (center_id, project_id) VALUES (?, ?)',
-      <Object?>[centerId, projectId],
-    );
+    await _database.runCustom('BEGIN');
+    try {
+      await _database.runInsert(
+        'INSERT OR IGNORE INTO center_projects (center_id, project_id) VALUES (?, ?)',
+        <Object?>[centerId, projectId],
+      );
+      final remaining = await _database.runSelect(
+        'SELECT center_id FROM center_projects WHERE project_id = ? ORDER BY center_id',
+        <Object?>[projectId],
+      );
+      await _database.runUpdate(
+        'UPDATE projects SET center_id = ? WHERE id = ?',
+        <Object?>[remaining.length == 1 ? remaining.single['center_id'] : null, projectId],
+      );
+      await _database.runCustom('COMMIT');
+    } catch (_) {
+      try { await _database.runCustom('ROLLBACK'); } catch (_) {}
+      rethrow;
+    }
   }
 
   /// Removes one edge only. The Project and other Center edges remain intact.
