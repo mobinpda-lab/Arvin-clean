@@ -397,39 +397,8 @@ class ProjectStore {
     }
   }
 
-  /// Explicitly destructive collection operation. It performs checked,
-  /// per-Project deletion and never recreates the projects table.
-  Future<void> clear() async {
-    final executor = _database;
-    final ids = (await load()).map((project) => project.id).toList();
-    if (ids.isEmpty) return;
-    await executor.runCustom('BEGIN');
-    try {
-      for (final id in ids) {
-        final refs = await executor.runSelect(
-          '''SELECT
-            (SELECT COUNT(*) FROM project_items WHERE project_id = ?) AS items,
-            (SELECT COUNT(*) FROM template_task_applications WHERE project_id = ?) AS templates,
-            (SELECT COUNT(*) FROM tasks WHERE project_id = ?) AS task_refs''',
-          <Object?>[id, id, id],
-        );
-        final row = refs.single;
-        final count = (row['items'] as num).toInt() +
-            (row['templates'] as num).toInt() +
-            (row['task_refs'] as num).toInt();
-        if (count > 0) throw ProjectDeleteBlocked(id);
-      }
-      for (final id in ids) {
-        await executor.runDelete('DELETE FROM center_projects WHERE project_id = ?', [id]);
-        await executor.runDelete('DELETE FROM project_categories WHERE project_id = ?', [id]);
-        await executor.runDelete('DELETE FROM projects WHERE id = ?', [id]);
-      }
-      await executor.runCustom('COMMIT');
-    } catch (_) {
-      try { await executor.runCustom('ROLLBACK'); } catch (_) {}
-      rethrow;
-    }
-  }
+  /// Explicit clear delegates to the same checked, atomic collection path.
+  Future<void> clear() => saveCollection(const <ProjectPlan>[]);
 
   Future<void> removeCenterRelationship(String projectId, String centerId) =>
       CenterStore(executor: _database).removeProjectRelationship(
