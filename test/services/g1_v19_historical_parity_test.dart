@@ -103,6 +103,21 @@ void main() {
         expect(payload.containsKey('followUpEnabled'), isTrue);
         expect(payload['followUpEnabled'], entry.value, reason: entry.key);
       }
+      final explicitNullRaw = (await upgraded.runSelect(
+        'SELECT legacy_payload_json FROM tasks WHERE id = ?',
+        const ['task-primary'],
+      )).single['legacy_payload_json'] as String;
+      final explicitNullPayload = jsonDecode(explicitNullRaw) as Map<String, dynamic>;
+      expect(explicitNullPayload['followUpDate'], isNull);
+      expect(explicitNullPayload['reminderDate'], isNull);
+      expect(
+        await upgraded.runSelect(
+          'SELECT id FROM task_reminders WHERE remind_at = ?',
+          const ['2026-11-04T09:00:00.000'],
+        ),
+        isEmpty,
+        reason: 'Explicit JSON NULL must not be overwritten by stale legacy SQL reminder_date.',
+      );
     } finally {
       await upgraded.close();
       await fullDirectory.delete(recursive: true);
@@ -268,6 +283,17 @@ void main() {
         ),
         [{'value': 'preserve-me'}],
       );
+      final followUpPayloadRaw = (await upgraded.runSelect(
+        'SELECT legacy_payload_json FROM tasks WHERE id = ?',
+        const ['task-primary'],
+      )).single['legacy_payload_json'] as String;
+      final followUpPayload = jsonDecode(followUpPayloadRaw) as Map<String, dynamic>;
+      final followUpMetadata = followUpPayload['legacyFollowUpMetadata'] as Map<String, dynamic>;
+      final historicalFollowUps = followUpMetadata['followUps'] as List<dynamic>;
+      expect(historicalFollowUps, hasLength(2));
+      expect((historicalFollowUps.first as Map<String, dynamic>)['nextFollowUp'],
+          '2026-11-05T09:00:00.000');
+      expect((historicalFollowUps.first as Map<String, dynamic>)['nextFollowUpAllDay'], 0);
       expect(
         await upgraded.runSelect(
           'SELECT person_id FROM person_directory WHERE person_id = ?',
