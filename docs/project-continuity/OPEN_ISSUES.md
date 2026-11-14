@@ -495,3 +495,17 @@ Confirmed source-level blockers:
 8. Current M2M tests do not yet prove standalone Task, missing Project membership reference, database reopen, physical backup/restore or complete D01–D05.
 
 Keep all source evidence, tests and legacy columns. No destructive cutover until the blockers and acceptance gates are closed.
+
+
+## COMMAND 07-A.2.79 — Live blockers (2026-11-14)
+
+- **P0 #3458/#3463:** M2M candidate not integrated into G1DriftSchema startup; schema remains v19.
+- **P0:** nested transaction boundary between G1DriftSchema.install and migration helper must be resolved.
+- **P0:** TaskStore rewrite omits new direct relationship columns.
+- **P0:** ProjectStore and CenterStore still use legacy relationship assumptions.
+- **P0:** Category ownership is split between taxonomy_categories and categories; one canonical CRUD path is not established.
+- **P1:** physical Backup/Restore junction and exception-ledger parity unverified.
+- **P1:** 41 failing Base tests require individual root-cause closure.
+- **P1:** exact-head Build pending; Device Smoke queued; no acceptance candidate.
+
+No historical PR, branch, test, artifact or evidence was removed.
