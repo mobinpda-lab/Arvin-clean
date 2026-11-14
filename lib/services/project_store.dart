@@ -126,7 +126,7 @@ class ProjectStore {
     try {
       for (final project in values) {
         final existing = await executor.runSelect(
-          'SELECT id, storage_ordinal, center_id, template_id, template_name_snapshot, legacy_payload_json FROM projects WHERE id = ?',
+          'SELECT id, storage_ordinal, center_id, color_value, is_archived, template_id, template_name_snapshot, legacy_payload_json FROM projects WHERE id = ?',
           <Object?>[project.id],
         );
         final isNew = existing.isEmpty;
@@ -169,7 +169,9 @@ class ProjectStore {
                center_id = ?, template_id = ?, template_name_snapshot = ?,
                legacy_payload_json = ? WHERE id = ?''',
             <Object?>[
-              project.title, project.colorValue, project.isArchived ? 1 : 0,
+              project.title,
+              project.colorValueSpecified ? project.colorValue : existing.single['color_value'],
+              project.isArchivedSpecified ? (project.isArchived ? 1 : 0) : existing.single['is_archived'],
               project.centerRelationshipsSpecified
                   ? project.centerId : existing.single['center_id'],
               project.templateIdSpecified ? project.templateId : existing.single['template_id'],
