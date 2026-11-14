@@ -1,3 +1,32 @@
+## 2026-11-14 — Active REV10 SQLite v20 delivery lane
+
+## 2026-11-14 — Active REV10 SQLite v20 delivery lane
+
+**Primary execution:** PR #3463 / `rev10-m2m-v19-test-expansion`.  
+**Main:** read-only. **Merge / Release / Deployment:** not authorized.  
+**Approved architecture:** Center↔Project M2M; Project↔Category M2M; Task→Center/Project/Category each optional 0..1; Task↔Tag M2M.
+
+### Current wave order
+1. Exact-SHA CI reconciliation and root-cause repair.
+2. Real Drift lifecycle acceptance: fresh install, v19 upgrade, pre-opened Executor, version registration and reopen.
+3. Historical v19 data parity across entities, relationships, NULL/FALSE/TRUE and unresolved references.
+4. Failure injection at every lifecycle boundary, transaction rollback and interrupted post-commit recovery.
+5. Physical SQLite backup and independent-file restore of the migrated v20 database.
+6. Independent D01–D05 acceptance on one exact SHA.
+7. Canonical Repository Integration: CenterStore, ProjectStore, Category, TaskStore, Entity Management, selectors, Home/Calendar/Reports filters, Search and Backup/Restore.
+8. Update the seven canonical continuity documents and preserve dated history.
+
+### Acceptance gates
+- D01: Schema and Migration Compatibility — BLOCKED pending exact-SHA lifecycle test results.
+- D02: Missing / NULL / FALSE / TRUE — BLOCKED pending historical parity run.
+- D03: Person / Follow-up / Reminder / Metadata — BLOCKED pending historical parity run.
+- D04: Physical SQLite Backup / Independent Restore — BLOCKED pending physical-file test.
+- D05: Atomicity / Rollback / Recovery — BLOCKED pending seven-stage failure-injection run.
+
+Do not promote authored tests to VERIFIED. No old single-parent candidate is an active architecture. No relationship may be guessed from Task text. Preserve all unresolved historical evidence.
+
+---
+
 # REV8 Wave Roadmap — current state
 
 ## REV8 live checkpoint — 2026-11-10
