@@ -100,7 +100,7 @@ void main() {
     )).single;
     expect(ambiguous['project_id'], isNull);
     final exceptions = await db.runSelect(
-      'SELECT issue_code FROM rev10_hierarchy_migration_exceptions WHERE task_id = ?',
+      'SELECT issue_code FROM rev10_hierarchy_migration_exceptions WHERE entity_type = 'task' AND entity_id = ?',
       const ['task-ambiguous'],
     );
     expect(exceptions.map((r) => r['issue_code']), contains('TASK_MULTIPLE_LEGACY_PROJECTS'));
@@ -124,14 +124,14 @@ void main() {
   });
 
   test('failed migration rolls back every created relation and added Task column', () async {
-    // The v19 installer leaves FK enforcement disabled during legacy repair.
-    // An orphaned historical Center reference therefore models a corrupt
-    // disposable fixture and forces the first junction-table copy to fail.
-    await db.runInsert(
-      '''INSERT INTO projects(id, storage_ordinal, name, color_value, is_archived, center_id)
-         VALUES ('broken-project', 0, 'پروژه خراب', 0, 0, 'missing-center')''',
-      const [],
-    );
+    // Inject a failure after the new tables and columns have been created but
+    // while the migration is copying Task assignments. SQLite must roll back
+    // the whole DDL+DML transaction, not leave a half-installed schema.
+    await db.runCustom('''
+      CREATE TRIGGER inject_rev10_migration_failure
+      BEFORE UPDATE ON tasks
+      BEGIN SELECT RAISE(ABORT, 'injected migration failure'); END
+    ''');
 
     await expectLater(
       const G1ManyToManyHierarchyMigration().migrate(db),
