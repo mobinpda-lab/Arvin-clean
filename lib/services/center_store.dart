@@ -128,17 +128,15 @@ class CenterStore {
     try {
       final rows = await _database.runSelect(
         '''SELECT
-          (SELECT COUNT(DISTINCT project_id) FROM center_projects WHERE center_id = ?) AS canonical_projects,
-          (SELECT COUNT(DISTINCT id) FROM projects WHERE center_id = ?) AS legacy_projects,
+          (SELECT COUNT(*) FROM (
+            SELECT project_id AS project_id FROM center_projects WHERE center_id = ?
+            UNION SELECT id AS project_id FROM projects WHERE center_id = ?
+          )) AS project_refs,
           (SELECT COUNT(*) FROM tasks WHERE center_id = ?) AS task_refs''',
         <Object?>[id, id, id],
       );
       final row = rows.single;
-      final projectIds = <String>{};
-      final canonical = await projectIdsForDelete(id);
-      projectIds.addAll(canonical);
-      final count = projectIds.length +
-          (row['legacy_projects'] as num).toInt() +
+      final count = (row['project_refs'] as num).toInt() +
           (row['task_refs'] as num).toInt();
       if (count > 0) throw CenterDeleteBlocked(id, count);
       final changed = await _database.runDelete('DELETE FROM centers WHERE id = ?', [id]);
