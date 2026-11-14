@@ -1,3 +1,22 @@
+## OWNER DECISION SUPERSESSION — 2026-11-14
+
+**Status:** APPROVED by Product Owner. This addendum supersedes all conflicting single-parent design rules in the historical design text below.
+
+Canonical model:
+- Center↔Project is many-to-many; neither side has a mandatory single owner.
+- Project↔Category is many-to-many; neither side has a mandatory single owner.
+- Task→Center, Task→Project and Task→Category remain independently optional 0..1 direct assignments.
+- Task↔Tag remains many-to-many; standalone Task remains valid.
+- Implement one canonical normalized SQL join relation for each many-to-many relationship, with endpoint FKs, unique pair constraints, bidirectional indexes and transaction-safe writes.
+- If a Task directly selects both Center and Project, that pair must exist in CenterProject. If it selects both Project and Category, that pair must exist in ProjectCategory. Center+Category without Project requires at least one valid path through an associated Project.
+- Do not infer missing Project↔Category links from names, labels, display order or Task text. Preserve unresolved legacy Categories and all source identities.
+- Remove neither endpoint when a relationship edge is removed. Archive, restore and safe deletion must inspect all join edges and direct Task assignments.
+
+**Candidate disposition:** The current single-parent implementation in `lib/services/g1_hierarchy_candidate_schema.dart` is NOT ACCEPTED under this decision. Its schema, triggers, constraints and tests require redesign before any acceptance claim. Do not treat this candidate as production schema or run it against real user data.
+
+Required migration remains additive, versioned, reversible and disposable-fixture-only. Preserve all historical evidence. See `docs/ADR/ADR-2026-11-14-CENTER-PROJECT-CATEGORY-M2M.md` on the REV10 documentation branch.
+
+---
 # COMMAND 07-A.2.45 — Canonical Data Model & Safe SQLite Migration Design
 
 **Status:** DESIGN RECORDED — OFFICIAL OPTIONAL TASK RELATIONSHIP CONTRACT INCORPORATED — NOT IMPLEMENTED / NOT MIGRATED  
