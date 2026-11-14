@@ -509,10 +509,18 @@ class TaskStore {
   /// Creates one generated Project and all its independent canonical Tasks in
   /// a single SQLite transaction. The partial unique index on active
   /// (template_id, center_id) is the final duplicate/concurrency guard.
-  Future<void> createProjectFromTemplate(ProjectPlan project, List<Task> tasks) {
+  Future<void> createProjectFromTemplate(
+    ProjectPlan project,
+    List<Task> tasks, {
+    String? templateCenterId,
+  }) {
     return TaskStorageLock.synchronized<void>(() async {
-      if (project.centerId == null || project.templateId == null) {
-        throw ArgumentError('Generated Projects require Center and Template identities.');
+      final applicationCenterId = templateCenterId ??
+          (project.centerIds.length == 1 ? project.centerIds.single : null);
+      if (applicationCenterId == null ||
+          !project.centerIds.contains(applicationCenterId) ||
+          project.templateId == null) {
+        throw ArgumentError('Template generation requires an explicitly linked application Center and Template identity.');
       }
       if (tasks.any((task) => task.templateTaskId == null)) {
         throw ArgumentError('Every generated Task must retain its template-task origin.');
@@ -529,6 +537,18 @@ class TaskStore {
           <Object?>[project.id, project.title, project.colorValue, project.centerId,
             project.templateId, project.templateNameSnapshot, jsonEncode(const ProjectPlanCodec().encode(project))],
         );
+        for (final centerId in project.centerIds) {
+          await executor.runInsert(
+            'INSERT INTO center_projects (center_id, project_id) VALUES (?, ?)',
+            <Object?>[centerId, project.id],
+          );
+        }
+        for (final categoryId in project.categoryIds) {
+          await executor.runInsert(
+            'INSERT INTO project_categories (project_id, category_id) VALUES (?, ?)',
+            <Object?>[project.id, categoryId],
+          );
+        }
         for (var i = 0; i < project.itemIds.length; i++) {
           await executor.runInsert('INSERT INTO project_items (project_id, task_id, ordinal) VALUES (?, ?, ?)',
             <Object?>[project.id, project.itemIds[i], i]);
