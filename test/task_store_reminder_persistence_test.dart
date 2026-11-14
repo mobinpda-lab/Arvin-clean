@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -72,7 +73,7 @@ void main() {
       await executor.close();
       await directory.delete(recursive: true);
     });
-    await executor.ensureOpen(G1DriftSchema());
+    await executor.ensureOpen(_LegacyV15TestUser());
     await executor.runCustom('''
       CREATE TABLE tasks (
         id TEXT NOT NULL PRIMARY KEY,
@@ -270,4 +271,13 @@ void main() {
     expect(loaded.single.reminderDate, isNull);
     expect(loaded.single.legacyTaskReminderMigrationVersion, 1);
   });
+}
+
+
+class _LegacyV15TestUser implements QueryExecutorUser {
+  @override
+  int get schemaVersion => 15;
+
+  @override
+  Future<void> beforeOpen(QueryExecutor executor, OpeningDetails details) async {}
 }
