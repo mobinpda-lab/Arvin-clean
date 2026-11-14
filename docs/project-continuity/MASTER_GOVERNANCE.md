@@ -520,3 +520,21 @@ Record each question, its source, affected schema/UX/tests, safe interim behavio
 **ARVIN — COMPLETE, CONSISTENT, LOCAL-FIRST, ENTERPRISE-READY.**
 
 **Merge: NOT AUTHORIZED. Release: NOT AUTHORIZED. Deployment: NOT AUTHORIZED.**
+
+
+## 19. Product Owner supersession addendum — 2026-11-14
+
+**Status: APPROVED by Product Owner.** This addendum supersedes the REV10 single-parent hierarchy statements only for the relationships explicitly listed below. Historical text remains preserved as history and must not be treated as current authority where it conflicts.
+
+- Center ↔ Project: MANY-TO-MANY.
+- Project ↔ Category: MANY-TO-MANY.
+- Task → Center: OPTIONAL, 0..1.
+- Task → Project: OPTIONAL, 0..1.
+- Task → Category: OPTIONAL, 0..1.
+- Task ↔ Tag: MANY-TO-MANY.
+- A Task may remain fully standalone.
+- Use one canonical normalized SQL junction relation for each many-to-many relationship, with endpoint foreign keys, unique pairs, bidirectional indexes and transactional writes.
+- Do not infer Project↔Category edges from names, labels, display order or Task text.
+- Removing a relationship must preserve both endpoints. Archive, restore, deletion and dependency inspection must account for all join edges and direct Task assignments.
+
+**Implementation authority:** ADR `ADR-2026-11-14-CENTER-PROJECT-CATEGORY-M2M.md`, Issue #3458 and PR #3463. PR #3463 is an implementation candidate, not accepted product integration. Main merge, release and deployment remain unauthorized.

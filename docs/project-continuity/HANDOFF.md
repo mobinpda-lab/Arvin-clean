@@ -830,3 +830,19 @@ Next safe work: read-only consumer and legacy-data inventory, then additive cand
 - Optional relationship workflow Run `43431160695`: QUEUED; Build Run `43431160736`: PENDING/no jobs; Device Smoke Run `43431160732`: QUEUED.
 - Snapshot Run `43431160811` and Follow-up Persistence Run `43431160654` succeeded on `3f471e6...`; they are supporting evidence only and do not constitute full D01–D05 acceptance.
 - The corrected optional-relationship test has not yet produced a terminal result. No exact-head PASS is claimed.
+
+
+## COMMAND 07-A.2.78 REVISION 2 — verified handoff — 2026-11-14 12:09 +03:30
+
+**Start from live refs; do not trust an older SHA in this file.**
+
+- Main remains `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Continue on existing PR #3463 branch `rev10-m2m-v19-test-expansion`, currently reported at `c09fdb420230f6d8fb477d4927eb093d8fa6a1db`; base is #3384 at `310c0e20e3447c488c1e1c102c38bea5040708ca`.
+- First poll the existing #3463 Build, Device Smoke and Follow-up Persistence runs. Do not trigger duplicate workflows while useful jobs are queued/in progress.
+- Preserve the complete 10-commit M2M candidate history. Do not merge closed PRs #3459–#3462 separately.
+- Fix the unreachable missing-Project reference branch and add a focused test on the existing candidate branch after current queued validation is reconciled.
+- Then integrate the helper into the existing G1DriftSchema lifecycle and extend existing stores; do not create a parallel database initializer or repositories.
+- Treat TaskStore relation loss, ProjectStore junction loss/RESTRICT delete conflict, CenterStore dependency checks, Category CRUD and Backup/Restore as P0 integration work.
+- Keep `project_items`, `projects.center_id`, `taxonomy_categories` and legacy evidence until all consumers and D01–D05 pass.
+- D01–D05 remain NOT ACCEPTED. The #3384 six-shard 41 failures must be root-caused, not waived. Device Smoke remains NOT VERIFIED.
+- Main merge, release and deployment are not authorized.

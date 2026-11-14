@@ -515,3 +515,23 @@ The Product Owner's explicit command issued 2026-11-13 resolves REV9-004 without
 - Ambiguous legacy relationships must be preserved as exceptions, not guessed.
 
 REV10 approval does not imply implementation or verification. Exact-SHA source, test and workflow evidence remain mandatory.
+
+
+## REV10 owner decision supersession — 2026-11-14
+
+The Product Owner has explicitly approved the following relationship model. This is a narrow supersession of the former single-parent statements in REV10-003; it does not erase their historical record.
+
+| Relationship | Current approved cardinality |
+|---|---|
+| Center ↔ Project | MANY-TO-MANY |
+| Project ↔ Category | MANY-TO-MANY |
+| Task → Center | OPTIONAL, 0..1 |
+| Task → Project | OPTIONAL, 0..1 |
+| Task → Category | OPTIONAL, 0..1 |
+| Task ↔ Tag | MANY-TO-MANY |
+
+Task remains independently creatable without Center, Project or Category. If a Task selects both Center and Project, that pair must exist in CenterProject. If it selects both Project and Category, that pair must exist in ProjectCategory. Center+Category without Project requires a valid path through at least one linked Project. Do not infer Project↔Category relationships from labels, names or Task text.
+
+Canonical SQL uses one junction table per many-to-many relationship. Preserve IDs and historical evidence; unlinking never deletes endpoints. The detailed approved contract is `docs/ADR/ADR-2026-11-14-CENTER-PROJECT-CATEGORY-M2M.md`.
+
+**Status separation:** decision APPROVED; implementation PARTIAL/CANDIDATE; integration NOT VERIFIED; acceptance NOT GRANTED. PR #3463 remains OPEN / DRAFT / UNMERGED. Merge, release and deployment remain NOT AUTHORIZED.

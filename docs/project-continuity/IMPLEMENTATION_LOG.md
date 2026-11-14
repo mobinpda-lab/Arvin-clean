@@ -1122,3 +1122,16 @@ Exact-head validation is pending on candidate `fd22fe37f0190818084f011bfcce00e24
 - Follow-up Person creation/selection failure remains unresolved: `follow_up_entry_page_test.dart:229` does not find the newly selected Person chip after the multi-select sheet closes. The code path was inspected, but the root cause is not proven; no production change was made.
 - `task_detail_person_persistence_test.dart` must be rerun on SHA `bb08f21...` before its Person/SQLite assertions can be evaluated. The prior failure was the test harness finder, not evidence of a Person persistence failure.
 - Main remains `45e4202b03a434459e4c021a04efa7e8396359db`. No merge/release/deployment, workflow rerun, branch deletion, history rewrite or production-data operation occurred.
+
+
+## COMMAND 07-A.2.78 REVISION 2 — live reconciliation milestone — 2026-11-14 12:09 +03:30
+
+- Verified Main HEAD `45e4202b03a434459e4c021a04efa7e8396359db`; Main was not modified.
+- Verified #3384 HEAD `310c0e20e3447c488c1e1c102c38bea5040708ca` and #3463 HEAD `c09fdb420230f6d8fb477d4927eb093d8fa6a1db`.
+- Compared historical `5c439648...` with `310c0e20...`: the latter is two commits ahead; #3463 is 10 commits ahead of its #3384 base.
+- Preserved the #3459→#3460→#3461→#3462→#3463 incremental candidate history. Earlier PRs remain closed/unmerged; their commits are not discarded or merged separately.
+- Audited the complete migration helper and test source. Identified one unreachable missing-Project exception branch. Existing candidate test covers both M2M cardinalities, duplicate rejection, unlink preservation, ambiguous legacy memberships and injected rollback, but not full integration or D01–D05.
+- Audited TaskStore, ProjectStore, CenterStore, Category catalog and Backup/Restore. Confirmed the source-level integration blockers recorded in CURRENT_STATE and OPEN_ISSUES.
+- Build run `43575749904` on SHA `310c0e...`: Analyze, Visual and three APK jobs PASS; six test shards report 41 failures (1,409 pass); Device Smoke queued. PDF/Vazirmatn artifact `14106491800` validated on that exact SHA.
+- Build run `43576488075` on SHA `c09fdb...`: Visual PASS at last check; quality and APK jobs queued. Device Smoke queued; Follow-up Persistence in progress. No acceptance transfer from #3384.
+- No production source or test file was modified in this documentation checkpoint. No merge, release, deployment, force-push, branch deletion or destructive data operation occurred.

@@ -567,3 +567,17 @@ The following product waves supersede conflicting older active execution orderin
 8. Final consolidation — repository/workflow/documentation audit and Single SHA acceptance.
 
 Parallelize independent work only after file, schema, service and test ownership is explicit. No result transfers across SHAs. Merge, release and deployment are not authorized by this roadmap.
+
+
+## 2026-11-14 priority correction — M2M integration before UI expansion
+
+1. Preserve and finish the existing PR #3463 candidate; do not recreate the migration.
+2. Repair the demonstrated missing-Project exception branch and add its regression fixture without weakening existing tests.
+3. Integrate v19→v20 into the single canonical G1DriftSchema lifecycle.
+4. Extend existing TaskStore, ProjectStore, CenterStore and category ownership paths to preserve direct Task links and both junction relations on every CRUD/archive/restore path.
+5. Update actual consumers and selectors to query the same SQL relationship model.
+6. Extend Backup/Restore to include both junction tables and prove independent physical-file parity.
+7. Complete D01–D05 and the full regression suite on one exact SHA.
+8. Then complete typography/PDF, APK and seven Device Smoke acceptance on that same exact SHA.
+
+Do not start a parallel migration or create duplicate stores. Keep Main read-only. No merge, release or deployment authorization is implied.

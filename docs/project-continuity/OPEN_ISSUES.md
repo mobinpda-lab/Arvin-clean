@@ -477,3 +477,21 @@ BLOCKED — RELEASE: NO-GO. Documentation deployment does not establish product 
 - Branch: `docs/rev9-governance-continuity-2026-11-10`; created from Main `45e4202b03a434459e4c021a04efa7e8396359db`.
 - Pre-PR diff: 66 Markdown/agent-instruction files; zero non-documentation files.
 - Do not merge or release until explicit owner approval. PR #3052 remains unchanged and OPEN / DRAFT / UNMERGED.
+
+
+## M2M integration blockers — 2026-11-14
+
+**Primary issue:** #3458 — OPEN.  
+**Implementation candidate:** PR #3463 — OPEN / DRAFT / UNMERGED, HEAD `c09fdb420230f6d8fb477d4927eb093d8fa6a1db`.
+
+Confirmed source-level blockers:
+1. Migration helper is not invoked by the canonical G1 schema/startup path; G1DriftSchema remains v19.
+2. TaskStore rewrite omits new Task direct relationship columns.
+3. ProjectStore does not persist the two junction tables; bulk Project deletion conflicts with their RESTRICT foreign keys once edges exist.
+4. CenterStore deletion checks only the legacy single-parent column.
+5. Category CRUD remains a global text catalog; canonical Category entity/ProjectCategory CRUD is not connected.
+6. Backup/Restore does not yet preserve both M2M relations.
+7. Migration helper has an unreachable duplicate `memberships.length == 1` branch for missing Project references.
+8. Current M2M tests do not yet prove standalone Task, missing Project membership reference, database reopen, physical backup/restore or complete D01–D05.
+
+Keep all source evidence, tests and legacy columns. No destructive cutover until the blockers and acceptance gates are closed.

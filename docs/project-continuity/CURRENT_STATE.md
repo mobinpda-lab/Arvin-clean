@@ -1566,3 +1566,40 @@ Detailed source/blob evidence and safe migration sequence: `audit/REV10_WAVE1_DA
 - Optional relationship workflow Run `43431160695`: QUEUED; Build Run `43431160736`: PENDING/no jobs; Device Smoke Run `43431160732`: QUEUED.
 - Snapshot Run `43431160811` and Follow-up Persistence Run `43431160654` succeeded on `3f471e6...`; they are supporting evidence only and do not constitute full D01–D05 acceptance.
 - The corrected optional-relationship test has not yet produced a terminal result. No exact-head PASS is claimed.
+
+
+## Live repository reconciliation — 2026-11-14 12:09 +03:30
+
+**Repository:** `mobinpda-lab/Arvin-clean`  
+**Main HEAD:** `45e4202b03a434459e4c021a04efa7e8396359db` — unchanged during this audit.  
+**SQLite execution PR #3384:** OPEN / DRAFT / UNMERGED; branch `feature/command-07-a-sqlite-contract-remediation`; HEAD `310c0e20e3447c488c1e1c102c38bea5040708ca`.  
+**M2M PR #3463:** OPEN / DRAFT / UNMERGED; branch `rev10-m2m-v19-test-expansion`; HEAD `c09fdb420230f6d8fb477d4927eb093d8fa6a1db`; base #3384 HEAD `310c0e20e3447c488c1e1c102c38bea5040708ca`; 10 commits ahead, 0 behind; diff adds the migration helper and its test file only.  
+**REV10 documentation PR #3448:** OPEN / DRAFT / UNMERGED; pre-checkpoint HEAD `19344000c446de990d0a0bee62ce2979aa40f058`.  
+**PRs #3459–#3462:** CLOSED / UNMERGED; their incremental migration/test commits are ancestors of #3463 and are preserved in its 10-commit chain. Do not merge them separately.
+
+### Historical SHA reconciliation
+
+`5c439648871a2765dad25ac829d3deb16f8a9439` is an ancestor of `310c0e20e3447c488c1e1c102c38bea5040708ca`; the latter is exactly two commits ahead. `c09fdb420230f6d8fb477d4927eb093d8fa6a1db` is the #3463 descendant of the #3384 base. These are related revisions, not interchangeable implementation states.
+
+### Candidate source audit
+
+The helper creates v20 junction tables and retains legacy source columns. It is still an isolated candidate. A source defect exists in the single-membership Project reference handling: a second `memberships.length == 1` branch is unreachable, so a missing Project reference is not recorded as intended.
+
+Integration blockers: G1DriftSchema is still v19; TaskStore does not preserve new direct Task relation columns during its rewrite; ProjectStore does not manage/preserve the junction edges and bulk deletion conflicts with RESTRICT FKs; CenterStore and Category CRUD do not use the new model; Backup/Restore omits the new relationships.
+
+### Exact-SHA CI evidence
+
+- On #3384 SHA `310c0e...`, Build run `43575749904`: Analyze, Visual and Debug/Release/Staging APK jobs PASS; all six test shards FAIL with 41 assertion failures (1,409 passed across shards); Device Smoke was queued.
+- The Visual job generated and validated a Persian PDF with embedded Vazirmatn Regular/Bold and Unicode maps. Artifact ID `14106491800`; PDF SHA-256 `3eef5025aef0305679272b37c9f5454f4488e23a2f8acfe78190df96e38afa0a`.
+- On #3463 SHA `c09fdb...`, Build run `43576488075`: Visual PASS; remaining quality, APK jobs were queued at the last check. Device Smoke run `43576488030` was queued; Follow-up Persistence run `43576488111` was in progress. Production Loop success and Draft Review APK skipped are not full acceptance.
+- Historical single-parent hierarchy candidate success on #3384 is superseded by the approved M2M decision and is not M2M evidence.
+
+### Acceptance status
+
+D01: candidate fixture coverage exists, integrated schema acceptance NOT VERIFIED.  
+D02: Missing/NULL/FALSE/TRUE parity NOT VERIFIED for the integrated M2M path.  
+D03: Person/Follow-up/history parity NOT VERIFIED on the M2M migration.  
+D04: independent physical backup/restore with junction parity NOT STARTED.  
+D05: isolated in-memory rollback test exists; close/reopen, physical rollback and successful retry NOT VERIFIED.
+
+No exact-SHA acceptance candidate exists. No Main changes, merges, releases, deployments, force-pushes or destructive user-data operations were performed.

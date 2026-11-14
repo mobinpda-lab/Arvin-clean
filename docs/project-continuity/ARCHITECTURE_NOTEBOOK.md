@@ -161,3 +161,25 @@
 - **BLOCKED — RELEASE: NO-GO**.
 
 **مراجع کد/قرارداد:** `lib/models/task.dart`, `lib/services/canonical_notebook_repository.dart`, `lib/notebook_page.dart`, `lib/services/task_project_assignment_service.dart`, `lib/models/task_template.dart`, `lib/services/task_clone_service.dart`, `lib/services/task_template_store.dart`, `lib/services/g1_drift_schema.dart`, `lib/widgets/persian_date_picker.dart`, `docs/project-continuity/calendar_ui_ux_spec.md`.
+
+
+## 11. REV10 relationship graph supersession — 2026-11-14
+
+The approved current model is not a single-parent tree:
+
+- Center↔Project and Project↔Category are Many-to-Many.
+- Task→Center, Task→Project and Task→Category are independent optional 0..1 assignments.
+- Task↔Tag remains Many-to-Many.
+- Standalone Tasks are valid.
+
+The M2M migration candidate is `lib/services/g1_many_to_many_hierarchy_migration.dart` on PR #3463, currently based on #3384 head `310c0e20e3447c488c1e1c102c38bea5040708ca`. It creates `center_projects` and `project_categories`, but is not yet connected to the canonical G1 database lifecycle or all product repositories.
+
+Source audit findings on that base:
+- G1DriftSchema remains version 19 and does not invoke the candidate migration.
+- TaskStore rewrites Task rows without the new direct relationship columns.
+- ProjectStore rewrites Project rows and does not preserve/write the new junction relations; its bulk Project delete conflicts with the candidate's RESTRICT foreign keys once edges exist.
+- CenterStore deletion checks only legacy `projects.center_id`.
+- Category management remains on `taxonomy_categories`; no canonical Category entity CRUD integration is proven.
+- Backup/Restore does not yet serialize and restore both junction relations.
+
+These are integration blockers, not permission to create parallel stores. Extend the existing canonical SQL ownership path only. Keep the legacy columns, `project_items` and `taxonomy_categories` until consumer parity and D01–D05 are accepted.
