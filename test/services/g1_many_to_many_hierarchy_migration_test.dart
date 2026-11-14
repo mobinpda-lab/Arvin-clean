@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -9,7 +10,8 @@ void main() {
 
   setUp(() async {
     db = NativeDatabase.memory();
-    await G1DriftSchema.install(db);
+    await db.ensureOpen(_V19TestUser());
+    await _createV19Fixture(db);
   });
 
   tearDown(() async {
@@ -316,4 +318,47 @@ void main() {
       [ {'value': '20'} ],
     );
   });
+}
+
+class _V19TestUser implements QueryExecutorUser {
+  @override
+  int get schemaVersion => 19;
+
+  @override
+  Future<void> beforeOpen(QueryExecutor executor, OpeningDetails details) async {}
+}
+
+Future<void> _createV19Fixture(QueryExecutor db) async {
+  await db.runCustom('PRAGMA foreign_keys = ON');
+  await db.runCustom('''CREATE TABLE centers (
+    id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL,
+    is_archived INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL
+  )''');
+  await db.runCustom('''CREATE TABLE projects (
+    id TEXT NOT NULL PRIMARY KEY, storage_ordinal INTEGER NOT NULL DEFAULT 0,
+    name TEXT NOT NULL, color_value INTEGER NOT NULL DEFAULT 4283059371,
+    is_archived INTEGER NOT NULL DEFAULT 0,
+    center_id TEXT NULL REFERENCES centers(id), template_id TEXT NULL,
+    template_name_snapshot TEXT NULL, legacy_payload_json TEXT NULL
+  )''');
+  await db.runCustom('''CREATE TABLE tasks (
+    id TEXT NOT NULL PRIMARY KEY, storage_ordinal INTEGER NOT NULL DEFAULT 0,
+    title TEXT NOT NULL, description TEXT NOT NULL, created_at TEXT NULL,
+    updated_at TEXT NULL, due_date TEXT NULL, category TEXT NULL,
+    notebook_kind TEXT NULL, priority TEXT NOT NULL, archived INTEGER NOT NULL,
+    trashed INTEGER NOT NULL, completed INTEGER NOT NULL, completed_at TEXT NULL,
+    is_favorite INTEGER NOT NULL DEFAULT 0, recurrence_json TEXT NULL,
+    legacy_payload_json TEXT NULL
+  )''');
+  await db.runCustom('''CREATE TABLE project_items (
+    project_id TEXT NOT NULL REFERENCES projects(id),
+    task_id TEXT NOT NULL REFERENCES tasks(id), ordinal INTEGER NOT NULL,
+    PRIMARY KEY(project_id, task_id)
+  )''');
+  await db.runCustom('''CREATE TABLE taxonomy_categories (
+    name TEXT NOT NULL PRIMARY KEY, created_at TEXT NOT NULL
+  )''');
+  await db.runCustom('''CREATE TABLE arvin_storage_meta (
+    key TEXT NOT NULL PRIMARY KEY, value TEXT NOT NULL
+  )''');
 }
