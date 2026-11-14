@@ -1,3 +1,51 @@
+## COMMAND 07-A.2.80-D — live SQLite v20 execution checkpoint — 2026-11-14 13:21 +03:30
+
+## COMMAND 07-A.2.80-D — live SQLite v20 execution checkpoint — 2026-11-14 13:21 +03:30
+
+**Authority:** REV10 plus owner-approved Many-to-Many decision ARVIN-DEC-2026-11-14-CENTER-PROJECT-CATEGORY-M2M.  
+**Repository:** mobinpda-lab/Arvin-clean.  
+**Main HEAD:** `45e4202b03a434459e4c021a04efa7e8396359db` — unchanged / read-only.  
+**Primary PR:** #3463 — OPEN / DRAFT / UNMERGED; branch `rev10-m2m-v19-test-expansion`; base PR #3384 at `310c0e20e3447c488c1e1c102c38bea5040708ca`.  
+**Code candidate before this documentation synchronization:** `0408486fd50a04648e405f82cdf8b906c3e53977`. Documentation commits change the PR HEAD; all acceptance runs must be re-fetched on the final live SHA.  
+**PR #3384:** OPEN / DRAFT / UNMERGED. **PR #3448:** OPEN / DRAFT / UNMERGED and remains the REV10 documentation source. **PRs #3459–#3462:** CLOSED / UNMERGED; historical commits remain preserved in Git; no cherry-pick or merge was performed.  
+**Related NIRA:** Main `7a27ee63b65d343e45c5786f782f2567611722dc`; separate factory only; no NIRA files changed.
+
+### Live implementation changes on the execution branch
+- G1 Drift schema is version 20; the existing M2M helper is invoked from the canonical `beforeOpen` lifecycle.
+- Drift's callback-scoped Executor is opened before lifecycle SQL; the authoritative schema version remains registered by Drift only after `beforeOpen` returns.
+- The base schema transaction now records pre-existing v19 foreign-key violations and rejects only newly introduced violations; historical orphan evidence is retained for the M2M exception ledger.
+- Canonical People rows are imported before Task-person snapshots, preventing synthetic placeholder timestamps/names from winning over historical Person records.
+- A deterministic optional failure-injection seam now covers lifecycle boundaries; production callers omit it.
+- The superseded single-parent candidate schema and its incompatible miniature tests were retired from this branch. Their acceptance intent is replaced by tests against the canonical v20 schema and M2M join tables.
+
+### New acceptance evidence authored; execution still pending
+- `test/services/g1_m2m_hierarchy_acceptance_test.dart`: canonical v20 Many-to-Many cardinality, nullable Task links, Task↔Tag, duplicate/orphan rejection, link-only deletion and physical restore coverage.
+- `test/services/g1_v19_historical_parity_test.dart`: independent v19 file fixture with Center, Project, Task, legacy memberships, Category catalog, Tags, Person, Task-person links, multi-step Follow-ups, Follow-up-person links, Reminder, metadata, NULL/FALSE/TRUE, ambiguous memberships and invalid historical references; source/destination parity assertions.
+- `test/services/g1_v20_failure_recovery_test.dart`: seven controlled failures through the real Drift lifecycle, followed by readability, marker/version and retry/idempotency checks.
+- The D04 test copies the closed, migrated SQLite file to a distinct physical file and reopens it; it is not a JSON backup substitute.
+
+### CI evidence boundary
+- On SHA `035721adb2cc4ccbb631bd4d231e5800e2547854`, Follow-up Persistence and SQLite Snapshot passed, but Build had failures. The stack trace identified Drift's unopened `beforeOpen` Executor; the callback was fixed and Follow-up Persistence passed on that SHA. Those results do not transfer to later SHAs.
+- The same Build run also exposed import ambiguity, superseded single-parent tests, a duplicate-table diagnostic fixture and two Notebook failures. The import ambiguity and obsolete hierarchy fixtures were corrected/replaced; Notebook tests were not modified pending baseline comparison.
+- On the then-current SHA `ba054015f1382c9fc38b0b044a6a0550a0102b17`, new Build, Follow-up, Snapshot, Device Smoke and COMMAND 07-A.2.80-D workflows were queued/pending. Subsequent documentation commits require another exact-SHA poll.
+- No PASS is claimed for the newly authored parity, physical restore or failure-injection tests until their exact-SHA jobs finish.
+
+### D01–D05 status at this checkpoint
+| Gate | State | Evidence boundary |
+|---|---|---|
+| D01 Schema / Migration Compatibility | BLOCKED | Lifecycle and migration tests exist; current exact-SHA execution pending. |
+| D02 Missing / NULL / FALSE / TRUE | BLOCKED | Historical parity assertions authored; not yet executed. |
+| D03 Person / Follow-up / Reminder / Metadata | BLOCKED | Full v19 fixture and parity assertions authored; not yet executed. |
+| D04 Physical SQLite Backup / Restore | BLOCKED | Physical file-copy/restore test authored against migrated v20; not yet executed. |
+| D05 Atomicity / Rollback / Recovery | BLOCKED | Seven lifecycle injection stages authored; not yet executed. |
+
+### Remaining product integration gaps
+CenterStore, ProjectStore, TaskStore, Category operations, selectors, Home/Calendar/Reports filters and production Backup/Restore have not yet been proven to consume the new canonical join relations end-to-end. The migration being present does not mean repository integration is complete. Keep `project_items`, `projects.center_id`, `taxonomy_categories` and unresolved evidence until consumers and D01–D05 are accepted.
+
+**Safety:** Main unchanged. No merge, release, deployment, production database migration, destructive cleanup or NIRA change.
+
+---
+
 # REV9 — CURRENT LIVE STATE / REPOSITORY CLEANUP WAVE 0
 **Live baseline date:** 2026-11-10
 **Main HEAD:** `45e4202b03a434459e4c021a04efa7e8396359db`
