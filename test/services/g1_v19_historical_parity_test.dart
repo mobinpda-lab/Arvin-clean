@@ -79,6 +79,210 @@ void main() {
     }
   });
 
+  test('D02: missing, NULL, FALSE and TRUE legacy field states remain distinct', () async {
+    final fullDirectory = await Directory.systemTemp.createTemp('arvin-d02-values-');
+    final fullFile = File('${fullDirectory.path}/with-legacy-column.sqlite');
+    final source = NativeDatabase(fullFile);
+    await source.ensureOpen(_V19FixtureUser());
+    await _createHistoricalV19Fixture(source);
+    await source.close();
+
+    final upgraded = NativeDatabase(fullFile);
+    try {
+      await upgraded.ensureOpen(G1DriftSchema());
+      for (final entry in <String, Object?>{
+        'task-null': null,
+        'task-false': false,
+        'task-true': true,
+      }.entries) {
+        final raw = (await upgraded.runSelect(
+          'SELECT legacy_payload_json FROM tasks WHERE id = ?',
+          [entry.key],
+        )).single['legacy_payload_json'] as String;
+        final payload = jsonDecode(raw) as Map<String, dynamic>;
+        expect(payload.containsKey('followUpEnabled'), isTrue);
+        expect(payload['followUpEnabled'], entry.value, reason: entry.key);
+      }
+    } finally {
+      await upgraded.close();
+      await fullDirectory.delete(recursive: true);
+    }
+
+    // A second independent v19 shape omits the legacy SQL column entirely.
+    // Absence must not be rewritten as an explicit NULL or FALSE.
+    final missingDirectory = await Directory.systemTemp.createTemp('arvin-d02-missing-');
+    final missingFile = File('${missingDirectory.path}/missing-field.sqlite');
+    final missingSource = NativeDatabase(missingFile);
+    await missingSource.ensureOpen(_V19FixtureUser());
+    await missingSource.runCustom('''CREATE TABLE centers(
+      id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL,
+      is_archived INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL
+    )''');
+    await missingSource.runCustom('''CREATE TABLE projects(
+      id TEXT NOT NULL PRIMARY KEY, storage_ordinal INTEGER NOT NULL DEFAULT 0,
+      name TEXT NOT NULL, color_value INTEGER NOT NULL DEFAULT 4283059371,
+      is_archived INTEGER NOT NULL DEFAULT 0, center_id TEXT NULL
+    )''');
+    await missingSource.runCustom('''CREATE TABLE tasks(
+      id TEXT NOT NULL PRIMARY KEY, title TEXT NOT NULL, description TEXT NOT NULL,
+      priority TEXT NOT NULL, archived INTEGER NOT NULL, trashed INTEGER NOT NULL,
+      completed INTEGER NOT NULL, legacy_payload_json TEXT NULL
+    )''');
+    await missingSource.runCustom('''CREATE TABLE project_items(
+      project_id TEXT NOT NULL, task_id TEXT NOT NULL, ordinal INTEGER NOT NULL,
+      PRIMARY KEY(project_id, task_id)
+    )''');
+    await missingSource.runCustom('''CREATE TABLE taxonomy_categories(
+      name TEXT NOT NULL PRIMARY KEY, created_at TEXT NOT NULL
+    )''');
+    await missingSource.runCustom('''CREATE TABLE arvin_storage_meta(
+      key TEXT NOT NULL PRIMARY KEY, value TEXT NOT NULL
+    )''');
+    await missingSource.runCustom("INSERT INTO tasks VALUES ('task-missing', 'بدون فیلد', '', 'medium', 0, 0, 0, '{\"custom\":\"kept\"}')");
+    await missingSource.close();
+
+    final missingUpgrade = NativeDatabase(missingFile);
+    try {
+      await missingUpgrade.ensureOpen(G1DriftSchema());
+      final raw = (await missingUpgrade.runSelect(
+        'SELECT legacy_payload_json FROM tasks WHERE id = ?',
+        const ['task-missing'],
+      )).single['legacy_payload_json'] as String;
+      final payload = jsonDecode(raw) as Map<String, dynamic>;
+      expect(payload['custom'], 'kept');
+      expect(payload.containsKey('followUpEnabled'), isFalse);
+      expect((await missingUpgrade.runSelect('PRAGMA user_version', const [])).single.values.first, 20);
+    } finally {
+      await missingUpgrade.close();
+      await missingDirectory.delete(recursive: true);
+    }
+  });
+
+  test('D03: Person, Follow-up, Reminder, Tag and metadata parity is exact', () async {
+    final directory = await Directory.systemTemp.createTemp('arvin-d03-entities-');
+    final file = File('${directory.path}/entities-v19.sqlite');
+    final source = NativeDatabase(file);
+    await source.ensureOpen(_V19FixtureUser());
+    await _createHistoricalV19Fixture(source);
+
+    final people = await source.runSelect(
+      'SELECT id, name, created_at, updated_at FROM people ORDER BY id',
+      const [],
+    );
+    final taskPeople = await source.runSelect(
+      'SELECT task_id, person_id, ordinal FROM task_people ORDER BY task_id, person_id',
+      const [],
+    );
+    final followUps = await source.runSelect(
+      '''SELECT id, task_id, date_time, title, note, result, completed,
+                waiting_for_response, ordinal
+         FROM follow_ups ORDER BY task_id, ordinal''',
+      const [],
+    );
+    final followUpPeople = await source.runSelect(
+      'SELECT follow_up_id, person_id, ordinal FROM follow_up_people ORDER BY follow_up_id, person_id',
+      const [],
+    );
+    final reminders = await source.runSelect(
+      '''SELECT id, task_id, title, remind_at, is_all_day, sequence, is_enabled
+         FROM task_reminders ORDER BY id''',
+      const [],
+    );
+    final tags = await source.runSelect('SELECT id, name FROM tags ORDER BY id', const []);
+    final taskTags = await source.runSelect(
+      'SELECT task_id, tag_id, ordinal FROM task_tags ORDER BY task_id, tag_id',
+      const [],
+    );
+    await source.close();
+
+    final upgraded = NativeDatabase(file);
+    try {
+      await upgraded.ensureOpen(G1DriftSchema());
+      expect(
+        await upgraded.runSelect(
+          'SELECT id, name, created_at, updated_at FROM persons ORDER BY id',
+          const [],
+        ),
+        people,
+      );
+      expect(
+        await upgraded.runSelect(
+          'SELECT task_id, person_id, ordinal FROM task_persons ORDER BY task_id, person_id',
+          const [],
+        ),
+        taskPeople,
+      );
+      expect(
+        await upgraded.runSelect(
+          '''SELECT id, task_id, completed_at, title, note, result, completed,
+                    waiting_for_response, ordinal
+             FROM follow_up_records ORDER BY task_id, ordinal''',
+          const [],
+        ),
+        followUps.map((row) => {
+          'id': row['id'],
+          'task_id': row['task_id'],
+          'completed_at': row['date_time'],
+          'title': row['title'],
+          'note': row['note'],
+          'result': row['result'],
+          'completed': row['completed'],
+          'waiting_for_response': row['waiting_for_response'],
+          'ordinal': row['ordinal'],
+        }).toList(),
+      );
+      expect(
+        await upgraded.runSelect(
+          'SELECT follow_up_id, person_id, ordinal FROM follow_up_record_people ORDER BY follow_up_id, person_id',
+          const [],
+        ),
+        followUpPeople,
+      );
+      expect(
+        await upgraded.runSelect('SELECT id, name FROM tags ORDER BY id', const []),
+        tags,
+      );
+      expect(
+        await upgraded.runSelect(
+          'SELECT task_id, tag_id, ordinal FROM task_tags ORDER BY task_id, tag_id',
+          const [],
+        ),
+        taskTags,
+      );
+      final migratedReminders = await upgraded.runSelect(
+        '''SELECT id, task_id, title, remind_at, is_all_day, sequence, is_enabled
+           FROM task_reminders ORDER BY id''',
+        const [],
+      );
+      expect(migratedReminders, containsAll(reminders));
+      expect(migratedReminders, hasLength(reminders.length + 1));
+      expect(
+        migratedReminders.any((row) => row['id'] == 'reminder-v19-disabled' &&
+            row['is_all_day'] == 1 && row['is_enabled'] == 0),
+        isTrue,
+      );
+      expect(
+        await upgraded.runSelect(
+          'SELECT value FROM arvin_storage_meta WHERE key = ?',
+          const ['owner-metadata'],
+        ),
+        [{'value': 'preserve-me'}],
+      );
+      expect(
+        await upgraded.runSelect(
+          'SELECT person_id FROM person_directory WHERE person_id = ?',
+          const ['person-legacy'],
+        ),
+        [{'person_id': 'person-legacy'}],
+      );
+      expect(await upgraded.runSelect('PRAGMA foreign_key_check(tasks)', const []), isEmpty);
+      expect(await upgraded.runSelect('PRAGMA foreign_key_check(project_categories)', const []), isEmpty);
+    } finally {
+      await upgraded.close();
+      await directory.delete(recursive: true);
+    }
+  });
+
   test('D02+D03: real v19 lifecycle preserves historical entities, links, NULL and booleans', () async {
     final directory = await Directory.systemTemp.createTemp('arvin-v19-parity-');
     final file = File('${directory.path}/historical-v19.sqlite');
