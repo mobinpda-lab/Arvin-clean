@@ -183,3 +183,22 @@ Source audit findings on that base:
 - Backup/Restore does not yet serialize and restore both junction relations.
 
 These are integration blockers, not permission to create parallel stores. Extend the existing canonical SQL ownership path only. Keep the legacy columns, `project_items` and `taxonomy_categories` until consumer parity and D01–D05 are accepted.
+
+
+## COMMAND 07-A.2.79 — Architecture integration audit
+
+The approved graph is not yet the sole operational model. Existing code still contains `projects.center_id`, `project_items`, `taxonomy_categories`, new `categories`, and new junction tables. Decide one canonical owner and compatibility boundary before UI integration. Avoid duplicate Task assignment sources. Migration transaction boundaries must be separated or refactored; nested BEGIN is unsafe.
+
+
+## COMMAND 07-A.2.79 — Live audit checkpoint (2026-11-14)
+
+- Main: `45e4202b03a434459e4c021a04efa7e8396359db` (unchanged/read-only).
+- PR #3463: OPEN / DRAFT; branch `rev10-m2m-v19-test-expansion`; Head `190dfd6dd0d487dbcafd85e13c5309db061b47af`; Base `310c0e20e3447c488c1e1c102c38bea5040708ca`.
+- PR #3448: OPEN / DRAFT. Issue #3458: OPEN.
+- Exact-head #3463: Build 43577665573 PENDING/no jobs reported; Device Smoke 43577665873 QUEUED; Follow-up Persistence 43577665629 SUCCESS; Orchestrator and PR Wakeup SUCCESS; Draft Review APK SKIPPED. Combined status has no entries; no current-head APK/Smoke acceptance artifact.
+- Base SHA `310c0e20...`: Build 43575749904 FAILURE; Analyze, Visual, Debug/Release/Staging APK PASS; six test shards total 1,409 passed / 41 failed. Base artifacts do not validate #3463 Head.
+- G1DriftSchema remains v19; the v19→v20 helper is not called by canonical installation. Its own transaction cannot be nested inside the existing install transaction.
+- TaskStore rewrite omits the new direct relationship columns; ProjectStore still uses `projects.center_id` and `project_items`; CenterStore deletion checks only `projects.center_id`.
+- Category remains split between `taxonomy_categories` and migration-created `categories`. Canonical Category CRUD/relation UI is not verified.
+- Physical Backup/Restore parity for both junction tables and migration exceptions is NOT VERIFIED. D01–D05 and seven Device Smoke scenarios are NOT ACCEPTED.
+- No app code/tests/workflows were changed in this audit. No merge, release, deployment, Main edit, branch deletion, history rewrite, workflow cancellation or test weakening.
