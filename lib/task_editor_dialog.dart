@@ -170,7 +170,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     return InputDecoration(
       labelText: label,
       hintText: hint,
-      labelStyle: const TextStyle(color: ArvinColors.textPrimary, fontWeight: FontWeight.w600),
+      labelStyle: const TextStyle(color: ArvinColors.textPrimary, fontWeight: FontWeight.w500),
       floatingLabelStyle: const TextStyle(color: ArvinColors.textPrimary, fontWeight: FontWeight.w700),
       hintStyle: const TextStyle(color: ArvinColors.textSecondary),
       filled: true,
@@ -335,7 +335,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text('یادآورهای مستقل', style: TextStyle(fontWeight: FontWeight.w800)),
+                    const Text('یادآورهای مستقل', style: TextStyle(fontWeight: FontWeight.w700)),
                     const SizedBox(height: 6),
                     Align(alignment: AlignmentDirectional.centerStart, child: addButton),
                   ],
@@ -343,7 +343,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
               }
               return Row(
                 children: [
-                  const Expanded(child: Text('یادآورهای مستقل', style: TextStyle(fontWeight: FontWeight.w800))),
+                  const Expanded(child: Text('یادآورهای مستقل', style: TextStyle(fontWeight: FontWeight.w700))),
                   addButton,
                 ],
               );
@@ -703,7 +703,7 @@ Future<void> _pickDueDateTime() async {
         boxShadow: const [ArvinTheme.shadowStyle],
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Row(children: [Icon(Icons.checklist_rounded, color: _brand), const SizedBox(width: 8), Text('چک‌لیست', style: TextStyle(color: _brand, fontWeight: FontWeight.w800, fontSize: 16))]),
+        Row(children: [Icon(Icons.checklist_rounded, color: _brand), const SizedBox(width: 8), Text('چک‌لیست', style: TextStyle(color: _brand, fontWeight: FontWeight.w700, fontSize: 16))]),
         const SizedBox(height: 4),
         const Text('مواردی که باید برای این کار یکی‌یکی انجام شوند.'),
         const SizedBox(height: 10),
@@ -730,7 +730,7 @@ Future<void> _pickDueDateTime() async {
               decoration: BoxDecoration(color: ArvinColors.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: _border)),
               child: Row(children: [
                 Checkbox(key: ValueKey('task-editor-checklist-check-$index'), value: checked, onChanged: (_) => _toggleChecklistItem(index)),
-                Expanded(child: Text(_checklistLabel(item), style: TextStyle(decoration: checked ? TextDecoration.lineThrough : null, color: checked ? ArvinColors.textSecondary : ArvinColors.textPrimary, fontWeight: FontWeight.w600))),
+                Expanded(child: Text(_checklistLabel(item), style: TextStyle(decoration: checked ? TextDecoration.lineThrough : null, color: checked ? ArvinColors.textSecondary : ArvinColors.textPrimary, fontWeight: FontWeight.w400))),
                 IconButton(key: ValueKey('task-editor-checklist-edit-$index'), tooltip: 'ویرایش', icon: const Icon(Icons.edit_outlined, size: 19), onPressed: () => _editChecklistItem(index)),
                 ReorderableDragStartListener(
                   key: ValueKey('task-editor-checklist-drag-$index'),
@@ -940,7 +940,7 @@ Future<void> _pickDueDateTime() async {
                           ),
                           const Expanded(
                             child: Center(
-                              child: Text('ویرایش کار', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                              child: Text('ویرایش کار', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
                             ),
                           ),
                           if (compact)
@@ -977,7 +977,7 @@ Future<void> _pickDueDateTime() async {
                     controller: _titleController,
                     focusNode: _titleFocusNode,
                     autofocus: !editing,
-                    style: const TextStyle(color: ArvinColors.textPrimary, fontWeight: FontWeight.w600),
+                    style: const TextStyle(color: ArvinColors.textPrimary, fontWeight: FontWeight.w400),
                     cursorColor: _brand,
                     textInputAction: TextInputAction.done,
                     onSubmitted: (_) => _save(),
@@ -1256,7 +1256,7 @@ Future<void> _pickDueDateTime() async {
                     childrenPadding: const EdgeInsets.only(bottom: 8),
                     title: const Text(
                       'جزئیات بیشتر',
-                      style: TextStyle(fontWeight: FontWeight.w800),
+                      style: TextStyle(fontWeight: FontWeight.w700),
                     ),
                     subtitle: const Text(
                       'تاریخ انجام، یادآوری، تکرار، اولویت و وضعیت',
@@ -1507,7 +1507,7 @@ Future<void> _pickDueDateTime() async {
                             Expanded(
                               child: Text(
                                 'پیگیری‌ها',
-                                style: TextStyle(color: _brand, fontWeight: FontWeight.w800, fontSize: 16),
+                                style: TextStyle(color: _brand, fontWeight: FontWeight.w700, fontSize: 16),
                               ),
                             ),
                             Text('${_followUps.length}', style: TextStyle(color: _brand, fontWeight: FontWeight.w700)),
