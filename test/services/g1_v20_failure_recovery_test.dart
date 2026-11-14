@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:arvin/services/g1_drift_schema.dart';
@@ -69,6 +70,13 @@ void main() {
           (await inspection.runSelect('PRAGMA integrity_check', const [])).single.values.single,
           'ok',
         );
+        final historicalPayload = (await inspection.runSelect(
+          'SELECT legacy_payload_json FROM tasks WHERE id = ?',
+          const ['task-retry'],
+        )).single['legacy_payload_json'] as String;
+        final decodedHistoricalPayload = jsonDecode(historicalPayload) as Map<String, dynamic>;
+        expect(decodedHistoricalPayload['customMarker'], 'preserve');
+        expect(decodedHistoricalPayload['followUpEnabled'], isFalse);
 
         final marker = await inspection.runSelect(
           'SELECT value FROM arvin_storage_meta WHERE key = ?',
@@ -135,6 +143,13 @@ void main() {
         expect(await retry.runSelect('PRAGMA foreign_key_check(center_projects)', const []), isEmpty);
         expect(await retry.runSelect('PRAGMA foreign_key_check(project_categories)', const []), isEmpty);
         expect((await retry.runSelect('PRAGMA integrity_check', const [])).single.values.single, 'ok');
+        final retriedPayload = (await retry.runSelect(
+          'SELECT legacy_payload_json FROM tasks WHERE id = ?',
+          const ['task-retry'],
+        )).single['legacy_payload_json'] as String;
+        final decodedRetriedPayload = jsonDecode(retriedPayload) as Map<String, dynamic>;
+        expect(decodedRetriedPayload['customMarker'], 'preserve');
+        expect(decodedRetriedPayload['followUpEnabled'], isFalse);
       } finally {
         await retry.close();
         await directory.delete(recursive: true);
@@ -180,7 +195,10 @@ Future<void> _createV19FailureFixture(File file) async {
   )''');
   await source.runCustom("INSERT INTO centers VALUES ('center-a', 'مرکز الف', 0, '2026-11-01')");
   await source.runCustom("INSERT INTO projects(id, name, center_id) VALUES ('project-a', 'پروژه الف', 'center-a')");
-  await source.runCustom("INSERT INTO tasks(id, title, description, priority, archived, trashed, completed) VALUES ('task-retry', 'کار بازیابی', '', 'none', 0, 0, 0)");
+  await source.runCustom('''INSERT INTO tasks
+    (id, title, description, priority, archived, trashed, completed, legacy_payload_json)
+    VALUES ('task-retry', 'کار بازیابی', '', 'none', 0, 0, 0,
+      '{"id":"task-retry","title":"کار بازیابی","customMarker":"preserve","followUpEnabled":false}')''');
   await source.runCustom("INSERT INTO project_items VALUES ('project-a', 'task-retry', 0)");
   await source.runCustom("INSERT INTO taxonomy_categories VALUES ('عملیات', '2026-11-01')");
   await source.close();
