@@ -20,9 +20,8 @@ class ProjectPlanCodec {
       if (project.centerRelationshipsSpecified) 'centerIds': List<String>.of(project.centerIds),
       if (project.categoryRelationshipsSpecified) 'categoryIds': List<String>.of(project.categoryIds),
       if (project.centerRelationshipsSpecified && project.centerId != null) 'centerId': project.centerId,
-      if (project.templateId != null) 'templateId': project.templateId,
-      if (project.templateNameSnapshot != null)
-        'templateNameSnapshot': project.templateNameSnapshot,
+      if (project.templateIdSpecified) 'templateId': project.templateId,
+      if (project.templateNameSnapshotSpecified) 'templateNameSnapshot': project.templateNameSnapshot,
       if (project.itemIdsSpecified) 'itemIds': List<String>.of(project.itemIds),
     };
   }
@@ -53,7 +52,8 @@ class ProjectPlanCodec {
     }
     final centers = map.containsKey('centerIds')
         ? (map['centerIds'] == null ? const <String>[] : _decodeIds(map['centerIds'], 'centerIds'))
-        : legacyCenter == null ? null : <String>[legacyCenter as String];
+        : !map.containsKey('centerId') ? null
+            : legacyCenter == null ? const <String>[] : <String>[legacyCenter as String];
     if (legacyCenter != null && centers != null && centers.isNotEmpty && !centers.contains(legacyCenter)) {
       throw const FormatException('Project centerId conflicts with centerIds');
     }
@@ -80,10 +80,14 @@ class ProjectPlanCodec {
       title: title,
       colorValue: rawColor as int?,
       isArchived: rawArchived as bool?,
+      colorValueSpecified: map.containsKey('colorValue'),
+      isArchivedSpecified: map.containsKey('isArchived'),
       centerIds: centers,
       categoryIds: categories,
       templateId: rawTemplateId as String?,
       templateNameSnapshot: rawTemplateName as String?,
+      templateIdSpecified: map.containsKey('templateId'),
+      templateNameSnapshotSpecified: map.containsKey('templateNameSnapshot'),
       itemIds: !map.containsKey('itemIds') ? null : map['itemIds'] == null ? const <String>[] : _decodeIds(map['itemIds'], 'itemIds'),
       legacyFields: unknown,
     );
