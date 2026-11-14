@@ -506,9 +506,10 @@ class TaskStore {
   Future<void> save(List<Task> tasks) =>
       TaskStorageLock.synchronized<void>(() => _saveUnlocked(tasks));
 
-  /// Creates one generated Project and all its independent canonical Tasks in
-  /// a single SQLite transaction. The partial unique index on active
-  /// (template_id, center_id) is the final duplicate/concurrency guard.
+  /// Coordinates generated Task writes and template-application rows in one
+  /// SQLite transaction. Project row and Center/Category edges are delegated
+  /// to the canonical ProjectStore writer supplied by the caller. The partial
+  /// unique index on active (template_id, center_id) guards duplicate creation.
   Future<void> createProjectFromTemplate(
     ProjectPlan project,
     List<Task> tasks, {
