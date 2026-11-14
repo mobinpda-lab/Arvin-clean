@@ -8,6 +8,7 @@ import 'package:drift_flutter/drift_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/goal_project.dart';
+import 'center_store.dart';
 import 'g1_drift_schema.dart';
 import 'project_plan_codec.dart';
 import 'sql_project_migration_writer.dart';
@@ -313,29 +314,11 @@ class ProjectStore {
     }
   }
 
-  Future<void> removeCenterRelationship(String projectId, String centerId) async {
-    final executor = _database;
-    await _ensureReady();
-    await executor.runCustom('BEGIN');
-    try {
-      await executor.runDelete(
-        'DELETE FROM center_projects WHERE project_id = ? AND center_id = ?',
-        <Object?>[projectId, centerId],
+  Future<void> removeCenterRelationship(String projectId, String centerId) =>
+      CenterStore(executor: _database).removeProjectRelationship(
+        centerId: centerId,
+        projectId: projectId,
       );
-      final remaining = await executor.runSelect(
-        'SELECT center_id FROM center_projects WHERE project_id = ? ORDER BY center_id',
-        <Object?>[projectId],
-      );
-      await executor.runUpdate(
-        'UPDATE projects SET center_id = ? WHERE id = ?',
-        <Object?>[remaining.length == 1 ? remaining.single['center_id'] : null, projectId],
-      );
-      await executor.runCustom('COMMIT');
-    } catch (_) {
-      try { await executor.runCustom('ROLLBACK'); } catch (_) {}
-      rethrow;
-    }
-  }
 
   Future<void> removeCategoryRelationship(String projectId, String categoryId) async {
     final executor = _database;
