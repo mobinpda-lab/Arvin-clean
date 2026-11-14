@@ -94,11 +94,25 @@ class G1ManyToManyHierarchyMigration {
       await executor.runCustom('CREATE INDEX idx_tasks_category_id ON tasks(category_id)');
 
       // The former projects.center_id value is direct evidence for exactly one
-      // legacy edge. Keep the source column unchanged for audit and rollback.
-      await executor.runCustom('''
-        INSERT OR IGNORE INTO center_projects(center_id, project_id)
-        SELECT center_id, id FROM projects WHERE center_id IS NOT NULL
-      ''');
+      // legacy edge. Copy only valid endpoints and classify broken references.
+      final centerRows = await executor.runSelect('SELECT id FROM centers', const []);
+      final centerIds = centerRows.map((r) => r['id'] as String).toSet();
+      final projectRows = await executor.runSelect('SELECT id, center_id FROM projects ORDER BY id', const []);
+      final projectIds = projectRows.map((r) => r['id'] as String).toSet();
+      for (final project in projectRows) {
+        final centerId = project['center_id'] as String?;
+        if (centerId == null) continue;
+        final projectId = project['id'] as String;
+        if (!centerIds.contains(centerId)) {
+          await _recordEntityException(executor, 'project', projectId,
+              'PROJECT_CENTER_REFERENCE_MISSING', 'legacy projects.center_id=$centerId');
+          continue;
+        }
+        await executor.runInsert(
+          'INSERT OR IGNORE INTO center_projects(center_id, project_id) VALUES (?, ?)',
+          <Object?>[centerId, projectId],
+        );
+      }
 
       final now = DateTime.now().toUtc().toIso8601String();
       final legacyNames = <String>{};
@@ -135,11 +149,6 @@ class G1ManyToManyHierarchyMigration {
         );
       }
 
-      final centerRows = await executor.runSelect('SELECT id FROM centers', const []);
-      final centerIds = centerRows.map((r) => r['id'] as String).toSet();
-      final projectRows = await executor.runSelect('SELECT id FROM projects', const []);
-      final projectIds = projectRows.map((r) => r['id'] as String).toSet();
-
       for (final row in tasks) {
         final taskId = row['id'] as String;
         String? centerId;
@@ -153,13 +162,14 @@ class G1ManyToManyHierarchyMigration {
                 if (centerIds.contains(candidate)) {
                   centerId = candidate;
                 } else {
-                  await _recordException(executor, taskId, 'TASK_CENTER_REFERENCE_MISSING',
-                      'legacy centerId=$candidate');
+                  await _recordEntityException(executor, 'task', taskId,
+                      'TASK_CENTER_REFERENCE_MISSING', 'legacy centerId=$candidate');
                 }
               }
             }
           } on FormatException {
-            await _recordException(executor, taskId, 'TASK_LEGACY_PAYLOAD_INVALID', rawPayload);
+            await _recordEntityException(executor, 'task', taskId,
+                'TASK_LEGACY_PAYLOAD_INVALID', rawPayload);
           }
         }
 
@@ -171,8 +181,13 @@ class G1ManyToManyHierarchyMigration {
         if (memberships.length == 1) {
           final candidate = memberships.single['project_id'] as String;
           if (projectIds.contains(candidate)) projectId = candidate;
+        } else if (memberships.length == 1) {
+          await _recordEntityException(executor, 'task', taskId,
+              'TASK_PROJECT_REFERENCE_MISSING',
+              'legacy project_id=${memberships.single['project_id']}');
         } else if (memberships.length > 1) {
-          await _recordException(executor, taskId, 'TASK_MULTIPLE_LEGACY_PROJECTS',
+          await _recordEntityException(executor, 'task', taskId,
+              'TASK_MULTIPLE_LEGACY_PROJECTS',
               memberships.map((r) => r['project_id']).join(','));
         }
 
@@ -192,14 +207,29 @@ class G1ManyToManyHierarchyMigration {
             <Object?>[centerId, projectId],
           );
           if (pair.isEmpty) {
-            await _recordException(executor, taskId, 'TASK_CENTER_PROJECT_PAIR_UNRESOLVED',
+            await _recordEntityException(executor, 'task', taskId,
+                'TASK_CENTER_PROJECT_PAIR_UNRESOLVED',
                 'center=$centerId;project=$projectId');
           }
         }
         if (projectId != null && categoryId != null) {
           // Never manufacture Project↔Category edges from a Task's text value.
-          await _recordException(executor, taskId, 'TASK_PROJECT_CATEGORY_EDGE_UNRESOLVED',
+          await _recordEntityException(executor, 'task', taskId,
+              'TASK_PROJECT_CATEGORY_EDGE_UNRESOLVED',
               'project=$projectId;category=$categoryId');
+        }
+        if (centerId != null && categoryId != null && projectId == null) {
+          final path = await executor.runSelect(
+            '''SELECT 1 FROM center_projects cp
+               JOIN project_categories pc ON pc.project_id = cp.project_id
+               WHERE cp.center_id = ? AND pc.category_id = ? LIMIT 1''',
+            <Object?>[centerId, categoryId],
+          );
+          if (path.isEmpty) {
+            await _recordEntityException(executor, 'task', taskId,
+                'TASK_CENTER_CATEGORY_PATH_UNRESOLVED',
+                'center=$centerId;category=$categoryId');
+          }
         }
       }
 
@@ -279,16 +309,18 @@ class G1ManyToManyHierarchyMigration {
     return rows.any((row) => row['name'] == column);
   }
 
-  Future<void> _recordException(
+  Future<void> _recordEntityException(
     QueryExecutor executor,
-    String taskId,
+    String entityType,
+    String entityId,
     String code,
     String evidence,
   ) async {
     await executor.runCustom('''
       CREATE TABLE IF NOT EXISTS rev10_hierarchy_migration_exceptions (
         exception_key TEXT NOT NULL PRIMARY KEY,
-        task_id TEXT NOT NULL REFERENCES tasks(id) ON UPDATE RESTRICT ON DELETE RESTRICT,
+        entity_type TEXT NOT NULL,
+        entity_id TEXT NOT NULL,
         issue_code TEXT NOT NULL,
         source_evidence TEXT NOT NULL,
         resolution_status TEXT NOT NULL DEFAULT 'UNRESOLVED'
@@ -296,9 +328,9 @@ class G1ManyToManyHierarchyMigration {
     ''');
     await executor.runInsert(
       '''INSERT OR IGNORE INTO rev10_hierarchy_migration_exceptions
-         (exception_key, task_id, issue_code, source_evidence)
-         VALUES (?, ?, ?, ?)''',
-      <Object?>['task:$taskId:$code', taskId, code, evidence],
+         (exception_key, entity_type, entity_id, issue_code, source_evidence)
+         VALUES (?, ?, ?, ?, ?)''',
+      <Object?>['$entityType:$entityId:$code', entityType, entityId, code, evidence],
     );
   }
 
