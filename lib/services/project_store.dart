@@ -130,6 +130,52 @@ class ProjectStore {
     }
   }
 
+  /// Persists an explicit complete UI collection snapshot. Unlike save(),
+  /// this operation may remove omitted Project identities, but only after all
+  /// dependencies are checked and inside the same transaction.
+  Future<void> saveCollection(Iterable<ProjectPlan> projects) async {
+    final executor = _database;
+    await _ensureReady();
+    final values = List<ProjectPlan>.of(projects);
+    _validateUniqueIds(values);
+    final keepIds = values.map((project) => project.id).toSet();
+    final currentRows = await executor.runSelect('SELECT id FROM projects', const []);
+    final removedIds = currentRows
+        .map((row) => row['id'] as String)
+        .where((id) => !keepIds.contains(id))
+        .toList(growable: false);
+
+    await executor.runCustom('BEGIN');
+    try {
+      for (final id in removedIds) {
+        final refs = await executor.runSelect(
+          '''SELECT
+            (SELECT COUNT(*) FROM project_items WHERE project_id = ?) AS items,
+            (SELECT COUNT(*) FROM template_task_applications WHERE project_id = ?) AS templates,
+            (SELECT COUNT(*) FROM tasks WHERE project_id = ?) AS task_refs''',
+          <Object?>[id, id, id],
+        );
+        final row = refs.single;
+        if ((row['items'] as num).toInt() > 0 ||
+            (row['templates'] as num).toInt() > 0 ||
+            (row['task_refs'] as num).toInt() > 0) {
+          throw ProjectDeleteBlocked(id);
+        }
+        await executor.runDelete('DELETE FROM center_projects WHERE project_id = ?', [id]);
+        await executor.runDelete('DELETE FROM project_categories WHERE project_id = ?', [id]);
+        await executor.runDelete('DELETE FROM projects WHERE id = ?', [id]);
+      }
+      for (final project in values) {
+        await _upsertProject(executor, project);
+      }
+      await _inject('before_collection_commit');
+      await executor.runCustom('COMMIT');
+    } catch (_) {
+      try { await executor.runCustom('ROLLBACK'); } catch (_) {}
+      rethrow;
+    }
+  }
+
   void _validateUniqueIds(List<ProjectPlan> values) {
     final ids = <String>{};
     for (final project in values) {
