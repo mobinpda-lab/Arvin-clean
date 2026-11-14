@@ -1,16 +1,12 @@
 ## Post-checkpoint source update — 2026-11-14
 
-## Post-checkpoint source update — 2026-11-14
-
 - After the first documentation synchronization, two source/test commits were added: `b49659321a1b155e7f7f17c45661075c863e19dc` preserves the public `const G1DriftSchema()` construction contract; `5764d4a82ebef6c3f2eb33a0703f09abe3e545e4` adds further optional Task link combinations and ordinary file-backed reopen assertions.
-- Exact code candidate after these changes: `5764d4a82ebef6c3f2eb33a0703f09abe3e545e4`. Current CI runs on this SHA: Build `43583723932`, COMMAND 07-A.2.80-D `43583723876`, Device Smoke `43583723919`, Follow-up Persistence `43583723884`, SQLite Snapshot `43583723868`. All were QUEUED/PENDING at last poll; no result is transferable from older SHAs.
-- The dedicated v20 workflow now includes the seven-stage failure-recovery suite in addition to migration-helper, M2M, historical-parity and Drift lifecycle tests.
+- Exact code candidate after the full D01–D05 test authoring wave: `d0c4c90ffd4aa8a62c948123b3a799cfbe471673`. Current CI runs on this SHA: Build `43584316965`, COMMAND 07-A.2.80-D `43584317136`, Device Smoke `43584317383`, Follow-up Persistence `43584316946`, SQLite Snapshot `43584316958`. Build/Follow-up were PENDING and the dedicated/Device/Snapshot jobs QUEUED at last poll; no result is transferable from older SHAs.
+- D02 and D03 now have separate acceptance tests; D04 has a separate physical SQLite file-copy/restore test against a migrated v20 file; D05 has seven separate injected lifecycle failure cases. The dedicated v20 workflow runs all suites even when one fails and retains per-suite logs.
 - Drift 2.35.0 source inspection confirms `_runMigrations` awaits `user.beforeOpen(...)` before calling `DynamicVersionDelegate.setSchemaVersion(currentVersion)`; this validates the lifecycle failure seam's target boundary. The application uses `QueryExecutorUser.beforeOpen` rather than a generated `MigrationStrategy.onCreate/onUpgrade` class.
 - The two Notebook failures in Build test-1 also occurred on the exact base SHA `310c0e20e3447c488c1e1c102c38bea5040708ca`; both the Notebook page and test file have identical blob SHAs on the PR branch and base. They are inherited base failures, not SQLite PR changes; leave them untouched in this migration lane and keep them visible as upstream Build blockers.
 
 ---
-
-## COMMAND 07-A.2.80-D — live SQLite v20 execution checkpoint — 2026-11-14 13:21 +03:30
 
 ## COMMAND 07-A.2.80-D — live SQLite v20 execution checkpoint — 2026-11-14 13:21 +03:30
 
@@ -51,8 +47,16 @@
 | D04 Physical SQLite Backup / Restore | BLOCKED | Physical file-copy/restore test authored against migrated v20; not yet executed. |
 | D05 Atomicity / Rollback / Recovery | BLOCKED | Seven lifecycle injection stages authored; not yet executed. |
 
-### Remaining product integration gaps
-CenterStore, ProjectStore, TaskStore, Category operations, selectors, Home/Calendar/Reports filters and production Backup/Restore have not yet been proven to consume the new canonical join relations end-to-end. The migration being present does not mean repository integration is complete. Keep `project_items`, `projects.center_id`, `taxonomy_categories` and unresolved evidence until consumers and D01–D05 are accepted.
+### Repository integration audit — read-only findings on the same source tree
+
+- `CenterStore.delete` still counts `projects.center_id`; it does not query `center_projects`.
+- `ProjectStore.load/save` still represents one `centerId`, reads/writes `projects.center_id`, and rebuilds `projects`/ `project_items`. It does not read or write `center_projects` or `project_categories`. Its `DELETE FROM projects` path will conflict with the new `ON DELETE RESTRICT` Center–Project edges once those edges exist; this is a concrete integration blocker, not a hypothetical style issue.
+- `ProjectPlan` still exposes a single nullable `centerId`, not a collection of Center links.
+- `Task` currently has a `centerId` snapshot but no canonical `projectId` / `categoryId` fields. `TaskStore._insertNewTask` does not write the new `tasks.center_id/project_id/category_id` columns, and `_writeRelations` does not persist these hierarchy links.
+- Task category CRUD still uses `taxonomy_categories` and Task text; no dedicated CategoryStore or Project↔Category writer was found in the source tree.
+- Existing product backup code remains a JSON-oriented export/import path. The new D04 test proves a physical SQLite file copy/restore in tests, but does not yet add a production physical-backup action.
+
+These findings define the next Canonical Repository Integration wave. Do not delete or rewrite `project_items`, `projects.center_id`, `taxonomy_categories` or legacy evidence until the canonical stores and all consumers are migrated and parity is proven.
 
 **Safety:** Main unchanged. No merge, release, deployment, production database migration, destructive cleanup or NIRA change.
 
