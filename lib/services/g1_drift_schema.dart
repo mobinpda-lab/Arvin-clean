@@ -319,9 +319,13 @@ class G1DriftSchema implements QueryExecutorUser {
       if (!projectColumns.any((row) => row['name'] == 'legacy_payload_json')) {
         await executor.runCustom('ALTER TABLE projects ADD COLUMN legacy_payload_json TEXT NULL');
       }
-      await migrateTaskPeople(executor);
       await _removeLegacyTaskReminderMarker(executor);
+      // Import the canonical People directory before Task-person snapshots.
+      // Otherwise migrateTaskPeople could create a placeholder row first and
+      // INSERT OR IGNORE would preserve its synthetic timestamps/name instead
+      // of the historical canonical Person record.
       await migrateCanonicalEntities(executor);
+      await migrateTaskPeople(executor);
       await _retireLegacyTaskColumns(executor);
       await OccurrenceSqlCodec.migrateLegacyEnvelopes(executor);
       await RecurrenceSqlCodec.migrateLegacyRules(executor);
