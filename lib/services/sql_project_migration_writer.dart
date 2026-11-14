@@ -44,6 +44,7 @@ class SqlProjectMigrationWriter {
           <Object?>[entry.project.id],
         );
         if (existing.isNotEmpty) {
+          await _ensureCanonicalRelations(executor, entry.project);
           await _assertProjectParity(executor, entry.project, entry.source, ordinal);
           skippedExisting++;
           continue;
@@ -60,6 +61,7 @@ class SqlProjectMigrationWriter {
             entry.project.templateNameSnapshot, jsonEncode(entry.source),
           ],
         );
+        await _ensureCanonicalRelations(executor, entry.project);
         for (var itemOrdinal = 0; itemOrdinal < entry.project.itemIds.length; itemOrdinal++) {
           await executor.runInsert(
             'INSERT INTO project_items (project_id, task_id, ordinal) VALUES (?, ?, ?)',
@@ -107,6 +109,28 @@ class SqlProjectMigrationWriter {
       skippedExistingCount: skippedExisting,
       sqlProjectCount: (countRows.single['count'] as num).toInt(),
     );
+  }
+
+  Future<void> _ensureCanonicalRelations(QueryExecutor executor, ProjectPlan project) async {
+    for (final centerId in project.centerIds) {
+      await executor.runInsert(
+        'INSERT OR IGNORE INTO center_projects (center_id, project_id) VALUES (?, ?)',
+        <Object?>[centerId, project.id],
+      );
+    }
+    for (final categoryId in project.categoryIds) {
+      final category = await executor.runSelect(
+        'SELECT id FROM categories WHERE id = ?',
+        <Object?>[categoryId],
+      );
+      if (category.isEmpty) {
+        throw StateError('Project ${project.id} references unknown Category $categoryId.');
+      }
+      await executor.runInsert(
+        'INSERT OR IGNORE INTO project_categories (project_id, category_id) VALUES (?, ?)',
+        <Object?>[project.id, categoryId],
+      );
+    }
   }
 
   Future<void> _assertProjectParity(
