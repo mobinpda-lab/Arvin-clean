@@ -53,7 +53,7 @@ class _NotebookPageState extends State<NotebookPage> {
     final manualTitle = note.title.trim();
     if (manualTitle.isNotEmpty) return manualTitle;
     final firstLine = note.description
-        .split('\\n')
+        .split('\n')
         .map((line) => line.trim())
         .firstWhere((line) => line.isNotEmpty, orElse: () => '');
     return firstLine.isEmpty ? 'یادداشت بدون عنوان' : firstLine;
