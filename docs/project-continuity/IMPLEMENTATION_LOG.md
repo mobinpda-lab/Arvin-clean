@@ -1,3 +1,24 @@
+## 2026-11-14 — COMMAND 07-A.2.80-D SQLite v20 lifecycle and parity wave
+
+## 2026-11-14 — COMMAND 07-A.2.80-D SQLite v20 lifecycle and parity wave
+
+- Reconciled live refs: Main remained `45e4202b03a434459e4c021a04efa7e8396359db`; PR #3463 remained OPEN / DRAFT / UNMERGED on `rev10-m2m-v19-test-expansion`, based on #3384 at `310c0e20e3447c488c1e1c102c38bea5040708ca`.
+- Diagnosed Build on SHA `035721adb2cc4ccbb631bd4d231e5800e2547854`: three Drift/Matcher `isNull` import ambiguities; tests expecting superseded mandatory single-parent Category ownership; a diagnostic fixture that installed production tables then recreated them; and two Notebook failures outside the PR file diff.
+- Fixed the three import ambiguities by hiding Drift's `isNull` symbol, without removing assertions.
+- Retired `G1HierarchyCandidateSchema`, its single-parent tests and the old miniature diagnostic suite. Replaced them with canonical v20 M2M tests against `G1DriftSchema`, including M2M cardinality, optional Task links, duplicate/orphan rejection, link deletion and physical restore.
+- Corrected base schema FK validation: capture pre-existing v19 FK exceptions before the base transaction and reject only newly introduced violations. This allows historical invalid references to remain intact and be classified by the M2M exception ledger.
+- Reordered canonical entity import so the historical People directory is copied before Task-person snapshots; otherwise a synthetic placeholder could win via `INSERT OR IGNORE` and lose original name/timestamps.
+- Added optional deterministic failure injection to the existing migration and canonical Drift lifecycle. No alternate initializer or migration was added.
+- Added an independent v19 historical fixture and parity checks for Center, Project, Task, legacy project_items, Category catalog, Tags, Person, Task-person links, multi-step Follow-ups, Follow-up-person links, Reminder, metadata, NULL/FALSE/TRUE, ambiguous relationships and invalid references.
+- Added a physical SQLite backup/restore test that copies the closed migrated v20 database to a separate file and reopens it; no JSON serialization is used for D04.
+- Added seven lifecycle failure tests: before migration, after each junction table, after relationship transfer, during FK validation, before marker insertion and after migration commit but before Drift version registration.
+- Updated the existing optional-relationship workflow to execute canonical migration, M2M, historical parity, failure recovery and lifecycle suites on an exact target SHA.
+- Synchronized the REV10 M2M decision and ADR into the execution branch's canonical governance documents. Historical single-parent statements are explicitly SUPERSEDED.
+- CI on SHA `035721a...` showed Follow-up Persistence and Snapshot PASS, but Build failed; those results do not transfer. New exact-SHA workflows after code/documentation updates must complete before any acceptance claim.
+- No Main writes, merge, release, deployment, NIRA changes, test skipping or assertion weakening.
+
+---
+
 ## 2026-11-05 — Home test-2 regression diagnosis
 
 - Historical test-2 failure on SHA 9d073ad: Home owner-reference test used an exact finder for the Jalali date alone, but the active Home header renders weekday + date together in one Text widget. It also expected the superseded Category label «دسته‌بندی‌ها».
