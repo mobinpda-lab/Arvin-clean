@@ -440,6 +440,22 @@ void main() {
         ),
         throwsA(anything),
       );
+      await fixture.database.runDelete(
+        'DELETE FROM project_categories WHERE category_id = ?',
+        const ['category-a'],
+      );
+      await _insertTask(
+        fixture.database,
+        'task-direct-category-reference',
+        categoryId: 'category-a',
+      );
+      await expectLater(
+        fixture.database.runDelete(
+          'DELETE FROM categories WHERE id = ?',
+          const ['category-a'],
+        ),
+        throwsA(anything),
+      );
       expect(
         await fixture.database.runSelect('PRAGMA foreign_key_check', const []),
         isEmpty,
