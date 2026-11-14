@@ -215,7 +215,7 @@ PROPOSED = candidate only; APPROVED = explicit owner decision; IN_PROGRESS = wor
 - UI text everywhere uses Vazirmatn only. No Amiri, system serif, Naskh font, secondary family or text fallback is allowed.
 - Bismillah in Home and Tafweez in Calendar are dedicated transparent SVG path artworks, navy #1A2B4C, not text widgets; each has one accessible semantic label and no duplicate screen-reader announcement.
 - Exact approved reference images are required for final calligraphy approval. If unavailable, matching is NOT VERIFIED; do not claim a guessed design matches.
-- Home taxonomy order: Center > Project > Category > Task. Filter controls use checkboxes; selections within one dimension are OR, dimensions combine with AND. Time filter prioritizes Overdue.
+- Home taxonomy display order: Center > Project > Category > Task (display order only; not parent cardinality). The current global filter dimension order is Time → Center → Project → Category → Tag. Filter controls use checkboxes; selections within one dimension are OR, dimensions combine with AND. Time filter prioritizes Overdue.
 - Calendar retains three separate layers: view-mode/navigation, date-grid selection/projection, and selected-date agenda/content projection. Persistence and source filters remain separate.
 - PR #3052 remains OPEN/DRAFT/UNMERGED; main untouched; release NO-GO.
 
