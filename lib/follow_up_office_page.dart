@@ -443,7 +443,7 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
                         : 'هنوز پیگیری‌ای ثبت نشده است',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: ArvinColors.textSecondary,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
                 )
@@ -504,7 +504,7 @@ class _FollowUpOfficePageState extends State<FollowUpOfficePage> {
                             const SizedBox(height: 8),
                             Text(
                                _dateTime(row.dateTime),
-                               style: const TextStyle(color: ArvinColors.textSecondary, fontWeight: FontWeight.w600),
+                               style: const TextStyle(color: ArvinColors.textSecondary, fontWeight: FontWeight.w400),
                              ),
                             if (row.followUp.personIds.isNotEmpty) ...[
                               const SizedBox(height: 6),

@@ -36,7 +36,7 @@ class StartupCrashScreen extends StatelessWidget {
                     style: TextStyle(
                       color: Colors.red.shade900,
                       fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
                   const SizedBox(height: 16),

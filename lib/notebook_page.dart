@@ -970,7 +970,7 @@ class _NotebookFilterChip extends StatelessWidget {
                 label,
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
                       color: selected ? accent : ArvinColors.textPrimary,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
                     ),
               ),
               const SizedBox(width: 4),

@@ -286,7 +286,7 @@ class _CalendarPageState extends State<CalendarPage> {
             textStyle: WidgetStatePropertyAll(
               TextStyle(
                 fontSize: 12,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),
@@ -578,7 +578,7 @@ class _CalendarPageState extends State<CalendarPage> {
           Text(
             _dateFormatter.toPersianDigits('${jalali.day}'),
             style: Theme.of(context).textTheme.titleLarge
-                ?.copyWith(fontWeight: FontWeight.w800),
+                ?.copyWith(fontWeight: FontWeight.w700),
           ),
           const Spacer(),
           Container(
@@ -1151,7 +1151,7 @@ class _DateTier extends StatelessWidget {
             value,
             maxLines: 1,
             style: (prominent ? theme.textTheme.titleMedium : theme.textTheme.bodySmall)
-                ?.copyWith(fontWeight: prominent ? FontWeight.w800 : FontWeight.w500),
+                ?.copyWith(fontWeight: prominent ? FontWeight.w700 : FontWeight.w500),
           ),
         ),
       ],

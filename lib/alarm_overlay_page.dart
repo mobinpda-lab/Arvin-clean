@@ -400,7 +400,7 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
               side: BorderSide(color: foreground, width: 1.5),
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
               textStyle: textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w500,
               ),
             )
           : FilledButton.styleFrom(
@@ -408,7 +408,7 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
               foregroundColor: foreground,
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
               textStyle: textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w500,
               ),
             );
       return Semantics(
@@ -507,7 +507,7 @@ class _AlarmOverlayPageState extends State<AlarmOverlayPage> {
                           textAlign: TextAlign.left,
                           style: textTheme.headlineSmall?.copyWith(
                                         fontSize: 27,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w700,
                             color: const Color(0xFF25243A),
                           ),
                         ),
