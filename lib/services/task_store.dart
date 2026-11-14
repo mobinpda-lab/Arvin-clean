@@ -518,6 +518,7 @@ class TaskStore {
       final applicationCenterId = templateCenterId ??
           (project.centerIds.length == 1 ? project.centerIds.single : null);
       if (applicationCenterId == null ||
+          project.centerIds.length != 1 ||
           !project.centerIds.contains(applicationCenterId) ||
           project.templateId == null) {
         throw ArgumentError('Template generation requires an explicitly linked application Center and Template identity.');
