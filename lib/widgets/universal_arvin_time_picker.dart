@@ -381,7 +381,7 @@ class _UniversalArvinTimePickerDialogState
       selectedColor: Theme.of(context).colorScheme.secondaryContainer,
       labelStyle: TextStyle(
         color: selected ? Theme.of(context).colorScheme.primary : ArvinColors.textSecondary,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w500,
       ),
       side: BorderSide(
         color: selected ? Theme.of(context).colorScheme.primary : ArvinColors.border,
@@ -522,7 +522,7 @@ class _ClockFace extends StatelessWidget {
                     display,
                     style: TextStyle(
                       color: isSelected ? Colors.white : Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
                       fontSize: 11,
                     ),
                   ),
