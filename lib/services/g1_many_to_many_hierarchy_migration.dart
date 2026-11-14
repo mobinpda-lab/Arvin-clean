@@ -234,7 +234,17 @@ class G1ManyToManyHierarchyMigration {
       }
 
       await _installTaskCompatibilityTriggers(executor);
-      final violations = await executor.runSelect('PRAGMA foreign_key_check', const []);
+      // Check only relations introduced or rewritten by this migration.
+      // Historical projects.center_id violations are retained as evidence and
+      // are classified in the exception ledger; they must not be silently
+      // deleted or make an otherwise reversible migration lose source data.
+      final violations = <QueryRow>[];
+      for (final table in ['center_projects', 'project_categories', 'tasks']) {
+        violations.addAll(await executor.runSelect(
+          'PRAGMA foreign_key_check($table)',
+          const [],
+        ));
+      }
       if (violations.isNotEmpty) {
         throw StateError('REV10 v19→v20 foreign-key check failed: $violations');
       }
