@@ -2,8 +2,10 @@ class ProjectPlan {
   ProjectPlan({
     required this.id,
     required this.title,
-    this.colorValue = 0xFF087F8C,
-    this.isArchived = false,
+    int? colorValue,
+    bool? isArchived,
+    bool? colorValueSpecified,
+    bool? isArchivedSpecified,
     String? centerId,
     Iterable<String>? centerIds,
     Iterable<String>? categoryIds,
@@ -16,7 +18,11 @@ class ProjectPlan {
     Iterable<String>? itemIds,
     bool? itemIdsSpecified,
     Map<String, dynamic> legacyFields = const {},
-  })  : centerIds = _stableIds(centerIds ?? (centerId == null ? const [] : [centerId])),
+  })  : colorValue = colorValue ?? 0xFF087F8C,
+        colorValueSpecified = colorValueSpecified ?? colorValue != null,
+        isArchived = isArchived ?? false,
+        isArchivedSpecified = isArchivedSpecified ?? isArchived != null,
+        centerIds = _stableIds(centerIds ?? (centerId == null ? const [] : [centerId])),
         centerRelationshipsSpecified = centerRelationshipsSpecified ?? (centerIds != null || centerId != null),
         categoryIds = _stableIds(categoryIds ?? const []),
         categoryRelationshipsSpecified = categoryRelationshipsSpecified ?? (categoryIds != null),
@@ -34,7 +40,9 @@ class ProjectPlan {
   final String id;
   final String title;
   final int colorValue;
+  final bool colorValueSpecified;
   final bool isArchived;
+  final bool isArchivedSpecified;
 
   /// Canonical in-memory projection of the SQL center_projects relation.
   final List<String> centerIds;
@@ -91,6 +99,8 @@ class ProjectPlan {
       title: title ?? this.title,
       colorValue: colorValue ?? this.colorValue,
       isArchived: isArchived ?? this.isArchived,
+      colorValueSpecified: colorValue != null ? true : colorValueSpecified,
+      isArchivedSpecified: isArchived != null ? true : isArchivedSpecified,
       centerIds: nextCenters,
       categoryIds: replaceCategoryIds ? categoryIds ?? const [] : categoryIds ?? this.categoryIds,
       centerRelationshipsSpecified: replaceCenterIds || clearCenterId || centerId != null || centerIds != null
@@ -130,7 +140,9 @@ class ProjectPlan {
           other.id == id &&
           other.title == title &&
           other.colorValue == colorValue &&
+          other.colorValueSpecified == colorValueSpecified &&
           other.isArchived == isArchived &&
+          other.isArchivedSpecified == isArchivedSpecified &&
           _same(centerIds, other.centerIds) &&
           _same(categoryIds, other.categoryIds) &&
           other.centerRelationshipsSpecified == centerRelationshipsSpecified &&
@@ -145,7 +157,7 @@ class ProjectPlan {
 
   @override
   int get hashCode => Object.hash(
-        id, title, colorValue, isArchived,
+        id, title, colorValue, colorValueSpecified, isArchived, isArchivedSpecified,
         Object.hashAll(centerIds), Object.hashAll(categoryIds),
         centerRelationshipsSpecified, categoryRelationshipsSpecified,
         templateId, templateIdSpecified, templateNameSnapshot,
