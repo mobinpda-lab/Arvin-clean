@@ -188,6 +188,24 @@ void main() {
       await _insertTask(fixture.database, 'task-tag-only');
       await _insertTask(
         fixture.database,
+        'task-center-project',
+        centerId: 'center-a',
+        projectId: 'project-a',
+      );
+      await _insertTask(
+        fixture.database,
+        'task-project-category',
+        projectId: 'project-a',
+        categoryId: 'category-a',
+      );
+      await _insertTask(
+        fixture.database,
+        'task-center-category',
+        centerId: 'center-a',
+        categoryId: 'category-a',
+      );
+      await _insertTask(
+        fixture.database,
         'task-full',
         centerId: 'center-a',
         projectId: 'project-a',
@@ -202,11 +220,13 @@ void main() {
 
       final rows = await fixture.database.runSelect(
         '''SELECT id, center_id, project_id, category_id FROM tasks
-           WHERE id IN ('task-none', 'task-center', 'task-project', 'task-category', 'task-tag-only', 'task-full')
+           WHERE id IN ('task-none', 'task-center', 'task-project', 'task-category',
+                         'task-tag-only', 'task-center-project', 'task-project-category',
+                         'task-center-category', 'task-full')
            ORDER BY id''',
         const [],
       );
-      expect(rows, hasLength(6));
+      expect(rows, hasLength(9));
       final none = rows.singleWhere((row) => row['id'] == 'task-none');
       expect(none['center_id'], isNull);
       expect(none['project_id'], isNull);
@@ -224,6 +244,51 @@ void main() {
       expect(await fixture.database.runSelect('PRAGMA foreign_key_check', const []), isEmpty);
     } finally {
       await fixture.database.close();
+      await fixture.directory.delete(recursive: true);
+    }
+  });
+
+  test('canonical M2M links and Task direct assignments survive ordinary database reopen', () async {
+    final fixture = await _openCanonicalFixture();
+    final file = fixture.file;
+    await _insertTask(
+      fixture.database,
+      'task-reopen',
+      centerId: 'center-b',
+      projectId: 'project-a',
+      categoryId: 'category-a',
+    );
+    await fixture.database.runInsert(
+      'INSERT INTO task_tags(task_id, tag_id, ordinal) VALUES (?, ?, ?)',
+      const ['task-reopen', 'tag-b', 0],
+    );
+    await fixture.database.close();
+
+    final reopened = NativeDatabase(file);
+    try {
+      await G1DriftSchema.install(reopened);
+      expect(
+        await reopened.runSelect('SELECT * FROM center_projects ORDER BY center_id, project_id', const []),
+        hasLength(3),
+      );
+      expect(
+        await reopened.runSelect('SELECT * FROM project_categories ORDER BY project_id, category_id', const []),
+        hasLength(3),
+      );
+      expect(
+        await reopened.runSelect(
+          'SELECT center_id, project_id, category_id FROM tasks WHERE id = ?',
+          const ['task-reopen'],
+        ),
+        [{'center_id': 'center-b', 'project_id': 'project-a', 'category_id': 'category-a'}],
+      );
+      expect(
+        await reopened.runSelect('SELECT tag_id FROM task_tags WHERE task_id = ?', const ['task-reopen']),
+        [{'tag_id': 'tag-b'}],
+      );
+      expect(await reopened.runSelect('PRAGMA foreign_key_check', const []), isEmpty);
+    } finally {
+      await reopened.close();
       await fixture.directory.delete(recursive: true);
     }
   });
