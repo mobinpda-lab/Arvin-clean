@@ -190,7 +190,12 @@ void main() {
     final title = tester.widget<TextField>(
       find.byKey(const ValueKey('notebook-title')),
     );
-    expect(title.controller?.text, 'یادداشت جدید');
+    expect(title.controller?.text, isEmpty);
+    final body = tester.widget<TextField>(
+      find.byKey(const ValueKey('notebook-description')),
+    );
+    expect(body.focusNode?.hasFocus, isTrue);
+    expect(tester.testTextInput.isVisible, isTrue);
     expect(find.byKey(const ValueKey('notebook-category-picker')), findsOneWidget);
     expect(find.byKey(const ValueKey('notebook-inline-tools')), findsOneWidget);
     expect(find.byKey(const ValueKey('notebook-inline-number')), findsOneWidget);
@@ -200,6 +205,86 @@ void main() {
     final notes = await repository.loadNotes();
     expect(notes, hasLength(1));
     expect(notes.single.checklist, isEmpty);
+  });
+
+  testWidgets('Fast Capture derives its display title from the first body line without moving text', (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 8, 27, 7, 15));
+    await pumpNotebook(tester, repository);
+    await tester.tap(find.byKey(const ValueKey('notebook-create')));
+    await tester.pumpAndSettle();
+
+    const bodyText = 'عنوان مشتق\nخط دوم\nخط سوم';
+    await tester.enterText(
+      find.byKey(const ValueKey('notebook-description')),
+      bodyText,
+    );
+    await tester.pump(const Duration(milliseconds: 500));
+
+    var notes = await repository.loadNotes();
+    expect(notes, hasLength(1));
+    expect(notes.single.title, isEmpty);
+    expect(notes.single.description, bodyText);
+
+    await tester.tap(find.byKey(const ValueKey('notebook-editor-back')));
+    await tester.pumpAndSettle();
+    expect(find.text('عنوان مشتق'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('notebook-note-${notes.single.id}')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('notebook-description')),
+      'عنوان تازه\nخط دوم باقی است',
+    );
+    await tester.pump(const Duration(milliseconds: 500));
+
+    notes = await repository.loadNotes();
+    expect(notes.single.title, isEmpty);
+    expect(notes.single.description, 'عنوان تازه\nخط دوم باقی است');
+    await tester.tap(find.byKey(const ValueKey('notebook-editor-back')));
+    await tester.pumpAndSettle();
+    expect(find.text('عنوان تازه'), findsOneWidget);
+  });
+
+  testWidgets('Fast Capture keeps a manual title above the derived first line', (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 8, 27, 7, 20));
+    await pumpNotebook(tester, repository);
+    await tester.tap(find.byKey(const ValueKey('notebook-create')));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const ValueKey('notebook-description')),
+      'متن اصلی\nادامه متن',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('notebook-title')),
+      'عنوان دستی',
+    );
+    await tester.pump(const Duration(milliseconds: 500));
+
+    final note = (await repository.loadNotes()).single;
+    expect(note.title, 'عنوان دستی');
+    expect(note.description, 'متن اصلی\nادامه متن');
+    await tester.tap(find.byKey(const ValueKey('notebook-editor-back')));
+    await tester.pumpAndSettle();
+    expect(find.text('عنوان دستی'), findsOneWidget);
+    expect(find.text('متن اصلی'), findsWidgets);
+  });
+
+  testWidgets('Fast Capture accepts empty content without forcing a title or duplicate note', (tester) async {
+    final repository = repositoryAt(DateTime.utc(2026, 8, 27, 7, 25));
+    await pumpNotebook(tester, repository);
+    await tester.tap(find.byKey(const ValueKey('notebook-create')));
+    await tester.pumpAndSettle();
+
+    final created = await repository.loadNotes();
+    expect(created, hasLength(1));
+    expect(created.single.title, isEmpty);
+    expect(created.single.description, isEmpty);
+
+    await tester.tap(find.byKey(const ValueKey('notebook-editor-back')));
+    await tester.pumpAndSettle();
+    expect(find.text('یادداشت بدون عنوان'), findsOneWidget);
+    expect(await repository.loadNotes(), hasLength(1));
   });
 
   testWidgets('inline tools insert and continue number tick checklist text', (tester) async {
