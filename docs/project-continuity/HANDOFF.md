@@ -1,3 +1,31 @@
+## COMMAND 07-A.2.80-D — next-agent handoff — 2026-11-14
+
+## COMMAND 07-A.2.80-D — next-agent handoff — 2026-11-14
+
+### First actions
+1. Re-fetch Main, PR #3463, branch HEAD and Base SHA. The SHA recorded in this handoff is a checkpoint, not a substitute for live verification.
+2. Poll Build, Analyze, Device Smoke, Follow-up Persistence, SQLite Snapshot and the dedicated COMMAND 07-A.2.80-D workflow on the same exact SHA. Inspect failing job logs and artifacts.
+3. Run the dedicated v20 workflow suites: migration helper, canonical M2M acceptance, historical v19 parity, failure recovery and G1 Drift lifecycle.
+4. If historical parity fails, fix production migration behavior or fixture schema only with source evidence; do not weaken parity assertions.
+5. If any injected failure leaves a partial state, correct transaction boundaries and prove recovery/retry.
+6. Re-run the physical SQLite restore test after migration and compare the restored file with the migrated source.
+7. Only after D01–D05 pass, continue Canonical Repository Integration across CenterStore, ProjectStore, TaskStore, Category operations, selectors, Entity Management, Home/Calendar/Reports, Search and Backup/Restore.
+8. Keep legacy tables/columns and unresolved evidence until every consumer and exact-SHA gate is accepted.
+
+### Live governance boundary at last reconciliation
+- Arvin Main: `45e4202b03a434459e4c021a04efa7e8396359db`; read-only.
+- PR #3463: OPEN / DRAFT / UNMERGED; branch `rev10-m2m-v19-test-expansion`; code candidate before documentation synchronization `0408486fd50a04648e405f82cdf8b906c3e53977`.
+- PR #3384 remains OPEN / DRAFT / UNMERGED and is the base dependency.
+- PR #3448 remains OPEN / DRAFT / UNMERGED and is the REV10 documentation source.
+- PRs #3459–#3462 are CLOSED / UNMERGED; preserve their history and do not merge them separately.
+- NIRA Main `7a27ee63b65d343e45c5786f782f2567611722dc`; separate factory. No NIRA changes in this wave.
+- D01–D05 remain BLOCKED until exact-SHA execution evidence is complete.
+
+### Non-negotiable
+No Main merge, release, deployment, history rewrite, deletion of historical refs, production database migration or NIRA runtime dependency. Keep one canonical SQL implementation per domain.
+
+---
+
 # REV8 NEXT-AGENT HANDOFF — 2026-11-10
 
 ## First actions
