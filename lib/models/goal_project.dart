@@ -162,7 +162,7 @@ class ProjectPlan {
         centerRelationshipsSpecified, categoryRelationshipsSpecified,
         templateId, templateIdSpecified, templateNameSnapshot,
         templateNameSnapshotSpecified, Object.hashAll(itemIds), itemIdsSpecified,
-        Object.hashAll(legacyFields.entries.map((entry) => Object.hash(entry.key, entry.value))),
+        _deepHash(legacyFields),
       );
 
   static bool _same(List<String> a, List<String> b) =>
@@ -171,9 +171,37 @@ class ProjectPlan {
   static bool _mapSame(Map<String, dynamic> a, Map<String, dynamic> b) {
     if (a.length != b.length) return false;
     for (final entry in a.entries) {
-      if (!b.containsKey(entry.key) || b[entry.key] != entry.value) return false;
+      if (!b.containsKey(entry.key) || !_deepEquals(b[entry.key], entry.value)) return false;
     }
     return true;
+  }
+
+  static bool _deepEquals(Object? a, Object? b) {
+    if (identical(a, b)) return true;
+    if (a is Map && b is Map) {
+      if (a.length != b.length) return false;
+      for (final key in a.keys) {
+        if (!b.containsKey(key) || !_deepEquals(a[key], b[key])) return false;
+      }
+      return true;
+    }
+    if (a is List && b is List) {
+      if (a.length != b.length) return false;
+      for (var i = 0; i < a.length; i++) {
+        if (!_deepEquals(a[i], b[i])) return false;
+      }
+      return true;
+    }
+    return a == b;
+  }
+
+  static int _deepHash(Object? value) {
+    if (value is Map) {
+      final keys = value.keys.toList()..sort((a, b) => a.toString().compareTo(b.toString()));
+      return Object.hashAll(keys.map((key) => Object.hash(key, _deepHash(value[key]))));
+    }
+    if (value is List) return Object.hashAll(value.map(_deepHash));
+    return value.hashCode;
   }
 }
 
