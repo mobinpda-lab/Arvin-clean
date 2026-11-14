@@ -16,6 +16,35 @@ Future<void> _seedCategory(NativeDatabase db, String id) async {
        VALUES (?, ?, NULL, 0, 0, '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z')''',
     <Object?>[id, id],
   );
+  test('explicit collection snapshot removes only unreferenced omitted Projects', () async {
+    final db = NativeDatabase.memory();
+    addTearDown(db.close);
+    final store = ProjectStore(executor: db);
+    await store.save([
+      ProjectPlan(id: 'keep', title: 'ماندگار'),
+      ProjectPlan(id: 'remove', title: 'حذف صریح'),
+    ]);
+
+    await store.saveCollection([ProjectPlan(id: 'keep', title: 'ماندگار')]);
+
+    expect((await store.load()).map((project) => project.id), ['keep']);
+  });
+
+  test('collection removal refuses Projects with historical Task membership', () async {
+    final db = NativeDatabase.memory();
+    addTearDown(db.close);
+    final tasks = TaskStore(executor: db);
+    await tasks.save([Task(id: 'task-a', title: 'کار')]);
+    final store = ProjectStore(executor: db);
+    await store.save([
+      ProjectPlan(id: 'referenced', title: 'دارای سابقه', itemIds: const ['task-a']),
+    ]);
+
+    await expectLater(store.saveCollection(const <ProjectPlan>[]), throwsA(isA<ProjectDeleteBlocked>()));
+    expect((await store.load()).single.id, 'referenced');
+    expect((await tasks.load()).single.id, 'task-a');
+  });
+
 }
 
 void main() {
