@@ -866,7 +866,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[Icon(icon, size: 14, color: color), const SizedBox(width: 4)],
-          Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w800)),
+          Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w500)),
         ],
       ),
     );
@@ -904,7 +904,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             style: const TextStyle(
               
               fontSize: 16,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ),
@@ -926,7 +926,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             maxLines: 2,
             enabled: widget.onTaskChanged != null,
             onChanged: _saveTitleImmediately,
-            style: const TextStyle(color: Colors.white, fontSize: 21, fontWeight: FontWeight.w800),
+            style: const TextStyle(color: Colors.white, fontSize: 21, fontWeight: FontWeight.w700),
             decoration: const InputDecoration(
               hintText: 'عنوان کار',
               hintStyle: TextStyle(color: Colors.white70),
@@ -1176,7 +1176,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               Text(
                 '$completed/${items.length}',
                 key: const ValueKey('task-detail-checklist-progress'),
-                style: const TextStyle(color: _muted, fontSize: 12, fontWeight: FontWeight.w800),
+                style: const TextStyle(color: _muted, fontSize: 12, fontWeight: FontWeight.w500),
               ),
             ],
           ),
@@ -1349,7 +1349,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   ? latest.title!.trim()
                   : (latest.note.trim().isEmpty ? 'پیگیری' : latest.note.trim()),
               key: const ValueKey('task-detail-latest-followup-title'),
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             ),
             if (latest.title?.trim().isNotEmpty == true && latest.note.trim().isNotEmpty) ...[
               const SizedBox(height: 4),
@@ -1448,7 +1448,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   followUp.title?.trim().isNotEmpty == true
                       ? followUp.title!.trim()
                       : (followUp.note.trim().isEmpty ? 'پیگیری' : followUp.note.trim()),
-                  style: const TextStyle(fontWeight: FontWeight.w800),
+                  style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
                 if (followUp.title?.trim().isNotEmpty == true && followUp.note.trim().isNotEmpty) ...[
                   const SizedBox(height: 3),
@@ -1942,7 +1942,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                     
                     color: _muted,
                     fontSize: 10,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
                 Text(
