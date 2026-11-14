@@ -100,6 +100,9 @@ class ProjectTemplateService {
     for (final item in templates) { if (item.id == templateId) { template = item; break; } }
     if (template == null || template.isArchived) throw StateError('قالب فعال پیدا نشد.');
     final selectedTemplate = template;
+    // Complete the canonical Project migration before the cross-store transaction
+    // delegates its Project row write to ProjectStore.
+    await projectStore.load();
     final centers = await centerStore.load(includeArchived: false);
     final created = <String>[], duplicates = <String>[];
     final failed = <String, String>{};
