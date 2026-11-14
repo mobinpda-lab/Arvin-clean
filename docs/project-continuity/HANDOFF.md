@@ -3,12 +3,10 @@
 - Latest code candidate before this documentation refresh: `d0c4c90ffd4aa8a62c948123b3a799cfbe471673`. Current CI: Build `43584316965`, D-v20 `43584317136`, Follow-up `43584316946`, Snapshot `43584316958`, Device Smoke `43584317383`; queued/pending at last poll. Re-fetch the live PR head after the documentation commit before testing.
 - Drift 2.35.0 source order was verified: `beforeOpen` returns before Drift calls `setSchemaVersion`. The failure-injection test covers the post-migration-commit / pre-version-registration boundary.
 - Two Notebook failures are inherited: Notebook page and test file blob SHAs are identical on #3463 and base #3384 SHA `310c0e20e3447c488c1e1c102c38bea5040708ca`; base Build test-1 also failed on that base. Do not mix those unrelated failures into the SQLite migration root cause.
-- Poll exact-SHA Build, dedicated D-v20, Follow-up Persistence, SQLite Snapshot and Device Smoke. The last observed runs on `5764d4a...` were queued/pending.
+- Poll exact-SHA Build `43584316965`, dedicated D-v20 `43584317136`, Follow-up Persistence `43584316946`, SQLite Snapshot `43584316958` and Device Smoke `43584317383` on `d0c4c90...`; all were queued/pending at last poll.
 - D02/D03 are now independent tests; D04 physical restore and D05 seven-stage failure recovery are authored but not yet executed. No D01–D05 gate is accepted yet.
 
 ---
-
-## COMMAND 07-A.2.80-D — next-agent handoff — 2026-11-14
 
 ## COMMAND 07-A.2.80-D — next-agent handoff — 2026-11-14
 
