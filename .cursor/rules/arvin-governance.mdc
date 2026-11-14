@@ -9,9 +9,9 @@ This is a thin adapter. Do not duplicate the policy.
 
 - Before acting, read root `AGENTS.md`, `AI_CONTINUITY_PROTOCOL.md`, `PROJECT_STATE.md`, then `docs/project-continuity/AI_GOVERNANCE_POLICY.md` and its mandatory reading sequence.
 - Verify live GitHub Main, branch, PR, exact HEAD and checks before claims or writes.
-- Latest explicit Mobin authorization controls scope. Documentation-only is not code permission.
-- Preserve historical decisions; unresolved conflicts remain NEEDS OWNER DECISION.
+- Latest explicit Mobin authorization and REV10 control scope. Continuous development on non-main branches is authorized within REV10 boundaries.
+- Preserve historical decisions; mark replaced decisions SUPERSEDED and genuine open questions UNRESOLVED.
 - SQL is the only durable product source of truth; no parallel durable JSON storage.
-- No direct Main writes, force push, merge, release, test weakening or destructive migration without separate explicit authorization.
+- No direct Main writes, merge, release, deployment, history rewrite or irreversible destructive operation. Never weaken valid tests.
 
 Canonical policy: `docs/project-continuity/AI_GOVERNANCE_POLICY.md`.

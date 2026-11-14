@@ -1,7 +1,8 @@
-# Arvin Project Continuity — REV9
-**Current baseline:** 2026-11-10 · Repository Cleanup WAVE 0
+# Arvin Project Continuity — REV10
+**Current baseline:** 2026-11-13 · REV10 governance reconciliation
 **Main HEAD:** `45e4202b03a434459e4c021a04efa7e8396359db`
-**Documentation PR:** [#3340](https://github.com/mobinpda-lab/Arvin-clean/pull/3340) · OPEN / READY FOR REVIEW / UNMERGED
+**REV9 dependency PR:** [#3340](https://github.com/mobinpda-lab/Arvin-clean/pull/3340) · OPEN / UNMERGED  
+**REV10 branch:** `docs/rev10-master-charter-2026-11-13` · based on REV9 branch HEAD `5bdb451674e6bbe7832f903b1215cbf39608c730`
 **Protected engineering PR:** [#3052](https://github.com/mobinpda-lab/Arvin-clean/pull/3052) · OPEN / DRAFT / UNMERGED
 **Product direction:** LOCAL-FIRST standalone; local SQL sole durable source of truth; multi-device sync SUSPENDED.
 
@@ -15,7 +16,7 @@
 This is the only active cleanup-wave sequence. Preserve historical REV8 engineering waves and REV9 product evolution taxonomy as separately labelled references; do not use them to renumber this program.
 
 ## Current starting points
-1. [MASTER_GOVERNANCE.md](MASTER_GOVERNANCE.md) — REV9 charter; deployed on PR #3340 branch, not yet in Main.
+1. [MASTER_GOVERNANCE.md](MASTER_GOVERNANCE.md) — active REV10 charter; REV9 preserved in [MASTER_GOVERNANCE_REV9_ARCHIVE.md](MASTER_GOVERNANCE_REV9_ARCHIVE.md).
 2. [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) — current owner decisions and historical/superseded records.
 3. [CURRENT_STATE.md](CURRENT_STATE.md) — live baseline pointer plus historical snapshots.
 4. [ROADMAP.md](ROADMAP.md) — official cleanup waves 0–4 and preserved historical roadmaps.
@@ -297,7 +298,12 @@ The latest owner authorization supersedes the earlier read-only Wave 4 checkpoin
 `AGENTS.md`, `AI_CONTINUITY_PROTOCOL.md`, `PROJECT_STATE.md`, `CLAUDE.md`, `GEMINI.md`, `.github/copilot-instructions.md`, `.cursor/rules/arvin-governance.mdc`, `.windsurf/rules/arvin-governance.md` are thin adapters. They point to the single canonical policy; do not maintain parallel policy copies.
 
 ## Current mission boundary
-The REV9 deployment branch is documentation-only. PR #3052 is untouched and remains open/draft/unmerged. No merge or release is authorized.
+REV10 is the active master. PR #3340 remains an unmerged REV9 dependency; PR #3388 is a competing historical v49.1 documentation line and must be reconciled before promotion. Continuous development is authorized on non-main branches. PR #3052 remains untouched unless separately in scope. No merge, release or deployment is authorized.
 
 
 - [AI adapter compatibility assessment](AI_ADAPTER_COMPATIBILITY.md) — agent-specific file paths and Windsurf support status.
+
+
+## REV10 active authority — 2026-11-13
+
+Read REV10 MASTER_GOVERNANCE.md first. REV9 is retained verbatim as a historical archive. PRODUCT_DECISIONS.md records the decision traceability matrix and explicit supersessions. AI_GOVERNANCE_POLICY.md and HANDOFF.md are aligned to the current continuous-development authorization. The live Main branch remains unchanged.

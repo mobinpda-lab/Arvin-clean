@@ -1,0 +1,1215 @@
+<!-- Canonical active charter. Full source transcription from ARVIN_MASTER_PRODUCT_DESIGN_GOVERNANCE_REV9 (1).docx. Do not summarize or delete clauses. -->
+
+# ARVIN — MASTER PRODUCT, DESIGN & GOVERNANCE CHARTER
+
+**Canonical revision:** REV9  
+**Document ID:** ARVIN-MASTER-CHARTER-REV9  
+**Owner:** Mobin — Product Owner & Product Director  
+**Source attachment:** ARVIN_MASTER_PRODUCT_DESIGN_GOVERNANCE_REV9 (1).docx (24 pages)  
+**Deployment base:** main `45e4202b03a434459e4c021a04efa7e8396359db`  
+**Release:** BLOCKED — RELEASE: NO-GO
+
+> REV9 is the active product/governance baseline. This file preserves the complete source text below. Historical REV8 is retained separately at [MASTER_GOVERNANCE_REV8_ARCHIVE.md](MASTER_GOVERNANCE_REV8_ARCHIVE.md). Decision conflicts and live execution state are tracked in PRODUCT_DECISIONS.md, CURRENT_STATE.md and audit/CONFLICT_REGISTER.md.
+
+---
+
+ARVIN — UNIFIED MASTER PRODUCT, DESIGN &
+GOVERNANCE CHARTER
+
+‫ معماری و حاکمیت آروین‬،‫ تجربه کاربری‬،‫سند مادر جامع محصول‬
+Document ID: ARVIN-MASTER-CHARTER-REV9
+
+Revision: REV9 — Unified Product + Follow-up Completeness + Permanent Enterprise UX
+
+Product Owner & Product Director: Mobin
+
+Primary Repository: mobinpda-lab/Arvin-clean
+
+Related Repository: mobinpda-lab/NIRA
+
+Canonical Target: docs/project-continuity/MASTER_GOVERNANCE.md
+
+Authority: Mobin — Final Product Authority
+
+.Release Status: BLOCKED — RELEASE: NO-GO until live evidence and explicit owner approval
+
+ ،‫ حاکمیت تصمیمات‬،‫ معماری داده‬،‫ اصول طراحی دائمی‬،‫ دامنه قابلیت‌ها‬،‫ مرجع مادر تعریف محصول‬،‫این سند‬
+.‫ پیاده‌سازی و تأیید عملیاتی سه وضعیت مستقل‌اند‬،‫ تصویب محصولی‬.‫ توسعه و انتشار آروین است‬،‫ممیزی‬
+
+‫‪ .0‬راهنمای اعتبار و وضعیت‬
+‫برای جلوگیری از تبدیل پیشنهاد به الزام ناخواسته‪ ،‬تمام موارد باید با یکی از وضعیت‌های زیر خوانده شوند‪:‬‬
+
+‫• ‪ / APPROVED‬قطعی‪ :‬تصمیم صریح مبین یا قرارداد قطعی مستند‪.‬‬
+
+‫• ‪ / PRODUCT SCOPE‬دامنه محصول‪ :‬قابلیت متعلق به چشم‌انداز محصول است؛ وضعیت اجرا جداست‪.‬‬
+
+‫• ‪ / PROPOSAL‬پیشنهاد‪ :‬ایده‌ای برای بررسی؛ پیش از تصویب‪ ،‬الزام پیاده‌سازی نیست‪.‬‬
+
+‫• ‪ / NEEDS OWNER DECISION‬نیازمند تصمیم مبین‪ :‬منابع کافی یا قرارداد نهایی موجود نیست‪.‬‬
+
+‫• ‪ / IMPLEMENTED‬پیاده‌سازی‌شده‪ :‬فقط با شواهد سورس قابل ثبت است‪.‬‬
+
+‫• ‪ / VERIFIED‬تأییدشده‪ :‬فقط با تست یا پذیرش معتبر متصل به ‪ SHA‬دقیق قابل ثبت است‪.‬‬
+
+‫• ‪ / HISTORICAL‬تاریخی‪ :‬گزارشی که وضعیت امروز را اثبات نمی‌کند‪.‬‬
+
+‫• ‪ / BLOCKED‬مسدود‪ :‬مانع یا شرط پذیرش باز است‪.‬‬
+
+ ‫قاعده‪ :‬هیچ قابلیت‪ ،‬وضعیت ‪ ،GitHub‬تست‪ ،‬کیفیت ‪ UX‬یا ‪ Release‬بدون مدرک زنده و قابل ردیابی تأییدشده تلقی‬
+‫نمی‌شود‪.‬‬
+
+
+‫بخش اول — هویت و تعریف محصول‬
+‫‪ .1‬تعریف آروین‬
+‫آروین یک سیستم یکپارچه مدیریت تعهدات و پیگیری‌های شخصی و حرفه‌ای است؛ نه صرفًا یک ‪ ،To-Do List‬تقویم‬
+‫یا یادآور‪.‬‬
+
+‫آروین باید به کاربر کمک کند هر موضوع مهم را ثبت کند‪ ،‬ماهیت و وضعیتش را بفهمد‪ ،‬اقدام‌ها و اشخاص مرتبط‬
+ ‫را نگهداری کند‪ ،‬موعد و یادآوری را مدیریت کند‪ ،‬در صورت وابستگی منتظر بماند و دوباره پیگیری کند‪ ،‬نتیجه را‬
+‫ثبت کند و سوابق را برای مراجعه آینده حفظ نماید‪.‬‬
+
+‫چشم‌انداز‬
+‫هیچ تعهد مهمی گم نشود؛ هیچ پیگیری ضروری در بالتکلیفی نماند؛ و هیچ سابقه مهمی بی‌دلیل از بین نرود‪.‬‬
+
+‫تعریف موفقیت‬
+‫کاربر بتواند برای هر موضوع مهم پاسخ دهد‪:‬‬
+
+‫‪ .1‬موضوع چیست؟‬
+
+‫‪ .2‬در چه وضعیتی است؟‬
+
+‫‪ .3‬چه کسی مسئول انجام آن است؟‬
+
+‫‪ .4‬چه کسی آن را ارجاع داده یا منتظر گزارش نتیجه است؟‬
+
+‫‪ .5‬از چه شخص یا نهادی باید اقدام یا پاسخ دریافت شود؟‬
+
+‫‪ .6‬آخرین اقدام چه بوده است؟‬
+
+‫‪ .7‬چه چیزی مانع پیشرفت است؟‬
+
+‫‪ .8‬اقدام بعدی چیست و چه زمانی باید انجام شود؟‬
+
+‫‪ .9‬نتیجه نهایی چه بوده و مدرکش کجاست؟‬
+
+
+‫‪ .2‬قلمرو دوگانه و یکپارچه‬
+‫‪ 2.1‬امور شخصی‬
+ ‫امور روزمره‪ ،‬خانوادگی‪ ،‬اداری‪ ،‬مالی‪ ،‬اقساط‪ ،‬بدهی و مطالبات‪ ،‬خرید و سفارش‪ ،‬تحویل‪ ،‬قرار و نوبت‪،‬‬
+‫برنامه‌ها و اهداف‪ ،‬پرونده‌ها و درخواست‌های شخصی‪.‬‬
+
+‫‪ 2.2‬امور حرفه‌ای‬
+ ‫مشتریان‪ ،‬اشخاص و سازمان‌ها‪ ،‬تماس‌ها و مذاکرات‪ ،‬درخواست‌ها‪ ،‬سفارش‌ها‪ ،‬قراردادها‪ ،‬پروژه‌ها‪ ،‬جلسات و‬
+‫مصوبات‪ ،‬واگذاری کار‪ ،‬تحویل‌ها‪ ،‬تعهدات سازمانی و پیگیری پاسخ‌ها‪.‬‬
+
+‫‪ 2.3‬تجربه یکپارچه‬
+‫• یک فضای کاری و یک هسته مشترک داده و پیگیری‪.‬‬
+
+‫• نماهای شخصی‪ ،‬حرفه‌ای و ترکیبی‪.‬‬
+
+‫• فیلترها و گزارش‌های مجزا یا تجمیعی‪.‬‬
+
+‫• جلوگیری از ایجاد رکوردهای تکراری برای یک شخص یا موضوع‪.‬‬
+
+‫• یک منبع حقیقت داده و یک چرخه پیگیری مشترک‪.‬‬
+
+
+‫‪ .3‬اصول هویتی محصول‬
+‫• جامعیت قابلیت‌ها بدون پیچیدگی غیرضروری‪.‬‬
+
+‫• کاهش بار شناختی و ثبت سریع‪.‬‬
+
+‫• پیگیری تا تعیین تکلیف‪ ،‬نه صرفًا ثبت و تیک‌زدن‪.‬‬
+
+‫• حفظ تاریخچه و قابلیت ردیابی‪.‬‬
+
+‫• استقالل معنایی ‪ Task، Due Date، Reminder، Follow-up‬و ‪.Recurrence‬‬
+
+‫• اعتمادپذیری داده و یادآوری‪.‬‬
+
+‫• فارسی‌محوری‪ RTL ،‬و تقویم شمسی‪.‬‬
+
+‫• سادگی برای استفاده روزانه و عمق برای کار حرفه‌ای‪.‬‬
+
+‫• حفظ قابلیت‌های موجود در هر بازطراحی‪.‬‬
+
+
+‫بخش دوم — مدل مفهومی و چرخه پیگیری‬
+
+‫‪ .4‬هسته مفهومی‪ :‬تعهد‬
+‫‪ — PROPOSAL‬نیازمند تطبیق با ‪ Schema‬و تأیید مبین‬
+
+‫پیشنهاد می‌شود مفهوم «تعهد ‪ »Commitment /‬در زبان محصول نقش مرکزی داشته باشد‪ .‬تعهد می‌تواند به ‪،Task‬‬
+‫موعد‪ ،Reminder، Follow-up، Person، Project، Note ،‬پرداخت یا پرونده مرتبط شود‪.‬‬
+
+ ‫این پیشنهاد مجوز ایجاد جدول یا مدل جدید نیست‪ .‬ابتدا باید مدل‌های ‪ SQL‬موجود و روابط آن‌ها بررسی شوند‪.‬‬
+‫ایجاد موجودیت تازه فقط با تصمیم صریح معماری و مبین مجاز است‪.‬‬
+
+
+‫‪ .5‬چرخه کامل عمر یک موضوع‬
+‫‪ :Capture .1‬ثبت سریع در ‪ Quick Capture‬یا ‪ ،Inbox‬بدون اجبار به تکمیل همه فیلدها‪.‬‬
+
+‫‪ :Triage .2‬تعیین ماهیت و اولویت و مشخص‌کردن حوزه شخصی‪/‬حرفه‌ای‪.‬‬
+
+‫‪ :Organize .3‬اتصال اختیاری به ‪ Center، Project، Category، Tag‬و ‪.Person‬‬
+
+‫‪ :Plan .4‬تعیین موعد‪ ،‬زمان‪ Reminder ،‬و اقدام بعدی در صورت نیاز‪.‬‬
+
+‫‪ :Act .5‬انجام اقدام توسط کاربر یا مسئول‪.‬‬
+
+‫‪ :Wait .6‬ثبت انتظار برای پاسخ‪ ،‬تأیید‪ ،‬پرداخت‪ ،‬تحویل یا اقدام شخص ثالث‪.‬‬
+
+‫‪ :Follow up .7‬پیگیری مجدد در موعد یا در واکنش به رویداد‪.‬‬
+
+‫‪ :Resolve .8‬ثبت نتیجه‪ ،‬شواهد یا سند نتیجه در موارد الزم‪.‬‬
+
+‫‪ :Close / Cancel / Continue .9‬تعیین تکلیف طبق قرارداد وضعیت معتبر‪.‬‬
+
+‫‪ :Retain .10‬حفظ تاریخچه و امکان جست‌وجو و مراجعه‪.‬‬
+
+‫همه موضوعات الزامًا همه مراحل را طی نمی‌کنند‪ .‬الزام محصولی این است که مسیرهای الزم پشتیبانی شوند و‬
+‫موضوع مهم بی‌وضعیت و بی‌تاریخچه رها نشود‪.‬‬
+
+
+‫‪ .6‬تفکیک مفاهیم اصلی‬
+‫مفهوم‬                                                  ‫تعریف‬
+‫‪Task‬‬                                                   ‫کار یا اقدام قابل انجام‬
+‫‪Due Date‬‬                                               ‫موعد مورد انتظار انجام ‪ Task‬یا تعهد‬
+‫‪Reminder‬‬                                               ‫سازوکار مستقل یادآوری‬
+‫‪Follow-up‬‬                                              ‫رویداد‪/‬اقدام پیگیری با سابقه مستقل‬
+‫‪Waiting For‬‬                                             ‫وضعیتی که پیشرفت به پاسخ یا اقدام بیرونی وابسته‬
+                                                       ‫است‬
+‫‪Next Action‬‬                                            ‫اقدام بعدی مشخص‪ ،‬در صورت نیاز‬
+‫‪Recurrence‬‬                                             ‫قاعده تکرار‬
+‫‪Occurrence‬‬                                             ‫نوبت مستقل واقعی از کار تکرارشونده‬
+‫‪Checklist‬‬                                              ‫اجزای قابل انجام یک ‪ Task‬یا ‪Occurrence‬‬
+‫‪Resolution Note‬‬                                        ‫نتیجه ثبت‌شده هنگام تعیین تکلیف‬
+‫‪Proof / Attachment‬‬                                     ‫مدرک یا پیوست پشتیبان نتیجه‪ ،‬در صورت پشتیبانی‬
+
+
+‫قواعد قطعی معنایی‪:‬‬
+
+‫• گذشت موعد‪ ،‬معادل تکمیل کار نیست‪.‬‬
+
+‫• پایان ‪ ،Reminder‬معادل پایان ‪ Task‬یا ‪ Follow-up‬نیست‪.‬‬
+
+‫• منتظر پاسخ بودن‪ ،‬با انجام‌نشدن اقدام کاربر یکسان نیست‪.‬‬
+
+‫• تغییر ‪ Due Date‬نباید علت توقف یا انتظار را پاک کند‪.‬‬
+
+‫• هر ‪ Follow-up‬جدید باید سابقه مستقل داشته باشد‪.‬‬
+
+‫• بستن موضوع نباید تاریخچه قبلی را بازنویسی کند‪.‬‬
+
+
+‫بخش سوم — قابلیت‌های اصلی و ماژول‌ها‬
+‫‪ — Home .7‬مرکز فرماندهی روزانه‬
+‫نمای کم‌اصطکاک برای‪:‬‬
+
+‫• امروز و اولویت‌ها‬
+
+‫• کارهای عقب‌افتاده‬
+
+‫• موعدهای نزدیک‬
+
+‫• پیگیری‌های امروز و عقب‌افتاده‬
+
+‫• موارد منتظر پاسخ‬
+
+‫• موارد نیازمند اقدام کاربر‬
+
+‫• موضوعات بالتکلیف یا راکد‬
+
+‫• ثبت سریع و جست‌وجوی سراسری‬
+
+‫‪ Home‬نباید به داشبورد شلوغ تبدیل شود؛ جزئیات کامل در صفحات تخصصی باقی بماند‪.‬‬
+
+
+‫‪Universal Inbox & Quick Capture .8‬‬
+‫• ثبت سریع عنوان و توضیح‪.‬‬
+
+‫• عدم اجبار به ‪ Center، Project، Category‬یا ‪.Due Date‬‬
+
+‫• امکان تعیین تکلیف و دسته‌بندی بعدی‪.‬‬
+
+‫• مسیر تبدیل به ‪ Task‬یا نوع موضوع مجاز‪ ،‬مطابق قرارداد محصول‪.‬‬
+
+‫• حفظ داده در صورت خروج یا قطع فرایند‪.‬‬
+
+‫• فرم کوتاه و قابل استفاده با یک دست‪.‬‬
+
+‫• هدف تجربه‌ای ثبت بسیار سریع است؛ زمان واقعی باید اندازه‌گیری شود‪ ،‬نه ادعا‪.‬‬
+
+‫‪Task Management & Task Details .9‬‬
+‫‪ 9.1‬داده‌ها و عملیات‬
+‫عنوان‪ ،‬توضیحات‪ ،‬وضعیت‪ ،‬اولویت‪ ،‬موعد‪ ،‬زمان‪Reminder، Recurrence، Checklist، Center، Project، Category، ،‬‬
+‫‪ ،Tags، Person، Notes‬پیوست‌ها در صورت پشتیبانی‪ ،‬تاریخچه و ‪ Follow-ups‬مرتبط‪.‬‬
+
+‫‪ 9.2‬تصمیم قطعی ‪ :UX‬حذف ‪Edit Mode‬‬
+‫• صفحه ‪ Task Details‬برای ویرایش مستقیم فیلدهای مجاز باشد‪.‬‬
+
+‫• دکمه یا حالت مستقل ‪ Edit Mode‬حذف شود‪.‬‬
+
+‫• ‪ Auto-Save‬با بازخورد روشن و قابل اعتماد انجام شود‪.‬‬
+
+‫• تغییرات سریع و هم‌زمان نباید موجب ‪ overwrite‬یا ذخیره ناقص شوند‪.‬‬
+
+‫• خطای ذخیره باید واضح باشد و امکان تالش مجدد بدهد‪.‬‬
+
+‫• خروج از صفحه نباید تغییر تأییدشده را از بین ببرد‪.‬‬
+
+‫• ذخیره فقط از منبع حقیقت ‪ SQL‬انجام شود‪.‬‬
+
+‫• «انجام کار» و «افزودن پیگیری» عملیات مستقل بمانند‪.‬‬
+
+‫‪ 9.3‬الگوی صفحه‬
+‫• ‪.Single-column focused Task Details‬‬
+
+‫• ‪.Actionable Linear Rows‬‬
+
+‫• ‪ Quick Presets‬زمینه‌مند‪.‬‬
+
+‫• بخش خالصه و مشخصات با سلسله‌مراتب روشن‪.‬‬
+
+‫• ‪ Checklist‬مستقل‪.‬‬
+
+‫• آخرین ‪ Follow-up‬در کارت برجسته و تاریخچه در ‪.Timeline‬‬
+
+‫• جدیدترین رویداد در باال؛ تاریخچه قبلی حذف یا بازنویسی نشود‪.‬‬
+
+‫• تاریخ‪ ،‬ساعت و متن فارسی بدون ‪ clipping‬یا ‪ overflow‬نمایش داده شوند‪.‬‬
+
+
+‫‪Follow-up Engine & Follow-up Office .10‬‬
+‫‪ Follow-up‬موتور تمایز آروین از ‪ To-Do List‬ساده است‪.‬‬
+
+‫هر رویداد پیگیری باید در حد قرارداد داده موجود بتواند شامل این اطالعات باشد‪:‬‬
+
+‫• موضوع و زمان پیگیری‬
+
+‫• شخص‪/‬نهاد مرتبط‬
+
+‫• اقدام انجام‌شده‬
+
+‫• نتیجه یا پاسخ‬
+
+‫• وضعیت انتظار‬
+
+‫• اقدام بعدی و زمان آن‪ ،‬اگر تعیین شده‬
+
+‫• سابقه پیگیری‌های قبلی‬
+
+‫• ارتباط با ‪ Task، Project، Person‬یا تعهد‬
+
+‫سناریوهای اصلی‪:‬‬
+
+‫• تماس باید انجام شود‪.‬‬
+
+‫• تماس انجام شد‪ ،‬پاسخ در انتظار است‪.‬‬
+
+‫• شخص قول داده در زمان دیگری پاسخ دهد‪.‬‬
+
+‫• موعد پیگیری گذشته و پاسخی نیامده است‪.‬‬
+
+‫• اقدام تازه‌ای الزم شده است‪.‬‬
+
+‫• نتیجه دریافت و موضوع تعیین تکلیف شده است‪.‬‬
+
+‫• موضوع لغو یا متوقف شده است‪.‬‬
+
+‫‪ Follow-up Office‬باید صف‌ها‪ ،‬فیلترها‪ ،‬آخرین اقدام‪ ،‬وضعیت انتظار و اقدام بعدی را با وضوح نشان دهد‪.‬‬
+
+
+‫‪ .11‬پنج حلقه محصولی مهم برای کامل‌شدن سیستم پیگیری‬
+ ‫این پنج مورد از تحلیل محصولی ارائه‌شده استخراج شده‌اند و تا زمان تصویب صریح‪ PROPOSAL ،‬هستند‪ .‬آن‌ها‬
+‫باید در ممیزی جامع بررسی شوند و نباید به‌عنوان قابلیت موجود فرض شوند‪.‬‬
+
+‫‪ 11.1‬تفکیک نقش‌های اشخاص در یک پیگیری‬
+‫‪ — PROPOSAL‬اولویت باال‬
+
+‫یک فیلد عمومی ‪ Person‬ممکن است نقش‌های متفاوت را پوشش ندهد‪ .‬در یک موضوع ممکن است‪:‬‬
+
+ ‫• ‪ :Referrer / Requester‬ارجاع‌دهنده یا دستوردهنده؛ کسی که درخواست را مطرح کرده یا منتظر گزارش نتیجه‬
+‫است‪.‬‬
+
+‫• ‪ :Accountable Owner‬مسئول پاسخ‌گویی‪/‬انجام کار؛ کسی که باید اقدام کند‪.‬‬
+
+‫• ‪ :External Counterparty / Waiting-On Person‬شخص یا نهادی که پاسخ‪ ،‬تأیید یا تحویل او الزم است‪.‬‬
+
+‫• ‪ :Reporter / Recipient‬شخصی که باید نتیجه به او گزارش شود‪.‬‬
+
+ ‫این نقش‌ها ممکن است در بعضی موارد یک شخص واحد باشند‪ .‬طراحی باید از تکرار بی‌دلیل ‪ Person‬جلوگیری‬
+ ‫کند و نقش را به رابطه متصل کند‪ ،‬نه اینکه برای هر نقش موجودیت شخص جداگانه بسازد‪ .‬نام نهایی فیلدها‪،‬‬
+‫چندنقشی بودن و قواعد الزام‌آوری نیازمند تصمیم مبین است‪.‬‬
+
+‫‪Waiting For / Next Action Dependency 11.2‬‬
+‫‪ — PROPOSAL‬اولویت بسیار باال‬
+
+‫نمایش روشن اینکه «توپ در زمین چه کسی است؟»‪:‬‬
+
+‫• منتظر چه شخص‪/‬سازمانی هستیم؟‬
+
+‫• چه چیزی باید دریافت شود؟‬
+
+‫• از چه تاریخی در انتظاریم؟‬
+
+‫• آخرین اقدام خودمان چه بوده؟‬
+
+‫• چه زمانی باید دوباره پیگیری کنیم؟‬
+
+‫• آیا اقدام بعدی به رخداد یا تأیید دیگری وابسته است؟‬
+
+ ‫پیشنهاد می‌شود ‪ Waiting For‬وضعیت یا رابطه‌ای صریح و قابل فیلتر باشد‪ ،‬نه صرفًا تغییر ‪ Due Date‬یا ‪ Tag‬تزئینی‪.‬‬
+‫طراحی نهایی باید با مدل وضعیت موجود تطبیق یابد‪.‬‬
+
+‫‪Staleness / Inactivity Indicator 11.3‬‬
+‫‪ — PROPOSAL‬اولویت باال‬
+
+‫نمایش زمان سپری‌شده از آخرین اقدام معنادار‪ ،‬مثًال «‪ ۵‬روز بدون پیگیری»‪.‬‬
+
+‫قواعد الزم پیش از اجرا‪:‬‬
+
+‫• تعریف دقیق «اقدام معنادار»؛ صرف بازکردن صفحه نباید فعالیت محسوب شود‪.‬‬
+
+‫• مبدأ زمان‪ :‬آخرین ‪ ،Follow-up‬آخرین اقدام یا آخرین تغییر وضعیت؟ باید تصمیم‌گیری شود‪.‬‬
+
+‫• آستانه‌ها باید قابل تنظیم یا متناسب با نوع موضوع باشند‪.‬‬
+
+‫• رنگ هشدار نباید تنها کانال اطالع‌رسانی باشد‪.‬‬
+
+‫• از ایجاد حس فوریت کاذب برای موضوعاتی که عمدًا در انتظارند جلوگیری شود‪.‬‬
+
+‫• محاسبه باید قابل توضیح و قابل تست باشد‪.‬‬
+
+‫‪Resolution Note / Proof of Closure 11.4‬‬
+‫‪ — PROPOSAL‬اولویت باال برای پیگیری‌های اداری و حرفه‌ای‬
+
+‫در زمان بستن برخی موضوعات‪ ،‬امکان ثبت نتیجه نهایی فراهم شود‪:‬‬
+
+‫• چه اتفاقی افتاد؟‬
+
+‫• چه کسی تحویل گرفت یا تأیید کرد؟‬
+
+‫• تاریخ و شماره رسید‪/‬مرجع چیست؟‬
+
+‫• آیا مدرک یا پیوست وجود دارد؟‬
+
+‫• نتیجه نهایی چه بود؟‬
+
+ ‫پیشنهاد ‪ :UX‬ثبت نتیجه به‌صورت سریع و زمینه‌مند‪ ،‬نه اجبار برای همه ‪Task‬های ساده‪ .‬سیاست الزام ثبت نتیجه‪،‬‬
+‫انواع موضوع مشمول‪ ،‬پیوست‌ها و امکان بستن بدون نتیجه نیازمند تصمیم مبین است‪.‬‬
+
+‫‪Quick Actionable Export / Follow-up Brief 11.5‬‬
+‫‪ — PROPOSAL‬اولویت متوسط تا باال‬
+
+‫تولید متن خالصه قابل کپی‪/‬اشتراک برای پیام‌رسان‌ها و پیامک‪ ،‬شامل‪:‬‬
+
+‫• عنوان موضوع‬
+
+‫• آخرین اقدام و تاریخ‬
+
+‫• وضعیت فعلی‬
+
+‫• شخص یا نهاد منتظر‪/‬مسئول‪ ،‬در صورت مجاز بودن‬
+
+‫• اقدام یا نتیجه مورد انتظار‬
+
+‫• موعد بعدی‪ ،‬اگر وجود دارد‬
+
+ ‫خروجی باید کوتاه‪ ،‬فارسی‪ ،‬خوانا و قابل ویرایش باشد‪ .‬پیش‌نمایش و انتخاب محتوای قابل اشتراک مهم است‪.‬‬
+‫ارسال خودکار بدون تأیید کاربر مجاز نیست‪ .‬مراقبت از داده حساس و حذف جزئیات غیرضروری الزامی است‪.‬‬
+
+
+‫‪Reminder & Notification Engine .12‬‬
+‫• ‪ Reminder‬مستقل از ‪.Due Date‬‬
+
+‫• یادآوری‌های آینده‪ ،‬چندمرحله‌ای و تکرارشونده در حدود قرارداد مصوب‪.‬‬
+
+‫• جلوگیری از اعالن‌های تکراری‪.‬‬
+
+‫• نگهداری وضعیت ارسال‪/‬تحویل در صورت پشتیبانی‪.‬‬
+
+‫• تغییر موعد نباید ‪ Reminder‬را ناخواسته حذف کند‪.‬‬
+
+‫• پایان ‪ Reminder‬نباید ‪ Task‬یا ‪ Follow-up‬را تکمیل کند‪.‬‬
+
+ ‫‪ :NEEDS OWNER DECISION‬در اسناد تاریخی به قرارداد چهارحالته ‪ Reminder‬اشاره شده‪ ،‬اما نام و ‪Transition‬‬
+‫دقیق هر چهار حالت در منابع در دسترس قطعی نیست‪ .‬حدس یا پیاده‌سازی حالت جدید ممنوع؛ ابتدا مرجع‬
+‫‪ canonical‬یا تصمیم مبین الزم است‪.‬‬
+
+
+‫‪Recurrence, Occurrence & Checklist .13‬‬
+‫• الگوهای تکرار معتبر و مصوب‪.‬‬
+
+‫• ‪ Occurrence‬مستقل برای هر نوبت‪.‬‬
+
+‫• ‪ Checklist‬و وضعیت تکمیل مستقل هر ‪.Occurrence‬‬
+
+‫• حفظ تاریخچه نوبت‌های گذشته‪.‬‬
+
+‫• تغییر الگوی آینده نباید سوابق گذشته را بازنویسی کند‪.‬‬
+
+
+‫‪Centers, Projects, Categories & Tags .14‬‬
+‫سلسله‌مراتب ثبت‌شده‪:‬‬
+
+‫‪Center → Project → Category → Task‬‬
+
+‫قواعد‪:‬‬
+
+‫• ‪ Center، Project‬و ‪ Category‬در ‪ Task‬تک‌انتخابی‌اند‪.‬‬
+
+‫• ‪ Tags‬چندانتخابی‌اند‪.‬‬
+
+‫• انتخاب ساختار در ‪ Quick Capture‬اجباری نیست‪.‬‬
+
+‫• روابط والد‪/‬فرزند باید معتبر بمانند‪.‬‬
+
+‫• فیلتر چندانتخابی را با انتخاب تک‌گزینه‌ای خود ‪ Task‬اشتباه نگیرید‪.‬‬
+
+‫‪ Dependency Management‬بین کارها و تشخیص ‪ Blocker‬پیشنهاد توسعه‌ای است و نیازمند تصویب است‪.‬‬
+
+
+‫‪People .15‬‬
+ ‫دفتر اشخاص باید در صورت وجود مدل معتبر‪ ،‬موجودیت واحد ‪ Person‬را برای روابط کاری و شخصی استفاده‬
+ ‫کند و امکان مشاهده موارد مرتبط‪ ،‬تعامالت‪ ،‬یادداشت‌ها و تعهدات را فراهم سازد‪ .‬تبدیل آروین به ‪ CRM‬پیچیده‬
+‫هدف خودکار این قابلیت نیست‪.‬‬
+
+
+‫‪Notebook .16‬‬
+‫• نگهداری ایده‌ها‪ ،‬اطالعات مرجع‪ ،‬تجربه‌ها و یادداشت‌های روزانه‪.‬‬
+
+‫• ‪ Quick Note‬با حداقل تعامل و ورود سریع به نوشتن‪.‬‬
+
+‫• یادداشت مستقل و یادداشت متصل به ‪.Task‬‬
+
+‫• ارتباط دوطرفه ‪ Note‬و ‪ Task‬در صورت قرارداد موجود‪.‬‬
+
+‫• حذف ‪ Task‬نباید اصل ‪ Note‬را حذف کند؛ فقط ارتباط قطع شود‪.‬‬
+
+‫• حذف ‪ Link‬از صفحه ‪ Task‬نباید متن ‪ Note‬را حذف کند‪.‬‬
+
+‫• هویت نارنجی ‪ Notebook‬مستقل از رنگ اولویت ‪ P2‬حفظ شود‪.‬‬
+
+
+‫‪Templates & Deep Clone .17‬‬
+ ‫قابل تکثیر طبق قرارداد ثبت‌شده‪ :‬عنوان‪ ،‬ساختار ‪ Center/Project/Category، Checklist‬خام‪ Tags، Priority ،‬و افراد‬
+‫پیش‌فرض‪.‬‬
+
+‫غیرقابل تکثیر‪ :‬شناسه‌های رکورد‪ ،‬تاریخچه‪ ،‬الگ‌ها‪Follow-up ،‬های قبلی‪ ،‬وضعیت تکمیل و تیک‌های ‪.Checklist‬‬
+
+ ‫‪ Checklist‬نمونه جدید باید خام باشد‪ .‬انتقال تاریخ‌ها مطابق قرارداد تاریخی ‪ :Option A‬دریافت تاریخ مبنا و حفظ‬
+‫فاصله نسبی موعدها و ‪Reminder‬ها؛ پیاده‌سازی باید با تصمیم ‪ canonical‬تطبیق داده شود‪.‬‬
+
+
+‫‪Calendar & Time .18‬‬
+‫• الیه‌های ‪ Due Date، Reminder‬و ‪ Follow-up‬از نظر معنایی مستقل‪.‬‬
+
+‫• نماهای روزانه‪ ،‬هفتگی و ماهانه؛ نمای ساالنه طبق قرارداد تفصیلی‪.‬‬
+
+‫• تقویم شمسی پیش‌فرض‪.‬‬
+
+‫• پشتیبانی میالدی و قمری طبق قرارداد‪.‬‬
+
+‫• ‪ RTL‬صحیح برای تاریخ‪ ،‬روز هفته‪ ،‬اعداد و ترتیب اجزا‪.‬‬
+
+‫• تقویم داخلی آروین مالک داده اصلی است‪.‬‬
+
+‫• اتصال ‪ Android Calendar Provider‬نباید مالکیت داده اصلی را منتقل کند‪.‬‬
+
+‫• رویداد خارجی در حالت ‪ View-only‬نباید با حذف ‪ Task‬داخلی اشتباه شود‪.‬‬
+
+‫• فیلترهای تاریخی‪ :‬همه‪ ،‬تقویم آروین‪ ،‬تقویم گوشی‪ ،‬یادآورها‪ ،‬انجام‌نشده؛ وضعیت زنده باید بررسی شود‪.‬‬
+
+‫• اوقات شرعی و دارایی‌های اختصاصی ‪ Calendar‬فقط طبق قرارداد طراحی مربوط نمایش داده شوند؛ وارد‬
+‫‪ Home‬نشوند مگر تصمیم مصوب‪.‬‬
+
+
+‫‪Financial & Installment Tracking .19‬‬
+‫‪ / PRODUCT SCOPE‬جزئیات نیازمند تصویب و طراحی‬
+
+ ‫پیگیری پرداخت‪ ،‬قسط‪ ،‬بدهی‪ ،‬طلب‪ ،‬سررسید‪ ،‬پرداخت واقعی‪ ،‬وضعیت پرداخت‪ ،‬یادآوری و گزارش‪ .‬تاریخ‬
+ ‫سررسید‪ ،‬تاریخ پرداخت واقعی و تاریخ ثبت پیگیری باید جدا بمانند‪ .‬مرز محصول با حسابداری کامل‪ ،‬ارز‪،‬‬
+‫پرداخت جزئی و رسید نیازمند تصمیم مبین است‪.‬‬
+
+
+‫‪Meetings, Requests, Orders & Correspondence .20‬‬
+‫جلسات‪ ،‬مصوبات‪ ،‬درخواست‌ها‪ ،‬سفارش‌ها‪ ،‬تحویل‌ها‪ ،‬مذاکرات‪ ،‬قراردادها و پرونده‌ها ابتدا با هسته مشترک‬
+ ‫‪ Task/Follow-up/Person/Project/Note‬پوشش داده شوند‪ .‬ماژول مستقل فقط با نیاز اثبات‌شده و تصمیم محصولی‬
+‫ایجاد شود‪.‬‬
+
+
+‫‪Reports & Analytics .21‬‬
+ ‫گزارش تعهدات‪ ،‬پیگیری‌ها‪ ،Waiting For ،‬موارد راکد‪ ،‬عقب‌افتاده‌ها‪ ،‬پروژه‌ها‪ ،‬پرداخت‌ها و تاریخچه‪ .‬هر شاخص‬
+‫باید تعریف‪ ،‬منبع داده‪ ،‬دامنه زمانی و روش محاسبه روشن داشته باشد‪.‬‬
+
+
+‫‪Search & Universal Filters .22‬‬
+‫• جست‌وجوی سراسری و فیلترهای هماهنگ‪.‬‬
+
+‫• ‪ OR‬درون هر گروه و ‪ AND‬بین گروه‌ها طبق قرارداد تاریخی‪.‬‬
+
+‫• شمارنده انتخاب‪ Clear All ،‬و ‪.Apply‬‬
+
+‫• ‪ Bottom Sheet‬مشترک و قابل دسترس‪.‬‬
+
+‫• سازگاری با روابط ‪.Center/Project/Category‬‬
+
+‫• رفتار یکسان در ماژول‌های مصرف‌کننده‪.‬‬
+
+‫• فیلدهای تک‌انتخابی با فیلتر چندانتخابی اشتباه نشوند‪.‬‬
+
+‫‪Backup, Restore, Import & Export .23‬‬
+‫• حفظ شناسه‌ها‪ ،‬روابط‪ ،‬تاریخچه و وضعیت‌ها‪.‬‬
+
+‫• اعتبارسنجی فایل و داده‪.‬‬
+
+‫• جلوگیری از ‪ Restore‬ناقص یا تکراری‪.‬‬
+
+‫• گزارش نتیجه و خطاها‪.‬‬
+
+‫• تست واقعی ‪ Round-trip‬و بازیابی‪.‬‬
+
+
+‫‪Local P2P Sync & Integrations .24‬‬
+ ‫همگام‌سازی محلی دو دستگاه بدون الزام اینترنت‪/‬سرور در فاز اولیه‪ ،‬در صورت تأیید دامنه و امکان معماری‪.‬‬
+‫حل تعارض‪ ،‬جلوگیری از ‪ ،Duplicate‬حفظ ‪ Reminder‬و تاریخچه و سازگاری نسخه‌ها باید طراحی و تست شود‪.‬‬
+‫‪ Cloud Sync‬و همکاری تیمی توسعه آتی‌اند‪ ،‬نه الزام فاز اول‪.‬‬
+
+
+‫‪Automation & Intelligent Assistance .25‬‬
+ ‫مرور روزانه‪/‬هفتگی‪ ،‬پیشنهاد پیگیری فراموش‌شده‪ ،‬شناسایی بالتکلیفی‪ ،‬کمک به اولویت‌بندی و اتوماسیون‬
+‫تکراری پیشنهادهای توسعه‌ای‌اند‪ .‬اقدامات حساس یا ارسال پیام نباید بدون اختیار و تأیید کاربر انجام شوند‪.‬‬
+
+
+‫بخش چهارم — معماری داده و خطوط قرمز‬
+‫فنی‬
+‫‪ — SQL-ONLY .26‬منبع حقیقت‬
+‫‪ONE PRODUCT · ONE CANONICAL DATABASE · ONE SQL SOURCE OF TRUTH‬‬
+
+‫• ‪ SQL‬تنها منبع حقیقت پایدار داده محصول است‪.‬‬
+
+‫• ‪ JSON‬فقط برای ‪ ،Backup، Import/Export‬انتقال داده و ‪ Payload‬موقت مجاز است‪.‬‬
+
+‫• ذخیره دائمی موازی ‪ SQL‬و ‪ JSON‬ممنوع‪.‬‬
+
+‫• ایجاد دیتابیس یا مدل موازی بدون تصمیم صریح مبین ممنوع‪.‬‬
+
+‫• روابط‪ ،‬شناسه‌ها و تاریخچه‌ها باید مالکیت روشن داشته باشند‪.‬‬
+
+
+‫‪Legacy Migration & Data Integrity .27‬‬
+‫• مهاجرت غیرمخرب و قابل تکرار‪.‬‬
+
+‫• حفظ شناسه‪ ،‬محتوا‪ ،‬ترتیب‪ ،Null/Empty ،‬وضعیت و روابط‪.‬‬
+
+‫• تشخیص ‪ Duplicate‬و ‪.Orphan‬‬
+
+‫• اعتبارسنجی ‪.Source/Target parity‬‬
+
+‫• ‪ Transaction، rollback‬و ‪ retry‬باید بررسی شوند‪.‬‬
+
+ ‫• حذف ‪ Legacy Columns/Tables‬فقط پس از اثبات مهاجرت‪ ،‬برابری داده‪ ،‬روابط‪،Round-trip، Backup/Restore ،‬‬
+‫سازگاری و تأیید مبین مجاز است‪.‬‬
+
+‫• تست سبز به‌تنهایی اثبات مهاجرت کامل نیست‪.‬‬
+
+
+‫‪ .28‬تاریخچه‌های مستقل‬
+ ‫‪ Occurrence History، Checklist‬هر ‪ Occurrence، Reminder، Follow-up، Person Relations‬و ‪ Completion History‬باید‬
+‫مستقل و قابل ردیابی باشند‪ .‬حذف یا تغییر یک موجودیت نباید تاریخچه نامرتبط را پاک کند‪.‬‬
+
+
+‫بخش پنجم — منشور دائمی ‪Enterprise UI/UX‬‬
+
+‫‪ .29‬الزام دائمی‬
+‫‪PERMANENT PRODUCT REQUIREMENT — ALL CURRENT AND FUTURE MODULES‬‬
+
+‫کیفیت بصری و تجربه کاربری بخشی از تعریف دائمی کیفیت آروین است؛ پروژه جانبی‪ ،‬فاز موقت یا صرفًا‬
+‫زیباسازی نیست‪.‬‬
+
+ ‫آروین باید جامعیت قابلیت‌ها را با تجربه‌ای حرفه‌ای‪ ،‬ساده‪ ،‬زیبا‪ ،‬دقیق‪ ،‬فارسی‌محور‪ ،‬سریع و دسترس‌پذیر ارائه‬
+‫کند‪.‬‬
+
+
+‫‪ .30‬مراجع الهام‬
+‫• ‪.Microsoft To Do: Simplicity and Low Cognitive Load‬‬
+
+‫• ‪.Things 3: Visual Elegance and Focus‬‬
+
+‫• ‪.Linear: Interaction Precision and Consistency‬‬
+
+‫• ‪ :Todoist‬ساختار عملیاتی و مدیریت کار‪.‬‬
+
+‫• ‪.Arvin: Professional Follow-up, Persian UX and Operational Depth‬‬
+
+‫هیچ‌یک نباید مستقیم کپی شوند؛ فقط اصول موفق آن‌ها الهام‌بخش‌اند‪.‬‬
+
+
+‫‪ .31‬اصول طراحی دائمی‬
+‫• حداقل محدوده لمس تعاملی ‪48dp×48‬؛ این اندازه مربوط به ‪ Hit Target‬است‪ ،‬نه الزامًا اندازه ظاهری آیکون‪.‬‬
+
+‫• سلسله‌مراتب پنج‌سطحی تایپوگرافی فارسی‪.‬‬
+
+‫• سیستم رنگ برند و رنگ معنایی منسجم‪.‬‬
+
+‫• سایه و ‪ Elevation‬نرم و کنترل‌شده‪.‬‬
+
+‫• ‪ Micro-interactions‬در بازه راهنمای ‪ ،300ms–200‬هرجا مناسب باشد‪.‬‬
+
+‫• ‪.Single-column focused Task Details‬‬
+
+‫• ‪.Actionable Linear Rows‬‬
+
+‫• ‪.Contextual Quick Presets‬‬
+
+‫• ‪ Bottom Sheets‬یکپارچه‪.‬‬
+
+‫• ‪.Minimal Cognitive Load‬‬
+
+‫• ‪ Auto-Save feedback‬قابل اعتماد‪.‬‬
+
+‫• ‪ Accessibility‬و ‪.Responsive Layout‬‬
+
+‫• احترام به تنظیمات کاهش حرکت و نیازهای دسترس‌پذیری‪.‬‬
+
+‫• عدم ایجاد تأخیر یا پرش رابط بر اثر انیمیشن‪.‬‬
+
+
+‫‪Typography & Persian UX .32‬‬
+‫• پنج سطح تایپوگرافی مستند و قابل استفاده مجدد‪.‬‬
+
+‫• خوانایی فارسی‪ ،‬اعداد و تاریخ‪.‬‬
+
+‫• ‪ ،line-height‬وزن و فاصله‌گذاری کنترل‌شده‪.‬‬
+
+‫• عدم بریدگی متن و سرریز‪.‬‬
+
+‫• ‪ RTL‬واقعی در فرم‪ ،‬منو‪ ،Timeline ،‬جدول‪ ،‬تقویم و ‪.Bottom Sheet‬‬
+
+ ‫‪ :NEEDS OWNER DECISION‬تعارض تاریخی ‪ Vazirmatn‬و ‪ VazirHarf‬باید با آخرین تصمیم معتبر مبین حل شود‪ .‬تا‬
+‫آن زمان‪ ،‬تغییر فونت یا اعالم فونت نهایی جدید مجاز نیست‪.‬‬
+
+
+‫‪Brand & Semantic Color Governance .33‬‬
+‫پالت مرجع ثبت‌شده در ‪:REV7.1‬‬
+
+‫‪Token‬‬                                               ‫‪HEX‬‬
+‫‪Primary Blue‬‬                                        ‫‪#4169A1‬‬
+‫‪White‬‬                                               ‫‪FFFFFF#‬‬
+‫‪Ice Blue‬‬                                            ‫‪F0F5FC#‬‬
+‫‪Soft Blue‬‬                                           ‫‪E5EDF8#‬‬
+‫‪Light Neutral‬‬                                       ‫‪F4F6F9#‬‬
+‫‪Main Text‬‬                                           ‫‪#27364B‬‬
+‫‪Notebook Orange‬‬                                     ‫‪C76B16#‬‬
+
+
+
+‫نسبت بصری راهنما‪ ٪70 :‬سفید‪/‬روشن‪ ٪20 ،‬آبی یخی‪/‬خنثی‪ ٪10 ،‬آبی اصلی و تأکیدهای برند‪.‬‬
+
+‫رنگ‌های ‪ Eisenhower‬ثبت‌شده‪:‬‬
+
+‫• ‪P1: #DC2626‬‬
+
+‫• ‪P2: #D97706‬‬
+
+‫• ‪P3: #2563EB‬‬
+
+‫• ‪P4: #80829C‬‬
+
+‫• ‪ Completed: Green‬طبق ‪ Token‬مصوب‪.‬‬
+
+‫قواعد‪:‬‬
+
+‫• بازگشت به رنگ فیروزه‌ای قدیمی به‌عنوان ‪ Primary‬ممنوع‪.‬‬
+
+‫• رنگ معنایی نباید جایگزین رنگ برند شود‪.‬‬
+
+‫• ‪ Notebook Orange‬مستقل از ‪ P2‬باقی بماند‪.‬‬
+
+‫• پالت ‪ ۹‬رنگ ‪ Accent‬فقط ثانویه است و ‪ ،Primary‬لوگو‪ ،‬دکمه اصلی‪ ،‬رنگ ناوبری یا ‪ Eisenhower‬را تغییر نمی‌دهد‪.‬‬
+
+‫• پنج رنگ ‪ Navigation‬باید از آخرین نگاشت مصوب استخراج شوند؛ حدس ممنوع‪.‬‬
+
+‫• ‪ Dark Theme‬حفظ شود و بدون مجوز بازطراحی نشود‪.‬‬
+
+‫• کنتراست و معنای رنگ باید در ‪ Light/Dark‬بررسی شوند‪.‬‬
+
+
+‫‪Elevation, Surfaces & Motion .34‬‬
+‫• سطوح تمیز و کنترل‌شده‪.‬‬
+
+‫• سایه نرم و غیرتزئینی‪.‬‬
+
+‫• پرهیز از ‪ Glassmorphism‬افراطی‪.‬‬
+
+‫• انیمیشن فقط در خدمت فهم و بازخورد‪.‬‬
+
+‫• کاهش حرکت و عملکرد دستگاه‌های ضعیف رعایت شود‪.‬‬
+
+‫• ‪ Haptic‬فقط در تعامالت مناسب و بدون مزاحمت‪.‬‬
+
+
+‫‪ .35‬دامنه سراسری‬
+‫‪Home، Task Details، Quick Capture، Inbox، Calendar، Follow-up Office، Projects، Centers، Categories، People،‬‬
+ ‫‪ ،Notebook، Templates، Filters، Reports، Financial، Settings‬تمام ‪Dialog‬ها‪ Bottom Sheets ،‬و اجزای مشترک و همه‬
+‫ماژول‌های آینده‪.‬‬
+
+
+‫‪Design Integrity .36‬‬
+‫• بهبود بصری نباید قابلیت محصولی را حذف کند‪.‬‬
+
+‫• تصمیمات موجود محصولی معتبر باقی می‌مانند مگر مبین آن‌ها را تغییر دهد‪.‬‬
+
+‫• رنگ برند با رنگ تزئینی معنایی جایگزین نمی‌شود‪.‬‬
+
+‫• تعارض تایپوگرافی با تصمیم رسمی حل می‌شود‪.‬‬
+
+‫• انیمیشن نباید پاسخ‌گویی یا دسترس‌پذیری را مختل کند‪.‬‬
+
+‫• کیفیت باید در سطح کل برنامه و تعامل میان ماژول‌ها ارزیابی شود‪.‬‬
+
+‫‪ — Visual Quality Assurance .37‬اجباری برای هر موج ‪UI/UX‬‬
+‫‪.Before/After evidence .1‬‬
+
+‫‪ .2‬اسکرین‌شات واقعی دستگاه‪.‬‬
+
+‫‪.Touch-target verification .3‬‬
+
+‫‪.Typography verification .4‬‬
+
+‫‪.RTL verification .5‬‬
+
+‫‪ Persian calendar verification .6‬در ماژول‌های مربوط‪.‬‬
+
+‫‪.Accessibility checks .7‬‬
+
+‫‪.Visual regression tests .8‬‬
+
+‫‪ .9‬بررسی انسجام بین ماژول‌های متأثر‪.‬‬
+
+‫‪ .10‬ثبت دستگاه‪ ،OS ،‬نسخه‪ ،SHA ،‬شرایط آزمون و نتیجه‪.‬‬
+
+‫‪ Build‬موفق به‌تنهایی اثبات ‪ Enterprise UX‬نیست‪.‬‬
+
+
+‫بخش ششم — حاکمیت محصول و تصمیم‬
+‫‪ .38‬مرجع نهایی‬
+‫‪ Mobin — Product Owner & Product Director‬مرجع نهایی تصمیم درباره چشم‌انداز‪ ،‬دامنه‪ ،‬منطق‪ ،‬معماری اطالعات‪،‬‬
+‫‪ ،UX، Design System‬داده‪ ،‬اولویت‪ ،‬پذیرش و انتشار است‪.‬‬
+
+
+‫‪ .39‬سلسله‌مراتب اعتبار‬
+‫‪ .1‬آخرین تصمیم صریح مبین‪.‬‬
+
+‫‪ .2‬سند ‪ Canonical‬و تصمیمات مصوب معتبر‪.‬‬
+
+‫‪ PRODUCT_DECISIONS .3‬و تاریخچه تصمیمات‪.‬‬
+
+‫‪ .4‬سورس و ‪ Schema‬واقعی مخزن‪.‬‬
+
+‫‪ .5‬تست و ‪ CI‬روی ‪ SHA‬دقیق‪.‬‬
+
+‫‪ .6‬گزارش‌های تاریخی‪.‬‬
+
+ ‫تصمیم جدید متعارض را جایگزین می‌کند‪ ،‬اما تاریخچه تصمیم قبلی حذف نمی‌شود‪ .‬تصمیم تاریخی غیرمتعارض‬
+‫حفظ می‌شود‪.‬‬
+
+
+‫‪ .40‬تفکیک وضعیت‌ها‬
+‫تصمیم محصولی‪ ،‬پیاده‌سازی و تأیید فنی باید جدا گزارش شوند‪:‬‬
+
+‫• ‪.Decision: APPROVED / PROPOSAL / NEEDS OWNER DECISION / SUPERSEDED‬‬
+
+‫• ‪.Implementation: IMPLEMENTED / PARTIAL / MISSING / BLOCKED‬‬
+
+‫• ‪.Verification: VERIFIED / UNVERIFIED‬‬
+
+
+‫‪ .41‬دفتر تصمیمات‬
+ ‫هر تصمیم مهم باید شناسه‪ ،‬تاریخ‪ ،‬مرجع‪ ،‬متن دقیق‪ ،‬وضعیت‪ ،‬تصمیم متعارض‪ ،‬منبع‪ ،‬اثر بر ‪/UX‬داده‪/‬کد‪/‬تست‪،‬‬
+‫اقدام مجاز و پرسش باز داشته باشد‪.‬‬
+
+
+‫بخش هفتم — اولویت محصول و نقشه تکامل‬
+‫‪ .42‬الیه‌های تکامل پیشنهادی‬
+‫‪Foundation & Trust‬‬
+‫‪ ،SQL-ONLY‬مهاجرت‪ ،Data Integrity، Backup/Restore، Persistence ،‬جداسازی ‪ Task/Reminder/Follow-up‬و تاریخچه‪.‬‬
+
+‫‪Core Follow-up‬‬
+ ‫‪ ،Inbox، Task، Reminder، Follow-up، People، Waiting For‬اقدام بعدی‪ ،‬نقش‌های اشخاص‪ ،‬تاریخچه و کنترل‬
+‫بالتکلیفی‪.‬‬
+
+‫‪Complete Workspace‬‬
+‫‪ Home، Calendar، Projects، Centers، Notebook، Templates، Financial Tracking، Filters‬و ‪.Reports‬‬
+
+‫‪Advanced & Expansion‬‬
+‫‪Staleness intelligence، Resolution Proof، Quick Export، Automation، Analytics، Dependency Management، Team‬‬
+‫‪ Collaboration، Remote Sync‬و ‪.Integrations‬‬
+
+
+‫‪ .43‬اولویت پیشنهادی پنج حلقه پیگیری‬
+ ‫‪ / Waiting For .1‬توپ در زمین چه کسی است؟ — بیشترین ارزش برای تمایز محصول و جلوگیری از گم‌شدن‬
+‫پیگیری‪.‬‬
+
+‫‪ .2‬نقش‌های اشخاص — شفافیت ارجاع‌دهنده‪ ،‬مسئول‪ ،‬طرف پاسخگو و گیرنده گزارش‪.‬‬
+
+‫‪ / Staleness .3‬رکود — آشکارکردن موضوعات فراموش‌شده‪ ،‬پس از تعریف معتبر زمان آخرین اقدام‪.‬‬
+
+‫‪ / Resolution Note .4‬سند نتیجه — اعتماد و قابلیت مراجعه‪ ،‬به‌ویژه برای امور اداری و مالی‪.‬‬
+
+‫‪ — Quick Actionable Export .5‬تسهیل گزارش سریع به دیگران‪.‬‬
+
+ ‫این ترتیب پیشنهاد محصولی است‪ ،‬نه تصمیم اجرایی‪ .‬ابتدا ممیزی ‪ READ-ONLY‬انجام شود؛ سپس مبین دامنه و‬
+‫اولویت نهایی را تصویب کند‪.‬‬
+
+
+‫بخش هشتم — ممیزی و شواهد‬
+
+Follow-up ‫ ممیزی جامع‬.44
+:‫برای هر حلقه بررسی شود‬
+
+‫• آیا مدل داده موجود آن را پشتیبانی می‌کند؟‬
+
+‫ و نقش‌ها وجود دارد؟‬Person ‫• آیا رابطه با‬
+
+‫ است؟‬label ‫ یا صرفًا‬relation ،‫ وضعیت‬Waiting For ‫• آیا‬
+
+‫• آیا زمان آخرین اقدام معنادار قابل محاسبه است؟‬
+
+‫• آیا نتیجه و پیوست حفظ می‌شوند؟‬
+
+‫• آیا خروجی قابل کپی وجود دارد؟‬
+
+‫• آیا فیلتر و گزارش به آن دسترسی دارند؟‬
+
+‫ تاریخچه را حفظ می‌کند؟‬،‫مهاجرت‬/‫ویرایش‬/‫• آیا حذف‬
+
+‫ واقعی چه چیزی را اثبات می‌کنند؟‬UI ‫• تست‌ها و‬
+
+
+‫ حوزه‌های اجباری ممیزی‬.45
+Task، Due Date، Reminder، Follow-up، Reminder state machine، Recurrence، Occurrence، Checklist،
+Center/Project/Category/Tags، People، Inbox، Home، Task Details، Auto-Save، Notebook، Calendar Provider،
+Templates/Deep Clone، Reports، Financial، Backup/Restore، SQL Schema، Migration، Design System، RTL،
+.Follow-up ‫ و پنج حلقه پیشنهادی‬Accessibility، P2P Sync، NIRA
+
+
+‫ ماتریس ردیابی‬.46
+:‫ ثبت شود‬Feature ‫برای هر‬
+
+Source path/symbol، ،‫ سند مرجع‬،Feature ID، Module، Decision Status، Implementation Status، Verification Status
+.Owner Approval ‫ و‬Data schema، Test evidence، SHA، UX evidence، Risk/Gap، Next Action
+
+
+Release Governance ‫ و‬Git، CI — ‫بخش نهم‬
+
+Repository .47
+mobinpda-lab/Arvin-clean :‫• اصلی‬
+
+mobinpda-lab/NIRA :‫• مرتبط‬
+
+Canonical: docs/project-continuity/MASTER_GOVERNANCE.md ‫• مسیر‬
+
+
+
+Main ‫ محافظت از‬.48
+.‫ ممنوع‬Main ‫ به‬Direct Push/Commit •
+
+.‫ بدون تأیید مبین ممنوع‬Merge •
+
+‫• ‪ Force Push‬و ‪ History Rewrite‬ممنوع‪.‬‬
+
+‫• حذف ‪ Branch/PR/Commit‬تاریخی بدون بررسی و مجوز ممنوع‪.‬‬
+
+‫• ایجاد ‪ Branch‬یا تغییر ‪ PR‬خارج از مأموریت مجاز ممنوع‪.‬‬
+
+‫• ‪ PR #3052‬و ‪ Branch‬گزارش‌شده فقط سابقه‌اند؛ وضعیت زنده باید دوباره بررسی شود‪.‬‬
+
+
+‫‪ .49‬تست و ‪CI‬‬
+‫• هیچ تستی برای سبز نشان دادن محصول حذف‪ Skip، Bypass ،‬یا تضعیف نشود‪.‬‬
+
+‫• ‪ PASS‬فقط به ‪ SHA‬اجراشده تعلق دارد‪.‬‬
+
+‫• تست ‪ Unit، Widget، Integration، Golden، Visual، Database، Migration، Persistence، Recurrence، Calendar‬و‬
+‫‪ Device Smoke‬جداگانه گزارش شوند‪.‬‬
+
+‫• شش ‪ Shard‬تاریخی در صورت وجود باید جداگانه بررسی شوند‪.‬‬
+
+‫• ‪ Build، Analyze، Visual‬و ‪ APK Jobs‬از هم تفکیک شوند‪.‬‬
+
+‫• نبود شواهد به معنی ‪ PASS‬نیست‪.‬‬
+
+
+‫‪Release Gate .50‬‬
+‫وضعیت پیش‌فرض‪BLOCKED — RELEASE: NO-GO :‬‬
+
+‫انتشار فقط پس از‪:‬‬
+
+‫‪ .1‬پیاده‌سازی قابلیت‌های مصوب‪.‬‬
+
+‫‪ .2‬اثبات ‪ SQL‬به‌عنوان تنها منبع حقیقت پایدار‪.‬‬
+
+‫‪ .3‬اثبات ‪ Migration parity‬و حفظ روابط‪.‬‬
+
+‫‪ Backup/Restore .4‬معتبر‪.‬‬
+
+‫‪ .5‬حفظ تاریخچه و استقالل مفاهیم‪.‬‬
+
+‫‪ .6‬تست‌های فعال و معتبر‪.‬‬
+
+‫‪ UX .7‬و ‪ Design System‬منطبق‪.‬‬
+
+‫‪ ،RTL .8‬فارسی و تقویم شمسی صحیح‪.‬‬
+
+‫‪ .9‬تست واقعی روی دستگاه‪.‬‬
+
+‫‪ CI .10‬موفق روی ‪ SHA‬نهایی‪.‬‬
+
+‫‪ .11‬مستندات هماهنگ با سورس و ‪.GitHub‬‬
+
+‫‪ .12‬تأیید صریح مبین‪.‬‬
+
+‫بخش دهم — روش اجرا و اسناد ‪Canonical‬‬
+
+‫‪ .51‬موج‌های پایه پیشنهادی‬
+‫• ‪ ،WAVE 0 — Live Repository Baseline: Branch، Main HEAD، PR، CI‬شش ‪Shard، Device Smoke، Calendar‬‬
+‫‪ Provider، Follow-up Persistence‬و اسناد‪.‬‬
+
+‫• ‪ WAVE 1 — Git History Forensic Audit: Commit، Branch، PR‬و ‪.SHA reconciliation‬‬
+
+‫• ‪ :WAVE 2 — Test Governance & CI Audit‬فهرست و اعتبار تست‌ها و ‪.CI‬‬
+
+‫• ‪ ،WAVE 3 — Architecture & Documentation Audit: SQL، Migration‬قابلیت‌ها‪ ،‬تعارضات و ‪.NIRA‬‬
+
+‫• ‪ :WAVE 4 — Safe Cleanup & Consolidation‬اصالح اسناد‪ ،‬ثبت تصمیمات و گزارش سالمت‪.‬‬
+
+‫این موج‌ها به‌خودی‌خود مجوز تغییر کد‪ ،‬تست‪ Schema، Branch، PR، Commit ،‬یا ‪ Release‬نیستند‪.‬‬
+
+
+‫‪ .52‬سطوح مجوز‬
+‫• ‪ :READ-ONLY‬مشاهده و ممیزی؛ بدون تغییر‪.‬‬
+
+‫• ‪ :DOCUMENTATION-ONLY‬فقط اسناد مشخص و شاخه مجاز‪.‬‬
+
+‫• ‪ :IMPLEMENTATION‬فقط دامنه‌ای که صریحًا تصویب شده‪.‬‬
+
+‫• ‪ :RELEASE‬فقط با تأیید صریح مبین و عبور از تمام ‪.Gates‬‬
+
+
+‫‪ .53‬شروع هر مأموریت‬
+‫‪ .1‬وضعیت زنده ‪ Repository‬و ‪ Branch‬را بخوان‪.‬‬
+
+‫‪ Main HEAD .2‬و ‪ PR Head‬را ثبت کن‪.‬‬
+
+‫‪ PR .3‬و ‪ CI‬را دوباره بررسی کن‪.‬‬
+
+‫‪ .4‬اسناد ‪ Canonical‬را از ‪ HEAD‬جاری بخوان‪.‬‬
+
+‫‪ .5‬گزارش موج قبلی و ‪ SHA‬آن را تطبیق بده‪.‬‬
+
+‫‪ .6‬تصمیمات معتبر را بررسی کن‪.‬‬
+
+‫‪ .7‬شواهد قطعی‪ ،‬تاریخی‪ ،‬ناقص و نامعلوم را تفکیک کن‪.‬‬
+
+‫‪ .8‬محدوده مجاز را قبل از هر تغییری روشن کن‪.‬‬
+
+
+‫‪ .54‬اسناد ‪Canonical‬‬
+‫در ‪:/docs/project-continuity‬‬
+
+‫‪MASTER_GOVERNANCE.md .1‬‬
+
+‫‪PRODUCT_DECISIONS.md .2‬‬
+
+‫‪CURRENT_STATE.md .3‬‬
+
+‫‪ROADMAP.md .4‬‬
+
+‫‪OPEN_ISSUES.md .5‬‬
+
+‫‪IMPLEMENTATION_LOG.md .6‬‬
+
+‫‪HANDOFF.md .7‬‬
+
+‫‪README.md .8‬‬
+
+‫گزارش‌های ممیزی در ‪./docs/project-continuity/audit‬‬
+
+‫‪ Design System‬باید مستند مستقل یا بخش مشخص و ‪ versioned‬داشته باشد و با ‪MASTER_GOVERNANCE‬‬
+‫هم‌راستا بماند‪ .‬اسناد تکراری بی‌دلیل ایجاد نشوند‪.‬‬
+
+
+‫بخش یازدهم — پذیرش و ‪Definition of Done‬‬
+
+‫‪ .55‬پذیرش هر قابلیت‬
+‫• قرارداد رفتاری روشن‪.‬‬
+
+‫• حاالت عادی و مرزی تعریف‌شده‪.‬‬
+
+‫• مالکیت داده و روابط روشن‪.‬‬
+
+‫• عدم تعارض با قابلیت‌های دیگر‪.‬‬
+
+‫• تست معتبر و فعال‪.‬‬
+
+‫• شواهد واقعی و متصل به ‪.SHA‬‬
+
+‫• ‪ UX‬منطبق با ‪.Design System‬‬
+
+‫• عدم تخریب داده و تاریخچه‪.‬‬
+
+‫• مستندات و ماتریس وضعیت به‌روز‪.‬‬
+
+
+‫‪ Definition of Done .56‬کل محصول‬
+ ‫آروین زمانی به بلوغ هدف می‌رسد که قابلیت‌های مصوب پیاده‌سازی شده‪ SQL ،‬منبع حقیقت‪ ،‬مهاجرت‬
+ ‫اثبات‌شده‪ Backup/Restore ،‬قابل اعتماد‪ ،‬تاریخچه‌ها سالم‪ ،‬تست‌ها معتبر‪ UX ،‬یکپارچه‪ ،‬فارسی و ‪ RTL‬و تقویم‬
+‫شمسی درست‪ ،‬عملکرد دستگاه تأیید‪ CI ،‬روی ‪ SHA‬نهایی موفق و ‪ Release Gate‬با تأیید مبین باز شده باشد‪.‬‬
+
+
+‫بخش دوازدهم — تصمیمات باز‬
+
+‫‪ .57‬موارد نیازمند تصمیم یا تطبیق‬
+‫‪ .1‬تعریف دقیق چهار وضعیت ‪ Reminder‬و ‪Transition‬ها‪.‬‬
+
+‫‪ .2‬فونت نهایی در تعارض ‪.Vazirmatn / VazirHarf‬‬
+
+‫‪ .3‬نگاشت دقیق رنگ پنج آیکون ‪.Navigation‬‬
+
+‫‪ .4‬مدل مفهومی ‪ Commitment‬و نسبت آن با ‪ Schema‬موجود‪.‬‬
+
+‫‪ .5‬قرارداد نهایی ‪ Waiting For‬و ‪.Next Action‬‬
+
+‫‪ .6‬نام و رفتار نقش‌های اشخاص در پیگیری‪.‬‬
+
+‫‪ .7‬تعریف ‪ Staleness‬و آخرین اقدام معنادار و آستانه‌ها‪.‬‬
+
+‫‪ .8‬سیاست اجباری یا اختیاری ‪ Resolution Note‬و پیوست‪.‬‬
+
+‫‪ .9‬قالب‪ ،‬سطح دسترسی و محتوای ‪.Quick Export‬‬
+
+‫‪ .10‬دامنه مالی و مرز با حسابداری‪.‬‬
+
+‫‪ .11‬پروتکل ‪ P2P‬و حل تعارض‪.‬‬
+
+‫‪ .12‬وضعیت زنده ‪ PR، Branch، SHA‬و ‪.CI‬‬
+
+‫‪ .13‬وضعیت واقعی پیاده‌سازی تمام قابلیت‌ها‪.‬‬
+
+‫هیچ‌یک از موارد باال با حدس حل نشود‪ .‬تصمیم باید در ‪ PRODUCT_DECISIONS‬ثبت شود‪.‬‬
+
+
+‫بخش سیزدهم — اصول غیرقابل نقض و‬
+‫اعالمیه نهایی‬
+‫‪ .58‬اصول غیرقابل نقض‬
+‫• ‪ :ONE PRODUCT‬یک سیستم یکپارچه تعهدات شخصی و حرفه‌ای‪.‬‬
+
+‫• ‪ ONE DATABASE: SQL‬تنها منبع حقیقت پایدار‪.‬‬
+
+‫• ‪ :ONE PRODUCT AUTHORITY‬مبین مرجع نهایی‪.‬‬
+
+‫• ‪ :ONE DESIGN SYSTEM‬استاندارد ‪ Enterprise UX‬در تمام ماژول‌ها و آینده‪.‬‬
+
+‫• ‪ :ZERO DATA LOSS‬حفظ داده‪ ،‬روابط‪ ،‬شناسه و تاریخچه‪.‬‬
+
+‫• ‪ :ZERO TEST WEAKENING‬تست برای سبزشدن تضعیف نشود‪.‬‬
+
+‫• ‪ :ZERO ASSUMPTION‬بدون مدرک‪ ،‬ادعای پیاده‌سازی یا پذیرش نشود‪.‬‬
+
+‫• ‪ :CAPABILITY PRESERVATION‬بازطراحی‪ ،‬قابلیت را حذف نکند‪.‬‬
+
+‫• ‪ :TRACEABLE DELIVERY‬هر نتیجه به ‪ SHA‬و شواهد متصل باشد‪.‬‬
+
+.‫ نشود‬Merge/Release ‫ بدون مجوز مبین‬:CONTROLLED RELEASE •
+
+.‫ الزام دائمی است‬UX ‫ کیفیت‬:PERMANENT UX QUALITY •
+
+
+‫ اعالمیه نهایی‬.59
+ ‫ محصول باید هم از‬.‫ امور و پیگیری‌های زندگی و کار باشد‬،‫آروین باید مرکز فرماندهی قابل اعتماد برای تعهدات‬
+ ‫ وضوح‬،‫ تاریخچه‬،‫نظر عملکرد جامع باشد و هم از نظر تجربه کاربری در سطح حرفه‌ای جهانی؛ با حفظ داده‬
+.‫ اقدام بعدی و نتیجه نهایی‬،‫ تشخیص انتظار‬،‫مسئولیت‬
+
+.FINAL PRINCIPLE: COMPLETE PRODUCT CAPABILITIES + WORLD-CLASS USER EXPERIENCE
+
+AUTHORITY: MOBIN — PRODUCT OWNER & PRODUCT DIRECTOR
+
+DOCUMENT: ARVIN MASTER PRODUCT, DESIGN & GOVERNANCE CHARTER — REV9
+
+.RELEASE: BLOCKED — NO-GO until evidence and explicit approval
+
+‫تاریخچه نسخه‬
+‫‪Revision‬‬                                          ‫شرح‬
+‫‪REV7.1‬‬                                             ‫حاکمیت‪ ،Design System ،‬تاریخچه ممیزی و خطوط‬
+                                                  ‫قرمز اجرا‬
+‫‪REV8‬‬                                              ‫یکپارچه‌سازی محصول‪ ،‬معماری‪ ،‬طراحی و حاکمیت‬
+‫‪REV9‬‬                                               ‫تجمیع جامع دامنه محصول‪ ،‬چرخه پیگیری‪ ،‬پنج حلقه‬
+                                                  ‫تکمیلی ‪ Follow-up، UX‬دائمی‪ ،‬معماری‪ ،‬ممیزی و‬
+                                                  ‫‪Release Governance‬‬
+
+
+
+‫یادداشت استقرار REV9: متن کامل این منشور در Branch مستنداتی `docs/rev9-governance-continuity-2026-11-10` ثبت و در PR #3340 ارائه شده است. تا زمان تأیید و ادغام مالک محصول، این نسخه مرجع حاکمیتی Branch مستنداتی است و هنوز در `main` فعال نشده است. وضعیت زنده Main و PRها باید از GitHub خوانده شود.‪.‬‬
+
+
+---
+
+## REV9 owner decision addendum — 2026-11-10
+### LOCAL-FIRST PRODUCT / MULTI-DEVICE SYNC SUSPENDED
+
+**Status:** APPROVED — latest explicit Product Owner direction.
+
+1. Arvin is a LOCAL-FIRST, standalone product. Its essential business capabilities must operate on the local device without requiring Internet, a cloud account, a remote server, or another Arvin installation.
+2. The local SQL database remains the sole durable source of truth for product data. Local-first is the active product architecture; it is not permission to introduce a second persistence path.
+3. **All multi-device synchronization is SUSPENDED** until a separate, explicit Product Owner authorization. This includes Local P2P, LAN/device-to-device sync, Cloud Sync, Dropbox, remote transport, pairing, conflict resolution, and sync automation.
+4. No sync implementation, migration, workflow, dependency, architecture expansion, or active roadmap work may proceed while this suspension is in force.
+5. Existing synchronization specifications and historical decisions must be preserved and labelled HISTORICAL / SUSPENDED. They are not current implementation authorization.
+6. This owner decision supersedes earlier planning language that described Local P2P as Phase 1 and Cloud/Dropbox as a later Phase 2. The older wording remains part of the source/history and must not be silently deleted.
+7. Reopening synchronization requires a new, explicit authorization from Mobin defining the permitted scope.
+
+**Deployment boundary:** REV9 is present on PR #3340's documentation branch only. Main remains unchanged. Release remains BLOCKED — RELEASE: NO-GO.
+
+
+---
+
+## Deployment note status correction — 2026-11-10
+
+The preceding Persian deployment note is preserved verbatim as part of the supplied REV9 source transcription. It describes the document's status at the time that source text was authored and is now **HISTORICAL / SUPERSEDED**.
+
+The full REV9 charter has since been committed and pushed to the existing documentation branch `docs/rev9-governance-continuity-2026-11-10` and is presented for owner review in PR #3340. It is the active governance baseline on that branch. It is **not yet present in Main** because PR #3340 remains OPEN / UNMERGED. Do not interpret the old note as the current deployment state.
+
+
+
+---
+
+## COMMAND 07-A.2.33 — live continuity addendum (2026-11-12)
+
+This addendum records a direct, current Product Owner instruction and does not alter or remove the verbatim REV9 source transcription above. It supersedes the unresolved typography status in REV9 §32 for current implementation decisions:
+
+- **APPROVED — Vazirmatn is Arvin's sole official and default UI font.**
+- VazirHarf is not an official font. System Default is an optional user choice only.
+- Preserve weights 300, 400, 500, 600 and 700.
+- Theme is the single source of truth; Dialogs and Overlays follow the same contract.
+- Validate PDF font embedding independently; bundle the font in APKs.
+- Persist the selected user option across Force Stop and restart.
+- This owner clarification is dated 2026-11-12 and is later than the REV9 source snapshot dated 2026-11-10.
+
+No merge, release or deployment is authorized.
+
+
+---
+
+## Owner decision — official Arvin typography (2026-11-12)
+
+This explicit Product Owner instruction supersedes the earlier REV9 §32 typography ambiguity for current Arvin implementation and acceptance:
+
+- **Official and default product font: Vazirmatn only.**
+- **System Default** may be offered as a user preference; it is not a second branded font.
+- VazirHarf is not an authorized official font. Preserve its historical source/provenance only; do not register or package it as the active product font.
+- Required Vazirmatn weights: 300, 400, 500, 600, 700.
+- One centralized Theme must own typography; verify light/dark behavior, RTL, Persian/Latin mixed text, half-space, digits, Jalali dates and small-screen rendering.
+- Verify font preference persistence, PDF font embedding/rendering and actual APK asset packaging before acceptance.
+
+This decision records product authority, not implementation acceptance. PDF, APK, visual and device evidence remain required.

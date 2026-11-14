@@ -66,3 +66,19 @@ No conflict was hidden by deleting historical records. No code or test was chang
 | CR-033 | Reminder four-state state machine | REV9 §12 states exact four-state names/transitions are not established by accessible canonical source. | NEEDS OWNER DECISION. | No guessed states or transitions. |
 
 No historical decision has been deleted. Status changes are explicit and traceable.
+
+
+## REV10 reconciliation — 2026-11-13
+
+| ID | Conflict | Older source / status | REV10 resolution | Required action |
+|---|---|---|---|---|
+| CR-034 | Active master REV9 vs latest owner charter | REV9 active in PR #3340; not merged to Main. | REV9 becomes SUPERSEDED as active master; preserved verbatim in MASTER_GOVERNANCE_REV9_ARCHIVE.md. REV10 is active. | Keep #3340 unmerged until its history is incorporated; use the REV10 branch as the successor. |
+| CR-035 | v49.1 operating package vs REV9/REV10 governance line | PR #3388 is a separate open documentation branch from Main. | v49.1 operational rules are subordinate to REV10; contradictory limits are superseded. | Reconcile paths and adapters before any documentation promotion; do not merge both competing lines blindly. |
+| CR-036 | Four Home filter dimensions vs five global filters | Older Home contracts specify Time/Project/Category/Tag. | SUPERSEDED: Time/Center/Project/Category/Tag is the approved five-filter order everywhere. | Update Home, Calendar, Reports, Follow-up Office, tests and help together. |
+| CR-037 | Branch as fifth filter vs Center as fifth filter | Older terminology in historical reports/specifications. | SUPERSEDED: fifth filter is Center; Branch is not the official filter dimension. | Remove only after consumer inventory and safe contract migration. |
+| CR-038 | Vazirmatn/VazirHarf unresolved font choice | REV9-004 NEEDS OWNER DECISION. | SUPERSEDED: Vazirmatn sole official/default font; System Default optional; VazirHarf not official. | Preserve assets/provenance as history; verify active references, PDF and APK on exact SHA. |
+| CR-039 | Documentation-only autonomy vs continuous development | Older AI policy §4/mission boundary. | SUPERSEDED by REV10 §14 continuous development authorization. | Continue ordinary development on non-main branches; restricted operations remain blocked. |
+| CR-040 | Task mandatory organization vs optional links | Any older assumption that Task must have Project/Category. | SUPERSEDED: Center/Project/Category each optional 0..1; Tags 0..N. | Enforce hierarchy ownership at SQL level and test valid/invalid combinations directly. |
+| CR-041 | Task Detail horizontal filters or independent Edit Mode | Older visual/interaction assumptions. | SUPERSEDED: single-column detail; organizational order Center/Project/Category/Tag; direct Auto-Save. | Keep Home filter layout separate from Task Details. |
+
+No historical wording was deleted to hide a conflict. Every superseded rule remains traceable to its source.

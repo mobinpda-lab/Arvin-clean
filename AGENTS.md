@@ -1,3 +1,15 @@
+## REV10 CURRENT AUTHORITY NOTICE — 2026-11-13
+
+The active master is `docs/project-continuity/MASTER_GOVERNANCE.md` (REV10). REV9 and all earlier governance instructions are historical where they conflict with REV10. In particular, older REV9 documentation-only/read-only mission limits are SUPERSEDED by the latest explicit owner command authorizing continuous development on non-main branches.
+
+Authorized ordinary work includes source implementation, refactoring, tests, approved features, controlled schema migrations with safety tests, development commits, PR creation/update, CI/build and documentation. Stop only the restricted operation when approval is required; continue independent authorized work.
+
+Still prohibited: direct development writes to Main, merge, release, deployment, irreversible production data deletion, destructive production migration, history rewrite, sensitive permission/secret changes and irreversible historical removal. Never weaken valid tests or claim acceptance without exact-SHA evidence.
+
+The older sections below that describe REV9 documentation-only authorization or the old Wave 4 read-only scope are retained as HISTORICAL records only; they are not current permissions.
+
+---
+
 # AGENTS.md — Mandatory Instructions for Every AI Agent
 
 **Repository:** `mobinpda-lab/Arvin-clean`  

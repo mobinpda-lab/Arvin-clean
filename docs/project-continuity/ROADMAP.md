@@ -548,3 +548,49 @@ All are IN PROGRESS or NOT YET VERIFIED. The latest exact candidate is `1f4ff489
 - Both remain **YELLOW / VALIDATION PENDING** on candidate `fd22fe37f0190818084f011bfcce00e241da6933`.
 - C07 comprehensive cross-feature scenario remains **GRAY / NOT YET TESTED**.
 - Follow-up Entry selected-Person creation failure remains **UNRESOLVED**.
+
+ 
+---
+
+## REV10 product execution waves — owner-authorized 2026-11-13
+
+The following product waves supersede conflicting older active execution orderings. Historical cleanup waves and REV9 product evolution waves remain preserved as history and must not be silently renumbered.
+
+0. Governance and live baseline — reconcile REV9, newer decisions, branches, PRs and exact-SHA CI.
+1. Data architecture — canonical Center/Project/Category ownership, optional Task links, Tags, People, SQL integrity and migration/recovery.
+2. Entity Management Center — Center, Project, Category, Tag and Person CRUD/lifecycle/search/dependency views.
+3. Home and Task Details — five global filters, horizontal RTL Home row, single-column Task Details and reliable Auto-Save.
+4. Templates Engine — selected hierarchy scope and independent Deep Clone.
+5. Cross-Center Reporting — stable activity identity and independent Center execution/reporting.
+6. Product regression and UX — all core modules, RTL, visual and accessibility acceptance.
+7. Typography, PDF and device — Vazirmatn, real PDF rendering, APK and seven Device Smoke scenarios.
+8. Final consolidation — repository/workflow/documentation audit and Single SHA acceptance.
+
+Parallelize independent work only after file, schema, service and test ownership is explicit. No result transfers across SHAs. Merge, release and deployment are not authorized by this roadmap.
+
+
+## 2026-11-14 priority correction — M2M integration before UI expansion
+
+1. Preserve and finish the existing PR #3463 candidate; do not recreate the migration.
+2. Repair the demonstrated missing-Project exception branch and add its regression fixture without weakening existing tests.
+3. Integrate v19→v20 into the single canonical G1DriftSchema lifecycle.
+4. Extend existing TaskStore, ProjectStore, CenterStore and category ownership paths to preserve direct Task links and both junction relations on every CRUD/archive/restore path.
+5. Update actual consumers and selectors to query the same SQL relationship model.
+6. Extend Backup/Restore to include both junction tables and prove independent physical-file parity.
+7. Complete D01–D05 and the full regression suite on one exact SHA.
+8. Then complete typography/PDF, APK and seven Device Smoke acceptance on that same exact SHA.
+
+Do not start a parallel migration or create duplicate stores. Keep Main read-only. No merge, release or deployment authorization is implied.
+
+
+## COMMAND 07-A.2.79 — Corrected delivery order (2026-11-14)
+
+1. Integrate v19→v20 into one canonical G1DriftSchema lifecycle with a true v19 fixture and safe transaction boundary.
+2. Define one Task assignment representation and preserve Task, Follow-up, Reminder, Person, Tag, checklist and recurrence history.
+3. Extend existing ProjectStore and CenterStore transactionally; consolidate Category ownership without parallel stores.
+4. Update selectors and consumers only after repository parity.
+5. Prove physical Backup/Restore, then D01–D05.
+6. Close all 41 Base failures by root cause; run full regression and seven Device Smoke scenarios.
+7. Freeze one SHA and run all acceptance gates on that exact SHA.
+
+PR #3463 remains the only M2M execution route. Do not create a competing migration or repository. Main remains read-only; no merge/release/deployment authorization is implied.

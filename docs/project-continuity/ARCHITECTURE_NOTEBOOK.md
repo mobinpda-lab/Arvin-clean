@@ -1,3 +1,8 @@
+> **الحاقیه معماری مصوب ۱۴ نوامبر ۲۰۲۶ — اولویت بالاتر از بندهای متعارض این سند:** روابط Center↔Project و Project↔Category هر دو Many-to-Many هستند. هر دو سمت هر رابطه می‌توانند صفر تا چند اتصال داشته باشند. Task برای Center، Project و Category به‌صورت مستقل صفر یا یک انتساب مستقیم دارد و Task مستقل مجاز است. قراردادهای تک‌والدی و زنجیره اجباری قدیمی در بخش‌های ۵ و ۸ SUPERSEDED هستند؛ متن تاریخی حذف نمی‌شود. جزئیات در `docs/ADR/ADR-2026-11-14-CENTER-PROJECT-CATEGORY-M2M.md` ثبت شده است. این تصمیم به معنی پیاده‌سازی یا پذیرش Schema نیست.
+
+**نسخه قرارداد محصول:** 2.1 — 2026-11-14
+
+---
 # معماری محصول: دفترچه یادداشت متصل آروین
 
 **نسخه قرارداد محصول:** 2.0 — ۱۴۰۵/۰۸/۱۸ / 2026-11-09  
@@ -156,3 +161,44 @@
 - **BLOCKED — RELEASE: NO-GO**.
 
 **مراجع کد/قرارداد:** `lib/models/task.dart`, `lib/services/canonical_notebook_repository.dart`, `lib/notebook_page.dart`, `lib/services/task_project_assignment_service.dart`, `lib/models/task_template.dart`, `lib/services/task_clone_service.dart`, `lib/services/task_template_store.dart`, `lib/services/g1_drift_schema.dart`, `lib/widgets/persian_date_picker.dart`, `docs/project-continuity/calendar_ui_ux_spec.md`.
+
+
+## 11. REV10 relationship graph supersession — 2026-11-14
+
+The approved current model is not a single-parent tree:
+
+- Center↔Project and Project↔Category are Many-to-Many.
+- Task→Center, Task→Project and Task→Category are independent optional 0..1 assignments.
+- Task↔Tag remains Many-to-Many.
+- Standalone Tasks are valid.
+
+The M2M migration candidate is `lib/services/g1_many_to_many_hierarchy_migration.dart` on PR #3463, currently based on #3384 head `310c0e20e3447c488c1e1c102c38bea5040708ca`. It creates `center_projects` and `project_categories`, but is not yet connected to the canonical G1 database lifecycle or all product repositories.
+
+Source audit findings on that base:
+- G1DriftSchema remains version 19 and does not invoke the candidate migration.
+- TaskStore rewrites Task rows without the new direct relationship columns.
+- ProjectStore rewrites Project rows and does not preserve/write the new junction relations; its bulk Project delete conflicts with the candidate's RESTRICT foreign keys once edges exist.
+- CenterStore deletion checks only legacy `projects.center_id`.
+- Category management remains on `taxonomy_categories`; no canonical Category entity CRUD integration is proven.
+- Backup/Restore does not yet serialize and restore both junction relations.
+
+These are integration blockers, not permission to create parallel stores. Extend the existing canonical SQL ownership path only. Keep the legacy columns, `project_items` and `taxonomy_categories` until consumer parity and D01–D05 are accepted.
+
+
+## COMMAND 07-A.2.79 — Architecture integration audit
+
+The approved graph is not yet the sole operational model. Existing code still contains `projects.center_id`, `project_items`, `taxonomy_categories`, new `categories`, and new junction tables. Decide one canonical owner and compatibility boundary before UI integration. Avoid duplicate Task assignment sources. Migration transaction boundaries must be separated or refactored; nested BEGIN is unsafe.
+
+
+## COMMAND 07-A.2.79 — Live audit checkpoint (2026-11-14)
+
+- Main: `45e4202b03a434459e4c021a04efa7e8396359db` (unchanged/read-only).
+- PR #3463: OPEN / DRAFT; branch `rev10-m2m-v19-test-expansion`; Head `190dfd6dd0d487dbcafd85e13c5309db061b47af`; Base `310c0e20e3447c488c1e1c102c38bea5040708ca`.
+- PR #3448: OPEN / DRAFT. Issue #3458: OPEN.
+- Exact-head #3463: Build 43577665573 PENDING/no jobs reported; Device Smoke 43577665873 QUEUED; Follow-up Persistence 43577665629 SUCCESS; Orchestrator and PR Wakeup SUCCESS; Draft Review APK SKIPPED. Combined status has no entries; no current-head APK/Smoke acceptance artifact.
+- Base SHA `310c0e20...`: Build 43575749904 FAILURE; Analyze, Visual, Debug/Release/Staging APK PASS; six test shards total 1,409 passed / 41 failed. Base artifacts do not validate #3463 Head.
+- G1DriftSchema remains v19; the v19→v20 helper is not called by canonical installation. Its own transaction cannot be nested inside the existing install transaction.
+- TaskStore rewrite omits the new direct relationship columns; ProjectStore still uses `projects.center_id` and `project_items`; CenterStore deletion checks only `projects.center_id`.
+- Category remains split between `taxonomy_categories` and migration-created `categories`. Canonical Category CRUD/relation UI is not verified.
+- Physical Backup/Restore parity for both junction tables and migration exceptions is NOT VERIFIED. D01–D05 and seven Device Smoke scenarios are NOT ACCEPTED.
+- No app code/tests/workflows were changed in this audit. No merge, release, deployment, Main edit, branch deletion, history rewrite, workflow cancellation or test weakening.

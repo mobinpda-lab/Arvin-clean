@@ -2,13 +2,13 @@
 
 **Status:** MANDATORY / CANONICAL AI OPERATING POLICY  
 **Authority:** Mobin — Product Owner & Product Director  
-**Canonical product charter:** [MASTER_GOVERNANCE.md](MASTER_GOVERNANCE.md) (REV9)  
+**Canonical product charter:** [MASTER_GOVERNANCE.md](MASTER_GOVERNANCE.md) (REV10)  
 **Repository:** mobinpda-lab/Arvin-clean  
 **Related factory repository:** mobinpda-lab/NIRA (separate repository; not the Arvin product)
 
 ## 1. Authority and precedence
 1. Latest explicit product-owner decision from Mobin.
-2. REV9 MASTER_GOVERNANCE.md for product scope, semantics, design and governance.
+2. REV10 MASTER_GOVERNANCE.md for product scope, semantics, design and governance.
 3. PRODUCT_DECISIONS.md and explicit decision records, respecting status and supersession.
 4. Approved canonical architecture/data contracts and relevant specifications.
 5. Live repository source, SQL schema, active tests and exact-SHA CI evidence for implementation/verification facts.
@@ -36,13 +36,12 @@ If a required file is missing, unreadable, contradictory, or stale, stop and rep
 - Historical status snapshots must remain labelled HISTORICAL when superseded by live evidence.
 - After each meaningful work unit, update continuity documents and leave one deterministic next action.
 
-## 4. Authorization and protected operations
-- Read-only authorization permits no writes.
-- Documentation-only authorization permits only explicitly scoped Markdown/agent-instruction files on an authorized non-main branch.
-- Implementation authorization is limited to the exact files, branch and task stated by Mobin.
-- No direct commit/push to Main, force-push, history rewrite, merge, release, publication, destructive migration, data deletion, schema/test/workflow change, or bypass unless separately and explicitly authorized.
-- A broader past authorization does not override the latest narrower mission scope.
-- If a safe selective transfer or docs-only diff cannot be proven, stop.
+## 4. Authorization and protected operations — REV10
+- The latest explicit Product Owner command defines the active mission scope and supersedes older narrower documentation-only limits.
+- Continuous development is authorized for ordinary source changes, refactoring, tests, approved product features, controlled schema migrations with safety tests, development commits, PR creation/update, CI/build and documentation.
+- Stop only the operation that requires additional approval; continue independent authorized work.
+- Main merge, release, deployment, irreversible production data deletion, destructive production migration, Git history rewriting, sensitive permission/secret changes and irreversible removal of historical records remain restricted.
+- Never push ordinary development directly to Main; use a verified development branch and PR.
 
 ## 5. Permanent product and data invariants
 - ONE PRODUCT: one integrated personal/professional commitments and follow-up system.
@@ -56,7 +55,7 @@ If a required file is missing, unreadable, contradictory, or stale, stop and rep
 For each claim, identify source path/symbol, exact SHA, test/check name and result, device/OS/build when relevant, and owner acceptance if applicable. A green build alone does not prove UX, migration parity, physical-device behavior or release readiness. Missing evidence is UNVERIFIED, not PASS.
 
 ## 7. Conflicts and open decisions
-Record each conflict in PRODUCT_DECISIONS.md and audit/CONFLICT_REGISTER.md with source, date, authority, status, impact, safe action and owner question. Preserve old wording as historical/superseded; never silently erase it. REV9 explicitly leaves the Vazirmatn/VazirHarf conflict as NEEDS OWNER DECISION despite older records; no agent may choose the font until Mobin resolves that conflict.
+Record each conflict in PRODUCT_DECISIONS.md and audit/CONFLICT_REGISTER.md with source, date, authority, status, impact, safe action and owner question. Preserve old wording as historical/superseded; never silently erase it. REV10 resolves the font conflict: Vazirmatn is the sole official/default Arvin font; System Default is an optional user preference; VazirHarf is not an official font. Preserve older ambiguity as SUPERSEDED history.
 
 ## 8. NIRA boundary
 NIRA is a separate factory/control-plane repository. Arvin remains the product. Do not transfer product authority, product state or release status between repositories. Verify NIRA live only when relevant; do not infer Arvin implementation from factory artifacts.
@@ -88,4 +87,9 @@ The only active Repository Cleanup Program sequence is:
 
 Do not create parallel cleanup-wave numbering. Each wave requires Baseline, Change Register, Before/After, Validation Evidence, Remaining Risks and Handoff. A successful commit alone does not complete a wave.
 
-**Current authorization:** documentation-only changes on PR #3340's existing documentation branch. Main, PR #3052, source, SQL/schema, migrations, tests, workflows, product features, branch/PR deletion, merge and release remain outside scope.
+**Current authorization (REV10):** continuous development on authorized non-main branches is permitted within §14 of MASTER_GOVERNANCE.md. Main merge, release, deployment, destructive data operations, history rewriting and irreversible historical cleanup remain prohibited.
+
+
+## REV10 authority notice — 2026-11-13
+
+REV10 is the active master charter. All older policy wording that restricts this mission to documentation-only work is SUPERSEDED by the current explicit owner authorization for continuous development. Product decisions, implementation facts and exact-SHA verification remain separate. NIRA remains a separate factory repository and cannot establish Arvin product acceptance.

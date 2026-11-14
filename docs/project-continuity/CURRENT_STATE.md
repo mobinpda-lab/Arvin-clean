@@ -1499,3 +1499,135 @@ No PASS is recorded for this candidate. All historical evidence remains tied to 
 - Follow-up Person creation/selection failure remains unresolved: `follow_up_entry_page_test.dart:229` does not find the newly selected Person chip after the multi-select sheet closes. The code path was inspected, but the root cause is not proven; no production change was made.
 - `task_detail_person_persistence_test.dart` must be rerun on SHA `bb08f21...` before its Person/SQLite assertions can be evaluated. The prior failure was the test harness finder, not evidence of a Person persistence failure.
 - Main remains `45e4202b03a434459e4c021a04efa7e8396359db`. No merge/release/deployment, workflow rerun, branch deletion, history rewrite or production-data operation occurred.
+
+
+---
+
+## REV10 live execution checkpoint — 2026-11-13 16:37 Asia/Tehran
+
+### Verified repository refs
+- Arvin Main: `45e4202b03a434459e4c021a04efa7e8396359db` (unchanged during this mission).
+- REV9 documentation branch: `docs/rev9-governance-continuity-2026-11-10` at `5bdb451674e6bbe7832f903b1215cbf39608c730`.
+- REV10 branch: `docs/rev10-master-charter-2026-11-13`; the latest verified branch HEAD before this checkpoint update was `b65d614681a603f026095a2bcbde6145732bea8d`. The checkpoint append itself will create a new HEAD; re-fetch it before reporting final state.
+- SQLite execution branch: `feature/command-07-a-sqlite-contract-remediation` at `3f471e6b88764446eabd33752d0aa3d820f52628`.
+- PR #3340 (REV9) and PR #3388 (parallel Wave 0/v49.1 documentation) remain separate unmerged documentation lines. Do not merge them blindly.
+- PR #3384 remains the SQLite/product execution stream; no merge is authorized.
+- NIRA Main: `7a27ee63b65d343e45c5786f782f2567611722dc`. NIRA README confirms it is a separate generic factory/control plane; its factory maturity is not Arvin product acceptance.
+
+### REV10 documentation changes
+- Created `MASTER_GOVERNANCE_REV9_ARCHIVE.md` as a verbatim preservation of the REV9 master.
+- Replaced the active `MASTER_GOVERNANCE.md` with REV10.
+- Added REV10 decision traceability and supersession entries to PRODUCT_DECISIONS.md.
+- Aligned AI_GOVERNANCE_POLICY.md with REV10 continuous-development authority and protected-operation boundaries.
+- Updated README and conflict register to identify REV10 as active and preserve competing governance history.
+- No Main change, merge, release, deployment or historical PR closure.
+
+### SQLite optional-relationship test correction
+- The 07-A.2.47 diagnostic failed on SHA `0b36f1a67a7a16fb7be93cd27dc73573bca04af1` because the lazily opened NativeDatabase executor was used before `ensureOpen`.
+- Corrected the test harness to initialize the executor with the canonical G1 schema owner without installing the full production schema into the independent fixture.
+- Correction commit: `3f471e6b88764446eabd33752d0aa3d820f52628`.
+- Exact-head optional-relationship workflow Run `43431160695` was QUEUED at last poll; Build Run `43431160736` was PENDING with no jobs allocated. No PASS is claimed.
+- Earlier Snapshot and Follow-up Persistence passes on `0b36f1a...` are historical and do not transfer to `3f471e6...`.
+- Earlier Device Smoke run `43428949428` was queued on `0b36f1a...`; it does not validate the newer SHA.
+
+### Current acceptance disposition
+- REV10 document: IMPLEMENTED on the development branch; PR review and documentation synchronization remain pending.
+- Optional relationship SQLite diagnostic: YELLOW / exact-head run pending after harness correction.
+- D01–D05: NOT ACCEPTED as complete gates.
+- Product regression matrix: incomplete; re-inventory current exact-head failures.
+- Device Smoke: NOT ACCEPTED.
+- Merge / Release / Deployment: NOT AUTHORIZED.
+
+
+
+## REV10 WAVE 1 source audit addendum — 2026-11-13
+
+Inspected product SHA: `3f471e6b88764446eabd33752d0aa3d820f52628`.
+
+- G1 schema is version 19.
+- Task `centerId` is stored in `legacy_payload_json`, not a normalized SQL FK column.
+- Task has no direct Project/Category ID fields in the inspected model/schema.
+- `project_items` is many-to-many; it does not satisfy REV10 Task → Project 0..1 cardinality.
+- `taxonomy_categories` is a global name catalog without Project ownership.
+- `projects.center_id` is nullable; mandatory Project → Center ownership is not yet enforced.
+- Tags and Person have SQL relation tables, but the five-entity management UI and full lifecycle requirements remain incomplete.
+- The 07-A.2.47 optional-link test creates a miniature fixture schema, not the real G1 production schema.
+
+Detailed source/blob evidence and safe migration sequence: `audit/REV10_WAVE1_DATA_ARCHITECTURE_BASELINE_2026-11-13.md`.
+
+**Wave 1 status:** source audit for the listed files COMPLETE; target hierarchy NOT IMPLEMENTED; production migration NOT EXECUTED; user-data inventory UNKNOWN; D01–D05 NOT ACCEPTED.
+
+
+## Final live ref reconciliation — 2026-11-13
+
+- REV10 documentation branch HEAD before this reconciliation: `156a43c66a35793d24302b6617f678b23444b786`.
+- SQLite execution branch HEAD: `34f6fb1a42e5adb6255a1d56ce8c07ac7567ead2`.
+- Latest source audit was performed on `3f471e6b88764446eabd33752d0aa3d820f52628`; the later `34f6fb1a42e5adb6255a1d56ce8c07ac7567ead2` commit changes only the migration design document.
+- Optional relationship workflow Run `43431160695`: QUEUED; Build Run `43431160736`: PENDING/no jobs; Device Smoke Run `43431160732`: QUEUED.
+- Snapshot Run `43431160811` and Follow-up Persistence Run `43431160654` succeeded on `3f471e6...`; they are supporting evidence only and do not constitute full D01–D05 acceptance.
+- The corrected optional-relationship test has not yet produced a terminal result. No exact-head PASS is claimed.
+
+
+## Live repository reconciliation — 2026-11-14 12:09 +03:30
+
+**Repository:** `mobinpda-lab/Arvin-clean`  
+**Main HEAD:** `45e4202b03a434459e4c021a04efa7e8396359db` — unchanged during this audit.  
+**SQLite execution PR #3384:** OPEN / DRAFT / UNMERGED; branch `feature/command-07-a-sqlite-contract-remediation`; HEAD `310c0e20e3447c488c1e1c102c38bea5040708ca`.  
+**M2M PR #3463:** OPEN / DRAFT / UNMERGED; branch `rev10-m2m-v19-test-expansion`; HEAD `c09fdb420230f6d8fb477d4927eb093d8fa6a1db`; base #3384 HEAD `310c0e20e3447c488c1e1c102c38bea5040708ca`; 10 commits ahead, 0 behind; diff adds the migration helper and its test file only.  
+**REV10 documentation PR #3448:** OPEN / DRAFT / UNMERGED; pre-checkpoint HEAD `19344000c446de990d0a0bee62ce2979aa40f058`.  
+**PRs #3459–#3462:** CLOSED / UNMERGED; their incremental migration/test commits are ancestors of #3463 and are preserved in its 10-commit chain. Do not merge them separately.
+
+### Historical SHA reconciliation
+
+`5c439648871a2765dad25ac829d3deb16f8a9439` is an ancestor of `310c0e20e3447c488c1e1c102c38bea5040708ca`; the latter is exactly two commits ahead. `c09fdb420230f6d8fb477d4927eb093d8fa6a1db` is the #3463 descendant of the #3384 base. These are related revisions, not interchangeable implementation states.
+
+### Candidate source audit
+
+The helper creates v20 junction tables and retains legacy source columns. It is still an isolated candidate. A source defect exists in the single-membership Project reference handling: a second `memberships.length == 1` branch is unreachable, so a missing Project reference is not recorded as intended.
+
+Integration blockers: G1DriftSchema is still v19; TaskStore does not preserve new direct Task relation columns during its rewrite; ProjectStore does not manage/preserve the junction edges and bulk deletion conflicts with RESTRICT FKs; CenterStore and Category CRUD do not use the new model; Backup/Restore omits the new relationships.
+
+### Exact-SHA CI evidence
+
+- On #3384 SHA `310c0e...`, Build run `43575749904`: Analyze, Visual and Debug/Release/Staging APK jobs PASS; all six test shards FAIL with 41 assertion failures (1,409 passed across shards); Device Smoke was queued.
+- The Visual job generated and validated a Persian PDF with embedded Vazirmatn Regular/Bold and Unicode maps. Artifact ID `14106491800`; PDF SHA-256 `3eef5025aef0305679272b37c9f5454f4488e23a2f8acfe78190df96e38afa0a`.
+- On #3463 SHA `c09fdb...`, Build run `43576488075`: Visual PASS; remaining quality, APK jobs were queued at the last check. Device Smoke run `43576488030` was queued; Follow-up Persistence run `43576488111` was in progress. Production Loop success and Draft Review APK skipped are not full acceptance.
+- Historical single-parent hierarchy candidate success on #3384 is superseded by the approved M2M decision and is not M2M evidence.
+
+### Acceptance status
+
+D01: candidate fixture coverage exists, integrated schema acceptance NOT VERIFIED.  
+D02: Missing/NULL/FALSE/TRUE parity NOT VERIFIED for the integrated M2M path.  
+D03: Person/Follow-up/history parity NOT VERIFIED on the M2M migration.  
+D04: independent physical backup/restore with junction parity NOT STARTED.  
+D05: isolated in-memory rollback test exists; close/reopen, physical rollback and successful retry NOT VERIFIED.
+
+No exact-SHA acceptance candidate exists. No Main changes, merges, releases, deployments, force-pushes or destructive user-data operations were performed.
+
+
+## COMMAND 07-A.2.79 — Exact-head live status
+
+
+
+## COMMAND 07-A.2.79 — Live audit checkpoint (2026-11-14)
+
+- Main: `45e4202b03a434459e4c021a04efa7e8396359db` (unchanged/read-only).
+- PR #3463: OPEN / DRAFT; branch `rev10-m2m-v19-test-expansion`; Head `190dfd6dd0d487dbcafd85e13c5309db061b47af`; Base `310c0e20e3447c488c1e1c102c38bea5040708ca`.
+- PR #3448: OPEN / DRAFT. Issue #3458: OPEN.
+- Exact-head #3463: Build 43577665573 PENDING/no jobs reported; Device Smoke 43577665873 QUEUED; Follow-up Persistence 43577665629 SUCCESS; Orchestrator and PR Wakeup SUCCESS; Draft Review APK SKIPPED. Combined status has no entries; no current-head APK/Smoke acceptance artifact.
+- Base SHA `310c0e20...`: Build 43575749904 FAILURE; Analyze, Visual, Debug/Release/Staging APK PASS; six test shards total 1,409 passed / 41 failed. Base artifacts do not validate #3463 Head.
+- G1DriftSchema remains v19; the v19→v20 helper is not called by canonical installation. Its own transaction cannot be nested inside the existing install transaction.
+- TaskStore rewrite omits the new direct relationship columns; ProjectStore still uses `projects.center_id` and `project_items`; CenterStore deletion checks only `projects.center_id`.
+- Category remains split between `taxonomy_categories` and migration-created `categories`. Canonical Category CRUD/relation UI is not verified.
+- Physical Backup/Restore parity for both junction tables and migration exceptions is NOT VERIFIED. D01–D05 and seven Device Smoke scenarios are NOT ACCEPTED.
+- No app code/tests/workflows were changed in this audit. No merge, release, deployment, Main edit, branch deletion, history rewrite, workflow cancellation or test weakening.
+
+
+### Confirmed integration blockers
+1. G1DriftSchema v19; v20 migration not connected to startup.
+2. TaskStore rewrite does not preserve new direct Task relationship columns.
+3. ProjectStore and CenterStore remain bound to legacy single-center/project_items paths.
+4. Category ownership is split; no verified canonical Project↔Category CRUD/selector.
+5. Exact-head Build pending; no current-head test shard result.
+6. 41 Base failures require individual root-cause closure.
+7. D01–D05, physical Backup/Restore and seven Device Smoke scenarios are not accepted.

@@ -780,3 +780,83 @@ No production code correction for this finding has yet been committed. Treat C01
 - Follow-up Person creation/selection failure remains unresolved: `follow_up_entry_page_test.dart:229` does not find the newly selected Person chip after the multi-select sheet closes. The code path was inspected, but the root cause is not proven; no production change was made.
 - `task_detail_person_persistence_test.dart` must be rerun on SHA `bb08f21...` before its Person/SQLite assertions can be evaluated. The prior failure was the test harness finder, not evidence of a Person persistence failure.
 - Main remains `45e4202b03a434459e4c021a04efa7e8396359db`. No merge/release/deployment, workflow rerun, branch deletion, history rewrite or production-data operation occurred.
+
+
+
+# REV10 continuation handoff — 2026-11-13
+
+## Active authority
+Read `MASTER_GOVERNANCE.md` (REV10) first. REV9 is preserved verbatim in `MASTER_GOVERNANCE_REV9_ARCHIVE.md`. The current authority order and decision statuses are recorded in `PRODUCT_DECISIONS.md`; conflict reconciliation is in `audit/CONFLICT_REGISTER.md`.
+
+## Live refs at checkpoint
+- Arvin Main: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- REV10 docs branch: `docs/rev10-master-charter-2026-11-13`.
+- SQLite execution branch: `feature/command-07-a-sqlite-contract-remediation` at `3f471e6b88764446eabd33752d0aa3d820f52628`.
+- NIRA Main: `7a27ee63b65d343e45c5786f782f2567611722dc`; separate factory only.
+- PR #3340 and #3388 remain unmerged competing governance lines; #3384 remains unmerged product execution.
+
+## Immediate next actions
+1. Poll optional-relationship Run `43431160695` and Build Run `43431160736` on exact SHA `3f471e6...`; inspect job logs and artifacts. Do not reuse earlier SHA results.
+2. If the corrected harness passes, inspect the test's actual coverage against the real production schema and distinguish diagnostic fixture evidence from production schema acceptance.
+3. Inspect the current PR #3384 head, base and exact checks. Do not merge.
+4. Create/update a Draft REV10 PR based on the REV9 documentation branch; keep PR #3340 as its dependency and do not merge either without explicit approval.
+5. Reconcile #3388's six canonical docs, v49.1 operating package, adapters and CODEOWNERS proposal into the REV10 structure without duplicate generic files.
+6. Continue WAVE 1: audit actual G1 schema, Center/Project/Category ownership, optional Task links, Tag and Person relationships, then implement only evidenced gaps.
+7. Continue independent D01–D05, regression, typography/PDF and device lanes in parallel where file ownership permits.
+8. Keep Main unchanged. Merge, release and deployment remain prohibited.
+
+## Evidence boundaries
+- REV10 docs are implemented on the REV10 branch; they are not in Main.
+- Run `43431160695` was queued and Run `43431160736` pending at last poll.
+- D01–D05 are not accepted as complete.
+- Device Smoke is not accepted.
+- NIRA factory progress is not Arvin product progress.
+
+
+## Wave 1 data architecture findings — 2026-11-13
+
+See `audit/REV10_WAVE1_DATA_ARCHITECTURE_BASELINE_2026-11-13.md`.
+
+Critical implementation gaps: Task Center is only inside the JSON envelope; direct Task Project/Category IDs are absent; Project membership is many-to-many; Categories are global/unowned; Project Center is nullable. The optional-link CI test is a miniature fixture, not the real production schema.
+
+Next safe work: read-only consumer and legacy-data inventory, then additive candidate schema and exact-G1 file-backed migration tests. Preserve `project_items` and `taxonomy_categories` until every consumer is migrated and D01–D05 pass. No cutover or destructive retirement.
+
+
+## Final live ref reconciliation — 2026-11-13
+
+- REV10 documentation branch HEAD before this reconciliation: `156a43c66a35793d24302b6617f678b23444b786`.
+- SQLite execution branch HEAD: `34f6fb1a42e5adb6255a1d56ce8c07ac7567ead2`.
+- Latest source audit was performed on `3f471e6b88764446eabd33752d0aa3d820f52628`; the later `34f6fb1a42e5adb6255a1d56ce8c07ac7567ead2` commit changes only the migration design document.
+- Optional relationship workflow Run `43431160695`: QUEUED; Build Run `43431160736`: PENDING/no jobs; Device Smoke Run `43431160732`: QUEUED.
+- Snapshot Run `43431160811` and Follow-up Persistence Run `43431160654` succeeded on `3f471e6...`; they are supporting evidence only and do not constitute full D01–D05 acceptance.
+- The corrected optional-relationship test has not yet produced a terminal result. No exact-head PASS is claimed.
+
+
+## COMMAND 07-A.2.78 REVISION 2 — verified handoff — 2026-11-14 12:09 +03:30
+
+**Start from live refs; do not trust an older SHA in this file.**
+
+- Main remains `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Continue on existing PR #3463 branch `rev10-m2m-v19-test-expansion`, currently reported at `c09fdb420230f6d8fb477d4927eb093d8fa6a1db`; base is #3384 at `310c0e20e3447c488c1e1c102c38bea5040708ca`.
+- First poll the existing #3463 Build, Device Smoke and Follow-up Persistence runs. Do not trigger duplicate workflows while useful jobs are queued/in progress.
+- Preserve the complete 10-commit M2M candidate history. Do not merge closed PRs #3459–#3462 separately.
+- Fix the unreachable missing-Project reference branch and add a focused test on the existing candidate branch after current queued validation is reconciled.
+- Then integrate the helper into the existing G1DriftSchema lifecycle and extend existing stores; do not create a parallel database initializer or repositories.
+- Treat TaskStore relation loss, ProjectStore junction loss/RESTRICT delete conflict, CenterStore dependency checks, Category CRUD and Backup/Restore as P0 integration work.
+- Keep `project_items`, `projects.center_id`, `taxonomy_categories` and legacy evidence until all consumers and D01–D05 pass.
+- D01–D05 remain NOT ACCEPTED. The #3384 six-shard 41 failures must be root-caused, not waived. Device Smoke remains NOT VERIFIED.
+- Main merge, release and deployment are not authorized.
+
+
+## NEXT HANDOFF — COMMAND 07-A.2.79 (2026-11-14)
+
+Start from PR #3463 exact Head `190dfd6dd0d487dbcafd85e13c5309db061b47af`; Main remains `45e4202b03a434459e4c021a04efa7e8396359db` and read-only.
+
+1. Recheck Build 43577665573 and Device Smoke 43577665873 before changing the execution branch.
+2. Design safe schema lifecycle integration and a true v19 fixture; do not nest BEGIN transactions.
+3. Resolve Task assignment ownership and protect TaskStore's rewrite path from losing new links/history.
+4. Extend existing ProjectStore, CenterStore and Category ownership; do not add parallel stores.
+5. Then update selectors/consumers, physical Backup/Restore, D01–D05 and regression.
+6. Keep #3463 as the only M2M execution route and #3448 as the documentation route.
+
+Release remains NO-GO. Merge, release, deployment, Main writes, destructive data operations and history rewrites remain unauthorized.

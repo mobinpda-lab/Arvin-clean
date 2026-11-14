@@ -1,3 +1,23 @@
+# REV10 — CURRENT OWNER DECISION REGISTER ADDENDUM (2026-11-14)
+
+## ARVIN-DEC-2026-11-14-CENTER-PROJECT-CATEGORY-M2M
+
+| Field | Decision |
+|---|---|
+| Status | APPROVED — explicit Product Owner confirmation, 2026-11-14 |
+| Center ↔ Project | Many-to-Many; zero-to-many links from either side |
+| Project ↔ Category | Many-to-Many; zero-to-many links from either side |
+| Task → Center / Project / Category | Each independently optional, zero or one direct assignment |
+| Task ↔ Tag | Many-to-Many |
+| Supersedes | REV10 single-parent Center→Project and Project→Category rules; unresolved Project↔Category scoping in ADR-2026-10-10 |
+| Data safety | Preserve IDs, valid existing links, Task assignments and history; never guess missing Category↔Project links |
+| Implementation | APPROVED decision; schema, migration, UI and verification remain NOT VERIFIED |
+
+The canonical model is a relationship graph, not a mandatory single-parent tree. Task may remain standalone. Removing a link must not delete either endpoint. See docs/ADR/ADR-2026-11-14-CENTER-PROJECT-CATEGORY-M2M.md.
+
+Historical decisions remain preserved and must be marked SUPERSEDED, not erased.
+
+---
 # REV9 — CURRENT OWNER DECISION REGISTER ADDENDUM (2026-11-10)
 
 ## ARVIN-DEC-2026-11-10-LOCAL-FIRST — LOCAL-FIRST / SYNC SUSPENDED
@@ -461,3 +481,76 @@ The Product Owner's explicit command issued 2026-11-13 resolves REV9-004 without
 - Required weights: 300, 400, 500, 600, 700.
 - A centralized Theme owns typography. Acceptance still requires light/dark, RTL, Persian/Latin mixed text, half-space, digits, Jalali dates, small-screen, preference persistence, PDF embedding/rendering and APK asset/hash verification.
 - This decision supersedes the unresolved status in REV9-004 for current implementation. It does not retroactively convert historical font evidence into current-SHA acceptance.
+
+
+---
+
+## REV10 owner-authorized decision reconciliation — 2026-11-13
+
+| ID | Decision | Status | Supersession / implementation boundary |
+|---|---|---|---|
+| REV10-001 | Latest explicit Product Owner decisions outrank REV9 and older operational documents. | APPROVED | REV9 remains a verbatim archive; REV10 is the active master. |
+| REV10-002 | Arvin is Local-First / SQL-Only with one canonical durable database. | APPROVED | Preserve valid REV9 SQL-only requirements; no parallel permanent JSON or database. |
+| REV10-003 | Canonical ownership is Center → Project → Category → Task. | APPROVED | Project requires one Center; Category requires one Project; Task organization links remain optional. |
+| REV10-004 | Task Center, Project and Category links are each 0..1; Tags are 0..N. | APPROVED | Do not force Task project/category links to NOT NULL; enforce cross-parent consistency at SQL level. |
+| REV10-005 | Entity Management Center manages Center, Project, Category, Tag and Person coherently. | APPROVED | Distinct entity tables and identities remain separate; all durable operations use canonical SQL services. |
+| REV10-006 | Global filter order is Time, Center, Project, Category, Tag. | APPROVED | SUPERSEDES the older four-dimension Home filter contract and any Branch-as-fifth-filter instruction. |
+| REV10-007 | Task Details is single-column with Center → Project → Category → Tag ordering and direct Auto-Save. | APPROVED | Independent Edit Mode remains retired; no silent save failures or lost concurrent writes. |
+| REV10-008 | Person selection must be a real Person entity and persisted SQL relationship. | APPROVED | Static display text is not evidence of a persisted relationship. |
+| REV10-009 | Equivalent activities across Centers need stable shared identity and independent execution records. | APPROVED | Task title alone is not a stable identity; do not merge Task execution state. |
+| REV10-010 | Templates support selected hierarchy scope and independent Deep Clone. | APPROVED | New IDs, fresh unchecked checklists, no copied execution history or reused Follow-up/Reminder IDs. |
+| REV10-011 | D01–D05 are independent SQLite migration/recovery acceptance gates. | APPROVED | A snapshot or JSON copy does not substitute for physical SQLite backup/restore or injected rollback/recovery. |
+| REV10-012 | Regression fixes must preserve valid tests and classify root cause. | APPROVED | No deleting, skipping, bypassing or weakening valid tests to obtain green CI. |
+| REV10-013 | Vazirmatn is the sole official/default Arvin font; System Default is optional. | APPROVED | SUPERSEDES REV9-004's NEEDS OWNER DECISION and prior VazirHarf-as-official-font directions; preserve history/assets as historical evidence. |
+| REV10-014 | Continuous development is authorized within the stated autonomy boundary. | APPROVED | Ordinary implementation, tests, controlled migrations, commits and PRs allowed; merge/release/deployment and irreversible operations remain restricted. |
+| REV10-015 | Acceptance is Single SHA and requires exact checkout/workflow/job/artifact evidence. | APPROVED | No historical PASS transfers to a later SHA. |
+| REV10-016 | Main merge, release and deployment are not authorized. | APPROVED | Development PRs remain unmerged unless Mobin later explicitly authorizes promotion. |
+
+### REV10 unresolved decisions — do not infer
+- Template relative-date behavior must be checked against the canonical Option A decision record before clone implementation.
+- Entity-specific permanent-delete, duplicate merge and archival dependency policies require evidence or explicit owner resolution.
+- Person-role cardinality and role semantics beyond real Person relationships remain unresolved where no approved record exists.
+- Shared activity identity lifecycle/equivalence and report denominator definitions must be documented before implementation/reporting.
+- Category normalization, Persian/Arabic character equivalence and Project reassignment after Template instantiation remain unresolved.
+- Ambiguous legacy relationships must be preserved as exceptions, not guessed.
+
+REV10 approval does not imply implementation or verification. Exact-SHA source, test and workflow evidence remain mandatory.
+
+
+## REV10 owner decision supersession — 2026-11-14
+
+The Product Owner has explicitly approved the following relationship model. This is a narrow supersession of the former single-parent statements in REV10-003; it does not erase their historical record.
+
+| Relationship | Current approved cardinality |
+|---|---|
+| Center ↔ Project | MANY-TO-MANY |
+| Project ↔ Category | MANY-TO-MANY |
+| Task → Center | OPTIONAL, 0..1 |
+| Task → Project | OPTIONAL, 0..1 |
+| Task → Category | OPTIONAL, 0..1 |
+| Task ↔ Tag | MANY-TO-MANY |
+
+Task remains independently creatable without Center, Project or Category. If a Task selects both Center and Project, that pair must exist in CenterProject. If it selects both Project and Category, that pair must exist in ProjectCategory. Center+Category without Project requires a valid path through at least one linked Project. Do not infer Project↔Category relationships from labels, names or Task text.
+
+Canonical SQL uses one junction table per many-to-many relationship. Preserve IDs and historical evidence; unlinking never deletes endpoints. The detailed approved contract is `docs/ADR/ADR-2026-11-14-CENTER-PROJECT-CATEGORY-M2M.md`.
+
+**Status separation:** decision APPROVED; implementation PARTIAL/CANDIDATE; integration NOT VERIFIED; acceptance NOT GRANTED. PR #3463 remains OPEN / DRAFT / UNMERGED. Merge, release and deployment remain NOT AUTHORIZED.
+
+
+## COMMAND 07-A.2.79 — Implementation status
+
+Center↔Project and Project↔Category M2M is APPROVED and documented in ADR-2026-11-14-CENTER-PROJECT-CATEGORY-M2M.md. The migration helper exists on PR #3463, but schema lifecycle, canonical repositories, Category management, UI consumers and Backup/Restore are not integrated. No Project↔Category edge may be inferred from Task text, names or labels.
+
+
+## COMMAND 07-A.2.79 — Live audit checkpoint (2026-11-14)
+
+- Main: `45e4202b03a434459e4c021a04efa7e8396359db` (unchanged/read-only).
+- PR #3463: OPEN / DRAFT; branch `rev10-m2m-v19-test-expansion`; Head `190dfd6dd0d487dbcafd85e13c5309db061b47af`; Base `310c0e20e3447c488c1e1c102c38bea5040708ca`.
+- PR #3448: OPEN / DRAFT. Issue #3458: OPEN.
+- Exact-head #3463: Build 43577665573 PENDING/no jobs reported; Device Smoke 43577665873 QUEUED; Follow-up Persistence 43577665629 SUCCESS; Orchestrator and PR Wakeup SUCCESS; Draft Review APK SKIPPED. Combined status has no entries; no current-head APK/Smoke acceptance artifact.
+- Base SHA `310c0e20...`: Build 43575749904 FAILURE; Analyze, Visual, Debug/Release/Staging APK PASS; six test shards total 1,409 passed / 41 failed. Base artifacts do not validate #3463 Head.
+- G1DriftSchema remains v19; the v19→v20 helper is not called by canonical installation. Its own transaction cannot be nested inside the existing install transaction.
+- TaskStore rewrite omits the new direct relationship columns; ProjectStore still uses `projects.center_id` and `project_items`; CenterStore deletion checks only `projects.center_id`.
+- Category remains split between `taxonomy_categories` and migration-created `categories`. Canonical Category CRUD/relation UI is not verified.
+- Physical Backup/Restore parity for both junction tables and migration exceptions is NOT VERIFIED. D01–D05 and seven Device Smoke scenarios are NOT ACCEPTED.
+- No app code/tests/workflows were changed in this audit. No merge, release, deployment, Main edit, branch deletion, history rewrite, workflow cancellation or test weakening.

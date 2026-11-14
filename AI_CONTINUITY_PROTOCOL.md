@@ -45,7 +45,7 @@ Before any implementation, documentation edit, branch operation, commit, PR acti
 
 Never assume a branch name, SHA, PR state, test result, artifact, or approval remains current from a previous session.
 
-## 4. Current Arvin delivery-stream guardrails
+## 4. Historical Arvin delivery-stream checkpoint (REV9-era; not current authority)
 
 The following is the live checkpoint captured when this protocol was established; it is not a substitute for the mandatory fresh preflight:
 - Repository: `mobinpda-lab/Arvin-clean`.
@@ -177,3 +177,18 @@ Mobin's latest command starts the Repository Cleanup Program at **WAVE 0 — Liv
 4. Safe Cleanup & Consolidation
 
 No parallel numbering. Preserve historical REV8 records and all branches/PRs. Each wave requires Baseline, Change Register, Before/After, Validation Evidence, Remaining Risks and Handoff; commit success alone is not completion.
+
+
+## REV10 current authority and live handoff — 2026-11-13
+
+- Active master charter: `docs/project-continuity/MASTER_GOVERNANCE.md` (REV10).
+- REV9 is preserved verbatim in `docs/project-continuity/MASTER_GOVERNANCE_REV9_ARCHIVE.md`.
+- Latest explicit owner command authorizes continuous development on non-main branches, including ordinary source changes, tests, controlled migrations, commits, PRs, CI/build and documentation.
+- Main merge, release, deployment, irreversible production deletion, destructive production migration, history rewrite, sensitive permission/secret changes and irreversible historical removal remain restricted.
+- Arvin Main observed HEAD: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- REV10 documentation branch: `docs/rev10-master-charter-2026-11-13`; initial base is REV9 branch HEAD `5bdb451674e6bbe7832f903b1215cbf39608c730`.
+- SQLite execution branch HEAD at checkpoint: `3f471e6b88764446eabd33752d0aa3d820f52628`.
+- Exact-head optional relationship run `43431160695` was QUEUED; Build run `43431160736` was PENDING with no jobs at last poll.
+- PR #3340 (REV9) and PR #3388 (v49.1/Wave 0) remain unmerged competing documentation lines. Reconcile before promotion; do not merge either automatically.
+- NIRA is a separate factory/control plane. Its status never proves Arvin product implementation or acceptance.
+- Continue from `docs/project-continuity/HANDOFF.md` and refresh every ref/workflow before relying on this checkpoint.
