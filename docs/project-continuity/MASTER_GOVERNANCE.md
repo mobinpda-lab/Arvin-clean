@@ -1,3 +1,30 @@
+## OWNER-APPROVED ARCHITECTURE SUPERSESSION — 2026-11-14
+
+**Decision ID:** ARVIN-ADR-2026-11-14-CENTER-PROJECT-CATEGORY-M2M
+**Status:** APPROVED — explicit Product Owner confirmation on 2026-11-14.
+**Authority:** This addendum supersedes every conflicting single-parent Center→Project and Project→Category rule in this document.
+
+### Canonical relationship contract
+- Center ↔ Project: many-to-many; each side may have zero or many links.
+- Project ↔ Category: many-to-many; each side may have zero or many links.
+- Task → Center: optional, zero or one direct assignment.
+- Task → Project: optional, zero or one direct assignment.
+- Task → Category: optional, zero or one direct assignment.
+- Task ↔ Tag: many-to-many.
+
+Task may remain fully standalone. Where a Task directly selects both endpoints of a defined association, that pair must exist in the corresponding canonical SQL join relation. A Center+Category pair without an explicit Project is valid only if at least one associated Project provides a path between them. Do not derive and persist duplicate ancestor assignments.
+
+### SQL and migration requirements
+- Use one canonical normalized join relation for Center↔Project and one for Project↔Category.
+- Enforce endpoint foreign keys, unique pairs, bidirectional indexes and transaction-safe relationship writes.
+- Removing a link must not delete either endpoint or unrelated links.
+- Preserve every existing entity ID, Task assignment, history and proven relationship.
+- Migrate existing Center→Project ownership as one edge. Never guess Project↔Category links from names, labels or unrelated Task text.
+- Preserve unassigned/ambiguous Categories until a safe mapping is proven.
+- Backup/restore must preserve both join relations and exact pair parity.
+- Schema, migration, UI, query and test implementation remain unverified until exact-SHA evidence exists.
+
+**Historical single-parent language is SUPERSEDED, not erased.** Merge, release and deployment remain unauthorized.
 # ARVIN — MASTER PRODUCT, DESIGN & GOVERNANCE CHARTER
 ## REV10 — Unified Local-First Product, Data Architecture & Execution Governance
 
