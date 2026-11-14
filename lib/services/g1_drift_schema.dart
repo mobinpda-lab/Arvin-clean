@@ -107,6 +107,11 @@ class G1DriftSchema implements QueryExecutorUser {
 
   @override
   Future<void> beforeOpen(QueryExecutor executor, OpeningDetails details) async {
+    // Drift supplies a _BeforeOpeningExecutor here. It deliberately starts
+    // unopened so beforeOpen can opt into its non-blocking executor context.
+    // Mark this callback executor open before issuing raw SQL; this does not
+    // reopen the underlying database or advance the schema version.
+    await executor.ensureOpen(this);
     await _runLifecycle(executor, versionBefore: details.versionBefore);
     _lifecycleCompleted = true;
   }
