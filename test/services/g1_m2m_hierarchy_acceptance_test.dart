@@ -338,6 +338,130 @@ void main() {
     }
   });
 
+  test('Task insert and update triggers enforce valid Many-to-Many paths', () async {
+    final fixture = await _openCanonicalFixture();
+    try {
+      await _insertTask(
+        fixture.database,
+        'task-valid-m2m-path',
+        centerId: 'center-a',
+        projectId: 'project-a',
+        categoryId: 'category-b',
+      );
+      await expectLater(
+        _insertTask(
+          fixture.database,
+          'task-invalid-center-project',
+          centerId: 'center-a',
+          projectId: 'project-b',
+        ),
+        throwsA(anything),
+      );
+      await expectLater(
+        _insertTask(
+          fixture.database,
+          'task-invalid-project-category',
+          projectId: 'project-b',
+          categoryId: 'category-b',
+        ),
+        throwsA(anything),
+      );
+
+      final timestamp = DateTime.utc(2026, 11, 14).toIso8601String();
+      await fixture.database.runInsert(
+        '''INSERT INTO categories
+           (id, name, storage_ordinal, is_archived, created_at, updated_at)
+           VALUES (?, ?, 2, 0, ?, ?)''',
+        ['category-unlinked', 'بدون پیوند', timestamp, timestamp],
+      );
+      await expectLater(
+        _insertTask(
+          fixture.database,
+          'task-invalid-center-category-path',
+          centerId: 'center-a',
+          categoryId: 'category-unlinked',
+        ),
+        throwsA(anything),
+      );
+
+      await expectLater(
+        fixture.database.runUpdate(
+          'UPDATE tasks SET project_id = ? WHERE id = ?',
+          const ['project-b', 'task-valid-m2m-path'],
+        ),
+        throwsA(anything),
+      );
+      await expectLater(
+        fixture.database.runUpdate(
+          'UPDATE tasks SET category_id = ? WHERE id = ?',
+          const ['category-unlinked', 'task-valid-m2m-path'],
+        ),
+        throwsA(anything),
+      );
+      await _insertTask(fixture.database, 'task-update-path');
+      await expectLater(
+        fixture.database.runUpdate(
+          'UPDATE tasks SET center_id = ?, category_id = ? WHERE id = ?',
+          const ['center-a', 'category-unlinked', 'task-update-path'],
+        ),
+        throwsA(anything),
+      );
+      expect(
+        await fixture.database.runSelect('PRAGMA foreign_key_check', const []),
+        isEmpty,
+      );
+    } finally {
+      await fixture.database.close();
+      await fixture.directory.delete(recursive: true);
+    }
+  });
+
+  test('endpoint deletion is restricted while canonical M2M edges exist', () async {
+    final fixture = await _openCanonicalFixture();
+    try {
+      await expectLater(
+        fixture.database.runDelete(
+          'DELETE FROM centers WHERE id = ?',
+          const ['center-a'],
+        ),
+        throwsA(anything),
+      );
+      await expectLater(
+        fixture.database.runDelete(
+          'DELETE FROM projects WHERE id = ?',
+          const ['project-a'],
+        ),
+        throwsA(anything),
+      );
+      await expectLater(
+        fixture.database.runDelete(
+          'DELETE FROM categories WHERE id = ?',
+          const ['category-a'],
+        ),
+        throwsA(anything),
+      );
+      expect(
+        await fixture.database.runSelect('PRAGMA foreign_key_check', const []),
+        isEmpty,
+      );
+      expect(
+        await fixture.database.runSelect('SELECT id FROM centers WHERE id = ?', const ['center-a']),
+        hasLength(1),
+      );
+      expect(
+        await fixture.database.runSelect('SELECT id FROM projects WHERE id = ?', const ['project-a']),
+        hasLength(1),
+      );
+      expect(
+        await fixture.database.runSelect('SELECT id FROM categories WHERE id = ?', const ['category-a']),
+        hasLength(1),
+      );
+    } finally {
+      await fixture.database.close();
+      await fixture.directory.delete(recursive: true);
+    }
+  });
+
   test('M2M relations, Task, Tag, Person, Follow-up and Reminder survive independent physical restore', () async {
     final fixture = await _openCanonicalFixture();
     final backupFile = File('${fixture.directory.path}/restored.sqlite');
