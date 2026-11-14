@@ -2914,7 +2914,7 @@ class _HomePageState extends State<HomePage> {
         },
         rollback: () async {
           await taskStore.save(previousTasks!);
-          await projectStore.save(previousProjects!);
+          await projectStore.restoreSnapshot(previousProjects!);
           await ExternalCalendarLinkStore().save(previousCalendarLinks!);
           await appSettingsService.restorePortableJson(previousSettings!);
           final oldSchedule = previousSettings!['backupSchedule'];
