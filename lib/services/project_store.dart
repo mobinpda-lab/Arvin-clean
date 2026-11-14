@@ -185,7 +185,23 @@ class ProjectStore {
     }
   }
 
-  Future<void> _upsertProject(QueryExecutor executor, ProjectPlan project) async {
+  /// Writes a Project row and canonical Center/Category edges inside a caller-owned
+  /// transaction. Used by the atomic template-generation coordinator.
+  Future<void> upsertWithinTransaction(
+    QueryExecutor executor,
+    ProjectPlan project, {
+    bool persistTaskMembership = true,
+  }) => _upsertProject(
+        executor,
+        project,
+        persistTaskMembership: persistTaskMembership,
+      );
+
+  Future<void> _upsertProject(
+    QueryExecutor executor,
+    ProjectPlan project, {
+    bool persistTaskMembership = true,
+  }) async {
     final existing = await executor.runSelect(
       'SELECT id, storage_ordinal, center_id, color_value, is_archived, template_id, template_name_snapshot, legacy_payload_json FROM projects WHERE id = ?',
       <Object?>[project.id],
@@ -249,7 +265,7 @@ class ProjectStore {
     if (project.categoryRelationshipsSpecified) {
       await _replaceCategories(executor, project.id, project.categoryIds);
     }
-    if (project.itemIdsSpecified) {
+    if (persistTaskMembership && project.itemIdsSpecified) {
       await _replaceItems(executor, project.id, project.itemIds);
     }
     await _inject('after_project_${project.id}');
