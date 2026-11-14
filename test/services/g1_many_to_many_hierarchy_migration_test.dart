@@ -133,7 +133,11 @@ void main() {
 
     await const G1ManyToManyHierarchyMigration().migrate(db);
     expect(await db.runSelect('SELECT * FROM center_projects', const []), hasLength(2));
-    expect(await db.runSelect('PRAGMA foreign_key_check', const []), isEmpty);
+    for (final table in ['center_projects', 'project_categories', 'tasks']) {
+      expect(await db.runSelect('PRAGMA foreign_key_check($table)', const []), isEmpty);
+    }
+    expect(await db.runSelect("PRAGMA foreign_key_check('projects')", const []), hasLength(1),
+        reason: 'The broken legacy projects.center_id value remains intact and is explicitly recorded.');
   });
 
   test('failed migration rolls back every created relation and added Task column', () async {
