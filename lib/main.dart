@@ -811,12 +811,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   String? _centerNameForTask(Task task) {
-    final centerId = _projectForTask(task)?.centerId;
-    if (centerId == null) return null;
-    for (final center in centers) {
-      if (center.id == centerId) return center.name;
-    }
-    return null;
+    final centerIds = _projectForTask(task)?.centerIds ?? const <String>[];
+    if (centerIds.isEmpty) return null;
+    final names = centers
+        .where((center) => centerIds.contains(center.id))
+        .map((center) => center.name)
+        .toList(growable: false);
+    return names.isEmpty ? null : names.join('، ');
   }
 
   /// Returns Iran's wall-clock components as a local DateTime so due-date
@@ -1413,7 +1414,9 @@ class _HomePageState extends State<HomePage> {
         .where((project) => !project.isArchived)
         .where((project) =>
             centerIds.isEmpty ||
-            centerIds.contains(project.centerId ?? '__no_center__'))
+            (project.centerIds.isEmpty
+                ? centerIds.contains('__no_center__')
+                : project.centerIds.any(centerIds.contains)))
         .map((project) => project.id)
         .toSet();
   }
@@ -1425,9 +1428,9 @@ class _HomePageState extends State<HomePage> {
         .where((project) => project.itemIds.contains(task.id))
         .toList(growable: false);
     if (linkedProjects.isEmpty) return centerIds.contains('__no_center__');
-    return linkedProjects.any(
-      (project) => centerIds.contains(project.centerId ?? '__no_center__'),
-    );
+    return linkedProjects.any((project) => project.centerIds.isEmpty
+        ? centerIds.contains('__no_center__')
+        : project.centerIds.any(centerIds.contains));
   }
 
   Set<String> _categoryOptionsForSelection({
