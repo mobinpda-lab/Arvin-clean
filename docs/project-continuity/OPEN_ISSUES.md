@@ -1,17 +1,15 @@
 ## 2026-11-14 — COMMAND 07-A.2.80-D active blockers
 
-## 2026-11-14 — COMMAND 07-A.2.80-D active blockers
-
 | ID | Priority | Status | Required action |
 |---|---|---|---|
 | SQLITE-80D-01 | P0 | BLOCKED | Run Build, Analyze, SQLite v20 acceptance, Follow-up Persistence, Snapshot and Device Smoke on the final exact PR #3463 SHA. |
 | SQLITE-80D-02 | P0 | BLOCKED | Prove full v19 source/destination parity for Center, Project, Task, Tags, Person, Follow-up, Reminder, metadata, NULL/FALSE/TRUE and invalid/ambiguous references. |
 | SQLITE-80D-03 | P0 | BLOCKED | Execute all seven failure-injection stages through real Drift beforeOpen; prove rollback or committed-marker recovery and retry idempotency. |
 | SQLITE-80D-04 | P0 | BLOCKED | Execute physical SQLite backup from migrated v20 into a distinct file; reopen and verify schema, joins, entities, history and FK integrity. |
-| SQLITE-80D-05 | P0 | BLOCKED | Integrate CenterStore/ProjectStore/TaskStore and Category CRUD with the canonical join tables; preserve old readers/writers until parity is proven. |
+| SQLITE-80D-05 | P0 | BLOCKED | CenterStore.delete counts `projects.center_id`; ProjectStore still loads/saves one `centerId`, omits both join tables, and `DELETE FROM projects` conflicts with `center_projects` RESTRICT FKs; TaskStore does not write the new Task hierarchy columns; Category CRUD still uses `taxonomy_categories`/Task text. Replace these paths with canonical transactional M2M-aware repositories and parity tests. |
 | SQLITE-80D-06 | P1 | NEEDS BASELINE COMPARISON | Two Notebook test failures appeared in Build on SHA 035721a. Notebook files were not part of PR #3463; compare exact base SHA before assigning ownership or changing unrelated code. |
 | SQLITE-80D-07 | P1 | BLOCKED | Update Home, Calendar and Reports selectors/filters to query M2M relationships without assuming single parents. |
-| SQLITE-80D-08 | P1 | BLOCKED | Ensure Search, Entity Management and Backup/Restore preserve both join relations and stable IDs. |
+| SQLITE-80D-08 | P1 | BLOCKED | Search, Entity Management and production Backup/Restore do not yet prove preservation of both join relations; current product backup path is JSON-oriented. Keep D04 physical SQLite test separate from production backup integration. |
 
 The superseded single-parent candidate implementation and its tests were removed from this execution branch and replaced with canonical M2M tests. This is architecture supersession, not permission to skip valid acceptance scenarios.
 
