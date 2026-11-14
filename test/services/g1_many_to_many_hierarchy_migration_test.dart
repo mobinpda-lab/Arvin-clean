@@ -93,6 +93,88 @@ void main() {
     expect(await db.runSelect('SELECT * FROM project_categories', const []), isEmpty,
         reason: 'A legacy Task category string is not proof of a Project↔Category edge.');
 
+    final legacyCategoryId = categories.single['id'] as String;
+    await db.runInsert(
+      'INSERT INTO center_projects(center_id, project_id) VALUES (?, ?)',
+      const ['center-b', 'project-a'],
+    );
+    await db.runInsert(
+      'INSERT INTO project_categories(project_id, category_id) VALUES (?, ?)',
+      <Object?>['project-a', legacyCategoryId],
+    );
+    await db.runInsert(
+      'INSERT INTO project_categories(project_id, category_id) VALUES (?, ?)',
+      <Object?>['project-b', legacyCategoryId],
+    );
+    await db.runInsert(
+      '''INSERT INTO categories(id, name, storage_ordinal, is_archived, created_at, updated_at)
+         VALUES ('category-second', 'مالی', 1, 0, ?, ?)''',
+      [now, now],
+    );
+    await db.runInsert(
+      'INSERT INTO project_categories(project_id, category_id) VALUES (?, ?)',
+      const ['project-a', 'category-second'],
+    );
+    expect(
+      (await db.runSelect(
+        'SELECT COUNT(*) AS count FROM center_projects WHERE project_id = ?',
+        const ['project-a'],
+      )).single['count'],
+      2,
+      reason: 'One Project must be linkable to multiple Centers.',
+    );
+    expect(
+      (await db.runSelect(
+        'SELECT COUNT(*) AS count FROM center_projects WHERE center_id = ?',
+        const ['center-b'],
+      )).single['count'],
+      2,
+      reason: 'One Center must be linkable to multiple Projects.',
+    );
+    expect(
+      (await db.runSelect(
+        'SELECT COUNT(*) AS count FROM project_categories WHERE project_id = ?',
+        const ['project-a'],
+      )).single['count'],
+      2,
+      reason: 'One Project must contain multiple Categories.',
+    );
+    expect(
+      (await db.runSelect(
+        'SELECT COUNT(*) AS count FROM project_categories WHERE category_id = ?',
+        <Object?>[legacyCategoryId],
+      )).single['count'],
+      2,
+      reason: 'One Category must belong to multiple Projects.',
+    );
+    await expectLater(
+      db.runInsert(
+        'INSERT INTO center_projects(center_id, project_id) VALUES (?, ?)',
+        const ['center-b', 'project-a'],
+      ),
+      throwsA(anything),
+    );
+    await db.runDelete(
+      'DELETE FROM center_projects WHERE center_id = ? AND project_id = ?',
+      const ['center-b', 'project-a'],
+    );
+    expect(
+      await db.runSelect('SELECT id FROM centers WHERE id = ?', const ['center-b']),
+      hasLength(1),
+    );
+    expect(
+      await db.runSelect('SELECT id FROM projects WHERE id = ?', const ['project-a']),
+      hasLength(1),
+    );
+    await db.runDelete(
+      'DELETE FROM project_categories WHERE project_id = ? AND category_id = ?',
+      const ['project-a', 'category-second'],
+    );
+    expect(
+      await db.runSelect('SELECT id FROM categories WHERE id = ?', const ['category-second']),
+      hasLength(1),
+    );
+
     final task = (await db.runSelect(
       'SELECT center_id, project_id, category_id FROM tasks WHERE id = ?',
       const ['task-one'],
@@ -143,6 +225,11 @@ void main() {
   });
 
   test('failed migration rolls back every created relation and added Task column', () async {
+    await db.runInsert(
+      '''INSERT INTO tasks(id, title, description, priority, archived, trashed, completed)
+         VALUES ('rollback-task', 'کار آزمایشی', '', 'none', 0, 0, 0)''',
+      const [],
+    );
     // Inject a failure after the new tables and columns have been created but
     // while the migration is copying Task assignments. SQLite must roll back
     // the whole DDL+DML transaction, not leave a half-installed schema.
