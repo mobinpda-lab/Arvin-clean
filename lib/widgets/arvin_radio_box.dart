@@ -57,7 +57,7 @@ class ArvinRadioBox extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 12,
-                      fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                      fontWeight: selected ? FontWeight.w500 : FontWeight.w400,
                       color: ArvinColors.textPrimary,
                     ),
                   ),
