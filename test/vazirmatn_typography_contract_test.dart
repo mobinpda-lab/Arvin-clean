@@ -11,7 +11,7 @@ void main() {
       if (entity is! File || !entity.path.endsWith('.dart')) continue;
       final lines = await entity.readAsLines();
       for (var index = 0; index < lines.length; index++) {
-        if (RegExp(r'FontWeight\\.w(?:800|900)').hasMatch(lines[index])) {
+        if (RegExp(r'FontWeight\.w(?:800|900)').hasMatch(lines[index])) {
           violations.add('${entity.path}:${index + 1}: ${lines[index].trim()}');
         }
       }
