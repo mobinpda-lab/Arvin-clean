@@ -71,7 +71,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
         id: 'project-$now',
         title: result.title,
         colorValue: result.colorValue,
-        centerId: result.centerId,
+        centerIds: result.centerIds,
       ),
     ));
   }
@@ -84,8 +84,8 @@ class _ProjectsPageState extends State<ProjectsPage> {
       projectId: project.id,
       title: result.title,
       colorValue: result.colorValue,
-      centerId: result.centerId,
-      clearCenterId: result.centerId == null,
+      centerIds: result.centerIds,
+      replaceCenterIds: true,
     ));
   }
 
@@ -127,7 +127,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
       builder: (context) {
         final controller = TextEditingController(text: project?.title ?? '');
         var colorValue = project?.colorValue ?? 0xFF087F8C;
-        String? centerId = project?.centerId;
+        final centerIds = project?.centerIds.toSet() ?? <String>{};
         return StatefulBuilder(
           builder: (context, setDialogState) => AlertDialog(
             title: Text(project == null ? 'پروژه جدید' : 'ویرایش پروژه'),
@@ -140,16 +140,29 @@ class _ProjectsPageState extends State<ProjectsPage> {
                   decoration: const InputDecoration(labelText: 'عنوان پروژه'),
                 ),
                 const SizedBox(height: 12),
-                DropdownButtonFormField<String?>(
-                  key: const ValueKey('project-center-selector'),
-                  initialValue: centerId,
-                  decoration: const InputDecoration(labelText: 'مرکز (اختیاری)'),
-                  items: [
-                    const DropdownMenuItem<String?>(value: null, child: Text('بدون مرکز')),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text('مرکزها (اختیاری)'),
+                ),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
+                  children: [
                     for (final center in widget.centers.where((item) => !item.isArchived))
-                      DropdownMenuItem<String?>(value: center.id, child: Text(center.name)),
+                      FilterChip(
+                        key: ValueKey('project-center-${center.id}'),
+                        label: Text(center.name),
+                        selected: centerIds.contains(center.id),
+                        onSelected: (selected) => setDialogState(() {
+                          if (selected) {
+                            centerIds.add(center.id);
+                          } else {
+                            centerIds.remove(center.id);
+                          }
+                        }),
+                      ),
                   ],
-                  onChanged: (value) => setDialogState(() => centerId = value),
                 ),
                 const SizedBox(height: 16),
                 Wrap(
@@ -196,7 +209,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                   if (title.isEmpty) return;
                   Navigator.pop(
                     context,
-                    _ProjectDraft(title: title, colorValue: colorValue, centerId: centerId),
+                    _ProjectDraft(title: title, colorValue: colorValue, centerIds: centerIds.toList()..sort()),
                   );
                 },
                 child: const Text('ذخیره'),
@@ -209,10 +222,13 @@ class _ProjectsPageState extends State<ProjectsPage> {
   }
 
   String _centerLabel(ProjectPlan project) {
-    final id = project.centerId;
-    if (id == null) return 'بدون مرکز';
-    for (final center in widget.centers) { if (center.id == id) return center.name; }
-    return 'مرکز حذف‌شده';
+    if (project.centerIds.isEmpty) return 'بدون مرکز';
+    final names = <String>[];
+    for (final id in project.centerIds) {
+      final matches = widget.centers.where((center) => center.id == id);
+      names.add(matches.isEmpty ? 'مرکز حذف‌شده' : matches.first.name);
+    }
+    return names.join('، ');
   }
 
   @override
@@ -311,9 +327,9 @@ class _ProjectsPageState extends State<ProjectsPage> {
 }
 
 class _ProjectDraft {
-  const _ProjectDraft({required this.title, required this.colorValue, this.centerId});
+  const _ProjectDraft({required this.title, required this.colorValue, required this.centerIds});
 
   final String title;
   final int colorValue;
-  final String? centerId;
+  final List<String> centerIds;
 }
