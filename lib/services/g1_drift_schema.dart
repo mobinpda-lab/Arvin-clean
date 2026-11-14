@@ -116,8 +116,6 @@ class G1DriftSchema implements QueryExecutorUser {
   // idempotent migration per executor so nested BEGIN transactions are avoided.
   static final Expando<Object> _installations =
       Expando<Object>('G1DriftSchema.install');
-  static final Expando<bool> _completedExecutors =
-      Expando<bool>('G1DriftSchema.lifecycleCompleted');
 
   static Future<void> install(QueryExecutor executor) {
     final current = _installations[executor] as Future<void>?;
@@ -126,15 +124,17 @@ class G1DriftSchema implements QueryExecutorUser {
     _installations[executor] = completer.future;
     () async {
       try {
-        await executor.ensureOpen(G1DriftSchema());
+        final schema = G1DriftSchema();
+        await executor.ensureOpen(schema);
         // Executors can be opened earlier by legacy importers and tests. In
         // that case Drift does not invoke beforeOpen again, so complete the
         // same lifecycle here before any store query is allowed to proceed.
-        if (_completedExecutors[executor] != true) {
+        if (!schema._lifecycleCompleted) {
           final rows = await executor.runSelect('PRAGMA user_version', const []);
           final before = rows.isEmpty ? null : (rows.single.values.first as num).toInt();
           await _runLifecycle(executor, versionBefore: before);
           await executor.runCustom('PRAGMA user_version = 20');
+          schema._lifecycleCompleted = true;
         }
         completer.complete();
       } catch (error, stackTrace) {
@@ -332,7 +332,6 @@ class G1DriftSchema implements QueryExecutorUser {
       }
       await executor.runCustom('COMMIT');
       await executor.runCustom('PRAGMA foreign_keys = ON');
-      _completedExecutors[executor] = true;
     } catch (_) {
       try { await executor.runCustom('ROLLBACK'); } catch (_) {}
       try { await executor.runCustom('PRAGMA foreign_keys = ON'); } catch (_) {}
