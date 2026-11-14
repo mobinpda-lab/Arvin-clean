@@ -105,7 +105,7 @@ class HomeFilterPill extends StatelessWidget {
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 9,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
@@ -206,7 +206,7 @@ class HomeFilterCard extends StatelessWidget {
                       style: TextStyle(
                         color: selectedAccent,
                         fontSize: compact ? 10.5 : 11.5,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
@@ -358,7 +358,7 @@ class HomeFilterSheet extends StatelessWidget {
                         title,
                         style: const TextStyle(
                           fontSize: 17,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
