@@ -85,4 +85,58 @@ void main() {
     );
     expect(() => codec.decodeList({'id': 'not-a-list'}), throwsFormatException);
   });
+  test('legacy centerId decodes as one canonical Center edge', () {
+    final project = codec.decode({
+      'id': 'legacy-center-project',
+      'title': 'قدیمی',
+      'centerId': 'center-old',
+    });
+    expect(project.centerId, 'center-old');
+    expect(project.centerIds, ['center-old']);
+    expect(project.centerRelationshipsSpecified, isTrue);
+  });
+
+  test('multi-Center and multi-Category relationships round-trip deterministically', () {
+    final project = ProjectPlan(
+      id: 'project-m2m',
+      title: 'چند رابطه',
+      centerIds: const ['center-b', 'center-a'],
+      categoryIds: const ['category-z', 'category-a'],
+      itemIds: const ['task-2', 'task-1'],
+      legacyFields: const {
+        'createdAt': '2026-01-02T03:04:05.000Z',
+        'historicalMetadata': {'source': 'old-backup', 'revision': 3},
+      },
+    );
+    final encoded = codec.encode(project);
+    final decoded = codec.decode(encoded);
+    expect(decoded.centerIds, ['center-a', 'center-b']);
+    expect(decoded.categoryIds, ['category-a', 'category-z']);
+    expect(decoded.legacyFields['createdAt'], '2026-01-02T03:04:05.000Z');
+    expect(decoded.legacyFields['historicalMetadata'], {
+      'source': 'old-backup', 'revision': 3,
+    });
+    expect(codec.encode(decoded), encoded);
+  });
+
+  test('missing and explicit NULL relationship fields have distinct patch semantics', () {
+    final missing = codec.decode({'id': 'missing', 'title': 'بدون روابط'});
+    final explicitNull = codec.decode({
+      'id': 'nulls',
+      'title': 'روابط خالی',
+      'centerIds': null,
+      'categoryIds': null,
+      'itemIds': null,
+    });
+    expect(missing.centerRelationshipsSpecified, isFalse);
+    expect(missing.categoryRelationshipsSpecified, isFalse);
+    expect(missing.itemIdsSpecified, isFalse);
+    expect(explicitNull.centerRelationshipsSpecified, isTrue);
+    expect(explicitNull.categoryRelationshipsSpecified, isTrue);
+    expect(explicitNull.itemIdsSpecified, isTrue);
+    expect(explicitNull.centerIds, isEmpty);
+    expect(explicitNull.categoryIds, isEmpty);
+    expect(explicitNull.itemIds, isEmpty);
+  });
+
 }
