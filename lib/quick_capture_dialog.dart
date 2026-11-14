@@ -608,7 +608,7 @@ Future<DateTime?> _pickCustomDue() async {
                         const Expanded(child: Text(
                           'ثبت سریع کار',
                           textAlign: TextAlign.center,
-                          style: TextStyle(fontFamily: 'Vazirmatn', color: Colors.white, fontSize: 16, height: 1.1, fontWeight: FontWeight.w800),
+                          style: TextStyle( color: Colors.white, fontSize: 16, height: 1.1, fontWeight: FontWeight.w800),
                         )),
                         IconButton(
                           key: const ValueKey('quick-capture-full-form'),

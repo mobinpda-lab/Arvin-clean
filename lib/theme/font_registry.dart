@@ -1,9 +1,11 @@
+import 'app_fonts.dart';
+
 class ArvinFontOption {
   final String id;
   final String nameFa;
   final String description;
   final String category;
-  final String fontFamily;
+  final String? fontFamily;
 
   const ArvinFontOption({
     required this.id,
@@ -13,19 +15,29 @@ class ArvinFontOption {
     required this.fontFamily,
   });
 
-  String get effectiveFontFamily => fontFamily;
+  String? get effectiveFontFamily => fontFamily;
 }
 
 const ArvinFontOption _vazirmatn = ArvinFontOption(
   id: 'vazirmatn',
   nameFa: 'وزیرمتن',
-  description: 'فونت استاندارد و یکپارچه رابط کاربری آروین',
-  category: 'عمومی',
-  fontFamily: 'Vazirmatn',
+  description: 'فونت رسمی و پیش‌فرض رابط کاربری آروین',
+  category: 'رسمی',
+  fontFamily: AppFonts.vazirmatnFamily,
+);
+
+const ArvinFontOption _systemDefault = ArvinFontOption(
+  id: 'system-default',
+  nameFa: 'فونت پیش‌فرض سیستم',
+  description: 'انتخاب اختیاری برای دسترس‌پذیری؛ نه فونت برند آروین',
+  category: 'دسترس‌پذیری',
+  fontFamily: null,
 );
 
 const List<ArvinFontOption> kAvailableArvinFonts = <ArvinFontOption>[
   _vazirmatn,
+  _systemDefault,
 ];
 
-ArvinFontOption arvinFontById(String? id) => _vazirmatn;
+ArvinFontOption arvinFontById(String? id) =>
+    id == _systemDefault.id ? _systemDefault : _vazirmatn;

@@ -26,6 +26,9 @@ extension TaskPriorityProduct on TaskPriority {
 
 enum NotebookItemKind { note, checklist }
 
+// Distinguishes omitted legacy constructor arguments from explicit null values.
+const Object _legacyValueNotProvided = Object();
+
 String _dateOnlyStorageValue(DateTime value) =>
     '${value.year.toString().padLeft(4, '0')}-${value.month.toString().padLeft(2, '0')}-${value.day.toString().padLeft(2, '0')}';
 
@@ -38,7 +41,7 @@ bool _isDateOnlyStorageValue(Object? value) {
       int.tryParse(value.substring(8, 10)) != null;
 }
 
-Map<String, dynamic> _decodeLegacyFollowUpMetadata(
+Map<String, dynamic> decodeLegacyFollowUpMetadata(
   Map<String, dynamic> json,
 ) {
   final metadata = <String, dynamic>{};
@@ -47,20 +50,46 @@ Map<String, dynamic> _decodeLegacyFollowUpMetadata(
     metadata.addAll(Map<String, dynamic>.from(rawMetadata));
   }
 
+  // Presence is part of the legacy value: absent, explicit null, false and
+  // true must remain distinguishable after a decode/encode round trip.
   final taskLevel = <String, dynamic>{};
-  final rawFollowUpDate = json['followUpDate'];
-  final rawFollowUpEnabled = json['followUpEnabled'];
-  if (rawFollowUpDate != null) {
-    taskLevel['followUpDate'] = rawFollowUpDate;
-  }
-  if (rawFollowUpEnabled == true || rawFollowUpDate != null) {
-    taskLevel['followUpEnabled'] = rawFollowUpEnabled;
+  for (final field in const [
+    'reminderDate',
+    'reminderAllDay',
+    'followUpDate',
+    'followUpEnabled',
+  ]) {
+    if (json.containsKey(field)) taskLevel[field] = json[field];
   }
   if (taskLevel.isNotEmpty) {
     final existing = metadata['taskLevel'];
     metadata['taskLevel'] = <String, dynamic>{
       if (existing is Map) ...Map<String, dynamic>.from(existing),
       ...taskLevel,
+    };
+  }
+
+  // Preserve unrecognized Task fields in the opaque compatibility envelope.
+  const knownTaskFields = <String>{
+    'id', 'title', 'description', 'createdAt', 'updatedAt', 'dueDate',
+    'centerId', 'allDay', 'followUpEnabled', 'followUpDate', 'reminderDate',
+    'reminderAllDay', 'tags', 'category', 'checklist', 'checklistEnabled',
+    'checklistOccurrences', 'occurrenceHistory', 'notebookKind',
+    'taskReminders', 'nextReminderSequence',
+    'legacyTaskReminderMigrationVersion', 'legacyFollowUpMetadata',
+    'priority', 'isFavorite', 'isSelectedForToday', 'focusDate', 'archived',
+    'trashed', 'completed', 'completedAt', 'templateTaskId', 'followUps',
+    'recurrence', 'people',
+  };
+  final unknownTaskFields = <String, dynamic>{
+    for (final entry in json.entries)
+      if (!knownTaskFields.contains(entry.key)) entry.key: entry.value,
+  };
+  if (unknownTaskFields.isNotEmpty) {
+    final existing = metadata['unknownFields'];
+    metadata['unknownFields'] = <String, dynamic>{
+      if (existing is Map) ...Map<String, dynamic>.from(existing),
+      ...unknownTaskFields,
     };
   }
 
@@ -73,22 +102,45 @@ Map<String, dynamic> _decodeLegacyFollowUpMetadata(
         if (raw is Map) records.add(Map<String, dynamic>.from(raw));
       }
     }
+    const knownFollowUpFields = <String>{
+      'id', 'completedAt', 'dateTime', 'title', 'note', 'result',
+      'completed', 'waitingForResponse', 'personIds', 'reminderDate',
+      'reminderAllDay',
+    };
     for (final raw in rawFollowUps) {
-      if (raw is! Map || raw['nextFollowUp'] == null) continue;
-      final record = <String, dynamic>{
-        if (raw['id'] != null) 'id': raw['id'],
-        'nextFollowUp': raw['nextFollowUp'],
-        if (raw['nextFollowUpAllDay'] != null)
-          'nextFollowUpAllDay': raw['nextFollowUpAllDay'],
+      if (raw is! Map) continue;
+      final source = Map<String, dynamic>.from(raw);
+      final unknownFields = <String, dynamic>{
+        for (final entry in source.entries)
+          if (!knownFollowUpFields.contains(entry.key) &&
+              entry.key != 'nextFollowUp' &&
+              entry.key != 'nextFollowUpAllDay')
+            entry.key: entry.value,
       };
-      final id = raw['id'];
+      final hasLegacyFields = source.containsKey('nextFollowUp') ||
+          source.containsKey('nextFollowUpAllDay') ||
+          unknownFields.isNotEmpty;
+      if (!hasLegacyFields) continue;
+
+      final record = <String, dynamic>{
+        if (source['id'] != null) 'id': source['id'],
+        if (source.containsKey('nextFollowUp'))
+          'nextFollowUp': source['nextFollowUp'],
+        if (source.containsKey('nextFollowUpAllDay'))
+          'nextFollowUpAllDay': source['nextFollowUpAllDay'],
+        ...unknownFields,
+      };
+      final id = source['id'];
       final existingIndex = records.indexWhere(
         (item) => id != null && item['id'] == id,
       );
       if (existingIndex < 0) {
         records.add(record);
       } else {
-        records[existingIndex] = record;
+        records[existingIndex] = <String, dynamic>{
+          ...records[existingIndex],
+          ...record,
+        };
       }
     }
     if (records.isNotEmpty) metadata['followUps'] = records;
@@ -115,7 +167,7 @@ class FollowUpRecord {
 
   /// Retained only to serialize legacy dates as inert Task metadata.
   /// Never read by Reminder projection, delivery, Calendar, or alarm scheduling.
-  final DateTime? _legacyNextFollowUp;
+  final Object? _legacyNextFollowUp;
 
   /// Deprecated read-only compatibility projection; future scheduling is not stored.
   @Deprecated('Follow-up records are historical only.')
@@ -136,7 +188,7 @@ class FollowUpRecord {
     @Deprecated('Use TaskReminder.isAllDay on the parent Task.')
     bool reminderAllDay = false,
     @Deprecated('Follow-up records do not schedule future work.')
-    DateTime? nextFollowUp,
+    Object? nextFollowUp = _legacyValueNotProvided,
     this.completed = false,
     this.waitingForResponse = false,
     this.personIds = const <String>[],
@@ -258,9 +310,9 @@ class Task {
     this.centerId,
     this.allDay = false,
     @Deprecated('Follow-up history is represented by FollowUpRecord entries.')
-    bool followUpEnabled = false,
+    Object? followUpEnabled = _legacyValueNotProvided,
     @Deprecated('Follow-up records do not schedule future work.')
-    DateTime? followUpDate,
+    Object? followUpDate = _legacyValueNotProvided,
     this.tags = const [],
     this.category,
     this.checklist = const [],
@@ -302,11 +354,21 @@ class Task {
     // into TaskReminder records and therefore cannot schedule delivery.
     final metadata = Map<String, dynamic>.from(legacyFollowUpMetadata);
     final taskLevel = <String, dynamic>{};
-    if (followUpDate != null) {
-      taskLevel['followUpDate'] = followUpDate.toIso8601String();
+    if (!identical(followUpDate, _legacyValueNotProvided)) {
+      if (followUpDate == null) {
+        taskLevel['followUpDate'] = null;
+      } else if (followUpDate is DateTime) {
+        taskLevel['followUpDate'] = followUpDate.toIso8601String();
+      } else {
+        throw ArgumentError.value(followUpDate, 'followUpDate', 'Expected DateTime or null.');
+      }
     }
-    if (followUpEnabled || followUpDate != null) {
-      taskLevel['followUpEnabled'] = followUpEnabled;
+    if (!identical(followUpEnabled, _legacyValueNotProvided)) {
+      if (followUpEnabled == null || followUpEnabled is bool) {
+        taskLevel['followUpEnabled'] = followUpEnabled;
+      } else {
+        throw ArgumentError.value(followUpEnabled, 'followUpEnabled', 'Expected bool or null.');
+      }
     }
     if (taskLevel.isNotEmpty) {
       final existing = metadata['taskLevel'];
@@ -319,15 +381,30 @@ class Task {
     final existingRecords = metadata['followUps'];
     if (existingRecords is List) {
       for (final raw in existingRecords) {
-        if (raw is Map) records.add(Map<String, dynamic>.from(raw));
+        if (raw is! Map) continue;
+        final record = Map<String, dynamic>.from(raw);
+        final recordId = record['id'];
+        final existingIndex = records.indexWhere(
+          (item) => recordId != null && item['id'] == recordId,
+        );
+        if (existingIndex < 0) {
+          records.add(record);
+        } else {
+          records[existingIndex] = <String, dynamic>{
+            ...records[existingIndex],
+            ...record,
+          };
+        }
       }
     }
     for (final followUp in followUps) {
       final nextFollowUp = followUp._legacyNextFollowUp;
-      if (nextFollowUp == null) continue;
+      if (identical(nextFollowUp, _legacyValueNotProvided)) continue;
       final record = <String, dynamic>{
         'id': followUp.id,
-        'nextFollowUp': nextFollowUp.toIso8601String(),
+        'nextFollowUp': nextFollowUp is DateTime
+            ? nextFollowUp.toIso8601String()
+            : null,
       };
       final existingIndex = records.indexWhere(
         (item) => item['id'] == followUp.id,
@@ -335,7 +412,10 @@ class Task {
       if (existingIndex < 0) {
         records.add(record);
       } else {
-        records[existingIndex] = record;
+        records[existingIndex] = <String, dynamic>{
+          ...records[existingIndex],
+          ...record,
+        };
       }
     }
     if (records.isNotEmpty) metadata['followUps'] = records;
@@ -598,7 +678,7 @@ class Task {
     }
 
     final loadedPeople = _decodePeople(json['people']);
-    final legacyFollowUpMetadata = _decodeLegacyFollowUpMetadata(json);
+    final legacyFollowUpMetadata = decodeLegacyFollowUpMetadata(json);
     final loadedTaskReminders = <TaskReminder>[];
     final rawTaskReminders = json['taskReminders'];
     if (rawTaskReminders is List) {

@@ -679,6 +679,17 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     setState(() => _task = updated);
   }
 
+  Future<void> _setCompletionFromStatusMenu(bool completed) async {
+    if (completed == _task.completed) return;
+    if (widget.onComplete != null) {
+      await _complete();
+      return;
+    }
+    final candidate = Task.fromJson(Map<String, dynamic>.from(_task.toJson()))
+      ..completed = completed;
+    await _persistCandidate(candidate);
+  }
+
   String _date(DateTime value) => _formatter.format(value, usePersianDate: true);
 
   String _time(DateTime value) => _formatter.toPersianDigits(
@@ -891,7 +902,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              fontFamily: 'Vazirmatn',
+              
               fontSize: 16,
               fontWeight: FontWeight.w800,
             ),
@@ -902,22 +913,52 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   Widget _summaryCard() {
+    final statusLabel = _task.completed ? 'انجام‌شده' : 'در انتظار انجام';
     return KeyedSubtree(
       key: const ValueKey('task-detail-summary-card'),
-      child: TextField(
-        key: const ValueKey('task-detail-title'),
-        controller: _titleController,
-        textDirection: TextDirection.rtl,
-        maxLines: 2,
-        enabled: widget.onTaskChanged != null,
-        onChanged: _saveTitleImmediately,
-        style: const TextStyle(fontFamily: 'Vazirmatn', color: Colors.white, fontSize: 21, fontWeight: FontWeight.w800),
-        decoration: const InputDecoration(
-          hintText: 'عنوان کار',
-          hintStyle: TextStyle(color: Colors.white70),
-          enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white54)),
-          focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white)),
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            key: const ValueKey('task-detail-title'),
+            controller: _titleController,
+            textDirection: TextDirection.rtl,
+            maxLines: 2,
+            enabled: widget.onTaskChanged != null,
+            onChanged: _saveTitleImmediately,
+            style: const TextStyle(color: Colors.white, fontSize: 21, fontWeight: FontWeight.w800),
+            decoration: const InputDecoration(
+              hintText: 'عنوان کار',
+              hintStyle: TextStyle(color: Colors.white70),
+              enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white54)),
+              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white)),
+            ),
+          ),
+          const SizedBox(height: 5),
+          PopupMenuButton<bool>(
+            key: const ValueKey('task-detail-status-menu'),
+            tooltip: 'وضعیت کار',
+            initialValue: _task.completed,
+            enabled: widget.onComplete != null || widget.onTaskChanged != null,
+            onSelected: _setCompletionFromStatusMenu,
+            itemBuilder: (_) => const [
+              PopupMenuItem<bool>(
+                value: false,
+                child: Text('در انتظار انجام'),
+              ),
+              PopupMenuItem<bool>(
+                value: true,
+                child: Text('انجام‌شده'),
+              ),
+            ],
+            child: _metadataChip(
+              statusLabel,
+              Colors.white,
+              icon: _task.completed ? Icons.check_circle_outline : Icons.radio_button_unchecked,
+              key: const ValueKey('task-status-badge'),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1462,7 +1503,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         Icon(icon, size: 14, color: color),
         const SizedBox(width: 5),
-        Text(label, style: TextStyle(fontFamily: 'Vazirmatn', color: color, fontSize: 11, fontWeight: FontWeight.w700)),
+        Text(label, style: TextStyle( color: color, fontSize: 11, fontWeight: FontWeight.w700)),
       ]),
     );
   }
@@ -1830,14 +1871,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontFamily: 'Vazirmatn', fontWeight: FontWeight.w700),
+              style: const TextStyle( fontWeight: FontWeight.w700),
             );
             final valueWidget = Text(
               value,
               key: valueKey,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontFamily: 'Vazirmatn', color: _muted, fontSize: 12),
+              style: const TextStyle( color: _muted, fontSize: 12),
             );
             final compact = constraints.maxWidth < 480 ||
                 MediaQuery.sizeOf(context).width < 480;
@@ -1898,7 +1939,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontFamily: 'Vazirmatn',
+                    
                     color: _muted,
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
@@ -1909,7 +1950,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontFamily: 'Vazirmatn',
+                    
                     color: Theme.of(context).colorScheme.onSurface,
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
@@ -2085,20 +2126,17 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                           ),
                         ],
                       ),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(child: _summaryCard()),
-                          const SizedBox(width: 4),
-                          IconButton(
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final summary = _summaryCard();
+                          final favoriteAction = IconButton(
                             key: const ValueKey('task-detail-favorite'),
                             tooltip: _task.isFavorite ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها',
                             onPressed: widget.onTaskChanged == null ? null : _toggleFavorite,
                             color: _task.isFavorite ? const Color(0xFFFFD166) : Colors.white,
                             icon: Icon(_task.isFavorite ? Icons.star_rounded : Icons.star_outline_rounded),
-                          ),
-                          const SizedBox(width: 4),
-                          PopupMenuButton<TaskPriority>(
+                          );
+                          final priorityAction = PopupMenuButton<TaskPriority>(
                             key: const ValueKey('task-detail-priority-menu'),
                             tooltip: 'اولویت کار',
                             initialValue: priority,
@@ -2114,8 +2152,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                               ArvinColors.priorityColor(priority),
                               icon: Icons.flag_outlined,
                             ),
-                          ),
-                          IconButton(
+                          );
+                          final completeAction = IconButton(
                             key: const ValueKey('task-detail-header-complete'),
                             tooltip: _task.completed ? 'بازگشت به انجام‌نشده' : 'انجام کار',
                             onPressed: widget.onComplete == null ? null : _complete,
@@ -2124,20 +2162,47 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                             icon: Icon(_task.completed
                                 ? Icons.check_circle_rounded
                                 : Icons.radio_button_unchecked_rounded),
-                          ),
-                        ],
+                          );
+
+                          // At phone widths, keep the summary full-width and place
+                          // every primary action on its own RTL row below it.
+                          // This gives the priority chip enough room without
+                          // removing or hiding any action.
+                          if (constraints.maxWidth < 480) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                summary,
+                                Align(
+                                  alignment: AlignmentDirectional.centerEnd,
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      favoriteAction,
+                                      const SizedBox(width: 4),
+                                      priorityAction,
+                                      completeAction,
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            );
+                          }
+
+                          return Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Expanded(child: summary),
+                              const SizedBox(width: 4),
+                              favoriteAction,
+                              const SizedBox(width: 4),
+                              priorityAction,
+                              completeAction,
+                            ],
+                          );
+                        },
                       ),
-                      Align(
-                        alignment: AlignmentDirectional.centerStart,
-                        child: Padding(
-                          padding: const EdgeInsetsDirectional.only(start: 8, top: 4),
-                          child: Text(
-                            _task.completed ? 'انجام‌شده' : 'در انتظار انجام',
-                            key: const ValueKey('task-status-badge'),
-                            style: const TextStyle(fontFamily: 'Vazirmatn', color: Colors.white70, fontSize: 12),
-                          ),
-                        ),
-                      ),
+
                     ],
                   ),
                 ),
@@ -2228,7 +2293,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                           Text(
                             'تاریخ ایجاد: ${_task.createdAt == null ? 'نامشخص' : _dateTime(_task.createdAt!)}',
                             key: const ValueKey('task-detail-created-at'),
-                            style: const TextStyle(fontFamily: 'Vazirmatn', color: _muted, fontSize: 12),
+                            style: const TextStyle( color: _muted, fontSize: 12),
                           ),
                           if (widget.onDelete != null) ...[
                             const SizedBox(height: 8),

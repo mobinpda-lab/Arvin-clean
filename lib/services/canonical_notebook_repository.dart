@@ -74,7 +74,7 @@ class CanonicalNotebookRepository {
       final normalizedCategory = category?.trim();
       final note = Task(
         id: id ?? 'note-${createdAt.microsecondsSinceEpoch}',
-        title: title.trim().isEmpty ? 'یادداشت جدید' : title.trim(),
+        title: title.trim(),
         checklist: List<String>.of(checklist),
         notebookKind: notebookKind ??
             (checklist.isNotEmpty ? NotebookItemKind.checklist : NotebookItemKind.note),
@@ -100,7 +100,7 @@ class CanonicalNotebookRepository {
       if (index < 0) throw StateError('Notebook task not found: $id');
 
       final task = tasks[index];
-      task.title = title.trim().isEmpty ? 'بدون عنوان' : title.trim();
+      task.title = title.trim();
       task.description = description;
       task.checklist = List<String>.of(checklist);
       task.updatedAt = _now();

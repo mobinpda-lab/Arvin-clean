@@ -352,14 +352,13 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    final summary = find.byKey(const ValueKey('task-detail-summary-card'));
-    expect(
-      find.descendant(of: summary, matching: find.text('در انتظار پاسخ')),
-      findsOneWidget,
-    );
-        final latest = find.byKey(const ValueKey('task-detail-latest-followup'));
+    final latest = find.byKey(const ValueKey('task-detail-latest-followup'));
     await _scrollTaskDetailUntilVisible(tester, latest, 240);
     await tester.pumpAndSettle();
+    expect(
+      find.descendant(of: latest, matching: find.text('در انتظار پاسخ')),
+      findsOneWidget,
+    );
     expect(find.byKey(const ValueKey('task-detail-latest-followup-title')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-latest-followup-note')), findsOneWidget);
     expect(find.text('تماس با مشتری'), findsNWidgets(2));
@@ -411,8 +410,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(persisted?.checklist, ['[ ] مرحله دوم', '[ ] مرحله اول']);
 
-    final add = find.byKey(const ValueKey('task-detail-checklist-add'));
-    await tester.ensureVisible(add);
+    final add = find.byKey(const ValueKey('task-detail-add-checklist'));
+    await _scrollTaskDetailUntilVisible(tester, add, 240);
     await tester.tap(add);
     await tester.pumpAndSettle();
     final input = find.byKey(const ValueKey('task-detail-checklist-add-input'));
@@ -549,7 +548,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('task-detail-description-card')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-independent-reminders')), findsOneWidget);
     expect(
       find.descendant(
         of: find.byKey(const ValueKey('task-detail-summary-card')),
@@ -558,9 +556,12 @@ void main() {
       findsOneWidget,
     );
 
-        final addReminder = find.byKey(const ValueKey('task-detail-add-reminder'));
+    final remindersCard =
+        find.byKey(const ValueKey('task-detail-independent-reminders'));
+    final addReminder = find.byKey(const ValueKey('task-detail-add-reminder'));
     await _scrollTaskDetailUntilVisible(tester, addReminder, 240);
     await tester.pumpAndSettle();
+    expect(remindersCard, findsOneWidget);
     expect(addReminder, findsOneWidget);
 
     final recurrenceCard = find.byKey(const ValueKey('task-detail-recurrence'));
@@ -642,8 +643,15 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('افزودن مرحله جدید'), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-latest-followup')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-timeline')), findsOneWidget);
+    final latestFollowUp =
+        find.byKey(const ValueKey('task-detail-latest-followup'));
+    await _scrollTaskDetailUntilVisible(tester, latestFollowUp, 240);
+    await tester.pumpAndSettle();
+    expect(latestFollowUp, findsOneWidget);
+    final timeline = find.byKey(const ValueKey('task-detail-timeline'));
+    await _scrollTaskDetailUntilVisible(tester, timeline, 240);
+    await tester.pumpAndSettle();
+    expect(timeline, findsOneWidget);
   });
 
   testWidgets('Task Details converts a Task to a persisted template without mutating source', (tester) async {
@@ -776,7 +784,7 @@ void main() {
     expect(find.byKey(const ValueKey('task-detail-metadata-project')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-metadata-category')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-metadata-tags')), findsOneWidget);
-    expect(find.text('مشخصات کار'), findsOneWidget);
+    expect(find.text('مشخصات کار'), findsNothing);
     // These controls belong to the summary card; assert them before lazy-list scrolling.
     expect(find.byKey(const ValueKey('task-detail-status-menu')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-priority-menu')), findsOneWidget);
@@ -942,10 +950,12 @@ void main() {
     expect(find.byKey(const ValueKey('task-detail-back')), findsOneWidget);
     final page = tester.widget<Scaffold>(find.byKey(const ValueKey('task-detail-page')));
     expect(page.backgroundColor, const Color(0xFFF5F6FA));
-    final summary = tester.widget<Container>(find.byKey(const ValueKey('task-detail-summary-card')));
-    final summaryDecoration = summary.decoration! as BoxDecoration;
-    expect(summaryDecoration.color, Colors.white);
-    expect(summaryDecoration.borderRadius, BorderRadius.circular(16));
+    final summaryTitle = tester.widget<TextField>(
+      find.byKey(const ValueKey('task-detail-title')),
+    );
+    expect(summaryTitle.style?.color, Colors.white);
+    expect(summaryTitle.decoration?.enabledBorder, isA<UnderlineInputBorder>());
+    expect(summaryTitle.decoration?.focusedBorder, isA<UnderlineInputBorder>());
     final completeButton = tester.widget<FilledButton>(
       find.byKey(const ValueKey('task-detail-complete')),
     );

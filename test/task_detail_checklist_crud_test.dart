@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:arvin/task_detail_page.dart';
@@ -124,11 +123,12 @@ void main() {
       expectFollowUpHistoryUnchanged(saved);
 
       final editChecklist = find.byKey(const ValueKey('task-detail-checklist-edit-0'));
-      await tester.ensureVisible(editChecklist);
+      await _scrollTaskDetailUntilVisible(tester, editChecklist, 240);
       await tester.tap(editChecklist);
       await tester.pumpAndSettle();
       final editInput = find.byKey(const ValueKey('task-detail-checklist-edit-input-0'));
       await tester.enterText(editInput, 'تماس با مشتری (اصلاح‌شده)');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle();
 
       saved = (await store.load()).single;
@@ -136,7 +136,7 @@ void main() {
       expectFollowUpHistoryUnchanged(saved);
 
       final deleteChecklist = find.byKey(const ValueKey('task-detail-checklist-delete-0'));
-      await tester.ensureVisible(deleteChecklist);
+      await _scrollTaskDetailUntilVisible(tester, deleteChecklist, 240);
       await tester.tap(deleteChecklist);
       await tester.pumpAndSettle();
 

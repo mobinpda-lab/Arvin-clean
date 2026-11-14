@@ -126,6 +126,48 @@ jobs:
           git diff --exit-code -- pubspec.lock
       - name: Task Details structural layout smoke
         run: flutter test test/task_detail_visual_test.dart
+      - name: Generate Persian PDF acceptance sample and verify embedded fonts
+        run: flutter test test/report_typography_canonical_test.dart --reporter expanded
+      - name: Render PDF and inspect embedded font resources
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y poppler-utils
+          evidence="build/arvin-command-07-a2/pdf"
+          pdf="$evidence/vazirmatn-persian-acceptance.pdf"
+          test -s "$pdf"
+          pdffonts "$pdf" | tee "$evidence/pdffonts.txt"
+          # pdffonts columns are name, type, encoding, emb, sub, uni, object.
+          # Whitespace tokenization therefore places emb at $5 and uni at $7.
+          awk 'NR > 2 && /Vazirmatn/ { count++; if ($5 != "yes" || $7 != "yes") bad=1 } END { if (count < 2 || bad) exit 1 }' "$evidence/pdffonts.txt"
+          pdftotext -layout "$pdf" "$evidence/extracted-text.txt"
+          # Preserve Poppler's raw glyph mapping and also normalize Arabic presentation
+          # forms to canonical Unicode before checking semantic text content.
+          python3 - <<'PY'
+          import pathlib
+          import unicodedata
+          source = pathlib.Path("build/arvin-command-07-a2/pdf/extracted-text.txt")
+          target = pathlib.Path("build/arvin-command-07-a2/pdf/extracted-text-normalized.txt")
+          target.write_text(unicodedata.normalize("NFKC", source.read_text(encoding="utf-8")), encoding="utf-8")
+          PY
+          grep -Fq 'می‌خواهم' "$evidence/extracted-text-normalized.txt"
+          grep -Fq '۱۴۰۵/۰۸/۲۱' "$evidence/extracted-text-normalized.txt"
+          # Poppler emits the LTR date in visual order inside the RTL paragraph.
+          grep -Fq '12-11-2026' "$evidence/extracted-text-normalized.txt"
+          grep -Fq 'Example Ltd' "$evidence/extracted-text-normalized.txt"
+          pdftoppm -png -r 144 -f 1 -singlefile "$pdf" "$evidence/vazirmatn-persian-preview"
+          sha256sum "$pdf" | tee "$evidence/pdf.sha256"
+          echo "PDF_FONT_EMBEDDING=PASS"
+          echo "PDF_UNICODE_EXTRACTION=PASS"
+          echo "PDF_RENDER=PASS"
+      - name: Upload PDF acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: arvin-vazirmatn-persian-pdf-${{ github.run_id }}
+          path: build/arvin-command-07-a2/pdf/
+          if-no-files-found: warn
       - name: Upload Task Details visual evidence
         if: always()
         uses: actions/upload-artifact@v5
@@ -374,22 +416,62 @@ jobs:
             apk="build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk"
           fi
           test -s "$apk"
+          declare -A expected_blob=(
+            ["assets/fonts/ui/vazirmatn/Vazirmatn-Light.ttf"]="2dfd5c35ed4c26f7ce9f3ba753f11d9a38356c42"
+            ["assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf"]="64e4a8189557a17b63fd7a77794207483e592972"
+            ["assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf"]="1e08dd54d90a4879451ef0f80fe0d8068fb7462f"
+            ["assets/fonts/ui/vazirmatn/Vazirmatn-SemiBold.ttf"]="6b3842aca6055c8258404b1758133b81c961a13f"
+            ["assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf"]="efa9b095da01d299310bdcae293e24e657fe6da9"
+          )
+          echo "FONT_UPSTREAM_COMMIT=6e553e33489a8f9dfaccc76860a2e3f3c1e66de7"
           for font in \
+            assets/fonts/ui/vazirmatn/Vazirmatn-Light.ttf \
             assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf \
             assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf \
+            assets/fonts/ui/vazirmatn/Vazirmatn-SemiBold.ttf \
             assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf; do
             if ! unzip -Z1 "$apk" | grep -Fxq "assets/flutter_assets/$font"; then
               echo "FONT_ASSET_BUNDLED=FAIL missing=$font" >&2
               exit 1
             fi
+            actual_blob="$(git hash-object "$font")"
+            if [[ "$actual_blob" != "${expected_blob[$font]}" ]]; then
+              echo "FONT_PROVENANCE=FAIL file=$font expected=${expected_blob[$font]} actual=$actual_blob" >&2
+              exit 1
+            fi
+            font_sha256="$(sha256sum "$font" | awk '{print $1}')"
+            embedded_sha256="$(unzip -p "$apk" "assets/flutter_assets/$font" | sha256sum | awk '{print $1}')"
+            if [[ "$embedded_sha256" != "$font_sha256" ]]; then
+              echo "APK_FONT_CONTENT=FAIL file=$font source_sha256=$font_sha256 embedded_sha256=$embedded_sha256" >&2
+              exit 1
+            fi
+            font_bytes="$(stat -c '%s' "$font")"
             echo "FONT_ASSET_BUNDLED=PASS $font"
+            echo "FONT_PROVENANCE=PASS file=$font git_blob=$actual_blob bytes=$font_bytes sha256=$font_sha256"
+            echo "APK_FONT_CONTENT=PASS file=$font embedded_sha256=$embedded_sha256"
           done
-          if grep -R -n -E "VazirHarf|vazirharf|font-option-system|System Default|fontFamily:[[:space:]]*['\"]system['\"]" lib pubspec.yaml; then
-            echo "FONT_SOURCE_PURGE=FAIL legacy font or System Default reference remains" >&2
+          if grep -R -n -E "VazirHarf|vazirharf" lib pubspec.yaml; then
+            echo "FONT_LEGACY_PURGE=FAIL retired VazirHarf runtime reference remains" >&2
             exit 1
           fi
-          echo "FONT_SOURCE_PURGE=PASS"
-          echo "FONT_GATE=PASS_VAZIRMATN_BUNDLED_SYSTEM_DEFAULT_PURGED"
+          echo "FONT_LEGACY_PURGE=PASS"
+          for font in \
+            assets/fonts/ui/vazirmatn/Vazirmatn-Light.ttf \
+            assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf \
+            assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf \
+            assets/fonts/ui/vazirmatn/Vazirmatn-SemiBold.ttf \
+            assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf; do
+            test -s "$font"
+          done
+          test -s assets/fonts/ui/vazirmatn/LICENSE.txt
+          grep -Fq 'SIL OPEN FONT LICENSE Version 1.1' assets/fonts/ui/vazirmatn/LICENSE.txt
+          grep -Fq 'family: Vazirmatn' pubspec.yaml
+          grep -Fq "static const String vazirmatnFamily = 'Vazirmatn';" lib/theme/app_fonts.dart
+          grep -Fq 'static const String fontFamily = AppFonts.vazirmatnFamily;' lib/core/theme/arvin_theme.dart
+          grep -Fq 'fontFamily: AppFonts.vazirmatnFamily,' lib/theme/font_registry.dart
+          echo "FONT_LICENSE=PASS_OFL_1_1"
+          echo "FONT_FAMILY=PASS_VAZIRMATN"
+          echo "FONT_GATE=PASS_VAZIRMATN_5_WEIGHTS_BUNDLED"
 
       - name: Verify APK
         if: always() && steps.build-apk.outcome == 'success'

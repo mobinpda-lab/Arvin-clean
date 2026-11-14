@@ -3,6 +3,7 @@ import 'package:arvin/main.dart' as app;
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:arvin/theme/app_fonts.dart';
+import 'package:arvin/services/app_settings_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -36,8 +37,37 @@ void main() {
         ),
       ]);
 
+      // Exercise the real Android SharedPreferences plugin, not only the
+      // mocked unit-test store. Recreate the app root to verify both supported
+      // choices are reloaded into light/dark themes and the overlay's inherited
+      // typography contract.
+      final fontSettings = AppSettingsService();
+      await fontSettings.saveFontPreference('system-default');
       app.main();
       await _pumpFrames(tester, frames: 15);
+      var rootApp = tester.widget<MaterialApp>(find.byType(MaterialApp).first);
+      expect(rootApp.theme?.textTheme.bodyLarge?.fontFamily, isNull);
+      expect(rootApp.darkTheme?.textTheme.bodyLarge?.fontFamily, isNull);
+
+      await fontSettings.saveFontPreference('vazirmatn');
+      await tester.pumpWidget(const SizedBox.shrink());
+      await _pumpFrames(tester, frames: 2);
+      app.main();
+      await _pumpFrames(tester, frames: 15);
+      rootApp = tester.widget<MaterialApp>(find.byType(MaterialApp).first);
+      expect(rootApp.theme?.textTheme.bodyLarge?.fontFamily, AppFonts.vazirmatnFamily);
+      expect(rootApp.darkTheme?.textTheme.bodyLarge?.fontFamily, AppFonts.vazirmatnFamily);
+      for (final theme in <ThemeData>[rootApp.theme!, rootApp.darkTheme!]) {
+        expect(theme.textTheme.bodyLarge?.fontWeight, FontWeight.w400);
+        expect(theme.textTheme.bodyMedium?.fontWeight, FontWeight.w400);
+        expect(theme.textTheme.bodySmall?.fontWeight, FontWeight.w400);
+        expect(theme.textTheme.titleLarge?.fontWeight, FontWeight.w700);
+        expect(theme.textTheme.titleMedium?.fontWeight, FontWeight.w600);
+        expect(theme.textTheme.titleSmall?.fontWeight, FontWeight.w600);
+        expect(theme.textTheme.labelLarge?.fontWeight, FontWeight.w500);
+        expect(theme.textTheme.labelMedium?.fontWeight, FontWeight.w500);
+        expect(theme.textTheme.labelSmall?.fontWeight, FontWeight.w500);
+      }
 
       final skipGuide = find.text('رد کردن');
       if (skipGuide.evaluate().isNotEmpty) {
@@ -77,6 +107,8 @@ void main() {
         find.byKey(const ValueKey('alarm-overlay-task-title')),
       );
       expect(title.style?.fontFamily, AppFonts.vazirmatnFamily);
+      expect(Directionality.of(tester.element(find.byKey(const ValueKey('alarm-overlay-task-title')))), TextDirection.rtl);
+      expect(title.data, contains('آزمون نمایش یادآور'));
 
       await binding.convertFlutterSurfaceToImage();
       await _pumpFrames(tester);

@@ -12,7 +12,7 @@ void main() {
     );
   });
 
-  test('default renderer uses bundled Vazirmatn fonts', () async {
+  test('default renderer loads bundled Vazirmatn fonts', () async {
     final report = const TaskReportProjection().project(
       [Task(id: 'font-default', title: 'آزمون وزیرمتن')],
       generatedAt: DateTime.utc(2026, 10, 30),

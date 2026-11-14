@@ -1,0 +1,67 @@
+name: Arvin COMMAND 07-A.2.20 SQLite Snapshot Evidence
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - 'test/diagnostics/command_07_a2_20_sqlite_snapshots_test.dart'
+      - '.github/workflows/arvin-command-07-a2-20-sqlite-snapshots.yml'
+      - 'lib/services/g1_drift_schema.dart'
+      - 'lib/services/sql_task_migration_writer.dart'
+      - 'lib/services/task_store.dart'
+      - 'lib/models/task.dart'
+  workflow_dispatch:
+    inputs:
+      target_sha:
+        description: 'Exact product commit SHA to validate'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  FLUTTER_VERSION: '3.47.0'
+  TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+
+jobs:
+  sqlite-snapshot-evidence:
+    name: SQLite A-D snapshots (five real reopen cycles)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ env.TARGET_SHA }}
+      - name: Verify exact checkout SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          echo "EXPECTED_TARGET_SHA=$TARGET_SHA"
+          echo "CHECKED_OUT_SHA=$actual"
+          test "$actual" = "$TARGET_SHA"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: false
+      - name: Install SQLite development library
+        run: sudo apt-get update -qq && sudo apt-get install -y libsqlite3-dev
+      - name: Resolve locked dependencies
+        run: |
+          set -euo pipefail
+          flutter pub get --enforce-lockfile
+          git diff --exit-code -- pubspec.lock
+      - name: Capture A-D SQL snapshots and verify five reopen cycles
+        run: flutter test test/diagnostics/command_07_a2_20_sqlite_snapshots_test.dart --reporter expanded
+      - name: Upload SQLite A-D snapshot evidence
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: arvin-command-07-a2-20-sqlite-snapshots-${{ env.TARGET_SHA }}
+          path: |
+            build/arvin-command-07-a2-20/sqlite-snapshots-A-D.json
+            build/arvin-command-07-a2-20/sqlite-snapshots-A-D.json.sha256
+          if-no-files-found: error
+          retention-days: 90

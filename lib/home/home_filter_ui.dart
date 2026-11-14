@@ -72,7 +72,7 @@ class HomeFilterPill extends StatelessWidget {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  fontFamily: 'Vazirmatn',
+                                  
                                   fontSize: 10,
                                   fontWeight: FontWeight.w700,
                                   color: active ? accent : accent.withAlpha(205),

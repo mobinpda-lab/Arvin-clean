@@ -370,3 +370,49 @@ Remaining sequence:
 5. Complete Backup/Restore for all approved entities and verify close/reopen round-trip.
 6. Prove every legacy retirement gate and obtain Mobin acceptance.
 7. Keep Release NO-GO until every acceptance gate passes.
+
+
+## 2026-11-12 — COMMAND 07-A.2.21 checkpoint
+
+### فونت
+- VazirHarf v34.003 UI-Farsi-Digits به‌عنوان خانواده canonical برنامه ثبت شد؛ پنج وزن و مجوز OFL 1.1 همراه منبع upstream pin‌شده مستند شده‌اند.
+- Vazirmatn legacy assetها برای حفظ تاریخچه نگهداری می‌شوند، اما runtime/public APK نباید به آن‌ها وابسته باشد.
+
+### SQLite
+- Snapshotهای A-D و پنج چرخه Reopen روی SHA b9d88bf موفق بوده‌اند.
+- D01 تست‌های مستقل حفظ custom index، custom trigger و outgoing foreign key دارد؛ برای پذیرش نهایی باید Shardهای همان SHA نهایی سبز شوند.
+- D02 تست Missing و NULL صریح و مقادیر boolean/ستون legacy را پوشش می‌دهد؛ بررسی اجرای کامل روی SHA نهایی همچنان لازم است.
+- D03 شناسه/ترتیب Follow-up، Person links و futureFollowUpField را در round-trip و پنج چرخه بررسی می‌کند.
+- D04 شناسه، تاریخ، ترتیب و enabled state یادآورها در migration/reopen تست شده‌اند؛ Backup/Restore کامل هنوز باید با شواهد مستقل نهایی شود.
+- D05 rollback در صورت constraint violation تست شده؛ recovery پس از خطای migration باید در گیت نهایی تعیین تکلیف شود.
+
+### Regression و Device
+- اصلاح تست‌های Home، Task Details و PDF ثبت شده‌اند، اما سه Shard باقیمانده و مجموعه کامل شش Shard هنوز پذیرش نهایی ندارند.
+- Device Smoke شامل Boot، Navigation، Calendar، Task Lifecycle، Follow-up Persistence، Reminder و Quick Capture است؛ فقط نتایج همان SHA نهایی معتبرند.
+
+### Exit gates
+Analyze، شش Shard، Visual، Debug/Staging/Release APK، هفت Device Smoke و Artifact SHA256 باید همگی روی یک SHA واحد موفق باشند. Merge/Release/Deployment مجاز نیست.
+
+
+## COMMAND 07-A.2.24 — typography acceptance lane
+
+Add a blocking owner-approved typography lane: restore Vazirmatn as the only official default; inventory/pin upstream source and license; bundle five local weights with verified SHA-256; centralize Theme and explicit weight mapping; implement accessibility-preserving global rendering; expose exactly Vazirmatn and System Default preferences with restart persistence; audit actual APK assets; inspect actual PDF font embedding; and validate Persian/RTL on device. A source registration or test-only assertion is not acceptance. The detailed contract is proposed in PR #3388 at `docs/architecture/ARVIN_TYPOGRAPHY_CONTRACT.md`.
+
+
+## COMMAND 07-A.2.25 — 2026-11-12
+
+Canonical typography authority: `docs/architecture/ARVIN_TYPOGRAPHY_CONTRACT.md` (recorded on documentation PR #3388). Vazirmatn is the sole official/default family; System Default is the only optional preference. This entry supplements historical records and does not erase them.
+
+Live checkpoint at this entry: PR #3384 HEAD `2ac3580985a23e6ac5342d49c33343c8b4f01816`; PR remains OPEN / DRAFT / UNMERGED. Main remains `45e4202b03a434459e4c021a04efa7e8396359db`. PR #3388 remains OPEN / DRAFT / UNMERGED.
+
+Implementation changes on PR #3384: corrected Alarm Overlay and Calendar font-family references; removed their local family overrides so the root Theme controls Vazirmatn/System Default; aligned Device Smoke scenario `smoke-reminder-vazirharf` with `smoke-reminder-vazirmatn`; aligned its workflow contract test. Related commits include `415cb976ad280f28ff8b780ffe6b4d3a6a8ff17b`, `951d5bd1b359d59ec84662ededcd2f1515083d70`, `8f159f5597a020b3d1e06665c5c123b686872162`, `8127c7a3bc85e9d155ec7131cec25b570eaa787f`, `fbf1b6502a7baed655a9a479fbc28abc6789be3b`, `6fe8a2fbdbb47c6cac402b4d0cf61eb75c23043c`, `83208c93d06ac42b478d0f46212338873f5c7e95`, `a3001d2ac5f81ef44b12514f1f90418f283b9409`, `f63f38b332df68ddc2588eb256378842f9705cfd`, `195e8a9e3802c8637b597c23245dbe86561791ee`, `e8c27100ffa70ebe183e66975380d861d34cb973`, `bcb2d24f94f6c23a8f3131aa5853ad8afb6bf507`, and final `2ac3580985a23e6ac5342d49c33343c8b4f01816`.
+
+Exact-head CI at `2ac3580985a23e6ac5342d49c33343c8b4f01816`: Build run `43217473284` PENDING; Device Smoke `43217473090` QUEUED; SQLite Snapshot `43217473138` QUEUED; Follow-up File Persistence `43217473064` IN_PROGRESS. No outcome is claimed. Older Snapshot run `43212724352` passed on `e94105443e7516ed38eda6feaaee125d92fabaf4` only and cannot be transferred to the current SHA.
+
+The active `main-protection` ruleset remains insufficient: zero required approvals and `require_code_owner_review=false`. CODEOWNERS is present on PR #3388 but effective enforcement is not yet enabled. Release remains NO-GO; no merge, release, deployment, data-destructive operation or history rewrite is authorized.
+
+## Remaining P0 gates
+- Complete exact-head Build, Analyze, six regression shards and seven Device Smoke lanes.
+- Complete five-weight APK audit for Debug/Release and actual PDF embedding/shaping validation.
+- Complete SQLite D01-D05 and five persistence cycles on one exact SHA; do not transfer older snapshot evidence.
+- Enable required CODEOWNER approval in the active Ruleset; current ruleset remains at zero approvals and code-owner review disabled.

@@ -66,11 +66,18 @@ class TaskTaxonomyMutationService {
     return changed;
   }
 
-  int deleteCategory(List<Task> tasks, String category) {
+  int deleteCategory(
+    List<Task> tasks,
+    String category, {
+    int additionalReferenceCount = 0,
+  }) {
     final target = category.trim();
     if (target.isEmpty) return 0;
-
-    final referenceCount = categoryUsageCount(tasks, target);
+    if (additionalReferenceCount < 0) {
+      throw ArgumentError.value(additionalReferenceCount, 'additionalReferenceCount');
+    }
+    final referenceCount =
+        categoryUsageCount(tasks, target) + additionalReferenceCount;
     if (referenceCount > 0) {
       throw TaskTaxonomyDeleteBlocked(
         kind: 'category',
@@ -113,11 +120,18 @@ class TaskTaxonomyMutationService {
     return changed;
   }
 
-  int deleteTag(List<Task> tasks, String tag) {
+  int deleteTag(
+    List<Task> tasks,
+    String tag, {
+    int additionalReferenceCount = 0,
+  }) {
     final target = tag.trim();
     if (target.isEmpty) return 0;
-
-    final referenceCount = tagUsageCount(tasks, target);
+    if (additionalReferenceCount < 0) {
+      throw ArgumentError.value(additionalReferenceCount, 'additionalReferenceCount');
+    }
+    final referenceCount =
+        tagUsageCount(tasks, target) + additionalReferenceCount;
     if (referenceCount > 0) {
       throw TaskTaxonomyDeleteBlocked(
         kind: 'tag',

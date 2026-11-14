@@ -823,3 +823,141 @@ Changed source areas:
 - Added/updated Task migration, Project migration, schema and round-trip tests.
 
 Verification on the implementation checkpoint was pending at last lookup; no test PASS is claimed. Reports: P0_C_IMPLEMENTATION_REPORT, SQL_ONLY_CONSOLIDATION_REPORT, MIGRATION_PARITY_REPORT, OCCURRENCE_DATA_OWNERSHIP_REPORT, BACKUP_RESTORE_VALIDATION, TEST_VALIDATION_REPORT and LEGACY_RETIREMENT_REGISTER under `audit/`.
+
+
+## 2026-11-12 — COMMAND 07-A.2.21 typography / SQLite checkpoint
+
+- Canonical typography updated to VazirHarf v34.003 UI-Farsi-Digits, five approved weights, upstream pinned source and bundled SIL OFL 1.1 license. Historical Vazirmatn files were retained, not deleted.
+- Commit 7ca218a8a533c4faf68a2895d7740b241535a447 restored canonical font assets/configuration and expanded D02 explicit-true coverage.
+- Commit 907df7568bd9c1a46a6307e9a587d740a9f3afcb aligned remaining runtime font references and analyzer lint.
+- Commit 3490d753d0bbbc87eef489e641ab8c9f46892197 adjusted Home, checklist and PDF test fixtures to the active product contracts.
+- Commit a1e6ff7bfa0183983b63a6fc8e59b80f8c0b28f3 removed SQLite snapshot test lint without weakening assertions.
+- Commit b9d88bf0381030b5d2fd21aa82436678a65b518a restored typed Snapshot C/D guards. On this SHA, the five-cycle SQLite snapshot workflow and file-backed Follow-up persistence workflow passed. Artifact digests are recorded in CURRENT_STATE.
+- Build Analyze on b9 failed because Checklist test imports followed a declaration and the scroll helper was duplicated; Commit 9a48e1527e3180380982c4d9af2e1e2724d59f36 removed the duplicate and restored imports to the directive section. Fresh exact-SHA Analyze is pending.
+- No Merge, Release or Deployment was performed. No production/user database was accessed; SQLite evidence uses isolated temporary file-backed fixtures.
+
+
+## COMMAND 07-A.2.24 continuity audit — 2026-11-12
+
+- Re-read live repository HEAD, branch refs, PR #3380/#3382/#3384/#3388, ruleset and exact-head workflows.
+- Confirmed PR #3384 head `cbf7d241e588c6b4b6051dea5bb3d309a8c3cb05` and base `8c4c23f0c2a4f9b2374a2092c931782c4455fd41`.
+- Confirmed VazirHarf runtime registration and PDF font loading on this branch conflict with the latest owner-approved Vazirmatn decision.
+- Confirmed exact-head Build failure (43202151547), SQLite Snapshot success (43202151552), Follow-up File Persistence success (43202151499), Device Smoke queued (43202151481), Draft Review APK skipped (43202151478).
+- No source-code remediation or SQLite acceptance is claimed by this log entry. Historical evidence preserved.
+
+
+## COMMAND 07-A.2.25 — 2026-11-12
+
+Canonical typography authority: `docs/architecture/ARVIN_TYPOGRAPHY_CONTRACT.md` (recorded on documentation PR #3388). Vazirmatn is the sole official/default family; System Default is the only optional preference. This entry supplements historical records and does not erase them.
+
+Live checkpoint at this entry: PR #3384 HEAD `2ac3580985a23e6ac5342d49c33343c8b4f01816`; PR remains OPEN / DRAFT / UNMERGED. Main remains `45e4202b03a434459e4c021a04efa7e8396359db`. PR #3388 remains OPEN / DRAFT / UNMERGED.
+
+Implementation changes on PR #3384: corrected Alarm Overlay and Calendar font-family references; removed their local family overrides so the root Theme controls Vazirmatn/System Default; aligned Device Smoke scenario `smoke-reminder-vazirharf` with `smoke-reminder-vazirmatn`; aligned its workflow contract test. Related commits include `415cb976ad280f28ff8b780ffe6b4d3a6a8ff17b`, `951d5bd1b359d59ec84662ededcd2f1515083d70`, `8f159f5597a020b3d1e06665c5c123b686872162`, `8127c7a3bc85e9d155ec7131cec25b570eaa787f`, `fbf1b6502a7baed655a9a479fbc28abc6789be3b`, `6fe8a2fbdbb47c6cac402b4d0cf61eb75c23043c`, `83208c93d06ac42b478d0f46212338873f5c7e95`, `a3001d2ac5f81ef44b12514f1f90418f283b9409`, `f63f38b332df68ddc2588eb256378842f9705cfd`, `195e8a9e3802c8637b597c23245dbe86561791ee`, `e8c27100ffa70ebe183e66975380d861d34cb973`, `bcb2d24f94f6c23a8f3131aa5853ad8afb6bf507`, and final `2ac3580985a23e6ac5342d49c33343c8b4f01816`.
+
+Exact-head CI at `2ac3580985a23e6ac5342d49c33343c8b4f01816`: Build run `43217473284` PENDING; Device Smoke `43217473090` QUEUED; SQLite Snapshot `43217473138` QUEUED; Follow-up File Persistence `43217473064` IN_PROGRESS. No outcome is claimed. Older Snapshot run `43212724352` passed on `e94105443e7516ed38eda6feaaee125d92fabaf4` only and cannot be transferred to the current SHA.
+
+The active `main-protection` ruleset remains insufficient: zero required approvals and `require_code_owner_review=false`. CODEOWNERS is present on PR #3388 but effective enforcement is not yet enabled. Release remains NO-GO; no merge, release, deployment, data-destructive operation or history rewrite is authorized.
+
+
+## COMMAND 07-A.2.55 — LIVE RECOVERY CHECKPOINT (2026-11-13 17:42 Asia/Tehran)
+
+- Live Main HEAD: `45e4202b03a434459e4c021a04efa7e8396359db` (unchanged during this checkpoint).
+- Execution branch: `feature/command-07-a-sqlite-contract-remediation`.
+- PR #3384: OPEN / DRAFT / UNMERGED; base `fix/wave3-cycle3-calendar-product-repair` at `8c4c23f0c2a4f9b2374a2092c931782c4455fd41`.
+- Current code-only remediation commit: `32159f4f2ca13e78bcd2a383c5f384a1a4bd3905`; changed only `test/services/g1_hierarchy_candidate_schema_test.dart` to replace three string-concatenated file paths with interpolation after exact-SHA analyzer output identified three lint findings. Assertions and test semantics were unchanged. The new commit was re-fetched and confirmed; no workflow run or status was yet returned for this SHA, so the change is IMPLEMENTED, NOT RETESTED.
+- Main-to-candidate comparison is not a valid PR diff: PR #3384 is intentionally based on the separate Wave 3 repair branch. Exact PR-base comparison before the lint-only commit was 167 commits ahead / 0 behind; after it, 168 ahead / 0 behind. Do not retarget or merge as part of this checkpoint.
+
+### Exact-SHA CI evidence observed on predecessor candidate
+
+Candidate `e017eeadf85f3043fb3fdfbb456486fd8e07bc10`:
+- Run `43438369612`, SQLite A-D snapshots: SUCCESS; artifact `14044636632`, digest `sha256:025dcd3113669574f49c2605c228be55bcc61987e9c9c4b203c327a45c4c605b`.
+- Run `43438369355`, optional Task links / G1 hierarchy candidate: SUCCESS; artifact `14045530922`, digest `sha256:5a1e5030bfcf9494f79608cc86a798f1d42f4aa3eb4ff4734d9e89c551c7c45e`.
+- Build run `43438369432`: analyzer job failed with three info-level interpolation lints in the candidate-schema test; test shards reported 9, 7, 8 and 10 failures respectively (34 shard-reported failures; unique count not established). At observation, release APK was IN_PROGRESS and one test shard QUEUED. Device Smoke run `43438369594` was QUEUED. These are observations for `e017...`, not results for the new commit.
+- Failure log examples include Home filter/layout assertions, Task Details/Person UI expectations, calendar interactions, recurrence and reminder behavior. Each failure remains UNRESOLVED pending root-cause and current-contract review; no assertion was weakened.
+
+### Recovered source architecture facts (execution branch)
+
+- Production `G1DriftSchema.version` is 19. It remains an additive/idempotent installer, not a sequential migration ledger.
+- The production schema still has nullable `projects.center_id`; Categories remain global `taxonomy_categories(name)`; Task Center is in `legacy_payload_json`; Project membership is many-to-many through `project_items`; Task Category is legacy nullable text. These do not yet satisfy the approved Center → Project → Category → Task ownership/cardinality contract.
+- `G1HierarchyCandidateSchema` is isolated and explicitly not called by production startup. Its passing test workflow and file-backed test artifact validate only the candidate fixture/test scope, not production migration acceptance.
+- Existing source includes CenterStore/CenterManagementPage, ProjectStore, TaskStore, TagStore as a TaskStore facade, ProjectTemplateStore/ProjectTemplateService and TaskTemplateStore. A `task_template_service.dart` path was not present on this branch; broader history/consumer search is still required before classifying a TaskTemplateService as NOT FOUND.
+- The REV10 migration inventory's earlier inspected SHA `34f6fb1a42e5adb6255a1d56ce8c07ac7567ead2` is historical and must not be treated as current. Current checkpoint supersedes its live-state pointers only; its source findings remain useful pending re-audit.
+
+### Acceptance boundary
+
+D01–D05 remain NOT ACCEPTED. No production startup switch, destructive migration, Main write, merge, release, deployment, branch deletion or history rewrite occurred. Cross-Center reporting and complete Deep Clone acceptance remain unverified. Continue from the exact branch HEAD and re-run targeted analyzer/schema tests before any broader acceptance claim.
+
+
+## 2026-11-13 — COMMAND 07-A.2.57 live recovery and evidence reconciliation
+
+- Re-fetched Main, execution branch and PR refs before any modification. Main remained `45e4202b03a434459e4c021a04efa7e8396359db`; execution branch remained `13a09af3815d7271ffb11e67eeac7b2592eb18bd`, identical to the reported checkpoint.
+- Reconfirmed PR #3380/#3382/#3384/#3388/#3340/#3448 states, bases and heads. Preserved all open PRs and branch relationships.
+- Inspected current-SHA Actions. G1 candidate and Device Smoke remain queued; Build pending; SQLite A-D snapshot and Follow-up persistence succeeded. No duplicate workflows were launched.
+- Downloaded artifact 14046601552. Verified ZIP SHA256 `da890a5b7fbc5b8da0f4dbf86103b6671f35e8fe037cccaa5b192dcaf8f074c1` against GitHub digest. Verified embedded JSON SHA256 `6ee103c73c74ace68bbc208af7c765e5f5ae81c81c97290ad33febb01af301fb`.
+- Snapshot evidence confirms five reopen cycles on one file-backed DB and equality of the recorded Task compatibility metadata, reminders, follow-up records/order, Person links/identities, schema catalog, FK declarations and FK checks across A/B/C/D. It does not test independent physical backup/restore and does not prove production migration acceptance.
+- Source review reconfirmed production G1 schema v19 and isolated Candidate schema. Production ownership and Task relationship storage still diverge from the owner-approved Center → Project → Category → Task contract.
+- Recovered existing taxonomy mutation/lifecycle services, reporting filter/projection, ProjectTemplateStore, TaskTemplateStore, ProjectTemplateService and template application infrastructure. No third template engine or activity identity was created.
+- Current branch path lookup found no CategoryStore/CategoryRepository or PersonStore/PersonRepository file. Historical absence is not asserted. Both taxonomy services have consumers/tests requiring a complete reference audit before consolidation.
+- No code, test, schema, workflow or runtime file was changed in this checkpoint. No tests were weakened or deleted. Documentation updates are append-only and preserve prior evidence.
+
+
+## COMMAND 07-A.2.57 — G1 Candidate Completion Update (2026-11-13 14:34 UTC)
+
+This section supersedes the earlier QUEUED observation for the G1 candidate run only. The execution source SHA remains `13a09af3815d7271ffb11e67eeac7b2592eb18bd`; documentation-only HEAD may be newer.
+
+- Workflow run: `43441067534` — SUCCESS.
+- Job: `131938477824` — Optional Task links and database-level integrity — SUCCESS.
+- Artifact ID: `14047546927`.
+- Artifact name: `arvin-command-07-a2-50-g1-hierarchy-13a09af3815d7271ffb11e67eeac7b2592eb18bd`.
+- Artifact ZIP SHA256 (GitHub digest and local downloaded file): `cfedf1fd850f50ee7f36204ac4dd26b3e95ec20ed0baf3bde0e98334a333faf7`.
+- Artifact evidence manifest SHA256: `ed4cd57bd6fa02fd5239e47299db960db9fec40786cbc65504b7fc495db1f2c6`.
+- Legacy optional-relationship SQL test log SHA256: `83c6c073d2ba9bbafd84ba19a038ec616f7eba3090ef18c2e90d5537c1fbe726`; 19 tests passed. Coverage includes independent optional Task links, clearing to NULL after reopen, mismatch rejection, dependent-owner change/delete restrictions, nullable FK columns and clean integrity.
+- Real G1 hierarchy candidate test log SHA256: `ac713a170fcc9fabe89e717c0411f983ab624a35ba14017a8183c8d8a87d3625`; 13 tests passed. Coverage includes all-null/partial/full optional links, SQL ownership mismatch rejection, required Project/Category owners, idempotency/five reopen cycles, Tag/Person/Follow-up identity preservation, update triggers, dependency restrictions, injected migration rollback/retry, independent-file backup/restore, indexes and triggers.
+- Target SHA file confirms `13a09af3815d7271ffb11e67eeac7b2592eb18bd`.
+
+Interpretation: the G1 candidate and legacy optional-link test suites are TESTED and pass on the exact source SHA. This is strong candidate-level evidence for hierarchy constraints, optional links, rollback/retry and a narrow independent-file restore scenario. It does NOT switch the candidate into production startup, prove migration of actual user databases, prove full D01–D05, prove four-state Missing/NULL/FALSE/TRUE semantics, or constitute final acceptance.
+
+### Build and Device Smoke remain open
+- Build run `43441067582` is still QUEUED at workflow level. Jobs include release/staging/debug APK QUEUED; quality shards 0,1,3,4,5 and visual/analyze were CANCELLED; shard 2 was observed IN_PROGRESS then CANCELLED. No overall Build PASS or FAIL is claimed; analyze did not complete.
+- Device Smoke run `43441067685`: job `131938478429` remains QUEUED. No device scenario or APK acceptance is claimed.
+- SQLite snapshot run `43441067604` remains SUCCESS with artifact `14046601552`; same-file five-reopen scope as recorded above.
+- Follow-up persistence run `43441067590` remains SUCCESS.
+- Do not duplicate these runs while they remain queued or until a final conclusion is returned.
+
+
+## COMMAND 07-A.2.57 — Historical implementation recovery map (2026-11-13)
+
+The current execution branch is not the only source of valid work. The following historical PR evidence must be reviewed before implementing equivalent functionality. No historical branch is deleted or merged by this record.
+
+| Area | Historical source | Actual state | Reuse / restriction |
+|---|---|---|---|
+| Person directory UI | PR #2745, branch `feat/person-directory-settings-current-main-20261016`, head `01a905ed6543bdd6f73cd0e4044b65fc6cf0bc29` | OPEN / DRAFT / UNMERGED; based on Main SHA `d2267190ee83b7e462483f5d114395626c55e150` | Adds PersonDirectoryPage and reuses TaskStore.loadPeopleDirectory/savePeopleDirectory for create/edit/search/confirmed delete. Recover UI and tests only after diffing against current TaskStore and current Main; it is not a new PersonRepository. |
+| Person SQL + backup/report integration | PR #2695, branch `integration/person-directory-safe-port-20261014-v2`, head `44810fcf5bb96db8c028a1574889e3f2d45af75f` | OPEN / DRAFT / UNMERGED; stacked on PR #2666 at base `ad762774009e5b5c7ee341146a8160c52e2b9bb2` | Contains Person directory CRUD, structured Follow-up waiting/person IDs, backup/restore, report filters/projection. Do not port wholesale: same-name projection conflict with existing mainline projection is explicitly documented. |
+| Person persistence slice | PR #2696, branch `integration/person-directory-persistence-slice-20261014`, head `94f47f5c70558c6ff250ec1989bdcde761d04df5` | OPEN / DRAFT / UNMERGED; stacked on older parent SHA `e626daeecb3851024f2ceab820d1868ba582c860` | Earlier G1 v6 people_directory and TaskStore APIs. Overlaps with later Person integration; use as history, not a second table/repository. |
+| Deleted Person history | PR #2744, branch `fix/report-preserve-deleted-person-history-20261016`, head `31b9cfa61efc1323f10e038be22efa1226c4d8ad` | CLOSED / NOT MERGED | Contains stable deleted-person placeholder/report projection behavior. Verify whether equivalent fix reached current Main before reuse. |
+| Notebook canonical taxonomy | PR #2037, merge commit `36f05599e17ea5359f92ad62667aac76abccb301` | MERGED | Reuses TaskStore canonical Category/Tag catalogs from Notebook. Preserve; do not build Notebook taxonomy storage. |
+| Shared taxonomy UI | PR #2185, merge commit `4816b9e121ca856828efdb37da6eab0c7a39f195` | MERGED | Shared taxonomy icon row. Preserve and reconcile with new Home/Task Details layout, not replace blindly. |
+| Report Center filters | PR #2406, merge commit `d34dc6be87d702c0c3769482586862d7c0e1416b` | MERGED | Existing Report Center and AND filter surface. Reuse for current report requirements. |
+| Canonical navigation/reports/calendar polish | PR #2751, merge commit `9e30d508f778f7ea91a44168b99098755b8c4934` | MERGED | Reuse current Main implementation; exact current behavior still needs test/device acceptance. |
+| Earlier Home contract | PR #2319 | CLOSED / NOT MERGED | Historical Home implementation and tests; superseded by later Home work. Recover tests/ideas only after current Main diff. |
+
+### Recovery decision
+- Do not create a new Person directory UI before reviewing PR #2745 against current Main and current execution branch.
+- Do not create a Person SQL table or independent store before reviewing #2695/#2696 and current G1 schema. Current Person tables/relations are already present.
+- Do not create a second Notebook taxonomy or Report Center.
+- The existence of merged historical PRs proves prior implementation lineage, not present-day acceptance of the new five-entity management center or Cross-Center reporting.
+
+## COMMAND 07-A.2.65 — live GitHub checkpoint (2026-11-13)
+**Main HEAD:** 45e4202b03a434459e4c021a04efa7e8396359db (READ-ONLY)
+**Execution branch HEAD / PR #3384 Head:** ef6cfa4cb1f073d44371951ad45086fe929cdbda
+**PR #3384:** OPEN / DRAFT / UNMERGED; base fix/wave3-cycle3-calendar-product-repair at 8c4c23f0c2a4f9b2374a2092c931782c4455fd41.
+**Acceptance SHA:** NOT ESTABLISHED.
+**Build 43460214591:** workflow-level QUEUED; Visual, Staging APK and Release APK SUCCESS; Debug APK IN_PROGRESS; test-0 FAILURE (246/9); test-4 FAILURE (254/9); test-1/2/3/5 and Analyze QUEUED.
+**Device Smoke 43460214241:** QUEUED; no device scenario started.
+**SQLite Snapshot 43460214382:** SUCCESS; five file-backed reopen cycles; artifact 14054969896; archive digest 777d35bffeb91da1724bf9e19642a31acfeb1c7324496b53f5773a09dede117a.
+**G1 Hierarchy 43460214765:** SUCCESS; 13 isolated candidate tests; artifact 14055398328; archive digest 9d43ba571546003ac7c8be0857bafcd3dd1a2c645cca43170ee6795f099ed3e6. Not production schema acceptance.
+**Follow-up Persistence 43460214411:** SUCCESS; file-backed repository persistence and close/reopen diagnostics; no artifact.
+**Artifact digests:** Release APK 2123adf835b11350431246d79ee48aaf1dbc31116d82fa440afb2d3639c8f801; Staging APK 0aaa89ef541d9e6e4fced65d542796af3e636c491e4cf67109d0f75588177d66; staging verification 87b858402e632ef72eb0d376b8b22140ce09e965ecbf161172b0eebc38405e2e; PDF 3e1161893ea99f134c560927438698037d548ae74131800c416bf4af1f4bbc86. These are archive digests, not APK file SHA256; independent APK SHA256 NOT VERIFIED.
+**Failures:** test-0 and test-4 have 9 failures each. Home Center filter and Orchestrator merge/ready expectations conflict with approved contracts; other failures require source-level diagnosis. Analyze and four remaining shards have no terminal result. No runner-capacity cause is proven.
+**Governance:** PR #3448 is OPEN / DRAFT / UNMERGED and is the REV10 source. Main Orchestrator merge-capable logic remains a critical blocker. D01–D05 remain PARTIAL / NOT ACCEPTED. No user database migration, merge, release or deployment is authorized.
+This checkpoint does not transfer PASS to a later SHA or declare product acceptance.

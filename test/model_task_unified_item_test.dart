@@ -183,4 +183,430 @@ void main() {
     expect(task.category, isNull);
     expect(task.toJson()['category'], isNull);
   });
+
+
+  test('legacy presence preserves Missing, NULL, FALSE and TRUE independently', () {
+    final missing = Task.fromLegacyJson({
+      'id': 'presence-missing',
+      'title': 'بدون فیلد',
+    });
+    expect(missing.legacyFollowUpMetadata['taskLevel'], isNull);
+
+    final explicitNull = Task.fromLegacyJson({
+      'id': 'presence-null',
+      'title': 'مقدار تهی',
+      'reminderDate': null,
+      'followUpDate': null,
+      'followUpEnabled': null,
+      'followUps': [
+        {
+          'id': 'follow-null',
+          'dateTime': '2026-11-11T08:00:00.000',
+          'nextFollowUp': null,
+        },
+      ],
+    });
+    final nullTaskLevel =
+        explicitNull.legacyFollowUpMetadata['taskLevel'] as Map;
+    for (final field in const ['reminderDate', 'followUpDate', 'followUpEnabled']) {
+      expect(nullTaskLevel.containsKey(field), isTrue);
+      expect(nullTaskLevel[field], isNull);
+    }
+    expect(
+      (explicitNull.legacyFollowUpMetadata['followUps'] as List).single,
+      containsPair('nextFollowUp', null),
+    );
+
+    final explicitFalse = Task.fromLegacyJson({
+      'id': 'presence-false',
+      'title': 'غیرفعال',
+      'followUpEnabled': false,
+    });
+    final falseLevel =
+        explicitFalse.legacyFollowUpMetadata['taskLevel'] as Map;
+    expect(falseLevel.containsKey('followUpEnabled'), isTrue);
+    expect(falseLevel['followUpEnabled'], isFalse);
+
+    final explicitTrue = Task.fromLegacyJson({
+      'id': 'presence-true',
+      'title': 'فعال',
+      'followUpEnabled': true,
+    });
+    final trueLevel =
+        explicitTrue.legacyFollowUpMetadata['taskLevel'] as Map;
+    expect(trueLevel.containsKey('followUpEnabled'), isTrue);
+    expect(trueLevel['followUpEnabled'], isTrue);
+
+    for (final task in [explicitNull, explicitFalse, explicitTrue]) {
+      final restored = Task.fromJson(task.toJson());
+      expect(
+        restored.legacyFollowUpMetadata,
+        task.legacyFollowUpMetadata,
+      );
+    }
+  });
+
+  test('unknown legacy Task and Follow-up fields survive serialization', () {
+    final task = Task.fromLegacyJson({
+      'id': 'unknown-legacy',
+      'title': 'فیلد ناشناخته',
+      'futureTaskFlag': {'enabled': false, 'note': null},
+      'followUps': [
+        {
+          'id': 'future-follow-up',
+          'dateTime': '2026-11-11T09:00:00.000',
+          'nextFollowUp': null,
+          'futureFollowUpPayload': ['a', 'b'],
+        },
+      ],
+    });
+
+    final restored = Task.fromJson(task.toJson());
+    expect(
+      (restored.legacyFollowUpMetadata['unknownFields'] as Map)
+          ['futureTaskFlag'],
+      {'enabled': false, 'note': null},
+    );
+    expect(
+      (restored.legacyFollowUpMetadata['followUps'] as List).single
+          ['futureFollowUpPayload'],
+      ['a', 'b'],
+    );
+    expect(restored.legacyFollowUpMetadata, task.legacyFollowUpMetadata);
+  });
+
+
+  test('D01: legacy followUpEnabled presence matrix survives serialization', () {
+    const validDate = '2026-11-12T10:30:00.000';
+    final scenarios = <({
+      String name,
+      Map<String, dynamic> fields,
+      Map<String, dynamic> expected,
+    })>[
+      (name: 'A Missing', fields: {}, expected: {}),
+      (name: 'B Explicit NULL', fields: {'followUpEnabled': null}, expected: {'followUpEnabled': null}),
+      (name: 'C FALSE without date', fields: {'followUpEnabled': false}, expected: {'followUpEnabled': false}),
+      (name: 'D FALSE with date NULL', fields: {'followUpEnabled': false, 'followUpDate': null}, expected: {'followUpEnabled': false, 'followUpDate': null}),
+      (name: 'E TRUE without date', fields: {'followUpEnabled': true}, expected: {'followUpEnabled': true}),
+      (name: 'F TRUE with valid date', fields: {'followUpEnabled': true, 'followUpDate': validDate}, expected: {'followUpEnabled': true, 'followUpDate': validDate}),
+      (name: 'G NULL with valid date', fields: {'followUpEnabled': null, 'followUpDate': validDate}, expected: {'followUpEnabled': null, 'followUpDate': validDate}),
+    ];
+
+    for (final scenario in scenarios) {
+      final decoded = Task.fromLegacyJson({
+        'id': 'd01-${scenario.name}',
+        'title': scenario.name,
+        ...scenario.fields,
+      });
+      final encoded = decoded.toJson();
+      final encodedMetadata = encoded['legacyFollowUpMetadata'] as Map<String, dynamic>?;
+      final encodedTaskLevel = encodedMetadata?['taskLevel'] as Map<String, dynamic>?;
+      expect(encodedTaskLevel ?? <String, dynamic>{}, scenario.expected,
+          reason: '${scenario.name}: serialized historical presence');
+
+      final restored = Task.fromJson(encoded);
+      final restoredTaskLevel = restored.legacyFollowUpMetadata['taskLevel'] as Map<String, dynamic>?;
+      expect(restoredTaskLevel ?? <String, dynamic>{}, scenario.expected,
+          reason: '${scenario.name}: decoded historical presence');
+      expect(restored.followUpEnabled, isFalse,
+          reason: '${scenario.name}: computed getter uses actual history');
+    }
+  });
+
+  test('D01: computed getter is independent from historical metadata', () {
+    final historicalTrueWithoutRecords = Task.fromJson({
+      'id': 'd01-getter-history-true',
+      'title': 'metadata says true',
+      'legacyFollowUpMetadata': {'taskLevel': {'followUpEnabled': true}},
+    });
+    expect(historicalTrueWithoutRecords.followUpEnabled, isFalse);
+    expect((historicalTrueWithoutRecords.legacyFollowUpMetadata['taskLevel'] as Map)['followUpEnabled'], isTrue);
+
+    final actualRecordWithHistoricalFalse = Task.fromJson({
+      'id': 'd01-getter-history-false',
+      'title': 'actual history exists',
+      'legacyFollowUpMetadata': {'taskLevel': {'followUpEnabled': false}},
+      'followUps': [{
+        'id': 'actual-history',
+        'completedAt': '2026-11-11T08:00:00.000',
+        'note': 'ثبت واقعی',
+      }],
+    });
+    expect(actualRecordWithHistoricalFalse.followUpEnabled, isTrue);
+    expect((actualRecordWithHistoricalFalse.legacyFollowUpMetadata['taskLevel'] as Map)['followUpEnabled'], isFalse);
+  });
+
+  test('D02: nextFollowUp and nextFollowUpAllDay preserve NULL TRUE and FALSE', () {
+    final cases = <Map<String, dynamic>>[
+      {'id': 'all-day-true', 'nextFollowUpAllDay': true},
+      {'id': 'all-day-false', 'nextFollowUpAllDay': false},
+      {'id': 'all-day-null', 'nextFollowUpAllDay': null},
+      {'id': 'next-date-null', 'nextFollowUp': null},
+    ];
+    for (final legacyFields in cases) {
+      final followUpFields = Map<String, dynamic>.from(legacyFields)..remove('id');
+      final decoded = Task.fromLegacyJson({
+        'id': 'd02-${legacyFields['id']}',
+        'title': 'D02 presence',
+        'followUps': [{
+          'id': legacyFields['id'],
+          'dateTime': '2026-11-11T09:00:00.000',
+          ...followUpFields,
+        }],
+      });
+      final encoded = decoded.toJson();
+      final records = (encoded['legacyFollowUpMetadata'] as Map)['followUps'] as List;
+      final record = records.single as Map<String, dynamic>;
+      for (final key in const ['nextFollowUp', 'nextFollowUpAllDay']) {
+        if (legacyFields.containsKey(key)) {
+          expect(record.containsKey(key), isTrue, reason: '$key presence');
+          expect(record[key], legacyFields[key], reason: '$key value');
+        }
+      }
+      var restored = Task.fromJson(encoded);
+      for (var cycle = 0; cycle < 3; cycle++) {
+        final nextEncoded = restored.toJson();
+        final nextRecords = (nextEncoded['legacyFollowUpMetadata'] as Map)['followUps'] as List;
+        expect(nextRecords, hasLength(1));
+        expect(nextRecords.single, record);
+        restored = Task.fromJson(nextEncoded);
+      }
+      expect(restored.legacyFollowUpMetadata, decoded.legacyFollowUpMetadata);
+    }
+  });
+
+  test('D02: existing metadata is preserved and incoming colliding keys win', () {
+    final decoded = Task.fromLegacyJson({
+      'id': 'd02-collision',
+      'title': 'collision',
+      'followUpEnabled': false,
+      'futureTaskField': {'source': 'incoming', 'value': 2},
+      'legacyFollowUpMetadata': {
+        'taskLevel': {'followUpEnabled': true, 'olderTaskKey': 'keep-task-level'},
+        'unknownFields': {
+          'futureTaskField': {'source': 'stored', 'value': 1},
+          'olderUnknownField': 'keep-unknown',
+        },
+        'followUps': [{
+          'id': 'same-follow-up',
+          'olderFollowUpField': 'keep-follow-up',
+          'collisionField': 'stored',
+        }],
+        'unrelatedEnvelopeKey': {'keep': true},
+      },
+      'followUps': [{
+        'id': 'same-follow-up',
+        'dateTime': '2026-11-11T10:00:00.000',
+        'collisionField': 'incoming',
+        'newFollowUpField': null,
+      }],
+    });
+    final metadata = decoded.legacyFollowUpMetadata;
+    expect(metadata['unrelatedEnvelopeKey'], {'keep': true});
+    expect(metadata['taskLevel'], {'followUpEnabled': false, 'olderTaskKey': 'keep-task-level'});
+    expect(metadata['unknownFields'], {
+      'futureTaskField': {'source': 'incoming', 'value': 2},
+      'olderUnknownField': 'keep-unknown',
+    });
+    expect(metadata['followUps'], [{
+      'id': 'same-follow-up',
+      'olderFollowUpField': 'keep-follow-up',
+      'collisionField': 'incoming',
+      'newFollowUpField': null,
+    }]);
+  });
+
+  test('D02: repeated serialization and multiple round trips are idempotent', () {
+    final initial = Task.fromLegacyJson({
+      'id': 'd02-idempotent',
+      'title': 'idempotent',
+      'futureTaskField': {'nested': [1, 2, null]},
+      'legacyFollowUpMetadata': {
+        'unknownFields': {'preExisting': 'preserve'},
+        'followUps': [{'id': 'follow-up-1', 'existingPayload': {'flag': true}}],
+        'otherMetadata': ['keep', 'once'],
+      },
+      'followUps': [{
+        'id': 'follow-up-1',
+        'dateTime': '2026-11-11T11:00:00.000',
+        'nextFollowUp': null,
+        'nextFollowUpAllDay': false,
+        'futureFollowUpPayload': {'nested': null, 'values': [3, 4]},
+      }],
+    });
+    final firstJson = initial.toJson();
+    expect(initial.toJson(), firstJson);
+    var current = Task.fromJson(firstJson);
+    for (var cycle = 1; cycle <= 5; cycle++) {
+      final encoded = current.toJson();
+      expect(encoded, firstJson, reason: 'encode cycle $cycle');
+      current = Task.fromJson(encoded);
+      expect(current.legacyFollowUpMetadata, initial.legacyFollowUpMetadata,
+          reason: 'decode cycle $cycle');
+      final records = current.legacyFollowUpMetadata['followUps'] as List;
+      expect(records, hasLength(1), reason: 'no duplicate metadata records');
+    }
+  });
+
+
+
+  test('D02: unknown Task-level fields survive independent round trips', () {
+    final decoded = Task.fromLegacyJson({
+      'id': 'd02-unknown-task-only',
+      'title': 'unknown task field',
+      'futureTaskOnly': {'enabled': false, 'nullable': null},
+    });
+    final unknown =
+        decoded.legacyFollowUpMetadata['unknownFields'] as Map<String, dynamic>;
+    expect(unknown, {'futureTaskOnly': {'enabled': false, 'nullable': null}});
+
+    final restored = Task.fromJson(decoded.toJson());
+    expect(
+      restored.legacyFollowUpMetadata['unknownFields'],
+      {'futureTaskOnly': {'enabled': false, 'nullable': null}},
+    );
+  });
+
+  test('D02: unknown Follow-up fields survive independent round trips', () {
+    final decoded = Task.fromLegacyJson({
+      'id': 'd02-unknown-follow-up-only',
+      'title': 'unknown Follow-up field',
+      'followUps': [{
+        'id': 'unknown-follow-up-only',
+        'dateTime': '2026-11-11T12:00:00.000',
+        'futureFollowUpOnly': {'value': null, 'items': ['x', 'y']},
+      }],
+    });
+    expect(decoded.legacyFollowUpMetadata['followUps'], [{
+      'id': 'unknown-follow-up-only',
+      'futureFollowUpOnly': {'value': null, 'items': ['x', 'y']},
+    }]);
+
+    final restored = Task.fromJson(decoded.toJson());
+    expect(restored.legacyFollowUpMetadata['followUps'], [{
+      'id': 'unknown-follow-up-only',
+      'futureFollowUpOnly': {'value': null, 'items': ['x', 'y']},
+    }]);
+  });
+
+
+
+  test('D01 direct Task constructor preserves omitted, NULL, FALSE and TRUE', () {
+    final omitted = Task(id: 'direct-omitted', title: 'omitted');
+    expect(omitted.legacyFollowUpMetadata['taskLevel'], isNull);
+
+    final explicitFalseAndNull = Task(
+      id: 'direct-false-null',
+      title: 'explicit false and null date',
+      followUpEnabled: false,
+      followUpDate: null,
+    );
+    expect(explicitFalseAndNull.legacyFollowUpMetadata['taskLevel'], {
+      'followUpEnabled': false,
+      'followUpDate': null,
+    });
+
+    final explicitNull = Task(
+      id: 'direct-null',
+      title: 'explicit null flag',
+      followUpEnabled: null,
+    );
+    expect(explicitNull.legacyFollowUpMetadata['taskLevel'], {
+      'followUpEnabled': null,
+    });
+
+    final explicitTrueAndDate = Task(
+      id: 'direct-true-date',
+      title: 'explicit true and date',
+      followUpEnabled: true,
+      followUpDate: DateTime(2026, 11, 12, 10, 30),
+    );
+    expect(explicitTrueAndDate.legacyFollowUpMetadata['taskLevel'], {
+      'followUpEnabled': true,
+      'followUpDate': '2026-11-12T10:30:00.000',
+    });
+
+    for (final task in [
+      explicitFalseAndNull,
+      explicitNull,
+      explicitTrueAndDate,
+    ]) {
+      final encoded = task.toJson();
+      final restored = Task.fromJson(encoded);
+      expect(restored.legacyFollowUpMetadata, task.legacyFollowUpMetadata);
+      expect(restored.followUpEnabled, isFalse);
+    }
+  });
+
+  test('D02 direct Task constructor merges colliding Follow-up metadata', () {
+    final oldNextDate = DateTime(2026, 11, 13, 8);
+    final newNextDate = DateTime(2026, 11, 14, 9);
+    final task = Task(
+      id: 'direct-follow-up-collision',
+      title: 'direct collision',
+      legacyFollowUpMetadata: {
+        'taskLevel': {'followUpEnabled': false, 'legacyNote': 'keep'},
+        'unknownFields': {'futureTaskField': {'keep': true}},
+        'followUps': [
+          {
+            'id': 'same-id',
+            'unknownOldField': {'preserve': true},
+            'nextFollowUp': oldNextDate.toIso8601String(),
+          },
+          {
+            'id': 'same-id',
+            'secondOldField': 'merge duplicate',
+          },
+        ],
+        'unrelatedEnvelopeField': 'preserve envelope',
+      },
+      followUps: [
+        FollowUp(
+          id: 'same-id',
+          completedAt: DateTime(2026, 11, 11, 12),
+          nextFollowUp: newNextDate,
+        ),
+        FollowUp(
+          id: 'explicit-null-id',
+          completedAt: DateTime(2026, 11, 11, 13),
+          nextFollowUp: null,
+        ),
+      ],
+    );
+
+    expect(task.legacyFollowUpMetadata['taskLevel'], {
+      'followUpEnabled': false,
+      'legacyNote': 'keep',
+    });
+    expect(task.legacyFollowUpMetadata['unknownFields'], {
+      'futureTaskField': {'keep': true},
+    });
+    expect(task.legacyFollowUpMetadata['unrelatedEnvelopeField'], 'preserve envelope');
+    final records = task.legacyFollowUpMetadata['followUps'] as List;
+    expect(records, hasLength(2));
+    expect(records[0], {
+      'id': 'same-id',
+      'unknownOldField': {'preserve': true},
+      'nextFollowUp': newNextDate.toIso8601String(),
+      'secondOldField': 'merge duplicate',
+    });
+    expect(records[1], {
+      'id': 'explicit-null-id',
+      'nextFollowUp': null,
+    });
+
+    var restored = Task.fromJson(task.toJson());
+    for (var cycle = 1; cycle <= 5; cycle++) {
+      final encoded = restored.toJson();
+      final roundTrip = Task.fromJson(encoded);
+      expect(roundTrip.legacyFollowUpMetadata, task.legacyFollowUpMetadata,
+          reason: 'direct-constructor round trip $cycle');
+      expect(
+        (roundTrip.legacyFollowUpMetadata['followUps'] as List).length,
+        2,
+      );
+      restored = roundTrip;
+    }
+  });
+
 }

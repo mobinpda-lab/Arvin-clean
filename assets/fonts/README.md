@@ -1,18 +1,21 @@
-# Licensed IRANSansX assets
+# Font asset policy
 
-This public repository intentionally does not contain the proprietary IRANSansX binary files.
+## Canonical public/default application font
 
-For a licensed local/private build, place these two files in this directory with the exact names below:
+Arvin's only official/default application font is **Vazirmatn**.
 
-- `IRANSansXFaNum-Regular.ttf`
-- `IRANSansXFaNum-Bold.ttf`
+- Upstream project: https://github.com/rastikerdar/vazirmatn
+- License: SIL Open Font License 1.1; the complete `LICENSE.txt` is bundled beside the font files.
+- Flutter family: `Vazirmatn`
+- Required local weights: Light 300, Regular 400, Medium 500, SemiBold 600, Bold 700.
+- Runtime and PDF rendering must use these locally bundled assets; network font loading is prohibited.
 
-The project loads them at startup as the `IRANSansXFaNum` family and falls back safely to the platform font when they are absent (for example in public CI).
+The only optional user preference is **System Default**. It is an accessibility/platform choice, not an alternative Arvin brand font.
 
-You can install the files from the purchased `IranSansX(Eco).zip` package by running:
+## Historical VazirHarf assets
 
-```bash
-bash tool/install_iransansx.sh /path/to/IranSansX\(Eco\).zip
-```
+VazirHarf is not the official or default font. Any retained VazirHarf files or provenance records are historical evidence only and must not be registered, loaded, or packaged as the active application font. Do not delete historical files without a separate compatibility and evidence review.
 
-If your FontIran license requires a project-specific license code or `FontLicense.txt`, keep that licensing material with the private build assets as required by your issued license; do not publish proprietary font binaries through this public repository.
+## Licensing
+
+Keep the full SIL OFL 1.1 license with the Vazirmatn assets. Verify the upstream source revision and SHA-256 checksums of all distributed binary files before final acceptance.

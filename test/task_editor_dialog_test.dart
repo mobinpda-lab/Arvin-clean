@@ -497,7 +497,7 @@ void main() {
 
     final rollBox = find.byKey(const ValueKey('task-editor-recurrence'));
     expect(rollBox, findsOneWidget);
-    expect(find.text('روزانه'), findsWidgets);
+    expect(find.bySemanticsLabel('روزانه'), findsOneWidget);
 
     await tester.ensureVisible(rollBox);
     await tester.tap(rollBox);
@@ -505,9 +505,15 @@ void main() {
 
     expect(find.text('بدون تکرار'), findsOneWidget);
     expect(find.text('روزانه'), findsWidgets);
-    expect(find.text('هفتگی'), findsOneWidget);
+    final weeklyOption = find.text('هفتگی').last;
+    await tester.scrollUntilVisible(
+      weeklyOption,
+      120,
+      scrollable: find.byType(Scrollable).last,
+    );
+    expect(weeklyOption, findsOneWidget);
 
-    await tester.tap(find.text('هفتگی').last);
+    await tester.tap(weeklyOption);
     await tester.pumpAndSettle();
     expect(find.text('هفتگی'), findsOneWidget);
 
@@ -804,7 +810,9 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('universal-time-selected-value')), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('universal-time-cancel')));
+    final cancelClock = find.byKey(const ValueKey('universal-time-cancel'));
+    await tester.ensureVisible(cancelClock);
+    await tester.tap(cancelClock);
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));

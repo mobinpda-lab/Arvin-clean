@@ -37,6 +37,7 @@ import 'widgets/universal_arvin_time_picker.dart';
 import 'services/app_settings_service.dart';
 import 'services/daily_content_preferences_service.dart';
 import 'services/follow_up_calendar_projection.dart';
+import 'services/home_follow_up_presentation_service.dart';
 
 import 'services/calendar_sync_plan_service.dart';
 import 'services/calendar_outbound_sync_service.dart';
@@ -178,7 +179,9 @@ class _CrashAwareRoot extends StatelessWidget {
 }
 
 class ArvinApp extends StatefulWidget {
-  const ArvinApp({super.key});
+  const ArvinApp({super.key, this.nowProvider});
+
+  final DateTime Function()? nowProvider;
 
   @override
   State<ArvinApp> createState() => _ArvinAppState();
@@ -279,35 +282,43 @@ class _ArvinAppState extends State<ArvinApp> {
   Widget build(BuildContext context) {
     // The nine-color palette is restricted to secondary Chip selection accents.
     // Brand identity, primary actions, navigation and focus remain fixed Arvin Blue.
+    final selectedFontFamily = settings.fontPreference == 'system-default' ? null : AppFonts.vazirmatnFamily;
     final secondaryAccentColor = themeManager.selectedAccentColor;
     final secondaryAccentSoft = Color.lerp(Colors.white, secondaryAccentColor, 0.14)!;
     const brandPrimary = ArvinColors.primary;
     const brandSoft = ArvinTheme.iceBlue;
     final lightBaseTextTheme = ThemeData.light().textTheme.apply(
-      fontFamily: ArvinTheme.fontFamily,
+      fontFamily: selectedFontFamily,
       bodyColor: ArvinColors.textPrimary,
       displayColor: ArvinColors.textPrimary,
     );
     final darkBaseTextTheme = ThemeData.dark().textTheme.apply(
-      fontFamily: ArvinTheme.fontFamily,
+      fontFamily: selectedFontFamily,
     );
+    // One weight contract for both themes:
+    // body/minor/calendar micro text 400; card/task titles 600;
+    // page titles 700; controls and labels 500.
     final readableLightTextTheme = lightBaseTextTheme.copyWith(
-      bodyLarge: lightBaseTextTheme.bodyLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w600, height: 1.5),
-      bodyMedium: lightBaseTextTheme.bodyMedium?.copyWith(fontSize: 16, fontWeight: FontWeight.w500, height: 1.5),
-      bodySmall: lightBaseTextTheme.bodySmall?.copyWith(fontSize: 14, fontWeight: FontWeight.w500, height: 1.5),
+      bodyLarge: lightBaseTextTheme.bodyLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w400, height: 1.5),
+      bodyMedium: lightBaseTextTheme.bodyMedium?.copyWith(fontSize: 16, fontWeight: FontWeight.w400, height: 1.5),
+      bodySmall: lightBaseTextTheme.bodySmall?.copyWith(fontSize: 14, fontWeight: FontWeight.w400, height: 1.5),
       titleLarge: lightBaseTextTheme.titleLarge?.copyWith(fontSize: 22, fontWeight: FontWeight.w700, height: 1.5),
-      titleMedium: lightBaseTextTheme.titleMedium?.copyWith(fontSize: 18, fontWeight: FontWeight.w700, height: 1.5),
-      titleSmall: lightBaseTextTheme.titleSmall?.copyWith(fontSize: 16, fontWeight: FontWeight.w700, height: 1.5),
-      labelLarge: lightBaseTextTheme.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w700, height: 1.5),
+      titleMedium: lightBaseTextTheme.titleMedium?.copyWith(fontSize: 18, fontWeight: FontWeight.w600, height: 1.5),
+      titleSmall: lightBaseTextTheme.titleSmall?.copyWith(fontSize: 16, fontWeight: FontWeight.w600, height: 1.5),
+      labelLarge: lightBaseTextTheme.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w500, height: 1.5),
+      labelMedium: lightBaseTextTheme.labelMedium?.copyWith(fontWeight: FontWeight.w500, height: 1.5),
+      labelSmall: lightBaseTextTheme.labelSmall?.copyWith(fontWeight: FontWeight.w500, height: 1.5),
     );
     final readableDarkTextTheme = darkBaseTextTheme.copyWith(
-      bodyLarge: darkBaseTextTheme.bodyLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w600),
-      bodyMedium: darkBaseTextTheme.bodyMedium?.copyWith(fontSize: 16, fontWeight: FontWeight.w500),
-      bodySmall: darkBaseTextTheme.bodySmall?.copyWith(fontSize: 14, fontWeight: FontWeight.w500),
-      titleLarge: darkBaseTextTheme.titleLarge?.copyWith(fontSize: 22, fontWeight: FontWeight.w700),
-      titleMedium: darkBaseTextTheme.titleMedium?.copyWith(fontSize: 18, fontWeight: FontWeight.w700),
-      titleSmall: darkBaseTextTheme.titleSmall?.copyWith(fontSize: 16, fontWeight: FontWeight.w700),
-      labelLarge: darkBaseTextTheme.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w700),
+      bodyLarge: darkBaseTextTheme.bodyLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w400, height: 1.5),
+      bodyMedium: darkBaseTextTheme.bodyMedium?.copyWith(fontSize: 16, fontWeight: FontWeight.w400, height: 1.5),
+      bodySmall: darkBaseTextTheme.bodySmall?.copyWith(fontSize: 14, fontWeight: FontWeight.w400, height: 1.5),
+      titleLarge: darkBaseTextTheme.titleLarge?.copyWith(fontSize: 22, fontWeight: FontWeight.w700, height: 1.5),
+      titleMedium: darkBaseTextTheme.titleMedium?.copyWith(fontSize: 18, fontWeight: FontWeight.w600, height: 1.5),
+      titleSmall: darkBaseTextTheme.titleSmall?.copyWith(fontSize: 16, fontWeight: FontWeight.w600, height: 1.5),
+      labelLarge: darkBaseTextTheme.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w500, height: 1.5),
+      labelMedium: darkBaseTextTheme.labelMedium?.copyWith(fontWeight: FontWeight.w500, height: 1.5),
+      labelSmall: darkBaseTextTheme.labelSmall?.copyWith(fontWeight: FontWeight.w500, height: 1.5),
     );
     return MaterialApp(
       navigatorKey: arvinNavigatorKey,
@@ -316,6 +327,13 @@ class _ArvinAppState extends State<ArvinApp> {
       title: 'مدیریت کارها و پیگیری آروین',
       builder: (context, child) {
         final mediaQuery = MediaQuery.of(context);
+        final appChild = child ?? const SizedBox.shrink();
+        final guardedChild = selectedFontFamily == null
+            ? appChild
+            : DefaultTextStyle.merge(
+                style: TextStyle(fontFamily: selectedFontFamily),
+                child: appChild,
+              );
         return MediaQuery(
           data: mediaQuery.copyWith(
             textScaler: _SettingsTextScaler(
@@ -323,7 +341,7 @@ class _ArvinAppState extends State<ArvinApp> {
               userScale: settings.fontSize / 16.0,
             ),
           ),
-          child: child ?? const SizedBox.shrink(),
+          child: guardedChild,
         );
       },
       theme: ThemeData(
@@ -361,7 +379,7 @@ class _ArvinAppState extends State<ArvinApp> {
         dialogTheme: const DialogThemeData(surfaceTintColor: Colors.transparent),
         bottomSheetTheme: const BottomSheetThemeData(surfaceTintColor: Colors.transparent),
         popupMenuTheme: const PopupMenuThemeData(surfaceTintColor: Colors.transparent),
-        fontFamily: AppFonts.vazirmatnFamily,
+        fontFamily: selectedFontFamily,
         textTheme: readableLightTextTheme,
         filledButtonTheme: FilledButtonThemeData(
           style: FilledButton.styleFrom(
@@ -424,7 +442,7 @@ class _ArvinAppState extends State<ArvinApp> {
           foregroundColor: ArvinColors.textPrimary,
           iconTheme: const IconThemeData(color: brandPrimary),
           titleTextStyle: TextStyle(
-            fontFamily: ArvinTheme.fontFamily,
+            fontFamily: selectedFontFamily,
             color: ArvinColors.textPrimary,
             fontSize: 20,
             fontWeight: FontWeight.w700,
@@ -476,7 +494,7 @@ class _ArvinAppState extends State<ArvinApp> {
         dialogTheme: const DialogThemeData(surfaceTintColor: Colors.transparent),
         bottomSheetTheme: const BottomSheetThemeData(surfaceTintColor: Colors.transparent),
         popupMenuTheme: const PopupMenuThemeData(surfaceTintColor: Colors.transparent),
-        fontFamily: AppFonts.vazirmatnFamily,
+        fontFamily: selectedFontFamily,
         textTheme: readableDarkTextTheme,
         dividerTheme: const DividerThemeData(color: ArvinColors.darkDivider, thickness: 1),
         appBarTheme: AppBarTheme(
@@ -508,6 +526,7 @@ class _ArvinAppState extends State<ArvinApp> {
         child: HomePage(
           settings: settings,
           onSettingsChanged: _updateSettings,
+          nowProvider: widget.nowProvider,
         ),
       ),
     );
@@ -525,6 +544,10 @@ class HomePage extends StatefulWidget {
     this.enableFirstRunGuide = false,
     this.backupManager,
     this.restoreStageHook,
+    this.nowProvider,
+    this.taskStore,
+    this.projectStore,
+    this.centerStore,
   });
 
   final AppSettings settings;
@@ -536,14 +559,22 @@ class HomePage extends StatefulWidget {
   final ArvinBackupManager? backupManager;
   final Future<void> Function(String stage)? restoreStageHook;
 
+  /// Test seam for the single Iran wall-clock source used by Home projections.
+  /// The returned DateTime's components are interpreted as Iran local time.
+  final DateTime Function()? nowProvider;
+  final TaskStore? taskStore;
+  final ProjectStore? projectStore;
+  final CenterStore? centerStore;
+
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
   final TaskEditApplyService taskEditApplyService = TaskEditApplyService();
-  final TaskStore taskStore = TaskStore();
-  final ProjectStore projectStore = ProjectStore();
+  late final TaskStore taskStore = widget.taskStore ?? TaskStore();
+  late final ProjectStore projectStore = widget.projectStore ?? ProjectStore();
+  late final CenterStore centerStore = widget.centerStore ?? CenterStore();
   final Wave2ProductFastTrack wave2ProductFastTrack = Wave2ProductFastTrack();
   late final ArvinBackupManager backupManager =
       widget.backupManager ?? ArvinBackupManager();
@@ -665,7 +696,7 @@ class _HomePageState extends State<HomePage> {
     try {
       final value = await taskStore.load();
       final loadedProjects = await projectStore.load();
-      final loadedCenters = await CenterStore().load();
+      final loadedCenters = await centerStore.load();
       final loadedCategories = await taskStore.loadCategories();
       final loadedTags = await taskStore.loadTags();
       if (!mounted) return;
@@ -727,7 +758,7 @@ class _HomePageState extends State<HomePage> {
     final existing = centers.where((center) => center.name.trim().toLowerCase() == name.toLowerCase());
     if (existing.isNotEmpty) return existing.first.id;
     final id = 'center_${DateTime.now().microsecondsSinceEpoch}';
-    await CenterStore().create(id: id, name: name);
+    await centerStore.create(id: id, name: name);
     if (mounted) await _load();
     return id;
   }
@@ -791,7 +822,7 @@ class _HomePageState extends State<HomePage> {
   /// Returns Iran's wall-clock components as a local DateTime so due-date
   /// comparisons remain correct even when the host OS/CI timezone is UTC.
   DateTime _iranWallClockNow() {
-    final iran = IranClock.now();
+    final iran = widget.nowProvider?.call() ?? IranClock.now();
     return DateTime(
       iran.year,
       iran.month,
@@ -848,6 +879,14 @@ class _HomePageState extends State<HomePage> {
     final day = DateTime(local.year, local.month, local.day);
     final now = _iranWallClockNow();
     final today = DateTime(now.year, now.month, now.day);
+    if (_timeFilters.contains('today')) {
+      debugPrint(
+        'HOME_TODAY_FILTER id=${task.id} due=${due.toIso8601String()} '
+        'isUtc=${due.isUtc} local=${local.toIso8601String()} '
+        'day=$day today=$today completed=${task.completed} '
+        'allDay=${task.allDay} overdue=${TaskDueStatus.isOverdue(task, now: now)}',
+      );
+    }
     bool matchesRange() {
       if (_timeFilter != 'customRange' || !_timeFilters.contains('customRange')) return false;
       final from = _fromDateFilter == null ? null : DateTime(_fromDateFilter!.year, _fromDateFilter!.month, _fromDateFilter!.day);
@@ -908,16 +947,21 @@ class _HomePageState extends State<HomePage> {
         }).map((task) => task.id).toSet();
         scoped = scoped.where((task) => ids.contains(task.id));
       }
-      if (_categoryFilters.isNotEmpty) {
-        scoped = scoped.where((task) => _categoryFilters.contains(task.category?.trim()));
-      }
       if (_projectFilters.isNotEmpty) {
-        final assigned = projects.expand((p) => p.itemIds).toSet();
+        final assigned = projects.expand((project) => project.itemIds).toSet();
         final ids = <String>{
-          if (_projectFilters.contains('__no_project__')) ...tasks.where((t) => !assigned.contains(t.id)).map((t) => t.id),
-          ...projects.where((p) => _projectFilters.contains(p.id)).expand((p) => p.itemIds),
+          if (_projectFilters.contains('__no_project__'))
+            ...tasks.where((task) => !assigned.contains(task.id)).map((task) => task.id),
+          ...projects
+              .where((project) => _projectFilters.contains(project.id))
+              .expand((project) => project.itemIds),
         };
         scoped = scoped.where((task) => ids.contains(task.id));
+      }
+      if (_categoryFilters.isNotEmpty) {
+        scoped = scoped.where(
+          (task) => _categoryFilters.contains(task.category?.trim()),
+        );
       }
       if (_tagFilters.isNotEmpty) {
         scoped = scoped.where(
@@ -927,6 +971,13 @@ class _HomePageState extends State<HomePage> {
     }
 
     final result = scoped.toList(growable: false);
+    if (_timeFilters.contains('today')) {
+      debugPrint(
+        'HOME_TODAY_VISIBLE filter=$filter timeFilters=$_timeFilters '
+        'center=$_centerFilters category=$_categoryFilters project=$_projectFilters tags=$_tagFilters '
+        'todayFocus=$_todayFocusOnly ids=${result.map((task) => task.id).join(',')}',
+      );
+    }
     return switch (_homeSortMode) {
       'alphabetical' => taskListSortService.sortByTitle(result, descending: _homeSortDescending),
       'date' => taskListSortService.sortByDueDate(result, descending: _homeSortDescending),
@@ -1024,93 +1075,129 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _homeFilterCards() {
+    final colors = Theme.of(context).colorScheme;
+    final soft = Color.alphaBlend(colors.primary.withAlpha(18), colors.surface);
+
+    Widget filterPill({
+      required String id,
+      required String label,
+      required IconData icon,
+      required Color accent,
+      required bool active,
+      required VoidCallback onPressed,
+    }) {
+      return SizedBox(
+        width: 60,
+        child: HomeFilterPill(
+          key: ValueKey('home-filter-card-$id'),
+          label: label,
+          icon: icon,
+          soft: soft,
+          accent: accent,
+          active: active,
+          onPressed: onPressed,
+        ),
+      );
+    }
+
+    final centerLabel = _centerFilters.isEmpty
+        ? 'مرکز'
+        : _centerFilters.length == 1
+            ? (_centerFilters.first == '__no_center__'
+                ? 'بدون مرکز'
+                : (_centerName(_centerFilters.first) ?? 'مرکز حذف‌شده'))
+            : 'مرکز';
+
     return Padding(
       key: const ValueKey('home-compact-filter-wrap'),
       padding: const EdgeInsetsDirectional.fromSTEB(6, 0, 6, 4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: Row(
+        key: const ValueKey('home-compact-filter-row'),
+        textDirection: TextDirection.rtl,
         children: [
-          Row(
-            key: const ValueKey('home-compact-filter-row'),
-            textDirection: TextDirection.rtl,
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: HomeFilterPill(
-                  key: const ValueKey('home-filter-card-time'),
-                  label: _timeFilters.isEmpty && _timeFilter != 'customRange' && !_todayFocusOnly
-                      ? 'زمان'
-                      : _timeFilterLabel,
-                  icon: Icons.schedule_rounded,
-                  soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
-                  accent: ArvinColors.time,
-                  active: _timeFilters.isNotEmpty || _timeFilter == 'customRange' || _todayFocusOnly,
-                  onPressed: _showTimeFilterSheet,
-                ),
+          Expanded(
+            child: SingleChildScrollView(
+              key: const ValueKey('home-filter-horizontal-scroll'),
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                textDirection: TextDirection.rtl,
+                children: [
+                  filterPill(
+                    id: 'time',
+                    label: _timeFilters.isEmpty &&
+                            _timeFilter != 'customRange' &&
+                            !_todayFocusOnly
+                        ? 'زمان'
+                        : _timeFilterLabel,
+                    icon: Icons.schedule_rounded,
+                    accent: ArvinColors.time,
+                    active: _timeFilters.isNotEmpty ||
+                        _timeFilter == 'customRange' ||
+                        _todayFocusOnly,
+                    onPressed: _showTimeFilterSheet,
+                  ),
+                  const SizedBox(width: 6),
+                  filterPill(
+                    id: 'center',
+                    label: centerLabel,
+                    icon: Icons.business_rounded,
+                    accent: colors.primary,
+                    active: _centerFilters.isNotEmpty,
+                    onPressed: _showCenterFilterSheet,
+                  ),
+                  const SizedBox(width: 6),
+                  filterPill(
+                    id: 'project',
+                    label: _projectFilters.isEmpty
+                        ? 'پروژه'
+                        : _projectFilters.length == 1
+                            ? (_projectFilters.first == '__no_project__'
+                                ? 'بدون پروژه'
+                                : (_projectTitle(_projectFilters.first) ??
+                                    'پروژه حذف‌شده'))
+                            : 'پروژه',
+                    icon: Icons.folder_rounded,
+                    accent: ArvinColors.project,
+                    active: _projectFilters.isNotEmpty,
+                    onPressed: _showProjectFilterSheet,
+                  ),
+                  const SizedBox(width: 6),
+                  filterPill(
+                    id: 'category',
+                    label: _categoryFilters.isEmpty
+                        ? 'دسته'
+                        : _categoryFilters.length == 1
+                            ? _categoryFilters.first
+                            : 'دسته',
+                    icon: Icons.layers_rounded,
+                    accent: ArvinColors.category,
+                    active: _categoryFilters.isNotEmpty,
+                    onPressed: _showCategoryFilterSheet,
+                  ),
+                  const SizedBox(width: 6),
+                  filterPill(
+                    id: 'tags',
+                    label: 'برچسب',
+                    icon: Icons.sell_rounded,
+                    accent: ArvinColors.tag,
+                    active: _tagFilters.isNotEmpty,
+                    onPressed: _showTagFilterSheet,
+                  ),
+                ],
               ),
-              const SizedBox(width: 2),
-              Expanded(
-                child: HomeFilterPill(
-                  key: const ValueKey('home-filter-card-project'),
-                  label: _projectFilters.isEmpty
-                      ? 'پروژه'
-                      : _projectFilters.length == 1
-                          ? (_projectFilters.first == '__no_project__'
-                              ? 'بدون پروژه'
-                              : (_projectTitle(_projectFilters.first) ??
-                                  'پروژه حذف‌شده'))
-                          : 'پروژه',
-                  icon: Icons.folder_rounded,
-                  soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
-                  accent: ArvinColors.project,
-                  active: _projectFilters.isNotEmpty,
-                  onPressed: _showProjectFilterSheet,
-                ),
-              ),
-              const SizedBox(width: 2),
-              Expanded(
-                child: HomeFilterPill(
-                  key: const ValueKey('home-filter-card-category'),
-                  label: _categoryFilters.isEmpty
-                      ? 'دسته'
-                      : _categoryFilters.length == 1
-                          ? _categoryFilters.first
-                          : 'دسته',
-                  icon: Icons.layers_rounded,
-                  soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
-                  accent: ArvinColors.category,
-                  active: _categoryFilters.isNotEmpty,
-                  onPressed: _showCategoryFilterSheet,
-                ),
-              ),
-              const SizedBox(width: 2),
-              Expanded(
-                child: HomeFilterPill(
-                  key: const ValueKey('home-filter-card-tags'),
-                  label: _tagFilters.isEmpty
-                      ? 'برچسب'
-                      : 'برچسب',
-                  icon: Icons.sell_rounded,
-                  soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
-                  accent: ArvinColors.tag,
-                  active: _tagFilters.isNotEmpty,
-                  onPressed: _showTagFilterSheet,
-                ),
-              ),
-              const SizedBox(width: 1),
-              Semantics(
-                button: true,
-                label: 'مرتب‌سازی کارها',
-                child: IconButton(
-                  key: const ValueKey('home-sort-button'),
-                  tooltip: 'مرتب‌سازی کارها',
-                  constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-                  onPressed: _showSortOptions,
-                  icon: const Icon(Icons.sort_rounded),
-                ),
-              ),
-            ],
+            ),
+          ),
+          const SizedBox(width: 1),
+          Semantics(
+            button: true,
+            label: 'مرتب‌سازی کارها',
+            child: IconButton(
+              key: const ValueKey('home-sort-button'),
+              tooltip: 'مرتب‌سازی کارها',
+              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+              onPressed: _showSortOptions,
+              icon: const Icon(Icons.sort_rounded),
+            ),
           ),
         ],
       ),
@@ -1321,6 +1408,72 @@ class _HomePageState extends State<HomePage> {
     return null;
   }
 
+  Set<String> _activeProjectIdsForCenters(Set<String> centerIds) {
+    return projects
+        .where((project) => !project.isArchived)
+        .where((project) =>
+            centerIds.isEmpty ||
+            centerIds.contains(project.centerId ?? '__no_center__'))
+        .map((project) => project.id)
+        .toSet();
+  }
+
+  bool _taskMatchesCenterSelection(Task task, Set<String> centerIds) {
+    if (centerIds.isEmpty) return true;
+    if (task.centerId != null) return centerIds.contains(task.centerId);
+    final linkedProjects = projects
+        .where((project) => project.itemIds.contains(task.id))
+        .toList(growable: false);
+    if (linkedProjects.isEmpty) return centerIds.contains('__no_center__');
+    return linkedProjects.any(
+      (project) => centerIds.contains(project.centerId ?? '__no_center__'),
+    );
+  }
+
+  Set<String> _categoryOptionsForSelection({
+    required Set<String> centerIds,
+    required Set<String> projectIds,
+  }) {
+    final allowedProjectIds = _activeProjectIdsForCenters(centerIds);
+    final selectedProjectIds =
+        projectIds.where(allowedProjectIds.contains).toSet();
+    final assignedTaskIds = projects.expand((project) => project.itemIds).toSet();
+    final selectedTaskIds = <String>{};
+
+    if (selectedProjectIds.isNotEmpty) {
+      selectedTaskIds.addAll(
+        projects
+            .where((project) => selectedProjectIds.contains(project.id))
+            .expand((project) => project.itemIds),
+      );
+    } else if (projectIds.isEmpty && centerIds.isEmpty) {
+      selectedTaskIds.addAll(tasks.map((task) => task.id));
+    } else if (projectIds.isEmpty) {
+      selectedTaskIds.addAll(
+        tasks
+            .where((task) => _taskMatchesCenterSelection(task, centerIds))
+            .map((task) => task.id),
+      );
+    }
+
+    if (projectIds.contains('__no_project__')) {
+      selectedTaskIds.addAll(
+        tasks
+            .where((task) =>
+                !assignedTaskIds.contains(task.id) &&
+                _taskMatchesCenterSelection(task, centerIds))
+            .map((task) => task.id),
+      );
+    }
+
+    return tasks
+        .where((task) => selectedTaskIds.contains(task.id))
+        .map((task) => task.category?.trim())
+        .whereType<String>()
+        .where((category) => category.isNotEmpty)
+        .toSet();
+  }
+
   Future<void> _showCenterFilterSheet() async {
     final sortedCenters = centers.toList()
       ..sort((a, b) => a.name.compareTo(b.name));
@@ -1357,20 +1510,42 @@ class _HomePageState extends State<HomePage> {
       },
     );
     if (!mounted || applied == null) return;
-    setState(() => _centerFilters..clear()..addAll(applied));
+
+    final validProjectIds = _activeProjectIdsForCenters(applied);
+    final nextProjectFilters = _projectFilters
+        .where((id) => id == '__no_project__' || validProjectIds.contains(id))
+        .toSet();
+    final validCategories = _categoryOptionsForSelection(
+      centerIds: applied,
+      projectIds: nextProjectFilters,
+    );
+    setState(() {
+      _centerFilters
+        ..clear()
+        ..addAll(applied);
+      _projectFilters
+        ..clear()
+        ..addAll(nextProjectFilters);
+      _categoryFilters.removeWhere((value) => !validCategories.contains(value));
+    });
   }
 
   Future<void> _showProjectFilterSheet() async {
+    final allowedProjectIds = _activeProjectIdsForCenters(_centerFilters);
     final options = <ReusableFilterOption<String>>[
       const ReusableFilterOption(value: '__no_project__', label: 'بدون پروژه'),
       ...projects
-          .where((project) => !project.isArchived)
+          .where((project) => allowedProjectIds.contains(project.id))
           .map((project) => ReusableFilterOption<String>(
                 value: project.id,
                 label: project.title,
                 icon: Icons.folder_outlined,
               )),
     ];
+    final selectedCenterId = _centerFilters.length == 1 &&
+            _centerFilters.single != '__no_center__'
+        ? _centerFilters.single
+        : null;
     final applied = await ReusableMultiSelectFilterBottomSheet.showMultiSelect<String>(
       context,
       title: 'انتخاب پروژه',
@@ -1380,22 +1555,52 @@ class _HomePageState extends State<HomePage> {
       searchHint: 'جستجو در پروژه‌ها...',
       createHint: 'نام پروژه جدید',
       createLabel: 'افزودن پروژه',
-      onCreate: (title) async {
-        final id = await wave2ProductFastTrack.createProject(title);
-        if (mounted) await _load();
-        return ReusableFilterOption<String>(
-          value: id,
-          label: title,
-          icon: Icons.folder_outlined,
-        );
-      },
+      onCreate: selectedCenterId == null
+          ? null
+          : (title) async {
+              final existingProjects = await projectStore.load();
+              final id = 'project-${DateTime.now().microsecondsSinceEpoch}';
+              await projectStore.save([
+                ...existingProjects,
+                ProjectPlan(
+                  id: id,
+                  title: title,
+                  centerId: selectedCenterId,
+                ),
+              ]);
+              allowedProjectIds.add(id);
+              if (mounted) await _load();
+              return ReusableFilterOption<String>(
+                value: id,
+                label: title,
+                icon: Icons.folder_outlined,
+              );
+            },
     );
     if (!mounted || applied == null) return;
-    setState(() => _projectFilters..clear()..addAll(applied));
+
+    final nextProjectFilters = applied
+        .where((id) => id == '__no_project__' || allowedProjectIds.contains(id))
+        .toSet();
+    final validCategories = _categoryOptionsForSelection(
+      centerIds: _centerFilters,
+      projectIds: nextProjectFilters,
+    );
+    setState(() {
+      _projectFilters
+        ..clear()
+        ..addAll(nextProjectFilters);
+      _categoryFilters.removeWhere((value) => !validCategories.contains(value));
+    });
   }
 
   Future<void> _showCategoryFilterSheet() async {
-    final options = _homeCategories
+    final allowedCategories = _categoryOptionsForSelection(
+      centerIds: _centerFilters,
+      projectIds: _projectFilters,
+    );
+    final scopedCategories = allowedCategories.toList()..sort();
+    final options = scopedCategories
         .map((value) => ReusableFilterOption<String>(
               value: value,
               label: value,
@@ -1414,6 +1619,7 @@ class _HomePageState extends State<HomePage> {
       onCreate: (name) async {
         final created = await _createCategory(name);
         if (created == null) return null;
+        allowedCategories.add(created);
         return ReusableFilterOption<String>(
           value: created,
           label: created,
@@ -1422,7 +1628,9 @@ class _HomePageState extends State<HomePage> {
       },
     );
     if (!mounted || applied == null) return;
-    setState(() => _categoryFilters..clear()..addAll(applied));
+    setState(() => _categoryFilters
+      ..clear()
+      ..addAll(applied.where(allowedCategories.contains)));
   }
 
   Future<void> _showTagFilterSheet() async {
@@ -1503,7 +1711,7 @@ class _HomePageState extends State<HomePage> {
   };
 
   String? _groupJalaliDate(String id, List<Task> items) {
-    final now = DateTime.now();
+    final now = _iranWallClockNow();
     final today = DateTime(now.year, now.month, now.day);
     DateTime? date = switch (id) {
       'today' => today,
@@ -2334,6 +2542,10 @@ class _HomePageState extends State<HomePage> {
       selected.clear();
       selectionMode = false;
     });
+    debugPrint(
+      'HOME_SELECT_STAT next=$nextFilter filter=$filter '
+      'timeFilters=$_timeFilters todayFocus=$_todayFocusOnly dueScope=$_dueScope',
+    );
   }
 
   void _selectTodayFocus() {
@@ -2500,7 +2712,7 @@ class _HomePageState extends State<HomePage> {
       final fileName = await backupManager.backupCanonicalTasks(
         await taskStore.load(),
         settings: await _portableBackupSettings(),
-        projects: await ProjectStore().load(),
+        projects: await projectStore.load(),
         calendarLinks: await ExternalCalendarLinkStore().load(),
         categories: await taskStore.loadCategories(),
         tags: await taskStore.loadTags(),
@@ -2563,7 +2775,7 @@ class _HomePageState extends State<HomePage> {
       }
       final tasksBeforeRestore = await taskStore.load();
       previousTasks = tasksBeforeRestore;
-      final projectsBeforeRestore = await ProjectStore().load();
+      final projectsBeforeRestore = await projectStore.load();
       previousProjects = projectsBeforeRestore;
       final calendarLinksBeforeRestore = await ExternalCalendarLinkStore().load();
       previousCalendarLinks = calendarLinksBeforeRestore;
@@ -2654,7 +2866,7 @@ class _HomePageState extends State<HomePage> {
             // can retry on the next lifecycle/scheduler trigger.
           }
           if (candidate.hasProjects) {
-            await ProjectStore().save(reconciledProjects);
+            await projectStore.save(reconciledProjects);
           }
           await widget.restoreStageHook?.call('projects');
           await ExternalCalendarLinkStore().restoreForTasks(
@@ -2699,7 +2911,7 @@ class _HomePageState extends State<HomePage> {
         },
         rollback: () async {
           await taskStore.save(previousTasks!);
-          await ProjectStore().save(previousProjects!);
+          await projectStore.save(previousProjects!);
           await ExternalCalendarLinkStore().save(previousCalendarLinks!);
           await appSettingsService.restorePortableJson(previousSettings!);
           final oldSchedule = previousSettings!['backupSchedule'];
@@ -3017,7 +3229,7 @@ class _HomePageState extends State<HomePage> {
                 Navigator.of(context).push<void>(
                   MaterialPageRoute<void>(
                     builder: (_) => BackupSchedulePage(
-                      loadTasks: () async => (await TaskStore().load())
+                      loadTasks: () async => (await taskStore.load())
                           .map((task) => task.toJson())
                           .toList(growable: false),
                     ),
@@ -3074,6 +3286,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _showHomeFilterMenu() async {
+    debugPrint('HOME_FILTER_MENU_ENTER mounted=$mounted');
     final action = await showModalBottomSheet<_HomeMoreAction>(
       context: context,
       showDragHandle: true,
@@ -3084,7 +3297,10 @@ class _HomePageState extends State<HomePage> {
             ListTile(
               leading: const Icon(Icons.today_outlined),
               title: const Text('امروز تقویمی'),
-              onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.today),
+              onTap: () {
+                debugPrint('HOME_TODAY_TILE_TAPPED');
+                Navigator.of(sheetContext).pop(_HomeMoreAction.today);
+              },
             ),
             ListTile(
               key: const ValueKey('home-filter-today-focus'),
@@ -3111,6 +3327,7 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+    debugPrint('HOME_FILTER_MENU_RESULT action=$action mounted=$mounted');
     if (action == null || !mounted) return;
     switch (action) {
       case _HomeMoreAction.today:
@@ -3442,6 +3659,10 @@ class _HomePageState extends State<HomePage> {
     final expanded = _expandedTaskIds.contains(task.id);
     final late = _overdue(task);
     final colors = Theme.of(context).colorScheme;
+    final latestFollowUp = const HomeFollowUpPresentationService().project(
+      task,
+      now: _iranWallClockNow(),
+    );
       return Dismissible(
       key: ValueKey(task.id),
       direction: selectionMode
@@ -3644,6 +3865,32 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ],
+                      if (latestFollowUp != null) ...[
+                        const SizedBox(height: 4),
+                        Column(
+                          key: ValueKey('task-card-follow-up-accordion-${task.id}'),
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'آخرین پیگیری: ${latestFollowUp.title}',
+                              key: ValueKey('task-card-last-follow-up-${task.id}'),
+                              style: const TextStyle(
+                                color: ArvinColors.textPrimary,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              latestFollowUp.exactDateTime,
+                              style: const TextStyle(
+                                color: ArvinColors.textSecondary,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                       if (task.trashed || task.archived)
                         TextButton(
                           onPressed: () => _restore(task),
@@ -3704,6 +3951,7 @@ class _HomePageState extends State<HomePage> {
                               ],
                             ),
                           ],
+
                         ],
                       ),
                     )
@@ -3831,7 +4079,10 @@ class _HomePageState extends State<HomePage> {
               IconButton(
                 key: const ValueKey('home-general-filter-button'),
                 tooltip: 'فیلترهای عمومی',
-                onPressed: _showHomeFilterMenu,
+                onPressed: () {
+                  debugPrint('HOME_FILTER_BUTTON_TAPPED');
+                  _showHomeFilterMenu();
+                },
                 icon: const Icon(Icons.filter_alt_outlined),
                 style: IconButton.styleFrom(backgroundColor: colors.surface, foregroundColor: colors.onSurfaceVariant),
               ),

@@ -443,3 +443,402 @@ NOT VERIFIED. GitHub branch data does not reveal uncommitted local modifications
 **Unresolved owner decision:** four Reminder states and their transitions/terminal/snooze semantics. Do not invent them.
 
 Main READ-ONLY. PR #3052 OPEN / DRAFT / UNMERGED. No force push, merge, release or legacy deletion. Release NO-GO.
+
+
+---
+
+# REV9 — Next-agent handoff (2026-11-10)
+
+## Mandatory first actions
+1. Read root `AGENTS.md`, `AI_CONTINUITY_PROTOCOL.md`, `PROJECT_STATE.md`.
+2. Read `docs/project-continuity/AI_GOVERNANCE_POLICY.md` and its complete mandatory reading sequence.
+3. Re-fetch live Main, this branch HEAD, PR #3052, the new documentation PR, related open documentation PRs and exact-SHA CI/check evidence.
+4. Read the full REV9 charter in `MASTER_GOVERNANCE.md`; read `MASTER_GOVERNANCE_REV8_ARCHIVE.md` only for historical context.
+5. Preserve every decision and status label. Never promote a proposal to approved or an implementation to verified without evidence.
+
+## Verified deployment baseline
+- Main at branch creation: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Source PR #3052: OPEN / DRAFT / UNMERGED, head `aba68e44be0fcac7d4ad425b58fbe75e5aba264e`; untouched.
+- Documentation branch: `docs/rev9-governance-continuity-2026-11-10`.
+- Initial commit: `1a849751b931028581f6ce721952aaa987474053`; reconciliation commit: `4825e04335292dcc20dedbed39d614969a85f4cb`; later commit(s) are recorded in the PR.
+- Related PRs #3022, #2598, #2600 and #2866 remain open/unmerged; PR #2918/#2975/#2932 and Issue #2974 are historical typography authority inputs now reopened by REV9 §32.
+
+## Guardrails
+- Current authorization: DOCUMENTATION-ONLY on this branch. No product code, SQL/schema, migration, tests, workflows, Main, PR #3052, merge or release.
+- Keep font unresolved until Mobin decides. Keep Reminder four-state machine unresolved. Do not add a Commitment model/table.
+- SQL-only durable source of truth remains approved. Preserve historical data and decision records.
+- Release remains BLOCKED — RELEASE: NO-GO.
+
+## Next action
+Review the independent documentation PR, verify the final diff contains only approved documentation/agent instruction files, and request Mobin's review. Do not merge.
+
+
+---
+
+## PR #3340 — owner review handoff
+
+- Review this PR: https://github.com/mobinpda-lab/Arvin-clean/pull/3340
+- State at creation: OPEN / UNMERGED. Head at creation: `b9dc37804a69cd2292a071e008b50bd261bae512`; one documentation-only follow-up commit updates continuity records after PR creation, so fetch the live head now.
+- Verify changed files remain documentation/agent-instruction only; PR #3052 must remain unchanged and OPEN / DRAFT / UNMERGED.
+- Do not merge, release, change code/schema/tests/workflows, or resolve typography without explicit Mobin authorization.
+- Next action: Mobin reviews PR #3340 and decides whether to approve or request documentation revisions.
+
+
+---
+
+# REV9 — Repository Cleanup WAVE 0 handoff (2026-11-10)
+
+## Current verified baseline
+- Main: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- PR #3340: OPEN / READY FOR REVIEW / UNMERGED; branch `docs/rev9-governance-continuity-2026-11-10`; pre-update HEAD `fe85e64199cfdb468228830ecfff3bcf3d8bea5c`.
+- PR #3052: OPEN / DRAFT / UNMERGED; HEAD `aba68e44be0fcac7d4ad425b58fbe75e5aba264e`; protected and untouched.
+- 1,413 branches; 35 duplicate-head groups / 109 refs; 101 open PRs (75 drafts); 99 stale-open-PR candidates by last-update date before 2026-11-01.
+- PR #3340 baseline diff: 66 Markdown/agent-instruction files; zero non-documentation files.
+
+## Latest owner direction
+- Arvin is LOCAL-FIRST and standalone. Essential product capabilities must work locally/offline; local SQL is the sole durable source of truth.
+- All multi-device synchronization (P2P, LAN, Cloud, Dropbox, remote) is SUSPENDED pending separate explicit Mobin authorization.
+- The only active Repository Cleanup Program sequence is WAVE 0–4 as recorded in ROADMAP.md. Do not create parallel numbering.
+
+## Changes in this authorized documentation pass
+- Corrected REV8 archive link and clarified that REV9 is on PR #3340's branch, not yet in Main.
+- Recorded LOCAL-FIRST / SYNC SUSPENDED in the decision ledger, roadmap, AI governance and P2P specification.
+- Added current live baseline and historical-snapshot labels to continuity documents.
+- No historical document, branch, PR or implementation file was deleted.
+
+## Protected boundaries
+No Main or PR #3052 change; no source/schema/migration/test/workflow/feature change; no branch deletion, PR closure, merge or release. Release remains NO-GO.
+
+## Next action
+Re-fetch the final PR #3340 HEAD and validate the docs-only diff and internal links. Review remaining documentation candidates in WAVE 3 before any consolidation. Git-history analysis belongs to WAVE 1; CI/test governance to WAVE 2. No sync work is active.
+
+
+---
+
+## WAVE 0 final pre-handoff checkpoint — 2026-11-10
+
+- Latest verified PR #3340 branch HEAD before this final handoff record: `cd1d52e752ac10c0040738f655d5a288d2523399`.
+- Main remains `45e4202b03a434459e4c021a04efa7e8396359db`.
+- PR #3052 remains OPEN / DRAFT / UNMERGED at `aba68e44be0fcac7d4ad425b58fbe75e5aba264e`; untouched.
+- Documentation reconciliation commits: `fe85e64199cfdb468228830ecfff3bcf3d8bea5c` and `cd1d52e752ac10c0040738f655d5a288d2523399`.
+- The commit containing this handoff advances PR #3340; always re-fetch the live PR head after this commit.
+- Next action: validate the final tree and present PR #3340 for Mobin's review. No merge.
+
+
+
+---
+
+## COMMAND 07-A.2.33 — live continuity addendum (2026-11-12)
+
+## First actions for the next execution pass
+1. Re-read live refs and verify execution branch HEAD is still `eea746dbf2a58cd4f04c66a149ae3441264da5b2`; do not assume this SHA remains current.
+2. Poll Build run `43269800292`, Device Smoke `43269800280`, SQLite Snapshot `43269800257` and Follow-up Persistence `43269800526`; verify every job's actual checkout SHA.
+3. Confirm the malformed `task_people` payload test now reaches the expected `FormatException`, preserves source rows, rolls back canonical writes, allows repair/retry and leaves `PRAGMA foreign_key_check` empty.
+4. Review the remaining 60 old-candidate failure records independently. Their status is UNRESOLVED until root cause, source location and retest evidence are documented.
+5. Complete D01–D05 independently, including real Backup/Restore and injected interruption/recovery. Do not use the A–D snapshot or five reopen cycles as a substitute for D05.
+6. Complete the Home clock injection contract and the seven Device Smoke lanes on one exact SHA.
+7. Reconcile #3388's parallel documentation package with REV9 on #3340. Keep one canonical source per domain; do not merge either PR without explicit owner authorization.
+8. Preserve all historical branches, PRs, artifacts and test assertions. No destructive cleanup, merge, release or deployment.
+
+Current typography owner decision (2026-11-12): Vazirmatn only; VazirHarf is not official; System Default is optional; preserve weights 300/400/500/600/700.
+
+
+
+---
+
+## COMMAND 07-A.2.33 — evidence refresh (2026-11-12, later poll)
+
+1. Poll Build `43269800292` and Device Smoke `43269800280`; verify actual checkout SHA for every job. SQLite Snapshot `43269800257` and Follow-up Persistence `43269800526` have passed on `eea746d...`.
+2. Before the next implementation commit, allow current Build to finish; do not cancel it to free queue capacity.
+3. Fix the three proven harness defects without weakening assertions: use the create TextField finder directly instead of `widgetWithText(TextField, ...)`; locate the actual Scrollable under `task-detail-content-list` for `scrollUntilVisible`.
+4. Fix the two test-contract defects: replace `pumpAndSettle` in alarm overlay smoke with the existing bounded frame pump helper; assert the Task reminder compatibility projection instead of incorrectly expecting a null getter while an enabled reminder exists.
+5. Re-run affected tests and the full Build on the resulting new SHA. Then re-run Device Smoke and SQLite Snapshot on that same final candidate.
+6. Continue D01–D05, real Backup/Restore, D05 injected interruption/retry, Home clock injection and 55 unresolved regression records.
+7. Reconcile PR #3380/#3382/#3384 shared migration-writer test; reconcile PR #3388 documentation package with REV9 PR #3340. Preserve all PRs and history until owner review.
+
+
+
+---
+
+## Immediate P0/P1 correction — Home clock (2026-11-12)
+
+- Before the next full acceptance candidate, add one injectable `nowProvider` through `ArvinApp` and `HomePage`.
+- Replace the direct `DateTime.now()` in `_groupJalaliDate()` with the shared `_iranWallClockNow()` source; ensure both grouping and overdue checks use the exact same injected instant.
+- Add/adjust the deterministic test: now=09:00, due=10:00. Do not use current live time for a fixed-time assertion and do not weaken the group assertion.
+- Preserve the later owner-approved five Home filters in RTL order: Time, Center, Project, Category, Tag. Older four-filter wording is superseded.
+- The current candidate `eea746d...` is not accepted: Build test-1 failed; wait for the other jobs, then commit the clock correction and rerun full Build/Device Smoke/SQLite Snapshot on the new SHA.
+
+
+
+---
+
+## G1 fixture correction — immediate next step (2026-11-12)
+
+- Do not treat `eea746d...` as a successful G1 fix. Build test-5 proves the fixture fails with `no such table: tasks` before Migration begins.
+- In `test/services/g1_drift_schema_test.dart`, create the complete schema-compatible `tasks` table first (matching the canonical task table columns used by `G1DriftSchema`), insert the `legacy-task` parent row, then create the malformed `task_people` row.
+- Re-run the test and prove it reaches the expected FormatException, preserves the source row, rolls back canonical writes, leaves FK enforcement enabled, repairs the JSON and retries successfully on the same executor.
+- Do not remove `PRAGMA foreign_key_check`, alter production FK definitions, or claim the migration is fixed before the test passes.
+
+
+---
+
+## COMMAND 07-A.2.34 handoff — 2026-11-12
+
+### Current execution lane
+- Repository: `mobinpda-lab/Arvin-clean`
+- Execution PR: #3384
+- Execution branch: `feature/command-07-a-sqlite-contract-remediation`
+- Latest recorded execution SHA: `ee703dfa82e356039ef32c0b2a9f1bc9a00dc1e9`
+- Main baseline: `45e4202b03a434459e4c021a04efa7e8396359db`
+- Do not switch to `staging/command-07-a2-33-recovery` without a fresh dependency audit; its Main comparison is 2,371 ahead / 0 behind.
+
+### Work already committed, not yet accepted
+1. G1 malformed `task_people` fixture creates the canonical `tasks` parent table before inserting the parent Task.
+2. Home time grouping and Jalali date labels share an injectable Iran wall-clock provider.
+3. Home clock widget regression covers 09:00 and 10:00.
+4. Expanded Home Task card displays the latest real Follow-up via `HomeFollowUpPresentationService`; legacy date metadata alone remains excluded.
+5. Home test now uses the actual expand control and canonical widget keys.
+
+Relevant commits:
+- `446f04a6f8cc94871eea0982d9f0f896b8fba8fe`
+- `ab06e7bdf3233d3d971aa64d11782efff71089f1`
+- `235bfb98e45af68f0d68b00099f97d599504b575`
+- `5af39a34ee19e090de30cf6d3e0a5848852fab48`
+- `ee703dfa82e356039ef32c0b2a9f1bc9a00dc1e9`
+
+### CI state and evidence boundary
+The last completed full Build run is `43269800292` on historical SHA `eea746dbf2a58cd4f04c66a149ae3441264da5b2`, not the current execution SHA:
+- Analyze / Visual / Debug APK / Staging APK / Release APK build: SUCCESS.
+- All six test shards: FAILURE; 1,338 passed / 61 failed.
+- SQLite Snapshot `43269800257`: SUCCESS, but not D01–D05 acceptance.
+- Follow-up Persistence `43269800526`: SUCCESS, narrow scope.
+- Device Smoke `43269800280`: all seven scenario jobs were QUEUED at last inspection.
+- Orchestrator Wakeup `43288112147` was later CANCELLED after the branch advanced; no new Build or Device Smoke run was returned for `ee703dfa...` at handoff creation.
+
+Do not copy old SHA results onto the new candidate. Poll for a fresh exact-head run before treating any new change as validated.
+
+### Mandatory continuation sequence
+1. Recheck live #3384 head and Actions. Confirm checkout SHA, not only PR title or branch name.
+2. Validate the new G1 fixture test. If it fails, inspect transaction state, source-table retention, canonical table rollback, FK state and retry behavior; do not weaken assertions.
+3. Validate the new Home clock test and Follow-up presentation integration.
+4. Triage all 61 historical failure records individually. Keep original assertion, classification, root cause, code/test change, focused result and run ID.
+5. Continue D01–D05, then Category / Project / Tag workflows and cross-feature consistency.
+6. Verify Vazirmatn weights, persistent font preference, PDF embedding/rendering, APK font audit and all seven Device Smoke scenarios on one candidate SHA.
+7. Update the canonical six documents on this REV9 branch as decisions/evidence mature. Keep PR #3388's v49-era documentation lane separate until its authority conflict is reconciled.
+8. Never merge, release, deploy, delete branches, rewrite history, or destructively modify user data without explicit Mobin authorization.
+
+**Status:** IMPLEMENTATION IN PROGRESS / ACCEPTANCE BLOCKED.
+
+
+---
+
+## COMMAND 07-A.2.34 — latest live handoff (2026-11-12)
+
+### Exact execution identity
+- Current execution PR: #3384 OPEN / DRAFT / UNMERGED.
+- Branch: `feature/command-07-a-sqlite-contract-remediation`.
+- Current HEAD at this checkpoint: `1f4ff4898a5a9278e067c795a8fc14791b8ecbed`.
+- Base branch/SHA: `fix/wave3-cycle3-calendar-product-repair` / `8c4c23f0c2a4f9b2374a2092c931782c4455fd41`.
+- Main: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Do not switch to `staging/command-07-a2-33-recovery`: it compares 2,371 ahead / 0 behind Main and is not the active execution lane.
+
+### Current exact-head Actions
+- Arvin Draft Review APK (1f4ff4898a5a9278e067c795a8fc14791b8ecbed) — Run `43291144596`: **COMPLETED/SKIPPED**.
+- Arvin Device Smoke — Run `43291144527`: **QUEUED**.
+- Arvin Build (1f4ff4898a5a9278e067c795a8fc14791b8ecbed) — Run `43291144776`: **PENDING**.
+- Arvin Follow-up File Persistence — Run `43291144575`: **PENDING**.
+- Arvin COMMAND 07-A.2.20 SQLite Snapshot Evidence — Run `43291144675`: **QUEUED**.
+- ARVIN Orchestrator — Run `43291144442`: **PENDING**.
+- ARVIN Orchestrator PR Wakeup — Run `43291144484`: **PENDING**.
+- ARVIN Production Loop — Run `43291144513`: **QUEUED**.
+- Build run has no allocated jobs; Device Smoke and SQLite Snapshot are queued; Follow-up Persistence is pending with its job queued.
+- No current-head artifacts or passing scenario jobs are available. A queued/pending workflow is not a PASS.
+- The 6914b55 head's Build/Follow-up/Orchestrator runs were cancelled after later commits; do not reuse them.
+
+### Historical failure correction
+The 61 failure records on `eea746d...` are distributed as shard 0=11, 1=1, 2=21, 3=9, 4=9, 5=10. Use the original six logs/job IDs in the implementation log; a prior document distribution was transposed. Do not transfer the historical count to the current candidate.
+
+### New product-integrity issue to fix
+`ProjectTemplateManagementPage` still uses free-text Category and Tags. Reusable Task/Project templates persist taxonomy snapshots, but the current deletion checks only account for Task references. Before C01/C03/C04/C05 acceptance:
+1. Replace free-text template Category/Tag entry with the canonical SQLite-backed selectors.
+2. Define a fail-closed rule for deleting taxonomy values referenced by Task Templates or Project Templates; preserve historical template payloads.
+3. Add tests for template selection, rename consistency, blocked deletion and generated Task catalog parity.
+4. Re-run focused tests and full exact-head validation on the resulting SHA.
+
+### Other consolidation candidates
+- `TaskTaxonomyLifecycleService` overlaps `TaskTaxonomyMutationService`; management UI currently uses MutationService. Audit references and tests before consolidating.
+- `TagStore` still contains a SharedPreferences path; current Home/management flows use TaskStore/SQLite. Prove no active compatibility use before retirement.
+- Preserve PR #3380 and #3382 diagnostic evidence; #3382 is stacked on #3380.
+- Keep PR #3340 as the REV9 canonical docs lane. PR #3388 is a parallel v49-era docs/CODEOWNERS lane and remains an authority conflict; do not merge either without owner review.
+
+**Status:** IMPLEMENTATION IN PROGRESS / ACCEPTANCE BLOCKED. No merge, release or deployment.
+
+
+---
+
+## P0 handoff — complete taxonomy/template consistency
+
+The taxonomy audit is deeper than the editor-field finding:
+1. Replace free-text Category/Tags in `ProjectTemplateManagementPage` with canonical TaskStore-backed selectors. A newly created value must be written to the central catalog.
+2. Make Category rename update `tasks`, `task_templates` and `project_template_tasks` in the same SQLite transaction.
+3. Make Tag rename update `task_tags`, `task_templates.tags_json` and `project_template_tasks.tags_json` in the same SQLite transaction, preserving order and de-duplicating only the renamed collision.
+4. Make Category/Tag deletion fail closed if referenced by Tasks, Task Templates or Project Template tasks. Include archived templates; do not erase historical definitions.
+5. Add file-backed and focused tests for each reference domain, rename atomicity/rollback, blocked deletion, and Task generation from the renamed template.
+6. Keep `TaskTaxonomyLifecycleService`, `TaskTaxonomyMutationService` and `TagStore` intact until their reference/compatibility audit is complete.
+
+No production code correction for this finding has yet been committed. Treat C01/C03/C04/C05 as BLOCKED until the above tests pass on one exact candidate SHA.
+
+
+---
+
+## COMMAND 07-A.2.34 handoff refresh — 2026-11-12
+
+**Current execution HEAD:** `1f4ff4898a5a9278e067c795a8fc14791b8ecbed` on `feature/command-07-a-sqlite-contract-remediation`.
+
+### Current exact-head runs
+- Build `43291144776`: PENDING.
+- Device Smoke `43291144527`: QUEUED.
+- SQLite Snapshot `43291144675`: QUEUED.
+- Follow-up File Persistence `43291144575`: PENDING.
+- Orchestrator `43291144442`: PENDING.
+- Production Loop `43291144513`: PENDING.
+- Orchestrator PR Wakeup `43291144484`: PENDING.
+
+### Newly committed work
+- `bc37933ca591b135b4b943d4187e1f19c695e4b1`: Home compact Task card shows latest real Follow-up.
+- `1f4ff4898a5a9278e067c795a8fc14791b8ecbed`: Task Detail Person test uses the actual Scrollable finder.
+- Earlier checkpoint commits are recorded above; all new changes remain unvalidated until exact-head Actions finish.
+
+### Next safe work while CI is queued
+1. Do not mutate the execution branch until the current exact-head Build result is available unless a confirmed P0 data-loss/security defect requires immediate repair.
+2. Prepare D04 test using two disposable `NativeDatabase(File)` instances: source SQLite → portable backup file → restore candidate → independent destination SQLite → close/reopen → Task/Reminder/Follow-up/Person/Project verification → `PRAGMA integrity_check` and `PRAGMA foreign_key_check`.
+3. Add D01 fixtures with custom Index and Trigger objects to prove either safe preservation or explicit fail-closed rollback without dropping them.
+4. Investigate the remaining Follow-up Entry person-selection failure; do not override a user's deliberate deselection and do not weaken assertions.
+5. Build the C07 isolated end-to-end scenario using the canonical TaskStore, ProjectStore, taxonomy mutation service and feature projections.
+6. Poll exact-head Build/Device/SQLite/Follow-up runs. If any new commit is made, discard no history; the acceptance SHA changes and affected gates must rerun.
+7. Keep Merge, Release and Deployment unauthorized.
+
+
+---
+
+## COMMAND 07-A.2.34 — D01/D04 test handoff (2026-11-12)
+
+**Current execution HEAD:** `fd22fe37f0190818084f011bfcce00e241da6933`.
+
+### Newly added tests
+- `test/services/sqlite_backup_restore_file_test.dart`: separate source and destination SQLite files; portable backup; restore into destination; destination close/reopen; Task, Reminder, Follow-up, Person and Project relation checks; category/tag catalog checks; SQLite integrity and FK checks.
+- `test/services/g1_drift_schema_test.dart`: legacy Task fixture with custom index and trigger; verify safe migration deferral preserves both objects and the trigger remains operational.
+
+### Current exact-head workflow state
+- Build `43293411996`: PENDING.
+- Device Smoke `43293412058`: QUEUED.
+- SQLite Snapshot `43293411971`: QUEUED.
+- Follow-up Persistence `43293412060`: QUEUED.
+- Orchestrator Wakeup `43293411950`: QUEUED.
+- Orchestrator `43293412413`: QUEUED.
+- Production Loop `43293411953`: PENDING.
+- Draft Review APK `43293412082`: SKIPPED.
+
+### Validation instructions
+1. Wait for the latest exact-head Build to start; confirm its checkout SHA equals `fd22fe37...`.
+2. Run focused tests for `sqlite_backup_restore_file_test.dart` and the custom Index/Trigger fixture.
+3. If D04 fails, inspect restore ordering, FK parent creation, Person directory membership, Follow-up relation restoration, Project membership and destination close/reopen. Do not weaken checks.
+4. If D01 fails, preserve the original database and investigate whether any migration path drops a custom object; do not bypass the fail-closed guard.
+5. Re-run all required gates on the final candidate after any correction.
+6. C07 full cross-feature workflow and unresolved Follow-up Entry Person selection still require separate work.
+
+
+## COMMAND 07-A.2.34 — next continuation (2026-11-13)
+
+1. Fetch the live head of `feature/command-07-a-sqlite-contract-remediation`; expected last observed SHA is `cde28b0925708439f48a49a9b85257ef40ccc4ef`. Never assume it remains current.
+2. Obtain exact-SHA Analyze/Test/Build evidence for the two analyzer corrections. The previous Build SHA `d6af169...` failed Analyze and all six test shards; do not transfer any result to `cde28b...`.
+3. Diagnose the Follow-up Entry selected-Person chip failure and remaining 60 regression records individually; do not weaken assertions.
+4. Complete D01 schema/index/trigger parity, D04 independent-file backup/restore, and D05 controlled failure/rollback/retry/reopen evidence.
+5. Complete seven Device Smoke scenarios on one exact candidate SHA and record emulator/device, OS, logs and artifacts.
+6. Continue Category/Project/Tag cross-feature tests, including Task Template and Project Template references; preserve historical task/template data.
+7. Validate Vazirmatn-only packaging, PDF embedding/rendering and independent APK/font SHA256 values. System Default remains optional; VazirHarf remains inactive historical provenance.
+8. Keep PRs #3380/#3382/#3384/#3388 and historical evidence intact. No merge, release, deployment, branch deletion or history rewrite.
+
+
+## COMMAND 07-A.2.35 — continuation handoff (2026-11-13)
+
+- Re-fetch execution branch before work. Last observed HEAD: `cde28b0925708439f48a49a9b85257ef40ccc4ef`; main: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Build run `43337010522`: Analyze PASS; shards 0/2/3/4/5 FAIL with 11/9/8/21/13 failures respectively; shard 1 PASS. Total **62** failed records. Read each raw job log and compare test contract with canonical product specs before classifying or changing source/tests.
+- SQLite Snapshot `43337010196` PASS with five reopen cycles but is partial evidence only. D04 independent backup/restore and D05 controlled rollback/interrupted migration/retry remain unproven. Fixture Person names are empty; check Person-name migration separately.
+- Follow-up Persistence `43337010442` PASS. Device Smoke `43337010594`: only Task Lifecycle and Follow-up Persistence PASS; Reminder/Vazirmatn FAIL; Boot/Navigation/Quick Capture/Calendar CANCELLED.
+- Artifact audit: staging APK SHA256 `c06771aab8da745861165eef5fc85ee29d07c1797c4309a4b15cade1e8c6f8f5`; debug `25a065e4117266dcd47172f3afc2b1958a01cbb8edb78cecdf4dee1db078f23c`; release build `9423fdc242351cc21e3c527e243b04c3b9374a7550ddb3b2e22f6df351b3f5f5`. Staging uses an ephemeral test-only key and is not publishable.
+- All APKs contain Vazirmatn 300/400/500/600/700; embedded font hashes match source font hashes. PDF artifact `13998370513` validates embedded Regular/Bold and Persian text. Physical-device typography acceptance remains pending.
+- Next: root-cause the 62 tests (do not weaken assertions); diagnose Reminder/Vazirmatn smoke; run D04/D05; execute Category/Project/Tag and Person/Checklist/Task/Reminder/Follow-up E2E on isolated DB; then consolidate only with evidence. Preserve PR/branch/history. No merge/release/deployment.
+
+
+## COMMAND 07-A.2.35 — post-checkpoint test-harness correction (2026-11-13)
+
+- Execution branch moved from `cde28b0925708439f48a49a9b85257ef40ccc4ef` to `bb08f21bd2a5ab2a7f7affe4c8e5e3bc28c81c96` by one test-only commit: `test: disambiguate nested Task Details scrollable finder`.
+- Confirmed classification: `TEST HARNESS DEFECT` in `test/task_detail_person_persistence_test.dart`. The failure was thrown inside Flutter's `WidgetController.scrollUntilVisible` via `Iterable.single` at test line 39, before the Person picker or persistence assertions ran. The supplied descendant finder matched multiple Scrollable widgets. The test now selects the first matching descendant Scrollable; no assertion, expected behavior or coverage was removed.
+- New SHA `bb08f21bd2a5ab2a7f7affe4c8e5e3bc28c81c96` currently has no workflow runs returned by the commit-run lookup and no status checks. Therefore the test-harness correction is IMPLEMENTED / NOT YET VERIFIED. Do not report it as fixed until the focused test passes on this exact SHA.
+- Source audit found canonical taxonomy operations in TaskStore: create Category/Tag; category/tag rename paths; deletion guards count Task and template references; `renameCategoryAndTasks` / `renameTagAndTasks` update Task/Template references transactionally. ProjectStore persists canonical Project records and memberships in a transaction, retaining template application rows only where memberships still exist. These are source-inspection findings, not end-to-end acceptance. The distinct catalog-only rename methods and their call sites still require audit; no destructive cleanup was performed.
+- Follow-up Person creation/selection failure remains unresolved: `follow_up_entry_page_test.dart:229` does not find the newly selected Person chip after the multi-select sheet closes. The code path was inspected, but the root cause is not proven; no production change was made.
+- `task_detail_person_persistence_test.dart` must be rerun on SHA `bb08f21...` before its Person/SQLite assertions can be evaluated. The prior failure was the test harness finder, not evidence of a Person persistence failure.
+- Main remains `45e4202b03a434459e4c021a04efa7e8396359db`. No merge/release/deployment, workflow rerun, branch deletion, history rewrite or production-data operation occurred.
+
+
+
+# REV10 continuation handoff — 2026-11-13
+
+## Active authority
+Read `MASTER_GOVERNANCE.md` (REV10) first. REV9 is preserved verbatim in `MASTER_GOVERNANCE_REV9_ARCHIVE.md`. The current authority order and decision statuses are recorded in `PRODUCT_DECISIONS.md`; conflict reconciliation is in `audit/CONFLICT_REGISTER.md`.
+
+## Live refs at checkpoint
+- Arvin Main: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- REV10 docs branch: `docs/rev10-master-charter-2026-11-13`.
+- SQLite execution branch: `feature/command-07-a-sqlite-contract-remediation` at `3f471e6b88764446eabd33752d0aa3d820f52628`.
+- NIRA Main: `7a27ee63b65d343e45c5786f782f2567611722dc`; separate factory only.
+- PR #3340 and #3388 remain unmerged competing governance lines; #3384 remains unmerged product execution.
+
+## Immediate next actions
+1. Poll optional-relationship Run `43431160695` and Build Run `43431160736` on exact SHA `3f471e6...`; inspect job logs and artifacts. Do not reuse earlier SHA results.
+2. If the corrected harness passes, inspect the test's actual coverage against the real production schema and distinguish diagnostic fixture evidence from production schema acceptance.
+3. Inspect the current PR #3384 head, base and exact checks. Do not merge.
+4. Create/update a Draft REV10 PR based on the REV9 documentation branch; keep PR #3340 as its dependency and do not merge either without explicit approval.
+5. Reconcile #3388's six canonical docs, v49.1 operating package, adapters and CODEOWNERS proposal into the REV10 structure without duplicate generic files.
+6. Continue WAVE 1: audit actual G1 schema, Center/Project/Category ownership, optional Task links, Tag and Person relationships, then implement only evidenced gaps.
+7. Continue independent D01–D05, regression, typography/PDF and device lanes in parallel where file ownership permits.
+8. Keep Main unchanged. Merge, release and deployment remain prohibited.
+
+## Evidence boundaries
+- REV10 docs are implemented on the REV10 branch; they are not in Main.
+- Run `43431160695` was queued and Run `43431160736` pending at last poll.
+- D01–D05 are not accepted as complete.
+- Device Smoke is not accepted.
+- NIRA factory progress is not Arvin product progress.
+
+
+## Wave 1 data architecture findings — 2026-11-13
+
+See `audit/REV10_WAVE1_DATA_ARCHITECTURE_BASELINE_2026-11-13.md`.
+
+Critical implementation gaps: Task Center is only inside the JSON envelope; direct Task Project/Category IDs are absent; Project membership is many-to-many; Categories are global/unowned; Project Center is nullable. The optional-link CI test is a miniature fixture, not the real production schema.
+
+Next safe work: read-only consumer and legacy-data inventory, then additive candidate schema and exact-G1 file-backed migration tests. Preserve `project_items` and `taxonomy_categories` until every consumer is migrated and D01–D05 pass. No cutover or destructive retirement.
+
+
+## Final live ref reconciliation — 2026-11-13
+
+- REV10 documentation branch HEAD before this reconciliation: `156a43c66a35793d24302b6617f678b23444b786`.
+- SQLite execution branch HEAD: `34f6fb1a42e5adb6255a1d56ce8c07ac7567ead2`.
+- Latest source audit was performed on `3f471e6b88764446eabd33752d0aa3d820f52628`; the later `34f6fb1a42e5adb6255a1d56ce8c07ac7567ead2` commit changes only the migration design document.
+- Optional relationship workflow Run `43431160695`: QUEUED; Build Run `43431160736`: PENDING/no jobs; Device Smoke Run `43431160732`: QUEUED.
+- Snapshot Run `43431160811` and Follow-up Persistence Run `43431160654` succeeded on `3f471e6...`; they are supporting evidence only and do not constitute full D01–D05 acceptance.
+- The corrected optional-relationship test has not yet produced a terminal result. No exact-head PASS is claimed.
+
+
+## COMMAND 07-A.2.65 — active handoff (2026-11-13)
+1. Re-read Main, execution branch and PR #3384 refs before every write. Main is READ-ONLY.
+2. Build 43460214591 has two failed shards, four queued shards and queued Analyze; Debug APK is in progress. Do not rerun completed jobs or transfer results to another SHA.
+3. Device Smoke 43460214241 remains queued; no physical-device acceptance.
+4. Preserve successful Snapshot 43460214382, G1 43460214765 and Follow-up 43460214411 evidence; these do not close D01–D05.
+5. Diagnose each failed test against its production widget/service. Correct stale tests only when the approved contract has demonstrably changed; preserve behavioral coverage.
+6. Use PR #3448 as REV10 source; do not merge or close it. Keep REV8/REV9 as historical archives.
+7. Continue read-only consumer inventory and additive schema work against existing G1. Preserve legacy tables, IDs, payloads and consumers until parity and backup/restore are proven.
+8. Main Orchestrator merge-capable logic remains a blocker. No Main/settings change without explicit owner approval.
+9. No merge, release, deployment or production data migration. Exact-SHA acceptance is NOT ESTABLISHED.

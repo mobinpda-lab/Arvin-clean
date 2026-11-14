@@ -535,4 +535,42 @@ void main() {
     }
   });
 
+  test('legacy SharedPreferences Tags migrate once into SQLite and survive reopen', () async {
+    const legacyTags = <String>[' مهم ', 'مهم', 'پیگیری'];
+    SharedPreferences.setMockInitialValues(<String, Object>{
+      'arvin.tags': legacyTags,
+    });
+    final directory =
+        await Directory.systemTemp.createTemp('arvin-legacy-tags-migration-');
+    final databaseFile = File('${directory.path}/arvin.sqlite');
+    var database = NativeDatabase(databaseFile);
+
+    try {
+      var store = TaskStore(executor: database);
+      expect(await store.loadTags(), <String>['مهم', 'پیگیری']);
+
+      final preferences = await SharedPreferences.getInstance();
+      expect(preferences.getStringList('arvin.tags'), legacyTags);
+
+      await database.close();
+      database = NativeDatabase(databaseFile);
+      store = TaskStore(executor: database);
+      expect(await store.loadTags(), <String>['مهم', 'پیگیری']);
+
+      final marker = await database.runSelect(
+        "SELECT value FROM arvin_storage_meta WHERE key = 'legacy_tags_migrated'",
+        const [],
+      );
+      expect(marker.single['value'], '1');
+      final rows = await database.runSelect(
+        'SELECT name FROM tags ORDER BY name',
+        const [],
+      );
+      expect(rows.map((row) => row['name']), <String>['مهم', 'پیگیری']);
+    } finally {
+      await database.close();
+      await directory.delete(recursive: true);
+    }
+  });
+
 }

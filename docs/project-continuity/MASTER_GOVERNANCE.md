@@ -1,192 +1,495 @@
-## REV8 post-audit live refresh — 2026-11-10 11:10 UTC
+# ARVIN — MASTER PRODUCT, DESIGN & GOVERNANCE CHARTER
+## REV10 — Unified Local-First Product, Data Architecture & Execution Governance
 
-This addendum supersedes earlier pre-refresh snapshot values; historical values remain preserved.
-- Main HEAD: `45e4202b03a434459e4c021a04efa7e8396359db` (protected=true).
-- Authorized branch / PR #3052 HEAD: `a934cabebc814aea13c1800ab151821d12714226`; parent `9846f10850031c63964fdc81ae0ab1cdb3028517`.
-- PR #3052 remains OPEN / DRAFT / UNMERGED; 2,131 ahead / 0 behind; 380 changed files; 0 reviews.
-- Build `42801502260` on a934: FAILURE, 1,296 passed / 78 failed. Device Smoke `42801502310`: PENDING. Calendar Provider `42801502275` and Follow-up Persistence `42801502256`: SUCCESS.
-- a934 is a documentation-only commit affecting 20 files under docs/project-continuity; source/test/schema/migration/workflow trees are unchanged.
-- Current tree: 1,412 branches; 1,812 Main commits; 302 test files; 25 working workflows; docs/ 271 files (266 Markdown); project-continuity 45 files.
-- Release remains BLOCKED — RELEASE: NO-GO. Main remains READ-ONLY; no destructive actions authorized.
+**Document ID:** ARVIN-MASTER-CHARTER-REV10  
+**Revision:** REV10  
+**Product Owner:** Mobin  
+**Primary Repository:** `mobinpda-lab/Arvin-clean`  
+**Related Factory Repository:** `mobinpda-lab/NIRA`  
+**Architecture:** Local-First / SQL-Only  
+**Acceptance Policy:** Single SHA Acceptance  
+**Merge:** NOT AUTHORIZED  
+**Release:** NOT AUTHORIZED  
+**Deployment:** NOT AUTHORIZED  
+**Status:** APPROVED PRODUCT DIRECTION; implementation and verification are tracked separately.
 
----
+> «بسم الله الرحمن الرحیم»
 
-# ARVIN MASTER GOVERNANCE — REV8
+## 0. Purpose, scope and status vocabulary
 
-Authority: Mobin — Product Owner & Product Director
-Repository: mobinpda-lab/Arvin-clean
-Main SHA: 45e4202b03a434459e4c021a04efa7e8396359db
-Authorized branch: fix/recovery-calendar-device-smoke-2026-10-31
-Working HEAD before REV8 docs commit: 9846f10850031c63964fdc81ae0ab1cdb3028517
-PR #3052: OPEN / DRAFT / UNMERGED
-Release: BLOCKED — RELEASE: NO-GO
+REV10 is the current owner-authorized master charter. It preserves every valid, non-conflicting REV9 requirement and incorporates the newer explicit decisions recorded below. REV9 is retained verbatim in [MASTER_GOVERNANCE_REV9_ARCHIVE.md](MASTER_GOVERNANCE_REV9_ARCHIVE.md); REV8 remains preserved in its existing archive. Neither archive is an active authority where it conflicts with REV10.
 
-## REV8 authority and reconciliation addendum
+Use these statuses precisely:
+- **APPROVED** — explicit Product Owner decision or ratified product contract.
+- **PROPOSAL** — candidate idea; not implementation authority until approved.
+- **SUPERSEDED** — formerly valid decision replaced by a newer explicit decision; retain historical context.
+- **IMPLEMENTED** — present in source code or canonical schema; not proof of correctness.
+- **VERIFIED** — proven by a passing test, CI job, artifact, device result or explicit owner acceptance tied to the exact SHA and scope.
+- **BLOCKED** — a required dependency, failure or missing approval prevents acceptance.
+- **UNRESOLVED** — evidence or an owner decision is insufficient; do not invent an answer.
 
-REV8 supersedes REV7.2 wherever their current-state snapshots or cleanup inventories differ. REV7.2 content below is preserved as historical governance evidence. Live GitHub repository, exact branch HEAD, code/schema/migrations/tests/workflows and exact-SHA Actions evidence remain operational truth.
+Decision, implementation and verification are independent axes. A product decision may be APPROVED while its implementation is MISSING and its verification UNVERIFIED.
 
-- Main is READ-ONLY. No merge, release, force-push, rebase, history rewrite, branch/PR deletion, test deletion, migration/table deletion, workflow deletion or security-ruleset change is authorized by this audit.
-- REV8 authorizes non-destructive documentation reconciliation on the authorized working branch. Technical changes remain subject to a separate valid implementation authorization.
-- Branch inventory: 1,412 branches; only main is protected in the observed branch API result. The authorized working branch is unprotected.
-- PR inventory: 1,238 records; 100 open, 1,138 closed. PR #3052 remains OPEN / DRAFT / UNMERGED.
-- Current Build 42795405617 on SHA 9846f108... failed with 78 distinct test labels. Device Smoke 42795405388 is pending. Calendar Provider and Follow-up Persistence passed on the same SHA.
-- All 12 REV8 audit deliverables are stored under docs/project-continuity/audit/ and indexed by README.md.
-- Do not call branches without open PRs stale/abandoned without last-commit-date and dependency evidence. Do not classify repeated subjects or identical trees as duplicate commits without patch/parent review.
-- Release remains BLOCKED — RELEASE: NO-GO.
+## 1. Authority and conflict resolution
 
----
+The authority order is:
+1. Latest explicit and approved Product Owner decisions.
+2. Latest approved product and architecture decisions.
+3. This REV10 Master Charter.
+4. Canonical architecture, data, UX and product contracts.
+5. Actual source code and SQLite/Drift schema for implementation facts.
+6. Tests and CI evidence tied to exact SHAs.
+7. Historical reports, older charters and conversation summaries.
 
-## Historical REV7.2 governance text (preserved)
+When REV9 conflicts with a newer approved decision:
+- Apply the newer decision in REV10 and every affected operational document.
+- Mark the old decision SUPERSEDED in the decision history.
+- Preserve its wording and context in the REV9 archive.
+- Update related architecture contracts, tests, implementation contracts and handoff records.
+- Never leave contradictory instructions active or silently erase historical evidence.
 
+GitHub is the operational source of truth for repository state, code, branches, commits, PRs, workflows, tests and artifacts. A document does not prove that code is implemented; code does not prove that behavior is verified.
 
-**Authority:** Mobin — Product Owner & Product Director  
-**Repository:** mobinpda-lab/Arvin-clean  
-**Related repository:** mobinpda-lab/NIRA  
-**Historical PR:** #3052  
-**Authorized working branch:** fix/recovery-calendar-device-smoke-2026-10-31  
-**Execution baseline SHA:** b789343c9699ca440d043d71d47db3dcdfafa57c  
-**Main SHA:** 45e4202b03a434459e4c021a04efa7e8396359db  
-**Canonical path:** docs/project-continuity/  
-**Release:** BLOCKED — RELEASE: NO-GO
+## 2. Product identity and foundational principles
 
-## 1. Authority and Source of Truth
+Arvin is one integrated personal and professional commitment, task, reminder and follow-up management system. It is not merely a To-Do List.
 
-This document is the canonical governance source for Arvin. The operational truth is the live GitHub repository, the exact current working-branch commit, the canonical continuity documents, actual source/schema/migrations/tests/workflows and GitHub Actions evidence tied to the exact SHA. The historical Source ZIP is archive-only. It is not a prerequisite for audit, decision-making, documentation or execution. Never request or wait for it as a gate. Preserve its historical provenance without using its old hash to judge live code.
+Its purpose is to preserve commitments, manage actions and responsibilities, track follow-ups and waiting states, record outcomes, and retain reliable historical records.
 
-If evidence conflicts, prefer the live repository and the latest explicit Mobin decision. Historical notes remain historical; do not silently erase or rewrite them.
+Foundational principles:
+- One integrated product and one canonical product database.
+- One SQL source of truth for durable product data.
+- Local-First operation; essential capabilities must work offline.
+- Zero intentional data loss and preservation of valid identities, relationships and history.
+- No parallel permanent JSON, SharedPreferences or secondary database persistence.
+- No false success, completion, acceptance or release reporting.
+- Persian RTL-first UX and Jalali calendar behavior where applicable.
+- Preserve valid REV9 design requirements unless an explicit newer decision supersedes them.
 
-## 2. Execution Permissions and Guardrails
+Multi-device synchronization, cloud transport and remote sync remain suspended unless Mobin explicitly reauthorizes them. NIRA is a separate development factory, not a runtime dependency or product authority for Arvin.
 
-REV7.2 authorizes reading the repository, branches, PR, workflows and files; creating/updating the eight canonical documentation files; synchronizing continuity documents; recording approved decisions; creating one documentation-only commit; and pushing it to the authorized working branch. No further confirmation is required for those documentation actions.
+## 3. Canonical entity hierarchy and cardinality
 
-This order does not authorize changes to executable source, tests, schemas, migrations, workflows, security settings, PR metadata, merge, release or Main. Main is read-only. PR #3052 remains OPEN / DRAFT / UNMERGED. No force push or history rewrite. Only the eight canonical documentation paths may be included in this governance commit. Before moving the branch ref, re-read its head and use an expected-SHA lease. If the branch has moved, stop and reconcile; never overwrite another actor's commit.
+The approved business hierarchy is:
 
-GitHub API cannot prove the local uncommitted working tree. Report local state as NOT VERIFIED unless an actual local workspace is available.
+`Center → Project → Category → Task`
 
-## 3. Historical REV7.2 Repository Baseline — 2026-11-10 (superseded by REV8)
+Ownership:
+- One Center can contain multiple Projects.
+- Every Project belongs to exactly one Center.
+- One Project can contain multiple Categories.
+- Every Category belongs to exactly one Project.
+- One Category can contain multiple Tasks.
+- Tags are independent entities with many-to-many Task assignments.
+- Person is an independent reusable entity with persisted relationships to Tasks and Follow-up records where supported by the approved model.
 
-- Main HEAD: 45e4202b03a434459e4c021a04efa7e8396359db.
-- Authorized branch HEAD: b789343c9699ca440d043d71d47db3dcdfafa57c.
-- PR #3052: OPEN, DRAFT, UNMERGED; base main; head branch is the authorized branch; base SHA equals Main; head SHA equals branch HEAD.
-- Compare: 2,129 commits ahead, 0 behind.
-- Existing PR changed files: 367 total; 61 docs files; 32 under docs/project-continuity. These are existing PR changes, not the REV7.2 docs commit.
-- Active Main ruleset: main-protection; deletion and non-fast-forward blocked; PR-based update required. Ruleset reports zero required approving reviews. This does not replace product-owner acceptance.
-- The canonical directory currently has seven of the eight required files. MASTER_GOVERNANCE.md is missing. MASTER_CHARTER.md is also absent at the checked path; no charter content was available to migrate. PRODUCT_DECISIONS, CURRENT_STATE, ROADMAP, OPEN_ISSUES, IMPLEMENTATION_LOG, HANDOFF and README exist but their checkpoints are stale relative to 10 November.
+Task relationships are optional and do not define whether a Task is valid:
+- Center: zero or one.
+- Project: zero or one.
+- Category: zero or one.
+- Tags: zero to many.
 
-## 4. Canonical Document Set
+Valid examples include an entirely unorganized Task, Center-only, Project-only, Category-only, Tags-only, and every ownership-compatible combination.
 
-1. MASTER_GOVERNANCE.md — this document; sole governance authority.
-2. PRODUCT_DECISIONS.md — date-stamped owner decisions with Decision IDs and three-axis status.
-3. CURRENT_STATE.md — exact repository/branch/SHA/CI/product checkpoint.
-4. ROADMAP.md — Wave 0 through Wave 5 with dependencies and acceptance criteria.
-5. OPEN_ISSUES.md — verified gaps, CI failures and decisions required.
-6. IMPLEMENTATION_LOG.md — chronological implementation and evidence record.
-7. HANDOFF.md — next agent's first actions and safety constraints.
-8. README.md — entry point and document navigation.
+Ownership derivation:
+- A Task assigned to a Category can derive its Project and Center through Category → Project → Center.
+- A Task assigned to a Project can derive its Center.
+- Derived ancestors must not be written as direct Task relationships merely to duplicate ownership.
+- Any directly selected relationships must be consistent with actual ownership.
+- Do not force Task `project_id` or `category_id` to NOT NULL.
 
-Retain prior history in each existing document. Do not create parallel continuity documents or duplicate changelogs. If MASTER_CHARTER.md appears in a future branch, preserve its useful history and redirect it to this master; do not delete it without controlled migration.
+Filtering multiple Centers or Projects does not change the cardinality of an individual Task relationship.
 
-## 5. Status Contract
+## 4. Database integrity and SQL-only architecture
 
-Each feature must have three independent statuses:
+Audit the actual SQLite/Drift schema before changing it. The canonical schema must support:
+- Nullable Task relationship columns.
+- Mandatory Project → Center and Category → Project ownership.
+- Foreign-key integrity and cross-parent consistency.
+- Independent Tag relations.
+- Real Person and relationship persistence.
+- Safe parent reassignment, archival, deletion and restore.
+- Historical relationship preservation.
+- Incremental migration, rollback, retry and recovery.
 
-- Product Approval: APPROVED or SUPERSEDED.
-- Implementation: IMPLEMENTED, PARTIAL, MISSING or BLOCKED.
-- Verification: VERIFIED, PARTIAL or NOT VERIFIED.
+Use ordinary foreign keys where sufficient. Where SQLite foreign keys cannot enforce the complete ownership contract, use tested triggers or an equivalent transaction-safe mechanism.
 
-A file/class is not verification. VERIFIED requires reproducible acceptance evidence on the exact SHA and all relevant acceptance gates. A PASS on an older SHA never transfers. A workflow that fails before executing tests is an infrastructure/execution failure, not proof of a product defect. A test assertion failure is evidence of a failing contract, but not automatically proof of root cause.
+Prove invalid relationship combinations directly against SQLite with foreign keys enabled; UI validation alone is insufficient. Test both positive and negative cases against file-backed databases.
 
-## 6. Product and Design Authority
+No parallel permanent database or independent JSON persistence may be introduced. Existing compatibility facades and legacy stores must remain until all consumers, migration paths and parity requirements are proven safe to retire.
 
-### 6.1 Product hierarchy and task semantics
+## 5. Arvin Entity Management Center
 
-The product hierarchy is Center → Project → Category → Task. Center, Project and Category are single-select; Tags are multi-select. Quick Capture must allow saving without selecting Center, Project or Category. The Inbox behavior for unclassified work must be explicit and must not create a parallel Task store. Task due date, independent TaskReminder, recurrence and historical Follow-up are separate concepts. Follow-up history must never replace Task due date.
+**APPROVED PRODUCT REQUIREMENT:** provide one coherent management environment for:
+1. Center
+2. Project
+3. Category
+4. Tag
+5. Person
 
-### 6.2 Reminder
+This is a unified management experience, not a merged database table or loss of independent entity identity.
 
-The owner requires a four-state Reminder model. The reviewed TaskReminder class currently exposes isEnabled and isAllDay booleans; this does not define four domain states or their transitions. Do not invent names or semantics. Record the gap and request the missing state-transition contract before implementation. Keep reminder time/date independent from Task due date and historical Follow-up.
+For each entity, inspect and implement the applicable operations:
+- Create, read, edit.
+- Archive and restore.
+- Delete only when safe.
+- Search and filter.
+- View dependencies and references.
+- Prevent duplicates where the domain contract requires it.
+- Preserve historical references and auditability.
 
-### 6.3 Home, filters and capture
+The hierarchy must be understandable as Center → Projects → Categories → Tasks. Tags remain independent and reusable across Tasks. People remain independent and reusable across Task and Follow-up relationships.
 
-The universal filter order is Time → Center → Project → Category → Tag. Values within a dimension use OR; different dimensions use AND. Inline creation must auto-select the newly created value. Show selected counts. All interactive targets must be at least 48dp. Acceptance widths are 360, 390 and 412dp. Home must distinguish overdue, today, tomorrow, future and no-date work; completed work must not become overdue. Sorting must expose approved alphabetical, date, priority, oldest/newest and reverse directions. Quick Capture is minimal, classification-optional and writes through canonical TaskStore.
+Before destructive operations:
+- Inspect dependent records.
+- Explain consequences.
+- Offer safe alternatives, especially archive.
+- Preserve history.
+- Use transactions.
+- Provide recovery where technically supported.
 
-### 6.4 Notebook and templates
+Never silently orphan or destroy dependent data. Entity-specific uniqueness, merge and permanent-delete rules remain UNRESOLVED where no approved contract exists.
 
-Notebook notes and checklists must remain independent from Task deletion and project unlinking. Conversion to Task must preserve the original text. Generate a title from the first content line only on first save when no user title exists; never overwrite a later user title. Task Template deep copy includes title, unchecked checklist definition, priority, tags, category, project, center and default people; it excludes Follow-up history, change logs and prior checked state. New occurrence dates must be based on the chosen new start date. Any unimplemented field must be recorded as a gap, not claimed as complete.
+## 6. Global filter contract
 
-### 6.5 Calendar and reports
+The official global filter order is:
+1. Time
+2. Center
+3. Project
+4. Category
+5. Tag
 
-Internal Arvin calendar and Android Calendar Provider remain separate data layers. Deleting an external event must never delete the internal Task. Gregorian, Jalali and Hijri displays, prayer overlays and religious assets must remain isolated. Reports and PDF output must be reconciled against canonical data; visual presence alone is insufficient.
+This is the required order across Home, Calendar, Reports, Task lists, Project views, Follow-up Office and other relevant filter surfaces. The fifth filter is Center, not Branch.
 
-## 7. Design System
+Home layout:
+- All five filters appear in one horizontal row.
+- Right-to-left reading order follows the approved sequence.
+- Horizontal scrolling on narrow screens.
+- No wrapping into multiple rows and no clipping.
+- Clear selected-state feedback.
+- Individual clear and Clear All.
+- Selection counts where applicable.
 
-- Active Blue & White brand primary: #4169A1, as present in lib/core/theme/arvin_theme.dart at the baseline SHA.
-- #008080 Persian Teal is retained as a historical brand direction and current secondary selectable Accent; it is not the active Brand Primary.
-- #3A86EF is retained as a historical sample/reference value, not silently promoted to primary. Current code's glow token is #404169A1; record the discrepancy rather than changing it without owner decision.
-- Five semantic dimension colors in ArvinColors: Time #008080; Reminder #D97706; Project #7C3AED; Category #2563EB; Tag #16A34A. Confirm exact navigation mapping against the owner visual contract before claiming complete navigation acceptance.
-- Notebook orange: #C76B16.
-- Eisenhower: P1 #DC2626; P2 #D97706; P3 #2563EB; P4 #80829C.
-- Nine secondary Accent palette values: #008080, #1B4965, #2A9D8F, #4361EE, #7209B7, #F77F00, #D90429, #606C38, #2B2D42. Accent selection must not override brand primary.
-- Light and Dark tokens exist in ArvinTheme/ArvinColors. Core Light tokens include white cards, #F4F6F9 neutral background, #E5E7F0 border and 16px card radius; Dark tokens include #25283A surface and #41465B border.
-- Official font: Vazirmatn. Registered weights: Light 300, Regular 400, Medium 500, SemiBold 600, Bold 700. No substitute family without owner approval.
-- Minimum interactive touch target: 48dp. The current shared filter component has 48dp controls; Quick Capture tests still include 40dp controls, so app-wide compliance is not verified.
-- Animation, Haptic Feedback, exact RTL behavior across every viewport, and visual fatigue reduction require explicit visual/device acceptance; do not infer them from theme tokens.
+Filter logic:
+- OR within one filter group.
+- AND between different filter groups.
+- Hierarchical filters constrain descendants: Center constrains Projects and Categories; Project constrains Categories.
+- Contradictory combinations must not be produced.
+- Filter multi-selection does not change Task relationship cardinality.
 
-## 8. Approved Auto-Save Decision
+The older four-dimension Home filter rule is SUPERSEDED by REV10.
 
-Decision ID ARVIN-DEC-2026-11-10-001. Status APPROVED by Mobin under REV7.2. Task Details must be continuously editable; independent Edit Mode and standalone Edit button are removed; each permitted field change is saved automatically through the existing TaskStore/Repository; writes are serialized and durable; confirmed edits survive navigation away; no parallel model/store; Follow-up creation and Task completion remain independent. No test may be removed, skipped, bypassed or weakened.
+## 7. Task Details and editing UX
 
-Current implementation status: PARTIAL. Current source contains immediate title persistence, queued mutations and field-specific TaskStore saves. Complete per-field and route-exit acceptance is not yet proven. Current Build has six failed shards; the test suite includes a missing task-detail-inline-edit-toggle finder expectation. Resolve the test/runtime contract without weakening the test. See PRODUCT_DECISIONS.md and OPEN_ISSUES.md.
+**APPROVED DESIGN PATTERN:** Single-Column Focus Detail View, using:
+- Actionable Linear List.
+- Contextual Quick Presets.
+- Unified Bottom Sheets.
+- Reliable Auto-Save.
 
-## 9. Architecture Audit Matrix — exact SHA b789343c9699ca440d043d71d47db3dcdfafa57c
+Task Details must remain a vertical, single-column experience. Do not apply the five-filter horizontal Home layout to Task Details.
 
-| Capability | Product Approval | Implementation | Verification | Evidence and remaining gap |
-|---|---|---|---|---|
-| Task / Due Date / Reminder / Follow-up separation | APPROVED | IMPLEMENTED | PARTIAL | lib/models/task.dart; lib/services/task_store.dart; lib/services/g1_drift_schema.dart. Separate task_reminders and follow_up_records tables. Current test/task_contract_test.dart fails in Shard 2; exact persistence suite also needs complete current-head coverage. |
-| Four-state Reminder | APPROVED | BLOCKED | NOT VERIFIED | lib/models/task.dart TaskReminder has isEnabled/isAllDay only. Four states and transitions are not defined; do not guess. |
-| Recurrence and occurrence history | APPROVED | IMPLEMENTED | PARTIAL | lib/services/task_recurrence_repository.dart; occurrenceHistory and checklistOccurrences. New occurrence starts from unchecked template. Current shards include failures in recurrence/editor paths. |
-| Center/Project/Category/Tags hierarchy | APPROVED | PARTIAL | PARTIAL | lib/models/arvin_center.dart; lib/models/goal_project.dart; lib/services/center_store.dart; lib/services/project_store.dart; lib/services/task_project_assignment_service.dart; lib/models/task.dart. Unclassified Task can be represented; explicit Inbox lifecycle not proven. |
-| Universal filters | APPROVED | PARTIAL | PARTIAL | lib/widgets/reusable_multi_select_filter_bottom_sheet.dart supports single/multi select, inline creation, auto-select, count and 48dp rows. Caller order and all 360/390/412dp combinations are not fully verified. |
-| Home grouping and sorting | APPROVED | PARTIAL | PARTIAL | lib/home/grouping/home_grouping_service.dart; lib/services/task_list_sort_service.dart; lib/services/home_follow_up_presentation_service.dart; lib/services/home_today_projection.dart. Time grouping uses Task.dueDate; service offers title/date/creation/last-follow-up sorting helpers but complete user-facing sort contract is not proven. |
-| Quick Capture | APPROVED | PARTIAL | PARTIAL | lib/quick_capture_dialog.dart; lib/services/task_store.dart. Optional selectors and canonical persistence exist; many Quick Capture tests fail across shards; 40dp control evidence conflicts with 48dp global requirement. |
-| Notebook | APPROVED | PARTIAL | PARTIAL | lib/notebook_page.dart; lib/services/canonical_notebook_repository.dart. Same canonical Task identity, soft trash/restore, convertNoteToTask. Hard-delete preservation/unlink guarantees and first-save auto-title are not proven. |
-| Templates | APPROVED | PARTIAL | PARTIAL | lib/models/task_template.dart; lib/services/task_template_store.dart; lib/task_template_management_page.dart. Template includes title/description/category/priority/tags/checklist/people/reminder definitions/recurrence and center/project snapshots. Task dueDate is not stored; instantiation path does not assign center/project membership in the reviewed code. |
-| Calendar | APPROVED | PARTIAL | PARTIAL | lib/calendar_page.dart; lib/services/system_calendar_bridge.dart; lib/services/calendar_provider_sync_executor.dart. Four views and date projections; external events read-only mirrors; only explicit Task/TaskReminder exports mutate Arvin-owned Provider events. Calendar Provider Acceptance PASS on exact SHA; full physical device and all calendar layers remain unverified. |
-| Reports / PDF | APPROVED | PARTIAL | PARTIAL | lib/report_center_page.dart; lib/services/task_report_pdf_renderer.dart; lib/services/work_agenda_report_adapter.dart. Current report tests fail; reconciliation and PDF acceptance incomplete. |
-| Backup / Restore / Drift / Migration | APPROVED | PARTIAL | PARTIAL | lib/services/g1_drift_schema.dart (schema v16); lib/services/task_store.dart; lib/backup_manager.dart; backup tests. Migration copies legacy Follow-up data then drops legacy tables inside schema installation; actual user DB/backup/rollback has not been inspected. No destructive migration is authorized. |
-| Local P2P / cloud sync | APPROVED | PARTIAL | NOT VERIFIED | Sync services/specifications exist; end-to-end Local P2P pairing, secure transport and conflict acceptance not proven. Cloud/Dropbox is separate future phase. |
-| NIRA operational factory | APPROVED | PARTIAL | NOT VERIFIED | NIRA README explicitly says L10 UNVERIFIED until a registered client task yields reconstructible E2E evidence. Main Closure run 42777826931 SUCCESS; Queue Scheduler run 42777810609 FAILURE on NIRA main SHA 7a27ee63b65d343e45c5786f782f2567611722dc. |
+Organizational field order:
+1. Center
+2. Project
+3. Category
+4. Tag
 
-## 10. Exact-SHA CI and Device Evidence
+Selection behavior:
+- Center, Project and Category: single-select, optional, searchable, clearable, auto-save, shared Bottom Sheet and create-new action.
+- Tags: multi-select, optional, checkboxes, searchable, create-new action and auto-save.
+- Person: real Person entity, real SQLite relationship, searchable selection and creation. Static text is not a persisted relationship.
+- Reuse shared selection components where practical.
 
-Build run 42763952581 on b789343c9699ca440d043d71d47db3dcdfafa57c: Analyze PASS; Visual structural smoke PASS; Debug APK PASS; Release APK build PASS; Staging APK build/signature/manifest/font audit PASS; shards 0–5 all FAIL. Per-shard counts: 0 231/14; 1 195/5; 2 299/25; 3 148/12; 4 240/11; 5 182/12. Follow-up Persistence run 42763952346 SUCCESS. Calendar Provider run 42763952813 SUCCESS. Device Smoke run 42763952498 incomplete: preparation succeeded, Boot in progress, six other lanes queued. No physical Samsung A52s acceptance is proven.
+The independent Edit Mode must not return. Supported Task fields save directly when changed.
 
-CI failures are listed by shard in OPEN_ISSUES.md. Observed failure symptoms include missing widget keys/text, unexpected finder cardinality, null/different dates, wrong result counts, color mismatch and a RangeError. These are observed symptoms, not proven common root causes. No test deletion, skip, bypass, timeout weakening or assertion reduction is allowed.
+Auto-Save protections:
+- Prevent concurrent-write overwrite and lost updates.
+- Show saving and saved states.
+- Give clear error feedback and retry.
+- Preserve confirmed changes after navigation and process restart.
+- Never silently swallow persistence failures.
+- Persist through the canonical SQL-backed services only.
 
-## 11. NIRA Boundary
+## 8. Cross-Center activity identity and reporting
 
-NIRA is a separate factory repository, not Arvin product code. Its README says L10 remains UNVERIFIED until a registered client task produces reconstructible E2E evidence including bounded failure/fencing/recovery and promotion/release proof. Recent workflow names and green orchestrator runs alone do not prove that end-to-end capability. On the inspected NIRA main SHA, Main Closure and Failure Feedback/Orchestrator runs were green, but Queue Scheduler failed. Do not claim L10 or fully operational factory.
+A common activity must be reusable across Centers without merging their execution records.
 
-## 12. Wave Plan
+Example: the activity “Cleaning Windows” may be instantiated independently for Isfahan, Shiraz and other Centers.
 
-- Wave 0 — Governance & Source of Truth: establish these eight files, exact-SHA checkpoint, decision IDs, internal links and one docs-only commit. Ready for this documentation deployment.
-- Wave 1 — Data Integrity & Architecture: Reminder state contract, Drift v16, backup/restore, real DB and migration safety. Blocked by missing state semantics and real-data/backup inspection.
-- Wave 2 — Core Task Lifecycle: auto-save, Task/Reminder/Follow-up/recurrence/checklist. Partial; blocked by six failing shards and incomplete auto-save proof.
-- Wave 3 — Home, Quick Capture & Filters: five filters, OR/AND, sort, Inbox and responsive 48dp. Partial; blocked by current Home/Quick Capture failures and viewport/touch-target gaps.
-- Wave 4 — Notebook, Calendar & Templates: safe note lifecycle, template deep clone, Calendar layers and physical acceptance. Partial; Calendar Provider exact-SHA pass does not close all criteria.
-- Wave 5 — Reports, Sync & Enterprise Acceptance: reports/PDF, Local P2P, NIRA E2E and final release gates. Blocked by upstream waves and missing E2E evidence.
+Inspect existing Templates and Task models before introducing a stable shared activity identity. Task titles alone are not a permanent identity. Do not create a parallel Task database.
 
-Detailed goals, dependencies, files, acceptance, tests and evidence are in ROADMAP.md.
+Each Center's execution must retain independent:
+- Task ID and status.
+- Due date and reminders.
+- Follow-up history.
+- Responsible people.
+- Completion history.
+- Evidence and attachments where supported.
 
-## 13. Release and Final Authority
+The shared activity identity supports aggregation only; it must not share mutable execution state.
 
-Release remains BLOCKED — RELEASE: NO-GO until all mandatory acceptance gates pass on one exact candidate SHA, seven Device Smoke lanes finish, all six test shards pass, Calendar Provider and Follow-up Persistence pass, physical-device acceptance is recorded, data integrity/security gates close and Mobin explicitly accepts the candidate. This document does not authorize Main changes, merge or release. Mobin remains the final authority for product decisions.
+Required report dimensions:
+- Activity, Center, Project, Category and Task.
+- Completion status and responsible Person.
+- Due date, completion date and delay.
+- Follow-up history and last activity.
 
+Required outputs:
+- Completed, not-started, in-progress and overdue Centers.
+- Completion percentage with explicit numerator, denominator and definition.
+- Remaining work.
+- Last activity.
+- Responsible Person.
 
-## 14. WAVE 4 REV8 — latest owner authorization and current execution
+Reports must be reproducible after closing and reopening SQLite. Do not count a Task twice when it appears in more than one reporting projection. Unresolved status definitions and denominator rules must be documented before presenting percentages.
 
-On 2026-11-10 Mobin explicitly authorized WAVE 4 as **AUDIT + IMPLEMENTATION + TESTING**. This supersedes older read-only Wave 4 checkpoint language and authorizes in-scope source, schema, migration, test, workflow and audit-report edits on the approved working branch.
+## 9. Templates Engine and Deep Clone
 
-Current implementation checkpoint: `dbfcdb02879ed3939cb6a69d3a150e2237283a51`. The implementation is PARTIAL: Task and Project migration parity was strengthened; Recurrence and Occurrence have relational SQL ownership; unproven legacy retirement paths were disabled. Global SQL-only consolidation, full G1 parity, Backup/Restore, exact-SHA tests and Android acceptance remain open.
+Audit the actual existing ProjectTemplateStore, TaskTemplateStore, ProjectTemplateService, TaskTemplate, ProjectTemplateTask and related persistence/migration code. Reuse canonical infrastructure; do not assume it is complete.
 
-Main stays READ-ONLY; PR #3052 stays OPEN / DRAFT / UNMERGED; no force push, merge, release, test weakening or unproven legacy deletion. Four Reminder states remain an explicit Mobin decision. Release remains BLOCKED — NO-GO.
+Templates must support the approved selection scope for:
+- Centers, Projects and Categories.
+- Tasks and checklists.
+- Tags and priority.
+- Default People where supported.
+
+Template scope must not duplicate canonical entity ownership.
+
+Deep Clone requirements:
+- Generate new IDs for every instantiated record.
+- Preserve the intended selected hierarchy.
+- Create independent Center/Project/Category/Task instances as required by the selected scope.
+- Create fresh unchecked checklist items.
+- Preserve intended Tags and default relationships.
+- Never copy old execution history or completed states.
+- Never reuse historical Follow-up IDs or Reminder execution IDs.
+- Preserve independence after editing and reopening SQLite.
+- Never share mutable records between the original template and an instance.
+
+Due dates and reminders must follow the approved relative-date contract and historical Option A rule only after those decisions are verified against canonical decision records. Do not infer missing date behavior.
+
+Acceptance must cover multiple Centers, Projects, Categories and Tasks; multiple independent instances; editing isolation; close/reopen; Reminder and recurrence handling; Person relations; and history isolation.
+
+## 10. SQLite migration and recovery acceptance
+
+D01–D05 are independent acceptance gates. Each needs its own exact-SHA evidence.
+
+- **D01 — Schema Compatibility and Migration:** supported old schemas migrate; new canonical schema, constraints, indexes, triggers and relationships match the approved contract.
+- **D02 — Missing / NULL / FALSE / TRUE:** preserve all four states distinctly wherever semantically applicable.
+- **D03 — Follow-up Metadata and Person Relationships:** preserve identities, order, metadata, Person records and relation links.
+- **D04 — Independent Backup and Restore:** back up to one physical SQLite file and restore into a different physical SQLite file; compare data and relationship parity; close/reopen the restored database.
+- **D05 — Atomicity, Rollback and Recovery:** inject failures, prove transaction rollback, source preservation, retry and recovery.
+
+Required scenarios include:
+- Legacy and new canonical schema.
+- Empty values, missing columns and explicit NULL.
+- FALSE and TRUE.
+- Duplicate records and orphan relationships.
+- Invalid JSON and invalid foreign keys.
+- Interrupted migration, rollback and retry.
+- Multiple close/reopen cycles.
+
+Preserve historical identifiers and valid relationships. Verify indexes, triggers, foreign keys, `PRAGMA foreign_key_check`, `PRAGMA integrity_check`, relationship parity and the restored database itself.
+
+Copying JSON is not proof of SQLite Backup/Restore. A snapshot or serialization test alone does not establish D01–D05 acceptance.
+
+## 11. Product regression recovery
+
+Continue historical regression recovery without assuming older failure counts remain current.
+
+For every relevant failure:
+1. Identify the exact test and exact failing assertion.
+2. Inspect the production implementation.
+3. Reproduce the behavior.
+4. Classify the cause.
+5. Implement a root-cause correction.
+6. Run targeted and related regression tests.
+7. Record the resulting exact SHA and evidence.
+
+Allowed classifications:
+- Production Defect.
+- Test Contract Defect.
+- Test Fixture Defect.
+- Environment Failure.
+- Infrastructure Failure.
+- Unresolved.
+
+Never weaken, delete, skip or bypass a valid test merely to obtain a green build. Correct a test contract only when source behavior and an approved product decision prove the original expectation incorrect.
+
+The historical 49-failure Candidate and newer 12-failure report are investigation inputs, not current failure counts. Rebuild the live inventory from current exact-SHA evidence.
+
+## 12. Typography, Persian UX and PDF
+
+**APPROVED FONT DECISION:** Vazirmatn is the sole official and default Arvin font.
+
+System Default may remain an optional user preference if supported by the settings contract; it is not a second official brand font. VazirHarf as an official/default product font is SUPERSEDED. Historical assets and provenance remain historical evidence and must not be treated as active branding.
+
+Verify:
+- Five required weights: 300, 400, 500, 600 and 700.
+- One centralized Theme typography source.
+- Global rendering behavior.
+- Offline font availability and APK packaging.
+- No unintended VazirHarf default or active registration.
+- Persistent user font preference.
+- RTL, Persian numerals, mixed Persian/English text and half-spaces.
+- Small-screen readability and accessibility.
+
+PDF acceptance requires inspection of the actual generated PDF:
+- Vazirmatn embedding.
+- Persian connected-letter shaping.
+- RTL ordering.
+- Mixed Persian/English text and digits.
+- Correct tables and no clipping.
+
+A font-loading unit test or successful build is not proof of actual PDF rendering.
+
+All valid non-conflicting REV9 design requirements remain in force, including its approved brand/color and accessibility contracts, unless a later explicit owner decision supersedes them.
+
+## 13. Repository, documentation and workflow consolidation
+
+Audit the actual repositories before consolidation. Inspect:
+- Duplicate implementations and taxonomy services.
+- Legacy Tag storage.
+- Project and Center ownership.
+- Person persistence.
+- Duplicate workflows and old branches.
+- Draft PRs and historical test artifacts.
+- Documentation duplication and conflicting authorities.
+- Unused code and compatibility layers.
+
+Maintain an ownership matrix with:
+- CANONICAL
+- ACTIVE COMPATIBILITY
+- LEGACY
+- DUPLICATE
+- UNUSED
+- HISTORICAL
+- UNRESOLVED
+
+Do not delete anything until consumers, data ownership, migration, tests, historical evidence and safe removal are established.
+
+Do not rewrite Git history. Do not automatically merge or close historical PRs.
+
+### AI Code Worker
+
+Audit `.github/workflows/arvin-agent-worker.yml` for:
+- Correct source branch and exact expected-SHA validation.
+- Safe output branch and correct PR destination.
+- Lease/fence protection.
+- No accidental push to main.
+- No unintended branch replacement.
+
+Preserve current worker behavior until a safe replacement is validated. NIRA automation is a factory mechanism only; it does not replace Arvin product evidence or product ownership.
+
+## 14. Execution autonomy and protected operations
+
+Authorized ordinary development work includes:
+- Repository inspection.
+- Production code changes and ordinary refactoring.
+- Tests and corrections.
+- Approved product features.
+- Controlled schema migrations with safety tests.
+- Development commits and PR creation/update.
+- Targeted tests, CI/build and documentation updates.
+
+Stop only the operation that needs additional approval; continue independent authorized work.
+
+Restricted operations:
+- Merge to main.
+- Release, publication or deployment.
+- Irreversible production data deletion.
+- Destructive production migration.
+- Git history rewriting.
+- Sensitive permission and secret changes.
+- Irreversible removal of historical records.
+
+No restricted action is authorized by this charter. Development commits and draft PRs are not product acceptance.
+
+## 15. Development waves
+
+Execute in dependency order while independent lanes proceed in parallel.
+
+- **WAVE 0 — Governance and Live Baseline:** verify Main, execution branch, PRs, CI/jobs, canonical documents and REV9/newer decisions; reconcile REV10.
+- **WAVE 1 — Data Architecture:** Center/Project/Category ownership, optional Task links, Tags, People, SQL integrity, migration and recovery tests.
+- **WAVE 2 — Entity Management:** unified management for five entity types, CRUD, archive/restore, safe deletion, search/filter and legacy migration.
+- **WAVE 3 — Home and Task Details:** five filters, RTL horizontal Home row, single-column Task Details, actionable rows, shared sheets and reliable Auto-Save.
+- **WAVE 4 — Templates Engine:** scope selection, Deep Clone, independent instances, checklist reset, Person and Reminder handling.
+- **WAVE 5 — Cross-Center Reporting:** stable activity identity, independent execution, accurate aggregate projections and reproducible reports.
+- **WAVE 6 — Product Regression and UX:** Home, Quick Capture, Task Editor, Calendar, Checklist, People, Follow-up, Notebook, Reports, navigation, visual tests and accessibility.
+- **WAVE 7 — Typography, PDF and Device:** Vazirmatn contract, APK packaging, real PDF rendering, seven Device Smoke scenarios and Debug/Staging build evidence.
+- **WAVE 8 — Final Consolidation:** repository/workflow audit, documentation reconciliation, REV10 completion, final acceptance matrix and Single SHA acceptance.
+
+Independent waves must continue without waiting for unrelated blocked work.
+
+## 16. Acceptance, evidence and reporting
+
+Every accepted result must identify:
+- Acceptance SHA and actual checkout SHA.
+- Workflow Run ID and Job ID.
+- Exact test/control name and result.
+- Artifact ID and SHA256 digest where relevant.
+- Failure details and remaining risk.
+- Device/OS/build information for device evidence.
+
+No historical PASS transfers to a new SHA. Missing, queued, cancelled, skipped or unavailable results are never PASS.
+
+Final acceptance matrix:
+- REV10 governance conflicts resolved.
+- Data hierarchy and ownership valid.
+- Every permitted optional Task relationship works.
+- Five entity types managed coherently.
+- Tags and People use canonical SQL relations.
+- Five global filters correct everywhere.
+- Task Details follows the approved interaction model.
+- Templates Deep Clone independently.
+- Cross-Center reporting is accurate and reproducible.
+- D01, D02, D03, D04 and D05 independently accepted.
+- Relevant regression failures resolved or explicitly blocked.
+- Vazirmatn verified.
+- Actual Persian PDF rendering verified.
+- APK packaging/build evidence verified.
+- Seven Device Smoke scenarios accepted.
+- Canonical documentation synchronized.
+- GitHub branch protection and authorized PR workflow verified.
+
+Reports must be Persian, clear and product-first. Separate facts, implementation, verification, proposals, unresolved decisions and risks. Use GREEN only for proven success, YELLOW for partial/waiting evidence, RED for failure/blocker and GRAY for not executed/unknown.
+
+After each wave report:
+1. What was inspected.
+2. What was implemented.
+3. What was committed and exact SHA.
+4. Tests passed and failed.
+5. What was not executed.
+6. Incomplete product capabilities.
+7. Data-integrity risks.
+8. Available evidence.
+9. Next execution target.
+
+Maintain a current handoff so continuation never depends on conversation memory.
+
+## 17. Explicit unresolved decisions
+
+Do not invent answers for:
+- Any Template relative-date edge case not proven by the canonical Option A decision record.
+- Exact permanent-delete and merge/duplicate policy for each entity where dependencies/history vary.
+- Person-role cardinality and role semantics beyond already-approved real Person relationships.
+- Activity identity lifecycle, equivalence and deprecation rules not yet approved.
+- Reporting status definitions and denominators where the domain model does not define them.
+- Category naming normalization and Persian/Arabic character equivalence.
+- Project reassignment rules after Template instantiation.
+- Any legacy ambiguous or contradictory relationship whose source evidence is insufficient.
+
+Record each question, its source, affected schema/UX/tests, safe interim behavior and owner decision requirement.
+
+## 18. Revision history and supersession
+
+- **REV8:** preserved historical master; no longer active authority.
+- **REV9:** previous unified master; preserved verbatim at `MASTER_GOVERNANCE_REV9_ARCHIVE.md`. It remains the historical starting point and source of non-conflicting inherited requirements.
+- **REV10 (2026-11-13):** current owner-authorized master. Adds Center → Project → Category → Task ownership, optional Task links, five-entity management, five global filters, single-column Auto-Save Task Details, Cross-Center activity identity/reporting, Deep Clone, independent D01–D05 acceptance, current regression policy, Vazirmatn-only official typography and continuous development governance.
+
+**Final directive:** Build the complete product. Preserve every valid decision and historical record. Make the data model consistent. Make every module work together. Prove every important result. Never confuse implementation with acceptance.
+
+**ARVIN — COMPLETE, CONSISTENT, LOCAL-FIRST, ENTERPRISE-READY.**
+
+**Merge: NOT AUTHORIZED. Release: NOT AUTHORIZED. Deployment: NOT AUTHORIZED.**

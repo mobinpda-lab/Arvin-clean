@@ -856,9 +856,30 @@ Future<void> _pickDueDateTime() async {
         legacyFollowUpMetadata:
             existing?.legacyFollowUpMetadata ?? const <String, dynamic>{},
         priority: _priority,
+        isFavorite: existing?.isFavorite ?? false,
+        focusDate: existing?.focusDate,
+        notebookKind: existing?.notebookKind,
+        checklistOccurrences: existing == null
+            ? const <String, List<String>>{}
+            : <String, List<String>>{
+                for (final entry in existing.checklistOccurrences.entries)
+                  entry.key: List<String>.of(entry.value),
+              },
+        occurrenceHistory: existing == null
+            ? const <String, Map<String, dynamic>>{}
+            : <String, Map<String, dynamic>>{
+                for (final entry in existing.occurrenceHistory.entries)
+                  entry.key: Map<String, dynamic>.from(entry.value),
+              },
         archived: existing?.archived ?? false,
         trashed: existing?.trashed ?? false,
         completed: _completed,
+        completedAt: _completed
+            ? (existing?.completed == true
+                ? existing?.completedAt ?? now
+                : now)
+            : null,
+        templateTaskId: existing?.templateTaskId,
         followUps: List<FollowUp>.of(_followUps),
         recurrence: _buildRecurrence(),
         people: existing?.people ?? const [],

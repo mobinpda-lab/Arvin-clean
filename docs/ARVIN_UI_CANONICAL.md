@@ -1,3 +1,9 @@
+# REV10 ACTIVE UI AUTHORITY — 2026-11-13
+
+This is the active UI canonical reference. The duplicate at docs/UI/ARVIN_UI_CANONICAL.md is historical only and must not override this file. REV10 supersedes conflicting historical requirements below. Product hierarchy: Center → Project → Category → Task; every Project has exactly one Center and every Category exactly one Project. Task links to Center, Project and Category are independently optional (0..1); Tags are 0..N. The Entity Management Center coordinates Center, Project, Category, Tag and Person through existing canonical repositories; no parallel stores. Home filters are exactly Time → Center → Project → Category → Tag in one horizontal RTL row with horizontal scrolling on narrow screens. «مرکز» is the only official top-level term; do not introduce Branch/شعبه as a new concept. Vazirmatn is the sole official UI font. Task Details uses Single-Column Focus Detail View, Actionable Linear List, Quick Presets and vertical details. Time and calendar icons share one row in Task forms.
+
+---
+
 # Arvin Canonical UI Reference
 
 > **یادداشت تقدم REV5 — EXEC-06 (۱۴۰۵/۰۸/۱۸):** این سند برای بخش‌های سازگار، مرجع تاریخی باقی می‌ماند؛ اما در هر تعارض با REV5، قرارداد REV5 و EXEC-06 مقدم است. فونت VazirHarf و رنگ اصلی `#4A4CAB` در این سند منسوخ‌اند. فونت مصوب فعلی Vazirmatn با وزن‌های Light 300، Regular 400، Medium 500، SemiBold 600 و Bold 700 است و رنگ اصلی `#4169A1` است. از بندهای قدیمی این سند برای بازگرداندن فونت یا پالت قبلی استفاده نشود.
@@ -5,7 +11,7 @@
 
 ## Canonical ontology — owner decision 2026-10-10
 
-The only domain entities in this taxonomy are **Project / پروژه**, **Category / دسته** and **Tag / برچسب**. In Persian product language, «گروه» is a synonym for «دسته», not a fourth entity. Category and Tag remain distinct. Home's Time / Project / Category / Tag controls are four filters/views, not four domain entities. «گروه‌بندی» is allowed only for presentation/layout (for example, grouping Tasks by date), never as a separate data model. No Group model/store/repository or parallel management path may be introduced.
+The taxonomy catalog entities are **Project / پروژه**, **Category / دسته** and **Tag / برچسب**. This does not remove Center or Task from the product hierarchy, nor Person from the separate Entity Management Center. REV10 manages Center, Project, Category, Tag and Person together while preserving distinct identities. In Persian product language, «گروه» is a synonym for «دسته», not a fourth entity. Category and Tag remain distinct. Home's Time / Project / Category / Tag controls are four filters/views, not four domain entities. «گروه‌بندی» is allowed only for presentation/layout (for example, grouping Tasks by date), never as a separate data model. No Group model/store/repository or parallel management path may be introduced.
 
 ## Permanent Brand Requirement — NON-REMOVABLE
 
@@ -23,7 +29,7 @@ This is a binding, cross-surface Arvin UI/UX requirement. It survives UI redesig
 The final/reference imagery and release acceptance must preserve:
 - **بسم الله الرحمن الرحیم**
 - **مدیریت کارها و پیگیری آروین**
-- exactly four primary Home filter/view controls: **زمان / پروژه / دسته / برچسب** (four filters/views, not four domain entities)
+- exactly five Home filters in order: **زمان / مرکز / پروژه / دسته / برچسب**
 - a simple, calm daily-use Home
 - a separate **Report Center**
 - Arvin's indigo identity centered on **#4A4CAB**

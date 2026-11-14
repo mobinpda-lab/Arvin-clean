@@ -36,17 +36,29 @@ void main() {
     await tester.pumpAndSettle();
 
     final add = find.byKey(const ValueKey('task-detail-add-followup'));
+    final detailScrollable = find.descendant(
+      of: find.byKey(const ValueKey('task-detail-content-list')),
+      matching: find.byWidgetPredicate(
+        (widget) => widget is Scrollable && widget.axisDirection == AxisDirection.down,
+      ),
+    ).first;
+    expect(detailScrollable, findsOneWidget);
     await tester.scrollUntilVisible(
       add,
       240,
-      scrollable: find.byKey(const ValueKey('task-detail-content-list')),
+      scrollable: detailScrollable,
     );
     await tester.tap(add);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('follow-up-entry-waiting-for-response')));
+    final waitingToggle =
+        find.byKey(const ValueKey('follow-up-entry-waiting-for-response'));
+    await tester.ensureVisible(waitingToggle);
+    await tester.tap(waitingToggle);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('follow-up-person-picker')));
+    final personPicker = find.byKey(const ValueKey('follow-up-person-picker'));
+    await tester.ensureVisible(personPicker);
+    await tester.tap(personPicker);
     await tester.pumpAndSettle();
     final personOption = find.byKey(
       const ValueKey('follow-up-person-person-canonical-42'),
@@ -65,7 +77,7 @@ void main() {
     expect(reloaded.followUps.single.waitingForResponse, isTrue);
     expect(reloaded.followUps.single.personIds, contains(person.id));
     final assignee = find.byKey(const ValueKey('task-detail-assignee-card'));
-    await tester.ensureVisible(assignee);
+    await tester.scrollUntilVisible(assignee, 240, scrollable: detailScrollable);
     await tester.pumpAndSettle();
     expect(find.text('سارا احمدی'), findsOneWidget);
   });

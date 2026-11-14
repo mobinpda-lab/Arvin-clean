@@ -8,8 +8,10 @@ import 'package:arvin/theme/app_fonts.dart';
 import 'package:arvin/arvin_colors.dart';
 import 'package:arvin/widgets/arvin_primary_navigation.dart';
 import 'package:arvin/home/home_filter_ui.dart';
-import 'package:arvin/services/iran_clock.dart';
 import 'package:arvin/services/persian_date_formatter.dart';
+import 'package:arvin/services/center_store.dart';
+import 'package:arvin/services/project_store.dart';
+import 'package:arvin/services/task_store.dart';
 
 Finder _homeVerticalScrollable() => find.descendant(
       of: find.byKey(const ValueKey('home-task-list-viewport')),
@@ -21,13 +23,26 @@ Finder _homeVerticalScrollable() => find.descendant(
     ).first;
 
 void main() {
+  setUp(() async {
+    await TaskStore.resetTestDatabase();
+    await ProjectStore.resetTestDatabase();
+    await CenterStore.resetTestDatabase();
+    SharedPreferences.setMockInitialValues({});
+  });
+
+  tearDown(() async {
+    await TaskStore.resetTestDatabase();
+    await ProjectStore.resetTestDatabase();
+    await CenterStore.resetTestDatabase();
+  });
+
   testWidgets('Home keeps completed past tasks visible in a separate non-overdue group', (tester) async {
     tester.view.physicalSize = const Size(390, 1200);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    final now = IranClock.now();
+    final now = DateTime(2026, 11, 12, 9);
     final today = DateTime(now.year, now.month, now.day, 10);
     final tomorrow = today.add(const Duration(days: 1));
     final future = today.add(const Duration(days: 4));
@@ -37,7 +52,7 @@ void main() {
     await prefs.setString('arvin.tasks',
       '[{"id":"past","title":"کار عقب‌افتاده","dueDate":"${past.toIso8601String()}","category":"شخصی","tags":["خانه"]},{"id":"completed-past","title":"کار گذشته انجام‌شده","dueDate":"${past.toIso8601String()}","completed":true,"completedAt":"${past.toIso8601String()}"},{"id":"today","title":"امروز","dueDate":"${today.toIso8601String()}","category":"کاری","tags":["اداری"]},{"id":"today-personal","title":"کار امروز شخصی","dueDate":"${today.toIso8601String()}","category":"شخصی","tags":["خانه"]},{"id":"tomorrow","title":"کار فردا","dueDate":"${tomorrow.toIso8601String()}","category":"شخصی"},{"id":"future","title":"آینده","dueDate":"${future.toIso8601String()}","category":"کاری"},{"id":"none","title":"بی‌زمان","category":"کاری"}]');
 
-    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpWidget(ArvinApp(nowProvider: () => DateTime(2026, 11, 12, 9)));
     await tester.pumpAndSettle();
 
     expect(find.text('کار عقب‌افتاده'), findsOneWidget);
@@ -79,7 +94,7 @@ void main() {
     );
     expect(homeTitle.style?.fontFamily, isNull);
     expect(find.byKey(const ValueKey('home-filter-card-time')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-filter-card-center')), findsNothing);
+    expect(find.byKey(const ValueKey('home-filter-card-center')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-project')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-category')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-tags')), findsOneWidget);
@@ -93,12 +108,17 @@ void main() {
     expect(overdueHeaderText.style?.fontWeight, FontWeight.w900);
     expect(find.byKey(const ValueKey('home-filter-card-all')), findsNothing);
     expect(find.byKey(const ValueKey('home-compact-filter-row')), findsOneWidget);
-    expect(find.byType(HomeFilterPill), findsNWidgets(4));
+    expect(find.byType(HomeFilterPill), findsNWidgets(5));
     final filterRow = tester.widget<Row>(
       find.byKey(const ValueKey('home-compact-filter-row')),
     );
     expect(filterRow.textDirection, TextDirection.rtl);
-    for (final id in ['time', 'project', 'category', 'tags']) {
+    final orderedPills = tester.widgetList<HomeFilterPill>(find.byType(HomeFilterPill)).toList();
+    expect(
+      orderedPills.map((pill) => (pill.key as ValueKey).value).toList(),
+      ['home-filter-card-time', 'home-filter-card-center', 'home-filter-card-project', 'home-filter-card-category', 'home-filter-card-tags'],
+    );
+    for (final id in ['time', 'center', 'project', 'category', 'tags']) {
       final pill = find.byKey(ValueKey('home-filter-card-$id'));
       expect(tester.getSize(pill).width, greaterThanOrEqualTo(48));
       expect(tester.getSize(pill).height, greaterThanOrEqualTo(48));
@@ -117,40 +137,27 @@ void main() {
     for (final width in [360.0, 390.0, 412.0]) {
       tester.view.physicalSize = Size(width, 1200);
       await tester.pumpAndSettle();
-      final filterKeys = [
-        'time',
-        'project',
-        'category',
-        'tags',
-      ];
-      final filterRects = filterKeys
-          .map((id) => tester.getRect(
-                find.byKey(ValueKey('home-filter-card-$id')),
-              ))
-          .toList(growable: false);
-      for (final rect in filterRects) {
-        expect(rect.height, greaterThanOrEqualTo(48));
-        expect(rect.left, greaterThanOrEqualTo(0));
-        expect(rect.right, lessThanOrEqualTo(width));
-      }
-      for (var index = 1; index < filterRects.length; index++) {
-        expect(filterRects[index].top, closeTo(filterRects.first.top, 0.1));
-        expect(filterRects[index].bottom, closeTo(filterRects.first.bottom, 0.1));
-        expect(filterRects[index - 1].center.dx,
-            greaterThan(filterRects[index].center.dx));
-      }
-      expect(
-        find.descendant(
-          of: find.byKey(const ValueKey('home-compact-filter-row')),
-          matching: find.byWidgetPredicate(
-            (widget) =>
-                widget is Scrollable &&
-                (widget.axisDirection == AxisDirection.left ||
-                    widget.axisDirection == AxisDirection.right),
-          ),
+      final horizontalScroll = find.descendant(
+        of: find.byKey(const ValueKey('home-compact-filter-row')),
+        matching: find.byWidgetPredicate(
+          (widget) =>
+              widget is Scrollable &&
+              (widget.axisDirection == AxisDirection.left ||
+                  widget.axisDirection == AxisDirection.right),
         ),
-        findsNothing,
       );
+      expect(horizontalScroll, findsOneWidget);
+      for (final id in ['time', 'center', 'project', 'category', 'tags']) {
+        final pill = find.byKey(ValueKey('home-filter-card-$id'));
+        await tester.ensureVisible(pill);
+        await tester.pumpAndSettle();
+        final rect = tester.getRect(pill);
+        expect(rect.width, greaterThanOrEqualTo(48), reason: '$id width=$width');
+        expect(rect.height, greaterThanOrEqualTo(48), reason: '$id width=$width');
+        expect(rect.left, greaterThanOrEqualTo(0), reason: '$id width=$width');
+        expect(rect.right, lessThanOrEqualTo(width), reason: '$id width=$width');
+      }
+      expect(tester.takeException(), isNull, reason: 'width=$width');
     }
     tester.view.physicalSize = Size(originalWidth, 1200);
     await tester.pumpAndSettle();
@@ -194,11 +201,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('انتخاب زمان'), findsNothing);
 
-    final moreNavigation = find.byKey(const ValueKey('primary-nav-more'));
-    await tester.ensureVisible(moreNavigation);
-    await tester.tap(moreNavigation);
-    await tester.pumpAndSettle();
-    final centerFilter = find.byKey(const ValueKey('home-more-center-filter'));
+    final centerFilter = find.byKey(const ValueKey('home-filter-card-center'));
     await tester.ensureVisible(centerFilter);
     await tester.tap(centerFilter);
     await tester.pumpAndSettle();
@@ -366,14 +369,14 @@ void main() {
       'arvin.tasks': '[{"id":"accordion-real","title":"کار آکاردئونی","description":"شرح دقیق کار","dueDate":"2026-11-02T12:30:00.000","followUps":[{"id":"follow-up-real","dateTime":"${actualFollowUpAt.toIso8601String()}","note":"تماس واقعی","completed":true}]},{"id":"legacy-only","title":"بدون سابقه واقعی","followUpDate":"2026-11-02T09:00:00.000"}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpWidget(ArvinApp(nowProvider: () => DateTime(2026, 11, 12, 9)));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('task-card-details-accordion-real')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-card-expand-accordion-real')), findsOneWidget);
     expect(find.byKey(const ValueKey('task-card-accordion-accordion-real')), findsOneWidget);
     expect(find.text('شرح دقیق کار'), findsNothing);
 
-    await tester.tap(find.text('کار آکاردئونی'));
+    await tester.tap(find.byKey(const ValueKey('task-card-expand-accordion-real')));
     await tester.pumpAndSettle();
 
     expect(find.text('شرح دقیق کار'), findsOneWidget);
@@ -385,10 +388,10 @@ void main() {
     await tester.scrollUntilVisible(legacyOnlyTitle, 240, scrollable: _homeVerticalScrollable());
     await tester.pumpAndSettle();
     expect(legacyOnlyTitle, findsOneWidget);
-    await tester.tap(legacyOnlyTitle);
+    await tester.tap(find.byKey(const ValueKey('task-card-expand-legacy-only')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('task-card-follow-up-legacy-only')), findsNothing);
-    final legacyOnlyDetails = find.byKey(const ValueKey('task-card-details-legacy-only'));
+    expect(find.byKey(const ValueKey('task-card-follow-up-accordion-legacy-only')), findsNothing);
+    final legacyOnlyDetails = find.byKey(const ValueKey('task-card-accordion-legacy-only'));
     await tester.scrollUntilVisible(legacyOnlyDetails, 240, scrollable: _homeVerticalScrollable());
     await tester.pumpAndSettle();
     expect(legacyOnlyDetails, findsOneWidget);
@@ -411,7 +414,7 @@ void main() {
     );
     SharedPreferences.setMockInitialValues({'arvin.tasks': jsonEncode(tasks)});
 
-    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpWidget(ArvinApp(nowProvider: () => DateTime(2026, 11, 12, 9)));
     await tester.pumpAndSettle();
 
     expect(find.byType(ArvinPrimaryNavigation), findsOneWidget);
@@ -429,6 +432,91 @@ void main() {
 
     expect(find.byType(ArvinPrimaryNavigation), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Home uses one injected Iran clock for time grouping and Jalali date labels', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await TaskStore.resetTestDatabase();
+    await ProjectStore.resetTestDatabase();
+    final dueAt = DateTime(2026, 11, 12, 9, 30);
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks': jsonEncode([
+        {
+          'id': 'clock-contract-task',
+          'title': 'کار ساعت آزمایشی',
+          'dueDate': dueAt.toIso8601String(),
+        },
+      ]),
+    });
+
+    // Initialize every canonical store before mounting HomePage so this
+    // contract isolates the injected Iran clock from first-open migration.
+    await TaskStore().load();
+    await ProjectStore().load();
+    await CenterStore().load();
+    await TaskStore().loadCategories();
+    await TaskStore().loadTags();
+    expect(
+      (await TaskStore().load()).map((task) => task.id),
+      contains('clock-contract-task'),
+    );
+
+    final formatter = const PersianDateFormatter();
+    final fixedDay = DateTime(2026, 11, 12);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: HomePage(
+            key: const ValueKey('home-clock-0900'),
+            nowProvider: () => DateTime(2026, 11, 12, 9),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final taskTitle = find.text('کار ساعت آزمایشی');
+    expect(
+      find.ancestor(
+        of: taskTitle,
+        matching: find.byKey(const ValueKey('home-group-today')),
+      ),
+      findsOneWidget,
+    );
+    final todayLabel = tester.widget<Text>(
+      find.byKey(const ValueKey('home-group-date-today')),
+    );
+    expect(
+      todayLabel.data,
+      contains(formatter.format(fixedDay, usePersianDate: true)),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: HomePage(
+            key: const ValueKey('home-clock-1000'),
+            nowProvider: () => DateTime(2026, 11, 12, 10),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.ancestor(
+        of: find.text('کار ساعت آزمایشی'),
+        matching: find.byKey(const ValueKey('home-group-overdue')),
+      ),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
   });
 

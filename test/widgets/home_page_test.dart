@@ -170,7 +170,10 @@ void main() {
     await tester.scrollUntilVisible(
       find.text('کار انجام‌نشده'),
       400,
-      scrollable: homeList,
+      scrollable: find.descendant(
+        of: homeList,
+        matching: find.byType(Scrollable),
+      ).first,
     );
     expect(find.text('کار انجام‌نشده'), findsOneWidget);
     // The bottom navigation intentionally hides while the Home list is
@@ -192,8 +195,10 @@ void main() {
   testWidgets('Home uses the five checkbox filters as combined filters and preserves time grouping',
       (tester) async {
     final today = IranClock.now();
-    final isoToday = DateTime(today.year, today.month, today.day, 10).toIso8601String();
-    final isoTomorrow = DateTime(today.year, today.month, today.day + 1, 10).toIso8601String();
+    // Keep the timed fixture later than the current Iran wall clock so this
+    // test exercises calendar grouping rather than becoming overdue in CI.
+    final isoToday = DateTime(today.year, today.month, today.day, 23, 59).toIso8601String();
+    final isoTomorrow = DateTime(today.year, today.month, today.day + 1, 23, 59).toIso8601String();
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
           '[{"id":"match","title":"کار منطبق","category":"اتاق","tags":["نوزاد","تعویض"],"completed":false,"dueDate":"$isoToday"},{"id":"tomorrow","title":"کار فردا","category":"اتاق","tags":["نوزاد","تعویض"],"completed":false,"dueDate":"$isoTomorrow"},{"id":"other","title":"کار نامرتبط","category":"اداری","tags":["نوزاد"],"completed":false,"dueDate":"$isoToday"}]',
@@ -573,15 +578,16 @@ void main() {
   });
 
 
-  testWidgets('Home five filters stay in one RTL row without horizontal scrolling at phone widths and with keyboard',
+  testWidgets('Home five filters stay in one horizontally scrollable RTL row at phone widths and with keyboard',
       (tester) async {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     addTearDown(tester.view.resetViewInsets);
 
+    final futureDue = DateTime(2030, 1, 1, 12).toIso8601String();
     SharedPreferences.setMockInitialValues({
-      'arvin.tasks': '[{"id":"a","title":"کار الف","category":"مشتری","tags":["مهم","تماس"]},{"id":"b","title":"کار ب","category":"فروش","tags":["مهم"]}]',
+      'arvin.tasks': '[{"id":"a","title":"کار الف","dueDate":"$futureDue","category":"مشتری","tags":["مهم","تماس"]},{"id":"b","title":"کار ب","dueDate":"$futureDue","category":"فروش","tags":["مهم"]}]',
       'arvin.projects': '[{"id":"active-project","title":"پروژه فعال","isArchived":false,"itemIds":[]},{"id":"archived-project","title":"پروژه بایگانی","isArchived":true,"itemIds":[]}]',
     });
 
@@ -604,21 +610,37 @@ void main() {
         ),
         findsNothing,
       );
+      final horizontalScroll = find.descendant(
+        of: filterStrip,
+        matching: find.byKey(const ValueKey('home-filter-horizontal-scroll')),
+      );
+      expect(horizontalScroll, findsOneWidget);
       expect(
-        find.descendant(
-          of: filterStrip,
-          matching: find.byWidgetPredicate(
-            (widget) => widget is SingleChildScrollView &&
-                widget.scrollDirection == Axis.horizontal,
-          ),
-        ),
-        findsNothing,
+        tester.widget<SingleChildScrollView>(horizontalScroll).scrollDirection,
+        Axis.horizontal,
       );
       final controls = find.descendant(
         of: filterStrip,
         matching: find.byType(HomeFilterPill),
       );
       expect(controls, findsNWidgets(5));
+      final orderedKeys = [
+        'home-filter-card-time',
+        'home-filter-card-center',
+        'home-filter-card-project',
+        'home-filter-card-category',
+        'home-filter-card-tags',
+      ];
+      final xPositions = orderedKeys
+          .map((key) => tester.getCenter(find.byKey(ValueKey(key))).dx)
+          .toList();
+      for (var index = 0; index < xPositions.length - 1; index++) {
+        expect(
+          xPositions[index],
+          greaterThan(xPositions[index + 1]),
+          reason: 'Home filters must follow Time → Center → Project → Category → Tag in RTL order.',
+        );
+      }
       for (final control in controls.evaluate()) {
         final size = tester.getSize(find.byWidget(control.widget));
         expect(size.height, greaterThanOrEqualTo(48));
@@ -669,6 +691,12 @@ void main() {
   });
 
   testWidgets('Home Past time filter excludes today and prioritizes incomplete tasks', (tester) async {
+    // This test checks filtering and sort order, not viewport clipping. A tall
+    // viewport keeps all lazy-list rows available while comparing their order.
+    tester.view.physicalSize = const Size(390, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     final now = IranClock.now();
     String due(int daysAgo, int hour) => DateTime(
       now.year,
@@ -879,7 +907,10 @@ void main() {
     await tester.scrollUntilVisible(
       find.text('برگزیده با موعد آینده'),
       240,
-      scrollable: homeList,
+      scrollable: find.descendant(
+        of: homeList,
+        matching: find.byType(Scrollable),
+      ).first,
     );
     expect(find.text('برگزیده با موعد آینده'), findsOneWidget);
     // The canonical bottom navigation hides while the Home list is scrolled.

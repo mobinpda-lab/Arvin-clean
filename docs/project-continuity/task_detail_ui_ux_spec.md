@@ -1,3 +1,9 @@
+# REV10 TASK DETAILS CONTRACT — 2026-11-13
+
+REV10-007 supersedes the older manual Edit Mode / Save / Cancel model described below. The active product contract is Single-Column Focus Detail View, Actionable Linear List and Quick Presets. Details are presented vertically from top to bottom; a one-row layout for all fields is not required. Task fields use canonical Auto-Save and must survive close/reopen without data loss. In Task forms, the time icon and calendar icon appear side-by-side in the same row. Center, Project and Category are single-select with clear/search/create/autosave; Tags are multi-select checkboxes with create/autosave; Person must be a real persisted Person relation. Existing storage and repositories are reused; no parallel model/store.
+
+---
+
 # Arvin — Task Master-Detail Screen
 **عنوان فارسی:** صفحه مشخصات کار — فرم جامع نمایش/ویرایش یکپارچه  
 **تصمیم:** مصوبه محصولی مالک محصول — ۱۴۰۵/۰۸/۱۴ (2026-11-05)  

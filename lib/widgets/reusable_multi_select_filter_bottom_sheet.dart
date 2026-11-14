@@ -384,7 +384,7 @@ abstract final class ReusableMultiSelectFilterBottomSheet {
                               height: 18,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Text('+ ایجاد مورد جدید'),
+                          : Text(createLabel),
                     ),
                   ),
                 ],

@@ -14,10 +14,9 @@ on:
         type: string
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
+  pull-requests: read
   actions: write
-  issues: write
 
 concurrency:
   group: arvin-production-orchestrator
@@ -28,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
-      - name: Guarded promote and merge
+      - name: Read-only gate orchestration
         uses: actions/github-script@v7
         with:
           script: |
@@ -220,21 +219,14 @@ jobs:
               }
 
               if (item.draft) {
-                // Fast, Build and Android Smoke are independent gates. Heavy lanes may
-                // progress concurrently; promotion still requires every exact-head gate.
-                let fast = await latestFastRun(headSha);
+                // REV10 safety: CI may report readiness, but only the Product Owner
+                // may promote a Draft PR. This workflow never changes PR readiness.
+                const fast = await latestFastRun(headSha);
                 if (await fastGreenForCurrentMain(fast, item, headSha)) {
-                  core.info(`#${item.number}: Fast green on current main; marking ready.`);
-                  await github.graphql(`
-                    mutation($id: ID!) {
-                      markPullRequestReadyForReview(input: {pullRequestId: $id}) {
-                        pullRequest { number isDraft }
-                      }
-                    }
-                  `, { id: item.node_id });
+                  core.info(`#${item.number}: exact-head Fast is green; Draft state is preserved pending explicit owner review.`);
                 } else {
                   await reportFailure(fast);
-                  core.info(`#${item.number}: draft remains draft until exact-head Fast is green; heavy gates continue independently.`);
+                  core.info(`#${item.number}: Draft remains unchanged; heavy gates continue independently.`);
                 }
               }
 
@@ -275,44 +267,7 @@ jobs:
                 continue;
               }
 
-              const preMergeMain = await github.rest.repos.getBranch({ owner, repo, branch: 'main' });
-              if (preMergeMain.data.commit.sha !== mainSha) {
-                core.warning(`#${item.number}: main moved during orchestrator run; skip merge.`);
-                return;
-              }
-
-              const locked = await github.rest.pulls.get({ owner, repo, pull_number: item.number });
-              if (locked.data.head.sha !== headSha || locked.data.state !== 'open' || locked.data.draft) {
-                core.warning(`#${item.number}: PR changed during validation; skip merge.`);
-                continue;
-              }
-              if (locked.data.mergeable !== true) {
-                core.info(`#${item.number}: not currently mergeable; skip.`);
-                continue;
-              }
-
-              core.info(`#${item.number}: exact-head Fast/Build/Device gates green on current main; squash merging.`);
-              const mergeResult = await github.rest.pulls.merge({
-                owner, repo, pull_number: item.number, merge_method: 'squash', sha: headSha,
-              });
-              if (!mergeResult.data.merged) {
-                core.warning(`#${item.number}: merge rejected: ${mergeResult.data.message}`);
-                continue;
-              }
-
-              const mergedMain = mergeResult.data.sha;
-              const verifiedMain = await github.rest.repos.getBranch({ owner, repo, branch: 'main' });
-              if (verifiedMain.data.commit.sha !== mergedMain) {
-                core.setFailed(`#${item.number}: merged SHA ${mergedMain} is not current main; stopping fail-closed.`);
-                return;
-              }
-
-              // Immediate self-wake removes the normal 5-minute polling gap after
-              // a successful merge. The scheduled trigger remains as a recovery
-              // watchdog; this explicit dispatch is the fast path for the queue.
-              core.info(`#${item.number}: merged as ${mergedMain}; immediately waking orchestrator for the next queued PR.`);
-              await github.rest.actions.createWorkflowDispatch({
-                owner, repo, workflow_id: 'production-orchestrator.yml', ref: 'main',
-              });
-              return;
+              // REV10 safety: evidence orchestration never authorizes promotion or merge.
+              // Preserve PR state and leave integration to an explicit Product Owner action.
+              core.info(`#${item.number}: exact-head Fast/Build/Device gates are green; automatic promotion and merge are disabled.`);
             }

@@ -31,7 +31,7 @@ void main() {
     final main = File('lib/main.dart').readAsStringSync();
     final save = main.substring(
       main.indexOf('Future<void> _save()'),
-      main.indexOf('DateTime? _homeLastFollowUpDate'),
+      main.indexOf('String? _projectTitleForTask'),
     );
     expect(save, isNot(contains('CalendarOutboundSyncService')));
     expect(save, isNot(contains('calendarOutboundSyncService')));

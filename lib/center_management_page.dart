@@ -46,6 +46,51 @@ class _CenterManagementPageState extends State<CenterManagementPage> {
     catch (error) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تغییر وضعیت مرکز انجام نشد: $error'))); }
     finally { if (mounted) setState(() => _saving = false); }
   }
+
+  Future<void> _delete(ArvinCenter center) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('حذف مرکز'),
+        content: Text('مرکز «${center.name}» برای همیشه حذف شود؟'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('لغو'),
+          ),
+          FilledButton(
+            key: const ValueKey('center-delete-confirm'),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('حذف مرکز'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() => _saving = true);
+    try {
+      await _store.delete(id: center.id);
+      await _load();
+    } on CenterDeleteBlocked catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'این مرکز به ${error.projectCount} پروژه وابسته است؛ ابتدا وابستگی‌ها را تعیین تکلیف کنید.',
+            ),
+          ),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('حذف مرکز انجام نشد: $error')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
   @override Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('مراکز')),
     floatingActionButton: FloatingActionButton.extended(key: const ValueKey('center-add'), onPressed: _saving ? null : () => _edit(), icon: const Icon(Icons.add), label: const Text('مرکز جدید')),
@@ -58,6 +103,7 @@ class _CenterManagementPageState extends State<CenterManagementPage> {
             trailing: Wrap(children: [
               IconButton(key: ValueKey('center-edit-${center.id}'), tooltip: 'ویرایش نام مرکز', onPressed: _saving ? null : () => _edit(center: center), icon: const Icon(Icons.edit_outlined)),
               IconButton(key: ValueKey('center-archive-${center.id}'), tooltip: center.isArchived ? 'فعال‌سازی' : 'بایگانی', onPressed: _saving ? null : () => _archive(center), icon: Icon(center.isArchived ? Icons.unarchive_outlined : Icons.archive_outlined)),
+              IconButton(key: ValueKey('center-delete-${center.id}'), tooltip: 'حذف مرکز', onPressed: _saving ? null : () => _delete(center), icon: const Icon(Icons.delete_outline)),
             ]),
           );
         }),

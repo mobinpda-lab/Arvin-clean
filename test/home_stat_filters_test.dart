@@ -8,6 +8,22 @@ import 'package:arvin/services/task_store.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/center_store.dart';
 
+Finder _filterSheetVerticalScrollable() => find.descendant(
+      of: find.byType(BottomSheet),
+      matching: find.byWidgetPredicate(
+        (widget) => widget is Scrollable &&
+            widget.axisDirection == AxisDirection.down,
+      ),
+    ).first;
+
+Finder _homeTaskListVerticalScrollable() => find.descendant(
+      of: find.byKey(const ValueKey('home-task-list-viewport')),
+      matching: find.byWidgetPredicate(
+        (widget) => widget is Scrollable &&
+            widget.axisDirection == AxisDirection.down,
+      ),
+    ).first;
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -26,7 +42,7 @@ void main() {
     await CenterStore.resetTestDatabase();
   });
 
-  testWidgets('Home exposes the four canonical REV5 filter controls', (tester) async {
+  testWidgets('Home exposes the five canonical filters in product order', (tester) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -37,6 +53,7 @@ void main() {
     expect(find.byKey(const ValueKey('home-compact-filter-wrap')), findsOneWidget);
     for (final key in [
       'home-filter-card-time',
+      'home-filter-card-center',
       'home-filter-card-project',
       'home-filter-card-category',
       'home-filter-card-tags',
@@ -45,6 +62,7 @@ void main() {
     }
     for (final key in [
       'home-filter-card-time',
+      'home-filter-card-center',
       'home-filter-card-project',
       'home-filter-card-category',
       'home-filter-card-tags',
@@ -124,6 +142,7 @@ void main() {
     expect(find.byKey(const ValueKey('home-search-button')), findsOneWidget);
     for (final key in [
       'home-filter-card-time',
+      'home-filter-card-center',
       'home-filter-card-project',
       'home-filter-card-category',
       'home-filter-card-tags',
@@ -165,7 +184,7 @@ void main() {
 
     expect(find.text('انتخاب‌شده: 0'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-time-filter-today-focus')), findsOneWidget);
-    final sheetScrollable = find.byType(Scrollable).last;
+    final sheetScrollable = _filterSheetVerticalScrollable();
     await tester.scrollUntilVisible(find.text('بازهٔ دلخواه'), 300, scrollable: sheetScrollable);
     final customRange = find.byKey(const ValueKey('home-time-filter-customRange'));
     expect(customRange, findsOneWidget);
@@ -199,7 +218,7 @@ void main() {
     expect(find.text('همه'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('multi-select-option-اداری')));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.text('شخصی'), 240, scrollable: find.byType(Scrollable).last);
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('multi-select-option-شخصی')), 240, scrollable: _filterSheetVerticalScrollable());
     await tester.tap(find.byKey(const ValueKey('multi-select-option-شخصی')));
     await tester.pumpAndSettle();
     // Draft choices are not applied before the explicit confirmation.
@@ -231,9 +250,9 @@ void main() {
     await tester.ensureVisible(tagsChip);
     await tester.tap(tagsChip);
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.text('مهم'), 240, scrollable: find.byType(Scrollable).last);
+    await tester.scrollUntilVisible(find.text('مهم'), 240, scrollable: _filterSheetVerticalScrollable());
     await tester.tap(find.byKey(const ValueKey('multi-select-option-مهم')));
-    await tester.scrollUntilVisible(find.text('فوری'), 240, scrollable: find.byType(Scrollable).last);
+    await tester.scrollUntilVisible(find.text('فوری'), 240, scrollable: _filterSheetVerticalScrollable());
     await tester.tap(find.byKey(const ValueKey('multi-select-option-فوری')));
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
@@ -241,7 +260,7 @@ void main() {
     expect(find.text('دوم'), findsOneWidget);
     expect(find.text('سوم'), findsNothing);
     expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-tags')), matching: find.text('2')), findsNothing);
-    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-tags')), matching: find.text('برچسب')), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-tags')), matching: find.bySemanticsLabel('برچسب')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -265,15 +284,27 @@ void main() {
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
     expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-time')), matching: find.text('2')), findsNothing);
-    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-time')), matching: find.text('زمان')), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('home-filter-card-time')),
+        matching: find.byIcon(Icons.schedule_rounded),
+      ),
+      findsOneWidget,
+    );
     expect(find.text('کار گذشته'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('کار امروز'),
+      300,
+      scrollable: _homeTaskListVerticalScrollable(),
+      maxScrolls: 10,
+    );
     expect(find.text('کار امروز'), findsOneWidget);
     expect(find.text('کار فردا'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
 
-  testWidgets('four REV5 icon filters fit 360, 390 and 412dp without overlap',
+  testWidgets('five canonical filters remain reachable in one RTL row at phone widths',
       (tester) async {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -283,23 +314,32 @@ void main() {
       await tester.pumpWidget(const ArvinApp());
       await tester.pumpAndSettle();
 
-      final rects = [
-        for (final key in [
-          'home-filter-card-time',
-          'home-filter-card-project',
-          'home-filter-card-category',
-          'home-filter-card-tags',
-        ])
-          tester.getRect(find.byKey(ValueKey(key))),
-      ];
-      for (final rect in rects) {
-        expect(rect.width, greaterThanOrEqualTo(48), reason: 'width=$width');
-        expect(rect.height, greaterThanOrEqualTo(48), reason: 'width=$width');
-      }
-      for (var i = 0; i < rects.length; i++) {
-        for (var j = i + 1; j < rects.length; j++) {
-          expect(rects[i].overlaps(rects[j]), isFalse, reason: 'width=$width');
-        }
+      final row = find.byKey(const ValueKey('home-compact-filter-row'));
+      final horizontalScroll = find.descendant(
+        of: row,
+        matching: find.byWidgetPredicate(
+          (widget) => widget is Scrollable &&
+              (widget.axisDirection == AxisDirection.left ||
+                  widget.axisDirection == AxisDirection.right),
+        ),
+      );
+      expect(horizontalScroll, findsOneWidget, reason: 'width=$width');
+      for (final key in [
+        'home-filter-card-time',
+        'home-filter-card-center',
+        'home-filter-card-project',
+        'home-filter-card-category',
+        'home-filter-card-tags',
+      ]) {
+        final pill = find.byKey(ValueKey(key));
+        expect(pill, findsOneWidget, reason: 'width=$width key=$key');
+        await tester.ensureVisible(pill);
+        await tester.pumpAndSettle();
+        final rect = tester.getRect(pill);
+        expect(rect.width, greaterThanOrEqualTo(48), reason: 'width=$width key=$key');
+        expect(rect.height, greaterThanOrEqualTo(48), reason: 'width=$width key=$key');
+        expect(rect.left, greaterThanOrEqualTo(0), reason: 'width=$width key=$key');
+        expect(rect.right, lessThanOrEqualTo(width), reason: 'width=$width key=$key');
       }
       expect(tester.takeException(), isNull, reason: 'width=$width');
     }
@@ -307,7 +347,7 @@ void main() {
 
   testWidgets('calendar Today includes due-today and overdue open work, not Focus-only future work',
       (tester) async {
-    final now = DateTime.now();
+    final now = IranClock.now();
     final today = DateTime(now.year, now.month, now.day, 10);
     final yesterday = DateTime(now.year, now.month, now.day)
         .subtract(const Duration(days: 1))
@@ -319,23 +359,90 @@ void main() {
       'arvin.tasks':
           '[{"id":"calendar-today","title":"موعد امروز","dueDate":"${today.toIso8601String()}"},{"id":"calendar-overdue","title":"کار عقب‌افتاده","dueDate":"${yesterday.toIso8601String()}"},{"id":"calendar-completed-overdue","title":"گذشته انجام‌شده","dueDate":"${yesterday.toIso8601String()}","completed":true},{"id":"calendar-focus-future","title":"فقط برگزیدهٔ آینده","dueDate":"${tomorrow.toIso8601String()}","isSelectedForToday":true}]',
     });
+    final storedTasks = await TaskStore().load();
+    expect(storedTasks.map((task) => task.id), containsAll([
+      'calendar-today',
+      'calendar-overdue',
+      'calendar-completed-overdue',
+      'calendar-focus-future',
+    ]));
+    final calendarDueDate = storedTasks
+        .singleWhere((task) => task.id == 'calendar-today')
+        .dueDate!;
+    expect(
+      DateTime(calendarDueDate.year, calendarDueDate.month, calendarDueDate.day),
+      DateTime(today.year, today.month, today.day),
+    );
+    expect(
+      storedTasks.singleWhere((task) => task.id == 'calendar-today').completed,
+      isFalse,
+    );
+    expect(
+      storedTasks.singleWhere((task) => task.id == 'calendar-overdue').completed,
+      isFalse,
+    );
+
+    // Exercise every store read performed by HomePage._load before mounting
+    // the UI. This distinguishes a startup dependency failure from a filter
+    // projection failure without weakening the visible-task assertions.
+    await ProjectStore().load();
+    await CenterStore().load();
+    await TaskStore().loadCategories();
+    await TaskStore().loadTags();
+    expect(
+      (await TaskStore().load()).map((task) => task.id),
+      containsAll([
+        'calendar-today',
+        'calendar-overdue',
+        'calendar-completed-overdue',
+        'calendar-focus-future',
+      ]),
+    );
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('home-general-filter-button')));
+    expect(find.text('داده‌های کارها قابل خواندن نیست'), findsNothing);
+    final filterButton = find.byKey(const ValueKey('home-general-filter-button'));
+    expect(filterButton, findsOneWidget);
+    expect(tester.widget<IconButton>(filterButton).onPressed, isNotNull);
+    await tester.tap(filterButton);
     await tester.pumpAndSettle();
+    expect(find.text('امروز تقویمی'), findsOneWidget);
+    expect(find.text('کارهای برگزیدهٔ امروز'), findsOneWidget);
     await tester.tap(find.widgetWithText(ListTile, 'امروز تقویمی'));
     await tester.pumpAndSettle();
+    // The menu closes, while the applied filter remains visible as an active chip.
+    expect(
+      find.widgetWithText(ListTile, 'امروز تقویمی'),
+      findsNothing,
+    );
+    expect(find.text('امروز تقویمی'), findsOneWidget);
 
-    expect(find.text('موعد امروز'), findsOneWidget);
+    final taskListScrollable = find.descendant(
+      of: find.byKey(const ValueKey('home-task-list-viewport')),
+      matching: find.byWidgetPredicate(
+        (widget) =>
+            widget is Scrollable &&
+            widget.axisDirection == AxisDirection.down,
+      ),
+    );
+    // The overdue group is first; scroll to the later Today group because
+    // Home uses ListView.builder and off-screen task cards are not built yet.
     expect(find.text('کار عقب‌افتاده'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('موعد امروز'),
+      300,
+      scrollable: taskListScrollable,
+      maxScrolls: 10,
+    );
+    expect(find.text('موعد امروز'), findsOneWidget);
     expect(find.text('گذشته انجام‌شده'), findsNothing);
     expect(find.text('فقط برگزیدهٔ آینده'), findsNothing);
   });
 
   testWidgets('time filter calendar Today excludes completed tasks and keeps overdue open work',
       (tester) async {
-    final now = DateTime.now();
+    final now = IranClock.now();
     final today = DateTime(now.year, now.month, now.day, 10);
     final yesterday = DateTime(now.year, now.month, now.day)
         .subtract(const Duration(days: 1))
@@ -347,17 +454,60 @@ void main() {
       'arvin.tasks':
           '[{"id":"time-today-open","title":"کار باز امروز","dueDate":"${today.toIso8601String()}"},{"id":"time-overdue-open","title":"کار باز عقب‌افتاده","dueDate":"${yesterday.toIso8601String()}"},{"id":"time-today-done","title":"کار انجام‌شده امروز","dueDate":"${today.toIso8601String()}","completed":true},{"id":"time-focus-future","title":"فقط تمرکز آینده","dueDate":"${tomorrow.toIso8601String()}","isSelectedForToday":true}]',
     });
+    final storedTasks = await TaskStore().load();
+    expect(storedTasks.map((task) => task.id), containsAll([
+      'time-today-open',
+      'time-overdue-open',
+      'time-today-done',
+      'time-focus-future',
+    ]));
+    final timeDueDate = storedTasks
+        .singleWhere((task) => task.id == 'time-today-open')
+        .dueDate!;
+    expect(
+      DateTime(timeDueDate.year, timeDueDate.month, timeDueDate.day),
+      DateTime(today.year, today.month, today.day),
+    );
+
+    await ProjectStore().load();
+    await CenterStore().load();
+    await TaskStore().loadCategories();
+    await TaskStore().loadTags();
+    expect(
+      (await TaskStore().load()).map((task) => task.id),
+      containsAll([
+        'time-today-open',
+        'time-overdue-open',
+        'time-today-done',
+        'time-focus-future',
+      ]),
+    );
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
+    expect(find.text('داده‌های کارها قابل خواندن نیست'), findsNothing);
     await tester.tap(find.byKey(const ValueKey('home-filter-card-time')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('home-time-filter-today')));
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
-    expect(find.text('کار باز امروز'), findsOneWidget);
+    final taskListScrollable = find.descendant(
+      of: find.byKey(const ValueKey('home-task-list-viewport')),
+      matching: find.byWidgetPredicate(
+        (widget) =>
+            widget is Scrollable &&
+            widget.axisDirection == AxisDirection.down,
+      ),
+    );
     expect(find.text('کار باز عقب‌افتاده'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('کار باز امروز'),
+      300,
+      scrollable: taskListScrollable,
+      maxScrolls: 10,
+    );
+    expect(find.text('کار باز امروز'), findsOneWidget);
     expect(find.text('کار انجام‌شده امروز'), findsNothing);
     expect(find.text('فقط تمرکز آینده'), findsNothing);
   });

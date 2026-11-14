@@ -1,0 +1,73 @@
+name: Arvin COMMAND 07-A.2.50 Wave 1 G1 Hierarchy Candidate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - 'test/diagnostics/command_07_a2_47_optional_relationship_sqlite_test.dart'
+      - 'lib/services/g1_hierarchy_candidate_schema.dart'
+      - 'test/services/g1_hierarchy_candidate_schema_test.dart'
+      - '.github/workflows/arvin-command-07-a2-47-optional-relationships.yml'
+  workflow_dispatch:
+    inputs:
+      target_sha:
+        description: Exact product commit SHA to validate
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  FLUTTER_VERSION: '3.47.0'
+  TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+
+jobs:
+  optional-relationship-sqlite:
+    name: Optional Task links and database-level integrity
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ env.TARGET_SHA }}
+      - name: Verify exact checkout SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          echo "EXPECTED_TARGET_SHA=$TARGET_SHA"
+          echo "CHECKED_OUT_SHA=$actual"
+          test "$actual" = "$TARGET_SHA"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: false
+      - name: Install SQLite development library
+        run: sudo apt-get update -qq && sudo apt-get install -y libsqlite3-dev
+      - name: Resolve locked dependencies
+        run: |
+          set -euo pipefail
+          flutter pub get --enforce-lockfile
+          git diff --exit-code -- pubspec.lock
+      - name: Run isolated file-backed SQLite acceptance and negative tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/arvin-command-07-a2-50
+          flutter test test/diagnostics/command_07_a2_47_optional_relationship_sqlite_test.dart \
+            --reporter expanded 2>&1 | tee build/arvin-command-07-a2-50/legacy-prototype-test.log
+          flutter test test/services/g1_hierarchy_candidate_schema_test.dart \
+            --reporter expanded 2>&1 | tee build/arvin-command-07-a2-50/real-g1-hierarchy-test.log
+          printf '%s\n' "$TARGET_SHA" > build/arvin-command-07-a2-50/target-sha.txt
+          sha256sum build/arvin-command-07-a2-50/*.log \
+            | tee build/arvin-command-07-a2-50/evidence.sha256
+      - name: Upload SQLite prototype evidence
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: arvin-command-07-a2-50-g1-hierarchy-${{ env.TARGET_SHA }}
+          path: build/arvin-command-07-a2-50/
+          if-no-files-found: warn
+          retention-days: 90

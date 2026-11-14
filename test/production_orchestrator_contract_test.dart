@@ -23,7 +23,21 @@ void main() {
     );
     expect(text, contains('waitForFast'));
     expect(text, contains('merge_base_commit?.sha === mainSha'));
-    expect(text, contains('markPullRequestReadyForReview'));
+    expect(text, contains('if (item.draft)'));
+    expect(text, contains('Draft state is preserved pending explicit owner review'));
+
+    expect(text, contains('permissions:'));
+    expect(text, contains('contents: read'));
+    expect(text, contains('pull-requests: read'));
+    expect(text, contains('actions: write'));
+    expect(text, isNot(contains('contents: write')));
+    expect(text, isNot(contains('pull-requests: write')));
+    expect(text, isNot(contains('markPullRequestReadyForReview')));
+    expect(text, isNot(contains('github.rest.pulls.update')));
+    expect(text, isNot(contains('github.rest.pulls.merge')));
+    expect(text, isNot(contains('pulls.merge')));
+    expect(text, isNot(contains("merge_method: 'squash'")));
+    expect(text, contains('automatic promotion and merge are disabled'));
 
     expect(text, contains('createWorkflowDispatch'));
     expect(text, contains('error?.status !== 422'));
@@ -31,7 +45,7 @@ void main() {
     expect(text, contains("dispatchOrReuse('build.yml', 'Arvin Build')"));
     expect(text, contains("dispatchOrReuse('device-smoke.yml', 'Arvin Device Smoke')"));
     expect(text, contains('waitForHeavy'));
-    expect(text, contains('Fast, Build and Android Smoke are independent gates'));
+    expect(text, contains('exact-head Fast/Build/Device gates are green'));
     expect(text, contains('heavy gates continue independently'));
     expect(text, contains("build?.conclusion === 'success'"));
     expect(text, contains("device?.conclusion === 'success'"));
@@ -45,12 +59,10 @@ void main() {
     expect(text, contains('await reportFailure(device);'));
 
     expect(text, contains('if (!labels.has(AUTO_LABEL)) continue;'));
-    expect(text, contains('preMergeMain.data.commit.sha !== mainSha'));
-    expect(text, contains('locked.data.head.sha !== headSha'));
-    expect(text, contains('locked.data.mergeable !== true'));
-    expect(text, contains("merge_method: 'squash'"));
+    expect(text, contains("item.state !== 'open' || item.base.ref !== 'main'"));
     expect(text, contains('sha: headSha'));
-    expect(text, contains('return;'));
+    expect(text, contains('if (!labels.has(AUTO_LABEL)) continue;'));
+    expect(text, contains("item.state !== 'open' || item.base.ref !== 'main'"));
   });
 
   test('autonomous issue to PR path funnels through canonical queue', () {

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:drift/native.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -64,8 +66,12 @@ void main() {
   });
 
   test('legacy reminder-table migration removes its flag without losing reminder rows', () async {
-    final executor = NativeDatabase.memory();
-    addTearDown(executor.close);
+    final directory = await Directory.systemTemp.createTemp('arvin-reminder-schema-');
+    var executor = NativeDatabase(File('${directory.path}/arvin.sqlite'));
+    addTearDown(() async {
+      await executor.close();
+      await directory.delete(recursive: true);
+    });
     await executor.ensureOpen(G1DriftSchema());
     await executor.runCustom('''
       CREATE TABLE tasks (
@@ -120,6 +126,24 @@ void main() {
         1,
       ],
     );
+    await executor.runInsert(
+      '''INSERT INTO task_reminders
+         (id, task_id, title, remind_at, is_all_day, sequence, is_enabled, is_legacy_task_reminder)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+      const <Object?>[
+        'reminder-disabled-v15', 'schema-v15-task', 'غیرفعال',
+        '2026-10-21T09:30:00.000', 1, 2, 0, 0,
+      ],
+    );
+    await executor.runInsert(
+      '''INSERT INTO task_reminders
+         (id, task_id, title, remind_at, is_all_day, sequence, is_enabled, is_legacy_task_reminder)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+      const <Object?>[
+        'reminder-third-v15', 'schema-v15-task', 'سوم',
+        '2026-10-22T09:30:00.000', 0, 3, 1, 1,
+      ],
+    );
 
     await G1DriftSchema.install(executor);
 
@@ -132,11 +156,31 @@ void main() {
       'SELECT id, remind_at, sequence, is_enabled FROM task_reminders WHERE task_id = ?',
       const <Object?>['schema-v15-task'],
     );
-    expect(rows, hasLength(1));
-    expect(rows.single['id'], 'legacy-task-reminder-schema-v15-task');
-    expect(rows.single['remind_at'], '2026-10-20T09:30:00.000');
-    expect(rows.single['sequence'], 1);
-    expect(rows.single['is_enabled'], 1);
+    expect(rows, hasLength(3));
+    expect(rows.map((row) => row['id']), [
+      'legacy-task-reminder-schema-v15-task',
+      'reminder-disabled-v15',
+      'reminder-third-v15',
+    ]);
+    expect(rows.map((row) => row['remind_at']), [
+      '2026-10-20T09:30:00.000',
+      '2026-10-21T09:30:00.000',
+      '2026-10-22T09:30:00.000',
+    ]);
+    expect(rows.map((row) => row['sequence']), [1, 2, 3]);
+    expect(rows.map((row) => row['is_enabled']), [1, 0, 1]);
+
+    await executor.close();
+    executor = NativeDatabase(File('${directory.path}/arvin.sqlite'));
+    await G1DriftSchema.install(executor);
+    final reopened = await executor.runSelect(
+      'SELECT id, sequence, is_enabled FROM task_reminders WHERE task_id = ? ORDER BY sequence',
+      const <Object?>['schema-v15-task'],
+    );
+    expect(reopened, hasLength(3));
+    expect(reopened.map((row) => row['id']), rows.map((row) => row['id']));
+    expect(reopened.map((row) => row['sequence']), [1, 2, 3]);
+    expect(reopened.map((row) => row['is_enabled']), [1, 0, 1]);
   });
 
   test('TaskStore stores All-Day due dates as date-only SQLite values', () async {
