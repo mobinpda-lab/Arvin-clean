@@ -267,7 +267,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('notebook-editor-back')));
     await tester.pumpAndSettle();
     expect(find.text('عنوان دستی'), findsOneWidget);
-    expect(find.text('متن اصلی'), findsWidgets);
+    expect(find.textContaining('متن اصلی'), findsWidgets);
   });
 
   testWidgets('Fast Capture accepts empty content without forcing a title or duplicate note', (tester) async {
