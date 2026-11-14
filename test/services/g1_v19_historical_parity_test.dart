@@ -18,6 +18,67 @@ class _V19FixtureUser implements QueryExecutorUser {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  test('D04: physical SQLite backup of migrated v20 restores to an independent file', () async {
+    final directory = await Directory.systemTemp.createTemp('arvin-d04-v20-physical-');
+    final sourceFile = File('${directory.path}/migrated-source.sqlite');
+    final backupFile = File('${directory.path}/migrated-backup.sqlite');
+    final source = NativeDatabase(sourceFile);
+    await source.ensureOpen(_V19FixtureUser());
+    await _createHistoricalV19Fixture(source);
+    await source.close();
+
+    final migrated = NativeDatabase(sourceFile);
+    await migrated.ensureOpen(G1DriftSchema());
+    final sourceParity = await migrated.runSelect(
+      '''SELECT id, task_id, completed_at, title, note, result,
+                completed, waiting_for_response, ordinal
+         FROM follow_up_records ORDER BY task_id, ordinal''',
+      const [],
+    );
+    await migrated.close();
+
+    // This is a byte-for-byte SQLite database copy after the migrated source
+    // has been cleanly closed; it does not serialize the database as JSON.
+    await sourceFile.copy(backupFile.path);
+    expect(await sourceFile.exists(), isTrue);
+    expect(await backupFile.exists(), isTrue);
+    expect(await backupFile.length(), greaterThan(0));
+    expect(sourceFile.path, isNot(backupFile.path));
+
+    final restored = NativeDatabase(backupFile);
+    try {
+      await restored.ensureOpen(G1DriftSchema());
+      expect((await restored.runSelect('PRAGMA user_version', const [])).single.values.first, 20);
+      expect((await restored.runSelect('PRAGMA integrity_check', const [])).single.values.single, 'ok');
+      expect(
+        await restored.runSelect('SELECT * FROM center_projects ORDER BY center_id, project_id', const []),
+        [{'center_id': 'center-a', 'project_id': 'project-a'}],
+      );
+      expect(await restored.runSelect('SELECT * FROM project_categories', const []), isEmpty);
+      expect(
+        await restored.runSelect(
+          '''SELECT id, task_id, completed_at, title, note, result,
+                    completed, waiting_for_response, ordinal
+             FROM follow_up_records ORDER BY task_id, ordinal''',
+          const [],
+        ),
+        sourceParity,
+      );
+      expect(await restored.runSelect('SELECT id FROM persons WHERE id = ?', const ['person-legacy']), hasLength(1));
+      expect(await restored.runSelect('SELECT * FROM follow_up_record_people', const []), hasLength(1));
+      expect(await restored.runSelect('SELECT * FROM task_tags', const []), hasLength(2));
+      expect(await restored.runSelect('SELECT id FROM task_reminders ORDER BY id', const []), hasLength(2));
+      expect(await restored.runSelect('PRAGMA foreign_key_check(center_projects)', const []), isEmpty);
+      expect(await restored.runSelect('PRAGMA foreign_key_check(project_categories)', const []), isEmpty);
+      expect(await restored.runSelect('PRAGMA foreign_key_check(tasks)', const []), isEmpty);
+      expect(await restored.runSelect('PRAGMA foreign_key_check(projects)', const []), hasLength(1));
+      expect(await restored.runSelect('PRAGMA foreign_key_check(project_items)', const []), hasLength(1));
+    } finally {
+      await restored.close();
+      await directory.delete(recursive: true);
+    }
+  });
+
   test('D02+D03: real v19 lifecycle preserves historical entities, links, NULL and booleans', () async {
     final directory = await Directory.systemTemp.createTemp('arvin-v19-parity-');
     final file = File('${directory.path}/historical-v19.sqlite');
