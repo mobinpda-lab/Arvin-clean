@@ -325,7 +325,7 @@ void main() {
       await fixture.file.copy(backupFile.path);
       expect(await fixture.file.exists(), isTrue);
       expect(await backupFile.exists(), isTrue);
-      expect(fixture.file.path, isNot(backupFile.path));
+      expect(fixture.file.path == backupFile.path, isFalse);
 
       final restored = NativeDatabase(backupFile);
       try {
