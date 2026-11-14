@@ -1,3 +1,24 @@
+# REV10 — CURRENT OWNER DECISION REGISTER ADDENDUM (2026-11-14)
+
+## ARVIN-DEC-2026-11-14-CENTER-PROJECT-CATEGORY-M2M
+
+| Field | Decision |
+|---|---|
+| Status | APPROVED — explicit Product Owner confirmation, 2026-11-14 |
+| Center ↔ Project | Many-to-Many; zero-to-many links from either side |
+| Project ↔ Category | Many-to-Many; zero-to-many links from either side |
+| Task → Center / Project / Category | Each independently optional, zero or one direct assignment |
+| Task ↔ Tag | Many-to-Many |
+| Supersedes | REV10 single-parent Center→Project and Project→Category rules; unresolved Project↔Category scoping in ADR-2026-10-10 |
+| Data safety | Preserve IDs, valid existing links, Task assignments and history; never guess missing Category↔Project links |
+| Implementation | APPROVED decision; schema, migration, UI and verification remain NOT VERIFIED |
+
+The canonical model is a relationship graph, not a mandatory single-parent tree. Task may remain standalone. Removing a link must not delete either endpoint. See docs/ADR/ADR-2026-11-14-CENTER-PROJECT-CATEGORY-M2M.md.
+
+Historical decisions remain preserved and must be marked SUPERSEDED, not erased.
+
+---
+
 # REV9 — CURRENT OWNER DECISION REGISTER ADDENDUM (2026-11-10)
 
 ## ARVIN-DEC-2026-11-10-LOCAL-FIRST — LOCAL-FIRST / SYNC SUSPENDED
@@ -471,7 +492,7 @@ The Product Owner's explicit command issued 2026-11-13 resolves REV9-004 without
 |---|---|---|---|
 | REV10-001 | Latest explicit Product Owner decisions outrank REV9 and older operational documents. | APPROVED | REV9 remains a verbatim archive; REV10 is the active master. |
 | REV10-002 | Arvin is Local-First / SQL-Only with one canonical durable database. | APPROVED | Preserve valid REV9 SQL-only requirements; no parallel permanent JSON or database. |
-| REV10-003 | Canonical ownership is Center → Project → Category → Task. | APPROVED | Project requires one Center; Category requires one Project; Task organization links remain optional. |
+| REV10-003 | Single-parent Center→Project and Project→Category ownership. | SUPERSEDED — 2026-11-14 | Replaced by ARVIN-DEC-2026-11-14-CENTER-PROJECT-CATEGORY-M2M; preserve this row as historical decision evidence only. |
 | REV10-004 | Task Center, Project and Category links are each 0..1; Tags are 0..N. | APPROVED | Do not force Task project/category links to NOT NULL; enforce cross-parent consistency at SQL level. |
 | REV10-005 | Entity Management Center manages Center, Project, Category, Tag and Person coherently. | APPROVED | Distinct entity tables and identities remain separate; all durable operations use canonical SQL services. |
 | REV10-006 | Global filter order is Time, Center, Project, Category, Tag. | APPROVED | SUPERSEDES the older four-dimension Home filter contract and any Branch-as-fifth-filter instruction. |
