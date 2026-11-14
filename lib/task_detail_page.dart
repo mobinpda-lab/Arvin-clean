@@ -2126,20 +2126,17 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                           ),
                         ],
                       ),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(child: _summaryCard()),
-                          const SizedBox(width: 4),
-                          IconButton(
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final summary = _summaryCard();
+                          final favoriteAction = IconButton(
                             key: const ValueKey('task-detail-favorite'),
                             tooltip: _task.isFavorite ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها',
                             onPressed: widget.onTaskChanged == null ? null : _toggleFavorite,
                             color: _task.isFavorite ? const Color(0xFFFFD166) : Colors.white,
                             icon: Icon(_task.isFavorite ? Icons.star_rounded : Icons.star_outline_rounded),
-                          ),
-                          const SizedBox(width: 4),
-                          PopupMenuButton<TaskPriority>(
+                          );
+                          final priorityAction = PopupMenuButton<TaskPriority>(
                             key: const ValueKey('task-detail-priority-menu'),
                             tooltip: 'اولویت کار',
                             initialValue: priority,
@@ -2155,8 +2152,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                               ArvinColors.priorityColor(priority),
                               icon: Icons.flag_outlined,
                             ),
-                          ),
-                          IconButton(
+                          );
+                          final completeAction = IconButton(
                             key: const ValueKey('task-detail-header-complete'),
                             tooltip: _task.completed ? 'بازگشت به انجام‌نشده' : 'انجام کار',
                             onPressed: widget.onComplete == null ? null : _complete,
@@ -2165,9 +2162,47 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                             icon: Icon(_task.completed
                                 ? Icons.check_circle_rounded
                                 : Icons.radio_button_unchecked_rounded),
-                          ),
-                        ],
+                          );
+
+                          // At phone widths, keep the summary full-width and place
+                          // every primary action on its own RTL row below it.
+                          // This gives the priority chip enough room without
+                          // removing or hiding any action.
+                          if (constraints.maxWidth < 480) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                summary,
+                                Align(
+                                  alignment: AlignmentDirectional.centerEnd,
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      favoriteAction,
+                                      const SizedBox(width: 4),
+                                      priorityAction,
+                                      completeAction,
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            );
+                          }
+
+                          return Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Expanded(child: summary),
+                              const SizedBox(width: 4),
+                              favoriteAction,
+                              const SizedBox(width: 4),
+                              priorityAction,
+                              completeAction,
+                            ],
+                          );
+                        },
                       ),
+
                     ],
                   ),
                 ),

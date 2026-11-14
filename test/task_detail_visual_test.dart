@@ -350,6 +350,15 @@ void main() {
       await tester.pump(const Duration(milliseconds: 350));
       await tester.pump();
 
+      for (final key in <String>[
+        'task-detail-favorite',
+        'task-detail-priority-menu',
+        'task-detail-header-complete',
+      ]) {
+        expect(find.byKey(ValueKey<String>(key)), findsOneWidget,
+            reason: '$key must remain available at $width dp');
+      }
+
       final list = tester.widget<ListView>(
         find.byKey(const ValueKey('task-detail-content-list')),
       );

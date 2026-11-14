@@ -229,7 +229,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('عنوان مشتق'), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey('notebook-note-${notes.single.id}')));
+    await tester.tap(find.byKey(ValueKey('notebook-note-${notes.single.id}')));
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const ValueKey('notebook-description')),
