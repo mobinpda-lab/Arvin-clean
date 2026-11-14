@@ -1,6 +1,8 @@
 # ADR-2026-10-10-PCTADP — Project / Category-Group / Tag
 
-- **Status:** Accepted as the product/domain vocabulary contract; implementation-conformance audit remains open.
+> **Supersession notice (2026-11-14):** This historical ADR remains preserved. Its taxonomy vocabulary, Category/Group unification, Tag distinction and Task optionality remain active. Its unresolved Category↔Project scoping and any single-parent interpretation are superseded by [ADR-2026-11-14-CENTER-PROJECT-CATEGORY-M2M.md](ADR-2026-11-14-CENTER-PROJECT-CATEGORY-M2M.md).
+
+- **Status:** SUPERSEDED IN PART by owner-approved ADR dated 2026-11-14. Category/Group terminology, Category/Tag distinction and Task optionality remain active; single-parent or unresolved Project↔Category scoping language is superseded. Implementation-conformance audit remains open.
 - **Decision date:** 2026-10-10
 - **Decision owner:** Arvin product owner
 - **Scope:** Task, Project, Category/Group, Tag, filters, search, reports, calendar, recurrence, backup/restore, Notebook and all UI/documentation surfaces.
@@ -42,7 +44,7 @@ Category and Tag are distinct and must remain distinct in the model, serializati
 
 The product vocabulary is **Project → Category → Task**, with Tags describing Tasks across that structure. Project answers “which broad domain?”, Category answers “which main section?”, and Tag answers “which attributes apply?”.
 
-This semantic hierarchy does **not**, by itself, assert that the current database enforces a Category-to-Project foreign key. Current code inspection found Project membership represented through Project-to-canonical-Task membership, while the Category catalog is stored separately and `Task.category` is its own field. Whether Categories must be physically scoped to a Project, or remain a shared catalog assignable alongside a Project, is an explicit implementation-conformance question to resolve in the audit before any schema/query change. Do not silently claim that the current schema already enforces Project → Category → Task.
+This semantic hierarchy does **not**, by itself, assert that the current database enforces a Category-to-Project foreign key. Current code inspection found Project membership represented through Project-to-canonical-Task membership, while the Category catalog is stored separately and `Task.category` is its own field. **Historical statement — SUPERSEDED 2026-11-14:** Category↔Project cardinality is no longer unresolved. The owner-approved contract is many-to-many in both directions, implemented through one canonical SQL join relation. Do not treat the former unresolved scoping question as active.
 
 ### 2.4 Filters and queries
 
@@ -72,7 +74,7 @@ This semantic hierarchy does **not**, by itself, assert that the current databas
 - All new features must reuse the canonical concepts and stores.
 - UI wording is simplified to «پروژه»، «دسته» and «برچسب».
 - Existing code/docs/tests that contradict the contract must be audited and corrected in focused changes.
-- A physical Category-to-Project relation, if required, needs a separately evidenced schema/design proposal and tests; it must not be inferred from a diagram alone.
+- The physical Category↔Project relation is APPROVED as many-to-many by the 2026-11-14 owner decision. Its schema, migration and tests remain implementation work and require exact-SHA evidence.
 - The broader conformance audit remains tracked by Issue #2580. This ADR registration does not mark that audit, related PRs or release gates complete.
 
 ## 5. Required pre-change checklist
