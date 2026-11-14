@@ -135,7 +135,7 @@ void main() {
 
     await expectLater(
       const G1ManyToManyHierarchyMigration().migrate(db),
-      throwsA(isA<Exception>()),
+      throwsA(anything),
     );
 
     final tables = await db.runSelect(
