@@ -523,3 +523,7 @@ The Product Owner's explicit command issued 2026-11-13 resolves REV9-004 without
 - Ambiguous legacy relationships must be preserved as exceptions, not guessed.
 
 REV10 approval does not imply implementation or verification. Exact-SHA source, test and workflow evidence remain mandatory.
+
+## 2026-11-14 — M2M implementation and historical test coverage clarification
+
+The approved cardinalities remain: Center↔Project M2M; Project↔Category M2M; Task→Center/Project/Category independently optional 0..1; Task↔Tag M2M. Single-parent mandatory ownership and parent-mutation assertions are superseded, not copied into the new model. Their valid safety intent is preserved through junction uniqueness, cross-path Task guards, endpoint deletion restrictions, relationship-only unlinking and migration parity tests. This clarification does not declare implementation or acceptance complete; all tests and gates require exact-SHA evidence.

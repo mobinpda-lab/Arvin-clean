@@ -893,3 +893,14 @@ Next safe work: read-only consumer and legacy-data inventory, then additive cand
 7. Continue read-only consumer inventory and additive schema work against existing G1. Preserve legacy tables, IDs, payloads and consumers until parity and backup/restore are proven.
 8. Main Orchestrator merge-capable logic remains a blocker. No Main/settings change without explicit owner approval.
 9. No merge, release, deployment or production data migration. Exact-SHA acceptance is NOT ESTABLISHED.
+
+## COMMAND 07-A.2.82 — active handoff
+1. Reconcile live PR #3463 HEAD before every action. Current candidate at this checkpoint: 26c8d6e449a2204edd95728e739dd07983263eb6; Main remains read-only.
+2. Poll only the exact candidate's Build, SQLite v20, Snapshot, Follow-up Persistence and Device Smoke runs listed in CURRENT_STATE. Queued/pending/skipped is never PASS.
+3. Re-run/verify the newly added Task insert/update guards, M2M index/trigger assertions, endpoint delete restrictions and direct Task→Category FK restriction.
+4. Do not transfer D01–D05 PASS from parent SHA 06bf4bc; rerun all gates on one final SHA.
+5. Diagnose the 41 baseline regression failures individually using OPEN_ISSUES and the exact run/job logs. Preserve assertions until the approved product contract proves a test obsolete.
+6. The 24 historical test coverage mapping is in OPEN_ISSUES. Four single-parent semantics are superseded by M2M; verify all remaining mappings on exact-SHA CI.
+7. Typography: retain Vazirmatn Regular 400 / Bold 700 as canonical; review w800/w900 call sites, verify actual APK rendering, run PDF embed/Unicode and visual checks, then seven Device Smoke scenarios.
+8. Architecture integration stays read-only until D01–D05 are reaccepted: migrate CenterStore, ProjectStore, TaskStore, Category CRUD, selectors, Home, Calendar, Reports, Search and Backup/Restore to the same M2M SQL model without parallel repositories.
+9. Keep PR #3463 and PR #3384 OPEN / DRAFT / UNMERGED. No Main write, merge, release, deployment, production database migration or history rewrite.

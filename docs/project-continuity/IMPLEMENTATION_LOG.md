@@ -1017,3 +1017,12 @@ The current execution branch is not the only source of valid work. The following
 **Failures:** test-0 and test-4 have 9 failures each. Home Center filter and Orchestrator merge/ready expectations conflict with approved contracts; other failures require source-level diagnosis. Analyze and four remaining shards have no terminal result. No runner-capacity cause is proven.
 **Governance:** PR #3448 is OPEN / DRAFT / UNMERGED and is the REV10 source. Main Orchestrator merge-capable logic remains a critical blocker. D01–D05 remain PARTIAL / NOT ACCEPTED. No user database migration, merge, release or deployment is authorized.
 This checkpoint does not transfer PASS to a later SHA or declare product acceptance.
+
+## COMMAND 07-A.2.82 — implementation log — 2026-11-14
+
+- 3cb6ddc41adbe20e8f4395b0018a9256af60e1aa: added regression coverage for Task M2M insert/update compatibility paths and endpoint deletion restrictions.
+- 1cb51888651550cd80b2901923291af441110498: added explicit sqlite_master assertions for canonical M2M indexes and insert/update guard triggers.
+- 26c8d6e449a2204edd95728e739dd07983263eb6: extended Category endpoint deletion coverage to prove a direct Task→Category FK also restricts deletion after M2M edges are removed.
+- These are test-only changes. No production implementation, Main, PR #3384 or NIRA was modified.
+- Parent SHA 06bf4bc80c630570094fbcc2eb2b6bd3b6c3c8f7 had successful SQLite v20 run 43593027688 and five-cycle Snapshot run 43593027733; these results are historical and not transferred to the current candidate.
+- Current candidate SHA 26c8d6e449a2204edd95728e739dd07983263eb6 has SQLite/Device/Snapshot/Follow-up runs queued and Build pending. Exact-SHA acceptance remains pending.

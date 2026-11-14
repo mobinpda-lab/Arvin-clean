@@ -462,3 +462,14 @@ The active `main-protection` ruleset remains insufficient: zero required approva
 - Complete five-weight APK audit for Debug/Release and actual PDF embedding/shaping validation.
 - Complete SQLite D01-D05 and five persistence cycles on one exact SHA; do not transfer older snapshot evidence.
 - Enable required CODEOWNER approval in the active Ruleset; current ruleset remains at zero approvals and code-owner review disabled.
+
+## COMMAND 07-A.2.82 — prioritized delivery sequence — 2026-11-14
+
+1. P0 — Exact-SHA SQLite acceptance: poll and complete D01–D05, Snapshot, Follow-up Persistence and Build on one current candidate. Never transfer parent SHA PASS.
+2. P0 — Regression recovery: investigate the 41 inherited test failures individually; distinguish production defects from outdated expectations only with approved contract evidence.
+3. P0 — Coverage preservation: execute the 24-test historical coverage reconciliation; preserve M2M equivalents and explicitly document only the four superseded single-parent behaviors.
+4. P0 — Typography: normalize w800/w900 custom styles where no approved exception exists; run exact-SHA Analyze, APK, PDF embed/Unicode and actual rendered-device validation.
+5. P1 — Canonical repository integration after SQLite acceptance: migrate CenterStore, ProjectStore, TaskStore, Category CRUD, selectors, Home filters, Calendar, Reports, Search, Notebook and Backup/Restore to one M2M SQL source of truth. No parallel repositories or destructive legacy retirement.
+6. P1 — Product backup parity: integrate physical SQLite backup/restore in the production service path and verify independent restore, IDs, metadata, foreign keys and rollback.
+
+Release remains NO-GO. No merge, deployment or production data migration is authorized.

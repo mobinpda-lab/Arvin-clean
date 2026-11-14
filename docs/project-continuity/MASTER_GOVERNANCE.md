@@ -527,3 +527,12 @@ Record each question, its source, affected schema/UX/tests, safe interim behavio
 **ARVIN — COMPLETE, CONSISTENT, LOCAL-FIRST, ENTERPRISE-READY.**
 
 **Merge: NOT AUTHORIZED. Release: NOT AUTHORIZED. Deployment: NOT AUTHORIZED.**
+
+## COMMAND 07-A.2.82 governance addendum — 2026-11-14
+
+- Current execution authority remains PR #3463 only; its current candidate is 26c8d6e449a2204edd95728e739dd07983263eb6. PR #3384 remains its OPEN / DRAFT / UNMERGED parent dependency at 310c0e20e3447c488c1e1c102c38bea5040708ca.
+- Main remains read-only at 45e4202b03a434459e4c021a04efa7e8396359db. Merge, release, deployment, production database migration, destructive cleanup and history rewriting remain unauthorized.
+- All acceptance evidence is SHA-bound. Parent SHA 06bf4bc passed D01–D05 but does not establish acceptance of the current SHA.
+- Historical test intent must be mapped individually. The four single-parent ownership/mutation semantics are superseded by the explicit M2M decision; valid safety behavior remains tested under edge/link semantics. No valid test may disappear silently.
+- Repository integration remains read-only until SQLite acceptance; typography rendering must be verified in APK/PDF rather than inferred from declarations.
+- Keep PR #3463 and #3384 open, draft and unmerged. NIRA remains untouched.
