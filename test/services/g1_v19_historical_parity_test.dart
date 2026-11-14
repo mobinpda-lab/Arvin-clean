@@ -67,7 +67,7 @@ void main() {
       expect(await restored.runSelect('SELECT id FROM persons WHERE id = ?', const ['person-legacy']), hasLength(1));
       expect(await restored.runSelect('SELECT * FROM follow_up_record_people', const []), hasLength(1));
       expect(await restored.runSelect('SELECT * FROM task_tags', const []), hasLength(2));
-      expect(await restored.runSelect('SELECT id FROM task_reminders ORDER BY id', const []), hasLength(2));
+      expect(await restored.runSelect('SELECT id FROM task_reminders ORDER BY id', const []), hasLength(3));
       expect(await restored.runSelect('PRAGMA foreign_key_check(center_projects)', const []), isEmpty);
       expect(await restored.runSelect('PRAGMA foreign_key_check(project_categories)', const []), isEmpty);
       expect(await restored.runSelect('PRAGMA foreign_key_check(tasks)', const []), isEmpty);
@@ -218,6 +218,8 @@ void main() {
       expect(destinationReminders, containsAll(sourceReminders));
       expect(destinationReminders, hasLength(sourceReminders.length + 1),
           reason: 'The legacy Follow-up reminder is migrated once as an independent Task Reminder.');
+      expect(destinationReminders.any((row) => row['id'] == 'reminder-v19-disabled' &&
+          row['is_all_day'] == 1 && row['is_enabled'] == 0), isTrue);
 
       final nullTask = (await upgraded.runSelect(
         'SELECT legacy_payload_json FROM tasks WHERE id = ?',
@@ -292,7 +294,7 @@ void main() {
       await reopened.ensureOpen(G1DriftSchema());
       expect((await reopened.runSelect('PRAGMA user_version', const [])).single.values.first, 20);
       expect(await reopened.runSelect('SELECT id FROM follow_up_records ORDER BY id', const []), hasLength(2));
-      expect(await reopened.runSelect('SELECT id FROM task_reminders ORDER BY id', const []), hasLength(2));
+      expect(await reopened.runSelect('SELECT id FROM task_reminders ORDER BY id', const []), hasLength(3));
       expect(await reopened.runSelect('SELECT * FROM center_projects', const []), hasLength(1));
       expect(await reopened.runSelect('PRAGMA integrity_check', const []), [{'integrity_check': 'ok'}]);
     } finally {
@@ -454,6 +456,9 @@ Future<void> _createHistoricalV19Fixture(QueryExecutor db) async {
   await db.runCustom('''INSERT INTO task_reminders
     (id, task_id, title, remind_at, is_all_day, sequence, is_enabled, is_legacy_task_reminder)
     VALUES ('reminder-v19', 'task-primary', 'یادآور قدیمی', '2026-11-07T09:00:00.000', 0, 0, 1, 1)''');
+  await db.runCustom('''INSERT INTO task_reminders
+    (id, task_id, title, remind_at, is_all_day, sequence, is_enabled, is_legacy_task_reminder)
+    VALUES ('reminder-v19-disabled', 'task-true', 'یادآور غیرفعال', '2026-11-08', 1, 0, 0, 1)''');
   await db.runCustom("INSERT INTO arvin_storage_meta VALUES ('owner-metadata', 'preserve-me')");
   await db.runCustom('PRAGMA foreign_keys = ON');
 }
