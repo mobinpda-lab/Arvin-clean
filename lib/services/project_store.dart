@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -12,23 +13,24 @@ import 'project_plan_codec.dart';
 import 'sql_project_migration_writer.dart';
 import 'task_store.dart';
 
-/// Canonical local persistence for Arvin Projects.
-///
-/// Project membership stores only canonical Task ids through [ProjectPlan].
-/// The collection now uses the same SQLite/Drift database as canonical Tasks;
-/// legacy SharedPreferences is read only once for migration.
+typedef ProjectStoreFailureInjector = FutureOr<void> Function(String stage);
+
+/// The single SQL owner for Project rows and their canonical junction edges.
+/// save() is an additive/partial Upsert; omitted Projects and relationships
+/// are never interpreted as delete instructions.
 class ProjectStore {
   ProjectStore({
     this.codec = const ProjectPlanCodec(),
     QueryExecutor? executor,
+    this.failureInjector,
   }) : _injectedExecutor = executor;
 
   static const String key = 'arvin.projects';
   static QueryExecutor? _sharedDatabase;
   static QueryExecutor? _testDatabase;
-
   final ProjectPlanCodec codec;
   final QueryExecutor? _injectedExecutor;
+  final ProjectStoreFailureInjector? failureInjector;
 
   static Future<void> resetTestDatabase() async {
     final executor = _testDatabase;
@@ -45,19 +47,17 @@ class ProjectStore {
     return _sharedDatabase ??= driftDatabase(name: 'arvin');
   }
 
+  Future<void> _inject(String stage) async => await failureInjector?.call(stage);
+
   Future<void> _ensureReady() async {
     final executor = _database;
     await G1DriftSchema.install(executor);
-    // Tasks own the referenced identity. Migrate/initialize them first so
-    // legacy Project memberships can satisfy the SQL foreign key without
-    // losing any membership during the one-way cutover.
     await TaskStore(executor: executor).load();
     final marker = await executor.runSelect(
       "SELECT value FROM arvin_storage_meta WHERE key = 'legacy_projects_migrated'",
       const [],
     );
     if (marker.isNotEmpty && marker.single['value'] == '1') return;
-
     final preferences = await SharedPreferences.getInstance();
     await SqlProjectMigrationWriter(codec: codec).migrateFromPreferences(
       executor: executor,
@@ -69,65 +69,118 @@ class ProjectStore {
     final executor = _database;
     await _ensureReady();
     final rows = await executor.runSelect(
-      'SELECT * FROM projects ORDER BY storage_ordinal, id',
-      const [],
+      'SELECT * FROM projects ORDER BY storage_ordinal, id', const [],
     );
     final result = <ProjectPlan>[];
     for (final row in rows) {
+      final id = row['id'] as String;
       final itemRows = await executor.runSelect(
         'SELECT task_id FROM project_items WHERE project_id = ? ORDER BY ordinal',
-        <Object?>[row['id']],
+        <Object?>[id],
       );
-      result.add(codec.decode({
-        'id': row['id'],
+      final centerRows = await executor.runSelect(
+        'SELECT center_id FROM center_projects WHERE project_id = ? ORDER BY center_id',
+        <Object?>[id],
+      );
+      final categoryRows = await executor.runSelect(
+        'SELECT category_id FROM project_categories WHERE project_id = ? ORDER BY category_id',
+        <Object?>[id],
+      );
+      final rawEnvelope = row['legacy_payload_json'];
+      final envelope = rawEnvelope is String && rawEnvelope.trim().isNotEmpty
+          ? jsonDecode(rawEnvelope) : <String, dynamic>{};
+      if (envelope is! Map) {
+        throw FormatException('Project legacy envelope is invalid for ${id}');
+      }
+      result.add(codec.decode(<String, dynamic>{
+        ...Map<String, dynamic>.from(envelope),
+        'id': id,
         'title': row['name'],
         'colorValue': row['color_value'],
         'isArchived': (row['is_archived'] as num?)?.toInt() == 1,
-        'centerId': row['center_id'] as String?,
-        'templateId': row['template_id'] as String?,
-        'templateNameSnapshot': row['template_name_snapshot'] as String?,
+        'centerIds': centerRows.map((item) => item['center_id'] as String).toList(),
+        'categoryIds': categoryRows.map((item) => item['category_id'] as String).toList(),
+        'templateId': row['template_id'],
+        'templateNameSnapshot': row['template_name_snapshot'],
         'itemIds': itemRows.map((item) => item['task_id'] as String).toList(),
       }));
     }
     return List<ProjectPlan>.unmodifiable(result);
   }
 
+  /// Upserts only the supplied identities. Existing rows, Task links,
+  /// template applications, and unspecified relationships remain untouched.
   Future<void> save(Iterable<ProjectPlan> projects) async {
     final executor = _database;
     await _ensureReady();
     final values = List<ProjectPlan>.of(projects);
+    final ids = <String>{};
+    for (final project in values) {
+      if (project.id.trim().isEmpty || !ids.add(project.id)) {
+        throw ArgumentError('Project IDs must be non-empty and unique in one save.');
+      }
+    }
+
     await executor.runCustom('BEGIN');
     try {
-      final templateApplications = await executor.runSelect(
-        'SELECT template_task_id, project_id, task_id FROM template_task_applications', const [],
-      );
-      final legacyEnvelopeRows = await executor.runSelect(
-        'SELECT id, legacy_payload_json FROM projects', const [],
-      );
-      final preservedProjectFields = <String, Map<String, dynamic>>{};
-      for (final row in legacyEnvelopeRows) {
-        final raw = row['legacy_payload_json'];
-        if (raw is! String || raw.trim().isEmpty) continue;
-        final decoded = jsonDecode(raw);
-        if (decoded is! Map) {
-          throw FormatException('Project legacy envelope is invalid for ${row['id']}');
-        }
-        preservedProjectFields[row['id'] as String] =
-            Map<String, dynamic>.from(decoded);
-      }
-      await executor.runCustom('DELETE FROM template_task_applications');
-      await executor.runCustom('DELETE FROM project_items');
-      await executor.runCustom('DELETE FROM projects');
-      for (var ordinal = 0; ordinal < values.length; ordinal++) {
-        await _insertProject(executor, values[ordinal], ordinal, preservedProjectFields[values[ordinal].id]);
-      }
-      for (final row in templateApplications) {
-        await executor.runInsert(
-          '''INSERT OR IGNORE INTO template_task_applications (template_task_id, project_id, task_id)
-             SELECT ?, ?, ? WHERE EXISTS (SELECT 1 FROM project_items WHERE project_id = ? AND task_id = ?)''',
-          <Object?>[row['template_task_id'], row['project_id'], row['task_id'], row['project_id'], row['task_id']],
+      for (final project in values) {
+        final existing = await executor.runSelect(
+          'SELECT id, storage_ordinal, legacy_payload_json FROM projects WHERE id = ?',
+          <Object?>[project.id],
         );
+        final isNew = existing.isEmpty;
+        final ordinal = isNew
+            ? await _nextOrdinal(executor)
+            : (existing.single['storage_ordinal'] as num).toInt();
+        final oldEnvelope = isNew
+            ? <String, dynamic>{}
+            : _decodeEnvelope(existing.single['legacy_payload_json'], project.id);
+        final payload = <String, dynamic>{
+          ...oldEnvelope,
+          ...project.legacyFields,
+          ...codec.encode(project),
+        };
+
+        if (isNew) {
+          await executor.runInsert(
+            '''INSERT INTO projects
+               (id, storage_ordinal, name, color_value, is_archived, center_id,
+                template_id, template_name_snapshot, legacy_payload_json)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+            <Object?>[
+              project.id, ordinal, project.title, project.colorValue,
+              project.isArchived ? 1 : 0,
+              project.centerRelationshipsSpecified ? project.centerId : null,
+              project.templateId, project.templateNameSnapshot, jsonEncode(payload),
+            ],
+          );
+        } else {
+          await executor.runUpdate(
+            '''UPDATE projects SET name = ?, color_value = ?, is_archived = ?,
+               center_id = ?, template_id = ?, template_name_snapshot = ?,
+               legacy_payload_json = ? WHERE id = ?''',
+            <Object?>[
+              project.title, project.colorValue, project.isArchived ? 1 : 0,
+              project.centerRelationshipsSpecified
+                  ? project.centerId : oldEnvelope['centerId'],
+              project.templateId, project.templateNameSnapshot,
+              jsonEncode(payload), project.id,
+            ],
+          );
+        }
+
+        if (project.centerRelationshipsSpecified) {
+          await _replaceCenters(executor, project.id, project.centerIds);
+        }
+        if (project.categoryRelationshipsSpecified) {
+          await _replaceCategories(executor, project.id, project.categoryIds);
+        }
+        if (project.itemIdsSpecified) {
+          await _replaceItems(executor, project.id, project.itemIds);
+        }
+        await _inject('after_project_${project.id}');
       }
+      await _inject('before_commit');
       await executor.runCustom('COMMIT');
     } catch (_) {
       try { await executor.runCustom('ROLLBACK'); } catch (_) {}
@@ -135,31 +188,123 @@ class ProjectStore {
     }
   }
 
-  Future<void> clear() => save(const <ProjectPlan>[]);
-
-  Future<void> _insertProject(QueryExecutor executor, ProjectPlan project, int storageOrdinal, [Map<String, dynamic>? preservedFields]) async {
-    await executor.runInsert(
-      '''INSERT INTO projects
-         (id, storage_ordinal, name, color_value, is_archived, center_id, template_id, template_name_snapshot, legacy_payload_json)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-      <Object?>[
-        project.id,
-        storageOrdinal,
-        project.title,
-        project.colorValue,
-        project.isArchived ? 1 : 0,
-        project.centerId,
-        project.templateId,
-        project.templateNameSnapshot,
-        jsonEncode(<String, dynamic>{...?preservedFields, ...codec.encode(project)}),
-      ],
+  Future<int> _nextOrdinal(QueryExecutor executor) async {
+    final rows = await executor.runSelect(
+      'SELECT COALESCE(MAX(storage_ordinal), -1) + 1 AS next_ordinal FROM projects',
+      const [],
     );
-    for (var ordinal = 0; ordinal < project.itemIds.length; ordinal++) {
+    return (rows.single['next_ordinal'] as num).toInt();
+  }
+
+  Map<String, dynamic> _decodeEnvelope(Object? raw, String id) {
+    if (raw == null) return <String, dynamic>{};
+    if (raw is! String || raw.trim().isEmpty) {
+      throw FormatException('Project legacy envelope is invalid for ${id}');
+    }
+    final decoded = jsonDecode(raw);
+    if (decoded is! Map) throw FormatException('Project legacy envelope is invalid for ${id}');
+    return Map<String, dynamic>.from(decoded);
+  }
+
+  Future<void> _replaceCenters(QueryExecutor executor, String projectId, Iterable<String> centerIds) async {
+    await executor.runDelete('DELETE FROM center_projects WHERE project_id = ?', <Object?>[projectId]);
+    for (final centerId in centerIds.toSet().toList()..sort()) {
       await executor.runInsert(
-        '''INSERT INTO project_items (project_id, task_id, ordinal)
-           VALUES (?, ?, ?)''',
-        <Object?>[project.id, project.itemIds[ordinal], ordinal],
+        'INSERT INTO center_projects (center_id, project_id) VALUES (?, ?)',
+        <Object?>[centerId, projectId],
       );
     }
+  }
+
+  Future<void> _replaceCategories(QueryExecutor executor, String projectId, Iterable<String> categoryIds) async {
+    await executor.runDelete('DELETE FROM project_categories WHERE project_id = ?', <Object?>[projectId]);
+    for (final categoryId in categoryIds.toSet().toList()..sort()) {
+      await executor.runInsert(
+        'INSERT INTO project_categories (project_id, category_id) VALUES (?, ?)',
+        <Object?>[projectId, categoryId],
+      );
+    }
+  }
+
+  Future<void> _replaceItems(QueryExecutor executor, String projectId, Iterable<String> taskIds) async {
+    final ids = taskIds.toList();
+    if (ids.toSet().length != ids.length) throw ArgumentError('Project Task IDs must be unique.');
+    await executor.runDelete('DELETE FROM project_items WHERE project_id = ?', <Object?>[projectId]);
+    for (var ordinal = 0; ordinal < ids.length; ordinal++) {
+      await executor.runInsert(
+        'INSERT INTO project_items (project_id, task_id, ordinal) VALUES (?, ?, ?)',
+        <Object?>[projectId, ids[ordinal], ordinal],
+      );
+    }
+  }
+
+  Future<void> delete(String projectId) async {
+    final executor = _database;
+    await _ensureReady();
+    await executor.runCustom('BEGIN');
+    try {
+      final refs = await executor.runSelect(
+        '''SELECT
+          (SELECT COUNT(*) FROM project_items WHERE project_id = ?) AS items,
+          (SELECT COUNT(*) FROM template_task_applications WHERE project_id = ?) AS templates,
+          (SELECT COUNT(*) FROM tasks WHERE project_id = ?) AS task_refs''',
+        <Object?>[projectId, projectId, projectId],
+      );
+      final row = refs.single;
+      final count = (row['items'] as num).toInt() +
+          (row['templates'] as num).toInt() +
+          (row['task_refs'] as num).toInt();
+      if (count > 0) throw ProjectDeleteBlocked(projectId);
+      await executor.runDelete('DELETE FROM center_projects WHERE project_id = ?', [projectId]);
+      await executor.runDelete('DELETE FROM project_categories WHERE project_id = ?', [projectId]);
+      final deleted = await executor.runDelete('DELETE FROM projects WHERE id = ?', [projectId]);
+      if (deleted != 1) throw StateError('Project not found: ${projectId}');
+      await executor.runCustom('COMMIT');
+    } catch (_) {
+      try { await executor.runCustom('ROLLBACK'); } catch (_) {}
+      rethrow;
+    }
+  }
+
+  /// Explicitly destructive collection operation. It performs checked,
+  /// per-Project deletion and never recreates the projects table.
+  Future<void> clear() async {
+    final ids = (await load()).map((project) => project.id).toList();
+    for (final id in ids) {
+      await delete(id);
+    }
+  }
+
+  Future<void> removeCenterRelationship(String projectId, String centerId) async {
+    final executor = _database;
+    await _ensureReady();
+    await executor.runCustom('BEGIN');
+    try {
+      await executor.runDelete(
+        'DELETE FROM center_projects WHERE project_id = ? AND center_id = ?',
+        <Object?>[projectId, centerId],
+      );
+      final remaining = await executor.runSelect(
+        'SELECT center_id FROM center_projects WHERE project_id = ? ORDER BY center_id',
+        <Object?>[projectId],
+      );
+      await executor.runUpdate(
+        'UPDATE projects SET center_id = ? WHERE id = ?',
+        <Object?>[remaining.length == 1 ? remaining.single['center_id'] : null, projectId],
+      );
+      await executor.runCustom('COMMIT');
+    } catch (_) {
+      try { await executor.runCustom('ROLLBACK'); } catch (_) {}
+      rethrow;
+    }
+  }
+
+  Future<void> removeCategoryRelationship(String projectId, String categoryId) async {
+    final executor = _database;
+    await _ensureReady();
+    await executor.runDelete(
+      'DELETE FROM project_categories WHERE project_id = ? AND category_id = ?',
+      <Object?>[projectId, categoryId],
+    );
   }
 }
