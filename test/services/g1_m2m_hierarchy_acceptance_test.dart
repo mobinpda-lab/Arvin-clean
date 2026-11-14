@@ -462,6 +462,27 @@ void main() {
     }
   });
 
+  test('canonical M2M indexes and Task hierarchy guard triggers are installed', () async {
+    final fixture = await _openCanonicalFixture();
+    try {
+      final objects = (await fixture.database.runSelect(
+        "SELECT name, type FROM sqlite_master WHERE type IN ('index', 'trigger')",
+        const [],
+      )).map((row) => row['type'].toString() + ':' + row['name'].toString()).toSet();
+
+      expect(objects, contains('index:idx_center_projects_project_center'));
+      expect(objects, contains('index:idx_project_categories_category_project'));
+      expect(objects, contains('index:idx_tasks_center_id'));
+      expect(objects, contains('index:idx_tasks_project_id'));
+      expect(objects, contains('index:idx_tasks_category_id'));
+      expect(objects, contains('trigger:rev10_m2m_task_hierarchy_insert'));
+      expect(objects, contains('trigger:rev10_m2m_task_hierarchy_update'));
+    } finally {
+      await fixture.database.close();
+      await fixture.directory.delete(recursive: true);
+    }
+  });
+
   test('M2M relations, Task, Tag, Person, Follow-up and Reminder survive independent physical restore', () async {
     final fixture = await _openCanonicalFixture();
     final backupFile = File('${fixture.directory.path}/restored.sqlite');
