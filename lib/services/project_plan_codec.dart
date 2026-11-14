@@ -17,13 +17,13 @@ class ProjectPlanCodec {
       'title': project.title,
       'colorValue': project.colorValue,
       'isArchived': project.isArchived,
-      'centerIds': List<String>.of(project.centerIds),
-      'categoryIds': List<String>.of(project.categoryIds),
-      if (project.centerId != null) 'centerId': project.centerId,
+      if (project.centerRelationshipsSpecified) 'centerIds': List<String>.of(project.centerIds),
+      if (project.categoryRelationshipsSpecified) 'categoryIds': List<String>.of(project.categoryIds),
+      if (project.centerRelationshipsSpecified && project.centerId != null) 'centerId': project.centerId,
       if (project.templateId != null) 'templateId': project.templateId,
       if (project.templateNameSnapshot != null)
         'templateNameSnapshot': project.templateNameSnapshot,
-      'itemIds': List<String>.of(project.itemIds),
+      if (project.itemIdsSpecified) 'itemIds': List<String>.of(project.itemIds),
     };
   }
 
