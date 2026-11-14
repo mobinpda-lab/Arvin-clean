@@ -192,7 +192,7 @@ void main() {
     await legacyDatabase.close();
   });
 
-  test('real Drift beforeOpen uses its callback executor before version registration', () async {
+  test('D01 fresh install: real Drift beforeOpen registers v20 after lifecycle success', () async {
     final executor = NativeDatabase.memory();
     final schema = _ObservedG1DriftSchema(executor);
     try {
@@ -220,7 +220,7 @@ void main() {
     }
   });
 
-  test('pre-opened v19 executor upgrades once and preserves hierarchy on repeated install', () async {
+  test('D01 pre-opened executor: v19 upgrades once and repeated install is idempotent', () async {
     final executor = NativeDatabase.memory();
     await executor.ensureOpen(_V19TestUser());
     await executor.runCustom('PRAGMA foreign_keys = ON');
@@ -285,7 +285,7 @@ void main() {
     }
   });
 
-  test('upgrades an independently created SQLite v19 file and recovers on reopen', () async {
+  test('D01 v19 compatibility: independently created file upgrades and reopens', () async {
     final directory = await Directory.systemTemp.createTemp('arvin-v19-to-v20-');
     final file = File('${directory.path}/historical-v19.sqlite');
     final historical = NativeDatabase(file);
