@@ -44,6 +44,7 @@ class SqlProjectMigrationWriter {
           <Object?>[entry.project.id],
         );
         if (existing.isNotEmpty) {
+          await _ensureCanonicalRelations(executor, entry.project);
           await _assertProjectParity(executor, entry.project, entry.source, ordinal);
           skippedExisting++;
           continue;
@@ -60,6 +61,7 @@ class SqlProjectMigrationWriter {
             entry.project.templateNameSnapshot, jsonEncode(entry.source),
           ],
         );
+        await _ensureCanonicalRelations(executor, entry.project);
         for (var itemOrdinal = 0; itemOrdinal < entry.project.itemIds.length; itemOrdinal++) {
           await executor.runInsert(
             'INSERT INTO project_items (project_id, task_id, ordinal) VALUES (?, ?, ?)',
@@ -109,6 +111,28 @@ class SqlProjectMigrationWriter {
     );
   }
 
+  Future<void> _ensureCanonicalRelations(QueryExecutor executor, ProjectPlan project) async {
+    for (final centerId in project.centerIds) {
+      await executor.runInsert(
+        'INSERT OR IGNORE INTO center_projects (center_id, project_id) VALUES (?, ?)',
+        <Object?>[centerId, project.id],
+      );
+    }
+    for (final categoryId in project.categoryIds) {
+      final category = await executor.runSelect(
+        'SELECT id FROM categories WHERE id = ?',
+        <Object?>[categoryId],
+      );
+      if (category.isEmpty) {
+        throw StateError('Project ${project.id} references unknown Category $categoryId.');
+      }
+      await executor.runInsert(
+        'INSERT OR IGNORE INTO project_categories (project_id, category_id) VALUES (?, ?)',
+        <Object?>[project.id, categoryId],
+      );
+    }
+  }
+
   Future<void> _assertProjectParity(
     QueryExecutor executor, ProjectPlan project,
     Map<String, dynamic> source, int ordinal,
@@ -133,6 +157,22 @@ class SqlProjectMigrationWriter {
     if (rawEnvelope is! String ||
         _canonicalJson(jsonDecode(rawEnvelope)) != _canonicalJson(source)) {
       throw StateError('Project unknown-field/envelope conflict for ${project.id}.');
+    }
+    final centerEdges = await executor.runSelect(
+      'SELECT center_id FROM center_projects WHERE project_id = ? ORDER BY center_id',
+      <Object?>[project.id],
+    );
+    final categoryEdges = await executor.runSelect(
+      'SELECT category_id FROM project_categories WHERE project_id = ? ORDER BY category_id',
+      <Object?>[project.id],
+    );
+    final actualCenters = centerEdges.map((item) => item['center_id'] as String).toList();
+    final expectedCenters = project.centerIds.toList()..sort();
+    final actualCategories = categoryEdges.map((item) => item['category_id'] as String).toList();
+    final expectedCategories = project.categoryIds.toList()..sort();
+    if (_canonicalJson(actualCenters) != _canonicalJson(expectedCenters) ||
+        _canonicalJson(actualCategories) != _canonicalJson(expectedCategories)) {
+      throw StateError('Project relationship parity conflict for ${project.id}.');
     }
     final membership = await executor.runSelect(
       'SELECT task_id, ordinal FROM project_items WHERE project_id = ? ORDER BY ordinal',

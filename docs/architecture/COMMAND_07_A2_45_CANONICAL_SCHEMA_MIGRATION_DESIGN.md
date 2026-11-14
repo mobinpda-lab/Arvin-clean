@@ -312,3 +312,55 @@ The current code is Local-First and uses SQLite for canonical core tables, but t
 - Category normalization and Project movement policy remain unresolved.
 
 This addendum is a source audit and authorization reconciliation. It does not claim schema implementation, migration, production-data inventory or D01–D05 acceptance.
+
+
+---
+
+## REV10 implementation update — canonical Project persistence — 2026-11-14
+
+**Implementation branch:** `rev10-m2m-v19-test-expansion`  
+**Primary PR:** #3463 (OPEN / DRAFT / UNMERGED)  
+**Starting implementation SHA:** `3cf03a2dae25ba0bea0afd23b12bfaf982001658`  
+**Main at pre-documentation verification:** `45e4202b03a434459e4c021a04efa7e8396359db`  
+**Related PRs:** #3384 `310c0e20e3447c488c1e1c102c38bea5040708ca`; #3470 `d7c9322afb9cb32e607f53e139f8bd82a984c805`.
+
+This update supersedes the earlier statement in this document that Project relationship implementation had not yet started. It does not claim acceptance or release readiness.
+
+### Implemented source changes
+
+- `lib/models/goal_project.dart`: the existing `ProjectPlan` now carries sorted, unique `centerIds` and `categoryIds`; the legacy `centerId` getter remains a compatibility projection only when exactly one Center is linked. The model tracks whether relationships, Task membership and optional metadata were explicitly supplied, so omitted fields are not treated as deletion. Equality and hashing include canonical ID collections and deep historical metadata.
+- `lib/services/project_plan_codec.dart`: the existing codec reads legacy `centerId` and the new multi-ID fields, distinguishes absent fields from explicit NULL/empty values, writes deterministic arrays and carries unknown historical JSON fields.
+- `lib/services/project_store.dart`: ordinary `save()` is now a transaction-scoped Upsert of supplied Project IDs. It does not delete/recreate the `projects` table and does not delete Projects omitted from a partial update. Center and Category edges are updated only when explicitly supplied. Task membership is updated only when explicitly supplied. The existing Project ID, storage ordinal, optional template metadata and legacy payload are retained on partial updates. Explicit collection writes use `saveCollection()`; rollback uses `restoreSnapshot()`; deletion is dependency-checked.
+- `lib/services/center_store.dart`: canonical Center↔Project edges are read and changed through `center_projects`. Edge removal is independent of Project deletion. Center deletion checks canonical and legacy Project references plus direct Task references in a transaction.
+- `lib/services/sql_project_migration_writer.dart`: legacy Project migration writes canonical Center/Category edges and checks relationship parity without introducing a second codec.
+- `lib/services/project_template_service.dart` and `lib/services/task_store.dart`: template generation remains one transaction across generated Tasks and their Project. The Project row and canonical Center/Category edges are now written through the existing ProjectStore transaction-scoped writer; TaskStore retains Task and template-application writes.
+- `lib/projects_page.dart`, `lib/main.dart`, `lib/notebook_page.dart`, `lib/projects_launcher.dart`: Project editing, Home Center filters, Notebook Center filters and explicit collection deletion now account for multiple Center edges and use safe collection persistence.
+- Backup restore continues to merge Projects through ProjectStore; rollback now restores the captured Project snapshot explicitly rather than relying on additive Upsert to remove restore-only rows.
+
+### Consumer audit disposition
+
+The inspected caller set includes Home restore and rollback (`lib/main.dart`), Backup page restore and rollback (`lib/backup_page.dart`), scheduled backup serialization (`lib/backup_background_runner.dart`), the backup bridge (`lib/services/project_backup_bridge.dart`), Task↔Project assignment (`lib/services/task_project_assignment_service.dart`), Projects page/launcher (`lib/projects_page.dart`, `lib/projects_launcher.dart`), template generation and propagation (`lib/services/project_template_service.dart`, `lib/services/task_store.dart`), Home editor context, Notebook repository/page, and the Project selector. Home and Notebook Center filtering now test all Project Center IDs. The existing Task Category selector remains a Task taxonomy selector; there is not yet a Project Category picker in the Project editor.
+
+### Added/extended test coverage
+
+- `test/center_store_test.dart`: many-Project/many-Center relationships, independent edge removal, and Center deletion dependency checks.
+- `test/project_store_transactional_test.dart`: stable ID and historical metadata, multiple Center/Category edges, independent relationship removal, Task/project_items preservation, injected transaction rollback, idempotent Upsert, file-backed reopen, template application preservation, rollback snapshot and safe collection removal.
+- `test/project_backup_relationship_restore_test.dart`: canonical Project backup bridge restore with multiple Center and Category IDs.
+- `test/project_plan_codec_test.dart`: legacy compatibility, multi-ID round-trip, unknown-field retention, NULL-versus-missing semantics, deterministic equality and explicit replacement semantics.
+- `test/projects_page_test.dart`: multi-Center Project editing.
+
+### Evidence boundary and remaining limitations
+
+At the time of this documentation update, the exact-head Build workflow had been queued/pending; no analyzer, test-shard or workflow conclusion is promoted to PASS here. The twelve requested acceptance areas are implemented as test cases, but they remain **NOT ACCEPTED** until the exact final SHA has completed Analyze and all test shards successfully. Any queued, cancelled or skipped job remains non-PASS.
+
+Known limitations that must remain visible:
+1. `projects` has no dedicated SQL `created_at` column in the current schema. Historical creation timestamps are preserved in the legacy payload where present; this update does not fabricate a new timestamp or add an unversioned schema column.
+2. Portable backup currently carries the Category catalog as names, while Project↔Category edges carry stable Category IDs. Cross-device restoration of a Category edge whose ID is absent from the target catalog requires an ID-preserving Category backup contract; the store fails safely rather than inventing a Category.
+3. The Project editor now supports multiple Centers, but a Project Category selector is not yet present.
+4. Template generation still requires one unambiguous application Center because the existing active-template uniqueness rule is keyed by `projects.center_id`. A multi-Center Project cannot silently choose one.
+5. TaskStore's separate Task rewrite still snapshots and transactionally restores `project_items` and `template_task_applications`; ordinary ProjectStore Upsert does not touch either table. A future Task persistence migration may replace that legacy Task rewrite.
+6. Full physical-device and production backup/restore acceptance remain separate from automated test evidence.
+
+### Safety
+
+Main remained read-only at the verified SHA above. PR #3384, #3463 and #3470 remained OPEN / DRAFT / UNMERGED. No merge, release, deployment, history rewrite or destructive user-data operation was performed. All PASS evidence from SQLite v20 remains bound only to its original SHA `3cf03a2dae25ba0bea0afd23b12bfaf982001658`.

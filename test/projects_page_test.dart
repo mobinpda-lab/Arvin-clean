@@ -1,4 +1,5 @@
 import 'package:arvin/models/goal_project.dart';
+import 'package:arvin/models/arvin_center.dart';
 import 'package:arvin/projects_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -91,4 +92,34 @@ void main() {
     expect(changed.single.colorValue, 0xFF2F80ED);
     expect(changed.single.isArchived, isFalse);
   });
+  testWidgets('Project editor preserves and edits multiple Center relationships', (tester) async {
+    var changed = <ProjectPlan>[];
+    final centers = [
+      ArvinCenter(id: 'center-a', name: 'مرکز الف', createdAt: DateTime(2026)),
+      ArvinCenter(id: 'center-b', name: 'مرکز ب', createdAt: DateTime(2026)),
+    ];
+    await tester.pumpWidget(MaterialApp(
+      home: ProjectsPage(
+        projects: [
+          ProjectPlan(
+            id: 'multi',
+            title: 'چندمرکزی',
+            centerIds: const ['center-a'],
+          ),
+        ],
+        centers: centers,
+        onChanged: (value) async { changed = value; },
+      ),
+    ));
+
+    await tester.tap(find.byTooltip('ویرایش'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('project-center-center-a')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('project-center-center-b')));
+    await tester.tap(find.byKey(const ValueKey('project-dialog-save')));
+    await tester.pumpAndSettle();
+
+    expect(changed.single.centerIds, ['center-a', 'center-b']);
+  });
+
 }

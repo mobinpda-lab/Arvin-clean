@@ -506,13 +506,24 @@ class TaskStore {
   Future<void> save(List<Task> tasks) =>
       TaskStorageLock.synchronized<void>(() => _saveUnlocked(tasks));
 
-  /// Creates one generated Project and all its independent canonical Tasks in
-  /// a single SQLite transaction. The partial unique index on active
-  /// (template_id, center_id) is the final duplicate/concurrency guard.
-  Future<void> createProjectFromTemplate(ProjectPlan project, List<Task> tasks) {
+  /// Coordinates generated Task writes and template-application rows in one
+  /// SQLite transaction. Project row and Center/Category edges are delegated
+  /// to the canonical ProjectStore writer supplied by the caller. The partial
+  /// unique index on active (template_id, center_id) guards duplicate creation.
+  Future<void> createProjectFromTemplate(
+    ProjectPlan project,
+    List<Task> tasks, {
+    String? templateCenterId,
+    required Future<void> Function(QueryExecutor executor, ProjectPlan project) persistProject,
+  }) {
     return TaskStorageLock.synchronized<void>(() async {
-      if (project.centerId == null || project.templateId == null) {
-        throw ArgumentError('Generated Projects require Center and Template identities.');
+      final applicationCenterId = templateCenterId ??
+          (project.centerIds.length == 1 ? project.centerIds.single : null);
+      if (applicationCenterId == null ||
+          project.centerIds.length != 1 ||
+          !project.centerIds.contains(applicationCenterId) ||
+          project.templateId == null) {
+        throw ArgumentError('Template generation requires an explicitly linked application Center and Template identity.');
       }
       if (tasks.any((task) => task.templateTaskId == null)) {
         throw ArgumentError('Every generated Task must retain its template-task origin.');
@@ -522,13 +533,7 @@ class TaskStore {
       await executor.runCustom('BEGIN');
       try {
         for (final task in tasks) { await _insertNewTask(executor, task); }
-        await executor.runInsert(
-          '''INSERT INTO projects
-             (id, name, color_value, is_archived, center_id, template_id, template_name_snapshot, legacy_payload_json)
-             VALUES (?, ?, ?, 0, ?, ?, ?, ?)''',
-          <Object?>[project.id, project.title, project.colorValue, project.centerId,
-            project.templateId, project.templateNameSnapshot, jsonEncode(const ProjectPlanCodec().encode(project))],
-        );
+        await persistProject(executor, project);
         for (var i = 0; i < project.itemIds.length; i++) {
           await executor.runInsert('INSERT INTO project_items (project_id, task_id, ordinal) VALUES (?, ?, ?)',
             <Object?>[project.id, project.itemIds[i], i]);

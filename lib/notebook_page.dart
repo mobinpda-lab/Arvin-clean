@@ -68,8 +68,7 @@ class _NotebookPageState extends State<NotebookPage> {
             ? _activeCenterIds.contains(noteCenterId)
             : _projects
                 .where((project) => project.itemIds.contains(note.id))
-                .map((project) => project.centerId)
-                .whereType<String>()
+                .expand((project) => project.centerIds)
                 .any(_activeCenterIds.contains);
         if (!matchesCenter) return false;
       }

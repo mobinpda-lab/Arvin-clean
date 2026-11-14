@@ -27,8 +27,8 @@ class TemplatePropagationResult {
 }
 
 /// Uses the canonical TaskStore + ProjectStore; template definitions are never
-/// executable Tasks. Cross-store writes use TaskStore.saveWithProjects' single
-/// SQLite transaction.
+/// executable Tasks. TaskStore coordinates the atomic cross-store transaction,
+/// while ProjectStore owns the Project row and canonical relationship edges.
 class ProjectTemplateService {
   ProjectTemplateService({
     ProjectTemplateStore? templateStore,
@@ -100,6 +100,9 @@ class ProjectTemplateService {
     for (final item in templates) { if (item.id == templateId) { template = item; break; } }
     if (template == null || template.isArchived) throw StateError('قالب فعال پیدا نشد.');
     final selectedTemplate = template;
+    // Complete the canonical Project migration before the cross-store transaction
+    // delegates its Project row write to ProjectStore.
+    await projectStore.load();
     final centers = await centerStore.load(includeArchived: false);
     final created = <String>[], duplicates = <String>[];
     final failed = <String, String>{};
@@ -114,7 +117,15 @@ class ProjectTemplateService {
         itemIds: generatedTasks.map((task) => task.id),
       );
       try {
-        await taskStore.createProjectFromTemplate(project, generatedTasks);
+        await taskStore.createProjectFromTemplate(
+          project,
+          generatedTasks,
+          persistProject: (executor, value) => projectStore.upsertWithinTransaction(
+            executor,
+            value,
+            persistTaskMembership: false,
+          ),
+        );
         created.add(centerId);
       } catch (error) {
         final current = await projectStore.load();

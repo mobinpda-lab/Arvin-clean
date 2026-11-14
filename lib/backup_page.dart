@@ -464,7 +464,7 @@ class _BackupPageState extends State<BackupPage> {
         },
         rollback: () async {
           await widget.replaceTasks(previousTasks!);
-          await _projectStore.save(previousProjects!);
+          await _projectStore.restoreSnapshot(previousProjects!);
           await ExternalCalendarLinkStore().save(previousCalendarLinks!);
           await settingsService.restorePortableJson(previousSettings!);
           final oldSchedule = previousSettings!['backupSchedule'];

@@ -1,12 +1,25 @@
-name: Arvin COMMAND 07-A.2.50 Wave 1 G1 Hierarchy Candidate
+name: Arvin COMMAND 07-A.2.80-D SQLite v20 Lifecycle and M2M Acceptance
 
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
-      - 'test/diagnostics/command_07_a2_47_optional_relationship_sqlite_test.dart'
-      - 'lib/services/g1_hierarchy_candidate_schema.dart'
-      - 'test/services/g1_hierarchy_candidate_schema_test.dart'
+      - 'lib/services/g1_drift_schema.dart'
+      - 'lib/services/g1_many_to_many_hierarchy_migration.dart'
+      - 'test/services/g1_drift_schema_test.dart'
+      - 'test/services/g1_many_to_many_hierarchy_migration_test.dart'
+      - 'test/services/g1_m2m_hierarchy_acceptance_test.dart'
+      - 'test/services/g1_v19_historical_parity_test.dart'
+      - 'test/services/g1_v20_failure_recovery_test.dart'
+      - 'test/services/g1_drift_completed_at_migration_test.dart'
+      - 'docs/ADR/ADR-2026-11-14-CENTER-PROJECT-CATEGORY-M2M.md'
+      - 'docs/project-continuity/MASTER_GOVERNANCE.md'
+      - 'docs/project-continuity/PRODUCT_DECISIONS.md'
+      - 'docs/project-continuity/CURRENT_STATE.md'
+      - 'docs/project-continuity/ROADMAP.md'
+      - 'docs/project-continuity/OPEN_ISSUES.md'
+      - 'docs/project-continuity/IMPLEMENTATION_LOG.md'
+      - 'docs/project-continuity/HANDOFF.md'
       - '.github/workflows/arvin-command-07-a2-47-optional-relationships.yml'
   workflow_dispatch:
     inputs:
@@ -23,10 +36,10 @@ env:
   TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
 
 jobs:
-  optional-relationship-sqlite:
-    name: Optional Task links and database-level integrity
+  sqlite-v20-acceptance:
+    name: Canonical v20 lifecycle, historical parity and M2M integrity
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
         with:
@@ -51,23 +64,38 @@ jobs:
           set -euo pipefail
           flutter pub get --enforce-lockfile
           git diff --exit-code -- pubspec.lock
-      - name: Run isolated file-backed SQLite acceptance and negative tests
+      - name: Run canonical SQLite v20 acceptance suites
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p build/arvin-command-07-a2-50
-          flutter test test/diagnostics/command_07_a2_47_optional_relationship_sqlite_test.dart \
-            --reporter expanded 2>&1 | tee build/arvin-command-07-a2-50/legacy-prototype-test.log
-          flutter test test/services/g1_hierarchy_candidate_schema_test.dart \
-            --reporter expanded 2>&1 | tee build/arvin-command-07-a2-50/real-g1-hierarchy-test.log
-          printf '%s\n' "$TARGET_SHA" > build/arvin-command-07-a2-50/target-sha.txt
-          sha256sum build/arvin-command-07-a2-50/*.log \
-            | tee build/arvin-command-07-a2-50/evidence.sha256
-      - name: Upload SQLite prototype evidence
+          mkdir -p build/arvin-command-07-a2-80-d
+          overall=0
+          run_suite() {
+            name="$1"
+            test_file="$2"
+            log_file="build/arvin-command-07-a2-80-d/$name.log"
+            set +e
+            flutter test "$test_file" --reporter expanded 2>&1 | tee "$log_file"
+            result=$?
+            set -e
+            printf 'EXIT_CODE=%s\n' "$result" | tee -a "$log_file"
+            if [[ "$result" -ne 0 ]]; then overall=1; fi
+          }
+          run_suite migration-helper test/services/g1_many_to_many_hierarchy_migration_test.dart
+          run_suite m2m-acceptance test/services/g1_m2m_hierarchy_acceptance_test.dart
+          run_suite v19-historical-parity test/services/g1_v19_historical_parity_test.dart
+          run_suite failure-recovery test/services/g1_v20_failure_recovery_test.dart
+          run_suite completed-at-regression test/services/g1_drift_completed_at_migration_test.dart
+          run_suite drift-lifecycle test/services/g1_drift_schema_test.dart
+          printf '%s\n' "$TARGET_SHA" > build/arvin-command-07-a2-80-d/target-sha.txt
+          sha256sum build/arvin-command-07-a2-80-d/*.log \
+            | tee build/arvin-command-07-a2-80-d/evidence.sha256
+          exit "$overall"
+      - name: Upload exact-SHA SQLite v20 evidence
         if: always()
         uses: actions/upload-artifact@v5
         with:
-          name: arvin-command-07-a2-50-g1-hierarchy-${{ env.TARGET_SHA }}
-          path: build/arvin-command-07-a2-50/
+          name: arvin-command-07-a2-80-d-sqlite-v20-${{ env.TARGET_SHA }}
+          path: build/arvin-command-07-a2-80-d/
           if-no-files-found: warn
           retention-days: 90
