@@ -220,6 +220,71 @@ void main() {
     }
   });
 
+  test('pre-opened v19 executor upgrades once and preserves hierarchy on repeated install', () async {
+    final executor = NativeDatabase.memory();
+    await executor.ensureOpen(_V19TestUser());
+    await executor.runCustom('PRAGMA foreign_keys = ON');
+    await executor.runCustom('''CREATE TABLE centers (
+      id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL,
+      is_archived INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL
+    )''');
+    await executor.runCustom('''CREATE TABLE projects (
+      id TEXT NOT NULL PRIMARY KEY, center_id TEXT NULL,
+      name TEXT NOT NULL DEFAULT ''
+    )''');
+    await executor.runCustom('''CREATE TABLE tasks (
+      id TEXT NOT NULL PRIMARY KEY, title TEXT NOT NULL DEFAULT '',
+      description TEXT NOT NULL DEFAULT '', priority TEXT NOT NULL DEFAULT 'none',
+      archived INTEGER NOT NULL DEFAULT 0, trashed INTEGER NOT NULL DEFAULT 0,
+      completed INTEGER NOT NULL DEFAULT 0, category TEXT NULL
+    )''');
+    await executor.runCustom('''CREATE TABLE project_items (
+      project_id TEXT NOT NULL, task_id TEXT NOT NULL, ordinal INTEGER NOT NULL,
+      PRIMARY KEY(project_id, task_id)
+    )''');
+    await executor.runCustom('''CREATE TABLE taxonomy_categories (
+      name TEXT NOT NULL PRIMARY KEY, created_at TEXT NOT NULL
+    )''');
+    await executor.runCustom("INSERT INTO centers VALUES ('center-preopened', 'مرکز', 0, '2026-11-01')");
+    await executor.runCustom("INSERT INTO projects(id, center_id, name) VALUES ('project-preopened', 'center-preopened', 'پروژه')");
+    await executor.runCustom("INSERT INTO tasks(id, title) VALUES ('task-preopened', 'کار')");
+    await executor.runCustom("INSERT INTO project_items VALUES ('project-preopened', 'task-preopened', 0)");
+    try {
+      expect(
+        (await executor.runSelect('PRAGMA user_version', const [])).single.values.first,
+        19,
+      );
+      await G1DriftSchema.install(executor);
+      await G1DriftSchema.install(executor);
+
+      expect(
+        (await executor.runSelect('PRAGMA user_version', const [])).single.values.first,
+        20,
+      );
+      expect(
+        await executor.runSelect('SELECT center_id, project_id FROM center_projects', const []),
+        [ {'center_id': 'center-preopened', 'project_id': 'project-preopened'} ],
+      );
+      expect(
+        await executor.runSelect('SELECT COUNT(*) AS count FROM center_projects', const []),
+        [ {'count': 1} ],
+      );
+      expect(
+        await executor.runSelect('PRAGMA foreign_keys', const []),
+        [ {'foreign_keys': 1} ],
+      );
+      expect(
+        await executor.runSelect(
+          'SELECT value FROM arvin_storage_meta WHERE key = ?',
+          const [G1ManyToManyHierarchyMigration.markerKey],
+        ),
+        [ {'value': '20'} ],
+      );
+    } finally {
+      await executor.close();
+    }
+  });
+
   test('upgrades an independently created SQLite v19 file and recovers on reopen', () async {
     final directory = await Directory.systemTemp.createTemp('arvin-v19-to-v20-');
     final file = File('${directory.path}/historical-v19.sqlite');
