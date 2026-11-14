@@ -1135,3 +1135,15 @@ Exact-head validation is pending on candidate `fd22fe37f0190818084f011bfcce00e24
 - Build run `43575749904` on SHA `310c0e...`: Analyze, Visual and three APK jobs PASS; six test shards report 41 failures (1,409 pass); Device Smoke queued. PDF/Vazirmatn artifact `14106491800` validated on that exact SHA.
 - Build run `43576488075` on SHA `c09fdb...`: Visual PASS at last check; quality and APK jobs queued. Device Smoke queued; Follow-up Persistence in progress. No acceptance transfer from #3384.
 - No production source or test file was modified in this documentation checkpoint. No merge, release, deployment, force-push, branch deletion or destructive data operation occurred.
+
+
+## 2026-11-14 — COMMAND 07-A.2.79 live integration audit
+
+- Verified Main `45e4202b03a434459e4c021a04efa7e8396359db`; PR #3463 Head `190dfd6dd0d487dbcafd85e13c5309db061b47af`; Base `310c0e20e3447c488c1e1c102c38bea5040708ca`. PR #3448 remains OPEN / DRAFT; Issue #3458 OPEN.
+- Exact-head #3463: Build 43577665573 PENDING/no jobs reported; Device Smoke 43577665873 QUEUED; Follow-up Persistence 43577665629 SUCCESS; Orchestrator SUCCESS; Draft Review APK SKIPPED. No exact-head acceptance.
+- Inspected G1DriftSchema, migration helper/tests, TaskStore, ProjectStore, CenterStore, Task/Project models, Category management and backup bridge.
+- Confirmed schema v19 and no canonical invocation of the v20 migration. Existing schema install owns a transaction; naive nested BEGIN is unsafe.
+- Confirmed TaskStore rewrite does not write the new direct relationship columns; ProjectStore still uses projects.center_id/project_items; CenterStore checks only projects.center_id.
+- Confirmed Category management uses taxonomy_categories while migration creates categories. No unified repository/selector integration verified.
+- Parsed all six Base test-shard logs on SHA `310c0e20...`: 1,409 passed / 41 failed. Failure labels span Home, Notebook, Quick Capture, Task Editor, Task Details, Calendar, Reports, Settings and Follow-up. No tests were weakened.
+- No product source, schema, test or workflow was changed in this audit. No Main write, merge, release or deployment.
