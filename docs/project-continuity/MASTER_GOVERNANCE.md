@@ -538,3 +538,22 @@ Record each question, its source, affected schema/UX/tests, safe interim behavio
 - Removing a relationship must preserve both endpoints. Archive, restore, deletion and dependency inspection must account for all join edges and direct Task assignments.
 
 **Implementation authority:** ADR `ADR-2026-11-14-CENTER-PROJECT-CATEGORY-M2M.md`, Issue #3458 and PR #3463. PR #3463 is an implementation candidate, not accepted product integration. Main merge, release and deployment remain unauthorized.
+
+
+## COMMAND 07-A.2.79 — Governance checkpoint
+
+The owner-approved 2026-11-14 M2M ADR is active and supersedes conflicting single-parent hierarchy rules. This decision approval is independent of implementation and acceptance. Use CURRENT_STATE.md and HANDOFF.md for exact live evidence.
+
+
+## COMMAND 07-A.2.79 — Live audit checkpoint (2026-11-14)
+
+- Main: `45e4202b03a434459e4c021a04efa7e8396359db` (unchanged/read-only).
+- PR #3463: OPEN / DRAFT; branch `rev10-m2m-v19-test-expansion`; Head `190dfd6dd0d487dbcafd85e13c5309db061b47af`; Base `310c0e20e3447c488c1e1c102c38bea5040708ca`.
+- PR #3448: OPEN / DRAFT. Issue #3458: OPEN.
+- Exact-head #3463: Build 43577665573 PENDING/no jobs reported; Device Smoke 43577665873 QUEUED; Follow-up Persistence 43577665629 SUCCESS; Orchestrator and PR Wakeup SUCCESS; Draft Review APK SKIPPED. Combined status has no entries; no current-head APK/Smoke acceptance artifact.
+- Base SHA `310c0e20...`: Build 43575749904 FAILURE; Analyze, Visual, Debug/Release/Staging APK PASS; six test shards total 1,409 passed / 41 failed. Base artifacts do not validate #3463 Head.
+- G1DriftSchema remains v19; the v19→v20 helper is not called by canonical installation. Its own transaction cannot be nested inside the existing install transaction.
+- TaskStore rewrite omits the new direct relationship columns; ProjectStore still uses `projects.center_id` and `project_items`; CenterStore deletion checks only `projects.center_id`.
+- Category remains split between `taxonomy_categories` and migration-created `categories`. Canonical Category CRUD/relation UI is not verified.
+- Physical Backup/Restore parity for both junction tables and migration exceptions is NOT VERIFIED. D01–D05 and seven Device Smoke scenarios are NOT ACCEPTED.
+- No app code/tests/workflows were changed in this audit. No merge, release, deployment, Main edit, branch deletion, history rewrite, workflow cancellation or test weakening.
