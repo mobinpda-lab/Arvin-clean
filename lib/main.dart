@@ -451,7 +451,7 @@ class _ArvinAppState extends State<ArvinApp> {
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: ArvinColors.surface,
-          labelStyle: TextStyle(color: ArvinColors.textSecondary, fontWeight: FontWeight.w600),
+          labelStyle: TextStyle(color: ArvinColors.textSecondary, fontWeight: FontWeight.w500),
           hintStyle: TextStyle(color: ArvinColors.textSecondary),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(14)),
@@ -1037,7 +1037,7 @@ class _HomePageState extends State<HomePage> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text('مرتب‌سازی کارها', textAlign: TextAlign.center, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                const Text('مرتب‌سازی کارها', textAlign: TextAlign.center, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 8),
                 for (final option in options)
                   RadioListTile<String>(
@@ -1802,7 +1802,7 @@ class _HomePageState extends State<HomePage> {
                       child: Text(
                         group.title,
                         textAlign: TextAlign.right,
-                        style: TextStyle(color: accent, fontSize: 15, fontWeight: FontWeight.w900),
+                        style: TextStyle(color: accent, fontSize: 15, fontWeight: FontWeight.w700),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -1825,7 +1825,7 @@ class _HomePageState extends State<HomePage> {
                             style: TextStyle(
                               color: accent,
                               fontSize: 11.5,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),
@@ -1833,7 +1833,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                     if (groupDate != null) ...[
                       const SizedBox(height: 5),
-                      Center(child: Text(groupDate, key: ValueKey('home-group-date-${group.id}'), textAlign: TextAlign.center, style: TextStyle(color: accent, fontSize: 14, fontWeight: FontWeight.w900))),
+                      Center(child: Text(groupDate, key: ValueKey('home-group-date-${group.id}'), textAlign: TextAlign.center, style: TextStyle(color: accent, fontSize: 14, fontWeight: FontWeight.w700))),
                     ],
                   ],
                 ),
@@ -3792,7 +3792,7 @@ class _HomePageState extends State<HomePage> {
                                 key: ValueKey('task-card-category-${task.id}'),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w600),
+                                style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w400),
                               ),
                             ),
                           if (task.category?.trim().isNotEmpty == true) const SizedBox(width: 6),
@@ -3824,7 +3824,7 @@ class _HomePageState extends State<HomePage> {
                                     style: TextStyle(
                                       color: late ? ArvinColors.error : ArvinColors.textSecondary,
                                       fontSize: 11.5,
-                                      fontWeight: FontWeight.w800,
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                 ),
@@ -3945,7 +3945,7 @@ class _HomePageState extends State<HomePage> {
                                         ? 'تاریخ دقیق: ${_date(task.dueDate!)}'
                                         : 'تاریخ و ساعت دقیق: ${_date(task.dueDate!)} • ${_time(task.dueDate!)}',
                                     key: ValueKey('task-card-exact-due-${task.id}'),
-                                    style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w600),
+                                    style: const TextStyle(color: ArvinColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w400),
                                   ),
                                 ),
                               ],
@@ -3991,7 +3991,7 @@ class _HomePageState extends State<HomePage> {
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
-                child: Text('آروین', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: colors.primary)),
+                child: Text('آروین', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: colors.primary)),
               ),
               const Divider(),
               ListTile(
@@ -4070,9 +4070,9 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     const SizedBox(height: 2),
-                    Text('آروین', key: const ValueKey('home-title-block'), maxLines: 1, softWrap: false, style: TextStyle(color: colors.primary, fontSize: 23, fontWeight: FontWeight.w800)),
+                    Text('آروین', key: const ValueKey('home-title-block'), maxLines: 1, softWrap: false, style: TextStyle(color: colors.primary, fontSize: 23, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 2),
-                    Text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها', key: const ValueKey('home-subtitle'), textAlign: TextAlign.center, style: TextStyle(color: colors.onSurfaceVariant, fontSize: 11.5, fontWeight: FontWeight.w600)),
+                    Text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها', key: const ValueKey('home-subtitle'), textAlign: TextAlign.center, style: TextStyle(color: colors.onSurfaceVariant, fontSize: 11.5, fontWeight: FontWeight.w400)),
                   ],
                 ),
               ),
