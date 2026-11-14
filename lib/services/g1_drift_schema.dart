@@ -10,7 +10,7 @@ import 'g1_many_to_many_hierarchy_migration.dart';
 
 /// G1-DRIFT relational schema foundation.
 class G1DriftSchema implements QueryExecutorUser {
-  G1DriftSchema({G1SqliteFailureInjector? failureInjector})
+  const G1DriftSchema({G1SqliteFailureInjector? failureInjector})
       : _failureInjector = failureInjector;
 
   static const int version = 20;
