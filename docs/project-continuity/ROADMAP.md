@@ -581,3 +581,16 @@ Parallelize independent work only after file, schema, service and test ownership
 8. Then complete typography/PDF, APK and seven Device Smoke acceptance on that same exact SHA.
 
 Do not start a parallel migration or create duplicate stores. Keep Main read-only. No merge, release or deployment authorization is implied.
+
+
+## COMMAND 07-A.2.79 — Corrected delivery order (2026-11-14)
+
+1. Integrate v19→v20 into one canonical G1DriftSchema lifecycle with a true v19 fixture and safe transaction boundary.
+2. Define one Task assignment representation and preserve Task, Follow-up, Reminder, Person, Tag, checklist and recurrence history.
+3. Extend existing ProjectStore and CenterStore transactionally; consolidate Category ownership without parallel stores.
+4. Update selectors and consumers only after repository parity.
+5. Prove physical Backup/Restore, then D01–D05.
+6. Close all 41 Base failures by root cause; run full regression and seven Device Smoke scenarios.
+7. Freeze one SHA and run all acceptance gates on that exact SHA.
+
+PR #3463 remains the only M2M execution route. Do not create a competing migration or repository. Main remains read-only; no merge/release/deployment authorization is implied.
