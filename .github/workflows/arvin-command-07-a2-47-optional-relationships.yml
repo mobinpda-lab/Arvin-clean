@@ -10,6 +10,7 @@ on:
       - 'test/services/g1_many_to_many_hierarchy_migration_test.dart'
       - 'test/services/g1_m2m_hierarchy_acceptance_test.dart'
       - 'test/services/g1_v19_historical_parity_test.dart'
+      - 'test/services/g1_v20_failure_recovery_test.dart'
       - '.github/workflows/arvin-command-07-a2-47-optional-relationships.yml'
   workflow_dispatch:
     inputs:
@@ -65,6 +66,8 @@ jobs:
             --reporter expanded 2>&1 | tee build/arvin-command-07-a2-80-d/m2m-acceptance.log
           flutter test test/services/g1_v19_historical_parity_test.dart \
             --reporter expanded 2>&1 | tee build/arvin-command-07-a2-80-d/v19-historical-parity.log
+          flutter test test/services/g1_v20_failure_recovery_test.dart \
+            --reporter expanded 2>&1 | tee build/arvin-command-07-a2-80-d/failure-recovery.log
           flutter test test/services/g1_drift_schema_test.dart \
             --reporter expanded 2>&1 | tee build/arvin-command-07-a2-80-d/drift-lifecycle.log
           printf '%s\n' "$TARGET_SHA" > build/arvin-command-07-a2-80-d/target-sha.txt
