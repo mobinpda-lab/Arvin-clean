@@ -1,12 +1,10 @@
 ## Exact-SHA follow-up after source compatibility update — 2026-11-14
 
-## Exact-SHA follow-up after source compatibility update — 2026-11-14
-
-- Latest code candidate at this checkpoint: `5764d4a82ebef6c3f2eb33a0703f09abe3e545e4`. Re-fetch the live PR head after any documentation commit before testing.
+- Latest code candidate before this documentation refresh: `d0c4c90ffd4aa8a62c948123b3a799cfbe471673`. Current CI: Build `43584316965`, D-v20 `43584317136`, Follow-up `43584316946`, Snapshot `43584316958`, Device Smoke `43584317383`; queued/pending at last poll. Re-fetch the live PR head after the documentation commit before testing.
 - Drift 2.35.0 source order was verified: `beforeOpen` returns before Drift calls `setSchemaVersion`. The failure-injection test covers the post-migration-commit / pre-version-registration boundary.
 - Two Notebook failures are inherited: Notebook page and test file blob SHAs are identical on #3463 and base #3384 SHA `310c0e20e3447c488c1e1c102c38bea5040708ca`; base Build test-1 also failed on that base. Do not mix those unrelated failures into the SQLite migration root cause.
 - Poll exact-SHA Build, dedicated D-v20, Follow-up Persistence, SQLite Snapshot and Device Smoke. The last observed runs on `5764d4a...` were queued/pending.
-- Continue with historical parity and seven-stage failure recovery before store/UI integration. No D01–D05 gate is accepted yet.
+- D02/D03 are now independent tests; D04 physical restore and D05 seven-stage failure recovery are authored but not yet executed. No D01–D05 gate is accepted yet.
 
 ---
 
@@ -32,6 +30,9 @@
 - PRs #3459–#3462 are CLOSED / UNMERGED; preserve their history and do not merge them separately.
 - NIRA Main `7a27ee63b65d343e45c5786f782f2567611722dc`; separate factory. No NIRA changes in this wave.
 - D01–D05 remain BLOCKED until exact-SHA execution evidence is complete.
+
+### Canonical repository integration blockers discovered
+CenterStore still counts `projects.center_id`; ProjectStore still models one `centerId` and deletes/recreates projects without join-edge handling; TaskStore does not write `tasks.center_id/project_id/category_id`; Category CRUD still uses `taxonomy_categories` and Task text; production backup remains JSON-oriented. ProjectStore's delete path is blocked by `center_projects` RESTRICT FKs once M2M edges exist. Resolve these only after D01–D05 gates are proven on one SHA.
 
 ### Non-negotiable
 No Main merge, release, deployment, history rewrite, deletion of historical refs, production database migration or NIRA runtime dependency. Keep one canonical SQL implementation per domain.
