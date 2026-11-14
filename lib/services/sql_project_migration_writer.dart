@@ -158,6 +158,22 @@ class SqlProjectMigrationWriter {
         _canonicalJson(jsonDecode(rawEnvelope)) != _canonicalJson(source)) {
       throw StateError('Project unknown-field/envelope conflict for ${project.id}.');
     }
+    final centerEdges = await executor.runSelect(
+      'SELECT center_id FROM center_projects WHERE project_id = ? ORDER BY center_id',
+      <Object?>[project.id],
+    );
+    final categoryEdges = await executor.runSelect(
+      'SELECT category_id FROM project_categories WHERE project_id = ? ORDER BY category_id',
+      <Object?>[project.id],
+    );
+    final actualCenters = centerEdges.map((item) => item['center_id'] as String).toList();
+    final expectedCenters = project.centerIds.toList()..sort();
+    final actualCategories = categoryEdges.map((item) => item['category_id'] as String).toList();
+    final expectedCategories = project.categoryIds.toList()..sort();
+    if (_canonicalJson(actualCenters) != _canonicalJson(expectedCenters) ||
+        _canonicalJson(actualCategories) != _canonicalJson(expectedCategories)) {
+      throw StateError('Project relationship parity conflict for ${project.id}.');
+    }
     final membership = await executor.runSelect(
       'SELECT task_id, ordinal FROM project_items WHERE project_id = ? ORDER BY ordinal',
       <Object?>[project.id],
