@@ -27,8 +27,8 @@ class TemplatePropagationResult {
 }
 
 /// Uses the canonical TaskStore + ProjectStore; template definitions are never
-/// executable Tasks. Cross-store writes use TaskStore.saveWithProjects' single
-/// SQLite transaction.
+/// executable Tasks. TaskStore coordinates the atomic cross-store transaction,
+/// while ProjectStore owns the Project row and canonical relationship edges.
 class ProjectTemplateService {
   ProjectTemplateService({
     ProjectTemplateStore? templateStore,
