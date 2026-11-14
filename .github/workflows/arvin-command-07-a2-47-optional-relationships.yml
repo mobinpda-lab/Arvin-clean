@@ -69,21 +69,28 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p build/arvin-command-07-a2-80-d
-          flutter test test/services/g1_many_to_many_hierarchy_migration_test.dart \
-            --reporter expanded 2>&1 | tee build/arvin-command-07-a2-80-d/migration-helper.log
-          flutter test test/services/g1_m2m_hierarchy_acceptance_test.dart \
-            --reporter expanded 2>&1 | tee build/arvin-command-07-a2-80-d/m2m-acceptance.log
-          flutter test test/services/g1_v19_historical_parity_test.dart \
-            --reporter expanded 2>&1 | tee build/arvin-command-07-a2-80-d/v19-historical-parity.log
-          flutter test test/services/g1_v20_failure_recovery_test.dart \
-            --reporter expanded 2>&1 | tee build/arvin-command-07-a2-80-d/failure-recovery.log
-          flutter test test/services/g1_drift_completed_at_migration_test.dart \
-            --reporter expanded 2>&1 | tee build/arvin-command-07-a2-80-d/completed-at-regression.log
-          flutter test test/services/g1_drift_schema_test.dart \
-            --reporter expanded 2>&1 | tee build/arvin-command-07-a2-80-d/drift-lifecycle.log
+          overall=0
+          run_suite() {
+            name="$1"
+            test_file="$2"
+            log_file="build/arvin-command-07-a2-80-d/$name.log"
+            set +e
+            flutter test "$test_file" --reporter expanded 2>&1 | tee "$log_file"
+            result=$?
+            set -e
+            printf 'EXIT_CODE=%s\n' "$result" | tee -a "$log_file"
+            if [[ "$result" -ne 0 ]]; then overall=1; fi
+          }
+          run_suite migration-helper test/services/g1_many_to_many_hierarchy_migration_test.dart
+          run_suite m2m-acceptance test/services/g1_m2m_hierarchy_acceptance_test.dart
+          run_suite v19-historical-parity test/services/g1_v19_historical_parity_test.dart
+          run_suite failure-recovery test/services/g1_v20_failure_recovery_test.dart
+          run_suite completed-at-regression test/services/g1_drift_completed_at_migration_test.dart
+          run_suite drift-lifecycle test/services/g1_drift_schema_test.dart
           printf '%s\n' "$TARGET_SHA" > build/arvin-command-07-a2-80-d/target-sha.txt
           sha256sum build/arvin-command-07-a2-80-d/*.log \
             | tee build/arvin-command-07-a2-80-d/evidence.sha256
+          exit "$overall"
       - name: Upload exact-SHA SQLite v20 evidence
         if: always()
         uses: actions/upload-artifact@v5
