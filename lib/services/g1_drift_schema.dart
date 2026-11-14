@@ -787,18 +787,21 @@ class G1DriftSchema implements QueryExecutorUser {
         const [],
       );
       for (final row in legacyFollowUps) {
+        final taskId = row['task_id'] as String;
+        // Preserve an entry for every historical Follow-up, even when that
+        // record has no next-follow-up date. Scheduling fields remain
+        // optional; absence must not erase the historical record identity.
+        final metadataRecord = <String, dynamic>{'id': row['id']};
         final rawNextFollowUp = row['next_follow_up'];
         if (rawNextFollowUp != null) {
-          final taskId = row['task_id'] as String;
-          legacyFollowUpMetadataByTask
-              .putIfAbsent(taskId, () => <Map<String, dynamic>>[])
-              .add(<String, dynamic>{
-            'id': row['id'],
-            'nextFollowUp': rawNextFollowUp,
-            if (row['next_follow_up_all_day'] != null)
-              'nextFollowUpAllDay': row['next_follow_up_all_day'],
-          });
+          metadataRecord['nextFollowUp'] = rawNextFollowUp;
+          if (row['next_follow_up_all_day'] != null) {
+            metadataRecord['nextFollowUpAllDay'] = row['next_follow_up_all_day'];
+          }
         }
+        legacyFollowUpMetadataByTask
+            .putIfAbsent(taskId, () => <Map<String, dynamic>>[])
+            .add(metadataRecord);
         await executor.runInsert(
           '''INSERT OR IGNORE INTO follow_up_records
              (id, task_id, completed_at, title, note, result, completed, waiting_for_response, ordinal)
