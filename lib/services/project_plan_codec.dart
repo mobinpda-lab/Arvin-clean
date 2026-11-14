@@ -52,15 +52,15 @@ class ProjectPlanCodec {
       throw const FormatException('Project centerId must be a non-empty string when present');
     }
     final centers = map.containsKey('centerIds')
-        ? _decodeIds(map['centerIds'], 'centerIds')
-        : legacyCenter == null ? const <String>[] : <String>[legacyCenter as String];
+        ? (map['centerIds'] == null ? const <String>[] : _decodeIds(map['centerIds'], 'centerIds'))
+        : legacyCenter == null ? null : <String>[legacyCenter as String];
     if (legacyCenter != null && centers.isNotEmpty && !centers.contains(legacyCenter)) {
       throw const FormatException('Project centerId conflicts with centerIds');
     }
 
     final categories = map.containsKey('categoryIds')
-        ? _decodeIds(map['categoryIds'], 'categoryIds')
-        : const <String>[];
+        ? (map['categoryIds'] == null ? const <String>[] : _decodeIds(map['categoryIds'], 'categoryIds'))
+        : null;
     final rawTemplateId = map['templateId'];
     final rawTemplateName = map['templateNameSnapshot'];
     if (rawTemplateId != null &&
@@ -84,7 +84,7 @@ class ProjectPlanCodec {
       categoryIds: categories,
       templateId: rawTemplateId as String?,
       templateNameSnapshot: rawTemplateName as String?,
-      itemIds: map['itemIds'] == null ? const <String>[] : _decodeIds(map['itemIds'], 'itemIds'),
+      itemIds: !map.containsKey('itemIds') ? null : map['itemIds'] == null ? const <String>[] : _decodeIds(map['itemIds'], 'itemIds'),
       legacyFields: unknown,
     );
   }
