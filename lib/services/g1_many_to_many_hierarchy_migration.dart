@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
@@ -8,8 +9,19 @@ import 'package:drift/drift.dart';
 /// It creates two independent junction tables and keeps every v19 source
 /// column/table in place. Run only on disposable v19 fixtures until all
 /// repository and consumer parity work is accepted.
+typedef G1SqliteFailureInjector = FutureOr<void> Function(String stage);
+
 class G1ManyToManyHierarchyMigration {
-  const G1ManyToManyHierarchyMigration();
+  const G1ManyToManyHierarchyMigration({this.failureInjector});
+
+  /// Optional deterministic fault seam for lifecycle rollback/recovery tests.
+  /// Production callers omit it and execute the exact same migration path.
+  final G1SqliteFailureInjector? failureInjector;
+
+  Future<void> _inject(String stage) async {
+    final injector = failureInjector;
+    if (injector != null) await injector(stage);
+  }
 
   static const int sourceSchemaVersion = 19;
   static const int targetSchemaVersion = 20;
@@ -55,6 +67,7 @@ class G1ManyToManyHierarchyMigration {
           PRIMARY KEY (center_id, project_id)
         )
       ''');
+      await _inject('after_first_junction');
       await executor.runCustom('''
         CREATE TABLE categories (
           id TEXT NOT NULL PRIMARY KEY,
@@ -73,6 +86,7 @@ class G1ManyToManyHierarchyMigration {
           PRIMARY KEY (project_id, category_id)
         )
       ''');
+      await _inject('after_second_junction');
 
       await _addTaskColumn(executor, 'center_id',
           'TEXT NULL REFERENCES centers(id) ON UPDATE RESTRICT ON DELETE RESTRICT');
@@ -234,6 +248,8 @@ class G1ManyToManyHierarchyMigration {
         }
       }
 
+      await _inject('after_relationship_transfer');
+
       await _installTaskCompatibilityTriggers(executor);
       // Check only relations introduced or rewritten by this migration.
       // Historical projects.center_id violations are retained as evidence and
@@ -246,9 +262,11 @@ class G1ManyToManyHierarchyMigration {
           const [],
         ));
       }
+      await _inject('during_integrity_validation');
       if (violations.isNotEmpty) {
         throw StateError('REV10 v19→v20 foreign-key check failed: $violations');
       }
+      await _inject('before_completion_marker');
       await executor.runInsert(
         '''INSERT INTO arvin_storage_meta(key, value) VALUES (?, ?)
            ON CONFLICT(key) DO UPDATE SET value = excluded.value''',
