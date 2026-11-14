@@ -191,6 +191,73 @@ void main() {
     await legacyDatabase.close();
   });
 
+  test('upgrades an independently created SQLite v19 file and recovers on reopen', () async {
+    final directory = await Directory.systemTemp.createTemp('arvin-v19-to-v20-');
+    final file = File('${directory.path}/historical-v19.sqlite');
+    final historical = NativeDatabase(file);
+    await historical.ensureOpen(_V19TestUser());
+    await historical.runCustom('PRAGMA foreign_keys = ON');
+    await historical.runCustom('''CREATE TABLE centers (
+      id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL,
+      is_archived INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL
+    )''');
+    await historical.runCustom('''CREATE TABLE projects (
+      id TEXT NOT NULL PRIMARY KEY, storage_ordinal INTEGER NOT NULL DEFAULT 0,
+      name TEXT NOT NULL, color_value INTEGER NOT NULL DEFAULT 4283059371,
+      is_archived INTEGER NOT NULL DEFAULT 0,
+      center_id TEXT NULL REFERENCES centers(id), template_id TEXT NULL,
+      template_name_snapshot TEXT NULL, legacy_payload_json TEXT NULL
+    )''');
+    await historical.runCustom('''CREATE TABLE tasks (
+      id TEXT NOT NULL PRIMARY KEY, storage_ordinal INTEGER NOT NULL DEFAULT 0,
+      title TEXT NOT NULL, description TEXT NOT NULL, created_at TEXT NULL,
+      updated_at TEXT NULL, due_date TEXT NULL, category TEXT NULL,
+      notebook_kind TEXT NULL, priority TEXT NOT NULL, archived INTEGER NOT NULL,
+      trashed INTEGER NOT NULL, completed INTEGER NOT NULL, completed_at TEXT NULL,
+      is_favorite INTEGER NOT NULL DEFAULT 0, recurrence_json TEXT NULL,
+      legacy_payload_json TEXT NULL
+    )''');
+    await historical.runCustom('''CREATE TABLE project_items (
+      project_id TEXT NOT NULL REFERENCES projects(id),
+      task_id TEXT NOT NULL REFERENCES tasks(id), ordinal INTEGER NOT NULL,
+      PRIMARY KEY(project_id, task_id)
+    )''');
+    await historical.runCustom('''CREATE TABLE taxonomy_categories (
+      name TEXT NOT NULL PRIMARY KEY, created_at TEXT NOT NULL
+    )''');
+    await historical.runCustom('''CREATE TABLE arvin_storage_meta (
+      key TEXT NOT NULL PRIMARY KEY, value TEXT NOT NULL
+    )''');
+    await historical.runCustom("INSERT INTO centers VALUES ('center-v19', 'مرکز تاریخی', 0, '2026-11-01')");
+    await historical.runCustom("INSERT INTO projects(id, storage_ordinal, name, color_value, is_archived, center_id) VALUES ('project-v19', 0, 'پروژه تاریخی', 0, 0, 'center-v19')");
+    await historical.runCustom("INSERT INTO tasks(id, title, description, priority, archived, trashed, completed, category, legacy_payload_json) VALUES ('task-v19', 'کار تاریخی', '', 'none', 0, 0, 0, 'عملیات', '{\"followUpEnabled\":false}')");
+    await historical.runCustom("INSERT INTO project_items VALUES ('project-v19', 'task-v19', 0)");
+    await historical.runCustom("INSERT INTO taxonomy_categories VALUES ('عملیات', '2026-11-01')");
+    final sourceVersion = await historical.runSelect('PRAGMA user_version', const []);
+    expect((sourceVersion.single.values.first as num).toInt(), 19);
+    await historical.close();
+
+    final upgraded = NativeDatabase(file);
+    await G1DriftSchema.install(upgraded);
+    expect((await upgraded.runSelect('PRAGMA user_version', const [])).single.values.first, 20);
+    expect((await upgraded.runSelect('SELECT id FROM tasks', const [])).single['id'], 'task-v19');
+    expect((await upgraded.runSelect('SELECT center_id, project_id FROM tasks WHERE id = ?', const ['task-v19'])).single['project_id'], 'project-v19');
+    expect(await upgraded.runSelect('SELECT center_id, project_id FROM center_projects', const []), [
+      {'center_id': 'center-v19', 'project_id': 'project-v19'}
+    ]);
+    expect(await upgraded.runSelect('PRAGMA foreign_key_check(center_projects)', const []), isEmpty);
+    await upgraded.close();
+
+    final reopened = NativeDatabase(file);
+    await G1DriftSchema.install(reopened);
+    expect((await reopened.runSelect('PRAGMA user_version', const [])).single.values.first, 20);
+    expect(await reopened.runSelect('SELECT * FROM center_projects', const []), hasLength(1));
+    expect(await reopened.runSelect('SELECT * FROM project_categories', const []), isEmpty,
+        reason: 'A category label on a Task is not proof of a Project–Category relationship.');
+    await reopened.close();
+    await directory.delete(recursive: true);
+  });
+
   test('creates the complete G1 relational schema', () async {
     await G1DriftSchema.install(database);
     expect(G1DriftSchema.version, 20);
