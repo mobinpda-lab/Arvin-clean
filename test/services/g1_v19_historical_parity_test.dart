@@ -43,7 +43,7 @@ void main() {
     expect(await sourceFile.exists(), isTrue);
     expect(await backupFile.exists(), isTrue);
     expect(await backupFile.length(), greaterThan(0));
-    expect(sourceFile.path, isNot(backupFile.path));
+    expect(sourceFile.path == backupFile.path, isFalse);
 
     final restored = NativeDatabase(backupFile);
     try {
