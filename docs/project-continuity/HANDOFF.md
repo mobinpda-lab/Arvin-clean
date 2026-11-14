@@ -846,3 +846,17 @@ Next safe work: read-only consumer and legacy-data inventory, then additive cand
 - Keep `project_items`, `projects.center_id`, `taxonomy_categories` and legacy evidence until all consumers and D01–D05 pass.
 - D01–D05 remain NOT ACCEPTED. The #3384 six-shard 41 failures must be root-caused, not waived. Device Smoke remains NOT VERIFIED.
 - Main merge, release and deployment are not authorized.
+
+
+## NEXT HANDOFF — COMMAND 07-A.2.79 (2026-11-14)
+
+Start from PR #3463 exact Head `190dfd6dd0d487dbcafd85e13c5309db061b47af`; Main remains `45e4202b03a434459e4c021a04efa7e8396359db` and read-only.
+
+1. Recheck Build 43577665573 and Device Smoke 43577665873 before changing the execution branch.
+2. Design safe schema lifecycle integration and a true v19 fixture; do not nest BEGIN transactions.
+3. Resolve Task assignment ownership and protect TaskStore's rewrite path from losing new links/history.
+4. Extend existing ProjectStore, CenterStore and Category ownership; do not add parallel stores.
+5. Then update selectors/consumers, physical Backup/Restore, D01–D05 and regression.
+6. Keep #3463 as the only M2M execution route and #3448 as the documentation route.
+
+Release remains NO-GO. Merge, release, deployment, Main writes, destructive data operations and history rewrites remain unauthorized.
