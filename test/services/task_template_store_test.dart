@@ -4,6 +4,7 @@ import 'package:arvin/models/task.dart';
 import 'package:arvin/services/g1_drift_schema.dart';
 import 'package:arvin/services/task_template_store.dart';
 import 'package:drift/native.dart';
+import 'package:drift/drift.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -104,7 +105,7 @@ void main() {
   test('G1 v11 migration adds checklist configuration without changing existing Task or Task Template rows', () async {
     final database = NativeDatabase.memory();
     addTearDown(database.close);
-    await database.ensureOpen(G1DriftSchema());
+    await database.ensureOpen(_LegacyV11TestUser());
     await database.runCustom(
       "CREATE TABLE tasks (id TEXT NOT NULL PRIMARY KEY, title TEXT NOT NULL, description TEXT NOT NULL, follow_up_enabled INTEGER NOT NULL, priority TEXT NOT NULL, archived INTEGER NOT NULL, trashed INTEGER NOT NULL, completed INTEGER NOT NULL, recurrence_json TEXT NULL)",
     );
@@ -209,4 +210,13 @@ void main() {
     expect((await store.load()).single.checklistEnabled, isTrue);
   });
 
+}
+
+
+class _LegacyV11TestUser implements QueryExecutorUser {
+  @override
+  int get schemaVersion => 11;
+
+  @override
+  Future<void> beforeOpen(QueryExecutor executor, OpeningDetails details) async {}
 }
