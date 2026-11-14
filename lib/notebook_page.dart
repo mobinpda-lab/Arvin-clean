@@ -49,6 +49,16 @@ class _NotebookPageState extends State<NotebookPage> {
   List<ProjectPlan> _projects = const [];
   bool _showTrash = false;
 
+  String _displayTitle(Task note) {
+    final manualTitle = note.title.trim();
+    if (manualTitle.isNotEmpty) return manualTitle;
+    final firstLine = note.description
+        .split('\\n')
+        .map((line) => line.trim())
+        .firstWhere((line) => line.isNotEmpty, orElse: () => '');
+    return firstLine.isEmpty ? 'یادداشت بدون عنوان' : firstLine;
+  }
+
   List<Task> get _visibleNotes {
     final query = _search.text.trim().toLowerCase();
     return _notes.where((note) {
@@ -78,7 +88,7 @@ class _NotebookPageState extends State<NotebookPage> {
         return false;
       }
       if (query.isEmpty) return true;
-      return note.title.toLowerCase().contains(query) ||
+      return _displayTitle(note).toLowerCase().contains(query) ||
           note.description.toLowerCase().contains(query);
     }).toList();
   }
@@ -491,7 +501,7 @@ class _NotebookPageState extends State<NotebookPage> {
 
   Future<void> _create() async {
     final note = await widget.repository.createNote(
-      title: 'یادداشت جدید',
+      title: '',
       notebookKind: NotebookItemKind.note,
       category: _activeCategories.length == 1 ? _activeCategories.single : null,
     );
@@ -791,7 +801,7 @@ class _NotebookPageState extends State<NotebookPage> {
                                             ? Icons.checklist_outlined
                                             : Icons.note_alt_outlined,
                                       ),
-                                title: Text(note.title),
+                                title: Text(_displayTitle(note)),
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -1087,6 +1097,11 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     _title.addListener(_scheduleAutosave);
     _description.addListener(_scheduleAutosave);
     setState(() => _loading = false);
+    if (widget.startEditing) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _editing) _descriptionFocus.requestFocus();
+      });
+    }
   }
 
   void _scheduleAutosave() {
@@ -1677,6 +1692,7 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
               key: const ValueKey('notebook-description'),
               controller: _description,
               focusNode: _descriptionFocus,
+              autofocus: widget.startEditing,
               undoController: _descriptionUndo,
               readOnly: !_editing,
               minLines: 12,
