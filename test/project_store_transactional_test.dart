@@ -16,6 +16,49 @@ Future<void> _seedCategory(NativeDatabase db, String id) async {
        VALUES (?, ?, NULL, 0, 0, '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z')''',
     <Object?>[id, id],
   );
+  test('Upsert preserves template_task_applications independently', () async {
+    final db = NativeDatabase.memory();
+    addTearDown(db.close);
+    final tasks = TaskStore(executor: db);
+    await tasks.save([Task(id: 'task-template', title: 'کار الگو')]);
+    final store = ProjectStore(executor: db);
+    await store.save([
+      ProjectPlan(id: 'project-template', title: 'پروژه', itemIds: const ['task-template']),
+    ]);
+    await db.runInsert(
+      '''INSERT INTO template_task_applications
+         (template_task_id, project_id, task_id)
+         VALUES ('template-task-a', 'project-template', 'task-template')''',
+      const [],
+    );
+
+    await store.save([ProjectPlan(id: 'project-template', title: 'ویرایش')]);
+
+    expect(await db.runSelect(
+      'SELECT template_task_id FROM template_task_applications WHERE project_id = ?',
+      const ['project-template'],
+    ), hasLength(1));
+  });
+
+  test('rollback snapshot removes only Projects introduced by failed restore', () async {
+    final db = NativeDatabase.memory();
+    addTearDown(db.close);
+    final tasks = TaskStore(executor: db);
+    await tasks.save([Task(id: 'task-extra', title: 'کار محفوظ')]);
+    final store = ProjectStore(executor: db);
+    await store.save([ProjectPlan(id: 'before', title: 'قبل')]);
+    final snapshot = await store.load();
+    await store.save([
+      ProjectPlan(id: 'extra', title: 'افزوده ناموفق', itemIds: const ['task-extra']),
+    ]);
+
+    await store.restoreSnapshot(snapshot);
+
+    expect((await store.load()).map((project) => project.id), ['before']);
+    expect((await tasks.load()).map((task) => task.id), ['task-extra']);
+    expect(await db.runSelect('SELECT * FROM project_items WHERE project_id = ?', const ['extra']), isEmpty);
+  });
+
 }
 
 void main() {
