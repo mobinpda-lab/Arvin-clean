@@ -513,6 +513,7 @@ class TaskStore {
     ProjectPlan project,
     List<Task> tasks, {
     String? templateCenterId,
+    required Future<void> Function(QueryExecutor executor, ProjectPlan project) persistProject,
   }) {
     return TaskStorageLock.synchronized<void>(() async {
       final applicationCenterId = templateCenterId ??
@@ -531,30 +532,7 @@ class TaskStore {
       await executor.runCustom('BEGIN');
       try {
         for (final task in tasks) { await _insertNewTask(executor, task); }
-        final ordinalRows = await executor.runSelect(
-          'SELECT COALESCE(MAX(storage_ordinal), -1) + 1 AS next_ordinal FROM projects',
-          const [],
-        );
-        final storageOrdinal = (ordinalRows.single['next_ordinal'] as num).toInt();
-        await executor.runInsert(
-          '''INSERT INTO projects
-             (id, storage_ordinal, name, color_value, is_archived, center_id, template_id, template_name_snapshot, legacy_payload_json)
-             VALUES (?, ?, ?, ?, 0, ?, ?, ?, ?)''',
-          <Object?>[project.id, storageOrdinal, project.title, project.colorValue, project.centerId,
-            project.templateId, project.templateNameSnapshot, jsonEncode(const ProjectPlanCodec().encode(project))],
-        );
-        for (final centerId in project.centerIds) {
-          await executor.runInsert(
-            'INSERT INTO center_projects (center_id, project_id) VALUES (?, ?)',
-            <Object?>[centerId, project.id],
-          );
-        }
-        for (final categoryId in project.categoryIds) {
-          await executor.runInsert(
-            'INSERT INTO project_categories (project_id, category_id) VALUES (?, ?)',
-            <Object?>[project.id, categoryId],
-          );
-        }
+        await persistProject(executor, project);
         for (var i = 0; i < project.itemIds.length; i++) {
           await executor.runInsert('INSERT INTO project_items (project_id, task_id, ordinal) VALUES (?, ?, ?)',
             <Object?>[project.id, project.itemIds[i], i]);
