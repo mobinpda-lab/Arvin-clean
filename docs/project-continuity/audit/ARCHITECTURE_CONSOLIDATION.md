@@ -132,3 +132,59 @@ The current PR #3463 description contains earlier audit statements that no longe
 - **CI at inspected SHA:** Build, SQLite v20 acceptance, SQLite snapshot, Follow-up persistence, Device Smoke and orchestrator-related runs were queued/pending; Draft Review APK was skipped. No PASS is claimed for this SHA.
 - **Development environment:** this audit was performed through GitHub source APIs only. Flutter/Dart execution, Dart Analyze, Flutter tests and local APK/device validation were not run in this environment.
 - **Safety:** Main remains read-only. PRs #3384, #3463 and #3470 remain open/draft/unmerged. No merge, release, deployment, destructive migration or NIRA change was performed.
+
+
+---
+
+# REV10 — Task Persistence Repair Gate (COMMAND 07-A.2.94)
+
+**Audit date:** 2026-11-14  
+**Starting PR #3463 SHA:** `d9438a81e6353b56350ccb99769d111846ef6766`  
+**Main SHA:** `45e4202b03a434459e4c021a04efa7e8396359db`  
+**Execution branch:** `rev10-m2m-v19-test-expansion`  
+**Result:** BLOCKED — no production-code changes or tests were performed.
+
+## Environment gate
+
+The available execution environment was checked again:
+- No Flutter, Dart, Android Debug Bridge (`adb`), or GitHub CLI executable is installed.
+- No Flutter/Dart SDK exists in the previously checked standard installation paths.
+- DNS resolution for `github.com` is unavailable from the shell environment.
+- The available tool catalog exposes GitHub source/PR/workflow APIs but no Codespaces/Workspace provisioner, remote terminal, shell-on-Codespace, workflow dispatch, or Dart/Flutter execution action.
+- The GitHub Codespaces user endpoint is not accessible through the available GitHub fetch wrapper. No existing Codespace can therefore be enumerated or attached through this execution surface.
+
+**Exact requirement to unblock:** provide an already-created Codespace/connected workspace and its supported terminal or coding-agent connection in this conversation, with this repository checked out on `rev10-m2m-v19-test-expansion`. It must have network access, Flutter and Dart SDKs, Git write access to the existing branch, and the ability to run project tests/builds. No paid infrastructure was created or requested.
+
+## Reconfirmed P0 source findings
+
+At the starting SHA, the existing `Task` model exposes `centerId` but has no `projectId` or `categoryId` fields. The existing `TaskStore._decodeTask` hydrates ordinary Task columns and the legacy JSON envelope, but does not hydrate `tasks.center_id/project_id/category_id` as canonical model fields. The Task INSERT statements omit those three SQL columns. The legacy `Task.category` remains a text value and is not a stable-ID Category relationship.
+
+The existing `TaskStore._saveUnlocked` path clears and rebuilds the Task collection and a number of normalized relations inside its transaction, while snapshotting/restoring `project_items` and `template_task_applications`. This is a broad rewrite path, not evidence of a targeted Task Upsert or proof that every historical relation survives. It must not be modified through blind API text edits without compiling and exercising the real transaction behavior.
+
+The existing `ProjectStore` reads `center_projects` and `project_categories` and has an additive Upsert path. `ProjectBackupBridge` currently exports legacy Task category names through `TaskStore.loadCategories()` and restores Projects through `ProjectStore.save()`; this source does not demonstrate export/restore of the stable-ID canonical Category catalog.
+
+## CI evidence at the inspected starting SHA
+
+PR-triggered runs returned for `d9438a81e6353b56350ccb99769d111846ef6766`:
+- Build: run `43629582304` — pending.
+- SQLite v20 lifecycle/M2M acceptance: `43629582368` — queued.
+- SQLite snapshot: `43629582314` — queued.
+- Follow-up persistence: `43629582360` — queued.
+- Device Smoke: `43629582359` — queued.
+- Orchestrator and Production Loop: `43629582344`, `43629582346` — pending.
+- Orchestrator PR Wakeup: `43629582339` — queued.
+- Draft Review APK: `43629582397` — skipped.
+
+No PASS is established by these states. No test was run locally. The historical green SQLite evidence belongs to its original historical SHA only and is not transferred to this candidate.
+
+## Protected scope
+
+Main remained unchanged. PRs #3384, #3463 and #3470 remained open, draft and unmerged at the end of the source audit. No database belonging to an installed user was accessed. No merge, release, deployment, NIRA change, or paid environment provisioning occurred.
+
+## Required implementation sequence after workspace connection
+
+1. Add presence-aware optional relationship fields to the existing Task model/codec, distinguishing omitted from explicit null for Center, Project and Category without treating the legacy Task category string as a Category ID.
+2. Implement targeted transactional Task persistence in the existing TaskStore; select one authoritative Task↔Project relation and maintain the other representation only as a validated compatibility projection. Reject conflicting or unresolved IDs rather than guessing.
+3. Add canonical Category CRUD over the existing `categories` table and wire the existing Project form selector to stable IDs; do not merge it with `taxonomy_categories`.
+4. Extend the existing canonical backup format with a versioned stable-ID Category catalog; restore Category entities before dependent Project edges and rollback on unresolved IDs while preserving old backup versions.
+5. Add and run the ten COMMAND 07-A.2.94 acceptance cases plus Analyze, full Flutter tests, build and device smoke where available. Record results against the exact final SHA before marking any item PASS.
