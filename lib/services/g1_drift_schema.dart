@@ -208,6 +208,16 @@ class G1DriftSchema implements QueryExecutorUser {
     // Seed the new active-directory relation exactly once from the pre-split
     // Persons table. Subsequent installs must never resurrect deleted entries.
     await executor.runCustom('PRAGMA foreign_keys = OFF');
+    // Preserve pre-existing v19 FK exceptions as historical evidence. The
+    // schema cutover may add canonical relations, but it must not reject or
+    // erase a database merely because an older source row was already orphaned.
+    final preexistingForeignKeyViolations = await executor.runSelect(
+      'PRAGMA foreign_key_check',
+      const [],
+    );
+    final preexistingForeignKeyKeys = preexistingForeignKeyViolations
+        .map((row) => '${row['table']}|${row['rowid']}|${row['parent']}|${row['fkid']}')
+        .toSet();
     await executor.runCustom('PRAGMA busy_timeout = 5000');
     await executor.runCustom('PRAGMA synchronous = NORMAL');
     await executor.runCustom('BEGIN');
@@ -332,8 +342,16 @@ class G1DriftSchema implements QueryExecutorUser {
       // Drift writes the authoritative schema version only after beforeOpen
       // completes; the M2M marker is an atomic migration-completion checkpoint.
       final foreignKeyViolations = await executor.runSelect('PRAGMA foreign_key_check', const []);
-      if (foreignKeyViolations.isNotEmpty) {
-        throw StateError('Canonical schema rebuild produced foreign-key violations: $foreignKeyViolations');
+      final newlyIntroducedForeignKeyViolations = foreignKeyViolations
+          .where((row) => !preexistingForeignKeyKeys.contains(
+                '${row['table']}|${row['rowid']}|${row['parent']}|${row['fkid']}',
+              ))
+          .toList(growable: false);
+      if (newlyIntroducedForeignKeyViolations.isNotEmpty) {
+        throw StateError(
+          'Canonical schema rebuild introduced foreign-key violations: '
+          '$newlyIntroducedForeignKeyViolations',
+        );
       }
       await executor.runCustom('COMMIT');
       await executor.runCustom('PRAGMA foreign_keys = ON');
