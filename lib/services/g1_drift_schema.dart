@@ -10,8 +10,12 @@ import 'g1_many_to_many_hierarchy_migration.dart';
 
 /// G1-DRIFT relational schema foundation.
 class G1DriftSchema implements QueryExecutorUser {
+  G1DriftSchema({G1SqliteFailureInjector? failureInjector})
+      : _failureInjector = failureInjector;
+
   static const int version = 20;
 
+  final G1SqliteFailureInjector? _failureInjector;
   bool _lifecycleCompleted = false;
 
   static const List<String> _statements = <String>[
@@ -112,7 +116,15 @@ class G1DriftSchema implements QueryExecutorUser {
     // Mark this callback executor open before issuing raw SQL; this does not
     // reopen the underlying database or advance the schema version.
     await executor.ensureOpen(this);
-    await _runLifecycle(executor, versionBefore: details.versionBefore);
+    await _runLifecycle(
+      executor,
+      versionBefore: details.versionBefore,
+      failureInjector: _failureInjector,
+    );
+    // Drift writes PRAGMA user_version only after beforeOpen returns. This
+    // seam deliberately models a process interruption after migration commit
+    // and all lifecycle checks, but before Drift registers schema v20.
+    await _failureInjector?.call('after_migration_commit_before_drift_version');
     _lifecycleCompleted = true;
   }
 
@@ -137,7 +149,14 @@ class G1DriftSchema implements QueryExecutorUser {
         if (!schema._lifecycleCompleted) {
           final rows = await executor.runSelect('PRAGMA user_version', const []);
           final before = rows.isEmpty ? null : (rows.single.values.first as num).toInt();
-          await _runLifecycle(executor, versionBefore: before);
+          await _runLifecycle(
+            executor,
+            versionBefore: before,
+            failureInjector: schema._failureInjector,
+          );
+          await schema._failureInjector?.call(
+            'after_migration_commit_before_drift_version',
+          );
           await executor.runCustom('PRAGMA user_version = 20');
           schema._lifecycleCompleted = true;
         }
@@ -153,6 +172,7 @@ class G1DriftSchema implements QueryExecutorUser {
   static Future<void> _runLifecycle(
     QueryExecutor executor, {
     required int? versionBefore,
+    G1SqliteFailureInjector? failureInjector,
   }) async {
     if (versionBefore != null && versionBefore > version) {
       throw StateError('Database schema $versionBefore is newer than supported $version.');
@@ -169,7 +189,10 @@ class G1DriftSchema implements QueryExecutorUser {
     if (versionBefore != null && versionBefore >= version && marker.isEmpty) {
       throw StateError('Schema version is $version but the REV10 migration marker is missing.');
     }
-    await const G1ManyToManyHierarchyMigration().migrate(executor);
+    await failureInjector?.call('before_migration');
+    await G1ManyToManyHierarchyMigration(
+      failureInjector: failureInjector,
+    ).migrate(executor);
     final completed = await executor.runSelect(
       'SELECT value FROM arvin_storage_meta WHERE key = ?',
       const [G1ManyToManyHierarchyMigration.markerKey],
