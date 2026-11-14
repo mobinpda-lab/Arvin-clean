@@ -11,6 +11,15 @@ on:
       - 'test/services/g1_m2m_hierarchy_acceptance_test.dart'
       - 'test/services/g1_v19_historical_parity_test.dart'
       - 'test/services/g1_v20_failure_recovery_test.dart'
+      - 'test/services/g1_drift_completed_at_migration_test.dart'
+      - 'docs/ADR/ADR-2026-11-14-CENTER-PROJECT-CATEGORY-M2M.md'
+      - 'docs/project-continuity/MASTER_GOVERNANCE.md'
+      - 'docs/project-continuity/PRODUCT_DECISIONS.md'
+      - 'docs/project-continuity/CURRENT_STATE.md'
+      - 'docs/project-continuity/ROADMAP.md'
+      - 'docs/project-continuity/OPEN_ISSUES.md'
+      - 'docs/project-continuity/IMPLEMENTATION_LOG.md'
+      - 'docs/project-continuity/HANDOFF.md'
       - '.github/workflows/arvin-command-07-a2-47-optional-relationships.yml'
   workflow_dispatch:
     inputs:
@@ -68,6 +77,8 @@ jobs:
             --reporter expanded 2>&1 | tee build/arvin-command-07-a2-80-d/v19-historical-parity.log
           flutter test test/services/g1_v20_failure_recovery_test.dart \
             --reporter expanded 2>&1 | tee build/arvin-command-07-a2-80-d/failure-recovery.log
+          flutter test test/services/g1_drift_completed_at_migration_test.dart \
+            --reporter expanded 2>&1 | tee build/arvin-command-07-a2-80-d/completed-at-regression.log
           flutter test test/services/g1_drift_schema_test.dart \
             --reporter expanded 2>&1 | tee build/arvin-command-07-a2-80-d/drift-lifecycle.log
           printf '%s\n' "$TARGET_SHA" > build/arvin-command-07-a2-80-d/target-sha.txt
