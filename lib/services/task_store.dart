@@ -531,11 +531,16 @@ class TaskStore {
       await executor.runCustom('BEGIN');
       try {
         for (final task in tasks) { await _insertNewTask(executor, task); }
+        final ordinalRows = await executor.runSelect(
+          'SELECT COALESCE(MAX(storage_ordinal), -1) + 1 AS next_ordinal FROM projects',
+          const [],
+        );
+        final storageOrdinal = (ordinalRows.single['next_ordinal'] as num).toInt();
         await executor.runInsert(
           '''INSERT INTO projects
-             (id, name, color_value, is_archived, center_id, template_id, template_name_snapshot, legacy_payload_json)
-             VALUES (?, ?, ?, 0, ?, ?, ?, ?)''',
-          <Object?>[project.id, project.title, project.colorValue, project.centerId,
+             (id, storage_ordinal, name, color_value, is_archived, center_id, template_id, template_name_snapshot, legacy_payload_json)
+             VALUES (?, ?, ?, ?, 0, ?, ?, ?, ?)''',
+          <Object?>[project.id, storageOrdinal, project.title, project.colorValue, project.centerId,
             project.templateId, project.templateNameSnapshot, jsonEncode(const ProjectPlanCodec().encode(project))],
         );
         for (final centerId in project.centerIds) {
