@@ -1,5 +1,6 @@
 import 'package:arvin/backup_manager.dart';
 import 'package:arvin/models/goal_project.dart';
+import 'package:arvin/models/task.dart';
 import 'package:arvin/services/center_store.dart';
 import 'package:arvin/services/project_backup_bridge.dart';
 import 'package:arvin/services/project_store.dart';
@@ -34,7 +35,7 @@ void main() {
       legacyFields: const {'createdAt': '2026-01-01T00:00:00.000Z'},
     );
     final candidate = (
-      tasks: const [],
+      tasks: <Task>[],
       settings: null,
       projects: <ProjectPlan>[project],
       hasProjects: true,
