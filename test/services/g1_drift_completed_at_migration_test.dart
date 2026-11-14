@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:arvin/services/g1_drift_schema.dart';
@@ -7,7 +8,7 @@ import 'package:arvin/services/g1_drift_schema.dart';
 void main() {
   test('schema installer adds nullable completed_at to an existing task table', () async {
     final database = NativeDatabase.memory();
-    await database.ensureOpen(G1DriftSchema());
+    await database.ensureOpen(_V19TestUser());
     try {
       await database.runCustom('''CREATE TABLE tasks (
         id TEXT NOT NULL PRIMARY KEY, storage_ordinal INTEGER NOT NULL DEFAULT 0,
@@ -37,7 +38,7 @@ void main() {
 
   test('defers only legacy Task column retirement when an unknown index exists', () async {
     final database = NativeDatabase.memory();
-    await database.ensureOpen(G1DriftSchema());
+    await database.ensureOpen(_V19TestUser());
     try {
       await database.runCustom('''CREATE TABLE tasks (
         id TEXT NOT NULL PRIMARY KEY, storage_ordinal INTEGER NOT NULL DEFAULT 0,
@@ -87,7 +88,7 @@ void main() {
   });
   test('defers legacy Task column retirement when a custom trigger exists', () async {
     final database = NativeDatabase.memory();
-    await database.ensureOpen(G1DriftSchema());
+    await database.ensureOpen(_V19TestUser());
     try {
       await database.runCustom('''CREATE TABLE tasks (
         id TEXT NOT NULL PRIMARY KEY, storage_ordinal INTEGER NOT NULL DEFAULT 0,
@@ -157,7 +158,7 @@ void main() {
 
   test('defers legacy Task column retirement when an outgoing foreign key exists', () async {
     final database = NativeDatabase.memory();
-    await database.ensureOpen(G1DriftSchema());
+    await database.ensureOpen(_V19TestUser());
     try {
       await database.runCustom('CREATE TABLE custom_refs (id TEXT NOT NULL PRIMARY KEY)');
       await database.runInsert(
@@ -224,4 +225,12 @@ void main() {
     }
   });
 
+}
+
+class _V19TestUser implements QueryExecutorUser {
+  @override
+  int get schemaVersion => 19;
+
+  @override
+  Future<void> beforeOpen(QueryExecutor executor, OpeningDetails details) async {}
 }
