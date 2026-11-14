@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:arvin/services/g1_drift_schema.dart';
+import 'package:arvin/services/g1_many_to_many_hierarchy_migration.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -189,6 +190,34 @@ void main() {
     expect(sqlFallback['followUpDate'], '2026-11-16T10:00:00.000');
     expect(sqlFallback['reminderDate'], '2026-11-17T10:00:00.000');
     await legacyDatabase.close();
+  });
+
+  test('real Drift beforeOpen uses its callback executor before version registration', () async {
+    final executor = NativeDatabase.memory();
+    final schema = _ObservedG1DriftSchema(executor);
+    try {
+      await executor.ensureOpen(schema);
+
+      expect(schema.callbackCount, 1);
+      expect(schema.executorWasDriftCallbackExecutor, isTrue);
+      expect(schema.runtimeExecutorType, contains('BeforeOpeningExecutor'));
+      expect(schema.detailsVersionBefore, isNull);
+      expect(schema.sqliteVersionBeforeMigration, 0);
+      expect(schema.foreignKeysAfterLifecycle, 1);
+      expect(
+        (await executor.runSelect('PRAGMA user_version', const [])).single.values.first,
+        20,
+      );
+      expect(
+        await executor.runSelect(
+          'SELECT value FROM arvin_storage_meta WHERE key = ?',
+          const [G1ManyToManyHierarchyMigration.markerKey],
+        ),
+        [ {'value': '20'} ],
+      );
+    } finally {
+      await executor.close();
+    }
   });
 
   test('upgrades an independently created SQLite v19 file and recovers on reopen', () async {
@@ -986,6 +1015,34 @@ void main() {
     );
   });
 
+}
+
+class _ObservedG1DriftSchema extends G1DriftSchema {
+  _ObservedG1DriftSchema(this.originalExecutor);
+
+  final QueryExecutor originalExecutor;
+  int callbackCount = 0;
+  bool executorWasDriftCallbackExecutor = false;
+  String runtimeExecutorType = '';
+  int? detailsVersionBefore;
+  int? sqliteVersionBeforeMigration;
+  int? foreignKeysAfterLifecycle;
+
+  @override
+  Future<void> beforeOpen(QueryExecutor executor, OpeningDetails details) async {
+    callbackCount++;
+    executorWasDriftCallbackExecutor = !identical(executor, originalExecutor);
+    runtimeExecutorType = executor.runtimeType.toString();
+    detailsVersionBefore = details.versionBefore;
+    await executor.ensureOpen(this);
+    final version = await executor.runSelect('PRAGMA user_version', const []);
+    sqliteVersionBeforeMigration =
+        (version.single.values.first as num).toInt();
+    await super.beforeOpen(executor, details);
+    final foreignKeys = await executor.runSelect('PRAGMA foreign_keys', const []);
+    foreignKeysAfterLifecycle =
+        (foreignKeys.single.values.first as num).toInt();
+  }
 }
 
 class _V19TestUser implements QueryExecutorUser {
