@@ -11,6 +11,8 @@ class ProjectPlan {
     bool? categoryRelationshipsSpecified,
     this.templateId,
     this.templateNameSnapshot,
+    bool? templateIdSpecified,
+    bool? templateNameSnapshotSpecified,
     Iterable<String>? itemIds,
     bool? itemIdsSpecified,
     Map<String, dynamic> legacyFields = const {},
@@ -18,6 +20,8 @@ class ProjectPlan {
         centerRelationshipsSpecified = centerRelationshipsSpecified ?? (centerIds != null || centerId != null),
         categoryIds = _stableIds(categoryIds ?? const []),
         categoryRelationshipsSpecified = categoryRelationshipsSpecified ?? (categoryIds != null),
+        templateIdSpecified = templateIdSpecified ?? templateId != null,
+        templateNameSnapshotSpecified = templateNameSnapshotSpecified ?? templateNameSnapshot != null,
         itemIds = List.unmodifiable(itemIds ?? const []),
         itemIdsSpecified = itemIdsSpecified ?? itemIds != null,
         legacyFields = Map.unmodifiable(Map<String, dynamic>.from(legacyFields));
@@ -45,7 +49,9 @@ class ProjectPlan {
   String? get centerId => centerIds.length == 1 ? centerIds.single : null;
 
   final String? templateId;
+  final bool templateIdSpecified;
   final String? templateNameSnapshot;
+  final bool templateNameSnapshotSpecified;
   final List<String> itemIds;
   final bool itemIdsSpecified;
 
@@ -96,6 +102,9 @@ class ProjectPlan {
       templateNameSnapshot: clearTemplateNameSnapshot
           ? null
           : templateNameSnapshot ?? this.templateNameSnapshot,
+      templateIdSpecified: clearTemplateId || templateId != null ? true : templateIdSpecified,
+      templateNameSnapshotSpecified: clearTemplateNameSnapshot || templateNameSnapshot != null
+          ? true : templateNameSnapshotSpecified,
       itemIds: itemIds ?? this.itemIds,
       itemIdsSpecified: itemIds != null ? true : itemIdsSpecified,
       legacyFields: legacyFields ?? this.legacyFields,
@@ -127,7 +136,9 @@ class ProjectPlan {
           other.centerRelationshipsSpecified == centerRelationshipsSpecified &&
           other.categoryRelationshipsSpecified == categoryRelationshipsSpecified &&
           other.templateId == templateId &&
+          other.templateIdSpecified == templateIdSpecified &&
           other.templateNameSnapshot == templateNameSnapshot &&
+          other.templateNameSnapshotSpecified == templateNameSnapshotSpecified &&
           _same(itemIds, other.itemIds) &&
           other.itemIdsSpecified == itemIdsSpecified &&
           _mapSame(legacyFields, other.legacyFields);
@@ -137,7 +148,8 @@ class ProjectPlan {
         id, title, colorValue, isArchived,
         Object.hashAll(centerIds), Object.hashAll(categoryIds),
         centerRelationshipsSpecified, categoryRelationshipsSpecified,
-        templateId, templateNameSnapshot, Object.hashAll(itemIds), itemIdsSpecified,
+        templateId, templateIdSpecified, templateNameSnapshot,
+        templateNameSnapshotSpecified, Object.hashAll(itemIds), itemIdsSpecified,
         Object.hashAll(legacyFields.entries.map((entry) => Object.hash(entry.key, entry.value))),
       );
 
