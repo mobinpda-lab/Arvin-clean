@@ -1,12 +1,14 @@
 ## 2026-11-14 — exact-SHA lifecycle boundary and test compatibility addendum
 
-## 2026-11-14 — exact-SHA lifecycle boundary and test compatibility addendum
-
 - Preserved the source-compatible `const G1DriftSchema()` constructor while keeping the optional test failure injector.
 - Expanded canonical M2M acceptance for Center+Project, Project+Category, Center+Category path and full hierarchy Task combinations, plus ordinary file-backed database reopen.
 - Inspected Drift 2.35.0 `engines.dart`: `_runMigrations` awaits `user.beforeOpen(_BeforeOpeningExecutor(...), openingDetails)` and only then calls `versionDelegate.setSchemaVersion(currentVersion)`. The post-commit interruption test targets this exact boundary.
 - Confirmed Notebook page and test blobs are identical on the #3463 branch and base SHA `310c0e20e3447c488c1e1c102c38bea5040708ca`. Base Build `43575749904` also failed test-1 on that base; the Notebook assertions are inherited, not introduced by the SQLite diff. No unrelated Notebook test was edited or skipped.
 - Candidate SHA `5764d4a82ebef6c3f2eb33a0703f09abe3e545e4` has new Build, D-v20, Device Smoke, Follow-up and Snapshot runs queued/pending at last poll; no exact-SHA PASS is yet available.
+
+- Split the acceptance evidence into independent D02 and D03 tests; added an explicit missing-field v19 fixture alongside explicit NULL/FALSE/TRUE, plus Follow-up next-action metadata and disabled/all-day Reminder parity.
+- Added the D04 physical SQLite restore against the migrated historical v20 file; D05 includes seven independent lifecycle failure points and verifies historical Task metadata after base-phase commit and retry.
+- Read-only store audit found integration blockers: CenterStore checks only legacy `projects.center_id`; ProjectStore still models one Center and `DELETE FROM projects` conflicts with M2M RESTRICT edges; TaskStore does not write Task Center/Project/Category columns; Category CRUD still targets legacy `taxonomy_categories`. No store code was changed before D01–D05 acceptance.
 
 ---
 
