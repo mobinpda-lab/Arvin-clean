@@ -180,11 +180,12 @@ class G1ManyToManyHierarchyMigration {
         String? projectId;
         if (memberships.length == 1) {
           final candidate = memberships.single['project_id'] as String;
-          if (projectIds.contains(candidate)) projectId = candidate;
-        } else if (memberships.length == 1) {
-          await _recordEntityException(executor, 'task', taskId,
-              'TASK_PROJECT_REFERENCE_MISSING',
-              'legacy project_id=${memberships.single['project_id']}');
+          if (projectIds.contains(candidate)) {
+            projectId = candidate;
+          } else {
+            await _recordEntityException(executor, 'task', taskId,
+                'TASK_PROJECT_REFERENCE_MISSING', 'legacy project_id=$candidate');
+          }
         } else if (memberships.length > 1) {
           await _recordEntityException(executor, 'task', taskId,
               'TASK_MULTIPLE_LEGACY_PROJECTS',
@@ -238,7 +239,7 @@ class G1ManyToManyHierarchyMigration {
       // Historical projects.center_id violations are retained as evidence and
       // are classified in the exception ledger; they must not be silently
       // deleted or make an otherwise reversible migration lose source data.
-      final violations = <QueryRow>[];
+      final violations = <Map<String, Object?>>[];
       for (final table in ['center_projects', 'project_categories', 'tasks']) {
         violations.addAll(await executor.runSelect(
           'PRAGMA foreign_key_check($table)',

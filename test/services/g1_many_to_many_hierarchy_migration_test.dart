@@ -37,11 +37,20 @@ void main() {
          VALUES ('project-b', 1, 'پروژه ب', 0, 0, 'center-b')''',
       const [],
     );
+    await db.runInsert(
+      '''INSERT INTO tasks(id, title, description, priority, archived, trashed, completed)
+         VALUES ('task-missing-project', 'کار با پروژه ناموجود', '', 'none', 0, 0, 0)''',
+      const [],
+    );
     await db.runCustom('PRAGMA foreign_keys = OFF');
     await db.runInsert(
       '''INSERT INTO projects(id, storage_ordinal, name, color_value, is_archived, center_id)
          VALUES ('project-orphan', 2, 'پروژه با مرکز ناموجود', 0, 0, 'missing-center')''',
       const [],
+    );
+    await db.runInsert(
+      'INSERT INTO project_items(project_id, task_id, ordinal) VALUES (?, ?, ?)',
+      const ['missing-project', 'task-missing-project', 0],
     );
     await db.runCustom('PRAGMA foreign_keys = ON');
     await db.runInsert(
@@ -73,6 +82,11 @@ void main() {
     await db.runInsert(
       '''INSERT INTO project_items(project_id, task_id, ordinal)
          VALUES ('project-b', 'task-ambiguous', 1)''',
+      const [],
+    );
+    await db.runInsert(
+      '''INSERT INTO tasks(id, title, description, priority, archived, trashed, completed)
+         VALUES ('task-standalone', 'کار مستقل', '', 'none', 0, 0, 0)''',
       const [],
     );
 
@@ -201,6 +215,29 @@ void main() {
     );
     expect(projectExceptions.map((r) => r['issue_code']),
         contains('PROJECT_CENTER_REFERENCE_MISSING'));
+    final missingProjectExceptions = await db.runSelect(
+      '''SELECT issue_code FROM rev10_hierarchy_migration_exceptions
+         WHERE entity_type = 'task' AND entity_id = 'task-missing-project' ''',
+      const [],
+    );
+    expect(missingProjectExceptions.map((r) => r['issue_code']),
+        contains('TASK_PROJECT_REFERENCE_MISSING'));
+    final missingProjectTask = (await db.runSelect(
+      'SELECT center_id, project_id, category_id FROM tasks WHERE id = ?',
+      const ['task-missing-project'],
+    )).single;
+    expect(missingProjectTask['project_id'], isNull);
+    expect(
+      await db.runSelect('SELECT project_id FROM project_items WHERE task_id = ?', const ['task-missing-project']),
+      [ {'project_id': 'missing-project'} ],
+      reason: 'The invalid legacy membership remains available as recovery evidence.',
+    );
+    final standaloneTask = (await db.runSelect(
+      'SELECT center_id, project_id, category_id FROM tasks WHERE id = ?',
+      const ['task-standalone'],
+    )).single;
+    expect(standaloneTask.values, everyElement(isNull));
+    expect(await db.runSelect('PRAGMA foreign_key_check(project_items)', const []), hasLength(1));
 
     // The old relationship rows remain available as historical evidence.
     expect(
@@ -259,6 +296,24 @@ void main() {
         const [G1ManyToManyHierarchyMigration.markerKey],
       ),
       isEmpty,
+    );
+
+    // A clean retry after removing the injected fault must succeed.
+    await db.runCustom('DROP TRIGGER inject_rev10_migration_failure');
+    await const G1ManyToManyHierarchyMigration().migrate(db);
+    expect(
+      await db.runSelect(
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('center_projects', 'project_categories', 'categories')",
+        const [],
+      ),
+      hasLength(3),
+    );
+    expect(
+      await db.runSelect(
+        'SELECT value FROM arvin_storage_meta WHERE key = ?',
+        const [G1ManyToManyHierarchyMigration.markerKey],
+      ),
+      [ {'value': '20'} ],
     );
   });
 }
