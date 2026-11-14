@@ -6,13 +6,15 @@ class ProjectPlan {
     this.isArchived = false,
     String? centerId,
     Iterable<String>? centerIds,
-    Iterable<String> categoryIds = const [],
+    Iterable<String>? categoryIds,
     this.templateId,
     this.templateNameSnapshot,
     Iterable<String> itemIds = const [],
     Map<String, dynamic> legacyFields = const {},
   })  : centerIds = _stableIds(centerIds ?? (centerId == null ? const [] : [centerId])),
-        categoryIds = _stableIds(categoryIds),
+        centerRelationshipsSpecified = centerIds != null || centerId != null,
+        categoryIds = _stableIds(categoryIds ?? const []),
+        categoryRelationshipsSpecified = categoryIds != null,
         itemIds = List.unmodifiable(itemIds),
         legacyFields = Map.unmodifiable(Map<String, dynamic>.from(legacyFields));
 
@@ -28,9 +30,11 @@ class ProjectPlan {
 
   /// Canonical in-memory projection of the SQL center_projects relation.
   final List<String> centerIds;
+  final bool centerRelationshipsSpecified;
 
   /// Canonical in-memory projection of the SQL project_categories relation.
   final List<String> categoryIds;
+  final bool categoryRelationshipsSpecified;
 
   /// Backward-compatible single-parent view. It is not an independent source
   /// of truth: it returns the sole Center only when exactly one is linked.
@@ -78,6 +82,7 @@ class ProjectPlan {
       isArchived: isArchived ?? this.isArchived,
       centerIds: nextCenters,
       categoryIds: replaceCategoryIds ? categoryIds ?? const [] : categoryIds ?? this.categoryIds,
+
       templateId: clearTemplateId ? null : templateId ?? this.templateId,
       templateNameSnapshot: clearTemplateNameSnapshot
           ? null
@@ -109,6 +114,8 @@ class ProjectPlan {
           other.isArchived == isArchived &&
           _same(centerIds, other.centerIds) &&
           _same(categoryIds, other.categoryIds) &&
+          other.centerRelationshipsSpecified == centerRelationshipsSpecified &&
+          other.categoryRelationshipsSpecified == categoryRelationshipsSpecified &&
           other.templateId == templateId &&
           other.templateNameSnapshot == templateNameSnapshot &&
           _same(itemIds, other.itemIds) &&
@@ -118,6 +125,7 @@ class ProjectPlan {
   int get hashCode => Object.hash(
         id, title, colorValue, isArchived,
         Object.hashAll(centerIds), Object.hashAll(categoryIds),
+        centerRelationshipsSpecified, categoryRelationshipsSpecified,
         templateId, templateNameSnapshot, Object.hashAll(itemIds),
         Object.hashAll(legacyFields.entries.map((entry) => Object.hash(entry.key, entry.value))),
       );
