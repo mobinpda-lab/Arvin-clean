@@ -286,3 +286,74 @@ N1 stores the manual title as empty when not supplied. The first non-empty body 
 - Auto-Merge remains a material governance risk. No security setting was changed.
 
 **Disposition:** One active candidate only. Product acceptance BLOCKED. Release NO-GO. No user database migration. All workflow results for the source candidate remain pending until their exact-SHA conclusions are fetched. The registry append itself creates a new commit and therefore a new candidate; the next reconciliation must read that commit's exact SHA and its own workflow runs, without inheriting any result from `5f912...`.
+
+
+---
+
+## COMMAND 07-A.2.86 — P0 root-cause remediation checkpoint
+
+**Reconciled:** 2026-11-14 (GitHub timestamps in UTC)  
+**Starting candidate:** `386bc4334db2d29ce15f3e73b07efe8fca68209b`  
+**Source remediation commit:** `afd10ad00118a3ccf2df02d12fd5fd286bcffeae`  
+**Branch:** `feature/command-07-a-sqlite-contract-remediation`  
+**PR #3384:** OPEN / DRAFT / UNMERGED; base unchanged at `fix/wave3-cycle3-calendar-product-repair` @ `8c4c23f0c2a4f9b2374a2092c931782c4455fd41`.  
+**Main:** `45e4202b03a434459e4c021a04efa7e8396359db`, READ-ONLY.
+
+### Continuity and old candidate
+
+The branch head at the start matched the supplied starting candidate `386bc...`. Main and PR #3384 were unchanged. Full Build run `43531407639` completed FAILURE on this exact SHA. Analyze failed solely with `invalid_constant` at `test/notebook_page_test.dart:232`. All six test shards failed; the failures remain historical for `386bc...` and are not transferred to the remediation candidate.
+
+Device Smoke run `43531407685` has an inconsistent/stale run state: the run endpoint reports QUEUED (last updated `2026-11-14T00:54:43Z`), while its latest jobs response shows:
+- App Boot: CANCELLED; emulator test step cancelled; screenshot upload step failed after cancellation.
+- Navigation: CANCELLED; emulator test step cancelled; screenshot upload step failed after cancellation.
+- Calendar Segmented View: IN_PROGRESS.
+- Quick Capture: IN_PROGRESS.
+- Task Lifecycle: QUEUED.
+- Reminder / Vazirmatn: QUEUED.
+- Follow-up Persistence: QUEUED.
+
+No capability PASS/FAIL is inferred from cancelled upload steps. Because the run has not reached a consistent completed conclusion, all seven-scenario Device Smoke acceptance remains NOT VERIFIED.
+
+### Confirmed root causes and remediation
+
+1. **Notebook compile defect:** the dynamic note key used `const ValueKey` around an interpolated runtime ID. Removed only the invalid `const`; the finder, Assertion and test intent remain unchanged.
+2. **Task Details responsive header defect:** the RenderFlex log identifies the Row inside `_metadataChip` at `lib/task_detail_page.dart:1503`. It is the priority/status chip in the Task Details header, constrained to 45dp at 360dp viewport and 97dp at 412dp viewport; this caused the observed 139px and 87px overflows. The compact header now gives the summary full width and places favorite, priority and completion actions in a separate RTL row below it for widths under 480dp. No action or information control was removed.
+3. **Regression coverage:** the 360/390/412dp full-page test now explicitly asserts that favorite, priority and completion actions remain present at every width.
+4. **Notebook contract:** the stale first-save-only title contract is replaced with the current dynamic display-title contract: while manual title is empty, display title follows the first non-empty body line; manual title wins; body remains byte-for-byte unchanged; clearing manual title restores derived display title.
+
+### Source commit
+
+Commit `afd10ad00118a3ccf2df02d12fd5fd286bcffeae` changed exactly:
+- `test/notebook_page_test.dart`
+- `lib/task_detail_page.dart`
+- `test/task_detail_visual_test.dart`
+- `docs/project-continuity/ARCHITECTURE_NOTEBOOK.md`
+
+No schema, repository, TaskStore, database, migration or user data was changed. No test was weakened or removed.
+
+### Exact-SHA workflow evidence for source commit
+
+At reconciliation, the source commit had these runs:
+- Device Smoke: `43555298029` — QUEUED.
+- Follow-up File Persistence: `43555297993` — QUEUED.
+- Orchestrator PR Wakeup: `43555298113` — QUEUED.
+- Draft Review APK: `43555297979` — COMPLETED / SKIPPED.
+- Full Build / Analyze / test shards: no run returned yet.
+
+Therefore targeted Notebook tests, Canonical Notebook Repository tests, Analyze, regression, Full Build, Device Smoke and SQLite checks are all PENDING for `afd10ad...`. No artifact ID or SHA256 is attributed to this commit.
+
+### Product gates
+
+- N1 Fast Capture: source implementation retained; compile defect corrected; acceptance PENDING exact-SHA tests and device verification.
+- N2 Note identity / bidirectional integration: NOT IMPLEMENTED.
+- N3 Notebook search and filters: PARTIAL.
+- N4 Notebook file-backed close/reopen and independent Backup/Restore: NOT VERIFIED.
+- D01 Schema Compatibility: PARTIAL / NOT ACCEPTED.
+- D02 NULL/FALSE/TRUE Preservation: PARTIAL / NOT ACCEPTED.
+- D03 Person/Follow-up relationships: PARTIAL / NOT ACCEPTED.
+- D04 Independent Physical Backup/Restore: PARTIAL / NOT ACCEPTED.
+- D05 Atomicity/Rollback/Recovery: NOT VERIFIED.
+
+No migration was run against a user database. No Main, PR base, Auto-Merge or Ruleset setting was modified. Repository Auto-Merge remains enabled and ruleset 20952260 remains active with zero required approving reviews; this is still a governance risk.
+
+**Disposition:** remediation source commit created; product acceptance BLOCKED; Release NO-GO. Exact-SHA validation remains pending. This entry is historical evidence for `afd10ad...`; the registry append below advances the branch to a new candidate and must not inherit this commit's pending or future results.
