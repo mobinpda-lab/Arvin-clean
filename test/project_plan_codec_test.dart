@@ -139,4 +139,51 @@ void main() {
     expect(explicitNull.itemIds, isEmpty);
   });
 
+  test('ProjectPlan equality is order-independent for canonical ID sets and metadata maps', () {
+    final first = ProjectPlan(
+      id: 'same',
+      title: 'پروژه',
+      centerIds: const ['center-b', 'center-a'],
+      categoryIds: const ['category-b', 'category-a'],
+      legacyFields: const {'z': 2, 'a': {'x': 1, 'y': 2}},
+    );
+    final second = ProjectPlan(
+      id: 'same',
+      title: 'پروژه',
+      centerIds: const ['center-a', 'center-b'],
+      categoryIds: const ['category-a', 'category-b'],
+      legacyFields: const {'a': {'y': 2, 'x': 1}, 'z': 2},
+    );
+    expect(first, second);
+    expect(first.hashCode, second.hashCode);
+  });
+
+  test('copyWith distinguishes omitted relations from explicit empty replacement', () {
+    final original = ProjectPlan(
+      id: 'copy',
+      title: 'پایه',
+      centerIds: const ['center-a'],
+      categoryIds: const ['category-a'],
+      itemIds: const ['task-a'],
+    );
+    final partial = original.copyWith(title: 'ویرایش');
+    expect(partial.centerIds, ['center-a']);
+    expect(partial.categoryIds, ['category-a']);
+    expect(partial.itemIds, ['task-a']);
+    expect(partial.centerRelationshipsSpecified, isTrue);
+    expect(partial.categoryRelationshipsSpecified, isTrue);
+    expect(partial.itemIdsSpecified, isTrue);
+
+    final cleared = original.copyWith(
+      centerIds: const [],
+      replaceCenterIds: true,
+      categoryIds: const [],
+      replaceCategoryIds: true,
+      itemIds: const [],
+    );
+    expect(cleared.centerIds, isEmpty);
+    expect(cleared.categoryIds, isEmpty);
+    expect(cleared.itemIds, isEmpty);
+  });
+
 }
