@@ -1,3 +1,23 @@
+# REV10 — CURRENT OWNER DECISION REGISTER ADDENDUM (2026-11-14)
+
+## ARVIN-DEC-2026-11-14-CENTER-PROJECT-CATEGORY-M2M
+
+| Field | Decision |
+|---|---|
+| Status | APPROVED — explicit Product Owner confirmation, 2026-11-14 |
+| Center ↔ Project | Many-to-Many; zero-to-many links from either side |
+| Project ↔ Category | Many-to-Many; zero-to-many links from either side |
+| Task → Center / Project / Category | Each independently optional, zero or one direct assignment |
+| Task ↔ Tag | Many-to-Many |
+| Supersedes | REV10 single-parent Center→Project and Project→Category rules; unresolved Project↔Category scoping in ADR-2026-10-10 |
+| Data safety | Preserve IDs, valid existing links, Task assignments and history; never guess missing Category↔Project links |
+| Implementation | APPROVED decision; schema, migration, UI and verification remain NOT VERIFIED |
+
+The canonical model is a relationship graph, not a mandatory single-parent tree. Task may remain standalone. Removing a link must not delete either endpoint. See docs/ADR/ADR-2026-11-14-CENTER-PROJECT-CATEGORY-M2M.md.
+
+Historical decisions remain preserved and must be marked SUPERSEDED, not erased.
+
+---
 # REV9 — CURRENT OWNER DECISION REGISTER ADDENDUM (2026-11-10)
 
 ## ARVIN-DEC-2026-11-10-LOCAL-FIRST — LOCAL-FIRST / SYNC SUSPENDED
