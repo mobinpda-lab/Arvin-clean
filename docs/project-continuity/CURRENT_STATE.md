@@ -1,3 +1,15 @@
+## Post-checkpoint source update — 2026-11-14
+
+## Post-checkpoint source update — 2026-11-14
+
+- After the first documentation synchronization, two source/test commits were added: `b49659321a1b155e7f7f17c45661075c863e19dc` preserves the public `const G1DriftSchema()` construction contract; `5764d4a82ebef6c3f2eb33a0703f09abe3e545e4` adds further optional Task link combinations and ordinary file-backed reopen assertions.
+- Exact code candidate after these changes: `5764d4a82ebef6c3f2eb33a0703f09abe3e545e4`. Current CI runs on this SHA: Build `43583723932`, COMMAND 07-A.2.80-D `43583723876`, Device Smoke `43583723919`, Follow-up Persistence `43583723884`, SQLite Snapshot `43583723868`. All were QUEUED/PENDING at last poll; no result is transferable from older SHAs.
+- The dedicated v20 workflow now includes the seven-stage failure-recovery suite in addition to migration-helper, M2M, historical-parity and Drift lifecycle tests.
+- Drift 2.35.0 source inspection confirms `_runMigrations` awaits `user.beforeOpen(...)` before calling `DynamicVersionDelegate.setSchemaVersion(currentVersion)`; this validates the lifecycle failure seam's target boundary. The application uses `QueryExecutorUser.beforeOpen` rather than a generated `MigrationStrategy.onCreate/onUpgrade` class.
+- The two Notebook failures in Build test-1 also occurred on the exact base SHA `310c0e20e3447c488c1e1c102c38bea5040708ca`; both the Notebook page and test file have identical blob SHAs on the PR branch and base. They are inherited base failures, not SQLite PR changes; leave them untouched in this migration lane and keep them visible as upstream Build blockers.
+
+---
+
 ## COMMAND 07-A.2.80-D — live SQLite v20 execution checkpoint — 2026-11-14 13:21 +03:30
 
 ## COMMAND 07-A.2.80-D — live SQLite v20 execution checkpoint — 2026-11-14 13:21 +03:30
