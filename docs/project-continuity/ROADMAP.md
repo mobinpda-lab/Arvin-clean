@@ -1,3 +1,22 @@
+## COMMAND 07-A.2.81 — current delivery status — 2026-11-14
+
+1. Complete exact-SHA rerun after the historical parity, FK assertion, Analyze and legacy fixture corrections.
+2. Require D01–D05 independent evidence on one final post-documentation SHA.
+3. Complete seven Device Smoke scenarios on that same SHA.
+4. Resolve inherited regression blockers: exact base Build run `43575749904` had 41 failing labels, all reproduced on b3d6; do not delete, skip or weaken these tests. Diagnose their product/test-contract causes after SQLite scope is stable.
+5. Only after SQLite v20 acceptance, begin Canonical Repository Integration: CenterStore, ProjectStore, CategoryStore, TaskStore, Entity Management, selectors, Home/Calendar/Reports filters, Search and product Backup/Restore.
+
+### Gate status evidence boundary
+
+- D01: YELLOW — real Drift lifecycle and fresh/v19 tests passed on b3d6; final-SHA rerun pending.
+- D02: YELLOW — four-state value test passed on b3d6; full historical parity test failed on b3d6 and has a corrected comparison awaiting rerun.
+- D03: RED on b3d6 — historical Person/Follow-up/Reminder/Metadata parity assertion failed; migration metadata preservation corrected, rerun pending.
+- D04: YELLOW — independent physical SQLite file-copy/restore test passed on b3d6; full final-SHA evidence pending and product integration remains separate.
+- D05: YELLOW — all seven real lifecycle failure-injection/recovery cases passed on b3d6; final-SHA rerun pending.
+
+No gate is accepted until all mandatory checks pass on one exact SHA.
+
+
 ## 2026-11-14 — Active REV10 SQLite v20 delivery lane
 
 **Primary execution:** PR #3463 / `rev10-m2m-v19-test-expansion`.  

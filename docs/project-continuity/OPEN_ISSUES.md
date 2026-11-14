@@ -1,3 +1,18 @@
+## COMMAND 07-A.2.81 — active blocker reconciliation — 2026-11-14
+
+- **P0 — Exact-SHA acceptance pending:** source SHA before this documentation sync was `444c8ae6dfe640ee47d254ccc08990fac47b5e5e`; this documentation commit changes HEAD. Poll the new live branch SHA and rerun all required workflows. Prior results are not transferable.
+- **P0 — Historical parity correction pending verification:** production migration now preserves metadata identity for every Follow-up row; parity assertion maps legacy `date_time` to canonical `completed_at`. Commits: `9bd415e`, `435ee4e`.
+- **P0 — Task FK fixture correction pending verification:** test now expects custom `custom_refs` plus the three v20 Task links. Commit: `aca9f44`.
+- **P1 — Legacy test fixture corrections pending verification:** v15 Reminder and v11 Task Template fixtures now open at their legacy schema versions before creating historical tables. Commits: `8f73900`, `444c8ae`.
+- **P0 — Inherited regression baseline:** Build run `43575749904` on exact PR base `310c0e20...` had 41 failing labels. The same 41 labels reappeared on `b3d6fc4`; five additional failures introduced by the SQLite test/migration wave were identified and corrected. The inherited 41 remain unresolved blockers and must not be hidden, skipped or weakened.
+- **P0 — Device Smoke:** run `43589784304` was queued; none of the seven scenarios is accepted. A fresh seven-scenario run is required on the final candidate SHA.
+- **P1 — Product Backup/Restore:** physical SQLite copy/restore test and production product backup integration are distinct acceptance levels. Product-level JSON-oriented path has not been migrated/accepted for v20.
+- **P1 — PR documentation consolidation:** PR #3448 is divergent from PR #3463's base (2,418 ahead / 98 behind). The M2M ADR is byte-identical; seven overlapping canonical docs differ. Reconcile by content, not blind cherry-pick.
+- **Governance:** Main remains read-only; no merge, release, deployment, branch deletion, NIRA change or history rewrite.
+
+Historical run detail and exact job IDs are recorded in CURRENT_STATE.md and IMPLEMENTATION_LOG.md.
+
+
 ## 2026-11-14 — COMMAND 07-A.2.80-D active blockers
 
 | ID | Priority | Status | Required action |

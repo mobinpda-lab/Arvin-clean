@@ -1,3 +1,15 @@
+## COMMAND 07-A.2.81 — execution evidence and safety checkpoint — 2026-11-14
+
+This section supplements REV10 and does not change product decisions or execution authority.
+
+- The production const-constructor compile defect is verified corrected by successful APK build jobs on SHA `b3d6fc4283632d5f7dd5f4954ab7c32cd90850a5`; full Build and SQLite acceptance were not green.
+- Historical data parity, independent physical restore, seven-point recovery and M2M must be assessed independently. On b3d6, D05's seven failure/retry cases passed; M2M acceptance passed; D04's physical restore test passed; two historical parity assertions and one FK fixture assertion failed.
+- Corrections were committed on the authorized PR #3463 branch; all require fresh exact-SHA verification after this documentation update.
+- The exact PR base SHA `310c0e20...` had 41 Build failure labels, all repeated on b3d6. They remain regression blockers; baseline comparison is attribution evidence, not acceptance.
+- PR #3448's branch diverges from PR #3463's base. Preserve both histories and reconcile unique documentation content by diff. The shared M2M ADR is byte-identical.
+- Main remains read-only. No merge, release, deployment, destructive database operation, NIRA change, branch/PR deletion or shared-history rewrite is authorized by this checkpoint.
+
+
 ## OWNER-APPROVED ARCHITECTURE SUPERSESSION — 2026-11-14
 
 **Decision ID:** ARVIN-ADR-2026-11-14-CENTER-PROJECT-CATEGORY-M2M

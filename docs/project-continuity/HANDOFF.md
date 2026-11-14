@@ -1,3 +1,15 @@
+## COMMAND 07-A.2.81 — next execution handoff — 2026-11-14
+
+1. Fetch live Main, PR #3463 and `rev10-m2m-v19-test-expansion` HEAD. The pre-documentation source SHA was `444c8ae6dfe640ee47d254ccc08990fac47b5e5e`; this documentation commit advances it. Do not assume either is current without reading the branch ref.
+2. Poll Build, SQLite v20 Acceptance, Snapshot, Follow-up Persistence, Device Smoke, Production Loop and Orchestrator for the post-documentation SHA. A queued, pending, skipped or cancelled result is not PASS.
+3. Inspect the two historical parity tests, completed-at migration test, v15/v11 fixture tests and Analyze on the new SHA. The source and test corrections are commits `9bd415e`, `435ee4e`, `aca9f44`, `1e92416`, `8f73900`, `444c8ae`.
+4. Preserve the exact baseline comparison: Build `43575749904` on base SHA `310c0e20...` had 41 failing labels; all 41 reappeared on `b3d6fc4`. The five additional SQLite-wave failures were corrected but require rerun. Do not label the inherited failures harmless; they remain blockers.
+5. Device Smoke has not completed. Verify all seven scenarios independently on the final SHA; distinguish product failure from emulator/ADB infrastructure.
+6. D01–D05 are not accepted. Historical b3d6 evidence: D01 lifecycle suite passed; D02 value test passed but combined parity test failed; D03 failed; D04 physical restore test passed; D05 seven failure stages passed. None transfers to the new SHA.
+7. Keep PR #3463 OPEN / DRAFT / UNMERGED and Main untouched. PR #3384 is its direct parent base. PR #3448 is a divergent documentation branch; its ADR matches byte-for-byte but seven canonical docs differ. Do not cherry-pick blindly.
+8. Do not modify NIRA. Do not merge, release, deploy, delete historical refs or rewrite Git history.
+
+
 ## Exact-SHA follow-up after source compatibility update — 2026-11-14
 
 - Latest code candidate before this documentation refresh: `d0c4c90ffd4aa8a62c948123b3a799cfbe471673`. Current CI: Build `43584316965`, D-v20 `43584317136`, Follow-up `43584316946`, Snapshot `43584316958`, Device Smoke `43584317383`; queued/pending at last poll. Re-fetch the live PR head after the documentation commit before testing.

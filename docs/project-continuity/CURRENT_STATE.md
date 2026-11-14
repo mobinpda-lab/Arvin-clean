@@ -1,3 +1,43 @@
+## COMMAND 07-A.2.81 — live evidence checkpoint — 2026-11-14
+
+**Repository:** mobinpda-lab/Arvin-clean  
+**Main:** `45e4202b03a434459e4c021a04efa7e8396359db` — unchanged.  
+**Primary route:** PR #3463, OPEN / DRAFT / UNMERGED; branch `rev10-m2m-v19-test-expansion`; base `310c0e20e3447c488c1e1c102c38bea5040708ca`.  
+**Pre-documentation source checkpoint:** `444c8ae6dfe640ee47d254ccc08990fac47b5e5e`. This documentation synchronization changes the branch HEAD; fetch the live ref after this commit and rerun exact-SHA acceptance. No earlier PASS transfers.
+
+### Verified findings
+
+- Commit `b3d6fc4283632d5f7dd5f4954ab7c32cd90850a5` removed the incompatible const constructor. Its Build run `43589784306` completed APK staging, release-variant, debug, visual/PDF and font checks successfully; the overall workflow failed because Analyze and six regression shards failed. The original compile diagnostic did not recur.
+- Analyze job `132431921330` failed only on an unused import in `test/services/g1_many_to_many_hierarchy_migration_test.dart`; removed in commit `1e92416b8555310ba4e16be0ab3c331fbb00a0f5`.
+- SQLite acceptance run `43589784286`, job `132431853651`: migration helper (2 tests), M2M acceptance (5 tests), seven-stage failure recovery (7 tests), and Drift lifecycle/schema suite (17 tests) passed. Historical parity suite failed two assertions; completed-at migration suite failed one assertion. The D04 physical file-copy/independent-restore test and D02 four-state test passed individually within the historical suite.
+- Root causes and corrections on the same development branch:
+  - `9bd415ea7450d9863a1a72941e8f56701954d3a0`: preserve a metadata entry for every historical Follow-up, including records without a next-follow-up date.
+  - `435ee4e29bd40fb90783400283cd22a405dca5e4`: compare legacy `date_time` with canonical `completed_at` in the parity test.
+  - `aca9f446191e31667237c27886a8f837e3b62845`: assert the original custom Task FK plus the three approved v20 optional Task FKs.
+  - `8f73900736fe52edae6130116074629addc42dfd` and `444c8ae6dfe640ee47d254ccc08990fac47b5e5e`: construct genuine v15/v11 test fixtures before invoking the v20 schema installer; avoid creating `tasks` after v20 installation has already created it.
+- Baseline Build on the exact PR #3463 base SHA `310c0e20e3447c488c1e1c102c38bea5040708ca`, run `43575749904`, had 41 failing test labels across six shards. All 41 labels reappeared unchanged on `b3d6fc4283632d5f7dd5f4954ab7c32cd90850a5`; five additional failures were isolated to the migration/test changes listed above and have been corrected. The inherited 41 failures remain real Build blockers; baseline comparison does not make them acceptable or prove they are harmless.
+- Snapshot run `43589784284` / job `132431853695` passed on `b3d6...`; Follow-up Persistence run `43589784210` / job `132431853760` passed on `b3d6...`. These are historical evidence only.
+- Device Smoke run `43589784304` remained queued; no one of its seven scenarios is accepted.
+
+### Current evidence boundary
+
+The workflows triggered for source SHA `444c8ae6dfe640ee47d254ccc08990fac47b5e5e` were queued/pending at the last live poll: SQLite `43592572106`, Build `43592572088`, Snapshot `43592572377`, Follow-up Persistence `43592572358`, Device Smoke `43592572074`, Production Loop `43592572075`, Orchestrator `43592572384`. The documentation commit below changes the SHA again; none of these runs can establish final acceptance for the post-documentation head.
+
+### PR and consolidation findings
+
+- PR #3384 is OPEN / DRAFT / UNMERGED; its head `310c0e20...` is the exact base of PR #3463. It is a parent dependency, not an unrelated candidate.
+- PR #3448 is OPEN / DRAFT / UNMERGED on a separate documentation branch. Its branch diverges from PR #3463's base (compare: 2,418 ahead / 98 behind). The M2M ADR blob is byte-identical on both branches; the seven overlapping canonical continuity documents have different blob SHAs and require content-level reconciliation. No cherry-pick, retarget or merge was performed.
+- Issue #3458 remains OPEN with `factory:ready` and `priority:core` labels.
+- Repository metadata reports Admin/Maintain/Push/Triage/Pull access and permits auto-merge at repository level; PR #3463 has `auto_merge=null`. The branch-protection endpoint returned HTTP 403 to this connection, so its exact rules are NOT VERIFIED.
+- NIRA was not modified. No Main write, merge, release, deployment, destructive data operation or history rewrite occurred.
+
+### Acceptance status
+
+D01–D05 are NOT ACCEPTED. D01 lifecycle subtests and D05 seven-stage recovery passed on the historical `b3d6...` SHA, D04 physical restore passed as an individual test, and D02 value preservation passed as an individual test; D03/history parity failed. All must be rerun on one final post-documentation SHA. Product-level Backup/Restore integration and canonical repository integration remain separate, unaccepted work.
+
+**Next action:** poll the live post-documentation SHA's exact workflow runs; diagnose any remaining migration failures; complete all D01–D05, Build and seven Device Smoke scenarios on that same SHA. Keep Main read-only and PR #3463 draft/unmerged.
+
+
 ## Post-checkpoint source update — 2026-11-14
 
 - After the first documentation synchronization, two source/test commits were added: `b49659321a1b155e7f7f17c45661075c863e19dc` preserves the public `const G1DriftSchema()` construction contract; `5764d4a82ebef6c3f2eb33a0703f09abe3e545e4` adds further optional Task link combinations and ordinary file-backed reopen assertions.

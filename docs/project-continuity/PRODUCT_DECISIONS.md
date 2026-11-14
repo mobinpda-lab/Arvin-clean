@@ -1,3 +1,10 @@
+## 2026-11-14 — implementation status for approved M2M decision
+
+The approved relationship contract remains unchanged: Center↔Project and Project↔Category are Many-to-Many; Task→Center/Project/Category are independently optional 0..1; Task↔Tag is Many-to-Many.
+
+**Status separation:** the v20 schema/migration and corresponding tests are IMPLEMENTED on the PR #3463 development branch. Historical parity and full D01–D05 acceptance are NOT VERIFIED/NOT ACCEPTED on a single current SHA. Canonical Store/UI integration and production Backup/Restore integration remain incomplete. The approval of the architecture must not be interpreted as acceptance or release authorization.
+
+
 # REV10 — CURRENT OWNER DECISION REGISTER ADDENDUM (2026-11-14)
 
 ## ARVIN-DEC-2026-11-14-CENTER-PROJECT-CATEGORY-M2M

@@ -1,3 +1,26 @@
+## COMMAND 07-A.2.81 — production fix verification and historical parity remediation — 2026-11-14
+
+### Verified historical evidence on SHA b3d6fc4283632d5f7dd5f4954ab7c32cd90850a5
+
+- Build run `43589784306`: staging, release-variant and debug APK jobs passed; visual/PDF/Vazirmatn job passed. Analyze job `132431921330` failed on one unused import. Six regression shards had 46 failures.
+- SQLite acceptance run `43589784286`, job `132431853651`: migration helper 2/2, M2M acceptance 5/5, failure recovery 7/7, Drift lifecycle/schema 17/17 passed. Historical parity suite failed 2 tests; completed-at migration suite failed 1 test.
+- Snapshot run `43589784284`, job `132431853695`, passed; Follow-up Persistence run `43589784210`, job `132431853760`, passed. Device Smoke `43589784304` remained queued.
+- Exact base Build run `43575749904` on SHA `310c0e20e3447c488c1e1c102c38bea5040708ca` had 41 failing test labels; all 41 were reproduced unchanged on `b3d6...`. Five extra failures were specific to the SQLite wave.
+
+### Corrective commits
+
+| Commit | Change |
+|---|---|
+| `9bd415ea7450d9863a1a72941e8f56701954d3a0` | Preserve a metadata record for every historical Follow-up, even when next_follow_up is NULL. |
+| `435ee4e29bd40fb90783400283cd22a405dca5e4` | Compare legacy date_time to canonical completed_at in the historical parity test. |
+| `aca9f446191e31667237c27886a8f837e3b62845` | Correct Task FK assertion to retain custom and canonical FK relations. |
+| `1e92416b8555310ba4e16be0ab3c331fbb00a0f5` | Remove unused import causing Analyze failure. |
+| `8f73900736fe52edae6130116074629addc42dfd` | Open the historical v15 reminder fixture before creating its legacy tables. |
+| `444c8ae6dfe640ee47d254ccc08990fac47b5e5e` | Open the historical v11 template fixture before creating its legacy tables. |
+
+These changes have not yet been accepted by CI on their resulting source SHA. The documentation synchronization below changes the branch HEAD again and requires a new exact-SHA run.
+
+
 ## 2026-11-14 — exact-SHA lifecycle boundary and test compatibility addendum
 
 - Preserved the source-compatible `const G1DriftSchema()` constructor while keeping the optional test failure injector.
