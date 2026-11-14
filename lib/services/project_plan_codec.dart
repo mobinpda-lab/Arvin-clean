@@ -54,7 +54,7 @@ class ProjectPlanCodec {
     final centers = map.containsKey('centerIds')
         ? (map['centerIds'] == null ? const <String>[] : _decodeIds(map['centerIds'], 'centerIds'))
         : legacyCenter == null ? null : <String>[legacyCenter as String];
-    if (legacyCenter != null && centers.isNotEmpty && !centers.contains(legacyCenter)) {
+    if (legacyCenter != null && centers != null && centers.isNotEmpty && !centers.contains(legacyCenter)) {
       throw const FormatException('Project centerId conflicts with centerIds');
     }
 
