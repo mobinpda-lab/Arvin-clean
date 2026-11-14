@@ -430,7 +430,17 @@ void main() {
              FROM follow_up_records ORDER BY task_id, ordinal''',
           const [],
         ),
-        sourceFollowUps,
+        sourceFollowUps.map((row) => {
+          'id': row['id'],
+          'task_id': row['task_id'],
+          'completed_at': row['date_time'],
+          'title': row['title'],
+          'note': row['note'],
+          'result': row['result'],
+          'completed': row['completed'],
+          'waiting_for_response': row['waiting_for_response'],
+          'ordinal': row['ordinal'],
+        }).toList(),
         reason: 'Every historical Follow-up record and its nullable result must survive.',
       );
       expect(
