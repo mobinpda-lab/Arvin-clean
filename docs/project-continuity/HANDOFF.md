@@ -1,3 +1,15 @@
+## Exact-SHA follow-up after source compatibility update — 2026-11-14
+
+## Exact-SHA follow-up after source compatibility update — 2026-11-14
+
+- Latest code candidate at this checkpoint: `5764d4a82ebef6c3f2eb33a0703f09abe3e545e4`. Re-fetch the live PR head after any documentation commit before testing.
+- Drift 2.35.0 source order was verified: `beforeOpen` returns before Drift calls `setSchemaVersion`. The failure-injection test covers the post-migration-commit / pre-version-registration boundary.
+- Two Notebook failures are inherited: Notebook page and test file blob SHAs are identical on #3463 and base #3384 SHA `310c0e20e3447c488c1e1c102c38bea5040708ca`; base Build test-1 also failed on that base. Do not mix those unrelated failures into the SQLite migration root cause.
+- Poll exact-SHA Build, dedicated D-v20, Follow-up Persistence, SQLite Snapshot and Device Smoke. The last observed runs on `5764d4a...` were queued/pending.
+- Continue with historical parity and seven-stage failure recovery before store/UI integration. No D01–D05 gate is accepted yet.
+
+---
+
 ## COMMAND 07-A.2.80-D — next-agent handoff — 2026-11-14
 
 ## COMMAND 07-A.2.80-D — next-agent handoff — 2026-11-14
