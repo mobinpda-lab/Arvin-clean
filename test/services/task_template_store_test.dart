@@ -4,7 +4,7 @@ import 'package:arvin/models/task.dart';
 import 'package:arvin/services/g1_drift_schema.dart';
 import 'package:arvin/services/task_template_store.dart';
 import 'package:drift/native.dart';
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
