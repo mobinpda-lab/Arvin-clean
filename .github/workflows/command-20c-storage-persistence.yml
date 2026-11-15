@@ -1,0 +1,218 @@
+name: Arvin COMMAND 20-C Storage Persistence
+run-name: Arvin COMMAND 20-C (${{ github.event.pull_request.head.sha || inputs.target_sha || github.sha }})
+
+on:
+  push:
+    branches: [recovery-02/main-based-integration]
+    paths:
+      - 'test/project_store_file_persistence_test.dart'
+      - 'integration_test/calendar_link_shared_preferences_restart_test.dart'
+      - '.github/workflows/command-20c-storage-persistence.yml'
+      - 'lib/services/project_store.dart'
+      - 'lib/services/external_calendar_link_store.dart'
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'test/project_store_file_persistence_test.dart'
+      - 'integration_test/calendar_link_shared_preferences_restart_test.dart'
+      - '.github/workflows/command-20c-storage-persistence.yml'
+      - 'lib/services/project_store.dart'
+      - 'lib/services/external_calendar_link_store.dart'
+  workflow_dispatch:
+    inputs:
+      target_sha:
+        description: 'Exact commit SHA to validate'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  FLUTTER_VERSION: '3.47.0'
+
+jobs:
+  storage-persistence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout exact target
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.event.pull_request.head.sha || github.sha }}
+
+      - name: Verify exact checkout and initialize evidence
+        shell: bash
+        env:
+          TARGET_SHA: ${{ inputs.target_sha || github.event.pull_request.head.sha || github.sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p .github/command-20c-evidence
+          actual="$(git rev-parse HEAD)"
+          printf 'TARGET_SHA=%s\nCHECKED_OUT_SHA=%s\n' "$TARGET_SHA" "$actual" | tee .github/command-20c-evidence/sha-verification.txt
+          test "$actual" = "$TARGET_SHA"
+          echo 'SHA_VERIFICATION=PASS' | tee -a .github/command-20c-evidence/sha-verification.txt
+          printf 'WORKFLOW_RUN_URL=%s\n' "$RUN_URL" > .github/command-20c-evidence/workflow-run.txt
+
+      - name: Install Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Capture SDK versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdk_root="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          {
+            echo "CHECKED_OUT_SHA=$(git rev-parse HEAD)"
+            flutter --version
+            dart --version
+            java -version
+            echo "ANDROID_SDK_ROOT=$sdk_root"
+            flutter doctor -v || true
+            if [ -d "$sdk_root/platforms" ]; then
+              find "$sdk_root/platforms" -maxdepth 2 -name source.properties -type f -print -exec grep -E 'Pkg.Desc|Pkg.Revision' {} \; || true
+            fi
+            sdkmanager_path="$(find "$sdk_root/cmdline-tools" -type f -name sdkmanager -print -quit 2>/dev/null || true)"
+            if [ -n "$sdkmanager_path" ]; then
+              echo "SDKMANAGER_PATH=$sdkmanager_path"
+              "$sdkmanager_path" --list_installed || true
+            else
+              echo "SDKMANAGER=NOT_FOUND; Android SDK package manifests and Flutter doctor output retained"
+            fi
+          } > .github/command-20c-evidence/sdk-versions.txt 2>&1
+          cat .github/command-20c-evidence/sdk-versions.txt
+
+      - name: Resolve locked dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter pub get --enforce-lockfile 2>&1 | tee .github/command-20c-evidence/pub-get.log
+          git diff --exit-code -- pubspec.lock
+
+      - name: Run file-backed ProjectStore test
+        shell: bash
+        run: |
+          set -o pipefail
+          flutter test test/project_store_file_persistence_test.dart 2>&1 | tee .github/command-20c-evidence/project-store-test.log
+
+      - name: Run real SharedPreferences write, stop, and fresh-process read
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          target: default
+          disable-animations: true
+          script: |
+            set -uo pipefail
+            evidence=".github/command-20c-evidence"
+            mkdir -p "$evidence"
+            write_rc=0
+            read_rc=0
+            cleanup_rc=0
+
+            flutter test --dart-define=ARVIN_CALENDAR_LINK_PHASE=write integration_test/calendar_link_shared_preferences_restart_test.dart -d emulator-5554 2>&1 | tee "$evidence/calendar-link-write.log"
+            write_rc=$?
+            echo "CALENDAR_LINK_WRITE_EXIT_CODE=$write_rc" | tee "$evidence/calendar-link-results.txt"
+
+            if [ "$write_rc" -eq 0 ]; then
+              adb shell am force-stop com.example.arvin
+              echo "ANDROID_APP_FORCE_STOP_AFTER_WRITE=PASS" | tee -a "$evidence/calendar-link-results.txt"
+              sleep 2
+              flutter test --dart-define=ARVIN_CALENDAR_LINK_PHASE=read integration_test/calendar_link_shared_preferences_restart_test.dart -d emulator-5554 2>&1 | tee "$evidence/calendar-link-read.log"
+              read_rc=$?
+            else
+              echo "ANDROID_APP_FORCE_STOP_AFTER_WRITE=NOT_RUN" | tee -a "$evidence/calendar-link-results.txt"
+            fi
+            echo "CALENDAR_LINK_READ_EXIT_CODE=$read_rc" | tee -a "$evidence/calendar-link-results.txt"
+
+            adb shell am force-stop com.example.arvin >/dev/null 2>&1 || true
+            adb shell pm clear com.example.arvin 2>&1 | tee "$evidence/android-emulator-app-data-cleanup.log"
+            cleanup_rc=$?
+            echo "ANDROID_EMULATOR_APP_DATA_CLEANUP_EXIT_CODE=$cleanup_rc" | tee -a "$evidence/calendar-link-results.txt"
+            echo "ANDROID_EMULATOR_API=$(adb shell getprop ro.build.version.sdk | tr -d '\r')" | tee "$evidence/android-emulator.txt"
+
+            if [ "$write_rc" -ne 0 ] || [ "$read_rc" -ne 0 ] || [ "$cleanup_rc" -ne 0 ]; then
+              exit 1
+            fi
+            echo "CALENDAR_LINK_REAL_PERSISTENCE=PASS" | tee -a "$evidence/calendar-link-results.txt"
+
+      - name: Write structured acceptance results
+        if: always()
+        shell: bash
+        run: |
+          set -u
+          evidence=".github/command-20c-evidence"
+          project="NOT_RUN"
+          calendar="NOT_RUN"
+          sha="FAIL"
+          independent="NOT_RUN"
+          if grep -q 'PROJECT_STORE_FILE_PERSISTENCE=PASS' "$evidence/project-store-test.log" 2>/dev/null; then project="PASS"; else if [ -f "$evidence/project-store-test.log" ]; then project="FAIL"; fi; fi
+          if grep -q 'CALENDAR_LINK_REAL_PERSISTENCE=PASS' "$evidence/calendar-link-results.txt" 2>/dev/null; then calendar="PASS"; else if [ -f "$evidence/calendar-link-results.txt" ]; then calendar="FAIL"; fi; fi
+          if grep -q 'SHA_VERIFICATION=PASS' "$evidence/sha-verification.txt" 2>/dev/null; then sha="PASS"; fi
+          if [ "$project" = "PASS" ] && [ "$calendar" = "PASS" ]; then independent="PASS"; fi
+          {
+            printf 'PROJECT_STORE_FILE_PERSISTENCE=%s\n' "$project"
+            printf 'CALENDAR_LINK_REAL_PERSISTENCE=%s\n' "$calendar"
+            printf 'INDEPENDENT_REOPEN=%s\n' "$independent"
+            printf 'SHA_VERIFICATION=%s\n' "$sha"
+          } | tee "$evidence/acceptance-results.txt"
+
+      - name: Upload phase evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arvin-command-20c-phase-evidence-${{ github.event.pull_request.head.sha || inputs.target_sha || github.sha }}
+          path: .github/command-20c-evidence/
+          if-no-files-found: error
+          retention-days: 30
+
+  complete-evidence:
+    if: always()
+    needs: storage-persistence
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Download phase evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: arvin-command-20c-phase-evidence-${{ github.event.pull_request.head.sha || inputs.target_sha || github.sha }}
+          path: command-20c-evidence
+
+      - name: Collect complete GitHub Actions workflow log
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          job_id="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs" --jq '.jobs[] | select(.name == "storage-persistence") | .id' | head -n 1)"
+          test -n "$job_id"
+          curl --fail --silent --show-error --location --retry 3 --retry-all-errors --retry-delay 2 \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/jobs/$job_id/logs" \
+            -o command-20c-evidence/full-validation-job.log
+          test -s command-20c-evidence/full-validation-job.log
+          printf 'FULL_VALIDATION_JOB_LOG=PASS\n' > command-20c-evidence/full-workflow-log-status.txt
+
+      - name: Upload complete evidence package
+        uses: actions/upload-artifact@v4
+        with:
+          name: arvin-command-20c-complete-evidence-${{ github.event.pull_request.head.sha || inputs.target_sha || github.sha }}
+          path: command-20c-evidence/
+          if-no-files-found: error
+          retention-days: 30
