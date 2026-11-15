@@ -739,7 +739,7 @@ void main() {
           },
           rollback: () async {
             await taskStore.save([oldTask]);
-            await projectStore.save([oldProject]);
+            await projectStore.replaceAll([oldProject]);
             await linkStore.save([oldLink]);
             if (oldSettings == null) {
               await prefs.remove('restore-test.settings');
