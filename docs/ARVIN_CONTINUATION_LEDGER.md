@@ -103,3 +103,56 @@ Do not report a feature as completed without a GitHub artifact (commit/PR/test/b
 - Full UI integration and regression: NOT ACCEPTED.
 - Final acceptance / release: NO-GO.
 - Next work must be an implementation commit on this Canonical branch, then one Draft PR based on Main. No legacy PR is to be closed or merged until its useful changes are proven transferred.
+
+
+## REV10 implementation continuation — 2026-11-15
+
+### Canonical delivery path
+- Primary PR: #3495, OPEN / DRAFT / UNMERGED.
+- Base: `main`; Main remains unchanged at `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Head branch: `recovery-02/main-based-integration`.
+- Product implementation commits currently on this branch: `4b83508fe7e4064cbc6407cb5955713b7d44b279` and `4456ce674f4eeb63aeebb7fc174166b199f70f16`.
+- The only Canonical PR for delivery is #3495. Legacy PRs #3384, #3463 and #3470, plus governance PR #3448, remain untouched and preserved.
+
+### Implemented safety slice — ProjectStore
+- `ProjectStore.save` now delegates to transactional additive upsert; ordinary saves no longer delete/recreate the full Project collection.
+- Project identity and Projects omitted from a partial update are preserved.
+- The model and codec distinguish missing `itemIds` from an explicit empty list. Missing membership preserves SQL edges; an explicit empty list clears only that Project's membership.
+- Unknown historical Project envelope fields are loaded into `legacyFields` and carried through upsert.
+- Explicit deletion is performed in the same transaction as the upsert batch and is blocked while a Project still references Tasks.
+- The Projects launcher now sends explicit removed IDs; TaskProjectAssignmentService uses additive upsert.
+- Backup restore retains its explicit full-snapshot replacement path.
+- `clear()` now uses guarded deletion and is rejected if any Project still has Task links.
+- Added regression tests for partial upsert, relationship preservation, explicit membership clearing, metadata round-trip, delete rollback and guarded clear.
+- These changes are a bounded safety slice on the existing Main schema; they do not implement REV10 M2M or v20 migration.
+
+### Exact schema dependency discovered
+- Main `lib/services/g1_drift_schema.dart`: schema version 7.
+- PR #3384 head `310c0e20e3447c488c1e1c102c38bea5040708ca`: schema version 19.
+- PR #3463 head `812082964c649be7660c41213209ec34aea7167b`: schema version 20.
+- Therefore the REV10 v20 candidate cannot be transplanted directly onto Main. The v7-to-v19 foundation and its real migrations/consumers must be reconciled first; then the v19-to-v20 M2M migration can be integrated. Do not treat the candidate's v20 tests as proof that Main can safely open or migrate user databases.
+
+### Historical compile-failure root causes
+- At historical candidate SHA `b4bff298074c10e295094f4f6bb2a1b1dac1608a`, `G1DriftSchema` had a const constructor while also declaring mutable `_lifecycleCompleted`. Dart rejects that combination.
+- Candidate history shows the constructor was made non-const in `b3d6fc4283632d5f7dd5f4954ab7c32cd90850a5`; current v20 candidate source at `812082...` is non-const. Main's current v7 schema does not contain this issue. No speculative Main edit was made.
+- On candidate SHA `812082...`, Analyze logs identify ambiguous `isNull` imports in `test/services/task_template_store_test.dart` and `test/task_store_reminder_persistence_test.dart`. Historical fixes `83a6431c3ef6b4b77543a839e6f2a59690f6044d` and `718ca4c6e815319222a5d20291211c7eb56b2696` hide Drift's `isNull` in those imports. Those tests/dependencies are not both present on Main; port them only with the associated v19/v20 implementation and test suite.
+
+### Historical CI evidence — candidate SHA only
+- PR #3463 Build run `43629839831` failed on exact head `812082...`: Analyze failed on the ambiguous imports; all six test shards failed with compile and existing UI/regression assertions. Debug, Release and Staging APK builds passed; Visual passed.
+- On that same exact SHA, SQLite v20 acceptance run `43629840018`, SQLite Snapshot run `43629839832`, and Follow-up Persistence run `43629839898` succeeded.
+- Device Smoke run `43629839877` was still queued at the last observed state.
+- These candidate results do not transfer to Canonical or establish product acceptance.
+
+### Canonical CI boundary
+- The PR #3495 head `4456ce674f4eeb63aeebb7fc174166b199f70f16` has Build, six test shards, Debug/Release APK, Follow-up Persistence, Device Smoke, Orchestrator, Parallel Wave and G1 lock-sync checks registered.
+- At the last exact-head check, all quality/build/smoke jobs were QUEUED; no result is PASS yet.
+- Flutter/Dart are not available in the local execution container. GitHub Actions is the selected validation environment; no local test execution is claimed.
+
+### Remaining acceptance gates
+- Main v7 to canonical v19 schema migration and historical parity: NOT ACCEPTED.
+- v19-to-v20 REV10 M2M migration on real file-backed Main-derived databases: NOT ACCEPTED.
+- Task optional Center/Project/Category links and Task↔Tag persistence: NOT ACCEPTED.
+- CenterStore, ProjectStore and Category/Tag consumer integration against the REV10 graph: NOT ACCEPTED.
+- Full relational Backup/Restore, metadata parity and rollback across all entities: NOT ACCEPTED.
+- Full page integration, typography audit, regression and device smoke on one final SHA: NOT ACCEPTED.
+- Final acceptance remains NO-GO. Main, merge, release, deployment and production user data remain protected.
