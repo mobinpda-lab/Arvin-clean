@@ -6,6 +6,7 @@ import 'package:arvin/models/task.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:drift/native.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -19,14 +20,14 @@ void main() {
         await Directory.systemTemp.createTemp('arvin-project-store-file-');
     final databaseFile = File('${directory.path}/project-store.sqlite');
     final project = ProjectPlan(
-      id: 'command-20c-project-001',
+      id: 'command-20e-project-001',
       title: 'پروژه آزمون ماندگاری',
       colorValue: 0xFF3157A4,
       isArchived: true,
-      itemIds: const <String>['command-20c-task-a', 'command-20c-task-b'],
+      itemIds: const <String>['command-20e-task-a', 'command-20e-task-b'],
       legacyFields: <String, dynamic>{
         'historicalMarker': <String, dynamic>{
-          'source': 'command-20c',
+          'source': 'command-20e',
           'revision': 7,
           'flags': <String>['keep', 'round-trip'],
         },
@@ -41,8 +42,8 @@ void main() {
       final firstDatabase = NativeDatabase(databaseFile);
       try {
         await TaskStore(executor: firstDatabase).save(<Task>[
-          Task(id: 'command-20c-task-a', title: 'کار مرتبط الف'),
-          Task(id: 'command-20c-task-b', title: 'کار مرتبط ب'),
+          Task(id: 'command-20e-task-a', title: 'کار مرتبط الف'),
+          Task(id: 'command-20e-task-b', title: 'کار مرتبط ب'),
         ]);
 
         final firstStore = ProjectStore(executor: firstDatabase);
@@ -51,7 +52,7 @@ void main() {
 
         expect(beforeResave.id, project.id);
         expect(beforeResave.itemIds,
-            <String>['command-20c-task-a', 'command-20c-task-b']);
+            <String>['command-20e-task-a', 'command-20e-task-b']);
         expect(beforeResave.legacyFields['historicalMarker'],
             project.legacyFields['historicalMarker']);
         expect(beforeResave.legacyFields['customMetadata'],
@@ -66,18 +67,19 @@ void main() {
         expect(afterResave.title, 'پروژه پس از ذخیره مجدد');
         expect(afterResave.itemIds, beforeResave.itemIds);
         expect(afterResave.legacyFields, beforeResave.legacyFields);
-        print('PROJECT_STORE_FILE_SAVE_AND_RESAVE=PASS');
+        debugPrintSynchronously('PROJECT_STORE_FILE_SAVE_AND_RESAVE=PASS');
       } finally {
         await firstDatabase.close();
       }
 
       expect(databaseFile.existsSync(), isTrue);
       expect(await databaseFile.length(), greaterThan(0));
-      print('PROJECT_STORE_DATABASE_CLOSED=PASS');
+      debugPrintSynchronously('PROJECT_STORE_DATABASE_CLOSED=PASS');
 
       final reopenedDatabase = NativeDatabase(databaseFile);
       try {
         final reopenedStore = ProjectStore(executor: reopenedDatabase);
+        final reopenedTaskStore = TaskStore(executor: reopenedDatabase);
         final restored = await reopenedStore.load();
         expect(restored, hasLength(1));
         final loaded = restored.single;
@@ -87,11 +89,18 @@ void main() {
         expect(loaded.colorValue, project.colorValue);
         expect(loaded.isArchived, isTrue);
         expect(loaded.itemIds,
-            <String>['command-20c-task-a', 'command-20c-task-b']);
+            <String>['command-20e-task-a', 'command-20e-task-b']);
         expect(loaded.legacyFields['historicalMarker'],
             project.legacyFields['historicalMarker']);
         expect(loaded.legacyFields['customMetadata'],
             project.legacyFields['customMetadata']);
+
+        final restoredTasks = await reopenedTaskStore.load();
+        expect(restoredTasks, hasLength(2));
+        expect(restoredTasks.map((task) => task.id).toSet(),
+            <String>{'command-20e-task-a', 'command-20e-task-b'});
+        expect(restoredTasks.map((task) => task.title).toSet(),
+            <String>{'کار مرتبط الف', 'کار مرتبط ب'});
 
         final integrityRows = await reopenedDatabase.runSelect(
           'PRAGMA integrity_check',
@@ -103,27 +112,28 @@ void main() {
           const <Object?>[],
         );
         expect(foreignKeyRows, isEmpty);
-        print('PROJECT_STORE_SQLITE_INTEGRITY_AND_FOREIGN_KEYS=PASS');
+        debugPrintSynchronously('PROJECT_STORE_SQLITE_INTEGRITY_AND_FOREIGN_KEYS=PASS');
 
         final serialized = reopenedStore.codec.encode(loaded);
         expect(serialized['id'], project.id);
         expect(serialized['itemIds'],
-            <String>['command-20c-task-a', 'command-20c-task-b']);
+            <String>['command-20e-task-a', 'command-20e-task-b']);
         expect(serialized['historicalMarker'],
             project.legacyFields['historicalMarker']);
         expect(serialized['customMetadata'],
             project.legacyFields['customMetadata']);
         expect(jsonDecode(jsonEncode(serialized)), isA<Map<String, dynamic>>());
-        print('PROJECT_STORE_INDEPENDENT_REOPEN=PASS');
-        print('PROJECT_STORE_ID_METADATA_RELATIONSHIPS_SERIALIZE=PASS');
-        print('PROJECT_STORE_FILE_PERSISTENCE=PASS');
+        debugPrintSynchronously('PROJECT_STORE_INDEPENDENT_REOPEN=PASS');
+        debugPrintSynchronously('PROJECT_STORE_ID_METADATA_RELATIONSHIPS_SERIALIZE=PASS');
+        debugPrintSynchronously('PROJECT_STORE_FILE_PERSISTENCE=PASS');
       } finally {
         await reopenedDatabase.close();
       }
     } finally {
       await directory.delete(recursive: true);
       expect(directory.existsSync(), isFalse);
-      print('PROJECT_STORE_TEMP_FILE_CLEANUP=PASS');
+      expect(databaseFile.existsSync(), isFalse);
+      debugPrintSynchronously('PROJECT_STORE_TEMP_FILE_AND_DIRECTORY_CLEANUP=PASS');
     }
   });
 }
